@@ -24,14 +24,25 @@ namespace Nodable{
 
 		Slot(const char* _val)
 		{
-			size 	= strlen(_val);
+			size 	= strlen(_val)+1;
          	value 	= new char[size];
 			memcpy(&value, (const void*)&_val, size);			
 			type 	= SlotType_String;
 		}
 
 		~Slot(){}
-		void* 		value;
+
+		const char* toString()const{
+			if (type == SlotType_String){
+				return (const char*)value;
+
+			}else if ( type == SlotType_Integer){
+				int* n = (int*)&value;
+				return std::to_string(*n).c_str();
+			}
+		}
+
+		char* 		value;
 		size_t 		size;
 		SlotType_ 	type;
 	};
@@ -48,7 +59,7 @@ namespace Nodable{
 
 		friend std::ostream& operator<<(std::ostream& _stream, Node& _node){	
 			for(auto slot : _node.getSlots()){
-				_stream << slot->value << std::endl;
+				_stream << slot->toString() << std::endl;
 			}
 			//_stream << "coucou";
 			return _stream;
