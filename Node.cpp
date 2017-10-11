@@ -4,22 +4,50 @@
 using namespace Nodable;
 using namespace std;
 
+ // Node :
+//////////
+
 Node::Node(){}
 Node::~Node(){}
 
-void	Node::addSlot(int _val){
-	cout << "Adding an integer slot to the node : " << _val << endl;
+ // Node_Integer :
+//////////////////
 
-	Slot* slot = new Slot(_val);
-	this->slots.push_back(slot);
+Node_Integer::Node_Integer(int _n):
+value(_n){}
+
+Node_Integer::~Node_Integer(){}
+
+void Node_Integer::setValue(int _n)
+{
+	this->value = _n;
 }
 
-void	Node::addSlot(const char* _val){
-	cout << "Adding a string slot to the node : " << _val << endl;
-	Slot* slot = new Slot(_val);
-	this->slots.push_back(slot);
+int Node_Integer::getValue()const
+{
+	return this->value;
 }
 
-const std::vector<Slot*>& Node::getSlots()const{
-	return this->slots;
+ // Node_Add :
+//////////////
+
+Node_Add::Node_Add(	Node_Integer* _inputA,
+					Node_Integer* _inputB,
+					Node_Integer* _output):
+	inputA(_inputA),
+	inputB(_inputB),
+	output(_output)
+{
+
+}
+
+Node_Add::~Node_Add()
+{
+	
+}
+
+void Node_Add::evaluate()
+{
+	int result = this->inputA->getValue() + this->inputB->getValue();
+	this->output->setValue(result);
 }
