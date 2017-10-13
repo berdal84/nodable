@@ -5,6 +5,12 @@
 #include "iostream"
 
 namespace Nodable{
+	class Node;
+	class Node_Integer;
+	class Node_Add;
+	class Node_Tag;
+	class Node_Context;
+
 	class Node{
 	public:
 		Node();
@@ -30,5 +36,28 @@ namespace Nodable{
 		Node_Integer* inputA;
 		Node_Integer* inputB;
 		Node_Integer* output;
+	};
+
+	class Node_Tag : public Node{
+	public:
+		Node_Tag(Node_Context* _context, const char* _name, Node* _value);
+		~Node_Tag();
+		Node* 			getValue()const;
+		const char* 	getName()const;
+	private:
+		std::string 	name;
+		Node* 			value;
+		Node_Context* 	context;
+	};
+
+	class Node_Context : public Node {
+	public:
+		Node_Context(const char* /*name*/);
+		~Node_Context();
+		void 		add(Node_Tag*);
+		Node_Tag* 	find(const char*);
+	private:		
+		std::vector<Node_Tag*> tags;
+		std::string 	name;
 	};
 }
