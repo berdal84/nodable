@@ -37,7 +37,7 @@ int main(int n, const char** args){
 	while( !userWantsToQuit )
 	{
 		cout << ">>>";		
-		cin >> input;
+		std::cin.getline(input,256);
 		lastString = new Node_String(input);
 		cout << "result : " << lastString->getValue() << endl;
 		userWantsToQuit = (strcmp(lastString->getValue(), exit->getValue()) == 0);
