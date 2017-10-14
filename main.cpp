@@ -25,5 +25,24 @@ int main(int n, const char** args){
 	if (node != nullptr)
 		((Node_Add*)node->getValue())->evaluate();
 
+	// Create few nodes to identify keywords :
+	cout << endl;
+	cout << "Launching the command line interpreter..." << endl;	
+
+	auto exit 				= new Node_String("exit");
+	auto lastString 		= new Node_String();
+	bool userWantsToQuit 	= false;
+	char input[256];
+
+	while( !userWantsToQuit )
+	{
+		cout << ">>>";		
+		cin >> input;
+		lastString = new Node_String(input);
+		cout << "result : " << lastString->getValue() << endl;
+		userWantsToQuit = (strcmp(lastString->getValue(), exit->getValue()) == 0);
+	}
+
 	return 0;
 }
+

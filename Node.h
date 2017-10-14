@@ -10,6 +10,7 @@ namespace Nodable{
 	class Node_Add;
 	class Node_Tag;
 	class Node_Context;
+	class Node_String;
 
 	class Node{
 	public:
@@ -25,6 +26,16 @@ namespace Nodable{
 		int getValue()const;
 	private:
 		int value;
+	};
+
+	class Node_String : public Node{
+	public:
+		Node_String(const char* _value="");
+		~Node_String();
+		void setValue(const char* /*value*/);
+		const char* getValue()const;
+	private:
+		std::string value;
 	};
 
 	class Node_Add : public Node{

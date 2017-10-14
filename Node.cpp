@@ -34,6 +34,28 @@ int Node_Integer::getValue()const
 	return this->value;
 }
 
+ // Node_String :
+//////////////////
+
+Node_String::Node_String(const char* _value):
+value(_value)
+{
+	cout <<  "New Node_String : " << _value << endl;
+}
+
+Node_String::~Node_String(){}
+
+void Node_String::setValue(const char* _value)
+{
+	cout <<  "Node_String " <<  this->value << " becomes " << _value << endl;
+	this->value = _value;
+}
+
+const char* Node_String::getValue()const
+{
+	return this->value.c_str();
+}
+
  // Node_Add :
 //////////////
 
