@@ -144,3 +144,96 @@ Node_Tag* Node_Context::find(const char* _name)
 	cout << "NOT found !" << endl;
 	return nullptr;
 }
+
+ // Node_Lexer :
+////////////////
+
+Node_Lexer::Node_Lexer(Node_String* _expression):
+expression(_expression)
+{
+	printf("New Node_Lexer ready to tokenize \"%s\"\n", _expression->getValue() );
+}
+
+Node_Lexer::~Node_Lexer()
+{
+
+}
+
+void Node_Lexer::evaluate()
+{
+	/* get expression chars */
+	std::string chars = expression->getValue();
+
+	/* prepare allowed chars */
+	string numbers 		= "0123456789.";
+	string letters		= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
+	string operators 	= "+-=/*";
+
+	for(auto it = chars.begin(); it < chars.end(); ++it)
+	{
+
+		 /* Search for a number */
+		/////////////////////////
+
+				if( numbers.find(*it) != string::npos )
+		{
+
+			auto itStart = it;
+			while(	it != chars.end() && 
+					numbers.find(*it) != string::npos)
+			{
+				++it;
+			}
+			--it;
+
+			std::string number = chars.substr(itStart - chars.begin(), it - itStart + 1);
+			addToken("number", number);
+
+		 /* Search for a string */
+		/////////////////////////
+
+		}else 	if(*it == '"')
+		{
+			++it;
+			auto itStart = it;
+			while(	it != chars.end() && *it != '"')
+			{
+				++it;
+			}
+
+			std::string str = chars.substr(itStart - chars.begin(), it - itStart);
+			addToken("string", str);
+
+		 /* Search for a symbol */
+		/////////////////////////
+
+		}else 	if( letters.find(*it) != string::npos)
+		{
+			auto itStart = it;
+			while(	it != chars.end() && 
+					letters.find(*it) != string::npos)
+			{
+				++it;
+			}
+			--it;
+
+			std::string str = chars.substr(itStart - chars.begin(), it - itStart + 1);
+			addToken("symbol", str);
+
+		 /* Search for an operator */
+		////////////////////////////
+			
+		}else 	if(operators.find(*it) != string::npos)
+		{
+			std::string str = chars.substr(it - chars.begin(), 1);
+			addToken("operator", str);
+		}		
+	}
+}
+
+void Node_Lexer::addToken(string _category, string _string)
+{
+	std::pair<std::string,std::string> token (_category, _string);
+	printf("Node_Lexer::addToken() - %-10s => \"%s\" \n", ("\"" + _category + "\"").c_str(), _string.c_str() );
+	tokens.push_back(token);
+}

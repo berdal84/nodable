@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string>
+
 #include "Node.h"
 
 using namespace std;
@@ -29,17 +31,27 @@ int main(int n, const char** args){
 	cout << endl;
 	cout << "Launching the command line interpreter..." << endl;	
 
-	auto exit 				= new Node_String("exit");
-	auto lastString 		= new Node_String();
-	bool userWantsToQuit 	= false;
-	char input[256];
+	auto exit 				= new Node_String("exit"); 	/* define the Node_String "exit" as a keyword to exit application.*/
+	auto lastString 		= new Node_String();		/* Initialize a Node_String to store users input*/
+	bool userWantsToQuit 	= false;	
 
 	while( !userWantsToQuit )
 	{
-		cout << ">>>";		
+		/* Print command line prompt */
+		printf(">>> ");
+
+		/* Reads expression string written by user */
+		char input[256];
 		std::cin.getline(input,256);
 		lastString = new Node_String(input);
-		cout << "result : " << lastString->getValue() << endl;
+
+		/* Create a Lexer node. The lexer will cut expression string into tokens
+		(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
+		auto lexer = new Node_Lexer(lastString);
+		lexer->evaluate();
+		delete lexer;
+		
+		/* Checks if users wants to exit*/
 		userWantsToQuit = (strcmp(lastString->getValue(), exit->getValue()) == 0);
 	}
 

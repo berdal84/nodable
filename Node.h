@@ -11,6 +11,7 @@ namespace Nodable{
 	class Node_Tag;
 	class Node_Context;
 	class Node_String;
+	class Node_Lexer;	// to convert strings to tokens
 
 	class Node{
 	public:
@@ -70,5 +71,17 @@ namespace Nodable{
 	private:		
 		std::vector<Node_Tag*> tags;
 		std::string 	name;
+	};
+
+	class Node_Lexer : public Node
+	{
+	public:
+		Node_Lexer(Node_String* _expression);
+		~Node_Lexer();
+		void evaluate();
+	private:
+		void addToken(std::string _category, std::string _string);
+		Node_String* expression;
+		std::vector<std::pair<std::string, std::string>> tokens;
 	};
 }
