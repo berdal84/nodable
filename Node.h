@@ -22,6 +22,7 @@ namespace Nodable{
 	class Node_Integer : public Node{
 	public:
 		Node_Integer(int _n=0);
+		Node_Integer(std::string _string);
 		~Node_Integer();
 		void setValue(int _n);
 		int getValue()const;
@@ -78,9 +79,13 @@ namespace Nodable{
 	public:
 		Node_Lexer(Node_String* _expression);
 		~Node_Lexer();
-		void evaluate();
+		void evaluate			();
 	private:
-		void addToken(std::string _category, std::string _string);
+		void buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Integer* _result);
+		void tokenize			();
+		bool isSyntaxValid		();
+		void buildExecutionTreeAndEvaluate	();
+		void addToken			(std::string _category, std::string _string);
 		Node_String* expression;
 		std::vector<std::pair<std::string, std::string>> tokens;
 	};

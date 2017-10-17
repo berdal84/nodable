@@ -18,7 +18,13 @@ Node::~Node(){}
 Node_Integer::Node_Integer(int _n):
 value(_n)
 {
-	cout <<  "New Node_Integer : " << _n << endl;
+	cout <<  "New Node_Integer : " << value << endl;
+}
+
+Node_Integer::Node_Integer(std::string _string)
+{
+	value = std::stoi(_string);
+	cout <<  "New Node_Integer : " << value << endl;
 }
 
 Node_Integer::~Node_Integer(){}
@@ -161,13 +167,85 @@ Node_Lexer::~Node_Lexer()
 
 void Node_Lexer::evaluate()
 {
+	tokenize();
+	if ( isSyntaxValid() )
+	{
+		buildExecutionTreeAndEvaluate();
+	}
+}
+
+void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Integer* _result)
+{
+
+	Node_Integer* 	left 	= new Node_Integer(tokens[_tokenIndex].second.c_str());
+
+	/* if it is a single number */
+	if ( _tokenIndex == tokens.size() - 1)
+	{
+		_result->setValue(left->getValue());
+	}
+
+	/* if it is an expr like number + expr */
+	else
+	{		
+		// Evaluate the right part
+		Node_Integer* 	right = new Node_Integer();	
+		buildExecutionTreeAndEvaluateRec(_tokenIndex+2, right);
+
+		// Perform the operation
+		Node_Add*		op 		= new Node_Add(left, right, _result);		
+		op->evaluate();
+	}
+}
+
+void Node_Lexer::buildExecutionTreeAndEvaluate()
+{
+	printf("Node_Lexer::buildExecutionTreeAndEvaluate() - START\n");
+	auto currentTokenIndex = 0;
+	Node_Integer* result = new Node_Integer();	
+	buildExecutionTreeAndEvaluateRec(currentTokenIndex, result);
+	printf("Node_Lexer::buildExecutionTreeAndEvaluate() - DONE !\n");
+	cout << "Result: " << result->getValue() << endl;
+}
+
+bool Node_Lexer::isSyntaxValid()
+{
+	bool success = true;	
+	printf("Node_Lexer::isSyntaxValid() - START\n");
+
+
+	if(!( tokens.size()%2 == 1))
+	{
+		for(size_t i = 0; i < tokens.size(); i=i+2){
+			if ( tokens[i].first != "number")
+				success = false;
+		}
+		for(size_t i = 1; i < tokens.size(); i=i+2){
+			if ( tokens[i].first != "operator")
+				success = false;
+		}
+		printf("The only syntax accepted is \"number\", \"operator\", \"number\", etc... \n");
+		success = false;
+	}
+
+	if(success)
+		printf("Node_Lexer::isSyntaxValid() - OK\n");
+	else
+		printf("Node_Lexer::isSyntaxValid() - FAIL...\n");
+
+	return success;
+}
+
+void Node_Lexer::tokenize()
+{
+	printf("Node_Lexer::tokenize() - START\n");
 	/* get expression chars */
 	std::string chars = expression->getValue();
 
 	/* prepare allowed chars */
 	string numbers 		= "0123456789.";
 	string letters		= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
-	string operators 	= "+-=/*";
+	string operators 	= "+";
 
 	for(auto it = chars.begin(); it < chars.end(); ++it)
 	{
@@ -229,6 +307,7 @@ void Node_Lexer::evaluate()
 			addToken("operator", str);
 		}		
 	}
+	printf("Node_Lexer::tokenize() - DONE !\n");
 }
 
 void Node_Lexer::addToken(string _category, string _string)
