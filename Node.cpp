@@ -18,20 +18,20 @@ Node::~Node(){}
 Node_Integer::Node_Integer(int _n):
 value(_n)
 {
-	cout <<  "New Node_Integer : " << value << endl;
+	//cout <<  "New Node_Integer : " << value << endl;
 }
 
 Node_Integer::Node_Integer(std::string _string)
 {
 	value = std::stoi(_string);
-	cout <<  "New Node_Integer : " << value << endl;
+	//cout <<  "New Node_Integer : " << value << endl;
 }
 
 Node_Integer::~Node_Integer(){}
 
 void Node_Integer::setValue(int _n)
 {
-	cout <<  "Node_Integer " <<  this->value << " becomes " << _n << endl;
+	//cout <<  "Node_Integer " <<  this->value << " becomes " << _n << endl;
 	this->value = _n;
 }
 
@@ -46,14 +46,14 @@ int Node_Integer::getValue()const
 Node_String::Node_String(const char* _value):
 value(_value)
 {
-	cout <<  "New Node_String : " << _value << endl;
+	//cout <<  "New Node_String : " << _value << endl;
 }
 
 Node_String::~Node_String(){}
 
 void Node_String::setValue(const char* _value)
 {
-	cout <<  "Node_String " <<  this->value << " becomes " << _value << endl;
+	//cout <<  "Node_String " <<  this->value << " becomes " << _value << endl;
 	this->value = _value;
 }
 
@@ -95,7 +95,7 @@ Node_Tag::Node_Tag(Node_Context* _context, const char* _name, Node* _value):
 	value(_value),
 	context(_context)	
 {
-	cout << "New Node_Tag : " << _name << endl;
+	//cout << "New Node_Tag : " << _name << endl;
 	_context->add(this);
 }
 
@@ -174,36 +174,74 @@ void Node_Lexer::evaluate()
 	}
 }
 
-void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Integer* _result)
+void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Integer* _finalRes, Node_Integer* _prevRes)
 {
 
-	Node_Integer* 	left 	= new Node_Integer(tokens[_tokenIndex].second.c_str());
+	Node_Integer* 	left;
+	Node_Integer* 	right;
 
-	/* if it is a single number */
-	if ( _tokenIndex == tokens.size() - 1)
-	{
-		_result->setValue(left->getValue());
+	printf("Token evaluated : %lu.\n", _tokenIndex);
+
+	// If a previous result is set, it mean we have already calculated the left part
+	// So we use it as left operand
+
+	if ( _prevRes != nullptr ){
+		left = _prevRes;
+
+	// Else, we parse the left operand
+	}else{
+		left = new Node_Integer(tokens[_tokenIndex].second.c_str());
 	}
+	
 
-	/* if it is an expr like number + expr */
-	else
-	{		
-		// Evaluate the right part
-		Node_Integer* 	right = new Node_Integer();	
-		buildExecutionTreeAndEvaluateRec(_tokenIndex+2, right);
+	size_t tokenLeft = tokens.size() - _tokenIndex;
+	/* number */
+	if ( tokenLeft == 1)
+	{
+		_finalRes->setValue(left->getValue());
 
-		// Perform the operation
-		Node_Add*		op 		= new Node_Add(left, right, _result);		
+	/* number, op, expr */
+	}else if  (tokenLeft == 3){
+		right 	= new Node_Integer(tokens[_tokenIndex+2].second.c_str());
+		buildExecutionTreeAndEvaluateRec(_tokenIndex+2, right, nullptr);		
+		Node_Add*		op 		= new Node_Add(left, right, _finalRes);	
 		op->evaluate();
+
+	/* number, op, number, op, expr */
+	}else if  (tokenLeft >= 4)
+	{	
+		std::string currOperator = tokens[_tokenIndex+1].second;		
+		right 	= new Node_Integer(tokens[_tokenIndex+2].second.c_str());
+		std::string nextOperator = tokens[_tokenIndex+3].second;
+
+		/* if currOperator is more important than nextOperator
+		   we perform the first operation and send the result as left operand to the next expression */
+		bool evaluateNow =  currOperator == nextOperator;
+		if ( evaluateNow ){
+			// Perform the operation on the left
+			Node_Integer* 	result 	= new Node_Integer();			
+			Node_Add*		op 		= new Node_Add(left, right, result);
+			op->evaluate();
+			// Pass the result and build the next operations
+			buildExecutionTreeAndEvaluateRec(_tokenIndex+2, _finalRes, result);	
+
+		/* Else, we evaluate the next expression and then perform the operation with 
+		the result of the next expresssion as right operand */
+		}else{
+			buildExecutionTreeAndEvaluateRec(_tokenIndex+2, right, nullptr);		
+			Node_Add*		op 		= new Node_Add(left, right, _finalRes);	
+			op->evaluate();
+		}
 	}
 }
+
 
 void Node_Lexer::buildExecutionTreeAndEvaluate()
 {
 	printf("Node_Lexer::buildExecutionTreeAndEvaluate() - START\n");
 	auto currentTokenIndex = 0;
 	Node_Integer* result = new Node_Integer();	
-	buildExecutionTreeAndEvaluateRec(currentTokenIndex, result);
+	buildExecutionTreeAndEvaluateRec(currentTokenIndex, result, nullptr);
 	printf("Node_Lexer::buildExecutionTreeAndEvaluate() - DONE !\n");
 	cout << "Result: " << result->getValue() << endl;
 }

@@ -81,7 +81,7 @@ namespace Nodable{
 		~Node_Lexer();
 		void evaluate			();
 	private:
-		void buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Integer* _result);
+		void buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Integer* _finalRes, Node_Integer* _prevRes = nullptr);
 		void tokenize			();
 		bool isSyntaxValid		();
 		void buildExecutionTreeAndEvaluate	();
