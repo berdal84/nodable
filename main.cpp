@@ -13,17 +13,17 @@ int main(int n, const char** args){
 	// Create a context
 	auto ctx    = new Node_Context("Global");
 
-	// Create a simple graph that represent an addition named MyAddition
+	// Create a simple graph that represent an sumition named MySum
 	{
-		auto 		a 		= new Node_Integer(10);
-		auto 		b 		= new Node_Integer(9);
-		auto 		c 		= new Node_Integer();
-		auto 		add 	= new Node_Add(a, b, c);
-		Node_Tag* 	tag 	= new Node_Tag(ctx, "MyAddition", add);
+		auto 		a 		= new Node_Number(10);
+		auto 		b 		= new Node_Number(9);
+		auto 		c 		= new Node_Number();
+		auto 		sum 	= new Node_Add(a, b, c);
+		Node_Tag* 	tag 	= new Node_Tag(ctx, "MySum", sum);
 	}
 
-	// Try to find the node MyAddition and evaluate its value.
-	auto node = ctx->find("MyAddition");
+	// Try to find the node MySum and evaluate its value.
+	auto node = ctx->find("MySum");
 	if (node != nullptr)
 		((Node_Add*)node->getValue())->evaluate();
 
