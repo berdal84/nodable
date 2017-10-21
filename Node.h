@@ -24,15 +24,30 @@ namespace Nodable{
 		~Node();
 	};
 
-	class Node_Number : public Node{
+	/*
+	Class operand is the base class for everything that can be evaluated
+	
+	An operand is oftend connected to Operations:
+	   - as an input if it is a result
+	   - as an output if it is an operand)
+	*/
+	template<typename T>
+	class Node_Value : public Node{
 	public:
-		Node_Number(double _n=0.0F);
-		Node_Number(std::string _string);
-		~Node_Number();
-		void setValue(double _n);
-		double getValue()const;
+		Node_Value(T _value):value(_value){};
+		~Node_Value(){};
+		void setValue(T _value){value = _value;};
+		T getValue()const{return value;};		
 	private:
-		double value;
+		T value;
+	};
+
+	class Node_Number : public Node_Value<double>{
+	public:
+		~Node_Number();
+		Node_Number();
+		Node_Number(int _n);
+		Node_Number(std::string _string);
 	};
 
 	class Node_String : public Node{
@@ -124,6 +139,8 @@ namespace Nodable{
 		std::string 	name;
 	};
 
+	typedef std::pair<std::string, std::string> Token;
+
 	class Node_Lexer : public Node
 	{
 	public:
@@ -136,7 +153,7 @@ namespace Nodable{
 		bool isSyntaxValid		();
 		void buildExecutionTreeAndEvaluate	();
 		void addToken			(std::string _category, std::string _string);
-		Node_String* expression;
-		std::vector<std::pair<std::string, std::string>> tokens;
+		Node_String*       expression;
+		std::vector<Token> tokens;
 	};
 }

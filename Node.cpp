@@ -12,33 +12,13 @@ using namespace std;
 Node::Node(){}
 Node::~Node(){}
 
- // Node_Number :
+ // Node_Number : (note: derives template Node_Value)
 //////////////////
-
-Node_Number::Node_Number(double _n):
-value(_n)
-{
-	//cout <<  "New Node_Number : " << value << endl;
-}
-
-Node_Number::Node_Number(std::string _string)
-{
-	value = std::stof(_string);
-	//cout <<  "New Node_Number : " << value << endl;
-}
-
 Node_Number::~Node_Number(){}
+Node_Number::Node_Number():Node_Value(0.0){}
+Node_Number::Node_Number(int _n):Node_Value(double(_n)){}
+Node_Number::Node_Number(std::string _string):Node_Value(std::stod(_string)){}
 
-void Node_Number::setValue(double _n)
-{
-	//cout <<  "Node_Number " <<  this->value << " becomes " << _n << endl;
-	this->value = _n;
-}
-
-double Node_Number::getValue()const
-{
-	return this->value;
-}
 
  // Node_String :
 //////////////////
@@ -494,7 +474,7 @@ void Node_Lexer::tokenize()
 
 void Node_Lexer::addToken(string _category, string _string)
 {
-	std::pair<std::string,std::string> token (_category, _string);
+	Token t(_category, _string);
 	//printf("Node_Lexer::addToken() - %-10s => \"%s\" \n", ("\"" + _category + "\"").c_str(), _string.c_str() );
-	tokens.push_back(token);
+	tokens.push_back(t);
 }
