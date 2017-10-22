@@ -6,14 +6,19 @@ This program provides a command line prompt able to evaluate numerical expressio
 Examples :
 ----------
 
->>> 10 + 4 / 2  
-Result: 12  
+`10 + 4 / 2`   
+`Result: 12`  
 
->>> 3 + 10/10 + 5  
-Result: 9  
+̀`3 + 10/10 + 5`   
+`Result: 9̀`  
 
->>> 10 * 0.5  
-Result: 5
+`10 * 0.5`   
+`Result: 5`
+
+`a=10+50`   
+`Result: 60`   
+`b=a-10`  
+`Result: 50`
 
 Expressions:
 ------------
