@@ -1,19 +1,31 @@
 Nodable is a simple node based program !
-----------------------------------------
+========================================
 
 This program provides a command line prompt able to evaluate numerical expressions.
 
 Examples :
-----------
+==========
+
+example 1 :
+-----------
 
 `10 + 4 / 2`   
 `Result: 12`  
 
+example 2 :
+-----------
+
 ̀`3 + 10/10 + 5`   
 `Result: 9̀`  
 
+example 3 :
+-----------
+
 `10 * 0.5`   
 `Result: 5`
+
+example 4 :
+-----------
 
 `a=10+50`   
 `Result: 60`   
@@ -21,20 +33,34 @@ Examples :
 `Result: 50`
 
 Expressions:
-------------
+============
 
-Supports binary operations only :
+Supports binary operations only.
 
-- Operand, Operator, Expression
-- Operand
+Expression -> (Operand, Operator, Expression) | Operand
+
+Operands :
+==========
+
+An operand could be :
+
+- a number (ex: 1, 0.5, 100.456, etc.)
+- a symbol (ex: a, b, myVar, etc.)
+
+Operand -> Number | Symbol
 
 Operators:
-------------
+==========
+
 Supports operator precedence with the following operators :
-- Addition
-- Substraction
-- Multiplication
-- Division
+
+- Addition (+)
+- Substraction (-)
+- Multiplication (*)
+- Division (/)
+- Assignment (=)
+
+Operator -> +|-|*|/|=
 
 Platform compatibility :
 ------------------------
