@@ -1,0 +1,14 @@
+langauge: cpp
+sudo: false
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
+    - g++-4.8
+    - libusb-1.0-0-dev
+
+script:
+  - make
