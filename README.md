@@ -1,6 +1,6 @@
 Nodable is a simple node based program !
 ========================================
-[![Build Status](https://travis-ci.org/berdal84/Nodable.svg?branch=0.2)](https://travis-ci.org/berdal84/Nodable)
+[![Build Status](https://travis-ci.org/berdal84/Nodable.svg?branch=master)](https://travis-ci.org/berdal84/Nodable)
 
 This program provides a command line prompt able to evaluate numerical expressions.
 
