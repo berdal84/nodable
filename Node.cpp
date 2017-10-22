@@ -12,6 +12,16 @@ using namespace std;
 Node::Node(){}
 Node::~Node(){}
 
+Node_Context* Node::getContext()const
+{
+	return this->context;
+}
+
+void Node::setContext(Node_Context* _context)
+{
+	this->context = _context;
+}
+
  // Node_Number : (note: derives template Node_Value)
 //////////////////
 Node_Number::~Node_Number(){}
@@ -73,23 +83,6 @@ Node_Number* Node_BinaryOperation::getRightInput()const
 Node_Number* Node_BinaryOperation::getOutput()const
 {
 	return output;
-}
-
-Node_BinaryOperation* Node_BinaryOperation::Create(   const char _operator, 
-								Node_Number* _leftInput, 
-								Node_Number* _rightInput, 
-								Node_Number* _output)
-{
-	if ( _operator == '+')
-		return new Node_Add(_leftInput, _rightInput, _output);
-	if ( _operator == '-')
-		return new Node_Substract(_leftInput, _rightInput, _output);
-	if ( _operator == '/')
-		return new Node_Divide(_leftInput, _rightInput, _output);
-	if ( _operator == '*')
-		return new Node_Multiply(_leftInput, _rightInput, _output);
-
-	return nullptr;
 }
 
 /* Precendence for binary operators */
@@ -209,29 +202,27 @@ void Node_Multiply::evaluate()
 	cout <<  "Node_Multiply:evaluate(): " <<  this->getLeftInput()->getValue() << " * " << this->getRightInput()->getValue() << " = " << result << endl;
 	this->getOutput()->setValue(result);
 }
- // Node_Tag :
+ // Node_Symbol :
 //////////////
 
-Node_Tag::Node_Tag(Node_Context* _context, const char* _name, Node* _value):
+Node_Symbol::Node_Symbol(const char* _name, Node* _value):
 	name(_name),
-	value(_value),
-	context(_context)	
+	value(_value)
 {
-	//cout << "New Node_Tag : " << _name << endl;
-	_context->add(this);
+	//cout << "New Node_Symbol : " << _name << endl;
 }
 
-Node_Tag::~Node_Tag()
+Node_Symbol::~Node_Symbol()
 {
 
 }
 
-const char* Node_Tag::getName()const
+const char* Node_Symbol::getName()const
 {
 	return name.c_str();
 }
 
-Node* Node_Tag::getValue()const
+Node* Node_Symbol::getValue()const
 {
 	return this->value;
 }
@@ -250,27 +241,108 @@ Node_Context::~Node_Context()
 
 }
 
-void Node_Context::add(Node_Tag* _node)
+void Node_Context::addNode(Node* _node)
 {
-	tags.push_back(_node);
+	/* Add the node to the node vector list*/
+	this->nodes.push_back(_node);
+
+	/* Set the node's context to this */
+	_node->setContext(this);
 }
 
-Node_Tag* Node_Context::find(const char* _name)
+Node_Symbol* Node_Context::find(const char* _name)
 {
 	printf("Searching node with name '%s' in context named '%s' : ", _name, this->name.c_str());
 
-	auto findFunction = [_name](const Node_Tag* _node ) -> bool
+	auto findFunction = [_name](const Node_Symbol* _node ) -> bool
 	{
 		return strcmp(_node->getName(), _name) == 0;
 	};
 
-	auto it = std::find_if(tags.begin(), tags.end(), findFunction);
-	if (it != tags.end()){
-		cout << "found." << endl;
+	auto it = std::find_if(symbols.begin(), symbols.end(), findFunction);
+	if (it != symbols.end()){
 		return *it;
 	}
 	cout << "NOT found !" << endl;
 	return nullptr;
+}
+
+Node_Symbol* Node_Context::createNodeSymbol(const char* _name, Node_Number* _value)
+{
+	Node_Symbol* node = new Node_Symbol(_name, _value);
+	addNode(node);
+	this->symbols.push_back(node);
+	return node;
+}
+
+Node_Number*          Node_Context::createNodeNumber(int _value =0)
+{
+	Node_Number* node = new Node_Number(_value);
+	addNode(node);
+	return node;
+}
+
+Node_Number*          Node_Context::createNodeNumber(const char* _value)
+{
+	Node_Number* node = new Node_Number(_value);
+	addNode(node);
+	return node;
+}
+
+Node_String*          Node_Context::createNodeString(const char* _value = "")
+{
+	Node_String* node = new Node_String(_value);
+	addNode(node);
+	return node;
+}
+
+Node_Add* Node_Context::createNodeAdd(Node_Number* _inputA, Node_Number* _inputB, Node_Number* _output)
+{
+	return (Node_Add*)this->createNodeBinaryOperation('+', _inputA, _inputB, _output );
+}
+
+Node_Substract* Node_Context::createNodeSubstract(Node_Number* _inputA, Node_Number* _inputB, Node_Number* _output)
+{
+	return (Node_Substract*)this->createNodeBinaryOperation('-', _inputA, _inputB, _output );
+}
+
+Node_Multiply* Node_Context::createNodeMultiply(Node_Number* _inputA, Node_Number* _inputB, Node_Number* _output)
+{
+	return (Node_Multiply*)this->createNodeBinaryOperation('*', _inputA, _inputB, _output );
+}
+
+Node_Divide* Node_Context::createNodeDivide(Node_Number* _inputA, Node_Number* _inputB, Node_Number* _output)
+{
+	return (Node_Divide*)this->createNodeBinaryOperation('/', _inputA, _inputB, _output );
+}
+
+Node_Lexer* Node_Context::createNodeLexer           (Node_String* _input)
+{
+	Node_Lexer* lexer = new Node_Lexer(_input);
+	addNode(lexer);
+	return lexer;
+}
+
+Node_BinaryOperation* Node_Context::createNodeBinaryOperation(   
+	                            const char _operator, 
+								Node_Number* _leftInput, 
+								Node_Number* _rightInput, 
+								Node_Number* _output)
+{
+	Node_BinaryOperation* node = nullptr;
+
+	if ( _operator == '+')
+		node = new Node_Add(_leftInput, _rightInput, _output);
+	else if ( _operator == '-')
+		node = new Node_Substract(_leftInput, _rightInput, _output);
+	else if ( _operator == '/')
+		node = new Node_Divide(_leftInput, _rightInput, _output);
+	else if ( _operator == '*')
+		node = new Node_Multiply(_leftInput, _rightInput, _output);
+	
+	addNode(node);
+
+	return node;
 }
 
  // Node_Lexer :
@@ -300,12 +372,13 @@ void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Numbe
 {
 
 	Node_Number* 	      left;
-	Node_Number*         right;
+	Node_Number*          right;
 	Node_BinaryOperation* operation;
+	Node_Context*         context = this->getContext();
 
 	//printf("Token evaluated : %lu.\n", _tokenIndex);
 
-	// If a previous result is set, it mean we have already calculated the left part
+	// If a previous result is set, it means we have already calculated the left part in the previous expression
 	// So we use it as left operand
 
 	if ( _prevRes != nullptr ){
@@ -313,7 +386,7 @@ void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Numbe
 
 	// Else, we parse the left operand
 	}else{
-		left = new Node_Number(tokens[_tokenIndex].second.c_str());
+		left = context->createNodeNumber(tokens[_tokenIndex].second.c_str());
 	}
 	
 
@@ -326,17 +399,17 @@ void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Numbe
 	/* number, op, expr */
 	}else if  (tokenLeft == 3){
 		const char op = *tokens[_tokenIndex+1].second.c_str();
-		right 	= new Node_Number(tokens[_tokenIndex+2].second.c_str());
+		right 	= context->createNodeNumber(tokens[_tokenIndex+2].second.c_str());
 		buildExecutionTreeAndEvaluateRec(_tokenIndex+2, right, nullptr);		
-		operation = Node_BinaryOperation::Create(op, left, right, _finalRes);
+		operation = context->createNodeBinaryOperation(op, left, right, _finalRes);
 		operation->evaluate();
 
 	/* number, op, number, op, expr */
 	}else if  (tokenLeft >= 4)
 	{	
-		const char op = *tokens[_tokenIndex+1].second.c_str();	
-		right 	= new Node_Number(tokens[_tokenIndex+2].second.c_str());
+		const char op     = *tokens[_tokenIndex+1].second.c_str();		
 		const char nextOp = *tokens[_tokenIndex+3].second.c_str();	
+		right 	= context->createNodeNumber(tokens[_tokenIndex+2].second.c_str());
 
 		/* if currOperator is more important than nextOperator
 		   we perform the first operation and send the result as left operand to the next expression */
@@ -345,8 +418,8 @@ void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Numbe
 
 		if ( evaluateNow ){
 			// Perform the operation on the left
-			Node_Number* 	result 	= new Node_Number();			
-			operation 		        = Node_BinaryOperation::Create(op, left, right, result);
+			Node_Number* 	result 	= context->createNodeNumber();			
+			operation 		        = context->createNodeBinaryOperation(op, left, right, result);
 			operation->evaluate();
 			// Pass the result and build the next operations
 			buildExecutionTreeAndEvaluateRec(_tokenIndex+2, _finalRes, result);	
@@ -355,7 +428,7 @@ void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Numbe
 		the result of the next expresssion as right operand */
 		}else{
 			buildExecutionTreeAndEvaluateRec(_tokenIndex+2, right, nullptr);		
-			operation = Node_BinaryOperation::Create( op, left, right, _finalRes);	
+			operation = context->createNodeBinaryOperation( op, left, right, _finalRes);	
 			operation->evaluate();
 		}
 	}
@@ -366,7 +439,7 @@ void Node_Lexer::buildExecutionTreeAndEvaluate()
 {
 	//printf("Node_Lexer::buildExecutionTreeAndEvaluate() - START\n");
 	auto currentTokenIndex = 0;
-	Node_Number* result = new Node_Number();	
+	Node_Number* result = this->getContext()->createNodeNumber();	
 	buildExecutionTreeAndEvaluateRec(currentTokenIndex, result, nullptr);
 	//printf("Node_Lexer::buildExecutionTreeAndEvaluate() - DONE !\n");
 	cout << "Result: " << result->getValue() << endl;

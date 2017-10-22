@@ -1,4 +1,29 @@
+/*
+
+Author: Bérenger Dalle-Cort, 2017
+
+ChangeLog :
+
+v0.3:
+	- Node_Context : is now used as a factory.
+	- Node : each node can get its contexts with Node::getContext()
+	- Added a change log.
+	- Added version number into the header file (NODABLE_VERSION_MAJOR, NODABLE_VERSION_MINOR, NODABLE_VERSION)
+
+v0.2:
+	- New Binary Operations : Node_Substract, Node_Multiply, Node_Divide
+	- Node_Lexer : nos supports operator precedence.
+
+v0.1:
+	- Node_Add : to add two Node_Numbers
+	- Node_Lexer : first version able to evaluate additions.
+*/
+
 #pragma once
+#define NODABLE_VERSION_MAJOR "0"
+#define NODABLE_VERSION_MINOR "3"
+#define NODABLE_VERSION NODABLE_VERSION_MAJOR "." NODABLE_VERSION_MINOR
+
 #include "vector"
 #include "string.h"		// for memcpy
 #include "stdlib.h"		// for size_t
@@ -10,7 +35,7 @@ namespace Nodable{
 	class Node;
 	class Node_Number;
 	class Node_Add;
-	class Node_Tag;
+	class Node_Symbol;
 	class Node_Context;
 	class Node_String;
 	class Node_Lexer;
@@ -22,6 +47,10 @@ namespace Nodable{
 	public:
 		Node();
 		~Node();
+		Node_Context*     getContext()const;
+		void              setContext(Node_Context* _context);
+	private:
+		Node_Context* context; /* the context that create this node */
 	};
 
 	/*
@@ -71,7 +100,6 @@ namespace Nodable{
 		Node_BinaryOperation(Node_Number* _leftInput, Node_Number* _rightInput, Node_Number* _output);
 		virtual ~Node_BinaryOperation();
 		virtual void                  evaluate               () = 0;
-		static  Node_BinaryOperation* Create                 (const char _operator, Node_Number* _leftInput, Node_Number* _rightInput, Node_Number* _output);
 		/* return true is op needs to be evaluated before nextOp */
 		static  bool                  NeedsToBeEvaluatedFirst(const char op, const char nextOp);
 	protected:
@@ -116,10 +144,11 @@ namespace Nodable{
 		void evaluate();
 	};
 
-	class Node_Tag : public Node{
+	/* Node_Symbol is a node that identify a value with its name */
+	class Node_Symbol : public Node{
 	public:
-		Node_Tag(Node_Context* _context, const char* _name, Node* _value);
-		~Node_Tag();
+		Node_Symbol(const char* _name, Node* _value);
+		~Node_Symbol();
 		Node* 			getValue()const;
 		const char* 	getName()const;
 	private:
@@ -128,15 +157,28 @@ namespace Nodable{
 		Node_Context* 	context;
 	};
 
+	/* Class Node_Context is a factory able to create all kind of Node 
+	   All Symbol nodes's pointers created within this context are referenced in a vector to be found later */
 	class Node_Context : public Node {
 	public:
 		Node_Context(const char* /*name*/);
 		~Node_Context();
-		void 		add(Node_Tag*);
-		Node_Tag* 	find(const char*);
+		Node_Symbol* 	          find                      (const char* /*Symbol name*/);
+		void                      addNode                   (Node* /*Node to add to this context*/);
+		Node_Symbol*              createNodeSymbol          (const char* /*name*/, Node_Number* /*value*/);
+		Node_Number*              createNodeNumber          (int /*value*/);
+		Node_Number*              createNodeNumber          (const char* /*value*/);
+		Node_String*              createNodeString          (const char* /*value*/);
+		Node_Add*                 createNodeAdd             (Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/);
+		Node_Substract*           createNodeSubstract       (Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/);
+		Node_Multiply*			  createNodeMultiply        (Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/);
+		Node_Divide*			  createNodeDivide          (Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/); 
+		Node_BinaryOperation*     createNodeBinaryOperation (const char, Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/);
+		Node_Lexer*               createNodeLexer           (Node_String* /*expression*/);
 	private:		
-		std::vector<Node_Tag*> tags;
-		std::string 	name;
+		std::vector<Node_Symbol*> symbols; /* Contain all Symbol Nodes created by this context */
+		std::vector<Node*>        nodes;   /* Contain all Nodes created by this context */
+		std::string 	          name;    /* The name of this context */
 	};
 
 	typedef std::pair<std::string, std::string> Token;
