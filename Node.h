@@ -5,6 +5,8 @@ Author: Bérenger Dalle-Cort, 2017
 ChangeLog :
 
 v0.3:
+	- New Node_Assign : '=' can be used to assign a value to a symbol (ex: a = 10)
+	- Now Able to perform binary operations on symbols (ex: c = a + b).
 	- Node_Context : is now used as a factory.
 	- Node : each node can get its contexts with Node::getContext()
 	- Added a change log.
@@ -41,6 +43,9 @@ namespace Nodable{
 	class Node_Lexer;
 	class Node_BinaryOperation;
 	class Node_Substraction;
+	class Node_Assign;
+	class Node_Divide;
+	class Node_Multiply;
 
 	/* Base class for all Nodes */
 	class Node{
@@ -92,11 +97,6 @@ namespace Nodable{
 	/* Node_BinaryOperation is an interface for all binary operations */
 	class Node_BinaryOperation: public Node{
 	public:		
-		enum Operator{
-			Operator_Add,
-			Operator_Mul,
-			Operator_COUNT,
-		};
 		Node_BinaryOperation(Node_Number* _leftInput, Node_Number* _rightInput, Node_Number* _output);
 		virtual ~Node_BinaryOperation();
 		virtual void                  evaluate               () = 0;
@@ -144,6 +144,14 @@ namespace Nodable{
 		void evaluate();
 	};
 
+	/* Implementation of the Node_BinaryOperation as an assignment */
+	class Node_Assign : public Node_BinaryOperation{
+	public:
+		Node_Assign(Node_Number* _leftInput, Node_Number* _rightInput, Node_Number* _output);
+		~Node_Assign();
+		void evaluate();
+	};
+
 	/* Node_Symbol is a node that identify a value with its name */
 	class Node_Symbol : public Node{
 	public:
@@ -172,7 +180,8 @@ namespace Nodable{
 		Node_Add*                 createNodeAdd             (Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/);
 		Node_Substract*           createNodeSubstract       (Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/);
 		Node_Multiply*			  createNodeMultiply        (Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/);
-		Node_Divide*			  createNodeDivide          (Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/); 
+		Node_Divide*			  createNodeDivide          (Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/);
+		Node_Assign*			  createNodeAssign          (Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/); 
 		Node_BinaryOperation*     createNodeBinaryOperation (const char, Node_Number* /*inputA*/, Node_Number*/*inputB*/, Node_Number*/*output*/);
 		Node_Lexer*               createNodeLexer           (Node_String* /*expression*/);
 	private:		
@@ -188,13 +197,15 @@ namespace Nodable{
 	public:
 		Node_Lexer(Node_String* _expression);
 		~Node_Lexer();
-		void evaluate			();
+		void           evaluate			                  ();
 	private:
-		void buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Number* _finalRes, Node_Number* _prevRes = nullptr);
-		void tokenize			();
-		bool isSyntaxValid		();
-		void buildExecutionTreeAndEvaluate	();
-		void addToken			(std::string _category, std::string _string);
+		void           buildExecutionTreeAndEvaluateRec   (size_t _tokenIndex, Node_Number* _finalRes, Node_Number* _prevRes = nullptr);
+		void           tokenize			                  ();
+		bool           isSyntaxValid		              ();
+		void           buildExecutionTreeAndEvaluate      ();
+		Node_Number*   convertTokenToNode                 (Token token);
+		void           addToken			                  (std::string _category, std::string _string);
+
 		Node_String*       expression;
 		std::vector<Token> tokens;
 	};

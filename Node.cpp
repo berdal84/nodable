@@ -88,21 +88,31 @@ Node_Number* Node_BinaryOperation::getOutput()const
 /* Precendence for binary operators */
 bool Node_BinaryOperation::NeedsToBeEvaluatedFirst(const char op, const char nextOp)
 {
+	if (op == '=' & nextOp == '=') return false;	
+	if (op == '=' & nextOp == '-') return false;	
+	if (op == '=' & nextOp == '+') return false;	
+	if (op == '=' & nextOp == '*') return false;	
+	if (op == '=' & nextOp == '/') return false;
+
+	if (op == '+' & nextOp == '=') return false;
 	if (op == '+' & nextOp == '-') return true;	
 	if (op == '+' & nextOp == '+') return true;	
 	if (op == '+' & nextOp == '*') return false;	
 	if (op == '+' & nextOp == '/') return false;
 
+	if (op == '-' & nextOp == '=') return false;
 	if (op == '-' & nextOp == '-') return true;	
 	if (op == '-' & nextOp == '+') return true;	
 	if (op == '-' & nextOp == '*') return false;	
 	if (op == '-' & nextOp == '/') return false;
 
+	if (op == '*' & nextOp == '=') return false;
 	if (op == '*' & nextOp == '-') return true;	
 	if (op == '*' & nextOp == '+') return true;	
 	if (op == '*' & nextOp == '*') return true;	
 	if (op == '*' & nextOp == '/') return true;
 
+	if (op == '/' & nextOp == '=') return false;
 	if (op == '/' & nextOp == '-') return true;	
 	if (op == '/' & nextOp == '+') return true;	
 	if (op == '/' & nextOp == '*') return true;	
@@ -130,7 +140,7 @@ Node_Add::~Node_Add()
 void Node_Add::evaluate()
 {
 	double result = this->getLeftInput()->getValue() + this->getRightInput()->getValue();
-	cout <<  "Node_Add:evaluate(): " <<  this->getLeftInput()->getValue() << " + " << this->getRightInput()->getValue() << " = " << result << endl;
+	cout <<  "Node_Add:evaluate(): " <<  this->getLeftInput()->getValue() << " + " << this->getRightInput()->getValue() << " (result " << result << ")" <<endl;
 	this->getOutput()->setValue(result);
 }
 
@@ -153,7 +163,7 @@ Node_Substract::~Node_Substract()
 void Node_Substract::evaluate()
 {
 	double result = this->getLeftInput()->getValue() - this->getRightInput()->getValue();
-	cout <<  "Node_Substract:evaluate(): " <<  this->getLeftInput()->getValue() << " - " << this->getRightInput()->getValue() << " = " << result << endl;
+	cout <<  "Node_Substract:evaluate(): " <<  this->getLeftInput()->getValue() << " - " << this->getRightInput()->getValue() << " (result " << result << ")"<< endl;
 	this->getOutput()->setValue(result);
 }
 
@@ -176,7 +186,7 @@ Node_Divide::~Node_Divide()
 void Node_Divide::evaluate()
 {
 	double result = this->getLeftInput()->getValue() / this->getRightInput()->getValue();
-	cout <<  "Node_Divide:evaluate(): " <<  this->getLeftInput()->getValue() << " / " << this->getRightInput()->getValue() << " = " << result << endl;
+	cout <<  "Node_Divide:evaluate(): " <<  this->getLeftInput()->getValue() << " / " << this->getRightInput()->getValue() << "(result " << result <<")"<< endl;
 	this->getOutput()->setValue(result);
 }
 
@@ -199,9 +209,34 @@ Node_Multiply::~Node_Multiply()
 void Node_Multiply::evaluate()
 {
 	double result = this->getLeftInput()->getValue() * this->getRightInput()->getValue();
-	cout <<  "Node_Multiply:evaluate(): " <<  this->getLeftInput()->getValue() << " * " << this->getRightInput()->getValue() << " = " << result << endl;
+	cout <<  "Node_Multiply:evaluate(): " <<  this->getLeftInput()->getValue() << " * " << this->getRightInput()->getValue() << "(result " << result << ")" << endl;
 	this->getOutput()->setValue(result);
 }
+
+ // Node_Multiply :
+///////////////////////
+
+Node_Assign::Node_Assign(	Node_Number* _leftInput,
+					        Node_Number* _rightInput,
+					        Node_Number* _output):
+	Node_BinaryOperation( _leftInput, _rightInput, _output)
+{
+
+}
+
+Node_Assign::~Node_Assign()
+{
+
+}
+
+void Node_Assign::evaluate()
+{
+	double result = this->getRightInput()->getValue();
+	cout <<  "Node_Multiply:evaluate(): " <<  this->getLeftInput()->getValue() << " = " << this->getRightInput()->getValue() << "(result " << result << ")" << endl;
+	this->getLeftInput()->setValue(result);
+	this->getOutput()->setValue(result);
+}
+
  // Node_Symbol :
 //////////////
 
@@ -252,7 +287,7 @@ void Node_Context::addNode(Node* _node)
 
 Node_Symbol* Node_Context::find(const char* _name)
 {
-	printf("Searching node with name '%s' in context named '%s' : ", _name, this->name.c_str());
+	//printf("Searching node with name '%s' in context named '%s' : ", _name, this->name.c_str());
 
 	auto findFunction = [_name](const Node_Symbol* _node ) -> bool
 	{
@@ -263,7 +298,7 @@ Node_Symbol* Node_Context::find(const char* _name)
 	if (it != symbols.end()){
 		return *it;
 	}
-	cout << "NOT found !" << endl;
+	//cout << "NOT found !" << endl;
 	return nullptr;
 }
 
@@ -316,6 +351,12 @@ Node_Divide* Node_Context::createNodeDivide(Node_Number* _inputA, Node_Number* _
 	return (Node_Divide*)this->createNodeBinaryOperation('/', _inputA, _inputB, _output );
 }
 
+Node_Assign* Node_Context::createNodeAssign(Node_Number* _inputA, Node_Number* _inputB, Node_Number* _output)
+{
+	return (Node_Assign*)this->createNodeBinaryOperation('=', _inputA, _inputB, _output);
+}
+
+
 Node_Lexer* Node_Context::createNodeLexer           (Node_String* _input)
 {
 	Node_Lexer* lexer = new Node_Lexer(_input);
@@ -339,7 +380,9 @@ Node_BinaryOperation* Node_Context::createNodeBinaryOperation(
 		node = new Node_Divide(_leftInput, _rightInput, _output);
 	else if ( _operator == '*')
 		node = new Node_Multiply(_leftInput, _rightInput, _output);
-	
+	else if ( _operator == '=')
+		node = new Node_Assign(_leftInput, _rightInput, _output);
+
 	addNode(node);
 
 	return node;
@@ -368,6 +411,25 @@ void Node_Lexer::evaluate()
 	}
 }
 
+Node_Number* Node_Lexer::convertTokenToNode(Token token)
+{
+	Node_Context* context = this->getContext();
+
+	// If it is a symbol 
+	if (token.first == "symbol"){
+		Node_Symbol* symbol = context->find(token.second.c_str());
+		// If symbol not already exists, we create it
+		if ( symbol == nullptr )
+			symbol = context->createNodeSymbol(token.second.c_str(), context->createNodeNumber());
+		// Return symbol value
+		return (Node_Number*)symbol->getValue();
+
+	// If it is a number
+	}else if ( token.first == "number"){
+		return context->createNodeNumber(token.second.c_str());
+	}
+}
+
 void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Number* _finalRes, Node_Number* _prevRes)
 {
 
@@ -386,7 +448,7 @@ void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Numbe
 
 	// Else, we parse the left operand
 	}else{
-		left = context->createNodeNumber(tokens[_tokenIndex].second.c_str());
+		left = convertTokenToNode(tokens[_tokenIndex]);
 	}
 	
 
@@ -399,7 +461,7 @@ void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Numbe
 	/* number, op, expr */
 	}else if  (tokenLeft == 3){
 		const char op = *tokens[_tokenIndex+1].second.c_str();
-		right 	= context->createNodeNumber(tokens[_tokenIndex+2].second.c_str());
+		right 	= convertTokenToNode(tokens[_tokenIndex+2]);
 		buildExecutionTreeAndEvaluateRec(_tokenIndex+2, right, nullptr);		
 		operation = context->createNodeBinaryOperation(op, left, right, _finalRes);
 		operation->evaluate();
@@ -409,7 +471,7 @@ void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Numbe
 	{	
 		const char op     = *tokens[_tokenIndex+1].second.c_str();		
 		const char nextOp = *tokens[_tokenIndex+3].second.c_str();	
-		right 	= context->createNodeNumber(tokens[_tokenIndex+2].second.c_str());
+		right 	= convertTokenToNode(tokens[_tokenIndex+2]);
 
 		/* if currOperator is more important than nextOperator
 		   we perform the first operation and send the result as left operand to the next expression */
@@ -454,7 +516,8 @@ bool Node_Lexer::isSyntaxValid()
 	if(!( tokens.size()%2 == 1))
 	{
 		for(size_t i = 0; i < tokens.size(); i=i+2){
-			if ( tokens[i].first != "number")
+			if ( !(tokens[i].first == "number" ||
+				 tokens[i].first == "symbol"))
 				success = false;
 		}
 		for(size_t i = 1; i < tokens.size(); i=i+2){
@@ -480,7 +543,7 @@ void Node_Lexer::tokenize()
 	/* prepare allowed chars */
 	string numbers 		= "0123456789.";
 	string letters		= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
-	string operators 	= "+-*/";
+	string operators 	= "+-*/=";
 
 	for(auto it = chars.begin(); it < chars.end(); ++it)
 	{
