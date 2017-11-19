@@ -22,18 +22,67 @@ void Node::setContext(Node_Context* _context)
 	this->context = _context;
 }
 
+ // Node_Value :
+//////////////////
+
+Node_Value::Node_Value(Type_ _type):
+type(_type)
+{}
+
+Node_Value::~Node_Value(){};
+
+Type_ Node_Value::getType()const
+{
+	return this->type;
+}
+
+bool  Node_Value::isType(Type_ _type)const
+{
+	return this->type == _type;
+}
+
+Node_Number*  Node_Value::asNumber()
+{
+	auto as = dynamic_cast<Node_Number*>(this);
+	return as;
+}
+
+Node_String*  Node_Value::asString()
+{
+	auto as = dynamic_cast<Node_String*>(this);
+	return as;
+}
+
+
  // Node_Number : (note: derives template Node_Value)
 //////////////////
 Node_Number::~Node_Number(){}
-Node_Number::Node_Number():Node_Value(0.0){}
-Node_Number::Node_Number(int _n):Node_Value(double(_n)){}
-Node_Number::Node_Number(std::string _string):Node_Value(std::stod(_string)){}
 
+Node_Number::Node_Number(double _n):
+Node_Value(Type_Number), 
+value(_n)
+{}
+
+Node_Number::Node_Number(std::string _string):
+Node_Value(Type_Number),
+value(std::stod(_string))
+{}
+
+double Node_Number::getValue()const
+{
+	return this->value;
+}
+
+void   Node_Number::setValue(double _value)
+{
+	this->value = _value;
+}
 
  // Node_String :
 //////////////////
 
 Node_String::Node_String(const char* _value):
+Node_Value(Type_String),
 value(_value)
 {
 	//cout <<  "New Node_String : " << _value << endl;
@@ -55,9 +104,9 @@ const char* Node_String::getValue()const
  // Node_BinaryOperation :
 //////////////////////////
 
-Node_BinaryOperation::Node_BinaryOperation(	Node_Number* _leftInput,
-											Node_Number* _rightInput,
-											Node_Number* _output):
+Node_BinaryOperation::Node_BinaryOperation(	Node_Value* _leftInput,
+											Node_Value* _rightInput,
+											Node_Value* _output):
 	leftInput(_leftInput),
 	rightInput(_rightInput),
 	output(_output)
@@ -70,17 +119,17 @@ Node_BinaryOperation::~Node_BinaryOperation()
 
 }
 
-Node_Number* Node_BinaryOperation::getLeftInput()const
+Node_Value* Node_BinaryOperation::getLeftInput()const
 {
 	return leftInput;
 }
 
-Node_Number* Node_BinaryOperation::getRightInput()const
+Node_Value* Node_BinaryOperation::getRightInput()const
 {
 	return rightInput;
 }
 
-Node_Number* Node_BinaryOperation::getOutput()const
+Node_Value* Node_BinaryOperation::getOutput()const
 {
 	return output;
 }
@@ -88,35 +137,35 @@ Node_Number* Node_BinaryOperation::getOutput()const
 /* Precendence for binary operators */
 bool Node_BinaryOperation::NeedsToBeEvaluatedFirst(const char op, const char nextOp)
 {
-	if (op == '=' & nextOp == '=') return false;	
-	if (op == '=' & nextOp == '-') return false;	
-	if (op == '=' & nextOp == '+') return false;	
-	if (op == '=' & nextOp == '*') return false;	
-	if (op == '=' & nextOp == '/') return false;
+	if (op == '=' && nextOp == '=') return false;	
+	if (op == '=' && nextOp == '-') return false;	
+	if (op == '=' && nextOp == '+') return false;	
+	if (op == '=' && nextOp == '*') return false;	
+	if (op == '=' && nextOp == '/') return false;
 
-	if (op == '+' & nextOp == '=') return false;
-	if (op == '+' & nextOp == '-') return true;	
-	if (op == '+' & nextOp == '+') return true;	
-	if (op == '+' & nextOp == '*') return false;	
-	if (op == '+' & nextOp == '/') return false;
+	if (op == '+' && nextOp == '=') return false;
+	if (op == '+' && nextOp == '-') return true;	
+	if (op == '+' && nextOp == '+') return true;	
+	if (op == '+' && nextOp == '*') return false;	
+	if (op == '+' && nextOp == '/') return false;
 
-	if (op == '-' & nextOp == '=') return false;
-	if (op == '-' & nextOp == '-') return true;	
-	if (op == '-' & nextOp == '+') return true;	
-	if (op == '-' & nextOp == '*') return false;	
-	if (op == '-' & nextOp == '/') return false;
+	if (op == '-' && nextOp == '=') return false;
+	if (op == '-' && nextOp == '-') return true;	
+	if (op == '-' && nextOp == '+') return true;	
+	if (op == '-' && nextOp == '*') return false;	
+	if (op == '-' && nextOp == '/') return false;
 
-	if (op == '*' & nextOp == '=') return false;
-	if (op == '*' & nextOp == '-') return true;	
-	if (op == '*' & nextOp == '+') return true;	
-	if (op == '*' & nextOp == '*') return true;	
-	if (op == '*' & nextOp == '/') return true;
+	if (op == '*' && nextOp == '=') return false;
+	if (op == '*' && nextOp == '-') return true;	
+	if (op == '*' && nextOp == '+') return true;	
+	if (op == '*' && nextOp == '*') return true;	
+	if (op == '*' && nextOp == '/') return true;
 
-	if (op == '/' & nextOp == '=') return false;
-	if (op == '/' & nextOp == '-') return true;	
-	if (op == '/' & nextOp == '+') return true;	
-	if (op == '/' & nextOp == '*') return true;	
-	if (op == '/' & nextOp == '/') return true;
+	if (op == '/' && nextOp == '=') return false;
+	if (op == '/' && nextOp == '-') return true;	
+	if (op == '/' && nextOp == '+') return true;	
+	if (op == '/' && nextOp == '*') return true;	
+	if (op == '/' && nextOp == '/') return true;
 
 	return true;
 }
@@ -124,9 +173,9 @@ bool Node_BinaryOperation::NeedsToBeEvaluatedFirst(const char op, const char nex
  // Node_Add :
 //////////////
 
-Node_Add::Node_Add(	Node_Number* _leftInput,
-					Node_Number* _rightInput,
-					Node_Number* _output):
+Node_Add::Node_Add(	Node_Value* _leftInput,
+					Node_Value* _rightInput,
+					Node_Value* _output):
 	Node_BinaryOperation(_leftInput, _rightInput, _output)
 {
 
@@ -139,17 +188,17 @@ Node_Add::~Node_Add()
 
 void Node_Add::evaluate()
 {
-	double result = this->getLeftInput()->getValue() + this->getRightInput()->getValue();
-	cout <<  "Node_Add:evaluate(): " <<  this->getLeftInput()->getValue() << " + " << this->getRightInput()->getValue() << " (result " << result << ")" <<endl;
-	this->getOutput()->setValue(result);
+	double result = this->getLeftInput()->asNumber()->getValue() + this->getRightInput()->asNumber()->getValue();
+	cout <<  "Node_Add:evaluate(): " <<  this->getLeftInput()->asNumber()->getValue() << " + " << this->getRightInput()->asNumber()->getValue() << " (result " << result << ")" <<endl;
+	this->getOutput()->asNumber()->setValue(result);
 }
 
  // Node_Substract :
 ///////////////////////
 
-Node_Substract::Node_Substract(	Node_Number* _leftInput,
-					Node_Number* _rightInput,
-					Node_Number* _output):
+Node_Substract::Node_Substract(	Node_Value* _leftInput,
+					Node_Value* _rightInput,
+					Node_Value* _output):
 	Node_BinaryOperation( _leftInput, _rightInput, _output)
 {
 
@@ -162,17 +211,17 @@ Node_Substract::~Node_Substract()
 
 void Node_Substract::evaluate()
 {
-	double result = this->getLeftInput()->getValue() - this->getRightInput()->getValue();
-	cout <<  "Node_Substract:evaluate(): " <<  this->getLeftInput()->getValue() << " - " << this->getRightInput()->getValue() << " (result " << result << ")"<< endl;
-	this->getOutput()->setValue(result);
+	double result = this->getLeftInput()->asNumber()->getValue() - this->getRightInput()->asNumber()->getValue();
+	cout <<  "Node_Substract:evaluate(): " <<  this->getLeftInput()->asNumber()->getValue() << " - " << this->getRightInput()->asNumber()->getValue() << " (result " << result << ")" <<endl;
+	this->getOutput()->asNumber()->setValue(result);
 }
 
  // Node_Divide :
 ///////////////////////
 
-Node_Divide::Node_Divide(	Node_Number* _leftInput,
-					Node_Number* _rightInput,
-					Node_Number* _output):
+Node_Divide::Node_Divide(	Node_Value* _leftInput,
+					Node_Value* _rightInput,
+					Node_Value* _output):
 	Node_BinaryOperation( _leftInput, _rightInput, _output)
 {
 
@@ -185,17 +234,17 @@ Node_Divide::~Node_Divide()
 
 void Node_Divide::evaluate()
 {
-	double result = this->getLeftInput()->getValue() / this->getRightInput()->getValue();
-	cout <<  "Node_Divide:evaluate(): " <<  this->getLeftInput()->getValue() << " / " << this->getRightInput()->getValue() << "(result " << result <<")"<< endl;
-	this->getOutput()->setValue(result);
+	double result = this->getLeftInput()->asNumber()->getValue() / this->getRightInput()->asNumber()->getValue();
+	cout <<  "Node_Divide:evaluate(): " <<  this->getLeftInput()->asNumber()->getValue() << " / " << this->getRightInput()->asNumber()->getValue() << " (result " << result << ")" <<endl;
+	this->getOutput()->asNumber()->setValue(result);
 }
 
  // Node_Multiply :
 ///////////////////////
 
-Node_Multiply::Node_Multiply(	Node_Number* _leftInput,
-					Node_Number* _rightInput,
-					Node_Number* _output):
+Node_Multiply::Node_Multiply(	Node_Value* _leftInput,
+					Node_Value* _rightInput,
+					Node_Value* _output):
 	Node_BinaryOperation( _leftInput, _rightInput, _output)
 {
 
@@ -208,17 +257,17 @@ Node_Multiply::~Node_Multiply()
 
 void Node_Multiply::evaluate()
 {
-	double result = this->getLeftInput()->getValue() * this->getRightInput()->getValue();
-	cout <<  "Node_Multiply:evaluate(): " <<  this->getLeftInput()->getValue() << " * " << this->getRightInput()->getValue() << "(result " << result << ")" << endl;
-	this->getOutput()->setValue(result);
+	double result = this->getLeftInput()->asNumber()->getValue() * this->getRightInput()->asNumber()->getValue();
+	cout <<  "Node_Multiply:evaluate(): " <<  this->getLeftInput()->asNumber()->getValue() << " * " << this->getRightInput()->asNumber()->getValue() << " (result " << result << ")" <<endl;
+	this->getOutput()->asNumber()->setValue(result);
 }
 
  // Node_Multiply :
 ///////////////////////
 
-Node_Assign::Node_Assign(	Node_Number* _leftInput,
-					        Node_Number* _rightInput,
-					        Node_Number* _output):
+Node_Assign::Node_Assign(	Node_Value* _leftInput,
+					        Node_Value* _rightInput,
+					        Node_Value* _output):
 	Node_BinaryOperation( _leftInput, _rightInput, _output)
 {
 
@@ -231,10 +280,16 @@ Node_Assign::~Node_Assign()
 
 void Node_Assign::evaluate()
 {
-	double result = this->getRightInput()->getValue();
-	cout <<  "Node_Multiply:evaluate(): " <<  this->getLeftInput()->getValue() << " = " << this->getRightInput()->getValue() << "(result " << result << ")" << endl;
-	this->getLeftInput()->setValue(result);
-	this->getOutput()->setValue(result);
+	if ( this->getLeftInput()->getType() != this->getRightInput()->getType()){
+		cout << "unable to assign with two different value types" << endl;
+		exit(1);
+	}
+
+	if ( this->getRightInput()->getType() == Type_Number){
+		auto result = this->getRightInput()->asNumber()->getValue();
+		this->getLeftInput()->asNumber()->setValue(result);
+		this->getOutput()   ->asNumber()->setValue(result);
+	}	
 }
 
  // Node_Symbol :
@@ -302,7 +357,7 @@ Node_Symbol* Node_Context::find(const char* _name)
 	return nullptr;
 }
 
-Node_Symbol* Node_Context::createNodeSymbol(const char* _name, Node_Number* _value)
+Node_Symbol* Node_Context::createNodeSymbol(const char* _name, Node_Value* _value)
 {
 	Node_Symbol* node = new Node_Symbol(_name, _value);
 	addNode(node);
@@ -331,27 +386,27 @@ Node_String*          Node_Context::createNodeString(const char* _value = "")
 	return node;
 }
 
-Node_Add* Node_Context::createNodeAdd(Node_Number* _inputA, Node_Number* _inputB, Node_Number* _output)
+Node_Add* Node_Context::createNodeAdd(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
 {
 	return (Node_Add*)this->createNodeBinaryOperation('+', _inputA, _inputB, _output );
 }
 
-Node_Substract* Node_Context::createNodeSubstract(Node_Number* _inputA, Node_Number* _inputB, Node_Number* _output)
+Node_Substract* Node_Context::createNodeSubstract(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
 {
 	return (Node_Substract*)this->createNodeBinaryOperation('-', _inputA, _inputB, _output );
 }
 
-Node_Multiply* Node_Context::createNodeMultiply(Node_Number* _inputA, Node_Number* _inputB, Node_Number* _output)
+Node_Multiply* Node_Context::createNodeMultiply(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
 {
 	return (Node_Multiply*)this->createNodeBinaryOperation('*', _inputA, _inputB, _output );
 }
 
-Node_Divide* Node_Context::createNodeDivide(Node_Number* _inputA, Node_Number* _inputB, Node_Number* _output)
+Node_Divide* Node_Context::createNodeDivide(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
 {
 	return (Node_Divide*)this->createNodeBinaryOperation('/', _inputA, _inputB, _output );
 }
 
-Node_Assign* Node_Context::createNodeAssign(Node_Number* _inputA, Node_Number* _inputB, Node_Number* _output)
+Node_Assign* Node_Context::createNodeAssign(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
 {
 	return (Node_Assign*)this->createNodeBinaryOperation('=', _inputA, _inputB, _output);
 }
@@ -366,9 +421,9 @@ Node_Lexer* Node_Context::createNodeLexer           (Node_String* _input)
 
 Node_BinaryOperation* Node_Context::createNodeBinaryOperation(   
 	                            const char _operator, 
-								Node_Number* _leftInput, 
-								Node_Number* _rightInput, 
-								Node_Number* _output)
+								Node_Value* _leftInput, 
+								Node_Value* _rightInput, 
+								Node_Value* _output)
 {
 	Node_BinaryOperation* node = nullptr;
 
@@ -427,6 +482,8 @@ Node_Number* Node_Lexer::convertTokenToNode(Token token)
 	// If it is a number
 	}else if ( token.first == "number"){
 		return context->createNodeNumber(token.second.c_str());
+	}else {
+		return nullptr;
 	}
 }
 
