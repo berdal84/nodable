@@ -9,11 +9,13 @@ using namespace Nodable;
 
 int main(int n, const char** args){
 
+
 	cout << " -- Nodable " << NODABLE_VERSION << " - by Berdal84 - 2017 --" << endl;
 
 	// Create a context
 	auto ctx    = new Node_Context("Global");
-	cout << "Launching the command line interpreter..." << endl;
+
+	LOG_DBG("Launching the command line interpreter...");
 
 	// Create few nodes to identify keywords :
 	auto exit 				= ctx->createNodeString("exit"); 	/* define the Node_String "exit" as a keyword to exit application.*/
