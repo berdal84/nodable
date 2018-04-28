@@ -10,19 +10,17 @@ using namespace Nodable;
 int main(int n, const char** args){
 
 
-	LOG_DBG(" -- Nodable v%s - by Berdal84 - 2017 --", NODABLE_VERSION);
+	LOG_MSG(" -- Nodable v%s - by Berdal84 - 2017 --", NODABLE_VERSION);
 
-	// Create a context
+	// Create a context	
 	auto ctx    = new Node_Context("Global");
-
-	LOG_DBG("Launching the command line interpreter...");
+	LOG_MSG("Launching the command line interpreter...");
 
 	// Create few nodes to identify keywords :
 	auto exit 				= ctx->createNodeString("exit"); 	/* define the Node_String "exit" as a keyword to exit application.*/
-	auto lastString 		= ctx->createNodeString("");		/* Initialize a Node_String to store users input*/
-	bool userWantsToQuit 	= false;	
+	auto lastString 		= ctx->createNodeString("");		/* Initialize a Node_String to store users input*/	
 
-	while( !userWantsToQuit )
+	while( lastString!=exit )
 	{
 		/* Print command line prompt */
 		printf(">>> ");
@@ -37,9 +35,6 @@ int main(int n, const char** args){
 		auto lexer = ctx->createNodeLexer(lastString);
 		lexer->evaluate();
 		delete lexer;
-		
-		/* Checks if users wants to exit*/
-		userWantsToQuit = (strcmp(lastString->getValue(), exit->getValue()) == 0);
 	}
 
 	return 0;

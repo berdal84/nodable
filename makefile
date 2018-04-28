@@ -27,6 +27,10 @@ $(OBJ)Node.o: $(SRC)Node.cpp $(SRC)Log.h
 $(OBJ)main.o: $(SRC)main.cpp $(SRC)Log.h $(SRC)Nodable.h
 	$(CC) -o $(OBJ)main.o -c $(SRC)main.cpp $(CPPFLAGS)
 
+cleanBuildAndRun:clean all
+	clear
+	$(BIN)$(EXECUTABLE)
+
 makeDirs:
 	mkdir -p $(OBJ)
 	mkdir -p $(BIN)

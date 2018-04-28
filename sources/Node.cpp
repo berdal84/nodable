@@ -91,7 +91,7 @@ Node_String::~Node_String(){}
 
 void Node_String::setValue(const char* _value)
 {
-	LOG_DBG("Node_String : %s becomes %s", this->value, _value);
+	LOG_MSG("Node_String : %s becomes %s", this->value, _value);
 	this->value = _value;
 }
 
@@ -188,7 +188,7 @@ Node_Add::~Node_Add()
 void Node_Add::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() + this->getRightInput()->asNumber()->getValue();
-	LOG_DBG("Node_Add:evaluate(): %f + %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("Node_Add:evaluate(): %f + %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -211,7 +211,7 @@ Node_Substract::~Node_Substract()
 void Node_Substract::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() - this->getRightInput()->asNumber()->getValue();
-	LOG_DBG("Node_Substract:evaluate(): %f - %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("Node_Substract:evaluate(): %f - %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -234,7 +234,7 @@ Node_Divide::~Node_Divide()
 void Node_Divide::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() / this->getRightInput()->asNumber()->getValue();
-	LOG_DBG("Node_Divide:evaluate(): %f / %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("Node_Divide:evaluate(): %f / %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -257,7 +257,7 @@ Node_Multiply::~Node_Multiply()
 void Node_Multiply::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() * this->getRightInput()->asNumber()->getValue();
-	LOG_DBG("Node_Multiply:evaluate(): %f * %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("Node_Multiply:evaluate(): %f * %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -322,7 +322,7 @@ Node* Node_Symbol::getValue()const
 Node_Context::Node_Context(const char* _name):
 name(_name)
 {
-
+	LOG_DBG("A new context named '%s' has been created.", _name);
 }
 
 Node_Context::~Node_Context()
@@ -567,7 +567,7 @@ void Node_Lexer::buildExecutionTreeAndEvaluate()
 	Node_Number* result = this->getContext()->createNodeNumber();	
 	buildExecutionTreeAndEvaluateRec(currentTokenIndex, result, nullptr);
 	//printf("Node_Lexer::buildExecutionTreeAndEvaluate() - DONE !\n");
-	LOG_DBG("Result: %f", result->getValue());
+	LOG_MSG("Result: %f", result->getValue());
 }
 
 bool Node_Lexer::isSyntaxValid()
@@ -587,12 +587,12 @@ bool Node_Lexer::isSyntaxValid()
 			if ( tokens[i].first != "operator")
 				success = false;
 		}
-		printf("The only syntax accepted is \"number\", \"operator\", \"number\", etc... \n");
+		LOG_MSG("The only syntax accepted is \"number\", \"operator\", \"number\", etc... \n");
 		success = false;
 	}
 
 	if(!success)
-		printf("Node_Lexer::isSyntaxValid() - FAIL...\n");
+		LOG_MSG("Node_Lexer::isSyntaxValid() - FAIL...\n");
 
 	return success;
 }

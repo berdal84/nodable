@@ -61,6 +61,7 @@ namespace Nodable{
 		~Node_String();
 		void        setValue(const char* /*value*/);
 		const char* getValue()const;
+		friend bool operator!=(const Node_String& _left, const Node_String& _right){return _left.value != _right.value;}
 	private:
 		std::string value;
 	};
