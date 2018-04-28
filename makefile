@@ -11,7 +11,9 @@ SRC=./sources/
 BIN=./bin/$(TARGET)/
 OBJ=./build/$(TARGET)/
 
-all: $(EXECUTABLE)
+
+
+all: makeDirs $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJ)main.o $(OBJ)Node.o $(OBJ)Log.o   
 	$(CC) -o $(BIN)$(EXECUTABLE) $(OBJ)main.o $(OBJ)Node.o $(OBJ)Log.o $(CPPFLAGS)
@@ -24,6 +26,10 @@ $(OBJ)Node.o: $(SRC)Node.cpp $(SRC)Log.h
 
 $(OBJ)main.o: $(SRC)main.cpp $(SRC)Log.h $(SRC)Nodable.h
 	$(CC) -o $(OBJ)main.o -c $(SRC)main.cpp $(CPPFLAGS)
+
+makeDirs:
+	mkdir -p $(OBJ)
+	mkdir -p $(BIN)
 
 clean:
 	rm -rf $(OBJ)*.o
