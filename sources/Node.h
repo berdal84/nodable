@@ -1,9 +1,8 @@
 
 #include "Nodable.h"            // for constants and forward declarations
 #include "vector"
-#include "string.h"		// for memcpy
+#include <string>
 #include "stdlib.h"		// for size_t
-#include "iostream"
 
 namespace Nodable{
 
@@ -156,6 +155,7 @@ namespace Nodable{
 		Node_Assign*			  createNodeAssign          (Node_Value* /*inputA*/, Node_Value*/*inpuNode_ValuetB*/, Node_Value*/*output*/); 
 		Node_BinaryOperation*     createNodeBinaryOperation (const char, Node_Value* /*inputA*/, Node_Value*/*inputB*/, Node_Value*/*output*/);
 		Node_Lexer*               createNodeLexer           (Node_String* /*expression*/);
+		const char* 	          getName                   ()const;
 	private:		
 		std::vector<Node_Symbol*> symbols; /* Contain all Symbol Nodes created by this context */
 		std::vector<Node*>        nodes;   /* Contain all Nodes created by this context */

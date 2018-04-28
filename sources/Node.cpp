@@ -1,10 +1,9 @@
 #include "Node.h"
-#include <iostream>		// cout
+#include "Log.h"		// for LOG_DBG(...)
 #include <algorithm>    // std::find_if
-#include <stdio.h>		// printf("%s\n", );
+#include <cstring>      // for strcmp
 
 using namespace Nodable;
-using namespace std;
 
  // Node :
 //////////
@@ -85,14 +84,14 @@ Node_String::Node_String(const char* _value):
 Node_Value(Type_String),
 value(_value)
 {
-	//cout <<  "New Node_String : " << _value << endl;
+	LOG_DBG("New Node_String : %s", _value);
 }
 
 Node_String::~Node_String(){}
 
 void Node_String::setValue(const char* _value)
 {
-	//cout <<  "Node_String " <<  this->value << " becomes " << _value << endl;
+	LOG_DBG("Node_String : %s becomes %s", this->value, _value);
 	this->value = _value;
 }
 
@@ -189,7 +188,7 @@ Node_Add::~Node_Add()
 void Node_Add::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() + this->getRightInput()->asNumber()->getValue();
-	cout <<  "Node_Add:evaluate(): " <<  this->getLeftInput()->asNumber()->getValue() << " + " << this->getRightInput()->asNumber()->getValue() << " (result " << result << ")" <<endl;
+	LOG_DBG("Node_Add:evaluate(): %f + %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -212,7 +211,7 @@ Node_Substract::~Node_Substract()
 void Node_Substract::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() - this->getRightInput()->asNumber()->getValue();
-	cout <<  "Node_Substract:evaluate(): " <<  this->getLeftInput()->asNumber()->getValue() << " - " << this->getRightInput()->asNumber()->getValue() << " (result " << result << ")" <<endl;
+	LOG_DBG("Node_Substract:evaluate(): %f - %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -235,7 +234,7 @@ Node_Divide::~Node_Divide()
 void Node_Divide::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() / this->getRightInput()->asNumber()->getValue();
-	cout <<  "Node_Divide:evaluate(): " <<  this->getLeftInput()->asNumber()->getValue() << " / " << this->getRightInput()->asNumber()->getValue() << " (result " << result << ")" <<endl;
+	LOG_DBG("Node_Divide:evaluate(): %f / %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -258,7 +257,7 @@ Node_Multiply::~Node_Multiply()
 void Node_Multiply::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() * this->getRightInput()->asNumber()->getValue();
-	cout <<  "Node_Multiply:evaluate(): " <<  this->getLeftInput()->asNumber()->getValue() << " * " << this->getRightInput()->asNumber()->getValue() << " (result " << result << ")" <<endl;
+	LOG_DBG("Node_Multiply:evaluate(): %f * %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -281,7 +280,7 @@ Node_Assign::~Node_Assign()
 void Node_Assign::evaluate()
 {
 	if ( this->getLeftInput()->getType() != this->getRightInput()->getType()){
-		cout << "unable to assign with two different value types" << endl;
+		LOG_DBG("unable to assign with two different value types");
 		exit(1);
 	}
 
@@ -299,7 +298,7 @@ Node_Symbol::Node_Symbol(const char* _name, Node* _value):
 	name(_name),
 	value(_value)
 {
-	//cout << "New Node_Symbol : " << _name << endl;
+	LOG_DBG("New Node_Symbol : %s", _name);
 }
 
 Node_Symbol::~Node_Symbol()
@@ -338,11 +337,13 @@ void Node_Context::addNode(Node* _node)
 
 	/* Set the node's context to this */
 	_node->setContext(this);
+
+	LOG_DBG("A node has been added to the context '%s'", this->getName());
 }
 
 Node_Symbol* Node_Context::find(const char* _name)
 {
-	//printf("Searching node with name '%s' in context named '%s' : ", _name, this->name.c_str());
+	LOG_DBG("Searching node '%s' in context '%s' : ", _name, this->getName());
 
 	auto findFunction = [_name](const Node_Symbol* _node ) -> bool
 	{
@@ -351,9 +352,10 @@ Node_Symbol* Node_Context::find(const char* _name)
 
 	auto it = std::find_if(symbols.begin(), symbols.end(), findFunction);
 	if (it != symbols.end()){
+		LOG_DBG("FOUND !");
 		return *it;
 	}
-	//cout << "NOT found !" << endl;
+	LOG_DBG("NOT found...");
 	return nullptr;
 }
 
@@ -443,6 +445,10 @@ Node_BinaryOperation* Node_Context::createNodeBinaryOperation(
 	return node;
 }
 
+const char* Node_Context::getName()const
+{
+	return name.c_str();
+}
  // Node_Lexer :
 ////////////////
 
@@ -561,7 +567,7 @@ void Node_Lexer::buildExecutionTreeAndEvaluate()
 	Node_Number* result = this->getContext()->createNodeNumber();	
 	buildExecutionTreeAndEvaluateRec(currentTokenIndex, result, nullptr);
 	//printf("Node_Lexer::buildExecutionTreeAndEvaluate() - DONE !\n");
-	cout << "Result: " << result->getValue() << endl;
+	LOG_DBG("Result: %f", result->getValue());
 }
 
 bool Node_Lexer::isSyntaxValid()
@@ -598,9 +604,9 @@ void Node_Lexer::tokenize()
 	std::string chars = expression->getValue();
 
 	/* prepare allowed chars */
-	string numbers 		= "0123456789.";
-	string letters		= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
-	string operators 	= "+-*/=";
+	std::string numbers 	= "0123456789.";
+	std::string letters		= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
+	std::string operators 	= "+-*/=";
 
 	for(auto it = chars.begin(); it < chars.end(); ++it)
 	{
@@ -608,12 +614,12 @@ void Node_Lexer::tokenize()
 		 /* Search for a number */
 		/////////////////////////
 
-				if( numbers.find(*it) != string::npos )
+				if( numbers.find(*it) != std::string::npos )
 		{
 
 			auto itStart = it;
 			while(	it != chars.end() && 
-					numbers.find(*it) != string::npos)
+					numbers.find(*it) != std::string::npos)
 			{
 				++it;
 			}
@@ -640,11 +646,11 @@ void Node_Lexer::tokenize()
 		 /* Search for a symbol */
 		/////////////////////////
 
-		}else 	if( letters.find(*it) != string::npos)
+		}else 	if( letters.find(*it) != std::string::npos)
 		{
 			auto itStart = it;
 			while(	it != chars.end() && 
-					letters.find(*it) != string::npos)
+					letters.find(*it) != std::string::npos)
 			{
 				++it;
 			}
@@ -656,7 +662,7 @@ void Node_Lexer::tokenize()
 		 /* Search for an operator */
 		////////////////////////////
 			
-		}else 	if(operators.find(*it) != string::npos)
+		}else 	if(operators.find(*it) != std::string::npos)
 		{
 			std::string str = chars.substr(it - chars.begin(), 1);
 			addToken("operator", str);
@@ -665,7 +671,7 @@ void Node_Lexer::tokenize()
 	//printf("Node_Lexer::tokenize() - DONE !\n");
 }
 
-void Node_Lexer::addToken(string _category, string _string)
+void Node_Lexer::addToken(std::string _category, std::string _string)
 {
 	Token t(_category, _string);
 	//printf("Node_Lexer::addToken() - %-10s => \"%s\" \n", ("\"" + _category + "\"").c_str(), _string.c_str() );

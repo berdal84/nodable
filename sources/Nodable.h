@@ -37,35 +37,13 @@ v0.1:
 #endif
 
 /*
-	Logs
-*/
-#ifdef DEBUG
-	#include <iostream>
-	#define LOG_DBG(...) Nodable::internal::Log(__VA_ARGS__)
-#else
-	#define LOG_DBG(...)
-#endif
-
-/*
 	Forward declarations
 */
 
-#include <cstdarg> // va_list, va_start, va_end
-#include <cstdio>  // vfprintf
-
 namespace Nodable{	
 	
-	namespace internal{
-		void Log (const char* _format, ...)
-		{
-			va_list args;
-			va_start(args, _format);
-			vfprintf(stdout, _format, args);
-			fprintf(stdout, "\n");
-			va_end(args);
-		}
-	}
-
+	class Log;
+	
 	class Node;
 	class Node_Number;
 	class Node_Add;

@@ -1,16 +1,16 @@
 #include <iostream>
 #include <string>
-
-#include "Nodable.h" // for NODABLE_VERSION
+#include <cstring>      // for strcmp
+#include "Nodable.h" 	// for NODABLE_VERSION
+#include "Log.h" 		// for LOG_DBG
 #include "Node.h"
 
-using namespace std;
 using namespace Nodable;
 
 int main(int n, const char** args){
 
 
-	cout << " -- Nodable " << NODABLE_VERSION << " - by Berdal84 - 2017 --" << endl;
+	LOG_DBG(" -- Nodable v%s - by Berdal84 - 2017 --", NODABLE_VERSION);
 
 	// Create a context
 	auto ctx    = new Node_Context("Global");

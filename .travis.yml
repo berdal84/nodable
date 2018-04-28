@@ -1,4 +1,4 @@
-langauge: cpp
+language: cpp
 sudo: false
 
 addons:
