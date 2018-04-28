@@ -21,6 +21,55 @@ void Node::setContext(Node_Context* _context)
 	this->context = _context;
 }
 
+Node* Node::getInput  (size_t _id)const
+{
+	return input.at(_id);
+}
+
+Node* Node::getOutput (size_t _id)const
+{
+	return output.at(_id);
+}
+
+void Node::setInput  (Node* _node, size_t _id)
+{
+	// Resizes if needed
+	if ( input.size() <= _id) input.resize(_id + 1);
+	
+	// Set the input
+	input.at(_id) = _node;
+}
+
+void Node::setOutput (Node* _node, size_t _id)
+{
+	// Resizes if needed
+	if ( output.size() <= _id) output.resize(_id + 1);
+	
+	// Set the input
+	output.at(_id) = _node;
+}
+
+
+void Node::DrawRecursive(Node* _node, std::string _prefix)
+{
+	if ( _node == nullptr)
+		return;	
+
+	// Draw its inputs
+	for(auto each : _node->input)
+	{
+		DrawRecursive(each, _prefix + "  ");
+	}
+	
+	_prefix = _prefix + "  ";
+	
+	// Draw the node
+	printf("%s", _prefix.c_str());
+	_node->draw();
+	printf("\n");
+}
+
+
  // Node_Value :
 //////////////////
 
@@ -29,6 +78,11 @@ type(_type)
 {}
 
 Node_Value::~Node_Value(){};
+
+void  Node_Value::draw()
+{
+	printf("[%s]", asString()->getValue());
+}
 
 Type_ Node_Value::getType()const
 {
@@ -40,13 +94,13 @@ bool  Node_Value::isType(Type_ _type)const
 	return this->type == _type;
 }
 
-Node_Number*  Node_Value::asNumber()
+ Node_Number*  Node_Value::asNumber()
 {
 	auto as = dynamic_cast<Node_Number*>(this);
 	return as;
 }
 
-Node_String*  Node_Value::asString()
+ Node_String*  Node_Value::asString()
 {
 	auto as = dynamic_cast<Node_String*>(this);
 	return as;
@@ -61,6 +115,11 @@ Node_Number::Node_Number(double _n):
 Node_Value(Type_Number), 
 value(_n)
 {}
+
+void  Node_Number::draw()
+{
+	printf("[%f]", getValue());
+}
 
 Node_Number::Node_Number(std::string _string):
 Node_Value(Type_Number),
@@ -110,7 +169,17 @@ Node_BinaryOperation::Node_BinaryOperation(	Node_Value* _leftInput,
 	rightInput(_rightInput),
 	output(_output)
 {
+	// Connects the left input  (from both sides) 
+	this->setInput (_leftInput , 0);
+	_leftInput->setOutput(this);
 
+	// Connects the right input (from both sides)
+	this->setInput (_rightInput, 1);
+	_rightInput->setOutput(this);
+
+	// Connects the output      (from both sides)
+	this->setOutput(_output);
+	_output->setInput(this);
 }
 
 Node_BinaryOperation::~Node_BinaryOperation()
@@ -188,7 +257,7 @@ Node_Add::~Node_Add()
 void Node_Add::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() + this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("Node_Add:evaluate(): %f + %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("%f + %f = %f", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -211,7 +280,7 @@ Node_Substract::~Node_Substract()
 void Node_Substract::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() - this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("Node_Substract:evaluate(): %f - %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("%f - %f = %f", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -234,7 +303,7 @@ Node_Divide::~Node_Divide()
 void Node_Divide::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() / this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("Node_Divide:evaluate(): %f / %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("%f / %f = %f", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -257,7 +326,7 @@ Node_Multiply::~Node_Multiply()
 void Node_Multiply::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() * this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("Node_Multiply:evaluate(): %f * %f (%f)", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("%f * %f = %f", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -325,10 +394,6 @@ name(_name)
 	LOG_DBG("A new context named '%s' has been created.", _name);
 }
 
-Node_Context::~Node_Context()
-{
-
-}
 
 void Node_Context::addNode(Node* _node)
 {
@@ -449,6 +514,7 @@ const char* Node_Context::getName()const
 {
 	return name.c_str();
 }
+
  // Node_Lexer :
 ////////////////
 
@@ -565,9 +631,17 @@ void Node_Lexer::buildExecutionTreeAndEvaluate()
 	//printf("Node_Lexer::buildExecutionTreeAndEvaluate() - START\n");
 	auto currentTokenIndex = 0;
 	Node_Number* result = this->getContext()->createNodeNumber();	
+
+	LOG_MSG("\nExecution step by step :\n");
 	buildExecutionTreeAndEvaluateRec(currentTokenIndex, result, nullptr);
 	//printf("Node_Lexer::buildExecutionTreeAndEvaluate() - DONE !\n");
-	LOG_MSG("Result: %f", result->getValue());
+
+	// Draw the execution tree :
+	LOG_MSG("\nTree view :\n");
+	Node::DrawRecursive(result);
+
+	// Display the result :
+	LOG_MSG("\nResult: %f", result->getValue());
 }
 
 bool Node_Lexer::isSyntaxValid()

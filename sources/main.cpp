@@ -34,6 +34,7 @@ int main(int n, const char** args){
 		(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
 		auto lexer = ctx->createNodeLexer(lastString);
 		lexer->evaluate();
+		ctx->draw();
 		delete lexer;
 	}
 
