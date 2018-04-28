@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 
+#include "Nodable.h" // for NODABLE_VERSION
 #include "Node.h"
 
 using namespace std;
