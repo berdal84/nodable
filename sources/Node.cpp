@@ -150,7 +150,7 @@ Node_String::~Node_String(){}
 
 void Node_String::setValue(const char* _value)
 {
-	LOG_MSG("Node_String : %s becomes %s", this->value, _value);
+	LOG_MSG("Node_String : %s becomes %s", this->value, _value.c_str());
 	this->value = _value;
 }
 
