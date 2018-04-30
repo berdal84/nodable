@@ -33,7 +33,7 @@ $(OBJ)Node_Number.o: $(SRC)Node_Number.cpp $(SRC)Log.h $(SRC)Nodable.h $(SRC)Nod
 $(OBJ)Node_String.o: $(SRC)Node_String.cpp $(SRC)Log.h $(SRC)Nodable.h $(SRC)Node_Value.h
 	$(CC) -o $(OBJ)Node_String.o -c $(SRC)Node_String.cpp $(CPPFLAGS)
 
-$(OBJ)main.o: $(SRC)main.cpp $(SRC)Log.h $(SRC)Nodable.h
+$(OBJ)main.o: $(SRC)main.cpp $(SRC)Log.h $(SRC)Nodable.h $(SRC)Node_String.h
 	$(CC) -o $(OBJ)main.o -c $(SRC)main.cpp $(CPPFLAGS)
 
 cleanBuildAndRun:clean all

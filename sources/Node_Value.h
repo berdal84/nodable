@@ -13,7 +13,7 @@ namespace Nodable{
 	class Node_Value : public Node{
 	public:
 		Node_Value(Type_ _type);
-		~Node_Value();
+		virtual ~Node_Value();
 		virtual void   draw           ()override;
 		Type_          getType        ()const;
 		bool           isType         (Type_ _type)const;

@@ -170,7 +170,7 @@ Node_Add::~Node_Add()
 void Node_Add::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() + this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("%f + %f = %f", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("%f + %f = %f\n", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -193,7 +193,7 @@ Node_Substract::~Node_Substract()
 void Node_Substract::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() - this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("%f - %f = %f", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("%f - %f = %f\n", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -216,7 +216,7 @@ Node_Divide::~Node_Divide()
 void Node_Divide::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() / this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("%f / %f = %f", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("%f / %f = %f\n", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -239,7 +239,7 @@ Node_Multiply::~Node_Multiply()
 void Node_Multiply::evaluate()
 {
 	double result = this->getLeftInput()->asNumber()->getValue() * this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("%f * %f = %f", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
+	LOG_MSG("%f * %f = %f\n", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
 	this->getOutput()->asNumber()->setValue(result);
 }
 
@@ -262,7 +262,7 @@ Node_Assign::~Node_Assign()
 void Node_Assign::evaluate()
 {
 	if ( this->getLeftInput()->getType() != this->getRightInput()->getType()){
-		LOG_DBG("unable to assign with two different value types");
+		LOG_DBG("unable to assign with two different value types\n");
 		exit(1);
 	}
 
@@ -280,7 +280,7 @@ Node_Symbol::Node_Symbol(const char* _name, Node* _value):
 	name(_name),
 	value(_value)
 {
-	LOG_DBG("New Node_Symbol : %s", _name);
+	LOG_DBG("New Node_Symbol : %s\n", _name);
 }
 
 Node_Symbol::~Node_Symbol()
@@ -304,7 +304,7 @@ Node* Node_Symbol::getValue()const
 Node_Context::Node_Context(const char* _name):
 name(_name)
 {
-	LOG_DBG("A new context named '%s' has been created.", _name);
+	LOG_DBG("A new context named '%s' has been created.\n", _name);
 }
 
 
@@ -316,7 +316,7 @@ void Node_Context::addNode(Node* _node)
 	/* Set the node's context to this */
 	_node->setContext(this);
 
-	LOG_DBG("A node has been added to the context '%s'", this->getName());
+	LOG_DBG("A node has been added to the context '%s'\n", this->getName());
 }
 
 Node_Symbol* Node_Context::find(const char* _name)
@@ -330,10 +330,10 @@ Node_Symbol* Node_Context::find(const char* _name)
 
 	auto it = std::find_if(symbols.begin(), symbols.end(), findFunction);
 	if (it != symbols.end()){
-		LOG_DBG("FOUND !");
+		LOG_DBG("FOUND !\n");
 		return *it;
 	}
-	LOG_DBG("NOT found...");
+	LOG_DBG("NOT found...\n");
 	return nullptr;
 }
 

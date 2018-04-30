@@ -9,10 +9,10 @@ namespace Nodable{
 		The class Node_Number is a node that can memorize a number (typed as a double)
 	*/
 	class Node_Number : public Node_Value{
-	public:
-		~Node_Number();
+	public:		
 		Node_Number(double _n);
 		Node_Number(std::string _string);
+		virtual ~Node_Number();
 		virtual void   draw           ()override;
 		double getValue()const;
 		void   setValue(double _value);
