@@ -2,6 +2,9 @@
 #include "Log.h"		// for LOG_DBG(...)
 #include <algorithm>    // std::find_if
 #include <cstring>      // for strcmp
+#include "Node_Value.h"
+#include "Node_Number.h"
+#include "Node_String.h"
 
 using namespace Nodable;
 
@@ -67,96 +70,6 @@ void Node::DrawRecursive(Node* _node, std::string _prefix)
 	printf("%s", _prefix.c_str());
 	_node->draw();
 	printf("\n");
-}
-
-
- // Node_Value :
-//////////////////
-
-Node_Value::Node_Value(Type_ _type):
-type(_type)
-{}
-
-Node_Value::~Node_Value(){};
-
-void  Node_Value::draw()
-{
-	printf("[%s]", asString()->getValue());
-}
-
-Type_ Node_Value::getType()const
-{
-	return this->type;
-}
-
-bool  Node_Value::isType(Type_ _type)const
-{
-	return this->type == _type;
-}
-
- Node_Number*  Node_Value::asNumber()
-{
-	auto as = dynamic_cast<Node_Number*>(this);
-	return as;
-}
-
- Node_String*  Node_Value::asString()
-{
-	auto as = dynamic_cast<Node_String*>(this);
-	return as;
-}
-
-
- // Node_Number : (note: derives template Node_Value)
-//////////////////
-Node_Number::~Node_Number(){}
-
-Node_Number::Node_Number(double _n):
-Node_Value(Type_Number), 
-value(_n)
-{}
-
-void  Node_Number::draw()
-{
-	printf("[%f]", getValue());
-}
-
-Node_Number::Node_Number(std::string _string):
-Node_Value(Type_Number),
-value(std::stod(_string))
-{}
-
-double Node_Number::getValue()const
-{
-	return this->value;
-}
-
-void   Node_Number::setValue(double _value)
-{
-	this->value = _value;
-}
-
- // Node_String :
-//////////////////
-
-Node_String::Node_String(const char* _value):
-Node_Value(Type_String),
-value(_value)
-{
-	LOG_DBG("New Node_String : %s", _value);
-}
-
-Node_String::~Node_String(){}
-
-void Node_String::setValue(const char* _value)
-{
-	LOG_MSG("Node_String : %s becomes %s", this->value.c_str(), _value);
-	this->value = _value;
-}
-
-const char* Node_String::getValue()const
-{
-	return this->value.c_str();
 }
 
  // Node_BinaryOperation :

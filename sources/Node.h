@@ -1,3 +1,4 @@
+#pragma once
 
 #include "Nodable.h"            // for constants and forward declarations
 #include "vector"
@@ -25,54 +26,7 @@ namespace Nodable{
 		std::vector<Node*> input;
 		std::vector<Node*> output;
 		Node_Context*      context; /* the context that create this node */
-	};
-
-	/*
-	Class value is the base class for everything that can be evaluated
-
-	*/
-
-	enum Type_{
-		Type_Number,
-		Type_String,
-		Type_COUNT
-	};
-
-	class Node_Value : public Node{
-	public:
-		Node_Value(Type_ _type);
-		~Node_Value();
-		virtual void   draw           ()override;
-		Type_          getType        ()const;
-		bool           isType         (Type_ _type)const;
-		Node_Number*   asNumber();
-		Node_String*   asString();
-	private:
-		Type_ type;
-	};
-
-	class Node_Number : public Node_Value{
-	public:
-		~Node_Number();
-		Node_Number(double _n);
-		Node_Number(std::string _string);
-		virtual void   draw           ()override;
-		double getValue()const;
-		void   setValue(double _value);
-	private:
-		double value;
-	};
-
-	class Node_String : public Node_Value{
-	public:
-		Node_String(const char* _value="");
-		~Node_String();
-		void        setValue(const char* /*value*/);
-		const char* getValue()const;
-		friend bool operator!=(const Node_String& _left, const Node_String& _right){return _left.value != _right.value;}
-	private:
-		std::string value;
-	};
+	};	
 
 	/* Node_BinaryOperation is an interface for all binary operations */
 	class Node_BinaryOperation: public Node{

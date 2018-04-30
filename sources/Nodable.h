@@ -45,6 +45,7 @@ namespace Nodable{
 	class Log;
 	
 	class Node;
+	class Node_Value;
 	class Node_Number;
 	class Node_Add;
 	class Node_Symbol;
@@ -56,6 +57,12 @@ namespace Nodable{
 	class Node_Assign;
 	class Node_Divide;
 	class Node_Multiply;
+
+	enum Type_{
+		Type_Number,
+		Type_String,
+		Type_COUNT
+	};
 }
 
 
