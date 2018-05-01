@@ -115,7 +115,7 @@ namespace Nodable{
 		Node_Symbol* 	          find                      (const char* /*Symbol name*/);
 		void                      addNode                   (Node* /*Node to add to this context*/);
 		Node_Symbol*              createNodeSymbol          (const char* /*name*/, Node_Value* /*value*/);
-		Node_Number*              createNodeNumber          (int /*value*/);
+		Node_Number*              createNodeNumber          (int /*value*/ = 0);
 		Node_Number*              createNodeNumber          (const char* /*value*/);
 		Node_String*              createNodeString          (const char* /*value*/);
 		Node_Add*                 createNodeAdd             (Node_Value* /*inputA*/, Node_Value*/*inputB*/, Node_Value*/*output*/);
@@ -130,25 +130,5 @@ namespace Nodable{
 		std::vector<Node_Symbol*> symbols; /* Contain all Symbol Nodes created by this context */
 		std::vector<Node*>        nodes;   /* Contain all Nodes created by this context */
 		std::string 	          name;    /* The name of this context */
-	};
-
-	typedef std::pair<std::string, std::string> Token;
-
-	class Node_Lexer : public Node
-	{
-	public:
-		Node_Lexer(Node_String* _expression);
-		virtual ~Node_Lexer();
-		void           evaluate			                  ();
-	private:
-		void           buildExecutionTreeAndEvaluateRec   (size_t _tokenIndex, Node_Number* _finalRes, Node_Number* _prevRes = nullptr);
-		void           tokenize			                  ();
-		bool           isSyntaxValid		              ();
-		void           buildExecutionTreeAndEvaluate      ();
-		Node_Number*   convertTokenToNode                 (Token token);
-		void           addToken			                  (std::string _category, std::string _string);
-
-		Node_String*       expression;
-		std::vector<Token> tokens;
 	};
 }

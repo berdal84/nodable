@@ -5,6 +5,7 @@
 #include "Log.h" 		// for LOG_DBG
 #include "Node.h"
 #include "Node_String.h"
+#include "Node_Lexer.h"
 
 using namespace Nodable;
 
