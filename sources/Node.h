@@ -14,8 +14,8 @@ namespace Nodable{
 		Node();
 		~Node();
 		virtual void      draw      (){};
-		Node_Context*     getContext()const;
-		void              setContext(Node_Context* _context);
+		Node_Container*   getContext()const;
+		void              setContext(Node_Container* _context);
 		Node*             getInput  (size_t _id=0)const;
 		Node*             getOutput (size_t _id=0)const;	
 		void              setInput  (Node*, size_t _id=0);
@@ -25,7 +25,7 @@ namespace Nodable{
 	private:
 		std::vector<Node*> input;
 		std::vector<Node*> output;
-		Node_Context*      context; /* the context that create this node */
+		Node_Container*    context; /* the context that create this node */
 	};	
 
 	/* Node_BinaryOperation is an interface for all binary operations */

@@ -15,12 +15,12 @@ using namespace Nodable;
 Node::Node(){}
 Node::~Node(){}
 
-Node_Context* Node::getContext()const
+Node_Container* Node::getContext()const
 {
 	return this->context;
 }
 
-void Node::setContext(Node_Context* _context)
+void Node::setContext(Node_Container* _context)
 {
 	this->context = _context;
 }

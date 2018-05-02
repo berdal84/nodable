@@ -1,4 +1,4 @@
-#include "Node_Context.h"
+#include "Node_Container.h"
 #include "Log.h"
 #include "Node_Number.h"
 #include "Node_String.h"
@@ -9,14 +9,14 @@
 
 using namespace Nodable;
 
-Node_Context::Node_Context(const char* _name):
+Node_Container::Node_Container(const char* _name):
 name(_name)
 {
 	LOG_DBG("A new context named '%s' has been created.\n", _name);
 }
 
 
-void Node_Context::addNode(Node* _node)
+void Node_Container::addNode(Node* _node)
 {
 	/* Add the node to the node vector list*/
 	this->nodes.push_back(_node);
@@ -27,7 +27,7 @@ void Node_Context::addNode(Node* _node)
 	LOG_DBG("A node has been added to the context '%s'\n", this->getName());
 }
 
-Node_Symbol* Node_Context::find(const char* _name)
+Node_Symbol* Node_Container::find(const char* _name)
 {
 	LOG_DBG("Searching node '%s' in context '%s' : ", _name, this->getName());
 
@@ -45,7 +45,7 @@ Node_Symbol* Node_Context::find(const char* _name)
 	return nullptr;
 }
 
-Node_Symbol* Node_Context::createNodeSymbol(const char* _name, Node_Value* _value)
+Node_Symbol* Node_Container::createNodeSymbol(const char* _name, Node_Value* _value)
 {
 	Node_Symbol* node = new Node_Symbol(_name, _value);
 	addNode(node);
@@ -53,61 +53,61 @@ Node_Symbol* Node_Context::createNodeSymbol(const char* _name, Node_Value* _valu
 	return node;
 }
 
-Node_Number*          Node_Context::createNodeNumber(int _value)
+Node_Number*          Node_Container::createNodeNumber(int _value)
 {
 	Node_Number* node = new Node_Number(_value);
 	addNode(node);
 	return node;
 }
 
-Node_Number*          Node_Context::createNodeNumber(const char* _value)
+Node_Number*          Node_Container::createNodeNumber(const char* _value)
 {
 	Node_Number* node = new Node_Number(_value);
 	addNode(node);
 	return node;
 }
 
-Node_String*          Node_Context::createNodeString(const char* _value)
+Node_String*          Node_Container::createNodeString(const char* _value)
 {
 	Node_String* node = new Node_String(_value);
 	addNode(node);
 	return node;
 }
 
-Node_Add* Node_Context::createNodeAdd(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
+Node_Add* Node_Container::createNodeAdd(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
 {
 	return (Node_Add*)this->createNodeBinaryOperation('+', _inputA, _inputB, _output );
 }
 
-Node_Substract* Node_Context::createNodeSubstract(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
+Node_Substract* Node_Container::createNodeSubstract(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
 {
 	return (Node_Substract*)this->createNodeBinaryOperation('-', _inputA, _inputB, _output );
 }
 
-Node_Multiply* Node_Context::createNodeMultiply(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
+Node_Multiply* Node_Container::createNodeMultiply(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
 {
 	return (Node_Multiply*)this->createNodeBinaryOperation('*', _inputA, _inputB, _output );
 }
 
-Node_Divide* Node_Context::createNodeDivide(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
+Node_Divide* Node_Container::createNodeDivide(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
 {
 	return (Node_Divide*)this->createNodeBinaryOperation('/', _inputA, _inputB, _output );
 }
 
-Node_Assign* Node_Context::createNodeAssign(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
+Node_Assign* Node_Container::createNodeAssign(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
 {
 	return (Node_Assign*)this->createNodeBinaryOperation('=', _inputA, _inputB, _output);
 }
 
 
-Node_Lexer* Node_Context::createNodeLexer           (Node_String* _input)
+Node_Lexer* Node_Container::createNodeLexer           (Node_String* _input)
 {
 	Node_Lexer* lexer = new Node_Lexer(_input);
 	addNode(lexer);
 	return lexer;
 }
 
-Node_BinaryOperation* Node_Context::createNodeBinaryOperation(   
+Node_BinaryOperation* Node_Container::createNodeBinaryOperation(   
 	                            const char _operator, 
 								Node_Value* _leftInput, 
 								Node_Value* _rightInput, 
@@ -131,7 +131,7 @@ Node_BinaryOperation* Node_Context::createNodeBinaryOperation(
 	return node;
 }
 
-const char* Node_Context::getName()const
+const char* Node_Container::getName()const
 {
 	return name.c_str();
 }

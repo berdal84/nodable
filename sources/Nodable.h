@@ -49,7 +49,7 @@ namespace Nodable{
 	class Node_Number;
 	class Node_Add;
 	class Node_Symbol;
-	class Node_Context;
+	class Node_Container;
 	class Node_String;
 	class Node_Lexer;
 	class Node_BinaryOperation;

@@ -5,7 +5,7 @@
 #include "Node.h"
 #include "Node_String.h"
 #include "Node_Lexer.h"
-#include "Node_Context.h"
+#include "Node_Container.h"
 
 using namespace Nodable;
 
@@ -15,7 +15,7 @@ int main(int n, const char** args){
 	LOG_MSG(" -- Nodable v%s - by Berdal84 - 2017 --\n", NODABLE_VERSION);
 
 	// Create a context	
-	auto ctx    = new Node_Context("Global");
+	auto ctx    = new Node_Container("Global");
 	LOG_MSG("Launching the command line interpreter...");
 
 	// Create few nodes to identify keywords :

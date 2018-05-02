@@ -6,12 +6,12 @@
 #include <vector>
 
 namespace Nodable{
-	/* Class Node_Context is a factory able to create all kind of Node 
+	/* Class Node_Container is a factory able to create all kind of Node 
 	   All Symbol nodes's pointers created within this context are referenced in a vector to be found later */
-	class Node_Context : public Node {
+	class Node_Container : public Node {
 	public:
-		Node_Context(const char* /*name*/);
-		virtual ~Node_Context(){};
+		Node_Container(const char* /*name*/);
+		virtual ~Node_Container(){};
 		Node_Symbol* 	          find                      (const char* /*Symbol name*/);
 		void                      addNode                   (Node* /*Node to add to this context*/);
 		Node_Symbol*              createNodeSymbol          (const char* /*name*/, Node_Value* /*value*/);

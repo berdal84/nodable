@@ -2,7 +2,7 @@
 #include "Log.h"          // for LOG_DBG(...)
 #include "Node_Number.h"
 #include "Node_String.h"
-#include "Node_Context.h"
+#include "Node_Container.h"
 
 using namespace Nodable;
 
@@ -28,7 +28,7 @@ void Node_Lexer::evaluate()
 
 Node_Number* Node_Lexer::convertTokenToNode(Token token)
 {
-	Node_Context* context = this->getContext();
+	Node_Container* context = this->getContext();
 
 	// If it is a symbol 
 	if (token.first == "symbol"){
@@ -53,7 +53,7 @@ void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Numbe
 	Node_Number* 	      left;
 	Node_Number*          right;
 	Node_BinaryOperation* operation;
-	Node_Context*         context = this->getContext();
+	Node_Container*         context = this->getContext();
 
 	//printf("Token evaluated : %lu.\n", _tokenIndex);
 
