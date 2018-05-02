@@ -2,6 +2,7 @@
 #include "Log.h"          // for LOG_DBG(...)
 #include "Node_Number.h"
 #include "Node_String.h"
+#include "Node_Context.h"
 
 using namespace Nodable;
 
