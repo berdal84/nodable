@@ -13,19 +13,23 @@ OBJ=./build/$(TARGET)/
 
 all: makeDirs $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJ)main.o $(OBJ)Node.o $(OBJ)Node_Container.o $(OBJ)Log.o $(OBJ)Node_Value.o $(OBJ)Node_Number.o $(OBJ)Node_String.o $(OBJ)Node_Lexer.o
-	$(CC) -o $(BIN)$(EXECUTABLE) $(OBJ)main.o $(OBJ)Node_Container.o $(OBJ)Node.o $(OBJ)Log.o  $(OBJ)Node_Value.o $(OBJ)Node_Number.o $(OBJ)Node_String.o $(OBJ)Node_Lexer.o $(CPPFLAGS)
+$(EXECUTABLE): $(OBJ)main.o $(OBJ)Node_Variable.o $(OBJ)Node.o $(OBJ)Node_Container.o $(OBJ)Log.o $(OBJ)Node_Value.o $(OBJ)Node_Number.o $(OBJ)Node_String.o $(OBJ)Node_Lexer.o
+	$(CC) -o $(BIN)$(EXECUTABLE) $(OBJ)main.o $(OBJ)Node_Variable.o $(OBJ)Node_Container.o $(OBJ)Node.o $(OBJ)Log.o  $(OBJ)Node_Value.o $(OBJ)Node_Number.o $(OBJ)Node_String.o $(OBJ)Node_Lexer.o $(CPPFLAGS)
 
 $(OBJ)Log.o: $(SRC)Log.cpp
 	$(CC) -o $(OBJ)Log.o -c $(SRC)Log.cpp $(CPPFLAGS)
 
 $(OBJ)Node.o: $(SRC)Node.cpp
 	$(CC) -o $(OBJ)Node.o -c $(SRC)Node.cpp $(CPPFLAGS)
-$(SRC)Node.cpp: $(SRC)Log.h $(SRC)Node_Number.h $(SRC)Node_String.h $(SRC)Node_Value.h
+$(SRC)Node.cpp: $(SRC)Log.h $(SRC)Node_Number.h $(SRC)Node_String.h $(SRC)Node_Value.h $(SRC)Node_Container.h $(SRC)Node_Variable.h
 
 $(OBJ)Node_Value.o: $(SRC)Node_Value.cpp
 	$(CC) -o $(OBJ)Node_Value.o -c $(SRC)Node_Value.cpp $(CPPFLAGS)
-$(SRC)Node_Value.cpp: $(SRC)Log.h $(SRC)Nodable.h
+$(SRC)Node_Value.cpp: $(SRC)Log.h $(SRC)Nodable.h $(SRC)Node_Value.h
+
+$(OBJ)Node_Variable.o: $(SRC)Node_Variable.cpp
+	$(CC) -o $(OBJ)Node_Variable.o -c $(SRC)Node_Variable.cpp $(CPPFLAGS)
+$(SRC)Node_Variable.cpp: $(SRC)Log.h $(SRC)Node_Variable.h
 
 $(OBJ)Node_Number.o: $(SRC)Node_Number.cpp
 	$(CC) -o $(OBJ)Node_Number.o -c $(SRC)Node_Number.cpp $(CPPFLAGS)
@@ -37,7 +41,7 @@ $(SRC)Node_String.cpp: $(SRC)Log.h $(SRC)Nodable.h $(SRC)Node_Value.h
 
 $(OBJ)Node_Container.o: $(SRC)Node_Container.cpp
 	$(CC) -o $(OBJ)Node_Container.o -c $(SRC)Node_Container.cpp $(CPPFLAGS)
-$(SRC)Node_Container.cpp: $(SRC)Log.h $(SRC)Node_Number.h $(SRC)Node_String.h
+$(SRC)Node_Container.cpp: $(SRC)Log.h $(SRC)Node_Number.h $(SRC)Node_String.h $(SRC)Node_Variable.h
 
 $(OBJ)Node_Lexer.o: $(SRC)Node_Lexer.cpp
 	$(CC) -o $(OBJ)Node_Lexer.o -c $(SRC)Node_Lexer.cpp $(CPPFLAGS)

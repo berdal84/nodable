@@ -12,10 +12,18 @@ namespace Nodable{
 	public:
 		Node_String(const char* _value="");
 		virtual ~Node_String();
-		void        setValue    (const char* /*value*/);
-		const char* getValue    ()const;
-		bool        isEqualsTo  (const Node_String* _right)const;
-		bool        isEmpty     ()const;
+
+		bool        isEqualsTo          (const Node_String* _right)const;
+		bool        isEmpty             ()const;
+
+		void        setValue            (Node*)override{};
+		void        setValue            (const char* /*value*/)override;
+		void        setValue            (double /*value*/)override;		
+
+		double      getValueAsNumber    ()const;
+		std::string getValueAsString    ()const;
+
+		std::string getLabel            ()const;
 	private:
 		std::string value;
 	};

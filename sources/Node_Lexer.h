@@ -15,11 +15,11 @@ namespace Nodable{
 		virtual ~Node_Lexer();
 		void           evaluate			                  ();
 	private:
-		void           buildExecutionTreeAndEvaluateRec   (size_t _tokenIndex, Node_Number* _finalRes, Node_Number* _prevRes = nullptr);
+		void           buildExecutionTreeAndEvaluateRec   (size_t _tokenIndex, Node_Value* _finalRes, Node_Value* _prevRes = nullptr);
 		void           tokenize			                  ();
 		bool           isSyntaxValid		              ();
 		void           buildExecutionTreeAndEvaluate      ();
-		Node_Number*   convertTokenToNode                 (Token token);
+		Node_Value*    convertTokenToNode                 (Token token);
 		void           addToken			                  (std::string _category, std::string _string);
 
 		Node_String*       expression;

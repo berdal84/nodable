@@ -6,148 +6,144 @@
 #include "Node_Number.h"
 #include "Node_String.h"
 #include "Node_Lexer.h"
+#include "Node_Container.h"
+#include "Node_Variable.h"
 
 using namespace Nodable;
 
  // Node :
 //////////
 
-Node::Node(){}
-Node::~Node(){}
-
-Node_Container* Node::getContext()const
+Node::Node()
 {
-	return this->context;
+	LOG_DBG("Node::Node()\n");
+	this->inputs  = new Node_Container("inputs", this);
+	this->outputs = new Node_Container("outputs", this);
+	this->members = new Node_Container("members", this);
 }
 
-void Node::setContext(Node_Container* _context)
+Node::~Node()
 {
-	this->context = _context;
+	delete inputs;
+	delete outputs;
+	delete members;
 }
 
-Node* Node::getInput  (size_t _id)const
+Node_Container* Node::getParent()const
 {
-	return input.at(_id);
+	return this->parent;
 }
 
-Node* Node::getOutput (size_t _id)const
+void Node::setParent(Node_Container* _container)
 {
-	return output.at(_id);
+	this->parent = _container;
 }
 
-void Node::setInput  (Node* _node, size_t _id)
+Node_Variable* Node::getInput  (const char* _name)const
 {
-	// Resizes if needed
-	if ( input.size() <= _id) input.resize(_id + 1);
-	
-	// Set the input
-	input.at(_id) = _node;
+	return inputs->find(_name);
 }
 
-void Node::setOutput (Node* _node, size_t _id)
+Node_Variable* Node::getOutput (const char* _name)const
 {
-	// Resizes if needed
-	if ( output.size() <= _id) output.resize(_id + 1);
-	
-	// Set the input
-	output.at(_id) = _node;
+	return outputs->find(_name);
 }
 
+Node_Variable* Node::getMember (const char* _name)const
+{
+	return members->find(_name);
+}
+
+void Node::setInput  (Node* _node, const char* _name)
+{
+	inputs->setSymbol(_name, _node);
+}
+
+void Node::setOutput (Node* _node, const char* _name)
+{
+	outputs->setSymbol(_name, _node);
+}
+
+void Node::setMember (Node* _node, const char* _name)
+{
+	members->setSymbol(_name, _node);
+}
 
 void Node::DrawRecursive(Node* _node, std::string _prefix)
 {
 	if ( _node == nullptr)
 		return;	
 
-	// Draw its inputs
-	for(auto each : _node->input)
+	if(dynamic_cast<Node_BinaryOperation*>(_node))
 	{
-		DrawRecursive(each, _prefix + "  ");
+		_prefix = _prefix + "   ";
 	}
-	
-	_prefix = _prefix + "  ";
-	
+
 	// Draw the node
-	printf("%s", _prefix.c_str());
+	LOG_MSG("%s", _prefix.c_str());
 	_node->draw();
-	printf("\n");
+	LOG_MSG("\n");
+
+	// Draw its inputs
+	for(auto each : _node->inputs->getVariables())
+	{
+		DrawRecursive(each->getValueAsNode(), _prefix);
+	}
+
+
+
 }
 
  // Node_BinaryOperation :
 //////////////////////////
 
-Node_BinaryOperation::Node_BinaryOperation(	Node_Value* _leftInput,
-											Node_Value* _rightInput,
-											Node_Value* _output):
-	leftInput(_leftInput),
-	rightInput(_rightInput),
-	output(_output)
+Node_Value* Node_BinaryOperation::getLeftInputValue()const
 {
-	// Connects the left input  (from both sides) 
-	this->setInput (_leftInput , 0);
-	_leftInput->setOutput(this);
-
-	// Connects the right input (from both sides)
-	this->setInput (_rightInput, 1);
-	_rightInput->setOutput(this);
-
-	// Connects the output      (from both sides)
-	this->setOutput(_output);
-	_output->setInput(this);
+	return dynamic_cast<Node_Value*>(getInput("left")->getValueAsNode());
 }
 
-Node_BinaryOperation::~Node_BinaryOperation()
+Node_Value* Node_BinaryOperation::getRightInputValue()const
 {
-
+	return dynamic_cast<Node_Value*>(getInput("right")->getValueAsNode());
 }
 
-Node_Value* Node_BinaryOperation::getLeftInput()const
+Node_Value* Node_BinaryOperation::getOutputValue()const
 {
-	return leftInput;
-}
-
-Node_Value* Node_BinaryOperation::getRightInput()const
-{
-	return rightInput;
-}
-
-Node_Value* Node_BinaryOperation::getOutput()const
-{
-	return output;
+	return dynamic_cast<Node_Value*>(getOutput()->getValueAsNode());
 }
 
 /* Precendence for binary operators */
-bool Node_BinaryOperation::NeedsToBeEvaluatedFirst(const char op, const char nextOp)
+bool Node_BinaryOperation::NeedsToBeEvaluatedFirst(std::string op, std::string nextOp)
 {
-	if (op == '=' && nextOp == '=') return false;	
-	if (op == '=' && nextOp == '-') return false;	
-	if (op == '=' && nextOp == '+') return false;	
-	if (op == '=' && nextOp == '*') return false;	
-	if (op == '=' && nextOp == '/') return false;
+	if (op == "=" && nextOp == "=") return false;	
+	if (op == "=" && nextOp == "-") return false;	
+	if (op == "=" && nextOp == "+") return false;	
+	if (op == "=" && nextOp == "*") return false;	
+	if (op == "=" && nextOp == "/") return false;
 
-	if (op == '+' && nextOp == '=') return false;
-	if (op == '+' && nextOp == '-') return true;	
-	if (op == '+' && nextOp == '+') return true;	
-	if (op == '+' && nextOp == '*') return false;	
-	if (op == '+' && nextOp == '/') return false;
+	if (op == "+" && nextOp == "=") return false;
+	if (op == "+" && nextOp == "-") return true;	
+	if (op == "+" && nextOp == "+") return true;	
+	if (op == "+" && nextOp == "*") return false;	
+	if (op == "+" && nextOp == "/") return false;
 
-	if (op == '-' && nextOp == '=') return false;
-	if (op == '-' && nextOp == '-') return true;	
-	if (op == '-' && nextOp == '+') return true;	
-	if (op == '-' && nextOp == '*') return false;	
-	if (op == '-' && nextOp == '/') return false;
+	if (op == "-" && nextOp == "=") return false;
+	if (op == "-" && nextOp == "-") return true;	
+	if (op == "-" && nextOp == "+") return true;	
+	if (op == "-" && nextOp == "*") return false;	
+	if (op == "-" && nextOp == "/") return false;
 
-	if (op == '*' && nextOp == '=') return false;
-	if (op == '*' && nextOp == '-') return true;	
-	if (op == '*' && nextOp == '+') return true;	
-	if (op == '*' && nextOp == '*') return true;	
-	if (op == '*' && nextOp == '/') return true;
+	if (op == "*" && nextOp == "=") return false;
+	if (op == "*" && nextOp == "-") return true;	
+	if (op == "*" && nextOp == "+") return true;	
+	if (op == "*" && nextOp == "*") return true;	
+	if (op == "*" && nextOp == "/") return true;
 
-	if (op == '/' && nextOp == '=') return false;
-	if (op == '/' && nextOp == '-') return true;	
-	if (op == '/' && nextOp == '+') return true;	
-	if (op == '/' && nextOp == '*') return true;	
-	if (op == '/' && nextOp == '/') return true;
+	if (op == "/" && nextOp == "=") return false;
+	if (op == "/" && nextOp == "-") return true;	
+	if (op == "/" && nextOp == "+") return true;	
+	if (op == "/" && nextOp == "*") return true;	
+	if (op == "/" && nextOp == "/") return true;
 
 	return true;
 }
@@ -155,146 +151,55 @@ bool Node_BinaryOperation::NeedsToBeEvaluatedFirst(const char op, const char nex
  // Node_Add :
 //////////////
 
-Node_Add::Node_Add(	Node_Value* _leftInput,
-					Node_Value* _rightInput,
-					Node_Value* _output):
-	Node_BinaryOperation(_leftInput, _rightInput, _output)
-{
-
-}
-
-Node_Add::~Node_Add()
-{
-
-}
-
 void Node_Add::evaluate()
 {
-	double result = this->getLeftInput()->asNumber()->getValue() + this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("%f + %f = %f\n", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
-	this->getOutput()->asNumber()->setValue(result);
+	double result = this->getLeftInputValue()->getValueAsNumber() + this->getRightInputValue()->getValueAsNumber();
+	LOG_MSG("%s + %s = %f\n", this->getLeftInputValue()->getLabel().c_str(), this->getRightInputValue()->getLabel().c_str(), result);
+	this->getOutputValue()->setValue(result);
 }
 
  // Node_Substract :
 ///////////////////////
 
-Node_Substract::Node_Substract(	Node_Value* _leftInput,
-					Node_Value* _rightInput,
-					Node_Value* _output):
-	Node_BinaryOperation( _leftInput, _rightInput, _output)
-{
-
-}
-
-Node_Substract::~Node_Substract()
-{
-
-}
-
 void Node_Substract::evaluate()
 {
-	double result = this->getLeftInput()->asNumber()->getValue() - this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("%f - %f = %f\n", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
-	this->getOutput()->asNumber()->setValue(result);
+	double result = this->getLeftInputValue()->getValueAsNumber() - this->getRightInputValue()->getValueAsNumber();
+	LOG_MSG("%s - %s = %f\n", this->getLeftInputValue()->getLabel().c_str(), this->getRightInputValue()->getLabel().c_str(), result);
+	this->getOutputValue()->setValue(result);
 }
 
  // Node_Divide :
 ///////////////////////
 
-Node_Divide::Node_Divide(	Node_Value* _leftInput,
-					Node_Value* _rightInput,
-					Node_Value* _output):
-	Node_BinaryOperation( _leftInput, _rightInput, _output)
-{
-
-}
-
-Node_Divide::~Node_Divide()
-{
-
-}
-
 void Node_Divide::evaluate()
 {
-	double result = this->getLeftInput()->asNumber()->getValue() / this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("%f / %f = %f\n", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
-	this->getOutput()->asNumber()->setValue(result);
+	double result = this->getLeftInputValue()->getValueAsNumber() / this->getRightInputValue()->getValueAsNumber();
+	LOG_MSG("%s / %s = %f\n", this->getLeftInputValue()->getLabel().c_str(), this->getRightInputValue()->getLabel().c_str(), result);
+	this->getOutputValue()->setValue(result);
 }
 
  // Node_Multiply :
 ///////////////////////
-
-Node_Multiply::Node_Multiply(	Node_Value* _leftInput,
-					Node_Value* _rightInput,
-					Node_Value* _output):
-	Node_BinaryOperation( _leftInput, _rightInput, _output)
-{
-
-}
-
-Node_Multiply::~Node_Multiply()
-{
-
-}
 
 void Node_Multiply::evaluate()
 {
-	double result = this->getLeftInput()->asNumber()->getValue() * this->getRightInput()->asNumber()->getValue();
-	LOG_MSG("%f * %f = %f\n", this->getLeftInput()->asNumber()->getValue(), this->getRightInput()->asNumber()->getValue(), result);
-	this->getOutput()->asNumber()->setValue(result);
+	double result = this->getLeftInputValue()->getValueAsNumber() * this->getRightInputValue()->getValueAsNumber();
+	LOG_MSG("%s * %s = %f\n", this->getLeftInputValue()->getLabel().c_str(), this->getRightInputValue()->getLabel().c_str(), result);
+	this->getOutputValue()->setValue(result);
 }
 
- // Node_Multiply :
+ // Node_Assign :
 ///////////////////////
-
-Node_Assign::Node_Assign(	Node_Value* _leftInput,
-					        Node_Value* _rightInput,
-					        Node_Value* _output):
-	Node_BinaryOperation( _leftInput, _rightInput, _output)
-{
-
-}
-
-Node_Assign::~Node_Assign()
-{
-
-}
 
 void Node_Assign::evaluate()
 {
-	if ( this->getLeftInput()->getType() != this->getRightInput()->getType()){
-		LOG_DBG("unable to assign with two different value types\n");
-		exit(1);
-	}
+	
 
-	if ( this->getRightInput()->getType() == Type_Number){
-		auto result = this->getRightInput()->asNumber()->getValue();
-		this->getLeftInput()->asNumber()->setValue(result);
-		this->getOutput()   ->asNumber()->setValue(result);
-	}	
-}
+	auto result = this->getRightInputValue()->getValueAsNumber();
+	this->getLeftInputValue()->setValue(result);
+	this->getOutputValue()   ->setValue(result);
 
- // Node_Symbol :
-//////////////
-
-Node_Symbol::Node_Symbol(const char* _name, Node* _value):
-	name(_name),
-	value(_value)
-{
-	LOG_DBG("New Node_Symbol : %s\n", _name);
-}
-
-Node_Symbol::~Node_Symbol()
-{
-
-}
-
-const char* Node_Symbol::getName()const
-{
-	return name.c_str();
-}
-
-Node* Node_Symbol::getValue()const
-{
-	return this->value;
+	LOG_MSG("%s = %s (result %s)\n", 	this->getLeftInputValue()->getLabel().c_str(),
+										this->getRightInputValue()->getLabel().c_str(),
+										this->getOutputValue()->getValueAsString().c_str());	
 }

@@ -5,6 +5,9 @@
 #include <string>
 #include "stdlib.h"		// for size_t
 
+#define NODE_DEFAULT_INPUT_NAME "default"
+#define NODE_DEFAULT_OUTPUT_NAME "default"
+
 namespace Nodable{
 
 
@@ -13,45 +16,43 @@ namespace Nodable{
 	public:
 		Node();
 		~Node();
-		virtual void      draw      (){};
-		Node_Container*   getContext()const;
-		void              setContext(Node_Container* _context);
-		Node*             getInput  (size_t _id=0)const;
-		Node*             getOutput (size_t _id=0)const;	
-		void              setInput  (Node*, size_t _id=0);
-		void              setOutput (Node*, size_t _id=0);
-
-		static void       DrawRecursive(Node*, std::string _prefix = "");
+		virtual void      draw           (){};
+		Node_Container*   getParent      ()const;		
+		Node_Variable*    getInput       (const char* _name = NODE_DEFAULT_INPUT_NAME)const;
+		Node_Variable*    getOutput      (const char* _name = NODE_DEFAULT_OUTPUT_NAME)const;	
+		Node_Variable*    getMember      (const char* _name)const;
+		void              setInput       (Node*, const char* _name = NODE_DEFAULT_INPUT_NAME);
+		void              setOutput      (Node*, const char* _name = NODE_DEFAULT_OUTPUT_NAME);
+		void              setMember      (Node*, const char* _name);
+		void              setParent      (Node_Container* _container);
+		static void       DrawRecursive  (Node*, std::string _prefix = "");
 	private:
-		std::vector<Node*> input;
-		std::vector<Node*> output;
-		Node_Container*    context; /* the context that create this node */
+		Node_Container* inputs;
+		Node_Container* outputs;		
+		Node_Container* members;
+		Node_Container* parent = nullptr;
 	};	
 
 	/* Node_BinaryOperation is an interface for all binary operations */
 	class Node_BinaryOperation: public Node{
 	public:		
-		Node_BinaryOperation(Node_Value* _leftInput, Node_Value* _rightInput, Node_Value* _output);
-		virtual ~Node_BinaryOperation();
+		Node_BinaryOperation(){};
+		virtual ~Node_BinaryOperation(){};
 		virtual void                  draw()override{printf("%s", "[BinaryOperation]");}
 		virtual void                  evaluate               () = 0;
 		/* return true is op needs to be evaluated before nextOp */
-		static  bool                  NeedsToBeEvaluatedFirst(const char op, const char nextOp);
+		static  bool                  NeedsToBeEvaluatedFirst(std::string op, std::string nextOp);
 	protected:
-		Node_Value* getLeftInput  ()const;
-		Node_Value* getRightInput ()const;
-		Node_Value* getOutput     ()const;
-	private:
-		Node_Value* leftInput;
-		Node_Value* rightInput;
-		Node_Value* output;
+		Node_Value* getLeftInputValue  ()const;
+		Node_Value* getRightInputValue ()const;
+		Node_Value* getOutputValue     ()const;
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Sum */
 	class Node_Add : public Node_BinaryOperation{
 	public:
-		Node_Add(Node_Value* _leftInput, Node_Value* _rightInput, Node_Value* _output);
-		~Node_Add();
+		Node_Add(){};
+		~Node_Add(){};
 		void evaluate();
 		void draw()override{printf("%s", "[Add]");}
 	};
@@ -59,8 +60,8 @@ namespace Nodable{
 	/* Implementation of the Node_BinaryOperation as a Substraction */
 	class Node_Substract : public Node_BinaryOperation{
 	public:
-		Node_Substract(Node_Value* _leftInput, Node_Value* _rightInput, Node_Value* _output);
-		~Node_Substract();
+		Node_Substract(){};
+		~Node_Substract(){};
 		void evaluate();
 		void draw()override{printf("%s", "[Substract]");}
 	};
@@ -68,8 +69,8 @@ namespace Nodable{
 	/* Implementation of the Node_BinaryOperation as a Multiplication */
 	class Node_Multiply : public Node_BinaryOperation{
 	public:
-		Node_Multiply(Node_Value* _leftInput, Node_Value* _rightInput, Node_Value* _output);
-		~Node_Multiply();
+		Node_Multiply(){};
+		~Node_Multiply(){};
 		void evaluate();
 		void draw()override{printf("%s", "[Multiply]");}
 	};
@@ -77,8 +78,8 @@ namespace Nodable{
 	/* Implementation of the Node_BinaryOperation as a Division */
 	class Node_Divide : public Node_BinaryOperation{
 	public:
-		Node_Divide(Node_Value* _leftInput, Node_Value* _rightInput, Node_Value* _output);
-		~Node_Divide();
+		Node_Divide(){};
+		~Node_Divide(){};
 		void evaluate();
 		void draw()override{printf("%s", "[Divide]");}
 	};
@@ -86,22 +87,9 @@ namespace Nodable{
 	/* Implementation of the Node_BinaryOperation as an assignment */
 	class Node_Assign : public Node_BinaryOperation{
 	public:
-		Node_Assign(Node_Value* _leftInput, Node_Value* _rightInput, Node_Value* _output);
-		~Node_Assign();
+		Node_Assign(){};
+		~Node_Assign(){};
 		void evaluate();
 		void draw()override{printf("%s", "[Assign]");}
-	};
-
-	/* Node_Symbol is a node that identify a value with its name */
-	class Node_Symbol : public Node{
-	public:
-		Node_Symbol(const char* _name, Node* _value);
-		~Node_Symbol();
-		void draw()override{printf("%s", "[Symbol]");}
-		Node* 			getValue()const;
-		const char* 	getName()const;
-	private:
-		std::string 	name;
-		Node* 			value;
 	};
 }

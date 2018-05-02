@@ -14,11 +14,18 @@ namespace Nodable{
 	public:
 		Node_Value(Type_ _type);
 		virtual ~Node_Value();
-		virtual void   draw           ()override;
-		Type_          getType        ()const;
-		bool           isType         (Type_ _type)const;
-		Node_Number*   asNumber();
-		Node_String*   asString();
+		virtual void        draw             ()override;
+
+		virtual void        setValue         (Node*)=0;
+		virtual void        setValue         (const char* /*value*/)=0;
+		virtual void        setValue         (double /*value*/)=0;
+
+		virtual Node*       getValueAsNode   (){return this;}
+		virtual double      getValueAsNumber ()const=0;
+		virtual std::string getValueAsString ()const=0;		
+		virtual std::string getLabel         ()const=0;
+		Type_               getType          ()const;
+		bool                isType           (Type_ _type)const;		
 	private:
 		Type_ type;
 	};

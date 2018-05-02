@@ -4,15 +4,17 @@
 #include "Node_String.h"
 #include "Node_Lexer.h"
 #include "Node.h"
+#include "Node_Variable.h"
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
 
 using namespace Nodable;
 
-Node_Container::Node_Container(const char* _name):
-name(_name)
+Node_Container::Node_Container(const char* _name, Node* _parent):
+name(_name),
+parent(_parent)
 {
-	LOG_DBG("A new context named '%s' has been created.\n", _name);
+	LOG_DBG("A new container named %s' has been created.\n", _name);
 }
 
 
@@ -21,23 +23,23 @@ void Node_Container::addNode(Node* _node)
 	/* Add the node to the node vector list*/
 	this->nodes.push_back(_node);
 
-	/* Set the node's context to this */
-	_node->setContext(this);
+	/* Set the node's container to this */
+	_node->setParent(this);
 
-	LOG_DBG("A node has been added to the context '%s'\n", this->getName());
+	LOG_DBG("A node has been added to the container '%s'\n", this->getName());
 }
 
-Node_Symbol* Node_Container::find(const char* _name)
+Node_Variable* Node_Container::find(const char* _name)
 {
-	LOG_DBG("Searching node '%s' in context '%s' : ", _name, this->getName());
+	LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getName());
 
-	auto findFunction = [_name](const Node_Symbol* _node ) -> bool
+	auto findFunction = [_name](const Node_Variable* _node ) -> bool
 	{
-		return strcmp(_node->getName(), _name) == 0;
+		return strcmp(_node->getLabel().c_str(), _name) == 0;
 	};
 
-	auto it = std::find_if(symbols.begin(), symbols.end(), findFunction);
-	if (it != symbols.end()){
+	auto it = std::find_if(variables.begin(), variables.end(), findFunction);
+	if (it != variables.end()){
 		LOG_DBG("FOUND !\n");
 		return *it;
 	}
@@ -45,12 +47,21 @@ Node_Symbol* Node_Container::find(const char* _name)
 	return nullptr;
 }
 
-Node_Symbol* Node_Container::createNodeSymbol(const char* _name, Node_Value* _value)
+void Node_Container::setSymbol(const char* _name, Node* _target)
 {
-	Node_Symbol* node = new Node_Symbol(_name, _value);
-	addNode(node);
-	this->symbols.push_back(node);
-	return node;
+	Node_Variable* variable = find(_name);
+
+	if ( variable == nullptr)
+		variable = createNodeVariable(_name, _target);
+	else
+		variable->setValue(_target);
+}
+
+Node_Variable* Node_Container::createNodeVariable(const char* _name, Node* _value)
+{
+	Node_Variable* variable = new Node_Variable(_name, _value);
+	this->variables.push_back(variable);
+	return variable;
 }
 
 Node_Number*          Node_Container::createNodeNumber(int _value)
@@ -74,61 +85,81 @@ Node_String*          Node_Container::createNodeString(const char* _value)
 	return node;
 }
 
-Node_Add* Node_Container::createNodeAdd(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
+
+Node_BinaryOperation* Node_Container::createNodeBinaryOperation(std::string _op, Node_Value* _leftInput, Node_Value* _rightInput, Node_Value* _output)
 {
-	return (Node_Add*)this->createNodeBinaryOperation('+', _inputA, _inputB, _output );
+	Node_BinaryOperation* node;
+
+	if      ( _op == "+")
+		node = createNodeAdd();
+	else if ( _op == "-")
+		node = createNodeSubstract();
+	else if (_op =="*")
+		node = createNodeMultiply();
+	else if ( _op == "/")
+		node = createNodeDivide();
+	else if ( _op == "=")
+		node = createNodeAssign();
+	else
+		node = nullptr;
+
+	// Connects the left input  (from both sides) 
+	node->setInput (_leftInput, "left");
+	_leftInput->setOutput(node);
+
+	// Connects the right input (from both sides)
+	node->setInput (_rightInput, "right");
+	_rightInput->setOutput(node);
+
+	// Connects the output      (from both sides)
+	node->setOutput(_output);
+	_output->setInput(node);
+
+	return node;
 }
 
-Node_Substract* Node_Container::createNodeSubstract(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
+
+Node_Add* Node_Container::createNodeAdd()
 {
-	return (Node_Substract*)this->createNodeBinaryOperation('-', _inputA, _inputB, _output );
+	auto node = new Node_Add();
+	addNode(node);
+	return node;
 }
 
-Node_Multiply* Node_Container::createNodeMultiply(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
+Node_Substract* Node_Container::createNodeSubstract()
 {
-	return (Node_Multiply*)this->createNodeBinaryOperation('*', _inputA, _inputB, _output );
+	auto node = new Node_Substract();
+	addNode(node);
+	return node;
 }
 
-Node_Divide* Node_Container::createNodeDivide(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
+Node_Multiply* Node_Container::createNodeMultiply()
 {
-	return (Node_Divide*)this->createNodeBinaryOperation('/', _inputA, _inputB, _output );
+	auto node = new Node_Multiply();
+	addNode(node);
+	return node;
 }
 
-Node_Assign* Node_Container::createNodeAssign(Node_Value* _inputA, Node_Value* _inputB, Node_Value* _output)
+Node_Divide* Node_Container::createNodeDivide()
 {
-	return (Node_Assign*)this->createNodeBinaryOperation('=', _inputA, _inputB, _output);
+	auto node = new Node_Divide();
+	addNode(node);
+	return node;
+}
+
+Node_Assign* Node_Container::createNodeAssign()
+{
+	auto node = new Node_Assign();
+	addNode(node);
+	return node;
 }
 
 
-Node_Lexer* Node_Container::createNodeLexer           (Node_String* _input)
+Node_Lexer* Node_Container::createNodeLexer(Node_String* _input)
 {
 	Node_Lexer* lexer = new Node_Lexer(_input);
 	addNode(lexer);
 	return lexer;
-}
-
-Node_BinaryOperation* Node_Container::createNodeBinaryOperation(   
-	                            const char _operator, 
-								Node_Value* _leftInput, 
-								Node_Value* _rightInput, 
-								Node_Value* _output)
-{
-	Node_BinaryOperation* node = nullptr;
-
-	if ( _operator == '+')
-		node = new Node_Add(_leftInput, _rightInput, _output);
-	else if ( _operator == '-')
-		node = new Node_Substract(_leftInput, _rightInput, _output);
-	else if ( _operator == '/')
-		node = new Node_Divide(_leftInput, _rightInput, _output);
-	else if ( _operator == '*')
-		node = new Node_Multiply(_leftInput, _rightInput, _output);
-	else if ( _operator == '=')
-		node = new Node_Assign(_leftInput, _rightInput, _output);
-
-	addNode(node);
-
-	return node;
 }
 
 const char* Node_Container::getName()const

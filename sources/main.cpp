@@ -6,17 +6,17 @@
 #include "Node_String.h"
 #include "Node_Lexer.h"
 #include "Node_Container.h"
+#include <unistd.h>
 
 using namespace Nodable;
 
 int main(int n, const char** args){
 
-
 	LOG_MSG(" -- Nodable v%s - by Berdal84 - 2017 --\n", NODABLE_VERSION);
 
 	// Create a context	
 	auto ctx    = new Node_Container("Global");
-	LOG_MSG("Launching the command line interpreter...");
+	LOG_MSG("Launching the command line interpreter...\n");
 
 	// Create few nodes to identify keywords :
 	auto exitString 		= ctx->createNodeString("exit"); 	/* define the Node_String "exit" as a keyword to exit application.*/
@@ -43,13 +43,13 @@ int main(int n, const char** args){
 		delete lastString;
 		lastString = ctx->createNodeString(input);
 	}
-
 	LOG_MSG("Shutdown Nodable...\n");
 
 	// Free memory
 	delete exitString;
 	delete ctx;
-
+	delete lastString;
+	
 	return 0;
 }
 

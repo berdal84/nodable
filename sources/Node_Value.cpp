@@ -7,13 +7,15 @@ using namespace Nodable;
 
 Node_Value::Node_Value(Type_ _type):
 type(_type)
-{}
+{
+	LOG_DBG("New Node_Value\n");
+}
 
 Node_Value::~Node_Value(){};
 
 void  Node_Value::draw()
 {
-	printf("[%s]", asString()->getValue());
+	printf("[%s]", getValueAsString().c_str());
 }
 
 Type_ Node_Value::getType()const
@@ -24,16 +26,4 @@ Type_ Node_Value::getType()const
 bool  Node_Value::isType(Type_ _type)const
 {
 	return this->type == _type;
-}
-
- Node_Number*  Node_Value::asNumber()
-{
-	auto as = dynamic_cast<Node_Number*>(this);
-	return as;
-}
-
- Node_String*  Node_Value::asString()
-{
-	auto as = dynamic_cast<Node_String*>(this);
-	return as;
 }

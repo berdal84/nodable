@@ -11,11 +11,18 @@ namespace Nodable{
 	class Node_Number : public Node_Value{
 	public:		
 		Node_Number(double _n);
-		Node_Number(std::string _string);
+		Node_Number(const char*);
 		virtual ~Node_Number();
-		virtual void   draw           ()override;
-		double getValue()const;
-		void   setValue(double _value);
+		virtual void   draw             ()override;
+
+		void        setValue            (Node*)override{};
+		void        setValue            (double)override;
+		void        setValue            (const char*)override;
+
+		double      getValueAsNumber    ()const;
+		std::string getValueAsString    ()const;
+
+		std::string getLabel            ()const;
 	private:
 		double value;
 	};
