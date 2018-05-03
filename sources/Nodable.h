@@ -53,7 +53,7 @@ namespace Nodable{
 	class Node_String;
 	class Node_Lexer;
 	class Node_BinaryOperation;
-	class Node_Substraction;
+	class Node_Substract;
 	class Node_Assign;
 	class Node_Divide;
 	class Node_Multiply;

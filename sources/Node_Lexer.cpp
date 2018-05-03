@@ -4,6 +4,7 @@
 #include "Node_String.h"
 #include "Node_Container.h"
 #include "Node_Variable.h"
+#include "Node_BinaryOperations.h"
 
 using namespace Nodable;
 

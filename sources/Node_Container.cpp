@@ -5,6 +5,8 @@
 #include "Node_Lexer.h"
 #include "Node.h"
 #include "Node_Variable.h"
+#include "Node_BinaryOperations.h"
+
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
 
