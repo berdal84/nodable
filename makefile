@@ -15,13 +15,17 @@ VPATH = $(SRCDIR)
 SOURCES := $(wildcard $(SRCDIR)/*.cpp)
 OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o,$(SOURCES))
 
-all: $(EXECUTABLE)
+all: makeObjectAndBinaryFolders $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
 	$(CXX) -o $(BINDIR)/$(EXECUTABLE) $(OBJECTS) $(CFLAGS)
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	$(CXX) -c $(CXXFLAGS) ./$< -o ./$@
+
+makeObjectAndBinaryFolders:
+	mkdir -p $(OBJDIR)
+	mkdir -p $(BINDIR)
 
 install:
 	@echo "Starting install..."	
