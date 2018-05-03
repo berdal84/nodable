@@ -21,7 +21,7 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CXX) -o $(BINDIR)/$(EXECUTABLE) $(OBJECTS) $(CFLAGS)
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
-	$(CXX) -c $(CXXFLAGS) $< -o $@
+	$(CXX) -c $(CXXFLAGS) ./$< -o ./$@
 
 install:
 	@echo "Starting install..."	
