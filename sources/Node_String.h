@@ -4,6 +4,7 @@
 #include "Node_Value.h" // base class
 #include <string>
 
+
 namespace Nodable{
 	/*
 		The Node_String class node can store a string (internally as an std::string)

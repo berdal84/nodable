@@ -1,5 +1,6 @@
 #pragma once
 
+
 #ifdef DEBUG
 	#define LOG_DBG(...) Nodable::internal::Log(__VA_ARGS__)
 #else

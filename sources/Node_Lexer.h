@@ -5,6 +5,7 @@
 #include <vector>
 #include <utility>      // for std::pair
 
+
 namespace Nodable{
 	typedef std::pair<std::string, std::string> Token;
 
