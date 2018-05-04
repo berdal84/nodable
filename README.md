@@ -5,35 +5,109 @@ Nodable is a simple node based program !
 [![Build Status](https://travis-ci.org/berdal84/Nodable.svg?branch=master)](https://travis-ci.org/berdal84/Nodable)
 
 This program provides a command line prompt able to evaluate numerical expressions.
+When user type an expression, the program split it into tokens, build the execution tree and evaluates it. Each step of the execution are displayed line by line with a full execution tree view to understand how nodes are linked.
 
 Examples :
 ==========
 
 example 1 :
 -----------
+```
+>>> 10 + 4 / 2
 
-`10 + 4 / 2`   
-`Result: 12`  
+Execution step by step :
+4.000000 / 2.000000 = 2.000000
+10.000000 + result = 12.000000
 
+Tree view :
+[Result : 12.000000]
+   [Add]
+   [10.000000]
+   [result : 2.000000]
+      [Divide]
+      [4.000000]
+      [2.000000]
+
+Result: 12.000000
+```
 example 2 :
 -----------
+```
+>>> 3 + 10 / 10 + 5
 
-̀`3 + 10/10 + 5`   
-`Result: 9̀`  
+Execution step by step :
+10.000000 / 10.000000 = 1.000000
+result + 5.000000 = 6.000000
+3.000000 + result = 9.000000
+
+Tree view :
+[Result : 9.000000]
+   [Add]
+   [3.000000]
+   [result : 6.000000]
+      [Add]
+      [result : 1.000000]
+         [Divide]
+         [10.000000]
+         [10.000000]
+      [5.000000]
+
+Result: 9.000000
+```
 
 example 3 :
 -----------
+```
+>>> 10 * 0.5
 
-`10 * 0.5`   
-`Result: 5`
+Execution step by step :
+10.000000 * 0.500000 = 5.000000
+
+Tree view :
+[Result : 5.000000]
+   [Multiply]
+   [10.000000]
+   [0.500000]
+
+Result: 5.000000
+```
 
 example 4 :
 -----------
+```
+>>> a = 10 + 50
 
-`a=10+50`   
-`Result: 60`   
-`b=a-10`  
-`Result: 50`
+Execution step by step :
+10.000000 + 50.000000 = 60.000000
+a = result (result 60.000000)
+
+Tree view :
+[Result : 60.000000]
+   [Assign]
+   [a : 60.000000]
+   [result : 60.000000]
+      [Add]
+      [10.000000]
+      [50.000000]
+
+Result: 60.000000
+>>> b = a - 10
+
+Execution step by step :
+a - 10.000000 = 50.000000
+b = result (result 50.000000)
+
+Tree view :
+[Result : 50.000000]
+   [Assign]
+   [b : 50.000000]
+   [result : 50.000000]
+      [Substract]
+      [a : 60.000000]
+      [10.000000]
+
+Result: 50.000000
+```
 
 Expressions:
 ============
@@ -47,10 +121,10 @@ Operands :
 
 An operand could be :
 
-- a number (ex: 1, 0.5, 100.456, etc.)
-- a symbol (ex: a, b, myVar, etc.)
+- a Number (ex: 1, 0.5, 100.456, etc.)
+- a Variable (ex: a, b, myVar, etc.)
 
-Operand -> Number | Symbol
+Operand -> Number | Variable
 
 Operators:
 ==========
@@ -68,3 +142,11 @@ Operator -> +|-|*|/|=
 Platform compatibility :
 ------------------------
 Should work on all platforms but only tested under GNU/Linux Ubuntu 17.x (64bits)
+
+How to install ? :
+------------------------
+- clone the project `git clone https://github.com/berdal84/Nodable`
+- compile `make`
+- install `make install`
+- run `nodable`
+
