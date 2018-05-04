@@ -40,7 +40,7 @@ run: all
 dependencies: $(DEPENDENCIES)
 
 .PHONY: makeFolders
-makeObjectAndBinaryFolders:
+makeFolders:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(BINDIR)
 
