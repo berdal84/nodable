@@ -4,8 +4,8 @@ Nodable is a simple node based program !
 ========================================
 [![Build Status](https://travis-ci.org/berdal84/Nodable.svg?branch=master)](https://travis-ci.org/berdal84/Nodable)
 
-This program provides a command line prompt able to evaluate numerical expressions.
-When user type an expression, the program split it into tokens, build the execution tree and evaluates it. Each step of the execution are displayed line by line with a full execution tree view to understand how nodes are linked.
+This software is a command line prompt able to evaluate numerical expressions by constructing an execution tree in realtime.
+When user type an expression, the program split it into tokens, build the execution tree and evaluates it. Each nodes and its links are displayed with Dear ImGui (O. Cornut).
 
 Examples :
 ==========
