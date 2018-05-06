@@ -2,6 +2,7 @@
 #include "Node_String.h" // for dynamic cast
 #include "Node_Number.h" // for dynamic cast
 #include "Log.h"		 // for LOG_DBG(...)
+#include <imgui.h>
 
 using namespace Nodable;
 
@@ -12,11 +13,6 @@ type(_type)
 }
 
 Node_Value::~Node_Value(){};
-
-void  Node_Value::draw()
-{
-	printf("[%s]", getValueAsString().c_str());
-}
 
 Type_ Node_Value::getType()const
 {

@@ -2,25 +2,20 @@
 #include "Node_String.h"
 #include "Node_Number.h"
 #include "Log.h"
-
+#include <imgui.h>
 using namespace Nodable;
 
-Node_Variable::Node_Variable(const char* _label, Node* _target):
+Node_Variable::Node_Variable(const char* _name, Node* _target):
 	Node_Value(Type_Variable)
 {
-	LOG_DBG("New Node_Variable : %s\n", _label);
-	this->target = _target;
-	this->label = _label;
+	LOG_DBG("New Node_Variable : %s\n", _name);
+	setName(_name);
+	setValue(_target);	
 }
 
 Node_Variable::~Node_Variable()
 {
 
-}
-
-void Node_Variable::draw()
-{
-	LOG_MSG("[%s : %s]", getLabel().c_str(), getValueAsString().c_str());
 }
 
 Node* Node_Variable::getValueAsNode  ()
@@ -32,7 +27,7 @@ double Node_Variable::getValueAsNumber()const
 {
 	if(auto asNodeValue = dynamic_cast<Node_Value*>(this->target))
 		return asNodeValue->getValueAsNumber();
-	return this->target == nullptr ? double{0} : double{1};
+	return this->target == nullptr ? double(0) : double(1);
 }
 
 std::string Node_Variable::getValueAsString()const
@@ -42,17 +37,14 @@ std::string Node_Variable::getValueAsString()const
 	return this->target == nullptr ? "NULL" : "Node";
 }
 
-std::string Node_Variable::getLabel()const
+void Node_Variable::setName(const char* _name)
 {
-	// If label is empty, we use its value as string.
-	if ( this->label.size() == 0)
-		return getValueAsString();
-	return this->label;
+	name = _name;
 }
-
 void Node_Variable::setValue(Node* _node)
 {
 	this->target = _node;
+	updateLabel();
 }
 
 void Node_Variable::setValue(const char* _value)
@@ -61,6 +53,7 @@ void Node_Variable::setValue(const char* _value)
 		this->target = new Node_String(_value);
 	else if(auto asNodeValue = dynamic_cast<Node_Value*>(this->target))
 		asNodeValue->setValue(_value);
+	updateLabel();
 }
 
 void Node_Variable::setValue(double _value)
@@ -69,4 +62,18 @@ void Node_Variable::setValue(double _value)
 		this->target = new Node_Number(_value);
 	else if(auto asNodeValue = dynamic_cast<Node_Value*>(this->target))
 		asNodeValue->setValue(_value);
+	updateLabel();
+}
+
+void Node_Variable::updateLabel()
+{
+	if (target == nullptr)
+		setLabel(getName() + std::string(": NULL"));
+	else if(auto asNodeValue = dynamic_cast<Node_Value*>(this->target))
+		setLabel(getName() + std::string(":") + asNodeValue->getValueAsString());
+}
+
+const char* Node_Variable::getName()const
+{
+	return name.c_str();
 }

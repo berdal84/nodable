@@ -24,7 +24,6 @@ namespace Nodable{
 		double      getValueAsNumber    ()const;
 		std::string getValueAsString    ()const;
 
-		std::string getLabel            ()const;
 	private:
 		std::string value;
 	};

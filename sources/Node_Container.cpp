@@ -9,6 +9,7 @@
 
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
+#include <imgui.h>
 
 using namespace Nodable;
 
@@ -19,6 +20,27 @@ parent(_parent)
 	LOG_DBG("A new container named %s' has been created.\n", _name);
 }
 
+void Node_Container::draw()
+{
+	{
+		for(auto each : this->nodes)
+		{
+			if ( each != nullptr)
+				each->draw();
+		}
+	}
+}
+
+void Node_Container::drawLabelOnly()
+{
+	{
+		for(auto each : this->nodes)
+		{
+			if (auto symbol = dynamic_cast<Node_Variable*>(each))
+				ImGui::Text("%s => %s", symbol->getName(), symbol->getValueAsNode()->getLabel());
+		}
+	}
+}
 
 void Node_Container::addNode(Node* _node)
 {
@@ -37,7 +59,7 @@ Node_Variable* Node_Container::find(const char* _name)
 
 	auto findFunction = [_name](const Node_Variable* _node ) -> bool
 	{
-		return strcmp(_node->getLabel().c_str(), _name) == 0;
+		return strcmp(_node->getName(), _name) == 0;
 	};
 
 	auto it = std::find_if(variables.begin(), variables.end(), findFunction);
@@ -63,6 +85,7 @@ Node_Variable* Node_Container::createNodeVariable(const char* _name, Node* _valu
 {
 	Node_Variable* variable = new Node_Variable(_name, _value);
 	this->variables.push_back(variable);
+	addNode(variable);
 	return variable;
 }
 

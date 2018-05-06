@@ -12,7 +12,6 @@ namespace Nodable{
 	public:		
 		Node_BinaryOperation(){};
 		virtual ~Node_BinaryOperation(){};
-		virtual void                  draw()override{printf("%s", "[BinaryOperation]");}
 		virtual void                  evaluate               () = 0;
 		/* return true is op needs to be evaluated before nextOp */
 		static  bool                  NeedsToBeEvaluatedFirst(std::string op, std::string nextOp);
@@ -25,45 +24,40 @@ namespace Nodable{
 	/* Implementation of the Node_BinaryOperation as a Sum */
 	class Node_Add : public Node_BinaryOperation{
 	public:
-		Node_Add(){};
+		Node_Add(){setLabel("ADD");};
 		~Node_Add(){};
 		void evaluate();
-		void draw()override{printf("%s", "[Add]");}
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Substraction */
 	class Node_Substract : public Node_BinaryOperation{
 	public:
-		Node_Substract(){};
+		Node_Substract(){setLabel("SUBSTRACT");};
 		~Node_Substract(){};
 		void evaluate();
-		void draw()override{printf("%s", "[Substract]");}
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Multiplication */
 	class Node_Multiply : public Node_BinaryOperation{
 	public:
-		Node_Multiply(){};
+		Node_Multiply(){setLabel("MULTIPLY");};
 		~Node_Multiply(){};
 		void evaluate();
-		void draw()override{printf("%s", "[Multiply]");}
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Division */
 	class Node_Divide : public Node_BinaryOperation{
 	public:
-		Node_Divide(){};
+		Node_Divide(){setLabel("DIVIDE");};
 		~Node_Divide(){};
 		void evaluate();
-		void draw()override{printf("%s", "[Divide]");}
 	};
 
 	/* Implementation of the Node_BinaryOperation as an assignment */
 	class Node_Assign : public Node_BinaryOperation{
 	public:
-		Node_Assign(){};
+		Node_Assign(){setLabel("ASSIGN");};
 		~Node_Assign(){};
 		void evaluate();
-		void draw()override{printf("%s", "[Assign]");}
 	};
 }

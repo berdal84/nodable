@@ -130,10 +130,10 @@ void Node_Lexer::buildExecutionTreeAndEvaluate()
 
 	// Draw the execution tree :
 	LOG_MSG("\nTree view :\n");
-	Node::DrawRecursive(result);
+	Node::ArrangeRecursive(result, ImVec2(1000.0f, 200.0f));
 
 	// Display the result :
-	LOG_MSG("\nResult: %f", result->getValueAsNumber());
+	LOG_MSG("\nResult: %f\n", result->getValueAsNumber());
 }
 
 bool Node_Lexer::isSyntaxValid()

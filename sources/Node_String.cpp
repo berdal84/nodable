@@ -4,10 +4,10 @@
 using namespace Nodable;
 
 Node_String::Node_String(const char* _value):
-	Node_Value(Type_String),
-	value(_value)
+	Node_Value(Type_String)
 {
 	LOG_DBG("New Node_String : %s\n", _value);
+	setValue(_value);
 }
 
 Node_String::~Node_String(){}
@@ -24,15 +24,10 @@ bool Node_String::isEmpty()const
 
 double Node_String::getValueAsNumber()const
 {
-	return double{this->value.size()};
+	return (double)this->value.size();
 }
 
 std::string Node_String::getValueAsString()const
-{
-	return this->value;
-}
-
-std::string Node_String::getLabel()const
 {
 	return this->value;
 }
@@ -41,6 +36,7 @@ void Node_String::setValue(const char* _value)
 {
 	LOG_MSG("Node_String : %s becomes %s\n", this->value.c_str(), _value);
 	this->value = _value;
+	setLabel("\"" + std::string(_value) +"\"");
 }
 
 void Node_String::setValue(double _value)

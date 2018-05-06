@@ -14,7 +14,6 @@ namespace Nodable{
 	public:
 		Node_Value(Type_ _type);
 		virtual ~Node_Value();
-		virtual void        draw             ()override;
 
 		virtual void        setValue         (Node*)=0;
 		virtual void        setValue         (const char* /*value*/)=0;
@@ -23,7 +22,7 @@ namespace Nodable{
 		virtual Node*       getValueAsNode   (){return this;}
 		virtual double      getValueAsNumber ()const=0;
 		virtual std::string getValueAsString ()const=0;		
-		virtual std::string getLabel         ()const=0;
+
 		Type_               getType          ()const;
 		bool                isType           (Type_ _type)const;		
 	private:

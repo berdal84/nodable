@@ -4,6 +4,7 @@
 #include <cstring>      // for strcmp
 #include "Node_Value.h"
 #include "Node_Variable.h"
+#include <imgui.h>
 
 using namespace Nodable;
 
@@ -68,7 +69,7 @@ bool Node_BinaryOperation::NeedsToBeEvaluatedFirst(std::string op, std::string n
 void Node_Add::evaluate()
 {
 	double result = this->getLeftInputValue()->getValueAsNumber() + this->getRightInputValue()->getValueAsNumber();
-	LOG_MSG("%s + %s = %f\n", this->getLeftInputValue()->getLabel().c_str(), this->getRightInputValue()->getLabel().c_str(), result);
+	LOG_MSG("%s + %s = %f\n", this->getLeftInputValue()->getLabel(), this->getRightInputValue()->getLabel(), result);
 	this->getOutputValue()->setValue(result);
 }
 
@@ -78,7 +79,7 @@ void Node_Add::evaluate()
 void Node_Substract::evaluate()
 {
 	double result = this->getLeftInputValue()->getValueAsNumber() - this->getRightInputValue()->getValueAsNumber();
-	LOG_MSG("%s - %s = %f\n", this->getLeftInputValue()->getLabel().c_str(), this->getRightInputValue()->getLabel().c_str(), result);
+	LOG_MSG("%s - %s = %f\n", this->getLeftInputValue()->getLabel(), this->getRightInputValue()->getLabel(), result);
 	this->getOutputValue()->setValue(result);
 }
 
@@ -88,7 +89,7 @@ void Node_Substract::evaluate()
 void Node_Divide::evaluate()
 {
 	double result = this->getLeftInputValue()->getValueAsNumber() / this->getRightInputValue()->getValueAsNumber();
-	LOG_MSG("%s / %s = %f\n", this->getLeftInputValue()->getLabel().c_str(), this->getRightInputValue()->getLabel().c_str(), result);
+	LOG_MSG("%s / %s = %f\n", this->getLeftInputValue()->getLabel(), this->getRightInputValue()->getLabel(), result);
 	this->getOutputValue()->setValue(result);
 }
 
@@ -98,7 +99,7 @@ void Node_Divide::evaluate()
 void Node_Multiply::evaluate()
 {
 	double result = this->getLeftInputValue()->getValueAsNumber() * this->getRightInputValue()->getValueAsNumber();
-	LOG_MSG("%s * %s = %f\n", this->getLeftInputValue()->getLabel().c_str(), this->getRightInputValue()->getLabel().c_str(), result);
+	LOG_MSG("%s * %s = %f\n", this->getLeftInputValue()->getLabel(), this->getRightInputValue()->getLabel(), result);
 	this->getOutputValue()->setValue(result);
 }
 
@@ -113,7 +114,7 @@ void Node_Assign::evaluate()
 	this->getLeftInputValue()->setValue(result);
 	this->getOutputValue()   ->setValue(result);
 
-	LOG_MSG("%s = %s (result %s)\n", 	this->getLeftInputValue()->getLabel().c_str(),
-										this->getRightInputValue()->getLabel().c_str(),
+	LOG_MSG("%s = %s (result %s)\n", 	this->getLeftInputValue()->getLabel(),
+										this->getRightInputValue()->getLabel(),
 										this->getOutputValue()->getValueAsString().c_str());	
 }

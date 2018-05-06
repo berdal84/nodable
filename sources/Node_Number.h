@@ -13,7 +13,7 @@ namespace Nodable{
 		Node_Number(double _n);
 		Node_Number(const char*);
 		virtual ~Node_Number();
-		virtual void   draw             ()override;
+
 
 		void        setValue            (Node*)override{};
 		void        setValue            (double)override;
@@ -22,7 +22,6 @@ namespace Nodable{
 		double      getValueAsNumber    ()const;
 		std::string getValueAsString    ()const;
 
-		std::string getLabel            ()const;
 	private:
 		double value;
 	};
