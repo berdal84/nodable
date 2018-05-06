@@ -10,7 +10,7 @@ When user type an expression, the program split it into tokens, build the execut
 Examples :
 ==========
 ![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018-05-06%20-%20GUI.png)
-![Example2](https://github.com/berdal84/Nodable/blob/master/screenshots/2018-05-06%20-%20GUI 2.png)
+![Example2](https://github.com/berdal84/Nodable/blob/master/screenshots/2018-05-06%20-%20GUI%202.png)
 
 Expressions:
 ============
