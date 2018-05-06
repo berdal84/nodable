@@ -4,13 +4,11 @@ addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
-    - pyglfw/pyglfw
     packages:
     - gcc-4.8
     - g++-4.8
     - libusb-1.0-0-dev
     - libsdl2-dev
-    - libglfw3-dev
     - blibxrandr-dev
     - libxi-dev
     - libxxf86vm-dev
