@@ -4,6 +4,7 @@ addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
+    - pyglfw/pyglfw
     packages:
     - gcc-4.8
     - g++-4.8
@@ -13,9 +14,6 @@ addons:
     - blibxrandr-dev
     - libxi-dev
     - libxxf86vm-dev
-    
-before_install:
-  - if [ $TRAVIS_OS_NAME == linux ]; then sudo add-apt-repository -y ppa:pyglfw/pyglfw && sudo apt-get update -qq fi
 
 script:
   - make
