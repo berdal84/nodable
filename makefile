@@ -56,11 +56,6 @@ makeFolders:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(BINDIR)
 
-.PHONY: install
-install:
-	@echo "Starting install..."	
-	@cp $(BINDIR)/$(EXECUTABLE) /bin && echo "Install done ! type nodable to launch the program." || echo "ERROR : Try with sudo make install" && exit
-		
 .PHONY: clean
 clean:
 	rm -rf $(OBJECTS) $(DEPENDENCIES)
