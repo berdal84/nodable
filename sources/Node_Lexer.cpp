@@ -5,6 +5,8 @@
 #include "Node_Container.h"
 #include "Node_Variable.h"
 #include "Node_BinaryOperations.h"
+#include "NodeView.h"
+#include <imgui.h>
 
 using namespace Nodable;
 
@@ -130,7 +132,7 @@ void Node_Lexer::buildExecutionTreeAndEvaluate()
 
 	// Draw the execution tree :
 	LOG_MSG("\nTree view :\n");
-	Node::ArrangeRecursive(result, ImVec2(1000.0f, 200.0f));
+	NodeView::ArrangeRecursive(result->getView(), ImVec2(1400.0f, 200.0f));
 
 	// Display the result :
 	LOG_MSG("\nResult: %f\n", result->getValueAsNumber());

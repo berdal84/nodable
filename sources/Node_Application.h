@@ -16,7 +16,7 @@ namespace Nodable
 		bool eval(std::string /* literal expression */);
 		void init();
 		void shutdown();
-		void draw()override;
+		void draw();
 	private:
 		Node_Container* ctx;
 		Node_String*    exitString;

@@ -9,7 +9,7 @@
 
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
-#include <imgui.h>
+#include "NodeView.h"
 
 using namespace Nodable;
 
@@ -26,7 +26,7 @@ void Node_Container::draw()
 		for(auto each : this->nodes)
 		{
 			if ( each != nullptr)
-				each->draw();
+				each->getView()->draw();
 		}
 	}
 }

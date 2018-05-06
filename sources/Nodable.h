@@ -42,8 +42,13 @@ v0.1:
 
 namespace Nodable{	
 	
+	// Common
 	class Log;
 	
+	// View
+	class NodeView;
+
+	// Nodes
 	class Node;
 	class Node_Value;
 	class Node_Number;
