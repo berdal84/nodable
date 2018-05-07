@@ -2,6 +2,7 @@
 
 #include "Nodable.h" // for constants and forward declarations
 #include <imgui.h>   // for ImVec2
+#include <string>
 
 namespace Nodable{
 
@@ -18,19 +19,21 @@ namespace Nodable{
 		ImVec2            getOutputPosition   ()const;
 
 		void              setPosition         (ImVec2);
-
+		void              translate           (ImVec2);
 		static void       ArrangeRecursive    (NodeView*, ImVec2 _position = ImVec2(1400.0f, 200.0f));
 
 	private:
 		void              imguiBegin          ();
 		void              imguiDraw           ();
 		void              imguiEnd            ();
-             
+           
+        std::string     name;
 		Node*           node        = nullptr;
 		ImVec2          position    = ImVec2(50.0f, 50.0f);
 		ImVec2          size        = ImVec2(170.0f, 40.0f);
 		float           opacity     = 0.0f;
 		bool            visible     = true;
 		bool            showDetails = false;
+		bool            hovered;
 	};
 }

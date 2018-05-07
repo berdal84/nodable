@@ -10,6 +10,7 @@ NodeView::NodeView(Node* _node)
 {
 	LOG_DBG("Node::Node()\n");
 	this->node = _node;
+	this->name = std::string("Node##") + std::to_string((size_t)this);
 }
 
 NodeView::~NodeView()
@@ -36,6 +37,12 @@ ImVec2 NodeView::getOutputPosition()const
 void NodeView::setPosition(ImVec2 _position)
 {
 	this->position = _position;
+	ImGui::SetWindowPos(name.c_str(), _position);
+}
+
+void NodeView::translate(ImVec2 _delta)
+{
+	setPosition(ImVec2(position.x + _delta.x, position.y + _delta.y));
 }
 
 void NodeView::draw()
@@ -54,20 +61,19 @@ void NodeView::update()
 
 void NodeView::imguiBegin()
 {
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
-
-	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);
-	std::string name = node->getLabel() + std::string("##") + std::to_string((size_t)this);
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
+	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);	
 	ImGui::SetNextWindowSize(size, ImGuiSetCond_FirstUseEver);
 	ImGui::SetNextWindowPos(getPosition(), ImGuiSetCond_FirstUseEver);	
 	ImGui::Begin(name.c_str(), &visible, window_flags);
 	ImGui::PushItemWidth(150.0f);
+	hovered = ImGui::IsWindowHovered();
 }
 
 void NodeView::imguiDraw()
 {
 	imguiBegin();
-	setPosition( ImGui::GetWindowPos());
+	setPosition(ImGui::GetWindowPos());
 
 	this->size     = ImGui::GetWindowSize();
 	ImGui::Text("%s", node->getLabel());
@@ -114,15 +120,13 @@ void NodeView::imguiDraw()
 	imguiEnd();
 
 	// Draw wires to its output
-	auto cursorPosBackup = ImGui::GetCursorScreenPos();
-
 	auto out = node->getOutputs()->getVariables();
+
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->PushClipRectFullScreen();
+
 	for(auto each : out)
 	{
-		// draw line
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        draw_list->PushClipRectFullScreen();
-
         // Compute start and end point
         ImVec2 pos0 = getOutputPosition();     
         ImVec2 pos1 = each->getValueAsNode()->getView()->getInputPosition();
@@ -156,12 +160,9 @@ void NodeView::imguiDraw()
         }
         
         // dot at the input position
-        draw_list->AddCircleFilled(pos1, 5.0f, ImColor(1.0f, 1.0f, 1.0f, 1.0f));
-
-        draw_list->PopClipRect();
+        draw_list->AddCircleFilled(pos1, 5.0f, ImColor(1.0f, 1.0f, 1.0f, 1.0f));        
 	}
-
-	ImGui::SetCursorScreenPos(cursorPosBackup);
+	draw_list->PopClipRect();
 }
 
 void NodeView::imguiEnd()

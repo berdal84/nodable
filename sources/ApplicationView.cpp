@@ -144,40 +144,39 @@ void ApplicationView::draw()
     }
 
     // 2. Rendering Nodable Application
-    bool isCommandLineVisible = true;
-    ImGui::Begin("Nodable command line", &isCommandLineVisible, ImGuiWindowFlags_ShowBorders);
-    static char buf[1024];
-
-    // Set Keyboard focus here once
-    static bool setKeyboardFocusOnCommandLine = true;
-    if ( setKeyboardFocusOnCommandLine){
-       ImGui::SetKeyboardFocusHere();
-       setKeyboardFocusOnCommandLine = false;
-    }
-
-    bool needsToEvaluateString = ImGui::InputText("", buf, 1023, ImGuiInputTextFlags_EnterReturnsTrue);
-    ImGui::SameLine();
-    needsToEvaluateString |= ImGui::Button("Eval");
-
-    if (needsToEvaluateString)
     {
-        application->eval(std::string(buf));
-        setKeyboardFocusOnCommandLine = true;
-    }
+	    bool isCommandLineVisible = true;
+	    ImGui::Begin("Nodable command line", &isCommandLineVisible, ImGuiWindowFlags_ShowBorders);
+	    static char buf[1024];
 
-    ImGui::End();
+	    // Set Keyboard focus here once
+	    static bool setKeyboardFocusOnCommandLine = true;
+	    if ( setKeyboardFocusOnCommandLine){
+	       ImGui::SetKeyboardFocusHere();
+	       setKeyboardFocusOnCommandLine = false;
+	    }
+
+	    bool needsToEvaluateString = ImGui::InputText("", buf, 1023, ImGuiInputTextFlags_EnterReturnsTrue);
+	    ImGui::SameLine();
+	    needsToEvaluateString |= ImGui::Button("Eval");
+
+	    if (needsToEvaluateString)
+	    {
+	        application->eval(std::string(buf));
+	        setKeyboardFocusOnCommandLine = true;
+	    }
+
+	    ImGui::End();
+	}
 
     // draw the properties panel
-    extern float bezierCurveOutRoundness;
-    extern float bezierCurveInRoundness;
-    extern float bezierThickness ;
-    extern bool displayArrows; 
-
-    ImGui::Text("Bezier curves");
-    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
-    ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
-    ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
-    ImGui::Checkbox("arrows", &displayArrows);
+    {
+	    ImGui::Text("Bezier curves");
+	    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
+	    ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
+	    ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
+	    ImGui::Checkbox("arrows", &displayArrows);
+	}
 
     // draw the main context
 	application->getContext()->draw();

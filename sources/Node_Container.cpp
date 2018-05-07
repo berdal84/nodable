@@ -22,6 +22,18 @@ parent(_parent)
 
 void Node_Container::draw()
 {
+	// Draft Mouse PAN
+	if( ImGui::IsMouseDragging() && !ImGui::IsMouseHoveringAnyWindow() )
+	{
+		auto drag = ImGui::GetMouseDragDelta();
+		for(auto each : this->nodes)
+		{
+			each->getView()->translate(drag);
+		}
+		ImGui::ResetMouseDragDelta();
+	}
+
+
 	{
 		for(auto each : this->nodes)
 		{
