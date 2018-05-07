@@ -14,7 +14,6 @@ namespace Nodable{
 		Node_Number(const char*);
 		virtual ~Node_Number();
 
-
 		void        setValue            (Node*)override{};
 		void        setValue            (double)override;
 		void        setValue            (const char*)override;

@@ -1,14 +1,7 @@
 #include "Node.h"
 #include "Log.h"		// for LOG_DBG(...)
-#include <algorithm>    // std::find_if
-#include <cstring>      // for strcmp
-#include "Node_Value.h"
-#include "Node_Number.h"
-#include "Node_String.h"
-#include "Node_Lexer.h"
 #include "Node_Container.h"
 #include "Node_Variable.h"
-#include "Node_BinaryOperations.h"
 #include "NodeView.h"
 
 using namespace Nodable;
@@ -71,17 +64,17 @@ Node_Variable* Node::getMember (const char* _name)const
 
 void Node::setInput  (Node* _node, const char* _name)
 {
-	inputs->setSymbol(_name, _node);
+	inputs->setVariable(_name, _node);
 }
 
 void Node::setOutput (Node* _node, const char* _name)
 {
-	outputs->setSymbol(_name, _node);
+	outputs->setVariable(_name, _node);
 }
 
 void Node::setMember (Node* _node, const char* _name)
 {
-	members->setSymbol(_name, _node);
+	members->setVariable(_name, _node);
 }
 
 void Node::setLabel(const char* _label)

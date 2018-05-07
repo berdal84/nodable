@@ -53,6 +53,23 @@ void Node_Container::addNode(Node* _node)
 	LOG_DBG("A node has been added to the container '%s'\n", this->getName());
 }
 
+void Node_Container::destroyNode(Node* _node)
+{
+	{
+		auto it = std::find(variables.begin(), variables.end(), _node);
+		if (it != variables.end())
+			variables.erase(it);
+	}
+
+	{
+		auto it = std::find(nodes.begin(), nodes.end(), _node);
+		if (it != nodes.end())
+			nodes.erase(it);
+	}
+
+	delete _node;
+}
+
 Node_Variable* Node_Container::find(const char* _name)
 {
 	LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getName());
@@ -71,7 +88,7 @@ Node_Variable* Node_Container::find(const char* _name)
 	return nullptr;
 }
 
-void Node_Container::setSymbol(const char* _name, Node* _target)
+void Node_Container::setVariable(const char* _name, Node* _target)
 {
 	Node_Variable* variable = find(_name);
 

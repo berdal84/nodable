@@ -2,9 +2,7 @@
 
 #include "Nodable.h"    // for constants and forward declarations
 #include "Node.h"       // the base class.
-#include "vector"
 #include <string>
-#include "stdlib.h"		// for size_t
 
 namespace Nodable{
 	/* 

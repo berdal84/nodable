@@ -2,7 +2,7 @@
 #include "Node_String.h"
 #include "Node_Number.h"
 #include "Log.h"
-#include <imgui.h>
+
 using namespace Nodable;
 
 Node_Variable::Node_Variable(const char* _name, Node* _target):

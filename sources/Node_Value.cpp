@@ -1,8 +1,5 @@
 #include "Node_Value.h"
-#include "Node_String.h" // for dynamic cast
-#include "Node_Number.h" // for dynamic cast
 #include "Log.h"		 // for LOG_DBG(...)
-#include <imgui.h>
 
 using namespace Nodable;
 

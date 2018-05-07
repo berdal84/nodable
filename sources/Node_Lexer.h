@@ -5,7 +5,6 @@
 #include <vector>
 #include <utility>      // for std::pair
 
-
 namespace Nodable{
 	typedef std::pair<std::string, std::string> Token;
 
@@ -22,8 +21,6 @@ namespace Nodable{
 		void           buildExecutionTreeAndEvaluate      ();
 		Node_Value*    convertTokenToNode                 (Token token);
 		void           addToken			                  (std::string _category, std::string _string);
-
-		Node_String*       expression;
 		std::vector<Token> tokens;
 	};
 }

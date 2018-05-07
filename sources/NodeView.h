@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Nodable.h"            // for constants and forward declarations
-#include <imgui.h>
+#include "Nodable.h" // for constants and forward declarations
+#include <imgui.h>   // for ImVec2
 
 namespace Nodable{
-
 
 	class NodeView{
 	public:
@@ -20,7 +19,7 @@ namespace Nodable{
 
 		void              setPosition         (ImVec2);
 
-		static void       ArrangeRecursive    (NodeView*, ImVec2 _position);
+		static void       ArrangeRecursive    (NodeView*, ImVec2 _position = ImVec2(1400.0f, 200.0f));
 
 	private:
 		void              imguiBegin          ();

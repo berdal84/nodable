@@ -40,16 +40,24 @@ v0.1:
 	Forward declarations
 */
 
-namespace Nodable{	
-	
+namespace Nodable{	   
+
+
+    extern float bezierCurveOutRoundness;
+    extern float bezierCurveInRoundness;
+    extern float bezierThickness;
+    extern bool displayArrows; 
+
 	// Common
 	class Log;
 	
 	// View
 	class NodeView;
+	class ApplicationView;
 
 	// Nodes
 	class Node;
+	class Node_Application;
 	class Node_Value;
 	class Node_Number;
 	class Node_Add;

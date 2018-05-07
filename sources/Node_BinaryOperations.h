@@ -1,10 +1,7 @@
 #pragma once
 
-#include "Nodable.h"            // for constants and forward declarations
-#include "Node.h"
-#include "vector"
-#include <string>
-#include "stdlib.h"		// for size_t
+#include "Nodable.h"   // for constants and forward declarations
+#include "Node.h"      // base class
 
 namespace Nodable{
 	/* Node_BinaryOperation is an interface for all binary operations */

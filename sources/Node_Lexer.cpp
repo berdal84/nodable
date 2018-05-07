@@ -6,13 +6,20 @@
 #include "Node_Variable.h"
 #include "Node_BinaryOperations.h"
 #include "NodeView.h"
-#include <imgui.h>
 
 using namespace Nodable;
 
-Node_Lexer::Node_Lexer(Node_String* _expression):
-expression(_expression)
+Node_Lexer::Node_Lexer(Node_String* _expression)
 {
+	setInput(_expression);
+
+	setMember(new Node_String("0123456789."), "numbers" );
+	setMember(new Node_String("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"), "letters" );
+	setMember(new Node_String("+-*/="), "operators" );
+
+	_expression->setOutput(this);
+
+	setLabel("Lexer");
 	LOG_DBG("New Node_Lexer ready to tokenize \"%s\"\n", _expression->getValueAsString().c_str() );
 }
 
@@ -40,6 +47,7 @@ Node_Value* Node_Lexer::convertTokenToNode(Token token)
 		// If symbol not already exists, we create it (points to nullptr)
 		if ( symbol == nullptr )
 			symbol = context->createNodeVariable(token.second.c_str(), nullptr);
+
 		// Return symbol value
 		return symbol;
 
@@ -132,7 +140,7 @@ void Node_Lexer::buildExecutionTreeAndEvaluate()
 
 	// Draw the execution tree :
 	LOG_MSG("\nTree view :\n");
-	NodeView::ArrangeRecursive(result->getView(), ImVec2(1400.0f, 200.0f));
+	NodeView::ArrangeRecursive(result->getView());
 
 	// Display the result :
 	LOG_MSG("\nResult: %f\n", result->getValueAsNumber());
@@ -169,12 +177,12 @@ void Node_Lexer::tokenize()
 {
 	LOG_DBG("Node_Lexer::tokenize() - START\n");
 	/* get expression chars */
-	std::string chars = expression->getValueAsString();
+	std::string chars = getInput()->getValueAsString();
 
 	/* prepare allowed chars */
-	std::string numbers 	= "0123456789.";
-	std::string letters		= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
-	std::string operators 	= "+-*/=";
+	std::string numbers 	= getMember("numbers")->getValueAsString();
+	std::string letters		= getMember("letters")->getValueAsString();
+	std::string operators 	= getMember("operators")->getValueAsString();
 
 	for(auto it = chars.begin(); it < chars.end(); ++it)
 	{

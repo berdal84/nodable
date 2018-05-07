@@ -104,6 +104,12 @@ void NodeView::imguiDraw()
 				ImGui::TreePop();
 			}
 		}
+
+		std::string parentName = "NULL";
+		if ( node->getParent() )
+			parentName = node->getParent()->getName();
+
+		ImGui::Text("Parent: %s", parentName.c_str());
 	}
 	imguiEnd();
 
@@ -126,17 +132,12 @@ void NodeView::imguiDraw()
         float positiveDistX = distX < 0.0f ? -distX : distX;
         positiveDistX = positiveDistX < 200.0f ? 200.0f : positiveDistX;        
 
-        static float bezierCurveOutRoundness = 0.15f;
-        static float bezierCurveInRoundness = 0.3f;
-        static float bezierThickness = 1.5f;
-        static ImVec2 arrowSize(8.0f, 12.0f);
-        static bool displayArrows = true;
-        ImGui::Text("Bezier curves");
-        ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
-        ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
-        ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
-        ImGui::Checkbox("arrows", &displayArrows);
-        ImGui::SliderFloat2("arrowSize", &arrowSize.x, 5.0f, 50.0f);
+	    extern float bezierCurveOutRoundness;
+	    extern float bezierCurveInRoundness;
+	    extern float bezierThickness;
+	    extern bool displayArrows;    
+	    ImVec2 arrowSize(8.0f, 12.0f); 
+
         ImVec2 cp0(pos0.x + positiveDistX*bezierCurveOutRoundness, pos0.y);
         ImVec2 cp1(pos1.x - positiveDistX*bezierCurveInRoundness, pos1.y);
 

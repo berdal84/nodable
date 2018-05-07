@@ -16,8 +16,9 @@ namespace Nodable{
 		void                      drawLabelOnly();
 		Node_Variable* 	          find                      (const char* /*Symbol name*/);
 		void                      addNode                   (Node* /*Node to add to this context*/);
-		void                      setSymbol                 (const char* /*name*/, Node* /*value*/);
-		Node_Variable*            createNodeVariable          (const char* /*name*/, Node* /*value*/ = nullptr);
+		void                      destroyNode               (Node*);
+		void                      setVariable               (const char* /*name*/, Node* /*value*/);
+		Node_Variable*            createNodeVariable        (const char* /*name*/, Node* /*value*/ = nullptr);
 		Node_Number*              createNodeNumber          (int /*value*/ = 0);
 		Node_Number*              createNodeNumber          (const char* /*value*/);
 		Node_String*              createNodeString          (const char* /*value*/);

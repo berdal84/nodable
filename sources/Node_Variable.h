@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Nodable.h"
-#include "Node_Value.h"
+#include "Nodable.h"    // forward declarations and common stuff
+#include "Node_Value.h" // base class
 #include <string>
 
 namespace Nodable{

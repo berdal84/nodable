@@ -1,10 +1,7 @@
 #include "Node_BinaryOperations.h"
 #include "Log.h"		// for LOG_DBG(...)
-#include <algorithm>    // std::find_if
-#include <cstring>      // for strcmp
 #include "Node_Value.h"
 #include "Node_Variable.h"
-#include <imgui.h>
 
 using namespace Nodable;
 
