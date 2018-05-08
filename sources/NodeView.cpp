@@ -77,10 +77,7 @@ void NodeView::imguiDraw()
 
 	this->size     = ImGui::GetWindowSize();
 	ImGui::Text("%s", node->getLabel());
-	ImGui::SameLine();
-	showDetails ^= ImGui::Button("...", ImVec2(20.0f, 20.0f));
-	ImGui::SameLine();
-	visible = !ImGui::Button("x", ImVec2(20.0f, 20.0f));
+	showDetails ^= ImGui::IsMouseDoubleClicked(0);
 
 	if (showDetails)
 	{

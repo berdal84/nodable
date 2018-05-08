@@ -6,7 +6,7 @@
 #include <utility>      // for std::pair
 
 namespace Nodable{
-	typedef std::pair<std::string, std::string> Token;
+	typedef std::pair<std::string, std::string> Token; // TODO convert this to conventionnal Node_Variable
 
 	class Node_Lexer : public Node
 	{
