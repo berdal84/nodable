@@ -32,6 +32,7 @@ NodeView::NodeView(Node* _node)
 	LOG_DBG("Node::Node()\n");
 	this->node = _node;
 	this->name = std::string("Node###") + std::to_string((size_t)this);
+	this->position = ImVec2(500.0f, -500.0f);
 }
 
 NodeView::~NodeView()
