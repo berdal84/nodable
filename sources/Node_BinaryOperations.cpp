@@ -85,9 +85,12 @@ void Node_Substract::evaluate()
 
 void Node_Divide::evaluate()
 {
-	double result = this->getLeftInputValue()->getValueAsNumber() / this->getRightInputValue()->getValueAsNumber();
-	LOG_MSG("%s / %s = %f\n", this->getLeftInputValue()->getLabel(), this->getRightInputValue()->getLabel(), result);
-	this->getOutputValue()->setValue(result);
+	if (this->getRightInputValue()->getValueAsNumber() != 0.0f)
+	{
+		double result = this->getLeftInputValue()->getValueAsNumber() / this->getRightInputValue()->getValueAsNumber();
+		LOG_MSG("%s / %s = %f\n", this->getLeftInputValue()->getLabel(), this->getRightInputValue()->getLabel(), result);
+		this->getOutputValue()->setValue(result);
+	}
 }
 
  // Node_Multiply :
