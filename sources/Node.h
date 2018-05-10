@@ -32,6 +32,7 @@ namespace Nodable{
 		void              setLabel       (const char*);
 		void              setLabel       (std::string);
 
+		static void       Connect        (Node* /*_from*/, Node* /*_to*/, const char* _fromOutputName = NODE_DEFAULT_OUTPUT_NAME, const char* _toInputName = NODE_DEFAULT_INPUT_NAME);
 	private:
 		Node_Container* inputs;
 		Node_Container* outputs;		

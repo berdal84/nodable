@@ -7,6 +7,7 @@
 
 #include "Node_Application.h"
 #include "Node_Container.h"
+#include "NodeView.h"
 
 using namespace Nodable;
 
@@ -140,6 +141,23 @@ void ApplicationView::draw()
             	application->stopExecution();
             ImGui::EndMenu();
         }
+
+        if (ImGui::BeginMenu("Edit"))
+        {
+            auto hide    = ImGui::MenuItem("Hide", "Del.");
+            auto arrange = ImGui::MenuItem("Arrange", "A");
+
+            auto selected = NodeView::GetSelected();
+            if( selected )
+	        {
+	            if (hide)
+	            	selected->setVisible(false);
+				else if (arrange)
+					selected->arrange();
+        	}
+
+            ImGui::EndMenu();
+        }
         ImGui::EndMainMenuBar();
     }
 
@@ -171,15 +189,30 @@ void ApplicationView::draw()
 
     // draw the properties panel
     {
-	    ImGui::Text("Bezier curves");
-	    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
-	    ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
-	    ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
-	    ImGui::Checkbox("arrows", &displayArrows);
+	    bool isPropertiesPanelVisible = true;
+	    ImGui::Begin("Properties", &isPropertiesPanelVisible, ImGuiWindowFlags_ShowBorders);
+	    {
+		    ImGui::Text("Bezier curves");
+		    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
+		    ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
+		    ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
+		    ImGui::Checkbox("arrows", &displayArrows);
+	    
+	    }
+		ImGui::End();
 	}
 
-    // draw the main context
-	application->getContext()->draw();
+    // Draw the application context
+    int width, height;
+	SDL_GetWindowSize(window, &width, &height);
+	ImGui::SetNextWindowPos(ImVec2());
+	ImGui::SetNextWindowSize(ImVec2(width, height));
+	
+	ImGui::Begin("Container", NULL, ImVec2(width,height), 1.0f, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
+	{
+		application->getContext()->draw();
+	}
+	ImGui::End();
 
     // Rendering
     glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);

@@ -6,6 +6,15 @@
 
 using namespace Nodable;
 
+void Node::Connect(	Node* _from, 
+					Node* _to, 
+					const char* _fromOutputName, 
+					const char* _toInputName)
+{
+	_from->setOutput (_to,   _fromOutputName);
+	_to->setInput    (_from, _toInputName);
+}
+
 Node::Node()
 {
 	LOG_DBG("Node::Node()\n");

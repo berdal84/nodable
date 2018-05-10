@@ -6,15 +6,38 @@
 
 using namespace Nodable;
 
+NodeView* NodeView::s_selected = nullptr;
+
+void NodeView::SetSelected(NodeView* _view)
+{
+	s_selected = _view;
+}
+
+NodeView* NodeView::GetSelected()
+{
+	return s_selected;
+}
+
+
+bool NodeView::IsSelected(NodeView* _view)
+{
+	return s_selected == _view;
+}
+
 NodeView::NodeView(Node* _node)
 {
 	LOG_DBG("Node::Node()\n");
 	this->node = _node;
-	this->name = std::string("Node##") + std::to_string((size_t)this);
+	this->name = std::string("Node###") + std::to_string((size_t)this);
 }
 
 NodeView::~NodeView()
 {
+}
+
+Node* NodeView::getNode()const
+{
+	return node;
 }
 
 ImVec2 NodeView::getPosition()const
@@ -40,9 +63,19 @@ void NodeView::setPosition(ImVec2 _position)
 	ImGui::SetWindowPos(name.c_str(), _position);
 }
 
+void NodeView::setVisible(bool _b)
+{
+	visible = _b;
+}
+
 void NodeView::translate(ImVec2 _delta)
 {
 	setPosition(ImVec2(position.x + _delta.x, position.y + _delta.y));
+}
+
+void NodeView::arrange()
+{
+	ArrangeRecursive(this, position);
 }
 
 void NodeView::draw()
@@ -59,53 +92,133 @@ void NodeView::update()
 		opacity += (1.0f - opacity) * 0.05f;
 }
 
-void NodeView::imguiBegin()
+void NodeView::imguiBegin(DrawMode_ _drawMode)
 {
+
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);	
-	ImGui::SetNextWindowSize(size, ImGuiSetCond_FirstUseEver);
-	ImGui::SetNextWindowPos(getPosition(), ImGuiSetCond_FirstUseEver);	
-	ImGui::Begin(name.c_str(), &visible, window_flags);
+	
+	switch ( _drawMode)
+	{
+		case DrawMode_AsWindow:
+		{
+			ImGui::SetNextWindowSize(size, ImGuiSetCond_FirstUseEver);
+			ImGui::SetNextWindowPos(getPosition(), ImGuiSetCond_FirstUseEver);	
+			ImGui::Begin(name.c_str(), &visible, window_flags);		
+			break;
+		}
+
+		case DrawMode_AsGroup:
+		{
+			ImGui::SetCursorPos(position);
+			ImGui::BeginGroup();
+			auto cursor = ImGui::GetCursorPos();
+			ImGui::SetCursorPos(ImVec2(cursor.x + 10.0f, cursor.y + 10.0f));
+			break;
+		}
+	}
+
 	ImGui::PushItemWidth(150.0f);
-	hovered = ImGui::IsWindowHovered();
 }
 
-void NodeView::imguiDraw()
+void NodeView::imguiEnd(DrawMode_ _drawMode)
 {
-	imguiBegin();
-	setPosition(ImGui::GetWindowPos());
+	ImGui::PopItemWidth();
+
+	switch (_drawMode)
+	{
+		case DrawMode_AsWindow:
+		{
+			hovered = ImGui::IsWindowHovered();
+			ImGui::End();
+			break;
+		}
+		case DrawMode_AsGroup:
+		{
+			auto cursor = ImGui::GetCursorPos();
+			ImGui::SetCursorPos(ImVec2(cursor.x + 10.0f, cursor.y + 10.0f));ImGui::SameLine(); ImGui::Text(" ");
+			ImGui::EndGroup();
+			hovered = ImGui::IsItemHoveredRect();
+
+			if ( ! dragged)
+				dragged = hovered && ImGui::IsMouseClicked(0);
+			else if ( ImGui::IsMouseReleased(0))
+				dragged = false;
+			
+			if ( hovered && ImGui::IsMouseClicked(0))
+				SetSelected(this);
+
+			showDetails ^= hovered && ImGui::IsMouseDoubleClicked(0);
+
+			size = ImGui::GetItemRectSize();
+			ImDrawList* draw_list = ImGui::GetWindowDrawList();
+			{
+				auto color = IsSelected(this) ? borderColorSelected : borderColor;
+				auto itemRectMin = ImGui::GetItemRectMin();
+				auto itemRectMax = ImGui::GetItemRectMax();
+				draw_list->AddRect(itemRectMin, itemRectMax,color, 5.0f);
+
+				// Draw an additionnal rectangle when selected
+				if (IsSelected(this))
+				{
+					draw_list->AddRect(ImVec2(itemRectMin.x - 3.0f, itemRectMin.y - 3.0f), ImVec2(itemRectMax.x + 3.0f, itemRectMax.y + 3.0f), ImColor(1.0f, 1.0f, 1.0f, 0.5f), 5.0f + 3.0f, ~0, 3.0f);
+				}
+			}			
+
+			break;
+		}
+	}
+
+	ImGui::PopStyleVar();
+}
+
+
+void NodeView::imguiDraw(DrawMode_ _drawMode)
+{
+		// Mouse interactions
+	if (dragged)
+	{
+		translate(ImGui::GetMouseDragDelta());
+		ImGui::ResetMouseDragDelta();
+	}
+
+	imguiBegin(_drawMode);
+
+	switch (_drawMode)
+	{
+		case DrawMode_AsWindow:
+		{
+			setPosition(ImGui::GetWindowPos());
+			break;
+		}
+
+		case DrawMode_AsGroup:
+		{
+			break;
+		}
+	}
 
 	this->size     = ImGui::GetWindowSize();
-	ImGui::Text("%s", node->getLabel());
-	showDetails ^= ImGui::IsMouseDoubleClicked(0);
+	ImGui::Text("%s", node->getLabel());	
 
 	if (showDetails)
 	{
 		if(node->getInputs() != nullptr)
 		{
-			if(ImGui::TreeNodeEx("Inputs", ImGuiTreeNodeFlags_Framed))
-			{
-				node->getInputs()->drawLabelOnly();
-				ImGui::TreePop();
-			}
+			ImGui::Text("Inputs:");
+			node->getInputs()->drawLabelOnly();
 		}
 
 		if(node->getOutputs() != nullptr)
 		{
-			if(ImGui::TreeNodeEx("Outputs", ImGuiTreeNodeFlags_Framed))
-			{
-				node->getOutputs()->drawLabelOnly();
-				ImGui::TreePop();
-			}
+			ImGui::Text("Outputs:");
+			node->getOutputs()->drawLabelOnly();
 		}
 
 		if(node->getMembers() != nullptr)
 		{
-			if(ImGui::TreeNodeEx("Members", ImGuiTreeNodeFlags_Framed))
-			{
-				node->getMembers()->drawLabelOnly();
-				ImGui::TreePop();
-			}
+			ImGui::Text("Members:");
+			node->getMembers()->drawLabelOnly();
 		}
 
 		std::string parentName = "NULL";
@@ -114,19 +227,41 @@ void NodeView::imguiDraw()
 
 		ImGui::Text("Parent: %s", parentName.c_str());
 	}
-	imguiEnd();
+
+	imguiEnd(_drawMode);
 
 	// Draw wires to its output
 	auto out = node->getOutputs()->getVariables();
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    draw_list->PushClipRectFullScreen();
+
+    // Compute the origin
+    ImVec2 origin;
+	switch (_drawMode)
+	{
+		case DrawMode_AsWindow:
+		{
+			origin = ImVec2();
+			break;
+		}
+
+		case DrawMode_AsGroup:
+		{
+			origin = ImGui::GetWindowPos();
+			break;
+		}
+	}
 
 	for(auto each : out)
 	{
         // Compute start and end point
         ImVec2 pos0 = getOutputPosition();     
         ImVec2 pos1 = each->getValueAsNode()->getView()->getInputPosition();
+        pos0.x += origin.x; pos0.y += origin.y;
+        pos1.x += origin.x; pos1.y += origin.y;
+
+        if (displayArrows) // if arrows are displayed we offset x to see the edge of the arrow.
+        	pos1.x -= 7.0f;
 
         // Compute tangents
         float distX = pos1.x - pos0.x;
@@ -142,8 +277,8 @@ void NodeView::imguiDraw()
         ImVec2 cp0(pos0.x + positiveDistX*bezierCurveOutRoundness, pos0.y);
         ImVec2 cp1(pos1.x - positiveDistX*bezierCurveInRoundness, pos1.y);
 
-        // draw brzier curve
-        ImVec2 arrowPos(pos1.x - 7.0f, pos1.y);
+        // draw bezier curve
+        ImVec2 arrowPos(pos1.x, pos1.y);
 		draw_list->AddBezierCurve(pos0, cp0, cp1, arrowPos, ImColor(1.0f, 1.0f, 1.0f, 1.0f), bezierThickness);
 		
 		// dot a the output position
@@ -154,21 +289,22 @@ void NodeView::imguiDraw()
 			// Arrow at the input position
         	draw_list->AddLine(ImVec2(arrowPos.x - arrowSize.x, pos1.y + arrowSize.y/2.0f), arrowPos, ImColor(1.0f, 1.0f, 1.0f, 1.0f), bezierThickness);
         	draw_list->AddLine(ImVec2(arrowPos.x - arrowSize.x, pos1.y - arrowSize.y/2.0f), arrowPos, ImColor(1.0f, 1.0f, 1.0f, 1.0f), bezierThickness);
-        }
-        
-        // dot at the input position
-        draw_list->AddCircleFilled(pos1, 5.0f, ImColor(1.0f, 1.0f, 1.0f, 1.0f));        
+        }else{        
+        	// dot at the input position
+        	draw_list->AddCircleFilled(pos1, 5.0f, ImColor(1.0f, 1.0f, 1.0f, 1.0f));   
+        }     
 	}
-	draw_list->PopClipRect();
 }
 
-void NodeView::imguiEnd()
+bool NodeView::isHovered()const
 {
-	ImGui::PopItemWidth();
-	ImGui::End();
-	ImGui::PopStyleVar();
+	return hovered;
 }
 
+bool NodeView::isDragged()const
+{
+	return dragged;
+}
 
 void NodeView::ArrangeRecursive(NodeView* _view, ImVec2 _position)
 {
@@ -177,16 +313,20 @@ void NodeView::ArrangeRecursive(NodeView* _view, ImVec2 _position)
 
 	_view->setPosition(_position);
 
-	// Draw its inputs
+	// Arrange Input Nodes :
+
 	auto inputs = _view->node->getInputs()->getVariables();
 	int n = inputs.size();
 	for(int i = 0; i < n ; i++ )
 	{
-		ImVec2 inputPos = _position;
-		inputPos.x -= 190.0f;
+		auto inputView = inputs[i]->getValueAsNode()->getView();
+
+		ImVec2 inputPos(_position.x - inputView->size.x - 40.0f, _position.y);
+
 		if ( n > 1)
 			inputPos.y += (float(i)/float(n-1) - 0.5f ) * 150.0f; 
 
-		ArrangeRecursive(inputs[i]->getValueAsNode()->getView(), inputPos);
+		ArrangeRecursive(inputView, inputPos);
 	}
 }
+

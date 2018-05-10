@@ -68,9 +68,9 @@ void Node_Variable::setValue(double _value)
 void Node_Variable::updateLabel()
 {
 	if (target == nullptr)
-		setLabel(getName() + std::string(": NULL"));
+		setLabel(getName() + std::string(" : NULL"));
 	else if(auto asNodeValue = dynamic_cast<Node_Value*>(this->target))
-		setLabel(getName() + std::string(":") + asNodeValue->getValueAsString());
+		setLabel(getName() + std::string(" : ") + asNodeValue->getValueAsString());
 }
 
 const char* Node_Variable::getName()const

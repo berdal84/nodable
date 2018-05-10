@@ -22,24 +22,53 @@ parent(_parent)
 
 void Node_Container::draw()
 {
+	bool isAnyItemDragged = false;
+	bool isAnyItemHovered = false;
+	for(auto each : this->nodes)
+	{
+		if ( each != nullptr)
+		{
+			auto view = each->getView();
+
+			if (view != nullptr)
+			{
+				view->draw();
+				isAnyItemDragged |= view->isDragged();
+				isAnyItemHovered |= view->isHovered();
+			}
+		}
+	}
+
+	auto selectedView = NodeView::GetSelected();
+	// Deselection
+	if( !isAnyItemHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
+		NodeView::SetSelected(nullptr);
+
+	
+	if (selectedView != nullptr)
+	{
+		// Deletion
+		if ( ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
+			selectedView->setVisible(false);
+		// Rearrange recursively
+		else if ( ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_A)))
+			NodeView::ArrangeRecursive(selectedView, selectedView->getPosition());
+	}
+
 	// Draft Mouse PAN
-	if( ImGui::IsMouseDragging() && !ImGui::IsMouseHoveringAnyWindow() )
+	if( ImGui::IsMouseDragging() && ImGui::IsWindowFocused() && !isAnyItemDragged )
 	{
 		auto drag = ImGui::GetMouseDragDelta();
 		for(auto each : this->nodes)
 		{
-			each->getView()->translate(drag);
+			if (each != nullptr){
+				auto view = each->getView();
+
+				if (view != nullptr)
+					each->getView()->translate(drag);
+			}
 		}
 		ImGui::ResetMouseDragDelta();
-	}
-
-
-	{
-		for(auto each : this->nodes)
-		{
-			if ( each != nullptr)
-				each->getView()->draw();
-		}
 	}
 }
 
@@ -157,17 +186,9 @@ Node_BinaryOperation* Node_Container::createNodeBinaryOperation(std::string _op,
 	else
 		node = nullptr;
 
-	// Connects the left input  (from both sides) 
-	node->setInput (_leftInput, "left");
-	_leftInput->setOutput(node);
-
-	// Connects the right input (from both sides)
-	node->setInput (_rightInput, "right");
-	_rightInput->setOutput(node);
-
-	// Connects the output      (from both sides)
-	node->setOutput(_output);
-	_output->setInput(node);
+	Node::Connect(_leftInput,  node,   "default", "left");
+	Node::Connect(_rightInput, node,   "default", "right");
+	Node::Connect(node,        _output);
 
 	return node;
 }
