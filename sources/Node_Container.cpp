@@ -74,9 +74,9 @@ void Node_Container::draw()
 		// Deletion
 		if ( ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
 			selectedView->setVisible(false);
-		// Rearrange recursively
+		// Arrange 
 		else if ( ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_A)))
-			NodeView::ArrangeRecursive(selectedView, selectedView->getPosition());
+			selectedView->arrange();
 	}
 
 	// Draft Mouse PAN

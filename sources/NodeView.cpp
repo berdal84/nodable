@@ -91,16 +91,36 @@ void NodeView::draw()
 
 void NodeView::update()
 {
+	// Update opacity to reach 1.0f
 	if(opacity < 1.0f)
 		opacity += (1.0f - opacity) * 0.05f;
 
+	// Set background color according to node class 
 	if (dynamic_cast<Node_BinaryOperation*>(node) != nullptr)
 		this->backgroundColor = ImColor(0.7f, 0.7f, 0.9f);
-
 	else if (dynamic_cast<Node_Variable*>(node) != nullptr)
 		this->backgroundColor = ImColor(0.7f, 0.9f, 0.7f);
 	else
 		this->backgroundColor = ImColor(0.9f, 0.9f, 0.7f);
+
+	// Move node connected to its inputs
+	auto inputs = node->getInputs()->getVariables();
+	int n = inputs.size();
+	for(int i = 0; i < n ; i++ )
+	{
+		auto inputView = inputs[i]->getValueAsNode()->getView();
+
+		if ( inputView->couldBeArranged )
+		{
+			ImVec2 newPos(position.x - inputView->size.x - 40.0f, position.y);
+			if ( n > 1)
+				newPos.y += (float(i)/float(n-1) - 0.5f ) * 150.0f; 
+			auto currentPos = inputView->getPosition();
+			ImVec2 delta( (newPos.x - currentPos.x) * 0.2f,  (newPos.y - currentPos.y) * 0.2f);
+			inputView->translate(delta);
+		}
+	}
+	
 }
 
 void NodeView::imguiBegin()
@@ -172,9 +192,14 @@ void NodeView::imguiEnd()
 			hovered = ImGui::IsItemHoveredRect();
 
 			if ( ! dragged)
+			{
 				dragged = hovered && ImGui::IsMouseClicked(0);
-			else if ( ImGui::IsMouseReleased(0))
-				dragged = false;
+			}else{
+				couldBeArranged = false;
+				if ( ImGui::IsMouseReleased(0))
+					dragged = false;				
+			}
+
 			
 			if ( hovered && ImGui::IsMouseClicked(0))
 				SetSelected(this);
@@ -343,13 +368,15 @@ void NodeView::ArrangeRecursive(NodeView* _view, ImVec2 _position)
 	for(int i = 0; i < n ; i++ )
 	{
 		auto inputView = inputs[i]->getValueAsNode()->getView();
-
+		/*
+		
 		ImVec2 inputPos(_position.x - inputView->size.x - 40.0f, _position.y);
-
 		if ( n > 1)
 			inputPos.y += (float(i)/float(n-1) - 0.5f ) * 150.0f; 
-
 		ArrangeRecursive(inputView, inputPos);
+		*/
+		inputView->couldBeArranged = true;
+		ArrangeRecursive(inputView, inputView->position);
 	}
 }
 

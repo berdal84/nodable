@@ -59,6 +59,7 @@ namespace Nodable{
 		bool            showDetails         = false;
 		bool            hovered             = false;
 		bool            dragged             = false;
+		bool            couldBeArranged     = true;
 		float           borderRadius        = 5.0f;
 		ImColor         borderColorSelected = ImColor(1.0f, 1.0f, 1.0f);
 		ImColor         borderColor         = ImColor(0.2f, 0.2f, 0.2f);
