@@ -9,8 +9,11 @@ When user type an expression, the program split it into tokens, build the execut
 
 Examples :
 ==========
-![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018-05-06%20-%20GUI.png)
-![Example2](https://github.com/berdal84/Nodable/blob/master/screenshots/2018-05-06%20-%20GUI%202.png)
+Lastest gui:
+![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_08_GUI_Colored.png)
+Previous gui:
+![Example2](https://github.com/berdal84/Nodable/blob/master/screenshots/2018-05-06%20-%20GUI.png)
+![Example3](https://github.com/berdal84/Nodable/blob/master/screenshots/2018-05-06%20-%20GUI%202.png)
 
 Expressions:
 ============
