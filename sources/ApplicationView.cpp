@@ -61,6 +61,7 @@ bool ApplicationView::init()
     config.OversampleV    = 4;
     io.DeltaTime          = 1.0f/120.0f;
     io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 16.0f, &config);    
+    io.FontAllowUserScaling = true;
 
     // Configure ImGui Style
     ImGuiStyle& style = ImGui::GetStyle();
@@ -161,36 +162,50 @@ void ApplicationView::draw()
         ImGui::EndMainMenuBar();
     }
 
-    // 2. Rendering Nodable Application
+    // 2. Command line window
     {
 	    bool isCommandLineVisible = true;
-	    ImGui::Begin("Nodable command line", &isCommandLineVisible, ImGuiWindowFlags_ShowBorders);
-	    static char buf[1024];
 
-	    // Set Keyboard focus here once
-	    static bool setKeyboardFocusOnCommandLine = true;
-	    if ( setKeyboardFocusOnCommandLine){
-	       ImGui::SetKeyboardFocusHere();
-	       setKeyboardFocusOnCommandLine = false;
-	    }
-
-	    bool needsToEvaluateString = ImGui::InputText("", buf, 1023, ImGuiInputTextFlags_EnterReturnsTrue);
-	    ImGui::SameLine();
-	    needsToEvaluateString |= ImGui::Button("Eval");
-
-	    if (needsToEvaluateString)
+	    if(ImGui::Begin("Nodable command line", &isCommandLineVisible, ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_AlwaysAutoResize))
 	    {
-	        application->eval(std::string(buf));
-	        setKeyboardFocusOnCommandLine = true;
-	    }
+		    static char buf[1024];
+
+		    // Set Keyboard focus here once
+		    static bool setKeyboardFocusOnCommandLine = true;
+		    if ( setKeyboardFocusOnCommandLine){
+		       ImGui::SetKeyboardFocusHere();
+		       setKeyboardFocusOnCommandLine = false;
+		    }
+
+		    static bool isExpressionValid = true;
+		    ImColor textColor = isExpressionValid ? ImColor(0.0f, 0.0f, 0.0f) : ImColor(0.9f, 0.0f, 0.0f);
+
+		    ImGui::Text("Type an expression, the program will create the graph in realtime :");
+		    ImGui::PushStyleColor(ImGuiCol_Text,textColor );
+		    bool needsToEvaluateString = ImGui::InputText("", buf, 1023 /*, ImGuiInputTextFlags_EnterReturnsTrue*/);
+			ImGui::PopStyleColor();
+
+		    //ImGui::SameLine();
+		    //needsToEvaluateString |= ImGui::Button("Eval");
+
+		    if (!isExpressionValid)
+		    	ImGui::TextColored(textColor, "Warning : wrong expression syntax");
+
+		    if (needsToEvaluateString)
+		    {
+		    	application->clear();
+		        isExpressionValid = application->eval(std::string(buf));
+		        setKeyboardFocusOnCommandLine = true;
+		    }
+		}
 
 	    ImGui::End();
 	}
 
-    // draw the properties panel
+    // Properties panel window
     {
 	    bool isPropertiesPanelVisible = true;
-	    ImGui::Begin("Properties", &isPropertiesPanelVisible, ImGuiWindowFlags_ShowBorders);
+	    if (ImGui::Begin("Properties", &isPropertiesPanelVisible, ImGuiWindowFlags_ShowBorders))
 	    {
 		    ImGui::Text("Bezier curves");
 		    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
@@ -202,18 +217,20 @@ void ApplicationView::draw()
 		ImGui::End();
 	}
 
-    // Draw the application context
-    int width, height;
-	SDL_GetWindowSize(window, &width, &height);
-	ImGui::SetNextWindowPos(ImVec2());
-	ImGui::SetNextWindowSize(ImVec2(width, height));
-	
-	ImGui::Begin("Container", NULL, ImVec2(width,height), 1.0f, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
-	{
-		application->getContext()->draw();
+    // Fullscreen window
+    {
+	    int width, height;
+		SDL_GetWindowSize(window, &width, &height);
+		ImGui::SetNextWindowPos(ImVec2());
+		ImGui::SetNextWindowSize(ImVec2(width, height));
+		
+		ImGui::Begin("Container", NULL, ImVec2(width,height), -1.0f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
+		{
+			application->getContext()->draw();
+		}
+		ImGui::End();
 	}
-	ImGui::End();
-
+	
     // Rendering
     glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);

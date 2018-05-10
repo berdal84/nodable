@@ -12,8 +12,9 @@ namespace Nodable
 		Node_Application(const char*);
 		~Node_Application();
 
-		void             eval(std::string /* literal expression */);
+		bool             eval(std::string /* literal expression */);
 		bool             init();
+		void             clear();
 		void             shutdown();
 		bool             update();
 		void             draw();

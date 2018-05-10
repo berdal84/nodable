@@ -13,6 +13,7 @@ namespace Nodable{
 		Node_Container(const char* _name, Node* _parent = nullptr);
 		virtual ~Node_Container(){};
 		void                      draw();
+		void                      clear();
 		void                      drawLabelOnly();
 		Node_Variable* 	          find                      (const char* /*Symbol name*/);
 		void                      addNode                   (Node* /*Node to add to this context*/);

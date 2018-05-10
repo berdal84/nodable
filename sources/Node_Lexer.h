@@ -13,7 +13,7 @@ namespace Nodable{
 	public:
 		Node_Lexer(Node_String* _expression);
 		virtual ~Node_Lexer();
-		void           evaluate			                  ();
+		bool           evaluate			                  ();
 	private:
 		void           buildExecutionTreeAndEvaluateRec   (size_t _tokenIndex, Node_Value* _finalRes, Node_Value* _prevRes = nullptr);
 		void           tokenize			                  ();

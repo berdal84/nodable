@@ -28,13 +28,15 @@ Node_Lexer::~Node_Lexer()
 
 }
 
-void Node_Lexer::evaluate()
+bool Node_Lexer::evaluate()
 {
 	tokenize();
 	if ( isSyntaxValid() )
 	{
 		buildExecutionTreeAndEvaluate();
+		return true;
 	}
+	return false;
 }
 
 Node_Value* Node_Lexer::convertTokenToNode(Token token)

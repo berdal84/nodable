@@ -20,6 +20,14 @@ parent(_parent)
 	LOG_DBG("A new container named %s' has been created.\n", _name);
 }
 
+void Node_Container::clear()
+{
+	//for (auto each : nodes)
+	//0	delete each;
+	nodes.resize(0);
+	variables.resize(0);
+}
+
 void Node_Container::draw()
 {
 	bool isAnyItemDragged = false;

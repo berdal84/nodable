@@ -13,6 +13,7 @@ using namespace Nodable;
 Node_Application::Node_Application(const char* _name)
 {
 	view = new ApplicationView(_name, this);
+	
 }
 
 Node_Application::~Node_Application()
@@ -22,16 +23,15 @@ Node_Application::~Node_Application()
 
 bool Node_Application::init()
 {
-	LOG_MSG(" -- Nodable v%s - by Berdal84 - 2017 --\n", NODABLE_VERSION);
-
 	// Create a context	
 	this->ctx    = new Node_Container("Global");
-	LOG_MSG("Launching the command line interpreter...\n");
 
-	// Create few nodes to identify keywords :
-	this->exitString 		= ctx->createNodeString("exit"); 	/* define the Node_String "exit" as a keyword to exit application.*/
+	return view->init();;
+}
 
-	return view->init();
+void Node_Application::clear()
+{
+	this->ctx->clear();
 }
 
 bool Node_Application::update()
@@ -49,12 +49,12 @@ void Node_Application::stopExecution()
 	quit = true;
 }
 
-void Node_Application::eval(std::string _expression)
+bool Node_Application::eval(std::string _expression)
 {
 	LOG_MSG("Node_Application::eval()");
 	this->lastString 		= ctx->createNodeString(_expression.c_str());
 
-	if ( lastString->isEqualsTo(exitString) ){
+	if ( lastString->getValueAsString() == "exit" ){
 		stopExecution();		
 	}else{
 		if ( !lastString->isEmpty())
@@ -62,10 +62,12 @@ void Node_Application::eval(std::string _expression)
 			/* Create a Lexer node. The lexer will cut expression string into tokens
 			(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
 			auto lexer = ctx->createNodeLexer(lastString);
-			lexer->evaluate();
+			return lexer->evaluate();
 			//ctx->destroyNode(lexer);
 		}
 	}	
+
+	return false;
 }
 
 void Node_Application::shutdown()
