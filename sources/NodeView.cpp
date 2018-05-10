@@ -32,9 +32,6 @@ NodeView::NodeView(Node* _node)
 	LOG_DBG("Node::Node()\n");
 	this->node = _node;
 	this->name = std::string("Node###") + std::to_string((size_t)this);
-
-	if (dynamic_cast<Node_BinaryOperation*>(_node) != nullptr)
-		this->backgroundColor = ImColor(0.9f, 0.7f, 0.7f);
 }
 
 NodeView::~NodeView()
@@ -96,6 +93,14 @@ void NodeView::update()
 {
 	if(opacity < 1.0f)
 		opacity += (1.0f - opacity) * 0.05f;
+
+	if (dynamic_cast<Node_BinaryOperation*>(node) != nullptr)
+		this->backgroundColor = ImColor(0.7f, 0.7f, 0.9f);
+
+	else if (dynamic_cast<Node_Variable*>(node) != nullptr)
+		this->backgroundColor = ImColor(0.7f, 0.9f, 0.7f);
+	else
+		this->backgroundColor = ImColor(0.9f, 0.9f, 0.7f);
 }
 
 void NodeView::imguiBegin()

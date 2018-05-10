@@ -67,7 +67,7 @@ bool ApplicationView::init()
     ImGuiStyle& style = ImGui::GetStyle();
 	style.Colors[ImGuiCol_Text]                  = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled]          = ImVec4(0.21f, 0.21f, 0.21f, 1.00f);
-	style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.49f, 0.63f, 0.69f, 1.00f);
+	style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.5f, 0.5f, 0.5f, 1.00f);
 	style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(1.00f, 1.00f, 1.00f, 0.08f);
 	style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
 	style.Colors[ImGuiCol_Border]                = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -168,21 +168,20 @@ void ApplicationView::draw()
 
 	    if(ImGui::Begin("Nodable command line", &isCommandLineVisible, ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_AlwaysAutoResize))
 	    {
-		    static char buf[1024];
+		    
+		    ImGui::Text("Type an expression, the program will create the graph in realtime :");
 
-		    // Set Keyboard focus here once
+		    // Draw the input text field :
+		    static char inputTextBuffer[1024];
+		    static bool isExpressionValid = true;
+		    ImColor textColor = isExpressionValid ? ImColor(0.0f, 0.0f, 0.0f) : ImColor(0.9f, 0.0f, 0.0f);
+		    ImGui::PushStyleColor(ImGuiCol_Text,textColor );
 		    static bool setKeyboardFocusOnCommandLine = true;
 		    if ( setKeyboardFocusOnCommandLine){
 		       ImGui::SetKeyboardFocusHere();
 		       setKeyboardFocusOnCommandLine = false;
 		    }
-
-		    static bool isExpressionValid = true;
-		    ImColor textColor = isExpressionValid ? ImColor(0.0f, 0.0f, 0.0f) : ImColor(0.9f, 0.0f, 0.0f);
-
-		    ImGui::Text("Type an expression, the program will create the graph in realtime :");
-		    ImGui::PushStyleColor(ImGuiCol_Text,textColor );
-		    bool needsToEvaluateString = ImGui::InputText("", buf, 1023 /*, ImGuiInputTextFlags_EnterReturnsTrue*/);
+		    bool needsToEvaluateString = ImGui::InputText("", inputTextBuffer, 1023 /*, ImGuiInputTextFlags_EnterReturnsTrue*/);
 			ImGui::PopStyleColor();
 
 		    //ImGui::SameLine();
@@ -194,7 +193,7 @@ void ApplicationView::draw()
 		    if (needsToEvaluateString)
 		    {
 		    	application->clear();
-		        isExpressionValid = application->eval(std::string(buf));
+		        isExpressionValid = application->eval(std::string(inputTextBuffer));
 		        setKeyboardFocusOnCommandLine = true;
 		    }
 		}
@@ -230,7 +229,7 @@ void ApplicationView::draw()
 		}
 		ImGui::End();
 	}
-	
+
     // Rendering
     glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
