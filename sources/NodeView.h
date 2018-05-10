@@ -18,7 +18,12 @@ namespace Nodable{
 		NodeView(Node* _node);
 		~NodeView();		
 
+		/* Draw the view at its position into the current window*/
 		void              draw                ();
+
+		/* Draw wires from this node to its outputs */
+		void              drawWires           ();
+
 		void              update              ();
 
 		ImVec2            getPosition         ()const;
@@ -32,6 +37,8 @@ namespace Nodable{
 		bool              isDragged           ()const;
 		void              setPosition         (ImVec2);
 		void              translate           (ImVec2);
+
+		/* Arrange input nodes recursively while keeping this node position unchanged */
 		void              arrange             ();
 		
 		static void       ArrangeRecursive    (NodeView*, ImVec2 _position = ImVec2(1400.0f, 200.0f));
@@ -39,21 +46,25 @@ namespace Nodable{
 		static NodeView*  GetSelected         ();
 		static bool       IsSelected          (NodeView*);
 	private:
-		void              imguiBegin          (DrawMode_ _drawMode = DrawMode_Default);
-		void              imguiDraw           (DrawMode_ _drawMode = DrawMode_Default);
-		void              imguiEnd            (DrawMode_ _drawMode = DrawMode_Default);
+		void              imguiBegin          ();
+		void              imguiDraw           ();
+		void              imguiEnd            ();
            
-        std::string     name;
-		Node*           node        = nullptr;
-		ImVec2          position    = ImVec2(50.0f, 50.0f);
-		ImVec2          size        = ImVec2(170.0f, 40.0f);
-		float           opacity     = 0.0f;
-		bool            visible     = true;
-		bool            showDetails = false;
-		bool            hovered     = false;
-		bool            dragged     = false;
+        std::string     name                = "UnnamedNode";
+		Node*           node                = nullptr;
+		ImVec2          position            = ImVec2(50.0f, 50.0f);
+		ImVec2          size                = ImVec2(170.0f, 40.0f);
+		float           opacity             = 0.0f;
+		bool            visible             = true;
+		bool            showDetails         = false;
+		bool            hovered             = false;
+		bool            dragged             = false;
+		float           borderRadius        = 5.0f;
 		ImColor         borderColorSelected = ImColor(1.0f, 1.0f, 1.0f);
-		ImColor         borderColor         = ImColor(0.8f, 1.0f, 0.8f);
+		ImColor         borderColor         = ImColor(0.2f, 0.2f, 0.2f);
+		ImColor         backgroundColor     = ImColor(0.7f, 0.7f, 0.7f);
+		
 		static NodeView* s_selected;
+		static DrawMode_ s_drawMode;
 	};
 }

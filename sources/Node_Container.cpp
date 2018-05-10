@@ -24,6 +24,8 @@ void Node_Container::draw()
 {
 	bool isAnyItemDragged = false;
 	bool isAnyItemHovered = false;
+
+	// 1 - Draw nodes
 	for(auto each : this->nodes)
 	{
 		if ( each != nullptr)
@@ -35,6 +37,20 @@ void Node_Container::draw()
 				view->draw();
 				isAnyItemDragged |= view->isDragged();
 				isAnyItemHovered |= view->isHovered();
+			}
+		}
+	}
+
+	// 2 - Draw wires
+	for(auto each : this->nodes)
+	{
+		if ( each != nullptr)
+		{
+			auto view = each->getView();
+
+			if (view != nullptr)
+			{
+				view->drawWires();
 			}
 		}
 	}

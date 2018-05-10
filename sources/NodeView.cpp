@@ -3,10 +3,13 @@
 #include <imgui.h>
 #include "Node_Container.h"
 #include "Node_Variable.h"
+#include "Node_BinaryOperations.h"
+#include "View.h"
 
 using namespace Nodable;
 
 NodeView* NodeView::s_selected = nullptr;
+DrawMode_ NodeView::s_drawMode = DrawMode_Default;
 
 void NodeView::SetSelected(NodeView* _view)
 {
@@ -29,6 +32,9 @@ NodeView::NodeView(Node* _node)
 	LOG_DBG("Node::Node()\n");
 	this->node = _node;
 	this->name = std::string("Node###") + std::to_string((size_t)this);
+
+	if (dynamic_cast<Node_BinaryOperation*>(_node) != nullptr)
+		this->backgroundColor = ImColor(0.9f, 0.7f, 0.7f);
 }
 
 NodeView::~NodeView()
@@ -92,13 +98,13 @@ void NodeView::update()
 		opacity += (1.0f - opacity) * 0.05f;
 }
 
-void NodeView::imguiBegin(DrawMode_ _drawMode)
+void NodeView::imguiBegin()
 {
 
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);	
 	
-	switch ( _drawMode)
+	switch ( s_drawMode)
 	{
 		case DrawMode_AsWindow:
 		{
@@ -114,6 +120,25 @@ void NodeView::imguiBegin(DrawMode_ _drawMode)
 			ImGui::BeginGroup();
 			auto cursor = ImGui::GetCursorPos();
 			ImGui::SetCursorPos(ImVec2(cursor.x + 10.0f, cursor.y + 10.0f));
+
+			// Draw the background of the Group
+			ImDrawList* draw_list = ImGui::GetWindowDrawList();
+			{
+				auto color = IsSelected(this) ? borderColorSelected : borderColor;
+				auto itemRectMin = position;
+				auto itemRectMax = ImVec2(position.x + size.x, position.y + size.y);
+
+				View::DrawRectShadow(itemRectMin, itemRectMax, borderRadius, 4, ImVec2(1.0f, 1.0f));
+
+				draw_list->AddRectFilled(itemRectMin, itemRectMax,backgroundColor, borderRadius);
+				draw_list->AddRect(itemRectMin, itemRectMax,color, borderRadius);				
+
+				// Draw an additionnal rectangle when selected
+				if (IsSelected(this))
+				{
+					draw_list->AddRect(ImVec2(itemRectMin.x - 3.0f, itemRectMin.y - 3.0f), ImVec2(itemRectMax.x + 3.0f, itemRectMax.y + 3.0f), ImColor(1.0f, 1.0f, 1.0f, 0.5f), borderRadius + 3.0f, ~0, 3.0f);
+				}
+			}
 			break;
 		}
 	}
@@ -121,11 +146,12 @@ void NodeView::imguiBegin(DrawMode_ _drawMode)
 	ImGui::PushItemWidth(150.0f);
 }
 
-void NodeView::imguiEnd(DrawMode_ _drawMode)
+
+void NodeView::imguiEnd()
 {
 	ImGui::PopItemWidth();
 
-	switch (_drawMode)
+	switch (s_drawMode)
 	{
 		case DrawMode_AsWindow:
 		{
@@ -150,20 +176,7 @@ void NodeView::imguiEnd(DrawMode_ _drawMode)
 
 			showDetails ^= hovered && ImGui::IsMouseDoubleClicked(0);
 
-			size = ImGui::GetItemRectSize();
-			ImDrawList* draw_list = ImGui::GetWindowDrawList();
-			{
-				auto color = IsSelected(this) ? borderColorSelected : borderColor;
-				auto itemRectMin = ImGui::GetItemRectMin();
-				auto itemRectMax = ImGui::GetItemRectMax();
-				draw_list->AddRect(itemRectMin, itemRectMax,color, 5.0f);
-
-				// Draw an additionnal rectangle when selected
-				if (IsSelected(this))
-				{
-					draw_list->AddRect(ImVec2(itemRectMin.x - 3.0f, itemRectMin.y - 3.0f), ImVec2(itemRectMax.x + 3.0f, itemRectMax.y + 3.0f), ImColor(1.0f, 1.0f, 1.0f, 0.5f), 5.0f + 3.0f, ~0, 3.0f);
-				}
-			}			
+			size = ImGui::GetItemRectSize();			
 
 			break;
 		}
@@ -173,7 +186,7 @@ void NodeView::imguiEnd(DrawMode_ _drawMode)
 }
 
 
-void NodeView::imguiDraw(DrawMode_ _drawMode)
+void NodeView::imguiDraw()
 {
 		// Mouse interactions
 	if (dragged)
@@ -182,9 +195,9 @@ void NodeView::imguiDraw(DrawMode_ _drawMode)
 		ImGui::ResetMouseDragDelta();
 	}
 
-	imguiBegin(_drawMode);
+	imguiBegin();
 
-	switch (_drawMode)
+	switch (s_drawMode)
 	{
 		case DrawMode_AsWindow:
 		{
@@ -228,8 +241,11 @@ void NodeView::imguiDraw(DrawMode_ _drawMode)
 		ImGui::Text("Parent: %s", parentName.c_str());
 	}
 
-	imguiEnd(_drawMode);
+	imguiEnd();	
+}
 
+void NodeView::drawWires()
+{
 	// Draw wires to its output
 	auto out = node->getOutputs()->getVariables();
 
@@ -237,7 +253,7 @@ void NodeView::imguiDraw(DrawMode_ _drawMode)
 
     // Compute the origin
     ImVec2 origin;
-	switch (_drawMode)
+	switch (s_drawMode)
 	{
 		case DrawMode_AsWindow:
 		{
@@ -283,6 +299,7 @@ void NodeView::imguiDraw(DrawMode_ _drawMode)
 		
 		// dot a the output position
 		draw_list->AddCircleFilled(pos0, 5.0f, ImColor(1.0f, 1.0f, 1.0f, 1.0f));
+		draw_list->AddCircle(pos0, 5.0f, borderColor);
 
 		if (displayArrows)
 		{
@@ -292,6 +309,7 @@ void NodeView::imguiDraw(DrawMode_ _drawMode)
         }else{        
         	// dot at the input position
         	draw_list->AddCircleFilled(pos1, 5.0f, ImColor(1.0f, 1.0f, 1.0f, 1.0f));   
+        	draw_list->AddCircle(pos1, 5.0f, borderColor);
         }     
 	}
 }
