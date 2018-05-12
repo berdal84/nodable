@@ -1,29 +1,42 @@
 #pragma once
 
 #include "Nodable.h"    // forward declarations and common stuff
-#include "Node_Value.h" // base class
+#include "Node.h"       // base class
+#include "Node_Value.h"
 #include <string>
 
 namespace Nodable{
 	/* Node_Variable is a node that identify a value with its name */
-	class Node_Variable : public Node_Value{
+	class Node_Variable : public Node{
 	public:
-		Node_Variable(const char* _name, Node* _target = nullptr);
+		Node_Variable();
 		~Node_Variable();
 
-		void            updateLabel();
+		void    updateLabel()override;
 
 		void            setName         (const char*);
-		void            setValue        (Node* _node)override;
-		void            setValue        (const char* /*value*/)override;
-		void            setValue        (double /*value*/)override;
+
+		template<typename T>
+		void setValue(T _value);
+
 		
-		const char*     getName()const;
-		Node* 	        getValueAsNode  ()override;
-		double          getValueAsNumber()const override;
-		std::string     getValueAsString()const override;
+		bool            isSet           ()const{return getValue().isSet(); }
+		bool            isType          (Type_ _type)const;
+		
+		const char*       getName()const;
+		double            getValueAsNumber()const;
+		std::string       getValueAsString()const;
+		const Node_Value& getValue()const{return getMember("value");}
+		std::string       getTypeAsString()const;
 	private:
-		Node*       target;
-		std::string name;
+		std::string       name;
 	};
+
+
+	template<class Node_Value>
+	void Node_Variable::setValue(Node_Value _value)
+	{
+		setMember("value", _value);
+		updateLabel();
+	}
 }

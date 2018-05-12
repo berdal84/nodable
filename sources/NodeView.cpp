@@ -5,11 +5,15 @@
 #include "Node_Variable.h"
 #include "Node_BinaryOperations.h"
 #include "View.h"
+#include "Wire.h"
 
 using namespace Nodable;
 
-NodeView* NodeView::s_selected = nullptr;
-DrawMode_ NodeView::s_drawMode = DrawMode_Default;
+NodeView*   NodeView::s_selected   = nullptr;
+NodeView*   NodeView::s_dragged    = nullptr;
+
+DrawMode_   NodeView::s_drawMode   = DrawMode_Default;
+DrawDetail_ NodeView::s_drawDetail = DrawDetail_Default;
 
 void NodeView::SetSelected(NodeView* _view)
 {
@@ -21,6 +25,15 @@ NodeView* NodeView::GetSelected()
 	return s_selected;
 }
 
+void NodeView::SetDragged(NodeView* _view)
+{
+	s_dragged = _view;
+}
+
+NodeView* NodeView::GetDragged()
+{
+	return s_dragged;
+}
 
 bool NodeView::IsSelected(NodeView* _view)
 {
@@ -32,7 +45,6 @@ NodeView::NodeView(Node* _node)
 	LOG_DBG("Node::Node()\n");
 	this->node = _node;
 	this->name = std::string("Node###") + std::to_string((size_t)this);
-	this->position = ImVec2(500.0f, -500.0f);
 }
 
 NodeView::~NodeView()
@@ -98,27 +110,65 @@ void NodeView::update()
 
 	// Set background color according to node class 
 	if (dynamic_cast<Node_BinaryOperation*>(node) != nullptr)
-		this->backgroundColor = ImColor(0.7f, 0.7f, 0.9f);
+		setColor(ImColor(0.7f, 0.7f, 0.9f));
 	else if (dynamic_cast<Node_Variable*>(node) != nullptr)
-		this->backgroundColor = ImColor(0.7f, 0.9f, 0.7f);
+		setColor(ImColor(0.7f, 0.9f, 0.7f));
 	else
-		this->backgroundColor = ImColor(0.9f, 0.9f, 0.7f);
+		setColor(ImColor(0.9f, 0.9f, 0.7f));
+
+	// determine the spacing base
+	float spacingDist = 150.0f;
+	switch( NodeView::s_drawDetail)
+	{
+		default:
+		case DrawDetail_Simple:
+		{
+			spacingDist *= 0.3f;
+			break;
+		}
+
+		case DrawDetail_Advanced:
+		{
+			spacingDist *= 0.7f;
+			break;
+		}
+
+		case DrawDetail_Complex:
+		{
+			spacingDist *= 1.0f;
+			break;
+		}
+	}
+
 
 	// Move node connected to its inputs
-	auto inputs = node->getInputs()->getVariables();
-	int n = inputs.size();
-	for(int i = 0; i < n ; i++ )
-	{
-		auto inputView = inputs[i]->getValueAsNode()->getView();
+	auto wires = node->getWires();
+	int n = node->getInputWireCount();
+	auto i=0;
+	
 
-		if ( inputView->couldBeArranged )
+	for(auto each : wires)
+	{
+		if (each != nullptr && each->getTarget() == node)
 		{
-			ImVec2 newPos(position.x - inputView->size.x - 40.0f, position.y);
-			if ( n > 1)
-				newPos.y += (float(i)/float(n-1) - 0.5f ) * 150.0f; 
-			auto currentPos = inputView->getPosition();
-			ImVec2 delta( (newPos.x - currentPos.x) * 0.2f,  (newPos.y - currentPos.y) * 0.2f);
-			inputView->translate(delta);
+
+			auto eachInputNode = each->getSource();
+
+			if ( eachInputNode != nullptr)
+			{
+				auto inputView = eachInputNode->getView();
+
+				if ( inputView->couldBeArranged )
+				{
+					ImVec2 newPos(position.x - inputView->size.x - spacingDist, position.y);
+					if ( n > 1)
+						newPos.y += (float(i)/float(n-1) - 0.5f ) * spacingDist; 
+					auto currentPos = inputView->getPosition();
+					ImVec2 delta( (newPos.x - currentPos.x) * 0.2f,  (newPos.y - currentPos.y) * 0.2f);
+					inputView->translate(delta);
+				}
+			}
+			i++;
 		}
 	}
 	
@@ -142,7 +192,12 @@ void NodeView::imguiBegin()
 
 		case DrawMode_AsGroup:
 		{
-			ImGui::SetCursorPos(position);
+			if ( position.x != -1.0f || position.y != -1.0f)
+				ImGui::SetCursorPos(position);
+			else
+				ImGui::SetCursorPos(ImVec2());
+
+			ImGui::PushID(this);
 			ImGui::BeginGroup();
 			auto cursor = ImGui::GetCursorPos();
 			ImGui::SetCursorPos(ImVec2(cursor.x + 10.0f, cursor.y + 10.0f));
@@ -150,14 +205,14 @@ void NodeView::imguiBegin()
 			// Draw the background of the Group
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 			{
-				auto color = IsSelected(this) ? borderColorSelected : borderColor;
+				auto borderCol = IsSelected(this) ? borderColorSelected : getBorderColor();
 				auto itemRectMin = position;
 				auto itemRectMax = ImVec2(position.x + size.x, position.y + size.y);
 
 				View::DrawRectShadow(itemRectMin, itemRectMax, borderRadius, 4, ImVec2(1.0f, 1.0f));
 
-				draw_list->AddRectFilled(itemRectMin, itemRectMax,backgroundColor, borderRadius);
-				draw_list->AddRect(itemRectMin, itemRectMax,color, borderRadius);				
+				draw_list->AddRectFilled(itemRectMin, itemRectMax,getColor(), borderRadius);
+				draw_list->AddRect(itemRectMin, itemRectMax,borderCol, borderRadius);				
 
 				// Draw an additionnal rectangle when selected
 				if (IsSelected(this))
@@ -190,15 +245,15 @@ void NodeView::imguiEnd()
 			auto cursor = ImGui::GetCursorPos();
 			ImGui::SetCursorPos(ImVec2(cursor.x + 10.0f, cursor.y + 10.0f));ImGui::SameLine(); ImGui::Text(" ");
 			ImGui::EndGroup();
-			hovered = ImGui::IsItemHoveredRect();
+			hovered = ImGui::IsMouseHoveringRect(position, ImVec2(position.x + size.x, position.y + size.y), true);
 
-			if ( ! dragged)
+			if ( GetDragged() != this)
 			{
-				dragged = hovered && ImGui::IsMouseClicked(0);
-			}else{
-				couldBeArranged = false;
+				if(GetDragged() == nullptr && ImGui::IsMouseClicked(0) && hovered)
+					SetDragged(this);
+			}else{				
 				if ( ImGui::IsMouseReleased(0))
-					dragged = false;				
+					SetDragged(nullptr);				
 			}
 
 			
@@ -207,23 +262,26 @@ void NodeView::imguiEnd()
 
 			showDetails ^= hovered && ImGui::IsMouseDoubleClicked(0);
 
-			size = ImGui::GetItemRectSize();			
+			size = ImGui::GetItemRectSize();
+			size.x += 10.0f; // add a right margin			
 
 			break;
 		}
 	}
 
 	ImGui::PopStyleVar();
+	ImGui::PopID();
 }
 
 
 void NodeView::imguiDraw()
 {
 		// Mouse interactions
-	if (dragged)
+	if (GetDragged() == this && ImGui::IsMouseDragging(0, 0.1f))
 	{
 		translate(ImGui::GetMouseDragDelta());
 		ImGui::ResetMouseDragDelta();
+		couldBeArranged = false;
 	}
 
 	imguiBegin();
@@ -233,6 +291,7 @@ void NodeView::imguiDraw()
 		case DrawMode_AsWindow:
 		{
 			setPosition(ImGui::GetWindowPos());
+			this->size = ImGui::GetWindowSize();
 			break;
 		}
 
@@ -242,117 +301,31 @@ void NodeView::imguiDraw()
 		}
 	}
 
-	this->size     = ImGui::GetWindowSize();
-	ImGui::Text("%s", node->getLabel());	
+	ImGui::Indent();
+	ImGui::Text("%s", node->getLabel());
 
 	if (showDetails)
 	{
-		if(node->getInputs() != nullptr)
-		{
-			ImGui::Text("Inputs:");
-			node->getInputs()->drawLabelOnly();
-		}
 
-		if(node->getOutputs() != nullptr)
+		for(auto m : node->getMembers())
 		{
-			ImGui::Text("Outputs:");
-			node->getOutputs()->drawLabelOnly();
+			ImGui::Text("%s : %s (%s)", m.first.c_str(), m.second.getValueAsString().c_str(), m.second.getTypeAsString().c_str());
 		}
-
-		if(node->getMembers() != nullptr)
-		{
-			ImGui::Text("Members:");
-			node->getMembers()->drawLabelOnly();
-		}
-
 		std::string parentName = "NULL";
 		if ( node->getParent() )
 			parentName = node->getParent()->getName();
-
 		ImGui::Text("Parent: %s", parentName.c_str());
+		
+		if (ImGui::Button("refresh"))
+			node->evaluate();
 	}
 
 	imguiEnd();	
 }
 
-void NodeView::drawWires()
-{
-	// Draw wires to its output
-	auto out = node->getOutputs()->getVariables();
-
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-    // Compute the origin
-    ImVec2 origin;
-	switch (s_drawMode)
-	{
-		case DrawMode_AsWindow:
-		{
-			origin = ImVec2();
-			break;
-		}
-
-		case DrawMode_AsGroup:
-		{
-			origin = ImGui::GetWindowPos();
-			break;
-		}
-	}
-
-	for(auto each : out)
-	{
-        // Compute start and end point
-        ImVec2 pos0 = getOutputPosition();     
-        ImVec2 pos1 = each->getValueAsNode()->getView()->getInputPosition();
-        pos0.x += origin.x; pos0.y += origin.y;
-        pos1.x += origin.x; pos1.y += origin.y;
-
-        if (displayArrows) // if arrows are displayed we offset x to see the edge of the arrow.
-        	pos1.x -= 7.0f;
-
-        // Compute tangents
-        float distX = pos1.x - pos0.x;
-        float positiveDistX = distX < 0.0f ? -distX : distX;
-        positiveDistX = positiveDistX < 200.0f ? 200.0f : positiveDistX;        
-
-	    extern float bezierCurveOutRoundness;
-	    extern float bezierCurveInRoundness;
-	    extern float bezierThickness;
-	    extern bool displayArrows;    
-	    ImVec2 arrowSize(8.0f, 12.0f); 
-
-        ImVec2 cp0(pos0.x + positiveDistX*bezierCurveOutRoundness, pos0.y);
-        ImVec2 cp1(pos1.x - positiveDistX*bezierCurveInRoundness, pos1.y);
-
-        // draw bezier curve
-        ImVec2 arrowPos(pos1.x, pos1.y);
-		draw_list->AddBezierCurve(pos0, cp0, cp1, arrowPos, ImColor(1.0f, 1.0f, 1.0f, 1.0f), bezierThickness);
-		
-		// dot a the output position
-		draw_list->AddCircleFilled(pos0, 5.0f, ImColor(1.0f, 1.0f, 1.0f, 1.0f));
-		draw_list->AddCircle(pos0, 5.0f, borderColor);
-
-		if (displayArrows)
-		{
-			// Arrow at the input position
-        	draw_list->AddLine(ImVec2(arrowPos.x - arrowSize.x, pos1.y + arrowSize.y/2.0f), arrowPos, ImColor(1.0f, 1.0f, 1.0f, 1.0f), bezierThickness);
-        	draw_list->AddLine(ImVec2(arrowPos.x - arrowSize.x, pos1.y - arrowSize.y/2.0f), arrowPos, ImColor(1.0f, 1.0f, 1.0f, 1.0f), bezierThickness);
-        }else{        
-        	// dot at the input position
-        	draw_list->AddCircleFilled(pos1, 5.0f, ImColor(1.0f, 1.0f, 1.0f, 1.0f));   
-        	draw_list->AddCircle(pos1, 5.0f, borderColor);
-        }     
-	}
-}
-
 bool NodeView::isHovered()const
 {
 	return hovered;
-}
-
-bool NodeView::isDragged()const
-{
-	return dragged;
 }
 
 void NodeView::ArrangeRecursive(NodeView* _view, ImVec2 _position)
@@ -363,21 +336,20 @@ void NodeView::ArrangeRecursive(NodeView* _view, ImVec2 _position)
 	_view->setPosition(_position);
 
 	// Arrange Input Nodes :
-
-	auto inputs = _view->node->getInputs()->getVariables();
-	int n = inputs.size();
-	for(int i = 0; i < n ; i++ )
+	auto wires = _view->getNode()->getWires();
+	for(auto eachWire : wires)
 	{
-		auto inputView = inputs[i]->getValueAsNode()->getView();
-		/*
-		
-		ImVec2 inputPos(_position.x - inputView->size.x - 40.0f, _position.y);
-		if ( n > 1)
-			inputPos.y += (float(i)/float(n-1) - 0.5f ) * 150.0f; 
-		ArrangeRecursive(inputView, inputPos);
-		*/
-		inputView->couldBeArranged = true;
-		ArrangeRecursive(inputView, inputView->position);
+		if (eachWire != nullptr && eachWire->getTarget() == _view->getNode())
+		{
+			auto inputNode = eachWire->getSource();
+
+			if ( inputNode != nullptr)
+			{
+				auto inputView = inputNode->getView();
+				inputView->couldBeArranged = true;
+				ArrangeRecursive(inputView, inputView->position);
+			}
+		}
 	}
 }
 

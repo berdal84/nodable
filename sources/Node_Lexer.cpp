@@ -1,7 +1,7 @@
 #include "Node_Lexer.h"
 #include "Log.h"          // for LOG_DBG(...)
-#include "Node_Number.h"
-#include "Node_String.h"
+
+#include "Node_Value.h"
 #include "Node_Container.h"
 #include "Node_Variable.h"
 #include "Node_BinaryOperations.h"
@@ -9,18 +9,22 @@
 
 using namespace Nodable;
 
-Node_Lexer::Node_Lexer(Node_String* _expression)
+Node_Lexer::Node_Lexer()
 {
-	setInput(_expression);
+	LOG_DBG("new Node_Lexer\n");
 
-	setMember(new Node_String("0123456789."), "numbers" );
-	setMember(new Node_String("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"), "letters" );
-	setMember(new Node_String("+-*/="), "operators" );
+	addMember("expression");
 
-	_expression->setOutput(this);
+	addMember("numbers" );
+	setMember("numbers", "0123456789.");
+
+	addMember("letters" );
+	setMember("letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_");
+
+	addMember("operators" );
+	setMember("operators", "+-*/=");
 
 	setLabel("Lexer");
-	LOG_DBG("New Node_Lexer ready to tokenize \"%s\"\n", _expression->getValueAsString().c_str() );
 }
 
 Node_Lexer::~Node_Lexer()
@@ -30,46 +34,51 @@ Node_Lexer::~Node_Lexer()
 
 bool Node_Lexer::evaluate()
 {
+	LOG_DBG("Node_Lexer::evaluate() - tokenize\n");
 	tokenize();
+	LOG_DBG("Node_Lexer::evaluate() - cehck syntax\n");
 	if ( isSyntaxValid() )
 	{
-		buildExecutionTreeAndEvaluate();
+		LOG_DBG("Node_Lexer::evaluate() - build tree and eval\n");
+		auto result = buildGraph();
+		NodeView::ArrangeRecursive(result->getView());
 		return true;
 	}
+	LOG_DBG("Node_Lexer::evaluate() - error, abording...\n");
 	return false;
 }
 
-Node_Value* Node_Lexer::convertTokenToNode(Token token)
+Node_Variable* Node_Lexer::convertTokenToNode(Token token)
 {
 	Node_Container* context = this->getParent();
+	Node_Variable* variable = nullptr;
 
 	// If it is a symbol 
 	if (token.first == "symbol"){
-		Node_Variable* symbol = context->find(token.second.c_str());
+		variable = context->find(token.second.c_str());
 		// If symbol not already exists, we create it (points to nullptr)
-		if ( symbol == nullptr )
-			symbol = context->createNodeVariable(token.second.c_str(), nullptr);
-
-		// Return symbol value
-		return symbol;
+		if ( variable == nullptr )
+			variable = context->createNodeVariable(token.second.c_str());
 
 	// If it is a number
 	}else if ( token.first == "number"){
-		return context->createNodeNumber(token.second.c_str());
+		variable = context->createNodeVariable();
+		variable->setValue(std::stod(token.second.c_str()));
 
 	// If it is a string
 	}else if ( token.first == "string"){
-		return context->createNodeString(token.second.c_str());
-	}else
-		return nullptr;
+		variable = context->createNodeVariable();
+		variable->setValue(token.second.c_str());
+	}
+
+	return variable;
 }
 
-void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Value* _finalRes, Node_Value* _prevRes)
+void Node_Lexer::buildGraphRec(size_t _tokenIndex, Node_Variable* _finalRes, Node_Variable* _prevRes)
 {
 
-	Node_Value* 	      left;
-	Node_Value*           right;
-	Node_BinaryOperation* operation;
+	Node_Variable* 	      left;
+	Node_Variable*        right;
 	Node_Container*       context = this->getParent();
 
 	//printf("Token evaluated : %lu.\n", _tokenIndex);
@@ -89,16 +98,15 @@ void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Value
 	size_t tokenLeft = tokens.size() - _tokenIndex;
 	/* number */
 	if ( tokenLeft == 1)
-	{
-		_finalRes->setValue(left->getValueAsNumber());
+	{		
+		_finalRes = left;
 
 	/* number, op, expr */
 	}else if  (tokenLeft == 3){
 		std::string op = tokens[_tokenIndex+1].second;
 		right 	= convertTokenToNode(tokens[_tokenIndex+2]);
-		buildExecutionTreeAndEvaluateRec(_tokenIndex+2, right, nullptr);		
-		operation = context->createNodeBinaryOperation(op, left, right, _finalRes);
-		operation->evaluate();
+		buildGraphRec(_tokenIndex+2, right, nullptr);		
+		context->createNodeBinaryOperation(op, left, right, _finalRes);
 
 	/* number, op, number, op, expr */
 	}else if  (tokenLeft >= 4)
@@ -109,43 +117,34 @@ void Node_Lexer::buildExecutionTreeAndEvaluateRec(size_t _tokenIndex, Node_Value
 
 		/* if currOperator is more important than nextOperator
 		   we perform the first operation and send the result as left operand to the next expression */
-		Node_Variable* 	result 	    = context->createNodeVariable("result", nullptr);	
+		Node_Variable* 	result 	    = context->createNodeVariable();	
 		bool            evaluateNow = Node_BinaryOperation::NeedsToBeEvaluatedFirst(op, nextOp);	
 
 		if ( evaluateNow ){
-			// Perform the operation on the left		
-			operation= context->createNodeBinaryOperation(op, left, right, result);
-			operation->evaluate();
+			// create the operation on the left		
+			context->createNodeBinaryOperation(op, left, right, result);
+
 			// Pass the result and build the next operations
-			buildExecutionTreeAndEvaluateRec(_tokenIndex+2, _finalRes, result);	
+			buildGraphRec(_tokenIndex+2, _finalRes, result);	
 
 		/* Else, we evaluate the next expression and then perform the operation with 
 		the result of the next expresssion as right operand */
 		}else{
-			buildExecutionTreeAndEvaluateRec(_tokenIndex+2, result, nullptr);		
-			operation = context->createNodeBinaryOperation( op, left, result, _finalRes);	
-			operation->evaluate();
+			buildGraphRec(_tokenIndex+2, result, nullptr);		
+			context->createNodeBinaryOperation( op, left, result, _finalRes);	
 		}
 	}
 }
 
 
-void Node_Lexer::buildExecutionTreeAndEvaluate()
+Node_Variable* Node_Lexer::buildGraph()
 {
-	LOG_DBG("Node_Lexer::buildExecutionTreeAndEvaluate() - START\n");
+	LOG_DBG("Node_Lexer::buildGraph() - START\n");
 	auto currentTokenIndex = 0;
 	Node_Variable* result = this->getParent()->createNodeVariable("Result");	
-
-	LOG_MSG("\nExecution step by step :\n");
-	buildExecutionTreeAndEvaluateRec(currentTokenIndex, result, nullptr);
-	LOG_DBG("Node_Lexer::buildExecutionTreeAndEvaluate() - DONE !\n");
-
-	// Draw the execution tree :
-	LOG_MSG("\nTree view :\n");
-	NodeView::ArrangeRecursive(result->getView());
-
-	// Display the result :
-	LOG_MSG("\nResult: %f\n", result->getValueAsNumber());
+	buildGraphRec(currentTokenIndex, result, nullptr);	
+	LOG_DBG("Node_Lexer::buildGraph() - DONE !\n");
+	return result;
 }
 
 bool Node_Lexer::isSyntaxValid()
@@ -179,12 +178,12 @@ void Node_Lexer::tokenize()
 {
 	LOG_DBG("Node_Lexer::tokenize() - START\n");
 	/* get expression chars */
-	std::string chars = getInput()->getValueAsString();
+	std::string chars = getMember("expression").getValueAsString();
 
 	/* prepare allowed chars */
-	std::string numbers 	= getMember("numbers")->getValueAsString();
-	std::string letters		= getMember("letters")->getValueAsString();
-	std::string operators 	= getMember("operators")->getValueAsString();
+	std::string numbers 	     = getMember("numbers").getValueAsString();
+	std::string letters		     = getMember("letters").getValueAsString();
+	std::string operators 	     = getMember("operators").getValueAsString();
 
 	for(auto it = chars.begin(); it < chars.end(); ++it)
 	{
@@ -205,7 +204,6 @@ void Node_Lexer::tokenize()
 
 			std::string number = chars.substr(itStart - chars.begin(), it - itStart + 1);
 			addToken("number", number);
-
 		 /* Search for a string */
 		/////////////////////////
 

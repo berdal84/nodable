@@ -70,7 +70,7 @@ bool ApplicationView::init()
 	style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.5f, 0.5f, 0.5f, 1.00f);
 	style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(1.00f, 1.00f, 1.00f, 0.08f);
 	style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
-	style.Colors[ImGuiCol_Border]                = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+	style.Colors[ImGuiCol_Border]                = ImVec4(1.00f, 1.00f, 1.00f, 0.5f);
 	style.Colors[ImGuiCol_BorderShadow]          = ImVec4(0.30f, 0.30f, 0.30f, 0.50f);
 	style.Colors[ImGuiCol_FrameBg]               = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
 	style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.90f, 0.80f, 0.80f, 1.00f);
@@ -158,6 +158,29 @@ void ApplicationView::draw()
         	}
 
             ImGui::EndMenu();
+        }
+
+        if ( ImGui::BeginMenu("View"))
+        {
+        	auto frame = ImGui::MenuItem("Frame All", "F");
+        	ImGui::Separator();
+        	auto detailSimple   = ImGui::MenuItem("Simple View", "", NodeView::s_drawDetail == DrawDetail_Simple );
+        	auto detailAdvanced = ImGui::MenuItem("Advanced View", "", NodeView::s_drawDetail == DrawDetail_Advanced );
+        	auto detailComplex  = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex );
+
+        	if( frame)
+        		application->getContext()->frameAll();
+
+        	if (detailSimple)
+        		NodeView::s_drawDetail = DrawDetail_Simple;
+
+        	if (detailAdvanced)
+        		NodeView::s_drawDetail = DrawDetail_Advanced;
+
+        	if (detailComplex)
+        		NodeView::s_drawDetail = DrawDetail_Complex;
+
+        	ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
     }

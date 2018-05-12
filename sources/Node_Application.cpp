@@ -1,10 +1,11 @@
 #include "Node_Application.h"
 #include "Nodable.h" 	// for NODABLE_VERSION
 #include "Log.h" 		// for LOG_DBG
-#include "Node_String.h"
 #include "Node_Lexer.h"
 #include "Node_Container.h"
 #include "ApplicationView.h"
+#include "Node_Variable.h"
+
 #include <unistd.h>
 #include <imgui.h>
 
@@ -12,8 +13,7 @@ using namespace Nodable;
 
 Node_Application::Node_Application(const char* _name)
 {
-	view = new ApplicationView(_name, this);
-	
+	view = new ApplicationView(_name, this);	
 }
 
 Node_Application::~Node_Application()
@@ -51,16 +51,23 @@ void Node_Application::stopExecution()
 
 bool Node_Application::eval(std::string _expression)
 {
-	LOG_MSG("Node_Application::eval()");
-	this->lastString 		= ctx->createNodeString(_expression.c_str());
+	LOG_MSG("Node_Application::eval() - create a variable.\n");
+	lastString = ctx->createNodeVariable("Command");
 
+	LOG_DBG("Node_Lexer::evaluate() - assign the expression string to that variable\n");
+	lastString->setValue(_expression.c_str());
+
+	LOG_DBG("Node_Lexer::evaluate() - check if users type the exit keyword.\n");
 	if ( lastString->getValueAsString() == "exit" ){
+		LOG_DBG("Node_Lexer::evaluate() - stopExecution...\n");
 		stopExecution();		
 	}else{
-		if ( !lastString->isEmpty())
+		LOG_DBG("Node_Lexer::evaluate() - check if expression is not empty\n");
+		if ( lastString->isSet())
 		{
 			/* Create a Lexer node. The lexer will cut expression string into tokens
 			(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
+			LOG_DBG("Node_Lexer::evaluate() - create a lexer with the expression string\n");
 			auto lexer = ctx->createNodeLexer(lastString);
 			return lexer->evaluate();
 			//ctx->destroyNode(lexer);
@@ -75,7 +82,6 @@ void Node_Application::shutdown()
 	LOG_MSG("Shutdown Nodable...\n");
 
 	// Free memory
-	delete this->exitString;
 	delete this->ctx;
 	delete this->lastString;
 	delete this->view;

@@ -54,16 +54,15 @@ namespace Nodable{
 	// View
 	class NodeView;
 	class ApplicationView;
-
+	class WireView;
+	
 	// Nodes
 	class Node;
 	class Node_Application;
 	class Node_Value;
-	class Node_Number;
 	class Node_Add;
 	class Node_Variable;
 	class Node_Container;
-	class Node_String;
 	class Node_Lexer;
 	class Node_BinaryOperation;
 	class Node_Substract;
@@ -71,8 +70,11 @@ namespace Nodable{
 	class Node_Divide;
 	class Node_Multiply;
 
+	// Other
+	class Wire;
+
 	enum Type_{
-		Type_Variable,
+		Type_Unknown,
 		Type_Number,
 		Type_String,
 		Type_COUNT

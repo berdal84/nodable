@@ -2,26 +2,23 @@
 #include "Log.h"		// for LOG_DBG(...)
 #include "Node_Value.h"
 #include "Node_Variable.h"
+#include "Node_Value.h"
 
 using namespace Nodable;
 
  // Node_BinaryOperation :
 //////////////////////////
 
-Node_Value* Node_BinaryOperation::getLeftInputValue()const
+Node_BinaryOperation::Node_BinaryOperation()
 {
-	return dynamic_cast<Node_Value*>(getInput("left")->getValueAsNode());
+	addMember("left");
+	addMember("right");
+	addMember("result");
 }
 
-
-Node_Value* Node_BinaryOperation::getRightInputValue()const
+bool Node_BinaryOperation::couldBeEvaluated()
 {
-	return dynamic_cast<Node_Value*>(getInput("right")->getValueAsNode());
-}
-
-Node_Value* Node_BinaryOperation::getOutputValue()const
-{
-	return dynamic_cast<Node_Value*>(getOutput()->getValueAsNode());
+	return true;
 }
 
 /* Precendence for binary operators */
@@ -63,58 +60,110 @@ bool Node_BinaryOperation::NeedsToBeEvaluatedFirst(std::string op, std::string n
  // Node_Add :
 //////////////
 
-void Node_Add::evaluate()
+bool Node_Add::evaluate()
 {
-	double result = this->getLeftInputValue()->getValueAsNumber() + this->getRightInputValue()->getValueAsNumber();
-	LOG_MSG("%s + %s = %f\n", this->getLeftInputValue()->getLabel(), this->getRightInputValue()->getLabel(), result);
-	this->getOutputValue()->setValue(result);
+
+	switch(getMember("left").getType())
+	{
+		case Type_String:
+		{
+			auto result = getMember("left").getValueAsString() + getMember("right").getValueAsString();
+			setMember("result", result);
+			break;
+		}
+
+		default:
+		case Type_Number:
+		{
+			auto result = getMember("left").getValueAsNumber() + getMember("right").getValueAsNumber();
+			setMember("result", result);
+			break;
+		}	
+	}
+		
+	LOG_MSG("%s + %s = %f\n", getMember("left").getValueAsString().c_str(), 
+                                  getMember("right").getValueAsString().c_str(),
+                                  getMember("result").getValueAsString().c_str());
+	return true;
 }
 
  // Node_Substract :
 ///////////////////////
 
-void Node_Substract::evaluate()
+bool Node_Substract::evaluate()
 {
-	double result = this->getLeftInputValue()->getValueAsNumber() - this->getRightInputValue()->getValueAsNumber();
-	LOG_MSG("%s - %s = %f\n", this->getLeftInputValue()->getLabel(), this->getRightInputValue()->getLabel(), result);
-	this->getOutputValue()->setValue(result);
+
+	double result = getMember("left").getValueAsNumber() - getMember("right").getValueAsNumber();
+	setMember("result", result);
+
+	LOG_MSG("%s - %s = %f\n", getMember("left").getValueAsString().c_str(), 
+                              getMember("right").getValueAsString().c_str(),
+                              getMember("result").getValueAsString().c_str());
+	return true;
 }
 
  // Node_Divide :
 ///////////////////////
 
-void Node_Divide::evaluate()
+bool Node_Divide::evaluate()
 {
-	if (this->getRightInputValue()->getValueAsNumber() != 0.0f)
+	if (getMember("right").getValueAsNumber() != 0.0f)
 	{
-		double result = this->getLeftInputValue()->getValueAsNumber() / this->getRightInputValue()->getValueAsNumber();
-		LOG_MSG("%s / %s = %f\n", this->getLeftInputValue()->getLabel(), this->getRightInputValue()->getLabel(), result);
-		this->getOutputValue()->setValue(result);
+		double result = getMember("left").getValueAsNumber() / getMember("right").getValueAsNumber();
+		setMember("result", result);
+		
+		LOG_MSG("%s / %s = %f\n", getMember("left").getValueAsString().c_str(), 
+                                  getMember("right").getValueAsString().c_str(),
+                                  getMember("result").getValueAsString().c_str());
 	}
+	return true;
 }
 
  // Node_Multiply :
 ///////////////////////
 
-void Node_Multiply::evaluate()
+bool Node_Multiply::evaluate()
 {
-	double result = this->getLeftInputValue()->getValueAsNumber() * this->getRightInputValue()->getValueAsNumber();
-	LOG_MSG("%s * %s = %f\n", this->getLeftInputValue()->getLabel(), this->getRightInputValue()->getLabel(), result);
-	this->getOutputValue()->setValue(result);
+	double result = getMember("left").getValueAsNumber() * getMember("right").getValueAsNumber();
+	setMember("result", result);
+	
+	LOG_MSG("%s * %s = %f\n", getMember("left").getValueAsString().c_str(), 
+                              getMember("right").getValueAsString().c_str(),
+                              getMember("result").getValueAsString().c_str());
+	return true;
 }
 
  // Node_Assign :
 ///////////////////////
 
-void Node_Assign::evaluate()
+bool Node_Assign::evaluate()
 {
-	
-
-	auto result = this->getRightInputValue()->getValueAsNumber();
-	this->getLeftInputValue()->setValue(result);
-	this->getOutputValue()   ->setValue(result);
-
-	LOG_MSG("%s = %s (result %s)\n", 	this->getLeftInputValue()->getLabel(),
-										this->getRightInputValue()->getLabel(),
-										this->getOutputValue()->getValueAsString().c_str());	
+	switch (getMember("right").getType())
+	{
+		case Type_Number:
+		{
+			auto result = getMember("right").getValueAsNumber();
+			setMember("result", result);
+			setMember("left", result);
+			break;
+		}
+		case Type_String:
+		{
+			auto result = getMember("right").getValueAsString().c_str();
+			setMember("result", result);
+			setMember("left", result);
+			break;
+		}
+		default:
+		{
+			auto result = getMember("right").getValueAsNumber();
+			setMember("result", result);
+			setMember("left", result);
+			break;
+		}
+	}
+	LOG_MSG("%s = %s (result %s)\n", 	getMember("left").getValueAsString().c_str(),
+										getMember("right").getValueAsString().c_str(),
+										getMember("result").getValueAsString().c_str());	
+	return true;
 }

@@ -14,22 +14,23 @@ namespace Nodable{
 		virtual ~Node_Container(){};
 		void                      draw();
 		void                      clear();
+		void                      frameAll();
 		void                      drawLabelOnly();
+		size_t                    getSize()const;
 		Node_Variable* 	          find                      (const char* /*Symbol name*/);
 		void                      addNode                   (Node* /*Node to add to this context*/);
 		void                      destroyNode               (Node*);
-		void                      setVariable               (const char* /*name*/, Node* /*value*/);
-		Node_Variable*            createNodeVariable        (const char* /*name*/, Node* /*value*/ = nullptr);
-		Node_Number*              createNodeNumber          (int /*value*/ = 0);
-		Node_Number*              createNodeNumber          (const char* /*value*/);
-		Node_String*              createNodeString          (const char* /*value*/);
-		Node_BinaryOperation*     createNodeBinaryOperation (std::string /*_operator*/, Node_Value* /*_leftInput*/, Node_Value*/*_rightInput*/, Node_Value*/*output*/);
+		Node_Variable*            createNodeVariable        (const char* /*name*/ = "");
+		Node_Variable*            createNodeNumber          (int /*value*/ = 0);
+		Node_Variable*            createNodeNumber          (const char* /*value*/);
+		Node_Variable*            createNodeString          (const char* /*value*/);
+		Node_BinaryOperation*     createNodeBinaryOperation (std::string /*_operator*/, Node_Variable* /*_leftInput*/, Node_Variable*/*_rightInput*/, Node_Variable*/*output*/);
 		Node_Add*                 createNodeAdd             ();
 		Node_Substract*           createNodeSubstract       ();
 		Node_Multiply*			  createNodeMultiply        ();
 		Node_Divide*			  createNodeDivide          ();
 		Node_Assign*			  createNodeAssign          (); 
-		Node_Lexer*               createNodeLexer           (Node_String* /*expression*/);
+		Node_Lexer*               createNodeLexer           (Node_Variable* /*expression*/);
 
 		const char* 	          getName                   ()const;
 		std::vector<Node_Variable*>& getVariables(){return variables;}

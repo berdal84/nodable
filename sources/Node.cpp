@@ -2,8 +2,11 @@
 #include "Log.h"		// for LOG_DBG(...)
 #include "Node_Container.h"
 #include "Node_Variable.h"
+#include "Node_Value.h"
 #include "NodeView.h"
-
+#include <algorithm> // for std::find
+#include "Wire.h"
+#include <string> // for strcmp
 using namespace Nodable;
 
 void Node::Connect(	Node* _from, 
@@ -11,24 +14,30 @@ void Node::Connect(	Node* _from,
 					const char* _fromOutputName, 
 					const char* _toInputName)
 {
-	_from->setOutput (_to,   _fromOutputName);
-	_to->setInput    (_from, _toInputName);
+
+	// Create an empty wire
+	auto wire = new Wire();
+
+	// Connect wire's source and target to nodes _from and _to.
+	wire->setSource(_from , _fromOutputName);
+	wire->setTarget(_to   , _toInputName);
+
+	// Add this wire to each node. They need to know that they are linked by a wire.
+	_from->addWire(wire);
+	_to->addWire(wire);
+
+	// force wire to transmit data
+	wire->transmitData();
 }
 
 Node::Node()
 {
 	LOG_DBG("Node::Node()\n");
-	this->inputs  = new Node_Container("inputs", this);
-	this->outputs = new Node_Container("outputs", this);
-	this->members = new Node_Container("members", this);
 	this->view    = new NodeView(this);
 }
 
 Node::~Node()
 {
-	delete inputs;
-	delete outputs;
-	delete members;
 }
 
 Node_Container* Node::getParent()const
@@ -41,49 +50,25 @@ void Node::setParent(Node_Container* _container)
 	this->parent = _container;
 }
 
-Node_Container*   Node::getInputs      ()const
-{
-	return inputs;
-}
-
-Node_Variable* Node::getInput  (const char* _name)const
-{
-	return inputs->find(_name);
-}
-
-Node_Container*   Node::getOutputs      ()const
-{
-	return outputs;
-}
-
-Node_Variable* Node::getOutput (const char* _name)const
-{
-	return outputs->find(_name);
-}
-
-Node_Container*   Node::getMembers      ()const
+const Members&   Node::getMembers      ()const
 {
 	return members;
 }
 
-Node_Variable* Node::getMember (const char* _name)const
+const Node_Value& Node::getMember (const char* _name)const
 {
-	return members->find(_name);
+	return members.at(std::string(_name));
 }
 
-void Node::setInput  (Node* _node, const char* _name)
+const Node_Value& Node::getMember (const std::string& _name)const
 {
-	inputs->setVariable(_name, _node);
+	return members.at(_name.c_str());
 }
 
-void Node::setOutput (Node* _node, const char* _name)
+void Node::addMember (const char* _name, Type_ _type)
 {
-	outputs->setVariable(_name, _node);
-}
-
-void Node::setMember (Node* _node, const char* _name)
-{
-	members->setVariable(_name, _node);
+	auto& m = members[std::string(_name)];
+	m.setType(_type);
 }
 
 void Node::setLabel(const char* _label)
@@ -104,4 +89,73 @@ const char* Node::getLabel()const
 NodeView* Node::getView()const
 {
 	return this->view;
+}
+
+void Node::updateWires()
+{
+	/*
+	// both sides
+	for (auto wire : wires)
+		wire->transmitData();
+	*/
+
+	
+	// outputs only
+	for (auto wire : wires)
+	{
+		if ( wire->getSource() == this)
+			wire->transmitData();
+	}
+		
+}
+
+void Node::addWire(Wire* _wire)
+{
+	wires.push_back(_wire);
+}
+
+void Node::removeWire(Wire* _wire)
+{
+	auto found = std::find(wires.begin(), wires.end(), _wire);
+
+	if (found != wires.end())
+		wires.erase(found);
+}
+
+std::vector<Wire*>& Node::getWires()
+{
+	return wires;
+}
+
+int Node::getInputWireCount()const
+{
+	int count = 0;
+	for(auto w : wires)
+	{
+		if ( w->getTarget() == this)
+			count++;
+	}
+	return count;
+}
+
+int Node::getOutputWireCount()const
+{
+	int count = 0;
+	for(auto w : wires)
+	{
+		if ( w->getSource() == this)
+			count++;
+	}
+	return count;
+}
+
+bool Node::evaluate()
+{
+		// outputs only
+	for (auto wire : wires)
+	{
+		if ( wire->getTarget() == this)
+			wire->transmitData();
+	}
+	return true;
 }

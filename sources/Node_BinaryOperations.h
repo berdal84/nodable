@@ -7,15 +7,11 @@ namespace Nodable{
 	/* Node_BinaryOperation is an interface for all binary operations */
 	class Node_BinaryOperation: public Node{
 	public:		
-		Node_BinaryOperation(){};
+		Node_BinaryOperation();
 		virtual ~Node_BinaryOperation(){};
-		virtual void                  evaluate               () = 0;
+		bool                          couldBeEvaluated       ();
 		/* return true is op needs to be evaluated before nextOp */
 		static  bool                  NeedsToBeEvaluatedFirst(std::string op, std::string nextOp);
-	protected:
-		Node_Value* getLeftInputValue  ()const;
-		Node_Value* getRightInputValue ()const;
-		Node_Value* getOutputValue     ()const;
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Sum */
@@ -23,7 +19,7 @@ namespace Nodable{
 	public:
 		Node_Add(){setLabel("ADD");};
 		~Node_Add(){};
-		void evaluate();
+		bool evaluate();
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Substraction */
@@ -31,7 +27,7 @@ namespace Nodable{
 	public:
 		Node_Substract(){setLabel("SUBSTRACT");};
 		~Node_Substract(){};
-		void evaluate();
+		bool evaluate();
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Multiplication */
@@ -39,7 +35,7 @@ namespace Nodable{
 	public:
 		Node_Multiply(){setLabel("MULTIPLY");};
 		~Node_Multiply(){};
-		void evaluate();
+		bool evaluate();
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Division */
@@ -47,7 +43,7 @@ namespace Nodable{
 	public:
 		Node_Divide(){setLabel("DIVIDE");};
 		~Node_Divide(){};
-		void evaluate();
+		bool evaluate();
 	};
 
 	/* Implementation of the Node_BinaryOperation as an assignment */
@@ -55,6 +51,6 @@ namespace Nodable{
 	public:
 		Node_Assign(){setLabel("ASSIGN");};
 		~Node_Assign(){};
-		void evaluate();
+		bool evaluate();
 	};
 }

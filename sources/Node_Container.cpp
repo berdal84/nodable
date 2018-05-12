@@ -1,11 +1,11 @@
 #include "Node_Container.h"
 #include "Log.h"
-#include "Node_Number.h"
-#include "Node_String.h"
 #include "Node_Lexer.h"
 #include "Node.h"
 #include "Node_Variable.h"
 #include "Node_BinaryOperations.h"
+#include "Wire.h"
+#include "WireView.h"
 
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
@@ -28,10 +28,17 @@ void Node_Container::clear()
 	variables.resize(0);
 }
 
+void Node_Container::frameAll()
+{
+
+}
+
 void Node_Container::draw()
 {
 	bool isAnyItemDragged = false;
 	bool isAnyItemHovered = false;
+
+	
 
 	// 1 - Draw nodes
 	for(auto each : this->nodes)
@@ -43,22 +50,27 @@ void Node_Container::draw()
 			if (view != nullptr)
 			{
 				view->draw();
-				isAnyItemDragged |= view->isDragged();
+				isAnyItemDragged |= NodeView::GetDragged() == view;
 				isAnyItemHovered |= view->isHovered();
 			}
 		}
 	}
+
+	
+
 
 	// 2 - Draw wires
 	for(auto each : this->nodes)
 	{
 		if ( each != nullptr)
 		{
-			auto view = each->getView();
+			auto wires = each->getWires();
 
-			if (view != nullptr)
+			for(auto eachWire : wires)
 			{
-				view->drawWires();
+				eachWire->transmitData();
+				eachWire->getView()->draw();
+
 			}
 		}
 	}
@@ -102,7 +114,7 @@ void Node_Container::drawLabelOnly()
 		for(auto each : this->nodes)
 		{
 			if (auto symbol = dynamic_cast<Node_Variable*>(each))
-				ImGui::Text("%s => %s", symbol->getName(), symbol->getValueAsNode()->getLabel());
+				ImGui::Text("%s => %s", symbol->getName(), symbol->getValueAsString().c_str());
 		}
 	}
 }
@@ -137,6 +149,9 @@ void Node_Container::destroyNode(Node* _node)
 
 Node_Variable* Node_Container::find(const char* _name)
 {
+	if ( _name == '\0')
+		return nullptr;
+
 	LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getName());
 
 	auto findFunction = [_name](const Node_Variable* _node ) -> bool
@@ -153,47 +168,41 @@ Node_Variable* Node_Container::find(const char* _name)
 	return nullptr;
 }
 
-void Node_Container::setVariable(const char* _name, Node* _target)
+Node_Variable* Node_Container::createNodeVariable(const char* _name)
 {
-	Node_Variable* variable = find(_name);
-
-	if ( variable == nullptr)
-		variable = createNodeVariable(_name, _target);
-	else
-		variable->setValue(_target);
-}
-
-Node_Variable* Node_Container::createNodeVariable(const char* _name, Node* _value)
-{
-	Node_Variable* variable = new Node_Variable(_name, _value);
+	auto variable = new Node_Variable();
+	variable->setName(_name);
 	this->variables.push_back(variable);
 	addNode(variable);
 	return variable;
 }
 
-Node_Number*          Node_Container::createNodeNumber(int _value)
+Node_Variable*          Node_Container::createNodeNumber(int _value)
 {
-	Node_Number* node = new Node_Number(_value);
+	auto node = new Node_Variable();
+	node->setValue(_value);
 	addNode(node);
 	return node;
 }
 
-Node_Number*          Node_Container::createNodeNumber(const char* _value)
+Node_Variable*          Node_Container::createNodeNumber(const char* _value)
 {
-	Node_Number* node = new Node_Number(_value);
+	auto node = new Node_Variable();
+	node->setValue(std::stod(_value));
 	addNode(node);
 	return node;
 }
 
-Node_String*          Node_Container::createNodeString(const char* _value)
+Node_Variable*          Node_Container::createNodeString(const char* _value)
 {
-	Node_String* node = new Node_String(_value);
+	auto node = new Node_Variable();
+	node->setValue(_value);
 	addNode(node);
 	return node;
 }
 
 
-Node_BinaryOperation* Node_Container::createNodeBinaryOperation(std::string _op, Node_Value* _leftInput, Node_Value* _rightInput, Node_Value* _output)
+Node_BinaryOperation* Node_Container::createNodeBinaryOperation(std::string _op, Node_Variable* _leftInput, Node_Variable* _rightInput, Node_Variable* _output)
 {
 	Node_BinaryOperation* node;
 
@@ -208,11 +217,11 @@ Node_BinaryOperation* Node_Container::createNodeBinaryOperation(std::string _op,
 	else if ( _op == "=")
 		node = createNodeAssign();
 	else
-		node = nullptr;
+		return nullptr;
 
-	Node::Connect(_leftInput,  node,   "default", "left");
-	Node::Connect(_rightInput, node,   "default", "right");
-	Node::Connect(node,        _output);
+	Node::Connect(_leftInput,  node,   "value", "left");
+	Node::Connect(_rightInput, node,   "value", "right");
+	Node::Connect(node,        _output,"result", "value");
 
 	return node;
 }
@@ -254,9 +263,10 @@ Node_Assign* Node_Container::createNodeAssign()
 }
 
 
-Node_Lexer* Node_Container::createNodeLexer(Node_String* _input)
+Node_Lexer* Node_Container::createNodeLexer(Node_Variable* _input)
 {
-	Node_Lexer* lexer = new Node_Lexer(_input);
+	Node_Lexer* lexer = new Node_Lexer();
+	Node::Connect(_input, lexer, "value", "expression");
 	addNode(lexer);
 	return lexer;
 }
@@ -264,4 +274,9 @@ Node_Lexer* Node_Container::createNodeLexer(Node_String* _input)
 const char* Node_Container::getName()const
 {
 	return name.c_str();
+}
+
+size_t Node_Container::getSize()const
+{
+	return nodes.size();
 }

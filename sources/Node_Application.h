@@ -12,6 +12,7 @@ namespace Nodable
 		Node_Application(const char*);
 		~Node_Application();
 
+		bool             evaluate(){return true;}
 		bool             eval(std::string /* literal expression */);
 		bool             init();
 		void             clear();
@@ -23,8 +24,7 @@ namespace Nodable
 
 	private:
 		Node_Container*  ctx;
-		Node_String*     exitString;
-		Node_String*     lastString;
+		Node_Variable*   lastString;
 		ApplicationView* view;
 		bool             quit = false;
 	};

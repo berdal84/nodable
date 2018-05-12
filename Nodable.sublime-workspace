@@ -1,0 +1,1827 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"getSource",
+				"getSourceSlot"
+			],
+			[
+				"source",
+				"sourceSlot"
+			],
+			[
+				"map",
+				"I-map\tinc"
+			],
+			[
+				"background",
+				"backgroundColor"
+			],
+			[
+				"Draw",
+				"DrawMode_"
+			],
+			[
+				"itemRect",
+				"itemRectMin"
+			],
+			[
+				"DrawMode_",
+				"DrawMode_AsChild"
+			],
+			[
+				"ImGui",
+				"ImGuiDrawMode_"
+			],
+			[
+				"pos",
+				"position"
+			],
+			[
+				"Im",
+				"ImVec2"
+			],
+			[
+				"po",
+				"position"
+			],
+			[
+				"Nod",
+				"Node_Application"
+			],
+			[
+				"noda",
+				"nodable2"
+			],
+			[
+				"Node",
+				"Node_Container"
+			],
+			[
+				"Appl",
+				"ApplicationView"
+			],
+			[
+				"get",
+				"getValueAsString"
+			],
+			[
+				"va",
+				"variable"
+			],
+			[
+				"ini",
+				"initKeyboardOnCommandLine"
+			],
+			[
+				"getOut",
+				"getOutputPosition"
+			],
+			[
+				"setP",
+				"setPosition"
+			],
+			[
+				"draw",
+				"draw_list"
+			],
+			[
+				"getP",
+				"getPosition"
+			],
+			[
+				"No",
+				"Node"
+			],
+			[
+				"Node_",
+				"Node_Variable"
+			],
+			[
+				"add",
+				"addNode"
+			],
+			[
+				"in",
+				"inputs"
+			],
+			[
+				"inc",
+				"include"
+			],
+			[
+				"LOG_",
+				"LOG_MSG"
+			],
+			[
+				"node",
+				"nodable"
+			],
+			[
+				"Noda",
+				"Node_Application"
+			],
+			[
+				"OBJ",
+				"OBJDIR"
+			],
+			[
+				"Bina",
+				"Node_BinaryOperation"
+			],
+			[
+				"getVa",
+				"getValueAsNumber"
+			],
+			[
+				"getValue",
+				"getValueAsNode"
+			],
+			[
+				"crea",
+				"createNodeDivide"
+			],
+			[
+				"cre",
+				"createNodeAdd"
+			],
+			[
+				"getValueAs",
+				"getValueAsString"
+			],
+			[
+				"dyna",
+				"dynamic_cast"
+			],
+			[
+				"pa",
+				"parentName"
+			],
+			[
+				"de",
+				"define"
+			],
+			[
+				"set",
+				"setValue"
+			],
+			[
+				"n",
+				"nullptr"
+			],
+			[
+				"l",
+				"lastString"
+			],
+			[
+				"LOg",
+				"LOG_MSG"
+			],
+			[
+				"Dr",
+				"DrawRecursive"
+			],
+			[
+				"update",
+				"updateMatrix"
+			],
+			[
+				"_",
+				"_offset"
+			],
+			[
+				"phy",
+				"physicsComponent"
+			],
+			[
+				"SLD",
+				"SDL2"
+			],
+			[
+				"delt",
+				"_deltaTime"
+			],
+			[
+				"ren",
+				"_renderer"
+			],
+			[
+				"view",
+				"viewportSize"
+			],
+			[
+				"ma",
+				"matrix"
+			],
+			[
+				"st",
+				"stream"
+			],
+			[
+				"_o",
+				"_orthographicSize"
+			],
+			[
+				"pRO",
+				"Projection_Orthographic"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "sources/Node.cpp",
+			"settings":
+			{
+				"buffer_size": 2593,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/Node_Lexer.h",
+			"settings":
+			{
+				"buffer_size": 930,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/Wire.cpp",
+			"settings":
+			{
+				"buffer_size": 990,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/Node_Lexer.cpp",
+			"settings":
+			{
+				"buffer_size": 6645,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/Node_BinaryOperations.cpp",
+			"settings":
+			{
+				"buffer_size": 4664,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/Node_Variable.h",
+			"settings":
+			{
+				"buffer_size": 1004,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/Node.h",
+			"settings":
+			{
+				"buffer_size": 2060,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/NodeView.cpp",
+			"settings":
+			{
+				"buffer_size": 7394,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "README.md",
+			"settings":
+			{
+				"buffer_size": 1678,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/WireView.cpp",
+			"settings":
+			{
+				"buffer_size": 4160,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/NodeView.h",
+			"settings":
+			{
+				"buffer_size": 2454,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/View.h",
+			"settings":
+			{
+				"buffer_size": 566,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/ApplicationView.cpp",
+			"settings":
+			{
+				"buffer_size": 10551,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/Nodable.cpp",
+			"settings":
+			{
+				"buffer_size": 212,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/Node_Application.cpp",
+			"settings":
+			{
+				"buffer_size": 2006,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "sources/Node_Container.cpp",
+			"settings":
+			{
+				"buffer_size": 5623,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "1-gdb-show interpreter\n=thread-group-added,id=\"i1\"\n~\"GNU gdb (Ubuntu 7.11.1-0ubuntu1~16.5) 7.11.1\\n\"\n~\"Copyright (C) 2016 Free Software Foundation, Inc.\\n\"\n~\"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.  Type \\\"show copying\\\"\\nand \\\"show warranty\\\" for details.\\n\"\n~\"This GDB was configured as \\\"x86_64-linux-gnu\\\".\\nType \\\"show configuration\\\" for configuration details.\"\n~\"\\nFor bug reporting instructions, please see:\\n\"\n~\"<http://www.gnu.org/software/gdb/bugs/>.\\n\"\n~\"Find the GDB manual and other documentation resources online at:\\n<http://www.gnu.org/software/gdb/documentation/>.\\n\"\n~\"For help, type \\\"help\\\".\\n\"\n~\"Type \\\"apropos word\\\" to search for commands related to \\\"word\\\"...\\n\"\n~\"Reading symbols from ./nodable...\"\n~\"done.\\n\"\n(gdb)\n1^error,msg=\"Undefined show command: \\\"interpreter\\\".  Try \\\"help show\\\".\"\n(gdb)\n2-inferior-tty-set /tmp/tmp76tiga\n2^done\n(gdb)\n3-enable-pretty-printing\n4-gdb-set target-async 1\n3^done\n5-gdb-set pagination off\n(gdb)\n4^done\n6-gdb-set disassembly-flavor intel\n(gdb)\n5^done\n(gdb)\n6^done\n(gdb)\n7-exec-run\n=thread-group-started,id=\"i1\",pid=\"17231\"\n=thread-created,id=\"1\",group-id=\"i1\"\n=library-loaded,id=\"/lib64/ld-linux-x86-64.so.2\",target-name=\"/lib64/ld-linux-x86-64.so.2\",host-name=\"/lib64/ld-linux-x86-64.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n7^running\n*running,thread-id=\"all\"\n(gdb)\n=library-loaded,id=\"/usr/lib/nvidia-340/libGL.so.1\",target-name=\"/usr/lib/nvidia-340/libGL.so.1\",host-name=\"/usr/lib/nvidia-340/libGL.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libdl.so.2\",target-name=\"/lib/x86_64-linux-gnu/libdl.so.2\",host-name=\"/lib/x86_64-linux-gnu/libdl.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libm.so.6\",target-name=\"/lib/x86_64-linux-gnu/libm.so.6\",host-name=\"/lib/x86_64-linux-gnu/libm.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libgcc_s.so.1\",target-name=\"/lib/x86_64-linux-gnu/libgcc_s.so.1\",host-name=\"/lib/x86_64-linux-gnu/libgcc_s.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libc.so.6\",target-name=\"/lib/x86_64-linux-gnu/libc.so.6\",host-name=\"/lib/x86_64-linux-gnu/libc.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/nvidia-340/tls/libnvidia-tls.so.340.104\",target-name=\"/usr/lib/nvidia-340/tls/libnvidia-tls.so.340.104\",host-name=\"/usr/lib/nvidia-340/tls/libnvidia-tls.so.340.104\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/nvidia-340/libnvidia-glcore.so.340.104\",target-name=\"/usr/lib/nvidia-340/libnvidia-glcore.so.340.104\",host-name=\"/usr/lib/nvidia-340/libnvidia-glcore.so.340.104\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libX11.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libX11.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libX11.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXext.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libXext.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libXext.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libasound.so.2\",target-name=\"/usr/lib/x86_64-linux-gnu/libasound.so.2\",host-name=\"/usr/lib/x86_64-linux-gnu/libasound.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libpulse.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libpulse.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libpulse.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libsndio.so.6.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libsndio.so.6.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libsndio.so.6.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXcursor.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libXcursor.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libXcursor.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXinerama.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libXinerama.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libXinerama.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXi.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libXi.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libXi.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXrandr.so.2\",target-name=\"/usr/lib/x86_64-linux-gnu/libXrandr.so.2\",host-name=\"/usr/lib/x86_64-linux-gnu/libXrandr.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXss.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libXss.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libXss.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXxf86vm.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libXxf86vm.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libXxf86vm.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libwayland-egl.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libwayland-egl.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libwayland-egl.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libwayland-client.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libwayland-client.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libwayland-client.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libwayland-cursor.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libwayland-cursor.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libwayland-cursor.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libxkbcommon.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libxkbcommon.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libxkbcommon.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libpthread.so.0\",target-name=\"/lib/x86_64-linux-gnu/libpthread.so.0\",host-name=\"/lib/x86_64-linux-gnu/libpthread.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/librt.so.1\",target-name=\"/lib/x86_64-linux-gnu/librt.so.1\",host-name=\"/lib/x86_64-linux-gnu/librt.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libxcb.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libxcb.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libxcb.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libjson-c.so.2\",target-name=\"/lib/x86_64-linux-gnu/libjson-c.so.2\",host-name=\"/lib/x86_64-linux-gnu/libjson-c.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-8.0.so\",target-name=\"/usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-8.0.so\",host-name=\"/usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-8.0.so\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libdbus-1.so.3\",target-name=\"/lib/x86_64-linux-gnu/libdbus-1.so.3\",host-name=\"/lib/x86_64-linux-gnu/libdbus-1.so.3\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libbsd.so.0\",target-name=\"/lib/x86_64-linux-gnu/libbsd.so.0\",host-name=\"/lib/x86_64-linux-gnu/libbsd.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXrender.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libXrender.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libXrender.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXfixes.so.3\",target-name=\"/usr/lib/x86_64-linux-gnu/libXfixes.so.3\",host-name=\"/usr/lib/x86_64-linux-gnu/libXfixes.so.3\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libffi.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libffi.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libffi.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXau.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libXau.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libXau.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXdmcp.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libXdmcp.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libXdmcp.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libsystemd.so.0\",target-name=\"/lib/x86_64-linux-gnu/libsystemd.so.0\",host-name=\"/lib/x86_64-linux-gnu/libsystemd.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libwrap.so.0\",target-name=\"/lib/x86_64-linux-gnu/libwrap.so.0\",host-name=\"/lib/x86_64-linux-gnu/libwrap.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libsndfile.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libsndfile.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libsndfile.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libasyncns.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libasyncns.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libasyncns.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libselinux.so.1\",target-name=\"/lib/x86_64-linux-gnu/libselinux.so.1\",host-name=\"/lib/x86_64-linux-gnu/libselinux.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/liblzma.so.5\",target-name=\"/lib/x86_64-linux-gnu/liblzma.so.5\",host-name=\"/lib/x86_64-linux-gnu/liblzma.so.5\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libgcrypt.so.20\",target-name=\"/lib/x86_64-linux-gnu/libgcrypt.so.20\",host-name=\"/lib/x86_64-linux-gnu/libgcrypt.so.20\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libnsl.so.1\",target-name=\"/lib/x86_64-linux-gnu/libnsl.so.1\",host-name=\"/lib/x86_64-linux-gnu/libnsl.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libFLAC.so.8\",target-name=\"/usr/lib/x86_64-linux-gnu/libFLAC.so.8\",host-name=\"/usr/lib/x86_64-linux-gnu/libFLAC.so.8\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libvorbisenc.so.2\",target-name=\"/usr/lib/x86_64-linux-gnu/libvorbisenc.so.2\",host-name=\"/usr/lib/x86_64-linux-gnu/libvorbisenc.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libresolv.so.2\",target-name=\"/lib/x86_64-linux-gnu/libresolv.so.2\",host-name=\"/lib/x86_64-linux-gnu/libresolv.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libpcre.so.3\",target-name=\"/lib/x86_64-linux-gnu/libpcre.so.3\",host-name=\"/lib/x86_64-linux-gnu/libpcre.so.3\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libgpg-error.so.0\",target-name=\"/lib/x86_64-linux-gnu/libgpg-error.so.0\",host-name=\"/lib/x86_64-linux-gnu/libgpg-error.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libogg.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libogg.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libogg.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libvorbis.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libvorbis.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libvorbis.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n~\"[Thread debugging using libthread_db enabled]\\n\"\n~\"Using host libthread_db library \\\"/lib/x86_64-linux-gnu/libthread_db.so.1\\\".\\n\"\n=thread-created,id=\"2\",group-id=\"i1\"\n~\"[New Thread 0x7fffee0c3700 (LWP 17291)]\\n\"\n*running,thread-id=\"2\"\n~\"\\nThread \"\n~\"1 \\\"nodable\\\" received signal SIGABRT, Aborted.\\n\"\n~\"0x00007ffff693e428 in __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:54\\n\"\n&\"54\\t../sysdeps/unix/sysv/linux/raise.c: Aucun fichier ou dossier de ce type.\\n\"\n*stopped,reason=\"signal-received\",signal-name=\"SIGABRT\",signal-meaning=\"Aborted\",frame={addr=\"0x00007ffff693e428\",func=\"__GI_raise\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}],file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},thread-id=\"1\",stopped-threads=\"all\",core=\"3\"\n8-thread-select 1\n9-stack-info-frame\n8^done,new-thread-id=\"1\",frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}],file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"}\n(gdb)\n9^done,frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"}\n(gdb)\n10-stack-list-frames\n10^done,stack=[frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},frame={level=\"1\",addr=\"0x00007ffff694002a\",func=\"__GI_abort\",file=\"abort.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/stdlib/abort.c\",line=\"89\"},frame={level=\"2\",addr=\"0x00007ffff728184d\",func=\"__gnu_cxx::__verbose_terminate_handler()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"3\",addr=\"0x00007ffff727f6b6\",func=\"??\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"4\",addr=\"0x00007ffff727f701\",func=\"std::terminate()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"5\",addr=\"0x00007ffff727f919\",func=\"__cxa_throw\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"6\",addr=\"0x00007ffff72a82cf\",func=\"std::__throw_out_of_range(char const*)\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"7\",addr=\"0x00000000004113ee\",func=\"std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, Nodable::Node_Value, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, Nodable::Node_Value> > >::at\",file=\"/usr/include/c++/5/bits/stl_map.h\",fullname=\"/usr/include/c++/5/bits/stl_map.h\",line=\"532\"},frame={level=\"8\",addr=\"0x0000000000410ca4\",func=\"Nodable::Node::getMember\",file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"},frame={level=\"9\",addr=\"0x0000000000408df7\",func=\"Nodable::Node_Lexer::tokenize\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"201\"},frame={level=\"10\",addr=\"0x0000000000408220\",func=\"Nodable::Node_Lexer::evaluate\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"41\"},frame={level=\"11\",addr=\"0x000000000040692c\",func=\"Nodable::Node::setMember<char const*>\",file=\"sources/Node.h\",fullname=\"/home/berdal84/Nodable/sources/Node.h\",line=\"64\"},frame={level=\"12\",addr=\"0x00000000004080cc\",func=\"Nodable::Node_Lexer::Node_Lexer\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"19\"},frame={level=\"13\",addr=\"0x000000000040ba7c\",func=\"Nodable::Node_Container::createNodeLexer\",file=\"sources/Node_Container.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Container.cpp\",line=\"268\"},frame={level=\"14\",addr=\"0x000000000040fc7f\",func=\"Nodable::Node_Application::eval\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"71\"},frame={level=\"15\",addr=\"0x0000000000413b5c\",func=\"Nodable::ApplicationView::draw\",file=\"sources/ApplicationView.cpp\",fullname=\"/home/berdal84/Nodable/sources/ApplicationView.cpp\",line=\"204\"},frame={level=\"16\",addr=\"0x000000000040fb11\",func=\"Nodable::Node_Application::draw\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"44\"},frame={level=\"17\",addr=\"0x00000000004146fc\",func=\"main\",file=\"sources/main.cpp\",fullname=\"/home/berdal84/Nodable/sources/main.cpp\",line=\"15\"}]\n(gdb)\n11-stack-list-arguments 1\n11^done,stack-args=[frame={level=\"0\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}]},frame={level=\"1\",args=[]},frame={level=\"2\",args=[]},frame={level=\"3\",args=[]},frame={level=\"4\",args=[]},frame={level=\"5\",args=[]},frame={level=\"6\",args=[]},frame={level=\"7\",args=[{name=\"this\",value=\"0x97e308\"},{name=\"__k\",value=\"\\\"letters\\\"\"}]},frame={level=\"8\",args=[{name=\"this\",value=\"0x97e300\"},{name=\"_name\",value=\"0x46fb25 \\\"letters\\\"\"}]},frame={level=\"9\",args=[{name=\"this\",value=\"0x97e300\"}]},frame={level=\"10\",args=[{name=\"this\",value=\"0x97e300\"}]},frame={level=\"11\",args=[{name=\"this\",value=\"0x97e300\"},{name=\"_name\",value=\"0x46fb11 \\\"numbers\\\"\"},{name=\"_value\",value=\"0x46fb19 \\\"0123456789.\\\"\"}]},frame={level=\"12\",args=[{name=\"this\",value=\"0x97e300\"}]},frame={level=\"13\",args=[{name=\"this\",value=\"0x6f5f90\"},{name=\"_input\",value=\"0xa84c30\"}]},frame={level=\"14\",args=[{name=\"this\",value=\"0x7fffffffe320\"},{name=\"_expression\",value=\"\\\"1\\\"\"}]},frame={level=\"15\",args=[{name=\"this\",value=\"0x6f5f40\"}]},frame={level=\"16\",args=[{name=\"this\",value=\"0x7fffffffe320\"}]},frame={level=\"17\",args=[]}]\n(gdb)\n12-thread-info\n12^done,threads=[{id=\"1\",target-id=\"Thread 0x7ffff7f2e8c0 (LWP 17231)\",name=\"nodable\",frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}],file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},state=\"stopped\",core=\"3\"},{id=\"2\",target-id=\"Thread 0x7fffee0c3700 (LWP 17291)\",name=\"SDLTimer\",frame={level=\"0\",addr=\"0x00007ffff17ae827\",func=\"futex_abstimed_wait_cancelable\",args=[{name=\"private\",value=\"0\"},{name=\"abstime\",value=\"0x0\"},{name=\"expected\",value=\"0\"},{name=\"futex_word\",value=\"0x6f6430\"}],file=\"../sysdeps/unix/sysv/linux/futex-internal.h\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/nptl/../sysdeps/unix/sysv/linux/futex-internal.h\",line=\"205\"},state=\"stopped\",core=\"3\"}],current-thread-id=\"1\"\n(gdb)\n13-thread-list-ids\n13^done,thread-ids={thread-id=\"1\",thread-id=\"2\"},current-thread-id=\"1\",number-of-threads=\"2\"\n(gdb)\n14-stack-list-arguments 0 0 0\n14^done,stack-args=[frame={level=\"0\",args=[name=\"sig\"]}]\n(gdb)\n15-var-create - * sig\n15^done,name=\"var1\",numchild=\"0\",value=\"6\",type=\"int\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n16-stack-list-locals 0\n16^done,locals=[name=\"resultvar\",name=\"pid\",name=\"selftid\"]\n(gdb)\n17-var-create - * resultvar\n17^done,name=\"var2\",numchild=\"0\",value=\"0\",type=\"unsigned long\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n18-var-create - * pid\n18^done,name=\"var3\",numchild=\"0\",value=\"17231\",type=\"pid_t\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n19-var-create - * selftid\n19^done,name=\"var4\",numchild=\"0\",value=\"17231\",type=\"pid_t\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n",
+			"settings":
+			{
+				"buffer_size": 19294,
+				"line_ending": "Unix",
+				"name": "GDB Session",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "GNU gdb (Ubuntu 7.11.1-0ubuntu1~16.5) 7.11.1\nCopyright (C) 2016 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.  Type \"show copying\"\nand \"show warranty\" for details.\nThis GDB was configured as \"x86_64-linux-gnu\".\nType \"show configuration\" for configuration details.\nFor bug reporting instructions, please see:\n<http://www.gnu.org/software/gdb/bugs/>.\nFind the GDB manual and other documentation resources online at:\n<http://www.gnu.org/software/gdb/documentation/>.\nFor help, type \"help\".\nType \"apropos word\" to search for commands related to \"word\"...\nReading symbols from ./nodable...done.\n&\"warning: GDB: Failed to set controlling terminal: Ioctl() inappropri\\303\\251 pour un p\\303\\251riph\\303\\251rique\\n\"\n[Thread debugging using libthread_db enabled]\nUsing host libthread_db library \"/lib/x86_64-linux-gnu/libthread_db.so.1\".\n[New Thread 0x7fffee0c3700 (LWP 17291)]\n\nThread 1 \"nodable\" received signal SIGABRT, Aborted.\n0x00007ffff693e428 in __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:54\nterminate called after throwing an instance of 'std::out_of_range'\n  what():  map::at\nNode::Node()\nNode::Node()\nA new container named Global' has been created.\nNode_Application::eval() - create a variable.\nNode::Node()\nNode::Node()\nNew Node_Variable\nNew Node_Value\nA node has been added to the container 'Global'\nNode_Lexer::evaluate() - assign the expression string to that variable\nNode_Lexer::evaluate() - check if users type the exit keyword.\nNode_Lexer::evaluate() - check if expression is not empty\nNode_Lexer::evaluate() - create a lexer with the expression string\nNode::Node()\nNode::Node()\nnew Node_Lexer\nNew Node_Value\nNew Node_Value\nNode_Lexer::evaluate() - updateWires\nNode_Lexer::evaluate() - tokenize\nNode_Lexer::tokenize() - START\n",
+			"settings":
+			{
+				"buffer_size": 1943,
+				"line_ending": "Unix",
+				"name": "GDB Console",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": " int sig = 6\n unsigned long resultvar = 0\n pid_t pid = 17231\n pid_t selftid = 17231\n",
+			"settings":
+			{
+				"buffer_size": 84,
+				"line_ending": "Unix",
+				"name": "GDB Variables",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "22-gdb-show interpreter\n=thread-group-added,id=\"i1\"\n~\"GNU gdb (Ubuntu 7.11.1-0ubuntu1~16.5) 7.11.1\\n\"\n~\"Copyright (C) 2016 Free Software Foundation, Inc.\\n\"\n~\"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.  Type \\\"show copying\\\"\\nand \\\"show warranty\\\" for details.\\n\"\n~\"This GDB was configured as \\\"x86_64-linux-gnu\\\".\\nType \\\"show configuration\\\" for configuration details.\"\n~\"\\nFor bug reporting instructions, please see:\\n\"\n~\"<http://www.gnu.org/software/gdb/bugs/>.\\n\"\n~\"Find the GDB manual and other documentation resources online at:\\n<http://www.gnu.org/software/gdb/documentation/>.\\n\"\n~\"For help, type \\\"help\\\".\\n\"\n~\"Type \\\"apropos word\\\" to search for commands related to \\\"word\\\"...\\n\"\n~\"Reading symbols from ./nodable...\"\n~\"done.\\n\"\n(gdb)\n22^error,msg=\"Undefined show command: \\\"interpreter\\\".  Try \\\"help show\\\".\"\n(gdb)\n23-inferior-tty-set /tmp/tmpl4vlpk\n23^done\n(gdb)\n24-enable-pretty-printing\n25-gdb-set target-async 1\n24^done\n26-gdb-set pagination off\n(gdb)\n25^done\n27-gdb-set disassembly-flavor intel\n28-exec-run\n(gdb)\n26^done\n(gdb)\n27^done\n(gdb)\n=thread-group-started,id=\"i1\",pid=\"17904\"\n=thread-created,id=\"1\",group-id=\"i1\"\n=library-loaded,id=\"/lib64/ld-linux-x86-64.so.2\",target-name=\"/lib64/ld-linux-x86-64.so.2\",host-name=\"/lib64/ld-linux-x86-64.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n28^running\n*running,thread-id=\"all\"\n(gdb)\n=library-loaded,id=\"/usr/lib/nvidia-340/libGL.so.1\",target-name=\"/usr/lib/nvidia-340/libGL.so.1\",host-name=\"/usr/lib/nvidia-340/libGL.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libdl.so.2\",target-name=\"/lib/x86_64-linux-gnu/libdl.so.2\",host-name=\"/lib/x86_64-linux-gnu/libdl.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libm.so.6\",target-name=\"/lib/x86_64-linux-gnu/libm.so.6\",host-name=\"/lib/x86_64-linux-gnu/libm.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libgcc_s.so.1\",target-name=\"/lib/x86_64-linux-gnu/libgcc_s.so.1\",host-name=\"/lib/x86_64-linux-gnu/libgcc_s.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libc.so.6\",target-name=\"/lib/x86_64-linux-gnu/libc.so.6\",host-name=\"/lib/x86_64-linux-gnu/libc.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/nvidia-340/tls/libnvidia-tls.so.340.104\",target-name=\"/usr/lib/nvidia-340/tls/libnvidia-tls.so.340.104\",host-name=\"/usr/lib/nvidia-340/tls/libnvidia-tls.so.340.104\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/nvidia-340/libnvidia-glcore.so.340.104\",target-name=\"/usr/lib/nvidia-340/libnvidia-glcore.so.340.104\",host-name=\"/usr/lib/nvidia-340/libnvidia-glcore.so.340.104\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libX11.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libX11.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libX11.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXext.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libXext.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libXext.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libasound.so.2\",target-name=\"/usr/lib/x86_64-linux-gnu/libasound.so.2\",host-name=\"/usr/lib/x86_64-linux-gnu/libasound.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libpulse.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libpulse.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libpulse.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libsndio.so.6.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libsndio.so.6.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libsndio.so.6.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXcursor.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libXcursor.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libXcursor.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXinerama.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libXinerama.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libXinerama.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXi.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libXi.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libXi.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXrandr.so.2\",target-name=\"/usr/lib/x86_64-linux-gnu/libXrandr.so.2\",host-name=\"/usr/lib/x86_64-linux-gnu/libXrandr.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXss.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libXss.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libXss.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXxf86vm.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libXxf86vm.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libXxf86vm.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libwayland-egl.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libwayland-egl.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libwayland-egl.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libwayland-client.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libwayland-client.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libwayland-client.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libwayland-cursor.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libwayland-cursor.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libwayland-cursor.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libxkbcommon.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libxkbcommon.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libxkbcommon.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libpthread.so.0\",target-name=\"/lib/x86_64-linux-gnu/libpthread.so.0\",host-name=\"/lib/x86_64-linux-gnu/libpthread.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/librt.so.1\",target-name=\"/lib/x86_64-linux-gnu/librt.so.1\",host-name=\"/lib/x86_64-linux-gnu/librt.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libxcb.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libxcb.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libxcb.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libjson-c.so.2\",target-name=\"/lib/x86_64-linux-gnu/libjson-c.so.2\",host-name=\"/lib/x86_64-linux-gnu/libjson-c.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-8.0.so\",target-name=\"/usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-8.0.so\",host-name=\"/usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-8.0.so\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libdbus-1.so.3\",target-name=\"/lib/x86_64-linux-gnu/libdbus-1.so.3\",host-name=\"/lib/x86_64-linux-gnu/libdbus-1.so.3\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libbsd.so.0\",target-name=\"/lib/x86_64-linux-gnu/libbsd.so.0\",host-name=\"/lib/x86_64-linux-gnu/libbsd.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXrender.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libXrender.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libXrender.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXfixes.so.3\",target-name=\"/usr/lib/x86_64-linux-gnu/libXfixes.so.3\",host-name=\"/usr/lib/x86_64-linux-gnu/libXfixes.so.3\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libffi.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libffi.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libffi.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXau.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libXau.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libXau.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libXdmcp.so.6\",target-name=\"/usr/lib/x86_64-linux-gnu/libXdmcp.so.6\",host-name=\"/usr/lib/x86_64-linux-gnu/libXdmcp.so.6\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libsystemd.so.0\",target-name=\"/lib/x86_64-linux-gnu/libsystemd.so.0\",host-name=\"/lib/x86_64-linux-gnu/libsystemd.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libwrap.so.0\",target-name=\"/lib/x86_64-linux-gnu/libwrap.so.0\",host-name=\"/lib/x86_64-linux-gnu/libwrap.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libsndfile.so.1\",target-name=\"/usr/lib/x86_64-linux-gnu/libsndfile.so.1\",host-name=\"/usr/lib/x86_64-linux-gnu/libsndfile.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libasyncns.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libasyncns.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libasyncns.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libselinux.so.1\",target-name=\"/lib/x86_64-linux-gnu/libselinux.so.1\",host-name=\"/lib/x86_64-linux-gnu/libselinux.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/liblzma.so.5\",target-name=\"/lib/x86_64-linux-gnu/liblzma.so.5\",host-name=\"/lib/x86_64-linux-gnu/liblzma.so.5\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libgcrypt.so.20\",target-name=\"/lib/x86_64-linux-gnu/libgcrypt.so.20\",host-name=\"/lib/x86_64-linux-gnu/libgcrypt.so.20\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libnsl.so.1\",target-name=\"/lib/x86_64-linux-gnu/libnsl.so.1\",host-name=\"/lib/x86_64-linux-gnu/libnsl.so.1\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libFLAC.so.8\",target-name=\"/usr/lib/x86_64-linux-gnu/libFLAC.so.8\",host-name=\"/usr/lib/x86_64-linux-gnu/libFLAC.so.8\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libvorbisenc.so.2\",target-name=\"/usr/lib/x86_64-linux-gnu/libvorbisenc.so.2\",host-name=\"/usr/lib/x86_64-linux-gnu/libvorbisenc.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libresolv.so.2\",target-name=\"/lib/x86_64-linux-gnu/libresolv.so.2\",host-name=\"/lib/x86_64-linux-gnu/libresolv.so.2\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libpcre.so.3\",target-name=\"/lib/x86_64-linux-gnu/libpcre.so.3\",host-name=\"/lib/x86_64-linux-gnu/libpcre.so.3\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/lib/x86_64-linux-gnu/libgpg-error.so.0\",target-name=\"/lib/x86_64-linux-gnu/libgpg-error.so.0\",host-name=\"/lib/x86_64-linux-gnu/libgpg-error.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libogg.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libogg.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libogg.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n=library-loaded,id=\"/usr/lib/x86_64-linux-gnu/libvorbis.so.0\",target-name=\"/usr/lib/x86_64-linux-gnu/libvorbis.so.0\",host-name=\"/usr/lib/x86_64-linux-gnu/libvorbis.so.0\",symbols-loaded=\"0\",thread-group=\"i1\"\n~\"[Thread debugging using libthread_db enabled]\\n\"\n~\"Using host libthread_db library \\\"/lib/x86_64-linux-gnu/libthread_db.so.1\\\".\\n\"\n=thread-created,id=\"2\",group-id=\"i1\"\n~\"[New Thread 0x7fffee0c3700 (LWP 17969)]\\n\"\n*running,thread-id=\"2\"\n~\"\\nThread \"\n~\"1 \\\"nodable\\\" received signal SIGABRT, Aborted.\\n\"\n~\"0x00007ffff693e428 in __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:54\\n\"\n&\"54\\t../sysdeps/unix/sysv/linux/raise.c: Aucun fichier ou dossier de ce type.\\n\"\n*stopped,reason=\"signal-received\",signal-name=\"SIGABRT\",signal-meaning=\"Aborted\",frame={addr=\"0x00007ffff693e428\",func=\"__GI_raise\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}],file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},thread-id=\"1\",stopped-threads=\"all\",core=\"1\"\n29-thread-select 1\n30-stack-info-frame\n29^done,new-thread-id=\"1\",frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}],file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"}\n(gdb)\n30^done,frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"}\n(gdb)\n31-stack-list-frames\n31^done,stack=[frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},frame={level=\"1\",addr=\"0x00007ffff694002a\",func=\"__GI_abort\",file=\"abort.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/stdlib/abort.c\",line=\"89\"},frame={level=\"2\",addr=\"0x00007ffff728184d\",func=\"__gnu_cxx::__verbose_terminate_handler()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"3\",addr=\"0x00007ffff727f6b6\",func=\"??\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"4\",addr=\"0x00007ffff727f701\",func=\"std::terminate()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"5\",addr=\"0x00007ffff727f919\",func=\"__cxa_throw\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"6\",addr=\"0x00007ffff72a82cf\",func=\"std::__throw_out_of_range(char const*)\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"7\",addr=\"0x0000000000411384\",func=\"std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, Nodable::Node_Value, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, Nodable::Node_Value> > >::at\",file=\"/usr/include/c++/5/bits/stl_map.h\",fullname=\"/usr/include/c++/5/bits/stl_map.h\",line=\"532\"},frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"},frame={level=\"9\",addr=\"0x0000000000408d8d\",func=\"Nodable::Node_Lexer::tokenize\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"201\"},frame={level=\"10\",addr=\"0x00000000004081b6\",func=\"Nodable::Node_Lexer::evaluate\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"41\"},frame={level=\"11\",addr=\"0x00000000004068c2\",func=\"Nodable::Node::setMember<char const*>\",file=\"sources/Node.h\",fullname=\"/home/berdal84/Nodable/sources/Node.h\",line=\"64\"},frame={level=\"12\",addr=\"0x0000000000408062\",func=\"Nodable::Node_Lexer::Node_Lexer\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"19\"},frame={level=\"13\",addr=\"0x000000000040ba12\",func=\"Nodable::Node_Container::createNodeLexer\",file=\"sources/Node_Container.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Container.cpp\",line=\"268\"},frame={level=\"14\",addr=\"0x000000000040fc15\",func=\"Nodable::Node_Application::eval\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"71\"},frame={level=\"15\",addr=\"0x0000000000413af2\",func=\"Nodable::ApplicationView::draw\",file=\"sources/ApplicationView.cpp\",fullname=\"/home/berdal84/Nodable/sources/ApplicationView.cpp\",line=\"204\"},frame={level=\"16\",addr=\"0x000000000040faa7\",func=\"Nodable::Node_Application::draw\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"44\"},frame={level=\"17\",addr=\"0x0000000000414692\",func=\"main\",file=\"sources/main.cpp\",fullname=\"/home/berdal84/Nodable/sources/main.cpp\",line=\"15\"}]\n(gdb)\n32-stack-list-arguments 1\n32^done,stack-args=[frame={level=\"0\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}]},frame={level=\"1\",args=[]},frame={level=\"2\",args=[]},frame={level=\"3\",args=[]},frame={level=\"4\",args=[]},frame={level=\"5\",args=[]},frame={level=\"6\",args=[]},frame={level=\"7\",args=[{name=\"this\",value=\"0xa72c78\"},{name=\"__k\",value=\"\\\"letters\\\"\"}]},frame={level=\"8\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fac5 \\\"letters\\\"\"}]},frame={level=\"9\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"10\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"11\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fab1 \\\"numbers\\\"\"},{name=\"_value\",value=\"0x46fab9 \\\"0123456789.\\\"\"}]},frame={level=\"12\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"13\",args=[{name=\"this\",value=\"0x6f4f90\"},{name=\"_input\",value=\"0xa72ba0\"}]},frame={level=\"14\",args=[{name=\"this\",value=\"0x7fffffffe320\"},{name=\"_expression\",value=\"\\\"1\\\"\"}]},frame={level=\"15\",args=[{name=\"this\",value=\"0x6f4f40\"}]},frame={level=\"16\",args=[{name=\"this\",value=\"0x7fffffffe320\"}]},frame={level=\"17\",args=[]}]\n(gdb)\n33-thread-info\n33^done,threads=[{id=\"1\",target-id=\"Thread 0x7ffff7f2e8c0 (LWP 17904)\",name=\"nodable\",frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}],file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},state=\"stopped\",core=\"1\"},{id=\"2\",target-id=\"Thread 0x7fffee0c3700 (LWP 17969)\",name=\"SDLTimer\",frame={level=\"0\",addr=\"0x00007ffff17ae827\",func=\"futex_abstimed_wait_cancelable\",args=[{name=\"private\",value=\"0\"},{name=\"abstime\",value=\"0x0\"},{name=\"expected\",value=\"0\"},{name=\"futex_word\",value=\"0x6f5430\"}],file=\"../sysdeps/unix/sysv/linux/futex-internal.h\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/nptl/../sysdeps/unix/sysv/linux/futex-internal.h\",line=\"205\"},state=\"stopped\",core=\"0\"}],current-thread-id=\"1\"\n(gdb)\n34-thread-list-ids\n34^done,thread-ids={thread-id=\"1\",thread-id=\"2\"},current-thread-id=\"1\",number-of-threads=\"2\"\n(gdb)\n35-var-delete var1\n36-var-delete var2\n35^error,msg=\"Variable object not found\"\n37-var-delete var3\n(gdb)\n38-var-delete var4\n36^error,msg=\"Variable object not found\"\n39-stack-list-arguments 0 0 0\n(gdb)\n37^error,msg=\"Variable object not found\"\n(gdb)\n38^error,msg=\"Variable object not found\"\n(gdb)\n39^done,stack-args=[frame={level=\"0\",args=[name=\"sig\"]}]\n(gdb)\n40-var-create - * sig\n40^done,name=\"var1\",numchild=\"0\",value=\"6\",type=\"int\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n41-stack-list-locals 0\n41^done,locals=[name=\"resultvar\",name=\"pid\",name=\"selftid\"]\n(gdb)\n42-var-create - * resultvar\n42^done,name=\"var2\",numchild=\"0\",value=\"0\",type=\"unsigned long\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n43-var-create - * pid\n43^done,name=\"var3\",numchild=\"0\",value=\"17904\",type=\"pid_t\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n44-var-create - * selftid\n44^done,name=\"var4\",numchild=\"0\",value=\"17904\",type=\"pid_t\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n45-stack-select-frame 8\n46-stack-info-frame\n45^done\n(gdb)\n46^done,frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"}\n(gdb)\n47-stack-list-frames\n47^done,stack=[frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},frame={level=\"1\",addr=\"0x00007ffff694002a\",func=\"__GI_abort\",file=\"abort.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/stdlib/abort.c\",line=\"89\"},frame={level=\"2\",addr=\"0x00007ffff728184d\",func=\"__gnu_cxx::__verbose_terminate_handler()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"3\",addr=\"0x00007ffff727f6b6\",func=\"??\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"4\",addr=\"0x00007ffff727f701\",func=\"std::terminate()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"5\",addr=\"0x00007ffff727f919\",func=\"__cxa_throw\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"6\",addr=\"0x00007ffff72a82cf\",func=\"std::__throw_out_of_range(char const*)\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"7\",addr=\"0x0000000000411384\",func=\"std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, Nodable::Node_Value, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, Nodable::Node_Value> > >::at\",file=\"/usr/include/c++/5/bits/stl_map.h\",fullname=\"/usr/include/c++/5/bits/stl_map.h\",line=\"532\"},frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"},frame={level=\"9\",addr=\"0x0000000000408d8d\",func=\"Nodable::Node_Lexer::tokenize\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"201\"},frame={level=\"10\",addr=\"0x00000000004081b6\",func=\"Nodable::Node_Lexer::evaluate\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"41\"},frame={level=\"11\",addr=\"0x00000000004068c2\",func=\"Nodable::Node::setMember<char const*>\",file=\"sources/Node.h\",fullname=\"/home/berdal84/Nodable/sources/Node.h\",line=\"64\"},frame={level=\"12\",addr=\"0x0000000000408062\",func=\"Nodable::Node_Lexer::Node_Lexer\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"19\"},frame={level=\"13\",addr=\"0x000000000040ba12\",func=\"Nodable::Node_Container::createNodeLexer\",file=\"sources/Node_Container.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Container.cpp\",line=\"268\"},frame={level=\"14\",addr=\"0x000000000040fc15\",func=\"Nodable::Node_Application::eval\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"71\"},frame={level=\"15\",addr=\"0x0000000000413af2\",func=\"Nodable::ApplicationView::draw\",file=\"sources/ApplicationView.cpp\",fullname=\"/home/berdal84/Nodable/sources/ApplicationView.cpp\",line=\"204\"},frame={level=\"16\",addr=\"0x000000000040faa7\",func=\"Nodable::Node_Application::draw\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"44\"},frame={level=\"17\",addr=\"0x0000000000414692\",func=\"main\",file=\"sources/main.cpp\",fullname=\"/home/berdal84/Nodable/sources/main.cpp\",line=\"15\"}]\n(gdb)\n48-stack-list-arguments 1\n48^done,stack-args=[frame={level=\"0\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}]},frame={level=\"1\",args=[]},frame={level=\"2\",args=[]},frame={level=\"3\",args=[]},frame={level=\"4\",args=[]},frame={level=\"5\",args=[]},frame={level=\"6\",args=[]},frame={level=\"7\",args=[{name=\"this\",value=\"0xa72c78\"},{name=\"__k\",value=\"\\\"letters\\\"\"}]},frame={level=\"8\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fac5 \\\"letters\\\"\"}]},frame={level=\"9\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"10\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"11\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fab1 \\\"numbers\\\"\"},{name=\"_value\",value=\"0x46fab9 \\\"0123456789.\\\"\"}]},frame={level=\"12\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"13\",args=[{name=\"this\",value=\"0x6f4f90\"},{name=\"_input\",value=\"0xa72ba0\"}]},frame={level=\"14\",args=[{name=\"this\",value=\"0x7fffffffe320\"},{name=\"_expression\",value=\"\\\"1\\\"\"}]},frame={level=\"15\",args=[{name=\"this\",value=\"0x6f4f40\"}]},frame={level=\"16\",args=[{name=\"this\",value=\"0x7fffffffe320\"}]},frame={level=\"17\",args=[]}]\n(gdb)\n49-thread-info\n49^done,threads=[{id=\"1\",target-id=\"Thread 0x7ffff7f2e8c0 (LWP 17904)\",name=\"nodable\",frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fac5 \\\"letters\\\"\"}],file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"},state=\"stopped\",core=\"1\"},{id=\"2\",target-id=\"Thread 0x7fffee0c3700 (LWP 17969)\",name=\"SDLTimer\",frame={level=\"0\",addr=\"0x00007ffff17ae827\",func=\"futex_abstimed_wait_cancelable\",args=[{name=\"private\",value=\"0\"},{name=\"abstime\",value=\"0x0\"},{name=\"expected\",value=\"0\"},{name=\"futex_word\",value=\"0x6f5430\"}],file=\"../sysdeps/unix/sysv/linux/futex-internal.h\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/nptl/../sysdeps/unix/sysv/linux/futex-internal.h\",line=\"205\"},state=\"stopped\",core=\"0\"}],current-thread-id=\"1\"\n(gdb)\n50-thread-list-ids\n50^done,thread-ids={thread-id=\"1\",thread-id=\"2\"},current-thread-id=\"1\",number-of-threads=\"2\"\n(gdb)\n51-var-delete var1\n52-var-delete var2\n51^done,ndeleted=\"1\"\n53-var-delete var3\n(gdb)\n54-var-delete var4\n52^done,ndeleted=\"1\"\n55-stack-list-arguments 0 8 8\n(gdb)\n53^done,ndeleted=\"1\"\n(gdb)\n54^done,ndeleted=\"1\"\n(gdb)\n55^done,stack-args=[frame={level=\"8\",args=[name=\"this\",name=\"_name\"]}]\n(gdb)\n56-var-create - * this\n56^done,name=\"var5\",numchild=\"1\",value=\"0xa72c70\",type=\"const Nodable::Node * const\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n57-var-create - * _name\n57^done,name=\"var6\",numchild=\"1\",value=\"0x46fac5 \\\"letters\\\"\",type=\"const char *\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n58-stack-list-locals 0\n58^done,locals=[]\n(gdb)\n59-var-list-children 1 \"var6\"\n59^done,numchild=\"1\",children=[child={name=\"var6.*_name\",exp=\"*_name\",numchild=\"0\",value=\"108 'l'\",type=\"const char\",thread-id=\"1\"}],has_more=\"0\"\n(gdb)\n60-stack-select-frame 8\n60^done\n(gdb)\n61-stack-info-frame\n61^done,frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"}\n(gdb)\n62-stack-list-frames\n62^done,stack=[frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},frame={level=\"1\",addr=\"0x00007ffff694002a\",func=\"__GI_abort\",file=\"abort.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/stdlib/abort.c\",line=\"89\"},frame={level=\"2\",addr=\"0x00007ffff728184d\",func=\"__gnu_cxx::__verbose_terminate_handler()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"3\",addr=\"0x00007ffff727f6b6\",func=\"??\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"4\",addr=\"0x00007ffff727f701\",func=\"std::terminate()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"5\",addr=\"0x00007ffff727f919\",func=\"__cxa_throw\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"6\",addr=\"0x00007ffff72a82cf\",func=\"std::__throw_out_of_range(char const*)\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"7\",addr=\"0x0000000000411384\",func=\"std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, Nodable::Node_Value, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, Nodable::Node_Value> > >::at\",file=\"/usr/include/c++/5/bits/stl_map.h\",fullname=\"/usr/include/c++/5/bits/stl_map.h\",line=\"532\"},frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"},frame={level=\"9\",addr=\"0x0000000000408d8d\",func=\"Nodable::Node_Lexer::tokenize\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"201\"},frame={level=\"10\",addr=\"0x00000000004081b6\",func=\"Nodable::Node_Lexer::evaluate\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"41\"},frame={level=\"11\",addr=\"0x00000000004068c2\",func=\"Nodable::Node::setMember<char const*>\",file=\"sources/Node.h\",fullname=\"/home/berdal84/Nodable/sources/Node.h\",line=\"64\"},frame={level=\"12\",addr=\"0x0000000000408062\",func=\"Nodable::Node_Lexer::Node_Lexer\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"19\"},frame={level=\"13\",addr=\"0x000000000040ba12\",func=\"Nodable::Node_Container::createNodeLexer\",file=\"sources/Node_Container.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Container.cpp\",line=\"268\"},frame={level=\"14\",addr=\"0x000000000040fc15\",func=\"Nodable::Node_Application::eval\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"71\"},frame={level=\"15\",addr=\"0x0000000000413af2\",func=\"Nodable::ApplicationView::draw\",file=\"sources/ApplicationView.cpp\",fullname=\"/home/berdal84/Nodable/sources/ApplicationView.cpp\",line=\"204\"},frame={level=\"16\",addr=\"0x000000000040faa7\",func=\"Nodable::Node_Application::draw\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"44\"},frame={level=\"17\",addr=\"0x0000000000414692\",func=\"main\",file=\"sources/main.cpp\",fullname=\"/home/berdal84/Nodable/sources/main.cpp\",line=\"15\"}]\n(gdb)\n63-stack-list-arguments 1\n63^done,stack-args=[frame={level=\"0\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}]},frame={level=\"1\",args=[]},frame={level=\"2\",args=[]},frame={level=\"3\",args=[]},frame={level=\"4\",args=[]},frame={level=\"5\",args=[]},frame={level=\"6\",args=[]},frame={level=\"7\",args=[{name=\"this\",value=\"0xa72c78\"},{name=\"__k\",value=\"\\\"letters\\\"\"}]},frame={level=\"8\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fac5 \\\"letters\\\"\"}]},frame={level=\"9\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"10\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"11\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fab1 \\\"numbers\\\"\"},{name=\"_value\",value=\"0x46fab9 \\\"0123456789.\\\"\"}]},frame={level=\"12\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"13\",args=[{name=\"this\",value=\"0x6f4f90\"},{name=\"_input\",value=\"0xa72ba0\"}]},frame={level=\"14\",args=[{name=\"this\",value=\"0x7fffffffe320\"},{name=\"_expression\",value=\"\\\"1\\\"\"}]},frame={level=\"15\",args=[{name=\"this\",value=\"0x6f4f40\"}]},frame={level=\"16\",args=[{name=\"this\",value=\"0x7fffffffe320\"}]},frame={level=\"17\",args=[]}]\n(gdb)\n64-thread-info\n64^done,threads=[{id=\"1\",target-id=\"Thread 0x7ffff7f2e8c0 (LWP 17904)\",name=\"nodable\",frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fac5 \\\"letters\\\"\"}],file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"},state=\"stopped\",core=\"1\"},{id=\"2\",target-id=\"Thread 0x7fffee0c3700 (LWP 17969)\",name=\"SDLTimer\",frame={level=\"0\",addr=\"0x00007ffff17ae827\",func=\"futex_abstimed_wait_cancelable\",args=[{name=\"private\",value=\"0\"},{name=\"abstime\",value=\"0x0\"},{name=\"expected\",value=\"0\"},{name=\"futex_word\",value=\"0x6f5430\"}],file=\"../sysdeps/unix/sysv/linux/futex-internal.h\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/nptl/../sysdeps/unix/sysv/linux/futex-internal.h\",line=\"205\"},state=\"stopped\",core=\"0\"}],current-thread-id=\"1\"\n(gdb)\n65-thread-list-ids\n65^done,thread-ids={thread-id=\"1\",thread-id=\"2\"},current-thread-id=\"1\",number-of-threads=\"2\"\n(gdb)\n66-var-update --all-values *\n66^done,changelist=[]\n(gdb)\n67-stack-list-locals 0\n67^done,locals=[]\n(gdb)\n68-stack-select-frame 9\n68^done\n(gdb)\n69-stack-info-frame\n69^done,frame={level=\"9\",addr=\"0x0000000000408d8d\",func=\"Nodable::Node_Lexer::tokenize\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"201\"}\n(gdb)\n70-stack-list-frames\n70^done,stack=[frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},frame={level=\"1\",addr=\"0x00007ffff694002a\",func=\"__GI_abort\",file=\"abort.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/stdlib/abort.c\",line=\"89\"},frame={level=\"2\",addr=\"0x00007ffff728184d\",func=\"__gnu_cxx::__verbose_terminate_handler()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"3\",addr=\"0x00007ffff727f6b6\",func=\"??\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"4\",addr=\"0x00007ffff727f701\",func=\"std::terminate()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"5\",addr=\"0x00007ffff727f919\",func=\"__cxa_throw\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"6\",addr=\"0x00007ffff72a82cf\",func=\"std::__throw_out_of_range(char const*)\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"7\",addr=\"0x0000000000411384\",func=\"std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, Nodable::Node_Value, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, Nodable::Node_Value> > >::at\",file=\"/usr/include/c++/5/bits/stl_map.h\",fullname=\"/usr/include/c++/5/bits/stl_map.h\",line=\"532\"},frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"},frame={level=\"9\",addr=\"0x0000000000408d8d\",func=\"Nodable::Node_Lexer::tokenize\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"201\"},frame={level=\"10\",addr=\"0x00000000004081b6\",func=\"Nodable::Node_Lexer::evaluate\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"41\"},frame={level=\"11\",addr=\"0x00000000004068c2\",func=\"Nodable::Node::setMember<char const*>\",file=\"sources/Node.h\",fullname=\"/home/berdal84/Nodable/sources/Node.h\",line=\"64\"},frame={level=\"12\",addr=\"0x0000000000408062\",func=\"Nodable::Node_Lexer::Node_Lexer\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"19\"},frame={level=\"13\",addr=\"0x000000000040ba12\",func=\"Nodable::Node_Container::createNodeLexer\",file=\"sources/Node_Container.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Container.cpp\",line=\"268\"},frame={level=\"14\",addr=\"0x000000000040fc15\",func=\"Nodable::Node_Application::eval\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"71\"},frame={level=\"15\",addr=\"0x0000000000413af2\",func=\"Nodable::ApplicationView::draw\",file=\"sources/ApplicationView.cpp\",fullname=\"/home/berdal84/Nodable/sources/ApplicationView.cpp\",line=\"204\"},frame={level=\"16\",addr=\"0x000000000040faa7\",func=\"Nodable::Node_Application::draw\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"44\"},frame={level=\"17\",addr=\"0x0000000000414692\",func=\"main\",file=\"sources/main.cpp\",fullname=\"/home/berdal84/Nodable/sources/main.cpp\",line=\"15\"}]\n(gdb)\n71-stack-list-arguments 1\n71^done,stack-args=[frame={level=\"0\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}]},frame={level=\"1\",args=[]},frame={level=\"2\",args=[]},frame={level=\"3\",args=[]},frame={level=\"4\",args=[]},frame={level=\"5\",args=[]},frame={level=\"6\",args=[]},frame={level=\"7\",args=[{name=\"this\",value=\"0xa72c78\"},{name=\"__k\",value=\"\\\"letters\\\"\"}]},frame={level=\"8\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fac5 \\\"letters\\\"\"}]},frame={level=\"9\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"10\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"11\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fab1 \\\"numbers\\\"\"},{name=\"_value\",value=\"0x46fab9 \\\"0123456789.\\\"\"}]},frame={level=\"12\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"13\",args=[{name=\"this\",value=\"0x6f4f90\"},{name=\"_input\",value=\"0xa72ba0\"}]},frame={level=\"14\",args=[{name=\"this\",value=\"0x7fffffffe320\"},{name=\"_expression\",value=\"\\\"1\\\"\"}]},frame={level=\"15\",args=[{name=\"this\",value=\"0x6f4f40\"}]},frame={level=\"16\",args=[{name=\"this\",value=\"0x7fffffffe320\"}]},frame={level=\"17\",args=[]}]\n(gdb)\n72-thread-info\n72^done,threads=[{id=\"1\",target-id=\"Thread 0x7ffff7f2e8c0 (LWP 17904)\",name=\"nodable\",frame={level=\"9\",addr=\"0x0000000000408d8d\",func=\"Nodable::Node_Lexer::tokenize\",args=[{name=\"this\",value=\"0xa72c70\"}],file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"201\"},state=\"stopped\",core=\"1\"},{id=\"2\",target-id=\"Thread 0x7fffee0c3700 (LWP 17969)\",name=\"SDLTimer\",frame={level=\"0\",addr=\"0x00007ffff17ae827\",func=\"futex_abstimed_wait_cancelable\",args=[{name=\"private\",value=\"0\"},{name=\"abstime\",value=\"0x0\"},{name=\"expected\",value=\"0\"},{name=\"futex_word\",value=\"0x6f5430\"}],file=\"../sysdeps/unix/sysv/linux/futex-internal.h\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/nptl/../sysdeps/unix/sysv/linux/futex-internal.h\",line=\"205\"},state=\"stopped\",core=\"0\"}],current-thread-id=\"1\"\n(gdb)\n73-thread-list-ids\n73^done,thread-ids={thread-id=\"1\",thread-id=\"2\"},current-thread-id=\"1\",number-of-threads=\"2\"\n(gdb)\n74-var-delete var5\n75-var-delete var6\n74^done,ndeleted=\"1\"\n76-stack-list-arguments 0 9 9\n(gdb)\n75^done,ndeleted=\"2\"\n(gdb)\n76^done,stack-args=[frame={level=\"9\",args=[name=\"this\"]}]\n(gdb)\n77-var-create - * this\n77^done,name=\"var7\",numchild=\"2\",value=\"0xa72c70\",type=\"Nodable::Node_Lexer * const\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n78-stack-list-locals 0\n78^done,locals=[name=\"chars\",name=\"numbers\",name=\"letters\",name=\"operators\"]\n(gdb)\n79-var-create - * chars\n79^done,name=\"var8\",numchild=\"0\",value=\"\\\"NULL\\\"\",type=\"std::__cxx11::string\",thread-id=\"1\",displayhint=\"string\",dynamic=\"1\",has_more=\"0\"\n(gdb)\n80-var-create - * numbers\n80^done,name=\"var9\",numchild=\"0\",value=\"\\\"0123456789.\\\"\",type=\"std::__cxx11::string\",thread-id=\"1\",displayhint=\"string\",dynamic=\"1\",has_more=\"0\"\n(gdb)\n81-var-create - * letters\n81^done,name=\"var10\",numchild=\"0\",value=\"\\\"\\\\000\\\\000\\\\000\\\\000\\\\377\\\\177\\\\000\\\\000\\\\020\\\\256\\\\236\\\", '\\\\000' <se r\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377p\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377te 21 fois>, \\\"\\\\320W\\\\247\\\\000\\\\000\\\\000\\\\000\\\\000\\\\a\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000numbers\\\\000on\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\360W\\\\247\\\\000\\\\000\\\\000\\\\000\\\\000\\\\v\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\060\\\\061\\\\062\\\\063\\\\064\\\\065\\\\066\\\\067\\\\070\\\\071.\\\", '\\\\000' <se r\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377p\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377te 13 fois>, \\\"\\\\002\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\001\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\241\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\001\\\", '\\\\000' <se r\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377p\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377\\\\377te 15 fois>, \\\"\\\\330jV\\\\367\\\\377\\\\177\\\\000\\\\000@K)\\\\367\\\\377\\\\177\\\\000\\\\000\\\\360\\\\366'\\\\367\\\\377\\\\177\\\\000\\\\000\\\\340\\\\026(\\\\367\\\\377\\\\177\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\001\\\\000\\\\000\\\\000\\\\001\\\\000\\\\000\\\\000\\\\031\\\\333\\\\065\\\\367\\\\377\\\\177\\\\000\\\\000\\\"...\",type=\"std::__cxx11::string\",thread-id=\"1\",displayhint=\"string\",dynamic=\"1\",has_more=\"0\"\n(gdb)\n82-var-create - * operators\n82^done,name=\"var11\",numchild=\"0\",value=\"\\\"\\\\020\\\\341\\\\377\\\\377\\\\377\\\\177\\\\000\\\\000\\\\a\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000numbers\\\\000on\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000@\\\\341\\\\377\\\\377\\\\377\\\\177\\\\000\\\\000\\\\000\\\\274\\\\267\\\\203Np\\\\224mp,\\\\247\\\\000\\\\000\\\\000\\\\000\\\\000p,\\\\247\\\\000\\\\000\\\\000\\\\000\\\\000p\\\\341\\\\377\\\\377\\\\377\\\\177\\\\000\\\\000b\\\\200@\\\\000\\\\000\\\\000\\\\000\\\\000value\\\\000\\\\000\\\\000p,\\\\247\\\\000\\\\000\\\\000\\\\000\\\\000\\\\260\\\\341\\\\377\\\\377\\\\377\\\\177\\\\000\\\\000p,\\\\247\\\\000\\\\000\\\\000\\\\000\\\\000\\\\260\\\\341\\\\377\\\\377\\\\377\\\\177\\\\000\\\\000\\\\022\\\\272@\\\\000\\\\000\\\\000\\\\000\\\\000\\\\240+\\\\247\\\\000\\\\000\\\\000\\\\000\\\\000\\\\220Oo\\\\000\\\\000\\\\000\\\\000\\\\000\\\\260\\\\341\\\\377\\\\377\\\\377\\\\177\\\\000\\\\000\\\\024P@\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377\\\\377\\\\377\\\\000\\\\000\\\\000\\\\000p8@\\\\000\\\\000\\\\000\\\\000\\\\000 \\\\342\\\\377\\\\377\\\\377\\\\177\\\\000\\\\000\\\\025\\\\374@\\\\000\\\\000\\\\000\\\\000\\\\000p\\\\342\\\\377\\\\377\\\\377\\\\177\\\\000\\\\000\\\"...\",type=\"std::__cxx11::string\",thread-id=\"1\",displayhint=\"string\",dynamic=\"1\",has_more=\"0\"\n(gdb)\n83-stack-select-frame 14\n84-stack-info-frame\n83^done\n(gdb)\n84^done,frame={level=\"14\",addr=\"0x000000000040fc15\",func=\"Nodable::Node_Application::eval\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"71\"}\n(gdb)\n85-stack-list-frames\n85^done,stack=[frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},frame={level=\"1\",addr=\"0x00007ffff694002a\",func=\"__GI_abort\",file=\"abort.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/stdlib/abort.c\",line=\"89\"},frame={level=\"2\",addr=\"0x00007ffff728184d\",func=\"__gnu_cxx::__verbose_terminate_handler()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"3\",addr=\"0x00007ffff727f6b6\",func=\"??\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"4\",addr=\"0x00007ffff727f701\",func=\"std::terminate()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"5\",addr=\"0x00007ffff727f919\",func=\"__cxa_throw\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"6\",addr=\"0x00007ffff72a82cf\",func=\"std::__throw_out_of_range(char const*)\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"7\",addr=\"0x0000000000411384\",func=\"std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, Nodable::Node_Value, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, Nodable::Node_Value> > >::at\",file=\"/usr/include/c++/5/bits/stl_map.h\",fullname=\"/usr/include/c++/5/bits/stl_map.h\",line=\"532\"},frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"},frame={level=\"9\",addr=\"0x0000000000408d8d\",func=\"Nodable::Node_Lexer::tokenize\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"201\"},frame={level=\"10\",addr=\"0x00000000004081b6\",func=\"Nodable::Node_Lexer::evaluate\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"41\"},frame={level=\"11\",addr=\"0x00000000004068c2\",func=\"Nodable::Node::setMember<char const*>\",file=\"sources/Node.h\",fullname=\"/home/berdal84/Nodable/sources/Node.h\",line=\"64\"},frame={level=\"12\",addr=\"0x0000000000408062\",func=\"Nodable::Node_Lexer::Node_Lexer\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"19\"},frame={level=\"13\",addr=\"0x000000000040ba12\",func=\"Nodable::Node_Container::createNodeLexer\",file=\"sources/Node_Container.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Container.cpp\",line=\"268\"},frame={level=\"14\",addr=\"0x000000000040fc15\",func=\"Nodable::Node_Application::eval\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"71\"},frame={level=\"15\",addr=\"0x0000000000413af2\",func=\"Nodable::ApplicationView::draw\",file=\"sources/ApplicationView.cpp\",fullname=\"/home/berdal84/Nodable/sources/ApplicationView.cpp\",line=\"204\"},frame={level=\"16\",addr=\"0x000000000040faa7\",func=\"Nodable::Node_Application::draw\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"44\"},frame={level=\"17\",addr=\"0x0000000000414692\",func=\"main\",file=\"sources/main.cpp\",fullname=\"/home/berdal84/Nodable/sources/main.cpp\",line=\"15\"}]\n(gdb)\n86-stack-list-arguments 1\n86^done,stack-args=[frame={level=\"0\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}]},frame={level=\"1\",args=[]},frame={level=\"2\",args=[]},frame={level=\"3\",args=[]},frame={level=\"4\",args=[]},frame={level=\"5\",args=[]},frame={level=\"6\",args=[]},frame={level=\"7\",args=[{name=\"this\",value=\"0xa72c78\"},{name=\"__k\",value=\"\\\"letters\\\"\"}]},frame={level=\"8\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fac5 \\\"letters\\\"\"}]},frame={level=\"9\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"10\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"11\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fab1 \\\"numbers\\\"\"},{name=\"_value\",value=\"0x46fab9 \\\"0123456789.\\\"\"}]},frame={level=\"12\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"13\",args=[{name=\"this\",value=\"0x6f4f90\"},{name=\"_input\",value=\"0xa72ba0\"}]},frame={level=\"14\",args=[{name=\"this\",value=\"0x7fffffffe320\"},{name=\"_expression\",value=\"\\\"1\\\"\"}]},frame={level=\"15\",args=[{name=\"this\",value=\"0x6f4f40\"}]},frame={level=\"16\",args=[{name=\"this\",value=\"0x7fffffffe320\"}]},frame={level=\"17\",args=[]}]\n(gdb)\n87-thread-info\n87^done,threads=[{id=\"1\",target-id=\"Thread 0x7ffff7f2e8c0 (LWP 17904)\",name=\"nodable\",frame={level=\"14\",addr=\"0x000000000040fc15\",func=\"Nodable::Node_Application::eval\",args=[{name=\"this\",value=\"0x7fffffffe320\"},{name=\"_expression\",value=\"\\\"1\\\"\"}],file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"71\"},state=\"stopped\",core=\"1\"},{id=\"2\",target-id=\"Thread 0x7fffee0c3700 (LWP 17969)\",name=\"SDLTimer\",frame={level=\"0\",addr=\"0x00007ffff17ae827\",func=\"futex_abstimed_wait_cancelable\",args=[{name=\"private\",value=\"0\"},{name=\"abstime\",value=\"0x0\"},{name=\"expected\",value=\"0\"},{name=\"futex_word\",value=\"0x6f5430\"}],file=\"../sysdeps/unix/sysv/linux/futex-internal.h\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/nptl/../sysdeps/unix/sysv/linux/futex-internal.h\",line=\"205\"},state=\"stopped\",core=\"0\"}],current-thread-id=\"1\"\n(gdb)\n88-thread-list-ids\n88^done,thread-ids={thread-id=\"1\",thread-id=\"2\"},current-thread-id=\"1\",number-of-threads=\"2\"\n(gdb)\n89-var-delete var7\n90-var-delete var8\n89^done,ndeleted=\"1\"\n91-var-delete var9\n(gdb)\n92-var-delete var10\n90^done,ndeleted=\"1\"\n(gdb)\n93-var-delete var11\n91^done,ndeleted=\"1\"\n94-stack-list-arguments 0 14 14\n(gdb)\n92^done,ndeleted=\"1\"\n(gdb)\n93^done,ndeleted=\"1\"\n(gdb)\n94^done,stack-args=[frame={level=\"14\",args=[name=\"this\",name=\"_expression\"]}]\n(gdb)\n95-var-create - * this\n95^done,name=\"var12\",numchild=\"2\",value=\"0x7fffffffe320\",type=\"Nodable::Node_Application * const\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n96-var-create - * _expression\n96^done,name=\"var13\",numchild=\"0\",value=\"\\\"1\\\"\",type=\"std::__cxx11::string\",thread-id=\"1\",displayhint=\"string\",dynamic=\"1\",has_more=\"0\"\n(gdb)\n97-stack-list-locals 0\n97^done,locals=[name=\"lexer\"]\n(gdb)\n98-var-create - * lexer\n98^done,name=\"var14\",numchild=\"2\",value=\"0x6d94704e83b7bc00\",type=\"Nodable::Node_Lexer *\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n99-stack-select-frame 13\n99^done\n(gdb)\n100-stack-info-frame\n100^done,frame={level=\"13\",addr=\"0x000000000040ba12\",func=\"Nodable::Node_Container::createNodeLexer\",file=\"sources/Node_Container.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Container.cpp\",line=\"268\"}\n(gdb)\n101-stack-list-frames\n101^done,stack=[frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},frame={level=\"1\",addr=\"0x00007ffff694002a\",func=\"__GI_abort\",file=\"abort.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/stdlib/abort.c\",line=\"89\"},frame={level=\"2\",addr=\"0x00007ffff728184d\",func=\"__gnu_cxx::__verbose_terminate_handler()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"3\",addr=\"0x00007ffff727f6b6\",func=\"??\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"4\",addr=\"0x00007ffff727f701\",func=\"std::terminate()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"5\",addr=\"0x00007ffff727f919\",func=\"__cxa_throw\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"6\",addr=\"0x00007ffff72a82cf\",func=\"std::__throw_out_of_range(char const*)\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"7\",addr=\"0x0000000000411384\",func=\"std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, Nodable::Node_Value, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, Nodable::Node_Value> > >::at\",file=\"/usr/include/c++/5/bits/stl_map.h\",fullname=\"/usr/include/c++/5/bits/stl_map.h\",line=\"532\"},frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"},frame={level=\"9\",addr=\"0x0000000000408d8d\",func=\"Nodable::Node_Lexer::tokenize\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"201\"},frame={level=\"10\",addr=\"0x00000000004081b6\",func=\"Nodable::Node_Lexer::evaluate\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"41\"},frame={level=\"11\",addr=\"0x00000000004068c2\",func=\"Nodable::Node::setMember<char const*>\",file=\"sources/Node.h\",fullname=\"/home/berdal84/Nodable/sources/Node.h\",line=\"64\"},frame={level=\"12\",addr=\"0x0000000000408062\",func=\"Nodable::Node_Lexer::Node_Lexer\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"19\"},frame={level=\"13\",addr=\"0x000000000040ba12\",func=\"Nodable::Node_Container::createNodeLexer\",file=\"sources/Node_Container.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Container.cpp\",line=\"268\"},frame={level=\"14\",addr=\"0x000000000040fc15\",func=\"Nodable::Node_Application::eval\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"71\"},frame={level=\"15\",addr=\"0x0000000000413af2\",func=\"Nodable::ApplicationView::draw\",file=\"sources/ApplicationView.cpp\",fullname=\"/home/berdal84/Nodable/sources/ApplicationView.cpp\",line=\"204\"},frame={level=\"16\",addr=\"0x000000000040faa7\",func=\"Nodable::Node_Application::draw\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"44\"},frame={level=\"17\",addr=\"0x0000000000414692\",func=\"main\",file=\"sources/main.cpp\",fullname=\"/home/berdal84/Nodable/sources/main.cpp\",line=\"15\"}]\n(gdb)\n102-stack-list-arguments 1\n102^done,stack-args=[frame={level=\"0\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}]},frame={level=\"1\",args=[]},frame={level=\"2\",args=[]},frame={level=\"3\",args=[]},frame={level=\"4\",args=[]},frame={level=\"5\",args=[]},frame={level=\"6\",args=[]},frame={level=\"7\",args=[{name=\"this\",value=\"0xa72c78\"},{name=\"__k\",value=\"\\\"letters\\\"\"}]},frame={level=\"8\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fac5 \\\"letters\\\"\"}]},frame={level=\"9\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"10\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"11\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fab1 \\\"numbers\\\"\"},{name=\"_value\",value=\"0x46fab9 \\\"0123456789.\\\"\"}]},frame={level=\"12\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"13\",args=[{name=\"this\",value=\"0x6f4f90\"},{name=\"_input\",value=\"0xa72ba0\"}]},frame={level=\"14\",args=[{name=\"this\",value=\"0x7fffffffe320\"},{name=\"_expression\",value=\"\\\"1\\\"\"}]},frame={level=\"15\",args=[{name=\"this\",value=\"0x6f4f40\"}]},frame={level=\"16\",args=[{name=\"this\",value=\"0x7fffffffe320\"}]},frame={level=\"17\",args=[]}]\n(gdb)\n103-thread-info\n103^done,threads=[{id=\"1\",target-id=\"Thread 0x7ffff7f2e8c0 (LWP 17904)\",name=\"nodable\",frame={level=\"13\",addr=\"0x000000000040ba12\",func=\"Nodable::Node_Container::createNodeLexer\",args=[{name=\"this\",value=\"0x6f4f90\"},{name=\"_input\",value=\"0xa72ba0\"}],file=\"sources/Node_Container.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Container.cpp\",line=\"268\"},state=\"stopped\",core=\"1\"},{id=\"2\",target-id=\"Thread 0x7fffee0c3700 (LWP 17969)\",name=\"SDLTimer\",frame={level=\"0\",addr=\"0x00007ffff17ae827\",func=\"futex_abstimed_wait_cancelable\",args=[{name=\"private\",value=\"0\"},{name=\"abstime\",value=\"0x0\"},{name=\"expected\",value=\"0\"},{name=\"futex_word\",value=\"0x6f5430\"}],file=\"../sysdeps/unix/sysv/linux/futex-internal.h\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/nptl/../sysdeps/unix/sysv/linux/futex-internal.h\",line=\"205\"},state=\"stopped\",core=\"0\"}],current-thread-id=\"1\"\n(gdb)\n104-thread-list-ids\n104^done,thread-ids={thread-id=\"1\",thread-id=\"2\"},current-thread-id=\"1\",number-of-threads=\"2\"\n(gdb)\n105-var-delete var12\n106-var-delete var13\n105^done,ndeleted=\"1\"\n107-var-delete var14\n(gdb)\n108-stack-list-arguments 0 13 13\n106^done,ndeleted=\"1\"\n(gdb)\n107^done,ndeleted=\"1\"\n(gdb)\n108^done,stack-args=[frame={level=\"13\",args=[name=\"this\",name=\"_input\"]}]\n(gdb)\n109-var-create - * this\n109^done,name=\"var15\",numchild=\"1\",value=\"0x6f4f90\",type=\"Nodable::Node_Container * const\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n110-var-create - * _input\n110^done,name=\"var16\",numchild=\"2\",value=\"0xa72ba0\",type=\"Nodable::Node_Variable *\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n111-stack-list-locals 0\n111^done,locals=[name=\"lexer\"]\n(gdb)\n112-var-create - * lexer\n112^done,name=\"var17\",numchild=\"2\",value=\"0x405014 <Nodable::Node_Variable::isSet() const+32>\",type=\"Nodable::Node_Lexer *\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n113-stack-select-frame 12\n113^done\n(gdb)\n114-stack-info-frame\n114^done,frame={level=\"12\",addr=\"0x0000000000408062\",func=\"Nodable::Node_Lexer::Node_Lexer\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"19\"}\n(gdb)\n115-stack-list-frames\n115^done,stack=[frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},frame={level=\"1\",addr=\"0x00007ffff694002a\",func=\"__GI_abort\",file=\"abort.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/stdlib/abort.c\",line=\"89\"},frame={level=\"2\",addr=\"0x00007ffff728184d\",func=\"__gnu_cxx::__verbose_terminate_handler()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"3\",addr=\"0x00007ffff727f6b6\",func=\"??\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"4\",addr=\"0x00007ffff727f701\",func=\"std::terminate()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"5\",addr=\"0x00007ffff727f919\",func=\"__cxa_throw\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"6\",addr=\"0x00007ffff72a82cf\",func=\"std::__throw_out_of_range(char const*)\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"7\",addr=\"0x0000000000411384\",func=\"std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, Nodable::Node_Value, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, Nodable::Node_Value> > >::at\",file=\"/usr/include/c++/5/bits/stl_map.h\",fullname=\"/usr/include/c++/5/bits/stl_map.h\",line=\"532\"},frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"},frame={level=\"9\",addr=\"0x0000000000408d8d\",func=\"Nodable::Node_Lexer::tokenize\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"201\"},frame={level=\"10\",addr=\"0x00000000004081b6\",func=\"Nodable::Node_Lexer::evaluate\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"41\"},frame={level=\"11\",addr=\"0x00000000004068c2\",func=\"Nodable::Node::setMember<char const*>\",file=\"sources/Node.h\",fullname=\"/home/berdal84/Nodable/sources/Node.h\",line=\"64\"},frame={level=\"12\",addr=\"0x0000000000408062\",func=\"Nodable::Node_Lexer::Node_Lexer\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"19\"},frame={level=\"13\",addr=\"0x000000000040ba12\",func=\"Nodable::Node_Container::createNodeLexer\",file=\"sources/Node_Container.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Container.cpp\",line=\"268\"},frame={level=\"14\",addr=\"0x000000000040fc15\",func=\"Nodable::Node_Application::eval\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"71\"},frame={level=\"15\",addr=\"0x0000000000413af2\",func=\"Nodable::ApplicationView::draw\",file=\"sources/ApplicationView.cpp\",fullname=\"/home/berdal84/Nodable/sources/ApplicationView.cpp\",line=\"204\"},frame={level=\"16\",addr=\"0x000000000040faa7\",func=\"Nodable::Node_Application::draw\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"44\"},frame={level=\"17\",addr=\"0x0000000000414692\",func=\"main\",file=\"sources/main.cpp\",fullname=\"/home/berdal84/Nodable/sources/main.cpp\",line=\"15\"}]\n(gdb)\n116-stack-list-arguments 1\n116^done,stack-args=[frame={level=\"0\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}]},frame={level=\"1\",args=[]},frame={level=\"2\",args=[]},frame={level=\"3\",args=[]},frame={level=\"4\",args=[]},frame={level=\"5\",args=[]},frame={level=\"6\",args=[]},frame={level=\"7\",args=[{name=\"this\",value=\"0xa72c78\"},{name=\"__k\",value=\"\\\"letters\\\"\"}]},frame={level=\"8\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fac5 \\\"letters\\\"\"}]},frame={level=\"9\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"10\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"11\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fab1 \\\"numbers\\\"\"},{name=\"_value\",value=\"0x46fab9 \\\"0123456789.\\\"\"}]},frame={level=\"12\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"13\",args=[{name=\"this\",value=\"0x6f4f90\"},{name=\"_input\",value=\"0xa72ba0\"}]},frame={level=\"14\",args=[{name=\"this\",value=\"0x7fffffffe320\"},{name=\"_expression\",value=\"\\\"1\\\"\"}]},frame={level=\"15\",args=[{name=\"this\",value=\"0x6f4f40\"}]},frame={level=\"16\",args=[{name=\"this\",value=\"0x7fffffffe320\"}]},frame={level=\"17\",args=[]}]\n(gdb)\n117-thread-info\n117^done,threads=[{id=\"1\",target-id=\"Thread 0x7ffff7f2e8c0 (LWP 17904)\",name=\"nodable\",frame={level=\"12\",addr=\"0x0000000000408062\",func=\"Nodable::Node_Lexer::Node_Lexer\",args=[{name=\"this\",value=\"0xa72c70\"}],file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"19\"},state=\"stopped\",core=\"1\"},{id=\"2\",target-id=\"Thread 0x7fffee0c3700 (LWP 17969)\",name=\"SDLTimer\",frame={level=\"0\",addr=\"0x00007ffff17ae827\",func=\"futex_abstimed_wait_cancelable\",args=[{name=\"private\",value=\"0\"},{name=\"abstime\",value=\"0x0\"},{name=\"expected\",value=\"0\"},{name=\"futex_word\",value=\"0x6f5430\"}],file=\"../sysdeps/unix/sysv/linux/futex-internal.h\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/nptl/../sysdeps/unix/sysv/linux/futex-internal.h\",line=\"205\"},state=\"stopped\",core=\"0\"}],current-thread-id=\"1\"\n(gdb)\n118-thread-list-ids\n118^done,thread-ids={thread-id=\"1\",thread-id=\"2\"},current-thread-id=\"1\",number-of-threads=\"2\"\n(gdb)\n119-var-delete var15\n120-var-delete var16\n119^done,ndeleted=\"1\"\n121-var-delete var17\n(gdb)\n122-stack-list-arguments 0 12 12\n120^done,ndeleted=\"1\"\n(gdb)\n121^done,ndeleted=\"1\"\n(gdb)\n122^done,stack-args=[frame={level=\"12\",args=[name=\"this\"]}]\n(gdb)\n123-var-create - * this\n123^done,name=\"var18\",numchild=\"2\",value=\"0xa72c70\",type=\"Nodable::Node_Lexer * const\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n124-stack-list-locals 0\n124^done,locals=[]\n(gdb)\n125-stack-select-frame 11\n125^done\n126-stack-info-frame\n(gdb)\n126^done,frame={level=\"11\",addr=\"0x00000000004068c2\",func=\"Nodable::Node::setMember<char const*>\",file=\"sources/Node.h\",fullname=\"/home/berdal84/Nodable/sources/Node.h\",line=\"64\"}\n(gdb)\n127-stack-list-frames\n127^done,stack=[frame={level=\"0\",addr=\"0x00007ffff693e428\",func=\"__GI_raise\",file=\"../sysdeps/unix/sysv/linux/raise.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c\",line=\"54\"},frame={level=\"1\",addr=\"0x00007ffff694002a\",func=\"__GI_abort\",file=\"abort.c\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/stdlib/abort.c\",line=\"89\"},frame={level=\"2\",addr=\"0x00007ffff728184d\",func=\"__gnu_cxx::__verbose_terminate_handler()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"3\",addr=\"0x00007ffff727f6b6\",func=\"??\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"4\",addr=\"0x00007ffff727f701\",func=\"std::terminate()\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"5\",addr=\"0x00007ffff727f919\",func=\"__cxa_throw\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"6\",addr=\"0x00007ffff72a82cf\",func=\"std::__throw_out_of_range(char const*)\",from=\"/usr/lib/x86_64-linux-gnu/libstdc++.so.6\"},frame={level=\"7\",addr=\"0x0000000000411384\",func=\"std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, Nodable::Node_Value, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, Nodable::Node_Value> > >::at\",file=\"/usr/include/c++/5/bits/stl_map.h\",fullname=\"/usr/include/c++/5/bits/stl_map.h\",line=\"532\"},frame={level=\"8\",addr=\"0x0000000000410c3a\",func=\"Nodable::Node::getMember\",file=\"sources/Node.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node.cpp\",line=\"60\"},frame={level=\"9\",addr=\"0x0000000000408d8d\",func=\"Nodable::Node_Lexer::tokenize\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"201\"},frame={level=\"10\",addr=\"0x00000000004081b6\",func=\"Nodable::Node_Lexer::evaluate\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"41\"},frame={level=\"11\",addr=\"0x00000000004068c2\",func=\"Nodable::Node::setMember<char const*>\",file=\"sources/Node.h\",fullname=\"/home/berdal84/Nodable/sources/Node.h\",line=\"64\"},frame={level=\"12\",addr=\"0x0000000000408062\",func=\"Nodable::Node_Lexer::Node_Lexer\",file=\"sources/Node_Lexer.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Lexer.cpp\",line=\"19\"},frame={level=\"13\",addr=\"0x000000000040ba12\",func=\"Nodable::Node_Container::createNodeLexer\",file=\"sources/Node_Container.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Container.cpp\",line=\"268\"},frame={level=\"14\",addr=\"0x000000000040fc15\",func=\"Nodable::Node_Application::eval\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"71\"},frame={level=\"15\",addr=\"0x0000000000413af2\",func=\"Nodable::ApplicationView::draw\",file=\"sources/ApplicationView.cpp\",fullname=\"/home/berdal84/Nodable/sources/ApplicationView.cpp\",line=\"204\"},frame={level=\"16\",addr=\"0x000000000040faa7\",func=\"Nodable::Node_Application::draw\",file=\"sources/Node_Application.cpp\",fullname=\"/home/berdal84/Nodable/sources/Node_Application.cpp\",line=\"44\"},frame={level=\"17\",addr=\"0x0000000000414692\",func=\"main\",file=\"sources/main.cpp\",fullname=\"/home/berdal84/Nodable/sources/main.cpp\",line=\"15\"}]\n(gdb)\n128-stack-list-arguments 1\n128^done,stack-args=[frame={level=\"0\",args=[{name=\"sig\",value=\"6\"},{name=\"sig@entry\",value=\"6\"}]},frame={level=\"1\",args=[]},frame={level=\"2\",args=[]},frame={level=\"3\",args=[]},frame={level=\"4\",args=[]},frame={level=\"5\",args=[]},frame={level=\"6\",args=[]},frame={level=\"7\",args=[{name=\"this\",value=\"0xa72c78\"},{name=\"__k\",value=\"\\\"letters\\\"\"}]},frame={level=\"8\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fac5 \\\"letters\\\"\"}]},frame={level=\"9\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"10\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"11\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fab1 \\\"numbers\\\"\"},{name=\"_value\",value=\"0x46fab9 \\\"0123456789.\\\"\"}]},frame={level=\"12\",args=[{name=\"this\",value=\"0xa72c70\"}]},frame={level=\"13\",args=[{name=\"this\",value=\"0x6f4f90\"},{name=\"_input\",value=\"0xa72ba0\"}]},frame={level=\"14\",args=[{name=\"this\",value=\"0x7fffffffe320\"},{name=\"_expression\",value=\"\\\"1\\\"\"}]},frame={level=\"15\",args=[{name=\"this\",value=\"0x6f4f40\"}]},frame={level=\"16\",args=[{name=\"this\",value=\"0x7fffffffe320\"}]},frame={level=\"17\",args=[]}]\n(gdb)\n129-thread-info\n129^done,threads=[{id=\"1\",target-id=\"Thread 0x7ffff7f2e8c0 (LWP 17904)\",name=\"nodable\",frame={level=\"11\",addr=\"0x00000000004068c2\",func=\"Nodable::Node::setMember<char const*>\",args=[{name=\"this\",value=\"0xa72c70\"},{name=\"_name\",value=\"0x46fab1 \\\"numbers\\\"\"},{name=\"_value\",value=\"0x46fab9 \\\"0123456789.\\\"\"}],file=\"sources/Node.h\",fullname=\"/home/berdal84/Nodable/sources/Node.h\",line=\"64\"},state=\"stopped\",core=\"1\"},{id=\"2\",target-id=\"Thread 0x7fffee0c3700 (LWP 17969)\",name=\"SDLTimer\",frame={level=\"0\",addr=\"0x00007ffff17ae827\",func=\"futex_abstimed_wait_cancelable\",args=[{name=\"private\",value=\"0\"},{name=\"abstime\",value=\"0x0\"},{name=\"expected\",value=\"0\"},{name=\"futex_word\",value=\"0x6f5430\"}],file=\"../sysdeps/unix/sysv/linux/futex-internal.h\",fullname=\"/build/glibc-Cl5G7W/glibc-2.23/nptl/../sysdeps/unix/sysv/linux/futex-internal.h\",line=\"205\"},state=\"stopped\",core=\"0\"}],current-thread-id=\"1\"\n(gdb)\n130-thread-list-ids\n130^done,thread-ids={thread-id=\"1\",thread-id=\"2\"},current-thread-id=\"1\",number-of-threads=\"2\"\n(gdb)\n131-var-delete var18\n132-stack-list-arguments 0 11 11\n131^done,ndeleted=\"1\"\n(gdb)\n132^done,stack-args=[frame={level=\"11\",args=[name=\"this\",name=\"_name\",name=\"_value\"]}]\n(gdb)\n133-var-create - * this\n133^done,name=\"var19\",numchild=\"1\",value=\"0xa72c70\",type=\"Nodable::Node * const\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n134-var-create - * _name\n134^done,name=\"var20\",numchild=\"1\",value=\"0x46fab1 \\\"numbers\\\"\",type=\"const char *\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n135-var-create - * _value\n135^done,name=\"var21\",numchild=\"1\",value=\"0x46fab9 \\\"0123456789.\\\"\",type=\"const char *\",thread-id=\"1\",has_more=\"0\"\n(gdb)\n136-stack-list-locals 0\n136^done,locals=[]\n(gdb)\n",
+			"settings":
+			{
+				"buffer_size": 65724,
+				"line_ending": "Unix",
+				"name": "GDB Session",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "GNU gdb (Ubuntu 7.11.1-0ubuntu1~16.5) 7.11.1\nCopyright (C) 2016 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.  Type \"show copying\"\nand \"show warranty\" for details.\nThis GDB was configured as \"x86_64-linux-gnu\".\nType \"show configuration\" for configuration details.\nFor bug reporting instructions, please see:\n<http://www.gnu.org/software/gdb/bugs/>.\nFind the GDB manual and other documentation resources online at:\n<http://www.gnu.org/software/gdb/documentation/>.\nFor help, type \"help\".\nType \"apropos word\" to search for commands related to \"word\"...\nReading symbols from ./nodable...done.\n&\"warning: GDB: Failed to set controlling terminal: Ioctl() inappropri\\303\\251 pour un p\\303\\251riph\\303\\251rique\\n\"\n[Thread debugging using libthread_db enabled]\nUsing host libthread_db library \"/lib/x86_64-linux-gnu/libthread_db.so.1\".\n[New Thread 0x7fffee0c3700 (LWP 17969)]\n\nThread 1 \"nodable\" received signal SIGABRT, Aborted.\n0x00007ffff693e428 in __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:54\nterminate called after throwing an instance of 'std::out_of_range'\n  what():  map::at\nNode::Node()\nNode::Node()\nA new container named Global' has been created.\nNode_Application::eval() - create a variable.\nNode::Node()\nNode::Node()\nNew Node_Variable\nNew Node_Value\nA node has been added to the container 'Global'\nNode_Lexer::evaluate() - assign the expression string to that variable\nNode_Lexer::evaluate() - check if users type the exit keyword.\nNode_Lexer::evaluate() - check if expression is not empty\nNode_Lexer::evaluate() - create a lexer with the expression string\nNode::Node()\nNode::Node()\nnew Node_Lexer\nNew Node_Value\nNew Node_Value\nNode_Lexer::evaluate() - updateWires\nNode_Lexer::evaluate() - tokenize\nNode_Lexer::tokenize() - START\n",
+			"settings":
+			{
+				"buffer_size": 1943,
+				"line_ending": "Unix",
+				"name": "GDB Console",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "+Nodable::Node * const this = 0xa72c70\n+const char * _name = 0x46fab1 \"numbers\"\n+const char * _value = 0x46fab9 \"0123456789.\"\n",
+			"settings":
+			{
+				"buffer_size": 126,
+				"line_ending": "Unix",
+				"name": "GDB Variables",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "__GI_raise(sig = 6,sig@entry = 6,);\n__GI_abort();\n__gnu_cxx::__verbose_terminate_handler()();\n??();\nstd::terminate()();\n__cxa_throw();\nstd::__throw_out_of_range(char const*)();\nstd::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, Nodable::Node_Value, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, Nodable::Node_Value> > >::at(this = 0x97e308,__k = \"letters\",);\nNodable::Node::getMember(this = 0x97e300,_name = 0x46fb25 \"letters\",);\nNodable::Node_Lexer::tokenize(this = 0x97e300,);\nNodable::Node_Lexer::evaluate(this = 0x97e300,);\nNodable::Node::setMember<char const*>(this = 0x97e300,_name = 0x46fb11 \"numbers\",_value = 0x46fb19 \"0123456789.\",);\nNodable::Node_Lexer::Node_Lexer(this = 0x97e300,);\nNodable::Node_Container::createNodeLexer(this = 0x6f5f90,_input = 0xa84c30,);\nNodable::Node_Application::eval(this = 0x7fffffffe320,_expression = \"1\",);\nNodable::ApplicationView::draw(this = 0x6f5f40,);\nNodable::Node_Application::draw(this = 0x7fffffffe320,);\nmain();\n",
+			"settings":
+			{
+				"buffer_size": 1161,
+				"line_ending": "Unix",
+				"name": "GDB Callstack",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "__GI_raise(sig = 6,sig@entry = 6,);\n__GI_abort();\n__gnu_cxx::__verbose_terminate_handler()();\n??();\nstd::terminate()();\n__cxa_throw();\nstd::__throw_out_of_range(char const*)();\nstd::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, Nodable::Node_Value, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, Nodable::Node_Value> > >::at(this = 0xa72c78,__k = \"letters\",);\nNodable::Node::getMember(this = 0xa72c70,_name = 0x46fac5 \"letters\",);\nNodable::Node_Lexer::tokenize(this = 0xa72c70,);\nNodable::Node_Lexer::evaluate(this = 0xa72c70,);\nNodable::Node::setMember<char const*>(this = 0xa72c70,_name = 0x46fab1 \"numbers\",_value = 0x46fab9 \"0123456789.\",);\nNodable::Node_Lexer::Node_Lexer(this = 0xa72c70,);\nNodable::Node_Container::createNodeLexer(this = 0x6f4f90,_input = 0xa72ba0,);\nNodable::Node_Application::eval(this = 0x7fffffffe320,_expression = \"1\",);\nNodable::ApplicationView::draw(this = 0x6f4f40,);\nNodable::Node_Application::draw(this = 0x7fffffffe320,);\nmain();\n",
+			"settings":
+			{
+				"buffer_size": 1161,
+				"line_ending": "Unix",
+				"name": "GDB Callstack",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "GDB Threads",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "GDB Breakpoints",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "001 -    stopped - __GI_raise(sig = 6, sig@entry = 6);\n002 -    stopped - futex_abstimed_wait_cancelable(private = 0, abstime = 0x0, expected = 0, futex_word = 0x6f6430);\n",
+			"settings":
+			{
+				"buffer_size": 171,
+				"line_ending": "Unix",
+				"name": "GDB Threads",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "GDB Breakpoints",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "001 -    stopped - Nodable::Node::setMember<char const*>(this = 0xa72c70, _name = 0x46fab1 \"numbers\", _value = 0x46fab9 \"0123456789.\");\n002 -    stopped - futex_abstimed_wait_cancelable(private = 0, abstime = 0x0, expected = 0, futex_word = 0x6f5430);\n",
+			"settings":
+			{
+				"buffer_size": 252,
+				"line_ending": "Unix",
+				"name": "GDB Threads",
+				"read_only": true,
+				"scratch": true
+			}
+		},
+		{
+			"contents": "",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "GDB Breakpoints",
+				"read_only": true,
+				"scratch": true
+			}
+		}
+	],
+	"build_system": "Packages/Makefile/Make.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				]
+			],
+			[
+				"Packages/Makefile/Make.sublime-build",
+				"Clean"
+			]
+		],
+		[
+			[
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				]
+			],
+			[
+				"Packages/Makefile/Make.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 184.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"GDSB",
+				"SublimeGDB: Start Debugging"
+			],
+			[
+				"ins",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: install c",
+				"Package Control: Install Package"
+			],
+			[
+				"build",
+				"Build: New Build System"
+			]
+		],
+		"width": 392.0
+	},
+	"console":
+	{
+		"height": 248.0,
+		"history":
+		[
+			"clear"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/berdal84/Nodable",
+		"/home/berdal84/Nodable/build",
+		"/home/berdal84/Nodable/sources"
+	],
+	"file_history":
+	[
+		"/home/berdal84/Nodable/libs/imgui/imgui.h",
+		"/build/glibc-Cl5G7W/glibc-2.23/sysdeps/unix/sysv/linux/raise.c",
+		"/home/berdal84/Nodable/sources/Node_BinaryOperations.cpp",
+		"/home/berdal84/Nodable/sources/Node_Lexer.cpp",
+		"/home/berdal84/Nodable/sources/Node_Container.cpp",
+		"/home/berdal84/Nodable/sources/NodeView.h",
+		"/home/berdal84/Nodable/sources/ApplicationView.cpp",
+		"/home/berdal84/Nodable/sources/Node_Application.cpp",
+		"/home/berdal84/Nodable/sources/Node_Variable.cpp",
+		"/home/berdal84/Nodable/sources/Node_Value.h",
+		"/home/berdal84/Nodable/sources/Node_Value.cpp",
+		"/home/berdal84/Nodable/sources/NodeView.cpp",
+		"/usr/include/c++/5/bits/stl_vector.h",
+		"/home/berdal84/Nodable/sources/Node.cpp",
+		"/home/berdal84/Nodable/sources/Node.h",
+		"/home/berdal84/Nodable/sources/Node_BinaryOperations.h",
+		"/home/berdal84/Nodable/sources/Wire.cpp",
+		"/home/berdal84/Nodable/sources/WireView.cpp",
+		"/home/berdal84/Nodable/sources/Wire.h",
+		"/home/berdal84/Nodable/sources/Node_Variable.h",
+		"/home/berdal84/Nodable/sources/Node_Application.h",
+		"/home/berdal84/Nodable/sources/Node_Container.h",
+		"/home/berdal84/Nodable/sources/Nodable.h",
+		"/home/berdal84/Nodable/build/linux64/ApplicationView.d",
+		"/home/berdal84/Nodable/sources/Node_String.cpp",
+		"/home/berdal84/Nodable/sources/Node_Number.cpp",
+		"/usr/include/c++/5/bits/stl_iterator.h",
+		"/home/berdal84/Nodable/sources/main.cpp",
+		"/home/berdal84/Nodable/sources/Log.cpp",
+		"/build/glibc-Cl5G7W/glibc-2.23/stdio-common/vfprintf.c",
+		"/home/berdal84/Nodable/Nodable.sublime-project",
+		"/home/berdal84/.config/sublime-text-3/Packages/SublimeGDB/Default.sublime-keymap",
+		"/home/berdal84/.config/sublime-text-3/Packages/SublimeGDB/SublimeGDB.sublime-settings",
+		"/home/berdal84/Nodable/README.md",
+		"/home/berdal84/Nodable/sources/View.h",
+		"/home/berdal84/Nodable/sources/View.cpp",
+		"/home/berdal84/Nodable/libs/imgui/imgui.cpp",
+		"/home/berdal84/Nodable/libs/imgui/imgui_draw.cpp",
+		"/home/berdal84/Nodable/libs/imgui/examples/sdl_opengl2_example/imgui_impl_sdl.cpp",
+		"/home/berdal84/Nodable/makefile",
+		"/home/berdal84/Nodable/sources/Node_Lexer.h",
+		"/home/berdal84/Nodable/sources/WireView.h",
+		"/home/berdal84/.config/sublime-text-3/Packages/User/Default (Linux).sublime-keymap",
+		"/home/berdal84/Nodable/sources/Node_Number.h",
+		"/home/berdal84/Nodable/sources/Nodable.cpp",
+		"/home/berdal84/Nodable/libs/imgui/imgui_demo.cpp",
+		"/home/berdal84/.config/sublime-text-3/Packages/User/Package Control.sublime-settings",
+		"/home/berdal84/.config/sublime-text-3/Packages/Package Control/Package Control.sublime-settings",
+		"/home/berdal84/Nodable/sources/Node_String.h",
+		"/home/berdal84/Nodable/libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.cpp",
+		"/home/berdal84/Nodable/sources/ApplicationView.h",
+		"/home/berdal84/Nodable/libs/imgui/examples/libs/gl3w/GL/gl3w.c",
+		"/home/berdal84/Nodable/libs/imgui/imgui_internal.h",
+		"/home/berdal84/Nodable/bin/linux64/data",
+		"/home/berdal84/Nodable/libs/imgui/examples/libs/gl3w/GL/gl3w.h",
+		"/home/berdal84/Nodable/sources/main_commandline.cpp",
+		"/home/berdal84/Nodable/build/linux64/main.d",
+		"/home/berdal84/B-Rend3r/main.cpp",
+		"/home/berdal84/B-Rend3r/src/Renderer.h",
+		"/home/berdal84/B-Rend3r/src/Renderer.cpp",
+		"/home/berdal84/Nodable/libs/imgui/examples/sdl_opengl3_example/main.cpp",
+		"/home/berdal84/Nodable/libs/imgui/examples/sdl_opengl3_example/README.md",
+		"/home/berdal84/Nodable/sources/Log.h",
+		"/home/berdal84/Nodable/build/linux64/Log.d",
+		"/home/berdal84/Nodable/build/linux64/Node_Lexer.d",
+		"/home/berdal84/Nodable/build/linux64/Node_Number.d.8430",
+		"/home/berdal84/Nodable/build/linux64/Node_Number.d.7924",
+		"/home/berdal84/.config/sublime-text-3/Packages/User/makeCleanBuildAndRun.sublime-build",
+		"/home/berdal84/Nodable/sources/makefile",
+		"/home/berdal84/Nodable/.travis.yml",
+		"/home/berdal84/B-Rend3r/src/Camera.h",
+		"/home/berdal84/B-Rend3r/src/CharacterController.h",
+		"/home/berdal84/B-Rend3r/src/UpdatableObject.h",
+		"/home/berdal84/B-Rend3r/src/CharacterController.cpp",
+		"/home/berdal84/B-Rend3r/src/Camera.cpp",
+		"/home/berdal84/B-Rend3r/shaders/default.vs",
+		"/home/berdal84/B-Rend3r/src/Model.cpp",
+		"/home/berdal84/B-Rend3r/src/BRender.h",
+		"/home/berdal84/B-Rend3r/src/BRender.cpp",
+		"/home/berdal84/B-Rend3r/src/Transform.h",
+		"/home/berdal84/B-Rend3r/src/Transform.cpp",
+		"/home/berdal84/B-Rend3r/src/Shape.h",
+		"/home/berdal84/B-Rend3r/src/Shape.cpp",
+		"/home/berdal84/B-Rend3r/src/Shader.h",
+		"/home/berdal84/B-Rend3r/src/Shader.cpp",
+		"/home/berdal84/B-Rend3r/src/Trigonometry.h",
+		"/home/berdal84/B-Rend3r/src/Model.h",
+		"/home/berdal84/B-Rend3r/includes/SDL2/SDL_timer.h",
+		"/home/berdal84/B-Rend3r/includes/SDL2/SDL_stdinc.h",
+		"/home/berdal84/B-Rend3r/includes/SDL2/SDL_video.h"
+	],
+	"find":
+	{
+		"height": 38.0
+	},
+	"find_in_files":
+	{
+		"height": 194.0,
+		"where_history":
+		[
+			"/home/berdal84/Nodable/sources",
+			"/home/berdal84/Nodable/libs",
+			"/home/berdal84/Nodable/sources"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"DrawDetail_Advanced",
+			"buildExecutionTreeAndEvaluate",
+			"createNodeVariable",
+			"data.",
+			"->getValueAsNumber()",
+			"nullptr",
+			"variable",
+			"this->target",
+			"getValueAsNumber",
+			"new Node_Number(",
+			"couldBeArranged",
+			"ImGuiInputTextFlags_EnterReturnsTrue",
+			"Size",
+			"SizeContents",
+			"ImGuiWindowFlags_AlwaysAutoResize",
+			"ImGuiKey_",
+			"WindowFlags",
+			"DrawMode_AsChild",
+			"Size",
+			"ImGuiWindowFlags_",
+			"Font",
+			"ImGuiStyleVar",
+			"ImGui_ImplSdlGL3_RenderDrawLists",
+			"current",
+			"setSymbol",
+			"createNodeVariable",
+			"createNodeString",
+			"NodeView",
+			"keyboard",
+			"Keyboard",
+			"KeyMap",
+			"ImGuiIO",
+			"ImGuiKey",
+			"ImGuiStyleVar_",
+			"Alpha",
+			"Opaci",
+			"Opacity",
+			"ImGuiWindowFlags_",
+			"pos2",
+			"position",
+			"ImGuiWindowFlags_",
+			"ImGuiTreeNodeFlags_",
+			"ImGuiTextEditCallback",
+			">\n",
+			"CC",
+			"Node_Variable",
+			"Node_Container",
+			"Node_String",
+			"Node_Lexer",
+			"^(.*)$",
+			"\\n",
+			"'",
+			"createNodeSymbol",
+			"symbol",
+			"Node_Symbol",
+			"asString",
+			"asNumber",
+			"getMember",
+			"input",
+			"context",
+			"setContainer",
+			"getContainer",
+			"getRightInput",
+			"getLeftInput",
+			"setContext(",
+			"getContext()",
+			"getContext",
+			"Node_Context",
+			"LOG_DBG",
+			".c_str()",
+			"getName().c_str()",
+			"string"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"buildGraph",
+			"",
+			".getValueAsNumber()",
+			".getValueAsNumber(=",
+			"this->value",
+			"DrawMode_AsGroup",
+			"setVariable",
+			"CXX",
+			"\"",
+			"createNodeVariable",
+			"variable",
+			"Node_Variable",
+			"getValueAsString",
+			"getValueAsNumber",
+			"container",
+			"setParent",
+			"getParent",
+			"getRightInputValue",
+			"getLeftInputValue",
+			"setContainer(",
+			"getContainer()",
+			"getContainer",
+			"Node_Container"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 8,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "sources/Node.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2593,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2591,
+								2591
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 2012.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "sources/Node_Lexer.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 930,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								697,
+								697
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "sources/Wire.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 990,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								851,
+								851
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 360.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 13,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "sources/Node_Lexer.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6645,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2425,
+								2425
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1209.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "sources/Node_BinaryOperations.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4664,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1952,
+								1952
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 810.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "sources/Node_Variable.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1004,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								830,
+								830
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 180.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 15,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "sources/Node.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2060,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1173,
+								1173
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 332.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 14,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "sources/NodeView.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7394,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5791,
+								5791
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 3555.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "README.md",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1678,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								816,
+								816
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Markdown/Markdown.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "sources/WireView.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4160,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1987,
+								1987
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1042.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "sources/NodeView.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2454,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								982,
+								982
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 585.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "sources/View.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 566,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								453,
+								453
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "sources/ApplicationView.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10551,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9762,
+								9762
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 3220.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "sources/Nodable.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 212,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								208,
+								208
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "sources/Node_Application.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2006,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								936,
+								936
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 594.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 15,
+					"file": "sources/Node_Container.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5623,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								937,
+								937
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 585.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 5,
+			"sheets":
+			[
+				{
+					"buffer": 16,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 19294,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								19294,
+								19294
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeGDB/gdb_session.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 27,
+					"type": "text"
+				},
+				{
+					"buffer": 17,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1943,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1943,
+								1943
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 562.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 26,
+					"type": "text"
+				},
+				{
+					"buffer": 18,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 84,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								84,
+								84
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 24,
+					"type": "text"
+				},
+				{
+					"buffer": 19,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 65724,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								65724,
+								65724
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SublimeGDB/gdb_session.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 21,
+					"type": "text"
+				},
+				{
+					"buffer": 20,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1943,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1943,
+								1943
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 954.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 20,
+					"type": "text"
+				},
+				{
+					"buffer": 21,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 126,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								126,
+								126
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 19,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 22,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1161,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1161,
+								1161
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 23,
+					"type": "text"
+				},
+				{
+					"buffer": 23,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1161,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1161,
+								1161
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 18,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 5,
+			"sheets":
+			[
+				{
+					"buffer": 24,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 29,
+					"type": "text"
+				},
+				{
+					"buffer": 25,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"word_wrap": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 28,
+					"type": "text"
+				},
+				{
+					"buffer": 26,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 171,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								171,
+								171
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 25,
+					"type": "text"
+				},
+				{
+					"buffer": 27,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"word_wrap": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 22,
+					"type": "text"
+				},
+				{
+					"buffer": 28,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 252,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								252,
+								252
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 17,
+					"type": "text"
+				},
+				{
+					"buffer": 29,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"word_wrap": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 16,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 24.0
+	},
+	"input":
+	{
+		"height": 40.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				3,
+				1
+			],
+			[
+				0,
+				1,
+				1,
+				2
+			],
+			[
+				1,
+				1,
+				2,
+				2
+			],
+			[
+				2,
+				1,
+				3,
+				2
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.375210727969,
+			0.892950191571,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			0.716804979253,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 266.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "Packages/Makefile/Make.sublime-build",
+	"project": "Nodable.sublime-project",
+	"replace":
+	{
+		"height": 68.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 228.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
