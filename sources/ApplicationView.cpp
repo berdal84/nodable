@@ -45,7 +45,7 @@ bool ApplicationView::init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_MAXIMIZED|SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
 
     glcontext = SDL_GL_CreateContext(window);
     gl3wInit();
@@ -227,8 +227,9 @@ void ApplicationView::draw()
     // Properties panel window
     {
 	    bool isPropertiesPanelVisible = true;
-	    if (ImGui::Begin("Properties", &isPropertiesPanelVisible, ImGuiWindowFlags_ShowBorders))
-	    {
+	    if (ImGui::Begin("Properties", &isPropertiesPanelVisible,ImGuiWindowFlags_ShowBorders))
+	    {    	
+
 		    ImGui::Text("Bezier curves");
 		    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
 		    ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
@@ -245,8 +246,7 @@ void ApplicationView::draw()
 		SDL_GetWindowSize(window, &width, &height);
 		ImGui::SetNextWindowPos(ImVec2());
 		ImGui::SetNextWindowSize(ImVec2(width, height));
-		
-		ImGui::Begin("Container", NULL, ImVec2(width,height), -1.0f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
+		ImGui::Begin("Container", NULL, ImVec2(width,height), -1.0f, ImGuiWindowFlags_NoResize |ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
 			application->getContext()->draw();
 		}

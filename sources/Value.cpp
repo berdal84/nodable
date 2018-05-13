@@ -1,26 +1,27 @@
-#include "Node_Value.h"
+#include "Value.h"
 #include "Log.h"		 // for LOG_DBG(...)
 
 using namespace Nodable;
 
-Node_Value::Node_Value()
+Value::Value(Type_ _type)
 {
-	LOG_DBG("New Node_Value\n");
+	LOG_DBG("New Value\n");
+	type = _type;
 }
 
-Node_Value::~Node_Value(){};
+Value::~Value(){};
 
-Type_ Node_Value::getType()const
+Type_ Value::getType()const
 {
 	return this->type;
 }
 
-bool  Node_Value::isType(Type_ _type)const
+bool  Value::isType(Type_ _type)const
 {
 	return this->type == _type;
 }
 
-void Node_Value::setValue(double _value)
+void Value::setValue(double _value)
 {
 	switch(type)
 	{
@@ -43,14 +44,15 @@ void Node_Value::setValue(double _value)
 			break;
 		}
 	}
+	LOG_MSG("Value::setValue(%d)\n", _value);
 }
 
-void Node_Value::setValue(std::string _value)
+void Value::setValue(std::string _value)
 {
 	setValue(_value.c_str());
 }
 
-void Node_Value::setValue(const char* _value)
+void Value::setValue(const char* _value)
 {
 	switch(type)
 	{
@@ -73,9 +75,11 @@ void Node_Value::setValue(const char* _value)
 			break;
 		}
 	}
+
+	LOG_MSG("Value::setValue(%s)\n", _value);
 }
 
-double Node_Value::getValueAsNumber()const
+double Value::getValueAsNumber()const
 {
 	switch(type)
 	{
@@ -97,7 +101,7 @@ double Node_Value::getValueAsNumber()const
 	
 }
 
-std::string Node_Value::getValueAsString()const
+std::string Value::getValueAsString()const
 {
 	switch(type)
 	{
@@ -123,19 +127,19 @@ std::string Node_Value::getValueAsString()const
 	}
 }
 
-bool Node_Value::isSet()const
+bool Value::isSet()const
 {
 	return type != Type_Unknown;
 }
 
-void Node_Value::setValue(const Node_Value& _v)
+void Value::setValue(const Value& _v)
 {
 	type = _v.type;
 	s = _v.s;
 	d = _v.d;
 }
 
-std::string Node_Value::getTypeAsString()const
+std::string Value::getTypeAsString()const
 {
 	switch(type)
 	{

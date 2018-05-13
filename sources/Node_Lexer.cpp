@@ -1,7 +1,7 @@
 #include "Node_Lexer.h"
 #include "Log.h"          // for LOG_DBG(...)
 
-#include "Node_Value.h"
+#include "Value.h"
 #include "Node_Container.h"
 #include "Node_Variable.h"
 #include "Node_BinaryOperations.h"
@@ -14,14 +14,12 @@ Node_Lexer::Node_Lexer()
 	LOG_DBG("new Node_Lexer\n");
 
 	addMember("expression");
-
 	addMember("numbers" );
-	setMember("numbers", "0123456789.");
-
 	addMember("letters" );
-	setMember("letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_");
-
 	addMember("operators" );
+
+	setMember("numbers", "0123456789.");	
+	setMember("letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_");	
 	setMember("operators", "+-*/=");
 
 	setLabel("Lexer");
@@ -32,20 +30,26 @@ Node_Lexer::~Node_Lexer()
 
 }
 
-bool Node_Lexer::evaluate()
+bool Node_Lexer::eval()
 {
-	LOG_DBG("Node_Lexer::evaluate() - tokenize\n");
+	bool success;
+
+	LOG_DBG("Node_Lexer::eval() - tokenize\n");
 	tokenize();
-	LOG_DBG("Node_Lexer::evaluate() - cehck syntax\n");
+	LOG_DBG("Node_Lexer::eval() - cehck syntax\n");
 	if ( isSyntaxValid() )
 	{
-		LOG_DBG("Node_Lexer::evaluate() - build tree and eval\n");
+		LOG_DBG("Node_Lexer::eval() - build tree and eval\n");
 		auto result = buildGraph();
 		NodeView::ArrangeRecursive(result->getView());
-		return true;
+		
+		success = true;
+	}else{
+		success = false;
 	}
-	LOG_DBG("Node_Lexer::evaluate() - error, abording...\n");
-	return false;
+	LOG_DBG("Node_Lexer::eval() - error, abording...\n");
+
+	return success;
 }
 
 Node_Variable* Node_Lexer::convertTokenToNode(Token token)
@@ -177,13 +181,21 @@ bool Node_Lexer::isSyntaxValid()
 void Node_Lexer::tokenize()
 {
 	LOG_DBG("Node_Lexer::tokenize() - START\n");
+
+	if ( getMember("expression") == nullptr ||
+		getMember("expression") == nullptr ||
+		getMember("expression") == nullptr ||
+		getMember("expression") == nullptr
+		 )
+		return;
+
 	/* get expression chars */
-	std::string chars = getMember("expression").getValueAsString();
+	std::string chars = getMember("expression")->getValueAsString();
 
 	/* prepare allowed chars */
-	std::string numbers 	     = getMember("numbers").getValueAsString();
-	std::string letters		     = getMember("letters").getValueAsString();
-	std::string operators 	     = getMember("operators").getValueAsString();
+	std::string numbers 	     = getMember("numbers")->getValueAsString();
+	std::string letters		     = getMember("letters")->getValueAsString();
+	std::string operators 	     = getMember("operators")->getValueAsString();
 
 	for(auto it = chars.begin(); it < chars.end(); ++it)
 	{

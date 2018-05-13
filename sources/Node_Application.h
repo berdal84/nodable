@@ -12,7 +12,7 @@ namespace Nodable
 		Node_Application(const char*);
 		~Node_Application();
 
-		bool             evaluate(){return true;}
+		bool             eval(){return true;}
 		bool             eval(std::string /* literal expression */);
 		bool             init();
 		void             clear();

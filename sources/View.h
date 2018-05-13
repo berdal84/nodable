@@ -7,7 +7,8 @@ namespace Nodable{
 	public:
 		View(){}
 		~View(){}
-		static void DrawRectShadow(ImVec2 _from, ImVec2 _to, float _rectInitialRadius = 0.0f, int _radius = 10, ImVec2 _offset = ImVec2());
+		static void DrawRectShadow (ImVec2 _from, ImVec2 _to, float _rectInitialRadius = 0.0f, int _radius = 10, ImVec2 _offset = ImVec2());
+		static void ShadowedText   (ImVec2 _offset, ImColor _color, const char*, ...);
 
 		void    setColor(ImColor _color){color = _color;}
 		ImColor getColor()const{return color;}

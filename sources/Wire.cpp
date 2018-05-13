@@ -29,12 +29,14 @@ void Wire::setSource(Node* _node, const char* _slotName)
 {
 	source     = _node;
 	sourceSlot = _slotName;
+	transmitData();
 }
 
 void Wire::setTarget(Node* _node, const char* _slotName)
 {
 	target     = _node;
 	targetSlot = _slotName;
+	transmitData();
 }
 
 void Wire::transmitData()
@@ -43,12 +45,19 @@ void Wire::transmitData()
 	if ( target != nullptr && source != nullptr)
 	{
 		state = State_Connected;
-
-		// evaluate the source node before to transmit data to the target
-		source->evaluate();
-		target->setMember(targetSlot.c_str(), source->getMember(sourceSlot) );
+		target->setMember(targetSlot.c_str(), *source->getMember(sourceSlot.c_str()) );
 	}else{
 		state = State_Disconnected;
 	}
 
+}
+
+std::string Wire::getSourceSlotTypeAsString()const
+{
+	return source->getMember(sourceSlot)->getTypeAsString();
+}
+
+std::string Wire::getTargetSlotTypeAsString()const
+{
+	return target->getMember(targetSlot)->getTypeAsString();
 }

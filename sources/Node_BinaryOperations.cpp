@@ -1,8 +1,8 @@
 #include "Node_BinaryOperations.h"
 #include "Log.h"		// for LOG_DBG(...)
-#include "Node_Value.h"
+#include "Value.h"
 #include "Node_Variable.h"
-#include "Node_Value.h"
+#include "Value.h"
 
 using namespace Nodable;
 
@@ -60,61 +60,59 @@ bool Node_BinaryOperation::NeedsToBeEvaluatedFirst(std::string op, std::string n
  // Node_Add :
 //////////////
 
-bool Node_Add::evaluate()
+bool Node_Add::eval()
 {
-
-	switch(getMember("left").getType())
+	switch(getMember("left")->getType())
 	{
 		case Type_String:
 		{
-			auto result = getMember("left").getValueAsString() + getMember("right").getValueAsString();
-			setMember("result", result);
+			auto result = getMember("left")->getValueAsString() + getMember("right")->getValueAsString();
+			getMember("result")->setValue(result);
 			break;
 		}
 
 		default:
 		case Type_Number:
 		{
-			auto result = getMember("left").getValueAsNumber() + getMember("right").getValueAsNumber();
-			setMember("result", result);
+			auto result = getMember("left")->getValueAsNumber() + getMember("right")->getValueAsNumber();
+			getMember("result")->setValue(result);
 			break;
 		}	
 	}
 		
-	LOG_MSG("%s + %s = %f\n", getMember("left").getValueAsString().c_str(), 
-                                  getMember("right").getValueAsString().c_str(),
-                                  getMember("result").getValueAsString().c_str());
+	LOG_MSG("%s + %s = %f\n", getMember("left")->getValueAsString().c_str(), 
+                                  getMember("right")->getValueAsString().c_str(),
+                                  getMember("result")->getValueAsString().c_str());
 	return true;
 }
 
  // Node_Substract :
 ///////////////////////
 
-bool Node_Substract::evaluate()
+bool Node_Substract::eval()
 {
+	double result = getMember("left")->getValueAsNumber() - getMember("right")->getValueAsNumber();
+	getMember("result")->setValue(result);
 
-	double result = getMember("left").getValueAsNumber() - getMember("right").getValueAsNumber();
-	setMember("result", result);
-
-	LOG_MSG("%s - %s = %f\n", getMember("left").getValueAsString().c_str(), 
-                              getMember("right").getValueAsString().c_str(),
-                              getMember("result").getValueAsString().c_str());
+	LOG_MSG("%s - %s = %f\n", getMember("left")->getValueAsString().c_str(), 
+                              getMember("right")->getValueAsString().c_str(),
+                              getMember("result")->getValueAsString().c_str());
 	return true;
 }
 
  // Node_Divide :
 ///////////////////////
 
-bool Node_Divide::evaluate()
+bool Node_Divide::eval()
 {
-	if (getMember("right").getValueAsNumber() != 0.0f)
+	if (getMember("right")->getValueAsNumber() != 0.0f)
 	{
-		double result = getMember("left").getValueAsNumber() / getMember("right").getValueAsNumber();
-		setMember("result", result);
+		double result = getMember("left")->getValueAsNumber() / getMember("right")->getValueAsNumber();
+		getMember("result")->setValue(result);
 		
-		LOG_MSG("%s / %s = %f\n", getMember("left").getValueAsString().c_str(), 
-                                  getMember("right").getValueAsString().c_str(),
-                                  getMember("result").getValueAsString().c_str());
+		LOG_MSG("%s / %s = %f\n", getMember("left")->getValueAsString().c_str(), 
+                                  getMember("right")->getValueAsString().c_str(),
+                                  getMember("result")->getValueAsString().c_str());
 	}
 	return true;
 }
@@ -122,48 +120,50 @@ bool Node_Divide::evaluate()
  // Node_Multiply :
 ///////////////////////
 
-bool Node_Multiply::evaluate()
+bool Node_Multiply::eval()
 {
-	double result = getMember("left").getValueAsNumber() * getMember("right").getValueAsNumber();
-	setMember("result", result);
+	double result = getMember("left")->getValueAsNumber() * getMember("right")->getValueAsNumber();
+	getMember("result")->setValue(result);
 	
-	LOG_MSG("%s * %s = %f\n", getMember("left").getValueAsString().c_str(), 
-                              getMember("right").getValueAsString().c_str(),
-                              getMember("result").getValueAsString().c_str());
+	LOG_MSG("%s * %s = %f\n", getMember("left")->getValueAsString().c_str(), 
+                              getMember("right")->getValueAsString().c_str(),
+                              getMember("result")->getValueAsString().c_str());
+	setDirty(false);
+
 	return true;
 }
 
  // Node_Assign :
 ///////////////////////
 
-bool Node_Assign::evaluate()
+bool Node_Assign::eval()
 {
-	switch (getMember("right").getType())
+	switch (getMember("right")->getType())
 	{
 		case Type_Number:
 		{
-			auto result = getMember("right").getValueAsNumber();
-			setMember("result", result);
-			setMember("left", result);
+			auto result = getMember("right")->getValueAsNumber();
+			getMember("result")->setValue(result);
+			getMember("left")->setValue(result);
 			break;
 		}
 		case Type_String:
 		{
-			auto result = getMember("right").getValueAsString().c_str();
-			setMember("result", result);
-			setMember("left", result);
+			auto result = getMember("right")->getValueAsString().c_str();
+			getMember("result")->setValue(result);
+			getMember("left")->setValue(result);
 			break;
 		}
 		default:
 		{
-			auto result = getMember("right").getValueAsNumber();
-			setMember("result", result);
-			setMember("left", result);
+			auto result = getMember("right")->getValueAsNumber();
+			getMember("result")->setValue(result);
+			getMember("left")->setValue(result);
 			break;
 		}
 	}
-	LOG_MSG("%s = %s (result %s)\n", 	getMember("left").getValueAsString().c_str(),
-										getMember("right").getValueAsString().c_str(),
-										getMember("result").getValueAsString().c_str());	
+	LOG_MSG("%s = %s (result %s)\n", 	getMember("left")->getValueAsString().c_str(),
+										getMember("right")->getValueAsString().c_str(),
+										getMember("result")->getValueAsString().c_str());	
 	return true;
 }

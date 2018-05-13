@@ -10,6 +10,7 @@ namespace Nodable{
 		Node_BinaryOperation();
 		virtual ~Node_BinaryOperation(){};
 		bool                          couldBeEvaluated       ();
+		virtual bool                  eval()=0;
 		/* return true is op needs to be evaluated before nextOp */
 		static  bool                  NeedsToBeEvaluatedFirst(std::string op, std::string nextOp);
 	};
@@ -19,7 +20,7 @@ namespace Nodable{
 	public:
 		Node_Add(){setLabel("ADD");};
 		~Node_Add(){};
-		bool evaluate();
+		bool eval();
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Substraction */
@@ -27,7 +28,7 @@ namespace Nodable{
 	public:
 		Node_Substract(){setLabel("SUBSTRACT");};
 		~Node_Substract(){};
-		bool evaluate();
+		bool eval();
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Multiplication */
@@ -35,7 +36,7 @@ namespace Nodable{
 	public:
 		Node_Multiply(){setLabel("MULTIPLY");};
 		~Node_Multiply(){};
-		bool evaluate();
+		bool eval();
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Division */
@@ -43,7 +44,7 @@ namespace Nodable{
 	public:
 		Node_Divide(){setLabel("DIVIDE");};
 		~Node_Divide(){};
-		bool evaluate();
+		bool eval();
 	};
 
 	/* Implementation of the Node_BinaryOperation as an assignment */
@@ -51,6 +52,6 @@ namespace Nodable{
 	public:
 		Node_Assign(){setLabel("ASSIGN");};
 		~Node_Assign(){};
-		bool evaluate();
+		bool eval();
 	};
 }

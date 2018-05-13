@@ -1,5 +1,5 @@
 #include "Node_Variable.h"
-#include "Node_Value.h"
+#include "Value.h"
 #include "Log.h"
 
 using namespace Nodable;
@@ -14,14 +14,20 @@ Node_Variable::~Node_Variable()
 {
 }
 
+bool Node_Variable::eval()
+{
+	updateLabel();
+	return true;
+}
+
 double Node_Variable::getValueAsNumber()const
 {
-	return getMember("value").getValueAsNumber();
+	return getMember("value")->getValueAsNumber();
 }
 
 std::string Node_Variable::getValueAsString()const
 {
-	return getMember("value").getValueAsString();
+	return getMember("value")->getValueAsString();
 }
 
 void Node_Variable::setName(const char* _name)
@@ -33,9 +39,9 @@ void Node_Variable::setName(const char* _name)
 void Node_Variable::updateLabel()
 {
 	if ( name != "")
-		setLabel(getName() + std::string(" : ") + getMember("value").getValueAsString());
+		setLabel(getName() + std::string(" : ") + getMember("value")->getValueAsString());
 	else
-		setLabel(getMember("value").getValueAsString());
+		setLabel(getMember("value")->getValueAsString());
 }
 
 const char* Node_Variable::getName()const
@@ -45,12 +51,12 @@ const char* Node_Variable::getName()const
 
 bool Node_Variable::isType(Type_ _type)const
 {
-	return getValue().isType(_type);
+	return getValue()->isType(_type);
 }
 
 std::string Node_Variable::getTypeAsString()const
 {
 	if (isSet())
-		return getValue().getTypeAsString();
+		return getValue()->getTypeAsString();
 	return "Unknown";
 }

@@ -13,14 +13,14 @@ namespace Nodable{
 	public:
 		Node_Lexer();
 		virtual ~Node_Lexer();
-		bool           evaluate			                  ();
+		bool           eval			       ()override;
 	private:
-		void           buildGraphRec                      (size_t _tokenIndex, Node_Variable* _finalRes, Node_Variable* _prevRes = nullptr);
-		void           tokenize			                  ();
-		bool           isSyntaxValid		              ();
-		Node_Variable* buildGraph                         ();
-		Node_Variable* convertTokenToNode                 (Token token);
-		void           addToken			                  (std::string _category, std::string _string);
+		void           buildGraphRec       (size_t _tokenIndex, Node_Variable* _finalRes, Node_Variable* _prevRes = nullptr);
+		void           tokenize			   ();
+		bool           isSyntaxValid	   ();
+		Node_Variable* buildGraph          ();
+		Node_Variable* convertTokenToNode  (Token token);
+		void           addToken			   (std::string _category, std::string _string);
 		std::vector<Token> tokens;
 	};
 }

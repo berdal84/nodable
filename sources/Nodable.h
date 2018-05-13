@@ -58,8 +58,7 @@ namespace Nodable{
 	
 	// Nodes
 	class Node;
-	class Node_Application;
-	class Node_Value;
+	class Node_Application;	
 	class Node_Add;
 	class Node_Variable;
 	class Node_Container;
@@ -72,6 +71,7 @@ namespace Nodable{
 
 	// Other
 	class Wire;
+	class Value;
 
 	enum Type_{
 		Type_Unknown,

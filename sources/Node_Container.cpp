@@ -39,6 +39,14 @@ void Node_Container::draw()
 	bool isAnyItemHovered = false;
 
 	
+	// 0 - Update nodes
+	for(auto each : this->nodes)
+	{
+		if ( each != nullptr)
+		{
+			each->update();
+		}
+	}
 
 	// 1 - Draw nodes
 	for(auto each : this->nodes)
@@ -56,8 +64,6 @@ void Node_Container::draw()
 		}
 	}
 
-	
-
 
 	// 2 - Draw wires
 	for(auto each : this->nodes)
@@ -68,7 +74,7 @@ void Node_Container::draw()
 
 			for(auto eachWire : wires)
 			{
-				eachWire->transmitData();
+				//eachWire->transmitData();
 				eachWire->getView()->draw();
 
 			}

@@ -6,6 +6,7 @@
 #include "Node_BinaryOperations.h"
 #include "View.h"
 #include "Wire.h"
+#include <cmath> // for sinus
 
 using namespace Nodable;
 
@@ -165,7 +166,9 @@ void NodeView::update()
 						newPos.y += (float(i)/float(n-1) - 0.5f ) * spacingDist; 
 					auto currentPos = inputView->getPosition();
 					ImVec2 delta( (newPos.x - currentPos.x) * 0.2f,  (newPos.y - currentPos.y) * 0.2f);
-					inputView->translate(delta);
+
+					if ( delta.x*delta.x + delta.y*delta.y > 1.0f)
+						inputView->translate(delta);
 				}
 			}
 			i++;
@@ -204,20 +207,27 @@ void NodeView::imguiBegin()
 
 			// Draw the background of the Group
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
-			{
+			{			
 				auto borderCol = IsSelected(this) ? borderColorSelected : getBorderColor();
 				auto itemRectMin = position;
 				auto itemRectMax = ImVec2(position.x + size.x, position.y + size.y);
 
+				// Draw the rectangle under everything
 				View::DrawRectShadow(itemRectMin, itemRectMax, borderRadius, 4, ImVec2(1.0f, 1.0f));
-
 				draw_list->AddRectFilled(itemRectMin, itemRectMax,getColor(), borderRadius);
+				draw_list->AddRect(ImVec2(itemRectMin.x + 1.0f, itemRectMin.y + 1.0f), ImVec2(itemRectMax.x, itemRectMax.y),ImColor(1.0f,1.0f,1.0f,0.7f), borderRadius);	
 				draw_list->AddRect(itemRectMin, itemRectMax,borderCol, borderRadius);				
+
+				// Darken the bottom area to separate title and details
+				if( showDetails)
+					draw_list->AddRectFilled(ImVec2(itemRectMin.x, itemRectMin.y + 35.0f), ImVec2(itemRectMax.x, itemRectMax.y), ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
 
 				// Draw an additionnal rectangle when selected
 				if (IsSelected(this))
 				{
-					draw_list->AddRect(ImVec2(itemRectMin.x - 3.0f, itemRectMin.y - 3.0f), ImVec2(itemRectMax.x + 3.0f, itemRectMax.y + 3.0f), ImColor(1.0f, 1.0f, 1.0f, 0.5f), borderRadius + 3.0f, ~0, 3.0f);
+					float alpha = sin(ImGui::GetTime() * 10.0f)*0.25f + 0.5f;
+					float offset = 4.0f;
+					draw_list->AddRect(ImVec2(itemRectMin.x - offset, itemRectMin.y - offset), ImVec2(itemRectMax.x + offset, itemRectMax.y + offset), ImColor(1.0f, 1.0f, 1.0f, alpha), borderRadius + offset, ~0, offset / 2.0f);
 				}
 			}
 			break;
@@ -243,7 +253,7 @@ void NodeView::imguiEnd()
 		case DrawMode_AsGroup:
 		{
 			auto cursor = ImGui::GetCursorPos();
-			ImGui::SetCursorPos(ImVec2(cursor.x + 10.0f, cursor.y + 10.0f));ImGui::SameLine(); ImGui::Text(" ");
+			ImGui::SetCursorPos(ImVec2(cursor.x + 10.0f, cursor.y + 10.0f));ImGui::SameLine(); ImGui::Dummy(ImVec2(1.0f,1.0f));
 			ImGui::EndGroup();
 			hovered = ImGui::IsMouseHoveringRect(position, ImVec2(position.x + size.x, position.y + size.y), true);
 
@@ -302,22 +312,52 @@ void NodeView::imguiDraw()
 	}
 
 	ImGui::Indent();
-	ImGui::Text("%s", node->getLabel());
+	ShadowedText(ImVec2(1.0f, 1.0f), ImColor(1.0f,1.0f,1.0f,0.8f), node->getLabel());
 
 	if (showDetails)
 	{
+		ImGui::NewLine();
 
-		for(auto m : node->getMembers())
+		for(auto& m : node->getMembers())
 		{
-			ImGui::Text("%s : %s (%s)", m.first.c_str(), m.second.getValueAsString().c_str(), m.second.getTypeAsString().c_str());
+
+
+			switch(m.second->getType())
+			{
+				case Type_Number:
+				{
+					float f(m.second->getValueAsNumber());
+					if ( ImGui::InputFloat(m.first.c_str(), &f))
+					{
+						m.second->setValue(f);
+						node->setDirty(true);
+					}
+					break;
+				}
+				default:
+				{
+					ImGui::Text("%s", m.first.c_str());
+					ImGui::SameLine(100.0f);
+					ImGui::Text("%s", m.second->getValueAsString().c_str());
+					break;
+				}
+			}
 		}
+		
+
 		std::string parentName = "NULL";
 		if ( node->getParent() )
 			parentName = node->getParent()->getName();
 		ImGui::Text("Parent: %s", parentName.c_str());
 		
-		if (ImGui::Button("refresh"))
-			node->evaluate();
+		ImGui::Text("Dirty : %s", node->isDirty() ? "Yes":"No");
+
+		if ( node->isDirty())
+		{
+			ImGui::SameLine();
+			if ( ImGui::Button("update()"))
+				node->update();
+		}
 	}
 
 	imguiEnd();	

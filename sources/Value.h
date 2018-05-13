@@ -6,14 +6,28 @@
 namespace Nodable{
 
 	/* 
-		The Node_Value class is the base class for basic types such as Numbers, Strings or Booleans
-	*/
-	class Node_Value{
-	public:
-		Node_Value();
-		~Node_Value();
+		The 	// 1 - Draw nodes
+	for(auto each : this->nodes)
+	{
+		if ( each != nullptr)
+		{
+			auto view = each->getView();
 
-		void        setValue         (const Node_Value&);
+			if (view != nullptr)
+			{
+				view->draw();
+				isAnyItemDragged |= NodeView::GetDragged() == view;
+				isAnyItemHovered |= view->isHovered();
+			}
+		}
+	} class is the base class for basic types such as Numbers, Strings or Booleans
+	*/
+	class Value{
+	public:
+		Value(Type_ _type = Type_Unknown);
+		~Value();
+
+		void        setValue         (const Value&);
 		void        setValue         (std::string);
 		void        setValue         (const char*);
 		void        setValue         (double);

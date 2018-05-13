@@ -1,5 +1,6 @@
+#pragma once 
+
 #include "Nodable.h"
-#include "Node.h"
 
 #include <vector>
 #include <string>
@@ -28,8 +29,8 @@ namespace Nodable
 		State_      getState     ()const{return state;}
 		Node*       getSource    ()const{return source;}
 		Node*       getTarget    ()const{return target;}
-		std::string getSourceSlotTypeAsString    ()const{return source->getMember(sourceSlot).getTypeAsString();}
-		std::string getTargetSlotTypeAsString    ()const{return target->getMember(targetSlot).getTypeAsString();}
+		std::string getSourceSlotTypeAsString    ()const;
+		std::string getTargetSlotTypeAsString    ()const;
 		const char* getSourceSlot()const{return sourceSlot.c_str();}
 		const char* getTargetSlot()const{return targetSlot.c_str();}
 		WireView*   getView      ()const{return view;}

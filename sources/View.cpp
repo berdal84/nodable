@@ -25,3 +25,18 @@ void View::DrawRectShadow(ImVec2 _from, ImVec2 _to, float _rectInitialRadius, in
 		rectRadius += 1.0f;
 	}
 }
+
+void View::ShadowedText(ImVec2 _offset, ImColor _color, const char* _format, ...)
+{
+	// draw first the shadow
+	auto p = ImGui::GetCursorPos();
+	ImGui::SetCursorPos(ImVec2(p.x + _offset.x, p.y + _offset.y));
+	
+
+	va_list args;
+    va_start(args, _format);
+    ImGui::TextColored(_color, _format, args);
+	ImGui::SetCursorPos(p);
+    ImGui::Text(_format, args);
+    va_end(args);
+}

@@ -2,7 +2,7 @@
 
 #include "Nodable.h"    // forward declarations and common stuff
 #include "Node.h"       // base class
-#include "Node_Value.h"
+#include "Value.h"
 #include <string>
 
 namespace Nodable{
@@ -12,31 +12,29 @@ namespace Nodable{
 		Node_Variable();
 		~Node_Variable();
 
-		void    updateLabel()override;
-
-		void            setName         (const char*);
+		bool              eval();
+		void              updateLabel     ()override;
+		void              setName         (const char*);
 
 		template<typename T>
-		void setValue(T _value);
-
+		void              setValue        (T _value);
 		
-		bool            isSet           ()const{return getValue().isSet(); }
-		bool            isType          (Type_ _type)const;
-		
-		const char*       getName()const;
+		bool              isSet           ()const{return getValue()->isSet(); }
+		bool              isType          (Type_ _type)const;		
+		const char*       getName         ()const;
 		double            getValueAsNumber()const;
 		std::string       getValueAsString()const;
-		const Node_Value& getValue()const{return getMember("value");}
-		std::string       getTypeAsString()const;
+		Value*            getValue        ()const{return getMember("value");}
+		std::string       getTypeAsString ()const;
 	private:
 		std::string       name;
 	};
 
 
-	template<class Node_Value>
-	void Node_Variable::setValue(Node_Value _value)
+	template<class Value>
+	void Node_Variable::setValue(Value _value)
 	{
-		setMember("value", _value);
+		getMember("value")->setValue(_value);
 		updateLabel();
 	}
 }
