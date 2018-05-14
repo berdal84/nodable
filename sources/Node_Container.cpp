@@ -20,10 +20,15 @@ parent(_parent)
 	LOG_DBG("A new container named %s' has been created.\n", _name);
 }
 
+Node_Container::~Node_Container()
+{
+	clear();
+}
+
 void Node_Container::clear()
 {
-	//for (auto each : nodes)
-	//0	delete each;
+	for (auto each : nodes)
+		delete each;
 	nodes.resize(0);
 	variables.resize(0);
 }

@@ -11,7 +11,7 @@ namespace Nodable{
 	class Node_Container {
 	public:
 		Node_Container(const char* _name, Node* _parent = nullptr);
-		virtual ~Node_Container(){};
+		virtual ~Node_Container();
 		void                      draw();
 		void                      clear();
 		void                      frameAll();
