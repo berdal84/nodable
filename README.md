@@ -1,7 +1,7 @@
 ![Nodable Logo](https://github.com/berdal84/Nodable/blob/develop/data/icon.png)
 
-Nodable is a simple node based program !
-========================================
+Nodable is node-able !
+======================
 [![Build Status](https://travis-ci.org/berdal84/Nodable.svg?branch=master)](https://travis-ci.org/berdal84/Nodable)
 
 This software is a command line prompt able to evaluate literal expressions by constructing an execution tree in realtime.
