@@ -84,3 +84,9 @@ How to run the software ? :
 ------------------------
 - move to bin/linux64/ and run `./nodable`
 
+
+Licence:
+----------
+**Nodable** is licensed under the GPL License, see LICENSE for more information.
+
+submodules: **Dear ImGui** is licensed under the MIT License.
