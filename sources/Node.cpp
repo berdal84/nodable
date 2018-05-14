@@ -1,12 +1,8 @@
 #include "Node.h"
 #include "Log.h"		// for LOG_DBG(...)
-#include "Node_Container.h"
-#include "Node_Variable.h"
-#include "Value.h"
 #include "NodeView.h"
-#include <algorithm> // for std::find
-#include "Wire.h"
-#include <string> // for strcmp
+#include <algorithm>    // for std::find
+
 using namespace Nodable;
 
 void Node::Connect(	Node* _from, 
