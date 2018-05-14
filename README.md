@@ -1,4 +1,5 @@
 ![Nodable Logo](https://github.com/berdal84/Nodable/blob/develop/data/icon.png)
+
 [![Build Status](https://travis-ci.org/berdal84/Nodable.svg?branch=master)](https://travis-ci.org/berdal84/Nodable)
 
 Nodable is node-able !
