@@ -6,7 +6,7 @@ Nodable is node-able !
 ======================
 
 This software is a command line prompt able to evaluate literal expressions by constructing an execution tree in realtime.
-When user type an expression the program split it into tokens and build the execution tree. Each frame each node is updated only if needed. The GUI uses the famous library *Dear ImGui* developed by Omar Cornut.
+When user type an expression the program split it into tokens and build the execution tree. Each frame each node is updated only if needed. The GUI uses the famous library *Dear ImGui* developed by OmarCornut (@ocornut).
 
 Examples :
 ==========
