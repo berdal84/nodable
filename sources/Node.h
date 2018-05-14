@@ -45,7 +45,7 @@ namespace Nodable{
 		bool                isDirty           ()const{return dirty;}
 		static void         Connect           (Node* /*_from*/, Node* /*_to*/, const char* _fromOutputName = NODE_DEFAULT_OUTPUT_NAME, const char* _toInputName = NODE_DEFAULT_INPUT_NAME);
 	private:
-		Members members;
+		Members             members;
 		Node_Container*     parent  = nullptr;
 		std::string         label   = "Node";
 		NodeView*           view    = nullptr;
