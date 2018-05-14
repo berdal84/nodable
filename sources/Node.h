@@ -13,7 +13,7 @@
 namespace Nodable{
 
 	typedef std::map<std::string, Value*> Members;
-	typedef std::vector<Wire*>                Wires;
+	typedef std::vector<Wire*>            Wires;
 
 	/* Base class for all Nodes */
 	class Node{
@@ -23,21 +23,17 @@ namespace Nodable{
 
 		Node_Container*     getParent         ()const;
 		const Members&      getMembers        ()const;
-		Value*         getMember         (const std::string& _name)const;
-		Value*         getMember         (const char* _name)const;
+		Value*              getMember         (const std::string& _name)const;
+		Value*              getMember         (const char* _name)const;
 		const char*         getLabel          ()const;
 		NodeView*           getView           ()const;
-
-		void                addMember         (const char* _name, Type_ _type = Type_Unknown);
-		
+		void                addMember         (const char* _name, Type_ _type = Type_Unknown);		
 		template<typename T>
 		void                setMember         (const char* _name, T _value);
-
 		void                setParent         (Node_Container* _container);
 		virtual void        updateLabel       (){};
 		void                setLabel          (const char*);
 		void                setLabel          (std::string);
-
 		void                update            ();
 		virtual bool        eval              ();
 		void                addWire           (Wire*);
