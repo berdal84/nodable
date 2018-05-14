@@ -182,13 +182,6 @@ void Node_Lexer::tokenize()
 {
 	LOG_DBG("Node_Lexer::tokenize() - START\n");
 
-	if ( getMember("expression") == nullptr ||
-		getMember("expression") == nullptr ||
-		getMember("expression") == nullptr ||
-		getMember("expression") == nullptr
-		 )
-		return;
-
 	/* get expression chars */
 	std::string chars = getMember("expression")->getValueAsString();
 
