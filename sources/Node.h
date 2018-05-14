@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>               // for unique_ptr
 
 #define NODE_DEFAULT_INPUT_NAME "default"
 #define NODE_DEFAULT_OUTPUT_NAME "default"
@@ -48,7 +49,7 @@ namespace Nodable{
 		Members             members;
 		Node_Container*     parent  = nullptr;
 		std::string         label   = "Node";
-		NodeView*           view    = nullptr;
+		std::unique_ptr<NodeView> view;
 		bool                dirty   = false;
 		Wires               wires;
 	};

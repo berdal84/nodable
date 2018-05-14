@@ -26,7 +26,7 @@ void Node::Connect(	Node* _from,
 Node::Node()
 {
 	LOG_DBG("Node::Node()\n");
-	this->view    = new NodeView(this);
+	view = std::unique_ptr<NodeView>(new NodeView(this));
 }
 
 Node::~Node()
@@ -96,7 +96,7 @@ const char* Node::getLabel()const
 
 NodeView* Node::getView()const
 {
-	return this->view;
+	return this->view.get();
 }
 
 void Node::addWire(Wire* _wire)
@@ -159,7 +159,7 @@ void Node::update()
 			}
 		}
 
-		// the we evaluates this node
+		// then we evaluates this node
 		this->eval();
 		setDirty(false);
 	}

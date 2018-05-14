@@ -3,6 +3,7 @@
 #include "Nodable.h" /* Forward declarations and defines */
 #include "Node.h"    /* Base class */
 #include <string>
+#include <memory>    /* For unique_ptr */
 
 namespace Nodable
 {
@@ -23,9 +24,9 @@ namespace Nodable
 		Node_Container*  getContext()const;
 
 	private:
-		Node_Container*  ctx;
+		std::unique_ptr<Node_Container>  ctx;
 		Node_Variable*   lastString;
-		ApplicationView* view;
+		std::unique_ptr<ApplicationView> view;
 		bool             quit = false;
 	};
 }

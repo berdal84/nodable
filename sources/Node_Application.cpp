@@ -13,7 +13,7 @@ using namespace Nodable;
 
 Node_Application::Node_Application(const char* _name)
 {
-	view = new ApplicationView(_name, this);	
+	this->view = std::unique_ptr<ApplicationView>(new ApplicationView(_name, this));
 }
 
 Node_Application::~Node_Application()
@@ -23,15 +23,13 @@ Node_Application::~Node_Application()
 
 bool Node_Application::init()
 {
-	// Create a context	
-	this->ctx    = new Node_Container("Global");
-
+	this->ctx = std::unique_ptr<Node_Container>(new Node_Container("Global"));
 	return view->init();;
 }
 
 void Node_Application::clear()
 {
-	this->ctx->clear();
+	this->ctx.get()->clear();
 }
 
 bool Node_Application::update()
@@ -82,13 +80,11 @@ void Node_Application::shutdown()
 	LOG_MSG("Shutdown Nodable...\n");
 
 	// Free memory
-	delete this->ctx;
 	delete this->lastString;
-	delete this->view;
 }
 
 Node_Container* Node_Application::getContext()const
 {
-	return this->ctx;
+	return this->ctx.get();
 }
 
