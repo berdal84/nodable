@@ -4,8 +4,8 @@ Nodable is a simple node based program !
 ========================================
 [![Build Status](https://travis-ci.org/berdal84/Nodable.svg?branch=master)](https://travis-ci.org/berdal84/Nodable)
 
-This software is a command line prompt able to evaluate numerical expressions by constructing an execution tree in realtime.
-When user type an expression, the program split it into tokens, build the execution tree and evaluates it. Each nodes and its links are displayed with Dear ImGui (O. Cornut).
+This software is a command line prompt able to evaluate literal expressions by constructing an execution tree in realtime.
+When user type an expression the program split it into tokens and build the execution tree. Each frame each node is updated only if needed. The GUI uses the famous library *Dear ImGui* developed by Omar Cornut.
 
 Examples :
 ==========
@@ -30,9 +30,10 @@ Operands :
 An operand could be :
 
 - a Number (ex: 1, 0.5, 100.456, etc.)
+- a String (ex: "Hello", "World", etc.)
 - a Variable (ex: a, b, myVar, etc.)
 
-Operand -> Number | Variable
+Operand -> Number | String | Variable
 
 Operators:
 ==========
@@ -51,10 +52,35 @@ Platform compatibility :
 ------------------------
 Should work on all platforms but only tested under GNU/Linux Ubuntu 17.x (64bits)
 
-How to install ? :
+How to compile ? :
+------------------
+Install dependencies (optionnal):
+
+```
+sudo add-apt-repository -y ppa:team-xbmc/ppa
+sudo add-apt-repository -y ppa:pyglfw/pyglfw
+sudo apt-get update -qq
+sudo apt-get install -y --no-install-recommends libsdl2-dev gcc-4.8 g++-4.8 libusb-1.0-0-dev
+sudo apt-get install -y --no-install-recommends libglfw3-dev libxrandr-dev libxi-dev libxxf86vm-dev
+```
+Clone the project with submodules:
+```
+git clone --recurse-submodules https://github.com/berdal84/Nodable
+```
+
+Compile:
+```
+cd ./Nodable
+make
+```
+
+Run:
+```
+cd ./bin/linux64
+.nodable
+```
+
+How to run the software ? :
 ------------------------
-- clone the project `git clone https://github.com/berdal84/Nodable`
-- compile `make`
-- install `make install`
-- run `nodable`
+- move to bin/linux64/ and run `./nodable`
 
