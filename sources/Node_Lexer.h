@@ -6,7 +6,22 @@
 #include <utility>      // for std::pair
 
 namespace Nodable{
-	typedef std::pair<std::string, std::string> Token; // TODO convert this to conventionnal Node_Variable
+	/* This enum identifies each kind of Token the lexer can handle */
+	enum TokenType_
+	{
+		TokenType_String   = 0,
+		TokenType_Number   = 1,
+		TokenType_Symbol   = 2,
+		TokenType_Operator = 3,
+		TokenType_Unknown  = 4
+	};
+
+	typedef struct
+	{
+		TokenType_  type      = TokenType_Unknown; // the type of the token
+		std::string word      = "";                // the word as a string
+		size_t      charIndex = 0;                 // the index of the first character of the token in the evaluated expression.
+	}Token;
 
 	class Node_Lexer : public Node
 	{
@@ -20,7 +35,7 @@ namespace Nodable{
 		bool           isSyntaxValid	   ();
 		Node_Variable* buildGraph          ();
 		Node_Variable* convertTokenToNode  (Token token);
-		void           addToken			   (std::string _category, std::string _string);
+		void           addToken			   (TokenType_ _type, std::string _string, size_t _charIndex);
 		std::vector<Token> tokens;
 	};
 }

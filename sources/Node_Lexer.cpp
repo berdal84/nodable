@@ -36,7 +36,7 @@ bool Node_Lexer::eval()
 
 	LOG_DBG("Node_Lexer::eval() - tokenize\n");
 	tokenize();
-	LOG_DBG("Node_Lexer::eval() - cehck syntax\n");
+	LOG_DBG("Node_Lexer::eval() - check syntax\n");
 	if ( isSyntaxValid() )
 	{
 		LOG_DBG("Node_Lexer::eval() - build tree and eval\n");
@@ -54,27 +54,36 @@ bool Node_Lexer::eval()
 
 Node_Variable* Node_Lexer::convertTokenToNode(Token token)
 {
-	Node_Container* context = this->getParent();
-	Node_Variable* variable = nullptr;
+	Node_Container* context         = this->getParent();
+	Node_Variable*  variable        = nullptr;
 
-	// If it is a symbol 
-	if (token.first == "symbol"){
-		variable = context->find(token.second.c_str());
-		// If symbol not already exists, we create it (points to nullptr)
-		if ( variable == nullptr )
-			variable = context->createNodeVariable(token.second.c_str());
+	auto            tokenWordString = token.word.c_str();
 
-	// If it is a number
-	}else if ( token.first == "number"){
-		variable = context->createNodeVariable();
-		variable->setValue(std::stod(token.second.c_str()));
+	switch ( token.type )
+	{
+		case TokenType_Symbol:
+		{
+			variable = context->find(tokenWordString);
 
-	// If it is a string
-	}else if ( token.first == "string"){
-		variable = context->createNodeVariable();
-		variable->setValue(token.second.c_str());
+			if ( variable == nullptr )
+				variable = context->createNodeVariable(tokenWordString);
+
+			break;
+		}
+
+		case TokenType_Number:{
+			variable = context->createNodeVariable(); // That could be strange to store a constant into a variable. But A node number could be modified via the GUI.
+			variable->setValue(std::stod(tokenWordString));
+			break;
+		}
+
+		case TokenType_String:{
+			variable = context->createNodeVariable();
+			variable->setValue(tokenWordString);	
+			break;
+		}
+		default:{}
 	}
-
 	return variable;
 }
 
@@ -107,17 +116,21 @@ void Node_Lexer::buildGraphRec(size_t _tokenIndex, Node_Variable* _finalRes, Nod
 
 	/* number, op, expr */
 	}else if  (tokenLeft == 3){
-		std::string op = tokens[_tokenIndex+1].second;
-		right 	= convertTokenToNode(tokens[_tokenIndex+2]);
-		buildGraphRec(_tokenIndex+2, right, nullptr);		
+		std::string op = tokens[++_tokenIndex].word;
+
+		right 	       = convertTokenToNode(tokens[++_tokenIndex]);
+		buildGraphRec(_tokenIndex, right, nullptr);		
 		context->createNodeBinaryOperation(op, left, right, _finalRes);
 
 	/* number, op, number, op, expr */
 	}else if  (tokenLeft >= 4)
 	{	
-		std::string op     = tokens[_tokenIndex+1].second;		
-		std::string nextOp = tokens[_tokenIndex+3].second;	
-		right 	= convertTokenToNode(tokens[_tokenIndex+2]);
+		std::string op     = tokens[++_tokenIndex].word;
+		right 	           = convertTokenToNode(tokens[++_tokenIndex]);
+		
+		// peek the next operator
+		std::string nextOp = tokens[_tokenIndex+1].word;	
+
 
 		/* if currOperator is more important than nextOperator
 		   we perform the first operation and send the result as left operand to the next expression */
@@ -129,12 +142,12 @@ void Node_Lexer::buildGraphRec(size_t _tokenIndex, Node_Variable* _finalRes, Nod
 			context->createNodeBinaryOperation(op, left, right, result);
 
 			// Pass the result and build the next operations
-			buildGraphRec(_tokenIndex+2, _finalRes, result);	
+			buildGraphRec(_tokenIndex, _finalRes, result);	
 
 		/* Else, we evaluate the next expression and then perform the operation with 
 		the result of the next expresssion as right operand */
 		}else{
-			buildGraphRec(_tokenIndex+2, result, nullptr);		
+			buildGraphRec(_tokenIndex, result, nullptr);		
 			context->createNodeBinaryOperation( op, left, result, _finalRes);	
 		}
 	}
@@ -156,20 +169,16 @@ bool Node_Lexer::isSyntaxValid()
 	bool success = true;	
 	LOG_DBG("Node_Lexer::isSyntaxValid() - START\n");
 
-
+	// only support even count token
 	if(!( tokens.size()%2 == 1))
 	{
+		// with an alternance of Number|Symbol / Operator / Number|Symbol / etc.
 		for(size_t i = 0; i < tokens.size(); i=i+2){
-			if ( !(tokens[i].first == "number" ||
-				 tokens[i].first == "symbol"))
+			if ( !(tokens[i].type == TokenType_Number || tokens[i].type == TokenType_Symbol))
+				success = false;
+			if ( tokens[i+1].type != TokenType_Operator)
 				success = false;
 		}
-		for(size_t i = 1; i < tokens.size(); i=i+2){
-			if ( tokens[i].first != "operator")
-				success = false;
-		}
-		LOG_MSG("The only syntax accepted is \"number\", \"operator\", \"number\", etc... \n");
-		success = false;
 	}
 
 	if(!success)
@@ -196,7 +205,7 @@ void Node_Lexer::tokenize()
 		 /* Search for a number */
 		/////////////////////////
 
-				if( numbers.find(*it) != std::string::npos )
+		if( numbers.find(*it) != std::string::npos )
 		{
 
 			auto itStart = it;
@@ -208,7 +217,7 @@ void Node_Lexer::tokenize()
 			--it;
 
 			std::string number = chars.substr(itStart - chars.begin(), it - itStart + 1);
-			addToken("number", number);
+			addToken(TokenType_Number, number, std::distance(chars.begin(), itStart) );
 		 /* Search for a string */
 		/////////////////////////
 
@@ -222,7 +231,7 @@ void Node_Lexer::tokenize()
 			}
 
 			std::string str = chars.substr(itStart - chars.begin(), it - itStart);
-			addToken("string", str);
+			addToken(TokenType_String, str, std::distance(chars.begin(), itStart));
 
 		 /* Search for a symbol */
 		/////////////////////////
@@ -238,7 +247,7 @@ void Node_Lexer::tokenize()
 			--it;
 
 			std::string str = chars.substr(itStart - chars.begin(), it - itStart + 1);
-			addToken("symbol", str);
+			addToken(TokenType_Symbol, str, std::distance(chars.begin(), itStart));
 
 		 /* Search for an operator */
 		////////////////////////////
@@ -246,15 +255,18 @@ void Node_Lexer::tokenize()
 		}else 	if(operators.find(*it) != std::string::npos)
 		{
 			std::string str = chars.substr(it - chars.begin(), 1);
-			addToken("operator", str);
+			addToken(TokenType_Operator, str, std::distance(chars.begin(), it));
 		}		
 	}
 	LOG_DBG("Node_Lexer::tokenize() - DONE !\n");
 }
 
-void Node_Lexer::addToken(std::string _category, std::string _string)
+void Node_Lexer::addToken(TokenType_  _type, std::string _string, size_t _charIndex)
 {
-	Token t(_category, _string);
-	LOG_DBG("Node_Lexer::addToken() - %-10s => \"%s\" \n", ("\"" + _category + "\"").c_str(), _string.c_str() );
+	Token t;
+	t.type      = _type;
+	t.word      = _string;
+	t.charIndex = _charIndex;
+
 	tokens.push_back(t);
 }

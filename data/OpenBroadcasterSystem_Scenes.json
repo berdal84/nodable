@@ -1,0 +1,1173 @@
+{
+    "current_program_scene": "Conclusion",
+    "current_scene": "Conclusion",
+    "current_transition": "Fondu",
+    "modules": {
+        "auto-scene-switcher": {
+            "active": false,
+            "interval": 300,
+            "non_matching_scene": "",
+            "switch_if_not_matching": false,
+            "switches": []
+        },
+        "output-timer": {
+            "autoStartRecordTimer": false,
+            "autoStartStreamTimer": false,
+            "recordTimerHours": 0,
+            "recordTimerMinutes": 0,
+            "recordTimerSeconds": 30,
+            "streamTimerHours": 0,
+            "streamTimerMinutes": 0,
+            "streamTimerSeconds": 30
+        },
+        "scripts-tool": []
+    },
+    "name": "Nodable",
+    "preview_locked": false,
+    "quick_transitions": [
+        {
+            "duration": 300,
+            "hotkeys": [],
+            "id": 3,
+            "name": "Coupure"
+        },
+        {
+            "duration": 300,
+            "hotkeys": [],
+            "id": 4,
+            "name": "Fondu"
+        }
+    ],
+    "saved_multiview_projectors": [
+        {
+            "saved_multiview_projectors": 0
+        },
+        {
+            "saved_multiview_projectors": 0
+        },
+        {
+            "saved_multiview_projectors": 0
+        },
+        {
+            "saved_multiview_projectors": 0
+        },
+        {
+            "saved_multiview_projectors": 0
+        },
+        {
+            "saved_multiview_projectors": 0
+        },
+        {
+            "saved_multiview_projectors": 0
+        },
+        {
+            "saved_multiview_projectors": 0
+        },
+        {
+            "saved_multiview_projectors": 0
+        },
+        {
+            "saved_multiview_projectors": 0
+        }
+    ],
+    "saved_preview_projectors": [
+        {
+            "saved_preview_projectors": 0
+        },
+        {
+            "saved_preview_projectors": 0
+        },
+        {
+            "saved_preview_projectors": 0
+        },
+        {
+            "saved_preview_projectors": 0
+        },
+        {
+            "saved_preview_projectors": 0
+        },
+        {
+            "saved_preview_projectors": 0
+        },
+        {
+            "saved_preview_projectors": 0
+        },
+        {
+            "saved_preview_projectors": 0
+        },
+        {
+            "saved_preview_projectors": 0
+        },
+        {
+            "saved_preview_projectors": 0
+        }
+    ],
+    "saved_projectors": [
+        {
+            "saved_projectors": ""
+        },
+        {
+            "saved_projectors": ""
+        },
+        {
+            "saved_projectors": ""
+        },
+        {
+            "saved_projectors": ""
+        },
+        {
+            "saved_projectors": ""
+        },
+        {
+            "saved_projectors": ""
+        },
+        {
+            "saved_projectors": ""
+        },
+        {
+            "saved_projectors": ""
+        },
+        {
+            "saved_projectors": ""
+        },
+        {
+            "saved_projectors": ""
+        }
+    ],
+    "saved_studio_preview_projectors": [
+        {
+            "saved_studio_preview_projectors": 0
+        },
+        {
+            "saved_studio_preview_projectors": 0
+        },
+        {
+            "saved_studio_preview_projectors": 0
+        },
+        {
+            "saved_studio_preview_projectors": 0
+        },
+        {
+            "saved_studio_preview_projectors": 0
+        },
+        {
+            "saved_studio_preview_projectors": 0
+        },
+        {
+            "saved_studio_preview_projectors": 0
+        },
+        {
+            "saved_studio_preview_projectors": 0
+        },
+        {
+            "saved_studio_preview_projectors": 0
+        },
+        {
+            "saved_studio_preview_projectors": 0
+        }
+    ],
+    "scaling_enabled": false,
+    "scaling_level": 0,
+    "scaling_off_x": 0.0,
+    "scaling_off_y": 0.0,
+    "scene_order": [
+        {
+            "name": "Introduction"
+        },
+        {
+            "name": "Fenêtre de Nodable"
+        },
+        {
+            "name": "Conclusion"
+        }
+    ],
+    "sources": [
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {},
+            "id": "text_ft2_source",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Sous-Titre 3",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "color1": 4281874488,
+                "color2": 4278190080,
+                "drop_shadow": false,
+                "font": {
+                    "face": "Ubuntu",
+                    "flags": 0,
+                    "size": 72,
+                    "style": "Regular"
+                },
+                "text": "Thanks !"
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {
+                "OBSBasic.SelectScene": [],
+                "libobs.hide_scene_item.Audio webcam": [],
+                "libobs.hide_scene_item.Logo": [],
+                "libobs.hide_scene_item.Logo_Berenger": [],
+                "libobs.hide_scene_item.Source de couleur": [],
+                "libobs.hide_scene_item.Sous-Titre": [],
+                "libobs.hide_scene_item.Sous-Titre 2": [],
+                "libobs.hide_scene_item.Sous-Titre 2 2": [],
+                "libobs.hide_scene_item.Sous-Titre 3": [],
+                "libobs.show_scene_item.Audio webcam": [],
+                "libobs.show_scene_item.Logo": [],
+                "libobs.show_scene_item.Logo_Berenger": [],
+                "libobs.show_scene_item.Source de couleur": [],
+                "libobs.show_scene_item.Sous-Titre": [],
+                "libobs.show_scene_item.Sous-Titre 2": [],
+                "libobs.show_scene_item.Sous-Titre 2 2": [],
+                "libobs.show_scene_item.Sous-Titre 3": []
+            },
+            "id": "scene",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Conclusion",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "id_counter": 10,
+                "items": [
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 1,
+                        "locked": false,
+                        "name": "Source de couleur",
+                        "pos": {
+                            "x": 0.0,
+                            "y": 1.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 3.2300000190734863,
+                            "y": 3.2300000190734863
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 2,
+                        "locked": false,
+                        "name": "Logo",
+                        "pos": {
+                            "x": 356.0,
+                            "y": 201.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.64801865816116333,
+                            "y": 0.64804470539093018
+                        },
+                        "scale_filter": "lanczos",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 5,
+                        "locked": false,
+                        "name": "Logo_Berenger",
+                        "pos": {
+                            "x": 706.0,
+                            "y": 379.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.6748046875,
+                            "y": 0.6748046875
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 6,
+                        "locked": false,
+                        "name": "Logo_Berenger",
+                        "pos": {
+                            "x": -310.0,
+                            "y": 29.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.6748046875,
+                            "y": 0.6748046875
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 7,
+                        "locked": false,
+                        "name": "Logo_Berenger",
+                        "pos": {
+                            "x": 608.0,
+                            "y": -471.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.6748046875,
+                            "y": 0.6748046875
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 8,
+                        "locked": false,
+                        "name": "Sous-Titre 2 2",
+                        "pos": {
+                            "x": 5.0,
+                            "y": 701.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.56476682424545288,
+                            "y": 0.56521737575531006
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 9,
+                        "locked": false,
+                        "name": "Audio webcam",
+                        "pos": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 10,
+                        "locked": false,
+                        "name": "Sous-Titre 3",
+                        "pos": {
+                            "x": 417.0,
+                            "y": 475.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.50854700803756714,
+                            "y": 0.50724637508392334
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    }
+                ]
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "filters": [
+                {
+                    "deinterlace_field_order": 0,
+                    "deinterlace_mode": 0,
+                    "enabled": true,
+                    "flags": 0,
+                    "hotkeys": {},
+                    "id": "color_filter",
+                    "mixers": 0,
+                    "monitoring_type": 0,
+                    "muted": false,
+                    "name": "Corrections colorimétrique",
+                    "private_settings": {},
+                    "push-to-mute": false,
+                    "push-to-mute-delay": 0,
+                    "push-to-talk": false,
+                    "push-to-talk-delay": 0,
+                    "settings": {
+                        "opacity": 22
+                    },
+                    "sync": 0,
+                    "volume": 1.0
+                }
+            ],
+            "flags": 0,
+            "hotkeys": {},
+            "id": "image_source",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Logo 2",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "file": "/home/berdal84/Nodable/data/icon.png"
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {
+                "libobs.mute": [],
+                "libobs.push-to-mute": [],
+                "libobs.push-to-talk": [],
+                "libobs.unmute": []
+            },
+            "id": "alsa_input_capture",
+            "mixers": 255,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Audio webcam",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "device_id": "front:CARD=U0x46d0x825,DEV=0"
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {},
+            "id": "text_ft2_source",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Sous-Titre 2 2",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "color1": 4281874488,
+                "color2": 4278190080,
+                "drop_shadow": false,
+                "font": {
+                    "face": "Ubuntu",
+                    "flags": 0,
+                    "size": 24,
+                    "style": "Regular"
+                },
+                "text": "www.dalle-cort.fr"
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "filters": [
+                {
+                    "deinterlace_field_order": 0,
+                    "deinterlace_mode": 0,
+                    "enabled": true,
+                    "flags": 0,
+                    "hotkeys": {},
+                    "id": "color_filter",
+                    "mixers": 0,
+                    "monitoring_type": 0,
+                    "muted": false,
+                    "name": "Corrections colorimétrique",
+                    "private_settings": {},
+                    "push-to-mute": false,
+                    "push-to-mute-delay": 0,
+                    "push-to-talk": false,
+                    "push-to-talk-delay": 0,
+                    "settings": {
+                        "brightness": -0.0,
+                        "opacity": 18,
+                        "saturation": -1.0
+                    },
+                    "sync": 0,
+                    "volume": 1.0
+                }
+            ],
+            "flags": 0,
+            "hotkeys": {},
+            "id": "image_source",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Logo_Berenger",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "file": "/media/berdal84/Sauvegarde/hubiC/Entreprise Individuelle/Communication/Logo_2009_1024x1024_Final.png"
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {},
+            "id": "text_ft2_source",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Sous-Titre 2",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "color1": 4281874488,
+                "color2": 4278190080,
+                "drop_shadow": false,
+                "font": {
+                    "face": "Ubuntu",
+                    "flags": 0,
+                    "size": 24,
+                    "style": "Regular"
+                },
+                "text": "by Bérenger Dalle-Cort, 2018 May 15th"
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {},
+            "id": "text_ft2_source",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Sous-Titre",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "color1": 4281874488,
+                "color2": 4278190080,
+                "drop_shadow": false,
+                "font": {
+                    "face": "Ubuntu",
+                    "flags": 0,
+                    "size": 72,
+                    "style": "Regular"
+                },
+                "text": "A node-able software"
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {},
+            "id": "image_source",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Logo",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "file": "/home/berdal84/Nodable/data/icon.png"
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {},
+            "id": "color_source",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Source de couleur",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "color": 4289374890
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {
+                "OBSBasic.SelectScene": [],
+                "libobs.hide_scene_item.Audio webcam": [],
+                "libobs.hide_scene_item.Logo": [],
+                "libobs.hide_scene_item.Logo_Berenger": [],
+                "libobs.hide_scene_item.Source de couleur": [],
+                "libobs.hide_scene_item.Sous-Titre": [],
+                "libobs.hide_scene_item.Sous-Titre 2": [],
+                "libobs.hide_scene_item.Sous-Titre 2 2": [],
+                "libobs.show_scene_item.Audio webcam": [],
+                "libobs.show_scene_item.Logo": [],
+                "libobs.show_scene_item.Logo_Berenger": [],
+                "libobs.show_scene_item.Source de couleur": [],
+                "libobs.show_scene_item.Sous-Titre": [],
+                "libobs.show_scene_item.Sous-Titre 2": [],
+                "libobs.show_scene_item.Sous-Titre 2 2": []
+            },
+            "id": "scene",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Introduction",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "id_counter": 9,
+                "items": [
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 1,
+                        "locked": false,
+                        "name": "Source de couleur",
+                        "pos": {
+                            "x": 0.0,
+                            "y": 1.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 3.2300000190734863,
+                            "y": 3.2300000190734863
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 2,
+                        "locked": false,
+                        "name": "Logo",
+                        "pos": {
+                            "x": 356.0,
+                            "y": 201.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.64801865816116333,
+                            "y": 0.64804470539093018
+                        },
+                        "scale_filter": "lanczos",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 3,
+                        "locked": false,
+                        "name": "Sous-Titre",
+                        "pos": {
+                            "x": 471.0,
+                            "y": 422.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.50854700803756714,
+                            "y": 0.50724637508392334
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 4,
+                        "locked": false,
+                        "name": "Sous-Titre 2",
+                        "pos": {
+                            "x": 625.0,
+                            "y": 462.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.47385621070861816,
+                            "y": 0.48148149251937866
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 5,
+                        "locked": false,
+                        "name": "Logo_Berenger",
+                        "pos": {
+                            "x": 706.0,
+                            "y": 379.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.6748046875,
+                            "y": 0.6748046875
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 6,
+                        "locked": false,
+                        "name": "Logo_Berenger",
+                        "pos": {
+                            "x": -310.0,
+                            "y": 29.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.6748046875,
+                            "y": 0.6748046875
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 7,
+                        "locked": false,
+                        "name": "Logo_Berenger",
+                        "pos": {
+                            "x": 608.0,
+                            "y": -471.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.6748046875,
+                            "y": 0.6748046875
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 8,
+                        "locked": false,
+                        "name": "Sous-Titre 2 2",
+                        "pos": {
+                            "x": 5.0,
+                            "y": 701.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.56476682424545288,
+                            "y": 0.56521737575531006
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 9,
+                        "locked": false,
+                        "name": "Audio webcam",
+                        "pos": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    }
+                ]
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {},
+            "id": "xcomposite_input",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Capture de la fenêtre (Xcomposite)",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "capture_window": "41943045\r\nNodable\r\nnodable"
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {
+                "OBSBasic.SelectScene": [],
+                "libobs.hide_scene_item.Audio webcam": [],
+                "libobs.hide_scene_item.Capture de la fenêtre (Xcomposite)": [],
+                "libobs.hide_scene_item.Logo 2": [],
+                "libobs.show_scene_item.Audio webcam": [],
+                "libobs.show_scene_item.Capture de la fenêtre (Xcomposite)": [],
+                "libobs.show_scene_item.Logo 2": []
+            },
+            "id": "scene",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
+            "name": "Fenêtre de Nodable",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "id_counter": 5,
+                "items": [
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 3,
+                        "locked": false,
+                        "name": "Capture de la fenêtre (Xcomposite)",
+                        "pos": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 4,
+                        "locked": false,
+                        "name": "Audio webcam",
+                        "pos": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 5,
+                        "locked": false,
+                        "name": "Logo 2",
+                        "pos": {
+                            "x": 973.0,
+                            "y": 586.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.32634031772613525,
+                            "y": 0.32681563496589661
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    }
+                ]
+            },
+            "sync": 0,
+            "volume": 1.0
+        }
+    ],
+    "transition_duration": 300,
+    "transitions": []
+}
