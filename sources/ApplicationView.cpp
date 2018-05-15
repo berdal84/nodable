@@ -20,19 +20,20 @@ ApplicationView::ApplicationView(const char* _name, Node_Application* _applicati
 
 ApplicationView::~ApplicationView()
 {
-	ImGui_ImplSdlGL3_Shutdown ();
-    SDL_GL_DeleteContext      (glcontext);
-    SDL_DestroyWindow         (window);
-    SDL_Quit                  ();
+    ImGui_ImplSdlGL3_Shutdown();
+    ImGui::DestroyContext    ();
+    SDL_GL_DeleteContext     (glcontext);
+    SDL_DestroyWindow        (window);
+    SDL_Quit                 ();
 }
 
 bool ApplicationView::init()
 {
-    // Setup SDL
+	    // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
         printf("Error: %s\n", SDL_GetError());
-        return false;
+        return -1;
     }
 
     // Setup window
@@ -45,17 +46,24 @@ bool ApplicationView::init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
-
+    window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
     glcontext = SDL_GL_CreateContext(window);
+    SDL_GL_SetSwapInterval(1); // Enable vsync
     gl3wInit();
 
-    // Setup ImGui binding
+    // Setup Dear ImGui binding
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     ImGui_ImplSdlGL3_Init(window);
+
+    // Setup style
+    //ImGui::StyleColorsDark();
+    ImGui::StyleColorsClassic();
 
     // Load Fonts
     // (there is a default font, this is only if you want to change it. see extra_fonts/README.txt for more details)
-    ImGuiIO& io           = ImGui::GetIO();
     ImFontConfig config;
     config.OversampleH    = 4;
     config.OversampleV    = 4;
@@ -83,7 +91,6 @@ bool ApplicationView::init()
 	style.Colors[ImGuiCol_ScrollbarGrab]         = ImVec4(0.61f, 0.61f, 0.62f, 1.00f);
 	style.Colors[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
 	style.Colors[ImGuiCol_ScrollbarGrabActive]   = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
-	style.Colors[ImGuiCol_ComboBg]               = ImVec4(0.65f, 0.65f, 0.65f, 0.99f);
 	style.Colors[ImGuiCol_CheckMark]             = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
 	style.Colors[ImGuiCol_SliderGrab]            = ImVec4(0.71f, 0.46f, 0.22f, 0.63f);
 	style.Colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.71f, 0.46f, 0.22f, 1.00f);
@@ -99,9 +106,6 @@ bool ApplicationView::init()
 	style.Colors[ImGuiCol_ResizeGrip]            = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
 	style.Colors[ImGuiCol_ResizeGripHovered]     = ImVec4(1.00f, 1.00f, 1.00f, 0.60f);
 	style.Colors[ImGuiCol_ResizeGripActive]      = ImVec4(1.00f, 1.00f, 1.00f, 0.90f);
-	style.Colors[ImGuiCol_CloseButton]           = ImVec4(0.44f, 0.44f, 0.44f, 1.00f);
-	style.Colors[ImGuiCol_CloseButtonHovered]    = ImVec4(0.75f, 0.75f, 0.75f, 1.00f);
-	style.Colors[ImGuiCol_CloseButtonActive]     = ImVec4(0.89f, 0.89f, 0.89f, 1.00f);
 	style.Colors[ImGuiCol_PlotLines]             = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 	style.Colors[ImGuiCol_PlotLinesHovered]      = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
 	style.Colors[ImGuiCol_PlotHistogram]         = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
@@ -110,7 +114,7 @@ bool ApplicationView::init()
 	style.Colors[ImGuiCol_ModalWindowDarkening]  = ImVec4(0.20f, 0.20f, 0.20f, 0.55f);
 
 	style.FrameRounding      = 3.0f;
-	style.AntiAliasedShapes  = true;
+	style.AntiAliasedFill    = true;
 	style.AntiAliasedLines   = true;
 
 	return true;
@@ -127,9 +131,6 @@ void ApplicationView::draw()
     }
     ImGui_ImplSdlGL3_NewFrame(window);
 
-    // 1. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-    //ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
-    //ImGui::ShowTestWindow(&show_test_window);
 
     if( ImGui::BeginMainMenuBar())
     {
@@ -189,7 +190,7 @@ void ApplicationView::draw()
     {
 	    bool isCommandLineVisible = true;
 
-	    if(ImGui::Begin("Nodable command line", &isCommandLineVisible, ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_AlwaysAutoResize))
+	    if(ImGui::Begin("Nodable command line", &isCommandLineVisible, ImGuiWindowFlags_AlwaysAutoResize))
 	    {
 		    
 		    ImGui::Text("Type an expression, the program will create the graph in realtime :");
@@ -197,7 +198,7 @@ void ApplicationView::draw()
 		    // Draw the input text field :
 		    static char inputTextBuffer[1024];
 		    static bool isExpressionValid = true;
-		    ImColor textColor = isExpressionValid ? ImColor(0.0f, 0.0f, 0.0f) : ImColor(0.9f, 0.0f, 0.0f);
+		    auto textColor = isExpressionValid ? ImVec4(0.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.9f, 0.0f, 0.0f,1.0f);
 		    ImGui::PushStyleColor(ImGuiCol_Text,textColor );
 		    static bool setKeyboardFocusOnCommandLine = true;
 		    if ( setKeyboardFocusOnCommandLine){
@@ -227,7 +228,7 @@ void ApplicationView::draw()
     // Properties panel window
     {
 	    bool isPropertiesPanelVisible = true;
-	    if (ImGui::Begin("Properties", &isPropertiesPanelVisible,ImGuiWindowFlags_ShowBorders))
+	    if (ImGui::Begin("Properties", &isPropertiesPanelVisible))
 	    {    	
 
 		    ImGui::Text("Bezier curves");
@@ -246,17 +247,23 @@ void ApplicationView::draw()
 		SDL_GetWindowSize(window, &width, &height);
 		ImGui::SetNextWindowPos(ImVec2());
 		ImGui::SetNextWindowSize(ImVec2(width, height));
-		ImGui::Begin("Container", NULL, ImVec2(width,height), -1.0f, ImGuiWindowFlags_NoResize |ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
+		ImGui::Begin("Container", NULL, ImVec2(width,height), -1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
 			application->getContext()->draw();
 		}
 		ImGui::End();
 	}
+    
+    // Demo Window
+    //ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+    //bool show_demo_window = false;
+    //ImGui::ShowDemoWindow(&show_demo_window);
 
     // Rendering
     glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
-    ImGui::Render();
+ 	ImGui::Render();
+    ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(window);
 }

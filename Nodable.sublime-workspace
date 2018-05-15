@@ -236,136 +236,44 @@
 	"buffers":
 	[
 		{
-			"file": "sources/Node_Lexer.h",
+			"file": "sources/ApplicationView.cpp",
 			"settings":
 			{
-				"buffer_size": 836,
+				"buffer_size": 10664,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "sources/Value.h",
+			"file": "libs/imgui/imgui.h",
 			"settings":
 			{
-				"buffer_size": 1143,
+				"buffer_size": 177704,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "libs/imgui/examples/sdl_opengl3_example/main.cpp",
+			"settings":
+			{
+				"buffer_size": 7004,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.cpp",
+			"settings":
+			{
+				"buffer_size": 24910,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "sources/Node_Variable.cpp",
+			"file": "sources/Node_Application.cpp",
 			"settings":
 			{
-				"buffer_size": 1046,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "sources/Node_Variable.h",
-			"settings":
-			{
-				"buffer_size": 1085,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "sources/Nodable.h",
-			"settings":
-			{
-				"buffer_size": 1656,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "sources/Node.h",
-			"settings":
-			{
-				"buffer_size": 2482,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "sources/Node.cpp",
-			"settings":
-			{
-				"buffer_size": 2955,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "sources/Node_Container.cpp",
-			"settings":
-			{
-				"buffer_size": 5730,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/usr/include/c++/5/bits/stl_vector.h",
-			"settings":
-			{
-				"buffer_size": 53668,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "sources/NodeView.cpp",
-			"settings":
-			{
-				"buffer_size": 8538,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "README.md",
-			"settings":
-			{
-				"buffer_size": 2592,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "sources/Node_BinaryOperations.h",
-			"settings":
-			{
-				"buffer_size": 1605,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "sources/Node_BinaryOperations.cpp",
-			"settings":
-			{
-				"buffer_size": 4792,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "sources/Node_Lexer.cpp",
-			"settings":
-			{
-				"buffer_size": 6854,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "sources/Value.cpp",
-			"settings":
-			{
-				"buffer_size": 1991,
-				"encoding": "UTF-8",
+				"buffer_size": 2001,
 				"line_ending": "Unix"
 			}
 		}
@@ -472,45 +380,48 @@
 	"expanded_folders":
 	[
 		"/home/berdal84/Nodable",
-		"/home/berdal84/Nodable/build",
-		"/home/berdal84/Nodable/build/linux64",
+		"/home/berdal84/Nodable/libs",
+		"/home/berdal84/Nodable/libs/imgui",
+		"/home/berdal84/Nodable/libs/imgui/examples",
 		"/home/berdal84/Nodable/sources"
 	],
 	"file_history":
 	[
+		"/home/berdal84/Nodable/sources/NodeView.cpp",
+		"/home/berdal84/Nodable/libs/imgui/imgui.h",
+		"/home/berdal84/Nodable/sources/Node.h",
+		"/home/berdal84/Nodable/sources/Node.cpp",
+		"/home/berdal84/Nodable/sources/Node_Application.h",
+		"/home/berdal84/Nodable/sources/Node_Application.cpp",
+		"/home/berdal84/Nodable/sources/Node_Container.h",
+		"/home/berdal84/Nodable/sources/Node_Lexer.cpp",
+		"/home/berdal84/Nodable/sources/Node_Container.cpp",
+		"/home/berdal84/Nodable/sources/Node_Lexer.h",
+		"/home/berdal84/Nodable/sources/Value.h",
+		"/home/berdal84/Nodable/sources/Node_Variable.cpp",
+		"/home/berdal84/Nodable/sources/Node_Variable.h",
+		"/home/berdal84/Nodable/sources/Nodable.h",
+		"/usr/include/c++/5/bits/stl_vector.h",
+		"/home/berdal84/Nodable/README.md",
+		"/home/berdal84/Nodable/sources/Node_BinaryOperations.h",
+		"/home/berdal84/Nodable/sources/Node_BinaryOperations.cpp",
+		"/home/berdal84/Nodable/sources/Value.cpp",
 		"/home/berdal84/Nodable/build/linux64/ApplicationView.d",
 		"/home/berdal84/Nodable/sources/Wire.cpp",
-		"/home/berdal84/Nodable/sources/NodeView.cpp",
 		"/home/berdal84/Nodable/sources/ApplicationView.cpp",
-		"/home/berdal84/Nodable/sources/Node.cpp",
-		"/home/berdal84/Nodable/sources/Node_Application.cpp",
-		"/home/berdal84/Nodable/sources/Node_Application.h",
-		"/home/berdal84/Nodable/sources/Node_BinaryOperations.cpp",
-		"/home/berdal84/Nodable/sources/Node_BinaryOperations.h",
-		"/home/berdal84/Nodable/sources/Node_Lexer.cpp",
-		"/home/berdal84/Nodable/sources/Node.h",
 		"/build/glibc-Cl5G7W/glibc-2.23/sysdeps/unix/sysv/linux/raise.c",
 		"/home/berdal84/Nodable/libs/imgui/imgui.cpp",
-		"/home/berdal84/Nodable/sources/Node_Lexer.h",
-		"/usr/include/c++/5/bits/stl_vector.h",
 		"/home/berdal84/Nodable/sources/Node_Value.cpp",
 		"/home/berdal84/Nodable/sources/Wire.h",
-		"/home/berdal84/Nodable/sources/Node_Variable.h",
-		"/home/berdal84/Nodable/sources/Node_Variable.cpp",
-		"/home/berdal84/Nodable/sources/Node_Container.cpp",
 		"/home/berdal84/Nodable/sources/Node_Value.h",
-		"/home/berdal84/Nodable/README.md",
 		"/home/berdal84/Nodable/sources/WireView.cpp",
 		"/home/berdal84/Nodable/sources/NodeView.h",
 		"/home/berdal84/Nodable/sources/View.h",
 		"/home/berdal84/Nodable/sources/View.cpp",
 		"/home/berdal84/Nodable/sources/Nodable.cpp",
-		"/home/berdal84/Nodable/libs/imgui/imgui.h",
 		"/home/berdal84/.config/sublime-text-3/Packages/CppFastOlympicCoding/FastOlympicCoding (Linux).sublime-settings",
 		"/home/berdal84/Nodable/libs/imgui/imgui_demo.cpp",
 		"/home/berdal84/Nodable/libs/imgui/imgui_draw.cpp",
-		"/home/berdal84/Nodable/sources/Node_Container.h",
-		"/home/berdal84/Nodable/sources/Nodable.h",
 		"/home/berdal84/Nodable/sources/Node_String.cpp",
 		"/home/berdal84/Nodable/sources/Node_Number.cpp",
 		"/usr/include/c++/5/bits/stl_iterator.h",
@@ -586,9 +497,14 @@
 	},
 	"find_state":
 	{
-		"case_sensitive": true,
+		"case_sensitive": false,
 		"find_history":
 		[
+			"Breaking Changes",
+			"BreakingChanges",
+			"ImGuiCol_",
+			"ImGuiCol",
+			"ImGuiCol_COUNT",
 			"Node_Value",
 			"evaluate(",
 			"getMember(\"result\").",
@@ -714,457 +630,159 @@
 	"groups":
 	[
 		{
-			"selected": 10,
+			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "sources/Node_Lexer.h",
+					"file": "sources/ApplicationView.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 836,
+						"buffer_size": 10664,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								834,
-								834
+								6009,
+								6009
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 24,
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
+							"function_name_status_row": 133,
+							"syntax": "Packages/C++/C++.sublime-syntax"
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 11,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "sources/Value.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1143,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								400,
-								400
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 22,
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 6,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "sources/Node_Variable.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1046,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								275,
-								275
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 19,
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "sources/Node_Variable.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1085,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								332,
-								332
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 14,
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 45.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "sources/Nodable.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1656,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1313,
-								1313
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 59,
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 585.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "sources/Node.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2482,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2287,
-								2287
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 65,
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 675.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 9,
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "sources/Node.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2955,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1112,
-								1112
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 47,
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 421.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 10,
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "sources/Node_Container.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 5730,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								841,
-								841
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 46,
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 495.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 12,
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "/usr/include/c++/5/bits/stl_vector.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 53668,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								18880,
-								18880
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 546,
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 7943.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 14,
-					"type": "text"
-				},
-				{
-					"buffer": 9,
-					"file": "sources/NodeView.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 8538,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								7890,
-								7890
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 357,
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 4936.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 10,
-					"file": "README.md",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2592,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								768,
-								768
-							]
-						],
-						"settings":
-						{
-							"function_name_status_row": 17,
-							"syntax": "Packages/Markdown/Markdown.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 45.0,
+						"translation.y": 1710.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 11,
-					"file": "sources/Node_BinaryOperations.h",
+					"buffer": 1,
+					"file": "libs/imgui/imgui.h",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1605,
+						"buffer_size": 177704,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								421,
-								421
+								50201,
+								50201
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 12,
+							"function_name_status_row": 442,
 							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 495.0,
+						"translation.y": 6372.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 13,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 12,
-					"file": "sources/Node_BinaryOperations.cpp",
+					"buffer": 2,
+					"file": "libs/imgui/examples/sdl_opengl3_example/main.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4792,
+						"buffer_size": 7004,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2174,
-								2174
+								6816,
+								6816
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 77,
+							"function_name_status_row": 123,
 							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 720.0,
+						"translation.y": 1305.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 8,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 13,
-					"file": "sources/Node_Lexer.cpp",
+					"buffer": 3,
+					"file": "libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 6854,
+						"buffer_size": 24910,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1016,
-								1016
+								3739,
+								3739
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 50,
+							"function_name_status_row": 46,
 							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 405.0,
+						"translation.y": 270.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 14,
-					"file": "sources/Value.cpp",
+					"buffer": 4,
+					"file": "sources/Node_Application.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1991,
+						"buffer_size": 2001,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								268,
-								268
+								1890,
+								1890
 							]
 						],
 						"settings":
 						{
-							"function_name_status_row": 19,
+							"function_name_status_row": 82,
 							"syntax": "Packages/C++/C++.sublime-syntax",
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1015.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 3,
 					"type": "text"
 				}
 			]
@@ -1239,7 +857,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 359.0
+		"height": 214.0
 	},
 	"output.find_results":
 	{
@@ -1287,7 +905,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 250.0,
+	"side_bar_width": 327.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

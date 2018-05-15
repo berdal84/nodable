@@ -180,7 +180,7 @@ void NodeView::update()
 void NodeView::imguiBegin()
 {
 
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);	
 	
 	switch ( s_drawMode)
