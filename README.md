@@ -1,4 +1,4 @@
-![Nodable Logo](https://github.com/berdal84/Nodable/blob/develop/data/icon.png)
+![Nodable Logo](https://github.com/berdal84/Nodable/blob/master/data/icon.png)
 
 [![Build Status](https://travis-ci.org/berdal84/Nodable.svg?branch=master)](https://travis-ci.org/berdal84/Nodable)
 
@@ -10,6 +10,10 @@ When user type an expression the program split it into tokens and build the exec
 
 Examples :
 ==========
+
+A quick video demo :
+
+[![Alt text for your video](https://img.youtube.com/vi/1TWPsUd66XY/0.jpg)](http://www.youtube.com/watch?v=1TWPsUd66XY)
 
 ![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_13_GUI_Value_Editable.png)
 
