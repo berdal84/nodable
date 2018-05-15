@@ -13,7 +13,7 @@ namespace Nodable
 		ApplicationView(const char* _name, Node_Application* _application);
 		~ApplicationView();
 		void draw();
-		bool init();
+		bool init(ImVec2 _windowSize = ImVec2(1280.0f, 720.0f));
 	private:		
 		Node_Application  *application;
 		SDL_Window        *window;
