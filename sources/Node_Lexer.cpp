@@ -47,7 +47,9 @@ bool Node_Lexer::eval()
 	}else{
 		success = false;
 	}
-	LOG_DBG("Node_Lexer::eval() - error, abording...\n");
+	
+	if ( !success )
+		LOG_DBG("Node_Lexer::eval() - error, abording...\n");
 
 	return success;
 }
@@ -170,15 +172,21 @@ bool Node_Lexer::isSyntaxValid()
 	LOG_DBG("Node_Lexer::isSyntaxValid() - START\n");
 
 	// only support even count token
-	if(!( tokens.size()%2 == 1))
+	if( tokens.size()%2 == 1)
 	{
 		// with an alternance of Number|Symbol / Operator / Number|Symbol / etc.
 		for(size_t i = 0; i < tokens.size(); i=i+2){
 			if ( !(tokens[i].type == TokenType_Number || tokens[i].type == TokenType_Symbol))
 				success = false;
-			if ( tokens[i+1].type != TokenType_Operator)
+		}
+
+		for(size_t i = 1; i < tokens.size(); i=i+2){
+			if ( tokens[i].type != TokenType_Operator)
 				success = false;
 		}
+		
+	}else{
+		success = false;
 	}
 
 	if(!success)
@@ -214,7 +222,9 @@ void Node_Lexer::tokenize()
 			{
 				++it;
 			}
-			--it;
+			
+			if ( it != chars.end())
+				--it;
 
 			std::string number = chars.substr(itStart - chars.begin(), it - itStart + 1);
 			addToken(TokenType_Number, number, std::distance(chars.begin(), itStart) );
@@ -268,5 +278,6 @@ void Node_Lexer::addToken(TokenType_  _type, std::string _string, size_t _charIn
 	t.word      = _string;
 	t.charIndex = _charIndex;
 
+	LOG_DBG("Node_Lexer::addToken(%d, \"%s\", %llu)\n", _type, _string.c_str(), _charIndex);
 	tokens.push_back(t);
 }
