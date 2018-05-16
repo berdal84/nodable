@@ -20,7 +20,7 @@ namespace Nodable{
 	public:
 		Node_Add(){setLabel("ADD");};
 		~Node_Add(){};
-		bool eval();
+		bool eval()override;
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Substraction */
@@ -28,7 +28,7 @@ namespace Nodable{
 	public:
 		Node_Substract(){setLabel("SUBSTRACT");};
 		~Node_Substract(){};
-		bool eval();
+		bool eval()override;
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Multiplication */
@@ -36,7 +36,7 @@ namespace Nodable{
 	public:
 		Node_Multiply(){setLabel("MULTIPLY");};
 		~Node_Multiply(){};
-		bool eval();
+		bool eval()override;
 	};
 
 	/* Implementation of the Node_BinaryOperation as a Division */
@@ -44,7 +44,7 @@ namespace Nodable{
 	public:
 		Node_Divide(){setLabel("DIVIDE");};
 		~Node_Divide(){};
-		bool eval();
+		bool eval()override;
 	};
 
 	/* Implementation of the Node_BinaryOperation as an assignment */
@@ -52,6 +52,6 @@ namespace Nodable{
 	public:
 		Node_Assign(){setLabel("ASSIGN");};
 		~Node_Assign(){};
-		bool eval();
+		bool eval()override;
 	};
 }
