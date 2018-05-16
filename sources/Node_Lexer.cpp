@@ -228,6 +228,7 @@ void Node_Lexer::tokenize()
 
 			std::string number = chars.substr(itStart - chars.begin(), it - itStart + 1);
 			addToken(TokenType_Number, number, std::distance(chars.begin(), itStart) );
+			
 		 /* Search for a string */
 		/////////////////////////
 
