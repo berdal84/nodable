@@ -26,6 +26,12 @@
 *.a
 *.lib
 
+# sublime text workspace
+*.sublime-workspace
+
+# ImGui config files
+*.ini
+
 # Executables
 # *.exe
 # *.out
