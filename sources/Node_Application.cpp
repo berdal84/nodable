@@ -27,7 +27,7 @@ bool Node_Application::init()
 	return view->init();;
 }
 
-void Node_Application::clear()
+void Node_Application::clearContext()
 {
 	this->ctx.get()->clear();
 }

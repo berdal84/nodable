@@ -216,7 +216,7 @@ void ApplicationView::draw()
 
 		    if (needsToEvaluateString)
 		    {
-		    	application->clear();
+		    	application->clearContext();
 		        isExpressionValid = application->eval(std::string(inputTextBuffer));
 		        setKeyboardFocusOnCommandLine = true;
 		    }

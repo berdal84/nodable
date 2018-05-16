@@ -35,7 +35,7 @@ namespace Nodable{
 		virtual void        updateLabel       (){};
 		void                setLabel          (const char*);
 		void                setLabel          (std::string);
-		void                update            ();
+		bool                update            ();
 		virtual bool        eval              ();
 		void                addWire           (Wire*);
 		void                removeWire        (Wire*);

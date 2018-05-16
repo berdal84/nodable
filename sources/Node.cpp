@@ -144,8 +144,10 @@ bool Node::eval()
 	return true;
 }
 
-void Node::update()
+bool Node::update()
 {
+	bool success = true;
+
 	// Evaluates only if dirty flag is on
 	if (isDirty())
 	{
@@ -163,4 +165,6 @@ void Node::update()
 		this->eval();
 		setDirty(false);
 	}
+
+	return success;
 }
