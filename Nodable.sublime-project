@@ -8,6 +8,6 @@
 	"settings":
 	{
 		"sublimegdb_workingdir": "/home/berdal84/Nodable/bin/linux64",
-    	"sublimegdb_commandline": "gdb --interpreter=mi ./nodable"
+    		"sublimegdb_commandline": "gdb --interpreter=mi ./nodable"
     }
 }
