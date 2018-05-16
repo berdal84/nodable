@@ -7,76 +7,108 @@
 
 namespace Nodable{
 
+	/* We use this enum to change the way ImGui draw this NodeView window */
 	enum DrawMode_
 	{		
-		DrawMode_AsWindow  = 0,
-		DrawMode_AsGroup   = 1,
+		DrawMode_AsWindow  = 0,                // produces bad results
+		DrawMode_AsGroup   = 1,                // draw a custom window
 		DrawMode_Default   = DrawMode_AsGroup
 	};
 
+	/* We use this enum to identify all GUI detail modes */
 	enum DrawDetail_
 	{
-		DrawDetail_Simple  = 0,
-		DrawDetail_Advanced = 1,
-		DrawDetail_Complex  = 2,
-		DrawDetail_Default = DrawDetail_Simple
+		DrawDetail_Simple   = 0,                 // node and links.
+		DrawDetail_Advanced = 1,                 // node, links and input/output names.
+		DrawDetail_Complex  = 2,                 // node, links, input/output names and types.
+		DrawDetail_Default  = DrawDetail_Simple
 	};
 
 	class NodeView : public View
 	{
 	public:
+
 		NodeView(Node* _node);
 		~NodeView();		
 
 		/* Draw the view at its position into the current window*/
 		void              draw                ();
 
+		/* Should be called once per frame to update the view */
 		void              update              ();
 
+		/* Get top-left corner vector position */
 		ImVec2            getPosition         ()const;
+
+		/* Get the default input position vector */
 		ImVec2            getInputPosition    ()const;
+
+		/* Get the default output position vector */
 		ImVec2            getOutputPosition   ()const;
+
+		/* Get the pointer to the node attached to this view */
 		Node*             getNode             ()const;
 
+		/* Change the visibility of this view */
 		void              setVisible          (bool);
 
+		/* Return true if this view is hovered, false if not */
 		bool              isHovered           ()const;
 
+		/* Set a new position (top-left corner) vector to this view */ 
 		void              setPosition         (ImVec2);
+
+		/* Apply a translation vector to the view's position */
 		void              translate           (ImVec2);
 
 		/* Arrange input nodes recursively while keeping this node position unchanged */
 		void              arrange             ();
 		
-		static void       ArrangeRecursive    (NodeView*, ImVec2 _position = ImVec2(1400.0f, 200.0f));
+		/* Arrange input nodes recursively while keeping the nodeView at the position vector _position */
+		static void       ArrangeRecursive    (NodeView* /*_nodeView*/, ImVec2 _position = ImVec2(1400.0f, 200.0f));
+
+		/* Set the _nodeView as selected. 
+		Only a single view can be selected at the same time */
 		static void       SetSelected         (NodeView*);
+
+		/* Return a pointer to the selected view or nullptr if no view are selected */
 		static NodeView*  GetSelected         ();
+
+		/* Return true if _nodeView is selected */
 		static bool       IsSelected          (NodeView*);
+
+		/* Set the _nodeView ad the current dragged view.
+		Only a single view can be dragged at the same time. */
 		static void       SetDragged          (NodeView*);
+
+		/* Return a pointer to the dragged view or nullptr if no view are dragged */
 		static NodeView*  GetDragged          ();
+
 	private:
-		void              imguiBegin          ();
+		/* These three private methods are called in this order by draw().
+		imuiBegin create the node custom window, imguiDraw draw its content and imGuiEnd finish to draw the custom window.*/
+		void              imguiBegin          (); 
 		void              imguiDraw           ();
 		void              imguiEnd            ();
            
     public:
-		static DrawMode_   s_drawMode;
-		static DrawDetail_ s_drawDetail;
-	private:
-        std::string     name                = "UnnamedNode";
-		Node*           node                = nullptr;
-		ImVec2          position            = ImVec2(-1.0, -1.0f);
-		ImVec2          size                = ImVec2(170.0f, 40.0f);
-		float           opacity             = 0.0f;
-		bool            visible             = true;
-		bool            showDetails         = false;
-		bool            hovered             = false;
+		static DrawMode_   s_drawMode;    // global draw mode   (check DrawMode_ enum)
+		static DrawDetail_ s_drawDetail;  // global draw detail (check DrawDetail_ enum)
 
-		bool            couldBeArranged     = true;
+	private:
+        std::string     name                = "UnnamedNode";          // could be displayed as a title
+		Node*           node                = nullptr;                // the model
+		ImVec2          position            = ImVec2(-1.0, -1.0f);    // top-left position vector
+		ImVec2          size                = ImVec2(170.0f, 40.0f);  // size of the window
+		float           opacity             = 0.0f;                   // global transparency of this view
+		bool            visible             = true;                   
+		bool            showDetails         = false;                  // false: collapsed view, true : uncollapsed.
+		bool            hovered             = false;
+		bool            pinned              = false;                  // false: follow its outputs.
 		float           borderRadius        = 5.0f;
 		ImColor         borderColorSelected = ImColor(1.0f, 1.0f, 1.0f);
 		
-		static NodeView* s_selected;
-		static NodeView* s_dragged;		
+		static NodeView* s_selected; // pointer to the currently selected NodeView.
+		static NodeView* s_dragged;	 // pointer to the currently dragged NodeView.	
 	};
 }

@@ -159,7 +159,7 @@ void NodeView::update()
 			{
 				auto inputView = eachInputNode->getView();
 
-				if ( inputView->couldBeArranged )
+				if ( ! inputView->pinned )
 				{
 					ImVec2 newPos(position.x - inputView->size.x - spacingDist, position.y);
 					if ( n > 1)
@@ -291,7 +291,7 @@ void NodeView::imguiDraw()
 	{
 		translate(ImGui::GetMouseDragDelta());
 		ImGui::ResetMouseDragDelta();
-		couldBeArranged = false;
+		pinned = true;
 	}
 
 	imguiBegin();
@@ -386,7 +386,7 @@ void NodeView::ArrangeRecursive(NodeView* _view, ImVec2 _position)
 			if ( inputNode != nullptr)
 			{
 				auto inputView = inputNode->getView();
-				inputView->couldBeArranged = true;
+				inputView->pinned = false;
 				ArrangeRecursive(inputView, inputView->position);
 			}
 		}
