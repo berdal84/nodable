@@ -18,12 +18,14 @@ A quick video demo :
 ![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_13_GUI_Value_Editable.png)
 
 
-There is 3 display modes: simple, advanced and complex.
-
+There are 3 display modes: simple, advanced and complex.
+In the simple display mode, the UI shows only nodes and links:
 ![Example2](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_12_GUI_Simple.png)
 
+In the Advanced mode, the UI shows nodes, links and input and output names:
 ![Example3](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_12_GUI_Advanced.png)
 
+In the Complex mode, the UI shows node, links, input and output names and types:
 ![Example4](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_12_GUI_Complex.png)
 
 
@@ -32,8 +34,6 @@ The language :
 
 Expressions:
 ------------
-
-Supports binary operations only.
 
 Expression -> (Operand, Operator, Expression) | Operand
 
@@ -51,7 +51,7 @@ Operand -> Number | String | Variable
 Operators:
 ----------
 
-Supports operator precedence with the following operators :
+Supports only binary operators with precedence :
 
 - Addition (+)
 - Substraction (-)
@@ -88,16 +88,13 @@ cd ./Nodable
 make
 ```
 
-Run:
-```
-cd ./bin/linux64
-.nodable
-```
-
 How to run the software ? :
 ===========================
-- move to bin/linux64/ and run `./nodable`
 
+```
+cd <nodable folder>/bin/linux64
+.nodable
+```
 
 Licence:
 =========
