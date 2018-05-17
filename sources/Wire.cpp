@@ -16,12 +16,7 @@ Wire::Wire()
 
 Wire::~Wire()
 {
-	if (source != nullptr)
-		source->removeWire(this);
-	if (target != nullptr)
-		target->removeWire(this);
 	s_wires.erase(std::find(s_wires.begin(), s_wires.end(), this));
-
 	delete view;
 }
 

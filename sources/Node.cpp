@@ -33,6 +33,11 @@ Node::~Node()
 {
 }
 
+bool Node::isDirty()const
+{
+	return dirty;
+}
+
 void Node::setDirty(bool _value)
 {
 	// Propagate thru output wires only if the node is no already dirty.
