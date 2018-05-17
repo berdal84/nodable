@@ -43,7 +43,7 @@ namespace Nodable
 	private:
 		std::unique_ptr<Node_Container>  ctx;
 		std::unique_ptr<ApplicationView> view;
-		Node_Variable*                   lastString;		
+		Node_Variable*                   lastString  = nullptr;		
 		bool                             quit        = false;
 	};
 }

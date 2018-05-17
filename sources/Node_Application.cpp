@@ -13,6 +13,8 @@ using namespace Nodable;
 
 Node_Application::Node_Application(const char* _name)
 {
+	LOG_MSG("A new Node_Application ( label = \"%s\")\n", _name);
+	setLabel(_name);
 	this->view = std::unique_ptr<ApplicationView>(new ApplicationView(_name, this));
 }
 
@@ -23,6 +25,7 @@ Node_Application::~Node_Application()
 
 bool Node_Application::init()
 {
+	LOG_MSG("init application ( label = \"%s\")\n", getLabel());
 	this->ctx = std::unique_ptr<Node_Container>(new Node_Container("Global"));
 	return view->init();;
 }
@@ -77,10 +80,7 @@ bool Node_Application::eval(std::string _expression)
 
 void Node_Application::shutdown()
 {
-	LOG_MSG("Shutdown Nodable...\n");
-
-	// Free memory
-	delete this->lastString;
+	LOG_MSG("shutting down application ( _name = \"%s\")\n", getLabel());
 }
 
 Node_Container* Node_Application::getContext()const
