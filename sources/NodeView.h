@@ -62,10 +62,10 @@ namespace Nodable{
 		void              translate           (ImVec2);
 
 		/* Arrange input nodes recursively while keeping this node position unchanged */
-		void              arrange             ();
+		void              arrangeRecursively  ();
 		
 		/* Arrange input nodes recursively while keeping the nodeView at the position vector _position */
-		static void       ArrangeRecursive    (NodeView* /*_nodeView*/, ImVec2 _position = ImVec2(1400.0f, 200.0f));
+		static void       ArrangeRecursively  (NodeView* /*_nodeView*/, ImVec2 _position = ImVec2(1400.0f, 200.0f));
 
 		/* Set the _nodeView as selected. 
 		Only a single view can be selected at the same time */
@@ -84,14 +84,6 @@ namespace Nodable{
 		/* Return a pointer to the dragged view or nullptr if no view are dragged */
 		static NodeView*  GetDragged          ();
 
-	private:
-		/* These three private methods are called in this order by draw().
-		imuiBegin create the node custom window, imguiDraw draw its content and imGuiEnd finish to draw the custom window.*/
-		void              imguiBegin          (); 
-		void              imguiDraw           ();
-		void              imguiEnd            ();
-           
-    public:
 		static DrawMode_   s_drawMode;    // global draw mode   (check DrawMode_ enum)
 		static DrawDetail_ s_drawDetail;  // global draw detail (check DrawDetail_ enum)
 
@@ -102,7 +94,7 @@ namespace Nodable{
 		ImVec2          size                = ImVec2(170.0f, 40.0f);  // size of the window
 		float           opacity             = 0.0f;                   // global transparency of this view
 		bool            visible             = true;                   
-		bool            showDetails         = false;                  // false: collapsed view, true : uncollapsed.
+		bool            collapsed           = true;
 		bool            hovered             = false;
 		bool            pinned              = false;                  // false: follow its outputs.
 		float           borderRadius        = 5.0f;

@@ -155,7 +155,7 @@ void ApplicationView::draw()
 	            if (hide)
 	            	selected->setVisible(false);
 				else if (arrange)
-					selected->arrange();
+					selected->arrangeRecursively();
         	}
 
             ImGui::EndMenu();

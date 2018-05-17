@@ -41,7 +41,7 @@ bool Node_Lexer::eval()
 	{
 		LOG_DBG("Node_Lexer::eval() - build tree and eval\n");
 		auto result = buildGraph();
-		NodeView::ArrangeRecursive(result->getView());
+		NodeView::ArrangeRecursively(result->getView());
 		
 		success = true;
 	}else{

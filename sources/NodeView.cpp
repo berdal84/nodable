@@ -90,26 +90,22 @@ void NodeView::translate(ImVec2 _delta)
 	setPosition(ImVec2(position.x + _delta.x, position.y + _delta.y));
 }
 
-void NodeView::arrange()
+void NodeView::arrangeRecursively()
 {
-	ArrangeRecursive(this, position);
-}
-
-void NodeView::draw()
-{
-	update();
-
-	if ( visible)
-		imguiDraw();
+	ArrangeRecursively(this, position);
 }
 
 void NodeView::update()
 {
 	// Update opacity to reach 1.0f
+	//-----------------------------
+
 	if(opacity < 1.0f)
-		opacity += (1.0f - opacity) * 0.05f;
+		opacity += (1.0f - opacity) * 0.05f; // TODO: use frame time
 
 	// Set background color according to node class 
+	//---------------------------------------------
+
 	if (dynamic_cast<Node_BinaryOperation*>(node) != nullptr)
 		setColor(ImColor(0.7f, 0.7f, 0.9f));
 	else if (dynamic_cast<Node_Variable*>(node) != nullptr)
@@ -117,68 +113,66 @@ void NodeView::update()
 	else
 		setColor(ImColor(0.9f, 0.9f, 0.7f));
 
-	// determine the spacing base
-	float spacingDist = 150.0f;
-	switch( NodeView::s_drawDetail)
+	// automatically moves input connected nodes
+	//------------------------------------------
+
+	// first we get the spacing distance between nodes sepending on drawDetail global variable
+
+	float spacingDistBase = 150.0f;
+	float distances[3]    = {spacingDistBase * 0.3f, spacingDistBase * 0.7f, spacingDistBase * 1.0f};
+	float spacingDist     = distances[s_drawDetail];
+
+	// then we constraint each input view
+
+	auto wires            = node->getWires();
+	auto inputCount       = node->getInputWireCount();
+	auto inputIndex       = 0;
+
+	for(auto eachWire : wires)
 	{
-		default:
-		case DrawDetail_Simple:
+		bool isWireAndInput = eachWire->getTarget() == node;
+
+		if (isWireAndInput)
 		{
-			spacingDist *= 0.3f;
-			break;
-		}
+			auto inputView = eachWire->getSource()->getView();
 
-		case DrawDetail_Advanced:
-		{
-			spacingDist *= 0.7f;
-			break;
-		}
-
-		case DrawDetail_Complex:
-		{
-			spacingDist *= 1.0f;
-			break;
-		}
-	}
-
-
-	// Move node connected to its inputs
-	auto wires = node->getWires();
-	int n = node->getInputWireCount();
-	auto i=0;
-	
-
-	for(auto each : wires)
-	{
-		if (each != nullptr && each->getTarget() == node)
-		{
-
-			auto eachInputNode = each->getSource();
-
-			if ( eachInputNode != nullptr)
+			if ( ! inputView->pinned )
 			{
-				auto inputView = eachInputNode->getView();
+				// Compute new position for this input view
+				ImVec2 newPos(position.x - inputView->size.x - spacingDist, position.y);
+				if ( inputCount > 1)
+					newPos.y += (float(inputIndex)/float(inputCount-1) - 0.5f ) * spacingDist; 
 
-				if ( ! inputView->pinned )
-				{
-					ImVec2 newPos(position.x - inputView->size.x - spacingDist, position.y);
-					if ( n > 1)
-						newPos.y += (float(i)/float(n-1) - 0.5f ) * spacingDist; 
-					auto currentPos = inputView->getPosition();
-					ImVec2 delta( (newPos.x - currentPos.x) * 0.2f,  (newPos.y - currentPos.y) * 0.2f);
+				// Compute a delta to apply to move to this new position
+				auto currentPos = inputView->getPosition();
+				auto factor     = 0.2f; // TODO: use frame time
+				ImVec2 delta( (newPos.x - currentPos.x) * factor,  (newPos.y - currentPos.y) * factor);
 
-					if ( delta.x*delta.x + delta.y*delta.y > 1.0f)
-						inputView->translate(delta);
-				}
+				bool isDeltaTooSmall = delta.x*delta.x + delta.y*delta.y < 1.0f;
+				if ( !isDeltaTooSmall )
+					inputView->translate(delta);
 			}
-			i++;
+
+			inputIndex++;
 		}
 	}
 	
 }
 
-void NodeView::imguiBegin()
+void NodeView::draw()
 {
+	// Mouse interactions
+	//-------------------
+
+	if (GetDragged() == this && ImGui::IsMouseDragging(0, 0.1f))
+	{
+		translate(ImGui::GetMouseDragDelta());
+		ImGui::ResetMouseDragDelta();
+		pinned = true;
+	}
+
+	// Begin the window
+	//-----------------
 
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);	
@@ -219,7 +213,7 @@ void NodeView::imguiBegin()
 				draw_list->AddRect(itemRectMin, itemRectMax,borderCol, borderRadius);				
 
 				// Darken the bottom area to separate title and details
-				if( showDetails)
+				if(!collapsed)
 					draw_list->AddRectFilled(ImVec2(itemRectMin.x, itemRectMin.y + 35.0f), ImVec2(itemRectMax.x, itemRectMax.y), ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
 
 				// Draw an additionnal rectangle when selected
@@ -235,66 +229,9 @@ void NodeView::imguiBegin()
 	}
 
 	ImGui::PushItemWidth(150.0f);
-}
 
-
-void NodeView::imguiEnd()
-{
-	ImGui::PopItemWidth();
-
-	switch (s_drawMode)
-	{
-		case DrawMode_AsWindow:
-		{
-			hovered = ImGui::IsWindowHovered();
-			ImGui::End();
-			break;
-		}
-		case DrawMode_AsGroup:
-		{
-			auto cursor = ImGui::GetCursorPos();
-			ImGui::SetCursorPos(ImVec2(cursor.x + 10.0f, cursor.y + 10.0f));ImGui::SameLine(); ImGui::Dummy(ImVec2(1.0f,1.0f));
-			ImGui::EndGroup();
-			hovered = ImGui::IsMouseHoveringRect(position, ImVec2(position.x + size.x, position.y + size.y), true);
-
-			if ( GetDragged() != this)
-			{
-				if(GetDragged() == nullptr && ImGui::IsMouseClicked(0) && hovered)
-					SetDragged(this);
-			}else{				
-				if ( ImGui::IsMouseReleased(0))
-					SetDragged(nullptr);				
-			}
-
-			
-			if ( hovered && ImGui::IsMouseClicked(0))
-				SetSelected(this);
-
-			showDetails ^= hovered && ImGui::IsMouseDoubleClicked(0);
-
-			size = ImGui::GetItemRectSize();
-			size.x += 10.0f; // add a right margin			
-
-			break;
-		}
-	}
-
-	ImGui::PopStyleVar();
-	ImGui::PopID();
-}
-
-
-void NodeView::imguiDraw()
-{
-		// Mouse interactions
-	if (GetDragged() == this && ImGui::IsMouseDragging(0, 0.1f))
-	{
-		translate(ImGui::GetMouseDragDelta());
-		ImGui::ResetMouseDragDelta();
-		pinned = true;
-	}
-
-	imguiBegin();
+	// Draw the window content 
+	//------------------------
 
 	switch (s_drawMode)
 	{
@@ -314,7 +251,7 @@ void NodeView::imguiDraw()
 	ImGui::Indent();
 	ShadowedText(ImVec2(1.0f, 1.0f), ImColor(1.0f,1.0f,1.0f,0.8f), node->getLabel());
 
-	if (showDetails)
+	if (!collapsed)
 	{
 		ImGui::NewLine();
 
@@ -360,7 +297,56 @@ void NodeView::imguiDraw()
 		}
 	}
 
-	imguiEnd();	
+	ImGui::PopItemWidth();
+
+	// Ends the Window
+	//----------------
+
+	switch (s_drawMode)
+	{
+		case DrawMode_AsWindow:
+		{
+			hovered = ImGui::IsWindowHovered();
+			ImGui::End();
+			break;
+		}
+		case DrawMode_AsGroup:
+		{	
+			// Add a margin at the bottom-right corner
+			ImGui::EndGroup();
+
+			hovered = ImGui::IsMouseHoveringRect(position, ImVec2(position.x + size.x, position.y + size.y), true);
+
+			// Selection by mouse
+
+			if ( hovered && ImGui::IsMouseClicked(0))
+				SetSelected(this);
+
+			// Dragging by mouse
+
+			if ( GetDragged() != this)
+			{
+				if(GetDragged() == nullptr && ImGui::IsMouseClicked(0) && hovered)
+					SetDragged(this);
+			}else{				
+				if ( ImGui::IsMouseReleased(0))
+					SetDragged(nullptr);				
+			}		
+
+			// Collapse/uncollapse by double click
+			collapsed ^= hovered && ImGui::IsMouseDoubleClicked(0);
+
+			// memorize size with an offet (margin)
+			size = ImGui::GetItemRectSize();
+			size.x += 20.0f;
+			size.y += 10.0f;
+
+			break;
+		}
+	}
+
+	ImGui::PopStyleVar();
+	ImGui::PopID();
 }
 
 bool NodeView::isHovered()const
@@ -368,11 +354,8 @@ bool NodeView::isHovered()const
 	return hovered;
 }
 
-void NodeView::ArrangeRecursive(NodeView* _view, ImVec2 _position)
+void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 {
-	if ( _view == nullptr)
-		return;	
-
 	_view->setPosition(_position);
 
 	// Arrange Input Nodes :
@@ -387,7 +370,7 @@ void NodeView::ArrangeRecursive(NodeView* _view, ImVec2 _position)
 			{
 				auto inputView = inputNode->getView();
 				inputView->pinned = false;
-				ArrangeRecursive(inputView, inputView->position);
+				ArrangeRecursively(inputView, inputView->position);
 			}
 		}
 	}

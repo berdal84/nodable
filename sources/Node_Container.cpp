@@ -62,6 +62,7 @@ void Node_Container::draw()
 
 			if (view != nullptr)
 			{
+				view->update();
 				view->draw();
 				isAnyItemDragged |= NodeView::GetDragged() == view;
 				isAnyItemHovered |= view->isHovered();
@@ -99,7 +100,7 @@ void Node_Container::draw()
 			selectedView->setVisible(false);
 		// Arrange 
 		else if ( ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_A)))
-			selectedView->arrange();
+			selectedView->arrangeRecursively();
 	}
 
 	// Draft Mouse PAN
