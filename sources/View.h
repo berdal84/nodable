@@ -1,8 +1,9 @@
 #pragma once
 #include <imgui.h>
+#include "Node.h"
 
 namespace Nodable{
-	class View
+	class View : public Node
 	{
 	public:
 		enum ColorType_

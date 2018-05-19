@@ -90,7 +90,7 @@ namespace Nodable{
 	private:
         std::string     name                = "UnnamedNode";          // could be displayed as a title
 		Node*           node                = nullptr;                // the model
-		ImVec2          position            = ImVec2(-1.0, -1.0f);    // top-left position vector
+		ImVec2          position            = ImVec2(-1.0, -1.0f);    // center position vector
 		ImVec2          size                = ImVec2(170.0f, 40.0f);  // size of the window
 		float           opacity             = 0.0f;                   // global transparency of this view
 		bool            visible             = true;                   

@@ -5,7 +5,6 @@
 #include "Node_Container.h"
 #include "ApplicationView.h"
 #include "Node_Variable.h"
-
 #include <unistd.h>
 #include <imgui.h>
 
@@ -15,7 +14,7 @@ Node_Application::Node_Application(const char* _name)
 {
 	LOG_MSG("A new Node_Application ( label = \"%s\")\n", _name);
 	setLabel(_name);
-	this->view = std::unique_ptr<ApplicationView>(new ApplicationView(_name, this));
+	addComponent("view", new ApplicationView(_name, this));
 }
 
 Node_Application::~Node_Application()
@@ -27,7 +26,11 @@ bool Node_Application::init()
 {
 	LOG_MSG("init application ( label = \"%s\")\n", getLabel());
 	this->ctx = std::unique_ptr<Node_Container>(new Node_Container("Global"));
-	return view->init();;
+
+	if( hasComponent("view"))
+		return ((ApplicationView*)getComponent("view"))->init();
+
+	return true;
 }
 
 void Node_Application::clearContext()
@@ -38,11 +41,6 @@ void Node_Application::clearContext()
 bool Node_Application::update()
 {
 	return !quit;
-}
-
-void Node_Application::draw()
-{
-	view->draw();
 }
 
 void Node_Application::stopExecution()

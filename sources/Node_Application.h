@@ -16,9 +16,6 @@ namespace Nodable
 		/* Clear the application context. */
 		void             clearContext();
 
-		/* Draw the application's view*/
-		void             draw();
-
 		/* Converts an expression to a graph. 
 		The graph will be created within the application context (this->ctx)*/
 		bool             eval(std::string /* literal expression */);
@@ -42,7 +39,6 @@ namespace Nodable
 
 	private:
 		std::unique_ptr<Node_Container>  ctx;
-		std::unique_ptr<ApplicationView> view;
 		Node_Variable*                   lastString  = nullptr;		
 		bool                             quit        = false;
 	};

@@ -12,10 +12,21 @@
 using namespace Nodable;
 
 ApplicationView::ApplicationView(const char* _name, Node_Application* _application):
-	application(_application),
-	name(_name)
+	application(_application)
 {
+    addMember("glWindowName");
+    setMember("glWindowName", _name);
 
+    // Add a member to know if we should display the properties panel or not
+    addMember("showProperties");
+    setMember("showProperties", false);
+
+    // Add two members for the window size
+    addMember("glWindowSizeX");
+    setMember("glWindowSizeX", 1280.0f);
+
+    addMember("glWindowSizeY");
+    setMember("glWindowSizeY", 720.0f);
 }
 
 ApplicationView::~ApplicationView()
@@ -27,7 +38,7 @@ ApplicationView::~ApplicationView()
     SDL_Quit                 ();
 }
 
-bool ApplicationView::init(ImVec2 _windowSize)
+bool ApplicationView::init()
 {
 	    // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
@@ -46,7 +57,13 @@ bool ApplicationView::init(ImVec2 _windowSize)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, _windowSize.x, _windowSize.y, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow(  getMember("glWindowName")->getValueAsString().c_str(),
+                                SDL_WINDOWPOS_CENTERED,
+                                SDL_WINDOWPOS_CENTERED,
+                                getMember("glWindowSizeX")->getValueAsNumber(),
+                                getMember("glWindowSizeY")->getValueAsNumber(),
+                                SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+    
     glcontext = SDL_GL_CreateContext(window);
     SDL_GL_SetSwapInterval(1); // Enable vsync
     gl3wInit();
@@ -148,6 +165,8 @@ void ApplicationView::draw()
         {
             auto hide    = ImGui::MenuItem("Hide", "Del.");
             auto arrange = ImGui::MenuItem("Arrange", "A");
+            ImGui::Separator();
+            auto showProperties = ImGui::MenuItem("Settings", "", getMember("showProperties")->getValueAsBoolean());
 
             auto selected = NodeView::GetSelected();
             if( selected )
@@ -157,6 +176,9 @@ void ApplicationView::draw()
 				else if (arrange)
 					selected->arrangeRecursively();
         	}
+
+            if(showProperties)
+                 setMember("showProperties", !getMember("showProperties")->getValueAsBoolean());
 
             ImGui::EndMenu();
         }
@@ -227,18 +249,22 @@ void ApplicationView::draw()
 
     // Properties panel window
     {
-	    bool isPropertiesPanelVisible = true;
-	    if (ImGui::Begin("Properties", &isPropertiesPanelVisible))
-	    {    	
+        bool b = getMember("showProperties")->getValueAsBoolean();
+        if( b ){
+    	    if (ImGui::Begin("Properties", &b))
+    	    {    	
 
-		    ImGui::Text("Bezier curves");
-		    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
-		    ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
-		    ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
-		    ImGui::Checkbox("arrows", &displayArrows);
-	    
-	    }
-		ImGui::End();
+    		    ImGui::Text("Bezier curves");
+    		    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
+    		    ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
+    		    ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
+    		    ImGui::Checkbox("arrows", &displayArrows);
+    	    
+    	    }           
+            ImGui::End();
+            setMember("showProperties", b);
+        }
+		
 	}
 
     // Fullscreen window

@@ -179,15 +179,17 @@ Node_Variable* Node_Container::find(const char* _name)
 Node_Variable* Node_Container::createNodeVariable(const char* _name)
 {
 	auto variable = new Node_Variable();
+	variable->addComponent( "view", new NodeView(variable));
 	variable->setName(_name);
 	this->variables.push_back(variable);
 	addNode(variable);
 	return variable;
 }
 
-Node_Variable*          Node_Container::createNodeNumber(int _value)
+Node_Variable*          Node_Container::createNodeNumber(double _value)
 {
 	auto node = new Node_Variable();
+	node->addComponent( "view", new NodeView(node));
 	node->setValue(_value);
 	addNode(node);
 	return node;
@@ -196,6 +198,7 @@ Node_Variable*          Node_Container::createNodeNumber(int _value)
 Node_Variable*          Node_Container::createNodeNumber(const char* _value)
 {
 	auto node = new Node_Variable();
+	node->addComponent( "view", new NodeView(node));
 	node->setValue(std::stod(_value));
 	addNode(node);
 	return node;
@@ -204,6 +207,7 @@ Node_Variable*          Node_Container::createNodeNumber(const char* _value)
 Node_Variable*          Node_Container::createNodeString(const char* _value)
 {
 	auto node = new Node_Variable();
+	node->addComponent( "view", new NodeView(node));
 	node->setValue(_value);
 	addNode(node);
 	return node;
@@ -238,6 +242,7 @@ Node_BinaryOperation* Node_Container::createNodeBinaryOperation(std::string _op,
 Node_Add* Node_Container::createNodeAdd()
 {
 	auto node = new Node_Add();
+	node->addComponent( "view", new NodeView(node));
 	addNode(node);
 	return node;
 }
@@ -245,6 +250,7 @@ Node_Add* Node_Container::createNodeAdd()
 Node_Substract* Node_Container::createNodeSubstract()
 {
 	auto node = new Node_Substract();
+	node->addComponent( "view", new NodeView(node));
 	addNode(node);
 	return node;
 }
@@ -252,6 +258,7 @@ Node_Substract* Node_Container::createNodeSubstract()
 Node_Multiply* Node_Container::createNodeMultiply()
 {
 	auto node = new Node_Multiply();
+	node->addComponent( "view", new NodeView(node));
 	addNode(node);
 	return node;
 }
@@ -259,6 +266,7 @@ Node_Multiply* Node_Container::createNodeMultiply()
 Node_Divide* Node_Container::createNodeDivide()
 {
 	auto node = new Node_Divide();
+	node->addComponent( "view", new NodeView(node));
 	addNode(node);
 	return node;
 }
@@ -266,6 +274,7 @@ Node_Divide* Node_Container::createNodeDivide()
 Node_Assign* Node_Container::createNodeAssign()
 {
 	auto node = new Node_Assign();
+	node->addComponent( "view", new NodeView(node));
 	addNode(node);
 	return node;
 }
@@ -273,10 +282,11 @@ Node_Assign* Node_Container::createNodeAssign()
 
 Node_Lexer* Node_Container::createNodeLexer(Node_Variable* _input)
 {
-	Node_Lexer* lexer = new Node_Lexer();
-	Node::Connect(_input, lexer, "value", "expression");
-	addNode(lexer);
-	return lexer;
+	Node_Lexer* node = new Node_Lexer();
+	node->addComponent( "view", new NodeView(node));
+	Node::Connect(_input, node, "value", "expression");
+	addNode(node);
+	return node;
 }
 
 const char* Node_Container::getName()const

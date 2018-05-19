@@ -2,6 +2,8 @@
 #include "Log.h"		// for LOG_DBG(...)
 #include "NodeView.h"
 #include <algorithm>    // for std::find
+#include "Wire.h"
+#include "WireView.h"
 
 using namespace Nodable;
 
@@ -31,6 +33,7 @@ void Node::Connect(	Node* _from,
 					const char* _toInputName)
 {
 	auto wire = new Wire();
+	wire->addComponent("view", new WireView(wire));
 
 	// Connect wire's source and target to nodes _from and _to.
 	wire->setSource(_from , _fromOutputName);
@@ -43,15 +46,30 @@ void Node::Connect(	Node* _from,
 
 Node::Node()
 {
-	LOG_DBG("Node::Node()\n");
-	view = std::unique_ptr<NodeView>(new NodeView(this));
+	LOG_DBG("Node::Node()\n");	
 }
 
 Node::~Node()
 {
 	for(auto wire : wires)
 		Node::Disconnect(wire);
-	
+
+}
+
+void Node::addComponent(const std::string&  _componentName, Node*  _component)
+{
+	components[_componentName] = _component;
+}
+
+bool Node::hasComponent(const std::string&  _componentName)const
+{
+	auto it = components.find(_componentName);
+	return it != components.end();
+}
+
+Node* Node::getComponent(const std::string&  _componentName)const
+{
+	return components.at(_componentName);
 }
 
 bool Node::isDirty()const
@@ -102,7 +120,7 @@ Value* Node::getMember (const std::string& _name)const
 
 void Node::addMember (const char* _name, Type_ _type)
 {
-	members.emplace(std::string(_name), new Value(_type));
+	members[std::string(_name)] =  new Value(_type);
 }
 
 void Node::setLabel(const char* _label)
@@ -118,11 +136,6 @@ void Node::setLabel(std::string _label)
 const char* Node::getLabel()const
 {
 	return this->label.c_str();
-}
-
-NodeView* Node::getView()const
-{
-	return this->view.get();
 }
 
 std::vector<Wire*>& Node::getWires()

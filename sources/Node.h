@@ -2,7 +2,6 @@
 
 #include "Nodable.h"            // for constants and forward declarations
 #include "Value.h"
-#include "Wire.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -12,7 +11,7 @@
 #define NODE_DEFAULT_OUTPUT_NAME "default"
 
 namespace Nodable{
-
+	typedef std::map<std::string, Node*>  Components;
 	typedef std::map<std::string, Value*> Members;
 	typedef std::vector<Wire*>            Wires;
 
@@ -33,11 +32,16 @@ namespace Nodable{
 		Value*              getMember         (const char* _name)const;
 
 		const char*         getLabel          ()const;
-		NodeView*           getView           ()const;
+		NodeView*           getView           ()const{return (NodeView*)getComponent("view");};
 
 		/* Adds a new member identified by its _name. */
 		void                addMember         (const char* _name, Type_ _type = Type_Unknown);		
 		
+		/* Component related methods */
+		void                addComponent      (const std::string&  /*_componentName*/, Node* /* _component */);
+		bool                hasComponent      (const std::string&  /*_componentName*/)const;
+		Node*               getComponent      (const std::string&  /*_componentName*/)const;
+
 		/* Set a new _value to the member _name.
 		Side effect : set dirty all nodes connected directly or inderiectly to one of its outputs.*/
 		template<typename T>
@@ -77,10 +81,10 @@ namespace Nodable{
 		static void         Disconnect        (Wire* _wire);
 	private:
 		Members                   members;
+		Components                components;
 		bool                      deleted = false;
 		Node_Container*           parent  = nullptr;
 		std::string               label   = "Node";
-		std::unique_ptr<NodeView> view;
 		bool                      dirty   = false;   // when is true -> needs to be evaluated.
 		Wires                     wires;             // contains all wires connected to or from this node.
 	};

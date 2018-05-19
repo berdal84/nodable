@@ -11,13 +11,11 @@ std::vector<Wire*> Wire::s_wires;
 Wire::Wire()
 {
 	s_wires.push_back(this);
-	view = new WireView(this);
 }
 
 Wire::~Wire()
 {
 	s_wires.erase(std::find(s_wires.begin(), s_wires.end(), this));
-	delete view;
 }
 
 void Wire::setSource(Node* _node, const char* _slotName)

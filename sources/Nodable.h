@@ -72,13 +72,6 @@ namespace Nodable{
 	// Other
 	class Wire;
 	class Value;
-
-	enum Type_{
-		Type_Unknown,
-		Type_Number,
-		Type_String,
-		Type_COUNT
-	};
 }
 
 
