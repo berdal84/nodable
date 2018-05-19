@@ -66,6 +66,9 @@ namespace Nodable{
 
 		bool                isDirty           ()const;
 
+		void                deleteNextFrame   (){deleted = true;}
+		bool                needsToBeDeleted  (){return deleted;}
+
 		/* Connect _from._fromOuputName with _to._toInputName.
 		the connection is oriented. */
 		static void         Connect           (Node* /*_from*/, Node* /*_to*/, const char* _fromOutputName = NODE_DEFAULT_OUTPUT_NAME, const char* _toInputName = NODE_DEFAULT_INPUT_NAME);
@@ -74,6 +77,7 @@ namespace Nodable{
 		static void         Disconnect        (Wire* _wire);
 	private:
 		Members                   members;
+		bool                      deleted = false;
 		Node_Container*           parent  = nullptr;
 		std::string               label   = "Node";
 		std::unique_ptr<NodeView> view;

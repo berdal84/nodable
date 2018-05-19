@@ -60,7 +60,7 @@ Node* NodeView::getNode()const
 
 ImVec2 NodeView::getPosition()const
 {
-	return position;
+	return ImVec2(position.x - size.x / 2.0f, position.y - size.y / 2.0f);
 }
 
 ImVec2 NodeView::getInputPosition()const
@@ -207,7 +207,7 @@ void NodeView::draw()
 		case DrawMode_AsGroup:
 		{
 			if ( position.x != -1.0f || position.y != -1.0f)
-				ImGui::SetCursorPos(position);
+				ImGui::SetCursorPos(ImVec2(std::floor(position.x - size.x/2.0f), std::floor(position.y - size.y / 2.0f)));
 			else
 				ImGui::SetCursorPos(ImVec2());
 
@@ -220,8 +220,8 @@ void NodeView::draw()
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 			{			
 				auto borderCol = IsSelected(this) ? borderColorSelected : getColor(ColorType_Border);
-				auto itemRectMin = position;
-				auto itemRectMax = ImVec2(position.x + size.x, position.y + size.y);
+				auto itemRectMin = ImVec2(position.x - size.x/2.0f, position.y - size.y/2.0f);
+				auto itemRectMax = ImVec2(position.x + size.x/2.0f, position.y + size.y/2.0f);
 
 				// Draw the rectangle under everything
 				View::DrawRectShadow(itemRectMin, itemRectMax, borderRadius, 4, ImVec2(1.0f, 1.0f), getColor(ColorType_Shadow));
@@ -328,7 +328,8 @@ void NodeView::draw()
 		{	
 			ImGui::EndGroup();
 
-			hovered = ImGui::IsMouseHoveringRect(position, ImVec2(position.x + size.x, position.y + size.y), true);
+			hovered = ImGui::IsMouseHoveringRect(	ImVec2(position.x - size.x/2.0f, position.y - size.y/2.0f),
+													ImVec2(position.x + size.x/2.0f, position.y + size.y/2.0f), true);
 
             if (hovered && ImGui::IsMouseReleased(1))
                 ImGui::OpenPopup("NodeViewContextualMenu");
@@ -340,6 +341,9 @@ void NodeView::draw()
 
                 ImGui::MenuItem("Pinned",    "", &this->pinned,    true);
 				ImGui::MenuItem("Collapsed", "", &this->collapsed, true);
+                ImGui::Separator();
+                if(ImGui::Selectable("Delete"))
+                	this->node->deleteNextFrame();
                 ImGui::EndPopup();
             }
 

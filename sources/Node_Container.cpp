@@ -40,50 +40,51 @@ void Node_Container::frameAll()
 
 void Node_Container::draw()
 {
+	// 0 - Update nodes
+	for(auto it = nodes.begin(); it < nodes.end(); ++it)
+	{
+		if ( *it != nullptr)
+		{
+			if ((*it)->needsToBeDeleted())
+			{
+				delete *it;
+				it = nodes.erase(it);
+			}
+			else
+				(*it)->update();
+		}
+	}
+
+	// 1 - Update NodeViews
+	for(auto eachNode : this->nodes)
+	{
+		eachNode->getView()->update();
+	}
+
+	// 2 - Draw NodeViews
 	bool isAnyItemDragged = false;
 	bool isAnyItemHovered = false;
-
-	
-	// 0 - Update nodes
-	for(auto each : this->nodes)
+	for(auto eachNode : this->nodes)
 	{
-		if ( each != nullptr)
+		auto view = eachNode->getView();
+
+		if (view != nullptr)
 		{
-			each->update();
+			view->draw();
+			isAnyItemDragged |= NodeView::GetDragged() == view;
+			isAnyItemHovered |= view->isHovered();
 		}
 	}
 
-	// 1 - Draw nodes
-	for(auto each : this->nodes)
+	// 2 - Draw input wires
+	for(auto eachNode : this->nodes)
 	{
-		if ( each != nullptr)
+		auto wires = eachNode->getWires();
+
+		for(auto eachWire : wires)
 		{
-			auto view = each->getView();
-
-			if (view != nullptr)
-			{
-				view->update();
-				view->draw();
-				isAnyItemDragged |= NodeView::GetDragged() == view;
-				isAnyItemHovered |= view->isHovered();
-			}
-		}
-	}
-
-
-	// 2 - Draw wires
-	for(auto each : this->nodes)
-	{
-		if ( each != nullptr)
-		{
-			auto wires = each->getWires();
-
-			for(auto eachWire : wires)
-			{
-				//eachWire->transmitData();
+			if ( eachWire->getTarget() == eachNode)
 				eachWire->getView()->draw();
-
-			}
 		}
 	}
 
@@ -107,14 +108,9 @@ void Node_Container::draw()
 	if( ImGui::IsMouseDragging() && ImGui::IsWindowFocused() && !isAnyItemDragged )
 	{
 		auto drag = ImGui::GetMouseDragDelta();
-		for(auto each : this->nodes)
+		for(auto eachNode : this->nodes)
 		{
-			if (each != nullptr){
-				auto view = each->getView();
-
-				if (view != nullptr)
-					each->getView()->translate(drag);
-			}
+			eachNode->getView()->translate(drag);
 		}
 		ImGui::ResetMouseDragDelta();
 	}

@@ -49,6 +49,9 @@ Node::Node()
 
 Node::~Node()
 {
+	for(auto wire : wires)
+		Node::Disconnect(wire);
+	
 }
 
 bool Node::isDirty()const
