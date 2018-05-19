@@ -5,6 +5,14 @@
 
 namespace Nodable{
 
+	enum Type_{
+		Type_Unknown,
+		Type_Boolean,
+		Type_Number,
+		Type_String,
+		Type_COUNT
+	};
+	
 	/* 
 		This class is variant implementation
 	*/
@@ -18,6 +26,9 @@ namespace Nodable{
 		void        setValue         (std::string);
 		void        setValue         (const char*);
 		void        setValue         (double);
+		void        setValue         (bool);
+
+		bool        getValueAsBoolean()const;
 		double      getValueAsNumber ()const;
 		std::string getValueAsString ()const;		
 		std::string getTypeAsString  ()const;
@@ -28,8 +39,7 @@ namespace Nodable{
 		bool        isSet            ()const;	
 
 	private:
-		std::string s    = "";
-		double      d    = 0.0F;
+		void*       data = NULL;
 		Type_       type = Type_Unknown;
 	};
 }

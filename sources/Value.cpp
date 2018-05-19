@@ -27,24 +27,24 @@ void Value::setValue(double _value)
 	{
 		case Type_String:
 		{
-			s = std::to_string(_value);
+			setValue(std::to_string(_value));
 			break;
 		}
 
 		case Type_Number:
 		{
-			d = _value;
+			*(double*)data = _value;
 			break;
 		}
 
 		default:
 		{
-			d = _value;
 			type = Type_Number;
+			data = new double(_value);
 			break;
 		}
 	}
-	LOG_MSG("Value::setValue(%d)\n", _value);
+	LOG_DBG("Value::setValue(%d)\n", _value);
 }
 
 void Value::setValue(std::string _value)
@@ -58,25 +58,57 @@ void Value::setValue(const char* _value)
 	{
 		case Type_String:
 		{
-			s = _value;
+			*(std::string*)data = _value;
 			break;
 		}
 
 		case Type_Number:
 		{
-			d = std::stod(_value);
+			*(double*)data = std::stod(_value);
 			break;
 		}
 		
 		default:
 		{
-			s = _value;
+			data = new std::string(_value);
 			type = Type_String;
 			break;
 		}
 	}
 
-	LOG_MSG("Value::setValue(%s)\n", _value);
+	LOG_DBG("Value::setValue(%s)\n", _value);
+}
+
+void Value::setValue(bool _value)
+{
+	switch(type)
+	{
+		case Type_String:
+		{
+			*(std::string*)data = _value ? "true" : "false";
+			break;
+		}
+
+		case Type_Number:
+		{
+			*(double*)data = _value ? double(1) : double(0);
+			break;
+		}
+		case Type_Boolean:
+		{
+			*(bool*)data = _value;
+			break;
+
+		}
+		default:
+		{
+			data = new bool(_value);
+			type = Type_Boolean;
+			break;
+		}
+	}
+
+	LOG_DBG("Value::setValue(%s)\n", _value ? "true" : "false");
 }
 
 double Value::getValueAsNumber()const
@@ -85,12 +117,17 @@ double Value::getValueAsNumber()const
 	{
 		case Type_String:
 		{
-			return (double)s.size();
+			return (double)(*(std::string*)data).size();
 		}
 
 		case Type_Number:
 		{
-			return d;
+			return *(double*)data;
+		}
+
+		case Type_Boolean:
+		{
+			return *(bool*)data ? double(1) : double(0);
 		}
 
 		default:
@@ -101,23 +138,54 @@ double Value::getValueAsNumber()const
 	
 }
 
+bool Value::getValueAsBoolean()const
+{
+	switch(type)
+	{
+		case Type_String:
+		{
+			return !(*(std::string*)data).empty();
+		}
+
+		case Type_Number:
+		{
+			return (*(double*)data) == 0.0F;
+		}
+
+		case Type_Boolean:
+		{
+			return *(bool*)data;
+		}
+
+		default:
+		{
+			return false;
+		}
+	}
+	
+}
 std::string Value::getValueAsString()const
 {
 	switch(type)
 	{
 		case Type_String:
 		{
-			return s;
+			return *(std::string*)data;
 		}
 
 		case Type_Number:
 		{
 			// Format the num as a string without any useless ending zeros/dot
-			std::string str = std::to_string (d);
+			std::string str = std::to_string (*(double*)data);
 			str.erase ( str.find_last_not_of('0') +1, std::string::npos );
 			if (str.find_last_of('.') +1 == str.size())
 				str.erase ( str.find_last_of('.'), std::string::npos );
 			return str;
+		}
+
+		case Type_Boolean:
+		{
+			return *(bool*)data ? "true" : "false";
 		}
 
 		default:
@@ -135,27 +203,16 @@ bool Value::isSet()const
 void Value::setValue(const Value& _v)
 {
 	type = _v.type;
-	s = _v.s;
-	d = _v.d;
+	data = _v.data;
 }
 
 std::string Value::getTypeAsString()const
 {
 	switch(type)
 	{
-		case Type_String:
-		{
-			return "String";
-		}
-
-		case Type_Number:
-		{
-			return "Number";
-		}
-
-		default:
-		{
-			return "Unknown";
-		}
+		case Type_String:		{return "String";}
+		case Type_Number:		{return "Number";}
+		case Type_Boolean: 		{return "Boolean";}
+		default:				{return "Unknown";}
 	}
 }
