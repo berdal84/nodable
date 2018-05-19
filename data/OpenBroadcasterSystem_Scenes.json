@@ -1,6 +1,6 @@
 {
-    "current_program_scene": "Conclusion",
-    "current_scene": "Conclusion",
+    "current_program_scene": "Introduction",
+    "current_scene": "Introduction",
     "current_transition": "Fondu",
     "modules": {
         "auto-scene-switcher": {
@@ -192,6 +192,37 @@
             "mixers": 0,
             "monitoring_type": 0,
             "muted": false,
+            "name": "Sous-Titre 4",
+            "private_settings": {},
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "settings": {
+                "color1": 4281874488,
+                "color2": 4278190080,
+                "drop_shadow": false,
+                "font": {
+                    "face": "Ubuntu",
+                    "flags": 0,
+                    "size": 72,
+                    "style": "Regular"
+                },
+                "text": "Video 2 - Automatic layout"
+            },
+            "sync": 0,
+            "volume": 1.0
+        },
+        {
+            "deinterlace_field_order": 0,
+            "deinterlace_mode": 0,
+            "enabled": true,
+            "flags": 0,
+            "hotkeys": {},
+            "id": "text_ft2_source",
+            "mixers": 0,
+            "monitoring_type": 0,
+            "muted": false,
             "name": "Sous-Titre 3",
             "private_settings": {},
             "push-to-mute": false,
@@ -224,16 +255,12 @@
                 "libobs.hide_scene_item.Logo": [],
                 "libobs.hide_scene_item.Logo_Berenger": [],
                 "libobs.hide_scene_item.Source de couleur": [],
-                "libobs.hide_scene_item.Sous-Titre": [],
-                "libobs.hide_scene_item.Sous-Titre 2": [],
                 "libobs.hide_scene_item.Sous-Titre 2 2": [],
                 "libobs.hide_scene_item.Sous-Titre 3": [],
                 "libobs.show_scene_item.Audio webcam": [],
                 "libobs.show_scene_item.Logo": [],
                 "libobs.show_scene_item.Logo_Berenger": [],
                 "libobs.show_scene_item.Source de couleur": [],
-                "libobs.show_scene_item.Sous-Titre": [],
-                "libobs.show_scene_item.Sous-Titre 2": [],
                 "libobs.show_scene_item.Sous-Titre 2 2": [],
                 "libobs.show_scene_item.Sous-Titre 3": []
             },
@@ -322,8 +349,8 @@
                         "locked": false,
                         "name": "Logo_Berenger",
                         "pos": {
-                            "x": 706.0,
-                            "y": 379.0
+                            "x": 713.29058837890625,
+                            "y": 385.0
                         },
                         "private_settings": {},
                         "rot": 0.0,
@@ -462,8 +489,8 @@
                         "locked": false,
                         "name": "Sous-Titre 3",
                         "pos": {
-                            "x": 417.0,
-                            "y": 475.0
+                            "x": 559.0,
+                            "y": 433.0
                         },
                         "private_settings": {},
                         "rot": 0.0,
@@ -520,7 +547,7 @@
             "push-to-talk": false,
             "push-to-talk-delay": 0,
             "settings": {
-                "file": "/home/berdal84/Nodable/data/icon.png"
+                "file": "/home/berdal84/Nodable/data/icon_HD.png"
             },
             "sync": 0,
             "volume": 1.0
@@ -657,7 +684,7 @@
                     "size": 24,
                     "style": "Regular"
                 },
-                "text": "by Bérenger Dalle-Cort, 2018 May 15th"
+                "text": "by Bérenger Dalle-Cort, 2018 May 19th"
             },
             "sync": 0,
             "volume": 1.0
@@ -710,7 +737,7 @@
             "push-to-talk": false,
             "push-to-talk-delay": 0,
             "settings": {
-                "file": "/home/berdal84/Nodable/data/icon.png"
+                "file": "/home/berdal84/Nodable/data/icon_HD.png"
             },
             "sync": 0,
             "volume": 1.0
@@ -751,13 +778,15 @@
                 "libobs.hide_scene_item.Sous-Titre": [],
                 "libobs.hide_scene_item.Sous-Titre 2": [],
                 "libobs.hide_scene_item.Sous-Titre 2 2": [],
+                "libobs.hide_scene_item.Sous-Titre 4": [],
                 "libobs.show_scene_item.Audio webcam": [],
                 "libobs.show_scene_item.Logo": [],
                 "libobs.show_scene_item.Logo_Berenger": [],
                 "libobs.show_scene_item.Source de couleur": [],
                 "libobs.show_scene_item.Sous-Titre": [],
                 "libobs.show_scene_item.Sous-Titre 2": [],
-                "libobs.show_scene_item.Sous-Titre 2 2": []
+                "libobs.show_scene_item.Sous-Titre 2 2": [],
+                "libobs.show_scene_item.Sous-Titre 4": []
             },
             "id": "scene",
             "mixers": 0,
@@ -770,7 +799,7 @@
             "push-to-talk": false,
             "push-to-talk-delay": 0,
             "settings": {
-                "id_counter": 9,
+                "id_counter": 10,
                 "items": [
                     {
                         "align": 5,
@@ -1020,6 +1049,34 @@
                         "scale": {
                             "x": 1.0,
                             "y": 1.0
+                        },
+                        "scale_filter": "disable",
+                        "visible": true
+                    },
+                    {
+                        "align": 5,
+                        "bounds": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "bounds_align": 0,
+                        "bounds_type": 0,
+                        "crop_bottom": 0,
+                        "crop_left": 0,
+                        "crop_right": 0,
+                        "crop_top": 0,
+                        "id": 10,
+                        "locked": false,
+                        "name": "Sous-Titre 4",
+                        "pos": {
+                            "x": 201.0,
+                            "y": 540.0
+                        },
+                        "private_settings": {},
+                        "rot": 0.0,
+                        "scale": {
+                            "x": 0.84090906381607056,
+                            "y": 0.84146338701248169
                         },
                         "scale_filter": "disable",
                         "visible": true
