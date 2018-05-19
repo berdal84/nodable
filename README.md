@@ -11,12 +11,16 @@ When user type an expression the program split it into tokens and build the exec
 Examples :
 ==========
 
-A quick video demo :
+Video n°1 - a first demo :
 
-[![Alt text for your video](https://img.youtube.com/vi/1TWPsUd66XY/0.jpg)](http://www.youtube.com/watch?v=1TWPsUd66XY)
+[![Watch on Youtube](https://img.youtube.com/vi/1TWPsUd66XY/0.jpg)](http://www.youtube.com/watch?v=1TWPsUd66XY)
 
+Video n°2 - Automatic Layout :
+
+[![Watch on Youtube](https://img.youtube.com/vi/-4N3Krlsr_s/0.jpg)](http://www.youtube.com/watch?v=-4N3Krlsr_s)
+
+An expression :
 ![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_13_GUI_Value_Editable.png)
-
 
 There are 3 display modes: simple, advanced and complex.
 In the simple display mode, the UI shows only nodes and links:
