@@ -5,22 +5,40 @@
 
 using namespace Nodable;
 
+void Node::Disconnect(Wire* _wire)
+{
+	auto sourceNode = _wire->getSource();
+	auto targetNode = _wire->getTarget();
+
+	// remove wire pointer from sourceNode's wires.
+	{
+		auto found = std::find(sourceNode->wires.begin(), sourceNode->wires.end(), _wire);
+		sourceNode->wires.erase(found); // I do not check if node has been found, because it should. If not, I prefer to crash here.
+	}
+
+	// remove wire pointer from targetNode's wires.
+	{
+		auto found = std::find(targetNode->wires.begin(), targetNode->wires.end(), _wire);
+		targetNode->wires.erase(found); // I do not check if node has been found, because it should. If not, I prefer to crash here.
+	}
+
+	delete _wire;
+}
+
 void Node::Connect(	Node* _from, 
 					Node* _to, 
 					const char* _fromOutputName, 
 					const char* _toInputName)
 {
-
-	// Create an empty wire
 	auto wire = new Wire();
 
 	// Connect wire's source and target to nodes _from and _to.
 	wire->setSource(_from , _fromOutputName);
 	wire->setTarget(_to   , _toInputName);
 
-	// Add this wire to each node. They need to know that they are linked by a wire.
-	_from->addWire(wire);
-	_to->addWire(wire);
+	// Add this wire to each node. They need to know that they are linked together.
+	_from->wires.push_back(wire);
+	_to->wires.push_back(wire);
 }
 
 Node::Node()
@@ -102,19 +120,6 @@ const char* Node::getLabel()const
 NodeView* Node::getView()const
 {
 	return this->view.get();
-}
-
-void Node::addWire(Wire* _wire)
-{
-	wires.push_back(_wire);
-}
-
-void Node::removeWire(Wire* _wire)
-{
-	auto found = std::find(wires.begin(), wires.end(), _wire);
-
-	if (found != wires.end())
-		wires.erase(found);
 }
 
 std::vector<Wire*>& Node::getWires()
