@@ -18,29 +18,11 @@ WireView::~WireView()
 
 void WireView::draw()
 {
+	// Update fill color depending on current state 
+	ImColor stateColors[Wire::State_COUNT] = {ImColor(1.0f, 0.0f, 0.0f), ImColor(0.8f, 0.8f, 0.8f)};
+	setColor(ColorType_Fill, stateColors[wire->getState()]);
 
-	switch( wire->getState())
-	{
-		case Wire::State_Disconnected:
-		{
-			setColor(ImColor(1.0f, 0.0f, 0.0f));
-			break;
-		}
-
-		case Wire::State_Misconnected:
-		{
-			setColor(ImColor(1.0f, 0.0f, 0.0f));
-			break;
-		}
-
-		case Wire::State_Connected:
-		{
-			setColor(ImColor(0.8f, 0.8f, 0.8f));
-			break;
-		}
-	}
-
-
+	// draw the wire
 	auto source = wire->getSource();
 	auto target = wire->getTarget();
 
@@ -91,21 +73,21 @@ void WireView::draw()
 
 	    // draw bezier curve
 	    ImVec2 arrowPos(pos1.x, pos1.y);
-		draw_list->AddBezierCurve(pos0, cp0, cp1, arrowPos, getColor(), bezierThickness);
+		draw_list->AddBezierCurve(pos0, cp0, cp1, arrowPos, getColor(ColorType_Fill), bezierThickness);
 		
 		// dot a the output position
-		draw_list->AddCircleFilled(pos0, 5.0f, source->getView()->getColor());
-		draw_list->AddCircle      (pos0, 5.0f, source->getView()->getBorderColor());
+		draw_list->AddCircleFilled(pos0, 5.0f, source->getView()->getColor(ColorType_Fill));
+		draw_list->AddCircle      (pos0, 5.0f, source->getView()->getColor(ColorType_Border));
 
 		if (displayArrows)
 		{
 			// Arrow at the input position
-	    	draw_list->AddLine(ImVec2(arrowPos.x - arrowSize.x, pos1.y + arrowSize.y/2.0f), arrowPos, getColor(), bezierThickness);
-	    	draw_list->AddLine(ImVec2(arrowPos.x - arrowSize.x, pos1.y - arrowSize.y/2.0f), arrowPos, getColor(), bezierThickness);
+	    	draw_list->AddLine(ImVec2(arrowPos.x - arrowSize.x, pos1.y + arrowSize.y/2.0f), arrowPos, getColor(ColorType_Fill), bezierThickness);
+	    	draw_list->AddLine(ImVec2(arrowPos.x - arrowSize.x, pos1.y - arrowSize.y/2.0f), arrowPos, getColor(ColorType_Fill), bezierThickness);
 	    }else{        
 	    	// dot at the input position
-	    	draw_list->AddCircleFilled(pos1, 5.0f, target->getView()->getColor());   
-	    	draw_list->AddCircle      (pos1, 5.0f, target->getView()->getBorderColor());
+	    	draw_list->AddCircleFilled(pos1, 5.0f, target->getView()->getColor(ColorType_Fill));   
+	    	draw_list->AddCircle      (pos1, 5.0f, target->getView()->getColor(ColorType_Border));
 	    }
 
 	    switch(NodeView::s_drawDetail)
@@ -117,7 +99,7 @@ void WireView::draw()
 			    	std::string s = std::string(wire->getSourceSlot()) + " (" + wire->getSourceSlotTypeAsString() + ")";
 			    	auto textSize = ImGui::CalcTextSize( s.c_str());
 					ImGui::SetCursorPos(ImVec2(pos0.x + 10.0f, pos0.y - textSize.y));
-			    	ImGui::TextColored(getColor(), "%s", s.c_str());
+			    	ImGui::TextColored(getColor(ColorType_Fill), "%s", s.c_str());
 				}
 
 			    // Draw target text
@@ -125,7 +107,7 @@ void WireView::draw()
 			    	std::string s = std::string(wire->getTargetSlot()) + "  (" + wire->getTargetSlotTypeAsString() + ")";
 			    	auto textSize = ImGui::CalcTextSize( s.c_str());
 					ImGui::SetCursorPos(ImVec2(pos1.x - textSize.x - 10.0f, pos1.y));
-			    	ImGui::TextColored(getColor(), "%s", s.c_str());
+			    	ImGui::TextColored(getColor(ColorType_Fill), "%s", s.c_str());
 				}
 				break;
 			}
@@ -137,7 +119,7 @@ void WireView::draw()
 			    	std::string s = std::string(wire->getSourceSlot());
 			    	auto textSize = ImGui::CalcTextSize( s.c_str());
 					ImGui::SetCursorPos(ImVec2(pos0.x + 10.0f, pos0.y - textSize.y));
-			    	ImGui::TextColored(getColor(), "%s", s.c_str());
+			    	ImGui::TextColored(getColor(ColorType_Fill), "%s", s.c_str());
 				}
 
 			    // Draw target text
@@ -145,11 +127,14 @@ void WireView::draw()
 			    	std::string s = std::string(wire->getTargetSlot());
 			    	auto textSize = ImGui::CalcTextSize( s.c_str());
 					ImGui::SetCursorPos(ImVec2(pos1.x - textSize.x - 10.0f, pos1.y));
-			    	ImGui::TextColored(getColor(), "%s", s.c_str());
+			    	ImGui::TextColored(getColor(ColorType_Fill), "%s", s.c_str());
 				}
 				break;
 			}
-			default:{}
+			default:
+			{
+				// Draw nothing by default !
+			}
 		}
     }  
 

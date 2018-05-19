@@ -16,8 +16,8 @@ namespace Nodable
 		enum State_
 		{
 			State_Disconnected,
-			State_Misconnected,
-			State_Connected
+			State_Connected,
+			State_COUNT
 		};
 
 		Wire();

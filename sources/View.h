@@ -5,18 +5,27 @@ namespace Nodable{
 	class View
 	{
 	public:
-		View(){}
+		enum ColorType_
+		{
+			ColorType_Fill,
+			ColorType_Border,
+			ColorType_BorderHighlights,
+			ColorType_Shadow,
+			ColorType_COUNT
+		};
+
+		View();
 		~View(){}
-		static void DrawRectShadow (ImVec2 _from, ImVec2 _to, float _rectInitialRadius = 0.0f, int _radius = 10, ImVec2 _offset = ImVec2());
+
+		/* Draw only shadow for a rectangle */
+		static void DrawRectShadow (ImVec2 _topLeftCorner, ImVec2 _bottomRightCorner, float _borderRadius = 0.0f, int _shadowRadius = 10, ImVec2 _shadowOffset = ImVec2(), ImColor _shadowColor = ImColor(0.0f,0.0f,0.0f));
+		
+		/* Draw a text with a shadow. */
 		static void ShadowedText   (ImVec2 _offset, ImColor _color, const char*, ...);
 
-		void    setColor(ImColor _color){color = _color;}
-		ImColor getColor()const{return color;}
-
-		void    setBorderColor(ImColor _color){borderColor = _color;}
-		ImColor getBorderColor()const{return borderColor;}
+		void        setColor       (ColorType_ ,ImColor);
+		ImColor     getColor       (ColorType_);
 	private:
-		ImColor color        = ImColor(1.0f, 1.0f, 1.0f);	
-		ImColor borderColor  = ImColor(0.2f, 0.2f, 0.2f);
+		ImColor colors[ColorType_COUNT];
 	};
 }

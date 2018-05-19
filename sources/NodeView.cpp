@@ -107,11 +107,11 @@ void NodeView::update()
 	//---------------------------------------------
 
 	if (dynamic_cast<Node_BinaryOperation*>(node) != nullptr)
-		setColor(ImColor(0.7f, 0.7f, 0.9f));
+		setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
 	else if (dynamic_cast<Node_Variable*>(node) != nullptr)
-		setColor(ImColor(0.7f, 0.9f, 0.7f));
+		setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f));
 	else
-		setColor(ImColor(0.9f, 0.9f, 0.7f));
+		setColor(ColorType_Fill, ImColor(0.9f, 0.9f, 0.7f));
 
 	// automatically moves input connected nodes
 	//------------------------------------------
@@ -202,21 +202,21 @@ void NodeView::draw()
 			// Draw the background of the Group
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 			{			
-				auto borderCol = IsSelected(this) ? borderColorSelected : getBorderColor();
+				auto borderCol = IsSelected(this) ? borderColorSelected : getColor(ColorType_Border);
 				auto itemRectMin = position;
 				auto itemRectMax = ImVec2(position.x + size.x, position.y + size.y);
 
 				// Draw the rectangle under everything
-				View::DrawRectShadow(itemRectMin, itemRectMax, borderRadius, 4, ImVec2(1.0f, 1.0f));
-				draw_list->AddRectFilled(itemRectMin, itemRectMax,getColor(), borderRadius);
-				draw_list->AddRect(ImVec2(itemRectMin.x + 1.0f, itemRectMin.y + 1.0f), ImVec2(itemRectMax.x, itemRectMax.y),ImColor(1.0f,1.0f,1.0f,0.7f), borderRadius);	
+				View::DrawRectShadow(itemRectMin, itemRectMax, borderRadius, 4, ImVec2(1.0f, 1.0f), getColor(ColorType_Shadow));
+				draw_list->AddRectFilled(itemRectMin, itemRectMax,getColor(ColorType_Fill), borderRadius);
+				draw_list->AddRect(ImVec2(itemRectMin.x + 1.0f, itemRectMin.y + 1.0f), ImVec2(itemRectMax.x, itemRectMax.y),getColor(ColorType_BorderHighlights), borderRadius);	
 				draw_list->AddRect(itemRectMin, itemRectMax,borderCol, borderRadius);				
 
-				// Darken the bottom area to separate title and details
+				// Darken the bottom area when not collapsed (to separate title and content)
 				if(!collapsed)
 					draw_list->AddRectFilled(ImVec2(itemRectMin.x, itemRectMin.y + 35.0f), ImVec2(itemRectMax.x, itemRectMax.y), ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
 
-				// Draw an additionnal rectangle when selected
+				// Draw an additionnal blinking rectangle when selected
 				if (IsSelected(this))
 				{
 					float alpha = sin(ImGui::GetTime() * 10.0f)*0.25f + 0.5f;
@@ -242,14 +242,11 @@ void NodeView::draw()
 			break;
 		}
 
-		case DrawMode_AsGroup:
-		{
-			break;
-		}
+		default:{}
 	}
 
 	ImGui::Indent();
-	ShadowedText(ImVec2(1.0f, 1.0f), ImColor(1.0f,1.0f,1.0f,0.8f), node->getLabel());
+	ShadowedText(ImVec2(1.0f, 1.0f), getColor(ColorType_BorderHighlights), node->getLabel()); // text with a lighter shadow (incrust effect)
 
 	if (!collapsed)
 	{
@@ -257,8 +254,6 @@ void NodeView::draw()
 
 		for(auto& m : node->getMembers())
 		{
-
-
 			switch(m.second->getType())
 			{
 				case Type_Number:
@@ -281,14 +276,16 @@ void NodeView::draw()
 			}
 		}
 		
+		// Draw parent's name
 
 		std::string parentName = "NULL";
 		if ( node->getParent() )
 			parentName = node->getParent()->getName();
 		ImGui::Text("Parent: %s", parentName.c_str());
 		
-		ImGui::Text("Dirty : %s", node->isDirty() ? "Yes":"No");
+		// Draw dirty state 
 
+		ImGui::Text("Dirty : %s", node->isDirty() ? "Yes":"No");
 		if ( node->isDirty())
 		{
 			ImGui::SameLine();
@@ -312,7 +309,6 @@ void NodeView::draw()
 		}
 		case DrawMode_AsGroup:
 		{	
-			// Add a margin at the bottom-right corner
 			ImGui::EndGroup();
 
 			hovered = ImGui::IsMouseHoveringRect(position, ImVec2(position.x + size.x, position.y + size.y), true);
