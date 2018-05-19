@@ -330,9 +330,22 @@ void NodeView::draw()
 
 			hovered = ImGui::IsMouseHoveringRect(position, ImVec2(position.x + size.x, position.y + size.y), true);
 
+            if (hovered && ImGui::IsMouseReleased(1))
+                ImGui::OpenPopup("NodeViewContextualMenu");
+
+            if (ImGui::BeginPopup("NodeViewContextualMenu"))
+            {
+                if( ImGui::MenuItem("Arrange"))
+                	this->arrangeRecursively();
+
+                ImGui::MenuItem("Pinned",    "", &this->pinned,    true);
+				ImGui::MenuItem("Collapsed", "", &this->collapsed, true);
+                ImGui::EndPopup();
+            }
+
 			// Selection by mouse
 
-			if ( hovered && ImGui::IsMouseClicked(0))
+			if ( hovered && (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)))
 				SetSelected(this);
 
 			// Dragging by mouse
