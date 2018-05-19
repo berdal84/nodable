@@ -231,9 +231,10 @@ Node_BinaryOperation* Node_Container::createNodeBinaryOperation(std::string _op,
 	else
 		return nullptr;
 
-	Node::Connect(_leftInput,  node,   "value", "left");
-	Node::Connect(_rightInput, node,   "value", "right");
-	Node::Connect(node,        _output,"result", "value");
+
+	Node::Connect(new Wire(),_leftInput,  node,   "value", "left");
+	Node::Connect(new Wire(),_rightInput, node,   "value", "right");
+	Node::Connect(new Wire(), node,       _output,"result", "value");
 
 	return node;
 }
@@ -284,7 +285,7 @@ Node_Lexer* Node_Container::createNodeLexer(Node_Variable* _input)
 {
 	Node_Lexer* node = new Node_Lexer();
 	node->addComponent( "view", new NodeView(node));
-	Node::Connect(_input, node, "value", "expression");
+	Node::Connect(new Wire(),_input, node, "value", "expression");
 	addNode(node);
 	return node;
 }

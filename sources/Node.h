@@ -75,7 +75,7 @@ namespace Nodable{
 
 		/* Connect _from._fromOuputName with _to._toInputName.
 		the connection is oriented. */
-		static void         Connect           (Node* /*_from*/, Node* /*_to*/, const char* _fromOutputName = NODE_DEFAULT_OUTPUT_NAME, const char* _toInputName = NODE_DEFAULT_INPUT_NAME);
+		static void        Connect            (Wire* /*_wire*/, Node* /*_from*/, Node* /*_to*/, const char* _fromOutputName = NODE_DEFAULT_OUTPUT_NAME, const char* _toInputName = NODE_DEFAULT_INPUT_NAME);
 	
 		/* Disconnect (and delete) a wire. This method is the opposite of Node::Connect.*/
 		static void         Disconnect        (Wire* _wire);

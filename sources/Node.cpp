@@ -24,24 +24,25 @@ void Node::Disconnect(Wire* _wire)
 		targetNode->wires.erase(found); // I do not check if node has been found, because it should. If not, I prefer to crash here.
 	}
 
-	delete _wire;
+	_wire->setTarget(nullptr, "");
+	_wire->setSource(nullptr, "");
 }
 
-void Node::Connect(	Node* _from, 
+void Node::Connect( Wire* _wire,
+					Node* _from, 
 					Node* _to, 
 					const char* _fromOutputName, 
 					const char* _toInputName)
-{
-	auto wire = new Wire();
-	wire->addComponent("view", new WireView(wire));
+{	
+	_wire->addComponent("view", new WireView(_wire));
 
 	// Connect wire's source and target to nodes _from and _to.
-	wire->setSource(_from , _fromOutputName);
-	wire->setTarget(_to   , _toInputName);
+	_wire->setSource(_from , _fromOutputName);
+	_wire->setTarget(_to   , _toInputName);
 
 	// Add this wire to each node. They need to know that they are linked together.
-	_from->wires.push_back(wire);
-	_to->wires.push_back(wire);
+	_from->wires.push_back(_wire);
+	_to->wires.push_back(_wire);
 }
 
 Node::Node()
@@ -52,7 +53,10 @@ Node::Node()
 Node::~Node()
 {
 	for(auto wire : wires)
+	{
 		Node::Disconnect(wire);
+		delete wire;
+	}
 
 }
 
