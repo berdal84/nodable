@@ -73,7 +73,15 @@ void WireView::draw()
 
 	    // draw bezier curve
 	    ImVec2 arrowPos(pos1.x, pos1.y);
-		draw_list->AddBezierCurve(pos0, cp0, cp1, arrowPos, getColor(ColorType_Fill), bezierThickness);
+	    ImVec2 shadowOffset(1.0f, 2.0f);
+	    draw_list->AddBezierCurve(  ImVec2(pos0.x + shadowOffset.x, pos0.y + shadowOffset.y),
+	    							ImVec2(cp0.x + shadowOffset.x, cp0.y + shadowOffset.y),
+	    							ImVec2(cp1.x + shadowOffset.x, cp1.y + shadowOffset.y),
+	    							ImVec2(arrowPos.x + shadowOffset.x, arrowPos.y + shadowOffset.y),
+	    							getColor(ColorType_Shadow),
+	    							bezierThickness); // shadow
+
+		draw_list->AddBezierCurve(pos0, cp0, cp1, arrowPos, getColor(ColorType_Fill), bezierThickness); // fill
 		
 		// dot a the output position
 		draw_list->AddCircleFilled(pos0, 5.0f, source->getView()->getColor(ColorType_Fill));
@@ -99,7 +107,7 @@ void WireView::draw()
 			    	std::string s = std::string(wire->getSourceSlot()) + " (" + wire->getSourceSlotTypeAsString() + ")";
 			    	auto textSize = ImGui::CalcTextSize( s.c_str());
 					ImGui::SetCursorPos(ImVec2(pos0.x + 10.0f, pos0.y - textSize.y));
-			    	ImGui::TextColored(getColor(ColorType_Fill), "%s", s.c_str());
+			    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill), getColor(ColorType_Shadow), s.c_str());
 				}
 
 			    // Draw target text
@@ -107,7 +115,7 @@ void WireView::draw()
 			    	std::string s = std::string(wire->getTargetSlot()) + "  (" + wire->getTargetSlotTypeAsString() + ")";
 			    	auto textSize = ImGui::CalcTextSize( s.c_str());
 					ImGui::SetCursorPos(ImVec2(pos1.x - textSize.x - 10.0f, pos1.y));
-			    	ImGui::TextColored(getColor(ColorType_Fill), "%s", s.c_str());
+			    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), s.c_str());
 				}
 				break;
 			}
@@ -119,7 +127,7 @@ void WireView::draw()
 			    	std::string s = std::string(wire->getSourceSlot());
 			    	auto textSize = ImGui::CalcTextSize( s.c_str());
 					ImGui::SetCursorPos(ImVec2(pos0.x + 10.0f, pos0.y - textSize.y));
-			    	ImGui::TextColored(getColor(ColorType_Fill), "%s", s.c_str());
+					ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), s.c_str());
 				}
 
 			    // Draw target text
@@ -127,7 +135,7 @@ void WireView::draw()
 			    	std::string s = std::string(wire->getTargetSlot());
 			    	auto textSize = ImGui::CalcTextSize( s.c_str());
 					ImGui::SetCursorPos(ImVec2(pos1.x - textSize.x - 10.0f, pos1.y));
-			    	ImGui::TextColored(getColor(ColorType_Fill), "%s", s.c_str());
+			    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), s.c_str());
 				}
 				break;
 			}

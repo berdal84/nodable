@@ -1,12 +1,13 @@
 #include "NodeView.h"
-#include "Log.h"		// for LOG_DBG(...)
+#include "Log.h"		          // for LOG_DBG(...)
 #include <imgui.h>
 #include "Node_Container.h"
 #include "Node_Variable.h"
 #include "Node_BinaryOperations.h"
 #include "View.h"
 #include "Wire.h"
-#include <cmath> // for sinus
+#include <cmath>                  // for sinus
+#include <algorithm>              // for std::max
 
 using namespace Nodable;
 
@@ -119,29 +120,43 @@ void NodeView::update()
 	// first we get the spacing distance between nodes sepending on drawDetail global variable
 
 	float spacingDistBase = 150.0f;
-	float distances[3]    = {spacingDistBase * 0.3f, spacingDistBase * 0.7f, spacingDistBase * 1.0f};
+	float distances[3]    = {spacingDistBase * 0.3f, spacingDistBase * 0.5f, spacingDistBase * 1.0f};
 	float spacingDist     = distances[s_drawDetail];
 
 	// then we constraint each input view
 
 	auto wires            = node->getWires();
-	auto inputCount       = node->getInputWireCount();
 	auto inputIndex       = 0;
+
+	// Compute the cumulated height and the size x max of the input node view:
+	auto cumulatedHeight = 0.0f;
+	auto maxSizeX        = 0.0f;
+	for(auto eachWire : wires)
+	{
+		bool isWireAnInput = eachWire->getTarget() == node;
+
+		if (isWireAnInput && !eachWire->getSource()->getView()->pinned )
+		{
+			auto inputView = eachWire->getSource()->getView();
+			cumulatedHeight += inputView->size.y;
+			maxSizeX = std::max(maxSizeX, inputView->size.x);
+		}
+	}
+
+	// Move each input node views :
+	auto posY = getInputPosition().y - cumulatedHeight / 2.0f;
 
 	for(auto eachWire : wires)
 	{
-		bool isWireAndInput = eachWire->getTarget() == node;
-
-		if (isWireAndInput)
+		bool isWireAnInput = eachWire->getTarget() == node;
+		if (isWireAnInput)
 		{
 			auto inputView = eachWire->getSource()->getView();
 
 			if ( ! inputView->pinned )
 			{
 				// Compute new position for this input view
-				ImVec2 newPos(position.x - inputView->size.x - spacingDist, position.y);
-				if ( inputCount > 1)
-					newPos.y += (float(inputIndex)/float(inputCount-1) - 0.5f ) * spacingDist; 
+				ImVec2 newPos(getInputPosition().x - maxSizeX - spacingDist, posY);
 
 				// Compute a delta to apply to move to this new position
 				auto currentPos = inputView->getPosition();
@@ -151,6 +166,8 @@ void NodeView::update()
 				bool isDeltaTooSmall = delta.x*delta.x + delta.y*delta.y < 1.0f;
 				if ( !isDeltaTooSmall )
 					inputView->translate(delta);
+
+				posY += inputView->size.y + 15.0f; // adding a 10 px vertical margin.
 			}
 
 			inputIndex++;

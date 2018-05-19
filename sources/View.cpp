@@ -8,7 +8,7 @@ View::View()
 	colors[ColorType_Fill]             = {1.0f, 1.0f, 1.0f, 1.0f};
 	colors[ColorType_Border]           = {0.2f, 0.2f, 0.2f, 1.0f};
 	colors[ColorType_BorderHighlights] = {1.0f, 1.0f, 1.0f, 0.8f};
-	colors[ColorType_Shadow]           = {0.0f, 0.0f, 0.0f, 0.3f};
+	colors[ColorType_Shadow]           = {0.0f, 0.0f, 0.0f, 0.2f};
 }
 
 void View::setColor(ColorType_ _type, ImColor _color)
@@ -46,7 +46,7 @@ void View::DrawRectShadow (ImVec2 _topLeftCorner, ImVec2 _bottomRightCorner, flo
 	}
 }
 
-void View::ShadowedText(ImVec2 _offset, ImColor _color, const char* _format, ...)
+void View::ShadowedText(ImVec2 _offset, ImColor _shadowColor, const char* _format, ...)
 {
 	// draw first the shadow
 	auto p = ImGui::GetCursorPos();
@@ -54,8 +54,22 @@ void View::ShadowedText(ImVec2 _offset, ImColor _color, const char* _format, ...
 
 	va_list args;
     va_start(args, _format);
-    ImGui::TextColored(_color, _format, args);
+    ImGui::TextColored(_shadowColor, _format, args);
 	ImGui::SetCursorPos(p);
     ImGui::Text(_format, args);
+    va_end(args);
+}
+
+void View::ColoredShadowedText(ImVec2 _offset, ImColor _textColor, ImColor _shadowColor, const char* _format, ...)
+{
+	// draw first the shadow
+	auto p = ImGui::GetCursorPos();
+	ImGui::SetCursorPos(ImVec2(p.x + _offset.x, p.y + _offset.y));	
+
+	va_list args;
+    va_start(args, _format);
+    ImGui::TextColored(_shadowColor, _format, args);
+	ImGui::SetCursorPos(p);
+    ImGui::TextColored(_textColor, _format, args);
     va_end(args);
 }
