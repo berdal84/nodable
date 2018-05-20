@@ -45,11 +45,6 @@ void Node::Connect( Wire* _wire,
 	_to->wires.push_back(_wire);
 }
 
-Node::Node()
-{
-	LOG_DBG("Node::Node()\n");	
-}
-
 Node::~Node()
 {
 	for(auto wire : wires)

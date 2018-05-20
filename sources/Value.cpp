@@ -3,10 +3,9 @@
 
 using namespace Nodable;
 
-Value::Value(Type_ _type)
+Value::Value()
 {
 	LOG_DBG("New Value\n");
-	type = _type;
 }
 
 Value::~Value(){};

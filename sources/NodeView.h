@@ -22,7 +22,7 @@ namespace Nodable{
 		DrawDetail_Simple   = 0,                 // node and links.
 		DrawDetail_Advanced = 1,                 // node, links and input/output names.
 		DrawDetail_Complex  = 2,                 // node, links, input/output names and types.
-		DrawDetail_Default  = DrawDetail_Simple
+		DrawDetail_Default  = DrawDetail_Advanced
 	};
 
 	class NodeView : public View

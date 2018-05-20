@@ -13,6 +13,7 @@ using namespace Nodable;
 Node_Application::Node_Application(const char* _name)
 {
 	LOG_MSG("A new Node_Application ( label = \"%s\")\n", _name);
+	setMember("class", "Node_Application");
 	setLabel(_name);
 	addComponent("view", new ApplicationView(_name, this));
 }

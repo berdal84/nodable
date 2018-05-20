@@ -15,7 +15,7 @@ namespace Nodable{
 	class Node : public Object
 	{
 	public:
-		Node();
+		Node(){setMember("class", "Node");};
 		virtual ~Node();
 
 		/* Return the parent container of this node. Could be nullptr if this node is a root. */

@@ -47,7 +47,7 @@ NodeView::NodeView(Node* _node)
 	LOG_DBG("Node::Node()\n");
 	this->node = _node;
 	this->name = std::string("Node###") + std::to_string((size_t)this);
-	setMember("componentType", "NodeView");
+	setMember("class", "NodeView");
 }
 
 NodeView::~NodeView()
@@ -276,44 +276,64 @@ void NodeView::draw()
 
 	ImGui::NewLine();
 
-
-	for(auto& m : node->getMembers())
+	membersOffsetPositionY.clear();
+	auto drawValue = [this](Value* _v)->void
 	{
-		auto memberTopPositionOffsetY = ImGui::GetCursorPos().y - position.y;
+		auto memberTopPositionOffsetY 	= ImGui::GetCursorPos().y - position.y;
 
-		switch(m.second->getType())
+		switch(_v->getType())
 		{
 			case Type_Number:
 			{
-				float f(m.second->getValueAsNumber());
-				if ( ImGui::InputFloat(m.first.c_str(), &f))
+				float f(_v->getValueAsNumber());
+				if ( ImGui::InputFloat(_v->getName().c_str(), &f))
 				{
-					m.second->setValue(f);
+					_v->setValue(f);
 					node->setDirty(true);
 				}
 				break;
 			}
 			default:
 			{
-				ImGui::Text("%s", m.first.c_str());
+				ImGui::Text("%s", _v->getName().c_str());
 				ImGui::SameLine(100.0f);
-				ImGui::Text("%s", m.second->getValueAsString().c_str());
+				ImGui::Text("%s", _v->getValueAsString().c_str());
 				break;
 			}
 		}
 
 		auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
+		membersOffsetPositionY[_v->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f;
+	};
 
-		membersOffsetPositionY[m.first] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f;
+	// Draw visible members
+	{
+		for(auto& m : node->getMembers())
+		{		
+			if( m.second->getVisibility() == Visibility_Public)
+			{
+				drawValue(m.second);
+			}
+		}
 	}
 	
+	// if needed draw additionnal infos 
 	if (!collapsed)
 	{	
-		// Draw component's names
+		// Draw visible members
+		for(auto& m : node->getMembers())
+		{		
+			if( m.second->getVisibility() == Visibility_Protected)
+			{
+				drawValue(m.second);
+			}
+		}
+
+		// Draw component names
 		ImGui::NewLine();
 		ImGui::Text("Components :");
 		for(auto& c : node->getComponents())
-			ImGui::Text("- %s (%s)",c.first.c_str(),    c.second->getMember("componentType")->getValueAsString().c_str());
+			ImGui::Text("- %s (%s)",c.first.c_str(),    c.second->getMember("class")->getValueAsString().c_str());
 
 		// Draw parent's name
 		ImGui::NewLine();
@@ -427,4 +447,5 @@ void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 		}
 	}
 }
+
 

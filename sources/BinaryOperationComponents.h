@@ -24,30 +24,35 @@ namespace Nodable{
 	/* Implementation of the BinaryOperationComponent as a Sum */
 	class Add : public BinaryOperationComponent{
 	public:
+		Add(){setMember("class", "Add");};
 		void        update()override;
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Substraction */
 	class Substract : public BinaryOperationComponent{
 	public:
+		Substract(){setMember("class", "Substract");};
 		void update()override;
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Multiplication */
 	class Multiply : public BinaryOperationComponent{
 	public:
+		Multiply(){setMember("class", "Multiply");};
 		void update()override;
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Division */
 	class Divide : public BinaryOperationComponent{
 	public:
+		Divide(){setMember("class", "Divide");};
 		void update()override;
 	};
 
 	/* Implementation of the BinaryOperationComponent as an assignment */
 	class Assign : public BinaryOperationComponent{
 	public:
+		Assign(){setMember("class", "Add");};
 		void update()override;
 	};
 }

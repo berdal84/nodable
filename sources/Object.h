@@ -11,11 +11,11 @@ namespace Nodable
 	class Object
 	{
 	public:
-		Object(){};
+		Object();
 		virtual ~Object(){};
 
 		/* Adds a new member identified by its _name. */
-		void                addMember         (const char* _name, Type_ _type = Type_Unknown);
+		void                addMember         (const char* /*name*/, Visibility_ = Visibility_Default, Type_ = Type_Unknown);
 
 		/* Set deleted flag on. Will be deleted by its controller next frame */
 		void                deleteNextFrame   (){deleted = true;}

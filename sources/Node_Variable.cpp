@@ -8,6 +8,7 @@ Node_Variable::Node_Variable()
 {
 	LOG_DBG("New Node_Variable\n");
 	addMember("value");
+	setMember("class", "Node_Variable");
 }
 
 Node_Variable::~Node_Variable()

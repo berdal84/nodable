@@ -12,11 +12,11 @@ using namespace Nodable;
 Node_Lexer::Node_Lexer()
 {
 	LOG_DBG("new Node_Lexer\n");
-
-	addMember("expression");
-	addMember("numbers" );
-	addMember("letters" );
-	addMember("operators" );
+	setMember("class", "Node_Lexer");
+	addMember("expression", Visibility_Protected);
+	addMember("numbers", 	Visibility_Protected);
+	addMember("letters", 	Visibility_Protected);
+	addMember("operators", 	Visibility_Protected);
 
 	setMember("numbers", "0123456789.");	
 	setMember("letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_");	
