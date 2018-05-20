@@ -145,7 +145,7 @@ void WireView::draw()
 
 	    	case DrawDetail_Advanced:
 	    	{
-				drawSourceAndTargetTexts(wire->getSourceSlotTypeAsString().c_str(), wire->getTargetSlotTypeAsString().c_str());
+				drawSourceAndTargetTexts(wire->getSourceSlot(), wire->getTargetSlot());
 				break;
 			}
 
