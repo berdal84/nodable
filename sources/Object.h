@@ -17,6 +17,8 @@ namespace Nodable
 		/* Adds a new member identified by its _name. */
 		void                addMember         (const char* /*name*/, Visibility_ = Visibility_Default, Type_ = Type_Unknown);
 
+		bool                hasMember         (Value* _value);
+
 		/* Set deleted flag on. Will be deleted by its controller next frame */
 		void                deleteNextFrame   (){deleted = true;}
 
@@ -40,6 +42,10 @@ namespace Nodable
 		void                setMember         (const char* _name, T _value);		
 
 		bool                needsToBeDeleted  (){return deleted;}
+
+		template<typename T>
+		T                   as();
+
 	private:
 		Members             members;
 		bool                deleted = false;
@@ -50,5 +56,11 @@ namespace Nodable
 	{
 		members[std::string(_name)]->setValue(_value);
 		this->onMemberValueChanged(_name);	
+	}
+
+	template<typename T>
+	T Object::as()
+	{
+		return dynamic_cast<T>(this);
 	}
 }

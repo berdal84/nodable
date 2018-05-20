@@ -11,6 +11,10 @@ When user type an expression the program split it into tokens and build the exec
 Examples :
 ==========
 
+An expression example :
+
+![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_20_Simplified_Graphs.png)
+
 Video n°1 - a first demo :
 
 [![Watch on Youtube](https://img.youtube.com/vi/1TWPsUd66XY/0.jpg)](http://www.youtube.com/watch?v=1TWPsUd66XY)
@@ -18,19 +22,6 @@ Video n°1 - a first demo :
 Video n°2 - Automatic Layout :
 
 [![Watch on Youtube](https://img.youtube.com/vi/-4N3Krlsr_s/0.jpg)](http://www.youtube.com/watch?v=-4N3Krlsr_s)
-
-An expression :
-![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_13_GUI_Value_Editable.png)
-
-There are 3 display modes: simple, advanced and complex.
-In the simple display mode, the UI shows only nodes and links:
-![Example2](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_12_GUI_Simple.png)
-
-In the Advanced mode, the UI shows nodes, links and input and output names:
-![Example3](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_12_GUI_Advanced.png)
-
-In the Complex mode, the UI shows node, links, input and output names and types:
-![Example4](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_12_GUI_Complex.png)
 
 
 The language :

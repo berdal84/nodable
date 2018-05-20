@@ -6,6 +6,7 @@
 #include "Node_Variable.h"
 #include "BinaryOperationComponents.h"
 #include "NodeView.h"
+#include "Wire.h"
 
 using namespace Nodable;
 
@@ -54,10 +55,10 @@ bool Node_Lexer::eval()
 	return success;
 }
 
-Node_Variable* Node_Lexer::convertTokenToNode(Token token)
+Value* Node_Lexer::createValueFromToken(Token token)
 {
 	Node_Container* context         = this->getParent();
-	Node_Variable*  variable        = nullptr;
+	Value*          value           = nullptr;
 
 	auto            tokenWordString = token.word.c_str();
 
@@ -65,106 +66,119 @@ Node_Variable* Node_Lexer::convertTokenToNode(Token token)
 	{
 		case TokenType_Symbol:
 		{
-			variable = context->find(tokenWordString);
+			Node_Variable* variable = context->find(tokenWordString);
 
 			if ( variable == nullptr )
 				variable = context->createNodeVariable(tokenWordString);
 
+			value = variable->getValue();
 			break;
 		}
 
 		case TokenType_Number:{
-			variable = context->createNodeVariable(); // That could be strange to store a constant into a variable. But A node number could be modified via the GUI.
-			variable->setValue(std::stod(tokenWordString));
+			value = new Value();
+			value->setValue(std::stod(tokenWordString));
 			break;
 		}
 
 		case TokenType_String:{
-			variable = context->createNodeVariable();
-			variable->setValue(tokenWordString);	
+			value = new Value();
+			value->setValue(tokenWordString);	
 			break;
 		}
 		default:{}
 	}
-	return variable;
+	return value;
 }
-
-void Node_Lexer::buildGraphRec(size_t _tokenIndex, Node_Variable* _finalRes, Node_Variable* _prevRes)
-{
-
-	Node_Variable* 	      left;
-	Node_Variable*        right;
-	Node_Container*       context = this->getParent();
-
-	//printf("Token evaluated : %lu.\n", _tokenIndex);
-
-	// If a previous result is set, it means we have already calculated the left part in the previous expression
-	// So we use it as left operand
-
-	if ( _prevRes != nullptr ){
-		left = _prevRes;
-
-	// Else, we parse the left operand
-	}else{
-		left = convertTokenToNode(tokens[_tokenIndex]);
-	}
-	
-
-	size_t tokenLeft = tokens.size() - _tokenIndex;
-	/* number */
-	if ( tokenLeft == 1)
-	{		
-		_finalRes = left;
-
-	/* number, op, expr */
-	}else if  (tokenLeft == 3){
-		std::string op = tokens[++_tokenIndex].word;
-
-		right 	       = convertTokenToNode(tokens[++_tokenIndex]);
-		buildGraphRec(_tokenIndex, right, nullptr);		
-		context->createNodeBinaryOperation(op, left, right, _finalRes);
-
-	/* number, op, number, op, expr */
-	}else if  (tokenLeft >= 4)
-	{	
-		std::string op     = tokens[++_tokenIndex].word;
-		right 	           = convertTokenToNode(tokens[++_tokenIndex]);
-		
-		// peek the next operator
-		std::string nextOp = tokens[_tokenIndex+1].word;	
-
-
-		/* if currOperator is more important than nextOperator
-		   we perform the first operation and send the result as left operand to the next expression */
-		Node_Variable* 	result 	    = context->createNodeVariable();	
-		bool            evaluateNow = BinaryOperationComponent::NeedsToBeEvaluatedFirst(op, nextOp);	
-
-		if ( evaluateNow ){
-			// create the operation on the left		
-			context->createNodeBinaryOperation(op, left, right, result);
-
-			// Pass the result and build the next operations
-			buildGraphRec(_tokenIndex, _finalRes, result);	
-
-		/* Else, we evaluate the next expression and then perform the operation with 
-		the result of the next expresssion as right operand */
-		}else{
-			buildGraphRec(_tokenIndex, result, nullptr);		
-			context->createNodeBinaryOperation( op, left, result, _finalRes);	
-		}
-	}
-}
-
 
 Node_Variable* Node_Lexer::buildGraph()
 {
 	LOG_DBG("Node_Lexer::buildGraph() - START\n");
-	auto currentTokenIndex = 0;
-	Node_Variable* result = this->getParent()->createNodeVariable("Result");	
-	buildGraphRec(currentTokenIndex, result, nullptr);	
+	
+	Value*         resultValue       = buildGraphRec();
+	Node_Variable* resultVariable    = this->getParent()->createNodeVariable("Result");	
+
+	// If the value has no owner, we simplly set the variable value
+	if( resultValue->getOwner() == nullptr)
+		resultVariable->setValue(resultValue);
+	// Else we connect resultValue with resultVariable.value
+	else
+		Node::Connect(new Wire(), resultValue, resultVariable->getValue());
+
+
 	LOG_DBG("Node_Lexer::buildGraph() - DONE !\n");
+	return resultVariable;
+}
+
+Value* Node_Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _leftValueOverride, Value* _rightValueOverride)
+{
+	Value*          result;
+	Node_Container* context = this->getParent();
+
+	//printf("Token evaluated : %lu.\n", _tokenId);
+
+	// Computes the number of token to eval
+	size_t tokenToEvalCount = tokens.size() - _tokenId;
+	if (_tokenCountMax != 0 )
+		tokenToEvalCount = std::min(_tokenCountMax, tokenToEvalCount);
+
+	/* operand */
+	if ( tokenToEvalCount == 1)
+	{		
+		result = createValueFromToken(tokens[_tokenId]);
+
+	/* operand, operator, operand */
+	}else if  (tokenToEvalCount == 3)
+	{
+		std::string op    = tokens[_tokenId+1].word;
+
+		auto binOperation = context->createNodeBinaryOperation(op);		
+		
+		// Set the left value
+		if ( _leftValueOverride != nullptr ){
+			Node::Connect(new Wire(), _leftValueOverride, binOperation->getMember("left"));			
+		}else{
+			auto left = buildGraphRec(_tokenId, 1);
+			binOperation->setMember("left", left);
+		}
+		
+		// Set the right value
+		if ( _rightValueOverride != nullptr ){
+			Node::Connect(new Wire(), _rightValueOverride, binOperation->getMember("right"));			
+		}else{
+			auto right = buildGraphRec(_tokenId+2, 1);
+			binOperation->setMember("right", right);
+		}
+
+		result = binOperation->getMember("result");
+
+	/* operand, operator, operand, operator, expr */
+	}else if  (tokenToEvalCount >= 4)
+	{	
+		/* Operator precedence */
+		std::string op     = tokens[_tokenId+1].word;
+		std::string nextOp = tokens[_tokenId+3].word;		
+		bool evaluateNow = BinaryOperationComponent::NeedsToBeEvaluatedFirst(op, nextOp);	
+
+		if ( evaluateNow ){
+			// Evaluate first 3 tokens passing the previous result
+			auto intermediateResult = buildGraphRec(_tokenId, 3, _leftValueOverride);
+
+			// Then evaluates the rest starting at id + 2
+			result = buildGraphRec(_tokenId+2, 0, intermediateResult);	
+
+		}else{
+			// Then evaluates starting at id + 2
+			auto intermediateResult = buildGraphRec(_tokenId+2, 0, _rightValueOverride);	
+
+			// Build the graph for the first 3 tokens
+			result = buildGraphRec(_tokenId, 3, _leftValueOverride, intermediateResult);
+		}
+	}
+
 	return result;
 }
+
 
 bool Node_Lexer::isSyntaxValid()
 {

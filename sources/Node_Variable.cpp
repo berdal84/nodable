@@ -15,12 +15,6 @@ Node_Variable::~Node_Variable()
 {
 }
 
-bool Node_Variable::eval()
-{
-	updateLabel();
-	return true;
-}
-
 double Node_Variable::getValueAsNumber()const
 {
 	return getMember("value")->getValueAsNumber();
@@ -34,15 +28,7 @@ std::string Node_Variable::getValueAsString()const
 void Node_Variable::setName(const char* _name)
 {
 	name = _name;
-	updateLabel();
-}
-
-void Node_Variable::updateLabel()
-{
-	if ( name != "")
-		setLabel(getName() + std::string(" (") + getTypeAsString() + std::string(")"));
-	else
-		setLabel(getMember("value")->getTypeAsString());
+	setLabel(_name);
 }
 
 const char* Node_Variable::getName()const
@@ -57,7 +43,5 @@ bool Node_Variable::isType(Type_ _type)const
 
 std::string Node_Variable::getTypeAsString()const
 {
-	if (isSet())
-		return getValue()->getTypeAsString();
-	return "Unknown";
+	return getValue()->getTypeAsString();
 }

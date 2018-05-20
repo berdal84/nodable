@@ -18,17 +18,15 @@ Wire::~Wire()
 	s_wires.erase(std::find(s_wires.begin(), s_wires.end(), this));
 }
 
-void Wire::setSource(Node* _node, const char* _slotName)
+void Wire::setSource(Value* _source)
 {
-	source     = _node;
-	sourceSlot = _slotName;
+	source     = _source;
 	transmitData();
 }
 
-void Wire::setTarget(Node* _node, const char* _slotName)
+void Wire::setTarget(Value* _target)
 {
-	target     = _node;
-	targetSlot = _slotName;
+	target     = _target;
 	transmitData();
 }
 
@@ -38,19 +36,8 @@ void Wire::transmitData()
 	if ( target != nullptr && source != nullptr)
 	{
 		state = State_Connected;
-		target->setMember(targetSlot.c_str(), *source->getMember(sourceSlot.c_str()) );
+		target->setValue(source);
 	}else{
 		state = State_Disconnected;
 	}
-
-}
-
-std::string Wire::getSourceSlotTypeAsString()const
-{
-	return source->getMember(sourceSlot)->getTypeAsString();
-}
-
-std::string Wire::getTargetSlotTypeAsString()const
-{
-	return target->getMember(targetSlot)->getTypeAsString();
 }

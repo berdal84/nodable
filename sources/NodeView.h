@@ -42,10 +42,10 @@ namespace Nodable{
 		ImVec2            getPosition         ()const;
 
 		/* Get the default input position vector */
-		ImVec2            getInputPosition    (const char* _name = "")const;
+		ImVec2            getInputPosition    (const std::string&)const;
 
 		/* Get the default output position vector */
-		ImVec2            getOutputPosition   (const char* _name = "")const;
+		ImVec2            getOutputPosition   (const std::string&)const;
 
 		/* Get the pointer to the node attached to this view */
 		Node*             getNode             ()const;

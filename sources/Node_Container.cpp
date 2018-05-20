@@ -83,7 +83,7 @@ void Node_Container::draw()
 
 		for(auto eachWire : wires)
 		{
-			if ( eachWire->getTarget() == eachNode)
+			if ( eachWire->getTarget()->getOwner() == eachNode)
 				eachWire->getView()->draw();
 		}
 	}
@@ -214,7 +214,7 @@ Node_Variable*          Node_Container::createNodeString(const char* _value)
 }
 
 
-Node* Node_Container::createNodeBinaryOperation(std::string _op, Node_Variable* _leftInput, Node_Variable* _rightInput, Node_Variable* _output)
+Node* Node_Container::createNodeBinaryOperation(std::string _op)
 {
 	Node* node;
 
@@ -230,12 +230,6 @@ Node* Node_Container::createNodeBinaryOperation(std::string _op, Node_Variable* 
 		node = createNodeAssign();
 	else
 		return nullptr;
-
-
-	Node::Connect(new Wire(),_leftInput,  node,   "value", "left");
-	Node::Connect(new Wire(),_rightInput, node,   "value", "right");
-	Node::Connect(new Wire(), node,       _output,"result", "value");
-
 	return node;
 }
 
@@ -247,7 +241,7 @@ Node* Node_Container::createNodeAdd()
 	node->setLabel("ADD");
 	node->addMember("left");
 	node->addMember("right");
-	node->addMember("result");
+	node->addMember("result", Visibility_Private);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Add();
@@ -271,7 +265,7 @@ Node* Node_Container::createNodeSubstract()
 	node->setLabel("SUBSTRACT");
 	node->addMember("left");
 	node->addMember("right");
-	node->addMember("result");
+	node->addMember("result", Visibility_Private);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Substract();
@@ -295,7 +289,7 @@ Node* Node_Container::createNodeMultiply()
 	node->setLabel("MULTIPLY");
 	node->addMember("left");
 	node->addMember("right");
-	node->addMember("result");
+	node->addMember("result", Visibility_Private);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Multiply();
@@ -319,7 +313,7 @@ Node* Node_Container::createNodeDivide()
 	node->setLabel("DIVIDE");
 	node->addMember("left");
 	node->addMember("right");
-	node->addMember("result");
+	node->addMember("result", Visibility_Private);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Divide();
@@ -343,7 +337,7 @@ Node* Node_Container::createNodeAssign()
 	node->setLabel("ASSIGN");
 	node->addMember("left");
 	node->addMember("right");
-	node->addMember("result");
+	node->addMember("result", Visibility_Private);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Assign();
@@ -365,7 +359,8 @@ Node_Lexer* Node_Container::createNodeLexer(Node_Variable* _input)
 {
 	Node_Lexer* node = new Node_Lexer();
 	node->addComponent( "view", new NodeView(node));
-	Node::Connect(new Wire(),_input, node, "value", "expression");
+
+	Node::Connect(new Wire(),_input->getValue(), node->getMember("expression"));
 	addNode(node);
 	return node;
 }

@@ -12,13 +12,14 @@ namespace Nodable{
 		Node_Variable();
 		~Node_Variable();
 
-		bool              eval();
-		void              updateLabel     ()override;
 		void              setName         (const char*);
 
 		template<typename T>
 		void              setValue        (T _value);
 		
+		template<typename T>
+		void              setValue        (T* _value);
+
 		bool              isSet           ()const{return getValue()->isSet(); }
 		bool              isType          (Type_ _type)const;		
 		const char*       getName         ()const;
@@ -33,6 +34,13 @@ namespace Nodable{
 
 	template<class Value>
 	void Node_Variable::setValue(Value _value)
+	{
+		getMember("value")->setValue(_value);
+		updateLabel();
+	}
+
+	template<class Value>
+	void Node_Variable::setValue(Value* _value)
 	{
 		getMember("value")->setValue(_value);
 		updateLabel();

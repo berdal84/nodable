@@ -181,12 +181,11 @@ bool Test::RunAll()
 		b->addMember("input");
 		
 		auto wire = new Nodable::Wire();
-		Nodable::Node::Connect(wire, a, b, "output", "input");
+		Nodable::Node::Connect(wire, a->getMember("output"), b->getMember("input"));
 
-		if ( 	wire->getSource() 		== a && 
-				wire->getTarget() 		== b && 
-				std::string(wire->getSourceSlot()) 	== "output" && 
-				std::string(wire->getTargetSlot()) 	== "input")
+		if ( 	wire->getSource() 		== a->getMember("output") && 
+				wire->getTarget() 		== b->getMember("input")
+			)
 			s_testSucceedCount++;
 		else
 			LOG_MSG("Test n°5a : FAILED !\n");

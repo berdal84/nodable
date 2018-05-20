@@ -24,7 +24,7 @@ namespace Nodable{
 		Node_Variable*            createNodeNumber          (double /*value*/ = 0);
 		Node_Variable*            createNodeNumber          (const char* /*value*/);
 		Node_Variable*            createNodeString          (const char* /*value*/);
-		Node*                     createNodeBinaryOperation (std::string /*_operator*/, Node_Variable* /*_leftInput*/, Node_Variable*/*_rightInput*/, Node_Variable*/*output*/);
+		Node*                     createNodeBinaryOperation (std::string /*_operator*/);
 		Node*                     createNodeAdd             ();
 		Node*                     createNodeSubstract       ();
 		Node*			          createNodeMultiply        ();

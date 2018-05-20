@@ -23,27 +23,19 @@ namespace Nodable
 		Wire();
 		~Wire();
 
-		void        setSource    (Node*, const char*);
-		void        setTarget    (Node*, const char*);
+		void        setSource    (Value*);
+		void        setTarget    (Value*);
 
 		State_      getState     ()const{return state;}
-		Node*       getSource    ()const{return source;}
-		Node*       getTarget    ()const{return target;}
-		std::string getSourceSlotTypeAsString    ()const;
-		std::string getTargetSlotTypeAsString    ()const;
-		const char* getSourceSlot()const{return sourceSlot.c_str();}
-		const char* getTargetSlot()const{return targetSlot.c_str();}
+		Value*      getSource    ()const{return source;}
+		Value*      getTarget    ()const{return target;}
 		WireView*   getView      ()const{return (WireView*)getComponent("view");}
 
 		/* transfert the value from the source to the target */
 		void        transmitData();
 	private:
-		Node*       source       = nullptr;
-		std::string sourceSlot   = "";
-
-		Node*       target       = nullptr;
-		std::string targetSlot   = "";
-
+		Value*      source       = nullptr;
+		Value*      target       = nullptr;
 		State_      state        = State_Disconnected;
 
 		static std::vector<Wire*> s_wires;

@@ -7,9 +7,6 @@
 #include <string>
 #include <memory>               // for unique_ptr
 
-#define NODE_DEFAULT_INPUT_NAME "default"
-#define NODE_DEFAULT_OUTPUT_NAME "default"
-
 namespace Nodable{
 	/* Base class for all Nodes */
 	class Node : public Object
@@ -54,7 +51,7 @@ namespace Nodable{
 
 		/* Connect _from._fromOuputName with _to._toInputName.
 		the connection is oriented. */
-		static void         Connect            (Wire* /*_wire*/, Node* /*_from*/, Node* /*_to*/, const char* _fromOutputName = NODE_DEFAULT_OUTPUT_NAME, const char* _toInputName = NODE_DEFAULT_INPUT_NAME);
+		static void         Connect            (Wire* /*_wire*/, Value* /*_from*/, Value* /*_to*/);
 	
 		/* Disconnect (and delete) a wire. This method is the opposite of Node::Connect.*/
 		static void         Disconnect        (Wire* _wire);

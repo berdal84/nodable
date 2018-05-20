@@ -64,22 +64,22 @@ ImVec2 NodeView::getPosition()const
 	return ImVec2(position.x - size.x / 2.0f, position.y - size.y / 2.0f);
 }
 
-ImVec2 NodeView::getInputPosition(const char* _name)const
+ImVec2 NodeView::getInputPosition(const std::string& _name)const
 {
 	auto pos = getPosition();
 
-	auto it = membersOffsetPositionY.find(std::string(_name));
+	auto it = membersOffsetPositionY.find(_name);
 	if(it != membersOffsetPositionY.end())
 		pos.y += (*it).second;
 
 	return ImVec2(pos.x, pos.y + size.y * 0.5f);
 }
 
-ImVec2 NodeView::getOutputPosition(const char* _name)const
+ImVec2 NodeView::getOutputPosition(const std::string& _name)const
 {
 	auto pos = getPosition();
 
-	auto it = membersOffsetPositionY.find(std::string(_name));
+	auto it = membersOffsetPositionY.find(_name);
 	if(it != membersOffsetPositionY.end())
 		pos.y += (*it).second;
 
@@ -144,8 +144,9 @@ void NodeView::update()
 	auto maxSizeX        = 0.0f;
 	for(auto eachWire : wires)
 	{
-		bool isWireAnInput = eachWire->getTarget() == node;
-		auto inputView     = (NodeView*)eachWire->getSource()->getComponent("view");
+		auto sourceNode    = (Node*)eachWire->getSource()->getOwner();
+		bool isWireAnInput = node->hasMember(eachWire->getTarget());
+		auto inputView     = (NodeView*)sourceNode->getComponent("view");
 		if (isWireAnInput && !inputView->pinned )
 		{
 			cumulatedHeight += inputView->size.y;
@@ -154,19 +155,20 @@ void NodeView::update()
 	}
 
 	// Move each input node views :
-	auto posY = getInputPosition().y - cumulatedHeight / 2.0f;
+	auto posY = getInputPosition("").y - cumulatedHeight / 2.0f;
 
 	for(auto eachWire : wires)
 	{
-		bool isWireAnInput = eachWire->getTarget() == node;
+		bool isWireAnInput = node->hasMember(eachWire->getTarget());
 		if (isWireAnInput)
 		{
-			auto inputView     = (NodeView*)eachWire->getSource()->getComponent("view");
+			auto sourceNode    = dynamic_cast<Node*>(eachWire->getSource()->getOwner());
+			auto inputView     = (NodeView*)sourceNode->getComponent("view");
 
 			if ( ! inputView->pinned )
 			{
 				// Compute new position for this input view
-				ImVec2 newPos(getInputPosition().x - maxSizeX - spacingDist, posY);
+				ImVec2 newPos(getInputPosition("").x - maxSizeX - spacingDist, posY);
 
 				// Compute a delta to apply to move to this new position
 				auto currentPos = inputView->getPosition();
@@ -323,7 +325,8 @@ void NodeView::draw()
 		// Draw visible members
 		for(auto& m : node->getMembers())
 		{		
-			if( m.second->getVisibility() == Visibility_Protected)
+			if( m.second->getVisibility() == Visibility_Protected ||
+				m.second->getVisibility() == Visibility_Private)
 			{
 				drawValue(m.second);
 			}
@@ -434,13 +437,13 @@ void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 	auto wires = _view->getNode()->getWires();
 	for(auto eachWire : wires)
 	{
-		if (eachWire != nullptr && eachWire->getTarget() == _view->getNode())
+		if (eachWire != nullptr && _view->getNode()->hasMember(eachWire->getTarget()) )
 		{
-			auto inputNode = eachWire->getSource();
 
-			if ( inputNode != nullptr)
+			if ( eachWire->getSource() != nullptr)
 			{
-				auto inputView    = (NodeView*)eachWire->getSource()->getComponent("view");
+				auto node         = dynamic_cast<Node*>(eachWire->getSource()->getOwner());
+				auto inputView    = (NodeView*)node->getComponent("view");
 				inputView->pinned = false;
 				ArrangeRecursively(inputView, inputView->position);
 			}

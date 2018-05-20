@@ -46,12 +46,12 @@ namespace Nodable{
 		/* Override from Node class */
 		bool           eval			       ();
 	private:
-		/* Build the graph using existing tokens. tokenize() should be called first. */
+		/* Build a graph using existing tokens and return a Node_Variable that contain the result value.
+		 Important: tokenize() should be called first. */
 		Node_Variable* buildGraph          ();
 
-		/* Build the graph resursively starting at the token _tokenIndex.
-		The result of a single call will be stored into _finalRes and the result of the previous call is _prevRes */
-		void           buildGraphRec       (size_t _tokenIndex, Node_Variable* _finalRes, Node_Variable* _prevRes = nullptr);
+		/* Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
+		Value*         buildGraphRec       (size_t _tokenIndex = 0, size_t _tokenCountMax = 0,   Value* _leftValueOverride = nullptr, Value* _rightValueOverride = nullptr);
 
 		/* Cut the member "expression" into tokens to identifies its type (cf. TokenType_ enum) */
 		void           tokenize			   ();
@@ -60,7 +60,7 @@ namespace Nodable{
 		bool           isSyntaxValid	   ();
 
 		/* Convert a given token to a Node. For now it only handle Numbers, Strings and Symbols. Thats why we return a Node_Variable */
-		Node_Variable* convertTokenToNode  (Token token);
+		Value* 		   createValueFromToken(Token token);
 		
 		/* Creates a new token given a _type, _string and _chanIndex and add it to the tokens.*/
 		void           addToken			   (TokenType_ _type, std::string _string, size_t _charIndex);

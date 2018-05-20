@@ -199,10 +199,10 @@ bool Value::isSet()const
 	return type != Type_Unknown;
 }
 
-void Value::setValue(const Value& _v)
+void Value::setValue(const Value* _v)
 {
-	type = _v.type;
-	data = _v.data;
+	type = _v->type;
+	data = _v->data;	
 }
 
 std::string Value::getTypeAsString()const

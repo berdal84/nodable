@@ -33,7 +33,8 @@ namespace Nodable{
 		bool        isType           (Type_ _type)const;
 
 		void  		setName			 (const char* _name){name = _name;}
-		void        setValue         (const Value&);
+		void        setOwner         (Object* _owner){owner = _owner;}
+		void        setValue         (const Value*);
 		void        setValue         (std::string);
 		void        setValue         (const char*);
 		void        setValue         (double);
@@ -42,6 +43,7 @@ namespace Nodable{
 		void        setType          (Type_ _type){type = _type;}
 		void        setVisibility    (Visibility_ _v){visibility = _v;}
 
+		Object*		getOwner		 ()const{return owner;}
 		const std::string& getName   ()const{return name;}
 		Type_       getType          ()const;
 		std::string getTypeAsString  ()const;
@@ -52,6 +54,7 @@ namespace Nodable{
 
 		Visibility_ getVisibility    ()const{ return visibility;}
 	private:
+		Object*     owner       = nullptr;
 		std::string name 		= "Unknown";
 		void*       data 		= NULL;
 		Type_       type 		= Type_Unknown;

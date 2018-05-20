@@ -49,11 +49,15 @@ void WireView::draw()
 
 
 	    // Compute start and end point
-	    auto sourceView = (NodeView*)source->getComponent("view");
-	    auto targetView = (NodeView*)target->getComponent("view");
+	    Node* sourceNode 	= (Node*)source->getOwner();
+	    Node* targetNode 	= (Node*)target->getOwner();
+	    auto sourceView = (NodeView*)sourceNode->getComponent("view");
+	    auto targetView = (NodeView*)targetNode->getComponent("view");
+	    auto sourceName = wire->getSource()->getName();
+	    auto targetName = wire->getTarget()->getName();
 
-	    ImVec2 pos0 = sourceView->getOutputPosition(wire->getSourceSlot());     
-	    ImVec2 pos1 = targetView->getInputPosition(wire->getTargetSlot());
+	    ImVec2 pos0 = sourceView->getOutputPosition(sourceName);     
+	    ImVec2 pos1 = targetView->getInputPosition(targetName);
 	    pos0.x += origin.x; pos0.y += origin.y;
 	    pos1.x += origin.x; pos1.y += origin.y;
 
@@ -137,15 +141,15 @@ void WireView::draw()
 	    {
 	    	case DrawDetail_Complex:
 	    	{
-	    		std::string sourceStr = std::string(wire->getSourceSlot()) + " (" + wire->getSourceSlotTypeAsString() + ")";
-	    		std::string targetStr = std::string(wire->getTargetSlot()) + " (" + wire->getTargetSlotTypeAsString() + ")";
+	    		std::string sourceStr = sourceName + " (" + wire->getSource()->getTypeAsString() + ")";
+	    		std::string targetStr = targetName + " (" + wire->getTarget()->getTypeAsString() + ")";
 				drawSourceAndTargetTexts(sourceStr.c_str(), targetStr.c_str());
 				break;
 			}
 
 	    	case DrawDetail_Advanced:
 	    	{
-				drawSourceAndTargetTexts(wire->getSourceSlot(), wire->getTargetSlot());
+				drawSourceAndTargetTexts(sourceName.c_str(), targetName.c_str());
 				break;
 			}
 

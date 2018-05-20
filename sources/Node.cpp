@@ -9,8 +9,9 @@ using namespace Nodable;
 
 void Node::Disconnect(Wire* _wire)
 {
-	auto sourceNode = _wire->getSource();
-	auto targetNode = _wire->getTarget();
+	auto sourceNode = _wire->getSource()->getOwner()->as<Node*>();
+	auto targetNode = _wire->getTarget()->getOwner()->as<Node*>();
+
 
 	// remove wire pointer from sourceNode's wires.
 	{
@@ -24,25 +25,25 @@ void Node::Disconnect(Wire* _wire)
 		targetNode->wires.erase(found); // I do not check if node has been found, because it should. If not, I prefer to crash here.
 	}
 
-	_wire->setTarget(nullptr, "");
-	_wire->setSource(nullptr, "");
+	_wire->setTarget(nullptr);
+	_wire->setSource(nullptr);
+
+	return;
+
 }
 
 void Node::Connect( Wire* _wire,
-					Node* _from, 
-					Node* _to, 
-					const char* _fromOutputName, 
-					const char* _toInputName)
+					Value* _from,
+					Value* _to)
 {	
 	_wire->addComponent("view", new WireView(_wire));
 
 	// Connect wire's source and target to nodes _from and _to.
-	_wire->setSource(_from , _fromOutputName);
-	_wire->setTarget(_to   , _toInputName);
+	_wire->setSource(_from);
+	_wire->setTarget(_to);
 
-	// Add this wire to each node. They need to know that they are linked together.
-	_from->wires.push_back(_wire);
-	_to->wires.push_back(_wire);
+	_from->getOwner()->as<Node*>()->wires.push_back(_wire);
+	_to->getOwner()->as<Node*>()->wires.push_back(_wire);
 }
 
 Node::~Node()
@@ -84,8 +85,11 @@ void Node::setDirty(bool _value)
 	{
 		for(auto wire : wires)
 		{
-			if (wire->getSource() == this && wire->getTarget() != nullptr)
-				wire->getTarget()->setDirty(_value);
+			if (wire->getSource()->getOwner() == this && wire->getTarget() != nullptr)
+			{
+				auto node = (Node*)wire->getTarget()->getOwner();
+				node->setDirty(_value);
+			}
 		}
 	}
 
@@ -127,7 +131,7 @@ int Node::getInputWireCount()const
 	int count = 0;
 	for(auto w : wires)
 	{
-		if ( w->getTarget() == this)
+		if ( w->getTarget()->getOwner() == this)
 			count++;
 	}
 	return count;
@@ -138,7 +142,7 @@ int Node::getOutputWireCount()const
 	int count = 0;
 	for(auto w : wires)
 	{
-		if ( w->getSource() == this)
+		if ( w->getSource()->getOwner() == this)
 			count++;
 	}
 	return count;
@@ -154,9 +158,10 @@ bool Node::update()
 		// first we need to evaluate each input and transmit its results thru the wire
 		for (auto wire : wires)
 		{
-			if ( wire->getTarget() == this && wire->getSource() != nullptr)
+			if ( wire->getTarget()->getOwner() == this && wire->getSource() != nullptr)
 			{
-				wire->getSource()->update();
+				auto source = (Node*)wire->getSource()->getOwner();
+				source->update();
 				wire->transmitData();
 			}
 		}
