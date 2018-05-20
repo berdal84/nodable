@@ -101,47 +101,54 @@ void WireView::draw()
 	    	draw_list->AddCircle      (pos1, 5.0f, targetView->getColor(ColorType_Border));
 	    }
 
+
+	    // function to draw source and target texts
+	    auto drawSourceAndTargetTexts = [&](const char* _source, const char* _target)
+	    {
+	    	float offsetX = 6.0f;
+
+		    // Draw source text
+		    {
+		    	auto textSize = ImGui::CalcTextSize(_source);
+
+		    	if ( pos0.y > pos1.y )
+					ImGui::SetCursorPos(ImVec2(pos0.x + offsetX, pos0.y ));
+				else
+					ImGui::SetCursorPos(ImVec2(pos0.x + offsetX, pos0.y - textSize.y - bezierThickness));
+
+		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill), getColor(ColorType_Shadow), _source);
+			}
+
+		    // Draw target text
+		    {
+		    	auto textSize = ImGui::CalcTextSize( _target);
+
+		    	if ( pos0.y > pos1.y )
+					ImGui::SetCursorPos(ImVec2(pos1.x - offsetX - textSize.x, pos1.y - textSize.y - bezierThickness));
+				else
+					ImGui::SetCursorPos(ImVec2(pos1.x - offsetX - textSize.x, pos1.y));
+
+		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), _target);
+			}
+	    };
+
+	    // Draw source and target texts depending on DrawDetail_
 	    switch(NodeView::s_drawDetail)
 	    {
 	    	case DrawDetail_Complex:
 	    	{
-			    // Draw source text
-			    {
-			    	std::string s = std::string(wire->getSourceSlot()) + " (" + wire->getSourceSlotTypeAsString() + ")";
-			    	auto textSize = ImGui::CalcTextSize( s.c_str());
-					ImGui::SetCursorPos(ImVec2(pos0.x + 10.0f, pos0.y - textSize.y));
-			    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill), getColor(ColorType_Shadow), s.c_str());
-				}
-
-			    // Draw target text
-			    {
-			    	std::string s = std::string(wire->getTargetSlot()) + "  (" + wire->getTargetSlotTypeAsString() + ")";
-			    	auto textSize = ImGui::CalcTextSize( s.c_str());
-					ImGui::SetCursorPos(ImVec2(pos1.x - textSize.x - 10.0f, pos1.y));
-			    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), s.c_str());
-				}
+	    		std::string sourceStr = std::string(wire->getSourceSlot()) + " (" + wire->getSourceSlotTypeAsString() + ")";
+	    		std::string targetStr = std::string(wire->getTargetSlot()) + " (" + wire->getTargetSlotTypeAsString() + ")";
+				drawSourceAndTargetTexts(sourceStr.c_str(), targetStr.c_str());
 				break;
 			}
 
-			case DrawDetail_Advanced:
+	    	case DrawDetail_Advanced:
 	    	{
-			    // Draw source text
-			    {
-			    	std::string s = std::string(wire->getSourceSlot());
-			    	auto textSize = ImGui::CalcTextSize( s.c_str());
-					ImGui::SetCursorPos(ImVec2(pos0.x + 10.0f, pos0.y - textSize.y));
-					ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), s.c_str());
-				}
-
-			    // Draw target text
-			    {
-			    	std::string s = std::string(wire->getTargetSlot());
-			    	auto textSize = ImGui::CalcTextSize( s.c_str());
-					ImGui::SetCursorPos(ImVec2(pos1.x - textSize.x - 10.0f, pos1.y));
-			    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), s.c_str());
-				}
+				drawSourceAndTargetTexts(wire->getSourceSlotTypeAsString().c_str(), wire->getTargetSlotTypeAsString().c_str());
 				break;
 			}
+
 			default:
 			{
 				// Draw nothing by default !
