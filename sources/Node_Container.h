@@ -24,12 +24,12 @@ namespace Nodable{
 		Node_Variable*            createNodeNumber          (double /*value*/ = 0);
 		Node_Variable*            createNodeNumber          (const char* /*value*/);
 		Node_Variable*            createNodeString          (const char* /*value*/);
-		Node_BinaryOperation*     createNodeBinaryOperation (std::string /*_operator*/, Node_Variable* /*_leftInput*/, Node_Variable*/*_rightInput*/, Node_Variable*/*output*/);
-		Node_Add*                 createNodeAdd             ();
-		Node_Substract*           createNodeSubstract       ();
-		Node_Multiply*			  createNodeMultiply        ();
-		Node_Divide*			  createNodeDivide          ();
-		Node_Assign*			  createNodeAssign          (); 
+		Node*                     createNodeBinaryOperation (std::string /*_operator*/, Node_Variable* /*_leftInput*/, Node_Variable*/*_rightInput*/, Node_Variable*/*output*/);
+		Node*                     createNodeAdd             ();
+		Node*                     createNodeSubstract       ();
+		Node*			          createNodeMultiply        ();
+		Node*			          createNodeDivide          ();
+		Node*			          createNodeAssign          (); 
 		Node_Lexer*               createNodeLexer           (Node_Variable* /*expression*/);
 
 		const char* 	          getName                   ()const;

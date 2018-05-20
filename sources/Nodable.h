@@ -27,6 +27,10 @@ v0.1:
 */
 
 #pragma once
+#include <string>
+#include <map>
+#include <vector>
+
 #define NODABLE_VERSION_MAJOR "0"
 #define NODABLE_VERSION_MINOR "4"
 
@@ -40,38 +44,46 @@ v0.1:
 	Forward declarations
 */
 
-namespace Nodable{	   
-
+namespace Nodable{ 
 
     extern float bezierCurveOutRoundness;
     extern float bezierCurveInRoundness;
     extern float bezierThickness;
     extern bool displayArrows; 
 
-	// Common
-	class Log;
+	// 1 - Common
+	class Wire;
+	class Value;
+	class Object;
 	
-	// View
+	// 2 - Components :
+	class Component;
+
+	// 2a - View Components
 	class NodeView;
 	class ApplicationView;
 	class WireView;
 	
-	// Nodes
+	// 2b - Binary Operation Components
+	class BinaryOperationComponent;
+	class Add;
+	class Substract;
+	class Assign;
+	class Divide;
+	class Multiply;
+
+	// 3 - Nodes
 	class Node;
 	class Node_Application;	
-	class Node_Add;
+	class Node_Lexer;
 	class Node_Variable;
 	class Node_Container;
-	class Node_Lexer;
-	class Node_BinaryOperation;
-	class Node_Substract;
-	class Node_Assign;
-	class Node_Divide;
-	class Node_Multiply;
 
-	// Other
-	class Wire;
-	class Value;
+	// 4 - Other
+	class Log;	
+	typedef std::map<std::string, Component*>  Components;
+	typedef std::map<std::string, Value*>      Members;
+	typedef std::vector<Wire*>                 Wires;
 }
 
 

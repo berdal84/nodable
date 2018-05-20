@@ -4,7 +4,7 @@
 #include "Value.h"
 #include "Node_Container.h"
 #include "Node_Variable.h"
-#include "Node_BinaryOperations.h"
+#include "BinaryOperationComponents.h"
 #include "NodeView.h"
 
 using namespace Nodable;
@@ -41,7 +41,7 @@ bool Node_Lexer::eval()
 	{
 		LOG_DBG("Node_Lexer::eval() - build tree and eval\n");
 		auto result = buildGraph();
-		NodeView::ArrangeRecursively(result->getView());
+		NodeView::ArrangeRecursively((NodeView*)result->getComponent("view"));
 		
 		success = true;
 	}else{
@@ -137,7 +137,7 @@ void Node_Lexer::buildGraphRec(size_t _tokenIndex, Node_Variable* _finalRes, Nod
 		/* if currOperator is more important than nextOperator
 		   we perform the first operation and send the result as left operand to the next expression */
 		Node_Variable* 	result 	    = context->createNodeVariable();	
-		bool            evaluateNow = Node_BinaryOperation::NeedsToBeEvaluatedFirst(op, nextOp);	
+		bool            evaluateNow = BinaryOperationComponent::NeedsToBeEvaluatedFirst(op, nextOp);	
 
 		if ( evaluateNow ){
 			// create the operation on the left		

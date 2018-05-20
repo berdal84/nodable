@@ -44,7 +44,7 @@ namespace Nodable{
 		virtual ~Node_Lexer();
 
 		/* Override from Node class */
-		bool           eval			       ()override;
+		bool           eval			       ();
 	private:
 		/* Build the graph using existing tokens. tokenize() should be called first. */
 		Node_Variable* buildGraph          ();

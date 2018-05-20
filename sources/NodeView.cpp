@@ -3,7 +3,7 @@
 #include <imgui.h>
 #include "Node_Container.h"
 #include "Node_Variable.h"
-#include "Node_BinaryOperations.h"
+#include "BinaryOperationComponents.h"
 #include "View.h"
 #include "Wire.h"
 #include <cmath>                  // for sinus
@@ -47,6 +47,7 @@ NodeView::NodeView(Node* _node)
 	LOG_DBG("Node::Node()\n");
 	this->node = _node;
 	this->name = std::string("Node###") + std::to_string((size_t)this);
+	setMember("componentType", "NodeView");
 }
 
 NodeView::~NodeView()
@@ -63,15 +64,25 @@ ImVec2 NodeView::getPosition()const
 	return ImVec2(position.x - size.x / 2.0f, position.y - size.y / 2.0f);
 }
 
-ImVec2 NodeView::getInputPosition()const
+ImVec2 NodeView::getInputPosition(const char* _name)const
 {
 	auto pos = getPosition();
+
+	auto it = membersOffsetPositionY.find(std::string(_name));
+	if(it != membersOffsetPositionY.end())
+		pos.y += (*it).second;
+
 	return ImVec2(pos.x, pos.y + size.y * 0.5f);
 }
 
-ImVec2 NodeView::getOutputPosition()const
+ImVec2 NodeView::getOutputPosition(const char* _name)const
 {
 	auto pos = getPosition();
+
+	auto it = membersOffsetPositionY.find(std::string(_name));
+	if(it != membersOffsetPositionY.end())
+		pos.y += (*it).second;
+
 	return ImVec2(pos.x + size.x, pos.y + size.y * 0.5f);
 }
 
@@ -107,7 +118,7 @@ void NodeView::update()
 	// Set background color according to node class 
 	//---------------------------------------------
 
-	if (dynamic_cast<Node_BinaryOperation*>(node) != nullptr)
+	if (node->hasComponent("operation"))
 		setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
 	else if (dynamic_cast<Node_Variable*>(node) != nullptr)
 		setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f));
@@ -134,10 +145,9 @@ void NodeView::update()
 	for(auto eachWire : wires)
 	{
 		bool isWireAnInput = eachWire->getTarget() == node;
-
-		if (isWireAnInput && !eachWire->getSource()->getView()->pinned )
+		auto inputView     = (NodeView*)eachWire->getSource()->getComponent("view");
+		if (isWireAnInput && !inputView->pinned )
 		{
-			auto inputView = eachWire->getSource()->getView();
 			cumulatedHeight += inputView->size.y;
 			maxSizeX = std::max(maxSizeX, inputView->size.x);
 		}
@@ -151,7 +161,7 @@ void NodeView::update()
 		bool isWireAnInput = eachWire->getTarget() == node;
 		if (isWireAnInput)
 		{
-			auto inputView = eachWire->getSource()->getView();
+			auto inputView     = (NodeView*)eachWire->getSource()->getComponent("view");
 
 			if ( ! inputView->pinned )
 			{
@@ -269,8 +279,11 @@ void NodeView::draw()
 	{
 		ImGui::NewLine();
 
+
 		for(auto& m : node->getMembers())
 		{
+			auto memberTopPositionOffsetY = ImGui::GetCursorPos().y - position.y;
+
 			switch(m.second->getType())
 			{
 				case Type_Number:
@@ -291,8 +304,17 @@ void NodeView::draw()
 					break;
 				}
 			}
+
+			auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
+
+			membersOffsetPositionY[m.first] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f;
 		}
 		
+		// Draw component's names
+		ImGui::Text("Components :");
+		for(auto& c : node->getComponents())
+			ImGui::Text("- %s (%s)",c.first.c_str(),    c.second->getMember("componentType")->getValueAsString().c_str());
+
 		// Draw parent's name
 
 		std::string parentName = "NULL";
@@ -309,6 +331,8 @@ void NodeView::draw()
 			if ( ImGui::Button("update()"))
 				node->update();
 		}
+	}else{
+		membersOffsetPositionY.clear();
 	}
 
 	ImGui::PopItemWidth();
@@ -398,7 +422,7 @@ void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 
 			if ( inputNode != nullptr)
 			{
-				auto inputView = inputNode->getView();
+				auto inputView    = (NodeView*)eachWire->getSource()->getComponent("view");
 				inputView->pinned = false;
 				ArrangeRecursively(inputView, inputView->position);
 			}

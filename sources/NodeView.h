@@ -4,6 +4,7 @@
 #include "View.h"    // base class
 #include <imgui.h>   // for ImVec2
 #include <string>
+#include <map>
 
 namespace Nodable{
 
@@ -41,10 +42,10 @@ namespace Nodable{
 		ImVec2            getPosition         ()const;
 
 		/* Get the default input position vector */
-		ImVec2            getInputPosition    ()const;
+		ImVec2            getInputPosition    (const char* _name = "")const;
 
 		/* Get the default output position vector */
-		ImVec2            getOutputPosition   ()const;
+		ImVec2            getOutputPosition   (const char* _name = "")const;
 
 		/* Get the pointer to the node attached to this view */
 		Node*             getNode             ()const;
@@ -99,7 +100,7 @@ namespace Nodable{
 		bool            pinned              = false;                  // false: follow its outputs.
 		float           borderRadius        = 5.0f;
 		ImColor         borderColorSelected = ImColor(1.0f, 1.0f, 1.0f);
-		
+		std::map<std::string, float> membersOffsetPositionY;
 		static NodeView* s_selected; // pointer to the currently selected NodeView.
 		static NodeView* s_dragged;	 // pointer to the currently dragged NodeView.	
 	};

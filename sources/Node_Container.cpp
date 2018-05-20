@@ -3,7 +3,7 @@
 #include "Node_Lexer.h"
 #include "Node.h"
 #include "Node_Variable.h"
-#include "Node_BinaryOperations.h"
+#include "BinaryOperationComponents.h"
 #include "Wire.h"
 #include "WireView.h"
 
@@ -58,7 +58,7 @@ void Node_Container::draw()
 	// 1 - Update NodeViews
 	for(auto eachNode : this->nodes)
 	{
-		eachNode->getView()->update();
+		eachNode->getComponent("view")->update();
 	}
 
 	// 2 - Draw NodeViews
@@ -66,7 +66,7 @@ void Node_Container::draw()
 	bool isAnyItemHovered = false;
 	for(auto eachNode : this->nodes)
 	{
-		auto view = eachNode->getView();
+		auto view = (NodeView*)eachNode->getComponent("view");
 
 		if (view != nullptr)
 		{
@@ -110,7 +110,7 @@ void Node_Container::draw()
 		auto drag = ImGui::GetMouseDragDelta();
 		for(auto eachNode : this->nodes)
 		{
-			eachNode->getView()->translate(drag);
+			((NodeView*)eachNode->getComponent("view"))->translate(drag);
 		}
 		ImGui::ResetMouseDragDelta();
 	}
@@ -214,9 +214,9 @@ Node_Variable*          Node_Container::createNodeString(const char* _value)
 }
 
 
-Node_BinaryOperation* Node_Container::createNodeBinaryOperation(std::string _op, Node_Variable* _leftInput, Node_Variable* _rightInput, Node_Variable* _output)
+Node* Node_Container::createNodeBinaryOperation(std::string _op, Node_Variable* _leftInput, Node_Variable* _rightInput, Node_Variable* _output)
 {
-	Node_BinaryOperation* node;
+	Node* node;
 
 	if      ( _op == "+")
 		node = createNodeAdd();
@@ -240,43 +240,123 @@ Node_BinaryOperation* Node_Container::createNodeBinaryOperation(std::string _op,
 }
 
 
-Node_Add* Node_Container::createNodeAdd()
+Node* Node_Container::createNodeAdd()
 {
-	auto node = new Node_Add();
+	// Create a node with 2 inputs and 1 output
+	auto node 		= new Node();	
+	node->setLabel("ADD");
+	node->addMember("left");
+	node->addMember("right");
+	node->addMember("result");
+
+	// Create a binary operation component and link values.
+	auto operation 	= new Add();
+	operation->setLeft  (node->getMember("left"));
+	operation->setRight (node->getMember("right"));
+	operation->setResult(node->getMember("result"));
+	node->addComponent( "operation", operation);
+
+	// Create a view component
 	node->addComponent( "view", new NodeView(node));
+
 	addNode(node);
+
 	return node;
 }
 
-Node_Substract* Node_Container::createNodeSubstract()
+Node* Node_Container::createNodeSubstract()
 {
-	auto node = new Node_Substract();
+	// Create a node with 2 inputs and 1 output
+	auto node 		= new Node();	
+	node->setLabel("SUBSTRACT");
+	node->addMember("left");
+	node->addMember("right");
+	node->addMember("result");
+
+	// Create a binary operation component and link values.
+	auto operation 	= new Substract();
+	operation->setLeft  (node->getMember("left"));
+	operation->setRight (node->getMember("right"));
+	operation->setResult(node->getMember("result"));
+	node->addComponent( "operation", operation);
+
+	// Create a view component
 	node->addComponent( "view", new NodeView(node));
+
 	addNode(node);
+
 	return node;
 }
 
-Node_Multiply* Node_Container::createNodeMultiply()
+Node* Node_Container::createNodeMultiply()
 {
-	auto node = new Node_Multiply();
+	// Create a node with 2 inputs and 1 output
+	auto node 		= new Node();	
+	node->setLabel("MULTIPLY");
+	node->addMember("left");
+	node->addMember("right");
+	node->addMember("result");
+
+	// Create a binary operation component and link values.
+	auto operation 	= new Multiply();
+	operation->setLeft  (node->getMember("left"));
+	operation->setRight (node->getMember("right"));
+	operation->setResult(node->getMember("result"));
+	node->addComponent( "operation", operation);
+
+	// Create a view component
 	node->addComponent( "view", new NodeView(node));
+
 	addNode(node);
+
 	return node;
 }
 
-Node_Divide* Node_Container::createNodeDivide()
+Node* Node_Container::createNodeDivide()
 {
-	auto node = new Node_Divide();
+	// Create a node with 2 inputs and 1 output
+	auto node 		= new Node();	
+	node->setLabel("DIVIDE");
+	node->addMember("left");
+	node->addMember("right");
+	node->addMember("result");
+
+	// Create a binary operation component and link values.
+	auto operation 	= new Divide();
+	operation->setLeft  (node->getMember("left"));
+	operation->setRight (node->getMember("right"));
+	operation->setResult(node->getMember("result"));
+	node->addComponent( "operation", operation);
+
+	// Create a view component
 	node->addComponent( "view", new NodeView(node));
+
 	addNode(node);
+
 	return node;
 }
 
-Node_Assign* Node_Container::createNodeAssign()
+Node* Node_Container::createNodeAssign()
 {
-	auto node = new Node_Assign();
+	// Create a node with 2 inputs and 1 output
+	auto node 		= new Node();	
+	node->setLabel("ASSIGN");
+	node->addMember("left");
+	node->addMember("right");
+	node->addMember("result");
+
+	// Create a binary operation component and link values.
+	auto operation 	= new Assign();
+	operation->setLeft  (node->getMember("left"));
+	operation->setRight (node->getMember("right"));
+	operation->setResult(node->getMember("result"));
+	node->addComponent( "operation", operation);
+
+	// Create a view component
 	node->addComponent( "view", new NodeView(node));
+
 	addNode(node);
+
 	return node;
 }
 

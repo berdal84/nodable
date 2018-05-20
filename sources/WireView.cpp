@@ -49,8 +49,11 @@ void WireView::draw()
 
 
 	    // Compute start and end point
-	    ImVec2 pos0 = source->getView()->getOutputPosition();     
-	    ImVec2 pos1 = target->getView()->getInputPosition();
+	    auto sourceView = (NodeView*)source->getComponent("view");
+	    auto targetView = (NodeView*)target->getComponent("view");
+
+	    ImVec2 pos0 = sourceView->getOutputPosition(wire->getSourceSlot());     
+	    ImVec2 pos1 = targetView->getInputPosition(wire->getTargetSlot());
 	    pos0.x += origin.x; pos0.y += origin.y;
 	    pos1.x += origin.x; pos1.y += origin.y;
 
@@ -84,8 +87,8 @@ void WireView::draw()
 		draw_list->AddBezierCurve(pos0, cp0, cp1, arrowPos, getColor(ColorType_Fill), bezierThickness); // fill
 		
 		// dot a the output position
-		draw_list->AddCircleFilled(pos0, 5.0f, source->getView()->getColor(ColorType_Fill));
-		draw_list->AddCircle      (pos0, 5.0f, source->getView()->getColor(ColorType_Border));
+		draw_list->AddCircleFilled(pos0, 5.0f, sourceView->getColor(ColorType_Fill));
+		draw_list->AddCircle      (pos0, 5.0f, sourceView->getColor(ColorType_Border));
 
 		if (displayArrows)
 		{
@@ -94,8 +97,8 @@ void WireView::draw()
 	    	draw_list->AddLine(ImVec2(arrowPos.x - arrowSize.x, pos1.y - arrowSize.y/2.0f), arrowPos, getColor(ColorType_Fill), bezierThickness);
 	    }else{        
 	    	// dot at the input position
-	    	draw_list->AddCircleFilled(pos1, 5.0f, target->getView()->getColor(ColorType_Fill));   
-	    	draw_list->AddCircle      (pos1, 5.0f, target->getView()->getColor(ColorType_Border));
+	    	draw_list->AddCircleFilled(pos1, 5.0f, targetView->getColor(ColorType_Fill));   
+	    	draw_list->AddCircle      (pos1, 5.0f, targetView->getColor(ColorType_Border));
 	    }
 
 	    switch(NodeView::s_drawDetail)

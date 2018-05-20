@@ -60,7 +60,7 @@ Node::~Node()
 
 }
 
-void Node::addComponent(const std::string&  _componentName, Node*  _component)
+void Node::addComponent(const std::string&  _componentName, Component*  _component)
 {
 	components[_componentName] = _component;
 }
@@ -71,7 +71,7 @@ bool Node::hasComponent(const std::string&  _componentName)const
 	return it != components.end();
 }
 
-Node* Node::getComponent(const std::string&  _componentName)const
+Component* Node::getComponent(const std::string&  _componentName)const
 {
 	return components.at(_componentName);
 }
@@ -105,26 +105,6 @@ Node_Container* Node::getParent()const
 void Node::setParent(Node_Container* _container)
 {
 	this->parent = _container;
-}
-
-const Members&   Node::getMembers      ()const
-{
-	return members;
-}
-
-Value* Node::getMember (const char* _name)const
-{
-	return members.at(std::string(_name));
-}
-
-Value* Node::getMember (const std::string& _name)const
-{
-	return members.at(_name.c_str());
-}
-
-void Node::addMember (const char* _name, Type_ _type)
-{
-	members[std::string(_name)] =  new Value(_type);
 }
 
 void Node::setLabel(const char* _label)
@@ -169,11 +149,6 @@ int Node::getOutputWireCount()const
 	return count;
 }
 
-bool Node::eval()
-{
-	return true;
-}
-
 bool Node::update()
 {
 	bool success = true;
@@ -192,9 +167,17 @@ bool Node::update()
 		}
 
 		// then we evaluates this node
-		this->eval();
+		if(hasComponent("operation"))
+			getComponent("operation")->update();
+
 		setDirty(false);
 	}
 
 	return success;
+}
+
+void Node::onMemberValueChanged(const char* _name)
+{
+	setDirty(true);
+	updateLabel();	
 }
