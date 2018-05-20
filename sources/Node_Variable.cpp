@@ -39,9 +39,9 @@ void Node_Variable::setName(const char* _name)
 void Node_Variable::updateLabel()
 {
 	if ( name != "")
-		setLabel(getName() + std::string(" : ") + getMember("value")->getValueAsString());
+		setLabel(getName() + std::string(" (") + getTypeAsString() + std::string(")"));
 	else
-		setLabel(getMember("value")->getValueAsString());
+		setLabel(getMember("value")->getTypeAsString());
 }
 
 const char* Node_Variable::getName()const

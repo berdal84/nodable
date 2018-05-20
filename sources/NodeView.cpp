@@ -239,9 +239,8 @@ void NodeView::draw()
 				draw_list->AddRect(ImVec2(itemRectMin.x + 1.0f, itemRectMin.y + 1.0f), ImVec2(itemRectMax.x, itemRectMax.y),getColor(ColorType_BorderHighlights), borderRadius);	
 				draw_list->AddRect(itemRectMin, itemRectMax,borderCol, borderRadius);				
 
-				// Darken the bottom area when not collapsed (to separate title and content)
-				if(!collapsed)
-					draw_list->AddRectFilled(ImVec2(itemRectMin.x, itemRectMin.y + 35.0f), ImVec2(itemRectMax.x, itemRectMax.y), ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
+				// darken the background under the content
+				draw_list->AddRectFilled(ImVec2(itemRectMin.x, itemRectMin.y + 35.0f), ImVec2(itemRectMax.x, itemRectMax.y), ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
 
 				// Draw an additionnal blinking rectangle when selected
 				if (IsSelected(this))
@@ -255,7 +254,7 @@ void NodeView::draw()
 		}
 	}
 
-	ImGui::PushItemWidth(150.0f);
+	ImGui::PushItemWidth(100.0f);
 
 	// Draw the window content 
 	//------------------------
@@ -275,55 +274,56 @@ void NodeView::draw()
 	ImGui::Indent();
 	ShadowedText(ImVec2(1.0f, 1.0f), getColor(ColorType_BorderHighlights), node->getLabel()); // text with a lighter shadow (incrust effect)
 
-	if (!collapsed)
+	ImGui::NewLine();
+
+
+	for(auto& m : node->getMembers())
 	{
-		ImGui::NewLine();
+		auto memberTopPositionOffsetY = ImGui::GetCursorPos().y - position.y;
 
-
-		for(auto& m : node->getMembers())
+		switch(m.second->getType())
 		{
-			auto memberTopPositionOffsetY = ImGui::GetCursorPos().y - position.y;
-
-			switch(m.second->getType())
+			case Type_Number:
 			{
-				case Type_Number:
+				float f(m.second->getValueAsNumber());
+				if ( ImGui::InputFloat(m.first.c_str(), &f))
 				{
-					float f(m.second->getValueAsNumber());
-					if ( ImGui::InputFloat(m.first.c_str(), &f))
-					{
-						m.second->setValue(f);
-						node->setDirty(true);
-					}
-					break;
+					m.second->setValue(f);
+					node->setDirty(true);
 				}
-				default:
-				{
-					ImGui::Text("%s", m.first.c_str());
-					ImGui::SameLine(100.0f);
-					ImGui::Text("%s", m.second->getValueAsString().c_str());
-					break;
-				}
+				break;
 			}
-
-			auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
-
-			membersOffsetPositionY[m.first] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f;
+			default:
+			{
+				ImGui::Text("%s", m.first.c_str());
+				ImGui::SameLine(100.0f);
+				ImGui::Text("%s", m.second->getValueAsString().c_str());
+				break;
+			}
 		}
-		
+
+		auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
+
+		membersOffsetPositionY[m.first] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f;
+	}
+	
+	if (!collapsed)
+	{	
 		// Draw component's names
+		ImGui::NewLine();
 		ImGui::Text("Components :");
 		for(auto& c : node->getComponents())
 			ImGui::Text("- %s (%s)",c.first.c_str(),    c.second->getMember("componentType")->getValueAsString().c_str());
 
 		// Draw parent's name
-
+		ImGui::NewLine();
+		ImGui::Text("Parameters :");
 		std::string parentName = "NULL";
 		if ( node->getParent() )
 			parentName = node->getParent()->getName();
 		ImGui::Text("Parent: %s", parentName.c_str());
 		
 		// Draw dirty state 
-
 		ImGui::Text("Dirty : %s", node->isDirty() ? "Yes":"No");
 		if ( node->isDirty())
 		{
@@ -331,8 +331,6 @@ void NodeView::draw()
 			if ( ImGui::Button("update()"))
 				node->update();
 		}
-	}else{
-		membersOffsetPositionY.clear();
 	}
 
 	ImGui::PopItemWidth();
