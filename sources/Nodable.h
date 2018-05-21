@@ -21,23 +21,34 @@ v0.1:
 	- Node_Lexer : first version able to evaluate additions.
 */
 
+#pragma once
+#include <string> 	// for some typedefs
+#include <map>	  	// for some typedefs
+#include <vector> 	// for some typedefs
+#include <assert.h> // for ASSERT and VERIFY
 
 /*
-	Application version
+	Application Version
 */
 
-#pragma once
-#include <string>
-#include <map>
-#include <vector>
-
-#define NODABLE_VERSION_MAJOR "0"
-#define NODABLE_VERSION_MINOR "4"
+#define NODABLE_VERSION_SHORT "0.4 wip"
 
 #ifdef DEBUG
-    #define NODABLE_VERSION NODABLE_VERSION_MAJOR "." NODABLE_VERSION_MINOR "(DEBUG)"
+    #define NODABLE_VERSION NODABLE_VERSION_SHORT " (Debug) Build " __DATE__ " at " __TIME__
 #else
-    #define NODABLE_VERSION NODABLE_VERSION_MAJOR "." NODABLE_VERSION_MINOR "(RELEASE)"
+    #define NODABLE_VERSION NODABLE_VERSION_SHORT " (Release) Build " __DATE__ " at " __TIME__
+#endif
+
+#define NODABLE_VERIFY(expression) assert(expression)
+
+/*
+	Asserts
+*/
+
+#ifdef DEBUG
+	#define NODABLE_ASSERT(expression) assert(expression)
+#else
+    #define NODABLE_ASSERT(expression)
 #endif
 
 /*
@@ -81,6 +92,7 @@ namespace Nodable{
 
 	// 4 - Other
 	class Log;	
+
 	typedef std::map<std::string, Component*>  Components;
 	typedef std::map<std::string, Value*>      Members;
 	typedef std::vector<Wire*>                 Wires;

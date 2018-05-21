@@ -9,8 +9,8 @@ using namespace Nodable;
 
 void Node::Disconnect(Wire* _wire)
 {
-	auto sourceNode = _wire->getSource()->getOwner()->as<Node*>();
-	auto targetNode = _wire->getTarget()->getOwner()->as<Node*>();
+	auto sourceNode = _wire->getSource()->getOwner()->getAs<Node*>();
+	auto targetNode = _wire->getTarget()->getOwner()->getAs<Node*>();
 
 
 	// remove wire pointer from sourceNode's wires.
@@ -42,8 +42,8 @@ void Node::Connect( Wire* _wire,
 	_wire->setSource(_from);
 	_wire->setTarget(_to);
 
-	_from->getOwner()->as<Node*>()->wires.push_back(_wire);
-	_to->getOwner()->as<Node*>()->wires.push_back(_wire);
+	_from->getOwner()->getAs<Node*>()->wires.push_back(_wire);
+	_to->getOwner()->getAs<Node*>()->wires.push_back(_wire);
 }
 
 Node::~Node()

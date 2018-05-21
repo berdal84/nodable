@@ -8,16 +8,13 @@ int main(int, char**)
 {
 
 	// Run tests :
-	if (!Nodable::Test::RunAll())
-	{
-		return -1;
-	}
+	NODABLE_VERIFY(Nodable::Test::RunAll());
 
-	// run the program
-	Nodable::Node_Application nodable("Nodable");
+	// Run the program
+	std::string appName = "Nodable " NODABLE_VERSION;
+	Nodable::Node_Application nodable(appName.c_str());
 
-	if(!nodable.init())
-		return -1;
+	NODABLE_VERIFY(nodable.init());
 
 	while (nodable.update())
 	{
