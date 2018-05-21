@@ -55,42 +55,6 @@ bool Node_Lexer::eval()
 	return success;
 }
 
-Value* Node_Lexer::createValueFromToken(Token token)
-{
-	Node_Container* context         = this->getParent();
-	Value*          value           = nullptr;
-
-	auto            tokenWordString = token.word.c_str();
-
-	switch ( token.type )
-	{
-		case TokenType_Symbol:
-		{
-			Node_Variable* variable = context->find(tokenWordString);
-
-			if ( variable == nullptr )
-				variable = context->createNodeVariable(tokenWordString);
-
-			value = variable->getValue();
-			break;
-		}
-
-		case TokenType_Number:{
-			value = new Value();
-			value->setValue(std::stod(tokenWordString));
-			break;
-		}
-
-		case TokenType_String:{
-			value = new Value();
-			value->setValue(tokenWordString);	
-			break;
-		}
-		default:{}
-	}
-	return value;
-}
-
 Node_Variable* Node_Lexer::buildGraph()
 {
 	LOG_DBG("Node_Lexer::buildGraph() - START\n");
@@ -122,45 +86,126 @@ Value* Node_Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* 
 	if (_tokenCountMax != 0 )
 		tokenToEvalCount = std::min(_tokenCountMax, tokenToEvalCount);
 
-	/* operand */
+	//----------------------
+	// Expression -> Operand
+	//----------------------
+
 	if ( tokenToEvalCount == 1)
 	{		
-		result = createValueFromToken(tokens[_tokenId]);
+		auto tokenWordString = tokens[_tokenId].word;
+		switch ( tokens[_tokenId].type )
+		{
+			//--------------------
+			// Operand -> Boolean
+			//--------------------
 
-	/* operand, operator, operand */
+			case TokenType_Boolean:
+			{
+				result = new Value();	
+				result->setValue(tokenWordString == "true");
+
+				break;
+			}
+
+			//--------------------
+			// Operand -> Symbol
+			//--------------------
+
+			case TokenType_Symbol:
+			{
+				Node_Variable* variable = context->find(tokenWordString.c_str());
+
+				if ( variable == nullptr )
+					variable = context->createNodeVariable(tokenWordString.c_str());
+
+				result = variable->getValue();
+				
+				break;
+			}
+
+			//--------------------
+			// Operand -> Number
+			//--------------------
+
+			case TokenType_Number:{
+				result = new Value();
+				result->setValue(std::stod(tokenWordString));
+				break;
+			}
+
+			//--------------------
+			// Operand -> String
+			//--------------------
+
+			case TokenType_String:{
+				result = new Value();
+				result->setValue(tokenWordString);	
+				break;
+			}
+			default:{}
+		}
+
+	//-------------------------------------------
+	// Expression -> ( Unary Operator , Operand )
+	//-------------------------------------------
+
+	//}else if (tokenToEvalCount == 2)
+	//{
+		// TODO
+
+	//------------------------------------------------------
+	// Expression -> ( Operand , Binary Operator , Operand )
+	//------------------------------------------------------
+
 	}else if  (tokenToEvalCount == 3)
 	{
 		std::string op    = tokens[_tokenId+1].word;
 
 		auto binOperation = context->createNodeBinaryOperation(op);		
 		
-		// Set the left value
-		if ( _leftValueOverride != nullptr ){
-			Node::Connect(new Wire(), _leftValueOverride, binOperation->getMember("left"));			
-		}else{
-			auto left = buildGraphRec(_tokenId, 1);
-			binOperation->setMember("left", left);
-		}
-		
-		// Set the right value
-		if ( _rightValueOverride != nullptr ){
-			Node::Connect(new Wire(), _rightValueOverride, binOperation->getMember("right"));			
-		}else{
-			auto right = buildGraphRec(_tokenId+2, 1);
-			binOperation->setMember("right", right);
-		}
+		// Connect the Left Operand :
+		//---------------------------
 
+		Value* left;
+		if ( _leftValueOverride != nullptr )
+			left = _leftValueOverride;			
+		else
+			left = buildGraphRec(_tokenId, 1);
+
+		if (left->getOwner() == nullptr)
+			binOperation->setMember("left", left);
+		else
+			Node::Connect(new Wire(), left, binOperation->getMember("left"));	
+		
+		// Connect the Right Operand :
+		//----------------------------
+
+		Value* right;
+		if ( _rightValueOverride != nullptr )
+			right = _rightValueOverride;			
+		else
+			right = buildGraphRec(_tokenId+2, 1);
+
+		if (right->getOwner() == nullptr)
+			binOperation->setMember("right", right);
+		else
+			Node::Connect(new Wire(), right, binOperation->getMember("right"));	
+
+		// Set the result !
 		result = binOperation->getMember("result");
 
-	/* operand, operator, operand, operator, expr */
+	//----------------------------------------------------------------------------
+	// Expression -> ( Operand , Binary Operator , Operand, Binary Operator, ... )
+	//----------------------------------------------------------------------------
+
 	}else if  (tokenToEvalCount >= 4)
 	{	
 		/* Operator precedence */
-		std::string op     = tokens[_tokenId+1].word;
-		std::string nextOp = tokens[_tokenId+3].word;		
-		bool evaluateNow = BinaryOperationComponent::NeedsToBeEvaluatedFirst(op, nextOp);	
+		std::string firstOperator  = tokens[_tokenId+1].word;
+		std::string secondOperator = tokens[_tokenId+3].word;		
+		bool firstOperatorHasHigherPrecedence = BinaryOperationComponent::NeedsToBeEvaluatedFirst(firstOperator, secondOperator);	
 
-		if ( evaluateNow ){
+		if ( firstOperatorHasHigherPrecedence ){
 			// Evaluate first 3 tokens passing the previous result
 			auto intermediateResult = buildGraphRec(_tokenId, 3, _leftValueOverride);
 
@@ -185,18 +230,29 @@ bool Node_Lexer::isSyntaxValid()
 	bool success = true;	
 	LOG_DBG("Node_Lexer::isSyntaxValid() - START\n");
 
-	// only support even count token
+	// only support odd token count
 	if( tokens.size()%2 == 1)
 	{
-		// with an alternance of Number|Symbol / Operator / Number|Symbol / etc.
-		for(size_t i = 0; i < tokens.size(); i=i+2){
-			if ( !(tokens[i].type == TokenType_Number || tokens[i].type == TokenType_Symbol))
-				success = false;
+		// Check if even indexes are all NOT an Operator
+		{
+			size_t index = 0;
+			while(index < tokens.size() && success)
+			{
+				if ( tokens[index].type == TokenType_Operator)
+					success = false;
+				index +=2;
+			}
 		}
 
-		for(size_t i = 1; i < tokens.size(); i=i+2){
-			if ( tokens[i].type != TokenType_Operator)
-				success = false;
+		// Check if odd indexes are all an Operator
+		{
+			size_t index = 1;
+			while(index < tokens.size() && success)
+			{
+				if ( tokens[index].type != TokenType_Operator)
+					success = false;
+				index +=2;
+			}
 		}
 		
 	}else{
@@ -221,11 +277,17 @@ void Node_Lexer::tokenize()
 	std::string letters		     = getMember("letters")->getValueAsString();
 	std::string operators 	     = getMember("operators")->getValueAsString();
 
+	/* prepare reserved keywords */
+	std::map<std::string, TokenType_> keywords;
+	keywords["true"]  = TokenType_Boolean;
+	keywords["false"] = TokenType_Boolean;
+
 	for(auto it = chars.begin(); it < chars.end(); ++it)
 	{
-
-		 /* Search for a number */
-		/////////////////////////
+		
+		//---------------
+		// Term -> Number
+		//---------------
 
 		if( numbers.find(*it) != std::string::npos )
 		{
@@ -243,8 +305,9 @@ void Node_Lexer::tokenize()
 			std::string number = chars.substr(itStart - chars.begin(), it - itStart + 1);
 			addToken(TokenType_Number, number, std::distance(chars.begin(), itStart) );
 			
-		 /* Search for a string */
-		/////////////////////////
+		//----------------
+		// Term -> String
+		//----------------
 
 		}else 	if(*it == '"')
 		{
@@ -258,8 +321,9 @@ void Node_Lexer::tokenize()
 			std::string str = chars.substr(itStart - chars.begin(), it - itStart);
 			addToken(TokenType_String, str, std::distance(chars.begin(), itStart));
 
-		 /* Search for a symbol */
-		/////////////////////////
+		//----------------------------
+		// Term -> { Symbol, Keyword }
+		//----------------------------
 
 		}else 	if( letters.find(*it) != std::string::npos)
 		{
@@ -272,10 +336,22 @@ void Node_Lexer::tokenize()
 			--it;
 
 			std::string str = chars.substr(itStart - chars.begin(), it - itStart + 1);
-			addToken(TokenType_Symbol, str, std::distance(chars.begin(), itStart));
 
-		 /* Search for an operator */
-		////////////////////////////
+			//-----------------
+			// Term -> Keyword
+			//-----------------
+			if ( keywords.find(str) != keywords.end())
+				addToken(keywords[str], str, std::distance(chars.begin(), itStart));
+
+			//-----------------
+			// Term -> Symbol
+			//-----------------
+			else
+				addToken(TokenType_Symbol, str, std::distance(chars.begin(), itStart));
+
+		//-----------------
+		// Term -> Operator
+		//-----------------
 			
 		}else 	if(operators.find(*it) != std::string::npos)
 		{

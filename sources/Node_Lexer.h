@@ -29,7 +29,8 @@ namespace Nodable{
 			TokenType_Number   = 1,
 			TokenType_Symbol   = 2,
 			TokenType_Operator = 3,
-			TokenType_Unknown  = 4
+			TokenType_Boolean  = 4,
+			TokenType_Unknown  = 5
 		};
 
 		typedef struct

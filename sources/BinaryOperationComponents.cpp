@@ -59,6 +59,13 @@ void Add::update()
 			break;
 		}
 
+		case Type_Boolean:
+		{
+			auto sum = left->getValueAsBoolean() || right->getValueAsBoolean();
+			result->setValue(sum);
+			break;
+		}	
+
 		default:
 		case Type_Number:
 		{
@@ -93,7 +100,7 @@ void Divide::update()
 {
 	if (right->getValueAsNumber() != 0.0f)
 	{
-		double div = left->getValueAsNumber() / right->getValueAsNumber();
+		auto div = left->getValueAsNumber() / right->getValueAsNumber();
 		result->setValue(div);
 		
 		LOG_MSG("%s / %s = %f\n", left->getValueAsString().c_str(), 
@@ -107,12 +114,25 @@ void Divide::update()
 
 void Multiply::update()
 {
-	double mul = left->getValueAsNumber() * right->getValueAsNumber();
-	result->setValue(mul);
-	
-	LOG_MSG("%s * %s = %f\n", left->getValueAsString().c_str(), 
-                              right->getValueAsString().c_str(),
-                              result->getValueAsString().c_str());
+	switch(left->getType())
+	{
+		case Type_Boolean:
+		{
+			auto mul = left->getValueAsBoolean() && right->getValueAsBoolean();
+			result->setValue(mul);
+			break;
+		}	
+
+		default:
+		{
+			auto mul = left->getValueAsNumber() * right->getValueAsNumber();
+			result->setValue(mul);
+			break;
+		}
+	}
+		LOG_MSG("%s * %s = %f\n", left->getValueAsString().c_str(), 
+	                              right->getValueAsString().c_str(),
+	                              result->getValueAsString().c_str());
 }
 
  // Node_Assign :

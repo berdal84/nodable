@@ -148,7 +148,7 @@ bool Value::getValueAsBoolean()const
 
 		case Type_Number:
 		{
-			return (*(double*)data) == 0.0F;
+			return (*(double*)data) != 0.0F;
 		}
 
 		case Type_Boolean:
