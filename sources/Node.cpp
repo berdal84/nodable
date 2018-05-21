@@ -16,13 +16,15 @@ void Node::Disconnect(Wire* _wire)
 	// remove wire pointer from sourceNode's wires.
 	{
 		auto found = std::find(sourceNode->wires.begin(), sourceNode->wires.end(), _wire);
-		sourceNode->wires.erase(found); // I do not check if node has been found, because it should. If not, I prefer to crash here.
+		NODABLE_VERIFY(found != sourceNode->wires.end());
+		sourceNode->wires.erase(found);
 	}
 
 	// remove wire pointer from targetNode's wires.
 	{
 		auto found = std::find(targetNode->wires.begin(), targetNode->wires.end(), _wire);
-		targetNode->wires.erase(found); // I do not check if node has been found, because it should. If not, I prefer to crash here.
+		NODABLE_VERIFY(found != targetNode->wires.end());
+		targetNode->wires.erase(found);
 	}
 
 	_wire->setTarget(nullptr);

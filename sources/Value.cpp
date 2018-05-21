@@ -20,6 +20,17 @@ bool  Value::isType(Type_ _type)const
 	return this->type == _type;
 }
 
+void Value::setConnectionFlags(ConnectionFlags_ _flags)
+{
+	connectionFlags = _flags;
+}
+
+bool Value::allows(ConnectionFlags_ _flags)const
+{
+	auto maskedFlags = connectionFlags & _flags;
+	return maskedFlags == _flags;
+}
+
 void Value::setValue(double _value)
 {
 	switch(type)

@@ -5,7 +5,7 @@
 #include "Log.h"
 #include "Node.h"
 #include "Wire.h"
-
+#include <memory> // for unique_ptr
 using namespace Nodable;
 
 int  Test::s_testCount        = 0;
@@ -13,10 +13,6 @@ int  Test::s_testSucceedCount = 0;
 
 void Test::ResetCounters()
 {
-	LOG_MSG("---------------------------------------------------------------\n");
-	LOG_MSG("   Testing software before running it\n");
-	LOG_MSG("---------------------------------------------------------------\n");
-
 	s_testCount        = 0;
 	s_testSucceedCount = 0;
 }
@@ -34,14 +30,163 @@ void Test::DisplayResults()
 
 bool Test::RunAll()
 {
+	LOG_MSG("---------------------------------------------------------------\n");
+	LOG_MSG("--                   Testing Nodable                         --\n");
+	LOG_MSG("---------------------------------------------------------------\n");
+	LOG_MSG("-- Info: note that these tests do NOT cover all the code     --\n");
+	LOG_MSG("---------------------------------------------------------------\n");
 	ResetCounters();
 
-	LOG_MSG("Running Test for Value class... \n");
+	LOG_MSG("Running Test for Value class: \n");
+
+	LOG_MSG(" - Connection Flags...\n");
+
+	{
+		std::unique_ptr<Value> v(new Value);
+
+		v->setConnectionFlags(ConnectionFlags_InputOnly);
+
+		if (!v->allows(ConnectionFlags_OutputOnly)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-1a : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (!v->allows(ConnectionFlags_InputAndOutput)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-1b : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (v->allows(ConnectionFlags_InputOnly)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-1c : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (v->allows(ConnectionFlags_None)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-1d : FAILED !\n");
+		}
+		s_testCount++;
+	}
+
+
+	{
+		std::unique_ptr<Value> v(new Value);
+
+		v->setConnectionFlags(ConnectionFlags_OutputOnly);
+
+		if (v->allows(ConnectionFlags_OutputOnly)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-2a : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (!v->allows(ConnectionFlags_InputAndOutput)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-2b : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (!v->allows(ConnectionFlags_InputOnly)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-2c : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (v->allows(ConnectionFlags_None)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-2d : FAILED !\n");
+		}
+		s_testCount++;
+	}
+
+	{
+		std::unique_ptr<Value> v(new Value);
+
+		v->setConnectionFlags(ConnectionFlags_None);
+
+		if (!v->allows(ConnectionFlags_OutputOnly)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-3a : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (!v->allows(ConnectionFlags_InputAndOutput)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-3b : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (!v->allows(ConnectionFlags_InputOnly)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-3c : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (v->allows(ConnectionFlags_None)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-3d : FAILED !\n");
+		}
+		s_testCount++;
+	}
+
+
+	{
+		std::unique_ptr<Value> v(new Value);
+
+		v->setConnectionFlags(ConnectionFlags_InputAndOutput);
+
+		if (v->allows(ConnectionFlags_OutputOnly)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-4a : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (v->allows(ConnectionFlags_InputAndOutput)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-4b : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (v->allows(ConnectionFlags_InputOnly)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-4c : FAILED !\n");
+		}
+		s_testCount++;
+
+		if (v->allows(ConnectionFlags_None)){
+			s_testSucceedCount++;
+		}else{
+			LOG_MSG("Test n°0-4d : FAILED !\n");
+		}
+		s_testCount++;
+	}
+
 
 	// Test 01 - Set/Get a boolean
 	//----------------------------
+
+	LOG_MSG(" - Get/Set (Boolean)...\n");
+
 	{
-		auto v = new Nodable::Value();
+		std::unique_ptr<Value> v(new Value);
 		v->setValue(true);		
 
 		if (v->getValueAsBoolean()){
@@ -51,7 +196,7 @@ bool Test::RunAll()
 		}
 		s_testCount++;
 		
-		if (v->getType() == Nodable::Type_Boolean){
+		if (v->getType() == ::Type_Boolean){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°1b : FAILED !\n");
@@ -72,14 +217,15 @@ bool Test::RunAll()
 			LOG_MSG("Test n°1d : FAILED !\n");
 		}
 		s_testCount++;
-
-		delete v;
 	}
 
 	// Test 02 - Set/Get a string
 	//---------------------------
+
+	LOG_MSG(" - Get/Set (String)...\n");
+
 	{
-		auto v = new Nodable::Value();
+		std::unique_ptr<Value> v(new Value);
 		v->setValue("Hello world !");
 		std::string str = "Hello world !";
 		if (v->getValueAsString() == str){
@@ -96,7 +242,7 @@ bool Test::RunAll()
 		}
 		s_testCount++;
 
-		if (v->getType() == Nodable::Type_String){
+		if (v->getType() == ::Type_String){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°2c : FAILED !\n");
@@ -116,14 +262,15 @@ bool Test::RunAll()
 			LOG_MSG("Test n°2e : FAILED !\n");
 		}
 		s_testCount++;
-
-		delete v;
 	}
 
 	// Test 03 - Set/Get a number (double)
 	//------------------------------------
+
+	LOG_MSG(" - Get/Set (Number)...\n");
+
 	{
-		auto v = new Nodable::Value();
+		std::unique_ptr<Value> v(new Value);
 		v->setValue(50.0F);
 
 		if (v->getValueAsNumber() == 50.0F){
@@ -133,7 +280,7 @@ bool Test::RunAll()
 		}
 		s_testCount++;
 
-		if (v->getType() == Nodable::Type_Number){
+		if (v->getType() == ::Type_Number){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°3b : FAILED !\n");
@@ -146,8 +293,6 @@ bool Test::RunAll()
 			LOG_MSG("Test n°3c : FAILED !\n");
 		}
 		s_testCount++;
-
-		delete v;
 	}
 
 	LOG_MSG("Running Test for Node class...\n");
@@ -156,7 +301,7 @@ bool Test::RunAll()
 		// Test 4 : set/get a node member :
 		//---------------------------------
 
-		auto a = new Nodable::Node();
+		std::unique_ptr<Node> a(new Node);
 		a->addMember("v");
 		a->setMember("v", double(100));
 		
@@ -165,7 +310,7 @@ bool Test::RunAll()
 		else
 			LOG_MSG("Test n°4 : FAILED !\n");
 		s_testCount++;
-		delete a;
+
 	}
 
 	LOG_MSG("Running integration Tests for Wire and Node class...\n");
@@ -174,14 +319,14 @@ bool Test::RunAll()
 		// Test 5a : connect two nodes (creates a wire)
 		//---------------------------------------------
 
-		auto a = new Nodable::Node();
+		std::unique_ptr<Node> a(new Node);
 		a->addMember("output");
 
-		auto b = new Nodable::Node();
+		std::unique_ptr<Node> b(new Node);
 		b->addMember("input");
 		
-		auto wire = new Nodable::Wire();
-		Nodable::Node::Connect(wire, a->getMember("output"), b->getMember("input"));
+		std::unique_ptr<Wire> wire(new Wire);
+		Node::Connect(wire.get(), a->getMember("output"), b->getMember("input"));
 
 		if ( 	wire->getSource() 		== a->getMember("output") && 
 				wire->getTarget() 		== b->getMember("input")
@@ -194,16 +339,13 @@ bool Test::RunAll()
 		// Test 5b : disconnect a wire
 		//----------------------------
 
-		Nodable::Node::Disconnect(wire);
+		Node::Disconnect(wire.get());
 		if(wire->getSource() == nullptr && wire->getTarget() == nullptr )
 			s_testSucceedCount++;
 		else
 			LOG_MSG("Test n°5b : FAILED !\n");
 		s_testCount++;
 
-		delete wire;
-		delete a;
-		delete b;
 	}
 
 	DisplayResults();
