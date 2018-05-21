@@ -5,8 +5,25 @@
 Nodable is node-able !
 ======================
 
-This software is a command line prompt able to evaluate literal expressions by constructing an execution tree in realtime.
-When user type an expression the program split it into tokens and build the execution tree. Each frame each node is updated only if needed. The GUI uses the famous library *Dear ImGui* developed by OmarCornut (@ocornut).
+Introduction:
+-------------
+
+This software is a command line prompt able to evaluate literal expressions by constructing an execution graph in realtime.
+When user type an expression the program split it into tokens and build the execution tree. Then, each frame each node is updated only if needed. User can interact with the graph by changing values.
+
+Road Map :
+----------
+- Update the expression when the user modify the graph.
+- Be able to manually create a node.
+- Be able to manually create a wire between two compatible Values.
+
+Dependencies :
+--------------
+
+- *Dear ImGui* developed by OmarCornut (@ocornut).
+- SDL2
+- OpenGL 3.x
+- GLFW 3
 
 Examples :
 ==========
@@ -27,43 +44,62 @@ Video n°2 - Automatic Layout :
 The language :
 ==============
 
-Expressions:
-------------
+Introduction:
+-------------
 
-Expression -> (Operand, Operator, Expression) | Operand
+The syntax used is really simple and works quite like a calculator.
 
 Operands :
 ----------
 
 An operand could be :
 
-- a Number (ex: 1, 0.5, 100.456, etc.)
-- a String (ex: "Hello", "World", etc.)
-- a Variable (ex: a, b, myVar, etc.)
+- a Boolean (ex: true, false)
+- a Number  (ex: 1, 0.5, 100.456, etc.)
+- a String  (ex: "Hello", "World", etc.)
+- a Symbol  (ex: a, b, myVar, etc.)
 
-Operand -> Number | String | Variable
+Operand -> { Boolean , Number , String , Symbol }
 
 Operators:
 ----------
 
-Supports only binary operators with precedence :
+An operator could be only a binary operator :
 
-- Addition (+)
-- Substraction (-)
-- Multiplication (*)
-- Division (/)
-- Assignment (=)
+- an Addition
+- a Substraction
+- a Multiplication
+- a Division
+- an Assignment
 
-Operator -> +|-|*|/|=
+Binary Operator -> { + , - , * , / , = }
 
+All these binary operators supports precedence.
+
+Expressions:
+------------
+
+An expression could be :
+
+- a single Operand
+- a tuple formed by an Operand, a Binary Operator and an other Expression.
+
+Expression -> { Operand , ( Operand , Binary Operator , Expression ) }
+
+Unary operands are not allowed, so you can't evaluate expressions like
+
+Expression -> { ( Unary Operator, Expression ) }  (ex ``` -10```)
 
 Platform compatibility :
 ========================
-Should work on all platforms but only tested under GNU/Linux Ubuntu 17.x (64bits)
+Should work on all platforms but only tested under GNU/Linux Ubuntu 16.04 LTS (64bits)
 
 How to compile ? :
 ==================
-Install dependencies (optionnal):
+
+To compile you need a c++ 11 compatible compiler. The make file provided is configured to use g++.
+
+Install dependencies:
 
 ```
 sudo add-apt-repository -y ppa:team-xbmc/ppa
@@ -76,19 +112,26 @@ Clone the project with submodules:
 ```
 git clone --recurse-submodules https://github.com/berdal84/Nodable
 ```
+Move to the new folder:
+```
+cd ./Nodable
+```
 
 Compile:
 ```
-cd ./Nodable
 make
 ```
 
 How to run the software ? :
 ===========================
 
+Move to the bin folder:
 ```
 cd <nodable folder>/bin/linux64
-.nodable
+```
+Run the software:
+```
+./nodable
 ```
 
 Licence:
