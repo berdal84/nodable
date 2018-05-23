@@ -7,8 +7,6 @@
 
 namespace Nodable
 {
-
-
 	class Wire : public Node
 	{
 	public:

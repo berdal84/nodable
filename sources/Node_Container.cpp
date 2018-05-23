@@ -157,7 +157,7 @@ void Node_Container::destroyNode(Node* _node)
 
 Node_Variable* Node_Container::find(const char* _name)
 {
-	if ( _name == '\0')
+	if ( _name == NULL)
 		return nullptr;
 
 	LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getName());
