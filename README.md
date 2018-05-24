@@ -11,20 +11,6 @@ Introduction:
 This software is a command line prompt able to evaluate literal expressions by constructing an execution graph in realtime.
 When user type an expression the program split it into tokens and build the execution tree. Then, each frame each node is updated only if needed. User can interact with the graph by changing values.
 
-Road Map :
-----------
-- Update the expression when the user modify the graph.
-- Be able to manually create a node.
-- Be able to manually create a wire between two compatible Values.
-
-Dependencies :
---------------
-
-- *Dear ImGui* developed by OmarCornut (@ocornut).
-- SDL2
-- OpenGL 3.x
-- GLFW 3
-
 Examples :
 ==========
 
@@ -90,21 +76,6 @@ Unary operands are not allowed, so you can't evaluate expressions like
 
 Expression -> { ( Unary Operator, Expression ) }  (ex ``` -10```)
 
-Architecture :
-==============
-
-The software is built to be dynamically reflective. The base class *Object* has members called *Values*. Members can be added or removed at runtime.
-A Value is a Variant class that can handle basic types data such as Booleans, Numbers or Strings.
-
-The derived class Entity is an Object able to attach Components on it. Component is an abstract class common to all components. For now there are ony three components :
-- Views : to draw the entity on screen.
-- Operations : to perform a computation.
-- Container : to contain other entities.
-
-Two *Values* can be linked by a *Wire*. A *Wire* is an oriented edge, so it has a source and a target Value.
-
-![Draft UML Class Diagram](https://github.com/berdal84/Nodable/blob/master/docs/ClassDiagram_2018_05_24.png)
-
 Platform compatibility :
 ========================
 Should work on all platforms but only tested under GNU/Linux Ubuntu 16.04 LTS (64bits)
@@ -161,6 +132,41 @@ Run the software:
 ```
 ./nodable
 ```
+
+Architecture :
+==============
+
+The software is built to be dynamically reflective. The base class **Object** has members called **Value**s. Members can be added or removed at runtime.
+A **Value** is a Variant class that can handle basic data types such as Booleans (bool), Numbers (double) or Strings (std::string).
+
+Two **Values** can be linked by a **Wire**. A **Wire** is an oriented edge, so it has a *source* and a *target* Value.
+
+The derived class **Entity** is an *Object* able to attach **Components** on it. **Component** is the abstract base class for all components. For now there are ony three components :
+- **View**s : to draw the entity on screen.
+- **Operation**s : to perform a computation.
+- **Container** : to contain other entities.
+
+**Variable** class is an **Entity** with a single member named "value".
+
+**Lexer** class is an **Entity** able to convert an expression to a graph.
+
+**Application** is a clas to rule them all !
+
+![Draft UML Class Diagram](https://github.com/berdal84/Nodable/blob/master/docs/ClassDiagram_2018_05_24.png)
+
+Road Map :
+==========
+- Update the expression when the user modify the graph.
+- Be able to manually create a node.
+- Be able to manually create a wire between two compatible Values.
+
+Dependencies :
+==============
+
+- *Dear ImGui* developed by OmarCornut (@ocornut).
+- SDL2
+- OpenGL 3.x
+- GLFW 3
 
 Licence:
 =========
