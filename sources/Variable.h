@@ -6,11 +6,11 @@
 #include <string>
 
 namespace Nodable{
-	/* Node_Variable is a node that identify a value with its name */
-	class Node_Variable : public Entity{
+	/* Variable is a node that identify a value with its name */
+	class Variable : public Entity{
 	public:
-		Node_Variable();
-		~Node_Variable();
+		Variable();
+		~Variable();
 
 		void              setName         (const char*);
 
@@ -33,14 +33,14 @@ namespace Nodable{
 
 
 	template<class Value>
-	void Node_Variable::setValue(Value _value)
+	void Variable::setValue(Value _value)
 	{
 		getMember("value")->setValue(_value);
 		updateLabel();
 	}
 
 	template<class Value>
-	void Node_Variable::setValue(Value* _value)
+	void Variable::setValue(Value* _value)
 	{
 		getMember("value")->setValue(_value);
 		updateLabel();

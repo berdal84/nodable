@@ -1,7 +1,7 @@
 #include "BinaryOperationComponents.h"
 #include "Log.h"		// for LOG_DBG(...)
 #include "Value.h"
-#include "Node_Variable.h"
+#include "Variable.h"
 #include "Value.h"
 
 using namespace Nodable;

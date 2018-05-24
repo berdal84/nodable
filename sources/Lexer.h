@@ -47,9 +47,9 @@ namespace Nodable{
 		/* Override from Entity class */
 		bool           eval			       ();
 	private:
-		/* Build a graph using existing tokens and return a Node_Variable that contain the result value.
+		/* Build a graph using existing tokens and return a Variable that contain the result value.
 		 Important: tokenize() should be called first. */
-		Node_Variable* buildGraph          ();
+		Variable* buildGraph          ();
 
 		/* Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
 		Value*         buildGraphRec       (size_t _tokenIndex = 0, size_t _tokenCountMax = 0,   Value* _leftValueOverride = nullptr, Value* _rightValueOverride = nullptr);
@@ -60,7 +60,7 @@ namespace Nodable{
 		/* Check if the existing tokens match with the syntax of the language. tokenize() should be called first */
 		bool           isSyntaxValid	   ();
 
-		/* Convert a given token to a Entity. For now it only handle Numbers, Strings and Symbols. Thats why we return a Node_Variable */
+		/* Convert a given token to a Entity. For now it only handle Numbers, Strings and Symbols. Thats why we return a Variable */
 		Value* 		   createValueFromToken(Token token);
 		
 		/* Creates a new token given a _type, _string and _chanIndex and add it to the tokens.*/

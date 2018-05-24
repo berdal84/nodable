@@ -17,25 +17,25 @@ namespace Nodable{
 		void                      frameAll();
 		void                      drawLabelOnly();
 		size_t                    getSize()const;
-		Node_Variable* 	          find                      (const char* /*Symbol name*/);
+		Variable* 	          find                      (const char* /*Symbol name*/);
 		void                      addNode                   (Entity* /*Node to add to this context*/);
 		void                      destroyNode               (Entity*);
-		Node_Variable*            createNodeVariable        (const char* /*name*/ = "");
-		Node_Variable*            createNodeNumber          (double /*value*/ = 0);
-		Node_Variable*            createNodeNumber          (const char* /*value*/);
-		Node_Variable*            createNodeString          (const char* /*value*/);
+		Variable*            createNodeVariable        (const char* /*name*/ = "");
+		Variable*            createNodeNumber          (double /*value*/ = 0);
+		Variable*            createNodeNumber          (const char* /*value*/);
+		Variable*            createNodeString          (const char* /*value*/);
 		Entity*                   createNodeBinaryOperation (std::string /*_operator*/);
 		Entity*                   createNodeAdd             ();
 		Entity*                   createNodeSubstract       ();
 		Entity*			          createNodeMultiply        ();
 		Entity*			          createNodeDivide          ();
 		Entity*			          createNodeAssign          (); 
-		Lexer*                    createNodeLexer           (Node_Variable* /*expression*/);
+		Lexer*                    createNodeLexer           (Variable* /*expression*/);
 
 		const char* 	          getName                   ()const;
-		std::vector<Node_Variable*>& getVariables(){return variables;}
+		std::vector<Variable*>& getVariables(){return variables;}
 	private:
-		std::vector<Node_Variable*> variables; /* Contain all Symbol Nodes created by this context */
+		std::vector<Variable*> variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<Entity*>        entities;   /* Contain all Objects created by this context */
 		std::string 	            name;      /* The name of this context */
 		Entity*                     parent;

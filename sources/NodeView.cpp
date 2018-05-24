@@ -2,7 +2,7 @@
 #include "Log.h"		          // for LOG_DBG(...)
 #include <imgui.h>
 #include "Container.h"
-#include "Node_Variable.h"
+#include "Variable.h"
 #include "BinaryOperationComponents.h"
 #include "View.h"
 #include "Wire.h"
@@ -120,7 +120,7 @@ void NodeView::update()
 
 	if (node->hasComponent("operation"))
 		setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
-	else if (dynamic_cast<Node_Variable*>(node) != nullptr)
+	else if (dynamic_cast<Variable*>(node) != nullptr)
 		setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f));
 	else
 		setColor(ColorType_Fill, ImColor(0.9f, 0.9f, 0.7f));

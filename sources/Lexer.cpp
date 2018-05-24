@@ -3,7 +3,7 @@
 
 #include "Value.h"
 #include "Container.h"
-#include "Node_Variable.h"
+#include "Variable.h"
 #include "BinaryOperationComponents.h"
 #include "NodeView.h"
 #include "Wire.h"
@@ -55,12 +55,12 @@ bool Lexer::eval()
 	return success;
 }
 
-Node_Variable* Lexer::buildGraph()
+Variable* Lexer::buildGraph()
 {
 	LOG_DBG("Lexer::buildGraph() - START\n");
 	
 	Value*         resultValue       = buildGraphRec();
-	Node_Variable* resultVariable    = this->getParent()->createNodeVariable("Result");	
+	Variable* resultVariable    = this->getParent()->createNodeVariable("Result");	
 
 	// If the value has no owner, we simplly set the variable value
 	if( resultValue->getOwner() == nullptr)
@@ -113,7 +113,7 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 
 			case TokenType_Symbol:
 			{
-				Node_Variable* variable = context->find(tokenWordString.c_str());
+				Variable* variable = context->find(tokenWordString.c_str());
 
 				if ( variable == nullptr )
 					variable = context->createNodeVariable(tokenWordString.c_str());

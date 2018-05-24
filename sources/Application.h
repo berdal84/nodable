@@ -38,7 +38,7 @@ namespace Nodable
 		Container*       getContext()const;
 
 	private:
-		Node_Variable*                   lastString  = nullptr;		
+		Variable*                   lastString  = nullptr;		
 		bool                             quit        = false;
 	};
 }

@@ -4,7 +4,7 @@
 #include "Lexer.h"
 #include "Container.h"
 #include "ApplicationView.h"
-#include "Node_Variable.h"
+#include "Variable.h"
 #include <unistd.h>
 #include <imgui.h>
 

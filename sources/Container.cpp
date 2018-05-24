@@ -2,7 +2,7 @@
 #include "Log.h"
 #include "Lexer.h"
 #include "Entity.h"
-#include "Node_Variable.h"
+#include "Variable.h"
 #include "BinaryOperationComponents.h"
 #include "Wire.h"
 #include "WireView.h"
@@ -121,7 +121,7 @@ void Container::drawLabelOnly()
 	{
 		for(auto each : this->entities)
 		{
-			if (auto symbol = dynamic_cast<Node_Variable*>(each))
+			if (auto symbol = dynamic_cast<Variable*>(each))
 				ImGui::Text("%s => %s", symbol->getName(), symbol->getValueAsString().c_str());
 		}
 	}
@@ -155,16 +155,16 @@ void Container::destroyNode(Entity* _entity)
 	delete _entity;
 }
 
-Node_Variable* Container::find(const char* _name)
+Variable* Container::find(const char* _name)
 {
-	Node_Variable* result;
+	Variable* result;
 
 	if ( _name == NULL)
 		result = nullptr;
 	else{
 		LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getName());
 
-		auto findFunction = [_name](const Node_Variable* _entity ) -> bool
+		auto findFunction = [_name](const Variable* _entity ) -> bool
 		{
 			return strcmp(_entity->getName(), _name) == 0;
 		};
@@ -179,9 +179,9 @@ Node_Variable* Container::find(const char* _name)
 	return result;
 }
 
-Node_Variable* Container::createNodeVariable(const char* _name)
+Variable* Container::createNodeVariable(const char* _name)
 {
-	auto variable = new Node_Variable();
+	auto variable = new Variable();
 	variable->addComponent( "view", new NodeView(variable));
 	variable->setName(_name);
 	this->variables.push_back(variable);
@@ -189,27 +189,27 @@ Node_Variable* Container::createNodeVariable(const char* _name)
 	return variable;
 }
 
-Node_Variable*          Container::createNodeNumber(double _value)
+Variable*          Container::createNodeNumber(double _value)
 {
-	auto node = new Node_Variable();
+	auto node = new Variable();
 	node->addComponent( "view", new NodeView(node));
 	node->setValue(_value);
 	addNode(node);
 	return node;
 }
 
-Node_Variable*          Container::createNodeNumber(const char* _value)
+Variable*          Container::createNodeNumber(const char* _value)
 {
-	auto node = new Node_Variable();
+	auto node = new Variable();
 	node->addComponent( "view", new NodeView(node));
 	node->setValue(std::stod(_value));
 	addNode(node);
 	return node;
 }
 
-Node_Variable*          Container::createNodeString(const char* _value)
+Variable*          Container::createNodeString(const char* _value)
 {
-	auto node = new Node_Variable();
+	auto node = new Variable();
 	node->addComponent( "view", new NodeView(node));
 	node->setValue(_value);
 	addNode(node);
@@ -358,7 +358,7 @@ Entity* Container::createNodeAssign()
 }
 
 
-Lexer* Container::createNodeLexer(Node_Variable* _input)
+Lexer* Container::createNodeLexer(Variable* _input)
 {
 	Lexer* node = new Lexer();
 	node->addComponent( "view", new NodeView(node));
