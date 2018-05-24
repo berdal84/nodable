@@ -1,6 +1,6 @@
 #include "Node_Container.h"
 #include "Log.h"
-#include "Node_Lexer.h"
+#include "Lexer.h"
 #include "Node.h"
 #include "Node_Variable.h"
 #include "BinaryOperationComponents.h"
@@ -358,9 +358,9 @@ Node* Node_Container::createNodeAssign()
 }
 
 
-Node_Lexer* Node_Container::createNodeLexer(Node_Variable* _input)
+Lexer* Node_Container::createNodeLexer(Node_Variable* _input)
 {
-	Node_Lexer* node = new Node_Lexer();
+	Lexer* node = new Lexer();
 	node->addComponent( "view", new NodeView(node));
 
 	Node::Connect(new Wire(),_input->getValue(), node->getMember("expression"));

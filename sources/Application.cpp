@@ -1,7 +1,7 @@
 #include "Application.h"
 #include "Nodable.h" 	// for NODABLE_VERSION
 #include "Log.h" 		// for LOG_DBG
-#include "Node_Lexer.h"
+#include "Lexer.h"
 #include "Node_Container.h"
 #include "ApplicationView.h"
 #include "Node_Variable.h"
@@ -54,20 +54,20 @@ bool Application::eval(std::string _expression)
 	LOG_MSG("Application::eval() - create a variable.\n");
 	lastString = ctx->createNodeVariable("Command");
 
-	LOG_DBG("Node_Lexer::eval() - assign the expression string to that variable\n");
+	LOG_DBG("Lexer::eval() - assign the expression string to that variable\n");
 	lastString->setValue(_expression.c_str());
 
-	LOG_DBG("Node_Lexer::eval() - check if users type the exit keyword.\n");
+	LOG_DBG("Lexer::eval() - check if users type the exit keyword.\n");
 	if ( lastString->getValueAsString() == "exit" ){
-		LOG_DBG("Node_Lexer::eval() - stopExecution...\n");
+		LOG_DBG("Lexer::eval() - stopExecution...\n");
 		stopExecution();		
 	}else{
-		LOG_DBG("Node_Lexer::eval() - check if expression is not empty\n");
+		LOG_DBG("Lexer::eval() - check if expression is not empty\n");
 		if ( lastString->isSet())
 		{
 			/* Create a Lexer node. The lexer will cut expression string into tokens
 			(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
-			LOG_DBG("Node_Lexer::eval() - create a lexer with the expression string\n");
+			LOG_DBG("Lexer::eval() - create a lexer with the expression string\n");
 			auto lexer = ctx->createNodeLexer(lastString);
 			return lexer->eval();
 			//ctx->destroyNode(lexer);

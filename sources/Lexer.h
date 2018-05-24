@@ -18,7 +18,7 @@ namespace Nodable{
 		// here ctx should contain the generated graph.
 
 	*/
-	class Node_Lexer : public Node
+	class Lexer : public Node
 	{
 	private:
 
@@ -41,8 +41,8 @@ namespace Nodable{
 		}Token;
 
 	public:
-		Node_Lexer();
-		virtual ~Node_Lexer();
+		Lexer();
+		virtual ~Lexer();
 
 		/* Override from Node class */
 		bool           eval			       ();

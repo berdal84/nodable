@@ -1,4 +1,4 @@
-#include "Node_Lexer.h"
+#include "Lexer.h"
 #include "Log.h"          // for LOG_DBG(...)
 
 #include "Value.h"
@@ -10,10 +10,10 @@
 
 using namespace Nodable;
 
-Node_Lexer::Node_Lexer()
+Lexer::Lexer()
 {
-	LOG_DBG("new Node_Lexer\n");
-	setMember("class", "Node_Lexer");
+	LOG_DBG("new Lexer\n");
+	setMember("class", "Lexer");
 	addMember("expression", Visibility_Protected);
 	addMember("numbers", 	Visibility_Protected);
 	addMember("letters", 	Visibility_Protected);
@@ -26,21 +26,21 @@ Node_Lexer::Node_Lexer()
 	setLabel("Lexer");
 }
 
-Node_Lexer::~Node_Lexer()
+Lexer::~Lexer()
 {
 
 }
 
-bool Node_Lexer::eval()
+bool Lexer::eval()
 {
 	bool success;
 
-	LOG_DBG("Node_Lexer::eval() - tokenize\n");
+	LOG_DBG("Lexer::eval() - tokenize\n");
 	tokenize();
-	LOG_DBG("Node_Lexer::eval() - check syntax\n");
+	LOG_DBG("Lexer::eval() - check syntax\n");
 	if ( isSyntaxValid() )
 	{
-		LOG_DBG("Node_Lexer::eval() - build tree and eval\n");
+		LOG_DBG("Lexer::eval() - build tree and eval\n");
 		auto result = buildGraph();
 		NodeView::ArrangeRecursively((NodeView*)result->getComponent("view"));
 		
@@ -50,14 +50,14 @@ bool Node_Lexer::eval()
 	}
 	
 	if ( !success )
-		LOG_DBG("Node_Lexer::eval() - error, abording...\n");
+		LOG_DBG("Lexer::eval() - error, abording...\n");
 
 	return success;
 }
 
-Node_Variable* Node_Lexer::buildGraph()
+Node_Variable* Lexer::buildGraph()
 {
-	LOG_DBG("Node_Lexer::buildGraph() - START\n");
+	LOG_DBG("Lexer::buildGraph() - START\n");
 	
 	Value*         resultValue       = buildGraphRec();
 	Node_Variable* resultVariable    = this->getParent()->createNodeVariable("Result");	
@@ -70,11 +70,11 @@ Node_Variable* Node_Lexer::buildGraph()
 		Node::Connect(new Wire(), resultValue, resultVariable->getValue());
 
 
-	LOG_DBG("Node_Lexer::buildGraph() - DONE !\n");
+	LOG_DBG("Lexer::buildGraph() - DONE !\n");
 	return resultVariable;
 }
 
-Value* Node_Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _leftValueOverride, Value* _rightValueOverride)
+Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _leftValueOverride, Value* _rightValueOverride)
 {
 	Value*          result;
 	Node_Container* context = this->getParent();
@@ -225,10 +225,10 @@ Value* Node_Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* 
 }
 
 
-bool Node_Lexer::isSyntaxValid()
+bool Lexer::isSyntaxValid()
 {
 	bool success = true;	
-	LOG_DBG("Node_Lexer::isSyntaxValid() - START\n");
+	LOG_DBG("Lexer::isSyntaxValid() - START\n");
 
 	// only support odd token count
 	if( tokens.size()%2 == 1)
@@ -260,14 +260,14 @@ bool Node_Lexer::isSyntaxValid()
 	}
 
 	if(!success)
-		LOG_MSG("Node_Lexer::isSyntaxValid() - FAIL...\n");
+		LOG_MSG("Lexer::isSyntaxValid() - FAIL...\n");
 
 	return success;
 }
 
-void Node_Lexer::tokenize()
+void Lexer::tokenize()
 {
-	LOG_DBG("Node_Lexer::tokenize() - START\n");
+	LOG_DBG("Lexer::tokenize() - START\n");
 
 	/* get expression chars */
 	std::string chars = getMember("expression")->getValueAsString();
@@ -359,16 +359,16 @@ void Node_Lexer::tokenize()
 			addToken(TokenType_Operator, str, std::distance(chars.begin(), it));
 		}		
 	}
-	LOG_DBG("Node_Lexer::tokenize() - DONE !\n");
+	LOG_DBG("Lexer::tokenize() - DONE !\n");
 }
 
-void Node_Lexer::addToken(TokenType_  _type, std::string _string, size_t _charIndex)
+void Lexer::addToken(TokenType_  _type, std::string _string, size_t _charIndex)
 {
 	Token t;
 	t.type      = _type;
 	t.word      = _string;
 	t.charIndex = _charIndex;
 
-	LOG_DBG("Node_Lexer::addToken(%d, \"%s\", %llu)\n", _type, _string.c_str(), _charIndex);
+	LOG_DBG("Lexer::addToken(%d, \"%s\", %llu)\n", _type, _string.c_str(), _charIndex);
 	tokens.push_back(t);
 }

@@ -14,11 +14,11 @@ v0.3:
 
 v0.2:
 	- New Binary Operations : Node_Substract, Node_Multiply, Node_Divide
-	- Node_Lexer : nos supports operator precedence.
+	- Lexer : nos supports operator precedence.
 
 v0.1:
 	- Node_Add : to add two Node_Numbers
-	- Node_Lexer : first version able to evaluate additions.
+	- Lexer : first version able to evaluate additions.
 */
 
 #pragma once
@@ -86,7 +86,7 @@ namespace Nodable{
 	// 3 - Nodes
 	class Node;
 	class Application;	
-	class Node_Lexer;
+	class Lexer;
 	class Node_Variable;
 	class Node_Container;
 

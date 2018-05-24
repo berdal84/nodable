@@ -30,7 +30,7 @@ namespace Nodable{
 		Node*			          createNodeMultiply        ();
 		Node*			          createNodeDivide          ();
 		Node*			          createNodeAssign          (); 
-		Node_Lexer*               createNodeLexer           (Node_Variable* /*expression*/);
+		Lexer*                    createNodeLexer           (Node_Variable* /*expression*/);
 
 		const char* 	          getName                   ()const;
 		std::vector<Node_Variable*>& getVariables(){return variables;}
