@@ -145,14 +145,15 @@ The derived class **Entity** is an *Object* able to attach **Components** on it.
 - **View**s : to draw the entity on screen.
 - **Operation**s : to perform a computation.
 - **Container** : to contain other entities.
+- **DataAccessObject** : auto-save to JSON when the entity is modified.
 
 **Variable** class is an **Entity** with a single member named "value".
 
 **Lexer** class is an **Entity** able to convert an expression to a graph.
 
-**Application** is a clas to rule them all !
+**Application** is a class to rule them all. This class has by default a Container component (like global scope) and an ApplicationView (using GLFw3/ImGui/SDL2/OpenGL).
 
-![Draft UML Class Diagram](https://github.com/berdal84/Nodable/blob/master/docs/ClassDiagram_2018_05_24.png)
+![Draft UML Class Diagram](https://github.com/berdal84/Nodable/blob/master/docs/ClassDiagram_2018_05_25.png)
 
 Road Map :
 ==========
