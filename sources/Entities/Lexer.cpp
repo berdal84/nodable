@@ -4,7 +4,7 @@
 #include "Value.h"
 #include "Container.h"
 #include "Variable.h"
-#include "BinaryOperationComponents.h"
+#include "BinaryOperation.h"
 #include "NodeView.h"
 #include "Wire.h"
 
@@ -58,17 +58,18 @@ bool Lexer::eval()
 Variable* Lexer::buildGraph()
 {
 	LOG_DBG("Lexer::buildGraph() - START\n");	
-	Value*         resultValue       = buildGraphRec();
+	Value*         resultValue = buildGraphRec();
+	auto           container   = this->getParent();
 
 	LOG_DBG("Lexer::buildGraph() - Assign result to a variable.\n");
-	Variable* resultVariable    = this->getParent()->createNodeVariable("Result");	
+	Variable* resultVariable    = container->createNodeVariable("Result");	
 
 	// If the value has no owner, we simplly set the variable value
 	if( resultValue->getOwner() == nullptr)
 		resultVariable->setValue(resultValue);
 	// Else we connect resultValue with resultVariable.value
 	else
-		Entity::Connect(new Wire(), resultValue, resultVariable->getValue());
+		Entity::Connect(container->createWire(), resultValue, resultVariable->getValue());
 
 
 	LOG_DBG("Lexer::buildGraph() - DONE !\n");
@@ -185,7 +186,7 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 		if (left->getOwner() == nullptr)
 			binOperation->setMember("left", left);
 		else
-			Entity::Connect(new Wire(), left, binOperation->getMember("left"));	
+			Entity::Connect(context->createWire(), left, binOperation->getMember("left"));	
 		
 		// Connect the Right Operand :
 		//----------------------------
@@ -199,7 +200,7 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 		if (right->getOwner() == nullptr)
 			binOperation->setMember("right", right);
 		else
-			Entity::Connect(new Wire(), right, binOperation->getMember("right"));	
+			Entity::Connect(context->createWire(), right, binOperation->getMember("right"));	
 
 		// Set the result !
 		result = binOperation->getMember("result");

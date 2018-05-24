@@ -1,6 +1,6 @@
 #pragma once
 #include <imgui.h>
-#include "Component.h"
+#include <Component.h>
 
 namespace Nodable{
 	class View : public Component

@@ -3,7 +3,7 @@
 #include "Nodable.h"
 #include "Object.h"
 
-#define DECLARE_COMPONENT(ClassName)ClassName()\
+#define COMPONENT_CONSTRUCTOR(ClassName)ClassName()\
 	{\
 		setMember("__class__", #ClassName);\
 	}
@@ -13,7 +13,7 @@ namespace Nodable{
 	{
 	public:
 
-		DECLARE_COMPONENT(Component)
+		COMPONENT_CONSTRUCTOR(Component)
 
 		~Component(){};
 		void         setOwner(Entity* _entity){ owner = _entity; }

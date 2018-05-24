@@ -3,10 +3,10 @@
 #include "Lexer.h"
 #include "Entity.h"
 #include "Variable.h"
-#include "BinaryOperationComponents.h"
+#include "BinaryOperation.h"
 #include "Wire.h"
 #include "WireView.h"
-#include "DataAccessObject.h"
+#include "DataAccess.h"
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
@@ -24,11 +24,6 @@ void Container::clear()
 		delete each;
 	entities.resize(0);
 	variables.resize(0);
-}
-
-void Container::frameAll()
-{
-
 }
 
 void Container::draw()
@@ -109,20 +104,9 @@ void Container::draw()
 	}
 }
 
-void Container::drawLabelOnly()
+void Container::addEntity(Entity* _entity)
 {
-	{
-		for(auto each : this->entities)
-		{
-			if (auto symbol = dynamic_cast<Variable*>(each))
-				ImGui::Text("%s => %s", symbol->getName(), symbol->getValueAsString().c_str());
-		}
-	}
-}
-
-void Container::addNode(Entity* _entity)
-{
-	_entity->addComponent("dataAccess", new DataAccessObject);
+	_entity->addComponent("dataAccess", new DataAccess);
 
 	/* Add the node to the node vector list*/
 	this->entities.push_back(_entity);
@@ -177,37 +161,37 @@ Variable* Container::find(std::string _name)
 Variable* Container::createNodeVariable(std::string _name)
 {
 	auto variable = new Variable();
-	variable->addComponent( "view", new NodeView(variable));
+	variable->addComponent( "view", new NodeView);
 	variable->setName(_name.c_str());
 	this->variables.push_back(variable);
-	addNode(variable);
+	this->addEntity(variable);
 	return variable;
 }
 
 Variable*          Container::createNodeNumber(double _value)
 {
 	auto node = new Variable();
-	node->addComponent( "view", new NodeView(node));
+	node->addComponent( "view", new NodeView);
 	node->setValue(_value);
-	addNode(node);
+	this->addEntity(node);
 	return node;
 }
 
 Variable*          Container::createNodeNumber(const char* _value)
 {
 	auto node = new Variable();
-	node->addComponent( "view", new NodeView(node));
+	node->addComponent( "view", new NodeView);
 	node->setValue(std::stod(_value));
-	addNode(node);
+	this->addEntity(node);
 	return node;
 }
 
 Variable*          Container::createNodeString(const char* _value)
 {
 	auto node = new Variable();
-	node->addComponent( "view", new NodeView(node));
+	node->addComponent( "view", new NodeView);
 	node->setValue(_value);
-	addNode(node);
+	this->addEntity(node);
 	return node;
 }
 
@@ -249,9 +233,9 @@ Entity* Container::createNodeAdd()
 	node->addComponent( "operation", operation);
 
 	// Create a view component
-	node->addComponent( "view", new NodeView(node));
+	node->addComponent( "view", new NodeView);
 
-	addNode(node);
+	this->addEntity(node);
 
 	return node;
 }
@@ -273,9 +257,9 @@ Entity* Container::createNodeSubstract()
 	node->addComponent( "operation", operation);
 
 	// Create a view component
-	node->addComponent( "view", new NodeView(node));
+	node->addComponent( "view", new NodeView);
 
-	addNode(node);
+	this->addEntity(node);
 
 	return node;
 }
@@ -297,9 +281,9 @@ Entity* Container::createNodeMultiply()
 	node->addComponent( "operation", operation);
 
 	// Create a view component
-	node->addComponent( "view", new NodeView(node));
+	node->addComponent( "view", new NodeView);
 
-	addNode(node);
+	this->addEntity(node);
 
 	return node;
 }
@@ -321,9 +305,9 @@ Entity* Container::createNodeDivide()
 	node->addComponent( "operation", operation);
 
 	// Create a view component
-	node->addComponent( "view", new NodeView(node));
+	node->addComponent( "view", new NodeView);
 
-	addNode(node);
+	this->addEntity(node);
 
 	return node;
 }
@@ -345,21 +329,28 @@ Entity* Container::createNodeAssign()
 	node->addComponent( "operation", operation);
 
 	// Create a view component
-	node->addComponent( "view", new NodeView(node));
+	node->addComponent( "view", new NodeView);
 
-	addNode(node);
+	this->addEntity(node);
 
 	return node;
 }
 
+Wire* Container::createWire()
+{
+	Wire* wire = new Wire;
+	wire->addComponent("view", new WireView);	
+	this->addEntity(wire);
+	return wire;
+}
 
 Lexer* Container::createNodeLexer(Variable* _input)
 {
 	Lexer* node = new Lexer();
-	node->addComponent( "view", new NodeView(node));
-
-	Entity::Connect(new Wire(),_input->getValue(), node->getMember("expression"));
-	addNode(node);
+	node->addComponent( "view", new NodeView);	
+	this->addEntity(node);
+	auto wire = this->createWire();
+	Entity::Connect(wire,_input->getValue(), node->getMember("expression"));
 	return node;
 }
 

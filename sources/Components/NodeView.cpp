@@ -3,7 +3,7 @@
 #include <imgui.h>
 #include "Container.h"
 #include "Variable.h"
-#include "BinaryOperationComponents.h"
+#include "BinaryOperation.h"
 #include "View.h"
 #include "Wire.h"
 #include <cmath>                  // for sinus
@@ -40,23 +40,6 @@ NodeView* NodeView::GetDragged()
 bool NodeView::IsSelected(NodeView* _view)
 {
 	return s_selected == _view;
-}
-
-NodeView::NodeView(Entity* _entity)
-{
-	LOG_DBG("Entity::Node()\n");
-	this->node = _entity;
-	this->name = std::string("Node###") + std::to_string((size_t)this);
-	setMember("__class__", "NodeView");
-}
-
-NodeView::~NodeView()
-{
-}
-
-Entity* NodeView::getNode()const
-{
-	return this->node;
 }
 
 ImVec2 NodeView::getPosition()const
@@ -117,6 +100,8 @@ void NodeView::update()
 
 	// Set background color according to node class 
 	//---------------------------------------------
+	auto node = getOwner();
+	NODABLE_ASSERT(node != nullptr);
 
 	if (node->hasComponent("operation"))
 		setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
@@ -190,6 +175,9 @@ void NodeView::update()
 
 void NodeView::draw()
 {
+	auto node = getOwner();
+	NODABLE_ASSERT(node != nullptr);
+
 	// Mouse interactions
 	//-------------------
 
@@ -279,7 +267,7 @@ void NodeView::draw()
 	ImGui::NewLine();
 
 	membersOffsetPositionY.clear();
-	auto drawValue = [this](Value* _v)->void
+	auto drawValue = [&](Value* _v)->void
 	{
 		auto memberTopPositionOffsetY 	= ImGui::GetCursorPos().y - position.y;
 
@@ -388,7 +376,7 @@ void NodeView::draw()
 				ImGui::MenuItem("Collapsed", "", &this->collapsed, true);
                 ImGui::Separator();
                 if(ImGui::Selectable("Delete"))
-                	this->node->deleteNextFrame();
+                	node->deleteNextFrame();
                 ImGui::EndPopup();
             }
 
@@ -434,10 +422,10 @@ void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 	_view->setPosition(_position);
 
 	// Arrange Input Nodes :
-	auto wires = _view->getNode()->getWires();
+	auto wires = _view->getOwner()->getWires();
 	for(auto eachWire : wires)
 	{
-		if (eachWire != nullptr && _view->getNode()->hasMember(eachWire->getTarget()) )
+		if (eachWire != nullptr && _view->getOwner()->hasMember(eachWire->getTarget()) )
 		{
 
 			if ( eachWire->getSource() != nullptr)

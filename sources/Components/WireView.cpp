@@ -7,17 +7,11 @@
 
 using namespace Nodable;
 
-WireView::WireView(Wire* _wire)
-{
-	wire = _wire;
-}
-
-WireView::~WireView()
-{
-}
-
 void WireView::draw()
 {
+	auto wire = getOwner()->getAs<Wire*>();
+	NODABLE_ASSERT(wire != nullptr);
+
 	// Update fill color depending on current state 
 	ImColor stateColors[Wire::State_COUNT] = {ImColor(1.0f, 0.0f, 0.0f), ImColor(0.8f, 0.8f, 0.8f)};
 	setColor(ColorType_Fill, stateColors[wire->getState()]);

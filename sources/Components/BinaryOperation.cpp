@@ -1,4 +1,4 @@
-#include "BinaryOperationComponents.h"
+#include "BinaryOperation.h"
 #include "Log.h"		// for LOG_DBG(...)
 #include "Value.h"
 #include "Variable.h"

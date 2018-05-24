@@ -38,8 +38,6 @@ void Entity::Connect( Wire* _wire,
 					Value* _from,
 					Value* _to)
 {	
-	_wire->addComponent("view", new WireView(_wire));
-
 	// Connect wire's source and target to nodes _from and _to.
 	_wire->setSource(_from);
 	_wire->setTarget(_to);

@@ -6,10 +6,7 @@ namespace Nodable{
 	class WireView : public View
 	{
 	public:
-		WireView(Wire*);
-		~WireView();
+		COMPONENT_CONSTRUCTOR(WireView);
 		void draw();
-	private:
-		Wire*   wire  = nullptr;
 	};
 }

@@ -2,7 +2,7 @@
 
 #include "Nodable.h"            // for constants and forward declarations
 #include "Object.h"
-#include "Component.h"
+#include <Component.h>
 #include "Value.h"
 #include <string>
 #include <memory>               // for unique_ptr
@@ -53,7 +53,7 @@ namespace Nodable{
 		the connection is oriented. */
 		static void         Connect            (Wire* /*_wire*/, Value* /*_from*/, Value* /*_to*/);
 	
-		/* Disconnect (and delete) a wire. This method is the opposite of Entity::Connect.*/
+		/* Disconnect a wire. This method is the opposite of Entity::Connect.*/
 		static void         Disconnect        (Wire* _wire);
 	private:
 		Components                components;

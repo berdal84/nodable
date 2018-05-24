@@ -1,4 +1,4 @@
-#include "DataAccessObject.h"
+#include "DataAccess.h"
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
@@ -8,7 +8,7 @@
 
 using namespace Nodable;
 
-void DataAccessObject::update()
+void DataAccess::update()
 {
 
 	rapidjson::StringBuffer buffer;

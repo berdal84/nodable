@@ -1,11 +1,27 @@
+# Compiler
 CXX      = g++
 
-#CXXFLAGS+= -fprofile-arcs -ftest-coverage # for GCOV (Testing coverage)
-CXXFLAGS+= -DDEBUG 						  #uncomment if you want to display all debug messages
+# for GCOV (Testing coverage)
+#CXXFLAGS+= -fprofile-arcs -ftest-coverage 
+
+# Debugging ON/OFF (comment to disable)
+CXXFLAGS+= -DDEBUG 	
+
 CXXFLAGS+= `sdl2-config --cflags`
+
+#includes for submodules
 CXXFLAGS+= -I libs/imgui
 CXXFLAGS+= -I libs/imgui/examples/libs/gl3w
+
+#includes for non sub-modules libs
 CXXFLAGS+= -I includes/
+
+# Nodable header includes
+CXXFLAGS+= -I sources
+CXXFLAGS+= -I sources/Components
+CXXFLAGS+= -I sources/Entities
+CXXFLAGS+= -I sources/Common
+
 CXXFLAGS+= -lGL -ldl
 CXXFLAGS+= `sdl2-config --libs`
 CXXFLAGS+= -std=c++11
@@ -19,11 +35,17 @@ BINDIR :=bin/$(TARGET)
 SRCDIR :=sources
 OBJDIR :=build/$(TARGET)
 
+# Nodable source files :
 SOURCES := $(wildcard $(SRCDIR)/*.cpp)
+SOURCES += $(wildcard $(SRCDIR)/Components/*.cpp)
+SOURCES += $(wildcard $(SRCDIR)/Entities/*.cpp)
+SOURCES += $(wildcard $(SRCDIR)/Common/*.cpp)
+
 OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SOURCES))
 OBJECTS += libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.o
 OBJECTS += libs/imgui/examples/libs/gl3w/GL/gl3w.o
 OBJECTS += $(patsubst %.cpp, %.o, $(wildcard ./libs/imgui/*.cpp))
+
 DEPENDENCIES := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.d, $(SOURCES))
 
 all: makeFolders dependencies $(EXECUTABLE)
@@ -33,7 +55,8 @@ include $(wildcard $(OBJDIR)/*.d)
 $(EXECUTABLE): $(OBJECTS)
 	$(CXX)  $(OBJECTS) -o $(BINDIR)/$(EXECUTABLE) $(CXXFLAGS)
 
-
+##############################################################
+# Specific for imGui :
 ./libs/imgui/%.o: ./libs/imgui/%.cpp
 
 libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.o : libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.cpp
@@ -41,7 +64,9 @@ libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.o : libs/imgui/exampl
 
 libs/imgui/examples/libs/gl3w/GL/gl3w.o: libs/imgui/examples/libs/gl3w/GL/gl3w.c
 	$(CXX) -c $(CXXFLAGS) $< -o $@
+###############################################################"
 
+# Build each object file
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(OBJDIR)/%.d
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
@@ -63,7 +88,11 @@ dependencies: $(DEPENDENCIES)
 .PHONY: makeFolders
 makeFolders:
 	mkdir -p $(OBJDIR)
+	mkdir -p $(OBJDIR)/Components
+	mkdir -p $(OBJDIR)/Entities
+	mkdir -p $(OBJDIR)/Common
 	mkdir -p $(BINDIR)
+	mkdir -p $(BINDIR)/saves
 
 .PHONY: clean
 clean:

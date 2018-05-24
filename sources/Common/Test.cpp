@@ -5,7 +5,7 @@
 #include "Log.h"
 #include "Entity.h"
 #include "Wire.h"
-#include "DataAccessObject.h"
+#include "DataAccess.h"
 #include "Container.h"
 
 #include <memory> // for unique_ptr
@@ -351,11 +351,11 @@ bool Test::RunAll()
 
 	}
 
-	LOG_MSG("Running tests for DataAccessObject...\n");
+	LOG_MSG("Running tests for DataAccess...\n");
 	{
 		std::unique_ptr<Container>           container(new Container);
 		Entity* entity = container->createNodeAdd();
-		std::unique_ptr<DataAccessObject> dataAccessComponent(new DataAccessObject);
+		std::unique_ptr<DataAccess> dataAccessComponent(new DataAccess);
 
 		entity->setMember("name", "UnitTestEntity");
 		entity->addComponent("dataAccess", dataAccessComponent.get());
