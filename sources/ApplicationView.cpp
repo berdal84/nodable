@@ -185,14 +185,14 @@ void ApplicationView::draw()
 
         if ( ImGui::BeginMenu("View"))
         {
-        	auto frame = ImGui::MenuItem("Frame All", "F");
-        	ImGui::Separator();
+        	//auto frame = ImGui::MenuItem("Frame All", "F");
+        	//ImGui::Separator();
         	auto detailSimple   = ImGui::MenuItem("Simple View", "", NodeView::s_drawDetail == DrawDetail_Simple );
         	auto detailAdvanced = ImGui::MenuItem("Advanced View", "", NodeView::s_drawDetail == DrawDetail_Advanced );
         	auto detailComplex  = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex );
 
-        	if( frame)
-        		application->getContext()->frameAll();
+        	//if( frame)
+        		// TODO
 
         	if (detailSimple)
         		NodeView::s_drawDetail = DrawDetail_Simple;

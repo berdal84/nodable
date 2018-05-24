@@ -1,14 +1,14 @@
 #pragma once
 
 #include "Nodable.h"     // forward declarations
-#include "Entity.h"        // base class
+#include "Component.h"   // base class
 #include <string>
 #include <vector>
 
 namespace Nodable{
 	/* Class Container is a factory able to create all kind of Node 
 	   All Symbol nodes's pointers created within this context are referenced in a vector to be found later */
-	class Container {
+	class Container: public Component{
 	public:
 		Container(const char* _name, Entity* _parent = nullptr);
 		virtual ~Container();
@@ -37,7 +37,7 @@ namespace Nodable{
 	private:
 		std::vector<Node_Variable*> variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<Entity*>        nodes;   /* Contain all Nodes created by this context */
-		std::string 	          name;    /* The name of this context */
+		std::string 	            name;    /* The name of this context */
 		Entity*                     parent;
 	};
 }

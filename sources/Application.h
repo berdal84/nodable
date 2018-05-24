@@ -35,10 +35,9 @@ namespace Nodable
 		void             stopExecution();
 
 		/* Get the context (also called a container) of this application.*/
-		Container*  getContext()const;
+		Container*       getContext()const;
 
 	private:
-		std::unique_ptr<Container>  ctx;
 		Node_Variable*                   lastString  = nullptr;		
 		bool                             quit        = false;
 	};

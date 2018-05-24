@@ -15,7 +15,8 @@ Application::Application(const char* _name)
 	LOG_MSG("A new Application ( label = \"%s\")\n", _name);
 	setMember("class", "Application");
 	setLabel(_name);
-	addComponent("view", new ApplicationView(_name, this));
+	addComponent("view",      new ApplicationView(_name,    this));
+	addComponent("container", new Container      ("Global", this));
 }
 
 Application::~Application()
@@ -26,7 +27,6 @@ Application::~Application()
 bool Application::init()
 {
 	LOG_MSG("init application ( label = \"%s\")\n", getLabel());
-	this->ctx = std::unique_ptr<Container>(new Container("Global"));
 
 	if( hasComponent("view"))
 		return ((ApplicationView*)getComponent("view"))->init();
@@ -36,7 +36,16 @@ bool Application::init()
 
 void Application::clearContext()
 {
-	this->ctx.get()->clear();
+	auto container = getComponent("container")->getAs<Container*>();
+	NODABLE_VERIFY(container != nullptr);
+	container->clear();
+}
+
+Container* Application::getContext()const
+{
+	auto container = getComponent("container")->getAs<Container*>();
+	NODABLE_VERIFY(container != nullptr);
+	return container;
 }
 
 bool Application::update()
@@ -52,7 +61,11 @@ void Application::stopExecution()
 bool Application::eval(std::string _expression)
 {
 	LOG_MSG("Application::eval() - create a variable.\n");
-	lastString = ctx->createNodeVariable("Command");
+
+	auto container = getComponent("container")->getAs<Container*>();
+	NODABLE_VERIFY(container != nullptr);
+
+	lastString = container->createNodeVariable("Command");
 
 	LOG_DBG("Lexer::eval() - assign the expression string to that variable\n");
 	lastString->setValue(_expression.c_str());
@@ -68,9 +81,9 @@ bool Application::eval(std::string _expression)
 			/* Create a Lexer node. The lexer will cut expression string into tokens
 			(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
 			LOG_DBG("Lexer::eval() - create a lexer with the expression string\n");
-			auto lexer = ctx->createNodeLexer(lastString);
+			auto lexer = container->createNodeLexer(lastString);
 			return lexer->eval();
-			//ctx->destroyNode(lexer);
+			//container->destroyNode(lexer);
 		}
 	}	
 
@@ -81,9 +94,3 @@ void Application::shutdown()
 {
 	LOG_MSG("shutting down application ( _name = \"%s\")\n", getLabel());
 }
-
-Container* Application::getContext()const
-{
-	return this->ctx.get();
-}
-
