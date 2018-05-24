@@ -27,9 +27,9 @@ Container::~Container()
 
 void Container::clear()
 {
-	for (auto each : nodes)
+	for (auto each : entities)
 		delete each;
-	nodes.resize(0);
+	entities.resize(0);
 	variables.resize(0);
 }
 
@@ -40,15 +40,15 @@ void Container::frameAll()
 
 void Container::draw()
 {
-	// 0 - Update nodes
-	for(auto it = nodes.begin(); it < nodes.end(); ++it)
+	// 0 - Update entities
+	for(auto it = entities.begin(); it < entities.end(); ++it)
 	{
 		if ( *it != nullptr)
 		{
 			if ((*it)->needsToBeDeleted())
 			{
 				delete *it;
-				it = nodes.erase(it);
+				it = entities.erase(it);
 			}
 			else
 				(*it)->update();
@@ -56,7 +56,7 @@ void Container::draw()
 	}
 
 	// 1 - Update NodeViews
-	for(auto eachNode : this->nodes)
+	for(auto eachNode : this->entities)
 	{
 		eachNode->getComponent("view")->update();
 	}
@@ -64,7 +64,7 @@ void Container::draw()
 	// 2 - Draw NodeViews
 	bool isAnyItemDragged = false;
 	bool isAnyItemHovered = false;
-	for(auto eachNode : this->nodes)
+	for(auto eachNode : this->entities)
 	{
 		auto view = (NodeView*)eachNode->getComponent("view");
 
@@ -77,7 +77,7 @@ void Container::draw()
 	}
 
 	// 2 - Draw input wires
-	for(auto eachNode : this->nodes)
+	for(auto eachNode : this->entities)
 	{
 		auto wires = eachNode->getWires();
 
@@ -108,7 +108,7 @@ void Container::draw()
 	if( ImGui::IsMouseDragging() && ImGui::IsWindowFocused() && !isAnyItemDragged )
 	{
 		auto drag = ImGui::GetMouseDragDelta();
-		for(auto eachNode : this->nodes)
+		for(auto eachNode : this->entities)
 		{
 			((NodeView*)eachNode->getComponent("view"))->translate(drag);
 		}
@@ -119,7 +119,7 @@ void Container::draw()
 void Container::drawLabelOnly()
 {
 	{
-		for(auto each : this->nodes)
+		for(auto each : this->entities)
 		{
 			if (auto symbol = dynamic_cast<Node_Variable*>(each))
 				ImGui::Text("%s => %s", symbol->getName(), symbol->getValueAsString().c_str());
@@ -130,7 +130,7 @@ void Container::drawLabelOnly()
 void Container::addNode(Entity* _entity)
 {
 	/* Add the node to the node vector list*/
-	this->nodes.push_back(_entity);
+	this->entities.push_back(_entity);
 
 	/* Set the node's container to this */
 	_entity->setParent(this);
@@ -147,9 +147,9 @@ void Container::destroyNode(Entity* _entity)
 	}
 
 	{
-		auto it = std::find(nodes.begin(), nodes.end(), _entity);
-		if (it != nodes.end())
-			nodes.erase(it);
+		auto it = std::find(entities.begin(), entities.end(), _entity);
+		if (it != entities.end())
+			entities.erase(it);
 	}
 
 	delete _entity;
@@ -375,5 +375,5 @@ const char* Container::getName()const
 
 size_t Container::getSize()const
 {
-	return nodes.size();
+	return entities.size();
 }
