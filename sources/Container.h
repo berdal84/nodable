@@ -17,13 +17,13 @@ namespace Nodable{
 		void                      frameAll();
 		void                      drawLabelOnly();
 		size_t                    getSize()const;
-		Variable* 	          find                      (const char* /*Symbol name*/);
+		Variable* 	          		find                      (std::string /*Symbol name*/);
 		void                      addNode                   (Entity* /*Node to add to this context*/);
 		void                      destroyNode               (Entity*);
-		Variable*            createNodeVariable        (const char* /*name*/ = "");
-		Variable*            createNodeNumber          (double /*value*/ = 0);
-		Variable*            createNodeNumber          (const char* /*value*/);
-		Variable*            createNodeString          (const char* /*value*/);
+		Variable*					createNodeVariable        (std::string /*name*/ = "");
+		Variable*					createNodeNumber          (double /*value*/ = 0);
+		Variable*					createNodeNumber          (const char* /*value*/);
+		Variable*					createNodeString          (const char* /*value*/);
 		Entity*                   createNodeBinaryOperation (std::string /*_operator*/);
 		Entity*                   createNodeAdd             ();
 		Entity*                   createNodeSubstract       ();

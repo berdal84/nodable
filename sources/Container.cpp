@@ -155,18 +155,18 @@ void Container::destroyNode(Entity* _entity)
 	delete _entity;
 }
 
-Variable* Container::find(const char* _name)
+Variable* Container::find(std::string _name)
 {
-	Variable* result;
+	Variable* result = nullptr;
 
-	if ( _name == NULL)
+	if ( _name.empty())
 		result = nullptr;
 	else{
 		LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getName());
 
-		auto findFunction = [_name](const Variable* _entity ) -> bool
+		auto findFunction = [_name](const Variable* _variable ) -> bool
 		{
-			return strcmp(_entity->getName(), _name) == 0;
+			return strcmp(_variable->getName(), _name.c_str()) == 0;
 		};
 
 		auto it = std::find_if(variables.begin(), variables.end(), findFunction);
@@ -175,15 +175,15 @@ Variable* Container::find(const char* _name)
 			result = *it;
 		}
 	}
-	
+
 	return result;
 }
 
-Variable* Container::createNodeVariable(const char* _name)
+Variable* Container::createNodeVariable(std::string _name)
 {
 	auto variable = new Variable();
 	variable->addComponent( "view", new NodeView(variable));
-	variable->setName(_name);
+	variable->setName(_name.c_str());
 	this->variables.push_back(variable);
 	addNode(variable);
 	return variable;

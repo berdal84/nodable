@@ -1,7 +1,8 @@
-#CXXFLAGS+= -DDEBUG #uncomment if you want to display all debug messages
+CXX = g++
+CXXFLAGS+= -DDEBUG #uncomment if you want to display all debug messages
 CXXFLAGS+= `sdl2-config --cflags` -lGL -ldl -I libs/imgui -I libs/imgui/examples/libs/gl3w `sdl2-config --libs` -std=c++11
 LDFLAGS=
-EXECUTABLE=nodable
+EXECUTABLE=nodable.bin
 
 TARGET :=linux64
 

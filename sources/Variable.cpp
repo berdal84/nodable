@@ -7,7 +7,7 @@ using namespace Nodable;
 Variable::Variable()
 {
 	LOG_DBG("New Variable\n");
-	addMember("value");
+	addMember("value", Visibility_Public);
 	setMember("class", "Variable");
 }
 

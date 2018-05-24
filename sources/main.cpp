@@ -1,16 +1,11 @@
 #include <stdio.h>
 #include <string>
-#include <fstream> 			 // for ofstream
-#include <iostream>          // for std::cout
 #include "Application.h"
 #include "ApplicationView.h"
 #include "Test.h"            // for RunAll()
 
 int main(int, char**)
 {
-	// Redirect standard output to a file
-	freopen("nodable.log","w",stdout);
-
 	// Run tests :
 	NODABLE_VERIFY(Nodable::Test::RunAll());
 

@@ -57,9 +57,10 @@ bool Lexer::eval()
 
 Variable* Lexer::buildGraph()
 {
-	LOG_DBG("Lexer::buildGraph() - START\n");
-	
+	LOG_DBG("Lexer::buildGraph() - START\n");	
 	Value*         resultValue       = buildGraphRec();
+
+	LOG_DBG("Lexer::buildGraph() - Assign result to a variable.\n");
 	Variable* resultVariable    = this->getParent()->createNodeVariable("Result");	
 
 	// If the value has no owner, we simplly set the variable value
@@ -78,6 +79,7 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 {
 	Value*          result;
 	Container* context = this->getParent();
+	NODABLE_ASSERT(context != nullptr);
 
 	//printf("Token evaluated : %lu.\n", _tokenId);
 
@@ -92,7 +94,7 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 
 	if ( tokenToEvalCount == 1)
 	{		
-		auto tokenWordString = tokens[_tokenId].word;
+		std::string tokenWordString = tokens[_tokenId].word;
 		switch ( tokens[_tokenId].type )
 		{
 			//--------------------
@@ -113,10 +115,14 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 
 			case TokenType_Symbol:
 			{
-				Variable* variable = context->find(tokenWordString.c_str());
-
+				LOG_DBG("Symbol 1.\n");
+				Variable* variable = context->find(tokenWordString);
+				LOG_DBG("Symbol 2.\n");
 				if ( variable == nullptr )
-					variable = context->createNodeVariable(tokenWordString.c_str());
+					variable = context->createNodeVariable(tokenWordString);
+				LOG_DBG("Symbol 3 .\n");
+				NODABLE_ASSERT(variable != nullptr);
+				NODABLE_ASSERT(variable->getValue() != nullptr);
 
 				result = variable->getValue();
 				
@@ -142,7 +148,11 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 				result->setValue(tokenWordString);	
 				break;
 			}
-			default:{}
+
+			default:
+			{
+				NODABLE_ASSERT(false);
+			}
 		}
 
 	//-------------------------------------------
@@ -228,7 +238,7 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 bool Lexer::isSyntaxValid()
 {
 	bool success = true;	
-	LOG_DBG("Lexer::isSyntaxValid() - START\n");
+	LOG_DBG("Lexer::isSyntaxValid() : ");
 
 	// only support odd token count
 	if( tokens.size()%2 == 1)
@@ -260,7 +270,9 @@ bool Lexer::isSyntaxValid()
 	}
 
 	if(!success)
-		LOG_MSG("Lexer::isSyntaxValid() - FAIL...\n");
+		LOG_DBG("FAILED\n");
+	else
+		LOG_DBG("OK\n");
 
 	return success;
 }
