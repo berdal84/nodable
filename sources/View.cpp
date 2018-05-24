@@ -4,7 +4,7 @@ using namespace Nodable;
 
 View::View()
 {
-	setMember("class", "View");
+	setMember("__class__", "View");
 	
 	// set default colors
 	colors[ColorType_Fill]             = {1.0f, 1.0f, 1.0f, 1.0f};

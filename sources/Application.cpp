@@ -13,10 +13,10 @@ using namespace Nodable;
 Application::Application(const char* _name)
 {
 	LOG_MSG("A new Application ( label = \"%s\")\n", _name);
-	setMember("class", "Application");
+	setMember("__class__", "Application");
 	setLabel(_name);
 	addComponent("view",      new ApplicationView(_name,    this));
-	addComponent("container", new Container      ("Global", this));
+	addComponent("container", new Container      ());
 }
 
 Application::~Application()

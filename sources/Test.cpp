@@ -5,6 +5,9 @@
 #include "Log.h"
 #include "Entity.h"
 #include "Wire.h"
+#include "DataAccessObject.h"
+#include "Container.h"
+
 #include <memory> // for unique_ptr
 using namespace Nodable;
 
@@ -346,6 +349,27 @@ bool Test::RunAll()
 			LOG_MSG("Test n°5b : FAILED !\n");
 		s_testCount++;
 
+	}
+
+	LOG_MSG("Running tests for DataAccessObject...\n");
+	{
+		std::unique_ptr<Container>           container(new Container);
+		Entity* entity = container->createNodeAdd();
+		std::unique_ptr<DataAccessObject> dataAccessComponent(new DataAccessObject);
+
+		entity->setMember("name", "UnitTestEntity");
+		entity->addComponent("dataAccess", dataAccessComponent.get());
+
+		entity->addMember("BOOL");
+		entity->setMember("BOOL", false);
+
+		entity->addMember("STRING");
+		entity->setMember("STRING", "hello world!");
+
+		entity->addMember("NUMBER");
+		entity->setMember("NUMBER", double(3.14));
+
+		dataAccessComponent->update();
 	}
 
 	DisplayResults();

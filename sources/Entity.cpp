@@ -61,6 +61,7 @@ Entity::~Entity()
 void Entity::addComponent(const std::string&  _componentName, Component*  _component)
 {
 	components[_componentName] = _component;
+	_component->setOwner(this);
 }
 
 bool Entity::hasComponent(const std::string&  _componentName)const
@@ -171,6 +172,9 @@ bool Entity::update()
 		// then we evaluates this node
 		if(hasComponent("operation"))
 			getComponent("operation")->update();
+		
+		if(hasComponent("dataAccess"))
+			getComponent("dataAccess")->update();
 
 		setDirty(false);
 	}

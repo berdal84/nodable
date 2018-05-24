@@ -13,7 +13,7 @@ using namespace Nodable;
 Lexer::Lexer()
 {
 	LOG_DBG("new Lexer\n");
-	setMember("class", "Lexer");
+	setMember("__class__", "Lexer");
 	addMember("expression", Visibility_Protected);
 	addMember("numbers", 	Visibility_Protected);
 	addMember("letters", 	Visibility_Protected);

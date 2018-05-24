@@ -1,0 +1,26 @@
+{
+    "members": {
+        "BOOL": false,
+        "NUMBER": 3.14,
+        "STRING": "hello world!",
+        "__class__": "Entity",
+        "left": null,
+        "name": "UnitTestEntity",
+        "result": null,
+        "right": null
+    },
+    "components": {
+        "dataAccess": {
+            "__class__": "DataAccessObject",
+            "name": null
+        },
+        "operation": {
+            "__class__": "Add",
+            "name": null
+        },
+        "view": {
+            "__class__": "NodeView",
+            "name": null
+        }
+    }
+}

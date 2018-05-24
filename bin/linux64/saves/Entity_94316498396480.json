@@ -1,0 +1,17 @@
+{
+    "members": {
+        "__class__": "Variable",
+        "name": null,
+        "value": "10+50"
+    },
+    "components": {
+        "dataAccess": {
+            "__class__": "DataAccessObject",
+            "name": null
+        },
+        "view": {
+            "__class__": "NodeView",
+            "name": null
+        }
+    }
+}

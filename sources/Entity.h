@@ -12,7 +12,7 @@ namespace Nodable{
 	class Entity : public Object
 	{
 	public:
-		Entity(){setMember("class", "Entity");};
+		Entity(){setMember("__class__", "Entity");};
 		virtual ~Entity();
 
 		/* Return the parent container of this node. Could be nullptr if this node is a root. */

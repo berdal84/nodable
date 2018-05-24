@@ -47,7 +47,7 @@ NodeView::NodeView(Entity* _entity)
 	LOG_DBG("Entity::Node()\n");
 	this->node = _entity;
 	this->name = std::string("Node###") + std::to_string((size_t)this);
-	setMember("class", "NodeView");
+	setMember("__class__", "NodeView");
 }
 
 NodeView::~NodeView()
@@ -336,14 +336,14 @@ void NodeView::draw()
 		ImGui::NewLine();
 		ImGui::Text("Components :");
 		for(auto& c : node->getComponents())
-			ImGui::Text("- %s (%s)",c.first.c_str(),    c.second->getMember("class")->getValueAsString().c_str());
+			ImGui::Text("- %s (%s)",c.first.c_str(),    c.second->getMember("__class__")->getValueAsString().c_str());
 
 		// Draw parent's name
 		ImGui::NewLine();
 		ImGui::Text("Parameters :");
 		std::string parentName = "NULL";
 		if ( node->getParent() )
-			parentName = node->getParent()->getName();
+			parentName = node->getParent()->getMember("name")->getValueAsString();
 		ImGui::Text("Parent: %s", parentName.c_str());
 		
 		// Draw dirty state 

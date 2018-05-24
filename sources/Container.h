@@ -10,7 +10,8 @@ namespace Nodable{
 	   All Symbol nodes's pointers created within this context are referenced in a vector to be found later */
 	class Container: public Component{
 	public:
-		Container(const char* _name, Entity* _parent = nullptr);
+		DECLARE_COMPONENT(Container);
+
 		virtual ~Container();
 		void                      draw();
 		void                      clear();
@@ -31,13 +32,10 @@ namespace Nodable{
 		Entity*			          createNodeDivide          ();
 		Entity*			          createNodeAssign          (); 
 		Lexer*                    createNodeLexer           (Variable* /*expression*/);
-
-		const char* 	          getName                   ()const;
 		std::vector<Variable*>& getVariables(){return variables;}
 	private:
 		std::vector<Variable*> variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<Entity*>        entities;   /* Contain all Objects created by this context */
-		std::string 	            name;      /* The name of this context */
 		Entity*                     parent;
 	};
 }

@@ -1,6 +1,15 @@
-CXX = g++
-CXXFLAGS+= -DDEBUG #uncomment if you want to display all debug messages
-CXXFLAGS+= `sdl2-config --cflags` -lGL -ldl -I libs/imgui -I libs/imgui/examples/libs/gl3w `sdl2-config --libs` -std=c++11
+CXX      = g++
+
+#CXXFLAGS+= -fprofile-arcs -ftest-coverage # for GCOV (Testing coverage)
+CXXFLAGS+= -DDEBUG 						  #uncomment if you want to display all debug messages
+CXXFLAGS+= `sdl2-config --cflags`
+CXXFLAGS+= -I libs/imgui
+CXXFLAGS+= -I libs/imgui/examples/libs/gl3w
+CXXFLAGS+= -I includes/
+CXXFLAGS+= -lGL -ldl
+CXXFLAGS+= `sdl2-config --libs`
+CXXFLAGS+= -std=c++11
+
 LDFLAGS=
 EXECUTABLE=nodable.bin
 

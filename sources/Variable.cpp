@@ -8,7 +8,7 @@ Variable::Variable()
 {
 	LOG_DBG("New Variable\n");
 	addMember("value", Visibility_Public);
-	setMember("class", "Variable");
+	setMember("__class__", "Variable");
 }
 
 Variable::~Variable()

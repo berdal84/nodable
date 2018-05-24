@@ -6,19 +6,12 @@
 #include "BinaryOperationComponents.h"
 #include "Wire.h"
 #include "WireView.h"
-
+#include "DataAccessObject.h"
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
 
 using namespace Nodable;
-
-Container::Container(const char* _name, Entity* _parent):
-name(_name),
-parent(_parent)
-{
-	LOG_DBG("A new container named %s' has been created.\n", _name);
-}
 
 Container::~Container()
 {
@@ -129,13 +122,15 @@ void Container::drawLabelOnly()
 
 void Container::addNode(Entity* _entity)
 {
+	_entity->addComponent("dataAccess", new DataAccessObject);
+
 	/* Add the node to the node vector list*/
 	this->entities.push_back(_entity);
 
 	/* Set the node's container to this */
 	_entity->setParent(this);
 
-	LOG_DBG("A node has been added to the container '%s'\n", this->getName());
+	LOG_DBG("A node has been added to the container '%s'\n", this->getMember("name")->getValueAsString().c_str());
 }
 
 void Container::destroyNode(Entity* _entity)
@@ -162,7 +157,7 @@ Variable* Container::find(std::string _name)
 	if ( _name.empty())
 		result = nullptr;
 	else{
-		LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getName());
+		LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getMember("name")->getValueAsString().c_str());
 
 		auto findFunction = [_name](const Variable* _variable ) -> bool
 		{
@@ -366,11 +361,6 @@ Lexer* Container::createNodeLexer(Variable* _input)
 	Entity::Connect(new Wire(),_input->getValue(), node->getMember("expression"));
 	addNode(node);
 	return node;
-}
-
-const char* Container::getName()const
-{
-	return name.c_str();
 }
 
 size_t Container::getSize()const

@@ -1,0 +1,20 @@
+{
+    "members": {
+        "__class__": "Lexer",
+        "expression": "10+5",
+        "letters": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_",
+        "name": null,
+        "numbers": "0123456789.",
+        "operators": "+-*/="
+    },
+    "components": {
+        "dataAccess": {
+            "__class__": "DataAccessObject",
+            "name": null
+        },
+        "view": {
+            "__class__": "NodeView",
+            "name": null
+        }
+    }
+}

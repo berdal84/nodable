@@ -4,8 +4,8 @@ using namespace Nodable;
 
 Object::Object()
 {
-	addMember("class");
-	getMember("class")->setVisibility(Visibility_Protected);
+	addMember("__class__", Visibility_Protected);
+	addMember("name",      Visibility_Protected);
 }
 
 const Members&   Object::getMembers      ()const
