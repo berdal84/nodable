@@ -1,5 +1,4 @@
 #include "Wire.h"
-#include "Node.h"
 #include "WireView.h"
 #include "Node_Variable.h"
 #include <algorithm> // for std::find()

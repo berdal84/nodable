@@ -8,7 +8,7 @@ v0.3:
 	- New Node_Assign : '=' can be used to assign a value to a symbol (ex: a = 10)
 	- Now Able to perform binary operations on symbols (ex: c = a + b).
 	- Node_Context : is now used as a factory.
-	- Node : each node can get its contexts with Node::getParent()
+	- Node : each node can get its contexts with Entity::getParent()
 	- Added a change log.
 	- Added version number into the header file (NODABLE_VERSION_MAJOR, NODABLE_VERSION_MINOR, NODABLE_VERSION)
 
@@ -84,7 +84,7 @@ namespace Nodable{
 	class Multiply;
 
 	// 3 - Nodes
-	class Node;
+	class Entity;
 	class Application;	
 	class Lexer;
 	class Node_Variable;

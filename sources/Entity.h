@@ -9,11 +9,11 @@
 
 namespace Nodable{
 	/* Base class for all Nodes */
-	class Node : public Object
+	class Entity : public Object
 	{
 	public:
-		Node(){setMember("class", "Node");};
-		virtual ~Node();
+		Entity(){setMember("class", "Entity");};
+		virtual ~Entity();
 
 		/* Return the parent container of this node. Could be nullptr if this node is a root. */
 		Node_Container*     getParent         ()const;
@@ -53,12 +53,12 @@ namespace Nodable{
 		the connection is oriented. */
 		static void         Connect            (Wire* /*_wire*/, Value* /*_from*/, Value* /*_to*/);
 	
-		/* Disconnect (and delete) a wire. This method is the opposite of Node::Connect.*/
+		/* Disconnect (and delete) a wire. This method is the opposite of Entity::Connect.*/
 		static void         Disconnect        (Wire* _wire);
 	private:
 		Components                components;
 		Node_Container*           parent  = nullptr;
-		std::string               label   = "Node";
+		std::string               label   = "Entity";
 		bool                      dirty   = false;   // when is true -> needs to be evaluated.
 		Wires                     wires;             // contains all wires connected to or from this node.
 	};

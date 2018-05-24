@@ -42,10 +42,10 @@ bool NodeView::IsSelected(NodeView* _view)
 	return s_selected == _view;
 }
 
-NodeView::NodeView(Node* _node)
+NodeView::NodeView(Entity* _entity)
 {
-	LOG_DBG("Node::Node()\n");
-	this->node = _node;
+	LOG_DBG("Entity::Node()\n");
+	this->node = _entity;
 	this->name = std::string("Node###") + std::to_string((size_t)this);
 	setMember("class", "NodeView");
 }
@@ -54,9 +54,9 @@ NodeView::~NodeView()
 {
 }
 
-Node* NodeView::getNode()const
+Entity* NodeView::getNode()const
 {
-	return node;
+	return this->node;
 }
 
 ImVec2 NodeView::getPosition()const
@@ -144,7 +144,7 @@ void NodeView::update()
 	auto maxSizeX        = 0.0f;
 	for(auto eachWire : wires)
 	{
-		auto sourceNode    = (Node*)eachWire->getSource()->getOwner();
+		auto sourceNode    = (Entity*)eachWire->getSource()->getOwner();
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
 		auto inputView     = (NodeView*)sourceNode->getComponent("view");
 		if (isWireAnInput && !inputView->pinned )
@@ -162,7 +162,7 @@ void NodeView::update()
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
 		if (isWireAnInput)
 		{
-			auto sourceNode    = dynamic_cast<Node*>(eachWire->getSource()->getOwner());
+			auto sourceNode    = dynamic_cast<Entity*>(eachWire->getSource()->getOwner());
 			auto inputView     = (NodeView*)sourceNode->getComponent("view");
 
 			if ( ! inputView->pinned )
@@ -442,7 +442,7 @@ void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 
 			if ( eachWire->getSource() != nullptr)
 			{
-				auto node         = dynamic_cast<Node*>(eachWire->getSource()->getOwner());
+				auto node         = dynamic_cast<Entity*>(eachWire->getSource()->getOwner());
 				auto inputView    = (NodeView*)node->getComponent("view");
 				inputView->pinned = false;
 				ArrangeRecursively(inputView, inputView->position);

@@ -67,7 +67,7 @@ Node_Variable* Lexer::buildGraph()
 		resultVariable->setValue(resultValue);
 	// Else we connect resultValue with resultVariable.value
 	else
-		Node::Connect(new Wire(), resultValue, resultVariable->getValue());
+		Entity::Connect(new Wire(), resultValue, resultVariable->getValue());
 
 
 	LOG_DBG("Lexer::buildGraph() - DONE !\n");
@@ -175,7 +175,7 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 		if (left->getOwner() == nullptr)
 			binOperation->setMember("left", left);
 		else
-			Node::Connect(new Wire(), left, binOperation->getMember("left"));	
+			Entity::Connect(new Wire(), left, binOperation->getMember("left"));	
 		
 		// Connect the Right Operand :
 		//----------------------------
@@ -189,7 +189,7 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 		if (right->getOwner() == nullptr)
 			binOperation->setMember("right", right);
 		else
-			Node::Connect(new Wire(), right, binOperation->getMember("right"));	
+			Entity::Connect(new Wire(), right, binOperation->getMember("right"));	
 
 		// Set the result !
 		result = binOperation->getMember("result");

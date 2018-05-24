@@ -29,7 +29,7 @@ namespace Nodable{
 	{
 	public:
 
-		NodeView(Node* _node);
+		NodeView(Entity* _node);
 		~NodeView();		
 
 		/* Draw the view at its position into the current window*/
@@ -48,7 +48,7 @@ namespace Nodable{
 		ImVec2            getOutputPosition   (const std::string&)const;
 
 		/* Get the pointer to the node attached to this view */
-		Node*             getNode             ()const;
+		Entity*             getNode             ()const;
 
 		/* Change the visibility of this view */
 		void              setVisible          (bool);
@@ -90,7 +90,7 @@ namespace Nodable{
 
 	private:
         std::string     name                = "UnnamedNode";          // could be displayed as a title
-		Node*           node                = nullptr;                // the model
+		Entity*           node                = nullptr;                // the model
 		ImVec2          position            = ImVec2(-1.0, -1.0f);    // center position vector
 		ImVec2          size                = ImVec2(170.0f, 40.0f);  // size of the window
 		float           opacity             = 0.0f;                   // global transparency of this view

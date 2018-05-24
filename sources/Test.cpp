@@ -3,7 +3,7 @@
 #include "Test.h"
 #include "Value.h"
 #include "Log.h"
-#include "Node.h"
+#include "Entity.h"
 #include "Wire.h"
 #include <memory> // for unique_ptr
 using namespace Nodable;
@@ -295,13 +295,13 @@ bool Test::RunAll()
 		s_testCount++;
 	}
 
-	LOG_MSG("Running Test for Node class...\n");
+	LOG_MSG("Running Test for Entity class...\n");
 
 	{
 		// Test 4 : set/get a node member :
 		//---------------------------------
 
-		std::unique_ptr<Node> a(new Node);
+		std::unique_ptr<Entity> a(new Entity);
 		a->addMember("v");
 		a->setMember("v", double(100));
 		
@@ -313,20 +313,20 @@ bool Test::RunAll()
 
 	}
 
-	LOG_MSG("Running integration Tests for Wire and Node class...\n");
+	LOG_MSG("Running integration Tests for Wire and Entity class...\n");
 
 	{
 		// Test 5a : connect two nodes (creates a wire)
 		//---------------------------------------------
 
-		std::unique_ptr<Node> a(new Node);
+		std::unique_ptr<Entity> a(new Entity);
 		a->addMember("output");
 
-		std::unique_ptr<Node> b(new Node);
+		std::unique_ptr<Entity> b(new Entity);
 		b->addMember("input");
 		
 		std::unique_ptr<Wire> wire(new Wire);
-		Node::Connect(wire.get(), a->getMember("output"), b->getMember("input"));
+		Entity::Connect(wire.get(), a->getMember("output"), b->getMember("input"));
 
 		if ( 	wire->getSource() 		== a->getMember("output") && 
 				wire->getTarget() 		== b->getMember("input")
@@ -339,7 +339,7 @@ bool Test::RunAll()
 		// Test 5b : disconnect a wire
 		//----------------------------
 
-		Node::Disconnect(wire.get());
+		Entity::Disconnect(wire.get());
 		if(wire->getSource() == nullptr && wire->getTarget() == nullptr )
 			s_testSucceedCount++;
 		else

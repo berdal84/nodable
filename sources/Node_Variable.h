@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Nodable.h"    // forward declarations and common stuff
-#include "Node.h"       // base class
+#include "Entity.h"       // base class
 #include "Value.h"
 #include <string>
 
 namespace Nodable{
 	/* Node_Variable is a node that identify a value with its name */
-	class Node_Variable : public Node{
+	class Node_Variable : public Entity{
 	public:
 		Node_Variable();
 		~Node_Variable();

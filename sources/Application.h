@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Nodable.h" /* Forward declarations and defines */
-#include "Node.h"    /* Base class */
+#include "Entity.h"    /* Base class */
 #include <string>
 #include <memory>    /* For unique_ptr */
 
 namespace Nodable
 {
-	class Application : public Node
+	class Application : public Entity
 	{
 	public:
 		Application(const char* /*_applicationName*/);

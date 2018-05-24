@@ -1,7 +1,7 @@
 #include "Node_Container.h"
 #include "Log.h"
 #include "Lexer.h"
-#include "Node.h"
+#include "Entity.h"
 #include "Node_Variable.h"
 #include "BinaryOperationComponents.h"
 #include "Wire.h"
@@ -13,7 +13,7 @@
 
 using namespace Nodable;
 
-Node_Container::Node_Container(const char* _name, Node* _parent):
+Node_Container::Node_Container(const char* _name, Entity* _parent):
 name(_name),
 parent(_parent)
 {
@@ -127,32 +127,32 @@ void Node_Container::drawLabelOnly()
 	}
 }
 
-void Node_Container::addNode(Node* _node)
+void Node_Container::addNode(Entity* _entity)
 {
 	/* Add the node to the node vector list*/
-	this->nodes.push_back(_node);
+	this->nodes.push_back(_entity);
 
 	/* Set the node's container to this */
-	_node->setParent(this);
+	_entity->setParent(this);
 
 	LOG_DBG("A node has been added to the container '%s'\n", this->getName());
 }
 
-void Node_Container::destroyNode(Node* _node)
+void Node_Container::destroyNode(Entity* _entity)
 {
 	{
-		auto it = std::find(variables.begin(), variables.end(), _node);
+		auto it = std::find(variables.begin(), variables.end(), _entity);
 		if (it != variables.end())
 			variables.erase(it);
 	}
 
 	{
-		auto it = std::find(nodes.begin(), nodes.end(), _node);
+		auto it = std::find(nodes.begin(), nodes.end(), _entity);
 		if (it != nodes.end())
 			nodes.erase(it);
 	}
 
-	delete _node;
+	delete _entity;
 }
 
 Node_Variable* Node_Container::find(const char* _name)
@@ -164,9 +164,9 @@ Node_Variable* Node_Container::find(const char* _name)
 	else{
 		LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getName());
 
-		auto findFunction = [_name](const Node_Variable* _node ) -> bool
+		auto findFunction = [_name](const Node_Variable* _entity ) -> bool
 		{
-			return strcmp(_node->getName(), _name) == 0;
+			return strcmp(_entity->getName(), _name) == 0;
 		};
 
 		auto it = std::find_if(variables.begin(), variables.end(), findFunction);
@@ -217,9 +217,9 @@ Node_Variable*          Node_Container::createNodeString(const char* _value)
 }
 
 
-Node* Node_Container::createNodeBinaryOperation(std::string _op)
+Entity* Node_Container::createNodeBinaryOperation(std::string _op)
 {
-	Node* node;
+	Entity* node;
 
 	if      ( _op == "+")
 		node = createNodeAdd();
@@ -237,10 +237,10 @@ Node* Node_Container::createNodeBinaryOperation(std::string _op)
 }
 
 
-Node* Node_Container::createNodeAdd()
+Entity* Node_Container::createNodeAdd()
 {
 	// Create a node with 2 inputs and 1 output
-	auto node 		= new Node();	
+	auto node 		= new Entity();	
 	node->setLabel("ADD");
 	node->addMember("left");
 	node->addMember("right");
@@ -261,10 +261,10 @@ Node* Node_Container::createNodeAdd()
 	return node;
 }
 
-Node* Node_Container::createNodeSubstract()
+Entity* Node_Container::createNodeSubstract()
 {
 	// Create a node with 2 inputs and 1 output
-	auto node 		= new Node();	
+	auto node 		= new Entity();	
 	node->setLabel("SUBSTRACT");
 	node->addMember("left");
 	node->addMember("right");
@@ -285,10 +285,10 @@ Node* Node_Container::createNodeSubstract()
 	return node;
 }
 
-Node* Node_Container::createNodeMultiply()
+Entity* Node_Container::createNodeMultiply()
 {
 	// Create a node with 2 inputs and 1 output
-	auto node 		= new Node();	
+	auto node 		= new Entity();	
 	node->setLabel("MULTIPLY");
 	node->addMember("left");
 	node->addMember("right");
@@ -309,10 +309,10 @@ Node* Node_Container::createNodeMultiply()
 	return node;
 }
 
-Node* Node_Container::createNodeDivide()
+Entity* Node_Container::createNodeDivide()
 {
 	// Create a node with 2 inputs and 1 output
-	auto node 		= new Node();	
+	auto node 		= new Entity();	
 	node->setLabel("DIVIDE");
 	node->addMember("left");
 	node->addMember("right");
@@ -333,10 +333,10 @@ Node* Node_Container::createNodeDivide()
 	return node;
 }
 
-Node* Node_Container::createNodeAssign()
+Entity* Node_Container::createNodeAssign()
 {
 	// Create a node with 2 inputs and 1 output
-	auto node 		= new Node();	
+	auto node 		= new Entity();	
 	node->setLabel("ASSIGN");
 	node->addMember("left");
 	node->addMember("right");
@@ -363,7 +363,7 @@ Lexer* Node_Container::createNodeLexer(Node_Variable* _input)
 	Lexer* node = new Lexer();
 	node->addComponent( "view", new NodeView(node));
 
-	Node::Connect(new Wire(),_input->getValue(), node->getMember("expression"));
+	Entity::Connect(new Wire(),_input->getValue(), node->getMember("expression"));
 	addNode(node);
 	return node;
 }

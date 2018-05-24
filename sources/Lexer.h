@@ -1,6 +1,6 @@
 #pragma once
 #include "Nodable.h"    // forward declarations
-#include "Node.h"       // base class
+#include "Entity.h"       // base class
 #include <string>
 #include <vector>
 
@@ -18,7 +18,7 @@ namespace Nodable{
 		// here ctx should contain the generated graph.
 
 	*/
-	class Lexer : public Node
+	class Lexer : public Entity
 	{
 	private:
 
@@ -44,7 +44,7 @@ namespace Nodable{
 		Lexer();
 		virtual ~Lexer();
 
-		/* Override from Node class */
+		/* Override from Entity class */
 		bool           eval			       ();
 	private:
 		/* Build a graph using existing tokens and return a Node_Variable that contain the result value.
@@ -60,7 +60,7 @@ namespace Nodable{
 		/* Check if the existing tokens match with the syntax of the language. tokenize() should be called first */
 		bool           isSyntaxValid	   ();
 
-		/* Convert a given token to a Node. For now it only handle Numbers, Strings and Symbols. Thats why we return a Node_Variable */
+		/* Convert a given token to a Entity. For now it only handle Numbers, Strings and Symbols. Thats why we return a Node_Variable */
 		Value* 		   createValueFromToken(Token token);
 		
 		/* Creates a new token given a _type, _string and _chanIndex and add it to the tokens.*/

@@ -1,7 +1,7 @@
 #include "WireView.h"
 #include "NodeView.h"
 #include "Wire.h"
-#include "Node.h"
+#include "Entity.h"
 
 #include <imgui.h>
 
@@ -49,8 +49,8 @@ void WireView::draw()
 
 
 	    // Compute start and end point
-	    Node* sourceNode 	= (Node*)source->getOwner();
-	    Node* targetNode 	= (Node*)target->getOwner();
+	    Entity* sourceNode 	= (Entity*)source->getOwner();
+	    Entity* targetNode 	= (Entity*)target->getOwner();
 	    auto sourceView = (NodeView*)sourceNode->getComponent("view");
 	    auto targetView = (NodeView*)targetNode->getComponent("view");
 	    auto sourceName = wire->getSource()->getName();
