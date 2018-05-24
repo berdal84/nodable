@@ -157,23 +157,26 @@ void Node_Container::destroyNode(Node* _node)
 
 Node_Variable* Node_Container::find(const char* _name)
 {
+	Node_Variable* result;
+
 	if ( _name == NULL)
-		return nullptr;
+		result = nullptr;
+	else{
+		LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getName());
 
-	LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getName());
+		auto findFunction = [_name](const Node_Variable* _node ) -> bool
+		{
+			return strcmp(_node->getName(), _name) == 0;
+		};
 
-	auto findFunction = [_name](const Node_Variable* _node ) -> bool
-	{
-		return strcmp(_node->getName(), _name) == 0;
-	};
-
-	auto it = std::find_if(variables.begin(), variables.end(), findFunction);
-	if (it != variables.end()){
-		LOG_DBG("FOUND !\n");
-		return *it;
+		auto it = std::find_if(variables.begin(), variables.end(), findFunction);
+		if (it != variables.end()){
+			LOG_DBG("FOUND !\n");
+			result = *it;
+		}
 	}
-	LOG_DBG("NOT found...\n");
-	return nullptr;
+	
+	return result;
 }
 
 Node_Variable* Node_Container::createNodeVariable(const char* _name)
