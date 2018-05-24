@@ -90,6 +90,21 @@ Unary operands are not allowed, so you can't evaluate expressions like
 
 Expression -> { ( Unary Operator, Expression ) }  (ex ``` -10```)
 
+Architecture :
+==============
+
+The software is built to be dynamically reflective. The base class *Object* has members called *Values*. Members can be added or removed at runtime.
+A Value is a Variant class that can handle basic types data such as Booleans, Numbers or Strings.
+
+The derived class Entity is an Object able to attach Components on it. Component is an abstract class common to all components. For now there are ony three components :
+- Views : to draw the entity on screen.
+- Operations : to perform a computation.
+- Container : to contain other entities.
+
+Two *Values* can be linked by a *Wire*. A *Wire* is an oriented edge, so it has a source and a target Value.
+
+![Draft UML Class Diagram](https://github.com/berdal84/Nodable/blob/master/docs/ClassDiagram_2018_05_24.png)
+
 Platform compatibility :
 ========================
 Should work on all platforms but only tested under GNU/Linux Ubuntu 16.04 LTS (64bits)
@@ -125,6 +140,19 @@ make
 How to run the software ? :
 ===========================
 
+Install dependencies:
+
+```
+sudo add-apt-repository -y ppa:team-xbmc/ppa
+sudo add-apt-repository -y ppa:pyglfw/pyglfw
+sudo apt-get update -qq
+sudo apt-get install -y --no-install-recommends libsdl2-dev gcc-4.8 g++-4.8 libusb-1.0-0-dev
+sudo apt-get install -y --no-install-recommends libglfw3-dev libxrandr-dev libxi-dev libxxf86vm-dev
+```
+Clone the project with submodules:
+```
+git clone --recurse-submodules https://github.com/berdal84/Nodable
+```
 Move to the bin folder:
 ```
 cd <nodable folder>/bin/linux64
