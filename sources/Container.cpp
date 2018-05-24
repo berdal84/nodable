@@ -157,7 +157,7 @@ Variable* Container::find(std::string _name)
 	if ( _name.empty())
 		result = nullptr;
 	else{
-		LOG_DBG("Searching node '%s' in container '%s' : ", _name, this->getMember("name")->getValueAsString().c_str());
+		LOG_DBG("Searching node '%s' in container '%s' : ", _name.c_str(), this->getMember("name")->getValueAsString().c_str());
 
 		auto findFunction = [_name](const Variable* _variable ) -> bool
 		{
