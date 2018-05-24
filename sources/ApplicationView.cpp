@@ -6,7 +6,7 @@
 #include <examples/sdl_opengl3_example/imgui_impl_sdl_gl3.h>
 
 #include "Application.h"
-#include "Node_Container.h"
+#include "Container.h"
 #include "NodeView.h"
 
 using namespace Nodable;

@@ -6,12 +6,12 @@
 #include <vector>
 
 namespace Nodable{
-	/* Class Node_Container is a factory able to create all kind of Node 
+	/* Class Container is a factory able to create all kind of Node 
 	   All Symbol nodes's pointers created within this context are referenced in a vector to be found later */
-	class Node_Container {
+	class Container {
 	public:
-		Node_Container(const char* _name, Entity* _parent = nullptr);
-		virtual ~Node_Container();
+		Container(const char* _name, Entity* _parent = nullptr);
+		virtual ~Container();
 		void                      draw();
 		void                      clear();
 		void                      frameAll();
@@ -24,9 +24,9 @@ namespace Nodable{
 		Node_Variable*            createNodeNumber          (double /*value*/ = 0);
 		Node_Variable*            createNodeNumber          (const char* /*value*/);
 		Node_Variable*            createNodeString          (const char* /*value*/);
-		Entity*                     createNodeBinaryOperation (std::string /*_operator*/);
-		Entity*                     createNodeAdd             ();
-		Entity*                     createNodeSubstract       ();
+		Entity*                   createNodeBinaryOperation (std::string /*_operator*/);
+		Entity*                   createNodeAdd             ();
+		Entity*                   createNodeSubstract       ();
 		Entity*			          createNodeMultiply        ();
 		Entity*			          createNodeDivide          ();
 		Entity*			          createNodeAssign          (); 

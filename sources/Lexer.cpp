@@ -2,7 +2,7 @@
 #include "Log.h"          // for LOG_DBG(...)
 
 #include "Value.h"
-#include "Node_Container.h"
+#include "Container.h"
 #include "Node_Variable.h"
 #include "BinaryOperationComponents.h"
 #include "NodeView.h"
@@ -77,7 +77,7 @@ Node_Variable* Lexer::buildGraph()
 Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _leftValueOverride, Value* _rightValueOverride)
 {
 	Value*          result;
-	Node_Container* context = this->getParent();
+	Container* context = this->getParent();
 
 	//printf("Token evaluated : %lu.\n", _tokenId);
 

@@ -1,4 +1,4 @@
-#include "Node_Container.h"
+#include "Container.h"
 #include "Log.h"
 #include "Lexer.h"
 #include "Entity.h"
@@ -13,19 +13,19 @@
 
 using namespace Nodable;
 
-Node_Container::Node_Container(const char* _name, Entity* _parent):
+Container::Container(const char* _name, Entity* _parent):
 name(_name),
 parent(_parent)
 {
 	LOG_DBG("A new container named %s' has been created.\n", _name);
 }
 
-Node_Container::~Node_Container()
+Container::~Container()
 {
 	clear();
 }
 
-void Node_Container::clear()
+void Container::clear()
 {
 	for (auto each : nodes)
 		delete each;
@@ -33,12 +33,12 @@ void Node_Container::clear()
 	variables.resize(0);
 }
 
-void Node_Container::frameAll()
+void Container::frameAll()
 {
 
 }
 
-void Node_Container::draw()
+void Container::draw()
 {
 	// 0 - Update nodes
 	for(auto it = nodes.begin(); it < nodes.end(); ++it)
@@ -116,7 +116,7 @@ void Node_Container::draw()
 	}
 }
 
-void Node_Container::drawLabelOnly()
+void Container::drawLabelOnly()
 {
 	{
 		for(auto each : this->nodes)
@@ -127,7 +127,7 @@ void Node_Container::drawLabelOnly()
 	}
 }
 
-void Node_Container::addNode(Entity* _entity)
+void Container::addNode(Entity* _entity)
 {
 	/* Add the node to the node vector list*/
 	this->nodes.push_back(_entity);
@@ -138,7 +138,7 @@ void Node_Container::addNode(Entity* _entity)
 	LOG_DBG("A node has been added to the container '%s'\n", this->getName());
 }
 
-void Node_Container::destroyNode(Entity* _entity)
+void Container::destroyNode(Entity* _entity)
 {
 	{
 		auto it = std::find(variables.begin(), variables.end(), _entity);
@@ -155,7 +155,7 @@ void Node_Container::destroyNode(Entity* _entity)
 	delete _entity;
 }
 
-Node_Variable* Node_Container::find(const char* _name)
+Node_Variable* Container::find(const char* _name)
 {
 	Node_Variable* result;
 
@@ -179,7 +179,7 @@ Node_Variable* Node_Container::find(const char* _name)
 	return result;
 }
 
-Node_Variable* Node_Container::createNodeVariable(const char* _name)
+Node_Variable* Container::createNodeVariable(const char* _name)
 {
 	auto variable = new Node_Variable();
 	variable->addComponent( "view", new NodeView(variable));
@@ -189,7 +189,7 @@ Node_Variable* Node_Container::createNodeVariable(const char* _name)
 	return variable;
 }
 
-Node_Variable*          Node_Container::createNodeNumber(double _value)
+Node_Variable*          Container::createNodeNumber(double _value)
 {
 	auto node = new Node_Variable();
 	node->addComponent( "view", new NodeView(node));
@@ -198,7 +198,7 @@ Node_Variable*          Node_Container::createNodeNumber(double _value)
 	return node;
 }
 
-Node_Variable*          Node_Container::createNodeNumber(const char* _value)
+Node_Variable*          Container::createNodeNumber(const char* _value)
 {
 	auto node = new Node_Variable();
 	node->addComponent( "view", new NodeView(node));
@@ -207,7 +207,7 @@ Node_Variable*          Node_Container::createNodeNumber(const char* _value)
 	return node;
 }
 
-Node_Variable*          Node_Container::createNodeString(const char* _value)
+Node_Variable*          Container::createNodeString(const char* _value)
 {
 	auto node = new Node_Variable();
 	node->addComponent( "view", new NodeView(node));
@@ -217,7 +217,7 @@ Node_Variable*          Node_Container::createNodeString(const char* _value)
 }
 
 
-Entity* Node_Container::createNodeBinaryOperation(std::string _op)
+Entity* Container::createNodeBinaryOperation(std::string _op)
 {
 	Entity* node;
 
@@ -237,7 +237,7 @@ Entity* Node_Container::createNodeBinaryOperation(std::string _op)
 }
 
 
-Entity* Node_Container::createNodeAdd()
+Entity* Container::createNodeAdd()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
@@ -261,7 +261,7 @@ Entity* Node_Container::createNodeAdd()
 	return node;
 }
 
-Entity* Node_Container::createNodeSubstract()
+Entity* Container::createNodeSubstract()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
@@ -285,7 +285,7 @@ Entity* Node_Container::createNodeSubstract()
 	return node;
 }
 
-Entity* Node_Container::createNodeMultiply()
+Entity* Container::createNodeMultiply()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
@@ -309,7 +309,7 @@ Entity* Node_Container::createNodeMultiply()
 	return node;
 }
 
-Entity* Node_Container::createNodeDivide()
+Entity* Container::createNodeDivide()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
@@ -333,7 +333,7 @@ Entity* Node_Container::createNodeDivide()
 	return node;
 }
 
-Entity* Node_Container::createNodeAssign()
+Entity* Container::createNodeAssign()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
@@ -358,7 +358,7 @@ Entity* Node_Container::createNodeAssign()
 }
 
 
-Lexer* Node_Container::createNodeLexer(Node_Variable* _input)
+Lexer* Container::createNodeLexer(Node_Variable* _input)
 {
 	Lexer* node = new Lexer();
 	node->addComponent( "view", new NodeView(node));
@@ -368,12 +368,12 @@ Lexer* Node_Container::createNodeLexer(Node_Variable* _input)
 	return node;
 }
 
-const char* Node_Container::getName()const
+const char* Container::getName()const
 {
 	return name.c_str();
 }
 
-size_t Node_Container::getSize()const
+size_t Container::getSize()const
 {
 	return nodes.size();
 }

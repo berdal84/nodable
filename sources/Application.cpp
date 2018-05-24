@@ -2,7 +2,7 @@
 #include "Nodable.h" 	// for NODABLE_VERSION
 #include "Log.h" 		// for LOG_DBG
 #include "Lexer.h"
-#include "Node_Container.h"
+#include "Container.h"
 #include "ApplicationView.h"
 #include "Node_Variable.h"
 #include <unistd.h>
@@ -26,7 +26,7 @@ Application::~Application()
 bool Application::init()
 {
 	LOG_MSG("init application ( label = \"%s\")\n", getLabel());
-	this->ctx = std::unique_ptr<Node_Container>(new Node_Container("Global"));
+	this->ctx = std::unique_ptr<Container>(new Container("Global"));
 
 	if( hasComponent("view"))
 		return ((ApplicationView*)getComponent("view"))->init();
@@ -82,7 +82,7 @@ void Application::shutdown()
 	LOG_MSG("shutting down application ( _name = \"%s\")\n", getLabel());
 }
 
-Node_Container* Application::getContext()const
+Container* Application::getContext()const
 {
 	return this->ctx.get();
 }

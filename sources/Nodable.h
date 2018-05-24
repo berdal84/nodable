@@ -88,7 +88,7 @@ namespace Nodable{
 	class Application;	
 	class Lexer;
 	class Node_Variable;
-	class Node_Container;
+	class Container;
 
 	// 4 - Other
 	class Log;	

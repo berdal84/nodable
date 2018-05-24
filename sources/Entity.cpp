@@ -98,12 +98,12 @@ void Entity::setDirty(bool _value)
 	dirty = _value;
 }
 
-Node_Container* Entity::getParent()const
+Container* Entity::getParent()const
 {
 	return this->parent;
 }
 
-void Entity::setParent(Node_Container* _container)
+void Entity::setParent(Container* _container)
 {
 	this->parent = _container;
 }
