@@ -14,7 +14,7 @@ namespace Nodable
 	class ApplicationView : public View
 	{
 	public:
-		ApplicationView(const char* _name, Node_Application* _application);
+		ApplicationView(const char* _name, Application* _application);
 		~ApplicationView();
 
 		/* call this every frame */
@@ -25,7 +25,7 @@ namespace Nodable
 
 	private:
 
-		Node_Application  *application;
+		Application  *application;
 		SDL_Window        *window;
 		SDL_GLContext     glcontext;
 		ImVec4            clear_color = ImColor(50, 50, 50); // used to fill the framebuffer each frame.

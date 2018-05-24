@@ -2,7 +2,7 @@
 #include <string>
 #include <fstream> 			 // for ofstream
 #include <iostream>          // for std::cout
-#include "Node_Application.h"
+#include "Application.h"
 #include "ApplicationView.h"
 #include "Test.h"            // for RunAll()
 
@@ -16,7 +16,7 @@ int main(int, char**)
 
 	// Run the program
 	std::string appName = "Nodable " NODABLE_VERSION;
-	Nodable::Node_Application nodable(appName.c_str());
+	Nodable::Application nodable(appName.c_str());
 
 	NODABLE_VERIFY(nodable.init());
 

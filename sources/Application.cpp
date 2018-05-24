@@ -1,4 +1,4 @@
-#include "Node_Application.h"
+#include "Application.h"
 #include "Nodable.h" 	// for NODABLE_VERSION
 #include "Log.h" 		// for LOG_DBG
 #include "Node_Lexer.h"
@@ -10,20 +10,20 @@
 
 using namespace Nodable;
 
-Node_Application::Node_Application(const char* _name)
+Application::Application(const char* _name)
 {
-	LOG_MSG("A new Node_Application ( label = \"%s\")\n", _name);
-	setMember("class", "Node_Application");
+	LOG_MSG("A new Application ( label = \"%s\")\n", _name);
+	setMember("class", "Application");
 	setLabel(_name);
 	addComponent("view", new ApplicationView(_name, this));
 }
 
-Node_Application::~Node_Application()
+Application::~Application()
 {
 
 }
 
-bool Node_Application::init()
+bool Application::init()
 {
 	LOG_MSG("init application ( label = \"%s\")\n", getLabel());
 	this->ctx = std::unique_ptr<Node_Container>(new Node_Container("Global"));
@@ -34,24 +34,24 @@ bool Node_Application::init()
 	return true;
 }
 
-void Node_Application::clearContext()
+void Application::clearContext()
 {
 	this->ctx.get()->clear();
 }
 
-bool Node_Application::update()
+bool Application::update()
 {
 	return !quit;
 }
 
-void Node_Application::stopExecution()
+void Application::stopExecution()
 {
 	quit = true;
 }
 
-bool Node_Application::eval(std::string _expression)
+bool Application::eval(std::string _expression)
 {
-	LOG_MSG("Node_Application::eval() - create a variable.\n");
+	LOG_MSG("Application::eval() - create a variable.\n");
 	lastString = ctx->createNodeVariable("Command");
 
 	LOG_DBG("Node_Lexer::eval() - assign the expression string to that variable\n");
@@ -77,12 +77,12 @@ bool Node_Application::eval(std::string _expression)
 	return false;
 }
 
-void Node_Application::shutdown()
+void Application::shutdown()
 {
 	LOG_MSG("shutting down application ( _name = \"%s\")\n", getLabel());
 }
 
-Node_Container* Node_Application::getContext()const
+Node_Container* Application::getContext()const
 {
 	return this->ctx.get();
 }

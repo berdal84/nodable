@@ -85,7 +85,7 @@ namespace Nodable{
 
 	// 3 - Nodes
 	class Node;
-	class Node_Application;	
+	class Application;	
 	class Node_Lexer;
 	class Node_Variable;
 	class Node_Container;

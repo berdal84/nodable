@@ -5,13 +5,13 @@
 #include <imgui.h>
 #include <examples/sdl_opengl3_example/imgui_impl_sdl_gl3.h>
 
-#include "Node_Application.h"
+#include "Application.h"
 #include "Node_Container.h"
 #include "NodeView.h"
 
 using namespace Nodable;
 
-ApplicationView::ApplicationView(const char* _name, Node_Application* _application):
+ApplicationView::ApplicationView(const char* _name, Application* _application):
 	application(_application)
 {
     addMember("glWindowName");

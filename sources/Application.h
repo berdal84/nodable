@@ -7,11 +7,11 @@
 
 namespace Nodable
 {
-	class Node_Application : public Node
+	class Application : public Node
 	{
 	public:
-		Node_Application(const char* /*_applicationName*/);
-		~Node_Application();
+		Application(const char* /*_applicationName*/);
+		~Application();
 
 		/* Clear the application context. */
 		void             clearContext();
