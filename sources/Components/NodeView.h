@@ -31,7 +31,7 @@ namespace Nodable{
 		COMPONENT_CONSTRUCTOR(NodeView);
 
 		/* Draw the view at its position into the current window*/
-		void              draw                ();
+		void              draw                ()override;
 
 		/* Should be called once per frame to update the view */
 		void              update              ();
@@ -47,9 +47,6 @@ namespace Nodable{
 
 		/* Change the visibility of this view */
 		void              setVisible          (bool);
-
-		/* Return true if this view is hovered, false if not */
-		bool              isHovered           ()const;
 
 		/* Set a new position (top-left corner) vector to this view */ 
 		void              setPosition         (ImVec2);
@@ -84,13 +81,11 @@ namespace Nodable{
 		static DrawDetail_ s_drawDetail;  // global draw detail (check DrawDetail_ enum)
 
 	private:
-        std::string     name                = "UnnamedNode";          // could be displayed as a title
 		ImVec2          position            = ImVec2(-1.0, -1.0f);    // center position vector
 		ImVec2          size                = ImVec2(170.0f, 40.0f);  // size of the window
 		float           opacity             = 0.0f;                   // global transparency of this view
 		bool            visible             = true;                   
 		bool            collapsed           = true;
-		bool            hovered             = false;
 		bool            pinned              = false;                  // false: follow its outputs.
 		float           borderRadius        = 5.0f;
 		ImColor         borderColorSelected = ImColor(1.0f, 1.0f, 1.0f);

@@ -3,11 +3,10 @@
 #include <imgui.h>
 #include "Container.h"
 #include "Variable.h"
-#include "BinaryOperation.h"
-#include "View.h"
 #include "Wire.h"
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
+#include "Application.h"
 
 using namespace Nodable;
 
@@ -72,7 +71,7 @@ ImVec2 NodeView::getOutputPosition(const std::string& _name)const
 void NodeView::setPosition(ImVec2 _position)
 {
 	this->position = _position;
-	ImGui::SetWindowPos(name.c_str(), _position);
+	ImGui::SetWindowPos(std::to_string(size_t(this)).c_str(), _position);
 }
 
 void NodeView::setVisible(bool _b)
@@ -129,7 +128,7 @@ void NodeView::update()
 	auto maxSizeX        = 0.0f;
 	for(auto eachWire : wires)
 	{
-		auto sourceNode    = (Entity*)eachWire->getSource()->getOwner();
+		auto sourceNode    = eachWire->getSource()->getOwner()->getAs<Entity*>();
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
 		auto inputView     = (NodeView*)sourceNode->getComponent("view");
 		if (isWireAnInput && !inputView->pinned )
@@ -147,7 +146,7 @@ void NodeView::update()
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
 		if (isWireAnInput)
 		{
-			auto sourceNode    = dynamic_cast<Entity*>(eachWire->getSource()->getOwner());
+			auto sourceNode    = eachWire->getSource()->getOwner()->getAs<Entity*>();
 			auto inputView     = (NodeView*)sourceNode->getComponent("view");
 
 			if ( ! inputView->pinned )
@@ -200,7 +199,7 @@ void NodeView::draw()
 		{
 			ImGui::SetNextWindowSize(size, ImGuiSetCond_FirstUseEver);
 			ImGui::SetNextWindowPos(getPosition(), ImGuiSetCond_FirstUseEver);	
-			ImGui::Begin(name.c_str(), &visible, window_flags);		
+			ImGui::Begin(std::to_string(size_t(this)).c_str(), &visible, window_flags);		
 			break;
 		}
 
@@ -377,6 +376,12 @@ void NodeView::draw()
                 ImGui::Separator();
                 if(ImGui::Selectable("Delete"))
                 	node->deleteNextFrame();
+
+                if(ImGui::Selectable("Save to JSON"))
+                {
+                	Application::SaveEntity(node);
+                }
+
                 ImGui::EndPopup();
             }
 
@@ -412,11 +417,6 @@ void NodeView::draw()
 	ImGui::PopID();
 }
 
-bool NodeView::isHovered()const
-{
-	return hovered;
-}
-
 void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 {
 	_view->setPosition(_position);
@@ -431,7 +431,7 @@ void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 			if ( eachWire->getSource() != nullptr)
 			{
 				auto node         = dynamic_cast<Entity*>(eachWire->getSource()->getOwner());
-				auto inputView    = (NodeView*)node->getComponent("view");
+				auto inputView    = node->getComponent("view")->getAs<NodeView*>();
 				inputView->pinned = false;
 				ArrangeRecursively(inputView, inputView->position);
 			}

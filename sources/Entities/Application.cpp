@@ -7,6 +7,7 @@
 #include "Variable.h"
 #include <unistd.h>
 #include <imgui.h>
+#include "DataAccess.h"
 
 using namespace Nodable;
 
@@ -93,4 +94,12 @@ bool Application::eval(std::string _expression)
 void Application::shutdown()
 {
 	LOG_MSG("shutting down application ( _name = \"%s\")\n", getLabel());
+}
+
+void Application::SaveEntity(Entity* _entity)
+{
+    auto component = new DataAccess;
+	_entity->addComponent("dataAccess", component);
+	component->update();
+	_entity->removeComponent("dataAccess");
 }

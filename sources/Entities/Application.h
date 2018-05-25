@@ -37,6 +37,8 @@ namespace Nodable
 		/* Get the context (also called a container) of this application.*/
 		Container*       getContext()const;
 
+		static void SaveEntity(Entity* _entity);
+
 	private:
 		Variable*                   lastString  = nullptr;		
 		bool                             quit        = false;

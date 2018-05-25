@@ -16,7 +16,8 @@ namespace Nodable{
 		};
 
 		View();
-		~View(){}
+		
+		virtual void draw()=0;
 
 		/* Draw only shadow for a rectangle */
 		static void DrawRectShadow      (	ImVec2 	_topLeftCorner, 
@@ -34,7 +35,14 @@ namespace Nodable{
 
 		void        setColor       (ColorType_ ,ImColor);
 		ImColor     getColor       (ColorType_);
+
+		/* Return true if this view is hovered by mouse cursor, false if not */
+		bool        isHovered      ()const{return hovered;}
+
+	protected:
+		bool    hovered = false;
 	private:
 		ImColor colors[ColorType_COUNT];
+		
 	};
 }

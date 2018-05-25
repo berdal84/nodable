@@ -54,7 +54,7 @@ void Container::draw()
 	bool isAnyItemHovered = false;
 	for(auto eachNode : this->entities)
 	{
-		auto view = (NodeView*)eachNode->getComponent("view");
+		auto view = eachNode->getComponent("view")->getAs<View*>();
 
 		if (view != nullptr)
 		{
@@ -106,7 +106,6 @@ void Container::draw()
 
 void Container::addEntity(Entity* _entity)
 {
-	_entity->addComponent("dataAccess", new DataAccess);
 
 	/* Add the node to the node vector list*/
 	this->entities.push_back(_entity);

@@ -18,9 +18,6 @@ namespace Nodable
 			State_COUNT
 		};
 
-		Wire();
-		~Wire();
-
 		void        setSource    (Value*);
 		void        setTarget    (Value*);
 
@@ -35,7 +32,5 @@ namespace Nodable
 		Value*      source       = nullptr;
 		Value*      target       = nullptr;
 		State_      state        = State_Disconnected;
-
-		static std::vector<Wire*> s_wires;
 	};
 }

@@ -51,9 +51,7 @@ Entity::~Entity()
 	for(auto wire : wires)
 	{
 		Entity::Disconnect(wire);
-		delete wire;
 	}
-
 }
 
 void Entity::addComponent(const std::string&  _componentName, Component*  _component)
@@ -71,6 +69,11 @@ bool Entity::hasComponent(const std::string&  _componentName)const
 Component* Entity::getComponent(const std::string&  _componentName)const
 {
 	return components.at(_componentName);
+}
+
+void Entity::removeComponent(const std::string& _componentName)
+{
+	components.erase(_componentName);
 }
 
 bool Entity::isDirty()const

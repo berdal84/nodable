@@ -43,8 +43,8 @@ void WireView::draw()
 
 
 	    // Compute start and end point
-	    Entity* sourceNode 	= (Entity*)source->getOwner();
-	    Entity* targetNode 	= (Entity*)target->getOwner();
+	    Entity* sourceNode 	= source->getOwner()->getAs<Entity*>();
+	    Entity* targetNode 	= target->getOwner()->getAs<Entity*>();
 	    auto sourceView = (NodeView*)sourceNode->getComponent("view");
 	    auto targetView = (NodeView*)targetNode->getComponent("view");
 	    auto sourceName = wire->getSource()->getName();

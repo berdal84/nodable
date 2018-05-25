@@ -25,7 +25,8 @@ namespace Nodable{
 		bool                hasComponent      (const std::string&  /*_componentName*/)const;
 		Component*          getComponent      (const std::string&  /*_componentName*/)const;
 		const Components&   getComponents     ()const{return components;}
-
+		void                removeComponent   (const std::string& /* _componentName */);
+		
 		/* Set a new parent container */
 		void                setParent         (Container* _container);
 
