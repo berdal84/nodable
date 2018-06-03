@@ -21,6 +21,9 @@ ApplicationView::ApplicationView(const char* _name, Application* _application):
     addMember("showProperties");
     setMember("showProperties", false);
 
+    addMember("showImGuiDemo");
+    setMember("showImGuiDemo", false);
+
     // Add two members for the window size
     addMember("glWindowSizeX");
     setMember("glWindowSizeX", 1280.0f);
@@ -62,7 +65,7 @@ bool ApplicationView::init()
                                 SDL_WINDOWPOS_CENTERED,
                                 getMember("glWindowSizeX")->getValueAsNumber(),
                                 getMember("glWindowSizeY")->getValueAsNumber(),
-                                SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+                                SDL_WINDOW_OPENGL);
     
     glcontext = SDL_GL_CreateContext(window);
     SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -90,12 +93,12 @@ bool ApplicationView::init()
 
     // Configure ImGui Style
     ImGuiStyle& style = ImGui::GetStyle();
-	style.Colors[ImGuiCol_Text]                  = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+	style.Colors[ImGuiCol_Text]                  = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled]          = ImVec4(0.21f, 0.21f, 0.21f, 1.00f);
-	style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.5f, 0.5f, 0.5f, 1.00f);
-	style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(1.00f, 1.00f, 1.00f, 0.08f);
+	style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+	style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
 	style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
-	style.Colors[ImGuiCol_Border]                = ImVec4(1.00f, 1.00f, 1.00f, 0.5f);
+	style.Colors[ImGuiCol_Border]                = ImVec4(1.00f, 1.00f, 1.00f, 0.50f);
 	style.Colors[ImGuiCol_BorderShadow]          = ImVec4(0.30f, 0.30f, 0.30f, 0.50f);
 	style.Colors[ImGuiCol_FrameBg]               = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
 	style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.90f, 0.80f, 0.80f, 1.00f);
@@ -165,8 +168,6 @@ void ApplicationView::draw()
         {
             auto hide    = ImGui::MenuItem("Hide", "Del.");
             auto arrange = ImGui::MenuItem("Arrange", "A");
-            ImGui::Separator();
-            auto showProperties = ImGui::MenuItem("Settings", "", getMember("showProperties")->getValueAsBoolean());
 
             auto selected = NodeView::GetSelected();
             if( selected )
@@ -177,75 +178,44 @@ void ApplicationView::draw()
 					selected->arrangeRecursively();
         	}
 
-            if(showProperties)
-                 setMember("showProperties", !getMember("showProperties")->getValueAsBoolean());
-
             ImGui::EndMenu();
         }
 
         if ( ImGui::BeginMenu("View"))
         {
-        	//auto frame = ImGui::MenuItem("Frame All", "F");
-        	//ImGui::Separator();
-        	auto detailSimple   = ImGui::MenuItem("Simple View", "", NodeView::s_drawDetail == DrawDetail_Simple );
-        	auto detailAdvanced = ImGui::MenuItem("Advanced View", "", NodeView::s_drawDetail == DrawDetail_Advanced );
-        	auto detailComplex  = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex );
+            //auto frame = ImGui::MenuItem("Frame All", "F");
+            //ImGui::Separator();
+            auto detailSimple   = ImGui::MenuItem("Simple View", "", NodeView::s_drawDetail == DrawDetail_Simple );
+            auto detailAdvanced = ImGui::MenuItem("Advanced View", "", NodeView::s_drawDetail == DrawDetail_Advanced );
+            auto detailComplex  = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex );
+            
+            ImGui::Separator();
+            auto showProperties = ImGui::MenuItem("Show Properties", "", getMember("showProperties")->getValueAsBoolean());
+            auto showImGuiDemo  = ImGui::MenuItem("Show ImGui Demo", "", getMember("showImGuiDemo")->getValueAsBoolean());
 
-        	//if( frame)
-        		// TODO
+            //if( frame)
+                // TODO
 
-        	if (detailSimple)
-        		NodeView::s_drawDetail = DrawDetail_Simple;
+            if (detailSimple)
+                NodeView::s_drawDetail = DrawDetail_Simple;
 
-        	if (detailAdvanced)
-        		NodeView::s_drawDetail = DrawDetail_Advanced;
+            if (detailAdvanced)
+                NodeView::s_drawDetail = DrawDetail_Advanced;
 
-        	if (detailComplex)
-        		NodeView::s_drawDetail = DrawDetail_Complex;
+            if (detailComplex)
+                NodeView::s_drawDetail = DrawDetail_Complex;
+
+            if(showProperties)
+                 setMember("showProperties", !getMember("showProperties")->getValueAsBoolean());
+
+            if(showImGuiDemo)
+                 setMember("showImGuiDemo", !getMember("showImGuiDemo")->getValueAsBoolean());
 
         	ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
     }
-
-    // 2. Command line window
-    {
-	    bool isCommandLineVisible = true;
-
-	    if(ImGui::Begin("Nodable command line", &isCommandLineVisible, ImGuiWindowFlags_AlwaysAutoResize))
-	    {
-		    
-		    ImGui::Text("Type an expression, the program will create the graph in realtime :");
-
-		    // Draw the input text field :
-		    static char inputTextBuffer[1024];
-		    static bool isExpressionValid = true;
-		    auto textColor = isExpressionValid ? ImVec4(0.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.9f, 0.0f, 0.0f,1.0f);
-		    ImGui::PushStyleColor(ImGuiCol_Text,textColor );
-		    static bool setKeyboardFocusOnCommandLine = true;
-		    if ( setKeyboardFocusOnCommandLine){
-		       ImGui::SetKeyboardFocusHere();
-		       setKeyboardFocusOnCommandLine = false;
-		    }
-		    bool needsToEvaluateString = ImGui::InputText("", inputTextBuffer, 1023 /*, ImGuiInputTextFlags_EnterReturnsTrue*/);
-			ImGui::PopStyleColor();
-
-		    //ImGui::SameLine();
-		    //needsToEvaluateString |= ImGui::Button("Eval");
-
-		    if (!isExpressionValid)
-		    	ImGui::TextColored(textColor, "Warning : wrong expression syntax");
-
-		    if (needsToEvaluateString)
-		    {
-		    	application->clearContext();
-		        isExpressionValid = application->eval(std::string(inputTextBuffer));
-		        setKeyboardFocusOnCommandLine = true;
-		    }
-		}
-
-	    ImGui::End();
-	}
+    
 
     // Properties panel window
     {
@@ -264,27 +234,76 @@ void ApplicationView::draw()
             ImGui::End();
             setMember("showProperties", b);
         }
-		
-	}
+    }
 
+    // Demo Window
+    {
+        bool b = getMember("showImGuiDemo")->getValueAsBoolean();
+        if (b){
+            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+            ImGui::ShowDemoWindow(&b);
+            setMember("showImGuiDemo", b);
+        }
+    }
     // Fullscreen window
     {
-	    int width, height;
-		SDL_GetWindowSize(window, &width, &height);
-		ImGui::SetNextWindowPos(ImVec2());
-		ImGui::SetNextWindowSize(ImVec2(width, height));
-		ImGui::Begin("Container", NULL, ImVec2(width,height), -1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
-		{
-			application->getContext()->draw();
-		}
-		ImGui::End();
-	}
-    
-    // Demo Window
-    //ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-    //bool show_demo_window = false;
-    //ImGui::ShowDemoWindow(&show_demo_window);
+        float menuBarHeight = 20.0f;
+        int width, height;
+        SDL_GetWindowSize(window, &width, &height);
+        ImGui::SetNextWindowPos(ImVec2(0.0f, menuBarHeight));
+        ImGui::SetNextWindowSize(ImVec2(width, height - menuBarHeight));
+        ImGui::Begin("Container", NULL, ImVec2(width,height-menuBarHeight), -1.0f, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
+        {
+            auto availSize = ImGui::GetContentRegionAvail();
 
+            ImGui::BeginChild("TextEditor", ImVec2(availSize.x * 0.35, availSize.y));
+            {
+                ImGui::Text("Text Editor");
+
+                ImGui::Text("Type an expression, the program will create the graph in realtime :");
+
+                // Draw the input text field :
+                static char inputTextBuffer[1024 * 200];
+
+                static bool isExpressionValid = true;
+                auto textColor = isExpressionValid ? ImVec4(0.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.9f, 0.0f, 0.0f,1.0f);
+                ImGui::PushStyleColor(ImGuiCol_Text,textColor );
+                static bool setKeyboardFocusOnCommandLine = true;
+                if ( setKeyboardFocusOnCommandLine){
+                   ImGui::SetKeyboardFocusHere();
+                   setKeyboardFocusOnCommandLine = false;
+                }
+                ImVec2 inputTextSize(ImGui::GetContentRegionAvailWidth(), 0);
+                bool needsToEvaluateString = ImGui::InputTextMultiline("", inputTextBuffer, NODABLE_ARRAYSIZE(inputTextBuffer), inputTextSize);
+                ImGui::PopStyleColor();
+
+                //ImGui::SameLine();
+                //needsToEvaluateString |= ImGui::Button("Eval");
+
+                if (!isExpressionValid)
+                    ImGui::TextColored(textColor, "Warning : wrong expression syntax");
+
+                if (needsToEvaluateString)
+                {
+                    application->clearContext();
+                    isExpressionValid = application->eval(std::string(inputTextBuffer));
+                    setKeyboardFocusOnCommandLine = true;
+                }
+            }
+            ImGui::EndChild();
+
+            ImGui::SameLine();
+            ImGui::BeginChild("NodeEditor", ImVec2(0.0f,0.0f), false, ImGuiWindowFlags_NoScrollbar);
+            {
+                ImGui::Text("Node Editor");
+
+                application->getContext()->draw();
+            }
+            ImGui::EndChild();
+        }
+        ImGui::End();
+    }
+    
     // Rendering
     glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);

@@ -191,8 +191,10 @@ void NodeView::draw()
 	//-----------------
 
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
-	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);	
-	
+	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);
+
+	ImVec2 screenPosition = position;
+
 	switch ( s_drawMode)
 	{
 		case DrawMode_AsWindow:
@@ -212,15 +214,20 @@ void NodeView::draw()
 
 			ImGui::PushID(this);
 			ImGui::BeginGroup();
-			auto cursor = ImGui::GetCursorPos();
-			ImGui::SetCursorPos(ImVec2(cursor.x + 10.0f, cursor.y + 10.0f));
+			ImVec2 cursorPos       = ImGui::GetCursorPos();
+			ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+			screenPosition.x = position.x +  cursorScreenPos.x - cursorPos.x;
+			screenPosition.y = position.y +  cursorScreenPos.y - cursorPos.y;
+
+			ImGui::SetCursorPos(ImVec2(cursorPos.x + 10.0f, cursorPos.y + 10.0f));
 
 			// Draw the background of the Group
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 			{			
 				auto borderCol = IsSelected(this) ? borderColorSelected : getColor(ColorType_Border);
-				auto itemRectMin = ImVec2(position.x - size.x/2.0f, position.y - size.y/2.0f);
-				auto itemRectMax = ImVec2(position.x + size.x/2.0f, position.y + size.y/2.0f);
+
+				auto itemRectMin = ImVec2(screenPosition.x - size.x/2.0f, screenPosition.y - size.y/2.0f);
+				auto itemRectMax = ImVec2(screenPosition.x + size.x/2.0f, screenPosition.y + size.y/2.0f);
 
 				// Draw the rectangle under everything
 				View::DrawRectShadow(itemRectMin, itemRectMax, borderRadius, 4, ImVec2(1.0f, 1.0f), getColor(ColorType_Shadow));
@@ -360,8 +367,8 @@ void NodeView::draw()
 		{	
 			ImGui::EndGroup();
 
-			hovered = ImGui::IsMouseHoveringRect(	ImVec2(position.x - size.x/2.0f, position.y - size.y/2.0f),
-													ImVec2(position.x + size.x/2.0f, position.y + size.y/2.0f), true);
+			hovered = ImGui::IsMouseHoveringRect(	ImVec2(screenPosition.x - size.x/2.0f, screenPosition.y - size.y/2.0f),
+													ImVec2(screenPosition.x + size.x/2.0f, screenPosition.y + size.y/2.0f), true);
 
             if (hovered && ImGui::IsMouseReleased(1))
                 ImGui::OpenPopup("NodeViewContextualMenu");
