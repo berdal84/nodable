@@ -139,28 +139,14 @@ bool ApplicationView::init()
 	style.AntiAliasedFill    = true;
 	style.AntiAliasedLines   = true;
 
-    ///////////////////////////////////////////////////////////////////////
-    // TEXT EDITOR SAMPLE
-    LOG_MSG("Init lang for textEditor.\n");
-    textEditor = new TextEditor;
-    
+    /*
+        Testing ImGuiTextColorEdit
+    */
+    textEditor = new TextEditor;    
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
     textEditor->SetLanguageDefinition(lang);
+    textEditor->SetText("");
 
-    const char* fileToEdit = "../../sources/main.cpp";
-
-    {
-        static std::ifstream t(fileToEdit);
-        LOG_MSG("Reading file...\n");
-        if (t.good())
-        {
-            LOG_MSG("File read !.\n");
-            static std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-            textEditor->SetText(str);
-        }
-    }
-
-    LOG_MSG("Init done.\n");
 
 	return true;
 }
