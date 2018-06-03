@@ -45,11 +45,6 @@ void Container::draw()
 
 	// 1 - Update NodeViews
 
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	auto itemRectMin      = ImVec2(0.0f,    0.0f);
-	auto itemRectMax      = ImVec2(4096.0f, 4096.0f);
-	draw_list->AddRectFilled(itemRectMin, itemRectMax, ImColor(0.2f, 0.2f, 0.2f));			
-
 	for(auto eachNode : this->entities)
 	{
 		eachNode->getComponent("view")->update();

@@ -42,8 +42,10 @@ SOURCES += $(wildcard $(SRCDIR)/Entities/*.cpp)
 SOURCES += $(wildcard $(SRCDIR)/Common/*.cpp)
 
 OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SOURCES))
+OBJECTS += includes/ImGuiColorTextEdit/TextEditor.o
 OBJECTS += libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.o
 OBJECTS += libs/imgui/examples/libs/gl3w/GL/gl3w.o
+
 OBJECTS += $(patsubst %.cpp, %.o, $(wildcard ./libs/imgui/*.cpp))
 
 DEPENDENCIES := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.d, $(SOURCES))

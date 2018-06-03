@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include <string>
 #include "View.h"
+#include <ImGuiColorTextEdit/TextEditor.h>
 
 namespace Nodable
 {
@@ -24,7 +25,7 @@ namespace Nodable
 		bool init();
 
 	private:
-
+		TextEditor         *textEditor;
 		Application  *application;
 		SDL_Window        *window;
 		SDL_GLContext     glcontext;

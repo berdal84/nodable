@@ -8,6 +8,8 @@
 #include "Application.h"
 #include "Container.h"
 #include "NodeView.h"
+#include <fstream>
+#include <Log.h>
 
 using namespace Nodable;
 
@@ -137,6 +139,29 @@ bool ApplicationView::init()
 	style.AntiAliasedFill    = true;
 	style.AntiAliasedLines   = true;
 
+    ///////////////////////////////////////////////////////////////////////
+    // TEXT EDITOR SAMPLE
+    LOG_MSG("Init lang for textEditor.\n");
+    textEditor = new TextEditor;
+    
+    static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
+    textEditor->SetLanguageDefinition(lang);
+
+    const char* fileToEdit = "../../sources/main.cpp";
+
+    {
+        static std::ifstream t(fileToEdit);
+        LOG_MSG("Reading file...\n");
+        if (t.good())
+        {
+            LOG_MSG("File read !.\n");
+            static std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+            textEditor->SetText(str);
+        }
+    }
+
+    LOG_MSG("Init done.\n");
+
 	return true;
 }
 
@@ -260,6 +285,8 @@ void ApplicationView::draw()
             {
                 ImGui::Text("Text Editor");
 
+                textEditor->Render("Text Editor Plugin");
+
                 ImGui::Text("Type an expression, the program will create the graph in realtime :");
 
                 // Draw the input text field :
@@ -295,6 +322,11 @@ void ApplicationView::draw()
             ImGui::SameLine();
             ImGui::BeginChild("NodeEditor", ImVec2(0.0f,0.0f), false, ImGuiWindowFlags_NoScrollbar);
             {
+                ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                auto itemRectMin      = ImVec2(0.0f,    0.0f);
+                auto itemRectMax      = ImVec2(4096.0f, 4096.0f);
+                draw_list->AddRectFilled(itemRectMin, itemRectMax, ImColor(0.2f, 0.2f, 0.2f));  
+                
                 ImGui::Text("Node Editor");
 
                 application->getContext()->draw();
