@@ -145,7 +145,7 @@ bool ApplicationView::init()
     textEditor = new TextEditor;    
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
     textEditor->SetLanguageDefinition(lang);
-    textEditor->SetText("");
+    textEditor->SetText(" ");
 
 
 	return true;
