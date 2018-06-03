@@ -6,7 +6,6 @@
 #include "ApplicationView.h"
 #include "Variable.h"
 #include <unistd.h>
-#include <imgui.h>
 #include "DataAccess.h"
 
 using namespace Nodable;

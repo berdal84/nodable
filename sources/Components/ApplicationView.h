@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Nodable.h"
-#include <imgui.h>
+#include <imgui/imgui.h>
 #include <SDL.h>
 #include <string>
 #include "View.h"

@@ -10,7 +10,7 @@ CXXFLAGS+= -DDEBUG
 CXXFLAGS+= `sdl2-config --cflags`
 
 #includes for submodules
-CXXFLAGS+= -I libs/imgui
+CXXFLAGS+= -I libs
 CXXFLAGS+= -I libs/imgui/examples/libs/gl3w
 
 #includes for non sub-modules libs
@@ -42,7 +42,7 @@ SOURCES += $(wildcard $(SRCDIR)/Entities/*.cpp)
 SOURCES += $(wildcard $(SRCDIR)/Common/*.cpp)
 
 OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SOURCES))
-OBJECTS += includes/ImGuiColorTextEdit/TextEditor.o
+OBJECTS += libs/ImGuiColorTextEdit/TextEditor.o
 OBJECTS += libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.o
 OBJECTS += libs/imgui/examples/libs/gl3w/GL/gl3w.o
 

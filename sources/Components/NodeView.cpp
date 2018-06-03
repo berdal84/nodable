@@ -1,6 +1,6 @@
 #include "NodeView.h"
 #include "Log.h"		          // for LOG_DBG(...)
-#include <imgui.h>
+#include <imgui/imgui.h>
 #include "Container.h"
 #include "Variable.h"
 #include "Wire.h"

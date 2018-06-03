@@ -2,8 +2,8 @@
 
 // Includes for ImGui
 #include <GL/gl3w.h>
-#include <imgui.h>
-#include <examples/sdl_opengl3_example/imgui_impl_sdl_gl3.h>
+#include <imgui/imgui.h>
+#include <imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.h>
 
 #include "Application.h"
 #include "Container.h"
@@ -284,15 +284,18 @@ void ApplicationView::draw()
             ImGui::BeginChild("TextEditor", ImVec2(availSize.x * 0.35, availSize.y));
             {
                 ImGui::Text("Text Editor");
-
-                textEditor->Render("Text Editor Plugin");
-
-                ImGui::Text("Type an expression, the program will create the graph in realtime :");
+                auto textEditorSize = ImGui::GetContentRegionAvail();
+                textEditorSize.y *= 0.5f;
+                textEditor->Render("Text Editor Plugin", textEditorSize);
+                
+                static bool isExpressionValid = true;
+                bool needsToEvaluateString = textEditor->IsTextChanged();
 
                 // Draw the input text field :
+                /*
+                ImGui::Text("Type an expression, the program will create the graph in realtime :");
                 static char inputTextBuffer[1024 * 200];
 
-                static bool isExpressionValid = true;
                 auto textColor = isExpressionValid ? ImVec4(0.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.9f, 0.0f, 0.0f,1.0f);
                 ImGui::PushStyleColor(ImGuiCol_Text,textColor );
                 static bool setKeyboardFocusOnCommandLine = true;
@@ -303,18 +306,19 @@ void ApplicationView::draw()
                 ImVec2 inputTextSize(ImGui::GetContentRegionAvailWidth(), 0);
                 bool needsToEvaluateString = ImGui::InputTextMultiline("", inputTextBuffer, NODABLE_ARRAYSIZE(inputTextBuffer), inputTextSize);
                 ImGui::PopStyleColor();
+                */
 
                 //ImGui::SameLine();
                 //needsToEvaluateString |= ImGui::Button("Eval");
 
                 if (!isExpressionValid)
-                    ImGui::TextColored(textColor, "Warning : wrong expression syntax");
+                    ImGui::TextColored(ImVec4(0.9f, 0.0f, 0.0f,1.0f), "Warning : wrong expression syntax");
 
                 if (needsToEvaluateString)
                 {
                     application->clearContext();
-                    isExpressionValid = application->eval(std::string(inputTextBuffer));
-                    setKeyboardFocusOnCommandLine = true;
+                    isExpressionValid = application->eval(textEditor->GetText());
+                    //setKeyboardFocusOnCommandLine = true;
                 }
             }
             ImGui::EndChild();
