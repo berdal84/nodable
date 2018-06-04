@@ -87,10 +87,10 @@ bool ApplicationView::init()
     // Load Fonts
     // (there is a default font, this is only if you want to change it. see extra_fonts/README.txt for more details)
     ImFontConfig config;
-    config.OversampleH    = 4;
-    config.OversampleV    = 4;
+    config.OversampleH    = 2;
+    config.OversampleV    = 2;
     io.DeltaTime          = 1.0f/120.0f;
-    io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 16.0f, &config);    
+    io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 18.0f, &config);    
     io.FontAllowUserScaling = true;
 
     // Configure ImGui Style
@@ -98,9 +98,9 @@ bool ApplicationView::init()
 	style.Colors[ImGuiCol_Text]                  = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled]          = ImVec4(0.21f, 0.21f, 0.21f, 1.00f);
 	style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-	style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
+	style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
 	style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
-	style.Colors[ImGuiCol_Border]                = ImVec4(1.00f, 1.00f, 1.00f, 0.50f);
+	style.Colors[ImGuiCol_Border]                = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
 	style.Colors[ImGuiCol_BorderShadow]          = ImVec4(0.30f, 0.30f, 0.30f, 0.50f);
 	style.Colors[ImGuiCol_FrameBg]               = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
 	style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.90f, 0.80f, 0.80f, 1.00f);
@@ -135,9 +135,14 @@ bool ApplicationView::init()
 	style.Colors[ImGuiCol_TextSelectedBg]        = ImVec4(0.00f, 0.00f, 1.00f, 0.35f);
 	style.Colors[ImGuiCol_ModalWindowDarkening]  = ImVec4(0.20f, 0.20f, 0.20f, 0.55f);
 
+    style.WindowBorderSize   = 1.0f;
+    style.FrameBorderSize    = 1.0f;
 	style.FrameRounding      = 3.0f;
+    style.ChildRounding      = 3.0f;
+    style.WindowRounding     = 0.0f;
 	style.AntiAliasedFill    = true;
 	style.AntiAliasedLines   = true;
+    style.WindowPadding      = ImVec2(10.0f,10.0f);
 
     /*
         Testing ImGuiTextColorEdit
