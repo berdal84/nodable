@@ -150,7 +150,8 @@ bool ApplicationView::init()
     textEditor = new TextEditor;    
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
     textEditor->SetLanguageDefinition(lang);
-    textEditor->SetText("10 * 50 / 0.1 + 3");
+    textEditor->SetText("// Expression example :\n10 * 50 / 0.1 + 3");
+    textEditor->SetPalette(TextEditor::GetLightPalette());
 
 
 	return true;
