@@ -145,7 +145,7 @@ bool ApplicationView::init()
     textEditor = new TextEditor;    
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
     textEditor->SetLanguageDefinition(lang);
-    textEditor->SetText(" ");
+    textEditor->SetText("50 * 0.1 + 999.7 / 10.5\n50 + 90\n10 * 40 / 50\n1 + 2 + 5 + 7 + 9\n");
 
 
 	return true;
