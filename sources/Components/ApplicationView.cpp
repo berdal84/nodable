@@ -145,7 +145,7 @@ bool ApplicationView::init()
     textEditor = new TextEditor;    
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
     textEditor->SetLanguageDefinition(lang);
-    textEditor->SetText("50 * 0.1 + 999.7 / 10.5\n50 + 90\n10 * 40 / 50\n1 + 2 + 5 + 7 + 9\n");
+    textEditor->SetText("10 * 50 / 0.1 + 3");
 
 
 	return true;
@@ -275,7 +275,7 @@ void ApplicationView::draw()
                 textEditor->Render("Text Editor Plugin", textEditorSize);
                 
                 static bool isExpressionValid = true;
-                bool needsToEvaluateString = textEditor->IsTextChanged();
+                bool needsToEvaluateString = textEditor->IsTextChanged() || textEditor->IsCursorPositionChanged();
 
                 // Draw the input text field :
                 /*
@@ -303,8 +303,8 @@ void ApplicationView::draw()
                 if (needsToEvaluateString)
                 {
                     application->clearContext();
-                    isExpressionValid = application->eval(textEditor->GetText());
-                    //setKeyboardFocusOnCommandLine = true;
+                    std::string expr = textEditor->HasSelection() ? textEditor->GetSelectedText() : textEditor->GetCurrentLineText( );
+                    isExpressionValid = application->eval(expr);
                 }
             }
             ImGui::EndChild();
