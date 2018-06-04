@@ -39,3 +39,5 @@
 # *.exe
 # *.out
 # *.app
+
+bin/linux64/saves/
