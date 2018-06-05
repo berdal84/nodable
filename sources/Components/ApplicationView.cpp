@@ -145,13 +145,39 @@ bool ApplicationView::init()
     style.WindowPadding      = ImVec2(10.0f,10.0f);
 
     /*
-        Testing ImGuiTextColorEdit
+        Configure ImGuiTextColorEdit
     */
+
     textEditor = new TextEditor;    
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
     textEditor->SetLanguageDefinition(lang);
     textEditor->SetText("// Expression example :\n10 * 50 / 0.1 + 3");
-    textEditor->SetPalette(TextEditor::GetLightPalette());
+
+    TextEditor::Palette palette = {{
+        0xffffffff, // None
+        0xffd69c56, // Keyword  
+        0xff00ff00, // Number
+        0xff7070e0, // String
+        0xff70a0e0, // Char literal
+        0xffffffff, // Punctuation
+        0xff409090, // Preprocessor
+        0xffaaaaaa, // Identifier
+        0xff9bc64d, // Known identifier
+        0xffc040a0, // Preproc identifier
+        0xff909090, // Comment (single line)
+        0xff909090, // Comment (multi line)
+        0xff303030, // Background
+        0xffe0e0e0, // Cursor
+        0x40ffffff, // Selection
+        0x800020ff, // ErrorMarker
+        0x40f08000, // Breakpoint
+        0x88909090, // Line number
+        0x40000000, // Current line fill
+        0x40808080, // Current line fill (inactive)
+        0x40a0a0a0, // Current line edge
+        }};
+
+    textEditor->SetPalette(palette);
 
 
 	return true;
