@@ -27,7 +27,7 @@ Video n°2 - Automatic Layout :
 [![Watch on Youtube](https://img.youtube.com/vi/-4N3Krlsr_s/0.jpg)](http://www.youtube.com/watch?v=-4N3Krlsr_s)
 
 Vidéo n°3 - First Talk about Nodable : Past, present and future :
-[![Watch on Youtube](https://img.youtube.com/vi/-4N3Krlsr_s/0.jpg)](http://www.youtube.com/watch?v=_9_wzS7Hme8)
+[![Watch on Youtube](https://img.youtube.com/vi/_9_wzS7Hme8/0.jpg)](http://www.youtube.com/watch?v=_9_wzS7Hme8)
 
 
 The language :
