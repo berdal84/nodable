@@ -10,12 +10,13 @@ CXX      = g++
 CXXFLAGS+= `sdl2-config --cflags`
 
 #includes for submodules
-CXXFLAGS+= -I libs
-CXXFLAGS+= -I libs/imgui
-CXXFLAGS+= -I libs/imgui/examples/libs/gl3w
+CXXFLAGS+= -I extern
+CXXFLAGS+= -I extern/imgui
 
 #includes for non sub-modules libs
-CXXFLAGS+= -I includes/
+CXXFLAGS+= -I libs
+CXXFLAGS+= -I libs/gl3w
+CXXFLAGS+= -I libs/glfw
 
 # Nodable header includes
 CXXFLAGS+= -I sources
@@ -25,6 +26,7 @@ CXXFLAGS+= -I sources/Common
 
 CXXFLAGS+= -lGL -ldl
 CXXFLAGS+= `sdl2-config --libs`
+CXXFLAGS+= `pkg-config --cflags glfw3`
 CXXFLAGS+= -std=c++11
 
 LDFLAGS=
@@ -41,13 +43,12 @@ SOURCES := $(wildcard $(SRCDIR)/*.cpp)
 SOURCES += $(wildcard $(SRCDIR)/Components/*.cpp)
 SOURCES += $(wildcard $(SRCDIR)/Entities/*.cpp)
 SOURCES += $(wildcard $(SRCDIR)/Common/*.cpp)
+SOURCES += libs/gl3w/GL/gl3w.c
 
 OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SOURCES))
-OBJECTS += libs/ImGuiColorTextEdit/TextEditor.o
-OBJECTS += libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.o
-OBJECTS += libs/imgui/examples/libs/gl3w/GL/gl3w.o
+OBJECTS += extern/ImGuiColorTextEdit/TextEditor.o
 
-OBJECTS += $(patsubst %.cpp, %.o, $(wildcard ./libs/imgui/*.cpp))
+OBJECTS += $(patsubst %.cpp, %.o, $(wildcard ./extern/imgui/*.cpp))
 
 DEPENDENCIES := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.d, $(SOURCES))
 
@@ -58,16 +59,8 @@ include $(wildcard $(OBJDIR)/*.d)
 $(EXECUTABLE): $(OBJECTS)
 	$(CXX)  $(OBJECTS) -o $(BINDIR)/$(EXECUTABLE) $(CXXFLAGS)
 
-##############################################################
 # Specific for imGui :
-./libs/imgui/%.o: ./libs/imgui/%.cpp
-
-libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.o : libs/imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.cpp
-	$(CXX) -c $(CXXFLAGS) $< -o $@
-
-libs/imgui/examples/libs/gl3w/GL/gl3w.o: libs/imgui/examples/libs/gl3w/GL/gl3w.c
-	$(CXX) -c $(CXXFLAGS) $< -o $@
-###############################################################"
+./extern/imgui/%.o: ./extern/imgui/%.cpp
 
 # Build each object file
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(OBJDIR)/%.d

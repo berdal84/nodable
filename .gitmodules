@@ -1,7 +1,0 @@
-[submodule "libs/imgui"]
-	path = libs/imgui
-	url = https://github.com/berdal84/imgui.git
-
-[submodule "libs/ImGuiColorTextEdit"]
-	path = libs/ImGuiColorTextEdit
-	url = https://github.com/berdal84/ImGuiColorTextEdit
