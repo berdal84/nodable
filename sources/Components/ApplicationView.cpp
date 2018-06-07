@@ -90,6 +90,7 @@ bool ApplicationView::init()
     config.OversampleH    = 2;
     config.OversampleV    = 2;
     io.DeltaTime          = 1.0f/120.0f;
+    //io.Fonts->AddFontDefault();
     io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 18.0f, &config);    
     io.FontAllowUserScaling = true;
 
@@ -151,7 +152,7 @@ bool ApplicationView::init()
     textEditor = new TextEditor;    
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
     textEditor->SetLanguageDefinition(lang);
-    textEditor->SetText("// Expression example :\n10 * 50 / 0.1 + 3");
+    textEditor->SetText("// Expression example :\n10 * 50 / 0.1 + 3\n\tone tab\n\t\ttwo tabs");
 
     TextEditor::Palette palette = {{
         0xffffffff, // None
