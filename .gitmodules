@@ -1,0 +1,6 @@
+[submodule "extern/ImGuiColorTextEdit"]
+	path = extern/ImGuiColorTextEdit
+	url = https://github.com/berdal84/ImGuiColorTextEdit
+[submodule "extern/imgui"]
+	path = extern/imgui
+	url = https://github.com/berdal84/imgui
