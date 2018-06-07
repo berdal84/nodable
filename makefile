@@ -11,6 +11,7 @@ CXXFLAGS+= `sdl2-config --cflags`
 
 #includes for submodules
 CXXFLAGS+= -I libs
+CXXFLAGS+= -I libs/imgui
 CXXFLAGS+= -I libs/imgui/examples/libs/gl3w
 
 #includes for non sub-modules libs
