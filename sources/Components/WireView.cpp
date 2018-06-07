@@ -3,7 +3,7 @@
 #include "Wire.h"
 #include "Entity.h"
 
-#include <imgui.h>
+#include <imgui/imgui.h>
 
 using namespace Nodable;
 
@@ -110,9 +110,9 @@ void WireView::draw()
 		    	auto textSize = ImGui::CalcTextSize(_source);
 
 		    	if ( pos0.y > pos1.y )
-					ImGui::SetCursorPos(ImVec2(pos0.x + offsetX, pos0.y ));
+					ImGui::SetCursorScreenPos(ImVec2(pos0.x + offsetX, pos0.y ));
 				else
-					ImGui::SetCursorPos(ImVec2(pos0.x + offsetX, pos0.y - textSize.y - bezierThickness));
+					ImGui::SetCursorScreenPos(ImVec2(pos0.x + offsetX, pos0.y - textSize.y - bezierThickness));
 
 		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill), getColor(ColorType_Shadow), _source);
 			}
@@ -122,9 +122,9 @@ void WireView::draw()
 		    	auto textSize = ImGui::CalcTextSize( _target);
 
 		    	if ( pos0.y > pos1.y )
-					ImGui::SetCursorPos(ImVec2(pos1.x - offsetX - textSize.x, pos1.y - textSize.y - bezierThickness));
+					ImGui::SetCursorScreenPos(ImVec2(pos1.x - offsetX - textSize.x, pos1.y - textSize.y - bezierThickness));
 				else
-					ImGui::SetCursorPos(ImVec2(pos1.x - offsetX - textSize.x, pos1.y));
+					ImGui::SetCursorScreenPos(ImVec2(pos1.x - offsetX - textSize.x, pos1.y));
 
 		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), _target);
 			}

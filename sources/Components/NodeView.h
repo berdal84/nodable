@@ -2,7 +2,7 @@
 
 #include "Nodable.h" // for constants and forward declarations
 #include "View.h"    // base class
-#include <imgui.h>   // for ImVec2
+#include <imgui/imgui.h>   // for ImVec2
 #include <string>
 #include <map>
 

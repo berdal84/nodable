@@ -44,6 +44,7 @@ void Container::draw()
 	}
 
 	// 1 - Update NodeViews
+
 	for(auto eachNode : this->entities)
 	{
 		eachNode->getComponent("view")->update();

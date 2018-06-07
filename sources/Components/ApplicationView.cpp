@@ -2,12 +2,14 @@
 
 // Includes for ImGui
 #include <GL/gl3w.h>
-#include <imgui.h>
-#include <examples/sdl_opengl3_example/imgui_impl_sdl_gl3.h>
+#include <imgui/imgui.h>
+#include <imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.h>
 
 #include "Application.h"
 #include "Container.h"
 #include "NodeView.h"
+#include <fstream>
+#include <Log.h>
 
 using namespace Nodable;
 
@@ -20,6 +22,9 @@ ApplicationView::ApplicationView(const char* _name, Application* _application):
     // Add a member to know if we should display the properties panel or not
     addMember("showProperties");
     setMember("showProperties", false);
+
+    addMember("showImGuiDemo");
+    setMember("showImGuiDemo", false);
 
     // Add two members for the window size
     addMember("glWindowSizeX");
@@ -62,7 +67,7 @@ bool ApplicationView::init()
                                 SDL_WINDOWPOS_CENTERED,
                                 getMember("glWindowSizeX")->getValueAsNumber(),
                                 getMember("glWindowSizeY")->getValueAsNumber(),
-                                SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+                                SDL_WINDOW_OPENGL);
     
     glcontext = SDL_GL_CreateContext(window);
     SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -82,20 +87,21 @@ bool ApplicationView::init()
     // Load Fonts
     // (there is a default font, this is only if you want to change it. see extra_fonts/README.txt for more details)
     ImFontConfig config;
-    config.OversampleH    = 4;
-    config.OversampleV    = 4;
+    config.OversampleH    = 2;
+    config.OversampleV    = 2;
     io.DeltaTime          = 1.0f/120.0f;
-    io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 16.0f, &config);    
+    //io.Fonts->AddFontDefault();
+    io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 18.0f, &config);    
     io.FontAllowUserScaling = true;
 
     // Configure ImGui Style
     ImGuiStyle& style = ImGui::GetStyle();
-	style.Colors[ImGuiCol_Text]                  = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+	style.Colors[ImGuiCol_Text]                  = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled]          = ImVec4(0.21f, 0.21f, 0.21f, 1.00f);
-	style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.5f, 0.5f, 0.5f, 1.00f);
-	style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(1.00f, 1.00f, 1.00f, 0.08f);
+	style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+	style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
 	style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
-	style.Colors[ImGuiCol_Border]                = ImVec4(1.00f, 1.00f, 1.00f, 0.5f);
+	style.Colors[ImGuiCol_Border]                = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
 	style.Colors[ImGuiCol_BorderShadow]          = ImVec4(0.30f, 0.30f, 0.30f, 0.50f);
 	style.Colors[ImGuiCol_FrameBg]               = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
 	style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.90f, 0.80f, 0.80f, 1.00f);
@@ -130,9 +136,50 @@ bool ApplicationView::init()
 	style.Colors[ImGuiCol_TextSelectedBg]        = ImVec4(0.00f, 0.00f, 1.00f, 0.35f);
 	style.Colors[ImGuiCol_ModalWindowDarkening]  = ImVec4(0.20f, 0.20f, 0.20f, 0.55f);
 
+    style.WindowBorderSize   = 1.0f;
+    style.FrameBorderSize    = 1.0f;
 	style.FrameRounding      = 3.0f;
+    style.ChildRounding      = 3.0f;
+    style.WindowRounding     = 0.0f;
 	style.AntiAliasedFill    = true;
 	style.AntiAliasedLines   = true;
+    style.WindowPadding      = ImVec2(10.0f,10.0f);
+
+    /*
+        Configure ImGuiTextColorEdit
+    */
+
+    textEditor = new TextEditor;    
+    static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
+    textEditor->SetLanguageDefinition(lang);
+    textEditor->SetText("// Expression example :\n10 * 50 / 0.1 + 3\n\tone tab\n\t\ttwo tabs");
+
+    TextEditor::Palette palette = {{
+        0xffffffff, // None
+        0xffd69c56, // Keyword  
+        0xff00ff00, // Number
+        0xff7070e0, // String
+        0xff70a0e0, // Char literal
+        0xffffffff, // Punctuation
+        0xff409090, // Preprocessor
+        0xffaaaaaa, // Identifier
+        0xff9bc64d, // Known identifier
+        0xffc040a0, // Preproc identifier
+        0xff909090, // Comment (single line)
+        0xff909090, // Comment (multi line)
+        0xff303030, // Background
+        0xffe0e0e0, // Cursor
+        0x40ffffff, // Selection
+        0x800020ff, // ErrorMarker
+        0x40f08000, // Breakpoint
+        0x88909090, // Line number
+        0x40000000, // Current line fill
+        0x40808080, // Current line fill (inactive)
+        0x40a0a0a0, // Current line edge
+        }};
+
+    textEditor->SetPalette(palette);
+
 
 	return true;
 }
@@ -148,104 +195,6 @@ void ApplicationView::draw()
     }
     ImGui_ImplSdlGL3_NewFrame(window);
 
-
-    if( ImGui::BeginMainMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
-            ImGui::MenuItem("New", "Ctrl + N");
-            ImGui::MenuItem("Save", "Ctrl + N");
-            ImGui::MenuItem("Save As.", "Ctrl + N");
-            if ( ImGui::MenuItem("Quit", "Alt + F4"))
-            	application->stopExecution();
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Edit"))
-        {
-            auto hide    = ImGui::MenuItem("Hide", "Del.");
-            auto arrange = ImGui::MenuItem("Arrange", "A");
-            ImGui::Separator();
-            auto showProperties = ImGui::MenuItem("Settings", "", getMember("showProperties")->getValueAsBoolean());
-
-            auto selected = NodeView::GetSelected();
-            if( selected )
-	        {
-	            if (hide)
-	            	selected->setVisible(false);
-				else if (arrange)
-					selected->arrangeRecursively();
-        	}
-
-            if(showProperties)
-                 setMember("showProperties", !getMember("showProperties")->getValueAsBoolean());
-
-            ImGui::EndMenu();
-        }
-
-        if ( ImGui::BeginMenu("View"))
-        {
-        	//auto frame = ImGui::MenuItem("Frame All", "F");
-        	//ImGui::Separator();
-        	auto detailSimple   = ImGui::MenuItem("Simple View", "", NodeView::s_drawDetail == DrawDetail_Simple );
-        	auto detailAdvanced = ImGui::MenuItem("Advanced View", "", NodeView::s_drawDetail == DrawDetail_Advanced );
-        	auto detailComplex  = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex );
-
-        	//if( frame)
-        		// TODO
-
-        	if (detailSimple)
-        		NodeView::s_drawDetail = DrawDetail_Simple;
-
-        	if (detailAdvanced)
-        		NodeView::s_drawDetail = DrawDetail_Advanced;
-
-        	if (detailComplex)
-        		NodeView::s_drawDetail = DrawDetail_Complex;
-
-        	ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }
-
-    // 2. Command line window
-    {
-	    bool isCommandLineVisible = true;
-
-	    if(ImGui::Begin("Nodable command line", &isCommandLineVisible, ImGuiWindowFlags_AlwaysAutoResize))
-	    {
-		    
-		    ImGui::Text("Type an expression, the program will create the graph in realtime :");
-
-		    // Draw the input text field :
-		    static char inputTextBuffer[1024];
-		    static bool isExpressionValid = true;
-		    auto textColor = isExpressionValid ? ImVec4(0.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.9f, 0.0f, 0.0f,1.0f);
-		    ImGui::PushStyleColor(ImGuiCol_Text,textColor );
-		    static bool setKeyboardFocusOnCommandLine = true;
-		    if ( setKeyboardFocusOnCommandLine){
-		       ImGui::SetKeyboardFocusHere();
-		       setKeyboardFocusOnCommandLine = false;
-		    }
-		    bool needsToEvaluateString = ImGui::InputText("", inputTextBuffer, 1023 /*, ImGuiInputTextFlags_EnterReturnsTrue*/);
-			ImGui::PopStyleColor();
-
-		    //ImGui::SameLine();
-		    //needsToEvaluateString |= ImGui::Button("Eval");
-
-		    if (!isExpressionValid)
-		    	ImGui::TextColored(textColor, "Warning : wrong expression syntax");
-
-		    if (needsToEvaluateString)
-		    {
-		    	application->clearContext();
-		        isExpressionValid = application->eval(std::string(inputTextBuffer));
-		        setKeyboardFocusOnCommandLine = true;
-		    }
-		}
-
-	    ImGui::End();
-	}
 
     // Properties panel window
     {
@@ -264,27 +213,156 @@ void ApplicationView::draw()
             ImGui::End();
             setMember("showProperties", b);
         }
-		
-	}
+    }
 
+    // Demo Window
+    {
+        bool b = getMember("showImGuiDemo")->getValueAsBoolean();
+        if (b){
+            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+            ImGui::ShowDemoWindow(&b);
+            setMember("showImGuiDemo", b);
+        }
+    }
     // Fullscreen window
     {
-	    int width, height;
-		SDL_GetWindowSize(window, &width, &height);
-		ImGui::SetNextWindowPos(ImVec2());
-		ImGui::SetNextWindowSize(ImVec2(width, height));
-		ImGui::Begin("Container", NULL, ImVec2(width,height), -1.0f, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
-		{
-			application->getContext()->draw();
-		}
-		ImGui::End();
-	}
-    
-    // Demo Window
-    //ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-    //bool show_demo_window = false;
-    //ImGui::ShowDemoWindow(&show_demo_window);
+        int width, height;
+        SDL_GetWindowSize(window, &width, &height);
+        ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+        ImGui::SetNextWindowSize(ImVec2(width, height));
+        ImGui::Begin("Container", NULL, ImVec2(width,height), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
+        {
+             if( ImGui::BeginMenuBar())
+            {
+                if (ImGui::BeginMenu("File"))
+                {
+                    ImGui::MenuItem("New", "Ctrl + N");
+                    ImGui::MenuItem("Save", "Ctrl + N");
+                    ImGui::MenuItem("Save As.", "Ctrl + N");
+                    if ( ImGui::MenuItem("Quit", "Alt + F4"))
+                        application->stopExecution();
+                    ImGui::EndMenu();
+                }
 
+                if (ImGui::BeginMenu("Edit"))
+                {
+                    auto hide    = ImGui::MenuItem("Hide", "Del.");
+                    auto arrange = ImGui::MenuItem("Arrange", "A");
+
+                    auto selected = NodeView::GetSelected();
+                    if( selected )
+                    {
+                        if (hide)
+                            selected->setVisible(false);
+                        else if (arrange)
+                            selected->arrangeRecursively();
+                    }
+
+                    ImGui::EndMenu();
+                }
+
+                if ( ImGui::BeginMenu("View"))
+                {
+                    //auto frame = ImGui::MenuItem("Frame All", "F");
+                    //ImGui::Separator();
+                    auto detailSimple   = ImGui::MenuItem("Simple View", "", NodeView::s_drawDetail == DrawDetail_Simple );
+                    auto detailAdvanced = ImGui::MenuItem("Advanced View", "", NodeView::s_drawDetail == DrawDetail_Advanced );
+                    auto detailComplex  = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex );
+                    
+                    ImGui::Separator();
+                    auto showProperties = ImGui::MenuItem("Show Properties", "", getMember("showProperties")->getValueAsBoolean());
+                    auto showImGuiDemo  = ImGui::MenuItem("Show ImGui Demo", "", getMember("showImGuiDemo")->getValueAsBoolean());
+
+                    //if( frame)
+                        // TODO
+
+                    if (detailSimple)
+                        NodeView::s_drawDetail = DrawDetail_Simple;
+
+                    if (detailAdvanced)
+                        NodeView::s_drawDetail = DrawDetail_Advanced;
+
+                    if (detailComplex)
+                        NodeView::s_drawDetail = DrawDetail_Complex;
+
+                    if(showProperties)
+                         setMember("showProperties", !getMember("showProperties")->getValueAsBoolean());
+
+                    if(showImGuiDemo)
+                         setMember("showImGuiDemo", !getMember("showImGuiDemo")->getValueAsBoolean());
+
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenuBar();
+            }
+    
+
+            auto availSize = ImGui::GetContentRegionAvail();
+            availSize.y -=  ImGui::GetTextLineHeightWithSpacing();;
+            static bool isExpressionValid = true;
+            ImGui::BeginChild("Main", ImVec2(availSize.x, availSize.y), false);
+            {
+                ImGui::BeginChild("TextEditor", ImVec2(availSize.x * 0.25, availSize.y), false);
+                {
+                    View::ShadowedText (ImVec2(1.0f, 1.0f), ImColor(1.0f, 1.0f, 1.0f, 0.2f), "Text Editor");
+
+                    auto textEditorSize = ImGui::GetContentRegionAvail();
+                    textEditor->Render("Text Editor Plugin", textEditorSize);                    
+                    
+                    bool needsToEvaluateString = textEditor->IsTextChanged() || textEditor->IsCursorPositionChanged();
+
+                    if (needsToEvaluateString)
+                    {
+                        application->clearContext();
+                        std::string expr = textEditor->HasSelection() ? textEditor->GetSelectedText() : textEditor->GetCurrentLineText( );
+                        isExpressionValid = application->eval(expr);
+                    }
+                }
+                ImGui::EndChild();
+
+                ImGui::SameLine();
+
+                ImGui::BeginChild("NodeEditorMain", ImVec2(0.0f,0.0f), false, ImGuiWindowFlags_NoScrollbar);
+                {
+                    View::ShadowedText (ImVec2(1.0f, 1.0f), ImColor(1.0f, 1.0f, 1.0f, 0.2f), "Node Editor");
+
+                    ImGui::BeginChild("NodeEditorBottom", ImVec2(0.0f,0.0f), false, ImGuiWindowFlags_NoScrollbar);
+                    {
+                        // Draw a dark background
+                        auto cursorPos = ImGui::GetCursorScreenPos();
+                        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                        auto itemRectMin      = cursorPos;
+                        auto content          = ImGui::GetContentRegionAvail();
+                        auto itemRectMax      = ImVec2(cursorPos.x + content.x, cursorPos.y + content.y);
+                        draw_list->AddRectFilled(itemRectMin, itemRectMax, ImColor(0.2f, 0.2f, 0.2f), 3.0f);  
+
+                        application->getContext()->draw();
+                    }
+                    ImGui::EndChild();
+
+                }
+                ImGui::EndChild();
+            }
+            ImGui::EndChild();
+
+            /*
+                Status bar
+            */
+
+            auto statusLineColor = ImVec4(0.0f, 0.0f, 0.0f,0.5f);
+            std::string statusLineString = "Status: Everything is OK.";
+
+            if (!isExpressionValid)
+            {
+                statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
+                statusLineString = "Warning : wrong expression syntax";
+            }
+
+            ImGui::TextColored(statusLineColor, "%s", statusLineString.c_str());
+        }
+        ImGui::End();
+    }
+    
     // Rendering
     glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);

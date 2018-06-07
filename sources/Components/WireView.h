@@ -1,6 +1,6 @@
 #include "Nodable.h"
 #include "View.h"   // base class
-#include <imgui.h>
+#include <imgui/imgui.h>
 
 namespace Nodable{
 	class WireView : public View
