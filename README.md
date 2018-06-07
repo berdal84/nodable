@@ -16,7 +16,7 @@ Examples :
 
 An expression example :
 
-![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_05_20_Simplified_Graphs.png)
+![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_06_05_With_ImGuiColorTextEdit.png)
 
 Video n°1 - a first demo :
 
@@ -28,6 +28,7 @@ Video n°2 - Automatic Layout :
 
 Vidéo n°3 - First Talk about Nodable : Past, present and future :
 [![Watch on Youtube](https://img.youtube.com/vi/_9_wzS7Hme8/0.jpg)](http://www.youtube.com/watch?v=_9_wzS7Hme8)
+
 
 
 The language :
