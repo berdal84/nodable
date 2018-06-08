@@ -43,7 +43,6 @@ SOURCES := $(wildcard $(SRCDIR)/*.cpp)
 SOURCES += $(wildcard $(SRCDIR)/Components/*.cpp)
 SOURCES += $(wildcard $(SRCDIR)/Entities/*.cpp)
 SOURCES += $(wildcard $(SRCDIR)/Common/*.cpp)
-SOURCES += libs/gl3w/GL/gl3w.c
 
 OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SOURCES))
 OBJECTS += extern/ImGuiColorTextEdit/TextEditor.o
@@ -51,6 +50,7 @@ OBJECTS += extern/ImGuiColorTextEdit/TextEditor.o
 OBJECTS += $(patsubst %.cpp, %.o, $(wildcard ./extern/imgui/*.cpp))
 
 DEPENDENCIES := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.d, $(SOURCES))
+SOURCES += libs/gl3w/GL/gl3w.c
 
 all: makeFolders dependencies $(EXECUTABLE)
 
