@@ -92,9 +92,6 @@ To compile you need a c++ 11 compatible compiler. The make file provided is conf
 Install dependencies:
 
 ```
-sudo add-apt-repository -y ppa:team-xbmc/ppa
-sudo add-apt-repository -y ppa:pyglfw/pyglfw
-sudo apt-get update -qq
 sudo apt-get install -y --no-install-recommends libsdl2-dev gcc-4.8 g++-4.8 libglfw3-dev
 ```
 Clone the project with submodules:
@@ -125,7 +122,7 @@ git clone --recurse-submodules https://github.com/berdal84/Nodable
 ```
 Move to the bin folder:
 ```
-cd <nodable folder>/bin/linux64
+cd <nodable folder>/bin/Linux64
 ```
 Run the software:
 ```
