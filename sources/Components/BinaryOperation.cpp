@@ -74,7 +74,13 @@ void Add::update()
 			break;
 		}	
 	}
-		
+	
+	std::string expr;
+	expr += left->getSourceExpression();
+	expr += "+";
+	expr += right->getSourceExpression();
+	result->setSourceExpression(expr.c_str());
+
 	LOG_MSG("%s + %s = %f\n", left->getValueAsString().c_str(), 
                               right->getValueAsString().c_str(),
                               result->getValueAsString().c_str());
@@ -87,6 +93,12 @@ void Substract::update()
 {
 	double sub = left->getValueAsNumber() - right->getValueAsNumber();
 	result->setValue(sub);
+	
+	std::string expr;
+	expr += left->getSourceExpression();
+	expr += "-";
+	expr += right->getSourceExpression();
+	result->setSourceExpression(expr.c_str());
 
 	LOG_MSG("%s - %s = %f\n", left->getValueAsString().c_str(), 
                               right->getValueAsString().c_str(),
@@ -107,6 +119,12 @@ void Divide::update()
                                   right->getValueAsString().c_str(),
                                   result->getValueAsString().c_str());
 	}
+
+	std::string expr;
+	expr += left->getSourceExpression();
+	expr += "/";
+	expr += right->getSourceExpression();
+	result->setSourceExpression(expr.c_str());
 }
 
  // Node_Multiply :
@@ -130,9 +148,15 @@ void Multiply::update()
 			break;
 		}
 	}
-		LOG_MSG("%s * %s = %f\n", left->getValueAsString().c_str(), 
-	                              right->getValueAsString().c_str(),
-	                              result->getValueAsString().c_str());
+	std::string expr;
+	expr += left->getSourceExpression();
+	expr += "*";
+	expr += right->getSourceExpression();
+	result->setSourceExpression(expr.c_str());
+
+	LOG_MSG("%s * %s = %f\n", left->getValueAsString().c_str(), 
+	                          right->getValueAsString().c_str(),
+	                          result->getValueAsString().c_str());
 }
 
  // Node_Assign :
@@ -164,6 +188,15 @@ void Assign::update()
 			break;
 		}
 	}
+	
+	std::string expr;
+
+	expr += left->getSourceExpression();
+	expr += "=";
+	expr += right->getSourceExpression();
+
+	result->setSourceExpression(expr.c_str());
+
 	LOG_MSG("%s = %s (result %s)\n", 	left->getValueAsString().c_str(),
 										right->getValueAsString().c_str(),
 										result->getValueAsString().c_str());	

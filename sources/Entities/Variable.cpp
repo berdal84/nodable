@@ -7,7 +7,7 @@ using namespace Nodable;
 Variable::Variable()
 {
 	LOG_DBG("New Variable\n");
-	addMember("value", Visibility_Public);
+	addMember("value", Visibility_Public);	
 	setMember("__class__", "Variable");
 }
 
@@ -28,6 +28,7 @@ std::string Variable::getValueAsString()const
 void Variable::setName(const char* _name)
 {
 	name = _name;
+	getMember("value")->setSourceExpression(_name);
 	setLabel(_name);
 }
 

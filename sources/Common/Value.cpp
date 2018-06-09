@@ -226,3 +226,14 @@ std::string Value::getTypeAsString()const
 		default:				{return "Unknown";}
 	}
 }
+
+std::string Value::getSourceExpression()const
+{
+	if( input != nullptr)
+		return input->getSourceExpression();
+
+	if ( sourceExpression != "")
+		return sourceExpression;
+
+	return getValueAsString();
+}
