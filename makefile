@@ -1,6 +1,15 @@
 # Compiler
 CXX      = g++
 
+# Detect architecture
+uname_p := _$(shell uname -p) 
+
+ifeq ($(uname_p),x86_64)
+	TARGET = Linux64
+else
+	TARGET = Linux32
+endif
+
 # for GCOV (Testing coverage)
 #CXXFLAGS+= -fprofile-arcs -ftest-coverage 
 
@@ -32,7 +41,6 @@ CXXFLAGS+= -std=c++11
 LDFLAGS=
 EXECUTABLE=nodable.bin
 
-TARGET :=linux64
 
 BINDIR :=bin/$(TARGET)
 SRCDIR :=sources
@@ -75,8 +83,9 @@ $(OBJDIR)/%.d : $(SRCDIR)/%.cpp
 # A target to run the program
 .PHONY: run
 run: all
+	echo $(uname_p)
 	$(EXECUTABLE)
-
+	
 .PHONY: dependencies
 dependencies: $(DEPENDENCIES)
 
