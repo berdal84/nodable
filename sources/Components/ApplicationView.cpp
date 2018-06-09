@@ -67,7 +67,11 @@ bool ApplicationView::init()
                                 SDL_WINDOWPOS_CENTERED,
                                 getMember("glWindowSizeX")->getValueAsNumber(),
                                 getMember("glWindowSizeY")->getValueAsNumber(),
-                                SDL_WINDOW_OPENGL);
+                                SDL_WINDOW_OPENGL |
+                                SDL_WINDOW_RESIZABLE | 
+                                SDL_WINDOW_FULLSCREEN
+                                /*SDL_WINDOW_FULLSCREEN_DESKTOP*/
+                                );
     
     glcontext = SDL_GL_CreateContext(window);
     SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -195,7 +199,6 @@ void ApplicationView::draw()
     }
     ImGui_ImplSdlGL3_NewFrame(window);
 
-
     // Properties panel window
     {
         bool b = getMember("showProperties")->getValueAsBoolean();
@@ -226,11 +229,14 @@ void ApplicationView::draw()
     }
     // Fullscreen window
     {
+        // Maintain window size to fit with SDL window
         int width, height;
+        auto renderer = SDL_GetRenderer(window);
         SDL_GetWindowSize(window, &width, &height);
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
         ImGui::SetNextWindowSize(ImVec2(width, height));
-        ImGui::Begin("Container", NULL, ImVec2(width,height), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
+
+        ImGui::Begin("Container", NULL, ImVec2(), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
         {
              if( ImGui::BeginMenuBar())
             {
