@@ -5,6 +5,7 @@
 #include <imgui/imgui.h>
 #include <imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.h>
 
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "Application.h"
 #include "Container.h"
 #include "NodeView.h"
@@ -88,15 +89,29 @@ bool ApplicationView::init()
     //ImGui::StyleColorsDark();
     ImGui::StyleColorsClassic();
 
-    // Load Fonts
-    // (there is a default font, this is only if you want to change it. see extra_fonts/README.txt for more details)
+    io.DeltaTime          = 1.0f/120.0f;
+
+    // Add a main font
+    {
+        ImFontConfig config;
+        config.OversampleH    = 2;
+        config.OversampleV    = 2;
+        //io.Fonts->AddFontDefault();
+        io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 18.0f, &config);    
+        io.FontAllowUserScaling = true;
+    }
+
+    // Add Icons   
+    {
+    // merge in icons from Font Awesome
+    static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
     ImFontConfig config;
     config.OversampleH    = 2;
     config.OversampleV    = 2;
-    io.DeltaTime          = 1.0f/120.0f;
-    //io.Fonts->AddFontDefault();
-    io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 18.0f, &config);    
-    io.FontAllowUserScaling = true;
+    config.MergeMode      = true;
+    config.PixelSnapH     = true;
+    io.Fonts->AddFontFromFileTTF( FONT_ICON_FILE_NAME_FAS, 16.0f, &config, icons_ranges );
+    }
 
     // Configure ImGui Style
     ImGuiStyle& style = ImGui::GetStyle();
@@ -242,10 +257,10 @@ void ApplicationView::draw()
             {
                 if (ImGui::BeginMenu("File"))
                 {
-                    ImGui::MenuItem("New", "Ctrl + N");
-                    ImGui::MenuItem("Save", "Ctrl + N");
-                    ImGui::MenuItem("Save As.", "Ctrl + N");
-                    if ( ImGui::MenuItem("Quit", "Alt + F4"))
+                    ImGui::MenuItem(ICON_FA_FILE"  New", "Ctrl + N");
+                    ImGui::MenuItem(ICON_FA_SAVE"  Save", "Ctrl + N");
+                    ImGui::MenuItem(ICON_FA_SAVE"  Save As.", "Ctrl + N");
+                    if ( ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4"))
                         application->stopExecution();
                     ImGui::EndMenu();
                 }
@@ -276,7 +291,7 @@ void ApplicationView::draw()
                     auto detailComplex  = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex );
                     
                     ImGui::Separator();
-                    auto showProperties = ImGui::MenuItem("Show Properties", "", getMember("showProperties")->getValueAsBoolean());
+                    auto showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", getMember("showProperties")->getValueAsBoolean());
                     auto showImGuiDemo  = ImGui::MenuItem("Show ImGui Demo", "", getMember("showImGuiDemo")->getValueAsBoolean());
 
                     //if( frame)
@@ -308,9 +323,9 @@ void ApplicationView::draw()
             static bool isExpressionValid = true;
             ImGui::BeginChild("Main", ImVec2(availSize.x, availSize.y), false);
             {
-                ImGui::BeginChild("TextEditor", ImVec2(availSize.x * 0.25, availSize.y), false);
+                ImGui::BeginChild( "TextEditor", ImVec2(availSize.x * 0.25, availSize.y), false);
                 {
-                    View::ShadowedText (ImVec2(1.0f, 1.0f), ImColor(1.0f, 1.0f, 1.0f, 0.2f), "Text Editor");
+                    View::ShadowedText (ImVec2(1.0f, 1.0f), ImColor(1.0f, 1.0f, 1.0f, 0.2f), ICON_FA_FILE_CODE " Text Editor");
 
                     auto textEditorSize = ImGui::GetContentRegionAvail();
                     textEditor->Render("Text Editor Plugin", textEditorSize);                    
@@ -328,11 +343,11 @@ void ApplicationView::draw()
 
                 ImGui::SameLine();
 
-                ImGui::BeginChild("NodeEditorMain", ImVec2(0.0f,0.0f), false, ImGuiWindowFlags_NoScrollbar);
+                ImGui::BeginChild("GraphEditorMain", ImVec2(0.0f,0.0f), false, ImGuiWindowFlags_NoScrollbar);
                 {
-                    View::ShadowedText (ImVec2(1.0f, 1.0f), ImColor(1.0f, 1.0f, 1.0f, 0.2f), "Node Editor");
+                    View::ShadowedText (ImVec2(1.0f, 1.0f), ImColor(1.0f, 1.0f, 1.0f, 0.2f), ICON_FA_CODE_BRANCH " Graph Editor");
 
-                    ImGui::BeginChild("NodeEditorBottom", ImVec2(0.0f,0.0f), false, ImGuiWindowFlags_NoScrollbar);
+                    ImGui::BeginChild("GraphEditorBottom", ImVec2(0.0f,0.0f), false, ImGuiWindowFlags_NoScrollbar);
                     {
                         // Draw a dark background
                         auto cursorPos = ImGui::GetCursorScreenPos();

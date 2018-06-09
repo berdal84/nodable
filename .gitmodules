@@ -4,3 +4,6 @@
 [submodule "extern/imgui"]
 	path = extern/imgui
 	url = https://github.com/berdal84/imgui
+[submodule "extern/IconFontCppHeaders"]
+	path = extern/IconFontCppHeaders
+	url = https://github.com/berdal84/IconFontCppHeaders
