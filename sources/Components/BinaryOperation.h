@@ -13,6 +13,7 @@ namespace Nodable{
 		void                setLeft	 (Value* _value){left= _value;};
 		void                setRight (Value* _value){right = _value;};
 		void                setResult(Value* _value){result = _value;};
+
 		/* return true if op needs to be evaluated before nextOp */
 		static  bool        NeedsToBeEvaluatedFirst(std::string op, std::string nextOp);
 	protected:
@@ -25,7 +26,7 @@ namespace Nodable{
 	class Add : public BinaryOperationComponent{
 	public:
 		COMPONENT_CONSTRUCTOR(Add);
-		void        update()override;
+		void        update()override;	
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Substraction */

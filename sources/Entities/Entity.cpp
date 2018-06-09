@@ -27,6 +27,8 @@ void Entity::Disconnect(Wire* _wire)
 		targetNode->wires.erase(found);
 	}
 
+	_wire->getTarget()->setInput(nullptr);
+	
 	_wire->setTarget(nullptr);
 	_wire->setSource(nullptr);
 
@@ -41,6 +43,7 @@ void Entity::Connect( Wire* _wire,
 	// Connect wire's source and target to nodes _from and _to.
 	_wire->setSource(_from);
 	_wire->setTarget(_to);
+	_to->setInput(_from);
 
 	_from->getOwner()->getAs<Entity*>()->wires.push_back(_wire);
 	_to->getOwner()->getAs<Entity*>()->wires.push_back(_wire);

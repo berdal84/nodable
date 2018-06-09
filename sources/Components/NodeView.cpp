@@ -297,6 +297,14 @@ void NodeView::draw()
 				break;
 			}
 		}
+		
+		/* If value is hovered, we draw a tooltip that print the source expression of the value*/
+		if( ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Source expression: \"%s\"", _v->getSourceExpression().c_str());
+			ImGui::EndTooltip();
+		}
 
 		auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
 		membersOffsetPositionY[_v->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f;
