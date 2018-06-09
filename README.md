@@ -95,8 +95,7 @@ Install dependencies:
 sudo add-apt-repository -y ppa:team-xbmc/ppa
 sudo add-apt-repository -y ppa:pyglfw/pyglfw
 sudo apt-get update -qq
-sudo apt-get install -y --no-install-recommends libsdl2-dev gcc-4.8 g++-4.8 libusb-1.0-0-dev
-sudo apt-get install -y --no-install-recommends libglfw3-dev libxrandr-dev libxi-dev libxxf86vm-dev
+sudo apt-get install -y --no-install-recommends libsdl2-dev gcc-4.8 g++-4.8 libglfw3-dev
 ```
 Clone the project with submodules:
 ```
