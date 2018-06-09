@@ -16,7 +16,7 @@ Examples :
 
 An expression example :
 
-![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_06_05_With_ImGuiColorTextEdit.png)
+![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_06_09_SimpleExpression_And_NewIcons.png)
 
 Video n°1 - a first demo :
 
