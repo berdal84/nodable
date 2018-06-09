@@ -32,8 +32,9 @@
 # ImGui config files
 *.ini
 
-# Nodable log files
+# Nodable
 *.log
+*.json
 
 # Executables
 # *.exe
