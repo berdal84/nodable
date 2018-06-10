@@ -17,7 +17,7 @@ namespace Nodable{
 
 		View();
 		
-		virtual void draw()=0;
+		virtual bool draw()=0;
 
 		/* Draw only shadow for a rectangle */
 		static void DrawRectShadow      (	ImVec2 	_topLeftCorner, 

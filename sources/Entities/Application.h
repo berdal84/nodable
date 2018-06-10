@@ -30,6 +30,9 @@ namespace Nodable
 		/* Update the state of the application.
 		Call this once per frame */
 		bool             update();
+		
+		/* Update Current Line Text*/
+		void updateCurrentLineText(std::string _val);
 
 		/* Force application to stops. Always delayed for 1 frame. */
 		void             stopExecution();

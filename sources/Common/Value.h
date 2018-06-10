@@ -43,7 +43,7 @@ namespace Nodable{
 
 		void        setConnectionFlags(ConnectionFlags_);
 		void        setSourceExpression(const char* _val){sourceExpression = _val;}
-		void        setInput         (Value* _val){input = _val;}
+		void        setInput         (Value* _val);
 		void  		setName			 (const char* _name){name = _name;}
 		void        setOwner         (Object* _owner){owner = _owner;}
 		void        setValue         (const Value*);

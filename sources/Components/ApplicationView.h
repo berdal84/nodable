@@ -19,11 +19,12 @@ namespace Nodable
 		~ApplicationView();
 
 		/* call this every frame */
-		void draw();
+		bool draw();
 
 		/* call this once just after the instantiation. */
 		bool init();
 
+		void updateCurrentLineText(std::string _val);
 	private:
 		TextEditor         *textEditor;
 		Application  *application;

@@ -35,6 +35,5 @@ namespace Nodable{
 	private:
 		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<Entity*>        entities;   /* Contain all Objects created by this context */
-		Entity*                     parent;
 	};
 }

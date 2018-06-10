@@ -42,7 +42,7 @@ bool Lexer::eval()
 	{
 		LOG_DBG("Lexer::eval() - build tree and eval\n");
 		auto result = buildGraph();
-		NodeView::ArrangeRecursively((NodeView*)result->getComponent("view"));
+		NodeView::ArrangeRecursively(result->getComponent("view")->getAs<NodeView*>());
 		
 		success = true;
 	}else{
@@ -62,7 +62,7 @@ Variable* Lexer::buildGraph()
 	auto           container   = this->getParent();
 
 	LOG_DBG("Lexer::buildGraph() - Assign result to a variable.\n");
-	Variable* resultVariable    = container->createNodeVariable("Result");	
+	Variable* resultVariable    = container->createNodeVariable();	
 
 	// If the value has no owner, we simplly set the variable value
 	if( resultValue->getOwner() == nullptr)

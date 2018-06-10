@@ -43,7 +43,7 @@ namespace Nodable{
 		int                 getOutputWireCount()const;
 
 		/* Force this node to be evaluated at the next update() call */
-		void                setDirty          (bool _value);
+		void                setDirty          (bool _value = true);
 
 		bool                isDirty           ()const;
 
