@@ -31,6 +31,14 @@ bool Value::allows(ConnectionFlags_ _flags)const
 	return maskedFlags == _flags;
 }
 
+void Value::setInput(Value* _val)
+{
+	input = _val;
+
+	if (_val == nullptr)
+		sourceExpression = "";
+}
+
 void Value::setValue(double _value)
 {
 	switch(type)

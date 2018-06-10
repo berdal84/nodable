@@ -171,7 +171,7 @@ bool ApplicationView::init()
     textEditor = new TextEditor;    
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
     textEditor->SetLanguageDefinition(lang);
-    textEditor->SetText("// Expression example :\n10 * 50 / 0.1 + 3\n\tone tab\n\t\ttwo tabs");
+    textEditor->SetText("// Expression example :\n10 * 50 / 0.1 + 3");
 
     TextEditor::Palette palette = {{
         0xffffffff, // None
@@ -203,7 +203,7 @@ bool ApplicationView::init()
 	return true;
 }
 
-void ApplicationView::draw()
+bool ApplicationView::draw()
 {
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -391,4 +391,28 @@ void ApplicationView::draw()
  	ImGui::Render();
     ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(window);
+
+    return false;
+}
+
+void ApplicationView::updateCurrentLineText(std::string _val)
+{
+    auto coord = textEditor->GetCursorPosition();
+
+    /* If there is no selection, selects current line */
+    if ( !textEditor->HasSelection() )
+    {
+        textEditor->MoveHome(false);
+        textEditor->MoveEnd(true);
+        textEditor->SetCursorPosition(TextEditor::Coordinates(coord.mLine, 0));
+    }
+
+    /* delete selection */
+    textEditor->Delete();
+
+    /* insert text */
+    textEditor->InsertText(_val);
+
+    /* select line */
+    textEditor->MoveHome(true);
 }

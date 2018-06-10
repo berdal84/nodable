@@ -172,9 +172,10 @@ void NodeView::update()
 	
 }
 
-void NodeView::draw()
+bool NodeView::draw()
 {
-	auto node = getOwner();
+	bool edited = false;
+	auto node   = getOwner();
 	NODABLE_ASSERT(node != nullptr);
 
 	// Mouse interactions
@@ -286,6 +287,7 @@ void NodeView::draw()
 				{
 					_v->setValue(f);
 					node->setDirty(true);
+					edited |= true;
 				}
 				break;
 			}
@@ -395,8 +397,7 @@ void NodeView::draw()
                 if(ImGui::Selectable("Save to JSON"))
                 {
                 	Application::SaveEntity(node);
-                }
-
+                }            
                 ImGui::EndPopup();
             }
 
@@ -430,6 +431,8 @@ void NodeView::draw()
 
 	ImGui::PopStyleVar();
 	ImGui::PopID();
+
+	return edited;
 }
 
 void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)

@@ -10,6 +10,7 @@
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
+#include "Application.h"
 
 using namespace Nodable;
 
@@ -103,6 +104,24 @@ void Container::draw()
 		}
 		ImGui::ResetMouseDragDelta();
 	}
+
+	if (!ImGui::IsAnyItemHovered() && ImGui::IsMouseReleased(1))
+		ImGui::OpenPopup("ContainerViewContextualMenu");
+
+	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
+	{
+		if( ImGui::MenuItem("Update expression"))
+		{
+			auto result = find("");
+			auto app   = getOwner()->getAs<Application*>();
+			if(result && app)
+			{
+				app->updateCurrentLineText(result->getValue()->getSourceExpression());
+			}
+		}
+
+		ImGui::EndPopup();
+	}
 }
 
 void Container::addEntity(Entity* _entity)
@@ -138,21 +157,17 @@ Variable* Container::find(std::string _name)
 {
 	Variable* result = nullptr;
 
-	if ( _name.empty())
-		result = nullptr;
-	else{
-		LOG_DBG("Searching node '%s' in container '%s' : ", _name.c_str(), this->getMember("name")->getValueAsString().c_str());
+	LOG_DBG("Searching node '%s' in container '%s' : ", _name.c_str(), this->getMember("name")->getValueAsString().c_str());
 
-		auto findFunction = [_name](const Variable* _variable ) -> bool
-		{
-			return strcmp(_variable->getName(), _name.c_str()) == 0;
-		};
+	auto findFunction = [_name](const Variable* _variable ) -> bool
+	{
+		return strcmp(_variable->getName(), _name.c_str()) == 0;
+	};
 
-		auto it = std::find_if(variables.begin(), variables.end(), findFunction);
-		if (it != variables.end()){
-			LOG_DBG("FOUND !\n");
-			result = *it;
-		}
+	auto it = std::find_if(variables.begin(), variables.end(), findFunction);
+	if (it != variables.end()){
+		LOG_DBG("FOUND !\n");
+		result = *it;
 	}
 
 	return result;

@@ -22,7 +22,7 @@ namespace Nodable{
 		DrawDetail_Simple   = 0,                 // node and links.
 		DrawDetail_Advanced = 1,                 // node, links and input/output names.
 		DrawDetail_Complex  = 2,                 // node, links, input/output names and types.
-		DrawDetail_Default  = DrawDetail_Advanced
+		DrawDetail_Default  = DrawDetail_Simple
 	};
 
 	class NodeView : public View
@@ -31,7 +31,7 @@ namespace Nodable{
 		COMPONENT_CONSTRUCTOR(NodeView);
 
 		/* Draw the view at its position into the current window*/
-		void              draw                ()override;
+		bool              draw                ()override;
 
 		/* Should be called once per frame to update the view */
 		void              update              ();

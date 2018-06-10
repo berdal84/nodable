@@ -16,7 +16,10 @@ Application::Application(const char* _name)
 	setMember("__class__", "Application");
 	setLabel(_name);
 	addComponent("view",      new ApplicationView(_name,    this));
-	addComponent("container", new Container      ());
+
+	auto container = new Container;
+	addComponent("container", container);
+	container->setOwner(this);
 }
 
 Application::~Application()
@@ -51,6 +54,12 @@ Container* Application::getContext()const
 bool Application::update()
 {
 	return !quit;
+}
+
+void Application::updateCurrentLineText(std::string _val)
+{
+	if( hasComponent("view"))
+		getComponent("view")->getAs<ApplicationView*>()->updateCurrentLineText(_val);
 }
 
 void Application::stopExecution()

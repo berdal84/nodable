@@ -28,7 +28,8 @@ void Entity::Disconnect(Wire* _wire)
 	}
 
 	_wire->getTarget()->setInput(nullptr);
-	
+	_wire->getTarget()->getOwner()->getAs<Entity*>()->setDirty();
+
 	_wire->setTarget(nullptr);
 	_wire->setSource(nullptr);
 
