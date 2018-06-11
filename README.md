@@ -9,7 +9,7 @@ Introduction:
 -------------
 
 This software is a command line prompt able to evaluate literal expressions by constructing an execution graph in realtime.
-When user type an expression the program split it into tokens and build the execution tree. Then, each frame each node is updated only if needed. User can interact with the graph by changing values.
+When user type an expression the program split it into tokens and build the execution tree. Then, each frame each node is updated only if needed. User can modify an expression by editing both text and graph. Whe the text is modified, the graph is updated, when the graph is modified the text could be updated manually (right click on the background -> update espression ). You can also edit a portion of an expression by selecting its text like in any text editor.
 
 Examples :
 ==========
