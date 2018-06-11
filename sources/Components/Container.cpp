@@ -11,6 +11,7 @@
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
 #include "Application.h"
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
 
@@ -235,7 +236,7 @@ Entity* Container::createNodeAdd()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel("ADD");
+	node->setLabel(ICON_FA_PLUS);
 	node->addMember("left");
 	node->addMember("right");
 	node->addMember("result", Visibility_Private);
@@ -259,7 +260,7 @@ Entity* Container::createNodeSubstract()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel("SUBSTRACT");
+	node->setLabel(ICON_FA_MINUS);
 	node->addMember("left");
 	node->addMember("right");
 	node->addMember("result", Visibility_Private);
@@ -283,7 +284,7 @@ Entity* Container::createNodeMultiply()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel("MULTIPLY");
+	node->setLabel(ICON_FA_TIMES);
 	node->addMember("left");
 	node->addMember("right");
 	node->addMember("result", Visibility_Private);
@@ -307,7 +308,7 @@ Entity* Container::createNodeDivide()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel("DIVIDE");
+	node->setLabel(ICON_FA_DIVIDE);
 	node->addMember("left");
 	node->addMember("right");
 	node->addMember("result", Visibility_Private);
@@ -362,6 +363,7 @@ Wire* Container::createWire()
 Lexer* Container::createNodeLexer(Variable* _input)
 {
 	Lexer* node = new Lexer();
+	node->setLabel(ICON_FA_COGS " Lexer");
 	node->addComponent( "view", new NodeView);	
 	this->addEntity(node);
 	auto wire = this->createWire();
