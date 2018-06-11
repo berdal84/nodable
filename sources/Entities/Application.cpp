@@ -7,6 +7,7 @@
 #include "Variable.h"
 #include <unistd.h>
 #include "DataAccess.h"
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
 
@@ -74,7 +75,7 @@ bool Application::eval(std::string _expression)
 	auto container = getComponent("container")->getAs<Container*>();
 	NODABLE_VERIFY(container != nullptr);
 
-	lastString = container->createNodeVariable("Command");
+	lastString = container->createNodeVariable(ICON_FA_CODE);
 
 	LOG_DBG("Lexer::eval() - assign the expression string to that variable\n");
 	lastString->setValue(_expression.c_str());

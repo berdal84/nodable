@@ -251,7 +251,7 @@ bool NodeView::draw()
 		}
 	}
 
-	ImGui::PushItemWidth(100.0f);
+	ImGui::PushItemWidth(75.0f);
 
 	// Draw the window content 
 	//------------------------
@@ -282,8 +282,10 @@ bool NodeView::draw()
 		{
 			case Type_Number:
 			{
-				float f(_v->getValueAsNumber());
-				if ( ImGui::InputFloat(_v->getName().c_str(), &f))
+				std::string label("##");
+				label.append(_v->getName());
+				float f(_v->getValueAsNumber());				
+				if ( ImGui::InputFloat(label.c_str(), &f))
 				{
 					_v->setValue(f);
 					node->setDirty(true);
