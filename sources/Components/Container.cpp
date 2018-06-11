@@ -105,7 +105,7 @@ void Container::draw()
 		ImGui::ResetMouseDragDelta();
 	}
 
-	if (!ImGui::IsAnyItemHovered() && ImGui::IsMouseReleased(1))
+	if (!isAnyItemHovered && !isAnyItemDragged && ImGui::IsMouseReleased(1))
 		ImGui::OpenPopup("ContainerViewContextualMenu");
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
