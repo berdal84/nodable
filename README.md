@@ -157,16 +157,17 @@ Road Map :
 - Be able to manually create a node.
 - Be able to manually create a wire between two compatible Values.
 
-Dependencies :
+Dependencies / Credits :
 ==============
 
-- *Dear ImGui* developed by OmarCornut (@ocornut).
 - SDL2
-- OpenGL 3.x
-- GLFW 3
+- GLFW3
+- *Dear ImGui* developed by Omar Cornut: https://github.com/omarcornut/imgui
+- IconFontCppHeaders by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
+- ImGuiColorTextEdit by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
 
 Licence:
 =========
 **Nodable** is licensed under the GPL License, see LICENSE for more information.
 
-submodules: **Dear ImGui** is licensed under the MIT License.
+Each submodule are licensed, browse */extern* folder.
