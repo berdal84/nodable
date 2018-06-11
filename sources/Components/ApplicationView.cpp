@@ -97,7 +97,8 @@ bool ApplicationView::init()
         config.OversampleH    = 2;
         config.OversampleV    = 2;
         //io.Fonts->AddFontDefault();
-        io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 18.0f, &config);    
+        //io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 18.0f, &config);    
+        io.Fonts->AddFontFromFileTTF("data/CenturyGothic.ttf", 18.0f, &config);  
         io.FontAllowUserScaling = true;
     }
 
