@@ -31,6 +31,14 @@ bool Value::allows(ConnectionFlags_ _flags)const
 	return maskedFlags == _flags;
 }
 
+void Value::setInput(Value* _val)
+{
+	input = _val;
+
+	if (_val == nullptr)
+		sourceExpression = "";
+}
+
 void Value::setValue(double _value)
 {
 	switch(type)
@@ -225,4 +233,15 @@ std::string Value::getTypeAsString()const
 		case Type_Boolean: 		{return "Boolean";}
 		default:				{return "Unknown";}
 	}
+}
+
+std::string Value::getSourceExpression()const
+{
+	if( input != nullptr)
+		return input->getSourceExpression();
+
+	if ( sourceExpression != "")
+		return sourceExpression;
+
+	return getValueAsString();
 }

@@ -7,6 +7,7 @@
 #include "Variable.h"
 #include <unistd.h>
 #include "DataAccess.h"
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
 
@@ -16,7 +17,10 @@ Application::Application(const char* _name)
 	setMember("__class__", "Application");
 	setLabel(_name);
 	addComponent("view",      new ApplicationView(_name,    this));
-	addComponent("container", new Container      ());
+
+	auto container = new Container;
+	addComponent("container", container);
+	container->setOwner(this);
 }
 
 Application::~Application()
@@ -53,6 +57,12 @@ bool Application::update()
 	return !quit;
 }
 
+void Application::updateCurrentLineText(std::string _val)
+{
+	if( hasComponent("view"))
+		getComponent("view")->getAs<ApplicationView*>()->updateCurrentLineText(_val);
+}
+
 void Application::stopExecution()
 {
 	quit = true;
@@ -65,7 +75,7 @@ bool Application::eval(std::string _expression)
 	auto container = getComponent("container")->getAs<Container*>();
 	NODABLE_VERIFY(container != nullptr);
 
-	lastString = container->createNodeVariable("Command");
+	lastString = container->createNodeVariable(ICON_FA_CODE);
 
 	LOG_DBG("Lexer::eval() - assign the expression string to that variable\n");
 	lastString->setValue(_expression.c_str());

@@ -172,9 +172,10 @@ void NodeView::update()
 	
 }
 
-void NodeView::draw()
+bool NodeView::draw()
 {
-	auto node = getOwner();
+	bool edited = false;
+	auto node   = getOwner();
 	NODABLE_ASSERT(node != nullptr);
 
 	// Mouse interactions
@@ -250,7 +251,7 @@ void NodeView::draw()
 		}
 	}
 
-	ImGui::PushItemWidth(100.0f);
+	ImGui::PushItemWidth(75.0f);
 
 	// Draw the window content 
 	//------------------------
@@ -281,11 +282,14 @@ void NodeView::draw()
 		{
 			case Type_Number:
 			{
-				float f(_v->getValueAsNumber());
-				if ( ImGui::InputFloat(_v->getName().c_str(), &f))
+				std::string label("##");
+				label.append(_v->getName());
+				float f(_v->getValueAsNumber());				
+				if ( ImGui::InputFloat(label.c_str(), &f))
 				{
 					_v->setValue(f);
 					node->setDirty(true);
+					edited |= true;
 				}
 				break;
 			}
@@ -296,6 +300,14 @@ void NodeView::draw()
 				ImGui::Text("%s", _v->getValueAsString().c_str());
 				break;
 			}
+		}
+		
+		/* If value is hovered, we draw a tooltip that print the source expression of the value*/
+		if( ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Source expression: \"%s\"", _v->getSourceExpression().c_str());
+			ImGui::EndTooltip();
 		}
 
 		auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
@@ -387,8 +399,7 @@ void NodeView::draw()
                 if(ImGui::Selectable("Save to JSON"))
                 {
                 	Application::SaveEntity(node);
-                }
-
+                }            
                 ImGui::EndPopup();
             }
 
@@ -422,6 +433,8 @@ void NodeView::draw()
 
 	ImGui::PopStyleVar();
 	ImGui::PopID();
+
+	return edited;
 }
 
 void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)

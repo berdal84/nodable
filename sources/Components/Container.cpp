@@ -10,6 +10,8 @@
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
+#include "Application.h"
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
 
@@ -103,6 +105,24 @@ void Container::draw()
 		}
 		ImGui::ResetMouseDragDelta();
 	}
+
+	if (!isAnyItemHovered && !isAnyItemDragged && ImGui::IsMouseReleased(1))
+		ImGui::OpenPopup("ContainerViewContextualMenu");
+
+	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
+	{
+		if( ImGui::MenuItem("Update expression"))
+		{
+			auto result = find("");
+			auto app   = getOwner()->getAs<Application*>();
+			if(result && app)
+			{
+				app->updateCurrentLineText(result->getValue()->getSourceExpression());
+			}
+		}
+
+		ImGui::EndPopup();
+	}
 }
 
 void Container::addEntity(Entity* _entity)
@@ -138,21 +158,17 @@ Variable* Container::find(std::string _name)
 {
 	Variable* result = nullptr;
 
-	if ( _name.empty())
-		result = nullptr;
-	else{
-		LOG_DBG("Searching node '%s' in container '%s' : ", _name.c_str(), this->getMember("name")->getValueAsString().c_str());
+	LOG_DBG("Searching node '%s' in container '%s' : ", _name.c_str(), this->getMember("name")->getValueAsString().c_str());
 
-		auto findFunction = [_name](const Variable* _variable ) -> bool
-		{
-			return strcmp(_variable->getName(), _name.c_str()) == 0;
-		};
+	auto findFunction = [_name](const Variable* _variable ) -> bool
+	{
+		return strcmp(_variable->getName(), _name.c_str()) == 0;
+	};
 
-		auto it = std::find_if(variables.begin(), variables.end(), findFunction);
-		if (it != variables.end()){
-			LOG_DBG("FOUND !\n");
-			result = *it;
-		}
+	auto it = std::find_if(variables.begin(), variables.end(), findFunction);
+	if (it != variables.end()){
+		LOG_DBG("FOUND !\n");
+		result = *it;
 	}
 
 	return result;
@@ -220,7 +236,7 @@ Entity* Container::createNodeAdd()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel("ADD");
+	node->setLabel(ICON_FA_PLUS);
 	node->addMember("left");
 	node->addMember("right");
 	node->addMember("result", Visibility_Private);
@@ -244,7 +260,7 @@ Entity* Container::createNodeSubstract()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel("SUBSTRACT");
+	node->setLabel(ICON_FA_MINUS);
 	node->addMember("left");
 	node->addMember("right");
 	node->addMember("result", Visibility_Private);
@@ -268,7 +284,7 @@ Entity* Container::createNodeMultiply()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel("MULTIPLY");
+	node->setLabel(ICON_FA_TIMES);
 	node->addMember("left");
 	node->addMember("right");
 	node->addMember("result", Visibility_Private);
@@ -292,7 +308,7 @@ Entity* Container::createNodeDivide()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel("DIVIDE");
+	node->setLabel(ICON_FA_DIVIDE);
 	node->addMember("left");
 	node->addMember("right");
 	node->addMember("result", Visibility_Private);
@@ -347,6 +363,7 @@ Wire* Container::createWire()
 Lexer* Container::createNodeLexer(Variable* _input)
 {
 	Lexer* node = new Lexer();
+	node->setLabel(ICON_FA_COGS " Lexer");
 	node->addComponent( "view", new NodeView);	
 	this->addEntity(node);
 	auto wire = this->createWire();

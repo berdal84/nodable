@@ -7,7 +7,7 @@
 
 using namespace Nodable;
 
-void WireView::draw()
+bool WireView::draw()
 {
 	auto wire = getOwner()->getAs<Wire*>();
 	NODABLE_ASSERT(wire != nullptr);
@@ -154,4 +154,5 @@ void WireView::draw()
 		}
     }  
 
+    return false;
 }
