@@ -165,7 +165,7 @@ Change Log:
 ===========
 - 2018-06-12 : Added a Fullscreen ON/OFF item in View menu.
 - 2018-06-11 : Graph-to-Text works. Right-click on Graph View's background then select "Update Expression".
-- 2017-05    : First version with a GUI (using Dear ImGui).
+- 2018-05-?? : First version with a GUI (using Dear ImGui).
 - 2017-10-01 : First version (command line only).
 
 Dependencies / Credits :
