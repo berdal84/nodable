@@ -8,10 +8,9 @@ Nodable is node-able !
 Introduction:
 -------------
 
-This software is a command line prompt able to evaluate literal expressions by constructing an execution graph in realtime.
-When user type an expression the program split it into tokens and build the execution tree. Then, each frame each node is updated only if needed.
+This software is **a node-able bidirectionnal expression editor**. More precisely, it means **Text-to-Node and Node-to-Text seamless edition**. When user type an expression in the Text Editor the program split it into tokens and build the corresponding graph and displays it in the Graph Editor.
 
-User can modify an expression by editing both text and graph. When the text is modified, the graph is updated, when the graph is modified the text could be updated manually (right click on the background).You can also edit a portion of an expression by selecting its text like in any text editor.
+User can modify an expression by editing both text and graph. When the text is modified, the graph is updated, when the graph is modified the text could be updated manually. You can also edit a portion of an expression by selecting it like in any text editor.
 
 Examples :
 ==========
