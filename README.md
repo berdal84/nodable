@@ -17,7 +17,7 @@ Examples :
 
 An expression example :
 
-![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_06_11_SmallSized_Graph.png)
+![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_06_12_animation.png)
 
 Video n°1 - a first demo :
 
