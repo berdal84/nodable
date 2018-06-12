@@ -111,8 +111,37 @@ void Container::draw()
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{
-		if( ImGui::MenuItem("Update expression"))
-		{
+		bool updateExpression = ImGui::MenuItem("Update expression");
+
+		ImGui::Separator();
+		
+		if ( ImGui::BeginMenu("New operation")){
+			
+			if (ImGui::MenuItem("Add"))
+				createNodeAdd();
+
+			if (ImGui::MenuItem("Divide"))
+				createNodeDivide();
+
+			if (ImGui::MenuItem("Multiply"))
+				createNodeMultiply();
+
+			if (ImGui::MenuItem("Substract"))
+				createNodeSubstract();
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::MenuItem("New variable"))
+			createNodeVariable("Variable");
+
+		if (ImGui::MenuItem("New result"))
+			createNodeVariable("");
+
+
+		ImGui::EndPopup();
+
+		if (updateExpression){
 			auto result = find("");
 			auto app   = getOwner()->getAs<Application*>();
 			if(result && app)
@@ -121,7 +150,6 @@ void Container::draw()
 			}
 		}
 
-		ImGui::EndPopup();
 	}
 }
 
