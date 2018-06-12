@@ -69,8 +69,8 @@ bool ApplicationView::init()
                                 getMember("glWindowSizeX")->getValueAsNumber(),
                                 getMember("glWindowSizeY")->getValueAsNumber(),
                                 SDL_WINDOW_OPENGL |
-                                SDL_WINDOW_RESIZABLE | 
-                                SDL_WINDOW_FULLSCREEN
+                                SDL_WINDOW_RESIZABLE
+                                /*SDL_WINDOW_FULLSCREEN*/
                                 /*SDL_WINDOW_FULLSCREEN_DESKTOP*/
                                 );
     
@@ -295,6 +295,18 @@ bool ApplicationView::draw()
                     auto showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", getMember("showProperties")->getValueAsBoolean());
                     auto showImGuiDemo  = ImGui::MenuItem("Show ImGui Demo", "", getMember("showImGuiDemo")->getValueAsBoolean());
 
+                    ImGui::Separator();
+
+                    if ( SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP){
+                        auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", true);
+                        if (toggleFullscreen)
+                            SDL_SetWindowFullscreen(window, 0);
+                    }else{
+                        auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", false);
+                        if (toggleFullscreen)
+                            SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    }
+
                     //if( frame)
                         // TODO
 
@@ -312,6 +324,8 @@ bool ApplicationView::draw()
 
                     if(showImGuiDemo)
                          setMember("showImGuiDemo", !getMember("showImGuiDemo")->getValueAsBoolean());
+
+                        
 
                     ImGui::EndMenu();
                 }
