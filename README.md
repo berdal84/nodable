@@ -116,7 +116,7 @@ How to run the software ? :
 Install dependencies:
 
 ```
-sudo apt-get install -y --no-install-recommends libsdl2-dev gcc-4.8 g++-4.8 libglfw3-dev
+sudo apt-get install -y --no-install-recommends libsdl2 libglfw3
 ```
 Clone the project with submodules:
 ```
@@ -164,9 +164,9 @@ Road Map :
 
 Change Log:
 ===========
-2018-06-12 : Graph-to-Text works. Right-click on Graph View's background then select "Update Expression".
-2017-05    : First version with a GUI (using Dear ImGui).
-2017-10-01 : First version (command line only).
+- 2018-06-12 : Graph-to-Text works. Right-click on Graph View's background then select "Update Expression".
+- 2017-05    : First version with a GUI (using Dear ImGui).
+- 2017-10-01 : First version (command line only).
 
 Dependencies / Credits :
 ==============
