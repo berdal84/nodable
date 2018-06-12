@@ -139,25 +139,28 @@ A **Value** is a Variant class that can handle basic data types such as Booleans
 
 Two **Values** can be linked by a **Wire**. A **Wire** is an oriented edge, so it has a *source* and a *target* Value.
 
-The derived class **Entity** is an *Object* able to attach **Components** on it. **Component** is the abstract base class for all components. For now there are ony three components :
+The derived class **Entity** is an *Object* able to attach **Components** on it. **Component** is the abstract base class for all components. For now there are only few components :
 - **View**s : to draw the entity on screen.
 - **Operation**s : to perform a computation.
-- **Container** : to contain other entities.
+- **Container** : to instantiate and contain other entities (Factory and Container).
 - **DataAccessObject** : auto-save to JSON when the entity is modified.
 
 **Variable** class is an **Entity** with a single member named "value".
 
 **Lexer** class is an **Entity** able to convert an expression to a graph.
 
-**Application** is a class to rule them all. This class has by default a Container component (like global scope) and an ApplicationView (using GLFw3/ImGui/SDL2/OpenGL).
+**Application** is a class to rule them all.
 
 ![Draft UML Class Diagram](https://github.com/berdal84/Nodable/blob/master/docs/ClassDiagram_2018_05_25.png)
 
 Road Map :
 ==========
-- Update the expression when the user modify the graph.
-- Be able to manually create a node.
-- Be able to manually create a wire between two compatible Values.
+- [X] Update the expression when the user modify the graph.
+- [ ] Manual graph creation with mouse and keyboard (add/remove wire, add/remove node)
+- [ ] Conditionnal statement parsing (if, then, else, else if).
+- [ ] Iterative statement parsing (for, while).
+- [ ] Function parsing (symbol and in/out parameters).
+- [ ] Run-time execution of a full code.
 
 Change Log:
 ===========
