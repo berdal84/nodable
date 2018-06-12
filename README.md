@@ -159,11 +159,17 @@ Road Map :
 - Be able to manually create a node.
 - Be able to manually create a wire between two compatible Values.
 
+Change Log:
+===========
+2018-06-12 : Graph-to-Text works. Right-click on Graph View's background then select "Update Expression".
+2017-05    : First version with a GUI (using Dear ImGui).
+2017-10-01 : First version (command line only).
+
 Dependencies / Credits :
 ==============
 
-- SDL2
-- GLFW3
+- SDL2 : https://www.libsdl.org/
+- GLFW3 : http://www.glfw.org/
 - *Dear ImGui* developed by Omar Cornut: https://github.com/omarcornut/imgui
 - IconFontCppHeaders by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
 - ImGuiColorTextEdit by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
