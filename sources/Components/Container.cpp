@@ -136,7 +136,7 @@ void Container::draw()
 			createNodeVariable("Variable");
 
 		if (ImGui::MenuItem("New result"))
-			createNodeVariable("");
+			createNodeResult();
 
 
 		ImGui::EndPopup();
