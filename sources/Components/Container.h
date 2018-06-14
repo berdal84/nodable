@@ -19,6 +19,7 @@ namespace Nodable{
 		Variable* 	          		find                      (std::string /*Symbol name*/);
 		void                      	addEntity                 (Entity* /* _entity*/);
 		void                      	destroyNode               (Entity*);
+		Variable*					createNodeResult          ();
 		Variable*					createNodeVariable        (std::string /*name*/ = "");
 		Variable*					createNodeNumber          (double /*value*/ = 0);
 		Variable*					createNodeNumber          (const char* /*value*/);

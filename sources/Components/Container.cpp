@@ -202,6 +202,11 @@ Variable* Container::find(std::string _name)
 	return result;
 }
 
+Variable* Container::createNodeResult()
+{
+	return createNodeVariable("");
+}
+
 Variable* Container::createNodeVariable(std::string _name)
 {
 	auto variable = new Variable();

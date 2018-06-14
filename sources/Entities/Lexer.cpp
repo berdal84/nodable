@@ -62,7 +62,7 @@ Variable* Lexer::buildGraph()
 	auto           container   = this->getParent();
 
 	LOG_DBG("Lexer::buildGraph() - Assign result to a variable.\n");
-	Variable* resultVariable    = container->createNodeVariable();	
+	Variable* resultVariable    = container->createNodeResult();	
 
 	// If the value has no owner, we simplly set the variable value
 	if( resultValue->getOwner() == nullptr)
