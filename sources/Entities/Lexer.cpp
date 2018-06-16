@@ -213,8 +213,8 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 	{	
 		/* Operator precedence */
 		std::string firstOperator  = tokens[_tokenId+1].word;
-		std::string secondOperator = tokens[_tokenId+3].word;		
-		bool firstOperatorHasHigherPrecedence = BinaryOperationComponent::NeedsToBeEvaluatedFirst(firstOperator, secondOperator);	
+		std::string nextOperator   = tokens[_tokenId+3].word;		
+		bool firstOperatorHasHigherPrecedence = BinaryOperationComponent::NeedsToBeEvaluatedFirst(firstOperator, nextOperator);	
 
 		if ( firstOperatorHasHigherPrecedence ){
 			// Evaluate first 3 tokens passing the previous result
@@ -224,11 +224,37 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 			result = buildGraphRec(_tokenId+2, 0, intermediateResult);	
 
 		}else{
-			// Then evaluates starting at id + 2
-			auto intermediateResult = buildGraphRec(_tokenId+2, 0, _rightValueOverride);	
+
+			// build the graph for the right operand
+			size_t tokenToEvaluateCount = 0;
+			size_t lastOperatorIndex    = 0;
+			bool   indexFound           = false;
+			while( !indexFound &&
+				    2 + tokenToEvaluateCount <= tokenToEvalCount)
+			{
+				if (tokens[_tokenId + 2 + tokenToEvaluateCount].type == TokenType_Operator)
+				{
+
+					nextOperator = tokens[_tokenId + 2 + tokenToEvaluateCount].word;
+					if (BinaryOperationComponent::NeedsToBeEvaluatedFirst(firstOperator, nextOperator))
+					{
+						indexFound = true;
+						break;
+					}
+				}
+				tokenToEvaluateCount++;
+			}
+			
+			auto right = buildGraphRec(_tokenId+2, tokenToEvaluateCount);	
 
 			// Build the graph for the first 3 tokens
-			result = buildGraphRec(_tokenId, 3, _leftValueOverride, intermediateResult);
+			auto intermediateResultLeft = buildGraphRec(_tokenId, 3, _leftValueOverride, right);
+
+			// Then evaluates the rest if needed
+			if ( _tokenId + 2 + tokenToEvaluateCount - 1 < tokens.size())
+				result = buildGraphRec(_tokenId + 2 + tokenToEvaluateCount - 1, 0, intermediateResultLeft);
+			else
+				result = intermediateResultLeft;
 		}
 	}
 

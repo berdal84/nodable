@@ -260,7 +260,8 @@ Entity* Container::createNodeBinaryOperation(std::string _op)
 	else if ( _op == "=")
 		node = createNodeAssign();
 	else
-		return nullptr;
+		NODABLE_ASSERT(false);
+	
 	return node;
 }
 
