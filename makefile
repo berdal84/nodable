@@ -2,12 +2,13 @@
 CXX      = g++
 
 # Detect architecture
-uname_p := _$(shell uname -p) 
+uname_p:=$(shell uname -p)
+$(info Building for architecture : "$(uname_p)")
 
 ifeq ($(uname_p),x86_64)
-	TARGET = Linux64
+	TARGET := Linux64
 else
-	TARGET = Linux32
+	TARGET := Linux32
 endif
 
 # for GCOV (Testing coverage)
