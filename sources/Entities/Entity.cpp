@@ -56,6 +56,11 @@ Entity::~Entity()
 	{
 		Entity::Disconnect(wire);
 	}
+
+	for(auto pair : components)
+	{
+		delete pair.second;
+	}
 }
 
 void Entity::addComponent(const std::string&  _componentName, Component*  _component)

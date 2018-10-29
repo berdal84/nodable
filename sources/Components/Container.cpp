@@ -22,8 +22,9 @@ Container::~Container()
 
 void Container::clear()
 {
-	for (auto each : entities)
+	for (Entity* each : entities)
 		delete each;
+	
 	entities.resize(0);
 	variables.resize(0);
 }
@@ -106,7 +107,7 @@ void Container::draw()
 		ImGui::ResetMouseDragDelta();
 	}
 
-	if (!isAnyItemHovered && !isAnyItemDragged && ImGui::IsMouseReleased(1))
+	if (ImGui::IsMouseClicked(1))
 		ImGui::OpenPopup("ContainerViewContextualMenu");
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))

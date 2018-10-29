@@ -13,6 +13,7 @@ Variable::Variable()
 
 Variable::~Variable()
 {
+
 }
 
 double Variable::getValueAsNumber()const

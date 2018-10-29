@@ -15,8 +15,9 @@ endif
 #CXXFLAGS+= -fprofile-arcs -ftest-coverage 
 
 # Debugging ON/OFF (comment to disable)
-#CXXFLAGS+= -DDEBUG 	
+# CXXFLAGS+= -DDEBUG 	
 
+CXXFLAGS+= -g # To generate symbols for gdb
 CXXFLAGS+= `sdl2-config --cflags`
 
 #includes for submodules

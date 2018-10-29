@@ -370,6 +370,7 @@ bool Test::RunAll()
 		entity->setMember("NUMBER", double(3.14));
 
 		dataAccessComponent->update();
+		entity->removeComponent("dataAccess");
 	}
 
 	DisplayResults();

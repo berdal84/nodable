@@ -7,6 +7,7 @@
 #include "Variable.h"
 #include <unistd.h>
 #include "DataAccess.h"
+#include <iostream>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
@@ -40,9 +41,11 @@ bool Application::init()
 
 void Application::clearContext()
 {
-	auto container = getComponent("container")->getAs<Container*>();
-	NODABLE_VERIFY(container != nullptr);
-	container->clear();
+	if( hasComponent("container"))
+	{
+		auto container = getComponent("container")->getAs<Container*>();	
+		container->clear();
+	}
 }
 
 Container* Application::getContext()const

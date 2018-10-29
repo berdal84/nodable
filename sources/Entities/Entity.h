@@ -13,7 +13,7 @@ namespace Nodable{
 	{
 	public:
 		Entity(){setMember("__class__", "Entity");};
-		virtual ~Entity();
+		~Entity();
 
 		/* Return the parent container of this node. Could be nullptr if this node is a root. */
 		Container*     getParent         ()const;
