@@ -37,6 +37,7 @@ ApplicationView::ApplicationView(const char* _name, Application* _application):
 
 ApplicationView::~ApplicationView()
 {
+    delete textEditor;
     ImGui_ImplSdlGL3_Shutdown();
     ImGui::DestroyContext    ();
     SDL_GL_DeleteContext     (glcontext);
