@@ -247,6 +247,13 @@ bool NodeView::draw()
 					draw_list->AddRect(ImVec2(itemRectMin.x - offset, itemRectMin.y - offset), ImVec2(itemRectMax.x + offset, itemRectMax.y + offset), ImColor(1.0f, 1.0f, 1.0f, alpha), borderRadius + offset, ~0, offset / 2.0f);
 				}
 			}
+
+			// Add an invisible just on top of the background to detect mouse hovering
+			ImGui::SetCursorPos(cursorPos);
+			ImGui::InvisibleButton("##", ImVec2(size.x - 20.0f, size.y - 10.0f));
+			hovered = ImGui::IsItemHovered();
+			ImGui::SetCursorPos(ImVec2(cursorPos.x + 10.0f, cursorPos.y + 10.0f));								
+
 			break;
 		}
 	}
@@ -278,6 +285,29 @@ bool NodeView::draw()
 	{
 		auto memberTopPositionOffsetY 	= ImGui::GetCursorPos().y - position.y;
 
+		/* Draw the wire connector */
+
+			// Circle
+			ImDrawList* draw_list = ImGui::GetWindowDrawList();
+			ImVec2 pos = ImGui::GetCursorScreenPos();
+			pos.x -= 20.0f;
+			pos.y += 10.0f;
+			draw_list->AddCircleFilled(pos, 5.0f, getColor(ColorType_Fill) );
+			draw_list->AddCircle      (pos, 5.0f, getColor(ColorType_Border) );
+
+			// Unvisible Button on top of the Circle
+			ImVec2 cpos = ImGui::GetCursorPos();
+			ImGui::SetCursorPos(ImVec2(cpos.x - 25.0f, cpos.y + 5.0f ));
+			bool clicked = ImGui::InvisibleButton(_v->getName().c_str(), ImVec2(10.0f, 10.0f));
+			ImGui::SetCursorPos(cpos);
+
+			if( clicked )
+			{
+				LOG_MSG("Wire connector clicked : %s \n", _v->getName().c_str());
+				static Value* wireConnectorClicked = _v;
+			}
+
+		/* Draw the member */
 		switch(_v->getType())
 		{
 			case Type_Number:
@@ -378,9 +408,6 @@ bool NodeView::draw()
 		case DrawMode_AsGroup:
 		{	
 			ImGui::EndGroup();
-
-			hovered = ImGui::IsMouseHoveringRect(	ImVec2(screenPosition.x - size.x/2.0f, screenPosition.y - size.y/2.0f),
-													ImVec2(screenPosition.x + size.x/2.0f, screenPosition.y + size.y/2.0f), true);
 
             if (hovered && ImGui::IsMouseReleased(1))
                 ImGui::OpenPopup("NodeViewContextualMenu");
