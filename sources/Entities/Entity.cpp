@@ -52,11 +52,13 @@ void Entity::Connect( Wire* _wire,
 
 Entity::~Entity()
 {
+	// Disconnect all wires
 	for(auto wire : wires)
 	{
 		Entity::Disconnect(wire);
 	}
 
+	// Delete all components
 	for(auto pair : components)
 	{
 		delete pair.second;
