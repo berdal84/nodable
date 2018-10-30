@@ -8,6 +8,13 @@ Object::Object()
 	addMember("name",      Visibility_Protected);
 }
 
+Object::~Object()
+{
+	for(auto each : members)
+		delete each.second;
+}
+
+
 const Members&   Object::getMembers      ()const
 {
 	return members;

@@ -12,7 +12,7 @@ namespace Nodable
 	{
 	public:
 		Object();
-		virtual ~Object(){};
+		virtual ~Object();
 
 		/* Adds a new member identified by its _name. */
 		void                addMember         (const char* /*name*/, Visibility_ = Visibility_Default, Type_ = Type_Unknown);
