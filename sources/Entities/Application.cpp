@@ -3,6 +3,7 @@
 #include "Log.h" 		// for LOG_DBG
 #include "Lexer.h"
 #include "Container.h"
+#include "ContainerView.h"
 #include "ApplicationView.h"
 #include "Variable.h"
 #include <unistd.h>
@@ -19,8 +20,10 @@ Application::Application(const char* _name)
 	setLabel(_name);
 	addComponent("view",      new ApplicationView(_name,    this));
 
+	// Add a container to the application to contain all nodes :
 	auto container = new Container;
 	addComponent("container", container);
+	container->addComponent("view", new ContainerView);
 	container->setOwner(this);
 }
 
@@ -57,6 +60,9 @@ Container* Application::getContext()const
 
 bool Application::update()
 {
+	auto ctx = getContext();
+	if(ctx != nullptr)
+		ctx->update();
 	return !quit;
 }
 

@@ -2,6 +2,7 @@
 
 #include "Nodable.h"     // forward declarations
 #include <Component.h>   // base class
+#include <Entity.h>		 // base class
 #include <string>
 #include <vector>
 
@@ -13,7 +14,7 @@ namespace Nodable{
 		COMPONENT_CONSTRUCTOR(Container);
 
 		virtual ~Container();
-		void                      	draw();
+		void                      	update();
 		void                      	clear();
 		size_t                    	getSize()const;
 		Variable* 	          		find                      (std::string /*Symbol name*/);
@@ -33,6 +34,7 @@ namespace Nodable{
 		Lexer*                    	createNodeLexer           (Variable* /*expression*/);
 		Wire*                       createWire();
 		std::vector<Variable*>& 	getVariables(){return variables;}
+		std::vector<Entity*>& 	    getEntities(){return entities;}
 	private:
 		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<Entity*>        entities;   /* Contain all Objects created by this context */

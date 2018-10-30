@@ -2,7 +2,6 @@
 
 #include "Nodable.h"            // for constants and forward declarations
 #include "Object.h"
-#include <Component.h>
 #include "Value.h"
 #include <string>
 #include <memory>               // for unique_ptr

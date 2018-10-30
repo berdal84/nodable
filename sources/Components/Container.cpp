@@ -29,9 +29,9 @@ void Container::clear()
 	variables.resize(0);
 }
 
-void Container::draw()
+void Container::update()
 {
-	// 0 - Update entities
+	// Update entities
 	for(auto it = entities.begin(); it < entities.end(); ++it)
 	{
 		if ( *it != nullptr)
@@ -46,112 +46,7 @@ void Container::draw()
 		}
 	}
 
-	// 1 - Update NodeViews
-
-	for(auto eachNode : this->entities)
-	{
-		eachNode->getComponent("view")->update();
-	}
-
-	// 2 - Draw NodeViews
-	bool isAnyItemDragged = false;
-	bool isAnyItemHovered = false;
-	for(auto eachNode : this->entities)
-	{
-		auto view = eachNode->getComponent("view")->getAs<View*>();
-
-		if (view != nullptr)
-		{
-			view->draw();
-			isAnyItemDragged |= NodeView::GetDragged() == view;
-			isAnyItemHovered |= view->isHovered();
-		}
-	}
-
-	// 2 - Draw input wires
-	for(auto eachNode : this->entities)
-	{
-		auto wires = eachNode->getWires();
-
-		for(auto eachWire : wires)
-		{
-			if ( eachWire->getTarget()->getOwner() == eachNode)
-				eachWire->getView()->draw();
-		}
-	}
-
-	auto selectedView = NodeView::GetSelected();
-	// Deselection
-	if( !isAnyItemHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
-		NodeView::SetSelected(nullptr);
-
-	
-	if (selectedView != nullptr)
-	{
-		// Deletion
-		if ( ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
-			selectedView->setVisible(false);
-		// Arrange 
-		else if ( ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_A)))
-			selectedView->arrangeRecursively();
-	}
-
-	// Draft Mouse PAN
-	if( ImGui::IsMouseDragging() && ImGui::IsWindowFocused() && !isAnyItemDragged )
-	{
-		auto drag = ImGui::GetMouseDragDelta();
-		for(auto eachNode : this->entities)
-		{
-			((NodeView*)eachNode->getComponent("view"))->translate(drag);
-		}
-		ImGui::ResetMouseDragDelta();
-	}
-
-	if (ImGui::IsMouseClicked(1))
-		ImGui::OpenPopup("ContainerViewContextualMenu");
-
-	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
-	{
-		bool updateExpression = ImGui::MenuItem("Update expression");
-
-		ImGui::Separator();
-		
-		if ( ImGui::BeginMenu("New operation")){
-			
-			if (ImGui::MenuItem("Add"))
-				createNodeAdd();
-
-			if (ImGui::MenuItem("Divide"))
-				createNodeDivide();
-
-			if (ImGui::MenuItem("Multiply"))
-				createNodeMultiply();
-
-			if (ImGui::MenuItem("Substract"))
-				createNodeSubstract();
-
-			ImGui::EndMenu();
-		}
-
-		if (ImGui::MenuItem("New variable"))
-			createNodeVariable("Variable");
-
-		if (ImGui::MenuItem("New result"))
-			createNodeResult();
-
-
-		ImGui::EndPopup();
-
-		if (updateExpression){
-			auto result = find("");
-			auto app   = getOwner()->getAs<Application*>();
-			if(result && app)
-			{
-				app->updateCurrentLineText(result->getValue()->getSourceExpression());
-			}
-		}
-
-	}
+	// Draw View
 }
 
 void Container::addEntity(Entity* _entity)

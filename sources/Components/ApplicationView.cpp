@@ -371,9 +371,10 @@ bool ApplicationView::draw()
                         auto itemRectMin      = cursorPos;
                         auto content          = ImGui::GetContentRegionAvail();
                         auto itemRectMax      = ImVec2(cursorPos.x + content.x, cursorPos.y + content.y);
-                        draw_list->AddRectFilled(itemRectMin, itemRectMax, ImColor(0.2f, 0.2f, 0.2f), 3.0f);  
+                        draw_list->AddRectFilled(itemRectMin, itemRectMax, ImColor(0.2f, 0.2f, 0.2f), 3.0f); 
 
-                        application->getContext()->draw();
+                        if (application->getContext()->hasComponent("view"))                       
+                            application->getContext()->getComponent("view")->getAs<View*>()->draw();
                     }
                     ImGui::EndChild();
 

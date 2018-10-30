@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Entity.h"
 #include "Nodable.h"
-#include "Object.h"
 
 #define COMPONENT_CONSTRUCTOR(ClassName)ClassName()\
 	{\
@@ -9,7 +9,7 @@
 	}
 
 namespace Nodable{
-	class Component : public Object
+	class Component : public Entity
 	{
 	public:
 
