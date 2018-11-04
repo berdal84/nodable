@@ -251,6 +251,7 @@ bool NodeView::draw()
 			// Add an invisible just on top of the background to detect mouse hovering
 			ImGui::SetCursorPos(cursorPos);
 			ImGui::InvisibleButton("##", ImVec2(size.x - 20.0f, size.y - 10.0f));
+			ImGui::SetItemAllowOverlap();
 			hovered = ImGui::IsItemHovered();
 			ImGui::SetCursorPos(ImVec2(cursorPos.x + 10.0f, cursorPos.y + 10.0f));								
 
@@ -296,9 +297,12 @@ bool NodeView::draw()
 			draw_list->AddCircle      (pos, 5.0f, getColor(ColorType_Border) );
 
 			// Unvisible Button on top of the Circle
+						
 			ImVec2 cpos = ImGui::GetCursorPos();
 			ImGui::SetCursorPos(ImVec2(cpos.x - 25.0f, cpos.y + 5.0f ));
-			bool clicked = ImGui::InvisibleButton(_v->getName().c_str(), ImVec2(10.0f, 10.0f));
+			ImGui::PushID(_v);
+			bool clicked = ImGui::InvisibleButton("###", ImVec2(10.0f, 10.0f));
+			ImGui::PopID();
 			ImGui::SetCursorPos(cpos);
 
 			if( clicked )
@@ -447,12 +451,16 @@ bool NodeView::draw()
 			}		
 
 			// Collapse/uncollapse by double click
-			collapsed ^= hovered && ImGui::IsMouseDoubleClicked(0);
-
-			// memorize size with an offet (margin)
-			size = ImGui::GetItemRectSize();
-			size.x += 20.0f;
-			size.y += 10.0f;
+			if( hovered && ImGui::IsMouseDoubleClicked(0))
+			{
+				collapsed = !collapsed;
+				size      = ImVec2(170.0f, 40.0f); // reset size when collapsing/uncollapsing
+			}else{
+				// memorize size with an offet (margin)
+				size = ImGui::GetItemRectSize();
+				size.x += 20.0f;
+				size.y += 10.0f;
+			}
 
 			break;
 		}
