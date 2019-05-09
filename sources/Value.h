@@ -1,17 +1,10 @@
 #pragma once
 
 #include "Nodable.h"    // for constants and forward declarations
+#include "Variant.h"
 #include <string>
 
 namespace Nodable{
-
-	enum Type_{
-		Type_Unknown,
-		Type_Boolean,
-		Type_Number,
-		Type_String,
-		Type_COUNT
-	};
 
 	enum ConnectionFlags_
 	{
@@ -28,10 +21,6 @@ namespace Nodable{
 		Visibility_Private   = 2,
 		Visibility_Default   = Visibility_Public
 	};
-
-	/* 
-		This class is variant implementation
-	*/
 
 	class Value{
 	public:
@@ -52,7 +41,7 @@ namespace Nodable{
 		void        setValue         (double);
 		void        setValue         (bool);
 		
-		void        setType          (Type_ _type){type = _type;}
+		void        setType          (Type_ _type){data.setType(_type);}
 		void        setVisibility    (Visibility_ _v){visibility = _v;}
 
 		bool        allows           (ConnectionFlags_)const;
@@ -73,8 +62,7 @@ namespace Nodable{
 		Value*              input               = nullptr;
 		std::string         sourceExpression    = "";
 		std::string 		name 				= "Unknown";
-		void*       		data 				= NULL;
-		Type_       		type 				= Type_Unknown;
+		Variant       		data;
 		Visibility_ 		visibility 			= Visibility_Default;
 		ConnectionFlags_ 	connectionFlags 	= ConnectionFlags_Default;
 	};

@@ -68,6 +68,7 @@ namespace Nodable{
 	// 1 - Common
 	class Wire;
 	class Value;
+	class Variant;
 	class Object;
 	
 	// 2 - Components :
@@ -75,6 +76,7 @@ namespace Nodable{
 
 	// 2a - View Components
 	class NodeView;
+	class ContainerView;
 	class ApplicationView;
 	class WireView;
 	
