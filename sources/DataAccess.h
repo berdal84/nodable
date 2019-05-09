@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Nodable.h"
-#include <Component.h>
+#include "Component.h"
 
 namespace Nodable
 {

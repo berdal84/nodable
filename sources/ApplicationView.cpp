@@ -10,7 +10,7 @@
 #include "Container.h"
 #include "NodeView.h"
 #include <fstream>
-#include <Log.h>
+#include "Log.h"
 
 using namespace Nodable;
 

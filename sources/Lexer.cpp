@@ -7,6 +7,7 @@
 #include "BinaryOperation.h"
 #include "NodeView.h"
 #include "Wire.h"
+#include <algorithm>
 
 using namespace Nodable;
 
@@ -33,7 +34,7 @@ Lexer::~Lexer()
 
 bool Lexer::eval()
 {
-	bool success;
+	bool success = false;
 
 	LOG_DBG("Lexer::eval() - tokenize\n");
 	tokenize();
@@ -46,11 +47,8 @@ bool Lexer::eval()
 		
 		success = true;
 	}else{
-		success = false;
-	}
-	
-	if ( !success )
 		LOG_DBG("Lexer::eval() - error, abording...\n");
+	}	
 
 	return success;
 }
@@ -78,7 +76,7 @@ Variable* Lexer::buildGraph()
 
 Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _leftValueOverride, Value* _rightValueOverride)
 {
-	Value*          result;
+	Value*          result = nullptr;
 	Container* context = this->getParent();
 	NODABLE_ASSERT(context != nullptr);
 
@@ -88,7 +86,7 @@ Value* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Value* _left
 	size_t tokenToEvalCount = tokens.size() - _tokenId;
 	if (_tokenCountMax != 0 )
 		tokenToEvalCount = std::min(_tokenCountMax, tokenToEvalCount);
-
+	
 	//----------------------
 	// Expression -> Operand
 	//----------------------
@@ -321,7 +319,7 @@ void Lexer::tokenize()
 	keywords["true"]  = TokenType_Boolean;
 	keywords["false"] = TokenType_Boolean;
 
-	for(auto it = chars.begin(); it < chars.end(); ++it)
+	for(auto it = chars.begin(); it != chars.end(); ++it)
 	{
 		
 		//---------------
@@ -337,9 +335,8 @@ void Lexer::tokenize()
 			{
 				++it;
 			}
-			
-			if ( it != chars.end())
-				--it;
+						
+			--it;
 
 			std::string number = chars.substr(itStart - chars.begin(), it - itStart + 1);
 			addToken(TokenType_Number, number, std::distance(chars.begin(), itStart) );

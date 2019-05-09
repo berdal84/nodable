@@ -2,7 +2,7 @@
 
 #include "Nodable.h"
 #include <imgui/imgui.h>
-#include <SDL.h>
+#include <SDL2/include/SDL.h>
 #include <string>
 #include "View.h"
 #include <ImGuiColorTextEdit/TextEditor.h>

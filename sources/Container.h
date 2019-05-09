@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Nodable.h"     // forward declarations
-#include <Component.h>   // base class
-#include <Entity.h>		 // base class
+#include "Component.h"   // base class
+#include "Entity.h"		 // base class
 #include <string>
 #include <vector>
 

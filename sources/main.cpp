@@ -1,10 +1,12 @@
+
 #include <stdio.h>
 #include <string>
 #include "Application.h"
 #include "ApplicationView.h"
 #include "Test.h"            // for RunAll()
 
-int main(int, char**)
+int main(int argc, char* argv[])
+
 {
 	// Run tests :
 	NODABLE_VERIFY(Nodable::Test::RunAll());

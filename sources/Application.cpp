@@ -6,7 +6,6 @@
 #include "ContainerView.h"
 #include "ApplicationView.h"
 #include "Variable.h"
-#include <unistd.h>
 #include "DataAccess.h"
 #include <iostream>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
@@ -87,7 +86,7 @@ bool Application::eval(std::string _expression)
 	lastString = container->createNodeVariable(ICON_FA_CODE);
 
 	LOG_DBG("Lexer::eval() - assign the expression string to that variable\n");
-	lastString->setValue(_expression.c_str());
+	lastString->setValue(_expression);
 
 	LOG_DBG("Lexer::eval() - check if users type the exit keyword.\n");
 	if ( lastString->getValueAsString() == "exit" ){

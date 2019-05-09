@@ -1,4 +1,4 @@
-// ImGui SDL2 binding with OpenGL3
+// ImGui SDL2 binding with OpenGL3 (Written by O. Cornut)
 // (SDL is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan graphics context creation, etc.)
 // (GL3W is a helper library to access OpenGL functions since there is no standard header to access modern OpenGL functions easily. Alternatives are GLEW, Glad, etc.)
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Nodable.h"   // for constants and forward declarations
-#include <Component.h> // base class
+#include "Component.h" // base class
 
 namespace Nodable{
 	/* BinaryOperationComponent is an interface for all binary operations */
