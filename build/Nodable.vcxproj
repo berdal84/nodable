@@ -41,6 +41,7 @@
     <ClCompile Include="..\sources\Test.cpp" />
     <ClCompile Include="..\sources\Value.cpp" />
     <ClCompile Include="..\sources\Variable.cpp" />
+    <ClCompile Include="..\sources\Variant.cpp" />
     <ClCompile Include="..\sources\View.cpp" />
     <ClCompile Include="..\sources\Wire.cpp" />
     <ClCompile Include="..\sources\WireView.cpp" />
@@ -216,6 +217,7 @@
     <ClInclude Include="..\sources\Test.h" />
     <ClInclude Include="..\sources\Value.h" />
     <ClInclude Include="..\sources\Variable.h" />
+    <ClInclude Include="..\sources\Variant.h" />
     <ClInclude Include="..\sources\View.h" />
     <ClInclude Include="..\sources\Wire.h" />
     <ClInclude Include="..\sources\WireView.h" />
