@@ -10,16 +10,16 @@ namespace Nodable{
 		COMPONENT_CONSTRUCTOR(BinaryOperationComponent);
 		virtual ~BinaryOperationComponent(){};
 
-		void                setLeft	 (Value* _value){left= _value;};
-		void                setRight (Value* _value){right = _value;};
-		void                setResult(Value* _value){result = _value;};
+		void                setLeft	 (Member* _value){left= _value;};
+		void                setRight (Member* _value){right = _value;};
+		void                setResult(Member* _value){result = _value;};
 
 		/* return true if op needs to be evaluated before nextOp */
 		static  bool        NeedsToBeEvaluatedFirst(std::string op, std::string nextOp);
 	protected:
-		Value* 	left 	= nullptr;
-		Value* 	right 	= nullptr;
-		Value* 	result 	= nullptr;
+		Member* 	left 	= nullptr;
+		Member* 	right 	= nullptr;
+		Member* 	result 	= nullptr;
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Sum */

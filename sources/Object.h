@@ -17,18 +17,18 @@ namespace Nodable
 		/* Adds a new member identified by its _name. */
 		void                addMember         (const char* /*name*/, Visibility_ = Visibility_Default, Type_ = Type_Unknown);
 
-		bool                hasMember         (Value* _value);
+		bool                hasMember         (Member* _value);
 
 		/* Set deleted flag on. Will be deleted by its controller next frame */
 		void                deleteNextFrame   (){deleted = true;}
 
 		/* Returns a pointer to the member value identified by its name.
 		Or nullptr if this member doesn't exists. */
-		Value*              getMember         (const std::string& _name)const;
+		Member*              getMember         (const std::string& _name)const;
 
 		/* Returns a pointer to the member value identified by its name.
 		Or nullptr if this member doesn't exists. */
-		Value*              getMember         (const char* _name)const;
+		Member*              getMember         (const char* _name)const;
 		
 		/* Return all members of this object */
 		const Members&      getMembers        ()const;

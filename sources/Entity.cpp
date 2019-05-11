@@ -38,8 +38,8 @@ void Entity::Disconnect(Wire* _wire)
 }
 
 void Entity::Connect( Wire* _wire,
-					Value* _from,
-					Value* _to)
+					Member* _from,
+					Member* _to)
 {	
 	// Connect wire's source and target to nodes _from and _to.
 	_wire->setSource(_from);
