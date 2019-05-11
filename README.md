@@ -97,7 +97,7 @@ Architecture :
 ==============
 
 The software is built to be dynamically reflective. The base class **Object** has members called **Members**s (OMG!). Members can be added or removed at runtime.
-A **Member** is a Variant class that can handle basic data types such as Booleans (bool), Numbers (double) or Strings (std::string).
+A **Member** uses a **Variant** class that can wrap all basic data types such as Booleans (bool), Numbers (double) or Strings (std::string).
 
 Two **Members** can be linked by a **Wire**. A **Wire** is an oriented edge, so it has a *source* and a *target* Member.
 
