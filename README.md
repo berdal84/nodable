@@ -96,10 +96,10 @@ To run the lastest debug version, open the build/Debug folder and run Nodable.ex
 Architecture :
 ==============
 
-The software is built to be dynamically reflective. The base class **Object** has members called **Value**s. Members can be added or removed at runtime.
-A **Value** is a Variant class that can handle basic data types such as Booleans (bool), Numbers (double) or Strings (std::string).
+The software is built to be dynamically reflective. The base class **Object** has members called **Members**s (OMG!). Members can be added or removed at runtime.
+A **Member** is a Variant class that can handle basic data types such as Booleans (bool), Numbers (double) or Strings (std::string).
 
-Two **Values** can be linked by a **Wire**. A **Wire** is an oriented edge, so it has a *source* and a *target* Value.
+Two **Members** can be linked by a **Wire**. A **Wire** is an oriented edge, so it has a *source* and a *target* Member.
 
 The derived class **Entity** is an *Object* able to attach **Components** on it. **Component** is the abstract base class for all components. For now there are only few components :
 - **View**s : to draw the entity on screen.
@@ -113,11 +113,12 @@ The derived class **Entity** is an *Object* able to attach **Components** on it.
 
 **Application** is a class to rule them all.
 
-![Draft UML Class Diagram](https://github.com/berdal84/Nodable/blob/master/docs/ClassDiagram_2018_05_25.png)
+![Draft UML Class Diagram](https://github.com/berdal84/Nodable/blob/master/docs/ClassDiagram_2019_05_11.png)
 
 Road Map :
 ==========
 - [X] Update the expression when the user modify the graph.
+- [ ] basic Undo/redo.
 - [ ] Manual graph creation with mouse and keyboard (add/remove wire, add/remove node)
 - [ ] Conditionnal statement parsing (if, then, else, else if).
 - [ ] Iterative statement parsing (for, while).
