@@ -1,7 +1,5 @@
 ![Nodable Logo](https://github.com/berdal84/Nodable/blob/master/data/icon.png)
 
-[![Build Status](https://travis-ci.org/berdal84/Nodable.svg?branch=master)](https://travis-ci.org/berdal84/Nodable)
-
 Nodable is node-able !
 ======================
 
@@ -83,60 +81,25 @@ Expression -> { ( Unary Operator, Expression ) }  (ex ``` -10```)
 
 Platform compatibility :
 ========================
-Should work on all platforms but only tested under GNU/Linux Ubuntu 16.04 LTS (64bits)
+Windows x86
 
 How to compile ? :
 ==================
 
-To compile you need a c++ 11 compatible compiler. The make file provided is configured to use g++.
-
-Install dependencies:
-
-```
-sudo apt-get install -y --no-install-recommends libsdl2-dev gcc-4.8 g++-4.8 libglfw3-dev
-```
-Clone the project with submodules:
-```
-git clone --recurse-submodules https://github.com/berdal84/Nodable
-```
-Move to the new folder:
-```
-cd ./Nodable
-```
-
-Compile:
-```
-make
-```
+Open the existing Visual Studio Solution located in build folder. Then check VS help to know how to compile.
 
 How to run the software ? :
 ===========================
 
-Install dependencies:
-
-```
-sudo apt-get install -y --no-install-recommends libsdl2 libglfw3
-```
-Clone the project with submodules:
-```
-git clone --recurse-submodules https://github.com/berdal84/Nodable
-```
-Move to the bin folder:
-```
-cd <nodable folder>/bin/Linux64
-```
-Run the software:
-```
-./nodable
-```
+To run the lastest debug version, open the build/Debug folder and run Nodable.exe.
 
 Architecture :
 ==============
 
-The software is built to be dynamically reflective. The base class **Object** has members called **Value**s. Members can be added or removed at runtime.
-A **Value** is a Variant class that can handle basic data types such as Booleans (bool), Numbers (double) or Strings (std::string).
+The software is built to be dynamically reflective. The base class **Object** has members called **Members**s (OMG!). Members can be added or removed at runtime.
+A **Member** uses a **Variant** class that can wrap all basic data types such as Booleans (bool), Numbers (double) or Strings (std::string).
 
-Two **Values** can be linked by a **Wire**. A **Wire** is an oriented edge, so it has a *source* and a *target* Value.
+Two **Members** can be linked by a **Wire**. A **Wire** is an oriented edge, so it has a *source* and a *target* Member.
 
 The derived class **Entity** is an *Object* able to attach **Components** on it. **Component** is the abstract base class for all components. For now there are only few components :
 - **View**s : to draw the entity on screen.
@@ -150,23 +113,17 @@ The derived class **Entity** is an *Object* able to attach **Components** on it.
 
 **Application** is a class to rule them all.
 
-![Draft UML Class Diagram](https://github.com/berdal84/Nodable/blob/master/docs/ClassDiagram_2018_05_25.png)
+![Draft UML Class Diagram](https://github.com/berdal84/Nodable/blob/master/docs/ClassDiagram_2019_05_11.png)
 
 Road Map :
 ==========
 - [X] Update the expression when the user modify the graph.
+- [ ] basic Undo/redo.
 - [ ] Manual graph creation with mouse and keyboard (add/remove wire, add/remove node)
 - [ ] Conditionnal statement parsing (if, then, else, else if).
 - [ ] Iterative statement parsing (for, while).
 - [ ] Function parsing (symbol and in/out parameters).
 - [ ] Run-time execution of a full code.
-
-Change Log:
-===========
-- 2018-06-12 : Added a Fullscreen ON/OFF item in View menu.
-- 2018-06-11 : Graph-to-Text works. Right-click on Graph View's background then select "Update Expression".
-- 2018-05-?? : First version with a GUI (using Dear ImGui).
-- 2017-10-01 : First version (command line only).
 
 Dependencies / Credits :
 ==============
