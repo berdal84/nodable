@@ -282,7 +282,7 @@ bool NodeView::draw()
 	ImGui::NewLine();
 
 	membersOffsetPositionY.clear();
-	auto drawValue = [&](Value* _v)->void
+	auto drawValue = [&](Member* _v)->void
 	{
 		auto memberTopPositionOffsetY 	= ImGui::GetCursorPos().y - position.y;
 
@@ -308,7 +308,7 @@ bool NodeView::draw()
 			if( clicked )
 			{
 				LOG_MSG("Wire connector clicked : %s \n", _v->getName().c_str());
-				static Value* wireConnectorClicked = _v;
+				static Member* wireConnectorClicked = _v;
 			}
 
 		/* Draw the member */

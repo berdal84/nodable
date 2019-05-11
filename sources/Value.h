@@ -22,20 +22,20 @@ namespace Nodable{
 		Visibility_Default   = Visibility_Public
 	};
 
-	class Value{
+	class Member{
 	public:
-		Value();
-		~Value();
+		Member();
+		~Member();
 
 		bool        isSet            ()const;	
 		bool        isType           (Type_ _type)const;
 
 		void        setConnectionFlags(ConnectionFlags_);
 		void        setSourceExpression(const char* _val){sourceExpression = _val;}
-		void        setInput         (Value* _val);
+		void        setInput         (Member* _val);
 		void  		setName			 (const char* _name){name = _name;}
 		void        setOwner         (Object* _owner){owner = _owner;}
-		void        setValue         (const Value*);
+		void        setValue         (const Member*);
 		void        setValue         (std::string);
 		void        setValue         (const char*);
 		void        setValue         (double);
@@ -46,7 +46,7 @@ namespace Nodable{
 
 		bool        allows           (ConnectionFlags_)const;
 		Object*		getOwner		 ()const{return owner;}
-		Value*      getInput         ()const{return input;}
+		Member*      getInput         ()const{return input;}
 		const std::string& getName   ()const{return name;}
 		std::string getSourceExpression()const;
 		Type_       getType          ()const;
@@ -59,7 +59,7 @@ namespace Nodable{
 		Visibility_ getVisibility    ()const{ return visibility;}
 	private:
 		Object*     		owner       		= nullptr;
-		Value*              input               = nullptr;
+		Member*              input               = nullptr;
 		std::string         sourceExpression    = "";
 		std::string 		name 				= "Unknown";
 		Variant       		data;

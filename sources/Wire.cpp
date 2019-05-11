@@ -5,13 +5,13 @@
 
 using namespace Nodable;
 
-void Wire::setSource(Value* _source)
+void Wire::setSource(Member* _source)
 {
 	source     = _source;
 	transmitData();
 }
 
-void Wire::setTarget(Value* _target)
+void Wire::setTarget(Member* _target)
 {
 	target     = _target;
 	transmitData();

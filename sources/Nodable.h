@@ -67,7 +67,7 @@ namespace Nodable{
 
 	// 1 - Common
 	class Wire;
-	class Value;
+	class Member;
 	class Variant;
 	class Object;
 	
@@ -99,7 +99,7 @@ namespace Nodable{
 	class Log;	
 
 	typedef std::map<std::string, Component*>  Components;
-	typedef std::map<std::string, Value*>      Members;
+	typedef std::map<std::string, Member*>      Members;
 	typedef std::vector<Wire*>                 Wires;
 }
 

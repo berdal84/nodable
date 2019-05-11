@@ -15,7 +15,7 @@ void DataAccess::update()
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     rapidjson::Document doc;
 
-	auto writeMember = [&writer](const Value* _value)
+	auto writeMember = [&writer](const Member* _value)
 	{
 		writer.Key(_value->getName().c_str());
 

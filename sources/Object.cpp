@@ -20,7 +20,7 @@ const Members&   Object::getMembers      ()const
 	return members;
 }
 
-bool Object::hasMember(Value* _value)
+bool Object::hasMember(Member* _value)
 {
 	auto foundWithName = members.find(_value->getName());
 	if( foundWithName != members.end())
@@ -29,19 +29,19 @@ bool Object::hasMember(Value* _value)
 
 }
 
-Value* Object::getMember (const char* _name)const
+Member* Object::getMember (const char* _name)const
 {
 	return members.at(std::string(_name));
 }
 
-Value* Object::getMember (const std::string& _name)const
+Member* Object::getMember (const std::string& _name)const
 {
 	return members.at(_name.c_str());
 }
 
 void Object::addMember (const char* _name, Visibility_ _visibility, Type_ _type)
 {
-	auto v = new Value();
+	auto v = new Member();
 
 	v->setOwner     (this);	
 	v->setName		(_name);

@@ -18,19 +18,19 @@ namespace Nodable
 			State_COUNT
 		};
 
-		void        setSource    (Value*);
-		void        setTarget    (Value*);
+		void        setSource    (Member*);
+		void        setTarget    (Member*);
 
 		State_      getState     ()const{return state;}
-		Value*      getSource    ()const{return source;}
-		Value*      getTarget    ()const{return target;}
+		Member*      getSource    ()const{return source;}
+		Member*      getTarget    ()const{return target;}
 		WireView*   getView      ()const{return (WireView*)getComponent("view");}
 
 		/* transfert the value from the source to the target */
 		void        transmitData();
 	private:
-		Value*      source       = nullptr;
-		Value*      target       = nullptr;
+		Member*      source       = nullptr;
+		Member*      target       = nullptr;
 		State_      state        = State_Disconnected;
 	};
 }

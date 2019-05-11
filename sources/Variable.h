@@ -25,7 +25,7 @@ namespace Nodable{
 		const char*       getName         ()const;
 		double            getValueAsNumber()const;
 		std::string       getValueAsString()const;
-		Value*            getValue        ()const{return getMember("value");}
+		Member*            getValue        ()const{return getMember("value");}
 		std::string       getTypeAsString ()const;
 	private:
 		std::string       name;

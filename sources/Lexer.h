@@ -52,7 +52,7 @@ namespace Nodable{
 		Variable* buildGraph          ();
 
 		/* Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
-		Value*         buildGraphRec       (size_t _tokenIndex = 0, size_t _tokenCountMax = 0,   Value* _leftValueOverride = nullptr, Value* _rightValueOverride = nullptr);
+		Member*         buildGraphRec       (size_t _tokenIndex = 0, size_t _tokenCountMax = 0,   Member* _leftValueOverride = nullptr, Member* _rightValueOverride = nullptr);
 
 		/* Cut the member "expression" into tokens to identifies its type (cf. TokenType_ enum) */
 		void           tokenize			   ();
@@ -61,7 +61,7 @@ namespace Nodable{
 		bool           isSyntaxValid	   ();
 
 		/* Convert a given token to a Entity. For now it only handle Numbers, Strings and Symbols. Thats why we return a Variable */
-		Value* 		   createValueFromToken(Token token);
+		Member* 		   createValueFromToken(Token token);
 		
 		/* Creates a new token given a _type, _string and _chanIndex and add it to the tokens.*/
 		void           addToken			   (TokenType_ _type, std::string _string, size_t _charIndex);
