@@ -70,9 +70,9 @@ bool ApplicationView::init()
                                 getMember("glWindowSizeX")->getValueAsNumber(),
                                 getMember("glWindowSizeY")->getValueAsNumber(),
                                 SDL_WINDOW_OPENGL |
-                                SDL_WINDOW_RESIZABLE
-                                /*SDL_WINDOW_FULLSCREEN*/
-                                /*SDL_WINDOW_FULLSCREEN_DESKTOP*/
+                                SDL_WINDOW_RESIZABLE |
+                               /* SDL_WINDOW_FULLSCREEN_DESKTOP*/
+								SDL_WINDOW_MAXIMIZED
                                 );
     
     glcontext = SDL_GL_CreateContext(window);
@@ -95,11 +95,11 @@ bool ApplicationView::init()
     // Add a main font
     {
         ImFontConfig config;
-        config.OversampleH    = 2;
-        config.OversampleV    = 2;
+        config.OversampleH    = 3;
+        config.OversampleV    = 3;
         //io.Fonts->AddFontDefault();
         //io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 18.0f, &config);    
-        io.Fonts->AddFontFromFileTTF("data/CenturyGothic.ttf", 18.0f, &config);  
+        io.Fonts->AddFontFromFileTTF("data/CenturyGothic.ttf", 20.0f, &config);  
         io.FontAllowUserScaling = true;
     }
 
@@ -108,11 +108,11 @@ bool ApplicationView::init()
     // merge in icons from Font Awesome
     static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
     ImFontConfig config;
-    config.OversampleH    = 2;
-    config.OversampleV    = 2;
+    config.OversampleH    = 4;
+    config.OversampleV    = 4;
     config.MergeMode      = true;
     config.PixelSnapH     = true;
-    io.Fonts->AddFontFromFileTTF( FONT_ICON_FILE_NAME_FAS, 16.0f, &config, icons_ranges );
+    io.Fonts->AddFontFromFileTTF( FONT_ICON_FILE_NAME_FAS, 18.0f, &config, icons_ranges );
     }
 
     // Configure ImGui Style
