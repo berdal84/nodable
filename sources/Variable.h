@@ -2,7 +2,7 @@
 
 #include "Nodable.h"    // forward declarations and common stuff
 #include "Entity.h"       // base class
-#include "Value.h"
+#include "Member.h"
 #include <string>
 
 namespace Nodable{

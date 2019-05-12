@@ -2,6 +2,7 @@
 
 #include "Nodable.h" /* Forward declarations and defines */
 #include "Entity.h"    /* Base class */
+#include "History.h"
 #include <string>
 #include <memory>    /* For unique_ptr */
 
@@ -43,7 +44,7 @@ namespace Nodable
 		static void SaveEntity(Entity* _entity);
 
 	private:
-		Variable*                   lastString  = nullptr;		
-		bool                             quit        = false;
+		Variable*     lastString  = nullptr;		
+		bool          quit        = false;
 	};
 }

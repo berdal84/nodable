@@ -1,5 +1,7 @@
+#pragma once
+
 #include "Nodable.h"
-#include "View.h"   // base class
+#include "View.h" // base class
 #include <imgui/imgui.h>
 
 namespace Nodable{

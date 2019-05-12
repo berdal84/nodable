@@ -73,6 +73,7 @@ namespace Nodable{
 	
 	// 2 - Components :
 	class Component;
+	class History;
 
 	// 2a - View Components
 	class NodeView;

@@ -4,29 +4,12 @@
 #include <algorithm>    // for std::find
 #include "Wire.h"
 #include "WireView.h"
+#include "History.h"
 
 using namespace Nodable;
 
 void Entity::Disconnect(Wire* _wire)
 {
-	auto sourceNode = _wire->getSource()->getOwner()->getAs<Entity*>();
-	auto targetNode = _wire->getTarget()->getOwner()->getAs<Entity*>();
-
-
-	// remove wire pointer from sourceNode's wires.
-	{
-		auto found = std::find(sourceNode->wires.begin(), sourceNode->wires.end(), _wire);
-		NODABLE_VERIFY(found != sourceNode->wires.end());
-		sourceNode->wires.erase(found);
-	}
-
-	// remove wire pointer from targetNode's wires.
-	{
-		auto found = std::find(targetNode->wires.begin(), targetNode->wires.end(), _wire);
-		NODABLE_VERIFY(found != targetNode->wires.end());
-		targetNode->wires.erase(found);
-	}
-
 	_wire->getTarget()->setInput(nullptr);
 	_wire->getTarget()->getOwner()->getAs<Entity*>()->setDirty();
 
@@ -34,29 +17,19 @@ void Entity::Disconnect(Wire* _wire)
 	_wire->setSource(nullptr);
 
 	return;
-
 }
 
 void Entity::Connect( Wire* _wire,
 					Member* _from,
 					Member* _to)
 {	
-	// Connect wire's source and target to nodes _from and _to.
-	_wire->setSource(_from);
-	_wire->setTarget(_to);
-	_to->setInput(_from);
-
-	_from->getOwner()->getAs<Entity*>()->wires.push_back(_wire);
-	_to->getOwner()->getAs<Entity*>()->wires.push_back(_wire);
+	Cmd* cmd = new Cmd_ConnectWire(_wire, _from, _to);
+	History::global->addAndExecute(cmd);
 }
 
 Entity::~Entity()
 {
-	// Disconnect all wires
-	for(auto wire : wires)
-	{
-		Entity::Disconnect(wire);
-	}
+	wires.clear();
 
 	// Delete all components
 	for(auto pair : components)
@@ -134,6 +107,11 @@ void Entity::setLabel(std::string _label)
 const char* Entity::getLabel()const
 {
 	return this->label.c_str();
+}
+
+void Nodable::Entity::addWire(Wire* _wire)
+{
+	wires.push_back(_wire);
 }
 
 std::vector<Wire*>& Entity::getWires()

@@ -60,9 +60,6 @@
     <ClCompile Include="..\sources\Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sources\Value.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sources\Variable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -91,6 +88,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\sources\Variant.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sources\Member.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sources\History.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -135,9 +138,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\sources\Test.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sources\Value.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\sources\Variable.h">
@@ -615,6 +615,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\sources\Variant.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sources\Member.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sources\History.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,7 +1,7 @@
 #include "Lexer.h"
 #include "Log.h"          // for LOG_DBG(...)
 
-#include "Value.h"
+#include "Member.h"
 #include "Container.h"
 #include "Variable.h"
 #include "BinaryOperation.h"

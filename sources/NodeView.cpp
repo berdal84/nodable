@@ -476,8 +476,9 @@ void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 {
 	_view->setPosition(_position);
 
-	// Arrange Input Nodes :
+	// Get wires that go outside from this node :
 	auto wires = _view->getOwner()->getWires();
+
 	for(auto eachWire : wires)
 	{
 		if (eachWire != nullptr && _view->getOwner()->hasMember(eachWire->getTarget()) )

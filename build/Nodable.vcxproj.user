@@ -4,6 +4,8 @@
     <LocalDebuggerDebuggerType>Auto</LocalDebuggerDebuggerType>
     <LocalDebuggerAttach>false</LocalDebuggerAttach>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>$(ProjectDir)$(Configuration)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup>
     <ShowAllFiles>false</ShowAllFiles>

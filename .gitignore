@@ -41,6 +41,7 @@
 # *.out
 # *.app
 
-bin/linux64/saves/
+# Visual studio temp files
+/build/.vs
 /.vs
-/build/.vs/Nodable/v16/Browse.VC.opendb
+

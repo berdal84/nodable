@@ -1,7 +1,7 @@
 
 // include once this file
 #include "Test.h"
-#include "Value.h"
+#include "Member.h"
 #include "Log.h"
 #include "Entity.h"
 #include "Wire.h"

@@ -1,6 +1,6 @@
 #pragma once
 #include "Nodable.h"
-#include "Value.h"   // for Type_ enum
+#include "Member.h"   // for Type_ enum
 
 namespace Nodable
 {

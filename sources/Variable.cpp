@@ -1,5 +1,5 @@
 #include "Variable.h"
-#include "Value.h"
+#include "Member.h"
 #include "Log.h"
 
 using namespace Nodable;

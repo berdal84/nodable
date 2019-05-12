@@ -2,7 +2,7 @@
 
 #include "Nodable.h"            // for constants and forward declarations
 #include "Object.h"
-#include "Value.h"
+#include "Member.h"
 #include <string>
 #include <memory>               // for unique_ptr
 
@@ -37,6 +37,7 @@ namespace Nodable{
 		/* Update the state of this node. Call this once per frame */
 		bool                update            ();
 
+		void                addWire           (Wire*);
 		Wires&              getWires          ();
 		int                 getInputWireCount ()const;
 		int                 getOutputWireCount()const;

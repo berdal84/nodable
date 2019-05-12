@@ -24,6 +24,11 @@ Application::Application(const char* _name)
 	addComponent("container", container);
 	container->addComponent("view", new ContainerView);
 	container->setOwner(this);
+
+	// Add an History component for UNDO/REDO
+	auto h = new History;
+	addComponent("history", h);
+	History::global = h;
 }
 
 Application::~Application()
