@@ -43,14 +43,4 @@
 
 bin/linux64/saves/
 /.vs
-/extern/SDL2
-/build/.vs/Nodable/v16
-/build/Debug/vc142.pdb
-/build/Debug/Nodable.vcxproj.FileListAbsolute.txt
-/build/Debug/Nodable.tlog
-/build/Debug/Nodable.pdb
-/build/Debug/Nodable.ilk
-/build/Debug/Nodable.exe
-/build/Debug/SDL2.dll
-/build/VSProject/obj/x86/Debug/VSProject.tlog
-/build/VSProject/.vs/VSProject/v16
+/build/.vs/Nodable/v16/Browse.VC.opendb
