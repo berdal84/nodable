@@ -7,12 +7,14 @@
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
     <LocalDebuggerWorkingDirectory>$(ProjectDir)$(Configuration)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
-  <PropertyGroup>
-    <ShowAllFiles>false</ShowAllFiles>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LocalDebuggerDebuggerType>Auto</LocalDebuggerDebuggerType>
     <LocalDebuggerAttach>false</LocalDebuggerAttach>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerDebuggerType>Mixed</LocalDebuggerDebuggerType>
+    <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>$(ProjectDir)$(Configuration)</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
 </Project>

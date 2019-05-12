@@ -42,6 +42,7 @@
 # *.app
 
 # Visual studio temp files
-/build/.vs
-/.vs
+.vs
+*.VC.db
+*\temp
 
