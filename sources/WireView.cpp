@@ -45,8 +45,18 @@ bool WireView::draw()
 	    // Compute start and end point
 	    Entity* sourceNode 	= source->getOwner()->getAs<Entity*>();
 	    Entity* targetNode 	= target->getOwner()->getAs<Entity*>();
+
+		if (!sourceNode->hasComponent("view") || // in case of of the node have no view we can't draw the wire.
+			!targetNode->hasComponent("view"))
+			return false;
+
 	    auto sourceView = (NodeView*)sourceNode->getComponent("view");
 	    auto targetView = (NodeView*)targetNode->getComponent("view");
+
+		if (!static_cast<View*>(sourceNode->getComponent("view"))->isVisible() || // in case of of the node have hidden view we can't draw the wire.
+			!static_cast<View*>(sourceNode->getComponent("view"))->isVisible() )
+			return false;
+
 	    auto sourceName = wire->getSource()->getName();
 	    auto targetName = wire->getTarget()->getName();
 

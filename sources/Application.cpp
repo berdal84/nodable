@@ -89,6 +89,7 @@ bool Application::eval(std::string _expression)
 	NODABLE_VERIFY(container != nullptr);
 
 	lastString = container->createNodeVariable(ICON_FA_CODE);
+	((View*)lastString->getComponent("view"))->setVisible(false);
 
 	LOG_DBG("Lexer::eval() - assign the expression string to that variable\n");
 	lastString->setValue(_expression);

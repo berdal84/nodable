@@ -120,7 +120,7 @@ bool ApplicationView::init()
 	style.Colors[ImGuiCol_Text]                  = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled]          = ImVec4(0.21f, 0.21f, 0.21f, 1.00f);
 	style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-	style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+	style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
 	style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
 	style.Colors[ImGuiCol_Border]                = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
 	style.Colors[ImGuiCol_BorderShadow]          = ImVec4(0.30f, 0.30f, 0.30f, 0.50f);
@@ -188,7 +188,7 @@ bool ApplicationView::init()
         0xffc040a0, // Preproc identifier
         0xff909090, // Comment (single line)
         0xff909090, // Comment (multi line)
-        0xff303030, // Background
+        0x30000000, // Background
         0xffe0e0e0, // Cursor
         0x40ffffff, // Selection
         0x800020ff, // ErrorMarker
@@ -342,54 +342,63 @@ bool ApplicationView::draw()
             }
     
 
+            static bool isExpressionValid = true;
+
+			/*
+				TIME SLIDER
+			*/
+			auto size = History::global->getSize();
+			auto cursor = History::global->getCursorPosition();
+
+			ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+			ImGui::SetWindowFontScale(0.7f);
+			auto historyChanges = ImGui::SliderInt("History", &cursor, 1, size, "Time slider");
+			ImGui::PopItemWidth();
+			ImGui::SetWindowFontScale(1.0f);
+
+			if (historyChanges)
+				History::global->setCursorPosition(cursor);
+
+			/*
+				TITLE
+			*/
+
+			View::ShadowedText(ImVec2(1.0f, 1.0f), ImColor(1.0f, 1.0f, 1.0f, 0.2f), ICON_FA_FILE_CODE " Hybrid Editor");
+
+			/*
+				HYBRID EDITOR			
+			*/
+
             auto availSize = ImGui::GetContentRegionAvail();
             availSize.y -=  ImGui::GetTextLineHeightWithSpacing();;
-            static bool isExpressionValid = true;
-            ImGui::BeginChild("Main", ImVec2(availSize.x, availSize.y), false);
-            {
-                ImGui::BeginChild( "TextEditor", ImVec2(availSize.x * 0.25, availSize.y), false);
-                {
-                    View::ShadowedText (ImVec2(1.0f, 1.0f), ImColor(1.0f, 1.0f, 1.0f, 0.2f), ICON_FA_FILE_CODE " Text Editor");
+            ImGui::BeginChild( "TextEditor", ImVec2(availSize.x , availSize.y), false);
+			{
+				/*
+					TEXT EDITOR
+				*/
 
-                    auto textEditorSize = ImGui::GetContentRegionAvail();
-                    textEditor->Render("Text Editor Plugin", textEditorSize);                    
-                    
-                    bool needsToEvaluateString = textEditor->IsTextChanged() || textEditor->IsCursorPositionChanged();
 
-                    if (needsToEvaluateString)
-                    {
-                        application->clearContext();
-                        std::string expr = textEditor->HasSelection() ? textEditor->GetSelectedText() : textEditor->GetCurrentLineText( );
-                        isExpressionValid = application->eval(expr);
-                    }
-                }
-                ImGui::EndChild();
+				auto textEditorSize = ImGui::GetContentRegionAvail();
+				textEditor->Render("Text Editor Plugin", availSize);
 
-                ImGui::SameLine();
 
-                ImGui::BeginChild("GraphEditorMain", ImVec2(0.0f,0.0f), false, ImGuiWindowFlags_NoScrollbar);
-                {
-                    View::ShadowedText (ImVec2(1.0f, 1.0f), ImColor(1.0f, 1.0f, 1.0f, 0.2f), ICON_FA_CODE_BRANCH " Graph Editor");
+				bool needsToEvaluateString = textEditor->IsTextChanged() || textEditor->IsCursorPositionChanged();
 
-                    ImGui::BeginChild("GraphEditorBottom", ImVec2(0.0f,0.0f), false, ImGuiWindowFlags_NoScrollbar);
-                    {
-                        // Draw a dark background
-                        auto cursorPos = ImGui::GetCursorScreenPos();
-                        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-                        auto itemRectMin      = cursorPos;
-                        auto content          = ImGui::GetContentRegionAvail();
-                        auto itemRectMax      = ImVec2(cursorPos.x + content.x, cursorPos.y + content.y);
-                        draw_list->AddRectFilled(itemRectMin, itemRectMax, ImColor(0.2f, 0.2f, 0.2f), 3.0f); 
+				if (needsToEvaluateString)
+				{
+					application->clearContext();
+					std::string expr = textEditor->HasSelection() ? textEditor->GetSelectedText() : textEditor->GetCurrentLineText();
+					isExpressionValid = application->eval(expr);
+				}
 
-                        if (application->getContext()->hasComponent("view"))                       
-                            application->getContext()->getComponent("view")->getAs<View*>()->draw();
-                    }
-                    ImGui::EndChild();
-
-                }
-                ImGui::EndChild();
-            }
-            ImGui::EndChild();
+				/*
+					NODE EDITOR
+				*/
+				ImGui::SetCursorPos(ImVec2(0, 0));
+				if (application->getContext()->hasComponent("view"))
+					application->getContext()->getComponent("view")->getAs<View*>()->draw();
+			}
+			ImGui::EndChild();
 
             /*
                 Status bar

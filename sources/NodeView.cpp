@@ -74,11 +74,6 @@ void NodeView::setPosition(ImVec2 _position)
 	ImGui::SetWindowPos(std::to_string(size_t(this)).c_str(), _position);
 }
 
-void NodeView::setVisible(bool _b)
-{
-	visible = _b;
-}
-
 void NodeView::translate(ImVec2 _delta)
 {
 	setPosition(ImVec2(position.x + _delta.x, position.y + _delta.y));
@@ -196,68 +191,52 @@ bool NodeView::draw()
 
 	ImVec2 screenPosition = position;
 
-	switch ( s_drawMode)
-	{
-		case DrawMode_AsWindow:
+	if ( position.x != -1.0f || position.y != -1.0f)
+		ImGui::SetCursorPos(ImVec2(std::floor(position.x - size.x/2.0f), std::floor(position.y - size.y / 2.0f)));
+	else
+		ImGui::SetCursorPos(ImVec2());
+
+	ImGui::PushID(this);
+	ImGui::BeginGroup();
+	ImVec2 cursorPos       = ImGui::GetCursorPos();
+	ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+	screenPosition.x = position.x +  cursorScreenPos.x - cursorPos.x;
+	screenPosition.y = position.y +  cursorScreenPos.y - cursorPos.y;
+
+	ImGui::SetCursorPos(ImVec2(cursorPos.x + 10.0f, cursorPos.y + 10.0f));
+
+	// Draw the background of the Group
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	{			
+		auto borderCol = IsSelected(this) ? borderColorSelected : getColor(ColorType_Border);
+
+		auto itemRectMin = ImVec2(screenPosition.x - size.x/2.0f, screenPosition.y - size.y/2.0f);
+		auto itemRectMax = ImVec2(screenPosition.x + size.x/2.0f, screenPosition.y + size.y/2.0f);
+
+		// Draw the rectangle under everything
+		View::DrawRectShadow(itemRectMin, itemRectMax, borderRadius, 4, ImVec2(1.0f, 1.0f), getColor(ColorType_Shadow));
+		draw_list->AddRectFilled(itemRectMin, itemRectMax,getColor(ColorType_Fill), borderRadius);
+		draw_list->AddRect(ImVec2(itemRectMin.x + 1.0f, itemRectMin.y + 1.0f), ImVec2(itemRectMax.x, itemRectMax.y),getColor(ColorType_BorderHighlights), borderRadius);	
+		draw_list->AddRect(itemRectMin, itemRectMax,borderCol, borderRadius);				
+
+		// darken the background under the content
+		draw_list->AddRectFilled(ImVec2(itemRectMin.x, itemRectMin.y + 35.0f), ImVec2(itemRectMax.x, itemRectMax.y), ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
+
+		// Draw an additionnal blinking rectangle when selected
+		if (IsSelected(this))
 		{
-			ImGui::SetNextWindowSize(size, ImGuiSetCond_FirstUseEver);
-			ImGui::SetNextWindowPos(getPosition(), ImGuiSetCond_FirstUseEver);	
-			ImGui::Begin(std::to_string(size_t(this)).c_str(), &visible, window_flags);		
-			break;
-		}
-
-		case DrawMode_AsGroup:
-		{
-			if ( position.x != -1.0f || position.y != -1.0f)
-				ImGui::SetCursorPos(ImVec2(std::floor(position.x - size.x/2.0f), std::floor(position.y - size.y / 2.0f)));
-			else
-				ImGui::SetCursorPos(ImVec2());
-
-			ImGui::PushID(this);
-			ImGui::BeginGroup();
-			ImVec2 cursorPos       = ImGui::GetCursorPos();
-			ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
-			screenPosition.x = position.x +  cursorScreenPos.x - cursorPos.x;
-			screenPosition.y = position.y +  cursorScreenPos.y - cursorPos.y;
-
-			ImGui::SetCursorPos(ImVec2(cursorPos.x + 10.0f, cursorPos.y + 10.0f));
-
-			// Draw the background of the Group
-			ImDrawList* draw_list = ImGui::GetWindowDrawList();
-			{			
-				auto borderCol = IsSelected(this) ? borderColorSelected : getColor(ColorType_Border);
-
-				auto itemRectMin = ImVec2(screenPosition.x - size.x/2.0f, screenPosition.y - size.y/2.0f);
-				auto itemRectMax = ImVec2(screenPosition.x + size.x/2.0f, screenPosition.y + size.y/2.0f);
-
-				// Draw the rectangle under everything
-				View::DrawRectShadow(itemRectMin, itemRectMax, borderRadius, 4, ImVec2(1.0f, 1.0f), getColor(ColorType_Shadow));
-				draw_list->AddRectFilled(itemRectMin, itemRectMax,getColor(ColorType_Fill), borderRadius);
-				draw_list->AddRect(ImVec2(itemRectMin.x + 1.0f, itemRectMin.y + 1.0f), ImVec2(itemRectMax.x, itemRectMax.y),getColor(ColorType_BorderHighlights), borderRadius);	
-				draw_list->AddRect(itemRectMin, itemRectMax,borderCol, borderRadius);				
-
-				// darken the background under the content
-				draw_list->AddRectFilled(ImVec2(itemRectMin.x, itemRectMin.y + 35.0f), ImVec2(itemRectMax.x, itemRectMax.y), ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
-
-				// Draw an additionnal blinking rectangle when selected
-				if (IsSelected(this))
-				{
-					float alpha = sin(ImGui::GetTime() * 10.0f)*0.25f + 0.5f;
-					float offset = 4.0f;
-					draw_list->AddRect(ImVec2(itemRectMin.x - offset, itemRectMin.y - offset), ImVec2(itemRectMax.x + offset, itemRectMax.y + offset), ImColor(1.0f, 1.0f, 1.0f, alpha), borderRadius + offset, ~0, offset / 2.0f);
-				}
-			}
-
-			// Add an invisible just on top of the background to detect mouse hovering
-			ImGui::SetCursorPos(cursorPos);
-			ImGui::InvisibleButton("##", ImVec2(size.x - 20.0f, size.y - 10.0f));
-			ImGui::SetItemAllowOverlap();
-			hovered = ImGui::IsItemHovered();
-			ImGui::SetCursorPos(ImVec2(cursorPos.x + 10.0f, cursorPos.y + 10.0f));								
-
-			break;
+			float alpha = sin(ImGui::GetTime() * 10.0f)*0.25f + 0.5f;
+			float offset = 4.0f;
+			draw_list->AddRect(ImVec2(itemRectMin.x - offset, itemRectMin.y - offset), ImVec2(itemRectMax.x + offset, itemRectMax.y + offset), ImColor(1.0f, 1.0f, 1.0f, alpha), borderRadius + offset, ~0, offset / 2.0f);
 		}
 	}
+
+	// Add an invisible just on top of the background to detect mouse hovering
+	ImGui::SetCursorPos(cursorPos);
+	ImGui::InvisibleButton("##", ImVec2(size.x - 20.0f, size.y - 10.0f));
+	ImGui::SetItemAllowOverlap();
+	hovered = ImGui::IsItemHovered();
+	ImGui::SetCursorPos(ImVec2(cursorPos.x + 10.0f, cursorPos.y + 10.0f));								
 
 	ImGui::PushItemWidth(75.0f);
 

@@ -39,4 +39,15 @@ void History::redo()
 	}
 }
 
+void History::setCursorPosition(int _pos)
+{
+	while (_pos != commandsCursor)
+	{
+		if (_pos > commandsCursor)
+			redo();
+		else
+			undo();
+	}
+}
+
 

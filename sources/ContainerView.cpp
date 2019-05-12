@@ -23,7 +23,8 @@ bool ContainerView::draw()
 	// Update NodeViews
 	for(auto eachNode : entities)
 	{
-		eachNode->getComponent("view")->update();
+		if (eachNode->hasComponent("view"))
+			eachNode->getComponent("view")->update();
 	}
 
 	//  Draw NodeViews
@@ -32,13 +33,16 @@ bool ContainerView::draw()
 
 	for(auto eachNode : entities)
 	{
-		auto view = eachNode->getComponent("view")->getAs<View*>();
-
-		if (view != nullptr)
+		if (eachNode->hasComponent("view"))
 		{
-			view->draw();
-			isAnyItemDragged |= NodeView::GetDragged() == view;
-			isAnyItemHovered |= view->isHovered();
+			auto view = eachNode->getComponent("view")->getAs<View*>();
+
+			if (view != nullptr && view->isVisible())
+			{
+				view->draw();
+				isAnyItemDragged |= NodeView::GetDragged() == view;
+				isAnyItemHovered |= view->isHovered();
+			}
 		}
 	}
 

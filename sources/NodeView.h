@@ -45,9 +45,6 @@ namespace Nodable{
 		/* Get the default output position vector */
 		ImVec2            getOutputPosition   (const std::string&)const;
 
-		/* Change the visibility of this view */
-		void              setVisible          (bool);
-
 		/* Set a new position (top-left corner) vector to this view */ 
 		void              setPosition         (ImVec2);
 
@@ -81,10 +78,9 @@ namespace Nodable{
 		static DrawDetail_ s_drawDetail;  // global draw detail (check DrawDetail_ enum)
 
 	private:
-		ImVec2          position            = ImVec2(-1.0, -1.0f);    // center position vector
+		ImVec2          position            = ImVec2(500.0f, -1.0f);    // center position vector
 		ImVec2          size                = ImVec2(170.0f, 40.0f);  // size of the window
-		float           opacity             = 0.0f;                   // global transparency of this view
-		bool            visible             = true;                   
+		float           opacity             = 0.0f;                   // global transparency of this view                 
 		bool            collapsed           = true;
 		bool            pinned              = false;                  // false: follow its outputs.
 		float           borderRadius        = 5.0f;

@@ -294,7 +294,9 @@ Lexer* Container::createNodeLexer(Variable* _input)
 {
 	Lexer* node = new Lexer();
 	node->setLabel(ICON_FA_COGS " Lexer");
-	node->addComponent( "view", new NodeView);	
+	auto view = new NodeView;
+	view->setVisible(false);
+	node->addComponent( "view", view);	
 	this->addEntity(node);
 	auto wire = this->createWire();
 	Entity::Connect(wire,_input->getValue(), node->getMember("expression"));

@@ -16,6 +16,7 @@ namespace Nodable{
 		};
 
 		View();
+		virtual ~View(){}
 		
 		virtual bool draw()=0;
 
@@ -36,12 +37,16 @@ namespace Nodable{
 		void        setColor       (ColorType_ ,ImColor);
 		ImColor     getColor       (ColorType_);
 
+		void        setVisible(bool _b) { visible = _b; }
+		bool        isVisible() { return visible; }
+
 		/* Return true if this view is hovered by mouse cursor, false if not */
 		bool        isHovered      ()const{return hovered;}
 
 	protected:
-		bool    hovered = false;
+		bool    hovered   = false;
 	private:
+		bool    visible = true;
 		ImColor colors[ColorType_COUNT];
 		
 	};

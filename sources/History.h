@@ -26,6 +26,13 @@ namespace Nodable
 		/* Redo the next (in the history) command */
 		void redo();
 		
+		/* To get the size of the history (command count)*/
+		int getSize() { return commands.size(); }
+
+		/* To get the current command*/
+		int getCursorPosition() { return commandsCursor; }
+		void setCursorPosition(int _pos);
+
 		// Future: For command groups (ex: 5 commands that are atomic)
 		// static BeginGroup();
 		// static EndGroup()
@@ -68,9 +75,11 @@ namespace Nodable
 
 		void execute()
 		{
-			// Link Members
+			// Link wire to members
 			wire->setSource(source);
 			wire->setTarget(target);
+
+			target->setInput(source);
 
 			// Add the wire pointer to the Entity instance to speed up drawing process.
 			target->getOwner()->getAs<Entity*>()->addWire(wire);

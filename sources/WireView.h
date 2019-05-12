@@ -9,6 +9,7 @@ namespace Nodable{
 	{
 	public:
 		COMPONENT_CONSTRUCTOR(WireView);
+		~WireView() {};
 		bool draw()override;
 	};
 }
