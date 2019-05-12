@@ -34,7 +34,7 @@ namespace Nodable
 	private:
 		Container*          container;
 		std::vector<Cmd*>	commands;		/* Command history */
-		size_t           	commandsCursor;	/* Command history cursor (zero based index) */
+		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
 	};
 
 	/* Base class for all commands */
@@ -78,7 +78,12 @@ namespace Nodable
 
 		void undo()
 		{
+			// Link Members
+			wire->setSource(nullptr);
+			wire->setTarget(nullptr);
 
+			// Add the wire pointer to the Entity instance to speed up drawing process.
+			target->getOwner()->getAs<Entity*>()->removeWire(wire);
 		}
 
 	private:

@@ -10,9 +10,14 @@ History::~History()
 }
 
 void History::addAndExecute(Cmd* _cmd)
-{
+{	
+	/* First clear commands after the cursor */
+	while (commandsCursor > commands.size())
+		commands.erase(commands.end());
+
+	/* Then add and execute the new command */
 	commands.push_back(_cmd);
-	commandsCursor++;
+	commandsCursor = commands.size();
 	_cmd->execute();
 }
 
@@ -27,7 +32,7 @@ void History::undo()
 
 void History::redo()
 {
-	if (commandsCursor > commands.size())
+	if (commandsCursor < commands.size())
 	{
 		commands.at(commandsCursor)->execute();
 		commandsCursor++;

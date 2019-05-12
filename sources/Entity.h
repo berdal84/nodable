@@ -38,6 +38,7 @@ namespace Nodable{
 		bool                update            ();
 
 		void                addWire           (Wire*);
+		void                removeWire        (Wire*);
 		Wires&              getWires          ();
 		int                 getInputWireCount ()const;
 		int                 getOutputWireCount()const;

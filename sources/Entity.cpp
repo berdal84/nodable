@@ -114,6 +114,13 @@ void Nodable::Entity::addWire(Wire* _wire)
 	wires.push_back(_wire);
 }
 
+void Nodable::Entity::removeWire(Wire* _wire)
+{
+	auto found = std::find(wires.begin(), wires.end(), _wire);
+	if(found != wires.end())
+		wires.erase(found);
+}
+
 std::vector<Wire*>& Entity::getWires()
 {
 	return wires;

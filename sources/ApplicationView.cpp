@@ -269,8 +269,13 @@ bool ApplicationView::draw()
 
                 if (ImGui::BeginMenu("Edit"))
                 {
+					auto undo    = ImGui::MenuItem("Undo", "");
+					auto redo    = ImGui::MenuItem("Redo", "");
+
+					ImGui::Separator();
+
                     auto hide    = ImGui::MenuItem("Hide", "Del.");
-                    auto arrange = ImGui::MenuItem("Arrange", "A");
+                    auto arrange = ImGui::MenuItem("ReArrange nodes", "A");
 
                     auto selected = NodeView::GetSelected();
                     if( selected )
@@ -280,6 +285,9 @@ bool ApplicationView::draw()
                         else if (arrange)
                             selected->arrangeRecursively();
                     }
+
+					if (undo)History::global->undo();
+					if (redo)History::global->redo();
 
                     ImGui::EndMenu();
                 }
