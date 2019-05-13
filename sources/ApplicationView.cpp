@@ -351,10 +351,9 @@ bool ApplicationView::draw()
 			auto cursor = History::global->getCursorPosition();
 
 			ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
-			ImGui::SetWindowFontScale(0.7f);
-			auto historyChanges = ImGui::SliderInt("History", &cursor, 1, size, "Time slider");
+			auto historyChanges = ImGui::SliderInt("", &cursor, 1, size, "Time slider");
 			ImGui::PopItemWidth();
-			ImGui::SetWindowFontScale(1.0f);
+
 
 			if (historyChanges)
 				History::global->setCursorPosition(cursor);
