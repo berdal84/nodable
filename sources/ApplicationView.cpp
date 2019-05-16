@@ -223,10 +223,11 @@ bool ApplicationView::draw()
     	    if (ImGui::Begin("Properties", &b))
     	    {    	
 
-    		    ImGui::Text("Bezier curves");
+    		    ImGui::Text("Wires");
     		    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
     		    ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
     		    ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
+				ImGui::SliderFloat("connector radius", &connectorRadius, 1.0f, 10.0f);
     		    ImGui::Checkbox("arrows", &displayArrows);
     	    
     	    }           

@@ -265,31 +265,6 @@ bool NodeView::draw()
 	{
 		auto memberTopPositionOffsetY 	= ImGui::GetCursorPos().y - position.y;
 
-		/* Draw the wire connector */
-
-			// Circle
-			ImDrawList* draw_list = ImGui::GetWindowDrawList();
-			ImVec2 pos = ImGui::GetCursorScreenPos();
-			pos.x -= 20.0f;
-			pos.y += 10.0f;
-			draw_list->AddCircleFilled(pos, 5.0f, getColor(ColorType_Fill) );
-			draw_list->AddCircle      (pos, 5.0f, getColor(ColorType_Border) );
-
-			// Unvisible Button on top of the Circle
-						
-			ImVec2 cpos = ImGui::GetCursorPos();
-			ImGui::SetCursorPos(ImVec2(cpos.x - 25.0f, cpos.y + 5.0f ));
-			ImGui::PushID(_v);
-			bool clicked = ImGui::InvisibleButton("###", ImVec2(10.0f, 10.0f));
-			ImGui::PopID();
-			ImGui::SetCursorPos(cpos);
-
-			if( clicked )
-			{
-				LOG_MSG("Wire connector clicked : %s \n", _v->getName().c_str());
-				static Member* wireConnectorClicked = _v;
-			}
-
 		/* Draw the member */
 		switch(_v->getType())
 		{
@@ -325,6 +300,30 @@ bool NodeView::draw()
 
 		auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
 		membersOffsetPositionY[_v->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f;
+		
+		/* Draw the wire connector */
+
+			// Circle
+		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+		ImVec2 origin = ImGui::GetWindowPos();
+		ImVec2 pos = getInputPosition(_v->getName()) + origin;
+		draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Fill));
+		draw_list->AddCircle(pos, connectorRadius, getColor(ColorType_Border));
+
+		// Unvisible Button on top of the Circle
+
+		ImVec2 cpos = ImGui::GetCursorPos();
+		ImGui::SetCursorPos(ImVec2(cpos.x - 25.0f, cpos.y + connectorRadius));
+		ImGui::PushID(_v);
+		bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * 2.0f, connectorRadius * 2.0f));
+		ImGui::PopID();
+		ImGui::SetCursorPos(cpos);
+
+		if (clicked)
+		{
+			LOG_MSG("Wire connector clicked : %s \n", _v->getName().c_str());
+			static Member* wireConnectorClicked = _v;
+		}
 	};
 
 	// Draw visible members

@@ -60,10 +60,12 @@ v0.1:
 
 namespace Nodable{ 
 
+	// 0 - globals, check cpp for values.
     extern float bezierCurveOutRoundness;
     extern float bezierCurveInRoundness;
     extern float bezierThickness;
-    extern bool displayArrows; 
+	extern float connectorRadius;
+    extern bool  displayArrows; 
 
 	// 1 - Common
 	class Wire;

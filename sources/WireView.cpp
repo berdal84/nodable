@@ -93,10 +93,11 @@ bool WireView::draw()
 	    							bezierThickness); // shadow
 
 		draw_list->AddBezierCurve(pos0, cp0, cp1, arrowPos, getColor(ColorType_Fill), bezierThickness); // fill
+	
 		
 		// dot a the output position
-		draw_list->AddCircleFilled(pos0, 5.0f, sourceView->getColor(ColorType_Fill));
-		draw_list->AddCircle      (pos0, 5.0f, sourceView->getColor(ColorType_Border));
+		draw_list->AddCircleFilled(pos0, connectorRadius, sourceView->getColor(ColorType_Fill));
+		draw_list->AddCircle      (pos0, connectorRadius, sourceView->getColor(ColorType_Border));
 
 		if (displayArrows)
 		{
@@ -105,8 +106,8 @@ bool WireView::draw()
 	    	draw_list->AddLine(ImVec2(arrowPos.x - arrowSize.x, pos1.y - arrowSize.y/2.0f), arrowPos, getColor(ColorType_Fill), bezierThickness);
 	    }else{        
 	    	// dot at the input position
-	    	draw_list->AddCircleFilled(pos1, 5.0f, targetView->getColor(ColorType_Fill));   
-	    	draw_list->AddCircle      (pos1, 5.0f, targetView->getColor(ColorType_Border));
+	    	draw_list->AddCircleFilled(pos1, connectorRadius, targetView->getColor(ColorType_Fill));
+	    	draw_list->AddCircle      (pos1, connectorRadius, targetView->getColor(ColorType_Border));
 	    }
 
 
