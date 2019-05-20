@@ -66,6 +66,7 @@ namespace Nodable{
     extern float bezierThickness;
 	extern float connectorRadius;
     extern bool  displayArrows; 
+	extern float nodePadding;
 
 	// 1 - Common
 	class Wire;

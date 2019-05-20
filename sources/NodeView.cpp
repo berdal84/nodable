@@ -157,8 +157,6 @@ void NodeView::update()
 				bool isDeltaTooSmall = delta.x*delta.x + delta.y*delta.y < 1.0f;
 				if ( !isDeltaTooSmall )
 					inputView->translate(delta);
-
-				posY += inputView->size.y + 15.0f; // adding a 10 px vertical margin.
 			}
 
 			inputIndex++;
@@ -198,12 +196,12 @@ bool NodeView::draw()
 
 	ImGui::PushID(this);
 	ImGui::BeginGroup();
-	ImVec2 cursorPos       = ImGui::GetCursorPos();
-	ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
-	screenPosition.x = position.x +  cursorScreenPos.x - cursorPos.x;
-	screenPosition.y = position.y +  cursorScreenPos.y - cursorPos.y;
+	ImVec2 cursorPosBeforeContent = ImGui::GetCursorPos();
+	ImVec2 cursorScreenPos        = ImGui::GetCursorScreenPos();
+	screenPosition.x = position.x +  cursorScreenPos.x - cursorPosBeforeContent.x;
+	screenPosition.y = position.y +  cursorScreenPos.y - cursorPosBeforeContent.y;
 
-	ImGui::SetCursorPos(ImVec2(cursorPos.x + 10.0f, cursorPos.y + 10.0f));
+	ImGui::SetCursorPos(ImVec2(cursorPosBeforeContent.x, cursorPosBeforeContent.y));
 
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -220,7 +218,7 @@ bool NodeView::draw()
 		draw_list->AddRect(itemRectMin, itemRectMax,borderCol, borderRadius);				
 
 		// darken the background under the content
-		draw_list->AddRectFilled(ImVec2(itemRectMin.x, itemRectMin.y + 35.0f), ImVec2(itemRectMax.x, itemRectMax.y), ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
+		draw_list->AddRectFilled(ImVec2(itemRectMin.x, itemRectMin.y + ImGui::GetTextLineHeightWithSpacing() + nodePadding), ImVec2(itemRectMax.x, itemRectMax.y), ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
 
 		// Draw an additionnal blinking rectangle when selected
 		if (IsSelected(this))
@@ -232,33 +230,21 @@ bool NodeView::draw()
 	}
 
 	// Add an invisible just on top of the background to detect mouse hovering
-	ImGui::SetCursorPos(cursorPos);
-	ImGui::InvisibleButton("##", ImVec2(size.x - 20.0f, size.y - 10.0f));
+	ImGui::SetCursorPos(cursorPosBeforeContent);
+	ImGui::InvisibleButton("##", size);
 	ImGui::SetItemAllowOverlap();
 	hovered = ImGui::IsItemHovered();
-	ImGui::SetCursorPos(ImVec2(cursorPos.x + 10.0f, cursorPos.y + 10.0f));								
+	ImGui::SetCursorPos(ImVec2(cursorPosBeforeContent.x + nodePadding, cursorPosBeforeContent.y + nodePadding));
 
-	ImGui::PushItemWidth(75.0f);
+	ImGui::PushItemWidth(size.x - float(2) * nodePadding);
 
 	// Draw the window content 
 	//------------------------
 
-	switch (s_drawMode)
-	{
-		case DrawMode_AsWindow:
-		{
-			setPosition(ImGui::GetWindowPos());
-			this->size = ImGui::GetWindowSize();
-			break;
-		}
-
-		default:{}
-	}
-
-	ImGui::Indent();
 	ShadowedText(ImVec2(1.0f, 1.0f), getColor(ColorType_BorderHighlights), node->getLabel()); // text with a lighter shadow (incrust effect)
 
-	ImGui::NewLine();
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + nodePadding);
+	ImGui::Indent(nodePadding);
 
 	membersOffsetPositionY.clear();
 	auto drawValue = [&](Member* _v)->void
@@ -303,7 +289,7 @@ bool NodeView::draw()
 		
 		/* Draw the wire connector */
 
-			// Circle
+		// Circle
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 		ImVec2 origin = ImGui::GetWindowPos();
 		ImVec2 pos = getInputPosition(_v->getName()) + origin;
@@ -348,7 +334,7 @@ bool NodeView::draw()
 			{
 				drawValue(m.second);
 			}
-		}
+		}	
 
 		// Draw component names
 		ImGui::NewLine();
@@ -375,6 +361,9 @@ bool NodeView::draw()
 	}
 
 	ImGui::PopItemWidth();
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + nodePadding);
+
+	auto cursorPosAfterContent = ImGui::GetCursorPos();
 
 	// Ends the Window
 	//----------------
@@ -428,17 +417,21 @@ bool NodeView::draw()
 					SetDragged(nullptr);				
 			}		
 
-			// Collapse/uncollapse by double click
+			// Collapse/uncollapse by double click (double/divide x size by 2)
 			if( hovered && ImGui::IsMouseDoubleClicked(0))
 			{
-				collapsed = !collapsed;
-				size      = ImVec2(170.0f, 40.0f); // reset size when collapsing/uncollapsing
-			}else{
-				// memorize size with an offet (margin)
-				size = ImGui::GetItemRectSize();
-				size.x += 20.0f;
-				size.y += 10.0f;
-			}
+				if (collapsed) {
+					collapsed = false;
+					size.x   *= float(2);
+				}
+				else {
+					collapsed  = true;
+					size.x    /= float(2);
+				}			
+			}	
+
+			// interpolate size.y to fit with its content
+			size.y = 0.5f * size.y  + 0.5f * (cursorPosAfterContent.y - cursorPosBeforeContent.y);
 
 			break;
 		}

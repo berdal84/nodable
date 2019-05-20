@@ -6,6 +6,8 @@
 #include <string>
 #include <map>
 
+#define NODE_VIEW_DEFAULT_SIZE ImVec2(120.0f, 40.0f)
+
 namespace Nodable{
 
 	/* We use this enum to change the way ImGui draw this NodeView window */
@@ -79,7 +81,7 @@ namespace Nodable{
 
 	private:
 		ImVec2          position            = ImVec2(500.0f, -1.0f);    // center position vector
-		ImVec2          size                = ImVec2(170.0f, 40.0f);  // size of the window
+		ImVec2          size                = NODE_VIEW_DEFAULT_SIZE;  // size of the window
 		float           opacity             = 0.0f;                   // global transparency of this view                 
 		bool            collapsed           = true;
 		bool            pinned              = false;                  // false: follow its outputs.
