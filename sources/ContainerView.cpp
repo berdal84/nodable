@@ -28,8 +28,8 @@ bool ContainerView::draw()
 	}
 
 	//  Draw NodeViews
-	bool isAnyItemDragged = false;
-	bool isAnyItemHovered = false;	
+	bool isAnyNodeDragged = false;
+	bool isAnyNodeHovered = false;	
 
 	for(auto eachNode : entities)
 	{
@@ -40,8 +40,8 @@ bool ContainerView::draw()
 			if (view != nullptr && view->isVisible())
 			{
 				view->draw();
-				isAnyItemDragged |= NodeView::GetDragged() == view;
-				isAnyItemHovered |= view->isHovered();
+				isAnyNodeDragged |= NodeView::GetDragged() == view;
+				isAnyNodeHovered |= view->isHovered();
 			}
 		}
 	}
@@ -60,7 +60,7 @@ bool ContainerView::draw()
 
 	auto selectedView = NodeView::GetSelected();
 	// Deselection
-	if( !isAnyItemHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
+	if( !isAnyNodeHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
 		NodeView::SetSelected(nullptr);
 
 	
@@ -75,7 +75,7 @@ bool ContainerView::draw()
 	}
 
 	// Draft Mouse PAN
-	if( ImGui::IsMouseDragging() && ImGui::IsWindowFocused() && !isAnyItemDragged )
+	if( ImGui::IsMouseDragging() && ImGui::IsWindowFocused() && !isAnyNodeDragged )
 	{
 		auto drag = ImGui::GetMouseDragDelta();
 		for(auto eachNode : entities)
