@@ -8,7 +8,7 @@
 int main(int argc, char* argv[])
 
 {
-	// Run the program
+	// Build a new Nodable application
 	std::string appName = "Nodable " NODABLE_VERSION;
 	Nodable::Application nodable(appName.c_str());
 
