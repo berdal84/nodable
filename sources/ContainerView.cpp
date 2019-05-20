@@ -91,7 +91,7 @@ bool ContainerView::draw()
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{
-		bool updateExpression = ImGui::MenuItem("Update expression");
+		bool updateExpressionButtonClicked = ImGui::MenuItem("Update expression");
 
 		ImGui::Separator();
 		
@@ -142,7 +142,7 @@ bool ContainerView::draw()
 
 		ImGui::EndPopup();
 
-		if (updateExpression){
+		if (updateExpressionButtonClicked){
 			auto result = container->find("");
 			auto app   = container->getOwner()->getAs<Application*>();
 			if(result && app)
