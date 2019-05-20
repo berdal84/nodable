@@ -18,6 +18,7 @@ using namespace Nodable;
 
 bool ContainerView::draw()
 {
+	auto origin = ImGui::GetCursorScreenPos();
 	auto entities = this->getOwner()->getAs<Container*>()->getEntities();
 	
 	// Update NodeViews
@@ -96,29 +97,48 @@ bool ContainerView::draw()
 		
 		auto container = getOwner()->getAs<Container*>();
 
+		Entity* newEntity = nullptr;
+
 		if ( ImGui::BeginMenu("New operation")){
 			
 			if (ImGui::MenuItem("Add"))
-				container->createNodeAdd();
+				newEntity = container->createNodeAdd();
 
 			if (ImGui::MenuItem("Divide"))
-				container->createNodeDivide();
+				newEntity = container->createNodeDivide();
 
 			if (ImGui::MenuItem("Multiply"))
-				container->createNodeMultiply();
+				newEntity = container->createNodeMultiply();
 
 			if (ImGui::MenuItem("Substract"))
-				container->createNodeSubstract();
+				newEntity = container->createNodeSubstract();
 
 			ImGui::EndMenu();
 		}
 
 		if (ImGui::MenuItem("New variable"))
-			container->createNodeVariable("Variable");
+			newEntity = container->createNodeVariable("Variable");
 
 		if (ImGui::MenuItem("New result"))
-			container->createNodeResult();
+			newEntity = container->createNodeResult();
 
+		/*
+			Set New Entity's position were mouse cursor is 
+		*/
+
+		if (newEntity != nullptr && newEntity->hasComponent("view"))
+		{
+			auto view = static_cast<NodeView*>(newEntity->getComponent("view"));
+
+			if (view != nullptr)
+			{
+				auto pos = ImGui::GetMousePos();
+				pos.x -= origin.x;
+				pos.y -= origin.y;
+				view->setPosition(pos);
+			}
+			
+		}
 
 		ImGui::EndPopup();
 
