@@ -11,6 +11,7 @@
 #include "NodeView.h"
 #include <fstream>
 #include "Log.h"
+#include <algorithm>
 
 using namespace Nodable;
 
@@ -138,9 +139,9 @@ bool ApplicationView::init()
 	style.Colors[ImGuiCol_CheckMark]             = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
 	style.Colors[ImGuiCol_SliderGrab]            = ImVec4(0.71f, 0.46f, 0.22f, 0.63f);
 	style.Colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.71f, 0.46f, 0.22f, 1.00f);
-	style.Colors[ImGuiCol_Button]                = ImVec4(0.89f, 0.66f, 0.27f, 0.63f);
-	style.Colors[ImGuiCol_ButtonHovered]         = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
-	style.Colors[ImGuiCol_ButtonActive]          = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
+	style.Colors[ImGuiCol_Button]                = ImVec4(0.50f, 0.50f, 0.50f, 0.63f);
+	style.Colors[ImGuiCol_ButtonHovered]         = ImVec4(0.70f, 0.70f, 0.70f, 0.95f);
+	style.Colors[ImGuiCol_ButtonActive]          = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
 	style.Colors[ImGuiCol_Header]                = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
 	style.Colors[ImGuiCol_HeaderHovered]         = ImVec4(0.84f, 0.84f, 0.84f, 0.96f);
 	style.Colors[ImGuiCol_HeaderActive]          = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -349,16 +350,40 @@ bool ApplicationView::draw()
 			/*
 				TIME SLIDER
 			*/
-			auto size = History::global->getSize();
-			auto cursor = History::global->getCursorPosition();
+			auto historyButtonSpacing         = float(2);
+			auto historyButtonHeight          = float(12);
+			auto historyButtonMinWidth        = float(60);
 
-			ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
-			auto historyChanges = ImGui::SliderInt("", &cursor, 1, size, "Time slider");
-			ImGui::PopItemWidth();
+			auto historySize                  = History::global->getSize();
+			auto historyCurrentCursorPosition = History::global->getCursorPosition();
+			auto availableWidth               = ImGui::GetContentRegionAvailWidth();	
+			auto historyButtonWidth           = std::fmin(historyButtonMinWidth, availableWidth / float(historySize) - historyButtonSpacing);
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0) );
+			auto buttonHistoryClickedId = historyCurrentCursorPosition;
+			
+			for (size_t historyCursorIncrement = 1; historyCursorIncrement <= historySize; historyCursorIncrement++)
+			{
+				// Draw an highlighted button for the current history position
+				if (historyCursorIncrement == historyCurrentCursorPosition){
+					ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+					ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
+					ImGui::PopStyleColor();
 
+				// or a simple one for other history positions
+				}else
+					ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
 
-			if (historyChanges)
-				History::global->setCursorPosition(cursor);
+				// memorize button id if mouse is dragging over this button
+				if( ImGui::IsItemHoveredRect() && ImGui::IsMouseDown(0))
+					buttonHistoryClickedId = historyCursorIncrement;
+
+				ImGui::SameLine();
+			}
+			ImGui::PopStyleVar();
+			ImGui::NewLine();
+
+			// Update the history's cursor position
+			History::global->setCursorPosition(buttonHistoryClickedId);
 
 			/*
 				TITLE
