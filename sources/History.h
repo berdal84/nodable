@@ -6,6 +6,7 @@
 #include "WireView.h"
 #include "Member.h"
 #include <vector>
+#include <time.h>
 
 namespace Nodable
 {
@@ -36,6 +37,8 @@ namespace Nodable
 		int getCursorPosition() { return commandsCursor; }
 		void setCursorPosition(int _pos);
 
+		const char* getCommandDescriptionAtPosition(size_t _commandId);
+
 		// Future: For command groups (ex: 5 commands that are atomic)
 		// static BeginGroup();
 		// static EndGroup()
@@ -59,7 +62,9 @@ namespace Nodable
 		/* Call this to undo the execution of the command instance */
 		virtual void undo()=0;
 		
-	private:
+		virtual const char* getDescription() { return description.c_str(); };
+	protected:
+		std::string description = "";
 		bool done = false;	/* if set to true after do() has been called */		
 	};
 
@@ -72,6 +77,22 @@ namespace Nodable
 			this->wire		 = _wire;
 			this->source     = _source;
 			this->target     = _target;
+
+			// Generate a text description
+
+				// Title
+				description.append("Connect Wire\n");
+
+				// Details
+				description.append(_source->getName() + " ---> " + _target->getName() + "\n");
+
+				// Time
+				time_t rawtime;
+				struct tm* timeinfo;
+				time(&rawtime);
+				timeinfo = localtime(&rawtime);
+				description.append(asctime(timeinfo));
+
 		};
 
 		~Cmd_ConnectWire(){};

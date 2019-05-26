@@ -56,4 +56,9 @@ void History::setCursorPosition(int _pos)
 	}
 }
 
+const char* Nodable::History::getCommandDescriptionAtPosition(size_t _commandId)
+{
+	return commands.at(_commandId)->getDescription();
+}
+
 

@@ -359,12 +359,11 @@ bool ApplicationView::draw()
 			auto availableWidth               = ImGui::GetContentRegionAvailWidth();	
 			auto historyButtonWidth           = std::fmin(historyButtonMinWidth, availableWidth / float(historySize) - historyButtonSpacing);
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0) );
-			auto buttonHistoryClickedId = historyCurrentCursorPosition;
 			
-			for (size_t historyCursorIncrement = 1; historyCursorIncrement <= historySize; historyCursorIncrement++)
+			for (size_t commandId = 1; commandId <= historySize; commandId++)
 			{
 				// Draw an highlighted button for the current history position
-				if (historyCursorIncrement == historyCurrentCursorPosition){
+				if (commandId == historyCurrentCursorPosition){
 					ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
 					ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
 					ImGui::PopStyleColor();
@@ -373,17 +372,23 @@ bool ApplicationView::draw()
 				}else
 					ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
 
-				// memorize button id if mouse is dragging over this button
-				if( ImGui::IsItemHoveredRect() && ImGui::IsMouseDown(0))
-					buttonHistoryClickedId = historyCursorIncrement;
+				if (ImGui::IsItemHoveredRect())
+				{
+					if(ImGui::IsMouseDown(0)) // hovered + mouse down
+						History::global->setCursorPosition(commandId); // update history cursor position
+					
+					// Draw command description 
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
+						ImGui::BeginTooltip();					
+						ImGui::Text(History::global->getCommandDescriptionAtPosition(commandId - 1));
+						ImGui::EndTooltip();
+					ImGui::PopStyleVar();
+				}
 
 				ImGui::SameLine();
 			}
 			ImGui::PopStyleVar();
 			ImGui::NewLine();
-
-			// Update the history's cursor position
-			History::global->setCursorPosition(buttonHistoryClickedId);
 
 			/*
 				HYBRID EDITOR			
