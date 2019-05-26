@@ -48,3 +48,5 @@
 
 
 *.db
+
+build/Debug/

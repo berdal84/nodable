@@ -53,6 +53,7 @@ void Application::clearContext()
 		auto container = getComponent("container")->getAs<Container*>();	
 		container->clear();
 	}
+	History::global->clear();
 }
 
 Container* Application::getContext()const

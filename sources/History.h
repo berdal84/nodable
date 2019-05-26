@@ -26,6 +26,9 @@ namespace Nodable
 		/* Redo the next (in the history) command */
 		void redo();
 		
+		/* clear the undo history */
+		void clear();
+
 		/* To get the size of the history (command count)*/
 		int getSize() { return commands.size(); }
 

@@ -39,6 +39,12 @@ void History::redo()
 	}
 }
 
+void Nodable::History::clear()
+{
+	commands.clear();
+	commandsCursor = 0;
+}
+
 void History::setCursorPosition(int _pos)
 {
 	while (_pos != commandsCursor)
