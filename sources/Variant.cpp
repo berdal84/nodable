@@ -219,6 +219,16 @@ std::string Variant::getTypeAsString()const
 
 void Variant::setType(Type_ _type)
 {
-	assert(_type == Type_Unknown);
+	// Set a default value if the variant type changes
+	if (type != _type)
+	{
+		switch (_type)
+		{
+		case Type_String: {setValue(""); }
+		case Type_Number: {setValue(double(0)); }
+		case Type_Boolean: {setValue(false); }
+		}
+	}
+
 	type = _type;
 }

@@ -295,8 +295,11 @@ bool NodeView::draw()
 		*/
 
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
-		ImVec2 origin = ImGui::GetWindowPos();
-		ImVec2 pos = getInputPosition(_v->getName()) + origin;
+		ImVec2      pos;
+		if (_v->getConnectionFlags() == ConnectionFlags_InputOnly)
+			pos = ImGui::GetWindowPos() + getInputPosition(_v->getName());
+		else
+			pos = ImGui::GetWindowPos() + getOutputPosition(_v->getName());
 
 		// Unvisible Button on top of the Circle
 
@@ -334,9 +337,19 @@ bool NodeView::draw()
 
 	// Draw visible members
 	{
+		// Draw input only first
 		for(auto& m : node->getMembers())
 		{		
-			if( m.second->getVisibility() == Visibility_Public)
+			if( m.second->getVisibility() == Visibility_Public && m.second->getConnectionFlags() == ConnectionFlags_InputOnly)
+			{
+				drawValue(m.second);
+			}
+		}
+
+		// Then draw the rest
+		for (auto& m : node->getMembers())
+		{
+			if (m.second->getVisibility() == Visibility_Public && m.second->getConnectionFlags() != ConnectionFlags_InputOnly)
 			{
 				drawValue(m.second);
 			}

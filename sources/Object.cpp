@@ -39,7 +39,7 @@ Member* Object::getMember (const std::string& _name)const
 	return members.at(_name.c_str());
 }
 
-void Object::addMember (const char* _name, Visibility_ _visibility, Type_ _type)
+void Object::addMember (const char* _name, Visibility_ _visibility, Type_ _type, ConnectionFlags_ _flags )
 {
 	auto v = new Member();
 
@@ -47,6 +47,6 @@ void Object::addMember (const char* _name, Visibility_ _visibility, Type_ _type)
 	v->setName		(_name);
 	v->setVisibility(_visibility);
 	v->setType		(_type);
-
+	v->setConnectionFlags(_flags);
 	members[std::string(_name)] = v;
 }

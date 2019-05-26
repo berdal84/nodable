@@ -12,7 +12,7 @@ namespace Nodable{
 		ConnectionFlags_InputOnly 		= 1 << 1,
 		ConnectionFlags_OutputOnly 		= 1 << 2,
 		ConnectionFlags_InputAndOutput 	= ConnectionFlags_InputOnly | ConnectionFlags_OutputOnly,
-		ConnectionFlags_Default			= ConnectionFlags_None
+		ConnectionFlags_Default			= ConnectionFlags_InputOnly
 	};
 	
 	enum Visibility_{
@@ -57,6 +57,7 @@ namespace Nodable{
 		std::string getValueAsString ()const;
 
 		Visibility_ getVisibility    ()const{ return visibility;}
+		ConnectionFlags_ getConnectionFlags()const { return connectionFlags; }
 	private:
 		Object*     		owner       		= nullptr;
 		Member*              input               = nullptr;
