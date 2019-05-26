@@ -228,7 +228,8 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 			size_t lastOperatorIndex    = 0;
 			bool   indexFound           = false;
 			while( !indexFound &&
-				    2 + tokenToEvaluateCount <= tokenToEvalCount)
+				    2 + tokenToEvaluateCount <= tokenToEvalCount &&
+				_tokenId + 2 + tokenToEvaluateCount < tokens.size())
 			{
 				if (tokens[_tokenId + 2 + tokenToEvaluateCount].type == TokenType_Operator)
 				{
