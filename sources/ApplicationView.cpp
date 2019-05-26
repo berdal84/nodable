@@ -348,7 +348,7 @@ bool ApplicationView::draw()
             static bool isExpressionValid = true;
 
 			/*
-				TIME SLIDER
+				UNDO HISTORY / TIME SLIDER
 			*/
 			auto historyButtonSpacing         = float(2);
 			auto historyButtonHeight          = float(12);
@@ -384,12 +384,6 @@ bool ApplicationView::draw()
 
 			// Update the history's cursor position
 			History::global->setCursorPosition(buttonHistoryClickedId);
-
-			/*
-				TITLE
-			*/
-
-			View::ShadowedText(ImVec2(1.0f, 1.0f), ImColor(1.0f, 1.0f, 1.0f, 0.2f), ICON_FA_FILE_CODE " Hybrid Editor");
 
 			/*
 				HYBRID EDITOR			
