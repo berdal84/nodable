@@ -9,6 +9,7 @@ namespace Nodable{
 		enum ColorType_
 		{
 			ColorType_Fill,
+			ColorType_Highlighted,
 			ColorType_Border,
 			ColorType_BorderHighlights,
 			ColorType_Shadow,

@@ -169,6 +169,9 @@ bool NodeView::draw()
 {
 	bool edited = false;
 	auto node   = getOwner();
+	static Member* lastMemberDraggedByMouse            = nullptr;
+	static Member* lastMemberHoveredWhenMouseReleased  = nullptr;
+
 	NODABLE_ASSERT(node != nullptr);
 
 	// Mouse interactions
@@ -287,28 +290,45 @@ bool NodeView::draw()
 		auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
 		membersOffsetPositionY[_v->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f;
 		
-		/* Draw the wire connector */
+		/* 
+			Draw the wire connector 
+		*/
 
-		// Circle
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 		ImVec2 origin = ImGui::GetWindowPos();
 		ImVec2 pos = getInputPosition(_v->getName()) + origin;
-		draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Fill));
-		draw_list->AddCircle(pos, connectorRadius, getColor(ColorType_Border));
 
 		// Unvisible Button on top of the Circle
 
 		ImVec2 cpos = ImGui::GetCursorPos();
-		ImGui::SetCursorPos(ImVec2(cpos.x - 25.0f, cpos.y + connectorRadius));
+		float invisibleButtonOffsetFactor(1.2);
+		ImGui::SetCursorScreenPos(ImVec2(pos.x - connectorRadius* invisibleButtonOffsetFactor, pos.y - connectorRadius* invisibleButtonOffsetFactor));
 		ImGui::PushID(_v);
-		bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * 2.0f, connectorRadius * 2.0f));
+		bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * float(2)* invisibleButtonOffsetFactor, connectorRadius * float(2)* invisibleButtonOffsetFactor));
 		ImGui::PopID();
 		ImGui::SetCursorPos(cpos);
 
-		if (clicked)
+		// Circle
+		if (ImGui::IsItemHovered())
+			draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Highlighted));
+		else
+			draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Fill));
+
+		draw_list->AddCircle(pos, connectorRadius, getColor(ColorType_Border));
+
+
+		// Manage mouse events in order to link two members by a Wire :
+
+		// DRAG
+		if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0) && lastMemberDraggedByMouse == nullptr)
 		{
-			LOG_MSG("Wire connector clicked : %s \n", _v->getName().c_str());
-			static Member* wireConnectorClicked = _v;
+			lastMemberDraggedByMouse = _v;
+		}
+		
+		// DROP
+		if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(0))
+		{
+			lastMemberHoveredWhenMouseReleased = _v;
 		}
 	};
 
@@ -323,6 +343,21 @@ bool NodeView::draw()
 		}
 	}
 	
+	// check if a wire needs to be added 
+	if (lastMemberDraggedByMouse != nullptr &&
+		lastMemberHoveredWhenMouseReleased != nullptr)
+	{
+		if (lastMemberDraggedByMouse != lastMemberHoveredWhenMouseReleased)
+		{
+			auto wire = lastMemberDraggedByMouse->getOwner()->getAs<Entity*>()->getParent()->createWire();
+			Entity::Connect(wire, lastMemberDraggedByMouse, lastMemberHoveredWhenMouseReleased);
+		}
+
+		lastMemberDraggedByMouse = nullptr;
+		lastMemberHoveredWhenMouseReleased = nullptr;
+	}
+
+
 	// if needed draw additionnal infos 
 	if (!collapsed)
 	{	
@@ -410,7 +445,7 @@ bool NodeView::draw()
 
 			if ( GetDragged() != this)
 			{
-				if(GetDragged() == nullptr && ImGui::IsMouseClicked(0) && hovered)
+				if(GetDragged() == nullptr && ImGui::IsMouseClicked(0) && hovered && (lastMemberDraggedByMouse == nullptr))
 					SetDragged(this);
 			}else{				
 				if ( ImGui::IsMouseReleased(0))

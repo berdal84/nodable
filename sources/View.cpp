@@ -8,6 +8,7 @@ View::View()
 	
 	// set default colors
 	colors[ColorType_Fill]             = {1.0f, 1.0f, 1.0f, 1.0f};
+	colors[ColorType_Highlighted]      = {1.0f, 1.0f, 1.0f, 1.0f};
 	colors[ColorType_Border]           = {0.2f, 0.2f, 0.2f, 1.0f};
 	colors[ColorType_BorderHighlights] = {1.0f, 1.0f, 1.0f, 0.8f};
 	colors[ColorType_Shadow]           = {0.0f, 0.0f, 0.0f, 0.2f};

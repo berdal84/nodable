@@ -20,9 +20,9 @@ bool ContainerView::draw()
 {
 	auto origin = ImGui::GetCursorScreenPos();
 	auto entities = this->getOwner()->getAs<Container*>()->getEntities();
-	
+
 	// Update NodeViews
-	for(auto eachNode : entities)
+	for (auto eachNode : entities)
 	{
 		if (eachNode->hasComponent("view"))
 			eachNode->getComponent("view")->update();
@@ -30,9 +30,9 @@ bool ContainerView::draw()
 
 	//  Draw NodeViews
 	bool isAnyNodeDragged = false;
-	bool isAnyNodeHovered = false;	
+	bool isAnyNodeHovered = false;
 
-	for(auto eachNode : entities)
+	for (auto eachNode : entities)
 	{
 		if (eachNode->hasComponent("view"))
 		{
@@ -48,42 +48,45 @@ bool ContainerView::draw()
 	}
 
 	// Draw input wires
-	for(auto eachNode : entities)
+	for (auto eachNode : entities)
 	{
 		auto wires = eachNode->getWires();
 
-		for(auto eachWire : wires)
+		for (auto eachWire : wires)
 		{
-			if ( eachWire->getTarget()->getOwner() == eachNode)
+			if (eachWire->getTarget()->getOwner() == eachNode)
 				eachWire->getView()->draw();
 		}
 	}
 
 	auto selectedView = NodeView::GetSelected();
 	// Deselection
-	if( !isAnyNodeHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
+	if (!isAnyNodeHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
 		NodeView::SetSelected(nullptr);
 
-	
+
 	if (selectedView != nullptr)
 	{
 		// Deletion
-		if ( ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
+		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
 			selectedView->setVisible(false);
 		// Arrange 
-		else if ( ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_A)))
+		else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_A)))
 			selectedView->arrangeRecursively();
 	}
 
 	// Draft Mouse PAN
-	if( ImGui::IsMouseDragging() && ImGui::IsWindowFocused() && !isAnyNodeDragged )
-	{
-		auto drag = ImGui::GetMouseDragDelta();
-		for(auto eachNode : entities)
+	bool isMousePanEnable = false;
+	if (isMousePanEnable)
+	{	if (ImGui::IsMouseDragging() && ImGui::IsWindowFocused() && !isAnyNodeDragged)
 		{
-			((NodeView*)eachNode->getComponent("view"))->translate(drag);
+			auto drag = ImGui::GetMouseDragDelta();
+			for (auto eachNode : entities)
+			{
+				((NodeView*)eachNode->getComponent("view"))->translate(drag);
+			}
+			ImGui::ResetMouseDragDelta();
 		}
-		ImGui::ResetMouseDragDelta();
 	}
 
 	if (ImGui::IsMouseClicked(1))
