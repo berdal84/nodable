@@ -25,10 +25,40 @@ void Member::setConnectionFlags(ConnectionFlags_ _flags)
 	connectionFlags = _flags;
 }
 
+void Nodable::Member::setSourceExpression(const char* _val)
+{
+	sourceExpression = _val;
+}
+
+void Member::setType(Type_ _type)
+{
+	data.setType(_type);
+}
+
+void Member::setVisibility(Visibility_ _v)
+{
+	visibility = _v;
+}
+
 bool Member::allows(ConnectionFlags_ _flags)const
 {
 	auto maskedFlags = connectionFlags & _flags;
 	return maskedFlags == _flags;
+}
+
+Object* Member::getOwner() const
+{
+	return owner;
+}
+
+Member* Member::getInput() const
+{
+	return input;
+}
+
+const std::string& Nodable::Member::getName() const
+{
+	return name;
 }
 
 void Member::setInput(Member* _val)
@@ -37,6 +67,11 @@ void Member::setInput(Member* _val)
 
 	if (_val == nullptr)
 		sourceExpression = "";
+}
+
+void Nodable::Member::setName(const char* _name)
+{
+	name = _name;
 }
 
 void Member::setValue(double _value)
@@ -78,9 +113,24 @@ std::string Member::getValueAsString()const
 	return data.getValueAsString();
 }
 
+Visibility_ Member::getVisibility() const
+{
+	return visibility;
+}
+
+ConnectionFlags_ Member::getConnectionFlags() const
+{
+	return connectionFlags;
+}
+
 bool Member::isSet()const
 {
 	return data.isSet();
+}
+
+void Nodable::Member::setOwner(Object* _owner)
+{
+	owner = _owner;
 }
 
 void Member::setValue(const Member* _v)

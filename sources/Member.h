@@ -27,40 +27,50 @@ namespace Nodable{
 		Member();
 		~Member();
 
-		bool        isSet            ()const;	
-		bool        isType           (Type_ _type)const;
+		bool                allows                   (ConnectionFlags_)                   const;
+		bool                isSet                    ()                                   const;	
+		bool                isType                   (Type_ _type)                        const;
 
-		void        setConnectionFlags(ConnectionFlags_);
-		void        setSourceExpression(const char* _val){sourceExpression = _val;}
-		void        setInput         (Member* _val);
-		void  		setName			 (const char* _name){name = _name;}
-		void        setOwner         (Object* _owner){owner = _owner;}
-		void        setValue         (const Member*);
-		void        setValue         (std::string);
-		void        setValue         (const char*);
-		void        setValue         (double);
-		void        setValue         (bool);
-		
-		void        setType          (Type_ _type){data.setType(_type);}
-		void        setVisibility    (Visibility_ _v){visibility = _v;}
+		/*
+			Setters
+		*/
 
-		bool        allows           (ConnectionFlags_)const;
-		Object*		getOwner		 ()const{return owner;}
-		Member*      getInput         ()const{return input;}
-		const std::string& getName   ()const{return name;}
-		std::string getSourceExpression()const;
-		Type_       getType          ()const;
-		std::string getTypeAsString  ()const;
+		void                setConnectionFlags       (ConnectionFlags_);
+		void                setSourceExpression      (const char* _val);
+		void                setInput                 (Member* _val);
+		void  		        setName                  (const char* _name);
+		void                setOwner                 (Object* _owner);
 
-		bool        getValueAsBoolean()const;
-		double      getValueAsNumber ()const;
-		std::string getValueAsString ()const;
+		void                setValue                 (const Member*);
+		void                setValue                 (std::string);
+		void                setValue                 (const char*);
+		void                setValue                 (double);
+		void                setValue                 (bool);
 
-		Visibility_ getVisibility    ()const{ return visibility;}
-		ConnectionFlags_ getConnectionFlags()const { return connectionFlags; }
+		void                setType                  (Type_ _type);
+		void                setVisibility            (Visibility_ _v);
+
+		/*
+			Getters
+		*/
+
+		Object*             getOwner()                                                    const;
+		Member*             getInput()                                                    const;
+		const std::string&  getName()                                                     const;
+		std::string         getSourceExpression()                                         const;
+		Type_               getType()                                                     const;
+		std::string         getTypeAsString()                                             const;
+
+		bool                getValueAsBoolean()                                           const;
+		double              getValueAsNumber()                                            const;
+		std::string         getValueAsString()                                            const;
+
+		Visibility_         getVisibility()                                               const;
+		ConnectionFlags_    getConnectionFlags()                                          const;
+
 	private:
 		Object*     		owner       		= nullptr;
-		Member*              input               = nullptr;
+		Member*             input               = nullptr;
 		std::string         sourceExpression    = "";
 		std::string 		name 				= "Unknown";
 		Variant       		data;
