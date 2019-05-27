@@ -21,32 +21,36 @@ bool ContainerView::draw()
 	auto origin = ImGui::GetCursorScreenPos();
 	auto entities = this->getOwner()->getAs<Container*>()->getEntities();
 
-	// Update NodeViews
-	for (auto eachNode : entities)
-	{
-		if (eachNode->hasComponent("view"))
-			eachNode->getComponent("view")->update();
-	}
-
-	//  Draw NodeViews
+	/*
+		NodeViews
+	*/
 	bool isAnyNodeDragged = false;
 	bool isAnyNodeHovered = false;
-
-	for (auto eachNode : entities)
 	{
-		if (eachNode->hasComponent("view"))
+		// Update
+		for (auto eachNode : entities)
 		{
-			auto view = eachNode->getComponent("view")->getAs<View*>();
+			if (eachNode->hasComponent("view"))
+				eachNode->getComponent("view")->update();
+		}
 
-			if (view != nullptr && view->isVisible())
+		//  Draw
+
+		for (auto eachNode : entities)
+		{
+			if (eachNode->hasComponent("view"))
 			{
-				view->draw();
-				isAnyNodeDragged |= NodeView::GetDragged() == view;
-				isAnyNodeHovered |= view->isHovered();
+				auto view = eachNode->getComponent("view")->getAs<View*>();
+
+				if (view != nullptr && view->isVisible())
+				{
+					view->draw();
+					isAnyNodeDragged |= NodeView::GetDragged() == view;
+					isAnyNodeHovered |= view->isHovered();
+				}
 			}
 		}
 	}
-
 	/*
 		Wires
 	*/
@@ -71,7 +75,7 @@ bool ContainerView::draw()
 			ImGui::GetOverlayDrawList()->AddLine(lineStartPosition, lineEndPosition, getColor(ColorType_BorderHighlights), connectorRadius * float(0.9));
 		}
 
-		// check if a wire needs to be added 
+		// Add a new wire if needed (mouse drag'n drop)
 		if (NodeView::lastMemberDraggedByMouse           != nullptr &&
 			NodeView::lastMemberHoveredWhenMouseReleased != nullptr)
 		{
@@ -139,10 +143,6 @@ bool ContainerView::draw()
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{
-		bool updateExpressionButtonClicked = ImGui::MenuItem("Update expression");
-
-		ImGui::Separator();
-		
 		auto container = getOwner()->getAs<Container*>();
 
 		Entity* newEntity = nullptr;
@@ -189,15 +189,6 @@ bool ContainerView::draw()
 		}
 
 		ImGui::EndPopup();
-
-		if (updateExpressionButtonClicked){
-			auto result = container->find("");
-			auto app   = container->getOwner()->getAs<Application*>();
-			if(result && app)
-			{
-				app->updateCurrentLineText(result->getValueMember()->getSourceExpression());
-			}
-		}
 
 	}
 

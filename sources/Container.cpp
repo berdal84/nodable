@@ -32,6 +32,8 @@ void Container::clear()
 void Container::update()
 {
 	// Update entities
+	size_t entitiesUpdated(0);
+
 	for(auto it = entities.begin(); it < entities.end(); ++it)
 	{
 		if ( *it != nullptr)
@@ -41,8 +43,22 @@ void Container::update()
 				delete *it;
 				it = entities.erase(it);
 			}
-			else
+			else if ((*it)->isDirty())
+			{
+				entitiesUpdated++;
 				(*it)->update();
+			}
+		}
+	}
+
+	// Update TextEditor only if at least one node was dirty and one node is selected
+	if (entitiesUpdated > 0 && NodeView::GetSelected() != nullptr)
+	{
+		auto result = this->find("");
+		auto app = this->getOwner()->getAs<Application*>();
+		if (result && app)
+		{
+			app->updateCurrentLineText(result->getValueMember()->getSourceExpression());
 		}
 	}
 }
