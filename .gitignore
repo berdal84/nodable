@@ -50,3 +50,5 @@
 *.db
 
 build/Debug/
+
+build/Release/
