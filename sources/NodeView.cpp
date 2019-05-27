@@ -16,6 +16,9 @@ NodeView*   NodeView::s_dragged    = nullptr;
 DrawMode_   NodeView::s_drawMode   = DrawMode_Default;
 DrawDetail_ NodeView::s_drawDetail = DrawDetail_Default;
 
+Member*     NodeView::lastMemberDraggedByMouse            = nullptr;
+Member*     NodeView::lastMemberHoveredWhenMouseReleased  = nullptr;
+
 void NodeView::SetSelected(NodeView* _view)
 {
 	s_selected = _view;
@@ -169,8 +172,6 @@ bool NodeView::draw()
 {
 	bool edited = false;
 	auto node   = getOwner();
-	static Member* lastMemberDraggedByMouse            = nullptr;
-	static Member* lastMemberHoveredWhenMouseReleased  = nullptr;
 
 	NODABLE_ASSERT(node != nullptr);
 

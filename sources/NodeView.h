@@ -90,5 +90,9 @@ namespace Nodable{
 		std::map<std::string, float> membersOffsetPositionY;
 		static NodeView* s_selected; // pointer to the currently selected NodeView.
 		static NodeView* s_dragged;	 // pointer to the currently dragged NodeView.	
+
+	public:
+		static Member* lastMemberDraggedByMouse;
+		static Member* lastMemberHoveredWhenMouseReleased;
 	};
 }
