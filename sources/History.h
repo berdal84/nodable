@@ -92,7 +92,7 @@ namespace Nodable
 				description.append("Connect Wire\n");
 
 				// Details
-				description.append(_source->getName() + " ---> " + _target->getName() + "\n");
+				description.append( "\"" + _source->getName() + "\" ---> \"" + _target->getName() + "\"\n");
 
 				// Time
 				time_t rawtime;
