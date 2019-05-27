@@ -47,35 +47,76 @@ bool ContainerView::draw()
 		}
 	}
 
-	// Draw input wires
-	for (auto eachNode : entities)
+	/*
+		Wires
+	*/
 	{
-		auto wires = eachNode->getWires();
-
-		for (auto eachWire : wires)
+		// Draw existing wires
+		for (auto eachNode : entities)
 		{
-			if (eachWire->getTarget()->getOwner() == eachNode)
-				eachWire->getView()->draw();
+			auto wires = eachNode->getWires();
+
+			for (auto eachWire : wires)
+			{
+				if (eachWire->getTarget()->getOwner() == eachNode)
+					eachWire->getView()->draw();
+			}
+		}
+
+		// Draw temporary wire on top (overlay draw list)
+		if (NodeView::lastMemberDraggedByMouse != nullptr)
+		{
+			auto lineStartPosition = NodeView::lastMemberDraggedByMouse->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getInputPosition(NodeView::lastMemberDraggedByMouse->getName()) + ImGui::GetWindowPos();
+			auto lineEndPosition = ImGui::GetMousePos();
+			ImGui::GetOverlayDrawList()->AddLine(lineStartPosition, lineEndPosition, getColor(ColorType_BorderHighlights), connectorRadius * float(0.9));
+		}
+
+		// check if a wire needs to be added 
+		if (NodeView::lastMemberDraggedByMouse           != nullptr &&
+			NodeView::lastMemberHoveredWhenMouseReleased != nullptr)
+		{
+			if (NodeView::lastMemberDraggedByMouse != NodeView::lastMemberHoveredWhenMouseReleased)
+			{
+				auto wire = NodeView::lastMemberDraggedByMouse->getOwner()->getAs<Entity*>()->getParent()->createWire();
+				Entity::Connect(wire, NodeView::lastMemberDraggedByMouse, NodeView::lastMemberHoveredWhenMouseReleased);
+			}
+
+			NodeView::lastMemberDraggedByMouse           = nullptr;
+			NodeView::lastMemberHoveredWhenMouseReleased = nullptr;
+		}
+
+		// Mouse inputs relative to temporary wire
+		else if (!ImGui::IsMouseReleased(0) && !ImGui::IsMouseDown(0))
+		{
+			NodeView::lastMemberDraggedByMouse           = nullptr;
+			NodeView::lastMemberHoveredWhenMouseReleased = nullptr;
 		}
 	}
+
+	/*
+		keyboard shortcuts
+	*/
 
 	auto selectedView = NodeView::GetSelected();
 	// Deselection
 	if (!isAnyNodeHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
 		NodeView::SetSelected(nullptr);
 
-
 	if (selectedView != nullptr)
 	{
 		// Deletion
 		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
 			selectedView->setVisible(false);
+
 		// Arrange 
 		else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_A)))
 			selectedView->arrangeRecursively();
 	}
 
-	// Draft Mouse PAN
+	/*
+		Mouse PAN (global)
+	*/
+
 	bool isMousePanEnable = false;
 	if (isMousePanEnable)
 	{	if (ImGui::IsMouseDragging() && ImGui::IsWindowFocused() && !isAnyNodeDragged)
@@ -88,6 +129,10 @@ bool ContainerView::draw()
 			ImGui::ResetMouseDragDelta();
 		}
 	}
+
+	/*
+		Mouse right-click popup menu
+	*/
 
 	if (ImGui::IsMouseClicked(1))
 		ImGui::OpenPopup("ContainerViewContextualMenu");

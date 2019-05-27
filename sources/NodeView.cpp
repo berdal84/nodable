@@ -357,37 +357,6 @@ bool NodeView::draw()
 			}
 		}
 	}
-	
-
-	// Draw temporary wire on top (overlay draw list)
-	if (lastMemberDraggedByMouse != nullptr && lastMemberDraggedByMouse->getOwner() == this->getOwner())
-	{
-		auto lineStartPosition = getInputPosition(lastMemberDraggedByMouse->getName()) + ImGui::GetWindowPos();
-		auto lineEndPosition   = ImGui::GetMousePos();
-		ImGui::GetOverlayDrawList()->AddLine(lineStartPosition, lineEndPosition, getColor(ColorType_BorderHighlights), connectorRadius * float(0.9));
-	}
-	
-	// check if a wire needs to be added 
-	if (lastMemberDraggedByMouse != nullptr &&
-		lastMemberHoveredWhenMouseReleased != nullptr)
-	{
-		if (lastMemberDraggedByMouse != lastMemberHoveredWhenMouseReleased)
-		{
-			auto wire = lastMemberDraggedByMouse->getOwner()->getAs<Entity*>()->getParent()->createWire();
-			Entity::Connect(wire, lastMemberDraggedByMouse, lastMemberHoveredWhenMouseReleased);
-		}
-
-		lastMemberDraggedByMouse           = nullptr;
-		lastMemberHoveredWhenMouseReleased = nullptr;
-	}
-
-	// Mouse inputs relative to temporary wire
-	else if (!ImGui::IsMouseReleased(0) && !ImGui::IsMouseDown(0) )
-	{
-		lastMemberDraggedByMouse           = nullptr;
-		lastMemberHoveredWhenMouseReleased = nullptr;
-	}
-
 
 	// if needed draw additionnal infos 
 	if (!collapsed)
