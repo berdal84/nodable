@@ -67,7 +67,7 @@ Variable* Lexer::buildGraph()
 		resultVariable->setValue(resultValue);
 	// Else we connect resultValue with resultVariable.value
 	else
-		Entity::Connect(container->createWire(), resultValue, resultVariable->getValue());
+		Entity::Connect(container->createWire(), resultValue, resultVariable->getValueMember());
 
 
 	LOG_DBG("Lexer::buildGraph() - DONE !\n");
@@ -121,9 +121,9 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 					variable = context->createNodeVariable(tokenWordString);
 				LOG_DBG("Symbol 3 .\n");
 				NODABLE_ASSERT(variable != nullptr);
-				NODABLE_ASSERT(variable->getValue() != nullptr);
+				NODABLE_ASSERT(variable->getValueMember() != nullptr);
 
-				result = variable->getValue();
+				result = variable->getValueMember();
 				
 				break;
 			}

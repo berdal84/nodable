@@ -150,7 +150,7 @@ bool ContainerView::draw()
 			auto app   = container->getOwner()->getAs<Application*>();
 			if(result && app)
 			{
-				app->updateCurrentLineText(result->getValue()->getSourceExpression());
+				app->updateCurrentLineText(result->getValueMember()->getSourceExpression());
 			}
 		}
 

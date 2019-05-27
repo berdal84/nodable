@@ -20,12 +20,12 @@ namespace Nodable{
 		template<typename T>
 		void              setValue        (T* _value);
 
-		bool              isSet           ()const{return getValue()->isSet(); }
+		bool              isSet           ()const{return getValueMember()->isSet(); }
 		bool              isType          (Type_ _type)const;		
 		const char*       getName         ()const;
 		double            getValueAsNumber()const;
 		std::string       getValueAsString()const;
-		Member*            getValue        ()const{return getMember("value");}
+		Member*           getValueMember  ()const{return getMember("value");}
 		std::string       getTypeAsString ()const;
 	private:
 		std::string       name;
