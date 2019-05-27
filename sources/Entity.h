@@ -59,7 +59,7 @@ namespace Nodable{
 		static void         Disconnect        (Wire* _wire);
 	private:
 		Components                components;
-		Container*           parent  = nullptr;
+		Container*                parent  = nullptr;
 		std::string               label   = "Entity";
 		bool                      dirty   = false;   // when is true -> needs to be evaluated.
 		Wires                     wires;             // contains all wires connected to or from this node.
