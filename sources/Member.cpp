@@ -135,7 +135,7 @@ void Nodable::Member::setOwner(Object* _owner)
 
 void Member::setValue(const Member* _v)
 {
-	data = _v->data;	
+	data.setValue(&_v->data);	
 }
 
 std::string Member::getTypeAsString()const

@@ -202,8 +202,25 @@ bool Variant::isSet()const
 
 void Variant::setValue(const Variant* _v)
 {
-	type = _v->type;
-	data = _v->data;	
+	setType(_v->getType());
+
+	switch (type)
+	{
+	case Type_Boolean:
+		setValue(_v->getValueAsBoolean());
+		break;
+	case Type_Number:
+		setValue(_v->getValueAsNumber());
+		break;
+	case Type_String:
+		setValue(_v->getValueAsString());
+		break;
+	case Type_Unknown:
+		break;
+	default:
+		NODABLE_ASSERT(false); // The case you're trying to set is not yet implemented
+		break;
+	}
 }
 
 std::string Variant::getTypeAsString()const
