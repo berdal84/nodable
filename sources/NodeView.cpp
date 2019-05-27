@@ -312,7 +312,8 @@ bool NodeView::draw()
 		ImGui::SetCursorPos(cpos);
 
 		// Circle
-		if (ImGui::IsItemHovered())
+		auto isItemHovered = ImGui::IsItemHoveredRect();
+		if ( isItemHovered )
 			draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Highlighted));
 		else
 			draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Fill));
@@ -323,13 +324,13 @@ bool NodeView::draw()
 		// Manage mouse events in order to link two members by a Wire :
 
 		// DRAG
-		if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0) && lastMemberDraggedByMouse == nullptr)
+		if (isItemHovered && ImGui::IsMouseDown(0) && lastMemberDraggedByMouse == nullptr )
 		{
 			lastMemberDraggedByMouse = _v;
 		}
 		
 		// DROP
-		if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(0))
+		if (isItemHovered && ImGui::IsMouseReleased(0))
 		{
 			lastMemberHoveredWhenMouseReleased = _v;
 		}
