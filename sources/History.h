@@ -113,8 +113,9 @@ namespace Nodable
 
 			target->setInput(source);
 
-			// Add the wire pointer to the Entity instance to speed up drawing process.
+			// Add the wire pointer to the Entitis instance to speed up drawing process.
 			target->getOwner()->getAs<Entity*>()->addWire(wire);
+			source->getOwner()->getAs<Entity*>()->addWire(wire);
 		}
 
 		void undo()
