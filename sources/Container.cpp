@@ -45,14 +45,11 @@ void Container::update()
 				(*it)->update();
 		}
 	}
-
-	// Draw View
 }
 
 void Container::addEntity(Entity* _entity)
 {
-
-	/* Add the node to the node vector list*/
+	/* Add the node to the node vector list */
 	this->entities.push_back(_entity);
 
 	/* Set the node's container to this */
@@ -113,7 +110,7 @@ Variable* Container::createNodeVariable(std::string _name)
 	return variable;
 }
 
-Variable*          Container::createNodeNumber(double _value)
+Variable* Container::createNodeNumber(double _value)
 {
 	auto node = new Variable();
 	node->addComponent( "view", new NodeView);
@@ -122,7 +119,7 @@ Variable*          Container::createNodeNumber(double _value)
 	return node;
 }
 
-Variable*          Container::createNodeNumber(const char* _value)
+Variable* Container::createNodeNumber(const char* _value)
 {
 	auto node = new Variable();
 	node->addComponent( "view", new NodeView);
@@ -131,7 +128,7 @@ Variable*          Container::createNodeNumber(const char* _value)
 	return node;
 }
 
-Variable*          Container::createNodeString(const char* _value)
+Variable* Container::createNodeString(const char* _value)
 {
 	auto node = new Variable();
 	node->addComponent( "view", new NodeView);
@@ -292,14 +289,20 @@ Wire* Container::createWire()
 
 Lexer* Container::createNodeLexer(Variable* _input)
 {
+	// Create a Lexer Node
 	Lexer* node = new Lexer();
 	node->setLabel(ICON_FA_COGS " Lexer");
+	
+	// Attach a NodeView on it
 	auto view = new NodeView;
 	view->setVisible(false);
 	node->addComponent( "view", view);	
-	this->addEntity(node);
+
+	// Linnk the variable output with the lexer's input "expression"
 	auto wire = this->createWire();
-	Entity::Connect(wire,_input->getValue(), node->getMember("expression"));
+	Entity::Connect(wire,_input->getValueMember(), node->getMember("expression"));
+
+	this->addEntity(node);
 	return node;
 }
 
