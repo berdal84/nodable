@@ -50,7 +50,11 @@ namespace Nodable
 		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
 	};
 
-	/* Base class for all commands */
+
+	/*
+		Base class for all commands
+	*/
+
 	class Cmd
 	{
 	public:
@@ -68,7 +72,11 @@ namespace Nodable
 		bool done = false;	/* if set to true after do() has been called */		
 	};
 
-	/* Command to add a wire between two Members */
+
+	/*
+		Command to add a wire between two Members
+	*/
+
 	class Cmd_ConnectWire : public Cmd
 	{
 	public:
