@@ -281,6 +281,12 @@ bool ApplicationView::draw()
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
         ImGui::SetNextWindowSize(ImVec2(width, height));
 
+		// Declare variables that can be modified my mouse and keyboard
+		auto userWantsToUndo(false);
+		auto userWantsToRedo(false);
+		auto userWantsToHideSelectedNode(false);
+		auto userWantsToArrangeSelectedNodeHierarchy(false);
+
         ImGui::Begin("Container", NULL, ImVec2(), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
         {
              if( ImGui::BeginMenuBar())
@@ -297,25 +303,16 @@ bool ApplicationView::draw()
 
                 if (ImGui::BeginMenu("Edit"))
                 {
-					auto undo    = ImGui::MenuItem("Undo", "");
-					auto redo    = ImGui::MenuItem("Redo", "");
+					userWantsToUndo    |= ImGui::MenuItem("Undo", "");
+					userWantsToRedo    |= ImGui::MenuItem("Redo", "");
+					if (userWantsToUndo)History::global->undo();
+					if (userWantsToRedo)History::global->redo();
 
 					ImGui::Separator();
 
-                    auto hide    = ImGui::MenuItem("Hide", "Del.");
-                    auto arrange = ImGui::MenuItem("ReArrange nodes", "A");
-
-                    auto selected = NodeView::GetSelected();
-                    if( selected )
-                    {
-                        if (hide)
-                            selected->setVisible(false);
-                        else if (arrange)
-                            selected->arrangeRecursively();
-                    }
-
-					if (undo)History::global->undo();
-					if (redo)History::global->redo();
+					auto isAtLeastANodeSelected = NodeView::GetSelected() != nullptr;
+                    userWantsToHideSelectedNode             |= ImGui::MenuItem("Hide",            "Del.", false, isAtLeastANodeSelected);
+                    userWantsToArrangeSelectedNodeHierarchy |= ImGui::MenuItem("ReArrange nodes", "A",    false, isAtLeastANodeSelected);
 
                     ImGui::EndMenu();
                 }
@@ -368,9 +365,8 @@ bool ApplicationView::draw()
                 }
                 ImGui::EndMenuBar();
             }
-    
 
-            static bool isExpressionValid = true;
+			 static bool isExpressionValid = true;
 
 			/*
 				UNDO HISTORY / TIME SLIDER
@@ -466,8 +462,39 @@ bool ApplicationView::draw()
             ImGui::TextColored(statusLineColor, "%s", statusLineString.c_str());
         }
         ImGui::End();
+
+		/*
+		   Keyboard shortcuts
+		*/
+
+		const Uint8* keyboardState = SDL_GetKeyboardState(NULL);
+
+		auto isDown = [&keyboardState](SDL_Keycode _code) -> bool { return keyboardState[SDL_GetScancodeFromKey(_code)]; };
+
+		// A
+		if (isDown(SDLK_a))
+			userWantsToArrangeSelectedNodeHierarchy |= true;
+
+		// Del.
+		else if (isDown(SDLK_DELETE))
+			userWantsToHideSelectedNode |= true;
+
+
+		/*
+		   Perform actions on selected node
+		*/
+
+		auto selected = NodeView::GetSelected();
+		if (selected)
+		{
+			if (userWantsToHideSelectedNode)
+				selected->setVisible(false);
+			else if (userWantsToArrangeSelectedNodeHierarchy)
+				selected->arrangeRecursively();
+		}
     }
     
+
     // Rendering
     glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
