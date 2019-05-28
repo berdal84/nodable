@@ -174,7 +174,32 @@ bool ApplicationView::init()
     textEditor = new TextEditor;    
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
     textEditor->SetLanguageDefinition(lang);
-    textEditor->SetText("// Expression example :\n10 * 50 / 0.1 + 3");
+
+	std::string expression;
+	expression.append("\n");
+	expression.append(" ///////////////////////////////////////////////////////////////////\n");
+	expression.append("// First few tips :\n");
+	expression.append("//\n");
+	expression.append("// - You can edit a whole line by clicking on it.\n");
+	expression.append("// - You can also edit only a portion by selecting it.\n");
+	expression.append("// - Edition is seamless, you can modify both text or nodes.\n");
+	expression.append("\n");
+
+	expression.append("// An addition :\n");
+	expression.append("1 + 1\n");
+	expression.append("\n");
+
+	expression.append("// A multiply :\n");
+	expression.append("10 * 3\n");
+	expression.append("\n");
+	
+	expression.append("// A more complex one :\n");
+	expression.append("10 * 3 + 50 / 0.1 + 1\n");
+	expression.append("\n");
+
+
+
+    textEditor->SetText(expression);
 
     TextEditor::Palette palette = {{
         0xffffffff, // None
