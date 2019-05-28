@@ -299,7 +299,7 @@
       <PreprocessorDefinitions>WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>None</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
       <LanguageStandard>stdcpp14</LanguageStandard>
       <AdditionalIncludeDirectories>../libs/gl3w;../libs/glfw/include/GLFW;../libs;../libs/SDL2/include;../extern;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
