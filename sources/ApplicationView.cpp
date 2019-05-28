@@ -83,15 +83,15 @@ bool ApplicationView::init()
     // Setup Dear ImGui binding
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    ImGuiIO& io             = ImGui::GetIO();
+	//io.WantCaptureKeyboard  = true;
+	//io.WantCaptureMouse     = true;
+
     ImGui_ImplSdlGL3_Init(window);
 
     // Setup style
     //ImGui::StyleColorsDark();
     ImGui::StyleColorsClassic();
-
-    io.DeltaTime          = 1.0f/120.0f;
 
     // Add a main font
     {
