@@ -43,6 +43,9 @@
 #include <imgui/imgui.h>
 #include "imgui_impl_sdl_gl3.h"
 
+// Nodable
+#include "History.h"
+
 // SDL,GL3W
 #include <SDL.h>
 #include <SDL_syswm.h>
@@ -228,13 +231,27 @@ bool ImGui_ImplSdlGL3_ProcessEvent(SDL_Event* event)
     case SDL_KEYDOWN:
     case SDL_KEYUP:
         {
-            int key = event->key.keysym.scancode;
+            auto key = event->key.keysym.scancode;
             IM_ASSERT(key >= 0 && key < IM_ARRAYSIZE(io.KeysDown));
+
+			const Uint8* keyboardState = SDL_GetKeyboardState(NULL);
+			auto isDown     = [&keyboardState](SDL_Keycode _code) -> bool { return keyboardState[SDL_GetScancodeFromKey(_code)]; };
+			
+			// Ctrl + Z
+			if (isDown(SDLK_LCTRL) && isDown(SDLK_z))
+				Nodable::History::global->undo();
+
+			// Ctrl + A
+			else if (isDown(SDLK_LCTRL) && isDown(SDLK_a))
+				Nodable::History::global->redo();
+
             io.KeysDown[key] = (event->type == SDL_KEYDOWN);
             io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
             io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
             io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
             io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+
+
             return true;
         }
     }
