@@ -98,24 +98,11 @@ bool ContainerView::draw()
 	}
 
 	/*
-		keyboard shortcuts
+		Deselection
 	*/
-
-	auto selectedView = NodeView::GetSelected();
 	// Deselection
-	if (!isAnyNodeHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
+	if (NodeView::GetSelected() != nullptr && !isAnyNodeHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
 		NodeView::SetSelected(nullptr);
-
-	if (selectedView != nullptr)
-	{
-		// Deletion
-		if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
-			selectedView->setVisible(false);
-
-		// Arrange 
-		else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_A)))
-			selectedView->arrangeRecursively();
-	}
 
 	/*
 		Mouse PAN (global)
