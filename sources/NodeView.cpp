@@ -136,8 +136,13 @@ void NodeView::update()
 		}
 	}
 
-	// Move each input node views :
+	/*
+		Update Views that are linked to this input views.
+		This code maintain them stacked together with a little attenuated movement.
+	*/
+	
 	auto posY = getInputPosition("").y - cumulatedHeight / 2.0f;
+	float nodeVerticalSpacing(10);
 
 	for(auto eachWire : wires)
 	{
@@ -151,6 +156,7 @@ void NodeView::update()
 			{
 				// Compute new position for this input view
 				ImVec2 newPos(getInputPosition("").x - maxSizeX - spacingDist, posY);
+				posY += inputView->size.y + nodeVerticalSpacing;
 
 				// Compute a delta to apply to move to this new position
 				auto currentPos = inputView->getPosition();
