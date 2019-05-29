@@ -18,6 +18,7 @@ DrawDetail_ NodeView::s_drawDetail = DrawDetail_Default;
 
 Member*     NodeView::lastMemberDraggedByMouse            = nullptr;
 Member*     NodeView::lastMemberHoveredWhenMouseReleased  = nullptr;
+Member*     NodeView::currentMemberHoveredByMouse         = nullptr;
 
 void NodeView::SetSelected(NodeView* _view)
 {
@@ -329,6 +330,10 @@ bool NodeView::draw()
 
 
 		// Manage mouse events in order to link two members by a Wire :
+
+		// HOVERED
+		if (isItemHovered)
+			currentMemberHoveredByMouse = _v;
 
 		// DRAG
 		if (isItemHovered && ImGui::IsMouseDown(0) && lastMemberDraggedByMouse == nullptr )

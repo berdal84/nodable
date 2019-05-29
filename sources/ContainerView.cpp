@@ -18,12 +18,14 @@ using namespace Nodable;
 
 bool ContainerView::draw()
 {
+	
 	auto origin = ImGui::GetCursorScreenPos();
 	auto entities = this->getOwner()->getAs<Container*>()->getEntities();
 
 	/*
 		NodeViews
 	*/
+	NodeView::currentMemberHoveredByMouse = nullptr; // reset this var befor drawing
 	bool isAnyNodeDragged = false;
 	bool isAnyNodeHovered = false;
 	{
@@ -72,6 +74,11 @@ bool ContainerView::draw()
 		{
 			auto lineStartPosition = NodeView::lastMemberDraggedByMouse->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getInputPosition(NodeView::lastMemberDraggedByMouse->getName()) + ImGui::GetWindowPos();
 			auto lineEndPosition = ImGui::GetMousePos();
+
+			// Snap lineEndPosition to hovered member position
+			if (NodeView::currentMemberHoveredByMouse != nullptr)
+				lineEndPosition = NodeView::currentMemberHoveredByMouse->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getInputPosition(NodeView::currentMemberHoveredByMouse->getName()) + ImGui::GetWindowPos();
+			
 			ImGui::GetOverlayDrawList()->AddLine(lineStartPosition, lineEndPosition, getColor(ColorType_BorderHighlights), connectorRadius * float(0.9));
 		}
 

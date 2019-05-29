@@ -94,5 +94,6 @@ namespace Nodable{
 	public:
 		static Member* lastMemberDraggedByMouse;
 		static Member* lastMemberHoveredWhenMouseReleased;
+		static Member* currentMemberHoveredByMouse;
 	};
 }
