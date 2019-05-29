@@ -15,19 +15,24 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 	*/
 	auto needParentheses = [&](Member * _input)->bool
 	{
-		if (_input != nullptr)
+		if (_input != nullptr )
 		{
-			auto leftOperationComponent = _input->getOwner()->getAs<Entity*>()->getComponent("operation");
+			auto entity = _input->getOwner()->getAs<Entity*>();
 
-			if (leftOperationComponent != nullptr)
+			if (entity->hasComponent("operation"))
 			{
-				auto leftOperatorString = leftOperationComponent->getAs<BinaryOperationComponent*>()->getOperatorAsString();
+				auto leftOperationComponent = entity->getComponent("operation");
 
-				if (leftOperatorString == this->operatorAsString)
-					return false;
+				if (leftOperationComponent != nullptr)
+				{
+					auto leftOperatorString = leftOperationComponent->getAs<BinaryOperationComponent*>()->getOperatorAsString();
 
-				if (NeedsToBeEvaluatedFirst(this->operatorAsString, leftOperatorString))
-					return true;
+					if (leftOperatorString == this->operatorAsString)
+						return false;
+
+					if (NeedsToBeEvaluatedFirst(this->operatorAsString, leftOperatorString))
+						return true;
+				}
 			}
 		}
 		return false;
