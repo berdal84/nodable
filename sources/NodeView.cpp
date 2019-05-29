@@ -16,9 +16,8 @@ NodeView*   NodeView::s_dragged    = nullptr;
 DrawMode_   NodeView::s_drawMode   = DrawMode_Default;
 DrawDetail_ NodeView::s_drawDetail = DrawDetail_Default;
 
-Member*     NodeView::lastMemberDraggedByMouse            = nullptr;
-Member*     NodeView::lastMemberHoveredWhenMouseReleased  = nullptr;
-Member*     NodeView::currentMemberHoveredByMouse         = nullptr;
+Member*     NodeView::memberDraggedByMouse  = nullptr;
+Member*     NodeView::memberHoveredByMouse  = nullptr;
 
 void NodeView::SetSelected(NodeView* _view)
 {
@@ -333,18 +332,12 @@ bool NodeView::draw()
 
 		// HOVERED
 		if (isItemHovered)
-			currentMemberHoveredByMouse = _v;
+			memberHoveredByMouse = _v;
 
 		// DRAG
-		if (isItemHovered && ImGui::IsMouseDown(0) && lastMemberDraggedByMouse == nullptr )
+		if (isItemHovered && ImGui::IsMouseDown(0) && memberDraggedByMouse == nullptr )
 		{
-			lastMemberDraggedByMouse = _v;
-		}
-		
-		// DROP
-		if (isItemHovered && ImGui::IsMouseReleased(0))
-		{
-			lastMemberHoveredWhenMouseReleased = _v;
+			memberDraggedByMouse = _v;
 		}
 	};
 
@@ -456,7 +449,7 @@ bool NodeView::draw()
 
 			if ( GetDragged() != this)
 			{
-				if(GetDragged() == nullptr && ImGui::IsMouseClicked(0) && hovered && (lastMemberDraggedByMouse == nullptr))
+				if(GetDragged() == nullptr && ImGui::IsMouseClicked(0) && hovered && (memberDraggedByMouse == nullptr))
 					SetDragged(this);
 			}else{				
 				if ( ImGui::IsMouseReleased(0))

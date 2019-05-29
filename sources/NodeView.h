@@ -92,8 +92,7 @@ namespace Nodable{
 		static NodeView* s_dragged;	 // pointer to the currently dragged NodeView.	
 
 	public:
-		static Member* lastMemberDraggedByMouse;
-		static Member* lastMemberHoveredWhenMouseReleased;
-		static Member* currentMemberHoveredByMouse;
+		static Member* memberDraggedByMouse;
+		static Member* memberHoveredByMouse;
 	};
 }

@@ -25,7 +25,7 @@ bool ContainerView::draw()
 	/*
 		NodeViews
 	*/
-	NodeView::currentMemberHoveredByMouse = nullptr; // reset this var befor drawing
+	NodeView::memberHoveredByMouse = nullptr; // reset this var befor drawing
 	bool isAnyNodeDragged = false;
 	bool isAnyNodeHovered = false;
 	{
@@ -70,37 +70,40 @@ bool ContainerView::draw()
 		}
 
 		// Draw temporary wire on top (overlay draw list)
-		if (NodeView::lastMemberDraggedByMouse != nullptr)
+		if (NodeView::memberDraggedByMouse != nullptr)
 		{
-			auto lineStartPosition = NodeView::lastMemberDraggedByMouse->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getInputPosition(NodeView::lastMemberDraggedByMouse->getName()) + ImGui::GetWindowPos();
+			auto lineStartPosition = NodeView::memberDraggedByMouse->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getInputPosition(NodeView::memberDraggedByMouse->getName()) + ImGui::GetWindowPos();
 			auto lineEndPosition = ImGui::GetMousePos();
 
-			// Snap lineEndPosition to hovered member position
-			if (NodeView::currentMemberHoveredByMouse != nullptr)
-				lineEndPosition = NodeView::currentMemberHoveredByMouse->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getInputPosition(NodeView::currentMemberHoveredByMouse->getName()) + ImGui::GetWindowPos();
+			// Snap lineEndPosition to hoveredByMouse member's position
+			if (NodeView::memberHoveredByMouse != nullptr)
+				lineEndPosition = NodeView::memberHoveredByMouse->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getInputPosition(NodeView::memberHoveredByMouse->getName()) + ImGui::GetWindowPos();
 			
 			ImGui::GetOverlayDrawList()->AddLine(lineStartPosition, lineEndPosition, getColor(ColorType_BorderHighlights), connectorRadius * float(0.9));
 		}
 
-		// Add a new wire if needed (mouse drag'n drop)
-		if (NodeView::lastMemberDraggedByMouse           != nullptr &&
-			NodeView::lastMemberHoveredWhenMouseReleased != nullptr)
+		// If user release mouse button
+		if (!ImGui::IsMouseDown(0))
 		{
-			if (NodeView::lastMemberDraggedByMouse != NodeView::lastMemberHoveredWhenMouseReleased)
+			// Add a new wire if needed (mouse drag'n drop)
+			if (NodeView::memberDraggedByMouse != nullptr &&
+				NodeView::memberHoveredByMouse != nullptr)
 			{
-				auto wire = NodeView::lastMemberDraggedByMouse->getOwner()->getAs<Entity*>()->getParent()->createWire();
-				Entity::Connect(wire, NodeView::lastMemberDraggedByMouse, NodeView::lastMemberHoveredWhenMouseReleased);
+				if (NodeView::memberDraggedByMouse != NodeView::memberHoveredByMouse)
+				{
+					auto wire = NodeView::memberDraggedByMouse->getOwner()->getAs<Entity*>()->getParent()->createWire();
+					Entity::Connect(wire, NodeView::memberDraggedByMouse, NodeView::memberHoveredByMouse);
+				}
+
+				NodeView::memberDraggedByMouse = nullptr;
+				NodeView::memberHoveredByMouse = nullptr;
+
+			}// If user release mouse without hovering a member, we display a menu to create a linked node
+			else if (NodeView::memberDraggedByMouse != nullptr)
+			{
+				if ( !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
+					ImGui::OpenPopup("ContainerViewContextualMenu");	
 			}
-
-			NodeView::lastMemberDraggedByMouse           = nullptr;
-			NodeView::lastMemberHoveredWhenMouseReleased = nullptr;
-		}
-
-		// Mouse inputs relative to temporary wire
-		else if (!ImGui::IsMouseReleased(0) && !ImGui::IsMouseDown(0))
-		{
-			NodeView::lastMemberDraggedByMouse           = nullptr;
-			NodeView::lastMemberHoveredWhenMouseReleased = nullptr;
 		}
 	}
 
@@ -163,6 +166,16 @@ bool ContainerView::draw()
 
 		if (ImGui::MenuItem("New result"))
 			newEntity = container->createNodeResult();
+
+
+		if (NodeView::memberDraggedByMouse != nullptr && newEntity != nullptr)
+		{
+			// Connect the new node to the dragged member. Try by default with "result" member.
+			if (newEntity->getMember("result") != nullptr)
+				Entity::Connect(container->createWire(), newEntity->getMember("result"), NodeView::memberDraggedByMouse);
+
+			NodeView::memberDraggedByMouse = nullptr;
+		}
 
 		/*
 			Set New Entity's position were mouse cursor is 
