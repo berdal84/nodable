@@ -8,6 +8,52 @@ using namespace Nodable;
  // BinaryOperationComponent :
 //////////////////////////
 
+void BinaryOperationComponent::updateResultSourceExpression()const
+{
+	/*
+		Labmda funtion to check if parentheses are needed for the expression of the input speficied as parameter.
+	*/
+	auto needParentheses = [&](Member * _input)->bool
+	{
+		if (_input != nullptr)
+		{
+			auto leftOperationComponent = _input->getOwner()->getAs<Entity*>()->getComponent("operation");
+
+			if (leftOperationComponent != nullptr)
+			{
+				auto leftOperatorString = leftOperationComponent->getAs<BinaryOperationComponent*>()->getOperatorAsString();
+
+				if (leftOperatorString == this->operatorAsString)
+					return false;
+
+				if (NeedsToBeEvaluatedFirst(this->operatorAsString, leftOperatorString))
+					return true;
+			}
+		}
+		return false;
+	};
+
+	std::string expr;
+
+	// Left part of the expression
+	bool leftExpressionNeedsParentheses  = needParentheses(this->left->getInput());
+	if (leftExpressionNeedsParentheses) expr.append("(");
+	expr.append( this->left->getSourceExpression() );
+	if (leftExpressionNeedsParentheses) expr.append(")");
+
+	// Operator
+	expr.append( this->operatorAsString );
+
+	// Righ part of the expression
+	bool rightExpressionNeedsParentheses = needParentheses(this->right->getInput());
+	if (rightExpressionNeedsParentheses) expr.append("(");
+	expr.append(this->right->getSourceExpression());
+	if (rightExpressionNeedsParentheses) expr.append(")");
+
+	// Apply the new string to the result's source expression.
+	this->result->setSourceExpression(expr.c_str());
+}
+
 /* Precendence for binary operators */
 bool BinaryOperationComponent::NeedsToBeEvaluatedFirst(std::string op, std::string nextOp)
 {
@@ -24,7 +70,7 @@ bool BinaryOperationComponent::NeedsToBeEvaluatedFirst(std::string op, std::stri
 	if (op == "+" && nextOp == "/") return false;
 
 	if (op == "-" && nextOp == "=") return false;
-	if (op == "-" && nextOp == "-") return true;	
+	if (op == "-" && nextOp == "-") return false;	
 	if (op == "-" && nextOp == "+") return true;	
 	if (op == "-" && nextOp == "*") return false;	
 	if (op == "-" && nextOp == "/") return false;
@@ -41,7 +87,7 @@ bool BinaryOperationComponent::NeedsToBeEvaluatedFirst(std::string op, std::stri
 	if (op == "/" && nextOp == "*") return true;	
 	if (op == "/" && nextOp == "/") return true;
 
-	return true;
+	return false;
 }
 
  // Node_Add :
@@ -74,11 +120,7 @@ void Add::update()
 		}	
 	}
 	
-	std::string expr;
-	expr += left->getSourceExpression();
-	expr += "+";
-	expr += right->getSourceExpression();
-	result->setSourceExpression(expr.c_str());
+	updateResultSourceExpression();
 
 	LOG_MSG("%s + %s = %f\n", left->getValueAsString().c_str(), 
                               right->getValueAsString().c_str(),
@@ -93,11 +135,7 @@ void Substract::update()
 	double sub = left->getValueAsNumber() - right->getValueAsNumber();
 	result->setValue(sub);
 	
-	std::string expr;
-	expr += left->getSourceExpression();
-	expr += "-";
-	expr += right->getSourceExpression();
-	result->setSourceExpression(expr.c_str());
+	updateResultSourceExpression();
 
 	LOG_MSG("%s - %s = %f\n", left->getValueAsString().c_str(), 
                               right->getValueAsString().c_str(),
@@ -119,11 +157,7 @@ void Divide::update()
                                   result->getValueAsString().c_str());
 	}
 
-	std::string expr;
-	expr += left->getSourceExpression();
-	expr += "/";
-	expr += right->getSourceExpression();
-	result->setSourceExpression(expr.c_str());
+	updateResultSourceExpression();
 }
 
  // Node_Multiply :
@@ -147,11 +181,8 @@ void Multiply::update()
 			break;
 		}
 	}
-	std::string expr;
-	expr += left->getSourceExpression();
-	expr += "*";
-	expr += right->getSourceExpression();
-	result->setSourceExpression(expr.c_str());
+	
+	updateResultSourceExpression();
 
 	LOG_MSG("%s * %s = %f\n", left->getValueAsString().c_str(), 
 	                          right->getValueAsString().c_str(),
@@ -188,13 +219,7 @@ void Assign::update()
 		}
 	}
 	
-	std::string expr;
-
-	expr += left->getSourceExpression();
-	expr += "=";
-	expr += right->getSourceExpression();
-
-	result->setSourceExpression(expr.c_str());
+	updateResultSourceExpression();
 
 	LOG_MSG("%s = %s (result %s)\n", 	left->getValueAsString().c_str(),
 										right->getValueAsString().c_str(),

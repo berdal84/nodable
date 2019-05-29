@@ -183,14 +183,15 @@ Entity* Container::createNodeAdd()
 	node->addMember("left",   Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
 	node->addMember("right",  Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
 	node->addMember("result", Visibility_Default, Type_Number, ConnectionFlags_OutputOnly);
-
+	
 	// Create a binary operation component and link values.
 	auto operation 	= new Add();
 	operation->setLeft  (node->getMember("left"));
 	operation->setRight (node->getMember("right"));
 	operation->setResult(node->getMember("result"));
+	operation->setOperatorAsString("+");
 	node->addComponent( "operation", operation);
-
+	
 	// Create a view component
 	node->addComponent( "view", new NodeView);
 
@@ -213,6 +214,7 @@ Entity* Container::createNodeSubstract()
 	operation->setLeft  (node->getMember("left"));
 	operation->setRight (node->getMember("right"));
 	operation->setResult(node->getMember("result"));
+	operation->setOperatorAsString("-");
 	node->addComponent( "operation", operation);
 
 	// Create a view component
@@ -237,6 +239,8 @@ Entity* Container::createNodeMultiply()
 	operation->setLeft  (node->getMember("left"));
 	operation->setRight (node->getMember("right"));
 	operation->setResult(node->getMember("result"));
+	operation->setOperatorAsString("*");
+
 	node->addComponent( "operation", operation);
 
 	// Create a view component
@@ -261,6 +265,8 @@ Entity* Container::createNodeDivide()
 	operation->setLeft  (node->getMember("left"));
 	operation->setRight (node->getMember("right"));
 	operation->setResult(node->getMember("result"));
+	operation->setOperatorAsString("/");
+
 	node->addComponent( "operation", operation);
 
 	// Create a view component
@@ -285,6 +291,8 @@ Entity* Container::createNodeAssign()
 	operation->setLeft  (node->getMember("left"));
 	operation->setRight (node->getMember("right"));
 	operation->setResult(node->getMember("result"));
+	operation->setOperatorAsString("=");
+
 	node->addComponent( "operation", operation);
 
 	// Create a view component

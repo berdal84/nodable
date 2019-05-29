@@ -13,13 +13,18 @@ namespace Nodable{
 		void                setLeft	 (Member* _value){left= _value;};
 		void                setRight (Member* _value){right = _value;};
 		void                setResult(Member* _value){result = _value;};
+		void                setOperatorAsString(const char* _s) { operatorAsString = _s; }
 
+		void                updateResultSourceExpression() const;
+
+		std::string         getOperatorAsString()const{return operatorAsString;}
 		/* return true if op needs to be evaluated before nextOp */
 		static  bool        NeedsToBeEvaluatedFirst(std::string op, std::string nextOp);
 	protected:
 		Member* 	left 	= nullptr;
 		Member* 	right 	= nullptr;
 		Member* 	result 	= nullptr;
+		std::string operatorAsString = "";
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Sum */
