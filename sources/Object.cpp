@@ -31,7 +31,10 @@ bool Object::hasMember(Member* _value)
 
 Member* Object::getMember (const char* _name)const
 {
-	return members.at(std::string(_name));
+	auto foundWithName = members.find(std::string(_name));
+	if (foundWithName != members.end())
+		return (*foundWithName).second;
+	return nullptr;
 }
 
 Member* Object::getMember (const std::string& _name)const
