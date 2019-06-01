@@ -523,7 +523,9 @@ void ApplicationView::updateCurrentLineText(std::string _val)
     auto coord = textEditor->GetCursorPosition();
 
     /* If there is no selection, selects current line */
-    if ( !textEditor->HasSelection() )
+	auto hasSelection = textEditor->HasSelection();
+
+    if ( !hasSelection )
     {
         textEditor->MoveHome(false);
         textEditor->MoveEnd(true);
@@ -532,10 +534,15 @@ void ApplicationView::updateCurrentLineText(std::string _val)
 
     /* delete selection */
     textEditor->Delete();
+	coord = textEditor->GetCursorPosition();
 
     /* insert text */
     textEditor->InsertText(_val);
 
-    /* select line */
-    textEditor->MoveHome(true);
+	/* Select the new inserted text if needed*/
+	if (hasSelection)
+	{
+		textEditor->SetSelectionStart(coord);
+		textEditor->SetSelectionEnd(TextEditor::Coordinates(coord.mLine, coord.mColumn + _val.size()));
+	}
 }
