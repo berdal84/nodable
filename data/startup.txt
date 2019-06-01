@@ -1,0 +1,20 @@
+ ///////////////////////////////////////////////////////////////////
+// First few tips :
+//
+// - You can edit a whole line by clicking on it.
+// - You can also edit only a portion by selecting it.
+// - Edition is seamless, you can modify both text or nodes.
+
+// A simple addition, click on the line below to generate its nodes:
+5 + 3
+
+	
+// A more complex one, again click on it:\n
+10 * 3 + 50 / 0.1 + 1\n
+
+
+// Now, try to create an expression using nodes.
+// Put your cursor at the next line add create some nodes with right-click menu.
+// And don't forget to connect it to a result node to see your graph converted to code:
+
+
