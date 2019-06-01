@@ -406,8 +406,8 @@ bool ApplicationView::draw()
 
 				auto textEditorSize         = ImGui::GetContentRegionAvail();
 
-				auto currentCursorPosition  = textEditor->GetCursorPosition();
-				auto currentSelectedText    = textEditor->GetSelectedText();
+				auto previousCursorPosition = textEditor->GetCursorPosition();
+				auto previousSelectedText   = textEditor->GetSelectedText();
 				auto previousLineText       = textEditor->GetCurrentLineText();
 
 				auto allowkeyboard          = NodeView::GetSelected() == nullptr; // disable keyboard for text editor when a node is selected.
@@ -416,16 +416,16 @@ bool ApplicationView::draw()
 				textEditor->ScanUserInputs (allowkeyboard, allowMouse);
 				textEditor->Render         ("Text Editor Plugin", availSize);
 
-				auto newCursorPosition      = textEditor->GetCursorPosition();
-				auto newSelectedText        = textEditor->GetSelectedText();
+				auto currentCursorPosition  = textEditor->GetCursorPosition();
+				auto currentSelectedText    = textEditor->GetSelectedText();
 				auto currentLineText        = textEditor->GetCurrentLineText();
+
 				auto isCurrentLineModified  = currentLineText != previousLineText;
-				auto isSelectedTextModified = currentSelectedText != newSelectedText;
+				auto isSelectedTextModified = previousSelectedText != currentSelectedText;
 
 				bool needsToEvaluateString = isCurrentLineModified ||
-					                        textEditor->IsTextChanged() ||                           //     Text changed
-					                        isSelectedTextModified ||                                 // OR: Cursor position changed AND selection text modified
-					                        (newCursorPosition.mLine != currentCursorPosition.mLine); // OR: Cursor vertical position changed
+					                        textEditor->IsTextChanged() ||
+					                        isSelectedTextModified;
 
 				if (needsToEvaluateString)
 				{
