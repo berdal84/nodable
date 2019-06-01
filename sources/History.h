@@ -108,6 +108,7 @@ namespace Nodable
 		void execute()
 		{
 			target->setInput(source);
+			target->getOwner()->getAs<Entity*>()->setDirty();
 
 			// Link wire to members
 			wire->setSource(source);
