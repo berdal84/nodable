@@ -250,12 +250,14 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 			auto intermediateResultLeft = buildGraphRec(_tokenId, 3, _leftValueOverride, right);
 
 			// Then evaluates the rest if needed
-			if ( _tokenId + 2 + tokenToEvaluateCount - 1 < tokens.size())
+			if ( _tokenId + 2 + tokenToEvaluateCount < tokens.size())
 				result = buildGraphRec(_tokenId + 2 + tokenToEvaluateCount - 1, 0, intermediateResultLeft);
 			else
 				result = intermediateResultLeft;
 		}
 	}
+
+	NODABLE_ASSERT(result != nullptr); // result is nullptr, this should never happend
 
 	return result;
 }
