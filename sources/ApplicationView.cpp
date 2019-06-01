@@ -408,6 +408,7 @@ bool ApplicationView::draw()
 
 				auto currentCursorPosition  = textEditor->GetCursorPosition();
 				auto currentSelectedText    = textEditor->GetSelectedText();
+				auto previousLineText       = textEditor->GetCurrentLineText();
 
 				auto allowkeyboard          = NodeView::GetSelected() == nullptr; // disable keyboard for text editor when a node is selected.
 				auto allowMouse             = true;
@@ -417,9 +418,12 @@ bool ApplicationView::draw()
 
 				auto newCursorPosition      = textEditor->GetCursorPosition();
 				auto newSelectedText        = textEditor->GetSelectedText();
+				auto currentLineText        = textEditor->GetCurrentLineText();
+				auto isCurrentLineModified  = currentLineText != previousLineText;
 				auto isSelectedTextModified = currentSelectedText != newSelectedText;
 
-				bool needsToEvaluateString = textEditor->IsTextChanged() ||                           //     Text changed
+				bool needsToEvaluateString = isCurrentLineModified ||
+					                        textEditor->IsTextChanged() ||                           //     Text changed
 					                        isSelectedTextModified ||                                 // OR: Cursor position changed AND selection text modified
 					                        (newCursorPosition.mLine != currentCursorPosition.mLine); // OR: Cursor vertical position changed
 
