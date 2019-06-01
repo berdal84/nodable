@@ -271,10 +271,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(Configuration)/obj/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(Configuration)/temp/</IntDir>
+    <IntDir>$(Configuration)/obj/</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -293,6 +294,24 @@
       <AdditionalLibraryDirectories>..\libs\SDL2\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;sdl2main.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>rem Remove and create an empty data folder
+RMDIR /S /Q $(SolutionDir)$(Configuration)\data
+mkdir $(SolutionDir)$(Configuration)\data
+
+rem Copy data into data folder
+copy $(SolutionDir)..\data\startup.txt  $(SolutionDir)$(Configuration)\data
+copy $(SolutionDir)..\data\CenturyGothic.ttf  $(SolutionDir)$(Configuration)\data
+copy $(SolutionDir)..\data\fa-solid-900.ttf  $(SolutionDir)$(Configuration)\data
+
+rem Copy SDL.dll
+copy $(SolutionDir)..\libs\SDL2\lib\x86\SDL2.dll $(SolutionDir)$(Configuration)</Command>
+      <Outputs>$(OutDir)unexisting.txt</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -315,6 +334,28 @@
       <ProgramDatabaseFile />
       <ProfileGuidedDatabase />
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>rem Remove and create an empty data folder
+RMDIR /S /Q $(SolutionDir)$(Configuration)\data
+mkdir $(SolutionDir)$(Configuration)\data
+
+rem Copy data into data folder
+copy $(SolutionDir)..\data\startup.txt  $(SolutionDir)$(Configuration)\data
+copy $(SolutionDir)..\data\CenturyGothic.ttf  $(SolutionDir)$(Configuration)\data
+copy $(SolutionDir)..\data\fa-solid-900.ttf  $(SolutionDir)$(Configuration)\data
+
+rem Copy SDL.dll
+copy $(SolutionDir)..\libs\SDL2\lib\x86\SDL2.dll $(SolutionDir)$(Configuration)</Command>
+      <Outputs>$(OutDir)unexisting.txt</Outputs>
+    </CustomBuildStep>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

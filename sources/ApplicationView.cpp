@@ -173,31 +173,12 @@ bool ApplicationView::init()
 
     textEditor = new TextEditor;    
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
-    textEditor->SetLanguageDefinition(lang);
-
-	std::string expression;
-	expression.append("\n");
-	expression.append(" ///////////////////////////////////////////////////////////////////\n");
-	expression.append("// First few tips :\n");
-	expression.append("//\n");
-	expression.append("// - You can edit a whole line by clicking on it.\n");
-	expression.append("// - You can also edit only a portion by selecting it.\n");
-	expression.append("// - Edition is seamless, you can modify both text or nodes.\n");
-	expression.append("\n");
-
-	expression.append("// An addition :\n");
-	expression.append("1 + 1\n");
-	expression.append("\n");
-
-	expression.append("// A multiply :\n");
-	expression.append("10 * 3\n");
-	expression.append("\n");
+    textEditor->SetLanguageDefinition(lang);	
 	
-	expression.append("// A more complex one :\n");
-	expression.append("10 * 3 + 50 / 0.1 + 1\n");
-	expression.append("\n");
-
-
+	// read startup file
+	auto filename = "data/startup.txt";
+	std::ifstream startupFile(filename);
+	std::string expression((std::istreambuf_iterator<char>(startupFile)), std::istreambuf_iterator<char>());
 
     textEditor->SetText(expression);
 
