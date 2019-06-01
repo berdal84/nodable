@@ -193,8 +193,6 @@ bool NodeView::draw()
 
 	// Begin the window
 	//-----------------
-
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);
 
 	ImVec2 screenPosition = position;
