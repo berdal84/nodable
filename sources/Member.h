@@ -6,20 +6,20 @@
 
 namespace Nodable{
 
-	enum ConnectionFlags_
+	enum Connection_
 	{
-		ConnectionFlags_None 			= 0,
-		ConnectionFlags_InputOnly 		= 1 << 1,
-		ConnectionFlags_OutputOnly 		= 1 << 2,
-		ConnectionFlags_InputAndOutput 	= ConnectionFlags_InputOnly | ConnectionFlags_OutputOnly,
-		ConnectionFlags_Default			= ConnectionFlags_None
+		Connection_None     = 0,
+		Connection_In       = 1 << 1,
+		Connection_Out      = 1 << 2,
+		Connection_InOut 	= Connection_In | Connection_Out,
+		Connection_Default	= Connection_None
 	};
 	
 	enum Visibility_{
-		Visibility_Public    = 0,
-		Visibility_Protected = 1,
-		Visibility_Private   = 2,
-		Visibility_Default   = Visibility_Public
+		Visibility_AlwaysVisible                = 0,
+		Visibility_VisibleOnlyWhenUncollapsed   = 1,
+		Visibility_AlwaysHidden                 = 2,
+		Visibility_Default                      = Visibility_AlwaysVisible
 	};
 
 	class Member{
@@ -27,7 +27,7 @@ namespace Nodable{
 		Member();
 		~Member();
 
-		bool                allows                   (ConnectionFlags_)                   const;
+		bool                allows                   (Connection_)                   const;
 		bool                isSet                    ()                                   const;	
 		bool                isType                   (Type_ _type)                        const;
 
@@ -35,7 +35,7 @@ namespace Nodable{
 			Setters
 		*/
 
-		void                setConnectionFlags       (ConnectionFlags_);
+		void                setConnectionFlags       (Connection_);
 		void                setSourceExpression      (const char* _val);
 		void                setInput                 (Member* _val);
 		void  		        setName                  (const char* _name);
@@ -66,7 +66,7 @@ namespace Nodable{
 		std::string         getValueAsString()                                            const;
 
 		Visibility_         getVisibility()                                               const;
-		ConnectionFlags_    getConnectionFlags()                                          const;
+		Connection_         getConnection()                                               const;
 
 	private:
 		Object*     		owner       		= nullptr;
@@ -75,6 +75,6 @@ namespace Nodable{
 		std::string 		name 				= "Unknown";
 		Variant       		data;
 		Visibility_ 		visibility 			= Visibility_Default;
-		ConnectionFlags_ 	connectionFlags 	= ConnectionFlags_Default;
+		Connection_ 	    connection 	        = Connection_Default;
 	};
 }

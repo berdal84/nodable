@@ -20,9 +20,9 @@ bool  Member::isType(Type_ _type)const
 	return data.isType(_type);
 }
 
-void Member::setConnectionFlags(ConnectionFlags_ _flags)
+void Member::setConnectionFlags(Connection_ _flags)
 {
-	connectionFlags = _flags;
+	connection = _flags;
 }
 
 void Nodable::Member::setSourceExpression(const char* _val)
@@ -40,10 +40,10 @@ void Member::setVisibility(Visibility_ _v)
 	visibility = _v;
 }
 
-bool Member::allows(ConnectionFlags_ _flags)const
+bool Member::allows(Connection_ _connection)const
 {
-	auto maskedFlags = connectionFlags & _flags;
-	return maskedFlags == _flags;
+	auto maskedFlags = connection & _connection;
+	return maskedFlags == _connection;
 }
 
 Object* Member::getOwner() const
@@ -118,9 +118,9 @@ Visibility_ Member::getVisibility() const
 	return visibility;
 }
 
-ConnectionFlags_ Member::getConnectionFlags() const
+Connection_ Member::getConnection() const
 {
-	return connectionFlags;
+	return connection;
 }
 
 bool Member::isSet()const

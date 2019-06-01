@@ -47,30 +47,30 @@ bool Test::RunAll()
 	{
 		std::unique_ptr<Member> v(new Member);
 
-		v->setConnectionFlags(ConnectionFlags_InputOnly);
+		v->setConnectionFlags(Connection_In);
 
-		if (!v->allows(ConnectionFlags_OutputOnly)){
+		if (!v->allows(Connection_Out)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-1a : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (!v->allows(ConnectionFlags_InputAndOutput)){
+		if (!v->allows(Connection_InOut)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-1b : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (v->allows(ConnectionFlags_InputOnly)){
+		if (v->allows(Connection_In)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-1c : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (v->allows(ConnectionFlags_None)){
+		if (v->allows(Connection_None)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-1d : FAILED !\n");
@@ -82,30 +82,30 @@ bool Test::RunAll()
 	{
 		std::unique_ptr<Member> v(new Member);
 
-		v->setConnectionFlags(ConnectionFlags_OutputOnly);
+		v->setConnectionFlags(Connection_Out);
 
-		if (v->allows(ConnectionFlags_OutputOnly)){
+		if (v->allows(Connection_Out)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-2a : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (!v->allows(ConnectionFlags_InputAndOutput)){
+		if (!v->allows(Connection_InOut)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-2b : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (!v->allows(ConnectionFlags_InputOnly)){
+		if (!v->allows(Connection_In)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-2c : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (v->allows(ConnectionFlags_None)){
+		if (v->allows(Connection_None)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-2d : FAILED !\n");
@@ -116,30 +116,30 @@ bool Test::RunAll()
 	{
 		std::unique_ptr<Member> v(new Member);
 
-		v->setConnectionFlags(ConnectionFlags_None);
+		v->setConnectionFlags(Connection_None);
 
-		if (!v->allows(ConnectionFlags_OutputOnly)){
+		if (!v->allows(Connection_Out)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-3a : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (!v->allows(ConnectionFlags_InputAndOutput)){
+		if (!v->allows(Connection_InOut)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-3b : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (!v->allows(ConnectionFlags_InputOnly)){
+		if (!v->allows(Connection_In)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-3c : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (v->allows(ConnectionFlags_None)){
+		if (v->allows(Connection_None)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-3d : FAILED !\n");
@@ -151,30 +151,30 @@ bool Test::RunAll()
 	{
 		std::unique_ptr<Member> v(new Member);
 
-		v->setConnectionFlags(ConnectionFlags_InputAndOutput);
+		v->setConnectionFlags(Connection_InOut);
 
-		if (v->allows(ConnectionFlags_OutputOnly)){
+		if (v->allows(Connection_Out)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-4a : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (v->allows(ConnectionFlags_InputAndOutput)){
+		if (v->allows(Connection_InOut)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-4b : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (v->allows(ConnectionFlags_InputOnly)){
+		if (v->allows(Connection_In)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-4c : FAILED !\n");
 		}
 		s_testCount++;
 
-		if (v->allows(ConnectionFlags_None)){
+		if (v->allows(Connection_None)){
 			s_testSucceedCount++;
 		}else{
 			LOG_MSG("Test n°0-4d : FAILED !\n");

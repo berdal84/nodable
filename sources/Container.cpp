@@ -180,9 +180,9 @@ Entity* Container::createNodeAdd()
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
 	node->setLabel(ICON_FA_PLUS);
-	node->addMember("left",   Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
-	node->addMember("right",  Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
-	node->addMember("result", Visibility_Default, Type_Number, ConnectionFlags_OutputOnly);
+	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
+	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
+	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
 	
 	// Create a binary operation component and link values.
 	auto operation 	= new Add();
@@ -205,9 +205,9 @@ Entity* Container::createNodeSubstract()
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
 	node->setLabel(ICON_FA_MINUS);
-	node->addMember("left",   Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
-	node->addMember("right",  Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
-	node->addMember("result", Visibility_Default, Type_Number, ConnectionFlags_OutputOnly);
+	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
+	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
+	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Substract();
@@ -230,9 +230,9 @@ Entity* Container::createNodeMultiply()
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
 	node->setLabel(ICON_FA_TIMES);
-	node->addMember("left",   Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
-	node->addMember("right",  Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
-	node->addMember("result", Visibility_Default, Type_Number, ConnectionFlags_OutputOnly);
+	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
+	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
+	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Multiply();
@@ -256,9 +256,9 @@ Entity* Container::createNodeDivide()
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
 	node->setLabel(ICON_FA_DIVIDE);
-	node->addMember("left",   Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
-	node->addMember("right",  Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
-	node->addMember("result", Visibility_Default, Type_Number, ConnectionFlags_OutputOnly);
+	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
+	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
+	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Divide();
@@ -282,9 +282,9 @@ Entity* Container::createNodeAssign()
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
 	node->setLabel("ASSIGN");
-	node->addMember("left",   Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
-	node->addMember("right",  Visibility_Default, Type_Number, ConnectionFlags_InputOnly);
-	node->addMember("result", Visibility_Default, Type_Number, ConnectionFlags_OutputOnly);
+	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
+	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
+	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Assign();

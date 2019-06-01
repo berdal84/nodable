@@ -4,8 +4,8 @@ using namespace Nodable;
 
 Object::Object()
 {
-	addMember("__class__", Visibility_Protected);
-	addMember("name",      Visibility_Protected);
+	addMember("__class__", Visibility_VisibleOnlyWhenUncollapsed);
+	addMember("name",      Visibility_VisibleOnlyWhenUncollapsed);
 }
 
 Object::~Object()
@@ -42,7 +42,7 @@ Member* Object::getMember (const std::string& _name)const
 	return members.at(_name.c_str());
 }
 
-void Object::addMember (const char* _name, Visibility_ _visibility, Type_ _type, ConnectionFlags_ _flags )
+void Object::addMember (const char* _name, Visibility_ _visibility, Type_ _type, Connection_ _flags )
 {
 	auto v = new Member();
 

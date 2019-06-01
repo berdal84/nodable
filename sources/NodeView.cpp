@@ -301,13 +301,13 @@ bool NodeView::draw()
 			Draw the wire connector 
 		*/
 
-		if (_v->allows(ConnectionFlags_InputOnly) ||
-			_v->allows(ConnectionFlags_OutputOnly) ||
-			_v->allows(ConnectionFlags_InputAndOutput))
+		if (_v->allows(Connection_In) ||
+			_v->allows(Connection_Out) ||
+			_v->allows(Connection_InOut))
 		{
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 			ImVec2      pos;
-			if (_v->getConnectionFlags() == ConnectionFlags_InputOnly)
+			if (_v->getConnection() == Connection_In)
 				pos = ImGui::GetWindowPos() + getInputPosition(_v->getName());
 			else
 				pos = ImGui::GetWindowPos() + getOutputPosition(_v->getName());
@@ -351,7 +351,7 @@ bool NodeView::draw()
 		// Draw input only first
 		for(auto& m : node->getMembers())
 		{		
-			if( m.second->getVisibility() == Visibility_Public && m.second->getConnectionFlags() == ConnectionFlags_InputOnly)
+			if( m.second->getVisibility() == Visibility_AlwaysVisible && m.second->getConnection() == Connection_In)
 			{
 				drawValue(m.second);
 			}
@@ -360,7 +360,7 @@ bool NodeView::draw()
 		// Then draw the rest
 		for (auto& m : node->getMembers())
 		{
-			if (m.second->getVisibility() == Visibility_Public && m.second->getConnectionFlags() != ConnectionFlags_InputOnly)
+			if (m.second->getVisibility() == Visibility_AlwaysVisible && m.second->getConnection() != Connection_In)
 			{
 				drawValue(m.second);
 			}
@@ -373,8 +373,8 @@ bool NodeView::draw()
 		// Draw visible members
 		for(auto& m : node->getMembers())
 		{		
-			if( m.second->getVisibility() == Visibility_Protected ||
-				m.second->getVisibility() == Visibility_Private)
+			if( m.second->getVisibility() == Visibility_VisibleOnlyWhenUncollapsed ||
+				m.second->getVisibility() == Visibility_AlwaysHidden)
 			{
 				drawValue(m.second);
 			}

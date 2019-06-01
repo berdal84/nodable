@@ -15,7 +15,7 @@ namespace Nodable
 		virtual ~Object();
 
 		/* Adds a new member identified by its _name. */
-		void                addMember         (const char* /*name*/, Visibility_ = Visibility_Default, Type_ = Type_Unknown, ConnectionFlags_ = ConnectionFlags_Default);
+		void                addMember         (const char* /*name*/, Visibility_ = Visibility_Default, Type_ = Type_Unknown, Connection_ = Connection_Default);
 
 		bool                hasMember         (Member* _value);
 

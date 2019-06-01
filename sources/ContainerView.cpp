@@ -174,18 +174,18 @@ bool ContainerView::draw()
 		if (NodeView::memberDraggedByMouse != nullptr && newEntity != nullptr)
 		{
 			// if dragged member is an input
-			if (NodeView::memberDraggedByMouse->allows(ConnectionFlags_InputOnly) && newEntity->getMember("result") != nullptr)
+			if (NodeView::memberDraggedByMouse->allows(Connection_In) && newEntity->getMember("result") != nullptr)
 				Entity::Connect(container->createWire(), newEntity->getMember("result"), NodeView::memberDraggedByMouse);
 
 			// if dragged member is an output
-			else if (NodeView::memberDraggedByMouse->allows(ConnectionFlags_OutputOnly)) {
+			else if (NodeView::memberDraggedByMouse->allows(Connection_Out)) {
 
 				// try to get the first Input only member
-				auto targetMember = newEntity->getFirstMemberWithConnectionFlags(ConnectionFlags_InputOnly);
+				auto targetMember = newEntity->getFirstMemberWithConnection(Connection_In);
 				
 				// If failed, try to get the first input/output member
 				if (targetMember == nullptr)
-					targetMember = newEntity->getFirstMemberWithConnectionFlags(ConnectionFlags_InputAndOutput);
+					targetMember = newEntity->getFirstMemberWithConnection(Connection_InOut);
 
 				if ( targetMember != nullptr)
 					Entity::Connect(container->createWire(), NodeView::memberDraggedByMouse, targetMember);

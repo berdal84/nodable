@@ -185,7 +185,7 @@ void Entity::onMemberValueChanged(const char* _name)
 	updateLabel();	
 }
 
-Member* Entity::getFirstMemberWithConnectionFlags(ConnectionFlags_ _flags)
+Member* Entity::getFirstMemberWithConnection(Connection_ _connection)
 {
 	Member* found = nullptr;
 
@@ -193,7 +193,7 @@ Member* Entity::getFirstMemberWithConnectionFlags(ConnectionFlags_ _flags)
 	auto m = members.begin();
 	while( m != members.end() && found == nullptr)
 	{
-		if (m->second->getConnectionFlags() == _flags)
+		if (m->second->getConnection() == _connection)
 			found = m->second;
 		m++;
 	}

@@ -46,12 +46,13 @@ namespace Nodable{
 		/* Force this node to be evaluated at the next update() call */
 		void                setDirty          (bool _value = true);
 
+		/* return true if this node needs to be updated, either false */
 		bool                isDirty           ()const;
 
 		/* Set the node dirty and update its label */
 		void                onMemberValueChanged(const char* _name)override;
 
-		Member*             getFirstMemberWithConnectionFlags(ConnectionFlags_ _flags);
+		Member*             getFirstMemberWithConnection(Connection_);
 
 		/* Connect _from._fromOuputName with _to._toInputName.
 		the connection is oriented. */

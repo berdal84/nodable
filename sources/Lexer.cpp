@@ -15,10 +15,10 @@ Lexer::Lexer()
 {
 	LOG_DBG("new Lexer\n");
 	setMember("__class__", "Lexer");
-	addMember("expression", Visibility_Protected);
-	addMember("numbers", 	Visibility_Protected);
-	addMember("letters", 	Visibility_Protected);
-	addMember("operators", 	Visibility_Protected);
+	addMember("expression", Visibility_VisibleOnlyWhenUncollapsed);
+	addMember("numbers", 	Visibility_VisibleOnlyWhenUncollapsed);
+	addMember("letters", 	Visibility_VisibleOnlyWhenUncollapsed);
+	addMember("operators", 	Visibility_VisibleOnlyWhenUncollapsed);
 
 	setMember("numbers", "0123456789.");	
 	setMember("letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_");	
