@@ -301,43 +301,48 @@ bool NodeView::draw()
 			Draw the wire connector 
 		*/
 
-		ImDrawList* draw_list = ImGui::GetWindowDrawList();
-		ImVec2      pos;
-		if (_v->getConnectionFlags() == ConnectionFlags_InputOnly)
-			pos = ImGui::GetWindowPos() + getInputPosition(_v->getName());
-		else
-			pos = ImGui::GetWindowPos() + getOutputPosition(_v->getName());
-
-		// Unvisible Button on top of the Circle
-
-		ImVec2 cpos = ImGui::GetCursorPos();
-		float invisibleButtonOffsetFactor(1.2);
-		ImGui::SetCursorScreenPos(ImVec2(pos.x - connectorRadius* invisibleButtonOffsetFactor, pos.y - connectorRadius* invisibleButtonOffsetFactor));
-		ImGui::PushID(_v);
-		bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * float(2)* invisibleButtonOffsetFactor, connectorRadius * float(2)* invisibleButtonOffsetFactor));
-		ImGui::PopID();
-		ImGui::SetCursorPos(cpos);
-
-		// Circle
-		auto isItemHovered = ImGui::IsItemHoveredRect();
-		if ( isItemHovered )
-			draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Highlighted));
-		else
-			draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Fill));
-
-		draw_list->AddCircle(pos, connectorRadius, getColor(ColorType_Border));
-
-
-		// Manage mouse events in order to link two members by a Wire :
-
-		// HOVERED
-		if (isItemHovered)
-			memberHoveredByMouse = _v;
-
-		// DRAG
-		if (isItemHovered && ImGui::IsMouseDown(0) && memberDraggedByMouse == nullptr )
+		if (_v->allows(ConnectionFlags_InputOnly) ||
+			_v->allows(ConnectionFlags_OutputOnly) ||
+			_v->allows(ConnectionFlags_InputAndOutput))
 		{
-			memberDraggedByMouse = _v;
+			ImDrawList* draw_list = ImGui::GetWindowDrawList();
+			ImVec2      pos;
+			if (_v->getConnectionFlags() == ConnectionFlags_InputOnly)
+				pos = ImGui::GetWindowPos() + getInputPosition(_v->getName());
+			else
+				pos = ImGui::GetWindowPos() + getOutputPosition(_v->getName());
+
+			// Unvisible Button on top of the Circle
+
+			ImVec2 cpos = ImGui::GetCursorPos();
+			float invisibleButtonOffsetFactor(1.2);
+			ImGui::SetCursorScreenPos(ImVec2(pos.x - connectorRadius * invisibleButtonOffsetFactor, pos.y - connectorRadius * invisibleButtonOffsetFactor));
+			ImGui::PushID(_v);
+			bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * float(2) * invisibleButtonOffsetFactor, connectorRadius * float(2) * invisibleButtonOffsetFactor));
+			ImGui::PopID();
+			ImGui::SetCursorPos(cpos);
+
+			// Circle
+			auto isItemHovered = ImGui::IsItemHoveredRect();
+			if (isItemHovered)
+				draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Highlighted));
+			else
+				draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Fill));
+
+			draw_list->AddCircle(pos, connectorRadius, getColor(ColorType_Border));
+
+
+			// Manage mouse events in order to link two members by a Wire :
+
+			// HOVERED
+			if (isItemHovered)
+				memberHoveredByMouse = _v;
+
+			// DRAG
+			if (isItemHovered && ImGui::IsMouseDown(0) && memberDraggedByMouse == nullptr)
+			{
+				memberDraggedByMouse = _v;
+			}
 		}
 	};
 
