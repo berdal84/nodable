@@ -12,7 +12,7 @@ namespace Nodable{
 		ConnectionFlags_InputOnly 		= 1 << 1,
 		ConnectionFlags_OutputOnly 		= 1 << 2,
 		ConnectionFlags_InputAndOutput 	= ConnectionFlags_InputOnly | ConnectionFlags_OutputOnly,
-		ConnectionFlags_Default			= ConnectionFlags_InputOnly
+		ConnectionFlags_Default			= ConnectionFlags_None
 	};
 	
 	enum Visibility_{
