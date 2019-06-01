@@ -167,13 +167,29 @@ bool ContainerView::draw()
 		if (ImGui::MenuItem("New result"))
 			newEntity = container->createNodeResult();
 
+		/*
+			Connect the New Entity with the current dragged a member
+		*/
 
 		if (NodeView::memberDraggedByMouse != nullptr && newEntity != nullptr)
 		{
-			// Connect the new node to the dragged member. Try by default with "result" member.
-			if (newEntity->getMember("result") != nullptr)
+			// if dragged member is an input
+			if (NodeView::memberDraggedByMouse->allows(ConnectionFlags_InputOnly) && newEntity->getMember("result") != nullptr)
 				Entity::Connect(container->createWire(), newEntity->getMember("result"), NodeView::memberDraggedByMouse);
 
+			// if dragged member is an output
+			else if (NodeView::memberDraggedByMouse->allows(ConnectionFlags_OutputOnly)) {
+
+				// try to get the first Input only member
+				auto targetMember = newEntity->getFirstMemberWithConnectionFlags(ConnectionFlags_InputOnly);
+				
+				// If failed, try to get the first input/output member
+				if (targetMember == nullptr)
+					targetMember = newEntity->getFirstMemberWithConnectionFlags(ConnectionFlags_InputAndOutput);
+
+				if ( targetMember != nullptr)
+					Entity::Connect(container->createWire(), NodeView::memberDraggedByMouse, targetMember);
+			}
 			NodeView::memberDraggedByMouse = nullptr;
 		}
 

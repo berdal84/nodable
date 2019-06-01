@@ -184,3 +184,19 @@ void Entity::onMemberValueChanged(const char* _name)
 	setDirty(true);
 	updateLabel();	
 }
+
+Member* Entity::getFirstMemberWithConnectionFlags(ConnectionFlags_ _flags)
+{
+	Member* found = nullptr;
+
+	auto members = getMembers();
+	auto m = members.begin();
+	while( m != members.end() && found == nullptr)
+	{
+		if (m->second->getConnectionFlags() == _flags)
+			found = m->second;
+		m++;
+	}
+
+	return found;
+}

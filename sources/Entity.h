@@ -51,6 +51,8 @@ namespace Nodable{
 		/* Set the node dirty and update its label */
 		void                onMemberValueChanged(const char* _name)override;
 
+		Member*             getFirstMemberWithConnectionFlags(ConnectionFlags_ _flags);
+
 		/* Connect _from._fromOuputName with _to._toInputName.
 		the connection is oriented. */
 		static void         Connect            (Wire* /*_wire*/, Member* /*_from*/, Member* /*_to*/);
