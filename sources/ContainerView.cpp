@@ -138,33 +138,37 @@ bool ContainerView::draw()
 	if (ImGui::IsMouseClicked(1))
 		ImGui::OpenPopup("ContainerViewContextualMenu");
 
+	
+
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{
 		auto container = getOwner()->getAs<Container*>();
-
 		Entity* newEntity = nullptr;
 
-		if ( ImGui::BeginMenu("New operation")){
-			
-			if (ImGui::MenuItem("Add"))
-				newEntity = container->createNodeAdd();
+		// Title :
+		View::ColoredShadowedText( ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
+		ImGui::Separator();
 
-			if (ImGui::MenuItem("Divide"))
-				newEntity = container->createNodeDivide();
+		/*
+			Menu Items...
+		*/
 
-			if (ImGui::MenuItem("Multiply"))
-				newEntity = container->createNodeMultiply();
+		if (ImGui::MenuItem(ICON_FA_PLUS " Add"))
+			newEntity = container->createNodeAdd();
 
-			if (ImGui::MenuItem("Substract"))
-				newEntity = container->createNodeSubstract();
+		if (ImGui::MenuItem(ICON_FA_DIVIDE " Divide"))
+			newEntity = container->createNodeDivide();
 
-			ImGui::EndMenu();
-		}
+		if (ImGui::MenuItem(ICON_FA_TIMES " Multiply"))
+			newEntity = container->createNodeMultiply();
 
-		if (ImGui::MenuItem("New variable"))
+		if (ImGui::MenuItem(ICON_FA_MINUS " Substract"))
+			newEntity = container->createNodeSubstract();
+
+		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
 			newEntity = container->createNodeVariable("Variable");
 
-		if (ImGui::MenuItem("New result"))
+		if (ImGui::MenuItem(ICON_FA_EQUALS " Result"))
 			newEntity = container->createNodeResult();
 
 		/*
