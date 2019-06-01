@@ -423,12 +423,18 @@ bool ApplicationView::draw()
 					TEXT EDITOR
 				*/
 
+				auto textEditorSize         = ImGui::GetContentRegionAvail();
 
-				auto textEditorSize = ImGui::GetContentRegionAvail();
+				auto currentCursorPosition  = textEditor->GetCursorPosition();
+				auto currentSelectedText    = textEditor->GetSelectedText();
 				textEditor->Render("Text Editor Plugin", availSize);
+				auto newCursorPosition      = textEditor->GetCursorPosition();
+				auto newSelectedText        = textEditor->GetSelectedText();
+				auto isSelectedTextModified = currentSelectedText != newSelectedText;
 
-
-				bool needsToEvaluateString = textEditor->IsTextChanged() || textEditor->IsCursorPositionChanged();
+				bool needsToEvaluateString = textEditor->IsTextChanged() ||                                       //     Text changed
+					                        (textEditor->IsCursorPositionChanged() && isSelectedTextModified) ||  // OR: Cursor position changed AND selection text modified
+					                        (newCursorPosition.mLine != currentCursorPosition.mLine);             // OR: Cursor vertical position changed
 
 				if (needsToEvaluateString)
 				{
