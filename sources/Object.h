@@ -33,6 +33,9 @@ namespace Nodable
 		/* Return all members of this object */
 		const Members&      getMembers        ()const;
 
+		/* Return the first member that has this connection type (cf. Connection_ enum definition) or nullptr if no member is found.*/
+		Member*             getFirstMemberWithConnection(Connection_)const;
+
 		/* this method is automatically called when a member value changed */
 		virtual void        onMemberValueChanged(const char* _name){};
 

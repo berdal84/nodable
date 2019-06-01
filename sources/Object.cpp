@@ -42,6 +42,21 @@ Member* Object::getMember (const std::string& _name)const
 	return members.at(_name.c_str());
 }
 
+Member* Object::getFirstMemberWithConnection(Connection_ _connection)const
+{
+	Member* found = nullptr;
+
+	auto m = this->members.begin();
+	while (m != this->members.end() && found == nullptr)
+	{
+		if (m->second->getConnection() == _connection)
+			found = m->second;
+		m++;
+	}
+
+	return found;
+}
+
 void Object::addMember (const char* _name, Visibility_ _visibility, Type_ _type, Connection_ _flags )
 {
 	auto v = new Member();
