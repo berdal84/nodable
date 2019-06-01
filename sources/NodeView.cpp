@@ -143,6 +143,7 @@ void NodeView::update()
 	
 	auto posY = getInputPosition("").y - cumulatedHeight / 2.0f;
 	float nodeVerticalSpacing(10);
+	auto deltaTime = ImGui::GetIO().DeltaTime;
 
 	for(auto eachWire : wires)
 	{
@@ -160,7 +161,7 @@ void NodeView::update()
 
 				// Compute a delta to apply to move to this new position
 				auto currentPos = inputView->getPosition();
-				auto factor     = 0.2f; // TODO: use frame time
+				auto factor     = 10.f * deltaTime; // TODO: use frame time
 				ImVec2 delta( (newPos.x - currentPos.x) * factor,  (newPos.y - currentPos.y) * factor);
 
 				bool isDeltaTooSmall = delta.x*delta.x + delta.y*delta.y < 1.0f;
