@@ -260,15 +260,17 @@ bool NodeView::draw()
 	{
 		auto memberTopPositionOffsetY 	= ImGui::GetCursorPos().y - position.y;
 
-		/* Draw the member */
-		switch(_v->getType())
+		if (_v->isSet())
 		{
+			/* Draw the member */
+			switch (_v->getType())
+			{
 			case Type_Number:
 			{
 				std::string label("##");
 				label.append(_v->getName());
-				float f(_v->getValueAsNumber());				
-				if ( ImGui::InputFloat(label.c_str(), &f))
+				float f(_v->getValueAsNumber());
+				if (ImGui::InputFloat(label.c_str(), &f))
 				{
 					_v->setValue(f);
 					node->setDirty(true);
@@ -283,6 +285,11 @@ bool NodeView::draw()
 				ImGui::Text("%s", _v->getValueAsString().c_str());
 				break;
 			}
+			}
+
+		}
+		else {
+			ImGui::Text("%s", _v->getName().c_str());
 		}
 		
 		/* If value is hovered, we draw a tooltip that print the source expression of the value*/
