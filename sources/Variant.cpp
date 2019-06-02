@@ -236,9 +236,16 @@ std::string Variant::getTypeAsString()const
 
 void Variant::setType(Type_ _type)
 {
-	// Set a default value if the variant type changes
 	if (type != _type)
 	{
+		// Reset data is type has already been initialized
+		if (type != Type_Unknown)
+		{
+			type = Type_Unknown;
+			delete this->data;
+		}
+
+		// Set a default value (this will change the type too)
 		switch (_type)
 		{
 		case Type_String: {setValue(""); }
@@ -247,5 +254,4 @@ void Variant::setType(Type_ _type)
 		}
 	}
 
-	type = _type;
 }

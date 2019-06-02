@@ -76,23 +76,26 @@ void Nodable::Member::setName(const char* _name)
 
 void Member::setValue(double _value)
 {
+	data.setType(Type_Number);
 	data.setValue(_value);
 	LOG_DBG("Value::setValue(%d)\n", _value);
 }
 
 void Member::setValue(std::string _value)
 {
-	data.setValue(_value.c_str());
+	this->setValue(_value.c_str());
 }
 
 void Member::setValue(const char* _value)
 {
+	data.setType(Type_String);
 	data.setValue(_value);
 	LOG_DBG("Value::setValue(%s)\n", _value);
 }
 
 void Member::setValue(bool _value)
 {
+	data.setType(Type_Boolean);
 	data.setValue(_value);
 	LOG_DBG("Value::setValue(%s)\n", _value ? "true" : "false");
 }
