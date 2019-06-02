@@ -43,6 +43,12 @@ bool Lexer::eval()
 	{
 		LOG_DBG("Lexer::eval() - build tree and eval\n");
 		auto result = buildGraph();
+
+		// Hides the value member only if it is connected to something (to reduce screen space used)
+		auto member = result->getMember("value");
+		if ( member->getInput() != nullptr)
+			member->setVisibility(Visibility_VisibleOnlyWhenUncollapsed);
+
 		NodeView::ArrangeRecursively(result->getComponent("view")->getAs<NodeView*>());
 		
 		success = true;
