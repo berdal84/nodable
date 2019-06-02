@@ -12,18 +12,10 @@ This software is **a node-able bidirectionnal expression editor**. More precisel
 
 Video history :
 ==========
-
-Video n°1 - a first demo :
-
-[![Watch on Youtube](https://img.youtube.com/vi/1TWPsUd66XY/0.jpg)](http://www.youtube.com/watch?v=1TWPsUd66XY)
-
-Video n°2 - Automatic Layout :
-
-[![Watch on Youtube](https://img.youtube.com/vi/-4N3Krlsr_s/0.jpg)](http://www.youtube.com/watch?v=-4N3Krlsr_s)
-
-Vidéo n°3 - First Talk about Nodable : Past, present and future :
-[![Watch on Youtube](https://img.youtube.com/vi/_9_wzS7Hme8/0.jpg)](http://www.youtube.com/watch?v=_9_wzS7Hme8)
-
+Few videos hosted on Youtube :
+- [Video n°1 - A first step](http://www.youtube.com/watch?v=1TWPsUd66XY)
+- [Video n°2 - Automatic Layout)](http://www.youtube.com/watch?v=-4N3Krlsr_s)
+- [Video n°3 - First Talk about Nodable : Past, present and future](http://www.youtube.com/watch?v=_9_wzS7Hme8)
 
 The language :
 ==============
@@ -31,7 +23,7 @@ The language :
 Introduction:
 -------------
 
-The syntax used is really simple and works quite like a calculator.
+For now the syntax used is really simple and works quite like a calculator.
 
 Operands :
 ----------
