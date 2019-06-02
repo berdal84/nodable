@@ -179,7 +179,8 @@ bool ApplicationView::init()
     textEditor = new TextEditor;    
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
     textEditor->SetLanguageDefinition(lang);	
-	
+	textEditor->SetImGuiChildIgnored(true);
+
 	// read startup file
 	auto filename = "data/startup.txt";
 	std::ifstream startupFile(filename);
@@ -228,6 +229,9 @@ bool ApplicationView::draw()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(window);
 	ImGui::NewFrame();
+
+	// Reset default mouse cursor
+	ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
 
     // Properties panel window
     {
@@ -417,8 +421,10 @@ bool ApplicationView::draw()
 				auto previousLineText       = textEditor->GetCurrentLineText();
 
 				auto allowkeyboard          = NodeView::GetSelected() == nullptr; // disable keyboard for text editor when a node is selected.
-				auto allowMouse             = true;
+				auto allowMouse             = !ImGui::IsAnyItemHovered() && !ImGui::IsAnyItemFocused();
 
+				textEditor->SetHandleKeyboardInputs(allowkeyboard);
+				textEditor->SetHandleMouseInputs(allowMouse);
 				textEditor->Render         ("Text Editor Plugin", availSize);
 
 				auto currentCursorPosition  = textEditor->GetCursorPosition();
