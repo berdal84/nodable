@@ -6,16 +6,12 @@ Nodable is node-able !
 Introduction:
 -------------
 
-This software is **a node-able bidirectionnal expression editor**. More precisely, it means **Text-to-Node and Node-to-Text seamless edition**. When user type an expression in the Text Editor the program split it into tokens and build the corresponding graph and displays it in the Graph Editor.
+This software is **a node-able bidirectionnal expression editor**. More precisely, it means **Text-to-Node and Node-to-Text seamless edition**.
 
-User can modify an expression by editing both text and graph. When the text is modified, the graph is updated, when the graph is modified the text could be updated manually. You can also edit a portion of an expression by selecting it like in any text editor.
+![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2019_06_02_Nodable_demo.gif)
 
-Examples :
+Video history :
 ==========
-
-An expression example :
-
-![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2018_06_12_animation.gif)
 
 Video n°1 - a first demo :
 
@@ -27,7 +23,6 @@ Video n°2 - Automatic Layout :
 
 Vidéo n°3 - First Talk about Nodable : Past, present and future :
 [![Watch on Youtube](https://img.youtube.com/vi/_9_wzS7Hme8/0.jpg)](http://www.youtube.com/watch?v=_9_wzS7Hme8)
-
 
 
 The language :
