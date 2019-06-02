@@ -115,16 +115,6 @@ The derived class **Entity** is an *Object* able to attach **Components** on it.
 
 ![Draft UML Class Diagram](https://github.com/berdal84/Nodable/blob/master/docs/ClassDiagram_2019_05_11.png)
 
-Road Map :
-==========
-- [X] Update the expression when the user modify the graph.
-- [ ] basic Undo/redo.
-- [ ] Manual graph creation with mouse and keyboard (add/remove wire, add/remove node)
-- [ ] Conditionnal statement parsing (if, then, else, else if).
-- [ ] Iterative statement parsing (for, while).
-- [ ] Function parsing (symbol and in/out parameters).
-- [ ] Run-time execution of a full code.
-
 Dependencies / Credits :
 ==============
 
