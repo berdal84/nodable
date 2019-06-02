@@ -168,7 +168,7 @@ bool ContainerView::draw()
 		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
 			newEntity = container->createNodeVariable("Variable");
 
-		if (ImGui::MenuItem(ICON_FA_EQUALS " Result"))
+		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
 			newEntity = container->createNodeResult();
 
 		/*

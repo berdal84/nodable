@@ -54,7 +54,6 @@ void Container::update()
 	// Update TextEditor only if at least one node was dirty and one node is selected
 	if (entitiesUpdated > 0 && NodeView::GetSelected() != nullptr)
 	{
-		auto result = this->find("");
 		auto app = this->getOwner()->getAs<Application*>();
 		if (result && app)
 		{
@@ -113,7 +112,11 @@ Variable* Container::find(std::string _name)
 
 Variable* Container::createNodeResult()
 {
-	return createNodeVariable("");
+	auto variable = createNodeVariable(ICON_FA_SIGN_OUT_ALT);
+	auto member = variable->getMember("value");
+	member->setConnectionFlags(Connection_In);                     // disable output because THIS node is the output !
+	result = variable;
+	return variable;
 }
 
 Variable* Container::createNodeVariable(std::string _name)

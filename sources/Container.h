@@ -36,6 +36,7 @@ namespace Nodable{
 		std::vector<Variable*>& 	getVariables(){return variables;}
 		std::vector<Entity*>& 	    getEntities(){return entities;}
 	private:
+		Variable*                   result = nullptr;
 		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<Entity*>        entities;   /* Contain all Objects created by this context */
 	};
