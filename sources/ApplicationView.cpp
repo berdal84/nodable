@@ -207,8 +207,6 @@ bool ApplicationView::init()
         }};
 
     textEditor->SetPalette(palette);
-
-
 	return true;
 }
 

@@ -26,8 +26,8 @@ namespace Nodable
 
 		void updateCurrentLineText(std::string _val);
 	private:
-		TextEditor         *textEditor;
-		Application  *application;
+		TextEditor        *textEditor;
+		Application       *application;
 		SDL_Window        *window;
 		SDL_GLContext     glcontext;
 		ImVec4            clear_color = ImColor(50, 50, 50); // used to fill the framebuffer each frame.
