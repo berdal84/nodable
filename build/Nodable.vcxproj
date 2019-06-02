@@ -285,7 +285,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp14</LanguageStandard>
-      <AdditionalIncludeDirectories>../libs/gl3w;../libs/glfw/include/GLFW;../libs;../libs/SDL2/include;../extern;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../libs/gl3w;../libs/glfw/include/GLFW;../libs;../libs/SDL2/include;../extern;../extern/imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -321,7 +321,7 @@ copy $(SolutionDir)..\libs\SDL2\lib\x86\SDL2.dll $(SolutionDir)$(Configuration)<
       <DebugInformationFormat>None</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
       <LanguageStandard>stdcpp14</LanguageStandard>
-      <AdditionalIncludeDirectories>../libs/gl3w;../libs/glfw/include/GLFW;../libs;../libs/SDL2/include;../extern;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../libs/gl3w;../libs/glfw/include/GLFW;../libs;../libs/SDL2/include;../extern;../extern/imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode />
     </ClCompile>
