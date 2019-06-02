@@ -161,18 +161,16 @@ Entity* Container::createNodeBinaryOperation(std::string _op)
 {
 	Entity* node;
 
-	if      ( _op == "+")
+	if (_op == "+")
 		node = createNodeAdd();
-	else if ( _op == "-")
+	else if (_op == "-")
 		node = createNodeSubstract();
-	else if (_op =="*")
+	else if (_op == "*")
 		node = createNodeMultiply();
-	else if ( _op == "/")
+	else if (_op == "/")
 		node = createNodeDivide();
-	else if ( _op == "=")
-		node = createNodeAssign();
 	else
-		NODABLE_ASSERT(false);
+		node = nullptr;
 	
 	return node;
 }

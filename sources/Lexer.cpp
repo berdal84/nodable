@@ -176,38 +176,76 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 	{
 		std::string op    = tokens[_tokenId+1].word;
 
-		auto binOperation = context->createNodeBinaryOperation(op);		
-		
-		// Connect the Left Operand :
-		//---------------------------
+			
+		// Special behavior for "=" operator
+		if (op == "=")
+		{
+			// Get left operand (should BE a variable)
+			//----------------------------------------
+			
+			Member* left;
+			if (_leftValueOverride != nullptr)
+				left = _leftValueOverride;
+			else
+				left = buildGraphRec(_tokenId, 1);
 
-		Member* left;
-		if ( _leftValueOverride != nullptr )
-			left = _leftValueOverride;			
-		else
-			left = buildGraphRec(_tokenId, 1);
+			NODABLE_ASSERT(left->getOwner() != nullptr); // left operand cannot be a orphaned member
+			NODABLE_ASSERT(left->getOwner()->getMember("__class__")->getValueAsString() == "Variable"); // left operand need to me owned by a variable node			               
 
-		if (left->getOwner() == nullptr)
-			binOperation->setMember("left", left);
-		else
-			Entity::Connect(context->createWire(), left, binOperation->getMember("left"));	
-		
-		// Connect the Right Operand :
-		//----------------------------
+			// Get right operand
+			//-----------------
 
-		Member* right;
-		if ( _rightValueOverride != nullptr )
-			right = _rightValueOverride;			
-		else
-			right = buildGraphRec(_tokenId+2, 1);
+			Member* right;
+			if (_rightValueOverride != nullptr)
+				right = _rightValueOverride;
+			else
+				right = buildGraphRec(_tokenId + 2, 1);
 
-		if (right->getOwner() == nullptr)
-			binOperation->setMember("right", right);
-		else
-			Entity::Connect(context->createWire(), right, binOperation->getMember("right"));	
+			// Directly connects right operand output to left operant input (yes that's reversed compared to code)
+			if (right->getOwner() == nullptr)
+				left->getOwner()->setMember("value", right);
+			else
+				Entity::Connect(context->createWire(), right, left);
 
-		// Set the result !
-		result = binOperation->getMember("result");
+			result = left->getOwner()->getFirstMemberWithConnection(Connection_InOut);
+
+
+		// For all other binary operations :
+		}else{
+			auto binOperation = context->createNodeBinaryOperation(op);
+
+			// Connect the Left Operand :
+			//---------------------------
+
+			Member* left;
+			if (_leftValueOverride != nullptr)
+				left = _leftValueOverride;
+			else
+				left = buildGraphRec(_tokenId, 1);
+
+			if (left->getOwner() == nullptr)
+				binOperation->setMember("left", left);
+			else
+				Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
+
+			// Connect the Right Operand :
+			//----------------------------
+
+			Member * right;
+			if (_rightValueOverride != nullptr)
+				right = _rightValueOverride;
+			else
+				right = buildGraphRec(_tokenId + 2, 1);
+
+			if (right->getOwner() == nullptr)
+				binOperation->setMember("right", right);
+			else
+				Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
+
+			// Set the result !
+			result = binOperation->getMember("result");
+		}
+
 
 	//----------------------------------------------------------------------------
 	// Expression -> ( Operand , Binary Operator , Operand, Binary Operator, ... )
