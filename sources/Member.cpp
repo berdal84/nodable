@@ -1,5 +1,7 @@
 #include "Member.h"
 #include "Log.h"		 // for LOG_DBG(...)
+#include "Object.h"
+#include "Variable.h"
 
 using namespace Nodable;
 
@@ -148,11 +150,24 @@ std::string Member::getTypeAsString()const
 
 std::string Member::getSourceExpression()const
 {
-	if( input != nullptr)
-		return input->getSourceExpression();
+	std::string str;
+	if (input != nullptr)
+	{
+		// if input is a variable we add the variable name and an equal sign
+		if (input->getOwner()->getMember("__class__")->getValueAsString() == "Variable" &&
+			getOwner()->getMember("__class__")->getValueAsString() == "Variable")
+		{
+			str.append(input->getOwner()->getAs<Variable*>()->getName());
+			str.append("=");
+			str.append(input->getSourceExpression());
 
-	if ( sourceExpression != "")
-		return sourceExpression;
+		}else
+			str = input->getSourceExpression();
 
-	return getValueAsString();
+	}else if (sourceExpression != "")
+		str = sourceExpression;
+	else 
+		str = getValueAsString();
+
+	return str;
 }
