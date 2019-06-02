@@ -3,7 +3,8 @@
 // Includes for ImGui
 #include <GL/gl3w.h>
 #include <imgui/imgui.h>
-#include <imgui/examples/sdl_opengl3_example/imgui_impl_sdl_gl3.h>
+#include <imgui/examples/imgui_impl_sdl.h>
+#include <imgui/examples/imgui_impl_opengl3.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "Application.h"
@@ -39,7 +40,7 @@ ApplicationView::ApplicationView(const char* _name, Application* _application):
 ApplicationView::~ApplicationView()
 {
     delete textEditor;
-    ImGui_ImplSdlGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext    ();
     SDL_GL_DeleteContext     (glcontext);
     SDL_DestroyWindow        (window);
@@ -76,9 +77,9 @@ bool ApplicationView::init()
 								SDL_WINDOW_MAXIMIZED
                                 );
     
-    glcontext = SDL_GL_CreateContext(window);
+    this->glcontext = SDL_GL_CreateContext(window);
     SDL_GL_SetSwapInterval(1); // Enable vsync
-    gl3wInit();
+    
 
     // Setup Dear ImGui binding
     IMGUI_CHECKVERSION();
@@ -87,11 +88,15 @@ bool ApplicationView::init()
 	//io.WantCaptureKeyboard  = true;
 	//io.WantCaptureMouse     = true;
 
-    ImGui_ImplSdlGL3_Init(window);
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsClassic();
 
-    // Setup style
-    //ImGui::StyleColorsDark();
-    ImGui::StyleColorsClassic();
+	// Setup Platform/Renderer bindings
+	gl3wInit();
+    ImGui_ImplSDL2_InitForOpenGL(window, glcontext);
+	const char* glsl_version = "#version 130";
+	ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Add a main font
     {
@@ -215,11 +220,14 @@ bool ApplicationView::draw()
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
-        ImGui_ImplSdlGL3_ProcessEvent(&event);
+        ImGui_ImplSDL2_ProcessEvent(&event);
         if (event.type == SDL_QUIT)
             application->stopExecution();
     }
-    ImGui_ImplSdlGL3_NewFrame(window);
+
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame(window);
+	ImGui::NewFrame();
 
     // Properties panel window
     {
@@ -490,13 +498,15 @@ bool ApplicationView::draw()
     }
     
 
-    // Rendering
-    glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
-    glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-    glClear(GL_COLOR_BUFFER_BIT);
- 	ImGui::Render();
-    ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
-    SDL_GL_SwapWindow(window);
+	// Rendering
+	ImGui::Render();
+	SDL_GL_MakeCurrent(window, this->glcontext);
+	auto io = ImGui::GetIO();
+	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+	glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+	glClear(GL_COLOR_BUFFER_BIT);
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	SDL_GL_SwapWindow(window);
 
     return false;
 }
