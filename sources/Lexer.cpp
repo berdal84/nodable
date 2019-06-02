@@ -351,14 +351,28 @@ void Lexer::tokenize()
 		}else 	if(*it == '"')
 		{
 			++it;
-			auto itStart = it;
-			while(	it != chars.end() && *it != '"')
-			{
-				++it;
-			}
 
-			std::string str = chars.substr(itStart - chars.begin(), it - itStart);
-			addToken(TokenType_String, str, std::distance(chars.begin(), itStart));
+			if (it != chars.end())
+			{
+				auto itStart = it;
+				while (it != chars.end() && *it != '"')
+				{
+					++it;
+				}
+
+				if (it != chars.end() && *it == '"')
+				{
+					std::string str = chars.substr(itStart - chars.begin(), it - itStart);
+					addToken(TokenType_String, str, std::distance(chars.begin(), itStart));
+					--it;
+				}else {
+					--it;
+				}
+
+			}
+			else {
+				--it;
+			}
 
 		//----------------------------
 		// Term -> { Symbol, Keyword }
