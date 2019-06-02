@@ -419,7 +419,6 @@ bool ApplicationView::draw()
 				auto allowkeyboard          = NodeView::GetSelected() == nullptr; // disable keyboard for text editor when a node is selected.
 				auto allowMouse             = true;
 
-				textEditor->ScanUserInputs (allowkeyboard, allowMouse);
 				textEditor->Render         ("Text Editor Plugin", availSize);
 
 				auto currentCursorPosition  = textEditor->GetCursorPosition();
