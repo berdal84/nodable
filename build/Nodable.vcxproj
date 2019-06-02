@@ -20,9 +20,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\extern\ImGuiColorTextEdit\TextEditor.cpp" />
+    <ClCompile Include="..\extern\imgui\examples\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\extern\imgui\examples\imgui_impl_sdl.cpp" />
     <ClCompile Include="..\extern\imgui\imgui.cpp" />
     <ClCompile Include="..\extern\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\extern\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\extern\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\libs\gl3w\GL\gl3w.c" />
     <ClCompile Include="..\sources\Application.cpp" />
     <ClCompile Include="..\sources\ApplicationView.cpp" />
@@ -32,7 +35,6 @@
     <ClCompile Include="..\sources\DataAccess.cpp" />
     <ClCompile Include="..\sources\Entity.cpp" />
     <ClCompile Include="..\sources\History.cpp" />
-    <ClCompile Include="..\sources\imgui_impl_sdl_gl3.cpp" />
     <ClCompile Include="..\sources\Lexer.cpp" />
     <ClCompile Include="..\sources\Log.cpp" />
     <ClCompile Include="..\sources\main.cpp" />
@@ -70,6 +72,8 @@
     <ClInclude Include="..\extern\imgui\examples\apple_example\imguiex-ios\debug_hud.h" />
     <ClInclude Include="..\extern\imgui\examples\apple_example\imguiex-ios\GameViewController.h" />
     <ClInclude Include="..\extern\imgui\examples\apple_example\imguiex-osx\AppDelegate.h" />
+    <ClInclude Include="..\extern\imgui\examples\imgui_impl_opengl3.h" />
+    <ClInclude Include="..\extern\imgui\examples\imgui_impl_sdl.h" />
     <ClInclude Include="..\extern\imgui\examples\libs\gl3w\GL\glcorearb.h" />
     <ClInclude Include="..\extern\imgui\examples\libs\glfw\include\GLFW\glfw3.h" />
     <ClInclude Include="..\extern\imgui\examples\libs\glfw\include\GLFW\glfw3native.h" />
@@ -285,7 +289,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp14</LanguageStandard>
-      <AdditionalIncludeDirectories>../libs/gl3w;../libs/glfw/include/GLFW;../libs;../libs/SDL2/include;../extern;../extern/imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../libs/gl3w;../libs/glfw/include/GLFW;../libs;../libs/SDL2/include;../extern;../extern/imgui;../extern/imgui/examples;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -321,7 +325,7 @@ copy $(SolutionDir)..\libs\SDL2\lib\x86\SDL2.dll $(SolutionDir)$(Configuration)<
       <DebugInformationFormat>None</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
       <LanguageStandard>stdcpp14</LanguageStandard>
-      <AdditionalIncludeDirectories>../libs/gl3w;../libs/glfw/include/GLFW;../libs;../libs/SDL2/include;../extern;../extern/imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../libs/gl3w;../libs/glfw/include/GLFW;../libs;../libs/SDL2/include;../extern;../extern/imgui;../extern/imgui/examples;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <SupportJustMyCode />
     </ClCompile>
