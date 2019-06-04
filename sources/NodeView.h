@@ -10,14 +10,6 @@
 
 namespace Nodable{
 
-	/* We use this enum to change the way ImGui draw this NodeView window */
-	enum DrawMode_
-	{		
-		DrawMode_AsWindow  = 0,                // produces bad results
-		DrawMode_AsGroup   = 1,                // draw a custom window
-		DrawMode_Default   = DrawMode_AsGroup
-	};
-
 	/* We use this enum to identify all GUI detail modes */
 	enum DrawDetail_
 	{
@@ -66,6 +58,14 @@ namespace Nodable{
 		/* Return a pointer to the selected view or nullptr if no view are selected */
 		static NodeView*  GetSelected         ();
 
+		/* Return a pointer to the dragged member or nullptr if no member is dragged */
+		static Member*    GetDraggedByMouseMember() { return s_draggedByMouseMember; }
+
+		/* Return a pointer to the hovered member or nullptr if no member is dragged */
+		static Member*    GetHoveredByMouseMember() { return s_hoveredByMouseMember; }
+
+		static void       ResetDraggedByMouseMember() { s_draggedByMouseMember = nullptr; }
+
 		/* Return true if _nodeView is selected */
 		static bool       IsSelected          (NodeView*);
 
@@ -76,7 +76,6 @@ namespace Nodable{
 		/* Return a pointer to the dragged view or nullptr if no view are dragged */
 		static NodeView*  GetDragged          ();
 
-		static DrawMode_   s_drawMode;    // global draw mode   (check DrawMode_ enum)
 		static DrawDetail_ s_drawDetail;  // global draw detail (check DrawDetail_ enum)
 
 	private:
@@ -90,9 +89,7 @@ namespace Nodable{
 		std::map<std::string, float> membersOffsetPositionY;
 		static NodeView* s_selected; // pointer to the currently selected NodeView.
 		static NodeView* s_dragged;	 // pointer to the currently dragged NodeView.	
-
-	public:
-		static Member* memberDraggedByMouse;
-		static Member* memberHoveredByMouse;
+		static Member*   s_draggedByMouseMember;
+		static Member*   s_hoveredByMouseMember;
 	};
 }

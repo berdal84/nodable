@@ -23,24 +23,7 @@ bool WireView::draw()
 	if ( source != nullptr || target != nullptr )
 	{
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-	    // Compute the origin
-	    ImVec2 origin;
-		switch (NodeView::s_drawMode)
-		{
-			case DrawMode_AsWindow:
-			{
-				origin = ImVec2();
-				break;
-			}
-
-			case DrawMode_AsGroup:
-			{
-				origin = ImGui::GetWindowPos();
-				break;
-			}
-		}
-
+	    ImVec2      origin    = ImGui::GetWindowPos();
 
 	    // Compute start and end point
 	    Entity* sourceNode 	= source->getOwner()->getAs<Entity*>();

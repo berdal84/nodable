@@ -10,14 +10,11 @@
 
 using namespace Nodable;
 
-NodeView*   NodeView::s_selected   = nullptr;
-NodeView*   NodeView::s_dragged    = nullptr;
-
-DrawMode_   NodeView::s_drawMode   = DrawMode_Default;
-DrawDetail_ NodeView::s_drawDetail = DrawDetail_Default;
-
-Member*     NodeView::memberDraggedByMouse  = nullptr;
-Member*     NodeView::memberHoveredByMouse  = nullptr;
+NodeView*   NodeView::s_selected              = nullptr;
+NodeView*   NodeView::s_dragged               = nullptr;
+DrawDetail_ NodeView::s_drawDetail            = DrawDetail_Default;
+Member*     NodeView::s_draggedByMouseMember  = nullptr;
+Member*     NodeView::s_hoveredByMouseMember  = nullptr;
 
 void NodeView::SetSelected(NodeView* _view)
 {
@@ -342,13 +339,13 @@ bool NodeView::draw()
 
 			// HOVERED
 			if (isItemHovered)
-				memberHoveredByMouse = _v;
+				s_hoveredByMouseMember = _v;
+			else if (s_hoveredByMouseMember == _v)
+				s_hoveredByMouseMember = nullptr;
 
 			// DRAG
-			if (isItemHovered && ImGui::IsMouseDown(0) && memberDraggedByMouse == nullptr)
-			{
-				memberDraggedByMouse = _v;
-			}
+			if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedByMouseMember == nullptr)
+				s_draggedByMouseMember = _v;
 		}
 	};
 
@@ -418,74 +415,61 @@ bool NodeView::draw()
 	// Ends the Window
 	//----------------
 
-	switch (s_drawMode)
+	ImGui::EndGroup();
+
+    if (hovered && ImGui::IsMouseReleased(1))
+        ImGui::OpenPopup("NodeViewContextualMenu");
+
+    if (ImGui::BeginPopup("NodeViewContextualMenu"))
+    {
+        if( ImGui::MenuItem("Arrange"))
+            this->arrangeRecursively();
+
+        ImGui::MenuItem("Pinned",    "", &this->pinned,    true);
+		ImGui::MenuItem("Collapsed", "", &this->collapsed, true);
+        ImGui::Separator();
+        if(ImGui::Selectable("Delete"))
+            node->deleteNextFrame();
+
+        if(ImGui::Selectable("Save to JSON"))
+        {
+            Application::SaveEntity(node);
+        }            
+        ImGui::EndPopup();
+    }
+
+	// Selection by mouse
+
+	if ( hovered && (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)))
+		SetSelected(this);
+
+	// Dragging by mouse
+
+	if ( GetDragged() != this)
 	{
-		case DrawMode_AsWindow:
-		{
-			hovered = ImGui::IsWindowHovered();
-			ImGui::End();
-			break;
+		if(GetDragged() == nullptr && ImGui::IsMouseClicked(0) && hovered && (s_draggedByMouseMember == nullptr))
+			SetDragged(this);
+	}else{				
+		if ( ImGui::IsMouseReleased(0))
+			SetDragged(nullptr);				
+	}		
+
+	// Collapse/uncollapse by double click (double/divide x size by 2)
+	if( hovered && ImGui::IsMouseDoubleClicked(0))
+	{
+		if (collapsed) {
+			collapsed = false;
+			size.x   *= float(2);
 		}
-		case DrawMode_AsGroup:
-		{	
-			ImGui::EndGroup();
+		else {
+			collapsed  = true;
+			size.x    /= float(2);
+		}			
+	}	
 
-            if (hovered && ImGui::IsMouseReleased(1))
-                ImGui::OpenPopup("NodeViewContextualMenu");
+	// interpolate size.y to fit with its content
+	size.y = 0.5f * size.y  + 0.5f * (cursorPosAfterContent.y - cursorPosBeforeContent.y);
 
-            if (ImGui::BeginPopup("NodeViewContextualMenu"))
-            {
-                if( ImGui::MenuItem("Arrange"))
-                	this->arrangeRecursively();
-
-                ImGui::MenuItem("Pinned",    "", &this->pinned,    true);
-				ImGui::MenuItem("Collapsed", "", &this->collapsed, true);
-                ImGui::Separator();
-                if(ImGui::Selectable("Delete"))
-                	node->deleteNextFrame();
-
-                if(ImGui::Selectable("Save to JSON"))
-                {
-                	Application::SaveEntity(node);
-                }            
-                ImGui::EndPopup();
-            }
-
-			// Selection by mouse
-
-			if ( hovered && (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)))
-				SetSelected(this);
-
-			// Dragging by mouse
-
-			if ( GetDragged() != this)
-			{
-				if(GetDragged() == nullptr && ImGui::IsMouseClicked(0) && hovered && (memberDraggedByMouse == nullptr))
-					SetDragged(this);
-			}else{				
-				if ( ImGui::IsMouseReleased(0))
-					SetDragged(nullptr);				
-			}		
-
-			// Collapse/uncollapse by double click (double/divide x size by 2)
-			if( hovered && ImGui::IsMouseDoubleClicked(0))
-			{
-				if (collapsed) {
-					collapsed = false;
-					size.x   *= float(2);
-				}
-				else {
-					collapsed  = true;
-					size.x    /= float(2);
-				}			
-			}	
-
-			// interpolate size.y to fit with its content
-			size.y = 0.5f * size.y  + 0.5f * (cursorPosAfterContent.y - cursorPosBeforeContent.y);
-
-			break;
-		}
-	}
 
 	ImGui::PopStyleVar();
 	ImGui::PopID();
