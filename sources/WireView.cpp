@@ -68,17 +68,17 @@ bool WireView::draw()
 	    // draw bezier curve
 	    ImVec2 arrowPos(pos1.x, pos1.y);
 	    ImVec2 shadowOffset(1.0f, 2.0f);
-	    draw_list->AddBezierCurve(  ImVec2(pos0.x + shadowOffset.x, pos0.y + shadowOffset.y),
-	    							ImVec2(cp0.x + shadowOffset.x, cp0.y + shadowOffset.y),
-	    							ImVec2(cp1.x + shadowOffset.x, cp1.y + shadowOffset.y),
-	    							ImVec2(arrowPos.x + shadowOffset.x, arrowPos.y + shadowOffset.y),
+	    draw_list->AddBezierCurve(  pos0 + shadowOffset,
+	    							cp0  + shadowOffset,
+	    							cp1  + shadowOffset,
+	    							arrowPos + shadowOffset,
 	    							getColor(ColorType_Shadow),
 	    							bezierThickness); // shadow
 
 		draw_list->AddBezierCurve(pos0, cp0, cp1, arrowPos, getColor(ColorType_Fill), bezierThickness); // fill
 	
 		
-		// dot a the output position
+		// dot at the output position
 		draw_list->AddCircleFilled(pos0, connectorRadius, sourceView->getColor(ColorType_Fill));
 		draw_list->AddCircle      (pos0, connectorRadius, sourceView->getColor(ColorType_Border));
 
