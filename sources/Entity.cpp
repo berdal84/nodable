@@ -158,11 +158,17 @@ bool Entity::update()
 		// first we need to evaluate each input and transmit its results thru the wire
 		for (auto wire : wires)
 		{
-			if ( wire->getTarget()->getOwner() == this && wire->getSource() != nullptr)
+			auto wireTarget = wire->getTarget();
+			auto wireSource = wire->getSource();
+
+			if ( this->hasMember(wireTarget) &&
+				 wireSource != nullptr) 
 			{
-				auto source = (Entity*)wire->getSource()->getOwner();
-				source->update();
-				wire->transmitData();
+				/* update the source entity */
+				reinterpret_cast<Entity*>(wireSource->getOwner())->update();
+				
+				/* transfert data from the wireSource to the wireTarget */
+				wireTarget->setValue(wireSource);
 			}
 		}
 

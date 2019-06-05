@@ -8,23 +8,19 @@ using namespace Nodable;
 void Wire::setSource(Member* _source)
 {
 	source     = _source;
-	transmitData();
+	updateState();
 }
 
 void Wire::setTarget(Member* _target)
 {
 	target     = _target;
-	transmitData();
+	updateState();
 }
 
-void Wire::transmitData()
+void Wire::updateState()
 {
-
 	if ( target != nullptr && source != nullptr)
-	{
-		state = State_Connected;
-		target->setValue(source);
-	}else{
+		state = State_Connected;		
+	else
 		state = State_Disconnected;
-	}
 }

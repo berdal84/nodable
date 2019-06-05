@@ -22,15 +22,16 @@ namespace Nodable
 		void        setTarget    (Member*);
 
 		State_      getState     ()const{return state;}
-		Member*      getSource    ()const{return source;}
-		Member*      getTarget    ()const{return target;}
+		Member*     getSource    ()const{return source;}
+		Member*     getTarget    ()const{return target;}
 		WireView*   getView      ()const{return (WireView*)getComponent("view");}
 
-		/* transfert the value from the source to the target */
-		void        transmitData();
 	private:
-		Member*      source       = nullptr;
-		Member*      target       = nullptr;
+		/* update this->state according to this->source and this->target values */
+		void        updateState();
+
+		Member*     source       = nullptr;
+		Member*     target       = nullptr;
 		State_      state        = State_Disconnected;
 	};
 }
