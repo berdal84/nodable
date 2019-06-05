@@ -11,7 +11,7 @@ using namespace Nodable;
 void BinaryOperationComponent::updateResultSourceExpression()const
 {
 	/*
-		Labmda funtion to check if parentheses are needed for the expression of the input speficied as parameter.
+		Labmda funtion to check if parentheses are needed for the expression of the inputMember speficied as parameter.
 	*/
 	auto needParentheses = [&](Member * _input)->bool
 	{
@@ -41,7 +41,7 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 	std::string expr;
 
 	// Left part of the expression
-	bool leftExpressionNeedsParentheses  = needParentheses(this->left->getInput());
+	bool leftExpressionNeedsParentheses  = needParentheses(this->left->getInputMember());
 	if (leftExpressionNeedsParentheses) expr.append("(");
 	expr.append( this->left->getSourceExpression() );
 	if (leftExpressionNeedsParentheses) expr.append(")");
@@ -50,7 +50,7 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 	expr.append( this->operatorAsString );
 
 	// Righ part of the expression
-	bool rightExpressionNeedsParentheses = needParentheses(this->right->getInput());
+	bool rightExpressionNeedsParentheses = needParentheses(this->right->getInputMember());
 	if (rightExpressionNeedsParentheses) expr.append("(");
 	expr.append(this->right->getSourceExpression());
 	if (rightExpressionNeedsParentheses) expr.append(")");

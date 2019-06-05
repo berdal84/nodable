@@ -10,7 +10,7 @@ using namespace Nodable;
 
 void Entity::Disconnect(Wire* _wire)
 {
-	_wire->getTarget()->setInput(nullptr);
+	_wire->getTarget()->setInputMember(nullptr);
 	_wire->getTarget()->getOwner()->getAs<Entity*>()->setDirty();
 
 	_wire->setTarget(nullptr);
@@ -167,8 +167,8 @@ bool Entity::update()
 				/* update the source entity */
 				reinterpret_cast<Entity*>(wireSource->getOwner())->update();
 				
-				/* transfert data from the wireSource to the wireTarget */
-				wireTarget->setValue(wireSource);
+				/* transfert the freshly updated value from source to target member */
+				wireTarget->updateValueFromInputMemberValue();
 			}
 		}
 

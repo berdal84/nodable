@@ -33,7 +33,7 @@ namespace Nodable{
 		/* Get top-left corner vector position */
 		ImVec2            getPosition         ()const;
 
-		/* Get the default input position vector */
+		/* Get the default inputMember position vector */
 		ImVec2            getInputPosition    (const std::string&)const;
 
 		/* Get the default output position vector */

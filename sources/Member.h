@@ -28,18 +28,18 @@ namespace Nodable{
 		~Member();
 
 		bool                allows                   (Connection_)                   const;
-		bool                isSet                    ()                                   const;	
-		bool                isType                   (Type_ _type)                        const;
+		bool                isSet                    ()                              const;	
+		bool                isType                   (Type_)                         const;
 
 		/*
 			Setters
 		*/
 
 		void                setConnectionFlags       (Connection_);
-		void                setSourceExpression      (const char* _val);
-		void                setInput                 (Member* _val);
-		void  		        setName                  (const char* _name);
-		void                setOwner                 (Object* _owner);
+		void                setSourceExpression      (const char*);
+		void                setInputMember           (Member*);
+		void  		        setName                  (const char*);
+		void                setOwner                 (Object*);
 
 		void                setValue                 (const Member*);
 		void                setValue                 (std::string);
@@ -50,12 +50,16 @@ namespace Nodable{
 		void                setType                  (Type_ _type);
 		void                setVisibility            (Visibility_ _v);
 
+		/** Get the value of the inputMember Member and set it to this Member.
+		    Warning: be sure the member has an inputMember before calling this (getInputMember()!=nullptr)*/
+		void                updateValueFromInputMemberValue();
+
 		/*
 			Getters
 		*/
 
 		Object*             getOwner()                                                    const;
-		Member*             getInput()                                                    const;
+		Member*             getInputMember()                                              const;
 		const std::string&  getName()                                                     const;
 		std::string         getSourceExpression()                                         const;
 		Type_               getType()                                                     const;
@@ -70,7 +74,7 @@ namespace Nodable{
 
 	private:
 		Object*     		owner       		= nullptr;
-		Member*             input               = nullptr;
+		Member*             inputMember         = nullptr;
 		std::string         sourceExpression    = "";
 		std::string 		name 				= "Unknown";
 		Variant       		data;

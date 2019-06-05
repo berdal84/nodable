@@ -180,7 +180,7 @@ bool ContainerView::draw()
 
 		if (draggedByMouseMember != nullptr && newEntity != nullptr)
 		{
-			// if dragged member is an input
+			// if dragged member is an inputMember
 			if (draggedByMouseMember->allows(Connection_In) && newEntity->getMember("result") != nullptr)
 				Entity::Connect(container->createWire(), newEntity->getMember("result"), draggedByMouseMember);
 

@@ -46,7 +46,7 @@ bool Lexer::eval()
 
 		// Hides the value member only if it is connected to something (to reduce screen space used)
 		auto member = result->getMember("value");
-		if ( member->getInput() != nullptr)
+		if ( member->getInputMember() != nullptr)
 			member->setVisibility(Visibility_VisibleOnlyWhenUncollapsed);
 
 		NodeView::ArrangeRecursively(result->getComponent("view")->getAs<NodeView*>());

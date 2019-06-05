@@ -107,7 +107,7 @@ namespace Nodable
 
 		void execute()
 		{
-			target->setInput(source);
+			target->setInputMember(source);
 			target->getOwner()->getAs<Entity*>()->setDirty();
 
 			// Link wire to members
@@ -121,7 +121,7 @@ namespace Nodable
 
 		void undo()
 		{
-			target->setInput(nullptr);
+			target->setInputMember(nullptr);
 			target->getOwner()->getAs<Entity*>()->setDirty();
 
 			// Link Members

@@ -324,11 +324,10 @@ Lexer* Container::createNodeLexer(Variable* _expressionVariable)
 	node->addComponent( "view", view);	
 
 	// Link the _expressionVariable output with the Lexer's member "expression"
-	auto wire = this->createWire();
-	Entity::Connect(wire,_expressionVariable->getValueMember(), node->getMember("expression"));
-
-	// Transmit data from _expressionVariable to Lexer's member "expression"
-	node->getMember("expression")->setValue(_expressionVariable->getValueMember());
+	auto wire             = this->createWire();
+	auto expressionMember = node->getMember("expression");
+	Entity::Connect(wire,_expressionVariable->getValueMember(), expressionMember);
+	expressionMember->updateValueFromInputMemberValue();
 
 	this->addEntity(node);
 	return node;

@@ -42,6 +42,11 @@ void Member::setVisibility(Visibility_ _v)
 	visibility = _v;
 }
 
+void Nodable::Member::updateValueFromInputMemberValue()
+{
+	this->setValue(this->inputMember);
+}
+
 bool Member::allows(Connection_ _connection)const
 {
 	auto maskedFlags = connection & _connection;
@@ -53,9 +58,9 @@ Object* Member::getOwner() const
 	return owner;
 }
 
-Member* Member::getInput() const
+Member* Member::getInputMember() const
 {
-	return input;
+	return inputMember;
 }
 
 const std::string& Nodable::Member::getName() const
@@ -63,9 +68,9 @@ const std::string& Nodable::Member::getName() const
 	return name;
 }
 
-void Member::setInput(Member* _val)
+void Member::setInputMember(Member* _val)
 {
-	input = _val;
+	inputMember = _val;
 
 	if (_val == nullptr)
 		sourceExpression = "";
@@ -151,18 +156,18 @@ std::string Member::getTypeAsString()const
 std::string Member::getSourceExpression()const
 {
 	std::string str;
-	if (input != nullptr)
+	if (inputMember != nullptr)
 	{
-		// if input is a variable we add the variable name and an equal sign
-		if (input->getOwner()->getMember("__class__")->getValueAsString() == "Variable" &&
+		// if inputMember is a variable we add the variable name and an equal sign
+		if (inputMember->getOwner()->getMember("__class__")->getValueAsString() == "Variable" &&
 			getOwner()->getMember("__class__")->getValueAsString() == "Variable")
 		{
-			str.append(input->getOwner()->getAs<Variable*>()->getName());
+			str.append(inputMember->getOwner()->getAs<Variable*>()->getName());
 			str.append("=");
-			str.append(input->getSourceExpression());
+			str.append(inputMember->getSourceExpression());
 
 		}else
-			str = input->getSourceExpression();
+			str = inputMember->getSourceExpression();
 
 	}else if (sourceExpression != "")
 		str = sourceExpression;
