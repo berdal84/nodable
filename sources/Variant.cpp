@@ -241,16 +241,38 @@ void Variant::setType(Type_ _type)
 		// Reset data is type has already been initialized
 		if (type != Type_Unknown)
 		{
+			switch (type)
+			{
+			case Nodable::Type_Boolean:
+				delete (bool*)data;
+				break;
+			case Nodable::Type_Number:
+				delete (double*)data;
+				break;
+			case Nodable::Type_String:
+				delete (std::string*)data;
+				break;
+			default:
+				break;
+			}
+
 			type = Type_Unknown;
-			delete this->data;
 		}
 
 		// Set a default value (this will change the type too)
 		switch (_type)
 		{
-		case Type_String: {setValue(""); }
-		case Type_Number: {setValue(double(0)); }
-		case Type_Boolean: {setValue(false); }
+		case Type_String:
+			setValue("");
+			break;
+		case Type_Number:
+			setValue(double(0));
+			break;
+		case Type_Boolean:
+			setValue(false);
+			break;
+		default:
+			break;
 		}
 	}
 
