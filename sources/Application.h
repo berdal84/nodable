@@ -44,7 +44,9 @@ namespace Nodable
 		static void      SaveEntity(Entity* _entity);
 
 	private:
-		Variable*     lastString  = nullptr;		
-		bool          quit        = false;
+		/** A variable that contains (into the member "value") the current expression string */
+		Variable*     currentExpressionStringVariable  = nullptr;	
+		/** When set to true, the application will close next frame */
+		bool          quit                             = false;
 	};
 }

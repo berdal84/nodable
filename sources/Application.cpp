@@ -89,24 +89,24 @@ bool Application::eval(std::string _expression)
 	auto container = getComponent("container")->getAs<Container*>();
 	NODABLE_VERIFY(container != nullptr);
 
-	lastString = container->createNodeVariable(ICON_FA_CODE);
-	((View*)lastString->getComponent("view"))->setVisible(false);
+	currentExpressionStringVariable = container->createNodeVariable(ICON_FA_CODE);
+	((View*)currentExpressionStringVariable->getComponent("view"))->setVisible(false);
 
 	LOG_DBG("Lexer::eval() - assign the expression string to that variable\n");
-	lastString->setValue(_expression);
+	currentExpressionStringVariable->setValue(_expression);
 
 	LOG_DBG("Lexer::eval() - check if users type the exit keyword.\n");
-	if ( lastString->getValueAsString() == "exit" ){
+	if ( currentExpressionStringVariable->getValueAsString() == "exit" ){
 		LOG_DBG("Lexer::eval() - stopExecution...\n");
 		stopExecution();		
 	}else{
 		LOG_DBG("Lexer::eval() - check if expression is not empty\n");
-		if ( lastString->isSet())
+		if ( currentExpressionStringVariable->isSet())
 		{
 			/* Create a Lexer node. The lexer will cut expression string into tokens
 			(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
 			LOG_DBG("Lexer::eval() - create a lexer with the expression string\n");
-			auto lexer = container->createNodeLexer(lastString);
+			auto lexer = container->createNodeLexer(currentExpressionStringVariable);
 			return lexer->eval();
 			//container->destroyNode(lexer);
 		}
