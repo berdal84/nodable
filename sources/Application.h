@@ -33,7 +33,7 @@ namespace Nodable
 		bool             update();
 		
 		/* Update Current Line Text*/
-		void updateCurrentLineText(std::string _val);
+		void             updateCurrentLineText(std::string _val);
 
 		/* Force application to stops. Always delayed for 1 frame. */
 		void             stopExecution();
@@ -41,7 +41,7 @@ namespace Nodable
 		/* Get the context (also called a container) of this application.*/
 		Container*       getContext()const;
 
-		static void SaveEntity(Entity* _entity);
+		static void      SaveEntity(Entity* _entity);
 
 	private:
 		Variable*     lastString  = nullptr;		
