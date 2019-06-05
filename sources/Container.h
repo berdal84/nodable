@@ -31,7 +31,7 @@ namespace Nodable{
 		Entity*			          	createNodeMultiply();
 		Entity*			          	createNodeDivide();
 		Entity*			          	createNodeAssign(); 
-		Lexer*                    	createNodeLexer           (Variable* /*expression*/);
+		Lexer*                    	createNodeLexer           (Variable* /*_expressionVariable*/);
 		Wire*                       createWire();
 		std::vector<Variable*>& 	getVariables(){return variables;}
 		std::vector<Entity*>& 	    getEntities(){return entities;}
