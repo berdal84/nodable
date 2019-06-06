@@ -43,8 +43,8 @@ bool WireView::draw()
 	    auto sourceName = wire->getSource()->getName();
 	    auto targetName = wire->getTarget()->getName();
 
-	    ImVec2 pos0 = sourceView->getOutputPosition(sourceName);     
-	    ImVec2 pos1 = targetView->getInputPosition(targetName);
+	    ImVec2 pos0 = sourceView->getConnectorPosition(sourceName, Connection_Out);
+	    ImVec2 pos1 = targetView->getConnectorPosition(targetName, Connection_In);
 	    pos0.x += origin.x; pos0.y += origin.y;
 	    pos1.x += origin.x; pos1.y += origin.y;
 

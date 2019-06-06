@@ -46,26 +46,20 @@ ImVec2 NodeView::getPosition()const
 	return ImVec2(position.x - size.x / 2.0f, position.y - size.y / 2.0f);
 }
 
-ImVec2 NodeView::getInputPosition(const std::string& _name)const
+ImVec2 NodeView::getConnectorPosition(const std::string& _name, Connection_ _connection)const
 {
 	auto pos = getPosition();
 
-	auto it = membersOffsetPositionY.find(_name);
-	if(it != membersOffsetPositionY.end())
+	auto it = connectorOffsetPositionsY.find(_name);
+	if(it != connectorOffsetPositionsY.end())
 		pos.y += (*it).second;
 
-	return ImVec2(pos.x, pos.y + size.y * 0.5f);
-}
-
-ImVec2 NodeView::getOutputPosition(const std::string& _name)const
-{
-	auto pos = getPosition();
-
-	auto it = membersOffsetPositionY.find(_name);
-	if(it != membersOffsetPositionY.end())
-		pos.y += (*it).second;
-
-	return ImVec2(pos.x + size.x, pos.y + size.y * 0.5f);
+	if (_connection == Connection_In)
+		return ImVec2(pos.x, pos.y + size.y * 0.5f);
+	else if (_connection == Connection_Out)
+		return ImVec2(pos.x + size.x, pos.y + size.y * 0.5f);
+	else
+		NODABLE_ASSERT(false); // _connection should be only In or Out.
 }
 
 void NodeView::setPosition(ImVec2 _position)
@@ -138,7 +132,7 @@ void NodeView::update()
 		This code maintain them stacked together with a little attenuated movement.
 	*/
 	
-	auto posY = getInputPosition("").y - cumulatedHeight / 2.0f;
+	auto posY = getConnectorPosition("", Connection_In).y - cumulatedHeight / 2.0f;
 	float nodeVerticalSpacing(10);
 	auto deltaTime = ImGui::GetIO().DeltaTime;
 
@@ -153,7 +147,7 @@ void NodeView::update()
 			if ( ! inputView->pinned )
 			{
 				// Compute new position for this input view
-				ImVec2 newPos(getInputPosition("").x - maxSizeX - spacingDist, posY);
+				ImVec2 newPos(getConnectorPosition("", Connection_In).x - maxSizeX - spacingDist, posY);
 				posY += inputView->size.y + nodeVerticalSpacing;
 
 				// Compute a delta to apply to move to this new position
@@ -252,7 +246,7 @@ bool NodeView::draw()
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + nodePadding);
 	ImGui::Indent(nodePadding);
 
-	membersOffsetPositionY.clear();
+	connectorOffsetPositionsY.clear();
 	auto drawValue = [&](Member* _v)->void
 	{
 		auto memberTopPositionOffsetY 	= ImGui::GetCursorPos().y - position.y;
@@ -298,7 +292,7 @@ bool NodeView::draw()
 		}
 
 		auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
-		membersOffsetPositionY[_v->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f;
+		connectorOffsetPositionsY[_v->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f;
 		
 		/* 
 			Draw the wire connector 
@@ -311,9 +305,9 @@ bool NodeView::draw()
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 			ImVec2      pos;
 			if (_v->getConnection() == Connection_In)
-				pos = ImGui::GetWindowPos() + getInputPosition(_v->getName());
+				pos = ImGui::GetWindowPos() + getConnectorPosition(_v->getName(), Connection_In);
 			else
-				pos = ImGui::GetWindowPos() + getOutputPosition(_v->getName());
+				pos = ImGui::GetWindowPos() + getConnectorPosition(_v->getName(), Connection_Out);
 
 			// Unvisible Button on top of the Circle
 

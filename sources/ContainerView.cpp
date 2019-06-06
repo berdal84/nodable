@@ -75,12 +75,12 @@ bool ContainerView::draw()
 		// Draw temporary wire on top (overlay draw list)
 		if (draggedByMouseMember != nullptr)
 		{
-			auto lineStartPosition = draggedByMouseMember->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getInputPosition(draggedByMouseMember->getName()) + ImGui::GetWindowPos();
+			auto lineStartPosition = draggedByMouseMember->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getConnectorPosition(draggedByMouseMember->getName(), Connection_In) + ImGui::GetWindowPos();
 			auto lineEndPosition = ImGui::GetMousePos();
 
 			// Snap lineEndPosition to hoveredByMouse member's position
 			if (hoveredByMouseMember != nullptr)
-				lineEndPosition = hoveredByMouseMember->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getInputPosition(hoveredByMouseMember->getName()) + ImGui::GetWindowPos();
+				lineEndPosition = hoveredByMouseMember->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getConnectorPosition(hoveredByMouseMember->getName(), Connection_In) + ImGui::GetWindowPos();
 			
 			ImGui::GetOverlayDrawList()->AddLine(lineStartPosition, lineEndPosition, getColor(ColorType_BorderHighlights), connectorRadius * float(0.9));
 		}

@@ -33,11 +33,8 @@ namespace Nodable{
 		/* Get top-left corner vector position */
 		ImVec2            getPosition         ()const;
 
-		/* Get the default inputMember position vector */
-		ImVec2            getInputPosition    (const std::string&)const;
-
-		/* Get the default output position vector */
-		ImVec2            getOutputPosition   (const std::string&)const;
+		/* Get the connector position of the specified member (by name) for its Connection_ side (In or Out ONLY !) */
+		ImVec2            getConnectorPosition(const std::string& /*_name*/, Connection_ /*_connection*/)const;
 
 		/* Set a new position (top-left corner) vector to this view */ 
 		void              setPosition         (ImVec2);
@@ -86,7 +83,7 @@ namespace Nodable{
 		bool            pinned              = false;                  // false: follow its outputs.
 		float           borderRadius        = 5.0f;
 		ImColor         borderColorSelected = ImColor(1.0f, 1.0f, 1.0f);
-		std::map<std::string, float> membersOffsetPositionY;
+		std::map<std::string, float> connectorOffsetPositionsY;
 		static NodeView* s_selected; // pointer to the currently selected NodeView.
 		static NodeView* s_dragged;	 // pointer to the currently dragged NodeView.	
 		static Member*   s_draggedByMouseMember;
