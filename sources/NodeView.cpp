@@ -155,7 +155,7 @@ void NodeView::update()
 				auto factor     = 10.f * deltaTime; // TODO: use frame time
 				ImVec2 delta( (newPos.x - currentPos.x) * factor,  (newPos.y - currentPos.y) * factor);
 
-				bool isDeltaTooSmall = delta.x*delta.x + delta.y*delta.y < 1.0f;
+				bool isDeltaTooSmall = delta.x*delta.x + delta.y*delta.y < 0.01f;
 				if ( !isDeltaTooSmall )
 					inputView->translate(delta);
 			}
