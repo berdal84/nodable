@@ -75,7 +75,7 @@ void Entity::setDirty(bool _value)
 		{
 			if (wire->getSource()->getOwner() == this && wire->getTarget() != nullptr)
 			{
-				auto node = (Entity*)wire->getTarget()->getOwner();
+				auto node = reinterpret_cast<Entity*>(wire->getTarget()->getOwner());
 				node->setDirty(true);
 			}
 		}

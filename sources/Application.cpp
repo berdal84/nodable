@@ -41,7 +41,7 @@ bool Application::init()
 	LOG_MSG("init application ( label = \"%s\")\n", getLabel());
 
 	if( hasComponent("view"))
-		return ((ApplicationView*)getComponent("view"))->init();
+		return reinterpret_cast<ApplicationView*>(getComponent("view"))->init();
 
 	return true;
 }
@@ -90,7 +90,7 @@ bool Application::eval(std::string _expression)
 	NODABLE_VERIFY(container != nullptr);
 
 	currentExpressionStringVariable = container->createNodeVariable(ICON_FA_CODE);
-	((View*)currentExpressionStringVariable->getComponent("view"))->setVisible(false);
+	reinterpret_cast<View*>(currentExpressionStringVariable->getComponent("view"))->setVisible(false);
 
 	LOG_DBG("Lexer::eval() - assign the expression string to that variable\n");
 	currentExpressionStringVariable->setValue(_expression);

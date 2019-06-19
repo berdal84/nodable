@@ -33,7 +33,7 @@ void Variant::setValue(double _var)
 
 		case Type_Number:
 		{
-			*(double*)data = _var;
+			*reinterpret_cast<double*>(data) = _var;
 			break;
 		}
 
@@ -58,13 +58,13 @@ void Variant::setValue(const char* _var)
 	{
 		case Type_String:
 		{
-			*(std::string*)data = _var;
+			*reinterpret_cast<std::string*>(data) = _var;
 			break;
 		}
 
 		case Type_Number:
 		{
-			*(double*)data = std::stod(_var);
+			*reinterpret_cast<double*>(data) = std::stod(_var);
 			break;
 		}
 		
@@ -85,18 +85,18 @@ void Variant::setValue(bool _var)
 	{
 		case Type_String:
 		{
-			*(std::string*)data = _var ? "true" : "false";
+			*reinterpret_cast<std::string*>(data) = _var ? "true" : "false";
 			break;
 		}
 
 		case Type_Number:
 		{
-			*(double*)data = _var ? double(1) : double(0);
+			*reinterpret_cast<double*>(data) = _var ? double(1) : double(0);
 			break;
 		}
 		case Type_Boolean:
 		{
-			*(bool*)data = _var;
+			*reinterpret_cast<bool*>(data) = _var;
 			break;
 
 		}
@@ -117,17 +117,17 @@ double Variant::getValueAsNumber()const
 	{
 		case Type_String:
 		{
-			return (double)(*(std::string*)data).size();
+			return double((*reinterpret_cast<std::string*>(data)).size());
 		}
 
 		case Type_Number:
 		{
-			return *(double*)data;
+			return *reinterpret_cast<double*>(data);
 		}
 
 		case Type_Boolean:
 		{
-			return *(bool*)data ? double(1) : double(0);
+			return *reinterpret_cast<bool*>(data) ? double(1) : double(0);
 		}
 
 		default:
@@ -144,17 +144,17 @@ bool Variant::getValueAsBoolean()const
 	{
 		case Type_String:
 		{
-			return !(*(std::string*)data).empty();
+			return !(*reinterpret_cast<std::string*>(data)).empty();
 		}
 
 		case Type_Number:
 		{
-			return (*(double*)data) != 0.0F;
+			return (*reinterpret_cast<double*>(data)) != 0.0F;
 		}
 
 		case Type_Boolean:
 		{
-			return *(bool*)data;
+			return *reinterpret_cast<bool*>(data);
 		}
 
 		default:
@@ -170,13 +170,13 @@ std::string Variant::getValueAsString()const
 	{
 		case Type_String:
 		{
-			return *(std::string*)data;
+			return *reinterpret_cast<std::string*>(data);
 		}
 
 		case Type_Number:
 		{
 			// Format the num as a string without any useless ending zeros/dot
-			std::string str = std::to_string (*(double*)data);
+			std::string str = std::to_string (*reinterpret_cast<double*>(data));
 			str.erase ( str.find_last_not_of('0') +1, std::string::npos );
 			if (str.find_last_of('.') +1 == str.size())
 				str.erase ( str.find_last_of('.'), std::string::npos );
@@ -185,7 +185,7 @@ std::string Variant::getValueAsString()const
 
 		case Type_Boolean:
 		{
-			return *(bool*)data ? "true" : "false";
+			return *reinterpret_cast<bool*>(data) ? "true" : "false";
 		}
 
 		default:
@@ -244,13 +244,13 @@ void Variant::setType(Type_ _type)
 			switch (type)
 			{
 			case Nodable::Type_Boolean:
-				delete (bool*)data;
+				delete reinterpret_cast<bool*>(data);
 				break;
 			case Nodable::Type_Number:
-				delete (double*)data;
+				delete reinterpret_cast<double*>(data);
 				break;
 			case Nodable::Type_String:
-				delete (std::string*)data;
+				delete reinterpret_cast<std::string*>(data);
 				break;
 			default:
 				break;

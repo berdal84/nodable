@@ -128,7 +128,7 @@ bool ContainerView::draw()
 			auto drag = ImGui::GetMouseDragDelta();
 			for (auto eachNode : entities)
 			{
-				((NodeView*)eachNode->getComponent("view"))->translate(drag);
+				reinterpret_cast<NodeView*>(eachNode->getComponent("view"))->translate(drag);
 			}
 			ImGui::ResetMouseDragDelta();
 		}

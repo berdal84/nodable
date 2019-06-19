@@ -119,7 +119,7 @@ void NodeView::update()
 	{
 		auto sourceNode    = eachWire->getSource()->getOwner()->getAs<Entity*>();
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
-		auto inputView     = (NodeView*)sourceNode->getComponent("view");
+		auto inputView     = reinterpret_cast<NodeView*>(sourceNode->getComponent("view"));
 		if (isWireAnInput && !inputView->pinned )
 		{
 			cumulatedHeight += inputView->size.y;
@@ -142,7 +142,7 @@ void NodeView::update()
 		if (isWireAnInput)
 		{
 			auto sourceNode    = eachWire->getSource()->getOwner()->getAs<Entity*>();
-			auto inputView     = (NodeView*)sourceNode->getComponent("view");
+			auto inputView     = reinterpret_cast<NodeView*>(sourceNode->getComponent("view"));
 
 			if ( ! inputView->pinned )
 			{

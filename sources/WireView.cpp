@@ -33,8 +33,8 @@ bool WireView::draw()
 			!targetNode->hasComponent("view"))
 			return false;
 
-	    auto sourceView = (NodeView*)sourceNode->getComponent("view");
-	    auto targetView = (NodeView*)targetNode->getComponent("view");
+	    auto sourceView = reinterpret_cast<NodeView*>(sourceNode->getComponent("view"));
+	    auto targetView = reinterpret_cast<NodeView*>(targetNode->getComponent("view"));
 
 		if (!static_cast<View*>(sourceNode->getComponent("view"))->isVisible() || // in case of of the node have hidden view we can't draw the wire.
 			!static_cast<View*>(sourceNode->getComponent("view"))->isVisible() )

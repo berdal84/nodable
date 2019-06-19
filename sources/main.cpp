@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 	while (nodable.update())
 	{
 		if( nodable.hasComponent("view"))
-			((Nodable::ApplicationView*)nodable.getComponent("view"))->draw();
+			reinterpret_cast<Nodable::ApplicationView*>(nodable.getComponent("view"))->draw();
 	}
 
 	nodable.shutdown();
