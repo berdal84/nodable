@@ -12,6 +12,8 @@ More precisely, it means **Text-to-Node and Node-to-Text seamless edition**.
 
 To download a binary: go to this [article](https://www.dalle-cort.fr/nodable-node-oriented-programming/). By the way, if you're interested by the architecture, the language or the history of Nodable you'll find some documentation too.
 
+You still don't understand what I'm doing? I hope this GIF will make this more understandable:
+
 ![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2019_06_02_Nodable_demo.gif)
 
 
