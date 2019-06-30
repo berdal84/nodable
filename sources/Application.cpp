@@ -7,8 +7,11 @@
 #include "ApplicationView.h"
 #include "Variable.h"
 #include "DataAccess.h"
+#include "File.h"
 #include <iostream>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <string>
+#include <algorithm>
 
 using namespace Nodable;
 
@@ -33,15 +36,17 @@ Application::Application(const char* _name)
 
 Application::~Application()
 {
-
+	for (auto it = loadedFiles.begin(); it != loadedFiles.end(); it++)
+		delete* it;
 }
 
 bool Application::init()
 {
 	LOG_MSG("init application ( label = \"%s\")\n", getLabel());
 
-	if( hasComponent("view"))
-		return reinterpret_cast<ApplicationView*>(getComponent("view"))->init();
+	auto view = reinterpret_cast<ApplicationView*>(getComponent("view"));
+	view->init();
+	openFile("data/startup.txt");
 
 	return true;
 }
@@ -118,6 +123,20 @@ bool Application::eval(std::string _expression)
 void Application::shutdown()
 {
 	LOG_MSG("shutting down application ( _name = \"%s\")\n", getLabel());
+}
+
+bool Application::openFile(const char* _filePath)
+{		
+	auto file = File::CreateFileWithPath(_filePath);
+
+	if (file != nullptr)
+	{
+		loadedFiles.push_back(file);
+		auto view = reinterpret_cast<ApplicationView*>(getComponent("view"));
+		view->setTextEditorContent(file->getContent());
+	}
+
+	return file != nullptr;
 }
 
 void Application::SaveEntity(Entity* _entity)

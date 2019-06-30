@@ -101,6 +101,7 @@ namespace Nodable{
 
 	// 4 - Other
 	class Log;	
+	class File;
 
 	typedef std::map<std::string, Component*>  Components;
 	typedef std::map<std::string, Member*>      Members;

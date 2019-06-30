@@ -3,6 +3,7 @@
 #include "Nodable.h" /* Forward declarations and defines */
 #include "Entity.h"    /* Base class */
 #include "History.h"
+#include "File.h"
 #include <string>
 #include <memory>    /* For unique_ptr */
 
@@ -41,12 +42,23 @@ namespace Nodable
 		/* Get the context (also called a container) of this application.*/
 		Container*       getContext()const;
 
+		/* open a file with a file path as parameter, return true if success, false if fail.*/
+		bool             openFile(const char*);
+
+		unsigned int     getFileCount()const { return loadedFiles.size(); }
+		std::string      getFileContentAtIndex(size_t _index)const { return loadedFiles[_index]->getContent(); }
+		std::string      getFileNameAtIndex   (size_t _index)const { return loadedFiles[_index]->getName(); }
+
 		static void      SaveEntity(Entity* _entity);
 
 	private:
 		/** A variable that contains (into the member "value") the current expression string */
 		Variable*     currentExpressionStringVariable  = nullptr;	
+
 		/** When set to true, the application will close next frame */
 		bool          quit                             = false;
+
+		std::vector<File*> loadedFiles;
+
 	};
 }

@@ -10,9 +10,9 @@
 #include "Application.h"
 #include "Container.h"
 #include "NodeView.h"
-#include <fstream>
+#include "File.h"
 #include "Log.h"
-#include <algorithm>
+
 
 using namespace Nodable;
 
@@ -43,7 +43,7 @@ ApplicationView::~ApplicationView()
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext    ();
     SDL_GL_DeleteContext     (glcontext);
-    SDL_DestroyWindow        (window);
+    SDL_DestroyWindow        (sdlWindow);
     SDL_Quit                 ();
 }
 
@@ -66,7 +66,7 @@ bool ApplicationView::init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    window = SDL_CreateWindow(  getMember("glWindowName")->getValueAsString().c_str(),
+    sdlWindow = SDL_CreateWindow(  getMember("glWindowName")->getValueAsString().c_str(),
                                 SDL_WINDOWPOS_CENTERED,
                                 SDL_WINDOWPOS_CENTERED,
                                 getMember("glWindowSizeX")->getValueAsNumber(),
@@ -77,7 +77,7 @@ bool ApplicationView::init()
 								SDL_WINDOW_MAXIMIZED
                                 );
     
-    this->glcontext = SDL_GL_CreateContext(window);
+    this->glcontext = SDL_GL_CreateContext(sdlWindow);
     SDL_GL_SetSwapInterval(1); // Enable vsync
     
 
@@ -94,7 +94,7 @@ bool ApplicationView::init()
 
 	// Setup Platform/Renderer bindings
 	gl3wInit();
-    ImGui_ImplSDL2_InitForOpenGL(window, glcontext);
+    ImGui_ImplSDL2_InitForOpenGL(sdlWindow, glcontext);
 	const char* glsl_version = "#version 130";
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
@@ -160,6 +160,11 @@ bool ApplicationView::init()
 	style.Colors[ImGuiCol_PlotLinesHovered]      = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
 	style.Colors[ImGuiCol_PlotHistogram]         = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
 	style.Colors[ImGuiCol_PlotHistogramHovered]  = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+	style.Colors[ImGuiCol_Tab]                   = ImVec4(0.44f, 0.44f, 0.44f, 0.86f);
+	style.Colors[ImGuiCol_TabHovered]            = ImVec4(1.00f, 1.00f, 1.00f, 0.80f);
+	style.Colors[ImGuiCol_TabActive]             = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
+	style.Colors[ImGuiCol_TabUnfocused]          = ImVec4(0.15f, 0.15f, 0.15f, 0.97f);
+	style.Colors[ImGuiCol_TabUnfocusedActive]    = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
 	style.Colors[ImGuiCol_TextSelectedBg]        = ImVec4(0.00f, 0.00f, 1.00f, 0.35f);
 	style.Colors[ImGuiCol_ModalWindowDarkening]  = ImVec4(0.20f, 0.20f, 0.20f, 0.55f);
 
@@ -180,13 +185,6 @@ bool ApplicationView::init()
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
     textEditor->SetLanguageDefinition(lang);	
 	textEditor->SetImGuiChildIgnored(true);
-
-	// read startup file
-	auto filename = "data/startup.txt";
-	std::ifstream startupFile(filename);
-	std::string expression((std::istreambuf_iterator<char>(startupFile)), std::istreambuf_iterator<char>());
-
-    textEditor->SetText(expression);
 
     TextEditor::Palette palette = {{
         0xffffffff, // None
@@ -227,13 +225,13 @@ bool ApplicationView::draw()
     }
 
 	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame(window);
+	ImGui_ImplSDL2_NewFrame(sdlWindow);
 	ImGui::NewFrame();
 
 	// Reset default mouse cursor
 	ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
 
-    // Properties panel window
+    // Properties panel sdlWindow
     {
         bool b = getMember("showProperties")->getValueAsBoolean();
         if( b ){
@@ -263,12 +261,12 @@ bool ApplicationView::draw()
             setMember("showImGuiDemo", b);
         }
     }
-    // Fullscreen window
+    // Fullscreen sdlWindow
     {
-        // Maintain window size to fit with SDL window
+        // Maintain sdlWindow size to fit with SDL sdlWindow
         int width, height;
-        auto renderer = SDL_GetRenderer(window);
-        SDL_GetWindowSize(window, &width, &height);
+        auto renderer = SDL_GetRenderer(sdlWindow);
+        SDL_GetWindowSize(sdlWindow, &width, &height);
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
         ImGui::SetNextWindowSize(ImVec2(width, height));
 
@@ -279,121 +277,128 @@ bool ApplicationView::draw()
 		auto userWantsToArrangeSelectedNodeHierarchy(false);
 
         ImGui::Begin("Container", NULL, ImVec2(), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
-        {
-             if( ImGui::BeginMenuBar())
-            {
-                if (ImGui::BeginMenu("File"))
-                {
-                    ImGui::MenuItem(ICON_FA_FILE"  New", "Ctrl + N");
-                    ImGui::MenuItem(ICON_FA_SAVE"  Save", "Ctrl + N");
-                    ImGui::MenuItem(ICON_FA_SAVE"  Save As.", "Ctrl + N");
-                    if ( ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4"))
-                        application->stopExecution();
-                    ImGui::EndMenu();
-                }
+		{
+			if (ImGui::BeginMenuBar())
+			{
+				if (ImGui::BeginMenu("File"))
+				{
+					//ImGui::MenuItem(ICON_FA_FILE   "  New", "Ctrl + N");
+					if (ImGui::MenuItem(ICON_FA_FOLDER "  Open"))
+					{
+						auto fileAbsolutePath = File::BrowseForFileAndReturnItsAbsolutePath(this->sdlWindow);
+						application->openFile(fileAbsolutePath.c_str());
+					}
+					//ImGui::MenuItem(ICON_FA_SAVE   "  Save", "Ctrl + N");
+					//ImGui::MenuItem(ICON_FA_SAVE   "  Save As.", "Ctrl + N");
+					if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4"))
+						application->stopExecution();
+					ImGui::EndMenu();
+				}
 
-                if (ImGui::BeginMenu("Edit"))
-                {
-					userWantsToUndo    |= ImGui::MenuItem("Undo", "");
-					userWantsToRedo    |= ImGui::MenuItem("Redo", "");
+				if (ImGui::BeginMenu("Edit"))
+				{
+					userWantsToUndo |= ImGui::MenuItem("Undo", "");
+					userWantsToRedo |= ImGui::MenuItem("Redo", "");
 					if (userWantsToUndo)History::global->undo();
 					if (userWantsToRedo)History::global->redo();
 
 					ImGui::Separator();
 
 					auto isAtLeastANodeSelected = NodeView::GetSelected() != nullptr;
-                    userWantsToHideSelectedNode             |= ImGui::MenuItem("Hide",            "Del.", false, isAtLeastANodeSelected);
-                    userWantsToArrangeSelectedNodeHierarchy |= ImGui::MenuItem("ReArrange nodes", "A",    false, isAtLeastANodeSelected);
+					userWantsToHideSelectedNode |= ImGui::MenuItem("Hide", "Del.", false, isAtLeastANodeSelected);
+					userWantsToArrangeSelectedNodeHierarchy |= ImGui::MenuItem("ReArrange nodes", "A", false, isAtLeastANodeSelected);
 
-                    ImGui::EndMenu();
-                }
+					ImGui::EndMenu();
+				}
 
-                if ( ImGui::BeginMenu("View"))
-                {
-                    //auto frame = ImGui::MenuItem("Frame All", "F");
-                    //ImGui::Separator();
-                    auto detailSimple   = ImGui::MenuItem("Simple View", "", NodeView::s_drawDetail == DrawDetail_Simple );
-                    auto detailAdvanced = ImGui::MenuItem("Advanced View", "", NodeView::s_drawDetail == DrawDetail_Advanced );
-                    auto detailComplex  = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex );
-                    
-                    ImGui::Separator();
-                    auto showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", getMember("showProperties")->getValueAsBoolean());
-                    auto showImGuiDemo  = ImGui::MenuItem("Show ImGui Demo", "", getMember("showImGuiDemo")->getValueAsBoolean());
+				if (ImGui::BeginMenu("View"))
+				{
+					//auto frame = ImGui::MenuItem("Frame All", "F");
+					//ImGui::Separator();
+					auto detailSimple = ImGui::MenuItem("Simple View", "", NodeView::s_drawDetail == DrawDetail_Simple);
+					auto detailAdvanced = ImGui::MenuItem("Advanced View", "", NodeView::s_drawDetail == DrawDetail_Advanced);
+					auto detailComplex = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex);
 
-                    ImGui::Separator();
+					ImGui::Separator();
+					auto showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", getMember("showProperties")->getValueAsBoolean());
+					auto showImGuiDemo = ImGui::MenuItem("Show ImGui Demo", "", getMember("showImGuiDemo")->getValueAsBoolean());
 
-                    if ( SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP){
-                        auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", true);
-                        if (toggleFullscreen)
-                            SDL_SetWindowFullscreen(window, 0);
-                    }else{
-                        auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", false);
-                        if (toggleFullscreen)
-                            SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    }
+					ImGui::Separator();
 
-                    //if( frame)
-                        // TODO
+					if (SDL_GetWindowFlags(sdlWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+						auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", true);
+						if (toggleFullscreen)
+							SDL_SetWindowFullscreen(sdlWindow, 0);
+					}
+					else {
+						auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", false);
+						if (toggleFullscreen)
+							SDL_SetWindowFullscreen(sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+					}
 
-                    if (detailSimple)
-                        NodeView::s_drawDetail = DrawDetail_Simple;
+					//if( frame)
+						// TODO
 
-                    if (detailAdvanced)
-                        NodeView::s_drawDetail = DrawDetail_Advanced;
+					if (detailSimple)
+						NodeView::s_drawDetail = DrawDetail_Simple;
 
-                    if (detailComplex)
-                        NodeView::s_drawDetail = DrawDetail_Complex;
+					if (detailAdvanced)
+						NodeView::s_drawDetail = DrawDetail_Advanced;
 
-                    if(showProperties)
-                         setMember("showProperties", !getMember("showProperties")->getValueAsBoolean());
+					if (detailComplex)
+						NodeView::s_drawDetail = DrawDetail_Complex;
 
-                    if(showImGuiDemo)
-                         setMember("showImGuiDemo", !getMember("showImGuiDemo")->getValueAsBoolean());
+					if (showProperties)
+						setMember("showProperties", !getMember("showProperties")->getValueAsBoolean());
 
-                        
+					if (showImGuiDemo)
+						setMember("showImGuiDemo", !getMember("showImGuiDemo")->getValueAsBoolean());
 
-                    ImGui::EndMenu();
-                }
-                ImGui::EndMenuBar();
-            }
 
-			 static bool isExpressionValid = true;
+
+					ImGui::EndMenu();
+				}
+				ImGui::EndMenuBar();
+			}
+
+			static bool isExpressionValid = true;
 
 			/*
 				UNDO HISTORY / TIME SLIDER
 			*/
-			auto historyButtonSpacing         = float(2);
-			auto historyButtonHeight          = float(12);
-			auto historyButtonMinWidth        = float(60);
+			auto historyButtonSpacing = float(2);
+			auto historyButtonHeight = float(12);
+			auto historyButtonMinWidth = float(60);
 
-			auto historySize                  = History::global->getSize();
+			auto historySize = History::global->getSize();
 			auto historyCurrentCursorPosition = History::global->getCursorPosition();
-			auto availableWidth               = ImGui::GetContentRegionAvailWidth();	
-			auto historyButtonWidth           = std::fmin(historyButtonMinWidth, availableWidth / float(historySize) - historyButtonSpacing);
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0) );
-			
+			auto availableWidth = ImGui::GetContentRegionAvailWidth();
+			auto historyButtonWidth = std::fmin(historyButtonMinWidth, availableWidth / float(historySize) - historyButtonSpacing);
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0));
+
 			for (size_t commandId = 1; commandId <= historySize; commandId++)
 			{
 				// Draw an highlighted button for the current history position
-				if (commandId == historyCurrentCursorPosition){
+				if (commandId == historyCurrentCursorPosition) {
 					ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
 					ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
 					ImGui::PopStyleColor();
 
-				// or a simple one for other history positions
-				}else
+					// or a simple one for other history positions
+				}
+				else
 					ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
 
-				if (ImGui::IsItemHoveredRect())
+				if (ImGui::IsItemHovered())
 				{
-					if(ImGui::IsMouseDown(0)) // hovered + mouse down
+					if (ImGui::IsMouseDown(0)) // hovered + mouse down
 						History::global->setCursorPosition(commandId); // update history cursor position
-					
+
 					// Draw command description 
 					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
-						ImGui::BeginTooltip();					
-						ImGui::Text(History::global->getCommandDescriptionAtPosition(commandId - 1));
-						ImGui::EndTooltip();
+					ImGui::BeginTooltip();
+					ImGui::Text(History::global->getCommandDescriptionAtPosition(commandId - 1));
+					ImGui::EndTooltip();
 					ImGui::PopStyleVar();
 				}
 
@@ -403,11 +408,39 @@ bool ApplicationView::draw()
 			ImGui::NewLine();
 
 			/*
-				HYBRID EDITOR			
+				HYBRID EDITOR
 			*/
+
+			/*
+				FILE TABS
+			*/
+			{
+				float tabsVerticalOffset = ImGui::GetStyle().FramePadding.y ;
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + tabsVerticalOffset);
+				ImGui::BeginTabBar("FileTabBar", ImGuiTabBarFlags_Reorderable);
+
+				for (int i = 0; i < application->getFileCount(); i++)
+				{
+					std::string tabLabel = application->getFileNameAtIndex(i) + "##" + std::to_string(i);
+					
+					if (ImGui::BeginTabItem(tabLabel.c_str()))
+						ImGui::EndTabItem();
+
+					if (ImGui::IsItemClicked(0))
+					{
+						LOG_MSG("ApplicationView - User switch tabs to \"%s\"\n", tabLabel.c_str());
+						setTextEditorContent(application->getFileContentAtIndex(i));
+					}
+				}
+
+				ImGui::EndTabBar();
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() - tabsVerticalOffset);
+
+			}
 
             auto availSize = ImGui::GetContentRegionAvail();
             availSize.y -=  ImGui::GetTextLineHeightWithSpacing();;
+
             ImGui::BeginChild( "TextEditor", ImVec2(availSize.x , availSize.y), false);
 			{
 				/*
@@ -505,13 +538,13 @@ bool ApplicationView::draw()
 
 	// Rendering
 	ImGui::Render();
-	SDL_GL_MakeCurrent(window, this->glcontext);
+	SDL_GL_MakeCurrent(sdlWindow, this->glcontext);
 	auto io = ImGui::GetIO();
 	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
 	glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 	glClear(GL_COLOR_BUFFER_BIT);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	SDL_GL_SwapWindow(window);
+	SDL_GL_SwapWindow(sdlWindow);
 
     return false;
 }
@@ -543,4 +576,9 @@ void ApplicationView::updateCurrentLineText(std::string _val)
 		textEditor->SetSelectionStart(coord);
 		textEditor->SetSelectionEnd(TextEditor::Coordinates(coord.mLine, coord.mColumn + _val.size()));
 	}
+}
+
+void Nodable::ApplicationView::setTextEditorContent(std::string _content)
+{
+	textEditor->SetText(_content);
 }

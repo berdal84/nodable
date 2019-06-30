@@ -120,6 +120,9 @@
     <ClCompile Include="..\libs\gl3w\GL\gl3w.c">
       <Filter>Source Files\extern</Filter>
     </ClCompile>
+    <ClCompile Include="..\sources\File.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sources\Application.h">
@@ -652,6 +655,9 @@
     </ClInclude>
     <ClInclude Include="..\extern\imgui\imgui_internal.h">
       <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sources\File.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
