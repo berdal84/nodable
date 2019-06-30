@@ -95,11 +95,12 @@ namespace Nodable
 				description.append( "\"" + _source->getName() + "\" ---> \"" + _target->getName() + "\"\n");
 
 				// Time
-				time_t rawtime;
-				struct tm* timeinfo;
-				time(&rawtime);
-				timeinfo = localtime(&rawtime);
-				description.append(asctime(timeinfo));
+				time_t t = time(NULL);
+				struct tm tm;
+				char timeAsStringBuffer[26];
+				localtime_s(&tm, &t);
+				asctime_s(timeAsStringBuffer, sizeof timeAsStringBuffer, &tm);
+				description.append(timeAsStringBuffer);
 
 		};
 
