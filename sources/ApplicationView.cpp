@@ -415,22 +415,24 @@ bool ApplicationView::draw()
 				FILE TABS
 			*/
 			bool userSwitchesFile = false;
-			{
+			{			
+
 				float tabsVerticalOffset = ImGui::GetStyle().FramePadding.y ;
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + tabsVerticalOffset);
-				ImGui::BeginTabBar("FileTabBar", ImGuiTabBarFlags_Reorderable);
+				
+				ImGui::BeginTabBar("FileTabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_TabListPopupButton);
 
-				for (int i = 0; i < application->getFileCount(); i++)
+				for (size_t i = 0; i < application->getLoadedFileCount(); i++)
 				{
-					std::string tabLabel = application->getFileNameAtIndex(i) + "##" + std::to_string(i);
-					
+					std::string tabLabel = application->getLoadedFileNameAtIndex(i) + "##" + std::to_string(i);
+
 					if (ImGui::BeginTabItem(tabLabel.c_str()))
-						ImGui::EndTabItem();
+							ImGui::EndTabItem();					
 
 					if (ImGui::IsItemClicked(0))
 					{
-						LOG_MSG("ApplicationView - User switch tabs to \"%s\"\n", tabLabel.c_str());
-						setTextEditorContent(application->getFileContentAtIndex(i));
+						LOG_MSG("ApplicationView - User switch tabs to \"%s\" (id:%lu)\n", tabLabel.c_str(), i);
+						application->setCurrentlyActiveLoadedFileWithIndex(i);
 						userSwitchesFile = true;
 					}
 				}
