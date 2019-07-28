@@ -155,6 +155,22 @@ void Application::setCurrentlyActiveFileContent(std::string& _content)
 		currentFile->setContent(_content);
 	}
 }
+
+void Application::closeCurrentlyActiveFile()
+{
+	auto currentFile = loadedFiles.at(currentlyActiveLoadedFileIndex);
+	if (currentFile != nullptr)
+	{
+		auto it = std::find(loadedFiles.begin(), loadedFiles.end(), currentFile);
+		loadedFiles.erase(it);
+		delete currentFile;
+		if (currentlyActiveLoadedFileIndex > 0)
+			setCurrentlyActiveLoadedFileWithIndex(currentlyActiveLoadedFileIndex - 1);
+		else
+			setCurrentlyActiveLoadedFileWithIndex(currentlyActiveLoadedFileIndex);
+	}
+}
+
 	/* First we need to save current cursor position for the current active file in order to restore it if user switch back to his file */
 	auto currentFile = loadedFiles.at(currentlyActiveLoadedFileIndex);
 	if (currentFile != nullptr) {

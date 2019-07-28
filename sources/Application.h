@@ -46,6 +46,7 @@ namespace Nodable
 		bool             openFile(const char*);
 		void             saveCurrentlyActiveFile()const;
 		void             setCurrentlyActiveFileContent(std::string&);
+		void             closeCurrentlyActiveFile();
 		unsigned int     getLoadedFileCount                    ()const              { return loadedFiles.size(); }
 		std::string      getLoadedFileContentAtIndex           (size_t _index)const { return loadedFiles[_index]->getContent(); }
 		std::string      getLoadedFileNameAtIndex              (size_t _index)const { return loadedFiles[_index]->getName(); }

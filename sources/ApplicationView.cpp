@@ -294,6 +294,11 @@ bool ApplicationView::draw()
 						application->saveCurrentlyActiveFile();
 					}
 
+					if (ImGui::MenuItem(ICON_FA_TIMES "  Close"))
+					{
+						application->closeCurrentlyActiveFile();
+					}
+
 					if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4"))
 						application->stopExecution();
 					ImGui::EndMenu();
