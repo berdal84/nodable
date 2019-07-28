@@ -48,6 +48,8 @@ namespace Nodable
 		unsigned int     getFileCount()const { return loadedFiles.size(); }
 		std::string      getFileContentAtIndex(size_t _index)const { return loadedFiles[_index]->getContent(); }
 		std::string      getFileNameAtIndex   (size_t _index)const { return loadedFiles[_index]->getName(); }
+		size_t           getCurrentlyActiveLoadedFileIndex     ()const              { return currentlyActiveLoadedFileIndex; }
+		void             setCurrentlyActiveLoadedFileWithIndex (size_t _index);
 
 		static void      SaveEntity(Entity* _entity);
 
@@ -59,6 +61,6 @@ namespace Nodable
 		bool          quit                             = false;
 
 		std::vector<File*> loadedFiles;
-
+		size_t             currentlyActiveLoadedFileIndex; /* index that identify the current file in loadedFiles */
 	};
 }

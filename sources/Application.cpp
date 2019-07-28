@@ -15,7 +15,7 @@
 
 using namespace Nodable;
 
-Application::Application(const char* _name)
+Application::Application(const char* _name):currentlyActiveLoadedFileIndex(0)
 {
 	LOG_MSG("A new Application ( label = \"%s\")\n", _name);
 	setMember("__class__", "Application");
@@ -132,11 +132,31 @@ bool Application::openFile(const char* _filePath)
 	if (file != nullptr)
 	{
 		loadedFiles.push_back(file);
-		auto view = reinterpret_cast<ApplicationView*>(getComponent("view"));
-		view->setTextEditorContent(file->getContent());
+		setCurrentlyActiveLoadedFileWithIndex(loadedFiles.size() - 1);
 	}
 
 	return file != nullptr;
+}
+
+void Application::setCurrentlyActiveLoadedFileWithIndex(size_t _index)
+{
+	auto view = reinterpret_cast<ApplicationView*>(getComponent("view"));
+
+	/* First we need to save current cursor position for the current active file in order to restore it if user switch back to his file */
+	auto currentFile = loadedFiles.at(currentlyActiveLoadedFileIndex);
+	if (currentFile != nullptr) {
+		currentFile->setCursorPosition(view->getTextEditorCursorPosition());
+	}
+
+	/* Then we set desired file as active */
+	auto newFile = loadedFiles.at(_index);
+	view->setTextEditorContent(newFile->getContent());
+	view->setTextEditorCursorPosition(newFile->getCursorPosition());
+	currentlyActiveLoadedFileIndex = _index;
+
+	/* Clear context (all existing nodes) */
+	this->clearContext();
+
 }
 
 void Application::SaveEntity(Entity* _entity)
