@@ -424,7 +424,7 @@ bool ApplicationView::draw()
 				float tabsVerticalOffset = ImGui::GetStyle().FramePadding.y ;
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + tabsVerticalOffset);
 				
-				ImGui::BeginTabBar("FileTabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_TabListPopupButton);
+				ImGui::BeginTabBar("FileTabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs);
 
 				for (size_t i = 0; i < application->getLoadedFileCount(); i++)
 				{
