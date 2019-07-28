@@ -18,7 +18,9 @@ namespace Nodable
 		std::string                      getName()const { return name; }	
 		const TextEditor::Coordinates&   getCursorPosition()const { return textEditorCursorPosition; }
 		void                             setCursorPosition(const TextEditor::Coordinates& _textEditorCursorPosition) { textEditorCursorPosition = _textEditorCursorPosition;  }
-		
+		void                             save()const;
+		void                             setContent(std::string&);
+
 		static File*                     CreateFileWithPath                    (const char* _filePath);
 		static std::string               BrowseForFileAndReturnItsAbsolutePath (SDL_Window* currentWindow);
 

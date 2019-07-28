@@ -138,10 +138,23 @@ bool Application::openFile(const char* _filePath)
 	return file != nullptr;
 }
 
-void Application::setCurrentlyActiveLoadedFileWithIndex(size_t _index)
+void Application::saveCurrentlyActiveFile() const
 {
-	auto view = reinterpret_cast<ApplicationView*>(getComponent("view"));
+	auto currentFile = loadedFiles.at(currentlyActiveLoadedFileIndex);
+	if (currentFile != nullptr)
+	{
+		currentFile->save();
+	}
+}
 
+void Application::setCurrentlyActiveFileContent(std::string& _content)
+{
+	auto currentFile = loadedFiles.at(currentlyActiveLoadedFileIndex);
+	if (currentFile != nullptr)
+	{
+		currentFile->setContent(_content);
+	}
+}
 	/* First we need to save current cursor position for the current active file in order to restore it if user switch back to his file */
 	auto currentFile = loadedFiles.at(currentlyActiveLoadedFileIndex);
 	if (currentFile != nullptr) {

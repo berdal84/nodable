@@ -44,7 +44,8 @@ namespace Nodable
 
 		/* open a file with a file path as parameter, return true if success, false if fail.*/
 		bool             openFile(const char*);
-
+		void             saveCurrentlyActiveFile()const;
+		void             setCurrentlyActiveFileContent(std::string&);
 		unsigned int     getLoadedFileCount                    ()const              { return loadedFiles.size(); }
 		std::string      getLoadedFileContentAtIndex           (size_t _index)const { return loadedFiles[_index]->getContent(); }
 		std::string      getLoadedFileNameAtIndex              (size_t _index)const { return loadedFiles[_index]->getName(); }

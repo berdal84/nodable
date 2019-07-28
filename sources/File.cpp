@@ -6,6 +6,17 @@
 
 using namespace Nodable;
 
+void File::save() const
+{
+	std::ofstream fileStream(this->path.c_str());
+	fileStream.write(content.c_str(), content.size());	
+}
+
+void File::setContent(std::string& _content)
+{
+	content = _content;
+}
+
 File* File::CreateFileWithPath(const char* _filePath)
 {
 	File* file = nullptr;

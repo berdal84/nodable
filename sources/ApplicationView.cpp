@@ -288,8 +288,12 @@ bool ApplicationView::draw()
 						auto fileAbsolutePath = File::BrowseForFileAndReturnItsAbsolutePath(this->sdlWindow);
 						application->openFile(fileAbsolutePath.c_str());
 					}
-					//ImGui::MenuItem(ICON_FA_SAVE   "  Save", "Ctrl + N");
-					//ImGui::MenuItem(ICON_FA_SAVE   "  Save As.", "Ctrl + N");
+
+					if (ImGui::MenuItem(ICON_FA_SAVE "  Save"))
+					{
+						application->saveCurrentlyActiveFile();
+					}
+
 					if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4"))
 						application->stopExecution();
 					ImGui::EndMenu();
@@ -476,6 +480,9 @@ bool ApplicationView::draw()
 					                         textEditor->IsTextChanged() ||
 					                         isTextChangedByApp ||
 					                         isSelectedTextModified;
+
+				if (textEditor->IsTextChanged())
+					application->setCurrentlyActiveFileContent(textEditor->GetText());
 
 				if (needsToEvaluateString)
 				{
