@@ -578,7 +578,7 @@ void ApplicationView::updateCurrentLineText(std::string _val)
 	}
 }
 
-void Nodable::ApplicationView::setTextEditorContent(std::string _content)
+void Nodable::ApplicationView::setTextEditorContent(const std::string& _content)
 {
 	textEditor->SetText(_content);
 }

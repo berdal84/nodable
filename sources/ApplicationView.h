@@ -26,7 +26,7 @@ namespace Nodable
 
 		void updateCurrentLineText(std::string _val);
 
-		void setTextEditorContent(std::string);
+		void                           setTextEditorContent        (const std::string&);
 	private:
 		TextEditor        *textEditor;
 		Application       *application;
