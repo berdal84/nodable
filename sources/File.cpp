@@ -31,7 +31,7 @@ File* File::CreateFileWithPath(const char* _filePath)
 	if (firstSlashPosition != std::string::npos)
 		name = cleanedFilePath.substr(firstSlashPosition + 1, cleanedFilePath.size() - firstSlashPosition - 1);
 
-	std::fstream fileStream(cleanedFilePath.c_str());
+	std::ifstream fileStream(cleanedFilePath.c_str());
 
 	if (fileStream.is_open())
 	{
