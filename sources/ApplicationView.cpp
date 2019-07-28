@@ -414,6 +414,7 @@ bool ApplicationView::draw()
 			/*
 				FILE TABS
 			*/
+			bool userSwitchesFile = false;
 			{
 				float tabsVerticalOffset = ImGui::GetStyle().FramePadding.y ;
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + tabsVerticalOffset);
@@ -430,6 +431,7 @@ bool ApplicationView::draw()
 					{
 						LOG_MSG("ApplicationView - User switch tabs to \"%s\"\n", tabLabel.c_str());
 						setTextEditorContent(application->getFileContentAtIndex(i));
+						userSwitchesFile = true;
 					}
 				}
 
@@ -447,6 +449,7 @@ bool ApplicationView::draw()
 					TEXT EDITOR
 				*/
 
+				auto isTextChangedByApp     = textEditor->IsTextChanged();
 				auto textEditorSize         = ImGui::GetContentRegionAvail();
 
 				auto previousCursorPosition = textEditor->GetCursorPosition();
@@ -468,8 +471,9 @@ bool ApplicationView::draw()
 				auto isSelectedTextModified = previousSelectedText != currentSelectedText;
 
 				bool needsToEvaluateString = isCurrentLineModified ||
-					                        textEditor->IsTextChanged() ||
-					                        isSelectedTextModified;
+					                         textEditor->IsTextChanged() ||
+					                         isTextChangedByApp ||
+					                         isSelectedTextModified;
 
 				if (needsToEvaluateString)
 				{
