@@ -171,17 +171,34 @@ void Application::closeCurrentlyActiveFile()
 	}
 }
 
+void Application::memorizeCurrentlyActiveLoadedFileCursorPosition()
+{
 	/* First we need to save current cursor position for the current active file in order to restore it if user switch back to his file */
-	auto currentFile = loadedFiles.at(currentlyActiveLoadedFileIndex);
-	if (currentFile != nullptr) {
-		currentFile->setCursorPosition(view->getTextEditorCursorPosition());
+	if (loadedFiles.size() > currentlyActiveLoadedFileIndex)
+	{
+		auto view = reinterpret_cast<ApplicationView*>(getComponent("view"));
+		auto currentFile = loadedFiles.at(currentlyActiveLoadedFileIndex);
+		if (currentFile != nullptr) {
+			currentFile->setCursorPosition(view->getTextEditorCursorPosition());
+		}
 	}
+}
+void Application::setCurrentlyActiveLoadedFileWithIndex(size_t _index)
+{
+	auto view = reinterpret_cast<ApplicationView*>(getComponent("view"));
 
 	/* Then we set desired file as active */
-	auto newFile = loadedFiles.at(_index);
-	view->setTextEditorContent(newFile->getContent());
-	view->setTextEditorCursorPosition(newFile->getCursorPosition());
-	currentlyActiveLoadedFileIndex = _index;
+	if (loadedFiles.size() > _index)
+	{
+		auto newFile = loadedFiles.at(_index);
+		view->setTextEditorContent(newFile->getContent());
+		view->setTextEditorCursorPosition(newFile->getCursorPosition());
+		currentlyActiveLoadedFileIndex = _index;
+
+	}else{
+		view->setTextEditorContent("");
+		view->setTextEditorCursorPosition(TextEditor::Coordinates(0, 0));
+	}
 
 	/* Clear context (all existing nodes) */
 	this->clearContext();

@@ -51,6 +51,7 @@ namespace Nodable
 		std::string      getLoadedFileContentAtIndex           (size_t _index)const { return loadedFiles[_index]->getContent(); }
 		std::string      getLoadedFileNameAtIndex              (size_t _index)const { return loadedFiles[_index]->getName(); }
 		size_t           getCurrentlyActiveLoadedFileIndex     ()const              { return currentlyActiveLoadedFileIndex; }
+		void             memorizeCurrentlyActiveLoadedFileCursorPosition();
 		void             setCurrentlyActiveLoadedFileWithIndex (size_t _index);
 
 		static void      SaveEntity(Entity* _entity);
