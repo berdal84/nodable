@@ -25,13 +25,13 @@ namespace Nodable
 		bool init();
 
 		/* Text Editor related getters/setters */
+		void                           setTextEditorContent              (const std::string&);
+		void                           setTextEditorCursorPosition       (const TextEditor::Coordinates& _cursorPosition) { textEditor->SetCursorPosition(_cursorPosition); }
+		TextEditor::Coordinates        getTextEditorCursorPosition       ()const                                          { return textEditor!=nullptr?textEditor->GetCursorPosition():TextEditor::Coordinates(0,0); }
 		std::string                    getTextEditorHighlightedExpression()const;
 		std::string                    getTextEditorContent              ()const;
 		void                           replaceHighlightedPortionInTextEditor(std::string _val);
 
-		void                           setTextEditorContent        (const std::string&);
-		void                           setTextEditorCursorPosition (const TextEditor::Coordinates& _cursorPosition) { textEditor->SetCursorPosition(_cursorPosition); }
-		TextEditor::Coordinates        getTextEditorCursorPosition ()const                                    { return textEditor!=nullptr?textEditor->GetCursorPosition():TextEditor::Coordinates(0,0); }
 	private:
 		TextEditor        *textEditor;
 		Application       *application;
