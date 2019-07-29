@@ -76,10 +76,13 @@ bool Application::update()
 	return !quit;
 }
 
-void Application::updateCurrentLineText(std::string _val)
+void Application::replaceHighlightedPortionInTextEditor(std::string _val)
 {
-	if( hasComponent("view"))
-		getComponent("view")->getAs<ApplicationView*>()->updateCurrentLineText(_val);
+	if (hasComponent("view"))
+	{
+		auto view =	getComponent("view")->getAs<ApplicationView*>();
+		view->replaceHighlightedPortionInTextEditor(_val);
+	}
 }
 
 void Application::stopExecution()

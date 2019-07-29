@@ -34,7 +34,7 @@ namespace Nodable
 		bool             update();
 		
 		/* Update Current Line Text*/
-		void             updateCurrentLineText(std::string _val);
+		void             replaceHighlightedPortionInTextEditor(std::string _val);
 
 		/* Force application to stops. Always delayed for 1 frame. */
 		void             stopExecution();

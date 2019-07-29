@@ -569,6 +569,7 @@ bool ApplicationView::draw()
 }
 
 void ApplicationView::updateCurrentLineText(std::string _val)
+void ApplicationView::replaceHighlightedPortionInTextEditor(std::string _val)
 {
     auto coord = textEditor->GetCursorPosition();
 

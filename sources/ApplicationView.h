@@ -24,7 +24,8 @@ namespace Nodable
 		/* call this once just after the instantiation. */
 		bool init();
 
-		void updateCurrentLineText(std::string _val);
+		/* Text Editor related getters/setters */
+		void                           replaceHighlightedPortionInTextEditor(std::string _val);
 
 		void                           setTextEditorContent        (const std::string&);
 		void                           setTextEditorCursorPosition (const TextEditor::Coordinates& _cursorPosition) { textEditor->SetCursorPosition(_cursorPosition); }
