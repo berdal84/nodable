@@ -568,7 +568,11 @@ bool ApplicationView::draw()
     return false;
 }
 
-void ApplicationView::updateCurrentLineText(std::string _val)
+std::string ApplicationView::getTextEditorContent()const
+{
+	return textEditor->GetText();
+}
+
 void ApplicationView::replaceHighlightedPortionInTextEditor(std::string _val)
 {
     auto coord = textEditor->GetCursorPosition();
@@ -601,4 +605,9 @@ void ApplicationView::replaceHighlightedPortionInTextEditor(std::string _val)
 void Nodable::ApplicationView::setTextEditorContent(const std::string& _content)
 {
 	textEditor->SetText(_content);
+}
+
+std::string Nodable::ApplicationView::getTextEditorHighlightedExpression()const
+{
+	return textEditor->HasSelection() ? textEditor->GetSelectedText() : textEditor->GetCurrentLineText();
 }

@@ -25,6 +25,8 @@ namespace Nodable
 		bool init();
 
 		/* Text Editor related getters/setters */
+		std::string                    getTextEditorHighlightedExpression()const;
+		std::string                    getTextEditorContent              ()const;
 		void                           replaceHighlightedPortionInTextEditor(std::string _val);
 
 		void                           setTextEditorContent        (const std::string&);
