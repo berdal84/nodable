@@ -461,7 +461,6 @@ bool ApplicationView::draw()
 					TEXT EDITOR
 				*/
 
-				auto isTextChangedByApp     = textEditor->IsTextChanged();
 				auto textEditorSize         = ImGui::GetContentRegionAvail();
 
 				auto previousCursorPosition = textEditor->GetCursorPosition();
@@ -484,7 +483,6 @@ bool ApplicationView::draw()
 
 				bool needsToEvaluateString = isCurrentLineModified ||
 					                         textEditor->IsTextChanged() ||
-					                         isTextChangedByApp ||
 					                         isSelectedTextModified;
 
 				if (textEditor->IsTextChanged())
