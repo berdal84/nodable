@@ -82,6 +82,8 @@ void Application::replaceHighlightedPortionInTextEditor(std::string _val)
 	{
 		auto view =	getComponent("view")->getAs<ApplicationView*>();
 		view->replaceHighlightedPortionInTextEditor(_val);
+		auto content = view->getTextEditorContent();
+		this->setCurrentlyActiveFileContent(content);
 	}
 }
 
