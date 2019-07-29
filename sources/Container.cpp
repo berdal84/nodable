@@ -56,9 +56,7 @@ void Container::update()
 	{
 		auto app = this->getOwner()->getAs<Application*>();
 		if (result && app)
-		{
-			app->updateCurrentLineText(result->getValueMember()->getSourceExpression());
-		}
+			app->replaceHighlightedPortionInTextEditor(result->getValueMember()->getSourceExpression());
 	}
 }
 
