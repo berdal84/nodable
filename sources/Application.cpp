@@ -123,6 +123,20 @@ bool Application::eval(std::string _expression)
 	return false;
 }
 
+bool Application::clearContextAndEvalHighlightedExpression()
+{
+	bool success;
+
+	clearContext();
+
+	auto view       = (getComponent("view"))->getAs<ApplicationView*>();
+	auto expression = view->getTextEditorHighlightedExpression();
+	success         = eval(expression);
+
+	return success;
+}
+
+
 void Application::shutdown()
 {
 	LOG_MSG("shutting down application ( _name = \"%s\")\n", getLabel());
@@ -201,11 +215,10 @@ void Application::setCurrentlyActiveLoadedFileWithIndex(size_t _index)
 	}else{
 		view->setTextEditorContent("");
 		view->setTextEditorCursorPosition(TextEditor::Coordinates(0, 0));
+		
 	}
 
-	/* Clear context (all existing nodes) */
-	this->clearContext();
-
+	clearContextAndEvalHighlightedExpression();
 }
 
 void Application::SaveEntity(Entity* _entity)

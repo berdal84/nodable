@@ -489,11 +489,7 @@ bool ApplicationView::draw()
 					application->setCurrentlyActiveFileContent(textEditor->GetText());
 
 				if (needsToEvaluateString)
-				{
-					application->clearContext();
-					std::string expr = textEditor->HasSelection() ? textEditor->GetSelectedText() : textEditor->GetCurrentLineText();
-					isExpressionValid = application->eval(expr);
-				}
+					isExpressionValid = application->clearContextAndEvalHighlightedExpression();
 
 				/*
 					NODE EDITOR

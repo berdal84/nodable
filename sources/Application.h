@@ -21,6 +21,8 @@ namespace Nodable
 		/* Converts an expression to a graph. 
 		The graph will be created within the application context (this->ctx)*/
 		bool             eval(std::string /* literal expression */);
+		/* eval highlighted expression (in ApplicationView) */
+		bool             clearContextAndEvalHighlightedExpression();
 
 		/* Initialize the application.
 		Should be called once before the first update() and draw()*/
