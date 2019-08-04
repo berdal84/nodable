@@ -1,4 +1,4 @@
-![Nodable Logo](https://github.com/berdal84/Nodable/blob/master/data/icon.png)
+![Nodable Logo](https://www.dalle-cort.fr/wp-content/uploads/2019/07/2019_08_04_Nodable_Logo_V2.jpg)
 
 Nodable is node-able !
 ======================
@@ -14,7 +14,7 @@ To download a binary: go to this [article](https://www.dalle-cort.fr/nodable-nod
 
 You still don't understand what I'm doing? I hope this GIF will make this more understandable:
 
-![Example1](https://github.com/berdal84/Nodable/blob/master/screenshots/2019_06_02_Nodable_demo.gif)
+![Demo GIF](https://www.dalle-cort.fr/wp-content/uploads/2018/01/2019_06_06_Nodable_0.4.1wip_Berenger_Dalle-Cort.gif)
 
 
 How to compile ? :
