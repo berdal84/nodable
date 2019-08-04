@@ -118,7 +118,7 @@ bool ApplicationView::init()
     config.OversampleV    = 4;
     config.MergeMode      = true;
     config.PixelSnapH     = true;
-    io.Fonts->AddFontFromFileTTF( FONT_ICON_FILE_NAME_FAS, 18.0f, &config, icons_ranges );
+		config.GlyphMinAdvanceX = 18.0f; // monospace to fix text alignment in drop down menus.
     }
 
     // Configure ImGui Style
