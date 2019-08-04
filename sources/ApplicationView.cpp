@@ -111,14 +111,15 @@ bool ApplicationView::init()
 
     // Add Icons   
     {
-    // merge in icons from Font Awesome
-    static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-    ImFontConfig config;
-    config.OversampleH    = 4;
-    config.OversampleV    = 4;
-    config.MergeMode      = true;
-    config.PixelSnapH     = true;
+		// merge in icons from Font Awesome
+		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		ImFontConfig config;
+		config.OversampleH      = 4;
+		config.OversampleV      = 4;
+		config.MergeMode        = true;
+		config.PixelSnapH       = true;
 		config.GlyphMinAdvanceX = 18.0f; // monospace to fix text alignment in drop down menus.
+		io.Fonts->AddFontFromFileTTF( FONT_ICON_FILE_NAME_FAS, 18.0f, &config, icons_ranges );
     }
 
     // Configure ImGui Style
