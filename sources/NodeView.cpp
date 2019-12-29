@@ -201,8 +201,6 @@ bool NodeView::draw()
 	screenPosition.x = position.x +  cursorScreenPos.x - cursorPosBeforeContent.x;
 	screenPosition.y = position.y +  cursorScreenPos.y - cursorPosBeforeContent.y;
 
-	ImGui::SetCursorPos(ImVec2(cursorPosBeforeContent.x, cursorPosBeforeContent.y));
-
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	{			
@@ -302,31 +300,32 @@ bool NodeView::draw()
 			_v->allows(Connection_Out) ||
 			_v->allows(Connection_InOut))
 		{
-			ImDrawList* draw_list = ImGui::GetWindowDrawList();
-			ImVec2      pos;
-			if (_v->getConnection() == Connection_In)
-				pos = ImGui::GetWindowPos() + getConnectorPosition(_v->getName(), Connection_In);
-			else
-				pos = ImGui::GetWindowPos() + getConnectorPosition(_v->getName(), Connection_Out);
+			ImDrawList* draw_list		= ImGui::GetWindowDrawList();
+			ImVec2      connectorPos	= getConnectorPosition(_v->getName(), _v->getConnection());
 
 			// Unvisible Button on top of the Circle
 
 			ImVec2 cpos = ImGui::GetCursorPos();
 			float invisibleButtonOffsetFactor(1.2);
-			ImGui::SetCursorScreenPos(ImVec2(pos.x - connectorRadius * invisibleButtonOffsetFactor, pos.y - connectorRadius * invisibleButtonOffsetFactor));
+			ImGui::SetCursorScreenPos( connectorPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor) + ImGui::GetWindowPos() );
 			ImGui::PushID(_v);
 			bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * float(2) * invisibleButtonOffsetFactor, connectorRadius * float(2) * invisibleButtonOffsetFactor));
 			ImGui::PopID();
 			ImGui::SetCursorPos(cpos);
 
 			// Circle
-			auto isItemHovered = ImGui::IsItemHoveredRect();
-			if (isItemHovered)
-				draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Highlighted));
-			else
-				draw_list->AddCircleFilled(pos, connectorRadius, getColor(ColorType_Fill));
+			auto isItemHovered		= ImGui::IsItemHoveredRect();
+			ImVec2 cursorPos		= ImGui::GetCursorPos();
+			ImVec2 cursorScreenPos	= ImGui::GetCursorScreenPos();
 
-			draw_list->AddCircle(pos, connectorRadius, getColor(ColorType_Border));
+			ImVec2 connnectorScreenPos = connectorPos + cursorScreenPos - cursorPos;
+
+			if (isItemHovered)
+				draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Highlighted));
+			else
+				draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Fill));
+
+			draw_list->AddCircle(connnectorScreenPos, connectorRadius, getColor(ColorType_Border));
 
 
 			// Manage mouse events in order to link two members by a Wire :

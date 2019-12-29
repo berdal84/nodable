@@ -23,7 +23,6 @@ bool WireView::draw()
 	if ( source != nullptr || target != nullptr )
 	{
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	    ImVec2      origin    = ImGui::GetWindowPos();
 
 	    // Compute start and end point
 	    Entity* sourceNode 	= source->getOwner()->getAs<Entity*>();
@@ -43,10 +42,11 @@ bool WireView::draw()
 	    auto sourceName = wire->getSource()->getName();
 	    auto targetName = wire->getTarget()->getName();
 
-	    ImVec2 pos0 = sourceView->getConnectorPosition(sourceName, Connection_Out);
-	    ImVec2 pos1 = targetView->getConnectorPosition(targetName, Connection_In);
-	    pos0.x += origin.x; pos0.y += origin.y;
-	    pos1.x += origin.x; pos1.y += origin.y;
+		ImVec2 cursorPos		= ImGui::GetCursorPos();
+		ImVec2 cursorScreenPos	= ImGui::GetCursorScreenPos();
+
+	    ImVec2 pos0 = sourceView->getConnectorPosition(sourceName, Connection_Out) + cursorScreenPos - cursorPos;
+		ImVec2 pos1 = targetView->getConnectorPosition(targetName, Connection_In ) + cursorScreenPos - cursorPos;
 
 	    if (displayArrows) // if arrows are displayed we offset x to see the edge of the arrow.
 	    	pos1.x -= 7.0f;

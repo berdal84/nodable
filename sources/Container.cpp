@@ -55,8 +55,15 @@ void Container::update()
 	if (entitiesUpdated > 0 && NodeView::GetSelected() != nullptr)
 	{
 		auto app = this->getOwner()->getAs<Application*>();
-		if (result && app)
-			app->replaceHighlightedPortionInTextEditor(result->getValueMember()->getSourceExpression());
+		if (result && app ) {
+			auto member = result->getValueMember();
+
+			if (member) {
+				auto expression = member->getSourceExpression();
+				app->replaceHighlightedPortionInTextEditor(expression);
+			}
+		}
+			
 	}
 }
 

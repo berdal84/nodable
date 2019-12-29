@@ -20,6 +20,7 @@ bool ContainerView::draw()
 {
 	
 	auto origin = ImGui::GetCursorScreenPos();
+	ImGui::SetCursorPos(ImVec2(0,0));
 	auto entities = this->getOwner()->getAs<Container*>()->getEntities();
 
 	/*
@@ -60,6 +61,8 @@ bool ContainerView::draw()
 		Wires
 	*/
 	{
+		
+
 		// Draw existing wires
 		for (auto eachNode : entities)
 		{
