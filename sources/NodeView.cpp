@@ -198,32 +198,33 @@ bool NodeView::draw()
 	ImGui::BeginGroup();
 	ImVec2 cursorPosBeforeContent = ImGui::GetCursorPos();
 	ImVec2 cursorScreenPos        = ImGui::GetCursorScreenPos();
-	screenPosition.x = position.x +  cursorScreenPos.x - cursorPosBeforeContent.x;
-	screenPosition.y = position.y +  cursorScreenPos.y - cursorPosBeforeContent.y;
+	screenPosition = position +  cursorScreenPos - cursorPosBeforeContent;
+
 
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	{			
 		auto borderCol = IsSelected(this) ? borderColorSelected : getColor(ColorType_Border);
 
-		auto itemRectMin = ImVec2(screenPosition.x - size.x/2.0f, screenPosition.y - size.y/2.0f);
-		auto itemRectMax = ImVec2(screenPosition.x + size.x/2.0f, screenPosition.y + size.y/2.0f);
+		const auto halfSize = size / 2.0;
+		auto itemRectMin = screenPosition - halfSize;
+		auto itemRectMax = screenPosition + halfSize;
 
 		// Draw the rectangle under everything
-		View::DrawRectShadow(itemRectMin, itemRectMax, borderRadius, 4, ImVec2(1.0f, 1.0f), getColor(ColorType_Shadow));
-		draw_list->AddRectFilled(itemRectMin, itemRectMax,getColor(ColorType_Fill), borderRadius);
-		draw_list->AddRect(ImVec2(itemRectMin.x + 1.0f, itemRectMin.y + 1.0f), ImVec2(itemRectMax.x, itemRectMax.y),getColor(ColorType_BorderHighlights), borderRadius);	
-		draw_list->AddRect(itemRectMin, itemRectMax,borderCol, borderRadius);				
+		View::DrawRectShadow	(itemRectMin,					itemRectMax, borderRadius, 4, ImVec2(1.0f), getColor(ColorType_Shadow));
+		draw_list->AddRectFilled(itemRectMin,					itemRectMax, getColor(ColorType_Fill), borderRadius);
+		draw_list->AddRect		(itemRectMin + ImVec2(1.0f)	,	itemRectMax, getColor(ColorType_BorderHighlights), borderRadius);
+		draw_list->AddRect		(itemRectMin,					itemRectMax, borderCol, borderRadius);				
 
 		// darken the background under the content
-		draw_list->AddRectFilled(ImVec2(itemRectMin.x, itemRectMin.y + ImGui::GetTextLineHeightWithSpacing() + nodePadding), ImVec2(itemRectMax.x, itemRectMax.y), ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
+		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + nodePadding), itemRectMax, ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
 
 		// Draw an additionnal blinking rectangle when selected
 		if (IsSelected(this))
 		{
-			float alpha = sin(ImGui::GetTime() * 10.0f)*0.25f + 0.5f;
+			float alpha  = sin(ImGui::GetTime() * 10.0f) * 0.25f + 0.5f;
 			float offset = 4.0f;
-			draw_list->AddRect(ImVec2(itemRectMin.x - offset, itemRectMin.y - offset), ImVec2(itemRectMax.x + offset, itemRectMax.y + offset), ImColor(1.0f, 1.0f, 1.0f, alpha), borderRadius + offset, ~0, offset / 2.0f);
+			draw_list->AddRect(itemRectMin - ImVec2(offset), itemRectMax + ImVec2(offset), ImColor(1.0f, 1.0f, 1.0f, alpha), borderRadius + offset, ~0, offset / 2.0f);
 		}
 	}
 
@@ -239,126 +240,33 @@ bool NodeView::draw()
 	// Draw the window content 
 	//------------------------
 
-	ShadowedText(ImVec2(1.0f, 1.0f), getColor(ColorType_BorderHighlights), node->getLabel()); // text with a lighter shadow (incrust effect)
+	ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), node->getLabel()); // text with a lighter shadow (incrust effect)
 
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + nodePadding);
 	ImGui::Indent(nodePadding);
 
 	connectorOffsetPositionsY.clear();
-	auto drawValue = [&](Member* _v)->void
-	{
-		auto memberTopPositionOffsetY 	= ImGui::GetCursorPos().y - position.y;
 
-		if (_v->isSet())
-		{
-			/* Draw the member */
-			switch (_v->getType())
-			{
-			case Type_Number:
-			{
-				std::string label("##");
-				label.append(_v->getName());
-				float f(_v->getValueAsNumber());
-				if (ImGui::InputFloat(label.c_str(), &f))
-				{
-					_v->setValue(f);
-					node->setDirty(true);
-					edited |= true;
-				}
-				break;
-			}
-			default:
-			{
-				ImGui::Text("%s", _v->getName().c_str());
-				ImGui::SameLine(100.0f);
-				ImGui::Text("%s", _v->getValueAsString().c_str());
-				break;
-			}
-			}
-
-		}
-		else {
-			ImGui::Text("%s", _v->getName().c_str());
-		}
-		
-		/* If value is hovered, we draw a tooltip that print the source expression of the value*/
-		if( ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::Text("Source expression: \"%s\"", _v->getSourceExpression().c_str());
-			ImGui::EndTooltip();
-		}
-
-		auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
-		connectorOffsetPositionsY[_v->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f;
-		
-		/* 
-			Draw the wire connector 
-		*/
-
-		if (_v->allows(Connection_In) ||
-			_v->allows(Connection_Out) ||
-			_v->allows(Connection_InOut))
-		{
-			ImDrawList* draw_list		= ImGui::GetWindowDrawList();
-			ImVec2      connectorPos	= getConnectorPosition(_v->getName(), _v->getConnection());
-
-			// Unvisible Button on top of the Circle
-
-			ImVec2 cpos = ImGui::GetCursorPos();
-			float invisibleButtonOffsetFactor(1.2);
-			ImGui::SetCursorScreenPos( connectorPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor) + ImGui::GetWindowPos() );
-			ImGui::PushID(_v);
-			bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * float(2) * invisibleButtonOffsetFactor, connectorRadius * float(2) * invisibleButtonOffsetFactor));
-			ImGui::PopID();
-			ImGui::SetCursorPos(cpos);
-
-			// Circle
-			auto isItemHovered		= ImGui::IsItemHoveredRect();
-			ImVec2 cursorPos		= ImGui::GetCursorPos();
-			ImVec2 cursorScreenPos	= ImGui::GetCursorScreenPos();
-
-			ImVec2 connnectorScreenPos = connectorPos + cursorScreenPos - cursorPos;
-
-			if (isItemHovered)
-				draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Highlighted));
-			else
-				draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Fill));
-
-			draw_list->AddCircle(connnectorScreenPos, connectorRadius, getColor(ColorType_Border));
-
-
-			// Manage mouse events in order to link two members by a Wire :
-
-			// HOVERED
-			if (isItemHovered)
-				s_hoveredByMouseMember = _v;
-			else if (s_hoveredByMouseMember == _v)
-				s_hoveredByMouseMember = nullptr;
-
-			// DRAG
-			if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedByMouseMember == nullptr)
-				s_draggedByMouseMember = _v;
-		}
-	};
 
 	// Draw visible members
 	{
 		// Draw input only first
 		for(auto& m : node->getMembers())
 		{		
-			if( m.second->getVisibility() == Visibility_AlwaysVisible && m.second->getConnection() == Connection_In)
+			auto member = m.second;
+			if (member->getVisibility() == Visibility_AlwaysVisible && member->getConnection() == Connection_In)
 			{
-				drawValue(m.second);
+				drawMember(m.second);
 			}
 		}
 
 		// Then draw the rest
 		for (auto& m : node->getMembers())
 		{
-			if (m.second->getVisibility() == Visibility_AlwaysVisible && m.second->getConnection() != Connection_In)
+			auto member = m.second;
+			if (member->getVisibility() == Visibility_AlwaysVisible && member->getConnection() != Connection_In)
 			{
-				drawValue(m.second);
+				drawMember(member);
 			}
 		}
 	}
@@ -372,7 +280,7 @@ bool NodeView::draw()
 			if( m.second->getVisibility() == Visibility_VisibleOnlyWhenUncollapsed ||
 				m.second->getVisibility() == Visibility_AlwaysHidden)
 			{
-				drawValue(m.second);
+				this->drawMember(m.second);
 			}
 		}	
 
@@ -492,5 +400,107 @@ void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 		}
 	}
 }
+
+bool NodeView::drawMember(Member* _member) {
+
+	bool edited = false;
+	auto node = getOwner();
+
+	auto memberTopPositionOffsetY = ImGui::GetCursorPos().y - position.y;
+
+	if (_member->isSet())
+	{
+		/* Draw the member */
+		switch (_member->getType())
+		{
+		case Type_Number:
+		{
+			std::string label("##");
+			label.append(_member->getName());
+			float f(_member->getValueAsNumber());
+			if (ImGui::InputFloat(label.c_str(), &f))
+			{
+				_member->setValue(f);
+				node->setDirty(true);
+				edited |= true;
+			}
+			break;
+		}
+		default:
+		{
+			ImGui::Text("%s", _member->getName().c_str());
+			ImGui::SameLine(100.0f);
+			ImGui::Text("%s", _member->getValueAsString().c_str());
+			break;
+		}
+		}
+
+	}
+	else {
+		ImGui::Text("%s", _member->getName().c_str());
+	}
+
+	/* If value is hovered, we draw a tooltip that print the source expression of the value*/
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::Text("Source expression: \"%s\"", _member->getSourceExpression().c_str());
+		ImGui::EndTooltip();
+	}
+
+	auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
+	connectorOffsetPositionsY[_member->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f; // store y axis middle
+
+	/*
+		Draw the wire connector
+	*/
+
+	if (_member->allows(Connection_In) ||
+		_member->allows(Connection_Out) ||
+		_member->allows(Connection_InOut))
+	{
+		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+		ImVec2      connectorPos = getConnectorPosition(_member->getName(), _member->getConnection());
+
+		// Unvisible Button on top of the Circle
+
+		ImVec2 cpos = ImGui::GetCursorPos();
+		float invisibleButtonOffsetFactor(1.2);
+		ImGui::SetCursorScreenPos(connectorPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor) + ImGui::GetWindowPos());
+		ImGui::PushID(_member);
+		bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * float(2) * invisibleButtonOffsetFactor, connectorRadius * float(2) * invisibleButtonOffsetFactor));
+		ImGui::PopID();
+		ImGui::SetCursorPos(cpos);
+
+		// Circle
+		auto isItemHovered = ImGui::IsItemHoveredRect();
+		ImVec2 cursorPos = ImGui::GetCursorPos();
+		ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+
+		ImVec2 connnectorScreenPos = connectorPos + cursorScreenPos - cursorPos;
+
+		if (isItemHovered)
+			draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Highlighted));
+		else
+			draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Fill));
+
+		draw_list->AddCircle(connnectorScreenPos, connectorRadius, getColor(ColorType_Border));
+
+
+		// Manage mouse events in order to link two members by a Wire :
+
+		// HOVERED
+		if (isItemHovered)
+			s_hoveredByMouseMember = _member;
+		else if (s_hoveredByMouseMember == _member)
+			s_hoveredByMouseMember = nullptr;
+
+		// DRAG
+		if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedByMouseMember == nullptr)
+			s_draggedByMouseMember = _member;
+	}
+
+	return edited;
+};
 
 

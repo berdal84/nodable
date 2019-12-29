@@ -41,11 +41,11 @@
 # *.out
 # *.app
 
-# Visual studio temp files
+# Visual studio
 .vs
 *.VC.db
 *\temp
-
+build/Nodable.vcxproj.user
 
 *.db
 

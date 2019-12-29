@@ -24,7 +24,8 @@ namespace Nodable{
 	public:
 		COMPONENT_CONSTRUCTOR(NodeView);
 
-		/* Draw the view at its position into the current window*/
+		/* Draw the view at its position into the current window
+		   Returns true if nod has been edited, false either */
 		bool              draw                ()override;
 
 		/* Should be called once per frame to update the view */
@@ -46,7 +47,7 @@ namespace Nodable{
 		void              arrangeRecursively  ();
 		
 		/* Arrange input nodes recursively while keeping the nodeView at the position vector _position */
-		static void       ArrangeRecursively  (NodeView* /*_nodeView*/, ImVec2 _position = ImVec2(700.0f, 350.0f));
+		static void       ArrangeRecursively  (NodeView* /*_nodeView*/, ImVec2 _position = ImVec2(700.0f, 350.0f));		
 
 		/* Set the _nodeView as selected. 
 		Only a single view can be selected at the same time */
@@ -76,6 +77,10 @@ namespace Nodable{
 		static DrawDetail_ s_drawDetail;  // global draw detail (check DrawDetail_ enum)
 
 	private:
+		/*	Draw a Node Member at cursor position.
+			Returns true if Member's value has been modified, false either */
+		bool			  drawMember(Member* _v);
+
 		ImVec2          position            = ImVec2(500.0f, -1.0f);    // center position vector
 		ImVec2          size                = NODE_VIEW_DEFAULT_SIZE;  // size of the window
 		float           opacity             = 0.0f;                   // global transparency of this view                 
