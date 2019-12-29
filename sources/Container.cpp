@@ -36,17 +36,19 @@ void Container::update()
 
 	for(auto it = entities.begin(); it < entities.end(); ++it)
 	{
-		if ( *it != nullptr)
+		auto entity = *it;
+
+		if ( entity )
 		{
-			if ((*it)->needsToBeDeleted())
+			if ( entity->needsToBeDeleted())
 			{
-				delete *it;
+				delete entity;
 				it = entities.erase(it);
 			}
-			else if ((*it)->isDirty())
+			else if ( entity->isDirty())
 			{
 				entitiesUpdated++;
-				(*it)->update();
+				entity->update();
 			}
 		}
 	}
