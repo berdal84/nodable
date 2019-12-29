@@ -187,18 +187,19 @@ bool NodeView::draw()
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);
 
-	ImVec2 screenPosition = position;
+	
+	const auto halfSize = size / 2.0;
 
 	if ( position.x != -1.0f || position.y != -1.0f)
-		ImGui::SetCursorPos(ImVec2(std::floor(position.x - size.x/2.0f), std::floor(position.y - size.y / 2.0f)));
+		ImGui::SetCursorPos( position - halfSize );
 	else
 		ImGui::SetCursorPos(ImVec2());
 
 	ImGui::PushID(this);
 	ImGui::BeginGroup();
-	ImVec2 cursorPosBeforeContent = ImGui::GetCursorPos();
-	ImVec2 cursorScreenPos        = ImGui::GetCursorScreenPos();
-	screenPosition = position +  cursorScreenPos - cursorPosBeforeContent;
+
+	ImVec2 cursorPositionBeforeContent = ImGui::GetCursorPos();
+	ImVec2 screenPosition  = View::ConvertCursorPositionToScreenPosition( position );
 
 
 	// Draw the background of the Group
@@ -206,7 +207,7 @@ bool NodeView::draw()
 	{			
 		auto borderCol = IsSelected(this) ? borderColorSelected : getColor(ColorType_Border);
 
-		const auto halfSize = size / 2.0;
+		
 		auto itemRectMin = screenPosition - halfSize;
 		auto itemRectMax = screenPosition + halfSize;
 
@@ -229,11 +230,11 @@ bool NodeView::draw()
 	}
 
 	// Add an invisible just on top of the background to detect mouse hovering
-	ImGui::SetCursorPos(cursorPosBeforeContent);
+	ImGui::SetCursorPos(cursorPositionBeforeContent);
 	ImGui::InvisibleButton("##", size);
 	ImGui::SetItemAllowOverlap();
 	hovered = ImGui::IsItemHovered();
-	ImGui::SetCursorPos(ImVec2(cursorPosBeforeContent.x + nodePadding, cursorPosBeforeContent.y + nodePadding));
+	ImGui::SetCursorPos(cursorPositionBeforeContent + nodePadding );
 
 	ImGui::PushItemWidth(size.x - float(2) * nodePadding);
 
@@ -277,18 +278,27 @@ bool NodeView::draw()
 		// Draw visible members
 		for(auto& m : node->getMembers())
 		{		
-			if( m.second->getVisibility() == Visibility_VisibleOnlyWhenUncollapsed ||
-				m.second->getVisibility() == Visibility_AlwaysHidden)
+			auto member = m.second;
+
+			if( member->getVisibility() == Visibility_VisibleOnlyWhenUncollapsed ||
+				member->getVisibility() == Visibility_AlwaysHidden)
 			{
-				this->drawMember(m.second);
+				this->drawMember(member);
 			}
 		}	
 
 		// Draw component names
 		ImGui::NewLine();
 		ImGui::Text("Components :");
-		for(auto& c : node->getComponents())
-			ImGui::Text("- %s (%s)",c.first.c_str(),    c.second->getMember("__class__")->getValueAsString().c_str());
+
+		for (auto& pair : node->getComponents()) {
+
+			auto component	= pair.second;
+			auto name		= pair.first;
+			auto className	= component->getMember("__class__")->getValueAsString();
+
+			ImGui::Text("- %s (%s)", name.c_str(), className.c_str());
+		}
 
 		// Draw parent's name
 		ImGui::NewLine();
@@ -369,7 +379,7 @@ bool NodeView::draw()
 	}	
 
 	// interpolate size.y to fit with its content
-	size.y = 0.5f * size.y  + 0.5f * (cursorPosAfterContent.y - cursorPosBeforeContent.y);
+	size.y = 0.5f * size.y  + 0.5f * (cursorPosAfterContent.y - cursorPositionBeforeContent.y);
 
 
 	ImGui::PopStyleVar();

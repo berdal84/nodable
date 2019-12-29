@@ -35,6 +35,9 @@ namespace Nodable{
 		/* Draw a colored text with a shadow. */
 		static void ColoredShadowedText (ImVec2 _offset, ImColor _textColor, ImColor _shadowColor, const char*, ...);
 
+		/* */
+		static ImVec2 ConvertCursorPositionToScreenPosition(ImVec2);
+
 		void        setColor       (ColorType_ ,ImColor);
 		ImColor     getColor       (ColorType_);
 

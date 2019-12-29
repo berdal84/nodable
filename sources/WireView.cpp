@@ -20,7 +20,7 @@ bool WireView::draw()
 	auto source = wire->getSource();
 	auto target = wire->getTarget();
 
-	if ( source != nullptr || target != nullptr )
+	if ( source && target )
 	{
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -42,11 +42,9 @@ bool WireView::draw()
 	    auto sourceName = wire->getSource()->getName();
 	    auto targetName = wire->getTarget()->getName();
 
-		ImVec2 cursorPos		= ImGui::GetCursorPos();
-		ImVec2 cursorScreenPos	= ImGui::GetCursorScreenPos();
+		ImVec2 pos0 = View::ConvertCursorPositionToScreenPosition( sourceView->getConnectorPosition(sourceName, Connection_Out) );
+		ImVec2 pos1 = View::ConvertCursorPositionToScreenPosition( targetView->getConnectorPosition(targetName, Connection_In) );
 
-	    ImVec2 pos0 = sourceView->getConnectorPosition(sourceName, Connection_Out) + cursorScreenPos - cursorPos;
-		ImVec2 pos1 = targetView->getConnectorPosition(targetName, Connection_In ) + cursorScreenPos - cursorPos;
 
 	    if (displayArrows) // if arrows are displayed we offset x to see the edge of the arrow.
 	    	pos1.x -= 7.0f;
