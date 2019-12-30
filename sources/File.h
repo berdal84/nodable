@@ -3,6 +3,7 @@
 #include "Log.h"
 #include "Entity.h"
 #include "Container.h"
+#include "History.h"
 
 #include <SDL.h>
 #include <cstdio>
@@ -40,6 +41,10 @@ namespace Nodable
 
 		inline Container* getContainer() {
 			return getComponent("container")->getAs<Container*>();
+		}
+		
+		inline History* getHistory() {
+			return getComponent("history")->getAs<History*>();
 		}
 
 	private:

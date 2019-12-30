@@ -1,4 +1,5 @@
 #include "File.h"
+#include "History.h"
 #include "FileView.h"
 #include "ContainerView.h"
 #include "Container.h"
@@ -64,11 +65,21 @@ File* File::CreateFileWithPath(const char* _filePath)
 	fileView->init();
 	fileView->setTextEditorContent(file->getText());
 
-	// Add a container to the application to contain all nodes :
+	/*
+		Creates a node container
+	*/
 	auto container = new Container;
 	file->addComponent("container", container);
 	container->addComponent("view", new ContainerView);
 	container->setOwner(file);
+
+	/*
+		Creates an history for UNDO/REDO
+	*/
+	auto h = new History;
+	file->addComponent("history", h);
+	
+
 
 	return file;
 }
@@ -153,6 +164,7 @@ bool File::clearContextAndEvalHighlightedExpression()
 {
 	bool success;
 
+	getHistory()->clear();
 	getContainer()->clear();
 
 	auto view = getComponent("view")->getAs<FileView*>();

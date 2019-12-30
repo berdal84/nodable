@@ -23,8 +23,8 @@ void Entity::Connect( Wire* _wire,
 					Member* _from,
 					Member* _to)
 {	
-	Cmd* cmd = new Cmd_ConnectWire(_wire, _from, _to);
-	History::global->addAndExecute(cmd);
+	Cmd_ConnectWire command(_wire, _from, _to);
+	command.execute();
 }
 
 Entity::~Entity()

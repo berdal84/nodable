@@ -23,11 +23,6 @@ Application::Application(const char* _name):currentlyActiveLoadedFileIndex(0)
 	setMember("__class__", "Application");
 	setLabel(_name);
 	addComponent("view",      new ApplicationView(_name,    this));
-
-	// Add an History component for UNDO/REDO
-	auto h = new History;
-	addComponent("history", h);
-	History::global = h;
 }
 
 Application::~Application()
