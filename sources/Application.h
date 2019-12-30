@@ -15,15 +15,6 @@ namespace Nodable
 		Application(const char* /*_applicationName*/);
 		~Application();
 
-		/* Clear the application context. */
-		void             clearContext();
-
-		/* Converts an expression to a graph. 
-		The graph will be created within the application context (this->ctx)*/
-		bool             eval(std::string /* literal expression */);
-		/* eval highlighted expression (in ApplicationView) */
-		bool             clearContextAndEvalHighlightedExpression();
-
 		/* Initialize the application.
 		Should be called once before the first update() and draw()*/
 		bool             init();
@@ -34,27 +25,22 @@ namespace Nodable
 		/* Update the state of the application.
 		Call this once per frame */
 		bool             update();
-		
-		/* Update Current Line Text*/
-		void             replaceHighlightedPortionInTextEditor(std::string _val);
 
 		/* Force application to stops. Always delayed for 1 frame. */
 		void             stopExecution();
-
-		/* Get the context (also called a container) of this application.*/
-		Container*       getContext()const;
 
 		/* open a file with a file path as parameter, return true if success, false if fail.*/
 		bool             openFile(const char*);
 		void             saveCurrentlyActiveFile()const;
 		void             setCurrentlyActiveFileContent(std::string&);
 		void             closeCurrentlyActiveFile();
+		File*			 getCurrentFile()const;
 		unsigned int     getLoadedFileCount                    ()const              { return loadedFiles.size(); }
-		std::string      getLoadedFileContentAtIndex           (size_t _index)const { return loadedFiles[_index]->getContent(); }
+		std::string      getLoadedFileContentAtIndex           (size_t _index)const { return loadedFiles[_index]->getText(); }
 		std::string      getLoadedFileNameAtIndex              (size_t _index)const { return loadedFiles[_index]->getName(); }
 		size_t           getCurrentlyActiveLoadedFileIndex     ()const              { return currentlyActiveLoadedFileIndex; }
-		void             memorizeCurrentlyActiveLoadedFileCursorPosition();
 		void             setCurrentlyActiveLoadedFileWithIndex (size_t _index);
+		
 
 		static void      SaveEntity(Entity* _entity);
 

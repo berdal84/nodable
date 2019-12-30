@@ -12,7 +12,7 @@
 #include "NodeView.h"
 #include "File.h"
 #include "Log.h"
-
+#include "FileView.h"
 
 using namespace Nodable;
 
@@ -39,7 +39,6 @@ ApplicationView::ApplicationView(const char* _name, Application* _application):
 
 ApplicationView::~ApplicationView()
 {
-    delete textEditor;
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext    ();
     SDL_GL_DeleteContext     (glcontext);
@@ -178,40 +177,6 @@ bool ApplicationView::init()
 	style.AntiAliasedLines   = true;
     style.WindowPadding      = ImVec2(10.0f,10.0f);
 
-    /*
-        Configure ImGuiTextColorEdit
-    */
-
-    textEditor = new TextEditor;    
-    static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
-    textEditor->SetLanguageDefinition(lang);	
-	textEditor->SetImGuiChildIgnored(true);
-
-    TextEditor::Palette palette = {{
-        0xffffffff, // None
-        0xffd69c56, // Keyword  
-        0xff00ff00, // Number
-        0xff7070e0, // String
-        0xff70a0e0, // Char literal
-        0xffffffff, // Punctuation
-        0xff409090, // Preprocessor
-        0xffaaaaaa, // Identifier
-        0xff9bc64d, // Known identifier
-        0xffc040a0, // Preproc identifier
-        0xff909090, // Comment (single line)
-        0xff909090, // Comment (multi line)
-        0x30000000, // Background
-        0xffe0e0e0, // Cursor
-        0x40ffffff, // Selection
-        0x800020ff, // ErrorMarker
-        0x40f08000, // Breakpoint
-        0x88909090, // Line number
-        0x40000000, // Current line fill
-        0x40808080, // Current line fill (inactive)
-        0x40a0a0a0, // Current line edge
-        }};
-
-    textEditor->SetPalette(palette);
 	return true;
 }
 
@@ -442,7 +407,6 @@ bool ApplicationView::draw()
 					if (ImGui::IsItemClicked(0))
 					{
 						LOG_MSG("ApplicationView - User switch tabs to \"%s\" (id:%lu)\n", tabLabel.c_str(), i);
-						application->memorizeCurrentlyActiveLoadedFileCursorPosition();
 						application->setCurrentlyActiveLoadedFileWithIndex(i);
 						userSwitchesFile = true;
 					}
@@ -456,52 +420,9 @@ bool ApplicationView::draw()
             auto availSize = ImGui::GetContentRegionAvail();
             availSize.y -=  ImGui::GetTextLineHeightWithSpacing();;
 
-            ImGui::BeginChild( "TextEditor", ImVec2(availSize.x , availSize.y), false);
+            ImGui::BeginChild( "File View", ImVec2(availSize.x , availSize.y), false);
 			{
-				/*
-					TEXT EDITOR
-				*/
-
-				auto textEditorSize         = ImGui::GetContentRegionAvail();
-
-				auto previousCursorPosition = textEditor->GetCursorPosition();
-				auto previousSelectedText   = textEditor->GetSelectedText();
-				auto previousLineText       = textEditor->GetCurrentLineText();
-
-				auto allowkeyboard          = !NodeView::IsANodeDragged() && 
-											   NodeView::GetSelected() == nullptr; // disable keyboard for text editor when a node is selected.
-				
-				auto allowMouse             = !NodeView::IsANodeDragged() &&
-					                          !ImGui::IsAnyItemHovered() &&
-					                          !ImGui::IsAnyItemFocused();
-
-				textEditor->SetHandleKeyboardInputs(allowkeyboard);
-				textEditor->SetHandleMouseInputs(allowMouse);
-				textEditor->Render         ("Text Editor Plugin", availSize);
-
-				auto currentCursorPosition  = textEditor->GetCursorPosition();
-				auto currentSelectedText    = textEditor->GetSelectedText();
-				auto currentLineText        = textEditor->GetCurrentLineText();
-
-				auto isCurrentLineModified  = currentLineText != previousLineText;
-				auto isSelectedTextModified = previousSelectedText != currentSelectedText;
-
-				bool needsToEvaluateString = isCurrentLineModified ||
-					                         textEditor->IsTextChanged() ||
-					                         isSelectedTextModified;
-
-				if (textEditor->IsTextChanged())
-					application->setCurrentlyActiveFileContent(textEditor->GetText());
-
-				if (needsToEvaluateString)
-					isExpressionValid = application->clearContextAndEvalHighlightedExpression();
-
-				/*
-					NODE EDITOR
-				*/
-				ImGui::SetCursorPos(ImVec2(0, 0));
-				if (application->getContext()->hasComponent("view"))
-					application->getContext()->getComponent("view")->getAs<View*>()->draw();
+				currentFileView->draw();
 			}
 			ImGui::EndChild();
 
@@ -567,46 +488,3 @@ bool ApplicationView::draw()
     return false;
 }
 
-std::string ApplicationView::getTextEditorContent()const
-{
-	return textEditor->GetText();
-}
-
-void ApplicationView::replaceHighlightedPortionInTextEditor(std::string _val)
-{
-    auto coord = textEditor->GetCursorPosition();
-
-    /* If there is no selection, selects current line */
-	auto hasSelection = textEditor->HasSelection();
-
-    if ( !hasSelection )
-    {
-        textEditor->MoveHome(false);
-        textEditor->MoveEnd(true);
-        textEditor->SetCursorPosition(TextEditor::Coordinates(coord.mLine, 0));
-    }
-
-    /* delete selection */
-    textEditor->Delete();
-	coord = textEditor->GetCursorPosition();
-
-    /* insert text */
-    textEditor->InsertText(_val);
-
-	/* Select the new inserted text if needed*/
-	if (hasSelection)
-	{
-		textEditor->SetSelectionStart(coord);
-		textEditor->SetSelectionEnd(TextEditor::Coordinates(coord.mLine, coord.mColumn + _val.size()));
-	}
-}
-
-void Nodable::ApplicationView::setTextEditorContent(const std::string& _content)
-{
-	textEditor->SetText(_content);
-}
-
-std::string Nodable::ApplicationView::getTextEditorHighlightedExpression()const
-{
-	return textEditor->HasSelection() ? textEditor->GetSelectedText() : textEditor->GetCurrentLineText();
-}

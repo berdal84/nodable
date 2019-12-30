@@ -9,6 +9,6 @@ namespace Nodable
 	{
 	public:
 		COMPONENT_CONSTRUCTOR(DataAccess);
-		void update()override;
+		bool update()override;
 	};
 }

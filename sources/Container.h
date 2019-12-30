@@ -14,7 +14,7 @@ namespace Nodable{
 		COMPONENT_CONSTRUCTOR(Container);
 
 		virtual ~Container();
-		void                      	update();
+		bool                      	update();
 		void                      	clear();
 		size_t                    	getSize()const;
 		Variable* 	          		find                      (std::string /*Symbol name*/);
@@ -35,6 +35,7 @@ namespace Nodable{
 		Wire*                       createWire();
 		std::vector<Variable*>& 	getVariables(){return variables;}
 		std::vector<Entity*>& 	    getEntities(){return entities;}
+
 	private:
 		Variable*                   result = nullptr;
 		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */

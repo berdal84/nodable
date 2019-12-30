@@ -98,7 +98,7 @@ bool BinaryOperationComponent::NeedsToBeEvaluatedFirst(std::string op, std::stri
  // Node_Add :
 //////////////
 
-void Add::update()
+bool Add::update()
 {
 	switch(left->getType())
 	{
@@ -130,12 +130,14 @@ void Add::update()
 	LOG_MSG("%s + %s = %f\n", left->getValueAsString().c_str(), 
                               right->getValueAsString().c_str(),
                               result->getValueAsString().c_str());
+
+	return true;
 }
 
  // Node_Substract :
 ///////////////////////
 
-void Substract::update()
+bool Substract::update()
 {
 	double sub = left->getValueAsNumber() - right->getValueAsNumber();
 	result->setValue(sub);
@@ -145,12 +147,13 @@ void Substract::update()
 	LOG_MSG("%s - %s = %f\n", left->getValueAsString().c_str(), 
                               right->getValueAsString().c_str(),
                               result->getValueAsString().c_str());
+	return true;
 }
 
  // Node_Divide :
 ///////////////////////
 
-void Divide::update()
+bool Divide::update()
 {
 	if (right->getValueAsNumber() != 0.0f)
 	{
@@ -163,12 +166,14 @@ void Divide::update()
 	}
 
 	updateResultSourceExpression();
+
+	return true;
 }
 
  // Node_Multiply :
 ///////////////////////
 
-void Multiply::update()
+bool Multiply::update()
 {
 	switch(left->getType())
 	{
@@ -192,12 +197,13 @@ void Multiply::update()
 	LOG_MSG("%s * %s = %f\n", left->getValueAsString().c_str(), 
 	                          right->getValueAsString().c_str(),
 	                          result->getValueAsString().c_str());
+	return true;
 }
 
  // Node_Assign :
 ///////////////////////
 
-void Assign::update()
+bool Assign::update()
 {
 	switch (right->getType())
 	{
@@ -229,4 +235,5 @@ void Assign::update()
 	LOG_MSG("%s = %s (result %s)\n", 	left->getValueAsString().c_str(),
 										right->getValueAsString().c_str(),
 										result->getValueAsString().c_str());	
+	return true;
 }

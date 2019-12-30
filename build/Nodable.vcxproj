@@ -35,6 +35,7 @@
     <ClCompile Include="..\sources\DataAccess.cpp" />
     <ClCompile Include="..\sources\Entity.cpp" />
     <ClCompile Include="..\sources\File.cpp" />
+    <ClCompile Include="..\sources\FileView.cpp" />
     <ClCompile Include="..\sources\History.cpp" />
     <ClCompile Include="..\sources\Lexer.cpp" />
     <ClCompile Include="..\sources\Log.cpp" />
@@ -216,6 +217,7 @@
     <ClInclude Include="..\sources\DataAccess.h" />
     <ClInclude Include="..\sources\Entity.h" />
     <ClInclude Include="..\sources\File.h" />
+    <ClInclude Include="..\sources\FileView.h" />
     <ClInclude Include="..\sources\History.h" />
     <ClInclude Include="..\sources\Lexer.h" />
     <ClInclude Include="..\sources\Log.h" />

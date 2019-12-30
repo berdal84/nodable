@@ -35,7 +35,7 @@ namespace Nodable{
 		void                setLabel          (std::string);
 
 		/* Update the state of this node. Call this once per frame */
-		bool                update            ();
+		virtual bool        update            ();
 
 		void                addWire           (Wire*);
 		void                removeWire        (Wire*);

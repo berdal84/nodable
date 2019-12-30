@@ -18,7 +18,7 @@ namespace Nodable{
 		~Component(){};
 		void         setOwner(Entity* _entity){ owner = _entity; }
 		Entity*      getOwner()const{return owner;}
-		virtual void update(){};
+
 	private:
 		Entity* owner = nullptr;
 	};
