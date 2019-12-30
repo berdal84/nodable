@@ -17,7 +17,7 @@
 
 using namespace Nodable;
 
-Application::Application(const char* _name):currentlyActiveLoadedFileIndex(0)
+Application::Application(const char* _name):currentFileIndex(0)
 {
 	LOG_MSG("A new Application ( label = \"%s\")\n", _name);
 	setMember("__class__", "Application");
@@ -72,64 +72,45 @@ bool Application::openFile(const char* _filePath)
 	if (file != nullptr)
 	{
 		loadedFiles.push_back(file);
-		setCurrentlyActiveLoadedFileWithIndex(loadedFiles.size() - 1);
-		auto view = reinterpret_cast<ApplicationView*>(getComponent("view"));
-
-		view->setCurrentFileView(fileView);
+		setCurrentFileWithIndex(loadedFiles.size() - 1);
 	}
 
 	return file != nullptr;
 }
 
-void Application::saveCurrentlyActiveFile() const
+void Application::saveCurrentFile() const
 {
-	auto currentFile = loadedFiles.at(currentlyActiveLoadedFileIndex);
-	if (currentFile != nullptr)
-	{
+	auto currentFile = loadedFiles.at(currentFileIndex);
+	if (currentFile)
 		currentFile->save();
-	}
 }
 
-void Application::setCurrentlyActiveFileContent(std::string& _content)
+void Application::closeCurrentFile()
 {
-	auto currentFile = loadedFiles.at(currentlyActiveLoadedFileIndex);
-	if (currentFile != nullptr)
-	{
-		currentFile->setContent(_content);
-	}
-}
-
-void Application::closeCurrentlyActiveFile()
-{
-	auto currentFile = loadedFiles.at(currentlyActiveLoadedFileIndex);
+	auto currentFile = loadedFiles.at(currentFileIndex);
 	if (currentFile != nullptr)
 	{
 		auto it = std::find(loadedFiles.begin(), loadedFiles.end(), currentFile);
 		loadedFiles.erase(it);
 		delete currentFile;
-		if (currentlyActiveLoadedFileIndex > 0)
-			setCurrentlyActiveLoadedFileWithIndex(currentlyActiveLoadedFileIndex - 1);
+		if (currentFileIndex > 0)
+			setCurrentFileWithIndex(currentFileIndex - 1);
 		else
-			setCurrentlyActiveLoadedFileWithIndex(currentlyActiveLoadedFileIndex);
+			setCurrentFileWithIndex(currentFileIndex);
 	}
 }
 
 File* Application::getCurrentFile()const {
-	return loadedFiles.at(currentlyActiveLoadedFileIndex);
+	return loadedFiles.at(currentFileIndex);
 }
 
-void Application::setCurrentlyActiveLoadedFileWithIndex(size_t _index)
+void Application::setCurrentFileWithIndex(size_t _index)
 {
-	auto view = reinterpret_cast<ApplicationView*>(getComponent("view"));
-
-	/* Then we set desired file as active */
 	if (loadedFiles.size() > _index)
 	{
 		auto newFile = loadedFiles.at(_index);
-		currentlyActiveLoadedFileIndex = _index;
+		currentFileIndex = _index;
 	}
-
-	// clearContextAndEvalHighlightedExpression();
 }
 
 void Application::SaveEntity(Entity* _entity)

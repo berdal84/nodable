@@ -31,15 +31,13 @@ namespace Nodable
 
 		/* open a file with a file path as parameter, return true if success, false if fail.*/
 		bool             openFile(const char*);
-		void             saveCurrentlyActiveFile()const;
-		void             setCurrentlyActiveFileContent(std::string&);
-		void             closeCurrentlyActiveFile();
+		void             saveCurrentFile()const;
+		void             closeCurrentFile();
 		File*			 getCurrentFile()const;
-		unsigned int     getLoadedFileCount                    ()const              { return loadedFiles.size(); }
-		std::string      getLoadedFileContentAtIndex           (size_t _index)const { return loadedFiles[_index]->getText(); }
+		unsigned int     getFileCount                          ()const              { return loadedFiles.size(); }
 		std::string      getLoadedFileNameAtIndex              (size_t _index)const { return loadedFiles[_index]->getName(); }
-		size_t           getCurrentlyActiveLoadedFileIndex     ()const              { return currentlyActiveLoadedFileIndex; }
-		void             setCurrentlyActiveLoadedFileWithIndex (size_t _index);
+		size_t           getCurrentFileIndex                   ()const              { return currentFileIndex; }
+		void             setCurrentFileWithIndex (size_t _index);
 		
 
 		static void      SaveEntity(Entity* _entity);
@@ -52,6 +50,6 @@ namespace Nodable
 		bool          quit                             = false;
 
 		std::vector<File*> loadedFiles;
-		size_t             currentlyActiveLoadedFileIndex; /* index that identify the current file in loadedFiles */
+		size_t             currentFileIndex; /* index that identify the current file in loadedFiles */
 	};
 }

@@ -259,12 +259,12 @@ bool ApplicationView::draw()
 
 					if (ImGui::MenuItem(ICON_FA_SAVE "  Save"))
 					{
-						application->saveCurrentlyActiveFile();
+						application->saveCurrentFile();
 					}
 
 					if (ImGui::MenuItem(ICON_FA_TIMES "  Close"))
 					{
-						application->closeCurrentlyActiveFile();
+						application->closeCurrentFile();
 					}
 
 					if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4"))
@@ -405,7 +405,7 @@ bool ApplicationView::draw()
 				
 				ImGui::BeginTabBar("FileTabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs);
 
-				for (size_t i = 0; i < application->getLoadedFileCount(); i++)
+				for (size_t i = 0; i < application->getFileCount(); i++)
 				{
 					std::string tabLabel = application->getLoadedFileNameAtIndex(i) + "##" + std::to_string(i);
 
@@ -415,7 +415,7 @@ bool ApplicationView::draw()
 					if (ImGui::IsItemClicked(0))
 					{
 						LOG_MSG("ApplicationView - User switch tabs to \"%s\" (id:%lu)\n", tabLabel.c_str(), i);
-						application->setCurrentlyActiveLoadedFileWithIndex(i);
+						application->setCurrentFileWithIndex(i);
 						userSwitchesFile = true;
 					}
 				}
@@ -430,7 +430,8 @@ bool ApplicationView::draw()
 
             ImGui::BeginChild( "File View", ImVec2(availSize.x , availSize.y), false);
 			{
-				currentFileView->draw();
+				auto fileView = application->getCurrentFile()->getComponent("view")->getAs<View*>();
+				fileView->draw();
 			}
 			ImGui::EndChild();
 

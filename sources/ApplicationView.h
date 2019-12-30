@@ -22,10 +22,8 @@ namespace Nodable
 
 		/* call this once just after the instantiation. */
 		bool init();
-		void             setCurrentFileView(View* _view) { currentFileView = _view; }
 
 	private:
-		View			  *currentFileView;
 		Application       *application;
 		SDL_Window        *sdlWindow;
 		SDL_GLContext     glcontext;
