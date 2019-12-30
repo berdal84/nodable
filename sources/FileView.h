@@ -14,10 +14,10 @@ namespace Nodable {
 		void                           init();
 		bool                           draw();
 		bool                           hasChanged() { return this->m_hasChanged; }
-		void                           setTextEditorContent(const std::string&);
-		std::string                    getTextEditorHighlightedExpression()const;
-		std::string                    getTextEditorContent()const;
-		void                           replaceHighlightedPortionInTextEditor(std::string _val);
+		void                           setText(const std::string&);
+		std::string                    getSelectedText()const;
+		std::string                    getText()const;
+		void                           replaceSelectedText(std::string _val);
 		void                           setTextEditorCursorPosition(const TextEditor::Coordinates& _cursorPosition) { m_textEditor->SetCursorPosition(_cursorPosition); }
 		TextEditor::Coordinates        getTextEditorCursorPosition()const { return m_textEditor != nullptr ? m_textEditor->GetCursorPosition() : TextEditor::Coordinates(0, 0); }
 

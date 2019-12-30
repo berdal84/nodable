@@ -17,15 +17,52 @@
 
 using namespace Nodable;
 
-void File::save() const
-{
-	std::ofstream fileStream(this->path.c_str());
-	fileStream.write(content.c_str(), content.size());	
+Nodable::File::File(
+	const char* _path,
+	const char* _content,
+	const char* _name)
+{	
+	path = _path;
+	name = _name;
+
+	/*
+		Creates the FileView
+	*/
+
+	auto fileView = new FileView();
+	addComponent("view", fileView);
+	fileView->init();
+	fileView->setText(_content);
+
+	/*
+		Creates a node container
+	*/
+	auto container = new Container;
+	addComponent("container", container);
+	container->addComponent("view", new ContainerView);
+	container->setOwner(this);
+
+	/*
+		Creates an history for UNDO/REDO
+	*/
+	auto h = new History;
+	addComponent("history", h);
 }
 
-void File::setContent(std::string& _content)
+void File::save()
 {
-	content = _content;
+	if (modified) {
+		std::ofstream fileStream(this->path.c_str());
+		auto view = getComponent("view")->getAs<FileView*>();
+		auto content = view->getText();
+		fileStream.write( content.c_str(), content.size());
+		modified = false;
+		LOG_DBG("File %s saved\n", name.c_str());
+	}
+	else {
+		LOG_DBG("File %s saving ignored because not modified\n", name.c_str());
+	}
+	
 }
 
 File* File::CreateFileWithPath(const char* _filePath)
@@ -54,31 +91,8 @@ File* File::CreateFileWithPath(const char* _filePath)
 
 	LOG_MSG("Loading \"%s\"\n", cleanedFilePath.c_str());
 	std::string content((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
+
 	File* file = new File(cleanedFilePath.c_str(), content.c_str(), name.c_str());
-
-	/*
-		Creates the FileView
-	*/
-
-	auto fileView = new FileView();
-	file->addComponent("view", fileView);
-	fileView->init();
-	fileView->setTextEditorContent(file->getText());
-
-	/*
-		Creates a node container
-	*/
-	auto container = new Container;
-	file->addComponent("container", container);
-	container->addComponent("view", new ContainerView);
-	container->setOwner(file);
-
-	/*
-		Creates an history for UNDO/REDO
-	*/
-	auto h = new History;
-	file->addComponent("history", h);
-	
 
 
 	return file;
@@ -162,12 +176,12 @@ bool File::update() {
 	auto expression = member->getSourceExpression();
 	auto view		= getComponent("view")->getAs<FileView*>();
 
-	view->replaceHighlightedPortionInTextEditor(expression);
+	view->replaceSelectedText(expression);
 	
 	return true;
 }
 
-bool File::clearContextAndEvalHighlightedExpression()
+bool File::evaluateSelectedExpression()
 {
 	bool success;
 
@@ -176,7 +190,7 @@ bool File::clearContextAndEvalHighlightedExpression()
 
 	auto view = getComponent("view")->getAs<FileView*>();
 
-	auto expression = view->getTextEditorHighlightedExpression();
+	auto expression = view->getSelectedText();
 	success = evaluateExpression(expression);
 
 	return success;

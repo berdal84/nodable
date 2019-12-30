@@ -35,9 +35,9 @@ namespace Nodable
 		void             closeCurrentFile();
 		File*			 getCurrentFile()const;
 		unsigned int     getFileCount                          ()const              { return loadedFiles.size(); }
-		std::string      getLoadedFileNameAtIndex              (size_t _index)const { return loadedFiles[_index]->getName(); }
+		File*            getFileAtIndex                        (size_t _index)const { return loadedFiles[_index]; }
 		size_t           getCurrentFileIndex                   ()const              { return currentFileIndex; }
-		void             setCurrentFileWithIndex (size_t _index);
+		void             setCurrentFileWithIndex               (size_t _index);
 		
 
 		static void      SaveEntity(Entity* _entity);

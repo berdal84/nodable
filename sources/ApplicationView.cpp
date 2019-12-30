@@ -407,7 +407,12 @@ bool ApplicationView::draw()
 
 				for (size_t i = 0; i < application->getFileCount(); i++)
 				{
-					std::string tabLabel = application->getLoadedFileNameAtIndex(i) + "##" + std::to_string(i);
+					auto file = application->getFileAtIndex(i);
+					std::string tabLabel = file->getName();
+					if (file->isModified())
+						tabLabel.append("*");
+					tabLabel.append("##");
+					tabLabel.append(std::to_string(i));
 
 					if (ImGui::BeginTabItem(tabLabel.c_str()))
 							ImGui::EndTabItem();					

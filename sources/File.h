@@ -19,22 +19,16 @@ namespace Nodable
 	{
 	public:
 		File(const char* _path,
-			 const char* _content,
-			 const char* _name):
-			content(_content),
-			path(_path),
-			name(_name),
-			textEditorCursorPosition(0,0){}
+			const char* _content,
+			const char* _name);
 
-		std::string                      getText()const { return content; }
 		std::string                      getName()const { return name; }	
-		const TextEditor::Coordinates&   getCursorPosition()const { return textEditorCursorPosition; }
-		void                             setCursorPosition(const TextEditor::Coordinates& _textEditorCursorPosition) { textEditorCursorPosition = _textEditorCursorPosition;  }
-		void                             save()const;
-		void                             setContent(std::string&);
-		bool                             evaluateExpression(std::string&);
+		void                             save();
 		bool                             update();
-		bool                             clearContextAndEvalHighlightedExpression();
+		void                             setModified() { modified = true; }
+		bool                             isModified() { return modified; }
+		bool                             evaluateExpression(std::string&);
+		bool                             evaluateSelectedExpression();
 
 		static File*                     CreateFileWithPath                    (const char* _filePath);
 		static std::string               BrowseForFileAndReturnItsAbsolutePath (SDL_Window* currentWindow);
@@ -48,9 +42,8 @@ namespace Nodable
 		}
 
 	private:
-		std::string               content;
+		bool                      modified = false;
 		std::string               path;
 		std::string               name;
-		TextEditor::Coordinates   textEditorCursorPosition;
 	};
 }

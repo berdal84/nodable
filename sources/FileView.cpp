@@ -85,10 +85,10 @@ bool FileView::draw()
 		isSelectedTextModified;
 
 	if (m_textEditor->IsTextChanged())
-		file->setContent(m_textEditor->GetText());
+		file->setModified();
 
 	if ( hasChanged() )
-		file->clearContextAndEvalHighlightedExpression();
+		file->evaluateSelectedExpression();
 
 	/*
 		NODE EDITOR
@@ -100,12 +100,12 @@ bool FileView::draw()
 	return true;
 }
 
-std::string FileView::getTextEditorContent()const
+std::string FileView::getText()const
 {
 	return m_textEditor->GetText();
 }
 
-void FileView::replaceHighlightedPortionInTextEditor(std::string _val)
+void FileView::replaceSelectedText(std::string _val)
 {
 	auto coord = m_textEditor->GetCursorPosition();
 
@@ -134,12 +134,12 @@ void FileView::replaceHighlightedPortionInTextEditor(std::string _val)
 	}
 }
 
-void FileView::setTextEditorContent(const std::string& _content)
+void FileView::setText(const std::string& _content)
 {
 	m_textEditor->SetText(_content);
 }
 
-std::string FileView::getTextEditorHighlightedExpression()const
+std::string FileView::getSelectedText()const
 {
 	return m_textEditor->HasSelection() ? m_textEditor->GetSelectedText() : m_textEditor->GetCurrentLineText();
 }
