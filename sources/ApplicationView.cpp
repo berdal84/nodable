@@ -53,7 +53,7 @@ bool ApplicationView::init()
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
         printf("Error: %s\n", SDL_GetError());
-        return -1;
+        return false;
     }
 
     // Setup window
@@ -468,8 +468,12 @@ bool ApplicationView::draw()
 				auto previousSelectedText   = textEditor->GetSelectedText();
 				auto previousLineText       = textEditor->GetCurrentLineText();
 
-				auto allowkeyboard          = NodeView::GetSelected() == nullptr; // disable keyboard for text editor when a node is selected.
-				auto allowMouse             = !ImGui::IsAnyItemHovered() && !ImGui::IsAnyItemFocused();
+				auto allowkeyboard          = !NodeView::IsANodeDragged() && 
+											   NodeView::GetSelected() == nullptr; // disable keyboard for text editor when a node is selected.
+				
+				auto allowMouse             = !NodeView::IsANodeDragged() &&
+					                          !ImGui::IsAnyItemHovered() &&
+					                          !ImGui::IsAnyItemFocused();
 
 				textEditor->SetHandleKeyboardInputs(allowkeyboard);
 				textEditor->SetHandleMouseInputs(allowMouse);

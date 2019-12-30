@@ -31,6 +31,10 @@ void NodeView::SetDragged(NodeView* _view)
 	s_dragged = _view;
 }
 
+bool NodeView::IsANodeDragged() {
+	return GetDragged() != nullptr;
+}
+
 NodeView* NodeView::GetDragged()
 {
 	return s_dragged;
@@ -52,15 +56,17 @@ ImVec2 NodeView::getConnectorPosition(const std::string& _name, Connection_ _con
 	auto pos = getPosition();
 
 	auto it = connectorOffsetPositionsY.find(_name);
-	if(it != connectorOffsetPositionsY.end())
+	if (it != connectorOffsetPositionsY.end())
 		pos.y += (*it).second;
 
 	if (_connection == Connection_In)
 		return ImVec2(pos.x, pos.y + size.y * 0.5f);
 	else if (_connection == Connection_Out)
 		return ImVec2(pos.x + size.x, pos.y + size.y * 0.5f);
-	else
+	else {
 		NODABLE_ASSERT(false); // _connection should be only In or Out.
+		return ImVec2();
+	}
 }
 
 void NodeView::setPosition(ImVec2 _position)

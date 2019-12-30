@@ -89,7 +89,7 @@ bool ContainerView::draw()
 		}
 
 		// If user release mouse button
-		if (!ImGui::IsMouseDown(0))
+		if (ImGui::IsMouseReleased(0))
 		{
 			// Add a new wire if needed (mouse drag'n drop)
 			if (draggedByMouseMember != nullptr &&

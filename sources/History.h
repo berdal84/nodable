@@ -45,7 +45,6 @@ namespace Nodable
 
 		static History*     global;
 	private:
-		Container*          container;
 		std::vector<Cmd*>	commands;		/* Command history */
 		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
 	};

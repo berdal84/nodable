@@ -71,6 +71,8 @@ namespace Nodable{
 		Only a single view can be dragged at the same time. */
 		static void       SetDragged          (NodeView*);
 
+		static bool		  IsANodeDragged();
+
 		/* Return a pointer to the dragged view or nullptr if no view are dragged */
 		static NodeView*  GetDragged          ();
 
