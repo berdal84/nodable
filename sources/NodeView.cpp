@@ -43,7 +43,8 @@ bool NodeView::IsSelected(NodeView* _view)
 
 ImVec2 NodeView::getPosition()const
 {
-	return ImVec2(position.x - size.x / 2.0f, position.y - size.y / 2.0f);
+	ImVec2 topLeftCornerPosition(position - size / 2.0f);
+	return topLeftCornerPosition;
 }
 
 ImVec2 NodeView::getConnectorPosition(const std::string& _name, Connection_ _connection)const
@@ -65,12 +66,11 @@ ImVec2 NodeView::getConnectorPosition(const std::string& _name, Connection_ _con
 void NodeView::setPosition(ImVec2 _position)
 {
 	this->position = _position;
-	ImGui::SetWindowPos(std::to_string(size_t(this)).c_str(), _position);
 }
 
 void NodeView::translate(ImVec2 _delta)
 {
-	setPosition(ImVec2(position.x + _delta.x, position.y + _delta.y));
+	setPosition( position + _delta);
 }
 
 void NodeView::arrangeRecursively()
