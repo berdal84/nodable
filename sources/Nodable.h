@@ -83,7 +83,8 @@ namespace Nodable{
 	class ContainerView;
 	class ApplicationView;
 	class WireView;
-	
+	class FileView;
+
 	// 2b - Binary Operation Components
 	class BinaryOperationComponent;
 	class Add;

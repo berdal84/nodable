@@ -8,7 +8,7 @@
 
 using namespace Nodable;
 
-void DataAccess::update()
+bool DataAccess::update()
 {
 
 	rapidjson::StringBuffer buffer;
@@ -97,4 +97,6 @@ void DataAccess::update()
     std::ofstream outfile ("saves/" +fileName ,std::ofstream::binary);
     outfile.write (buffer.GetString(),buffer.GetSize());
     outfile.close();
+
+    return true;
 }

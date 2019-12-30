@@ -29,7 +29,7 @@ namespace Nodable{
 		bool              draw                ()override;
 
 		/* Should be called once per frame to update the view */
-		void              update              ();
+		bool              update              ();
 
 		/* Get top-left corner vector position */
 		ImVec2            getPosition         ()const;

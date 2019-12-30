@@ -1,33 +1,49 @@
 #pragma once
+#include "Nodable.h"
+#include "Log.h"
+#include "Entity.h"
+#include "Container.h"
+#include "History.h"
+
 #include <SDL.h>
 #include <cstdio>
 #include <cstdlib>
-#include "Log.h"
 #include <string>
 #include <algorithm>
+
 #include "ImGuiColorTextEdit/TextEditor.h" // for coordinates
 
 namespace Nodable
 {
-	class File
+	class File: public Entity
 	{
 	public:
-		File(const char* _path, const char* _content, const char* _name):content(_content),path(_path),name(_name), textEditorCursorPosition(0,0){}
+		File(const char* _path,
+			const char* _content,
+			const char* _name);
 
-		std::string                      getContent()const { return content; }
 		std::string                      getName()const { return name; }	
-		const TextEditor::Coordinates&   getCursorPosition()const { return textEditorCursorPosition; }
-		void                             setCursorPosition(const TextEditor::Coordinates& _textEditorCursorPosition) { textEditorCursorPosition = _textEditorCursorPosition;  }
-		void                             save()const;
-		void                             setContent(std::string&);
+		void                             save();
+		bool                             update();
+		void                             setModified() { modified = true; }
+		bool                             isModified() { return modified; }
+		bool                             evaluateExpression(std::string&);
+		bool                             evaluateSelectedExpression();
 
 		static File*                     CreateFileWithPath                    (const char* _filePath);
 		static std::string               BrowseForFileAndReturnItsAbsolutePath (SDL_Window* currentWindow);
 
+		inline Container* getContainer() {
+			return getComponent("container")->getAs<Container*>();
+		}
+		
+		inline History* getHistory() {
+			return getComponent("history")->getAs<History*>();
+		}
+
 	private:
-		std::string               content;
+		bool                      modified = false;
 		std::string               path;
 		std::string               name;
-		TextEditor::Coordinates   textEditorCursorPosition;
 	};
 }

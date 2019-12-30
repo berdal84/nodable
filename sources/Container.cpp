@@ -29,7 +29,7 @@ void Container::clear()
 	variables.resize(0);
 }
 
-void Container::update()
+bool Container::update()
 {
 	// Update entities
 	size_t entitiesUpdated(0);
@@ -53,20 +53,9 @@ void Container::update()
 		}
 	}
 
-	// Update TextEditor only if at least one node was dirty and one node is selected
-	if (entitiesUpdated > 0 && NodeView::GetSelected() != nullptr)
-	{
-		auto app = this->getOwner()->getAs<Application*>();
-		if (result && app ) {
-			auto member = result->getValueMember();
+	const bool hasChanged = entitiesUpdated > 0 && NodeView::GetSelected() != nullptr;
 
-			if (member) {
-				auto expression = member->getSourceExpression();
-				app->replaceHighlightedPortionInTextEditor(expression);
-			}
-		}
-			
-	}
+	return hasChanged;
 }
 
 void Container::addEntity(Entity* _entity)

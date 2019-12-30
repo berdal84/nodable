@@ -31,34 +31,34 @@ namespace Nodable{
 	class Add : public BinaryOperationComponent{
 	public:
 		COMPONENT_CONSTRUCTOR(Add);
-		void        update()override;	
+		bool update()override;	
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Substraction */
 	class Substract : public BinaryOperationComponent{
 	public:
 		COMPONENT_CONSTRUCTOR(Substract);
-		void update()override;
+		bool update()override;
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Multiplication */
 	class Multiply : public BinaryOperationComponent{
 	public:
 		COMPONENT_CONSTRUCTOR(Multiply);
-		void update()override;
+		bool update()override;
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Division */
 	class Divide : public BinaryOperationComponent{
 	public:
 		COMPONENT_CONSTRUCTOR(Divide);
-		void update()override;
+		bool update()override;
 	};
 
 	/* Implementation of the BinaryOperationComponent as an assignment */
 	class Assign : public BinaryOperationComponent{
 	public:
 		COMPONENT_CONSTRUCTOR(Assign);
-		void update()override;
+		bool update()override;
 	};
 }

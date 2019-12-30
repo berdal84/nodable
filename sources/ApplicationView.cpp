@@ -12,7 +12,7 @@
 #include "NodeView.h"
 #include "File.h"
 #include "Log.h"
-
+#include "FileView.h"
 
 using namespace Nodable;
 
@@ -39,7 +39,6 @@ ApplicationView::ApplicationView(const char* _name, Application* _application):
 
 ApplicationView::~ApplicationView()
 {
-    delete textEditor;
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext    ();
     SDL_GL_DeleteContext     (glcontext);
@@ -178,40 +177,6 @@ bool ApplicationView::init()
 	style.AntiAliasedLines   = true;
     style.WindowPadding      = ImVec2(10.0f,10.0f);
 
-    /*
-        Configure ImGuiTextColorEdit
-    */
-
-    textEditor = new TextEditor;    
-    static auto lang = TextEditor::LanguageDefinition::CPlusPlus();   
-    textEditor->SetLanguageDefinition(lang);	
-	textEditor->SetImGuiChildIgnored(true);
-
-    TextEditor::Palette palette = {{
-        0xffffffff, // None
-        0xffd69c56, // Keyword  
-        0xff00ff00, // Number
-        0xff7070e0, // String
-        0xff70a0e0, // Char literal
-        0xffffffff, // Punctuation
-        0xff409090, // Preprocessor
-        0xffaaaaaa, // Identifier
-        0xff9bc64d, // Known identifier
-        0xffc040a0, // Preproc identifier
-        0xff909090, // Comment (single line)
-        0xff909090, // Comment (multi line)
-        0x30000000, // Background
-        0xffe0e0e0, // Cursor
-        0x40ffffff, // Selection
-        0x800020ff, // ErrorMarker
-        0x40f08000, // Breakpoint
-        0x88909090, // Line number
-        0x40000000, // Current line fill
-        0x40808080, // Current line fill (inactive)
-        0x40a0a0a0, // Current line edge
-        }};
-
-    textEditor->SetPalette(palette);
 	return true;
 }
 
@@ -277,6 +242,8 @@ bool ApplicationView::draw()
 		auto userWantsToHideSelectedNode(false);
 		auto userWantsToArrangeSelectedNodeHierarchy(false);
 
+		auto history = application->getCurrentFile()->getComponent("history")->getAs<History*>();
+
         ImGui::Begin("Container", NULL, ImVec2(), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
 			if (ImGui::BeginMenuBar())
@@ -292,12 +259,12 @@ bool ApplicationView::draw()
 
 					if (ImGui::MenuItem(ICON_FA_SAVE "  Save"))
 					{
-						application->saveCurrentlyActiveFile();
+						application->saveCurrentFile();
 					}
 
 					if (ImGui::MenuItem(ICON_FA_TIMES "  Close"))
 					{
-						application->closeCurrentlyActiveFile();
+						application->closeCurrentFile();
 					}
 
 					if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4"))
@@ -307,12 +274,15 @@ bool ApplicationView::draw()
 
 				if (ImGui::BeginMenu("Edit"))
 				{
-					userWantsToUndo |= ImGui::MenuItem("Undo", "");
-					userWantsToRedo |= ImGui::MenuItem("Redo", "");
-					if (userWantsToUndo)History::global->undo();
-					if (userWantsToRedo)History::global->redo();
 
-					ImGui::Separator();
+					if (history) {
+						userWantsToUndo |= ImGui::MenuItem("Undo", "");
+						userWantsToRedo |= ImGui::MenuItem("Redo", "");
+						if (userWantsToUndo)history->undo();
+						if (userWantsToRedo)history->redo();
+
+						ImGui::Separator();
+					}
 
 					auto isAtLeastANodeSelected = NodeView::GetSelected() != nullptr;
 					userWantsToHideSelectedNode |= ImGui::MenuItem("Hide", "Del.", false, isAtLeastANodeSelected);
@@ -376,46 +346,49 @@ bool ApplicationView::draw()
 			/*
 				UNDO HISTORY / TIME SLIDER
 			*/
-			auto historyButtonSpacing = float(2);
-			auto historyButtonHeight = float(12);
-			auto historyButtonMinWidth = float(60);
 
-			auto historySize = History::global->getSize();
-			auto historyCurrentCursorPosition = History::global->getCursorPosition();
-			auto availableWidth = ImGui::GetContentRegionAvailWidth();
-			auto historyButtonWidth = std::fmin(historyButtonMinWidth, availableWidth / float(historySize) - historyButtonSpacing);
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0));
+			if (history) {
+				auto historyButtonSpacing = float(2);
+				auto historyButtonHeight = float(12);
+				auto historyButtonMinWidth = float(60);
 
-			for (size_t commandId = 1; commandId <= historySize; commandId++)
-			{
-				// Draw an highlighted button for the current history position
-				if (commandId == historyCurrentCursorPosition) {
-					ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-					ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
-					ImGui::PopStyleColor();
+				auto historySize = history->getSize();
+				auto historyCurrentCursorPosition = history->getCursorPosition();
+				auto availableWidth = ImGui::GetContentRegionAvailWidth();
+				auto historyButtonWidth = std::fmin(historyButtonMinWidth, availableWidth / float(historySize) - historyButtonSpacing);
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0));
 
-					// or a simple one for other history positions
-				}
-				else
-					ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
-
-				if (ImGui::IsItemHovered())
+				for (size_t commandId = 1; commandId <= historySize; commandId++)
 				{
-					if (ImGui::IsMouseDown(0)) // hovered + mouse down
-						History::global->setCursorPosition(commandId); // update history cursor position
+					// Draw an highlighted button for the current history position
+					if (commandId == historyCurrentCursorPosition) {
+						ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+						ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
+						ImGui::PopStyleColor();
 
-					// Draw command description 
-					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
-					ImGui::BeginTooltip();
-					ImGui::Text(History::global->getCommandDescriptionAtPosition(commandId - 1));
-					ImGui::EndTooltip();
-					ImGui::PopStyleVar();
+						// or a simple one for other history positions
+					}
+					else
+						ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
+
+					if (ImGui::IsItemHovered())
+					{
+						if (ImGui::IsMouseDown(0)) // hovered + mouse down
+							history->setCursorPosition(commandId); // update history cursor position
+
+						// Draw command description 
+						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
+						ImGui::BeginTooltip();
+						ImGui::Text(history->getCommandDescriptionAtPosition(commandId - 1));
+						ImGui::EndTooltip();
+						ImGui::PopStyleVar();
+					}
+
+					ImGui::SameLine();
 				}
-
-				ImGui::SameLine();
+				ImGui::PopStyleVar();
+				ImGui::NewLine();
 			}
-			ImGui::PopStyleVar();
-			ImGui::NewLine();
 
 			/*
 				HYBRID EDITOR
@@ -432,9 +405,14 @@ bool ApplicationView::draw()
 				
 				ImGui::BeginTabBar("FileTabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs);
 
-				for (size_t i = 0; i < application->getLoadedFileCount(); i++)
+				for (size_t i = 0; i < application->getFileCount(); i++)
 				{
-					std::string tabLabel = application->getLoadedFileNameAtIndex(i) + "##" + std::to_string(i);
+					auto file = application->getFileAtIndex(i);
+					std::string tabLabel = file->getName();
+					if (file->isModified())
+						tabLabel.append("*");
+					tabLabel.append("##");
+					tabLabel.append(std::to_string(i));
 
 					if (ImGui::BeginTabItem(tabLabel.c_str()))
 							ImGui::EndTabItem();					
@@ -442,8 +420,7 @@ bool ApplicationView::draw()
 					if (ImGui::IsItemClicked(0))
 					{
 						LOG_MSG("ApplicationView - User switch tabs to \"%s\" (id:%lu)\n", tabLabel.c_str(), i);
-						application->memorizeCurrentlyActiveLoadedFileCursorPosition();
-						application->setCurrentlyActiveLoadedFileWithIndex(i);
+						application->setCurrentFileWithIndex(i);
 						userSwitchesFile = true;
 					}
 				}
@@ -456,52 +433,10 @@ bool ApplicationView::draw()
             auto availSize = ImGui::GetContentRegionAvail();
             availSize.y -=  ImGui::GetTextLineHeightWithSpacing();;
 
-            ImGui::BeginChild( "TextEditor", ImVec2(availSize.x , availSize.y), false);
+            ImGui::BeginChild( "File View", ImVec2(availSize.x , availSize.y), false);
 			{
-				/*
-					TEXT EDITOR
-				*/
-
-				auto textEditorSize         = ImGui::GetContentRegionAvail();
-
-				auto previousCursorPosition = textEditor->GetCursorPosition();
-				auto previousSelectedText   = textEditor->GetSelectedText();
-				auto previousLineText       = textEditor->GetCurrentLineText();
-
-				auto allowkeyboard          = !NodeView::IsANodeDragged() && 
-											   NodeView::GetSelected() == nullptr; // disable keyboard for text editor when a node is selected.
-				
-				auto allowMouse             = !NodeView::IsANodeDragged() &&
-					                          !ImGui::IsAnyItemHovered() &&
-					                          !ImGui::IsAnyItemFocused();
-
-				textEditor->SetHandleKeyboardInputs(allowkeyboard);
-				textEditor->SetHandleMouseInputs(allowMouse);
-				textEditor->Render         ("Text Editor Plugin", availSize);
-
-				auto currentCursorPosition  = textEditor->GetCursorPosition();
-				auto currentSelectedText    = textEditor->GetSelectedText();
-				auto currentLineText        = textEditor->GetCurrentLineText();
-
-				auto isCurrentLineModified  = currentLineText != previousLineText;
-				auto isSelectedTextModified = previousSelectedText != currentSelectedText;
-
-				bool needsToEvaluateString = isCurrentLineModified ||
-					                         textEditor->IsTextChanged() ||
-					                         isSelectedTextModified;
-
-				if (textEditor->IsTextChanged())
-					application->setCurrentlyActiveFileContent(textEditor->GetText());
-
-				if (needsToEvaluateString)
-					isExpressionValid = application->clearContextAndEvalHighlightedExpression();
-
-				/*
-					NODE EDITOR
-				*/
-				ImGui::SetCursorPos(ImVec2(0, 0));
-				if (application->getContext()->hasComponent("view"))
-					application->getContext()->getComponent("view")->getAs<View*>()->draw();
+				auto fileView = application->getCurrentFile()->getComponent("view")->getAs<View*>();
+				fileView->draw();
 			}
 			ImGui::EndChild();
 
@@ -567,46 +502,3 @@ bool ApplicationView::draw()
     return false;
 }
 
-std::string ApplicationView::getTextEditorContent()const
-{
-	return textEditor->GetText();
-}
-
-void ApplicationView::replaceHighlightedPortionInTextEditor(std::string _val)
-{
-    auto coord = textEditor->GetCursorPosition();
-
-    /* If there is no selection, selects current line */
-	auto hasSelection = textEditor->HasSelection();
-
-    if ( !hasSelection )
-    {
-        textEditor->MoveHome(false);
-        textEditor->MoveEnd(true);
-        textEditor->SetCursorPosition(TextEditor::Coordinates(coord.mLine, 0));
-    }
-
-    /* delete selection */
-    textEditor->Delete();
-	coord = textEditor->GetCursorPosition();
-
-    /* insert text */
-    textEditor->InsertText(_val);
-
-	/* Select the new inserted text if needed*/
-	if (hasSelection)
-	{
-		textEditor->SetSelectionStart(coord);
-		textEditor->SetSelectionEnd(TextEditor::Coordinates(coord.mLine, coord.mColumn + _val.size()));
-	}
-}
-
-void Nodable::ApplicationView::setTextEditorContent(const std::string& _content)
-{
-	textEditor->SetText(_content);
-}
-
-std::string Nodable::ApplicationView::getTextEditorHighlightedExpression()const
-{
-	return textEditor->HasSelection() ? textEditor->GetSelectedText() : textEditor->GetCurrentLineText();
-}

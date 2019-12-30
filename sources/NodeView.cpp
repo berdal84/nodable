@@ -84,7 +84,7 @@ void NodeView::arrangeRecursively()
 	ArrangeRecursively(this, position);
 }
 
-void NodeView::update()
+bool NodeView::update()
 {
 	// Update opacity to reach 1.0f
 	//-----------------------------
@@ -170,6 +170,7 @@ void NodeView::update()
 		}
 	}
 	
+	return true;
 }
 
 bool NodeView::draw()
