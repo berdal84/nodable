@@ -35,7 +35,7 @@ namespace Nodable{
 		Wire*                       createWire();
 		std::vector<Variable*>& 	getVariables(){return variables;}
 		std::vector<Entity*>& 	    getEntities(){return entities;}
-
+		Variable*                   getResultVariable(){ return result;}
 	private:
 		Variable*                   result = nullptr;
 		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */

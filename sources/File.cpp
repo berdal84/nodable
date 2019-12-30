@@ -151,13 +151,20 @@ bool File::update() {
 	if (!hasChanged)
 		return false;
 
-	auto result		= getContainer()->find("result");
+	auto result		= getContainer()->getResultVariable();
+
+	if (!result) {
+		LOG_DBG("Container has no result variable, unable to update text portion.");
+		return false;
+	}
+
 	auto member		= result->getValueMember();
 	auto expression = member->getSourceExpression();
 	auto view		= getComponent("view")->getAs<FileView*>();
 
 	view->replaceHighlightedPortionInTextEditor(expression);
 	
+	return true;
 }
 
 bool File::clearContextAndEvalHighlightedExpression()
