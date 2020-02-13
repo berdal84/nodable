@@ -34,7 +34,7 @@ void History::redo()
 {
 	if (commandsCursor < commands.size())
 	{
-		commands.at(commandsCursor)->execute();
+		commands.at(commandsCursor)->redo();
 		commandsCursor++;
 	}
 }

@@ -88,11 +88,14 @@ namespace Nodable
 		Cmd(){};
 		virtual ~Cmd(){};
 		/* Call this to execute the command instance */
-		virtual void execute()=0;
+		virtual void execute() = 0;
 
 		/* Call this to undo the execution of the command instance */
-		virtual void undo()=0;
+		virtual void undo() = 0;
 		
+		/* Call this to redo this command */
+		virtual void redo() = 0;
+
 		virtual const char* getDescription() { return description.c_str(); };
 	protected:
 		std::string description = "";
@@ -147,6 +150,10 @@ namespace Nodable
 			source->getOwner()->getAs<Entity*>()->addWire(wire);
 		}
 
+		void redo() {
+			execute();
+		}
+
 		void undo()
 		{
 			target->setInputMember(nullptr);
@@ -186,9 +193,10 @@ namespace Nodable
 
 		~Cmd_TextEditor() {};
 
-		void execute()
-		{
-			// undoRecord.Redo(&textEditor);
+		void execute() {}
+
+		void redo() {
+			undoRecord.Redo(&textEditor);
 		}
 
 		void undo()

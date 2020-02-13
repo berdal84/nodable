@@ -373,7 +373,7 @@ bool ApplicationView::draw()
 
 					if (ImGui::IsItemHovered())
 					{
-						if (ImGui::IsMouseDown(0)) // hovered + mouse down
+						//if (ImGui::IsMouseDown(0)) // hovered + mouse down
 							history->setCursorPosition(commandId); // update history cursor position
 
 						// Draw command description 
