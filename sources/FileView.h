@@ -3,8 +3,6 @@
 #include "View.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
 
-class TextEditor;
-
 namespace Nodable {	
 
 	class FileView : public View
@@ -20,7 +18,7 @@ namespace Nodable {
 		void                           replaceSelectedText(std::string _val);
 		void                           setTextEditorCursorPosition(const TextEditor::Coordinates& _cursorPosition) { m_textEditor->SetCursorPosition(_cursorPosition); }
 		TextEditor::Coordinates        getTextEditorCursorPosition()const { return m_textEditor != nullptr ? m_textEditor->GetCursorPosition() : TextEditor::Coordinates(0, 0); }
-
+		void						   setUndoBuffer(TextEditor::ExternalUndoBufferInterface*);
 	private:
 		File*        getFile();
 		TextEditor*  m_textEditor;

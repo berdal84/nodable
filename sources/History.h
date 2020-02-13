@@ -7,10 +7,25 @@
 #include "Member.h"
 #include <vector>
 #include <time.h>
+#include "ImGuiColorTextEdit/TextEditor.h"
+#include "Log.h"
 
 namespace Nodable
 {
 	class Cmd;
+	class Cmd_TextEditor;
+
+	class TextEditorBuffer : public TextEditor::ExternalUndoBufferInterface {
+
+	public:
+		void setHistory(History* _history) {
+			history = _history;
+		}
+
+		void AddUndo(TextEditor::UndoRecord& _undoRecord, TextEditor& _textEditor);
+
+	private: History* history;
+	};
 
 	class History : public Component {
 	public:
@@ -39,14 +54,27 @@ namespace Nodable
 
 		const char* getCommandDescriptionAtPosition(size_t _commandId);
 
+		/* To get the special buffer for TextEditor */
+		TextEditorBuffer* getTextEditorUndoBuffer() {
+
+			if (textEditorBuffer == nullptr) {
+				textEditorBuffer = new TextEditorBuffer();
+				textEditorBuffer->setHistory(this);
+			}
+
+			return textEditorBuffer;
+
+		}
+
 		// Future: For command groups (ex: 5 commands that are atomic)
 		// static BeginGroup();
 		// static EndGroup()
 
 		static History*     global;
 	private:
-		std::vector<Cmd*>	commands;		/* Command history */
+		std::vector<Cmd*>	commands = std::vector<Cmd*>();		/* Command history */
 		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
+		TextEditorBuffer* textEditorBuffer = nullptr;
 	};
 
 
@@ -139,4 +167,37 @@ namespace Nodable
 		Member*    target        = nullptr;
 	};
 
+
+
+	/*
+		Command to wraps a TextEditor UndoRecord
+	*/
+
+	class Cmd_TextEditor : public Cmd
+	{
+	public:
+		Cmd_TextEditor(
+			TextEditor::UndoRecord& _undoRecord,
+			TextEditor& _textEditor): 
+			undoRecord(_undoRecord),
+			textEditor(_textEditor)
+		{
+		}
+
+		~Cmd_TextEditor() {};
+
+		void execute()
+		{
+			// undoRecord.Redo(&textEditor);
+		}
+
+		void undo()
+		{
+			undoRecord.Undo(&textEditor);
+		}
+
+	private:
+		TextEditor::UndoRecord undoRecord;
+		TextEditor&             textEditor;
+	};
 }
