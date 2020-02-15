@@ -12,8 +12,9 @@ History::~History()
 void History::addAndExecute(Cmd* _cmd)
 {	
 	/* First clear commands after the cursor */
-	while (commandsCursor > commands.size())
-		commands.erase(commands.end());
+	while (commandsCursor < commands.size())
+		commands.pop_back(); // TODO: memory leak to fix
+
 
 	/* Then add and execute the new command */
 	commands.push_back(_cmd);
@@ -61,8 +62,8 @@ const char* Nodable::History::getCommandDescriptionAtPosition(size_t _commandId)
 	return commands.at(_commandId)->getDescription();
 }
 
-void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord, TextEditor& _textEditor) {
+void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord) {
 
-	auto cmd = new Cmd_TextEditor(_undoRecord, _textEditor);
+	auto cmd = new Cmd_TextEditor(_undoRecord, mTextEditor);
 	history->addAndExecute(cmd);
 }

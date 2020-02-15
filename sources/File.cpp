@@ -26,21 +26,22 @@ Nodable::File::File(
 	name = _name;
 
 	/*
-		Creates an history for UNDO/REDO
-	*/
-	auto h = new History();
-	addComponent("history", h);
-    auto undoBuffer = h->getTextEditorUndoBuffer();
-
-	/*
 		Creates the FileView
 	*/
 	auto fileView = new FileView();
 	addComponent("view", fileView);
 	fileView->init();
 	fileView->setText(_content);
-	fileView->setUndoBuffer(undoBuffer);
+	auto textEditor = fileView->getTextEditor();
 
+	/*
+		Creates an history for UNDO/REDO
+	*/
+	auto history = new History();
+	addComponent("history", history);
+    auto undoBuffer = history->createTextEditorUndoBuffer(textEditor);
+	fileView->setUndoBuffer(undoBuffer);
+	
 	/*
 		Creates a node container
 	*/
@@ -187,7 +188,6 @@ bool File::evaluateSelectedExpression()
 {
 	bool success;
 
-	// getHistory()->clear();
 	getContainer()->clear();
 
 	auto view = getComponent("view")->getAs<FileView*>();

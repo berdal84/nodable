@@ -120,8 +120,8 @@ void FileView::replaceSelectedText(std::string _val)
 	}
 
 	/* delete selection */
-	m_textEditor->Delete();
-	coord = m_textEditor->GetCursorPosition();
+	//m_textEditor->Delete();
+	//coord = m_textEditor->GetCursorPosition();
 
 	/* insert text */
 	m_textEditor->InsertText(_val);

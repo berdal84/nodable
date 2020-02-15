@@ -18,13 +18,14 @@ namespace Nodable
 	class TextEditorBuffer : public TextEditor::ExternalUndoBufferInterface {
 
 	public:
-		void setHistory(History* _history) {
-			history = _history;
-		}
+		void AddUndo(TextEditor::UndoRecord& _undoRecord);
 
-		void AddUndo(TextEditor::UndoRecord& _undoRecord, TextEditor& _textEditor);
+		void setHistory(History* _history) { history = _history; }
+		void setTextEditor(TextEditor* aTextEditor) { mTextEditor = aTextEditor;}
 
-	private: History* history;
+	private:
+		TextEditor* mTextEditor;
+		History* history;
 	};
 
 	class History : public Component {
@@ -55,15 +56,13 @@ namespace Nodable
 		const char* getCommandDescriptionAtPosition(size_t _commandId);
 
 		/* To get the special buffer for TextEditor */
-		TextEditorBuffer* getTextEditorUndoBuffer() {
+		TextEditorBuffer* createTextEditorUndoBuffer(TextEditor* _textEditor) {
 
-			if (textEditorBuffer == nullptr) {
-				textEditorBuffer = new TextEditorBuffer();
-				textEditorBuffer->setHistory(this);
-			}
+			textEditorBuffer = new TextEditorBuffer();
+			textEditorBuffer->setTextEditor(_textEditor);
+			textEditorBuffer->setHistory(this);
 
 			return textEditorBuffer;
-
 		}
 
 		// Future: For command groups (ex: 5 commands that are atomic)
@@ -74,7 +73,7 @@ namespace Nodable
 	private:
 		std::vector<Cmd*>	commands = std::vector<Cmd*>();		/* Command history */
 		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
-		TextEditorBuffer* textEditorBuffer = nullptr;
+		TextEditorBuffer*   textEditorBuffer = nullptr;
 	};
 
 
@@ -185,27 +184,33 @@ namespace Nodable
 	public:
 		Cmd_TextEditor(
 			TextEditor::UndoRecord& _undoRecord,
-			TextEditor& _textEditor): 
+			TextEditor* _textEditor): 
 			undoRecord(_undoRecord),
 			textEditor(_textEditor)
 		{
+			this->description.append("Cmd_TextEditor\n" );
+			this->description.append("removed : " + undoRecord.mRemoved + "\n");
+			this->description.append("added : " + undoRecord.mAdded + "\n");
 		}
 
-		~Cmd_TextEditor() {};
+		~Cmd_TextEditor() {}
 
 		void execute() {}
 
+
 		void redo() {
-			undoRecord.Redo(&textEditor);
+			undoRecord.Redo(textEditor);
 		}
 
 		void undo()
 		{
-			undoRecord.Undo(&textEditor);
+			undoRecord.Undo(textEditor);
 		}
 
 	private:
+
+
 		TextEditor::UndoRecord undoRecord;
-		TextEditor&             textEditor;
+		TextEditor*             textEditor;
 	};
 }
