@@ -107,30 +107,31 @@ std::string FileView::getText()const
 
 void FileView::replaceSelectedText(std::string _val)
 {
-	auto coord = m_textEditor->GetCursorPosition();
+	auto start = m_textEditor->GetCursorPosition();
 
 	/* If there is no selection, selects current line */
-	auto hasSelection = m_textEditor->HasSelection();
+	auto hasSelection    = m_textEditor->HasSelection();
+	auto selectionStart  = m_textEditor->GetSelectionStart();
+	auto selectionEnd    = m_textEditor->GetSelectionEnd();
 
+	// Select the whole line if no selection is set
 	if (!hasSelection)
 	{
 		m_textEditor->MoveHome(false);
 		m_textEditor->MoveEnd(true);
-		m_textEditor->SetCursorPosition(TextEditor::Coordinates(coord.mLine, 0));
+		m_textEditor->SetCursorPosition(TextEditor::Coordinates(start.mLine, 0));
 	}
-
-	/* delete selection */
-	//m_textEditor->Delete();
-	//coord = m_textEditor->GetCursorPosition();
 
 	/* insert text */
 	m_textEditor->InsertText(_val);
 
+
 	/* Select the new inserted text if needed*/
 	if (hasSelection)
 	{
-		m_textEditor->SetSelectionStart(coord);
-		m_textEditor->SetSelectionEnd(TextEditor::Coordinates(coord.mLine, coord.mColumn + _val.size()));
+		auto end = m_textEditor->GetCursorPosition();
+		m_textEditor->SetSelectionStart(std::min(selectionStart, selectionEnd));
+		m_textEditor->SetSelectionEnd(end);
 	}
 }
 
