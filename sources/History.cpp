@@ -1,4 +1,6 @@
 #include "History.h"
+#include "File.h"
+
 using namespace Nodable;
 
 History* History::global = nullptr;
@@ -48,6 +50,7 @@ void Nodable::History::clear()
 
 void History::setCursorPosition(int _pos)
 {
+	/* Undo or redo the required times to get the command cursor well positionned */
 	while (_pos != commandsCursor)
 	{
 		if (_pos > commandsCursor)
@@ -55,6 +58,10 @@ void History::setCursorPosition(int _pos)
 		else
 			undo();
 	}
+
+	/* After moving history, we force the file editor to evaluate the selected expression */
+	auto file = this->getOwner()->getAs<File*>();
+	file->evaluateSelectedExpression();
 }
 
 const char* Nodable::History::getCommandDescriptionAtPosition(size_t _commandId)
