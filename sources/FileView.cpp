@@ -122,17 +122,9 @@ void FileView::replaceSelectedText(std::string _val)
 		m_textEditor->SetCursorPosition(TextEditor::Coordinates(start.mLine, 0));
 	}
 
-	/* insert text */
-	m_textEditor->InsertText(_val);
+	/* insert text (and select it) */
+	m_textEditor->InsertText(_val, true);
 
-
-	/* Select the new inserted text if needed*/
-	if (hasSelection)
-	{
-		auto end = m_textEditor->GetCursorPosition();
-		m_textEditor->SetSelectionStart(std::min(selectionStart, selectionEnd));
-		m_textEditor->SetSelectionEnd(end);
-	}
 }
 
 void FileView::setText(const std::string& _content)
