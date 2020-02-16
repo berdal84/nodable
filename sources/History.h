@@ -15,6 +15,9 @@ namespace Nodable
 	class Cmd;
 	class Cmd_TextEditor;
 
+	/* TextEditorBuffer is a class to handle TextEditor UndoRecords
+	This class will catch these object using AddUndo method.
+	*/
 	class TextEditorBuffer : public TextEditor::ExternalUndoBufferInterface {
 
 	public:
