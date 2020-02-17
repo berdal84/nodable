@@ -71,6 +71,6 @@ const char* Nodable::History::getCommandDescriptionAtPosition(size_t _commandId)
 
 void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord) {
 
-	auto cmd = new Cmd_TextEditor(_undoRecord, mTextEditor);
+	auto cmd = new Cmd_TextEditor_InsertText(_undoRecord, mTextEditor);
 	history->addAndExecute(cmd);
 }
