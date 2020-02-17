@@ -42,8 +42,8 @@ bool WireView::draw()
 	    auto sourceName = wire->getSource()->getName();
 	    auto targetName = wire->getTarget()->getName();
 
-		ImVec2 pos0 = View::ConvertCursorPositionToScreenPosition( sourceView->getConnectorPosition(sourceName, Connection_Out) );
-		ImVec2 pos1 = View::ConvertCursorPositionToScreenPosition( targetView->getConnectorPosition(targetName, Connection_In) );
+		ImVec2 pos0 = View::ConvertCursorPositionToScreenPosition( sourceView->getMemberConnectorPosition(sourceName, Connection_Out) );
+		ImVec2 pos1 = View::ConvertCursorPositionToScreenPosition( targetView->getMemberConnectorPosition(targetName, Connection_In) );
 
 
 	    if (displayArrows) // if arrows are displayed we offset x to see the edge of the arrow.

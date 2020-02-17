@@ -35,7 +35,7 @@ namespace Nodable{
 		ImVec2            getPosition         ()const;
 
 		/* Get the connector position of the specified member (by name) for its Connection_ side (In or Out ONLY !) */
-		ImVec2            getConnectorPosition(const std::string& /*_name*/, Connection_ /*_connection*/)const;
+		ImVec2            getMemberConnectorPosition(const std::string& /*_name*/, Connection_ /*_connection*/)const;
 
 		/* Set a new position (top-left corner) vector to this view */ 
 		void              setPosition         (ImVec2);
@@ -82,6 +82,8 @@ namespace Nodable{
 		/*	Draw a Node Member at cursor position.
 			Returns true if Member's value has been modified, false either */
 		bool			  drawMember(Member* _v);
+
+		void drawMemberConnector(ImVec2& connectorPos, Nodable::Member* _member, ImDrawList* draw_list);
 
 		ImVec2          position            = ImVec2(500.0f, -1.0f);    // center position vector
 		ImVec2          size                = NODE_VIEW_DEFAULT_SIZE;  // size of the window

@@ -51,7 +51,7 @@ ImVec2 NodeView::getPosition()const
 	return topLeftCornerPosition;
 }
 
-ImVec2 NodeView::getConnectorPosition(const std::string& _name, Connection_ _connection)const
+ImVec2 NodeView::getMemberConnectorPosition(const std::string& _name, Connection_ _connection)const
 {
 	auto pos = getPosition();
 
@@ -138,7 +138,7 @@ bool NodeView::update()
 		This code maintain them stacked together with a little attenuated movement.
 	*/
 	
-	auto posY = getConnectorPosition("", Connection_In).y - cumulatedHeight / 2.0f;
+	auto posY = getMemberConnectorPosition("", Connection_In).y - cumulatedHeight / 2.0f;
 	float nodeVerticalSpacing(10);
 	auto deltaTime = ImGui::GetIO().DeltaTime;
 
@@ -153,7 +153,7 @@ bool NodeView::update()
 			if ( ! inputView->pinned )
 			{
 				// Compute new position for this input view
-				ImVec2 newPos(getConnectorPosition("", Connection_In).x - maxSizeX - spacingDist, posY);
+				ImVec2 newPos(getMemberConnectorPosition("", Connection_In).x - maxSizeX - spacingDist, posY);
 				posY += inputView->size.y + nodeVerticalSpacing;
 
 				// Compute a delta to apply to move to this new position
@@ -469,55 +469,64 @@ bool NodeView::drawMember(Member* _member) {
 	connectorOffsetPositionsY[_member->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f; // store y axis middle
 
 	/*
-		Draw the wire connector
+		Draw the wire connectors (In or Out only)
 	*/
 
-	if (_member->allows(Connection_In) ||
-		_member->allows(Connection_Out) ||
-		_member->allows(Connection_InOut))
-	{
-		ImDrawList* draw_list = ImGui::GetWindowDrawList();
-		ImVec2      connectorPos = getConnectorPosition(_member->getName(), _member->getConnection());
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	auto memberName       = _member->getName();
 
-		// Unvisible Button on top of the Circle
-
-		ImVec2 cpos = ImGui::GetCursorPos();
-		float invisibleButtonOffsetFactor(1.2);
-		ImGui::SetCursorScreenPos(connectorPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor) + ImGui::GetWindowPos());
-		ImGui::PushID(_member);
-		bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * float(2) * invisibleButtonOffsetFactor, connectorRadius * float(2) * invisibleButtonOffsetFactor));
-		ImGui::PopID();
-		ImGui::SetCursorPos(cpos);
-
-		// Circle
-		auto isItemHovered = ImGui::IsItemHoveredRect();
-		ImVec2 cursorPos = ImGui::GetCursorPos();
-		ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
-
-		ImVec2 connnectorScreenPos = connectorPos + cursorScreenPos - cursorPos;
-
-		if (isItemHovered)
-			draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Highlighted));
-		else
-			draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Fill));
-
-		draw_list->AddCircle(connnectorScreenPos, connectorRadius, getColor(ColorType_Border));
-
-
-		// Manage mouse events in order to link two members by a Wire :
-
-		// HOVERED
-		if (isItemHovered)
-			s_hoveredByMouseMember = _member;
-		else if (s_hoveredByMouseMember == _member)
-			s_hoveredByMouseMember = nullptr;
-
-		// DRAG
-		if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedByMouseMember == nullptr)
-			s_draggedByMouseMember = _member;
+	if (_member->allows(Connection_In)) {
+		ImVec2      connectorPos = getMemberConnectorPosition( memberName, Connection_In);
+		drawMemberConnector(connectorPos, _member, draw_list);
+	}
+		
+	if (_member->allows(Connection_Out)) {
+		ImVec2      connectorPos = getMemberConnectorPosition( memberName, Connection_Out);
+		drawMemberConnector(connectorPos, _member, draw_list);
 	}
 
 	return edited;
-};
+}
+
+void Nodable::NodeView::drawMemberConnector(ImVec2& connectorPos, Nodable::Member* _member, ImDrawList* draw_list)
+{
+	// Unvisible Button on top of the Circle
+
+	ImVec2 cpos = ImGui::GetCursorPos();
+	float invisibleButtonOffsetFactor(1.2);
+	ImGui::SetCursorScreenPos(connectorPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor) + ImGui::GetWindowPos());
+	ImGui::PushID(_member);
+	bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * float(2) * invisibleButtonOffsetFactor, connectorRadius * float(2) * invisibleButtonOffsetFactor));
+	ImGui::PopID();
+	ImGui::SetCursorPos(cpos);
+
+	// Circle
+	auto isItemHovered = ImGui::IsItemHoveredRect();
+	ImVec2 cursorPos = ImGui::GetCursorPos();
+	ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+
+	ImVec2 connnectorScreenPos = connectorPos + cursorScreenPos - cursorPos;
+
+	if (isItemHovered)
+		draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Highlighted));
+	else
+		draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Fill));
+
+	draw_list->AddCircle(connnectorScreenPos, connectorRadius, getColor(ColorType_Border));
+
+
+	// Manage mouse events in order to link two members by a Wire :
+
+	// HOVERED
+	if (isItemHovered)
+		s_hoveredByMouseMember = _member;
+	else if (s_hoveredByMouseMember == _member)
+		s_hoveredByMouseMember = nullptr;
+
+	// DRAG
+	if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedByMouseMember == nullptr)
+		s_draggedByMouseMember = _member;
+}
+;
 
 
