@@ -50,6 +50,10 @@ void Nodable::History::clear()
 
 void History::setCursorPosition(int _pos)
 {
+	/* Do nothing if cursor is already well positionned */
+	if (_pos == commandsCursor )
+		return;
+
 	/* Undo or redo the required times to get the command cursor well positionned */
 	while (_pos != commandsCursor)
 	{
