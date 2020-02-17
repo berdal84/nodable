@@ -1,25 +1,3 @@
-/*
-
-Author: Bérenger Dalle-Cort, 2017
-
-ChangeLog :
-
-v0.3:
-	- New Node_Assign : '=' can be used to assign a value to a symbol (ex: a = 10)
-	- Now Able to perform binary operations on symbols (ex: c = a + b).
-	- Node_Context : is now used as a factory.
-	- Node : each node can get its contexts with Entity::getParent()
-	- Added a change log.
-	- Added version number into the header file (NODABLE_VERSION_MAJOR, NODABLE_VERSION_MINOR, NODABLE_VERSION)
-
-v0.2:
-	- New Binary Operations : Node_Substract, Node_Multiply, Node_Divide
-	- Lexer : nos supports operator precedence.
-
-v0.1:
-	- Node_Add : to add two Node_Numbers
-	- Lexer : first version able to evaluate additions.
-*/
 
 #pragma once
 #include <string> 	// for some typedefs
@@ -31,7 +9,7 @@ v0.1:
 	Application Version
 */
 
-#define NODABLE_VERSION_SHORT "0.4 wip"
+#define NODABLE_VERSION_SHORT "0.5.0"
 
 #ifdef DEBUG
     #define NODABLE_VERSION NODABLE_VERSION_SHORT " (Debug) Build " __DATE__ " at " __TIME__
