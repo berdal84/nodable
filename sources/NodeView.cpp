@@ -104,29 +104,37 @@ bool NodeView::update()
 	else
 		setColor(ColorType_Fill, ImColor(0.9f, 0.9f, 0.7f));
 
+	auto deltaTime = ImGui::GetIO().DeltaTime;
+	updateInputConnectedNodes(node, deltaTime);
+	return true;
+}
+
+void Nodable::NodeView::updateInputConnectedNodes(Nodable::Entity* node, float deltaTime)
+{
+
 	// automatically moves input connected nodes
 	//------------------------------------------
 
 	// first we get the spacing distance between nodes sepending on drawDetail global variable
 
 	float spacingDistBase = 150.0f;
-	float distances[3]    = {spacingDistBase * 0.3f, spacingDistBase * 0.5f, spacingDistBase * 1.0f};
-	float spacingDist     = distances[s_drawDetail];
+	float distances[3] = { spacingDistBase * 0.3f, spacingDistBase * 0.5f, spacingDistBase * 1.0f };
+	float spacingDist = distances[s_drawDetail];
 
 	// then we constraint each input view
 
-	auto wires            = node->getWires();
-	auto inputIndex       = 0;
+	auto wires = node->getWires();
+	auto inputIndex = 0;
 
 	// Compute the cumulated height and the size x max of the input node view:
 	auto cumulatedHeight = 0.0f;
-	auto maxSizeX        = 0.0f;
-	for(auto eachWire : wires)
+	auto maxSizeX = 0.0f;
+	for (auto eachWire : wires)
 	{
-		auto sourceNode    = eachWire->getSource()->getOwner()->getAs<Entity*>();
+		auto sourceNode = eachWire->getSource()->getOwner()->getAs<Entity*>();
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
-		auto inputView     = reinterpret_cast<NodeView*>(sourceNode->getComponent("view"));
-		if (isWireAnInput && !inputView->pinned )
+		auto inputView = reinterpret_cast<NodeView*>(sourceNode->getComponent("view"));
+		if (isWireAnInput && !inputView->pinned)
 		{
 			cumulatedHeight += inputView->size.y;
 			maxSizeX = std::max(maxSizeX, inputView->size.x);
@@ -134,23 +142,22 @@ bool NodeView::update()
 	}
 
 	/*
-		Update Views that are linked to this input views.
-		This code maintain them stacked together with a little attenuated movement.
+	Update Views that are linked to this input views.
+	This code maintain them stacked together with a little attenuated movement.
 	*/
-	
+
 	auto posY = getMemberConnectorPosition("", Connection_In).y - cumulatedHeight / 2.0f;
 	float nodeVerticalSpacing(10);
-	auto deltaTime = ImGui::GetIO().DeltaTime;
 
-	for(auto eachWire : wires)
+	for (auto eachWire : wires)
 	{
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
 		if (isWireAnInput)
 		{
-			auto sourceNode    = eachWire->getSource()->getOwner()->getAs<Entity*>();
-			auto inputView     = reinterpret_cast<NodeView*>(sourceNode->getComponent("view"));
+			auto sourceNode = eachWire->getSource()->getOwner()->getAs<Entity*>();
+			auto inputView = reinterpret_cast<NodeView*>(sourceNode->getComponent("view"));
 
-			if ( ! inputView->pinned )
+			if (!inputView->pinned)
 			{
 				// Compute new position for this input view
 				ImVec2 newPos(getMemberConnectorPosition("", Connection_In).x - maxSizeX - spacingDist, posY);
@@ -158,19 +165,18 @@ bool NodeView::update()
 
 				// Compute a delta to apply to move to this new position
 				auto currentPos = inputView->getPosition();
-				auto factor     = 10.f * deltaTime; // TODO: use frame time
-				ImVec2 delta( (newPos.x - currentPos.x) * factor,  (newPos.y - currentPos.y) * factor);
+				auto factor = std::min(1.0f, 10.f * deltaTime); // TODO: use frame time
+				ImVec2 delta((newPos.x - currentPos.x) * factor, (newPos.y - currentPos.y) * factor);
 
-				bool isDeltaTooSmall = delta.x*delta.x + delta.y*delta.y < 0.01f;
-				if ( !isDeltaTooSmall )
+				bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
+				if (!isDeltaTooSmall)
 					inputView->translate(delta);
 			}
 
 			inputIndex++;
 		}
 	}
-	
-	return true;
+
 }
 
 bool NodeView::draw()
@@ -398,6 +404,10 @@ bool NodeView::draw()
 void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 {
 	_view->setPosition(_position);
+
+	// Force and update of input connected nodes with a delta time extra high
+	// to ensure all nodes were well placed in a single call (no smooth moves)
+	_view->updateInputConnectedNodes(_view->getOwner(), float(1000) );
 
 	// Get wires that go outside from this node :
 	auto wires = _view->getOwner()->getWires();
