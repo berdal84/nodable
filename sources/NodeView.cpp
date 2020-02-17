@@ -86,11 +86,13 @@ void NodeView::arrangeRecursively()
 
 bool NodeView::update()
 {
+	auto deltaTime = ImGui::GetIO().DeltaTime;
+
 	// Update opacity to reach 1.0f
 	//-----------------------------
 
 	if(opacity < 1.0f)
-		opacity += (1.0f - opacity) * 0.05f; // TODO: use frame time
+		opacity += (1.0f - opacity) * float(10) * deltaTime;
 
 	// Set background color according to node class 
 	//---------------------------------------------
@@ -104,7 +106,7 @@ bool NodeView::update()
 	else
 		setColor(ColorType_Fill, ImColor(0.9f, 0.9f, 0.7f));
 
-	auto deltaTime = ImGui::GetIO().DeltaTime;
+	
 	updateInputConnectedNodes(node, deltaTime);
 	return true;
 }
