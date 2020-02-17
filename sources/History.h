@@ -13,7 +13,7 @@
 namespace Nodable
 {
 	class Cmd;
-	class Cmd_TextEditor;
+	class Cmd_TextEditor_InsertText;
 
 	/* TextEditorBuffer is a class to handle TextEditor UndoRecords
 	This class will catch these object using AddUndo method.
@@ -182,21 +182,21 @@ namespace Nodable
 		Command to wraps a TextEditor UndoRecord
 	*/
 
-	class Cmd_TextEditor : public Cmd
+	class Cmd_TextEditor_InsertText : public Cmd
 	{
 	public:
-		Cmd_TextEditor(
+		Cmd_TextEditor_InsertText(
 			TextEditor::UndoRecord& _undoRecord,
 			TextEditor* _textEditor): 
 			undoRecord(_undoRecord),
 			textEditor(_textEditor)
 		{
-			this->description.append("Cmd_TextEditor\n" );
+			this->description.append("Cmd_TextEditor_InsertText\n" );
 			this->description.append("removed : " + undoRecord.mRemoved + "\n");
 			this->description.append("added : " + undoRecord.mAdded + "\n");
 		}
 
-		~Cmd_TextEditor() {}
+		~Cmd_TextEditor_InsertText() {}
 
 		void execute() {}
 
