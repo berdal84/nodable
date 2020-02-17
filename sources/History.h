@@ -7,10 +7,29 @@
 #include "Member.h"
 #include <vector>
 #include <time.h>
+#include "ImGuiColorTextEdit/TextEditor.h"
+#include "Log.h"
 
 namespace Nodable
 {
 	class Cmd;
+	class Cmd_TextEditor_InsertText;
+
+	/* TextEditorBuffer is a class to handle TextEditor UndoRecords
+	This class will catch these object using AddUndo method.
+	*/
+	class TextEditorBuffer : public TextEditor::ExternalUndoBufferInterface {
+
+	public:
+		void AddUndo(TextEditor::UndoRecord& _undoRecord);
+
+		void setHistory(History* _history) { history = _history; }
+		void setTextEditor(TextEditor* aTextEditor) { mTextEditor = aTextEditor;}
+
+	private:
+		TextEditor* mTextEditor;
+		History* history;
+	};
 
 	class History : public Component {
 	public:
@@ -39,14 +58,25 @@ namespace Nodable
 
 		const char* getCommandDescriptionAtPosition(size_t _commandId);
 
+		/* To get the special buffer for TextEditor */
+		TextEditorBuffer* createTextEditorUndoBuffer(TextEditor* _textEditor) {
+
+			textEditorBuffer = new TextEditorBuffer();
+			textEditorBuffer->setTextEditor(_textEditor);
+			textEditorBuffer->setHistory(this);
+
+			return textEditorBuffer;
+		}
+
 		// Future: For command groups (ex: 5 commands that are atomic)
 		// static BeginGroup();
 		// static EndGroup()
 
 		static History*     global;
 	private:
-		std::vector<Cmd*>	commands;		/* Command history */
+		std::vector<Cmd*>	commands = std::vector<Cmd*>();		/* Command history */
 		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
+		TextEditorBuffer*   textEditorBuffer = nullptr;
 	};
 
 
@@ -60,11 +90,14 @@ namespace Nodable
 		Cmd(){};
 		virtual ~Cmd(){};
 		/* Call this to execute the command instance */
-		virtual void execute()=0;
+		virtual void execute() = 0;
 
 		/* Call this to undo the execution of the command instance */
-		virtual void undo()=0;
+		virtual void undo() = 0;
 		
+		/* Call this to redo this command */
+		virtual void redo() = 0;
+
 		virtual const char* getDescription() { return description.c_str(); };
 	protected:
 		std::string description = "";
@@ -119,6 +152,10 @@ namespace Nodable
 			source->getOwner()->getAs<Entity*>()->addWire(wire);
 		}
 
+		void redo() {
+			execute();
+		}
+
 		void undo()
 		{
 			target->setInputMember(nullptr);
@@ -139,4 +176,44 @@ namespace Nodable
 		Member*    target        = nullptr;
 	};
 
+
+
+	/*
+		Command to wraps a TextEditor UndoRecord
+	*/
+
+	class Cmd_TextEditor_InsertText : public Cmd
+	{
+	public:
+		Cmd_TextEditor_InsertText(
+			TextEditor::UndoRecord& _undoRecord,
+			TextEditor* _textEditor): 
+			undoRecord(_undoRecord),
+			textEditor(_textEditor)
+		{
+			this->description.append("Cmd_TextEditor_InsertText\n" );
+			this->description.append("removed : " + undoRecord.mRemoved + "\n");
+			this->description.append("added : " + undoRecord.mAdded + "\n");
+		}
+
+		~Cmd_TextEditor_InsertText() {}
+
+		void execute() {}
+
+
+		void redo() {
+			undoRecord.Redo(textEditor);
+		}
+
+		void undo()
+		{
+			undoRecord.Undo(textEditor);
+		}
+
+	private:
+
+
+		TextEditor::UndoRecord undoRecord;
+		TextEditor*             textEditor;
+	};
 }

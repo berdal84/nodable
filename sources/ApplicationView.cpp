@@ -242,7 +242,7 @@ bool ApplicationView::draw()
 		auto userWantsToHideSelectedNode(false);
 		auto userWantsToArrangeSelectedNodeHierarchy(false);
 
-		auto history = application->getCurrentFile()->getComponent("history")->getAs<History*>();
+		auto currentFileHistory = application->getCurrentFile()->getComponent("history")->getAs<History*>();
 
         ImGui::Begin("Container", NULL, ImVec2(), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
@@ -275,11 +275,11 @@ bool ApplicationView::draw()
 				if (ImGui::BeginMenu("Edit"))
 				{
 
-					if (history) {
+					if (currentFileHistory) {
 						userWantsToUndo |= ImGui::MenuItem("Undo", "");
 						userWantsToRedo |= ImGui::MenuItem("Redo", "");
-						if (userWantsToUndo)history->undo();
-						if (userWantsToRedo)history->redo();
+						if (userWantsToUndo)currentFileHistory->undo();
+						if (userWantsToRedo)currentFileHistory->redo();
 
 						ImGui::Separator();
 					}
@@ -347,13 +347,13 @@ bool ApplicationView::draw()
 				UNDO HISTORY / TIME SLIDER
 			*/
 
-			if (history) {
+			if (currentFileHistory) {
 				auto historyButtonSpacing = float(2);
 				auto historyButtonHeight = float(12);
 				auto historyButtonMinWidth = float(60);
 
-				auto historySize = history->getSize();
-				auto historyCurrentCursorPosition = history->getCursorPosition();
+				auto historySize = currentFileHistory->getSize();
+				auto historyCurrentCursorPosition = currentFileHistory->getCursorPosition();
 				auto availableWidth = ImGui::GetContentRegionAvailWidth();
 				auto historyButtonWidth = std::fmin(historyButtonMinWidth, availableWidth / float(historySize) - historyButtonSpacing);
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0));
@@ -374,12 +374,12 @@ bool ApplicationView::draw()
 					if (ImGui::IsItemHovered())
 					{
 						if (ImGui::IsMouseDown(0)) // hovered + mouse down
-							history->setCursorPosition(commandId); // update history cursor position
-
+							currentFileHistory->setCursorPosition(commandId); // update history cursor position
+							
 						// Draw command description 
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
 						ImGui::BeginTooltip();
-						ImGui::Text(history->getCommandDescriptionAtPosition(commandId - 1));
+						ImGui::Text(currentFileHistory->getCommandDescriptionAtPosition(commandId - 1));
 						ImGui::EndTooltip();
 						ImGui::PopStyleVar();
 					}
