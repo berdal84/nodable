@@ -101,7 +101,11 @@ void Application::closeCurrentFile()
 }
 
 File* Application::getCurrentFile()const {
-	return loadedFiles.at(currentFileIndex);
+
+	if (loadedFiles.size() > currentFileIndex) {
+		return loadedFiles.at(currentFileIndex);
+	}
+	return nullptr;
 }
 
 void Application::setCurrentFileWithIndex(size_t _index)

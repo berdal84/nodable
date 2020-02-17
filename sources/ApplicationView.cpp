@@ -242,7 +242,13 @@ bool ApplicationView::draw()
 		auto userWantsToHideSelectedNode(false);
 		auto userWantsToArrangeSelectedNodeHierarchy(false);
 
-		auto currentFileHistory = application->getCurrentFile()->getComponent("history")->getAs<History*>();
+		
+		// Get current file's history
+		History* currentFileHistory = nullptr;
+		
+		if ( auto file = application->getCurrentFile())
+			currentFileHistory = file->getComponent("history")->getAs<History*>();
+
 
         ImGui::Begin("Container", NULL, ImVec2(), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
@@ -399,52 +405,20 @@ bool ApplicationView::draw()
 			/*
 				HYBRID EDITOR
 			*/
+			if (application->getFileCount() > 0) {
 
-			/*
-				FILE TABS
-			*/
-			bool userSwitchesFile = false;
-			{			
+				drawFileTabs();
 
-				float tabsVerticalOffset = ImGui::GetStyle().FramePadding.y ;
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + tabsVerticalOffset);
-				
-				ImGui::BeginTabBar("FileTabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs);
+				auto availSize = ImGui::GetContentRegionAvail();
+				availSize.y -= ImGui::GetTextLineHeightWithSpacing();;
 
-				for (size_t i = 0; i < application->getFileCount(); i++)
+				ImGui::BeginChild("File View", ImVec2(availSize.x, availSize.y), false);
 				{
-					auto file = application->getFileAtIndex(i);
-					std::string tabLabel = file->getName();
-					if (file->isModified())
-						tabLabel.append("*");
-					tabLabel.append("##");
-					tabLabel.append(std::to_string(i));
-
-					if (ImGui::BeginTabItem(tabLabel.c_str()))
-							ImGui::EndTabItem();					
-
-					if (ImGui::IsItemClicked(0))
-					{
-						LOG_MSG("ApplicationView - User switch tabs to \"%s\" (id:%lu)\n", tabLabel.c_str(), i);
-						application->setCurrentFileWithIndex(i);
-						userSwitchesFile = true;
-					}
+					auto fileView = application->getCurrentFile()->getComponent("view")->getAs<View*>();
+					fileView->draw();
 				}
-
-				ImGui::EndTabBar();
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() - tabsVerticalOffset);
-
+				ImGui::EndChild();
 			}
-
-            auto availSize = ImGui::GetContentRegionAvail();
-            availSize.y -=  ImGui::GetTextLineHeightWithSpacing();;
-
-            ImGui::BeginChild( "File View", ImVec2(availSize.x , availSize.y), false);
-			{
-				auto fileView = application->getCurrentFile()->getComponent("view")->getAs<View*>();
-				fileView->draw();
-			}
-			ImGui::EndChild();
 
             /*
                 Status bar
@@ -506,5 +480,41 @@ bool ApplicationView::draw()
 	SDL_GL_SwapWindow(sdlWindow);
 
     return false;
+}
+
+void Nodable::ApplicationView::drawFileTabs()
+{
+	bool userSwitchesFile = false;
+	{
+
+		float tabsVerticalOffset = ImGui::GetStyle().FramePadding.y;
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + tabsVerticalOffset);
+
+		ImGui::BeginTabBar("FileTabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs);
+
+		for (size_t i = 0; i < application->getFileCount(); i++)
+		{
+			auto file = application->getFileAtIndex(i);
+			std::string tabLabel = file->getName();
+			if (file->isModified())
+				tabLabel.append("*");
+			tabLabel.append("##");
+			tabLabel.append(std::to_string(i));
+
+			if (ImGui::BeginTabItem(tabLabel.c_str()))
+				ImGui::EndTabItem();
+
+			if (ImGui::IsItemClicked(0))
+			{
+				LOG_MSG("ApplicationView - User switch tabs to \"%s\" (id:%lu)\n", tabLabel.c_str(), i);
+				application->setCurrentFileWithIndex(i);
+				userSwitchesFile = true;
+			}
+		}
+
+		ImGui::EndTabBar();
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - tabsVerticalOffset);
+
+	}
 }
 

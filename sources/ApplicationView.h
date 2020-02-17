@@ -20,6 +20,8 @@ namespace Nodable
 		/* call this every frame */
 		bool draw();
 
+		void drawFileTabs();
+
 		/* call this once just after the instantiation. */
 		bool init();
 
