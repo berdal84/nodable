@@ -348,18 +348,25 @@ bool ApplicationView::draw()
 			*/
 
 			if (currentFileHistory) {
-				auto historyButtonSpacing = float(2);
-				auto historyButtonHeight = float(12);
-				auto historyButtonMinWidth = float(60);
+
+				ImGui::Text(ICON_FA_CLOCK " History: ");
+
+				auto historyButtonSpacing = float(1);
+				auto historyButtonHeight = float(20);
+				auto historyButtonMaxWidth = float(10);
 
 				auto historySize = currentFileHistory->getSize();
 				auto historyCurrentCursorPosition = currentFileHistory->getCursorPosition();
 				auto availableWidth = ImGui::GetContentRegionAvailWidth();
-				auto historyButtonWidth = std::fmin(historyButtonMinWidth, availableWidth / float(historySize) - historyButtonSpacing);
+				auto historyButtonWidth = std::fmin(historyButtonMaxWidth, availableWidth / float(historySize) - historyButtonSpacing);
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0));
+			
+				
 
-				for (size_t commandId = 1; commandId <= historySize; commandId++)
+				for (size_t commandId = 0; commandId < historySize; commandId++)
 				{
+					ImGui::SameLine();
+
 					// Draw an highlighted button for the current history position
 					if (commandId == historyCurrentCursorPosition) {
 						ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
@@ -379,15 +386,14 @@ bool ApplicationView::draw()
 						// Draw command description 
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
 						ImGui::BeginTooltip();
-						ImGui::Text(currentFileHistory->getCommandDescriptionAtPosition(commandId - 1));
+						ImGui::Text(currentFileHistory->getCommandDescriptionAtPosition(commandId));
 						ImGui::EndTooltip();
 						ImGui::PopStyleVar();
 					}
 
-					ImGui::SameLine();
+					
 				}
 				ImGui::PopStyleVar();
-				ImGui::NewLine();
 			}
 
 			/*
