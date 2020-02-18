@@ -443,25 +443,40 @@ bool NodeView::drawMember(Member* _member) {
 		switch (_member->getType())
 		{
 		case Type_Number:
-		{
-			std::string label("##");
-			label.append(_member->getName());
-			float f(_member->getValueAsNumber());
-			if (ImGui::InputFloat(label.c_str(), &f))
 			{
-				_member->setValue(f);
-				node->setDirty(true);
-				edited |= true;
+				std::string label("##");
+				label.append(_member->getName());
+				float f(_member->getValueAsNumber());
+				if (ImGui::InputFloat(label.c_str(), &f))
+				{
+					_member->setValue(f);
+					node->setDirty(true);
+					edited |= true;
+				}
+				break;
 			}
-			break;
-		}
+		case Type_String:
+			{
+				std::string label("##");
+				label.append(_member->getName());
+				char str[255];
+				sprintf(str, "%s", _member->getValueAsString().c_str());
+
+				if (ImGui::InputText(label.c_str(), str, strlen(str)) )
+				{
+					_member->setValue(str);
+					node->setDirty(true);
+					edited |= true;
+				}
+				break;
+			}
 		default:
-		{
-			ImGui::Text("%s", _member->getName().c_str());
-			ImGui::SameLine(100.0f);
-			ImGui::Text("%s", _member->getValueAsString().c_str());
-			break;
-		}
+			{
+				ImGui::Text("%s", _member->getName().c_str());
+				ImGui::SameLine(100.0f);
+				ImGui::Text("%s", _member->getValueAsString().c_str());
+				break;
+			}
 		}
 
 	}
