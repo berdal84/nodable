@@ -36,36 +36,33 @@ bool Lexer::eval()
 {
 	bool success = false;
 
-	LOG_DBG("Lexer::eval() - tokenize\n");
 	tokenize();
-	LOG_DBG("Lexer::eval() - check syntax\n");
-	if ( isSyntaxValid() )
-	{
-		LOG_DBG("Lexer::eval() - build tree and eval\n");
-		auto result = buildGraph();
 
-		// Hides the value member only if it is connected to something (to reduce screen space used)
-		auto member = result->getMember("value");
-		if ( member->getInputMember() != nullptr)
-			member->setVisibility(Visibility_VisibleOnlyWhenUncollapsed);
+	auto result = buildGraph();
 
-		NodeView::ArrangeRecursively(result->getComponent("view")->getAs<NodeView*>());
+	if (result == nullptr)
+		return false;
+
+	// Hides the value member only if it is connected to something (to reduce screen space used)
+	auto member = result->getMember("value");
+	if ( member->getInputMember() != nullptr)
+		member->setVisibility(Visibility_VisibleOnlyWhenUncollapsed);
+
+	NodeView::ArrangeRecursively(result->getComponent("view")->getAs<NodeView*>());
 		
-		success = true;
-	}else{
-		LOG_DBG("Lexer::eval() - error, abording...\n");
-	}	
+	success = true;
 
 	return success;
 }
 
 Variable* Lexer::buildGraph()
 {
-	LOG_DBG("Lexer::buildGraph() - START\n");	
 	Member*         resultValue = buildGraphRec();
-	auto           container   = this->getParent();
 
-	LOG_DBG("Lexer::buildGraph() - Assign result to a variable.\n");
+	if (resultValue == nullptr)
+		return nullptr;
+
+	auto           container   = this->getParent();
 	Variable* resultVariable    = container->createNodeResult();	
 
 	// If the value has no owner, we simplly set the variable value
@@ -75,14 +72,13 @@ Variable* Lexer::buildGraph()
 	else
 		Entity::Connect(container->createWire(), resultValue, resultVariable->getValueMember());
 
-
-	LOG_DBG("Lexer::buildGraph() - DONE !\n");
 	return resultVariable;
 }
 
 Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _leftValueOverride, Member* _rightValueOverride)
 {
 	Member*          result = nullptr;
+
 	Container* context = this->getParent();
 	NODABLE_ASSERT(context != nullptr);
 
@@ -92,7 +88,10 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 	size_t tokenToEvalCount = tokens.size() - _tokenId;
 	if (_tokenCountMax != 0 )
 		tokenToEvalCount = std::min(_tokenCountMax, tokenToEvalCount);
-	
+
+	if ( tokenToEvalCount == 0)
+		return result;
+
 	//----------------------
 	// Expression -> Operand
 	//----------------------
@@ -155,10 +154,6 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 				break;
 			}
 
-			default:
-			{
-				NODABLE_ASSERT(false);
-			}
 		}
 
 	//-------------------------------------------
@@ -224,10 +219,12 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 			else
 				left = buildGraphRec(_tokenId, 1);
 
-			if (left->getOwner() == nullptr)
-				binOperation->setMember("left", left);
-			else
-				Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
+			if (left) {
+				if (left->getOwner() == nullptr)
+					binOperation->setMember("left", left);
+				else
+					Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
+			}
 
 			// Connect the Right Operand :
 			//----------------------------
@@ -238,10 +235,12 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 			else
 				right = buildGraphRec(_tokenId + 2, 1);
 
-			if (right->getOwner() == nullptr)
-				binOperation->setMember("right", right);
-			else
-				Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
+			if (right) {
+				if (right->getOwner() == nullptr)
+					binOperation->setMember("right", right);
+				else
+					Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
+			}
 
 			// Set the result !
 			result = binOperation->getMember("result");
@@ -301,8 +300,6 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 				result = intermediateResultLeft;
 		}
 	}
-
-	NODABLE_ASSERT(result != nullptr); // result is nullptr, this should never happend
 
 	return result;
 }

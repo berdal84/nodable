@@ -42,18 +42,20 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 
 	// Left part of the expression
 	bool leftExpressionNeedsParentheses  = needParentheses(this->left->getInputMember());
-	if (leftExpressionNeedsParentheses) expr.append("(");
+	if (leftExpressionNeedsParentheses) expr.append("( ");
 	expr.append( this->left->getSourceExpression() );
-	if (leftExpressionNeedsParentheses) expr.append(")");
+	if (leftExpressionNeedsParentheses) expr.append(" )");
 
 	// Operator
+	expr.append( " " );
 	expr.append( this->operatorAsString );
+	expr.append( " " );
 
 	// Righ part of the expression
 	bool rightExpressionNeedsParentheses = needParentheses(this->right->getInputMember());
-	if (rightExpressionNeedsParentheses) expr.append("(");
+	if (rightExpressionNeedsParentheses) expr.append("( ");
 	expr.append(this->right->getSourceExpression());
-	if (rightExpressionNeedsParentheses) expr.append(")");
+	if (rightExpressionNeedsParentheses) expr.append(" )");
 
 	// Apply the new string to the result's source expression.
 	this->result->setSourceExpression(expr.c_str());
