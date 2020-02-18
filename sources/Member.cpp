@@ -156,7 +156,7 @@ std::string Member::getTypeAsString()const
 std::string Member::getSourceExpression()const
 {
 	std::string str;
-	if (inputMember != nullptr)
+	if ( allows(Connection_In) && inputMember != nullptr)
 	{
 		// if inputMember is a variable we add the variable name and an equal sign
 		if (inputMember->getOwner()->getMember("__class__")->getValueAsString() == "Variable" &&
@@ -169,7 +169,7 @@ std::string Member::getSourceExpression()const
 		}else
 			str = inputMember->getSourceExpression();
 
-	}else if (sourceExpression != "")
+	} else if (sourceExpression != "")
 		str = sourceExpression;
 	else 
 		str = getValueAsString();

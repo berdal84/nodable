@@ -29,7 +29,6 @@ std::string Variable::getValueAsString()const
 void Variable::setName(const char* _name)
 {
 	name = _name;
-	getMember("value")->setSourceExpression(_name);
 	setLabel(_name);
 }
 

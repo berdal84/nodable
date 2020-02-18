@@ -462,7 +462,7 @@ bool NodeView::drawMember(Member* _member) {
 				char str[255];
 				sprintf(str, "%s", _member->getValueAsString().c_str());
 
-				if (ImGui::InputText(label.c_str(), str, strlen(str)) )
+				if (ImGui::InputText(label.c_str(), str, 255) )
 				{
 					_member->setValue(str);
 					node->setDirty(true);
