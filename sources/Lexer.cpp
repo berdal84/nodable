@@ -150,7 +150,8 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 
 			case TokenType_String:{
 				result = new Member();
-				result->setValue(tokenWordString);	
+				result->setValue(tokenWordString);
+
 				break;
 			}
 

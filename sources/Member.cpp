@@ -155,24 +155,33 @@ std::string Member::getTypeAsString()const
 
 std::string Member::getSourceExpression()const
 {
-	std::string str;
+	std::string expression;
+
 	if ( allows(Connection_In) && inputMember != nullptr)
 	{
 		// if inputMember is a variable we add the variable name and an equal sign
 		if (inputMember->getOwner()->getMember("__class__")->getValueAsString() == "Variable" &&
 			getOwner()->getMember("__class__")->getValueAsString() == "Variable")
 		{
-			str.append(inputMember->getOwner()->getAs<Variable*>()->getName());
-			str.append("=");
-			str.append(inputMember->getSourceExpression());
+			expression.append(inputMember->getOwner()->getAs<Variable*>()->getName());
+			expression.append("=");
+			expression.append(inputMember->getSourceExpression());
 
 		}else
-			str = inputMember->getSourceExpression();
+			expression = inputMember->getSourceExpression();
 
-	} else if (sourceExpression != "")
-		str = sourceExpression;
-	else 
-		str = getValueAsString();
+	} else if (sourceExpression != "") {
+		expression = sourceExpression;
 
-	return str;
+	} else {
+
+		if (isType(Type_String)) {
+			expression = '"' + getValueAsString() + '"';
+		}
+		else {
+			expression = getValueAsString();
+		}
+	}
+
+	return expression;
 }
