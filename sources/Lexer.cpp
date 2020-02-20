@@ -15,6 +15,9 @@ Lexer::Lexer()
 {
 	LOG_DBG("new Lexer\n");
 	setMember("__class__", "Lexer");
+
+	// TODO: create a language class/object to store those data.
+
 	addMember("expression", Visibility_VisibleOnlyWhenUncollapsed);
 	addMember("numbers", 	Visibility_VisibleOnlyWhenUncollapsed);
 	addMember("letters", 	Visibility_VisibleOnlyWhenUncollapsed);
@@ -22,7 +25,7 @@ Lexer::Lexer()
 
 	setMember("numbers", "0123456789.");	
 	setMember("letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_");	
-	setMember("operators", "+-*/=");
+	setMember("operators", "!+-*/=");
 
 	setLabel("Lexer");
 }
@@ -154,13 +157,20 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 
 	}else if (tokenToEvalCount == 2 )
 	{
-		std::string op = tokens[_tokenId].word;
-		const Token& token(tokens.at(_tokenId + 1));
+		const Token& token1(tokens.at(_tokenId));
+		const Token& token2(tokens.at(_tokenId + 1));
 
-		// Only works with -
-		if (op == "-" && token.type == TokenType_Number) {
-			result = operandTokenToMember(token);
-			result->setValue(-result->getValueAsNumber());
+
+		if (token1.type == TokenType_Operator) {
+
+			if ( token1.word == "-" && token2.type == TokenType_Number) {
+				result = operandTokenToMember(token2);
+				result->setValue(-result->getValueAsNumber());
+			}
+			else if (token1.word == "!" && token2.type == TokenType_Boolean) {
+				result = operandTokenToMember(token2);
+				result->setValue(!result->getValueAsBoolean());
+			}
 		}
 
 
