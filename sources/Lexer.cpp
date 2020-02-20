@@ -75,6 +75,55 @@ Variable* Lexer::buildGraph()
 	return resultVariable;
 }
 
+Member* Lexer::operandTokenToMember(const Token& _token) {
+
+	Member* result = nullptr;
+
+	switch (_token.type)
+	{
+
+		case TokenType_Boolean:
+		{
+			result = new Member();
+			const bool value = _token.word == "true";
+			result->setValue(value);
+			break;
+		}
+
+		case TokenType_Symbol:
+		{
+			auto context = getParent();
+			Variable* variable = context->find(_token.word);
+
+			if (variable == nullptr)
+				variable = context->createNodeVariable(_token.word);
+
+			NODABLE_ASSERT(variable != nullptr);
+			NODABLE_ASSERT(variable->getValueMember() != nullptr);
+
+			result = variable->getValueMember();
+
+			break;
+		}
+
+		case TokenType_Number: {
+			result = new Member();
+			const double number = std::stod(_token.word);
+			result->setValue(number);
+			break;
+		}
+
+		case TokenType_String: {
+			result = new Member();
+			result->setValue(_token.word);
+			break;
+		}
+
+	}
+
+	return result;
+}
+
 Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _leftValueOverride, Member* _rightValueOverride)
 {
 	Member*          result = nullptr;
@@ -92,110 +141,55 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 	if ( tokenToEvalCount == 0)
 		return result;
 
-	//----------------------
-	// Expression -> Operand
-	//----------------------
+
+	// Simplest case, then expression has only a single token
 
 	if ( tokenToEvalCount == 1)
 	{		
-		std::string tokenWordString = tokens[_tokenId].word;
-		switch ( tokens[_tokenId].type )
-		{
-			//--------------------
-			// Operand -> Boolean
-			//--------------------
+		const Token& token(tokens.at(_tokenId));
+		result = operandTokenToMember(token);
 
-			case TokenType_Boolean:
-			{
-				result = new Member();	
-				result->setValue(tokenWordString == "true");
 
-				break;
-			}
+	// Two tokens expression (ex: !boolean, -number, etc...)
 
-			//--------------------
-			// Operand -> Symbol
-			//--------------------
+	}else if (tokenToEvalCount == 2 )
+	{
+		std::string op = tokens[_tokenId].word;
+		const Token& token(tokens.at(_tokenId + 1));
 
-			case TokenType_Symbol:
-			{
-				LOG_DBG("Symbol 1.\n");
-				Variable* variable = context->find(tokenWordString);
-				LOG_DBG("Symbol 2.\n");
-				if ( variable == nullptr )
-					variable = context->createNodeVariable(tokenWordString);
-				LOG_DBG("Symbol 3 .\n");
-				NODABLE_ASSERT(variable != nullptr);
-				NODABLE_ASSERT(variable->getValueMember() != nullptr);
-
-				result = variable->getValueMember();
-				
-				break;
-			}
-
-			//--------------------
-			// Operand -> Number
-			//--------------------
-
-			case TokenType_Number:{
-				result = new Member();
-				result->setValue(std::stod(tokenWordString));
-				break;
-			}
-
-			//--------------------
-			// Operand -> String
-			//--------------------
-
-			case TokenType_String:{
-				result = new Member();
-				result->setValue(tokenWordString);
-
-				break;
-			}
-
+		// Only works with -
+		if (op == "-" && token.type == TokenType_Number) {
+			result = operandTokenToMember(token);
+			result->setValue(-result->getValueAsNumber());
 		}
 
-	//-------------------------------------------
-	// Expression -> ( Unary Operator , Operand )
-	//-------------------------------------------
 
-	//}else if (tokenToEvalCount == 2)
-	//{
-		// TODO
+	// Three tokens expression ( MUST be OPERAND, OPERATOR, OPERAND)
 
-	//------------------------------------------------------
-	// Expression -> ( Operand , Binary Operator , Operand )
-	//------------------------------------------------------
-
-	}else if  (tokenToEvalCount == 3)
+	}
+	else if (tokenToEvalCount == 3)
 	{
-		std::string op    = tokens[_tokenId+1].word;
+		const Token& leftToken(tokens.at(_tokenId));
+		const Token& operatorToken(tokens.at(_tokenId + 1));
+		const Token& rightToken(tokens.at(_tokenId + 2));
 
-			
+		Member* left = _leftValueOverride != nullptr ? _leftValueOverride : operandTokenToMember(leftToken);
+		Member* right = _rightValueOverride != nullptr ? _rightValueOverride : operandTokenToMember(rightToken);
+
+		const bool isValid =	leftToken.type     != TokenType_Operator &&
+								operatorToken.type == TokenType_Operator &&
+								rightToken.type    != TokenType_Operator;
+		if ( !isValid )
+			return nullptr;
+
 		// Special behavior for "=" operator
-		if (op == "=")
+		if ( operatorToken.word == "=")
 		{
-			// Get left operand (should BE a variable)
-			//----------------------------------------
-			
-			Member* left;
-			if (_leftValueOverride != nullptr)
-				left = _leftValueOverride;
-			else
-				left = buildGraphRec(_tokenId, 1);
+			// left operand (should BE a variable)
 
 			NODABLE_ASSERT(left->getOwner() != nullptr); // left operand cannot be a orphaned member
 			NODABLE_ASSERT(left->getOwner()->getMember("__class__")->getValueAsString() == "Variable"); // left operand need to me owned by a variable node			               
 
-			// Get right operand
-			//-----------------
-
-			Member* right;
-			if (_rightValueOverride != nullptr)
-				right = _rightValueOverride;
-			else
-				right = buildGraphRec(_tokenId + 2, 1);
 
 			// Directly connects right operand output to left operant input (yes that's reversed compared to code)
 			if (right->getOwner() == nullptr)
@@ -207,52 +201,40 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 
 
 		// For all other binary operations :
-		}else{
-			auto binOperation = context->createNodeBinaryOperation(op);
+		}else {
+			auto binOperation = context->createNodeBinaryOperation(operatorToken.word);
 
 			// Connect the Left Operand :
 			//---------------------------
-
-			Member* left;
-			if (_leftValueOverride != nullptr)
-				left = _leftValueOverride;
+			if (left->getOwner() == nullptr)
+				binOperation->setMember("left", left);
 			else
-				left = buildGraphRec(_tokenId, 1);
-
-			if (left) {
-				if (left->getOwner() == nullptr)
-					binOperation->setMember("left", left);
-				else
-					Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
-			}
+				Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
 
 			// Connect the Right Operand :
-			//----------------------------
 
-			Member * right;
-			if (_rightValueOverride != nullptr)
-				right = _rightValueOverride;
+			if (right->getOwner() == nullptr)
+				binOperation->setMember("right", right);
 			else
-				right = buildGraphRec(_tokenId + 2, 1);
-
-			if (right) {
-				if (right->getOwner() == nullptr)
-					binOperation->setMember("right", right);
-				else
-					Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
-			}
+				Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
 
 			// Set the result !
 			result = binOperation->getMember("result");
 		}
 
 
-	//----------------------------------------------------------------------------
-	// Expression -> ( Operand , Binary Operator , Operand, Binary Operator, ... )
-	//----------------------------------------------------------------------------
+	// More than 3 terms expressions :
 
-	}else if  (tokenToEvalCount >= 4)
-	{	
+	} else {	
+
+		// First we check if we are not in presence of a unary operation for the first two tokens
+		const Token& token1(tokens.at(_tokenId));
+		const Token& token2(tokens.at(_tokenId + 1));
+
+		if (token1.type == TokenType_Operator) {
+			_leftValueOverride = buildGraphRec(_tokenId, 2); _tokenId++;
+		}
+
 		/* Operator precedence */
 		std::string firstOperator  = tokens[_tokenId+1].word;
 		std::string nextOperator   = tokens[_tokenId+3].word;		
@@ -266,38 +248,12 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 			result = buildGraphRec(_tokenId+2, 0, intermediateResult);	
 
 		}else{
-
-			// build the graph for the right operand
-			size_t tokenToEvaluateCount = 0;
-			size_t lastOperatorIndex    = 0;
-			bool   indexFound           = false;
-			while( !indexFound &&
-				    2 + tokenToEvaluateCount <= tokenToEvalCount &&
-				_tokenId + 2 + tokenToEvaluateCount < tokens.size())
-			{
-				if (tokens[_tokenId + 2 + tokenToEvaluateCount].type == TokenType_Operator)
-				{
-
-					nextOperator = tokens[_tokenId + 2 + tokenToEvaluateCount].word;
-					if (BinaryOperationComponent::NeedsToBeEvaluatedFirst(firstOperator, nextOperator))
-					{
-						indexFound = true;
-						break;
-					}
-				}
-				tokenToEvaluateCount++;
-			}
 			
-			auto right = buildGraphRec(_tokenId+2, tokenToEvaluateCount);	
+			auto right = buildGraphRec(_tokenId+2, 0);	
 
 			// Build the graph for the first 3 tokens
-			auto intermediateResultLeft = buildGraphRec(_tokenId, 3, _leftValueOverride, right);
+			result = buildGraphRec(_tokenId, 3, _leftValueOverride, right);
 
-			// Then evaluates the rest if needed
-			if ( _tokenId + 2 + tokenToEvaluateCount < tokens.size())
-				result = buildGraphRec(_tokenId + 2 + tokenToEvaluateCount - 1, 0, intermediateResultLeft);
-			else
-				result = intermediateResultLeft;
 		}
 	}
 
@@ -363,7 +319,7 @@ void Lexer::tokenize()
 	std::map<std::string, TokenType_> keywords;
 	keywords["true"]  = TokenType_Boolean;
 	keywords["false"] = TokenType_Boolean;
-
+	
 	for(auto it = chars.begin(); it != chars.end(); ++it)
 	{
 		

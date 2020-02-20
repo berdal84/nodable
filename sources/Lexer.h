@@ -51,6 +51,8 @@ namespace Nodable{
 		 Important: tokenize() should be called first. */
 		Variable* buildGraph          ();
 
+		Member* operandTokenToMember(const Token& _token);
+
 		/* Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
 		Member*         buildGraphRec       (size_t _tokenIndex = 0, size_t _tokenCountMax = 0,   Member* _leftValueOverride = nullptr, Member* _rightValueOverride = nullptr);
 
