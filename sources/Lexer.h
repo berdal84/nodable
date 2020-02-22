@@ -53,6 +53,8 @@ namespace Nodable{
 
 		Member* operandTokenToMember(const Token& _token);
 
+		Member* buildGraphV2();
+
 		/* Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
 		Member*         buildGraphRec       (size_t _tokenIndex = 0, size_t _tokenCountMax = 0,   Member* _leftValueOverride = nullptr, Member* _rightValueOverride = nullptr);
 

@@ -127,6 +127,101 @@ Member* Lexer::operandTokenToMember(const Token& _token) {
 	return result;
 }
 
+Member* Lexer::buildGraphV2()
+{
+	Member*    result  = nullptr;
+	Container* context = this->getParent();
+
+	NODABLE_ASSERT(context != nullptr);
+
+	// Computes the number of token to eval
+	size_t tokenCount = tokens.size();
+	size_t tokenCursor = 0;
+
+	Member* _leftOverride = nullptr;
+	Member* _rightOverride = nullptr;
+	
+	Entity* previousBinaryOperation = nullptr;
+
+	while (tokenCursor < tokenCount && result == nullptr) {
+
+		size_t tokenLeft = tokenCount - tokenCursor;
+		Member* tempResult = nullptr;
+
+		switch (tokenLeft) {
+
+			// Operand
+			case 1: {
+				const Token& token(tokens[tokenCursor]);
+				tempResult = operandTokenToMember(token);
+				tokenCursor += 1;
+				break;
+			}
+
+			// Operator, Operand
+			case 2: {
+				const Token& token1(tokens.at(tokenCursor));
+				const Token& token2(tokens.at(tokenCursor + 1));
+
+				if (token1.type == TokenType_Operator) {
+
+					if (token1.word == "-" && token2.type == TokenType_Number) {
+						tempResult = operandTokenToMember(token2);
+						tempResult->setValue(-tempResult->getValueAsNumber());
+					}
+					else if (token1.word == "!" && token2.type == TokenType_Boolean) {
+						tempResult = operandTokenToMember(token2);
+						tempResult->setValue(!tempResult->getValueAsBoolean());
+					}
+				}
+				tokenCursor += 2;
+				break;
+			}
+
+			// Operand, Operator, Expression
+			default: {
+				const Token& token1(tokens.at(tokenCursor));
+				const Token& token2(tokens.at(tokenCursor + 1));
+				const Token& token3(tokens.at(tokenCursor + 2));
+
+
+				// Generate operation and members
+				auto binOperation = context->createNodeBinaryOperation(token2.word);
+				Member* left  = _leftOverride  ? _leftOverride  : operandTokenToMember(token1);
+				Member* right = _rightOverride ? _rightOverride : operandTokenToMember(token3);
+
+				// Connect the Left
+				if (left->getOwner() == nullptr)
+					binOperation->setMember("left", left);
+				else
+					Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
+
+				// Connect the Right
+				if (right->getOwner() == nullptr)
+					binOperation->setMember("right", right);
+				else
+					Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
+
+				// Set the result
+				tempResult = binOperation->getMember("result");
+
+				// For now force execution of left operator before right
+				_rightOverride = nullptr;
+				_leftOverride = tempResult;
+				previousBinaryOperation = binOperation;
+				tokenCursor += 2;
+
+				break;
+			}
+		}
+
+		if (tokenCursor >= tokenCount)
+			result = tempResult;
+	}
+
+	return result;
+}
+
 Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _leftValueOverride, Member* _rightValueOverride)
 {
 	Member*          result = nullptr;
