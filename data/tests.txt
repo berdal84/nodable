@@ -12,6 +12,8 @@
 
 -9
 
+5 * ( 3 + 4 )
+
 "coucou"
 
 berenger = 5
@@ -19,3 +21,4 @@ berenger = 5
 str = "fresh"
 
 suite = 1 + 2 + 3 + 4 + 5
+

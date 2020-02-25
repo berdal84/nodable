@@ -19,12 +19,12 @@ Lexer::Lexer()
 	// TODO: create a language class/object to store those data.
 
 	addMember("expression", Visibility_VisibleOnlyWhenUncollapsed);
-	addMember("numbers", 	Visibility_VisibleOnlyWhenUncollapsed);
-	addMember("letters", 	Visibility_VisibleOnlyWhenUncollapsed);
-	addMember("operators", 	Visibility_VisibleOnlyWhenUncollapsed);
+	addMember("numbers", Visibility_VisibleOnlyWhenUncollapsed);
+	addMember("letters", Visibility_VisibleOnlyWhenUncollapsed);
+	addMember("operators", Visibility_VisibleOnlyWhenUncollapsed);
 
-	setMember("numbers", "0123456789.");	
-	setMember("letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_");	
+	setMember("numbers", "0123456789.");
+	setMember("letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_");
 	setMember("operators", "!+-*/=");
 
 	setLabel("Lexer");
@@ -39,12 +39,23 @@ bool Lexer::eval()
 {
 	bool success = false;
 
-	tokenize();
+	tokenizeExpressionString();
 
-	auto result = buildGraph();
+	Member* resultValue = parseExpression();
 
-	if (result == nullptr)
+	if (resultValue == nullptr)
 		return false;
+
+	auto           container = this->getParent();
+	Variable* result = container->createNodeResult();
+
+	// If the value has no owner, we simplly set the variable value
+	if (resultValue->getOwner() == nullptr)
+		result->setValue(resultValue);
+	// Else we connect resultValue with resultVariable.value
+	else
+		Entity::Connect(container->createWire(), resultValue, result->getValueMember());
+
 
 	// Hides the value member only if it is connected to something (to reduce screen space used)
 	auto member = result->getMember("value");
@@ -56,26 +67,6 @@ bool Lexer::eval()
 	success = true;
 
 	return success;
-}
-
-Variable* Lexer::buildGraph()
-{
-	Member*         resultValue = buildGraphRec();
-
-	if (resultValue == nullptr)
-		return nullptr;
-
-	auto           container   = this->getParent();
-	Variable* resultVariable    = container->createNodeResult();	
-
-	// If the value has no owner, we simplly set the variable value
-	if( resultValue->getOwner() == nullptr)
-		resultVariable->setValue(resultValue);
-	// Else we connect resultValue with resultVariable.value
-	else
-		Entity::Connect(container->createWire(), resultValue, resultVariable->getValueMember());
-
-	return resultVariable;
 }
 
 Member* Lexer::operandTokenToMember(const Token& _token) {
@@ -127,7 +118,7 @@ Member* Lexer::operandTokenToMember(const Token& _token) {
 	return result;
 }
 
-Member* Lexer::buildGraphV2()
+Member* Lexer::buildGraphIterative()
 {
 	Member*    result  = nullptr;
 	Container* context = this->getParent();
@@ -136,32 +127,32 @@ Member* Lexer::buildGraphV2()
 
 	// Computes the number of token to eval
 	size_t tokenCount = tokens.size();
-	size_t tokenCursor = 0;
+	size_t cursor = 0;
 
 	Member* _leftOverride = nullptr;
 	Member* _rightOverride = nullptr;
 	
 	Entity* previousBinaryOperation = nullptr;
 
-	while (tokenCursor < tokenCount && result == nullptr) {
+	while (cursor < tokenCount && result == nullptr) {
 
-		size_t tokenLeft = tokenCount - tokenCursor;
+		size_t tokenLeft = tokenCount - cursor;
 		Member* tempResult = nullptr;
 
 		switch (tokenLeft) {
 
 			// Operand
 			case 1: {
-				const Token& token(tokens[tokenCursor]);
+				const Token& token(tokens[cursor]);
 				tempResult = operandTokenToMember(token);
-				tokenCursor += 1;
+				cursor += 1;
 				break;
 			}
 
 			// Operator, Operand
 			case 2: {
-				const Token& token1(tokens.at(tokenCursor));
-				const Token& token2(tokens.at(tokenCursor + 1));
+				const Token& token1(tokens.at(cursor));
+				const Token& token2(tokens.at(cursor + 1));
 
 				if (token1.type == TokenType_Operator) {
 
@@ -174,55 +165,74 @@ Member* Lexer::buildGraphV2()
 						tempResult->setValue(!tempResult->getValueAsBoolean());
 					}
 				}
-				tokenCursor += 2;
+				cursor += 2;
 				break;
 			}
 
 			// Operand, Operator, Expression
 			default: {
-				const Token& token1(tokens.at(tokenCursor));
-				const Token& token2(tokens.at(tokenCursor + 1));
-				const Token& token3(tokens.at(tokenCursor + 2));
-
+				const Token& token1(tokens.at(cursor));
+				const Token& token2(tokens.at(cursor + 1));
+				const Token& token3(tokens.at(cursor + 2));
+				
+				/* Check if we are in Operand, Operator, Expression state*/
+				if (token1.type == TokenType_Operator ||
+					token2.type != TokenType_Operator ||
+					token3.type == TokenType_Operator)
+					return result;
 
 				// Generate operation and members
-				auto binOperation = context->createNodeBinaryOperation(token2.word);
-				Member* left  = _leftOverride  ? _leftOverride  : operandTokenToMember(token1);
-				Member* right = _rightOverride ? _rightOverride : operandTokenToMember(token3);
+				auto left      = _leftOverride ? _leftOverride : operandTokenToMember(token1);
+				auto operator1 = context->createNodeBinaryOperation(token2.word);
+				auto right     = _rightOverride ? _rightOverride : operandTokenToMember(token3);
+
+				// If we get a more that 3 terms expression, we need to compute operator precedence
+				if ( tokenLeft > 3 ) {
+
+					const Token& token4(tokens.at(cursor + 3));
+
+					bool firstOperatorHasHigherPrecedence = BinaryOperationComponent::NeedsToBeEvaluatedFirst(token2.word, token4.word);
+
+					if (!firstOperatorHasHigherPrecedence) {
+						// Evaluate the rest of the expression
+						// auto _rightOverride = buildGraphIterative(cursor + 2, 0);
+					}
+
+				}
 
 				// Connect the Left
 				if (left->getOwner() == nullptr)
-					binOperation->setMember("left", left);
+					operator1->setMember("left", left);
 				else
-					Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
+					Entity::Connect(context->createWire(), left, operator1->getMember("left"));
 
 				// Connect the Right
 				if (right->getOwner() == nullptr)
-					binOperation->setMember("right", right);
+					operator1->setMember("right", right);
 				else
-					Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
+					Entity::Connect(context->createWire(), right, operator1->getMember("right"));
 
 				// Set the result
-				tempResult = binOperation->getMember("result");
+				tempResult = operator1->getMember("result");
 
 				// For now force execution of left operator before right
 				_rightOverride = nullptr;
 				_leftOverride = tempResult;
-				previousBinaryOperation = binOperation;
-				tokenCursor += 2;
+				previousBinaryOperation = operator1;
+				cursor += 2;
 
 				break;
 			}
 		}
 
-		if (tokenCursor >= tokenCount)
+		if (cursor >= tokenCount)
 			result = tempResult;
 	}
 
 	return result;
 }
 
-Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _leftValueOverride, Member* _rightValueOverride)
+Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _leftOverride, Member* _rightOverride)
 {
 	Member*          result = nullptr;
 
@@ -241,7 +251,7 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 
 
 	// Simplest case, then expression has only a single token
-
+	const Token& token1(tokens.at(_tokenId));
 	if ( tokenToEvalCount == 1)
 	{		
 		const Token& token(tokens.at(_tokenId));
@@ -250,45 +260,42 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 
 	// Two tokens expression (ex: !boolean, -number, etc...)
 
-	}else if (tokenToEvalCount == 2 )
+	}else if (tokenToEvalCount == 2 || token1.type == TokenType_Operator)
 	{
-		const Token& token1(tokens.at(_tokenId));
+		
 		const Token& token2(tokens.at(_tokenId + 1));
 
+		// TODO: create the unary operation "negates"
+		if ( token1.word == "-" && token2.type == TokenType_Number) {
+			result = operandTokenToMember(token2);
+			result->setValue(-result->getValueAsNumber());
+		}
 
-		if (token1.type == TokenType_Operator) {
-
-			if ( token1.word == "-" && token2.type == TokenType_Number) {
-				result = operandTokenToMember(token2);
-				result->setValue(-result->getValueAsNumber());
-			}
-			else if (token1.word == "!" && token2.type == TokenType_Boolean) {
-				result = operandTokenToMember(token2);
-				result->setValue(!result->getValueAsBoolean());
-			}
+		// TODO: create the unary operation "not"
+		else if (token1.word == "!" && token2.type == TokenType_Boolean) {
+			result = operandTokenToMember(token2);
+			result->setValue(!result->getValueAsBoolean());
 		}
 
 
 	// Three tokens expression ( MUST be OPERAND, OPERATOR, OPERAND)
-
 	}
 	else if (tokenToEvalCount == 3)
 	{
-		const Token& leftToken(tokens.at(_tokenId));
-		const Token& operatorToken(tokens.at(_tokenId + 1));
-		const Token& rightToken(tokens.at(_tokenId + 2));
+		const Token& token2(tokens.at(_tokenId + 1));
+		const Token& token3(tokens.at(_tokenId + 2));
 
-		Member* left = _leftValueOverride != nullptr ? _leftValueOverride : operandTokenToMember(leftToken);
-		Member* right = _rightValueOverride != nullptr ? _rightValueOverride : operandTokenToMember(rightToken);
-
-		const bool isValid =	leftToken.type     != TokenType_Operator &&
-								operatorToken.type == TokenType_Operator &&
-								rightToken.type    != TokenType_Operator;
+		const bool isValid =	token1.type != TokenType_Operator &&
+								token2.type == TokenType_Operator &&
+								token3.type != TokenType_Operator;
 		if ( !isValid )
 			return nullptr;
 
+		Member* left  = _leftOverride  != nullptr ? _leftOverride  : operandTokenToMember(token1);
+		Member* right = _rightOverride != nullptr ? _rightOverride : operandTokenToMember(token3);
+
 		// Special behavior for "=" operator
-		if ( operatorToken.word == "=")
+		if ( token2.word == "=")
 		{
 			// left operand (should BE a variable)
 
@@ -307,7 +314,7 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 
 		// For all other binary operations :
 		}else {
-			auto binOperation = context->createNodeBinaryOperation(operatorToken.word);
+			auto binOperation = context->createNodeBinaryOperation(token2.word);
 
 			// Connect the Left Operand :
 			//---------------------------
@@ -330,15 +337,10 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 
 	// More than 3 terms expressions :
 
-	} else {	
+	} else if ( tokenToEvalCount > 3 ) {	
 
-		// First we check if we are not in presence of a unary operation for the first two tokens
 		const Token& token1(tokens.at(_tokenId));
-		const Token& token2(tokens.at(_tokenId + 1));
-
-		if (token1.type == TokenType_Operator) {
-			_leftValueOverride = buildGraphRec(_tokenId, 2); _tokenId++;
-		}
+		const Token& token2(tokens.at(_tokenId + 2));
 
 		/* Operator precedence */
 		std::string firstOperator  = tokens[_tokenId+1].word;
@@ -347,17 +349,17 @@ Member* Lexer::buildGraphRec(size_t _tokenId, size_t _tokenCountMax, Member* _le
 
 		if ( firstOperatorHasHigherPrecedence ){
 			// Evaluate first 3 tokens passing the previous result
-			auto intermediateResult = buildGraphRec(_tokenId, 3, _leftValueOverride);
+			auto intermediateResult = parseExpression(_tokenId, 3, _leftOverride);
 
 			// Then evaluates the rest starting at id + 2
-			result = buildGraphRec(_tokenId+2, 0, intermediateResult);	
+			result = parseExpression(_tokenId+2, 0, intermediateResult);	
 
 		}else{
 			
-			auto right = buildGraphRec(_tokenId+2, 0);	
+			auto right = parseExpression(_tokenId+2, 0);	
 
 			// Build the graph for the first 3 tokens
-			result = buildGraphRec(_tokenId, 3, _leftValueOverride, right);
+			result = parseExpression(_tokenId, 3, _leftOverride, right);
 
 		}
 	}
@@ -408,7 +410,7 @@ bool Lexer::isSyntaxValid()
 	return success;
 }
 
-void Lexer::tokenize()
+void Lexer::tokenizeExpressionString()
 {
 	LOG_DBG("Lexer::tokenize() - START\n");
 
