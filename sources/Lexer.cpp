@@ -232,6 +232,34 @@ Member* Lexer::buildGraphIterative()
 	return result;
 }
 
+Member* Lexer::parseUnaryOperationExpression(size_t _tokenId) {
+
+	Member* result = nullptr;
+
+	const bool hasEnoughtTokens = tokens.size() > _tokenId + 1;
+	if ( !hasEnoughtTokens )
+		return result;
+
+	const Token& token1(tokens.at(_tokenId));
+	const Token& token2(tokens.at(_tokenId + 1));
+
+	if (token1.type != TokenType_Operator)
+		return result;
+
+	// TODO: create the unary operation "negates"
+	if (token1.word == "-" && token2.type == TokenType_Number) {
+		result = operandTokenToMember(token2);
+		result->setValue(-result->getValueAsNumber());
+	}
+
+	// TODO: create the unary operation "not"
+	else if (token1.word == "!" && token2.type == TokenType_Boolean) {
+		result = operandTokenToMember(token2);
+		result->setValue(!result->getValueAsBoolean());
+	}
+
+	return result;
+}
 
 Member* Lexer::parsePrimaryExpression( size_t _tokenId) {
 
@@ -262,28 +290,8 @@ Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _
 	if (_tokenCountMax != 0 )
 		tokenToEvalCount = std::min(_tokenCountMax, tokenToEvalCount);
 
-	// Two tokens expression (ex: !boolean, -number, etc...)
-	if (tokenToEvalCount == 2)
-	{
-		const Token& token1(tokens.at(_tokenId));
-		const Token& token2(tokens.at(_tokenId + 1));
-
-		// TODO: create the unary operation "negates"
-		if ( token1.word == "-" && token2.type == TokenType_Number) {
-			result = operandTokenToMember(token2);
-			result->setValue(-result->getValueAsNumber());
-		}
-
-		// TODO: create the unary operation "not"
-		else if (token1.word == "!" && token2.type == TokenType_Boolean) {
-			result = operandTokenToMember(token2);
-			result->setValue(!result->getValueAsBoolean());
-		}
-
-
 	// Three tokens expression ( MUST be OPERAND, OPERATOR, OPERAND)
-	}
-	else if (tokenToEvalCount == 3)
+	if (tokenToEvalCount == 3)
 	{
 		const Token& token1(tokens.at(_tokenId));
 		const Token& token2(tokens.at(_tokenId + 1));
@@ -341,35 +349,39 @@ Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _
 
 	// More than 3 terms expressions :
 
-	} else if ( tokenToEvalCount > 3 ) {	
+	}
+	else if (tokenToEvalCount > 3) {
 
 		const Token& token1(tokens.at(_tokenId));
 		const Token& token2(tokens.at(_tokenId + 2));
 
 		/* Operator precedence */
-		std::string firstOperator  = tokens[_tokenId+1].word;
-		std::string nextOperator   = tokens[_tokenId+3].word;		
-		bool firstOperatorHasHigherPrecedence = BinaryOperationComponent::NeedsToBeEvaluatedFirst(firstOperator, nextOperator);	
+		std::string firstOperator = tokens[_tokenId + 1].word;
+		std::string nextOperator = tokens[_tokenId + 3].word;
+		bool firstOperatorHasHigherPrecedence = BinaryOperationComponent::NeedsToBeEvaluatedFirst(firstOperator, nextOperator);
 
-		if ( firstOperatorHasHigherPrecedence ){
+		if (firstOperatorHasHigherPrecedence) {
 			// Evaluate first 3 tokens passing the previous result
 			auto intermediateResult = parseExpression(_tokenId, 3, _leftOverride);
 
 			// Then evaluates the rest starting at id + 2
-			result = parseExpression(_tokenId+2, 0, intermediateResult);	
+			result = parseExpression(_tokenId + 2, 0, intermediateResult);
 
-		}else{
-			
-			auto right = parseExpression(_tokenId+2, 0);	
+		}
+		else {
+
+			auto right = parseExpression(_tokenId + 2, 0);
 
 			// Build the graph for the first 3 tokens
 			result = parseExpression(_tokenId, 3, _leftOverride, right);
 
 		}
 
-	// Simplest case, then expression has only a single token
+
+	} else if (result = parseUnaryOperationExpression(_tokenId)) {
+
 	} else if (result = parsePrimaryExpression(_tokenId)) {
-		return result;
+
 	}
 
 	return result;

@@ -52,6 +52,9 @@ namespace Nodable{
 
 		Member* buildGraphIterative();
 
+		/** Par two tokens (ex: !true, -5, etc..) */
+		Member* parseUnaryOperationExpression(size_t _tokenId);
+
 		/** Parse a primary expression (ex: "myVariable", "10.4", etc... ) */
 		Member* parsePrimaryExpression(size_t _tokenId);
 
