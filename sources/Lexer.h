@@ -47,29 +47,38 @@ namespace Nodable{
 		/* Override from Entity class */
 		bool           eval			       ();
 	private:
-		/* Build a graph using existing tokens and return a Variable that contain the result value.
-		 Important: tokenize() should be called first. */
-		Variable* buildGraph          ();
 
 		Member* operandTokenToMember(const Token& _token);
 
-		Member* buildGraphV2();
+		Member* buildGraphIterative();
+
+		/** Parse a primary expression (ex: "myVariable", "10.4", etc... ) */
+		Member* parsePrimaryExpression(size_t _tokenId);
 
 		/* Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
-		Member*         buildGraphRec       (size_t _tokenIndex = 0, size_t _tokenCountMax = 0,   Member* _leftValueOverride = nullptr, Member* _rightValueOverride = nullptr);
+		Member*         parseExpression       (size_t _tokenIndex = 0, size_t _tokenCountMax = 0,   Member* _leftValueOverride = nullptr, Member* _rightValueOverride = nullptr);
 
 		/* Cut the member "expression" into tokens to identifies its type (cf. TokenType_ enum) */
-		void           tokenize			   ();
+		void           tokenizeExpressionString			   ();
 
 		/* Check if the existing tokens match with the syntax of the language. tokenize() should be called first */
 		bool           isSyntaxValid	   ();
-
-		/* Convert a given token to a Entity. For now it only handle Numbers, Strings and Symbols. Thats why we return a Variable */
-		Member* 		   createValueFromToken(Token token);
 		
 		/* Creates a new token given a _type, _string and _chanIndex and add it to the tokens.*/
 		void           addToken			   (TokenType_ _type, std::string _string, size_t _charIndex);
 
 		std::vector<Token> tokens;
 	};
+
+	class Language {
+	public:
+		Language() :numbers(), letters(), operators(), brackets() {};
+		~Language() {};
+
+		std::string numbers;
+		std::string letters;
+		std::vector<std::string> operators;
+		std::vector<char> brackets;
+	};
+
 }

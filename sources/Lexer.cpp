@@ -46,7 +46,7 @@ bool Lexer::eval()
 	if (resultValue == nullptr)
 		return false;
 
-	auto           container = this->getParent();
+	auto container   = this->getParent();
 	Variable* result = container->createNodeResult();
 
 	// If the value has no owner, we simplly set the variable value
@@ -232,6 +232,22 @@ Member* Lexer::buildGraphIterative()
 	return result;
 }
 
+
+Member* Lexer::parsePrimaryExpression( size_t _tokenId) {
+
+	// Check if there is index is not out of bounds
+	if (tokens.size() <= _tokenId)
+		return nullptr;
+
+	auto token = tokens.at(_tokenId);
+
+	// Check if token is not an operator
+	if (token.type == TokenType_Operator)
+		return nullptr;
+
+	return operandTokenToMember(token);
+}
+
 Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _leftOverride, Member* _rightOverride)
 {
 	Member*          result = nullptr;
@@ -246,23 +262,10 @@ Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _
 	if (_tokenCountMax != 0 )
 		tokenToEvalCount = std::min(_tokenCountMax, tokenToEvalCount);
 
-	if ( tokenToEvalCount == 0)
-		return result;
-
-
-	// Simplest case, then expression has only a single token
-	const Token& token1(tokens.at(_tokenId));
-	if ( tokenToEvalCount == 1)
-	{		
-		const Token& token(tokens.at(_tokenId));
-		result = operandTokenToMember(token);
-
-
 	// Two tokens expression (ex: !boolean, -number, etc...)
-
-	}else if (tokenToEvalCount == 2 || token1.type == TokenType_Operator)
+	if (tokenToEvalCount == 2)
 	{
-		
+		const Token& token1(tokens.at(_tokenId));
 		const Token& token2(tokens.at(_tokenId + 1));
 
 		// TODO: create the unary operation "negates"
@@ -282,6 +285,7 @@ Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _
 	}
 	else if (tokenToEvalCount == 3)
 	{
+		const Token& token1(tokens.at(_tokenId));
 		const Token& token2(tokens.at(_tokenId + 1));
 		const Token& token3(tokens.at(_tokenId + 2));
 
@@ -362,6 +366,10 @@ Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _
 			result = parseExpression(_tokenId, 3, _leftOverride, right);
 
 		}
+
+	// Simplest case, then expression has only a single token
+	} else if (result = parsePrimaryExpression(_tokenId)) {
+		return result;
 	}
 
 	return result;
