@@ -232,6 +232,72 @@ Member* Lexer::buildGraphIterative()
 	return result;
 }
 
+Member* Lexer::parseBinaryOperationExpression(size_t _tokenId, Member* _leftOverride, Member* _rightOverride) {
+
+	Member*    result = nullptr;
+	Container* context = this->getParent();
+
+	if (tokens.size() <= _tokenId + 2)
+		return nullptr;
+
+	const Token& token1(tokens.at(_tokenId));
+	const Token& token2(tokens.at(_tokenId + 1));
+	const Token& token3(tokens.at(_tokenId + 2));
+
+	const bool isValid = token1.type != TokenType_Operator &&
+		                 token2.type == TokenType_Operator &&
+		                 token3.type != TokenType_Operator;
+
+	if (!isValid)
+		return nullptr;
+
+	Member* left = _leftOverride != nullptr ? _leftOverride : operandTokenToMember(token1);
+	Member* right = _rightOverride != nullptr ? _rightOverride : operandTokenToMember(token3);
+
+	// Special behavior for "=" operator
+	if (token2.word == "=") {
+
+		// left operand (should BE a variable)
+
+		NODABLE_ASSERT(left->getOwner() != nullptr); // left operand cannot be a orphaned member
+		NODABLE_ASSERT(left->getOwner()->getMember("__class__")->getValueAsString() == "Variable"); // left operand need to me owned by a variable node			               
+
+
+		// Directly connects right operand output to left operant input (yes that's reversed compared to code)
+		if (right->getOwner() == nullptr)
+			left->getOwner()->setMember("value", right);
+		else
+			Entity::Connect(context->createWire(), right, left);
+
+		result = left->getOwner()->getFirstMemberWithConnection(Connection_InOut);
+
+
+	// For all other binary operations :
+	} else {
+		auto binOperation = context->createNodeBinaryOperation(token2.word);
+
+		// Connect the Left Operand :
+		//---------------------------
+		if (left->getOwner() == nullptr)
+			binOperation->setMember("left", left);
+		else
+			Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
+
+		// Connect the Right Operand :
+
+		if (right->getOwner() == nullptr)
+			binOperation->setMember("right", right);
+		else
+			Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
+
+		// Set the result !
+		result = binOperation->getMember("result");
+	}
+
+	return result;
+
+}
+
 Member* Lexer::parseUnaryOperationExpression(size_t _tokenId) {
 
 	Member* result = nullptr;
@@ -276,12 +342,9 @@ Member* Lexer::parsePrimaryExpression( size_t _tokenId) {
 	return operandTokenToMember(token);
 }
 
-Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _leftOverride, Member* _rightOverride)
-{
-	Member*          result = nullptr;
+Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _leftOverride, Member* _rightOverride) {
 
-	Container* context = this->getParent();
-	NODABLE_ASSERT(context != nullptr);
+	Member*          result = nullptr;
 
 	//printf("Token evaluated : %lu.\n", _tokenId);
 
@@ -290,67 +353,8 @@ Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _
 	if (_tokenCountMax != 0 )
 		tokenToEvalCount = std::min(_tokenCountMax, tokenToEvalCount);
 
-	// Three tokens expression ( MUST be OPERAND, OPERATOR, OPERAND)
-	if (tokenToEvalCount == 3)
-	{
-		const Token& token1(tokens.at(_tokenId));
-		const Token& token2(tokens.at(_tokenId + 1));
-		const Token& token3(tokens.at(_tokenId + 2));
-
-		const bool isValid =	token1.type != TokenType_Operator &&
-								token2.type == TokenType_Operator &&
-								token3.type != TokenType_Operator;
-		if ( !isValid )
-			return nullptr;
-
-		Member* left  = _leftOverride  != nullptr ? _leftOverride  : operandTokenToMember(token1);
-		Member* right = _rightOverride != nullptr ? _rightOverride : operandTokenToMember(token3);
-
-		// Special behavior for "=" operator
-		if ( token2.word == "=")
-		{
-			// left operand (should BE a variable)
-
-			NODABLE_ASSERT(left->getOwner() != nullptr); // left operand cannot be a orphaned member
-			NODABLE_ASSERT(left->getOwner()->getMember("__class__")->getValueAsString() == "Variable"); // left operand need to me owned by a variable node			               
-
-
-			// Directly connects right operand output to left operant input (yes that's reversed compared to code)
-			if (right->getOwner() == nullptr)
-				left->getOwner()->setMember("value", right);
-			else
-				Entity::Connect(context->createWire(), right, left);
-
-			result = left->getOwner()->getFirstMemberWithConnection(Connection_InOut);
-
-
-		// For all other binary operations :
-		}else {
-			auto binOperation = context->createNodeBinaryOperation(token2.word);
-
-			// Connect the Left Operand :
-			//---------------------------
-			if (left->getOwner() == nullptr)
-				binOperation->setMember("left", left);
-			else
-				Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
-
-			// Connect the Right Operand :
-
-			if (right->getOwner() == nullptr)
-				binOperation->setMember("right", right);
-			else
-				Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
-
-			// Set the result !
-			result = binOperation->getMember("result");
-		}
-
-
 	// More than 3 terms expressions :
-
-	}
-	else if (tokenToEvalCount > 3) {
+    if (tokenToEvalCount > 3) {
 
 		const Token& token1(tokens.at(_tokenId));
 		const Token& token2(tokens.at(_tokenId + 2));
@@ -362,7 +366,7 @@ Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _
 
 		if (firstOperatorHasHigherPrecedence) {
 			// Evaluate first 3 tokens passing the previous result
-			auto intermediateResult = parseExpression(_tokenId, 3, _leftOverride);
+			auto intermediateResult = parseBinaryOperationExpression(_tokenId, _leftOverride, nullptr);
 
 			// Then evaluates the rest starting at id + 2
 			result = parseExpression(_tokenId + 2, 0, intermediateResult);
@@ -373,15 +377,18 @@ Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _
 			auto right = parseExpression(_tokenId + 2, 0);
 
 			// Build the graph for the first 3 tokens
-			result = parseExpression(_tokenId, 3, _leftOverride, right);
+			result = parseBinaryOperationExpression(_tokenId, _leftOverride, right);
 
 		}
 
+	} else if (result = parseBinaryOperationExpression(_tokenId, _leftOverride, _rightOverride)) {
+		LOG_DBG("Binary operation expression parsed.");
 
 	} else if (result = parseUnaryOperationExpression(_tokenId)) {
+		LOG_DBG("Unary operation expression parsed.");
 
 	} else if (result = parsePrimaryExpression(_tokenId)) {
-
+		LOG_DBG("Primary expression parsed.");
 	}
 
 	return result;

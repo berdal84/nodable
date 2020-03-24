@@ -52,10 +52,13 @@ namespace Nodable{
 
 		Member* buildGraphIterative();
 
-		/** Par two tokens (ex: !true, -5, etc..) */
+		/* To parse three tokens (ex: "1+59", "98*4", "true and false", etc...)*/
+		Member* parseBinaryOperationExpression(size_t _tokenId, Member* _leftOverride, Member* _rightOverride);
+
+		/** To parse two tokens (ex: !true, -5, etc..) */
 		Member* parseUnaryOperationExpression(size_t _tokenId);
 
-		/** Parse a primary expression (ex: "myVariable", "10.4", etc... ) */
+		/** To parse a primary expression (ex: "myVariable", "10.4", etc... ) */
 		Member* parsePrimaryExpression(size_t _tokenId);
 
 		/* Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
