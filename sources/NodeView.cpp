@@ -71,7 +71,8 @@ ImVec2 NodeView::getMemberConnectorPosition(const std::string& _name, Connection
 
 void NodeView::setPosition(ImVec2 _position)
 {
-	this->position = _position;
+	this->position.x =  std::round( _position.x);
+	this->position.y =  std::round( _position.y);
 }
 
 void NodeView::translate(ImVec2 _delta)
