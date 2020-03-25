@@ -382,7 +382,7 @@ Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _
 		}
 
 	} else if (result = parseBinaryOperationExpression(_tokenId, _leftOverride, _rightOverride)) {
-		LOG_DBG("Binary operation expression parsed.");
+		LOG_DBG("Binary operation expression parsed");
 
 	} else if (result = parseUnaryOperationExpression(_tokenId)) {
 		LOG_DBG("Unary operation expression parsed.");
