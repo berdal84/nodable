@@ -232,6 +232,43 @@ Member* Lexer::buildGraphIterative()
 	return result;
 }
 
+Member* Lexer::parseBinaryOperationExpressionEx(size_t _tokenId, Member* _leftOverride, Member* _rightOverride) {
+
+	Member* result = nullptr;
+
+	const size_t tokenToEvalCount = tokens.size() - _tokenId;
+
+	if (tokenToEvalCount > 3) {
+
+		const Token& token1(tokens.at(_tokenId));
+		const Token& token2(tokens.at(_tokenId + 2));
+
+		/* Operator precedence */
+		std::string firstOperator = tokens[_tokenId + 1].word;
+		std::string nextOperator = tokens[_tokenId + 3].word;
+		bool firstOperatorHasHigherPrecedence = BinaryOperationComponent::NeedsToBeEvaluatedFirst(firstOperator, nextOperator);
+
+		if (firstOperatorHasHigherPrecedence) {
+			// Evaluate first 3 tokens passing the previous result
+			auto intermediateResult = parseBinaryOperationExpression(_tokenId, _leftOverride, nullptr);
+
+			// Then evaluates the rest starting at id + 2
+			result = parseExpression(_tokenId + 2, 0, intermediateResult);
+
+		}
+		else {
+
+			auto right = parseExpression(_tokenId + 2, 0);
+
+			// Build the graph for the first 3 tokens
+			result = parseBinaryOperationExpression(_tokenId, _leftOverride, right);
+
+		}
+	}
+
+	return result;
+}
+
 Member* Lexer::parseBinaryOperationExpression(size_t _tokenId, Member* _leftOverride, Member* _rightOverride) {
 
 	Member*    result = nullptr;
@@ -354,41 +391,17 @@ Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _
 		tokenToEvalCount = std::min(_tokenCountMax, tokenToEvalCount);
 
 	// More than 3 terms expressions :
-    if (tokenToEvalCount > 3) {
-
-		const Token& token1(tokens.at(_tokenId));
-		const Token& token2(tokens.at(_tokenId + 2));
-
-		/* Operator precedence */
-		std::string firstOperator = tokens[_tokenId + 1].word;
-		std::string nextOperator = tokens[_tokenId + 3].word;
-		bool firstOperatorHasHigherPrecedence = BinaryOperationComponent::NeedsToBeEvaluatedFirst(firstOperator, nextOperator);
-
-		if (firstOperatorHasHigherPrecedence) {
-			// Evaluate first 3 tokens passing the previous result
-			auto intermediateResult = parseBinaryOperationExpression(_tokenId, _leftOverride, nullptr);
-
-			// Then evaluates the rest starting at id + 2
-			result = parseExpression(_tokenId + 2, 0, intermediateResult);
-
-		}
-		else {
-
-			auto right = parseExpression(_tokenId + 2, 0);
-
-			// Build the graph for the first 3 tokens
-			result = parseBinaryOperationExpression(_tokenId, _leftOverride, right);
-
-		}
+    if (result = parseBinaryOperationExpressionEx(_tokenId, _leftOverride, _rightOverride)){
+		LOG_DBG("Binary operation expression extended parsed.\n");
 
 	} else if (result = parseBinaryOperationExpression(_tokenId, _leftOverride, _rightOverride)) {
-		LOG_DBG("Binary operation expression parsed");
+		LOG_DBG("Binary operation expression parsed.\n");
 
 	} else if (result = parseUnaryOperationExpression(_tokenId)) {
-		LOG_DBG("Unary operation expression parsed.");
+		LOG_DBG("Unary operation expression parsed.\n");
 
 	} else if (result = parsePrimaryExpression(_tokenId)) {
-		LOG_DBG("Primary expression parsed.");
+		LOG_DBG("Primary expression parsed.\n");
 	}
 
 	return result;

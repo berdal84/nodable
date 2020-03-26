@@ -51,6 +51,8 @@ namespace Nodable{
 		Member* operandTokenToMember(const Token& _token);
 
 		Member* buildGraphIterative();
+		/* To parse more than three tokens (ex: "1+59+1", "98*4*1", "true and false or true", etc...)*/
+		Member* parseBinaryOperationExpressionEx(size_t _tokenId, Member* _leftOverride, Member* _rightOverride);
 
 		/* To parse three tokens (ex: "1+59", "98*4", "true and false", etc...)*/
 		Member* parseBinaryOperationExpression(size_t _tokenId, Member* _leftOverride, Member* _rightOverride);
