@@ -7,25 +7,24 @@
 #include "BinaryOperation.h"
 #include "NodeView.h"
 #include "Wire.h"
+#include "Language.h"
 #include <algorithm>
 
 using namespace Nodable;
 
-Lexer::Lexer()
+Lexer::Lexer(const Language& _language)
 {
 	LOG_DBG("new Lexer\n");
 	setMember("__class__", "Lexer");
 
-	// TODO: create a language class/object to store those data.
-
 	addMember("expression", Visibility_VisibleOnlyWhenUncollapsed);
-	addMember("numbers", Visibility_VisibleOnlyWhenUncollapsed);
-	addMember("letters", Visibility_VisibleOnlyWhenUncollapsed);
-	addMember("operators", Visibility_VisibleOnlyWhenUncollapsed);
+	addMember("numbers",    Visibility_VisibleOnlyWhenUncollapsed);
+	addMember("letters",    Visibility_VisibleOnlyWhenUncollapsed);
+	addMember("operators",  Visibility_VisibleOnlyWhenUncollapsed);
 
-	setMember("numbers", "0123456789.");
-	setMember("letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_");
-	setMember("operators", "!+-*/=");
+	setMember("numbers",    _language.numbers );
+	setMember("letters",    _language.letters );
+	setMember("operators",  _language.operators );
 
 	setLabel("Lexer");
 }

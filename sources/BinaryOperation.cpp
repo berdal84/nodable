@@ -2,6 +2,7 @@
 #include "Log.h"		// for LOG_DBG(...)
 #include "Member.h"
 #include "Variable.h"
+#include "Language.h"
 
 using namespace Nodable;
 
@@ -64,37 +65,11 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 /* Precendence for binary operators */
 bool BinaryOperationComponent::NeedsToBeEvaluatedFirst(std::string op, std::string nextOp)
 {
-	if (op == "=" && nextOp == "=") return false;	
-	if (op == "=" && nextOp == "-") return false;	
-	if (op == "=" && nextOp == "+") return false;	
-	if (op == "=" && nextOp == "*") return false;	
-	if (op == "=" && nextOp == "/") return false;
 
-	if (op == "+" && nextOp == "=") return false;
-	if (op == "+" && nextOp == "-") return true;	
-	if (op == "+" && nextOp == "+") return true;	
-	if (op == "+" && nextOp == "*") return false;	
-	if (op == "+" && nextOp == "/") return false;
+	const bool isHigher = Language::GetOperatorPrecedence(op) >= Language::GetOperatorPrecedence(nextOp);
 
-	if (op == "-" && nextOp == "=") return false;
-	if (op == "-" && nextOp == "-") return false;	
-	if (op == "-" && nextOp == "+") return true;	
-	if (op == "-" && nextOp == "*") return false;	
-	if (op == "-" && nextOp == "/") return false;
-
-	if (op == "*" && nextOp == "=") return false;
-	if (op == "*" && nextOp == "-") return true;	
-	if (op == "*" && nextOp == "+") return true;	
-	if (op == "*" && nextOp == "*") return true;	
-	if (op == "*" && nextOp == "/") return true;
-
-	if (op == "/" && nextOp == "=") return false;
-	if (op == "/" && nextOp == "-") return true;	
-	if (op == "/" && nextOp == "+") return true;	
-	if (op == "/" && nextOp == "*") return true;	
-	if (op == "/" && nextOp == "/") return true;
-
-	return false;
+	return isHigher;
+	
 }
 
  // Node_Add :

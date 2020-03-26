@@ -1,6 +1,7 @@
 #pragma once
 #include "Nodable.h"    // forward declarations
 #include "Entity.h"       // base class
+#include "Language.h"
 #include <string>
 #include <vector>
 
@@ -41,7 +42,7 @@ namespace Nodable{
 		}Token;
 
 	public:
-		Lexer();
+		Lexer(const Language& _language);
 		virtual ~Lexer();
 
 		/* Override from Entity class */
@@ -76,17 +77,6 @@ namespace Nodable{
 		void           addToken			   (TokenType_ _type, std::string _string, size_t _charIndex);
 
 		std::vector<Token> tokens;
-	};
-
-	class Language {
-	public:
-		Language() :numbers(), letters(), operators(), brackets() {};
-		~Language() {};
-
-		std::string numbers;
-		std::string letters;
-		std::vector<std::string> operators;
-		std::vector<char> brackets;
 	};
 
 }

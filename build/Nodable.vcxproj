@@ -37,6 +37,7 @@
     <ClCompile Include="..\sources\File.cpp" />
     <ClCompile Include="..\sources\FileView.cpp" />
     <ClCompile Include="..\sources\History.cpp" />
+    <ClCompile Include="..\sources\Language.cpp" />
     <ClCompile Include="..\sources\Lexer.cpp" />
     <ClCompile Include="..\sources\Log.cpp" />
     <ClCompile Include="..\sources\main.cpp" />
@@ -219,6 +220,7 @@
     <ClInclude Include="..\sources\File.h" />
     <ClInclude Include="..\sources\FileView.h" />
     <ClInclude Include="..\sources\History.h" />
+    <ClInclude Include="..\sources\Language.h" />
     <ClInclude Include="..\sources\Lexer.h" />
     <ClInclude Include="..\sources\Log.h" />
     <ClInclude Include="..\sources\Nodable.h" />

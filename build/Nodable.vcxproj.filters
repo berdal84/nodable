@@ -126,6 +126,9 @@
     <ClCompile Include="..\sources\FileView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\sources\Language.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sources\Application.h">
@@ -664,6 +667,9 @@
     </ClInclude>
     <ClInclude Include="..\sources\FileView.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sources\Language.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
