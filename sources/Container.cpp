@@ -311,7 +311,7 @@ Wire* Container::createWire()
 Lexer* Container::createNodeLexer(Variable* _expressionVariable)
 {
 	// Create a Lexer Node
-	auto language = Language::Nodable();
+	auto language = Language::NODABLE;
 	Lexer* node = new Lexer( language );
 	node->setLabel(ICON_FA_COGS " Lexer");
 	

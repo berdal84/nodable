@@ -12,7 +12,7 @@
 
 using namespace Nodable;
 
-Lexer::Lexer(const Language& _language)
+Lexer::Lexer(const Language* _language)
 {
 	LOG_DBG("new Lexer\n");
 	setMember("__class__", "Lexer");
@@ -22,9 +22,9 @@ Lexer::Lexer(const Language& _language)
 	addMember("letters",    Visibility_VisibleOnlyWhenUncollapsed);
 	addMember("operators",  Visibility_VisibleOnlyWhenUncollapsed);
 
-	setMember("numbers",    _language.numbers );
-	setMember("letters",    _language.letters );
-	setMember("operators",  _language.operators );
+	setMember("numbers",    _language->numbers );
+	setMember("letters",    _language->letters );
+	setMember("operators",  _language->getOperatorsAsString() );
 
 	setLabel("Lexer");
 }
@@ -240,11 +240,22 @@ Member* Lexer::parseBinaryOperationExpressionEx(size_t _tokenId, Member* _leftOv
 	if (tokenToEvalCount > 3) {
 
 		const Token& token1(tokens.at(_tokenId));
-		const Token& token2(tokens.at(_tokenId + 2));
+		const Token& token2(tokens.at(_tokenId + 1));
+		const Token& token3(tokens.at(_tokenId + 2));
+		const Token& token4(tokens.at(_tokenId + 3));
+
+		const bool isValid = token1.type != TokenType_Operator &&
+			                 token2.type == TokenType_Operator &&
+			                 token3.type != TokenType_Operator &&
+			                 token4.type == TokenType_Operator;
+
+		if (!isValid)
+			return nullptr;
 
 		/* Operator precedence */
-		std::string firstOperator = tokens[_tokenId + 1].word;
-		std::string nextOperator = tokens[_tokenId + 3].word;
+		std::string firstOperator = token2.word;
+		std::string nextOperator = token4.word;
+		
 		bool firstOperatorHasHigherPrecedence = BinaryOperationComponent::NeedsToBeEvaluatedFirst(firstOperator, nextOperator);
 
 		if (firstOperatorHasHigherPrecedence) {

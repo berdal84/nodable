@@ -65,8 +65,8 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 /* Precendence for binary operators */
 bool BinaryOperationComponent::NeedsToBeEvaluatedFirst(std::string op, std::string nextOp)
 {
-
-	const bool isHigher = Language::GetOperatorPrecedence(op) >= Language::GetOperatorPrecedence(nextOp);
+	auto language = Language::NODABLE;
+	const bool isHigher = language->getOperatorPrecedence(op) >= language->getOperatorPrecedence(nextOp);
 
 	return isHigher;
 	

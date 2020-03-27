@@ -42,7 +42,7 @@ namespace Nodable{
 		}Token;
 
 	public:
-		Lexer(const Language& _language);
+		Lexer(const Language* _language);
 		virtual ~Lexer();
 
 		/* Override from Entity class */
