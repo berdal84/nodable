@@ -405,6 +405,9 @@ Member* Parser::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* 
 
 	} else if (result = parsePrimaryExpression(_tokenId)) {
 		LOG_DBG("Primary expression parsed.\n");
+
+	} else if (_leftOverride != nullptr) {
+		result = _leftOverride;
 	}
 
 	return result;
