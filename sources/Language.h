@@ -5,8 +5,15 @@
 
 namespace Nodable {
 
-	struct Operator {
+	/**
 
+	The Operator class store the identifier and the precedence of an operator.
+	
+	Example: "+", "-" and "*" are an indentifiers
+	         0u, 1u and 2u are their respective precedence.
+	*/
+	class Operator {
+	public:
 		Operator(std::string _identifier,
 			     unsigned short _precedence) :
 			identifier(_identifier),
@@ -16,6 +23,10 @@ namespace Nodable {
 		unsigned short precedence;
 	};
 
+	/**
+		The Language class defines a single Language (ex: C++, Python, etc...)
+		Some static constants provide easy access to ready to use Languages.
+	*/
 	class Language {
 	public:
 		Language() :numbers(), letters(), brackets() {};
