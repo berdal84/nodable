@@ -32,7 +32,8 @@ bool Parser::eval()
 
 	tokenizeExpressionString();
 
-	Member* resultValue = parseExpression();
+	size_t tokenId = 0;
+	Member* resultValue = parseExpression(tokenId);
 
 	if (resultValue == nullptr)
 		return false;
@@ -224,7 +225,7 @@ Member* Parser::buildGraphIterative()
 	return result;
 }
 
-Member* Parser::parseBinaryOperationExpressionEx(size_t _tokenId, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseBinaryOperationExpressionEx(size_t& _tokenId, Member* _leftOverride, Member* _rightOverride) {
 
 	Member* result = nullptr;
 
@@ -233,17 +234,18 @@ Member* Parser::parseBinaryOperationExpressionEx(size_t _tokenId, Member* _leftO
 	if (tokenToEvalCount > 3) {
 
 		const Token& token1(tokens.at(_tokenId));
-		const Token& token2(tokens.at(_tokenId + 1));
-		const Token& token3(tokens.at(_tokenId + 2));
-		const Token& token4(tokens.at(_tokenId + 3));
+		const Token& token2(tokens.at(_tokenId+1));
+		const Token& token3(tokens.at(_tokenId+2));
+		const Token& token4(tokens.at(_tokenId+3));
 
 		const bool isValid = token1.type != TokenType_Operator &&
 			                 token2.type == TokenType_Operator &&
 			                 token3.type != TokenType_Operator &&
 			                 token4.type == TokenType_Operator;
 
-		if (!isValid)
+		if (!isValid) {
 			return nullptr;
+		}
 
 		/* Operator precedence */
 		std::string firstOperator = token2.word;
@@ -256,15 +258,19 @@ Member* Parser::parseBinaryOperationExpressionEx(size_t _tokenId, Member* _leftO
 			auto intermediateResult = parseBinaryOperationExpression(_tokenId, _leftOverride, nullptr);
 
 			// Then evaluates the rest starting at id + 2
-			result = parseExpression(_tokenId + 2, 0, intermediateResult);
+			_tokenId--; // rear back to be on the right operand of the intermediateResult
+			result = parseExpression(_tokenId, intermediateResult);
 
 		}
 		else {
 
-			auto right = parseExpression(_tokenId + 2, 0);
+			size_t rightTokenId = _tokenId + 2;
+			auto right = parseExpression(rightTokenId);
 
 			// Build the graph for the first 3 tokens
 			result = parseBinaryOperationExpression(_tokenId, _leftOverride, right);
+
+			_tokenId = rightTokenId;
 
 		}
 	}
@@ -272,7 +278,7 @@ Member* Parser::parseBinaryOperationExpressionEx(size_t _tokenId, Member* _leftO
 	return result;
 }
 
-Member* Parser::parseBinaryOperationExpression(size_t _tokenId, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, Member* _leftOverride, Member* _rightOverride) {
 
 	Member*    result = nullptr;
 	Container* context = this->getParent();
@@ -281,8 +287,8 @@ Member* Parser::parseBinaryOperationExpression(size_t _tokenId, Member* _leftOve
 		return nullptr;
 
 	const Token& token1(tokens.at(_tokenId));
-	const Token& token2(tokens.at(_tokenId + 1));
-	const Token& token3(tokens.at(_tokenId + 2));
+	const Token& token2(tokens.at(_tokenId+1));
+	const Token& token3(tokens.at(_tokenId+2));
 
 	const bool isValid = token1.type != TokenType_Operator &&
 		                 token2.type == TokenType_Operator &&
@@ -290,6 +296,7 @@ Member* Parser::parseBinaryOperationExpression(size_t _tokenId, Member* _leftOve
 
 	if (!isValid)
 		return nullptr;
+
 
 	Member* left = _leftOverride != nullptr ? _leftOverride : operandTokenToMember(token1);
 	Member* right = _rightOverride != nullptr ? _rightOverride : operandTokenToMember(token3);
@@ -334,11 +341,13 @@ Member* Parser::parseBinaryOperationExpression(size_t _tokenId, Member* _leftOve
 		result = binOperation->getMember("result");
 	}
 
+	_tokenId += 3;
+
 	return result;
 
 }
 
-Member* Parser::parseUnaryOperationExpression(size_t _tokenId) {
+Member* Parser::parseUnaryOperationExpression(size_t& _tokenId) {
 
 	Member* result = nullptr;
 
@@ -346,11 +355,13 @@ Member* Parser::parseUnaryOperationExpression(size_t _tokenId) {
 	if ( !hasEnoughtTokens )
 		return result;
 
-	const Token& token1(tokens.at(_tokenId));
-	const Token& token2(tokens.at(_tokenId + 1));
+	const Token& token1(tokens.at(_tokenId++));
+	const Token& token2(tokens.at(_tokenId++));
 
-	if (token1.type != TokenType_Operator)
+	if (token1.type != TokenType_Operator) {
+		_tokenId -= 2;
 		return result;
+	}
 
 	// TODO: create the unary operation "negates"
 	if (token1.word == "-" && token2.type == TokenType_Number) {
@@ -367,33 +378,27 @@ Member* Parser::parseUnaryOperationExpression(size_t _tokenId) {
 	return result;
 }
 
-Member* Parser::parsePrimaryExpression( size_t _tokenId) {
+Member* Parser::parsePrimaryExpression( size_t& _tokenId) {
 
 	// Check if there is index is not out of bounds
 	if (tokens.size() <= _tokenId)
 		return nullptr;
 
-	auto token = tokens.at(_tokenId);
+	auto token = tokens.at(_tokenId++);
 
 	// Check if token is not an operator
-	if (token.type == TokenType_Operator)
+	if (token.type == TokenType_Operator) {
+		_tokenId--;
 		return nullptr;
+	}
 
 	return operandTokenToMember(token);
 }
 
-Member* Parser::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseExpression(size_t& _tokenId, Member* _leftOverride, Member* _rightOverride) {
 
 	Member*          result = nullptr;
 
-	//printf("Token evaluated : %lu.\n", _tokenId);
-
-	// Computes the number of token to eval
-	size_t tokenToEvalCount = tokens.size() - _tokenId;
-	if (_tokenCountMax != 0 )
-		tokenToEvalCount = std::min(_tokenCountMax, tokenToEvalCount);
-
-	// More than 3 terms expressions :
     if (result = parseBinaryOperationExpressionEx(_tokenId, _leftOverride, _rightOverride)){
 		LOG_DBG("Binary operation expression extended parsed.\n");
 

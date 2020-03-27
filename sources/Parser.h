@@ -43,19 +43,19 @@ namespace Nodable{
 
 		Member* buildGraphIterative();
 		/* To parse more than three tokens (ex: "1+59+1", "98*4*1", "true and false or true", etc...)*/
-		Member* parseBinaryOperationExpressionEx(size_t _tokenId, Member* _leftOverride, Member* _rightOverride);
+		Member* parseBinaryOperationExpressionEx(size_t& _tokenId, Member* _leftOverride, Member* _rightOverride);
 
 		/* To parse three tokens (ex: "1+59", "98*4", "true and false", etc...)*/
-		Member* parseBinaryOperationExpression(size_t _tokenId, Member* _leftOverride, Member* _rightOverride);
+		Member* parseBinaryOperationExpression(size_t& _tokenId, Member* _leftOverride, Member* _rightOverride);
 
 		/** To parse two tokens (ex: !true, -5, etc..) */
-		Member* parseUnaryOperationExpression(size_t _tokenId);
+		Member* parseUnaryOperationExpression(size_t& _tokenId);
 
 		/** To parse a primary expression (ex: "myVariable", "10.4", etc... ) */
-		Member* parsePrimaryExpression(size_t _tokenId);
+		Member* parsePrimaryExpression(size_t& _tokenId);
 
 		/* Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
-		Member*         parseExpression       (size_t _tokenIndex = 0, size_t _tokenCountMax = 0,   Member* _leftValueOverride = nullptr, Member* _rightValueOverride = nullptr);
+		Member* parseExpression(size_t& _tokenIndex, Member* _leftValueOverride = nullptr, Member* _rightValueOverride = nullptr);
 
 		/* Cut the member "expression" into tokens to identifies its type (cf. TokenType_ enum) */
 		void           tokenizeExpressionString			   ();
