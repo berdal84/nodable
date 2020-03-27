@@ -1,6 +1,6 @@
 #include "Container.h"
 #include "Log.h"
-#include "Lexer.h"
+#include "Parser.h"
 #include "Entity.h"
 #include "Variable.h"
 #include "BinaryOperation.h"
@@ -308,19 +308,19 @@ Wire* Container::createWire()
 	return wire;
 }
 
-Lexer* Container::createNodeLexer(Variable* _expressionVariable)
+Parser* Container::createNodeParser(Variable* _expressionVariable)
 {
-	// Create a Lexer Node
+	// Create a Parser Node
 	auto language = Language::NODABLE;
-	Lexer* node = new Lexer( language );
-	node->setLabel(ICON_FA_COGS " Lexer");
+	Parser* node = new Parser( language );
+	node->setLabel(ICON_FA_COGS " Parser");
 	
 	// Attach a NodeView on it
 	auto view = new NodeView;
 	view->setVisible(false);
 	node->addComponent( "view", view);	
 
-	// Link the _expressionVariable output with the Lexer's member "expression"
+	// Link the _expressionVariable output with the Parser's member "expression"
 	auto wire             = this->createWire();
 	auto expressionMember = node->getMember("expression");
 	Entity::Connect(wire,_expressionVariable->getValueMember(), expressionMember);

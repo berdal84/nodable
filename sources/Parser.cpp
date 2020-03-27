@@ -1,4 +1,4 @@
-#include "Lexer.h"
+#include "Parser.h"
 #include "Log.h"          // for LOG_DBG(...)
 
 #include "Member.h"
@@ -12,22 +12,22 @@
 
 using namespace Nodable;
 
-Lexer::Lexer(const Language* _language):language(_language)
+Parser::Parser(const Language* _language):language(_language)
 {
-	LOG_DBG("new Lexer\n");
-	setMember("__class__", "Lexer");
+	LOG_DBG("new Parser\n");
+	setMember("__class__", "Parser");
 
 	addMember("expression", Visibility_VisibleOnlyWhenUncollapsed);
 
-	setLabel("Lexer");
+	setLabel("Parser");
 }
 
-Lexer::~Lexer()
+Parser::~Parser()
 {
 
 }
 
-bool Lexer::eval()
+bool Parser::eval()
 {
 	bool success = false;
 
@@ -61,7 +61,7 @@ bool Lexer::eval()
 	return success;
 }
 
-Member* Lexer::operandTokenToMember(const Token& _token) {
+Member* Parser::operandTokenToMember(const Token& _token) {
 
 	Member* result = nullptr;
 
@@ -110,7 +110,7 @@ Member* Lexer::operandTokenToMember(const Token& _token) {
 	return result;
 }
 
-Member* Lexer::buildGraphIterative()
+Member* Parser::buildGraphIterative()
 {
 	Member*    result  = nullptr;
 	Container* context = this->getParent();
@@ -224,7 +224,7 @@ Member* Lexer::buildGraphIterative()
 	return result;
 }
 
-Member* Lexer::parseBinaryOperationExpressionEx(size_t _tokenId, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseBinaryOperationExpressionEx(size_t _tokenId, Member* _leftOverride, Member* _rightOverride) {
 
 	Member* result = nullptr;
 
@@ -272,7 +272,7 @@ Member* Lexer::parseBinaryOperationExpressionEx(size_t _tokenId, Member* _leftOv
 	return result;
 }
 
-Member* Lexer::parseBinaryOperationExpression(size_t _tokenId, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseBinaryOperationExpression(size_t _tokenId, Member* _leftOverride, Member* _rightOverride) {
 
 	Member*    result = nullptr;
 	Container* context = this->getParent();
@@ -338,7 +338,7 @@ Member* Lexer::parseBinaryOperationExpression(size_t _tokenId, Member* _leftOver
 
 }
 
-Member* Lexer::parseUnaryOperationExpression(size_t _tokenId) {
+Member* Parser::parseUnaryOperationExpression(size_t _tokenId) {
 
 	Member* result = nullptr;
 
@@ -367,7 +367,7 @@ Member* Lexer::parseUnaryOperationExpression(size_t _tokenId) {
 	return result;
 }
 
-Member* Lexer::parsePrimaryExpression( size_t _tokenId) {
+Member* Parser::parsePrimaryExpression( size_t _tokenId) {
 
 	// Check if there is index is not out of bounds
 	if (tokens.size() <= _tokenId)
@@ -382,7 +382,7 @@ Member* Lexer::parsePrimaryExpression( size_t _tokenId) {
 	return operandTokenToMember(token);
 }
 
-Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _leftOverride, Member* _rightOverride) {
 
 	Member*          result = nullptr;
 
@@ -411,10 +411,10 @@ Member* Lexer::parseExpression(size_t _tokenId, size_t _tokenCountMax, Member* _
 }
 
 
-bool Lexer::isSyntaxValid()
+bool Parser::isSyntaxValid()
 {
 	bool success = true;	
-	LOG_DBG("Lexer::isSyntaxValid() : ");
+	LOG_DBG("Parser::isSyntaxValid() : ");
 
 	// only support odd token count
 	if( tokens.size()%2 == 1)
@@ -453,9 +453,9 @@ bool Lexer::isSyntaxValid()
 	return success;
 }
 
-void Lexer::tokenizeExpressionString()
+void Parser::tokenizeExpressionString()
 {
-	LOG_DBG("Lexer::tokenize() - START\n");
+	LOG_DBG("Parser::tokenize() - START\n");
 
 	/* get expression chars */
 	std::string chars = getMember("expression")->getValueAsString();
@@ -560,16 +560,16 @@ void Lexer::tokenizeExpressionString()
 			addToken(TokenType_Operator, str, std::distance(chars.begin(), it));
 		}		
 	}
-	LOG_DBG("Lexer::tokenize() - DONE !\n");
+	LOG_DBG("Parser::tokenize() - DONE !\n");
 }
 
-void Lexer::addToken(TokenType_  _type, std::string _string, size_t _charIndex)
+void Parser::addToken(TokenType_  _type, std::string _string, size_t _charIndex)
 {
 	Token t;
 	t.type      = _type;
 	t.word      = _string;
 	t.charIndex = _charIndex;
 
-	LOG_DBG("Lexer::addToken(%d, \"%s\", %llu)\n", _type, _string.c_str(), _charIndex);
+	LOG_DBG("Parser::addToken(%d, \"%s\", %llu)\n", _type, _string.c_str(), _charIndex);
 	tokens.push_back(t);
 }

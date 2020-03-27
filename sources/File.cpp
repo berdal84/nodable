@@ -3,7 +3,7 @@
 #include "FileView.h"
 #include "ContainerView.h"
 #include "Container.h"
-#include "Lexer.h"
+#include "Parser.h"
 #include "View.h"
 #include "Variable.h"
 #include "Log.h"
@@ -144,18 +144,18 @@ bool File::evaluateExpression(std::string& _expression)
 	auto var = getContainer()->createNodeVariable(ICON_FA_CODE);
 	reinterpret_cast<View*>( var->getComponent("view"))->setVisible(false);
 
-	LOG_DBG("Lexer::eval() - assign the expression string to that variable\n");
+	LOG_DBG("Parser::eval() - assign the expression string to that variable\n");
 	var->setValue(_expression);
 
-	LOG_DBG("Lexer::eval() - check if expression is not empty\n");
+	LOG_DBG("Parser::eval() - check if expression is not empty\n");
 	if (var->isSet())
 	{
-		/* Create a Lexer node. The lexer will cut expression string into tokens
+		/* Create a Parser node. The Parser will cut expression string into tokens
 		(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
-		LOG_DBG("Lexer::eval() - create a lexer with the expression string\n");
-		auto lexer = getContainer()->createNodeLexer(var);
-		return lexer->eval();
-		//container->destroyNode(lexer);
+		LOG_DBG("Parser::eval() - create a Parser with the expression string\n");
+		auto Parser = getContainer()->createNodeParser(var);
+		return Parser->eval();
+		//container->destroyNode(Parser);
 	}
 
 	return false;

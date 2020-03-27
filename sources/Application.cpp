@@ -1,8 +1,7 @@
 #include "Application.h"
 #include "Nodable.h" 	// for NODABLE_VERSION
 #include "Log.h" 		// for LOG_DBG
-#include "Lexer.h"
-#include "Container.h"
+#include "Parser.h"
 #include "ContainerView.h"
 #include "ApplicationView.h"
 #include "Variable.h"

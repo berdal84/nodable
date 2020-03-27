@@ -54,9 +54,6 @@
     <ClCompile Include="..\sources\Entity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sources\Lexer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sources\Log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -129,6 +126,9 @@
     <ClCompile Include="..\sources\Language.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\sources\Parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sources\Application.h">
@@ -153,9 +153,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\sources\Entity.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sources\Lexer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\sources\Log.h">
@@ -669,6 +666,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\sources\Language.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sources\Parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

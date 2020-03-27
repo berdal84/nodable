@@ -12,14 +12,15 @@ namespace Nodable{
 		This class is build to generate a graph from an expression string.
 		You just have to instantiate it and set its member "expression" and call update();
 
-		auto ctx   = new Container("MyGlobalContainer");
-		auto lexer = ctx->createLexer();
+		auto container = new Container("MyGlobalContainer");
+		auto lexer     = container->createLexer( Language::NODABLE );
 		lexer->setMember("expression", "10+50*40/0.001");
-		lexer->update();		
-		// here ctx should contain the generated graph.
+		lexer->update();	
+
+		// here container should contain the generated graph.
 
 	*/
-	class Lexer : public Entity
+	class Parser : public Entity
 	{
 	private:
 
@@ -42,8 +43,8 @@ namespace Nodable{
 		}Token;
 
 	public:
-		Lexer(const Language* _language);
-		virtual ~Lexer();
+		Parser(const Language* _language);
+		virtual ~Parser();
 
 		/* Override from Entity class */
 		bool           eval			       ();
