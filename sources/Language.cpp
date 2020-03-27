@@ -12,12 +12,15 @@ const Language* Language::Nodable() {
 
 	language->numbers   = "0123456789.";
 
-	language->addOperator( Operator( "=", 0u) );
-	language->addOperator( Operator("!", 5u));
-	language->addOperator( Operator("-", 10u));
-	language->addOperator( Operator("+", 20u));
-	language->addOperator( Operator("/", 30u));
-	language->addOperator( Operator("*", 40u));
+	language->addOperator( Operator("=", 0u) );
+	language->addOperator( Operator("!", 5u) );
+	language->addOperator( Operator("-", 10u) );
+	language->addOperator( Operator("+", 20u) );
+	language->addOperator( Operator("/", 30u) );
+	language->addOperator( Operator("*", 40u) );
+
+	language->keywords["true"]  = TokenType_Boolean;
+	language->keywords["false"] = TokenType_Boolean;
 
 	return language;
 }

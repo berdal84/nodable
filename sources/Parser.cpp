@@ -464,15 +464,14 @@ void Parser::tokenizeExpressionString()
 	std::string chars = getMember("expression")->getValueAsString();
 
 	/* prepare allowed chars */
-	const std::string numbers 	     = language->numbers;
-	const std::string letters		 = language->letters;
-	const std::string operators 	 = language->getOperatorsAsString();
+	const auto numbers 	     = language->numbers;
+	const auto letters		 = language->letters;
+	const auto operators 	 = language->getOperatorsAsString();
 
 	/* prepare reserved keywords */
-	std::map<std::string, TokenType_> keywords;
-	keywords["true"]  = TokenType_Boolean;
-	keywords["false"] = TokenType_Boolean;
-	
+	const auto keywords = language->keywords;
+
+
 	for(auto it = chars.begin(); it != chars.end(); ++it)
 	{
 		
@@ -545,7 +544,7 @@ void Parser::tokenizeExpressionString()
 			// Term -> Keyword
 			//-----------------
 			if ( keywords.find(str) != keywords.end())
-				addToken(keywords[str], str, std::distance(chars.begin(), itStart));
+				addToken(keywords.at(str), str, std::distance(chars.begin(), itStart));
 
 			//-----------------
 			// Term -> Symbol
