@@ -77,6 +77,7 @@ namespace Nodable{
 		void           addToken			   (TokenType_ _type, std::string _string, size_t _charIndex);
 
 		std::vector<Token> tokens;
+		const Language* language;
 	};
 
 }

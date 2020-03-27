@@ -12,19 +12,12 @@
 
 using namespace Nodable;
 
-Lexer::Lexer(const Language* _language)
+Lexer::Lexer(const Language* _language):language(_language)
 {
 	LOG_DBG("new Lexer\n");
 	setMember("__class__", "Lexer");
 
 	addMember("expression", Visibility_VisibleOnlyWhenUncollapsed);
-	addMember("numbers",    Visibility_VisibleOnlyWhenUncollapsed);
-	addMember("letters",    Visibility_VisibleOnlyWhenUncollapsed);
-	addMember("operators",  Visibility_VisibleOnlyWhenUncollapsed);
-
-	setMember("numbers",    _language->numbers );
-	setMember("letters",    _language->letters );
-	setMember("operators",  _language->getOperatorsAsString() );
 
 	setLabel("Lexer");
 }
@@ -468,9 +461,9 @@ void Lexer::tokenizeExpressionString()
 	std::string chars = getMember("expression")->getValueAsString();
 
 	/* prepare allowed chars */
-	std::string numbers 	     = getMember("numbers")->getValueAsString();
-	std::string letters		     = getMember("letters")->getValueAsString();
-	std::string operators 	     = getMember("operators")->getValueAsString();
+	const std::string numbers 	     = language->numbers;
+	const std::string letters		 = language->letters;
+	const std::string operators 	 = language->getOperatorsAsString();
 
 	/* prepare reserved keywords */
 	std::map<std::string, TokenType_> keywords;
