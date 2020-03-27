@@ -23,12 +23,25 @@ namespace Nodable {
 		unsigned short precedence;
 	};
 
+	/* This enum identifies each kind of word for a language */
+	enum TokenType_
+	{
+		TokenType_String,
+		TokenType_Number,
+		TokenType_Symbol,
+		TokenType_Operator,
+		TokenType_Boolean,
+		TokenType_COUNT,
+		TokenType_Unknown
+	};
+
 	/**
 		The Language class defines a single Language (ex: C++, Python, etc...)
 		Some static constants provide easy access to ready to use Languages.
 	*/
 	class Language {
 	public:
+
 		Language() :numbers(), letters(), brackets() {};
 		~Language() {};		
 

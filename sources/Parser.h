@@ -24,17 +24,6 @@ namespace Nodable{
 	{
 	private:
 
-		/* This enum identifies each kind of Token the lexer can handle */
-		enum TokenType_
-		{
-			TokenType_String   = 0,
-			TokenType_Number   = 1,
-			TokenType_Symbol   = 2,
-			TokenType_Operator = 3,
-			TokenType_Boolean  = 4,
-			TokenType_Unknown  = 5
-		};
-
 		typedef struct
 		{
 			TokenType_  type      = TokenType_Unknown; // the type of the token

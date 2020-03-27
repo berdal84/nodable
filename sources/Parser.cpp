@@ -1,6 +1,5 @@
 #include "Parser.h"
 #include "Log.h"          // for LOG_DBG(...)
-
 #include "Member.h"
 #include "Container.h"
 #include "Variable.h"
@@ -62,6 +61,7 @@ bool Parser::eval()
 }
 
 Member* Parser::operandTokenToMember(const Token& _token) {
+
 
 	Member* result = nullptr;
 
