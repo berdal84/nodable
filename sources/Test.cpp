@@ -7,6 +7,9 @@
 #include "Wire.h"
 #include "DataAccess.h"
 #include "Container.h"
+#include "Language.h"
+#include "Parser.h"
+#include "Variable.h"
 
 #include <memory> // for unique_ptr
 using namespace Nodable;
@@ -371,6 +374,32 @@ bool Test::RunAll()
 
 		dataAccessComponent->update();
 		entity->removeComponent("dataAccess");
+	}
+
+	LOG_MSG("Running tests for Parser...\n");
+	{
+		std::string expression = "-1+2*5-3/6";
+		auto resultExpected = double(8.5);
+
+		auto container(new Container);
+		auto expressionVariable(container->createNodeVariable("expression"));
+		expressionVariable->setValue(expression);
+
+		auto parser( container->createNodeParser(expressionVariable) );
+
+		parser->eval();
+		
+		auto resultVariable = container->getResultVariable();
+		resultVariable->update();
+
+		auto result = resultVariable->getValueAsNumber();
+
+		if ( result == resultExpected)
+			s_testSucceedCount++;
+		else
+			LOG_MSG("Test n°1 : FAILED ! ", expression, " => ", result, ", expected ", resultExpected);
+		s_testCount++;
+
 	}
 
 	DisplayResults();
