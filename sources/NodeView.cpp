@@ -454,13 +454,14 @@ bool NodeView::drawMember(Member* _member) {
 
 	if (_member->isSet())
 	{
+		std::string label("##");
+		label.append(_member->getName());
+
 		/* Draw the member */
 		switch (_member->getType())
 		{
 		case Type_Number:
 			{
-				std::string label("##");
-				label.append(_member->getName());
 				float f(_member->getValueAsNumber());
 				if (ImGui::InputFloat(label.c_str(), &f))
 				{
@@ -471,13 +472,11 @@ bool NodeView::drawMember(Member* _member) {
 				break;
 			}
 		case Type_String:
-			{
-				std::string label("##");
-				label.append(_member->getName());
+			{				
 				char str[255];
 				sprintf(str, "%s", _member->getValueAsString().c_str());
 
-				if (ImGui::InputText(label.c_str(), str, 255) )
+				if ( ImGui::InputText(label.c_str(), str, 255) )
 				{
 					_member->setValue(str);
 					node->setDirty(true);
@@ -485,10 +484,22 @@ bool NodeView::drawMember(Member* _member) {
 				}
 				break;
 			}
+		case Type_Boolean:
+		{			
+			std::string checkBoxLabel = _member->getName();
+
+			auto b = _member->getValueAsBoolean();
+			if (ImGui::Checkbox( checkBoxLabel.c_str(), &b )) {				
+				_member->setValue(b);
+				node->setDirty(true);
+				edited |= true;
+			}
+			break;
+		}
 		default:
 			{
 				ImGui::Text("%s", _member->getName().c_str());
-				ImGui::SameLine(100.0f);
+				ImGui::SameLine(10.0f);
 				ImGui::Text("%s", _member->getValueAsString().c_str());
 				break;
 			}
