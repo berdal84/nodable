@@ -225,7 +225,7 @@ Member* Parser::buildGraphIterative()
 	return result;
 }
 
-Member* Parser::parseBinaryOperationExpressionEx(size_t& _tokenId, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseBinaryOperationExpressionEx(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride) {
 
 	Member* result = nullptr;
 
@@ -255,11 +255,11 @@ Member* Parser::parseBinaryOperationExpressionEx(size_t& _tokenId, Member* _left
 
 		if (firstOperatorHasHigherPrecedence) {
 			// Evaluate first 3 tokens passing the previous result
-			auto intermediateResult = parseBinaryOperationExpression(_tokenId, _leftOverride, nullptr);
+			auto intermediateResult = parseBinaryOperationExpression(_tokenId, _precedence, _leftOverride, nullptr);
 
 			// Then evaluates the rest starting at id + 2
 			_tokenId--; // rear back to be on the right operand of the intermediateResult
-			result = parseExpression(_tokenId, intermediateResult);
+			result = parseExpression(_tokenId, _precedence, intermediateResult);
 
 		}
 		else {
@@ -268,7 +268,7 @@ Member* Parser::parseBinaryOperationExpressionEx(size_t& _tokenId, Member* _left
 			auto right = parseExpression(rightTokenId);
 
 			// Build the graph for the first 3 tokens
-			result = parseBinaryOperationExpression(_tokenId, _leftOverride, right);
+			result = parseBinaryOperationExpression(_tokenId, _precedence, _leftOverride, right);
 
 			_tokenId = rightTokenId;
 
@@ -278,7 +278,7 @@ Member* Parser::parseBinaryOperationExpressionEx(size_t& _tokenId, Member* _left
 	return result;
 }
 
-Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride) {
 
 	Member*    result = nullptr;
 	Container* context = this->getParent();
@@ -347,7 +347,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, Member* _leftOv
 
 }
 
-Member* Parser::parseUnaryOperationExpression(size_t& _tokenId) {
+Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence ) {
 
 	Member* result = nullptr;
 
@@ -395,17 +395,17 @@ Member* Parser::parsePrimaryExpression( size_t& _tokenId) {
 	return operandTokenToMember(token);
 }
 
-Member* Parser::parseExpression(size_t& _tokenId, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride) {
 
 	Member*          result = nullptr;
 
-    if (result = parseBinaryOperationExpressionEx(_tokenId, _leftOverride, _rightOverride)){
+    if (result = parseBinaryOperationExpressionEx(_tokenId, _precedence, _leftOverride, _rightOverride)){
 		LOG_DBG("Binary operation expression extended parsed.\n");
 
-	} else if (result = parseBinaryOperationExpression(_tokenId, _leftOverride, _rightOverride)) {
+	} else if (result = parseBinaryOperationExpression(_tokenId, _precedence, _leftOverride, _rightOverride)) {
 		LOG_DBG("Binary operation expression parsed.\n");
 
-	} else if (result = parseUnaryOperationExpression(_tokenId)) {
+	} else if (result = parseUnaryOperationExpression(_tokenId, _precedence)) {
 		LOG_DBG("Unary operation expression parsed.\n");
 
 	} else if (result = parsePrimaryExpression(_tokenId)) {
