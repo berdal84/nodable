@@ -46,7 +46,7 @@ namespace Nodable {
 		~Language() {};		
 
 		void addOperator(Operator);
-		unsigned short getOperatorPrecedence(std::string& _identifier)const;
+		unsigned short getOperatorPrecedence(const std::string& _identifier)const;
 		std::string getOperatorsAsString()const;
 
 		/* Some language reference constants*/

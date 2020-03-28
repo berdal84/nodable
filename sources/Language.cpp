@@ -13,11 +13,14 @@ const Language* Language::Nodable() {
 	language->numbers   = "0123456789.";
 
 	language->addOperator( Operator("=", 0u) );
+
 	language->addOperator( Operator("!", 5u) );
+
 	language->addOperator( Operator("-", 10u) );
-	language->addOperator( Operator("+", 20u) );
-	language->addOperator( Operator("/", 30u) );
-	language->addOperator( Operator("*", 40u) );
+	language->addOperator( Operator("+", 10u) );
+
+	language->addOperator( Operator("/", 20u) );
+	language->addOperator( Operator("*", 20u) );
 
 	language->keywords["true"]  = TokenType_Boolean;
 	language->keywords["false"] = TokenType_Boolean;
@@ -31,7 +34,7 @@ void Language::addOperator( Operator _operator) {
 	operators.insert(item);
 }
 
-unsigned short Language::getOperatorPrecedence(std::string& _identifier)const {
+unsigned short Language::getOperatorPrecedence(const std::string& _identifier)const {
 
 	return operators.at(_identifier).precedence;
 }
