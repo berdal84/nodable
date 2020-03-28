@@ -42,14 +42,12 @@ namespace Nodable{
 		Member* operandTokenToMember(const Token& _token);
 
 		Member* buildGraphIterative();
-		/* To parse more than three tokens (ex: "1+59+1", "98*4*1", "true and false or true", etc...)*/
-		Member* parseBinaryOperationExpressionEx(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride);
 
 		/* To parse three tokens (ex: "1+59", "98*4", "true and false", etc...)*/
-		Member* parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride);
+		Member* parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence = 0u, Member* _leftValueOverride = nullptr, Member* _rightValueOverride = nullptr);
 
 		/** To parse two tokens (ex: !true, -5, etc..) */
-		Member* parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence );
+		Member* parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence = 0u);
 
 		/** To parse a primary expression (ex: "myVariable", "10.4", etc... ) */
 		Member* parsePrimaryExpression(size_t& _tokenId);

@@ -225,81 +225,42 @@ Member* Parser::buildGraphIterative()
 	return result;
 }
 
-Member* Parser::parseBinaryOperationExpressionEx(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride) {
 
 	Member* result = nullptr;
 
 	const size_t tokenToEvalCount = tokens.size() - _tokenId;
 
-	if (tokenToEvalCount > 3) {
-
-		const Token& token1(tokens.at(_tokenId));
-		const Token& token2(tokens.at(_tokenId+1));
-		const Token& token3(tokens.at(_tokenId+2));
-		const Token& token4(tokens.at(_tokenId+3));
-
-		const bool isValid = token1.type != TokenType_Operator &&
-			                 token2.type == TokenType_Operator &&
-			                 token3.type != TokenType_Operator &&
-			                 token4.type == TokenType_Operator;
-
-		if (!isValid) {
-			return nullptr;
-		}
-
-		/* Operator precedence */
-		std::string firstOperator = token2.word;
-		std::string nextOperator = token4.word;
-		
-		bool firstOperatorHasHigherPrecedence = BinaryOperationComponent::NeedsToBeEvaluatedFirst(firstOperator, nextOperator);
-
-		if (firstOperatorHasHigherPrecedence) {
-			// Evaluate first 3 tokens passing the previous result
-			auto intermediateResult = parseBinaryOperationExpression(_tokenId, _precedence, _leftOverride, nullptr);
-
-			// Then evaluates the rest starting at id + 2
-			_tokenId--; // rear back to be on the right operand of the intermediateResult
-			result = parseExpression(_tokenId, _precedence, intermediateResult);
-
-		}
-		else {
-
-			size_t rightTokenId = _tokenId + 2;
-			auto right = parseExpression(rightTokenId);
-
-			// Build the graph for the first 3 tokens
-			result = parseBinaryOperationExpression(_tokenId, _precedence, _leftOverride, right);
-
-			_tokenId = rightTokenId;
-
-		}
-	}
-
-	return result;
-}
-
-Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride) {
-
-	Member*    result = nullptr;
-	Container* context = this->getParent();
-
-	if (tokens.size() <= _tokenId + 2)
+	if (tokenToEvalCount < 3)
 		return nullptr;
 
 	const Token& token1(tokens.at(_tokenId));
 	const Token& token2(tokens.at(_tokenId+1));
 	const Token& token3(tokens.at(_tokenId+2));
 
+	// Structure check
 	const bool isValid = token1.type != TokenType_Operator &&
-		                 token2.type == TokenType_Operator &&
-		                 token3.type != TokenType_Operator;
+			                token2.type == TokenType_Operator &&
+			                token3.type != TokenType_Operator;
 
-	if (!isValid)
+	if (!isValid) {
+		return nullptr;
+	}
+		 
+	// Precedence check
+	const auto currentOperatorPrecedence = language->getOperatorPrecedence(token2.word);
+		
+	if (currentOperatorPrecedence < _precedence)
 		return nullptr;
 
+	// Parse right expression
+	size_t rightTokenId = _tokenId + 2;
+	auto right = parseExpression(rightTokenId, currentOperatorPrecedence);
+
+	// Build the graph for the first 3 tokens
+	Container* context = this->getParent();
 
 	Member* left = _leftOverride != nullptr ? _leftOverride : operandTokenToMember(token1);
-	Member* right = _rightOverride != nullptr ? _rightOverride : operandTokenToMember(token3);
 
 	// Special behavior for "=" operator
 	if (token2.word == "=") {
@@ -320,7 +281,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 
 
 	// For all other binary operations :
-	} else {
+	}else {
 		auto binOperation = context->createNodeBinaryOperation(token2.word);
 
 		// Connect the Left Operand :
@@ -340,11 +301,10 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		// Set the result !
 		result = binOperation->getMember("result");
 	}
-
-	_tokenId += 3;
+	
+	_tokenId = rightTokenId;
 
 	return result;
-
 }
 
 Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence ) {
@@ -399,10 +359,7 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 
 	Member*          result = nullptr;
 
-    if (result = parseBinaryOperationExpressionEx(_tokenId, _precedence, _leftOverride, _rightOverride)){
-		LOG_DBG("Binary operation expression extended parsed.\n");
-
-	} else if (result = parseBinaryOperationExpression(_tokenId, _precedence, _leftOverride, _rightOverride)) {
+    if (result = parseBinaryOperationExpression(_tokenId, _precedence, _leftOverride, _rightOverride)){
 		LOG_DBG("Binary operation expression parsed.\n");
 
 	} else if (result = parseUnaryOperationExpression(_tokenId, _precedence)) {
@@ -410,9 +367,12 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 
 	} else if (result = parsePrimaryExpression(_tokenId)) {
 		LOG_DBG("Primary expression parsed.\n");
+		return result;
+	}
 
-	} else if (_leftOverride != nullptr) {
-		result = _leftOverride;
+	if ( result && _tokenId < tokens.size()) {
+		_tokenId--;
+		result = parseExpression(_tokenId, _precedence, result);
 	}
 
 	return result;
