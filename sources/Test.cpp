@@ -376,31 +376,42 @@ bool Test::RunAll()
 		entity->removeComponent("dataAccess");
 	}
 
-	LOG_MSG("Running tests for Parser...\n");
-	{
-		std::string expression = "-1+2*5-3/6";
-		auto resultExpected = double(8.5);
+	
+	auto testParser = [](const std::string& testName, const std::string& expression, const std::string& resultExpected)->void {
+
 
 		auto container(new Container);
 		auto expressionVariable(container->createNodeVariable("expression"));
 		expressionVariable->setValue(expression);
 
-		auto parser( container->createNodeParser(expressionVariable) );
+		auto parser(container->createNodeParser(expressionVariable));
 
 		parser->eval();
-		
+
 		auto resultVariable = container->getResultVariable();
 		resultVariable->update();
 
-		auto result = resultVariable->getValueAsNumber();
+		auto result = resultVariable->getValueAsString();
 
-		if ( result == resultExpected)
+		if (result == resultExpected)
 			s_testSucceedCount++;
 		else
-			LOG_MSG("Test n°1 : FAILED ! ", expression, " => ", result, ", expected ", resultExpected);
+			LOG_MSG("Test ", testName, " : FAILED ! ", expression, " => ", result, ", expected ", resultExpected);
 		s_testCount++;
 
+		delete container;
+
+	};
+
+	LOG_MSG("Running tests for Parser...\n");
+	{
+		testParser("Parser n°1", "-1+2*5-3/6" , "8.5");
+		testParser("Parser n°2", "2+3"        , "5");
+		testParser("Parser n°3", "-5"         , "-5");
+		testParser("Parser n°4", "-5+4"       , "-1");
+		testParser("Parser n°5", "-1*20"      , "-20");
 	}
+
 
 	DisplayResults();
 
