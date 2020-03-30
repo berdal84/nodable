@@ -474,7 +474,7 @@ bool NodeView::drawMember(Member* _member) {
 		case Type_String:
 			{				
 				char str[255];
-				sprintf(str, "%s", _member->getValueAsString().c_str());
+				sprintf_s(str, "%s", _member->getValueAsString().c_str());
 
 				if ( ImGui::InputText(label.c_str(), str, 255) )
 				{
