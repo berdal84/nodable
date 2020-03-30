@@ -7,7 +7,7 @@ namespace Nodable{
 	/* BinaryOperationComponent is an interface for all binary operations */
 	class BinaryOperationComponent: public Component{
 	public:		
-		COMPONENT_CONSTRUCTOR(BinaryOperationComponent);
+		BinaryOperationComponent() {};
 		virtual ~BinaryOperationComponent(){};
 
 		void                setLeft	 (Member* _value){left= _value;};
@@ -30,35 +30,30 @@ namespace Nodable{
 	/* Implementation of the BinaryOperationComponent as a Sum */
 	class Add : public BinaryOperationComponent{
 	public:
-		COMPONENT_CONSTRUCTOR(Add);
 		bool update()override;	
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Substraction */
 	class Substract : public BinaryOperationComponent{
 	public:
-		COMPONENT_CONSTRUCTOR(Substract);
 		bool update()override;
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Multiplication */
 	class Multiply : public BinaryOperationComponent{
 	public:
-		COMPONENT_CONSTRUCTOR(Multiply);
 		bool update()override;
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Division */
 	class Divide : public BinaryOperationComponent{
 	public:
-		COMPONENT_CONSTRUCTOR(Divide);
 		bool update()override;
 	};
 
 	/* Implementation of the BinaryOperationComponent as an assignment */
 	class Assign : public BinaryOperationComponent{
 	public:
-		COMPONENT_CONSTRUCTOR(Assign);
 		bool update()override;
 	};
 }

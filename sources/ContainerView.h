@@ -8,8 +8,6 @@ namespace Nodable{
 
 	class ContainerView: public View{
 	public:
-		COMPONENT_CONSTRUCTOR(ContainerView);
-
 		virtual ~ContainerView(){};
 		bool    draw();
 	};

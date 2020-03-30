@@ -33,7 +33,7 @@ namespace Nodable
 
 	class History : public Component {
 	public:
-		COMPONENT_CONSTRUCTOR(History);
+		History() {}
 		~History();
 
 		/* Execute a command and add it to the history.

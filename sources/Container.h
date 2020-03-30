@@ -11,8 +11,8 @@ namespace Nodable{
 	   All Variables's pointers created within this context are referenced in a vector to be found later */
 	class Container: public Component{
 	public:
-		COMPONENT_CONSTRUCTOR(Container);
 
+		Container() {};
 		virtual ~Container();
 		bool                      	update();
 		void                      	clear();

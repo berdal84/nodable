@@ -8,7 +8,6 @@ namespace Nodable
 	class DataAccess : public Component
 	{
 	public:
-		COMPONENT_CONSTRUCTOR(DataAccess);
 		bool update()override;
 	};
 }

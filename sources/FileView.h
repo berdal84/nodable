@@ -8,7 +8,7 @@ namespace Nodable {
 	class FileView : public View
 	{
 	public:
-		COMPONENT_CONSTRUCTOR(FileView)
+		FileView() {};
 		void                           init();
 		bool                           draw();
 		bool                           hasChanged() { return this->m_hasChanged; }

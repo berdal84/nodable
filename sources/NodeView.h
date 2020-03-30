@@ -26,7 +26,7 @@ namespace Nodable{
 		bool              update(float _deltaTime);
 
 	public:
-		COMPONENT_CONSTRUCTOR(NodeView);
+		NodeView() {};
 
 		/* Draw the view at its position into the current window
 		   Returns true if nod has been edited, false either */
