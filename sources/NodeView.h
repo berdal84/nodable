@@ -21,6 +21,10 @@ namespace Nodable{
 
 	class NodeView : public View
 	{
+	private:
+		/* Update function that takes a specific delta time (can be hacked by sending a custom value) */
+		bool              update(float _deltaTime);
+
 	public:
 		COMPONENT_CONSTRUCTOR(NodeView);
 
@@ -29,12 +33,12 @@ namespace Nodable{
 		bool              draw                ()override;
 
 		/* Should be called once per frame to update the view */
-		bool              update              ();
+		bool              update              ()override;		
 
 		void updateInputConnectedNodes(Nodable::Entity* node, float deltaTime);
 
 		/* Get top-left corner vector position */
-		ImVec2            getPosition         ()const;
+		ImVec2            getRoundedPosition         ()const;
 
 		/* Get the connector position of the specified member (by name) for its Connection_ side (In or Out ONLY !) */
 		ImVec2            getMemberConnectorPosition(const std::string& /*_name*/, Connection_ /*_connection*/)const;

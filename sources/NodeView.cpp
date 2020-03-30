@@ -45,24 +45,31 @@ bool NodeView::IsSelected(NodeView* _view)
 	return s_selected == _view;
 }
 
-ImVec2 NodeView::getPosition()const
+ImVec2 NodeView::getRoundedPosition()const
 {
-	ImVec2 topLeftCornerPosition(position - size / 2.0f);
-	return topLeftCornerPosition;
+	ImVec2 roundedPosition;
+
+	roundedPosition.x = std::round(position.x);
+	roundedPosition.y = std::round(position.y);
+
+	return roundedPosition;
 }
 
 ImVec2 NodeView::getMemberConnectorPosition(const std::string& _name, Connection_ _connection)const
 {
-	auto pos = getPosition();
+	auto pos = position;
 
 	auto it = connectorOffsetPositionsY.find(_name);
 	if (it != connectorOffsetPositionsY.end())
 		pos.y += (*it).second;
 
+	// Inputs are displayed on the left
 	if (_connection == Connection_In)
-		return ImVec2(pos.x, pos.y + size.y * 0.5f);
+		return ImVec2(pos.x - size.x * 0.5f, pos.y);
+
+	// Outputs are displayed on the right
 	else if (_connection == Connection_Out)
-		return ImVec2(pos.x + size.x, pos.y + size.y * 0.5f);
+		return ImVec2(pos.x + size.x * 0.5f, pos.y);
 	else {
 		NODABLE_ASSERT(false); // _connection should be only In or Out.
 		return ImVec2();
@@ -71,7 +78,8 @@ ImVec2 NodeView::getMemberConnectorPosition(const std::string& _name, Connection
 
 void NodeView::setPosition(ImVec2 _position)
 {
-	this->position = _position;
+	this->position.x =  _position.x;
+	this->position.y =  _position.y;
 }
 
 void NodeView::translate(ImVec2 _delta)
@@ -88,11 +96,15 @@ bool NodeView::update()
 {
 	auto deltaTime = ImGui::GetIO().DeltaTime;
 
+	return update(deltaTime);
+}
+
+bool NodeView::update(float _deltaTime) {
 	// Update opacity to reach 1.0f
 	//-----------------------------
 
-	if(opacity < 1.0f)
-		opacity += (1.0f - opacity) * float(10) * deltaTime;
+	if (opacity < 1.0f)
+		opacity += (1.0f - opacity) * float(10) * _deltaTime;
 
 	// Set background color according to node class 
 	//---------------------------------------------
@@ -106,12 +118,13 @@ bool NodeView::update()
 	else
 		setColor(ColorType_Fill, ImColor(0.9f, 0.9f, 0.7f));
 
-	
-	updateInputConnectedNodes(node, deltaTime);
+
+	updateInputConnectedNodes(node, _deltaTime);
+
 	return true;
 }
 
-void Nodable::NodeView::updateInputConnectedNodes(Nodable::Entity* node, float deltaTime)
+void NodeView::updateInputConnectedNodes(Nodable::Entity* node, float deltaTime)
 {
 
 	// automatically moves input connected nodes
@@ -148,7 +161,8 @@ void Nodable::NodeView::updateInputConnectedNodes(Nodable::Entity* node, float d
 	This code maintain them stacked together with a little attenuated movement.
 	*/
 
-	auto posY = getMemberConnectorPosition("", Connection_In).y - cumulatedHeight / 2.0f;
+	auto posY = position.y - cumulatedHeight / 2.0f;
+
 	float nodeVerticalSpacing(10);
 
 	for (auto eachWire : wires)
@@ -162,17 +176,18 @@ void Nodable::NodeView::updateInputConnectedNodes(Nodable::Entity* node, float d
 			if (!inputView->pinned)
 			{
 				// Compute new position for this input view
-				ImVec2 newPos(getMemberConnectorPosition("", Connection_In).x - maxSizeX - spacingDist, posY);
+				ImVec2 newPos( position.x - size.x / 2.0f - maxSizeX - spacingDist + inputView->size.x / 2.0f, posY + inputView->size.y / 2.0);
 				posY += inputView->size.y + nodeVerticalSpacing;
 
 				// Compute a delta to apply to move to this new position
-				auto currentPos = inputView->getPosition();
-				auto factor = std::min(1.0f, 10.f * deltaTime); // TODO: use frame time
-				ImVec2 delta((newPos.x - currentPos.x) * factor, (newPos.y - currentPos.y) * factor);
+				auto currentPos = inputView->position;				
+				ImVec2 delta((newPos.x - currentPos.x), (newPos.y - currentPos.y));
 
 				bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
-				if (!isDeltaTooSmall)
-					inputView->translate(delta);
+				if (!isDeltaTooSmall) {
+					auto factor = std::min(1.0f, 10.f * deltaTime);
+					inputView->translate(delta * factor);
+				}
 			}
 
 			inputIndex++;
@@ -206,7 +221,7 @@ bool NodeView::draw()
 	const auto halfSize = size / 2.0;
 
 	if ( position.x != -1.0f || position.y != -1.0f)
-		ImGui::SetCursorPos( position - halfSize );
+		ImGui::SetCursorPos( getRoundedPosition() - halfSize );
 	else
 		ImGui::SetCursorPos(ImVec2());
 
@@ -214,7 +229,7 @@ bool NodeView::draw()
 	ImGui::BeginGroup();
 
 	ImVec2 cursorPositionBeforeContent = ImGui::GetCursorPos();
-	ImVec2 screenPosition  = View::ConvertCursorPositionToScreenPosition( position );
+	ImVec2 screenPosition  = View::ConvertCursorPositionToScreenPosition( getRoundedPosition() );
 
 
 	// Draw the background of the Group
@@ -394,7 +409,7 @@ bool NodeView::draw()
 	}	
 
 	// interpolate size.y to fit with its content
-	size.y = 0.5f * size.y  + 0.5f * (cursorPosAfterContent.y - cursorPositionBeforeContent.y);
+	size.y = (cursorPosAfterContent.y - cursorPositionBeforeContent.y);
 
 
 	ImGui::PopStyleVar();
@@ -409,7 +424,7 @@ void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 
 	// Force and update of input connected nodes with a delta time extra high
 	// to ensure all nodes were well placed in a single call (no smooth moves)
-	_view->updateInputConnectedNodes(_view->getOwner(), float(1000) );
+	_view->update( float(1000) );
 
 	// Get wires that go outside from this node :
 	auto wires = _view->getOwner()->getWires();
@@ -435,17 +450,18 @@ bool NodeView::drawMember(Member* _member) {
 	bool edited = false;
 	auto node = getOwner();
 
-	auto memberTopPositionOffsetY = ImGui::GetCursorPos().y - position.y;
+	auto memberTopPositionOffsetY = ImGui::GetCursorPos().y - getRoundedPosition().y;
 
 	if (_member->isSet())
 	{
+		std::string label("##");
+		label.append(_member->getName());
+
 		/* Draw the member */
 		switch (_member->getType())
 		{
 		case Type_Number:
 			{
-				std::string label("##");
-				label.append(_member->getName());
 				float f(_member->getValueAsNumber());
 				if (ImGui::InputFloat(label.c_str(), &f))
 				{
@@ -456,13 +472,11 @@ bool NodeView::drawMember(Member* _member) {
 				break;
 			}
 		case Type_String:
-			{
-				std::string label("##");
-				label.append(_member->getName());
+			{				
 				char str[255];
-				sprintf(str, "%s", _member->getValueAsString().c_str());
+				sprintf_s(str, "%s", _member->getValueAsString().c_str());
 
-				if (ImGui::InputText(label.c_str(), str, 255) )
+				if ( ImGui::InputText(label.c_str(), str, 255) )
 				{
 					_member->setValue(str);
 					node->setDirty(true);
@@ -470,10 +484,22 @@ bool NodeView::drawMember(Member* _member) {
 				}
 				break;
 			}
+		case Type_Boolean:
+		{			
+			std::string checkBoxLabel = _member->getName();
+
+			auto b = _member->getValueAsBoolean();
+			if (ImGui::Checkbox( checkBoxLabel.c_str(), &b )) {				
+				_member->setValue(b);
+				node->setDirty(true);
+				edited |= true;
+			}
+			break;
+		}
 		default:
 			{
 				ImGui::Text("%s", _member->getName().c_str());
-				ImGui::SameLine(100.0f);
+				ImGui::SameLine(10.0f);
 				ImGui::Text("%s", _member->getValueAsString().c_str());
 				break;
 			}
@@ -492,7 +518,7 @@ bool NodeView::drawMember(Member* _member) {
 		ImGui::EndTooltip();
 	}
 
-	auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - position.y;
+	auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - getRoundedPosition().y;
 	connectorOffsetPositionsY[_member->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f; // store y axis middle
 
 	/*
@@ -515,7 +541,7 @@ bool NodeView::drawMember(Member* _member) {
 	return edited;
 }
 
-void Nodable::NodeView::drawMemberConnector(ImVec2& connectorPos, Nodable::Member* _member, ImDrawList* draw_list)
+void NodeView::drawMemberConnector(ImVec2& connectorPos, Nodable::Member* _member, ImDrawList* draw_list)
 {
 	// Unvisible Button on top of the Circle
 

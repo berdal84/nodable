@@ -74,7 +74,7 @@ namespace Nodable{
 	// 3 - Nodes
 	class Entity;
 	class Application;	
-	class Lexer;
+	class Parser;
 	class Variable;
 	class Container;
 
