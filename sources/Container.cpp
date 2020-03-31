@@ -66,7 +66,6 @@ void Container::addEntity(Entity* _entity)
 	/* Set the node's container to this */
 	_entity->setParent(this);
 
-	LOG_DBG("A node has been added to the container '%s'\n", this->getMember("name")->getValueAsString().c_str());
 }
 
 void Container::destroyNode(Entity* _entity)
@@ -90,8 +89,6 @@ Variable* Container::find(std::string _name)
 {
 	Variable* result = nullptr;
 
-	LOG_DBG("Searching node '%s' in container '%s' : ", _name.c_str(), this->getMember("name")->getValueAsString().c_str());
-
 	auto findFunction = [_name](const Variable* _variable ) -> bool
 	{
 		return strcmp(_variable->getName(), _name.c_str()) == 0;
@@ -99,7 +96,6 @@ Variable* Container::find(std::string _name)
 
 	auto it = std::find_if(variables.begin(), variables.end(), findFunction);
 	if (it != variables.end()){
-		LOG_DBG("FOUND !\n");
 		result = *it;
 	}
 

@@ -5,20 +5,21 @@
 #include "ApplicationView.h"
 #include "Test.h"            // for RunAll()
 
+using namespace Nodable;
+
 int main(int argc, char* argv[])
 
 {
 	// Build a new Nodable application
 	std::string appName = "Nodable " NODABLE_VERSION;
-	Nodable::Application nodable(appName.c_str());
-
-	NODABLE_VERIFY(Nodable::Test::RunAll());
-	NODABLE_VERIFY(nodable.init());
+	Application nodable(appName.c_str());
+	Test::RunAll();
+	nodable.init();
 
 	while (nodable.update())
 	{
 		if( nodable.hasComponent("view"))
-			reinterpret_cast<Nodable::ApplicationView*>(nodable.getComponent("view"))->draw();
+			reinterpret_cast<ApplicationView*>(nodable.getComponent("view"))->draw();
 	}
 
 	nodable.shutdown();

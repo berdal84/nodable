@@ -1,5 +1,5 @@
 #include "BinaryOperation.h"
-#include "Log.h"		// for LOG_DBG(...)
+#include "Log.h"		// for LOG_DEBUG(...)
 #include "Member.h"
 #include "Variable.h"
 #include "Language.h"
@@ -104,10 +104,6 @@ bool Add::update()
 	
 	updateResultSourceExpression();
 
-	LOG_MSG("%s + %s = %f\n", left->getValueAsString().c_str(), 
-                              right->getValueAsString().c_str(),
-                              result->getValueAsString().c_str());
-
 	return true;
 }
 
@@ -121,9 +117,6 @@ bool Substract::update()
 	
 	updateResultSourceExpression();
 
-	LOG_MSG("%s - %s = %f\n", left->getValueAsString().c_str(), 
-                              right->getValueAsString().c_str(),
-                              result->getValueAsString().c_str());
 	return true;
 }
 
@@ -136,10 +129,6 @@ bool Divide::update()
 	{
 		auto div = left->getValueAsNumber() / right->getValueAsNumber();
 		result->setValue(div);
-		
-		LOG_MSG("%s / %s = %f\n", left->getValueAsString().c_str(), 
-                                  right->getValueAsString().c_str(),
-                                  result->getValueAsString().c_str());
 	}
 
 	updateResultSourceExpression();
@@ -171,9 +160,6 @@ bool Multiply::update()
 	
 	updateResultSourceExpression();
 
-	LOG_MSG("%s * %s = %f\n", left->getValueAsString().c_str(), 
-	                          right->getValueAsString().c_str(),
-	                          result->getValueAsString().c_str());
 	return true;
 }
 
@@ -209,8 +195,5 @@ bool Assign::update()
 	
 	updateResultSourceExpression();
 
-	LOG_MSG("%s = %s (result %s)\n", 	left->getValueAsString().c_str(),
-										right->getValueAsString().c_str(),
-										result->getValueAsString().c_str());	
 	return true;
 }

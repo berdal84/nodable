@@ -43,6 +43,8 @@ namespace Nodable{
 
 		Member* buildGraphIterative();
 
+		Member* parseSubExpression(size_t& _tokenId);
+
 		/* To parse three tokens (ex: "1+59", "98*4", "true and false", etc...)*/
 		Member* parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence = 0u, Member* _leftValueOverride = nullptr, Member* _rightValueOverride = nullptr);
 

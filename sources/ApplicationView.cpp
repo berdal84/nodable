@@ -506,7 +506,6 @@ void Nodable::ApplicationView::drawFileTabs()
 
 			if (ImGui::IsItemClicked(0))
 			{
-				LOG_MSG("ApplicationView - User switch tabs to \"%s\" (id:%lu)\n", tabLabel.c_str(), i);
 				application->setCurrentFileWithIndex(i);
 				userSwitchesFile = true;
 			}

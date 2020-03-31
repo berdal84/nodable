@@ -1,5 +1,5 @@
 #include "NodeView.h"
-#include "Log.h"		          // for LOG_DBG(...)
+#include "Log.h"		          // for LOG_DEBUG(...)
 #include <imgui/imgui.h>
 #include "Container.h"
 #include "Variable.h"

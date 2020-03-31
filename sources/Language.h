@@ -31,6 +31,7 @@ namespace Nodable {
 		TokenType_Symbol,
 		TokenType_Operator,
 		TokenType_Boolean,
+		TokenType_Parenthesis,
 		TokenType_COUNT,
 		TokenType_Unknown
 	};

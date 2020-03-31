@@ -1,12 +1,11 @@
 #include "Variant.h"
-#include "Log.h"		 // for LOG_DBG(...)
+#include "Log.h"		 // for LOG_DEBUG(...)
 #include <assert.h>
 
 using namespace Nodable;
 
 Variant::Variant()
 {
-	LOG_DBG("New Variant\n");
 }
 
 Variant::~Variant(){};
@@ -44,7 +43,6 @@ void Variant::setValue(double _var)
 			break;
 		}
 	}
-	LOG_DBG("Variant::setValue(%d)\n", _var);
 }
 
 void Variant::setValue(const std::string& _var)
@@ -75,8 +73,6 @@ void Variant::setValue(const char* _var)
 			break;
 		}
 	}
-
-	LOG_DBG("Variant::setValue(%s)\n", _var);
 }
 
 void Variant::setValue(bool _var)
@@ -108,7 +104,6 @@ void Variant::setValue(bool _var)
 		}
 	}
 
-	LOG_DBG("Variant::setValue(%s)\n", _var ? "true" : "false");
 }
 
 double Variant::getValueAsNumber()const

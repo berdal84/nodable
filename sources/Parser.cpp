@@ -1,5 +1,5 @@
 #include "Parser.h"
-#include "Log.h"          // for LOG_DBG(...)
+#include "Log.h"          // for LOG_DEBUG(...)
 #include "Member.h"
 #include "Container.h"
 #include "Variable.h"
@@ -13,11 +13,8 @@ using namespace Nodable;
 
 Parser::Parser(const Language* _language):language(_language)
 {
-	LOG_DBG("new Parser\n");
 	setMember("__class__", "Parser");
-
 	addMember("expression", Visibility_VisibleOnlyWhenUncollapsed);
-
 	setLabel("Parser");
 }
 
@@ -229,19 +226,19 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 
 	Member* result = nullptr;
 
-	const size_t tokenToEvalCount = tokens.size() - _tokenId;
-
-	if (tokenToEvalCount < 3)
+	if (_tokenId + 2 >= tokens.size())
 		return nullptr;
 
 	const Token& token1(tokens.at(_tokenId));
 	const Token& token2(tokens.at(_tokenId+1));
 	const Token& token3(tokens.at(_tokenId+2));
 
+	Member* left = _leftOverride != nullptr ? _leftOverride : operandTokenToMember(token1);
+
 	// Structure check
-	const bool isValid = token1.type != TokenType_Operator &&
-			                token2.type == TokenType_Operator &&
-			                token3.type != TokenType_Operator;
+	const bool isValid = left &&
+			             token2.type == TokenType_Operator &&
+			             token3.type != TokenType_Operator;
 
 	if (!isValid) {
 		return nullptr;
@@ -257,10 +254,11 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	size_t rightTokenId = _tokenId + 2;
 	auto right = parseExpression(rightTokenId, currentOperatorPrecedence);
 
-	// Build the graph for the first 3 tokens
-	Container* context = this->getParent();
+	if (!right)
+		return nullptr;
 
-	Member* left = _leftOverride != nullptr ? _leftOverride : operandTokenToMember(token1);
+	// Build the graph for the first 3 tokens
+	Container* context = this->getParent();	
 
 	// Special behavior for "=" operator
 	if (token2.word == "=") {
@@ -355,20 +353,43 @@ Member* Parser::parsePrimaryExpression( size_t& _tokenId) {
 	return operandTokenToMember(token);
 }
 
-Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseSubExpression(size_t& _tokenId) {
 
-	Member*          result = nullptr;
+	if (_tokenId >= tokens.size())
+		return nullptr;
 
-    if (result = parseBinaryOperationExpression(_tokenId, _precedence, _leftOverride, _rightOverride)){
-		LOG_DBG("Binary operation expression parsed.\n");
+	auto token1(tokens.at(_tokenId));
 
-	} else if (result = parseUnaryOperationExpression(_tokenId, _precedence)) {
-		LOG_DBG("Unary operation expression parsed.\n");
+	if (token1.type != TokenType_Parenthesis) {
+		return nullptr;
+	}
 
-	} else if (result = parsePrimaryExpression(_tokenId)) {
-		LOG_DBG("Primary expression parsed.\n");
+	if (token1.word == "(") {
+		auto subToken = _tokenId + 1;
+		auto result = parseExpression(subToken, 0u);
+		_tokenId = subToken + 1;
 		return result;
 	}
+
+}
+
+Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride) {
+
+	Member*          result = nullptr;	
+
+	if (result = parseSubExpression(_tokenId)) {
+		return result;
+	}else if ( result = parseBinaryOperationExpression(_tokenId, _precedence, _leftOverride, _rightOverride)){
+		LOG_DEBUG("Binary operation expression parsed.\n");
+
+	} else if (result = parseUnaryOperationExpression(_tokenId, _precedence)) {
+		LOG_DEBUG("Unary operation expression parsed.\n");
+
+	} else if (result = parsePrimaryExpression(_tokenId)) {
+		LOG_DEBUG("Primary expression parsed.\n");
+		return result;
+	}
+	
 
 	if ( result && _tokenId < tokens.size()) {
 		_tokenId--;
@@ -382,7 +403,6 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 bool Parser::isSyntaxValid()
 {
 	bool success = true;	
-	LOG_DBG("Parser::isSyntaxValid() : ");
 
 	// only support odd token count
 	if( tokens.size()%2 == 1)
@@ -413,17 +433,11 @@ bool Parser::isSyntaxValid()
 		success = false;
 	}
 
-	if(!success)
-		LOG_DBG("FAILED\n");
-	else
-		LOG_DBG("OK\n");
-
 	return success;
 }
 
 void Parser::tokenizeExpressionString()
 {
-	LOG_DBG("Parser::tokenize() - START\n");
 
 	/* get expression chars */
 	std::string chars = getMember("expression")->getValueAsString();
@@ -525,9 +539,18 @@ void Parser::tokenizeExpressionString()
 		{
 			std::string str = chars.substr(it - chars.begin(), 1);
 			addToken(TokenType_Operator, str, std::distance(chars.begin(), it));
+
+		//-----------------
+		// Term -> Parenthesis
+		//-----------------
+			
+		}else 	if(*it == ')' || *it == '(' )
+		{
+			std::string str = chars.substr(it - chars.begin(), 1);
+			addToken(TokenType_Parenthesis, str, std::distance(chars.begin(), it));
 		}		
 	}
-	LOG_DBG("Parser::tokenize() - DONE !\n");
+
 }
 
 void Parser::addToken(TokenType_  _type, std::string _string, size_t _charIndex)
@@ -537,6 +560,5 @@ void Parser::addToken(TokenType_  _type, std::string _string, size_t _charIndex)
 	t.word      = _string;
 	t.charIndex = _charIndex;
 
-	LOG_DBG("Parser::addToken(%d, \"%s\", %llu)\n", _type, _string.c_str(), _charIndex);
 	tokens.push_back(t);
 }

@@ -1,5 +1,5 @@
 #include "Member.h"
-#include "Log.h"		 // for LOG_DBG(...)
+#include "Log.h"		 // for LOG_DEBUG(...)
 #include "Object.h"
 #include "Variable.h"
 
@@ -7,7 +7,6 @@ using namespace Nodable;
 
 Member::Member()
 {
-	LOG_DBG("New Value\n");
 }
 
 Member::~Member(){};
@@ -85,7 +84,6 @@ void Member::setValue(double _value)
 {
 	data.setType(Type_Number);
 	data.setValue(_value);
-	LOG_DBG("Value::setValue(%d)\n", _value);
 }
 
 void Member::setValue(std::string _value)
@@ -97,14 +95,12 @@ void Member::setValue(const char* _value)
 {
 	data.setType(Type_String);
 	data.setValue(_value);
-	LOG_DBG("Value::setValue(%s)\n", _value);
 }
 
 void Member::setValue(bool _value)
 {
 	data.setType(Type_Boolean);
 	data.setValue(_value);
-	LOG_DBG("Value::setValue(%s)\n", _value ? "true" : "false");
 }
 
 double Member::getValueAsNumber()const

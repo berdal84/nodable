@@ -1,5 +1,5 @@
 #include "Entity.h"
-#include "Log.h"		// for LOG_DBG(...)
+#include "Log.h"		// for LOG_DEBUG(...)
 #include "NodeView.h"
 #include <algorithm>    // for std::find
 #include "Wire.h"

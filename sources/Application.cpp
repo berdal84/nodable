@@ -1,6 +1,6 @@
 #include "Application.h"
 #include "Nodable.h" 	// for NODABLE_VERSION
-#include "Log.h" 		// for LOG_DBG
+#include "Log.h" 		// for LOG_DEBUG
 #include "Parser.h"
 #include "ContainerView.h"
 #include "ApplicationView.h"
@@ -18,7 +18,6 @@ using namespace Nodable;
 
 Application::Application(const char* _name):currentFileIndex(0)
 {
-	LOG_MSG("A new Application ( label = \"%s\")\n", _name);
 	setMember("__class__", "Application");
 	setLabel(_name);
 	addComponent("view",      new ApplicationView(_name,    this));
@@ -32,8 +31,6 @@ Application::~Application()
 
 bool Application::init()
 {
-	LOG_MSG("init application ( label = \"%s\")\n", getLabel());
-
 	auto view = reinterpret_cast<ApplicationView*>(getComponent("view"));
 	view->init();
 	openFile("data/startup.txt");
@@ -60,7 +57,6 @@ void Application::stopExecution()
 
 void Application::shutdown()
 {
-	LOG_MSG("shutting down application ( _name = \"%s\")\n", getLabel());
 }
 
 bool Application::openFile(const char* _filePath)

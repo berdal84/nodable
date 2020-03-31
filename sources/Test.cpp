@@ -25,27 +25,27 @@ void Test::ResetCounters()
 
 void Test::DisplayResults()
 {
-	LOG_MSG("---------------------------------------------------------------\n");
+	LOG_MESSAGE("---------------------------------------------------------------\n");
 	if(s_testSucceedCount != s_testCount)
-		LOG_MSG("   Some tests failed. Passed : %d / %d\n", s_testSucceedCount, s_testCount);
+		LOG_MESSAGE("   Some tests failed. Passed : %d / %d\n", s_testSucceedCount, s_testCount);
 	else
-		LOG_MSG("   All tests are OK : %d / %d\n", s_testSucceedCount, s_testCount);
+		LOG_MESSAGE("   All tests are OK : %d / %d\n", s_testSucceedCount, s_testCount);
 
-	LOG_MSG("---------------------------------------------------------------\n");
+	LOG_MESSAGE("---------------------------------------------------------------\n");
 }
 
 bool Test::RunAll()
 {
-	LOG_MSG("---------------------------------------------------------------\n");
-	LOG_MSG("--                   Testing Nodable                         --\n");
-	LOG_MSG("---------------------------------------------------------------\n");
-	LOG_MSG("-- Info: note that these tests do NOT cover all the code     --\n");
-	LOG_MSG("---------------------------------------------------------------\n");
+	LOG_MESSAGE("---------------------------------------------------------------\n");
+	LOG_MESSAGE("--                   Testing Nodable                         --\n");
+	LOG_MESSAGE("---------------------------------------------------------------\n");
+	LOG_MESSAGE("-- Info: note that these tests do NOT cover all the code     --\n");
+	LOG_MESSAGE("---------------------------------------------------------------\n");
 	ResetCounters();
 
-	LOG_MSG("Running Test for Value class: \n");
+	LOG_MESSAGE("Running Test for Value class: \n");
 
-	LOG_MSG(" - Connection Flags...\n");
+	LOG_MESSAGE(" - Connection Flags...\n");
 
 	{
 		std::unique_ptr<Member> v(new Member);
@@ -55,28 +55,28 @@ bool Test::RunAll()
 		if (!v->allows(Connection_Out)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-1a : FAILED !\n");
+			LOG_ERROR("Test n°0-1a : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (!v->allows(Connection_InOut)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-1b : FAILED !\n");
+			LOG_ERROR("Test n°0-1b : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->allows(Connection_In)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-1c : FAILED !\n");
+			LOG_ERROR("Test n°0-1c : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->allows(Connection_None)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-1d : FAILED !\n");
+			LOG_ERROR("Test n°0-1d : FAILED !\n");
 		}
 		s_testCount++;
 	}
@@ -90,28 +90,28 @@ bool Test::RunAll()
 		if (v->allows(Connection_Out)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-2a : FAILED !\n");
+			LOG_ERROR("Test n°0-2a : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (!v->allows(Connection_InOut)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-2b : FAILED !\n");
+			LOG_ERROR("Test n°0-2b : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (!v->allows(Connection_In)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-2c : FAILED !\n");
+			LOG_ERROR("Test n°0-2c : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->allows(Connection_None)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-2d : FAILED !\n");
+			LOG_ERROR("Test n°0-2d : FAILED !\n");
 		}
 		s_testCount++;
 	}
@@ -124,28 +124,28 @@ bool Test::RunAll()
 		if (!v->allows(Connection_Out)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-3a : FAILED !\n");
+			LOG_ERROR("Test n°0-3a : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (!v->allows(Connection_InOut)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-3b : FAILED !\n");
+			LOG_ERROR("Test n°0-3b : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (!v->allows(Connection_In)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-3c : FAILED !\n");
+			LOG_ERROR("Test n°0-3c : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->allows(Connection_None)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-3d : FAILED !\n");
+			LOG_ERROR("Test n°0-3d : FAILED !\n");
 		}
 		s_testCount++;
 	}
@@ -159,28 +159,28 @@ bool Test::RunAll()
 		if (v->allows(Connection_Out)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-4a : FAILED !\n");
+			LOG_ERROR("Test n°0-4a : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->allows(Connection_InOut)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-4b : FAILED !\n");
+			LOG_ERROR("Test n°0-4b : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->allows(Connection_In)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-4c : FAILED !\n");
+			LOG_ERROR("Test n°0-4c : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->allows(Connection_None)){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°0-4d : FAILED !\n");
+			LOG_ERROR("Test n°0-4d : FAILED !\n");
 		}
 		s_testCount++;
 	}
@@ -189,7 +189,7 @@ bool Test::RunAll()
 	// Test 01 - Set/Get a boolean
 	//----------------------------
 
-	LOG_MSG(" - Get/Set (Boolean)...\n");
+	LOG_MESSAGE(" - Get/Set (Boolean)...\n");
 
 	{
 		std::unique_ptr<Member> v(new Member);
@@ -198,14 +198,14 @@ bool Test::RunAll()
 		if (v->getValueAsBoolean()){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°1a : FAILED !\n");
+			LOG_ERROR("Test n°1a : FAILED !\n");
 		}
 		s_testCount++;
 		
 		if (v->getType() == ::Type_Boolean){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°1b : FAILED !\n");
+			LOG_ERROR("Test n°1b : FAILED !\n");
 		}
 		s_testCount++;
 
@@ -213,14 +213,14 @@ bool Test::RunAll()
 		if (!v->getValueAsBoolean()){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°1c : FAILED !\n");
+			LOG_ERROR("Test n°1c : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->isSet()){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°1d : FAILED !\n");
+			LOG_ERROR("Test n°1d : FAILED !\n");
 		}
 		s_testCount++;
 	}
@@ -228,7 +228,7 @@ bool Test::RunAll()
 	// Test 02 - Set/Get a string
 	//---------------------------
 
-	LOG_MSG(" - Get/Set (String)...\n");
+	LOG_MESSAGE(" - Get/Set (String)...\n");
 
 	{
 		std::unique_ptr<Member> v(new Member);
@@ -237,35 +237,35 @@ bool Test::RunAll()
 		if (v->getValueAsString() == str){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°2a : FAILED !\n");
+			LOG_ERROR("Test n°2a : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->getValueAsBoolean() == true){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°2b : FAILED !\n");
+			LOG_ERROR("Test n°2b : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->getType() == ::Type_String){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°2c : FAILED !\n");
+			LOG_ERROR("Test n°2c : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->getValueAsNumber() == str.length() ){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°2d : FAILED !\n");
+			LOG_ERROR("Test n°2d : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->isSet()){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°2e : FAILED !\n");
+			LOG_ERROR("Test n°2e : FAILED !\n");
 		}
 		s_testCount++;
 	}
@@ -273,7 +273,7 @@ bool Test::RunAll()
 	// Test 03 - Set/Get a number (double)
 	//------------------------------------
 
-	LOG_MSG(" - Get/Set (Number)...\n");
+	LOG_MESSAGE(" - Get/Set (Number)...\n");
 
 	{
 		std::unique_ptr<Member> v(new Member);
@@ -282,26 +282,26 @@ bool Test::RunAll()
 		if (v->getValueAsNumber() == 50.0F){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°3a : FAILED !\n");
+			LOG_ERROR("Test n°3a : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->getType() == ::Type_Number){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°3b : FAILED !\n");
+			LOG_ERROR("Test n°3b : FAILED !\n");
 		}
 		s_testCount++;
 
 		if (v->isSet()){
 			s_testSucceedCount++;
 		}else{
-			LOG_MSG("Test n°3c : FAILED !\n");
+			LOG_ERROR("Test n°3c : FAILED !\n");
 		}
 		s_testCount++;
 	}
 
-	LOG_MSG("Running Test for Entity class...\n");
+	LOG_MESSAGE("Running Test for Entity class...\n");
 
 	{
 		// Test 4 : set/get a node member :
@@ -314,12 +314,12 @@ bool Test::RunAll()
 		if( a->getMember("v")->getValueAsNumber()  == double(100))
 			s_testSucceedCount++;
 		else
-			LOG_MSG("Test n°4 : FAILED !\n");
+			LOG_ERROR("Test n°4 : FAILED !\n");
 		s_testCount++;
 
 	}
 
-	LOG_MSG("Running integration Tests for Wire and Entity class...\n");
+	LOG_MESSAGE("Running integration Tests for Wire and Entity class...\n");
 
 	{
 		// Test 5a : connect two nodes (creates a wire)
@@ -339,7 +339,7 @@ bool Test::RunAll()
 			)
 			s_testSucceedCount++;
 		else
-			LOG_MSG("Test n°5a : FAILED !\n");
+			LOG_ERROR("Test n°5a : FAILED !\n");
 		s_testCount++;
 
 		// Test 5b : disconnect a wire
@@ -349,12 +349,12 @@ bool Test::RunAll()
 		if(wire->getSource() == nullptr && wire->getTarget() == nullptr )
 			s_testSucceedCount++;
 		else
-			LOG_MSG("Test n°5b : FAILED !\n");
+			LOG_ERROR("Test n°5b : FAILED !\n");
 		s_testCount++;
 
 	}
 
-	LOG_MSG("Running tests for DataAccess...\n");
+	LOG_MESSAGE("Running tests for DataAccess...\n");
 	{
 		std::unique_ptr<Container>           container(new Container);
 		Entity* entity = container->createNodeAdd();
@@ -395,21 +395,31 @@ bool Test::RunAll()
 
 		if (result == resultExpected)
 			s_testSucceedCount++;
-		else
-			LOG_MSG("Test ", testName, " : FAILED ! ", expression, " => ", result, ", expected ", resultExpected);
+		else{
+			const std::string message = "Test " + testName + " : FAILED ! " + expression + "\n";
+			LOG_ERROR(message.c_str());
+		}
 		s_testCount++;
 
 		delete container;
 
 	};
 
-	LOG_MSG("Running tests for Parser...\n");
+	LOG_MESSAGE("Running tests for Parser...\n");
 	{
-		testParser("Parser n°1", "-1+2*5-3/6" , "8.5");
-		testParser("Parser n°2", "2+3"        , "5");
-		testParser("Parser n°3", "-5"         , "-5");
-		testParser("Parser n°4", "-5+4"       , "-1");
-		testParser("Parser n°5", "-1*20"      , "-20");
+
+		testParser("Parser 00", "5"         , "5");
+		testParser("Parser 01", "-5"         , "-5");
+		testParser("Parser 02", "2+3"        , "5");
+		testParser("Parser 03", "-5+4"       , "-1");
+		testParser("Parser 04", "-1+2*5-3/6" , "8.5");
+		testParser("Parser 05", "-1*20"      , "-20");
+
+		testParser("Parser 06", "(1+2)*3"     , "9");
+		testParser("Parser 07", "2*(5+3"      , "16");
+		testParser("Parser 08", "2*(5+3)"     , "16");
+		testParser("Parser 09", "2+(5*3)"     , "17");
+		testParser("Parser 10", "2*(5+3)+2"   , "18");
 	}
 
 
