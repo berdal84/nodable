@@ -19,7 +19,7 @@
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
 #ifdef DEBUG
-	#define LOG_DEBUG(...) Nodable::internal::LogMessage( BLUE"[DBG]"  , __VA_ARGS__ ) 
+	#define LOG_DEBUG(...) Nodable::internal::LogMessage( YELLOW"[DBG]"  , __VA_ARGS__ ) 
 #else
 	#define LOG_DEBUG(...)
 #endif

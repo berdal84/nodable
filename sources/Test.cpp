@@ -379,6 +379,7 @@ bool Test::RunAll()
 	
 	auto testParser = [](const std::string& testName, const std::string& expression, const std::string& resultExpected)->void {
 
+		LOG_DEBUG( "Testing: %s should return %s \n", expression.c_str(), resultExpected.c_str()) ;
 
 		auto container(new Container);
 		auto expressionVariable(container->createNodeVariable("expression"));
@@ -407,7 +408,6 @@ bool Test::RunAll()
 
 	LOG_MESSAGE("Running tests for Parser...\n");
 	{
-
 		testParser("Parser 00", "5"         , "5");
 		testParser("Parser 01", "-5"         , "-5");
 		testParser("Parser 02", "2+3"        , "5");
@@ -415,11 +415,11 @@ bool Test::RunAll()
 		testParser("Parser 04", "-1+2*5-3/6" , "8.5");
 		testParser("Parser 05", "-1*20"      , "-20");
 
-		testParser("Parser 06", "(1+2)*3"     , "9");
-		testParser("Parser 07", "2*(5+3"      , "16");
-		testParser("Parser 08", "2*(5+3)"     , "16");
-		testParser("Parser 09", "2+(5*3)"     , "17");
-		testParser("Parser 10", "2*(5+3)+2"   , "18");
+		testParser("Parser 06", "(1+2)*3", "9");
+		testParser("Parser 07", "2*(5+3", "16");
+		testParser("Parser 08", "2*(5+3)", "16");
+		testParser("Parser 09", "2+(5*3)", "17");
+		testParser("Parser 10", "2*(5+3)+2", "18");
 	}
 
 
