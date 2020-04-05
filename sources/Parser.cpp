@@ -498,13 +498,16 @@ bool Parser::tokenizeExpressionString()
 
 	for(auto it = chars.begin(); it != chars.end(); ++it)
 	{
-		
+		//---------------
+		// Term -> Comment
+		//---------------
+		if ( chars.end() - it >= 2 && std::string(it, it +2) == "//") {
+			it = chars.end() -1  ;
+
 		//---------------
 		// Term -> Number
 		//---------------
-
-		if( numbers.find(*it) != std::string::npos )
-		{
+		} else if( numbers.find(*it) != std::string::npos ) {
 
 			auto itStart = it;
 			while(	it != chars.end() && 
@@ -595,7 +598,16 @@ bool Parser::tokenizeExpressionString()
 			addToken(TokenType_Parenthesis, str, std::distance(chars.begin(), it));
 
 			openedParenthesis += ( *it == '(' ) ? 1 : -1; 
-		}		
+
+			if (openedParenthesis < 0) {
+				LOG_WARNING("Unable to tokenize expression %s \n", chars);
+				return false;
+			}
+
+		}else if ( *it != ' ') {
+			LOG_WARNING("Unable to tokenize expression %s \n", chars);
+			return false;
+		}
 	}
 
 	bool success = openedParenthesis == 0;
