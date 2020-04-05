@@ -415,6 +415,8 @@ bool Test::RunAll()
 		testParser("Parser 04", "-1+2*5-3/6" , "8.5");
 		testParser("Parser 05", "-1*20"      , "-20");
 
+		testParser("Parser 06", "(1+4)", "5");
+		testParser("Parser 06", "(1)+(2)", "3");
 		testParser("Parser 06", "(1+2)*3", "9");
 		testParser("Parser 07", "2*(5+3", "16");
 		testParser("Parser 08", "2*(5+3)", "16");

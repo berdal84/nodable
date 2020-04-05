@@ -235,7 +235,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	const Token& token2(tokens.at(_tokenId+1));
 	const Token& token3(tokens.at(_tokenId+2));
 
-	Member* left = _leftOverride != nullptr ? _leftOverride : operandTokenToMember(token1);
+	Member* left = ( _leftOverride != nullptr ) ? _leftOverride : operandTokenToMember(token1);
 
 	// Structure check
 	const bool isValid = left != nullptr &&
@@ -282,39 +282,40 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		result = left->getOwner()->getFirstMemberWithConnection(Connection_InOut);
 
 
-	// For all other binary operations :
-	}else {
-		auto binOperation = context->createNodeBinaryOperation(token2.word);
-
-		// Connect the Left Operand :
-		//---------------------------
-		if (left->getOwner() == nullptr)
-			binOperation->setMember("left", left);
-		else
-			Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
-
-		// Connect the Right Operand :
-
-		if (right->getOwner() == nullptr)
-			binOperation->setMember("right", right);
-		else
-			Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
-
-		// Set the result !
-		result = binOperation->getMember("result");
+// For all other binary operations :
 	}
-	
+else {
+auto binOperation = context->createNodeBinaryOperation(token2.word);
+
+// Connect the Left Operand :
+//---------------------------
+if (left->getOwner() == nullptr)
+binOperation->setMember("left", left);
+else
+Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
+
+// Connect the Right Operand :
+
+if (right->getOwner() == nullptr)
+binOperation->setMember("right", right);
+else
+Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
+
+// Set the result !
+result = binOperation->getMember("result");
+	}
+
 	_tokenId = rightTokenId;
 
 	return result;
 }
 
-Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence ) {
+Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence) {
 
 	Member* result = nullptr;
 
 	const bool hasEnoughtTokens = tokens.size() > _tokenId + 1;
-	if ( !hasEnoughtTokens )
+	if (!hasEnoughtTokens)
 		return result;
 
 	const Token& token1(tokens.at(_tokenId++));
@@ -342,7 +343,7 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	return result;
 }
 
-Member* Parser::parsePrimaryExpression( size_t& _tokenId) {
+Member* Parser::parsePrimaryExpression(size_t& _tokenId) {
 
 	// Check if there is index is not out of bounds
 	if (tokens.size() <= _tokenId)
@@ -363,7 +364,7 @@ Member* Parser::parsePrimaryExpression( size_t& _tokenId) {
 
 Member* Parser::parseSubExpression(size_t& _tokenId) {
 
-	
+
 	if (_tokenId >= tokens.size())
 		return nullptr;
 
@@ -381,7 +382,13 @@ Member* Parser::parseSubExpression(size_t& _tokenId) {
 		LOG_DEBUG("parseSubExpression...\n");
 		auto subToken = _tokenId + 1;
 		result = parseExpression(subToken, 0u);
-		_tokenId = subToken + 2;
+
+		if (tokens.size() <= subToken || tokens.at(subToken).word != ")") {
+			LOG_DEBUG(" ) expected after ", tokens.at(subToken - 1));
+			return nullptr;
+		}
+
+		_tokenId = subToken + 1;
 	}
 
 
