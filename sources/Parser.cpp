@@ -29,10 +29,12 @@ bool Parser::eval()
 {
 	bool success = false;
 
-	tokenizeExpressionString();
+	if (!tokenizeExpressionString()) {
+		LOG_DEBUG("Unable to parse expression !");
+		return false;
+	}
 
-	size_t tokenId = 0;
-	Member* resultValue = parseExpression(tokenId);
+	Member* resultValue = parseRootExpression();
 
 	if (resultValue == nullptr)
 		return false;
@@ -204,7 +206,7 @@ Member* Parser::buildGraphIterative()
 				else
 					Entity::Connect(context->createWire(), right, operator1->getMember("right"));
 
-				// Set the result
+				// Set the left
 				tempResult = operator1->getMember("result");
 
 				// For now force execution of left operator before right
@@ -224,30 +226,27 @@ Member* Parser::buildGraphIterative()
 	return result;
 }
 
-Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _left) {
 
 	Member* result = nullptr;
 
-	if (_tokenId + 2 >= tokens.size())
+	if (_tokenId + 1 >= tokens.size())
 		return nullptr;
 
 	const Token& token1(tokens.at(_tokenId));
 	const Token& token2(tokens.at(_tokenId+1));
-	const Token& token3(tokens.at(_tokenId+2));
-
-	Member* left = ( _leftOverride != nullptr ) ? _leftOverride : operandTokenToMember(token1);
 
 	// Structure check
-	const bool isValid = left != nullptr &&
-			             token2.type == TokenType_Operator &&
-			             token3.type != TokenType_Operator;
+	const bool isValid = _left != nullptr &&
+			             token1.type == TokenType_Operator &&
+			             token2.type != TokenType_Operator;
 
 	if (!isValid) {
 		return nullptr;
 	}
 		 
 	// Precedence check
-	const auto currentOperatorPrecedence = language->getOperatorPrecedence(token2.word);
+	const auto currentOperatorPrecedence = language->getOperatorPrecedence(token1.word);
 		
 	if (currentOperatorPrecedence < _precedence)
 		return nullptr;
@@ -255,7 +254,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	LOG_DEBUG("parseBinaryOperationExpression... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
 
 	// Parse right expression
-	size_t rightTokenId = _tokenId + 2;
+	size_t rightTokenId = _tokenId + 1;
 	auto right = parseExpression(rightTokenId, currentOperatorPrecedence);
 
 	if (!right)
@@ -265,44 +264,43 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	Container* context = this->getParent();	
 
 	// Special behavior for "=" operator
-	if (token2.word == "=") {
+	if (token1.word == "=") {
 
 		// left operand (should BE a variable)
 
-		NODABLE_ASSERT(left->getOwner() != nullptr); // left operand cannot be a orphaned member
-		NODABLE_ASSERT(left->getOwner()->getMember("__class__")->getValueAsString() == "Variable"); // left operand need to me owned by a variable node			               
+		NODABLE_ASSERT(_left->getOwner() != nullptr); // left operand cannot be a orphaned member
+		NODABLE_ASSERT(_left->getOwner()->getMember("__class__")->getValueAsString() == "Variable"); // left operand need to me owned by a variable node			               
 
 
 		// Directly connects right operand output to left operant input (yes that's reversed compared to code)
 		if (right->getOwner() == nullptr)
-			left->getOwner()->setMember("value", right);
+			_left->getOwner()->setMember("value", right);
 		else
-			Entity::Connect(context->createWire(), right, left);
+			Entity::Connect(context->createWire(), right, _left);
 
-		result = left->getOwner()->getFirstMemberWithConnection(Connection_InOut);
+		result = _left->getOwner()->getFirstMemberWithConnection(Connection_InOut);
 
 
-// For all other binary operations :
-	}
-else {
-auto binOperation = context->createNodeBinaryOperation(token2.word);
+	// For all other binary operations :
+	} else {
+		auto binOperation = context->createNodeBinaryOperation(token1.word);
 
-// Connect the Left Operand :
-//---------------------------
-if (left->getOwner() == nullptr)
-binOperation->setMember("left", left);
-else
-Entity::Connect(context->createWire(), left, binOperation->getMember("left"));
+		// Connect the Left Operand :
+		//---------------------------
+		if (_left->getOwner() == nullptr)
+			binOperation->setMember("left", _left);
+		else
+			Entity::Connect(context->createWire(), _left, binOperation->getMember("left"));
 
-// Connect the Right Operand :
+		// Connect the Right Operand :
 
-if (right->getOwner() == nullptr)
-binOperation->setMember("right", right);
-else
-Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
+		if (right->getOwner() == nullptr)
+			binOperation->setMember("right", right);
+		else
+			Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
 
-// Set the result !
-result = binOperation->getMember("result");
+		// Set the left !
+		result = binOperation->getMember("result");
 	}
 
 	_tokenId = rightTokenId;
@@ -385,7 +383,6 @@ Member* Parser::parseSubExpression(size_t& _tokenId) {
 
 		if (tokens.size() <= subToken || tokens.at(subToken).word != ")") {
 			LOG_DEBUG(" ) expected after ", tokens.at(subToken - 1));
-			return nullptr;
 		}
 
 		_tokenId = subToken + 1;
@@ -395,34 +392,51 @@ Member* Parser::parseSubExpression(size_t& _tokenId) {
 	return result;
 }
 
-Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, Member* _rightOverride) {
+Member* Parser::parseRootExpression() {
 
-	LOG_DEBUG("parseExpression... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
+	size_t         tokenId(0);
+	Member*        result(nullptr);
+	bool           parsingError(false);
 
-	Member*          result = nullptr;	
-
-	if (result = parseSubExpression(_tokenId)) {
-		LOG_DEBUG("sub expression expression parsed... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
-
-	}else if ( result = parseBinaryOperationExpression(_tokenId, _precedence, _leftOverride, _rightOverride)){
-		LOG_DEBUG("binary expression parsed... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
-
-	} else if (result = parseUnaryOperationExpression(_tokenId, _precedence)) {
-		LOG_DEBUG("unary expression parsed... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
-
-	} else if (result = parsePrimaryExpression(_tokenId)) {
-		return result;
-	}
-	
-
-	if ( result && _tokenId < tokens.size()) {
-		LOG_DEBUG("parseExpression... RECURSE CALL _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
-
-		_tokenId--;
-		result = parseExpression(_tokenId, _precedence, result);
+	while (tokenId < tokens.size()) {
+		auto intermediateResult = parseExpression(tokenId, 0u, result);
+		result = intermediateResult;
 	}
 
 	return result;
+}
+
+Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride) {
+
+	LOG_DEBUG("parseExpression... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
+
+	Member*          left = nullptr;	
+
+	if ( left = _leftOverride) {
+
+	} else if (left = parseSubExpression(_tokenId)) {
+		LOG_DEBUG("sub expression expression parsed... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
+
+	} else if (left = parseUnaryOperationExpression(_tokenId, _precedence)) {
+		LOG_DEBUG("unary expression parsed... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
+
+	} else if (left = parsePrimaryExpression(_tokenId)) {
+
+	}
+	
+
+	
+	if ( left != nullptr ) {
+
+		auto binResult = parseBinaryOperationExpression(_tokenId, _precedence, left);
+
+		if ( binResult ) {
+			return binResult;
+		}
+
+	}
+
+	return left;
 }
 
 
@@ -462,7 +476,7 @@ bool Parser::isSyntaxValid()
 	return success;
 }
 
-void Parser::tokenizeExpressionString()
+bool Parser::tokenizeExpressionString()
 {
 
 	/* get expression chars */
@@ -476,6 +490,11 @@ void Parser::tokenizeExpressionString()
 	/* prepare reserved keywords */
 	const auto keywords = language->keywords;
 
+	
+	/* Parenthesis opened count */
+	short int openedParenthesis = 0;
+
+	
 
 	for(auto it = chars.begin(); it != chars.end(); ++it)
 	{
@@ -574,8 +593,14 @@ void Parser::tokenizeExpressionString()
 		{
 			std::string str = chars.substr(it - chars.begin(), 1);
 			addToken(TokenType_Parenthesis, str, std::distance(chars.begin(), it));
+
+			openedParenthesis += ( *it == '(' ) ? 1 : -1; 
 		}		
 	}
+
+	bool success = openedParenthesis == 0;
+
+	return success;
 
 }
 
