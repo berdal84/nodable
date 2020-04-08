@@ -16,13 +16,14 @@ aux_source_directory( "./extern/ImGuiColorTextEdit" TEXTEDIT)
 aux_source_directory( "./libs/gl3w/GL" GL3W)
 
 set(SOURCE
+  "./sources/main"
+  ${NODABLE}
   ${GL3W}
   ${IMGUI}
-  ${TEXTEDIT}  
-  ${NODABLE}
-  "./extern/imgui/examples/"
+  ${TEXTEDIT}    
+  "./extern/imgui/examples/imgui_impl_opengl3.cpp"
+  "./extern/imgui/examples/imgui_impl_sdl.cpp"
 )
-
 
 # Ajoutez une source à l'exécutable de ce projet.
 add_executable (Nodable ${SOURCE} )
@@ -39,7 +40,7 @@ target_include_directories(Nodable PUBLIC
     "./libs/gl3w"
 )
 
-TARGET_LINK_LIBRARIES(Nodable SDL2.lib)
+target_link_libraries(Nodable PUBLIC "${CMAKE_CURRENT_LIST_DIR}/libs/SDL2/lib/x86/SDL2.lib")
 
 
 # TODO: Ajoutez des tests et installez des cibles si nécessaire.
