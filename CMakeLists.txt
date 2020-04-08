@@ -3,35 +3,44 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
+# specify the C++ standard
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 project ("Nodable")
 
 # Add the source files of Nodable
 aux_source_directory( "./sources/" NODABLE)
 aux_source_directory( "./extern/imgui" IMGUI)
 aux_source_directory( "./extern/ImGuiColorTextEdit" TEXTEDIT)
-aux_source_directory( "./extern/gl3w/GL" GL3W)
+aux_source_directory( "./libs/gl3w/GL" GL3W)
 
 set(SOURCE
-  ${NODABLE}
-  ${IMGUI}
-  ${TEXTEDIT}
   ${GL3W}
+  ${IMGUI}
+  ${TEXTEDIT}  
+  ${NODABLE}
+  "./extern/imgui/examples/"
 )
 
-link_libraries("SDL2.lib")
-
-# Include dependencies :
-include_directories( "./extern")
-include_directories( "./extern/imgui")
-include_directories( "./extern/ImGuiColorTextEdit")
-include_directories( "./extern/IconFontCppHeaders")
-
-include_directories( "./libs")
-include_directories( "./libs/SDL2/include")
-include_directories( "./libs/gl3w")
 
 # Ajoutez une source à l'exécutable de ce projet.
 add_executable (Nodable ${SOURCE} )
+
+
+target_include_directories(Nodable PUBLIC
+    "./extern"
+    "./extern/imgui"
+    "./extern/ImGuiColorTextEdit"
+    "./extern/IconFontCppHeaders"
+    "./libs"
+    "./libs/SDL2/include"
+    "./libs/gl3w/GL"
+    "./libs/gl3w"
+)
+
+TARGET_LINK_LIBRARIES(Nodable SDL2.lib)
+
 
 # TODO: Ajoutez des tests et installez des cibles si nécessaire.
 
