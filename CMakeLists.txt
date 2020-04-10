@@ -9,13 +9,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 project ("Nodable")
 
-# Add the source files of Nodable
+# Set SOURCES
 aux_source_directory( "./sources/" NODABLE)
 aux_source_directory( "./extern/imgui" IMGUI)
 aux_source_directory( "./extern/ImGuiColorTextEdit" TEXTEDIT)
 aux_source_directory( "./libs/gl3w/GL" GL3W)
 
-set(SOURCE
+set(SOURCES
   "./sources/main"
   ${NODABLE}
   ${GL3W}
@@ -25,10 +25,17 @@ set(SOURCE
   "./extern/imgui/examples/imgui_impl_sdl.cpp"
 )
 
-# Ajoutez une source à l'exécutable de ce projet.
-add_executable (Nodable ${SOURCE})
-target_link_libraries(Nodable PRIVATE "./libs/SDL2/lib/x64/SDL2" "./libs/SDL2/lib/x64/SDL2main")
 
+
+# Ajoutez une source à l'exécutable de ce projet.
+add_executable (Nodable ${SOURCES})
+
+# Set LIBS
+set(SDL2
+  "./libs/SDL2/lib/x64/SDL2"
+  "./libs/SDL2/lib/x64/SDL2main"
+)
+target_link_libraries(Nodable PRIVATE ${SDL2})
 
 target_include_directories(Nodable PUBLIC
     "./extern"
