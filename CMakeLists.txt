@@ -9,6 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 project ("Nodable")
 
+find_package(OpenGL REQUIRED)
+
 # Set SOURCES
 aux_source_directory( "./sources/" NODABLE)
 aux_source_directory( "./extern/imgui" IMGUI)
@@ -25,7 +27,17 @@ set(SOURCES
   "./extern/imgui/examples/imgui_impl_sdl.cpp"
 )
 
-
+include_directories(
+    "./extern"
+    "./extern/imgui"
+    "./extern/ImGuiColorTextEdit"
+    "./extern/IconFontCppHeaders"
+    "./libs"
+    "./libs/SDL2/include"
+    "./libs/gl3w/GL"
+    "./libs/gl3w"
+    "./libs/glfw/include/GLFW"
+)
 
 # Ajoutez une source à l'exécutable de ce projet.
 add_executable (Nodable ${SOURCES})
@@ -37,16 +49,9 @@ set(SDL2
 )
 target_link_libraries(Nodable PRIVATE ${SDL2})
 
-target_include_directories(Nodable PUBLIC
-    "./extern"
-    "./extern/imgui"
-    "./extern/ImGuiColorTextEdit"
-    "./extern/IconFontCppHeaders"
-    "./libs"
-    "./libs/SDL2/include"
-    "./libs/gl3w/GL"
-    "./libs/gl3w"
-)
+target_link_libraries(Nodable PRIVATE ${OPENGL_LIBRARY})
+
+
 
 
 
