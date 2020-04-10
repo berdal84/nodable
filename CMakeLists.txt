@@ -26,7 +26,8 @@ set(SOURCE
 )
 
 # Ajoutez une source à l'exécutable de ce projet.
-add_executable (Nodable ${SOURCE} )
+add_executable (Nodable ${SOURCE})
+target_link_libraries(Nodable PRIVATE "./libs/SDL2/lib/x64/SDL2" "./libs/SDL2/lib/x64/SDL2main")
 
 
 target_include_directories(Nodable PUBLIC
@@ -40,7 +41,7 @@ target_include_directories(Nodable PUBLIC
     "./libs/gl3w"
 )
 
-target_link_libraries(Nodable PUBLIC "${CMAKE_CURRENT_LIST_DIR}/libs/SDL2/lib/x86/SDL2.lib")
+
 
 
 # TODO: Ajoutez des tests et installez des cibles si nécessaire.
