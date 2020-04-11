@@ -6,8 +6,13 @@ project ("Nodable")
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
+"./libs/SDL2"
+)
+
 # Find package in system folders
 find_package(OpenGL REQUIRED)
+find_package(SDL2 REQUIRED)
 
 # Create a SOURCES variable that contains all *.cpp *.c source files
 aux_source_directory( "./sources/" NODABLE)
@@ -16,7 +21,6 @@ aux_source_directory( "./extern/ImGuiColorTextEdit" TEXTEDIT)
 aux_source_directory( "./libs/gl3w/GL" GL3W)
 
 set(SOURCES
-  "./sources/main"
   ${NODABLE}
   ${GL3W}
   ${IMGUI}
@@ -32,20 +36,23 @@ include_directories(
     "./extern/ImGuiColorTextEdit"
     "./extern/IconFontCppHeaders"
     "./libs"
-    "./libs/SDL2/include"
+    ${SDL2_INCLUDE_DIRS}
     "./libs/gl3w/GL"
     "./libs/gl3w"
     "./libs/glfw/include/GLFW"
 )
 
 # Add an executable called Nodable(.exe on windows)
-add_executable (Nodable ${SOURCES})
+add_executable (Nodable "./sources/main" ${SOURCES})
+
 
 # Link libraries
-set(SDL2
-  "./libs/SDL2/lib/x64/SDL2"
-  "./libs/SDL2/lib/x64/SDL2main"
-)
-target_link_libraries(Nodable PRIVATE ${SDL2})
-target_link_libraries(Nodable PRIVATE ${OPENGL_LIBRARY})
+target_link_libraries(Nodable PUBLIC ${OPENGL_LIBRARY})
+target_link_libraries(Nodable PUBLIC ${SDL2_LIBRARIES})
+
+# Copy DLLs
+install(FILES ${SDL2_LIBRARIES} DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE} )
+
+# Copy assets
+install(DIRECTORY "data" DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE} )
 

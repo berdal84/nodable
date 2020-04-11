@@ -20,7 +20,19 @@ You still don't understand what I'm doing? I hope this GIF will make this more u
 How to compile ? :
 ==================
 
-Open the existing Visual Studio Solution located in build folder. Then check VS help to know how to compile.
+Install Microsoft Visual Studio Community 14+.
+Install CMake 3.8+
+
+Open a command line in the Nodable folder and type:
+
+```
+mkdir build
+cd build
+cmake ..
+```
+
+Now the folder build must contain a Visual Studio Solution (uses MS Visual Studio Commnunity to compile).
+(I'll add more details later because the cmake build for my project is a recent feature).
 
 Dependencies / Credits :
 ==============
