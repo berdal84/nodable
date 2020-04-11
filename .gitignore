@@ -54,3 +54,5 @@ build/Debug/
 build/Release/
 
 _screenshots/
+/_build
+/install
