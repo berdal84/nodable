@@ -51,8 +51,8 @@ target_link_libraries(Nodable PUBLIC ${OPENGL_LIBRARY})
 target_link_libraries(Nodable PUBLIC ${SDL2_LIBRARIES})
 
 # Copy DLLs
-install(FILES ${SDL2_LIBRARIES} DESTINATION ${CMAKE_BINARY_DIR} )
+install(FILES "./libs/SDL2/lib/x64/SDL2.dll" DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 # Copy assets
-install(DIRECTORY "data" DESTINATION ${CMAKE_BINARY_DIR} )
+install(DIRECTORY "data" DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
