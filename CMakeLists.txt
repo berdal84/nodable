@@ -1,17 +1,15 @@
-﻿# CMakeList.txt : fichier projet CMake de niveau supérieur, effectuez une configuration globale
-# et incluez les sous-projets ici.
-#
-cmake_minimum_required (VERSION 3.8)
+﻿cmake_minimum_required (VERSION 3.8)
+
+project ("Nodable")
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-project ("Nodable")
-
+# Find package in system folders
 find_package(OpenGL REQUIRED)
 
-# Set SOURCES
+# Create a SOURCES variable that contains all *.cpp *.c source files
 aux_source_directory( "./sources/" NODABLE)
 aux_source_directory( "./extern/imgui" IMGUI)
 aux_source_directory( "./extern/ImGuiColorTextEdit" TEXTEDIT)
@@ -27,6 +25,7 @@ set(SOURCES
   "./extern/imgui/examples/imgui_impl_sdl.cpp"
 )
 
+# Include headers
 include_directories(
     "./extern"
     "./extern/imgui"
@@ -39,22 +38,14 @@ include_directories(
     "./libs/glfw/include/GLFW"
 )
 
-# Ajoutez une source à l'exécutable de ce projet.
+# Add an executable called Nodable(.exe on windows)
 add_executable (Nodable ${SOURCES})
 
-# Set LIBS
+# Link libraries
 set(SDL2
   "./libs/SDL2/lib/x64/SDL2"
   "./libs/SDL2/lib/x64/SDL2main"
 )
 target_link_libraries(Nodable PRIVATE ${SDL2})
-
 target_link_libraries(Nodable PRIVATE ${OPENGL_LIBRARY})
-
-
-
-
-
-
-# TODO: Ajoutez des tests et installez des cibles si nécessaire.
 
