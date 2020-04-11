@@ -31,8 +31,12 @@ cd build
 cmake ..
 ```
 
-Now the folder build must contain a Visual Studio Solution (uses MS Visual Studio Commnunity to compile).
-(I'll add more details later because the cmake build for my project is a recent feature).
+Now the folder _build must contain a Visual Studio Solution that you can build and run.
+
+**Note: you can also build and install the application into `./install` folder by typing :**
+```
+cmake --build . --target install
+````
 
 Dependencies / Credits :
 ==============
