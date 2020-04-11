@@ -56,3 +56,6 @@ install(FILES "./libs/SDL2/lib/x64/SDL2.dll" DESTINATION ${CMAKE_INSTALL_PREFIX}
 # Copy assets
 install(DIRECTORY "data" DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
+# Copy executable
+install(TARGETS Nodable DESTINATION ${CMAKE_INSTALL_PREFIX} )
+
