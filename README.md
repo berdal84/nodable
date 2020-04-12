@@ -20,7 +20,8 @@ You still don't understand what I'm doing? I hope this GIF will make this more u
 How to compile ? :
 ==================
 
-Install Microsoft Visual Studio Community 14+.
+Install Microsoft Visual Studio Community 2015+
+
 Install CMake 3.8+
 
 Open a command line in the Nodable folder and type:
@@ -31,12 +32,20 @@ cd build
 cmake ..
 ```
 
-Now the folder _build must contain a Visual Studio Solution that you can build and run.
+Now the folder build must contain a Visual Studio Solution that you can build and run.
 
-**Note: you can also build and install the application into `./install` folder by typing :**
+If you want to stay in command line, you can build like this:
 ```
-cmake --build . --target install
+cmake --build . --config Debug
+```
+
+Note: you can also build and install the application into `./install` folder by typing :
+
+```
+cmake --build . --config Debug --target install
 ````
+
+This will create a clean `install` directory with only necessary files to run the software.
 
 Dependencies / Credits :
 ==============

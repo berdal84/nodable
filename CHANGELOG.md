@@ -4,6 +4,12 @@ Author: Bérenger Dalle-Cort, 2020-2017
 
 ChangeLog :
 
+v0.6.0:
+	- cmake building system.
+	- parenthesis parsing
+	- parser functions rewrote
+	- new Language class.
+	
 v0.5.1:
 	- fix(NodeView): Variable node drawing crash.
 

@@ -1,10 +1,24 @@
+
+# This script was not present in the SDL2 archive
+# I read only and made my own to use this specifid folder instead of system one.
+#
+# This script is used by the parent CMakeList.txt locatedd in the root of Nodable folder.
+
+# Declare include folder
 set(SDL2_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/include")
 
-# Support both 32 and 64 bit builds
+# Get architecture
 if (${CMAKE_SIZEOF_VOID_P} MATCHES 8)
-  set(SDL2_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/lib/x64/SDL2.lib;${CMAKE_CURRENT_LIST_DIR}/lib/x64/SDL2main.lib")
+  set(ARCHITECTURE "x64")
 else ()
-  set(SDL2_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/lib/x86/SDL2.lib;${CMAKE_CURRENT_LIST_DIR}/lib/x86/SDL2main.lib")
+  set(ARCHITECTURE "x86")
 endif ()
 
-string(STRIP "${SDL2_LIBRARIES}" SDL2_LIBRARIES)
+# Declare the SDL2 folder
+set(SDL2_FOLDER "${CMAKE_CURRENT_LIST_DIR}/lib/${ARCHITECTURE}")
+
+# Declare static libraries
+set(SDL2_STATIC "${SDL2_FOLDER}/SDL2.lib" "${SDL2_FOLDER}/SDL2main.lib")
+
+# Declare dynamic libraries
+set(SDL2_RUNTIME "${SDL2_FOLDER}/SDL2.dll")
