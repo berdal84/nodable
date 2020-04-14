@@ -4,6 +4,9 @@ Author: Bérenger Dalle-Cort, 2020-2017
 
 ChangeLog :
 
+v0.6.1:
+	- fix on Parser, new isSyntaxValid() method to check some malformed expressions.
+
 v0.6.0:
 	- cmake building system.
 	- parenthesis parsing

@@ -45,6 +45,7 @@ namespace Nodable{
 
 		Member* parseRootExpression();
 
+		/* Parse a sub expression, a sub expression is like: "( expression )" */
 		Member* parseSubExpression(size_t& _tokenId);
 
 		/* To parse three tokens (ex: "1+59", "98*4", "true and false", etc...)*/

@@ -30,14 +30,20 @@ bool Parser::eval()
 	bool success = false;
 
 	if (!tokenizeExpressionString()) {
-		LOG_DEBUG("Unable to parse expression !");
+		LOG_DEBUG("Unable to parse expression due to unrecognysed tokens.");
+		return false;
+	}
+
+	if (!isSyntaxValid()) {
+		LOG_DEBUG("Unable to parse expression due to syntax error.");
 		return false;
 	}
 
 	Member* resultValue = parseRootExpression();
-
-	if (resultValue == nullptr)
+	if (resultValue == nullptr) {
+		LOG_DEBUG("Unable to parse expression due to abstract syntax tree failure.");
 		return false;
+	}
 
 	auto container   = this->getParent();
 	Variable* result = container->createNodeResult();
@@ -395,7 +401,7 @@ Member* Parser::parseSubExpression(size_t& _tokenId) {
 Member* Parser::parseRootExpression() {
 
 	size_t         tokenId(0);
-	Member*        result(nullptr);
+	Member* result(nullptr);
 	bool           parsingError(false);
 
 	while (tokenId < tokens.size()) {
@@ -410,27 +416,30 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 
 	LOG_DEBUG("parseExpression... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
 
-	Member*          left = nullptr;	
+	Member* left = nullptr;
 
-	if ( left = _leftOverride) {
-
-	} else if (left = parseSubExpression(_tokenId)) {
-		LOG_DEBUG("sub expression expression parsed... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
-
-	} else if (left = parseUnaryOperationExpression(_tokenId, _precedence)) {
-		LOG_DEBUG("unary expression parsed... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
-
-	} else if (left = parsePrimaryExpression(_tokenId)) {
+	if (left = _leftOverride) {
 
 	}
-	
+	else if (left = parseSubExpression(_tokenId)) {
+		LOG_DEBUG("sub expression expression parsed... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
 
-	
-	if ( left != nullptr ) {
+	}
+	else if (left = parseUnaryOperationExpression(_tokenId, _precedence)) {
+		LOG_DEBUG("unary expression parsed... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
+
+	}
+	else if (left = parsePrimaryExpression(_tokenId)) {
+
+	}
+
+
+
+	if (left != nullptr) {
 
 		auto binResult = parseBinaryOperationExpression(_tokenId, _precedence, left);
 
-		if ( binResult ) {
+		if (binResult) {
 			return binResult;
 		}
 
@@ -440,38 +449,47 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 }
 
 
+
 bool Parser::isSyntaxValid()
 {
-	bool success = true;	
+	bool success                     = true;	
+	auto it                          = tokens.begin();
+	short int openedParenthesisCount = 0;
 
-	// only support odd token count
-	if( tokens.size()%2 == 1)
-	{
-		// Check if even indexes are all NOT an Operator
+	while( it != tokens.end() && success == true) {
+
+		auto token = *it;
+		switch (token.type)
 		{
-			size_t index = 0;
-			while(index < tokens.size() && success)
-			{
-				if ( tokens[index].type == TokenType_Operator)
-					success = false;
-				index +=2;
+
+		case TokenType_Operator:
+		{
+			const bool isLastToken = tokens.end() - it == 1;
+			if (isLastToken) // Last token can't be an operator
+				success = false;
+			break;
+		}
+		case TokenType_Parenthesis:
+		{
+			const bool isOpenParenthesis = token.word == "(";
+			openedParenthesisCount += isOpenParenthesis ? 1 : -1; // increase / decrease openend parenthesis count.
+
+			if (openedParenthesisCount < 0) {
+				LOG_WARNING("Unable to tokenize expression, mismatch parenthesis count. \n");
+				success = false;
 			}
+
+			break;
+		}
+		default:
+			break;
 		}
 
-		// Check if odd indexes are all an Operator
-		{
-			size_t index = 1;
-			while(index < tokens.size() && success)
-			{
-				if ( tokens[index].type != TokenType_Operator)
-					success = false;
-				index +=2;
-			}
-		}
-		
-	}else{
-		success = false;
+		it++;
 	}
+
+	if (openedParenthesisCount != 0) // same opened/closed parenthesis count required.
+		success = false;
 
 	return success;
 }
@@ -489,12 +507,6 @@ bool Parser::tokenizeExpressionString()
 
 	/* prepare reserved keywords */
 	const auto keywords = language->keywords;
-
-	
-	/* Parenthesis opened count */
-	short int openedParenthesis = 0;
-
-	
 
 	for(auto it = chars.begin(); it != chars.end(); ++it)
 	{
@@ -597,22 +609,13 @@ bool Parser::tokenizeExpressionString()
 			std::string str = chars.substr(it - chars.begin(), 1);
 			addToken(TokenType_Parenthesis, str, std::distance(chars.begin(), it));
 
-			openedParenthesis += ( *it == '(' ) ? 1 : -1; 
-
-			if (openedParenthesis < 0) {
-				LOG_WARNING("Unable to tokenize expression %s \n", chars);
-				return false;
-			}
-
 		}else if ( *it != ' ') {
 			LOG_WARNING("Unable to tokenize expression %s \n", chars);
 			return false;
 		}
 	}
 
-	bool success = openedParenthesis == 0;
-
-	return success;
+	return true;
 
 }
 
