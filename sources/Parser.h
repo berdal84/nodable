@@ -29,6 +29,14 @@ namespace Nodable{
 			TokenType_  type      = TokenType_Unknown; // the type of the token
 			std::string word      = "";                // the word as a string
 			size_t      charIndex = 0;                 // the index of the first character of the token in the evaluated expression.
+
+			bool isOperand()const {
+				return type == TokenType_Number ||
+					   type == TokenType_Boolean ||
+					   type == TokenType_String ||
+					   type == TokenType_Symbol;
+			}
+
 		}Token;
 
 	public:

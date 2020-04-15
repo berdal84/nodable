@@ -458,20 +458,29 @@ bool Parser::isSyntaxValid()
 
 	while( it != tokens.end() && success == true) {
 
-		auto token = *it;
-		switch (token.type)
+		auto current = *it;
+		const bool isLastToken = tokens.end() - it == 1;
+
+		switch (current.type)
 		{
 
 		case TokenType_Operator:
 		{
-			const bool isLastToken = tokens.end() - it == 1;
-			if (isLastToken) // Last token can't be an operator
-				success = false;
+			
+			if (isLastToken) { 
+				success = false; // Last token can't be an operator
+
+			} else {
+				auto next = *(it + 1);
+				if (next.type == TokenType_Operator)
+					success = false; // An operator can't be followed by another operator.
+			}
+
 			break;
 		}
 		case TokenType_Parenthesis:
 		{
-			const bool isOpenParenthesis = token.word == "(";
+			const bool isOpenParenthesis = current.word == "(";
 			openedParenthesisCount += isOpenParenthesis ? 1 : -1; // increase / decrease openend parenthesis count.
 
 			if (openedParenthesisCount < 0) {
@@ -483,6 +492,16 @@ bool Parser::isSyntaxValid()
 		}
 		default:
 			break;
+		}
+
+		if (!isLastToken && current.isOperand()) { // Avoid an operand to be followed by another operand.
+			auto next = *(it + 1);
+			auto isAnOperand = next.isOperand();
+
+			if (isAnOperand) { 
+				LOG_WARNING("Unable to tokenize expression, %s unexpected after %s \n", current.word.c_str(), next.word.c_str());
+				success = false;
+			}
 		}
 
 		it++;

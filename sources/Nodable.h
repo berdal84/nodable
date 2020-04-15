@@ -9,9 +9,9 @@
 	Application Version
 */
 
-#define NODABLE_VERSION_SHORT "0.5.0"
+#define NODABLE_VERSION_SHORT "0.6.1"
 
-#ifdef DEBUG
+#ifdef _DEBUG
     #define NODABLE_VERSION NODABLE_VERSION_SHORT " (Debug) Build " __DATE__ " at " __TIME__
 #else
     #define NODABLE_VERSION NODABLE_VERSION_SHORT " (Release) Build " __DATE__ " at " __TIME__
