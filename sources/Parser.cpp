@@ -402,12 +402,19 @@ Member* Parser::parseRootExpression() {
 
 	size_t         tokenId(0);
 	Member* result(nullptr);
-	bool           parsingError(false);
+	bool           parsingError = false;
 
-	while (tokenId < tokens.size()) {
+	while (tokenId < tokens.size() && !parsingError) {
 		auto intermediateResult = parseExpression(tokenId, 0u, result);
-		result = intermediateResult;
+
+		if ( result != intermediateResult) // prevent infinite loops.
+			result = intermediateResult;
+		else
+			parsingError = true;
 	}
+
+	if (parsingError)
+		return nullptr;
 
 	return result;
 }
@@ -509,6 +516,8 @@ bool Parser::isSyntaxValid()
 
 	if (openedParenthesisCount != 0) // same opened/closed parenthesis count required.
 		success = false;
+
+	LOG_DEBUG("Parenthesis count = %i\n", openedParenthesisCount);
 
 	return success;
 }

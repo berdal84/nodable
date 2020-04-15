@@ -18,7 +18,7 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
-#ifdef DEBUG
+#ifdef _DEBUG
 	#define LOG_DEBUG(...) Nodable::internal::LogMessage( YELLOW"[DBG]"  , __VA_ARGS__ ) 
 #else
 	#define LOG_DEBUG(...)
