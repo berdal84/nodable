@@ -254,7 +254,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	// Precedence check
 	const auto currentOperatorPrecedence = language->getOperatorPrecedence(token1.word);
 		
-	if (currentOperatorPrecedence < _precedence)
+	if (currentOperatorPrecedence <= _precedence) // always eval the first operation if they have the same precedence or less.
 		return nullptr;
 
 	LOG_DEBUG("parseBinaryOperationExpression... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
@@ -388,7 +388,7 @@ Member* Parser::parseSubExpression(size_t& _tokenId) {
 		result = parseExpression(subToken, 0u);
 
 		if (tokens.size() <= subToken || tokens.at(subToken).word != ")") {
-			LOG_DEBUG(" ) expected after ", tokens.at(subToken - 1));
+			LOG_DEBUG("parseSubExpression failed:  ')' expected after %s \n", tokens.at(subToken - 1));
 		}
 
 		_tokenId = subToken + 1;
@@ -506,7 +506,7 @@ bool Parser::isSyntaxValid()
 			auto isAnOperand = next.isOperand();
 
 			if (isAnOperand) { 
-				LOG_WARNING("Unable to tokenize expression, %s unexpected after %s \n", current.word.c_str(), next.word.c_str());
+				LOG_DEBUG("Unable to tokenize expression, %s unexpected after %s \n", current.word.c_str(), next.word.c_str());
 				success = false;
 			}
 		}
