@@ -421,6 +421,8 @@ bool Test::RunAll()
 		testParser("Parser 09", "2*(5+3)", "16");
 		testParser("Parser 10", "2+(5*3)", "17");
 		testParser("Parser 11", "2*(5+3)+2", "18");
+		testParser("Parser 12", "(2-(5+3))-2+(1+1)", "-6");
+		testParser("Parser 13", "(2 - ( 5 + 3 ) - 2 ) + 9 / (1 - 0.54)", "11.5652173913");
 	}
 
 
