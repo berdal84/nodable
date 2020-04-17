@@ -11,6 +11,16 @@
 
 #include <algorithm>
 
+#define DEBUG_PARSER // Enable detailed logs
+
+#ifdef DEBUG_PARSER
+	#define LOG_DEBUG_PARSER(...) LOG_DBG(...)
+#else
+	#define LOG_DEBUG_PARSER(...)
+#endif // DEBUG_PARSER
+
+#undef DEBUG_PARSER
+
 using namespace Nodable;
 
 Parser::Parser(const Language* _language):language(_language)
