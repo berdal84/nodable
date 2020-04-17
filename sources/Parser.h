@@ -73,6 +73,17 @@ namespace Nodable{
 
 		/* Check if the existing tokens match with the syntax of the language. tokenize() should be called first */
 		bool           isSyntaxValid	   ();
+
+		/** Compute a prefix string with n times (_tabCount) a specific string (_tabChars)*/
+		static inline const std::string ComputePrefix(const unsigned short _tabCount, const std::string _tabChar = " ") {
+			std::string result("");
+
+			for (unsigned short i = 0u; i < _tabCount; i++) {
+				result.append(_tabChar);
+			}
+
+			return result;
+		}
 		
 		/* Creates a new token given a _type, _string and _chanIndex and add it to the tokens.*/
 		void           addToken			   (TokenType_ _type, std::string _string, size_t _charIndex);

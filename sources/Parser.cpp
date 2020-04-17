@@ -257,11 +257,12 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	if (currentOperatorPrecedence <= _precedence) // always eval the first operation if they have the same precedence or less.
 		return nullptr;
 
-	LOG_DEBUG("parseBinaryOperationExpression... _tokenId=%lu, _precedence=%u \n", _tokenId, _precedence);
+	auto logPrefix = ComputePrefix(_depth);
+	LOG_DEBUG("%s parseBinaryOperationExpression... _tokenId=%lu, _precedence=%u \n", logPrefix.c_str(), _tokenId, _precedence);
 
 	// Parse right expression
 	size_t rightTokenId = _tokenId + 1;
-	auto right = parseExpression(rightTokenId, currentOperatorPrecedence, nullptr, _depth++);
+	auto right = parseExpression(rightTokenId, currentOperatorPrecedence, nullptr, _depth +1 );
 
 	if (!right)
 		return nullptr;
@@ -316,6 +317,8 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 
 Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence, unsigned short _depth) {
 
+	auto logPrefix = ComputePrefix(_depth);
+
 	Member* result = nullptr;
 
 	const bool hasEnoughtTokens = tokens.size() > _tokenId + 1;
@@ -330,7 +333,7 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 		return result;
 	}
 
-	LOG_DEBUG("parseUnaryOperationExpression...\n");
+	LOG_DEBUG("%s parseUnaryOperationExpression...\n", logPrefix.c_str());
 
 	// TODO: create the unary operation "negates"
 	if (token1.word == "-" && token2.type == TokenType_Number) {
@@ -361,13 +364,15 @@ Member* Parser::parsePrimaryExpression(size_t& _tokenId, unsigned short _depth) 
 		return nullptr;
 	}
 
-	LOG_DEBUG("parsePrimaryExpression... _tokenId=%lu \n", _tokenId);
+	auto logPrefix = ComputePrefix(_depth);
+	LOG_DEBUG("%s parsePrimaryExpression... _tokenId=%lu \n", logPrefix.c_str(), _tokenId );
 
 	return operandTokenToMember(token);
 }
 
 Member* Parser::parseSubExpression(size_t& _tokenId, unsigned short _depth) {
 
+	auto logPrefix = ComputePrefix(_depth);
 
 	if (_tokenId >= tokens.size())
 		return nullptr;
@@ -380,27 +385,27 @@ Member* Parser::parseSubExpression(size_t& _tokenId, unsigned short _depth) {
 
 	Member* result(nullptr);
 
-	LOG_DEBUG("parseSubExpression (start) \n", _tokenId);
-	LOG_DEBUG("\t\t_tokenId = % lu, _depth = % u \n", _tokenId, _depth);
+	LOG_DEBUG("%s parseSubExpression (start) \n", logPrefix.c_str(),  _tokenId );
+	LOG_DEBUG("%s \t\t_tokenId = % lu, _depth = % u \n", logPrefix.c_str(),  _tokenId, _depth);
 
 	if (token1.word == "(") {
-		LOG_DEBUG("parseSubExpression... open parenthesis found, parsing expression inside...\n");
+		LOG_DEBUG("%s parseSubExpression... open parenthesis found, parsing expression inside...\n", logPrefix.c_str());
 		auto subToken = _tokenId + 1;
-		result = parseExpression(subToken, 0u, nullptr, _depth++);
+		result = parseExpression(subToken, 0u, nullptr, _depth + 1);
 		_tokenId = subToken + 1;
 
 		if (tokens.size() <= subToken || tokens.at(subToken).word != ")") {
-			LOG_DEBUG("parseSubExpression failed:  ')' expected after %s \n", tokens.at(subToken - 1));
-			LOG_DEBUG("\t\t_tokenId = % lu, _depth = % u \n", _tokenId, _depth);
+			LOG_DEBUG("%s parseSubExpression failed:  ')' expected after %s \n", logPrefix.c_str(), tokens.at(subToken - 1) );
+			LOG_DEBUG("%s\t\t_tokenId = % lu, _depth = % u \n", logPrefix.c_str(), _tokenId, _depth);
 		} else {
-			LOG_DEBUG("parseSubExpression success\n");
-			LOG_DEBUG("\t\t_tokenId = % lu, _depth = % u \n", _tokenId, _depth);
+			LOG_DEBUG("%s parseSubExpression success\n", logPrefix.c_str());
+			LOG_DEBUG("%s \t\t_tokenId = % lu, _depth = % u \n", logPrefix.c_str(), _tokenId, _depth);
 		}
 		
 	}
 
-	LOG_DEBUG("parseSubExpression (end)\n");
-	LOG_DEBUG("\t\t_tokenId = % lu, _depth = % u \n", _tokenId, _depth);
+	LOG_DEBUG("%s parseSubExpression (end)\n", logPrefix.c_str());
+	LOG_DEBUG("%s \t\t_tokenId = % lu, _depth = % u \n", logPrefix.c_str(), _tokenId, _depth);
 
 	return result;
 }
@@ -428,47 +433,49 @@ Member* Parser::parseRootExpression() {
 
 Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, unsigned short _depth) {
 
-	LOG_DEBUG("===================================================================\n");
-	LOG_DEBUG("BEGIN parseExpression...\n");
-	LOG_DEBUG("\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", _tokenId, _precedence, _depth);
+	auto logPrefix = ComputePrefix(_depth);
+
+	LOG_DEBUG("%s===================================================================\n", logPrefix.c_str());
+	LOG_DEBUG("%sBEGIN parseExpression...\n", logPrefix.c_str());
+	LOG_DEBUG("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth);
 
 	Member* left = nullptr;
 
 	if      (left = _leftOverride) {}
-	else if (left = parseSubExpression(_tokenId, _depth++)) {}
-	else if (left = parseUnaryOperationExpression(_tokenId, _precedence, _depth++)) {}
-	else if (left = parsePrimaryExpression(_tokenId, _depth++)) {}
+	else if (left = parseSubExpression(_tokenId, _depth + 1)) {}
+	else if (left = parseUnaryOperationExpression(_tokenId, _precedence, _depth + 1)) {}
+	else if (left = parsePrimaryExpression(_tokenId, _depth + 1)) {}
 
-	LOG_DEBUG(" - left handed parsing OK.\n");
-	LOG_DEBUG("\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", _tokenId, _precedence, _depth);
+	LOG_DEBUG("%s - left handed parsing OK.\n", logPrefix.c_str());
+	LOG_DEBUG("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth);
 
 	Member* result;
 
 	if (left != nullptr) {
 
-		LOG_DEBUG(" - parseExpression try to parse binary operation\n");
-		LOG_DEBUG("\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", _tokenId, _precedence, _depth);
+		LOG_DEBUG("%s - parseExpression try to parse binary operation\n", logPrefix.c_str());
+		LOG_DEBUG("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth);
 
-		auto binResult = parseBinaryOperationExpression(_tokenId, _precedence, left, _depth++);
+		auto binResult = parseBinaryOperationExpression(_tokenId, _precedence, left, _depth + 1);
 
 		if (binResult) {
-			LOG_DEBUG(" - parseExpression binary parsed\n");
+			LOG_DEBUG("%s - parseExpression binary parsed\n", logPrefix.c_str());
 			result = binResult;
 		}
 		else {
-			LOG_DEBUG(" - parseExpression binary NOT parsed, we return left.\n");
+			LOG_DEBUG("%s - parseExpression binary NOT parsed, we return left.\n", logPrefix.c_str());
 			result = left;
 		}
-		LOG_DEBUG("\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", _tokenId, _precedence, _depth);
+		LOG_DEBUG("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth);
 
 	} else {
-		LOG_DEBUG(" - parseExpression left is nullptr we return it anyway.\n");
-		LOG_DEBUG("\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", _tokenId, _precedence, _depth);
+		LOG_DEBUG("%s - parseExpression left is nullptr we return it anyway.\n", logPrefix.c_str());
+		LOG_DEBUG("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth );
 		result = left;
 	}
 
-	LOG_DEBUG("END parseExpression.\n");
-	LOG_DEBUG("\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", _tokenId, _precedence, _depth);
+	LOG_DEBUG("%sEND parseExpression.\n", logPrefix.c_str());
+	LOG_DEBUG("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth);
 
 	return result;
 }
