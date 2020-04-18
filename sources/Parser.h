@@ -84,7 +84,10 @@ namespace Nodable{
 
 			return result;
 		}
-		
+
+		/** Generate a string with all tokens with hightlight token colored in green*/
+		std::string Parser::LogTokens(const std::vector<Token> _tokens, const size_t _highlight);
+
 		/* Creates a new token given a _type, _string and _chanIndex and add it to the tokens.*/
 		void           addToken			   (TokenType_ _type, std::string _string, size_t _charIndex);
 
