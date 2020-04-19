@@ -83,6 +83,7 @@ bool Parser::eval()
 
 	auto container   = this->getParent();
 	Variable* result = container->createNodeResult();
+	container->tryToRestoreResultNodePosition();
 
 	// If the value has no owner, we simplly set the variable value
 	if (resultValue->getOwner() == nullptr)

@@ -89,7 +89,7 @@ void NodeView::translate(ImVec2 _delta)
 
 void NodeView::arrangeRecursively()
 {
-	ArrangeRecursively(this, position);
+	ArrangeRecursively(this);
 }
 
 bool NodeView::update()
@@ -418,9 +418,8 @@ bool NodeView::draw()
 	return edited;
 }
 
-void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
+void NodeView::ArrangeRecursively(NodeView* _view)
 {
-	_view->setPosition(_position);
 
 	// Force and update of input connected nodes with a delta time extra high
 	// to ensure all nodes were well placed in a single call (no smooth moves)
@@ -439,7 +438,7 @@ void NodeView::ArrangeRecursively(NodeView* _view, ImVec2 _position)
 				auto node         = dynamic_cast<Entity*>(eachWire->getSource()->getOwner());
 				auto inputView    = node->getComponent("view")->getAs<NodeView*>();
 				inputView->pinned = false;
-				ArrangeRecursively(inputView, inputView->position);
+				ArrangeRecursively(inputView);
 			}
 		}
 	}

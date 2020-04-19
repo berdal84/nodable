@@ -15,6 +15,8 @@
 
 using namespace Nodable;
 
+ImVec2 Container::LastResultNodePosition = ImVec2(-1, -1); // draft try to store node position
+
 Container::~Container()
 {
 	clear();
@@ -22,11 +24,19 @@ Container::~Container()
 
 void Container::clear()
 {
+	// Store the Result node position to restore it later
+	if (result != nullptr) {
+		auto view = result->getComponent("view");
+		Container::LastResultNodePosition = view->getAs<NodeView*>()->getRoundedPosition();
+	}
+
+	
 	for (Entity* each : entities)
 		delete each;
 	
 	entities.resize(0);
 	variables.resize(0);
+	result = nullptr;
 }
 
 bool Container::update()
@@ -302,6 +312,18 @@ Wire* Container::createWire()
 	wire->addComponent("view", new WireView);	
 	this->addEntity(wire);
 	return wire;
+}
+
+void Container::tryToRestoreResultNodePosition()
+{
+	// Store the Result node position to restore it later
+	auto view = result->getComponent("view");
+	bool hasPosition = Container::LastResultNodePosition.x != -1 &&
+	                   Container::LastResultNodePosition.y != -1;
+	if ( view && hasPosition)
+	{
+		view->getAs<NodeView*>()->setPosition(Container::LastResultNodePosition);
+	}
 }
 
 Parser* Container::createNodeParser(Variable* _expressionVariable)

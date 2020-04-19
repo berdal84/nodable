@@ -5,6 +5,7 @@
 #include "Entity.h"		 // base class
 #include <string>
 #include <vector>
+#include <imgui/imgui.h>   // for ImVec2
 
 namespace Nodable{
 	/* Class Container is a factory able to create all kind of Node 
@@ -36,9 +37,14 @@ namespace Nodable{
 		std::vector<Variable*>& 	getVariables(){return variables;}
 		std::vector<Entity*>& 	    getEntities(){return entities;}
 		Variable*                   getResultVariable(){ return result;}
+		void                        tryToRestoreResultNodePosition();
+
 	private:
 		Variable*                   result = nullptr;
 		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<Entity*>        entities;   /* Contain all Objects created by this context */
+
+	public:
+		static ImVec2               LastResultNodePosition;
 	};
 }

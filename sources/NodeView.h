@@ -53,7 +53,7 @@ namespace Nodable{
 		void              arrangeRecursively  ();
 		
 		/* Arrange input nodes recursively while keeping the nodeView at the position vector _position */
-		static void       ArrangeRecursively  (NodeView* /*_nodeView*/, ImVec2 _position = ImVec2(700.0f, 350.0f));		
+		static void       ArrangeRecursively  (NodeView* /*_nodeView*/);		
 
 		/* Set the _nodeView as selected. 
 		Only a single view can be selected at the same time */

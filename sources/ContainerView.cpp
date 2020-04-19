@@ -13,6 +13,7 @@
 #include "NodeView.h"
 #include "Application.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <math.h>
 
 using namespace Nodable;
 
@@ -21,6 +22,8 @@ bool ContainerView::draw()
 	
 	auto origin = ImGui::GetCursorScreenPos();
 	ImGui::SetCursorPos(ImVec2(0,0));
+	auto containerSize = ImGui::GetContentRegionAvail();
+
 	auto entities = this->getOwner()->getAs<Container*>()->getEntities();
 
 	/*
@@ -29,6 +32,19 @@ bool ContainerView::draw()
 	bool isAnyNodeDragged = false;
 	bool isAnyNodeHovered = false;
 	{
+		// Constraints
+		auto container = getOwner()->getAs<Container*>();
+		auto result    = container->getResultVariable();
+		if (result != nullptr) { // Be sure result node is always visible
+			auto view = result->getComponent("view")->getAs<NodeView*>();
+			auto position = view->getRoundedPosition();
+
+			position.x = std::max(0.0f, std::min(containerSize.x, position.x));
+			position.y = std::max(0.0f, std::min(containerSize.y, position.y));
+
+			view->setPosition(position);
+		}
+
 		// Update
 		for (auto eachNode : entities)
 		{
