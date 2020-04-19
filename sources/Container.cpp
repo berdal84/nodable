@@ -104,7 +104,7 @@ Variable* Container::find(std::string _name)
 
 Variable* Container::createNodeResult()
 {
-	auto variable = createNodeVariable(ICON_FA_SIGN_OUT_ALT);
+	auto variable = createNodeVariable(ICON_FA_SIGN_OUT_ALT " Result");
 	auto member = variable->getMember("value");
 	member->setConnectionFlags(Connection_In);                     // disable output because THIS node is the output !
 	result = variable;
@@ -172,7 +172,7 @@ Entity* Container::createNodeAdd()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel(ICON_FA_PLUS);
+	node->setLabel(ICON_FA_PLUS " Add");
 	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
 	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
 	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
@@ -197,7 +197,7 @@ Entity* Container::createNodeSubstract()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel(ICON_FA_MINUS);
+	node->setLabel(ICON_FA_MINUS " Sub");
 	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
 	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
 	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
@@ -222,7 +222,7 @@ Entity* Container::createNodeMultiply()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel(ICON_FA_TIMES);
+	node->setLabel(ICON_FA_TIMES " Mult");
 	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
 	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
 	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
@@ -248,7 +248,7 @@ Entity* Container::createNodeDivide()
 {
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Entity();	
-	node->setLabel(ICON_FA_DIVIDE);
+	node->setLabel(ICON_FA_DIVIDE " Div");
 	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
 	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
 	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
