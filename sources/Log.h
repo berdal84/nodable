@@ -19,14 +19,14 @@
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
 #ifdef _DEBUG
-	#define LOG_DEBUG(...) Nodable::internal::LogMessage( YELLOW"[DBG]"  , __VA_ARGS__ ) 
+	#define LOG_DEBUG(...) Nodable::internal::LogMessage( YELLOW"[DBG] "  , __VA_ARGS__ ) 
 #else
 	#define LOG_DEBUG(...)
 #endif
 
-#define LOG_MESSAGE(...) Nodable::internal::LogMessage( WHITE"[MSG]", __VA_ARGS__ ) 
-#define LOG_WARNING(...) Nodable::internal::LogMessage( MAGENTA"[DBG]", __VA_ARGS__ )
-#define LOG_ERROR(...)   Nodable::internal::LogMessage( RED"[ERR]", __VA_ARGS__ ) 
+#define LOG_MESSAGE(...) Nodable::internal::LogMessage( "", __VA_ARGS__ ) 
+#define LOG_WARNING(...) Nodable::internal::LogMessage( MAGENTA"[DBG] ", __VA_ARGS__ )
+#define LOG_ERROR(...)   Nodable::internal::LogMessage( RED"[ERR] ", __VA_ARGS__ ) 
 
 namespace Nodable{	
 	namespace internal
