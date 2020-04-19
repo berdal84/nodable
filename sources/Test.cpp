@@ -378,9 +378,7 @@ bool Test::RunAll()
 
 	
 	auto testParser = [](const std::string& testName, const std::string& expression, const std::string& resultExpected)->void {
-
-		LOG_DEBUG( "Testing: %s should return %s \n", expression.c_str(), resultExpected.c_str()) ;
-
+				
 		auto container(new Container);
 		auto expressionVariable(container->createNodeVariable("expression"));
 		expressionVariable->setValue(expression);
@@ -393,13 +391,17 @@ bool Test::RunAll()
 		resultVariable->update();
 
 		auto result = resultVariable->getValueAsString();
+		LOG_DEBUG("Test %s | %s :", testName.c_str(), expression.c_str());
 
-		if (result == resultExpected)
+		if (result == resultExpected){
 			s_testSucceedCount++;
-		else{
-			const std::string message = "Test " + testName + " : FAILED ! " + expression + "\n";
-			LOG_ERROR(message.c_str());
+			LOG_MESSAGE(GREEN "OK\n");
+
+		} else {
+			LOG_MESSAGE(RED "OK\n");
+			LOG_ERROR("Should return %s\n Result %s\n", resultExpected.c_str(), result.c_str());
 		}
+
 		s_testCount++;
 
 		delete container;
@@ -408,21 +410,23 @@ bool Test::RunAll()
 
 	LOG_MESSAGE("Running tests for Parser...\n");
 	{
-		testParser("Parser 00", "5"         , "5");
-		testParser("Parser 01", "-5"         , "-5");
-		testParser("Parser 02", "2+3"        , "5");
-		testParser("Parser 03", "-5+4"       , "-1");
-		testParser("Parser 04", "-1+2*5-3/6" , "8.5");
-		testParser("Parser 05", "-1*20"      , "-20");
+		testParser("Parser 00", "5"                                            ,"5");
+		testParser("Parser 01", "-5"                                           ,"-5");
+		testParser("Parser 02", "2+3"                                          ,"5");
+		testParser("Parser 03", "-5+4"                                         ,"-1");
+		testParser("Parser 04", "-1+2*5-3/6"                                   ,"8.5");
 
-		testParser("Parser 06", "(1+4)", "5");
-		testParser("Parser 07", "(1)+(2)", "3");
-		testParser("Parser 08", "(1+2)*3", "9");
-		testParser("Parser 09", "2*(5+3)", "16");
-		testParser("Parser 10", "2+(5*3)", "17");
-		testParser("Parser 11", "2*(5+3)+2", "18");
-		testParser("Parser 12", "(2-(5+3))-2+(1+1)", "-6");
-		testParser("Parser 13", "(2 - ( 5 + 3 ) - 2 ) + 9 / (1 - 0.54)", "11.5652173913");
+		testParser("Parser 05", "-1*20"                                        ,"-20");
+		testParser("Parser 06", "(1+4)"                                        ,"5");
+		testParser("Parser 07", "(1)+(2)"                                      ,"3");
+		testParser("Parser 08", "(1+2)*3"                                      ,"9");
+		testParser("Parser 09", "2*(5+3)"                                      ,"16");
+
+		testParser("Parser 10", "2+(5*3)"                                      ,"17");
+		testParser("Parser 11", "2*(5+3)+2"                                    ,"18");
+		testParser("Parser 12", "(2-(5+3))-2+(1+1)"                            ,"-6");
+		testParser("Parser 13", "(2 - ( 5 + 3 ) - 2 ) + 9 / (1 - 0.54)"        ,"11.565217");
+		testParser("Parser 14", "1/3"                                          ,"0.333333");
 	}
 
 
