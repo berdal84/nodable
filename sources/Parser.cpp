@@ -39,10 +39,23 @@ std::string Parser::LogTokens(const std::vector<Token> _tokens, const size_t _hi
 	for (auto it = _tokens.begin(); it != _tokens.end(); it++ ) {
 		size_t index = it - _tokens.begin();
 
-		if (index == _highlight)
-			result.append(GREEN + (*it).word + RESET);
-		else
+		if (index == _highlight) {
+			result.append(GREEN);
 			result.append((*it).word);
+			result.append(RESET);
+		} else {
+			result.append((*it).word);
+		}
+	}
+
+	const std::string endOfLine(" (last)");
+
+	if (_tokens.size() == _highlight) {
+		result.append(GREEN);
+		result.append(endOfLine);
+		result.append(RESET);
+	} else {
+		result.append(endOfLine);
 	}
 
 	return result;
@@ -78,11 +91,6 @@ bool Parser::eval()
 	else
 		Entity::Connect(container->createWire(), resultValue, result->getValueMember());
 
-
-	// Hides the value member only if it is connected to something (to reduce screen space used)
-	auto member = result->getMember("value");
-	if ( member->getInputMember() != nullptr)
-		member->setVisibility(Visibility_VisibleOnlyWhenUncollapsed);
 
 	NodeView::ArrangeRecursively(result->getComponent("view")->getAs<NodeView*>());
 		
@@ -141,126 +149,17 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 	return result;
 }
 
-Member* Parser::buildGraphIterative()
-{
-	Member*    result  = nullptr;
-	Container* context = this->getParent();
-
-	NODABLE_ASSERT(context != nullptr);
-
-	// Computes the number of token to eval
-	size_t tokenCount = tokens.size();
-	size_t cursor = 0;
-
-	Member* _leftOverride = nullptr;
-	Member* _rightOverride = nullptr;
-	
-	Entity* previousBinaryOperation = nullptr;
-
-	while (cursor < tokenCount && result == nullptr) {
-
-		size_t tokenLeft = tokenCount - cursor;
-		Member* tempResult = nullptr;
-
-		switch (tokenLeft) {
-
-			// Operand
-			case 1: {
-				const Token& token(tokens[cursor]);
-				tempResult = operandTokenToMember(token);
-				cursor += 1;
-				break;
-			}
-
-			// Operator, Operand
-			case 2: {
-				const Token& token1(tokens.at(cursor));
-				const Token& token2(tokens.at(cursor + 1));
-
-				if (token1.type == TokenType_Operator) {
-
-					if (token1.word == "-" && token2.type == TokenType_Number) {
-						tempResult = operandTokenToMember(token2);
-						tempResult->setValue(-tempResult->getValueAsNumber());
-					}
-					else if (token1.word == "!" && token2.type == TokenType_Boolean) {
-						tempResult = operandTokenToMember(token2);
-						tempResult->setValue(!tempResult->getValueAsBoolean());
-					}
-				}
-				cursor += 2;
-				break;
-			}
-
-			// Operand, Operator, Expression
-			default: {
-				const Token& token1(tokens.at(cursor));
-				const Token& token2(tokens.at(cursor + 1));
-				const Token& token3(tokens.at(cursor + 2));
-				
-				/* Check if we are in Operand, Operator, Expression state*/
-				if (token1.type == TokenType_Operator ||
-					token2.type != TokenType_Operator ||
-					token3.type == TokenType_Operator)
-					return result;
-
-				// Generate operation and members
-				auto left      = _leftOverride ? _leftOverride : operandTokenToMember(token1);
-				auto operator1 = context->createNodeBinaryOperation(token2.word);
-				auto right     = _rightOverride ? _rightOverride : operandTokenToMember(token3);
-
-				// If we get a more that 3 terms expression, we need to compute operator precedence
-				if ( tokenLeft > 3 ) {
-
-					const Token& token4(tokens.at(cursor + 3));
-
-					bool firstOperatorHasHigherPrecedence = BinaryOperationComponent::NeedsToBeEvaluatedFirst(token2.word, token4.word);
-
-					if (!firstOperatorHasHigherPrecedence) {
-						// Evaluate the rest of the expression
-						// auto _rightOverride = buildGraphIterative(cursor + 2, 0);
-					}
-
-				}
-
-				// Connect the Left
-				if (left->getOwner() == nullptr)
-					operator1->setMember("left", left);
-				else
-					Entity::Connect(context->createWire(), left, operator1->getMember("left"));
-
-				// Connect the Right
-				if (right->getOwner() == nullptr)
-					operator1->setMember("right", right);
-				else
-					Entity::Connect(context->createWire(), right, operator1->getMember("right"));
-
-				// Set the left
-				tempResult = operator1->getMember("result");
-
-				// For now force execution of left operator before right
-				_rightOverride = nullptr;
-				_leftOverride = tempResult;
-				previousBinaryOperation = operator1;
-				cursor += 2;
-
-				break;
-			}
-		}
-
-		if (cursor >= tokenCount)
-			result = tempResult;
-	}
-
-	return result;
-}
-
 Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _left, unsigned short _depth) {
+
+	LOG_DEBUG_PARSER("parseBinaryOperationExpression...\n");
+	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
 
 	Member* result = nullptr;
 
-	if (_tokenId + 1 >= tokens.size())
+	if (_tokenId + 1 >= tokens.size()) {
+		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (not enought tokens)\n");
 		return nullptr;
+	}
 
 	const Token& token1(tokens.at(_tokenId));
 	const Token& token2(tokens.at(_tokenId+1));
@@ -271,24 +170,27 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 			             token2.type != TokenType_Operator;
 
 	if (!isValid) {
+		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (Structure)\n");
 		return nullptr;
 	}
-		 
+
 	// Precedence check
 	const auto currentOperatorPrecedence = language->getOperatorPrecedence(token1.word);
 		
-	if (currentOperatorPrecedence <= _precedence) // always eval the first operation if they have the same precedence or less.
+	if (currentOperatorPrecedence <= _precedence) { // always eval the first operation if they have the same precedence or less.
+		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (Precedence)\n");
 		return nullptr;
-
-	auto logPrefix = ComputePrefix(_depth);
-	LOG_DEBUG_PARSER("%s parseBinaryOperationExpression... _tokenId=%lu, _precedence=%u \n", logPrefix.c_str(), _tokenId, _precedence);
+	}
+		
 
 	// Parse right expression
 	size_t rightTokenId = _tokenId + 1;
 	auto right = parseExpression(rightTokenId, currentOperatorPrecedence, nullptr, _depth +1 );
 
-	if (!right)
+	if (!right) {
+		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (right expression is nullptr)\n");
 		return nullptr;
+	}
 
 	// Build the graph for the first 3 tokens
 	Container* context = this->getParent();	
@@ -333,12 +235,17 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		result = binOperation->getMember("result");
 	}
 
-	_tokenId = rightTokenId;
+	_tokenId = rightTokenId;	
+
+	LOG_DEBUG_PARSER("parseBinaryOperationExpression... " OK "\n");
 
 	return result;
 }
 
 Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence, unsigned short _depth) {
+
+	LOG_DEBUG_PARSER("parseUnaryOperationExpression...\n");
+	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
 
 	auto logPrefix = ComputePrefix(_depth);
 
@@ -346,58 +253,66 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 
 	const bool hasEnoughtTokens = tokens.size() > _tokenId + 1;
 	if (!hasEnoughtTokens)
-		return result;
+		return nullptr;
 
-	const Token& token1(tokens.at(_tokenId++));
-	const Token& token2(tokens.at(_tokenId++));
+	const Token& token1(tokens.at(_tokenId));
+	const Token& token2(tokens.at(_tokenId+1));
 
+	// Check if we get an operator first
 	if (token1.type != TokenType_Operator) {
-		_tokenId -= 2;
-		return result;
+		LOG_DEBUG_PARSER("parseUnaryOperationExpression... " KO " (operator not found)\n");
+		return nullptr;
 	}
 
-	LOG_DEBUG_PARSER("%s parseUnaryOperationExpression...\n", logPrefix.c_str());
-
-	// TODO: create the unary operation "negates"
-	if (token1.word == "-" && token2.type == TokenType_Number) {
+	// Then check if the operator can be applied to the next token
+	if (token1.word == "-" && token2.type == TokenType_Number) { // TODO: create the unary operation "negates"
 		result = operandTokenToMember(token2);
 		result->setValue(-result->getValueAsNumber());
-	}
 
-	// TODO: create the unary operation "not"
-	else if (token1.word == "!" && token2.type == TokenType_Boolean) {
+	} else if (token1.word == "!" && token2.type == TokenType_Boolean) { // TODO: create the unary operation "not"
 		result = operandTokenToMember(token2);
 		result->setValue(!result->getValueAsBoolean());
+
+	} else {
+		LOG_DEBUG_PARSER("parseUnaryOperationExpression... " KO " (unrecognysed operator)\n");	
+		return nullptr;
 	}
+
+	_tokenId += 2;
+	LOG_DEBUG_PARSER("parseUnaryOperationExpression... " OK "\n");
 
 	return result;
 }
 
-Member* Parser::parsePrimaryExpression(size_t& _tokenId, unsigned short _depth) {
+Member* Parser::parseAtomicExpression(size_t& _tokenId, unsigned short _depth) {
+
+	LOG_DEBUG_PARSER("parseAtomicExpression... \n");
 
 	// Check if there is index is not out of bounds
-	if (tokens.size() <= _tokenId)
-		return nullptr;
-
-	auto token = tokens.at(_tokenId++);
-
-	// Check if token is not an operator
-	if (token.type == TokenType_Operator) {
-		_tokenId--;
+	if (tokens.size() <= _tokenId) {
+		LOG_DEBUG_PARSER("parseAtomicExpression... " KO "(not enought tokens)\n");
 		return nullptr;
 	}
 
-	auto logPrefix = ComputePrefix(_depth);
-	LOG_DEBUG_PARSER("%s parsePrimaryExpression... _tokenId=%lu \n", logPrefix.c_str(), _tokenId );
+	auto token = tokens.at(_tokenId);
+
+	// Check if token is not an operator
+	if (token.type == TokenType_Operator) {
+		LOG_DEBUG_PARSER("parseAtomicExpression... " KO "(token is an operator)\n");
+		return nullptr;
+	}
+
+	_tokenId++;
+
+	LOG_DEBUG_PARSER("parseAtomicExpression... " OK "\n");
 
 	return operandTokenToMember(token);
 }
 
-Member* Parser::parseSubExpression(size_t& _tokenId, unsigned short _depth) {
+Member* Parser::parseParenthesisExpression(size_t& _tokenId, unsigned short _depth) {
 
-#ifdef DEBUG_PARSER
+	LOG_DEBUG("parseParenthesisExpression...");
 	LOG_DEBUG("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
-#endif // DEBUG_PARSER
 
 	auto logPrefix = ComputePrefix(_depth);
 
@@ -412,67 +327,57 @@ Member* Parser::parseSubExpression(size_t& _tokenId, unsigned short _depth) {
 
 	Member* result(nullptr);
 
-	LOG_DEBUG_PARSER("%s parseSubExpression (start) \n", logPrefix.c_str(),  _tokenId );
-	LOG_DEBUG_PARSER("%s \t\t_tokenId = % lu, _depth = % u \n", logPrefix.c_str(),  _tokenId, _depth);
-
 	if (token1.word == "(") {
-		LOG_DEBUG_PARSER("%s parseSubExpression... open parenthesis found, parsing expression inside...\n", logPrefix.c_str());
+
 		auto subToken = _tokenId + 1;
 		result = parseExpression(subToken, 0u, nullptr, _depth + 1);
 		_tokenId = subToken + 1;
 
 		if ( tokens.at(subToken).word != ")" ) {
-			LOG_DEBUG_PARSER("%s parseSubExpression failed:  ')' expected after %s \n", logPrefix.c_str(), tokens.at(subToken - 1) );
-			LOG_DEBUG_PARSER("%s\t\t_tokenId = % lu, _depth = % u \n", logPrefix.c_str(), _tokenId, _depth);
+			LOG_DEBUG("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
+			LOG_DEBUG_PARSER("parseParenthesisExpression failed... " KO " ( \")\" expected after %s )\n", tokens.at(subToken - 1) );
 		} else {
-			LOG_DEBUG_PARSER("%s parseSubExpression success\n", logPrefix.c_str());
-			LOG_DEBUG_PARSER("%s \t\t_tokenId = % lu, _depth = % u \n", logPrefix.c_str(), _tokenId, _depth);
-		}
-		
+			LOG_DEBUG_PARSER("parseParenthesisExpression... " OK  "\n");
+		}	
+
+	} else {
+		LOG_DEBUG_PARSER("parseParenthesisExpression... " KO " (open parenthesis not found) \n");
 	}
 
-	LOG_DEBUG_PARSER("%s parseSubExpression (end)\n", logPrefix.c_str());
-	LOG_DEBUG_PARSER("%s \t\t_tokenId = % lu, _depth = % u \n", logPrefix.c_str(), _tokenId, _depth);
-#ifdef DEBUG_PARSER
-	LOG_DEBUG("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
-#endif // DEBUG_PARSER
 
 	return result;
 }
 
 Member* Parser::parseRootExpression() {
 
-	size_t         tokenId(0);
-	Member* result(nullptr);
-	bool           parsingError = false;
+	size_t  tokenId      = 0;
+	Member* result       = nullptr;
+	bool    parsingError = false;
 
-	while (tokenId < tokens.size() && !parsingError) {
-		auto intermediateResult = parseExpression(tokenId, 0u, result);
+	result = parseExpression(tokenId, 0u, result);
 
-		if ( result != intermediateResult) // prevent infinite loops.
-			result = intermediateResult;
-		else
-			parsingError = true;
+	const auto tokenLeft = tokens.size() - tokenId;
+	if (tokenLeft != 0) {   // Check if all tokens have been consumed
+		LOG_DEBUG_PARSER("parse root expression " KO " (not tokens not all consumed)");
 	}
 
-	if (parsingError)
-		return nullptr;
+	if (result == nullptr) { // Check if result is defined
+		LOG_DEBUG_PARSER("parse root expression " KO " (result == nullptr)\n");
+	}
+
+	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, tokenId).c_str());
 
 	return result;
 }
 
 Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, unsigned short _depth) {
 
-	auto logPrefix = ComputePrefix(_depth);
+	LOG_DEBUG_PARSER("parseExpression...\n");
+	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
 
-	LOG_DEBUG_PARSER("%s===================================================================\n", logPrefix.c_str());
-	LOG_DEBUG_PARSER("%sBEGIN parseExpression...\n", logPrefix.c_str());
-	LOG_DEBUG_PARSER("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth);
-
-#ifdef DEBUG_PARSER
-	LOG_DEBUG("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
-#endif // DEBUG_PARSER
-
+	if (_tokenId >= tokens.size()) {
+		LOG_DEBUG_PARSER("parseExpression..." KO " (last token)\n");
+	}
 
 	/**
 		Get the left handed operand
@@ -480,12 +385,14 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 	Member* left = nullptr;
 
 	if      (left = _leftOverride) {}
-	else if (left = parseSubExpression(_tokenId, _depth + 1)) {}
+	else if (left = parseParenthesisExpression(_tokenId, _depth + 1)) {}
 	else if (left = parseUnaryOperationExpression(_tokenId, _precedence, _depth + 1)) {}
-	else if (left = parsePrimaryExpression(_tokenId, _depth + 1)) {}
+	else if (left = parseAtomicExpression(_tokenId, _depth + 1)) {}	
 
-	LOG_DEBUG_PARSER("%s - left handed parsing OK.\n", logPrefix.c_str());
-	LOG_DEBUG_PARSER("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth);
+	if (_tokenId >= tokens.size()) {
+		LOG_DEBUG_PARSER("parseExpression..." OK " (parsing only left, last token)\n");
+		return left;
+	}
 
 	Member* result;
 
@@ -495,33 +402,21 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 
 	if (left != nullptr) {
 
-		LOG_DEBUG_PARSER("%s - parseExpression try to parse binary operation\n", logPrefix.c_str());
-		LOG_DEBUG_PARSER("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth);
-
+		LOG_DEBUG_PARSER("left parsed, we parse right\n");
 		auto binResult = parseBinaryOperationExpression(_tokenId, _precedence, left, _depth + 1);
 
 		if (binResult) {
-			LOG_DEBUG_PARSER("%s - parseExpression binary parsed\n", logPrefix.c_str());
+			LOG_DEBUG_PARSER("right parsed, recursive call\n");
 			result = parseExpression(_tokenId, _precedence, binResult, _depth + 1);
 		}
 		else {
-			LOG_DEBUG_PARSER("%s - parseExpression binary NOT parsed, we return left.\n", logPrefix.c_str());
 			result = left;
 		}
-		LOG_DEBUG_PARSER("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth);
 
 	} else {
-		LOG_DEBUG_PARSER("%s - parseExpression left is nullptr we return it anyway.\n", logPrefix.c_str());
-		LOG_DEBUG_PARSER("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth );
+		LOG_DEBUG_PARSER("left is nullptr, we return it\n");
 		result = left;
 	}
-
-	LOG_DEBUG_PARSER("%sEND parseExpression.\n", logPrefix.c_str());
-	LOG_DEBUG_PARSER("%s\t\t_tokenId = % lu, _precedence = % u, _depth = % u \n", logPrefix.c_str(), _tokenId, _precedence, _depth);
-
-#ifdef DEBUG_PARSER
-	LOG_DEBUG("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
-#endif // DEBUG_PARSER
 
 	return result;
 }

@@ -378,7 +378,9 @@ bool Test::RunAll()
 
 	
 	auto testParser = [](const std::string& testName, const std::string& expression, const std::string& resultExpected)->void {
-				
+
+		LOG_DEBUG("\n Running %s: \"%s\" \n", testName.c_str(), expression.c_str());
+
 		auto container(new Container);
 		auto expressionVariable(container->createNodeVariable("expression"));
 		expressionVariable->setValue(expression);
@@ -391,16 +393,18 @@ bool Test::RunAll()
 		resultVariable->update();
 
 		auto result = resultVariable->getValueAsString();
-		LOG_DEBUG("Test %s | %s :", testName.c_str(), expression.c_str());
+
+		LOG_DEBUG("\n %s expression: \"%s\" ", testName.c_str(), expression.c_str());
 
 		if (result == resultExpected){
 			s_testSucceedCount++;
-			LOG_MESSAGE(GREEN "OK\n");
+			LOG_MESSAGE( OK );
 
 		} else {
-			LOG_MESSAGE(RED "OK\n");
+			LOG_MESSAGE( KO "\n");
 			LOG_ERROR("Should return %s\n Result %s\n", resultExpected.c_str(), result.c_str());
 		}
+		LOG_DEBUG("\n");
 
 		s_testCount++;
 

@@ -18,15 +18,18 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
+#define KO RED "[KO]" RESET
+#define OK GREEN "[OK]" RESET
+
 #ifdef _DEBUG
-	#define LOG_DEBUG(...) Nodable::internal::LogMessage( YELLOW"[DBG] "  , __VA_ARGS__ ) 
+	#define LOG_DEBUG(...) Nodable::internal::LogMessage( ""  , __VA_ARGS__ ) 
 #else
 	#define LOG_DEBUG(...)
 #endif
 
 #define LOG_MESSAGE(...) Nodable::internal::LogMessage( "", __VA_ARGS__ ) 
-#define LOG_WARNING(...) Nodable::internal::LogMessage( MAGENTA"[DBG] ", __VA_ARGS__ )
-#define LOG_ERROR(...)   Nodable::internal::LogMessage( RED"[ERR] ", __VA_ARGS__ ) 
+#define LOG_WARNING(...) Nodable::internal::LogMessage( MAGENTA "WRN " RESET, __VA_ARGS__ )
+#define LOG_ERROR(...)   Nodable::internal::LogMessage( RED "ERR " RESET, __VA_ARGS__ ) 
 
 namespace Nodable{	
 	namespace internal
