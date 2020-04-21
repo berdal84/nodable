@@ -18,15 +18,14 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 	{
 		if (_input != nullptr )
 		{
-			auto entity = _input->getOwner()->getAs<Entity*>();
+			auto entity = _input->getOwner()->as<Entity*>();
 
 			if (entity->hasComponent("operation"))
 			{
-				auto leftOperationComponent = entity->getComponent("operation");
 
-				if (leftOperationComponent != nullptr)
+				if (auto leftOperationComponent = entity->getComponent<BinaryOperationComponent>("operation"))
 				{
-					auto leftOperatorString = leftOperationComponent->getAs<BinaryOperationComponent*>()->getOperatorAsString();
+					auto leftOperatorString = leftOperationComponent->getOperatorAsString();
 
 					if (leftOperatorString == this->operatorAsString)
 						return false;

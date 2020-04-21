@@ -247,7 +247,7 @@ bool ApplicationView::draw()
 		History* currentFileHistory = nullptr;
 		
 		if ( auto file = application->getCurrentFile())
-			currentFileHistory = file->getComponent("history")->getAs<History*>();
+			currentFileHistory = file->getHistory();
 
 
         ImGui::Begin("Container", NULL, ImVec2(), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
@@ -414,7 +414,7 @@ bool ApplicationView::draw()
 
 				ImGui::BeginChild("File View", ImVec2(availSize.x, availSize.y), false);
 				{
-					auto fileView = application->getCurrentFile()->getComponent("view")->getAs<View*>();
+					auto fileView = application->getCurrentFile()->getComponent<View>("view");
 					fileView->draw();
 				}
 				ImGui::EndChild();

@@ -9,7 +9,7 @@ using namespace Nodable;
 
 bool WireView::draw()
 {
-	auto wire = getOwner()->getAs<Wire*>();
+	auto wire = getOwner()->as<Wire*>();
 	NODABLE_ASSERT(wire != nullptr);
 
 	// Update fill color depending on current state 
@@ -25,18 +25,17 @@ bool WireView::draw()
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	    // Compute start and end point
-	    Entity* sourceNode 	= source->getOwner()->getAs<Entity*>();
-	    Entity* targetNode 	= target->getOwner()->getAs<Entity*>();
+	    auto sourceNode 	= source->getOwner()->as<Entity*>();
+		auto targetNode 	= target->getOwner()->as<Entity*>();
 
 		if (!sourceNode->hasComponent("view") || // in case of of the node have no view we can't draw the wire.
 			!targetNode->hasComponent("view"))
 			return false;
 
-	    auto sourceView = reinterpret_cast<NodeView*>(sourceNode->getComponent("view"));
-	    auto targetView = reinterpret_cast<NodeView*>(targetNode->getComponent("view"));
+	    auto sourceView = sourceNode->getComponent<NodeView>("view");
+	    auto targetView = targetNode->getComponent<NodeView>("view");
 
-		if (!static_cast<View*>(sourceNode->getComponent("view"))->isVisible() || // in case of of the node have hidden view we can't draw the wire.
-			!static_cast<View*>(sourceNode->getComponent("view"))->isVisible() )
+		if (!sourceView->isVisible() || !targetView->isVisible() ) // in case of of the node have hidden view we can't draw the wire.
 			return false;
 
 	    auto sourceName = wire->getSource()->getName();

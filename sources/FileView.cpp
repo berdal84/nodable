@@ -94,8 +94,9 @@ bool FileView::draw()
 		NODE EDITOR
 	*/
 	ImGui::SetCursorPos(ImVec2(0, 0));
-	auto container = file->getComponent("container");
-	container->getComponent("view")->getAs<View*>()->draw();
+	auto container = file->getComponent<Container>("container");
+	auto view      = container->getComponent<View>("view");
+	view->draw();
 
 	return true;
 }
@@ -138,7 +139,7 @@ std::string FileView::getSelectedText()const
 }
 
 File* FileView::getFile() {
-	return getOwner()->getAs<File*>();
+	return getOwner()->as<File*>();
 }
 
 void FileView::setUndoBuffer(TextEditor::ExternalUndoBufferInterface* _buffer ) {

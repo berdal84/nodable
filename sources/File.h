@@ -34,11 +34,11 @@ namespace Nodable
 		static std::string               BrowseForFileAndReturnItsAbsolutePath (SDL_Window* currentWindow);
 
 		inline Container* getContainer() {
-			return getComponent("container")->getAs<Container*>();
+			return getComponent<Container>("container");
 		}
 		
 		inline History* getHistory() {
-			return getComponent("history")->getAs<History*>();
+			return getComponent<History>("history");
 		}
 
 	private:

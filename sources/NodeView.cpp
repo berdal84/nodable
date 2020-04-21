@@ -146,9 +146,10 @@ void NodeView::updateInputConnectedNodes(Nodable::Entity* node, float deltaTime)
 	auto maxSizeX = 0.0f;
 	for (auto eachWire : wires)
 	{
-		auto sourceNode = eachWire->getSource()->getOwner()->getAs<Entity*>();
+		auto sourceNode    = eachWire->getSource()->getOwner()->as<Entity*>(); // TODO: add some checks
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
-		auto inputView = reinterpret_cast<NodeView*>(sourceNode->getComponent("view"));
+		auto inputView     = sourceNode->getComponent<NodeView>("view");
+
 		if (isWireAnInput && !inputView->pinned)
 		{
 			cumulatedHeight += inputView->size.y;
@@ -170,8 +171,8 @@ void NodeView::updateInputConnectedNodes(Nodable::Entity* node, float deltaTime)
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
 		if (isWireAnInput)
 		{
-			auto sourceNode = eachWire->getSource()->getOwner()->getAs<Entity*>();
-			auto inputView = reinterpret_cast<NodeView*>(sourceNode->getComponent("view"));
+			auto sourceNode = eachWire->getSource()->getOwner()->as<Entity*>();
+			auto inputView  = sourceNode->getComponent<NodeView>("view");
 
 			if (!inputView->pinned)
 			{
@@ -436,7 +437,7 @@ void NodeView::ArrangeRecursively(NodeView* _view)
 			if ( eachWire->getSource() != nullptr)
 			{
 				auto node         = dynamic_cast<Entity*>(eachWire->getSource()->getOwner());
-				auto inputView    = node->getComponent("view")->getAs<NodeView*>();
+				auto inputView    = node->getComponent<NodeView>("view");
 				inputView->pinned = false;
 				ArrangeRecursively(inputView);
 			}

@@ -20,7 +20,7 @@ Application::Application(const char* _name):currentFileIndex(0)
 {
 	setMember("__class__", "Application");
 	setLabel(_name);
-	addComponent("view",      new ApplicationView(_name,    this));
+	addComponent("view", new ApplicationView(_name, this));
 }
 
 Application::~Application()
@@ -31,7 +31,7 @@ Application::~Application()
 
 bool Application::init()
 {
-	auto view = reinterpret_cast<ApplicationView*>(getComponent("view"));
+	auto view = getComponent<ApplicationView>("view");
 	view->init();
 	openFile("data/startup.txt");
 
@@ -61,8 +61,7 @@ void Application::shutdown()
 
 bool Application::openFile(const char* _filePath)
 {		
-	auto file     = File::CreateFileWithPath(_filePath);
-	auto fileView = reinterpret_cast<View*>( file->getComponent("view") );
+	auto file = File::CreateFileWithPath(_filePath);
 
 	if (file != nullptr)
 	{

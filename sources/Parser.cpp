@@ -93,7 +93,8 @@ bool Parser::eval()
 		Entity::Connect(container->createWire(), resultValue, result->getValueMember());
 
 
-	NodeView::ArrangeRecursively(result->getComponent("view")->getAs<NodeView*>());
+	auto view = result->getComponent<NodeView>("view");
+	NodeView::ArrangeRecursively(view);
 		
 	success = true;
 

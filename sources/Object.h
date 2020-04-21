@@ -47,7 +47,7 @@ namespace Nodable
 		bool                needsToBeDeleted  (){return deleted;}
 
 		template<typename T>
-		T                   getAs();
+		T                   as();
 
 	private:
 		Members             members;
@@ -62,10 +62,8 @@ namespace Nodable
 	}
 
 	template<typename T>
-	T Object::getAs()
+	T Object::as()
 	{
-		T casted;
-		NODABLE_VERIFY(casted = dynamic_cast<T>(this));
-		return casted;
+		return reinterpret_cast<T>(this);
 	}
 }

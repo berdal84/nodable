@@ -64,7 +64,7 @@ void History::setCursorPosition(int _pos)
 	}
 
 	/* After moving history, we force the file editor to evaluate the selected expression */
-	auto file = this->getOwner()->getAs<File*>();
+	auto file = this->getOwner()->as<File*>();
 	file->evaluateSelectedExpression();
 }
 

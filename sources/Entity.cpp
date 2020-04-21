@@ -11,7 +11,7 @@ using namespace Nodable;
 void Entity::Disconnect(Wire* _wire)
 {
 	_wire->getTarget()->setInputMember(nullptr);
-	_wire->getTarget()->getOwner()->getAs<Entity*>()->setDirty();
+	_wire->getTarget()->getOwner()->as<Entity*>()->setDirty();
 
 	_wire->setTarget(nullptr);
 	_wire->setSource(nullptr);
@@ -48,11 +48,6 @@ bool Entity::hasComponent(const std::string&  _componentName)const
 {
 	auto it = components.find(_componentName);
 	return it != components.end();
-}
-
-Component* Entity::getComponent(const std::string&  _componentName)const
-{
-	return components.at(_componentName);
 }
 
 void Entity::removeComponent(const std::string& _componentName)
@@ -174,10 +169,10 @@ bool Entity::update()
 
 		// then we evaluates this node
 		if(hasComponent("operation"))
-			getComponent("operation")->update();
+			getComponent<Component>("operation")->update();
 		
 		if(hasComponent("dataAccess"))
-			getComponent("dataAccess")->update();
+			getComponent<Component>("dataAccess")->update();
 
 		setDirty(false);
 	}

@@ -24,7 +24,7 @@ bool ContainerView::draw()
 	ImGui::SetCursorPos(ImVec2(0,0));
 	auto containerSize = ImGui::GetContentRegionAvail();
 
-	auto entities = this->getOwner()->getAs<Container*>()->getEntities();
+	auto entities = this->getOwner()->as<Container*>()->getEntities();
 
 	/*
 		NodeViews
@@ -33,10 +33,10 @@ bool ContainerView::draw()
 	bool isAnyNodeHovered = false;
 	{
 		// Constraints
-		auto container = getOwner()->getAs<Container*>();
+		auto container = getOwner()->as<Container*>();
 		auto result    = container->getResultVariable();
 		if (result != nullptr) { // Be sure result node is always visible
-			auto view = result->getComponent("view")->getAs<NodeView*>();
+			auto view     = result->getComponent<NodeView>("view");
 			auto position = view->getRoundedPosition();
 
 			position.x = std::max(0.0f, std::min(containerSize.x, position.x));
@@ -48,19 +48,17 @@ bool ContainerView::draw()
 		// Update
 		for (auto eachNode : entities)
 		{
-			if (eachNode->hasComponent("view"))
-				eachNode->getComponent("view")->update();
+			if (auto view = eachNode->getComponent<View>("view") )
+				view->update();
 		}
 
 		//  Draw
 
 		for (auto eachNode : entities)
 		{
-			if (eachNode->hasComponent("view"))
+			if (auto view = eachNode->getComponent<View>("view"))
 			{
-				auto view = eachNode->getComponent("view")->getAs<View*>();
-
-				if (view != nullptr && view->isVisible())
+				if (view->isVisible())
 				{
 					view->draw();
 					isAnyNodeDragged |= NodeView::GetDragged() == view;
@@ -94,13 +92,18 @@ bool ContainerView::draw()
 		// Draw temporary wire on top (overlay draw list)
 		if (draggedByMouseMember != nullptr)
 		{
-			auto lineStartPosition = draggedByMouseMember->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getMemberConnectorPosition(draggedByMouseMember->getName(), Connection_In) + ImGui::GetWindowPos();
+			auto draggedByMouseEntityView        = draggedByMouseMember->getOwner()->as<Entity*>()->getComponent<NodeView>("view");
+			auto draggedByMouseConnectorPosition = draggedByMouseEntityView->getMemberConnectorPosition(draggedByMouseMember->getName(), Connection_In);
+			auto lineStartPosition               = draggedByMouseConnectorPosition + ImGui::GetWindowPos();
+
 			auto lineEndPosition = ImGui::GetMousePos();
 
 			// Snap lineEndPosition to hoveredByMouse member's position
-			if (hoveredByMouseMember != nullptr)
-				lineEndPosition = hoveredByMouseMember->getOwner()->getAs<Entity*>()->getComponent("view")->getAs<NodeView*>()->getMemberConnectorPosition(hoveredByMouseMember->getName(), Connection_In) + ImGui::GetWindowPos();
-			
+			if (hoveredByMouseMember != nullptr) {
+				auto hoveredByMouseEntityView        = hoveredByMouseMember->getOwner()->as<Entity*>()->getComponent<NodeView>("view");
+				auto hoveredByMouseConnectorPosition = hoveredByMouseEntityView->getMemberConnectorPosition(hoveredByMouseMember->getName(), Connection_In);
+				lineEndPosition = hoveredByMouseConnectorPosition + ImGui::GetWindowPos();
+			}
 			ImGui::GetOverlayDrawList()->AddLine(lineStartPosition, lineEndPosition, getColor(ColorType_BorderHighlights), connectorRadius * float(0.9));
 		}
 
@@ -113,7 +116,7 @@ bool ContainerView::draw()
 			{
 				if (draggedByMouseMember != hoveredByMouseMember)
 				{
-					auto wire = draggedByMouseMember->getOwner()->getAs<Entity*>()->getParent()->createWire();
+					auto wire = draggedByMouseMember->getOwner()->as<Entity*>()->getParent()->createWire();
 					Entity::Connect(wire, draggedByMouseMember, hoveredByMouseMember);
 				}
 
@@ -147,7 +150,8 @@ bool ContainerView::draw()
 			auto drag = ImGui::GetMouseDragDelta();
 			for (auto eachNode : entities)
 			{
-				reinterpret_cast<NodeView*>(eachNode->getComponent("view"))->translate(drag);
+				if (auto view = eachNode->getComponent< NodeView>("view") ) 
+					view->translate(drag);
 			}
 			ImGui::ResetMouseDragDelta();
 		}
@@ -163,7 +167,7 @@ bool ContainerView::draw()
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{
-		auto container = getOwner()->getAs<Container*>();
+		auto container = getOwner()->as<Container*>();
 		Entity* newEntity = nullptr;
 
 		// Title :
@@ -224,9 +228,8 @@ bool ContainerView::draw()
 
 		if (newEntity != nullptr && newEntity->hasComponent("view"))
 		{
-			auto view = static_cast<NodeView*>(newEntity->getComponent("view"));
 
-			if (view != nullptr)
+			if (auto view = newEntity->getComponent<NodeView>("view"))
 			{
 				auto pos = ImGui::GetMousePos();
 				pos.x -= origin.x;

@@ -56,7 +56,7 @@ void File::save()
 {
 	if (modified) {
 		std::ofstream fileStream(this->path.c_str());
-		auto view = getComponent("view")->getAs<FileView*>();
+		auto view    = getComponent<FileView>("view");
 		auto content = view->getText();
 		fileStream.write( content.c_str(), content.size());
 		modified = false;
@@ -134,16 +134,17 @@ std::string File::BrowseForFileAndReturnItsAbsolutePath(SDL_Window* currentWindo
 
 bool File::evaluateExpression(std::string& _expression)
 {
-	auto var = getContainer()->createNodeVariable(ICON_FA_CODE);
-	reinterpret_cast<View*>( var->getComponent("view"))->setVisible(false);
+	auto variable  = getContainer()->createNodeVariable(ICON_FA_CODE);
+	variable->setValue(_expression);
 
-	var->setValue(_expression);
+	auto view = variable->getComponent<View>("view");
+	view->setVisible(false);
 
-	if (var->isSet())
+	if (variable->isSet())
 	{
 		/* Create a Parser node. The Parser will cut expression string into tokens
 		(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
-		auto Parser = getContainer()->createNodeParser(var);
+		auto Parser = getContainer()->createNodeParser(variable);
 		return Parser->eval();
 		//container->destroyNode(Parser);
 	}
@@ -166,7 +167,7 @@ bool File::update() {
 
 	auto member		= result->getValueMember();
 	auto expression = member->getSourceExpression();
-	auto view		= getComponent("view")->getAs<FileView*>();
+	auto view		= getComponent<FileView>("view");
 
 	view->replaceSelectedText(expression);
 	
@@ -179,7 +180,7 @@ bool File::evaluateSelectedExpression()
 
 	getContainer()->clear();
 
-	auto view = getComponent("view")->getAs<FileView*>();
+	auto view = getComponent<FileView>("view");
 
 	auto expression = view->getSelectedText();
 	success = evaluateExpression(expression);

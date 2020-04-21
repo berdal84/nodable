@@ -24,7 +24,7 @@ namespace Nodable
 		State_      getState     ()const{return state;}
 		Member*     getSource    ()const{return source;}
 		Member*     getTarget    ()const{return target;}
-		WireView*   getView      ()const{return (WireView*)getComponent("view");}
+		WireView*   getView      ()const{return getComponent<WireView>("view");}
 
 	private:
 		/* update this->state according to this->source and this->target values */

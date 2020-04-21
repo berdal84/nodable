@@ -26,8 +26,8 @@ void Container::clear()
 {
 	// Store the Result node position to restore it later
 	if (result != nullptr) {
-		auto view = result->getComponent("view");
-		Container::LastResultNodePosition = view->getAs<NodeView*>()->getRoundedPosition();
+		auto view = result->getComponent<NodeView>("view");
+		Container::LastResultNodePosition = view->getRoundedPosition();
 	}
 
 	
@@ -317,12 +317,12 @@ Wire* Container::createWire()
 void Container::tryToRestoreResultNodePosition()
 {
 	// Store the Result node position to restore it later
-	auto view = result->getComponent("view");
+	auto view = result->getComponent<NodeView>("view");
 	bool hasPosition = Container::LastResultNodePosition.x != -1 &&
 	                   Container::LastResultNodePosition.y != -1;
 	if ( view && hasPosition)
 	{
-		view->getAs<NodeView*>()->setPosition(Container::LastResultNodePosition);
+		view->setPosition(Container::LastResultNodePosition);
 	}
 }
 

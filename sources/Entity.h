@@ -5,6 +5,7 @@
 #include "Member.h"
 #include <string>
 #include <memory>               // for unique_ptr
+#include <typeinfo>
 
 namespace Nodable{
 	/* Base class for all Nodes */
@@ -21,11 +22,24 @@ namespace Nodable{
 		
 		/* Component related methods */
 		void                addComponent      (const std::string&  /*_componentName*/, Component* /* _component */);
-		bool                hasComponent      (const std::string&  /*_componentName*/)const;
-		Component*          getComponent      (const std::string&  /*_componentName*/)const;
+		bool                hasComponent      (const std::string&  /*_componentName*/)const;		
 		const Components&   getComponents     ()const{return components;}
 		void                removeComponent   (const std::string& /* _componentName */);
-		
+
+		template<typename T>
+		T* getComponent(const std::string& _componentName)const {
+
+			if (auto component = components.at(_componentName)) {
+				return component->as<T*>();
+			}
+			return nullptr;
+		};
+
+		/*
+		Component* getComponent(const std::string& _componentName)const {
+			return components.at(_componentName);
+		};*/
+
 		/* Set a new parent container */
 		void                setParent         (Container* _container);
 
@@ -58,6 +72,7 @@ namespace Nodable{
 	
 		/* Disconnect a wire. This method is the opposite of Entity::Connect.*/
 		static void         Disconnect        (Wire* _wire);
+
 	private:
 		Components                components;
 		Container*                parent  = nullptr;
