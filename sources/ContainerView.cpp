@@ -24,7 +24,7 @@ bool ContainerView::draw()
 	ImGui::SetCursorPos(ImVec2(0,0));
 	auto containerSize = ImGui::GetContentRegionAvail();
 
-	auto entities = this->getOwner()->as<Container*>()->getEntities();
+	auto entities = this->getOwner()->as<Container>()->getEntities();
 
 	/*
 		NodeViews
@@ -33,7 +33,7 @@ bool ContainerView::draw()
 	bool isAnyNodeHovered = false;
 	{
 		// Constraints
-		auto container = getOwner()->as<Container*>();
+		auto container = getOwner()->as<Container>();
 		auto result    = container->getResultVariable();
 		if (result != nullptr) { // Be sure result node is always visible
 			auto view     = result->getComponent<NodeView>("view");
@@ -92,7 +92,7 @@ bool ContainerView::draw()
 		// Draw temporary wire on top (overlay draw list)
 		if (draggedByMouseMember != nullptr)
 		{
-			auto draggedByMouseEntityView        = draggedByMouseMember->getOwner()->as<Entity*>()->getComponent<NodeView>("view");
+			auto draggedByMouseEntityView        = draggedByMouseMember->getOwner()->as<Entity>()->getComponent<NodeView>("view");
 			auto draggedByMouseConnectorPosition = draggedByMouseEntityView->getMemberConnectorPosition(draggedByMouseMember->getName(), Connection_In);
 			auto lineStartPosition               = draggedByMouseConnectorPosition + ImGui::GetWindowPos();
 
@@ -100,7 +100,7 @@ bool ContainerView::draw()
 
 			// Snap lineEndPosition to hoveredByMouse member's position
 			if (hoveredByMouseMember != nullptr) {
-				auto hoveredByMouseEntityView        = hoveredByMouseMember->getOwner()->as<Entity*>()->getComponent<NodeView>("view");
+				auto hoveredByMouseEntityView        = hoveredByMouseMember->getOwner()->as<Entity>()->getComponent<NodeView>("view");
 				auto hoveredByMouseConnectorPosition = hoveredByMouseEntityView->getMemberConnectorPosition(hoveredByMouseMember->getName(), Connection_In);
 				lineEndPosition = hoveredByMouseConnectorPosition + ImGui::GetWindowPos();
 			}
@@ -116,7 +116,7 @@ bool ContainerView::draw()
 			{
 				if (draggedByMouseMember != hoveredByMouseMember)
 				{
-					auto wire = draggedByMouseMember->getOwner()->as<Entity*>()->getParent()->createWire();
+					auto wire = draggedByMouseMember->getOwner()->as<Entity>()->getParent()->createWire();
 					Entity::Connect(wire, draggedByMouseMember, hoveredByMouseMember);
 				}
 
@@ -167,7 +167,7 @@ bool ContainerView::draw()
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{
-		auto container = getOwner()->as<Container*>();
+		auto    container = getOwner()->as<Container>();
 		Entity* newEntity = nullptr;
 
 		// Title :

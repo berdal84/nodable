@@ -18,7 +18,7 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 	{
 		if (_input != nullptr )
 		{
-			auto entity = _input->getOwner()->as<Entity*>();
+			auto entity = _input->getOwner()->as<Entity>();
 
 			if (entity->hasComponent("operation"))
 			{

@@ -159,7 +159,8 @@ std::string Member::getSourceExpression()const
 		if (inputMember->getOwner()->getMember("__class__")->getValueAsString() == "Variable" &&
 			getOwner()->getMember("__class__")->getValueAsString() == "Variable")
 		{
-			expression.append(inputMember->getOwner()->as<Variable*>()->getName());
+			auto variable = inputMember->getOwner()->as<Variable>();
+			expression.append(variable->getName());
 			expression.append("=");
 			expression.append(inputMember->getSourceExpression());
 

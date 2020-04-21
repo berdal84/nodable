@@ -9,7 +9,7 @@ using namespace Nodable;
 
 bool WireView::draw()
 {
-	auto wire = getOwner()->as<Wire*>();
+	auto wire = getOwner()->as<Wire>();
 	NODABLE_ASSERT(wire != nullptr);
 
 	// Update fill color depending on current state 
@@ -25,8 +25,8 @@ bool WireView::draw()
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	    // Compute start and end point
-	    auto sourceNode 	= source->getOwner()->as<Entity*>();
-		auto targetNode 	= target->getOwner()->as<Entity*>();
+	    auto sourceNode 	= source->getOwner()->as<Entity>();
+		auto targetNode 	= target->getOwner()->as<Entity>();
 
 		if (!sourceNode->hasComponent("view") || // in case of of the node have no view we can't draw the wire.
 			!targetNode->hasComponent("view"))

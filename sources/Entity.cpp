@@ -11,7 +11,7 @@ using namespace Nodable;
 void Entity::Disconnect(Wire* _wire)
 {
 	_wire->getTarget()->setInputMember(nullptr);
-	_wire->getTarget()->getOwner()->as<Entity*>()->setDirty();
+	_wire->getTarget()->getOwner()->as<Entity>()->setDirty();
 
 	_wire->setTarget(nullptr);
 	_wire->setSource(nullptr);

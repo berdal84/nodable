@@ -146,7 +146,7 @@ void NodeView::updateInputConnectedNodes(Nodable::Entity* node, float deltaTime)
 	auto maxSizeX = 0.0f;
 	for (auto eachWire : wires)
 	{
-		auto sourceNode    = eachWire->getSource()->getOwner()->as<Entity*>(); // TODO: add some checks
+		auto sourceNode    = eachWire->getSource()->getOwner()->as<Entity>(); // TODO: add some checks
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
 		auto inputView     = sourceNode->getComponent<NodeView>("view");
 
@@ -171,7 +171,7 @@ void NodeView::updateInputConnectedNodes(Nodable::Entity* node, float deltaTime)
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
 		if (isWireAnInput)
 		{
-			auto sourceNode = eachWire->getSource()->getOwner()->as<Entity*>();
+			auto sourceNode = eachWire->getSource()->getOwner()->as<Entity>();
 			auto inputView  = sourceNode->getComponent<NodeView>("view");
 
 			if (!inputView->pinned)

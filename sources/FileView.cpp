@@ -139,7 +139,7 @@ std::string FileView::getSelectedText()const
 }
 
 File* FileView::getFile() {
-	return getOwner()->as<File*>();
+	return getOwner()->as<File>();
 }
 
 void FileView::setUndoBuffer(TextEditor::ExternalUndoBufferInterface* _buffer ) {

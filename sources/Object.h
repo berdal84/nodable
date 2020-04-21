@@ -47,7 +47,7 @@ namespace Nodable
 		bool                needsToBeDeleted  (){return deleted;}
 
 		template<typename T>
-		T                   as();
+		T*                  as();
 
 	private:
 		Members             members;
@@ -62,8 +62,8 @@ namespace Nodable
 	}
 
 	template<typename T>
-	T Object::as()
+	T* Object::as()
 	{
-		return reinterpret_cast<T>(this);
+		return reinterpret_cast<T*>(this);
 	}
 }

@@ -30,7 +30,7 @@ namespace Nodable{
 		T* getComponent(const std::string& _componentName)const {
 
 			if (auto component = components.at(_componentName)) {
-				return component->as<T*>();
+				return component->as<T>();
 			}
 			return nullptr;
 		};
