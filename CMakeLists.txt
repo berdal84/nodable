@@ -24,6 +24,7 @@ endif()
 # Find packages
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
+find_package(MIRROR REQUIRED HINTS "./extern/mirror")
 
 # Create a SOURCES variable that contains all source files
 aux_source_directory( "./sources/" NODABLE)
@@ -38,6 +39,7 @@ set(SOURCES
   ${TEXTEDIT}    
   "./extern/imgui/examples/imgui_impl_opengl3.cpp"
   "./extern/imgui/examples/imgui_impl_sdl.cpp"
+  ${MIRROR_SOURCES}
 )
 
 # Include headers
@@ -51,6 +53,7 @@ include_directories(
     "./libs/gl3w/GL"
     "./libs/gl3w"
     "./libs/glfw/include/GLFW"
+    ${MIRROR_INCLUDE_DIRS}
 )
 
 # Build:

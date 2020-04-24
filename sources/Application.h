@@ -6,11 +6,14 @@
 #include "File.h"
 #include <string>
 #include <memory>    /* For unique_ptr */
+#include <mirror.h>
 
 namespace Nodable
 {
+
 	class Application : public Entity
 	{
+
 	public:
 		Application(const char* /*_applicationName*/);
 		~Application();
@@ -51,5 +54,14 @@ namespace Nodable
 
 		std::vector<File*> loadedFiles;
 		size_t             currentFileIndex; /* index that identify the current file in loadedFiles */
+	
+		/** Reflection using mirror*/
+		MIRROR_CLASS(Application)
+		(
+			MIRROR_MEMBER(quit)
+			MIRROR_MEMBER(currentFileIndex)
+		);
 	};
 }
+
+
