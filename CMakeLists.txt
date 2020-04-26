@@ -1,8 +1,8 @@
 ﻿
 cmake_minimum_required (VERSION 3.8)
 
-# Setup :
-#========
+# General :
+#==========
 
 # Declare project name
 project ("Nodable")
@@ -18,7 +18,7 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
 
 # If a default install prefix has not been set, we set it.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/install" CACHE PATH "..." FORCE)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/install/${CMAKE_CONFIGURATION_TYPES}" CACHE PATH "..." FORCE)
 endif()
 
 # Find packages
@@ -71,12 +71,12 @@ add_custom_command(
         TARGET Nodable PRE_BUILD
 
         COMMAND ${CMAKE_COMMAND} -E copy_directory  # Copy assets (fonts, scripts, etc..)
-                ${CMAKE_SOURCE_DIR}/data
-                ${CMAKE_CURRENT_BINARY_DIR}/data
+                ${CMAKE_CURRENT_SOURCE_DIR}/data
+                ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/data
 
         COMMAND ${CMAKE_COMMAND} -E copy            # Copy SDL2 runtime library
                 ${SDL2_RUNTIME}
-                ${CMAKE_CURRENT_BINARY_DIR})
+                ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
 # Installation :
 #===============
@@ -89,7 +89,6 @@ install(DIRECTORY "data" DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 # Copy executable
 install(TARGETS Nodable DESTINATION ${CMAKE_INSTALL_PREFIX} )
-
 
 # Tests :
 #=========
