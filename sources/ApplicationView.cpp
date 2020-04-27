@@ -68,8 +68,8 @@ bool ApplicationView::init()
     sdlWindow = SDL_CreateWindow(  getMember("glWindowName")->getValueAsString().c_str(),
                                 SDL_WINDOWPOS_CENTERED,
                                 SDL_WINDOWPOS_CENTERED,
-                                getMember("glWindowSizeX")->getValueAsNumber(),
-                                getMember("glWindowSizeY")->getValueAsNumber(),
+                                int(getMember("glWindowSizeX")->getValueAsNumber()),
+                                int(getMember("glWindowSizeY")->getValueAsNumber()),
                                 SDL_WINDOW_OPENGL |
                                 SDL_WINDOW_RESIZABLE |
                                /* SDL_WINDOW_FULLSCREEN_DESKTOP*/
@@ -234,7 +234,7 @@ bool ApplicationView::draw()
         auto renderer = SDL_GetRenderer(sdlWindow);
         SDL_GetWindowSize(sdlWindow, &width, &height);
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-        ImGui::SetNextWindowSize(ImVec2(width, height));
+        ImGui::SetNextWindowSize(ImVec2( float(width), float(height) ));
 
 		// Declare variables that can be modified my mouse and keyboard
 		auto userWantsToUndo(false);

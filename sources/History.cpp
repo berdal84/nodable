@@ -48,7 +48,7 @@ void Nodable::History::clear()
 	commandsCursor = 0;
 }
 
-void History::setCursorPosition(int _pos)
+void History::setCursorPosition(size_t _pos)
 {
 	/* Do nothing if cursor is already well positionned */
 	if (_pos == commandsCursor )

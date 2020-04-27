@@ -37,7 +37,7 @@ namespace Nodable
 		void             saveCurrentFile()const;
 		void             closeCurrentFile();
 		File*			 getCurrentFile()const;
-		unsigned int     getFileCount                          ()const              { return loadedFiles.size(); }
+		size_t           getFileCount                          ()const              { return loadedFiles.size(); }
 		File*            getFileAtIndex                        (size_t _index)const { return loadedFiles[_index]; }
 		size_t           getCurrentFileIndex                   ()const              { return currentFileIndex; }
 		void             setCurrentFileWithIndex               (size_t _index);

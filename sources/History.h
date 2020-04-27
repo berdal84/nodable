@@ -50,11 +50,11 @@ namespace Nodable
 		void clear();
 
 		/* To get the size of the history (command count)*/
-		int getSize() { return commands.size(); }
+		size_t getSize()const { return commands.size(); }
 
 		/* To get the current command*/
-		int getCursorPosition() { return commandsCursor; }
-		void setCursorPosition(int _pos);
+		size_t getCursorPosition()const { return commandsCursor; }
+		void setCursorPosition(size_t _pos);
 
 		const char* getCommandDescriptionAtPosition(size_t _commandId);
 

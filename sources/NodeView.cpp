@@ -177,7 +177,7 @@ void NodeView::updateInputConnectedNodes(Nodable::Entity* node, float deltaTime)
 			if (!inputView->pinned)
 			{
 				// Compute new position for this input view
-				ImVec2 newPos( position.x - size.x / 2.0f - maxSizeX - spacingDist + inputView->size.x / 2.0f, posY + inputView->size.y / 2.0);
+				ImVec2 newPos( position.x - size.x / 2.0f - maxSizeX - spacingDist + inputView->size.x / 2.0f, posY + inputView->size.y / 2.0f);
 				posY += inputView->size.y + nodeVerticalSpacing;
 
 				// Compute a delta to apply to move to this new position
@@ -254,9 +254,9 @@ bool NodeView::draw()
 		// Draw an additionnal blinking rectangle when selected
 		if (IsSelected(this))
 		{
-			float alpha  = sin(ImGui::GetTime() * 10.0f) * 0.25f + 0.5f;
+			auto alpha   = sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
 			float offset = 4.0f;
-			draw_list->AddRect(itemRectMin - ImVec2(offset), itemRectMax + ImVec2(offset), ImColor(1.0f, 1.0f, 1.0f, alpha), borderRadius + offset, ~0, offset / 2.0f);
+			draw_list->AddRect(itemRectMin - ImVec2(offset), itemRectMax + ImVec2(offset), ImColor(1.0f, 1.0f, 1.0f, float(alpha) ), borderRadius + offset, ~0, offset / 2.0f);
 		}
 	}
 
@@ -462,8 +462,8 @@ bool NodeView::drawMember(Member* _member) {
 		{
 		case Type_Number:
 			{
-				float f(_member->getValueAsNumber());
-				if (ImGui::InputFloat(label.c_str(), &f))
+				double f(_member->getValueAsNumber());
+				if (ImGui::InputDouble(label.c_str(), &f))
 				{
 					_member->setValue(f);
 					node->setDirty(true);
@@ -546,10 +546,10 @@ void NodeView::drawMemberConnector(ImVec2& connectorPos, Nodable::Member* _membe
 	// Unvisible Button on top of the Circle
 
 	ImVec2 cpos = ImGui::GetCursorPos();
-	float invisibleButtonOffsetFactor(1.2);
+	auto invisibleButtonOffsetFactor = 1.2f;
 	ImGui::SetCursorScreenPos(connectorPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor) + ImGui::GetWindowPos());
 	ImGui::PushID(_member);
-	bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * float(2) * invisibleButtonOffsetFactor, connectorRadius * float(2) * invisibleButtonOffsetFactor));
+	bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * 2.0f * invisibleButtonOffsetFactor, connectorRadius * 2.0f * invisibleButtonOffsetFactor));
 	ImGui::PopID();
 	ImGui::SetCursorPos(cpos);
 
