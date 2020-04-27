@@ -1,6 +1,13 @@
 ﻿
 cmake_minimum_required (VERSION 3.8)
 
+# Get architecture
+if (${CMAKE_SIZEOF_VOID_P} MATCHES 8)
+  set(ARCHITECTURE "x64")
+else ()
+  set(ARCHITECTURE "x86")
+endif ()
+
 # General :
 #==========
 
@@ -18,7 +25,7 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
 
 # If a default install prefix has not been set, we set it.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/install/${CMAKE_CONFIGURATION_TYPES}" CACHE PATH "..." FORCE)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/install" CACHE PATH "..." FORCE)
 endif()
 
 # Find packages
@@ -59,36 +66,39 @@ include_directories(
 # Build:
 #=======
 
-# Add an executable called Nodable(.exe on windows)
-add_executable (Nodable "./sources/main" ${SOURCES})
+# Add an executable called Nodable(.exe on windows) 
+add_executable (Nodable WIN32 "./sources/main" ${SOURCES}) # WIN32 will give WIN32_EXECUTABLE flag if targets windows (no console)
 
 # Link libraries
 target_link_libraries(Nodable PUBLIC ${OPENGL_LIBRARY})
-target_link_libraries(Nodable LINK_PUBLIC ${SDL2_STATIC}) # TODO: fix the mystery of "why should I have to link static at compile time and THEN use a DLL at runtime"
+target_link_libraries(Nodable LINK_PUBLIC ${SDL2_STATIC})
 
 # Configure files (a link is created between source and target, if source is modified, target will be updated)
+set(BUILD_PATH ${CMAKE_BINARY_DIR}/$<CONFIG>)
 add_custom_command(
         TARGET Nodable PRE_BUILD
 
         COMMAND ${CMAKE_COMMAND} -E copy_directory  # Copy assets (fonts, scripts, etc..)
                 ${CMAKE_CURRENT_SOURCE_DIR}/data
-                ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/data
+                ${BUILD_PATH}/data
 
         COMMAND ${CMAKE_COMMAND} -E copy            # Copy SDL2 runtime library
                 ${SDL2_RUNTIME}
-                ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+                ${BUILD_PATH})
 
 # Installation :
 #===============
 
+set(INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/$<CONFIG>)
+
 # Copy DLLs
-install(FILES ${SDL2_RUNTIME} DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES ${SDL2_RUNTIME} DESTINATION ${INSTALL_PATH})
 
 # Copy assets
-install(DIRECTORY "data" DESTINATION ${CMAKE_INSTALL_PREFIX} )
+install(DIRECTORY "data" DESTINATION ${INSTALL_PATH} )
 
 # Copy executable
-install(TARGETS Nodable DESTINATION ${CMAKE_INSTALL_PREFIX} )
+install(TARGETS Nodable RUNTIME DESTINATION ${INSTALL_PATH})
 
 # Tests :
 #=========

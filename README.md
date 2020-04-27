@@ -29,9 +29,9 @@ Open a command line in the Nodable folder and type:
 ```
 mkdir build
 cd build
-cmake --build . --config <Config> --target Debug  
+cmake --build . --config <Config> --target install  
 ```
-This will create a clean `./install/Debug` directory with only necessary files to run the software.
+This will create a clean `./install/x64/<Config>` directory with only necessary files to run the software.
 
 You can also open the Visual Studio solution generated into `./build` if you want.
 
