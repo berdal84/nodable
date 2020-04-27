@@ -29,9 +29,12 @@ Open a command line in the Nodable folder and type:
 ```
 mkdir build
 cd build
-cmake --build . --config <Config> --target install  
+cmake ..
+cmake --build . --config Release 
 ```
-This will create a clean `./install/x64/<Config>` directory with only necessary files to run the software.
+Nodable will be built into `./build/Release/`
+
+Adding optionnal `--target install` to the fourth line will create a clean `./install/Release` directory with only necessary files to run the software.
 
 You can also open the Visual Studio solution generated into `./build` if you want.
 
