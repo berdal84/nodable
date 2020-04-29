@@ -79,10 +79,14 @@ namespace Nodable{
 
 		static bool		  IsANodeDragged();
 
+		/* Move instantly _view to be inside _screenRect */
+		static void       ConstraintToRect(NodeView* _view, ImRect _screenRect);
+
 		/* Return a pointer to the dragged view or nullptr if no view are dragged */
 		static NodeView*  GetDragged          ();
 
 		static DrawDetail_ s_drawDetail;  // global draw detail (check DrawDetail_ enum)
+
 
 	private:
 		/*	Draw a Node Member at cursor position.

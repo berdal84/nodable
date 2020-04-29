@@ -5,9 +5,8 @@ using namespace Nodable;
 
 View::View():
 	hovered(false),
-	screenPosMin(0,0),
-	screenPosMax(0,0),
-	visible(true)
+	visible(true),
+	screenRect()
 {
 	setMember("__class__", "View");
 	
@@ -37,8 +36,8 @@ ImColor View::getColor(ColorType_ _type)
 
 bool Nodable::View::drawAsChild(const char* _name, const ImVec2& _size, bool border, ImGuiWindowFlags flags)
 {
-	this->screenPosMin = ImGui::GetCursorScreenPos();
-	this->screenPosMax = ImGui::GetCursorScreenPos() + _size;
+	this->screenRect.Min = ImGui::GetCursorScreenPos();
+	this->screenRect.Max = ImGui::GetCursorScreenPos() + _size;
 
 	ImGui::BeginChild(_name, _size, border, flags);
 	auto result = this->draw();

@@ -96,9 +96,7 @@ bool FileView::draw()
 	auto container = file->getComponent<Container>("container");
 	auto view      = container->getComponent<View>("view");
 
-	view->screenPosMin = this->screenPosMin;
-	view->screenPosMax = this->screenPosMax;
-
+	view->screenRect = this->screenRect;
 	view->draw();
 
 	return true;

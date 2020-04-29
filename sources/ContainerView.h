@@ -10,7 +10,5 @@ namespace Nodable{
 	public:
 		virtual ~ContainerView(){};
 		bool    draw();
-	private:
-		void constraintToBeVisible(NodeView*)const;
 	};
 }

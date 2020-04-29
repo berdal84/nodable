@@ -34,10 +34,9 @@ bool ContainerView::draw()
 		auto container = getOwner()->as<Container>();
 		auto result    = container->getResultVariable();
 
-		if (result != nullptr) { // Be sure result node is always visible
-			auto view          = result->getComponent<NodeView>("view");
-
-			this->constraintToBeVisible(view);
+		if (result != nullptr) { // Make sure result node is always visible
+			auto view = result->getComponent<NodeView>("view");
+			NodeView::ConstraintToRect(view, this->screenRect);
 		}
 
 		// Update
@@ -241,21 +240,3 @@ bool ContainerView::draw()
 	return true;
 }
 
-void Nodable::ContainerView::constraintToBeVisible(NodeView* _view) const
-{
-	auto currentPosition   = _view->getRoundedPosition() + ImGui::GetCursorScreenPos();
-	auto newPosition       = currentPosition;
-
-	if (newPosition.y < this->screenPosMin.y )
-		newPosition.y = this->screenPosMin.y;
-	
-	if (newPosition.y > this->screenPosMax.y )
-		newPosition.y = this->screenPosMax.y;
-
-	_view->setPosition(newPosition - ImGui::GetCursorScreenPos());
-	
-
-	
-
-	
-}

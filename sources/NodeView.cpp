@@ -580,6 +580,29 @@ void NodeView::drawMemberConnector(ImVec2& connectorPos, Nodable::Member* _membe
 	if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedByMouseMember == nullptr)
 		s_draggedByMouseMember = _member;
 }
-;
+
+void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _screenRect)
+{
+	auto currentPosition = _view->getRoundedPosition() + ImGui::GetCursorScreenPos();
+	auto newPosition     = currentPosition;
+
+	/*
+		Constraint to _screenRect.
+		TODO: optimize
+	*/
+
+	if (newPosition.y < _screenRect.Min.y)          /* Y axis */
+		newPosition.y = _screenRect.Min.y;
+	else if (newPosition.y > _screenRect.Max.y)
+		newPosition.y = _screenRect.Max.y;
+	
+	if (newPosition.x < _screenRect.Min.x)          /* X axis */
+		newPosition.x = _screenRect.Min.x;
+	else if (newPosition.x > _screenRect.Max.x)
+		newPosition.x = _screenRect.Max.x;
+
+	_view->setPosition(newPosition - ImGui::GetCursorScreenPos());
+
+}
 
 

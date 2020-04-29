@@ -118,6 +118,7 @@ Variable* Container::createNodeResult()
 	auto member = variable->getMember("value");
 	member->setConnectionFlags(Connection_In);                     // disable output because THIS node is the output !
 	result = variable;
+
 	return variable;
 }
 
@@ -323,6 +324,16 @@ void Container::tryToRestoreResultNodePosition()
 	if ( view && hasPosition)
 	{
 		view->setPosition(Container::LastResultNodePosition);
+
+	} else { /* position well the result node */
+		
+		if (this->hasComponent("view")) { // could be run headless
+
+			auto rect = this->getComponent<View>("view")->screenRect;
+			ImVec2 centerRightPos = rect.GetCenter();
+			view->setPosition(centerRightPos);
+		}
+
 	}
 }
 

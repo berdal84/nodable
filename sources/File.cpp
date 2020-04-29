@@ -7,6 +7,7 @@
 #include "View.h"
 #include "Variable.h"
 #include "Log.h"
+#include "NodeView.h"
 
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
 
@@ -133,6 +134,8 @@ std::string File::BrowseForFileAndReturnItsAbsolutePath(SDL_Window* currentWindo
 
 bool File::evaluateExpression(std::string& _expression)
 {
+	boolean success;
+
 	auto variable  = getContainer()->createNodeVariable(ICON_FA_CODE);
 	variable->setValue(_expression);
 
@@ -143,9 +146,12 @@ bool File::evaluateExpression(std::string& _expression)
 	{
 		/* Create a Parser node. The Parser will cut expression string into tokens
 		(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
-		auto Parser = getContainer()->createNodeParser(variable);
-		return Parser->eval();
-		//container->destroyNode(Parser);
+		auto parser = getContainer()->createNodeParser(variable);		
+		success     = parser->eval();
+
+
+	} else {
+		success = false;
 	}
 
 	return false;
