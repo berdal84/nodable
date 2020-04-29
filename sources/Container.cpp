@@ -318,22 +318,23 @@ Wire* Container::createWire()
 void Container::tryToRestoreResultNodePosition()
 {
 	// Store the Result node position to restore it later
-	auto view = result->getComponent<NodeView>("view");
-	bool hasPosition = Container::LastResultNodePosition.x != -1 &&
-	                   Container::LastResultNodePosition.y != -1;
-	if ( view && hasPosition)
-	{
-		view->setPosition(Container::LastResultNodePosition);
+	auto nodeView = result->getComponent<NodeView>("view");	
+	bool resultNodeHadPosition = Container::LastResultNodePosition.x != -1 &&
+	                             Container::LastResultNodePosition.y != -1;
 
-	} else { /* position well the result node */
-		
-		if (this->hasComponent("view")) { // could be run headless
+	if (nodeView && this->hasComponent("view") ) {
 
-			auto rect = this->getComponent<View>("view")->screenRect;
-			ImVec2 centerRightPos = rect.GetCenter();
-			view->setPosition(centerRightPos);
+		auto view = this->getComponent<View>("view");
+
+		if ( resultNodeHadPosition) {                                 /* if result node had a position stored, we restore it */
+			nodeView->setPosition(Container::LastResultNodePosition);
+			NodeView::ConstraintToRect(nodeView, view->visibleRect);   // but we constraint it to be visible
+
+		} else {                                                      /* else we set a default position*/			
+			ImVec2 defaultPosition = view->visibleRect.GetCenter();
+			defaultPosition.x += view->visibleRect.GetWidth() * 1.0f / 6.0f;
+			nodeView->setPosition(defaultPosition);
 		}
-
 	}
 }
 

@@ -96,7 +96,7 @@ bool FileView::draw()
 	auto container = file->getComponent<Container>("container");
 	auto view      = container->getComponent<View>("view");
 
-	view->screenRect = this->screenRect;
+	view->visibleRect = this->visibleRect;
 	view->draw();
 
 	return true;

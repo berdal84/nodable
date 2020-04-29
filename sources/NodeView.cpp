@@ -581,27 +581,36 @@ void NodeView::drawMemberConnector(ImVec2& connectorPos, Nodable::Member* _membe
 		s_draggedByMouseMember = _member;
 }
 
-void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _screenRect)
+ImRect Nodable::NodeView::getRect() const {
+	return ImRect(getRoundedPosition(), getRoundedPosition() + size);
+}
+
+void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 {
-	auto currentPosition = _view->getRoundedPosition() + ImGui::GetCursorScreenPos();
-	auto newPosition     = currentPosition;
+	auto currPos  = _view->getRoundedPosition();	
+	auto nodeRect = _view->getRect();
+	_rect.Expand(_view->size * -0.5f);
 
 	/*
-		Constraint to _screenRect.
-		TODO: optimize
+		Constraint to _rect.
 	*/
-
-	if (newPosition.y < _screenRect.Min.y)          /* Y axis */
-		newPosition.y = _screenRect.Min.y;
-	else if (newPosition.y > _screenRect.Max.y)
-		newPosition.y = _screenRect.Max.y;
 	
-	if (newPosition.x < _screenRect.Min.x)          /* X axis */
-		newPosition.x = _screenRect.Min.x;
-	else if (newPosition.x > _screenRect.Max.x)
-		newPosition.x = _screenRect.Max.x;
+	if ( !_rect.Contains(nodeRect) ) {
 
-	_view->setPosition(newPosition - ImGui::GetCursorScreenPos());
+		auto newPos = currPos;
+
+		if (newPos.y < _rect.Min.y)          /* Y axis */
+			newPos.y = _rect.Min.y;
+		else if (newPos.y > _rect.Max.y)
+			newPos.y = _rect.Max.y;
+
+		if (newPos.x < _rect.Min.x)          /* X axis */
+			newPos.x = _rect.Min.x;
+		else if (newPos.x > _rect.Max.x)
+			newPos.x = _rect.Max.x;
+
+		_view->setPosition(newPos);
+	}
 
 }
 

@@ -57,7 +57,8 @@ namespace Nodable{
 		/* Return true if this view is hovered by mouse cursor, false if not */
 		bool        isHovered      ()const{return hovered;}
 
-		ImRect  screenRect;
+		ImRect  visibleRect;
+		ImRect  visibleScreenRect;
 
 	protected:
 		bool    hovered;
