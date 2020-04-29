@@ -22,8 +22,6 @@ bool ContainerView::draw()
 	
 	auto origin = ImGui::GetCursorScreenPos();
 	ImGui::SetCursorPos(ImVec2(0,0));
-	auto containerSize = ImGui::GetContentRegionAvail();
-
 	auto entities = this->getOwner()->as<Container>()->getEntities();
 
 	/*
@@ -35,14 +33,11 @@ bool ContainerView::draw()
 		// Constraints
 		auto container = getOwner()->as<Container>();
 		auto result    = container->getResultVariable();
+
 		if (result != nullptr) { // Be sure result node is always visible
-			auto view     = result->getComponent<NodeView>("view");
-			auto position = view->getRoundedPosition();
+			auto view          = result->getComponent<NodeView>("view");
 
-			position.x = std::max(0.0f, std::min(containerSize.x, position.x));
-			position.y = std::max(0.0f, std::min(containerSize.y, position.y));
-
-			view->setPosition(position);
+			this->constraintToBeVisible(view);
 		}
 
 		// Update
@@ -98,7 +93,7 @@ bool ContainerView::draw()
 
 			auto lineEndPosition = ImGui::GetMousePos();
 
-			// Snap lineEndPosition to hoveredByMouse member's position
+			// Snap lineEndPosition to hoveredByMouse member's currentPosition
 			if (hoveredByMouseMember != nullptr) {
 				auto hoveredByMouseEntityView        = hoveredByMouseMember->getOwner()->as<Entity>()->getComponent<NodeView>("view");
 				auto hoveredByMouseConnectorPosition = hoveredByMouseEntityView->getMemberConnectorPosition(hoveredByMouseMember->getName(), Connection_In);
@@ -223,7 +218,7 @@ bool ContainerView::draw()
 		}
 
 		/*
-			Set New Entity's position were mouse cursor is 
+			Set New Entity's currentPosition were mouse cursor is 
 		*/
 
 		if (newEntity != nullptr && newEntity->hasComponent("view"))
@@ -244,4 +239,23 @@ bool ContainerView::draw()
 	}
 
 	return true;
+}
+
+void Nodable::ContainerView::constraintToBeVisible(NodeView* _view) const
+{
+	auto currentPosition   = _view->getRoundedPosition() + ImGui::GetCursorScreenPos();
+	auto newPosition       = currentPosition;
+
+	if (newPosition.y < this->screenPosMin.y )
+		newPosition.y = this->screenPosMin.y;
+	
+	if (newPosition.y > this->screenPosMax.y )
+		newPosition.y = this->screenPosMax.y;
+
+	_view->setPosition(newPosition - ImGui::GetCursorScreenPos());
+	
+
+	
+
+	
 }

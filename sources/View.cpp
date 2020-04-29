@@ -1,8 +1,13 @@
 #include "View.h"
+#include "Log.h"
 
 using namespace Nodable;
 
-View::View()
+View::View():
+	hovered(false),
+	screenPosMin(0,0),
+	screenPosMax(0,0),
+	visible(true)
 {
 	setMember("__class__", "View");
 	
@@ -28,6 +33,18 @@ void View::setColor(ColorType_ _type, ImColor _color)
 ImColor View::getColor(ColorType_ _type)
 {
 	return colors[_type];
+}
+
+bool Nodable::View::drawAsChild(const char* _name, const ImVec2& _size, bool border, ImGuiWindowFlags flags)
+{
+	this->screenPosMin = ImGui::GetCursorScreenPos();
+	this->screenPosMax = ImGui::GetCursorScreenPos() + _size;
+
+	ImGui::BeginChild(_name, _size, border, flags);
+	auto result = this->draw();
+	ImGui::EndChild();
+
+	return result;
 }
 
 void View::DrawRectShadow (ImVec2 _topLeftCorner, ImVec2 _bottomRightCorner, float _borderRadius, int _shadowRadius, ImVec2 _shadowOffset, ImColor _shadowColor)

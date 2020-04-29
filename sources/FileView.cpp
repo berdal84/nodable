@@ -49,14 +49,13 @@ void FileView::init()
 
 bool FileView::draw()
 {
+
 	/*
 		TEXT EDITOR
 	*/
 	auto file = getFile();
 
 	auto availSize = ImGui::GetContentRegionAvail();
-
-	auto textEditorSize = ImGui::GetContentRegionAvail();
 
 	auto previousCursorPosition = m_textEditor->GetCursorPosition();
 	auto previousSelectedText = m_textEditor->GetSelectedText();
@@ -96,6 +95,10 @@ bool FileView::draw()
 	ImGui::SetCursorPos(ImVec2(0, 0));
 	auto container = file->getComponent<Container>("container");
 	auto view      = container->getComponent<View>("view");
+
+	view->screenPosMin = this->screenPosMin;
+	view->screenPosMax = this->screenPosMax;
+
 	view->draw();
 
 	return true;

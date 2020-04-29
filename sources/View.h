@@ -29,6 +29,8 @@ namespace Nodable{
 		
 		virtual bool draw()=0;
 
+		bool drawAsChild(const char* _name, const ImVec2& _size, bool border = false, ImGuiWindowFlags flags = 0);
+
 		/* Draw only shadow for a rectangle */
 		static void DrawRectShadow      (	ImVec2 	_topLeftCorner, 
 											ImVec2 	_bottomRightCorner, 
@@ -55,10 +57,15 @@ namespace Nodable{
 		/* Return true if this view is hovered by mouse cursor, false if not */
 		bool        isHovered      ()const{return hovered;}
 
+		ImVec2  screenPosMin;
+		ImVec2  screenPosMax;
+
 	protected:
-		bool    hovered   = false;
+		bool    hovered;
+
+
 	private:
-		bool    visible = true;
+		bool    visible;
 		ImColor colors[ColorType_COUNT];
 		
 	};

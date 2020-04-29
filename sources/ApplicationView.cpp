@@ -412,12 +412,9 @@ bool ApplicationView::draw()
 				auto availSize = ImGui::GetContentRegionAvail();
 				availSize.y -= ImGui::GetTextLineHeightWithSpacing();;
 
-				ImGui::BeginChild("File View", ImVec2(availSize.x, availSize.y), false);
-				{
-					auto fileView = application->getCurrentFile()->getComponent<View>("view");
-					fileView->draw();
-				}
-				ImGui::EndChild();
+				auto currentFile     = application->getCurrentFile();
+				auto currentFileView = currentFile->getComponent<View>("view");
+				currentFileView->drawAsChild("FileView", availSize);
 			}
 
             /*

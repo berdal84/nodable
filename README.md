@@ -27,10 +27,8 @@ Install CMake 3.8+
 Open a command line in the Nodable folder and type:
 
 ```
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release 
+cmake -B ./build
+cmake --build ./build --config Release
 ```
 Nodable will be built into `./build/Release/`
 

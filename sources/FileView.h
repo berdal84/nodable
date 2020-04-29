@@ -8,7 +8,7 @@ namespace Nodable {
 	class FileView : public View
 	{
 	public:
-		FileView() {};
+		FileView():m_textEditor(nullptr), m_hasChanged(false){};
 		void                           init();
 		bool                           draw();
 		bool                           hasChanged() { return this->m_hasChanged; }
