@@ -57,3 +57,4 @@ _screenshots/
 /_build
 /install
 /out/build/x64-Debug
+/build

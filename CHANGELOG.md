@@ -1,22 +1,18 @@
-/*
+
+Nodable Change Log :
+====================
 
 Author: Bérenger Dalle-Cort, 2020-2017
 
-ChangeLog :
 
-v0.6.1:
-	- fix on Parser, new isSyntaxValid() method to check some malformed expressions.
+v0.6:
+	- Result node constraint to stay on visible rect after updating.
+	- Build using CMake.
+	- Parser: functions rewrote, parenthesis, detailed logs.
+	- Language class.	
 
-v0.6.0:
-	- cmake building system.
-	- parenthesis parsing
-	- parser functions rewrote
-	- new Language class.
-	
-v0.5.1:
+v0.5:
 	- fix(NodeView): Variable node drawing crash.
-
-v0.5.0:
 	- First draft version of an UNDO/REDO system.
 
 v0.4.1:
@@ -40,4 +36,3 @@ v0.2:
 v0.1:
 	- Node_Add : to add two Node_Numbers
 	- Lexer : first version able to evaluate additions.
-*/
