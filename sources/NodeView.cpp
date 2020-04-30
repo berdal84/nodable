@@ -582,13 +582,14 @@ void NodeView::drawMemberConnector(ImVec2& connectorPos, Nodable::Member* _membe
 }
 
 ImRect Nodable::NodeView::getRect() const {
-	return ImRect(getRoundedPosition(), getRoundedPosition() + size);
+	return ImRect(getRoundedPosition() - size * 0.5f, getRoundedPosition() + size * 0.5f);
 }
 
 
 bool Nodable::NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
-	_rect.Expand(_nodeView->size * -0.5f);
-	return _rect.Contains( _nodeView->getRect() );
+	auto nodeRect = _nodeView->getRect();
+	nodeRect.Expand( ImVec2(5,5 ) ); // 5px for margin
+	return _rect.Contains(nodeRect);
 }
 
 void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
@@ -596,19 +597,24 @@ void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 	
 	if ( !NodeView::IsInsideRect(_view, _rect)) {
 
+		_rect.Expand(ImVec2(-10, -10)); // shrink
+
+		auto nodeRect = _view->getRect();
+
 		auto newPos = _view->getRoundedPosition();
 
-		if (newPos.y < _rect.Min.y)          /* Y axis */
-			newPos.y = _rect.Min.y;
-		else if (newPos.y > _rect.Max.y)
-			newPos.y = _rect.Max.y;
+		auto left  = _rect.Min.x - nodeRect.Min.x;
+		auto right = _rect.Max.x - nodeRect.Max.x;
+		auto up    = _rect.Min.y - nodeRect.Min.y;
+		auto down  = _rect.Max.y - nodeRect.Max.y;
 
-		if (newPos.x < _rect.Min.x)          /* X axis */
-			newPos.x = _rect.Min.x;
-		else if (newPos.x > _rect.Max.x)
-			newPos.x = _rect.Max.x;
+		     if ( left > 0 )  nodeRect.TranslateX(left);
+		else if ( right < 0 ) nodeRect.TranslateX(right);
+			 
+			 if ( up > 0 )    nodeRect.TranslateY(up);
+		else if ( down < 0 )  nodeRect.TranslateY(down);
 
-		_view->setPosition(newPos);
+		_view->setPosition(nodeRect.GetCenter());
 	}
 
 }
