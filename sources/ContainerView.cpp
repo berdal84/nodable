@@ -36,7 +36,8 @@ bool ContainerView::draw()
 
 		if (result != nullptr) { // Make sure result node is always visible
 			auto view = result->getComponent<NodeView>("view");
-			// NodeView::ConstraintToRect(view, this->visibleRect);
+			auto rect = ImRect(ImVec2(0,0), ImGui::GetContentRegionMax());
+			NodeView::ConstraintToRect(view, rect );
 		}
 
 		// Update

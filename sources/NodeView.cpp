@@ -585,19 +585,18 @@ ImRect Nodable::NodeView::getRect() const {
 	return ImRect(getRoundedPosition(), getRoundedPosition() + size);
 }
 
+
+bool Nodable::NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
+	_rect.Expand(_nodeView->size * -0.5f);
+	return _rect.Contains( _nodeView->getRect() );
+}
+
 void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 {
-	auto currPos  = _view->getRoundedPosition();	
-	auto nodeRect = _view->getRect();
-	_rect.Expand(_view->size * -0.5f);
-
-	/*
-		Constraint to _rect.
-	*/
 	
-	if ( !_rect.Contains(nodeRect) ) {
+	if ( !NodeView::IsInsideRect(_view, _rect)) {
 
-		auto newPos = currPos;
+		auto newPos = _view->getRoundedPosition();
 
 		if (newPos.y < _rect.Min.y)          /* Y axis */
 			newPos.y = _rect.Min.y;

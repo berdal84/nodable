@@ -327,10 +327,10 @@ void Container::tryToRestoreResultNodePosition()
 		auto view = this->getComponent<View>("view");
 
 		if ( resultNodeHadPosition) {                                 /* if result node had a position stored, we restore it */
-			nodeView->setPosition(Container::LastResultNodePosition);
-			NodeView::ConstraintToRect(nodeView, view->visibleRect);   // but we constraint it to be visible
+			nodeView->setPosition(Container::LastResultNodePosition);			
+		}
 
-		} else {                                                      /* else we set a default position*/			
+		if ( !NodeView::IsInsideRect(nodeView, view->visibleRect) ){     		
 			ImVec2 defaultPosition = view->visibleRect.GetCenter();
 			defaultPosition.x += view->visibleRect.GetWidth() * 1.0f / 6.0f;
 			nodeView->setPosition(defaultPosition);

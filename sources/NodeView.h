@@ -81,8 +81,10 @@ namespace Nodable{
 
 		static bool		  IsANodeDragged();
 
+		static bool       IsInsideRect(NodeView*, ImRect);
+
 		/* Move instantly _view to be inside _screenRect */
-		static void       ConstraintToRect(NodeView* _view, ImRect _screenRect);
+		static void       ConstraintToRect(NodeView*, ImRect);
 
 		/* Return a pointer to the dragged view or nullptr if no view are dragged */
 		static NodeView*  GetDragged          ();
