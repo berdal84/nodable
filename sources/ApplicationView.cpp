@@ -186,8 +186,32 @@ bool ApplicationView::draw()
     while (SDL_PollEvent(&event))
     {
         ImGui_ImplSDL2_ProcessEvent(&event);
-        if (event.type == SDL_QUIT)
-            application->stopExecution();
+
+		switch (event.type)
+		{
+		case SDL_QUIT:
+			application->stopExecution();
+			break;
+
+		case SDL_KEYUP:
+			auto key = event.key.keysym.sym;
+
+			// UNDO / REDO
+			History* currentFileHistory = nullptr;
+
+			if (auto file = application->getCurrentFile()) {
+				currentFileHistory = file->getHistory();
+
+				if (currentFileHistory && (event.key.keysym.mod & KMOD_LCTRL)) {
+					if (key == SDLK_z)
+						currentFileHistory->undo();
+					else if (key == SDLK_y)
+						currentFileHistory->redo();
+				}
+			}
+			break;
+		}
+
     }
 
 	ImGui_ImplOpenGL3_NewFrame();
@@ -248,7 +272,7 @@ bool ApplicationView::draw()
 		
 		if ( auto file = application->getCurrentFile())
 			currentFileHistory = file->getHistory();
-
+		
 
         ImGui::Begin("Container", NULL, ImVec2(), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
@@ -434,22 +458,8 @@ bool ApplicationView::draw()
         }
         ImGui::End();
 
-		/*
-		   Keyboard shortcuts
-		*/
 
-		const Uint8* keyboardState = SDL_GetKeyboardState(NULL);
-
-		auto isDown = [&keyboardState](SDL_Keycode _code) -> bool { return keyboardState[SDL_GetScancodeFromKey(_code)]; };
-
-		// A
-		if (isDown(SDLK_a))
-			userWantsToArrangeSelectedNodeHierarchy |= true;
-
-		// Del.
-		else if (isDown(SDLK_DELETE))
-			userWantsToHideSelectedNode |= true;
-
+		
 
 		/*
 		   Perform actions on selected node
