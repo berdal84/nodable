@@ -588,7 +588,6 @@ ImRect Nodable::NodeView::getRect() const {
 
 bool Nodable::NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
 	auto nodeRect = _nodeView->getRect();
-	nodeRect.Expand( ImVec2(5,5 ) ); // 5px for margin
 	return _rect.Contains(nodeRect);
 }
 
@@ -597,7 +596,7 @@ void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 	
 	if ( !NodeView::IsInsideRect(_view, _rect)) {
 
-		_rect.Expand(ImVec2(-10, -10)); // shrink
+		_rect.Expand(ImVec2(-2, -2)); // shrink
 
 		auto nodeRect = _view->getRect();
 
