@@ -71,8 +71,10 @@ namespace Nodable
 		// Future: For command groups (ex: 5 commands that are atomic)
 		// static BeginGroup();
 		// static EndGroup()
+		bool dirty;
 
 		static History*     global;
+
 	private:
 		std::vector<Cmd*>	commands = std::vector<Cmd*>();		/* Command history */
 		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */

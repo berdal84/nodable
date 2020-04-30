@@ -196,18 +196,19 @@ bool ApplicationView::draw()
 		case SDL_KEYUP:
 			auto key = event.key.keysym.sym;
 
-			// UNDO / REDO
-			History* currentFileHistory = nullptr;
+			if ((event.key.keysym.mod & KMOD_LCTRL)) {
 
-			if (auto file = application->getCurrentFile()) {
-				currentFileHistory = file->getHistory();
-
-				if (currentFileHistory && (event.key.keysym.mod & KMOD_LCTRL)) {
-					if (key == SDLK_z)
-						currentFileHistory->undo();
-					else if (key == SDLK_y)
-						currentFileHistory->redo();
+				// History
+				if (auto file = application->getCurrentFile()) {
+					History* currentFileHistory = file->getHistory();
+					     if (key == SDLK_z) currentFileHistory->undo();
+					else if (key == SDLK_y) currentFileHistory->redo();
 				}
+
+				// File
+				     if( key == SDLK_s)  application->saveCurrentFile();
+				else if( key == SDLK_w)  application->closeCurrentFile();
+				else if( key == SDLK_o)  this->browseFile();
 			}
 			break;
 		}
@@ -276,41 +277,24 @@ bool ApplicationView::draw()
 
         ImGui::Begin("Container", NULL, ImVec2(), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
-			if (ImGui::BeginMenuBar())
-			{
-				if (ImGui::BeginMenu("File"))
-				{
+			if (ImGui::BeginMenuBar()) {
+
+				if (ImGui::BeginMenu("File")) {
+
 					//ImGui::MenuItem(ICON_FA_FILE   "  New", "Ctrl + N");
-					if (ImGui::MenuItem(ICON_FA_FOLDER "  Open"))
-					{
-						auto fileAbsolutePath = File::BrowseForFileAndReturnItsAbsolutePath(this->sdlWindow);
-						application->openFile(fileAbsolutePath.c_str());
-					}
+					if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) this->browseFile();
+					if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) application->saveCurrentFile();
+					if (ImGui::MenuItem(ICON_FA_TIMES       "  Close","Ctrl + W")) application->closeCurrentFile();
+					if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4")) application->stopExecution();
 
-					if (ImGui::MenuItem(ICON_FA_SAVE "  Save"))
-					{
-						application->saveCurrentFile();
-					}
-
-					if (ImGui::MenuItem(ICON_FA_TIMES "  Close"))
-					{
-						application->closeCurrentFile();
-					}
-
-					if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4"))
-						application->stopExecution();
 					ImGui::EndMenu();
 				}
 
-				if (ImGui::BeginMenu("Edit"))
-				{
+				if (ImGui::BeginMenu("Edit")) {
 
 					if (currentFileHistory) {
-						userWantsToUndo |= ImGui::MenuItem("Undo", "");
-						userWantsToRedo |= ImGui::MenuItem("Redo", "");
-						if (userWantsToUndo)currentFileHistory->undo();
-						if (userWantsToRedo)currentFileHistory->redo();
-
+						if (ImGui::MenuItem("Undo", "Ctrl + Z")) currentFileHistory->undo();
+						if (ImGui::MenuItem("Redo", "Ctrl + Y")) currentFileHistory->redo();
 						ImGui::Separator();
 					}
 
@@ -522,5 +506,11 @@ void Nodable::ApplicationView::drawFileTabs()
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - tabsVerticalOffset);
 
 	}
+}
+
+void Nodable::ApplicationView::browseFile()
+{
+	auto fileAbsolutePath = File::BrowseForFileAndReturnItsAbsolutePath(this->sdlWindow);
+	application->openFile(fileAbsolutePath.c_str());
 }
 

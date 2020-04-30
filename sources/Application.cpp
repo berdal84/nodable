@@ -118,3 +118,4 @@ void Application::SaveEntity(Entity* _entity)
 	component->update();
 	_entity->removeComponent("dataAccess");
 }
+

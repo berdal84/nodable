@@ -59,10 +59,10 @@ void File::save()
 		std::ofstream fileStream(this->path.c_str());
 		auto view    = getComponent<FileView>("view");
 		auto content = view->getText();
-		fileStream.write( content.c_str(), content.size());
-		modified = false;
-	}	
-	
+fileStream.write(content.c_str(), content.size());
+modified = false;
+	}
+
 }
 
 File* File::CreateFileWithPath(const char* _filePath)
@@ -110,19 +110,19 @@ std::string File::BrowseForFileAndReturnItsAbsolutePath(SDL_Window* currentWindo
 	// Initialize OPENFILENAME
 	ZeroMemory(&ofn, sizeof(ofn));
 	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner   = hwnd;
-	ofn.lpstrFile   = szFile;
+	ofn.hwndOwner = hwnd;
+	ofn.lpstrFile = szFile;
 
 	// Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
 	// use the contents of szFile to initialize itself.
-	ofn.lpstrFile[0]    = '\0';
-	ofn.nMaxFile        = sizeof(szFile);
-	ofn.lpstrFilter     = "All\0*.*\0Text\0*.TXT\0";
-	ofn.nFilterIndex    = 1;
-	ofn.lpstrFileTitle  = NULL;
-	ofn.nMaxFileTitle   = 0;
+	ofn.lpstrFile[0] = '\0';
+	ofn.nMaxFile = sizeof(szFile);
+	ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFileTitle = NULL;
+	ofn.nMaxFileTitle = 0;
 	ofn.lpstrInitialDir = NULL;
-	ofn.Flags           = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
 	// Display the Open dialog box. 
 
@@ -136,7 +136,7 @@ bool File::evaluateExpression(std::string& _expression)
 {
 	boolean success;
 
-	auto variable  = getContainer()->createNodeVariable(ICON_FA_CODE);
+	auto variable = getContainer()->createNodeVariable(ICON_FA_CODE);
 	variable->setValue(_expression);
 
 	auto view = variable->getComponent<View>("view");
@@ -146,11 +146,12 @@ bool File::evaluateExpression(std::string& _expression)
 	{
 		/* Create a Parser node. The Parser will cut expression string into tokens
 		(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
-		auto parser = getContainer()->createNodeParser(variable);		
-		success     = parser->eval();
+		auto parser = getContainer()->createNodeParser(variable);
+		success = parser->eval();
 
 
-	} else {
+	}
+	else {
 		success = false;
 	}
 
@@ -158,6 +159,13 @@ bool File::evaluateExpression(std::string& _expression)
 }
 
 bool File::update() {
+
+	if (auto history = this->getComponent<History>("history")) {
+		if (history->dirty) {
+			this->evaluateSelectedExpression();
+			history->dirty = false;
+		}
+	}
 
 	auto hasChanged = getContainer()->update();
 	

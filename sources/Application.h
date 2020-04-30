@@ -32,7 +32,6 @@ namespace Nodable
 		/* Force application to stops. Always delayed for 1 frame. */
 		void             stopExecution();
 
-		/* open a file with a file path as parameter, return true if success, false if fail.*/
 		bool             openFile(const char*);
 		void             saveCurrentFile()const;
 		void             closeCurrentFile();
@@ -61,6 +60,7 @@ namespace Nodable
 			MIRROR_MEMBER(quit)
 			MIRROR_MEMBER(currentFileIndex)
 		);
+
 	};
 }
 

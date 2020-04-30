@@ -30,5 +30,7 @@ namespace Nodable
 		SDL_Window        *sdlWindow;
 		SDL_GLContext     glcontext;
 		ImVec4            clear_color = ImColor(50, 50, 50); // used to fill the framebuffer each frame.
+	public:
+		void browseFile();
 	};
 }
