@@ -12,9 +12,9 @@ using namespace Nodable;
 
 NodeView*   NodeView::s_selected              = nullptr;
 NodeView*   NodeView::s_dragged               = nullptr;
-DrawDetail_ NodeView::s_drawDetail            = DrawDetail_Default;
-Member*     NodeView::s_draggedByMouseMember  = nullptr;
-Member*     NodeView::s_hoveredByMouseMember  = nullptr;
+DrawDetail_ NodeView::s_drawDetail            = Nodable::DrawDetail_Default;
+Connector*  NodeView::s_draggedConnector      = new Connector();
+Connector*  NodeView::s_hoveredConnector      = new Connector();
 
 void NodeView::SetSelected(NodeView* _view)
 {
@@ -389,11 +389,11 @@ bool NodeView::draw()
 
 	if ( GetDragged() != this)
 	{
-		if(GetDragged() == nullptr && ImGui::IsMouseClicked(0) && hovered && (s_draggedByMouseMember == nullptr))
+		if(GetDragged() == nullptr && ImGui::IsMouseDown(0) && hovered && (s_draggedConnector->member == nullptr))
 			SetDragged(this);
-	}else{				
-		if ( ImGui::IsMouseReleased(0))
-			SetDragged(nullptr);				
+
+	} else if ( ImGui::IsMouseReleased(0)) {
+		SetDragged(nullptr);				
 	}		
 
 	// Collapse/uncollapse by double click (double/divide x size by 2)
@@ -530,25 +530,27 @@ bool NodeView::drawMember(Member* _member) {
 
 	if (_member->allows(Connection_In)) {
 		ImVec2      connectorPos = getConnectorPosition( memberName, Connection_In);
-		drawMemberConnector(connectorPos, _member, draw_list);
+		auto connector = new Connector(_member, Connection_In);
+		drawConnector(connectorPos, connector, draw_list);
 	}
 		
 	if (_member->allows(Connection_Out)) {
 		ImVec2      connectorPos = getConnectorPosition( memberName, Connection_Out);
-		drawMemberConnector(connectorPos, _member, draw_list);
+		auto connector = new Connector(_member, Connection_Out);
+		drawConnector(connectorPos, connector, draw_list);
 	}
 
 	return edited;
 }
 
-void NodeView::drawMemberConnector(ImVec2& connectorPos, Nodable::Member* _member, ImDrawList* draw_list)
+void NodeView::drawConnector(ImVec2& connectorPos, Connector* _connector, ImDrawList* draw_list)
 {
 	// Unvisible Button on top of the Circle
 
 	ImVec2 cpos = ImGui::GetCursorPos();
 	auto invisibleButtonOffsetFactor = 1.2f;
 	ImGui::SetCursorScreenPos(connectorPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor) + ImGui::GetWindowPos());
-	ImGui::PushID(_member);
+	ImGui::PushID(_connector->member);
 	bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * 2.0f * invisibleButtonOffsetFactor, connectorRadius * 2.0f * invisibleButtonOffsetFactor));
 	ImGui::PopID();
 	ImGui::SetCursorPos(cpos);
@@ -570,15 +572,18 @@ void NodeView::drawMemberConnector(ImVec2& connectorPos, Nodable::Member* _membe
 
 	// Manage mouse events in order to link two members by a Wire :
 
-	// HOVERED
-	if (isItemHovered)
-		s_hoveredByMouseMember = _member;
-	else if (s_hoveredByMouseMember == _member)
-		s_hoveredByMouseMember = nullptr;
 
 	// DRAG
-	if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedByMouseMember == nullptr)
-		s_draggedByMouseMember = _member;
+	if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedConnector->member == nullptr) {
+		s_draggedConnector->set(_connector);
+	}
+
+	// HOVERED
+	if (isItemHovered)
+		s_hoveredConnector->set(_connector);
+	else if (s_hoveredConnector->equals(_connector) )
+		s_hoveredConnector->reset();
+	
 }
 
 ImRect Nodable::NodeView::getRect() const {

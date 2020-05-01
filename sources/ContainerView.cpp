@@ -64,8 +64,8 @@ bool ContainerView::draw()
 		}
 	}
 
-	auto draggedByMouseMember = NodeView::GetDraggedByMouseMember();
-	auto hoveredByMouseMember = NodeView::GetHoveredByMouseMember();
+	auto draggedConnector = NodeView::GetDraggedConnectorState();
+	auto hoveredConnector = NodeView::GetHoveredConnectorState();
 
 	/*
 		Wires
@@ -86,41 +86,55 @@ bool ContainerView::draw()
 		}
 
 		// Draw temporary wire on top (overlay draw list)
-		if (draggedByMouseMember != nullptr)
+		if (draggedConnector->member != nullptr)
 		{
-			auto draggedByMouseNodeView        = draggedByMouseMember->getOwner()->as<Node>()->getComponent<NodeView>("view");
-			auto draggedByMouseConnectorPosition = draggedByMouseNodeView->getConnectorPosition(draggedByMouseMember->getName(), Connection_In);
-			auto lineStartPosition               = draggedByMouseConnectorPosition + ImGui::GetWindowPos();
+			ImVec2 lineScreenPosStart;
+			{
+				auto member   = draggedConnector->member;
+				auto node     = member->getOwner()->as<Node>();
+				auto view     = node->getComponent<NodeView>("view");
+				auto position = view->getConnectorPosition(member->getName(), draggedConnector->side);
 
-			auto lineEndPosition = ImGui::GetMousePos();
+				lineScreenPosStart = position + ImGui::GetWindowPos();
+			}
+
+			auto lineScreenPosEnd = ImGui::GetMousePos();
 
 			// Snap lineEndPosition to hoveredByMouse member's currentPosition
-			if (hoveredByMouseMember != nullptr) {
-				auto hoveredByMouseNodeView        = hoveredByMouseMember->getOwner()->as<Node>()->getComponent<NodeView>("view");
-				auto hoveredByMouseConnectorPosition = hoveredByMouseNodeView->getConnectorPosition(hoveredByMouseMember->getName(), Connection_In);
-				lineEndPosition = hoveredByMouseConnectorPosition + ImGui::GetWindowPos();
+			if (hoveredConnector->member != nullptr) {
+				auto member     = hoveredConnector->member;
+				auto node       = member->getOwner()->as<Node>();
+				auto view       = node->getComponent<NodeView>("view");
+				auto position   = view->getConnectorPosition(member->getName(), hoveredConnector->side);
+
+				lineScreenPosEnd = position + ImGui::GetWindowPos();
 			}
-			ImGui::GetOverlayDrawList()->AddLine(lineStartPosition, lineEndPosition, getColor(ColorType_BorderHighlights), connectorRadius * float(0.9));
+
+			ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
+				                                  lineScreenPosEnd,
+				                                  getColor(ColorType_BorderHighlights),
+				                                  connectorRadius * float(0.9));
+
 		}
 
 		// If user release mouse button
 		if (ImGui::IsMouseReleased(0))
 		{
 			// Add a new wire if needed (mouse drag'n drop)
-			if (draggedByMouseMember != nullptr &&
-				hoveredByMouseMember != nullptr)
+			if (draggedConnector->member != nullptr &&
+				hoveredConnector->member != nullptr)
 			{
-				if (draggedByMouseMember != hoveredByMouseMember)
+				if (draggedConnector->member != hoveredConnector->member)
 				{
-					auto wire = draggedByMouseMember->getOwner()->as<Node>()->getParent()->newWire();
-					Node::Connect(wire, draggedByMouseMember, hoveredByMouseMember);
+					auto container = getOwner()->as<Container>();
+					auto wire      = container->newWire();
+					Node::Connect(wire, draggedConnector->member, hoveredConnector->member);
 				}
 
-				draggedByMouseMember = nullptr;
-				hoveredByMouseMember = nullptr;
+				NodeView::ResetDraggedByMouseMember();
 
 			}// If user release mouse without hovering a member, we display a menu to create a linked node
-			else if (draggedByMouseMember != nullptr)
+			else if (draggedConnector->member != nullptr)
 			{
 				if ( !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
 					ImGui::OpenPopup("ContainerViewContextualMenu");	
@@ -196,14 +210,14 @@ bool ContainerView::draw()
 			Connect the New Node with the current dragged a member
 		*/
 
-		if (draggedByMouseMember != nullptr && newNode != nullptr)
+		if (draggedConnector->member != nullptr && newNode != nullptr)
 		{
 			// if dragged member is an inputMember
-			if (draggedByMouseMember->allows(Connection_In) && newNode->get("result") != nullptr)
-				Node::Connect(container->newWire(), newNode->get("result"), draggedByMouseMember);
+			if (draggedConnector->member->allows(Connection_In))
+				Node::Connect(container->newWire(), newNode->get("result"), draggedConnector->member);
 
 			// if dragged member is an output
-			else if (draggedByMouseMember->allows(Connection_Out)) {
+			else if (draggedConnector->member->allows(Connection_Out)) {
 
 				// try to get the first Input only member
 				auto targetMember = newNode->getFirstWithConn(Connection_In);
@@ -211,9 +225,8 @@ bool ContainerView::draw()
 				// If failed, try to get the first input/output member
 				if (targetMember == nullptr)
 					targetMember = newNode->getFirstWithConn(Connection_InOut);
-
-				if ( targetMember != nullptr)
-					Node::Connect(container->newWire(), draggedByMouseMember, targetMember);
+				else
+					Node::Connect(container->newWire(), draggedConnector->member, targetMember);
 			}
 			NodeView::ResetDraggedByMouseMember();
 		}
