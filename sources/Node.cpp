@@ -1,4 +1,4 @@
-#include "Entity.h"
+#include "Node.h"
 #include "Log.h"		// for LOG_DEBUG(...)
 #include "NodeView.h"
 #include <algorithm>    // for std::find
@@ -8,10 +8,10 @@
 
 using namespace Nodable;
 
-void Entity::Disconnect(Wire* _wire)
+void Node::Disconnect(Wire* _wire)
 {
 	_wire->getTarget()->setInputMember(nullptr);
-	_wire->getTarget()->getOwner()->as<Entity>()->setDirty();
+	_wire->getTarget()->getOwner()->as<Node>()->setDirty();
 
 	_wire->setTarget(nullptr);
 	_wire->setSource(nullptr);
@@ -19,7 +19,7 @@ void Entity::Disconnect(Wire* _wire)
 	return;
 }
 
-void Entity::Connect( Wire* _wire,
+void Node::Connect( Wire* _wire,
 					Member* _from,
 					Member* _to)
 {	
@@ -27,7 +27,7 @@ void Entity::Connect( Wire* _wire,
 	command.execute();
 }
 
-Entity::~Entity()
+Node::~Node()
 {
 	wires.clear();
 
@@ -38,29 +38,29 @@ Entity::~Entity()
 	}
 }
 
-void Entity::addComponent(const std::string&  _componentName, Component*  _component)
+void Node::addComponent(const std::string&  _componentName, Component*  _component)
 {
 	components[_componentName] = _component;
 	_component->setOwner(this);
 }
 
-bool Entity::hasComponent(const std::string&  _componentName)const
+bool Node::hasComponent(const std::string&  _componentName)const
 {
 	auto it = components.find(_componentName);
 	return it != components.end();
 }
 
-void Entity::removeComponent(const std::string& _componentName)
+void Node::removeComponent(const std::string& _componentName)
 {
 	components.erase(_componentName);
 }
 
-bool Entity::isDirty()const
+bool Node::isDirty()const
 {
 	return dirty;
 }
 
-void Entity::setDirty(bool _value)
+void Node::setDirty(bool _value)
 {
 	// Propagate thru output wires only if the node is no already dirty.
 	// node: if this node is already dirty, all its output should already be dirty too.
@@ -70,7 +70,7 @@ void Entity::setDirty(bool _value)
 		{
 			if (wire->getSource()->getOwner() == this && wire->getTarget() != nullptr)
 			{
-				auto node = reinterpret_cast<Entity*>(wire->getTarget()->getOwner());
+				auto node = reinterpret_cast<Node*>(wire->getTarget()->getOwner());
 				node->setDirty(true);
 			}
 		}
@@ -79,49 +79,49 @@ void Entity::setDirty(bool _value)
 	dirty = _value;
 }
 
-Container* Entity::getParent()const
+Container* Node::getParent()const
 {
 	return this->parent;
 }
 
-void Entity::setParent(Container* _container)
+void Node::setParent(Container* _container)
 {
 	this->parent = _container;
 }
 
-void Entity::setLabel(const char* _label)
+void Node::setLabel(const char* _label)
 {
 	this->label = _label;
 }
 
-void Entity::setLabel(std::string _label)
+void Node::setLabel(std::string _label)
 {
 	this->label = _label;
 }
 
-const char* Entity::getLabel()const
+const char* Node::getLabel()const
 {
 	return this->label.c_str();
 }
 
-void Nodable::Entity::addWire(Wire* _wire)
+void Nodable::Node::addWire(Wire* _wire)
 {
 	wires.push_back(_wire);
 }
 
-void Nodable::Entity::removeWire(Wire* _wire)
+void Nodable::Node::removeWire(Wire* _wire)
 {
 	auto found = std::find(wires.begin(), wires.end(), _wire);
 	if(found != wires.end())
 		wires.erase(found);
 }
 
-std::vector<Wire*>& Entity::getWires()
+std::vector<Wire*>& Node::getWires()
 {
 	return wires;
 }
 
-int Entity::getInputWireCount()const
+int Node::getInputWireCount()const
 {
 	int count = 0;
 	for(auto w : wires)
@@ -132,7 +132,7 @@ int Entity::getInputWireCount()const
 	return count;
 }
 
-int Entity::getOutputWireCount()const
+int Node::getOutputWireCount()const
 {
 	int count = 0;
 	for(auto w : wires)
@@ -143,7 +143,7 @@ int Entity::getOutputWireCount()const
 	return count;
 }
 
-bool Entity::update()
+bool Node::update()
 {
 	bool success = true;
 
@@ -160,7 +160,7 @@ bool Entity::update()
 				 wireSource != nullptr) 
 			{
 				/* update the source entity */
-				reinterpret_cast<Entity*>(wireSource->getOwner())->update();
+				reinterpret_cast<Node*>(wireSource->getOwner())->update();
 				
 				/* transfert the freshly updated value from source to target member */
 				wireTarget->updateValueFromInputMemberValue();
@@ -180,7 +180,7 @@ bool Entity::update()
 	return success;
 }
 
-void Entity::onMemberValueChanged(const char* _name)
+void Node::onMemberValueChanged(const char* _name)
 {
 	setDirty(true);
 	updateLabel();	

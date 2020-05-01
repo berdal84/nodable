@@ -2,7 +2,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
-#include "Entity.h"
+#include "Node.h"
 #include <iostream>
 #include <fstream>
 
@@ -48,7 +48,7 @@ bool DataAccess::update()
 
     NODABLE_ASSERT(getOwner() != nullptr);
 
-    Entity* owner = getOwner();
+    Node* owner = getOwner();
 
     writer.StartObject();
     {

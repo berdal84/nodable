@@ -136,7 +136,7 @@ bool File::evaluateExpression(std::string& _expression)
 {
 	boolean success;
 
-	auto variable = getContainer()->createNodeVariable(ICON_FA_CODE);
+	auto variable = getContainer()->newVariable(ICON_FA_CODE);
 	variable->setValue(_expression);
 
 	auto view = variable->getComponent<View>("view");
@@ -146,7 +146,7 @@ bool File::evaluateExpression(std::string& _expression)
 	{
 		/* Create a Parser node. The Parser will cut expression string into tokens
 		(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
-		auto parser = getContainer()->createNodeParser(variable);
+		auto parser = getContainer()->newParser(variable);
 		success = parser->eval();
 
 

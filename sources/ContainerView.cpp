@@ -1,7 +1,7 @@
 #include "ContainerView.h"
 #include "Log.h"
 #include "Parser.h"
-#include "Entity.h"
+#include "Node.h"
 #include "Container.h"
 #include "Variable.h"
 #include "BinaryOperation.h"
@@ -88,16 +88,16 @@ bool ContainerView::draw()
 		// Draw temporary wire on top (overlay draw list)
 		if (draggedByMouseMember != nullptr)
 		{
-			auto draggedByMouseEntityView        = draggedByMouseMember->getOwner()->as<Entity>()->getComponent<NodeView>("view");
-			auto draggedByMouseConnectorPosition = draggedByMouseEntityView->getMemberConnectorPosition(draggedByMouseMember->getName(), Connection_In);
+			auto draggedByMouseNodeView        = draggedByMouseMember->getOwner()->as<Node>()->getComponent<NodeView>("view");
+			auto draggedByMouseConnectorPosition = draggedByMouseNodeView->getMemberConnectorPosition(draggedByMouseMember->getName(), Connection_In);
 			auto lineStartPosition               = draggedByMouseConnectorPosition + ImGui::GetWindowPos();
 
 			auto lineEndPosition = ImGui::GetMousePos();
 
 			// Snap lineEndPosition to hoveredByMouse member's currentPosition
 			if (hoveredByMouseMember != nullptr) {
-				auto hoveredByMouseEntityView        = hoveredByMouseMember->getOwner()->as<Entity>()->getComponent<NodeView>("view");
-				auto hoveredByMouseConnectorPosition = hoveredByMouseEntityView->getMemberConnectorPosition(hoveredByMouseMember->getName(), Connection_In);
+				auto hoveredByMouseNodeView        = hoveredByMouseMember->getOwner()->as<Node>()->getComponent<NodeView>("view");
+				auto hoveredByMouseConnectorPosition = hoveredByMouseNodeView->getMemberConnectorPosition(hoveredByMouseMember->getName(), Connection_In);
 				lineEndPosition = hoveredByMouseConnectorPosition + ImGui::GetWindowPos();
 			}
 			ImGui::GetOverlayDrawList()->AddLine(lineStartPosition, lineEndPosition, getColor(ColorType_BorderHighlights), connectorRadius * float(0.9));
@@ -112,8 +112,8 @@ bool ContainerView::draw()
 			{
 				if (draggedByMouseMember != hoveredByMouseMember)
 				{
-					auto wire = draggedByMouseMember->getOwner()->as<Entity>()->getParent()->createWire();
-					Entity::Connect(wire, draggedByMouseMember, hoveredByMouseMember);
+					auto wire = draggedByMouseMember->getOwner()->as<Node>()->getParent()->newWire();
+					Node::Connect(wire, draggedByMouseMember, hoveredByMouseMember);
 				}
 
 				draggedByMouseMember = nullptr;
@@ -164,7 +164,7 @@ bool ContainerView::draw()
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{
 		auto    container = getOwner()->as<Container>();
-		Entity* newEntity = nullptr;
+		Node* newNode = nullptr;
 
 		// Title :
 		View::ColoredShadowedText( ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
@@ -175,57 +175,57 @@ bool ContainerView::draw()
 		*/
 
 		if (ImGui::MenuItem(ICON_FA_PLUS " Add"))
-			newEntity = container->createNodeAdd();
+			newNode = container->newAdd();
 
 		if (ImGui::MenuItem(ICON_FA_DIVIDE " Divide"))
-			newEntity = container->createNodeDivide();
+			newNode = container->newDivide();
 
 		if (ImGui::MenuItem(ICON_FA_TIMES " Multiply"))
-			newEntity = container->createNodeMultiply();
+			newNode = container->newMult();
 
 		if (ImGui::MenuItem(ICON_FA_MINUS " Substract"))
-			newEntity = container->createNodeSubstract();
+			newNode = container->newSub();
 
 		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-			newEntity = container->createNodeVariable("Variable");
+			newNode = container->newVariable("Variable");
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
-			newEntity = container->createNodeResult();
+			newNode = container->newResult();
 
 		/*
-			Connect the New Entity with the current dragged a member
+			Connect the New Node with the current dragged a member
 		*/
 
-		if (draggedByMouseMember != nullptr && newEntity != nullptr)
+		if (draggedByMouseMember != nullptr && newNode != nullptr)
 		{
 			// if dragged member is an inputMember
-			if (draggedByMouseMember->allows(Connection_In) && newEntity->getMember("result") != nullptr)
-				Entity::Connect(container->createWire(), newEntity->getMember("result"), draggedByMouseMember);
+			if (draggedByMouseMember->allows(Connection_In) && newNode->getMember("result") != nullptr)
+				Node::Connect(container->newWire(), newNode->getMember("result"), draggedByMouseMember);
 
 			// if dragged member is an output
 			else if (draggedByMouseMember->allows(Connection_Out)) {
 
 				// try to get the first Input only member
-				auto targetMember = newEntity->getFirstMemberWithConnection(Connection_In);
+				auto targetMember = newNode->getFirstMemberWithConnection(Connection_In);
 				
 				// If failed, try to get the first input/output member
 				if (targetMember == nullptr)
-					targetMember = newEntity->getFirstMemberWithConnection(Connection_InOut);
+					targetMember = newNode->getFirstMemberWithConnection(Connection_InOut);
 
 				if ( targetMember != nullptr)
-					Entity::Connect(container->createWire(), draggedByMouseMember, targetMember);
+					Node::Connect(container->newWire(), draggedByMouseMember, targetMember);
 			}
 			NodeView::ResetDraggedByMouseMember();
 		}
 
 		/*
-			Set New Entity's currentPosition were mouse cursor is 
+			Set New Node's currentPosition were mouse cursor is 
 		*/
 
-		if (newEntity != nullptr && newEntity->hasComponent("view"))
+		if (newNode != nullptr && newNode->hasComponent("view"))
 		{
 
-			if (auto view = newEntity->getComponent<NodeView>("view"))
+			if (auto view = newNode->getComponent<NodeView>("view"))
 			{
 				auto pos = ImGui::GetMousePos();
 				pos.x -= origin.x;

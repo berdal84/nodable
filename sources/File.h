@@ -1,7 +1,7 @@
 #pragma once
 #include "Nodable.h"
 #include "Log.h"
-#include "Entity.h"
+#include "Node.h"
 #include "Container.h"
 #include "History.h"
 
@@ -15,7 +15,7 @@
 
 namespace Nodable
 {
-	class File: public Entity
+	class File: public Node
 	{
 	public:
 		File(const char* _path,

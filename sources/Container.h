@@ -1,48 +1,48 @@
 #pragma once
 
-#include "Nodable.h"     // forward declarations
-#include "Component.h"   // base class
-#include "Entity.h"		 // base class
+#include "Nodable.h"
+#include "Component.h"
 #include <string>
 #include <vector>
 #include <imgui/imgui.h>   // for ImVec2
 
 namespace Nodable{
-	/* Class Container is a factory able to create all kind of Node 
-	   All Variables's pointers created within this context are referenced in a vector to be found later */
+
 	class Container: public Component{
 	public:
 
 		Container() {};
 		virtual ~Container();
 		bool                      	update();
-		void                      	clear();
-		size_t                    	getSize()const;
-		Variable* 	          		find                      (std::string /*Symbol name*/);
-		void                      	addEntity                 (Entity* /* _entity*/);
-		void                      	destroyNode               (Entity*);
-		Variable*					createNodeResult          ();
-		Variable*					createNodeVariable        (std::string /*name*/ = "");
-		Variable*					createNodeNumber          (double /*value*/ = 0);
-		Variable*					createNodeNumber          (const char* /*value*/);
-		Variable*					createNodeString          (const char* /*value*/);
-		Entity*                   	createNodeBinaryOperation (std::string /*_operator*/);
-		Entity*                   	createNodeAdd();
-		Entity*                   	createNodeSubstract();
-		Entity*			          	createNodeMultiply();
-		Entity*			          	createNodeDivide();
-		Entity*			          	createNodeAssign(); 
-		Parser*                    	createNodeParser           (Variable* /*_expressionVariable*/);
-		Wire*                       createWire();
+		void                      	clear();		
+		Variable* 	          		findVariable(std::string);
+		void                      	add(Node*);
+		void                      	remove(Node*);
+		size_t                    	getNodeCount()const;
 		std::vector<Variable*>& 	getVariables(){return variables;}
-		std::vector<Entity*>& 	    getEntities(){return entities;}
+		std::vector<Node*>& 	    getEntities(){return nodes;}
 		Variable*                   getResultVariable(){ return result;}
 		void                        tryToRestoreResultNodePosition();
+		
+		/* node factory */
+		Variable*					newResult();
+		Variable*					newVariable(std::string = "");
+		Variable*					newNumber(double = 0);
+		Variable*					newNumber(const char*);
+		Variable*					newString(const char*);	
+		Node*                       newBinOp(std::string);
+		Node*                   	newAdd();
+		Node*                   	newSub();
+		Node*			          	newMult();
+		Node*			          	newDivide();
+		Node*			          	newAssign(); 
+		Parser*                    	newParser(Variable*);
+		Wire*                       newWire();
 
-	private:
+	private:		
 		Variable*                   result = nullptr;
 		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */
-		std::vector<Entity*>        entities;   /* Contain all Objects created by this context */
+		std::vector<Node*>          nodes;   /* Contain all Objects created by this context */
 
 	public:
 		static ImVec2               LastResultNodePosition;

@@ -23,7 +23,7 @@
 	Asserts
 */
 
-#ifdef DEBUG
+#ifdef _DEBUG
 	#define NODABLE_ASSERT(expression) assert(expression)
 #else
     #define NODABLE_ASSERT(expression)
@@ -72,7 +72,7 @@ namespace Nodable{
 	class Multiply;
 
 	// 3 - Nodes
-	class Entity;
+	class Node;
 	class Application;	
 	class Parser;
 	class Variable;
@@ -83,7 +83,7 @@ namespace Nodable{
 	class File;
 
 	typedef std::map<std::string, Component*>  Components;
-	typedef std::map<std::string, Member*>      Members;
+	typedef std::map<std::string, Member*>     Members;
 	typedef std::vector<Wire*>                 Wires;
 }
 

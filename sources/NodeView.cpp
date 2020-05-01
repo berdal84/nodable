@@ -124,7 +124,7 @@ bool NodeView::update(float _deltaTime) {
 	return true;
 }
 
-void NodeView::updateInputConnectedNodes(Nodable::Entity* node, float deltaTime)
+void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 {
 
 	// automatically moves input connected nodes
@@ -146,7 +146,7 @@ void NodeView::updateInputConnectedNodes(Nodable::Entity* node, float deltaTime)
 	auto maxSizeX = 0.0f;
 	for (auto eachWire : wires)
 	{
-		auto sourceNode    = eachWire->getSource()->getOwner()->as<Entity>(); // TODO: add some checks
+		auto sourceNode    = eachWire->getSource()->getOwner()->as<Node>(); // TODO: add some checks
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
 		auto inputView     = sourceNode->getComponent<NodeView>("view");
 
@@ -171,7 +171,7 @@ void NodeView::updateInputConnectedNodes(Nodable::Entity* node, float deltaTime)
 		bool isWireAnInput = node->hasMember(eachWire->getTarget());
 		if (isWireAnInput)
 		{
-			auto sourceNode = eachWire->getSource()->getOwner()->as<Entity>();
+			auto sourceNode = eachWire->getSource()->getOwner()->as<Node>();
 			auto inputView  = sourceNode->getComponent<NodeView>("view");
 
 			if (!inputView->pinned)
@@ -375,7 +375,7 @@ bool NodeView::draw()
 
         if(ImGui::Selectable("Save to JSON"))
         {
-            Application::SaveEntity(node);
+            Application::SaveNode(node);
         }            
         ImGui::EndPopup();
     }
@@ -436,7 +436,7 @@ void NodeView::ArrangeRecursively(NodeView* _view)
 
 			if ( eachWire->getSource() != nullptr)
 			{
-				auto node         = dynamic_cast<Entity*>(eachWire->getSource()->getOwner());
+				auto node         = dynamic_cast<Node*>(eachWire->getSource()->getOwner());
 				auto inputView    = node->getComponent<NodeView>("view");
 				inputView->pinned = false;
 				ArrangeRecursively(inputView);

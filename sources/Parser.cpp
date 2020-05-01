@@ -82,7 +82,7 @@ bool Parser::eval()
 	}
 
 	auto container   = this->getParent();
-	Variable* result = container->createNodeResult();
+	Variable* result = container->newResult();
 	container->tryToRestoreResultNodePosition();
 
 	// If the value has no owner, we simplly set the variable value
@@ -90,7 +90,7 @@ bool Parser::eval()
 		result->setValue(resultValue);
 	// Else we connect resultValue with resultVariable.value
 	else
-		Entity::Connect(container->createWire(), resultValue, result->getValueMember());
+		Node::Connect(container->newWire(), resultValue, result->getValueMember());
 
 
 	auto view = result->getComponent<NodeView>("view");
@@ -120,10 +120,10 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 		case TokenType_Symbol:
 		{
 			auto context = getParent();
-			Variable* variable = context->find(_token.word);
+			Variable* variable = context->findVariable(_token.word);
 
 			if (variable == nullptr)
-				variable = context->createNodeVariable(_token.word);
+				variable = context->newVariable(_token.word);
 
 			NODABLE_ASSERT(variable != nullptr);
 			NODABLE_ASSERT(variable->getValueMember() != nullptr);
@@ -210,28 +210,28 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		if (right->getOwner() == nullptr)
 			_left->getOwner()->setMember("value", right);
 		else
-			Entity::Connect(context->createWire(), right, _left);
+			Node::Connect(context->newWire(), right, _left);
 
 		result = _left->getOwner()->getFirstMemberWithConnection(Connection_InOut);
 
 
 	// For all other binary operations :
 	} else {
-		auto binOperation = context->createNodeBinaryOperation(token1.word);
+		auto binOperation = context->newBinOp( token1.word);
 
 		// Connect the Left Operand :
 		//---------------------------
 		if (_left->getOwner() == nullptr)
 			binOperation->setMember("left", _left);
 		else
-			Entity::Connect(context->createWire(), _left, binOperation->getMember("left"));
+			Node::Connect(context->newWire(), _left, binOperation->getMember("left"));
 
 		// Connect the Right Operand :
 
 		if (right->getOwner() == nullptr)
 			binOperation->setMember("right", right);
 		else
-			Entity::Connect(context->createWire(), right, binOperation->getMember("right"));
+			Node::Connect(context->newWire(), right, binOperation->getMember("right"));
 
 		// Set the left !
 		result = binOperation->getMember("result");

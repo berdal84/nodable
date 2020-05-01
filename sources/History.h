@@ -143,15 +143,15 @@ namespace Nodable
 		void execute()
 		{
 			target->setInputMember(source);
-			target->getOwner()->as<Entity>()->setDirty();
+			target->getOwner()->as<Node>()->setDirty();
 
 			// Link wire to members
 			wire->setSource(source);
 			wire->setTarget(target);
 
 			// Add the wire pointer to the Entitis instance to speed up drawing process.
-			target->getOwner()->as<Entity>()->addWire(wire);
-			source->getOwner()->as<Entity>()->addWire(wire);
+			target->getOwner()->as<Node>()->addWire(wire);
+			source->getOwner()->as<Node>()->addWire(wire);
 		}
 
 		void redo() {
@@ -161,15 +161,15 @@ namespace Nodable
 		void undo()
 		{
 			target->setInputMember(nullptr);
-			target->getOwner()->as<Entity>()->setDirty();
+			target->getOwner()->as<Node>()->setDirty();
 
 			// Link Members
 			wire->setSource(nullptr);
 			wire->setTarget(nullptr);
 
-			// Add the wire pointer to the Entity instance to speed up drawing process.
-			target->getOwner()->as<Entity>()->removeWire(wire);
-			source->getOwner()->as<Entity>()->removeWire(wire);
+			// Add the wire pointer to the Node instance to speed up drawing process.
+			target->getOwner()->as<Node>()->removeWire(wire);
+			source->getOwner()->as<Node>()->removeWire(wire);
 		}
 
 	private:

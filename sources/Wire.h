@@ -1,13 +1,11 @@
 #pragma once 
 
 #include "Nodable.h"
-#include "Entity.h"    // base class
-#include <vector>
-#include <string>
+#include "Node.h"
 
 namespace Nodable
 {
-	class Wire : public Entity
+	class Wire : public Node
 	{
 	public:
 		

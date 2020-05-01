@@ -1,7 +1,7 @@
 #include "WireView.h"
 #include "NodeView.h"
 #include "Wire.h"
-#include "Entity.h"
+#include "Node.h"
 
 #include <imgui/imgui.h>
 
@@ -25,8 +25,8 @@ bool WireView::draw()
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	    // Compute start and end point
-	    auto sourceNode 	= source->getOwner()->as<Entity>();
-		auto targetNode 	= target->getOwner()->as<Entity>();
+	    auto sourceNode 	= source->getOwner()->as<Node>();
+		auto targetNode 	= target->getOwner()->as<Node>();
 
 		if (!sourceNode->hasComponent("view") || // in case of of the node have no view we can't draw the wire.
 			!targetNode->hasComponent("view"))

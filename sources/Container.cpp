@@ -1,7 +1,7 @@
 #include "Container.h"
 #include "Log.h"
 #include "Parser.h"
-#include "Entity.h"
+#include "Node.h"
 #include "Variable.h"
 #include "BinaryOperation.h"
 #include "Wire.h"
@@ -31,10 +31,10 @@ void Container::clear()
 	}
 
 	
-	for (Entity* each : entities)
+	for (Node* each : nodes)
 		delete each;
 	
-	entities.resize(0);
+	nodes.resize(0);
 	variables.resize(0);
 	result = nullptr;
 }
@@ -42,43 +42,39 @@ void Container::clear()
 bool Container::update()
 {
 	// Update entities
-	size_t entitiesUpdated(0);
+	size_t updatedNodesCount(0);
 
-	for(auto it = entities.begin(); it < entities.end(); ++it)
+	for(auto it = nodes.begin(); it < nodes.end(); ++it)
 	{
-		auto entity = *it;
+		auto node = *it;
 
-		if ( entity )
+		if ( node )
 		{
-			if ( entity->needsToBeDeleted())
+			if ( node->needsToBeDeleted())
 			{
-				delete entity;
-				it = entities.erase(it);
+				delete node;
+				it = nodes.erase(it);
 			}
-			else if ( entity->isDirty())
+			else if ( node->isDirty())
 			{
-				entitiesUpdated++;
-				entity->update();
+				updatedNodesCount++;
+				node->update();
 			}
 		}
 	}
 
-	const bool hasChanged = entitiesUpdated > 0 && NodeView::GetSelected() != nullptr;
+	const bool hasChanged = updatedNodesCount > 0 && NodeView::GetSelected() != nullptr;
 
 	return hasChanged;
 }
 
-void Container::addEntity(Entity* _entity)
+void Container::add(Node* _node)
 {
-	/* Add the node to the node vector list */
-	this->entities.push_back(_entity);
-
-	/* Set the node's container to this */
-	_entity->setParent(this);
-
+	this->nodes.push_back(_node);
+	_node->setParent(this);
 }
 
-void Container::destroyNode(Entity* _entity)
+void Container::remove(Node* _entity)
 {
 	{
 		auto it = std::find(variables.begin(), variables.end(), _entity);
@@ -87,15 +83,15 @@ void Container::destroyNode(Entity* _entity)
 	}
 
 	{
-		auto it = std::find(entities.begin(), entities.end(), _entity);
-		if (it != entities.end())
-			entities.erase(it);
+		auto it = std::find(nodes.begin(), nodes.end(), _entity);
+		if (it != nodes.end())
+			nodes.erase(it);
 	}
 
 	delete _entity;
 }
 
-Variable* Container::find(std::string _name)
+Variable* Container::findVariable(std::string _name)
 {
 	Variable* result = nullptr;
 
@@ -112,9 +108,9 @@ Variable* Container::find(std::string _name)
 	return result;
 }
 
-Variable* Container::createNodeResult()
+Variable* Container::newResult()
 {
-	auto variable = createNodeVariable(ICON_FA_SIGN_OUT_ALT " Result");
+	auto variable = newVariable(ICON_FA_SIGN_OUT_ALT " Result");
 	auto member = variable->getMember("value");
 	member->setConnectionFlags(Connection_In);                     // disable output because THIS node is the output !
 	result = variable;
@@ -122,56 +118,56 @@ Variable* Container::createNodeResult()
 	return variable;
 }
 
-Variable* Container::createNodeVariable(std::string _name)
+Variable* Container::newVariable(std::string _name)
 {
-	auto variable = new Variable();
-	variable->addComponent( "view", new NodeView);
-	variable->setName(_name.c_str());
-	this->variables.push_back(variable);
-	this->addEntity(variable);
-	return variable;
+	auto node = new Variable();
+	node->addComponent( "view", new NodeView);
+	node->setName(_name.c_str());
+	this->variables.push_back(node);
+	this->add(node);
+	return node;
 }
 
-Variable* Container::createNodeNumber(double _value)
+Variable* Container::newNumber(double _value)
 {
 	auto node = new Variable();
 	node->addComponent( "view", new NodeView);
 	node->setValue(_value);
-	this->addEntity(node);
+	this->add(node);
 	return node;
 }
 
-Variable* Container::createNodeNumber(const char* _value)
+Variable* Container::newNumber(const char* _value)
 {
 	auto node = new Variable();
 	node->addComponent( "view", new NodeView);
 	node->setValue(std::stod(_value));
-	this->addEntity(node);
+	this->add(node);
 	return node;
 }
 
-Variable* Container::createNodeString(const char* _value)
+Variable* Container::newString(const char* _value)
 {
 	auto node = new Variable();
 	node->addComponent( "view", new NodeView);
 	node->setValue(_value);
-	this->addEntity(node);
+	this->add(node);
 	return node;
 }
 
 
-Entity* Container::createNodeBinaryOperation(std::string _op)
+Node* Container::newBinOp(std::string _op)
 {
-	Entity* node;
+	Node* node;
 
 	if (_op == "+")
-		node = createNodeAdd();
+		node = newAdd();
 	else if (_op == "-")
-		node = createNodeSubstract();
+		node = newSub();
 	else if (_op == "*")
-		node = createNodeMultiply();
+		node = newMult();
 	else if (_op == "/")
-		node = createNodeDivide();
+		node = newDivide();
 	else
 		node = nullptr;
 	
@@ -179,10 +175,10 @@ Entity* Container::createNodeBinaryOperation(std::string _op)
 }
 
 
-Entity* Container::createNodeAdd()
+Node* Container::newAdd()
 {
 	// Create a node with 2 inputs and 1 output
-	auto node 		= new Entity();	
+	auto node 		= new Node();	
 	node->setLabel(ICON_FA_PLUS " Add");
 	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
 	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
@@ -199,15 +195,15 @@ Entity* Container::createNodeAdd()
 	// Create a view component
 	node->addComponent( "view", new NodeView);
 
-	this->addEntity(node);
+	this->add(node);
 
 	return node;
 }
 
-Entity* Container::createNodeSubstract()
+Node* Container::newSub()
 {
 	// Create a node with 2 inputs and 1 output
-	auto node 		= new Entity();	
+	auto node 		= new Node();	
 	node->setLabel(ICON_FA_MINUS " Sub");
 	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
 	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
@@ -224,15 +220,15 @@ Entity* Container::createNodeSubstract()
 	// Create a view component
 	node->addComponent( "view", new NodeView);
 
-	this->addEntity(node);
+	this->add(node);
 
 	return node;
 }
 
-Entity* Container::createNodeMultiply()
+Node* Container::newMult()
 {
 	// Create a node with 2 inputs and 1 output
-	auto node 		= new Entity();	
+	auto node 		= new Node();	
 	node->setLabel(ICON_FA_TIMES " Mult");
 	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
 	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
@@ -250,15 +246,15 @@ Entity* Container::createNodeMultiply()
 	// Create a view component
 	node->addComponent( "view", new NodeView);
 
-	this->addEntity(node);
+	this->add(node);
 
 	return node;
 }
 
-Entity* Container::createNodeDivide()
+Node* Container::newDivide()
 {
 	// Create a node with 2 inputs and 1 output
-	auto node 		= new Entity();	
+	auto node 		= new Node();	
 	node->setLabel(ICON_FA_DIVIDE " Div");
 	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
 	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
@@ -276,15 +272,15 @@ Entity* Container::createNodeDivide()
 	// Create a view component
 	node->addComponent( "view", new NodeView);
 
-	this->addEntity(node);
+	this->add(node);
 
 	return node;
 }
 
-Entity* Container::createNodeAssign()
+Node* Container::newAssign()
 {
 	// Create a node with 2 inputs and 1 output
-	auto node 		= new Entity();	
+	auto node 		= new Node();	
 	node->setLabel("ASSIGN");
 	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
 	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
@@ -302,16 +298,16 @@ Entity* Container::createNodeAssign()
 	// Create a view component
 	node->addComponent( "view", new NodeView);
 
-	this->addEntity(node);
+	this->add(node);
 
 	return node;
 }
 
-Wire* Container::createWire()
+Wire* Container::newWire()
 {
 	Wire* wire = new Wire;
 	wire->addComponent("view", new WireView);	
-	this->addEntity(wire);
+	this->add(wire);
 	return wire;
 }
 
@@ -338,7 +334,7 @@ void Container::tryToRestoreResultNodePosition()
 	}
 }
 
-Parser* Container::createNodeParser(Variable* _expressionVariable)
+Parser* Container::newParser(Variable* _expressionVariable)
 {
 	// Create a Parser Node
 	auto language = Language::NODABLE;
@@ -351,16 +347,16 @@ Parser* Container::createNodeParser(Variable* _expressionVariable)
 	node->addComponent( "view", view);	
 
 	// Link the _expressionVariable output with the Parser's member "expression"
-	auto wire             = this->createWire();
+	auto wire             = this->newWire();
 	auto expressionMember = node->getMember("expression");
-	Entity::Connect(wire,_expressionVariable->getValueMember(), expressionMember);
+	Node::Connect(wire,_expressionVariable->getValueMember(), expressionMember);
 	expressionMember->updateValueFromInputMemberValue();
 
-	this->addEntity(node);
+	this->add(node);
 	return node;
 }
 
-size_t Container::getSize()const
+size_t Container::getNodeCount()const
 {
-	return entities.size();
+	return nodes.size();
 }

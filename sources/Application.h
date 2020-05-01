@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Nodable.h" /* Forward declarations and defines */
-#include "Entity.h"    /* Base class */
+#include "Node.h"    /* Base class */
 #include "History.h"
 #include "File.h"
 #include <string>
@@ -11,7 +11,7 @@
 namespace Nodable
 {
 
-	class Application : public Entity
+	class Application : public Node
 	{
 
 	public:
@@ -42,7 +42,7 @@ namespace Nodable
 		void             setCurrentFileWithIndex               (size_t _index);
 		
 
-		static void      SaveEntity(Entity* _entity);
+		static void      SaveNode(Node* _entity);
 
 	private:
 		/** A variable that contains (into the member "value") the current expression string */

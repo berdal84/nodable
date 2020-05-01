@@ -1,6 +1,6 @@
 #pragma once
 #include "Nodable.h"    // forward declarations
-#include "Entity.h"       // base class
+#include "Node.h"       // base class
 #include "Language.h"
 #include <string>
 #include <vector>
@@ -20,7 +20,7 @@ namespace Nodable{
 		// here container should contain the generated graph.
 
 	*/
-	class Parser : public Entity
+	class Parser : public Node
 	{
 	private:
 
@@ -43,7 +43,7 @@ namespace Nodable{
 		Parser(const Language* _language);
 		virtual ~Parser();
 
-		/* Override from Entity class */
+		/* Override from Node class */
 		bool           eval			       ();
 	private:
 

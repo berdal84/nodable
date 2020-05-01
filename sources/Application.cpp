@@ -111,11 +111,11 @@ void Application::setCurrentFileWithIndex(size_t _index)
 	}
 }
 
-void Application::SaveEntity(Entity* _entity)
+void Application::SaveNode(Node* _node)
 {
     auto component = new DataAccess;
-	_entity->addComponent("dataAccess", component);
+	_node->addComponent("dataAccess", component);
 	component->update();
-	_entity->removeComponent("dataAccess");
+	_node->removeComponent("dataAccess");
 }
 

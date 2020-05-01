@@ -3,7 +3,7 @@
 #include "Test.h"
 #include "Member.h"
 #include "Log.h"
-#include "Entity.h"
+#include "Node.h"
 #include "Wire.h"
 #include "DataAccess.h"
 #include "Container.h"
@@ -301,13 +301,13 @@ bool Test::RunAll()
 		s_testCount++;
 	}
 
-	LOG_MESSAGE("Running Test for Entity class...\n");
+	LOG_MESSAGE("Running Test for Node class...\n");
 
 	{
 		// Test 4 : set/get a node member :
 		//---------------------------------
 
-		std::unique_ptr<Entity> a(new Entity);
+		std::unique_ptr<Node> a(new Node);
 		a->addMember("v");
 		a->setMember("v", double(100));
 		
@@ -319,20 +319,20 @@ bool Test::RunAll()
 
 	}
 
-	LOG_MESSAGE("Running integration Tests for Wire and Entity class...\n");
+	LOG_MESSAGE("Running integration Tests for Wire and Node class...\n");
 
 	{
 		// Test 5a : connect two nodes (creates a wire)
 		//---------------------------------------------
 
-		std::unique_ptr<Entity> a(new Entity);
+		std::unique_ptr<Node> a(new Node);
 		a->addMember("output");
 
-		std::unique_ptr<Entity> b(new Entity);
+		std::unique_ptr<Node> b(new Node);
 		b->addMember("input");
 		
 		std::unique_ptr<Wire> wire(new Wire);
-		Entity::Connect(wire.get(), a->getMember("output"), b->getMember("input"));
+		Node::Connect(wire.get(), a->getMember("output"), b->getMember("input"));
 
 		if ( 	wire->getSource() 		== a->getMember("output") && 
 				wire->getTarget() 		== b->getMember("input")
@@ -345,7 +345,7 @@ bool Test::RunAll()
 		// Test 5b : disconnect a wire
 		//----------------------------
 
-		Entity::Disconnect(wire.get());
+		Node::Disconnect(wire.get());
 		if(wire->getSource() == nullptr && wire->getTarget() == nullptr )
 			s_testSucceedCount++;
 		else
@@ -357,7 +357,7 @@ bool Test::RunAll()
 	LOG_MESSAGE("Running tests for DataAccess...\n");
 	{
 		std::unique_ptr<Container>           container(new Container);
-		Entity* entity = container->createNodeAdd();
+		Node* entity = container->newAdd();
 		std::unique_ptr<DataAccess> dataAccessComponent(new DataAccess);
 
 		entity->setMember("name", "UnitTestEntity");
@@ -382,10 +382,10 @@ bool Test::RunAll()
 		LOG_DEBUG("\n Running %s: \"%s\" \n", testName.c_str(), expression.c_str());
 
 		auto container(new Container);
-		auto expressionVariable(container->createNodeVariable("expression"));
+		auto expressionVariable(container->newVariable("expression"));
 		expressionVariable->setValue(expression);
 
-		auto parser(container->createNodeParser(expressionVariable));
+		auto parser(container->newParser(expressionVariable));
 
 		parser->eval();
 

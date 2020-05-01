@@ -1,21 +1,21 @@
 #pragma once
 
-#include "Entity.h"
+#include "Node.h"
 #include "Nodable.h"
 
 
 namespace Nodable{
-	class Component : public Entity
+	class Component : public Node
 	{
 	public:
 
 		Component() {}
 
 		~Component(){};
-		void         setOwner(Entity* _entity){ owner = _entity; }
-		Entity*      getOwner()const{return owner;}
+		void       setOwner(Node* _entity){ owner = _entity; }
+		Node*      getOwner()const{return owner;}
 
 	private:
-		Entity* owner = nullptr;
+		Node* owner = nullptr;
 	};
 }
