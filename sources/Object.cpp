@@ -48,7 +48,7 @@ Member* Object::getFirstWithConn(Connection_ _connection)const
 	auto m = this->members.begin();
 	while (m != this->members.end() && found == nullptr)
 	{
-		if (m->second->getConnection() == _connection)
+		if (m->second->getConnection() & _connection)
 			found = m->second;
 		m++;
 	}

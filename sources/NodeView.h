@@ -101,14 +101,10 @@ namespace Nodable{
 		static NodeView*  GetSelected         ();
 
 		/* Return a pointer to the dragged member or nullptr if no member is dragged */
-		static const Connector*  GetDraggedConnectorState() { return s_draggedConnector; }
+		static Connector*  GetDraggedConnector() { return s_draggedConnector; }
 
 		/* Return a pointer to the hovered member or nullptr if no member is dragged */
-		static const Connector*  GetHoveredConnectorState() { return s_hoveredConnector; }
-
-		static void       ResetDraggedByMouseMember() {
-			s_draggedConnector->reset();
-		}
+		static Connector*  GetHoveredConnector() { return s_hoveredConnector; }
 
 		/* Return true if _nodeView is selected */
 		static bool       IsSelected          (NodeView*);

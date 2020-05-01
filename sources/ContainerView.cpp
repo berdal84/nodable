@@ -64,8 +64,8 @@ bool ContainerView::draw()
 		}
 	}
 
-	auto draggedConnector = NodeView::GetDraggedConnectorState();
-	auto hoveredConnector = NodeView::GetHoveredConnectorState();
+	auto draggedConnector = NodeView::GetDraggedConnector();
+	auto hoveredConnector = NodeView::GetHoveredConnector();
 
 	/*
 		Wires
@@ -131,7 +131,8 @@ bool ContainerView::draw()
 					Node::Connect(wire, draggedConnector->member, hoveredConnector->member);
 				}
 
-				NodeView::ResetDraggedByMouseMember();
+				draggedConnector->reset();
+				
 
 			}// If user release mouse without hovering a member, we display a menu to create a linked node
 			else if (draggedConnector->member != nullptr)
@@ -214,7 +215,7 @@ bool ContainerView::draw()
 		{
 			// if dragged member is an inputMember
 			if (draggedConnector->member->allows(Connection_In))
-				Node::Connect(container->newWire(), newNode->get("result"), draggedConnector->member);
+				Node::Connect(container->newWire(), newNode->getFirstWithConn(Connection_Out), draggedConnector->member);
 
 			// if dragged member is an output
 			else if (draggedConnector->member->allows(Connection_Out)) {
@@ -228,7 +229,7 @@ bool ContainerView::draw()
 				else
 					Node::Connect(container->newWire(), draggedConnector->member, targetMember);
 			}
-			NodeView::ResetDraggedByMouseMember();
+			NodeView::GetDraggedConnector()->reset();
 		}
 
 		/*
