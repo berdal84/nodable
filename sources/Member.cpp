@@ -156,8 +156,8 @@ std::string Member::getSourceExpression()const
 	if ( allows(Connection_In) && inputMember != nullptr)
 	{
 		// if inputMember is a variable we add the variable name and an equal sign
-		if (inputMember->getOwner()->getMember("__class__")->getValueAsString() == "Variable" &&
-			getOwner()->getMember("__class__")->getValueAsString() == "Variable")
+		if (inputMember->getOwner()->get("__class__")->getValueAsString() == "Variable" &&
+			getOwner()->get("__class__")->getValueAsString() == "Variable")
 		{
 			auto variable = inputMember->getOwner()->as<Variable>();
 			expression.append(variable->getName());

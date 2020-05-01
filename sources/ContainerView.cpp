@@ -89,7 +89,7 @@ bool ContainerView::draw()
 		if (draggedByMouseMember != nullptr)
 		{
 			auto draggedByMouseNodeView        = draggedByMouseMember->getOwner()->as<Node>()->getComponent<NodeView>("view");
-			auto draggedByMouseConnectorPosition = draggedByMouseNodeView->getMemberConnectorPosition(draggedByMouseMember->getName(), Connection_In);
+			auto draggedByMouseConnectorPosition = draggedByMouseNodeView->getConnectorPosition(draggedByMouseMember->getName(), Connection_In);
 			auto lineStartPosition               = draggedByMouseConnectorPosition + ImGui::GetWindowPos();
 
 			auto lineEndPosition = ImGui::GetMousePos();
@@ -97,7 +97,7 @@ bool ContainerView::draw()
 			// Snap lineEndPosition to hoveredByMouse member's currentPosition
 			if (hoveredByMouseMember != nullptr) {
 				auto hoveredByMouseNodeView        = hoveredByMouseMember->getOwner()->as<Node>()->getComponent<NodeView>("view");
-				auto hoveredByMouseConnectorPosition = hoveredByMouseNodeView->getMemberConnectorPosition(hoveredByMouseMember->getName(), Connection_In);
+				auto hoveredByMouseConnectorPosition = hoveredByMouseNodeView->getConnectorPosition(hoveredByMouseMember->getName(), Connection_In);
 				lineEndPosition = hoveredByMouseConnectorPosition + ImGui::GetWindowPos();
 			}
 			ImGui::GetOverlayDrawList()->AddLine(lineStartPosition, lineEndPosition, getColor(ColorType_BorderHighlights), connectorRadius * float(0.9));
@@ -199,18 +199,18 @@ bool ContainerView::draw()
 		if (draggedByMouseMember != nullptr && newNode != nullptr)
 		{
 			// if dragged member is an inputMember
-			if (draggedByMouseMember->allows(Connection_In) && newNode->getMember("result") != nullptr)
-				Node::Connect(container->newWire(), newNode->getMember("result"), draggedByMouseMember);
+			if (draggedByMouseMember->allows(Connection_In) && newNode->get("result") != nullptr)
+				Node::Connect(container->newWire(), newNode->get("result"), draggedByMouseMember);
 
 			// if dragged member is an output
 			else if (draggedByMouseMember->allows(Connection_Out)) {
 
 				// try to get the first Input only member
-				auto targetMember = newNode->getFirstMemberWithConnection(Connection_In);
+				auto targetMember = newNode->getFirstWithConn(Connection_In);
 				
 				// If failed, try to get the first input/output member
 				if (targetMember == nullptr)
-					targetMember = newNode->getFirstMemberWithConnection(Connection_InOut);
+					targetMember = newNode->getFirstWithConn(Connection_InOut);
 
 				if ( targetMember != nullptr)
 					Node::Connect(container->newWire(), draggedByMouseMember, targetMember);

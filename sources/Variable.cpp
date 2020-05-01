@@ -6,7 +6,7 @@ using namespace Nodable;
 
 Variable::Variable()
 {
-	addMember("value", Visibility_AlwaysVisible, Type_Unknown, Connection_InOut);	
+	add("value", Always, Type_Unknown, Connection_InOut);	
 	setMember("__class__", "Variable");
 }
 
@@ -17,12 +17,12 @@ Variable::~Variable()
 
 double Variable::getValueAsNumber()const
 {
-	return getMember("value")->getValueAsNumber();
+	return get("value")->getValueAsNumber();
 }
 
 std::string Variable::getValueAsString()const
 {
-	return getMember("value")->getValueAsString();
+	return get("value")->getValueAsString();
 }
 
 void Variable::setName(const char* _name)

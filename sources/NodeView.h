@@ -43,7 +43,7 @@ namespace Nodable{
 		ImRect            getRect()const;
 
 		/* Get the connector position of the specified member (by name) for its Connection_ side (In or Out ONLY !) */
-		ImVec2            getMemberConnectorPosition(const std::string& /*_name*/, Connection_ /*_connection*/)const;
+		ImVec2            getConnectorPosition(const std::string& /*_name*/, Connection_ /*_connection*/)const;
 
 		/* Set a new position (top-left corner) vector to this view */ 
 		void              setPosition         (ImVec2);

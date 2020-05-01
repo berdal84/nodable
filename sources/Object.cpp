@@ -4,8 +4,8 @@ using namespace Nodable;
 
 Object::Object()
 {
-	addMember("__class__", Visibility_VisibleOnlyWhenUncollapsed);
-	addMember("name",      Visibility_VisibleOnlyWhenUncollapsed);
+	add("__class__", OnlyWhenUncollapsed);
+	add("name",      OnlyWhenUncollapsed);
 }
 
 Object::~Object()
@@ -20,16 +20,15 @@ const Members&   Object::getMembers      ()const
 	return members;
 }
 
-bool Object::hasMember(Member* _value)
+bool Object::has(Member* _value)
 {
 	auto foundWithName = members.find(_value->getName());
 	if( foundWithName != members.end())
 		return (*foundWithName).second == _value;
 	return false;
-
 }
 
-Member* Object::getMember (const char* _name)const
+Member* Object::get (const char* _name)const
 {
 	auto foundWithName = members.find(std::string(_name));
 	if (foundWithName != members.end())
@@ -37,12 +36,12 @@ Member* Object::getMember (const char* _name)const
 	return nullptr;
 }
 
-Member* Object::getMember (const std::string& _name)const
+Member* Object::get (const std::string& _name)const
 {
 	return members.at(_name.c_str());
 }
 
-Member* Object::getFirstMemberWithConnection(Connection_ _connection)const
+Member* Object::getFirstWithConn(Connection_ _connection)const
 {
 	Member* found = nullptr;
 
@@ -57,7 +56,7 @@ Member* Object::getFirstMemberWithConnection(Connection_ _connection)const
 	return found;
 }
 
-void Object::addMember (const char* _name, Visibility_ _visibility, Type_ _type, Connection_ _flags )
+void Object::add (const char* _name, Visibility_ _visibility, Type_ _type, Connection_ _flags )
 {
 	auto v = new Member();
 

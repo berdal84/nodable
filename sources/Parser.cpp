@@ -24,7 +24,7 @@ using namespace Nodable;
 Parser::Parser(const Language* _language):language(_language)
 {
 	setMember("__class__", "Parser");
-	addMember("expression", Visibility_VisibleOnlyWhenUncollapsed);
+	add("expression", OnlyWhenUncollapsed);
 	setLabel("Parser");
 }
 
@@ -203,7 +203,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		// left operand (should BE a variable)
 
 		NODABLE_ASSERT(_left->getOwner() != nullptr); // left operand cannot be a orphaned member
-		NODABLE_ASSERT(_left->getOwner()->getMember("__class__")->getValueAsString() == "Variable"); // left operand need to me owned by a variable node			               
+		NODABLE_ASSERT(_left->getOwner()->get("__class__")->getValueAsString() == "Variable"); // left operand need to me owned by a variable node			               
 
 
 		// Directly connects right operand output to left operant input (yes that's reversed compared to code)
@@ -212,7 +212,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		else
 			Node::Connect(context->newWire(), right, _left);
 
-		result = _left->getOwner()->getFirstMemberWithConnection(Connection_InOut);
+		result = _left->getOwner()->getFirstWithConn(Connection_InOut);
 
 
 	// For all other binary operations :
@@ -224,17 +224,17 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		if (_left->getOwner() == nullptr)
 			binOperation->setMember("left", _left);
 		else
-			Node::Connect(context->newWire(), _left, binOperation->getMember("left"));
+			Node::Connect(context->newWire(), _left, binOperation->get("left"));
 
 		// Connect the Right Operand :
 
 		if (right->getOwner() == nullptr)
 			binOperation->setMember("right", right);
 		else
-			Node::Connect(context->newWire(), right, binOperation->getMember("right"));
+			Node::Connect(context->newWire(), right, binOperation->get("right"));
 
 		// Set the left !
-		result = binOperation->getMember("result");
+		result = binOperation->get("result");
 	}
 
 	_tokenId = rightTokenId;	
@@ -494,7 +494,7 @@ bool Parser::tokenizeExpressionString()
 {
 
 	/* get expression chars */
-	std::string chars = getMember("expression")->getValueAsString();
+	std::string chars = get("expression")->getValueAsString();
 
 	/* prepare allowed chars */
 	const auto numbers 	     = language->numbers;

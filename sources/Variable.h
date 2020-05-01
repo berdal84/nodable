@@ -18,7 +18,7 @@ namespace Nodable{
 		const char*       getName         ()const;
 		double            getValueAsNumber()const;
 		std::string       getValueAsString()const;
-		Member*           getValueMember  ()const{return getMember("value");}
+		Member*           getValueMember  ()const{return get("value");}
 		std::string       getTypeAsString ()const;
 
 	private:
@@ -28,14 +28,14 @@ namespace Nodable{
 		template<class Value>
 		void setValue(Value _value)
 		{
-			getMember("value")->setValue(_value);
+			get("value")->setValue(_value);
 			updateLabel();
 		}
 
 		template<class Value>
 		void setValue(Value* _value)
 		{
-			getMember("value")->setValue(_value);
+			get("value")->setValue(_value);
 			updateLabel();
 		}
 	};

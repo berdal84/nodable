@@ -156,7 +156,7 @@ bool Node::update()
 			auto wireTarget = wire->getTarget();
 			auto wireSource = wire->getSource();
 
-			if ( this->hasMember(wireTarget) &&
+			if ( this->has(wireTarget) &&
 				 wireSource != nullptr) 
 			{
 				/* update the source entity */

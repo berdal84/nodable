@@ -18,7 +18,7 @@ View::View():
 	colors[ColorType_Shadow]           = {0.0f, 0.0f, 0.0f, 0.2f};
 }
 
-ImVec2 Nodable::View::ConvertCursorPositionToScreenPosition(ImVec2 _position)
+ImVec2 Nodable::View::CursorPosToScreenPos(ImVec2 _position)
 {
 	const ImVec2 offset = ImGui::GetCursorScreenPos() - ImGui::GetCursorPos();
 	return _position + offset;

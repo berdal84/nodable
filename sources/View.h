@@ -25,37 +25,14 @@ namespace Nodable{
 		};
 
 		View();
-		virtual ~View(){}
-		
+		virtual ~View(){}		
 		virtual bool draw()=0;
-
-		bool drawAsChild(const char* _name, const ImVec2& _size, bool border = false, ImGuiWindowFlags flags = 0);
-
-		/* Draw only shadow for a rectangle */
-		static void DrawRectShadow      (	ImVec2 	_topLeftCorner, 
-											ImVec2 	_bottomRightCorner, 
-											float 	_borderRadius 	= 0.0f, 
-											int 	_shadowRadius 	= 10, 
-											ImVec2 	_shadowOffset 	= ImVec2(), 
-											ImColor _shadowColor 	= ImColor(0.0f,0.0f,0.0f));
-		
-		/* Draw a text (default colored) with a shadow. */
-		static void ShadowedText        (ImVec2 _offset, ImColor _shadowColor, const char*, ...);
-
-		/* Draw a colored text with a shadow. */
-		static void ColoredShadowedText (ImVec2 _offset, ImColor _textColor, ImColor _shadowColor, const char*, ...);
-
-		/* */
-		static ImVec2 ConvertCursorPositionToScreenPosition(ImVec2);
-
-		void        setColor       (ColorType_ ,ImColor);
-		ImColor     getColor       (ColorType_);
-
-		void        setVisible(bool _b) { visible = _b; }
-		bool        isVisible() { return visible; }
-
-		/* Return true if this view is hovered by mouse cursor, false if not */
-		bool        isHovered      ()const{return hovered;}
+		bool         drawAsChild(const char* _name, const ImVec2& _size, bool border = false, ImGuiWindowFlags flags = 0);
+		void         setColor(ColorType_ ,ImColor);
+		ImColor      getColor(ColorType_);
+		void         setVisible(bool _b){ visible = _b; }
+		bool         isVisible()const{ return visible; }
+		bool         isHovered()const{return hovered;}
 
 		ImRect  visibleRect;
 		ImRect  visibleScreenRect;
@@ -63,10 +40,22 @@ namespace Nodable{
 	protected:
 		bool    hovered;
 
-
 	private:
 		bool    visible;
 		ImColor colors[ColorType_COUNT];
+
+	public:
+		static void DrawRectShadow(
+			ImVec2 	_topLeftCorner,
+			ImVec2 	_bottomRightCorner,
+			float 	_borderRadius = 0.0f,
+			int 	_shadowRadius = 10,
+			ImVec2 	_shadowOffset = ImVec2(),
+			ImColor _shadowColor = ImColor(0.0f, 0.0f, 0.0f));
+
+		static void ShadowedText(ImVec2 _offset, ImColor _shadowColor, const char*, ...);
+		static void ColoredShadowedText(ImVec2 _offset, ImColor _textColor, ImColor _shadowColor, const char*, ...);
+		static ImVec2 CursorPosToScreenPos(ImVec2);
 		
 	};
 }

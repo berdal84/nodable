@@ -111,7 +111,7 @@ Variable* Container::findVariable(std::string _name)
 Variable* Container::newResult()
 {
 	auto variable = newVariable(ICON_FA_SIGN_OUT_ALT " Result");
-	auto member = variable->getMember("value");
+	auto member = variable->get("value");
 	member->setConnectionFlags(Connection_In);                     // disable output because THIS node is the output !
 	result = variable;
 
@@ -180,15 +180,15 @@ Node* Container::newAdd()
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Node();	
 	node->setLabel(ICON_FA_PLUS " Add");
-	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
-	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
-	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
+	node->add("left",   Default, Type_Number, Connection_In);
+	node->add("right",  Default, Type_Number, Connection_In);
+	node->add("result", Default, Type_Number, Connection_Out);
 	
 	// Create a binary operation component and link values.
 	auto operation 	= new Add();
-	operation->setLeft  (node->getMember("left"));
-	operation->setRight (node->getMember("right"));
-	operation->setResult(node->getMember("result"));
+	operation->setLeft  (node->get("left"));
+	operation->setRight (node->get("right"));
+	operation->setResult(node->get("result"));
 	operation->setOperatorAsString("+");
 	node->addComponent( "operation", operation);
 	
@@ -205,15 +205,15 @@ Node* Container::newSub()
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Node();	
 	node->setLabel(ICON_FA_MINUS " Sub");
-	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
-	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
-	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
+	node->add("left",   Default, Type_Number, Connection_In);
+	node->add("right",  Default, Type_Number, Connection_In);
+	node->add("result", Default, Type_Number, Connection_Out);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Substract();
-	operation->setLeft  (node->getMember("left"));
-	operation->setRight (node->getMember("right"));
-	operation->setResult(node->getMember("result"));
+	operation->setLeft  (node->get("left"));
+	operation->setRight (node->get("right"));
+	operation->setResult(node->get("result"));
 	operation->setOperatorAsString("-");
 	node->addComponent( "operation", operation);
 
@@ -230,15 +230,15 @@ Node* Container::newMult()
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Node();	
 	node->setLabel(ICON_FA_TIMES " Mult");
-	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
-	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
-	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
+	node->add("left",   Default, Type_Number, Connection_In);
+	node->add("right",  Default, Type_Number, Connection_In);
+	node->add("result", Default, Type_Number, Connection_Out);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Multiply();
-	operation->setLeft  (node->getMember("left"));
-	operation->setRight (node->getMember("right"));
-	operation->setResult(node->getMember("result"));
+	operation->setLeft  (node->get("left"));
+	operation->setRight (node->get("right"));
+	operation->setResult(node->get("result"));
 	operation->setOperatorAsString("*");
 
 	node->addComponent( "operation", operation);
@@ -256,15 +256,15 @@ Node* Container::newDivide()
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Node();	
 	node->setLabel(ICON_FA_DIVIDE " Div");
-	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
-	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
-	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
+	node->add("left",   Default, Type_Number, Connection_In);
+	node->add("right",  Default, Type_Number, Connection_In);
+	node->add("result", Default, Type_Number, Connection_Out);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Divide();
-	operation->setLeft  (node->getMember("left"));
-	operation->setRight (node->getMember("right"));
-	operation->setResult(node->getMember("result"));
+	operation->setLeft  (node->get("left"));
+	operation->setRight (node->get("right"));
+	operation->setResult(node->get("result"));
 	operation->setOperatorAsString("/");
 
 	node->addComponent( "operation", operation);
@@ -282,15 +282,15 @@ Node* Container::newAssign()
 	// Create a node with 2 inputs and 1 output
 	auto node 		= new Node();	
 	node->setLabel("ASSIGN");
-	node->addMember("left",   Visibility_Default, Type_Number, Connection_In);
-	node->addMember("right",  Visibility_Default, Type_Number, Connection_In);
-	node->addMember("result", Visibility_Default, Type_Number, Connection_Out);
+	node->add("left",   Default, Type_Number, Connection_In);
+	node->add("right",  Default, Type_Number, Connection_In);
+	node->add("result", Default, Type_Number, Connection_Out);
 
 	// Create a binary operation component and link values.
 	auto operation 	= new Assign();
-	operation->setLeft  (node->getMember("left"));
-	operation->setRight (node->getMember("right"));
-	operation->setResult(node->getMember("result"));
+	operation->setLeft  (node->get("left"));
+	operation->setRight (node->get("right"));
+	operation->setResult(node->get("result"));
 	operation->setOperatorAsString("=");
 
 	node->addComponent( "operation", operation);
@@ -348,7 +348,7 @@ Parser* Container::newParser(Variable* _expressionVariable)
 
 	// Link the _expressionVariable output with the Parser's member "expression"
 	auto wire             = this->newWire();
-	auto expressionMember = node->getMember("expression");
+	auto expressionMember = node->get("expression");
 	Node::Connect(wire,_expressionVariable->getValueMember(), expressionMember);
 	expressionMember->updateValueFromInputMemberValue();
 

@@ -308,10 +308,10 @@ bool Test::RunAll()
 		//---------------------------------
 
 		std::unique_ptr<Node> a(new Node);
-		a->addMember("v");
+		a->add("v");
 		a->setMember("v", double(100));
 		
-		if( a->getMember("v")->getValueAsNumber()  == double(100))
+		if( a->get("v")->getValueAsNumber()  == double(100))
 			s_testSucceedCount++;
 		else
 			LOG_ERROR("Test n°4 : FAILED !\n");
@@ -326,16 +326,16 @@ bool Test::RunAll()
 		//---------------------------------------------
 
 		std::unique_ptr<Node> a(new Node);
-		a->addMember("output");
+		a->add("output");
 
 		std::unique_ptr<Node> b(new Node);
-		b->addMember("input");
+		b->add("input");
 		
 		std::unique_ptr<Wire> wire(new Wire);
-		Node::Connect(wire.get(), a->getMember("output"), b->getMember("input"));
+		Node::Connect(wire.get(), a->get("output"), b->get("input"));
 
-		if ( 	wire->getSource() 		== a->getMember("output") && 
-				wire->getTarget() 		== b->getMember("input")
+		if ( 	wire->getSource() 		== a->get("output") && 
+				wire->getTarget() 		== b->get("input")
 			)
 			s_testSucceedCount++;
 		else
@@ -363,13 +363,13 @@ bool Test::RunAll()
 		entity->setMember("name", "UnitTestEntity");
 		entity->addComponent("dataAccess", dataAccessComponent.get());
 
-		entity->addMember("BOOL");
+		entity->add("BOOL");
 		entity->setMember("BOOL", false);
 
-		entity->addMember("STRING");
+		entity->add("STRING");
 		entity->setMember("STRING", "hello world!");
 
-		entity->addMember("NUMBER");
+		entity->add("NUMBER");
 		entity->setMember("NUMBER", double(3.14));
 
 		dataAccessComponent->update();

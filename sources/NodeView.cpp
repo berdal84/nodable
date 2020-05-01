@@ -55,7 +55,7 @@ ImVec2 NodeView::getRoundedPosition()const
 	return roundedPosition;
 }
 
-ImVec2 NodeView::getMemberConnectorPosition(const std::string& _name, Connection_ _connection)const
+ImVec2 NodeView::getConnectorPosition(const std::string& _name, Connection_ _connection)const
 {
 	auto pos = position;
 
@@ -147,7 +147,7 @@ void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 	for (auto eachWire : wires)
 	{
 		auto sourceNode    = eachWire->getSource()->getOwner()->as<Node>(); // TODO: add some checks
-		bool isWireAnInput = node->hasMember(eachWire->getTarget());
+		bool isWireAnInput = node->has(eachWire->getTarget());
 		auto inputView     = sourceNode->getComponent<NodeView>("view");
 
 		if (isWireAnInput && !inputView->pinned)
@@ -168,7 +168,7 @@ void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 
 	for (auto eachWire : wires)
 	{
-		bool isWireAnInput = node->hasMember(eachWire->getTarget());
+		bool isWireAnInput = node->has(eachWire->getTarget());
 		if (isWireAnInput)
 		{
 			auto sourceNode = eachWire->getSource()->getOwner()->as<Node>();
@@ -230,7 +230,7 @@ bool NodeView::draw()
 	ImGui::BeginGroup();
 
 	ImVec2 cursorPositionBeforeContent = ImGui::GetCursorPos();
-	ImVec2 screenPosition  = View::ConvertCursorPositionToScreenPosition( getRoundedPosition() );
+	ImVec2 screenPosition  = View::CursorPosToScreenPos( getRoundedPosition() );
 
 
 	// Draw the background of the Group
@@ -286,7 +286,7 @@ bool NodeView::draw()
 		for(auto& m : node->getMembers())
 		{		
 			auto member = m.second;
-			if (member->getVisibility() == Visibility_AlwaysVisible && member->getConnection() == Connection_In)
+			if (member->getVisibility() == Always && member->getConnection() == Connection_In)
 			{
 				drawMember(m.second);
 			}
@@ -296,7 +296,7 @@ bool NodeView::draw()
 		for (auto& m : node->getMembers())
 		{
 			auto member = m.second;
-			if (member->getVisibility() == Visibility_AlwaysVisible && member->getConnection() != Connection_In)
+			if (member->getVisibility() == Always && member->getConnection() != Connection_In)
 			{
 				drawMember(member);
 			}
@@ -311,8 +311,8 @@ bool NodeView::draw()
 		{		
 			auto member = m.second;
 
-			if( member->getVisibility() == Visibility_VisibleOnlyWhenUncollapsed ||
-				member->getVisibility() == Visibility_AlwaysHidden)
+			if( member->getVisibility() == OnlyWhenUncollapsed ||
+				member->getVisibility() == Hidden)
 			{
 				this->drawMember(member);
 			}
@@ -326,7 +326,7 @@ bool NodeView::draw()
 
 			auto component	= pair.second;
 			auto name		= pair.first;
-			auto className	= component->getMember("__class__")->getValueAsString();
+			auto className	= component->get("__class__")->getValueAsString();
 
 			ImGui::Text("- %s (%s)", name.c_str(), className.c_str());
 		}
@@ -336,7 +336,7 @@ bool NodeView::draw()
 		ImGui::Text("Parameters :");
 		std::string parentName = "NULL";
 		if ( node->getParent() )
-			parentName = node->getParent()->getMember("name")->getValueAsString();
+			parentName = node->getParent()->get("name")->getValueAsString();
 		ImGui::Text("Parent: %s", parentName.c_str());
 		
 		// Draw dirty state 
@@ -431,7 +431,7 @@ void NodeView::ArrangeRecursively(NodeView* _view)
 
 	for(auto eachWire : wires)
 	{
-		if (eachWire != nullptr && _view->getOwner()->hasMember(eachWire->getTarget()) )
+		if (eachWire != nullptr && _view->getOwner()->has(eachWire->getTarget()) )
 		{
 
 			if ( eachWire->getSource() != nullptr)
@@ -529,12 +529,12 @@ bool NodeView::drawMember(Member* _member) {
 	auto memberName       = _member->getName();
 
 	if (_member->allows(Connection_In)) {
-		ImVec2      connectorPos = getMemberConnectorPosition( memberName, Connection_In);
+		ImVec2      connectorPos = getConnectorPosition( memberName, Connection_In);
 		drawMemberConnector(connectorPos, _member, draw_list);
 	}
 		
 	if (_member->allows(Connection_Out)) {
-		ImVec2      connectorPos = getMemberConnectorPosition( memberName, Connection_Out);
+		ImVec2      connectorPos = getConnectorPosition( memberName, Connection_Out);
 		drawMemberConnector(connectorPos, _member, draw_list);
 	}
 

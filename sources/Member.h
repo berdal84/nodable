@@ -16,10 +16,10 @@ namespace Nodable{
 	};
 	
 	enum Visibility_{
-		Visibility_AlwaysVisible                = 0,
-		Visibility_VisibleOnlyWhenUncollapsed   = 1,
-		Visibility_AlwaysHidden                 = 2,
-		Visibility_Default                      = Visibility_AlwaysVisible
+		Always                = 0,
+		OnlyWhenUncollapsed   = 1,
+		Hidden                = 2,
+		Default               = Always
 	};
 
 	class Member{
@@ -78,7 +78,7 @@ namespace Nodable{
 		std::string         sourceExpression    = "";
 		std::string 		name 				= "Unknown";
 		Variant       		data;
-		Visibility_ 		visibility 			= Visibility_Default;
+		Visibility_ 		visibility 			= Default;
 		Connection_ 	    connection 	        = Connection_Default;
 	};
 }
