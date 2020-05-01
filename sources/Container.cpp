@@ -349,7 +349,7 @@ Parser* Container::newParser(Variable* _expressionVariable)
 	// Link the _expressionVariable output with the Parser's member "expression"
 	auto wire             = this->newWire();
 	auto expressionMember = node->get("expression");
-	Node::Connect(wire,_expressionVariable->getValueMember(), expressionMember);
+	Node::Connect(wire,_expressionVariable->getValue(), expressionMember);
 	expressionMember->updateValueFromInputMemberValue();
 
 	this->add(node);

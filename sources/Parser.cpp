@@ -90,7 +90,7 @@ bool Parser::eval()
 		result->setValue(resultValue);
 	// Else we connect resultValue with resultVariable.value
 	else
-		Node::Connect(container->newWire(), resultValue, result->getValueMember());
+		Node::Connect(container->newWire(), resultValue, result->getValue());
 
 
 	auto view = result->getComponent<NodeView>("view");
@@ -126,9 +126,9 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 				variable = context->newVariable(_token.word);
 
 			NODABLE_ASSERT(variable != nullptr);
-			NODABLE_ASSERT(variable->getValueMember() != nullptr);
+			NODABLE_ASSERT(variable->getValue() != nullptr);
 
-			result = variable->getValueMember();
+			result = variable->getValue();
 
 			break;
 		}
@@ -207,12 +207,14 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 
 
 		// Directly connects right operand output to left operant input (yes that's reversed compared to code)
+		auto var =_left->getOwner()->as<Variable>();
+
 		if (right->getOwner() == nullptr)
-			_left->getOwner()->setMember("value", right);
+			var->setValue(right);
 		else
 			Node::Connect(context->newWire(), right, _left);
 
-		result = _left->getOwner()->getFirstWithConn(Connection_InOut);
+		result = var->getValue();
 
 
 	// For all other binary operations :

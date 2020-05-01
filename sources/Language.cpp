@@ -12,13 +12,10 @@ const Language* Language::Nodable() {
 
 	language->numbers   = "0123456789.";
 
-	language->addOperator( Operator("=", 0u) );
-
+	language->addOperator( Operator("=", 1u) );
 	language->addOperator( Operator("!", 5u) );
-
 	language->addOperator( Operator("-", 10u) );
 	language->addOperator( Operator("+", 10u) );
-
 	language->addOperator( Operator("/", 20u) );
 	language->addOperator( Operator("*", 20u) );
 

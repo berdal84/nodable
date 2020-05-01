@@ -178,7 +178,7 @@ bool File::update() {
 		return false;
 	}
 
-	auto member		= result->getValueMember();
+	auto member		= result->getValue();
 	auto expression = member->getSourceExpression();
 	auto view		= getComponent<FileView>("view");
 
