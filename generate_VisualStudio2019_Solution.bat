@@ -5,8 +5,8 @@ echo   Nodable - Configure Visual Studio 2019 Solution.
 echo ---------------------------------------------------
 
 set BUILD_FOLDER=build
-::set VS_STUDIO_VERION="Visual Studio 15 2017"
 set VS_STUDIO_VERION="Visual Studio 16 2019"
+::set VS_STUDIO_VERION="Visual Studio 15 2017"
 
 IF NOT EXIST build GOTO :build
 
