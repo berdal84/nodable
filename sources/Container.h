@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <imgui/imgui.h>   // for ImVec2
+#include <mirror.h>
 
 namespace Nodable{
 
@@ -46,5 +47,8 @@ namespace Nodable{
 
 	public:
 		static ImVec2               LastResultNodePosition;
+
+		MIRROR_CLASS(Container)(
+			MIRROR_PARENT(Component));
 	};
 }

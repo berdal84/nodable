@@ -93,7 +93,7 @@ bool Parser::eval()
 		Node::Connect(container->newWire(), resultValue, result->getValue());
 
 
-	auto view = result->getComponent<NodeView>("view");
+	auto view = result->getComponent<NodeView>();
 	NodeView::ArrangeRecursively(view);
 		
 	success = true;

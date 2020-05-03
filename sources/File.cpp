@@ -57,7 +57,7 @@ void File::save()
 {
 	if (modified) {
 		std::ofstream fileStream(this->path.c_str());
-		auto view    = getComponent<FileView>("view");
+		auto view    = getComponent<FileView>();
 		auto content = view->getText();
 fileStream.write(content.c_str(), content.size());
 modified = false;
@@ -139,7 +139,7 @@ bool File::evaluateExpression(std::string& _expression)
 	auto variable = getContainer()->newVariable(ICON_FA_CODE);
 	variable->setValue(_expression);
 
-	auto view = variable->getComponent<View>("view");
+	auto view = variable->getComponent<NodeView>();
 	view->setVisible(false);
 
 	if (variable->isSet())
@@ -160,7 +160,7 @@ bool File::evaluateExpression(std::string& _expression)
 
 bool File::update() {
 
-	if (auto history = this->getComponent<History>("history")) {
+	if (auto history = this->getComponent<History>()) {
 		if (history->dirty) {
 			this->evaluateSelectedExpression();
 			history->dirty = false;
@@ -180,7 +180,7 @@ bool File::update() {
 
 	auto member		= result->getValue();
 	auto expression = member->getSourceExpression();
-	auto view		= getComponent<FileView>("view");
+	auto view		= getComponent<FileView>();
 
 	view->replaceSelectedText(expression);
 	
@@ -193,7 +193,7 @@ bool File::evaluateSelectedExpression()
 
 	getContainer()->clear();
 
-	auto view = getComponent<FileView>("view");
+	auto view = getComponent<FileView>();
 
 	auto expression = view->getSelectedText();
 	success = evaluateExpression(expression);

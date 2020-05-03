@@ -2,6 +2,7 @@
 
 #include "Nodable.h"   // for constants and forward declarations
 #include "Component.h" // base class
+#include "mirror.h"
 
 namespace Nodable{
 	/* BinaryOperationComponent is an interface for all binary operations */
@@ -25,35 +26,54 @@ namespace Nodable{
 		Member* 	right 	= nullptr;
 		Member* 	result 	= nullptr;
 		std::string operatorAsString = "";
+		MIRROR_CLASS(BinaryOperationComponent)(
+			MIRROR_PARENT(Component)
+		);
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Sum */
 	class Add : public BinaryOperationComponent{
 	public:
-		bool update()override;	
+		Add() {};
+		bool update()override;
+		MIRROR_CLASS(Add)(
+			MIRROR_PARENT(BinaryOperationComponent)
+		);
 	};
 
-	/* Implementation of the BinaryOperationComponent as a Substraction */
+	/* Implementation of the BinaryOperationComponent as a Subtraction */
 	class Substract : public BinaryOperationComponent{
 	public:
+		Substract() {};
 		bool update()override;
+		MIRROR_CLASS(Substract)(
+			MIRROR_PARENT(BinaryOperationComponent));
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Multiplication */
 	class Multiply : public BinaryOperationComponent{
 	public:
+		Multiply() {};
 		bool update()override;
+		MIRROR_CLASS(Multiply)(
+			MIRROR_PARENT(BinaryOperationComponent));
 	};
 
 	/* Implementation of the BinaryOperationComponent as a Division */
 	class Divide : public BinaryOperationComponent{
 	public:
+		Divide() {};
 		bool update()override;
+		MIRROR_CLASS(Divide)(
+			MIRROR_PARENT(BinaryOperationComponent));
 	};
 
 	/* Implementation of the BinaryOperationComponent as an assignment */
 	class Assign : public BinaryOperationComponent{
 	public:
+		Assign() {};
 		bool update()override;
+		MIRROR_CLASS(Assign)(
+			MIRROR_PARENT(BinaryOperationComponent));
 	};
 }

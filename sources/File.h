@@ -4,6 +4,7 @@
 #include "Node.h"
 #include "Container.h"
 #include "History.h"
+#include <mirror.h>
 
 #include <SDL.h>
 #include <cstdio>
@@ -34,16 +35,17 @@ namespace Nodable
 		static std::string               BrowseForFileAndReturnItsAbsolutePath (SDL_Window* currentWindow);
 
 		inline Container* getContainer() {
-			return getComponent<Container>("container");
+			return getComponent<Container>();
 		}
 		
 		inline History* getHistory() {
-			return getComponent<History>("history");
+			return getComponent<History>();
 		}
 
 	private:
 		bool                      modified = false;
 		std::string               path;
 		std::string               name;
+		MIRROR_CLASS(File)();
 	};
 }

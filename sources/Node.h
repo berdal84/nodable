@@ -5,7 +5,6 @@
 #include "Member.h"
 #include <string>
 #include <memory>               // for unique_ptr
-#include <typeinfo>
 
 namespace Nodable{
 	/* Base class for all Nodes */
@@ -21,17 +20,46 @@ namespace Nodable{
 		const char*         getLabel          ()const;
 		
 		/* Component related methods */
-		void                addComponent      (const std::string&  /*_componentName*/, Component* /* _component */);
-		bool                hasComponent      (const std::string&  /*_componentName*/)const;		
+		template<typename T>
+		void addComponent(const std::string& _componentName, T* _component)
+		{
+			auto name = T::GetClass()->getName();
+			components.insert_or_assign(name, _component);
+			_component->setOwner(this);
+		}
+
+		template<typename T>
+		bool                hasComponent()const
+		{
+			return getComponent<T>() != nullptr;
+		}
+
+
 		const Components&   getComponents     ()const{return components;}
 		void                removeComponent   (const std::string& /* _componentName */);
 
 		template<typename T>
-		T* getComponent(const std::string& _componentName)const {
+		T* getComponent()const {
 
-			if (auto component = components.at(_componentName)) {
-				return component->as<T>();
+			auto c    = T::GetClass();
+			auto name = c->getName();
+
+			// Search with class name
+			{
+				auto it = components.find(name);
+				if (it != components.end()) {
+					return it->second->as<T>();
+				}
 			}
+
+			// Search for a derived class
+			for (auto it = components.begin(); it != components.end(); it++) {
+				Component* component = it->second;
+				if (component->getClass()->isChildOf(c, false)) {
+					return component->as<T>();
+				}
+			}
+
 			return nullptr;
 		};
 

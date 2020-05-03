@@ -24,3 +24,8 @@ void Wire::updateState()
 	else
 		state = State_Disconnected;
 }
+
+Nodable::WireView* Nodable::Wire::getView() const
+{
+	return getComponent<WireView>();
+}

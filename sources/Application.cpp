@@ -31,7 +31,7 @@ Application::~Application()
 
 bool Application::init()
 {
-	auto view = getComponent<ApplicationView>("view");
+	auto view = getComponent<ApplicationView>();
 	view->init();
 	openFile("data/startup.txt");
 

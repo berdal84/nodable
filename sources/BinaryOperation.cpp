@@ -20,10 +20,10 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 		{
 			auto node = _input->getOwner()->as<Node>();
 
-			if (node->hasComponent("operation"))
+			if (node->hasComponent<BinaryOperationComponent>())
 			{
 
-				if (auto leftOperationComponent = node->getComponent<BinaryOperationComponent>("operation"))
+				if (auto leftOperationComponent = node->getComponent<BinaryOperationComponent>())
 				{
 					auto leftOperatorString = leftOperationComponent->getOperatorAsString();
 

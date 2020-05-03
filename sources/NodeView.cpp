@@ -7,6 +7,7 @@
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
 #include "Application.h"
+#include "BinaryOperation.h"
 
 using namespace Nodable;
 
@@ -111,7 +112,7 @@ bool NodeView::update(float _deltaTime) {
 	auto node = getOwner();
 	NODABLE_ASSERT(node != nullptr);
 
-	if (node->hasComponent("operation"))
+	if (node->hasComponent<BinaryOperationComponent>())
 		setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
 	else if (dynamic_cast<Variable*>(node) != nullptr)
 		setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f));
@@ -148,7 +149,7 @@ void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 	{
 		auto sourceNode    = eachWire->getSource()->getOwner()->as<Node>(); // TODO: add some checks
 		bool isWireAnInput = node->has(eachWire->getTarget());
-		auto inputView     = sourceNode->getComponent<NodeView>("view");
+		auto inputView     = sourceNode->getComponent<NodeView>();
 
 		if (isWireAnInput && !inputView->pinned)
 		{
@@ -172,7 +173,7 @@ void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 		if (isWireAnInput)
 		{
 			auto sourceNode = eachWire->getSource()->getOwner()->as<Node>();
-			auto inputView  = sourceNode->getComponent<NodeView>("view");
+			auto inputView  = sourceNode->getComponent<NodeView>();
 
 			if (!inputView->pinned)
 			{
@@ -437,7 +438,7 @@ void NodeView::ArrangeRecursively(NodeView* _view)
 			if ( eachWire->getSource() != nullptr)
 			{
 				auto node         = dynamic_cast<Node*>(eachWire->getSource()->getOwner());
-				auto inputView    = node->getComponent<NodeView>("view");
+				auto inputView    = node->getComponent<NodeView>();
 				inputView->pinned = false;
 				ArrangeRecursively(inputView);
 			}

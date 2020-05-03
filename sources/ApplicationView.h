@@ -5,6 +5,7 @@
 #include <SDL2/include/SDL.h>
 #include <string>
 #include "View.h"
+#include <mirror.h>
 
 namespace Nodable
 {
@@ -13,7 +14,8 @@ namespace Nodable
 	*/
 	class ApplicationView : public View
 	{
-	public:
+		
+	public:		
 		ApplicationView(const char* _name, Application* _application);
 		~ApplicationView();
 
@@ -25,6 +27,8 @@ namespace Nodable
 		/* call this once just after the instantiation. */
 		bool init();
 
+		
+
 	private:
 		Application       *application;
 		SDL_Window        *sdlWindow;
@@ -32,5 +36,9 @@ namespace Nodable
 		ImVec4            clear_color = ImColor(50, 50, 50); // used to fill the framebuffer each frame.
 	public:
 		void browseFile();
+
+		MIRROR_CLASS(ApplicationView)(
+			MIRROR_PARENT(View)
+		);
 	};
 }

@@ -5,6 +5,8 @@
 #include "Wire.h"
 #include "WireView.h"
 #include "History.h"
+#include "DataAccess.h"
+#include "BinaryOperation.h"
 
 using namespace Nodable;
 
@@ -36,18 +38,6 @@ Node::~Node()
 	{
 		delete pair.second;
 	}
-}
-
-void Node::addComponent(const std::string&  _componentName, Component*  _component)
-{
-	components[_componentName] = _component;
-	_component->setOwner(this);
-}
-
-bool Node::hasComponent(const std::string&  _componentName)const
-{
-	auto it = components.find(_componentName);
-	return it != components.end();
 }
 
 void Node::removeComponent(const std::string& _componentName)
@@ -168,11 +158,11 @@ bool Node::update()
 		}
 
 		// then we evaluates this node
-		if(hasComponent("operation"))
-			getComponent<Component>("operation")->update();
+		if(hasComponent<BinaryOperationComponent>())
+			getComponent<BinaryOperationComponent>()->update();
 		
-		if(hasComponent("dataAccess"))
-			getComponent<Component>("dataAccess")->update();
+		if(hasComponent<DataAccess>())
+			getComponent<DataAccess>()->update();
 
 		setDirty(false);
 	}

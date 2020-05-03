@@ -18,8 +18,8 @@ int main(int argc, char* argv[])
 
 	while (nodable.update())
 	{
-		if( nodable.hasComponent("view"))
-			nodable.getComponent<View>("view")->draw();
+		if(auto view = nodable.getComponent<View>())
+			view->draw();
 	}
 
 	nodable.shutdown();

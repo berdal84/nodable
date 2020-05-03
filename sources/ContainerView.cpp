@@ -35,7 +35,7 @@ bool ContainerView::draw()
 		auto result    = container->getResultVariable();
 
 		if (result != nullptr) { // Make sure result node is always visible
-			auto view = result->getComponent<NodeView>("view");
+			auto view = result->getComponent<NodeView>();
 			auto rect = ImRect(ImVec2(0,0), ImGui::GetWindowSize());
 			rect.Max.y = 1000000000000.0f;
 			NodeView::ConstraintToRect(view, rect );
@@ -44,7 +44,7 @@ bool ContainerView::draw()
 		// Update
 		for (auto eachNode : entities)
 		{
-			if (auto view = eachNode->getComponent<View>("view") )
+			if (auto view = eachNode->getComponent<View>() )
 				view->update();
 		}
 
@@ -52,7 +52,7 @@ bool ContainerView::draw()
 
 		for (auto eachNode : entities)
 		{
-			if (auto view = eachNode->getComponent<View>("view"))
+			if (auto view = eachNode->getComponent<View>())
 			{
 				if (view->isVisible())
 				{
@@ -92,7 +92,7 @@ bool ContainerView::draw()
 			{
 				auto member   = draggedConnector->member;
 				auto node     = member->getOwner()->as<Node>();
-				auto view     = node->getComponent<NodeView>("view");
+				auto view     = node->getComponent<NodeView>();
 				auto position = view->getConnectorPosition(member->getName(), draggedConnector->side);
 
 				lineScreenPosStart = position + ImGui::GetWindowPos();
@@ -104,7 +104,7 @@ bool ContainerView::draw()
 			if (hoveredConnector->member != nullptr) {
 				auto member     = hoveredConnector->member;
 				auto node       = member->getOwner()->as<Node>();
-				auto view       = node->getComponent<NodeView>("view");
+				auto view       = node->getComponent<NodeView>();
 				auto position   = view->getConnectorPosition(member->getName(), hoveredConnector->side);
 
 				lineScreenPosEnd = position + ImGui::GetWindowPos();
@@ -161,7 +161,7 @@ bool ContainerView::draw()
 			auto drag = ImGui::GetMouseDragDelta();
 			for (auto eachNode : entities)
 			{
-				if (auto view = eachNode->getComponent< NodeView>("view") ) 
+				if (auto view = eachNode->getComponent<NodeView>() ) 
 					view->translate(drag);
 			}
 			ImGui::ResetMouseDragDelta();
@@ -236,10 +236,9 @@ bool ContainerView::draw()
 			Set New Node's currentPosition were mouse cursor is 
 		*/
 
-		if (newNode != nullptr && newNode->hasComponent("view"))
+		if (newNode != nullptr)
 		{
-
-			if (auto view = newNode->getComponent<NodeView>("view"))
+			if (auto view = newNode->getComponent<NodeView>())
 			{
 				auto pos = ImGui::GetMousePos();
 				pos.x -= origin.x;

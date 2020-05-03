@@ -2,7 +2,7 @@
 
 #include "Node.h"
 #include "Nodable.h"
-
+#include "mirror.h"
 
 namespace Nodable{
 	class Component : public Node
@@ -17,5 +17,6 @@ namespace Nodable{
 
 	private:
 		Node* owner = nullptr;
+		MIRROR_CLASS(Component)();
 	};
 }

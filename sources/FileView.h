@@ -2,6 +2,7 @@
 #include "Nodable.h"
 #include "View.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
+#include <mirror.h>
 
 namespace Nodable {	
 
@@ -24,5 +25,7 @@ namespace Nodable {
 		File*        getFile();
 		TextEditor*  m_textEditor;
 		bool         m_hasChanged;
+		MIRROR_CLASS(FileView)(
+			MIRROR_PARENT(View));
 	};
 }

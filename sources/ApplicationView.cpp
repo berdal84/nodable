@@ -421,7 +421,7 @@ bool ApplicationView::draw()
 				availSize.y -= ImGui::GetTextLineHeightWithSpacing();;
 
 				auto currentFile     = application->getCurrentFile();
-				auto currentFileView = currentFile->getComponent<View>("view");
+				auto currentFileView = currentFile->getComponent<View>();
 				currentFileView->drawAsChild("FileView", availSize);
 			}
 

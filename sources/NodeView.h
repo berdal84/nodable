@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include "Member.h"
+#include <mirror.h>
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(120.0f, 120.0f)
 
@@ -145,5 +146,8 @@ namespace Nodable{
 		static NodeView* s_dragged;	 // pointer to the currently dragged NodeView.	
 		static Connector* s_draggedConnector;
 		static Connector* s_hoveredConnector;
+
+		MIRROR_CLASS(NodeView)(
+			MIRROR_PARENT(View));
 	};
 }

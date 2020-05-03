@@ -28,12 +28,12 @@ bool WireView::draw()
 	    auto sourceNode 	= source->getOwner()->as<Node>();
 		auto targetNode 	= target->getOwner()->as<Node>();
 
-		if (!sourceNode->hasComponent("view") || // in case of of the node have no view we can't draw the wire.
-			!targetNode->hasComponent("view"))
+		if (!sourceNode->hasComponent<View>() || // in case of of the node have no view we can't draw the wire.
+			!targetNode->hasComponent<View>() )
 			return false;
 
-	    auto sourceView = sourceNode->getComponent<NodeView>("view");
-	    auto targetView = targetNode->getComponent<NodeView>("view");
+	    auto sourceView = sourceNode->getComponent<NodeView>();
+	    auto targetView = targetNode->getComponent<NodeView>();
 
 		if (!sourceView->isVisible() || !targetView->isVisible() ) // in case of of the node have hidden view we can't draw the wire.
 			return false;

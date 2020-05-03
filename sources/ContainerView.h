@@ -2,7 +2,7 @@
 
 #include "Nodable.h"     // forward declarations
 #include "View.h"   	 // base class
-
+#include <mirror.h>
 
 namespace Nodable{
 
@@ -10,5 +10,7 @@ namespace Nodable{
 	public:
 		virtual ~ContainerView(){};
 		bool    draw();
+		MIRROR_CLASS(ContainerView)(
+			MIRROR_PARENT(View));
 	};
 }

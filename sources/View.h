@@ -9,6 +9,7 @@
 #include <imgui/imgui_internal.h>
 
 #include "Component.h"
+#include <mirror.h>
 
 namespace Nodable{
 	class View : public Component
@@ -56,6 +57,8 @@ namespace Nodable{
 		static void ShadowedText(ImVec2 _offset, ImColor _shadowColor, const char*, ...);
 		static void ColoredShadowedText(ImVec2 _offset, ImColor _textColor, ImColor _shadowColor, const char*, ...);
 		static ImVec2 CursorPosToScreenPos(ImVec2);
-		
+
+		MIRROR_CLASS(View)(
+			MIRROR_PARENT(Component));
 	};
 }

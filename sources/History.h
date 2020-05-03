@@ -9,6 +9,7 @@
 #include <time.h>
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "Log.h"
+#include <mirror.h>
 
 namespace Nodable
 {
@@ -79,6 +80,9 @@ namespace Nodable
 		std::vector<Cmd*>	commands = std::vector<Cmd*>();		/* Command history */
 		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
 		TextEditorBuffer*   textEditorBuffer = nullptr;
+
+		MIRROR_CLASS(History)(
+			MIRROR_PARENT(Component));
 	};
 
 

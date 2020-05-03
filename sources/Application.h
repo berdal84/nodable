@@ -55,11 +55,7 @@ namespace Nodable
 		size_t             currentFileIndex; /* index that identify the current file in loadedFiles */
 	
 		/** Reflection using mirror*/
-		MIRROR_CLASS(Application)
-		(
-			MIRROR_MEMBER(quit)
-			MIRROR_MEMBER(currentFileIndex)
-		);
+		MIRROR_CLASS(Application)();
 
 	};
 }

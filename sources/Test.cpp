@@ -361,7 +361,7 @@ bool Test::RunAll()
 		std::unique_ptr<DataAccess> dataAccessComponent(new DataAccess);
 
 		entity->setMember("name", "UnitTestEntity");
-		entity->addComponent("dataAccess", dataAccessComponent.get());
+		//entity->addComponent("dataAccess", dataAccessComponent.get());
 
 		entity->add("BOOL");
 		entity->setMember("BOOL", false);
@@ -372,8 +372,8 @@ bool Test::RunAll()
 		entity->add("NUMBER");
 		entity->setMember("NUMBER", double(3.14));
 
-		dataAccessComponent->update();
-		entity->removeComponent("dataAccess");
+		//dataAccessComponent->update();
+		//entity->removeComponent("dataAccess");
 	}
 
 	
