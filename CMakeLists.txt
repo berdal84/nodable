@@ -12,7 +12,7 @@ endif ()
 #==========
 
 # Declare project name
-project ("Nodable")
+project ("Nodable Project")
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 14)
@@ -33,73 +33,34 @@ find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(MIRROR REQUIRED HINTS "./extern/mirror")
 
-# Create a SOURCES variable that contains all source files
+# Add additionnal source directories
 aux_source_directory( "./extern/imgui" IMGUI)
 aux_source_directory( "./extern/ImGuiColorTextEdit" TEXTEDIT)
 aux_source_directory( "./libs/gl3w/GL" GL3W)
 
-set(
-NODABLE_SRC
-"sources/Application.cpp"
-"sources/Application.h"
-"sources/ApplicationView.cpp"
-"sources/ApplicationView.h"
-"sources/BinaryOperation.cpp"
-"sources/BinaryOperation.h"
-"sources/Component.h"
-"sources/Container.cpp"
-"sources/Container.h"
-"sources/ContainerView.cpp"
-"sources/ContainerView.h"
-"sources/DataAccess.cpp"
-"sources/DataAccess.h"
-"sources/File.cpp"
-"sources/File.h"
-"sources/FileView.cpp"
-"sources/FileView.h"
-"sources/History.cpp"
-"sources/History.h"
-"sources/Language.cpp"
-"sources/Language.h"
-"sources/Log.cpp"
-"sources/Log.h"
-"sources/Member.cpp"
-"sources/Member.h"
-"sources/Nodable.cpp"
-"sources/Nodable.h"
-"sources/Node.cpp"
-"sources/Node.h"
-"sources/NodeView.cpp"
-"sources/NodeView.h"
-"sources/Object.cpp"
-"sources/Object.h"
-"sources/Parser.cpp"
-"sources/Parser.h"
-"sources/Test.cpp"
-"sources/Test.h"
-"sources/Variable.cpp"
-"sources/Variable.h"
-"sources/Variant.cpp"
-"sources/View.cpp"
-"sources/View.h"
-"sources/Wire.cpp"
-"sources/Wire.h"
-"sources/WireView.cpp"
-"sources/WireView.h"
-)
+# Get all files in sources directory recursively
+file(GLOB_RECURSE NODABLE_SRC "${CMAKE_CURRENT_LIST_DIR}/sources/**")
 
-
+# Create a variable with all sources
 set(SOURCES
   ${NODABLE_SRC}
-  ${GL3W}
-  ${IMGUI}
+  ${GL3W}  
   ${TEXTEDIT}    
   "./extern/imgui/examples/imgui_impl_opengl3.cpp"
-  "./extern/imgui/examples/imgui_impl_sdl.cpp"
-  ${MIRROR_SOURCES}
+  "./extern/imgui/examples/imgui_impl_sdl.cpp" 
 )
 
-# Include headers
+# Group the previous files using the folder tree 
+source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" FILES ${SOURCES})
+
+# Include nodable folders (for headers)
+include_directories(
+	"./sources"
+	"./sources/Core"
+	"./sources/Nodes"
+	"./sources/Components")
+
+# Include external and libs folders (for headers)
 include_directories(
     "./extern"
     "./extern/imgui"
@@ -117,7 +78,7 @@ include_directories(
 #=======
 
 # Add an executable called Nodable(.exe on windows) 
-add_executable (Nodable "./sources/main" ${SOURCES}) # WIN32 will give WIN32_EXECUTABLE flag if targets windows (no console)
+add_executable (Nodable ${SOURCES}) # WIN32 will give WIN32_EXECUTABLE flag if targets windows (no console)
 
 # Link libraries
 target_link_libraries(Nodable PUBLIC ${OPENGL_LIBRARY})
