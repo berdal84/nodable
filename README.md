@@ -44,6 +44,7 @@ Dependencies / Credits :
 - *Dear ImGui* developed by Omar Cornut: https://github.com/omarcornut/imgui
 - IconFontCppHeaders by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
 - ImGuiColorTextEdit by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
+- mirror by Grouflon : https://github.com/grouflon/mirror
 
 Licence:
 =========

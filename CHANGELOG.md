@@ -6,6 +6,7 @@ Author: Bérenger Dalle-Cort, 2020-2017
 
 
 0.6:
+	- use now mirror (by @Grouflon) as reflection framework.
 	- Result node constraint to stay on visible rect after updating.
 	- Build using CMake.
 	- Parser: functions rewrote, parenthesis, detailed logs.
