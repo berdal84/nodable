@@ -11,8 +11,10 @@ set VS_STUDIO_VERION="Visual Studio 16 2019"
 IF NOT EXIST build GOTO :build
 
 :choice
-set /P c=The target folder "%BUILD_FOLDER%" exists, erase and continue ? [Y/N]
-if /I "%c%" EQU "Y" goto :deleteFolder
+echo Warning: the target folder "%BUILD_FOLDER%" exists. Do you want to continue ?
+set /P c= (ignore (Y), delete(D), quit(N) [Y/N/Q]) 
+if /I "%c%" EQU "D" goto :deleteFolder
+if /I "%c%" EQU "Y" goto :build
 if /I "%c%" EQU "N" goto :abort
 goto :choice
 
