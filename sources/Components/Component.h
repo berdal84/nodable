@@ -2,7 +2,7 @@
 
 #include "Node.h"
 #include "Nodable.h"
-#include "mirror.h"
+#include <mirror.h>
 
 namespace Nodable{
 	class Component : public Node

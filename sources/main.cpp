@@ -1,9 +1,10 @@
 
 #include <stdio.h>
 #include <string>
-#include "Application.h"
-#include "ApplicationView.h"
-#include "Test.h"            // for RunAll()
+
+#include <Application.h>
+#include <Test.h>            // for RunAll()
+#include <ApplicationView.h>
 
 using namespace Nodable;
 

@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Nodable.h"    // forward declarations and common stuff
-#include "Node.h"       // base class
-#include "Member.h"
 #include <string>
+
+#include <Nodable.h>    // forward declarations and common stuff
+#include <Node.h>       // base class
+#include <Member.h>
 
 namespace Nodable{
 	/* Variable is a node that identify a value with its name */

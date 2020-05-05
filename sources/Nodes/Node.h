@@ -1,10 +1,10 @@
 #pragma once
+#include <string>
+#include <memory>               // for unique_ptr
 
 #include "Nodable.h"            // for constants and forward declarations
 #include "Object.h"
 #include "Member.h"
-#include <string>
-#include <memory>               // for unique_ptr
 
 namespace Nodable{
 	/* Base class for all Nodes */

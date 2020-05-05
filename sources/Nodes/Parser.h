@@ -1,9 +1,10 @@
 #pragma once
-#include "Nodable.h"    // forward declarations
-#include "Node.h"       // base class
-#include "Language.h"
 #include <string>
 #include <vector>
+
+#include <Nodable.h>    // forward declarations
+#include <Node.h>       // base class
+#include <Language.h>
 
 namespace Nodable{
 

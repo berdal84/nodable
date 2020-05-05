@@ -45,7 +45,9 @@ file(GLOB_RECURSE NODABLE_SRC "${CMAKE_CURRENT_LIST_DIR}/sources/**")
 set(SOURCES
   ${NODABLE_SRC}
   ${GL3W}  
-  ${TEXTEDIT}    
+  ${TEXTEDIT}
+  ${IMGUI}
+  ${MIRROR_SOURCES}
   "./extern/imgui/examples/imgui_impl_opengl3.cpp"
   "./extern/imgui/examples/imgui_impl_sdl.cpp" 
 )

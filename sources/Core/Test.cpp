@@ -1,5 +1,5 @@
+#include <memory> // for unique_ptr
 
-// include once this file
 #include "Test.h"
 #include "Member.h"
 #include "Log.h"
@@ -11,7 +11,6 @@
 #include "Parser.h"
 #include "Variable.h"
 
-#include <memory> // for unique_ptr
 using namespace Nodable;
 
 int  Test::s_testCount        = 0;

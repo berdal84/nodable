@@ -1,12 +1,13 @@
 #pragma once
 
 #include "Nodable.h" /* Forward declarations and defines */
-#include "Node.h"    /* Base class */
+#include "Node.h"
 #include "History.h"
 #include "File.h"
 #include <string>
 #include <memory>    /* For unique_ptr */
 #include <mirror.h>
+
 
 namespace Nodable
 {

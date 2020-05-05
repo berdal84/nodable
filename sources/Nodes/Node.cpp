@@ -1,7 +1,8 @@
+#include <algorithm>    // for std::find
+
 #include "Node.h"
 #include "Log.h"		// for LOG_DEBUG(...)
 #include "NodeView.h"
-#include <algorithm>    // for std::find
 #include "Wire.h"
 #include "WireView.h"
 #include "History.h"

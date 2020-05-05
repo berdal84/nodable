@@ -1,6 +1,6 @@
-#include "Variable.h"
-#include "Member.h"
-#include "Log.h"
+#include <Variable.h>
+#include <Member.h>
+#include <Log.h>
 
 using namespace Nodable;
 
