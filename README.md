@@ -20,7 +20,21 @@ You still don't understand what I'm doing? I hope this GIF will make this more u
 How to compile ? :
 ==================
 
-Open the existing Visual Studio Solution located in build folder. Then check VS help to know how to compile.
+Install Microsoft Visual Studio Community 2015+
+
+Install CMake 3.8+
+
+Open a command line in the Nodable folder and type:
+
+```
+cmake -B ./build
+cmake --build ./build --config Release
+```
+Nodable will be built into `./build/Release/`
+
+Adding optionnal `--target install` to the fourth line will create a clean `./install/Release` directory with only necessary files to run the software.
+
+You can also open the Visual Studio solution generated into `./build` if you want.
 
 Dependencies / Credits :
 ==============
@@ -30,6 +44,7 @@ Dependencies / Credits :
 - *Dear ImGui* developed by Omar Cornut: https://github.com/omarcornut/imgui
 - IconFontCppHeaders by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
 - ImGuiColorTextEdit by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
+- mirror by Grouflon : https://github.com/grouflon/mirror
 
 Licence:
 =========

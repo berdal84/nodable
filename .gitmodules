@@ -7,3 +7,6 @@
 [submodule "extern/IconFontCppHeaders"]
 	path = extern/IconFontCppHeaders
 	url = https://github.com/berdal84/IconFontCppHeaders
+[submodule "extern/mirror"]
+	path = extern/mirror
+	url = https://github.com/berdal84/mirror
