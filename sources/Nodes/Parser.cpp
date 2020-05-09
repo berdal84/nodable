@@ -11,7 +11,7 @@
 
 #include <algorithm>
 
-#define DEBUG_PARSER // Enable detailed logs
+//#define DEBUG_PARSER // Enable detailed logs
 
 #ifdef DEBUG_PARSER  // macro to disable these on debug
 	#define LOG_DEBUG_PARSER(...) LOG_DEBUG(__VA_ARGS__)
@@ -315,8 +315,8 @@ Member* Parser::parseAtomicExpression(size_t& _tokenId, unsigned short _depth) {
 
 Member* Parser::parseParenthesisExpression(size_t& _tokenId, unsigned short _depth) {
 
-	LOG_DEBUG("parseParenthesisExpression...");
-	LOG_DEBUG("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
+	LOG_DEBUG_PARSER("parseParenthesisExpression...");
+	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
 
 	auto logPrefix = ComputePrefix(_depth);
 
@@ -338,7 +338,7 @@ Member* Parser::parseParenthesisExpression(size_t& _tokenId, unsigned short _dep
 		_tokenId = subToken + 1;
 
 		if ( tokens.at(subToken).word != ")" ) {
-			LOG_DEBUG("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
+			LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
 			LOG_DEBUG_PARSER("parseParenthesisExpression failed... " KO " ( \")\" expected after %s )\n", tokens.at(subToken - 1) );
 		} else {
 			LOG_DEBUG_PARSER("parseParenthesisExpression... " OK  "\n");
@@ -461,7 +461,7 @@ bool Parser::isSyntaxValid()
 			openedParenthesisCount += isOpenParenthesis ? 1 : -1; // increase / decrease openend parenthesis count.
 
 			if (openedParenthesisCount < 0) {
-				LOG_WARNING("Unable to tokenize expression, mismatch parenthesis count. \n");
+				LOG_DEBUG_PARSER("Unable to tokenize expression, mismatch parenthesis count. \n");
 				success = false;
 			}
 
@@ -608,7 +608,7 @@ bool Parser::tokenizeExpressionString()
 			addToken(TokenType_Parenthesis, str, std::distance(chars.begin(), it));
 
 		}else if ( *it != ' ') {
-			LOG_WARNING("Unable to tokenize expression %s \n", chars);
+			LOG_DEBUG_PARSER("Unable to tokenize expression %s \n", chars);
 			return false;
 		}
 	}

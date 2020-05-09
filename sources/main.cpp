@@ -4,17 +4,23 @@
 
 #include <Application.h>
 #include <Test.h>            // for RunAll()
-#include <ApplicationView.h>
+#include <iostream>
 
 using namespace Nodable;
 
 int main(int argc, char* argv[])
+{	
+	// Run some tests before to do anything:
 
-{
-	// Build a new Nodable application
-	std::string appName = "Nodable " NODABLE_VERSION;
-	Application nodable(appName.c_str());
-	Test::RunAll();
+	if ( !RunAllTests() ) {
+		std::cin.get();
+		return 1;
+	}
+
+	// Here the tests are all OK, we can instantiate, init and run nodable loop.
+
+	Application nodable("Nodable " NODABLE_VERSION);
+
 	nodable.init();
 
 	while (nodable.update())
@@ -27,3 +33,4 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+
