@@ -12,9 +12,9 @@ IF NOT EXIST build GOTO :build
 
 :choice
 echo Warning: the target folder "%BUILD_FOLDER%" exists. Do you want to continue ?
-set /P c= (ignore (Y), delete(D), quit(N) [Y/N/Q]) 
+set /P c= (ignore (Enter), delete(D), quit(N) [Y/N/Q]) 
 if /I "%c%" EQU "D" goto :deleteFolder
-if /I "%c%" EQU "Y" goto :build
+if /I "%c%" EQU "" goto :build
 if /I "%c%" EQU "N" goto :abort
 goto :choice
 
@@ -26,7 +26,7 @@ mkdir %BUILD_FOLDER%
 cmake -G %VS_STUDIO_VERION% -B %BUILD_FOLDER% || goto :error
 
 :done
-echo Finished! Open %BUILD_FOLDER%/Nodable.sln
+echo Finished! Open the VS solution into "./%BUILD_FOLDER%"
 IF "%1"=="--no-prompt" exit
 pause
 exit
