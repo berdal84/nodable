@@ -12,8 +12,6 @@
 #include "Parser.h"
 #include "Variable.h"
 
-using namespace Nodable;
-
 struct TestState {
 	TestState() {};
 
@@ -42,6 +40,8 @@ struct TestState {
 	size_t m_failureCount = 0;
 };
 
+using namespace Nodable;
+
 static TestState s_globalState; \
 static bool s_lastGroupTestPassed; \
 static std::stack<TestState> status;
@@ -67,7 +67,7 @@ static std::stack<TestState> status;
 			content \
 		} \
 		if( ! status.top().allPassed() ) { \
-			LOG_ERROR("Test: %s failed, %i/%i passed.\n", name, status.top().m_count, status.top().m_successCount); \
+			LOG_ERROR("Test: %s failed, %i/%i passed.\n", name, status.top().m_successCount,  status.top().m_count); \
 		} \
 		s_globalState.add(status.top()); \
 		s_lastGroupTestPassed = status.top().allPassed(); \
@@ -324,6 +324,11 @@ bool RunAllTests()
 		TEST("Wire & Node",
 			EXPECT(WireAndNode_Tests(), true)
 		)
+
+		//TEST("Biology (DNA to Phenylalanine)",
+		//	EXPECT(Parser_Test("TTT"), "F")
+		//	EXPECT(Parser_Test("TTC"), "F")
+		//)
 	}
 
 	GLOBAL_TEST_END
