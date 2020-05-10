@@ -23,7 +23,7 @@ using namespace Nodable;
 
 Parser::Parser(const Language* _language):language(_language)
 {
-	setMember("__class__", "Parser");
+	set("__class__", "Parser");
 	add("expression", OnlyWhenUncollapsed);
 	setLabel("Parser");
 }
@@ -224,14 +224,14 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		// Connect the Left Operand :
 		//---------------------------
 		if (_left->getOwner() == nullptr)
-			binOperation->setMember("left", _left);
+			binOperation->set("left", _left);
 		else
 			Node::Connect(context->newWire(), _left, binOperation->get("left"));
 
 		// Connect the Right Operand :
 
 		if (right->getOwner() == nullptr)
-			binOperation->setMember("right", right);
+			binOperation->set("right", right);
 		else
 			Node::Connect(context->newWire(), right, binOperation->get("right"));
 
@@ -677,7 +677,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId, unsigned short _depth /*= 0u
 		_tokenId = localTokenId;
 		Container* context = this->getParent();
 		auto node = context->newFunction(&prototype, args);
-		node->setMember("arg_0", args.at(0));
+		node->set("arg_0", args.at(0));
 		return node->get("result");
 	}
 

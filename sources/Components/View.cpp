@@ -8,7 +8,7 @@ View::View():
 	visible(true),
 	visibleRect()
 {
-	setMember("__class__", "View");
+	set("__class__", "View");
 	
 	// set default colors
 	colors[ColorType_Fill]             = {1.0f, 1.0f, 1.0f, 1.0f};

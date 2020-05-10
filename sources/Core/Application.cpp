@@ -18,7 +18,7 @@ using namespace Nodable;
 
 Application::Application(const char* _name):currentFileIndex(0)
 {
-	setMember("__class__", "Application");
+	set("__class__", "Application");
 	setLabel(_name);
 	addComponent("view", new ApplicationView(_name, this));
 }

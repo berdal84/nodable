@@ -42,7 +42,7 @@ namespace Nodable
 		/* Set a new _value to the member _name.
 		Side effect : set dirty all nodes connected directly or inderiectly to one of its outputs.*/
 		template<typename T>
-		void                setMember         (const char* _name, T _value);		
+		void                set(const char* _name, T _value);		
 
 		bool                needsToBeDeleted  (){return deleted;}
 
@@ -55,10 +55,10 @@ namespace Nodable
 	};
 
 	template<typename T>
-	void Object::setMember      (const char* _name, T _value)
+	void Object::set(const char* _name, T _value)
 	{
 		members[std::string(_name)]->setValue(_value);
-		this->onMemberValueChanged(_name);	
+		this->onMemberValueChanged(_name);
 	}
 
 	template<typename T>

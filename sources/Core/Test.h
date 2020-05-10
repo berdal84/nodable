@@ -259,7 +259,7 @@ bool Node_Tests() {
 
 			std::unique_ptr<Node> node(new Node);
 			node->add("val");
-			node->setMember("val", double(100));
+			node->set("val", double(100));
 
 			EXPECT(node->get("val")->getValueAsNumber(), double(100))
 			EXPECT(node->get("val")->getValueAsString(), "100")

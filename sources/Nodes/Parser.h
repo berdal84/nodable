@@ -30,7 +30,7 @@ namespace Nodable{
 
 		auto container = new Container("MyGlobalContainer");
 		auto lexer     = container->createLexer( Language::NODABLE );
-		lexer->setMember("expression", "10+50*40/0.001");
+		lexer->set("expression", "10+50*40/0.001");
 		lexer->update();	
 
 		// here container should contain the generated graph.

@@ -20,21 +20,21 @@ ApplicationView::ApplicationView(const char* _name, Application* _application):
 	application(_application)
 {
     add("glWindowName");
-    setMember("glWindowName", _name);
+    set("glWindowName", _name);
 
     // Add a member to know if we should display the properties panel or not
     add("showProperties");
-    setMember("showProperties", false);
+    set("showProperties", false);
 
     add("showImGuiDemo");
-    setMember("showImGuiDemo", false);
+    set("showImGuiDemo", false);
 
     // Add two members for the window size
     add("glWindowSizeX");
-    setMember("glWindowSizeX", 1280.0f);
+    set("glWindowSizeX", 1280.0f);
 
     add("glWindowSizeY");
-    setMember("glWindowSizeY", 720.0f);
+    set("glWindowSizeY", 720.0f);
 }
 
 ApplicationView::~ApplicationView()
@@ -239,7 +239,7 @@ bool ApplicationView::draw()
     	    
     	    }           
             ImGui::End();
-            setMember("showProperties", b);
+            set("showProperties", b);
         }
     }
 
@@ -249,7 +249,7 @@ bool ApplicationView::draw()
         if (b){
             ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowDemoWindow(&b);
-            setMember("showImGuiDemo", b);
+            set("showImGuiDemo", b);
         }
     }
     // Fullscreen sdlWindow
@@ -343,10 +343,10 @@ bool ApplicationView::draw()
 						NodeView::s_drawDetail = DrawDetail_Complex;
 
 					if (showProperties)
-						setMember("showProperties", !get("showProperties")->getValueAsBoolean());
+						set("showProperties", !get("showProperties")->getValueAsBoolean());
 
 					if (showImGuiDemo)
-						setMember("showImGuiDemo", !get("showImGuiDemo")->getValueAsBoolean());
+						set("showImGuiDemo", !get("showImGuiDemo")->getValueAsBoolean());
 
 
 

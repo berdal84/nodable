@@ -7,7 +7,7 @@ using namespace Nodable;
 Variable::Variable()
 {
 	add("value", Always, Type_Unknown, Connection_InOut);	
-	setMember("__class__", "Variable");
+	set("__class__", "Variable");
 }
 
 Variable::~Variable()
