@@ -7,12 +7,14 @@ FunctionArg::FunctionArg(TokenType_ _type, std::string _name) {
 	name = _name;
 }
 
-FunctionPrototype::FunctionPrototype(std::string _identifier):identifier(_identifier)
+FunctionPrototype::FunctionPrototype(std::string _identifier, TokenType_ _type):
+	identifier(_identifier),
+	type(_type)
 {
 
 }
 
-void FunctionPrototype::pushArgument(TokenType_ _type, std::string _name) {
+void FunctionPrototype::pushArg(TokenType_ _type, std::string _name) {
 
 	args.push_back( FunctionArg(_type, _name) );	
 }
@@ -33,14 +35,19 @@ bool FunctionPrototype::match(FunctionPrototype& _other) {
 	return true;
 }
 
-const std::string& Nodable::FunctionPrototype::getIdentifier()const
+const std::string& FunctionPrototype::getIdentifier()const
 {
 	return this->identifier;
 }
 
-const std::vector<FunctionArg> Nodable::FunctionPrototype::getArgs() const
+const std::vector<FunctionArg> FunctionPrototype::getArgs() const
 {
 	return this->args;
+}
+
+const TokenType_ FunctionPrototype::getType() const
+{
+	return type;
 }
 
 const Language* Language::NODABLE = Language::Nodable();
@@ -63,11 +70,24 @@ const Language* Language::Nodable() {
 	language->keywords["true"]  = TokenType_Boolean;
 	language->keywords["false"] = TokenType_Boolean;
 
-	// Adding some functions to the main library
+	/* Function library */
+
 	{
-		FunctionPrototype prototype("nothing");
-		prototype.pushArgument(TokenType_Number, "input");
-		language->addFunction(prototype);
+		FunctionPrototype proto("nothing", TokenType_Number);
+		proto.pushArg(TokenType_Number, "input");
+		language->pushFunc(proto);
+	}
+
+	{
+		FunctionPrototype proto("sin", TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		language->pushFunc(proto);
+	}
+
+	{
+		FunctionPrototype proto("cos", TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		language->pushFunc(proto);
 	}
 
 	return language;
@@ -109,7 +129,7 @@ const FunctionPrototype* Nodable::Language::findFunctionPrototype(FunctionProtot
 	return nullptr;
 }
 
-void Nodable::Language::addFunction(FunctionPrototype prototype)
+void Nodable::Language::pushFunc(FunctionPrototype prototype)
 {
 	this->functionPrototypes.push_back(prototype);
 }

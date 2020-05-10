@@ -2,6 +2,7 @@
 #include "Log.h"		 // for LOG_DEBUG(...)
 #include "Object.h"
 #include "Variable.h"
+#include "Language.h"
 
 using namespace Nodable;
 
@@ -65,6 +66,23 @@ Member* Member::getInputMember() const
 const std::string& Nodable::Member::getName() const
 {
 	return name;
+}
+
+const TokenType_ Member::MemberTypeToTokenType(Type_ _type)
+{
+	if (_type == Type_Boolean) return TokenType_Boolean;
+	if (_type == Type_Number)  return TokenType_Number;
+	if (_type == Type_String)  return TokenType_String;
+
+	return TokenType_Unknown;
+}
+
+const Type_ Nodable::Member::TokenTypeToMemberType(TokenType_ _tokenType)
+{
+	if (_tokenType == TokenType_Boolean) return Type_Boolean;
+	if (_tokenType == TokenType_Number)  return Type_Number;
+	if (_tokenType == TokenType_String)  return Type_String;
+
 }
 
 void Member::setInputMember(Member* _val)

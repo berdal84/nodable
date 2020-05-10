@@ -648,17 +648,20 @@ Member* Parser::parseFunctionCall(size_t& _tokenId, unsigned short _depth /*= 0u
 
 	std::vector<Member*> argAsMember;
 
-	// Declare a new function proto
+	// Declare a new function prototype
 	auto identifier = tokens.at(localTokenId++).word;
-	FunctionPrototype prototype(identifier);
+	FunctionPrototype prototype(identifier, TokenType_Unknown);
 
 	localTokenId++; // eat parenthesis
 	
-	while (localTokenId < tokens.size() && tokens.at(localTokenId).word != ")") {
-		auto type = tokens.at(localTokenId).type;
-		if (auto member = parseAtomicExpression(localTokenId, _depth + 1)) {
+	bool parsingError = false;
+	while ( !parsingError && localTokenId < tokens.size() && tokens.at(localTokenId).word != ")") {
+
+		if (auto member = parseExpression(localTokenId)) {
 			argAsMember.push_back(member); // store argument as member (already parsed)
-			prototype.pushArgument(type);  // add a new argument type to the proto.
+			prototype.pushArg( Member::MemberTypeToTokenType(member->getType()) );  // add a new argument type to the proto.
+		} else {
+			parsingError = true;
 		}
 	}
 
@@ -668,27 +671,37 @@ Member* Parser::parseFunctionCall(size_t& _tokenId, unsigned short _depth /*= 0u
 		return nullptr;
 	}
 
-	localTokenId++;
+	localTokenId++; // eat parenthesis
 
+	// Find the prototype in the language library
+	auto matchingPrototype = language->findFunctionPrototype(prototype);
 
+	if( matchingPrototype != nullptr) { // if prototype found
 
-	// Compare the prototype with the example proto
-	if (auto matchingPrototype = language->findFunctionPrototype(prototype)) {
 		_tokenId = localTokenId;
 		Container* context = this->getParent();
 
 		auto node = context->newFunction(*matchingPrototype);
 
 		auto connectArg = [&](size_t _argIndex)-> void { // lambda to connect input member to node for a specific argument index.
-			node->set(
-				matchingPrototype->getArgs().at(_argIndex).name.c_str(),
-				argAsMember.at(_argIndex));
+
+			auto arg = argAsMember.at(_argIndex);
+			auto memberName = matchingPrototype->getArgs().at(_argIndex).name;
+
+			if (arg->getOwner() == nullptr) {
+				node->set(memberName.c_str(), arg);
+			} else {
+				Node::Connect(context->newWire(), arg, node->get(memberName.c_str()));
+			}
 		};
 
 		for( size_t argIndex = 0; argIndex < matchingPrototype->getArgs().size(); argIndex++ )
 			connectArg(argIndex);
 
 		return node->get("result");
+
+	} else {
+		LOG_DEBUG_PARSER('Unable to parse function, prototype not found.');
 	}
 
 	return nullptr;

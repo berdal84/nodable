@@ -44,16 +44,19 @@ namespace Nodable {
 
 	class FunctionPrototype {
 	public:
-		FunctionPrototype(std::string _identifier);
+		FunctionPrototype(std::string _identifier, TokenType_ _type);
 
-		void                           pushArgument(TokenType_ _type, std::string _name = "");
+		void                           pushArg(TokenType_ _type, std::string _name = "");
 		bool                           match(FunctionPrototype& _other);
 		const std::string&             getIdentifier()const;
 		const std::vector<FunctionArg> getArgs() const;
+		const TokenType_               getType() const;
+
 	private:
 
 		std::string identifier;
 		std::vector<FunctionArg> args;
+		TokenType_ type;
 	};
 
 	/**
@@ -74,7 +77,7 @@ namespace Nodable {
 		static const Language* NODABLE;
 
 		const FunctionPrototype* findFunctionPrototype(FunctionPrototype& prototype) const;
-		void addFunction(FunctionPrototype prototype);
+		void pushFunc(FunctionPrototype prototype);
 		
 	private:
 
