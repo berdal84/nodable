@@ -63,6 +63,13 @@ const Language* Language::Nodable() {
 	language->keywords["true"]  = TokenType_Boolean;
 	language->keywords["false"] = TokenType_Boolean;
 
+	// Adding some functions to the main library
+	{
+		FunctionPrototype prototype("nothing");
+		prototype.pushArgument(TokenType_Number, "input");
+		language->addFunction(prototype);
+	}
+
 	return language;
 }
 
@@ -86,4 +93,23 @@ std::string Nodable::Language::getOperatorsAsString() const
 	}
 
 	return result;
+}
+
+const FunctionPrototype* Nodable::Language::findFunctionPrototype(FunctionPrototype& _prototype) const
+{
+	auto predicate = [&](FunctionPrototype p) {
+		return p.match(_prototype);
+	};
+
+	auto it = std::find_if(functionPrototypes.begin(), functionPrototypes.end(), predicate);
+
+	if (it != functionPrototypes.end())
+		return &*it;
+
+	return nullptr;
+}
+
+void Nodable::Language::addFunction(FunctionPrototype prototype)
+{
+	this->functionPrototypes.push_back(prototype);
 }

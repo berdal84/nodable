@@ -73,13 +73,15 @@ namespace Nodable {
 		/* Some language reference constants*/
 		static const Language* NODABLE;
 
+		const FunctionPrototype* findFunctionPrototype(FunctionPrototype& prototype) const;
+		void addFunction(FunctionPrototype prototype);
+		
 	private:
 
-		/* To generate the Nodable Language reference */
+		/* To generate the Nodable Language reference
+		 * New language generators will be found here later...
+		 * ex: static const Language& CPlusPlus(); */
 		static const Language* Nodable();
-
-		/* New language generators will be found here later... */
-		/* ex: static const Language& CPlusPlus(); */
 
 	public:
 		std::string numbers;
@@ -88,6 +90,7 @@ namespace Nodable {
 	private:
 		std::vector<char> brackets;
 		std::map<std::string, Operator> operators;
+		std::vector<FunctionPrototype> functionPrototypes;
 	};
 
 }

@@ -670,17 +670,23 @@ Member* Parser::parseFunctionCall(size_t& _tokenId, unsigned short _depth /*= 0u
 
 	localTokenId++;
 
-	// Create a fake fakeAddProto(number) prototype
-	FunctionPrototype existingProto("nothing");
-	existingProto.pushArgument(TokenType_Number, "input");
+
 
 	// Compare the prototype with the example proto
-	if (prototype.match(existingProto)) {
+	if (auto matchingPrototype = language->findFunctionPrototype(prototype)) {
 		_tokenId = localTokenId;
 		Container* context = this->getParent();
 
-		auto node = context->newFunction(existingProto);
-		node->set(existingProto.getArgs().at(0).name.c_str(), argAsMember.at(0)); // connect arg[0]
+		auto node = context->newFunction(*matchingPrototype);
+
+		auto connectArg = [&](size_t _argIndex)-> void { // lambda to connect input member to node for a specific argument index.
+			node->set(
+				matchingPrototype->getArgs().at(_argIndex).name.c_str(),
+				argAsMember.at(_argIndex));
+		};
+
+		for( size_t argIndex = 0; argIndex < matchingPrototype->getArgs().size(); argIndex++ )
+			connectArg(argIndex);
 
 		return node->get("result");
 	}
