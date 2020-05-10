@@ -41,6 +41,7 @@ namespace Nodable {
 		FunctionPrototype(std::string _identifier);
 		void pushArgument(TokenType_ _type);
 		bool match(FunctionPrototype& _other);
+		const std::string& getIdentifier()const;
 	private:
 		std::string identifier;
 		std::vector<TokenType_> arguments;

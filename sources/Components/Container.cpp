@@ -174,6 +174,42 @@ Node* Container::newBinOp(std::string _op)
 	return node;
 }
 
+Node* Container::newFunction(const FunctionPrototype* _proto,
+	                         const std::vector<Member*> _args) {
+
+	// CREATE THE NODE :
+	//------------------
+
+	// Create a node with 2 inputs and 1 output
+	auto node = new Node();
+	node->setLabel(ICON_FA_CODE " " + _proto->getIdentifier());
+	node->add("neutral", Hidden, Type_Number, Connection_None);
+	node->add("result", Default, Type_Number, Connection_Out);	
+
+	// SET ARGUMENTS
+	//--------------	
+	unsigned int i = 0;
+	for (auto it = _args.begin(); it != _args.end(); it++) {
+		std::string argName = "arg_" + std::to_string(it - _args.begin());
+		node->add(argName.c_str(), Default, (*it)->getType(), Connection_In);		
+	}
+
+	// Create a binary operation component and link values.
+	auto operation = new Add();
+	operation->setLeft(node->get("arg_0"));
+	operation->setRight(node->get("neutral"));
+	operation->setResult(node->get("result"));
+	operation->setOperatorAsString("+");
+	node->addComponent("operation", operation);
+
+	// Create a view component
+	node->addComponent("view", new NodeView());
+	
+
+	this->add(node);
+
+	return node;
+}
 
 Node* Container::newAdd()
 {

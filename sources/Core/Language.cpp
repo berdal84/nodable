@@ -15,6 +15,11 @@ bool FunctionPrototype::match(FunctionPrototype& _other) {
 		   this->arguments == _other.arguments;
 }
 
+const std::string& Nodable::FunctionPrototype::getIdentifier()const
+{
+	return this->identifier;
+}
+
 const Language* Language::NODABLE = Language::Nodable();
 
 const Language* Language::Nodable() {

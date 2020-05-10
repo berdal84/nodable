@@ -6,6 +6,7 @@
 #include <vector>
 #include <imgui/imgui.h>   // for ImVec2
 #include <mirror.h>
+#include "Language.h"
 
 namespace Nodable{
 
@@ -39,6 +40,7 @@ namespace Nodable{
 		Node*			          	newAssign(); 
 		Parser*                    	newParser(Variable*);
 		Wire*                       newWire();
+		Node*                       newFunction(const FunctionPrototype* _proto, const std::vector<Member*> _args);
 
 	private:		
 		Variable*                   result = nullptr;

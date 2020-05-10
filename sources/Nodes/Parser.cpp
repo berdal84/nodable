@@ -638,13 +638,13 @@ Member* Parser::parseFunctionCall(size_t& _tokenId, unsigned short _depth /*= 0u
 		return nullptr;
 	}
 
+	// Check if starts with a symbol followed by "("
 	if ( tokens.at(localTokenId).type != TokenType_Symbol ||
 		 tokens.at(localTokenId+1).word != "(" ) {
 
 		LOG_DEBUG_PARSER("parseFunctionCall aborted. Symbol + \"(\" not found...");
 		return nullptr;
 	}
-
 
 	auto identifier = tokens.at(localTokenId++).word; // eat identifier
 	FunctionPrototype prototype(identifier);
@@ -674,13 +674,10 @@ Member* Parser::parseFunctionCall(size_t& _tokenId, unsigned short _depth /*= 0u
 	nothingProto.pushArgument(TokenType_Number);
 
 	if (prototype.match(nothingProto)) {
-
-		Container* context = this->getParent();
-		auto node = context->newAdd();
-
-		node->get("left")->setValue(args.at(0));
-
 		_tokenId = localTokenId;
+		Container* context = this->getParent();
+		auto node = context->newFunction(&prototype, args);
+		node->setMember("arg_0", args.at(0));
 		return node->get("result");
 	}
 
