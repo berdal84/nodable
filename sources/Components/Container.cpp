@@ -184,20 +184,18 @@ Node* Container::newFunction(const FunctionPrototype& _proto) {
 	node->setLabel(ICON_FA_CODE " " + _proto.getIdentifier());	
 	node->add("result", Default, Member::TokenTypeToMemberType(_proto.getType()), Connection_Out);
 
-	// SET ARGUMENTS
-	//--------------	
+	// Create FunctionComponent component and link values.
+	auto functionComponent = new MultipleArgFunctionComponent(_proto);
+	functionComponent->setResult(node->get("result"));
+
+	// Arguments
 	unsigned int i = 0;
 	auto args = _proto.getArgs();
-	for (size_t i = 0; i < args.size(); i++) {
-		node->add( args[i].name.c_str(), Default, Member::TokenTypeToMemberType(args[i].type), Connection_In); // TODO: detect type instead of set Number !!
-	}
-
-	// Create a binary functionComponent component and link values.
-	auto functionComponent = new SingleArgFunctionComponent(_proto);
-
-	auto firstNodeInput = node->get(args[0].name);
-	functionComponent->setArg(firstNodeInput);
-	functionComponent->setResult(node->get("result"));
+	for (size_t i = 0; i < args.size(); i++) {		
+		std::string memberName = args[i].name;
+		auto member = node->add( memberName.c_str(), Default, Member::TokenTypeToMemberType(args[i].type), Connection_In); // create node input
+		functionComponent->setArg(i, member); // link input to component
+	}	
 	
 	node->addComponent("operation", functionComponent);
 	node->addComponent("view", new NodeView());	

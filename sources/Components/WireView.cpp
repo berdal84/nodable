@@ -99,11 +99,7 @@ bool WireView::draw()
 		    // Draw source text
 		    {
 		    	auto textSize = ImGui::CalcTextSize(_source);
-
-		    	if ( pos0.y > pos1.y )
-					ImGui::SetCursorScreenPos(ImVec2(pos0.x + offsetX, pos0.y ));
-				else
-					ImGui::SetCursorScreenPos(ImVec2(pos0.x + offsetX, pos0.y - textSize.y - bezierThickness));
+				ImGui::SetCursorScreenPos(ImVec2(pos0.x + offsetX, pos0.y ));
 
 		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill), getColor(ColorType_Shadow), _source);
 			}
@@ -111,11 +107,7 @@ bool WireView::draw()
 		    // Draw target text
 		    {
 		    	auto textSize = ImGui::CalcTextSize( _target);
-
-		    	if ( pos0.y > pos1.y )
-					ImGui::SetCursorScreenPos(ImVec2(pos1.x - offsetX - textSize.x, pos1.y - textSize.y - bezierThickness));
-				else
-					ImGui::SetCursorScreenPos(ImVec2(pos1.x - offsetX - textSize.x, pos1.y));
+				ImGui::SetCursorScreenPos(ImVec2(pos1.x - offsetX - textSize.x, pos1.y));
 
 		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), _target);
 			}

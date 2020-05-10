@@ -56,7 +56,7 @@ Member* Object::getFirstWithConn(Connection_ _connection)const
 	return found;
 }
 
-void Object::add (const char* _name, Visibility_ _visibility, Type_ _type, Connection_ _flags )
+Member* Object::add (const char* _name, Visibility_ _visibility, Type_ _type, Connection_ _flags )
 {
 	auto v = new Member();
 
@@ -66,4 +66,6 @@ void Object::add (const char* _name, Visibility_ _visibility, Type_ _type, Conne
 	v->setType		(_type);
 	v->setConnectionFlags(_flags);
 	members[std::string(_name)] = v;
+
+	return v;
 }

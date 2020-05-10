@@ -197,11 +197,16 @@ bool Assign::update()
 	return true;
 }
 
-SingleArgFunctionComponent::SingleArgFunctionComponent(FunctionPrototype _prototype): prototype( _prototype ){}
-
-bool SingleArgFunctionComponent::update()
+MultipleArgFunctionComponent::MultipleArgFunctionComponent(FunctionPrototype _prototype): prototype( _prototype )
 {
-	auto v = arg->getValueAsNumber();
+	size_t i = 0;
+	while (args.size() < _prototype.getArgs().size())
+		args.push_back(nullptr);
+}
+
+bool MultipleArgFunctionComponent::update()
+{
+	auto v = args[0]->getValueAsNumber();
 	result->setValue(v);
 	
 	this->updateResultSourceExpression();
@@ -209,13 +214,21 @@ bool SingleArgFunctionComponent::update()
 	return true;
 }
 
-void SingleArgFunctionComponent::updateResultSourceExpression() const
+void MultipleArgFunctionComponent::updateResultSourceExpression() const
 {
 	std::string expr;
 	expr.append(this->prototype.getIdentifier() );
-	expr.append("(");
-	expr.append(this->arg->getSourceExpression() );
-	expr.append(")");
+	expr.append("( ");
+
+	for (auto it = args.begin(); it != args.end(); it++) {
+		expr.append((*it)->getSourceExpression());
+
+		if (*it != args.back()) {
+			expr.append(", ");
+		}
+	}
+
+	expr.append(" )");
 
 	// Apply the new string to the result's source expression.
 	this->result->setSourceExpression(expr.c_str());

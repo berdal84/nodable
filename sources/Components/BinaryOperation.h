@@ -89,20 +89,20 @@ namespace Nodable{
 	};
 
 	/* BinaryOperationComponent is an interface for all binary operations */
-	class SingleArgFunctionComponent : public FunctionComponent {
+	class MultipleArgFunctionComponent : public FunctionComponent {
 	public:
-		SingleArgFunctionComponent(FunctionPrototype _prototype);
-		~SingleArgFunctionComponent() {};
+		MultipleArgFunctionComponent(FunctionPrototype _prototype);
+		~MultipleArgFunctionComponent() {};
 
-		void setArg(Member* _value) { arg = _value; };
+		void setArg(size_t _index, Member* _value) { args[_index] = _value; };
 		bool update()override;
 		void updateResultSourceExpression() const override;
 
 	protected:
-		Member* arg = nullptr;
+		std::vector<Member*> args;
 		FunctionPrototype prototype;
 
-		MIRROR_CLASS(SingleArgFunctionComponent)(
+		MIRROR_CLASS(MultipleArgFunctionComponent)(
 			MIRROR_PARENT(FunctionComponent)
 			);
 	};

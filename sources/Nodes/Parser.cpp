@@ -598,11 +598,16 @@ bool Parser::tokenizeExpressionString()
 		//-----------------
 		// Term -> Parenthesis
 		//-----------------
-			
-		}else 	if(*it == ')' || *it == '(' )
+		} else if (*it == ')' || *it == '(')
 		{
 			std::string str = chars.substr(it - chars.begin(), 1);
 			addToken(TokenType_Parenthesis, str, std::distance(chars.begin(), it));
+
+		}else if (*it == ',') {
+			std::string str = chars.substr(it - chars.begin(), 1);
+			addToken(TokenType_Comma, str, std::distance(chars.begin(), it));
+
+		}else if (*it == '\t') { // ignore tabs			
 
 		}else if ( *it != ' ') {
 			LOG_DEBUG_PARSER("Unable to tokenize expression %s \n", chars);
@@ -656,6 +661,10 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 		if (auto member = parseExpression(localTokenId)) {
 			argAsMember.push_back(member); // store argument as member (already parsed)
 			prototype.pushArg( Member::MemberTypeToTokenType(member->getType()) );  // add a new argument type to the proto.
+
+			if (tokens.at(localTokenId).type == TokenType_Comma)
+				localTokenId++;
+
 		} else {
 			parsingError = true;
 		}

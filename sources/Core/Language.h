@@ -32,6 +32,7 @@ namespace Nodable {
 		TokenType_Operator,
 		TokenType_Boolean,
 		TokenType_Parenthesis,
+		TokenType_Comma,
 		TokenType_COUNT,
 		TokenType_Unknown
 	};
@@ -46,7 +47,7 @@ namespace Nodable {
 	public:
 		FunctionPrototype(std::string _identifier, TokenType_ _type);
 
-		void                           pushArg(TokenType_ _type, std::string _name = "");
+		void                           pushArg(TokenType_ _type);
 		bool                           match(FunctionPrototype& _other);
 		const std::string&             getIdentifier()const;
 		const std::vector<FunctionArg> getArgs() const;

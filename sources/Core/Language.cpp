@@ -14,9 +14,10 @@ FunctionPrototype::FunctionPrototype(std::string _identifier, TokenType_ _type):
 
 }
 
-void FunctionPrototype::pushArg(TokenType_ _type, std::string _name) {
+void FunctionPrototype::pushArg(TokenType_ _type) {
 
-	args.push_back( FunctionArg(_type, _name) );	
+	std::string argName = "arg_" + std::to_string(args.size());
+	args.push_back( FunctionArg(_type, argName) );
 }
 
 bool FunctionPrototype::match(FunctionPrototype& _other) {	
@@ -74,7 +75,7 @@ const Language* Language::Nodable() {
 
 	{
 		FunctionPrototype proto("nothing", TokenType_Number);
-		proto.pushArg(TokenType_Number, "input");
+		proto.pushArg(TokenType_Number);
 		language->pushFunc(proto);
 	}
 
@@ -86,6 +87,40 @@ const Language* Language::Nodable() {
 
 	{
 		FunctionPrototype proto("cos", TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		language->pushFunc(proto);
+	}
+
+	{
+		FunctionPrototype proto("add", TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		language->pushFunc(proto);
+	}
+
+	{
+		FunctionPrototype proto("minus", TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		language->pushFunc(proto);
+	}
+
+	{
+		FunctionPrototype proto("volume", TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		language->pushFunc(proto);
+	}
+
+	{
+		FunctionPrototype proto("sqrt", TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		language->pushFunc(proto);
+	}
+
+	{
+		FunctionPrototype proto("pow", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 		language->pushFunc(proto);
 	}
