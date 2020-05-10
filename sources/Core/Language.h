@@ -9,7 +9,7 @@ namespace Nodable {
 
 	The Operator class store the identifier and the precedence of an operator.
 	
-	Example: "+", "-" and "*" are an indentifiers
+	Example: "+", "-" and "*" are an identifiers
 	         0u, 1u and 2u are their respective precedence.
 	*/
 	class Operator {
@@ -34,6 +34,16 @@ namespace Nodable {
 		TokenType_Parenthesis,
 		TokenType_COUNT,
 		TokenType_Unknown
+	};
+
+	class FunctionPrototype {
+	public:
+		FunctionPrototype(std::string _identifier);
+		void pushArgument(TokenType_ _type);
+		bool match(FunctionPrototype& _other);
+	private:
+		std::string identifier;
+		std::vector<TokenType_> arguments;
 	};
 
 	/**

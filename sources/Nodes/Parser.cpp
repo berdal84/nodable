@@ -391,6 +391,7 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 	if      (left = _leftOverride) {}
 	else if (left = parseParenthesisExpression(_tokenId, _depth + 1)) {}
 	else if (left = parseUnaryOperationExpression(_tokenId, _precedence, _depth + 1)) {}
+	else if (left = parseFunctionCall(_tokenId, _depth + 1)) {}
 	else if (left = parseAtomicExpression(_tokenId, _depth + 1)) {}	
 
 	if (_tokenId >= tokens.size()) {
@@ -625,4 +626,63 @@ void Parser::addToken(TokenType_  _type, std::string _string, size_t _charIndex)
 	t.charIndex = _charIndex;
 
 	tokens.push_back(t);
+}
+
+Member* Parser::parseFunctionCall(size_t& _tokenId, unsigned short _depth /*= 0u*/)
+{
+	size_t localTokenId = _tokenId;
+
+	// Check if the minimum token count required is available ( 0: identifier, 1: open parenthesis, 2: close parenthesis)
+	if (localTokenId + 2 >= tokens.size()) {
+		LOG_DEBUG_PARSER("parseFunctionCall aborted. Not enough tokens.");
+		return nullptr;
+	}
+
+	if ( tokens.at(localTokenId).type != TokenType_Symbol ||
+		 tokens.at(localTokenId+1).word != "(" ) {
+
+		LOG_DEBUG_PARSER("parseFunctionCall aborted. Symbol + \"(\" not found...");
+		return nullptr;
+	}
+
+
+	auto identifier = tokens.at(localTokenId++).word; // eat identifier
+	FunctionPrototype prototype(identifier);
+
+	localTokenId++; // eat parenthesis
+
+	// Fill argument vector
+	std::vector<Member*> args;
+	while (localTokenId < tokens.size() && tokens.at(localTokenId).word != ")") {
+		auto type = tokens.at(localTokenId).type;
+		if (auto argToken = parseAtomicExpression(localTokenId, _depth + 1)) {
+			args.push_back(argToken);
+			prototype.pushArgument(type);
+		}
+	}
+
+
+	if (tokens.at(localTokenId).word != ")") {
+		LOG_DEBUG_PARSER('parseFunctionCall aborted. Close parenthesis expected !');
+		return nullptr;
+	}
+
+	localTokenId++;
+
+	// Create a fake fakeAddProto(number) prototype
+	FunctionPrototype nothingProto("nothing");
+	nothingProto.pushArgument(TokenType_Number);
+
+	if (prototype.match(nothingProto)) {
+
+		Container* context = this->getParent();
+		auto node = context->newAdd();
+
+		node->get("left")->setValue(args.at(0));
+
+		_tokenId = localTokenId;
+		return node->get("result");
+	}
+
+	return nullptr;
 }

@@ -220,7 +220,7 @@ bool Parser_Tests() {
 			EXPECT(Parser_Test("2+3")        , "5")
 			EXPECT(Parser_Test("-5+4")       , "-1")
 			EXPECT(Parser_Test("-1+2*5-3/6") , "8.5")
-			)
+		)
 
 		TEST("Simple parenthesis",
 
@@ -229,7 +229,7 @@ bool Parser_Tests() {
 			EXPECT(Parser_Test("(1)+(2)")  , "3")
 			EXPECT(Parser_Test("(1+2)*3")  , "9")
 			EXPECT(Parser_Test("2*(5+3)")  , "16")
-			)
+		)
 
 		TEST("Complex parenthesis",
 
@@ -238,10 +238,17 @@ bool Parser_Tests() {
 			EXPECT(Parser_Test("(2-(5+3))-2+(1+1)")         , "-6")
 			EXPECT(Parser_Test("(2 -(5+3 )-2)+9/(1- 0.54)") , "11.565217")
 			EXPECT(Parser_Test("1/3")                       , "0.333333")
-			)
 		)
+		
 
-		return s_lastGroupTestPassed;
+		TEST("Function call",
+
+			EXPECT(Parser_Test("nothing(5)"), "5")
+			EXPECT(Parser_Test("nothing(1)"), "1")
+		)
+	)
+
+	return s_lastGroupTestPassed;
 }
 
 bool Node_Tests() {

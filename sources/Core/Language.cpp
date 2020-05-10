@@ -2,6 +2,19 @@
 
 using namespace Nodable;
 
+FunctionPrototype::FunctionPrototype(std::string _identifier):identifier(_identifier)
+{
+}
+
+void FunctionPrototype::pushArgument(TokenType_ _type) {
+	arguments.push_back(_type);
+}
+
+bool FunctionPrototype::match(FunctionPrototype& _other) {	
+	return this->identifier == _other.identifier &&
+		   this->arguments == _other.arguments;
+}
+
 const Language* Language::NODABLE = Language::Nodable();
 
 const Language* Language::Nodable() {

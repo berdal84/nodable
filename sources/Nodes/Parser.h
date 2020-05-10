@@ -8,6 +8,21 @@
 
 namespace Nodable{
 
+	typedef struct
+	{
+		TokenType_  type = TokenType_Unknown; // the type of the token
+		std::string word = "";                // the word as a string
+		size_t      charIndex = 0;                 // the index of the first character of the token in the evaluated expression.
+
+		bool isOperand()const {
+			return type == TokenType_Number ||
+				type == TokenType_Boolean ||
+				type == TokenType_String ||
+				type == TokenType_Symbol;
+		}
+
+	}Token;
+
 	/*
 
 		This class is build to generate a graph from an expression string.
@@ -23,23 +38,6 @@ namespace Nodable{
 	*/
 	class Parser : public Node
 	{
-	private:
-
-		typedef struct
-		{
-			TokenType_  type      = TokenType_Unknown; // the type of the token
-			std::string word      = "";                // the word as a string
-			size_t      charIndex = 0;                 // the index of the first character of the token in the evaluated expression.
-
-			bool isOperand()const {
-				return type == TokenType_Number ||
-					   type == TokenType_Boolean ||
-					   type == TokenType_String ||
-					   type == TokenType_Symbol;
-			}
-
-		}Token;
-
 	public:
 		Parser(const Language* _language);
 		virtual ~Parser();
@@ -53,6 +51,8 @@ namespace Nodable{
 		Member* buildGraphIterative();
 
 		Member* parseRootExpression();
+
+		Member* parseFunctionCall(size_t& _tokenId, unsigned short _depth = 0u);
 
 		/* Parse a sub expression, a sub expression is like: "( expression )" */
 		Member* parseParenthesisExpression(size_t& _tokenId, unsigned short _depth = 0u);
