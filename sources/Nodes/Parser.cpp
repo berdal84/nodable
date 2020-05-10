@@ -646,18 +646,19 @@ Member* Parser::parseFunctionCall(size_t& _tokenId, unsigned short _depth /*= 0u
 		return nullptr;
 	}
 
-	auto identifier = tokens.at(localTokenId++).word; // eat identifier
+	std::vector<Member*> argAsMember;
+
+	// Declare a new function proto
+	auto identifier = tokens.at(localTokenId++).word;
 	FunctionPrototype prototype(identifier);
 
 	localTokenId++; // eat parenthesis
-
-	// Fill argument vector
-	std::vector<Member*> args;
+	
 	while (localTokenId < tokens.size() && tokens.at(localTokenId).word != ")") {
 		auto type = tokens.at(localTokenId).type;
-		if (auto argToken = parseAtomicExpression(localTokenId, _depth + 1)) {
-			args.push_back(argToken);
-			prototype.pushArgument(type);
+		if (auto member = parseAtomicExpression(localTokenId, _depth + 1)) {
+			argAsMember.push_back(member); // store argument as member (already parsed)
+			prototype.pushArgument(type);  // add a new argument type to the proto.
 		}
 	}
 
@@ -670,14 +671,17 @@ Member* Parser::parseFunctionCall(size_t& _tokenId, unsigned short _depth /*= 0u
 	localTokenId++;
 
 	// Create a fake fakeAddProto(number) prototype
-	FunctionPrototype nothingProto("nothing");
-	nothingProto.pushArgument(TokenType_Number);
+	FunctionPrototype existingProto("nothing");
+	existingProto.pushArgument(TokenType_Number, "input");
 
-	if (prototype.match(nothingProto)) {
+	// Compare the prototype with the example proto
+	if (prototype.match(existingProto)) {
 		_tokenId = localTokenId;
 		Container* context = this->getParent();
-		auto node = context->newFunction(&prototype, args);
-		node->set("arg_0", args.at(0));
+
+		auto node = context->newFunction(existingProto);
+		node->set(existingProto.getArgs().at(0).name.c_str(), argAsMember.at(0)); // connect arg[0]
+
 		return node->get("result");
 	}
 

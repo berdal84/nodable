@@ -174,37 +174,33 @@ Node* Container::newBinOp(std::string _op)
 	return node;
 }
 
-Node* Container::newFunction(const FunctionPrototype* _proto,
-	                         const std::vector<Member*> _args) {
+Node* Container::newFunction(const FunctionPrototype& _proto) {
 
 	// CREATE THE NODE :
 	//------------------
 
 	// Create a node with 2 inputs and 1 output
 	auto node = new Node();
-	node->setLabel(ICON_FA_CODE " " + _proto->getIdentifier());
-	node->add("neutral", Hidden, Type_Number, Connection_None);
+	node->setLabel(ICON_FA_CODE " " + _proto.getIdentifier());	
 	node->add("result", Default, Type_Number, Connection_Out);	
 
 	// SET ARGUMENTS
 	//--------------	
 	unsigned int i = 0;
-	for (auto it = _args.begin(); it != _args.end(); it++) {
-		std::string argName = "arg_" + std::to_string(it - _args.begin());
-		node->add(argName.c_str(), Default, (*it)->getType(), Connection_In);		
+	auto args = _proto.getArgs();
+	for (size_t i = 0; i < args.size(); i++) {
+		node->add( args[i].name.c_str(), Default, Type_Number, Connection_In); // TODO: detect type instead of set Number !!
 	}
 
-	// Create a binary operation component and link values.
-	auto operation = new Add();
-	operation->setLeft(node->get("arg_0"));
-	operation->setRight(node->get("neutral"));
-	operation->setResult(node->get("result"));
-	operation->setOperatorAsString("+");
-	node->addComponent("operation", operation);
+	// Create a binary functionComponent component and link values.
+	auto functionComponent = new SingleArgFunctionComponent(_proto);
 
-	// Create a view component
-	node->addComponent("view", new NodeView());
+	auto firstNodeInput = node->get(args[0].name);
+	functionComponent->setArg(firstNodeInput);
+	functionComponent->setResult(node->get("result"));
 	
+	node->addComponent("operation", functionComponent);
+	node->addComponent("view", new NodeView());	
 
 	this->add(node);
 
@@ -220,7 +216,7 @@ Node* Container::newAdd()
 	node->add("right",  Default, Type_Number, Connection_In);
 	node->add("result", Default, Type_Number, Connection_Out);
 	
-	// Create a binary operation component and link values.
+	// Create a binary functionComponent component and link values.
 	auto operation 	= new Add();
 	operation->setLeft  (node->get("left"));
 	operation->setRight (node->get("right"));
@@ -245,7 +241,7 @@ Node* Container::newSub()
 	node->add("right",  Default, Type_Number, Connection_In);
 	node->add("result", Default, Type_Number, Connection_Out);
 
-	// Create a binary operation component and link values.
+	// Create a binary functionComponent component and link values.
 	auto operation 	= new Substract();
 	operation->setLeft  (node->get("left"));
 	operation->setRight (node->get("right"));
@@ -270,7 +266,7 @@ Node* Container::newMult()
 	node->add("right",  Default, Type_Number, Connection_In);
 	node->add("result", Default, Type_Number, Connection_Out);
 
-	// Create a binary operation component and link values.
+	// Create a binary functionComponent component and link values.
 	auto operation 	= new Multiply();
 	operation->setLeft  (node->get("left"));
 	operation->setRight (node->get("right"));
@@ -296,7 +292,7 @@ Node* Container::newDivide()
 	node->add("right",  Default, Type_Number, Connection_In);
 	node->add("result", Default, Type_Number, Connection_Out);
 
-	// Create a binary operation component and link values.
+	// Create a binary functionComponent component and link values.
 	auto operation 	= new Divide();
 	operation->setLeft  (node->get("left"));
 	operation->setRight (node->get("right"));
@@ -322,7 +318,7 @@ Node* Container::newAssign()
 	node->add("right",  Default, Type_Number, Connection_In);
 	node->add("result", Default, Type_Number, Connection_Out);
 
-	// Create a binary operation component and link values.
+	// Create a binary functionComponent component and link values.
 	auto operation 	= new Assign();
 	operation->setLeft  (node->get("left"));
 	operation->setRight (node->get("right"));

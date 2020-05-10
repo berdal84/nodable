@@ -112,7 +112,7 @@ bool NodeView::update(float _deltaTime) {
 	auto node = getOwner();
 	NODABLE_ASSERT(node != nullptr);
 
-	if (node->hasComponent<BinaryOperationComponent>())
+	if (node->hasComponent<FunctionComponent>())
 		setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
 	else if (dynamic_cast<Variable*>(node) != nullptr)
 		setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f));

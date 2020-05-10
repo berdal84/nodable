@@ -160,9 +160,8 @@ bool Node::update()
 			}
 		}
 
-		// then we evaluates this node
-		if(hasComponent<BinaryOperationComponent>())
-			getComponent<BinaryOperationComponent>()->update();
+		if(hasComponent<FunctionComponent>())
+			getComponent<FunctionComponent>()->update();
 		
 		if(hasComponent<DataAccess>())
 			getComponent<DataAccess>()->update();

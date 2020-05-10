@@ -196,3 +196,27 @@ bool Assign::update()
 
 	return true;
 }
+
+SingleArgFunctionComponent::SingleArgFunctionComponent(FunctionPrototype _prototype): prototype( _prototype ){}
+
+bool SingleArgFunctionComponent::update()
+{
+	auto v = arg->getValueAsNumber();
+	result->setValue(v);
+	
+	this->updateResultSourceExpression();
+
+	return true;
+}
+
+void SingleArgFunctionComponent::updateResultSourceExpression() const
+{
+	std::string expr;
+	expr.append(this->prototype.getIdentifier() );
+	expr.append("(");
+	expr.append(this->arg->getSourceExpression() );
+	expr.append(")");
+
+	// Apply the new string to the result's source expression.
+	this->result->setSourceExpression(expr.c_str());
+}

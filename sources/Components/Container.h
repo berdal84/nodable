@@ -40,7 +40,7 @@ namespace Nodable{
 		Node*			          	newAssign(); 
 		Parser*                    	newParser(Variable*);
 		Wire*                       newWire();
-		Node*                       newFunction(const FunctionPrototype* _proto, const std::vector<Member*> _args);
+		Node*                       newFunction(const FunctionPrototype& _proto);
 
 	private:		
 		Variable*                   result = nullptr;

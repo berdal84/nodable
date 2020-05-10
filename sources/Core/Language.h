@@ -36,15 +36,24 @@ namespace Nodable {
 		TokenType_Unknown
 	};
 
+	struct FunctionArg {
+		FunctionArg(TokenType_, std::string);
+		TokenType_ type;
+		std::string name;
+	};
+
 	class FunctionPrototype {
 	public:
 		FunctionPrototype(std::string _identifier);
-		void pushArgument(TokenType_ _type);
-		bool match(FunctionPrototype& _other);
-		const std::string& getIdentifier()const;
+
+		void                           pushArgument(TokenType_ _type, std::string _name = "");
+		bool                           match(FunctionPrototype& _other);
+		const std::string&             getIdentifier()const;
+		const std::vector<FunctionArg> getArgs() const;
 	private:
+
 		std::string identifier;
-		std::vector<TokenType_> arguments;
+		std::vector<FunctionArg> args;
 	};
 
 	/**

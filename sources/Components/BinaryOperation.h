@@ -3,31 +3,42 @@
 #include "Nodable.h"   // for constants and forward declarations
 #include "Component.h" // base class
 #include "mirror.h"
+#include "Language.h"
 
 namespace Nodable{
+
 	/* BinaryOperationComponent is an interface for all binary operations */
-	class BinaryOperationComponent: public Component{
+	class FunctionComponent : public Component {
+	public:
+		FunctionComponent(){};
+		virtual ~FunctionComponent(){};
+		virtual void updateResultSourceExpression() const = 0;
+		void         setResult(Member* _value) { result = _value; };
+	protected:
+		Member* result = nullptr;
+		MIRROR_CLASS(FunctionComponent)(
+			MIRROR_PARENT(Component)
+		);
+	};
+
+	/* BinaryOperationComponent is an interface for all binary operations */
+	class BinaryOperationComponent: public FunctionComponent {
 	public:		
 		BinaryOperationComponent() {};
 		virtual ~BinaryOperationComponent(){};
-
 		void                setLeft	 (Member* _value){left= _value;};
-		void                setRight (Member* _value){right = _value;};
-		void                setResult(Member* _value){result = _value;};
+		void                setRight (Member* _value){right = _value;};		
 		void                setOperatorAsString(const char* _s) { operatorAsString = _s; }
-
-		void                updateResultSourceExpression() const;
-
+		void                updateResultSourceExpression() const override;
 		std::string         getOperatorAsString()const{return operatorAsString;}
 		/* return true if op needs to be evaluated before nextOp */
 		static  bool        NeedsToBeEvaluatedFirst(std::string op, std::string nextOp);
 	protected:
 		Member* 	left 	= nullptr;
-		Member* 	right 	= nullptr;
-		Member* 	result 	= nullptr;
+		Member* 	right 	= nullptr;		
 		std::string operatorAsString = "";
 		MIRROR_CLASS(BinaryOperationComponent)(
-			MIRROR_PARENT(Component)
+			MIRROR_PARENT(FunctionComponent)
 		);
 	};
 
@@ -75,5 +86,24 @@ namespace Nodable{
 		bool update()override;
 		MIRROR_CLASS(Assign)(
 			MIRROR_PARENT(BinaryOperationComponent));
+	};
+
+	/* BinaryOperationComponent is an interface for all binary operations */
+	class SingleArgFunctionComponent : public FunctionComponent {
+	public:
+		SingleArgFunctionComponent(FunctionPrototype _prototype);
+		~SingleArgFunctionComponent() {};
+
+		void setArg(Member* _value) { arg = _value; };
+		bool update()override;
+		void updateResultSourceExpression() const override;
+
+	protected:
+		Member* arg = nullptr;
+		FunctionPrototype prototype;
+
+		MIRROR_CLASS(SingleArgFunctionComponent)(
+			MIRROR_PARENT(FunctionComponent)
+			);
 	};
 }

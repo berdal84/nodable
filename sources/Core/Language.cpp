@@ -2,22 +2,45 @@
 
 using namespace Nodable;
 
-FunctionPrototype::FunctionPrototype(std::string _identifier):identifier(_identifier)
-{
+FunctionArg::FunctionArg(TokenType_ _type, std::string _name) {
+	type = _type;
+	name = _name;
 }
 
-void FunctionPrototype::pushArgument(TokenType_ _type) {
-	arguments.push_back(_type);
+FunctionPrototype::FunctionPrototype(std::string _identifier):identifier(_identifier)
+{
+
+}
+
+void FunctionPrototype::pushArgument(TokenType_ _type, std::string _name) {
+
+	args.push_back( FunctionArg(_type, _name) );	
 }
 
 bool FunctionPrototype::match(FunctionPrototype& _other) {	
-	return this->identifier == _other.identifier &&
-		   this->arguments == _other.arguments;
+
+	if (identifier != _other.identifier)
+		return false;
+
+	if (args.size() != _other.args.size())
+		return false;
+
+	for (size_t i = 0; i < args.size(); i++) {
+		if (args[i].type != _other.args[i].type)
+			return false;
+	}
+
+	return true;
 }
 
 const std::string& Nodable::FunctionPrototype::getIdentifier()const
 {
 	return this->identifier;
+}
+
+const std::vector<FunctionArg> Nodable::FunctionPrototype::getArgs() const
+{
+	return this->args;
 }
 
 const Language* Language::NODABLE = Language::Nodable();
