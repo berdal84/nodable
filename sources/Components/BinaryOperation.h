@@ -4,6 +4,7 @@
 #include "Component.h" // base class
 #include "mirror.h"
 #include "Language.h"
+#include <functional>
 
 namespace Nodable{
 
@@ -96,8 +97,7 @@ namespace Nodable{
 
 		void setArg(size_t _index, Member* _value) { args[_index] = _value; };
 		bool update()override;
-		void updateResultSourceExpression() const override;
-
+		void updateResultSourceExpression() const override;		
 	protected:
 		std::vector<Member*> args;
 		FunctionPrototype prototype;

@@ -243,8 +243,8 @@ bool Parser_Tests() {
 
 		TEST("Function call",
 
-			EXPECT(Parser_Test("nothing(5)"), "5")
-			EXPECT(Parser_Test("nothing(1)"), "1")
+			EXPECT(Parser_Test("pass(5)"), "5")
+			EXPECT(Parser_Test("pass(1)"), "1")
 		)
 	)
 

@@ -206,9 +206,25 @@ MultipleArgFunctionComponent::MultipleArgFunctionComponent(FunctionPrototype _pr
 
 bool MultipleArgFunctionComponent::update()
 {
-	auto v = args[0]->getValueAsNumber();
-	result->setValue(v);
-	
+
+	if (prototype.nativeFunction == NULL) {
+		LOG_ERROR("Unable to find %s's nativeFunction.\n", prototype.getIdentifier().c_str());
+		return false;
+	}
+
+	switch (args.size())
+	{
+	case 0:
+		prototype.nativeFunction(result, nullptr, nullptr);
+		break;
+	case 1:
+		prototype.nativeFunction(result, args[0], nullptr);
+		break;
+	case 2:
+		prototype.nativeFunction(result, args[0], args[1]);
+		break;
+	}
+
 	this->updateResultSourceExpression();
 
 	return true;

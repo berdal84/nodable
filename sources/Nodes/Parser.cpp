@@ -11,7 +11,8 @@
 
 #include <algorithm>
 
-//#define DEBUG_PARSER // Enable detailed logs
+// Enable detailed logs
+#define DEBUG_PARSER
 
 #ifdef DEBUG_PARSER  // macro to disable these on debug
 	#define LOG_DEBUG_PARSER(...) LOG_DEBUG(__VA_ARGS__)
@@ -544,14 +545,12 @@ bool Parser::tokenizeExpressionString()
 					++it;
 				}
 
-				if (it != chars.end() && *it == '"')
-				{
-					std::string str = chars.substr(itStart - chars.begin(), it - itStart);
-					addToken(TokenType_String, str, std::distance(chars.begin(), itStart));
-					--it;
-				}else {
-					--it;
+				if (it == chars.end()) {
+					return false;
 				}
+				
+				std::string str = chars.substr(itStart - chars.begin(), it - itStart);
+				addToken(TokenType_String, str, std::distance(chars.begin(), itStart));
 
 			}
 			else {
@@ -672,7 +671,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 
 
 	if (tokens.at(localTokenId).word != ")") {
-		LOG_DEBUG_PARSER('parseFunctionCall aborted. Close parenthesis expected !');
+		LOG_DEBUG_PARSER("parseFunctionCall aborted. Close parenthesis expected !");
 		return nullptr;
 	}
 
@@ -706,7 +705,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 		return node->get("result");
 
 	} else {
-		LOG_DEBUG_PARSER('Unable to parse function, prototype not found.');
+		LOG_DEBUG_PARSER("Unable to parse function, prototype not found.");
 	}
 
 	return nullptr;

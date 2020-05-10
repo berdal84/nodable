@@ -1,4 +1,5 @@
 #include "Language.h"
+#include "Member.h"
 
 using namespace Nodable;
 
@@ -9,7 +10,8 @@ FunctionArg::FunctionArg(TokenType_ _type, std::string _name) {
 
 FunctionPrototype::FunctionPrototype(std::string _identifier, TokenType_ _type):
 	identifier(_identifier),
-	type(_type)
+	type(_type),
+	nativeFunction(NULL)
 {
 
 }
@@ -74,20 +76,35 @@ const Language* Language::Nodable() {
 	/* Function library */
 
 	{
-		FunctionPrototype proto("nothing", TokenType_Number);
+		FunctionPrototype proto("pass", TokenType_Number);
 		proto.pushArg(TokenType_Number);
+
+		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
+			result->setValue(arg0->getValueAsNumber());
+		};
+
 		language->pushFunc(proto);
 	}
 
 	{
 		FunctionPrototype proto("sin", TokenType_Number);
 		proto.pushArg(TokenType_Number);
+
+		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
+			result->setValue( sin(arg0->getValueAsNumber()) );
+		};
+
 		language->pushFunc(proto);
 	}
 
 	{
 		FunctionPrototype proto("cos", TokenType_Number);
 		proto.pushArg(TokenType_Number);
+
+		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
+			result->setValue(cos(arg0->getValueAsNumber()));
+		};
+
 		language->pushFunc(proto);
 	}
 
@@ -95,6 +112,11 @@ const Language* Language::Nodable() {
 		FunctionPrototype proto("add", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
+
+		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
+			result->setValue( arg0->getValueAsNumber() + arg1->getValueAsNumber());
+		};
+
 		language->pushFunc(proto);
 	}
 
@@ -102,26 +124,62 @@ const Language* Language::Nodable() {
 		FunctionPrototype proto("minus", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
+
+		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
+			result->setValue(arg0->getValueAsNumber() - arg1->getValueAsNumber());
+		};
+
 		language->pushFunc(proto);
 	}
 
 	{
-		FunctionPrototype proto("volume", TokenType_Number);
+		FunctionPrototype proto("mult", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
-		proto.pushArg(TokenType_Number);
+
+		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
+			result->setValue(arg0->getValueAsNumber() * arg1->getValueAsNumber());
+		};
+
 		language->pushFunc(proto);
 	}
 
 	{
 		FunctionPrototype proto("sqrt", TokenType_Number);
 		proto.pushArg(TokenType_Number);
+		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
+			result->setValue( sqrt(arg0->getValueAsNumber()));
+		};
 		language->pushFunc(proto);
 	}
 
 	{
 		FunctionPrototype proto("pow", TokenType_Number);
 		proto.pushArg(TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
+			const auto value = pow(arg0->getValueAsNumber(), arg1->getValueAsNumber());
+			result->setValue(value);
+		};
+		language->pushFunc(proto);
+	}
+
+	{
+		FunctionPrototype proto("codon", TokenType_String);
+		proto.pushArg(TokenType_String);
+		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
+			
+			std::string value = "<TODO>";
+
+			if (arg0->getValueAsString() == "UAA" ||
+				arg0->getValueAsString() == "UAG" ||
+				arg0->getValueAsString() == "UGA") {
+
+				value = "Stop";
+			}
+
+			result->setValue(value);
+		};
 		language->pushFunc(proto);
 	}
 

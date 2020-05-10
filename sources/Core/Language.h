@@ -2,6 +2,7 @@
 
 #include "Nodable.h"   // for constants and forward declarations
 #include <map>
+#include <functional>
 
 namespace Nodable {
 
@@ -52,9 +53,8 @@ namespace Nodable {
 		const std::string&             getIdentifier()const;
 		const std::vector<FunctionArg> getArgs() const;
 		const TokenType_               getType() const;
-
+		std::function<void(Member*, const Member*, const Member*)> nativeFunction;
 	private:
-
 		std::string identifier;
 		std::vector<FunctionArg> args;
 		TokenType_ type;
