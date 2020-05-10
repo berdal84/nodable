@@ -11,7 +11,7 @@ namespace Nodable{
 	class Node : public Object
 	{
 	public:
-		Node(){};
+		Node();
 		~Node();
 
 		/* Return the parent container of this node. Could be nullptr if this node is a root. */
@@ -103,9 +103,9 @@ namespace Nodable{
 
 	private:
 		Components                components;
-		Container*                parent  = nullptr;
-		std::string               label   = "Node";
-		bool                      dirty   = false;   // when is true -> needs to be evaluated.
+		Container*                parent;
+		std::string               label;
+		bool                      dirty;   // when is true -> needs to be evaluated.
 		Wires                     wires;             // contains all wires connected to or from this node.
 	};
 }

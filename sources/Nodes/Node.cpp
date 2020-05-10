@@ -30,6 +30,11 @@ void Node::Connect( Wire* _wire,
 	command.execute();
 }
 
+Node::Node():parent(nullptr), label("Node"), dirty(true)
+{
+
+}
+
 Node::~Node()
 {
 	wires.clear();
@@ -53,17 +58,13 @@ bool Node::isDirty()const
 
 void Node::setDirty(bool _value)
 {
-	// Propagate thru output wires only if the node is no already dirty.
-	// node: if this node is already dirty, all its output should already be dirty too.
-	if (!dirty)
+
+	for (auto wire : wires)
 	{
-		for(auto wire : wires)
+		if (wire->getSource()->getOwner() == this && wire->getTarget() != nullptr)
 		{
-			if (wire->getSource()->getOwner() == this && wire->getTarget() != nullptr)
-			{
-				auto node = reinterpret_cast<Node*>(wire->getTarget()->getOwner());
-				node->setDirty(true);
-			}
+			auto node = reinterpret_cast<Node*>(wire->getTarget()->getOwner());
+			node->setDirty(true);
 		}
 	}
 
@@ -98,6 +99,7 @@ const char* Node::getLabel()const
 void Nodable::Node::addWire(Wire* _wire)
 {
 	wires.push_back(_wire);
+	this->setDirty();
 }
 
 void Nodable::Node::removeWire(Wire* _wire)
