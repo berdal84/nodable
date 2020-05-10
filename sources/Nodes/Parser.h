@@ -48,26 +48,24 @@ namespace Nodable{
 
 		Member* operandTokenToMember(const Token& _token);
 
-		Member* buildGraphIterative();
-
 		Member* parseRootExpression();
 
-		Member* parseFunctionCall(size_t& _tokenId, unsigned short _depth = 0u);
+		Member* parseFunctionCall(size_t& _tokenId);
 
 		/* Parse a sub expression, a sub expression is like: "( expression )" */
-		Member* parseParenthesisExpression(size_t& _tokenId, unsigned short _depth = 0u);
+		Member* parseParenthesisExpression(size_t& _tokenId);
 
 		/* To parse three tokens (ex: "1+59", "98*4", "true and false", etc...)*/
-		Member* parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence = 0u, Member* _left = nullptr, unsigned short _depth = 0u);
+		Member* parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence = 0u, Member* _left = nullptr);
 
 		/** To parse two tokens (ex: !true, -5, etc..) */
-		Member* parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence = 0u, unsigned short _depth = 0u);
+		Member* parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence = 0u);
 
 		/** To parse a primary expression (ex: "myVariable", "10.4", etc... ) */
-		Member* parseAtomicExpression(size_t& _tokenId, unsigned short _depth = 0u);
+		Member* parseAtomicExpression(size_t& _tokenId);
 
 		/* Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
-		Member* parseExpression(size_t& _tokenIndex, unsigned short _precedence = 0u, Member* _left = nullptr, unsigned short _depth = 0u);
+		Member* parseExpression(size_t& _tokenIndex, unsigned short _precedence = 0u, Member* _left = nullptr);
 
 		/* Cut the member "expression" into tokens to identifies its type (cf. TokenType_ enum) */
 		bool    tokenizeExpressionString			   ();

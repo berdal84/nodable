@@ -151,7 +151,7 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 	return result;
 }
 
-Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _left, unsigned short _depth) {
+Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _left) {
 
 	LOG_DEBUG_PARSER("parseBinaryOperationExpression...\n");
 	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
@@ -187,7 +187,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 
 	// Parse right expression
 	size_t rightTokenId = _tokenId + 1;
-	auto right = parseExpression(rightTokenId, currentOperatorPrecedence, nullptr, _depth +1 );
+	auto right = parseExpression(rightTokenId, currentOperatorPrecedence, nullptr );
 
 	if (!right) {
 		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (right expression is nullptr)\n");
@@ -246,12 +246,10 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	return result;
 }
 
-Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence, unsigned short _depth) {
+Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence) {
 
 	LOG_DEBUG_PARSER("parseUnaryOperationExpression...\n");
 	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
-
-	auto logPrefix = ComputePrefix(_depth);
 
 	Member* result = nullptr;
 
@@ -288,7 +286,7 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	return result;
 }
 
-Member* Parser::parseAtomicExpression(size_t& _tokenId, unsigned short _depth) {
+Member* Parser::parseAtomicExpression(size_t& _tokenId) {
 
 	LOG_DEBUG_PARSER("parseAtomicExpression... \n");
 
@@ -313,12 +311,10 @@ Member* Parser::parseAtomicExpression(size_t& _tokenId, unsigned short _depth) {
 	return operandTokenToMember(token);
 }
 
-Member* Parser::parseParenthesisExpression(size_t& _tokenId, unsigned short _depth) {
+Member* Parser::parseParenthesisExpression(size_t& _tokenId) {
 
 	LOG_DEBUG_PARSER("parseParenthesisExpression...");
 	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
-
-	auto logPrefix = ComputePrefix(_depth);
 
 	if (_tokenId >= tokens.size())
 		return nullptr;
@@ -334,7 +330,7 @@ Member* Parser::parseParenthesisExpression(size_t& _tokenId, unsigned short _dep
 	if (token1.word == "(") {
 
 		auto subToken = _tokenId + 1;
-		result = parseExpression(subToken, 0u, nullptr, _depth + 1);
+		result = parseExpression(subToken, 0u, nullptr);
 		_tokenId = subToken + 1;
 
 		if ( tokens.at(subToken).word != ")" ) {
@@ -374,7 +370,7 @@ Member* Parser::parseRootExpression() {
 	return result;
 }
 
-Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride, unsigned short _depth) {
+Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride) {
 
 	LOG_DEBUG_PARSER("parseExpression...\n");
 	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
@@ -388,11 +384,11 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 	*/
 	Member* left = nullptr;
 
-	if      (left = _leftOverride) {}
-	else if (left = parseParenthesisExpression(_tokenId, _depth + 1)) {}
-	else if (left = parseUnaryOperationExpression(_tokenId, _precedence, _depth + 1)) {}
-	else if (left = parseFunctionCall(_tokenId, _depth + 1)) {}
-	else if (left = parseAtomicExpression(_tokenId, _depth + 1)) {}	
+	if (left = _leftOverride);
+	else if (left = parseParenthesisExpression(_tokenId));
+	else if (left = parseUnaryOperationExpression(_tokenId, _precedence));
+	else if (left = parseFunctionCall(_tokenId));
+	else if (left = parseAtomicExpression(_tokenId))
 
 	if (_tokenId >= tokens.size()) {
 		LOG_DEBUG_PARSER("parseExpression..." OK " (parsing only left, last token)\n");
@@ -408,11 +404,11 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 	if (left != nullptr) {
 
 		LOG_DEBUG_PARSER("left parsed, we parse right\n");
-		auto binResult = parseBinaryOperationExpression(_tokenId, _precedence, left, _depth + 1);
+		auto binResult = parseBinaryOperationExpression(_tokenId, _precedence, left);
 
 		if (binResult) {
 			LOG_DEBUG_PARSER("right parsed, recursive call\n");
-			result = parseExpression(_tokenId, _precedence, binResult, _depth + 1);
+			result = parseExpression(_tokenId, _precedence, binResult);
 		}
 		else {
 			result = left;
@@ -628,7 +624,7 @@ void Parser::addToken(TokenType_  _type, std::string _string, size_t _charIndex)
 	tokens.push_back(t);
 }
 
-Member* Parser::parseFunctionCall(size_t& _tokenId, unsigned short _depth /*= 0u*/)
+Member* Parser::parseFunctionCall(size_t& _tokenId)
 {
 	size_t localTokenId = _tokenId;
 
