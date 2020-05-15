@@ -107,7 +107,7 @@ void Nodable::Member::setName(const char* _name)
 void Member::setValue(double _value)
 {
 	data.setType(Type_Number);
-	data.setValue(_value);
+	data.set(_value);
 }
 
 void Member::setValue(int _value)
@@ -123,13 +123,13 @@ void Member::setValue(std::string _value)
 void Member::setValue(const char* _value)
 {
 	data.setType(Type_String);
-	data.setValue(_value);
+	data.set(_value);
 }
 
 void Member::setValue(bool _value)
 {
 	data.setType(Type_Boolean);
-	data.setValue(_value);
+	data.set(_value);
 }
 
 double Member::getValueAsNumber()const
@@ -170,7 +170,7 @@ void Nodable::Member::setOwner(Object* _owner)
 
 void Member::setValue(const Member* _v)
 {
-	data.setValue(&_v->data);	
+	data.set(&_v->data);	
 }
 
 std::string Member::getTypeAsString()const

@@ -20,13 +20,13 @@ bool  Variant::isType(Type_ _type)const
 	return this->type == _type;
 }
 
-void Variant::setValue(double _var)
+void Variant::set(double _var)
 {
 	switch(type)
 	{
 		case Type_String:
 		{
-			setValue(std::to_string(_var));
+			set(std::to_string(_var));
 			break;
 		}
 
@@ -45,12 +45,12 @@ void Variant::setValue(double _var)
 	}
 }
 
-void Variant::setValue(const std::string& _var)
+void Variant::set(const std::string& _var)
 {
-	setValue(_var.c_str());
+	set(_var.c_str());
 }
 
-void Variant::setValue(const char* _var)
+void Variant::set(const char* _var)
 {
 	switch(type)
 	{
@@ -75,7 +75,7 @@ void Variant::setValue(const char* _var)
 	}
 }
 
-void Variant::setValue(bool _var)
+void Variant::set(bool _var)
 {
 	switch(type)
 	{
@@ -195,20 +195,20 @@ bool Variant::isSet()const
 	return type != Type_Unknown;
 }
 
-void Variant::setValue(const Variant* _v)
+void Variant::set(const Variant* _v)
 {
 	setType(_v->getType());
 
 	switch (type)
 	{
 	case Type_Boolean:
-		setValue(_v->getValueAsBoolean());
+		set(_v->getValueAsBoolean());
 		break;
 	case Type_Number:
-		setValue(_v->getValueAsNumber());
+		set(_v->getValueAsNumber());
 		break;
 	case Type_String:
-		setValue(_v->getValueAsString());
+		set(_v->getValueAsString());
 		break;
 	case Type_Unknown:
 		break;
@@ -258,13 +258,13 @@ void Variant::setType(Type_ _type)
 		switch (_type)
 		{
 		case Type_String:
-			setValue("");
+			set("");
 			break;
 		case Type_Number:
-			setValue(double(0));
+			set(double(0));
 			break;
 		case Type_Boolean:
-			setValue(false);
+			set(false);
 			break;
 		default:
 			break;

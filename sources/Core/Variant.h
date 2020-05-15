@@ -25,26 +25,22 @@ namespace Nodable{
 		Variant();
 		~Variant();
 
-		bool        isSet            ()const;	
-		bool        isType           (Type_ _type)const;
-
-		void        setValue         (const Variant*);
-		void        setValue         (const std::string&);
-		void        setValue         (const char*);
-		void        setValue         (double);
-		void        setValue         (bool);
-		
-		void        setType          (Type_ _type);
-
-		Type_       getType          ()const;
+		bool        isSet()const;	
+		bool        isType(Type_ _type)const;
+		void        set(const Variant*);
+		void        set(const std::string&);
+		void        set(const char*);
+		void        set(double);
+		void        set(bool);		
+		void        setType(Type_ _type);
+		Type_       getType()const;
 		std::string getTypeAsString  ()const;
-
 		bool        getValueAsBoolean()const;
 		double      getValueAsNumber ()const;
 		std::string getValueAsString ()const;
 
 	private:
-		void*       		data 				= NULL;
-		Type_       		type 				= Type_Unknown;
+		void* data = NULL;
+		Type_ type = Type_Unknown;
 	};
 }
