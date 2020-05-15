@@ -1,9 +1,8 @@
 
 #include <stdio.h>
 #include <string>
-
 #include <Application.h>
-#include <Test.h>            // for RunAll()
+#include <Test.h>
 #include <iostream>
 
 using namespace Nodable;
@@ -12,7 +11,8 @@ int main(int argc, char* argv[])
 {	
 	// Run some tests before to do anything:
 
-	if ( !RunAllTests() ) {
+	if ( !Test_RunAll() ) {
+		std::cout << "Tests failed, press a key to exit program" << std::endl;
 		std::cin.get();
 		return 1;
 	}

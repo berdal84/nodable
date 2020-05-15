@@ -22,6 +22,12 @@ bool  Member::isType(Type_ _type)const
 	return data.isType(_type);
 }
 
+bool Member::equals(const Member *_other)const {
+	return _other != nullptr &&
+	       _other->isType(this->getType() ) &&
+		   _other->getValueAsString() == this->getValueAsString();
+}
+
 void Member::setConnectionFlags(Connection_ _flags)
 {
 	connection = _flags;
@@ -102,6 +108,11 @@ void Member::setValue(double _value)
 {
 	data.setType(Type_Number);
 	data.setValue(_value);
+}
+
+void Member::setValue(int _value)
+{
+	Member::setValue(double(_value));
 }
 
 void Member::setValue(std::string _value)

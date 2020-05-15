@@ -28,9 +28,10 @@ namespace Nodable{
 		Member();
 		~Member();
 
-		bool                allows                   (Connection_)                   const;
-		bool                isSet                    ()                              const;	
-		bool                isType                   (Type_)                         const;
+		bool                allows(Connection_)const;
+		bool                isSet()const;	
+		bool                isType(Type_)const;
+		bool                equals(const Member *)const;
 
 		/*
 			Setters
@@ -47,6 +48,7 @@ namespace Nodable{
 		void                setValue                 (const char*);
 		void                setValue                 (double);
 		void                setValue                 (bool);
+		void                setValue                 (int);
 
 		void                setType                  (Type_ _type);
 		void                setVisibility            (Visibility_ _v);
@@ -59,19 +61,19 @@ namespace Nodable{
 			Getters
 		*/
 
-		Object*             getOwner()                                                    const;
-		Member*             getInputMember()                                              const;
-		const std::string&  getName()                                                     const;
-		std::string         getSourceExpression()                                         const;
-		Type_               getType()                                                     const;
-		std::string         getTypeAsString()                                             const;
+		Object*             getOwner()const;
+		Member*             getInputMember()const;
+		const std::string&  getName()const;
+		std::string         getSourceExpression()const;
+		Type_               getType()const;
+		std::string         getTypeAsString()const;
 
-		bool                getValueAsBoolean()                                           const;
-		double              getValueAsNumber()                                            const;
-		std::string         getValueAsString()                                            const;
+		bool                getValueAsBoolean()const;
+		double              getValueAsNumber()const;
+		std::string         getValueAsString()const;
 
-		Visibility_         getVisibility()                                               const;
-		Connection_         getConnection()                                               const;
+		Visibility_         getVisibility()const;
+		Connection_         getConnection()const;		
 		
 	private:
 		Object*     		owner       		= nullptr;

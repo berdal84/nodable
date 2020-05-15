@@ -1,7 +1,38 @@
 #include "Language.h"
 #include "Member.h"
-
+#include <type_traits>
 using namespace Nodable;
+
+
+template<class F>
+struct function_traits;
+
+// function pointer
+template<class R, class... Args>
+struct function_traits<R(*)(Args...)> : public function_traits<R(Args...)>
+{};
+
+template<class R, class... Args>
+struct function_traits<R(Args...)>
+{
+	using return_type = R;
+
+	static constexpr std::size_t arity = sizeof...(Args);
+
+	template <std::size_t N>
+	struct argument
+	{
+		static_assert(N < arity, "error: invalid parameter index.");
+		using type = typename std::tuple_element<N, std::tuple<Args...>>::type;
+	};
+};
+
+
+float free_function(const std::string & a, int b)
+{
+	return (float)a.size() / b;
+}
+
 
 FunctionArg::FunctionArg(TokenType_ _type, std::string _name) {
 	type = _type;
@@ -72,6 +103,11 @@ const Language* Language::Nodable() {
 
 	language->keywords["true"]  = TokenType_Boolean;
 	language->keywords["false"] = TokenType_Boolean;
+
+	using Traits = function_traits<decltype(cos)>;
+
+	Traits::argument<0>::type var = 5;
+
 
 	/* Function library */
 
@@ -161,11 +197,12 @@ const Language* Language::Nodable() {
 			const auto value = pow(arg0->getValueAsNumber(), arg1->getValueAsNumber());
 			result->setValue(value);
 		};
+
 		language->pushFunc(proto);
 	}
 
 	{
-		FunctionPrototype proto("codon", TokenType_String);
+		FunctionPrototype proto("DNAtoAninoAcid", TokenType_String);
 		proto.pushArg(TokenType_String);
 		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
 			
