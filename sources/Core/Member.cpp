@@ -25,7 +25,7 @@ bool  Member::isType(Type_ _type)const
 bool Member::equals(const Member *_other)const {
 	return _other != nullptr &&
 	       _other->isType(this->getType() ) &&
-		   _other->getValueAsString() == this->getValueAsString();
+		   _other->as<std::string>() == this->as<std::string>();
 }
 
 void Member::setConnectionFlags(Connection_ _flags)
@@ -50,7 +50,7 @@ void Member::setVisibility(Visibility_ _v)
 
 void Nodable::Member::updateValueFromInputMemberValue()
 {
-	this->setValue(this->inputMember);
+	this->set(this->inputMember);
 }
 
 bool Member::allows(Connection_ _connection)const
@@ -104,48 +104,32 @@ void Nodable::Member::setName(const char* _name)
 	name = _name;
 }
 
-void Member::setValue(double _value)
+void Member::set(double _value)
 {
 	data.setType(Type_Number);
 	data.set(_value);
 }
 
-void Member::setValue(int _value)
+void Member::set(int _value)
 {
-	Member::setValue(double(_value));
+	Member::set(double(_value));
 }
 
-void Member::setValue(std::string _value)
+void Member::set(std::string _value)
 {
-	this->setValue(_value.c_str());
+	this->set(_value.c_str());
 }
 
-void Member::setValue(const char* _value)
+void Member::set(const char* _value)
 {
 	data.setType(Type_String);
 	data.set(_value);
 }
 
-void Member::setValue(bool _value)
+void Member::set(bool _value)
 {
 	data.setType(Type_Boolean);
 	data.set(_value);
-}
-
-double Member::getValueAsNumber()const
-{
-	return data.getValueAsNumber();
-	
-}
-
-bool Member::getValueAsBoolean()const
-{
-	return data.getValueAsBoolean();	
-}
-
-std::string Member::getValueAsString()const
-{
-	return data.getValueAsString();
 }
 
 Visibility_ Member::getVisibility() const
@@ -168,7 +152,7 @@ void Nodable::Member::setOwner(Object* _owner)
 	owner = _owner;
 }
 
-void Member::setValue(const Member* _v)
+void Member::set(const Member* _v)
 {
 	data.set(&_v->data);	
 }
@@ -185,8 +169,8 @@ std::string Member::getSourceExpression()const
 	if ( allows(Connection_In) && inputMember != nullptr)
 	{
 		// if inputMember is a variable we add the variable name and an equal sign
-		if (inputMember->getOwner()->get("__class__")->getValueAsString() == "Variable" &&
-			getOwner()->get("__class__")->getValueAsString() == "Variable")
+		if (inputMember->getOwner()->getClass()->getName() == "Variable" &&
+			getOwner()->getClass()->getName() == "Variable")
 		{
 			auto variable = inputMember->getOwner()->as<Variable>();
 			expression.append(variable->getName());
@@ -202,10 +186,10 @@ std::string Member::getSourceExpression()const
 	} else {
 
 		if (isType(Type_String)) {
-			expression = '"' + getValueAsString() + '"';
+			expression = '"' + as<std::string>() + '"';
 		}
 		else {
-			expression = getValueAsString();
+			expression = as<std::string>();
 		}
 	}
 

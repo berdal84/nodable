@@ -132,7 +132,7 @@ Variable* Container::newNumber(double _value)
 {
 	auto node = new Variable();
 	node->addComponent( "view", new NodeView);
-	node->setValue(_value);
+	node->set(_value);
 	this->add(node);
 	return node;
 }
@@ -141,7 +141,7 @@ Variable* Container::newNumber(const char* _value)
 {
 	auto node = new Variable();
 	node->addComponent( "view", new NodeView);
-	node->setValue(std::stod(_value));
+	node->set(std::stod(_value));
 	this->add(node);
 	return node;
 }
@@ -150,7 +150,7 @@ Variable* Container::newString(const char* _value)
 {
 	auto node = new Variable();
 	node->addComponent( "view", new NodeView);
-	node->setValue(_value);
+	node->set(_value);
 	this->add(node);
 	return node;
 }
@@ -379,7 +379,7 @@ Parser* Container::newParser(Variable* _expressionVariable)
 	// Link the _expressionVariable output with the Parser's member "expression"
 	auto wire             = this->newWire();
 	auto expressionMember = node->get("expression");
-	Node::Connect(wire,_expressionVariable->getValue(), expressionMember);
+	Node::Connect(wire,_expressionVariable->getMember(), expressionMember);
 	expressionMember->updateValueFromInputMemberValue();
 
 	this->add(node);

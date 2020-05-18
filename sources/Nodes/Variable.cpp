@@ -7,7 +7,6 @@ using namespace Nodable;
 Variable::Variable()
 {
 	add("value", Always, Type_Unknown, Connection_InOut);	
-	set("__class__", "Variable");
 }
 
 Variable::~Variable()
@@ -15,15 +14,6 @@ Variable::~Variable()
 
 }
 
-double Variable::getValueAsNumber()const
-{
-	return get("value")->getValueAsNumber();
-}
-
-std::string Variable::getValueAsString()const
-{
-	return get("value")->getValueAsString();
-}
 
 void Variable::setName(const char* _name)
 {
@@ -38,10 +28,10 @@ const char* Variable::getName()const
 
 bool Variable::isType(Type_ _type)const
 {
-	return getValue()->isType(_type);
+	return getMember()->isType(_type);
 }
 
 std::string Variable::getTypeAsString()const
 {
-	return getValue()->getTypeAsString();
+	return getMember()->getTypeAsString();
 }

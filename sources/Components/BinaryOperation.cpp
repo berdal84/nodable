@@ -80,23 +80,23 @@ bool Add::update()
 	{
 		case Type_String:
 		{
-			auto sum = left->getValueAsString() + right->getValueAsString();
-			result->setValue(sum);
+			auto sum = left->as<std::string>() + right->as<std::string>();
+			result->set(sum);
 			break;
 		}
 
 		case Type_Boolean:
 		{
-			auto sum = left->getValueAsBoolean() || right->getValueAsBoolean();
-			result->setValue(sum);
+			auto sum = left->as<bool>() || right->as<bool>();
+			result->set(sum);
 			break;
 		}	
 
 		default:
 		case Type_Number:
 		{
-			auto sum = left->getValueAsNumber() + right->getValueAsNumber();
-			result->setValue(sum);
+			auto sum = left->as<double>() + right->as<double>();
+			result->set(sum);
 			break;
 		}	
 	}
@@ -111,8 +111,8 @@ bool Add::update()
 
 bool Substract::update()
 {
-	double sub = left->getValueAsNumber() - right->getValueAsNumber();
-	result->setValue(sub);
+	double sub = left->as<double>() - right->as<double>();
+	result->set(sub);
 	
 	updateResultSourceExpression();
 
@@ -124,10 +124,10 @@ bool Substract::update()
 
 bool Divide::update()
 {
-	if (right->getValueAsNumber() != 0.0f)
+	if (right->as<double>() != 0.0f)
 	{
-		auto div = left->getValueAsNumber() / right->getValueAsNumber();
-		result->setValue(div);
+		auto div = left->as<double>() / right->as<double>();
+		result->set(div);
 	}
 
 	updateResultSourceExpression();
@@ -144,15 +144,15 @@ bool Multiply::update()
 	{
 		case Type_Boolean:
 		{
-			auto mul = left->getValueAsBoolean() && right->getValueAsBoolean();
-			result->setValue(mul);
+			auto mul = left->as<bool>() && right->as<bool>();
+			result->set(mul);
 			break;
 		}	
 
 		default:
 		{
-			auto mul = left->getValueAsNumber() * right->getValueAsNumber();
-			result->setValue(mul);
+			auto mul = left->as<double>() * right->as<double>();
+			result->set(mul);
 			break;
 		}
 	}
@@ -171,23 +171,23 @@ bool Assign::update()
 	{
 		case Type_Number:
 		{
-			auto v = right->getValueAsNumber();
-			result->setValue(v);
-			left->setValue(v);
+			auto v = right->as<double>();
+			result->set(v);
+			left->set(v);
 			break;
 		}
 		case Type_String:
 		{
-			auto v = right->getValueAsString().c_str();
-			result->setValue(v);
-			left->setValue(v);
+			auto v = right->as<std::string>().c_str();
+			result->set(v);
+			left->set(v);
 			break;
 		}
 		default:
 		{
-			auto v = right->getValueAsNumber();
-			result->setValue(v);
-			left->setValue(v);
+			auto v = right->as<double>();
+			result->set(v);
+			left->set(v);
 			break;
 		}
 	}

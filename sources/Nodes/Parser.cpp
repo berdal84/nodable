@@ -24,7 +24,6 @@ using namespace Nodable;
 
 Parser::Parser(const Language* _language):language(_language)
 {
-	set("__class__", "Parser");
 	add("expression", OnlyWhenUncollapsed);
 	setLabel("Parser");
 }
@@ -88,10 +87,10 @@ bool Parser::eval()
 
 	// If the value has no owner, we simplly set the variable value
 	if (resultValue->getOwner() == nullptr)
-		result->setValue(resultValue);
+		result->set(resultValue);
 	// Else we connect resultValue with resultVariable.value
 	else
-		Node::Connect(container->newWire(), resultValue, result->getValue());
+		Node::Connect(container->newWire(), resultValue, result->getMember());
 
 
 	auto view = result->getComponent<NodeView>();
@@ -114,7 +113,7 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 		{
 			result = new Member();
 			const bool value = _token.word == "true";
-			result->setValue(value);
+			result->set(value);
 			break;
 		}
 
@@ -127,9 +126,9 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 				variable = context->newVariable(_token.word);
 
 			NODABLE_ASSERT(variable != nullptr);
-			NODABLE_ASSERT(variable->getValue() != nullptr);
+			NODABLE_ASSERT(variable->getMember() != nullptr);
 
-			result = variable->getValue();
+			result = variable->getMember();
 
 			break;
 		}
@@ -137,13 +136,13 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 		case TokenType_Number: {
 			result = new Member();
 			const double number = std::stod(_token.word);
-			result->setValue(number);
+			result->set(number);
 			break;
 		}
 
 		case TokenType_String: {
 			result = new Member();
-			result->setValue(_token.word);
+			result->set(_token.word);
 			break;
 		}
 
@@ -201,21 +200,15 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	// Special behavior for "=" operator
 	if (token1.word == "=") {
 
-		// left operand (should BE a variable)
-
-		NODABLE_ASSERT(_left->getOwner() != nullptr); // left operand cannot be a orphaned member
-		NODABLE_ASSERT(_left->getOwner()->get("__class__")->getValueAsString() == "Variable"); // left operand need to me owned by a variable node			               
-
-
 		// Directly connects right operand output to left operant input (yes that's reversed compared to code)
 		auto var =_left->getOwner()->as<Variable>();
 
 		if (right->getOwner() == nullptr)
-			var->setValue(right);
+			var->set(right);
 		else
 			Node::Connect(context->newWire(), right, _left);
 
-		result = var->getValue();
+		result = var->getMember();
 
 
 	// For all other binary operations :
@@ -270,11 +263,11 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	// Then check if the operator can be applied to the next token
 	if (token1.word == "-" && token2.type == TokenType_Number) { // TODO: create the unary operation "negates"
 		result = operandTokenToMember(token2);
-		result->setValue(-result->getValueAsNumber());
+		result->set(-result->as<double>());
 
 	} else if (token1.word == "!" && token2.type == TokenType_Boolean) { // TODO: create the unary operation "not"
 		result = operandTokenToMember(token2);
-		result->setValue(!result->getValueAsBoolean());
+		result->set(!result->as<bool>());
 
 	} else {
 		LOG_DEBUG_PARSER("parseUnaryOperationExpression... " KO " (unrecognysed operator)\n");	
@@ -494,7 +487,7 @@ bool Parser::tokenizeExpressionString()
 {
 
 	/* get expression chars */
-	std::string chars = get("expression")->getValueAsString();
+	std::string chars = get("expression")->as<std::string>();
 
 	/* prepare allowed chars */
 	const auto numbers 	     = language->numbers;

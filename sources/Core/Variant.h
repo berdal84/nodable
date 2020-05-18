@@ -35,9 +35,97 @@ namespace Nodable{
 		void        setType(Type_ _type);
 		Type_       getType()const;
 		std::string getTypeAsString  ()const;
-		bool        getValueAsBoolean()const;
-		double      getValueAsNumber ()const;
-		std::string getValueAsString ()const;
+
+		template <typename T>
+		T get()const;
+
+		template <>
+		double get<double>()const {
+			switch (type)
+			{
+			case Type_String:
+			{
+				return double((*reinterpret_cast<std::string*>(data)).size());
+			}
+
+			case Type_Number:
+			{
+				return *reinterpret_cast<double*>(data);
+			}
+
+			case Type_Boolean:
+			{
+				return *reinterpret_cast<bool*>(data) ? double(1) : double(0);
+			}
+
+			default:
+			{
+				return double(0);
+			}
+			}
+
+		}
+
+		template <>
+		bool get<bool>()const
+		{
+			switch (type)
+			{
+			case Type_String:
+			{
+				return !(*reinterpret_cast<std::string*>(data)).empty();
+			}
+
+			case Type_Number:
+			{
+				return (*reinterpret_cast<double*>(data)) != 0.0F;
+			}
+
+			case Type_Boolean:
+			{
+				return *reinterpret_cast<bool*>(data);
+			}
+
+			default:
+			{
+				return false;
+			}
+			}
+
+		}
+
+		template <>
+		std::string get<std::string>()const
+		{
+			switch (type)
+			{
+			case Type_String:
+			{
+				return *reinterpret_cast<std::string*>(data);
+			}
+
+			case Type_Number:
+			{
+				// Format the num as a string without any useless ending zeros/dot
+				std::string str = std::to_string(*reinterpret_cast<double*>(data));
+				str.erase(str.find_last_not_of('0') + 1, std::string::npos);
+				if (str.find_last_of('.') + 1 == str.size())
+					str.erase(str.find_last_of('.'), std::string::npos);
+				return str;
+			}
+
+			case Type_Boolean:
+			{
+				return *reinterpret_cast<bool*>(data) ? "true" : "false";
+			}
+
+			default:
+			{
+				return "NULL";
+			}
+			}
+		}
+
 
 	private:
 		void* data = NULL;

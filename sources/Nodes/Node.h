@@ -107,5 +107,11 @@ namespace Nodable{
 		std::string               label;
 		bool                      dirty;   // when is true -> needs to be evaluated.
 		Wires                     wires;             // contains all wires connected to or from this node.
+	
+	public:
+		MIRROR_CLASS(Node)(
+			MIRROR_PARENT(Object)
+		);
+	
 	};
 }

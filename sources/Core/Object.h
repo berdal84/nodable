@@ -1,6 +1,7 @@
 #pragma once
 #include "Nodable.h"
 #include "Member.h"   // for Type_ enum
+#include "mirror_macros.h"
 
 namespace Nodable
 {
@@ -39,31 +40,26 @@ namespace Nodable
 		/* this method is automatically called when a member value changed */
 		virtual void        onMemberValueChanged(const char* _name){};
 
-		/* Set a new _value to the member _name.
-		Side effect : set dirty all nodes connected directly or inderiectly to one of its outputs.*/
-		template<typename T>
-		void                set(const char* _name, T _value);		
-
 		bool                needsToBeDeleted  (){return deleted;}
 
 		template<typename T>
-		T*                  as();
+		void set(const char* _name, T _value)
+		{
+			members[std::string(_name)]->set(_value);
+			this->onMemberValueChanged(_name);
+		}
+
+		template<typename T>
+		T* as()
+		{
+			return reinterpret_cast<T*>(this);
+		}
 
 	private:
 		Members             members;
 		bool                deleted = false;
-	};
 
-	template<typename T>
-	void Object::set(const char* _name, T _value)
-	{
-		members[std::string(_name)]->setValue(_value);
-		this->onMemberValueChanged(_name);
-	}
-
-	template<typename T>
-	T* Object::as()
-	{
-		return reinterpret_cast<T*>(this);
-	}
+	public:
+		MIRROR_CLASS(Object)();
+	};	
 }

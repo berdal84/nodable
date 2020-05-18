@@ -137,7 +137,7 @@ bool File::evaluateExpression(std::string& _expression)
 	boolean success;
 
 	auto variable = getContainer()->newVariable(ICON_FA_CODE);
-	variable->setValue(_expression);
+	variable->set(_expression);
 
 	auto view = variable->getComponent<NodeView>();
 	view->setVisible(false);
@@ -178,7 +178,7 @@ bool File::update() {
 		return false;
 	}
 
-	auto member		= result->getValue();
+	auto member		= result->getMember();
 	auto expression = member->getSourceExpression();
 	auto view		= getComponent<FileView>();
 

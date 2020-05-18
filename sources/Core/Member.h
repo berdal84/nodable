@@ -32,26 +32,19 @@ namespace Nodable{
 		bool                isSet()const;	
 		bool                isType(Type_)const;
 		bool                equals(const Member *)const;
-
-		/*
-			Setters
-		*/
-
-		void                setConnectionFlags       (Connection_);
-		void                setSourceExpression      (const char*);
-		void                setInputMember           (Member*);
-		void  		        setName                  (const char*);
-		void                setOwner                 (Object*);
-
-		void                setValue                 (const Member*);
-		void                setValue                 (std::string);
-		void                setValue                 (const char*);
-		void                setValue                 (double);
-		void                setValue                 (bool);
-		void                setValue                 (int);
-
-		void                setType                  (Type_ _type);
-		void                setVisibility            (Visibility_ _v);
+		void                setConnectionFlags(Connection_);
+		void                setSourceExpression(const char*);
+		void                setInputMember(Member*);
+		void  		        setName(const char*);
+		void                setOwner(Object*);
+		void                set(const Member*);
+		void                set(std::string);
+		void                set(const char*);
+		void                set(double);
+		void                set(bool);
+		void                set(int);
+		void                setType(Type_ _type);
+		void                setVisibility(Visibility_ _v);
 
 		/** Get the value of the inputMember Member and set it to this Member.
 		    Warning: be sure the member has an inputMember before calling this (getInputMember()!=nullptr)*/
@@ -68,9 +61,10 @@ namespace Nodable{
 		Type_               getType()const;
 		std::string         getTypeAsString()const;
 
-		bool                getValueAsBoolean()const;
-		double              getValueAsNumber()const;
-		std::string         getValueAsString()const;
+		template <typename T>
+		T as()const {
+			return data.get<T>();
+		}
 
 		Visibility_         getVisibility()const;
 		Connection_         getConnection()const;		

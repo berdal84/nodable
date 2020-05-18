@@ -142,12 +142,12 @@ bool Member_AsBoolean_Tests() {
 
 		std::unique_ptr<Member> m(new Member);
 
-		m->setValue(true);
-		EXPECT(m->getValueAsBoolean(), true)
+		m->set(true);
+		EXPECT(m->as<bool>(), true)
 		EXPECT(m->getType(), Type_Boolean)
 
-		m->setValue(false);
-		EXPECT(m->getValueAsBoolean(), false)
+		m->set(false);
+		EXPECT(m->as<bool>(), false)
 		EXPECT(m->isSet(), true)
 
 	}TEST_END
@@ -160,13 +160,13 @@ bool Member_AsString_Tests() {
 	TEST_BEGIN("Member: String"){
 
 		std::unique_ptr<Member> m(new Member);
-		m->setValue("Hello world !");
+		m->set("Hello world !");
 		const std::string str = "Hello world !";
 
-		EXPECT(m->getValueAsString(), str)
-		EXPECT(m->getValueAsBoolean(), true)
+		EXPECT(m->as<std::string>(), str)
+		EXPECT(m->as<bool>(), true)
 		EXPECT(m->getType(), Type_String)
-		EXPECT(m->getValueAsNumber(), str.length())
+		EXPECT(m->as<double>(), str.length())
 		EXPECT(m->isSet(), true)
 	}TEST_END
 
@@ -178,9 +178,9 @@ bool Member_AsNumber_Tests() {
 	TEST_BEGIN("Member: Number"){
 				
 		std::unique_ptr<Member> m(new Member);
-		m->setValue(50.0F);
+		m->set(50.0F);
 
-		EXPECT(m->getValueAsNumber(), 50.0F)
+		EXPECT(m->as<double>(), 50.0F)
 		EXPECT(m->getType(), Type_Number)
 		EXPECT(m->isSet(), true)	
 
@@ -195,7 +195,7 @@ bool Parser_Test(const std::string& expression, T _expectedValue) {
 
 	auto container(new Container);
 	auto expressionVariable(container->newVariable("expression"));
-	expressionVariable->setValue(expression);
+	expressionVariable->set(expression);
 
 	auto parser = container->newParser(expressionVariable);
 
@@ -205,8 +205,8 @@ bool Parser_Test(const std::string& expression, T _expectedValue) {
 	result->update();
 
 	Member expectedMember;
-	expectedMember.setValue(_expectedValue);
-	auto success = result->getValue()->equals(&expectedMember);
+	expectedMember.set(_expectedValue);
+	auto success = result->getMember()->equals(&expectedMember);
 
 	delete container;
 
@@ -275,9 +275,9 @@ bool Node_Tests() {
 			node->add("val");
 			node->set("val", double(100));
 
-			EXPECT(node->get("val")->getValueAsNumber(), double(100))
-			EXPECT(node->get("val")->getValueAsString(), std::to_string(100))
-			EXPECT(node->get("val")->getValueAsBoolean(), true)
+			EXPECT(node->get("val")->as<double>(), double(100))
+			EXPECT(node->get("val")->as<std::string>(), std::to_string(100))
+			EXPECT(node->get("val")->as<bool>(), true)
 		}TEST_END
 
 	}TEST_END

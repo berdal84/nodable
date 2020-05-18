@@ -327,9 +327,9 @@ bool NodeView::draw()
 
 			auto component	= pair.second;
 			auto name		= pair.first;
-			auto className	= component->get("__class__")->getValueAsString();
+			auto className	= component->getClass()->getName();
 
-			ImGui::Text("- %s (%s)", name.c_str(), className.c_str());
+			ImGui::Text("- %s (%s)", name.c_str(), className);
 		}
 
 		// Draw parent's name
@@ -337,7 +337,7 @@ bool NodeView::draw()
 		ImGui::Text("Parameters :");
 		std::string parentName = "NULL";
 		if ( node->getParent() )
-			parentName = node->getParent()->get("name")->getValueAsString();
+			parentName = node->getParent()->get("name")->as<std::string>();
 		ImGui::Text("Parent: %s", parentName.c_str());
 		
 		// Draw dirty state 
@@ -463,10 +463,10 @@ bool NodeView::drawMember(Member* _member) {
 		{
 		case Type_Number:
 			{
-				double f(_member->getValueAsNumber());
+				double f(_member->as<double>());
 				if (ImGui::InputDouble(label.c_str(), &f))
 				{
-					_member->setValue(f);
+					_member->set(f);
 					node->setDirty(true);
 					edited |= true;
 				}
@@ -475,11 +475,11 @@ bool NodeView::drawMember(Member* _member) {
 		case Type_String:
 			{				
 				char str[255];
-				sprintf_s(str, "%s", _member->getValueAsString().c_str());
+				sprintf_s(str, "%s", _member->as<std::string>().c_str());
 
 				if ( ImGui::InputText(label.c_str(), str, 255) )
 				{
-					_member->setValue(str);
+					_member->set(str);
 					node->setDirty(true);
 					edited |= true;
 				}
@@ -489,9 +489,9 @@ bool NodeView::drawMember(Member* _member) {
 		{			
 			std::string checkBoxLabel = _member->getName();
 
-			auto b = _member->getValueAsBoolean();
+			auto b = _member->as<bool>();
 			if (ImGui::Checkbox( checkBoxLabel.c_str(), &b )) {				
-				_member->setValue(b);
+				_member->set(b);
 				node->setDirty(true);
 				edited |= true;
 			}
@@ -501,7 +501,7 @@ bool NodeView::drawMember(Member* _member) {
 			{
 				ImGui::Text("%s", _member->getName().c_str());
 				ImGui::SameLine(10.0f);
-				ImGui::Text("%s", _member->getValueAsString().c_str());
+				ImGui::Text("%s", _member->as<std::string>().c_str());
 				break;
 			}
 		}
