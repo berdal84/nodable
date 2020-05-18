@@ -104,40 +104,6 @@ void Nodable::Member::setName(const char* _name)
 	name = _name;
 }
 
-void Member::setValue(double _value)
-{
-	data.setType(Type_Number);
-	data.set(_value);
-}
-
-void Member::setValue(int _value)
-{
-	Member::setValue(double(_value));
-}
-
-void Member::setValue(std::string _value)
-{
-	this->setValue(_value.c_str());
-}
-
-void Member::setValue(const char* _value)
-{
-	data.setType(Type_String);
-	data.set(_value);
-}
-
-void Member::setValue(bool _value)
-{
-	data.setType(Type_Boolean);
-	data.set(_value);
-}
-
-double Member::getValueAsNumber()const
-{
-	return data.getValueAsNumber();
-	
-}
-
 bool Member::getValueAsBoolean()const
 {
 	return data.getValueAsBoolean();	
@@ -166,11 +132,6 @@ bool Member::isSet()const
 void Nodable::Member::setOwner(Object* _owner)
 {
 	owner = _owner;
-}
-
-void Member::setValue(const Member* _v)
-{
-	data.set(&_v->data);	
 }
 
 std::string Member::getTypeAsString()const
