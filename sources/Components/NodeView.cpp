@@ -463,7 +463,7 @@ bool NodeView::drawMember(Member* _member) {
 		{
 		case Type_Number:
 			{
-				double f(*_member);
+				double f(_member->getValueAsNumber());
 				if (ImGui::InputDouble(label.c_str(), &f))
 				{
 					_member->setValue(f);

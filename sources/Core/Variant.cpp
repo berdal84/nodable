@@ -20,10 +20,6 @@ bool  Variant::isType(Type_ _type)const
 	return this->type == _type;
 }
 
-void Variant::set(int _val) {
-	set(double(_val));
-}
-
 void Variant::set(double _var)
 {
 	switch(type)
@@ -110,6 +106,33 @@ void Variant::set(bool _var)
 
 }
 
+double Variant::getValueAsNumber()const
+{
+	switch(type)
+	{
+		case Type_String:
+		{
+			return double((*reinterpret_cast<std::string*>(data)).size());
+		}
+
+		case Type_Number:
+		{
+			return *reinterpret_cast<double*>(data);
+		}
+
+		case Type_Boolean:
+		{
+			return *reinterpret_cast<bool*>(data) ? double(1) : double(0);
+		}
+
+		default:
+		{
+			return double(0);
+		}
+	}
+	
+}
+
 bool Variant::getValueAsBoolean()const
 {
 	switch(type)
@@ -182,7 +205,7 @@ void Variant::set(const Variant* _v)
 		set(_v->getValueAsBoolean());
 		break;
 	case Type_Number:
-		set((double)*_v);
+		set(_v->getValueAsNumber());
 		break;
 	case Type_String:
 		set(_v->getValueAsString());

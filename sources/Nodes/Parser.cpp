@@ -12,7 +12,7 @@
 #include <algorithm>
 
 // Enable detailed logs
-//#define DEBUG_PARSER
+#define DEBUG_PARSER
 
 #ifdef DEBUG_PARSER  // macro to disable these on debug
 	#define LOG_DEBUG_PARSER(...) LOG_DEBUG(__VA_ARGS__)
@@ -270,7 +270,7 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	// Then check if the operator can be applied to the next token
 	if (token1.word == "-" && token2.type == TokenType_Number) { // TODO: create the unary operation "negates"
 		result = operandTokenToMember(token2);
-		result->setValue( -(double)*result );
+		result->setValue(-result->getValueAsNumber());
 
 	} else if (token1.word == "!" && token2.type == TokenType_Boolean) { // TODO: create the unary operation "not"
 		result = operandTokenToMember(token2);
