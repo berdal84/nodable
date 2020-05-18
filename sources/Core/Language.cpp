@@ -116,7 +116,7 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 
 		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->setValue((double)*arg0);
+			result->setValue(arg0->getValueAsNumber());
 		};
 
 		language->pushFunc(proto);
@@ -127,7 +127,7 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 
 		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->setValue( sin((double)*arg0) );
+			result->setValue( sin(arg0->getValueAsNumber()) );
 		};
 
 		language->pushFunc(proto);
@@ -138,7 +138,7 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 
 		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->setValue(cos((double)*arg0));
+			result->setValue(cos(arg0->getValueAsNumber()));
 		};
 
 		language->pushFunc(proto);
@@ -150,7 +150,7 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 
 		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->setValue( (double)*arg0 + (double)*arg1 );
+			result->setValue( arg0->getValueAsNumber() + arg1->getValueAsNumber());
 		};
 
 		language->pushFunc(proto);
@@ -162,7 +162,7 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 
 		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->setValue((double)*arg0- (double)*arg1 );
+			result->setValue(arg0->getValueAsNumber() - arg1->getValueAsNumber());
 		};
 
 		language->pushFunc(proto);
@@ -174,7 +174,7 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 
 		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->setValue((double)*arg0 * (double)*arg1 );
+			result->setValue(arg0->getValueAsNumber() * arg1->getValueAsNumber());
 		};
 
 		language->pushFunc(proto);
@@ -184,7 +184,7 @@ const Language* Language::Nodable() {
 		FunctionPrototype proto("sqrt", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->setValue( sqrt((double)*arg0));
+			result->setValue( sqrt(arg0->getValueAsNumber()));
 		};
 		language->pushFunc(proto);
 	}
@@ -194,7 +194,7 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
 		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			const auto value = pow((double)*arg0, (double)*arg1);
+			const auto value = pow(arg0->getValueAsNumber(), arg1->getValueAsNumber());
 			result->setValue(value);
 		};
 

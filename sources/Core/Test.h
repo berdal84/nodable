@@ -47,15 +47,14 @@ static bool s_lastGroupTestPassed; \
 static std::stack<TestState> status;
 
 #define GLOBAL_TEST_BEGIN \
-	LOG_MESSAGE("Starting tests...\n"); \
 	s_globalState = TestState(); \
 	s_lastGroupTestPassed = false;
 
 #define GLOBAL_TEST_END \
 	if(  s_globalState.allPassed() ) { \
-		LOG_MESSAGE(GREEN"All tests are OK : (%d / %d passed).\n", s_globalState.m_successCount, s_globalState.m_count); \
+		LOG_DEBUG(GREEN"All tests are OK : (%d / %d passed).\n", s_globalState.m_successCount, s_globalState.m_count); \
 	} else { \
-		LOG_MESSAGE(RED"Some tests FAILED !: (%d / %d passed). %s(%d)\n", s_globalState.m_successCount, s_globalState.m_count, __FILE__, __LINE__); \
+		LOG_DEBUG(RED"Some tests FAILED !: (%d / %d passed).\n", s_globalState.m_successCount, s_globalState.m_count); \
 	}
 
 #define GLOBAL_TEST_RESULT s_globalState.allPassed();
@@ -160,15 +159,15 @@ bool Member_AsString_Tests() {
 
 	TEST_BEGIN("Member: String"){
 
-		auto member(new Member);
-		member->setValue("Hello world !");
+		std::unique_ptr<Member> m(new Member);
+		m->setValue("Hello world !");
 		const std::string str = "Hello world !";
 
-		EXPECT(member->getValueAsString(), str)
-		EXPECT(member->getValueAsBoolean(), true)
-		EXPECT(member->getType(), Type_String)
-		EXPECT(member->isSet(), true)
-		delete member;
+		EXPECT(m->getValueAsString(), str)
+		EXPECT(m->getValueAsBoolean(), true)
+		EXPECT(m->getType(), Type_String)
+		EXPECT(m->getValueAsNumber(), str.length())
+		EXPECT(m->isSet(), true)
 	}TEST_END
 
 	return s_lastGroupTestPassed;
@@ -178,13 +177,12 @@ bool Member_AsNumber_Tests() {
 
 	TEST_BEGIN("Member: Number"){
 				
-		auto member = new Member();
-		member->setValue(50.0);
+		std::unique_ptr<Member> m(new Member);
+		m->setValue(50.0F);
 
-		EXPECT((double)*member, 50.0)
-		EXPECT(member->getType(), Type_Number)
-		EXPECT(member->isSet(), true)	
-		delete member;
+		EXPECT(m->getValueAsNumber(), 50.0F)
+		EXPECT(m->getType(), Type_Number)
+		EXPECT(m->isSet(), true)	
 
 	}TEST_END
 
@@ -220,48 +218,46 @@ bool Parser_Tests() {
 	TEST_BEGIN("Parser"){
 
 		TEST_BEGIN("Simple"){
-			EXPECT( Parser_Test("-1", 1.0), false)
-			EXPECT( Parser_Test("1", 1.0), true)
-			EXPECT( Parser_Test("-5", -5.0), true)
-			EXPECT( Parser_Test("2+3", 5.0), true)
-			EXPECT( Parser_Test("-5+4", -1.0), true)
+			EXPECT( Parser_Test("-5", -5), true)
+			EXPECT( Parser_Test("2+3", 5), true)
+			EXPECT( Parser_Test("-5+4", -1), true)
 			EXPECT( Parser_Test("-1+2*5-3/6", 8.5), true)
 		}TEST_END
 
 		TEST_BEGIN("Simple parenthesis"){
-			EXPECT( Parser_Test("-1*20", -20.0F), true)
-			EXPECT( Parser_Test("(1+4)", 5.0), true)
-			EXPECT( Parser_Test("(1)+(2)", 3.0), true)
-			EXPECT( Parser_Test("(1+2)*3", 9.0), true)
-			EXPECT( Parser_Test("2*(5+3)", 16.0), true)
+			EXPECT( Parser_Test("-1*20", -20), true)
+			EXPECT( Parser_Test("(1+4)", 5), true)
+			EXPECT( Parser_Test("(1)+(2)", 3), true)
+			EXPECT( Parser_Test("(1+2)*3", 9), true)
+			EXPECT( Parser_Test("2*(5+3)", 16), true)
 		}TEST_END
 
 		TEST_BEGIN("Complex parenthesis"){
 
 			EXPECT(Parser_Test("2+(5*3)",
-			                    2.0+(5.0*3.0)),
+			                    2+(5*3)),
 								true)
 
 			EXPECT(Parser_Test("2*(5+3)+2",
-			                    2.0*(5.0+3.0)+2.0
+			                    2*(5+3)+2
 								), true)
 
 			EXPECT(Parser_Test("(2-(5+3))-2+(1+1)",
-			                    (2.0-(5.0+3.0))-2.0+(1.0+1.0)
+			                    (2-(5+3))-2+(1+1)
 								), true)
 
-			EXPECT(Parser_Test("(2 -(5+3)-2)+9/(1-0.54)",
-			                    (2.0 -(5.0+3.0 )-2.0)+9.0/(1.0- 0.54)
+			EXPECT(Parser_Test("(2 -(5+3 )-2)+9/(1- 0.54)",
+			                    (2 -(5+3 )-2)+9/(1- 0.54)
 								), true)
 
 			EXPECT(Parser_Test("1/3"
-			                   , 1.0/3.0
+			                   , 1.0F/3.0F
 							   ), true)
 		}TEST_END		
 
 		TEST_BEGIN("Function call"){
-			EXPECT(Parser_Test("pass(5)", 5.0), true)
-			EXPECT(Parser_Test("pass(1)", 1.0), true)
+			EXPECT(Parser_Test("pass(5)", 5), true)
+			EXPECT(Parser_Test("pass(1)", 1), true)
 		}TEST_END
 
 	}TEST_END
@@ -277,11 +273,10 @@ bool Node_Tests() {
 
 			std::unique_ptr<Node> node(new Node);
 			node->add("val");
-			node->set("val", 100.0);
+			node->set("val", double(100));
 
-			EXPECT((double)*node->get("val"), 100.0)
+			EXPECT(node->get("val")->getValueAsNumber(), double(100))
 			EXPECT(node->get("val")->getValueAsString(), std::to_string(100))
-			LOG_MESSAGE("result: %s \n", node->get("val")->getValueAsString().c_str() );
 			EXPECT(node->get("val")->getValueAsBoolean(), true)
 		}TEST_END
 
@@ -332,7 +327,7 @@ bool WireAndNode_Tests() {
 
 bool Test_RunAll()
 {
-	GLOBAL_TEST_BEGIN {
+	GLOBAL_TEST_BEGIN{
 
 		TEST_BEGIN("Member"){
 			EXPECT( Member_Connections_Tests(), true)
@@ -341,9 +336,17 @@ bool Test_RunAll()
 			EXPECT( Member_AsNumber_Tests(), true)
 		}TEST_END
 		
-		Parser_Tests();
-		Node_Tests();
-		WireAndNode_Tests();
+		TEST_BEGIN("Parser"){
+			EXPECT( Parser_Tests(), true)
+		}TEST_END
+
+		TEST_BEGIN("Node"){
+			EXPECT( Node_Tests(), true)
+		}TEST_END
+		
+		TEST_BEGIN("Wire and Node"){
+			EXPECT( WireAndNode_Tests(), true)
+		}TEST_END
 
 		TEST_BEGIN("Biology (DNA to Phenylalanine)") {
 			EXPECT( Parser_Test("DNAtoAninoAcid(\"UAA\")", "Stop"), true)

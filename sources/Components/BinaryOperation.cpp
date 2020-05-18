@@ -95,7 +95,7 @@ bool Add::update()
 		default:
 		case Type_Number:
 		{
-			auto sum = (double)*left + (double)*right;
+			auto sum = left->getValueAsNumber() + right->getValueAsNumber();
 			result->setValue(sum);
 			break;
 		}	
@@ -111,7 +111,7 @@ bool Add::update()
 
 bool Substract::update()
 {
-	auto sub = (double)*left - (double)*right;
+	double sub = left->getValueAsNumber() - right->getValueAsNumber();
 	result->setValue(sub);
 	
 	updateResultSourceExpression();
@@ -124,9 +124,9 @@ bool Substract::update()
 
 bool Divide::update()
 {
-	if ( (double)*right != 0.0)
+	if (right->getValueAsNumber() != 0.0f)
 	{
-		double div = (double)*left / (double)*right;
+		auto div = left->getValueAsNumber() / right->getValueAsNumber();
 		result->setValue(div);
 	}
 
@@ -151,7 +151,7 @@ bool Multiply::update()
 
 		default:
 		{
-			auto mul = (double)*left * (double)*right;
+			auto mul = left->getValueAsNumber() * right->getValueAsNumber();
 			result->setValue(mul);
 			break;
 		}
@@ -171,7 +171,7 @@ bool Assign::update()
 	{
 		case Type_Number:
 		{
-			auto v = (double)*right;
+			auto v = right->getValueAsNumber();
 			result->setValue(v);
 			left->setValue(v);
 			break;
@@ -185,7 +185,7 @@ bool Assign::update()
 		}
 		default:
 		{
-			auto v = (double)*right;
+			auto v = right->getValueAsNumber();
 			result->setValue(v);
 			left->setValue(v);
 			break;

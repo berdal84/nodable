@@ -29,7 +29,7 @@ bool DataAccess::update()
 
     		case (Type_Number) :
     		{
-    			writer.Double(*_value);
+    			writer.Double(_value->getValueAsNumber());
     			break;
     		}
     		

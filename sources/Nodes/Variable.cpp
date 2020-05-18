@@ -17,7 +17,7 @@ Variable::~Variable()
 
 double Variable::getValueAsNumber()const
 {
-	return *get("value");
+	return get("value")->getValueAsNumber();
 }
 
 std::string Variable::getValueAsString()const
