@@ -32,34 +32,26 @@ namespace Nodable{
 		bool                isSet()const;	
 		bool                isType(Type_)const;
 		bool                equals(const Member *)const;
+		void                setConnectionFlags(Connection_);
+		void                setSourceExpression(const char*);
+		void                setInputMember(Member*);
+		void  		        setName(const char*);
+		void                setOwner(Object*);
+		
+		template<typename T>
+		void setValue(T _value) { data.set(_value); }
 
-		/*
-			Setters
-		*/
+		template<>
+		void setValue<>(Member* _value){
+			data.set(&_value->data);	
+		}
 
-		void                setConnectionFlags       (Connection_);
-		void                setSourceExpression      (const char*);
-		void                setInputMember           (Member*);
-		void  		        setName                  (const char*);
-		void                setOwner                 (Object*);
-
-		void                setValue                 (const Member*);
-		void                setValue                 (std::string);
-		void                setValue                 (const char*);
-		void                setValue                 (double);
-		void                setValue                 (bool);
-		void                setValue                 (int);
-
-		void                setType                  (Type_ _type);
-		void                setVisibility            (Visibility_ _v);
+		void                setType(Type_ _type);
+		void                setVisibility(Visibility_ _v);
 
 		/** Get the value of the inputMember Member and set it to this Member.
 		    Warning: be sure the member has an inputMember before calling this (getInputMember()!=nullptr)*/
 		void                updateValueFromInputMemberValue();
-
-		/*
-			Getters
-		*/
 
 		Object*             getOwner()const;
 		Member*             getInputMember()const;
@@ -67,14 +59,16 @@ namespace Nodable{
 		std::string         getSourceExpression()const;
 		Type_               getType()const;
 		std::string         getTypeAsString()const;
-
 		bool                getValueAsBoolean()const;
-		double              getValueAsNumber()const;
-		std::string         getValueAsString()const;
 
+		template <typename T>
+		operator T()const {
+			return this->data;
+		}
+
+		std::string         getValueAsString()const;
 		Visibility_         getVisibility()const;
 		Connection_         getConnection()const;		
-		
 	private:
 		Object*     		owner       		= nullptr;
 		Member*             inputMember         = nullptr;
@@ -86,6 +80,8 @@ namespace Nodable{
 
 	public:
 		static const TokenType_ MemberTypeToTokenType(Type_ _type);
-		static const Type_      TokenTypeToMemberType(TokenType_ _tokenType);
+		static const Type_      TokenTypeToMemberType(TokenType_ _tokenType);	
 	};
+
+	
 }

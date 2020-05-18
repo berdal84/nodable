@@ -65,11 +65,11 @@ bool ApplicationView::init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    sdlWindow = SDL_CreateWindow(  get("glWindowName")->getValueAsString().c_str(),
+    sdlWindow = SDL_CreateWindow(get("glWindowName")->getValueAsString().c_str(),
                                 SDL_WINDOWPOS_CENTERED,
                                 SDL_WINDOWPOS_CENTERED,
-                                int(get("glWindowSizeX")->getValueAsNumber()),
-                                int(get("glWindowSizeY")->getValueAsNumber()),
+                                (int)get("glWindowSizeX"),
+                                (int)get("glWindowSizeY"),
                                 SDL_WINDOW_OPENGL |
                                 SDL_WINDOW_RESIZABLE |
                                /* SDL_WINDOW_FULLSCREEN_DESKTOP*/

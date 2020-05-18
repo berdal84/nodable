@@ -31,12 +31,26 @@ namespace Nodable{
 		void        set(const std::string&);
 		void        set(const char*);
 		void        set(double);
+		void        set(int);
 		void        set(bool);		
 		void        setType(Type_ _type);
 		Type_       getType()const;
 		std::string getTypeAsString  ()const;
 		bool        getValueAsBoolean()const;
-		double      getValueAsNumber ()const;
+
+		operator double()const{
+			switch(type){
+				case Type_String:  return double((*reinterpret_cast<std::string*>(data)).size());
+				case Type_Number:  return *reinterpret_cast<double*>(data);
+				case Type_Boolean: return *reinterpret_cast<bool*>(data) ? 1.0 : 0.0;
+				default:           return 0.0;
+			}			
+		}
+
+		operator int()const{
+			return int( (double)*this );
+		}
+
 		std::string getValueAsString ()const;
 
 	private:
