@@ -73,17 +73,6 @@ namespace Nodable{
 		/* Check if the existing tokens match with the syntax of the language. tokenize() should be called first */
 		bool           isSyntaxValid	   ();
 
-		/** Compute a prefix string with n times (_tabCount) a specific string (_tabChars)*/
-		static inline const std::string ComputePrefix(const unsigned short _tabCount, const std::string _tabChar = " ") {
-			std::string result("");
-
-			for (unsigned short i = 0u; i < _tabCount; i++) {
-				result.append(_tabChar);
-			}
-
-			return result;
-		}
-
 		/** Generate a string with all tokens with hightlight token colored in green*/
 		std::string Parser::LogTokens(const std::vector<Token> _tokens, const size_t _highlight);
 
