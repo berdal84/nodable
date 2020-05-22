@@ -32,7 +32,7 @@ cmake --build ./build --config Release
 ```
 Nodable will be built into `./build/Release/`
 
-Adding optionnal `--target install` to the fourth line will create a clean `./install/Release` directory with only necessary files to run the software.
+Adding optionnal `--target install` to the scecond line will create a clean `./install/Release` directory with only necessary files to run the software.
 
 You can also open the Visual Studio solution generated into `./build` if you want.
 
