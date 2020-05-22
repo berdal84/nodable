@@ -14,7 +14,7 @@ To download a binary: go to this [article](https://www.dalle-cort.fr/nodable-nod
 
 You still don't understand what I'm doing? I hope this GIF will make this more understandable:
 
-![Demo GIF](https://www.dalle-cort.fr/wp-content/uploads/2018/01/2019_06_06_Nodable_0.4.1wip_Berenger_Dalle-Cort.gif)
+![Demo GIF](https://www.dalle-cort.fr/wp-content/uploads/2019/07/2020_05_22_Nodable0.7WIP.gif)
 
 
 How to compile ? :
