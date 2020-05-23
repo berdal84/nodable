@@ -352,10 +352,11 @@ bool Test_RunAll()
 			EXPECT( WireAndNode_Tests(), true)
 		}TEST_END
 
-		TEST_BEGIN("Biology (DNA to Phenylalanine)") {
-			EXPECT( Parser_Test("DNAtoAninoAcid(\"UAA\")", "Stop"), true)
-			EXPECT( Parser_Test("DNAtoAninoAcid(\"UAG\")", "Stop"), true)
-			EXPECT( Parser_Test("DNAtoAninoAcid(\"UGA\")", "Stop"), true)
+		TEST_BEGIN("Biology (DNA to Protein)") {
+			EXPECT( Parser_Test("DNAtoProtein(\"TAA\")", "_"), true)
+			EXPECT( Parser_Test("DNAtoProtein(\"TAG\")", "_"), true)
+			EXPECT( Parser_Test("DNAtoProtein(\"TGA\")", "_"), true)
+			EXPECT( Parser_Test("DNAtoProtein(\"ATG\")", "M"), true)
 		}TEST_END
 	}
 

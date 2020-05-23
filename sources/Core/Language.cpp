@@ -280,12 +280,10 @@ const Language* Language::Nodable() {
 				table["TGG"] = 'W';
 			}
 
-			for( auto it = baseChain.begin(); it != baseChain.end(); it++) {
-				std::string codon(it, it + 3);
-				auto found = std::find(table.begin(), table.end(), codon);
+			for (size_t i = 0; i < baseChain.size() / 3; i++ ) {
+				auto found = table.find( baseChain.substr(i, 3));
 				if (found != table.end() )
 					protein += found->second;
-				it += 3;
 			}
 
 			_result->set(protein);
