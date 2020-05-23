@@ -283,7 +283,7 @@ const Language* Language::Nodable() {
 			for( auto it = baseChain.begin(); it != baseChain.end(); it++) {
 				std::string codon(it, it + 3);
 				auto found = std::find(table.begin(), table.end(), codon);
-				if (found != table.end)
+				if (found != table.end() )
 					protein += found->second;
 				it += 3;
 			}
