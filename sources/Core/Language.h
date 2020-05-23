@@ -53,7 +53,8 @@ namespace Nodable {
 		const std::string&             getIdentifier()const;
 		const std::vector<FunctionArg> getArgs() const;
 		const TokenType_               getType() const;
-		std::function<void(Member*, const Member*, const Member*)> nativeFunction;
+		std::function<int(Member*, const std::vector<const Member*>&)> nativeFunction;
+
 	private:
 		std::string identifier;
 		std::vector<FunctionArg> args;

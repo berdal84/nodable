@@ -201,20 +201,10 @@ bool MultipleArgFunctionComponent::update()
 		return false;
 	}
 
-	switch (args.size())
-	{
-	case 0:
-		prototype.nativeFunction(result, nullptr, nullptr);
-		break;
-	case 1:
-		prototype.nativeFunction(result, args[0], nullptr);
-		break;
-	case 2:
-		prototype.nativeFunction(result, args[0], args[1]);
-		break;
-	}
-
-	this->updateResultSourceExpression();
+	if (prototype.nativeFunction(result, args))
+		LOG_ERROR("Evaluation of %s's native function failed !\n", prototype.getIdentifier().c_str());
+	else
+		this->updateResultSourceExpression();
 
 	return true;
 }

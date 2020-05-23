@@ -1,38 +1,10 @@
 #include "Language.h"
 #include "Member.h"
 #include <type_traits>
+#include <time.h>
+#include <vector>
+
 using namespace Nodable;
-
-
-template<class F>
-struct function_traits;
-
-// function pointer
-template<class R, class... Args>
-struct function_traits<R(*)(Args...)> : public function_traits<R(Args...)>
-{};
-
-template<class R, class... Args>
-struct function_traits<R(Args...)>
-{
-	using return_type = R;
-
-	static constexpr std::size_t arity = sizeof...(Args);
-
-	template <std::size_t N>
-	struct argument
-	{
-		static_assert(N < arity, "error: invalid parameter index.");
-		using type = typename std::tuple_element<N, std::tuple<Args...>>::type;
-	};
-};
-
-
-float free_function(const std::string & a, int b)
-{
-	return (float)a.size() / b;
-}
-
 
 FunctionArg::FunctionArg(TokenType_ _type, std::string _name) {
 	type = _type;
@@ -107,19 +79,15 @@ const Language* Language::Nodable() {
 	language->keywords["true"]  = TokenType_Boolean;
 	language->keywords["false"] = TokenType_Boolean;
 
-	using Traits = function_traits<decltype(cos)>;
-
-	Traits::argument<0>::type var = 5;
-
-
 	/* Function library */
 
 	{
-		FunctionPrototype proto("pass", TokenType_Number);
+		FunctionPrototype proto("returnNumber", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->set(arg0->as<double>());
+		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set(_args[0]->as<double>());
+			return 0;
 		};
 
 		language->pushFunc(proto);
@@ -129,8 +97,9 @@ const Language* Language::Nodable() {
 		FunctionPrototype proto("sin", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->set( sin(arg0->as<double>()) );
+		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set( sin(_args[0]->as<double>()) );
+			return 0;
 		};
 
 		language->pushFunc(proto);
@@ -140,8 +109,9 @@ const Language* Language::Nodable() {
 		FunctionPrototype proto("cos", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->set(cos(arg0->as<double>()));
+		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set(cos(_args[0]->as<double>()));
+			return 0;
 		};
 
 		language->pushFunc(proto);
@@ -152,8 +122,9 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->set( arg0->as<double>() + arg1->as<double>());
+		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set( _args[0]->as<double>() + _args[1]->as<double>());
+			return 0;
 		};
 
 		language->pushFunc(proto);
@@ -164,8 +135,9 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->set(arg0->as<double>() - arg1->as<double>());
+		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set(_args[0]->as<double>() - _args[1]->as<double>());
+			return 0;
 		};
 
 		language->pushFunc(proto);
@@ -176,8 +148,9 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->set(arg0->as<double>() * arg1->as<double>());
+		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set(_args[0]->as<double>() * _args[1]->as<double>());
+			return 0;
 		};
 
 		language->pushFunc(proto);
@@ -186,8 +159,9 @@ const Language* Language::Nodable() {
 	{
 		FunctionPrototype proto("sqrt", TokenType_Number);
 		proto.pushArg(TokenType_Number);
-		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			result->set( sqrt(arg0->as<double>()));
+		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set( sqrt(_args[0]->as<double>()));
+			return 0;
 		};
 		language->pushFunc(proto);
 	}
@@ -196,9 +170,10 @@ const Language* Language::Nodable() {
 		FunctionPrototype proto("pow", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
-		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
-			const auto value = pow(arg0->as<double>(), arg1->as<double>());
-			result->set(value);
+		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			const auto value = pow(_args[0]->as<double>(), _args[1]->as<double>());
+			_result->set(value);
+			return 0;
 		};
 
 		language->pushFunc(proto);
@@ -207,19 +182,33 @@ const Language* Language::Nodable() {
 	{
 		FunctionPrototype proto("DNAtoAninoAcid", TokenType_String);
 		proto.pushArg(TokenType_String);
-		proto.nativeFunction = [](Member* result, const Member* arg0, const Member* arg1)->void {
+		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
 			
 			std::string value = "<TODO>";
-
-			if (arg0->as<std::string>() == "UAA" ||
-				arg0->as<std::string>() == "UAG" ||
-				arg0->as<std::string>() == "UGA") {
+			if (_args[0]->as<std::string>() == "UAA" ||
+				_args[0]->as<std::string>() == "UAG" ||
+				_args[0]->as<std::string>() == "UGA") {
 
 				value = "Stop";
 			}
 
-			result->set(value);
+			_result->set(value);
+			return 0;
 		};
+		language->pushFunc(proto);
+	}
+
+	{
+		FunctionPrototype proto("time", TokenType_Number);
+		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			time_t rawtime;
+			struct tm* timeinfo;
+			time(&rawtime);
+			timeinfo = localtime(&rawtime);
+			_result->set((double)rawtime);
+			return 0;
+		};
+
 		language->pushFunc(proto);
 	}
 
