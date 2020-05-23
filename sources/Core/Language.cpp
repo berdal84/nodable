@@ -214,10 +214,10 @@ const Language* Language::Nodable() {
 
 			std::map<std::string, char> table;
 			{
-				table["ATA"] = 'I';
+				table["ATA"] = 'I'; // A__
 				table["ATC"] = 'I';
 				table["ATT"] = 'I';
-				table["ATG"] = 'M';
+				table["ATG"] = 'M'; // (aka Start)
 				table["ACA"] = 'T';
 				table["ACC"] = 'T';
 				table["ACG"] = 'T';
@@ -230,7 +230,7 @@ const Language* Language::Nodable() {
 				table["AGT"] = 'S';
 				table["AGA"] = 'R';
 				table["AGG"] = 'R';
-				table["CTA"] = 'L';
+				table["CTA"] = 'L'; // C__
 				table["CTC"] = 'L';
 				table["CTG"] = 'L';
 				table["CTT"] = 'L';
@@ -246,7 +246,7 @@ const Language* Language::Nodable() {
 				table["CGC"] = 'R';
 				table["CGG"] = 'R';
 				table["CGT"] = 'R';
-				table["GTA"] = 'V';
+				table["GTA"] = 'V'; // G__
 				table["GTC"] = 'V';
 				table["GTG"] = 'V';
 				table["GTT"] = 'V';
@@ -261,8 +261,8 @@ const Language* Language::Nodable() {
 				table["GGA"] = 'G';
 				table["GGC"] = 'G';
 				table["GGG"] = 'G';
-				table["GGT"] = 'G';
-				table["TCA"] = 'S';
+				table["GGT"] = 'G'; 
+				table["TCA"] = 'S'; // T__
 				table["TCC"] = 'S';
 				table["TCG"] = 'S';
 				table["TCT"] = 'S';
@@ -272,11 +272,11 @@ const Language* Language::Nodable() {
 				table["TTG"] = 'L';
 				table["TAC"] = 'Y';
 				table["TAT"] = 'Y';
-				table["TAA"] = '_';
-				table["TAG"] = '_';
+				table["TAA"] = '_'; // (aka Stop)
+				table["TAG"] = '_'; // (aka Stop)
 				table["TGC"] = 'C';
 				table["TGT"] = 'C';
-				table["TGA"] = '_';
+				table["TGA"] = '_'; // (aka Stop)
 				table["TGG"] = 'W';
 			}
 
