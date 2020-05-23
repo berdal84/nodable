@@ -205,19 +205,90 @@ const Language* Language::Nodable() {
 	}
 
 	{
-		FunctionPrototype proto("DNAtoAninoAcid", TokenType_String);
+		FunctionPrototype proto("DNAtoProtein", TokenType_String);
 		proto.pushArg(TokenType_String);
 		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
 			
-			std::string value = "<TODO>";
-			if (_args[0]->as<std::string>() == "UAA" ||
-				_args[0]->as<std::string>() == "UAG" ||
-				_args[0]->as<std::string>() == "UGA") {
+			std::string baseChain = _args[0]->as<std::string>();
+			std::string protein = "";
 
-				value = "Stop";
+			std::map<std::string, char> table;
+			{
+				table["ATA"] = 'I';
+				table["ATC"] = 'I';
+				table["ATT"] = 'I';
+				table["ATG"] = 'M';
+				table["ACA"] = 'T';
+				table["ACC"] = 'T';
+				table["ACG"] = 'T';
+				table["ACT"] = 'T';
+				table["AAC"] = 'N';
+				table["AAT"] = 'N';
+				table["AAA"] = 'K';
+				table["AAG"] = 'K';
+				table["AGC"] = 'S';
+				table["AGT"] = 'S';
+				table["AGA"] = 'R';
+				table["AGG"] = 'R';
+				table["CTA"] = 'L';
+				table["CTC"] = 'L';
+				table["CTG"] = 'L';
+				table["CTT"] = 'L';
+				table["CCA"] = 'P';
+				table["CCC"] = 'P';
+				table["CCG"] = 'P';
+				table["CCT"] = 'P';
+				table["CAC"] = 'H';
+				table["CAT"] = 'H';
+				table["CAA"] = 'Q';
+				table["CAG"] = 'Q';
+				table["CGA"] = 'R';
+				table["CGC"] = 'R';
+				table["CGG"] = 'R';
+				table["CGT"] = 'R';
+				table["GTA"] = 'V';
+				table["GTC"] = 'V';
+				table["GTG"] = 'V';
+				table["GTT"] = 'V';
+				table["GCA"] = 'A';
+				table["GCC"] = 'A';
+				table["GCG"] = 'A';
+				table["GCT"] = 'A';
+				table["GAC"] = 'D';
+				table["GAT"] = 'D';
+				table["GAA"] = 'E';
+				table["GAG"] = 'E';
+				table["GGA"] = 'G';
+				table["GGC"] = 'G';
+				table["GGG"] = 'G';
+				table["GGT"] = 'G';
+				table["TCA"] = 'S';
+				table["TCC"] = 'S';
+				table["TCG"] = 'S';
+				table["TCT"] = 'S';
+				table["TTC"] = 'F';
+				table["TTT"] = 'F';
+				table["TTA"] = 'L';
+				table["TTG"] = 'L';
+				table["TAC"] = 'Y';
+				table["TAT"] = 'Y';
+				table["TAA"] = '_';
+				table["TAG"] = '_';
+				table["TGC"] = 'C';
+				table["TGT"] = 'C';
+				table["TGA"] = '_';
+				table["TGG"] = 'W';
 			}
 
-			_result->set(value);
+			for( auto it = baseChain.begin(); it != baseChain.end(); it++) {
+				std::string codon(it, it + 3);
+				auto found = std::find(table.begin(), table.end(), codon);
+				if (found != table.end)
+					protein += found->second;
+				it += 3;
+			}
+
+			_result->set(protein);
 			return 0;
 		};
 		language->addToAPI(proto);
