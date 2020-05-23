@@ -188,24 +188,39 @@ bool ContainerView::draw()
 		/*
 			Menu Items...
 		*/
+		if (ImGui::BeginMenu(ICON_FA_CODE " Math")) {
 
-		if (ImGui::MenuItem(ICON_FA_PLUS " Add"))
-			newNode = container->newAdd();
+			if (ImGui::MenuItem(ICON_FA_PLUS " Add"))
+				newNode = container->newAdd();
 
-		if (ImGui::MenuItem(ICON_FA_DIVIDE " Divide"))
-			newNode = container->newDivide();
+			if (ImGui::MenuItem(ICON_FA_DIVIDE " Divide"))
+				newNode = container->newDivide();
 
-		if (ImGui::MenuItem(ICON_FA_TIMES " Multiply"))
-			newNode = container->newMult();
+			if (ImGui::MenuItem(ICON_FA_TIMES " Multiply"))
+				newNode = container->newMult();
 
-		if (ImGui::MenuItem(ICON_FA_MINUS " Subtract"))
-			newNode = container->newSub();
+			if (ImGui::MenuItem(ICON_FA_MINUS " Subtract"))
+				newNode = container->newSub();
 
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu(ICON_FA_CALCULATOR " Functions")) {
+			for (auto it = contextualMenuItems.begin(); it != contextualMenuItems.end(); it++) {
+				if (ImGui::MenuItem((*it).first.c_str()))
+					newNode = (*it).second();
+			}
+			ImGui::EndMenu();
+		}		
+		
+		ImGui::Separator();
+		
 		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
 			newNode = container->newVariable("Variable");
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
 			newNode = container->newResult();
+
 
 		/*
 			Connect the New Node with the current dragged a member
@@ -253,5 +268,10 @@ bool ContainerView::draw()
 	}
 
 	return true;
+}
+
+void Nodable::ContainerView::addContextualMenuItem(std::string _label, std::function<Node*(void)> _function)
+{
+	contextualMenuItems.insert_or_assign(_label, _function);
 }
 

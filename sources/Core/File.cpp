@@ -45,8 +45,19 @@ Nodable::File::File(
 	/* Creates a node container */
 	auto container = new Container(language);
 	addComponent("container", container);
-	container->addComponent("view", new ContainerView);
+	auto containerView = new ContainerView();
+	container->addComponent("view", containerView);
 	container->setOwner(this);
+
+	/* Add inputs in contextual menu */
+	auto api = language->getAPI();
+	for (auto it = api.begin(); it != api.end(); it++) {
+		auto proto = *it;
+		auto lambda = [container, proto]()->Node* {
+			return container->newFunction(proto);
+		};
+		containerView->addContextualMenuItem( ICON_FA_CODE " " + (*it).getSignature(), lambda);
+	}
 
 }
 

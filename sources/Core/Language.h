@@ -51,6 +51,7 @@ namespace Nodable {
 		void                           pushArg(TokenType_ _type);
 		bool                           match(FunctionPrototype& _other);
 		const std::string&             getIdentifier()const;
+		const std::string              getSignature()const;
 		const std::vector<FunctionArg> getArgs() const;
 		const TokenType_               getType() const;
 		std::function<int(Member*, const std::vector<const Member*>&)> nativeFunction;
@@ -68,14 +69,15 @@ namespace Nodable {
 	class Language {
 	public:
 
-		Language() :numbers(), letters(), brackets() {};
+		Language(std::string _name) :numbers(), letters(), brackets(), name(_name){};
 		~Language() {};		
 		void addOperator(Operator);
 		unsigned short getOperatorPrecedence(const std::string& _identifier)const;
 		std::string getOperatorsAsString()const;
 		const FunctionPrototype* findFunctionPrototype(FunctionPrototype& prototype) const;
-		void pushFunc(FunctionPrototype prototype);
+		void addToAPI(FunctionPrototype prototype);
 		bool needsToBeEvaluatedFirst(std::string op, std::string nextOp)const;
+		const std::vector<FunctionPrototype>& getAPI()const { return api; }
 
 		/**
 		  * To generate the Nodable Language reference
@@ -93,9 +95,10 @@ namespace Nodable {
 		std::string letters;
 		std::map<std::string, TokenType_> keywords;
 	private:
+		std::string name;
 		std::vector<char> brackets;
 		std::map<std::string, Operator> operators;
-		std::vector<FunctionPrototype> functionPrototypes;
+		std::vector<FunctionPrototype> api;
 	};
 
 }

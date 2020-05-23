@@ -46,6 +46,31 @@ const std::string& FunctionPrototype::getIdentifier()const
 	return this->identifier;
 }
 
+const std::string Nodable::FunctionPrototype::getSignature() const
+{
+	std::string result = identifier + "(";
+
+	for (auto it = args.begin(); it != args.end(); it++) {
+
+		if (it != args.begin())
+			result.append(", ");
+
+		if ((*it).type == TokenType_Number)
+			result.append("num");
+		else if ((*it).type == TokenType_String)
+			result.append("str");
+		else if ((*it).type == TokenType_Boolean)
+			result.append("bool");
+		else
+			result.append("?");
+				
+	}
+	
+	result.append(")");
+
+	return result;
+}
+
 const std::vector<FunctionArg> FunctionPrototype::getArgs() const
 {
 	return this->args;
@@ -63,7 +88,7 @@ const Language* Language::Nodable() {
 	if (Language::NODABLE != nullptr)
 		return Language::NODABLE;
 
-	auto language = new Language();
+	auto language = new Language("Nodable");
 
 	language->letters   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
 
@@ -90,7 +115,7 @@ const Language* Language::Nodable() {
 			return 0;
 		};
 
-		language->pushFunc(proto);
+		language->addToAPI(proto);
 	}
 
 	{
@@ -102,7 +127,7 @@ const Language* Language::Nodable() {
 			return 0;
 		};
 
-		language->pushFunc(proto);
+		language->addToAPI(proto);
 	}
 
 	{
@@ -114,7 +139,7 @@ const Language* Language::Nodable() {
 			return 0;
 		};
 
-		language->pushFunc(proto);
+		language->addToAPI(proto);
 	}
 
 	{
@@ -127,7 +152,7 @@ const Language* Language::Nodable() {
 			return 0;
 		};
 
-		language->pushFunc(proto);
+		language->addToAPI(proto);
 	}
 
 	{
@@ -140,7 +165,7 @@ const Language* Language::Nodable() {
 			return 0;
 		};
 
-		language->pushFunc(proto);
+		language->addToAPI(proto);
 	}
 
 	{
@@ -153,7 +178,7 @@ const Language* Language::Nodable() {
 			return 0;
 		};
 
-		language->pushFunc(proto);
+		language->addToAPI(proto);
 	}
 
 	{
@@ -163,7 +188,7 @@ const Language* Language::Nodable() {
 			_result->set( sqrt(_args[0]->as<double>()));
 			return 0;
 		};
-		language->pushFunc(proto);
+		language->addToAPI(proto);
 	}
 
 	{
@@ -176,7 +201,7 @@ const Language* Language::Nodable() {
 			return 0;
 		};
 
-		language->pushFunc(proto);
+		language->addToAPI(proto);
 	}
 
 	{
@@ -195,7 +220,7 @@ const Language* Language::Nodable() {
 			_result->set(value);
 			return 0;
 		};
-		language->pushFunc(proto);
+		language->addToAPI(proto);
 	}
 
 	{
@@ -209,7 +234,7 @@ const Language* Language::Nodable() {
 			return 0;
 		};
 
-		language->pushFunc(proto);
+		language->addToAPI(proto);
 	}
 
 	Language::NODABLE = language;
@@ -249,15 +274,15 @@ const FunctionPrototype* Nodable::Language::findFunctionPrototype(FunctionProtot
 		return p.match(_prototype);
 	};
 
-	auto it = std::find_if(functionPrototypes.begin(), functionPrototypes.end(), predicate);
+	auto it = std::find_if(api.begin(), api.end(), predicate);
 
-	if (it != functionPrototypes.end())
+	if (it != api.end())
 		return &*it;
 
 	return nullptr;
 }
 
-void Nodable::Language::pushFunc(FunctionPrototype prototype)
+void Nodable::Language::addToAPI(FunctionPrototype prototype)
 {
-	this->functionPrototypes.push_back(prototype);
+	this->api.push_back(prototype);
 }
