@@ -66,7 +66,7 @@ namespace Nodable{
 	// 2b - Binary Operation Components
 	class BinaryOperationComponent;
 	class Add;
-	class Substract;
+	class Subtract;
 	class Assign;
 	class Divide;
 	class Multiply;

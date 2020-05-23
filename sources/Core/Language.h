@@ -69,23 +69,23 @@ namespace Nodable {
 
 		Language() :numbers(), letters(), brackets() {};
 		~Language() {};		
-
 		void addOperator(Operator);
 		unsigned short getOperatorPrecedence(const std::string& _identifier)const;
 		std::string getOperatorsAsString()const;
-
-		/* Some language reference constants*/
-		static const Language* NODABLE;
-
 		const FunctionPrototype* findFunctionPrototype(FunctionPrototype& prototype) const;
 		void pushFunc(FunctionPrototype prototype);
-		
-	private:
+		bool needsToBeEvaluatedFirst(std::string op, std::string nextOp)const;
 
-		/* To generate the Nodable Language reference
-		 * New language generators will be found here later...
-		 * ex: static const Language& CPlusPlus(); */
+		/**
+		  * To generate the Nodable Language reference
+		  * New language generators will be found here later...
+		  * ex: static const Language& CPlusPlus();
+		  */
 		static const Language* Nodable();
+
+	private:
+		/* Some language reference constants*/
+		static const Language* NODABLE;
 
 	public:
 		std::string numbers;

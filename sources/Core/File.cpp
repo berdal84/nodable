@@ -26,27 +26,24 @@ Nodable::File::File(
 	path = _path;
 	name = _name;
 
-	/*
-		Creates the FileView
-	*/
+	/* Detect the language (TODO) */
+	auto language = Language::Nodable();
+
+	/* Creates the FileView	*/
 	auto fileView = new FileView();
 	addComponent("view", fileView);
 	fileView->init();
 	fileView->setText(_content);
 	auto textEditor = fileView->getTextEditor();
 
-	/*
-		Creates an history for UNDO/REDO
-	*/
+	/* Creates an history for UNDO/REDO	*/
 	auto history = new History();
 	addComponent("history", history);
     auto undoBuffer = history->createTextEditorUndoBuffer(textEditor);
 	fileView->setUndoBuffer(undoBuffer);
 	
-	/*
-		Creates a node container
-	*/
-	auto container = new Container;
+	/* Creates a node container */
+	auto container = new Container(language);
 	addComponent("container", container);
 	container->addComponent("view", new ContainerView);
 	container->setOwner(this);

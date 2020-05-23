@@ -191,9 +191,13 @@ bool Member_AsNumber_Tests() {
 }
 
 template <typename T>
-bool Parser_Test(const std::string& expression, T _expectedValue) {
+bool Parser_Test(
+	const std::string& expression,	
+	T _expectedValue,
+	const Language* _language = Language::Nodable()
+){
 
-	auto container(new Container);
+	auto container = new Container(_language);
 	auto expressionVariable(container->newVariable("expression"));
 	expressionVariable->set(expression);
 

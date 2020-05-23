@@ -33,7 +33,7 @@ Parser::~Parser()
 
 }
 
-std::string Parser::LogTokens(const std::vector<Token> _tokens, const size_t _highlight){
+std::string Parser::logTokens(const std::vector<Token> _tokens, const size_t _highlight){
 	std::string result;
 	
 	for (auto it = _tokens.begin(); it != _tokens.end(); it++ ) {
@@ -85,7 +85,7 @@ bool Parser::eval()
 	Variable* result = container->newResult();
 	container->tryToRestoreResultNodePosition();
 
-	// If the value has no owner, we simplly set the variable value
+	// If the value has no owner, we simply set the variable value
 	if (resultValue->getOwner() == nullptr)
 		result->set(resultValue);
 	// Else we connect resultValue with resultVariable.value
@@ -154,7 +154,7 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _left) {
 
 	LOG_DEBUG_PARSER("parseBinaryOperationExpression...\n");
-	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
+	LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
 
 	Member* result = nullptr;
 
@@ -243,7 +243,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence) {
 
 	LOG_DEBUG_PARSER("parseUnaryOperationExpression...\n");
-	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
+	LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
 
 	Member* result = nullptr;
 
@@ -308,7 +308,7 @@ Member* Parser::parseAtomicExpression(size_t& _tokenId) {
 Member* Parser::parseParenthesisExpression(size_t& _tokenId) {
 
 	LOG_DEBUG_PARSER("parseParenthesisExpression...");
-	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
+	LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
 
 	if (_tokenId >= tokens.size())
 		return nullptr;
@@ -328,7 +328,7 @@ Member* Parser::parseParenthesisExpression(size_t& _tokenId) {
 		_tokenId = subToken + 1;
 
 		if ( tokens.at(subToken).word != ")" ) {
-			LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
+			LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
 			LOG_DEBUG_PARSER("parseParenthesisExpression failed... " KO " ( \")\" expected after %s )\n", tokens.at(subToken - 1) );
 		} else {
 			LOG_DEBUG_PARSER("parseParenthesisExpression... " OK  "\n");
@@ -359,7 +359,7 @@ Member* Parser::parseRootExpression() {
 		LOG_DEBUG_PARSER("parse root expression " KO " (result == nullptr)\n");
 	}
 
-	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, tokenId).c_str());
+	LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, tokenId).c_str());
 
 	return result;
 }
@@ -367,7 +367,7 @@ Member* Parser::parseRootExpression() {
 Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride) {
 
 	LOG_DEBUG_PARSER("parseExpression...\n");
-	LOG_DEBUG_PARSER("%s \n", Parser::LogTokens(tokens, _tokenId).c_str());
+	LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
 
 	if (_tokenId >= tokens.size()) {
 		LOG_DEBUG_PARSER("parseExpression..." KO " (last token)\n");
@@ -449,7 +449,7 @@ bool Parser::isSyntaxValid()
 		case TokenType_Parenthesis:
 		{
 			const bool isOpenParenthesis = current.word == "(";
-			openedParenthesisCount += isOpenParenthesis ? 1 : -1; // increase / decrease openend parenthesis count.
+			openedParenthesisCount += isOpenParenthesis ? 1 : -1; // increase / decrease the opened parenthesis count.
 
 			if (openedParenthesisCount < 0) {
 				LOG_DEBUG_PARSER("Unable to tokenize expression, mismatch parenthesis count. \n");

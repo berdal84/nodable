@@ -84,9 +84,12 @@ const TokenType_ FunctionPrototype::getType() const
 	return type;
 }
 
-const Language* Language::NODABLE = Language::Nodable();
+const Language* Language::NODABLE = nullptr;
 
 const Language* Language::Nodable() {
+
+	if (Language::NODABLE != nullptr)
+		return Language::NODABLE;
 
 	auto language = new Language();
 
@@ -220,6 +223,8 @@ const Language* Language::Nodable() {
 		language->pushFunc(proto);
 	}
 
+	Language::NODABLE = language;
+
 	return language;
 }
 
@@ -232,6 +237,10 @@ void Language::addOperator( Operator _operator) {
 unsigned short Language::getOperatorPrecedence(const std::string& _identifier)const {
 
 	return operators.at(_identifier).precedence;
+}
+
+bool  Language::needsToBeEvaluatedFirst(std::string op, std::string nextOp)const {
+	return getOperatorPrecedence(op) >= getOperatorPrecedence(nextOp);
 }
 
 std::string Nodable::Language::getOperatorsAsString() const

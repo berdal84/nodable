@@ -27,10 +27,7 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 				{
 					auto leftOperatorString = leftOperationComponent->getOperatorAsString();
 
-					if (leftOperatorString == this->operatorAsString)
-						return false;
-
-					if (NeedsToBeEvaluatedFirst(this->operatorAsString, leftOperatorString))
+					if (language->needsToBeEvaluatedFirst(operatorAsString, leftOperatorString))
 						return true;
 				}
 			}
@@ -51,7 +48,7 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 	expr.append( this->operatorAsString );
 	expr.append( " " );
 
-	// Righ part of the expression
+	// Right part of the expression
 	bool rightExpressionNeedsParentheses = needParentheses(this->right->getInputMember());
 	if (rightExpressionNeedsParentheses) expr.append("( ");
 	expr.append(this->right->getSourceExpression());
@@ -59,16 +56,6 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 
 	// Apply the new string to the result's source expression.
 	this->result->setSourceExpression(expr.c_str());
-}
-
-/* Precendence for binary operators */
-bool BinaryOperationComponent::NeedsToBeEvaluatedFirst(std::string op, std::string nextOp)
-{
-	auto language = Language::NODABLE;
-	const bool isHigher = language->getOperatorPrecedence(op) >= language->getOperatorPrecedence(nextOp);
-
-	return isHigher;
-	
 }
 
  // Node_Add :
@@ -109,7 +96,7 @@ bool Add::update()
  // Node_Substract :
 ///////////////////////
 
-bool Substract::update()
+bool Subtract::update()
 {
 	double sub = left->as<double>() - right->as<double>();
 	result->set(sub);
@@ -197,7 +184,9 @@ bool Assign::update()
 	return true;
 }
 
-MultipleArgFunctionComponent::MultipleArgFunctionComponent(FunctionPrototype _prototype): prototype( _prototype )
+MultipleArgFunctionComponent::MultipleArgFunctionComponent(FunctionPrototype _prototype, const Language* _language):
+	FunctionComponent(_language),
+	prototype(_prototype)
 {
 	size_t i = 0;
 	while (args.size() < _prototype.getArgs().size())

@@ -13,7 +13,7 @@ namespace Nodable{
 	class Container: public Component{
 	public:
 
-		Container() {};
+		Container(const Language* _language);
 		virtual ~Container();
 		bool                      	update();
 		void                      	clear();		
@@ -46,7 +46,7 @@ namespace Nodable{
 		Variable*                   result = nullptr;
 		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<Node*>          nodes;   /* Contain all Objects created by this context */
-
+		const Language*             language;
 	public:
 		static ImVec2               LastResultNodePosition;
 

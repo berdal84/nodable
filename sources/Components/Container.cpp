@@ -185,7 +185,7 @@ Node* Container::newFunction(const FunctionPrototype& _proto) {
 	node->add("result", Default, Member::TokenTypeToMemberType(_proto.getType()), Connection_Out);
 
 	// Create FunctionComponent component and link values.
-	auto functionComponent = new MultipleArgFunctionComponent(_proto);
+	auto functionComponent = new MultipleArgFunctionComponent(_proto, language);
 	functionComponent->setResult(node->get("result"));
 
 	// Arguments
@@ -215,7 +215,7 @@ Node* Container::newAdd()
 	node->add("result", Default, Type_Number, Connection_Out);
 	
 	// Create a binary functionComponent component and link values.
-	auto operation 	= new Add();
+	auto operation 	= new Add(language);
 	operation->setLeft  (node->get("left"));
 	operation->setRight (node->get("right"));
 	operation->setResult(node->get("result"));
@@ -240,7 +240,7 @@ Node* Container::newSub()
 	node->add("result", Default, Type_Number, Connection_Out);
 
 	// Create a binary functionComponent component and link values.
-	auto operation 	= new Substract();
+	auto operation 	= new Subtract(language);
 	operation->setLeft  (node->get("left"));
 	operation->setRight (node->get("right"));
 	operation->setResult(node->get("result"));
@@ -265,7 +265,7 @@ Node* Container::newMult()
 	node->add("result", Default, Type_Number, Connection_Out);
 
 	// Create a binary functionComponent component and link values.
-	auto operation 	= new Multiply();
+	auto operation 	= new Multiply(language);
 	operation->setLeft  (node->get("left"));
 	operation->setRight (node->get("right"));
 	operation->setResult(node->get("result"));
@@ -291,7 +291,7 @@ Node* Container::newDivide()
 	node->add("result", Default, Type_Number, Connection_Out);
 
 	// Create a binary functionComponent component and link values.
-	auto operation 	= new Divide();
+	auto operation 	= new Divide(language);
 	operation->setLeft  (node->get("left"));
 	operation->setRight (node->get("right"));
 	operation->setResult(node->get("result"));
@@ -317,7 +317,7 @@ Node* Container::newAssign()
 	node->add("result", Default, Type_Number, Connection_Out);
 
 	// Create a binary functionComponent component and link values.
-	auto operation 	= new Assign();
+	auto operation 	= new Assign(language);
 	operation->setLeft  (node->get("left"));
 	operation->setRight (node->get("right"));
 	operation->setResult(node->get("result"));
@@ -367,7 +367,6 @@ void Container::tryToRestoreResultNodePosition()
 Parser* Container::newParser(Variable* _expressionVariable)
 {
 	// Create a Parser Node
-	auto language = Language::NODABLE;
 	Parser* node = new Parser( language );
 	node->setLabel(ICON_FA_COGS " Parser");
 	
@@ -389,4 +388,9 @@ Parser* Container::newParser(Variable* _expressionVariable)
 size_t Container::getNodeCount()const
 {
 	return nodes.size();
+}
+
+Container::Container(const Language* _language)
+{
+	language = _language;
 }
