@@ -64,8 +64,8 @@ bool ContainerView::draw()
 		}
 	}
 
-	auto draggedConnector = NodeView::GetDraggedConnector();
-	auto hoveredConnector = NodeView::GetHoveredConnector();
+	const auto draggedConnector = NodeView::GetDraggedConnector();
+	const auto hoveredConnector = NodeView::GetHoveredConnector();
 
 	/*
 		Wires
@@ -86,7 +86,7 @@ bool ContainerView::draw()
 		}
 
 		// Draw temporary wire on top (overlay draw list)
-		if (draggedConnector->member != nullptr)
+		if (draggedConnector != nullptr)
 		{
 			ImVec2 lineScreenPosStart;
 			{
@@ -101,7 +101,7 @@ bool ContainerView::draw()
 			auto lineScreenPosEnd = ImGui::GetMousePos();
 
 			// Snap lineEndPosition to hoveredByMouse member's currentPosition
-			if (hoveredConnector->member != nullptr) {
+			if (hoveredConnector != nullptr) {
 				auto member     = hoveredConnector->member;
 				auto node       = member->getOwner()->as<Node>();
 				auto view       = node->getComponent<NodeView>();
@@ -121,8 +121,8 @@ bool ContainerView::draw()
 		if (ImGui::IsMouseReleased(0))
 		{
 			// Add a new wire if needed (mouse drag'n drop)
-			if (draggedConnector->member != nullptr &&
-				hoveredConnector->member != nullptr)
+			if (draggedConnector != nullptr &&
+				hoveredConnector != nullptr)
 			{
 				if (draggedConnector->member != hoveredConnector->member)
 				{
@@ -131,11 +131,11 @@ bool ContainerView::draw()
 					Node::Connect(wire, draggedConnector->member, hoveredConnector->member);
 				}
 
-				draggedConnector->reset();
+				NodeView::ResetDraggedConnector();
 				
 
 			}// If user release mouse without hovering a member, we display a menu to create a linked node
-			else if (draggedConnector->member != nullptr)
+			else if (draggedConnector != nullptr)
 			{
 				if ( !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
 					ImGui::OpenPopup("ContainerViewContextualMenu");	
@@ -198,7 +198,7 @@ bool ContainerView::draw()
 		if (ImGui::MenuItem(ICON_FA_TIMES " Multiply"))
 			newNode = container->newMult();
 
-		if (ImGui::MenuItem(ICON_FA_MINUS " Substract"))
+		if (ImGui::MenuItem(ICON_FA_MINUS " Subtract"))
 			newNode = container->newSub();
 
 		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
@@ -211,7 +211,7 @@ bool ContainerView::draw()
 			Connect the New Node with the current dragged a member
 		*/
 
-		if (draggedConnector->member != nullptr && newNode != nullptr)
+		if (draggedConnector != nullptr && newNode != nullptr)
 		{
 			// if dragged member is an inputMember
 			if (draggedConnector->member->allows(Connection_In))
@@ -229,7 +229,7 @@ bool ContainerView::draw()
 				else
 					Node::Connect(container->newWire(), draggedConnector->member, targetMember);
 			}
-			NodeView::GetDraggedConnector()->reset();
+			NodeView::ResetDraggedConnector();
 		}
 
 		/*

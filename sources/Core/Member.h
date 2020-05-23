@@ -23,6 +23,28 @@ namespace Nodable{
 		Default               = Always
 	};
 
+	class Connector {
+	public:
+
+		Connector(Member* _member = nullptr,
+			      Connection_ _side = Connection_Default):
+			member(_member),
+			side(_side){
+		};
+
+
+		bool equals(const Connector* _other)const {
+			return this->member == _other->member &&
+				this->side == _other->side;
+		};
+
+		~Connector() {};
+
+		Member* member;
+		Connection_ side;
+
+	};
+
 	class Member{
 	public:
 		Member();
@@ -67,8 +89,10 @@ namespace Nodable{
 		}
 
 		Visibility_         getVisibility()const;
-		Connection_         getConnection()const;		
-		
+		Connection_         getConnectionFlags()const;		
+		const Connector*    input() const;
+		const Connector*    output() const;
+
 	private:
 		Object*     		owner       		= nullptr;
 		Member*             inputMember         = nullptr;
@@ -76,10 +100,10 @@ namespace Nodable{
 		std::string 		name 				= "Unknown";
 		Variant       		data;
 		Visibility_ 		visibility 			= Default;
-		Connection_ 	    connection 	        = Connection_Default;
-
+		Connector*          in                  = nullptr;
+		Connector*          out                 = nullptr;
 	public:
 		static const TokenType_ MemberTypeToTokenType(Type_ _type);
-		static const Type_      TokenTypeToMemberType(TokenType_ _tokenType);
+		static const Type_      TokenTypeToMemberType(TokenType_ _tokenType);		
 	};
 }

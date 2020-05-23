@@ -10,7 +10,13 @@ Member::Member()
 {
 }
 
-Member::~Member(){};
+Member::~Member(){
+	if (in != nullptr)
+		delete in;
+
+	if (out != nullptr)
+		delete out;
+};
 
 Type_ Member::getType()const
 {
@@ -30,7 +36,24 @@ bool Member::equals(const Member *_other)const {
 
 void Member::setConnectionFlags(Connection_ _flags)
 {
-	connection = _flags;
+	// Delete existing (we could reuse...)
+	if (in != nullptr)
+		delete in;
+
+	if (out != nullptr)
+		delete out;
+
+	// Create an input if needed
+	if (_flags & Connection_In)
+		in = new Connector(this, Connection_In);
+	else
+		in = nullptr;
+
+	// Create an output if needed
+	if (_flags & Connection_Out)
+		out = new Connector(this, Connection_Out);
+	else
+		out = nullptr;
 }
 
 void Nodable::Member::setSourceExpression(const char* _val)
@@ -55,7 +78,7 @@ void Nodable::Member::updateValueFromInputMemberValue()
 
 bool Member::allows(Connection_ _connection)const
 {
-	auto maskedFlags = connection & _connection;
+	auto maskedFlags = getConnectionFlags() & _connection;
 	return maskedFlags == _connection;
 }
 
@@ -89,6 +112,16 @@ const Type_ Nodable::Member::TokenTypeToMemberType(TokenType_ _tokenType)
 	if (_tokenType == TokenType_Number)  return Type_Number;
 	if (_tokenType == TokenType_String)  return Type_String;
 
+}
+
+const Nodable::Connector* Member::input() const
+{
+	return in;
+}
+
+const Nodable::Connector* Member::output() const
+{
+	return out;
 }
 
 void Member::setInputMember(Member* _val)
@@ -137,9 +170,16 @@ Visibility_ Member::getVisibility() const
 	return visibility;
 }
 
-Connection_ Member::getConnection() const
+Connection_ Member::getConnectionFlags() const
 {
-	return connection;
+	if (in != nullptr && out != nullptr)
+		return Connection_InOut;
+	else if (out != nullptr)
+		return Connection_Out;
+	else if (in != nullptr)
+		return Connection_In;
+	else
+		return Connection_None;
 }
 
 bool Member::isSet()const

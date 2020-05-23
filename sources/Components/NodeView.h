@@ -19,42 +19,7 @@ namespace Nodable{
 		DrawDetail_Advanced = 1,                 // node, links and input/output names.
 		DrawDetail_Complex  = 2,                 // node, links, input/output names and types.
 		DrawDetail_Default  = DrawDetail_Simple
-	};
-
-	class Connector {
-	public:
-
-		Connector(Member*     _member = nullptr,
-			      Connection_ _side   = Connection_Default) {
-			this->member = _member;
-			this->side   = _side;
-		};
-		
-		Connector(const Connector* _other) {
-			this->set(_other);
-		};
-
-		bool equals(const Connector* _other)const {
-			return this->member == _other->member &&
-				   this->side   == _other->side;
-		};
-
-		~Connector() {};
-
-		void reset() {
-			this->member = nullptr;
-			this->side   = Connection_None;
-		};
-
-		void set(const Connector* _other) {
-			this->member = _other->member;
-			this->side   = _other->side;
-		}
-
-		Member* member;
-		Connection_ side;
-		
-	};
+	};	
 
 	class NodeView : public View
 	{
@@ -102,17 +67,22 @@ namespace Nodable{
 		static NodeView*  GetSelected         ();
 
 		/* Return a pointer to the dragged member or nullptr if no member is dragged */
-		static Connector*  GetDraggedConnector() { return s_draggedConnector; }
+		static const Connector*  GetDraggedConnector() { return s_draggedConnector; }
+		static void              ResetDraggedConnector() { s_draggedConnector = nullptr; }
+		static void              StartDragConnector(const Connector* _connector) {
+			s_draggedConnector = _connector;
+			s_draggedNode      = nullptr; // undrag node
+		};
 
 		/* Return a pointer to the hovered member or nullptr if no member is dragged */
-		static Connector*  GetHoveredConnector() { return s_hoveredConnector; }
+		static const Connector*  GetHoveredConnector() { return s_hoveredConnector; }
 
 		/* Return true if _nodeView is selected */
-		static bool       IsSelected          (NodeView*);
+		static bool       IsSelected(NodeView*);
 
 		/* Set the _nodeView ad the current dragged view.
 		Only a single view can be dragged at the same time. */
-		static void       SetDragged          (NodeView*);
+		static void       StartDragNode(NodeView*);
 
 		static bool		  IsANodeDragged();
 
@@ -132,7 +102,7 @@ namespace Nodable{
 			Returns true if Member's value has been modified, false either */
 		bool drawMember(Member* _v);
 
-		void drawConnector(ImVec2& , Connector* , ImDrawList*);
+		void drawConnector(ImVec2& , const Connector* , ImDrawList*);
 
 		ImVec2          position            = ImVec2(500.0f, -1.0f);    // center position vector
 		ImVec2          size                = NODE_VIEW_DEFAULT_SIZE;  // size of the window
@@ -143,9 +113,9 @@ namespace Nodable{
 		ImColor         borderColorSelected = ImColor(1.0f, 1.0f, 1.0f);
 		std::map<std::string, float> connectorOffsetPositionsY;
 		static NodeView* s_selected; // pointer to the currently selected NodeView.
-		static NodeView* s_dragged;	 // pointer to the currently dragged NodeView.	
-		static Connector* s_draggedConnector;
-		static Connector* s_hoveredConnector;
+		static NodeView* s_draggedNode;	 // pointer to the currently dragged NodeView.	
+		static const Connector* s_draggedConnector;
+		static const Connector* s_hoveredConnector;
 
 		MIRROR_CLASS(NodeView)(
 			MIRROR_PARENT(View));

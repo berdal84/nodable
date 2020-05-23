@@ -12,10 +12,10 @@
 using namespace Nodable;
 
 NodeView*   NodeView::s_selected              = nullptr;
-NodeView*   NodeView::s_dragged               = nullptr;
+NodeView*   NodeView::s_draggedNode               = nullptr;
 DrawDetail_ NodeView::s_drawDetail            = Nodable::DrawDetail_Default;
-Connector*  NodeView::s_draggedConnector      = new Connector();
-Connector*  NodeView::s_hoveredConnector      = new Connector();
+const Connector*  NodeView::s_draggedConnector      = nullptr;
+const Connector*  NodeView::s_hoveredConnector      = nullptr;
 
 void NodeView::SetSelected(NodeView* _view)
 {
@@ -27,9 +27,10 @@ NodeView* NodeView::GetSelected()
 	return s_selected;
 }
 
-void NodeView::SetDragged(NodeView* _view)
+void NodeView::StartDragNode(NodeView* _view)
 {
-	s_dragged = _view;
+	if( s_draggedConnector == nullptr) // Prevent dragging node while dragging connector
+		s_draggedNode = _view;
 }
 
 bool NodeView::IsANodeDragged() {
@@ -38,7 +39,7 @@ bool NodeView::IsANodeDragged() {
 
 NodeView* NodeView::GetDragged()
 {
-	return s_dragged;
+	return s_draggedNode;
 }
 
 bool NodeView::IsSelected(NodeView* _view)
@@ -287,7 +288,7 @@ bool NodeView::draw()
 		for(auto& m : node->getMembers())
 		{		
 			auto member = m.second;
-			if (member->getVisibility() == Always && member->getConnection() == Connection_In)
+			if (member->getVisibility() == Always && member->getConnectionFlags() == Connection_In)
 			{
 				drawMember(m.second);
 			}
@@ -297,7 +298,7 @@ bool NodeView::draw()
 		for (auto& m : node->getMembers())
 		{
 			auto member = m.second;
-			if (member->getVisibility() == Always && member->getConnection() != Connection_In)
+			if (member->getVisibility() == Always && member->getConnectionFlags() != Connection_In)
 			{
 				drawMember(member);
 			}
@@ -388,13 +389,12 @@ bool NodeView::draw()
 
 	// Dragging by mouse
 
-	if ( GetDragged() != this)
-	{
-		if(GetDragged() == nullptr && ImGui::IsMouseDown(0) && hovered && (s_draggedConnector->member == nullptr))
-			SetDragged(this);
+	if ( GetDragged() != this) {
+		if( GetDragged() == nullptr && ImGui::IsMouseDown(0) && hovered)
+			StartDragNode(this);
 
 	} else if ( ImGui::IsMouseReleased(0)) {
-		SetDragged(nullptr);				
+		StartDragNode(nullptr);				
 	}		
 
 	// Collapse/uncollapse by double click (double/divide x size by 2)
@@ -531,20 +531,18 @@ bool NodeView::drawMember(Member* _member) {
 
 	if (_member->allows(Connection_In)) {
 		ImVec2      connectorPos = getConnectorPosition( memberName, Connection_In);
-		auto connector = new Connector(_member, Connection_In);
-		drawConnector(connectorPos, connector, draw_list);
+		drawConnector(connectorPos, _member->input(), draw_list);
 	}
 		
 	if (_member->allows(Connection_Out)) {
 		ImVec2      connectorPos = getConnectorPosition( memberName, Connection_Out);
-		auto connector = new Connector(_member, Connection_Out);
-		drawConnector(connectorPos, connector, draw_list);
+		drawConnector(connectorPos, _member->output(), draw_list);
 	}
 
 	return edited;
 }
 
-void NodeView::drawConnector(ImVec2& connectorPos, Connector* _connector, ImDrawList* draw_list)
+void NodeView::drawConnector(ImVec2& connectorPos, const Connector* _connector, ImDrawList* draw_list)
 {
 	// Unvisible Button on top of the Circle
 
@@ -575,15 +573,18 @@ void NodeView::drawConnector(ImVec2& connectorPos, Connector* _connector, ImDraw
 
 
 	// DRAG
-	if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedConnector->member == nullptr) {
-		s_draggedConnector->set(_connector);
+	if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedConnector == nullptr) {
+		StartDragConnector(_connector);
 	}
 
 	// HOVERED
 	if (isItemHovered)
-		s_hoveredConnector->set(_connector);
-	else if (s_hoveredConnector->equals(_connector) )
-		s_hoveredConnector->reset();
+		s_hoveredConnector = _connector;
+
+	else if (s_hoveredConnector != nullptr && s_hoveredConnector->equals(_connector))
+	{
+		s_hoveredConnector = nullptr;
+	}
 	
 }
 
