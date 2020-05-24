@@ -32,8 +32,8 @@ namespace Nodable{
 	public:		
 		BinaryOperationComponent(const Language* _language) :FunctionComponent(_language) {};
 		virtual ~BinaryOperationComponent(){};
-		void                setLeft	 (Member* _value){left= _value;};
-		void                setRight (Member* _value){right = _value;};		
+		void                setLeft	 (Member* _value);
+		void                setRight (Member* _value);		
 		void                setOperatorAsString(const char* _s) { operatorAsString = _s; }
 		void                updateResultSourceExpression() const override;
 		std::string         getOperatorAsString()const{return operatorAsString;}
@@ -98,7 +98,7 @@ namespace Nodable{
 	  */
 	class MultipleArgFunctionComponent : public FunctionComponent {
 	public:
-		MultipleArgFunctionComponent(FunctionPrototype _prototype, const Language* _language);
+		MultipleArgFunctionComponent(const FunctionPrototype _prototype, const Language* _language);
 		~MultipleArgFunctionComponent() {};
 
 		void setArg(size_t _index, const Member* _value) { args[_index] = _value; };
@@ -106,7 +106,7 @@ namespace Nodable{
 		void updateResultSourceExpression() const override;		
 	protected:
 		std::vector<const Member*> args;
-		FunctionPrototype prototype;
+		const FunctionPrototype prototype;
 
 		MIRROR_CLASS(MultipleArgFunctionComponent)(
 			MIRROR_PARENT(FunctionComponent)

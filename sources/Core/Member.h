@@ -58,23 +58,19 @@ namespace Nodable{
 		void                setSourceExpression(const char*);
 		void                setInputMember(Member*);
 		void  		        setName(const char*);
-		void                setOwner(Object*);
+		void                setOwner(Object*);	
 		void                set(const Member*);
-		void                set(std::string);
-		void                set(const char*);
 		void                set(double);
-		void                set(bool);
 		void                set(int);
+		void                set(const std::string&);
+		void                set(const char* _value);
+		void                set(bool _value);
 		void                setType(Type_ _type);
 		void                setVisibility(Visibility_ _v);
 
 		/** Get the value of the inputMember Member and set it to this Member.
 		    Warning: be sure the member has an inputMember before calling this (getInputMember()!=nullptr)*/
 		void                updateValueFromInputMemberValue();
-
-		/*
-			Getters
-		*/
 
 		Object*             getOwner()const;
 		Member*             getInputMember()const;
@@ -83,10 +79,9 @@ namespace Nodable{
 		Type_               getType()const;
 		std::string         getTypeAsString()const;
 
-		template <typename T>
-		T as()const {
-			return data.get<T>();
-		}
+		inline operator bool()const        { return data; }
+		inline operator double()const      { return data; }
+		inline operator std::string()const { return data; }
 
 		Visibility_         getVisibility()const;
 		Connection_         getConnectionFlags()const;		

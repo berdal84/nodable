@@ -118,13 +118,13 @@ void Variant::set(const Variant* _v)
 	switch (type)
 	{
 	case Type_Boolean:
-		set(_v->get<bool>());
+		set((bool)*_v);
 		break;
 	case Type_Number:
-		set(_v->get<double>());
+		set((double)*_v);
 		break;
 	case Type_String:
-		set(_v->get<std::string>());
+		set((std::string)*_v);
 		break;
 	case Type_Unknown:
 		break;
@@ -187,4 +187,49 @@ void Variant::setType(Type_ _type)
 		}
 	}
 
+}
+
+Variant::operator double()const {
+	switch (type) {
+	case Type_String:  return double((*reinterpret_cast<std::string*>(data)).size());
+	case Type_Number:  return *reinterpret_cast<double*>(data);
+	case Type_Boolean: return *reinterpret_cast<bool*>(data) ? double(1) : double(0);
+	default:           return double(0);
+	}
+}
+
+Variant::operator bool()const {
+	switch (type) {
+	case Type_String:  return !(*reinterpret_cast<std::string*>(data)).empty();
+	case Type_Number:  return (*reinterpret_cast<double*>(data)) != 0.0F;
+	case Type_Boolean: return *reinterpret_cast<bool*>(data);
+	default:           return false;
+	}
+}
+
+Variant::operator std::string()const {
+
+	switch (type) {
+	case Type_String: {
+		return *reinterpret_cast<std::string*>(data);
+	}
+
+	case Type_Number: {
+		// Format the num as a string without any useless ending zeros/dot
+		std::string str = std::to_string(*reinterpret_cast<double*>(data));
+		str.erase(str.find_last_not_of('0') + 1, std::string::npos);
+		if (str.find_last_of('.') + 1 == str.size())
+			str.erase(str.find_last_of('.'), std::string::npos);
+		return str;
+	}
+
+	case Type_Boolean: {
+		return *reinterpret_cast<bool*>(data) ? "true" : "false";
+	}
+
+	default:
+	{
+		return "NULL";
+	}
+	}
 }

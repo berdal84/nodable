@@ -8,6 +8,13 @@ using namespace Nodable;
 
  // BinaryOperationComponent :
 //////////////////////////
+void BinaryOperationComponent::setLeft(Member* _value){
+	left = _value;	
+};
+
+void BinaryOperationComponent::setRight(Member* _value) {
+	right = _value;
+};
 
 void BinaryOperationComponent::updateResultSourceExpression()const
 {
@@ -67,14 +74,14 @@ bool Add::update()
 	{
 		case Type_String:
 		{
-			auto sum = left->as<std::string>() + right->as<std::string>();
+			auto sum = (std::string)*left + (std::string)*right;
 			result->set(sum);
 			break;
 		}
 
 		case Type_Boolean:
 		{
-			auto sum = left->as<bool>() || right->as<bool>();
+			auto sum = (bool)*left || (bool)*right;
 			result->set(sum);
 			break;
 		}	
@@ -82,7 +89,7 @@ bool Add::update()
 		default:
 		case Type_Number:
 		{
-			auto sum = left->as<double>() + right->as<double>();
+			auto sum = (double)*left + (double)*right;
 			result->set(sum);
 			break;
 		}	
@@ -98,7 +105,7 @@ bool Add::update()
 
 bool Subtract::update()
 {
-	double sub = left->as<double>() - right->as<double>();
+	double sub = (double)*left - (double)*right;
 	result->set(sub);
 	
 	updateResultSourceExpression();
@@ -111,9 +118,9 @@ bool Subtract::update()
 
 bool Divide::update()
 {
-	if (right->as<double>() != 0.0f)
+	if ( (double)*right != 0.0f)
 	{
-		auto div = left->as<double>() / right->as<double>();
+		auto div = (double)*left / (double)*right;
 		result->set(div);
 	}
 
@@ -131,14 +138,14 @@ bool Multiply::update()
 	{
 		case Type_Boolean:
 		{
-			auto mul = left->as<bool>() && right->as<bool>();
+			auto mul = (bool)*left && (bool)*right;
 			result->set(mul);
 			break;
 		}	
 
 		default:
 		{
-			auto mul = left->as<double>() * right->as<double>();
+			auto mul = (double)*left * (double)*right;
 			result->set(mul);
 			break;
 		}
@@ -157,26 +164,21 @@ bool Assign::update()
 	switch (right->getType())
 	{
 		case Type_Number:
+		default:
 		{
-			auto v = right->as<double>();
+			auto v = (double)*right;
 			result->set(v);
 			left->set(v);
 			break;
 		}
 		case Type_String:
 		{
-			auto v = right->as<std::string>().c_str();
+			auto v = (std::string)*right;
 			result->set(v);
 			left->set(v);
 			break;
 		}
-		default:
-		{
-			auto v = right->as<double>();
-			result->set(v);
-			left->set(v);
-			break;
-		}
+
 	}
 	
 	updateResultSourceExpression();
@@ -196,12 +198,12 @@ MultipleArgFunctionComponent::MultipleArgFunctionComponent(FunctionPrototype _pr
 bool MultipleArgFunctionComponent::update()
 {
 
-	if (prototype.nativeFunction == NULL) {
+	if (prototype.call == NULL) {
 		LOG_ERROR("Unable to find %s's nativeFunction.\n", prototype.getIdentifier().c_str());
 		return false;
 	}
 
-	if (prototype.nativeFunction(result, args))
+	if (prototype.call(result, args))
 		LOG_ERROR("Evaluation of %s's native function failed !\n", prototype.getIdentifier().c_str());
 	else
 		this->updateResultSourceExpression();
@@ -211,20 +213,6 @@ bool MultipleArgFunctionComponent::update()
 
 void MultipleArgFunctionComponent::updateResultSourceExpression() const
 {
-	std::string expr;
-	expr.append(this->prototype.getIdentifier() );
-	expr.append("( ");
-
-	for (auto it = args.begin(); it != args.end(); it++) {
-		expr.append((*it)->getSourceExpression());
-
-		if (*it != args.back()) {
-			expr.append(", ");
-		}
-	}
-
-	expr.append(" )");
-
-	// Apply the new string to the result's source expression.
+	std::string expr = language->serializeFunction(prototype, args);
 	this->result->setSourceExpression(expr.c_str());
 }

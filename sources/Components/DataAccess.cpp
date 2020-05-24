@@ -23,19 +23,19 @@ bool DataAccess::update()
     	{
     		case (Type_String) :
     		{
-    			writer.String(_value->as<std::string>().c_str());
+    			writer.String( ((std::string)*_value).c_str());
     			break;
     		}
 
     		case (Type_Number) :
     		{
-    			writer.Double(_value->as<double>());
+    			writer.Double((double)*_value);
     			break;
     		}
     		
     		case (Type_Boolean) :
     		{
-    			writer.Bool(_value->as<bool>());
+    			writer.Bool((bool)*_value);
     			break;
     		}
     		default:

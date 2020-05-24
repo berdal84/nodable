@@ -172,9 +172,14 @@ bool ContainerView::draw()
 		Mouse right-click popup menu
 	*/
 
-	if (ImGui::IsMouseHoveringWindow() && ImGui::IsMouseClicked(1))
-		ImGui::OpenPopup("ContainerViewContextualMenu");
-	
+	if (ImGui::IsMouseHoveringWindow() && ImGui::IsMouseClicked(1)) {
+		if (draggedConnector == nullptr)
+			ImGui::OpenPopup("ContainerViewContextualMenu");
+		else if (ImGui::IsPopupOpen("ContainerViewContextualMenu")) {
+			ImGui::CloseCurrentPopup();
+			NodeView::ResetDraggedConnector();
+		}
+	}
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{

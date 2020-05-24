@@ -44,6 +44,9 @@ namespace Nodable {
 		std::string name;
 	};
 
+	
+	typedef std::function<int(Member*, const std::vector<const Member*>&)> CallableFunction;
+
 	class FunctionPrototype {
 	public:
 		FunctionPrototype(std::string _identifier, TokenType_ _type);
@@ -54,7 +57,8 @@ namespace Nodable {
 		const std::string              getSignature()const;
 		const std::vector<FunctionArg> getArgs() const;
 		const TokenType_               getType() const;
-		std::function<int(Member*, const std::vector<const Member*>&)> nativeFunction;
+
+		CallableFunction call;
 
 	private:
 		std::string identifier;
@@ -66,19 +70,21 @@ namespace Nodable {
 		The Language class defines a single Language (ex: C++, Python, etc...)
 		Some static constants provide easy access to ready to use Languages.
 	*/
+	typedef std::function<std::string(FunctionPrototype, std::vector<const Member*>)> SerializeFunction;
+
 	class Language {
 	public:
 
 		Language(std::string _name) :numbers(), letters(), brackets(), name(_name){};
 		~Language() {};		
-		void addOperator(Operator);
-		unsigned short getOperatorPrecedence(const std::string& _identifier)const;
-		std::string getOperatorsAsString()const;
-		const FunctionPrototype* findFunctionPrototype(FunctionPrototype& prototype) const;
-		void addToAPI(FunctionPrototype prototype);
-		bool needsToBeEvaluatedFirst(std::string op, std::string nextOp)const;
-		const std::vector<FunctionPrototype>& getAPI()const { return api; }
-
+		void                                  addOperator(Operator);
+		unsigned short                        getOperatorPrecedence(const std::string& _identifier)const;
+		std::string                           getOperatorsAsString()const;
+		const FunctionPrototype*              find(FunctionPrototype& prototype) const;
+		void                                  addToAPI(FunctionPrototype prototype);
+		bool                                  needsToBeEvaluatedFirst(std::string op, std::string nextOp)const;
+		const std::vector<FunctionPrototype>& getAPI()const { return api; }	
+		
 		/**
 		  * To generate the Nodable Language reference
 		  * New language generators will be found here later...
@@ -94,6 +100,7 @@ namespace Nodable {
 		std::string numbers;
 		std::string letters;
 		std::map<std::string, TokenType_> keywords;
+		SerializeFunction serializeFunction;
 	private:
 		std::string name;
 		std::vector<char> brackets;

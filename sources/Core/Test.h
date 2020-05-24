@@ -143,11 +143,11 @@ bool Member_AsBoolean_Tests() {
 		std::unique_ptr<Member> m(new Member);
 
 		m->set(true);
-		EXPECT(m->as<bool>(), true)
+		EXPECT((bool)*m, true)
 		EXPECT(m->getType(), Type_Boolean)
 
 		m->set(false);
-		EXPECT(m->as<bool>(), false)
+		EXPECT((bool)*m, false)
 		EXPECT(m->isSet(), true)
 
 	}TEST_END
@@ -159,14 +159,14 @@ bool Member_AsString_Tests() {
 
 	TEST_BEGIN("Member: String"){
 
-		std::unique_ptr<Member> m(new Member);
+		auto m = new Member();
 		m->set("Hello world !");
 		const std::string str = "Hello world !";
 
-		EXPECT(m->as<std::string>(), str)
-		EXPECT(m->as<bool>(), true)
+		EXPECT((std::string)*m, str)
+		EXPECT((bool)*m, true)
 		EXPECT(m->getType(), Type_String)
-		EXPECT(m->as<double>(), str.length())
+		EXPECT((double)*m, str.length())
 		EXPECT(m->isSet(), true)
 	}TEST_END
 
@@ -178,9 +178,9 @@ bool Member_AsNumber_Tests() {
 	TEST_BEGIN("Member: Number"){
 				
 		std::unique_ptr<Member> m(new Member);
-		m->set(50.0F);
+		m->set((double)50);
 
-		EXPECT(m->as<double>(), 50.0F)
+		EXPECT((double)*m, (double)50)
 		EXPECT(m->getType(), Type_Number)
 		EXPECT(m->isSet(), true)	
 
@@ -264,6 +264,12 @@ bool Parser_Tests() {
 			EXPECT(Parser_Test("returnNumber(1)", 1), true)
 		}TEST_END
 
+		TEST_BEGIN("Imbricated functions") {
+			EXPECT(Parser_Test("returnNumber(5+3)", 8), true)
+			EXPECT(Parser_Test("returnNumber(returnNumber(1))", 1), true)
+			EXPECT(Parser_Test("returnNumber(returnNumber(1) + returnNumber(1))", 2), true)
+		}TEST_END
+
 	}TEST_END
 
 	return s_lastGroupTestPassed;
@@ -279,9 +285,12 @@ bool Node_Tests() {
 			node->add("val");
 			node->set("val", double(100));
 
-			EXPECT(node->get("val")->as<double>(), double(100))
-			EXPECT(node->get("val")->as<std::string>(), std::to_string(100))
-			EXPECT(node->get("val")->as<bool>(), true)
+			auto val = node->get("val");
+
+			EXPECT((double)*val      , double(100))
+			EXPECT((std::string)*val , std::to_string(100))
+			EXPECT((bool)*val        , true)
+
 		}TEST_END
 
 	}TEST_END

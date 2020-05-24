@@ -338,7 +338,7 @@ bool NodeView::draw()
 		ImGui::Text("Parameters :");
 		std::string parentName = "NULL";
 		if ( node->getParent() )
-			parentName = node->getParent()->get("name")->as<std::string>();
+			parentName = (std::string)*node->getParent()->get("name");
 		ImGui::Text("Parent: %s", parentName.c_str());
 		
 		// Draw dirty state 
@@ -463,7 +463,7 @@ bool NodeView::drawMember(Member* _member) {
 		{
 		case Type_Number:
 			{
-				double f(_member->as<double>());
+				auto f = (double)*_member;
 				if (ImGui::InputDouble(label.c_str(), &f))
 				{
 					_member->set(f);
@@ -475,7 +475,7 @@ bool NodeView::drawMember(Member* _member) {
 		case Type_String:
 			{				
 				char str[255];
-				sprintf_s(str, "%s", _member->as<std::string>().c_str());
+				sprintf_s(str, "%s", ((std::string)*_member).c_str() );
 
 				if ( ImGui::InputText(label.c_str(), str, 255) )
 				{
@@ -489,7 +489,7 @@ bool NodeView::drawMember(Member* _member) {
 		{			
 			std::string checkBoxLabel = _member->getName();
 
-			auto b = _member->as<bool>();
+			auto b = (bool)*_member;
 			if (ImGui::Checkbox( checkBoxLabel.c_str(), &b )) {				
 				_member->set(b);
 				node->setDirty(true);
@@ -501,7 +501,7 @@ bool NodeView::drawMember(Member* _member) {
 			{
 				ImGui::Text("%s", _member->getName().c_str());
 				ImGui::SameLine(10.0f);
-				ImGui::Text("%s", _member->as<std::string>().c_str());
+				ImGui::Text("%s", ((std::string)*_member).c_str());
 				break;
 			}
 		}

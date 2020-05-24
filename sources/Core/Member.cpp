@@ -31,7 +31,7 @@ bool  Member::isType(Type_ _type)const
 bool Member::equals(const Member *_other)const {
 	return _other != nullptr &&
 	       _other->isType(this->getType() ) &&
-		   _other->as<std::string>() == this->as<std::string>();
+		   (std::string)*_other == (std::string)*this;
 }
 
 void Member::setConnectionFlags(Connection_ _flags)
@@ -137,34 +137,6 @@ void Nodable::Member::setName(const char* _name)
 	name = _name;
 }
 
-void Member::set(double _value)
-{
-	data.setType(Type_Number);
-	data.set(_value);
-}
-
-void Member::set(int _value)
-{
-	Member::set(double(_value));
-}
-
-void Member::set(std::string _value)
-{
-	this->set(_value.c_str());
-}
-
-void Member::set(const char* _value)
-{
-	data.setType(Type_String);
-	data.set(_value);
-}
-
-void Member::set(bool _value)
-{
-	data.setType(Type_Boolean);
-	data.set(_value);
-}
-
 Visibility_ Member::getVisibility() const
 {
 	return visibility;
@@ -190,11 +162,6 @@ bool Member::isSet()const
 void Nodable::Member::setOwner(Object* _owner)
 {
 	owner = _owner;
-}
-
-void Member::set(const Member* _v)
-{
-	data.set(&_v->data);	
 }
 
 std::string Member::getTypeAsString()const
@@ -226,12 +193,46 @@ std::string Member::getSourceExpression()const
 	} else {
 
 		if (isType(Type_String)) {
-			expression = '"' + as<std::string>() + '"';
+			expression = '"' + (std::string)*this + '"';
 		}
 		else {
-			expression = as<std::string>();
+			expression = (std::string)*this;
 		}
 	}
 
 	return expression;
+}
+
+
+void Member::set(const Member* _v)
+{
+	data.set(&_v->data);
+}
+
+void Member::set(double _value)
+{
+	data.setType(Type_Number);
+	data.set(_value);
+}
+
+void Member::set(int _value)
+{
+	set(double(_value));
+}
+
+void Member::set(const std::string& _value)
+{
+	this->set(_value.c_str());
+}
+
+void Member::set(const char* _value)
+{
+	data.setType(Type_String);
+	data.set(_value);
+}
+
+void Member::set(bool _value)
+{
+	data.setType(Type_Boolean);
+	data.set(_value);
 }

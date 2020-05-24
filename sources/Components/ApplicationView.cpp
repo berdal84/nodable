@@ -65,11 +65,11 @@ bool ApplicationView::init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    sdlWindow = SDL_CreateWindow(  get("glWindowName")->as<std::string>().c_str(),
+    sdlWindow = SDL_CreateWindow( ((std::string)*get("glWindowName")).c_str(),
                                 SDL_WINDOWPOS_CENTERED,
                                 SDL_WINDOWPOS_CENTERED,
-                                int(get("glWindowSizeX")->as<double>()),
-                                int(get("glWindowSizeY")->as<double>()),
+                                (int)*get("glWindowSizeX"),
+                                (int)*get("glWindowSizeY"),
                                 SDL_WINDOW_OPENGL |
                                 SDL_WINDOW_RESIZABLE |
                                /* SDL_WINDOW_FULLSCREEN_DESKTOP*/
@@ -224,7 +224,7 @@ bool ApplicationView::draw()
 
     // Properties panel sdlWindow
     {
-        bool b = get("showProperties")->as<bool>();
+        bool b = *get("showProperties");
         if( b ){
     	    if (ImGui::Begin("Properties", &b))
     	    {    	
@@ -245,7 +245,7 @@ bool ApplicationView::draw()
 
     // Demo Window
     {
-        bool b = get("showImGuiDemo")->as<bool>();
+        bool b = *get("showImGuiDemo");
         if (b){
             ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowDemoWindow(&b);
@@ -314,8 +314,8 @@ bool ApplicationView::draw()
 					auto detailComplex = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex);
 
 					ImGui::Separator();
-					auto showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", get("showProperties")->as<bool>());
-					auto showImGuiDemo = ImGui::MenuItem("Show ImGui Demo", "", get("showImGuiDemo")->as<bool>());
+					auto showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", (bool)*get("showProperties"));
+					auto showImGuiDemo = ImGui::MenuItem("Show ImGui Demo", "", (bool)*get("showImGuiDemo"));
 
 					ImGui::Separator();
 
@@ -343,10 +343,10 @@ bool ApplicationView::draw()
 						NodeView::s_drawDetail = DrawDetail_Complex;
 
 					if (showProperties)
-						set("showProperties", !get("showProperties")->as<bool>());
+						set("showProperties", !(bool)*get("showProperties"));
 
 					if (showImGuiDemo)
-						set("showImGuiDemo", !get("showImGuiDemo")->as<bool>());
+						set("showImGuiDemo", !(bool)*get("showImGuiDemo"));
 
 
 

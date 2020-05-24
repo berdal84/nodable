@@ -70,8 +70,8 @@ namespace Nodable{
 		static const Connector*  GetDraggedConnector() { return s_draggedConnector; }
 		static void              ResetDraggedConnector() { s_draggedConnector = nullptr; }
 		static void              StartDragConnector(const Connector* _connector) {
-			s_draggedConnector = _connector;
-			s_draggedNode      = nullptr; // undrag node
+			if(s_draggedNode == nullptr)
+				s_draggedConnector = _connector;
 		};
 
 		/* Return a pointer to the hovered member or nullptr if no member is dragged */

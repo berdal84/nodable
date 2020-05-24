@@ -263,11 +263,11 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	// Then check if the operator can be applied to the next token
 	if (token1.word == "-" && token2.type == TokenType_Number) { // TODO: create the unary operation "negates"
 		result = operandTokenToMember(token2);
-		result->set(-result->as<double>());
+		result->set(-(double)*result);
 
 	} else if (token1.word == "!" && token2.type == TokenType_Boolean) { // TODO: create the unary operation "not"
 		result = operandTokenToMember(token2);
-		result->set(!result->as<bool>());
+		result->set(!(bool)*result);
 
 	} else {
 		LOG_DEBUG_PARSER("parseUnaryOperationExpression... " KO " (unrecognysed operator)\n");	
@@ -487,7 +487,7 @@ bool Parser::tokenizeExpressionString()
 {
 
 	/* get expression chars */
-	std::string chars = get("expression")->as<std::string>();
+	auto chars = (std::string)*get("expression");
 
 	/* prepare allowed chars */
 	const auto numbers 	     = language->numbers;
@@ -671,7 +671,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 	localTokenId++; // eat parenthesis
 
 	// Find the prototype in the language library
-	auto matchingPrototype = language->findFunctionPrototype(prototype);
+	auto matchingPrototype = language->find(prototype);
 
 	if( matchingPrototype != nullptr) { // if prototype found
 

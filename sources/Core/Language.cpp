@@ -14,7 +14,7 @@ FunctionArg::FunctionArg(TokenType_ _type, std::string _name) {
 FunctionPrototype::FunctionPrototype(std::string _identifier, TokenType_ _type):
 	identifier(_identifier),
 	type(_type),
-	nativeFunction(NULL)
+	call(NULL)
 {
 
 }
@@ -104,14 +104,38 @@ const Language* Language::Nodable() {
 	language->keywords["true"]  = TokenType_Boolean;
 	language->keywords["false"] = TokenType_Boolean;
 
+	/* Define a serialize functions for this language */
+
+	language->serializeFunction = [](
+		FunctionPrototype _prototype,
+		std::vector<const Member*> _args)
+		->std::string
+	{
+		std::string expr;
+		expr.append(_prototype.getIdentifier());
+		expr.append("( ");
+
+		for (auto it = _args.begin(); it != _args.end(); it++) {
+			expr.append((*it)->getSourceExpression());
+
+			if (*it != _args.back()) {
+				expr.append(", ");
+			}
+		}
+
+		expr.append(" )");
+		return expr;
+	};
+	
+
 	/* Function library */
 
 	{
 		FunctionPrototype proto("returnNumber", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set(_args[0]->as<double>());
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set(_args[0]);
 			return 0;
 		};
 
@@ -122,8 +146,8 @@ const Language* Language::Nodable() {
 		FunctionPrototype proto("sin", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set( sin(_args[0]->as<double>()) );
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set( sin(*_args[0]) );
 			return 0;
 		};
 
@@ -134,8 +158,8 @@ const Language* Language::Nodable() {
 		FunctionPrototype proto("cos", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set(cos(_args[0]->as<double>()));
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set( cos(*_args[0]) );
 			return 0;
 		};
 
@@ -147,8 +171,8 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set( _args[0]->as<double>() + _args[1]->as<double>());
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set( (double)*_args[0] + (double)*_args[1]);
 			return 0;
 		};
 
@@ -160,8 +184,8 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set(_args[0]->as<double>() - _args[1]->as<double>());
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set((double)*_args[0] - (double)*_args[1]);
 			return 0;
 		};
 
@@ -173,8 +197,8 @@ const Language* Language::Nodable() {
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
 
-		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set(_args[0]->as<double>() * _args[1]->as<double>());
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set((double)*_args[0] * (double)*_args[1]);
 			return 0;
 		};
 
@@ -184,8 +208,80 @@ const Language* Language::Nodable() {
 	{
 		FunctionPrototype proto("sqrt", TokenType_Number);
 		proto.pushArg(TokenType_Number);
-		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set( sqrt(_args[0]->as<double>()));
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set( sqrt(*_args[0]) );
+			return 0;
+		};
+		language->addToAPI(proto);
+	}
+
+	{
+		FunctionPrototype proto("not", TokenType_Boolean);
+		proto.pushArg(TokenType_Boolean);
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set( !*_args[0] );
+			return 0;
+		};
+		language->addToAPI(proto);
+	}
+
+	{
+		FunctionPrototype proto("or", TokenType_Boolean);
+		proto.pushArg(TokenType_Boolean);
+		proto.pushArg(TokenType_Boolean);
+
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set( (bool*)_args[0] || *_args[1] );
+			return 0;
+		};
+
+		language->addToAPI(proto);
+	}
+
+	{
+		FunctionPrototype proto("and", TokenType_Boolean);
+		proto.pushArg(TokenType_Boolean);
+		proto.pushArg(TokenType_Boolean);
+
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set( (bool)*_args[0] && *_args[1] );
+			return 0;
+		};
+
+		language->addToAPI(proto);
+	}
+
+	{
+		FunctionPrototype proto("xor", TokenType_Boolean);
+		proto.pushArg(TokenType_Boolean);
+		proto.pushArg(TokenType_Boolean);
+
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set(
+				( (bool)*_args[0] && !(bool)*_args[1]) ||
+				(!(bool)*_args[0] &&  (bool)*_args[1]));
+			return 0;
+		};
+
+		language->addToAPI(proto);
+	}
+
+	{
+		FunctionPrototype proto("bool", TokenType_Boolean);
+		proto.pushArg(TokenType_Number);
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set((bool)*_args[0]);
+			return 0;
+		};
+		language->addToAPI(proto);
+	}
+
+	{
+		FunctionPrototype proto("mod", TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		proto.pushArg(TokenType_Number);
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set( (int)*_args[0] % (int)*_args[1] );
 			return 0;
 		};
 		language->addToAPI(proto);
@@ -195,8 +291,8 @@ const Language* Language::Nodable() {
 		FunctionPrototype proto("pow", TokenType_Number);
 		proto.pushArg(TokenType_Number);
 		proto.pushArg(TokenType_Number);
-		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			const auto value = pow(_args[0]->as<double>(), _args[1]->as<double>());
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			const auto value = pow( *_args[0], *_args[1]);
 			_result->set(value);
 			return 0;
 		};
@@ -207,9 +303,9 @@ const Language* Language::Nodable() {
 	{
 		FunctionPrototype proto("DNAtoProtein", TokenType_String);
 		proto.pushArg(TokenType_String);
-		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
 			
-			std::string baseChain = _args[0]->as<std::string>();
+			auto baseChain = (std::string)*_args[0];
 			std::string protein = "";
 
 			std::map<std::string, char> table;
@@ -294,7 +390,7 @@ const Language* Language::Nodable() {
 
 	{
 		FunctionPrototype proto("time", TokenType_Number);
-		proto.nativeFunction = [](Member* _result, const std::vector<const Member*>& _args)->int {
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
 			time_t rawtime;
 			struct tm* timeinfo;
 			time(&rawtime);
@@ -323,7 +419,7 @@ unsigned short Language::getOperatorPrecedence(const std::string& _identifier)co
 }
 
 bool  Language::needsToBeEvaluatedFirst(std::string op, std::string nextOp)const {
-	return getOperatorPrecedence(op) >= getOperatorPrecedence(nextOp);
+	return getOperatorPrecedence(op) > getOperatorPrecedence(nextOp);
 }
 
 std::string Nodable::Language::getOperatorsAsString() const
@@ -337,7 +433,7 @@ std::string Nodable::Language::getOperatorsAsString() const
 	return result;
 }
 
-const FunctionPrototype* Nodable::Language::findFunctionPrototype(FunctionPrototype& _prototype) const
+const FunctionPrototype* Nodable::Language::find(FunctionPrototype& _prototype) const
 {
 	auto predicate = [&](FunctionPrototype p) {
 		return p.match(_prototype);
