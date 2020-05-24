@@ -193,22 +193,6 @@ bool ContainerView::draw()
 		/*
 			Menu Items...
 		*/
-		if (ImGui::BeginMenu(ICON_FA_CODE " Math")) {
-
-			if (ImGui::MenuItem(ICON_FA_PLUS " Add"))
-				newNode = container->newAdd();
-
-			if (ImGui::MenuItem(ICON_FA_DIVIDE " Divide"))
-				newNode = container->newDivide();
-
-			if (ImGui::MenuItem(ICON_FA_TIMES " Multiply"))
-				newNode = container->newMult();
-
-			if (ImGui::MenuItem(ICON_FA_MINUS " Subtract"))
-				newNode = container->newSub();
-
-			ImGui::EndMenu();
-		}
 
 		if (ImGui::BeginMenu(ICON_FA_CALCULATOR " Functions")) {
 			for (auto it = contextualMenuItems.begin(); it != contextualMenuItems.end(); it++) {

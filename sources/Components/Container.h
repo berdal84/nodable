@@ -32,12 +32,7 @@ namespace Nodable{
 		Variable*					newNumber(double = 0);
 		Variable*					newNumber(const char*);
 		Variable*					newString(const char*);	
-		Node*                       newBinOp(std::string);
-		Node*                   	newAdd();
-		Node*                   	newSub();
-		Node*			          	newMult();
-		Node*			          	newDivide();
-		Node*			          	newAssign(); 
+		Node*                       newBinOp(std::string, const FunctionPrototype _proto);
 		Parser*                    	newParser(Variable*);
 		Wire*                       newWire();
 		Node*                       newFunction(const FunctionPrototype& _proto);

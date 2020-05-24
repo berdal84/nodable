@@ -49,7 +49,7 @@ namespace Nodable {
 
 	class FunctionPrototype {
 	public:
-		FunctionPrototype(std::string _identifier, TokenType_ _type);
+		FunctionPrototype(std::string _identifier, TokenType_ _type, std::string _label = "");
 
 		void                           pushArg(TokenType_ _type, std::string _name = "");
 		bool                           match(FunctionPrototype& _other);
@@ -57,10 +57,12 @@ namespace Nodable {
 		const std::string              getSignature()const;
 		const std::vector<FunctionArg> getArgs() const;
 		const TokenType_               getType() const;
+		const std::string              getLabel() const;
 
 		CallableFunction call;
 
 	private:
+		std::string label;
 		std::string identifier;
 		std::vector<FunctionArg> args;
 		TokenType_ type;
@@ -81,6 +83,7 @@ namespace Nodable {
 		unsigned short                        getOperatorPrecedence(const std::string& _identifier)const;
 		std::string                           getOperatorsAsString()const;
 		const FunctionPrototype*              find(FunctionPrototype& prototype) const;
+		const FunctionPrototype*              findOperator(const std::string& _operator) const;
 		void                                  addToAPI(FunctionPrototype prototype);
 		bool                                  needsToBeEvaluatedFirst(std::string op, std::string nextOp)const;
 		const std::vector<FunctionPrototype>& getAPI()const { return api; }	

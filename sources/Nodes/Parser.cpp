@@ -212,8 +212,9 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 
 
 	// For all other binary operations :
-	} else {
-		auto binOperation = context->newBinOp( token1.word);
+	} else if (auto prototype = language->findOperator(token1.word)) {
+
+		auto binOperation = context->newBinOp( token1.word, *prototype);
 
 		// Connect the Left Operand :
 		//---------------------------
@@ -231,6 +232,10 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 
 		// Set the left !
 		result = binOperation->get("result");
+
+	}else {
+		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (unable to find operator prototype)\n");
+		return nullptr;
 	}
 
 	_tokenId = rightTokenId;	

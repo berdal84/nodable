@@ -156,21 +156,31 @@ Variable* Container::newString(const char* _value)
 }
 
 
-Node* Container::newBinOp(std::string _op)
+Node* Container::newBinOp(std::string _op, const FunctionPrototype _proto)
 {
-	Node* node;
+	// CREATE THE NODE :
+	//------------------
 
-	if (_op == "+")
-		node = newAdd();
-	else if (_op == "-")
-		node = newSub();
-	else if (_op == "*")
-		node = newMult();
-	else if (_op == "/")
-		node = newDivide();
-	else
-		node = nullptr;
+	// Create a node with 2 inputs and 1 output
+	auto node = new Node();
+	node->setLabel(_proto.getLabel());
+	auto args = _proto.getArgs();
+	auto left   = node->add("left", Default, Member::TokenTypeToMemberType(args[0].type), Connection_In);
+	auto right  = node->add("right", Default, Member::TokenTypeToMemberType(args[0].type), Connection_In);
+	auto result = node->add("result", Default, Member::TokenTypeToMemberType(_proto.getType()), Connection_Out);
+
+	// Create BinOperatorComponent component and link values.
+	auto binOp = new BinOperatorComponent(_op, _proto, language);
 	
+	binOp->setResult(result);	
+	binOp->setLeft( left );	
+	binOp->setRight(right);	
+
+	node->addComponent("operation", binOp);
+	node->addComponent("view", new NodeView());
+
+	this->add(node);
+		
 	return node;
 }
 
@@ -205,133 +215,6 @@ Node* Container::newFunction(const FunctionPrototype& _proto) {
 	return node;
 }
 
-Node* Container::newAdd()
-{
-	// Create a node with 2 inputs and 1 output
-	auto node 		= new Node();	
-	node->setLabel(ICON_FA_PLUS " Add");
-	node->add("left",   Default, Type_Number, Connection_In);
-	node->add("right",  Default, Type_Number, Connection_In);
-	node->add("result", Default, Type_Number, Connection_Out);
-	
-	// Create a binary functionComponent component and link values.
-	auto operation 	= new Add(language);
-	operation->setLeft  (node->get("left"));
-	operation->setRight (node->get("right"));
-	operation->setResult(node->get("result"));
-	operation->setOperatorAsString("+");
-	node->addComponent( "operation", operation);
-	
-	// Create a view component
-	node->addComponent( "view", new NodeView());
-
-	this->add(node);
-
-	return node;
-}
-
-Node* Container::newSub()
-{
-	// Create a node with 2 inputs and 1 output
-	auto node 		= new Node();	
-	node->setLabel(ICON_FA_MINUS " Sub");
-	node->add("left",   Default, Type_Number, Connection_In);
-	node->add("right",  Default, Type_Number, Connection_In);
-	node->add("result", Default, Type_Number, Connection_Out);
-
-	// Create a binary functionComponent component and link values.
-	auto operation 	= new Subtract(language);
-	operation->setLeft  (node->get("left"));
-	operation->setRight (node->get("right"));
-	operation->setResult(node->get("result"));
-	operation->setOperatorAsString("-");
-	node->addComponent( "operation", operation);
-
-	// Create a view component
-	node->addComponent( "view", new NodeView);
-
-	this->add(node);
-
-	return node;
-}
-
-Node* Container::newMult()
-{
-	// Create a node with 2 inputs and 1 output
-	auto node 		= new Node();	
-	node->setLabel(ICON_FA_TIMES " Mult");
-	node->add("left",   Default, Type_Number, Connection_In);
-	node->add("right",  Default, Type_Number, Connection_In);
-	node->add("result", Default, Type_Number, Connection_Out);
-
-	// Create a binary functionComponent component and link values.
-	auto operation 	= new Multiply(language);
-	operation->setLeft  (node->get("left"));
-	operation->setRight (node->get("right"));
-	operation->setResult(node->get("result"));
-	operation->setOperatorAsString("*");
-
-	node->addComponent( "operation", operation);
-
-	// Create a view component
-	node->addComponent( "view", new NodeView);
-
-	this->add(node);
-
-	return node;
-}
-
-Node* Container::newDivide()
-{
-	// Create a node with 2 inputs and 1 output
-	auto node 		= new Node();	
-	node->setLabel(ICON_FA_DIVIDE " Div");
-	node->add("left",   Default, Type_Number, Connection_In);
-	node->add("right",  Default, Type_Number, Connection_In);
-	node->add("result", Default, Type_Number, Connection_Out);
-
-	// Create a binary functionComponent component and link values.
-	auto operation 	= new Divide(language);
-	operation->setLeft  (node->get("left"));
-	operation->setRight (node->get("right"));
-	operation->setResult(node->get("result"));
-	operation->setOperatorAsString("/");
-
-	node->addComponent( "operation", operation);
-
-	// Create a view component
-	node->addComponent( "view", new NodeView);
-
-	this->add(node);
-
-	return node;
-}
-
-Node* Container::newAssign()
-{
-	// Create a node with 2 inputs and 1 output
-	auto node 		= new Node();	
-	node->setLabel("ASSIGN");
-	node->add("left",   Default, Type_Number, Connection_In);
-	node->add("right",  Default, Type_Number, Connection_In);
-	node->add("result", Default, Type_Number, Connection_Out);
-
-	// Create a binary functionComponent component and link values.
-	auto operation 	= new Assign(language);
-	operation->setLeft  (node->get("left"));
-	operation->setRight (node->get("right"));
-	operation->setResult(node->get("result"));
-	operation->setOperatorAsString("=");
-
-	node->addComponent( "operation", operation);
-
-	// Create a view component
-	node->addComponent( "view", new NodeView);
-
-	this->add(node);
-
-	return node;
-}
 
 Wire* Container::newWire()
 {

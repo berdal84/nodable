@@ -28,70 +28,27 @@ namespace Nodable{
 	* Note for later: This class and all derivate should be destroyed and replaced by an "OperatorComponent"
 	*                 using prototypes but with different serialization and parsing methods.
 	*/
-	class BinaryOperationComponent: public FunctionComponent {
+	class BinOperatorComponent: public FunctionComponent {
 	public:		
-		BinaryOperationComponent(const Language* _language) :FunctionComponent(_language) {};
-		virtual ~BinaryOperationComponent(){};
+		BinOperatorComponent(const std::string&, const FunctionPrototype, const Language*);
+		~BinOperatorComponent(){};
 		void                setLeft	 (Member* _value);
 		void                setRight (Member* _value);		
 		void                setOperatorAsString(const char* _s) { operatorAsString = _s; }
+		bool                update()override;
 		void                updateResultSourceExpression() const override;
 		std::string         getOperatorAsString()const{return operatorAsString;}
 
 	protected:
 		Member* 	left 	= nullptr;
-		Member* 	right 	= nullptr;		
-		std::string operatorAsString = "";
-		MIRROR_CLASS(BinaryOperationComponent)(
+		Member* 	right 	= nullptr;	
+		const FunctionPrototype prototype;
+		std::string operatorAsString;
+		MIRROR_CLASS(BinOperatorComponent)(
 			MIRROR_PARENT(FunctionComponent)
 		);
 	};
 
-	/* Implementation of the BinaryOperationComponent as a Sum */
-	class Add : public BinaryOperationComponent{
-	public:
-		Add(const Language* _language) :BinaryOperationComponent(_language) {};
-		bool update()override;
-		MIRROR_CLASS(Add)(
-			MIRROR_PARENT(BinaryOperationComponent)
-		);
-	};
-
-	/* Implementation of the BinaryOperationComponent as a Subtraction */
-	class Subtract : public BinaryOperationComponent{
-	public:
-		Subtract(const Language* _language) :BinaryOperationComponent(_language) {};
-		bool update()override;
-		MIRROR_CLASS(Subtract)(
-			MIRROR_PARENT(BinaryOperationComponent));
-	};
-
-	/* Implementation of the BinaryOperationComponent as a Multiplication */
-	class Multiply : public BinaryOperationComponent{
-	public:
-		Multiply(const Language* _language) :BinaryOperationComponent(_language) {};
-		bool update()override;
-		MIRROR_CLASS(Multiply)(
-			MIRROR_PARENT(BinaryOperationComponent));
-	};
-
-	/* Implementation of the BinaryOperationComponent as a Division */
-	class Divide : public BinaryOperationComponent{
-	public:
-		Divide(const Language* _language) :BinaryOperationComponent(_language) {};
-		bool update()override;
-		MIRROR_CLASS(Divide)(
-			MIRROR_PARENT(BinaryOperationComponent));
-	};
-
-	/* Implementation of the BinaryOperationComponent as an assignment */
-	class Assign : public BinaryOperationComponent{
-	public:
-		Assign(const Language* _language) :BinaryOperationComponent(_language) {};
-		bool update()override;
-		MIRROR_CLASS(Assign)(
-			MIRROR_PARENT(BinaryOperationComponent));
-	};
 
 	/**
 	  * MultipleArgFunctionComponent is a class able to eval a function (using its prototype and a language)

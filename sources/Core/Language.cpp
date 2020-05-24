@@ -11,10 +11,11 @@ FunctionArg::FunctionArg(TokenType_ _type, std::string _name) {
 	name = _name;
 }
 
-FunctionPrototype::FunctionPrototype(std::string _identifier, TokenType_ _type):
+FunctionPrototype::FunctionPrototype(std::string _identifier, TokenType_ _type, std::string _label):
 	identifier(_identifier),
 	type(_type),
-	call(NULL)
+	call(NULL),
+	label(_label)
 {
 
 }
@@ -81,6 +82,11 @@ const TokenType_ FunctionPrototype::getType() const
 	return type;
 }
 
+const std::string Nodable::FunctionPrototype::getLabel() const
+{
+	return label;
+}
+
 const Language* Language::NODABLE = nullptr;
 
 const Language* Language::Nodable() {
@@ -93,13 +99,6 @@ const Language* Language::Nodable() {
 	language->letters   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
 
 	language->numbers   = "0123456789.";
-
-	language->addOperator( Operator("=", 1u) );
-	language->addOperator( Operator("!", 5u) );
-	language->addOperator( Operator("-", 10u) );
-	language->addOperator( Operator("+", 10u) );
-	language->addOperator( Operator("/", 20u) );
-	language->addOperator( Operator("*", 20u) );
 
 	language->keywords["true"]  = TokenType_Boolean;
 	language->keywords["false"] = TokenType_Boolean;
@@ -173,6 +172,61 @@ const Language* Language::Nodable() {
 
 		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
 			_result->set( (double)*_args[0] + (double)*_args[1]);
+			return 0;
+		};
+
+		language->addToAPI(proto);
+	}
+
+	{
+		FunctionPrototype proto("operator+", TokenType_Number, "+ Add");
+		proto.pushArg(TokenType_Number);
+		proto.pushArg(TokenType_Number);
+
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+
+			if( _args[0]->getType() == Type_Number)
+				_result->set((double)*_args[0] + (double)*_args[1]);
+
+			return 0;
+		};
+
+		language->addToAPI(proto);
+	}
+	
+	{
+		FunctionPrototype proto("operator/", TokenType_Number, "/ Divide");
+		proto.pushArg(TokenType_Number);
+		proto.pushArg(TokenType_Number);
+
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set((double)*_args[0] / (double)*_args[1]);
+			return 0;
+		};
+
+		language->addToAPI(proto);
+	}
+	
+	{
+		FunctionPrototype proto("operator-", TokenType_Number, "- Subtract");
+		proto.pushArg(TokenType_Number);
+		proto.pushArg(TokenType_Number);
+
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set((double)*_args[0] - (double)*_args[1]);
+			return 0;
+		};
+
+		language->addToAPI(proto);
+	}
+	
+	{
+		FunctionPrototype proto("operator*", TokenType_Number, "x Multiply");
+		proto.pushArg(TokenType_Number);
+		proto.pushArg(TokenType_Number);
+
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			_result->set((double)*_args[0] * (double)*_args[1]);
 			return 0;
 		};
 
@@ -420,6 +474,17 @@ const Language* Language::Nodable() {
 		language->addToAPI(proto);
 	}
 
+	/*
+	  Operators :
+	*/
+
+	language->addOperator(Operator("=", 1u));
+	language->addOperator(Operator("!", 5u));
+	language->addOperator(Operator("-", 10u));
+	language->addOperator(Operator("+", 10u));
+	language->addOperator(Operator("/", 20u));
+	language->addOperator(Operator("*", 20u));
+
 	Language::NODABLE = language;
 
 	return language;
@@ -464,6 +529,20 @@ const FunctionPrototype* Nodable::Language::find(FunctionPrototype& _prototype) 
 
 	return nullptr;
 }
+
+const FunctionPrototype* Language::findOperator(const std::string& _operator) const {
+	auto predicate = [&](FunctionPrototype p) {
+		return p.getIdentifier() == "operator" + _operator;
+	};
+
+	auto it = std::find_if(api.begin(), api.end(), predicate);
+
+	if (it != api.end())
+		return &*it;
+
+	return nullptr;
+}
+
 
 void Nodable::Language::addToAPI(FunctionPrototype prototype)
 {

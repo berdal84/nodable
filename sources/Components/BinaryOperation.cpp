@@ -6,17 +6,26 @@
 
 using namespace Nodable;
 
- // BinaryOperationComponent :
-//////////////////////////
-void BinaryOperationComponent::setLeft(Member* _value){
+Nodable::BinOperatorComponent::BinOperatorComponent(
+	const std::string& _operatorAsString,
+	const FunctionPrototype _prototype,
+	const Language* _language) :
+
+	FunctionComponent(_language),
+	prototype(_prototype),
+	operatorAsString(_operatorAsString)
+{
+}
+
+void BinOperatorComponent::setLeft(Member* _value){
 	left = _value;	
 };
 
-void BinaryOperationComponent::setRight(Member* _value) {
+void BinOperatorComponent::setRight(Member* _value) {
 	right = _value;
 };
 
-void BinaryOperationComponent::updateResultSourceExpression()const
+void BinOperatorComponent::updateResultSourceExpression()const
 {
 	/*
 		Labmda funtion to check if parentheses are needed for the expression of the inputMember speficied as parameter.
@@ -27,10 +36,10 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 		{
 			auto node = _input->getOwner()->as<Node>();
 
-			if (node->hasComponent<BinaryOperationComponent>())
+			if (node->hasComponent<BinOperatorComponent>())
 			{
 
-				if (auto leftOperationComponent = node->getComponent<BinaryOperationComponent>())
+				if (auto leftOperationComponent = node->getComponent<BinOperatorComponent>())
 				{
 					auto leftOperatorString = leftOperationComponent->getOperatorAsString();
 
@@ -65,142 +74,26 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 	this->result->setSourceExpression(expr.c_str());
 }
 
- // Node_Add :
-//////////////
-
-bool Add::update()
+bool BinOperatorComponent::update()
 {
-	if (!left->isType(Type_Unknown) && !right->isType(Type_Unknown)) {
-		switch (left->getType())
-		{
-			case Type_String:
-			{
-				auto sum = (std::string) * left + (std::string) * right;
-				result->set(sum);
-				break;
-			}
 
-			case Type_Boolean:
-			{
-				auto sum = (bool)*left || (bool)*right;
-				result->set(sum);
-				break;
-			}
-
-			default:
-			case Type_Number:
-			{
-				auto sum = (double)*left + (double)*right;
-				result->set(sum);
-				break;
-			}
-		}
-	} else {
-		result->unset();
+	if (prototype.call == NULL) {
+		LOG_ERROR("Unable to find %s's nativeFunction.\n", prototype.getIdentifier().c_str());
+		return false;
 	}
 
-	updateResultSourceExpression();
+	std::vector<const Member*> args;
+	args.push_back(left);
+	args.push_back(right);
+
+	if (prototype.call(result, args))
+		LOG_ERROR("Evaluation of %s's native function failed !\n", prototype.getIdentifier().c_str());
+	else
+		this->updateResultSourceExpression();
 
 	return true;
 }
 
- // Node_Substract :
-///////////////////////
-
-bool Subtract::update()
-{
-	if (!left->isType(Type_Unknown) && !right->isType(Type_Unknown)) {
-		double sub = (double)*left - (double)*right;
-		result->set(sub);
-	}
-	else {
-		result->unset();
-	}
-
-	updateResultSourceExpression();
-
-	return true;
-}
-
- // Node_Divide :
-///////////////////////
-
-bool Divide::update()
-{
-	if (!left->isType(Type_Unknown) && !right->isType(Type_Unknown) && (double)*right != 0.0f) {
-		auto div = (double)*left / (double)*right;
-		result->set(div);
-
-	} else {
-		result->unset();
-	}
-
-	updateResultSourceExpression();
-
-	return true;
-}
-
- // Node_Multiply :
-///////////////////////
-
-bool Multiply::update()
-{
-	if (!left->isType(Type_Unknown) && !right->isType(Type_Unknown)) {
-		switch (left->getType())
-		{
-		case Type_Boolean:
-		{
-			auto mul = (bool)*left && (bool)*right;
-			result->set(mul);
-			break;
-		}
-
-		default:
-		{
-			auto mul = (double)*left * (double)*right;
-			result->set(mul);
-			break;
-		}
-		}
-	} else {
-		result->unset();
-	}
-
-	
-	updateResultSourceExpression();
-
-	return true;
-}
-
- // Node_Assign :
-///////////////////////
-
-bool Assign::update()
-{
-	switch (right->getType())
-	{
-		case Type_Number:
-		default:
-		{
-			auto v = (double)*right;
-			result->set(v);
-			left->set(v);
-			break;
-		}
-		case Type_String:
-		{
-			auto v = (std::string)*right;
-			result->set(v);
-			left->set(v);
-			break;
-		}
-
-	}
-	
-	updateResultSourceExpression();
-
-	return true;
-}
 
 MultipleArgFunctionComponent::MultipleArgFunctionComponent(FunctionPrototype _prototype, const Language* _language):
 	FunctionComponent(_language),
