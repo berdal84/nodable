@@ -229,7 +229,7 @@ Variant::operator std::string()const {
 
 	default:
 	{
-		return "NULL";
+		return "";
 	}
 	}
 }

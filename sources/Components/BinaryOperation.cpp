@@ -70,31 +70,35 @@ void BinaryOperationComponent::updateResultSourceExpression()const
 
 bool Add::update()
 {
-	switch(left->getType())
-	{
-		case Type_String:
+	if (!left->isType(Type_Unknown) && !right->isType(Type_Unknown)) {
+		switch (left->getType())
 		{
-			auto sum = (std::string)*left + (std::string)*right;
-			result->set(sum);
-			break;
+			case Type_String:
+			{
+				auto sum = (std::string) * left + (std::string) * right;
+				result->set(sum);
+				break;
+			}
+
+			case Type_Boolean:
+			{
+				auto sum = (bool)*left || (bool)*right;
+				result->set(sum);
+				break;
+			}
+
+			default:
+			case Type_Number:
+			{
+				auto sum = (double)*left + (double)*right;
+				result->set(sum);
+				break;
+			}
 		}
-
-		case Type_Boolean:
-		{
-			auto sum = (bool)*left || (bool)*right;
-			result->set(sum);
-			break;
-		}	
-
-		default:
-		case Type_Number:
-		{
-			auto sum = (double)*left + (double)*right;
-			result->set(sum);
-			break;
-		}	
+	} else {
+		result->unset();
 	}
-	
+
 	updateResultSourceExpression();
 
 	return true;
@@ -105,9 +109,14 @@ bool Add::update()
 
 bool Subtract::update()
 {
-	double sub = (double)*left - (double)*right;
-	result->set(sub);
-	
+	if (!left->isType(Type_Unknown) && !right->isType(Type_Unknown)) {
+		double sub = (double)*left - (double)*right;
+		result->set(sub);
+	}
+	else {
+		result->unset();
+	}
+
 	updateResultSourceExpression();
 
 	return true;
@@ -118,10 +127,12 @@ bool Subtract::update()
 
 bool Divide::update()
 {
-	if ( (double)*right != 0.0f)
-	{
+	if (!left->isType(Type_Unknown) && !right->isType(Type_Unknown) && (double)*right != 0.0f) {
 		auto div = (double)*left / (double)*right;
 		result->set(div);
+
+	} else {
+		result->unset();
 	}
 
 	updateResultSourceExpression();
@@ -134,14 +145,15 @@ bool Divide::update()
 
 bool Multiply::update()
 {
-	switch(left->getType())
-	{
+	if (!left->isType(Type_Unknown) && !right->isType(Type_Unknown)) {
+		switch (left->getType())
+		{
 		case Type_Boolean:
 		{
 			auto mul = (bool)*left && (bool)*right;
 			result->set(mul);
 			break;
-		}	
+		}
 
 		default:
 		{
@@ -149,7 +161,11 @@ bool Multiply::update()
 			result->set(mul);
 			break;
 		}
+		}
+	} else {
+		result->unset();
 	}
+
 	
 	updateResultSourceExpression();
 

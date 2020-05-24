@@ -67,6 +67,7 @@ namespace Nodable{
 		void                set(bool _value);
 		void                setType(Type_ _type);
 		void                setVisibility(Visibility_ _v);
+		void                unset() { data = Variant(); }
 
 		/** Get the value of the inputMember Member and set it to this Member.
 		    Warning: be sure the member has an inputMember before calling this (getInputMember()!=nullptr)*/

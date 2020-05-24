@@ -19,10 +19,10 @@ FunctionPrototype::FunctionPrototype(std::string _identifier, TokenType_ _type):
 
 }
 
-void FunctionPrototype::pushArg(TokenType_ _type) {
-
-	std::string argName = "arg_" + std::to_string(args.size());
-	args.push_back( FunctionArg(_type, argName) );
+void FunctionPrototype::pushArg(TokenType_ _type, std::string _name) {
+	if (_name == "")
+		_name = "arg_" + std::to_string(args.size());
+	args.push_back( FunctionArg(_type, _name) );
 }
 
 bool FunctionPrototype::match(FunctionPrototype& _other) {	
@@ -294,6 +294,24 @@ const Language* Language::Nodable() {
 		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
 			const auto value = pow( *_args[0], *_args[1]);
 			_result->set(value);
+			return 0;
+		};
+
+		language->addToAPI(proto);
+	}
+
+	{
+		FunctionPrototype proto("secondDegreePolynomial", TokenType_Number);
+		proto.pushArg(TokenType_Number, "a");
+		proto.pushArg(TokenType_Number, "x");
+		proto.pushArg(TokenType_Number, "b");
+		proto.pushArg(TokenType_Number, "y");
+		proto.pushArg(TokenType_Number, "c");
+		proto.call = [](Member* _result, const std::vector<const Member*>& _args)->int {
+			const auto value = (double)*_args[0] * pow((double)*_args[1], 2) *  + // ax² +
+							   (double)*_args[2] * (double)*_args[3] +            // by +
+				               (double)*_args[4];                                 // c
+			_result->set(value); 
 			return 0;
 		};
 

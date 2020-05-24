@@ -449,67 +449,60 @@ void NodeView::ArrangeRecursively(NodeView* _view)
 bool NodeView::drawMember(Member* _member) {
 
 	bool edited = false;
-	auto node = getOwner();
-
+	auto node   = getOwner();
 	auto memberTopPositionOffsetY = ImGui::GetCursorPos().y - getRoundedPosition().y;
 
-	if (_member->isSet())
+	std::string label("##");
+	label.append(_member->getName());
+
+	/* Draw the member */
+	switch (_member->getType())
 	{
-		std::string label("##");
-		label.append(_member->getName());
-
-		/* Draw the member */
-		switch (_member->getType())
+	case Type_Number:
 		{
-		case Type_Number:
+			auto f = (double)*_member;
+			if (ImGui::InputDouble(label.c_str(), &f))
 			{
-				auto f = (double)*_member;
-				if (ImGui::InputDouble(label.c_str(), &f))
-				{
-					_member->set(f);
-					node->setDirty(true);
-					edited |= true;
-				}
-				break;
-			}
-		case Type_String:
-			{				
-				char str[255];
-				sprintf_s(str, "%s", ((std::string)*_member).c_str() );
-
-				if ( ImGui::InputText(label.c_str(), str, 255) )
-				{
-					_member->set(str);
-					node->setDirty(true);
-					edited |= true;
-				}
-				break;
-			}
-		case Type_Boolean:
-		{			
-			std::string checkBoxLabel = _member->getName();
-
-			auto b = (bool)*_member;
-			if (ImGui::Checkbox( checkBoxLabel.c_str(), &b )) {				
-				_member->set(b);
+				_member->set(f);
 				node->setDirty(true);
 				edited |= true;
 			}
 			break;
 		}
-		default:
-			{
-				ImGui::Text("%s", _member->getName().c_str());
-				ImGui::SameLine(10.0f);
-				ImGui::Text("%s", ((std::string)*_member).c_str());
-				break;
-			}
-		}
+	case Type_String:
+		{				
+			char str[255];
+			sprintf_s(str, "%s", ((std::string)*_member).c_str() );
 
+			if ( ImGui::InputText(label.c_str(), str, 255) )
+			{
+				_member->set(str);
+				node->setDirty(true);
+				edited |= true;
+			}
+			break;
+		}
+	case Type_Boolean:
+	{			
+		std::string checkBoxLabel = _member->getName();
+
+		auto b = (bool)*_member;
+		if (ImGui::Checkbox( checkBoxLabel.c_str(), &b )) {				
+			_member->set(b);
+			node->setDirty(true);
+			edited |= true;
+		}
+		break;
 	}
-	else {
-		ImGui::Text("%s", _member->getName().c_str());
+	default:
+		{
+			ImGui::Text("%s", _member->getName().c_str());
+			ImGui::SameLine(0.0f, 10.0f);
+			ImGui::Text("%s", ((std::string)*_member).c_str());
+			break;
+		}
 	}
+
 
 	/* If value is hovered, we draw a tooltip that print the source expression of the value*/
 	if (ImGui::IsItemHovered())

@@ -51,7 +51,7 @@ namespace Nodable {
 	public:
 		FunctionPrototype(std::string _identifier, TokenType_ _type);
 
-		void                           pushArg(TokenType_ _type);
+		void                           pushArg(TokenType_ _type, std::string _name = "");
 		bool                           match(FunctionPrototype& _other);
 		const std::string&             getIdentifier()const;
 		const std::string              getSignature()const;
