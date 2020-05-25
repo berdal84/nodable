@@ -30,7 +30,7 @@ namespace Nodable{
 	*/
 	class BinOperatorComponent: public FunctionComponent {
 	public:		
-		BinOperatorComponent(const std::string&, const FunctionPrototype, const Language*);
+		BinOperatorComponent(const std::string&, const Operator, const Language*);
 		~BinOperatorComponent(){};
 		void                setLeft	 (Member* _value);
 		void                setRight (Member* _value);		
@@ -42,7 +42,7 @@ namespace Nodable{
 	protected:
 		Member* 	left 	= nullptr;
 		Member* 	right 	= nullptr;	
-		const FunctionPrototype prototype;
+		const Operator prototype;
 		std::string operatorAsString;
 		MIRROR_CLASS(BinOperatorComponent)(
 			MIRROR_PARENT(FunctionComponent)
@@ -55,7 +55,7 @@ namespace Nodable{
 	  */
 	class MultipleArgFunctionComponent : public FunctionComponent {
 	public:
-		MultipleArgFunctionComponent(const FunctionPrototype _prototype, const Language* _language);
+		MultipleArgFunctionComponent(const Function _prototype, const Language* _language);
 		~MultipleArgFunctionComponent() {};
 
 		void setArg(size_t _index, const Member* _value) { args[_index] = _value; };
@@ -63,7 +63,7 @@ namespace Nodable{
 		void updateResultSourceExpression() const override;		
 	protected:
 		std::vector<const Member*> args;
-		const FunctionPrototype prototype;
+		const Function prototype;
 
 		MIRROR_CLASS(MultipleArgFunctionComponent)(
 			MIRROR_PARENT(FunctionComponent)

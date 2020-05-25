@@ -12,7 +12,7 @@
 #include <algorithm>
 
 // Enable detailed logs
-#define DEBUG_PARSER
+// #define DEBUG_PARSER
 
 #ifdef DEBUG_PARSER  // macro to disable these on debug
 	#define LOG_DEBUG_PARSER(...) LOG_DEBUG(__VA_ARGS__)
@@ -676,19 +676,19 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 	localTokenId++; // eat parenthesis
 
 	// Find the prototype in the language library
-	auto matchingPrototype = language->find(prototype);
+	auto fct = language->find(prototype);
 
-	if( matchingPrototype != nullptr) { // if prototype found
+	if( fct != nullptr) { // if function found
 
 		_tokenId = localTokenId;
 		Container* context = this->getParent();
 
-		auto node = context->newFunction(*matchingPrototype);
+		auto node = context->newFunction(*fct);
 
 		auto connectArg = [&](size_t _argIndex)-> void { // lambda to connect input member to node for a specific argument index.
 
 			auto arg = argAsMember.at(_argIndex);
-			auto memberName = matchingPrototype->getArgs().at(_argIndex).name;
+			auto memberName = fct->prototype.getArgs().at(_argIndex).name;
 
 			if (arg->getOwner() == nullptr) {
 				node->set(memberName.c_str(), arg);
@@ -697,7 +697,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 			}
 		};
 
-		for( size_t argIndex = 0; argIndex < matchingPrototype->getArgs().size(); argIndex++ )
+		for( size_t argIndex = 0; argIndex < fct->prototype.getArgs().size(); argIndex++ )
 			connectArg(argIndex);
 
 		return node->get("result");

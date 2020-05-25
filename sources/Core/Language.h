@@ -6,24 +6,6 @@
 
 namespace Nodable {
 
-	/**
-
-	The Operator class store the identifier and the precedence of an operator.
-	
-	Example: "+", "-" and "*" are an identifiers
-	         0u, 1u and 2u are their respective precedence.
-	*/
-	class Operator {
-	public:
-		Operator(std::string _identifier,
-			     unsigned short _precedence) :
-			identifier(_identifier),
-			precedence(_precedence) {}
-
-		std::string identifier;
-		unsigned short precedence;
-	};
-
 	/* This enum identifies each kind of word for a language */
 	enum TokenType_
 	{
@@ -38,28 +20,27 @@ namespace Nodable {
 		TokenType_Unknown
 	};
 
+
+	
+	typedef std::function<int(Member*, const std::vector<const Member*>&)> CallableFunction;
+
 	struct FunctionArg {
 		FunctionArg(TokenType_, std::string);
 		TokenType_ type;
 		std::string name;
 	};
 
-	
-	typedef std::function<int(Member*, const std::vector<const Member*>&)> CallableFunction;
-
 	class FunctionPrototype {
 	public:
 		FunctionPrototype(std::string _identifier, TokenType_ _type, std::string _label = "");
-
+		~FunctionPrototype() {};
 		void                           pushArg(TokenType_ _type, std::string _name = "");
 		bool                           match(FunctionPrototype& _other);
-		const std::string&             getIdentifier()const;
+		const std::string& getIdentifier()const;
 		const std::string              getSignature()const;
 		const std::vector<FunctionArg> getArgs() const;
 		const TokenType_               getType() const;
 		const std::string              getLabel() const;
-
-		CallableFunction call;
 
 	private:
 		std::string label;
@@ -67,6 +48,45 @@ namespace Nodable {
 		std::vector<FunctionArg> args;
 		TokenType_ type;
 	};
+
+	class Function{
+	public:
+		Function(FunctionPrototype _prototype, CallableFunction _implementation):
+			prototype(_prototype),
+			implementation(_implementation)
+		{}
+		~Function(){}
+		CallableFunction implementation;
+		FunctionPrototype prototype;		
+	};
+
+	/**
+
+	The Operator class store the identifier and the precedence of an operator.
+
+	Example: "+", "-" and "*" are an identifiers
+			 0u, 1u and 2u are their respective precedence.
+	*/
+	class Operator {
+	public:
+		Operator(
+			std::string _identifier,
+			unsigned short _precedence,
+			FunctionPrototype _prototype,
+			CallableFunction _implementation):
+			identifier(_identifier),
+			precedence(_precedence),
+			prototype(_prototype),
+			implementation(_implementation)
+		{}
+		~Operator() {}
+
+		FunctionPrototype prototype;
+		std::string identifier;
+		unsigned short precedence;
+		CallableFunction implementation;
+	};
+	
 
 	/**
 		The Language class defines a single Language (ex: C++, Python, etc...)
@@ -82,11 +102,11 @@ namespace Nodable {
 		void                                  addOperator(Operator);
 		unsigned short                        getOperatorPrecedence(const std::string& _identifier)const;
 		std::string                           getOperatorsAsString()const;
-		const FunctionPrototype*              find(FunctionPrototype& prototype) const;
-		const FunctionPrototype*              findOperator(const std::string& _operator) const;
-		void                                  addToAPI(FunctionPrototype prototype);
+		const Function*                       find(FunctionPrototype& prototype) const;
+		const Operator*                       findOperator(const std::string& _operator) const;
+		void                                  addToAPI(Function prototype);
 		bool                                  needsToBeEvaluatedFirst(std::string op, std::string nextOp)const;
-		const std::vector<FunctionPrototype>& getAPI()const { return api; }	
+		const std::vector<Function>&          getAPI()const { return api; }
 		
 		/**
 		  * To generate the Nodable Language reference
@@ -108,7 +128,7 @@ namespace Nodable {
 		std::string name;
 		std::vector<char> brackets;
 		std::map<std::string, Operator> operators;
-		std::vector<FunctionPrototype> api;
+		std::vector<Function> api;
 	};
 
 }
