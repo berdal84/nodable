@@ -108,9 +108,16 @@ const TokenType_ Member::MemberTypeToTokenType(Type_ _type)
 
 const Type_ Nodable::Member::TokenTypeToMemberType(TokenType_ _tokenType)
 {
-	if (_tokenType == TokenType_Boolean) return Type_Boolean;
-	if (_tokenType == TokenType_Number)  return Type_Number;
-	if (_tokenType == TokenType_String)  return Type_String;
+	switch (_tokenType)
+	{
+	case TokenType_Boolean: return Type_Boolean;
+	case TokenType_Number:  return Type_Number;
+	case TokenType_String:  return Type_String;
+	default:
+		return Type_Unknown;
+		break;
+	}
+	
 
 }
 

@@ -163,11 +163,11 @@ Node* Container::newBinOp(std::string _op, const Operator& _proto)
 
 	// Create a node with 2 inputs and 1 output
 	auto node = new Node();
-	node->setLabel(_proto.prototype.getLabel());
-	const auto args = _proto.prototype.getArgs();
+	node->setLabel(_proto.signature.getLabel());
+	const auto args = _proto.signature.getArgs();
 	auto left   = node->add("left", Default, Member::TokenTypeToMemberType(args[0].type), Connection_In);
 	auto right  = node->add("right", Default, Member::TokenTypeToMemberType(args[0].type), Connection_In);
-	auto result = node->add("result", Default, Member::TokenTypeToMemberType(_proto.prototype.getType()), Connection_Out);
+	auto result = node->add("result", Default, Member::TokenTypeToMemberType(_proto.signature.getType()), Connection_Out);
 
 	// Create BinOperatorComponent component and link values.
 	auto binOp = new BinOperatorComponent(_op, _proto, language);
@@ -191,8 +191,8 @@ Node* Container::newFunction(const Function& _proto) {
 
 	// Create a node with 2 inputs and 1 output
 	auto node = new Node();
-	node->setLabel(ICON_FA_CODE " " + _proto.prototype.getIdentifier());
-	node->add("result", Default, Member::TokenTypeToMemberType(_proto.prototype.getType()), Connection_Out);
+	node->setLabel(ICON_FA_CODE " " + _proto.signature.getIdentifier());
+	node->add("result", Default, Member::TokenTypeToMemberType(_proto.signature.getType()), Connection_Out);
 
 	// Create FunctionComponent component and link values.
 	auto functionComponent = new MultipleArgFunctionComponent(_proto, language);
@@ -200,7 +200,7 @@ Node* Container::newFunction(const Function& _proto) {
 
 	// Arguments
 	unsigned int i = 0;
-	auto args = _proto.prototype.getArgs();
+	auto args = _proto.signature.getArgs();
 	for (size_t i = 0; i < args.size(); i++) {		
 		std::string memberName = args[i].name;
 		auto member = node->add( memberName.c_str(), Default, Member::TokenTypeToMemberType(args[i].type), Connection_In); // create node input

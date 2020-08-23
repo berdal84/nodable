@@ -8,11 +8,11 @@ using namespace Nodable;
 
 Nodable::BinOperatorComponent::BinOperatorComponent(
 	const std::string& _operatorAsString,
-	const Operator _prototype,
-	const Language* _language) :
+	const Operator     _operator,
+	const Language*    _language) :
 
 	FunctionComponent(_language),
-	prototype(_prototype),
+	ope(_operator),
 	operatorAsString(_operatorAsString)
 {
 }
@@ -77,8 +77,8 @@ void BinOperatorComponent::updateResultSourceExpression()const
 bool BinOperatorComponent::update()
 {
 
-	if (prototype.implementation == NULL) {
-		LOG_ERROR("Unable to find %s's nativeFunction.\n", prototype.prototype.getSignature().c_str());
+	if (ope.implementation == NULL) {
+		LOG_ERROR("Unable to find %s's nativeFunction.\n", ((std::string)ope.signature).c_str());
 		return false;
 	}
 
@@ -86,8 +86,8 @@ bool BinOperatorComponent::update()
 	args.push_back(left);
 	args.push_back(right);
 
-	if (prototype.implementation(result, args))
-		LOG_ERROR("Evaluation of %s's native function failed !\n", prototype.prototype.getSignature().c_str());
+	if (ope.implementation(result, args))
+		LOG_ERROR("Evaluation of %s's native function failed !\n", ((std::string)ope.signature).c_str());
 	else
 		this->updateResultSourceExpression();
 
@@ -95,25 +95,25 @@ bool BinOperatorComponent::update()
 }
 
 
-MultipleArgFunctionComponent::MultipleArgFunctionComponent(Function _prototype, const Language* _language):
+MultipleArgFunctionComponent::MultipleArgFunctionComponent(Function _function, const Language* _language):
 	FunctionComponent(_language),
-	prototype(_prototype)
+	function(_function)
 {
 	size_t i = 0;
-	while (args.size() < _prototype.prototype.getArgs().size())
+	while (args.size() < _function.signature.getArgs().size())
 		args.push_back(nullptr);
 }
 
 bool MultipleArgFunctionComponent::update()
 {
 
-	if (prototype.implementation == NULL) {
-		LOG_ERROR("Unable to find %s's nativeFunction.\n", prototype.prototype.getSignature().c_str());
+	if (function.implementation == NULL) {
+		LOG_ERROR("Unable to find %s's nativeFunction.\n", ((std::string)function.signature).c_str());
 		return false;
 	}
 
-	if (prototype.implementation(result, args))
-		LOG_ERROR("Evaluation of %s's native function failed !\n", prototype.prototype.getSignature().c_str());
+	if (function.implementation(result, args))
+		LOG_ERROR("Evaluation of %s's native function failed !\n", ((std::string)function.signature).c_str());
 	else
 		this->updateResultSourceExpression();
 
@@ -122,6 +122,6 @@ bool MultipleArgFunctionComponent::update()
 
 void MultipleArgFunctionComponent::updateResultSourceExpression() const
 {
-	std::string expr = language->serializeFunction(prototype.prototype, args);
+	std::string expr = language->serialize(function.signature, args);
 	this->result->setSourceExpression(expr.c_str());
 }

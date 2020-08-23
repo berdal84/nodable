@@ -212,9 +212,9 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 
 
 	// For all other binary operations :
-	} else if (auto prototype = language->findOperator(token1.word)) {
+	} else if (auto signature = language->findOperator(token1.word)) {
 
-		auto binOperation = context->newBinOp( token1.word, *prototype);
+		auto binOperation = context->newBinOp( token1.word, *signature);
 
 		// Connect the Left Operand :
 		//---------------------------
@@ -648,7 +648,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 
 	// Declare a new function prototype
 	auto identifier = tokens.at(localTokenId++).word;
-	FunctionPrototype prototype(identifier, TokenType_Unknown);
+	FunctionSignature signature(identifier, TokenType_Unknown);
 
 	localTokenId++; // eat parenthesis
 	
@@ -657,7 +657,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 
 		if (auto member = parseExpression(localTokenId)) {
 			argAsMember.push_back(member); // store argument as member (already parsed)
-			prototype.pushArg( Member::MemberTypeToTokenType(member->getType()) );  // add a new argument type to the proto.
+			signature.pushArg( Member::MemberTypeToTokenType(member->getType()) );  // add a new argument type to the proto.
 
 			if (tokens.at(localTokenId).type == TokenType_Comma)
 				localTokenId++;
@@ -676,7 +676,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 	localTokenId++; // eat parenthesis
 
 	// Find the prototype in the language library
-	auto fct = language->find(prototype);
+	auto fct = language->findFunction(signature);
 
 	if( fct != nullptr) { // if function found
 
@@ -688,7 +688,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 		auto connectArg = [&](size_t _argIndex)-> void { // lambda to connect input member to node for a specific argument index.
 
 			auto arg = argAsMember.at(_argIndex);
-			auto memberName = fct->prototype.getArgs().at(_argIndex).name;
+			auto memberName = fct->signature.getArgs().at(_argIndex).name;
 
 			if (arg->getOwner() == nullptr) {
 				node->set(memberName.c_str(), arg);
@@ -697,7 +697,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 			}
 		};
 
-		for( size_t argIndex = 0; argIndex < fct->prototype.getArgs().size(); argIndex++ )
+		for( size_t argIndex = 0; argIndex < fct->signature.getArgs().size(); argIndex++ )
 			connectArg(argIndex);
 
 		return node->get("result");
