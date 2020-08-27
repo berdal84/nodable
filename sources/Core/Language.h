@@ -23,11 +23,16 @@ namespace Nodable {
 		virtual std::string                   serialize(const FunctionSignature&, std::vector<const Member*>)const = 0;
 
 		void                                  addOperator(Operator);
+		void                                  addOperator(std::string       _identifier,
+			                                              unsigned short    _precedence,
+			                                              FunctionSignature _prototype,
+			                                              FunctionImplem  _implementation);
 		unsigned short                        getOperatorPrecedence(const std::string& _identifier)const;
 		std::string                           getOperatorsAsString()const;
 		const Function*                       findFunction(FunctionSignature& signature) const;
 		const Operator*                       findOperator(const std::string& _operator) const;
-		void                                  addToAPI(Function signature);
+		void                                  addToAPI(Function);
+		void                                  addToAPI(FunctionSignature&, FunctionImplem);
 		bool                                  needsToBeEvaluatedFirst(std::string op, std::string nextOp)const;
 		const std::vector<Function>&          getAPI()const { return api; }		
 

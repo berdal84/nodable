@@ -23,6 +23,14 @@ void Language::addOperator( Operator _operator) {
 	operators.insert(item);
 }
 
+void Language::addOperator( std::string       _identifier,
+                            unsigned short    _precedence,
+                            FunctionSignature _prototype,
+                            FunctionImplem  _implementation) {
+	Operator op(_identifier, _precedence, _prototype, _implementation);
+	addOperator(op);
+}
+
 unsigned short Language::getOperatorPrecedence(const std::string& _identifier)const {
 
 	return operators.at(_identifier).precedence;
@@ -67,7 +75,13 @@ const Operator* Language::findOperator(const std::string& _operator) const {
 }
 
 
-void Nodable::Language::addToAPI(Function signature)
+void Nodable::Language::addToAPI(Function _function)
 {
-	this->api.push_back(signature);
+	this->api.push_back(_function);
+}
+
+void Nodable::Language::addToAPI(FunctionSignature& _signature, FunctionImplem _implementation)
+{
+	Function f(_signature, _implementation);
+	this->api.push_back(f);
 }

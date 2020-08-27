@@ -25,6 +25,13 @@ std::string LanguageNodable::serialize(
 
 }
 
+#define FCT_BEGIN \
+auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
+#define FCT_RETURN( expr ) _result->set( expr );
+#define FCT_SUCCESS return 0;
+#define FCT_FAIL return 1;
+#define FCT_END FCT_SUCCESS };
+
 LanguageNodable::LanguageNodable(): Language("Nodable")
 {
 
@@ -41,42 +48,33 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		FunctionSignature signature("returnNumber", TokenType_Number);
 		signature.pushArg(TokenType_Number);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set(_args[0]);
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( _args[0] )
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
 		FunctionSignature signature("sin", TokenType_Number);
 		signature.pushArg(TokenType_Number);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set(sin(*_args[0]));
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( sin(*_args[0]) )
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
 		FunctionSignature signature("cos", TokenType_Number);
 		signature.pushArg(TokenType_Number);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set(cos(*_args[0]));
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( cos(*_args[0]) )
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
@@ -84,14 +82,11 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		signature.pushArg(TokenType_Number);
 		signature.pushArg(TokenType_Number);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set((double)*_args[0] + (double)*_args[1]);
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( (double)*_args[0] + (double)*_args[1] )
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
@@ -99,14 +94,11 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		signature.pushArg(TokenType_Number);
 		signature.pushArg(TokenType_Number);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set((double)*_args[0] - (double)*_args[1]);
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( (double)*_args[0] - (double)*_args[1] )
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
@@ -114,38 +106,33 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		signature.pushArg(TokenType_Number);
 		signature.pushArg(TokenType_Number);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set((double)*_args[0] * (double)*_args[1]);
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( (double)*_args[0] * (double)*_args[1] )
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
 		FunctionSignature signature("sqrt", TokenType_Number);
 		signature.pushArg(TokenType_Number);
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set(sqrt(*_args[0]));
-			return 0;
-		};
-		Function f(signature, implementation);
 
-		addToAPI(f);
+		FCT_BEGIN
+			FCT_RETURN( sqrt(*_args[0]) )
+		FCT_END
+
+		addToAPI(signature, implementation);
 	}
 
 	{
 		FunctionSignature signature("not", TokenType_Boolean);
 		signature.pushArg(TokenType_Boolean);
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set(!*_args[0]);
-			return 0;
-		};
-		Function f(signature, implementation);
 
-		addToAPI(f);
+		FCT_BEGIN
+			FCT_RETURN( !*_args[0] )
+		FCT_END
+
+		addToAPI(signature, implementation);
 	}
 
 	{
@@ -153,14 +140,11 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		signature.pushArg(TokenType_Boolean);
 		signature.pushArg(TokenType_Boolean);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set((bool*)_args[0] || *_args[1]);
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( (bool*)_args[0] || *_args[1] )
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
@@ -168,14 +152,11 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		signature.pushArg(TokenType_Boolean);
 		signature.pushArg(TokenType_Boolean);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set((bool)*_args[0] && *_args[1]);
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( (bool)*_args[0] && *_args[1] )
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
@@ -183,56 +164,49 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		signature.pushArg(TokenType_Boolean);
 		signature.pushArg(TokenType_Boolean);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set(
+		FCT_BEGIN
+			FCT_RETURN(
 			((bool)*_args[0] && !(bool)*_args[1]) ||
-			(!(bool)*_args[0] && (bool)*_args[1]));
-			return 0;
-		};
+			(!(bool)*_args[0] && (bool)*_args[1]) )
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
 		FunctionSignature signature("bool", TokenType_Boolean);
 		signature.pushArg(TokenType_Number);
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set((bool)*_args[0]);
-			return 0;
-		};
-		Function f(signature, implementation);
 
-		addToAPI(f);
+		FCT_BEGIN
+			FCT_RETURN( (bool)*_args[0] )
+		FCT_END
+
+		addToAPI(signature, implementation);
 	}
 
 	{
 		FunctionSignature signature("mod", TokenType_Number);
 		signature.pushArg(TokenType_Number);
 		signature.pushArg(TokenType_Number);
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set((int)*_args[0] % (int)*_args[1]);
-			return 0;
-		};
-		Function f(signature, implementation);
+		
+		FCT_BEGIN
+			FCT_RETURN( (int)*_args[0] % (int)*_args[1] )
+		FCT_END
 
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
 		FunctionSignature signature("pow", TokenType_Number);
 		signature.pushArg(TokenType_Number);
 		signature.pushArg(TokenType_Number);
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
+
+		FCT_BEGIN
 			const auto value = pow(*_args[0], *_args[1]);
-			_result->set(value);
-			return 0;
-		};
+		FCT_RETURN(value)
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
@@ -242,24 +216,22 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		signature.pushArg(TokenType_Number, "b");
 		signature.pushArg(TokenType_Number, "y");
 		signature.pushArg(TokenType_Number, "c");
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
+
+		FCT_BEGIN
 			const auto value = (double)*_args[0] * pow((double)*_args[1], 2) * + // ax² +
 				(double)*_args[2] * (double)*_args[3] +            // by +
 				(double)*_args[4];                                 // c
-			_result->set(value);
-			return 0;
-		};
+		FCT_RETURN(value)
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
 		FunctionSignature signature("DNAtoProtein", TokenType_String);
 		signature.pushArg(TokenType_String);
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
 
+		FCT_BEGIN
 			auto baseChain = (std::string) * _args[0];
 			std::string protein = "";
 
@@ -337,28 +309,24 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 					protein += found->second;
 			}
 
-			_result->set(protein);
-			return 0;
-		};
-		Function f(signature, implementation);
+			FCT_RETURN( protein )
+		FCT_END
 
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	{
 		FunctionSignature signature("time", TokenType_Number);
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
+
+		FCT_BEGIN
 			time_t rawtime;
 			struct tm* timeinfo;
 			time(&rawtime);
 			localtime_s(timeinfo, &rawtime);
-			_result->set((double)rawtime);
-			return 0;
-		};
+			FCT_RETURN( (double)rawtime )
+		FCT_END
 
-		Function f(signature, implementation);
-
-		addToAPI(f);
+		addToAPI(signature, implementation);
 	}
 
 	/*
@@ -369,17 +337,14 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		signature.pushArg(TokenType_Number);
 		signature.pushArg(TokenType_Number);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-
+		FCT_BEGIN
 			if (_args[0]->getType() == Type_Number)
-				_result->set((double)*_args[0] + (double)*_args[1]);
+				FCT_RETURN( (double)*_args[0] + (double)*_args[1])
+			else
+				FCT_FAIL
+		FCT_END
 
-			return 0;
-		};
-
-		Operator op("+", 10u, signature, implementation);
-
-		addOperator(op);
+		addOperator("+", 10u, signature, implementation);
 	}
 
 	{
@@ -387,14 +352,11 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		signature.pushArg(TokenType_Number);
 		signature.pushArg(TokenType_Number);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set((double)*_args[0] - (double)*_args[1]);
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( (double)*_args[0] - (double)*_args[1] )
+		FCT_END
 
-		Operator op("-", 10u, signature, implementation);
-
-		addOperator(op);
+		addOperator("-", 10u, signature, implementation);
 	}
 
 	{
@@ -402,14 +364,11 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		signature.pushArg(TokenType_Number);
 		signature.pushArg(TokenType_Number);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set((double)*_args[0] / (double)*_args[1]);
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( (double)*_args[0] / (double)*_args[1] )
+		FCT_END
 
-		Operator op("/", 20u, signature, implementation);
-
-		addOperator(op);
+		addOperator("/", 20u, signature, implementation);
 	}
 
 	{
@@ -417,42 +376,33 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		signature.pushArg(TokenType_Number);
 		signature.pushArg(TokenType_Number);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set((double)*_args[0] * (double)*_args[1]);
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( (double)*_args[0] * (double)*_args[1] )
+		FCT_END
 
-		Operator op("*", 20u, signature, implementation);
-
-		addOperator(op);
+		addOperator("*", 20u, signature, implementation);
 	}
 
 	{
 		FunctionSignature signature("operator!", TokenType_Boolean, "! not");
 		signature.pushArg(TokenType_Boolean);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set(!(bool)*_args[0]);
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( !(bool)*_args[0] )
+		FCT_END
 
-		Operator op("!", 5u, signature, implementation);
-
-		addOperator(op);
+		addOperator("!", 5u, signature, implementation);
 	}
 
 	{
 		FunctionSignature signature("operator=", TokenType_Number, "= assign");
 		signature.pushArg(TokenType_Number);
 
-		auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-			_result->set((double)*_args[0]);
-			return 0;
-		};
+		FCT_BEGIN
+			FCT_RETURN( (double)*_args[0])
+		FCT_END
 
-		Operator op("=", 1u, signature, implementation);
-
-		addOperator(op);
+		addOperator("=", 1u, signature, implementation);
 	}
 
 }
