@@ -1,6 +1,7 @@
 #include "LanguageNodable.h"
 #include "Member.h"
 #include <time.h>
+#include "IconsFontAwesome5.h"
 
 using namespace Nodable;
 
@@ -25,17 +26,6 @@ std::string LanguageNodable::serialize(
 
 }
 
-#define FCT_IMPL_BEGIN \
-auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
-#define FCT_RETURN( expr ) _result->set( expr );
-#define FCT_SUCCESS return 0;
-#define FCT_FAIL return 1;
-#define FCT_IMPL_END FCT_SUCCESS };
-
-#define FCT_BEGIN( identifier, returnType ) { FunctionSignature signature( identifier, returnType );
-#define FCT_PUSH_ARG( argumentType ) signature.pushArg( argumentType );
-#define FCT_DECL_END addToAPI( signature, implementation ); }
-
 LanguageNodable::LanguageNodable(): Language("Nodable")
 {
 
@@ -46,364 +36,283 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	keywords["false"] = TokenType_Boolean;
 
 
-	/* Function library */
+	////////////////////////////////
+	//
+	//  FUNCTIONS :
+	//
+	///////////////////////////////
 
+	// returnNumber(number)
 	FCT_BEGIN( "returnNumber", TokenType_Number)
-	FCT_PUSH_ARG( TokenType_Number )
-	FCT_IMPL_BEGIN
-		FCT_RETURN( _args[0] )
-	FCT_IMPL_END
-	FCT_DECL_END
-
-	{
-		FunctionSignature signature("sin", TokenType_Number);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( sin(*_args[0]) )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("cos", TokenType_Number);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( cos(*_args[0]) )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("add", TokenType_Number);
-		signature.pushArg(TokenType_Number);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( (double)*_args[0] + (double)*_args[1] )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("minus", TokenType_Number);
-		signature.pushArg(TokenType_Number);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( (double)*_args[0] - (double)*_args[1] )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("mult", TokenType_Number);
-		signature.pushArg(TokenType_Number);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( (double)*_args[0] * (double)*_args[1] )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("sqrt", TokenType_Number);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( sqrt(*_args[0]) )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("not", TokenType_Boolean);
-		signature.pushArg(TokenType_Boolean);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( !*_args[0] )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("or", TokenType_Boolean);
-		signature.pushArg(TokenType_Boolean);
-		signature.pushArg(TokenType_Boolean);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( (bool*)_args[0] || *_args[1] )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("and", TokenType_Boolean);
-		signature.pushArg(TokenType_Boolean);
-		signature.pushArg(TokenType_Boolean);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( (bool)*_args[0] && *_args[1] )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("xor", TokenType_Boolean);
-		signature.pushArg(TokenType_Boolean);
-		signature.pushArg(TokenType_Boolean);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN(
-			((bool)*_args[0] && !(bool)*_args[1]) ||
-			(!(bool)*_args[0] && (bool)*_args[1]) )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("bool", TokenType_Boolean);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( (bool)*_args[0] )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("mod", TokenType_Number);
-		signature.pushArg(TokenType_Number);
-		signature.pushArg(TokenType_Number);
-		
-		FCT_IMPL_BEGIN
-			FCT_RETURN( (int)*_args[0] % (int)*_args[1] )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("pow", TokenType_Number);
-		signature.pushArg(TokenType_Number);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			const auto value = pow(*_args[0], *_args[1]);
-		FCT_RETURN(value)
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("secondDegreePolynomial", TokenType_Number);
-		signature.pushArg(TokenType_Number, "a");
-		signature.pushArg(TokenType_Number, "x");
-		signature.pushArg(TokenType_Number, "b");
-		signature.pushArg(TokenType_Number, "y");
-		signature.pushArg(TokenType_Number, "c");
-
-		FCT_IMPL_BEGIN
-			const auto value = (double)*_args[0] * pow((double)*_args[1], 2) * + // ax² +
-				(double)*_args[2] * (double)*_args[3] +            // by +
-				(double)*_args[4];                                 // c
-		FCT_RETURN(value)
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("DNAtoProtein", TokenType_String);
-		signature.pushArg(TokenType_String);
-
-		FCT_IMPL_BEGIN
-			auto baseChain = (std::string) * _args[0];
-			std::string protein = "";
-
-			std::map<std::string, char> table;
-			{
-				table["ATA"] = 'I'; // A__
-				table["ATC"] = 'I';
-				table["ATT"] = 'I';
-				table["ATG"] = 'M'; // (aka Start)
-				table["ACA"] = 'T';
-				table["ACC"] = 'T';
-				table["ACG"] = 'T';
-				table["ACT"] = 'T';
-				table["AAC"] = 'N';
-				table["AAT"] = 'N';
-				table["AAA"] = 'K';
-				table["AAG"] = 'K';
-				table["AGC"] = 'S';
-				table["AGT"] = 'S';
-				table["AGA"] = 'R';
-				table["AGG"] = 'R';
-				table["CTA"] = 'L'; // C__
-				table["CTC"] = 'L';
-				table["CTG"] = 'L';
-				table["CTT"] = 'L';
-				table["CCA"] = 'P';
-				table["CCC"] = 'P';
-				table["CCG"] = 'P';
-				table["CCT"] = 'P';
-				table["CAC"] = 'H';
-				table["CAT"] = 'H';
-				table["CAA"] = 'Q';
-				table["CAG"] = 'Q';
-				table["CGA"] = 'R';
-				table["CGC"] = 'R';
-				table["CGG"] = 'R';
-				table["CGT"] = 'R';
-				table["GTA"] = 'V'; // G__
-				table["GTC"] = 'V';
-				table["GTG"] = 'V';
-				table["GTT"] = 'V';
-				table["GCA"] = 'A';
-				table["GCC"] = 'A';
-				table["GCG"] = 'A';
-				table["GCT"] = 'A';
-				table["GAC"] = 'D';
-				table["GAT"] = 'D';
-				table["GAA"] = 'E';
-				table["GAG"] = 'E';
-				table["GGA"] = 'G';
-				table["GGC"] = 'G';
-				table["GGG"] = 'G';
-				table["GGT"] = 'G';
-				table["TCA"] = 'S'; // T__
-				table["TCC"] = 'S';
-				table["TCG"] = 'S';
-				table["TCT"] = 'S';
-				table["TTC"] = 'F';
-				table["TTT"] = 'F';
-				table["TTA"] = 'L';
-				table["TTG"] = 'L';
-				table["TAC"] = 'Y';
-				table["TAT"] = 'Y';
-				table["TAA"] = '_'; // (aka Stop)
-				table["TAG"] = '_'; // (aka Stop)
-				table["TGC"] = 'C';
-				table["TGT"] = 'C';
-				table["TGA"] = '_'; // (aka Stop)
-				table["TGG"] = 'W';
-			}
-
-			for (size_t i = 0; i < baseChain.size() / 3; i++) {
-				auto found = table.find(baseChain.substr(i, 3));
-				if (found != table.end())
-					protein += found->second;
-			}
-
-			FCT_RETURN( protein )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("time", TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			time_t rawtime;
-			struct tm* timeinfo;
-			time(&rawtime);
-			localtime_s(timeinfo, &rawtime);
-			FCT_RETURN( (double)rawtime )
-		FCT_IMPL_END
-
-		addToAPI(signature, implementation);
-	}
-
-	/*
-	  Operators :
-	*/
-	{
-		FunctionSignature signature("operator+", TokenType_Number, "+ Add");
-		signature.pushArg(TokenType_Number);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			if (_args[0]->getType() == Type_Number)
-				FCT_RETURN( (double)*_args[0] + (double)*_args[1])
-			else
-				FCT_FAIL
-		FCT_IMPL_END
-
-		addOperator("+", 10u, signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("operator-", TokenType_Number, "- Subtract");
-		signature.pushArg(TokenType_Number);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( (double)*_args[0] - (double)*_args[1] )
-		FCT_IMPL_END
-
-		addOperator("-", 10u, signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("operator/", TokenType_Number, "/ Divide");
-		signature.pushArg(TokenType_Number);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( (double)*_args[0] / (double)*_args[1] )
-		FCT_IMPL_END
-
-		addOperator("/", 20u, signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("operator*", TokenType_Number, "x Multiply");
-		signature.pushArg(TokenType_Number);
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( (double)*_args[0] * (double)*_args[1] )
-		FCT_IMPL_END
-
-		addOperator("*", 20u, signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("operator!", TokenType_Boolean, "! not");
-		signature.pushArg(TokenType_Boolean);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( !(bool)*_args[0] )
-		FCT_IMPL_END
-
-		addOperator("!", 5u, signature, implementation);
-	}
-
-	{
-		FunctionSignature signature("operator=", TokenType_Number, "= assign");
-		signature.pushArg(TokenType_Number);
-
-		FCT_IMPL_BEGIN
-			FCT_RETURN( (double)*_args[0])
-		FCT_IMPL_END
-
-		addOperator("=", 1u, signature, implementation);
-	}
-
+	PUSH_ARG( TokenType_Number )
+	BEGIN_IMPL
+		RETURN( _args[0] )
+	FCT_END
+
+	// sin(number)
+	FCT_BEGIN("sin", TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( sin(*_args[0]) )
+	FCT_END
+
+	// cos(number)
+	FCT_BEGIN("cos", TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( cos(*_args[0]) )
+	FCT_END
+
+	// add(number)
+	FCT_BEGIN("add", TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN((double)*_args[0] + (double)*_args[1])
+	FCT_END
+
+	// minus(number)
+	FCT_BEGIN("minus", TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( (double)*_args[0] - (double)*_args[1] )
+	FCT_END
+
+	// mult(number)
+	FCT_BEGIN("mult", TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( (double)*_args[0] * (double)*_args[1] )
+	FCT_END
+
+	// sqrt(number)
+	FCT_BEGIN("sqrt", TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( sqrt(*_args[0]) )
+	FCT_END
+
+	// not(boolean)
+	FCT_BEGIN("not", TokenType_Boolean)
+	PUSH_ARG(TokenType_Boolean)
+	BEGIN_IMPL
+		RETURN( !*_args[0] )
+	FCT_END
+
+	// or(boolean, boolean)
+	FCT_BEGIN("or", TokenType_Boolean)
+	PUSH_ARG(TokenType_Boolean)
+	PUSH_ARG(TokenType_Boolean)
+	BEGIN_IMPL
+		RETURN( (bool*)_args[0] || *_args[1] )
+	FCT_END
+	
+	// and(boolean, boolean)
+	FCT_BEGIN("and", TokenType_Boolean)
+	PUSH_ARG(TokenType_Boolean)
+	PUSH_ARG(TokenType_Boolean)
+	BEGIN_IMPL
+		RETURN( (bool)*_args[0] && *_args[1] )
+	FCT_END
+
+	// xor(boolean, boolean)
+	FCT_BEGIN("xor", TokenType_Boolean)
+	PUSH_ARG(TokenType_Boolean)
+	PUSH_ARG(TokenType_Boolean)
+	BEGIN_IMPL
+		RETURN(
+		((bool)*_args[0] && !(bool)*_args[1]) ||
+		(!(bool)*_args[0] && (bool)*_args[1]) )
+	FCT_END
+	
+	// bool(number)
+	FCT_BEGIN("bool", TokenType_Boolean)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( (bool)*_args[0] )
+	FCT_END
+
+	// mod(number, number)
+	FCT_BEGIN("mod", TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( (int)*_args[0] % (int)*_args[1] )
+	FCT_END
+
+	// pow(number)
+	FCT_BEGIN("pow", TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( pow(*_args[0], *_args[1]) )
+	FCT_END
+	
+	// secondDegreePolynomial(a: number, x: number, b:number, y:number, c:number)
+	FCT_BEGIN("secondDegreePolynomial", TokenType_Number)
+	PUSH_ARG(TokenType_Number, "a")
+	PUSH_ARG(TokenType_Number, "x")
+	PUSH_ARG(TokenType_Number, "b")
+	PUSH_ARG(TokenType_Number, "y")
+	PUSH_ARG(TokenType_Number, "c")
+	BEGIN_IMPL
+		const auto value = (double)*_args[0] * pow((double)*_args[1], 2) * + // ax² +
+			(double)*_args[2] * (double)*_args[3] +            // by +
+			(double)*_args[4];                                 // c
+	RETURN(value)
+	FCT_END
+
+	// DNAtoProtein(string)
+	FCT_BEGIN("DNAtoProtein", TokenType_String)
+	PUSH_ARG(TokenType_String)
+	BEGIN_IMPL
+		auto baseChain = (std::string) * _args[0];
+		std::string protein = "";
+
+		std::map<std::string, char> table;
+		{
+			table["ATA"] = 'I'; // A__
+			table["ATC"] = 'I';
+			table["ATT"] = 'I';
+			table["ATG"] = 'M'; // (aka Start)
+			table["ACA"] = 'T';
+			table["ACC"] = 'T';
+			table["ACG"] = 'T';
+			table["ACT"] = 'T';
+			table["AAC"] = 'N';
+			table["AAT"] = 'N';
+			table["AAA"] = 'K';
+			table["AAG"] = 'K';
+			table["AGC"] = 'S';
+			table["AGT"] = 'S';
+			table["AGA"] = 'R';
+			table["AGG"] = 'R';
+			table["CTA"] = 'L'; // C__
+			table["CTC"] = 'L';
+			table["CTG"] = 'L';
+			table["CTT"] = 'L';
+			table["CCA"] = 'P';
+			table["CCC"] = 'P';
+			table["CCG"] = 'P';
+			table["CCT"] = 'P';
+			table["CAC"] = 'H';
+			table["CAT"] = 'H';
+			table["CAA"] = 'Q';
+			table["CAG"] = 'Q';
+			table["CGA"] = 'R';
+			table["CGC"] = 'R';
+			table["CGG"] = 'R';
+			table["CGT"] = 'R';
+			table["GTA"] = 'V'; // G__
+			table["GTC"] = 'V';
+			table["GTG"] = 'V';
+			table["GTT"] = 'V';
+			table["GCA"] = 'A';
+			table["GCC"] = 'A';
+			table["GCG"] = 'A';
+			table["GCT"] = 'A';
+			table["GAC"] = 'D';
+			table["GAT"] = 'D';
+			table["GAA"] = 'E';
+			table["GAG"] = 'E';
+			table["GGA"] = 'G';
+			table["GGC"] = 'G';
+			table["GGG"] = 'G';
+			table["GGT"] = 'G';
+			table["TCA"] = 'S'; // T__
+			table["TCC"] = 'S';
+			table["TCG"] = 'S';
+			table["TCT"] = 'S';
+			table["TTC"] = 'F';
+			table["TTT"] = 'F';
+			table["TTA"] = 'L';
+			table["TTG"] = 'L';
+			table["TAC"] = 'Y';
+			table["TAT"] = 'Y';
+			table["TAA"] = '_'; // (aka Stop)
+			table["TAG"] = '_'; // (aka Stop)
+			table["TGC"] = 'C';
+			table["TGT"] = 'C';
+			table["TGA"] = '_'; // (aka Stop)
+			table["TGG"] = 'W';
+		}
+
+		for (size_t i = 0; i < baseChain.size() / 3; i++) {
+			auto found = table.find(baseChain.substr(i, 3));
+			if (found != table.end())
+				protein += found->second;
+		}
+
+		RETURN( protein )
+	FCT_END
+	
+
+	// time()
+	FCT_BEGIN("time", TokenType_Number)
+	BEGIN_IMPL
+		time_t rawtime;
+		struct tm* timeinfo;
+		time(&rawtime);
+		localtime_s(timeinfo, &rawtime);
+		RETURN( (double)rawtime )
+	FCT_END
+	
+
+	////////////////////////////////
+	//
+	//  OPERATORS :
+	//
+	///////////////////////////////
+
+	// operator+(number, number)
+	OPERATOR_BEGIN("+", 10u, TokenType_Number, ICON_FA_PLUS " Add")
+	PUSH_ARG(TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		if (_args[0]->getType() == Type_Number)
+			RETURN( (double)*_args[0] + (double)*_args[1])
+		else
+			FAIL
+	OPERATOR_END
+	
+	// operator-(number, number)	
+	OPERATOR_BEGIN("-", 10u, TokenType_Number, ICON_FA_MINUS " Subtract")
+	PUSH_ARG(TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( (double)*_args[0] - (double)*_args[1] )
+	OPERATOR_END
+	
+	// operator/(number, number)
+	OPERATOR_BEGIN("/", 20u, TokenType_Number, ICON_FA_DIVIDE " Divide");
+	PUSH_ARG(TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( (double)*_args[0] / (double)*_args[1] )
+	OPERATOR_END
+	
+
+	// operator*(number, number)
+	OPERATOR_BEGIN("*", 20u, TokenType_Number, ICON_FA_TIMES " Multiply")
+	PUSH_ARG(TokenType_Number)
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( (double)*_args[0] * (double)*_args[1] )
+	OPERATOR_END
+
+	// operator!(boolean)
+	OPERATOR_BEGIN("!", 5u, TokenType_Boolean, "! not");
+	PUSH_ARG(TokenType_Boolean)
+	BEGIN_IMPL
+		RETURN( !(bool)*_args[0] )
+	OPERATOR_END
+
+	// operator=(number)
+	OPERATOR_BEGIN("=", 1u, TokenType_Number, ICON_FA_EQUALS " Assign");
+	PUSH_ARG(TokenType_Number)
+	BEGIN_IMPL
+		RETURN( (double)*_args[0])
+	OPERATOR_END
 }
-

@@ -7,6 +7,41 @@
 #include <map>
 #include <functional>
 
+// Some Macros to easily create function and add them to the Language.api
+#define OPERATOR_BEGIN( _identifier, _precedence, _returnType, _label )\
+{\
+	auto precedence = _precedence; \
+	auto identifier = std::string(_identifier); \
+	FunctionSignature signature( std::string("operator") + _identifier, _returnType, _label );
+
+#define FCT_BEGIN( identifier, returnType )\
+{\
+	FunctionSignature signature( identifier, returnType );
+
+#define PUSH_ARG( _type ) \
+	signature.pushArg(_type);
+
+#define BEGIN_IMPL\
+	auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
+
+#define RETURN( expr )\
+	_result->set( expr );
+
+#define SUCCESS return 0;
+#define FAIL return 1;
+#define END_IMPL SUCCESS\
+	};
+
+#define FCT_END \
+	END_IMPL \
+	addToAPI( signature, implementation );\
+}
+
+#define OPERATOR_END \
+	END_IMPL \
+	addOperator(identifier, precedence, signature, implementation);\
+}
+
 namespace Nodable {
 
 
