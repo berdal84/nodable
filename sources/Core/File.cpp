@@ -56,7 +56,7 @@ Nodable::File::File(
 		auto lambda = [container, proto]()->Node* {
 			return container->newFunction(proto);
 		};
-		containerView->addContextualMenuItem( ICON_FA_CODE " " + (std::string)(*it).signature, lambda);
+		containerView->addContextualMenuItem( ICON_FA_CODE " " + language->serialize((*it).signature), lambda);
 	}
 
 }

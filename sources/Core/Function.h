@@ -47,7 +47,7 @@ namespace Nodable {
 		const std::vector<FunctionArg> getArgs() const;
 		const TokenType               getType() const;
 		const std::string              getLabel() const;
-		operator std::string() const;
+
 	private:
 		std::string label;
 		std::string identifier;

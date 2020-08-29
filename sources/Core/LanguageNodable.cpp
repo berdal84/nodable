@@ -26,6 +26,40 @@ std::string LanguageNodable::serialize(
 
 }
 
+std::string LanguageNodable::serialize(const FunctionSignature& _signature) const {
+
+	std::string result = _signature.getIdentifier() + "(";
+	auto args = _signature.getArgs();
+
+	for (auto it = args.begin(); it != args.end(); it++) {
+
+		if (it != args.begin())
+			result.append(", ");
+
+		result.append( serialize( (*it).type) );
+
+	}
+
+	result.append(")");
+
+	return result;
+
+}
+
+std::string LanguageNodable::serialize(const TokenType& _type) const {
+	switch (_type)
+	{
+	case TokenType::Str:      return "string";
+	case TokenType::Double:   return "number";
+	case TokenType::Symbol:	  return "symbol";
+	case TokenType::Operator: return "operator";
+	case TokenType::Bool:     return "bool";
+	case TokenType::Bracket:  return "()";
+	case TokenType::Comma:    return ",";
+	default:                  return "?";
+	}
+}
+
 LanguageNodable::LanguageNodable(): Language("Nodable")
 {
 

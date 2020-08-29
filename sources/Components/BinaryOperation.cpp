@@ -78,7 +78,7 @@ bool BinOperatorComponent::update()
 {
 
 	if (ope.implementation == NULL) {
-		LOG_ERROR("Unable to find %s's nativeFunction.\n", ((std::string)ope.signature).c_str());
+		LOG_ERROR("Unable to find %s's nativeFunction.\n", language->serialize(ope.signature).c_str());
 		return false;
 	}
 
@@ -87,7 +87,7 @@ bool BinOperatorComponent::update()
 	args.push_back(right);
 
 	if (ope.implementation(result, args))
-		LOG_ERROR("Evaluation of %s's native function failed !\n", ((std::string)ope.signature).c_str());
+		LOG_ERROR("Evaluation of %s's native function failed !\n", language->serialize(ope.signature).c_str());
 	else
 		this->updateResultSourceExpression();
 
@@ -108,12 +108,12 @@ bool MultipleArgFunctionComponent::update()
 {
 
 	if (function.implementation == NULL) {
-		LOG_ERROR("Unable to find %s's nativeFunction.\n", ((std::string)function.signature).c_str());
+		LOG_ERROR("Unable to find %s's nativeFunction.\n", language->serialize(function.signature).c_str());
 		return false;
 	}
 
 	if (function.implementation(result, args))
-		LOG_ERROR("Evaluation of %s's native function failed !\n", ((std::string)function.signature).c_str());
+		LOG_ERROR("Evaluation of %s's native function failed !\n", language->serialize(function.signature).c_str());
 	else
 		this->updateResultSourceExpression();
 

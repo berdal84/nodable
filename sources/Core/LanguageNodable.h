@@ -8,7 +8,9 @@ namespace Nodable {
 		LanguageNodable();
 
 		// Inherited via Language
-		virtual std::string serialize(const FunctionSignature&, std::vector<const Member*>) const override;
+		virtual std::string serialize(const FunctionSignature&, std::vector<const Member*>) const;
+		virtual std::string serialize(const FunctionSignature&) const;
+		virtual std::string serialize(const TokenType&) const;
 	};
 }
 

@@ -42,31 +42,6 @@ const std::string& FunctionSignature::getIdentifier()const
 	return this->identifier;
 }
 
-FunctionSignature::operator std::string() const
-{
-	std::string result = identifier + "(";
-
-	for (auto it = args.begin(); it != args.end(); it++) {
-
-		if (it != args.begin())
-			result.append(", ");
-
-		if ((*it).type == TokenType::Double)
-			result.append("num");
-		else if ((*it).type == TokenType::Str)
-			result.append("str");
-		else if ((*it).type == TokenType::Bool)
-			result.append("bool");
-		else
-			result.append("?");
-
-	}
-
-	result.append(")");
-
-	return result;
-}
-
 const std::vector<FunctionArg> FunctionSignature::getArgs() const
 {
 	return this->args;

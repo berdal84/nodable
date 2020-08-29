@@ -57,6 +57,8 @@ namespace Nodable {
 		~Language() {};
 
 		virtual std::string                   serialize(const FunctionSignature&, std::vector<const Member*>)const = 0;
+		virtual std::string                   serialize(const FunctionSignature&)const = 0;
+		virtual std::string                   serialize(const TokenType&)const = 0;
 
 		void                                  addOperator(Operator);
 		void                                  addOperator(std::string       _identifier,
@@ -71,6 +73,7 @@ namespace Nodable {
 		void                                  addToAPI(FunctionSignature&, FunctionImplem);
 		bool                                  needsToBeEvaluatedFirst(std::string op, std::string nextOp)const;
 		const std::vector<Function>&          getAPI()const { return api; }		
+		
 
 		/**
 		  * To generate the Nodable Language reference
