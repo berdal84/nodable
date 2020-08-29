@@ -3,6 +3,8 @@
 #include "Nodable.h"
 #include "LanguageEnums.h"
 #include <functional>
+#include <tuple>
+#include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 
 namespace Nodable {
 
@@ -34,6 +36,12 @@ namespace Nodable {
 		FunctionSignature(std::string _identifier, TokenType_ _type, std::string _label = "");
 		~FunctionSignature() {};
 		void                           pushArg(TokenType_ _type, std::string _name = "");
+
+		template <typename... TokenType_>
+		void pushArgs(TokenType_&&... args) {
+			int dummy[] = { 0, ((void)pushArg(std::forward<TokenType_>(args)),0)... };
+		}
+
 		bool                           match(FunctionSignature& _other);
 		const std::string&             getIdentifier()const;
 		const std::vector<FunctionArg> getArgs() const;
@@ -45,7 +53,17 @@ namespace Nodable {
 		std::string identifier;
 		std::vector<FunctionArg> args;
 		TokenType_ type;
+
+	public:
+		template<typename R = TokenType_, typename... TokenType_>
+		static FunctionSignature Create(R _type, std::string _identifier, TokenType_&& ..._args) {
+			FunctionSignature signature(_identifier, _type);
+			signature.pushArgs(_args...);
+			return signature;
+		}
 	};
+
+	
 
 	/*
 	 * This class links a function signature with an implementation. 

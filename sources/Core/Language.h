@@ -6,21 +6,9 @@
 #include "LanguageEnums.h"
 #include <map>
 #include <functional>
+#include <tuple>
 
 // Some Macros to easily create function and add them to the Language.api
-#define OPERATOR_BEGIN( _identifier, _precedence, _returnType, _label )\
-{\
-	auto precedence = _precedence; \
-	auto identifier = std::string(_identifier); \
-	FunctionSignature signature( std::string("operator") + _identifier, _returnType, _label );
-
-#define FCT_BEGIN( identifier, returnType )\
-{\
-	FunctionSignature signature( identifier, returnType );
-
-#define PUSH_ARG( _type ) \
-	signature.pushArg(_type);
-
 #define BEGIN_IMPL\
 	auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
 
@@ -31,6 +19,19 @@
 #define FAIL return 1;
 #define END_IMPL SUCCESS\
 	};
+
+#define OPERATOR_BEGIN( _ltype, _identifier, _rtype, _precedence, _type, _label )\
+{\
+	auto precedence = _precedence; \
+	auto identifier = std::string(_identifier); \
+	FunctionSignature signature( std::string("operator") + _identifier, _type, _label ); \
+	signature.pushArgs(_ltype, _rtype); \
+	BEGIN_IMPL
+
+#define FCT_BEGIN( _type, _identifier, ... ) \
+{ \
+	auto signature = FunctionSignature::Create( _type, _identifier, __VA_ARGS__); \
+	BEGIN_IMPL
 
 #define FCT_END \
 	END_IMPL \
@@ -77,6 +78,7 @@ namespace Nodable {
 		  * ex: static const Language* TypeScript();
 		  */
 		static const Language* Nodable();
+
 
 	private:
 		/* Some language reference constants*/
