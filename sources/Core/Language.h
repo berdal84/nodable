@@ -87,7 +87,7 @@ namespace Nodable {
 	public:
 		std::string numbers;
 		std::string letters;
-		std::map<std::string, TokenType_> keywords;
+		std::map<std::string, TokenType> keywords;
 	private:
 		std::string name;
 		std::vector<char> brackets;

@@ -2,12 +2,12 @@
 
 using namespace Nodable;
 
-FunctionArg::FunctionArg(TokenType_ _type, std::string _name) {
+FunctionArg::FunctionArg(TokenType _type, std::string _name) {
 	type = _type;
 	name = _name;
 }
 
-FunctionSignature::FunctionSignature(std::string _identifier, TokenType_ _type, std::string _label) :
+FunctionSignature::FunctionSignature(std::string _identifier, TokenType _type, std::string _label) :
 	identifier(_identifier),
 	type(_type),
 	label(_label)
@@ -15,7 +15,7 @@ FunctionSignature::FunctionSignature(std::string _identifier, TokenType_ _type, 
 
 }
 
-void FunctionSignature::pushArg(TokenType_ _type, std::string _name) {
+void FunctionSignature::pushArg(TokenType _type, std::string _name) {
 	if (_name == "")
 		_name = "arg_" + std::to_string(args.size());
 	args.push_back(FunctionArg(_type, _name));
@@ -51,11 +51,11 @@ FunctionSignature::operator std::string() const
 		if (it != args.begin())
 			result.append(", ");
 
-		if ((*it).type == TokenType_Number)
+		if ((*it).type == TokenType::Double)
 			result.append("num");
-		else if ((*it).type == TokenType_String)
+		else if ((*it).type == TokenType::Str)
 			result.append("str");
-		else if ((*it).type == TokenType_Boolean)
+		else if ((*it).type == TokenType::Bool)
 			result.append("bool");
 		else
 			result.append("?");
@@ -72,7 +72,7 @@ const std::vector<FunctionArg> FunctionSignature::getArgs() const
 	return this->args;
 }
 
-const TokenType_ FunctionSignature::getType() const
+const TokenType FunctionSignature::getType() const
 {
 	return type;
 }

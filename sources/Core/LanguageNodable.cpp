@@ -32,8 +32,8 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
     numbers = "0123456789.";
 
-	keywords["true"]  = TokenType_Boolean;
-	keywords["false"] = TokenType_Boolean;
+	keywords["true"]  = TokenType::Bool;
+	keywords["false"] = TokenType::Bool;
 
 
 	////////////////////////////////
@@ -43,79 +43,79 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	///////////////////////////////
 
 	// returnNumber(number)
-	FCT_BEGIN( TokenType_Number, "returnNumber", TokenType_Number)
+	FCT_BEGIN(TokenType::Double, "returnNumber", TokenType::Double)
 		RETURN( _args[0] )
 	FCT_END
 
 	// sin(number)
-	FCT_BEGIN(TokenType_Number, "sin", TokenType_Number)
+	FCT_BEGIN(TokenType::Double, "sin", TokenType::Double)
 		RETURN( sin(*_args[0]) )
 	FCT_END
 
 	// cos(number)
-	FCT_BEGIN(TokenType_Number, "cos", TokenType_Number)
+	FCT_BEGIN(TokenType::Double, "cos", TokenType::Double)
 		RETURN( cos(*_args[0]) )
 	FCT_END
 
 	// add(number)
-	FCT_BEGIN(TokenType_Number, "add", TokenType_Number, TokenType_Number)	
+	FCT_BEGIN(TokenType::Double, "add", TokenType::Double, TokenType::Double)
 		RETURN((double)*_args[0] + (double)*_args[1])
 	FCT_END
 
 	// minus(number)
-	FCT_BEGIN(TokenType_Number, "minus", TokenType_Number, TokenType_Number)
+	FCT_BEGIN(TokenType::Double, "minus", TokenType::Double, TokenType::Double)
 		RETURN( (double)*_args[0] - (double)*_args[1] )
 	FCT_END
 
 	// mult(number)
-	FCT_BEGIN(TokenType_Number, "mult", TokenType_Number, TokenType_Number)
+	FCT_BEGIN(TokenType::Double, "mult", TokenType::Double, TokenType::Double)
 		RETURN( (double)*_args[0] * (double)*_args[1] )
 	FCT_END
 
 	// sqrt(number)
-	FCT_BEGIN(TokenType_Number, "sqrt", TokenType_Number)
+	FCT_BEGIN(TokenType::Double, "sqrt", TokenType::Double)
 		RETURN( sqrt(*_args[0]) )
 	FCT_END
 
 	// not(boolean)
-	FCT_BEGIN(TokenType_Boolean, "not", TokenType_Boolean)
+	FCT_BEGIN(TokenType::Bool, "not", TokenType::Bool)
 		RETURN( !*_args[0] )
 	FCT_END
 
 	// or(boolean, boolean)
-	FCT_BEGIN(TokenType_Boolean, "or", TokenType_Boolean, TokenType_Boolean)
+	FCT_BEGIN(TokenType::Bool, "or", TokenType::Bool, TokenType::Bool)
 		RETURN( (bool*)_args[0] || *_args[1] )
 	FCT_END
 	
 	// and(boolean, boolean)
-	FCT_BEGIN(TokenType_Boolean, "and", TokenType_Boolean, TokenType_Boolean)
+	FCT_BEGIN(TokenType::Bool, "and", TokenType::Bool, TokenType::Bool)
 		RETURN( (bool)*_args[0] && *_args[1] )
 	FCT_END
 
 	// xor(boolean, boolean)
-	FCT_BEGIN(TokenType_Boolean, "xor", TokenType_Boolean, TokenType_Boolean)
+	FCT_BEGIN(TokenType::Bool, "xor", TokenType::Bool, TokenType::Bool)
 		RETURN(
 		((bool)*_args[0] && !(bool)*_args[1]) ||
 		(!(bool)*_args[0] && (bool)*_args[1]) )
 	FCT_END
 	
 	// bool(number)
-	FCT_BEGIN(TokenType_Boolean, "bool", TokenType_Number)
+	FCT_BEGIN(TokenType::Bool, "bool", TokenType::Double)
 		RETURN( (bool)*_args[0] )
 	FCT_END
 
 	// mod(number, number)
-	FCT_BEGIN(TokenType_Number, "mod", TokenType_Number, TokenType_Number)
+	FCT_BEGIN(TokenType::Double, "mod", TokenType::Double, TokenType::Double)
 		RETURN( (int)*_args[0] % (int)*_args[1] )
 	FCT_END
 
 	// pow(number)
-	FCT_BEGIN(TokenType_Number, "pow", TokenType_Number, TokenType_Number)
+	FCT_BEGIN(TokenType::Double, "pow", TokenType::Double, TokenType::Double)
 		RETURN( pow(*_args[0], *_args[1]) )
 	FCT_END
 	
 	// secondDegreePolynomial(a: number, x: number, b:number, y:number, c:number)
-	FCT_BEGIN(TokenType_Number, "secondDegreePolynomial", TokenType_Number, TokenType_Number, TokenType_Number, TokenType_Number, TokenType_Number)
+	FCT_BEGIN(TokenType::Double, "secondDegreePolynomial", TokenType::Double, TokenType::Double, TokenType::Double, TokenType::Double, TokenType::Double)
 		const auto value = 
 			(double)*_args[0] * pow((double)*_args[1], 2) * +  // ax² +
 			(double)*_args[2] * (double)*_args[3] +            // by +
@@ -124,7 +124,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	FCT_END
 
 	// DNAtoProtein(string)
-	FCT_BEGIN(TokenType_String, "DNAtoProtein", TokenType_String)
+	FCT_BEGIN(TokenType::Str, "DNAtoProtein", TokenType::Str)
 		auto baseChain = (std::string) * _args[0];
 		std::string protein = "";
 
@@ -207,7 +207,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	
 
 	// time()
-	FCT_BEGIN(TokenType_Number, "time")
+	FCT_BEGIN(TokenType::Double, "time")
 		time_t rawtime;
 		struct tm* timeinfo;
 		time(&rawtime);
@@ -223,7 +223,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	///////////////////////////////
 
 	// operator+(number, number)
-	OPERATOR_BEGIN(TokenType_Number, "+", TokenType_Number, 10u, TokenType_Number, ICON_FA_PLUS " Add")
+	OPERATOR_BEGIN(TokenType::Double, "+", TokenType::Double, 10u, TokenType::Double, ICON_FA_PLUS " Add")
 		if (_args[0]->getType() == Type_Number)
 			RETURN( (double)*_args[0] + (double)*_args[1])
 		else
@@ -231,28 +231,28 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	OPERATOR_END
 	
 	// operator-(number, number)	
-	OPERATOR_BEGIN(TokenType_Number, "-", TokenType_Number, 10u, TokenType_Number, ICON_FA_MINUS " Subtract")
+	OPERATOR_BEGIN(TokenType::Double, "-", TokenType::Double, 10u, TokenType::Double, ICON_FA_MINUS " Subtract")
 		RETURN( (double)*_args[0] - (double)*_args[1] )
 	OPERATOR_END
 	
 	// operator/(number, number)
-	OPERATOR_BEGIN(TokenType_Number, "/", TokenType_Number, 20u, TokenType_Number, ICON_FA_DIVIDE " Divide");
+	OPERATOR_BEGIN(TokenType::Double, "/", TokenType::Double, 20u, TokenType::Double, ICON_FA_DIVIDE " Divide");
 		RETURN( (double)*_args[0] / (double)*_args[1] )
 	OPERATOR_END
 	
 
 	// operator*(number, number)
-	OPERATOR_BEGIN(TokenType_Number, "*", TokenType_Number, 20u, TokenType_Number, ICON_FA_TIMES " Multiply")
+	OPERATOR_BEGIN(TokenType::Double, "*", TokenType::Double, 20u, TokenType::Double, ICON_FA_TIMES " Multiply")
 		RETURN( (double)*_args[0] * (double)*_args[1] )
 	OPERATOR_END
 
 	// operator!(boolean)
-	OPERATOR_BEGIN(TokenType_Boolean, "!", TokenType_Boolean, 5u, TokenType_Boolean, "! not");
+	OPERATOR_BEGIN(TokenType::Bool, "!", TokenType::Bool, 5u, TokenType::Bool, "! not");
 		RETURN( !(bool)*_args[0] )
 	OPERATOR_END
 
 	// operator=(number)
-	OPERATOR_BEGIN(TokenType_Number, "=", TokenType_Number, 1u, TokenType_Number, ICON_FA_EQUALS " Assign");
+	OPERATOR_BEGIN(TokenType::Double, "=", TokenType::Double, 1u, TokenType::Double, ICON_FA_EQUALS " Assign");
 		RETURN( (double)*_args[0])
 	OPERATOR_END
 }

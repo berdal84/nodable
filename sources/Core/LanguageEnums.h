@@ -4,16 +4,16 @@
 
 namespace Nodable {
 
-	enum TokenType_
+	enum class TokenType
 	{
-		TokenType_String,
-		TokenType_Number,
-		TokenType_Symbol,
-		TokenType_Operator,
-		TokenType_Boolean,
-		TokenType_Parenthesis,
-		TokenType_Comma,
-		TokenType_COUNT,
-		TokenType_Unknown
+		Str,
+		Double,
+		Symbol,
+		Operator,
+		Bool,
+		Bracket,
+		Comma,
+		COUNT,
+		Unknown
 	};
 }

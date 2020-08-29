@@ -97,22 +97,22 @@ const std::string& Nodable::Member::getName() const
 	return name;
 }
 
-const TokenType_ Member::MemberTypeToTokenType(Type_ _type)
+const TokenType Member::MemberTypeToTokenType(Type_ _type)
 {
-	if (_type == Type_Boolean) return TokenType_Boolean;
-	if (_type == Type_Number)  return TokenType_Number;
-	if (_type == Type_String)  return TokenType_String;
+	if (_type == Type_Boolean) return TokenType::Bool;
+	if (_type == Type_Number)  return TokenType::Double;
+	if (_type == Type_String)  return TokenType::Str;
 
-	return TokenType_Unknown;
+	return TokenType::Unknown;
 }
 
-const Type_ Nodable::Member::TokenTypeToMemberType(TokenType_ _tokenType)
+const Type_ Nodable::Member::TokenTypeToMemberType(TokenType _tokenType)
 {
 	switch (_tokenType)
 	{
-	case TokenType_Boolean: return Type_Boolean;
-	case TokenType_Number:  return Type_Number;
-	case TokenType_String:  return Type_String;
+	case TokenType::Bool: return Type_Boolean;
+	case TokenType::Double:  return Type_Number;
+	case TokenType::Str:  return Type_String;
 	default:
 		return Type_Unknown;
 		break;

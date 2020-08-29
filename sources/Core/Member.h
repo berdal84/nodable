@@ -99,7 +99,7 @@ namespace Nodable{
 		Connector*          in                  = nullptr;
 		Connector*          out                 = nullptr;
 	public:
-		static const TokenType_ MemberTypeToTokenType(Type_ _type);
-		static const Type_      TokenTypeToMemberType(TokenType_ _tokenType);		
+		static const TokenType MemberTypeToTokenType(Type_ _type);
+		static const Type_      TokenTypeToMemberType(TokenType _tokenType);		
 	};
 }

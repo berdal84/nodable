@@ -109,7 +109,7 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 	switch (_token.type)
 	{
 
-		case TokenType_Boolean:
+		case TokenType::Bool:
 		{
 			result = new Member();
 			const bool value = _token.word == "true";
@@ -117,7 +117,7 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 			break;
 		}
 
-		case TokenType_Symbol:
+		case TokenType::Symbol:
 		{
 			auto context = getParent();
 			Variable* variable = context->findVariable(_token.word);
@@ -133,14 +133,14 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 			break;
 		}
 
-		case TokenType_Number: {
+		case TokenType::Double: {
 			result = new Member();
 			const double number = std::stod(_token.word);
 			result->set(number);
 			break;
 		}
 
-		case TokenType_String: {
+		case TokenType::Str: {
 			result = new Member();
 			result->set(_token.word);
 			break;
@@ -168,8 +168,8 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 
 	// Structure check
 	const bool isValid = _left != nullptr &&
-			             token1.type == TokenType_Operator &&
-			             token2.type != TokenType_Operator;
+			             token1.type == TokenType::Operator &&
+			             token2.type != TokenType::Operator;
 
 	if (!isValid) {
 		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (Structure)\n");
@@ -260,17 +260,17 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	const Token& token2(tokens.at(_tokenId+1));
 
 	// Check if we get an operator first
-	if (token1.type != TokenType_Operator) {
+	if (token1.type != TokenType::Operator) {
 		LOG_DEBUG_PARSER("parseUnaryOperationExpression... " KO " (operator not found)\n");
 		return nullptr;
 	}
 
 	// Then check if the operator can be applied to the next token
-	if (token1.word == "-" && token2.type == TokenType_Number) { // TODO: create the unary operation "negates"
+	if (token1.word == "-" && token2.type == TokenType::Double) { // TODO: create the unary operation "negates"
 		result = operandTokenToMember(token2);
 		result->set(-(double)*result);
 
-	} else if (token1.word == "!" && token2.type == TokenType_Boolean) { // TODO: create the unary operation "not"
+	} else if (token1.word == "!" && token2.type == TokenType::Bool) { // TODO: create the unary operation "not"
 		result = operandTokenToMember(token2);
 		result->set(!(bool)*result);
 
@@ -298,7 +298,7 @@ Member* Parser::parseAtomicExpression(size_t& _tokenId) {
 	auto token = tokens.at(_tokenId);
 
 	// Check if token is not an operator
-	if (token.type == TokenType_Operator) {
+	if (token.type == TokenType::Operator) {
 		LOG_DEBUG_PARSER("parseAtomicExpression... " KO "(token is an operator)\n");
 		return nullptr;
 	}
@@ -320,7 +320,7 @@ Member* Parser::parseParenthesisExpression(size_t& _tokenId) {
 
 	auto token1(tokens.at(_tokenId));
 
-	if (token1.type != TokenType_Parenthesis) {
+	if (token1.type != TokenType::Bracket) {
 		return nullptr;
 	}
 
@@ -437,7 +437,7 @@ bool Parser::isSyntaxValid()
 		switch (current.type)
 		{
 
-		case TokenType_Operator:
+		case TokenType::Operator:
 		{
 			
 			if (isLastToken) { 
@@ -445,13 +445,13 @@ bool Parser::isSyntaxValid()
 
 			} else {
 				auto next = *(it + 1);
-				if (next.type == TokenType_Operator)
+				if (next.type == TokenType::Operator)
 					success = false; // An operator can't be followed by another operator.
 			}
 
 			break;
 		}
-		case TokenType_Parenthesis:
+		case TokenType::Bracket:
 		{
 			const bool isOpenParenthesis = current.word == "(";
 			openedParenthesisCount += isOpenParenthesis ? 1 : -1; // increase / decrease the opened parenthesis count.
@@ -511,7 +511,7 @@ bool Parser::tokenizeExpressionString()
 			it = chars.end() -1  ;
 
 		//---------------
-		// Term -> Number
+		// Term -> Double
 		//---------------
 		} else if( numbers.find(*it) != std::string::npos ) {
 
@@ -525,10 +525,10 @@ bool Parser::tokenizeExpressionString()
 			--it;
 
 			std::string number = chars.substr(itStart - chars.begin(), it - itStart + 1);
-			addToken(TokenType_Number, number, std::distance(chars.begin(), itStart) );
+			addToken(TokenType::Double, number, std::distance(chars.begin(), itStart) );
 			
 		//----------------
-		// Term -> String
+		// Term -> Str
 		//----------------
 
 		}else 	if(*it == '"')
@@ -548,7 +548,7 @@ bool Parser::tokenizeExpressionString()
 				}
 				
 				std::string str = chars.substr(itStart - chars.begin(), it - itStart);
-				addToken(TokenType_String, str, std::distance(chars.begin(), itStart));
+				addToken(TokenType::Str, str, std::distance(chars.begin(), itStart));
 
 			}
 			else {
@@ -581,7 +581,7 @@ bool Parser::tokenizeExpressionString()
 			// Term -> Symbol
 			//-----------------
 			else
-				addToken(TokenType_Symbol, str, std::distance(chars.begin(), itStart));
+				addToken(TokenType::Symbol, str, std::distance(chars.begin(), itStart));
 
 		//-----------------
 		// Term -> Operator
@@ -590,7 +590,7 @@ bool Parser::tokenizeExpressionString()
 		}else 	if(operators.find(*it) != std::string::npos)
 		{
 			std::string str = chars.substr(it - chars.begin(), 1);
-			addToken(TokenType_Operator, str, std::distance(chars.begin(), it));
+			addToken(TokenType::Operator, str, std::distance(chars.begin(), it));
 
 		//-----------------
 		// Term -> Parenthesis
@@ -598,11 +598,11 @@ bool Parser::tokenizeExpressionString()
 		} else if (*it == ')' || *it == '(')
 		{
 			std::string str = chars.substr(it - chars.begin(), 1);
-			addToken(TokenType_Parenthesis, str, std::distance(chars.begin(), it));
+			addToken(TokenType::Bracket, str, std::distance(chars.begin(), it));
 
 		}else if (*it == ',') {
 			std::string str = chars.substr(it - chars.begin(), 1);
-			addToken(TokenType_Comma, str, std::distance(chars.begin(), it));
+			addToken(TokenType::Comma, str, std::distance(chars.begin(), it));
 
 		}else if (*it == '\t') { // ignore tabs			
 
@@ -616,7 +616,7 @@ bool Parser::tokenizeExpressionString()
 
 }
 
-void Parser::addToken(TokenType_  _type, std::string _string, size_t _charIndex)
+void Parser::addToken(TokenType  _type, std::string _string, size_t _charIndex)
 {
 	Token t;
 	t.type      = _type;
@@ -637,7 +637,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 	}
 
 	// Check if starts with a symbol followed by "("
-	if ( tokens.at(localTokenId).type != TokenType_Symbol ||
+	if ( tokens.at(localTokenId).type != TokenType::Symbol ||
 		 tokens.at(localTokenId+1).word != "(" ) {
 
 		LOG_DEBUG_PARSER("parseFunctionCall aborted. Symbol + \"(\" not found...");
@@ -648,7 +648,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 
 	// Declare a new function prototype
 	auto identifier = tokens.at(localTokenId++).word;
-	FunctionSignature signature(identifier, TokenType_Unknown);
+	FunctionSignature signature(identifier, TokenType::Unknown);
 
 	localTokenId++; // eat parenthesis
 	
@@ -659,7 +659,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 			argAsMember.push_back(member); // store argument as member (already parsed)
 			signature.pushArg( Member::MemberTypeToTokenType(member->getType()) );  // add a new argument type to the proto.
 
-			if (tokens.at(localTokenId).type == TokenType_Comma)
+			if (tokens.at(localTokenId).type == TokenType::Comma)
 				localTokenId++;
 
 		} else {

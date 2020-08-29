@@ -10,15 +10,15 @@ namespace Nodable{
 
 	typedef struct
 	{
-		TokenType_  type = TokenType_Unknown; // the type of the token
+		TokenType  type = TokenType::Unknown; // the type of the token
 		std::string word = "";                // the word as a string
 		size_t      charIndex = 0;                 // the index of the first character of the token in the evaluated expression.
 
 		bool isOperand()const {
-			return type == TokenType_Number ||
-				type == TokenType_Boolean ||
-				type == TokenType_String ||
-				type == TokenType_Symbol;
+			return type == TokenType::Double ||
+				type == TokenType::Bool ||
+				type == TokenType::Str ||
+				type == TokenType::Symbol;
 		}
 
 	}Token;
@@ -67,7 +67,7 @@ namespace Nodable{
 		/* Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
 		Member* parseExpression(size_t& _tokenIndex, unsigned short _precedence = 0u, Member* _left = nullptr);
 
-		/* Cut the member "expression" into tokens to identifies its type (cf. TokenType_ enum) */
+		/* Cut the member "expression" into tokens to identifies its type (cf. TokenType enum) */
 		bool    tokenizeExpressionString			   ();
 
 		/* Check if the existing tokens match with the syntax of the language. tokenize() should be called first */
@@ -77,7 +77,7 @@ namespace Nodable{
 		std::string logTokens(const std::vector<Token> _tokens, const size_t _highlight);
 
 		/* Creates a new token given a _type, _string and _chanIndex and add it to the tokens.*/
-		void           addToken			   (TokenType_ _type, std::string _string, size_t _charIndex);
+		void           addToken			   (TokenType _type, std::string _string, size_t _charIndex);
 
 		std::vector<Token> tokens;
 		const Language* language;
