@@ -21,7 +21,7 @@ void Language::addOperator( Operator _operator) {
 
 	auto item = std::pair<std::string, Operator>(_operator.identifier, _operator);
 	operators.insert(item);
-	keywordToTokenType[_operator.identifier] = TokenType::Operator;
+	//keywordToTokenType[_operator.identifier] = TokenType::Operator;
 }
 
 void Language::addOperator( std::string       _identifier,

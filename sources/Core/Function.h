@@ -15,7 +15,7 @@ namespace Nodable {
      *
 	 * TODO: try to replace Member* by Variant*
 	 */
-	typedef std::function <int (Member*, const std::vector<const Member*>&)> FunctionImplem;
+	typedef std::function <int (Member*, const std::vector<Member*>&)> FunctionImplem;
 
 	/*
 	 * Simple object to store a function argument (token, name)

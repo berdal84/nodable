@@ -58,11 +58,11 @@ namespace Nodable{
 		MultipleArgFunctionComponent(const Function _function, const Language* _language);
 		~MultipleArgFunctionComponent() {};
 
-		void setArg(size_t _index, const Member* _value) { args[_index] = _value; };
+		void setArg(size_t _index, Member* _value) { args[_index] = _value; };
 		bool update()override;
 		void updateResultSourceExpression() const override;		
 	protected:
-		std::vector<const Member*> args;
+		std::vector<Member*> args;
 		const Function function;
 
 		MIRROR_CLASS(MultipleArgFunctionComponent)(

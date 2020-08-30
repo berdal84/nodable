@@ -534,6 +534,21 @@ bool Parser::tokenizeExpressionString()
 			}
 		}
 
+		// Term -> Boolean
+		{
+			std::smatch sm;
+			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Bool));
+			if (match) {
+
+				auto str = sm.str(0);
+				addToken(TokenType::Bool, str, std::distance(chars.cbegin(), it));
+
+				for (size_t i = 0; i < str.length() - 1; i++)
+					it++;
+				continue;
+			}
+		}
+
 		// Term -> String
 		{
 			std::smatch sm;
@@ -549,13 +564,26 @@ bool Parser::tokenizeExpressionString()
 			}
 		}
 
+		// Term -> Operator
+		{
+			std::smatch sm;
+			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Operator));
+
+			if (match) {
+				auto str = sm.str(0);
+				addToken(TokenType::Operator, str, std::distance(chars.cbegin(), it));
+				for (size_t i = 0; i < str.length() - 1; i++) it++;
+				continue;
+			}
+		}
+
 		// Term -> Keyword
-		if (keywords.find(currStr) != keywords.end()) {
+		auto found = keywords.find(currStr);
+		if ( found != keywords.end()) {
 
-			auto strToToken = keywords.find(currStr);
-
-			if (strToToken->second != TokenType::Space) {
-				addToken(strToToken->second, currStr, currDist);
+			auto token = found->second;
+			if (token != TokenType::Space) {
+				addToken(token, currStr, currDist);
 			}
 			continue;
 		}

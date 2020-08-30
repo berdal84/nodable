@@ -12,9 +12,9 @@
 
 // Some Macros to easily create function and add them to the Language.api
 
-#define ARG(n) *_args[n]
+#define ARG(n) (*_args[n])
 #define BEGIN_IMPL\
-	auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
+	auto implementation = [](Member* _result, const std::vector<Member*>& _args)->int {
 
 #define RETURN( expr )\
 	_result->set( expr );
@@ -60,7 +60,7 @@ namespace Nodable {
 		Language(std::string _name) :numbers(), letters(), brackets(), name(_name){};
 		~Language() {};
 
-		virtual std::string                   serialize(const FunctionSignature&, std::vector<const Member*>)const = 0;
+		virtual std::string                   serialize(const FunctionSignature&, std::vector<Member*>)const = 0;
 		virtual std::string                   serialize(const FunctionSignature&)const = 0;
 		virtual std::string                   serialize(const TokenType&)const = 0;
 

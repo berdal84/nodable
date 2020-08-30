@@ -7,7 +7,7 @@ using namespace Nodable;
 
 std::string LanguageNodable::serialize(
 	const FunctionSignature&   _signature,
-	std::vector<const Member*> _args) const
+	std::vector<Member*> _args) const
 {
 	std::string expr;
 	expr.append(_signature.getIdentifier());
@@ -55,11 +55,17 @@ std::string LanguageNodable::serialize(const TokenType& _type) const {
 LanguageNodable::LanguageNodable(): Language("Nodable")
 {
 	// Prepare regex for some TokenType
+	tokenTypeToRegex[TokenType::Bool]    = std::regex("^(true|false)");
+	tokenTypeToRegex[TokenType::Operator] = std::regex("^(<=|>=|==|>|<|=>|=|<=|>=|[+]|-|[/]|[*])");
 	tokenTypeToRegex[TokenType::Str]     = std::regex("^\"[a-zA-Z0-9 ]+\"");
 	tokenTypeToRegex[TokenType::Symbol]  = std::regex("^[a-zA-Z_]+");
 	tokenTypeToRegex[TokenType::Double]  = std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?");
 	tokenTypeToRegex[TokenType::Comment] = std::regex("(^//(.+?)$)|(^/\\*(.+?)\\*/)");
-	                                                // single line  /* multi line */
+	                                               /*  \---------/ \--------------/	                                    
+	                                                      single      multi line
+														  \--------------------/
+														         comment
+												   */
 
 	// Fill string to type map
 	keywordToTokenType[" "]        = TokenType::Space;
@@ -77,10 +83,6 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	for (auto it = keywordToTokenType.begin(); it != keywordToTokenType.end(); it++)
 		tokenTypeToString[it->second] = it->first;
 	tokenTypeToString[TokenType::Unknown] = "?";
-
-	keywordToTokenType["true"] = TokenType::Bool;
-	keywordToTokenType["false"] = TokenType::Bool;
-
 
 	auto Double = TokenType::Double;
 	auto Bool   = TokenType::Bool;
@@ -298,12 +300,43 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	OPERATOR_END
 
 	// operator!(boolean)
-	OPERATOR_BEGIN(Bool, "!", Bool, 5u, Bool, "! not");
+	OPERATOR_BEGIN(Bool, "!", Bool, 5u, Bool, "! not")
 		RETURN( !(bool)ARG(0) )
 	OPERATOR_END
 
 	// operator=(number)
-	OPERATOR_BEGIN(Double, "=", Double, 1u, Double, ICON_FA_EQUALS " Assign");
+	OPERATOR_BEGIN(Double, "=", Double, 1u, Double, ICON_FA_EQUALS " Assign")
 		RETURN( (double)ARG(0))
+	OPERATOR_END
+
+	// operator=>(bool)
+	OPERATOR_BEGIN(Bool, "=>", Bool, 1u, Bool, "=> Inference")
+		ARG(1).set((bool)ARG(0));
+		RETURN( (bool)ARG(1) )
+	OPERATOR_END
+
+	// operator>=(double, double)
+	OPERATOR_BEGIN(Bool, ">=", Double, 1u, Double, ">= Sup. or equals")
+		RETURN((double)ARG(0) >= (double)ARG(1))
+	OPERATOR_END
+
+	// operator<=(double, double)
+	OPERATOR_BEGIN(Bool, "<=", Double, 1u, Double, "<= Inf. or equals")
+		RETURN((double)ARG(0) <= (double)ARG(1))
+	OPERATOR_END
+
+	// operator==(double, double)
+	OPERATOR_BEGIN(Bool, "==", Double, 1u, Double, "== Equals")
+		RETURN((double)ARG(0) == (double)ARG(1))
+	OPERATOR_END
+
+	// operator>(bool, bool)
+	OPERATOR_BEGIN(Bool, ">", Double, 1u, Double, "> Strictly Sup.")
+		RETURN((double)ARG(0) > (double)ARG(1))
+	OPERATOR_END
+
+	// operator<(bool, bool)
+	OPERATOR_BEGIN(Bool, "<", Double, 1u, Double, "> Strictly Inf.")
+		RETURN((double)ARG(0) < (double)ARG(1))
 	OPERATOR_END
 }

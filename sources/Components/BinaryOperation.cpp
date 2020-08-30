@@ -82,7 +82,7 @@ bool BinOperatorComponent::update()
 		return false;
 	}
 
-	std::vector<const Member*> args;
+	std::vector<Member*> args;
 	args.push_back(left);
 	args.push_back(right);
 
