@@ -499,95 +499,76 @@ bool Parser::tokenizeExpressionString()
 	auto chars = (std::string)*get("expression");
 
 	/* shortcuts to language members */
-	const auto numbers 	= language->numbers;
-	const auto letters	= language->letters;
-	const auto keywords = language->keywordToTokenType;
+	const auto& keywords = language->keywordToTokenType;
+	const auto& regex    = language->tokenTypeToRegex;
 
 	for(auto it = chars.cbegin(); it != chars.cend(); ++it)
 	{
 		std::string currStr    = chars.substr(it - chars.cbegin(), 1);
 		auto        currDist   = std::distance(chars.cbegin(), it);
 
-		//---------------
 		// Term -> Comment
-		//---------------
-		if ( chars.end() - it >= 2 && std::string(it, it +2) == "//") {
-			it = chars.end() -1  ;
+		if (chars.end() - it >= 2 && std::string(it, it + 2) == "//") {
+			it = chars.end() - 1;
+			continue;
+		}
 
-		//---------------
 		// Term -> Double
-		//---------------
-		} else if( numbers.find(*it) != std::string::npos ) {
-
-			auto itStart = it;
-			while(	it != chars.end() && 
-					numbers.find(*it) != std::string::npos)
-			{
-				++it;
-			}
-						
-			--it;
-
-			std::string number = chars.substr(itStart - chars.cbegin(), it - itStart + 1);
-			addToken(TokenType::Double, number, std::distance(chars.cbegin(), itStart) );
-			
-		//----------------
-		// Term -> Str
-		//----------------
-
-		}else 	if( *it == '"' )
 		{
 			std::smatch sm;
-			std::regex_search(it, chars.cend(), sm, std::regex("\"[a-zA-Z0-9 ]+\""));
+			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Double));
+			if (match) {
 
-			if (sm.size() == 0)
-				return false;
+				auto str = sm.str(0);
+				addToken(TokenType::Double, str, std::distance(chars.cbegin(), it));
 
-			auto str = sm.str(0);
-			addToken(TokenType::Str, std::string( ++str.cbegin(), --str.cend()), std::distance(chars.cbegin(), it));
-
-			for(size_t i = 0; i < sm.str(0).length()-1; i++)
-				it++;
-
-		//----------------------------
-		// Term -> { Symbol, Keyword }
-		//----------------------------
-
-		}else 	if( letters.find(*it) != std::string::npos)
-		{
-			auto itStart = it;
-			while(	it != chars.end() && 
-					letters.find(*it) != std::string::npos)
-			{
-				++it;
+				for (size_t i = 0; i < sm.str(0).length() - 1; i++)
+					it++;
+				continue;
 			}
-			--it;
+		}
 
-			std::string str = chars.substr(itStart - chars.cbegin(), it - itStart + 1);
+		// Term -> String
+		{
+			std::smatch sm;
+			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Str));
+			if (match) {
 
-			//-----------------
-			// Term -> Keyword
-			//-----------------
-			if ( keywords.find(str) != keywords.end())
-				addToken(keywords.at(str), str, std::distance(chars.cbegin(), itStart));
+				auto str = sm.str(0);
+				addToken(TokenType::Str, std::string(++str.cbegin(), --str.cend()), std::distance(chars.cbegin(), it));
 
-			//-----------------
-			// Term -> Symbol
-			//-----------------
-			else
-				addToken(TokenType::Symbol, str, std::distance(chars.cbegin(), itStart));
+				for (size_t i = 0; i < sm.str(0).length() - 1; i++)
+					it++;
+				continue;
+			}
+		}
 
-		} else if (keywords.find(currStr) != keywords.end()) {
-			
+		// Term -> Keyword
+		if (keywords.find(currStr) != keywords.end()) {
+
 			auto strToToken = keywords.find(currStr);
 
 			if (strToToken->second != TokenType::Space) {
 				addToken(strToToken->second, currStr, currDist);
 			}
-		} else {
-			LOG_DEBUG_PARSER("Unable to tokenize expression %s \n", chars);
-			return false;
+			continue;
 		}
+
+		// Term -> Symbol
+		{
+			std::smatch sm;
+			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Symbol));
+
+			if (match) {
+				auto str = sm.str(0);
+				addToken(TokenType::Symbol, str, std::distance(chars.cbegin(), it));
+				for (size_t i = 0; i < str.length() - 1; i++) it++;
+				continue;				
+			}
+		}
+
+		LOG_DEBUG_PARSER("Unable to tokenize expression %s \n", chars);
+		return false;
 	}
 
 	return true;

@@ -54,9 +54,10 @@ std::string LanguageNodable::serialize(const TokenType& _type) const {
 
 LanguageNodable::LanguageNodable(): Language("Nodable")
 {
-
-	letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
-    numbers = "0123456789.";
+	// Prepare regex for some TokenType
+	tokenTypeToRegex[TokenType::Str]    = std::regex("^\"[a-zA-Z0-9 ]+\"");
+	tokenTypeToRegex[TokenType::Symbol] = std::regex("^[a-zA-Z_]+");
+	tokenTypeToRegex[TokenType::Double] = std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?");
 
 	// Fill string to type map
 	keywordToTokenType[" "]        = TokenType::Space;

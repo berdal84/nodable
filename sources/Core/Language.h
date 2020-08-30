@@ -7,7 +7,7 @@
 #include <map>
 #include <functional>
 #include <tuple>
-
+#include <regex>
 
 
 // Some Macros to easily create function and add them to the Language.api
@@ -96,6 +96,7 @@ namespace Nodable {
 		std::string letters;
 		std::map<std::string, TokenType> keywordToTokenType;
 		std::map<TokenType, std::string> tokenTypeToString;
+		std::map<TokenType, std::regex>  tokenTypeToRegex;
 	private:
 		std::string name;
 		std::vector<char> brackets;
