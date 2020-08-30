@@ -60,6 +60,7 @@ namespace Nodable{
 		void  		        setName(const char*);
 		void                setOwner(Object*);	
 		void                set(const Member*);
+		void                set(const Member&);
 		void                set(double);
 		void                set(int);
 		void                set(const std::string&);

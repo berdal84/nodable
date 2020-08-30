@@ -8,7 +8,11 @@
 #include <functional>
 #include <tuple>
 
+
+
 // Some Macros to easily create function and add them to the Language.api
+
+#define ARG(n) *_args[n]
 #define BEGIN_IMPL\
 	auto implementation = [](Member* _result, const std::vector<const Member*>& _args)->int {
 
@@ -90,7 +94,8 @@ namespace Nodable {
 	public:
 		std::string numbers;
 		std::string letters;
-		std::map<std::string, TokenType> keywords;
+		std::map<std::string, TokenType> keywordToTokenType;
+		std::map<TokenType, std::string> tokenTypeToString;
 	private:
 		std::string name;
 		std::vector<char> brackets;

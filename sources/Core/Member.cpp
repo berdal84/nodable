@@ -216,6 +216,11 @@ void Member::set(const Member* _v)
 	data.set(&_v->data);
 }
 
+void Member::set(const Member& _v)
+{
+	data.set(&_v.data);
+}
+
 void Member::set(double _value)
 {
 	data.setType(Type_Number);

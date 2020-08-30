@@ -28,36 +28,28 @@ std::string LanguageNodable::serialize(
 
 std::string LanguageNodable::serialize(const FunctionSignature& _signature) const {
 
-	std::string result = _signature.getIdentifier() + "(";
+	std::string result = _signature.getIdentifier() + serialize(TokenType::LBracket);
 	auto args = _signature.getArgs();
 
 	for (auto it = args.begin(); it != args.end(); it++) {
 
-		if (it != args.begin())
-			result.append(", ");
-
-		result.append( serialize( (*it).type) );
+		if (it != args.begin()) {
+			result.append(serialize(TokenType::Separator));
+			result.append(serialize(TokenType::Space));
+		}
+		const auto argType = (*it).type;
+		result.append( serialize(argType) );
 
 	}
 
-	result.append(")");
+	result.append( serialize(TokenType::RBracket) );
 
 	return result;
 
 }
 
 std::string LanguageNodable::serialize(const TokenType& _type) const {
-	switch (_type)
-	{
-	case TokenType::Str:      return "string";
-	case TokenType::Double:   return "number";
-	case TokenType::Symbol:	  return "symbol";
-	case TokenType::Operator: return "operator";
-	case TokenType::Bool:     return "bool";
-	case TokenType::Bracket:  return "()";
-	case TokenType::Comma:    return ",";
-	default:                  return "?";
-	}
+	return tokenTypeToString.at(_type);
 }
 
 LanguageNodable::LanguageNodable(): Language("Nodable")
@@ -66,9 +58,30 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
     numbers = "0123456789.";
 
-	keywords["true"]  = TokenType::Bool;
-	keywords["false"] = TokenType::Bool;
+	// Fill string to type map
+	keywordToTokenType[" "]        = TokenType::Space;
+	keywordToTokenType["("]        = TokenType::LBracket;
+	keywordToTokenType[")"]        = TokenType::RBracket;
+	keywordToTokenType[","]        = TokenType::Separator;
+	keywordToTokenType["\t"]       = TokenType::Tab;
+	keywordToTokenType["string"]   = TokenType::Str;
+	keywordToTokenType["number"]   = TokenType::Double;
+	keywordToTokenType["symbol"]   = TokenType::Symbol;
+	keywordToTokenType["operator"] = TokenType::Operator;
+	keywordToTokenType["bool"]     = TokenType::Bool;	
 
+	// Fill type to string map
+	for (auto it = keywordToTokenType.begin(); it != keywordToTokenType.end(); it++)
+		tokenTypeToString[it->second] = it->first;
+	tokenTypeToString[TokenType::Unknown] = "?";
+
+	keywordToTokenType["true"] = TokenType::Bool;
+	keywordToTokenType["false"] = TokenType::Bool;
+
+
+	auto Double = TokenType::Double;
+	auto Bool   = TokenType::Bool;
+	auto Str    = TokenType::Str;
 
 	////////////////////////////////
 	//
@@ -77,89 +90,90 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	///////////////////////////////
 
 	// returnNumber(number)
-	FCT_BEGIN(TokenType::Double, "returnNumber", TokenType::Double)
-		RETURN( _args[0] )
+
+	FCT_BEGIN(Double, "returnNumber", Double)
+		RETURN( ARG(0) )
 	FCT_END
 
 	// sin(number)
-	FCT_BEGIN(TokenType::Double, "sin", TokenType::Double)
-		RETURN( sin(*_args[0]) )
+	FCT_BEGIN(Double, "sin", Double)
+		RETURN( sin(ARG(0)) )
 	FCT_END
 
 	// cos(number)
-	FCT_BEGIN(TokenType::Double, "cos", TokenType::Double)
-		RETURN( cos(*_args[0]) )
+	FCT_BEGIN(Double, "cos", Double)
+		RETURN( cos(ARG(0)) )
 	FCT_END
 
 	// add(number)
-	FCT_BEGIN(TokenType::Double, "add", TokenType::Double, TokenType::Double)
-		RETURN((double)*_args[0] + (double)*_args[1])
+	FCT_BEGIN(Double, "add", Double, Double)
+		RETURN((double)ARG(0) + (double)ARG(1))
 	FCT_END
 
 	// minus(number)
-	FCT_BEGIN(TokenType::Double, "minus", TokenType::Double, TokenType::Double)
-		RETURN( (double)*_args[0] - (double)*_args[1] )
+	FCT_BEGIN(Double, "minus", Double, Double)
+		RETURN( (double)ARG(0) - (double)ARG(1))
 	FCT_END
 
 	// mult(number)
-	FCT_BEGIN(TokenType::Double, "mult", TokenType::Double, TokenType::Double)
-		RETURN( (double)*_args[0] * (double)*_args[1] )
+	FCT_BEGIN(Double, "mult", Double, Double)
+		RETURN( (double)ARG(0) * (double)ARG(1))
 	FCT_END
 
 	// sqrt(number)
-	FCT_BEGIN(TokenType::Double, "sqrt", TokenType::Double)
-		RETURN( sqrt(*_args[0]) )
+	FCT_BEGIN(Double, "sqrt", Double)
+		RETURN( sqrt(ARG(0)) )
 	FCT_END
 
 	// not(boolean)
-	FCT_BEGIN(TokenType::Bool, "not", TokenType::Bool)
-		RETURN( !*_args[0] )
+	FCT_BEGIN(Bool, "not", Bool)
+		RETURN( !(bool)ARG(0) )
 	FCT_END
 
 	// or(boolean, boolean)
-	FCT_BEGIN(TokenType::Bool, "or", TokenType::Bool, TokenType::Bool)
-		RETURN( (bool*)_args[0] || *_args[1] )
+	FCT_BEGIN(Bool, "or", Bool, Bool)
+		RETURN( (bool)ARG(0) || ARG(1))
 	FCT_END
 	
 	// and(boolean, boolean)
-	FCT_BEGIN(TokenType::Bool, "and", TokenType::Bool, TokenType::Bool)
-		RETURN( (bool)*_args[0] && *_args[1] )
+	FCT_BEGIN(Bool, "and", Bool, Bool)
+		RETURN( (bool)ARG(0) && ARG(1))
 	FCT_END
 
 	// xor(boolean, boolean)
-	FCT_BEGIN(TokenType::Bool, "xor", TokenType::Bool, TokenType::Bool)
+	FCT_BEGIN(Bool, "xor", Bool, Bool)
 		RETURN(
-		((bool)*_args[0] && !(bool)*_args[1]) ||
-		(!(bool)*_args[0] && (bool)*_args[1]) )
+		( (bool)ARG(0) && !(bool)ARG(1)) ||
+		(!(bool)ARG(0) &&  (bool)ARG(1)) )
 	FCT_END
 	
 	// bool(number)
-	FCT_BEGIN(TokenType::Bool, "bool", TokenType::Double)
-		RETURN( (bool)*_args[0] )
+	FCT_BEGIN(Bool, "bool", Double)
+		RETURN( (bool)ARG(0))
 	FCT_END
 
 	// mod(number, number)
-	FCT_BEGIN(TokenType::Double, "mod", TokenType::Double, TokenType::Double)
-		RETURN( (int)*_args[0] % (int)*_args[1] )
+	FCT_BEGIN(Double, "mod", Double, Double)
+		RETURN( (int)ARG(0) % (int)ARG(1) )
 	FCT_END
 
 	// pow(number)
-	FCT_BEGIN(TokenType::Double, "pow", TokenType::Double, TokenType::Double)
-		RETURN( pow(*_args[0], *_args[1]) )
+	FCT_BEGIN(Double, "pow", Double, Double)
+		RETURN( pow(ARG(0), ARG(1)) )
 	FCT_END
 	
 	// secondDegreePolynomial(a: number, x: number, b:number, y:number, c:number)
-	FCT_BEGIN(TokenType::Double, "secondDegreePolynomial", TokenType::Double, TokenType::Double, TokenType::Double, TokenType::Double, TokenType::Double)
+	FCT_BEGIN(Double, "secondDegreePolynomial", Double, Double, Double, Double, Double)
 		const auto value = 
-			(double)*_args[0] * pow((double)*_args[1], 2) * +  // ax² +
-			(double)*_args[2] * (double)*_args[3] +            // by +
-			(double)*_args[4];                                 // c
+			(double)ARG(0) * pow((double)ARG(1), 2) * +  // ax² +
+			(double)ARG(2) * (double)ARG(3) +            // by +
+			(double)ARG(4);                              // c
 	RETURN(value)
 	FCT_END
 
 	// DNAtoProtein(string)
-	FCT_BEGIN(TokenType::Str, "DNAtoProtein", TokenType::Str)
-		auto baseChain = (std::string) * _args[0];
+	FCT_BEGIN(Str, "DNAtoProtein", Str)
+		auto baseChain = (std::string)ARG(0);
 		std::string protein = "";
 
 		std::map<std::string, char> table;
@@ -241,7 +255,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	
 
 	// time()
-	FCT_BEGIN(TokenType::Double, "time")
+	FCT_BEGIN(Double, "time")
 		time_t rawtime;
 		struct tm* timeinfo;
 		time(&rawtime);
@@ -257,36 +271,36 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	///////////////////////////////
 
 	// operator+(number, number)
-	OPERATOR_BEGIN(TokenType::Double, "+", TokenType::Double, 10u, TokenType::Double, ICON_FA_PLUS " Add")
+	OPERATOR_BEGIN(Double, "+", Double, 10u, Double, ICON_FA_PLUS " Add")
 		if (_args[0]->getType() == Type_Number)
-			RETURN( (double)*_args[0] + (double)*_args[1])
+			RETURN( (double)ARG(0) + (double)ARG(1))
 		else
 			FAIL
 	OPERATOR_END
 	
 	// operator-(number, number)	
-	OPERATOR_BEGIN(TokenType::Double, "-", TokenType::Double, 10u, TokenType::Double, ICON_FA_MINUS " Subtract")
-		RETURN( (double)*_args[0] - (double)*_args[1] )
+	OPERATOR_BEGIN(Double, "-", Double, 10u, Double, ICON_FA_MINUS " Subtract")
+		RETURN( (double)ARG(0) - (double)ARG(1) )
 	OPERATOR_END
 	
 	// operator/(number, number)
-	OPERATOR_BEGIN(TokenType::Double, "/", TokenType::Double, 20u, TokenType::Double, ICON_FA_DIVIDE " Divide");
-		RETURN( (double)*_args[0] / (double)*_args[1] )
+	OPERATOR_BEGIN(Double, "/", Double, 20u, Double, ICON_FA_DIVIDE " Divide");
+		RETURN( (double)ARG(0) / (double)ARG(1) )
 	OPERATOR_END
 	
 
 	// operator*(number, number)
-	OPERATOR_BEGIN(TokenType::Double, "*", TokenType::Double, 20u, TokenType::Double, ICON_FA_TIMES " Multiply")
-		RETURN( (double)*_args[0] * (double)*_args[1] )
+	OPERATOR_BEGIN(Double, "*", Double, 20u, Double, ICON_FA_TIMES " Multiply")
+		RETURN( (double)ARG(0) * (double)ARG(1) )
 	OPERATOR_END
 
 	// operator!(boolean)
-	OPERATOR_BEGIN(TokenType::Bool, "!", TokenType::Bool, 5u, TokenType::Bool, "! not");
-		RETURN( !(bool)*_args[0] )
+	OPERATOR_BEGIN(Bool, "!", Bool, 5u, Bool, "! not");
+		RETURN( !(bool)ARG(0) )
 	OPERATOR_END
 
 	// operator=(number)
-	OPERATOR_BEGIN(TokenType::Double, "=", TokenType::Double, 1u, TokenType::Double, ICON_FA_EQUALS " Assign");
-		RETURN( (double)*_args[0])
+	OPERATOR_BEGIN(Double, "=", Double, 1u, Double, ICON_FA_EQUALS " Assign");
+		RETURN( (double)ARG(0))
 	OPERATOR_END
 }

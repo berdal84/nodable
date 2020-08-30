@@ -8,7 +8,7 @@
 #include "Wire.h"
 #include "Language.h"
 #include "Log.h"
-
+#include <regex>
 #include <algorithm>
 
 // Enable detailed logs
@@ -320,7 +320,7 @@ Member* Parser::parseParenthesisExpression(size_t& _tokenId) {
 
 	auto token1(tokens.at(_tokenId));
 
-	if (token1.type != TokenType::Bracket) {
+	if (token1.type != TokenType::LBracket) {
 		return nullptr;
 	}
 
@@ -451,10 +451,14 @@ bool Parser::isSyntaxValid()
 
 			break;
 		}
-		case TokenType::Bracket:
+		case TokenType::LBracket:
 		{
-			const bool isOpenParenthesis = current.word == "(";
-			openedParenthesisCount += isOpenParenthesis ? 1 : -1; // increase / decrease the opened parenthesis count.
+			openedParenthesisCount++;
+			break;
+		}
+		case TokenType::RBracket:
+		{
+			openedParenthesisCount--;
 
 			if (openedParenthesisCount < 0) {
 				LOG_DEBUG_PARSER("Unable to tokenize expression, mismatch parenthesis count. \n");
@@ -494,16 +498,16 @@ bool Parser::tokenizeExpressionString()
 	/* get expression chars */
 	auto chars = (std::string)*get("expression");
 
-	/* prepare allowed chars */
-	const auto numbers 	     = language->numbers;
-	const auto letters		 = language->letters;
-	const auto operators 	 = language->getOperatorsAsString();
+	/* shortcuts to language members */
+	const auto numbers 	= language->numbers;
+	const auto letters	= language->letters;
+	const auto keywords = language->keywordToTokenType;
 
-	/* prepare reserved keywords */
-	const auto keywords = language->keywords;
-
-	for(auto it = chars.begin(); it != chars.end(); ++it)
+	for(auto it = chars.cbegin(); it != chars.cend(); ++it)
 	{
+		std::string currStr    = chars.substr(it - chars.cbegin(), 1);
+		auto        currDist   = std::distance(chars.cbegin(), it);
+
 		//---------------
 		// Term -> Comment
 		//---------------
@@ -524,36 +528,26 @@ bool Parser::tokenizeExpressionString()
 						
 			--it;
 
-			std::string number = chars.substr(itStart - chars.begin(), it - itStart + 1);
-			addToken(TokenType::Double, number, std::distance(chars.begin(), itStart) );
+			std::string number = chars.substr(itStart - chars.cbegin(), it - itStart + 1);
+			addToken(TokenType::Double, number, std::distance(chars.cbegin(), itStart) );
 			
 		//----------------
 		// Term -> Str
 		//----------------
 
-		}else 	if(*it == '"')
+		}else 	if( *it == '"' )
 		{
-			++it;
+			std::smatch sm;
+			std::regex_search(it, chars.cend(), sm, std::regex("\"[a-zA-Z0-9 ]+\""));
 
-			if (it != chars.end())
-			{
-				auto itStart = it;
-				while (it != chars.end() && *it != '"')
-				{
-					++it;
-				}
+			if (sm.size() == 0)
+				return false;
 
-				if (it == chars.end()) {
-					return false;
-				}
-				
-				std::string str = chars.substr(itStart - chars.begin(), it - itStart);
-				addToken(TokenType::Str, str, std::distance(chars.begin(), itStart));
+			auto str = sm.str(0);
+			addToken(TokenType::Str, std::string( ++str.cbegin(), --str.cend()), std::distance(chars.cbegin(), it));
 
-			}
-			else {
-				--it;
-			}
+			for(size_t i = 0; i < sm.str(0).length()-1; i++)
+				it++;
 
 		//----------------------------
 		// Term -> { Symbol, Keyword }
@@ -569,44 +563,28 @@ bool Parser::tokenizeExpressionString()
 			}
 			--it;
 
-			std::string str = chars.substr(itStart - chars.begin(), it - itStart + 1);
+			std::string str = chars.substr(itStart - chars.cbegin(), it - itStart + 1);
 
 			//-----------------
 			// Term -> Keyword
 			//-----------------
 			if ( keywords.find(str) != keywords.end())
-				addToken(keywords.at(str), str, std::distance(chars.begin(), itStart));
+				addToken(keywords.at(str), str, std::distance(chars.cbegin(), itStart));
 
 			//-----------------
 			// Term -> Symbol
 			//-----------------
 			else
-				addToken(TokenType::Symbol, str, std::distance(chars.begin(), itStart));
+				addToken(TokenType::Symbol, str, std::distance(chars.cbegin(), itStart));
 
-		//-----------------
-		// Term -> Operator
-		//-----------------
+		} else if (keywords.find(currStr) != keywords.end()) {
 			
-		}else 	if(operators.find(*it) != std::string::npos)
-		{
-			std::string str = chars.substr(it - chars.begin(), 1);
-			addToken(TokenType::Operator, str, std::distance(chars.begin(), it));
+			auto strToToken = keywords.find(currStr);
 
-		//-----------------
-		// Term -> Parenthesis
-		//-----------------
-		} else if (*it == ')' || *it == '(')
-		{
-			std::string str = chars.substr(it - chars.begin(), 1);
-			addToken(TokenType::Bracket, str, std::distance(chars.begin(), it));
-
-		}else if (*it == ',') {
-			std::string str = chars.substr(it - chars.begin(), 1);
-			addToken(TokenType::Comma, str, std::distance(chars.begin(), it));
-
-		}else if (*it == '\t') { // ignore tabs			
-
-		}else if ( *it != ' ') {
+			if (strToToken->second != TokenType::Space) {
+				addToken(strToToken->second, currStr, currDist);
+			}
+		} else {
 			LOG_DEBUG_PARSER("Unable to tokenize expression %s \n", chars);
 			return false;
 		}
@@ -659,7 +637,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 			argAsMember.push_back(member); // store argument as member (already parsed)
 			signature.pushArg( Member::MemberTypeToTokenType(member->getType()) );  // add a new argument type to the proto.
 
-			if (tokens.at(localTokenId).type == TokenType::Comma)
+			if (tokens.at(localTokenId).type == TokenType::Separator)
 				localTokenId++;
 
 		} else {
