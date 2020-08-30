@@ -508,9 +508,15 @@ bool Parser::tokenizeExpressionString()
 		auto        currDist   = std::distance(chars.cbegin(), it);
 
 		// Term -> Comment
-		if (chars.end() - it >= 2 && std::string(it, it + 2) == "//") {
-			it = chars.end() - 1;
-			continue;
+		{
+			std::smatch sm;
+			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Comment));
+			if (match) {
+				auto str = sm.str(0);
+				for (size_t i = 0; i < str.length() - 1; i++)
+					it++;
+				continue;
+			}
 		}
 
 		// Term -> Double
@@ -522,7 +528,7 @@ bool Parser::tokenizeExpressionString()
 				auto str = sm.str(0);
 				addToken(TokenType::Double, str, std::distance(chars.cbegin(), it));
 
-				for (size_t i = 0; i < sm.str(0).length() - 1; i++)
+				for (size_t i = 0; i < str.length() - 1; i++)
 					it++;
 				continue;
 			}
