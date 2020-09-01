@@ -56,7 +56,8 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 {
 	// Prepare regex for some TokenType
 	tokenTypeToRegex[TokenType::Bool]    = std::regex("^(true|false)");
-	tokenTypeToRegex[TokenType::Operator] = std::regex("^(<=|>=|==|>|<|=>|=|<=|>=|[+]|-|[/]|[*])");
+
+	tokenTypeToRegex[TokenType::Operator] = std::regex("^(==|>|<(?!(=))|<=>|=>|=(?!(>|=))|<=(?!(>))|>=|[+]|-|[/]|[*])");
 	tokenTypeToRegex[TokenType::Str]     = std::regex("^\"[a-zA-Z0-9 ]+\"");
 	tokenTypeToRegex[TokenType::Symbol]  = std::regex("^[a-zA-Z_]+");
 	tokenTypeToRegex[TokenType::Double]  = std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?");
@@ -310,18 +311,17 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	OPERATOR_END
 
 	// operator=>(bool)
-	OPERATOR_BEGIN(Bool, "=>", Bool, 1u, Bool, "=> Inference")
-		ARG(1).set((bool)ARG(0));
-		RETURN( (bool)ARG(1) )
+	OPERATOR_BEGIN(Bool, "=>", Bool, 1u, Bool, "=> Implies")
+		RETURN(!(bool)ARG(0) || (bool)ARG(1) )
 	OPERATOR_END
 
 	// operator>=(double, double)
-	OPERATOR_BEGIN(Bool, ">=", Double, 1u, Double, ">= Sup. or equals")
+	OPERATOR_BEGIN(Bool, ">=", Double, 1u, Double, ">= Greater or equal")
 		RETURN((double)ARG(0) >= (double)ARG(1))
 	OPERATOR_END
 
 	// operator<=(double, double)
-	OPERATOR_BEGIN(Bool, "<=", Double, 1u, Double, "<= Inf. or equals")
+	OPERATOR_BEGIN(Bool, "<=", Double, 1u, Double, "<= Less or equal")
 		RETURN((double)ARG(0) <= (double)ARG(1))
 	OPERATOR_END
 
@@ -330,13 +330,18 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		RETURN((double)ARG(0) == (double)ARG(1))
 	OPERATOR_END
 
+	// operator<=>(bool, bool)
+	OPERATOR_BEGIN(Bool, "<=>", Bool, 1u, Bool, "<=> Equivalent")
+	RETURN((double)ARG(0) == (double)ARG(1))
+	OPERATOR_END
+
 	// operator>(bool, bool)
-	OPERATOR_BEGIN(Bool, ">", Double, 1u, Double, "> Strictly Sup.")
+	OPERATOR_BEGIN(Bool, ">", Double, 1u, Double, "> Greater")
 		RETURN((double)ARG(0) > (double)ARG(1))
 	OPERATOR_END
 
 	// operator<(bool, bool)
-	OPERATOR_BEGIN(Bool, "<", Double, 1u, Double, "> Strictly Inf.")
+	OPERATOR_BEGIN(Bool, "<", Double, 1u, Double, "< Less")
 		RETURN((double)ARG(0) < (double)ARG(1))
 	OPERATOR_END
 }
