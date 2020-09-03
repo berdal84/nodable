@@ -623,45 +623,73 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 {
 	size_t localTokenId = _tokenId;
 
+	std::string identifier;
+
 	// Check if the minimum token count required is available ( 0: identifier, 1: open parenthesis, 2: close parenthesis)
-	if (localTokenId + 2 >= tokens.size()) {
+	if (localTokenId + 2 >= tokens.size() )
+	{
 		LOG_DEBUG_PARSER("parseFunctionCall aborted. Not enough tokens.");
 		return nullptr;
 	}
 
-	// Check if starts with a symbol followed by "("
-	if ( tokens.at(localTokenId).type != TokenType::Symbol ||
-		 tokens.at(localTokenId+1).word != "(" ) {
 
-		LOG_DEBUG_PARSER("parseFunctionCall aborted. Symbol + \"(\" not found...");
+	const auto token_0 = tokens.at(localTokenId);
+	const auto token_1 = tokens.at(localTokenId + 1);
+	const auto token_2 = tokens.at(localTokenId + 2);
+
+	// regular function
+	if (token_0.type == TokenType::Symbol &&
+		token_1.type == TokenType::LBracket)
+	{
+		identifier = token_0.word;
+		localTokenId++;
+	}
+
+	// operator like (ex: operator==(..,..))
+	else if (token_0.type == TokenType::Symbol &&
+		     token_1.type == TokenType::Operator &&
+		     token_2.type == TokenType::LBracket)
+	{
+                // ex: "operator" + ">="
+		identifier = token_0.word + token_1.word;
+		localTokenId += 2;
+	}
+	else
+	{
+		LOG_DEBUG_PARSER("parseFunctionCall aborted. (no regular function or function-like operator found)");
 		return nullptr;
 	}
 
 	std::vector<Member*> argAsMember;
 
-	// Declare a new function prototype
-	auto identifier = tokens.at(localTokenId++).word;
+	// Declare a new function prototype	
 	FunctionSignature signature(identifier, TokenType::Unknown);
 
 	localTokenId++; // eat parenthesis
 	
 	bool parsingError = false;
-	while ( !parsingError && localTokenId < tokens.size() && tokens.at(localTokenId).word != ")") {
+	while ( !parsingError &&
+		     localTokenId < tokens.size() &&
+		     tokens.at(localTokenId).type != TokenType::RBracket)
+	{
 
-		if (auto member = parseExpression(localTokenId)) {
+		if (auto member = parseExpression(localTokenId))
+		{
 			argAsMember.push_back(member); // store argument as member (already parsed)
 			signature.pushArg( Member::MemberTypeToTokenType(member->getType()) );  // add a new argument type to the proto.
 
 			if (tokens.at(localTokenId).type == TokenType::Separator)
 				localTokenId++;
 
-		} else {
+		}
+		else
+		{
 			parsingError = true;
 		}
 	}
 
 
-	if (tokens.at(localTokenId).word != ")") {
+	if (tokens.at(localTokenId).type != TokenType::RBracket ) {
 		LOG_DEBUG_PARSER("parseFunctionCall aborted. Close parenthesis expected !");
 		return nullptr;
 	}
@@ -669,11 +697,11 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 	localTokenId++; // eat parenthesis
 
 	// Find the prototype in the language library
-	auto fct = language->findFunction(signature);
+	const Function* fct = language->findFunction(signature);
 
 	if( fct != nullptr) { // if function found
 
-		_tokenId = localTokenId;
+		
 		Container* context = this->getParent();
 
 		auto node = context->newFunction(*fct);
@@ -693,6 +721,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 		for( size_t argIndex = 0; argIndex < fct->signature.getArgs().size(); argIndex++ )
 			connectArg(argIndex);
 
+		_tokenId = localTokenId;
 		return node->get("result");
 
 	} else {

@@ -24,7 +24,7 @@
 #define END_IMPL SUCCESS\
 	};
 
-#define OPERATOR_BEGIN( _ltype, _identifier, _rtype, _precedence, _type, _label )\
+#define OPERATOR_BEGIN( _type, _identifier, _ltype, _rtype, _precedence, _label )\
 {\
 	auto precedence = _precedence; \
 	auto identifier = std::string(_identifier); \
@@ -45,6 +45,7 @@
 #define OPERATOR_END \
 	END_IMPL \
 	addOperator(identifier, precedence, signature, implementation);\
+	addToAPI( signature , implementation );\
 }
 
 namespace Nodable {

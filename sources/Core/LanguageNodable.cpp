@@ -57,7 +57,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	// Prepare regex for some TokenType
 	tokenTypeToRegex[TokenType::Bool]    = std::regex("^(true|false)");
 
-	tokenTypeToRegex[TokenType::Operator] = std::regex("^(==|>|<(?!(=))|<=>|=>|=(?!(>|=))|<=(?!(>))|>=|[+]|-|[/]|[*])");
+	tokenTypeToRegex[TokenType::Operator] = std::regex("^(==|>|<(?!(=))|<=>|=>|=(?!(>|=))|<=(?!(>))|>=|[+]|[-]|[/]|[*])");
 	tokenTypeToRegex[TokenType::Str]     = std::regex("^\"[a-zA-Z0-9 ]+\"");
 	tokenTypeToRegex[TokenType::Symbol]  = std::regex("^[a-zA-Z_]+");
 	tokenTypeToRegex[TokenType::Double]  = std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?");
@@ -74,10 +74,11 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	keywordToTokenType[")"]        = TokenType::RBracket;
 	keywordToTokenType[","]        = TokenType::Separator;
 	keywordToTokenType["\t"]       = TokenType::Tab;
+
+	// TODO: these should be store somewhere
 	keywordToTokenType["string"]   = TokenType::Str;
 	keywordToTokenType["number"]   = TokenType::Double;
-	keywordToTokenType["symbol"]   = TokenType::Symbol;
-	keywordToTokenType["operator"] = TokenType::Operator;
+	keywordToTokenType["operator"] = TokenType::Symbol; // TODO: this is weird (an operator should be named symbol ?! ...)
 	keywordToTokenType["bool"]     = TokenType::Bool;	
 
 	// Fill type to string map
@@ -98,7 +99,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	// returnNumber(number)
 
 	FCT_BEGIN(Double, "returnNumber", Double)
-		RETURN( ARG(0) )
+		RETURN( (double)ARG(0) )
 	FCT_END
 
 	// sin(number)
@@ -277,71 +278,73 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	///////////////////////////////
 
 	// operator+(number, number)
-	OPERATOR_BEGIN(Double, "+", Double, 10u, Double, ICON_FA_PLUS " Add")
-		if (_args[0]->getType() == Type_Number)
-			RETURN( (double)ARG(0) + (double)ARG(1))
-		else
-			FAIL
+	OPERATOR_BEGIN(Double, "+", Double, Double, 10u, ICON_FA_PLUS " Add")
+		RETURN( (double)ARG(0) + (double)ARG(1))
+	OPERATOR_END
+			
+	// bool operator+(bool, bool)
+	OPERATOR_BEGIN(Bool, "+", Bool, Bool, 10u, ICON_FA_PLUS " Add")
+		RETURN( (bool)ARG(0) | (bool)ARG(1))
 	OPERATOR_END
 	
 	// operator-(number, number)	
-	OPERATOR_BEGIN(Double, "-", Double, 10u, Double, ICON_FA_MINUS " Subtract")
+	OPERATOR_BEGIN(Double, "-", Double, Double, 10u, ICON_FA_MINUS " Subtract")
 		RETURN( (double)ARG(0) - (double)ARG(1) )
 	OPERATOR_END
 	
 	// operator/(number, number)
-	OPERATOR_BEGIN(Double, "/", Double, 20u, Double, ICON_FA_DIVIDE " Divide");
+	OPERATOR_BEGIN(Double, "/", Double, Double, 20u, ICON_FA_DIVIDE " Divide");
 		RETURN( (double)ARG(0) / (double)ARG(1) )
 	OPERATOR_END
 	
 
 	// operator*(number, number)
-	OPERATOR_BEGIN(Double, "*", Double, 20u, Double, ICON_FA_TIMES " Multiply")
+	OPERATOR_BEGIN(Double, "*", Double, Double, 20u, ICON_FA_TIMES " Multiply")
 		RETURN( (double)ARG(0) * (double)ARG(1) )
 	OPERATOR_END
 
-	// operator!(boolean)
-	OPERATOR_BEGIN(Bool, "!", Bool, 5u, Bool, "! not")
+	// operator!(boolean) TODO: create an unary OPERATOR_UNARY_BEGIN(...) macro
+	OPERATOR_BEGIN(Bool, "!", Bool, Bool, 5u, "! not")
 		RETURN( !(bool)ARG(0) )
 	OPERATOR_END
 
-	// operator=(number)
-	OPERATOR_BEGIN(Double, "=", Double, 1u, Double, ICON_FA_EQUALS " Assign")
+	// operator=(number) TODO: create an unary OPERATOR_UNARY_BEGIN(...) macro
+	OPERATOR_BEGIN(Double, "=", Double, Double, 1u, ICON_FA_EQUALS " Assign")
 		RETURN( (double)ARG(0))
 	OPERATOR_END
 
 	// operator=>(bool)
-	OPERATOR_BEGIN(Bool, "=>", Bool, 1u, Bool, "=> Implies")
+	OPERATOR_BEGIN(Bool, "=>", Bool, Bool, 1u, "=> Implies")
 		RETURN(!(bool)ARG(0) || (bool)ARG(1) )
 	OPERATOR_END
 
 	// operator>=(double, double)
-	OPERATOR_BEGIN(Bool, ">=", Double, 1u, Double, ">= Greater or equal")
+	OPERATOR_BEGIN(Bool, ">=", Double, Double, 1u, ">= Greater or equal")
 		RETURN((double)ARG(0) >= (double)ARG(1))
 	OPERATOR_END
 
 	// operator<=(double, double)
-	OPERATOR_BEGIN(Bool, "<=", Double, 1u, Double, "<= Less or equal")
+	OPERATOR_BEGIN(Bool, "<=", Double, Double, 1u, "<= Less or equal")
 		RETURN((double)ARG(0) <= (double)ARG(1))
 	OPERATOR_END
 
 	// operator==(double, double)
-	OPERATOR_BEGIN(Bool, "==", Double, 1u, Double, "== Equals")
+	OPERATOR_BEGIN(Bool, "==", Double, Double, 1u, "== Equals")
 		RETURN((double)ARG(0) == (double)ARG(1))
 	OPERATOR_END
 
 	// operator<=>(bool, bool)
-	OPERATOR_BEGIN(Bool, "<=>", Bool, 1u, Bool, "<=> Equivalent")
+	OPERATOR_BEGIN(Bool, "<=>", Bool, Bool, 1u, "<=> Equivalent")
 	RETURN((double)ARG(0) == (double)ARG(1))
 	OPERATOR_END
 
 	// operator>(bool, bool)
-	OPERATOR_BEGIN(Bool, ">", Double, 1u, Double, "> Greater")
+	OPERATOR_BEGIN(Bool, ">", Double, Double, 1u, "> Greater")
 		RETURN((double)ARG(0) > (double)ARG(1))
 	OPERATOR_END
 
 	// operator<(bool, bool)
-	OPERATOR_BEGIN(Bool, "<", Double, 1u, Double, "< Less")
+	OPERATOR_BEGIN(Bool, "<", Double, Double, 1u, "< Less")
 		RETURN((double)ARG(0) < (double)ARG(1))
 	OPERATOR_END
 }

@@ -262,6 +262,16 @@ bool Parser_Tests() {
 		TEST_BEGIN("Function call"){
 			EXPECT(Parser_Test("returnNumber(5)", 5), true)
 			EXPECT(Parser_Test("returnNumber(1)", 1), true)
+			EXPECT(Parser_Test("sqrt(81)", 9), true)
+			EXPECT(Parser_Test("pow(2,2)", 4), true)
+		}TEST_END
+
+		TEST_BEGIN("Function-like operators call"){
+			EXPECT(Parser_Test("operator*(2,2)", double(4)), true)
+			EXPECT(Parser_Test("operator>(2,2)", false), true)
+			EXPECT(Parser_Test("operator-(3,2)", double(1)), true)
+			EXPECT(Parser_Test("operator+(2,2)", double(4)), true)
+			EXPECT(Parser_Test("operator/(4,2)", double(2)), true)
 		}TEST_END
 
 		TEST_BEGIN("Imbricated functions") {
