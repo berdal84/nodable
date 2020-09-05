@@ -7,16 +7,26 @@
 
 namespace Nodable
 {
-
+	/**
+	* The role of this class is to store make easy to convert a string to a TokenType
+	* and a TokenType to a string.
+	* We can also use reglar expressions.
+	* 
+	* ex:
+	* 
+	*   "true"          => TokenType::Boolean
+	*   "boolean"       => TokenType::BooleanType
+	*   "^(true|false)" => TokenType::Boolean
+	* 
+	*/
 	class Dictionnary
 	{
 	public:
 		Dictionnary() {}
 		~Dictionnary() {}
 		std::string convert(const TokenType&)const;
-		void        add(std::regex, TokenType);
-		void        add(std::string, TokenType);
-		void        add(std::string, TokenType, std::regex);
+		void        insert(std::regex, TokenType);
+		void        insert(std::string, TokenType);
 		const auto& getTokenTypeToRegexMap()const { return tokenTypeToRegex;  }
 	private:
 		std::string numbers;

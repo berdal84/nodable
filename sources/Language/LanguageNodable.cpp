@@ -58,27 +58,27 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 {
 
 	// Setup dictionnary:
-	dictionnary.add(std::regex("^(true|false)")       , TokenType::Boolean );
-	dictionnary.add(std::regex("^(\"[a-zA-Z0-9 ]+\")"), TokenType::String );
-	dictionnary.add(std::regex("^[a-zA-Z_]+")         , TokenType::Symbol);
-	dictionnary.add(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?") , TokenType::Double);
+	dictionnary.insert(std::regex("^(true|false)")       , TokenType::Boolean );
+	dictionnary.insert(std::regex("^(\"[a-zA-Z0-9 ]+\")"), TokenType::String );
+	dictionnary.insert(std::regex("^[a-zA-Z_]+")         , TokenType::Symbol);
+	dictionnary.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?") , TokenType::Double);
 
-	dictionnary.add("bool"  , TokenType::BooleanType);
-	dictionnary.add("string", TokenType::StringType);
-	dictionnary.add("number", TokenType::DoubleType);
+	dictionnary.insert("bool"  , TokenType::BooleanType);
+	dictionnary.insert("string", TokenType::StringType);
+	dictionnary.insert("number", TokenType::DoubleType);
 
-	dictionnary.add( 
+	dictionnary.insert( 
 		std::regex("^(==|>|<(?!(=))|<=>|=>|=(?!(>|=))|<=(?!(>))|>=|[+]|[-]|[/]|[*])"),
 		TokenType::Operator);
 
-	dictionnary.add(
+	dictionnary.insert(
 		std::regex("^((//(.+?)$)|(/\\*(.+?)\\*/)|[ \t])"), // comments (single line, multi) and space and tab
 		TokenType::Ignore); 
 
-	dictionnary.add("("	     , TokenType::LBracket);
-	dictionnary.add(")"	     , TokenType::RBracket);
-	dictionnary.add(","	     , TokenType::Separator);
-	dictionnary.add(";"      , TokenType::EndOfInstruction);
+	dictionnary.insert("("	     , TokenType::LBracket);
+	dictionnary.insert(")"	     , TokenType::RBracket);
+	dictionnary.insert(","	     , TokenType::Separator);
+	dictionnary.insert(";"      , TokenType::EndOfInstruction);
 
 	// To easily declare types
 	auto Double = TokenType::DoubleType;

@@ -330,15 +330,19 @@ Member* Parser::parseParenthesisExpression(size_t& _tokenId) {
 
 		auto subToken = _tokenId + 1;
 		result = parseExpression(subToken, 0u, nullptr);
-		_tokenId = subToken + 1;
 
-		if ( tokens.at(subToken).word != ")" ) {
-			LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
-			LOG_DEBUG_PARSER("parseParenthesisExpression failed... " KO " ( \")\" expected after %s )\n", tokens.at(subToken - 1) );
-		} else {
-			LOG_DEBUG_PARSER("parseParenthesisExpression... " OK  "\n");
-		}	
+		if (result)
+		{
+			_tokenId = subToken + 1;
 
+			if (tokens.at(subToken).word != ")") {
+				LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
+				LOG_DEBUG_PARSER("parseParenthesisExpression failed... " KO " ( \")\" expected after %s )\n", tokens.at(subToken - 1));
+			}
+			else {
+				LOG_DEBUG_PARSER("parseParenthesisExpression... " OK  "\n");
+			}
+		}
 	} else {
 		LOG_DEBUG_PARSER("parseParenthesisExpression... " KO " (open parenthesis not found) \n");
 	}
