@@ -59,8 +59,9 @@ source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" FILES ${SOURCES})
 include_directories(
 	"./sources"
 	"./sources/Core"
-	"./sources/Nodes"
-	"./sources/Components")
+	"./sources/Node"
+	"./sources/Component"
+	"./sources/Language")
 
 # Include external and libs folders (for headers)
 include_directories(
