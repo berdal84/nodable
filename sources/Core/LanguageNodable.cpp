@@ -11,17 +11,18 @@ std::string LanguageNodable::serialize(
 {
 	std::string expr;
 	expr.append(_signature.getIdentifier());
-	expr.append("( ");
+	expr.append(serialize(TokenType::LBracket) + " ");
 
 	for (auto it = _args.begin(); it != _args.end(); it++) {
 		expr.append((*it)->getSourceExpression());
 
 		if (*it != _args.back()) {
-			expr.append(", ");
+			expr.append(serialize(TokenType::Separator));
+			expr.append(" ");
 		}
 	}
 
-	expr.append(" )");
+	expr.append(" " + serialize(TokenType::LBracket));
 	return expr;
 
 }
@@ -35,7 +36,8 @@ std::string LanguageNodable::serialize(const FunctionSignature& _signature) cons
 
 		if (it != args.begin()) {
 			result.append(serialize(TokenType::Separator));
-			result.append(serialize(TokenType::Space));
+			result.append(" ");
+
 		}
 		const auto argType = (*it).type;
 		result.append( serialize(argType) );
@@ -49,46 +51,39 @@ std::string LanguageNodable::serialize(const FunctionSignature& _signature) cons
 }
 
 std::string LanguageNodable::serialize(const TokenType& _type) const {
-	return tokenTypeToString.at(_type);
+	return dictionnary.convert(_type);
 }
 
 LanguageNodable::LanguageNodable(): Language("Nodable")
 {
-	// Prepare regex for some TokenType
-	tokenTypeToRegex[TokenType::Bool]    = std::regex("^(true|false)");
 
-	tokenTypeToRegex[TokenType::Operator] = std::regex("^(==|>|<(?!(=))|<=>|=>|=(?!(>|=))|<=(?!(>))|>=|[+]|[-]|[/]|[*])");
-	tokenTypeToRegex[TokenType::Str]     = std::regex("^\"[a-zA-Z0-9 ]+\"");
-	tokenTypeToRegex[TokenType::Symbol]  = std::regex("^[a-zA-Z_]+");
-	tokenTypeToRegex[TokenType::Double]  = std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?");
-	tokenTypeToRegex[TokenType::Comment] = std::regex("(^//(.+?)$)|(^/\\*(.+?)\\*/)");
-	                                               /*  \---------/ \--------------/	                                    
-	                                                      single      multi line
-														  \--------------------/
-														         comment
-												   */
+	// Setup dictionnary:
+	dictionnary.add(std::regex("^(true|false)")       , TokenType::Boolean );
+	dictionnary.add(std::regex("^(\"[a-zA-Z0-9 ]+\")"), TokenType::String );
+	dictionnary.add(std::regex("^[a-zA-Z_]+")         , TokenType::Symbol);
+	dictionnary.add(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?") , TokenType::Double);
 
-	// Fill string to type map
-	keywordToTokenType[" "]        = TokenType::Space;
-	keywordToTokenType["("]        = TokenType::LBracket;
-	keywordToTokenType[")"]        = TokenType::RBracket;
-	keywordToTokenType[","]        = TokenType::Separator;
-	keywordToTokenType["\t"]       = TokenType::Tab;
+	dictionnary.add("bool"  , TokenType::BooleanType);
+	dictionnary.add("string", TokenType::StringType);
+	dictionnary.add("number", TokenType::DoubleType);
 
-	// TODO: these should be store somewhere
-	keywordToTokenType["string"]   = TokenType::Str;
-	keywordToTokenType["number"]   = TokenType::Double;
-	keywordToTokenType["operator"] = TokenType::Symbol; // TODO: this is weird (an operator should be named symbol ?! ...)
-	keywordToTokenType["bool"]     = TokenType::Bool;	
+	dictionnary.add( 
+		std::regex("^(==|>|<(?!(=))|<=>|=>|=(?!(>|=))|<=(?!(>))|>=|[+]|[-]|[/]|[*])"),
+		TokenType::Operator);
 
-	// Fill type to string map
-	for (auto it = keywordToTokenType.begin(); it != keywordToTokenType.end(); it++)
-		tokenTypeToString[it->second] = it->first;
-	tokenTypeToString[TokenType::Unknown] = "?";
+	dictionnary.add(
+		std::regex("^((//(.+?)$)|(/\\*(.+?)\\*/)|[ \t])"), // comments (single line, multi) and space and tab
+		TokenType::Ignore); 
 
-	auto Double = TokenType::Double;
-	auto Bool   = TokenType::Bool;
-	auto Str    = TokenType::Str;
+	dictionnary.add("("	     , TokenType::LBracket);
+	dictionnary.add(")"	     , TokenType::RBracket);
+	dictionnary.add(","	     , TokenType::Separator);
+	dictionnary.add(";"      , TokenType::EndOfInstruction);
+
+	// To easily declare types
+	auto Double = TokenType::DoubleType;
+	auto Bool   = TokenType::BooleanType;
+	auto Str    = TokenType::StringType;
 
 	////////////////////////////////
 	//
@@ -284,7 +279,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 			
 	// bool operator+(bool, bool)
 	OPERATOR_BEGIN(Bool, "+", Bool, Bool, 10u, ICON_FA_PLUS " Add")
-		RETURN( (bool)ARG(0) | (bool)ARG(1))
+		RETURN( (bool)ARG(0) || (bool)ARG(1))
 	OPERATOR_END
 	
 	// operator-(number, number)	

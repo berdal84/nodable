@@ -101,7 +101,7 @@ bool Parser::eval()
 	return success;
 }
 
-Member* Parser::operandTokenToMember(const Token& _token) {
+Member* Parser::tokenToMember(const Token& _token) {
 
 
 	Member* result = nullptr;
@@ -109,7 +109,7 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 	switch (_token.type)
 	{
 
-		case TokenType::Bool:
+		case TokenType::Boolean:
 		{
 			result = new Member();
 			const bool value = _token.word == "true";
@@ -140,7 +140,7 @@ Member* Parser::operandTokenToMember(const Token& _token) {
 			break;
 		}
 
-		case TokenType::Str: {
+		case TokenType::String: {
 			result = new Member();
 			result->set(_token.word);
 			break;
@@ -267,11 +267,11 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 
 	// Then check if the operator can be applied to the next token
 	if (token1.word == "-" && token2.type == TokenType::Double) { // TODO: create the unary operation "negates"
-		result = operandTokenToMember(token2);
+		result = tokenToMember(token2);
 		result->set(-(double)*result);
 
-	} else if (token1.word == "!" && token2.type == TokenType::Bool) { // TODO: create the unary operation "not"
-		result = operandTokenToMember(token2);
+	} else if (token1.word == "!" && token2.type == TokenType::Boolean) { // TODO: create the unary operation "not"
+		result = tokenToMember(token2);
 		result->set(!(bool)*result);
 
 	} else {
@@ -307,7 +307,7 @@ Member* Parser::parseAtomicExpression(size_t& _tokenId) {
 
 	LOG_DEBUG_PARSER("parseAtomicExpression... " OK "\n");
 
-	return operandTokenToMember(token);
+	return tokenToMember(token);
 }
 
 Member* Parser::parseParenthesisExpression(size_t& _tokenId) {
@@ -499,110 +499,45 @@ bool Parser::tokenizeExpressionString()
 	auto chars = (std::string)*get("expression");
 
 	/* shortcuts to language members */
-	const auto& keywords = language->keywordToTokenType;
-	const auto& regex    = language->tokenTypeToRegex;
+	auto regex    = language->dictionnary.getTokenTypeToRegexMap();
 
 	for(auto it = chars.cbegin(); it != chars.cend(); ++it)
 	{
 		std::string currStr    = chars.substr(it - chars.cbegin(), 1);
 		auto        currDist   = std::distance(chars.cbegin(), it);
 
-		// Term -> Comment
-		{
-			std::smatch sm;
-			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Comment));
-			if (match) {
-				auto str = sm.str(0);
-				for (size_t i = 0; i < str.length() - 1; i++)
-					it++;
-				continue;
+		// Unified parsing (loop over all regex)
+		auto unifiedParsing = [&]() -> auto {
+			for (auto pair_it = regex.cbegin(); pair_it != regex.cend(); pair_it++)
+			{
+				std::smatch sm;
+				auto match = std::regex_search(it, chars.cend(), sm, pair_it->second);
+
+				if (match) {
+					auto str   = sm.str(0);
+					auto token = pair_it->first;					
+
+					if (token != TokenType::Ignore)
+					{
+						if (token == TokenType::String)
+							addToken(token, std::string(++str.cbegin(), --str.cend()), std::distance(chars.cbegin(), it));
+						else
+							addToken(token, str, std::distance(chars.cbegin(), it));
+					}
+
+					// advance iterator to the end of the str
+					for (size_t i = 0; i < str.length() - 1; i++) it++;
+
+					return true;
+				}
 			}
+			return false;
+		};
+
+		if (!unifiedParsing()) {
+			LOG_DEBUG_PARSER("Unable to tokenize expression %s \n", chars);
+			return false;
 		}
-
-		// Term -> Double
-		{
-			std::smatch sm;
-			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Double));
-			if (match) {
-
-				auto str = sm.str(0);
-				addToken(TokenType::Double, str, std::distance(chars.cbegin(), it));
-
-				for (size_t i = 0; i < str.length() - 1; i++)
-					it++;
-				continue;
-			}
-		}
-
-		// Term -> Boolean
-		{
-			std::smatch sm;
-			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Bool));
-			if (match) {
-
-				auto str = sm.str(0);
-				addToken(TokenType::Bool, str, std::distance(chars.cbegin(), it));
-
-				for (size_t i = 0; i < str.length() - 1; i++)
-					it++;
-				continue;
-			}
-		}
-
-		// Term -> String
-		{
-			std::smatch sm;
-			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Str));
-			if (match) {
-
-				auto str = sm.str(0);
-				addToken(TokenType::Str, std::string(++str.cbegin(), --str.cend()), std::distance(chars.cbegin(), it));
-
-				for (size_t i = 0; i < sm.str(0).length() - 1; i++)
-					it++;
-				continue;
-			}
-		}
-
-		// Term -> Operator
-		{
-			std::smatch sm;
-			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Operator));
-
-			if (match) {
-				auto str = sm.str(0);
-				addToken(TokenType::Operator, str, std::distance(chars.cbegin(), it));
-				for (size_t i = 0; i < str.length() - 1; i++) it++;
-				continue;
-			}
-		}
-
-		// Term -> Keyword
-		auto found = keywords.find(currStr);
-		if ( found != keywords.end()) {
-
-			auto token = found->second;
-			if (token != TokenType::Space) {
-				addToken(token, currStr, currDist);
-			}
-			continue;
-		}
-
-		// Term -> Symbol
-		{
-			std::smatch sm;
-			auto match = std::regex_search(it, chars.cend(), sm, regex.at(TokenType::Symbol));
-
-			if (match) {
-				auto str = sm.str(0);
-				addToken(TokenType::Symbol, str, std::distance(chars.cbegin(), it));
-				for (size_t i = 0; i < str.length() - 1; i++) it++;
-				continue;				
-			}
-		}
-
-		LOG_DEBUG_PARSER("Unable to tokenize expression %s \n", chars);
-		return false;
 	}
 
 	return true;

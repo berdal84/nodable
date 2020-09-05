@@ -4,19 +4,26 @@
 
 namespace Nodable {
 
-	enum class TokenType: uint16_t
+	enum class TokenType
 	{
-		Unknown,
-		Str,
+		Unknown,		
+
+		StringType,
+		DoubleType,
+		BooleanType,
+
+		String,
+		Boolean,
 		Double,
-		Symbol,
+
 		Operator,
-		Bool,
 		LBracket,
 		RBracket, 
 		Separator,
 		Space,
-		Comment,
-		Tab
+		Ignore,
+		EndOfInstruction,
+		Symbol
+
 	};
 }

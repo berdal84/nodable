@@ -4,6 +4,7 @@
 #include "Function.h"
 #include "Operator.h"
 #include "LanguageEnums.h"
+#include "Dictionnary.h"
 #include <map>
 #include <functional>
 #include <tuple>
@@ -58,7 +59,7 @@ namespace Nodable {
 	class Language {
 	public:
 
-		Language(std::string _name) :numbers(), letters(), brackets(), name(_name){};
+		Language(std::string _name): name(_name){};
 		~Language() {};
 
 		virtual std::string                   serialize(const FunctionSignature&, std::vector<Member*>)const = 0;
@@ -93,14 +94,9 @@ namespace Nodable {
 		static const Language* NODABLE;
 
 	public:
-		std::string numbers;
-		std::string letters;
-		std::map<std::string, TokenType> keywordToTokenType;
-		std::map<TokenType, std::string> tokenTypeToString;
-		std::map<TokenType, std::regex>  tokenTypeToRegex;
+		Dictionnary dictionnary;
 	private:
 		std::string name;
-		std::vector<char> brackets;
 		std::map<std::string, Operator> operators;
 		std::vector<Function> api;
 	};

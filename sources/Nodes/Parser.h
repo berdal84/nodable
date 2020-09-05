@@ -15,9 +15,9 @@ namespace Nodable{
 		size_t      charIndex = 0;                 // the index of the first character of the token in the evaluated expression.
 
 		bool isOperand()const {
-			return type == TokenType::Double ||
-				type == TokenType::Bool ||
-				type == TokenType::Str ||
+			return type == TokenType::DoubleType ||
+				type == TokenType::BooleanType ||
+				type == TokenType::StringType ||
 				type == TokenType::Symbol;
 		}
 
@@ -46,7 +46,7 @@ namespace Nodable{
 		bool           eval			       ();
 	private:
 
-		Member* operandTokenToMember(const Token& _token);
+		Member* tokenToMember(const Token& _token);
 
 		Member* parseRootExpression();
 
