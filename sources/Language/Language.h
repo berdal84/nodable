@@ -14,15 +14,23 @@
 
 // Some Macros to easily create function and add them to the Language.api
 
+#define SUCCESS return 0;
+#define FAIL _result->setType(Type::Unknown); return 1;
 #define ARG(n) (*_args[n])
 #define BEGIN_IMPL\
-	auto implementation = [](Member* _result, const std::vector<Member*>& _args)->int {
+	auto implementation = [](Member* _result, const std::vector<Member*>& _args)->int { \
+	for(auto it = _args.begin(); it != _args.end(); it++) \
+	{\
+		if( (*it)->isType(Type::Unknown) ) \
+		{\
+			FAIL\
+		}\
+	}
 
 #define RETURN( expr )\
 	_result->set( expr );
 
-#define SUCCESS return 0;
-#define FAIL return 1;
+
 #define END_IMPL SUCCESS\
 	};
 

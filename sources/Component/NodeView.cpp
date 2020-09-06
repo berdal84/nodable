@@ -496,7 +496,7 @@ bool NodeView::drawMember(Member* _member) {
 	}
 	default:
 		{
-			ImGui::Text("%s", _member->getSourceExpression().c_str());
+			ImGui::Text( "%s", _member->getName().c_str());
 			break;
 		}
 	}
@@ -506,7 +506,7 @@ bool NodeView::drawMember(Member* _member) {
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::BeginTooltip();
-		ImGui::Text("Source expression: \"%s\"", _member->getSourceExpression().c_str());
+		ImGui::Text("%s", _member->getSourceExpression().c_str());
 		ImGui::EndTooltip();
 	}
 

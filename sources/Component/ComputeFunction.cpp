@@ -21,9 +21,9 @@ bool ComputeFunction::update()
 	}
 
 	if (function->implementation(result, args))
-		LOG_ERROR("Evaluation of %s's native function failed !\n", language->serialize(function->signature).c_str());
-	else
-		this->updateResultSourceExpression();
+		LOG_MESSAGE("Evaluation of %s's native function failed !\n", language->serialize(function->signature).c_str());
+
+	this->updateResultSourceExpression();
 
 	return true;
 }
