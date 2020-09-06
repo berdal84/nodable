@@ -496,9 +496,7 @@ bool NodeView::drawMember(Member* _member) {
 	}
 	default:
 		{
-			ImGui::Text("%s", _member->getName().c_str());
-			ImGui::SameLine(0.0f, 10.0f);
-			ImGui::Text("%s", ((std::string)*_member).c_str());
+			ImGui::Text("%s", _member->getSourceExpression().c_str());
 			break;
 		}
 	}
