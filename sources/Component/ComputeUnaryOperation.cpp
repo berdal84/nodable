@@ -26,33 +26,23 @@ void ComputeUnaryOperation::updateResultSourceExpression()const
 	/*
 		Labmda funtion to check if parentheses are needed for the expression of the inputMember speficied as parameter.
 	*/
-	auto needParentheses = [&](Member* _input)->bool
+	auto getMemberSourceBinOp = [](Member * _member)-> const Operator*
 	{
-		if (_input != nullptr)
+		if (_member != nullptr )
 		{
-			auto node = _input->getOwner()->as<Node>();
-
-			if (node->hasComponent<ComputeBase>())
-			{
-				return true;
-			}
+			auto node = _member->getOwner()->as<Node>();
+			if (auto component = node->getComponent<ComputeBinaryOperation>())
+				return component->ope;
 		}
-		return false;
+		return nullptr;
 	};
 
-	std::string expr;
+	// Get the inner source bin operator
+	auto innerOp = getMemberSourceBinOp(this->args[0]->getInputMember());
 
-	// Operator
-	expr.append(" ");
-	expr.append(this->ope->identifier);
-	expr.append(" ");
-
-	// Left part of the expression
-	bool leftExpressionNeedsParentheses = needParentheses(this->args[0]->getInputMember());
-	if (leftExpressionNeedsParentheses) expr.append("( ");
-	expr.append(this->args[0]->getSourceExpression());
-	if (leftExpressionNeedsParentheses) expr.append(" )");
+	auto expr   = language->serializeUnaryOp(ope, args, innerOp);
 
 	// Apply the new string to the result's source expression.
-	this->result->setSourceExpression(expr.c_str());
+	result->setSourceExpression(expr.c_str());
 }
+

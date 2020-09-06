@@ -28,44 +28,23 @@ void ComputeBinaryOperation::updateResultSourceExpression()const
 	/*
 		Labmda funtion to check if parentheses are needed for the expression of the inputMember speficied as parameter.
 	*/
-	auto needParentheses = [&](Member * _input)->bool
+	auto getMemberSourceBinOp = [](Member * _member)-> const Operator*
 	{
-		if (_input != nullptr )
+		if (_member != nullptr )
 		{
-			auto node = _input->getOwner()->as<Node>();
-
-			if (node->hasComponent<ComputeBinaryOperation>())
-			{
-
-				if (auto leftOperationComponent = node->getComponent<ComputeBinaryOperation>())
-				{
-					if (language->needsToBeEvaluatedFirst(ope, leftOperationComponent->ope))
-						return true;
-				}
-			}
+			auto node = _member->getOwner()->as<Node>();
+			if (auto component = node->getComponent<ComputeBinaryOperation>())
+				return component->ope;
 		}
-		return false;
+		return nullptr;
 	};
 
-	std::string expr;
+	// Get the left and right source bin operator
+	auto lBinOp = getMemberSourceBinOp(this->args[0]->getInputMember());
+	auto rBinOp = getMemberSourceBinOp(this->args[1]->getInputMember());
 
-	// Left part of the expression
-	bool leftExpressionNeedsParentheses  = needParentheses(this->args[0]->getInputMember());
-	if (leftExpressionNeedsParentheses) expr.append("( ");
-	expr.append( this->args[0]->getSourceExpression() );
-	if (leftExpressionNeedsParentheses) expr.append(" )");
-
-	// Operator
-	expr.append( " " );
-	expr.append( this->ope->identifier );
-	expr.append( " " );
-
-	// Right part of the expression
-	bool rightExpressionNeedsParentheses = needParentheses(this->args[1]->getInputMember());
-	if (rightExpressionNeedsParentheses) expr.append("( ");
-	expr.append(this->args[1]->getSourceExpression());
-	if (rightExpressionNeedsParentheses) expr.append(" )");
+	auto expr   = language->serializeBinaryOp(ope, args, lBinOp, rBinOp);
 
 	// Apply the new string to the result's source expression.
-	this->result->setSourceExpression(expr.c_str());
+	result->setSourceExpression(expr.c_str());
 }

@@ -54,6 +54,54 @@ std::string LanguageNodable::serialize(const TokenType& _type) const {
 	return dictionnary.convert(_type);
 }
 
+std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<Member*> _args, const Operator* _lBinOp, const Operator* _rBinOp) const
+{
+	std::string result;
+
+	// Left part of the expression
+	{
+		bool needBrackets = _lBinOp && needsToBeEvaluatedFirst(_lBinOp, _op);
+		if (needBrackets) result.append( serialize(TokenType::LBracket) + " ");
+		result.append(_args[0]->getSourceExpression());
+		if (needBrackets) result.append(" " + serialize(TokenType::RBracket));
+	}
+
+	// Operator
+	result.append(" ");
+	result.append(_op->identifier);
+	result.append(" ");
+
+	// Right part of the expression
+	{
+		bool needBrackets = _rBinOp && needsToBeEvaluatedFirst(_rBinOp, _op);
+		if (needBrackets) result.append(serialize(TokenType::LBracket) + " ");
+		result.append(_args[1]->getSourceExpression());
+		if (needBrackets) result.append(" " + serialize(TokenType::RBracket));
+	}
+
+	return result;
+}
+
+std::string LanguageNodable::serializeUnaryOp(const Operator* _op, std::vector<Member*> _args, const Operator* _innerOp) const
+{
+	std::string result;
+
+	// operator ( ... innerOperator ... )   ex:   -(a+b)
+
+	// Operator
+	result.append(_op->identifier);
+
+	// Inner part of the expression
+	{
+		bool needBrackets = _innerOp && needsToBeEvaluatedFirst(_innerOp, _op);
+		if (needBrackets) result.append(serialize(TokenType::LBracket) + " ");
+		result.append(_args[0]->getSourceExpression());
+		if (needBrackets) result.append(" " + serialize(TokenType::RBracket));
+	}
+
+	return result;
+}
+
 const FunctionSignature LanguageNodable::createBinOperatorSignature(
 	Type _type,
 	std::string _identifier,

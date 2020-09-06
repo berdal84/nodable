@@ -74,6 +74,8 @@ namespace Nodable {
 		virtual std::string                   serialize(const FunctionSignature&, std::vector<Member*>)const = 0;
 		virtual std::string                   serialize(const FunctionSignature&)const = 0;
 		virtual std::string                   serialize(const TokenType&)const = 0;
+		virtual std::string                   serializeBinaryOp(const Operator*, std::vector<Member*>, const Operator*, const Operator*)const = 0;
+		virtual std::string                   serializeUnaryOp(const Operator*, std::vector<Member*>, const Operator*)const = 0;
 		virtual const FunctionSignature       createBinOperatorSignature(Type, std::string, Type, Type) const = 0;
 		virtual const FunctionSignature       createUnaryOperatorSignature(Type, std::string, Type) const = 0;
 		virtual const TokenType               typeToTokenType(Type _type)const = 0;
