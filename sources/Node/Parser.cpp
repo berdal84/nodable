@@ -256,9 +256,12 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	// Parse expression after the operator
 	auto valueTokenId = _tokenId + 1;
 	auto precedence = language->findOperator(token1.word)->precedence;
-	auto value = parseExpression(valueTokenId, precedence, nullptr);
-
-	if (!value) {
+	Member* value = nullptr;
+	
+	     if ( value = parseAtomicExpression(valueTokenId));
+	else if ( value = parseParenthesisExpression(valueTokenId));
+	else
+	{
 		LOG_DEBUG_PARSER("parseUnaryOperationExpression... " KO " (right expression is nullptr)\n");
 		return nullptr;
 	}
@@ -311,11 +314,14 @@ Member* Parser::parseAtomicExpression(size_t& _tokenId) {
 		return nullptr;
 	}
 
-	_tokenId++;
+	auto result = tokenToMember(token);
+
+	if( result != nullptr)
+		_tokenId++;
 
 	LOG_DEBUG_PARSER("parseAtomicExpression... " OK "\n");
 
-	return tokenToMember(token);
+	return result;
 }
 
 Member* Parser::parseParenthesisExpression(size_t& _tokenId) {

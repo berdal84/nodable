@@ -229,11 +229,18 @@ bool Parser_Tests() {
 		}TEST_END
 
 		TEST_BEGIN("Simple parenthesis"){
-			EXPECT( Parser_Test("-1*20", -20), true)
 			EXPECT( Parser_Test("(1+4)", 5), true)
 			EXPECT( Parser_Test("(1)+(2)", 3), true)
 			EXPECT( Parser_Test("(1+2)*3", 9), true)
 			EXPECT( Parser_Test("2*(5+3)", 16), true)
+		}TEST_END
+
+		TEST_BEGIN("Unary operators") {
+		EXPECT(Parser_Test("-1*20", -20), true)
+			EXPECT(Parser_Test("-(1+4)", -5), true)
+			EXPECT(Parser_Test("(-1)+(-2)", -3), true)
+			EXPECT(Parser_Test("-5*3", -15), true)
+			EXPECT(Parser_Test("2-(5+3)", -6), true)
 		}TEST_END
 
 		TEST_BEGIN("Complex parenthesis"){
