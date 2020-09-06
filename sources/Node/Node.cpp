@@ -7,7 +7,7 @@
 #include "WireView.h"
 #include "History.h"
 #include "DataAccess.h"
-#include "BinaryOperation.h"
+#include "ComputeBase.h"
 
 using namespace Nodable;
 
@@ -30,7 +30,7 @@ void Node::Connect( Wire* _wire,
 	command.execute();
 }
 
-Node::Node():parent(nullptr), label("Node"), dirty(true)
+Node::Node():parentContainer(nullptr), label("Node"), dirty(true)
 {
 
 }
@@ -71,14 +71,14 @@ void Node::setDirty(bool _value)
 	dirty = _value;
 }
 
-Container* Node::getParent()const
+Container* Node::getParentContainer()const
 {
-	return this->parent;
+	return this->parentContainer;
 }
 
-void Node::setParent(Container* _container)
+void Node::setParentContainer(Container* _container)
 {
-	this->parent = _container;
+	this->parentContainer = _container;
 }
 
 void Node::setLabel(const char* _label)
@@ -160,8 +160,8 @@ bool Node::update()
 			}
 		}
 
-		if(hasComponent<FunctionComponent>())
-			getComponent<FunctionComponent>()->update();
+		if(hasComponent<ComputeBase>())
+			getComponent<ComputeBase>()->update();
 		
 		if(hasComponent<DataAccess>())
 			getComponent<DataAccess>()->update();

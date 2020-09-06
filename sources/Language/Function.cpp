@@ -21,7 +21,7 @@ void FunctionSignature::pushArg(TokenType _type, std::string _name) {
 	args.push_back(FunctionArg(_type, _name));
 }
 
-bool FunctionSignature::match(FunctionSignature& _other) {
+bool FunctionSignature::match(const FunctionSignature& _other)const {
 
 	if (identifier != _other.identifier)
 		return false;
@@ -29,12 +29,16 @@ bool FunctionSignature::match(FunctionSignature& _other) {
 	if (args.size() != _other.args.size())
 		return false;
 
-	for (size_t i = 0; i < args.size(); i++) {
-		if (args[i].type != _other.args[i].type)
-			return false;
+	size_t i = 0;
+	bool isMatching = true;
+	while(i < args.size() && isMatching) {
+		if (_other.args[i].type != TokenType::AnyType) // in case argument's type is unknown we allow casting
+			if (args[i].type != _other.args[i].type)
+				isMatching = false;
+		i++;
 	}
 
-	return true;
+	return isMatching;
 }
 
 const std::string& FunctionSignature::getIdentifier()const

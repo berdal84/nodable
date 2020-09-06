@@ -16,7 +16,7 @@ namespace Nodable{
 
 		void              setName         (const char*);
 		bool              isSet           ()const{return getMember()->isSet(); }
-		bool              isType          (Type_ _type)const;		
+		bool              isType          (Type _type)const;		
 		const char*       getName         ()const;
 
 		template <typename T>

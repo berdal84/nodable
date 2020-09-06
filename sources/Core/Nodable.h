@@ -64,7 +64,7 @@ namespace Nodable{
 	class FileView;
 
 	// Binary Operation Components
-	class BinOperatorComponent;
+	class ComputeBinaryOperation;
 	class Add;
 	class Subtract;
 	class Assign;

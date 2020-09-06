@@ -14,8 +14,8 @@ namespace Nodable{
 		Node();
 		~Node();
 
-		/* Return the parent container of this node. Could be nullptr if this node is a root. */
-		Container*     getParent         ()const;
+		/* Return the parentContainer container of this node. Could be nullptr if this node is a root. */
+		Container*     getParentContainer         ()const;
 
 		const char*         getLabel          ()const;
 		
@@ -68,8 +68,8 @@ namespace Nodable{
 			return components.at(_componentName);
 		};*/
 
-		/* Set a new parent container */
-		void                setParent         (Container* _container);
+		/* Set a new parentContainer container */
+		void                setParentContainer         (Container* _container);
 
 		/* Update the label of the node. The label is not unique. */
 		virtual void        updateLabel       (){};
@@ -103,7 +103,7 @@ namespace Nodable{
 
 	private:
 		Components                components;
-		Container*                parent;
+		Container*                parentContainer;
 		std::string               label;
 		bool                      dirty;   // when is true -> needs to be evaluated.
 		Wires                     wires;             // contains all wires connected to or from this node.

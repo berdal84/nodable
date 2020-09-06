@@ -52,9 +52,9 @@ Nodable::File::File(
 	/* Add inputs in contextual menu */
 	auto api = language->getAPI();
 	for (auto it = api.begin(); it != api.end(); it++) {
-		auto proto = *it;
-		auto lambda = [container, proto]()->Node* {
-			return container->newFunction(proto);
+		auto function = &*it;
+		auto lambda = [container, function]()->Node* {
+			return container->newFunction(function);
 		};
 		containerView->addContextualMenuItem( ICON_FA_CODE " " + language->serialize((*it).signature), lambda);
 	}

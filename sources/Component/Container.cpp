@@ -3,7 +3,8 @@
 #include "Parser.h"
 #include "Node.h"
 #include "Variable.h"
-#include "BinaryOperation.h"
+#include "ComputeBinaryOperation.h"
+#include "ComputeUnaryOperation.h"
 #include "Wire.h"
 #include "WireView.h"
 #include "DataAccess.h"
@@ -71,7 +72,7 @@ bool Container::update()
 void Container::add(Node* _node)
 {
 	this->nodes.push_back(_node);
-	_node->setParent(this);
+	_node->setParentContainer(this);
 }
 
 void Container::remove(Node* _entity)
@@ -112,7 +113,7 @@ Variable* Container::newResult()
 {
 	auto variable = newVariable(ICON_FA_SIGN_OUT_ALT " Result");
 	auto member = variable->get("value");
-	member->setConnectionFlags(Connection_In);                     // disable output because THIS node is the output !
+	member->setConnectorWay(Way_In);                     // disable output because THIS node is the output !
 	result = variable;
 
 	return variable;
@@ -156,27 +157,28 @@ Variable* Container::newString(const char* _value)
 }
 
 
-Node* Container::newBinOp(std::string _op, const Operator& _proto)
+Node* Container::newBinOp(const Operator* _operator)
 {
 	// CREATE THE NODE :
 	//------------------
 
 	// Create a node with 2 inputs and 1 output
 	auto node = new Node();
-	node->setLabel(_proto.signature.getLabel());
-	const auto args = _proto.signature.getArgs();
-	auto left   = node->add("left", Default, Member::TokenTypeToMemberType(args[0].type), Connection_In);
-	auto right  = node->add("right", Default, Member::TokenTypeToMemberType(args[0].type), Connection_In);
-	auto result = node->add("result", Default, Member::TokenTypeToMemberType(_proto.signature.getType()), Connection_Out);
+	auto signature = _operator->signature;
+	node->setLabel(signature.getLabel());
+	const auto args = signature.getArgs();
+	auto left   = node->add("lvalue", Visibility::Default, language->tokenTypeToType(args[0].type), Way_In);
+	auto right  = node->add("rvalue", Visibility::Default, language->tokenTypeToType(args[1].type), Way_In);
+	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
 
-	// Create BinOperatorComponent component and link values.
-	auto binOp = new BinOperatorComponent(_op, _proto, language);
+	// Create ComputeBinaryOperation component and link values.
+	auto component = new ComputeBinaryOperation(_operator, language);
 	
-	binOp->setResult(result);	
-	binOp->setLeft( left );	
-	binOp->setRight(right);	
+	component->setResult(result);	
+	component->setLValue( left );	
+	component->setRValue(right);	
 
-	node->addComponent("operation", binOp);
+	node->addComponent("operation", component);
 	node->addComponent("view", new NodeView());
 
 	this->add(node);
@@ -184,26 +186,53 @@ Node* Container::newBinOp(std::string _op, const Operator& _proto)
 	return node;
 }
 
-Node* Container::newFunction(const Function& _proto) {
+Node* Container::newUnaryOp(const Operator* _operator)
+{
+	// CREATE THE NODE :
+	//------------------
+
+	// Create a node with 2 inputs and 1 output
+	auto node = new Node();
+	auto signature = _operator->signature;
+	node->setLabel(signature.getLabel());
+	const auto args = signature.getArgs();
+	auto left = node->add("lvalue", Visibility::Default, language->tokenTypeToType(args[0].type), Way_In);
+	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
+
+	// Create ComputeBinaryOperation component and link values.
+	auto component = new ComputeUnaryOperation(_operator, language);
+
+	component->setResult(result);
+	component->setLValue(left);
+
+	node->addComponent("operation", component);
+	node->addComponent("view", new NodeView());
+
+	this->add(node);
+
+	return node;
+}
+
+Node* Container::newFunction(const Function* _function) {
 
 	// CREATE THE NODE :
 	//------------------
 
 	// Create a node with 2 inputs and 1 output
 	auto node = new Node();
-	node->setLabel(ICON_FA_CODE " " + _proto.signature.getIdentifier());
-	node->add("result", Default, Member::TokenTypeToMemberType(_proto.signature.getType()), Connection_Out);
+	node->setLabel(ICON_FA_CODE " " + _function->signature.getIdentifier());
+	node->add("result", Visibility::Default, language->tokenTypeToType(_function->signature.getType()), Way_Out);
 
-	// Create FunctionComponent component and link values.
-	auto functionComponent = new MultipleArgFunctionComponent(_proto, language);
+	// Create ComputeBase component and link values.
+	auto functionComponent = new ComputeFunction(_function, language);
 	functionComponent->setResult(node->get("result"));
 
 	// Arguments
 	unsigned int i = 0;
-	auto args = _proto.signature.getArgs();
+	auto args = _function->signature.getArgs();
 	for (size_t i = 0; i < args.size(); i++) {		
 		std::string memberName = args[i].name;
-		auto member = node->add( memberName.c_str(), Default, Member::TokenTypeToMemberType(args[i].type), Connection_In); // create node input
+		auto member = node->add( memberName.c_str(), Visibility::Default, language->tokenTypeToType(args[i].type), Way_In); // create node input
 		functionComponent->setArg(i, member); // link input to component
 	}	
 	

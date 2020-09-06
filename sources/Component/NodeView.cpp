@@ -7,7 +7,7 @@
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
 #include "Application.h"
-#include "BinaryOperation.h"
+#include "ComputeBase.h"
 
 using namespace Nodable;
 
@@ -57,7 +57,7 @@ ImVec2 NodeView::getRoundedPosition()const
 	return roundedPosition;
 }
 
-ImVec2 NodeView::getConnectorPosition(const std::string& _name, Connection_ _connection)const
+ImVec2 NodeView::getConnectorPosition(const std::string& _name, Way _way)const
 {
 	auto pos = position;
 
@@ -66,14 +66,14 @@ ImVec2 NodeView::getConnectorPosition(const std::string& _name, Connection_ _con
 		pos.y += (*it).second;
 
 	// Inputs are displayed on the left
-	if (_connection == Connection_In)
+	if (_way == Way_In)
 		return ImVec2(pos.x - size.x * 0.5f, pos.y);
 
 	// Outputs are displayed on the right
-	else if (_connection == Connection_Out)
+	else if (_way == Way_Out)
 		return ImVec2(pos.x + size.x * 0.5f, pos.y);
 	else {
-		NODABLE_ASSERT(false); // _connection should be only In or Out.
+		NODABLE_ASSERT(false); // _way should be only In or Out.
 		return ImVec2();
 	}
 }
@@ -113,7 +113,7 @@ bool NodeView::update(float _deltaTime) {
 	auto node = getOwner();
 	NODABLE_ASSERT(node != nullptr);
 
-	if (node->hasComponent<FunctionComponent>())
+	if (node->hasComponent<ComputeBase>())
 		setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
 	else if (dynamic_cast<Variable*>(node) != nullptr)
 		setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f));
@@ -288,7 +288,7 @@ bool NodeView::draw()
 		for(auto& m : node->getMembers())
 		{		
 			auto member = m.second;
-			if (member->getVisibility() == Always && member->getConnectionFlags() == Connection_In)
+			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() == Way_In)
 			{
 				drawMember(m.second);
 			}
@@ -298,7 +298,7 @@ bool NodeView::draw()
 		for (auto& m : node->getMembers())
 		{
 			auto member = m.second;
-			if (member->getVisibility() == Always && member->getConnectionFlags() != Connection_In)
+			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() != Way_In)
 			{
 				drawMember(member);
 			}
@@ -313,8 +313,8 @@ bool NodeView::draw()
 		{		
 			auto member = m.second;
 
-			if( member->getVisibility() == OnlyWhenUncollapsed ||
-				member->getVisibility() == Hidden)
+			if( member->getVisibility() == Visibility::OnlyWhenUncollapsed ||
+				member->getVisibility() == Visibility::Hidden)
 			{
 				this->drawMember(member);
 			}
@@ -333,12 +333,12 @@ bool NodeView::draw()
 			ImGui::Text("- %s (%s)", name.c_str(), className);
 		}
 
-		// Draw parent's name
+		// Draw parentContainer's name
 		ImGui::NewLine();
 		ImGui::Text("Parameters :");
 		std::string parentName = "NULL";
-		if ( node->getParent() )
-			parentName = (std::string)*node->getParent()->get("name");
+		if ( node->getParentContainer() )
+			parentName = (std::string)*node->getParentContainer()->get("name");
 		ImGui::Text("Parent: %s", parentName.c_str());
 		
 		// Draw dirty state 
@@ -458,7 +458,7 @@ bool NodeView::drawMember(Member* _member) {
 	/* Draw the member */
 	switch (_member->getType())
 	{
-	case Type_Number:
+	case Type::Double:
 		{
 			auto f = (double)*_member;
 			if (ImGui::InputDouble(label.c_str(), &f))
@@ -469,7 +469,7 @@ bool NodeView::drawMember(Member* _member) {
 			}
 			break;
 		}
-	case Type_String:
+	case Type::String:
 		{				
 			char str[255];
 			sprintf_s(str, "%s", ((std::string)*_member).c_str() );
@@ -482,7 +482,7 @@ bool NodeView::drawMember(Member* _member) {
 			}
 			break;
 		}
-	case Type_Boolean:
+	case Type::Boolean:
 	{			
 		std::string checkBoxLabel = _member->getName();
 
@@ -522,13 +522,13 @@ bool NodeView::drawMember(Member* _member) {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	auto memberName       = _member->getName();
 
-	if (_member->allows(Connection_In)) {
-		ImVec2      connectorPos = getConnectorPosition( memberName, Connection_In);
+	if (_member->allows(Way_In)) {
+		ImVec2      connectorPos = getConnectorPosition( memberName, Way_In);
 		drawConnector(connectorPos, _member->input(), draw_list);
 	}
 		
-	if (_member->allows(Connection_Out)) {
-		ImVec2      connectorPos = getConnectorPosition( memberName, Connection_Out);
+	if (_member->allows(Way_Out)) {
+		ImVec2      connectorPos = getConnectorPosition( memberName, Way_Out);
 		drawConnector(connectorPos, _member->output(), draw_list);
 	}
 

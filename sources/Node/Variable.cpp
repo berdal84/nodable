@@ -6,7 +6,7 @@ using namespace Nodable;
 
 Variable::Variable()
 {
-	add("value", Always, Type_Unknown, Connection_InOut);	
+	add("value", Visibility::Always, Type::Unknown, Way_InOut);	
 }
 
 Variable::~Variable()
@@ -26,7 +26,7 @@ const char* Variable::getName()const
 	return name.c_str();
 }
 
-bool Variable::isType(Type_ _type)const
+bool Variable::isType(Type _type)const
 {
 	return getMember()->isType(_type);
 }

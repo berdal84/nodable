@@ -17,10 +17,9 @@ const Language* Language::Nodable() {
 	return Language::NODABLE;
 }
 
-void Language::addOperator( Operator _operator) {
-
-	auto item = std::pair<std::string, Operator>(_operator.identifier, _operator);
-	operators.insert(item);
+void Language::addOperator( Operator _operator)
+{
+	operators.push_back(_operator);
 }
 
 void Language::addOperator( std::string       _identifier,
@@ -31,30 +30,14 @@ void Language::addOperator( std::string       _identifier,
 	addOperator(op);
 }
 
-unsigned short Language::getOperatorPrecedence(const std::string& _identifier)const {
-
-	return operators.at(_identifier).precedence;
+bool  Language::needsToBeEvaluatedFirst(const Operator* _firstOperator, const Operator* _secondOperator)const {
+	return _firstOperator->precedence > _secondOperator->precedence;
 }
 
-bool  Language::needsToBeEvaluatedFirst(std::string op, std::string nextOp)const {
-	return getOperatorPrecedence(op) > getOperatorPrecedence(nextOp);
-}
-
-std::string Nodable::Language::getOperatorsAsString() const
-{
-	std::string result;
-
-	for (auto it = operators.begin(); it != operators.end(); it++) {
-		result.append((*it).second.identifier);
-	}
-
-	return result;
-}
-
-const Function* Nodable::Language::findFunction(FunctionSignature& _prototype) const
+const Function* Nodable::Language::findFunction(const FunctionSignature& _signature) const
 {
 	auto predicate = [&](Function fct) {
-		return fct.signature.match(_prototype);
+		return fct.signature.match(_signature);
 	};
 
 	auto it = std::find_if(api.begin(), api.end(), predicate);
@@ -65,11 +48,30 @@ const Function* Nodable::Language::findFunction(FunctionSignature& _prototype) c
 	return nullptr;
 }
 
-const Operator* Language::findOperator(const std::string& _operator) const {
+const Operator* Language::findOperator(const std::string& _identifier) const {
+
+	auto predicate = [&](Operator op) {
+		return op.identifier == _identifier;
+	};
+
+	auto it = std::find_if(operators.cbegin(), operators.cend(), predicate);
+
+	if (it != operators.end())
+		return &*it;
+
+	return nullptr;
+}
+
+const Operator* Language::findOperator(const FunctionSignature& _signature) const {
 	
-	auto it = operators.find(_operator);
+	auto predicate = [&](Operator op) {
+		return op.signature.match(_signature);
+	};
+
+	auto it = std::find_if(operators.cbegin(), operators.cend(), predicate );
+
 	if ( it != operators.end() )
-		return &it->second;
+		return &*it;
 
 	return nullptr;
 }

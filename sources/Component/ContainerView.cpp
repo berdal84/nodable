@@ -4,7 +4,6 @@
 #include "Node.h"
 #include "Container.h"
 #include "Variable.h"
-#include "BinaryOperation.h"
 #include "Wire.h"
 #include "WireView.h"
 #include "DataAccess.h"
@@ -93,7 +92,7 @@ bool ContainerView::draw()
 				auto member   = draggedConnector->member;
 				auto node     = member->getOwner()->as<Node>();
 				auto view     = node->getComponent<NodeView>();
-				auto position = view->getConnectorPosition(member->getName(), draggedConnector->side);
+				auto position = view->getConnectorPosition(member->getName(), draggedConnector->way);
 
 				lineScreenPosStart = position + ImGui::GetWindowPos();
 			}
@@ -105,7 +104,7 @@ bool ContainerView::draw()
 				auto member     = hoveredConnector->member;
 				auto node       = member->getOwner()->as<Node>();
 				auto view       = node->getComponent<NodeView>();
-				auto position   = view->getConnectorPosition(member->getName(), hoveredConnector->side);
+				auto position   = view->getConnectorPosition(member->getName(), hoveredConnector->way);
 
 				lineScreenPosEnd = position + ImGui::GetWindowPos();
 			}
@@ -218,18 +217,18 @@ bool ContainerView::draw()
 		if (draggedConnector != nullptr && newNode != nullptr)
 		{
 			// if dragged member is an inputMember
-			if (draggedConnector->member->allows(Connection_In))
-				Node::Connect(container->newWire(), newNode->getFirstWithConn(Connection_Out), draggedConnector->member);
+			if (draggedConnector->member->allows(Way_In))
+				Node::Connect(container->newWire(), newNode->getFirstWithConn(Way_Out), draggedConnector->member);
 
 			// if dragged member is an output
-			else if (draggedConnector->member->allows(Connection_Out)) {
+			else if (draggedConnector->member->allows(Way_Out)) {
 
 				// try to get the first Input only member
-				auto targetMember = newNode->getFirstWithConn(Connection_In);
+				auto targetMember = newNode->getFirstWithConn(Way_In);
 				
 				// If failed, try to get the first input/output member
 				if (targetMember == nullptr)
-					targetMember = newNode->getFirstWithConn(Connection_InOut);
+					targetMember = newNode->getFirstWithConn(Way_InOut);
 				else
 					Node::Connect(container->newWire(), draggedConnector->member, targetMember);
 			}

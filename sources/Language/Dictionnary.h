@@ -1,6 +1,6 @@
 #pragma once
 #include "Nodable.h"
-#include "LanguageEnums.h"
+#include "TokenType.h"
 #include <string>
 #include <map>
 #include <regex>

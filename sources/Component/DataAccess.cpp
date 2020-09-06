@@ -21,28 +21,20 @@ bool DataAccess::update()
 
     	switch( _value->getType())
     	{
-    		case (Type_String) :
-    		{
-    			writer.String( ((std::string)*_value).c_str());
-    			break;
-    		}
+        case Type::String :
+    		writer.String( ((std::string)*_value).c_str());
+    		break;
 
-    		case (Type_Number) :
-    		{
-    			writer.Double((double)*_value);
-    			break;
-    		}
+        case Type::Double :
+    		writer.Double((double)*_value);
+    		break;
     		
-    		case (Type_Boolean) :
-    		{
-    			writer.Bool((bool)*_value);
-    			break;
-    		}
-    		default:
-    		{
-    			writer.Null();
-    			break;
-    		}
+        case Type::Boolean:
+    		writer.Bool((bool)*_value);
+    		break;
+    	default:
+    		writer.Null();
+    		break;
     	}
 	};
 

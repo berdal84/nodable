@@ -11,6 +11,7 @@ namespace Nodable {
 		StringType,
 		DoubleType,
 		BooleanType,
+		AnyType,
 
 		String,
 		Boolean,

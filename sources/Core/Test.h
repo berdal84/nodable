@@ -88,47 +88,47 @@ static std::stack<TestState> status;
 
 bool Member_Connections_Tests() {
 
-	TEST_BEGIN("Member Connection"){
+	TEST_BEGIN("Member Way"){
 
-		TEST_BEGIN("Member 1: Connection_In"){
+		TEST_BEGIN("Member 1: In"){
 			std::unique_ptr<Member> m(new Member);
-			m->setConnectionFlags(Connection_In);
+			m->setConnectorWay(Way_In);
 
-			EXPECT(m->allows(Connection_Out)	, false)
-			EXPECT(m->allows(Connection_InOut)	, false)
-			EXPECT(m->allows(Connection_In)		, true)
-			EXPECT(m->allows(Connection_None)	, true)
+			EXPECT(m->allows(Way_Out)	, false)
+			EXPECT(m->allows(Way_InOut)	, false)
+			EXPECT(m->allows(Way_In)	, true)
+			EXPECT(m->allows(Way_None)	, true)
 		}TEST_END
 
 
-		TEST_BEGIN("Member 2: Connection_Out"){
+		TEST_BEGIN("Member 2: Out"){
 			std::unique_ptr<Member> m(new Member);
-			m->setConnectionFlags(Connection_Out);
+			m->setConnectorWay(Way_Out);
 
-			EXPECT(m->allows(Connection_Out)	, true)
-			EXPECT(m->allows(Connection_InOut)	, false)
-			EXPECT(m->allows(Connection_In)		, false)
-			EXPECT(m->allows(Connection_None)	, true)
+			EXPECT(m->allows(Way_Out)	, true)
+			EXPECT(m->allows(Way_InOut)	, false)
+			EXPECT(m->allows(Way_In)		, false)
+			EXPECT(m->allows(Way_None)	, true)
 		}TEST_END
 
-		TEST_BEGIN("Member 3: Connection_None"){
+		TEST_BEGIN("Member 3: None"){
 			std::unique_ptr<Member> m(new Member);
-			m->setConnectionFlags(Connection_Out);
+			m->setConnectorWay(Way_Out);
 
-			EXPECT(m->allows(Connection_Out)	, true)
-			EXPECT(m->allows(Connection_InOut)	, false)
-			EXPECT(m->allows(Connection_In)		, false)
-			EXPECT(m->allows(Connection_None)	, true)
+			EXPECT(m->allows(Way_Out)	, true)
+			EXPECT(m->allows(Way_InOut)	, false)
+			EXPECT(m->allows(Way_In)		, false)
+			EXPECT(m->allows(Way_None)	, true)
 		}TEST_END
 
-		TEST_BEGIN("Member 4: Connection_InOut"){
+		TEST_BEGIN("Member 4: InOut"){
 			std::unique_ptr<Member> m(new Member);
-			m->setConnectionFlags(Connection_InOut);
+			m->setConnectorWay(Way_InOut);
 
-			EXPECT(m->allows(Connection_Out)	, true)
-			EXPECT(m->allows(Connection_InOut)	, true)
-			EXPECT(m->allows(Connection_In)		, true)
-			EXPECT(m->allows(Connection_None)	, true)
+			EXPECT(m->allows(Way_Out)	, true)
+			EXPECT(m->allows(Way_InOut)	, true)
+			EXPECT(m->allows(Way_In)	, true)
+			EXPECT(m->allows(Way_None)	, true)
 		}TEST_END
 
 	}TEST_END
@@ -144,7 +144,7 @@ bool Member_AsBoolean_Tests() {
 
 		m->set(true);
 		EXPECT((bool)*m, true)
-		EXPECT(m->getType(), Type_Boolean)
+		EXPECT(m->getType(), Type::Boolean)
 
 		m->set(false);
 		EXPECT((bool)*m, false)
@@ -165,7 +165,7 @@ bool Member_AsString_Tests() {
 
 		EXPECT((std::string)*m, str)
 		EXPECT((bool)*m, true)
-		EXPECT(m->getType(), Type_String)
+		EXPECT(m->getType(), Type::String)
 		EXPECT((double)*m, str.length())
 		EXPECT(m->isSet(), true)
 	}TEST_END
@@ -175,13 +175,13 @@ bool Member_AsString_Tests() {
 
 bool Member_AsNumber_Tests() {
 
-	TEST_BEGIN("Member: Number"){
+	TEST_BEGIN("Member: Double"){
 				
 		std::unique_ptr<Member> m(new Member);
 		m->set((double)50);
 
 		EXPECT((double)*m, (double)50)
-		EXPECT(m->getType(), Type_Number)
+		EXPECT(m->getType(), Type::Double)
 		EXPECT(m->isSet(), true)	
 
 	}TEST_END
@@ -289,7 +289,7 @@ bool Node_Tests() {
 
 	TEST_BEGIN("Node"){
 
-		TEST_BEGIN("Node (add member Type_Number)"){
+		TEST_BEGIN("Node (add member Double)"){
 
 			std::unique_ptr<Node> node(new Node);
 			node->add("val");

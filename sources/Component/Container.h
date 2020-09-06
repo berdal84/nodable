@@ -32,10 +32,11 @@ namespace Nodable{
 		Variable*					newNumber(double = 0);
 		Variable*					newNumber(const char*);
 		Variable*					newString(const char*);	
-		Node*                       newBinOp(std::string, const Operator& _proto);
+		Node*                       newBinOp(const Operator*);
+		Node*                       newUnaryOp(const Operator*);
 		Parser*                    	newParser(Variable*);
 		Wire*                       newWire();
-		Node*                       newFunction(const Function& _proto);
+		Node*                       newFunction(const Function* _proto);
 
 	private:		
 		Variable*                   result = nullptr;

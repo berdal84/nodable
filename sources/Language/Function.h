@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Nodable.h"
-#include "LanguageEnums.h"
+#include "TokenType.h"
 #include <functional>
 #include <tuple>
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
@@ -42,7 +42,7 @@ namespace Nodable {
 			int dummy[] = { 0, ((void)pushArg(std::forward<TokenType>(args)),0)... };
 		}
 
-		bool                           match(FunctionSignature& _other);
+		bool                           match(const FunctionSignature& _other)const;
 		const std::string&             getIdentifier()const;
 		const std::vector<FunctionArg> getArgs() const;
 		const TokenType               getType() const;

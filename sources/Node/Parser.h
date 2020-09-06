@@ -2,26 +2,12 @@
 #include <string>
 #include <vector>
 
-#include <Nodable.h>    // forward declarations
-#include <Node.h>       // base class
-#include <Language.h>
+#include "Nodable.h"    // forward declarations
+#include "Node.h"       // base class
+#include "Language.h"
+#include "Token.h"
 
 namespace Nodable{
-
-	typedef struct
-	{
-		TokenType  type = TokenType::Unknown; // the type of the token
-		std::string word = "";                // the word as a string
-		size_t      charIndex = 0;                 // the index of the first character of the token in the evaluated expression.
-
-		bool isOperand()const {
-			return type == TokenType::DoubleType ||
-				type == TokenType::BooleanType ||
-				type == TokenType::StringType ||
-				type == TokenType::Symbol;
-		}
-
-	}Token;
 
 	/*
 

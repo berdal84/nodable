@@ -1,6 +1,6 @@
 #pragma once
 #include "Nodable.h"
-#include "Member.h"   // for Type_ enum
+#include "Member.h"   // for Type enum
 #include "mirror_macros.h"
 
 namespace Nodable
@@ -16,7 +16,7 @@ namespace Nodable
 		virtual ~Object();
 
 		/* Adds a new member identified by its _name. */
-		Member*             add         (const char*, Visibility_ = Default, Type_ = Type_Unknown, Connection_ = Connection_Default);
+		Member*             add         (const char*, Visibility = Visibility::Default, Type = Type::Unknown, Way = Way_Default);
 
 		bool                has         (Member* _value);
 
@@ -34,8 +34,8 @@ namespace Nodable
 		/* Return all members of this object */
 		const Members&      getMembers        ()const;
 
-		/* Return the first member that has this connection type (cf. Connection_ enum definition) or nullptr if no member is found.*/
-		Member*             getFirstWithConn(Connection_)const;
+		/* Return the first member that has this connection type (cf. Way enum definition) or nullptr if no member is found.*/
+		Member*             getFirstWithConn(Way)const;
 
 		/* this method is automatically called when a member value changed */
 		virtual void        onMemberValueChanged(const char* _name){};

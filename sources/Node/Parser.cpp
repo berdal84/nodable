@@ -3,7 +3,6 @@
 #include "Member.h"
 #include "Container.h"
 #include "Variable.h"
-#include "BinaryOperation.h"
 #include "NodeView.h"
 #include "Wire.h"
 #include "Language.h"
@@ -24,7 +23,7 @@ using namespace Nodable;
 
 Parser::Parser(const Language* _language):language(_language)
 {
-	add("expression", OnlyWhenUncollapsed);
+	add("expression", Visibility::OnlyWhenUncollapsed);
 	setLabel("Parser");
 }
 
@@ -81,7 +80,7 @@ bool Parser::eval()
 		return false;
 	}
 
-	auto container   = this->getParent();
+	auto container   = this->getParentContainer();
 	Variable* result = container->newResult();
 	container->tryToRestoreResultNodePosition();
 
@@ -119,7 +118,7 @@ Member* Parser::tokenToMember(const Token& _token) {
 
 		case TokenType::Symbol:
 		{
-			auto context = getParent();
+			auto context = getParentContainer();
 			Variable* variable = context->findVariable(_token.word);
 
 			if (variable == nullptr)
@@ -177,7 +176,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	}
 
 	// Precedence check
-	const auto currentOperatorPrecedence = language->getOperatorPrecedence(token1.word);
+	const auto currentOperatorPrecedence = language->findOperator(token1.word)->precedence;
 		
 	if (currentOperatorPrecedence <= _precedence) { // always eval the first operation if they have the same precedence or less.
 		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (Precedence)\n");
@@ -194,44 +193,34 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		return nullptr;
 	}
 
-	// Build the graph for the first 3 tokens
-	Container* context = this->getParent();	
 
-	// Special behavior for "=" operator
-	if (token1.word == "=") {
+	Container* context = this->getParentContainer();	
 
-		// Directly connects right operand output to left operant input (yes that's reversed compared to code)
-		auto var =_left->getOwner()->as<Variable>();
+	// Create a function signature according to ltype, rtype and operator word
+	auto signature        = language->createBinOperatorSignature(Type::Unknown, token1.word, _left->getType(), right->getType());
+	auto matchingOperator = language->findOperator(signature);
 
-		if (right->getOwner() == nullptr)
-			var->set(right);
-		else
-			Node::Connect(context->newWire(), right, _left);
+	if ( matchingOperator != nullptr )
+	{
 
-		result = var->getMember();
-
-
-	// For all other binary operations :
-	} else if (auto signature = language->findOperator(token1.word)) {
-
-		auto binOperation = context->newBinOp( token1.word, *signature);
+		auto binOpNode = context->newBinOp( matchingOperator);
 
 		// Connect the Left Operand :
 		//---------------------------
 		if (_left->getOwner() == nullptr)
-			binOperation->set("left", _left);
+			binOpNode->set("lvalue", _left);
 		else
-			Node::Connect(context->newWire(), _left, binOperation->get("left"));
+			Node::Connect(context->newWire(), _left, binOpNode->get("lvalue"));
 
 		// Connect the Right Operand :
 
 		if (right->getOwner() == nullptr)
-			binOperation->set("right", right);
+			binOpNode->set("rvalue", right);
 		else
-			Node::Connect(context->newWire(), right, binOperation->get("right"));
+			Node::Connect(context->newWire(), right, binOpNode->get("rvalue"));
 
 		// Set the left !
-		result = binOperation->get("result");
+		result = binOpNode->get("result");
 
 	}else {
 		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (unable to find operator prototype)\n");
@@ -257,7 +246,6 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 		return nullptr;
 
 	const Token& token1(tokens.at(_tokenId));
-	const Token& token2(tokens.at(_tokenId+1));
 
 	// Check if we get an operator first
 	if (token1.type != TokenType::Operator) {
@@ -265,21 +253,41 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 		return nullptr;
 	}
 
-	// Then check if the operator can be applied to the next token
-	if (token1.word == "-" && token2.type == TokenType::Double) { // TODO: create the unary operation "negates"
-		result = tokenToMember(token2);
-		result->set(-(double)*result);
+	// Parse expression after the operator
+	auto valueTokenId = _tokenId + 1;
+	auto precedence = language->findOperator(token1.word)->precedence;
+	auto value = parseExpression(valueTokenId, precedence, nullptr);
 
-	} else if (token1.word == "!" && token2.type == TokenType::Boolean) { // TODO: create the unary operation "not"
-		result = tokenToMember(token2);
-		result->set(!(bool)*result);
+	if (!value) {
+		LOG_DEBUG_PARSER("parseUnaryOperationExpression... " KO " (right expression is nullptr)\n");
+		return nullptr;
+	}
+
+	// Create a function signature 
+	auto signature = language->createUnaryOperatorSignature(Type::Unknown, token1.word, value->getType() );
+	auto matchingOperator = language->findOperator(signature);
+
+	if (matchingOperator != nullptr)
+	{
+		Container* context = this->getParentContainer();
+		auto binOpNode = context->newUnaryOp(matchingOperator);
+
+		// Connect the Left Operand :
+		//---------------------------
+		if (value->getOwner() == nullptr)
+			binOpNode->set("lvalue", value);
+		else
+			Node::Connect(context->newWire(), value, binOpNode->get("lvalue"));
+
+		// Set the left !
+		result = binOpNode->get("result");
 
 	} else {
 		LOG_DEBUG_PARSER("parseUnaryOperationExpression... " KO " (unrecognysed operator)\n");	
 		return nullptr;
 	}
 
-	_tokenId += 2;
+	_tokenId = valueTokenId;
 	LOG_DEBUG_PARSER("parseUnaryOperationExpression... " OK "\n");
 
 	return result;
@@ -615,7 +623,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 		if (auto member = parseExpression(localTokenId))
 		{
 			argAsMember.push_back(member); // store argument as member (already parsed)
-			signature.pushArg( Member::MemberTypeToTokenType(member->getType()) );  // add a new argument type to the proto.
+			signature.pushArg( language->typeToTokenType(member->getType()) );  // add a new argument type to the proto.
 
 			if (tokens.at(localTokenId).type == TokenType::Separator)
 				localTokenId++;
@@ -636,14 +644,14 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 	localTokenId++; // eat parenthesis
 
 	// Find the prototype in the language library
-	const Function* fct = language->findFunction(signature);
+	auto fct = language->findFunction(signature);
 
 	if( fct != nullptr) { // if function found
 
 		
-		Container* context = this->getParent();
+		Container* context = this->getParentContainer();
 
-		auto node = context->newFunction(*fct);
+		auto node = context->newFunction(fct);
 
 		auto connectArg = [&](size_t _argIndex)-> void { // lambda to connect input member to node for a specific argument index.
 

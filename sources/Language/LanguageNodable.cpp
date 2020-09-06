@@ -54,6 +54,38 @@ std::string LanguageNodable::serialize(const TokenType& _type) const {
 	return dictionnary.convert(_type);
 }
 
+const FunctionSignature LanguageNodable::createBinOperatorSignature(
+	Type _type,
+	std::string _identifier,
+	Type _ltype,
+	Type _rtype) const
+{
+	auto tokType  = typeToTokenType(_type);
+	auto tokLType = typeToTokenType(_ltype);
+	auto tokRType = typeToTokenType(_rtype);
+
+	FunctionSignature signature("operator" + _identifier, tokType);
+
+	signature.pushArgs(tokLType, tokRType);
+
+	return signature;
+}
+
+const FunctionSignature LanguageNodable::createUnaryOperatorSignature(
+	Type _type,
+	std::string _identifier,
+	Type _ltype) const
+{
+	auto tokType = typeToTokenType(_type);
+	auto tokLType = typeToTokenType(_ltype);
+
+	FunctionSignature signature("operator" + _identifier, tokType);
+
+	signature.pushArgs(tokLType);
+
+	return signature;
+}
+
 LanguageNodable::LanguageNodable(): Language("Nodable")
 {
 
@@ -68,7 +100,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	dictionnary.insert("number", TokenType::DoubleType);
 
 	dictionnary.insert( 
-		std::regex("^(==|>|<(?!(=))|<=>|=>|=(?!(>|=))|<=(?!(>))|>=|[+]|[-]|[/]|[*])"),
+		std::regex("^(&&|[|][|]|==|>|<(?!(=))|<=>|=>|=(?!(>|=))|<=(?!(>))|>=|[+]|[-]|[/]|[*]|[!])"),
 		TokenType::Operator);
 
 	dictionnary.insert(
@@ -81,6 +113,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	dictionnary.insert(";"      , TokenType::EndOfInstruction);
 
 	// To easily declare types
+	auto Symbol = TokenType::Symbol;
 	auto Double = TokenType::DoubleType;
 	auto Bool   = TokenType::BooleanType;
 	auto Str    = TokenType::StringType;
@@ -273,73 +306,128 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	///////////////////////////////
 
 	// operator+(number, number)
-	OPERATOR_BEGIN(Double, "+", Double, Double, 10u, ICON_FA_PLUS " Add")
+	BINARY_OP_BEGIN(Double, "+", Double, Double, 10u, ICON_FA_PLUS " Add")
 		RETURN( (double)ARG(0) + (double)ARG(1))
 	OPERATOR_END
-			
-	// bool operator+(bool, bool)
-	OPERATOR_BEGIN(Bool, "+", Bool, Bool, 10u, ICON_FA_PLUS " Add")
-		RETURN( (bool)ARG(0) || (bool)ARG(1))
+
+	// operator+(number, number)
+	BINARY_OP_BEGIN(Str, "+", Str, Str, 10u, "Concat.")
+	RETURN((std::string)ARG(0) + (std::string)ARG(1))
 	OPERATOR_END
-	
+
+	// operator+(number, number)
+	BINARY_OP_BEGIN(Str, "+", Str, Double, 10u, "Concat.")
+	RETURN((std::string)ARG(0) + (std::string)ARG(1))
+	OPERATOR_END
+
+	// bool operator||(bool, bool)
+	BINARY_OP_BEGIN(Bool, "||", Bool, Bool, 10u, "Logical Or")
+	RETURN((bool)ARG(0) || (bool)ARG(1))
+	OPERATOR_END
+
+	// bool operator&&(bool, bool)
+	BINARY_OP_BEGIN(Bool, "&&", Bool, Bool, 10u, "Logical And")
+	RETURN((bool)ARG(0) && (bool)ARG(1))
+	OPERATOR_END
+
 	// operator-(number, number)	
-	OPERATOR_BEGIN(Double, "-", Double, Double, 10u, ICON_FA_MINUS " Subtract")
+	BINARY_OP_BEGIN(Double, "-", Double, Double, 10u, ICON_FA_MINUS " Subtract")
 		RETURN( (double)ARG(0) - (double)ARG(1) )
 	OPERATOR_END
 	
 	// operator/(number, number)
-	OPERATOR_BEGIN(Double, "/", Double, Double, 20u, ICON_FA_DIVIDE " Divide");
+	BINARY_OP_BEGIN(Double, "/", Double, Double, 20u, ICON_FA_DIVIDE " Divide");
 		RETURN( (double)ARG(0) / (double)ARG(1) )
 	OPERATOR_END
 	
 
 	// operator*(number, number)
-	OPERATOR_BEGIN(Double, "*", Double, Double, 20u, ICON_FA_TIMES " Multiply")
+	BINARY_OP_BEGIN(Double, "*", Double, Double, 20u, ICON_FA_TIMES " Multiply")
 		RETURN( (double)ARG(0) * (double)ARG(1) )
 	OPERATOR_END
 
-	// operator!(boolean) TODO: create an unary OPERATOR_UNARY_BEGIN(...) macro
-	OPERATOR_BEGIN(Bool, "!", Bool, Bool, 5u, "! not")
+	// operator!(boolean)
+	UNARY_OP_BEGIN(Bool, "!", Bool, 5u, "! not")
 		RETURN( !(bool)ARG(0) )
 	OPERATOR_END
 
-	// operator=(number) TODO: create an unary OPERATOR_UNARY_BEGIN(...) macro
-	OPERATOR_BEGIN(Double, "=", Double, Double, 1u, ICON_FA_EQUALS " Assign")
-		RETURN( (double)ARG(0))
+	// operator-(number)
+	UNARY_OP_BEGIN(Double, "-", Double, 5u, ICON_FA_MINUS " Minus")
+		RETURN( -(double)ARG(0) )
+	OPERATOR_END
+
+	// operator=(number)
+	BINARY_OP_BEGIN(Bool, "=", Double, Double, 1u, ICON_FA_EQUALS " Assign")
+		_args[0]->set((double)ARG(1));
+		RETURN(ARG(0))
+	OPERATOR_END
+
+	// operator=(number)
+	BINARY_OP_BEGIN(Bool, "=", Bool, Bool, 1u, ICON_FA_EQUALS " Assign")
+			_args[0]->set((bool)ARG(1));
+			RETURN(ARG(0))
 	OPERATOR_END
 
 	// operator=>(bool)
-	OPERATOR_BEGIN(Bool, "=>", Bool, Bool, 1u, "=> Implies")
+	BINARY_OP_BEGIN(Bool, "=>", Bool, Bool, 10u, "=> Implies")
 		RETURN(!(bool)ARG(0) || (bool)ARG(1) )
 	OPERATOR_END
 
 	// operator>=(double, double)
-	OPERATOR_BEGIN(Bool, ">=", Double, Double, 1u, ">= Greater or equal")
+	BINARY_OP_BEGIN(Bool, ">=", Double, Double, 10u, ">= Greater or equal")
 		RETURN((double)ARG(0) >= (double)ARG(1))
 	OPERATOR_END
 
 	// operator<=(double, double)
-	OPERATOR_BEGIN(Bool, "<=", Double, Double, 1u, "<= Less or equal")
+	BINARY_OP_BEGIN(Bool, "<=", Double, Double, 10u, "<= Less or equal")
 		RETURN((double)ARG(0) <= (double)ARG(1))
 	OPERATOR_END
 
 	// operator==(double, double)
-	OPERATOR_BEGIN(Bool, "==", Double, Double, 1u, "== Equals")
+	BINARY_OP_BEGIN(Bool, "==", Double, Double, 10u, "== Equals")
 		RETURN((double)ARG(0) == (double)ARG(1))
 	OPERATOR_END
 
 	// operator<=>(bool, bool)
-	OPERATOR_BEGIN(Bool, "<=>", Bool, Bool, 1u, "<=> Equivalent")
+	BINARY_OP_BEGIN(Bool, "<=>", Bool, Bool, 10u, "<=> Equivalent")
 	RETURN((double)ARG(0) == (double)ARG(1))
 	OPERATOR_END
 
 	// operator>(bool, bool)
-	OPERATOR_BEGIN(Bool, ">", Double, Double, 1u, "> Greater")
+	BINARY_OP_BEGIN(Bool, ">", Double, Double, 10u, "> Greater")
 		RETURN((double)ARG(0) > (double)ARG(1))
 	OPERATOR_END
 
 	// operator<(bool, bool)
-	OPERATOR_BEGIN(Bool, "<", Double, Double, 1u, "< Less")
+	BINARY_OP_BEGIN(Bool, "<", Double, Double,10u, "< Less")
 		RETURN((double)ARG(0) < (double)ARG(1))
 	OPERATOR_END
+}
+
+const TokenType LanguageNodable::typeToTokenType(Type _type)const
+{
+	// TODO: build a map in constructor
+	switch (_type)
+	{
+	case Type::Boolean: return TokenType::BooleanType;
+	case Type::Double:  return TokenType::DoubleType;
+	case Type::String:  return TokenType::StringType;
+	default:
+		return TokenType::AnyType;
+		break;
+	}
+}
+
+const Type LanguageNodable::tokenTypeToType(TokenType _tokenType)const
+{
+	// TODO: build a map in constructor
+	switch (_tokenType)
+	{
+	case TokenType::BooleanType: return Type::Boolean;
+	case TokenType::DoubleType:  return Type::Double;
+	case TokenType::StringType:  return Type::String;
+	default:
+		return Type::Unknown;
+		break;
+	}
 }

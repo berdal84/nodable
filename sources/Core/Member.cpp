@@ -18,12 +18,12 @@ Member::~Member(){
 		delete out;
 };
 
-Type_ Member::getType()const
+Type Member::getType()const
 {
 	return data.getType();
 }
 
-bool  Member::isType(Type_ _type)const
+bool  Member::isType(Type _type)const
 {
 	return data.isType(_type);
 }
@@ -34,7 +34,7 @@ bool Member::equals(const Member *_other)const {
 		   (std::string)*_other == (std::string)*this;
 }
 
-void Member::setConnectionFlags(Connection_ _flags)
+void Member::setConnectorWay(Way _flags)
 {
 	// Delete existing (we could reuse...)
 	if (in != nullptr)
@@ -44,14 +44,14 @@ void Member::setConnectionFlags(Connection_ _flags)
 		delete out;
 
 	// Create an input if needed
-	if (_flags & Connection_In)
-		in = new Connector(this, Connection_In);
+	if (_flags & Way_In)
+		in = new Connector(this, Way_In);
 	else
 		in = nullptr;
 
 	// Create an output if needed
-	if (_flags & Connection_Out)
-		out = new Connector(this, Connection_Out);
+	if (_flags & Way_Out)
+		out = new Connector(this, Way_Out);
 	else
 		out = nullptr;
 }
@@ -61,12 +61,12 @@ void Nodable::Member::setSourceExpression(const char* _val)
 	sourceExpression = _val;
 }
 
-void Member::setType(Type_ _type)
+void Member::setType(Type _type)
 {
 	data.setType(_type);
 }
 
-void Member::setVisibility(Visibility_ _v)
+void Member::setVisibility(Visibility _v)
 {
 	visibility = _v;
 }
@@ -76,10 +76,10 @@ void Nodable::Member::updateValueFromInputMemberValue()
 	this->set(this->inputMember);
 }
 
-bool Member::allows(Connection_ _connection)const
+bool Member::allows(Way _way)const
 {
-	auto maskedFlags = getConnectionFlags() & _connection;
-	return maskedFlags == _connection;
+	auto maskedFlags = getConnectorWay() & _way;
+	return maskedFlags == _way;
 }
 
 Object* Member::getOwner() const
@@ -97,29 +97,7 @@ const std::string& Nodable::Member::getName() const
 	return name;
 }
 
-const TokenType Member::MemberTypeToTokenType(Type_ _type)
-{
-	if (_type == Type_Boolean) return TokenType::BooleanType;
-	if (_type == Type_Number)  return TokenType::DoubleType;
-	if (_type == Type_String)  return TokenType::StringType;
 
-	return TokenType::Unknown;
-}
-
-const Type_ Nodable::Member::TokenTypeToMemberType(TokenType _tokenType)
-{
-	switch (_tokenType)
-	{
-	case TokenType::BooleanType: return Type_Boolean;
-	case TokenType::DoubleType:  return Type_Number;
-	case TokenType::StringType:  return Type_String;
-	default:
-		return Type_Unknown;
-		break;
-	}
-	
-
-}
 
 const Nodable::Connector* Member::input() const
 {
@@ -144,21 +122,21 @@ void Nodable::Member::setName(const char* _name)
 	name = _name;
 }
 
-Visibility_ Member::getVisibility() const
+Visibility Member::getVisibility() const
 {
 	return visibility;
 }
 
-Connection_ Member::getConnectionFlags() const
+Way Member::getConnectorWay() const
 {
 	if (in != nullptr && out != nullptr)
-		return Connection_InOut;
+		return Way_InOut;
 	else if (out != nullptr)
-		return Connection_Out;
+		return Way_Out;
 	else if (in != nullptr)
-		return Connection_In;
+		return Way_In;
 	else
-		return Connection_None;
+		return Way_None;
 }
 
 bool Member::isSet()const
@@ -180,7 +158,7 @@ std::string Member::getSourceExpression()const
 {
 	std::string expression;
 
-	if ( allows(Connection_In) && inputMember != nullptr)
+	if ( allows(Way_In) && inputMember != nullptr)
 	{
 		// if inputMember is a variable we add the variable name and an equal sign
 		if (inputMember->getOwner()->getClass()->getName() == "Variable" &&
@@ -199,7 +177,7 @@ std::string Member::getSourceExpression()const
 
 	} else {
 
-		if (isType(Type_String)) {
+		if (isType(Type::String)) {
 			expression = '"' + (std::string)*this + '"';
 		}
 		else {
@@ -223,7 +201,7 @@ void Member::set(const Member& _v)
 
 void Member::set(double _value)
 {
-	data.setType(Type_Number);
+	data.setType(Type::Double);
 	data.set(_value);
 }
 
@@ -239,12 +217,12 @@ void Member::set(const std::string& _value)
 
 void Member::set(const char* _value)
 {
-	data.setType(Type_String);
+	data.setType(Type::String);
 	data.set(_value);
 }
 
 void Member::set(bool _value)
 {
-	data.setType(Type_Boolean);
+	data.setType(Type::Boolean);
 	data.set(_value);
 }

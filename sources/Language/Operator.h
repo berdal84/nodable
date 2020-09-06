@@ -14,24 +14,21 @@ namespace Nodable {
 	Example: "+", "-" and "*" are an identifiers
 			 0u, 1u and 2u are their respective precedence.
 	*/
-	class Operator {
+	class Operator: public Function {
 	public:
 		Operator(
 			std::string       _identifier,
 			unsigned short    _precedence,
-			FunctionSignature _prototype,
-			FunctionImplem  _implementation):
+			FunctionSignature _signature,
+			FunctionImplem    _implementation):
 
+			Function(_signature, _implementation),
 			identifier(_identifier),
-			precedence(_precedence),
-			signature(_prototype),
-			implementation(_implementation)
+			precedence(_precedence)
 		{}
 		~Operator() {}
 
-		FunctionSignature signature;
-		std::string       identifier;
-		unsigned short    precedence;
-		FunctionImplem  implementation;
+		const std::string    identifier;
+		const unsigned short precedence;
 	};
 }
