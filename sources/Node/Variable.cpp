@@ -19,6 +19,7 @@ void Variable::setName(const char* _name)
 {
 	name = _name;
 	setLabel(_name);
+	get("value")->setSourceExpression(_name);
 }
 
 const char* Variable::getName()const
