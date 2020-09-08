@@ -276,27 +276,6 @@ void Container::tryToRestoreResultNodePosition()
 	}
 }
 
-Parser* Container::newParser(Variable* _expressionVariable)
-{
-	// Create a Parser Node
-	Parser* node = new Parser( language );
-	node->setLabel(ICON_FA_COGS " Parser");
-	
-	// Attach a NodeView on it
-	auto view = new NodeView;
-	view->setVisible(false);
-	node->addComponent( "view", view);	
-
-	// Link the _expressionVariable output with the Parser's member "expression"
-	auto wire             = this->newWire();
-	auto expressionMember = node->get("expression");
-	Node::Connect(wire,_expressionVariable->getMember(), expressionMember);
-	expressionMember->updateValueFromInputMemberValue();
-
-	this->add(node);
-	return node;
-}
-
 size_t Container::getNodeCount()const
 {
 	return nodes.size();

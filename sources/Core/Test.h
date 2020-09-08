@@ -197,22 +197,17 @@ bool Parser_Test(
 	const Language* _language = Language::Nodable()
 ){
 
-	auto container = new Container(_language);
-	auto expressionVariable(container->newVariable("expression"));
-	expressionVariable->set(expression);
+	Container container(_language);
+	Parser parser(_language, &container);
 
-	auto parser = container->newParser(expressionVariable);
+	parser.eval(expression);
 
-	parser->eval();
-
-	auto result = container->getResultVariable();
+	auto result = container.getResultVariable();
 	result->update();
 
 	Member expectedMember;
 	expectedMember.set(_expectedValue);
 	auto success = result->getMember()->equals(&expectedMember);
-
-	delete container;
 
 	return success;
 }

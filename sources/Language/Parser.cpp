@@ -3,7 +3,6 @@
 #include "Member.h"
 #include "Container.h"
 #include "Variable.h"
-#include "NodeView.h"
 #include "Wire.h"
 #include "Language.h"
 #include "Log.h"
@@ -21,10 +20,9 @@
 
 using namespace Nodable;
 
-Parser::Parser(const Language* _language):language(_language)
+Parser::Parser(const Language* _language, Container* _container):
+	                 language(_language), container(_container)
 {
-	add("expression", Visibility::OnlyWhenUncollapsed);
-	setLabel("Parser");
 }
 
 Parser::~Parser()
@@ -60,11 +58,11 @@ std::string Parser::logTokens(const std::vector<Token> _tokens, const size_t _hi
 	return result;
 }
 
-bool Parser::eval()
+bool Parser::eval(const std::string& _expression)
 {
 	bool success = false;
 
-	if (!tokenizeExpressionString()) {
+	if (!tokenizeExpressionString(_expression)) {
 		LOG_DEBUG_PARSER("Unable to parse expression due to unrecognysed tokens.");
 		return false;
 	}
@@ -80,7 +78,6 @@ bool Parser::eval()
 		return false;
 	}
 
-	auto container   = this->getParentContainer();
 	Variable* result = container->newResult();
 	container->tryToRestoreResultNodePosition();
 
@@ -90,10 +87,6 @@ bool Parser::eval()
 	// Else we connect resultValue with resultVariable.value
 	else
 		Node::Connect(container->newWire(), resultValue, result->getMember());
-
-
-	auto view = result->getComponent<NodeView>();
-	NodeView::ArrangeRecursively(view);
 		
 	success = true;
 
@@ -118,7 +111,7 @@ Member* Parser::tokenToMember(const Token& _token) {
 
 		case TokenType::Symbol:
 		{
-			auto context = getParentContainer();
+			auto context = container;
 			Variable* variable = context->findVariable(_token.word);
 
 			if (variable == nullptr)
@@ -193,9 +186,6 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		return nullptr;
 	}
 
-
-	Container* context = this->getParentContainer();	
-
 	// Create a function signature according to ltype, rtype and operator word
 	auto signature        = language->createBinOperatorSignature(Type::Unknown, token1.word, _left->getType(), right->getType());
 	auto matchingOperator = language->findOperator(signature);
@@ -203,21 +193,21 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	if ( matchingOperator != nullptr )
 	{
 
-		auto binOpNode = context->newBinOp( matchingOperator);
+		auto binOpNode = container->newBinOp( matchingOperator);
 
 		// Connect the Left Operand :
 		//---------------------------
 		if (_left->getOwner() == nullptr)
 			binOpNode->set("lvalue", _left);
 		else
-			Node::Connect(context->newWire(), _left, binOpNode->get("lvalue"));
+			Node::Connect(container->newWire(), _left, binOpNode->get("lvalue"));
 
 		// Connect the Right Operand :
 
 		if (right->getOwner() == nullptr)
 			binOpNode->set("rvalue", right);
 		else
-			Node::Connect(context->newWire(), right, binOpNode->get("rvalue"));
+			Node::Connect(container->newWire(), right, binOpNode->get("rvalue"));
 
 		// Set the left !
 		result = binOpNode->get("result");
@@ -272,15 +262,15 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 
 	if (matchingOperator != nullptr)
 	{
-		Container* context = this->getParentContainer();
-		auto binOpNode = context->newUnaryOp(matchingOperator);
+
+		auto binOpNode = container->newUnaryOp(matchingOperator);
 
 		// Connect the Left Operand :
 		//---------------------------
 		if (value->getOwner() == nullptr)
 			binOpNode->set("lvalue", value);
 		else
-			Node::Connect(context->newWire(), value, binOpNode->get("lvalue"));
+			Node::Connect(container->newWire(), value, binOpNode->get("lvalue"));
 
 		// Set the left !
 		result = binOpNode->get("result");
@@ -510,11 +500,11 @@ bool Parser::isSyntaxValid()
 	return success;
 }
 
-bool Parser::tokenizeExpressionString()
+bool Parser::tokenizeExpressionString(const std::string& _expression)
 {
 
 	/* get expression chars */
-	auto chars = (std::string)*get("expression");
+	auto chars = _expression;
 
 	/* shortcuts to language members */
 	auto regex    = language->dictionnary.getTokenTypeToRegexMap();
@@ -654,10 +644,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 
 	if( fct != nullptr) { // if function found
 
-		
-		Container* context = this->getParentContainer();
-
-		auto node = context->newFunction(fct);
+		auto node = container->newFunction(fct);
 
 		auto connectArg = [&](size_t _argIndex)-> void { // lambda to connect input member to node for a specific argument index.
 
@@ -667,7 +654,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 			if (arg->getOwner() == nullptr) {
 				node->set(memberName.c_str(), arg);
 			} else {
-				Node::Connect(context->newWire(), arg, node->get(memberName.c_str()));
+				Node::Connect(container->newWire(), arg, node->get(memberName.c_str()));
 			}
 		};
 

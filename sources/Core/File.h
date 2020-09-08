@@ -46,6 +46,7 @@ namespace Nodable
 		bool                      modified = false;
 		std::string               path;
 		std::string               name;
+		const Language*           language;
 		MIRROR_CLASS(File)();
 	};
 }

@@ -3,33 +3,25 @@
 #include <vector>
 
 #include "Nodable.h"    // forward declarations
-#include "Node.h"       // base class
 #include "Language.h"
 #include "Token.h"
 
 namespace Nodable{
 
+
 	/*
+		The role of this class is to convert code string to a Nodable graph.
 
-		This class is build to generate a graph from an expression string.
-		You just have to instantiate it and set its member "expression" and call update();
-
-		auto container = new Container("MyGlobalContainer");
-		auto lexer     = container->createLexer( Language::NODABLE );
-		lexer->set("expression", "10+50*40/0.001");
-		lexer->update();	
-
-		// here container should contain the generated graph.
-
+		ex: "a+b" will became an Add node connected to two variable nodes a and b.
 	*/
-	class Parser : public Node
+	class Parser
 	{
 	public:
-		Parser(const Language* _language);
-		virtual ~Parser();
+		Parser(const Language* _language, Container* _container);
+		~Parser();
 
 		/* Override from Node class */
-		bool           eval			       ();
+		bool eval(const std::string& );
 	private:
 
 		Member* tokenToMember(const Token& _token);
@@ -54,7 +46,7 @@ namespace Nodable{
 		Member* parseExpression(size_t& _tokenIndex, unsigned short _precedence = 0u, Member* _left = nullptr);
 
 		/* Cut the member "expression" into tokens to identifies its type (cf. TokenType enum) */
-		bool    tokenizeExpressionString			   ();
+		bool    tokenizeExpressionString(const std::string& _expression);
 
 		/* Check if the existing tokens match with the syntax of the language. tokenize() should be called first */
 		bool           isSyntaxValid	   ();
@@ -65,8 +57,15 @@ namespace Nodable{
 		/* Creates a new token given a _type, _string and _chanIndex and add it to the tokens.*/
 		void           addToken			   (TokenType _type, std::string _string, size_t _charIndex);
 
+		/* To store the result of the tokenizeExpressionString() method
+		   contain a vector of Tokens to be converted to a Nodable graph by all parseXXX functions */
 		std::vector<Token> tokens;
+
+		/* The language that defines a dictionnary, some functions and operators*/
 		const Language* language;
+
+		/* The target container of the parser in which all generated nodes will be pushed into*/
+		Container* container;
 	};
 
 }

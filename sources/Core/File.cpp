@@ -27,7 +27,7 @@ Nodable::File::File(
 	name = _name;
 
 	/* Detect the language (TODO) */
-	auto language = Language::Nodable();
+	language = Language::Nodable();
 
 	/* Creates the FileView	*/
 	auto fileView = new FileView();
@@ -144,24 +144,20 @@ bool File::evaluateExpression(std::string& _expression)
 {
 	boolean success;
 
-	auto variable = getContainer()->newVariable(ICON_FA_CODE);
-	variable->set(_expression);
+	auto container = getContainer();
 
-	auto view = variable->getComponent<NodeView>();
-	view->setVisible(false);
-
-	if (variable->isSet())
+	/* Create a Parser node. The Parser will cut expression string into tokens
+	(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
+	Parser parser(language, container);
+	
+	if (success = parser.eval(_expression))
 	{
-		/* Create a Parser node. The Parser will cut expression string into tokens
-		(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
-		auto parser = getContainer()->newParser(variable);
-		success = parser->eval();
+		auto result = container->getResultVariable();
+		auto view   = result->getComponent<NodeView>();
+		NodeView::ArrangeRecursively(view);
+	}
 
 
-	}
-	else {
-		success = false;
-	}
 
 	return false;
 }
