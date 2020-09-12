@@ -1,3 +1,4 @@
+![CI status](https://github.com/berdal84/nodable/workflows/build/badge.svg)
 ![Nodable Logo](https://www.dalle-cort.fr/wp-content/uploads/2019/07/2019_08_04_Nodable_Logo_V2.jpg)
 
 Nodable is node-able !
