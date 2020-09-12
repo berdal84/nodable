@@ -1,19 +1,24 @@
 #pragma once
 
+// std
+#include <map>
+#include <functional>
+#include <tuple>
+#include <regex>
+
+// Nodable
 #include "Nodable.h"   // for constants and forward declarations
 #include "Function.h"
 #include "Operator.h"
 #include "TokenType.h"
 #include "Dictionnary.h"
 #include "Type.h"
-#include <map>
-#include <functional>
-#include <tuple>
-#include <regex>
 
+/*
+	Here, some Macros to easily create function and add them to the Language.api
 
-// Some Macros to easily create function and add them to the Language.api
-
+	TODO: I don't like these big macros. Use function traits instead.
+*/
 #define SUCCESS return 0;
 #define FAIL _result->setType(Type::Unknown); return 1;
 #define ARG(n) (*_args[n])
@@ -70,8 +75,14 @@ namespace Nodable {
 
 
 	/*
-	 * This class store all basic informations to store a language:
-	 * operators with precedence, functions and API
+		The role of this class is to define an interface for all languages in Nodable.
+
+		using this class we can:
+		- serialize tokens, functions (calls and signatures) an operators (binary and unary).
+		- convert TokenType (abstract) to Type (Nodable types)
+		- create, add and find functions.
+		- create, add and find operators.
+
 	 */
 	class Language {
 	public:
