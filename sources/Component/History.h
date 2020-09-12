@@ -1,0 +1,237 @@
+#pragma once
+#include "Component.h" // base class
+#include "Nodable.h"
+#include "Container.h"
+#include "Wire.h"
+#include "WireView.h"
+#include "Member.h"
+#include <vector>
+#include <time.h>
+#include "ImGuiColorTextEdit/TextEditor.h"
+#include "Log.h"
+#include <mirror.h>
+
+namespace Nodable
+{
+	class Cmd;
+	class Cmd_TextEditor_InsertText;
+
+	/* TextEditorBuffer is a class to handle TextEditor UndoRecords
+	This class will catch these object using AddUndo method.
+	*/
+	class TextEditorBuffer : public TextEditor::ExternalUndoBufferInterface {
+
+	public:
+		void AddUndo(TextEditor::UndoRecord& _undoRecord);
+
+		void setHistory(History* _history) { history = _history; }
+		void setTextEditor(TextEditor* aTextEditor) { mTextEditor = aTextEditor;}
+
+	private:
+		TextEditor* mTextEditor;
+		History* history;
+	};
+
+	class History : public Component {
+	public:
+		History() {}
+		~History();
+
+		/* Execute a command and add it to the history.
+		If there are other commands after they will be erased from the history */
+		void addAndExecute(Cmd*);
+
+		/* Undo the current (in the history) command  */
+		void undo();
+
+		/* Redo the next (in the history) command */
+		void redo();
+		
+		/* clear the undo history */
+		void clear();
+
+		/* To get the size of the history (command count)*/
+		size_t getSize()const { return commands.size(); }
+
+		/* To get the current command*/
+		size_t getCursorPosition()const { return commandsCursor; }
+		void setCursorPosition(size_t _pos);
+
+		const char* getCommandDescriptionAtPosition(size_t _commandId);
+
+		/* To get the special buffer for TextEditor */
+		TextEditorBuffer* createTextEditorUndoBuffer(TextEditor* _textEditor) {
+
+			textEditorBuffer = new TextEditorBuffer();
+			textEditorBuffer->setTextEditor(_textEditor);
+			textEditorBuffer->setHistory(this);
+
+			return textEditorBuffer;
+		}
+
+		// Future: For command groups (ex: 5 commands that are atomic)
+		// static BeginGroup();
+		// static EndGroup()
+		bool dirty;
+
+		static History*     global;
+
+	private:
+		std::vector<Cmd*>	commands = std::vector<Cmd*>();		/* Command history */
+		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
+		TextEditorBuffer*   textEditorBuffer = nullptr;
+
+		MIRROR_CLASS(History)(
+			MIRROR_PARENT(Component));
+	};
+
+
+	/*
+		Base class for all commands
+	*/
+
+	class Cmd
+	{
+	public:
+		Cmd(){};
+		virtual ~Cmd(){};
+		/* Call this to execute the command instance */
+		virtual void execute() = 0;
+
+		/* Call this to undo the execution of the command instance */
+		virtual void undo() = 0;
+		
+		/* Call this to redo this command */
+		virtual void redo() = 0;
+
+		virtual const char* getDescription() { return description.c_str(); };
+	protected:
+		std::string description = "";
+		bool done = false;	/* if set to true after do() has been called */		
+	};
+
+
+	/*
+		Command to add a wire between two Members
+	*/
+
+	class Cmd_ConnectWire : public Cmd
+	{
+	public:
+		Cmd_ConnectWire(Member* _source, Member* _target)
+		{			
+			this->source     = _source;
+			this->target     = _target;
+
+			// Generate a text description
+
+				// Title
+				description.append("Connect Wire\n");
+
+				// Details
+				description.append( "\"" + _source->getName() + "\" ---> \"" + _target->getName() + "\"\n");
+
+				// Time
+				time_t t = time(NULL);
+				struct tm tm;
+				char timeAsStringBuffer[26];
+				localtime_s(&tm, &t);
+				asctime_s(timeAsStringBuffer, sizeof timeAsStringBuffer, &tm);
+				description.append(timeAsStringBuffer);
+
+		};
+
+		~Cmd_ConnectWire(){};
+
+		void execute()
+		{
+			target->setInputMember(source);
+			target->getOwner()->as<Node>()->setDirty();
+
+			// Link wire to members
+			auto sourceContainer = source->getOwner()->as<Node>()->getParentContainer();
+
+			if (sourceContainer != nullptr)
+				this->wire = sourceContainer->newWire();
+			else
+				this->wire = new Wire();
+
+			wire->setSource(source);
+			wire->setTarget(target);
+
+			// Add the wire pointer to the Entitis instance to speed up drawing process.
+			target->getOwner()->as<Node>()->addWire(wire);
+			source->getOwner()->as<Node>()->addWire(wire);
+		}
+
+		void redo() {
+			execute();
+		}
+
+		void undo()
+		{
+			target->setInputMember(nullptr);
+			target->getOwner()->as<Node>()->setDirty();
+
+			// Link Members
+			wire->setSource(nullptr);
+			wire->setTarget(nullptr);
+
+			// Add the wire pointer to the Node instance to speed up drawing process.
+			target->getOwner()->as<Node>()->removeWire(wire);
+			source->getOwner()->as<Node>()->removeWire(wire);
+
+			// Delete wire
+			auto sourceContainer = source->getOwner()->as<Node>()->getParentContainer();
+			sourceContainer->removeWire(this->wire);
+			delete this->wire;
+		}
+
+		Wire* getWire() { return wire; }
+	private:
+		Wire*      wire          = nullptr;
+		Member*    source        = nullptr;
+		Member*    target        = nullptr;
+	};
+
+
+
+	/*
+		Command to wraps a TextEditor UndoRecord
+	*/
+
+	class Cmd_TextEditor_InsertText : public Cmd
+	{
+	public:
+		Cmd_TextEditor_InsertText(
+			TextEditor::UndoRecord& _undoRecord,
+			TextEditor* _textEditor): 
+			undoRecord(_undoRecord),
+			textEditor(_textEditor)
+		{
+			this->description.append("Cmd_TextEditor_InsertText\n" );
+			this->description.append("removed : " + undoRecord.mRemoved + "\n");
+			this->description.append("added : " + undoRecord.mAdded + "\n");
+		}
+
+		~Cmd_TextEditor_InsertText() {}
+
+		void execute() {}
+
+
+		void redo() {
+			undoRecord.Redo(textEditor);
+		}
+
+		void undo()
+		{
+			undoRecord.Undo(textEditor);
+		}
+
+	private:
+
+
+		TextEditor::UndoRecord undoRecord;
+		TextEditor*             textEditor;
+	};
+}

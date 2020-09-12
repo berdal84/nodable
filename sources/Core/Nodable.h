@@ -46,39 +46,39 @@ namespace Nodable{
     extern bool  displayArrows; 
 	extern float nodePadding;
 
-	// 1 - Common
+	// Common
 	class Wire;
 	class Member;
 	class Variant;
 	class Object;
 	
-	// 2 - Components :
+	// Components :
 	class Component;
 	class History;
 
-	// 2a - View Components
+	// View Components
 	class NodeView;
 	class ContainerView;
 	class ApplicationView;
 	class WireView;
 	class FileView;
 
-	// 2b - Binary Operation Components
-	class BinaryOperationComponent;
+	// Binary Operation Components
+	class ComputeBinaryOperation;
 	class Add;
-	class Substract;
+	class Subtract;
 	class Assign;
 	class Divide;
 	class Multiply;
 
-	// 3 - Nodes
+	// Nodes
 	class Node;
 	class Application;	
 	class Parser;
 	class Variable;
 	class Container;
 
-	// 4 - Other
+	// Other
 	class Log;	
 	class File;
 

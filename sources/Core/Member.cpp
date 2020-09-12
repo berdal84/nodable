@@ -2,6 +2,7 @@
 #include "Log.h"		 // for LOG_DEBUG(...)
 #include "Object.h"
 #include "Variable.h"
+#include "Language.h"
 
 using namespace Nodable;
 
@@ -9,21 +10,50 @@ Member::Member()
 {
 }
 
-Member::~Member(){};
+Member::~Member(){
+	if (in != nullptr)
+		delete in;
 
-Type_ Member::getType()const
+	if (out != nullptr)
+		delete out;
+};
+
+Type Member::getType()const
 {
 	return data.getType();
 }
 
-bool  Member::isType(Type_ _type)const
+bool  Member::isType(Type _type)const
 {
 	return data.isType(_type);
 }
 
-void Member::setConnectionFlags(Connection_ _flags)
+bool Member::equals(const Member *_other)const {
+	return _other != nullptr &&
+	       _other->isType(this->getType() ) &&
+		   (std::string)*_other == (std::string)*this;
+}
+
+void Member::setConnectorWay(Way _flags)
 {
-	connection = _flags;
+	// Delete existing (we could reuse...)
+	if (in != nullptr)
+		delete in;
+
+	if (out != nullptr)
+		delete out;
+
+	// Create an input if needed
+	if (_flags & Way_In)
+		in = new Connector(this, Way_In);
+	else
+		in = nullptr;
+
+	// Create an output if needed
+	if (_flags & Way_Out)
+		out = new Connector(this, Way_Out);
+	else
+		out = nullptr;
 }
 
 void Nodable::Member::setSourceExpression(const char* _val)
@@ -31,25 +61,25 @@ void Nodable::Member::setSourceExpression(const char* _val)
 	sourceExpression = _val;
 }
 
-void Member::setType(Type_ _type)
+void Member::setType(Type _type)
 {
 	data.setType(_type);
 }
 
-void Member::setVisibility(Visibility_ _v)
+void Member::setVisibility(Visibility _v)
 {
 	visibility = _v;
 }
 
 void Nodable::Member::updateValueFromInputMemberValue()
 {
-	this->setValue(this->inputMember);
+	this->set(this->inputMember);
 }
 
-bool Member::allows(Connection_ _connection)const
+bool Member::allows(Way _way)const
 {
-	auto maskedFlags = connection & _connection;
-	return maskedFlags == _connection;
+	auto maskedFlags = getConnectorWay() & _way;
+	return maskedFlags == _way;
 }
 
 Object* Member::getOwner() const
@@ -67,6 +97,18 @@ const std::string& Nodable::Member::getName() const
 	return name;
 }
 
+
+
+const Nodable::Connector* Member::input() const
+{
+	return in;
+}
+
+const Nodable::Connector* Member::output() const
+{
+	return out;
+}
+
 void Member::setInputMember(Member* _val)
 {
 	inputMember = _val;
@@ -80,53 +122,21 @@ void Nodable::Member::setName(const char* _name)
 	name = _name;
 }
 
-void Member::setValue(double _value)
-{
-	data.setType(Type_Number);
-	data.setValue(_value);
-}
-
-void Member::setValue(std::string _value)
-{
-	this->setValue(_value.c_str());
-}
-
-void Member::setValue(const char* _value)
-{
-	data.setType(Type_String);
-	data.setValue(_value);
-}
-
-void Member::setValue(bool _value)
-{
-	data.setType(Type_Boolean);
-	data.setValue(_value);
-}
-
-double Member::getValueAsNumber()const
-{
-	return data.getValueAsNumber();
-	
-}
-
-bool Member::getValueAsBoolean()const
-{
-	return data.getValueAsBoolean();	
-}
-
-std::string Member::getValueAsString()const
-{
-	return data.getValueAsString();
-}
-
-Visibility_ Member::getVisibility() const
+Visibility Member::getVisibility() const
 {
 	return visibility;
 }
 
-Connection_ Member::getConnection() const
+Way Member::getConnectorWay() const
 {
-	return connection;
+	if (in != nullptr && out != nullptr)
+		return Way_InOut;
+	else if (out != nullptr)
+		return Way_Out;
+	else if (in != nullptr)
+		return Way_In;
+	else
+		return Way_None;
 }
 
 bool Member::isSet()const
@@ -139,11 +149,6 @@ void Nodable::Member::setOwner(Object* _owner)
 	owner = _owner;
 }
 
-void Member::setValue(const Member* _v)
-{
-	data.setValue(&_v->data);	
-}
-
 std::string Member::getTypeAsString()const
 {
 	return data.getTypeAsString();
@@ -153,11 +158,11 @@ std::string Member::getSourceExpression()const
 {
 	std::string expression;
 
-	if ( allows(Connection_In) && inputMember != nullptr)
+	if ( allows(Way_In) && inputMember != nullptr)
 	{
 		// if inputMember is a variable we add the variable name and an equal sign
-		if (inputMember->getOwner()->get("__class__")->getValueAsString() == "Variable" &&
-			getOwner()->get("__class__")->getValueAsString() == "Variable")
+		if (inputMember->getOwner()->getClass()->getName() == "Variable" &&
+			getOwner()->getClass()->getName() == "Variable")
 		{
 			auto variable = inputMember->getOwner()->as<Variable>();
 			expression.append(variable->getName());
@@ -172,13 +177,52 @@ std::string Member::getSourceExpression()const
 
 	} else {
 
-		if (isType(Type_String)) {
-			expression = '"' + getValueAsString() + '"';
+		if (isType(Type::String)) {
+			expression = '"' + (std::string)*this + '"';
 		}
 		else {
-			expression = getValueAsString();
+			expression = (std::string)*this;
 		}
 	}
 
 	return expression;
+}
+
+
+void Member::set(const Member* _v)
+{
+	data.set(&_v->data);
+}
+
+void Member::set(const Member& _v)
+{
+	data.set(&_v.data);
+}
+
+void Member::set(double _value)
+{
+	data.setType(Type::Double);
+	data.set(_value);
+}
+
+void Member::set(int _value)
+{
+	set(double(_value));
+}
+
+void Member::set(const std::string& _value)
+{
+	this->set(_value.c_str());
+}
+
+void Member::set(const char* _value)
+{
+	data.setType(Type::String);
+	data.set(_value);
+}
+
+void Member::set(bool _value)
+{
+	data.setType(Type::Boolean);
+	data.set(_value);
 }

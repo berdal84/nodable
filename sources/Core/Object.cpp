@@ -4,8 +4,8 @@ using namespace Nodable;
 
 Object::Object()
 {
-	add("__class__", OnlyWhenUncollapsed);
-	add("name",      OnlyWhenUncollapsed);
+	add("__class__", Visibility::OnlyWhenUncollapsed);
+	add("name",      Visibility::OnlyWhenUncollapsed);
 }
 
 Object::~Object()
@@ -41,14 +41,14 @@ Member* Object::get (const std::string& _name)const
 	return members.at(_name.c_str());
 }
 
-Member* Object::getFirstWithConn(Connection_ _connection)const
+Member* Object::getFirstWithConn(Way _connection)const
 {
 	Member* found = nullptr;
 
 	auto m = this->members.begin();
 	while (m != this->members.end() && found == nullptr)
 	{
-		if (m->second->getConnection() & _connection)
+		if (m->second->getConnectorWay() & _connection)
 			found = m->second;
 		m++;
 	}
@@ -56,7 +56,7 @@ Member* Object::getFirstWithConn(Connection_ _connection)const
 	return found;
 }
 
-void Object::add (const char* _name, Visibility_ _visibility, Type_ _type, Connection_ _flags )
+Member* Object::add (const char* _name, Visibility _visibility, Type _type, Way _flags )
 {
 	auto v = new Member();
 
@@ -64,6 +64,8 @@ void Object::add (const char* _name, Visibility_ _visibility, Type_ _type, Conne
 	v->setName		(_name);
 	v->setVisibility(_visibility);
 	v->setType		(_type);
-	v->setConnectionFlags(_flags);
+	v->setConnectorWay(_flags);
 	members[std::string(_name)] = v;
+
+	return v;
 }

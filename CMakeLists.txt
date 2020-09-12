@@ -39,7 +39,7 @@ aux_source_directory( "./extern/ImGuiColorTextEdit" TEXTEDIT)
 aux_source_directory( "./libs/gl3w/GL" GL3W)
 
 # Get all files in sources directory recursively
-file(GLOB_RECURSE NODABLE_SRC "${CMAKE_CURRENT_LIST_DIR}/sources/**")
+file(GLOB_RECURSE NODABLE_SRC "${CMAKE_CURRENT_LIST_DIR}/sources/*")
 
 # Create a variable with all sources
 set(SOURCES
@@ -50,7 +50,7 @@ set(SOURCES
   ${MIRROR_SOURCES}
   "./extern/imgui/examples/imgui_impl_opengl3.cpp"
   "./extern/imgui/examples/imgui_impl_sdl.cpp" 
-)
+  )
 
 # Group the previous files using the folder tree 
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" FILES ${SOURCES})
@@ -59,8 +59,9 @@ source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" FILES ${SOURCES})
 include_directories(
 	"./sources"
 	"./sources/Core"
-	"./sources/Nodes"
-	"./sources/Components")
+	"./sources/Node"
+	"./sources/Component"
+	"./sources/Language")
 
 # Include external and libs folders (for headers)
 include_directories(
@@ -79,15 +80,18 @@ include_directories(
 # Build:
 #=======
 
+set(BUILD_PATH ${CMAKE_BINARY_DIR}/$<CONFIG>)
+
 # Add an executable called Nodable(.exe on windows) 
-add_executable (Nodable ${SOURCES}) # WIN32 will give WIN32_EXECUTABLE flag if targets windows (no console)
+add_executable (Nodable "sources/main.cpp" ${SOURCES}) # WIN32 will give WIN32_EXECUTABLE flag if targets windows (no console)
+set_property(TARGET Nodable PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}")
 
 # Link libraries
 target_link_libraries(Nodable PUBLIC ${OPENGL_LIBRARY})
 target_link_libraries(Nodable LINK_PUBLIC ${SDL2_STATIC})
 
 # Configure files (a link is created between source and target, if source is modified, target will be updated)
-set(BUILD_PATH ${CMAKE_BINARY_DIR}/$<CONFIG>)
+
 add_custom_command(
         TARGET Nodable PRE_BUILD
 

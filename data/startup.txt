@@ -1,15 +1,17 @@
-//
-// 	Hello World !
-//
-// First, few tips:
-//
-// - You can edit a line as a graph by clicking on it.
-// - You can also edit only a portion of the line by selecting it.
-// - Edition is seamless, you can modify both text or nodes.
-// - You can create a line by adding nodes manually (use right-click menu).
-//
-//
-// Then, follow this short tutorial to better understand how Nodable works:
+/*
+ 	Hello World !
+
+     First, few tips:
+
+     - You can edit a line as a graph by clicking on it.
+     - You can also edit only a portion of the line by selecting it.
+     - Edition is seamless, you can modify both text or nodes.
+     - You can create a line by adding nodes manually (use right-click menu).
+
+
+     Then, follow this short tutorial to better understand how Nodable works:
+ 
+ */
 
 
 // 1 - The next line contain a simple addition, simply click on it to generate the corresponding nodes:

@@ -18,9 +18,9 @@ using namespace Nodable;
 
 Application::Application(const char* _name):currentFileIndex(0)
 {
-	setMember("__class__", "Application");
+	set("__class__", "Application");
 	setLabel(_name);
-	addComponent("view", new ApplicationView(_name, this));
+	addComponent(new ApplicationView(_name, this));
 }
 
 Application::~Application()
@@ -114,8 +114,8 @@ void Application::setCurrentFileWithIndex(size_t _index)
 void Application::SaveNode(Node* _node)
 {
     auto component = new DataAccess;
-	_node->addComponent("dataAccess", component);
+	_node->addComponent(component);
 	component->update();
-	_node->removeComponent("dataAccess");
+	_node->deleteComponent<DataAccess>();
 }
 

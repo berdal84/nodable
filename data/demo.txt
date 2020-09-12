@@ -1,7 +1,77 @@
+
+ // NODABLE 0.7.WIP demo.
+//--------------------------------------
+
 // Expression 1 : the addition
-5 + 3
+100 + 355 * 10 - 1
 
 // Expression 2 : a more complex one
 5 / 10 - 5 * 2
 
-// Expression 3 : created from nodes
+// Expression 3 : with variable assignment
+var=10 * ( ( 5 - 1 ) + 1000 ) * ( 5 * 1000 + 2100 )
+
+// With some basic functions:
+sin(3.14) * cos(3.14) + 5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

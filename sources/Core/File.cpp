@@ -26,30 +26,38 @@ Nodable::File::File(
 	path = _path;
 	name = _name;
 
-	/*
-		Creates the FileView
-	*/
+	/* Detect the language (TODO) */
+	language = Language::Nodable();
+
+	/* Creates the FileView	*/
 	auto fileView = new FileView();
-	addComponent("view", fileView);
+	addComponent(fileView);
 	fileView->init();
 	fileView->setText(_content);
 	auto textEditor = fileView->getTextEditor();
 
-	/*
-		Creates an history for UNDO/REDO
-	*/
+	/* Creates an history for UNDO/REDO	*/
 	auto history = new History();
-	addComponent("history", history);
+	addComponent(history);
     auto undoBuffer = history->createTextEditorUndoBuffer(textEditor);
 	fileView->setUndoBuffer(undoBuffer);
 	
-	/*
-		Creates a node container
-	*/
-	auto container = new Container;
-	addComponent("container", container);
-	container->addComponent("view", new ContainerView);
+	/* Creates a node container */
+	auto container = new Container(language);
+	addComponent(container);
+	auto containerView = new ContainerView();
+	container->addComponent(containerView);
 	container->setOwner(this);
+
+	/* Add inputs in contextual menu */
+	auto api = language->getAPI();
+	for (auto it = api.begin(); it != api.end(); it++) {
+		auto function = &*it;
+		auto lambda = [container, function]()->Node* {
+			return container->newFunction(function);
+		};
+		containerView->addContextualMenuItem( ICON_FA_CODE " " + language->serialize((*it).signature), lambda);
+	}
 
 }
 
@@ -136,24 +144,20 @@ bool File::evaluateExpression(std::string& _expression)
 {
 	boolean success;
 
-	auto variable = getContainer()->newVariable(ICON_FA_CODE);
-	variable->setValue(_expression);
+	auto container = getContainer();
 
-	auto view = variable->getComponent<NodeView>();
-	view->setVisible(false);
-
-	if (variable->isSet())
+	/* Create a Parser node. The Parser will cut expression string into tokens
+	(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
+	Parser parser(language, container);
+	
+	if (success = parser.eval(_expression))
 	{
-		/* Create a Parser node. The Parser will cut expression string into tokens
-		(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
-		auto parser = getContainer()->newParser(variable);
-		success = parser->eval();
+		auto result = container->getResultVariable();
+		auto view   = result->getComponent<NodeView>();
+		NodeView::ArrangeRecursively(view);
+	}
 
 
-	}
-	else {
-		success = false;
-	}
 
 	return false;
 }
@@ -178,7 +182,7 @@ bool File::update() {
 		return false;
 	}
 
-	auto member		= result->getValue();
+	auto member		= result->getMember();
 	auto expression = member->getSourceExpression();
 	auto view		= getComponent<FileView>();
 
