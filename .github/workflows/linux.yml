@@ -23,8 +23,11 @@ jobs:
       # We'll use this as our working directory for all subsequent commands
       run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: Install dependencies
+    - name: Install SDL2
       run: sudo apt-get install libsdl2-2.0
+      
+    - name: Install OpenGL      
+      run: sudo apt-get install libegl1-mesa-dev
       
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
