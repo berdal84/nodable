@@ -1,5 +1,6 @@
-![CI status](https://github.com/berdal84/nodable/workflows/windows%20build/badge.svg)
-![Nodable Logo](https://www.dalle-cort.fr/wp-content/uploads/2019/07/2019_08_04_Nodable_Logo_V2.jpg)
+<img src="https://www.dalle-cort.fr/wp-content/uploads/2019/07/2019_08_04_Nodable_Logo_V2.jpg" width=600 />
+
+![CI status](https://github.com/berdal84/nodable/workflows/windows/badge.svg)
 
 Nodable is node-able !
 ======================
