@@ -90,9 +90,22 @@ namespace Nodable {
 		Language(std::string _name): name(_name){};
 		~Language() {};
 
+		/* Serialize a function call with a signature and some values */
 		virtual std::string                   serialize(const FunctionSignature&, std::vector<Member*>)const = 0;
+
+		/* Serialize a function signature */
 		virtual std::string                   serialize(const FunctionSignature&)const = 0;
+
+		/* Serialize a TokenType		
+		   ex:
+		   TokenType::LBracket => "("
+		   TokenType::StringType = > "std::string" (for C++) */
 		virtual std::string                   serialize(const TokenType&)const = 0;
+
+		/* Serialize a binary operation call using an operator and two operands.
+		   The last two operators are the source operators that creates the two operands as result.
+		   Those are used to check precedence and add some brackets if needed.
+		*/
 		virtual std::string                   serializeBinaryOp(const Operator*, std::vector<Member*>, const Operator*, const Operator*)const = 0;
 		virtual std::string                   serializeUnaryOp(const Operator*, std::vector<Member*>, const Operator*)const = 0;
 		virtual const FunctionSignature       createBinOperatorSignature(Type, std::string, Type, Type) const = 0;
