@@ -7,9 +7,10 @@
 namespace Nodable {
 
 	/**
+		The role of this class is to link an operator string (ex: "=", ">=", "!=", etc.) with a Function.
+		(cf. Function base class)
 
-	The Operator class store the identifier and the precedence of an operator, 
-	he also has a CallableFunction in order to be evaluated.
+		Operators also have some additionnal informations to be parsed well: precedence !	
 
 	Example: "+", "-" and "*" are an identifiers
 			 0u, 1u and 2u are their respective precedence.
