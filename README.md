@@ -1,5 +1,7 @@
-<img src="https://www.dalle-cort.fr/wp-content/uploads/2019/07/2019_08_04_Nodable_Logo_V2.jpg" width=600 />
-
+<div style="display: flex; justify-content: center; align-items: center;">
+  <img src="https://www.dalle-cort.fr/wp-content/uploads/2019/07/2019_08_04_Nodable_Logo_V2.jpg" width=600 />
+</div>
+                                                                                              
 ![CI status](https://github.com/berdal84/nodable/workflows/windows/badge.svg)
 
 Nodable is node-able !
