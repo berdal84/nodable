@@ -24,7 +24,7 @@ jobs:
       run: cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Install dependencies
-      run: apt-get install libsdl2-2.0
+      run: sudo apt-get install libsdl2-2.0
       
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
