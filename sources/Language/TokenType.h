@@ -1,6 +1,14 @@
 #pragma once
 
-/* This enum identifies each kind of word for a language */
+/*
+	This enum identifies each Type of Token that a Language should handle in its Dictionnary.
+
+	ex: 
+		C++ Language will define "bool" as BooleanType
+		TypeScript Language will define "boolean" as BooleanType
+
+	(cf. Dictionnary class)
+*/
 
 namespace Nodable {
 
