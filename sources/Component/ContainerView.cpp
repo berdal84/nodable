@@ -125,9 +125,7 @@ bool ContainerView::draw()
 			{
 				if (draggedConnector->member != hoveredConnector->member)
 				{
-					auto container = getOwner()->as<Container>();
-					auto wire      = container->newWire();
-					Node::Connect(wire, draggedConnector->member, hoveredConnector->member);
+					Node::Connect(draggedConnector->member, hoveredConnector->member);
 				}
 
 				NodeView::ResetDraggedConnector();
@@ -218,7 +216,7 @@ bool ContainerView::draw()
 		{
 			// if dragged member is an inputMember
 			if (draggedConnector->member->allows(Way_In))
-				Node::Connect(container->newWire(), newNode->getFirstWithConn(Way_Out), draggedConnector->member);
+				Node::Connect(newNode->getFirstWithConn(Way_Out), draggedConnector->member);
 
 			// if dragged member is an output
 			else if (draggedConnector->member->allows(Way_Out)) {
@@ -230,7 +228,7 @@ bool ContainerView::draw()
 				if (targetMember == nullptr)
 					targetMember = newNode->getFirstWithConn(Way_InOut);
 				else
-					Node::Connect(container->newWire(), draggedConnector->member, targetMember);
+					Node::Connect(draggedConnector->member, targetMember);
 			}
 			NodeView::ResetDraggedConnector();
 		}

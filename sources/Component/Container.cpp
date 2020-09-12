@@ -122,7 +122,7 @@ Variable* Container::newResult()
 Variable* Container::newVariable(std::string _name)
 {
 	auto node = new Variable();
-	node->addComponent( "view", new NodeView);
+	node->addComponent( new NodeView);
 	node->setName(_name.c_str());
 	this->variables.push_back(node);
 	this->add(node);
@@ -132,7 +132,7 @@ Variable* Container::newVariable(std::string _name)
 Variable* Container::newNumber(double _value)
 {
 	auto node = new Variable();
-	node->addComponent( "view", new NodeView);
+	node->addComponent( new NodeView);
 	node->set(_value);
 	this->add(node);
 	return node;
@@ -141,7 +141,7 @@ Variable* Container::newNumber(double _value)
 Variable* Container::newNumber(const char* _value)
 {
 	auto node = new Variable();
-	node->addComponent( "view", new NodeView);
+	node->addComponent( new NodeView);
 	node->set(std::stod(_value));
 	this->add(node);
 	return node;
@@ -150,7 +150,7 @@ Variable* Container::newNumber(const char* _value)
 Variable* Container::newString(const char* _value)
 {
 	auto node = new Variable();
-	node->addComponent( "view", new NodeView);
+	node->addComponent( new NodeView);
 	node->set(_value);
 	this->add(node);
 	return node;
@@ -172,15 +172,16 @@ Node* Container::newBinOp(const Operator* _operator)
 	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation component and link values.
-	auto component = new ComputeBinaryOperation(_operator, language);
-	
-	component->setResult(result);	
-	component->setLValue( left );	
-	component->setRValue(right);	
+	auto binOpComponent = new ComputeBinaryOperation(_operator, language);	
+	binOpComponent->setResult(result);	
+	binOpComponent->setLValue( left );	
+	binOpComponent->setRValue(right);
+	node->addComponent(binOpComponent);
 
-	node->addComponent("operation", component);
-	node->addComponent("view", new NodeView());
+	// Create a NodeView component
+	node->addComponent(new NodeView());
 
+	// Add to this container
 	this->add(node);
 		
 	return node;
@@ -199,15 +200,16 @@ Node* Container::newUnaryOp(const Operator* _operator)
 	auto left = node->add("lvalue", Visibility::Default, language->tokenTypeToType(args[0].type), Way_In);
 	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
 
-	// Create ComputeBinaryOperation component and link values.
-	auto component = new ComputeUnaryOperation(_operator, language);
+	// Create ComputeBinaryOperation binOpComponent and link values.
+	auto unaryOperationComponent = new ComputeUnaryOperation(_operator, language);
+	unaryOperationComponent->setResult(result);
+	unaryOperationComponent->setLValue(left);
+	node->addComponent(unaryOperationComponent);
 
-	component->setResult(result);
-	component->setLValue(left);
+	// Create a NodeView Component
+	node->addComponent(new NodeView());
 
-	node->addComponent("operation", component);
-	node->addComponent("view", new NodeView());
-
+	// Add to this container
 	this->add(node);
 
 	return node;
@@ -223,7 +225,7 @@ Node* Container::newFunction(const Function* _function) {
 	node->setLabel(ICON_FA_CODE " " + _function->signature.getIdentifier());
 	node->add("result", Visibility::Default, language->tokenTypeToType(_function->signature.getType()), Way_Out);
 
-	// Create ComputeBase component and link values.
+	// Create ComputeBase binOpComponent and link values.
 	auto functionComponent = new ComputeFunction(_function, language);
 	functionComponent->setResult(node->get("result"));
 
@@ -233,11 +235,11 @@ Node* Container::newFunction(const Function* _function) {
 	for (size_t i = 0; i < args.size(); i++) {		
 		std::string memberName = args[i].name;
 		auto member = node->add( memberName.c_str(), Visibility::Default, language->tokenTypeToType(args[i].type), Way_In); // create node input
-		functionComponent->setArg(i, member); // link input to component
+		functionComponent->setArg(i, member); // link input to binOpComponent
 	}	
 	
-	node->addComponent("operation", functionComponent);
-	node->addComponent("view", new NodeView());	
+	node->addComponent(functionComponent);
+	node->addComponent(new NodeView());	
 
 	this->add(node);
 
@@ -247,8 +249,8 @@ Node* Container::newFunction(const Function* _function) {
 
 Wire* Container::newWire()
 {
-	Wire* wire = new Wire;
-	wire->addComponent("view", new WireView);	
+	Wire* wire = new Wire();
+	wire->addComponent(new WireView);	
 	this->add(wire);
 	return wire;
 }

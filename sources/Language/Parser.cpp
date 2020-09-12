@@ -86,7 +86,7 @@ bool Parser::eval(const std::string& _expression)
 		result->set(resultValue);
 	// Else we connect resultValue with resultVariable.value
 	else
-		Node::Connect(container->newWire(), resultValue, result->getMember());
+		Node::Connect(resultValue, result->getMember());
 		
 	success = true;
 
@@ -200,14 +200,14 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		if (_left->getOwner() == nullptr)
 			binOpNode->set("lvalue", _left);
 		else
-			Node::Connect(container->newWire(), _left, binOpNode->get("lvalue"));
+			Node::Connect( _left, binOpNode->get("lvalue"));
 
 		// Connect the Right Operand :
 
 		if (right->getOwner() == nullptr)
 			binOpNode->set("rvalue", right);
 		else
-			Node::Connect(container->newWire(), right, binOpNode->get("rvalue"));
+			Node::Connect(right, binOpNode->get("rvalue"));
 
 		// Set the left !
 		result = binOpNode->get("result");
@@ -270,7 +270,7 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 		if (value->getOwner() == nullptr)
 			binOpNode->set("lvalue", value);
 		else
-			Node::Connect(container->newWire(), value, binOpNode->get("lvalue"));
+			Node::Connect(value, binOpNode->get("lvalue"));
 
 		// Set the left !
 		result = binOpNode->get("result");
@@ -603,7 +603,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 		return nullptr;
 	}
 
-	std::vector<Member*> argAsMember;
+	std::vector<Member*> args;
 
 	// Declare a new function prototype	
 	FunctionSignature signature(identifier, TokenType::Unknown);
@@ -618,7 +618,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 
 		if (auto member = parseExpression(localTokenId))
 		{
-			argAsMember.push_back(member); // store argument as member (already parsed)
+			args.push_back(member); // store argument as member (already parsed)
 			signature.pushArg( language->typeToTokenType(member->getType()) );  // add a new argument type to the proto.
 
 			if (tokens.at(localTokenId).type == TokenType::Separator)
@@ -648,13 +648,13 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 
 		auto connectArg = [&](size_t _argIndex)-> void { // lambda to connect input member to node for a specific argument index.
 
-			auto arg = argAsMember.at(_argIndex);
+			auto arg = args.at(_argIndex);
 			auto memberName = fct->signature.getArgs().at(_argIndex).name;
 
 			if (arg->getOwner() == nullptr) {
 				node->set(memberName.c_str(), arg);
 			} else {
-				Node::Connect(container->newWire(), arg, node->get(memberName.c_str()));
+				Node::Connect(arg, node->get(memberName.c_str()));
 			}
 		};
 

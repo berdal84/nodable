@@ -7,40 +7,73 @@
 #include "Member.h"
 
 namespace Nodable{
-	/* Base class for all Nodes */
+	
+	/*
+		The role of this class is to provide connectable Objects as Nodes.
+
+		A node is an Object (composed by Members) but here they can be linked together in 
+		order to create graphs.
+
+		Every Node has a parentContainer (cf. Container class).
+		All nodes are built from a Container, which first create an instance of this class (or derived) and then
+		add some components (cf. Component and derived classes) on it.
+	*/
 	class Node : public Object
 	{
 	public:
-		Node();
+		Node(std::string /* label */ = "UnnamedNode");
 		~Node();
 
-		/* Return the parentContainer container of this node. Could be nullptr if this node is a root. */
-		Container*     getParentContainer         ()const;
+		/* Get parent container of this node.
+		   note: Could be nullptr only if this node is a root. */
+		Container* getParentContainer()const;
 
-		const char*         getLabel          ()const;
+		/* Set the parent container of this node */
+		void setParentContainer(Container*);
+
+		/* Get the label of this Node */
+		const char* getLabel()const;
 		
-		/* Component related methods */
+		/* Add a component to this Node
+		   note: User must check be sure this Node has no other Component of the same type (cf. hasComponent(...))*/
 		template<typename T>
-		void addComponent(const std::string& _componentName, T* _component)
+		void addComponent(T* _component)
 		{
-			auto name = T::GetClass()->getName();
+			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
+			std::string name(T::GetClass()->getName());
 			components.insert_or_assign(name, _component);
 			_component->setOwner(this);
 		}
 
+		/* Return true if this node has the component specified by it's type T.
+		   note: T must be a derived class of Component
+		 */
 		template<typename T>
-		bool                hasComponent()const
+		bool hasComponent()const
 		{
+			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
 			return getComponent<T>() != nullptr;
 		}
 
+		/* Get all components of this Node */
+		const Components& getComponents()const;
 
-		const Components&   getComponents     ()const{return components;}
-		void                removeComponent   (const std::string& /* _componentName */);
+		/* Delete a component of this node by specifying it's type T.
+		   note: T must be Component derived. */
+		template<typename T>
+		void deleteComponent() {
+			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
+			auto name = T::GetClass()->getName();
+			auto component = getComponent<T>();
+			components.erase(name);
+			delete component;
+		}
 
+		/* Get a component of this Node by specifying it's type T.
+		   note: T must be Component derived.*/
 		template<typename T>
 		T* getComponent()const {
-
+			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
 			auto c    = T::GetClass();
 			auto name = c->getName();
 
@@ -63,45 +96,52 @@ namespace Nodable{
 			return nullptr;
 		};
 
-		/*
-		Component* getComponent(const std::string& _componentName)const {
-			return components.at(_componentName);
-		};*/
-
-		/* Set a new parentContainer container */
-		void                setParentContainer         (Container* _container);
-
-		/* Update the label of the node. The label is not unique. */
+		/* Update the label of the node.
+		   note: a label is not unique. */
 		virtual void        updateLabel       (){};
+
+		/* Set a label for this Node */
 		void                setLabel          (const char*);
+
+		/* Set a label for this Node */
 		void                setLabel          (std::string);
 
-		/* Update the state of this node. Call this once per frame */
+		/* Update the state of this node.
+		   note: this will be called every frame automatically */
 		virtual bool        update            ();
 
+		/* Adds a new wire related* to this node. (* connected to one of the Node Member)
+		   note: a node can connect two Members (cf. Wire class) */
 		void                addWire           (Wire*);
+
+		/* Removes a wire from this Node */
 		void                removeWire        (Wire*);
+
+		/* Get wires related* to this node. (* connected to one of the Node Member) */
 		Wires&              getWires          ();
+
+		/* Get the input connectedd wire count. */
 		int                 getInputWireCount ()const;
+
+		/* Get the output connected wire count. */
 		int                 getOutputWireCount()const;
 
 		/* Force this node to be evaluated at the next update() call */
 		void                setDirty          (bool _value = true);
 
-		/* return true if this node needs to be updated, either false */
+		/* return true if this node needs to be updated and false otherwise */
 		bool                isDirty           ()const;
 
-		/* Set the node dirty and update its label */
-		void                onMemberValueChanged(const char* _name)override;
-
-		/* Connect _from._fromOuputName with _to._toInputName.
-		the connection is oriented. */
-		static void         Connect            (Wire* /*_wire*/, Member* /*_from*/, Member* /*_to*/);
+		/* Create an oriented edge (Wire) between two Members */
+		static Wire* Connect(Member* /*_from*/, Member* /*_to*/);
 	
 		/* Disconnect a wire. This method is the opposite of Node::Connect.*/
-		static void         Disconnect        (Wire* _wire);
+		static void Disconnect(Wire* _wire);
 
 	private:
+		/* Will be called automatically on member value changes */
+		void onMemberValueChanged(const char* _name)override;
+
 		Components                components;
 		Container*                parentContainer;
 		std::string               label;
@@ -111,7 +151,6 @@ namespace Nodable{
 	public:
 		MIRROR_CLASS(Node)(
 			MIRROR_PARENT(Object)
-		);
-	
+		);	
 	};
 }

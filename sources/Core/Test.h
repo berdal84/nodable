@@ -322,27 +322,29 @@ bool WireAndNode_Tests() {
 			std::unique_ptr<Node> b(new Node);
 			b->add("input");
 
-			std::unique_ptr<Wire> wire(new Wire);
-			Node::Connect(wire.get(), a->get("output"), b->get("input"));
+			auto wire = Node::Connect(a->get("output"), b->get("input"));
 
 			EXPECT(wire->getSource() , a->get("output"))
 			EXPECT(wire->getTarget() , b->get("input"))
+
+			Node::Disconnect(wire);
+
 		}TEST_END
 
 		TEST_BEGIN("Disconnect a wire"){
 
-			std::unique_ptr<Node> a(new Node);
-			a->add("output");
+			Node a;
+			a.add("output");
 
-			std::unique_ptr<Node> b(new Node);
-			b->add("input");
+			Node b;
+			b.add("input");
 
-			std::unique_ptr<Wire> wire(new Wire);
-			Node::Connect(wire.get(), a->get("output"), b->get("input"));
-			Node::Disconnect(wire.get());
+			auto wire = Node::Connect(a.get("output"), b.get("input"));
 
-			EXPECT(wire->getSource(), nullptr)
-			EXPECT(wire->getTarget(), nullptr)
+			Node::Disconnect(wire);
+
+			EXPECT(a.getOutputWireCount(), 0);
+			EXPECT(b.getInputWireCount(), 0);
 		}TEST_END
 
 	}TEST_END

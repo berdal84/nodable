@@ -31,22 +31,22 @@ Nodable::File::File(
 
 	/* Creates the FileView	*/
 	auto fileView = new FileView();
-	addComponent("view", fileView);
+	addComponent(fileView);
 	fileView->init();
 	fileView->setText(_content);
 	auto textEditor = fileView->getTextEditor();
 
 	/* Creates an history for UNDO/REDO	*/
 	auto history = new History();
-	addComponent("history", history);
+	addComponent(history);
     auto undoBuffer = history->createTextEditorUndoBuffer(textEditor);
 	fileView->setUndoBuffer(undoBuffer);
 	
 	/* Creates a node container */
 	auto container = new Container(language);
-	addComponent("container", container);
+	addComponent(container);
 	auto containerView = new ContainerView();
-	container->addComponent("view", containerView);
+	container->addComponent(containerView);
 	container->setOwner(this);
 
 	/* Add inputs in contextual menu */

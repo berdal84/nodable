@@ -5,10 +5,15 @@
 #include <Nodable.h>    // forward declarations and common stuff
 #include <Node.h>       // base class
 #include <Member.h>
-#include "mirror_macros.h"
 
 namespace Nodable{
-	/* Variable is a node that identify a value with its name */
+	
+	/*
+		The role of this class is to wrap a variable as a Node.
+
+		The variable can be accessed through a single Member called "value".
+		The value member can be linked to other node members.
+	*/
 	class Variable : public Node {
 	public:
 		Variable();

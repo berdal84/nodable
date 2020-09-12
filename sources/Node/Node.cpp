@@ -16,21 +16,26 @@ void Node::Disconnect(Wire* _wire)
 	_wire->getTarget()->setInputMember(nullptr);
 	_wire->getTarget()->getOwner()->as<Node>()->setDirty();
 
-	_wire->setTarget(nullptr);
-	_wire->setSource(nullptr);
+	_wire->getTarget()->getOwner()->as<Node>()->removeWire(_wire);
+	_wire->getSource()->getOwner()->as<Node>()->removeWire(_wire);
+
+	delete _wire;
 
 	return;
 }
 
-void Node::Connect( Wire* _wire,
-					Member* _from,
-					Member* _to)
+Wire* Node::Connect( Member* _from, Member* _to)
 {	
-	Cmd_ConnectWire command(_wire, _from, _to);
+	Cmd_ConnectWire command(_from, _to);
 	command.execute();
+	return command.getWire();
 }
 
-Node::Node():parentContainer(nullptr), label("Node"), dirty(true)
+Node::Node(std::string _label):
+
+	parentContainer(nullptr),
+	label(_label),
+	dirty(true)
 {
 
 }
@@ -46,9 +51,9 @@ Node::~Node()
 	}
 }
 
-void Node::removeComponent(const std::string& _componentName)
+const Components& Node::getComponents()const
 {
-	components.erase(_componentName);
+	return components;
 }
 
 bool Node::isDirty()const

@@ -118,9 +118,8 @@ namespace Nodable
 	class Cmd_ConnectWire : public Cmd
 	{
 	public:
-		Cmd_ConnectWire(Wire* _wire, Member* _source, Member* _target)
-		{
-			this->wire		 = _wire;
+		Cmd_ConnectWire(Member* _source, Member* _target)
+		{			
 			this->source     = _source;
 			this->target     = _target;
 
@@ -150,6 +149,13 @@ namespace Nodable
 			target->getOwner()->as<Node>()->setDirty();
 
 			// Link wire to members
+			auto sourceContainer = source->getOwner()->as<Node>()->getParentContainer();
+
+			if (sourceContainer != nullptr)
+				this->wire = sourceContainer->newWire();
+			else
+				this->wire = new Wire();
+
 			wire->setSource(source);
 			wire->setTarget(target);
 
@@ -174,8 +180,14 @@ namespace Nodable
 			// Add the wire pointer to the Node instance to speed up drawing process.
 			target->getOwner()->as<Node>()->removeWire(wire);
 			source->getOwner()->as<Node>()->removeWire(wire);
+
+			// Delete wire
+			auto sourceContainer = source->getOwner()->as<Node>()->getParentContainer();
+			sourceContainer->removeWire(this->wire);
+			delete this->wire;
 		}
 
+		Wire* getWire() { return wire; }
 	private:
 		Wire*      wire          = nullptr;
 		Member*    source        = nullptr;
