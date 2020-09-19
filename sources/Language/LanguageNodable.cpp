@@ -180,12 +180,12 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 
 	// sin(number)
 	FCT_BEGIN(Double, "sin", Double)
-		RETURN( sin(ARG(0)) )
+		RETURN( sin((double)ARG(0)) )
 	FCT_END
 
 	// cos(number)
 	FCT_BEGIN(Double, "cos", Double)
-		RETURN( cos(ARG(0)) )
+		RETURN( cos((double)ARG(0)) )
 	FCT_END
 
 	// add(number)
@@ -205,7 +205,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 
 	// sqrt(number)
 	FCT_BEGIN(Double, "sqrt", Double)
-		RETURN( sqrt(ARG(0)) )
+		RETURN( sqrt((double)ARG(0)) )
 	FCT_END
 
 	// not(boolean)
@@ -242,7 +242,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 
 	// pow(number)
 	FCT_BEGIN(Double, "pow", Double, Double)
-		RETURN( pow(ARG(0), ARG(1)) )
+		RETURN( pow((double)ARG(0), (double)ARG(1)) )
 	FCT_END
 	
 	// secondDegreePolynomial(a: number, x: number, b:number, y:number, c:number)
