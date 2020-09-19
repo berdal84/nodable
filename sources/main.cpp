@@ -12,12 +12,15 @@ using namespace Nodable;
 
 int main(int argc, char* argv[])
 {	
-	// Run some tests before to do anything:
-
-	if ( !Test_RunAll() ) {
-		std::cout << "Tests failed, press a key to exit program" << std::endl;
-		std::cin.get();
-		return 1;
+	// If --test is passed as first arg, we run tests
+	if( argc == 2 && std::string(argv[1]) == "--run-tests")
+	{
+		if ( !Test_RunAll() ) {
+			std::cout << "Tests failed, press a key to exit program" << std::endl;
+			std::cin.get();
+			return 1;
+		}
+		return 0;
 	}
 
 	// Here the tests are all OK, we can instantiate, init and run nodable loop.
