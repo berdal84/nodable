@@ -24,7 +24,7 @@ jobs:
       run: cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Install SDL2 and OpenGL
-      run: sudo apt-get update && sudo apt-get install libsdl2-2.0 libegl1-mesa-dev
+      run: sudo apt-get update && sudo apt-get install libsdl2-2.0 libegl1-mesa-dev g++-10
       
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
