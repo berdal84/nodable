@@ -258,6 +258,6 @@ bool ContainerView::draw()
 
 void Nodable::ContainerView::addContextualMenuItem(std::string _label, std::function<Node*(void)> _function)
 {
-	contextualMenuItems.insert_or_assign(_label, _function);
+	contextualMenuItems.emplace( std::make_pair(_label, _function) );
 }
 

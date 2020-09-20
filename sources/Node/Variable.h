@@ -24,11 +24,6 @@ namespace Nodable{
 		bool              isType          (Type _type)const;		
 		const char*       getName         ()const;
 
-		template <typename T>
-		T as()const {
-			return  get("value")->get<T>();
-		}
-
 		Member* getMember()const {
 			return get("value");
 		}

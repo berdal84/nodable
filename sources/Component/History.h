@@ -187,7 +187,7 @@ namespace Nodable
 
 			// Delete wire
 			auto sourceContainer = source->getOwner()->as<Node>()->getParentContainer();
-			sourceContainer->removeWire(this->wire);
+			sourceContainer->remove(this->wire);
 			delete this->wire;
 		}
 
