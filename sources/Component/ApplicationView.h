@@ -2,6 +2,7 @@
 
 #include "Nodable.h"
 #include <imgui/imgui.h>
+#include "imfilebrowser.h"
 #include <SDL2/include/SDL.h>
 #include <string>
 #include "View.h"
@@ -30,6 +31,7 @@ namespace Nodable
 		
 
 	private:
+		ImGui::FileBrowser fileBrowser;
 		Application       *application;
 		SDL_Window        *sdlWindow;
 		SDL_GLContext     glcontext;

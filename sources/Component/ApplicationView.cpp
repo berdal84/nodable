@@ -459,6 +459,18 @@ bool ApplicationView::draw()
 		}
     }
     
+	// Modals
+	fileBrowser.Display();
+	if (fileBrowser.HasSelected())
+	{
+		auto selectedFiles = fileBrowser.GetMultiSelected();
+		for (auto it = selectedFiles.cbegin(); it != selectedFiles.cend(); it++ )
+		{
+			application->openFile(it->string().c_str());
+		}
+		fileBrowser.ClearSelected();
+		fileBrowser.Close();
+	}
 
 	// Rendering
 	ImGui::Render();
@@ -510,7 +522,7 @@ void Nodable::ApplicationView::drawFileTabs()
 
 void Nodable::ApplicationView::browseFile()
 {
-	auto fileAbsolutePath = File::BrowseForFileAndReturnItsAbsolutePath(this->sdlWindow);
-	application->openFile(fileAbsolutePath.c_str());
+	fileBrowser.Open();
+	//application->openFile(fileAbsolutePath.c_str());
 }
 

@@ -10,3 +10,6 @@
 [submodule "extern/mirror"]
 	path = extern/mirror
 	url = https://github.com/berdal84/mirror
+[submodule "extern/imgui-filebrowser"]
+	path = extern/imgui-filebrowser
+	url = https://github.com/berdal84/imgui-filebrowser.git

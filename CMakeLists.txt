@@ -15,7 +15,7 @@ endif ()
 project ("Nodable Project")
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # Adds SDL2 folder to CMAKE_PREFIX_PATH
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
@@ -69,6 +69,7 @@ include_directories(
     "./extern/imgui"
     "./extern/ImGuiColorTextEdit"
     "./extern/IconFontCppHeaders"
+    "./extern/imgui-filebrowser"
     "./libs"
     ${SDL2_INCLUDE_DIRS}
     "./libs/gl3w/GL"

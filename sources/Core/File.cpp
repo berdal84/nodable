@@ -11,7 +11,6 @@
 
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
 
-#include <Windows.h>
 #include <SDL.h>
 #include <SDL2\include\SDL_syswm.h>
 #include <fstream>
@@ -104,44 +103,8 @@ File* File::CreateFileWithPath(const char* _filePath)
 	return file;
 }
 
-std::string File::BrowseForFileAndReturnItsAbsolutePath(SDL_Window* currentWindow)
-{
-	OPENFILENAME ofn;                             // common dialog box structure
-	char szFile[512];                             // buffer for file name            
-
-	SDL_SysWMinfo wmInfo;
-	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(currentWindow, &wmInfo);
-	HWND hwnd = wmInfo.info.win.window;           // owner sdlWindow
-
-	// Initialize OPENFILENAME
-	ZeroMemory(&ofn, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = hwnd;
-	ofn.lpstrFile = szFile;
-
-	// Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
-	// use the contents of szFile to initialize itself.
-	ofn.lpstrFile[0] = '\0';
-	ofn.nMaxFile = sizeof(szFile);
-	ofn.lpstrFilter = "All\0*.*\0Text\0*.TXT\0";
-	ofn.nFilterIndex = 1;
-	ofn.lpstrFileTitle = NULL;
-	ofn.nMaxFileTitle = 0;
-	ofn.lpstrInitialDir = NULL;
-	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-
-	// Display the Open dialog box. 
-
-	if (GetOpenFileName(&ofn))
-		return szFile;
-
-	return "";
-}
-
 bool File::evaluateExpression(std::string& _expression)
 {
-	boolean success;
 
 	auto container = getInnerContainer();
 
@@ -149,15 +112,13 @@ bool File::evaluateExpression(std::string& _expression)
 	(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
 	Parser parser(language, container);
 	
-	if (success = parser.eval(_expression))
+	if (parser.eval(_expression))
 	{
 		auto result = container->getResultVariable();
 		auto view   = result->getComponent<NodeView>();
 		NodeView::ArrangeRecursively(view);
+		return true;
 	}
-
-
-
 	return false;
 }
 
