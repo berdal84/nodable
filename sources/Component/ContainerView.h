@@ -11,6 +11,7 @@ namespace Nodable{
 	class ContainerView: public View{
 	public:
 		virtual ~ContainerView(){};
+		virtual bool update(){return true;};
 		bool    draw();
 		void    addContextualMenuItem(std::string _label, std::function<Node*(void)> _lambda);
 	private:
