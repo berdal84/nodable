@@ -12,7 +12,7 @@ jobs:
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
     # See: https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#configuring-a-build-matrix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v2
@@ -25,9 +25,6 @@ jobs:
 
     - name: APT update
       run: sudo apt-get update
-
-    - name: Install GCC/G++
-      run: sudo apt-get install gcc-10 g++-10 && gcc -v
 
     - name: Install dependencies
       run: sudo apt-get install libsdl2-2.0 libegl1-mesa-dev
