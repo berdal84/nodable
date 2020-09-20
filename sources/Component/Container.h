@@ -7,12 +7,12 @@
 
 #include "Nodable.h"
 #include "Component.h"
-#include "Compound.h"
+#include "Node.h"
 #include "Language.h"
 
 namespace Nodable{
 
-	class Container: public Component, public Compound{
+	class Container: public Node {
 	public:
 
 		Container(const Language* _language);

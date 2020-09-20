@@ -44,10 +44,9 @@ Nodable::File::File(
 	
 	/* Creates a node container */
 	auto container = new Container(language);
-	addComponent(container);
+	setInnerContainer(container);
 	auto containerView = new ContainerView();
 	container->addComponent(containerView);
-	container->setOwner(this);
 
 	/* Add inputs in contextual menu */
 	auto api = language->getAPI();
@@ -144,7 +143,7 @@ bool File::evaluateExpression(std::string& _expression)
 {
 	boolean success;
 
-	auto container = getContainer();
+	auto container = getInnerContainer();
 
 	/* Create a Parser node. The Parser will cut expression string into tokens
 	(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
@@ -171,12 +170,12 @@ bool File::update() {
 		}
 	}
 
-	auto hasChanged = getContainer()->update();
+	auto hasChanged = getInnerContainer()->update();
 	
 	if (!hasChanged)
 		return false;
 
-	auto result		= getContainer()->getResultVariable();
+	auto result		= getInnerContainer()->getResultVariable();
 
 	if (!result) {
 		return false;
@@ -195,7 +194,7 @@ bool File::evaluateSelectedExpression()
 {
 	bool success;
 
-	getContainer()->clear();
+	getInnerContainer()->clear();
 
 	auto view = getComponent<FileView>();
 

@@ -21,7 +21,8 @@ bool ContainerView::draw()
 	
 	auto origin = ImGui::GetCursorScreenPos();
 	ImGui::SetCursorPos(ImVec2(0,0));
-	auto entities = this->getOwner()->as<Container>()->getEntities();
+	auto container = reinterpret_cast<Container*>(getOwner());
+	auto entities  = container->getEntities();
 
 	/*
 		NodeViews

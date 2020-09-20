@@ -33,10 +33,6 @@ namespace Nodable
 
 		static File*                     CreateFileWithPath                    (const char* _filePath);
 		static std::string               BrowseForFileAndReturnItsAbsolutePath (SDL_Window* currentWindow);
-
-		inline Container* getContainer() {
-			return getComponent<Container>();
-		}
 		
 		inline History* getHistory() {
 			return getComponent<History>();

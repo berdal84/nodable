@@ -51,11 +51,6 @@ Node::~Node()
 	}
 }
 
-const Components& Node::getComponents()const
-{
-	return components;
-}
-
 bool Node::isDirty()const
 {
 	return dirty;

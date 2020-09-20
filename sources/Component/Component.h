@@ -2,6 +2,8 @@
 
 #include "Nodable.h"
 #include "Object.h"
+#include "Compound.h"
+
 #include <mirror.h>
 
 namespace Nodable{
@@ -13,9 +15,9 @@ namespace Nodable{
 		Component() {}
 
 		~Component(){};
-		virtual bool update() = 0;
+		virtual bool update() {};
 		void       setOwner(Node* _entity){ owner = _entity; }
-		Node*      getOwner()const{return owner;}
+		Node* getOwner()const{return owner;}
 
 	private:
 		Node* owner = nullptr;
