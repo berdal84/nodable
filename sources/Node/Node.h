@@ -41,7 +41,7 @@ namespace Nodable{
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
 			std::string name(T::GetClass()->getName());
-			components.insert_or_assign(name, _component);
+			components.emplace(std::make_pair(name, _component));
 			_component->setOwner(this);
 		}
 
