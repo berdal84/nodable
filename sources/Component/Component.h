@@ -15,7 +15,7 @@ namespace Nodable{
 		Component() {}
 
 		~Component(){};
-		virtual bool update() {};
+		virtual bool update() { return true; };
 		void       setOwner(Node* _entity){ owner = _entity; }
 		Node* getOwner()const{return owner;}
 
