@@ -27,7 +27,7 @@ jobs:
       run: sudo apt-get update
 
     - name: Install dependencies
-      run: sudo apt-get install libsdl2-2.0 libegl1-mesa-dev
+      run: sudo apt-get install libsdl2-dev libegl1-mesa-dev
       
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
