@@ -10,7 +10,7 @@ void Nodable::internal::LogMessage(const char* _prefix, const char* _format, ...
 
 	va_list args;
 	va_start(args, _format);
-	vfprintf_s(stdout, _format, args);
+	vfprintf(stdout, _format, args);
 	va_end(args);
 
 	std::cout << RESET; // reset color

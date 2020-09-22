@@ -11,8 +11,6 @@
 
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
 
-#include <SDL.h>
-#include <SDL2\include\SDL_syswm.h>
 #include <fstream>
 
 using namespace Nodable;

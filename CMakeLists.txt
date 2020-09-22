@@ -17,12 +17,10 @@ project ("Nodable Project")
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS ON)
 
 # Adds SDL2 folder to CMAKE_PREFIX_PATH
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
-"./libs/SDL2"
-)
+
 
 # If a default install prefix has not been set, we set it.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -31,7 +29,10 @@ endif()
 
 # Find packages
 find_package(OpenGL REQUIRED)
+
 find_package(SDL2 REQUIRED)
+find_package(SDL2 REQUIRED HINTS "./libs/SDL2")
+
 find_package(MIRROR REQUIRED HINTS "./extern/mirror")
 
 # Add additionnal source directories
