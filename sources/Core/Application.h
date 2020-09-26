@@ -7,7 +7,8 @@
 #include <string>
 #include <memory>    /* For unique_ptr */
 #include <mirror.h>
-
+#include <string>
+#include <filesystem>
 
 namespace Nodable
 {
@@ -33,7 +34,7 @@ namespace Nodable
 		/* Force application to stops. Always delayed for 1 frame. */
 		void             stopExecution();
 
-		bool             openFile(const char*);
+		bool             openFile(std::filesystem::path);
 		void             saveCurrentFile()const;
 		void             closeCurrentFile();
 		File*			 getCurrentFile()const;

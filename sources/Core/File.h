@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <string>
 #include <algorithm>
+#include <filesystem>
 
 #include "ImGuiColorTextEdit/TextEditor.h" // for coordinates
 
@@ -19,11 +20,9 @@ namespace Nodable
 	class File: public Node
 	{
 	public:
-		File(const char* _path,
-			const char* _content,
-			const char* _name);
+		File(std::filesystem::path, const char* /*_content*/);
 
-		std::string                      getName()const { return name; }	
+		std::string                      getName()const { return path.filename(); }	
 		void                             save();
 		bool                             update();
 		void                             setModified() { modified = true; }
@@ -31,7 +30,7 @@ namespace Nodable
 		bool                             evaluateExpression(std::string&);
 		bool                             evaluateSelectedExpression();
 
-		static File*                     CreateFileWithPath                    (const char* _filePath);
+		static File*                     CreateFileWithPath                    (std::filesystem::path _filePath);
 		static std::string               BrowseForFileAndReturnItsAbsolutePath (SDL_Window* currentWindow);
 		
 		inline History* getHistory() {
@@ -40,8 +39,7 @@ namespace Nodable
 
 	private:
 		bool                      modified = false;
-		std::string               path;
-		std::string               name;
+		std::filesystem::path     path;		
 		const Language*           language;
 		MIRROR_CLASS(File)();
 	};

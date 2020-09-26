@@ -15,16 +15,10 @@
 
 using namespace Nodable;
 
-Nodable::File::File(
-	const char* _path,
-	const char* _content,
-	const char* _name)
-{	
-	path = _path;
-	name = _name;
-
-	/* Detect the language (TODO) */
-	language = Language::Nodable();
+Nodable::File::File( std::filesystem::path _path, const char* _content):
+	path(_path),
+	language(Language::Nodable()) /* Detect the language (TODO) */
+{		
 
 	/* Creates the FileView	*/
 	auto fileView = new FileView();
@@ -69,33 +63,23 @@ modified = false;
 
 }
 
-File* File::CreateFileWithPath(const char* _filePath)
+File* File::CreateFileWithPath(const std::filesystem::path _filePath)
 {
 	/*
 		Creates the File
 	*/
-
-	// Sanitize path to get only slashes, and no antislashes
-	std::string cleanedFilePath(_filePath);
-	std::replace(cleanedFilePath.begin(), cleanedFilePath.end(), '/', '\\');
-
-	// Extract file name from filePath
-	std::string name = cleanedFilePath;
-	auto firstSlashPosition = cleanedFilePath.find_last_of('\\');
-	if (firstSlashPosition != std::string::npos)
-		name = cleanedFilePath.substr(firstSlashPosition + 1, cleanedFilePath.size() - firstSlashPosition - 1);
-
-	std::ifstream fileStream(cleanedFilePath.c_str());
+	std::ifstream fileStream(_filePath);
 
 	if (!fileStream.is_open())
 	{
-		LOG_ERROR("Unable to load \"%s\"\n", cleanedFilePath.c_str());
+		LOG_ERROR("Unable to load \"%s\"\n", _filePath);
 		return nullptr;
 	}
 
+	// TODO: do that inside File constr ?
 	std::string content((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
 
-	File* file = new File(cleanedFilePath.c_str(), content.c_str(), name.c_str());
+	File* file = new File(_filePath.c_str(), content.c_str());
 
 
 	return file;

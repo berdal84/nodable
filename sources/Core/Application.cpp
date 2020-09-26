@@ -33,7 +33,6 @@ bool Application::init()
 {
 	auto view = getComponent<ApplicationView>();
 	view->init();
-	openFile("data/startup.txt");
 
 	return true;
 }
@@ -59,7 +58,7 @@ void Application::shutdown()
 {
 }
 
-bool Application::openFile(const char* _filePath)
+bool Application::openFile(std::filesystem::path _filePath)
 {		
 	auto file = File::CreateFileWithPath(_filePath);
 
