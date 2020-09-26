@@ -38,8 +38,8 @@ Configure and run the build:
 
 ```
 cd ./Nodable
-cmake -E make_directory ./build
-cmake --build . --config Release [--target install]
+cmake . -B build
+cmake --build build --config Release [--target install]
 ```
 Nodable will be built into `./build/Release/`
 
