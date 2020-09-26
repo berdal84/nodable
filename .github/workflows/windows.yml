@@ -47,5 +47,5 @@ jobs:
       run: ctest -C $BUILD_TYPE
     - uses: actions/upload-artifact@v2
       with:
-        name: nodable-build-win64-$BUILD_TYPE
-        path: ${{runner.workspace}}\build\$BUILD_TYPE
+        name: nodable-build-win64-${{BUILD_TYPE}}
+        path: ${{runner.workspace}}\build\${{BUILD_TYPE}}
