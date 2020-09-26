@@ -30,8 +30,12 @@ endif()
 # Find packages
 find_package(OpenGL REQUIRED)
 
-find_package(SDL2 REQUIRED)
-find_package(SDL2 REQUIRED HINTS "./libs/SDL2")
+IF (WIN32)
+  # We store the SDL2 binaries inside the repo.
+  find_package(SDL2 REQUIRED HINTS "./libs/SDL2")
+ELSE()
+  find_package(SDL2 REQUIRED)
+ENDIF()
 
 find_package(MIRROR REQUIRED HINTS "./extern/mirror")
 
@@ -91,8 +95,14 @@ add_executable (Nodable "sources/main.cpp" ${SOURCES}) # WIN32 will give WIN32_E
 set_property(TARGET Nodable PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}")
 
 # Link libraries
-target_link_libraries(Nodable PUBLIC ${OPENGL_LIBRARY})
-target_link_libraries(Nodable LINK_PUBLIC ${SDL2_STATIC})
+IF (WIN32)
+  target_link_libraries(Nodable LINK_PRIVATE ${SDL2_STATIC})
+ELSE()
+  target_link_libraries(Nodable PRIVATE ${OPENGL_LIBRARY})  
+ENDIF()
+
+target_link_libraries(Nodable PRIVATE ${SDL2_LIBRARIES})
+target_link_libraries(Nodable PRIVATE ${CMAKE_DL_LIBS})
 
 # Configure files (a link is created between source and target, if source is modified, target will be updated)
 
@@ -101,11 +111,16 @@ add_custom_command(
 
         COMMAND ${CMAKE_COMMAND} -E copy_directory  # Copy assets (fonts, scripts, etc..)
                 ${CMAKE_CURRENT_SOURCE_DIR}/data
-                ${BUILD_PATH}/data
+                ${BUILD_PATH}/data)
 
-        COMMAND ${CMAKE_COMMAND} -E copy            # Copy SDL2 runtime library
-                ${SDL2_RUNTIME}
-                ${BUILD_PATH})
+IF (WIN32)
+  add_custom_command(
+    TARGET Nodable PRE_BUILD
+
+    COMMAND ${CMAKE_COMMAND} -E copy # Copy SDL2 runtime library
+            ${SDL2_RUNTIME}
+            ${BUILD_PATH})
+ENDIF()
 
 # Installation :
 #===============
