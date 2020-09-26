@@ -23,9 +23,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 # If a default install prefix has not been set, we set it.
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "./install" CACHE PATH "..." FORCE)
-endif()
+set(CMAKE_INSTALL_PREFIX "./install" CACHE PATH "..." FORCE)
+
 
 # Find packages
 find_package(OpenGL REQUIRED)
