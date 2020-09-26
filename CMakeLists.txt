@@ -1,5 +1,5 @@
 ﻿
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.14)
 
 # Get architecture
 if (${CMAKE_SIZEOF_VOID_P} MATCHES 8)
@@ -14,13 +14,13 @@ endif ()
 # Declare project name
 project ("Nodable Project")
 
+include(CheckPIESupported) 
+check_pie_supported() # avoid "unable to run shared libraries" under linux
+
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
-
-# Adds SDL2 folder to CMAKE_PREFIX_PATH
-
 
 # If a default install prefix has not been set, we set it.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -92,6 +92,7 @@ set(BUILD_PATH ${CMAKE_BINARY_DIR}/$<CONFIG>)
 
 # Add an executable called Nodable(.exe on windows) 
 add_executable (Nodable "sources/main.cpp" ${SOURCES}) # WIN32 will give WIN32_EXECUTABLE flag if targets windows (no console)
+set_property(TARGET Nodable PROPERTY POSITION_INDEPENDENT_CODE TRUE)
 set_property(TARGET Nodable PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}")
 
 # Link libraries
