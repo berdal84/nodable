@@ -92,17 +92,17 @@ set(BUILD_PATH ${CMAKE_BINARY_DIR}/$<CONFIG>)
 
 # Add an executable called Nodable(.exe on windows) 
 add_executable (Nodable "sources/main.cpp" ${SOURCES}) # WIN32 will give WIN32_EXECUTABLE flag if targets windows (no console)
-set_property(TARGET Nodable PROPERTY POSITION_INDEPENDENT_CODE TRUE)
+set_property(TARGET Nodable PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 set_property(TARGET Nodable PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}")
 
 # Link libraries
 IF (WIN32)
   target_link_libraries(Nodable LINK_PRIVATE ${SDL2_STATIC})
 ELSE()
-  target_link_libraries(Nodable PRIVATE ${OPENGL_LIBRARY})  
+  target_link_libraries(Nodable PRIVATE ${SDL2_LIBRARIES})
 ENDIF()
 
-target_link_libraries(Nodable PRIVATE ${SDL2_LIBRARIES})
+target_link_libraries(Nodable PRIVATE ${OPENGL_LIBRARY}) 
 target_link_libraries(Nodable PRIVATE ${CMAKE_DL_LIBS})
 
 # Configure files (a link is created between source and target, if source is modified, target will be updated)
