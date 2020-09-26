@@ -24,7 +24,7 @@ set(CMAKE_CXX_EXTENSIONS ON)
 
 # If a default install prefix has not been set, we set it.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/install" CACHE PATH "..." FORCE)
+  set(CMAKE_INSTALL_PREFIX "./install" CACHE PATH "..." FORCE)
 endif()
 
 # Find packages
