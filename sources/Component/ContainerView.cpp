@@ -21,7 +21,8 @@ bool ContainerView::draw()
 	
 	auto origin = ImGui::GetCursorScreenPos();
 	ImGui::SetCursorPos(ImVec2(0,0));
-	auto entities = this->getOwner()->as<Container>()->getEntities();
+	auto container = reinterpret_cast<Container*>(getOwner());
+	auto entities  = container->getEntities();
 
 	/*
 		NodeViews
@@ -258,6 +259,6 @@ bool ContainerView::draw()
 
 void Nodable::ContainerView::addContextualMenuItem(std::string _label, std::function<Node*(void)> _function)
 {
-	contextualMenuItems.insert_or_assign(_label, _function);
+	contextualMenuItems.emplace( std::make_pair(_label, _function) );
 }
 

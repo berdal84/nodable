@@ -9,6 +9,7 @@ namespace Nodable{
 	class WireView : public View
 	{
 	public:
+		bool update()override {return true;}
 		bool draw()override;
 		MIRROR_CLASS(WireView)(
 			MIRROR_PARENT(View));

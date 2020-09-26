@@ -1,16 +1,18 @@
 #pragma once
 
-#include "Nodable.h"
-#include "Component.h"
 #include <string>
 #include <vector>
 #include <imgui/imgui.h>   // for ImVec2
 #include <mirror.h>
+
+#include "Nodable.h"
+#include "Component.h"
+#include "Node.h"
 #include "Language.h"
 
 namespace Nodable{
 
-	class Container: public Component{
+	class Container: public Node {
 	public:
 
 		Container(const Language* _language);

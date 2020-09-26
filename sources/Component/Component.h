@@ -1,22 +1,28 @@
 #pragma once
 
-#include "Node.h"
 #include "Nodable.h"
+#include "Object.h"
+#include "Compound.h"
+
 #include <mirror.h>
 
 namespace Nodable{
-	class Component : public Node
+
+	class Component: public Object
 	{
 	public:
 
 		Component() {}
 
 		~Component(){};
+		virtual bool update() { return true; };
 		void       setOwner(Node* _entity){ owner = _entity; }
-		Node*      getOwner()const{return owner;}
+		Node* getOwner()const{return owner;}
 
 	private:
 		Node* owner = nullptr;
-		MIRROR_CLASS(Component)();
+		MIRROR_CLASS(Component)(
+			MIRROR_PARENT(Object);
+		);
 	};
 }

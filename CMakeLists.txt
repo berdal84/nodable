@@ -1,5 +1,5 @@
 ﻿
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.14)
 
 # Get architecture
 if (${CMAKE_SIZEOF_VOID_P} MATCHES 8)
@@ -14,14 +14,13 @@ endif ()
 # Declare project name
 project ("Nodable Project")
 
-# specify the C++ standard
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+include(CheckPIESupported) 
+check_pie_supported() # avoid "unable to run shared libraries" under linux
 
-# Adds SDL2 folder to CMAKE_PREFIX_PATH
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
-"./libs/SDL2"
-)
+# specify the C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
 
 # If a default install prefix has not been set, we set it.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -30,7 +29,14 @@ endif()
 
 # Find packages
 find_package(OpenGL REQUIRED)
-find_package(SDL2 REQUIRED)
+
+IF (WIN32)
+  # We store the SDL2 binaries inside the repo.
+  find_package(SDL2 REQUIRED HINTS "./libs/SDL2")
+ELSE()
+  find_package(SDL2 REQUIRED)
+ENDIF()
+
 find_package(MIRROR REQUIRED HINTS "./extern/mirror")
 
 # Add additionnal source directories
@@ -70,6 +76,7 @@ include_directories(
     "./extern/imgui"
     "./extern/ImGuiColorTextEdit"
     "./extern/IconFontCppHeaders"
+    "./extern/imgui-filebrowser"
     "./libs"
     ${SDL2_INCLUDE_DIRS}
     "./libs/gl3w/GL"
@@ -85,11 +92,18 @@ set(BUILD_PATH ${CMAKE_BINARY_DIR}/$<CONFIG>)
 
 # Add an executable called Nodable(.exe on windows) 
 add_executable (Nodable "sources/main.cpp" ${SOURCES}) # WIN32 will give WIN32_EXECUTABLE flag if targets windows (no console)
+set_property(TARGET Nodable PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 set_property(TARGET Nodable PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}")
 
 # Link libraries
-target_link_libraries(Nodable PUBLIC ${OPENGL_LIBRARY})
-target_link_libraries(Nodable LINK_PUBLIC ${SDL2_STATIC})
+IF (WIN32)
+  target_link_libraries(Nodable LINK_PRIVATE ${SDL2_STATIC})
+ELSE()
+  target_link_libraries(Nodable PRIVATE ${SDL2_LIBRARIES})
+ENDIF()
+
+target_link_libraries(Nodable PRIVATE ${OPENGL_LIBRARY}) 
+target_link_libraries(Nodable PRIVATE ${CMAKE_DL_LIBS})
 
 # Configure files (a link is created between source and target, if source is modified, target will be updated)
 
@@ -98,11 +112,16 @@ add_custom_command(
 
         COMMAND ${CMAKE_COMMAND} -E copy_directory  # Copy assets (fonts, scripts, etc..)
                 ${CMAKE_CURRENT_SOURCE_DIR}/data
-                ${BUILD_PATH}/data
+                ${BUILD_PATH}/data)
 
-        COMMAND ${CMAKE_COMMAND} -E copy            # Copy SDL2 runtime library
-                ${SDL2_RUNTIME}
-                ${BUILD_PATH})
+IF (WIN32)
+  add_custom_command(
+    TARGET Nodable PRE_BUILD
+
+    COMMAND ${CMAKE_COMMAND} -E copy # Copy SDL2 runtime library
+            ${SDL2_RUNTIME}
+            ${BUILD_PATH})
+ENDIF()
 
 # Installation :
 #===============

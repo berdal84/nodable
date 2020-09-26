@@ -93,7 +93,7 @@ bool FileView::draw()
 		NODE EDITOR
 	*/
 	ImGui::SetCursorPos(ImVec2(0, 0));
-	auto container = file->getComponent<Container>();
+	auto container = file->getInnerContainer();
 	auto view      = container->getComponent<View>();
 
 	view->visibleRect = this->visibleRect;

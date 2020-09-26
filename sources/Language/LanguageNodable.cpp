@@ -2,6 +2,7 @@
 #include "Member.h"
 #include <time.h>
 #include "IconsFontAwesome5.h"
+#include <cmath>
 
 using namespace Nodable;
 
@@ -334,16 +335,6 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		}
 
 		RETURN( protein )
-	FCT_END
-	
-
-	// time()
-	FCT_BEGIN(Double, "time")
-		time_t rawtime;
-		struct tm* timeinfo;
-		time(&rawtime);
-		localtime_s(timeinfo, &rawtime);
-		RETURN( (double)rawtime )
 	FCT_END
 	
 

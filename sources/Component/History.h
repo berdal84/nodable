@@ -1,15 +1,23 @@
 #pragma once
+
+// std
+#include <vector>
+#include <ctime>
+
+// extern
+#include "mirror.h"
+#include "ImGuiColorTextEdit/TextEditor.h"
+
+// Nodable
 #include "Component.h" // base class
 #include "Nodable.h"
 #include "Container.h"
 #include "Wire.h"
 #include "WireView.h"
 #include "Member.h"
-#include <vector>
-#include <time.h>
-#include "ImGuiColorTextEdit/TextEditor.h"
 #include "Log.h"
-#include <mirror.h>
+
+
 
 namespace Nodable
 {
@@ -123,21 +131,17 @@ namespace Nodable
 			this->source     = _source;
 			this->target     = _target;
 
-			// Generate a text description
+			// Title
+			description.append("Connect Wire\n");
 
-				// Title
-				description.append("Connect Wire\n");
+			// Details
+			description.append( "\"" + _source->getName() + "\" ---> \"" + _target->getName() + "\"\n");
 
-				// Details
-				description.append( "\"" + _source->getName() + "\" ---> \"" + _target->getName() + "\"\n");
-
-				// Time
-				time_t t = time(NULL);
-				struct tm tm;
-				char timeAsStringBuffer[26];
-				localtime_s(&tm, &t);
-				asctime_s(timeAsStringBuffer, sizeof timeAsStringBuffer, &tm);
-				description.append(timeAsStringBuffer);
+			// Time
+			std::time_t time = std::time(nullptr);
+			auto localTime   = std::localtime(&time);
+			std::string timeString( std::asctime(localTime) );
+			description.append(timeString);
 
 		};
 
@@ -183,7 +187,7 @@ namespace Nodable
 
 			// Delete wire
 			auto sourceContainer = source->getOwner()->as<Node>()->getParentContainer();
-			sourceContainer->removeWire(this->wire);
+			sourceContainer->remove(this->wire);
 			delete this->wire;
 		}
 

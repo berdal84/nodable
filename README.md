@@ -23,21 +23,21 @@ You still don't understand what I'm doing? I hope this GIF will make this more u
 How to compile ? :
 ==================
 
-Install Microsoft Visual Studio Community 2015+
+Requirements:
+- A **C++17** compatible build system (tested with make/g++-10 and MSVC14.27.29110)
+- Libraries `libsdl2-dev` and `libegl1-mesa-dev` (for linux only, win32 binaries are included)
+- **CMake 3.14+**
 
-Install CMake 3.8+
-
-Open a command line in the Nodable folder and type:
+Open a command line from the Nodable base folder and type:
 
 ```
-cmake -B ./build
-cmake --build ./build --config Release
+cmake -E make_directory ./build
+cmake --build . --config Release [--target install]
 ```
 Nodable will be built into `./build/Release/`
 
-Adding optionnal `--target install` to the scecond line will create a clean `./install/Release` directory with only necessary files to run the software.
+Optionnal `--target install` is to create a clean `./install/Release` directory with only necessary files to run the software.
 
-You can also open the Visual Studio solution generated into `./build` if you want.
 
 Dependencies / Credits :
 ==============
@@ -48,6 +48,7 @@ Dependencies / Credits :
 - IconFontCppHeaders by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
 - ImGuiColorTextEdit by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
 - mirror by Grouflon : https://github.com/grouflon/mirror
+- ImGui FileBrowser by AirGuanZ: https://github.com/AirGuanZ/imgui-filebrowser
 
 Licence:
 =========

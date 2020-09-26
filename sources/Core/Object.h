@@ -1,7 +1,7 @@
 #pragma once
 #include "Nodable.h"
 #include "Member.h"   // for Type enum
-#include "mirror_macros.h"
+#include "mirror.h"
 
 namespace Nodable
 {
@@ -52,9 +52,10 @@ namespace Nodable
 		template<typename T>
 		T* as()
 		{
-			return reinterpret_cast<T*>(this);
+			auto casted = dynamic_cast<T*>(this);
+			NODABLE_ASSERT(casted != nullptr);
+			return casted;
 		}
-
 	private:
 		Members             members;
 		bool                deleted = false;

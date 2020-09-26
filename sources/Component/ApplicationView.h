@@ -2,6 +2,7 @@
 
 #include "Nodable.h"
 #include <imgui/imgui.h>
+#include "imfilebrowser.h"
 #include <SDL2/include/SDL.h>
 #include <string>
 #include "View.h"
@@ -21,7 +22,7 @@ namespace Nodable
 
 		/* call this every frame */
 		bool draw();
-
+		virtual bool update() { return true; };
 		void drawFileTabs();
 
 		/* call this once just after the instantiation. */
@@ -30,6 +31,7 @@ namespace Nodable
 		
 
 	private:
+		ImGui::FileBrowser fileBrowser;
 		Application       *application;
 		SDL_Window        *sdlWindow;
 		SDL_GLContext     glcontext;

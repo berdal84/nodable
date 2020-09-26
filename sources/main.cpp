@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include <filesystem>
 
 // Nodable includes
 #include "Application.h"
@@ -26,8 +27,11 @@ int main(int argc, char* argv[])
 	// Here the tests are all OK, we can instantiate, init and run nodable loop.
 
 	Application nodable("Nodable " NODABLE_VERSION);
-
 	nodable.init();
+    std::filesystem::path startupFilePath = "data";
+    startupFilePath /= "startup.txt";
+	std::cout << startupFilePath;
+	nodable.openFile(startupFilePath); // Init and open a startup file
 
 	while (nodable.update())
 	{

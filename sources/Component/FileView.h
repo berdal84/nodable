@@ -12,6 +12,7 @@ namespace Nodable {
 		FileView():m_textEditor(nullptr), m_hasChanged(false){};
 		void                           init();
 		bool                           draw();
+		virtual bool update(){return true; };
 		bool                           hasChanged() { return this->m_hasChanged; }
 		void                           setText(const std::string&);
 		std::string                    getSelectedText()const;
