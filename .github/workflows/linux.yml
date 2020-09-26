@@ -56,7 +56,7 @@ jobs:
       # access regardless of the host operating system
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake --install ${{runner.workspace}}/install
+      run: cmake --install .
     - uses: actions/upload-artifact@v2
       with:
         name: nodable-linux
