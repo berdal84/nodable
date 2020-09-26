@@ -28,9 +28,16 @@ Requirements:
 - Libraries `libsdl2-dev` and `libegl1-mesa-dev` (for linux only, win32 binaries are included)
 - **CMake 3.14+**
 
-Open a command line from the Nodable base folder and type:
+Clone the Nodable repository (with submodules):
 
 ```
+git clone https://github.com/berdal84/Nodable.git --recurse-submodules
+```
+
+Configure and run the build:
+
+```
+cd ./Nodable
 cmake -E make_directory ./build
 cmake --build . --config Release [--target install]
 ```
