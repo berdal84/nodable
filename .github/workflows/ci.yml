@@ -2,17 +2,25 @@ name: ci
 
 on: [push]
 
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
 
+  
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    
     strategy:
       matrix:
         os: [windows-2019, ubuntu-20.04]
+
+    env:
+      # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+      buildType: Release
+    
     steps:
+    - name: Get current date
+      id: date
+      run: echo "::set-env name=date::$(date +'%Y-%m-%d')"
+      
     - name: Git recursive checkout
       uses: actions/checkout@v2
       with:
@@ -28,30 +36,22 @@ jobs:
       run: cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure CMake
-      # Use a bash shell so we can use the same syntax for environment variable
-      # access regardless of the host operating system
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      # Note the current convention is to use the -S and -B options here to specify source 
-      # and build directories, but this is only available with CMake 3.13 and higher.  
-      # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.buildType}}
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      # Execute the build.  You can specify a specific target with "--target <NAME>"
-      run: cmake --build . --config $BUILD_TYPE --target install
+      run: cmake --build . --config ${{env.buildType}} --target install
 
     - name: Test
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      # Execute tests defined by the CMake configuration.  
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest -C $BUILD_TYPE
+      run: ctest -C ${{env.buildType}}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ `date +%Y-%M-%d` }}-Nodable-${{ matrix.os }}-${{ BUILD_TYPE }}-${{ github.sha }}
-        path: ${{runner.workspace}}/Nodable/install
+        name: ${{env.date}}-Nodable-${{matrix.os}}-${{env.buildType}}-${{github.sha}}
+        path: ${{runner.workspace}}/Nodable/install/${{env.buildType}}
