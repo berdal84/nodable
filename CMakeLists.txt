@@ -13,6 +13,7 @@ endif ()
 
 # Declare project name
 project ("Nodable Project")
+set(NODABLE_ASSETS_FOLDER_NAME "assets")
 
 include(CheckPIESupported) 
 check_pie_supported() # avoid "unable to run shared libraries" under linux
@@ -111,8 +112,8 @@ add_custom_command(
         TARGET Nodable PRE_BUILD
 
         COMMAND ${CMAKE_COMMAND} -E copy_directory  # Copy assets (fonts, scripts, etc..)
-                ${CMAKE_CURRENT_SOURCE_DIR}/data
-                ${BUILD_PATH}/data)
+                ${CMAKE_CURRENT_SOURCE_DIR}/${NODABLE_ASSETS_FOLDER_NAME}
+                ${BUILD_PATH}/${NODABLE_ASSETS_FOLDER_NAME})
 
 IF (WIN32)
   add_custom_command(
@@ -132,7 +133,7 @@ set(INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/$<CONFIG>)
 install(FILES ${SDL2_RUNTIME} DESTINATION ${INSTALL_PATH})
 
 # Copy assets
-install(DIRECTORY "data" DESTINATION ${INSTALL_PATH} )
+install(DIRECTORY ${NODABLE_ASSETS_FOLDER_NAME} DESTINATION ${INSTALL_PATH} )
 
 # Copy executable
 install(TARGETS Nodable RUNTIME DESTINATION ${INSTALL_PATH})

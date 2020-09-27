@@ -102,9 +102,8 @@ bool ApplicationView::init()
         ImFontConfig config;
         config.OversampleH    = 3;
         config.OversampleV    = 3;
-        //io.Fonts->AddFontDefault();
-        //io.Fonts->AddFontFromFileTTF("data/FreeSerif.ttf", 18.0f, &config);    
-        io.Fonts->AddFontFromFileTTF("data/CenturyGothic.ttf", 20.0f, &config);  
+        //io.Fonts->AddFontDefault();   
+        io.Fonts->AddFontFromFileTTF( application->getAssetPath("CenturyGothic.ttf").c_str(), 20.0f, &config);  
         io.FontAllowUserScaling = true;
     }
 

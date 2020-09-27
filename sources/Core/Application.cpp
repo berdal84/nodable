@@ -118,3 +118,9 @@ void Application::SaveNode(Node* _node)
 	_node->deleteComponent<DataAccess>();
 }
 
+std::string Application::getAssetPath(const char* _fileName)const
+{
+	auto assetPath = this->assetsFolderPath;
+	assetPath /= _fileName;
+	return assetPath.string();
+}
