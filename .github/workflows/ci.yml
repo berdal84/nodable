@@ -2,10 +2,6 @@ name: ci
 
 on: [push]
 
-strategy:
-  matrix:
-    os: [windows-2019, ubuntu-20.04]
-
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -13,7 +9,9 @@ env:
 jobs:
   build:
     runs-on: {{ matrix.os }}
-
+    strategy:
+      matrix:
+        os: [windows-2019, ubuntu-20.04]
     steps:
     - uses: actions/checkout@v2
       with:
