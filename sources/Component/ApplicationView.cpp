@@ -105,7 +105,7 @@ bool ApplicationView::init()
         config.OversampleH    = 3;
         config.OversampleV    = 3;
         //io.Fonts->AddFontDefault();
-		std::filesystem::path fontPath = application->getAssetPath("CenturyGothic.ttf");
+		auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
 		std::cout << "Adding font from file: " << fontPath << std::endl;
         io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 20.0f, &config);  
         io.FontAllowUserScaling = true;
@@ -121,7 +121,7 @@ bool ApplicationView::init()
 		config.MergeMode        = true;
 		config.PixelSnapH       = true;
 		config.GlyphMinAdvanceX = 18.0f; // monospace to fix text alignment in drop down menus.
-		std::filesystem::path fontPath = application->getAssetPath("fa-solid-900.ttf");
+		auto fontPath = application->getAssetPath("fa-solid-900.ttf").string();
 		std::cout << "Adding font from file: " << fontPath << std::endl;
 		io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 18.0f, &config, icons_ranges );
     }
