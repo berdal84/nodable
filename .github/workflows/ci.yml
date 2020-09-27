@@ -53,5 +53,5 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ date +%Y-%M-%d }}-Nodable-${{ matrix.os }}-${{ BUILD_TYPE }}-${{ github.sha }}
+        name: ${{ `date +%Y-%M-%d` }}-Nodable-${{ matrix.os }}-${{ BUILD_TYPE }}-${{ github.sha }}
         path: ${{runner.workspace}}/Nodable/install
