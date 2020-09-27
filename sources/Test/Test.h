@@ -282,11 +282,6 @@ bool Parser_Tests() {
 			EXPECT(Parser_Test("returnNumber(returnNumber(1) + returnNumber(1))", 2), true)
 		}TEST_END
 
-		TEST_BEGIN("Successive assigns") {
-			EXPECT(Parser_Test("a = b = 5", 5), true)
-			EXPECT(Parser_Test("a = b = c = 10", 10), true)
-		}TEST_END
-
 	}TEST_END
 
 	return s_lastGroupTestPassed;
