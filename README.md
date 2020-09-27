@@ -40,9 +40,15 @@ cd ./Nodable
 cmake . -B build
 cmake --build build --config Release [--target install]
 ```
-Nodable will be built into `./build/Release/`
+*Optionnal `--target install` is to create a clean `./install/Release` directory with only necessary files to run the software.*
 
-Optionnal `--target install` is to create a clean `./install/Release` directory with only necessary files to run the software.
+Nodable will be built into `./build/`
+
+To run it:
+```
+cd build
+./Nodable
+```
 
 
 Dependencies / Credits :
