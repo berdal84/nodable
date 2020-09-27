@@ -1,6 +1,8 @@
 <img src="https://www.dalle-cort.fr/wp-content/uploads/2019/07/2019_08_04_Nodable_Logo_V2.jpg" width=600 />
-                                                                                              
-![](https://github.com/berdal84/nodable/workflows/build/badge.svg)
+   
+<a href="https://github.com/berdal84/Nodable/actions?query=workflow%3Abuild" title="linux/windows x64">
+<img src="https://github.com/berdal84/nodable/workflows/build/badge.svg" />
+</a>
 
 Nodable is node-able !
 ======================
