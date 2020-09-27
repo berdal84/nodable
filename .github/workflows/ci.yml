@@ -40,7 +40,7 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       shell: bash
       # Execute the build.  You can specify a specific target with "--target <NAME>"
-      run: cmake --build . --config $BUILD_TYPE
+      run: cmake --build . --config $BUILD_TYPE --target install
 
     - name: Test
       working-directory: ${{runner.workspace}}/build
@@ -48,7 +48,13 @@ jobs:
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C $BUILD_TYPE
+
     - uses: actions/upload-artifact@v2
       with:
         name: nodable-build-${{ matrix.os }}
         path: ${{runner.workspace}}/build
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: nodable-install-${{ matrix.os }}
+        path: ${{runner.workspace}}/Nodable/install
