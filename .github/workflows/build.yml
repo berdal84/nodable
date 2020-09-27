@@ -1,0 +1,62 @@
+name: build
+
+on:
+  release:
+    types:
+      - created    
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [windows-2019, ubuntu-20.04]
+
+    env:
+      # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+      buildType: Release
+    
+    steps:
+    - name: Get current date
+      id: date
+      run: echo "::set-env name=date::$(date +'%Y-%m-%d')"
+    
+    - name: Git recursive checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Install dependencies
+      if: matrix.os == 'ubuntu-20.04'
+      run: sudo apt-get update && sudo apt-get install libsdl2-dev libegl1-mesa-dev
+      
+    - name: Create Build Environment
+      # Some projects don't allow in-source building, so create a separate build directory
+      # We'll use this as our working directory for all subsequent commands
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.buildType}}
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --config ${{env.buildType}} --target install
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: ctest -C ${{env.buildType}}
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{env.date}}-Nodable-${{runner.os}}-${{env.buildType}}-sha${{github.sha}}
+        path: ${{runner.workspace}}/Nodable/install/${{env.buildType}}

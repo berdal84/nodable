@@ -1,7 +1,8 @@
 <img src="https://www.dalle-cort.fr/wp-content/uploads/2019/07/2019_08_04_Nodable_Logo_V2.jpg" width=600 />
-                                                                                              
-![CI status for windows (windows-server-2019)](https://github.com/berdal84/nodable/workflows/windows/badge.svg)
-![CI status for linux (ubuntu-latest)](https://github.com/berdal84/nodable/workflows/linux/badge.svg)
+   
+<a href="https://github.com/berdal84/Nodable/actions?query=workflow%3Abuild" title="linux/windows x64">
+<img src="https://github.com/berdal84/nodable/workflows/build/badge.svg" />
+</a>
 
 Nodable is node-able !
 ======================
@@ -41,9 +42,15 @@ cd ./Nodable
 cmake . -B build
 cmake --build build --config Release [--target install]
 ```
-Nodable will be built into `./build/Release/`
+*Optionnal `--target install` is to create a clean `./install/Release` directory with only necessary files to run the software.*
 
-Optionnal `--target install` is to create a clean `./install/Release` directory with only necessary files to run the software.
+Nodable will be built into `./build/`
+
+To run it:
+```
+cd build
+./Nodable
+```
 
 
 Dependencies / Credits :
