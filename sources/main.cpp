@@ -17,8 +17,7 @@ int main(int argc, char* argv[])
 	if( argc == 2 && std::string(argv[1]) == "--run-tests")
 	{
 		if ( !Test_RunAll() ) {
-			std::cout << "Tests failed, press a key to exit program" << std::endl;
-			std::cin.get();
+			std::cout << "Tests failed." << std::endl;
 			return 1;
 		}
 		return 0;
@@ -28,9 +27,8 @@ int main(int argc, char* argv[])
 
 	Application nodable("Nodable " NODABLE_VERSION);
 	nodable.init();
-    std::filesystem::path startupFilePath = "data";
-    startupFilePath /= "startup.txt";
-	std::cout << startupFilePath;
+    auto startupFilePath = nodable.getAssetPath("startup.txt");
+	std::cout << "Opening startup file: " << startupFilePath << std::endl;
 	nodable.openFile(startupFilePath); // Init and open a startup file
 
 	while (nodable.update())

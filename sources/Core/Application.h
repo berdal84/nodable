@@ -37,7 +37,7 @@ namespace Nodable
 		bool             openFile(std::filesystem::path /* _filePath */);
 
 		/* get the asset path with a fileName (adds assetsFolder)*/
-		std::string      getAssetPath(const char* _fileName)const;
+		std::filesystem::path getAssetPath(const char* _fileName)const;
 
 		void             saveCurrentFile()const;
 		void             closeCurrentFile();
@@ -60,7 +60,7 @@ namespace Nodable
 		std::vector<File*> loadedFiles;
 		size_t             currentFileIndex; /* index that identify the current file in loadedFiles */
 	
-		const std::filesystem::path assetsFolderPath = "assets/";
+		const std::filesystem::path assetsFolderPath = "assets";
 
 		/** Reflection using mirror*/
 		MIRROR_CLASS(Application)();

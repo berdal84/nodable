@@ -6,6 +6,8 @@
 #include <imgui/examples/imgui_impl_sdl.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
 
+#include <filesystem>
+#include <iostream>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "Application.h"
 #include "Container.h"
@@ -102,8 +104,10 @@ bool ApplicationView::init()
         ImFontConfig config;
         config.OversampleH    = 3;
         config.OversampleV    = 3;
-        //io.Fonts->AddFontDefault();   
-        io.Fonts->AddFontFromFileTTF( application->getAssetPath("CenturyGothic.ttf").c_str(), 20.0f, &config);  
+        //io.Fonts->AddFontDefault();
+		std::filesystem::path fontPath = application->getAssetPath("CenturyGothic.ttf");
+		std::cout << "Adding font from file: " << fontPath << std::endl;
+        io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 20.0f, &config);  
         io.FontAllowUserScaling = true;
     }
 
@@ -117,7 +121,9 @@ bool ApplicationView::init()
 		config.MergeMode        = true;
 		config.PixelSnapH       = true;
 		config.GlyphMinAdvanceX = 18.0f; // monospace to fix text alignment in drop down menus.
-		io.Fonts->AddFontFromFileTTF( FONT_ICON_FILE_NAME_FAS, 18.0f, &config, icons_ranges );
+		std::filesystem::path fontPath = application->getAssetPath("fa-solid-900.ttf");
+		std::cout << "Adding font from file: " << fontPath << std::endl;
+		io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 18.0f, &config, icons_ranges );
     }
 
     // Configure ImGui Style
