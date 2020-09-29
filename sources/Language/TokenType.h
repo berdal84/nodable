@@ -32,7 +32,9 @@ namespace Nodable {
 		Space,
 		Ignore,
 		EndOfInstruction,
-		Symbol
+		Symbol,
+
+		Default = Unknown
 
 	};
 }

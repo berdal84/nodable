@@ -32,6 +32,6 @@ namespace Nodable{
 
 	private:
 		void* data = NULL;
-		Type type = Type::Unknown;
+		Type type = Type::Any;
 	};
 }

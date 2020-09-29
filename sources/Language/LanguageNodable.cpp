@@ -3,6 +3,7 @@
 #include <time.h>
 #include "IconsFontAwesome5.h"
 #include <cmath>
+#include <iostream>
 
 using namespace Nodable;
 
@@ -147,6 +148,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	dictionnary.insert("bool"  , TokenType::BooleanType);
 	dictionnary.insert("string", TokenType::StringType);
 	dictionnary.insert("number", TokenType::DoubleType);
+	dictionnary.insert("any"   , TokenType::AnyType);
 
 	dictionnary.insert( 
 		std::regex("^(&&|[|][|]|==|>|<(?!(=))|<=>|=>|=(?!(>|=))|<=(?!(>))|>=|[+]|[-]|[/]|[*]|[!])"),
@@ -162,7 +164,6 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	dictionnary.insert(";"      , TokenType::EndOfInstruction);
 
 	// To easily declare types
-	auto Symbol = TokenType::Symbol;
 	auto Double = TokenType::DoubleType;
 	auto Bool   = TokenType::BooleanType;
 	auto Str    = TokenType::StringType;
@@ -249,7 +250,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	// secondDegreePolynomial(a: number, x: number, b:number, y:number, c:number)
 	FCT_BEGIN(Double, "secondDegreePolynomial", Double, Double, Double, Double, Double)
 		const auto value = 
-			(double)ARG(0) * pow((double)ARG(1), 2) * +  // ax² +
+			(double)ARG(0) * pow((double)ARG(1), 2) * +  // axï¿½ +
 			(double)ARG(2) * (double)ARG(3) +            // by +
 			(double)ARG(4);                              // c
 	RETURN(value)
@@ -396,15 +397,15 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	OPERATOR_END
 
 	// operator=(number)
-	BINARY_OP_BEGIN(Bool, "=", Double, Double, 1u, ICON_FA_EQUALS " Assign")
-		_args[0]->set((double)ARG(1));
-		RETURN(ARG(0))
+	BINARY_OP_BEGIN(Double, "=", Double, Double, 0u, ICON_FA_EQUALS " Assign")
+		_args[0]->set(ARG(1));
+		RETURN((double)ARG(1))
 	OPERATOR_END
 
 	// operator=(number)
-	BINARY_OP_BEGIN(Bool, "=", Bool, Bool, 1u, ICON_FA_EQUALS " Assign")
-			_args[0]->set((bool)ARG(1));
-			RETURN(ARG(0))
+	BINARY_OP_BEGIN(Bool, "=", Bool, Bool, 0u, ICON_FA_EQUALS " Assign")
+			_args[0]->set(ARG(1));
+			RETURN((bool)ARG(1))
 	OPERATOR_END
 
 	// operator=>(bool)
@@ -466,7 +467,7 @@ const Type LanguageNodable::tokenTypeToType(TokenType _tokenType)const
 	case TokenType::DoubleType:  return Type::Double;
 	case TokenType::StringType:  return Type::String;
 	default:
-		return Type::Unknown;
+		return Type::Any;
 		break;
 	}
 }

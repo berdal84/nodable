@@ -108,7 +108,7 @@ void Variant::set(bool _var)
 
 bool Variant::isSet()const
 {
-	return type != Type::Unknown;
+	return type != Type::Any;
 }
 
 void Variant::set(const Variant* _v)
@@ -126,7 +126,7 @@ void Variant::set(const Variant* _v)
 	case Type::String:
 		set((std::string)*_v);
 		break;
-	case Type::Unknown:
+	case Type::Any:
 		break;
 	default:
 		NODABLE_ASSERT(false); // The case you're trying to set is not yet implemented
@@ -150,7 +150,7 @@ void Variant::setType(Type _type)
 	if (type != _type)
 	{
 		// Reset data is type has already been initialized
-		if (type != Type::Unknown)
+		if (type != Type::Any)
 		{
 			switch (type)
 			{
@@ -167,7 +167,7 @@ void Variant::setType(Type _type)
 				break;
 			}
 
-			type = Type::Unknown;
+			type = Type::Any;
 		}
 
 		// Set a default value (this will change the type too)
