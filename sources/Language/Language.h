@@ -13,6 +13,7 @@
 #include "TokenType.h"
 #include "Dictionnary.h"
 #include "Type.h"
+#include "Log.h"
 
 /*
 	Here, some Macros to easily create function and add them to the Language.api
@@ -20,15 +21,19 @@
 	TODO: I don't like these big macros. Use function traits instead.
 */
 #define SUCCESS return 0;
-#define FAIL _result->setType(Type::Unknown); return 1;
+
+#define FAIL \
+_result->setType(Type::Any); /* We intentionnaly force result type any to avoid crashing.*/ \
+return 1;
+
 #define ARG(n) (*_args[n])
 #define BEGIN_IMPL\
 	auto implementation = [](Member* _result, const std::vector<Member*>& _args)->int { \
 	for(auto it = _args.begin(); it != _args.end(); it++) \
 	{\
-		if( (*it)->isType(Type::Unknown) ) \
+		if( (*it)->isType(Type::Any) ) \
 		{\
-			FAIL\
+			LOG_WARNING("Argument %i (%s) is unknown.\n", std::distance(_args.begin(), it), (*it)->getName().c_str() );\
 		}\
 	}
 

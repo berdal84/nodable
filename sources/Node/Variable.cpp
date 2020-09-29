@@ -6,7 +6,7 @@ using namespace Nodable;
 
 Variable::Variable()
 {
-	add("value", Visibility::Always, Type::Unknown, Way_InOut);	
+	add("value", Visibility::Always, Type::Any, Way_InOut);	
 }
 
 Variable::~Variable()

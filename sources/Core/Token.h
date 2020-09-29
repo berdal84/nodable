@@ -8,7 +8,7 @@ namespace Nodable {
 	class Token
 	{
 	public:
-		TokenType  type = TokenType::Unknown; // the type of the token
+		TokenType  type = TokenType::Default; // the type of the token
 		std::string word = "";                // the word as a string
 		size_t      charIndex = 0;                 // the index of the first character of the token in the evaluated expression.
 

@@ -171,7 +171,8 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	// Precedence check
 	const auto currentOperatorPrecedence = language->findOperator(token1.word)->precedence;
 		
-	if (currentOperatorPrecedence <= _precedence) { // always eval the first operation if they have the same precedence or less.
+	if (currentOperatorPrecedence <= _precedence &&
+	    _precedence > 0u) { // always eval the first operation if they have the same precedence or less.
 		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (Precedence)\n");
 		return nullptr;
 	}
@@ -187,7 +188,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	auto signature        = language->createBinOperatorSignature(Type::Unknown, token1.word, _left->getType(), right->getType());
+	auto signature        = language->createBinOperatorSignature(Type::Any, token1.word, _left->getType(), right->getType());
 	auto matchingOperator = language->findOperator(signature);
 
 	if ( matchingOperator != nullptr )
@@ -257,7 +258,7 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	}
 
 	// Create a function signature 
-	auto signature = language->createUnaryOperatorSignature(Type::Unknown, token1.word, value->getType() );
+	auto signature = language->createUnaryOperatorSignature(Type::Any, token1.word, value->getType() );
 	auto matchingOperator = language->findOperator(signature);
 
 	if (matchingOperator != nullptr)
@@ -606,7 +607,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 	std::vector<Member*> args;
 
 	// Declare a new function prototype	
-	FunctionSignature signature(identifier, TokenType::Unknown);
+	FunctionSignature signature(identifier, TokenType::AnyType);
 
 	localTokenId++; // eat parenthesis
 	
