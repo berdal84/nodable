@@ -150,10 +150,11 @@ namespace Nodable
 		void execute()
 		{
 			target->setInputMember(source);
-			target->getOwner()->as<Node>()->setDirty();
+			auto targetNode = target->getOwner()->as<Node>();
+			auto sourceNode = source->getOwner()->as<Node>();
 
 			// Link wire to members
-			auto sourceContainer = source->getOwner()->as<Node>()->getParentContainer();
+			auto sourceContainer = sourceNode->getParentContainer();
 
 			if (sourceContainer != nullptr)
 				this->wire = sourceContainer->newWire();
@@ -164,8 +165,8 @@ namespace Nodable
 			wire->setTarget(target);
 
 			// Add the wire pointer to the Entitis instance to speed up drawing process.
-			target->getOwner()->as<Node>()->addWire(wire);
-			source->getOwner()->as<Node>()->addWire(wire);
+			targetNode->addWire(wire);
+			sourceNode->addWire(wire);
 		}
 
 		void redo() {
