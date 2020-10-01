@@ -24,7 +24,7 @@ std::string LanguageNodable::serialize(
 		}
 	}
 
-	expr.append(" " + serialize(TokenType::LBracket));
+	expr.append(" " + serialize(TokenType::RBracket));
 	return expr;
 
 }
