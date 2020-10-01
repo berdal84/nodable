@@ -41,8 +41,8 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 
 	/* Add inputs in contextual menu */
 	auto api = language->getAPI();
-	for (auto it = api.begin(); it != api.end(); it++) {
-		auto function = &*it;
+	for (auto it = api.cbegin(); it != api.cend(); it++) {
+		const auto function = new Function(*it);
 		auto lambda = [container, function]()->Node* {
 			return container->newFunction(function);
 		};

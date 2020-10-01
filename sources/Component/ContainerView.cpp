@@ -192,11 +192,21 @@ bool ContainerView::draw()
 			Menu Items...
 		*/
 
-		if (ImGui::BeginMenu(ICON_FA_CALCULATOR " Functions")) {
-			for (auto it = contextualMenuItems.begin(); it != contextualMenuItems.end(); it++) {
-				if (ImGui::MenuItem((*it).first.c_str()))
-					newNode = (*it).second();
+		if (ImGui::BeginMenu(ICON_FA_CALCULATOR " Functions"))
+		{			
+			for (auto it = contextualMenuItems.begin(); it != contextualMenuItems.end(); it++)
+			{
+				auto label = it->first.c_str();
+
+				if (ImGui::MenuItem(label))
+				{
+					if ( it->second != nullptr )
+						newNode = it->second();
+					else
+						LOG_WARNING("The function associated to the key %s is nullptr", label );					
+				}
 			}
+
 			ImGui::EndMenu();
 		}		
 		
