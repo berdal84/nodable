@@ -114,8 +114,9 @@ bool File::update() {
 	}
 
 	auto hasChanged = getInnerContainer()->update();
-	
-	if (!hasChanged)
+	auto view		= getComponent<FileView>();
+
+	if (!hasChanged && view->getSelectedText() != "")
 		return false;
 
 	auto result		= getInnerContainer()->getResultVariable();
@@ -126,7 +127,7 @@ bool File::update() {
 
 	auto member		= result->getMember();
 	auto expression = member->getSourceExpression();
-	auto view		= getComponent<FileView>();
+	
 
 	view->replaceSelectedText(expression);
 	
