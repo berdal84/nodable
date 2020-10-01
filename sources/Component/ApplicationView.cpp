@@ -405,7 +405,7 @@ bool ApplicationView::draw()
 						// Draw command description 
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
 						ImGui::BeginTooltip();
-						ImGui::Text(currentFileHistory->getCommandDescriptionAtPosition(commandId));
+						ImGui::Text( "%s", currentFileHistory->getCommandDescriptionAtPosition(commandId));
 						ImGui::EndTooltip();
 						ImGui::PopStyleVar();
 					}
