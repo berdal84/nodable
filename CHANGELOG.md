@@ -2,8 +2,15 @@
 Nodable Change Log :
 ====================
 
-Author: Bérenger Dalle-Cort, 2020-2017
+Author: BÃ©renger Dalle-Cort, 2017-2020
 
+(0.7, still wip)
+    - CI for Linux and Windows
+	- refactor of Language and related classes (Dictionnary, TokenType, etc.)
+	- Parser now check types.
+	- Parser now parse function calls.
+	- refactor in Components: added FunctionComponent (can invoke a function defined with a Language)
+	- Assign operator is now a real node.
 
 0.6:
 	- use now mirror (by @Grouflon) as reflection framework.
