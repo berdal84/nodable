@@ -3,6 +3,7 @@
 // std
 #include <vector>
 #include <ctime>
+#include <string>
 
 // extern
 #include "mirror.h"
@@ -65,7 +66,7 @@ namespace Nodable
 		size_t getCursorPosition()const { return commandsCursor; }
 		void setCursorPosition(size_t _pos);
 
-		const char* getCommandDescriptionAtPosition(size_t _commandId);
+		std::string getCommandDescriptionAtPosition(size_t _commandId);
 
 		/* To get the special buffer for TextEditor */
 		TextEditorBuffer* createTextEditorUndoBuffer(TextEditor* _textEditor) {
