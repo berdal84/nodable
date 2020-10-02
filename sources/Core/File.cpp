@@ -40,14 +40,37 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 	container->addComponent(containerView);
 
 	/* Add inputs in contextual menu */
-	auto api = language->getAPI();
+	auto api = language->getAllFunctions();
+
 	for (auto it = api.cbegin(); it != api.cend(); it++) {
 		const auto function = new Function(*it);
-		auto lambda = [container, function]()->Node* {
-			return container->newFunction(function);
-		};
-		containerView->addContextualMenuItem( ICON_FA_CODE " " + language->serialize((*it).signature), lambda);
+
+		auto op = language->findOperator(function->signature);
+
+
+		if (op != nullptr )
+		{
+			auto lambda = [container, function, op]()->Node*
+			{	
+				return container->newBinOp(op);		
+			};
+
+			auto label = op->signature.getLabel();
+			containerView->addContextualMenuItem( "Operators", label, lambda);
+		}
+		else
+		{
+			auto lambda = [container, function, op]()->Node*
+			{
+				return container->newFunction(function);
+			};
+
+			auto label = language->serialize((*it).signature);
+			containerView->addContextualMenuItem( "Functions", label, lambda);
+		}
+		
 	}
+
 
 }
 

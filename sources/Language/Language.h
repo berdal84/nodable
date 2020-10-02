@@ -129,7 +129,7 @@ namespace Nodable {
 		void                                  addToAPI(Function);
 		void                                  addToAPI(FunctionSignature&, FunctionImplem);
 		bool                                  needsToBeEvaluatedFirst(const Operator*, const Operator* nextOp)const;
-		const std::vector<Function>&          getAPI()const { return api; }		
+		const std::vector<Function>&          getAllFunctions()const { return api; }		
 		
 
 		/**
