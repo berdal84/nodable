@@ -192,24 +192,35 @@ bool ContainerView::draw()
 			Menu Items...
 		*/
 
-		if (ImGui::BeginMenu(ICON_FA_CALCULATOR " Functions"))
-		{			
-			for (auto it = contextualMenuItems.begin(); it != contextualMenuItems.end(); it++)
-			{
-				auto label = it->first.c_str();
 
-				if (ImGui::MenuItem(label))
+		auto drawMenu = [&](const std::string _key)-> void {
+			char menuLabel[255];
+			snprintf( menuLabel, 255, ICON_FA_CALCULATOR" %s", _key.c_str());
+
+			if (ImGui::BeginMenu(menuLabel))
+			{		
+				auto range = contextualMenus.equal_range(_key);
+				for (auto it = range.first; it != range.second; it++)
 				{
-					if ( it->second != nullptr )
-						newNode = it->second();
-					else
-						LOG_WARNING("The function associated to the key %s is nullptr", label );					
-				}
-			}
+					auto labelFunctionPair = it->second;
+					auto itemLabel = labelFunctionPair.first.c_str();
 
-			ImGui::EndMenu();
-		}		
-		
+					if (ImGui::MenuItem(itemLabel))
+					{
+						if ( labelFunctionPair.second != nullptr  )
+							newNode = labelFunctionPair.second();
+						else
+							LOG_WARNING("The function associated to the key %s is nullptr", itemLabel );					
+					}
+				}
+
+				ImGui::EndMenu();
+			}	
+		};
+
+		drawMenu("Operators");
+		drawMenu("Functions");
+
 		ImGui::Separator();
 		
 		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
@@ -267,8 +278,9 @@ bool ContainerView::draw()
 	return true;
 }
 
-void Nodable::ContainerView::addContextualMenuItem(std::string _label, std::function<Node*(void)> _function)
+
+void Nodable::ContainerView::addContextualMenuItem(std::string _category, std::string _label, std::function<Node*(void)> _function)
 {
-	contextualMenuItems.emplace( std::make_pair(_label, _function) );
+	contextualMenus.insert( {_category, {_label, _function }} );
 }
 
