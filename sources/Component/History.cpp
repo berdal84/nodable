@@ -67,9 +67,20 @@ void History::setCursorPosition(size_t _pos)
 	dirty = true;
 }
 
-const char* Nodable::History::getCommandDescriptionAtPosition(size_t _commandId)
+std::string Nodable::History::getCommandDescriptionAtPosition(size_t _commandId)
 {
-	return commands.at(_commandId)->getDescription();
+	const auto headId = commands.size();
+	
+	std::string result;
+	if ( _commandId < headId )
+	{
+		result = commands.at(_commandId)->getDescription();
+	} else {
+		NODABLE_ASSERT(_commandId != headId); // You try to read the history after the HEAD.
+		result = "History HEAD";
+	}	
+
+	return result;
 }
 
 void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord) {

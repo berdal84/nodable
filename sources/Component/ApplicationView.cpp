@@ -382,7 +382,7 @@ bool ApplicationView::draw()
 			
 				
 
-				for (size_t commandId = 0; commandId < historySize; commandId++)
+				for (size_t commandId = 0; commandId <= historySize; commandId++)
 				{
 					ImGui::SameLine();
 
@@ -405,7 +405,7 @@ bool ApplicationView::draw()
 						// Draw command description 
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
 						ImGui::BeginTooltip();
-						ImGui::Text( "%s", currentFileHistory->getCommandDescriptionAtPosition(commandId));
+						ImGui::Text( "%s", currentFileHistory->getCommandDescriptionAtPosition(commandId).c_str());
 						ImGui::EndTooltip();
 						ImGui::PopStyleVar();
 					}
