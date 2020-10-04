@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include <string>
+
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
 #define RED     "\033[31m"      /* Red */
@@ -21,19 +24,28 @@
 #define KO RED "[KO]" RESET
 #define OK GREEN "[OK]" RESET
 
-#ifdef _DEBUG
-	#define LOG_DEBUG(...) Nodable::internal::LogMessage( ""  , __VA_ARGS__ ) 
-#else
-	#define LOG_DEBUG(...)
-#endif
+#define LOG_DEBUG(...) Nodable::Log::Push( Nodable::LogType::Message, __VA_ARGS__ ) 
 
-#define LOG_MESSAGE(...) Nodable::internal::LogMessage( "", __VA_ARGS__ ) 
-#define LOG_WARNING(...) Nodable::internal::LogMessage( MAGENTA "WRN " RESET, __VA_ARGS__ )
-#define LOG_ERROR(...)   Nodable::internal::LogMessage( RED "ERR " RESET, __VA_ARGS__ ) 
+#define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::LogType::Message, __VA_ARGS__ ) 
+#define LOG_WARNING(...) Nodable::Log::Push( Nodable::LogType::Warning, __VA_ARGS__ )
+#define LOG_ERROR(...)   Nodable::Log::Push( Nodable::LogType::Error  , __VA_ARGS__ ) 
 
 namespace Nodable{	
-	namespace internal
-	{
-		void LogMessage(const char* _prefix, const char* _format, ...);
-	}
+
+	enum class LogType {
+		Message,
+		Warning,
+		Error
+	};
+
+	struct Message {
+		LogType type;
+		std::string text;
+	};
+
+	class Log {
+	public:
+		static std::vector<Message> Logs;
+		static void Push(LogType _type, const char* _format, ...);
+	};
 }
