@@ -32,7 +32,7 @@ Parser::~Parser()
 
 std::string Parser::logTokens(const std::vector<Token> _tokens, const size_t _highlight){
 	std::string result;
-	
+
 	for (auto it = _tokens.begin(); it != _tokens.end(); it++ ) {
 		size_t index = it - _tokens.begin();
 
@@ -60,7 +60,6 @@ std::string Parser::logTokens(const std::vector<Token> _tokens, const size_t _hi
 
 bool Parser::eval(const std::string& _expression)
 {
-	bool success = false;
 
 	if (!tokenizeExpressionString(_expression)) {
 		LOG_DEBUG_PARSER("Unable to parse expression due to unrecognysed tokens.");
@@ -87,10 +86,8 @@ bool Parser::eval(const std::string& _expression)
 	// Else we connect resultValue with resultVariable.value
 	else
 		Node::Connect(resultValue, result->getMember());
-		
-	success = true;
 
-	return success;
+	return true;
 }
 
 Member* Parser::tokenToMember(const Token& _token) {
@@ -170,13 +167,13 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 
 	// Precedence check
 	const auto currentOperatorPrecedence = language->findOperator(token1.word)->precedence;
-		
+
 	if (currentOperatorPrecedence <= _precedence &&
 	    _precedence > 0u) { // always eval the first operation if they have the same precedence or less.
 		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (Precedence)\n");
 		return nullptr;
 	}
-		
+
 
 	// Parse right expression
 	size_t rightTokenId = _tokenId + 1;
@@ -218,7 +215,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		return nullptr;
 	}
 
-	_tokenId = rightTokenId;	
+	_tokenId = rightTokenId;
 
 	LOG_DEBUG_PARSER("parseBinaryOperationExpression... " OK "\n");
 
@@ -248,7 +245,7 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	auto valueTokenId = _tokenId + 1;
 	auto precedence = language->findOperator(token1.word)->precedence;
 	Member* value = nullptr;
-	
+
 	     if ( value = parseAtomicExpression(valueTokenId));
 	else if ( value = parseParenthesisExpression(valueTokenId));
 	else
@@ -257,7 +254,7 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 		return nullptr;
 	}
 
-	// Create a function signature 
+	// Create a function signature
 	auto signature = language->createUnaryOperatorSignature(Type::Any, token1.word, value->getType() );
 	auto matchingOperator = language->findOperator(signature);
 
@@ -277,7 +274,7 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 		result = binOpNode->get("result");
 
 	} else {
-		LOG_DEBUG_PARSER("parseUnaryOperationExpression... " KO " (unrecognysed operator)\n");	
+		LOG_DEBUG_PARSER("parseUnaryOperationExpression... " KO " (unrecognysed operator)\n");
 		return nullptr;
 	}
 
@@ -434,7 +431,7 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 
 bool Parser::isSyntaxValid()
 {
-	bool success                     = true;	
+	bool success                     = true;
 	auto it                          = tokens.begin();
 	short int openedParenthesisCount = 0;
 
@@ -448,8 +445,8 @@ bool Parser::isSyntaxValid()
 
 		case TokenType::Operator:
 		{
-			
-			if (isLastToken) { 
+
+			if (isLastToken) {
 				success = false; // Last token can't be an operator
 
 			} else {
@@ -484,7 +481,7 @@ bool Parser::isSyntaxValid()
 			auto next = *(it + 1);
 			auto isAnOperand = next.isOperand();
 
-			if (isAnOperand) { 
+			if (isAnOperand) {
 				LOG_DEBUG_PARSER("Unable to tokenize expression, %s unexpected after %s \n", current.word.c_str(), next.word.c_str());
 				success = false;
 			}
@@ -524,7 +521,7 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
 
 				if (match) {
 					auto str   = sm.str(0);
-					auto token = pair_it->first;					
+					auto token = pair_it->first;
 
 					if (token != TokenType::Ignore)
 					{
@@ -606,11 +603,11 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 
 	std::vector<Member*> args;
 
-	// Declare a new function prototype	
+	// Declare a new function prototype
 	FunctionSignature signature(identifier, TokenType::AnyType);
 
 	localTokenId++; // eat parenthesis
-	
+
 	bool parsingError = false;
 	while ( !parsingError &&
 		     localTokenId < tokens.size() &&

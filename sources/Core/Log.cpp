@@ -4,16 +4,32 @@
 #include <cstdio>  // vfprintf
 #include <iostream>
 
-void Nodable::internal::LogMessage(const char* _prefix, const char* _format, ...)
+using namespace Nodable;
+
+std::vector<Message> Log::Logs;
+
+void Log::Push(LogType _type, const char* _format, ...)
 {
-	std::cout << _prefix;
 
-	va_list args;
-	va_start(args, _format);
-	vfprintf(stdout, _format, args);
-	va_end(args);
+	/* 1 - logs prefix */
+	if( _type == LogType::Error )
+		std::cout << RED "ERR " RESET;
 
-	std::cout << RESET; // reset color
+	else if( _type == LogType::Warning )
+		std::cout << MAGENTA "WRN " RESET;
+
+	else
+		std::cout << "MSG ";
+
+	char buffer[255];
+
+	/* 2 - logs text */
+    va_list arglist;
+    va_start( arglist, _format );
+    vsnprintf(buffer, sizeof(buffer), _format, arglist);
+    printf(_format, arglist);
+	va_end( arglist );
+
+	// Store type and buffer in history
+	Logs.push_back( {_type, buffer} );
 }
-
-
