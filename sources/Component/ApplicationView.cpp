@@ -77,10 +77,10 @@ bool ApplicationView::init()
                                /* SDL_WINDOW_FULLSCREEN_DESKTOP*/
 								SDL_WINDOW_MAXIMIZED
                                 );
-    
+
     this->glcontext = SDL_GL_CreateContext(sdlWindow);
     SDL_GL_SetSwapInterval(1); // Enable vsync
-    
+
 
     // Setup Dear ImGui binding
     IMGUI_CHECKVERSION();
@@ -107,11 +107,11 @@ bool ApplicationView::init()
         //io.Fonts->AddFontDefault();
 		auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
 		std::cout << "Adding font from file: " << fontPath << std::endl;
-        io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 20.0f, &config);  
+        io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 20.0f, &config);
         io.FontAllowUserScaling = true;
     }
 
-    // Add Icons   
+    // Add Icons
     {
 		// merge in icons from Font Awesome
 		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
@@ -232,7 +232,7 @@ bool ApplicationView::draw()
         bool b = *get("showProperties");
         if( b ){
     	    if (ImGui::Begin("Properties", &b))
-    	    {    	
+    	    {
 
     		    ImGui::Text("Wires");
     		    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
@@ -241,8 +241,8 @@ bool ApplicationView::draw()
 				ImGui::SliderFloat("connector radius", &connectorRadius, 1.0f, 10.0f);
 				ImGui::SliderFloat("node padding", &nodePadding, 1.0f, 20.0f);
     		    ImGui::Checkbox("arrows", &displayArrows);
-    	    
-    	    }           
+
+    	    }
             ImGui::End();
             set("showProperties", b);
         }
@@ -272,13 +272,13 @@ bool ApplicationView::draw()
 		auto userWantsToHideSelectedNode(false);
 		auto userWantsToArrangeSelectedNodeHierarchy(false);
 
-		
+
 		// Get current file's history
 		History* currentFileHistory = nullptr;
-		
+
 		if ( auto file = application->getCurrentFile())
 			currentFileHistory = file->getHistory();
-		
+
 
         ImGui::Begin("Container", NULL, ImVec2(), -1.0f, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
@@ -360,8 +360,6 @@ bool ApplicationView::draw()
 				ImGui::EndMenuBar();
 			}
 
-			static bool isExpressionValid = true;
-
 			/*
 				UNDO HISTORY / TIME SLIDER
 			*/
@@ -379,8 +377,8 @@ bool ApplicationView::draw()
 				auto availableWidth = ImGui::GetContentRegionAvailWidth();
 				auto historyButtonWidth = std::fmin(historyButtonMaxWidth, availableWidth / float(historySize) - historyButtonSpacing);
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0));
-			
-				
+
+
 
 				for (size_t commandId = 0; commandId <= historySize; commandId++)
 				{
@@ -401,8 +399,8 @@ bool ApplicationView::draw()
 					{
 						if (ImGui::IsMouseDown(0)) // hovered + mouse down
 							currentFileHistory->setCursorPosition(commandId); // update history cursor position
-							
-						// Draw command description 
+
+						// Draw command description
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
 						ImGui::BeginTooltip();
 						ImGui::Text( "%s", currentFileHistory->getCommandDescriptionAtPosition(commandId).c_str());
@@ -410,7 +408,7 @@ bool ApplicationView::draw()
 						ImGui::PopStyleVar();
 					}
 
-					
+
 				}
 				ImGui::PopStyleVar();
 			}
@@ -434,21 +432,23 @@ bool ApplicationView::draw()
                 Status bar
             */
 
-            auto statusLineColor = ImVec4(0.0f, 0.0f, 0.0f,0.5f);
-            std::string statusLineString = "Status: Everything is OK.";
+			if( Log::Logs.size() > 0 )
+			{
+				auto lastLog = Log::Logs.back();
+				auto statusLineColor = ImVec4(0.0f, 0.0f, 0.0f,0.5f);
 
-            if (!isExpressionValid)
-            {
-                statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
-                statusLineString = "Warning : wrong expression syntax";
-            }
+				if ( lastLog.type == LogType::Error )
+					statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
+				else if ( lastLog.type == LogType::Warning )
+					statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
 
-            ImGui::TextColored(statusLineColor, "%s", statusLineString.c_str());
-        }
+				ImGui::TextColored(statusLineColor, "%s", lastLog.text.c_str());
+			}
+		}
         ImGui::End();
 
 
-		
+
 
 		/*
 		   Perform actions on selected node
@@ -463,7 +463,7 @@ bool ApplicationView::draw()
 				selected->arrangeRecursively();
 		}
     }
-    
+
 	// Modals
 	fileBrowser.Display();
 	if (fileBrowser.HasSelected())

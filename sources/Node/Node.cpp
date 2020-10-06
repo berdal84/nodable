@@ -8,16 +8,21 @@
 #include "History.h"
 #include "DataAccess.h"
 #include "ComputeBase.h"
+#include "NodeTraversal.h"
 
 using namespace Nodable;
 
 void Node::Disconnect(Wire* _wire)
 {
 	_wire->getTarget()->setInputMember(nullptr);
-	_wire->getTarget()->getOwner()->as<Node>()->setDirty();
 
-	_wire->getTarget()->getOwner()->as<Node>()->removeWire(_wire);
-	_wire->getSource()->getOwner()->as<Node>()->removeWire(_wire);
+	auto targetNode = _wire->getTarget()->getOwner()->as<Node>();	
+	auto sourceNode = _wire->getSource()->getOwner()->as<Node>();
+
+	NodeTraversal::SetDirty(targetNode);
+
+	targetNode->removeWire(_wire);
+	sourceNode->removeWire(_wire);
 
 	delete _wire;
 
@@ -58,16 +63,6 @@ bool Node::isDirty()const
 
 void Node::setDirty(bool _value)
 {
-
-	for (auto wire : wires)
-	{
-		if (wire->getSource()->getOwner() == this && wire->getTarget() != nullptr)
-		{
-			auto node = reinterpret_cast<Node*>(wire->getTarget()->getOwner());
-			node->setDirty(true);
-		}
-	}
-
 	dirty = _value;
 }
 
@@ -99,7 +94,6 @@ const char* Node::getLabel()const
 void Nodable::Node::addWire(Wire* _wire)
 {
 	wires.push_back(_wire);
-	this->setDirty();
 }
 
 void Nodable::Node::removeWire(Wire* _wire)
@@ -138,42 +132,17 @@ int Node::getOutputWireCount()const
 
 bool Node::update()
 {
-	bool success = true;
+	if(hasComponent<ComputeBase>())
+		getComponent<ComputeBase>()->update();
+	
+	if(hasComponent<DataAccess>())
+		getComponent<DataAccess>()->update();
 
-	// Evaluates only if dirty flag is on
-	if (isDirty())
-	{
-		// first we need to evaluate each input and transmit its results thru the wire
-		for (auto wire : wires)
-		{
-			auto wireTarget = wire->getTarget();
-			auto wireSource = wire->getSource();
-
-			if ( this->has(wireTarget) &&
-				 wireSource != nullptr) 
-			{
-				/* update the source entity */
-				reinterpret_cast<Node*>(wireSource->getOwner())->update();
-				
-				/* transfert the freshly updated value from source to target member */
-				wireTarget->updateValueFromInputMemberValue();
-			}
-		}
-
-		if(hasComponent<ComputeBase>())
-			getComponent<ComputeBase>()->update();
-		
-		if(hasComponent<DataAccess>())
-			getComponent<DataAccess>()->update();
-
-		setDirty(false);
-	}
-
-	return success;
+	return true;
 }
 
 void Node::onMemberValueChanged(const char* _name)
-{
-	setDirty(true);
-	updateLabel();	
+{	
+	updateLabel();
+	NodeTraversal::SetDirty(this);
 }
