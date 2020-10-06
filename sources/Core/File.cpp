@@ -125,8 +125,6 @@ bool File::evaluateExpression(std::string& _expression)
 		LOG_MESSAGE("Expression evaluated: %s\n", _expression.c_str());
 		return true;
 	}
-
-	LOG_WARNING("Unable to evaluate: %s\n", _expression.c_str());
 	return false;
 }
 
