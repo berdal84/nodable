@@ -8,6 +8,7 @@
 #include <algorithm>              // for std::max
 #include "Application.h"
 #include "ComputeBase.h"
+#include "NodeTraversal.h"
 
 using namespace Nodable;
 
@@ -464,7 +465,7 @@ bool NodeView::drawMember(Member* _member) {
 			if (ImGui::InputDouble(label.c_str(), &f))
 			{
 				_member->set(f);
-				node->setDirty(true);
+				NodeTraversal::SetDirty(node);
 				edited |= true;
 			}
 			break;
@@ -477,7 +478,7 @@ bool NodeView::drawMember(Member* _member) {
 			if ( ImGui::InputText(label.c_str(), str, 255) )
 			{
 				_member->set(str);
-				node->setDirty(true);
+				NodeTraversal::SetDirty(node);
 				edited |= true;
 			}
 			break;
@@ -489,7 +490,7 @@ bool NodeView::drawMember(Member* _member) {
 		auto b = (bool)*_member;
 		if (ImGui::Checkbox( checkBoxLabel.c_str(), &b )) {				
 			_member->set(b);
-			node->setDirty(true);
+			NodeTraversal::SetDirty(node);
 			edited |= true;
 		}
 		break;

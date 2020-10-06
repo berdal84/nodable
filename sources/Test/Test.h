@@ -203,7 +203,7 @@ bool Parser_Test(
 	parser.eval(expression);
 
 	auto result = container.getResultVariable();
-	result->update();
+	container.update();
 
 	Member expectedMember;
 	expectedMember.set(_expectedValue);

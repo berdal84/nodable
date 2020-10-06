@@ -12,6 +12,7 @@
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
 #include "Application.h"
+#include "NodeTraversal.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
@@ -42,10 +43,12 @@ void Container::clear()
 
 bool Container::update()
 {
+
 	// Update entities
 	size_t updatedNodesCount(0);
-
-	for(auto it = nodes.begin(); it < nodes.end(); ++it)
+	auto it = nodes.begin();
+	auto result = Result::Success;
+	while( it < nodes.end() && result != Result::Failure )
 	{
 		auto node = *it;
 
@@ -59,12 +62,16 @@ bool Container::update()
 			else if ( node->isDirty())
 			{
 				updatedNodesCount++;
-				node->update();
+				result = NodeTraversal::Update(node);
 			}
 		}
+
+		++it;
 	}
 
-	const bool hasChanged = updatedNodesCount > 0 && NodeView::GetSelected() != nullptr;
+	bool hasChanged = false;
+	if( result != Result::Failure )
+		hasChanged = updatedNodesCount > 0 && NodeView::GetSelected() != nullptr;
 
 	return hasChanged;
 }

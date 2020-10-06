@@ -5,6 +5,7 @@
 #include "Nodable.h"            // for constants and forward declarations
 #include "Object.h"
 #include "Component.h"
+#include "NodeTraversal.h"
 
 namespace Nodable{
 	
@@ -48,10 +49,6 @@ namespace Nodable{
 		/* Set a label for this Node */
 		void                setLabel          (std::string);
 
-		/* Update the state of this node.
-		   note: this will be called every frame automatically */
-		virtual bool        update            ();
-
 		/* Adds a new wire related* to this node. (* connected to one of the Node Member)
 		   note: a node can connect two Members (cf. Wire class) */
 		void                addWire           (Wire*);
@@ -73,6 +70,9 @@ namespace Nodable{
 
 		/* return true if this node needs to be updated and false otherwise */
 		bool                isDirty           ()const;
+		
+		/* Update the state of this (and only this) node */
+		virtual bool update();
 
 		/* Create an oriented edge (Wire) between two Members */
 		static Wire* Connect(Member* /*_from*/, Member* /*_to*/);

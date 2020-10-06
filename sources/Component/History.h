@@ -17,8 +17,7 @@
 #include "WireView.h"
 #include "Member.h"
 #include "Log.h"
-
-
+#include "NodeTraversal.h"
 
 namespace Nodable
 {
@@ -168,6 +167,8 @@ namespace Nodable
 			// Add the wire pointer to the Entitis instance to speed up drawing process.
 			targetNode->addWire(wire);
 			sourceNode->addWire(wire);
+
+			NodeTraversal::SetDirty(targetNode);
 		}
 
 		void redo() {
