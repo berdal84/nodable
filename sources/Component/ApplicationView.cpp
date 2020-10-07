@@ -434,15 +434,26 @@ bool ApplicationView::draw()
 
 			if( Log::Logs.size() > 0 )
 			{
-				auto lastLog = Log::Logs.back();
-				auto statusLineColor = ImVec4(0.0f, 0.0f, 0.0f,0.5f);
+				// Get last log with level 0u
+				auto lastLog = std::find_if( Log::Logs.rbegin(), Log::Logs.rend(), [](auto item)-> bool {
+					return item.verbosity == 0u;
+				});
 
-				if ( lastLog.type == LogType::Error )
-					statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
-				else if ( lastLog.type == LogType::Warning )
-					statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
+				if( lastLog != Log::Logs.rend() )
+				{
+					auto statusLineColor = ImVec4(0.0f, 0.0f, 0.0f,0.5f);
 
-				ImGui::TextColored(statusLineColor, "%s", lastLog.text.c_str());
+					if ( lastLog->type == LogType::Error )
+					{
+						statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
+					}
+					else if ( lastLog->type == LogType::Warning )
+					{
+						statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
+					}
+
+					ImGui::TextColored(statusLineColor, "%s", lastLog->text.c_str());
+				}
 			}
 		}
         ImGui::End();
