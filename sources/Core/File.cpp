@@ -95,7 +95,7 @@ File* File::CreateFileWithPath(const std::filesystem::path _filePath)
 
 	if (!fileStream.is_open())
 	{
-		LOG_ERROR("Unable to load \"%s\"\n", _filePath);
+		LOG_ERROR(0u, "Unable to load \"%s\"\n", _filePath);
 		return nullptr;
 	}
 
@@ -122,7 +122,7 @@ bool File::evaluateExpression(std::string& _expression)
 		auto result = container->getResultVariable();
 		auto view   = result->getComponent<NodeView>();
 		NodeView::ArrangeRecursively(view);
-		LOG_MESSAGE("Expression evaluated: %s\n", _expression.c_str());
+		LOG_MESSAGE(0u, "Expression evaluated: %s\n", _expression.c_str());
 		return true;
 	}
 	return false;

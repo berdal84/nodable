@@ -8,7 +8,7 @@ using namespace Nodable;
 
 std::vector<Message> Log::Logs;
 
-void Log::Push(LogType _type, const char* _format, ...)
+void Log::Push(LogType _type, short unsigned int _verbosity, const char* _format, ...)
 {
 
 	/* 1 - logs prefix */
@@ -26,10 +26,10 @@ void Log::Push(LogType _type, const char* _format, ...)
 	/* 2 - logs text */
     va_list arglist;
     va_start( arglist, _format );
-    vsnprintf(buffer, sizeof(buffer), _format, arglist);
-    printf(_format, arglist);
+    vsnprintf(buffer, sizeof(buffer), _format, arglist); // store into buffer
+    printf(_format, arglist);                            // print
 	va_end( arglist );
 
 	// Store type and buffer in history
-	Logs.push_back( {_type, buffer} );
+	Logs.push_back( {_type, _verbosity, buffer} );
 }

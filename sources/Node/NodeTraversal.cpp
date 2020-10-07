@@ -5,22 +5,14 @@
 
 using namespace Nodable;
 
-
-#define DISABLE_NODE_TRAVERSAL_MESSAGE_LOG
-
-#ifdef DISABLE_NODE_TRAVERSAL_MESSAGE_LOG
-#undef LOG_MESSAGE
-#define LOG_MESSAGE
-#endif
-
 Result NodeTraversal::Update(Node* _rootNode) {
-    LOG_MESSAGE("NodeTraversal::Update %s \n", _rootNode->getLabel() );
+    LOG_MESSAGE(1u, "NodeTraversal::Update %s \n", _rootNode->getLabel() );
     std::vector<Node*> traversed;
     return NodeTraversal::UpdateRecursively(_rootNode, traversed);
 }
 
 Result NodeTraversal::SetDirty(Node* _rootNode) {
-    LOG_MESSAGE("NodeTraversal::SetDirty %s \n", _rootNode->getLabel() );
+    LOG_MESSAGE(1u, "NodeTraversal::SetDirty %s \n", _rootNode->getLabel() );
     std::vector<Node*> traversed;
     return NodeTraversal::SetDirtyRecursively(_rootNode, traversed);
 }
@@ -29,7 +21,7 @@ Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _trav
 
     Result result;
     
-    LOG_MESSAGE("NodeTraversal::SetDirtyEx");
+    LOG_MESSAGE(2u, "NodeTraversal::SetDirtyEx");
     
     // Check if we already updated this node
     auto alreadyUpdated = std::find( _traversed.cbegin(), _traversed.cend(), _node ) != _traversed.cend();
@@ -64,7 +56,7 @@ Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _trav
 Result NodeTraversal::UpdateRecursively(Node* _node, std::vector<Node*>& _traversed) {
     
     Result result;
-    LOG_MESSAGE("NodeTraversal::UpdateEx ");
+    LOG_MESSAGE(2u, "NodeTraversal::UpdateEx ");
     
     // Check if we already updated this node
     auto alreadyUpdated = std::find( _traversed.cbegin(), _traversed.cend(), _node ) != _traversed.cend();
@@ -116,7 +108,7 @@ Result NodeTraversal::UpdateRecursively(Node* _node, std::vector<Node*>& _traver
 
     } else {
         result = Result::Failure;
-        LOG_WARNING("Unable to update Node %s, cycle detected.", _node->getLabel() );
+        LOG_WARNING(0u, "Unable to update Node %s, cycle detected.", _node->getLabel() );
     }
 
     return result;

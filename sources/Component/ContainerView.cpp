@@ -210,7 +210,7 @@ bool ContainerView::draw()
 						if ( labelFunctionPair.second != nullptr  )
 							newNode = labelFunctionPair.second();
 						else
-							LOG_WARNING("The function associated to the key %s is nullptr", itemLabel );					
+							LOG_WARNING( 1u, "The function associated to the key %s is nullptr", itemLabel );					
 					}
 				}
 
