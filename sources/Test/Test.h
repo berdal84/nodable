@@ -52,23 +52,23 @@ static std::stack<TestState> status;
 
 #define GLOBAL_TEST_END \
 	if(  s_globalState.allPassed() ) { \
-		LOG_DEBUG(GREEN"All tests are OK : (%d / %d passed).\n", s_globalState.m_successCount, s_globalState.m_count); \
+		LOG_DEBUG(0u, GREEN"All tests are OK : (%d / %d passed).\n", s_globalState.m_successCount, s_globalState.m_count); \
 	} else { \
-		LOG_DEBUG(RED"Some tests FAILED !: (%d / %d passed).\n", s_globalState.m_successCount, s_globalState.m_count); \
+		LOG_DEBUG(0u, RED"Some tests FAILED !: (%d / %d passed).\n", s_globalState.m_successCount, s_globalState.m_count); \
 	}
 
 #define GLOBAL_TEST_RESULT s_globalState.allPassed();
 
 #define TEST_BEGIN(name) \
 	{ \
-		LOG_MESSAGE("Testing %s...\n", name);\
+		LOG_MESSAGE(0u, "Testing %s...\n", name);\
 		status.push( TestState() ); \
 		{
 
 #define TEST_END \
 		} \
 		if( ! status.top().allPassed() ) { \
-			LOG_ERROR("Test: failed, %i/%i passed.\n", status.top().m_successCount,  status.top().m_count); \
+			LOG_ERROR(0u, "Test: failed, %i/%i passed.\n", status.top().m_successCount,  status.top().m_count); \
 		} \
 		s_globalState.add(status.top()); \
 		s_lastGroupTestPassed = status.top().allPassed(); \
@@ -81,7 +81,7 @@ static std::stack<TestState> status;
 	if (function == expected) { \
 		status.top().addSuccess();\
 	} else { \
-		LOG_ERROR(#function" : FAILED ! expected:" #expected "\n");\
+		LOG_ERROR( 0u, #function" : FAILED ! expected:" #expected "\n");\
 		status.top().addFailure();\
 	}
 

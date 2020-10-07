@@ -62,18 +62,18 @@ bool Parser::eval(const std::string& _expression)
 {
 
 	if (!tokenizeExpressionString(_expression)) {
-		LOG_WARNING("Unable to parse expression due to unrecognysed tokens.");
+		LOG_WARNING(0u, "Unable to parse expression due to unrecognysed tokens.");
 		return false;
 	}
 
 	if (!isSyntaxValid()) {
-		LOG_WARNING("Unable to parse expression due to syntax error.");
+		LOG_WARNING(0u, "Unable to parse expression due to syntax error.");
 		return false;
 	}
 
 	Member* resultValue = parseRootExpression();
 	if (resultValue == nullptr) {
-		LOG_WARNING("Unable to parse expression due to abstract syntax tree failure.");
+		LOG_WARNING(0u, "Unable to parse expression due to abstract syntax tree failure.");
 		return false;
 	}
 
@@ -87,7 +87,7 @@ bool Parser::eval(const std::string& _expression)
 	else
 		Node::Connect(resultValue, result->getMember());
 
-	LOG_MESSAGE("Expression evaluated: %s", _expression.c_str() );
+	LOG_MESSAGE(0u, "Expression evaluated: %s", _expression.c_str() );
 	return true;
 }
 

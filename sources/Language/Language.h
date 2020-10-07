@@ -33,7 +33,7 @@ return 1;
 	{\
 		if( (*it)->isType(Type::Any) ) \
 		{\
-			LOG_WARNING("Argument %i (%s) is unknown.\n", std::distance(_args.begin(), it), (*it)->getName().c_str() );\
+			LOG_WARNING( 1u, "Argument %i (%s) is unknown.\n", std::distance(_args.begin(), it), (*it)->getName().c_str() );\
 		}\
 	}
 
