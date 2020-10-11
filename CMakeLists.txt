@@ -89,7 +89,9 @@ include_directories(
 # Build:
 #=======
 
-set(BUILD_PATH ${CMAKE_BINARY_DIR}/$<CONFIG>)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/)
 
 # Add an executable called Nodable(.exe on windows) 
 add_executable (Nodable "sources/main.cpp" ${SOURCES}) # WIN32 will give WIN32_EXECUTABLE flag if targets windows (no console)
@@ -113,7 +115,7 @@ add_custom_command(
 
         COMMAND ${CMAKE_COMMAND} -E copy_directory  # Copy assets (fonts, scripts, etc..)
                 ${CMAKE_CURRENT_SOURCE_DIR}/${NODABLE_ASSETS_FOLDER_NAME}
-                ${BUILD_PATH}/${NODABLE_ASSETS_FOLDER_NAME})
+                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NODABLE_ASSETS_FOLDER_NAME})
 
 IF (WIN32)
   add_custom_command(
