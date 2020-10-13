@@ -55,7 +55,7 @@ UpdateResult Container::update()
         1 - Delete flagged Nodes
     */
     {
-        for (auto it = nodes.begin(); it != nodes.end(); ++it)
+        for (auto it = nodes.cbegin(); it != nodes.cend();)
         {
             auto node = *it;
 
@@ -64,6 +64,10 @@ UpdateResult Container::update()
                 it = nodes.erase(it);
                 remove(node);
                 delete node;
+            }
+            else
+            {
+                ++it;
             }
 
         }
