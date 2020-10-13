@@ -95,7 +95,7 @@ File* File::CreateFileWithPath(const std::filesystem::path _filePath)
 
 	if (!fileStream.is_open())
 	{
-		LOG_ERROR(0u, "Unable to load \"%s\"\n", _filePath);
+		LOG_ERROR(0u, "Unable to load \"%s\"\n", _filePath.c_str());
 		return nullptr;
 	}
 
@@ -128,7 +128,7 @@ bool File::evaluateExpression(std::string& _expression)
 	return false;
 }
 
-bool File::update() {
+UpdateResult File::update() {
 
 	if (auto history = this->getComponent<History>()) {
 		if (history->dirty) {
@@ -137,16 +137,16 @@ bool File::update() {
 		}
 	}
 
-	auto hasChanged = getInnerContainer()->update();
-	auto view		= getComponent<FileView>();
+	auto containerUpdateResult = getInnerContainer()->update();
+	auto view = getComponent<FileView>();
 
-	if (!hasChanged && view->getSelectedText() != "")
-		return false;
+	if (containerUpdateResult == UpdateResult::SuccessWithoutChanges && view->getSelectedText() != "")
+		return UpdateResult::SuccessWithoutChanges;
 
 	auto result		= getInnerContainer()->getResultVariable();
 
 	if (!result) {
-		return false;
+		return UpdateResult::SuccessWithoutChanges;
 	}
 
 	auto member		= result->getMember();
@@ -155,7 +155,7 @@ bool File::update() {
 
 	view->replaceSelectedText(expression);
 	
-	return true;
+	return UpdateResult::SuccessWithChanges;
 }
 
 bool File::evaluateSelectedExpression()

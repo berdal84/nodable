@@ -16,7 +16,8 @@ int main(int argc, char* argv[])
 	// If --test is passed as first arg, we run tests
 	if( argc == 2 && std::string(argv[1]) == "--run-tests")
 	{
-		if ( !Test_RunAll() ) {
+		if ( !Test_RunAll() )
+		{
 			std::cout << "Tests failed." << std::endl;
 			return 1;
 		}
@@ -31,10 +32,12 @@ int main(int argc, char* argv[])
 	std::cout << "Opening startup file: " << startupFilePath << std::endl;
 	nodable.openFile(startupFilePath); // Init and open a startup file
 
-	while (nodable.update())
+	while ( nodable.update() != UpdateResult::Stopped )
 	{
 		if(auto view = nodable.getComponent<View>())
-			view->draw();
+        {
+            view->draw();
+        }
 	}
 
 	nodable.shutdown();

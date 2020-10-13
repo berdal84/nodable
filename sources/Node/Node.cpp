@@ -19,12 +19,15 @@ void Node::Disconnect(Wire* _wire)
 	auto targetNode = _wire->getTarget()->getOwner()->as<Node>();	
 	auto sourceNode = _wire->getSource()->getOwner()->as<Node>();
 
-	NodeTraversal::SetDirty(targetNode);
-
 	targetNode->removeWire(_wire);
 	sourceNode->removeWire(_wire);
 
-	delete _wire;
+	NodeTraversal::SetDirty(targetNode);
+
+    // Delete wire
+    auto sourceContainer = sourceNode->getParentContainer();
+    sourceContainer->remove(_wire);
+    delete _wire;
 
 	return;
 }
@@ -47,13 +50,17 @@ Node::Node(std::string _label):
 
 Node::~Node()
 {
-	wires.clear();
+    // Disconnect and clear wires
+    std::for_each(wires.begin(), wires.end(), [](auto item) {
+       Node::Disconnect(item);
+    });
 
 	// Delete all components
 	for(auto pair : components)
 	{
 		delete pair.second;
 	}
+
 }
 
 bool Node::isDirty()const
@@ -130,15 +137,21 @@ int Node::getOutputWireCount()const
 	return count;
 }
 
-bool Node::update()
+UpdateResult Node::update()
 {
-	if(hasComponent<ComputeBase>())
-		getComponent<ComputeBase>()->update();
-	
-	if(hasComponent<DataAccess>())
-		getComponent<DataAccess>()->update();
+    // TODO: take in account the result of component's update()
 
-	return true;
+	if(hasComponent<ComputeBase>())
+    {
+        getComponent<ComputeBase>()->update();
+    }
+
+	if(hasComponent<DataAccess>())
+    {
+        getComponent<DataAccess>()->update();
+    }
+
+	return UpdateResult::SuccessWithChanges;
 }
 
 void Node::onMemberValueChanged(const char* _name)

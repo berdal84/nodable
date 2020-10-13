@@ -8,7 +8,15 @@
 #include "NodeTraversal.h"
 
 namespace Nodable{
-	
+
+    enum class UpdateResult
+    {
+        SuccessWithoutChanges,
+        SuccessWithChanges,
+        Failed,
+        Stopped
+    };
+
 	/*
 		The role of this class is to provide connectable Objects as Nodes.
 
@@ -72,7 +80,7 @@ namespace Nodable{
 		bool                isDirty           ()const;
 		
 		/* Update the state of this (and only this) node */
-		virtual bool update();
+		virtual UpdateResult update();
 
 		/* Create an oriented edge (Wire) between two Members */
 		static Wire* Connect(Member* /*_from*/, Member* /*_to*/);

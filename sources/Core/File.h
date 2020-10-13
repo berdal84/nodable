@@ -24,7 +24,7 @@ namespace Nodable
 
 		std::string                      getName()const { return std::string {path.filename().u8string()}; }	
 		void                             save();
-		bool                             update();
+		UpdateResult                     update();
 		void                             setModified() { modified = true; }
 		bool                             isModified() { return modified; }
 		bool                             evaluateExpression(std::string&);
