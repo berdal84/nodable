@@ -29,7 +29,7 @@ namespace Nodable
 
 		/* Update the state of the application.
 		Call this once per frame */
-		bool             update();
+		UpdateResult     update();
 
 		/* Force application to stops. Always delayed for 1 frame. */
 		void             stopExecution();

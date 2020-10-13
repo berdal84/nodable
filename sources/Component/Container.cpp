@@ -32,48 +32,75 @@ void Container::clear()
 		Container::LastResultNodePosition = view->getRoundedPosition();
 	}
 
-	
-	for (Node* each : nodes)
-		delete each;
-	
-	nodes.resize(0);
-	variables.resize(0);
+	LOG_MESSAGE(1u, "=================== Container::clear() ==================\n");
+
+	for ( auto it = nodes.rbegin(); it != nodes.rend(); it++)
+    {
+        LOG_MESSAGE(1u, "remove and delete: %s \n", (*it)->getLabel() );
+	    auto node = *it;
+	    remove(*it);
+        delete node;
+	}
+    nodes.resize(0);
+
+    LOG_MESSAGE(1u, "===================================================\n");
+
+
 	result = nullptr;
 }
 
-bool Container::update()
+UpdateResult Container::update()
 {
+    /*
+        1 - Delete flagged Nodes
+    */
+    {
+        for (auto it = nodes.begin(); it != nodes.end(); ++it)
+        {
+            auto node = *it;
 
-	// Update entities
-	size_t updatedNodesCount(0);
-	auto it = nodes.begin();
-	auto result = Result::Success;
-	while( it < nodes.end() && result != Result::Failure )
-	{
-		auto node = *it;
+            if (node && node->needsToBeDeleted())
+            {
+                it = nodes.erase(it);
+                remove(node);
+                delete node;
+            }
 
-		if ( node )
-		{
-			if ( node->needsToBeDeleted())
-			{
-				delete node;
-				it = nodes.erase(it);
-			}
-			else if ( node->isDirty())
-			{
-				updatedNodesCount++;
-				result = NodeTraversal::Update(node);
-			}
-		}
+        }
+    }
 
-		++it;
-	}
+	/*
+	    2 - Update all Nodes
+    */
+    size_t updatedNodesCount(0);
+    auto result = Result::Success;
+    {
+        auto it = nodes.begin();
 
-	bool hasChanged = false;
-	if( result != Result::Failure )
-		hasChanged = updatedNodesCount > 0 && NodeView::GetSelected() != nullptr;
+        while (it < nodes.end() && result != Result::Failure)
+        {
+            auto node = *it;
 
-	return hasChanged;
+            if (node && node->isDirty())
+            {
+                updatedNodesCount++;
+                result = NodeTraversal::Update(node);
+            }
+
+            ++it;
+        }
+    }
+
+	if( result != Result::Failure &&
+	    updatedNodesCount > 0 && NodeView::GetSelected() != nullptr)
+    {
+	    return UpdateResult::SuccessWithChanges;
+    }
+	else
+    {
+	    return UpdateResult::SuccessWithoutChanges;
+    }
+
 }
 
 void Container::add(Node* _node)
@@ -82,21 +109,28 @@ void Container::add(Node* _node)
 	_node->setParentContainer(this);
 }
 
-void Container::remove(Node* _entity)
+void Container::remove(Node* _node)
 {
 	{
-		auto it = std::find(variables.begin(), variables.end(), _entity);
+		auto it = std::find(variables.begin(), variables.end(), _node);
 		if (it != variables.end())
+        {
 			variables.erase(it);
+		}
 	}
 
 	{
-		auto it = std::find(nodes.begin(), nodes.end(), _entity);
+		auto it = std::find(nodes.begin(), nodes.end(), _node);
 		if (it != nodes.end())
+        {
 			nodes.erase(it);
+        }
 	}
 
-	delete _entity;
+	if (_node == result)
+    {
+	    result = nullptr;
+    }
 }
 
 Variable* Container::findVariable(std::string _name)
@@ -237,12 +271,11 @@ Node* Container::newFunction(const Function* _function) {
 	functionComponent->setResult(node->get("result"));
 
 	// Arguments
-	unsigned int i = 0;
 	auto args = _function->signature.getArgs();
-	for (size_t i = 0; i < args.size(); i++) {		
-		std::string memberName = args[i].name;
-		auto member = node->add( memberName.c_str(), Visibility::Default, language->tokenTypeToType(args[i].type), Way_In); // create node input
-		functionComponent->setArg(i, member); // link input to binOpComponent
+	for (size_t argIndex = 0; argIndex < args.size(); argIndex++) {
+		std::string memberName = args[argIndex].name;
+		auto member = node->add(memberName.c_str(), Visibility::Default, language->tokenTypeToType(args[argIndex].type), Way_In); // create node input
+		functionComponent->setArg(argIndex, member); // link input to binOpComponent
 	}	
 	
 	node->addComponent(functionComponent);
@@ -258,7 +291,6 @@ Wire* Container::newWire()
 {
 	Wire* wire = new Wire();
 	wire->addComponent(new WireView);	
-	this->add(wire);
 	return wire;
 }
 

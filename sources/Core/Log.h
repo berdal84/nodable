@@ -25,10 +25,10 @@
 #define OK GREEN "[OK]" RESET
 
 
-#define LOG_MESSAGE(verbosity, ...) Nodable::Log::Push( Nodable::LogType::Message, verbosity, __VA_ARGS__ ) 
-#define LOG_DEBUG(verbosity, ...) Nodable::Log::Push( Nodable::LogType::Message, verbosity, __VA_ARGS__ ) 
-#define LOG_WARNING(verbosity, ...) Nodable::Log::Push( Nodable::LogType::Warning, verbosity, __VA_ARGS__ )
-#define LOG_ERROR(verbosity, ...)   Nodable::Log::Push( Nodable::LogType::Error, verbosity,   __VA_ARGS__ ) 
+#define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::LogType::Message, __VA_ARGS__ )
+#define LOG_DEBUG(...) Nodable::Log::Push( Nodable::LogType::Message, __VA_ARGS__ )
+#define LOG_WARNING(...) Nodable::Log::Push( Nodable::LogType::Warning, __VA_ARGS__ )
+#define LOG_ERROR(...)   Nodable::Log::Push( Nodable::LogType::Error, __VA_ARGS__ )
 
 namespace Nodable{	
 

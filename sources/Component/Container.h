@@ -17,7 +17,7 @@ namespace Nodable{
 
 		Container(const Language* _language);
 		virtual ~Container();
-		bool                      	update();
+        UpdateResult                update() override;
 		void                      	clear();		
 		Variable* 	          		findVariable(std::string);
 		void                      	add(Node*);

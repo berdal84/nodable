@@ -187,6 +187,10 @@ bool ApplicationView::init()
 
 bool ApplicationView::draw()
 {
+    // Declare variables that can be modified my mouse and keyboard
+    auto userWantsToDeleteSelectedNode(false);
+    auto userWantsToArrangeSelectedNodeHierarchy(false);
+
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -215,6 +219,14 @@ bool ApplicationView::draw()
 				else if( key == SDLK_w)  application->closeCurrentFile();
 				else if( key == SDLK_o)  this->browseFile();
 			}
+			else if (key == SDLK_DELETE )
+            {
+                userWantsToDeleteSelectedNode = true;
+            }
+			else if (key == SDLK_a)
+            {
+                userWantsToArrangeSelectedNodeHierarchy = true;
+            }
 			break;
 		}
 
@@ -266,13 +278,6 @@ bool ApplicationView::draw()
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
         ImGui::SetNextWindowSize(ImVec2( float(width), float(height) ));
 
-		// Declare variables that can be modified my mouse and keyboard
-		auto userWantsToUndo(false);
-		auto userWantsToRedo(false);
-		auto userWantsToHideSelectedNode(false);
-		auto userWantsToArrangeSelectedNodeHierarchy(false);
-
-
 		// Get current file's history
 		History* currentFileHistory = nullptr;
 
@@ -304,7 +309,7 @@ bool ApplicationView::draw()
 					}
 
 					auto isAtLeastANodeSelected = NodeView::GetSelected() != nullptr;
-					userWantsToHideSelectedNode |= ImGui::MenuItem("Hide", "Del.", false, isAtLeastANodeSelected);
+                    userWantsToDeleteSelectedNode |= ImGui::MenuItem("Delete", "Del.", false, isAtLeastANodeSelected);
 					userWantsToArrangeSelectedNodeHierarchy |= ImGui::MenuItem("ReArrange nodes", "A", false, isAtLeastANodeSelected);
 
 					ImGui::EndMenu();
@@ -458,20 +463,22 @@ bool ApplicationView::draw()
 		}
         ImGui::End();
 
-
-
-
 		/*
 		   Perform actions on selected node
 		*/
 
-		auto selected = NodeView::GetSelected();
-		if (selected)
+		auto selectedNodeView = NodeView::GetSelected();
+		if (selectedNodeView)
 		{
-			if (userWantsToHideSelectedNode)
-				selected->setVisible(false);
+			if (userWantsToDeleteSelectedNode)
+			{
+			    auto node = selectedNodeView->getOwner();
+                node->deleteNextFrame();
+            }
 			else if (userWantsToArrangeSelectedNodeHierarchy)
-				selected->arrangeRecursively();
+            {
+				selectedNodeView->arrangeRecursively();
+            }
 		}
     }
 

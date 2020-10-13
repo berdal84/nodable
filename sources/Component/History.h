@@ -177,19 +177,23 @@ namespace Nodable
 
 		void undo()
 		{
-			target->setInputMember(nullptr);
-			target->getOwner()->as<Node>()->setDirty();
+
+            auto targetNode = target->getOwner()->as<Node>();
+            auto sourceNode = source->getOwner()->as<Node>();
+
+            target->setInputMember(nullptr);
+            targetNode->setDirty();
 
 			// Link Members
 			wire->setSource(nullptr);
 			wire->setTarget(nullptr);
 
 			// Add the wire pointer to the Node instance to speed up drawing process.
-			target->getOwner()->as<Node>()->removeWire(wire);
-			source->getOwner()->as<Node>()->removeWire(wire);
+            targetNode->removeWire(wire);
+            sourceNode->removeWire(wire);
 
 			// Delete wire
-			auto sourceContainer = source->getOwner()->as<Node>()->getParentContainer();
+			auto sourceContainer = sourceNode->getParentContainer();
 			sourceContainer->remove(this->wire);
 			delete this->wire;
 		}

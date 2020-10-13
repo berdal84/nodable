@@ -8,20 +8,24 @@ using namespace Nodable;
 Result NodeTraversal::Update(Node* _rootNode) {
     LOG_MESSAGE(1u, "NodeTraversal::Update %s \n", _rootNode->getLabel() );
     std::vector<Node*> traversed;
-    return NodeTraversal::UpdateRecursively(_rootNode, traversed);
+    auto result = NodeTraversal::UpdateRecursively(_rootNode, traversed);
+    LOG_MESSAGE(2u, "NodeTraversal::Update done.\n");
+    return result;
 }
 
 Result NodeTraversal::SetDirty(Node* _rootNode) {
     LOG_MESSAGE(1u, "NodeTraversal::SetDirty %s \n", _rootNode->getLabel() );
     std::vector<Node*> traversed;
-    return NodeTraversal::SetDirtyRecursively(_rootNode, traversed);
+    auto result = NodeTraversal::SetDirtyRecursively(_rootNode, traversed);
+    LOG_MESSAGE(2u, "NodeTraversal::SetDirty done.\n");
+    return result;
 }
 
 Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _traversed) {
 
     Result result;
     
-    LOG_MESSAGE(2u, "NodeTraversal::SetDirtyEx");
+    LOG_MESSAGE(2u, "NodeTraversal::SetDirtyEx\n");
     
     // Check if we already updated this node
     auto alreadyUpdated = std::find( _traversed.cbegin(), _traversed.cend(), _node ) != _traversed.cend();
@@ -56,7 +60,7 @@ Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _trav
 Result NodeTraversal::UpdateRecursively(Node* _node, std::vector<Node*>& _traversed) {
     
     Result result;
-    LOG_MESSAGE(2u, "NodeTraversal::UpdateEx ");
+    LOG_MESSAGE(2u, "NodeTraversal::UpdateEx\n");
     
     // Check if we already updated this node
     auto alreadyUpdated = std::find( _traversed.cbegin(), _traversed.cend(), _node ) != _traversed.cend();

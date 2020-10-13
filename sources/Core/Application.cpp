@@ -37,16 +37,27 @@ bool Application::init()
 	return true;
 }
 
-bool Application::update()
+UpdateResult Application::update()
 {
 	auto file = getCurrentFile();
 	
 	if (!file)
-		return !quit;
-	
-	file->update();
+	{
+		return UpdateResult::Failed;
+	}
+	else
+	{
+		const auto fileUpdateResult = file->update();
 
-	return !quit;
+		if( quit )
+        {
+		    return UpdateResult::Stopped;
+        }
+		else
+        {
+            return fileUpdateResult;
+        }
+	}
 }
 
 void Application::stopExecution()
