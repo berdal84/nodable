@@ -53,7 +53,7 @@ jobs:
     - name: Test
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      run: ctest -C ${{env.buildType}}
+      run: ctest -C ${{env.buildType}} --verbose
 
     - name: Upload artifact
       uses: actions/upload-artifact@v2
