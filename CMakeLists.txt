@@ -123,7 +123,7 @@ IF (WIN32)
 
     COMMAND ${CMAKE_COMMAND} -E copy # Copy SDL2 runtime library
             ${SDL2_RUNTIME}
-            ${BUILD_PATH})
+            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 ENDIF()
 
 # Installation :
