@@ -340,6 +340,34 @@ bool ApplicationView::draw()
 							SDL_SetWindowFullscreen(sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
 					}
 
+					ImGui::Separator();
+
+					if ( ImGui::BeginMenu("Verbosity Level") )
+                    {
+                        if( ImGui::MenuItem("Normal (0)", "", Log::GetVerbosityLevel() == 0u ) )
+                        {
+                            Log::SetVerbosityLevel(0u);
+                        }
+
+                        if( ImGui::MenuItem("Verbose (1)", "", Log::GetVerbosityLevel() == 1u ) )
+                        {
+                            Log::SetVerbosityLevel(1u);
+                        }
+
+                        if( ImGui::MenuItem("Extra-Verbose (2)", "", Log::GetVerbosityLevel() == 2u ) )
+                        {
+                            Log::SetVerbosityLevel(2u);
+                        }
+
+                        if( ImGui::MenuItem("Most-Verbose-Ever (3)", "", Log::GetVerbosityLevel() == 3u ) )
+                        {
+                            Log::SetVerbosityLevel(3u);
+                        }
+
+                        ImGui::EndMenu();
+                    }
+
+
 					//if( frame)
 						// TODO
 
@@ -437,29 +465,29 @@ bool ApplicationView::draw()
                 Status bar
             */
 
-			if( Log::Logs.size() > 0 )
-			{
-				// Get last log with level 0u
-				auto lastLog = std::find_if( Log::Logs.rbegin(), Log::Logs.rend(), [](auto item)-> bool {
-					return item.verbosity == 0u;
-				});
+            auto lastLog = Log::GetLastMessage();
 
-				if( lastLog != Log::Logs.rend() )
-				{
-					auto statusLineColor = ImVec4(0.0f, 0.0f, 0.0f,0.5f);
+            if( lastLog != nullptr )
+            {
+                ImVec4 statusLineColor;
 
-					if ( lastLog->type == LogType::Error )
-					{
-						statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
-					}
-					else if ( lastLog->type == LogType::Warning )
-					{
-						statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
-					}
+                switch ( lastLog->type ) {
 
-					ImGui::TextColored(statusLineColor, "%s", lastLog->text.c_str());
-				}
-			}
+                    case LogType::Error:
+                        statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
+                        break;
+
+                    case LogType::Warning:
+                        statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
+                        break;
+
+                    default:
+                        statusLineColor  = ImVec4(0.0f, 0.0f, 0.0f,0.5f);
+                }
+
+                ImGui::TextColored(statusLineColor, "%s", lastLog->text.c_str());
+            }
+
 		}
         ImGui::End();
 
