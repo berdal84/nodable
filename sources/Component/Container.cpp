@@ -27,8 +27,8 @@ Container::~Container()
 void Container::clear()
 {
 	// Store the Result node position to restore it later
-	if (result != nullptr) {
-		auto view = result->getComponent<NodeView>();
+	if (resultNode != nullptr) {
+		auto view = resultNode->getComponent<NodeView>();
 		Container::LastResultNodePosition = view->getRoundedPosition();
 	}
 
@@ -46,7 +46,7 @@ void Container::clear()
     LOG_MESSAGE(1u, "===================================================\n");
 
 
-	result = nullptr;
+    resultNode = nullptr;
 }
 
 UpdateResult Container::update()
@@ -55,19 +55,14 @@ UpdateResult Container::update()
         1 - Delete flagged Nodes
     */
     {
-        for (auto it = nodes.cbegin(); it != nodes.cend();)
+        for (auto it = nodes.crbegin(); it != nodes.crend(); it++ )
         {
             auto node = *it;
 
-            if (node && node->needsToBeDeleted())
+            if (node->needsToBeDeleted())
             {
-                it = nodes.erase(it);
                 remove(node);
                 delete node;
-            }
-            else
-            {
-                ++it;
             }
 
         }
@@ -115,25 +110,25 @@ void Container::add(Node* _node)
 
 void Container::remove(Node* _node)
 {
-	{
-		auto it = std::find(variables.begin(), variables.end(), _node);
-		if (it != variables.end())
-        {
-			variables.erase(it);
-		}
-	}
-
-	{
-		auto it = std::find(nodes.begin(), nodes.end(), _node);
-		if (it != nodes.end())
-        {
-			nodes.erase(it);
-        }
-	}
-
-	if (_node == result)
     {
-	    result = nullptr;
+        auto it = std::find(variables.begin(), variables.end(), _node);
+        if (it != variables.end())
+        {
+            variables.erase(it);
+        }
+    }
+
+    {
+        auto it = std::find(nodes.begin(), nodes.end(), _node);
+        if (it != nodes.end())
+        {
+            nodes.erase(it);
+        }
+    }
+
+    if (_node == this->resultNode)
+    {
+        this->resultNode = nullptr;
     }
 }
 
@@ -159,7 +154,7 @@ Variable* Container::newResult()
 	auto variable = newVariable(ICON_FA_SIGN_OUT_ALT " Result");
 	auto member = variable->get("value");
 	member->setConnectorWay(Way_In);                     // disable output because THIS node is the output !
-	result = variable;
+	resultNode = variable;
 
 	return variable;
 }
@@ -301,7 +296,7 @@ Wire* Container::newWire()
 void Container::tryToRestoreResultNodePosition()
 {
 	// Store the Result node position to restore it later
-	auto nodeView = result->getComponent<NodeView>();	
+	auto nodeView = resultNode->getComponent<NodeView>();
 	bool resultNodeHadPosition = Container::LastResultNodePosition.x != -1 &&
 	                             Container::LastResultNodePosition.y != -1;
 
