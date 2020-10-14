@@ -48,7 +48,7 @@ Node::Node(std::string _label):
 Node::~Node()
 {
     // Disconnect and clear wires
-    std::for_each(wires.begin(), wires.end(), [](auto item) {
+    std::for_each(wires.crbegin(), wires.crend(), [](auto item) {
        Node::Disconnect(item);
     });
 
