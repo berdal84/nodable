@@ -24,9 +24,6 @@ void Node::Disconnect(Wire* _wire)
 
 	NodeTraversal::SetDirty(targetNode);
 
-    // Delete wire
-    auto sourceContainer = sourceNode->getParentContainer();
-    sourceContainer->remove(_wire);
     delete _wire;
 
 	return;

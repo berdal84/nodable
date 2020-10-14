@@ -182,7 +182,7 @@ namespace Nodable
             auto sourceNode = source->getOwner()->as<Node>();
 
             target->setInputMember(nullptr);
-            targetNode->setDirty();
+            NodeTraversal::SetDirty(targetNode);
 
 			// Link Members
 			wire->setSource(nullptr);
@@ -192,10 +192,7 @@ namespace Nodable
             targetNode->removeWire(wire);
             sourceNode->removeWire(wire);
 
-			// Delete wire
-			auto sourceContainer = sourceNode->getParentContainer();
-			sourceContainer->remove(this->wire);
-			delete this->wire;
+			delete wire;
 		}
 
 		Wire* getWire() { return wire; }
