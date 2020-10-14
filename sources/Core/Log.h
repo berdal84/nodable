@@ -32,21 +32,31 @@
 
 namespace Nodable{	
 
-	enum class LogType {
+	enum class LogType
+    {
 		Message,
 		Warning,
 		Error
 	};
 
-	struct Message {
+	struct Message
+    {
 		LogType type;
 		short unsigned int verbosity;
 		std::string text;
 	};
 
-	class Log {
+	class Log
+    {
+	private:
+        static std::vector<Message> Logs;
+        static const short unsigned int DefaultVerbosityLevel = 0u;
+        static short unsigned int VerbosityLevel;
+
 	public:
-		static std::vector<Message> Logs;
-		static void Push(LogType _type, short unsigned int _verbosity, const char* _format, ...);
+        inline static short unsigned int GetVerbosityLevel(){ return Log::VerbosityLevel; }
+        static const Message* GetLastMessage();
+	    static void SetVerbosityLevel(short unsigned int _verbosityLevel);
+		static void Push(LogType _type, short unsigned int _verbosityLevel, const char* _format, ...);
 	};
 }
