@@ -25,7 +25,7 @@ namespace Nodable{
 		size_t                    	getNodeCount()const;
 		std::vector<Variable*>& 	getVariables(){return variables;}
 		std::vector<Node*>& 	    getEntities(){return nodes;}
-		Variable*                   getResultVariable(){ return result;}
+		Variable*                   getResultVariable(){ return resultNode;}
 		void                        tryToRestoreResultNodePosition();
 		
 		/* node factory */
@@ -40,7 +40,7 @@ namespace Nodable{
 		Node*                       newFunction(const Function* _proto);
 
 	private:		
-		Variable*                   result = nullptr;
+		Variable*                   resultNode = nullptr;
 		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<Node*>          nodes;   /* Contain all Objects created by this context */
 		const Language*             language;
