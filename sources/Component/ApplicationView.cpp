@@ -19,7 +19,9 @@
 using namespace Nodable;
 
 ApplicationView::ApplicationView(const char* _name, Application* _application):
-	application(_application)
+        application(_application),
+        backgroundColor(50, 50, 50),
+        isStartupWindowVisible(true)
 {
     add("glWindowName");
     set("glWindowName", _name);
@@ -238,6 +240,54 @@ bool ApplicationView::draw()
 
 	// Reset default mouse cursor
 	ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+
+    // Startup Window
+    {
+        if ( isStartupWindowVisible )
+        {
+            ImGui::OpenPopup("Startup");
+        }
+
+        ImGui::SetNextWindowSizeConstraints(ImVec2(600,100), ImVec2(600,400));
+        ImGui::SetNextWindowPosCenter();
+
+        auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
+
+        if ( ImGui::BeginPopupModal("Startup", NULL, flags) )
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(25.0f, 20.0f) );
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+
+            ImGui::SetWindowFontScale(1.5);
+            ImGui::Text("Welcome to Nodable %s !", NODABLE_VERSION_SHORT );
+            ImGui::SetWindowFontScale(1);
+
+            ImGui::NewLine();
+            ImGui::TextWrapped("Nodable is node-able." );
+            ImGui::NewLine();
+            ImGui::TextWrapped("It means you can edit a program by editing both its textual and graph representation." );
+            ImGui::NewLine();
+            ImGui::TextWrapped( "Disclaimer: This software is a prototype. Use at your own risks." );
+            ImGui::NewLine();
+
+            ImGui::Text( "Manifest:" );
+            ImGui::BulletText( "Each program representation paradigm has its pros and cons." );
+            ImGui::BulletText( "Code and graph should be modifiable at any time." );
+
+            ImGui::NewLine();ImGui::NewLine();
+            ImGui::SameLine(300);
+            ImGui::TextWrapped("by @Berdal84 | 2017-%i", 2020);
+
+            if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
+            {
+                ImGui::CloseCurrentPopup();
+                isStartupWindowVisible = false;
+            }
+            ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
+            ImGui::EndPopup();
+        }
+
+    }
 
     // Properties panel sdlWindow
     {
@@ -528,7 +578,7 @@ bool ApplicationView::draw()
 	SDL_GL_MakeCurrent(sdlWindow, this->glcontext);
 	auto io = ImGui::GetIO();
 	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-	glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+	glClearColor(backgroundColor.Value.x, backgroundColor.Value.y, backgroundColor.Value.z, backgroundColor.Value.w);
 	glClear(GL_COLOR_BUFFER_BIT);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	SDL_GL_SwapWindow(sdlWindow);
