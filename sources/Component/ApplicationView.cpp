@@ -229,6 +229,11 @@ bool ApplicationView::draw()
             {
                 userWantsToArrangeSelectedNodeHierarchy = true;
             }
+			else if (key == SDLK_F1 )
+            {
+                isStartupWindowVisible = true;
+            }
+
 			break;
 		}
 
@@ -243,17 +248,17 @@ bool ApplicationView::draw()
 
     // Startup Window
     {
-        if ( isStartupWindowVisible )
+        if ( isStartupWindowVisible && !ImGui::IsPopupOpen("Startup Screen"))
         {
-            ImGui::OpenPopup("Startup");
+            ImGui::OpenPopup("Startup Screen");
         }
 
-        ImGui::SetNextWindowSizeConstraints(ImVec2(600,100), ImVec2(600,400));
+        ImGui::SetNextWindowSizeConstraints(ImVec2(600,100), ImVec2(600,-1.0f));
         ImGui::SetNextWindowPosCenter();
 
-        auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize;
+        auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
-        if ( ImGui::BeginPopupModal("Startup", NULL, flags) )
+        if ( ImGui::BeginPopupModal("Startup Screen", NULL, flags) )
         {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(25.0f, 20.0f) );
             ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
@@ -265,18 +270,23 @@ bool ApplicationView::draw()
             ImGui::NewLine();
             ImGui::TextWrapped("Nodable is node-able." );
             ImGui::NewLine();
-            ImGui::TextWrapped("It means you can edit a program by editing both its textual and graph representation." );
-            ImGui::NewLine();
-            ImGui::TextWrapped( "Disclaimer: This software is a prototype. Use at your own risks." );
-            ImGui::NewLine();
+            ImGui::TextWrapped("It means you can edit a program by editing both its textual and graph representation."
+                               "At any time user can swich to node or code edition."
+                               "Editing code will automatically update its graph representation, logically any changes made to the graph will update the code." );
 
+            ImGui::NewLine();
             ImGui::Text( "Manifest:" );
             ImGui::BulletText( "Each program representation paradigm has its pros and cons." );
-            ImGui::BulletText( "Code and graph should be modifiable at any time." );
+            ImGui::BulletText( "User never had to choose between code or graph." );
+
+            ImGui::NewLine();
+            ImGui::Text( "Disclaimers:" );
+            ImGui::BulletText( "This software is a prototype. Use at your own risks." );
+            ImGui::BulletText( "The development is not driven by any roadmap." );
 
             ImGui::NewLine();ImGui::NewLine();
             ImGui::SameLine(300);
-            ImGui::TextWrapped("by @Berdal84 | 2017-%i", 2020);
+            ImGui::TextWrapped("by %s", "Bérenger Dalle-Cort");
 
             if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
             {
@@ -440,8 +450,30 @@ bool ApplicationView::draw()
 
 					ImGui::EndMenu();
 				}
+
+                if ( ImGui::BeginMenu( "Help" ) )
+                {
+                    if ( ImGui::MenuItem( "Show Startup Screen", "F1"))
+                    {
+                        isStartupWindowVisible = true;
+                    }
+
+//                    if ( ImGui::MenuItem( "Browse source code"))
+//                    {
+//                        application->openURL( "https://www.github.com/berdal84/nodable" );
+//                    }
+//
+//                    if ( ImGui::MenuItem( "Extern deps. credits"))
+//                    {
+//                        application->openURL( "https://github.com/berdal84/nodable#dependencies--credits-" );
+//                    }
+
+                    ImGui::EndMenu();
+                }
+
 				ImGui::EndMenuBar();
 			}
+
 
 			/*
 				UNDO HISTORY / TIME SLIDER
