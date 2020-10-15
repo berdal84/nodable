@@ -35,6 +35,7 @@ namespace Nodable
 		void             stopExecution();
 
 		bool             openFile(std::filesystem::path /* _filePath */);
+        bool             openURL(std::string /* _URL*/)const;
 
 		/* get the asset path with a fileName (adds assetsFolder)*/
 		std::filesystem::path getAssetPath(const char* _fileName)const;
