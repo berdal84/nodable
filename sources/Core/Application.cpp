@@ -135,3 +135,23 @@ std::filesystem::path Application::getAssetPath(const char* _fileName)const
 	assetPath /= _fileName;
 	return assetPath;
 }
+
+bool Application::openURL(std::string _URL) const {
+
+#ifdef WIN32
+    std::string command("start");
+#else
+    std::string command("x-www-browser");
+#endif
+
+    std::string op = command + " " + _URL;
+    auto success = system(op.c_str()) == 0;
+
+    if (!success)
+    {
+        LOG_ERROR( 0u, "Unable to open %s. Because the command %s is not available on your system.",
+                      _URL.c_str(), command.c_str());
+    }
+
+    return success;
+}
