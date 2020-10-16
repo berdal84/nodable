@@ -9,6 +9,7 @@
 #include <mirror.h>
 #include <string>
 #include <filesystem>
+#include <future>
 
 namespace Nodable
 {
@@ -35,7 +36,7 @@ namespace Nodable
 		void             stopExecution();
 
 		bool             openFile(std::filesystem::path /* _filePath */);
-        bool             openURL(std::string /* _URL*/)const;
+        std::future<bool> openURL(std::string /* _URL*/)const;
 
 		/* get the asset path with a fileName (adds assetsFolder)*/
 		std::filesystem::path getAssetPath(const char* _fileName)const;

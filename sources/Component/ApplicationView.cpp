@@ -458,15 +458,15 @@ bool ApplicationView::draw()
                         isStartupWindowVisible = true;
                     }
 
-//                    if ( ImGui::MenuItem( "Browse source code"))
-//                    {
-//                        application->openURL( "https://www.github.com/berdal84/nodable" );
-//                    }
-//
-//                    if ( ImGui::MenuItem( "Extern deps. credits"))
-//                    {
-//                        application->openURL( "https://github.com/berdal84/nodable#dependencies--credits-" );
-//                    }
+                    if ( ImGui::MenuItem( "Browse source code"))
+                    {
+                        application->openURL( "https://www.github.com/berdal84/nodable" );
+                    }
+
+                    if ( ImGui::MenuItem( "Extern deps. credits"))
+                    {
+                        application->openURL( "https://github.com/berdal84/nodable#dependencies--credits-" );
+                    }
 
                     ImGui::EndMenu();
                 }
