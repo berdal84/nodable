@@ -16,6 +16,7 @@ namespace Nodable{
 		~Member();
 
 		bool                allows(Way)const;
+		bool                isEditable()const;
 		bool                isSet()const;	
 		bool                isType(Type)const;
 		bool                equals(const Member *)const;
