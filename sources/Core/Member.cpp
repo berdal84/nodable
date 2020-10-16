@@ -23,6 +23,11 @@ Type Member::getType()const
 	return data.getType();
 }
 
+bool Member::isEditable() const
+{
+    return this->getInputMember() == nullptr;
+}
+
 bool  Member::isType(Type _type)const
 {
 	return data.isType(_type);

@@ -456,13 +456,16 @@ bool NodeView::drawMember(Member* _member) {
 	std::string label("##");
 	label.append(_member->getName());
 
+    auto inputFlags = ImGuiInputTextFlags_None;
+
 	/* Draw the member */
 	switch (_member->getType())
 	{
 	case Type::Double:
 		{
 			auto f = (double)*_member;
-			if (ImGui::InputDouble(label.c_str(), &f))
+
+			if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && _member->isEditable())
 			{
 				_member->set(f);
 				NodeTraversal::SetDirty(node);
@@ -475,7 +478,7 @@ bool NodeView::drawMember(Member* _member) {
 			char str[255];
 			snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
 
-			if ( ImGui::InputText(label.c_str(), str, 255) )
+			if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && _member->isEditable() )
 			{
 				_member->set(str);
 				NodeTraversal::SetDirty(node);
@@ -488,7 +491,8 @@ bool NodeView::drawMember(Member* _member) {
 		std::string checkBoxLabel = _member->getName();
 
 		auto b = (bool)*_member;
-		if (ImGui::Checkbox( checkBoxLabel.c_str(), &b )) {				
+
+		if (ImGui::Checkbox( checkBoxLabel.c_str(), &b ) && _member->isEditable() ) {
 			_member->set(b);
 			NodeTraversal::SetDirty(node);
 			edited |= true;
