@@ -22,6 +22,7 @@ check_pie_supported() # avoid "unable to run shared libraries" under linux
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # If a default install prefix has not been set, we set it.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -30,6 +31,7 @@ endif()
 
 # Find packages
 find_package(OpenGL REQUIRED)
+find_package(Threads REQUIRED)
 
 IF (WIN32)
   # We store the SDL2 binaries inside the repo.
@@ -107,6 +109,7 @@ ENDIF()
 
 target_link_libraries(Nodable PRIVATE ${OPENGL_LIBRARY}) 
 target_link_libraries(Nodable PRIVATE ${CMAKE_DL_LIBS})
+target_link_libraries(Nodable PRIVATE Threads::Threads)
 
 # Configure files (a link is created between source and target, if source is modified, target will be updated)
 
