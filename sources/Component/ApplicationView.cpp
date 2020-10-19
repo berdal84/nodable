@@ -6,15 +6,14 @@
 #include <imgui/examples/imgui_impl_sdl.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
 
-#include <filesystem>
 #include <iostream>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include "System.h"
 #include "Application.h"
 #include "Container.h"
 #include "NodeView.h"
 #include "File.h"
 #include "Log.h"
-#include "FileView.h"
 
 using namespace Nodable;
 
@@ -460,12 +459,12 @@ bool ApplicationView::draw()
 
                     if ( ImGui::MenuItem( "Browse source code"))
                     {
-                        application->openURL( "https://www.github.com/berdal84/nodable" );
+                        System::OpenURL( "https://www.github.com/berdal84/nodable" );
                     }
 
                     if ( ImGui::MenuItem( "Extern deps. credits"))
                     {
-                        application->openURL( "https://github.com/berdal84/nodable#dependencies--credits-" );
+                        System::OpenURL( "https://github.com/berdal84/nodable#dependencies--credits-" );
                     }
 
                     ImGui::EndMenu();

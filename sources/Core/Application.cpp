@@ -1,19 +1,10 @@
 #include "Application.h"
-#include "Nodable.h" 	// for NODABLE_VERSION
-#include "Log.h" 		// for LOG_DEBUG
-#include "Parser.h"
-#include "ContainerView.h"
 #include "ApplicationView.h"
 #include "Variable.h"
 #include "DataAccess.h"
-#include "FileView.h"
-
 #include "File.h"
-#include <iostream>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include <string>
 #include <algorithm>
-#include <future>
 
 using namespace Nodable;
 
@@ -135,29 +126,4 @@ std::filesystem::path Application::getAssetPath(const char* _fileName)const
 	auto assetPath = this->assetsFolderPath;
 	assetPath /= _fileName;
 	return assetPath;
-}
-
-std::future<bool> Application::openURL(std::string _URL) const {
-
-    auto result = std::async(std::launch::async, [&_URL]
-    {
-#ifdef WIN32
-        std::string command("start");
-#else
-        std::string command("x-www-browser");
-#endif
-
-        std::string op = command + " " + _URL;
-        auto success = system(op.c_str()) == 0;
-
-        if (!success)
-        {
-            LOG_ERROR( 0u, "Unable to open %s. Because the command %s is not available on your system.",
-                       _URL.c_str(), command.c_str());
-        }
-
-        return success;
-    });
-
-    return result;
 }
