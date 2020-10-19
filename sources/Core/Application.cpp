@@ -63,7 +63,7 @@ void Application::shutdown()
 
 bool Application::openFile(std::filesystem::path _filePath)
 {		
-	auto file = File::CreateFileWithPath(_filePath);
+	auto file = File::OpenFile(_filePath);
 
 	if (file != nullptr)
 	{
