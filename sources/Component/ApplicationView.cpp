@@ -32,12 +32,6 @@ ApplicationView::ApplicationView(const char* _name, Application* _application):
     add("showImGuiDemo");
     set("showImGuiDemo", false);
 
-    // Add two members for the window size
-    add("glWindowSizeX");
-    set("glWindowSizeX", 1280.0f);
-
-    add("glWindowSizeY");
-    set("glWindowSizeY", 720.0f);
 }
 
 ApplicationView::~ApplicationView()
@@ -71,12 +65,12 @@ bool ApplicationView::init()
     sdlWindow = SDL_CreateWindow( ((std::string)*get("glWindowName")).c_str(),
                                 SDL_WINDOWPOS_CENTERED,
                                 SDL_WINDOWPOS_CENTERED,
-                                (int)*get("glWindowSizeX"),
-                                (int)*get("glWindowSizeY"),
+                                800,
+                                600,
                                 SDL_WINDOW_OPENGL |
                                 SDL_WINDOW_RESIZABLE |
-                               /* SDL_WINDOW_FULLSCREEN_DESKTOP*/
-								SDL_WINDOW_MAXIMIZED
+                                SDL_WINDOW_MAXIMIZED |
+                                SDL_WINDOW_SHOWN
                                 );
 
     this->glcontext = SDL_GL_CreateContext(sdlWindow);
