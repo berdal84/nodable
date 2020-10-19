@@ -108,7 +108,6 @@ void Application::setCurrentFileWithIndex(size_t _index)
 {
 	if (loadedFiles.size() > _index)
 	{
-		auto newFile = loadedFiles.at(_index);
 		currentFileIndex = _index;
 	}
 }
