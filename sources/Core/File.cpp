@@ -86,11 +86,9 @@ modified = false;
 
 }
 
-File* File::CreateFileWithPath(const std::filesystem::path _filePath)
+File* File::OpenFile(std::filesystem::path _filePath)
 {
-	/*
-		Creates the File
-	*/
+
 	std::ifstream fileStream(_filePath);
 
 	if (!fileStream.is_open())

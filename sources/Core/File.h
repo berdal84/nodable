@@ -30,9 +30,8 @@ namespace Nodable
 		bool                             evaluateExpression(std::string&);
 		bool                             evaluateSelectedExpression();
 
-		static File*                     CreateFileWithPath                    (std::filesystem::path _filePath);
-		static std::string               BrowseForFileAndReturnItsAbsolutePath (SDL_Window* currentWindow);
-		
+		static File*                     OpenFile(std::filesystem::path _filePath);
+
 		inline History* getHistory() {
 			return getComponent<History>();
 		}
