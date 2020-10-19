@@ -48,7 +48,7 @@ bool ApplicationView::init()
 	    // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
-        printf("Error: %s\n", SDL_GetError());
+        LOG_ERROR( 0u, "SDL Error: %s\n", SDL_GetError());
         return false;
     }
 
@@ -97,11 +97,12 @@ bool ApplicationView::init()
     // Add a main font
     {
         ImFontConfig config;
-        config.OversampleH    = 3;
-        config.OversampleV    = 3;
+        config.OversampleH    = 6;
+        config.OversampleV    = 1;
+
         //io.Fonts->AddFontDefault();
 		auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
-		std::cout << "Adding font from file: " << fontPath << std::endl;
+		LOG_MESSAGE( 0u, "Adding font from file: %s\n", fontPath.c_str());
         io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 20.0f, &config);
         io.FontAllowUserScaling = true;
     }
@@ -111,14 +112,14 @@ bool ApplicationView::init()
 		// merge in icons from Font Awesome
 		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 		ImFontConfig config;
-		config.OversampleH      = 4;
-		config.OversampleV      = 4;
+		config.OversampleH      = 3;
+		config.OversampleV      = 1;
 		config.MergeMode        = true;
 		config.PixelSnapH       = true;
-		config.GlyphMinAdvanceX = 18.0f; // monospace to fix text alignment in drop down menus.
+		config.GlyphMinAdvanceX = 20.0f; // monospace to fix text alignment in drop down menus.
 		auto fontPath = application->getAssetPath("fa-solid-900.ttf").string();
-		std::cout << "Adding font from file: " << fontPath << std::endl;
-		io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 18.0f, &config, icons_ranges );
+        LOG_MESSAGE( 0u, "Adding font from file: %s\n", fontPath.c_str());
+		io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 20.0f, &config, icons_ranges );
     }
 
     // Configure ImGui Style
@@ -256,9 +257,7 @@ bool ApplicationView::draw()
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(25.0f, 20.0f) );
             ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
-            ImGui::SetWindowFontScale(1.5);
             ImGui::Text("Welcome to Nodable %s !", NODABLE_VERSION_SHORT );
-            ImGui::SetWindowFontScale(1);
 
             ImGui::NewLine();
             ImGui::TextWrapped("Nodable is node-able." );
