@@ -81,6 +81,7 @@ bool ApplicationView::init()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io             = ImGui::GetIO();
+    io.FontAllowUserScaling = true;
 	//io.WantCaptureKeyboard  = true;
 	//io.WantCaptureMouse     = true;
 
@@ -94,32 +95,45 @@ bool ApplicationView::init()
 	const char* glsl_version = "#version 130";
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-    // Add a main font
+    /** Add a paragraph font */
+    {
+        {
+            ImFontConfig config;
+            config.OversampleH = 3;
+            config.OversampleV = 1;
+
+            //io.Fonts->AddFontDefault();
+            auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
+            LOG_MESSAGE(0u, "Adding font from file: %s\n", fontPath.c_str());
+            this->paragraphFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 20.0f, &config);
+        }
+
+        // Add Icons my merging to previous (paragraphFont) font.
+        {
+            // merge in icons from Font Awesome
+            static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+            ImFontConfig config;
+            config.OversampleH = 3;
+            config.OversampleV = 1;
+            config.MergeMode = true;
+            config.PixelSnapH = true;
+            config.GlyphMinAdvanceX = 20.0f; // monospace to fix text alignment in drop down menus.
+            auto fontPath = application->getAssetPath("fa-solid-900.ttf").string();
+            LOG_MESSAGE(0u, "Adding font from file: %s\n", fontPath.c_str());
+            io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 20.0f, &config, icons_ranges);
+        }
+    }
+
+    /** Add a heading font */
     {
         ImFontConfig config;
-        config.OversampleH    = 6;
+        config.OversampleH    = 3;
         config.OversampleV    = 1;
 
         //io.Fonts->AddFontDefault();
-		auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
-		LOG_MESSAGE( 0u, "Adding font from file: %s\n", fontPath.c_str());
-        io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 20.0f, &config);
-        io.FontAllowUserScaling = true;
-    }
-
-    // Add Icons
-    {
-		// merge in icons from Font Awesome
-		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-		ImFontConfig config;
-		config.OversampleH      = 3;
-		config.OversampleV      = 1;
-		config.MergeMode        = true;
-		config.PixelSnapH       = true;
-		config.GlyphMinAdvanceX = 20.0f; // monospace to fix text alignment in drop down menus.
-		auto fontPath = application->getAssetPath("fa-solid-900.ttf").string();
+        auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
         LOG_MESSAGE( 0u, "Adding font from file: %s\n", fontPath.c_str());
-		io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 20.0f, &config, icons_ranges );
+        this->headingFont = io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 40.0f, &config);
     }
 
     // Configure ImGui Style
@@ -183,6 +197,7 @@ bool ApplicationView::init()
 
 bool ApplicationView::draw()
 {
+
     // Declare variables that can be modified my mouse and keyboard
     auto userWantsToDeleteSelectedNode(false);
     auto userWantsToArrangeSelectedNodeHierarchy(false);
@@ -236,6 +251,7 @@ bool ApplicationView::draw()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(sdlWindow);
 	ImGui::NewFrame();
+    ImGui::SetCurrentFont(this->paragraphFont);
 
 	// Reset default mouse cursor
 	ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
@@ -257,7 +273,11 @@ bool ApplicationView::draw()
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(25.0f, 20.0f) );
             ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
-            ImGui::Text("Welcome to Nodable %s !", NODABLE_VERSION_SHORT );
+            ImGui::PushFont(this->headingFont);
+            {
+                ImGui::Text("Welcome to Nodable %s !", NODABLE_VERSION_SHORT);
+            }
+            ImGui::PopFont();
 
             ImGui::NewLine();
             ImGui::TextWrapped("Nodable is node-able." );

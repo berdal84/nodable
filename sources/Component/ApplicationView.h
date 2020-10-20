@@ -37,11 +37,14 @@ namespace Nodable
 		SDL_GLContext     glcontext;
 		ImColor backgroundColor;
         bool isStartupWindowVisible;
+        ImFont *paragraphFont;
+        ImFont *headingFont;
 	public:
 		void browseFile();
 
 		MIRROR_CLASS(ApplicationView)(
 			MIRROR_PARENT(View)
 		);
-	};
+
+    };
 }
