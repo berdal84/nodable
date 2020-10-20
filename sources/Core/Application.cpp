@@ -3,12 +3,16 @@
 #include "Variable.h"
 #include "DataAccess.h"
 #include "File.h"
+#include "Config.h"
+
 #include <string>
 #include <algorithm>
 
 using namespace Nodable;
 
-Application::Application(const char* _name):currentFileIndex(0)
+Application::Application(const char* _name):
+    currentFileIndex(0),
+    assetsFolderPath(NODABLE_ASSETS_DIR)
 {
 	set("__class__", "Application");
 	setLabel(_name);

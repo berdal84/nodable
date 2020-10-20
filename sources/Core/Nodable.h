@@ -5,18 +5,6 @@
 #include <vector> 	// for some typedefs
 #include <assert.h> // for ASSERT and VERIFY
 
-/*
-	Application Version
-*/
-
-#define NODABLE_VERSION_SHORT "0.6.1"
-
-#ifdef _DEBUG
-    #define NODABLE_VERSION NODABLE_VERSION_SHORT " (Debug) Build " __DATE__ " at " __TIME__
-#else
-    #define NODABLE_VERSION NODABLE_VERSION_SHORT " (Release) Build " __DATE__ " at " __TIME__
-#endif
-
 #define NODABLE_VERIFY(expression) assert(expression)
 
 /*

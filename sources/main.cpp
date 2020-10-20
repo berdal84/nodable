@@ -8,6 +8,7 @@
 // Nodable includes
 #include "Application.h"
 #include "Test.h"
+#include "Config.h"
 
 using namespace Nodable;
 

@@ -61,7 +61,7 @@ namespace Nodable
 		std::vector<File*> loadedFiles;
 		size_t             currentFileIndex; /* index that identify the current file in loadedFiles */
 	
-		const std::filesystem::path assetsFolderPath = "assets";
+		const std::filesystem::path assetsFolderPath;
 
 		/** Reflection using mirror*/
 		MIRROR_CLASS(Application)();

@@ -14,6 +14,7 @@
 #include "NodeView.h"
 #include "File.h"
 #include "Log.h"
+#include "Config.h"
 
 using namespace Nodable;
 
@@ -275,7 +276,7 @@ bool ApplicationView::draw()
 
             ImGui::PushFont(this->headingFont);
             {
-                ImGui::Text("Welcome to Nodable %s !", NODABLE_VERSION_SHORT);
+                ImGui::Text("Welcome to Nodable %s !", NODABLE_VERSION);
             }
             ImGui::PopFont();
 

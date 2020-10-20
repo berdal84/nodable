@@ -12,8 +12,10 @@ endif ()
 #==========
 
 # Declare project name
-project ("Nodable Project")
-set(NODABLE_ASSETS_FOLDER_NAME "assets")
+project("Nodable" VERSION "0.7.0")
+set(PROJECT_ASSETS_DIR "assets")
+
+configure_file("sources/Core/Config.h.in" "configured/Config.h" )
 
 include(CheckPIESupported) 
 check_pie_supported() # avoid "unable to run shared libraries" under linux
@@ -75,6 +77,7 @@ include_directories(
 
 # Include external and libs folders (for headers)
 include_directories(
+    ${PROJECT_BINARY_DIR}/configured
     "./extern"
     "./extern/imgui"
     "./extern/ImGuiColorTextEdit"
@@ -117,8 +120,8 @@ add_custom_command(
         TARGET Nodable PRE_BUILD
 
         COMMAND ${CMAKE_COMMAND} -E copy_directory  # Copy assets (fonts, scripts, etc..)
-                ${CMAKE_CURRENT_SOURCE_DIR}/${NODABLE_ASSETS_FOLDER_NAME}
-                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NODABLE_ASSETS_FOLDER_NAME})
+                ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_ASSETS_DIR}
+                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_ASSETS_DIR})
 
 IF (WIN32)
   add_custom_command(
@@ -138,7 +141,7 @@ set(INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/$<CONFIG>)
 install(FILES ${SDL2_RUNTIME} DESTINATION ${INSTALL_PATH})
 
 # Copy assets
-install(DIRECTORY ${NODABLE_ASSETS_FOLDER_NAME} DESTINATION ${INSTALL_PATH} )
+install(DIRECTORY ${PROJECT_ASSETS_DIR} DESTINATION ${INSTALL_PATH} )
 
 # Copy executable
 install(TARGETS Nodable RUNTIME DESTINATION ${INSTALL_PATH})

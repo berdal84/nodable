@@ -1,0 +1,17 @@
+#pragma once
+
+/**
+    >> DO NOT EDIT Config.h, edit Config.h.in (source file) <<
+
+    Config.h.in will be configured by cmake, check CMakelists.txt
+*/
+
+#define NODABLE_ASSETS_DIR "@PROJECT_ASSETS_DIR@"
+#define NODABLE_VERSION "@PROJECT_VERSION@"
+
+#ifdef _DEBUG
+#define NODABLE_VERSION_EXTENDED NODABLE_VERSION " (Debug) Build " __DATE__ " at " __TIME__
+#else
+#define NODABLE_VERSION_EXTENDED NODABLE_VERSION " (Release) Build " __DATE__ " at " __TIME__
+#endif
+
