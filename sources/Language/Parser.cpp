@@ -66,6 +66,12 @@ bool Parser::eval(const std::string& _expression)
 		return false;
 	}
 
+	if(tokens.size() == 0 )
+    {
+        LOG_MESSAGE(0u, "Nothing to evaluate.\n");
+        return false;
+    }
+
 	if (!isSyntaxValid()) {
 		LOG_WARNING(0u, "Unable to parse expression due to syntax error.\n");
 		return false;
@@ -541,8 +547,8 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
 			return false;
 		};
 
-		if (!unifiedParsing()) {
-			LOG_DEBUG_PARSER("Unable to tokenize expression %s \n", chars);
+		if (!unifiedParsing())
+		{
 			return false;
 		}
 	}
