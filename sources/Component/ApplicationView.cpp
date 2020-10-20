@@ -263,7 +263,7 @@ bool ApplicationView::draw()
             ImGui::TextWrapped("Nodable is node-able." );
             ImGui::NewLine();
             ImGui::TextWrapped("It means you can edit a program by editing both its textual and graph representation."
-                               "At any time user can swich to node or code edition."
+                               "At any time user can switch to node or code edition."
                                "Editing code will automatically update its graph representation, logically any changes made to the graph will update the code." );
 
             ImGui::NewLine();
@@ -278,7 +278,7 @@ bool ApplicationView::draw()
 
             ImGui::NewLine();ImGui::NewLine();
             ImGui::SameLine(300);
-            ImGui::TextWrapped("by %s", "Bérenger Dalle-Cort");
+            ImGui::TextWrapped("by %s", "Berdal84");
 
             if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
             {
