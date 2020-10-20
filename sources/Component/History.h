@@ -42,7 +42,7 @@ namespace Nodable
 
 	class History : public Component {
 	public:
-		History() {}
+		History(size_t _sizeMax = 100):sizeMax(_sizeMax){}
 		~History();
 
 		/* Execute a command and add it to the history.
@@ -85,7 +85,8 @@ namespace Nodable
 		static History*     global;
 
 	private:
-		std::vector<Cmd*>	commands = std::vector<Cmd*>();		/* Command history */
+	    size_t sizeMax;
+		std::vector<Cmd*>	commands;		/* Command history */
 		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
 		TextEditorBuffer*   textEditorBuffer = nullptr;
 
