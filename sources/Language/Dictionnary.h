@@ -31,7 +31,6 @@ namespace Nodable
 	private:
 		std::string numbers;
 		std::string letters;
-		std::map<std::string, TokenType> keywordToTokenType;
 		std::map<TokenType, std::string> tokenTypeToString;
 		std::map<TokenType, std::regex>  tokenTypeToRegex;
 	};

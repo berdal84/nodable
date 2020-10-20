@@ -14,8 +14,8 @@ namespace Nodable {
 
 	enum class TokenType
 	{
-		Unknown,		
-
+		Unknown,
+        Ignore,
 		StringType,
 		DoubleType,
 		BooleanType,
@@ -30,7 +30,6 @@ namespace Nodable {
 		RBracket, 
 		Separator,
 		Space,
-		Ignore,
 		EndOfInstruction,
 		Symbol,
 
