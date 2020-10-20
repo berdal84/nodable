@@ -14,13 +14,24 @@ void History::addAndExecute(Cmd* _cmd)
 {	
 	/* First clear commands after the cursor */
 	while (commandsCursor < commands.size())
-		commands.pop_back(); // TODO: memory leak to fix
-
+	{
+        auto command = commands.back();
+        delete command;
+        commands.pop_back();
+    }
 
 	/* Then add and execute the new command */
 	commands.push_back(_cmd);
 	commandsCursor = commands.size();
 	_cmd->execute();
+
+	/* Delete command history in excess */
+    while (commands.size() > sizeMax)
+    {
+        delete commands.front();
+        commands.erase(commands.begin());
+        commandsCursor--;
+    }
 }
 
 void History::undo()
