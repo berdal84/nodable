@@ -83,11 +83,13 @@ std::string Nodable::History::getCommandDescriptionAtPosition(size_t _commandId)
 	const auto headId = commands.size();
 	
 	std::string result;
+
 	if ( _commandId < headId )
 	{
 		result = commands.at(_commandId)->getDescription();
-	} else {
-		NODABLE_ASSERT(_commandId != headId); // You try to read the history after the HEAD.
+	}
+	else
+    {
 		result = "History HEAD";
 	}	
 

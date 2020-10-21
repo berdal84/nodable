@@ -34,11 +34,14 @@ void Container::clear()
 
 	LOG_MESSAGE(1u, "=================== Container::clear() ==================\n");
 
-	for ( auto it = nodes.rbegin(); it != nodes.rend(); it++)
+	auto nodeIndex = nodes.size();
+
+	while ( nodeIndex > 0)
     {
-        LOG_MESSAGE(1u, "remove and delete: %s \n", (*it)->getLabel() );
-	    auto node = *it;
-	    remove(*it);
+        nodeIndex--;
+	    auto node = nodes.at(nodeIndex);
+        LOG_MESSAGE(1u, "remove and delete: %s \n", node->getLabel() );
+        remove(node);
         delete node;
 	}
     nodes.resize(0);
@@ -55,9 +58,12 @@ UpdateResult Container::update()
         1 - Delete flagged Nodes
     */
     {
-        for (auto it = nodes.crbegin(); it != nodes.crend(); it++ )
+        auto nodeIndex = nodes.size();
+
+        while (nodeIndex > 0)
         {
-            auto node = *it;
+            nodeIndex--;
+            auto node = nodes.at(nodeIndex);
 
             if (node->needsToBeDeleted())
             {
