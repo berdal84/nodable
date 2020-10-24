@@ -128,7 +128,7 @@ namespace Nodable {
 		const Operator*                       findOperator(const std::string& _identifier) const;
 		void                                  addToAPI(Function);
 		void                                  addToAPI(FunctionSignature&, FunctionImplem);
-		bool                                  needsToBeEvaluatedFirst(const Operator*, const Operator* nextOp)const;
+		bool                                  hasHigherPrecedenceThan(const Operator *_firstOperator, const Operator* _secondOperator)const;
 		const std::vector<Function>&          getAllFunctions()const { return api; }		
 		
 
