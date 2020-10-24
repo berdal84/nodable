@@ -396,19 +396,25 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		RETURN( -(double)ARG(0) )
 	OPERATOR_END
 
-	// operator=(number)
+	// number operator=(number, number)
 	BINARY_OP_BEGIN(Double, "=", Double, Double, 0u, ICON_FA_EQUALS " Assign")
 		_args[0]->set(ARG(1));
 		RETURN((double)ARG(1))
 	OPERATOR_END
 
-	// operator=(number)
+    // string operator=(string, string)
+    BINARY_OP_BEGIN(Str, "=", Str, Str, 0u, ICON_FA_EQUALS " Assign")
+            _args[0]->set(ARG(1));
+            RETURN((std::string)ARG(1))
+    OPERATOR_END
+
+	// bool operator=(bool, bool)
 	BINARY_OP_BEGIN(Bool, "=", Bool, Bool, 0u, ICON_FA_EQUALS " Assign")
 			_args[0]->set(ARG(1));
 			RETURN((bool)ARG(1))
 	OPERATOR_END
 
-	// operator=>(bool)
+	// bool operator=>(bool, bool)
 	BINARY_OP_BEGIN(Bool, "=>", Bool, Bool, 10u, "=> Implies")
 		RETURN(!(bool)ARG(0) || (bool)ARG(1) )
 	OPERATOR_END
