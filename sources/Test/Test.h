@@ -287,6 +287,11 @@ bool Parser_Tests() {
 			EXPECT(Parser_Test("a = b = c = 10", 10), true)
 		}TEST_END
 
+		TEST_BEGIN("Strings tests") {
+			EXPECT(Parser_Test("a = \"coucou\"", "coucou"), true)
+			EXPECT(Parser_Test("\"hello \" + \"world\"", "hello world"), true)
+		}TEST_END
+
 	}TEST_END
 
 	return s_lastGroupTestPassed;
