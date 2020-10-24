@@ -62,7 +62,7 @@ std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<
 
 	// Left part of the expression
 	{
-		bool needBrackets = _lBinOp && needsToBeEvaluatedFirst(_lBinOp, _op);
+		bool needBrackets = _lBinOp && !hasHigherPrecedenceThan(_lBinOp, _op);
 		if (needBrackets) result.append( serialize(TokenType::LBracket) + " ");
 		result.append(_args[0]->getSourceExpression());
 		if (needBrackets) result.append(" " + serialize(TokenType::RBracket));
@@ -75,7 +75,7 @@ std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<
 
 	// Right part of the expression
 	{
-		bool needBrackets = _rBinOp && needsToBeEvaluatedFirst(_rBinOp, _op);
+		bool needBrackets = _rBinOp && !hasHigherPrecedenceThan(_rBinOp, _op);
 		if (needBrackets) result.append(serialize(TokenType::LBracket) + " ");
 		result.append(_args[1]->getSourceExpression());
 		if (needBrackets) result.append(" " + serialize(TokenType::RBracket));
@@ -95,7 +95,7 @@ std::string LanguageNodable::serializeUnaryOp(const Operator* _op, std::vector<M
 
 	// Inner part of the expression
 	{
-		bool needBrackets = _innerOp && needsToBeEvaluatedFirst(_innerOp, _op);
+		bool needBrackets = _innerOp && !hasHigherPrecedenceThan(_innerOp, _op);
 		if (needBrackets) result.append(serialize(TokenType::LBracket) + " ");
 		result.append(_args[0]->getSourceExpression());
 		if (needBrackets) result.append(" " + serialize(TokenType::RBracket));

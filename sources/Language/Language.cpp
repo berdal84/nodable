@@ -30,8 +30,8 @@ void Language::addOperator( std::string       _identifier,
 	addOperator(op);
 }
 
-bool  Language::needsToBeEvaluatedFirst(const Operator* _firstOperator, const Operator* _secondOperator)const {
-	return _firstOperator->precedence > _secondOperator->precedence;
+bool  Language::hasHigherPrecedenceThan(const Operator* _firstOperator, const Operator* _secondOperator)const {
+	return _firstOperator->precedence >= _secondOperator->precedence;
 }
 
 const Function* Nodable::Language::findFunction(const FunctionSignature& _signature) const
