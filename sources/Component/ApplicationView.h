@@ -2,11 +2,16 @@
 
 #include "Nodable.h"
 #include <imgui/imgui.h>
-#include "imfilebrowser.h"
 #include <SDL2/include/SDL.h>
 #include <string>
 #include "View.h"
 #include <mirror.h>
+#include "IconsFontAwesome5.h"
+
+// Override imfilebrowser.h icons
+#define IMFILEBROWSER_FILE_ICON ICON_FA_FILE
+#define IMFILEBROWSER_FOLDER_ICON ICON_FA_FOLDER
+#include "imfilebrowser.h"
 
 namespace Nodable
 {
