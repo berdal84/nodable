@@ -21,7 +21,8 @@ using namespace Nodable;
 ApplicationView::ApplicationView(const char* _name, Application* _application):
         application(_application),
         backgroundColor(50, 50, 50),
-        isStartupWindowVisible(true)
+        isStartupWindowVisible(true),
+        isHistoryDragged(false)
 {
     add("glWindowName");
     set("glWindowName", _name);
@@ -494,19 +495,25 @@ bool ApplicationView::draw()
 
 			if (currentFileHistory) {
 
-				ImGui::Text(ICON_FA_CLOCK " History: ");
+			    if ( ImGui::IsMouseReleased(0) )
+                {
+			        this->isHistoryDragged = false;
+                }
+
+//				ImGui::Text(ICON_FA_CLOCK " History: ");
 
 				auto historyButtonSpacing = float(1);
-				auto historyButtonHeight = float(20);
-				auto historyButtonMaxWidth = float(10);
+				auto historyButtonHeight = float(10);
+				auto historyButtonMaxWidth = float(40);
 
 				auto historySize = currentFileHistory->getSize();
 				auto historyCurrentCursorPosition = currentFileHistory->getCursorPosition();
 				auto availableWidth = ImGui::GetContentRegionAvailWidth();
-				auto historyButtonWidth = std::fmin(historyButtonMaxWidth, availableWidth / float(historySize) - historyButtonSpacing);
+				auto historyButtonWidth = std::fmin(historyButtonMaxWidth, availableWidth / float(historySize + 1) - historyButtonSpacing);
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0));
 
 
+                ImGui::NewLine();
 
 				for (size_t commandId = 0; commandId <= historySize; commandId++)
 				{
@@ -523,10 +530,13 @@ bool ApplicationView::draw()
 					else
 						ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
 
+					// Hovered item
 					if (ImGui::IsItemHovered())
 					{
 						if (ImGui::IsMouseDown(0)) // hovered + mouse down
-							currentFileHistory->setCursorPosition(commandId); // update history cursor position
+                        {
+						    this->isHistoryDragged = true;
+                        }
 
 						// Draw command description
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
@@ -535,6 +545,16 @@ bool ApplicationView::draw()
 						ImGui::EndTooltip();
 						ImGui::PopStyleVar();
 					}
+
+					// When dragging history
+					const auto xMin = ImGui::GetItemRectMin().x;
+					const auto xMax = ImGui::GetItemRectMax().x;
+					if ( this->isHistoryDragged &&
+					     ImGui::GetMousePos().x < xMax &&
+					     ImGui::GetMousePos().x > xMin )
+                    {
+                        currentFileHistory->setCursorPosition(commandId); // update history cursor position
+                    }
 
 
 				}
