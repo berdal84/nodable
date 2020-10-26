@@ -290,7 +290,12 @@ bool Parser_Tests() {
 		TEST_BEGIN("Strings tests") {
 			EXPECT(Parser_Test("a = \"coucou\"", "coucou"), true)
 			EXPECT(Parser_Test("\"hello \" + \"world\"", "hello world"), true)
-		}TEST_END
+            EXPECT(Parser_Test("a = string(15)", "15"), true)
+            EXPECT(Parser_Test("a = string(-15)", "-15"), true)
+            EXPECT(Parser_Test("a = string(-15.5)", "-15.5"), true)
+            EXPECT(Parser_Test("b = string(true)", "true"), true)
+            EXPECT(Parser_Test("b = string(false)", "false"), true)
+        }TEST_END
 
 	}TEST_END
 
