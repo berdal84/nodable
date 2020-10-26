@@ -232,10 +232,20 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 		(!(bool)ARG(0) &&  (bool)ARG(1)) )
 	FCT_END
 	
-	// bool(number)
+	// boolean bool(number)
 	FCT_BEGIN(Bool, "bool", Double)
 		RETURN( (bool)ARG(0))
 	FCT_END
+
+    // string string(number)
+    FCT_BEGIN(Str, "string", Double)
+            RETURN( (std::string)ARG(0))
+    FCT_END
+
+    // string string(boolean)
+    FCT_BEGIN(Str, "string", Bool)
+        RETURN(ARG(0) ? "true" : "false" );
+    FCT_END
 
 	// mod(number, number)
 	FCT_BEGIN(Double, "mod", Double, Double)
