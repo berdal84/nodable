@@ -44,6 +44,7 @@ namespace Nodable
         bool isStartupWindowVisible;
         ImFont *paragraphFont;
         ImFont *headingFont;
+        bool isHistoryDragged;
 	public:
 		void browseFile();
 
