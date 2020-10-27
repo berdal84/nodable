@@ -189,15 +189,8 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	//
 	///////////////////////////////
 
-	/* Try to use function reflection */
-    auto fakelambda = ReflectFunction(myFunctionToReflect1, "myFunctionToReflect1");
-    Member result;
-    Member arg0;
-    Member arg1;
-    arg0.set( (double)5 );
-    arg1.set( (double)10 );
 
-    fakelambda(&result, {&arg0, &arg1});
+	MIRROR_FUNCTION(myFunctionToReflect2)
 
     // returnNumber(number)
 
