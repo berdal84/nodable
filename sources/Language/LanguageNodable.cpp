@@ -136,19 +136,9 @@ const FunctionSignature LanguageNodable::createUnaryOperatorSignature(
 	return signature;
 }
 
-std::string myFunctionToReflect1(std::string a, std::string b)
-{
-    return a + b;
-};
-
-bool myFunctionToReflect2(bool a, double b)
+bool myFunctionToReflect(bool a, bool b)
 {
     return a && b;
-};
-
-bool myFunctionToReflect3(double a, double b, double c)
-{
-    return a + b + c;
 };
 
 LanguageNodable::LanguageNodable(): Language("Nodable")
@@ -189,8 +179,12 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	//
 	///////////////////////////////
 
-
-	MIRROR_FUNCTION(myFunctionToReflect2)
+    {
+        auto reflectedFct = mirror::Function::CreateInstance("myFunctionReflected", myFunctionToReflect);
+        auto signature    = computeFunctionSignature(reflectedFct);
+        LOG_MESSAGE(0, "%s\n", signature.c_str());
+        delete reflectedFct;
+    }
 
     // returnNumber(number)
 
@@ -504,4 +498,39 @@ const Type LanguageNodable::tokenTypeToType(TokenType _tokenType)const
 		return Type::Any;
 		break;
 	}
+}
+
+const char* GetTypeAsString(const mirror::Type& type)
+{
+    switch (type)
+    {
+        case mirror::Type::Type_std_string: return "string";
+        case mirror::Type::Type_double:     return "double";
+        case mirror::Type::Type_bool:       return "bool";
+        default:                            return "unknown";
+    }
+}
+
+std::string LanguageNodable::computeFunctionSignature(const mirror::Function* _function) const
+{
+    std::string signature;
+
+    signature += GetTypeAsString(_function->getReturnType()->getType());
+    signature += ' ';
+    signature += _function->getName();
+    signature += "(";
+
+    std::vector<const mirror::TypeDesc*> args;
+    _function->getArgTypes(args);
+
+    for( auto it = args.begin(); it != args.end(); it++ )
+    {
+        if( it != args.begin())
+            signature += ", ";
+        signature += GetTypeAsString((*it)->getType());
+    }
+
+    signature += ")";
+
+    return signature;
 }

@@ -118,7 +118,7 @@ namespace Nodable {
 		virtual const FunctionSignature       createUnaryOperatorSignature(Type, std::string, Type) const = 0;
 		virtual const TokenType               typeToTokenType(Type _type)const = 0;
 		virtual const Type                    tokenTypeToType(TokenType _tokenType)const = 0;
-
+        virtual std::string                   computeFunctionSignature(const mirror::Function *_function) const = 0;
 		void                                  addOperator(Operator);
 		void                                  addOperator(std::string       _identifier,
 			                                              unsigned short    _precedence,
@@ -151,6 +151,6 @@ namespace Nodable {
 		std::string name;
 		std::vector<Operator> operators;
 		std::vector<Function> api;
-	};
+    };
 
 }
