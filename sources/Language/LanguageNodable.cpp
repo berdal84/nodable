@@ -136,6 +136,26 @@ const FunctionSignature LanguageNodable::createUnaryOperatorSignature(
 	return signature;
 }
 
+bool myFunctionToReflect(bool a, bool b)
+{
+    return a && b;
+};
+
+double add(double a, double b) { return a + b; }
+
+template <typename F>
+void callFunction(mirror::Function<F>* f, Member* result, std::vector<Member*> args ) {
+
+    if ( args.size() == 2 )
+    {
+        auto nativeFunction = f->getNativeFunction();
+        using A0 = typename mirror::function_argument_t<0, F>;
+        using A1 = typename mirror::function_argument_t<1, F>;
+        result->set( nativeFunction( *args.at(0), *args.at(1) ));
+    }
+}
+
+
 LanguageNodable::LanguageNodable(): Language("Nodable")
 {
 
@@ -174,7 +194,20 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	//
 	///////////////////////////////
 
-	// returnNumber(number)
+    {
+        auto reflectedFct = MIRROR_FUNCTION(add);
+        auto signature    = computeFunctionSignature(reflectedFct);
+        LOG_MESSAGE(0, "%s\n", signature.c_str());
+        Member r; r.set(0.0F);
+        Member a, b; a.set(5.0F); b.set(10.0F);
+        std::vector<Member*> v{&a, &b};
+
+        callFunction( reflectedFct, &r, v );
+        LOG_MESSAGE(0, "Result (Member*) : %f\n", (float)(double)r);
+        delete reflectedFct;
+    }
+
+    // returnNumber(number)
 
 	FCT_BEGIN(Double, "returnNumber", Double)
 		RETURN( (double)ARG(0) )
@@ -476,14 +509,42 @@ const TokenType LanguageNodable::typeToTokenType(Type _type)const
 
 const Type LanguageNodable::tokenTypeToType(TokenType _tokenType)const
 {
-	// TODO: build a map in constructor
+
 	switch (_tokenType)
 	{
 	case TokenType::BooleanType: return Type::Boolean;
 	case TokenType::DoubleType:  return Type::Double;
 	case TokenType::StringType:  return Type::String;
-	default:
-		return Type::Any;
-		break;
+	default: return Type::Any;
 	}
+}
+
+const char* GetTypeAsString(mirror::Type type)
+{
+    return mirror::TypeHelper::GetTypeName(type);
+}
+
+template <typename F>
+std::string LanguageNodable::computeFunctionSignature(const mirror::Function<F>* _function) const
+{
+    std::string signature;
+
+    signature += GetTypeAsString(_function->getReturnType()->getType());
+    signature += ' ';
+    signature += _function->getName();
+    signature += "(";
+
+    std::vector<const mirror::TypeDesc*> args;
+    _function->getArgTypes(args);
+
+    for( auto it = args.begin(); it != args.end(); it++ )
+    {
+        if( it != args.begin())
+            signature += ", ";
+        signature += GetTypeAsString((*it)->getType());
+    }
+
+    signature += ")";
+
+    return signature;
 }

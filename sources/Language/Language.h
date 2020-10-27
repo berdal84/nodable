@@ -76,8 +76,9 @@ return 1;
 	addToAPI( signature , implementation );\
 }
 
-namespace Nodable {
+#define REFLECT_FUNCTION( f ) Nodable::ReflectFunction( f, #f );
 
+namespace Nodable {
 
 	/*
 		The role of this class is to define an interface for all languages in Nodable.
@@ -117,7 +118,6 @@ namespace Nodable {
 		virtual const FunctionSignature       createUnaryOperatorSignature(Type, std::string, Type) const = 0;
 		virtual const TokenType               typeToTokenType(Type _type)const = 0;
 		virtual const Type                    tokenTypeToType(TokenType _tokenType)const = 0;
-
 		void                                  addOperator(Operator);
 		void                                  addOperator(std::string       _identifier,
 			                                              unsigned short    _precedence,
@@ -129,8 +129,8 @@ namespace Nodable {
 		void                                  addToAPI(Function);
 		void                                  addToAPI(FunctionSignature&, FunctionImplem);
 		bool                                  hasHigherPrecedenceThan(const Operator *_firstOperator, const Operator* _secondOperator)const;
-		const std::vector<Function>&          getAllFunctions()const { return api; }		
-		
+		const std::vector<Function>&          getAllFunctions()const { return api; }
+
 
 		/**
 		  * To generate the Nodable Language reference
@@ -150,6 +150,6 @@ namespace Nodable {
 		std::string name;
 		std::vector<Operator> operators;
 		std::vector<Function> api;
-	};
+    };
 
 }

@@ -5,17 +5,18 @@
 #include <functional>
 #include <tuple>
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
+#include "mirror.h"
 
 namespace Nodable {
 
-	/*
-	 * Type of a callable function.
-	 * Require an integer as output (works like an error code, 0: OK, 1 >= : error)
-	 * An output member and some arguments
+    /*
+     * Type of a callable function.
+     * Require an integer as output (works like an error code, 0: OK, 1 >= : error)
+     * An output member and some arguments
      *
-	 * TODO: try to replace Member* by Variant*
-	 */
-	typedef std::function <int (Member*, const std::vector<Member*>&)> FunctionImplem;
+     * TODO: try to replace Member* by Variant*
+     */
+    typedef std::function <int (Member*, const std::vector<Member*>&)> FunctionImplem;
 
 	/*
 	 * Simple object to store a function argument (token, name)

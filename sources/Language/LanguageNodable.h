@@ -1,5 +1,6 @@
 #pragma once
 #include "Language.h"
+#include "mirror.h"
 
 namespace Nodable {
 
@@ -21,6 +22,9 @@ namespace Nodable {
 		virtual const FunctionSignature createUnaryOperatorSignature(Type, std::string, Type) const;
 		virtual const TokenType typeToTokenType(Type _type)const;
 		virtual const Type tokenTypeToType(TokenType _tokenType)const;
-	};
+
+        template<typename F>
+        std::string computeFunctionSignature(const mirror::Function<F> *_function) const;
+    };
 }
 
