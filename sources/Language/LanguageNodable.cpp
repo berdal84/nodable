@@ -136,6 +136,21 @@ const FunctionSignature LanguageNodable::createUnaryOperatorSignature(
 	return signature;
 }
 
+std::string myFunctionToReflect1(std::string a, std::string b)
+{
+    return a + b;
+};
+
+bool myFunctionToReflect2(bool a, double b)
+{
+    return a && b;
+};
+
+bool myFunctionToReflect3(double a, double b, double c)
+{
+    return a + b + c;
+};
+
 LanguageNodable::LanguageNodable(): Language("Nodable")
 {
 
@@ -174,7 +189,17 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	//
 	///////////////////////////////
 
-	// returnNumber(number)
+	/* Try to use function reflection */
+    auto fakelambda = ReflectFunction(myFunctionToReflect1, "myFunctionToReflect1");
+    Member result;
+    Member arg0;
+    Member arg1;
+    arg0.set( (double)5 );
+    arg1.set( (double)10 );
+
+    fakelambda(&result, {&arg0, &arg1});
+
+    // returnNumber(number)
 
 	FCT_BEGIN(Double, "returnNumber", Double)
 		RETURN( (double)ARG(0) )

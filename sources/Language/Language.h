@@ -76,8 +76,9 @@ return 1;
 	addToAPI( signature , implementation );\
 }
 
-namespace Nodable {
+#define REFLECT_FUNCTION( f ) Nodable::ReflectFunction( f, #f );
 
+namespace Nodable {
 
 	/*
 		The role of this class is to define an interface for all languages in Nodable.
@@ -129,8 +130,40 @@ namespace Nodable {
 		void                                  addToAPI(Function);
 		void                                  addToAPI(FunctionSignature&, FunctionImplem);
 		bool                                  hasHigherPrecedenceThan(const Operator *_firstOperator, const Operator* _secondOperator)const;
-		const std::vector<Function>&          getAllFunctions()const { return api; }		
-		
+		const std::vector<Function>&          getAllFunctions()const { return api; }
+
+
+        template<typename FUNCTION_T>
+        Nodable::FunctionImplem ReflectFunction(FUNCTION_T f, std::string name) {
+
+            Nodable::FunctionImplem functionImplem = [name](Member* _result, std::vector<Member*> _args) -> int
+            {
+                constexpr size_t argCount = std::tuple_size<mirror::function_arguments_t<FUNCTION_T>>::value;
+
+                using R = typename mirror::function_traits<FUNCTION_T>::result;
+                auto typeDesc = mirror::TypeDescGetter<R>().Get();
+                std::string r = mirror::GetTypeAsString(typeDesc->getType());
+
+                printf("Executing: %s %s", r.c_str(), name.c_str() );
+                printf("(");
+
+                mirror::static_for<std::size_t, 0, argCount>([&](auto EACH_TUPLE_INDEX) {
+
+                    using EachArgType = mirror::function_argument_t<EACH_TUPLE_INDEX, FUNCTION_T>;
+                    auto typeDesc = mirror::TypeDescGetter<EachArgType>().Get();
+                    std::string typeAsString = mirror::GetTypeAsString(typeDesc->getType());
+                    if( EACH_TUPLE_INDEX != 0)
+                        printf(",");
+                    printf("%s", typeAsString.c_str());
+
+                });
+
+                printf(")\n");
+                return 0;
+            };
+
+            return functionImplem;
+        }
 
 		/**
 		  * To generate the Nodable Language reference
