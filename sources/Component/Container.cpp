@@ -35,7 +35,8 @@ void Container::clear()
 		Container::LastResultNodePosition = view->getRoundedPosition();
 	}
 
-    nodes.resize(0);
+	variables.clear();
+    nodes.clear();
     resultNode.reset();
 
     LOG_MESSAGE(1u, "Container::clear() - // end\n");
@@ -159,8 +160,7 @@ std::shared_ptr<Variable> Container::newVariable(std::string _name)
     auto alreadyExisting = this->findVariable(_name);
     if ( alreadyExisting )
     {
-        LOG_ERROR(0u, "Unable to create a variable %s because a variable with the same name already exists\n", _name.c_str());
-        return nullptr;
+        throw std::runtime_error( "Unable to create a variable because a variable with the same name already exists\n");
     }
     this->variables.insert_or_assign(_name, node.get());
 
@@ -293,7 +293,7 @@ Wire* Container::newWire()
 
 void Container::tryToRestoreResultNodePosition()
 {
-    if ( resultNode->isSet() )
+    if ( resultNode.get() )
     {
         // Store the Result node position to restore it later
         auto nodeView = resultNode->getComponent<NodeView>();
