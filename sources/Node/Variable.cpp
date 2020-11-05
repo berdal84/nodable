@@ -9,12 +9,6 @@ Variable::Variable():Node("Variable")
 	add("value", Visibility::Always, Type::Any, Way_InOut);	
 }
 
-Variable::~Variable()
-{
-
-}
-
-
 void Variable::setName(const char* _name)
 {
 	name = _name;

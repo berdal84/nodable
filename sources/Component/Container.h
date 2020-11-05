@@ -20,17 +20,17 @@ namespace Nodable{
         UpdateResult                update() override;
 		void                      	clear();		
 		Variable* 	          		findVariable(std::string);
-		void                      	add(Node*);
-		void                      	remove(Node*);
+		void                      	add(std::shared_ptr<Node>);
+		void                      	remove(const std::shared_ptr<Node>);
 		size_t                    	getNodeCount()const;
-		std::vector<Variable*>& 	getVariables(){return variables;}
-		std::vector<Node*>& 	    getEntities(){return nodes;}
-		Variable*                   getResultVariable(){ return resultNode;}
+		std::map<std::string, Variable*>& 	getVariables(){return variables;}
+		const std::vector<std::shared_ptr<Node>>& 	    getEntities(){return nodes;}
+		Variable*                   getResultVariable(){ return resultNode.get();}
 		void                        tryToRestoreResultNodePosition();
 		
 		/* node factory */
 		Variable*					newResult();
-		Variable*					newVariable(std::string = "");
+		std::shared_ptr<Variable>	newVariable(std::string = "");
 		Variable*					newNumber(double = 0);
 		Variable*					newNumber(const char*);
 		Variable*					newString(const char*);	
@@ -40,9 +40,9 @@ namespace Nodable{
 		Node*                       newFunction(const Function* _proto);
 
 	private:		
-		Variable*                   resultNode = nullptr;
-		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */
-		std::vector<Node*>          nodes;   /* Contain all Objects created by this context */
+		std::shared_ptr<Variable> resultNode;
+		std::map<std::string, Variable*> variables; /* Contain all Symbol Nodes created by this context */
+		std::vector<std::shared_ptr<Node>> nodes;   /* Contain all Objects created by this context */
 		const Language*             language;
 	public:
 		static ImVec2               LastResultNodePosition;

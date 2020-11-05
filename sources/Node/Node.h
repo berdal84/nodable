@@ -31,7 +31,7 @@ namespace Nodable{
 	{
 	public:
 		Node(std::string /* label */ = "UnnamedNode");
-		~Node();
+		virtual ~Node();
 
 		/* Get parent container of this node.
 		   note: Could be nullptr only if this node is a root. */

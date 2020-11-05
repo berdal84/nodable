@@ -119,7 +119,7 @@ Member* Parser::tokenToMember(const Token& _token) {
 			Variable* variable = context->findVariable(_token.word);
 
 			if (variable == nullptr)
-				variable = context->newVariable(_token.word);
+				variable = context->newVariable(_token.word).get();
 
 			NODABLE_ASSERT(variable != nullptr);
 			NODABLE_ASSERT(variable->getMember() != nullptr);

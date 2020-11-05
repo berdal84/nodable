@@ -6,13 +6,10 @@
 #include "Variable.h"
 #include "Wire.h"
 #include "WireView.h"
-#include "DataAccess.h"
-#include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
-#include "Application.h"
+
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include <math.h>
 
 using namespace Nodable;
 
@@ -31,7 +28,6 @@ bool ContainerView::draw()
 	bool isAnyNodeHovered = false;
 	{
 		// Constraints
-		auto container = getOwner()->as<Container>();
 		auto result    = container->getResultVariable();
 
 		if (result != nullptr) { // Make sure result node is always visible
@@ -42,7 +38,7 @@ bool ContainerView::draw()
 		}
 
 		// Update
-		for (auto eachNode : entities)
+		for (const auto eachNode : entities)
 		{
 			if (auto view = eachNode->getComponent<View>() )
 				view->update();
@@ -80,7 +76,7 @@ bool ContainerView::draw()
 
 			for (auto eachWire : wires)
 			{
-				if (eachWire->getTarget()->getOwner() == eachNode)
+				if (eachWire->getTarget()->getOwner() == eachNode.get() )
 					eachWire->getView()->draw();
 			}
 		}
@@ -181,7 +177,6 @@ bool ContainerView::draw()
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{
-		auto    container = getOwner()->as<Container>();
 		Node* newNode = nullptr;
 
 		// Title :
@@ -224,7 +219,7 @@ bool ContainerView::draw()
 		ImGui::Separator();
 		
 		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-			newNode = container->newVariable("Variable");
+			newNode = container->newVariable("Variable").get();
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
 			newNode = container->newResult();
@@ -248,9 +243,11 @@ bool ContainerView::draw()
 				
 				// If failed, try to get the first input/output member
 				if (targetMember == nullptr)
-					targetMember = newNode->getFirstWithConn(Way_InOut);
-				else
-					Node::Connect(draggedConnector->member, targetMember);
+				{
+                    targetMember = newNode->getFirstWithConn(Way_InOut);
+                }
+
+				Node::Connect(draggedConnector->member, targetMember);
 			}
 			NodeView::ResetDraggedConnector();
 		}

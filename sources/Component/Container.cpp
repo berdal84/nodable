@@ -26,30 +26,19 @@ Container::~Container()
 
 void Container::clear()
 {
+    LOG_MESSAGE(1u, "Container::clear() - // start\n");
+
 	// Store the Result node position to restore it later
-	if (resultNode != nullptr) {
+	if ( resultNode.get() )
+	{
 		auto view = resultNode->getComponent<NodeView>();
 		Container::LastResultNodePosition = view->getRoundedPosition();
 	}
 
-	LOG_MESSAGE(1u, "=================== Container::clear() ==================\n");
-
-	auto nodeIndex = nodes.size();
-
-	while ( nodeIndex > 0)
-    {
-        nodeIndex--;
-	    auto node = nodes.at(nodeIndex);
-        LOG_MESSAGE(1u, "remove and delete: %s \n", node->getLabel() );
-        remove(node);
-        delete node;
-	}
     nodes.resize(0);
+    resultNode.reset();
 
-    LOG_MESSAGE(1u, "===================================================\n");
-
-
-    resultNode = nullptr;
+    LOG_MESSAGE(1u, "Container::clear() - // end\n");
 }
 
 UpdateResult Container::update()
@@ -68,7 +57,6 @@ UpdateResult Container::update()
             if (node->needsToBeDeleted())
             {
                 remove(node);
-                delete node;
             }
 
         }
@@ -84,7 +72,7 @@ UpdateResult Container::update()
 
         while (it < nodes.end() && result != Result::Failure)
         {
-            auto node = *it;
+            auto node = it->get();
 
             if (node && node->isDirty())
             {
@@ -108,16 +96,18 @@ UpdateResult Container::update()
 
 }
 
-void Container::add(Node* _node)
+void Container::add(std::shared_ptr<Node> _node)
 {
-	this->nodes.push_back(_node);
+	this->nodes.push_back( _node );
 	_node->setParentContainer(this);
 }
 
-void Container::remove(Node* _node)
+void Container::remove(const std::shared_ptr<Node> _node)
 {
+
+    if ( auto nodeAsVariable = std::static_pointer_cast<Variable>(_node) )
     {
-        auto it = std::find(variables.begin(), variables.end(), _node);
+        auto it = variables.find(nodeAsVariable->getName());
         if (it != variables.end())
         {
             variables.erase(it);
@@ -134,25 +124,20 @@ void Container::remove(Node* _node)
 
     if (_node == this->resultNode)
     {
-        this->resultNode = nullptr;
+        this->resultNode.reset();
     }
 }
 
 Variable* Container::findVariable(std::string _name)
 {
-	Variable* result = nullptr;
+	auto pair = variables.find(_name);
 
-	auto findFunction = [_name](const Variable* _variable ) -> bool
-	{
-		return strcmp(_variable->getName(), _name.c_str()) == 0;
-	};
+	if ( pair != variables.end() )
+    {
+	    return pair->second;
+    }
 
-	auto it = std::find_if(variables.begin(), variables.end(), findFunction);
-	if (it != variables.end()){
-		result = *it;
-	}
-
-	return result;
+	return nullptr;
 }
 
 Variable* Container::newResult()
@@ -161,45 +146,52 @@ Variable* Container::newResult()
 	auto member = variable->get("value");
 	member->setConnectorWay(Way_In);                     // disable output because THIS node is the output !
 	resultNode = variable;
-
-	return variable;
+	return variable.get();
 }
 
-Variable* Container::newVariable(std::string _name)
+std::shared_ptr<Variable> Container::newVariable(std::string _name)
 {
-	auto node = new Variable();
+	auto node = std::make_shared<Variable>();
 	node->addComponent( new NodeView);
 	node->setName(_name.c_str());
-	this->variables.push_back(node);
 	this->add(node);
+
+    auto alreadyExisting = this->findVariable(_name);
+    if ( alreadyExisting )
+    {
+        LOG_ERROR(0u, "Unable to create a variable %s because a variable with the same name already exists\n", _name.c_str());
+        return nullptr;
+    }
+    this->variables.insert_or_assign(_name, node.get());
+
 	return node;
 }
 
 Variable* Container::newNumber(double _value)
 {
-	auto node = new Variable();
+	auto node = std::make_shared<Variable>();
 	node->addComponent( new NodeView);
 	node->set(_value);
 	this->add(node);
-	return node;
+	return node.get();
 }
 
 Variable* Container::newNumber(const char* _value)
 {
-	auto node = new Variable();
+	auto node = std::make_shared<Variable>();
 	node->addComponent( new NodeView);
 	node->set(std::stod(_value));
 	this->add(node);
-	return node;
+	return node.get();
 }
 
 Variable* Container::newString(const char* _value)
 {
-	auto node = new Variable();
+	auto node = std::make_shared<Variable>();
 	node->addComponent( new NodeView);
 	node->set(_value);
 	this->add(node);
-	return node;
+	return node.get();
 }
 
 
@@ -209,7 +201,7 @@ Node* Container::newBinOp(const Operator* _operator)
 	//------------------
 
 	// Create a node with 2 inputs and 1 output
-	auto node = new Node();
+	auto node = std::make_shared<Node>();
 	auto signature = _operator->signature;
 	node->setLabel(signature.getLabel());
 	const auto args = signature.getArgs();
@@ -230,7 +222,7 @@ Node* Container::newBinOp(const Operator* _operator)
 	// Add to this container
 	this->add(node);
 		
-	return node;
+	return node.get();
 }
 
 Node* Container::newUnaryOp(const Operator* _operator)
@@ -239,7 +231,7 @@ Node* Container::newUnaryOp(const Operator* _operator)
 	//------------------
 
 	// Create a node with 2 inputs and 1 output
-	auto node = new Node();
+	auto node = std::make_shared<Node>();
 	auto signature = _operator->signature;
 	node->setLabel(signature.getLabel());
 	const auto args = signature.getArgs();
@@ -258,7 +250,7 @@ Node* Container::newUnaryOp(const Operator* _operator)
 	// Add to this container
 	this->add(node);
 
-	return node;
+	return node.get();
 }
 
 Node* Container::newFunction(const Function* _function) {
@@ -267,7 +259,7 @@ Node* Container::newFunction(const Function* _function) {
 	//------------------
 
 	// Create a node with 2 inputs and 1 output
-	auto node = new Node();
+	auto node = std::make_shared<Node>();
 	node->setLabel(ICON_FA_CODE " " + _function->signature.getIdentifier());
 	node->add("result", Visibility::Default, language->tokenTypeToType(_function->signature.getType()), Way_Out);
 
@@ -288,7 +280,7 @@ Node* Container::newFunction(const Function* _function) {
 
 	this->add(node);
 
-	return node;
+	return node.get();
 }
 
 
@@ -301,25 +293,32 @@ Wire* Container::newWire()
 
 void Container::tryToRestoreResultNodePosition()
 {
-	// Store the Result node position to restore it later
-	auto nodeView = resultNode->getComponent<NodeView>();
-	bool resultNodeHadPosition = Container::LastResultNodePosition.x != -1 &&
-	                             Container::LastResultNodePosition.y != -1;
+    if ( resultNode->isSet() )
+    {
+        // Store the Result node position to restore it later
+        auto nodeView = resultNode->getComponent<NodeView>();
+        bool resultNodeHadPosition = Container::LastResultNodePosition.x != -1 &&
+                                     Container::LastResultNodePosition.y != -1;
 
-	if (nodeView && this->hasComponent<View>() ) {
+        if (nodeView && this->hasComponent<View>()) {
 
-		auto view = this->getComponent<View>();
+            auto view = this->getComponent<View>();
 
-		if ( resultNodeHadPosition) {                                 /* if result node had a position stored, we restore it */
-			nodeView->setPosition(Container::LastResultNodePosition);			
-		}
+            if (resultNodeHadPosition) {                                 /* if result node had a position stored, we restore it */
+                nodeView->setPosition(Container::LastResultNodePosition);
+            }
 
-		if ( !NodeView::IsInsideRect(nodeView, view->visibleRect) ){     		
-			ImVec2 defaultPosition = view->visibleRect.GetCenter();
-			defaultPosition.x += view->visibleRect.GetWidth() * 1.0f / 6.0f;
-			nodeView->setPosition(defaultPosition);
-		}
-	}
+            if (!NodeView::IsInsideRect(nodeView, view->visibleRect)) {
+                ImVec2 defaultPosition = view->visibleRect.GetCenter();
+                defaultPosition.x += view->visibleRect.GetWidth() * 1.0f / 6.0f;
+                nodeView->setPosition(defaultPosition);
+            }
+        }
+    }
+    else
+    {
+        LOG_WARNING(0u, "Unable to restore result node position. resultNode is not set.\n" );
+    }
 }
 
 size_t Container::getNodeCount()const

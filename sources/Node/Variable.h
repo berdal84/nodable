@@ -17,7 +17,7 @@ namespace Nodable{
 	class Variable : public Node {
 	public:
 		Variable();
-		~Variable();
+		virtual ~Variable(){};
 
 		void              setName         (const char*);
 		bool              isSet           ()const{return getMember()->isSet(); }
