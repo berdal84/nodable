@@ -153,7 +153,7 @@ Variable* Container::newResult()
 std::shared_ptr<Variable> Container::newVariable(std::string _name)
 {
 	auto node = std::make_shared<Variable>();
-	node->addComponent( new NodeView);
+	node->newComponent<NodeView>();
 	node->setName(_name.c_str());
 	this->add(node);
 
@@ -170,7 +170,7 @@ std::shared_ptr<Variable> Container::newVariable(std::string _name)
 Variable* Container::newNumber(double _value)
 {
 	auto node = std::make_shared<Variable>();
-	node->addComponent( new NodeView);
+	node->newComponent<NodeView>();
 	node->set(_value);
 	this->add(node);
 	return node.get();
@@ -179,7 +179,7 @@ Variable* Container::newNumber(double _value)
 Variable* Container::newNumber(const char* _value)
 {
 	auto node = std::make_shared<Variable>();
-	node->addComponent( new NodeView);
+    node->newComponent<NodeView>();
 	node->set(std::stod(_value));
 	this->add(node);
 	return node.get();
@@ -188,7 +188,7 @@ Variable* Container::newNumber(const char* _value)
 Variable* Container::newString(const char* _value)
 {
 	auto node = std::make_shared<Variable>();
-	node->addComponent( new NodeView);
+    node->newComponent<NodeView>();
 	node->set(_value);
 	this->add(node);
 	return node.get();
@@ -210,14 +210,14 @@ Node* Container::newBinOp(const Operator* _operator)
 	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation component and link values.
-	auto binOpComponent = new ComputeBinaryOperation(_operator, language);	
+	auto binOpComponent = std::make_unique<ComputeBinaryOperation>(_operator, language);
 	binOpComponent->setResult(result);	
 	binOpComponent->setLValue( left );	
 	binOpComponent->setRValue(right);
-	node->addComponent(binOpComponent);
+	node->addComponent( std::move(binOpComponent) );
 
 	// Create a NodeView component
-	node->addComponent(new NodeView());
+    node->newComponent<NodeView>();
 
 	// Add to this container
 	this->add(node);
@@ -239,13 +239,13 @@ Node* Container::newUnaryOp(const Operator* _operator)
 	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation binOpComponent and link values.
-	auto unaryOperationComponent = new ComputeUnaryOperation(_operator, language);
+	auto unaryOperationComponent = std::make_unique<ComputeUnaryOperation>(_operator, language);
 	unaryOperationComponent->setResult(result);
 	unaryOperationComponent->setLValue(left);
-	node->addComponent(unaryOperationComponent);
+	node->addComponent( std::move(unaryOperationComponent) );
 
 	// Create a NodeView Component
-	node->addComponent(new NodeView());
+    node->newComponent<NodeView>();
 
 	// Add to this container
 	this->add(node);
@@ -264,19 +264,19 @@ Node* Container::newFunction(const Function* _function) {
 	node->add("result", Visibility::Default, language->tokenTypeToType(_function->signature.getType()), Way_Out);
 
 	// Create ComputeBase binOpComponent and link values.
-	auto functionComponent = new ComputeFunction(_function, language);
-	functionComponent->setResult(node->get("result"));
+	auto computeFunctionComponent = std::make_unique<ComputeFunction>(_function, language);
+	computeFunctionComponent->setResult(node->get("result"));
 
 	// Arguments
 	auto args = _function->signature.getArgs();
 	for (size_t argIndex = 0; argIndex < args.size(); argIndex++) {
 		std::string memberName = args[argIndex].name;
 		auto member = node->add(memberName.c_str(), Visibility::Default, language->tokenTypeToType(args[argIndex].type), Way_In); // create node input
-		functionComponent->setArg(argIndex, member); // link input to binOpComponent
+		computeFunctionComponent->setArg(argIndex, member); // link input to binOpComponent
 	}	
 	
-	node->addComponent(functionComponent);
-	node->addComponent(new NodeView());	
+	node->addComponent( std::move(computeFunctionComponent) );
+    node->newComponent<NodeView>();
 
 	this->add(node);
 
@@ -287,7 +287,7 @@ Node* Container::newFunction(const Function* _function) {
 Wire* Container::newWire()
 {
 	Wire* wire = new Wire();
-	wire->addComponent(new WireView);	
+	wire->newComponent<WireView>();
 	return wire;
 }
 

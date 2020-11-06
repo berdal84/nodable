@@ -88,15 +88,27 @@ namespace Nodable{
 		/* Disconnect a wire. This method is the opposite of Node::Connect.*/
 		static void Disconnect(Wire* _wire);
 
+        /* Create a new component
+           note: User must check be sure this Node has no other Component of the same type (cf. hasComponent(...))*/
+        template<typename T>
+        T* newComponent()
+        {
+            static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
+            auto newComponent = std::make_unique<T>();
+            auto rawPtr = newComponent.get();
+            this->addComponent( std::move(newComponent));
+            return rawPtr;
+        }
+
 		/* Add a component to this Node
 		   note: User must check be sure this Node has no other Component of the same type (cf. hasComponent(...))*/
 		template<typename T>
-		void addComponent(T* _component)
+		void addComponent( std::unique_ptr<T> _component)
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
 			std::string name(T::GetClass()->getName());
-			components.emplace(std::make_pair(name, _component));
-			_component->setOwner(this);
+            _component->setOwner(this);
+			components.insert(name, std::move(_component));
 		}
 
 		/* Return true if this node has the component specified by it's type T.
@@ -138,13 +150,13 @@ namespace Nodable{
 			{
 				auto it = components.find(name);
 				if (it != components.end()) {
-					return reinterpret_cast<T*>(it->second);
+					return reinterpret_cast<T*>(it->second.get());
 				}
 			}
 
 			// Search for a derived class
 			for (auto it = components.begin(); it != components.end(); it++) {
-				Component* component = it->second;
+				auto component = it->second.get();
 				if (component->getClass()->isChildOf(c, false)) {
 					return reinterpret_cast<T*>(component);
 				}

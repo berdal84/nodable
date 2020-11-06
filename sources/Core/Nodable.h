@@ -4,6 +4,7 @@
 #include <map>	  	// for some typedefs
 #include <vector> 	// for some typedefs
 #include <assert.h> // for ASSERT and VERIFY
+#include <memory>   // for std::unique_ptr
 
 #define NODABLE_VERIFY(expression) assert(expression)
 
@@ -70,7 +71,7 @@ namespace Nodable{
 	class Log;	
 	class File;
 
-	typedef std::map<std::string, Component*>  Components;
+	typedef std::map<std::string, std::unique_ptr<Component>>  Components;
 	typedef std::map<std::string, Member*>     Members;
 	typedef std::vector<Wire*>                 Wires;
 }
