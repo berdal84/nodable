@@ -8,12 +8,15 @@
 
 using namespace Nodable;
 
-Nodable::ComputeUnaryOperation::ComputeUnaryOperation(
-	const Operator* _operator,
-	const Language* _language) :
+ComputeUnaryOperation::ComputeUnaryOperation():ComputeFunction() {}
 
-        ComputeFunction(_operator, _language)
+ComputeUnaryOperation::ComputeUnaryOperation(
+	const Operator* _operator,
+	const Language* _language)
+	:
+	ComputeFunction(_operator, _language)
 {
+
 }
 
 void ComputeUnaryOperation::setLValue(Member* _value) {

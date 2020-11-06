@@ -14,7 +14,11 @@ namespace Nodable
 		ComputeFunction(const Function* _function, const Language* _language);
 		~ComputeFunction() {};
 
-		void setFunction(const Function* _function){ function = _function; };
+		void setFunction(const Function* _function){
+		    function = _function;
+		    this->args.resize(function->signature.getArgs().size());
+		};
+
 		void setArg(size_t _index, Member* _value) { args[_index] = _value; };
 		bool update()override;
 		void updateResultSourceExpression() const override;

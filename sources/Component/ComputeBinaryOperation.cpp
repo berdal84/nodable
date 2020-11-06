@@ -6,15 +6,13 @@
 
 using namespace Nodable;
 
-ComputeBinaryOperation::ComputeBinaryOperation():
-    ComputeFunction()
-{
-    args.resize(2);
-}
+ComputeBinaryOperation::ComputeBinaryOperation(): ComputeFunction() {}
+
 
 ComputeBinaryOperation::ComputeBinaryOperation(
 	const Operator*    _operator,
-	const Language*    _language):
+	const Language*    _language)
+	:
     ComputeBinaryOperation()
 {
     setFunction(_operator);
