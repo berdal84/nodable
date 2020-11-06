@@ -21,23 +21,20 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 {		
 
 	/* Creates the FileView	*/
-	auto fileView = new FileView();
-	addComponent(fileView);
+	auto fileView = newComponent<FileView>().lock();
 	fileView->init();
 	fileView->setText(_content);
 	auto textEditor = fileView->getTextEditor();
 
 	/* Creates an history for UNDO/REDO	*/
-	auto history = new History();
-	addComponent(history);
+	auto history = newComponent<History>().lock();
     auto undoBuffer = history->createTextEditorUndoBuffer(textEditor);
 	fileView->setUndoBuffer(undoBuffer);
 	
 	/* Creates a node container */
 	auto container = new Container(language);
 	setInnerContainer(container);
-	auto containerView = new ContainerView();
-	container->addComponent(containerView);
+	auto containerView = container->newComponent<ContainerView>().lock();
 
 	/* Add inputs in contextual menu */
 	auto api = language->getAllFunctions();

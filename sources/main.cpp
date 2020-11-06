@@ -7,6 +7,7 @@
 
 // Nodable includes
 #include "Application.h"
+#include "ApplicationView.h"
 #include "Test.h"
 #include "Config.h"
 
@@ -28,6 +29,8 @@ int main(int argc, char* argv[])
 	// Here the tests are all OK, we can instantiate, init and run nodable loop.
 
 	Application nodable("Nodable " NODABLE_VERSION);
+    nodable.newComponent<ApplicationView>();
+
 	nodable.init();
     auto startupFilePath = nodable.getAssetPath("startup.txt");
 	std::cout << "Opening startup file: " << startupFilePath << std::endl;

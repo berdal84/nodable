@@ -16,7 +16,6 @@ Application::Application(const char* _name):
 {
 	set("__class__", "Application");
 	setLabel(_name);
-	addComponent(new ApplicationView(_name, this));
 }
 
 Application::~Application()
@@ -118,8 +117,7 @@ void Application::setCurrentFileWithIndex(size_t _index)
 
 void Application::SaveNode(Node* _node)
 {
-    auto component = new DataAccess;
-	_node->addComponent(component);
+    auto component = _node->newComponent<DataAccess>().lock();
 	component->update();
 	_node->deleteComponent<DataAccess>();
 }

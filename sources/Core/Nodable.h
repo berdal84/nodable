@@ -71,7 +71,7 @@ namespace Nodable{
 	class Log;	
 	class File;
 
-	typedef std::map<std::string, std::unique_ptr<Component>>  Components;
+	typedef std::map<std::string, std::shared_ptr<Component>>  Components;
 	typedef std::map<std::string, Member*>     Members;
 	typedef std::vector<Wire*>                 Wires;
 }

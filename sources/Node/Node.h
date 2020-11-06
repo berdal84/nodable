@@ -91,14 +91,13 @@ namespace Nodable{
         /* Create a new component
            note: User must check be sure this Node has no other Component of the same type (cf. hasComponent(...))*/
         template<typename T>
-        T* newComponent()
+        std::weak_ptr<T> newComponent()
         {
             static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-            auto component = std::unique_ptr<Component>(new T);
+            auto component = std::make_shared<T>();
             component->setOwner(this);
-            auto it = components.insert_or_assign(T::GetClass()->getName(), std::move( component ));
-
-            return reinterpret_cast<T*>(it.second.get());
+            components.insert_or_assign(T::GetClass()->getName(), component );
+            return component;
         }
 
 		/* Return true if this node has the component specified by it's type T.

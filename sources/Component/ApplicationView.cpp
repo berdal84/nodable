@@ -18,14 +18,18 @@
 
 using namespace Nodable;
 
-ApplicationView::ApplicationView(const char* _name, Application* _application):
-        application(_application),
+ApplicationView::ApplicationView():
+        View(),
         backgroundColor(50, 50, 50),
         isStartupWindowVisible(true),
-        isHistoryDragged(false)
+        isHistoryDragged(false),
+        sdlWindow(nullptr),
+        glcontext(nullptr),
+        headingFont(nullptr),
+        paragraphFont(nullptr)
 {
     add("glWindowName");
-    set("glWindowName", _name);
+    set("glWindowName", "ApplicationView");
 
     // Add a member to know if we should display the properties panel or not
     add("showProperties");
@@ -47,6 +51,9 @@ ApplicationView::~ApplicationView()
 
 bool ApplicationView::init()
 {
+    auto application = getApplication();
+    NODABLE_ASSERT(application != nullptr);
+
 	    // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
@@ -199,6 +206,8 @@ bool ApplicationView::init()
 
 bool ApplicationView::draw()
 {
+    auto application = getApplication();
+    NODABLE_ASSERT(application != nullptr);
 
     // Declare variables that can be modified my mouse and keyboard
     auto userWantsToDeleteSelectedNode(false);
@@ -653,6 +662,9 @@ bool ApplicationView::draw()
 
 void Nodable::ApplicationView::drawFileTabs()
 {
+    auto application = getApplication();
+    NODABLE_ASSERT(application != nullptr);
+
 	bool userSwitchesFile = false;
 	{
 

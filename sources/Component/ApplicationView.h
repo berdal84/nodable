@@ -22,7 +22,7 @@ namespace Nodable
 	{
 		
 	public:		
-		ApplicationView(const char* _name, Application* _application);
+		ApplicationView();
 		~ApplicationView();
 
 		/* call this every frame */
@@ -33,17 +33,16 @@ namespace Nodable
 		/* call this once just after the instantiation. */
 		bool init();
 
-		
-
 	private:
+        inline Application* getApplication() { return reinterpret_cast<Application*>(this->owner); }
+
 		ImGui::FileBrowser fileBrowser;
-		Application       *application;
-		SDL_Window        *sdlWindow;
-		SDL_GLContext     glcontext;
+		SDL_Window        *sdlWindow{};
+		SDL_GLContext     glcontext{};
 		ImColor backgroundColor;
         bool isStartupWindowVisible;
-        ImFont *paragraphFont;
-        ImFont *headingFont;
+        ImFont *paragraphFont{};
+        ImFont *headingFont{};
         bool isHistoryDragged;
 	public:
 		void browseFile();

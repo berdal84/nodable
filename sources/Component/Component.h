@@ -16,10 +16,10 @@ namespace Nodable{
 
 		~Component(){};
 		virtual bool update() { return true; };
-		void       setOwner(Node* _entity){ owner = _entity; }
+		virtual void setOwner(Node* _entity){ owner = _entity; }
 		Node* getOwner()const{return owner;}
 
-	private:
+	protected:
 		Node* owner = nullptr;
 		MIRROR_CLASS(Component)(
 			MIRROR_PARENT(Object);

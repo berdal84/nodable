@@ -210,7 +210,7 @@ Node* Container::newBinOp(const Operator* _operator)
 	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation component and link values.
-	auto binOpComponent = node->newComponent<ComputeBinaryOperation>();
+	auto binOpComponent = node->newComponent<ComputeBinaryOperation>().lock();
 	binOpComponent->setLanguage(language);
 	binOpComponent->setFunction(_operator);
 	binOpComponent->setResult(result);	
@@ -240,7 +240,7 @@ Node* Container::newUnaryOp(const Operator* _operator)
 	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation binOpComponent and link values.
-	auto unaryOperationComponent = node->newComponent<ComputeUnaryOperation>();
+	auto unaryOperationComponent = node->newComponent<ComputeUnaryOperation>().lock();
 	unaryOperationComponent->setLanguage(language);
 	unaryOperationComponent->setFunction(_operator);
 	unaryOperationComponent->setResult(result);
@@ -266,7 +266,7 @@ Node* Container::newFunction(const Function* _function) {
 	node->add("result", Visibility::Default, language->tokenTypeToType(_function->signature.getType()), Way_Out);
 
 	// Create ComputeBase binOpComponent and link values.
-	auto computeFunctionComponent = node->newComponent<ComputeFunction>();
+	auto computeFunctionComponent = node->newComponent<ComputeFunction>().lock();
     computeFunctionComponent->setLanguage(this->language);
 	computeFunctionComponent->setFunction(_function);
 	computeFunctionComponent->setResult(node->get("result"));

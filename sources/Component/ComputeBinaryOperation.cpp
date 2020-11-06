@@ -6,20 +6,27 @@
 
 using namespace Nodable;
 
-Nodable::ComputeBinaryOperation::ComputeBinaryOperation(
+ComputeBinaryOperation::ComputeBinaryOperation():
+    ComputeFunction()
+{
+    args.resize(2);
+}
+
+ComputeBinaryOperation::ComputeBinaryOperation(
 	const Operator*    _operator,
 	const Language*    _language):
-
-	ComputeFunction(_operator , _language)
+    ComputeBinaryOperation()
 {
+    setFunction(_operator);
+    setLanguage(_language);
 }
 
 void ComputeBinaryOperation::setLValue(Member* _value){
-	this->args[0] = _value;	
+	this->args.at(0) = _value;
 };
 
 void ComputeBinaryOperation::setRValue(Member* _value) {
-	this->args[1] = _value;
+	this->args.at(1) = _value;
 };
 
 void ComputeBinaryOperation::updateResultSourceExpression()const
@@ -39,8 +46,8 @@ void ComputeBinaryOperation::updateResultSourceExpression()const
 	};
 
 	// Get the left and right source bin operator
-	auto lBinOp = getMemberSourceBinOp(this->args[0]->getInputMember());
-	auto rBinOp = getMemberSourceBinOp(this->args[1]->getInputMember());
+	auto lBinOp = getMemberSourceBinOp(this->args.at(0)->getInputMember());
+	auto rBinOp = getMemberSourceBinOp(this->args.at(1)->getInputMember());
 
 	auto expr   = language->serializeBinaryOp(ope(), args, lBinOp, rBinOp);
 

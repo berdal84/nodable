@@ -51,13 +51,6 @@ Node::~Node()
     std::for_each(wires.crbegin(), wires.crend(), [](auto item) {
        Node::Disconnect(item);
     });
-
-	// Delete all components
-	for(auto pair : components)
-	{
-		delete pair.second;
-	}
-
 }
 
 bool Node::isDirty()const

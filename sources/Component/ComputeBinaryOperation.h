@@ -17,7 +17,7 @@ namespace Nodable{
 	*/
 	class ComputeBinaryOperation: public ComputeFunction {
 	public:
-	    ComputeBinaryOperation():ComputeFunction(){};
+	    ComputeBinaryOperation();
 		ComputeBinaryOperation(const Operator*, const Language*);
 		~ComputeBinaryOperation(){};
 		void                setLValue(Member* _value);
