@@ -16,13 +16,14 @@ namespace Nodable{
 	*                 using prototypes but with different serialization and parsing methods.
 	*/
 	class ComputeBinaryOperation: public ComputeFunction {
-	public:		
+	public:
+	    ComputeBinaryOperation():ComputeFunction(){};
 		ComputeBinaryOperation(const Operator*, const Language*);
 		~ComputeBinaryOperation(){};
 		void                setLValue(Member* _value);
 		void                setRValue(Member* _value);		
 		void                updateResultSourceExpression() const override;
-		const Operator* ope;
+		inline const Operator* ope()const { return reinterpret_cast<const Operator*>(this->function); };
 	protected:		
 		MIRROR_CLASS(ComputeBinaryOperation)(
 			MIRROR_PARENT(ComputeFunction)

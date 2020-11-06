@@ -21,7 +21,7 @@ namespace Nodable {
 		~ComputeUnaryOperation() {};
 		void                setLValue(Member* _value);
 		void                updateResultSourceExpression() const override;
-		const Operator* ope;
+		inline const Operator* getOperator()const { return reinterpret_cast<const Operator*>(this->function); };
 
 	protected:
 		MIRROR_CLASS(ComputeUnaryOperation)(

@@ -10,9 +10,11 @@ namespace Nodable
 	  */
 	class ComputeFunction : public ComputeBase {
 	public:
+	    ComputeFunction(): ComputeBase(){};
 		ComputeFunction(const Function* _function, const Language* _language);
 		~ComputeFunction() {};
 
+		void setFunction(const Function* _function){ function = _function; };
 		void setArg(size_t _index, Member* _value) { args[_index] = _value; };
 		bool update()override;
 		void updateResultSourceExpression() const override;

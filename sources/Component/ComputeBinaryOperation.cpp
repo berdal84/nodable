@@ -10,8 +10,7 @@ Nodable::ComputeBinaryOperation::ComputeBinaryOperation(
 	const Operator*    _operator,
 	const Language*    _language):
 
-	ComputeFunction(_operator , _language),
-	ope(_operator)
+	ComputeFunction(_operator , _language)
 {
 }
 
@@ -34,7 +33,7 @@ void ComputeBinaryOperation::updateResultSourceExpression()const
 		{
 			auto node = _member->getOwner()->as<Node>();
 			if (auto component = node->getComponent<ComputeBinaryOperation>())
-				return component->ope;
+				return component->ope();
 		}
 		return nullptr;
 	};
@@ -43,8 +42,9 @@ void ComputeBinaryOperation::updateResultSourceExpression()const
 	auto lBinOp = getMemberSourceBinOp(this->args[0]->getInputMember());
 	auto rBinOp = getMemberSourceBinOp(this->args[1]->getInputMember());
 
-	auto expr   = language->serializeBinaryOp(ope, args, lBinOp, rBinOp);
+	auto expr   = language->serializeBinaryOp(ope(), args, lBinOp, rBinOp);
 
 	// Apply the new string to the result's source expression.
 	result->setSourceExpression(expr.c_str());
 }
+

@@ -94,22 +94,12 @@ namespace Nodable{
         T* newComponent()
         {
             static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-            auto newComponent = std::make_unique<T>();
-            auto rawPtr = newComponent.get();
-            this->addComponent( std::move(newComponent));
-            return rawPtr;
-        }
+            auto component = std::unique_ptr<Component>(new T);
+            component->setOwner(this);
+            auto it = components.insert_or_assign(T::GetClass()->getName(), std::move( component ));
 
-		/* Add a component to this Node
-		   note: User must check be sure this Node has no other Component of the same type (cf. hasComponent(...))*/
-		template<typename T>
-		void addComponent( std::unique_ptr<T> _component)
-		{
-			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-			std::string name(T::GetClass()->getName());
-            _component->setOwner(this);
-			components.insert(name, std::move(_component));
-		}
+            return reinterpret_cast<T*>(it.second.get());
+        }
 
 		/* Return true if this node has the component specified by it's type T.
 		   note: T must be a derived class of Component

@@ -210,11 +210,12 @@ Node* Container::newBinOp(const Operator* _operator)
 	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation component and link values.
-	auto binOpComponent = std::make_unique<ComputeBinaryOperation>(_operator, language);
+	auto binOpComponent = node->newComponent<ComputeBinaryOperation>();
+	binOpComponent->setLanguage(language);
+	binOpComponent->setFunction(_operator);
 	binOpComponent->setResult(result);	
-	binOpComponent->setLValue( left );	
+	binOpComponent->setLValue(left);
 	binOpComponent->setRValue(right);
-	node->addComponent( std::move(binOpComponent) );
 
 	// Create a NodeView component
     node->newComponent<NodeView>();
@@ -239,10 +240,11 @@ Node* Container::newUnaryOp(const Operator* _operator)
 	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation binOpComponent and link values.
-	auto unaryOperationComponent = std::make_unique<ComputeUnaryOperation>(_operator, language);
+	auto unaryOperationComponent = node->newComponent<ComputeUnaryOperation>();
+	unaryOperationComponent->setLanguage(language);
+	unaryOperationComponent->setFunction(_operator);
 	unaryOperationComponent->setResult(result);
 	unaryOperationComponent->setLValue(left);
-	node->addComponent( std::move(unaryOperationComponent) );
 
 	// Create a NodeView Component
     node->newComponent<NodeView>();
@@ -264,10 +266,11 @@ Node* Container::newFunction(const Function* _function) {
 	node->add("result", Visibility::Default, language->tokenTypeToType(_function->signature.getType()), Way_Out);
 
 	// Create ComputeBase binOpComponent and link values.
-	auto computeFunctionComponent = std::make_unique<ComputeFunction>(_function, language);
+	auto computeFunctionComponent = node->newComponent<ComputeFunction>();
+    computeFunctionComponent->setLanguage(this->language);
+	computeFunctionComponent->setFunction(_function);
 	computeFunctionComponent->setResult(node->get("result"));
 
-	// Arguments
 	auto args = _function->signature.getArgs();
 	for (size_t argIndex = 0; argIndex < args.size(); argIndex++) {
 		std::string memberName = args[argIndex].name;
@@ -275,7 +278,7 @@ Node* Container::newFunction(const Function* _function) {
 		computeFunctionComponent->setArg(argIndex, member); // link input to binOpComponent
 	}	
 	
-	node->addComponent( std::move(computeFunctionComponent) );
+	// Add a node view
     node->newComponent<NodeView>();
 
 	this->add(node);

@@ -12,8 +12,7 @@ Nodable::ComputeUnaryOperation::ComputeUnaryOperation(
 	const Operator* _operator,
 	const Language* _language) :
 
-	ComputeFunction(_operator, _language),
-	ope(_operator)
+        ComputeFunction(_operator, _language)
 {
 }
 
@@ -32,7 +31,7 @@ void ComputeUnaryOperation::updateResultSourceExpression()const
 		{
 			auto node = _member->getOwner()->as<Node>();
 			if (auto component = node->getComponent<ComputeBinaryOperation>())
-				return component->ope;
+				return component->ope();
 		}
 		return nullptr;
 	};
@@ -40,7 +39,7 @@ void ComputeUnaryOperation::updateResultSourceExpression()const
 	// Get the inner source bin operator
 	auto innerOp = getMemberSourceBinOp(this->args[0]->getInputMember());
 
-	auto expr   = language->serializeUnaryOp(ope, args, innerOp);
+	auto expr   = language->serializeUnaryOp(getOperator(), args, innerOp);
 
 	// Apply the new string to the result's source expression.
 	result->setSourceExpression(expr.c_str());
