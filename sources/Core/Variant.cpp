@@ -34,7 +34,7 @@ void Variant::set(bool _value)
 
 bool Variant::isSet()const
 {
-	return data.has_value();
+	return data.index() != std::variant_npos;
 }
 
 std::string Variant::getTypeAsString()const
@@ -71,18 +71,18 @@ void Variant::setType(Type _type)
 Variant::operator double()const {
 	switch (type)
 	{
-        case Type::String:  return std::any_cast<std::string>(data).length();
-        case Type::Double:  return std::any_cast<double>(data);
-	    case Type::Boolean: return std::any_cast<bool>(data) ? double(1) : double(0);
+        case Type::String:  return std::get<std::string>(data).length();
+        case Type::Double:  return std::get<double>(data);
+	    case Type::Boolean: return std::get<bool>(data) ? double(1) : double(0);
 	    default:           return double(0);
 	}
 }
 
 Variant::operator bool()const {
 	switch (type) {
-	    case Type::String:  return !std::any_cast<std::string>(data).empty();
-	    case Type::Double:  return std::any_cast<double>(data) != double(0);
-	    case Type::Boolean: return std::any_cast<bool>(data);
+	    case Type::String:  return !std::get<std::string>(data).empty();
+	    case Type::Double:  return std::get<double>(data) != double(0);
+	    case Type::Boolean: return std::get<bool>(data);
 	    default:           return false;
 	}
 }
@@ -93,13 +93,13 @@ Variant::operator std::string()const {
     {
         case Type::String:
         {
-            return std::any_cast<std::string>(data);
+            return std::get<std::string>(data);
         }
 
         case Type::Double:
         {
             // Format the num as a string without any useless ending zeros/dot
-            std::string str = std::to_string(std::any_cast<double>(data));
+            std::string str = std::to_string(std::get<double>(data));
             str.erase(str.find_last_not_of('0') + 1, std::string::npos);
             if (str.find_last_of('.') + 1 == str.size())
                 str.erase(str.find_last_of('.'), std::string::npos);
@@ -108,7 +108,7 @@ Variant::operator std::string()const {
 
         case Type::Boolean:
         {
-            return std::any_cast<bool>(data) ? "true" : "false";
+            return std::get<bool>(data) ? "true" : "false";
         }
 
         default:

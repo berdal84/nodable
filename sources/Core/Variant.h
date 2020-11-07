@@ -3,7 +3,7 @@
 #include "Nodable.h"    // for constants and forward declarations
 #include "Type.h"
 #include <string>
-#include <any>
+#include <variant>
 
 namespace Nodable{
 
@@ -30,7 +30,8 @@ namespace Nodable{
 		operator std::string()const;
 
 	private:
-	    std::any data;
+	    std::variant<bool, double, std::string> data;
+
 		Type type = Type::Any;
 	};
 }
