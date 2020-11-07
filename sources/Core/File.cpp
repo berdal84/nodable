@@ -40,7 +40,7 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 	auto api = language->getAllFunctions();
 
 	for (auto it = api.cbegin(); it != api.cend(); it++) {
-		const auto function = new Function(*it);
+		const auto function = &*it;
 
 		auto op = language->findOperator(function->signature);
 
@@ -62,7 +62,7 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 				return innerContainer->newFunction(function);
 			};
 
-			auto label = language->serialize((*it).signature);
+			auto label = language->serialize(function->signature);
 			containerView->addContextualMenuItem( "Functions", label, lambda);
 		}
 		
