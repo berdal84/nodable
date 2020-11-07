@@ -2,6 +2,7 @@
 
 #include <memory> // for unique_ptr
 #include <stack>
+#include <Language/LanguageNodable.h>
 #include "Member.h"
 #include "Log.h"
 #include "Node.h"
@@ -91,7 +92,7 @@ bool Member_Connections_Tests() {
 	TEST_BEGIN("Member Way"){
 
 		TEST_BEGIN("Member 1: In"){
-			std::unique_ptr<Member> m(new Member);
+            auto m = std::make_unique<Member>();
 			m->setConnectorWay(Way_In);
 
 			EXPECT(m->allows(Way_Out)	, false)
@@ -102,7 +103,7 @@ bool Member_Connections_Tests() {
 
 
 		TEST_BEGIN("Member 2: Out"){
-			std::unique_ptr<Member> m(new Member);
+            auto m = std::make_unique<Member>();
 			m->setConnectorWay(Way_Out);
 
 			EXPECT(m->allows(Way_Out)	, true)
@@ -112,7 +113,7 @@ bool Member_Connections_Tests() {
 		}TEST_END
 
 		TEST_BEGIN("Member 3: None"){
-			std::unique_ptr<Member> m(new Member);
+            auto m = std::make_unique<Member>();
 			m->setConnectorWay(Way_Out);
 
 			EXPECT(m->allows(Way_Out)	, true)
@@ -122,7 +123,7 @@ bool Member_Connections_Tests() {
 		}TEST_END
 
 		TEST_BEGIN("Member 4: InOut"){
-			std::unique_ptr<Member> m(new Member);
+		    auto m = std::make_unique<Member>();
 			m->setConnectorWay(Way_InOut);
 
 			EXPECT(m->allows(Way_Out)	, true)
@@ -140,7 +141,7 @@ bool Member_AsBoolean_Tests() {
 
 	TEST_BEGIN("Member: Booleans"){
 
-		std::unique_ptr<Member> m(new Member);
+        auto m = std::make_unique<Member>();
 
 		m->set(true);
 		EXPECT((bool)*m, true)
@@ -159,7 +160,7 @@ bool Member_AsString_Tests() {
 
 	TEST_BEGIN("Member: String"){
 
-		auto m = new Member();
+		auto m = std::make_unique<Member>();
 		m->set("Hello world !");
 		const std::string str = "Hello world !";
 
@@ -177,7 +178,7 @@ bool Member_AsNumber_Tests() {
 
 	TEST_BEGIN("Member: Double"){
 				
-		std::unique_ptr<Member> m(new Member);
+		auto m = std::make_unique<Member>();
 		m->set((double)50);
 
 		EXPECT((double)*m, (double)50)
@@ -193,12 +194,12 @@ bool Member_AsNumber_Tests() {
 template <typename T>
 bool Parser_Test(
 	const std::string& expression,	
-	T _expectedValue,
-	const Language* _language = Language::Nodable()
-){
+	T _expectedValue )
+{
+    auto language = std::make_shared<LanguageNodable>();
 
-	Container container(_language);
-	Parser parser(_language, &container);
+	Container container(language.get());
+	Parser parser(language.get(), &container);
 
 	parser.eval(expression);
 
@@ -308,7 +309,7 @@ bool Node_Tests() {
 
 		TEST_BEGIN("Node (add member Double)"){
 
-			std::unique_ptr<Node> node(new Node);
+			auto node = std::make_unique<Node>();
 			node->add("val");
 			node->set("val", double(100));
 
@@ -331,10 +332,10 @@ bool WireAndNode_Tests() {
 
 		TEST_BEGIN("Connect two nodes with a wire"){
 
-			std::unique_ptr<Node> a(new Node);
+			auto a = std::make_unique<Node>();
 			a->add("output");
 
-			std::unique_ptr<Node> b(new Node);
+			auto b = std::make_unique<Node>();
 			b->add("input");
 
 			auto wire = Node::Connect(a->get("output"), b->get("input"));
