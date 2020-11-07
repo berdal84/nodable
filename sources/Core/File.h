@@ -22,8 +22,6 @@ namespace Nodable
 	public:
 		File(std::filesystem::path, const char* /*_content*/);
         virtual ~File(){};
-
-		std::string                      getName()const { return std::string {path.filename().u8string()}; }	
 		void                             save();
 		UpdateResult                     update();
 		void                             setModified() { modified = true; }
@@ -37,10 +35,20 @@ namespace Nodable
 			return getComponent<History>();
 		}
 
+        inline Container* getInnerContainer() {
+            return this->innerContainer.get();
+        }
+
+        inline std::string getName()const
+        {
+            return std::string {path.filename().u8string()};
+        }
+
 	private:
+	    std::unique_ptr<Container> innerContainer;
 		bool                      modified = false;
 		std::filesystem::path     path;		
 		const Language*           language;
 		MIRROR_CLASS(File)();
-	};
+    };
 }

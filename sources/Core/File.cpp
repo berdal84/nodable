@@ -33,9 +33,8 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 	fileView->setUndoBuffer(undoBuffer);
 	
 	/* Creates a node container */
-	auto container = new Container(language);
-	setInnerContainer(container);
-	auto containerView = container->newComponent<ContainerView>().lock();
+	innerContainer = std::make_unique<Container>(language);
+	auto containerView = innerContainer->newComponent<ContainerView>().lock();
 
 	/* Add inputs in contextual menu */
 	auto api = language->getAllFunctions();
@@ -48,9 +47,9 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 
 		if (op != nullptr )
 		{
-			auto lambda = [container, function, op]()->Node*
+			auto lambda = [this, op]()->Node*
 			{	
-				return container->newBinOp(op);		
+				return innerContainer->newBinOp(op);
 			};
 
 			auto label = op->signature.getLabel();
@@ -58,9 +57,9 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 		}
 		else
 		{
-			auto lambda = [container, function, op]()->Node*
+			auto lambda = [this, function]()->Node*
 			{
-				return container->newFunction(function);
+				return innerContainer->newFunction(function);
 			};
 
 			auto label = language->serialize((*it).signature);

@@ -40,9 +40,6 @@ namespace Nodable{
 		/* Set the parent container of this node */
 		void setParentContainer(Container*);
 
-		inline Container* getInnerContainer()const { return this->innerContainer;  }
-		inline void setInnerContainer(Container* _container) { this->innerContainer = _container; };
-
 		/* Get the label of this Node */
 		const char* getLabel()const;		
 		
@@ -122,9 +119,7 @@ namespace Nodable{
 		void deleteComponent() {
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
 			auto name = T::GetClass()->getName();
-			auto component = getComponent<T>();
 			components.erase(name);
-			delete component;
 		}
 
 		/* Get a component of this Node by specifying it's type T.
