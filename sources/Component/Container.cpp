@@ -106,7 +106,7 @@ void Container::add(std::shared_ptr<Node> _node)
 void Container::remove(const std::shared_ptr<Node> _node)
 {
 
-    if ( auto nodeAsVariable = std::static_pointer_cast<Variable>(_node) )
+    if ( auto nodeAsVariable = std::dynamic_pointer_cast<Variable>(_node) )
     {
         auto it = variables.find(nodeAsVariable->getName());
         if (it != variables.end())
