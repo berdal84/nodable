@@ -232,11 +232,11 @@ bool ContainerView::draw()
 		if (draggedConnector != nullptr && newNode != nullptr)
 		{
 			// if dragged member is an inputMember
-			if (draggedConnector->member->allows(Way::In))
+			if (draggedConnector->member->allowsConnections(Way::In))
 				Node::Connect(newNode->getFirstWithConn(Way::Out), draggedConnector->member);
 
 			// if dragged member is an output
-			else if (draggedConnector->member->allows(Way::Out)) {
+			else if (draggedConnector->member->allowsConnections(Way::Out)) {
 
 				// try to get the first Input only member
 				auto targetMember = newNode->getFirstWithConn(Way::In);

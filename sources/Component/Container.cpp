@@ -145,7 +145,7 @@ Variable* Container::newResult()
 {
 	auto variable = newVariable(ICON_FA_SIGN_OUT_ALT " Result");
 	auto member = variable->get("value");
-	member->setConnectorWay(Way::In);                     // disable output because THIS node is the output !
+    member->setAllowedConnections(Way::In);                     // disable output because THIS node is the output !
 	resultNode = variable;
 	return variable.get();
 }

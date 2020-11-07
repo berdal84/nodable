@@ -16,13 +16,13 @@ namespace Nodable
 		Member() = default;
 		~Member() = default;
 
-		[[nodiscard]] bool  allows(Way)const;
+		[[nodiscard]] bool  allowsConnections(Way)const;
 		[[nodiscard]] bool  isEditable()const;
 		[[nodiscard]] bool  isSet()const;
         [[nodiscard]] bool  isType(Type)const;
         [[nodiscard]] bool  equals(const Member *)const;
 
-		void                setConnectorWay(Way);
+		void                setAllowedConnections(Way _flags);
 		void                setSourceExpression(const char*);
 		void                setInputMember(Member*);
 		void  		        setName(const char*);

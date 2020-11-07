@@ -27,9 +27,9 @@ bool Member::equals(const Member *_other)const {
 		   (std::string)*_other == (std::string)*this;
 }
 
-void Member::setConnectorWay(Way _flags)
+void Member::setAllowedConnections(Way _flags)
 {
-    LOG_MESSAGE(3u, "setConnectorWay( %i )\n", (int)_flags);
+    LOG_MESSAGE(3u, "enableConnector( %i )\n", (int)_flags);
 
 	// Create an input if needed
 	if ( _flags == Way::In || _flags == Way::InOut )
@@ -76,7 +76,7 @@ void Nodable::Member::updateValueFromInputMemberValue()
 	this->set(this->inputMember);
 }
 
-bool Member::allows(Way _requiredWay)const
+bool Member::allowsConnections(Way _requiredWay)const
 {
     auto way = getConnectorWay();
     auto result = false;
@@ -172,7 +172,7 @@ std::string Member::getSourceExpression()const
 {
 	std::string expression;
 
-	if ( allows(Way::In) && inputMember != nullptr)
+	if (allowsConnections(Way::In) && inputMember != nullptr)
 	{
 		// if inputMember is a variable we add the variable name and an equal sign
 		if (inputMember->getOwner()->getClass()->getName() == "Variable" &&

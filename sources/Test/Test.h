@@ -93,43 +93,43 @@ bool Member_Connections_Tests() {
 
 		TEST_BEGIN("Member 1: In"){
             auto m = std::make_unique<Member>();
-			m->setConnectorWay(Way::In);
+                    m->setAllowedConnections(Way::In);
 
-			EXPECT(m->allows(Way::Out)	, false)
-			EXPECT(m->allows(Way::InOut)	, false)
-			EXPECT(m->allows(Way::In)	, true)
-			EXPECT(m->allows(Way::None)	, false)
+			EXPECT(m->allowsConnections(Way::Out)	, false)
+			EXPECT(m->allowsConnections(Way::InOut)	, false)
+			EXPECT(m->allowsConnections(Way::In)	, true)
+			EXPECT(m->allowsConnections(Way::None)	, false)
 		}TEST_END
 
 
 		TEST_BEGIN("Member 2: Out"){
             auto m = std::make_unique<Member>();
-			m->setConnectorWay(Way::Out);
+                    m->setAllowedConnections(Way::Out);
 
-			EXPECT(m->allows(Way::Out)	, true)
-			EXPECT(m->allows(Way::InOut)	, false)
-			EXPECT(m->allows(Way::In)		, false)
-			EXPECT(m->allows(Way::None)	, false)
+			EXPECT(m->allowsConnections(Way::Out)	, true)
+			EXPECT(m->allowsConnections(Way::InOut)	, false)
+			EXPECT(m->allowsConnections(Way::In)		, false)
+			EXPECT(m->allowsConnections(Way::None)	, false)
 		}TEST_END
 
 		TEST_BEGIN("Member 3: Way::None"){
             auto m = std::make_unique<Member>();
-			m->setConnectorWay(Way::None);
+                    m->setAllowedConnections(Way::None);
 
-			EXPECT(m->allows(Way::Out)	, false)
-			EXPECT(m->allows(Way::InOut)	, false)
-			EXPECT(m->allows(Way::In)		, false)
-			EXPECT(m->allows(Way::None)	, true)
+			EXPECT(m->allowsConnections(Way::Out)	, false)
+			EXPECT(m->allowsConnections(Way::InOut)	, false)
+			EXPECT(m->allowsConnections(Way::In)		, false)
+			EXPECT(m->allowsConnections(Way::None)	, true)
 		}TEST_END
 
 		TEST_BEGIN("Member 4: Way::InOut"){
 		    auto m = std::make_unique<Member>();
-			m->setConnectorWay(Way::InOut);
+                    m->setAllowedConnections(Way::InOut);
 
-			EXPECT(m->allows(Way::Out)	, true)
-			EXPECT(m->allows(Way::InOut)	, true)
-			EXPECT(m->allows(Way::In)	, true)
-			EXPECT(m->allows(Way::None)	, false)
+			EXPECT(m->allowsConnections(Way::Out)	, true)
+			EXPECT(m->allowsConnections(Way::InOut)	, true)
+			EXPECT(m->allowsConnections(Way::In)	, true)
+			EXPECT(m->allowsConnections(Way::None)	, false)
 		}TEST_END
 
 	}TEST_END

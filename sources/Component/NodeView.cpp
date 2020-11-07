@@ -525,12 +525,12 @@ bool NodeView::drawMember(Member* _member) {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	auto memberName       = _member->getName();
 
-	if (_member->allows(Way::In)) {
+	if (_member->allowsConnections(Way::In)) {
 		ImVec2      connectorPos = getConnectorPosition( memberName, Way::In);
 		drawConnector(connectorPos, _member->input(), draw_list);
 	}
 		
-	if (_member->allows(Way::Out)) {
+	if (_member->allowsConnections(Way::Out)) {
 		ImVec2      connectorPos = getConnectorPosition( memberName, Way::Out);
 		drawConnector(connectorPos, _member->output(), draw_list);
 	}

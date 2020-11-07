@@ -41,7 +41,7 @@ Member* Object::getFirstWithConn(Way _connection)const
 	auto m = this->members.begin();
 	while (m != this->members.end() && found == nullptr)
 	{
-		if (m->second->allows( _connection ) )
+		if (m->second->allowsConnections(_connection) )
 			found = m->second.get();
 		m++;
 	}
@@ -57,7 +57,7 @@ Member* Object::add (const char* _name, Visibility _visibility, Type _type, Way 
 	member->setName		(_name);
 	member->setVisibility(_visibility);
 	member->setType		(_type);
-	member->setConnectorWay(_flags);
+    member->setAllowedConnections(_flags);
 	members.insert_or_assign(std::string(_name), member);
 
 	return member.get();
