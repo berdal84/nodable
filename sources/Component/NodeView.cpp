@@ -67,11 +67,11 @@ ImVec2 NodeView::getConnectorPosition(const std::string& _name, Way _way)const
 		pos.y += (*it).second;
 
 	// Inputs are displayed on the left
-	if (_way == Way_In)
+	if (_way == Way::In)
 		return ImVec2(pos.x - size.x * 0.5f, pos.y);
 
 	// Outputs are displayed on the right
-	else if (_way == Way_Out)
+	else if (_way == Way::Out)
 		return ImVec2(pos.x + size.x * 0.5f, pos.y);
 	else {
 		NODABLE_ASSERT(false); // _way should be only In or Out.
@@ -289,7 +289,7 @@ bool NodeView::draw()
 		for(auto& m : node->getMembers())
 		{		
 			auto member = m.second;
-			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() == Way_In)
+			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() == Way::In)
 			{
 				drawMember(member.get());
 			}
@@ -299,7 +299,7 @@ bool NodeView::draw()
 		for (auto& m : node->getMembers())
 		{
 			auto member = m.second;
-			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() != Way_In)
+			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() != Way::In)
 			{
 				drawMember(member.get());
 			}
@@ -525,13 +525,13 @@ bool NodeView::drawMember(Member* _member) {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	auto memberName       = _member->getName();
 
-	if (_member->allows(Way_In)) {
-		ImVec2      connectorPos = getConnectorPosition( memberName, Way_In);
+	if (_member->allows(Way::In)) {
+		ImVec2      connectorPos = getConnectorPosition( memberName, Way::In);
 		drawConnector(connectorPos, _member->input(), draw_list);
 	}
 		
-	if (_member->allows(Way_Out)) {
-		ImVec2      connectorPos = getConnectorPosition( memberName, Way_Out);
+	if (_member->allows(Way::Out)) {
+		ImVec2      connectorPos = getConnectorPosition( memberName, Way::Out);
 		drawConnector(connectorPos, _member->output(), draw_list);
 	}
 

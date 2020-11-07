@@ -41,7 +41,7 @@ Member* Object::getFirstWithConn(Way _connection)const
 	auto m = this->members.begin();
 	while (m != this->members.end() && found == nullptr)
 	{
-		if (m->second->getConnectorWay() & _connection)
+		if (m->second->allows( _connection ) )
 			found = m->second.get();
 		m++;
 	}

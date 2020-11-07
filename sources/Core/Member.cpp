@@ -29,11 +29,14 @@ bool Member::equals(const Member *_other)const {
 
 void Member::setConnectorWay(Way _flags)
 {
+    LOG_MESSAGE(3u, "setConnectorWay( %i )\n", (int)_flags);
+
 	// Create an input if needed
-	if (_flags & Way_In)
+	if ( _flags == Way::In || _flags == Way::InOut )
     {
-		auto conn = std::make_unique<Connector>(this, Way_In);
+		auto conn = std::make_unique<Connector>(this, Way::In);
 		in = std::move(conn);
+        LOG_MESSAGE(3u, "allows Way::In\n");
     }
 	else
     {
@@ -41,10 +44,11 @@ void Member::setConnectorWay(Way _flags)
     }
 
 	// Create an output if needed
-	if (_flags & Way_Out)
+	if ( _flags == Way::Out || _flags == Way::InOut )
     {
-        auto conn = std::make_unique<Connector>(this, Way_Out);
-        in = std::move(conn);
+        auto conn = std::make_unique<Connector>(this, Way::Out);
+        out = std::move(conn);
+        LOG_MESSAGE(3u, "allows Way::Out\n");
     }
 	else
     {
@@ -72,9 +76,23 @@ void Nodable::Member::updateValueFromInputMemberValue()
 	this->set(this->inputMember);
 }
 
-bool Member::allows(Way _way)const
+bool Member::allows(Way _requiredWay)const
 {
-	return  _way & getConnectorWay();
+    auto way = getConnectorWay();
+    auto result = false;
+
+    switch (_requiredWay) {
+
+        case Way::None:
+        case Way::InOut:
+            result = way == _requiredWay;
+            break;
+        case Way::In:
+        case Way::Out:
+            result = way == _requiredWay || way == Way::InOut;
+    }
+
+	return  result;
 }
 
 Object* Member::getOwner() const
@@ -107,22 +125,28 @@ void Nodable::Member::setName(const char* _name)
 
 Way Member::getConnectorWay() const
 {
-    Way way = Way_None;
+    LOG_MESSAGE(3u, "getConnectorWay() - Set Way::None by default\n");
+    Way way = Way::None;
 
 	if ( in != nullptr )
     {
-	    way = Way_In;
+	    way = Way::In;
+        LOG_MESSAGE(3u, "getConnectorWay() - Set Way::In because this->in is not nullptr\n");
     }
 
 	if ( out != nullptr )
 	{
-        if ( way == Way_In )
+        if ( way == Way::In )
         {
-            way = Way_InOut;
+            way = Way::InOut;
+            LOG_MESSAGE(3u, "getConnectorWay() - Set Way::InOut because this->out is not nullptr too\n");
+
         }
         else
         {
-            way = Way_Out;
+            way = Way::Out;
+            LOG_MESSAGE(3u, "getConnectorWay() - Set Way::Out because this->out is not nullptr\n");
+
         }
 	}
 
@@ -148,7 +172,7 @@ std::string Member::getSourceExpression()const
 {
 	std::string expression;
 
-	if ( allows(Way_In) && inputMember != nullptr)
+	if ( allows(Way::In) && inputMember != nullptr)
 	{
 		// if inputMember is a variable we add the variable name and an equal sign
 		if (inputMember->getOwner()->getClass()->getName() == "Variable" &&

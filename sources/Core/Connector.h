@@ -9,7 +9,7 @@ namespace Nodable
 	public:
 
 		Connector(Member* _member = nullptr,
-			Way _way = Way_Default) :
+			Way _way = Way::Default) :
 			member(_member),
 			way(_way) {
 		};

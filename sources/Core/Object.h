@@ -16,7 +16,7 @@ namespace Nodable
 		virtual ~Object() = default;
 
 		/* Adds a new member identified by its _name. */
-		Member*             add         (const char*, Visibility = Visibility::Default, Type = Type::Any, Way = Way_Default);
+		Member*             add         (const char*, Visibility = Visibility::Default, Type = Type::Any, Way = Way::Default);
 
 		bool                has         (Member* _value);
 

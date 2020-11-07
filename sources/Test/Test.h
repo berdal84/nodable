@@ -93,43 +93,43 @@ bool Member_Connections_Tests() {
 
 		TEST_BEGIN("Member 1: In"){
             auto m = std::make_unique<Member>();
-			m->setConnectorWay(Way_In);
+			m->setConnectorWay(Way::In);
 
-			EXPECT(m->allows(Way_Out)	, false)
-			EXPECT(m->allows(Way_InOut)	, false)
-			EXPECT(m->allows(Way_In)	, true)
-			EXPECT(m->allows(Way_None)	, true)
+			EXPECT(m->allows(Way::Out)	, false)
+			EXPECT(m->allows(Way::InOut)	, false)
+			EXPECT(m->allows(Way::In)	, true)
+			EXPECT(m->allows(Way::None)	, false)
 		}TEST_END
 
 
 		TEST_BEGIN("Member 2: Out"){
             auto m = std::make_unique<Member>();
-			m->setConnectorWay(Way_Out);
+			m->setConnectorWay(Way::Out);
 
-			EXPECT(m->allows(Way_Out)	, true)
-			EXPECT(m->allows(Way_InOut)	, false)
-			EXPECT(m->allows(Way_In)		, false)
-			EXPECT(m->allows(Way_None)	, true)
+			EXPECT(m->allows(Way::Out)	, true)
+			EXPECT(m->allows(Way::InOut)	, false)
+			EXPECT(m->allows(Way::In)		, false)
+			EXPECT(m->allows(Way::None)	, false)
 		}TEST_END
 
-		TEST_BEGIN("Member 3: None"){
+		TEST_BEGIN("Member 3: Way::None"){
             auto m = std::make_unique<Member>();
-			m->setConnectorWay(Way_Out);
+			m->setConnectorWay(Way::None);
 
-			EXPECT(m->allows(Way_Out)	, true)
-			EXPECT(m->allows(Way_InOut)	, false)
-			EXPECT(m->allows(Way_In)		, false)
-			EXPECT(m->allows(Way_None)	, true)
+			EXPECT(m->allows(Way::Out)	, false)
+			EXPECT(m->allows(Way::InOut)	, false)
+			EXPECT(m->allows(Way::In)		, false)
+			EXPECT(m->allows(Way::None)	, true)
 		}TEST_END
 
-		TEST_BEGIN("Member 4: InOut"){
+		TEST_BEGIN("Member 4: Way::InOut"){
 		    auto m = std::make_unique<Member>();
-			m->setConnectorWay(Way_InOut);
+			m->setConnectorWay(Way::InOut);
 
-			EXPECT(m->allows(Way_Out)	, true)
-			EXPECT(m->allows(Way_InOut)	, true)
-			EXPECT(m->allows(Way_In)	, true)
-			EXPECT(m->allows(Way_None)	, true)
+			EXPECT(m->allows(Way::Out)	, true)
+			EXPECT(m->allows(Way::InOut)	, true)
+			EXPECT(m->allows(Way::In)	, true)
+			EXPECT(m->allows(Way::None)	, false)
 		}TEST_END
 
 	}TEST_END

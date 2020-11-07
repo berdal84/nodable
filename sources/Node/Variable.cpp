@@ -6,7 +6,7 @@ using namespace Nodable;
 
 Variable::Variable():Node("Variable")
 {
-	add("value", Visibility::Always, Type::Any, Way_InOut);	
+	add("value", Visibility::Always, Type::Any, Way::InOut);
 }
 
 void Variable::setName(const char* _name)
