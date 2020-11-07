@@ -59,10 +59,10 @@ namespace Nodable{
 
 		/* Adds a new wire related* to this node. (* connected to one of the Node Member)
 		   note: a node can connect two Members (cf. Wire class) */
-		void                addWire           (Wire*);
+		void                addWire           (std::shared_ptr<Wire>);
 
 		/* Removes a wire from this Node */
-		void                removeWire        (Wire*);
+		void                removeWire        (std::shared_ptr<Wire>);
 
 		/* Get wires related* to this node. (* connected to one of the Node Member) */
 		Wires&              getWires          ();
@@ -83,10 +83,10 @@ namespace Nodable{
 		virtual UpdateResult update();
 
 		/* Create an oriented edge (Wire) between two Members */
-		static Wire* Connect(Member* /*_from*/, Member* /*_to*/);
+		static std::shared_ptr<Wire> Connect(Member* /*_from*/, Member* /*_to*/);
 	
 		/* Disconnect a wire. This method is the opposite of Node::Connect.*/
-		static void Disconnect(Wire* _wire);
+		static void Disconnect(std::shared_ptr<Wire> _wire);
 
         /* Create a new component
            note: User must check be sure this Node has no other Component of the same type (cf. hasComponent(...))*/

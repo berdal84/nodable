@@ -73,7 +73,7 @@ namespace Nodable{
 
 	typedef std::map<std::string, std::shared_ptr<Component>>  Components;
 	typedef std::map<std::string, Member*>     Members;
-	typedef std::vector<Wire*>                 Wires;
+	typedef std::vector<std::shared_ptr<Wire>> Wires;
 }
 
 

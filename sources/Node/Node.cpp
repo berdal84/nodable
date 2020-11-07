@@ -12,7 +12,7 @@
 
 using namespace Nodable;
 
-void Node::Disconnect(Wire* _wire)
+void Node::Disconnect(std::shared_ptr<Wire> _wire)
 {
 	_wire->getTarget()->setInputMember(nullptr);
 
@@ -23,17 +23,13 @@ void Node::Disconnect(Wire* _wire)
 	sourceNode->removeWire(_wire);
 
 	NodeTraversal::SetDirty(targetNode);
-
-    delete _wire;
-
-	return;
 }
 
-Wire* Node::Connect( Member* _from, Member* _to)
+std::shared_ptr<Wire> Node::Connect( Member* _from, Member* _to)
 {	
-	Cmd_ConnectWire command(_from, _to);
-	command.execute();
-	return command.getWire();
+	auto command = std::make_unique<Cmd_ConnectWire>(_from, _to);
+	command->execute();
+	return command->getWire();
 }
 
 Node::Node(std::string _label):
@@ -88,19 +84,19 @@ const char* Node::getLabel()const
 	return this->label.c_str();
 }
 
-void Nodable::Node::addWire(Wire* _wire)
+void Nodable::Node::addWire(std::shared_ptr<Wire> _wire)
 {
 	wires.push_back(_wire);
 }
 
-void Nodable::Node::removeWire(Wire* _wire)
+void Nodable::Node::removeWire(std::shared_ptr<Wire> _wire)
 {
 	auto found = std::find(wires.begin(), wires.end(), _wire);
 	if(found != wires.end())
 		wires.erase(found);
 }
 
-std::vector<Wire*>& Node::getWires()
+std::vector<std::shared_ptr<Wire>>& Node::getWires()
 {
 	return wires;
 }

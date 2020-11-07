@@ -77,12 +77,7 @@ namespace Nodable
 			return textEditorBuffer.get();
 		}
 
-		// Future: For command groups (ex: 5 commands that are atomic)
-		// static BeginGroup();
-		// static EndGroup()
 		bool dirty;
-
-		static History*     global;
 
 	private:
 	    size_t sizeMax;
@@ -166,8 +161,8 @@ namespace Nodable
 			wire->setTarget(target);
 
 			// Add the wire pointer to the Entitis instance to speed up drawing process.
-			targetNode->addWire(wire.get());
-			sourceNode->addWire(wire.get());
+			targetNode->addWire(wire);
+			sourceNode->addWire(wire);
 
 			NodeTraversal::SetDirty(targetNode);
 		}
@@ -189,11 +184,11 @@ namespace Nodable
 			wire->setTarget(nullptr);
 
 			// Add the wire pointer to the Node instance to speed up drawing process.
-            targetNode->removeWire(wire.get());
-            sourceNode->removeWire(wire.get());
+            targetNode->removeWire(wire);
+            sourceNode->removeWire(wire);
 		}
 
-		Wire* getWire() { return wire.get(); }
+		std::shared_ptr<Wire> getWire() { return wire; }
 	private:
 		std::shared_ptr<Wire> wire;
 		Member*    source        = nullptr;

@@ -2,8 +2,6 @@
 
 using namespace Nodable;
 
-History* History::global = nullptr;
-
 History::~History()
 {
 	commands.clear();
@@ -17,10 +15,11 @@ void History::addAndExecute( std::unique_ptr<Cmd> _cmd)
         commands.pop_back();
     }
 
-	/* Then add and execute the new command */
+	/* Then execute and store cmd */
+    _cmd->execute();
 	commands.push_back( std::move(_cmd) );
 	commandsCursor = commands.size();
-	_cmd->execute();
+
 
 	/* Delete command history in excess */
     while (commands.size() > sizeMax)
