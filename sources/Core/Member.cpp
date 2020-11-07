@@ -6,18 +6,6 @@
 
 using namespace Nodable;
 
-Member::Member()
-{
-}
-
-Member::~Member(){
-	if (in != nullptr)
-		delete in;
-
-	if (out != nullptr)
-		delete out;
-};
-
 Type Member::getType()const
 {
 	return data.getType();
@@ -41,24 +29,22 @@ bool Member::equals(const Member *_other)const {
 
 void Member::setConnectorWay(Way _flags)
 {
-	// Delete existing (we could reuse...)
-	if (in != nullptr)
-		delete in;
-
-	if (out != nullptr)
-		delete out;
+    in.reset();
+    out.reset();
 
 	// Create an input if needed
 	if (_flags & Way_In)
-		in = new Connector(this, Way_In);
-	else
-		in = nullptr;
+    {
+		auto conn = std::make_unique<Connector>(this, Way_In);
+		in = std::move(conn);
+    }
 
 	// Create an output if needed
 	if (_flags & Way_Out)
-		out = new Connector(this, Way_Out);
-	else
-		out = nullptr;
+    {
+        auto conn = std::make_unique<Connector>(this, Way_Out);
+        in = std::move(conn);
+    }
 }
 
 void Nodable::Member::setSourceExpression(const char* _val)
@@ -84,7 +70,7 @@ void Nodable::Member::updateValueFromInputMemberValue()
 bool Member::allows(Way _way)const
 {
 	auto maskedFlags = getConnectorWay() & _way;
-	return maskedFlags == _way;
+	return ((Way)maskedFlags) == _way;
 }
 
 Object* Member::getOwner() const
@@ -102,18 +88,6 @@ const std::string& Nodable::Member::getName() const
 	return name;
 }
 
-
-
-const Nodable::Connector* Member::input() const
-{
-	return in;
-}
-
-const Nodable::Connector* Member::output() const
-{
-	return out;
-}
-
 void Member::setInputMember(Member* _val)
 {
 	inputMember = _val;
@@ -127,21 +101,28 @@ void Nodable::Member::setName(const char* _name)
 	name = _name;
 }
 
-Visibility Member::getVisibility() const
-{
-	return visibility;
-}
-
 Way Member::getConnectorWay() const
 {
-	if (in != nullptr && out != nullptr)
-		return Way_InOut;
-	else if (out != nullptr)
-		return Way_Out;
-	else if (in != nullptr)
-		return Way_In;
-	else
-		return Way_None;
+    Way way = Way_None;
+
+	if ( in != nullptr )
+    {
+	    way = Way_In;
+    }
+
+	if ( out != nullptr )
+	{
+        if ( way == Way_In )
+        {
+            way = Way_InOut;
+        }
+        else
+        {
+            way = Way_Out;
+        }
+	}
+
+	return way;
 }
 
 bool Member::isSet()const

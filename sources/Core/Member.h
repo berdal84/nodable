@@ -8,18 +8,20 @@
 
 #include <string>
 
-namespace Nodable{
-
-	class Member{
+namespace Nodable
+{
+	class Member
+    {
 	public:
-		Member();
-		~Member();
+		Member() = default;
+		~Member() = default;
 
-		bool                allows(Way)const;
-		bool                isEditable()const;
-		bool                isSet()const;	
-		bool                isType(Type)const;
-		bool                equals(const Member *)const;
+		[[nodiscard]] bool  allows(Way)const;
+		[[nodiscard]] bool  isEditable()const;
+		[[nodiscard]] bool  isSet()const;
+        [[nodiscard]] bool  isType(Type)const;
+        [[nodiscard]] bool  equals(const Member *)const;
+
 		void                setConnectorWay(Way);
 		void                setSourceExpression(const char*);
 		void                setInputMember(Member*);
@@ -40,31 +42,29 @@ namespace Nodable{
 		    Warning: be sure the member has an inputMember before calling this (getInputMember()!=nullptr)*/
 		void                updateValueFromInputMemberValue();
 
-		Object*             getOwner()const;
-		Member*             getInputMember()const;
-		const std::string&  getName()const;
-		std::string         getSourceExpression()const;
-		Type                getType()const;
-		std::string         getTypeAsString()const;
+		[[nodiscard]] Object*             getOwner()const;
+		[[nodiscard]] Member*             getInputMember()const;
+		[[nodiscard]] const std::string&  getName()const;
+		[[nodiscard]] std::string         getSourceExpression()const;
+		[[nodiscard]] Type                getType()const;
+		[[nodiscard]] std::string         getTypeAsString()const;
+        [[nodiscard]] Visibility          getVisibility()const { return visibility; }
+        [[nodiscard]] Way                 getConnectorWay()const;
+        [[nodiscard]] inline const Connector* input() const { return in.get(); }
+        [[nodiscard]] inline const Connector* output() const { return out.get(); }
 
 		inline operator bool()const        { return data; }
 		inline operator double()const      { return data; }
 		inline operator std::string()const { return data; }
 
-		Visibility          getVisibility()const;
-		Way                 getConnectorWay()const;		
-		const Connector*    input() const;
-		const Connector*    output() const;
-
 	private:
 		Object*     		owner       		= nullptr;
 		Member*             inputMember         = nullptr;
-		std::string         sourceExpression    = "";
+		std::string         sourceExpression;
 		std::string 		name 				= "Unknown";
 		Variant       		data;
 		Visibility 		    visibility 			= Visibility::Default;
-		Connector*          in                  = nullptr;
-		Connector*          out                 = nullptr;
-
+		std::unique_ptr<Connector> in;
+		std::unique_ptr<Connector> out;
 	};
 }

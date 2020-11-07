@@ -8,13 +8,6 @@ Object::Object()
 	add("name",      Visibility::OnlyWhenUncollapsed);
 }
 
-Object::~Object()
-{
-	for(auto each : members)
-		delete each.second;
-}
-
-
 const Members&   Object::getMembers      ()const
 {
 	return members;
