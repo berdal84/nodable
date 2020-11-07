@@ -16,6 +16,7 @@
 using namespace Nodable;
 
 Nodable::File::File( std::filesystem::path _path, const char* _content):
+    Node(),
 	path(_path),
 	language(Language::Nodable()) /* Detect the language (TODO) */
 {		
@@ -83,7 +84,7 @@ modified = false;
 
 }
 
-File* File::OpenFile(std::filesystem::path _filePath)
+std::unique_ptr<File> File::OpenFile(std::filesystem::path _filePath)
 {
 
 	std::ifstream fileStream(_filePath);
@@ -97,8 +98,7 @@ File* File::OpenFile(std::filesystem::path _filePath)
 	// TODO: do that inside File constr ?
 	std::string content((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
 
-	File* file = new File(_filePath.c_str(), content.c_str());
-
+	auto file = std::make_unique<File>( _filePath.c_str(), content.c_str() );
 
 	return file;
 }

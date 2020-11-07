@@ -47,7 +47,7 @@ namespace Nodable
 
 		/* Execute a command and add it to the history.
 		If there are other commands after they will be erased from the history */
-		void addAndExecute(Cmd*);
+		void addAndExecute(std::unique_ptr<Cmd>);
 
 		/* Undo the current (in the history) command  */
 		void undo();
@@ -70,11 +70,11 @@ namespace Nodable
 		/* To get the special buffer for TextEditor */
 		TextEditorBuffer* createTextEditorUndoBuffer(TextEditor* _textEditor) {
 
-			textEditorBuffer = new TextEditorBuffer();
+			textEditorBuffer = std::make_unique<TextEditorBuffer>();
 			textEditorBuffer->setTextEditor(_textEditor);
 			textEditorBuffer->setHistory(this);
 
-			return textEditorBuffer;
+			return textEditorBuffer.get();
 		}
 
 		// Future: For command groups (ex: 5 commands that are atomic)
@@ -86,9 +86,9 @@ namespace Nodable
 
 	private:
 	    size_t sizeMax;
-		std::vector<Cmd*>	commands;		/* Command history */
-		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
-		TextEditorBuffer*   textEditorBuffer = nullptr;
+		std::vector<std::shared_ptr<Cmd>>	commands;		/* Command history */
+		size_t commandsCursor = 0;	/* Command history cursor (zero based index) */
+		std::unique_ptr<TextEditorBuffer> textEditorBuffer;
 
 		MIRROR_CLASS(History)(
 			MIRROR_PARENT(Component));
@@ -160,14 +160,14 @@ namespace Nodable
 			if (sourceContainer != nullptr)
 				this->wire = sourceContainer->newWire();
 			else
-				this->wire = new Wire();
+				this->wire = std::make_shared<Wire>();
 
 			wire->setSource(source);
 			wire->setTarget(target);
 
 			// Add the wire pointer to the Entitis instance to speed up drawing process.
-			targetNode->addWire(wire);
-			sourceNode->addWire(wire);
+			targetNode->addWire(wire.get());
+			sourceNode->addWire(wire.get());
 
 			NodeTraversal::SetDirty(targetNode);
 		}
@@ -178,7 +178,6 @@ namespace Nodable
 
 		void undo()
 		{
-
             auto targetNode = target->getOwner()->as<Node>();
             auto sourceNode = source->getOwner()->as<Node>();
 
@@ -190,15 +189,13 @@ namespace Nodable
 			wire->setTarget(nullptr);
 
 			// Add the wire pointer to the Node instance to speed up drawing process.
-            targetNode->removeWire(wire);
-            sourceNode->removeWire(wire);
-
-			delete wire;
+            targetNode->removeWire(wire.get());
+            sourceNode->removeWire(wire.get());
 		}
 
-		Wire* getWire() { return wire; }
+		Wire* getWire() { return wire.get(); }
 	private:
-		Wire*      wire          = nullptr;
+		std::shared_ptr<Wire> wire;
 		Member*    source        = nullptr;
 		Member*    target        = nullptr;
 	};

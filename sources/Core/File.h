@@ -21,6 +21,7 @@ namespace Nodable
 	{
 	public:
 		File(std::filesystem::path, const char* /*_content*/);
+        virtual ~File(){};
 
 		std::string                      getName()const { return std::string {path.filename().u8string()}; }	
 		void                             save();
@@ -30,7 +31,7 @@ namespace Nodable
 		bool                             evaluateExpression(std::string&);
 		bool                             evaluateSelectedExpression();
 
-		static File*                     OpenFile(std::filesystem::path _filePath);
+		static std::unique_ptr<File>     OpenFile(std::filesystem::path _filePath);
 
 		inline History* getHistory() {
 			return getComponent<History>();

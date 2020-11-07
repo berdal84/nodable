@@ -6,29 +6,25 @@ History* History::global = nullptr;
 
 History::~History()
 {
-	for (auto cmd : commands )
-		delete cmd;
+	commands.clear();
 }
 
-void History::addAndExecute(Cmd* _cmd)
+void History::addAndExecute( std::unique_ptr<Cmd> _cmd)
 {	
 	/* First clear commands after the cursor */
 	while (commandsCursor < commands.size())
 	{
-        auto command = commands.back();
-        delete command;
         commands.pop_back();
     }
 
 	/* Then add and execute the new command */
-	commands.push_back(_cmd);
+	commands.push_back( std::move(_cmd) );
 	commandsCursor = commands.size();
 	_cmd->execute();
 
 	/* Delete command history in excess */
     while (commands.size() > sizeMax)
     {
-        delete commands.front();
         commands.erase(commands.begin());
         commandsCursor--;
     }
@@ -98,6 +94,6 @@ std::string Nodable::History::getCommandDescriptionAtPosition(size_t _commandId)
 
 void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord) {
 
-	auto cmd = new Cmd_TextEditor_InsertText(_undoRecord, mTextEditor);
-	history->addAndExecute(cmd);
+	auto cmd = std::make_unique<Cmd_TextEditor_InsertText>(_undoRecord, mTextEditor);
+	history->addAndExecute( std::move(cmd) );
 }

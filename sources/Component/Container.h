@@ -36,7 +36,7 @@ namespace Nodable{
 		Variable*					newString(const char*);	
 		Node*                       newBinOp(const Operator*);
 		Node*                       newUnaryOp(const Operator*);
-		Wire*                       newWire();
+		std::shared_ptr<Wire>       newWire();
 		Node*                       newFunction(const Function* _proto);
 
 	private:		

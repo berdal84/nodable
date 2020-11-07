@@ -20,8 +20,7 @@ Application::Application(const char* _name):
 
 Application::~Application()
 {
-	for (auto it = loadedFiles.begin(); it != loadedFiles.end(); it++)
-		delete* it;
+	loadedFiles.clear();
 }
 
 bool Application::init()
@@ -70,7 +69,7 @@ bool Application::openFile(std::filesystem::path _filePath)
 
 	if (file != nullptr)
 	{
-		loadedFiles.push_back(file);
+		loadedFiles.push_back( std::move(file) );
 		setCurrentFileWithIndex(loadedFiles.size() - 1);
 	}
 
@@ -79,30 +78,27 @@ bool Application::openFile(std::filesystem::path _filePath)
 
 void Application::saveCurrentFile() const
 {
-	auto currentFile = loadedFiles.at(currentFileIndex);
+	auto currentFile = getCurrentFile();
 	if (currentFile)
 		currentFile->save();
 }
 
 void Application::closeCurrentFile()
 {
-	auto currentFile = loadedFiles.at(currentFileIndex);
-	if (currentFile != nullptr)
-	{
-		auto it = std::find(loadedFiles.begin(), loadedFiles.end(), currentFile);
-		loadedFiles.erase(it);
-		delete currentFile;
-		if (currentFileIndex > 0)
-			setCurrentFileWithIndex(currentFileIndex - 1);
-		else
-			setCurrentFileWithIndex(currentFileIndex);
-	}
+    auto it = std::find(loadedFiles.begin(), loadedFiles.end(), loadedFiles.at(currentFileIndex));
+
+    loadedFiles.erase(it);
+
+    if (currentFileIndex > 0)
+        setCurrentFileWithIndex(currentFileIndex - 1);
+    else
+        setCurrentFileWithIndex(currentFileIndex);
 }
 
 File* Application::getCurrentFile()const {
 
 	if (loadedFiles.size() > currentFileIndex) {
-		return loadedFiles.at(currentFileIndex);
+		return loadedFiles.at(currentFileIndex).get();
 	}
 	return nullptr;
 }

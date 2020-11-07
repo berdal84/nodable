@@ -44,7 +44,7 @@ namespace Nodable
 		void             closeCurrentFile();
 		File*			 getCurrentFile()const;
 		size_t           getFileCount                          ()const              { return loadedFiles.size(); }
-		File*            getFileAtIndex                        (size_t _index)const { return loadedFiles[_index]; }
+		File*            getFileAtIndex                        (size_t _index)const { return loadedFiles.at(_index).get(); }
 		size_t           getCurrentFileIndex                   ()const              { return currentFileIndex; }
 		void             setCurrentFileWithIndex               (size_t _index);
 		
@@ -52,13 +52,10 @@ namespace Nodable
 		static void      SaveNode(Node* _entity);
 
 	private:
-		/** A variable that contains (into the member "value") the current expression string */
-		Variable*     currentExpressionStringVariable  = nullptr;	
-
 		/** When set to true, the application will close next frame */
 		bool          quit                             = false;
 
-		std::vector<File*> loadedFiles;
+		std::vector<std::unique_ptr<File>> loadedFiles;
 		size_t             currentFileIndex; /* index that identify the current file in loadedFiles */
 	
 		const std::filesystem::path assetsFolderPath;

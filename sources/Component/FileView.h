@@ -18,13 +18,14 @@ namespace Nodable {
 		std::string                    getSelectedText()const;
 		std::string                    getText()const;
 		void                           replaceSelectedText(std::string _val);
-		TextEditor*					   getTextEditor(){ return m_textEditor; }
+		TextEditor*					   getTextEditor(){ return m_textEditor.get(); }
 		void                           setTextEditorCursorPosition(const TextEditor::Coordinates& _cursorPosition) { m_textEditor->SetCursorPosition(_cursorPosition); }
 		TextEditor::Coordinates        getTextEditorCursorPosition()const { return m_textEditor != nullptr ? m_textEditor->GetCursorPosition() : TextEditor::Coordinates(0, 0); }
 		void						   setUndoBuffer(TextEditor::ExternalUndoBufferInterface*);
 	private:
 		File*        getFile();
-		TextEditor*  m_textEditor;
+		std::unique_ptr<TextEditor>  m_textEditor;
+		const TextEditor::LanguageDefinition* m_textEditorLanguageDefinition;
 		bool         m_hasChanged;
 		MIRROR_CLASS(FileView)(
 			MIRROR_PARENT(View));

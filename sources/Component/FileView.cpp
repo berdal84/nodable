@@ -15,9 +15,9 @@ void FileView::init()
 		Configure ImGuiTextColorEdit
 	*/
 
-	m_textEditor = new TextEditor();
-	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
-	m_textEditor->SetLanguageDefinition(lang);
+	m_textEditor = std::make_unique<TextEditor>();
+	m_textEditorLanguageDefinition = &TextEditor::LanguageDefinition::CPlusPlus();
+	m_textEditor->SetLanguageDefinition(*m_textEditorLanguageDefinition);
 	m_textEditor->SetImGuiChildIgnored(true);
 
 	TextEditor::Palette palette = { {
