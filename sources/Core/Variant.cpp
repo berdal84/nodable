@@ -4,12 +4,6 @@
 
 using namespace Nodable;
 
-Variant::Variant()
-{
-}
-
-Variant::~Variant(){};
-
 Type Variant::getType()const
 {
 	return this->type;
@@ -22,38 +16,25 @@ bool  Variant::isType(Type _type)const
 
 void Variant::set(double _value)
 {
+    type = Type::Double;
 	data = _value;
-}
-
-void Variant::set(const std::string& _var)
-{
-	data = std::string(_var);
 }
 
 void Variant::set(const char* _value)
 {
+    type = Type::String;
 	data = std::string(_value);
 }
 
 void Variant::set(bool _value)
 {
+    type = Type::Boolean;
 	data = _value;
 }
 
 bool Variant::isSet()const
 {
 	return data.has_value();
-}
-
-void Variant::set(const Variant* _v)
-{
-    if ( _v->data.type() != data.type() )
-    {
-        LOG_WARNING(3u, "You're setting a Variant from a different type variant\n");
-    }
-
-	setType(_v->getType());
-    data = _v->data;
 }
 
 std::string Variant::getTypeAsString()const
@@ -69,43 +50,40 @@ std::string Variant::getTypeAsString()const
 
 void Variant::setType(Type _type)
 {
-	NODABLE_ASSERT(_type == Type::Any || type != _type); // You try to set again the same type
+	NODABLE_ASSERT(type != _type || type == Type::Any); // You try to set again the same type
 
-	{
-		// Set a default value (this will change the type too)
-		switch (_type)
-		{
-		case Type::String:
-			set("");
-			break;
-		case Type::Double:
-			set(double(0));
-			break;
-		case Type::Boolean:
-			set(false);
-			break;
-		default:
-			break;
-		}
-	}
+    // Set a default value (this will change the type too)
+    switch (_type)
+    {
+    case Type::String:
+        set("");
+        break;
+    case Type::Double:
+        set(double(0));
+        break;
+    case Type::Boolean:
+        set(false);
+        break;
+    }
 
 }
 
 Variant::operator double()const {
-	switch (type) {
-    case Type::String:  return std::any_cast<std::string>(data).length();
-    case Type::Double:  return std::any_cast<double>(data);
-	case Type::Boolean: return std::any_cast<double>(data) ? double(1) : double(0);
-	default:           return double(0);
+	switch (type)
+	{
+        case Type::String:  return std::any_cast<std::string>(data).length();
+        case Type::Double:  return std::any_cast<double>(data);
+	    case Type::Boolean: return std::any_cast<bool>(data) ? double(1) : double(0);
+	    default:           return double(0);
 	}
 }
 
 Variant::operator bool()const {
 	switch (type) {
-	    case Type::String:  return std::any_cast<std::string>(data).empty();
-	case Type::Double:  return std::any_cast<double>(data) != double(0);
-	case Type::Boolean: return std::any_cast<bool>(data);
-	default:           return false;
+	    case Type::String:  return !std::any_cast<std::string>(data).empty();
+	    case Type::Double:  return std::any_cast<double>(data) != double(0);
+	    case Type::Boolean: return std::any_cast<bool>(data);
+	    default:           return false;
 	}
 }
 
@@ -138,4 +116,10 @@ Variant::operator std::string()const {
             return "";
         }
     }
+}
+
+Variant::Variant(const Variant & _other)
+{
+    data = _other.data;
+    type = _other.type;
 }

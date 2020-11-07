@@ -160,7 +160,7 @@ bool Member_AsString_Tests() {
 
 	TEST_BEGIN("Member: String"){
 
-		auto m = std::make_unique<Member>();
+		auto m = std::make_shared<Member>();
 		m->set("Hello world !");
 		const std::string str = "Hello world !";
 

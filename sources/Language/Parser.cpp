@@ -61,24 +61,27 @@ std::string Parser::logTokens(const std::vector<Token> _tokens, const size_t _hi
 bool Parser::eval(const std::string& _expression)
 {
 
-	if (!tokenizeExpressionString(_expression)) {
+	if (!tokenizeExpressionString(_expression))
+	{
 		LOG_WARNING(0u, "Unable to parse expression due to unrecognysed tokens.\n");
 		return false;
 	}
 
-	if(tokens.size() == 0 )
+	if( tokens.empty() )
     {
         LOG_MESSAGE(0u, "Nothing to evaluate.\n");
         return false;
     }
 
-	if (!isSyntaxValid()) {
+	if ( !isSyntaxValid() )
+	{
 		LOG_WARNING(0u, "Unable to parse expression due to syntax error.\n");
 		return false;
 	}
 
 	Member* resultValue = parseRootExpression();
-	if (resultValue == nullptr) {
+	if (resultValue == nullptr)
+	{
 		LOG_WARNING(0u, "Unable to parse expression due to abstract syntax tree failure.\n");
 		return false;
 	}

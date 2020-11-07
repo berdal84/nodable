@@ -31,12 +31,11 @@ namespace Nodable
 		void                set(const Member&);
 		void                set(double);
 		void                set(int);
-		void                set(const std::string&);
+		void                set(std::string);
 		void                set(const char* _value);
 		void                set(bool _value);
 		void                setType(Type _type);
 		void                setVisibility(Visibility _v);
-		void                unset() { data = Variant(); }
 
 		/** Get the value of the inputMember Member and set it to this Member.
 		    Warning: be sure the member has an inputMember before calling this (getInputMember()!=nullptr)*/

@@ -13,18 +13,16 @@ namespace Nodable{
 
 	class Variant {
 	public:
-		Variant();
-		~Variant();
-
+		Variant() = default;
+        Variant(const Variant&);
+        ~Variant() = default;
 		bool        isSet()const;
 		bool        isType(Type _type)const;
-		void        set(const Variant*);
-		void        set(const std::string&);
 		void        set(const char*);
 		void        set(double);
 		void        set(bool);
 		void        setType(Type _type);
-		Type       getType()const;
+		Type        getType()const;
 		std::string getTypeAsString()const;
 
 		operator double()const;

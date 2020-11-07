@@ -63,6 +63,7 @@ void Nodable::Member::setSourceExpression(const char* _val)
 
 void Member::setType(Type _type)
 {
+    assert(data.isType(Type::Any)); // You cannot change the type twice
 	data.setType(_type);
 }
 
@@ -205,17 +206,16 @@ std::string Member::getSourceExpression()const
 
 void Member::set(const Member* _v)
 {
-	data.set(&_v->data);
+	data = _v->data;
 }
 
 void Member::set(const Member& _v)
 {
-	data.set(&_v.data);
+	data = _v.data;
 }
 
 void Member::set(double _value)
 {
-	data.setType(Type::Double);
 	data.set(_value);
 }
 
@@ -224,19 +224,17 @@ void Member::set(int _value)
 	set(double(_value));
 }
 
-void Member::set(const std::string& _value)
+void Member::set(std::string _value)
 {
-	this->set(_value.c_str());
+	data.set(_value.c_str());
 }
 
 void Member::set(const char* _value)
 {
-	data.setType(Type::String);
 	data.set(_value);
 }
 
 void Member::set(bool _value)
 {
-	data.setType(Type::Boolean);
 	data.set(_value);
 }
