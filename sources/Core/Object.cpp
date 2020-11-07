@@ -17,7 +17,7 @@ bool Object::has(Member* _value)
 {
 	auto foundWithName = members.find(_value->getName());
 	if( foundWithName != members.end())
-		return (*foundWithName).second == _value;
+		return (*foundWithName).second.get() == _value;
 	return false;
 }
 
@@ -25,13 +25,13 @@ Member* Object::get (const char* _name)const
 {
 	auto foundWithName = members.find(std::string(_name));
 	if (foundWithName != members.end())
-		return (*foundWithName).second;
+		return (*foundWithName).second.get();
 	return nullptr;
 }
 
 Member* Object::get (const std::string& _name)const
 {
-	return members.at(_name.c_str());
+	return members.at(_name.c_str()).get();
 }
 
 Member* Object::getFirstWithConn(Way _connection)const
@@ -42,7 +42,7 @@ Member* Object::getFirstWithConn(Way _connection)const
 	while (m != this->members.end() && found == nullptr)
 	{
 		if (m->second->getConnectorWay() & _connection)
-			found = m->second;
+			found = m->second.get();
 		m++;
 	}
 
@@ -51,14 +51,14 @@ Member* Object::getFirstWithConn(Way _connection)const
 
 Member* Object::add (const char* _name, Visibility _visibility, Type _type, Way _flags )
 {
-	auto v = new Member();
+	auto member = std::make_shared<Member>();
 
-	v->setOwner     (this);	
-	v->setName		(_name);
-	v->setVisibility(_visibility);
-	v->setType		(_type);
-	v->setConnectorWay(_flags);
-	members[std::string(_name)] = v;
+	member->setOwner     (this);
+	member->setName		(_name);
+	member->setVisibility(_visibility);
+	member->setType		(_type);
+	member->setConnectorWay(_flags);
+	members.insert_or_assign(std::string(_name), member);
 
-	return v;
+	return member.get();
 }

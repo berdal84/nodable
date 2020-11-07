@@ -291,7 +291,7 @@ bool NodeView::draw()
 			auto member = m.second;
 			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() == Way_In)
 			{
-				drawMember(m.second);
+				drawMember(member.get());
 			}
 		}
 
@@ -301,7 +301,7 @@ bool NodeView::draw()
 			auto member = m.second;
 			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() != Way_In)
 			{
-				drawMember(member);
+				drawMember(member.get());
 			}
 		}
 	}
@@ -317,7 +317,7 @@ bool NodeView::draw()
 			if( member->getVisibility() == Visibility::OnlyWhenUncollapsed ||
 				member->getVisibility() == Visibility::Hidden)
 			{
-				this->drawMember(member);
+				this->drawMember(member.get());
 			}
 		}	
 

@@ -72,7 +72,7 @@ namespace Nodable{
 	class File;
 
 	typedef std::map<std::string, std::shared_ptr<Component>>  Components;
-	typedef std::map<std::string, Member*>     Members;
+	typedef std::map<std::string, std::shared_ptr<Member>>     Members;
 	typedef std::vector<std::shared_ptr<Wire>> Wires;
 }
 

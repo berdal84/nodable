@@ -29,14 +29,15 @@ bool Member::equals(const Member *_other)const {
 
 void Member::setConnectorWay(Way _flags)
 {
-    in.reset();
-    out.reset();
-
 	// Create an input if needed
 	if (_flags & Way_In)
     {
 		auto conn = std::make_unique<Connector>(this, Way_In);
 		in = std::move(conn);
+    }
+	else
+    {
+        in.reset();
     }
 
 	// Create an output if needed
@@ -44,6 +45,10 @@ void Member::setConnectorWay(Way _flags)
     {
         auto conn = std::make_unique<Connector>(this, Way_Out);
         in = std::move(conn);
+    }
+	else
+    {
+        out.reset();
     }
 }
 
@@ -69,8 +74,7 @@ void Nodable::Member::updateValueFromInputMemberValue()
 
 bool Member::allows(Way _way)const
 {
-	auto maskedFlags = getConnectorWay() & _way;
-	return ((Way)maskedFlags) == _way;
+	return  _way & getConnectorWay();
 }
 
 Object* Member::getOwner() const

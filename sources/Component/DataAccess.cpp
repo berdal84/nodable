@@ -52,9 +52,7 @@ bool DataAccess::update()
     	{
 		    for(auto& each : owner->getMembers())
 		    {
-		    	auto value = each.second;
-
-		    	writeMember(value);
+		    	writeMember(each.second.get());
 		    }
 		}
 	    writer.EndObject();
@@ -73,7 +71,7 @@ bool DataAccess::update()
 		    	for(auto& each : eachComponent.second->getMembers())
 			    {
 			    	auto value = each.second;
-			    	writeMember(value);
+                    writeMember(each.second.get());
 			    }
 
 			    writer.EndObject();
