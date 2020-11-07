@@ -69,7 +69,7 @@ std::string Variant::getTypeAsString()const
 
 void Variant::setType(Type _type)
 {
-	NODABLE_ASSERT(_type == Type::Any ||7type != _type); // You try to set again the same type
+	NODABLE_ASSERT(_type == Type::Any || type != _type); // You try to set again the same type
 
 	{
 		// Set a default value (this will change the type too)
@@ -93,7 +93,7 @@ void Variant::setType(Type _type)
 
 Variant::operator double()const {
 	switch (type) {
-    case Type::String:  return double(std::any_cast<std::string>(data).length());
+    case Type::String:  return std::any_cast<std::string>(data).length();
     case Type::Double:  return std::any_cast<double>(data);
 	case Type::Boolean: return std::any_cast<double>(data) ? double(1) : double(0);
 	default:           return double(0);

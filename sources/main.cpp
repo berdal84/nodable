@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 	// If --test is passed as first arg, we run tests
 	if( argc == 2 && std::string(argv[1]) == "--run-tests")
 	{
-	    Nodable::Log::SetVerbosityLevel(4u);
+//	    Nodable::Log::SetVerbosityLevel(4u);
 
 		if ( !Test_RunAll() )
 		{
