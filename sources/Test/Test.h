@@ -378,25 +378,25 @@ bool Test_RunAll()
 			EXPECT( Member_AsString_Tests(), true)
 			EXPECT( Member_AsNumber_Tests(), true)
 		}TEST_END
-		
-		TEST_BEGIN("Parser"){
-			EXPECT( Parser_Tests(), true)
-		}TEST_END
-
-		TEST_BEGIN("Node"){
-			EXPECT( Node_Tests(), true)
-		}TEST_END
-		
-		TEST_BEGIN("Wire and Node"){
-			EXPECT( WireAndNode_Tests(), true)
-		}TEST_END
-
-		TEST_BEGIN("Biology (DNA to Protein)") {
-			EXPECT( Parser_Test("DNAtoProtein(\"TAA\")", "_"), true)
-			EXPECT( Parser_Test("DNAtoProtein(\"TAG\")", "_"), true)
-			EXPECT( Parser_Test("DNAtoProtein(\"TGA\")", "_"), true)
-			EXPECT( Parser_Test("DNAtoProtein(\"ATG\")", "M"), true)
-		}TEST_END
+//
+//		TEST_BEGIN("Parser"){
+//			EXPECT( Parser_Tests(), true)
+//		}TEST_END
+//
+//		TEST_BEGIN("Node"){
+//			EXPECT( Node_Tests(), true)
+//		}TEST_END
+//
+//		TEST_BEGIN("Wire and Node"){
+//			EXPECT( WireAndNode_Tests(), true)
+//		}TEST_END
+//
+//		TEST_BEGIN("Biology (DNA to Protein)") {
+//			EXPECT( Parser_Test("DNAtoProtein(\"TAA\")", "_"), true)
+//			EXPECT( Parser_Test("DNAtoProtein(\"TAG\")", "_"), true)
+//			EXPECT( Parser_Test("DNAtoProtein(\"TGA\")", "_"), true)
+//			EXPECT( Parser_Test("DNAtoProtein(\"ATG\")", "M"), true)
+//		}TEST_END
 	}
 
 	GLOBAL_TEST_END

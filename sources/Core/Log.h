@@ -24,11 +24,19 @@
 #define KO RED "[KO]" RESET
 #define OK GREEN "[OK]" RESET
 
+#define LOG_ENABLE true
 
-#define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::LogType::Message, __VA_ARGS__ )
-#define LOG_DEBUG(...) Nodable::Log::Push( Nodable::LogType::Message, __VA_ARGS__ )
-#define LOG_WARNING(...) Nodable::Log::Push( Nodable::LogType::Warning, __VA_ARGS__ )
-#define LOG_ERROR(...)   Nodable::Log::Push( Nodable::LogType::Error, __VA_ARGS__ )
+#if LOG_ENABLE
+#   define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::LogType::Message, __VA_ARGS__ )
+#   define LOG_DEBUG(...) Nodable::Log::Push( Nodable::LogType::Message, __VA_ARGS__ )
+#   define LOG_WARNING(...) Nodable::Log::Push( Nodable::LogType::Warning, __VA_ARGS__ )
+#   define LOG_ERROR(...)   Nodable::Log::Push( Nodable::LogType::Error, __VA_ARGS__ )
+#else
+#   define LOG_MESSAGE(...)
+#   define LOG_DEBUG(...)
+#   define LOG_WARNING(...)
+#   define LOG_ERROR(...)
+#endif
 
 namespace Nodable{	
 
