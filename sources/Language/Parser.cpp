@@ -206,16 +206,26 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		// Connect the Left Operand :
 		//---------------------------
 		if (_left->getOwner() == nullptr)
-			binOpNode->set("lvalue", _left);
+		{
+            binOpNode->set("lvalue", _left);
+            delete _left;
+        }
 		else
+        {
 			Node::Connect( _left, binOpNode->get("lvalue"));
+        }
 
 		// Connect the Right Operand :
 
 		if (right->getOwner() == nullptr)
-			binOpNode->set("rvalue", right);
+		{
+            binOpNode->set("rvalue", right);
+            delete right;
+        }
 		else
+        {
 			Node::Connect(right, binOpNode->get("rvalue"));
+        }
 
 		// Set the left !
 		result = binOpNode->get("result");
@@ -276,9 +286,14 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 		// Connect the Left Operand :
 		//---------------------------
 		if (value->getOwner() == nullptr)
-			binOpNode->set("lvalue", value);
+		{
+            binOpNode->set("lvalue", value);
+            delete value;
+        }
 		else
+        {
 			Node::Connect(value, binOpNode->get("lvalue"));
+        }
 
 		// Set the left !
 		result = binOpNode->get("result");
