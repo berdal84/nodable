@@ -86,11 +86,7 @@ bool ContainerView::draw()
 		{
 			ImVec2 lineScreenPosStart;
 			{
-				auto member   = draggedConnector->member;
-				auto node     = member->getOwner()->as<Node>();
-				auto view     = node->getComponent<NodeView>();
-				auto position = view->getConnectorPosition(member->getName(), draggedConnector->way);
-
+				auto position = draggedConnector->position();
 				lineScreenPosStart = position + ImGui::GetWindowPos();
 			}
 
@@ -98,11 +94,7 @@ bool ContainerView::draw()
 
 			// Snap lineEndPosition to hoveredByMouse member's currentPosition
 			if (hoveredConnector != nullptr) {
-				auto member     = hoveredConnector->member;
-				auto node       = member->getOwner()->as<Node>();
-				auto view       = node->getComponent<NodeView>();
-				auto position   = view->getConnectorPosition(member->getName(), hoveredConnector->way);
-
+				auto position = hoveredConnector->position();
 				lineScreenPosEnd = position + ImGui::GetWindowPos();
 			}
 

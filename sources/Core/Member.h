@@ -1,15 +1,17 @@
 #pragma once
 
-#include "Nodable.h"    // for constants and forward declarations
-#include "Variant.h"
-#include "Language.h"
-#include "Connector.h"
+#include "Type.h"
+#include "Way.h"
 #include "Visibility.h"
+#include "Variant.h"
+#include "Connector.h"
 
-#include <string>
+#include <memory>
 
 namespace Nodable
 {
+    class Object;
+
 	class Member
     {
 	public:
@@ -49,8 +51,8 @@ namespace Nodable
 		[[nodiscard]] std::string         getTypeAsString()const;
         [[nodiscard]] Visibility          getVisibility()const { return visibility; }
         [[nodiscard]] Way                 getConnectorWay()const;
-        [[nodiscard]] inline const Connector* input() const { return in.get(); }
-        [[nodiscard]] inline const Connector* output() const { return out.get(); }
+        [[nodiscard]] const Connector*    input() const { return in.get(); }
+        [[nodiscard]] const Connector*    output() const { return out.get(); }
 
 		inline operator bool()const        { return data; }
 		inline operator double()const      { return data; }

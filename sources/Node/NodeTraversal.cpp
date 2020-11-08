@@ -2,6 +2,7 @@
 #include "Wire.h"
 
 #include <iostream>
+#include <Core/Log.h>
 
 using namespace Nodable;
 

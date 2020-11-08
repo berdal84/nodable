@@ -1,28 +1,20 @@
 #pragma once
 
-// std
 #include <vector>
 #include <ctime>
 #include <string>
 
-// extern
 #include "mirror.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
 
-// Nodable
-#include "Component.h" // base class
-#include "Nodable.h"
-#include "Container.h"
+#include "Component.h"
 #include "Wire.h"
-#include "WireView.h"
-#include "Member.h"
-#include "Log.h"
-#include "NodeTraversal.h"
 
 namespace Nodable
 {
 	class Cmd;
 	class Cmd_TextEditor_InsertText;
+    class History;
 
 	/* TextEditorBuffer is a class to handle TextEditor UndoRecords
 	This class will catch these object using AddUndo method.
@@ -30,6 +22,9 @@ namespace Nodable
 	class TextEditorBuffer : public TextEditor::ExternalUndoBufferInterface {
 
 	public:
+	    TextEditorBuffer() = default;
+	    ~TextEditorBuffer() = default;
+
 		void AddUndo(TextEditor::UndoRecord& _undoRecord);
 
 		void setHistory(History* _history) { history = _history; }
@@ -68,14 +63,7 @@ namespace Nodable
 		std::string getCommandDescriptionAtPosition(size_t _commandId);
 
 		/* To get the special buffer for TextEditor */
-		TextEditorBuffer* createTextEditorUndoBuffer(TextEditor* _textEditor) {
-
-			textEditorBuffer = std::make_unique<TextEditorBuffer>();
-			textEditorBuffer->setTextEditor(_textEditor);
-			textEditorBuffer->setHistory(this);
-
-			return textEditorBuffer.get();
-		}
+		TextEditorBuffer* createTextEditorUndoBuffer(TextEditor* _textEditor);
 
 		bool dirty;
 
@@ -122,80 +110,17 @@ namespace Nodable
 	class Cmd_ConnectWire : public Cmd
 	{
 	public:
-		Cmd_ConnectWire(Member* _source, Member* _target)
-		{			
-			this->source     = _source;
-			this->target     = _target;
-
-			// Title
-			description.append("Connect Wire\n");
-
-			// Details
-			description.append( "\"" + _source->getName() + "\" ---> \"" + _target->getName() + "\"\n");
-
-			// Time
-			std::time_t time = std::time(nullptr);
-			auto localTime   = std::localtime(&time);
-			std::string timeString( std::asctime(localTime) );
-			description.append(timeString);
-
-		};
-
+		Cmd_ConnectWire(Member* _source, Member* _target);;
 		~Cmd_ConnectWire(){};
-
-		void execute()
-		{
-			target->setInputMember(source);
-			auto targetNode = target->getOwner()->as<Node>();
-			auto sourceNode = source->getOwner()->as<Node>();
-
-			// Link wire to members
-			auto sourceContainer = sourceNode->getParentContainer();
-
-			if (sourceContainer != nullptr)
-				this->wire = sourceContainer->newWire();
-			else
-				this->wire = std::make_shared<Wire>();
-
-			wire->setSource(source);
-			wire->setTarget(target);
-
-			// Add the wire pointer to the Entitis instance to speed up drawing process.
-			targetNode->addWire(wire);
-			sourceNode->addWire(wire);
-
-			NodeTraversal::SetDirty(targetNode);
-		}
-
-		void redo() {
-			execute();
-		}
-
-		void undo()
-		{
-            auto targetNode = target->getOwner()->as<Node>();
-            auto sourceNode = source->getOwner()->as<Node>();
-
-            target->setInputMember(nullptr);
-            NodeTraversal::SetDirty(targetNode);
-
-			// Link Members
-			wire->setSource(nullptr);
-			wire->setTarget(nullptr);
-
-			// Add the wire pointer to the Node instance to speed up drawing process.
-            targetNode->removeWire(wire);
-            sourceNode->removeWire(wire);
-		}
-
+		void execute();
+		void redo();
+		void undo();
 		std::shared_ptr<Wire> getWire() { return wire; }
 	private:
 		std::shared_ptr<Wire> wire;
 		Member*    source        = nullptr;
 		Member*    target        = nullptr;
 	};
-
-
 
 	/*
 		Command to wraps a TextEditor UndoRecord
@@ -204,34 +129,13 @@ namespace Nodable
 	class Cmd_TextEditor_InsertText : public Cmd
 	{
 	public:
-		Cmd_TextEditor_InsertText(
-			TextEditor::UndoRecord& _undoRecord,
-			TextEditor* _textEditor): 
-			undoRecord(_undoRecord),
-			textEditor(_textEditor)
-		{
-			this->description.append("Cmd_TextEditor_InsertText\n" );
-			this->description.append("removed : " + undoRecord.mRemoved + "\n");
-			this->description.append("added : " + undoRecord.mAdded + "\n");
-		}
-
-		~Cmd_TextEditor_InsertText() {}
-
+		Cmd_TextEditor_InsertText(TextEditor::UndoRecord& _undoRecord, TextEditor* _textEditor);
+		~Cmd_TextEditor_InsertText() = default;
 		void execute() {}
-
-
-		void redo() {
-			undoRecord.Redo(textEditor);
-		}
-
-		void undo()
-		{
-			undoRecord.Undo(textEditor);
-		}
+		void redo();
+		void undo();
 
 	private:
-
-
 		TextEditor::UndoRecord undoRecord;
 		TextEditor*             textEditor;
 	};

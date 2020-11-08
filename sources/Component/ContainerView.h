@@ -5,8 +5,9 @@
 #include <mirror.h>
 #include <map>
 #include <string>
+#include <functional>
 
-namespace Nodable{
+namespace Nodable {
 
 	typedef std::pair<std::string, std::function<Node*(void)>> ContextualMenuItem;
 

@@ -5,13 +5,18 @@
 #include <imgui/imgui.h>
 #include <mirror.h>
 
-namespace Nodable{
-	class WireView : public View
+namespace Nodable
+{
+    class Wire;
+
+	class WireView: public View
 	{
 	public:
-		bool update()override {return true;}
-		bool draw()override;
-		MIRROR_CLASS(WireView)(
-			MIRROR_PARENT(View));
+	    explicit WireView(Wire* _wire): wire(_wire) {}
+	    ~WireView() = default;
+		bool draw();
+
+    private:
+	    Wire* wire;
 	};
 }

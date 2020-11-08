@@ -1,10 +1,20 @@
 #pragma once
-#include "Nodable.h"
-#include "Member.h"   // for Type enum
+
+#include <memory>
+#include <map>
+#include <string>
+
 #include "mirror.h"
+
+#include "Nodable.h"
+#include "Visibility.h"
+#include "Type.h"
+#include "Way.h"
+#include "Member.h"
 
 namespace Nodable
 {
+
 	/*
 		Object is the base class for all classes that needs to have members (std::string key => Nodable::Value value)
 	*/
@@ -32,7 +42,7 @@ namespace Nodable
 		Member*              get         (const char* _name)const;
 		
 		/* Return all members of this object */
-		const Members&      getMembers        ()const;
+		const std::map<std::string, std::shared_ptr<Member>>&      getMembers        ()const;
 
 		/* Return the first member that has this connection type (cf. Way enum definition) or nullptr if no member is found.*/
 		Member*             getFirstWithConn(Way)const;
@@ -57,7 +67,7 @@ namespace Nodable
 			return casted;
 		}
 	private:
-		Members             members;
+		std::map<std::string, std::shared_ptr<Member>> members;
 		bool                deleted = false;
 
 	public:

@@ -2,15 +2,12 @@
 
 // Includes for ImGui
 #include <GL/gl3w.h>
-#include <imgui/imgui.h>
 #include <imgui/examples/imgui_impl_sdl.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
 
 #include <iostream>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "System.h"
 #include "Application.h"
-#include "Container.h"
 #include "NodeView.h"
 #include "File.h"
 #include "Log.h"
@@ -702,5 +699,10 @@ void Nodable::ApplicationView::browseFile()
 {
 	fileBrowser.Open();
 	//application->openFile(fileAbsolutePath.c_str());
+}
+
+Application *ApplicationView::getApplication()
+{
+    return reinterpret_cast<Application*>(this->owner);
 }
 

@@ -1,10 +1,12 @@
 #pragma once
-#include "Nodable.h"
+
+#include "mirror.h"
 #include "View.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
-#include <mirror.h>
 
 namespace Nodable {	
+
+    class File;
 
 	class FileView : public View
 	{

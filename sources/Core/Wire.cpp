@@ -1,7 +1,7 @@
 #include "Wire.h"
 #include "WireView.h"
 #include "Variable.h"
-#include <algorithm> // for std::find()
+#include <memory> // unique_ptr
 
 using namespace Nodable;
 
@@ -27,5 +27,9 @@ void Wire::updateState()
 
 Nodable::WireView* Nodable::Wire::getView() const
 {
-	return getComponent<WireView>();
+	return this->view.get();
+}
+
+void Wire::newView() {
+    view = std::make_unique<WireView>(this);
 }

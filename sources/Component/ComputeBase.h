@@ -1,10 +1,10 @@
 #pragma once
-
-#include "Nodable.h"
 #include "Component.h"
 
 namespace Nodable
 {
+    class Language;
+
 	class ComputeBase : public Component {
 	public:
 	    ComputeBase():Component(){}

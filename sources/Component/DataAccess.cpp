@@ -2,9 +2,11 @@
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
-#include "Node.h"
 #include <iostream>
 #include <fstream>
+
+#include "Node.h"
+#include "Member.h"
 
 using namespace Nodable;
 

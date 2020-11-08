@@ -4,13 +4,12 @@
 #include <vector>
 #include <imgui/imgui.h>   // for ImVec2
 #include <mirror.h>
-
-#include "Nodable.h"
-#include "Component.h"
 #include "Node.h"
 #include "Language.h"
 
 namespace Nodable{
+
+    class Variable;
 
 	class Container: public Node {
 	public:

@@ -290,7 +290,7 @@ Node* Container::newFunction(const Function* _function) {
 std::shared_ptr<Wire> Container::newWire()
 {
 	auto wire = std::make_shared<Wire>();
-	wire->newComponent<WireView>();
+	wire->newView();
 	return wire;
 }
 

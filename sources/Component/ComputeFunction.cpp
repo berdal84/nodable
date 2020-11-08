@@ -1,5 +1,8 @@
 #include "ComputeFunction.h"
 #include "Log.h"
+#include "Function.h"
+#include "Language.h"
+#include "Member.h"
 
 using namespace Nodable;
 
@@ -32,5 +35,16 @@ void ComputeFunction::updateResultSourceExpression() const
 {
 	std::string expr = language->serialize(function->signature, args);
 	this->result->setSourceExpression(expr.c_str());
+}
+
+void ComputeFunction::setFunction(const Function *_function)
+{
+    function = _function;
+    this->args.resize(function->signature.getArgs().size());
+}
+
+void ComputeFunction::setArg(size_t _index, Member *_value)
+{
+    args[_index] = _value;
 }
 

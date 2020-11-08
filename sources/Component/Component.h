@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Nodable.h"
 #include "Object.h"
-#include "Compound.h"
 
 #include <mirror.h>
 
 namespace Nodable{
+
+    class Node;
 
 	class Component: public Object
 	{

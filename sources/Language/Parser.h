@@ -2,12 +2,12 @@
 #include <string>
 #include <vector>
 
-#include "Nodable.h"    // forward declarations
 #include "Language.h"
 #include "Token.h"
 
 namespace Nodable{
 
+    class Container;
 
 	/*
 		The role of this class is to convert code string to a Nodable graph.

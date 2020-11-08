@@ -1,3 +1,4 @@
+#include <string>
 #include "Function.h"
 
 using namespace Nodable;

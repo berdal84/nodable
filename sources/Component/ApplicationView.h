@@ -1,12 +1,10 @@
 #pragma once
 
-#include "Nodable.h"
 #include <imgui/imgui.h>
 #include <SDL2/include/SDL.h>
 #include <string>
 #include "View.h"
-#include <mirror.h>
-#include "IconsFontAwesome5.h"
+#include "mirror.h"
 
 // Override imfilebrowser.h icons
 #define IMFILEBROWSER_FILE_ICON ICON_FA_FILE
@@ -15,6 +13,8 @@
 
 namespace Nodable
 {
+    class Application;
+
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
 	*/
@@ -32,9 +32,10 @@ namespace Nodable
 
 		/* call this once just after the instantiation. */
 		bool init();
+        void browseFile();
 
 	private:
-        inline Application* getApplication() { return reinterpret_cast<Application*>(this->owner); }
+        Application* getApplication();
 
 		ImGui::FileBrowser fileBrowser;
 		SDL_Window        *sdlWindow{};
@@ -44,8 +45,6 @@ namespace Nodable
         ImFont *paragraphFont{};
         ImFont *headingFont{};
         bool isHistoryDragged;
-	public:
-		void browseFile();
 
 		MIRROR_CLASS(ApplicationView)(
 			MIRROR_PARENT(View)

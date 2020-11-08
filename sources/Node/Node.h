@@ -2,12 +2,14 @@
 #include <string>
 #include <memory>               // for unique_ptr
 
-#include "Nodable.h"            // for constants and forward declarations
 #include "Object.h"
 #include "Component.h"
 #include "NodeTraversal.h"
+#include "Wire.h"
 
 namespace Nodable{
+
+    class Container;
 
     enum class UpdateResult
     {
@@ -62,7 +64,7 @@ namespace Nodable{
 		void                removeWire        (std::shared_ptr<Wire>);
 
 		/* Get wires related* to this node. (* connected to one of the Node Member) */
-		Wires&              getWires          ();
+		std::vector<std::shared_ptr<Wire>>& getWires();
 
 		/* Get the input connectedd wire count. */
 		int                 getInputWireCount ()const;
@@ -108,7 +110,7 @@ namespace Nodable{
 		}
 
 		/* Get all components of this Node */
-		inline const Components& getComponents()const
+		inline const auto & getComponents()const
 		{
 			return components;
 		}
@@ -150,7 +152,7 @@ namespace Nodable{
 		};
 
 	protected:
-		Components components;
+        std::map<std::string, std::shared_ptr<Component>> components;
 
 	private:
 		/* Will be called automatically on member value changes */
@@ -160,7 +162,7 @@ namespace Nodable{
 		Container*                parentContainer;
 		std::string               label;
 		bool                      dirty;   // when is true -> needs to be evaluated.
-		Wires                     wires;             // contains all wires connected to or from this node.
+		std::vector<std::shared_ptr<Wire>>  wires;             // contains all wires connected to or from this node.
 	
 	public:
 		MIRROR_CLASS(Node)(

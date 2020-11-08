@@ -1,4 +1,5 @@
 #include "Object.h"
+#include "Member.h"
 
 using namespace Nodable;
 
@@ -8,7 +9,7 @@ Object::Object()
 	add("name",      Visibility::OnlyWhenUncollapsed);
 }
 
-const Members&   Object::getMembers      ()const
+const std::map<std::string, std::shared_ptr<Member>>&   Object::getMembers      ()const
 {
 	return members;
 }

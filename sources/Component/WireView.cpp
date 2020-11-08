@@ -9,7 +9,6 @@ using namespace Nodable;
 
 bool WireView::draw()
 {
-	auto wire = getOwner()->as<Wire>();
 	NODABLE_ASSERT(wire != nullptr);
 
 	// Update fill color depending on current state 
