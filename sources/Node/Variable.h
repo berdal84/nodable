@@ -24,7 +24,7 @@ namespace Nodable{
 		bool              isType          (Type _type)const;		
 		const char*       getName         ()const;
 
-		Member* getMember()const {
+        std::shared_ptr<Member> getMember()const {
 			return get("value");
 		}
 

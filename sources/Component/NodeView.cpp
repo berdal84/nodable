@@ -549,7 +549,7 @@ void NodeView::drawConnector(ImVec2& connectorPos, const Connector* _connector, 
     ImVec2 connnectorScreenPos = connectorPos + cursorScreenPos - cursorPos;
 	auto invisibleButtonOffsetFactor = 1.2f;
 	ImGui::SetCursorScreenPos(connnectorScreenPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor));
-	ImGui::PushID(_connector->member);
+	ImGui::PushID(&_connector->member);
 	bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * 2.0f * invisibleButtonOffsetFactor, connectorRadius * 2.0f * invisibleButtonOffsetFactor));
 	ImGui::PopID();
 	ImGui::SetCursorPos(cpos);

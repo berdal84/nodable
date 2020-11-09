@@ -1,4 +1,6 @@
 #include "ComputeBinaryOperation.h"
+
+#include <utility>
 #include "Log.h"		// for LOG_DEBUG(...)
 #include "Member.h"
 #include "Variable.h"
@@ -6,25 +8,20 @@
 
 using namespace Nodable;
 
-ComputeBinaryOperation::ComputeBinaryOperation(): ComputeFunction() {}
-
-
 ComputeBinaryOperation::ComputeBinaryOperation(
-	const Operator*    _operator,
-	const Language*    _language)
+	std::shared_ptr<const Operator>    _operator,
+    std::shared_ptr<const Language>    _language)
 	:
-    ComputeBinaryOperation()
+    ComputeFunction(std::move(_operator), std::move(_language))
 {
-    setFunction(_operator);
-    setLanguage(_language);
 }
 
-void ComputeBinaryOperation::setLValue(Member* _value){
-	this->args.at(0) = _value;
+void ComputeBinaryOperation::setLValue(std::shared_ptr<Member> _value){
+	this->args.at(0) = std::move(_value);
 };
 
-void ComputeBinaryOperation::setRValue(Member* _value) {
-	this->args.at(1) = _value;
+void ComputeBinaryOperation::setRValue(std::shared_ptr<Member> _value) {
+	this->args.at(1) = std::move(_value);
 };
 
 void ComputeBinaryOperation::updateResultSourceExpression()const
@@ -32,7 +29,7 @@ void ComputeBinaryOperation::updateResultSourceExpression()const
 	/*
 		Labmda funtion to check if parentheses are needed for the expression of the inputMember speficied as parameter.
 	*/
-	auto getMemberSourceBinOp = [](Member * _member)-> const Operator*
+	auto getMemberSourceBinOp = [](const std::shared_ptr<Member>& _member)-> std::shared_ptr<const Operator>
 	{
 		if (_member != nullptr )
 		{

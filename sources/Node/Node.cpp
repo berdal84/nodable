@@ -25,7 +25,7 @@ void Node::Disconnect(std::shared_ptr<Wire> _wire)
 	NodeTraversal::SetDirty(targetNode);
 }
 
-std::shared_ptr<Wire> Node::Connect( Member* _from, Member* _to)
+std::shared_ptr<Wire> Node::Connect(std::shared_ptr<Member> _from, std::shared_ptr<Member> _to)
 {	
 	auto command = std::make_unique<Cmd_ConnectWire>(_from, _to);
 	command->execute();

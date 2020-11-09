@@ -196,15 +196,14 @@ bool Parser_Test(
 	const std::string& expression,	
 	T _expectedValue )
 {
-    auto language = std::make_shared<LanguageNodable>();
-
-	Container container(language.get());
-	Parser parser(language.get(), &container);
+    auto language  = std::make_shared<LanguageNodable>();
+	auto container = std::make_shared<Container>(language);
+	Parser parser(language, container);
 
 	parser.eval(expression);
 
-	auto result = container.getResultVariable();
-	container.update();
+	auto result = container->getResultVariable();
+	container->update();
 
 	Member expectedMember;
 	expectedMember.set(_expectedValue);

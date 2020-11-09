@@ -108,7 +108,7 @@ void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord) {
 	history->addAndExecute( std::move(cmd) );
 }
 
-Cmd_ConnectWire::Cmd_ConnectWire(Member *_source, Member *_target) {
+Cmd_ConnectWire::Cmd_ConnectWire(std::shared_ptr<Member>& _source, std::shared_ptr<Member>& _target) {
     this->source     = _source;
     this->target     = _target;
 

@@ -11,16 +11,16 @@ using namespace Nodable;
 ComputeUnaryOperation::ComputeUnaryOperation():ComputeFunction() {}
 
 ComputeUnaryOperation::ComputeUnaryOperation(
-	const Operator* _operator,
-	const Language* _language)
+	std::shared_ptr<const Operator> _operator,
+    std::shared_ptr<const Language> _language)
 	:
-	ComputeFunction(_operator, _language)
+	ComputeFunction(std::move(_operator), std::move(_language))
 {
 
 }
 
-void ComputeUnaryOperation::setLValue(Member* _value) {
-	this->args[0] = _value;
+void ComputeUnaryOperation::setLValue(std::shared_ptr<Member> _value) {
+	this->args[0] = std::move(_value);
 };
 
 void ComputeUnaryOperation::updateResultSourceExpression()const
@@ -28,7 +28,7 @@ void ComputeUnaryOperation::updateResultSourceExpression()const
 	/*
 		Labmda funtion to check if parentheses are needed for the expression of the inputMember speficied as parameter.
 	*/
-	auto getMemberSourceBinOp = [](Member * _member)-> const Operator*
+	auto getMemberSourceBinOp = [](const std::shared_ptr<Member> _member)-> std::shared_ptr<const Operator>
 	{
 		if (_member != nullptr )
 		{
@@ -46,5 +46,10 @@ void ComputeUnaryOperation::updateResultSourceExpression()const
 
 	// Apply the new string to the result's source expression.
 	result->setSourceExpression(expr.c_str());
+}
+
+std::shared_ptr<const Operator> ComputeUnaryOperation::getOperator() const
+{
+    return std::static_pointer_cast<const Operator>(this->function);
 }
 

@@ -12,14 +12,15 @@
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
 
 #include <fstream>
+#include <utility>
 
 using namespace Nodable;
 
 Nodable::File::File( std::filesystem::path _path, const char* _content):
     Node(),
-	path(_path),
-	language(Language::Nodable()) /* Detect the language (TODO) */
-{		
+	path( std::move(_path) )
+{
+    this->language = Language::Nodable(); // TODO: detect language from file
 
 	/* Creates the FileView	*/
 	auto fileView = newComponent<FileView>().lock();
@@ -33,19 +34,17 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 	fileView->setUndoBuffer(undoBuffer);
 	
 	/* Creates a node container */
-	innerContainer = std::make_unique<Container>(language);
+	innerContainer = std::make_shared<Container>(language);
 	auto containerView = innerContainer->newComponent<ContainerView>().lock();
 
 	/* Add inputs in contextual menu */
 	auto api = language->getAllFunctions();
 
-	for (auto it = api.cbegin(); it != api.cend(); it++) {
-		const auto function = &*it;
+	for (const auto& function : api)
+	{
+	    auto op = language->findOperator(function->signature);
 
-		auto op = language->findOperator(function->signature);
-
-
-		if (op != nullptr )
+		if ( op != nullptr )
 		{
 			auto lambda = [this, op]()->Node*
 			{	

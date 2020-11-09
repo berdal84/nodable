@@ -1,6 +1,7 @@
 #pragma once
 
 #include <imgui/imgui.h>
+#include <memory>
 #include "Way.h"
 
 namespace Nodable
@@ -11,13 +12,13 @@ namespace Nodable
 	{
 	public:
 
-		Connector(Member* _member = nullptr, Way _way = Way::Default);
+		Connector(std::weak_ptr<Member> _member = std::make_shared<Member>(nullptr), Way _way = Way::Default);
         ~Connector() = default ;
 
 		bool equals(const Connector* _other)const;
         ImVec2 position() const;
 
-		Member* member;
+		std::weak_ptr<Member> member;
 		Way way;
     };
 }

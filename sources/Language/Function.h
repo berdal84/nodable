@@ -5,6 +5,7 @@
 #include <functional>
 #include <tuple>
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
+#include <Core/Member.h>
 
 namespace Nodable {
 
@@ -15,7 +16,7 @@ namespace Nodable {
      *
 	 * TODO: try to replace Member* by Variant*
 	 */
-	typedef std::function <int (class Member*, const std::vector<class Member*>&)> FunctionImplem;
+	typedef std::function <int (std::shared_ptr<Member>, const std::vector<std::shared_ptr<Member>>&)> FunctionImplem;
 
 	/*
 	 * Simple object to store a function argument (token, name)

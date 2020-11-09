@@ -110,7 +110,7 @@ namespace Nodable
 	class Cmd_ConnectWire : public Cmd
 	{
 	public:
-		Cmd_ConnectWire(Member* _source, Member* _target);;
+		Cmd_ConnectWire(std::shared_ptr<Member>& _source, std::shared_ptr<Member>& _target);;
 		~Cmd_ConnectWire(){};
 		void execute();
 		void redo();
@@ -118,8 +118,8 @@ namespace Nodable
 		std::shared_ptr<Wire> getWire() { return wire; }
 	private:
 		std::shared_ptr<Wire> wire;
-		Member*    source        = nullptr;
-		Member*    target        = nullptr;
+        std::shared_ptr<Member> source;
+        std::shared_ptr<Member> target;
 	};
 
 	/*

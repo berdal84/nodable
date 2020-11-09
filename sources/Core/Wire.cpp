@@ -2,18 +2,19 @@
 #include "WireView.h"
 #include "Variable.h"
 #include <memory> // unique_ptr
+#include <utility>
 
 using namespace Nodable;
 
-void Wire::setSource(Member* _source)
+void Wire::setSource(std::shared_ptr<Member> _source)
 {
-	source     = _source;
+	source     = std::move(_source);
 	updateState();
 }
 
-void Wire::setTarget(Member* _target)
+void Wire::setTarget(std::shared_ptr<Member> _target)
 {
-	target     = _target;
+	target     = std::move(_target);
 	updateState();
 }
 

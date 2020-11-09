@@ -96,7 +96,7 @@ namespace Nodable {
 		~Language() {};
 
 		/* Serialize a function call with a signature and some values */
-		virtual std::string                   serialize(const FunctionSignature&, std::vector<Member*>)const = 0;
+		virtual std::string                   serialize(const FunctionSignature&, std::vector<std::shared_ptr<Member>>)const = 0;
 
 		/* Serialize a function signature */
 		virtual std::string                   serialize(const FunctionSignature&)const = 0;
@@ -111,25 +111,25 @@ namespace Nodable {
 		   The last two operators are the source operators that creates the two operands as result.
 		   Those are used to check precedence and add some brackets if needed.
 		*/
-		virtual std::string                   serializeBinaryOp(const Operator*, std::vector<Member*>, const Operator*, const Operator*)const = 0;
-		virtual std::string                   serializeUnaryOp(const Operator*, std::vector<Member*>, const Operator*)const = 0;
+		virtual std::string                   serializeBinaryOp(std::shared_ptr<const Operator>, std::vector<std::shared_ptr<Member>>, std::shared_ptr<const Operator>, std::shared_ptr<const Operator>)const = 0;
+		virtual std::string                   serializeUnaryOp(std::shared_ptr<const Operator>, std::vector<std::shared_ptr<Member>>, std::shared_ptr<const Operator>)const = 0;
 		virtual const FunctionSignature       createBinOperatorSignature(Type, std::string, Type, Type) const = 0;
 		virtual const FunctionSignature       createUnaryOperatorSignature(Type, std::string, Type) const = 0;
 		virtual const TokenType               typeToTokenType(Type _type)const = 0;
 		virtual const Type                    tokenTypeToType(TokenType _tokenType)const = 0;
 
-		void                                  addOperator(Operator);
+		void                                  addOperator(std::shared_ptr<Operator>);
 		void                                  addOperator(std::string       _identifier,
 			                                              unsigned short    _precedence,
 			                                              FunctionSignature _prototype,
 			                                              FunctionImplem  _implementation);
-		const Function*                       findFunction(const FunctionSignature& signature) const;
-		const Operator*                       findOperator(const FunctionSignature& _operator) const;
-		const Operator*                       findOperator(const std::string& _identifier) const;
-		void                                  addToAPI(Function);
-		void                                  addToAPI(FunctionSignature&, FunctionImplem);
-		bool                                  hasHigherPrecedenceThan(const Operator *_firstOperator, const Operator* _secondOperator)const;
-		const std::vector<Function>&          getAllFunctions()const { return api; }		
+        std::shared_ptr<const Function>       findFunction(const FunctionSignature& signature) const;
+		std::shared_ptr<const Operator>       findOperator(const FunctionSignature& _operator) const;
+        std::shared_ptr<const Operator>       findOperator(const std::string& _identifier) const;
+		void                                  addToAPI(const std::shared_ptr<Function>&);
+		void                                  addToAPI(FunctionSignature&, const FunctionImplem&);
+		bool                                  hasHigherPrecedenceThan(const std::shared_ptr<const Operator>& _firstOperator, std::shared_ptr<const Operator> _secondOperator)const;
+		[[nodiscard]] const std::vector< std::shared_ptr<Function> >& getAllFunctions()const { return api; }
 		
 
 		/**
@@ -137,19 +137,19 @@ namespace Nodable {
 		  * New language generators will be found here later...
 		  * ex: static const Language* TypeScript();
 		  */
-		static const Language* Nodable();
+		static std::shared_ptr<const Language> Nodable();
 
 
 	private:
 		/* Some language reference constants*/
-		static const Language* NODABLE;
+		static std::shared_ptr<const Language> NODABLE;
 
 	public:
 		Dictionnary dictionnary;
 	private:
 		std::string name;
-		std::vector<Operator> operators;
-		std::vector<Function> api;
+		std::vector< std::shared_ptr<Operator> > operators;
+		std::vector< std::shared_ptr<Function> > api;
 	};
 
 }

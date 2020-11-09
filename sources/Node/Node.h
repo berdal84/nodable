@@ -82,7 +82,7 @@ namespace Nodable{
 		virtual UpdateResult update();
 
 		/* Create an oriented edge (Wire) between two Members */
-		static std::shared_ptr<Wire> Connect(Member* /*_from*/, Member* /*_to*/);
+		static std::shared_ptr<Wire> Connect(std::shared_ptr<Member> /*_from*/, std::shared_ptr<Member> /*_to*/);
 	
 		/* Disconnect a wire. This method is the opposite of Node::Connect.*/
 		static void Disconnect(std::shared_ptr<Wire> _wire);

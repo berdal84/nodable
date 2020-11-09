@@ -14,7 +14,7 @@ namespace Nodable{
 	class Container: public Node {
 	public:
 
-		Container(const Language* _language);
+		Container(std::shared_ptr<const Language> _language);
 		virtual ~Container();
         UpdateResult                update() override;
 		void                      	clear();		
@@ -33,16 +33,16 @@ namespace Nodable{
 		Variable*					newNumber(double = 0);
 		Variable*					newNumber(const char*);
 		Variable*					newString(const char*);	
-		Node*                       newBinOp(const Operator*);
-		Node*                       newUnaryOp(const Operator*);
+		Node*                       newBinOp(std::shared_ptr<const Operator>);
+		Node*                       newUnaryOp(std::shared_ptr<const Operator>);
 		std::shared_ptr<Wire>       newWire();
-		Node*                       newFunction(const Function* _proto);
+		Node*                       newFunction(std::shared_ptr<const Function> _proto);
 
 	private:		
 		std::shared_ptr<Variable> resultNode;
 		std::map<std::string, Variable*> variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<std::shared_ptr<Node>> nodes;   /* Contain all Objects created by this context */
-		const Language*             language;
+        std::shared_ptr<const Language> language;
 	public:
 		static ImVec2               LastResultNodePosition;
 

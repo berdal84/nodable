@@ -12,16 +12,16 @@ namespace Nodable
     {
 	public:
 	    ComputeFunction(): ComputeBase(){};
-		ComputeFunction(const Function* _function, const Language* _language);
+		ComputeFunction(std::shared_ptr<const Function> _function, std::shared_ptr<const Language> _language);
 		~ComputeFunction() {};
-		void setFunction(const Function* _function);
-		void setArg(size_t _index, Member* _value);
+		void setFunction(std::shared_ptr<const Function> _function);
+		void setArg(size_t _index, std::shared_ptr<Member> _value);
 		bool update()override;
 		void updateResultSourceExpression() const override;
 
 	protected:
-		std::vector<Member*> args;
-		const Function* function;
+		std::vector<std::shared_ptr<Member>> args;
+        std::shared_ptr<const Function> function;
 
 		MIRROR_CLASS(ComputeFunction)(
 			MIRROR_PARENT(ComputeBase)

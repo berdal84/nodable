@@ -26,11 +26,10 @@ namespace Nodable
 
 		void                setAllowedConnections(Way _flags);
 		void                setSourceExpression(const char*);
-		void                setInputMember(Member*);
+		void                setInputMember(std::shared_ptr<Member>);
 		void  		        setName(const char*);
-		void                setOwner(Object*);	
-		void                set(const Member*);
-		void                set(const Member&);
+		void                setOwner(Object*);
+		void                set(const std::shared_ptr<Member>&);
 		void                set(double);
 		void                set(int);
 		void                set(std::string);
@@ -44,7 +43,7 @@ namespace Nodable
 		void                updateValueFromInputMemberValue();
 
 		[[nodiscard]] Object*             getOwner()const;
-		[[nodiscard]] Member*             getInputMember()const;
+		[[nodiscard]] std::shared_ptr<Member> getInputMember()const;
 		[[nodiscard]] const std::string&  getName()const;
 		[[nodiscard]] std::string         getSourceExpression()const;
 		[[nodiscard]] Type                getType()const;
@@ -54,13 +53,13 @@ namespace Nodable
         [[nodiscard]] const Connector*    input() const { return in.get(); }
         [[nodiscard]] const Connector*    output() const { return out.get(); }
 
-		inline operator bool()const        { return data; }
-		inline operator double()const      { return data; }
-		inline operator std::string()const { return data; }
+		inline explicit operator bool()const        { return data; }
+		inline explicit operator double()const      { return data; }
+		inline explicit operator std::string()const { return data; }
 
 	private:
 		Object*     		owner       		= nullptr;
-		Member*             inputMember         = nullptr;
+        std::shared_ptr<Member> inputMember;
 		std::string         sourceExpression;
 		std::string 		name 				= "Unknown";
 		Variant       		data;

@@ -17,13 +17,14 @@ namespace Nodable{
 	*/
 	class ComputeBinaryOperation: public ComputeFunction {
 	public:
-	    ComputeBinaryOperation();
-		ComputeBinaryOperation(const Operator*, const Language*);
-		~ComputeBinaryOperation(){};
-		void                setLValue(Member* _value);
-		void                setRValue(Member* _value);		
+	    ComputeBinaryOperation(): ComputeFunction() {}
+		ComputeBinaryOperation(std::shared_ptr<const Operator>    _operator,
+                               std::shared_ptr<const Language>    _language);
+		~ComputeBinaryOperation() {};
+		void                setLValue(std::shared_ptr<Member> _value);
+		void                setRValue(std::shared_ptr<Member> _value);
 		void                updateResultSourceExpression() const override;
-		inline const Operator* ope()const { return reinterpret_cast<const Operator*>(this->function); };
+		[[nodiscard]] inline std::shared_ptr<const Operator> ope()const { return std::static_pointer_cast<const Operator>(this->function); };
 	protected:		
 		MIRROR_CLASS(ComputeBinaryOperation)(
 			MIRROR_PARENT(ComputeFunction)

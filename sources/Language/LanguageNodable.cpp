@@ -9,7 +9,7 @@ using namespace Nodable;
 
 std::string LanguageNodable::serialize(
 	const FunctionSignature&   _signature,
-	std::vector<Member*> _args) const
+    std::vector<std::shared_ptr<Member>> _args) const
 {
 	std::string expr;
 	expr.append(_signature.getIdentifier());
@@ -56,7 +56,7 @@ std::string LanguageNodable::serialize(const TokenType& _type) const {
 	return dictionnary.convert(_type);
 }
 
-std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<Member*> _args, const Operator* _lBinOp, const Operator* _rBinOp) const
+std::string LanguageNodable::serializeBinaryOp(std::shared_ptr<const Operator> _op, std::vector<std::shared_ptr<Member>> _args, std::shared_ptr<const Operator> _lBinOp, std::shared_ptr<const Operator> _rBinOp) const
 {
 	std::string result;
 
@@ -84,7 +84,7 @@ std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<
 	return result;
 }
 
-std::string LanguageNodable::serializeUnaryOp(const Operator* _op, std::vector<Member*> _args, const Operator* _innerOp) const
+std::string LanguageNodable::serializeUnaryOp(std::shared_ptr<const Operator> _op, std::vector<std::shared_ptr<Member>> _args, std::shared_ptr<const Operator> _innerOp) const
 {
 	std::string result;
 

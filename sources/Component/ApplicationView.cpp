@@ -321,7 +321,7 @@ bool ApplicationView::draw()
 
     // Properties panel sdlWindow
     {
-        bool b = *get("showProperties");
+        auto b = (bool)*get("showProperties");
         if( b ){
     	    if (ImGui::Begin("Properties", &b))
     	    {
@@ -342,8 +342,8 @@ bool ApplicationView::draw()
 
     // Demo Window
     {
-        bool b = *get("showImGuiDemo");
-        if (b){
+        auto b = static_cast<bool>(*get("showImGuiDemo"));
+        if (b) {
             ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowDemoWindow(&b);
             set("showImGuiDemo", b);

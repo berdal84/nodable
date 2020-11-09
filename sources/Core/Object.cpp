@@ -14,43 +14,43 @@ const std::map<std::string, std::shared_ptr<Member>>&   Object::getMembers      
 	return members;
 }
 
-bool Object::has(Member* _value)
+bool Object::has(std::shared_ptr<Member> _value)
 {
 	auto foundWithName = members.find(_value->getName());
 	if( foundWithName != members.end())
-		return (*foundWithName).second.get() == _value;
+		return (*foundWithName).second == _value;
 	return false;
 }
 
-Member* Object::get (const char* _name)const
+std::shared_ptr<Member> Object::get (const char* _name)const
 {
 	auto foundWithName = members.find(std::string(_name));
 	if (foundWithName != members.end())
-		return (*foundWithName).second.get();
+		return (*foundWithName).second;
 	return nullptr;
 }
 
-Member* Object::get (const std::string& _name)const
+std::shared_ptr<Member> Object::get (const std::string& _name)const
 {
-	return members.at(_name.c_str()).get();
+	return members.at(_name);
 }
 
-Member* Object::getFirstWithConn(Way _connection)const
+std::shared_ptr<Member> Object::getFirstWithConn(Way _connection)const
 {
-	Member* found = nullptr;
+	std::shared_ptr<Member> found;
 
 	auto m = this->members.begin();
-	while (m != this->members.end() && found == nullptr)
+	while (m != this->members.end() && !found)
 	{
 		if (m->second->allowsConnections(_connection) )
-			found = m->second.get();
+			found = m->second;
 		m++;
 	}
 
 	return found;
 }
 
-Member* Object::add (const char* _name, Visibility _visibility, Type _type, Way _flags )
+std::shared_ptr<Member> Object::add (const char* _name, Visibility _visibility, Type _type, Way _flags )
 {
 	auto member = std::make_shared<Member>();
 
@@ -61,5 +61,5 @@ Member* Object::add (const char* _name, Visibility _visibility, Type _type, Way 
     member->setAllowedConnections(_flags);
 	members.insert_or_assign(std::string(_name), member);
 
-	return member.get();
+	return member;
 }

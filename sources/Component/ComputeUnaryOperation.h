@@ -18,11 +18,12 @@ namespace Nodable {
 	class ComputeUnaryOperation : public ComputeFunction {
 	public:
 	    ComputeUnaryOperation();
-		ComputeUnaryOperation(const Operator*, const Language*);
+		ComputeUnaryOperation(std::shared_ptr<const Operator> _operator,
+                              std::shared_ptr<const Language> _language);
 		~ComputeUnaryOperation() {};
-		void                setLValue(Member* _value);
-		void                updateResultSourceExpression() const override;
-		inline const Operator* getOperator()const { return reinterpret_cast<const Operator*>(this->function); };
+		void setLValue(std::shared_ptr<Member> _value);
+		void updateResultSourceExpression() const override;
+		inline std::shared_ptr<const Operator> getOperator()const;;
 
 	protected:
 		MIRROR_CLASS(ComputeUnaryOperation)(

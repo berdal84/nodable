@@ -20,23 +20,16 @@
 
 using namespace Nodable;
 
-Parser::Parser(const Language* _language, Container* _container):
-	                 language(_language), container(_container)
+std::string Parser::LogTokensWithHighlightedAtIndex(
+        const std::vector<Token>& _tokens,
+        size_t _highlightedTokenIndex)
 {
-}
-
-Parser::~Parser()
-{
-
-}
-
-std::string Parser::logTokens(const std::vector<Token> _tokens, const size_t _highlight){
 	std::string result;
 
-	for (auto it = _tokens.begin(); it != _tokens.end(); it++ ) {
+	for (auto it = _tokens.cbegin(); it != _tokens.cend(); it++ ) {
 		size_t index = it - _tokens.begin();
 
-		if (index == _highlight) {
+		if (index == _highlightedTokenIndex) {
 			result.append(GREEN);
 			result.append((*it).word);
 			result.append(RESET);
@@ -47,7 +40,7 @@ std::string Parser::logTokens(const std::vector<Token> _tokens, const size_t _hi
 
 	const std::string endOfLine(" (last)");
 
-	if (_tokens.size() == _highlight) {
+	if (_tokens.size() == _highlightedTokenIndex) {
 		result.append(GREEN);
 		result.append(endOfLine);
 		result.append(RESET);
@@ -79,7 +72,7 @@ bool Parser::eval(const std::string& _expression)
 		return false;
 	}
 
-	Member* resultValue = parseRootExpression();
+	auto resultValue = parseRootExpression();
 	if (resultValue == nullptr)
 	{
 		LOG_WARNING(0u, "Unable to parse expression due to abstract syntax tree failure.\n");
@@ -100,62 +93,16 @@ bool Parser::eval(const std::string& _expression)
 	return true;
 }
 
-Member* Parser::tokenToMember(const Token& _token) {
-
-
-	Member* result = nullptr;
-
-	switch (_token.type)
-	{
-
-		case TokenType::Boolean:
-		{
-			result = new Member();
-			const bool value = _token.word == "true";
-			result->set(value);
-			break;
-		}
-
-		case TokenType::Symbol:
-		{
-			auto context = container;
-			Variable* variable = context->findVariable(_token.word);
-
-			if (variable == nullptr)
-				variable = context->newVariable(_token.word).get();
-
-			NODABLE_ASSERT(variable != nullptr);
-			NODABLE_ASSERT(variable->getMember() != nullptr);
-
-			result = variable->getMember();
-
-			break;
-		}
-
-		case TokenType::Double: {
-			result = new Member();
-			const double number = std::stod(_token.word);
-			result->set(number);
-			break;
-		}
-
-		case TokenType::String: {
-			result = new Member();
-			result->set(_token.word);
-			break;
-		}
-
-	}
-
-	return result;
-}
-
-Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _left) {
+std::shared_ptr<Member> Parser::parseBinaryOperationExpression(
+        size_t& _tokenId,
+        unsigned short _precedence,
+        std::shared_ptr<Member> _left)
+{
 
 	LOG_DEBUG_PARSER("parseBinaryOperationExpression...\n");
-	LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
+	LOG_DEBUG_PARSER("%s \n", Parser::LogTokensWithHighlightedAtIndex(tokens, _tokenId).c_str());
 
-	Member* result = nullptr;
+	std::shared_ptr<Member> result;
 
 	if (_tokenId + 1 >= tokens.size()) {
 		LOG_DEBUG_PARSER("parseBinaryOperationExpression... " KO " (not enought tokens)\n");
@@ -208,7 +155,6 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		if (_left->getOwner() == nullptr)
 		{
             binOpNode->set("lvalue", _left);
-            delete _left;
         }
 		else
         {
@@ -220,7 +166,6 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		if (right->getOwner() == nullptr)
 		{
             binOpNode->set("rvalue", right);
-            delete right;
         }
 		else
         {
@@ -242,15 +187,15 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 	return result;
 }
 
-Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence) {
+std::shared_ptr<Member> Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _precedence) {
 
 	LOG_DEBUG_PARSER("parseUnaryOperationExpression...\n");
-	LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
+	LOG_DEBUG_PARSER("%s \n", Parser::LogTokensWithHighlightedAtIndex(tokens, _tokenId).c_str());
 
-	Member* result = nullptr;
+    std::shared_ptr<Member> result;
 
-	const bool hasEnoughtTokens = tokens.size() > _tokenId + 1;
-	if (!hasEnoughtTokens)
+	const bool hasEnoughTokens = tokens.size() > _tokenId + 1;
+	if (!hasEnoughTokens)
 		return nullptr;
 
 	const Token& token1(tokens.at(_tokenId));
@@ -264,10 +209,10 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	// Parse expression after the operator
 	auto valueTokenId = _tokenId + 1;
 	auto precedence = language->findOperator(token1.word)->precedence;
-	Member* value = nullptr;
+    std::shared_ptr<Member> left;
 
-	     if ( value = parseAtomicExpression(valueTokenId));
-	else if ( value = parseParenthesisExpression(valueTokenId));
+	     if ( left = parseAtomicExpression(valueTokenId));
+	else if ( left = parseParenthesisExpression(valueTokenId));
 	else
 	{
 		LOG_DEBUG_PARSER("parseUnaryOperationExpression... " KO " (right expression is nullptr)\n");
@@ -275,7 +220,7 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	}
 
 	// Create a function signature
-	auto signature = language->createUnaryOperatorSignature(Type::Any, token1.word, value->getType() );
+	auto signature = language->createUnaryOperatorSignature(Type::Any, token1.word, left->getType() );
 	auto matchingOperator = language->findOperator(signature);
 
 	if (matchingOperator != nullptr)
@@ -285,17 +230,16 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 
 		// Connect the Left Operand :
 		//---------------------------
-		if (value->getOwner() == nullptr)
+		if (left->getOwner() == nullptr)
 		{
-            binOpNode->set("lvalue", value);
-            delete value;
+            binOpNode->set("lvalue", left);
         }
 		else
         {
-			Node::Connect(value, binOpNode->get("lvalue"));
+			Node::Connect(left, binOpNode->get("lvalue"));
         }
 
-		// Set the left !
+		// Get the result member
 		result = binOpNode->get("result");
 
 	} else {
@@ -309,7 +253,7 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 	return result;
 }
 
-Member* Parser::parseAtomicExpression(size_t& _tokenId) {
+std::shared_ptr<Member> Parser::parseAtomicExpression(size_t& _tokenId) {
 
 	LOG_DEBUG_PARSER("parseAtomicExpression... \n");
 
@@ -327,7 +271,46 @@ Member* Parser::parseAtomicExpression(size_t& _tokenId) {
 		return nullptr;
 	}
 
-	auto result = tokenToMember(token);
+    std::shared_ptr<Member> result;
+
+    switch (token.type) {
+
+        case TokenType::Boolean: {
+            result = std::make_shared<Member>();
+            const bool value = token.word == "true";
+            result->set(value);
+            break;
+        }
+
+        case TokenType::Symbol: {
+            auto context = container;
+            Variable *variable = context->findVariable(token.word);
+
+            if (variable == nullptr)
+                variable = context->newVariable(token.word).get();
+
+            NODABLE_ASSERT(variable != nullptr);
+            NODABLE_ASSERT(variable->getMember() != nullptr);
+
+            result = std::make_shared<Member>();
+
+            break;
+        }
+
+        case TokenType::Double: {
+            result = std::make_shared<Member>();
+            const double number = std::stod(token.word);
+            result->set(number);
+            break;
+        }
+
+        case TokenType::String: {
+            result = std::make_shared<Member>();
+            result->set(token.word);
+            break;
+        }
+
+    }
 
 	if( result != nullptr)
 		_tokenId++;
@@ -337,10 +320,10 @@ Member* Parser::parseAtomicExpression(size_t& _tokenId) {
 	return result;
 }
 
-Member* Parser::parseParenthesisExpression(size_t& _tokenId) {
+std::shared_ptr<Member> Parser::parseParenthesisExpression(size_t& _tokenId) {
 
 	LOG_DEBUG_PARSER("parseParenthesisExpression...");
-	LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
+	LOG_DEBUG_PARSER("%s \n", Parser::LogTokensWithHighlightedAtIndex(tokens, _tokenId).c_str());
 
 	if (_tokenId >= tokens.size())
 		return nullptr;
@@ -351,19 +334,19 @@ Member* Parser::parseParenthesisExpression(size_t& _tokenId) {
 		return nullptr;
 	}
 
-	Member* result(nullptr);
+	std::shared_ptr<Member> result;
 
 	if (token1.word == "(") {
 
 		auto subToken = _tokenId + 1;
-		result = parseExpression(subToken, 0u, nullptr);
+		result = parseExpression(subToken, 0u );
 
 		if (result)
 		{
 			_tokenId = subToken + 1;
 
 			if (tokens.at(subToken).word != ")") {
-				LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
+				LOG_DEBUG_PARSER("%s \n", Parser::LogTokensWithHighlightedAtIndex(tokens, _tokenId).c_str());
 				LOG_DEBUG_PARSER("parseParenthesisExpression failed... " KO " ( \")\" expected after %s )\n", tokens.at(subToken - 1));
 			}
 			else {
@@ -378,11 +361,10 @@ Member* Parser::parseParenthesisExpression(size_t& _tokenId) {
 	return result;
 }
 
-Member* Parser::parseRootExpression() {
+std::shared_ptr<Member> Parser::parseRootExpression() {
 
-	size_t  tokenId      = 0;
-	Member* result       = nullptr;
-	bool    parsingError = false;
+	size_t  tokenId = 0;
+	std::shared_ptr<Member> result;
 
 	result = parseExpression(tokenId, 0u, result);
 
@@ -395,15 +377,15 @@ Member* Parser::parseRootExpression() {
 		LOG_DEBUG_PARSER("parse root expression " KO " (result == nullptr)\n");
 	}
 
-	LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, tokenId).c_str());
+	LOG_DEBUG_PARSER("%s \n", Parser::LogTokensWithHighlightedAtIndex(tokens, tokenId).c_str());
 
 	return result;
 }
 
-Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride) {
+std::shared_ptr<Member> Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, std::shared_ptr<Member> _leftOverride) {
 
 	LOG_DEBUG_PARSER("parseExpression...\n");
-	LOG_DEBUG_PARSER("%s \n", Parser::logTokens(tokens, _tokenId).c_str());
+	LOG_DEBUG_PARSER("%s \n", Parser::LogTokensWithHighlightedAtIndex(tokens, _tokenId).c_str());
 
 	if (_tokenId >= tokens.size()) {
 		LOG_DEBUG_PARSER("parseExpression..." KO " (last token)\n");
@@ -412,7 +394,7 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 	/**
 		Get the left handed operand
 	*/
-	Member* left = nullptr;
+    std::shared_ptr<Member> left;
 
 	if (left = _leftOverride);
 	else if (left = parseParenthesisExpression(_tokenId));
@@ -425,7 +407,7 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 		return left;
 	}
 
-	Member* result;
+    std::shared_ptr<Member> result;
 
 	/**
 		Get the right handed operand
@@ -460,7 +442,7 @@ bool Parser::isSyntaxValid()
 	auto it                          = tokens.begin();
 	short int openedParenthesisCount = 0;
 
-	while( it != tokens.end() && success == true) {
+	while( it != tokens.end() && success ) {
 
 		auto current = *it;
 		const bool isLastToken = tokens.end() - it == 1;
@@ -575,7 +557,7 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
 
 }
 
-void Parser::addToken(TokenType  _type, std::string _string, size_t _charIndex)
+void Parser::addToken(const TokenType  _type, const std::string& _string, size_t _charIndex)
 {
 	Token t;
 	t.type      = _type;
@@ -585,7 +567,7 @@ void Parser::addToken(TokenType  _type, std::string _string, size_t _charIndex)
 	tokens.push_back(t);
 }
 
-Member* Parser::parseFunctionCall(size_t& _tokenId)
+std::shared_ptr<Member> Parser::parseFunctionCall(size_t& _tokenId)
 {
 	size_t localTokenId = _tokenId;
 
@@ -626,7 +608,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 		return nullptr;
 	}
 
-	std::vector<Member*> args;
+	std::vector<std::shared_ptr<Member>> args;
 
 	// Declare a new function prototype
 	FunctionSignature signature(identifier, TokenType::AnyType);
@@ -664,7 +646,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 
 	// Find the prototype in the language library
 	auto fct = language->findFunction(signature);
-
+    std::shared_ptr<Member> result;
 	if( fct != nullptr) { // if function found
 
 		auto node = container->newFunction(fct);
@@ -685,11 +667,11 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 			connectArg(argIndex);
 
 		_tokenId = localTokenId;
-		return node->get("result");
+		result = node->get("result");
 
 	} else {
 		LOG_DEBUG_PARSER("Unable to parse function, prototype not found.");
 	}
 
-	return nullptr;
+	return result;
 }

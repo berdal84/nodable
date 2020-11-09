@@ -35,8 +35,8 @@ namespace Nodable
 			return getComponent<History>();
 		}
 
-        inline Container* getInnerContainer() {
-            return this->innerContainer.get();
+        inline std::shared_ptr<Container> getInnerContainer() {
+            return this->innerContainer;
         }
 
         inline std::string getName()const
@@ -45,10 +45,10 @@ namespace Nodable
         }
 
 	private:
-	    std::unique_ptr<Container> innerContainer;
+	    std::shared_ptr<Container> innerContainer;
 		bool                      modified = false;
 		std::filesystem::path     path;		
-		const Language*           language;
+		std::shared_ptr<const Language> language;
 		MIRROR_CLASS(File)();
     };
 }

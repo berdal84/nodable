@@ -1,18 +1,20 @@
 #include "ComputeFunction.h"
 #include "Log.h"
 #include "Function.h"
+
+#include <utility>
 #include "Language.h"
 #include "Member.h"
 
 using namespace Nodable;
 
-ComputeFunction::ComputeFunction(const Function* _function, const Language* _language) :
-	ComputeBase(_language),
-	function(_function)
+ComputeFunction::ComputeFunction(
+        std::shared_ptr<const Function> _function,
+        std::shared_ptr<const Language> _language) :
+	ComputeBase(std::move(_language)),
+	function(std::move(_function))
 {
-	size_t i = 0;
-	while (args.size() < _function->signature.getArgs().size())
-		args.push_back(nullptr);
+    args.resize( _function->signature.getArgs().size() );
 }
 
 bool ComputeFunction::update()
@@ -37,13 +39,13 @@ void ComputeFunction::updateResultSourceExpression() const
 	this->result->setSourceExpression(expr.c_str());
 }
 
-void ComputeFunction::setFunction(const Function *_function)
+void ComputeFunction::setFunction(std::shared_ptr<const Function> _function)
 {
     function = _function;
     this->args.resize(function->signature.getArgs().size());
 }
 
-void ComputeFunction::setArg(size_t _index, Member *_value)
+void ComputeFunction::setArg(size_t _index, std::shared_ptr<Member> _value)
 {
     args[_index] = _value;
 }

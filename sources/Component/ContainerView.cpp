@@ -112,9 +112,12 @@ bool ContainerView::draw()
 			if (draggedConnector != nullptr &&
 				hoveredConnector != nullptr)
 			{
-				if (draggedConnector->member != hoveredConnector->member)
+			    auto source = draggedConnector->member.lock();
+			    auto target = hoveredConnector->member.lock();
+
+				if ( source != target)
 				{
-					Node::Connect(draggedConnector->member, hoveredConnector->member);
+					Node::Connect(source, target);
 				}
 
 				NodeView::ResetDraggedConnector();
@@ -224,11 +227,15 @@ bool ContainerView::draw()
 		if (draggedConnector != nullptr && newNode != nullptr)
 		{
 			// if dragged member is an inputMember
-			if (draggedConnector->member->allowsConnections(Way::In))
-				Node::Connect(newNode->getFirstWithConn(Way::Out), draggedConnector->member);
+			auto draggedMember = draggedConnector->member.lock();
+			if ( draggedMember->allowsConnections(Way::In) )
+            {
+				Node::Connect( newNode->getFirstWithConn(Way::Out), draggedMember );
 
 			// if dragged member is an output
-			else if (draggedConnector->member->allowsConnections(Way::Out)) {
+			}
+			else if ( draggedMember->allowsConnections(Way::Out) )
+			{
 
 				// try to get the first Input only member
 				auto targetMember = newNode->getFirstWithConn(Way::In);
@@ -239,7 +246,7 @@ bool ContainerView::draw()
                     targetMember = newNode->getFirstWithConn(Way::InOut);
                 }
 
-				Node::Connect(draggedConnector->member, targetMember);
+				Node::Connect(draggedMember, targetMember);
 			}
 			NodeView::ResetDraggedConnector();
 		}

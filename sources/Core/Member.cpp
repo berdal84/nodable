@@ -34,7 +34,7 @@ void Member::setAllowedConnections(Way _flags)
 	// Create an input if needed
 	if ( _flags == Way::In || _flags == Way::InOut )
     {
-		auto conn = std::make_unique<Connector>(this, Way::In);
+		auto conn = std::make_unique<Connector>( std::shared_ptr<Member>(this), Way::In);
 		in = std::move(conn);
         LOG_MESSAGE(3u, "allows Way::In\n");
     }
@@ -46,7 +46,7 @@ void Member::setAllowedConnections(Way _flags)
 	// Create an output if needed
 	if ( _flags == Way::Out || _flags == Way::InOut )
     {
-        auto conn = std::make_unique<Connector>(this, Way::Out);
+        auto conn = std::make_unique<Connector>( std::shared_ptr<Member>(this), Way::Out);
         out = std::move(conn);
         LOG_MESSAGE(3u, "allows Way::Out\n");
     }
@@ -101,7 +101,7 @@ Object* Member::getOwner() const
 	return owner;
 }
 
-Member* Member::getInputMember() const
+std::shared_ptr<Member> Member::getInputMember() const
 {
 	return inputMember;
 }
@@ -111,9 +111,9 @@ const std::string& Nodable::Member::getName() const
 	return name;
 }
 
-void Member::setInputMember(Member* _val)
+void Member::setInputMember(std::shared_ptr<Member> _val)
 {
-	inputMember = _val;
+	inputMember = std::move(_val);
 
 	if (_val == nullptr)
 		sourceExpression = "";
@@ -203,15 +203,9 @@ std::string Member::getSourceExpression()const
 	return expression;
 }
 
-
-void Member::set(const Member* _v)
+void Member::set(const std::shared_ptr<Member>& _v)
 {
 	data = _v->data;
-}
-
-void Member::set(const Member& _v)
-{
-	data = _v.data;
 }
 
 void Member::set(double _value)

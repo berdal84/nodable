@@ -195,7 +195,7 @@ Variable* Container::newString(const char* _value)
 }
 
 
-Node* Container::newBinOp(const Operator* _operator)
+Node* Container::newBinOp(std::shared_ptr<const Operator> _operator)
 {
 	// CREATE THE NODE :
 	//------------------
@@ -226,7 +226,7 @@ Node* Container::newBinOp(const Operator* _operator)
 	return node.get();
 }
 
-Node* Container::newUnaryOp(const Operator* _operator)
+Node* Container::newUnaryOp(std::shared_ptr<const Operator> _operator)
 {
 	// CREATE THE NODE :
 	//------------------
@@ -255,7 +255,7 @@ Node* Container::newUnaryOp(const Operator* _operator)
 	return node.get();
 }
 
-Node* Container::newFunction(const Function* _function) {
+Node* Container::newFunction(std::shared_ptr<const Function> _function) {
 
 	// CREATE THE NODE :
 	//------------------
@@ -329,7 +329,7 @@ size_t Container::getNodeCount()const
 	return nodes.size();
 }
 
-Container::Container(const Language* _language)
+Container::Container(std::shared_ptr<const Language> _language):
+    language( std::move(_language) )
 {
-	language = _language;
 }
