@@ -57,9 +57,9 @@ namespace Nodable {
 
 	public:
 		template<typename R = TokenType, typename... TokenType>
-		static FunctionSignature Create(R _type, std::string _identifier, TokenType&& ..._args) {
-			FunctionSignature signature(_identifier, _type);
-			signature.pushArgs(_args...);
+		static std::shared_ptr<FunctionSignature> Create(R _type, std::string _identifier, TokenType&& ..._args) {
+			auto signature = std::make_shared<FunctionSignature>( _identifier, _type );
+			signature->pushArgs(_args...);
 			return signature;
 		}
 	};

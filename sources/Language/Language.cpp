@@ -37,8 +37,8 @@ bool  Language::hasHigherPrecedenceThan(
 
 std::shared_ptr<const Function> Nodable::Language::findFunction(const FunctionSignature& _signature) const
 {
-	auto predicate = [&](const Function& fct) {
-		return fct.signature.match(_signature);
+	auto predicate = [&](const std::shared_ptr<Function>& fct) {
+		return fct->signature.match(_signature);
 	};
 
 	auto it = std::find_if(api.begin(), api.end(), predicate);
@@ -51,8 +51,8 @@ std::shared_ptr<const Function> Nodable::Language::findFunction(const FunctionSi
 
 std::shared_ptr<const Operator> Language::findOperator(const std::string& _identifier) const {
 
-	auto predicate = [&](const Operator& op) {
-		return op.identifier == _identifier;
+	auto predicate = [&](const std::shared_ptr<Operator>& op) {
+		return op->identifier == _identifier;
 	};
 
 	auto it = std::find_if(operators.cbegin(), operators.cend(), predicate);
@@ -65,8 +65,8 @@ std::shared_ptr<const Operator> Language::findOperator(const std::string& _ident
 
 std::shared_ptr<const Operator> Language::findOperator(const FunctionSignature& _signature) const {
 	
-	auto predicate = [&](const Operator& op) {
-		return op.signature.match(_signature);
+	auto predicate = [&](const std::shared_ptr<Operator>& op) {
+		return op->signature.match(_signature);
 	};
 
 	auto it = std::find_if(operators.cbegin(), operators.cend(), predicate );
@@ -83,7 +83,7 @@ void Nodable::Language::addToAPI(const std::shared_ptr<Function>& _function)
 	this->api.push_back(_function);
 }
 
-void Nodable::Language::addToAPI(FunctionSignature& _signature, const FunctionImplem& _implementation)
+void Nodable::Language::addToAPI(const std::shared_ptr<FunctionSignature>& _signature, const FunctionImplem& _implementation)
 {
 	auto f = std::make_shared<Function>( _signature, _implementation );
 	this->api.push_back(f);

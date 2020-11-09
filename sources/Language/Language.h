@@ -48,7 +48,7 @@ return 1;
 {\
 	auto precedence = _precedence; \
 	auto identifier = std::string(_identifier); \
-	FunctionSignature signature( std::string("operator") + _identifier, _type, _label ); \
+	auto signature  = std::make_shared<FunctionSignature>( std::string("operator") + _identifier, _type, _label ); \
 	signature.pushArgs(_ltype, _rtype); \
 	BEGIN_IMPL
 
@@ -56,7 +56,7 @@ return 1;
 {\
 	auto precedence = _precedence; \
 	auto identifier = std::string(_identifier); \
-	FunctionSignature signature( std::string("operator") + _identifier, _type, _label ); \
+	auto signature  = std::make_shared<FunctionSignature>( std::string("operator") + _identifier, _type, _label ); \
 	signature.pushArgs(_ltype); \
 	BEGIN_IMPL
 
@@ -127,7 +127,7 @@ namespace Nodable {
 		std::shared_ptr<const Operator>       findOperator(const FunctionSignature& _operator) const;
         std::shared_ptr<const Operator>       findOperator(const std::string& _identifier) const;
 		void                                  addToAPI(const std::shared_ptr<Function>&);
-		void                                  addToAPI(FunctionSignature&, const FunctionImplem&);
+		void                                  addToAPI(const std::shared_ptr<FunctionSignature>&, const FunctionImplem&);
 		bool                                  hasHigherPrecedenceThan(const std::shared_ptr<const Operator>& _firstOperator, std::shared_ptr<const Operator> _secondOperator)const;
 		[[nodiscard]] const std::vector< std::shared_ptr<Function> >& getAllFunctions()const { return api; }
 		
