@@ -26,7 +26,7 @@ ApplicationView::ApplicationView():
         paragraphFont(nullptr)
 {
     add("glWindowName");
-    set("glWindowName", "ApplicationView");
+    set("glWindowName", "Nodable " NODABLE_VERSION_EXTENDED);
 
     // Add a member to know if we should display the properties panel or not
     add("showProperties");
