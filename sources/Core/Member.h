@@ -12,7 +12,7 @@ namespace Nodable
 {
     class Object;
 
-	class Member
+	class Member: public std::enable_shared_from_this<Member>
     {
 	public:
 		Member() = default;

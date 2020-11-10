@@ -34,7 +34,7 @@ void Member::setAllowedConnections(Way _flags)
 	// Create an input if needed
 	if ( _flags == Way::In || _flags == Way::InOut )
     {
-		auto conn = std::make_unique<Connector>( std::shared_ptr<Member>(this), Way::In);
+		auto conn = std::make_unique<Connector>( this->weak_from_this() , Way::In);
 		in = std::move(conn);
         LOG_MESSAGE(3u, "allows Way::In\n");
     }
@@ -46,7 +46,7 @@ void Member::setAllowedConnections(Way _flags)
 	// Create an output if needed
 	if ( _flags == Way::Out || _flags == Way::InOut )
     {
-        auto conn = std::make_unique<Connector>( std::shared_ptr<Member>(this), Way::Out);
+        auto conn = std::make_unique<Connector>( this->weak_from_this(), Way::Out);
         out = std::move(conn);
         LOG_MESSAGE(3u, "allows Way::Out\n");
     }
