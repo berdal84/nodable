@@ -30,7 +30,7 @@ namespace Nodable{
 		   - a Language (to understand the code)
 		   - a Container (to store the result)
 		*/
-        Parser::Parser( std::shared_ptr<const Language> _language,
+        Parser( std::shared_ptr<const Language> _language,
                         std::shared_ptr<Container> _container ):
                 language(std::move(_language)),
                 container(std::move(_container)){}
