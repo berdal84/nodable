@@ -51,7 +51,7 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 				return innerContainer->newBinOp(op);
 			};
 
-			auto label = op->signature.getLabel();
+			auto label = op->signature->getLabel();
 			containerView->addContextualMenuItem( "Operators", label, lambda);
 		}
 		else

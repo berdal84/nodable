@@ -14,7 +14,7 @@ namespace Nodable
 	    ComputeFunction(): ComputeBase(){};
 		ComputeFunction(std::shared_ptr<const Function> _function, std::shared_ptr<const Language> _language);
 		~ComputeFunction() {};
-		void setFunction(std::shared_ptr<const Function> _function);
+		void setFunction(const std::shared_ptr<const Function>& _function);
 		void setArg(size_t _index, std::shared_ptr<Member> _value);
 		bool update()override;
 		void updateResultSourceExpression() const override;

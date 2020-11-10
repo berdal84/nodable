@@ -22,19 +22,19 @@ void FunctionSignature::pushArg(TokenType _type, std::string _name) {
 	args.push_back(FunctionArg(_type, _name));
 }
 
-bool FunctionSignature::match(const FunctionSignature& _other)const {
+bool FunctionSignature::match(const std::shared_ptr<const FunctionSignature>& _other)const {
 
-	if (identifier != _other.identifier)
+	if (identifier != _other->identifier)
 		return false;
 
-	if (args.size() != _other.args.size())
+	if (args.size() != _other->args.size())
 		return false;
 
 	size_t i = 0;
 	bool isMatching = true;
 	while(i < args.size() && isMatching) {
-		if (_other.args[i].type != TokenType::AnyType) // in case argument's type is unknown we allow casting
-			if (args[i].type != _other.args[i].type)
+		if (_other->args[i].type != TokenType::AnyType) // in case argument's type is unknown we allow casting
+			if (args[i].type != _other->args[i].type)
 				isMatching = false;
 		i++;
 	}

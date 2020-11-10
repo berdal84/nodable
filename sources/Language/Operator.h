@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "Nodable.h"
 #include "Language.h"
 #include "Function.h"
@@ -20,11 +22,11 @@ namespace Nodable {
 		Operator(
 			std::string       _identifier,
 			unsigned short    _precedence,
-			FunctionSignature _signature,
-			FunctionImplem    _implementation):
+            const std::shared_ptr<FunctionSignature>& _signature,
+            FunctionImplem    _implementation):
 
-			Function(_signature, _implementation),
-			identifier(_identifier),
+			Function(_signature, std::move(_implementation)),
+			identifier(std::move(_identifier)),
 			precedence(_precedence)
 		{}
 		~Operator() {}

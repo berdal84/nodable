@@ -12,7 +12,7 @@ namespace Nodable
 	{
 	public:
 
-		Connector(std::weak_ptr<Member> _member = std::make_shared<Member>(nullptr), Way _way = Way::Default);
+		Connector(std::weak_ptr<Member> _member, Way _way);
         ~Connector() = default ;
 
 		bool equals(const Connector* _other)const;

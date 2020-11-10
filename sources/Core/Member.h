@@ -53,9 +53,10 @@ namespace Nodable
         [[nodiscard]] const Connector*    input() const { return in.get(); }
         [[nodiscard]] const Connector*    output() const { return out.get(); }
 
-		inline explicit operator bool()const        { return data; }
-		inline explicit operator double()const      { return data; }
-		inline explicit operator std::string()const { return data; }
+		inline operator bool()const        { return data; }
+		inline operator double()const      { return data; }
+		inline operator int()const         { return data; }
+		inline operator std::string()const { return data; }
 
 	private:
 		Object*     		owner       		= nullptr;

@@ -203,11 +203,11 @@ Node* Container::newBinOp(std::shared_ptr<const Operator> _operator)
 	// Create a node with 2 inputs and 1 output
 	auto node = std::make_shared<Node>();
 	auto signature = _operator->signature;
-	node->setLabel(signature.getLabel());
-	const auto args = signature.getArgs();
+	node->setLabel(signature->getLabel());
+	const auto args = signature->getArgs();
 	auto left   = node->add("lvalue", Visibility::Default, language->tokenTypeToType(args[0].type), Way::In);
 	auto right  = node->add("rvalue", Visibility::Default, language->tokenTypeToType(args[1].type), Way::In);
-	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way::Out);
+	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature->getType()), Way::Out);
 
 	// Create ComputeBinaryOperation component and link values.
 	auto binOpComponent = node->newComponent<ComputeBinaryOperation>().lock();
@@ -234,10 +234,10 @@ Node* Container::newUnaryOp(std::shared_ptr<const Operator> _operator)
 	// Create a node with 2 inputs and 1 output
 	auto node = std::make_shared<Node>();
 	auto signature = _operator->signature;
-	node->setLabel(signature.getLabel());
-	const auto args = signature.getArgs();
+	node->setLabel(signature->getLabel());
+	const auto args = signature->getArgs();
 	auto left = node->add("lvalue", Visibility::Default, language->tokenTypeToType(args[0].type), Way::In);
-	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way::Out);
+	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature->getType()), Way::Out);
 
 	// Create ComputeBinaryOperation binOpComponent and link values.
 	auto unaryOperationComponent = node->newComponent<ComputeUnaryOperation>().lock();
@@ -262,8 +262,8 @@ Node* Container::newFunction(std::shared_ptr<const Function> _function) {
 
 	// Create a node with 2 inputs and 1 output
 	auto node = std::make_shared<Node>();
-	node->setLabel(ICON_FA_CODE " " + _function->signature.getIdentifier());
-	node->add("result", Visibility::Default, language->tokenTypeToType(_function->signature.getType()), Way::Out);
+	node->setLabel(ICON_FA_CODE " " + _function->signature->getIdentifier());
+	node->add("result", Visibility::Default, language->tokenTypeToType(_function->signature->getType()), Way::Out);
 
 	// Create ComputeBase binOpComponent and link values.
 	auto computeFunctionComponent = node->newComponent<ComputeFunction>().lock();
@@ -271,7 +271,7 @@ Node* Container::newFunction(std::shared_ptr<const Function> _function) {
 	computeFunctionComponent->setFunction(_function);
 	computeFunctionComponent->setResult(node->get("result"));
 
-	auto args = _function->signature.getArgs();
+	auto args = _function->signature->getArgs();
 	for (size_t argIndex = 0; argIndex < args.size(); argIndex++) {
 		std::string memberName = args[argIndex].name;
 		auto member = node->add(memberName.c_str(), Visibility::Default, language->tokenTypeToType(args[argIndex].type), Way::In); // create node input

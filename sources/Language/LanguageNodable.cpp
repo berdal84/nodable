@@ -8,11 +8,11 @@
 using namespace Nodable;
 
 std::string LanguageNodable::serialize(
-	const FunctionSignature&   _signature,
+    const std::shared_ptr<FunctionSignature>&   _signature,
     std::vector<std::shared_ptr<Member>> _args) const
 {
 	std::string expr;
-	expr.append(_signature.getIdentifier());
+	expr.append(_signature->getIdentifier());
 	expr.append(serialize(TokenType::LBracket) + " ");
 
 	for (auto it = _args.begin(); it != _args.end(); it++) {
@@ -29,10 +29,10 @@ std::string LanguageNodable::serialize(
 
 }
 
-std::string LanguageNodable::serialize(const FunctionSignature& _signature) const {
+std::string LanguageNodable::serialize(const std::shared_ptr<FunctionSignature>& _signature) const {
 
-	std::string result = _signature.getIdentifier() + serialize(TokenType::LBracket);
-	auto args = _signature.getArgs();
+	std::string result = _signature->getIdentifier() + serialize(TokenType::LBracket);
+	auto args = _signature->getArgs();
 
 	for (auto it = args.begin(); it != args.end(); it++) {
 
@@ -104,7 +104,7 @@ std::string LanguageNodable::serializeUnaryOp(std::shared_ptr<const Operator> _o
 	return result;
 }
 
-const FunctionSignature LanguageNodable::createBinOperatorSignature(
+std::shared_ptr<const FunctionSignature> LanguageNodable::createBinOperatorSignature(
 	Type _type,
 	std::string _identifier,
 	Type _ltype,
@@ -114,14 +114,14 @@ const FunctionSignature LanguageNodable::createBinOperatorSignature(
 	auto tokLType = typeToTokenType(_ltype);
 	auto tokRType = typeToTokenType(_rtype);
 
-	FunctionSignature signature("operator" + _identifier, tokType);
+	auto signature = std::make_shared<FunctionSignature>("operator" + _identifier, tokType);
 
-	signature.pushArgs(tokLType, tokRType);
+	signature->pushArgs(tokLType, tokRType);
 
 	return signature;
 }
 
-const FunctionSignature LanguageNodable::createUnaryOperatorSignature(
+std::shared_ptr<const FunctionSignature> LanguageNodable::createUnaryOperatorSignature(
 	Type _type,
 	std::string _identifier,
 	Type _ltype) const
@@ -129,9 +129,9 @@ const FunctionSignature LanguageNodable::createUnaryOperatorSignature(
 	auto tokType = typeToTokenType(_type);
 	auto tokLType = typeToTokenType(_ltype);
 
-	FunctionSignature signature("operator" + _identifier, tokType);
+    auto signature = std::make_shared<FunctionSignature>("operator" + _identifier, tokType);
 
-	signature.pushArgs(tokLType);
+	signature->pushArgs(tokLType);
 
 	return signature;
 }
@@ -408,19 +408,19 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 
 	// number operator=(number, number)
 	BINARY_OP_BEGIN(Double, "=", Double, Double, 0u, ICON_FA_EQUALS " Assign")
-		_args[0]->set(ARG(1));
+		_args[0]->set((double)ARG(1));
 		RETURN((double)ARG(1))
 	OPERATOR_END
 
     // string operator=(string, string)
     BINARY_OP_BEGIN(Str, "=", Str, Str, 0u, ICON_FA_EQUALS " Assign")
-            _args[0]->set(ARG(1));
+            _args[0]->set((std::string)ARG(1));
             RETURN((std::string)ARG(1))
     OPERATOR_END
 
 	// bool operator=(bool, bool)
 	BINARY_OP_BEGIN(Bool, "=", Bool, Bool, 0u, ICON_FA_EQUALS " Assign")
-			_args[0]->set(ARG(1));
+			_args[0]->set((bool)ARG(1));
 			RETURN((bool)ARG(1))
 	OPERATOR_END
 

@@ -14,7 +14,7 @@ ComputeFunction::ComputeFunction(
 	ComputeBase(std::move(_language)),
 	function(std::move(_function))
 {
-    args.resize( _function->signature.getArgs().size() );
+    args.resize( _function->signature->getArgs().size() );
 }
 
 bool ComputeFunction::update()
@@ -25,7 +25,7 @@ bool ComputeFunction::update()
 		return false;
 	}
 
-	if (function->implementation(result, args))
+	if (function->implementation(result, args) )
 		LOG_MESSAGE(0u, "Evaluation of %s's native function failed !\n", language->serialize(function->signature).c_str());
 
 	this->updateResultSourceExpression();
@@ -39,14 +39,14 @@ void ComputeFunction::updateResultSourceExpression() const
 	this->result->setSourceExpression(expr.c_str());
 }
 
-void ComputeFunction::setFunction(std::shared_ptr<const Function> _function)
+void ComputeFunction::setFunction(const std::shared_ptr<const Function>& _function)
 {
-    function = _function;
-    this->args.resize(function->signature.getArgs().size());
+    this->function = _function;
+    this->args.resize(function->signature->getArgs().size());
 }
 
 void ComputeFunction::setArg(size_t _index, std::shared_ptr<Member> _value)
 {
-    args[_index] = _value;
+    args[_index] = std::move(_value);
 }
 

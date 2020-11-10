@@ -28,6 +28,7 @@ namespace Nodable{
 		operator double()const;
 		operator bool()const;
 		operator std::string()const;
+        operator int()const;
 
 	private:
 	    std::variant<bool, double, std::string> data;

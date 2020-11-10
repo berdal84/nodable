@@ -611,7 +611,7 @@ std::shared_ptr<Member> Parser::parseFunctionCall(size_t& _tokenId)
 	std::vector<std::shared_ptr<Member>> args;
 
 	// Declare a new function prototype
-	FunctionSignature signature(identifier, TokenType::AnyType);
+	auto signature = std::make_shared<FunctionSignature>(identifier, TokenType::AnyType);
 
 	localTokenId++; // eat parenthesis
 
@@ -624,7 +624,7 @@ std::shared_ptr<Member> Parser::parseFunctionCall(size_t& _tokenId)
 		if (auto member = parseExpression(localTokenId))
 		{
 			args.push_back(member); // store argument as member (already parsed)
-			signature.pushArg( language->typeToTokenType(member->getType()) );  // add a new argument type to the proto.
+			signature->pushArg( language->typeToTokenType(member->getType()) );  // add a new argument type to the proto.
 
 			if (tokens.at(localTokenId).type == TokenType::Separator)
 				localTokenId++;
@@ -654,7 +654,7 @@ std::shared_ptr<Member> Parser::parseFunctionCall(size_t& _tokenId)
 		auto connectArg = [&](size_t _argIndex)-> void { // lambda to connect input member to node for a specific argument index.
 
 			auto arg = args.at(_argIndex);
-			auto memberName = fct->signature.getArgs().at(_argIndex).name;
+			auto memberName = fct->signature->getArgs().at(_argIndex).name;
 
 			if (arg->getOwner() == nullptr) {
 				node->set(memberName.c_str(), arg);
@@ -663,7 +663,7 @@ std::shared_ptr<Member> Parser::parseFunctionCall(size_t& _tokenId)
 			}
 		};
 
-		for( size_t argIndex = 0; argIndex < fct->signature.getArgs().size(); argIndex++ )
+		for( size_t argIndex = 0; argIndex < fct->signature->getArgs().size(); argIndex++ )
 			connectArg(argIndex);
 
 		_tokenId = localTokenId;

@@ -28,7 +28,7 @@ return 1;
 
 #define ARG(n) (*_args[n])
 #define BEGIN_IMPL\
-	auto implementation = [](Member* _result, const std::vector<Member*>& _args)->int { \
+	auto implementation = [](std::shared_ptr<Member>& _result, const std::vector<std::shared_ptr<Member>>& _args )->int { \
 	for(auto it = _args.begin(); it != _args.end(); it++) \
 	{\
 		if( (*it)->isType(Type::Any) ) \
@@ -49,7 +49,7 @@ return 1;
 	auto precedence = _precedence; \
 	auto identifier = std::string(_identifier); \
 	auto signature  = std::make_shared<FunctionSignature>( std::string("operator") + _identifier, _type, _label ); \
-	signature.pushArgs(_ltype, _rtype); \
+	signature->pushArgs(_ltype, _rtype); \
 	BEGIN_IMPL
 
 #define UNARY_OP_BEGIN( _type, _identifier, _ltype, _precedence, _label )\
@@ -57,7 +57,7 @@ return 1;
 	auto precedence = _precedence; \
 	auto identifier = std::string(_identifier); \
 	auto signature  = std::make_shared<FunctionSignature>( std::string("operator") + _identifier, _type, _label ); \
-	signature.pushArgs(_ltype); \
+	signature->pushArgs(_ltype); \
 	BEGIN_IMPL
 
 #define FCT_BEGIN( _type, _identifier, ... ) \
@@ -96,10 +96,10 @@ namespace Nodable {
 		~Language() {};
 
 		/* Serialize a function call with a signature and some values */
-		virtual std::string                   serialize(const FunctionSignature&, std::vector<std::shared_ptr<Member>>)const = 0;
+		virtual std::string                   serialize(const std::shared_ptr<FunctionSignature>&, std::vector<std::shared_ptr<Member>>)const = 0;
 
 		/* Serialize a function signature */
-		virtual std::string                   serialize(const FunctionSignature&)const = 0;
+		virtual std::string                   serialize(const std::shared_ptr<FunctionSignature>&)const = 0;
 
 		/* Serialize a TokenType		
 		   ex:
@@ -113,18 +113,18 @@ namespace Nodable {
 		*/
 		virtual std::string                   serializeBinaryOp(std::shared_ptr<const Operator>, std::vector<std::shared_ptr<Member>>, std::shared_ptr<const Operator>, std::shared_ptr<const Operator>)const = 0;
 		virtual std::string                   serializeUnaryOp(std::shared_ptr<const Operator>, std::vector<std::shared_ptr<Member>>, std::shared_ptr<const Operator>)const = 0;
-		virtual const FunctionSignature       createBinOperatorSignature(Type, std::string, Type, Type) const = 0;
-		virtual const FunctionSignature       createUnaryOperatorSignature(Type, std::string, Type) const = 0;
+		virtual std::shared_ptr<const FunctionSignature> createBinOperatorSignature(Type, std::string, Type, Type) const = 0;
+		virtual std::shared_ptr<const FunctionSignature> createUnaryOperatorSignature(Type, std::string, Type) const = 0;
 		virtual const TokenType               typeToTokenType(Type _type)const = 0;
 		virtual const Type                    tokenTypeToType(TokenType _tokenType)const = 0;
 
 		void                                  addOperator(std::shared_ptr<Operator>);
 		void                                  addOperator(std::string       _identifier,
 			                                              unsigned short    _precedence,
-			                                              FunctionSignature _prototype,
-			                                              FunctionImplem  _implementation);
-        std::shared_ptr<const Function>       findFunction(const FunctionSignature& signature) const;
-		std::shared_ptr<const Operator>       findOperator(const FunctionSignature& _operator) const;
+                                                          const std::shared_ptr<FunctionSignature>& _prototype,
+                                                          const FunctionImplem&  _implementation);
+        std::shared_ptr<const Function>       findFunction(const std::shared_ptr<const FunctionSignature>& signature) const;
+		std::shared_ptr<const Operator>       findOperator(const std::shared_ptr<const FunctionSignature>& _operator) const;
         std::shared_ptr<const Operator>       findOperator(const std::string& _identifier) const;
 		void                                  addToAPI(const std::shared_ptr<Function>&);
 		void                                  addToAPI(const std::shared_ptr<FunctionSignature>&, const FunctionImplem&);

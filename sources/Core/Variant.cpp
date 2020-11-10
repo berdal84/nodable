@@ -78,6 +78,10 @@ Variant::operator double()const {
 	}
 }
 
+Variant::operator int()const {
+    return (int)this->operator double();
+}
+
 Variant::operator bool()const {
 	switch (type) {
 	    case Type::String:  return !std::get<std::string>(data).empty();

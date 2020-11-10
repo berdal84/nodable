@@ -4,6 +4,7 @@
 #include "TokenType.h"
 #include <functional>
 #include <tuple>
+#include <utility>
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 #include <Core/Member.h>
 
@@ -43,7 +44,7 @@ namespace Nodable {
 			int dummy[] = { 0, ((void)pushArg(std::forward<TokenType>(args)),0)... };
 		}
 
-		bool                           match(const FunctionSignature& _other)const;
+		bool                           match(const std::shared_ptr<const FunctionSignature>& _other)const;
 		const std::string&             getIdentifier()const;
 		const std::vector<FunctionArg> getArgs() const;
 		const TokenType               getType() const;
@@ -57,7 +58,7 @@ namespace Nodable {
 
 	public:
 		template<typename R = TokenType, typename... TokenType>
-		static std::shared_ptr<FunctionSignature> Create(R _type, std::string _identifier, TokenType&& ..._args) {
+		static const std::shared_ptr<FunctionSignature> Create(R _type, std::string _identifier, TokenType&& ..._args) {
 			auto signature = std::make_shared<FunctionSignature>( _identifier, _type );
 			signature->pushArgs(_args...);
 			return signature;
@@ -73,16 +74,16 @@ namespace Nodable {
 	public:
 
 		Function(
-			FunctionSignature _signature,
-			FunctionImplem    _implementation):
+            std::shared_ptr<FunctionSignature>  _signature,
+            FunctionImplem   _implementation):
 
-			signature(_signature),
-			implementation(_implementation)
+			signature(std::move(_signature)),
+			implementation(std::move(_implementation))
 		{}
 
 		~Function() {}
 
-		FunctionImplem    implementation;
-		FunctionSignature signature;
+        const FunctionImplem implementation;
+        const std::shared_ptr<FunctionSignature> signature;
 	};
 }
