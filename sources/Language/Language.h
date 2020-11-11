@@ -1,12 +1,13 @@
 #pragma once
 
-// std
+#include <string>
 #include <map>
 #include <functional>
 #include <tuple>
 #include <regex>
+#include <utility>
+#include <memory>
 
-// Nodable
 #include "Nodable.h"   // for constants and forward declarations
 #include "Function.h"
 #include "Operator.h"

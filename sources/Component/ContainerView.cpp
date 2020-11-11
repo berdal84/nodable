@@ -3,9 +3,7 @@
 #include "Parser.h"
 #include "Node.h"
 #include "Container.h"
-#include "Variable.h"
 #include "Wire.h"
-#include "WireView.h"
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
 
@@ -172,7 +170,7 @@ bool ContainerView::draw()
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{
-		Node* newNode = nullptr;
+		std::shared_ptr<Node> newNode;
 
 		// Title :
 		View::ColoredShadowedText( ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
@@ -214,10 +212,10 @@ bool ContainerView::draw()
 		ImGui::Separator();
 		
 		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-			newNode = container->newVariable("Variable").get();
+			newNode = container->newVariable("Variable");
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
-			newNode = container->newResult();
+			newNode = std::static_pointer_cast<Node>( container->newResult() );
 
 
 		/*
@@ -275,7 +273,7 @@ bool ContainerView::draw()
 }
 
 
-void Nodable::ContainerView::addContextualMenuItem(std::string _category, std::string _label, std::function<Node*(void)> _function)
+void Nodable::ContainerView::addContextualMenuItem(std::string _category, std::string _label, std::function<std::shared_ptr<Node>(void)> _function)
 {
 	contextualMenus.insert( {_category, {_label, _function }} );
 }

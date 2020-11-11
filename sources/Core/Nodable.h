@@ -1,6 +1,6 @@
 
 #pragma once
-#include <assert.h> // for ASSERT and VERIFY
+#include <cassert> // for ASSERT and VERIFY
 #define NODABLE_VERIFY(expression) assert(expression)
 
 /*

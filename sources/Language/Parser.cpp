@@ -79,7 +79,7 @@ bool Parser::eval(const std::string& _expression)
 		return false;
 	}
 
-	Variable* result = container->newResult();
+	std::shared_ptr<Variable> result = container->newResult();
 	container->tryToRestoreResultNodePosition();
 
 	// If the value has no owner, we simply set the variable value

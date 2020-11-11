@@ -2,17 +2,15 @@
 
 #include "Nodable.h" /* Forward declarations and defines */
 #include "Node.h"
-#include "History.h"
-#include "File.h"
 #include <string>
 #include <memory>    /* For unique_ptr */
-#include <mirror.h>
 #include <string>
 #include <filesystem>
 #include <future>
 
 namespace Nodable
 {
+    class File;
 
 	class Application : public Node
 	{
@@ -59,9 +57,6 @@ namespace Nodable
 		size_t             currentFileIndex; /* index that identify the current file in loadedFiles */
 	
 		const std::filesystem::path assetsFolderPath;
-
-		/** Reflection using mirror*/
-		MIRROR_CLASS(Application)();
 
 	};
 }

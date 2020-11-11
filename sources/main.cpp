@@ -1,11 +1,6 @@
-
-// Standard includes
-#include <stdio.h>
 #include <string>
 #include <iostream>
 #include <filesystem>
-
-// Nodable includes
 #include "Application.h"
 #include "ApplicationView.h"
 #include "Test.h"

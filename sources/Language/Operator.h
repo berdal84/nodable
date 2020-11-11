@@ -1,9 +1,7 @@
 #pragma once
 
 #include <utility>
-
-#include "Nodable.h"
-#include "Language.h"
+#include <memory>
 #include "Function.h"
 
 namespace Nodable {
@@ -29,7 +27,7 @@ namespace Nodable {
 			identifier(std::move(_identifier)),
 			precedence(_precedence)
 		{}
-		~Operator() {}
+		~Operator() = default;
 
 		const std::string    identifier;
 		const unsigned short precedence;

@@ -46,7 +46,7 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 
 		if ( op != nullptr )
 		{
-			auto lambda = [this, op]()->Node*
+			auto lambda = [this, op]()-> std::shared_ptr<Node>
 			{	
 				return innerContainer->newBinOp(op);
 			};
@@ -56,7 +56,7 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 		}
 		else
 		{
-			auto lambda = [this, function]()->Node*
+			auto lambda = [this, function]()-> std::shared_ptr<Node>
 			{
 				return innerContainer->newFunction(function);
 			};
