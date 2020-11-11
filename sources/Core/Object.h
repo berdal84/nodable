@@ -55,7 +55,7 @@ class Object: public std::enable_shared_from_this<Object>
 		template<typename T>
 		void set(const char* _name, T _value)
 		{
-			members[std::string(_name)]->set(_value);
+			members.at(_name)->set(_value);
 			this->onMemberValueChanged(_name);
 		}
 

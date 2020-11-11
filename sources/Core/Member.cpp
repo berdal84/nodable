@@ -24,7 +24,7 @@ bool  Member::isType(Type _type)const
 	return data.isType(_type);
 }
 
-bool Member::equals(const Member *_other)const {
+bool Member::equals(const std::shared_ptr<Member>& _other)const {
 	return _other != nullptr &&
 	       _other->isType(this->getType() ) &&
 		   (std::string)*_other == (std::string)*this;
@@ -80,11 +80,10 @@ void Nodable::Member::updateValueFromInputMemberValue()
     if ( this->inputMember.expired() )
     {
         LOG_WARNING(0u, "Unable to update %s member value because its input connected node has expired.", getName().c_str() );
-        this->inputMember.reset();
     }
     else
     {
-        this->set(this->inputMember.lock());
+        this->set( this->inputMember.lock()->data );
     }
 }
 
@@ -227,11 +226,6 @@ std::string Member::getSourceExpression()const
 	return expression;
 }
 
-void Member::set(const std::shared_ptr<Member>& _v)
-{
-	data = _v->data;
-}
-
 void Member::set(double _value)
 {
 	data.set(_value);
@@ -255,4 +249,13 @@ void Member::set(const char* _value)
 void Member::set(bool _value)
 {
 	data.set(_value);
+}
+
+void Member::set(const Variant & _value) {
+    data = Variant(_value);
+}
+
+void Member::set(const std::shared_ptr<Member> & _value)
+{
+    this->set( _value->data);
 }

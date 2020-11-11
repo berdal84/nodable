@@ -25,23 +25,23 @@ int main(int argc, char* argv[])
 
 	// Here the tests are all OK, we can instantiate, init and run nodable loop.
 
-	Application nodable("Nodable " NODABLE_VERSION);
-    nodable.newComponent<ApplicationView>();
+	auto  nodable = std::make_shared<Application>("Nodable " NODABLE_VERSION);
+    nodable->newComponent<ApplicationView>();
 
-	nodable.init();
-    auto startupFilePath = nodable.getAssetPath("startup.txt");
+	nodable->init();
+    auto startupFilePath = nodable->getAssetPath("startup.txt");
 	std::cout << "Opening startup file: " << startupFilePath << std::endl;
-	nodable.openFile(startupFilePath); // Init and open a startup file
+	nodable->openFile(startupFilePath); // Init and open a startup file
 
-	while ( nodable.update() != UpdateResult::Stopped )
+	while ( nodable->update() != UpdateResult::Stopped )
 	{
-		if(auto view = nodable.getComponent<View>())
+		if(auto view = nodable->getComponent<View>())
         {
             view->draw();
         }
 	}
 
-	nodable.shutdown();
+	nodable->shutdown();
 
 	return 0;
 }

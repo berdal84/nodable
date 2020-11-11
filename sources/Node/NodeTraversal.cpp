@@ -32,18 +32,21 @@ Result NodeTraversal::SetDirtyRecursively(const std::shared_ptr<Node>& _node, st
     auto alreadyUpdated = std::find( _traversed.cbegin(), _traversed.cend(), _node ) != _traversed.cend();
     if( !alreadyUpdated )
     {
+        LOG_MESSAGE(2u, "NodeTraversal::SetDirtyEx - not alreadyUpdated\n");
         _traversed.push_back(_node);
 
         _node->setDirty();
 
-        for (auto wire : _node->getWires() )
+        for (const auto& wire : _node->getWires() )
         {
+            LOG_MESSAGE(2u, "NodeTraversal::SetDirtyEx - eachWire...\n");
 
             if (wire->getSource()->getOwner() == _node &&
                 wire->getTarget() != nullptr)
             {
                 auto targetNode = std::static_pointer_cast<Node>( wire->getTarget()->getOwner() );
-                
+
+                LOG_MESSAGE(2u, "NodeTraversal::SetDirtyEx - recursive call !\n");
                 auto r = NodeTraversal::SetDirtyRecursively(targetNode, _traversed);
                 if( r == Result::Failure )
                     return Result::Failure;
@@ -67,15 +70,18 @@ Result NodeTraversal::UpdateRecursively(const std::shared_ptr<Node>& _node, std:
     auto alreadyUpdated = std::find( _traversed.cbegin(), _traversed.cend(), _node ) != _traversed.cend();
     if( !alreadyUpdated )
     {
+        LOG_MESSAGE(2u, "NodeTraversal::UpdateEx - NOT alreadyUpdated !\n");
         _traversed.push_back(_node);
 
         // Evaluates only if dirty flag is on
         if (_node->isDirty())
         {
+            LOG_MESSAGE(2u, "NodeTraversal::UpdateEx - isDirty !\n");
             // first we need to evaluate each input and transmit its results thru the wire
             auto wires = _node->getWires();
             for (const auto& eachWire : wires)
             {
+                LOG_MESSAGE(2u, "NodeTraversal::UpdateEx - eachWire...\n");
                 auto wireTarget = eachWire->getTarget();
                 auto wireSource = eachWire->getSource();
 

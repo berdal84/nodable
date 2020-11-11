@@ -22,7 +22,7 @@ namespace Nodable
 		[[nodiscard]] bool  isEditable()const;
 		[[nodiscard]] bool  isSet()const;
         [[nodiscard]] bool  isType(Type)const;
-        [[nodiscard]] bool  equals(const Member *)const;
+        [[nodiscard]] bool  equals(const std::shared_ptr<Member>& _other)const;
 
 		void                setAllowedConnections(Way _flags);
 		void                setSourceExpression(const char*);
@@ -31,6 +31,7 @@ namespace Nodable
 		void  		        setName(const char*);
 		void                setOwner(std::weak_ptr<Object>);
 		void                set(const std::shared_ptr<Member>&);
+		void                set(const Variant&);
 		void                set(double);
 		void                set(int);
 		void                set(std::string);

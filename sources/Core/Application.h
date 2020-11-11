@@ -12,9 +12,8 @@ namespace Nodable
 {
     class File;
 
-	class Application : public Node
+class Application : public Node, public std::enable_shared_from_this<Application>
 	{
-
 	public:
 		Application(const char* /*_applicationName*/);
 		~Application();

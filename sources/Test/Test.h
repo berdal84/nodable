@@ -79,12 +79,14 @@ static std::stack<TestState> status;
 #define TEST_RESULT s_globalState.allPassed()
 
 #define EXPECT(function, expected) \
-	if (function == expected) { \
-		status.top().addSuccess();\
+    {auto result = function; \
+	if (result == expected) { \
+		status.top().addSuccess();       \
+        LOG_DEBUG( 0u, #function" : OK ! \n"); \
 	} else { \
-		LOG_ERROR( 0u, #function" : FAILED ! expected:" #expected "\n");\
+		LOG_ERROR( 0u, #function" : FAILED ! expected:" #expected ", result: %s\n", result ); \
 		status.top().addFailure();\
-	}
+	}}
 
 
 bool Member_Connections_Tests() {
@@ -196,20 +198,30 @@ bool Parser_Test(
 	const std::string& expression,	
 	T _expectedValue )
 {
+//    Nodable::Log::SetVerbosityLevel(4u);
+
     auto language  = std::make_shared<LanguageNodable>();
 	auto container = std::make_shared<Container>(language);
-	Parser parser(language, container);
+	auto parser    = std::make_unique<Parser>(language, container);
 
-	parser.eval(expression);
+	if( parser->eval(expression) ) {
+        container->update();
 
-	auto result = container->getResultVariable();
-	container->update();
+        auto result = container->getResultVariable();
+        auto resultMember = result->getMember();
 
-	Member expectedMember;
-	expectedMember.set(_expectedValue);
-	auto success = result->getMember()->equals(&expectedMember);
+        auto expectedMember = std::make_shared<Member>();
+        expectedMember->set(_expectedValue);
 
-	return success;
+        auto success = result->getMember()->equals(expectedMember);
+
+        LOG_MESSAGE( 0u, "Result: %s\n", std::string(*resultMember).c_str() );
+        return success;
+    }
+	else
+    {
+	    throw std::runtime_error("Unable to eval the expression: " + expression );
+    }
 }
 
 bool Parser_Tests() {

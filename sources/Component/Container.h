@@ -25,8 +25,8 @@ namespace Nodable{
 		void                      	remove(const std::shared_ptr<Node>&);
 		size_t                    	getNodeCount()const;
 		std::map<std::string, Variable*>& 	getVariables(){return variables;}
-		const std::vector<std::shared_ptr<Node>>& 	    getEntities(){return nodes;}
-		Variable*                   getResultVariable(){ return resultNode.get();}
+		const std::vector<std::shared_ptr<Node>>& getEntities(){return nodes;}
+		std::shared_ptr<Variable>   getResultVariable(){ return resultNode;}
 		void                        tryToRestoreResultNodePosition();
 		
 		/* node factory */

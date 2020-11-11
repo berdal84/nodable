@@ -97,7 +97,7 @@ Variant::operator std::string()const {
     {
         case Type::String:
         {
-            return std::get<std::string>(data);
+            return "\"" + std::get<std::string>(data) + "\"";
         }
 
         case Type::Double:

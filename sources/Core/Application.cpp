@@ -11,6 +11,7 @@
 using namespace Nodable;
 
 Application::Application(const char* _name):
+    Node(),
     currentFileIndex(0),
     assetsFolderPath(NODABLE_ASSETS_DIR)
 {

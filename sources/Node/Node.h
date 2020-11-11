@@ -94,7 +94,7 @@ class Node : public Object
         {
             static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
             auto component = std::make_shared<T>();
-            component->setOwner( std::static_pointer_cast<Node>(shared_from_this()) );
+            component->setOwner( std::dynamic_pointer_cast<Node>( shared_from_this()) );
             components.insert_or_assign(T::GetClass()->getName(), component );
             return component;
         }

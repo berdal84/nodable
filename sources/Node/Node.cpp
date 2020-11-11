@@ -33,7 +33,7 @@ std::shared_ptr<Wire> Node::Connect(std::shared_ptr<Member> _from, std::shared_p
 }
 
 Node::Node(std::string _label):
-
+    Object(),
 	parentContainer(nullptr),
 	label(_label),
 	dirty(true)
@@ -143,6 +143,4 @@ UpdateResult Node::update()
 void Node::onMemberValueChanged(const char* _name)
 {	
 	updateLabel();
-	auto shared = shared_from_this();
-	NodeTraversal::SetDirty( std::static_pointer_cast<Node>( shared ) );
 }
