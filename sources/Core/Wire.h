@@ -21,12 +21,12 @@ namespace Nodable
 			State_COUNT
 		};
 
-		void        setSource    (std::shared_ptr<Member>);
-		void        setTarget    (std::shared_ptr<Member>);
+		void        setSource    (std::weak_ptr<Member>);
+		void        setTarget    (std::weak_ptr<Member>);
 
 		State_      getState     ()const{return state;}
-        std::shared_ptr<Member> getSource()const{return source;}
-        std::shared_ptr<Member> getTarget()const{return target;}
+        std::weak_ptr<Member> getSource()const{return source;}
+        std::weak_ptr<Member> getTarget()const{return target;}
 		void        newView();
 		WireView*   getView      ()const;
 
@@ -36,8 +36,8 @@ namespace Nodable
 		/* update this->state according to this->source and this->target values */
 		void        updateState();
 
-        std::shared_ptr<Member> source;
-        std::shared_ptr<Member> target;
+        std::weak_ptr<Member> source;
+        std::weak_ptr<Member> target;
 		State_ state = State_Disconnected;
 	};
 }

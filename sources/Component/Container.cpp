@@ -27,11 +27,6 @@ Container::Container(const std::shared_ptr<const Language>& _language):
 
 }
 
-Container::~Container()
-{
-	clear();
-}
-
 void Container::clear()
 {
     LOG_MESSAGE(1u, "Container::clear() - // start\n");

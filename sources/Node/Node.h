@@ -58,10 +58,10 @@ class Node : public Object
 
 		/* Adds a new wire related* to this node. (* connected to one of the Node Member)
 		   note: a node can connect two Members (cf. Wire class) */
-		void                addWire           (std::shared_ptr<Wire>);
+		void                addWire           (const std::shared_ptr<Wire>&);
 
 		/* Removes a wire from this Node */
-		void                removeWire        (std::shared_ptr<Wire>);
+		void                removeWire        (const std::shared_ptr<Wire>&);
 
 		/* Get wires related* to this node. (* connected to one of the Node Member) */
 		std::vector<std::shared_ptr<Wire>>& getWires();

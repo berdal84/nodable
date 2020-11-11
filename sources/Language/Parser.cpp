@@ -83,11 +83,14 @@ bool Parser::eval(const std::string& _expression)
 	container->tryToRestoreResultNodePosition();
 
 	// If the value has no owner, we simply set the variable value
-	if (resultValue->getOwner() == nullptr)
+	if (resultValue->getOwner())
+    {
 		result->set(resultValue);
-	// Else we connect resultValue with resultVariable.value
-	else
-		Node::Connect(resultValue, result->getMember());
+	}
+	else // we connect resultValue with resultVariable.value
+    {
+        Node::Connect(resultValue, result->getMember());
+    }
 
 	LOG_MESSAGE(0u, "Expression evaluated: %s\n", _expression.c_str() );
 	return true;

@@ -146,7 +146,12 @@ std::shared_ptr<Node> NodeFactory::newFunction(std::shared_ptr<const Function> _
 std::shared_ptr<Wire> NodeFactory::newWire()
 {
     auto wire = std::make_shared<Wire>();
-    wire->newView();
+
+    if ( mode != Mode::HEADLESS )
+    {
+        wire->newView();
+    }
+
     return wire;
 }
 

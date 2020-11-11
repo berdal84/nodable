@@ -16,8 +16,8 @@ void Node::Disconnect(std::shared_ptr<Wire> _wire)
 {
     _wire->getTarget()->resetInputConnectedMember();
 
-	auto targetNode = _wire->getTarget()->getOwner()->as<Node>();	
-	auto sourceNode = _wire->getSource()->getOwner()->as<Node>();
+	auto targetNode = std::static_pointer_cast<Node>( _wire->getTarget()->getOwner() );
+	auto sourceNode = std::static_pointer_cast<Node>( _wire->getSource()->getOwner() );
 
 	targetNode->removeWire(_wire);
 	sourceNode->removeWire(_wire);
@@ -27,7 +27,7 @@ void Node::Disconnect(std::shared_ptr<Wire> _wire)
 
 std::shared_ptr<Wire> Node::Connect(std::shared_ptr<Member> _from, std::shared_ptr<Member> _to)
 {	
-	auto command = std::make_unique<Cmd_ConnectWire>(_from, _to);
+	auto command = std::make_shared<Cmd_ConnectWire>(_from, _to);
 	command->execute();
 	return command->getWire();
 }
@@ -84,12 +84,12 @@ const char* Node::getLabel()const
 	return this->label.c_str();
 }
 
-void Nodable::Node::addWire(std::shared_ptr<Wire> _wire)
+void Nodable::Node::addWire(const std::shared_ptr<Wire>& _wire)
 {
 	wires.push_back(_wire);
 }
 
-void Nodable::Node::removeWire(std::shared_ptr<Wire> _wire)
+void Nodable::Node::removeWire(const std::shared_ptr<Wire>& _wire)
 {
 	auto found = std::find(wires.begin(), wires.end(), _wire);
 	if(found != wires.end())

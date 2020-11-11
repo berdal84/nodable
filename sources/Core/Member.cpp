@@ -196,7 +196,7 @@ std::string Member::getSourceExpression()const
 		if (_inputNode->getClass()->getName() == "Variable" &&
 			getOwner()->getClass()->getName() == "Variable")
 		{
-			auto variable = _inputNode->as<Variable>();
+			auto variable = std::static_pointer_cast<Variable>(_inputNode);
 			expression.append(variable->getName());
 			expression.append("=");
 			expression.append(_inputMember->getSourceExpression());

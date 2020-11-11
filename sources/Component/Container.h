@@ -17,7 +17,7 @@ namespace Nodable{
 	public:
 
 		Container(const std::shared_ptr<const Language>& _language);
-		virtual ~Container();
+		virtual ~Container() {};
         UpdateResult                update() override;
 		void                      	clear();		
 		Variable* 	          		findVariable(std::string);

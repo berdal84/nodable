@@ -25,9 +25,13 @@ bool Object::has(std::shared_ptr<Member> _value)
 std::shared_ptr<Member> Object::get (const char* _name)const
 {
 	auto foundWithName = members.find(std::string(_name));
-	if (foundWithName != members.end())
-		return (*foundWithName).second;
-	return nullptr;
+
+	if (foundWithName == members.end())
+    {
+	    throw std::exception("Unable ton find the Member " );
+    }
+
+    return foundWithName->second;
 }
 
 std::shared_ptr<Member> Object::get (const std::string& _name)const

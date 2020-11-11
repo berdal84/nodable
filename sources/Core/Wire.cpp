@@ -6,13 +6,13 @@
 
 using namespace Nodable;
 
-void Wire::setSource(std::shared_ptr<Member> _source)
+void Wire::setSource(std::weak_ptr<Member> _source)
 {
 	source     = std::move(_source);
 	updateState();
 }
 
-void Wire::setTarget(std::shared_ptr<Member> _target)
+void Wire::setTarget(std::weak_ptr<Member> _target)
 {
 	target     = std::move(_target);
 	updateState();
@@ -20,7 +20,7 @@ void Wire::setTarget(std::shared_ptr<Member> _target)
 
 void Wire::updateState()
 {
-	if ( target != nullptr && source != nullptr)
+	if ( !target.expired() && !source.expired() )
 		state = State_Connected;		
 	else
 		state = State_Disconnected;

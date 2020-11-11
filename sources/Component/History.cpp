@@ -161,8 +161,8 @@ void Cmd_ConnectWire::undo() {
     NodeTraversal::SetDirty(targetNode);
 
     // Link Members
-    wire->setSource(nullptr);
-    wire->setTarget(nullptr);
+    wire->getSource().reset();
+    wire->getTarget().reset();
 
     // Add the wire pointer to the Node instance to speed up drawing process.
     targetNode->removeWire(wire);

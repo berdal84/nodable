@@ -74,7 +74,7 @@ bool ContainerView::draw()
 
 			for (auto eachWire : wires)
 			{
-				if (eachWire->getTarget()->getOwner() == eachNode )
+				if (eachWire->getTarget().lock()->getOwner() == eachNode )
 					eachWire->getView()->draw();
 			}
 		}
