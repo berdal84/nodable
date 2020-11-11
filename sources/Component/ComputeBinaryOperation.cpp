@@ -41,8 +41,8 @@ void ComputeBinaryOperation::updateResultSourceExpression()const
 	};
 
 	// Get the left and right source bin operator
-	auto lBinOp = getMemberSourceBinOp(this->args.at(0)->getInputMember());
-	auto rBinOp = getMemberSourceBinOp(this->args.at(1)->getInputMember());
+	auto lBinOp = getMemberSourceBinOp(this->args.at(0)->getInputConnectedMember());
+	auto rBinOp = getMemberSourceBinOp(this->args.at(1)->getInputConnectedMember());
 
 	auto expr   = language->serializeBinaryOp(ope(), args, lBinOp, rBinOp);
 

@@ -5,6 +5,8 @@
 #include <imgui/imgui.h>
 #include <mirror.h>
 
+#include <utility>
+
 namespace Nodable
 {
     class Wire;
@@ -12,11 +14,11 @@ namespace Nodable
 	class WireView: public View
 	{
 	public:
-	    explicit WireView(Wire* _wire): wire(_wire) {}
+	    explicit WireView(std::weak_ptr<Wire> _wire): m_wire(std::move(_wire)) {}
 	    ~WireView() = default;
 		bool draw();
 
     private:
-	    Wire* wire;
+	    std::weak_ptr<Wire> m_wire;
 	};
 }

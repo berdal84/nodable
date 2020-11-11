@@ -42,7 +42,7 @@ bool DataAccess::update()
 
     NODABLE_ASSERT(getOwner() != nullptr);
 
-    Node* owner = getOwner();
+    auto ownerNode = getOwner();
 
     writer.StartObject();
     {
@@ -52,7 +52,7 @@ bool DataAccess::update()
     	writer.Key("members");
     	writer.StartObject();
     	{
-		    for(auto& each : owner->getMembers())
+		    for(auto& each : ownerNode->getMembers())
 		    {
 		    	writeMember(each.second.get());
 		    }
@@ -65,7 +65,7 @@ bool DataAccess::update()
     	writer.Key("components");
     	writer.StartObject();
     	{
-		    for(auto& eachComponent : owner->getComponents())
+		    for(auto& eachComponent : ownerNode->getComponents())
 		    {
 		    	writer.Key   (eachComponent.first.c_str());
 		    	writer.StartObject();
@@ -84,7 +84,7 @@ bool DataAccess::update()
 	}
     writer.EndObject();
 
-    std::string fileName("Entity_" + std::to_string((size_t)getOwner()) + ".json");
+    std::string fileName("Entity_" + std::to_string((size_t)&ownerNode) + ".json");
 
     std::ofstream outfile ("saves/" +fileName ,std::ofstream::binary);
     outfile.write (buffer.GetString(),buffer.GetSize());

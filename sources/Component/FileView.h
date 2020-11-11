@@ -25,7 +25,7 @@ namespace Nodable {
 		TextEditor::Coordinates        getTextEditorCursorPosition()const { return m_textEditor != nullptr ? m_textEditor->GetCursorPosition() : TextEditor::Coordinates(0, 0); }
 		void						   setUndoBuffer(TextEditor::ExternalUndoBufferInterface*);
 	private:
-		File*        getFile();
+        std::shared_ptr<File> getFile();
 		std::unique_ptr<TextEditor>  m_textEditor;
 		const TextEditor::LanguageDefinition* m_textEditorLanguageDefinition;
 		bool         m_hasChanged;

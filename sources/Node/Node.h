@@ -29,7 +29,7 @@ namespace Nodable{
 		All nodes are built from a Container, which first create an instance of this class (or derived) and then
 		add some components (cf. Component and derived classes) on it.
 	*/
-	class Node : public Object
+class Node : public Object
 	{
 	public:
 		Node(std::string /* label */ = "UnnamedNode");
@@ -94,7 +94,7 @@ namespace Nodable{
         {
             static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
             auto component = std::make_shared<T>();
-            component->setOwner(this);
+            component->setOwner( std::static_pointer_cast<Node>(shared_from_this()) );
             components.insert_or_assign(T::GetClass()->getName(), component );
             return component;
         }

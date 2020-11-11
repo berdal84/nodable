@@ -701,8 +701,8 @@ void Nodable::ApplicationView::browseFile()
 	//application->openFile(fileAbsolutePath.c_str());
 }
 
-Application *ApplicationView::getApplication()
+std::shared_ptr<Application> ApplicationView::getApplication()
 {
-    return reinterpret_cast<Application*>(this->owner);
+    return std::dynamic_pointer_cast<Application>(this->owner.lock());
 }
 

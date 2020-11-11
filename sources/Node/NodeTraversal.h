@@ -23,14 +23,20 @@ namespace Nodable {
         friend class Node;
     public:
 
-        /* Set dirty a Node and all its descendants */
-        static Result SetDirty(Node* _rootNode);
+        /**
+         * Set dirty a Node and all its descendants
+         * Detects cycles.
+         */
+        static Result SetDirty(const std::shared_ptr<Node>&  _rootNode);
 
-        /* Update a Node with its ascendants (only if needed) */
-        static Result Update(Node* _rootNode);
+        /**
+         * Update a Node with its ascendants (only if needed)
+         * Detect cycles.
+         */
+        static Result Update(const std::shared_ptr<Node>& _rootNode);
 
     private:
-        static Result SetDirtyRecursively(Node* _node, std::vector<Node*>& _traversed);
-        static Result UpdateRecursively(Node* _node, std::vector<Node*>& _traversed);
+        static Result SetDirtyRecursively(const std::shared_ptr<Node>& _node, std::vector<std::shared_ptr<Node>>& _traversed);
+        static Result UpdateRecursively(const std::shared_ptr<Node>& _node, std::vector<std::shared_ptr<Node>>& _traversed);
     };
 }

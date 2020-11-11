@@ -16,11 +16,11 @@ namespace Nodable{
 
 		~Component(){};
 		virtual bool update() { return true; };
-		virtual void setOwner(Node* _entity){ owner = _entity; }
-		Node* getOwner()const{return owner;}
+		virtual void setOwner(std::weak_ptr<Node> _node){ owner = std::move(_node); }
+		std::shared_ptr<Node> getOwner()const{return owner.lock();}
 
 	protected:
-		Node* owner = nullptr;
+		std::weak_ptr<Node> owner;
 		MIRROR_CLASS(Component)(
 			MIRROR_PARENT(Object);
 		);

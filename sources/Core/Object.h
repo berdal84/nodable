@@ -19,7 +19,7 @@ namespace Nodable
 		Object is the base class for all classes that needs to have members (std::string key => Nodable::Value value)
 	*/
 
-	class Object
+class Object: public std::enable_shared_from_this<Object>
 	{
 	public:
 		Object();
@@ -60,9 +60,9 @@ namespace Nodable
 		}
 
 		template<typename T>
-		T* as()
+		std::shared_ptr<T> as()
 		{
-			auto casted = dynamic_cast<T*>(this);
+			auto casted = std::dynamic_pointer_cast<T>(shared_from_this());
 			NODABLE_ASSERT(casted != nullptr);
 			return casted;
 		}

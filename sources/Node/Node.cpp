@@ -14,7 +14,7 @@ using namespace Nodable;
 
 void Node::Disconnect(std::shared_ptr<Wire> _wire)
 {
-	_wire->getTarget()->setInputMember(nullptr);
+    _wire->getTarget()->resetInputConnectedMember();
 
 	auto targetNode = _wire->getTarget()->getOwner()->as<Node>();	
 	auto sourceNode = _wire->getSource()->getOwner()->as<Node>();
@@ -104,9 +104,9 @@ std::vector<std::shared_ptr<Wire>>& Node::getWires()
 int Node::getInputWireCount()const
 {
 	int count = 0;
-	for(auto w : wires)
+	for(const auto& eachWire : wires)
 	{
-		if ( w->getTarget()->getOwner() == this)
+		if (eachWire->getTarget()->getOwner().get() == this )
 			count++;
 	}
 	return count;
@@ -115,9 +115,9 @@ int Node::getInputWireCount()const
 int Node::getOutputWireCount()const
 {
 	int count = 0;
-	for(auto w : wires)
+	for(const auto& eachWire : wires)
 	{
-		if ( w->getSource()->getOwner() == this)
+		if (eachWire->getSource()->getOwner().get() == this)
 			count++;
 	}
 	return count;
@@ -143,5 +143,5 @@ UpdateResult Node::update()
 void Node::onMemberValueChanged(const char* _name)
 {	
 	updateLabel();
-	NodeTraversal::SetDirty(this);
+	NodeTraversal::SetDirty( std::static_pointer_cast<Node>( shared_from_this() ) );
 }

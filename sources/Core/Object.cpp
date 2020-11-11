@@ -54,10 +54,10 @@ std::shared_ptr<Member> Object::add (const char* _name, Visibility _visibility, 
 {
 	auto member = std::make_shared<Member>();
 
-	member->setOwner     (this);
-	member->setName		(_name);
+	member->setOwner( weak_from_this() );
+	member->setName(_name);
 	member->setVisibility(_visibility);
-	member->setType		(_type);
+	member->setType(_type);
     member->setAllowedConnections(_flags);
 	members.insert_or_assign(std::string(_name), member);
 

@@ -16,7 +16,7 @@ bool ContainerView::draw()
 	
 	auto origin = ImGui::GetCursorScreenPos();
 	ImGui::SetCursorPos(ImVec2(0,0));
-	auto container = reinterpret_cast<Container*>(getOwner());
+	auto container = std::dynamic_pointer_cast<Container>(getOwner());
 	auto entities  = container->getEntities();
 
 	/*
@@ -74,7 +74,7 @@ bool ContainerView::draw()
 
 			for (auto eachWire : wires)
 			{
-				if (eachWire->getTarget()->getOwner() == eachNode.get() )
+				if (eachWire->getTarget()->getOwner() == eachNode )
 					eachWire->getView()->draw();
 			}
 		}

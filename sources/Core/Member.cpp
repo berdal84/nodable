@@ -1,4 +1,6 @@
 #include "Member.h"
+
+#include <utility>
 #include "Log.h"		 // for LOG_DEBUG(...)
 #include "Object.h"
 #include "Variable.h"
@@ -13,7 +15,8 @@ Type Member::getType()const
 
 bool Member::isEditable() const
 {
-    return this->getInputMember() == nullptr;
+    // This member will be editble by the user only if it has no inputConnectedMember
+    return this->inputMember.expired() || this->inputMember.lock() == nullptr;
 }
 
 bool  Member::isType(Type _type)const
@@ -74,7 +77,15 @@ void Member::setVisibility(Visibility _v)
 
 void Nodable::Member::updateValueFromInputMemberValue()
 {
-	this->set(this->inputMember);
+    if ( this->inputMember.expired() )
+    {
+        LOG_WARNING(0u, "Unable to update %s member value because its input connected node has expired.", getName().c_str() );
+        this->inputMember.reset();
+    }
+    else
+    {
+        this->set(this->inputMember.lock());
+    }
 }
 
 bool Member::allowsConnections(Way _requiredWay)const
@@ -96,14 +107,14 @@ bool Member::allowsConnections(Way _requiredWay)const
 	return  result;
 }
 
-Object* Member::getOwner() const
+std::shared_ptr<Object> Member::getOwner() const
 {
-	return owner;
+	return owner.lock();
 }
 
-std::shared_ptr<Member> Member::getInputMember() const
+std::shared_ptr<Member> Member::getInputConnectedMember() const
 {
-	return inputMember;
+	return inputMember.lock();
 }
 
 const std::string& Nodable::Member::getName() const
@@ -111,12 +122,15 @@ const std::string& Nodable::Member::getName() const
 	return name;
 }
 
-void Member::setInputMember(std::shared_ptr<Member> _val)
+void Member::resetInputConnectedMember()
+{
+    inputMember.reset();
+    sourceExpression = "";
+}
+
+void Member::setInputConnectedMember(std::weak_ptr<Member> _val)
 {
 	inputMember = std::move(_val);
-
-	if (_val == nullptr)
-		sourceExpression = "";
 }
 
 void Nodable::Member::setName(const char* _name)
@@ -159,9 +173,9 @@ bool Member::isSet()const
 	return data.isSet();
 }
 
-void Nodable::Member::setOwner(Object* _owner)
+void Nodable::Member::setOwner( std::weak_ptr<Object> _owner)
 {
-	owner = _owner;
+	owner = std::move(_owner);
 }
 
 std::string Member::getTypeAsString()const
@@ -173,29 +187,39 @@ std::string Member::getSourceExpression()const
 {
 	std::string expression;
 
-	if (allowsConnections(Way::In) && inputMember != nullptr)
+	if (allowsConnections(Way::In) && !inputMember.expired() )
 	{
+	    auto _inputMember = inputMember.lock();
+	    auto _inputNode = _inputMember->getOwner();
+
 		// if inputMember is a variable we add the variable name and an equal sign
-		if (inputMember->getOwner()->getClass()->getName() == "Variable" &&
+		if (_inputNode->getClass()->getName() == "Variable" &&
 			getOwner()->getClass()->getName() == "Variable")
 		{
-			auto variable = inputMember->getOwner()->as<Variable>();
+			auto variable = _inputNode->as<Variable>();
 			expression.append(variable->getName());
 			expression.append("=");
-			expression.append(inputMember->getSourceExpression());
+			expression.append(_inputMember->getSourceExpression());
+		}
+		else
+        {
+            expression = _inputMember->getSourceExpression();
+        }
 
-		}else
-			expression = inputMember->getSourceExpression();
-
-	} else if (sourceExpression != "") {
+	}
+	else if (!sourceExpression.empty())
+	{
 		expression = sourceExpression;
+	}
+	else
+    {
 
-	} else {
-
-		if (isType(Type::String)) {
+		if (isType(Type::String))
+		{
 			expression = '"' + (std::string)*this + '"';
 		}
-		else {
+		else
+        {
 			expression = (std::string)*this;
 		}
 	}

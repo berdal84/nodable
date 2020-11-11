@@ -140,7 +140,7 @@ std::string FileView::getSelectedText()const
 	return m_textEditor->HasSelection() ? m_textEditor->GetSelectedText() : m_textEditor->GetCurrentLineText();
 }
 
-File* FileView::getFile() {
+std::shared_ptr<File> FileView::getFile() {
 	return getOwner()->as<File>();
 }
 

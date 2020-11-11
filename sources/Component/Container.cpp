@@ -81,7 +81,7 @@ UpdateResult Container::update()
 
         while (it < nodes.end() && result != Result::Failure)
         {
-            auto node = it->get();
+            auto node = *it;
 
             if (node && node->isDirty())
             {

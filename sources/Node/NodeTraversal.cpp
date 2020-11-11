@@ -6,23 +6,23 @@
 
 using namespace Nodable;
 
-Result NodeTraversal::Update(Node* _rootNode) {
+Result NodeTraversal::Update(const std::shared_ptr<Node>&  _rootNode) {
     LOG_MESSAGE(1u, "NodeTraversal::Update %s \n", _rootNode->getLabel() );
-    std::vector<Node*> traversed;
+    std::vector<std::shared_ptr<Node>> traversed;
     auto result = NodeTraversal::UpdateRecursively(_rootNode, traversed);
     LOG_MESSAGE(2u, "NodeTraversal::Update done.\n");
     return result;
 }
 
-Result NodeTraversal::SetDirty(Node* _rootNode) {
+Result NodeTraversal::SetDirty(const std::shared_ptr<Node>&  _rootNode) {
     LOG_MESSAGE(1u, "NodeTraversal::SetDirty %s \n", _rootNode->getLabel() );
-    std::vector<Node*> traversed;
+    std::vector<std::shared_ptr<Node>> traversed;
     auto result = NodeTraversal::SetDirtyRecursively(_rootNode, traversed);
     LOG_MESSAGE(2u, "NodeTraversal::SetDirty done.\n");
     return result;
 }
 
-Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _traversed) {
+Result NodeTraversal::SetDirtyRecursively(const std::shared_ptr<Node>& _node, std::vector<std::shared_ptr<Node>>& _traversed) {
 
     Result result;
     
@@ -42,7 +42,7 @@ Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _trav
             if (wire->getSource()->getOwner() == _node &&
                 wire->getTarget() != nullptr)
             {
-                auto targetNode = reinterpret_cast<Node*>(wire->getTarget()->getOwner());
+                auto targetNode = std::static_pointer_cast<Node>( wire->getTarget()->getOwner() );
                 
                 auto r = NodeTraversal::SetDirtyRecursively(targetNode, _traversed);
                 if( r == Result::Failure )
@@ -58,7 +58,7 @@ Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _trav
     return result;
 }
 
-Result NodeTraversal::UpdateRecursively(Node* _node, std::vector<Node*>& _traversed) {
+Result NodeTraversal::UpdateRecursively(const std::shared_ptr<Node>& _node, std::vector<std::shared_ptr<Node>>& _traversed) {
     
     Result result;
     LOG_MESSAGE(2u, "NodeTraversal::UpdateEx\n");
@@ -74,16 +74,16 @@ Result NodeTraversal::UpdateRecursively(Node* _node, std::vector<Node*>& _traver
         {
             // first we need to evaluate each input and transmit its results thru the wire
             auto wires = _node->getWires();
-            for (auto wire : wires)
+            for (const auto& eachWire : wires)
             {
-                auto wireTarget = wire->getTarget();
-                auto wireSource = wire->getSource();
+                auto wireTarget = eachWire->getTarget();
+                auto wireSource = eachWire->getSource();
 
                 if ( _node->has(wireTarget) &&
                     wireSource != nullptr) 
                 {
                     /* update the source entity */
-                    auto sourceNode = reinterpret_cast<Node*>(wireSource->getOwner());
+                    auto sourceNode = std::static_pointer_cast<Node>( wireSource->getOwner() );
                     NodeTraversal::UpdateRecursively(sourceNode, _traversed);
                     
                     /* transfert the freshly updated value from source to target member */

@@ -111,7 +111,7 @@ void Application::setCurrentFileWithIndex(size_t _index)
 	}
 }
 
-void Application::SaveNode(Node* _node)
+void Application::SaveNode(std::shared_ptr<Node> _node)
 {
     auto component = _node->newComponent<DataAccess>().lock();
 	component->update();

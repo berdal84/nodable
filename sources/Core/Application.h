@@ -47,7 +47,7 @@ namespace Nodable
 		void             setCurrentFileWithIndex               (size_t _index);
 		
 
-		static void      SaveNode(Node* _entity);
+		static void      SaveNode(std::shared_ptr<Node> _entity);
 
 	private:
 		/** When set to true, the application will close next frame */

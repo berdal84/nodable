@@ -38,7 +38,7 @@ namespace Nodable{
 		/* Should be called once per frame to update the view */
 		bool              update              ()override;		
 
-		void updateInputConnectedNodes(Nodable::Node* node, float deltaTime);
+		void updateInputConnectedNodes(const std::shared_ptr<Node>&, float deltaTime);
 
 		/* Get top-left corner vector position */
 		ImVec2            getRoundedPosition         ()const;

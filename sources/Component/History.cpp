@@ -127,7 +127,7 @@ Cmd_ConnectWire::Cmd_ConnectWire(std::shared_ptr<Member>& _source, std::shared_p
 }
 
 void Cmd_ConnectWire::execute() {
-    target->setInputMember(source);
+    target->setInputConnectedMember(source);
     auto targetNode = target->getOwner()->as<Node>();
     auto sourceNode = source->getOwner()->as<Node>();
 
@@ -157,7 +157,7 @@ void Cmd_ConnectWire::undo() {
     auto targetNode = target->getOwner()->as<Node>();
     auto sourceNode = source->getOwner()->as<Node>();
 
-    target->setInputMember(nullptr);
+    target->resetInputConnectedMember();
     NodeTraversal::SetDirty(targetNode);
 
     // Link Members

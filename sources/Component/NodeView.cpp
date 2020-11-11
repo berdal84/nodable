@@ -116,7 +116,7 @@ bool NodeView::update(float _deltaTime) {
 
 	if (node->hasComponent<ComputeBase>())
 		setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
-	else if (dynamic_cast<Variable*>(node) != nullptr)
+	else if ( std::string("Variable") == node->getClass()->getName() )
 		setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f));
 	else
 		setColor(ColorType_Fill, ImColor(0.9f, 0.9f, 0.7f));
@@ -127,7 +127,7 @@ bool NodeView::update(float _deltaTime) {
 	return true;
 }
 
-void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
+void NodeView::updateInputConnectedNodes(const std::shared_ptr<Node>& node, float deltaTime)
 {
 
 	// automatically moves input connected nodes
@@ -438,7 +438,7 @@ void NodeView::ArrangeRecursively(NodeView* _view)
 
 			if ( eachWire->getSource() != nullptr)
 			{
-				auto node         = dynamic_cast<Node*>(eachWire->getSource()->getOwner());
+				auto node         = std::static_pointer_cast<Node>(eachWire->getSource()->getOwner());
 				auto inputView    = node->getComponent<NodeView>();
 				inputView->pinned = false;
 				ArrangeRecursively(inputView);

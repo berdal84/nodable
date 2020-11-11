@@ -35,7 +35,7 @@ namespace Nodable
         void browseFile();
 
 	private:
-        Application* getApplication();
+        std::shared_ptr<Application> getApplication();
 
 		ImGui::FileBrowser fileBrowser;
 		SDL_Window        *sdlWindow{};

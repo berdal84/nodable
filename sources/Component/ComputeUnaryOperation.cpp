@@ -40,7 +40,7 @@ void ComputeUnaryOperation::updateResultSourceExpression()const
 	};
 
 	// Get the inner source bin operator
-	auto innerOp = getMemberSourceBinOp(this->args[0]->getInputMember());
+	auto innerOp = getMemberSourceBinOp(this->args[0]->getInputConnectedMember());
 
 	auto expr   = language->serializeUnaryOp(getOperator(), args, innerOp);
 

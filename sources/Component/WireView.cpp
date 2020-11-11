@@ -9,7 +9,8 @@ using namespace Nodable;
 
 bool WireView::draw()
 {
-	NODABLE_ASSERT(wire != nullptr);
+    auto wire = m_wire.lock();
+	NODABLE_ASSERT(wire);
 
 	// Update fill color depending on current state 
 	ImColor stateColors[Wire::State_COUNT] = {ImColor(1.0f, 0.0f, 0.0f), ImColor(0.8f, 0.8f, 0.8f)};
@@ -52,10 +53,6 @@ bool WireView::draw()
 	    float positiveDistX = distX < 0.0f ? -distX : distX;
 	    positiveDistX = positiveDistX < 200.0f ? 200.0f : positiveDistX;        
 
-	    extern float bezierCurveOutRoundness;
-	    extern float bezierCurveInRoundness;
-	    extern float bezierThickness;
-	    extern bool displayArrows;    
 	    ImVec2 arrowSize(8.0f, 12.0f); 
 
 	    ImVec2 cp0(pos0.x + positiveDistX*bezierCurveOutRoundness, pos0.y);

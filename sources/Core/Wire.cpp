@@ -31,6 +31,7 @@ Nodable::WireView* Nodable::Wire::getView() const
 	return this->view.get();
 }
 
-void Wire::newView() {
-    view = std::make_unique<WireView>(this);
+void Wire::newView()
+{
+    view = std::make_unique<WireView>( weak_from_this() );
 }
