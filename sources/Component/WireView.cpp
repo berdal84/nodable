@@ -25,8 +25,8 @@ bool WireView::draw()
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	    // Compute start and end point
-	    auto sourceNode 	= source->getOwner()->as<Node>();
-		auto targetNode 	= target->getOwner()->as<Node>();
+	    auto sourceNode = std::static_pointer_cast<Node>( source->getOwner() );
+	    auto targetNode = std::static_pointer_cast<Node>( target->getOwner() );
 
 		if (!sourceNode->hasComponent<View>() || // in case of of the node have no view we can't draw the wire.
 			!targetNode->hasComponent<View>() )
