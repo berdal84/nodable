@@ -5,7 +5,7 @@
 
 ImVec2 Nodable::Connector::position() const {
     auto m = this->member.lock();
-    auto node       = m->getOwner()->as<Node>();
+    auto node       = std::static_pointer_cast<Node>( m->getOwner() );
     auto view       = node->getComponent<NodeView>();
     auto position   = view->getConnectorPosition(m->getName(), this->way);
     return position;
