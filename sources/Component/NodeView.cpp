@@ -149,7 +149,7 @@ void NodeView::updateInputConnectedNodes(const std::shared_ptr<Node>& node, floa
 	auto maxSizeX = 0.0f;
 	for (auto eachWire : wires)
 	{
-		auto sourceNode    = eachWire->getSource()->getOwner()->as<Node>(); // TODO: add some checks
+		auto sourceNode    = std::dynamic_pointer_cast<Node>( eachWire->getSource()->getOwner() );
 		bool isWireAnInput = node->has(eachWire->getTarget());
 		auto inputView     = sourceNode->getComponent<NodeView>();
 
@@ -174,7 +174,7 @@ void NodeView::updateInputConnectedNodes(const std::shared_ptr<Node>& node, floa
 		bool isWireAnInput = node->has(eachWire->getTarget());
 		if (isWireAnInput)
 		{
-			auto sourceNode = eachWire->getSource()->getOwner()->as<Node>();
+			auto sourceNode = std::dynamic_pointer_cast<Node>( eachWire->getSource()->getOwner() );
 			auto inputView  = sourceNode->getComponent<NodeView>();
 
 			if (!inputView->pinned)
