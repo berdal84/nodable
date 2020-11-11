@@ -307,8 +307,7 @@ bool Node_Tests() {
 	TEST_BEGIN("Node"){
 
 		TEST_BEGIN("Node (add member Double)"){
-
-			auto node = std::make_unique<Node>();
+			auto node = std::make_shared<Node>();
 			node->add("val");
 			node->set("val", double(100));
 
@@ -331,10 +330,10 @@ bool WireAndNode_Tests() {
 
 		TEST_BEGIN("Connect two nodes with a wire"){
 
-			auto a = std::make_unique<Node>();
+			auto a = std::make_shared<Node>();
 			a->add("output");
 
-			auto b = std::make_unique<Node>();
+			auto b = std::make_shared<Node>();
 			b->add("input");
 
 			auto wire = Node::Connect(a->get("output"), b->get("input"));
@@ -348,18 +347,18 @@ bool WireAndNode_Tests() {
 
 		TEST_BEGIN("Disconnect a wire"){
 
-			Node a;
-			a.add("output");
+			auto a = std::make_shared<Node>();
+			a->add("output");
 
-			Node b;
-			b.add("input");
+			auto b = std::make_shared<Node>();
+			b->add("input");
 
-			auto wire = Node::Connect(a.get("output"), b.get("input"));
+			auto wire = Node::Connect(a->get("output"), b->get("input"));
 
 			Node::Disconnect(wire);
 
-			EXPECT(a.getOutputWireCount(), 0);
-			EXPECT(b.getInputWireCount(), 0);
+			EXPECT(a->getOutputWireCount(), 0);
+			EXPECT(b->getInputWireCount(), 0);
 		}TEST_END
 
 	}TEST_END
