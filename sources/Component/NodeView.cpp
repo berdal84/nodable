@@ -147,10 +147,10 @@ void NodeView::updateInputConnectedNodes(const std::shared_ptr<Node>& node, floa
 	// Compute the cumulated height and the size x max of the input node view:
 	auto cumulatedHeight = 0.0f;
 	auto maxSizeX = 0.0f;
-	for (auto eachWire : wires)
+	for (const auto& eachWire : wires)
 	{
-		auto sourceNode    = std::dynamic_pointer_cast<Node>( eachWire->getSource().lock()->getOwner() );
-		bool isWireAnInput = node->has(eachWire->getTarget().lock());
+		auto sourceNode    = std::dynamic_pointer_cast<Node>( eachWire->getSource()->getOwner() );
+		bool isWireAnInput = node->has(eachWire->getTarget());
 		auto inputView     = sourceNode->getComponent<NodeView>();
 
 		if (isWireAnInput && !inputView->pinned)
@@ -171,10 +171,10 @@ void NodeView::updateInputConnectedNodes(const std::shared_ptr<Node>& node, floa
 
 	for (auto eachWire : wires)
 	{
-		bool isWireAnInput = node->has(eachWire->getTarget().lock());
+		bool isWireAnInput = node->has(eachWire->getTarget());
 		if (isWireAnInput)
 		{
-			auto sourceNode = std::dynamic_pointer_cast<Node>( eachWire->getSource().lock()->getOwner() );
+			auto sourceNode = std::dynamic_pointer_cast<Node>( eachWire->getSource()->getOwner() );
 			auto inputView  = sourceNode->getComponent<NodeView>();
 
 			if (!inputView->pinned)
@@ -433,12 +433,12 @@ void NodeView::ArrangeRecursively(NodeView* _view)
 
 	for(auto eachWire : wires)
 	{
-		if (eachWire != nullptr && _view->getOwner()->has( eachWire->getTarget().lock() ) )
+		if (eachWire != nullptr && _view->getOwner()->has( eachWire->getTarget() ) )
 		{
 
-			if ( !eachWire->getSource().expired() )
+			if ( eachWire->getSource() )
 			{
-				auto node         = std::static_pointer_cast<Node>(eachWire->getSource().lock()->getOwner());
+				auto node         = std::static_pointer_cast<Node>(eachWire->getSource()->getOwner());
 				auto inputView    = node->getComponent<NodeView>();
 				inputView->pinned = false;
 				ArrangeRecursively(inputView);

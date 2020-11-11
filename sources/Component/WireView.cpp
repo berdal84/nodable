@@ -20,13 +20,13 @@ bool WireView::draw()
 	auto source = wire->getSource();
 	auto target = wire->getTarget();
 
-	if ( !source.expired() && !target.expired() )
+	if ( source && target )
 	{
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	    // Compute start and end point
-	    auto sourceNode = std::static_pointer_cast<Node>( source.lock()->getOwner() );
-	    auto targetNode = std::static_pointer_cast<Node>( target.lock()->getOwner() );
+	    auto sourceNode = std::static_pointer_cast<Node>( source->getOwner() );
+	    auto targetNode = std::static_pointer_cast<Node>( target->getOwner() );
 
 		if (!sourceNode->hasComponent<View>() || // in case of of the node have no view we can't draw the wire.
 			!targetNode->hasComponent<View>() )
@@ -38,8 +38,8 @@ bool WireView::draw()
 		if (!sourceView->isVisible() || !targetView->isVisible() ) // in case of of the node have hidden view we can't draw the wire.
 			return false;
 
-	    auto sourceName = wire->getSource().lock()->getName();
-	    auto targetName = wire->getTarget().lock()->getName();
+	    auto sourceName = wire->getSource()->getName();
+	    auto targetName = wire->getTarget()->getName();
 
 		ImVec2 pos0 = View::CursorPosToScreenPos( sourceView->getConnectorPosition(sourceName, Way::Out) );
 		ImVec2 pos1 = View::CursorPosToScreenPos( targetView->getConnectorPosition(targetName, Way::In) );
@@ -114,8 +114,8 @@ bool WireView::draw()
 	    {
 	    	case DrawDetail_Complex:
 	    	{
-	    		std::string sourceStr = sourceName + " (" + wire->getSource().lock()->getTypeAsString() + ")";
-	    		std::string targetStr = targetName + " (" + wire->getTarget().lock()->getTypeAsString() + ")";
+	    		std::string sourceStr = sourceName + " (" + wire->getSource()->getTypeAsString() + ")";
+	    		std::string targetStr = targetName + " (" + wire->getTarget()->getTypeAsString() + ")";
 				drawSourceAndTargetTexts(sourceStr.c_str(), targetStr.c_str());
 				break;
 			}

@@ -14,13 +14,13 @@ using namespace Nodable;
 
 void Node::Disconnect(std::shared_ptr<Wire> _wire)
 {
-    _wire->getTarget()->resetInputConnectedMember();
-
 	auto targetNode = std::static_pointer_cast<Node>( _wire->getTarget()->getOwner() );
 	auto sourceNode = std::static_pointer_cast<Node>( _wire->getSource()->getOwner() );
 
-	targetNode->removeWire(_wire);
-	sourceNode->removeWire(_wire);
+	if ( sourceNode ) sourceNode->removeWire(_wire);
+	if ( targetNode ) targetNode->removeWire(_wire);
+
+    _wire->getTarget()->resetInputConnectedMember();
 
 	NodeTraversal::SetDirty(targetNode);
 }

@@ -25,8 +25,8 @@ namespace Nodable
 		void        setTarget    (std::weak_ptr<Member>);
 
 		State_      getState     ()const{return state;}
-        std::weak_ptr<Member> getSource()const{return source;}
-        std::weak_ptr<Member> getTarget()const{return target;}
+        std::shared_ptr<Member> getSource()const{return source.lock();}
+        std::shared_ptr<Member> getTarget()const{return target.lock();}
 		void        newView();
 		WireView*   getView      ()const;
 

@@ -339,8 +339,8 @@ bool WireAndNode_Tests() {
 
 			auto wire = Node::Connect(a->get("output"), b->get("input"));
 
-			EXPECT(wire->getSource().lock() , a->get("output"))
-			EXPECT(wire->getTarget().lock() , b->get("input"))
+			EXPECT(wire->getSource() , a->get("output"))
+			EXPECT(wire->getTarget() , b->get("input"))
 
 			Node::Disconnect(wire);
 
