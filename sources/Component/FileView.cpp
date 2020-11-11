@@ -141,7 +141,7 @@ std::string FileView::getSelectedText()const
 }
 
 std::shared_ptr<File> FileView::getFile() {
-	return getOwner()->as<File>();
+	return std::dynamic_pointer_cast<File>( this->owner.lock() );
 }
 
 void FileView::setUndoBuffer(TextEditor::ExternalUndoBufferInterface* _buffer ) {

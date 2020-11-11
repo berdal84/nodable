@@ -143,5 +143,6 @@ UpdateResult Node::update()
 void Node::onMemberValueChanged(const char* _name)
 {	
 	updateLabel();
-	NodeTraversal::SetDirty( std::static_pointer_cast<Node>( shared_from_this() ) );
+	auto shared = shared_from_this();
+	NodeTraversal::SetDirty( std::static_pointer_cast<Node>( shared ) );
 }

@@ -32,7 +32,7 @@ void ComputeUnaryOperation::updateResultSourceExpression()const
 	{
 		if (_member != nullptr )
 		{
-			auto node = _member->getOwner()->as<Node>();
+			auto node = std::static_pointer_cast<Node>( _member->getOwner() ) ;
 			if (auto component = node->getComponent<ComputeBinaryOperation>())
 				return component->ope();
 		}

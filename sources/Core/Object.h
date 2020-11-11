@@ -59,13 +59,6 @@ class Object: public std::enable_shared_from_this<Object>
 			this->onMemberValueChanged(_name);
 		}
 
-		template<typename T>
-		std::shared_ptr<T> as()
-		{
-			auto casted = std::dynamic_pointer_cast<T>(shared_from_this());
-			NODABLE_ASSERT(casted != nullptr);
-			return casted;
-		}
 	private:
 		std::map<std::string, std::shared_ptr<Member>> members;
 		bool                deleted = false;

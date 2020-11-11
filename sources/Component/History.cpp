@@ -128,8 +128,8 @@ Cmd_ConnectWire::Cmd_ConnectWire(std::shared_ptr<Member>& _source, std::shared_p
 
 void Cmd_ConnectWire::execute() {
     target->setInputConnectedMember(source);
-    auto targetNode = target->getOwner()->as<Node>();
-    auto sourceNode = source->getOwner()->as<Node>();
+    auto targetNode = std::dynamic_pointer_cast<Node>( target->getOwner() );
+    auto sourceNode = std::dynamic_pointer_cast<Node>( source->getOwner() );
 
     // Link wire to members
     auto sourceContainer = sourceNode->getParentContainer();
