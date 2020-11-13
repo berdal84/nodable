@@ -34,24 +34,32 @@ void Log::SetVerbosityLevel(short unsigned int _verbosityLevel)
 
 void Log::Push(LogType _type, short unsigned int _verbosityLevel, const char* _format, ...)
 {
-    // Build log string
-	char buffer[255];
-    va_list arglist;
-    va_start( arglist, _format );
-    vsnprintf(buffer, sizeof(buffer), _format, arglist); // store into buffer
-	va_end( arglist );
-
 	// Print log only if verbosity level allows it
 	if ( _verbosityLevel <= Log::VerbosityLevel )
     {
+        // Build log string
+        char buffer[255];
+        va_list arglist;
+        va_start( arglist, _format );
+        vsnprintf(buffer, sizeof(buffer), _format, arglist); // store into buffer
+        va_end( arglist );
+
         if( _type == LogType::Error )
             std::cout << RED "ERR " RESET << buffer;
         else if( _type == LogType::Warning )
             std::cout << MAGENTA "WRN " RESET << buffer;
         else
             std::cout << "MSG " << buffer;
+
+        // Store type and buffer in history
+        Logs.push_back( {_type, _verbosityLevel, buffer} );
+
+        // Constraint the queue to be size() < 500
+        // Erase by chunk of 250
+        if ( Logs.size() > 500 )
+        {
+            Logs.erase(Logs.begin(), Logs.begin() + 250);
+        }
     }
 
-	// Store type and buffer in history
-	Logs.push_back( {_type, _verbosityLevel, buffer} );
 }
