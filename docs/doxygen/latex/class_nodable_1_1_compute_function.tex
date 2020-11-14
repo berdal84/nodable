@@ -1,0 +1,115 @@
+\hypertarget{class_nodable_1_1_compute_function}{}\doxysection{Nodable\+::Compute\+Function Class Reference}
+\label{class_nodable_1_1_compute_function}\index{Nodable::ComputeFunction@{Nodable::ComputeFunction}}
+
+
+{\ttfamily \#include $<$Compute\+Function.\+h$>$}
+
+Inheritance diagram for Nodable\+::Compute\+Function\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=5.000000cm]{class_nodable_1_1_compute_function}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_nodable_1_1_compute_function_aad3b755c98b442dc2e96d552e5ad7756}{Compute\+Function}} (const \mbox{\hyperlink{class_nodable_1_1_function}{Function}} $\ast$\+\_\+function, const \mbox{\hyperlink{class_nodable_1_1_language}{Language}} $\ast$\+\_\+language)
+\item 
+\mbox{\hyperlink{class_nodable_1_1_compute_function_ae46de5b747a0e9dab36ae07a5fad530b}{$\sim$\+Compute\+Function}} ()
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_compute_function_a12a529eef4ee6b541b1a9f5d1a265255}{set\+Arg}} (size\+\_\+t \+\_\+index, \mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$\+\_\+value)
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_compute_function_a05e47b941979afb69a6370a425842739}{update}} () override
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_compute_function_a1ba775fd9402ed1930debac8978c6016}{update\+Result\+Source\+Expression}} () const override
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+M\+I\+R\+R\+O\+R\+\_\+\+C\+L\+A\+SS() \mbox{\hyperlink{class_nodable_1_1_compute_function_ab5154531431528794481b84aa9158890}{Compute\+Function}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::vector$<$ \mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$ $>$ \mbox{\hyperlink{class_nodable_1_1_compute_function_a68bf96aa42a42531cb9d56c5b336fa7c}{args}}
+\item 
+const \mbox{\hyperlink{class_nodable_1_1_function}{Function}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_compute_function_aec09b20f8b6e97c566675a3af0c5e9bd}{function}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\mbox{\hyperlink{class_nodable_1_1_compute_function}{Compute\+Function}} is a class able to eval a function (using its prototype and a language) 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_compute_function_aad3b755c98b442dc2e96d552e5ad7756}\label{class_nodable_1_1_compute_function_aad3b755c98b442dc2e96d552e5ad7756}} 
+\index{Nodable::ComputeFunction@{Nodable::ComputeFunction}!ComputeFunction@{ComputeFunction}}
+\index{ComputeFunction@{ComputeFunction}!Nodable::ComputeFunction@{Nodable::ComputeFunction}}
+\doxysubsubsection{\texorpdfstring{ComputeFunction()}{ComputeFunction()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily Compute\+Function\+::\+Compute\+Function (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_nodable_1_1_function}{Function}} $\ast$}]{\+\_\+function,  }\item[{const \mbox{\hyperlink{class_nodable_1_1_language}{Language}} $\ast$}]{\+\_\+language }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_compute_function_ae46de5b747a0e9dab36ae07a5fad530b}\label{class_nodable_1_1_compute_function_ae46de5b747a0e9dab36ae07a5fad530b}} 
+\index{Nodable::ComputeFunction@{Nodable::ComputeFunction}!````~ComputeFunction@{$\sim$ComputeFunction}}
+\index{````~ComputeFunction@{$\sim$ComputeFunction}!Nodable::ComputeFunction@{Nodable::ComputeFunction}}
+\doxysubsubsection{\texorpdfstring{$\sim$ComputeFunction()}{~ComputeFunction()}}
+{\footnotesize\ttfamily Nodable\+::\+Compute\+Function\+::$\sim$\+Compute\+Function (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_compute_function_ab5154531431528794481b84aa9158890}\label{class_nodable_1_1_compute_function_ab5154531431528794481b84aa9158890}} 
+\index{Nodable::ComputeFunction@{Nodable::ComputeFunction}!ComputeFunction@{ComputeFunction}}
+\index{ComputeFunction@{ComputeFunction}!Nodable::ComputeFunction@{Nodable::ComputeFunction}}
+\doxysubsubsection{\texorpdfstring{ComputeFunction()}{ComputeFunction()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily M\+I\+R\+R\+O\+R\+\_\+\+C\+L\+A\+SS() Nodable\+::\+Compute\+Function\+::\+Compute\+Function (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_compute_function_a12a529eef4ee6b541b1a9f5d1a265255}\label{class_nodable_1_1_compute_function_a12a529eef4ee6b541b1a9f5d1a265255}} 
+\index{Nodable::ComputeFunction@{Nodable::ComputeFunction}!setArg@{setArg}}
+\index{setArg@{setArg}!Nodable::ComputeFunction@{Nodable::ComputeFunction}}
+\doxysubsubsection{\texorpdfstring{setArg()}{setArg()}}
+{\footnotesize\ttfamily void Nodable\+::\+Compute\+Function\+::set\+Arg (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{\+\_\+index,  }\item[{\mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$}]{\+\_\+value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_compute_function_a05e47b941979afb69a6370a425842739}\label{class_nodable_1_1_compute_function_a05e47b941979afb69a6370a425842739}} 
+\index{Nodable::ComputeFunction@{Nodable::ComputeFunction}!update@{update}}
+\index{update@{update}!Nodable::ComputeFunction@{Nodable::ComputeFunction}}
+\doxysubsubsection{\texorpdfstring{update()}{update()}}
+{\footnotesize\ttfamily bool Compute\+Function\+::update (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Reimplemented from \mbox{\hyperlink{class_nodable_1_1_component_a63f25d64e7ba670299c8c5c64671bb1e}{Nodable\+::\+Component}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_compute_function_a1ba775fd9402ed1930debac8978c6016}\label{class_nodable_1_1_compute_function_a1ba775fd9402ed1930debac8978c6016}} 
+\index{Nodable::ComputeFunction@{Nodable::ComputeFunction}!updateResultSourceExpression@{updateResultSourceExpression}}
+\index{updateResultSourceExpression@{updateResultSourceExpression}!Nodable::ComputeFunction@{Nodable::ComputeFunction}}
+\doxysubsubsection{\texorpdfstring{updateResultSourceExpression()}{updateResultSourceExpression()}}
+{\footnotesize\ttfamily void Compute\+Function\+::update\+Result\+Source\+Expression (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_nodable_1_1_compute_base_a095b881dd65b8193081057066dcab90e}{Nodable\+::\+Compute\+Base}}.
+
+
+
+Reimplemented in \mbox{\hyperlink{class_nodable_1_1_compute_unary_operation_a1ef923bab287cd3de1bf7aa114ab71c8}{Nodable\+::\+Compute\+Unary\+Operation}}.
+
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_compute_function_a68bf96aa42a42531cb9d56c5b336fa7c}\label{class_nodable_1_1_compute_function_a68bf96aa42a42531cb9d56c5b336fa7c}} 
+\index{Nodable::ComputeFunction@{Nodable::ComputeFunction}!args@{args}}
+\index{args@{args}!Nodable::ComputeFunction@{Nodable::ComputeFunction}}
+\doxysubsubsection{\texorpdfstring{args}{args}}
+{\footnotesize\ttfamily std\+::vector$<$\mbox{\hyperlink{class_nodable_1_1_member}{Member}}$\ast$$>$ Nodable\+::\+Compute\+Function\+::args\hspace{0.3cm}{\ttfamily [protected]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_compute_function_aec09b20f8b6e97c566675a3af0c5e9bd}\label{class_nodable_1_1_compute_function_aec09b20f8b6e97c566675a3af0c5e9bd}} 
+\index{Nodable::ComputeFunction@{Nodable::ComputeFunction}!function@{function}}
+\index{function@{function}!Nodable::ComputeFunction@{Nodable::ComputeFunction}}
+\doxysubsubsection{\texorpdfstring{function}{function}}
+{\footnotesize\ttfamily const \mbox{\hyperlink{class_nodable_1_1_function}{Function}}$\ast$ Nodable\+::\+Compute\+Function\+::function\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sources/\+Component/\mbox{\hyperlink{_compute_function_8h}{Compute\+Function.\+h}}\item 
+sources/\+Component/\mbox{\hyperlink{_compute_function_8cpp}{Compute\+Function.\+cpp}}\end{DoxyCompactItemize}

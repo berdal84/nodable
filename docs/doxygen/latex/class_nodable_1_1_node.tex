@@ -1,0 +1,260 @@
+\hypertarget{class_nodable_1_1_node}{}\doxysection{Nodable\+::Node Class Reference}
+\label{class_nodable_1_1_node}\index{Nodable::Node@{Nodable::Node}}
+
+
+{\ttfamily \#include $<$Node.\+h$>$}
+
+Inheritance diagram for Nodable\+::Node\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.470588cm]{class_nodable_1_1_node}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_nodable_1_1_node_adeccb103d42343190ba1ae6fc7d6475e}{Node}} (std\+::string=\char`\"{}Unnamed\+Node\char`\"{})
+\item 
+virtual \mbox{\hyperlink{class_nodable_1_1_node_aa0840c3cb5c7159be6d992adecd2097c}{$\sim$\+Node}} ()
+\item 
+\mbox{\hyperlink{class_nodable_1_1_container}{Container}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_node_add7379c9e666f9d32007c81ac039ec3b}{get\+Parent\+Container}} () const
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_node_a332ab2ba14b05c3c1ca341b8bbc5ba37}{set\+Parent\+Container}} (\mbox{\hyperlink{class_nodable_1_1_container}{Container}} $\ast$)
+\item 
+\mbox{\hyperlink{class_nodable_1_1_container}{Container}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_node_ae0e24997f352cc0c2fc576550549fb51}{get\+Inner\+Container}} () const
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_node_a759614320af64d3702fccdd66d577782}{set\+Inner\+Container}} (\mbox{\hyperlink{class_nodable_1_1_container}{Container}} $\ast$\+\_\+container)
+\item 
+const char $\ast$ \mbox{\hyperlink{class_nodable_1_1_node_a6e5970cd12b5250cb5473cec928ee87a}{get\+Label}} () const
+\item 
+virtual void \mbox{\hyperlink{class_nodable_1_1_node_a023f2f02c4b94dd18d7ffacc5b1477fd}{update\+Label}} ()
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_node_a6c42f437ade0a66bd25dee12e0478cfb}{set\+Label}} (const char $\ast$)
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_node_a222bba5698af57953dd3411499f244a8}{set\+Label}} (std\+::string)
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_node_a3611371b82da2c9a2f6d5c32a0e58046}{add\+Wire}} (\mbox{\hyperlink{class_nodable_1_1_wire}{Wire}} $\ast$)
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_node_ad5bcebe3cf420fc51bdf96c893bd8c85}{remove\+Wire}} (\mbox{\hyperlink{class_nodable_1_1_wire}{Wire}} $\ast$)
+\item 
+\mbox{\hyperlink{namespace_nodable_ac0ddf3ae345b143fefbaab5256a92ef4}{Wires}} \& \mbox{\hyperlink{class_nodable_1_1_node_aea8958faa3315a1b7c382cff8e10bbca}{get\+Wires}} ()
+\item 
+int \mbox{\hyperlink{class_nodable_1_1_node_ac04a032b1778c9acf78074d0c65ff4f3}{get\+Input\+Wire\+Count}} () const
+\item 
+int \mbox{\hyperlink{class_nodable_1_1_node_a99ac1552ea73f9da95105f248ce27240}{get\+Output\+Wire\+Count}} () const
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_node_af35504b703256fe453d74b2b9a9c432b}{set\+Dirty}} (bool \+\_\+value=true)
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_node_aec9e4346e073e8db6c7bdbc2f059345a}{is\+Dirty}} () const
+\item 
+virtual \mbox{\hyperlink{namespace_nodable_afcec18e8a187614b7679399ed2db2f77}{Update\+Result}} \mbox{\hyperlink{class_nodable_1_1_node_a7dbbd70ffb6064c22927b4f003d05b03}{update}} ()
+\item 
+{\footnotesize template$<$typename T $>$ }\\void \mbox{\hyperlink{class_nodable_1_1_node_a8cf05e79d6c9d23c29b18e32dca871b6}{add\+Component}} (T $\ast$\+\_\+component)
+\item 
+{\footnotesize template$<$typename T $>$ }\\bool \mbox{\hyperlink{class_nodable_1_1_node_ada23d02064f3b556c037c7c12858dcb7}{has\+Component}} () const
+\item 
+const \mbox{\hyperlink{namespace_nodable_ac0a2845b50fc936c4cefd26a2c266b1a}{Components}} \& \mbox{\hyperlink{class_nodable_1_1_node_a2cf1f1744d5dbf91c7a36b84f045d8d1}{get\+Components}} () const
+\item 
+{\footnotesize template$<$typename T $>$ }\\void \mbox{\hyperlink{class_nodable_1_1_node_a2efa5391bafd9d5828ee0bcf7b107465}{delete\+Component}} ()
+\item 
+{\footnotesize template$<$typename T $>$ }\\T $\ast$ \mbox{\hyperlink{class_nodable_1_1_node_a4aa91456806600874b8623ee4f461f9c}{get\+Component}} () const
+\item 
+M\+I\+R\+R\+O\+R\+\_\+\+C\+L\+A\+SS() \mbox{\hyperlink{class_nodable_1_1_node_a4104db808b135a72cc4c5fcd49535955}{Node}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \mbox{\hyperlink{class_nodable_1_1_wire}{Wire}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_node_a9fa871623f984602ea142f694287dab8}{Connect}} (\mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$, \mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$)
+\item 
+static void \mbox{\hyperlink{class_nodable_1_1_node_a04facd0661be5b398512ca283fa2f109}{Disconnect}} (\mbox{\hyperlink{class_nodable_1_1_wire}{Wire}} $\ast$\+\_\+wire)
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespace_nodable_ac0a2845b50fc936c4cefd26a2c266b1a}{Components}} \mbox{\hyperlink{class_nodable_1_1_node_aaa53bd0b8a7225e441efa0789af839a4}{components}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_node_adeccb103d42343190ba1ae6fc7d6475e}\label{class_nodable_1_1_node_adeccb103d42343190ba1ae6fc7d6475e}} 
+\index{Nodable::Node@{Nodable::Node}!Node@{Node}}
+\index{Node@{Node}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{Node()}{Node()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily Node\+::\+Node (\begin{DoxyParamCaption}\item[{std\+::string}]{\+\_\+label = {\ttfamily \char`\"{}UnnamedNode\char`\"{}} }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_aa0840c3cb5c7159be6d992adecd2097c}\label{class_nodable_1_1_node_aa0840c3cb5c7159be6d992adecd2097c}} 
+\index{Nodable::Node@{Nodable::Node}!````~Node@{$\sim$Node}}
+\index{````~Node@{$\sim$Node}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{$\sim$Node()}{~Node()}}
+{\footnotesize\ttfamily Node\+::$\sim$\+Node (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a4104db808b135a72cc4c5fcd49535955}\label{class_nodable_1_1_node_a4104db808b135a72cc4c5fcd49535955}} 
+\index{Nodable::Node@{Nodable::Node}!Node@{Node}}
+\index{Node@{Node}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{Node()}{Node()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily M\+I\+R\+R\+O\+R\+\_\+\+C\+L\+A\+SS() Nodable\+::\+Node\+::\+Node (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_node_a8cf05e79d6c9d23c29b18e32dca871b6}\label{class_nodable_1_1_node_a8cf05e79d6c9d23c29b18e32dca871b6}} 
+\index{Nodable::Node@{Nodable::Node}!addComponent@{addComponent}}
+\index{addComponent@{addComponent}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{addComponent()}{addComponent()}}
+{\footnotesize\ttfamily template$<$typename T $>$ \\
+void Nodable\+::\+Node\+::add\+Component (\begin{DoxyParamCaption}\item[{T $\ast$}]{\+\_\+component }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a3611371b82da2c9a2f6d5c32a0e58046}\label{class_nodable_1_1_node_a3611371b82da2c9a2f6d5c32a0e58046}} 
+\index{Nodable::Node@{Nodable::Node}!addWire@{addWire}}
+\index{addWire@{addWire}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{addWire()}{addWire()}}
+{\footnotesize\ttfamily void Nodable\+::\+Node\+::add\+Wire (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_wire}{Wire}} $\ast$}]{\+\_\+wire }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a9fa871623f984602ea142f694287dab8}\label{class_nodable_1_1_node_a9fa871623f984602ea142f694287dab8}} 
+\index{Nodable::Node@{Nodable::Node}!Connect@{Connect}}
+\index{Connect@{Connect}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{Connect()}{Connect()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_nodable_1_1_wire}{Wire}} $\ast$ Node\+::\+Connect (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$}]{\+\_\+from,  }\item[{\mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$}]{\+\_\+to }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a2efa5391bafd9d5828ee0bcf7b107465}\label{class_nodable_1_1_node_a2efa5391bafd9d5828ee0bcf7b107465}} 
+\index{Nodable::Node@{Nodable::Node}!deleteComponent@{deleteComponent}}
+\index{deleteComponent@{deleteComponent}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{deleteComponent()}{deleteComponent()}}
+{\footnotesize\ttfamily template$<$typename T $>$ \\
+void Nodable\+::\+Node\+::delete\+Component (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a04facd0661be5b398512ca283fa2f109}\label{class_nodable_1_1_node_a04facd0661be5b398512ca283fa2f109}} 
+\index{Nodable::Node@{Nodable::Node}!Disconnect@{Disconnect}}
+\index{Disconnect@{Disconnect}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{Disconnect()}{Disconnect()}}
+{\footnotesize\ttfamily void Node\+::\+Disconnect (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_wire}{Wire}} $\ast$}]{\+\_\+wire }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a4aa91456806600874b8623ee4f461f9c}\label{class_nodable_1_1_node_a4aa91456806600874b8623ee4f461f9c}} 
+\index{Nodable::Node@{Nodable::Node}!getComponent@{getComponent}}
+\index{getComponent@{getComponent}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{getComponent()}{getComponent()}}
+{\footnotesize\ttfamily template$<$typename T $>$ \\
+T$\ast$ Nodable\+::\+Node\+::get\+Component (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a2cf1f1744d5dbf91c7a36b84f045d8d1}\label{class_nodable_1_1_node_a2cf1f1744d5dbf91c7a36b84f045d8d1}} 
+\index{Nodable::Node@{Nodable::Node}!getComponents@{getComponents}}
+\index{getComponents@{getComponents}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{getComponents()}{getComponents()}}
+{\footnotesize\ttfamily const \mbox{\hyperlink{namespace_nodable_ac0a2845b50fc936c4cefd26a2c266b1a}{Components}}\& Nodable\+::\+Node\+::get\+Components (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_ae0e24997f352cc0c2fc576550549fb51}\label{class_nodable_1_1_node_ae0e24997f352cc0c2fc576550549fb51}} 
+\index{Nodable::Node@{Nodable::Node}!getInnerContainer@{getInnerContainer}}
+\index{getInnerContainer@{getInnerContainer}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{getInnerContainer()}{getInnerContainer()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_nodable_1_1_container}{Container}}$\ast$ Nodable\+::\+Node\+::get\+Inner\+Container (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_ac04a032b1778c9acf78074d0c65ff4f3}\label{class_nodable_1_1_node_ac04a032b1778c9acf78074d0c65ff4f3}} 
+\index{Nodable::Node@{Nodable::Node}!getInputWireCount@{getInputWireCount}}
+\index{getInputWireCount@{getInputWireCount}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{getInputWireCount()}{getInputWireCount()}}
+{\footnotesize\ttfamily int Node\+::get\+Input\+Wire\+Count (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a6e5970cd12b5250cb5473cec928ee87a}\label{class_nodable_1_1_node_a6e5970cd12b5250cb5473cec928ee87a}} 
+\index{Nodable::Node@{Nodable::Node}!getLabel@{getLabel}}
+\index{getLabel@{getLabel}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{getLabel()}{getLabel()}}
+{\footnotesize\ttfamily const char $\ast$ Node\+::get\+Label (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a99ac1552ea73f9da95105f248ce27240}\label{class_nodable_1_1_node_a99ac1552ea73f9da95105f248ce27240}} 
+\index{Nodable::Node@{Nodable::Node}!getOutputWireCount@{getOutputWireCount}}
+\index{getOutputWireCount@{getOutputWireCount}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{getOutputWireCount()}{getOutputWireCount()}}
+{\footnotesize\ttfamily int Node\+::get\+Output\+Wire\+Count (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_add7379c9e666f9d32007c81ac039ec3b}\label{class_nodable_1_1_node_add7379c9e666f9d32007c81ac039ec3b}} 
+\index{Nodable::Node@{Nodable::Node}!getParentContainer@{getParentContainer}}
+\index{getParentContainer@{getParentContainer}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{getParentContainer()}{getParentContainer()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_nodable_1_1_container}{Container}} $\ast$ Node\+::get\+Parent\+Container (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_aea8958faa3315a1b7c382cff8e10bbca}\label{class_nodable_1_1_node_aea8958faa3315a1b7c382cff8e10bbca}} 
+\index{Nodable::Node@{Nodable::Node}!getWires@{getWires}}
+\index{getWires@{getWires}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{getWires()}{getWires()}}
+{\footnotesize\ttfamily std\+::vector$<$ \mbox{\hyperlink{class_nodable_1_1_wire}{Wire}} $\ast$ $>$ \& Node\+::get\+Wires (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_ada23d02064f3b556c037c7c12858dcb7}\label{class_nodable_1_1_node_ada23d02064f3b556c037c7c12858dcb7}} 
+\index{Nodable::Node@{Nodable::Node}!hasComponent@{hasComponent}}
+\index{hasComponent@{hasComponent}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{hasComponent()}{hasComponent()}}
+{\footnotesize\ttfamily template$<$typename T $>$ \\
+bool Nodable\+::\+Node\+::has\+Component (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_aec9e4346e073e8db6c7bdbc2f059345a}\label{class_nodable_1_1_node_aec9e4346e073e8db6c7bdbc2f059345a}} 
+\index{Nodable::Node@{Nodable::Node}!isDirty@{isDirty}}
+\index{isDirty@{isDirty}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{isDirty()}{isDirty()}}
+{\footnotesize\ttfamily bool Node\+::is\+Dirty (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_ad5bcebe3cf420fc51bdf96c893bd8c85}\label{class_nodable_1_1_node_ad5bcebe3cf420fc51bdf96c893bd8c85}} 
+\index{Nodable::Node@{Nodable::Node}!removeWire@{removeWire}}
+\index{removeWire@{removeWire}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{removeWire()}{removeWire()}}
+{\footnotesize\ttfamily void Nodable\+::\+Node\+::remove\+Wire (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_wire}{Wire}} $\ast$}]{\+\_\+wire }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_af35504b703256fe453d74b2b9a9c432b}\label{class_nodable_1_1_node_af35504b703256fe453d74b2b9a9c432b}} 
+\index{Nodable::Node@{Nodable::Node}!setDirty@{setDirty}}
+\index{setDirty@{setDirty}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{setDirty()}{setDirty()}}
+{\footnotesize\ttfamily void Node\+::set\+Dirty (\begin{DoxyParamCaption}\item[{bool}]{\+\_\+value = {\ttfamily true} }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a759614320af64d3702fccdd66d577782}\label{class_nodable_1_1_node_a759614320af64d3702fccdd66d577782}} 
+\index{Nodable::Node@{Nodable::Node}!setInnerContainer@{setInnerContainer}}
+\index{setInnerContainer@{setInnerContainer}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{setInnerContainer()}{setInnerContainer()}}
+{\footnotesize\ttfamily void Nodable\+::\+Node\+::set\+Inner\+Container (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_container}{Container}} $\ast$}]{\+\_\+container }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a6c42f437ade0a66bd25dee12e0478cfb}\label{class_nodable_1_1_node_a6c42f437ade0a66bd25dee12e0478cfb}} 
+\index{Nodable::Node@{Nodable::Node}!setLabel@{setLabel}}
+\index{setLabel@{setLabel}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{setLabel()}{setLabel()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void Node\+::set\+Label (\begin{DoxyParamCaption}\item[{const char $\ast$}]{\+\_\+label }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a222bba5698af57953dd3411499f244a8}\label{class_nodable_1_1_node_a222bba5698af57953dd3411499f244a8}} 
+\index{Nodable::Node@{Nodable::Node}!setLabel@{setLabel}}
+\index{setLabel@{setLabel}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{setLabel()}{setLabel()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void Node\+::set\+Label (\begin{DoxyParamCaption}\item[{std\+::string}]{\+\_\+label }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a332ab2ba14b05c3c1ca341b8bbc5ba37}\label{class_nodable_1_1_node_a332ab2ba14b05c3c1ca341b8bbc5ba37}} 
+\index{Nodable::Node@{Nodable::Node}!setParentContainer@{setParentContainer}}
+\index{setParentContainer@{setParentContainer}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{setParentContainer()}{setParentContainer()}}
+{\footnotesize\ttfamily void Node\+::set\+Parent\+Container (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_container}{Container}} $\ast$}]{\+\_\+container }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a7dbbd70ffb6064c22927b4f003d05b03}\label{class_nodable_1_1_node_a7dbbd70ffb6064c22927b4f003d05b03}} 
+\index{Nodable::Node@{Nodable::Node}!update@{update}}
+\index{update@{update}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{update()}{update()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespace_nodable_afcec18e8a187614b7679399ed2db2f77}{Update\+Result}} Node\+::update (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Reimplemented in \mbox{\hyperlink{class_nodable_1_1_container_affb0fca5ebcea9ebf7b4858af8bdf544}{Nodable\+::\+Container}}, \mbox{\hyperlink{class_nodable_1_1_file_ad359da741c450872c78f87c304be80ed}{Nodable\+::\+File}}, and \mbox{\hyperlink{class_nodable_1_1_application_a5f378664e38a79f6886b19b3979e3f07}{Nodable\+::\+Application}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_node_a023f2f02c4b94dd18d7ffacc5b1477fd}\label{class_nodable_1_1_node_a023f2f02c4b94dd18d7ffacc5b1477fd}} 
+\index{Nodable::Node@{Nodable::Node}!updateLabel@{updateLabel}}
+\index{updateLabel@{updateLabel}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{updateLabel()}{updateLabel()}}
+{\footnotesize\ttfamily virtual void Nodable\+::\+Node\+::update\+Label (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_node_aaa53bd0b8a7225e441efa0789af839a4}\label{class_nodable_1_1_node_aaa53bd0b8a7225e441efa0789af839a4}} 
+\index{Nodable::Node@{Nodable::Node}!components@{components}}
+\index{components@{components}!Nodable::Node@{Nodable::Node}}
+\doxysubsubsection{\texorpdfstring{components}{components}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespace_nodable_ac0a2845b50fc936c4cefd26a2c266b1a}{Components}} Nodable\+::\+Node\+::components\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sources/\+Node/\mbox{\hyperlink{_node_8h}{Node.\+h}}\item 
+sources/\+Node/\mbox{\hyperlink{_node_8cpp}{Node.\+cpp}}\end{DoxyCompactItemize}

@@ -1,0 +1,140 @@
+\hypertarget{class_nodable_1_1_history}{}\doxysection{Nodable\+::History Class Reference}
+\label{class_nodable_1_1_history}\index{Nodable::History@{Nodable::History}}
+
+
+{\ttfamily \#include $<$History.\+h$>$}
+
+Inheritance diagram for Nodable\+::History\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_nodable_1_1_history}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_nodable_1_1_history_ad0b2d8252ddb244cea239d00a2f9ed9f}{History}} (size\+\_\+t \+\_\+size\+Max=100)
+\item 
+\mbox{\hyperlink{class_nodable_1_1_history_a5b00b64a1ddee04e60d5a3b517fd6d4c}{$\sim$\+History}} ()
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_history_a439a225594ee00030252ea2955b9c16a}{add\+And\+Execute}} (\mbox{\hyperlink{class_nodable_1_1_cmd}{Cmd}} $\ast$)
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_history_aba34d660c4a9bfd67c9d540317a36b27}{undo}} ()
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_history_a350a59cc7e8d13b807a25519a7ffd0a4}{redo}} ()
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_history_ab7f441472f9efc26d2234a3a0818fc9d}{clear}} ()
+\item 
+size\+\_\+t \mbox{\hyperlink{class_nodable_1_1_history_ae7b74ecc36667c3718c0f9c2752f513c}{get\+Size}} () const
+\item 
+size\+\_\+t \mbox{\hyperlink{class_nodable_1_1_history_aeac642057ee55d5706bf9d4893e10c44}{get\+Cursor\+Position}} () const
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_history_a0645bf94ae5b82d13ec0c4ebc90e5524}{set\+Cursor\+Position}} (size\+\_\+t \+\_\+pos)
+\item 
+std\+::string \mbox{\hyperlink{class_nodable_1_1_history_a26d92c0b96790a51d5045cd8f979c6c0}{get\+Command\+Description\+At\+Position}} (size\+\_\+t \+\_\+command\+Id)
+\item 
+\mbox{\hyperlink{class_nodable_1_1_text_editor_buffer}{Text\+Editor\+Buffer}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_history_a789e72e8996ff361c34745477e889edc}{create\+Text\+Editor\+Undo\+Buffer}} (Text\+Editor $\ast$\+\_\+text\+Editor)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_history_a360702e646378ed7c5f34a864572af50}{dirty}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static \mbox{\hyperlink{class_nodable_1_1_history}{History}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_history_a2443d0e627254ff912ac5978b9d8c2e9}{global}} = nullptr
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_history_ad0b2d8252ddb244cea239d00a2f9ed9f}\label{class_nodable_1_1_history_ad0b2d8252ddb244cea239d00a2f9ed9f}} 
+\index{Nodable::History@{Nodable::History}!History@{History}}
+\index{History@{History}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{History()}{History()}}
+{\footnotesize\ttfamily Nodable\+::\+History\+::\+History (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{\+\_\+size\+Max = {\ttfamily 100} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_history_a5b00b64a1ddee04e60d5a3b517fd6d4c}\label{class_nodable_1_1_history_a5b00b64a1ddee04e60d5a3b517fd6d4c}} 
+\index{Nodable::History@{Nodable::History}!````~History@{$\sim$History}}
+\index{````~History@{$\sim$History}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{$\sim$History()}{~History()}}
+{\footnotesize\ttfamily History\+::$\sim$\+History (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_history_a439a225594ee00030252ea2955b9c16a}\label{class_nodable_1_1_history_a439a225594ee00030252ea2955b9c16a}} 
+\index{Nodable::History@{Nodable::History}!addAndExecute@{addAndExecute}}
+\index{addAndExecute@{addAndExecute}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{addAndExecute()}{addAndExecute()}}
+{\footnotesize\ttfamily void History\+::add\+And\+Execute (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_cmd}{Cmd}} $\ast$}]{\+\_\+cmd }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_history_ab7f441472f9efc26d2234a3a0818fc9d}\label{class_nodable_1_1_history_ab7f441472f9efc26d2234a3a0818fc9d}} 
+\index{Nodable::History@{Nodable::History}!clear@{clear}}
+\index{clear@{clear}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily void Nodable\+::\+History\+::clear (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_history_a789e72e8996ff361c34745477e889edc}\label{class_nodable_1_1_history_a789e72e8996ff361c34745477e889edc}} 
+\index{Nodable::History@{Nodable::History}!createTextEditorUndoBuffer@{createTextEditorUndoBuffer}}
+\index{createTextEditorUndoBuffer@{createTextEditorUndoBuffer}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{createTextEditorUndoBuffer()}{createTextEditorUndoBuffer()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_nodable_1_1_text_editor_buffer}{Text\+Editor\+Buffer}}$\ast$ Nodable\+::\+History\+::create\+Text\+Editor\+Undo\+Buffer (\begin{DoxyParamCaption}\item[{Text\+Editor $\ast$}]{\+\_\+text\+Editor }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_history_a26d92c0b96790a51d5045cd8f979c6c0}\label{class_nodable_1_1_history_a26d92c0b96790a51d5045cd8f979c6c0}} 
+\index{Nodable::History@{Nodable::History}!getCommandDescriptionAtPosition@{getCommandDescriptionAtPosition}}
+\index{getCommandDescriptionAtPosition@{getCommandDescriptionAtPosition}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{getCommandDescriptionAtPosition()}{getCommandDescriptionAtPosition()}}
+{\footnotesize\ttfamily std\+::string Nodable\+::\+History\+::get\+Command\+Description\+At\+Position (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{\+\_\+command\+Id }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_history_aeac642057ee55d5706bf9d4893e10c44}\label{class_nodable_1_1_history_aeac642057ee55d5706bf9d4893e10c44}} 
+\index{Nodable::History@{Nodable::History}!getCursorPosition@{getCursorPosition}}
+\index{getCursorPosition@{getCursorPosition}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{getCursorPosition()}{getCursorPosition()}}
+{\footnotesize\ttfamily size\+\_\+t Nodable\+::\+History\+::get\+Cursor\+Position (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_history_ae7b74ecc36667c3718c0f9c2752f513c}\label{class_nodable_1_1_history_ae7b74ecc36667c3718c0f9c2752f513c}} 
+\index{Nodable::History@{Nodable::History}!getSize@{getSize}}
+\index{getSize@{getSize}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{getSize()}{getSize()}}
+{\footnotesize\ttfamily size\+\_\+t Nodable\+::\+History\+::get\+Size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_history_a350a59cc7e8d13b807a25519a7ffd0a4}\label{class_nodable_1_1_history_a350a59cc7e8d13b807a25519a7ffd0a4}} 
+\index{Nodable::History@{Nodable::History}!redo@{redo}}
+\index{redo@{redo}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{redo()}{redo()}}
+{\footnotesize\ttfamily void History\+::redo (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_history_a0645bf94ae5b82d13ec0c4ebc90e5524}\label{class_nodable_1_1_history_a0645bf94ae5b82d13ec0c4ebc90e5524}} 
+\index{Nodable::History@{Nodable::History}!setCursorPosition@{setCursorPosition}}
+\index{setCursorPosition@{setCursorPosition}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{setCursorPosition()}{setCursorPosition()}}
+{\footnotesize\ttfamily void History\+::set\+Cursor\+Position (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{\+\_\+pos }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_history_aba34d660c4a9bfd67c9d540317a36b27}\label{class_nodable_1_1_history_aba34d660c4a9bfd67c9d540317a36b27}} 
+\index{Nodable::History@{Nodable::History}!undo@{undo}}
+\index{undo@{undo}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{undo()}{undo()}}
+{\footnotesize\ttfamily void History\+::undo (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_history_a360702e646378ed7c5f34a864572af50}\label{class_nodable_1_1_history_a360702e646378ed7c5f34a864572af50}} 
+\index{Nodable::History@{Nodable::History}!dirty@{dirty}}
+\index{dirty@{dirty}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{dirty}{dirty}}
+{\footnotesize\ttfamily bool Nodable\+::\+History\+::dirty}
+
+\mbox{\Hypertarget{class_nodable_1_1_history_a2443d0e627254ff912ac5978b9d8c2e9}\label{class_nodable_1_1_history_a2443d0e627254ff912ac5978b9d8c2e9}} 
+\index{Nodable::History@{Nodable::History}!global@{global}}
+\index{global@{global}!Nodable::History@{Nodable::History}}
+\doxysubsubsection{\texorpdfstring{global}{global}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_nodable_1_1_history}{History}} $\ast$ History\+::global = nullptr\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sources/\+Component/\mbox{\hyperlink{_history_8h}{History.\+h}}\item 
+sources/\+Component/\mbox{\hyperlink{_history_8cpp}{History.\+cpp}}\end{DoxyCompactItemize}

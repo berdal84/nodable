@@ -1,0 +1,50 @@
+\hypertarget{_nodable_8h}{}\doxysection{sources/\+Core/\+Nodable.h File Reference}
+\label{_nodable_8h}\index{sources/Core/Nodable.h@{sources/Core/Nodable.h}}
+{\ttfamily \#include $<$string$>$}\newline
+{\ttfamily \#include $<$map$>$}\newline
+{\ttfamily \#include $<$vector$>$}\newline
+{\ttfamily \#include $<$assert.\+h$>$}\newline
+\doxysubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+ \mbox{\hyperlink{namespace_nodable}{Nodable}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{_nodable_8h_aa1169c0329bef268787a8cd478defa58}{N\+O\+D\+A\+B\+L\+E\+\_\+\+V\+E\+R\+I\+FY}}(expression)~assert(expression)
+\item 
+\#define \mbox{\hyperlink{_nodable_8h_a4a1190fe6c8428071f0ecd7578128325}{N\+O\+D\+A\+B\+L\+E\+\_\+\+A\+S\+S\+E\+RT}}(expression)
+\item 
+\#define \mbox{\hyperlink{_nodable_8h_a91843e42561a9fcbef061e9afd2483b2}{N\+O\+D\+A\+B\+L\+E\+\_\+\+A\+R\+R\+A\+Y\+S\+I\+ZE}}(\+\_\+\+A\+RR)~((int)(sizeof(\+\_\+\+A\+RR)/sizeof($\ast$\+\_\+\+A\+RR)))
+\end{DoxyCompactItemize}
+\doxysubsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef std\+::map$<$ std\+::string, Component $\ast$ $>$ \mbox{\hyperlink{namespace_nodable_ac0a2845b50fc936c4cefd26a2c266b1a}{Nodable\+::\+Components}}
+\item 
+typedef std\+::map$<$ std\+::string, Member $\ast$ $>$ \mbox{\hyperlink{namespace_nodable_af3a49732ca7eef2a8d70d704f1e32db2}{Nodable\+::\+Members}}
+\item 
+typedef std\+::vector$<$ Wire $\ast$ $>$ \mbox{\hyperlink{namespace_nodable_ac0ddf3ae345b143fefbaab5256a92ef4}{Nodable\+::\+Wires}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{_nodable_8h_a91843e42561a9fcbef061e9afd2483b2}\label{_nodable_8h_a91843e42561a9fcbef061e9afd2483b2}} 
+\index{Nodable.h@{Nodable.h}!NODABLE\_ARRAYSIZE@{NODABLE\_ARRAYSIZE}}
+\index{NODABLE\_ARRAYSIZE@{NODABLE\_ARRAYSIZE}!Nodable.h@{Nodable.h}}
+\doxysubsubsection{\texorpdfstring{NODABLE\_ARRAYSIZE}{NODABLE\_ARRAYSIZE}}
+{\footnotesize\ttfamily \#define N\+O\+D\+A\+B\+L\+E\+\_\+\+A\+R\+R\+A\+Y\+S\+I\+ZE(\begin{DoxyParamCaption}\item[{}]{\+\_\+\+A\+RR }\end{DoxyParamCaption})~((int)(sizeof(\+\_\+\+A\+RR)/sizeof($\ast$\+\_\+\+A\+RR)))}
+
+\mbox{\Hypertarget{_nodable_8h_a4a1190fe6c8428071f0ecd7578128325}\label{_nodable_8h_a4a1190fe6c8428071f0ecd7578128325}} 
+\index{Nodable.h@{Nodable.h}!NODABLE\_ASSERT@{NODABLE\_ASSERT}}
+\index{NODABLE\_ASSERT@{NODABLE\_ASSERT}!Nodable.h@{Nodable.h}}
+\doxysubsubsection{\texorpdfstring{NODABLE\_ASSERT}{NODABLE\_ASSERT}}
+{\footnotesize\ttfamily \#define N\+O\+D\+A\+B\+L\+E\+\_\+\+A\+S\+S\+E\+RT(\begin{DoxyParamCaption}\item[{}]{expression }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_nodable_8h_aa1169c0329bef268787a8cd478defa58}\label{_nodable_8h_aa1169c0329bef268787a8cd478defa58}} 
+\index{Nodable.h@{Nodable.h}!NODABLE\_VERIFY@{NODABLE\_VERIFY}}
+\index{NODABLE\_VERIFY@{NODABLE\_VERIFY}!Nodable.h@{Nodable.h}}
+\doxysubsubsection{\texorpdfstring{NODABLE\_VERIFY}{NODABLE\_VERIFY}}
+{\footnotesize\ttfamily \#define N\+O\+D\+A\+B\+L\+E\+\_\+\+V\+E\+R\+I\+FY(\begin{DoxyParamCaption}\item[{}]{expression }\end{DoxyParamCaption})~assert(expression)}
+

@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="Nodable Project"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="msvc8"/>
+		<Option virtualFolders="CMake Files\;CMake Files\libs\;CMake Files\libs\SDL2\;CMake Files\extern\;CMake Files\extern\mirror\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="E:/Repositories/Nodable/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 all"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="E:/Repositories/Nodable/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 list_install_components"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Nodable">
+				<Option output="E:/Repositories/Nodable/cmake-build-debug/Debug/Nodable.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="E:/Repositories/Nodable/cmake-build-debug/$&lt;CONFIG&gt;/"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="E:/Repositories/Nodable/./sources"/>
+					<Add directory="E:/Repositories/Nodable/./sources/Core"/>
+					<Add directory="E:/Repositories/Nodable/./sources/Test"/>
+					<Add directory="E:/Repositories/Nodable/./sources/Node"/>
+					<Add directory="E:/Repositories/Nodable/./sources/Component"/>
+					<Add directory="E:/Repositories/Nodable/./sources/Language"/>
+					<Add directory="E:/Repositories/Nodable/./extern"/>
+					<Add directory="E:/Repositories/Nodable/./extern/imgui"/>
+					<Add directory="E:/Repositories/Nodable/./extern/ImGuiColorTextEdit"/>
+					<Add directory="E:/Repositories/Nodable/./extern/IconFontCppHeaders"/>
+					<Add directory="E:/Repositories/Nodable/./extern/imgui-filebrowser"/>
+					<Add directory="E:/Repositories/Nodable/./libs"/>
+					<Add directory="E:/Repositories/Nodable/libs/SDL2/include"/>
+					<Add directory="E:/Repositories/Nodable/./libs/gl3w/GL"/>
+					<Add directory="E:/Repositories/Nodable/./libs/gl3w"/>
+					<Add directory="E:/Repositories/Nodable/./libs/glfw/include/GLFW"/>
+					<Add directory="E:/Repositories/Nodable/extern/mirror"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\ATLMFC\include"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\winrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\cppwinrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 Nodable"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Nodable/fast">
+				<Option output="E:/Repositories/Nodable/cmake-build-debug/Debug/Nodable.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="E:/Repositories/Nodable/cmake-build-debug/$&lt;CONFIG&gt;/"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="E:/Repositories/Nodable/./sources"/>
+					<Add directory="E:/Repositories/Nodable/./sources/Core"/>
+					<Add directory="E:/Repositories/Nodable/./sources/Test"/>
+					<Add directory="E:/Repositories/Nodable/./sources/Node"/>
+					<Add directory="E:/Repositories/Nodable/./sources/Component"/>
+					<Add directory="E:/Repositories/Nodable/./sources/Language"/>
+					<Add directory="E:/Repositories/Nodable/./extern"/>
+					<Add directory="E:/Repositories/Nodable/./extern/imgui"/>
+					<Add directory="E:/Repositories/Nodable/./extern/ImGuiColorTextEdit"/>
+					<Add directory="E:/Repositories/Nodable/./extern/IconFontCppHeaders"/>
+					<Add directory="E:/Repositories/Nodable/./extern/imgui-filebrowser"/>
+					<Add directory="E:/Repositories/Nodable/./libs"/>
+					<Add directory="E:/Repositories/Nodable/libs/SDL2/include"/>
+					<Add directory="E:/Repositories/Nodable/./libs/gl3w/GL"/>
+					<Add directory="E:/Repositories/Nodable/./libs/gl3w"/>
+					<Add directory="E:/Repositories/Nodable/./libs/glfw/include/GLFW"/>
+					<Add directory="E:/Repositories/Nodable/extern/mirror"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\ATLMFC\include"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\winrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.18362.0\cppwinrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 Nodable/fast"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="E:/Repositories/Nodable/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test">
+				<Option working_dir="E:/Repositories/Nodable/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 test"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="E:/Repositories/Nodable/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 install/local"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="E:/Repositories/Nodable/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 install"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="E:/Repositories/Nodable/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 edit_cache"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Repositories\Nodable\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="E:/Repositories/Nodable/extern/ImGuiColorTextEdit/TextEditor.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/ImGuiColorTextEdit/TextEditor.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/imgui/examples/imgui_impl_opengl3.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/imgui/examples/imgui_impl_opengl3.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/imgui/examples/imgui_impl_sdl.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/imgui/examples/imgui_impl_sdl.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/imgui/imgui.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/imgui/imgui.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/imgui/imgui_demo.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/imgui/imgui_draw.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/imgui/imgui_widgets.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/mirror/mirror_base.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/mirror/mirror_base.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/mirror/tools/BinarySerializer.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/mirror/tools/BinarySerializer.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/libs/gl3w/GL/gl3w.c">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/libs/gl3w/GL/gl3w.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/ApplicationView.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/ApplicationView.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/Component.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/ComputeBase.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/ComputeBinaryOperation.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/ComputeBinaryOperation.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/ComputeFunction.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/ComputeFunction.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/ComputeUnaryOperation.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/ComputeUnaryOperation.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/Container.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/Container.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/ContainerView.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/ContainerView.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/DataAccess.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/DataAccess.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/FileView.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/FileView.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/History.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/History.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/NodeView.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/NodeView.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/View.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/View.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/WireView.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Component/WireView.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Application.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Application.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Connector.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/File.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/File.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Log.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Log.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Member.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Member.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Nodable.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Nodable.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Object.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Object.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Token.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Type.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Variant.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Variant.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Visibility.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Way.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Wire.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Core/Wire.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/Dictionnary.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/Dictionnary.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/Function.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/Function.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/Language.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/Language.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/LanguageNodable.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/LanguageNodable.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/Operator.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/Parser.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/Parser.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Language/TokenType.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Node/Compound.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Node/Node.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Node/Node.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Node/NodeTraversal.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Node/NodeTraversal.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Node/Variable.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Node/Variable.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/Test/Test.h">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/sources/main.cpp">
+			<Option target="Nodable"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/libs/SDL2/sdl2-config.cmake">
+			<Option virtualFolder="CMake Files\libs\SDL2\"/>
+		</Unit>
+		<Unit filename="E:/Repositories/Nodable/extern/mirror/mirror-config.cmake">
+			<Option virtualFolder="CMake Files\extern\mirror\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

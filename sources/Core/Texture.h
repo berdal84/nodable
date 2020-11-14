@@ -41,13 +41,20 @@ namespace Nodable
          * @param path
          * @return
          */
-        static Texture *GetTexture(std::filesystem::path& path)
+        static Texture *GetWithPath(std::filesystem::path& path)
         {
             // Return if already exists
             auto tex = Texture::s_textures.find( path.string() );
             if ( tex != s_textures.end() )
                 return tex->second;
 
+            return CreateTextureFromFile(path);
+        }
+
+    private:
+
+        static Texture* CreateTextureFromFile(std::filesystem::path& path)
+        {
             // Try to load a PNG
             std::vector<unsigned char> image;
 
@@ -55,7 +62,8 @@ namespace Nodable
             int width = 0;
             int height = 0;
 
-            if ( Texture::LoadPNG(path, image, &texture, &width, &height) )
+            auto isLoaded = Texture::LoadPNG(path, image, &texture, &width, &height);
+            if ( isLoaded )
             {
                 LOG_MESSAGE(0u, "Texture %s loaded.\n", path.c_str());
                 auto newTexture = new Texture(texture, width, height);
@@ -72,7 +80,6 @@ namespace Nodable
             }
         }
 
-    private:
         /**
          * Loads a PNG image into a RGBA vector
          * @param filename

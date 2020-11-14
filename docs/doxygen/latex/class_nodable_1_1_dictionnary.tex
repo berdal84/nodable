@@ -1,0 +1,76 @@
+\hypertarget{class_nodable_1_1_dictionnary}{}\doxysection{Nodable\+::Dictionnary Class Reference}
+\label{class_nodable_1_1_dictionnary}\index{Nodable::Dictionnary@{Nodable::Dictionnary}}
+
+
+{\ttfamily \#include $<$Dictionnary.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_nodable_1_1_dictionnary_a55c8b8d1770d89fc7fbbf74b090fb91b}{Dictionnary}} ()
+\item 
+\mbox{\hyperlink{class_nodable_1_1_dictionnary_a97d714dc6c34e8cf9b2e808ef28f4d70}{$\sim$\+Dictionnary}} ()
+\item 
+std\+::string \mbox{\hyperlink{class_nodable_1_1_dictionnary_aa1ce89f894b22bcd330da243ed5a1c16}{convert}} (const \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \&) const
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_dictionnary_a342ab202e2b95bea26e4f54f1f0eca30}{insert}} (std\+::regex, \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}})
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_dictionnary_a3c92b72f5e167e349e7f8debc8f1b132}{insert}} (std\+::string, \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}})
+\item 
+const auto \& \mbox{\hyperlink{class_nodable_1_1_dictionnary_a95799c82ca6ce8e0976b6324a930bea4}{get\+Token\+Type\+To\+Regex\+Map}} () const
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The role of this class is to store make easy to convert a string to a Token\+Type and a Token\+Type to a string. We can also use reglar expressions.
+
+ex\+:
+
+\char`\"{}true\char`\"{} =$>$ Token\+Type\+::\+Boolean \char`\"{}boolean\char`\"{} =$>$ Token\+Type\+::\+Boolean\+Type \char`\"{}$^\wedge$(true$\vert$false)\char`\"{} =$>$ Token\+Type\+::\+Boolean 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_dictionnary_a55c8b8d1770d89fc7fbbf74b090fb91b}\label{class_nodable_1_1_dictionnary_a55c8b8d1770d89fc7fbbf74b090fb91b}} 
+\index{Nodable::Dictionnary@{Nodable::Dictionnary}!Dictionnary@{Dictionnary}}
+\index{Dictionnary@{Dictionnary}!Nodable::Dictionnary@{Nodable::Dictionnary}}
+\doxysubsubsection{\texorpdfstring{Dictionnary()}{Dictionnary()}}
+{\footnotesize\ttfamily Nodable\+::\+Dictionnary\+::\+Dictionnary (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_dictionnary_a97d714dc6c34e8cf9b2e808ef28f4d70}\label{class_nodable_1_1_dictionnary_a97d714dc6c34e8cf9b2e808ef28f4d70}} 
+\index{Nodable::Dictionnary@{Nodable::Dictionnary}!````~Dictionnary@{$\sim$Dictionnary}}
+\index{````~Dictionnary@{$\sim$Dictionnary}!Nodable::Dictionnary@{Nodable::Dictionnary}}
+\doxysubsubsection{\texorpdfstring{$\sim$Dictionnary()}{~Dictionnary()}}
+{\footnotesize\ttfamily Nodable\+::\+Dictionnary\+::$\sim$\+Dictionnary (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_dictionnary_aa1ce89f894b22bcd330da243ed5a1c16}\label{class_nodable_1_1_dictionnary_aa1ce89f894b22bcd330da243ed5a1c16}} 
+\index{Nodable::Dictionnary@{Nodable::Dictionnary}!convert@{convert}}
+\index{convert@{convert}!Nodable::Dictionnary@{Nodable::Dictionnary}}
+\doxysubsubsection{\texorpdfstring{convert()}{convert()}}
+{\footnotesize\ttfamily std\+::string Dictionnary\+::convert (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \&}]{\+\_\+type }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_dictionnary_a95799c82ca6ce8e0976b6324a930bea4}\label{class_nodable_1_1_dictionnary_a95799c82ca6ce8e0976b6324a930bea4}} 
+\index{Nodable::Dictionnary@{Nodable::Dictionnary}!getTokenTypeToRegexMap@{getTokenTypeToRegexMap}}
+\index{getTokenTypeToRegexMap@{getTokenTypeToRegexMap}!Nodable::Dictionnary@{Nodable::Dictionnary}}
+\doxysubsubsection{\texorpdfstring{getTokenTypeToRegexMap()}{getTokenTypeToRegexMap()}}
+{\footnotesize\ttfamily const auto\& Nodable\+::\+Dictionnary\+::get\+Token\+Type\+To\+Regex\+Map (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_dictionnary_a342ab202e2b95bea26e4f54f1f0eca30}\label{class_nodable_1_1_dictionnary_a342ab202e2b95bea26e4f54f1f0eca30}} 
+\index{Nodable::Dictionnary@{Nodable::Dictionnary}!insert@{insert}}
+\index{insert@{insert}!Nodable::Dictionnary@{Nodable::Dictionnary}}
+\doxysubsubsection{\texorpdfstring{insert()}{insert()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void Dictionnary\+::insert (\begin{DoxyParamCaption}\item[{std\+::regex}]{\+\_\+regex,  }\item[{\mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}}}]{\+\_\+token\+Type }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_dictionnary_a3c92b72f5e167e349e7f8debc8f1b132}\label{class_nodable_1_1_dictionnary_a3c92b72f5e167e349e7f8debc8f1b132}} 
+\index{Nodable::Dictionnary@{Nodable::Dictionnary}!insert@{insert}}
+\index{insert@{insert}!Nodable::Dictionnary@{Nodable::Dictionnary}}
+\doxysubsubsection{\texorpdfstring{insert()}{insert()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void Dictionnary\+::insert (\begin{DoxyParamCaption}\item[{std\+::string}]{\+\_\+string,  }\item[{\mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}}}]{\+\_\+token\+Type }\end{DoxyParamCaption})}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sources/\+Language/\mbox{\hyperlink{_dictionnary_8h}{Dictionnary.\+h}}\item 
+sources/\+Language/\mbox{\hyperlink{_dictionnary_8cpp}{Dictionnary.\+cpp}}\end{DoxyCompactItemize}

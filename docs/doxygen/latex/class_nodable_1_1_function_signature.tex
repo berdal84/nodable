@@ -1,0 +1,106 @@
+\hypertarget{class_nodable_1_1_function_signature}{}\doxysection{Nodable\+::Function\+Signature Class Reference}
+\label{class_nodable_1_1_function_signature}\index{Nodable::FunctionSignature@{Nodable::FunctionSignature}}
+
+
+{\ttfamily \#include $<$Function.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_nodable_1_1_function_signature_a495f556f2d619cb8ff0f1191a8d33dd8}{Function\+Signature}} (std\+::string \+\_\+identifier, \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \+\_\+type, std\+::string \+\_\+label=\char`\"{}\char`\"{})
+\item 
+\mbox{\hyperlink{class_nodable_1_1_function_signature_a674324a890418166fc5eb88fdc3f03c4}{$\sim$\+Function\+Signature}} ()
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_function_signature_a2dd23b6c23c8d5ea91deb0bb42c8d192}{push\+Arg}} (\mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \+\_\+type, std\+::string \+\_\+name=\char`\"{}\char`\"{})
+\item 
+{\footnotesize template$<$typename... Token\+Type$>$ }\\void \mbox{\hyperlink{class_nodable_1_1_function_signature_ac561d22d09f79972d7d4144340813813}{push\+Args}} (\mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \&\&... args)
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_function_signature_a1c1fac4e9d1261a16983646cb89bfd00}{match}} (const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&\+\_\+other) const
+\item 
+const std\+::string \& \mbox{\hyperlink{class_nodable_1_1_function_signature_aae7a32a33085b76a776b5e50a71034d2}{get\+Identifier}} () const
+\item 
+const std\+::vector$<$ \mbox{\hyperlink{class_nodable_1_1_function_arg}{Function\+Arg}} $>$ \mbox{\hyperlink{class_nodable_1_1_function_signature_a6740e2015d399fd64798c3494fba8190}{get\+Args}} () const
+\item 
+const \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \mbox{\hyperlink{class_nodable_1_1_function_signature_a01f35f808a3eb87863aba2d25e7fa30c}{get\+Type}} () const
+\item 
+const std\+::string \mbox{\hyperlink{class_nodable_1_1_function_signature_abbbe8825096e828a35f3868c6faea0a0}{get\+Label}} () const
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$typename R  = Token\+Type, typename... Token\+Type$>$ }\\static \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \mbox{\hyperlink{class_nodable_1_1_function_signature_a48b24fc5bacacf4fd4b6354d265ddd62}{Create}} (R \+\_\+type, std\+::string \+\_\+identifier, \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \&\&...\+\_\+args)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_function_signature_a495f556f2d619cb8ff0f1191a8d33dd8}\label{class_nodable_1_1_function_signature_a495f556f2d619cb8ff0f1191a8d33dd8}} 
+\index{Nodable::FunctionSignature@{Nodable::FunctionSignature}!FunctionSignature@{FunctionSignature}}
+\index{FunctionSignature@{FunctionSignature}!Nodable::FunctionSignature@{Nodable::FunctionSignature}}
+\doxysubsubsection{\texorpdfstring{FunctionSignature()}{FunctionSignature()}}
+{\footnotesize\ttfamily Function\+Signature\+::\+Function\+Signature (\begin{DoxyParamCaption}\item[{std\+::string}]{\+\_\+identifier,  }\item[{\mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}}}]{\+\_\+type,  }\item[{std\+::string}]{\+\_\+label = {\ttfamily \char`\"{}\char`\"{}} }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_function_signature_a674324a890418166fc5eb88fdc3f03c4}\label{class_nodable_1_1_function_signature_a674324a890418166fc5eb88fdc3f03c4}} 
+\index{Nodable::FunctionSignature@{Nodable::FunctionSignature}!````~FunctionSignature@{$\sim$FunctionSignature}}
+\index{````~FunctionSignature@{$\sim$FunctionSignature}!Nodable::FunctionSignature@{Nodable::FunctionSignature}}
+\doxysubsubsection{\texorpdfstring{$\sim$FunctionSignature()}{~FunctionSignature()}}
+{\footnotesize\ttfamily Nodable\+::\+Function\+Signature\+::$\sim$\+Function\+Signature (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_function_signature_a48b24fc5bacacf4fd4b6354d265ddd62}\label{class_nodable_1_1_function_signature_a48b24fc5bacacf4fd4b6354d265ddd62}} 
+\index{Nodable::FunctionSignature@{Nodable::FunctionSignature}!Create@{Create}}
+\index{Create@{Create}!Nodable::FunctionSignature@{Nodable::FunctionSignature}}
+\doxysubsubsection{\texorpdfstring{Create()}{Create()}}
+{\footnotesize\ttfamily template$<$typename R  = Token\+Type, typename... Token\+Type$>$ \\
+static \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} Nodable\+::\+Function\+Signature\+::\+Create (\begin{DoxyParamCaption}\item[{R}]{\+\_\+type,  }\item[{std\+::string}]{\+\_\+identifier,  }\item[{\mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \&\&...}]{\+\_\+args }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_function_signature_a6740e2015d399fd64798c3494fba8190}\label{class_nodable_1_1_function_signature_a6740e2015d399fd64798c3494fba8190}} 
+\index{Nodable::FunctionSignature@{Nodable::FunctionSignature}!getArgs@{getArgs}}
+\index{getArgs@{getArgs}!Nodable::FunctionSignature@{Nodable::FunctionSignature}}
+\doxysubsubsection{\texorpdfstring{getArgs()}{getArgs()}}
+{\footnotesize\ttfamily const std\+::vector$<$ \mbox{\hyperlink{class_nodable_1_1_function_arg}{Function\+Arg}} $>$ Function\+Signature\+::get\+Args (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_function_signature_aae7a32a33085b76a776b5e50a71034d2}\label{class_nodable_1_1_function_signature_aae7a32a33085b76a776b5e50a71034d2}} 
+\index{Nodable::FunctionSignature@{Nodable::FunctionSignature}!getIdentifier@{getIdentifier}}
+\index{getIdentifier@{getIdentifier}!Nodable::FunctionSignature@{Nodable::FunctionSignature}}
+\doxysubsubsection{\texorpdfstring{getIdentifier()}{getIdentifier()}}
+{\footnotesize\ttfamily const std\+::string \& Function\+Signature\+::get\+Identifier (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_function_signature_abbbe8825096e828a35f3868c6faea0a0}\label{class_nodable_1_1_function_signature_abbbe8825096e828a35f3868c6faea0a0}} 
+\index{Nodable::FunctionSignature@{Nodable::FunctionSignature}!getLabel@{getLabel}}
+\index{getLabel@{getLabel}!Nodable::FunctionSignature@{Nodable::FunctionSignature}}
+\doxysubsubsection{\texorpdfstring{getLabel()}{getLabel()}}
+{\footnotesize\ttfamily const std\+::string Function\+Signature\+::get\+Label (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_function_signature_a01f35f808a3eb87863aba2d25e7fa30c}\label{class_nodable_1_1_function_signature_a01f35f808a3eb87863aba2d25e7fa30c}} 
+\index{Nodable::FunctionSignature@{Nodable::FunctionSignature}!getType@{getType}}
+\index{getType@{getType}!Nodable::FunctionSignature@{Nodable::FunctionSignature}}
+\doxysubsubsection{\texorpdfstring{getType()}{getType()}}
+{\footnotesize\ttfamily const \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} Function\+Signature\+::get\+Type (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_function_signature_a1c1fac4e9d1261a16983646cb89bfd00}\label{class_nodable_1_1_function_signature_a1c1fac4e9d1261a16983646cb89bfd00}} 
+\index{Nodable::FunctionSignature@{Nodable::FunctionSignature}!match@{match}}
+\index{match@{match}!Nodable::FunctionSignature@{Nodable::FunctionSignature}}
+\doxysubsubsection{\texorpdfstring{match()}{match()}}
+{\footnotesize\ttfamily bool Function\+Signature\+::match (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&}]{\+\_\+other }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_function_signature_a2dd23b6c23c8d5ea91deb0bb42c8d192}\label{class_nodable_1_1_function_signature_a2dd23b6c23c8d5ea91deb0bb42c8d192}} 
+\index{Nodable::FunctionSignature@{Nodable::FunctionSignature}!pushArg@{pushArg}}
+\index{pushArg@{pushArg}!Nodable::FunctionSignature@{Nodable::FunctionSignature}}
+\doxysubsubsection{\texorpdfstring{pushArg()}{pushArg()}}
+{\footnotesize\ttfamily void Function\+Signature\+::push\+Arg (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}}}]{\+\_\+type,  }\item[{std\+::string}]{\+\_\+name = {\ttfamily \char`\"{}\char`\"{}} }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_function_signature_ac561d22d09f79972d7d4144340813813}\label{class_nodable_1_1_function_signature_ac561d22d09f79972d7d4144340813813}} 
+\index{Nodable::FunctionSignature@{Nodable::FunctionSignature}!pushArgs@{pushArgs}}
+\index{pushArgs@{pushArgs}!Nodable::FunctionSignature@{Nodable::FunctionSignature}}
+\doxysubsubsection{\texorpdfstring{pushArgs()}{pushArgs()}}
+{\footnotesize\ttfamily template$<$typename... Token\+Type$>$ \\
+void Nodable\+::\+Function\+Signature\+::push\+Args (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \&\&...}]{args }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sources/\+Language/\mbox{\hyperlink{_function_8h}{Function.\+h}}\item 
+sources/\+Language/\mbox{\hyperlink{_function_8cpp}{Function.\+cpp}}\end{DoxyCompactItemize}

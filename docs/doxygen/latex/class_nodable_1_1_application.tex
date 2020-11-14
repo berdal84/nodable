@@ -1,0 +1,163 @@
+\hypertarget{class_nodable_1_1_application}{}\doxysection{Nodable\+::Application Class Reference}
+\label{class_nodable_1_1_application}\index{Nodable::Application@{Nodable::Application}}
+
+
+{\ttfamily \#include $<$Application.\+h$>$}
+
+Inheritance diagram for Nodable\+::Application\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_nodable_1_1_application}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_nodable_1_1_application_abcf57908a547c89ea817465318cd422a}{Application}} (const char $\ast$)
+\item 
+\mbox{\hyperlink{class_nodable_1_1_application_a748bca84fefb9c12661cfaa2f623748d}{$\sim$\+Application}} ()
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_application_ae92abde0eb4b95fd7503308a13ed8c96}{init}} ()
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_application_ad434bdac305884ce971ded815384c976}{shutdown}} ()
+\item 
+\mbox{\hyperlink{namespace_nodable_afcec18e8a187614b7679399ed2db2f77}{Update\+Result}} \mbox{\hyperlink{class_nodable_1_1_application_a5f378664e38a79f6886b19b3979e3f07}{update}} ()
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_application_acbdad77eea9c4bd144a12cac76369f60}{stop\+Execution}} ()
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_application_a4e205aebbd931bf4da55c1d851178390}{open\+File}} (std\+::filesystem\+::path)
+\item 
+std\+::filesystem\+::path \mbox{\hyperlink{class_nodable_1_1_application_a36ca5c5d0742104aaef3a168ae3f81f1}{get\+Asset\+Path}} (const char $\ast$\+\_\+file\+Name) const
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_application_ad0103e5aa658829d33c8f3d51480032b}{save\+Current\+File}} () const
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_application_ae022ce075e767119557c920da49fa6a6}{close\+Current\+File}} ()
+\item 
+\mbox{\hyperlink{class_nodable_1_1_file}{File}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_application_ab3eb9b890290101a3594fd01b8bf3c58}{get\+Current\+File}} () const
+\item 
+size\+\_\+t \mbox{\hyperlink{class_nodable_1_1_application_ab5e64808d8d717991ea287591bd0866b}{get\+File\+Count}} () const
+\item 
+\mbox{\hyperlink{class_nodable_1_1_file}{File}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_application_a1bceee8c6c468d755419606f8764ded0}{get\+File\+At\+Index}} (size\+\_\+t \+\_\+index) const
+\item 
+size\+\_\+t \mbox{\hyperlink{class_nodable_1_1_application_a206cc1ccc5b7264140fcfa152b7d69b4}{get\+Current\+File\+Index}} () const
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_application_a6d64d94d2ac2f8b54f31d446e7c8e2da}{set\+Current\+File\+With\+Index}} (size\+\_\+t \+\_\+index)
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \mbox{\hyperlink{class_nodable_1_1_application_a5249e6680375b78fa22342231252e20e}{Save\+Node}} (\mbox{\hyperlink{class_nodable_1_1_node}{Node}} $\ast$\+\_\+entity)
+\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_application_abcf57908a547c89ea817465318cd422a}\label{class_nodable_1_1_application_abcf57908a547c89ea817465318cd422a}} 
+\index{Nodable::Application@{Nodable::Application}!Application@{Application}}
+\index{Application@{Application}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{Application()}{Application()}}
+{\footnotesize\ttfamily Application\+::\+Application (\begin{DoxyParamCaption}\item[{const char $\ast$}]{\+\_\+name }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_a748bca84fefb9c12661cfaa2f623748d}\label{class_nodable_1_1_application_a748bca84fefb9c12661cfaa2f623748d}} 
+\index{Nodable::Application@{Nodable::Application}!````~Application@{$\sim$Application}}
+\index{````~Application@{$\sim$Application}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{$\sim$Application()}{~Application()}}
+{\footnotesize\ttfamily Application\+::$\sim$\+Application (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_application_ae022ce075e767119557c920da49fa6a6}\label{class_nodable_1_1_application_ae022ce075e767119557c920da49fa6a6}} 
+\index{Nodable::Application@{Nodable::Application}!closeCurrentFile@{closeCurrentFile}}
+\index{closeCurrentFile@{closeCurrentFile}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{closeCurrentFile()}{closeCurrentFile()}}
+{\footnotesize\ttfamily void Application\+::close\+Current\+File (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_a36ca5c5d0742104aaef3a168ae3f81f1}\label{class_nodable_1_1_application_a36ca5c5d0742104aaef3a168ae3f81f1}} 
+\index{Nodable::Application@{Nodable::Application}!getAssetPath@{getAssetPath}}
+\index{getAssetPath@{getAssetPath}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{getAssetPath()}{getAssetPath()}}
+{\footnotesize\ttfamily std\+::filesystem\+::path Application\+::get\+Asset\+Path (\begin{DoxyParamCaption}\item[{const char $\ast$}]{\+\_\+file\+Name }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_ab3eb9b890290101a3594fd01b8bf3c58}\label{class_nodable_1_1_application_ab3eb9b890290101a3594fd01b8bf3c58}} 
+\index{Nodable::Application@{Nodable::Application}!getCurrentFile@{getCurrentFile}}
+\index{getCurrentFile@{getCurrentFile}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{getCurrentFile()}{getCurrentFile()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_nodable_1_1_file}{File}} $\ast$ Application\+::get\+Current\+File (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_a206cc1ccc5b7264140fcfa152b7d69b4}\label{class_nodable_1_1_application_a206cc1ccc5b7264140fcfa152b7d69b4}} 
+\index{Nodable::Application@{Nodable::Application}!getCurrentFileIndex@{getCurrentFileIndex}}
+\index{getCurrentFileIndex@{getCurrentFileIndex}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{getCurrentFileIndex()}{getCurrentFileIndex()}}
+{\footnotesize\ttfamily size\+\_\+t Nodable\+::\+Application\+::get\+Current\+File\+Index (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_a1bceee8c6c468d755419606f8764ded0}\label{class_nodable_1_1_application_a1bceee8c6c468d755419606f8764ded0}} 
+\index{Nodable::Application@{Nodable::Application}!getFileAtIndex@{getFileAtIndex}}
+\index{getFileAtIndex@{getFileAtIndex}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{getFileAtIndex()}{getFileAtIndex()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_nodable_1_1_file}{File}}$\ast$ Nodable\+::\+Application\+::get\+File\+At\+Index (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{\+\_\+index }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_ab5e64808d8d717991ea287591bd0866b}\label{class_nodable_1_1_application_ab5e64808d8d717991ea287591bd0866b}} 
+\index{Nodable::Application@{Nodable::Application}!getFileCount@{getFileCount}}
+\index{getFileCount@{getFileCount}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{getFileCount()}{getFileCount()}}
+{\footnotesize\ttfamily size\+\_\+t Nodable\+::\+Application\+::get\+File\+Count (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_ae92abde0eb4b95fd7503308a13ed8c96}\label{class_nodable_1_1_application_ae92abde0eb4b95fd7503308a13ed8c96}} 
+\index{Nodable::Application@{Nodable::Application}!init@{init}}
+\index{init@{init}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{init()}{init()}}
+{\footnotesize\ttfamily bool Application\+::init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_a4e205aebbd931bf4da55c1d851178390}\label{class_nodable_1_1_application_a4e205aebbd931bf4da55c1d851178390}} 
+\index{Nodable::Application@{Nodable::Application}!openFile@{openFile}}
+\index{openFile@{openFile}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{openFile()}{openFile()}}
+{\footnotesize\ttfamily bool Application\+::open\+File (\begin{DoxyParamCaption}\item[{std\+::filesystem\+::path}]{\+\_\+file\+Path }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_ad0103e5aa658829d33c8f3d51480032b}\label{class_nodable_1_1_application_ad0103e5aa658829d33c8f3d51480032b}} 
+\index{Nodable::Application@{Nodable::Application}!saveCurrentFile@{saveCurrentFile}}
+\index{saveCurrentFile@{saveCurrentFile}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{saveCurrentFile()}{saveCurrentFile()}}
+{\footnotesize\ttfamily void Application\+::save\+Current\+File (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_a5249e6680375b78fa22342231252e20e}\label{class_nodable_1_1_application_a5249e6680375b78fa22342231252e20e}} 
+\index{Nodable::Application@{Nodable::Application}!SaveNode@{SaveNode}}
+\index{SaveNode@{SaveNode}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{SaveNode()}{SaveNode()}}
+{\footnotesize\ttfamily void Application\+::\+Save\+Node (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_node}{Node}} $\ast$}]{\+\_\+entity }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_a6d64d94d2ac2f8b54f31d446e7c8e2da}\label{class_nodable_1_1_application_a6d64d94d2ac2f8b54f31d446e7c8e2da}} 
+\index{Nodable::Application@{Nodable::Application}!setCurrentFileWithIndex@{setCurrentFileWithIndex}}
+\index{setCurrentFileWithIndex@{setCurrentFileWithIndex}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{setCurrentFileWithIndex()}{setCurrentFileWithIndex()}}
+{\footnotesize\ttfamily void Application\+::set\+Current\+File\+With\+Index (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{\+\_\+index }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_ad434bdac305884ce971ded815384c976}\label{class_nodable_1_1_application_ad434bdac305884ce971ded815384c976}} 
+\index{Nodable::Application@{Nodable::Application}!shutdown@{shutdown}}
+\index{shutdown@{shutdown}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{shutdown()}{shutdown()}}
+{\footnotesize\ttfamily void Application\+::shutdown (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_acbdad77eea9c4bd144a12cac76369f60}\label{class_nodable_1_1_application_acbdad77eea9c4bd144a12cac76369f60}} 
+\index{Nodable::Application@{Nodable::Application}!stopExecution@{stopExecution}}
+\index{stopExecution@{stopExecution}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{stopExecution()}{stopExecution()}}
+{\footnotesize\ttfamily void Application\+::stop\+Execution (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_application_a5f378664e38a79f6886b19b3979e3f07}\label{class_nodable_1_1_application_a5f378664e38a79f6886b19b3979e3f07}} 
+\index{Nodable::Application@{Nodable::Application}!update@{update}}
+\index{update@{update}!Nodable::Application@{Nodable::Application}}
+\doxysubsubsection{\texorpdfstring{update()}{update()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespace_nodable_afcec18e8a187614b7679399ed2db2f77}{Update\+Result}} Application\+::update (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Reimplemented from \mbox{\hyperlink{class_nodable_1_1_node_a7dbbd70ffb6064c22927b4f003d05b03}{Nodable\+::\+Node}}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sources/\+Core/\mbox{\hyperlink{_application_8h}{Application.\+h}}\item 
+sources/\+Core/\mbox{\hyperlink{_application_8cpp}{Application.\+cpp}}\end{DoxyCompactItemize}

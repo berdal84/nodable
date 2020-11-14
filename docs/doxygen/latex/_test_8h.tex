@@ -1,0 +1,204 @@
+\hypertarget{_test_8h}{}\doxysection{sources/\+Test/\+Test.h File Reference}
+\label{_test_8h}\index{sources/Test/Test.h@{sources/Test/Test.h}}
+{\ttfamily \#include $<$memory$>$}\newline
+{\ttfamily \#include $<$stack$>$}\newline
+{\ttfamily \#include \char`\"{}Member.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Log.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Node.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Wire.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Data\+Access.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Container.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Language.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Parser.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Variable.\+h\char`\"{}}\newline
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_test_state}{Test\+State}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{_test_8h_aac6f8be902cb588fc9e9ad64904b032c}{G\+L\+O\+B\+A\+L\+\_\+\+T\+E\+S\+T\+\_\+\+B\+E\+G\+IN}}
+\item 
+\#define \mbox{\hyperlink{_test_8h_a0dd861533f33a13859d7630fe00dae8a}{G\+L\+O\+B\+A\+L\+\_\+\+T\+E\+S\+T\+\_\+\+E\+ND}}
+\item 
+\#define \mbox{\hyperlink{_test_8h_a848e2f1afc445d2ba5a09cabb140ed46}{G\+L\+O\+B\+A\+L\+\_\+\+T\+E\+S\+T\+\_\+\+R\+E\+S\+U\+LT}}~s\+\_\+global\+State.\+all\+Passed();
+\item 
+\#define \mbox{\hyperlink{_test_8h_af0e2a580ce9f0a84e4c8e7c0cf4cc026}{T\+E\+S\+T\+\_\+\+B\+E\+G\+IN}}(name)
+\item 
+\#define \mbox{\hyperlink{_test_8h_a806749d46ee4a9acd0a9d9e416f80d98}{T\+E\+S\+T\+\_\+\+E\+ND}}
+\item 
+\#define \mbox{\hyperlink{_test_8h_a56c62653bbdc6ae4d321f2016712e765}{T\+E\+S\+T\+\_\+\+R\+E\+S\+U\+LT}}~s\+\_\+global\+State.\+all\+Passed()
+\item 
+\#define \mbox{\hyperlink{_test_8h_a9264bd413be7d325681b55b79d4a66fc}{E\+X\+P\+E\+CT}}(function,  expected)
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{_test_8h_ad9460613ed47381514389d1bd9fb4946}{Member\+\_\+\+Connections\+\_\+\+Tests}} ()
+\item 
+bool \mbox{\hyperlink{_test_8h_ac2507f78d53010a5d1d2be2743188108}{Member\+\_\+\+As\+Boolean\+\_\+\+Tests}} ()
+\item 
+bool \mbox{\hyperlink{_test_8h_a7d059e86934feaf7005bd0bfcc43a93d}{Member\+\_\+\+As\+String\+\_\+\+Tests}} ()
+\item 
+bool \mbox{\hyperlink{_test_8h_adebd727cc057e7d174911a56122aab77}{Member\+\_\+\+As\+Number\+\_\+\+Tests}} ()
+\item 
+{\footnotesize template$<$typename T $>$ }\\bool \mbox{\hyperlink{_test_8h_a002f9c203bebcb3d3b66bf410108afa0}{Parser\+\_\+\+Test}} (const std\+::string \&expression, T \+\_\+expected\+Value, const \mbox{\hyperlink{class_nodable_1_1_language}{Language}} $\ast$\+\_\+language=Language\+::\+Nodable())
+\item 
+bool \mbox{\hyperlink{_test_8h_a95a07362873ffbb4eb9b782475c81e89}{Parser\+\_\+\+Tests}} ()
+\item 
+bool \mbox{\hyperlink{_test_8h_af3227ee9bf353ecc9d59d8735b0909b7}{Node\+\_\+\+Tests}} ()
+\item 
+bool \mbox{\hyperlink{_test_8h_a1a041d6be30beb3070c17dca9d77d545}{Wire\+And\+Node\+\_\+\+Tests}} ()
+\item 
+bool \mbox{\hyperlink{_test_8h_a362a0f4723412f6c9b1e026b359c1c0d}{Test\+\_\+\+Run\+All}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{_test_8h_a9264bd413be7d325681b55b79d4a66fc}\label{_test_8h_a9264bd413be7d325681b55b79d4a66fc}} 
+\index{Test.h@{Test.h}!EXPECT@{EXPECT}}
+\index{EXPECT@{EXPECT}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{EXPECT}{EXPECT}}
+{\footnotesize\ttfamily \#define E\+X\+P\+E\+CT(\begin{DoxyParamCaption}\item[{}]{function,  }\item[{}]{expected }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    \textcolor{keywordflow}{if} (\textcolor{keyword}{function} == expected) \{ \(\backslash\)}
+\DoxyCodeLine{        status.top().addSuccess();\(\backslash\)}
+\DoxyCodeLine{    \} \textcolor{keywordflow}{else} \{ \(\backslash\)}
+\DoxyCodeLine{        LOG\_ERROR( 0u, \#\textcolor{keyword}{function}\textcolor{stringliteral}{"{} : FAILED ! expected:"{}} \#expected \textcolor{stringliteral}{"{}\(\backslash\)n"{}});\(\backslash\)}
+\DoxyCodeLine{        status.top().addFailure();\(\backslash\)}
+\DoxyCodeLine{    \}}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_test_8h_aac6f8be902cb588fc9e9ad64904b032c}\label{_test_8h_aac6f8be902cb588fc9e9ad64904b032c}} 
+\index{Test.h@{Test.h}!GLOBAL\_TEST\_BEGIN@{GLOBAL\_TEST\_BEGIN}}
+\index{GLOBAL\_TEST\_BEGIN@{GLOBAL\_TEST\_BEGIN}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{GLOBAL\_TEST\_BEGIN}{GLOBAL\_TEST\_BEGIN}}
+{\footnotesize\ttfamily \#define G\+L\+O\+B\+A\+L\+\_\+\+T\+E\+S\+T\+\_\+\+B\+E\+G\+IN}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    s\_globalState = \mbox{\hyperlink{struct_test_state}{TestState}}(); \(\backslash\)}
+\DoxyCodeLine{    s\_lastGroupTestPassed = \textcolor{keyword}{false};}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_test_8h_a0dd861533f33a13859d7630fe00dae8a}\label{_test_8h_a0dd861533f33a13859d7630fe00dae8a}} 
+\index{Test.h@{Test.h}!GLOBAL\_TEST\_END@{GLOBAL\_TEST\_END}}
+\index{GLOBAL\_TEST\_END@{GLOBAL\_TEST\_END}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{GLOBAL\_TEST\_END}{GLOBAL\_TEST\_END}}
+{\footnotesize\ttfamily \#define G\+L\+O\+B\+A\+L\+\_\+\+T\+E\+S\+T\+\_\+\+E\+ND}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    \textcolor{keywordflow}{if}(  s\_globalState.\mbox{\hyperlink{struct_test_state_a32668ab3659657f613a7e1e778e8960c}{allPassed}}() ) \{ \(\backslash\)}
+\DoxyCodeLine{        LOG\_DEBUG(0u, \mbox{\hyperlink{_log_8h_acfbc006ea433ad708fdee3e82996e721}{GREEN}}\textcolor{stringliteral}{"{}All tests are OK : (\%d / \%d passed).\(\backslash\)n"{}}, s\_globalState.\mbox{\hyperlink{struct_test_state_ac2f7225c1b8c9d78bc1567e9a91a21c7}{m\_successCount}}, s\_globalState.\mbox{\hyperlink{struct_test_state_a5e13949832df6b3eeac476d4cf07d4eb}{m\_count}}); \(\backslash\)}
+\DoxyCodeLine{    \} \textcolor{keywordflow}{else} \{ \(\backslash\)}
+\DoxyCodeLine{        LOG\_DEBUG(0u, \mbox{\hyperlink{_log_8h_a8d23feea868a983c8c2b661e1e16972f}{RED}}\textcolor{stringliteral}{"{}Some tests FAILED !: (\%d / \%d passed).\(\backslash\)n"{}}, s\_globalState.\mbox{\hyperlink{struct_test_state_ac2f7225c1b8c9d78bc1567e9a91a21c7}{m\_successCount}}, s\_globalState.\mbox{\hyperlink{struct_test_state_a5e13949832df6b3eeac476d4cf07d4eb}{m\_count}}); \(\backslash\)}
+\DoxyCodeLine{    \}}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_test_8h_a848e2f1afc445d2ba5a09cabb140ed46}\label{_test_8h_a848e2f1afc445d2ba5a09cabb140ed46}} 
+\index{Test.h@{Test.h}!GLOBAL\_TEST\_RESULT@{GLOBAL\_TEST\_RESULT}}
+\index{GLOBAL\_TEST\_RESULT@{GLOBAL\_TEST\_RESULT}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{GLOBAL\_TEST\_RESULT}{GLOBAL\_TEST\_RESULT}}
+{\footnotesize\ttfamily \#define G\+L\+O\+B\+A\+L\+\_\+\+T\+E\+S\+T\+\_\+\+R\+E\+S\+U\+LT~s\+\_\+global\+State.\+all\+Passed();}
+
+\mbox{\Hypertarget{_test_8h_af0e2a580ce9f0a84e4c8e7c0cf4cc026}\label{_test_8h_af0e2a580ce9f0a84e4c8e7c0cf4cc026}} 
+\index{Test.h@{Test.h}!TEST\_BEGIN@{TEST\_BEGIN}}
+\index{TEST\_BEGIN@{TEST\_BEGIN}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{TEST\_BEGIN}{TEST\_BEGIN}}
+{\footnotesize\ttfamily \#define T\+E\+S\+T\+\_\+\+B\+E\+G\+IN(\begin{DoxyParamCaption}\item[{}]{name }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    \{ \(\backslash\)}
+\DoxyCodeLine{        LOG\_MESSAGE(0u, \textcolor{stringliteral}{"{}Testing \%s...\(\backslash\)n"{}}, name);\(\backslash\)}
+\DoxyCodeLine{        status.push( \mbox{\hyperlink{struct_test_state}{TestState}}() ); \(\backslash\)}
+\DoxyCodeLine{        \{}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_test_8h_a806749d46ee4a9acd0a9d9e416f80d98}\label{_test_8h_a806749d46ee4a9acd0a9d9e416f80d98}} 
+\index{Test.h@{Test.h}!TEST\_END@{TEST\_END}}
+\index{TEST\_END@{TEST\_END}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{TEST\_END}{TEST\_END}}
+{\footnotesize\ttfamily \#define T\+E\+S\+T\+\_\+\+E\+ND}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{        \} \(\backslash\)}
+\DoxyCodeLine{        if( ! status.top().allPassed() ) \{ \(\backslash\)}
+\DoxyCodeLine{            LOG\_ERROR(0u, \textcolor{stringliteral}{"{}Test: failed, \%i/\%i passed.\(\backslash\)n"{}}, status.top().m\_successCount,  status.top().m\_count); \(\backslash\)}
+\DoxyCodeLine{        \} \(\backslash\)}
+\DoxyCodeLine{        s\_globalState.add(status.top()); \(\backslash\)}
+\DoxyCodeLine{        s\_lastGroupTestPassed = status.top().allPassed(); \(\backslash\)}
+\DoxyCodeLine{        status.pop(); \(\backslash\)}
+\DoxyCodeLine{    \}}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_test_8h_a56c62653bbdc6ae4d321f2016712e765}\label{_test_8h_a56c62653bbdc6ae4d321f2016712e765}} 
+\index{Test.h@{Test.h}!TEST\_RESULT@{TEST\_RESULT}}
+\index{TEST\_RESULT@{TEST\_RESULT}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{TEST\_RESULT}{TEST\_RESULT}}
+{\footnotesize\ttfamily \#define T\+E\+S\+T\+\_\+\+R\+E\+S\+U\+LT~s\+\_\+global\+State.\+all\+Passed()}
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{_test_8h_ac2507f78d53010a5d1d2be2743188108}\label{_test_8h_ac2507f78d53010a5d1d2be2743188108}} 
+\index{Test.h@{Test.h}!Member\_AsBoolean\_Tests@{Member\_AsBoolean\_Tests}}
+\index{Member\_AsBoolean\_Tests@{Member\_AsBoolean\_Tests}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{Member\_AsBoolean\_Tests()}{Member\_AsBoolean\_Tests()}}
+{\footnotesize\ttfamily bool Member\+\_\+\+As\+Boolean\+\_\+\+Tests (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_test_8h_adebd727cc057e7d174911a56122aab77}\label{_test_8h_adebd727cc057e7d174911a56122aab77}} 
+\index{Test.h@{Test.h}!Member\_AsNumber\_Tests@{Member\_AsNumber\_Tests}}
+\index{Member\_AsNumber\_Tests@{Member\_AsNumber\_Tests}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{Member\_AsNumber\_Tests()}{Member\_AsNumber\_Tests()}}
+{\footnotesize\ttfamily bool Member\+\_\+\+As\+Number\+\_\+\+Tests (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_test_8h_a7d059e86934feaf7005bd0bfcc43a93d}\label{_test_8h_a7d059e86934feaf7005bd0bfcc43a93d}} 
+\index{Test.h@{Test.h}!Member\_AsString\_Tests@{Member\_AsString\_Tests}}
+\index{Member\_AsString\_Tests@{Member\_AsString\_Tests}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{Member\_AsString\_Tests()}{Member\_AsString\_Tests()}}
+{\footnotesize\ttfamily bool Member\+\_\+\+As\+String\+\_\+\+Tests (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_test_8h_ad9460613ed47381514389d1bd9fb4946}\label{_test_8h_ad9460613ed47381514389d1bd9fb4946}} 
+\index{Test.h@{Test.h}!Member\_Connections\_Tests@{Member\_Connections\_Tests}}
+\index{Member\_Connections\_Tests@{Member\_Connections\_Tests}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{Member\_Connections\_Tests()}{Member\_Connections\_Tests()}}
+{\footnotesize\ttfamily bool Member\+\_\+\+Connections\+\_\+\+Tests (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_test_8h_af3227ee9bf353ecc9d59d8735b0909b7}\label{_test_8h_af3227ee9bf353ecc9d59d8735b0909b7}} 
+\index{Test.h@{Test.h}!Node\_Tests@{Node\_Tests}}
+\index{Node\_Tests@{Node\_Tests}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{Node\_Tests()}{Node\_Tests()}}
+{\footnotesize\ttfamily bool Node\+\_\+\+Tests (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_test_8h_a002f9c203bebcb3d3b66bf410108afa0}\label{_test_8h_a002f9c203bebcb3d3b66bf410108afa0}} 
+\index{Test.h@{Test.h}!Parser\_Test@{Parser\_Test}}
+\index{Parser\_Test@{Parser\_Test}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{Parser\_Test()}{Parser\_Test()}}
+{\footnotesize\ttfamily template$<$typename T $>$ \\
+bool Parser\+\_\+\+Test (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{expression,  }\item[{T}]{\+\_\+expected\+Value,  }\item[{const \mbox{\hyperlink{class_nodable_1_1_language}{Language}} $\ast$}]{\+\_\+language = {\ttfamily Language\+:\+:Nodable()} }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_test_8h_a95a07362873ffbb4eb9b782475c81e89}\label{_test_8h_a95a07362873ffbb4eb9b782475c81e89}} 
+\index{Test.h@{Test.h}!Parser\_Tests@{Parser\_Tests}}
+\index{Parser\_Tests@{Parser\_Tests}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{Parser\_Tests()}{Parser\_Tests()}}
+{\footnotesize\ttfamily bool Parser\+\_\+\+Tests (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_test_8h_a362a0f4723412f6c9b1e026b359c1c0d}\label{_test_8h_a362a0f4723412f6c9b1e026b359c1c0d}} 
+\index{Test.h@{Test.h}!Test\_RunAll@{Test\_RunAll}}
+\index{Test\_RunAll@{Test\_RunAll}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{Test\_RunAll()}{Test\_RunAll()}}
+{\footnotesize\ttfamily bool Test\+\_\+\+Run\+All (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_test_8h_a1a041d6be30beb3070c17dca9d77d545}\label{_test_8h_a1a041d6be30beb3070c17dca9d77d545}} 
+\index{Test.h@{Test.h}!WireAndNode\_Tests@{WireAndNode\_Tests}}
+\index{WireAndNode\_Tests@{WireAndNode\_Tests}!Test.h@{Test.h}}
+\doxysubsubsection{\texorpdfstring{WireAndNode\_Tests()}{WireAndNode\_Tests()}}
+{\footnotesize\ttfamily bool Wire\+And\+Node\+\_\+\+Tests (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+

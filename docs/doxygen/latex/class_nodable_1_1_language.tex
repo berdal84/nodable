@@ -1,0 +1,248 @@
+\hypertarget{class_nodable_1_1_language}{}\doxysection{Nodable\+::Language Class Reference}
+\label{class_nodable_1_1_language}\index{Nodable::Language@{Nodable::Language}}
+
+
+{\ttfamily \#include $<$Language.\+h$>$}
+
+Inheritance diagram for Nodable\+::Language\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_nodable_1_1_language}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_nodable_1_1_language_aa9a94f77ec29dd3a2e3231fb785b7591}{Language}} (std\+::string \+\_\+name)
+\item 
+\mbox{\hyperlink{class_nodable_1_1_language_a02642a7e511fe624b97b32fbdc0ef949}{$\sim$\+Language}} ()
+\item 
+virtual std\+::string \mbox{\hyperlink{class_nodable_1_1_language_a8b02cffef500b27c840a669f8d7156a6}{serialize}} (const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&, std\+::vector$<$ \mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$ $>$) const =0
+\item 
+virtual std\+::string \mbox{\hyperlink{class_nodable_1_1_language_acaeaa841a82120db6c6c70a0dcffe9af}{serialize}} (const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&) const =0
+\item 
+virtual std\+::string \mbox{\hyperlink{class_nodable_1_1_language_a10e53ec1dbb310f60c7aab8828111ae5}{serialize}} (const \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \&) const =0
+\item 
+virtual std\+::string \mbox{\hyperlink{class_nodable_1_1_language_aab9b706466dfc398fb09acd76e392f45}{serialize\+Binary\+Op}} (const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$, std\+::vector$<$ \mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$ $>$, const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$, const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$) const =0
+\item 
+virtual std\+::string \mbox{\hyperlink{class_nodable_1_1_language_ab92809e89e0f1ba2db43e1a0f9e98a11}{serialize\+Unary\+Op}} (const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$, std\+::vector$<$ \mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$ $>$, const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$) const =0
+\item 
+virtual const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \mbox{\hyperlink{class_nodable_1_1_language_aa94420e5599151c1f94dcf906889b024}{create\+Bin\+Operator\+Signature}} (\mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}}, std\+::string, \mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}}, \mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}}) const =0
+\item 
+virtual const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \mbox{\hyperlink{class_nodable_1_1_language_aec610f478476fe0de0bc426bac65669c}{create\+Unary\+Operator\+Signature}} (\mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}}, std\+::string, \mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}}) const =0
+\item 
+virtual const \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \mbox{\hyperlink{class_nodable_1_1_language_af30336847c204d5a28c97bdd701971b9}{type\+To\+Token\+Type}} (\mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}} \+\_\+type) const =0
+\item 
+virtual const \mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}} \mbox{\hyperlink{class_nodable_1_1_language_aa26cc39295ffd97f8be945374e0bc665}{token\+Type\+To\+Type}} (\mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \+\_\+token\+Type) const =0
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_language_a1f2e343414af89e4a454761b3acf6cb3}{add\+Operator}} (\mbox{\hyperlink{class_nodable_1_1_operator}{Operator}})
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_language_a41d7df1a168311512ac57b05b6477085}{add\+Operator}} (std\+::string \+\_\+identifier, unsigned short \+\_\+precedence, \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \+\_\+prototype, \mbox{\hyperlink{namespace_nodable_a5bf663d78fcb8e258c912e0902e2537d}{Function\+Implem}} \+\_\+implementation)
+\item 
+const \mbox{\hyperlink{class_nodable_1_1_function}{Function}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_language_a49c1e5052c84123aac5058a6bed46002}{find\+Function}} (const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&signature) const
+\item 
+const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_language_ab45434ba079848a9dafacff61db27f6d}{find\+Operator}} (const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&\+\_\+operator) const
+\item 
+const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_language_a1c409cdcc370bf762d3428906f5a7cbe}{find\+Operator}} (const std\+::string \&\+\_\+identifier) const
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_language_ab0db085e333193a39ef2a038a6422434}{add\+To\+A\+PI}} (\mbox{\hyperlink{class_nodable_1_1_function}{Function}})
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_language_a8451b5d4c25d91ed37e1fa8371f2bc53}{add\+To\+A\+PI}} (\mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&, \mbox{\hyperlink{namespace_nodable_a5bf663d78fcb8e258c912e0902e2537d}{Function\+Implem}})
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_language_ad170db841cd5ca4d4d19f2041da3b84b}{has\+Higher\+Precedence\+Than}} (const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$\+\_\+first\+Operator, const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$\+\_\+second\+Operator) const
+\item 
+const std\+::vector$<$ \mbox{\hyperlink{class_nodable_1_1_function}{Function}} $>$ \& \mbox{\hyperlink{class_nodable_1_1_language_a96c4bc11c254089cb125ba4dd4f86fa8}{get\+All\+Functions}} () const
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static const \mbox{\hyperlink{class_nodable_1_1_language}{Language}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_language_a7e5c3eab8d72b533e363e621f776e8b6}{Nodable}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_nodable_1_1_dictionnary}{Dictionnary}} \mbox{\hyperlink{class_nodable_1_1_language_aaf7388c50609655e4b293815a74d936c}{dictionnary}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_language_aa9a94f77ec29dd3a2e3231fb785b7591}\label{class_nodable_1_1_language_aa9a94f77ec29dd3a2e3231fb785b7591}} 
+\index{Nodable::Language@{Nodable::Language}!Language@{Language}}
+\index{Language@{Language}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{Language()}{Language()}}
+{\footnotesize\ttfamily Nodable\+::\+Language\+::\+Language (\begin{DoxyParamCaption}\item[{std\+::string}]{\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_language_a02642a7e511fe624b97b32fbdc0ef949}\label{class_nodable_1_1_language_a02642a7e511fe624b97b32fbdc0ef949}} 
+\index{Nodable::Language@{Nodable::Language}!````~Language@{$\sim$Language}}
+\index{````~Language@{$\sim$Language}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{$\sim$Language()}{~Language()}}
+{\footnotesize\ttfamily Nodable\+::\+Language\+::$\sim$\+Language (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_language_a1f2e343414af89e4a454761b3acf6cb3}\label{class_nodable_1_1_language_a1f2e343414af89e4a454761b3acf6cb3}} 
+\index{Nodable::Language@{Nodable::Language}!addOperator@{addOperator}}
+\index{addOperator@{addOperator}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{addOperator()}{addOperator()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void Language\+::add\+Operator (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_operator}{Operator}}}]{\+\_\+operator }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_language_a41d7df1a168311512ac57b05b6477085}\label{class_nodable_1_1_language_a41d7df1a168311512ac57b05b6477085}} 
+\index{Nodable::Language@{Nodable::Language}!addOperator@{addOperator}}
+\index{addOperator@{addOperator}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{addOperator()}{addOperator()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void Language\+::add\+Operator (\begin{DoxyParamCaption}\item[{std\+::string}]{\+\_\+identifier,  }\item[{unsigned short}]{\+\_\+precedence,  }\item[{\mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}}}]{\+\_\+prototype,  }\item[{\mbox{\hyperlink{namespace_nodable_a5bf663d78fcb8e258c912e0902e2537d}{Function\+Implem}}}]{\+\_\+implementation }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_language_ab0db085e333193a39ef2a038a6422434}\label{class_nodable_1_1_language_ab0db085e333193a39ef2a038a6422434}} 
+\index{Nodable::Language@{Nodable::Language}!addToAPI@{addToAPI}}
+\index{addToAPI@{addToAPI}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{addToAPI()}{addToAPI()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void Nodable\+::\+Language\+::add\+To\+A\+PI (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_function}{Function}}}]{\+\_\+function }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_language_a8451b5d4c25d91ed37e1fa8371f2bc53}\label{class_nodable_1_1_language_a8451b5d4c25d91ed37e1fa8371f2bc53}} 
+\index{Nodable::Language@{Nodable::Language}!addToAPI@{addToAPI}}
+\index{addToAPI@{addToAPI}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{addToAPI()}{addToAPI()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void Nodable\+::\+Language\+::add\+To\+A\+PI (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&}]{\+\_\+signature,  }\item[{\mbox{\hyperlink{namespace_nodable_a5bf663d78fcb8e258c912e0902e2537d}{Function\+Implem}}}]{\+\_\+implementation }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_language_aa94420e5599151c1f94dcf906889b024}\label{class_nodable_1_1_language_aa94420e5599151c1f94dcf906889b024}} 
+\index{Nodable::Language@{Nodable::Language}!createBinOperatorSignature@{createBinOperatorSignature}}
+\index{createBinOperatorSignature@{createBinOperatorSignature}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{createBinOperatorSignature()}{createBinOperatorSignature()}}
+{\footnotesize\ttfamily virtual const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} Nodable\+::\+Language\+::create\+Bin\+Operator\+Signature (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}}}]{,  }\item[{std\+::string}]{,  }\item[{\mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}}}]{,  }\item[{\mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}}}]{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_language_nodable_a1442e7eb54c38043fdf8c10aece86c0e}{Nodable\+::\+Language\+Nodable}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_language_aec610f478476fe0de0bc426bac65669c}\label{class_nodable_1_1_language_aec610f478476fe0de0bc426bac65669c}} 
+\index{Nodable::Language@{Nodable::Language}!createUnaryOperatorSignature@{createUnaryOperatorSignature}}
+\index{createUnaryOperatorSignature@{createUnaryOperatorSignature}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{createUnaryOperatorSignature()}{createUnaryOperatorSignature()}}
+{\footnotesize\ttfamily virtual const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} Nodable\+::\+Language\+::create\+Unary\+Operator\+Signature (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}}}]{,  }\item[{std\+::string}]{,  }\item[{\mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}}}]{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_language_nodable_a5027404c8e3a54ca8cbf6fc1768faee1}{Nodable\+::\+Language\+Nodable}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_language_a49c1e5052c84123aac5058a6bed46002}\label{class_nodable_1_1_language_a49c1e5052c84123aac5058a6bed46002}} 
+\index{Nodable::Language@{Nodable::Language}!findFunction@{findFunction}}
+\index{findFunction@{findFunction}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{findFunction()}{findFunction()}}
+{\footnotesize\ttfamily const \mbox{\hyperlink{class_nodable_1_1_function}{Function}} $\ast$ Nodable\+::\+Language\+::find\+Function (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&}]{signature }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_language_ab45434ba079848a9dafacff61db27f6d}\label{class_nodable_1_1_language_ab45434ba079848a9dafacff61db27f6d}} 
+\index{Nodable::Language@{Nodable::Language}!findOperator@{findOperator}}
+\index{findOperator@{findOperator}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{findOperator()}{findOperator()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$ Language\+::find\+Operator (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&}]{\+\_\+operator }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_language_a1c409cdcc370bf762d3428906f5a7cbe}\label{class_nodable_1_1_language_a1c409cdcc370bf762d3428906f5a7cbe}} 
+\index{Nodable::Language@{Nodable::Language}!findOperator@{findOperator}}
+\index{findOperator@{findOperator}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{findOperator()}{findOperator()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$ Language\+::find\+Operator (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{\+\_\+identifier }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_language_a96c4bc11c254089cb125ba4dd4f86fa8}\label{class_nodable_1_1_language_a96c4bc11c254089cb125ba4dd4f86fa8}} 
+\index{Nodable::Language@{Nodable::Language}!getAllFunctions@{getAllFunctions}}
+\index{getAllFunctions@{getAllFunctions}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{getAllFunctions()}{getAllFunctions()}}
+{\footnotesize\ttfamily const std\+::vector$<$\mbox{\hyperlink{class_nodable_1_1_function}{Function}}$>$\& Nodable\+::\+Language\+::get\+All\+Functions (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_language_ad170db841cd5ca4d4d19f2041da3b84b}\label{class_nodable_1_1_language_ad170db841cd5ca4d4d19f2041da3b84b}} 
+\index{Nodable::Language@{Nodable::Language}!hasHigherPrecedenceThan@{hasHigherPrecedenceThan}}
+\index{hasHigherPrecedenceThan@{hasHigherPrecedenceThan}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{hasHigherPrecedenceThan()}{hasHigherPrecedenceThan()}}
+{\footnotesize\ttfamily bool Language\+::has\+Higher\+Precedence\+Than (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$}]{\+\_\+first\+Operator,  }\item[{const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$}]{\+\_\+second\+Operator }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_language_a7e5c3eab8d72b533e363e621f776e8b6}\label{class_nodable_1_1_language_a7e5c3eab8d72b533e363e621f776e8b6}} 
+\index{Nodable::Language@{Nodable::Language}!Nodable@{Nodable}}
+\index{Nodable@{Nodable}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{Nodable()}{Nodable()}}
+{\footnotesize\ttfamily const \mbox{\hyperlink{class_nodable_1_1_language}{Language}} $\ast$ Language\+::\+Nodable (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+To generate the \mbox{\hyperlink{namespace_nodable}{Nodable}} \mbox{\hyperlink{class_nodable_1_1_language}{Language}} reference New language generators will be found here later... ex\+: static const Language$\ast$ Type\+Script(); \mbox{\Hypertarget{class_nodable_1_1_language_acaeaa841a82120db6c6c70a0dcffe9af}\label{class_nodable_1_1_language_acaeaa841a82120db6c6c70a0dcffe9af}} 
+\index{Nodable::Language@{Nodable::Language}!serialize@{serialize}}
+\index{serialize@{serialize}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{serialize()}{serialize()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily virtual std\+::string Nodable\+::\+Language\+::serialize (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&}]{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_language_nodable_a4d2e236696da1a71e8abf9b4e26f8d94}{Nodable\+::\+Language\+Nodable}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_language_a8b02cffef500b27c840a669f8d7156a6}\label{class_nodable_1_1_language_a8b02cffef500b27c840a669f8d7156a6}} 
+\index{Nodable::Language@{Nodable::Language}!serialize@{serialize}}
+\index{serialize@{serialize}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{serialize()}{serialize()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily virtual std\+::string Nodable\+::\+Language\+::serialize (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_nodable_1_1_function_signature}{Function\+Signature}} \&}]{,  }\item[{std\+::vector$<$ \mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$ $>$}]{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_language_nodable_a8934e780bada9851b3ad05c7d3265844}{Nodable\+::\+Language\+Nodable}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_language_a10e53ec1dbb310f60c7aab8828111ae5}\label{class_nodable_1_1_language_a10e53ec1dbb310f60c7aab8828111ae5}} 
+\index{Nodable::Language@{Nodable::Language}!serialize@{serialize}}
+\index{serialize@{serialize}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{serialize()}{serialize()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily virtual std\+::string Nodable\+::\+Language\+::serialize (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} \&}]{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_language_nodable_a6aecd00080d5508e0d389a29fb6a4136}{Nodable\+::\+Language\+Nodable}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_language_aab9b706466dfc398fb09acd76e392f45}\label{class_nodable_1_1_language_aab9b706466dfc398fb09acd76e392f45}} 
+\index{Nodable::Language@{Nodable::Language}!serializeBinaryOp@{serializeBinaryOp}}
+\index{serializeBinaryOp@{serializeBinaryOp}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{serializeBinaryOp()}{serializeBinaryOp()}}
+{\footnotesize\ttfamily virtual std\+::string Nodable\+::\+Language\+::serialize\+Binary\+Op (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$}]{,  }\item[{std\+::vector$<$ \mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$ $>$}]{,  }\item[{const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$}]{,  }\item[{const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$}]{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_language_nodable_a97583c3dc890fb9adfbdd3d10b902327}{Nodable\+::\+Language\+Nodable}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_language_ab92809e89e0f1ba2db43e1a0f9e98a11}\label{class_nodable_1_1_language_ab92809e89e0f1ba2db43e1a0f9e98a11}} 
+\index{Nodable::Language@{Nodable::Language}!serializeUnaryOp@{serializeUnaryOp}}
+\index{serializeUnaryOp@{serializeUnaryOp}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{serializeUnaryOp()}{serializeUnaryOp()}}
+{\footnotesize\ttfamily virtual std\+::string Nodable\+::\+Language\+::serialize\+Unary\+Op (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$}]{,  }\item[{std\+::vector$<$ \mbox{\hyperlink{class_nodable_1_1_member}{Member}} $\ast$ $>$}]{,  }\item[{const \mbox{\hyperlink{class_nodable_1_1_operator}{Operator}} $\ast$}]{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_language_nodable_ab322c253ea9d639bffff7ae30edc4916}{Nodable\+::\+Language\+Nodable}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_language_aa26cc39295ffd97f8be945374e0bc665}\label{class_nodable_1_1_language_aa26cc39295ffd97f8be945374e0bc665}} 
+\index{Nodable::Language@{Nodable::Language}!tokenTypeToType@{tokenTypeToType}}
+\index{tokenTypeToType@{tokenTypeToType}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{tokenTypeToType()}{tokenTypeToType()}}
+{\footnotesize\ttfamily virtual const \mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}} Nodable\+::\+Language\+::token\+Type\+To\+Type (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}}}]{\+\_\+token\+Type }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_language_nodable_a854881a41c1f90fe7435185f26708e63}{Nodable\+::\+Language\+Nodable}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_language_af30336847c204d5a28c97bdd701971b9}\label{class_nodable_1_1_language_af30336847c204d5a28c97bdd701971b9}} 
+\index{Nodable::Language@{Nodable::Language}!typeToTokenType@{typeToTokenType}}
+\index{typeToTokenType@{typeToTokenType}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{typeToTokenType()}{typeToTokenType()}}
+{\footnotesize\ttfamily virtual const \mbox{\hyperlink{namespace_nodable_a8f36f605258c8c3268d5ea5f1601e3f9}{Token\+Type}} Nodable\+::\+Language\+::type\+To\+Token\+Type (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespace_nodable_a904420d860050ebb49bdecfc7f74afdf}{Type}}}]{\+\_\+type }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_language_nodable_aab13f4fb77eaf0450b65d5edd8169b13}{Nodable\+::\+Language\+Nodable}}.
+
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_language_aaf7388c50609655e4b293815a74d936c}\label{class_nodable_1_1_language_aaf7388c50609655e4b293815a74d936c}} 
+\index{Nodable::Language@{Nodable::Language}!dictionnary@{dictionnary}}
+\index{dictionnary@{dictionnary}!Nodable::Language@{Nodable::Language}}
+\doxysubsubsection{\texorpdfstring{dictionnary}{dictionnary}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_nodable_1_1_dictionnary}{Dictionnary}} Nodable\+::\+Language\+::dictionnary}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sources/\+Language/\mbox{\hyperlink{_language_8h}{Language.\+h}}\item 
+sources/\+Language/\mbox{\hyperlink{_language_8cpp}{Language.\+cpp}}\end{DoxyCompactItemize}

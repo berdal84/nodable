@@ -1,0 +1,237 @@
+\hypertarget{class_nodable_1_1_node_view}{}\doxysection{Nodable\+::Node\+View Class Reference}
+\label{class_nodable_1_1_node_view}\index{Nodable::NodeView@{Nodable::NodeView}}
+
+
+{\ttfamily \#include $<$Node\+View.\+h$>$}
+
+Inheritance diagram for Nodable\+::Node\+View\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=4.000000cm]{class_nodable_1_1_node_view}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_nodable_1_1_node_view_ad348fb53ac7ceac5e12e0e221295e87d}{Node\+View}} ()
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_node_view_a43aeea4745075993f3e747f2266b0898}{draw}} () override
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_node_view_a5e66b3512d709653588e2eb901c62c58}{update}} () override
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_node_view_a9a67744bb234e7b5e4f7a7505b1cca8b}{update\+Input\+Connected\+Nodes}} (\mbox{\hyperlink{class_nodable_1_1_node}{Nodable\+::\+Node}} $\ast$node, float delta\+Time)
+\item 
+Im\+Vec2 \mbox{\hyperlink{class_nodable_1_1_node_view_a403feb4a08ad565439d889eeda8de725}{get\+Rounded\+Position}} () const
+\item 
+Im\+Rect \mbox{\hyperlink{class_nodable_1_1_node_view_ad2d35e07ef34f002d91aba19417879b8}{get\+Rect}} () const
+\item 
+Im\+Vec2 \mbox{\hyperlink{class_nodable_1_1_node_view_ab9886e8aad203cf7d669d578af2581d2}{get\+Connector\+Position}} (const std\+::string \&, \mbox{\hyperlink{namespace_nodable_aeecdd6525da631f9e6ffa2e7700c5c4a}{Way}}) const
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_node_view_a124fbf44cd7d2bd4eb0965b2063b38ce}{set\+Position}} (Im\+Vec2)
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_node_view_a26f3d26878545b438178be29cc353873}{translate}} (Im\+Vec2)
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_node_view_a6268796e26b0a7bdfe69e0bc943f1c35}{arrange\+Recursively}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \mbox{\hyperlink{class_nodable_1_1_node_view_a3aa33a40fb66efcb4830b4c1a9abfade}{Arrange\+Recursively}} (\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$)
+\item 
+static void \mbox{\hyperlink{class_nodable_1_1_node_view_a9a8f9798af09c49ba38b9ca9a77e26c5}{Set\+Selected}} (\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$)
+\item 
+static \mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_node_view_a980413cd4a0ac57057fd7f371d7c1121}{Get\+Selected}} ()
+\item 
+static const \mbox{\hyperlink{class_nodable_1_1_connector}{Connector}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_node_view_ac72b697811d7e55c7e4684061c97552f}{Get\+Dragged\+Connector}} ()
+\item 
+static void \mbox{\hyperlink{class_nodable_1_1_node_view_a9ea375d8adaaf3a5316fe741a6f39035}{Reset\+Dragged\+Connector}} ()
+\item 
+static void \mbox{\hyperlink{class_nodable_1_1_node_view_a7772bf044a6573544f8f24a915d63c3c}{Start\+Drag\+Connector}} (const \mbox{\hyperlink{class_nodable_1_1_connector}{Connector}} $\ast$\+\_\+connector)
+\item 
+static const \mbox{\hyperlink{class_nodable_1_1_connector}{Connector}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_node_view_ad7292313f6305ffab7a28ad31abff752}{Get\+Hovered\+Connector}} ()
+\item 
+static bool \mbox{\hyperlink{class_nodable_1_1_node_view_aceadc54a2fa6d701ce91cfa920be9438}{Is\+Selected}} (\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$)
+\item 
+static void \mbox{\hyperlink{class_nodable_1_1_node_view_afecc7713d68640a40b28c1dd59f65def}{Start\+Drag\+Node}} (\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$)
+\item 
+static bool \mbox{\hyperlink{class_nodable_1_1_node_view_a5d16169cf02c1e83462f4267ba3410c5}{Is\+A\+Node\+Dragged}} ()
+\item 
+static bool \mbox{\hyperlink{class_nodable_1_1_node_view_abc73d3ad9591671be9774822a67cc557}{Is\+Inside\+Rect}} (\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$, Im\+Rect)
+\item 
+static void \mbox{\hyperlink{class_nodable_1_1_node_view_ac21402b0b982a7321d4b04c57079ed55}{Constraint\+To\+Rect}} (\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$, Im\+Rect)
+\item 
+static \mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$ \mbox{\hyperlink{class_nodable_1_1_node_view_a5089cbd0f4ae0faf47c28a12fe900671}{Get\+Dragged}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static \mbox{\hyperlink{namespace_nodable_a59bb0a96167a217d18952114d71a2550}{Draw\+Detail\+\_\+}} \mbox{\hyperlink{class_nodable_1_1_node_view_aa0a101900741e644dfc6a7a6c31877b7}{s\+\_\+draw\+Detail}} = \mbox{\hyperlink{namespace_nodable_a59bb0a96167a217d18952114d71a2550ad38a383010d89d09a4603ed0af116bec}{Nodable\+::\+Draw\+Detail\+\_\+\+Default}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_node_view_ad348fb53ac7ceac5e12e0e221295e87d}\label{class_nodable_1_1_node_view_ad348fb53ac7ceac5e12e0e221295e87d}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!NodeView@{NodeView}}
+\index{NodeView@{NodeView}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{NodeView()}{NodeView()}}
+{\footnotesize\ttfamily Nodable\+::\+Node\+View\+::\+Node\+View (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a6268796e26b0a7bdfe69e0bc943f1c35}\label{class_nodable_1_1_node_view_a6268796e26b0a7bdfe69e0bc943f1c35}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!arrangeRecursively@{arrangeRecursively}}
+\index{arrangeRecursively@{arrangeRecursively}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{arrangeRecursively()}{arrangeRecursively()}}
+{\footnotesize\ttfamily void Node\+View\+::arrange\+Recursively (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a3aa33a40fb66efcb4830b4c1a9abfade}\label{class_nodable_1_1_node_view_a3aa33a40fb66efcb4830b4c1a9abfade}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!ArrangeRecursively@{ArrangeRecursively}}
+\index{ArrangeRecursively@{ArrangeRecursively}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{ArrangeRecursively()}{ArrangeRecursively()}}
+{\footnotesize\ttfamily void Node\+View\+::\+Arrange\+Recursively (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$}]{\+\_\+view }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_ac21402b0b982a7321d4b04c57079ed55}\label{class_nodable_1_1_node_view_ac21402b0b982a7321d4b04c57079ed55}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!ConstraintToRect@{ConstraintToRect}}
+\index{ConstraintToRect@{ConstraintToRect}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{ConstraintToRect()}{ConstraintToRect()}}
+{\footnotesize\ttfamily void Nodable\+::\+Node\+View\+::\+Constraint\+To\+Rect (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$}]{\+\_\+view,  }\item[{Im\+Rect}]{\+\_\+rect }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a43aeea4745075993f3e747f2266b0898}\label{class_nodable_1_1_node_view_a43aeea4745075993f3e747f2266b0898}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!draw@{draw}}
+\index{draw@{draw}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily bool Node\+View\+::draw (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{class_nodable_1_1_view_a615a038fee9fca08f9a1b235bb5bcdcb}{Nodable\+::\+View}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_ab9886e8aad203cf7d669d578af2581d2}\label{class_nodable_1_1_node_view_ab9886e8aad203cf7d669d578af2581d2}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!getConnectorPosition@{getConnectorPosition}}
+\index{getConnectorPosition@{getConnectorPosition}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{getConnectorPosition()}{getConnectorPosition()}}
+{\footnotesize\ttfamily Im\+Vec2 Node\+View\+::get\+Connector\+Position (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{\+\_\+name,  }\item[{\mbox{\hyperlink{namespace_nodable_aeecdd6525da631f9e6ffa2e7700c5c4a}{Way}}}]{\+\_\+way }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a5089cbd0f4ae0faf47c28a12fe900671}\label{class_nodable_1_1_node_view_a5089cbd0f4ae0faf47c28a12fe900671}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!GetDragged@{GetDragged}}
+\index{GetDragged@{GetDragged}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{GetDragged()}{GetDragged()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$ Node\+View\+::\+Get\+Dragged (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_ac72b697811d7e55c7e4684061c97552f}\label{class_nodable_1_1_node_view_ac72b697811d7e55c7e4684061c97552f}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!GetDraggedConnector@{GetDraggedConnector}}
+\index{GetDraggedConnector@{GetDraggedConnector}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{GetDraggedConnector()}{GetDraggedConnector()}}
+{\footnotesize\ttfamily static const \mbox{\hyperlink{class_nodable_1_1_connector}{Connector}}$\ast$ Nodable\+::\+Node\+View\+::\+Get\+Dragged\+Connector (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_ad7292313f6305ffab7a28ad31abff752}\label{class_nodable_1_1_node_view_ad7292313f6305ffab7a28ad31abff752}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!GetHoveredConnector@{GetHoveredConnector}}
+\index{GetHoveredConnector@{GetHoveredConnector}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{GetHoveredConnector()}{GetHoveredConnector()}}
+{\footnotesize\ttfamily static const \mbox{\hyperlink{class_nodable_1_1_connector}{Connector}}$\ast$ Nodable\+::\+Node\+View\+::\+Get\+Hovered\+Connector (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_ad2d35e07ef34f002d91aba19417879b8}\label{class_nodable_1_1_node_view_ad2d35e07ef34f002d91aba19417879b8}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!getRect@{getRect}}
+\index{getRect@{getRect}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{getRect()}{getRect()}}
+{\footnotesize\ttfamily Im\+Rect Nodable\+::\+Node\+View\+::get\+Rect (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a403feb4a08ad565439d889eeda8de725}\label{class_nodable_1_1_node_view_a403feb4a08ad565439d889eeda8de725}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!getRoundedPosition@{getRoundedPosition}}
+\index{getRoundedPosition@{getRoundedPosition}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{getRoundedPosition()}{getRoundedPosition()}}
+{\footnotesize\ttfamily Im\+Vec2 Node\+View\+::get\+Rounded\+Position (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a980413cd4a0ac57057fd7f371d7c1121}\label{class_nodable_1_1_node_view_a980413cd4a0ac57057fd7f371d7c1121}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!GetSelected@{GetSelected}}
+\index{GetSelected@{GetSelected}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{GetSelected()}{GetSelected()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$ Node\+View\+::\+Get\+Selected (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a5d16169cf02c1e83462f4267ba3410c5}\label{class_nodable_1_1_node_view_a5d16169cf02c1e83462f4267ba3410c5}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!IsANodeDragged@{IsANodeDragged}}
+\index{IsANodeDragged@{IsANodeDragged}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{IsANodeDragged()}{IsANodeDragged()}}
+{\footnotesize\ttfamily bool Node\+View\+::\+Is\+A\+Node\+Dragged (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_abc73d3ad9591671be9774822a67cc557}\label{class_nodable_1_1_node_view_abc73d3ad9591671be9774822a67cc557}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!IsInsideRect@{IsInsideRect}}
+\index{IsInsideRect@{IsInsideRect}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{IsInsideRect()}{IsInsideRect()}}
+{\footnotesize\ttfamily bool Nodable\+::\+Node\+View\+::\+Is\+Inside\+Rect (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$}]{\+\_\+node\+View,  }\item[{Im\+Rect}]{\+\_\+rect }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_aceadc54a2fa6d701ce91cfa920be9438}\label{class_nodable_1_1_node_view_aceadc54a2fa6d701ce91cfa920be9438}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!IsSelected@{IsSelected}}
+\index{IsSelected@{IsSelected}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{IsSelected()}{IsSelected()}}
+{\footnotesize\ttfamily bool Node\+View\+::\+Is\+Selected (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$}]{\+\_\+view }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a9ea375d8adaaf3a5316fe741a6f39035}\label{class_nodable_1_1_node_view_a9ea375d8adaaf3a5316fe741a6f39035}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!ResetDraggedConnector@{ResetDraggedConnector}}
+\index{ResetDraggedConnector@{ResetDraggedConnector}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{ResetDraggedConnector()}{ResetDraggedConnector()}}
+{\footnotesize\ttfamily static void Nodable\+::\+Node\+View\+::\+Reset\+Dragged\+Connector (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a124fbf44cd7d2bd4eb0965b2063b38ce}\label{class_nodable_1_1_node_view_a124fbf44cd7d2bd4eb0965b2063b38ce}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!setPosition@{setPosition}}
+\index{setPosition@{setPosition}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{setPosition()}{setPosition()}}
+{\footnotesize\ttfamily void Node\+View\+::set\+Position (\begin{DoxyParamCaption}\item[{Im\+Vec2}]{\+\_\+position }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a9a8f9798af09c49ba38b9ca9a77e26c5}\label{class_nodable_1_1_node_view_a9a8f9798af09c49ba38b9ca9a77e26c5}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!SetSelected@{SetSelected}}
+\index{SetSelected@{SetSelected}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{SetSelected()}{SetSelected()}}
+{\footnotesize\ttfamily void Node\+View\+::\+Set\+Selected (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$}]{\+\_\+view }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a7772bf044a6573544f8f24a915d63c3c}\label{class_nodable_1_1_node_view_a7772bf044a6573544f8f24a915d63c3c}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!StartDragConnector@{StartDragConnector}}
+\index{StartDragConnector@{StartDragConnector}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{StartDragConnector()}{StartDragConnector()}}
+{\footnotesize\ttfamily static void Nodable\+::\+Node\+View\+::\+Start\+Drag\+Connector (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_nodable_1_1_connector}{Connector}} $\ast$}]{\+\_\+connector }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_afecc7713d68640a40b28c1dd59f65def}\label{class_nodable_1_1_node_view_afecc7713d68640a40b28c1dd59f65def}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!StartDragNode@{StartDragNode}}
+\index{StartDragNode@{StartDragNode}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{StartDragNode()}{StartDragNode()}}
+{\footnotesize\ttfamily void Node\+View\+::\+Start\+Drag\+Node (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_node_view}{Node\+View}} $\ast$}]{\+\_\+view }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a26f3d26878545b438178be29cc353873}\label{class_nodable_1_1_node_view_a26f3d26878545b438178be29cc353873}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!translate@{translate}}
+\index{translate@{translate}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{translate()}{translate()}}
+{\footnotesize\ttfamily void Node\+View\+::translate (\begin{DoxyParamCaption}\item[{Im\+Vec2}]{\+\_\+delta }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a5e66b3512d709653588e2eb901c62c58}\label{class_nodable_1_1_node_view_a5e66b3512d709653588e2eb901c62c58}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!update@{update}}
+\index{update@{update}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{update()}{update()}}
+{\footnotesize\ttfamily bool Node\+View\+::update (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Reimplemented from \mbox{\hyperlink{class_nodable_1_1_component_a63f25d64e7ba670299c8c5c64671bb1e}{Nodable\+::\+Component}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_node_view_a9a67744bb234e7b5e4f7a7505b1cca8b}\label{class_nodable_1_1_node_view_a9a67744bb234e7b5e4f7a7505b1cca8b}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!updateInputConnectedNodes@{updateInputConnectedNodes}}
+\index{updateInputConnectedNodes@{updateInputConnectedNodes}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{updateInputConnectedNodes()}{updateInputConnectedNodes()}}
+{\footnotesize\ttfamily void Node\+View\+::update\+Input\+Connected\+Nodes (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_node}{Nodable\+::\+Node}} $\ast$}]{node,  }\item[{float}]{delta\+Time }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_node_view_aa0a101900741e644dfc6a7a6c31877b7}\label{class_nodable_1_1_node_view_aa0a101900741e644dfc6a7a6c31877b7}} 
+\index{Nodable::NodeView@{Nodable::NodeView}!s\_drawDetail@{s\_drawDetail}}
+\index{s\_drawDetail@{s\_drawDetail}!Nodable::NodeView@{Nodable::NodeView}}
+\doxysubsubsection{\texorpdfstring{s\_drawDetail}{s\_drawDetail}}
+{\footnotesize\ttfamily \mbox{\hyperlink{namespace_nodable_a59bb0a96167a217d18952114d71a2550}{Draw\+Detail\+\_\+}} Node\+View\+::s\+\_\+draw\+Detail = \mbox{\hyperlink{namespace_nodable_a59bb0a96167a217d18952114d71a2550ad38a383010d89d09a4603ed0af116bec}{Nodable\+::\+Draw\+Detail\+\_\+\+Default}}\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sources/\+Component/\mbox{\hyperlink{_node_view_8h}{Node\+View.\+h}}\item 
+sources/\+Component/\mbox{\hyperlink{_node_view_8cpp}{Node\+View.\+cpp}}\end{DoxyCompactItemize}

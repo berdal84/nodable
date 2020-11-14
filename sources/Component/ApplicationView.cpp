@@ -275,7 +275,7 @@ bool ApplicationView::draw()
         if ( ImGui::BeginPopupModal("Startup Screen", NULL, flags) )
         {
             std::filesystem::path path(NODABLE_ASSETS_DIR"/nodable-logo-xs.png");
-            auto logo = Texture::GetTexture(path);
+            auto logo = Texture::GetWithPath(path);
             ImGui::Image((void*)(intptr_t)logo->image, ImVec2(logo->width, logo->height));
 
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(25.0f, 20.0f) );

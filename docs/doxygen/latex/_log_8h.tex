@@ -1,0 +1,214 @@
+\hypertarget{_log_8h}{}\doxysection{sources/\+Core/\+Log.h File Reference}
+\label{_log_8h}\index{sources/Core/Log.h@{sources/Core/Log.h}}
+{\ttfamily \#include $<$vector$>$}\newline
+{\ttfamily \#include $<$string$>$}\newline
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_nodable_1_1_message}{Nodable\+::\+Message}}
+\item 
+class \mbox{\hyperlink{class_nodable_1_1_log}{Nodable\+::\+Log}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+ \mbox{\hyperlink{namespace_nodable}{Nodable}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{_log_8h_ab702106cf3b3e96750b6845ded4e0299}{R\+E\+S\+ET}}~\char`\"{}\textbackslash{}033\mbox{[}0m\char`\"{}
+\item 
+\#define \mbox{\hyperlink{_log_8h_a7b3b25cba33b07c303f3060fe41887f6}{B\+L\+A\+CK}}~\char`\"{}\textbackslash{}033\mbox{[}30m\char`\"{}      /$\ast$ Black $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_a8d23feea868a983c8c2b661e1e16972f}{R\+ED}}~\char`\"{}\textbackslash{}033\mbox{[}31m\char`\"{}      /$\ast$ Red $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_acfbc006ea433ad708fdee3e82996e721}{G\+R\+E\+EN}}~\char`\"{}\textbackslash{}033\mbox{[}32m\char`\"{}      /$\ast$ Green $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_abf681265909adf3d3e8116c93c0ba179}{Y\+E\+L\+L\+OW}}~\char`\"{}\textbackslash{}033\mbox{[}33m\char`\"{}      /$\ast$ Yellow $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_a79d10e672abb49ad63eeaa8aaef57c38}{B\+L\+UE}}~\char`\"{}\textbackslash{}033\mbox{[}34m\char`\"{}      /$\ast$ Blue $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_a6f699060902f800f12aaae150f3a708e}{M\+A\+G\+E\+N\+TA}}~\char`\"{}\textbackslash{}033\mbox{[}35m\char`\"{}      /$\ast$ Magenta $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_ad243f93c16bc4c1d3e0a13b84421d760}{C\+Y\+AN}}~\char`\"{}\textbackslash{}033\mbox{[}36m\char`\"{}      /$\ast$ Cyan $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_a87b537f5fa5c109d3c05c13d6b18f382}{W\+H\+I\+TE}}~\char`\"{}\textbackslash{}033\mbox{[}37m\char`\"{}      /$\ast$ White $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_aef2fe95894117165b29036718221979f}{B\+O\+L\+D\+B\+L\+A\+CK}}~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}30m\char`\"{}      /$\ast$ Bold Black $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_ab912d02c7998c3d47d05f87be4e2c920}{B\+O\+L\+D\+R\+ED}}~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}31m\char`\"{}      /$\ast$ Bold Red $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_a4a6c893a1703c33ede7d702fe5f97c91}{B\+O\+L\+D\+G\+R\+E\+EN}}~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}32m\char`\"{}      /$\ast$ Bold Green $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_a8cec79108dfc3c61e8e32d390ec28b26}{B\+O\+L\+D\+Y\+E\+L\+L\+OW}}~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}33m\char`\"{}      /$\ast$ Bold Yellow $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_a11e77c19555cbd15bcc744ff36a18635}{B\+O\+L\+D\+B\+L\+UE}}~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}34m\char`\"{}      /$\ast$ Bold Blue $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_ac4723c5ee12cfca16e2172b57b99cb07}{B\+O\+L\+D\+M\+A\+G\+E\+N\+TA}}~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}35m\char`\"{}      /$\ast$ Bold Magenta $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_ae87af5e6363eb1913b17f24dcb60a22d}{B\+O\+L\+D\+C\+Y\+AN}}~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}36m\char`\"{}      /$\ast$ Bold Cyan $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_aa4ef051614aa0bd503b0a18ee158c5d7}{B\+O\+L\+D\+W\+H\+I\+TE}}~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}37m\char`\"{}      /$\ast$ Bold White $\ast$/
+\item 
+\#define \mbox{\hyperlink{_log_8h_acb00992efca56626cdf0907e5edb5b51}{KO}}~\mbox{\hyperlink{_log_8h_a8d23feea868a983c8c2b661e1e16972f}{R\+ED}} \char`\"{}\mbox{[}KO\mbox{]}\char`\"{} R\+E\+S\+ET
+\item 
+\#define \mbox{\hyperlink{_log_8h_aba51915c87d64af47fb1cc59348961c9}{OK}}~\mbox{\hyperlink{_log_8h_acfbc006ea433ad708fdee3e82996e721}{G\+R\+E\+EN}} \char`\"{}\mbox{[}OK\mbox{]}\char`\"{} R\+E\+S\+ET
+\item 
+\#define \mbox{\hyperlink{_log_8h_a774143da048e827ac483612d78cc342b}{L\+O\+G\+\_\+\+M\+E\+S\+S\+A\+GE}}(...)~\mbox{\hyperlink{class_nodable_1_1_log_a10c6bd50033cc768f52852d8d81a9286}{Nodable\+::\+Log\+::\+Push}}( Nodable\+::\+Log\+Type\+::\+Message, \+\_\+\+\_\+\+V\+A\+\_\+\+A\+R\+G\+S\+\_\+\+\_\+ )
+\item 
+\#define \mbox{\hyperlink{_log_8h_a754b3d074e0af4ad3c7b918dd77ecb2d}{L\+O\+G\+\_\+\+D\+E\+B\+UG}}(...)~\mbox{\hyperlink{class_nodable_1_1_log_a10c6bd50033cc768f52852d8d81a9286}{Nodable\+::\+Log\+::\+Push}}( Nodable\+::\+Log\+Type\+::\+Message, \+\_\+\+\_\+\+V\+A\+\_\+\+A\+R\+G\+S\+\_\+\+\_\+ )
+\item 
+\#define \mbox{\hyperlink{_log_8h_afef5ff03ea272d388345cf47148953d4}{L\+O\+G\+\_\+\+W\+A\+R\+N\+I\+NG}}(...)~\mbox{\hyperlink{class_nodable_1_1_log_a10c6bd50033cc768f52852d8d81a9286}{Nodable\+::\+Log\+::\+Push}}( Nodable\+::\+Log\+Type\+::\+Warning, \+\_\+\+\_\+\+V\+A\+\_\+\+A\+R\+G\+S\+\_\+\+\_\+ )
+\item 
+\#define \mbox{\hyperlink{_log_8h_ad4a9117ce894e3319e903142347a0f63}{L\+O\+G\+\_\+\+E\+R\+R\+OR}}(...)~\mbox{\hyperlink{class_nodable_1_1_log_a10c6bd50033cc768f52852d8d81a9286}{Nodable\+::\+Log\+::\+Push}}( \mbox{\hyperlink{namespace_nodable_acd78d00f37c12537264dcb5e6bb20957a4c2a8fe7eaf24721cc7a9f0175115bd4}{Nodable\+::\+Log\+Type\+::\+Error}}, \+\_\+\+\_\+\+V\+A\+\_\+\+A\+R\+G\+S\+\_\+\+\_\+ )
+\end{DoxyCompactItemize}
+\doxysubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum \mbox{\hyperlink{namespace_nodable_acd78d00f37c12537264dcb5e6bb20957}{Nodable\+::\+Log\+Type}} \{ \mbox{\hyperlink{namespace_nodable_acd78d00f37c12537264dcb5e6bb20957a4c2a8fe7eaf24721cc7a9f0175115bd4}{Nodable\+::\+Log\+Type\+::\+Message}}, 
+\mbox{\hyperlink{namespace_nodable_acd78d00f37c12537264dcb5e6bb20957a0eaadb4fcb48a0a0ed7bc9868be9fbaa}{Nodable\+::\+Log\+Type\+::\+Warning}}, 
+\mbox{\hyperlink{namespace_nodable_acd78d00f37c12537264dcb5e6bb20957a902b0d55fddef6f8d651fe1035b7d4bd}{Nodable\+::\+Log\+Type\+::\+Error}}
+ \}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{_log_8h_a7b3b25cba33b07c303f3060fe41887f6}\label{_log_8h_a7b3b25cba33b07c303f3060fe41887f6}} 
+\index{Log.h@{Log.h}!BLACK@{BLACK}}
+\index{BLACK@{BLACK}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{BLACK}{BLACK}}
+{\footnotesize\ttfamily \#define B\+L\+A\+CK~\char`\"{}\textbackslash{}033\mbox{[}30m\char`\"{}      /$\ast$ Black $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_a79d10e672abb49ad63eeaa8aaef57c38}\label{_log_8h_a79d10e672abb49ad63eeaa8aaef57c38}} 
+\index{Log.h@{Log.h}!BLUE@{BLUE}}
+\index{BLUE@{BLUE}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{BLUE}{BLUE}}
+{\footnotesize\ttfamily \#define B\+L\+UE~\char`\"{}\textbackslash{}033\mbox{[}34m\char`\"{}      /$\ast$ Blue $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_aef2fe95894117165b29036718221979f}\label{_log_8h_aef2fe95894117165b29036718221979f}} 
+\index{Log.h@{Log.h}!BOLDBLACK@{BOLDBLACK}}
+\index{BOLDBLACK@{BOLDBLACK}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{BOLDBLACK}{BOLDBLACK}}
+{\footnotesize\ttfamily \#define B\+O\+L\+D\+B\+L\+A\+CK~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}30m\char`\"{}      /$\ast$ Bold Black $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_a11e77c19555cbd15bcc744ff36a18635}\label{_log_8h_a11e77c19555cbd15bcc744ff36a18635}} 
+\index{Log.h@{Log.h}!BOLDBLUE@{BOLDBLUE}}
+\index{BOLDBLUE@{BOLDBLUE}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{BOLDBLUE}{BOLDBLUE}}
+{\footnotesize\ttfamily \#define B\+O\+L\+D\+B\+L\+UE~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}34m\char`\"{}      /$\ast$ Bold Blue $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_ae87af5e6363eb1913b17f24dcb60a22d}\label{_log_8h_ae87af5e6363eb1913b17f24dcb60a22d}} 
+\index{Log.h@{Log.h}!BOLDCYAN@{BOLDCYAN}}
+\index{BOLDCYAN@{BOLDCYAN}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{BOLDCYAN}{BOLDCYAN}}
+{\footnotesize\ttfamily \#define B\+O\+L\+D\+C\+Y\+AN~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}36m\char`\"{}      /$\ast$ Bold Cyan $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_a4a6c893a1703c33ede7d702fe5f97c91}\label{_log_8h_a4a6c893a1703c33ede7d702fe5f97c91}} 
+\index{Log.h@{Log.h}!BOLDGREEN@{BOLDGREEN}}
+\index{BOLDGREEN@{BOLDGREEN}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{BOLDGREEN}{BOLDGREEN}}
+{\footnotesize\ttfamily \#define B\+O\+L\+D\+G\+R\+E\+EN~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}32m\char`\"{}      /$\ast$ Bold Green $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_ac4723c5ee12cfca16e2172b57b99cb07}\label{_log_8h_ac4723c5ee12cfca16e2172b57b99cb07}} 
+\index{Log.h@{Log.h}!BOLDMAGENTA@{BOLDMAGENTA}}
+\index{BOLDMAGENTA@{BOLDMAGENTA}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{BOLDMAGENTA}{BOLDMAGENTA}}
+{\footnotesize\ttfamily \#define B\+O\+L\+D\+M\+A\+G\+E\+N\+TA~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}35m\char`\"{}      /$\ast$ Bold Magenta $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_ab912d02c7998c3d47d05f87be4e2c920}\label{_log_8h_ab912d02c7998c3d47d05f87be4e2c920}} 
+\index{Log.h@{Log.h}!BOLDRED@{BOLDRED}}
+\index{BOLDRED@{BOLDRED}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{BOLDRED}{BOLDRED}}
+{\footnotesize\ttfamily \#define B\+O\+L\+D\+R\+ED~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}31m\char`\"{}      /$\ast$ Bold Red $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_aa4ef051614aa0bd503b0a18ee158c5d7}\label{_log_8h_aa4ef051614aa0bd503b0a18ee158c5d7}} 
+\index{Log.h@{Log.h}!BOLDWHITE@{BOLDWHITE}}
+\index{BOLDWHITE@{BOLDWHITE}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{BOLDWHITE}{BOLDWHITE}}
+{\footnotesize\ttfamily \#define B\+O\+L\+D\+W\+H\+I\+TE~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}37m\char`\"{}      /$\ast$ Bold White $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_a8cec79108dfc3c61e8e32d390ec28b26}\label{_log_8h_a8cec79108dfc3c61e8e32d390ec28b26}} 
+\index{Log.h@{Log.h}!BOLDYELLOW@{BOLDYELLOW}}
+\index{BOLDYELLOW@{BOLDYELLOW}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{BOLDYELLOW}{BOLDYELLOW}}
+{\footnotesize\ttfamily \#define B\+O\+L\+D\+Y\+E\+L\+L\+OW~\char`\"{}\textbackslash{}033\mbox{[}1m\textbackslash{}033\mbox{[}33m\char`\"{}      /$\ast$ Bold Yellow $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_ad243f93c16bc4c1d3e0a13b84421d760}\label{_log_8h_ad243f93c16bc4c1d3e0a13b84421d760}} 
+\index{Log.h@{Log.h}!CYAN@{CYAN}}
+\index{CYAN@{CYAN}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{CYAN}{CYAN}}
+{\footnotesize\ttfamily \#define C\+Y\+AN~\char`\"{}\textbackslash{}033\mbox{[}36m\char`\"{}      /$\ast$ Cyan $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_acfbc006ea433ad708fdee3e82996e721}\label{_log_8h_acfbc006ea433ad708fdee3e82996e721}} 
+\index{Log.h@{Log.h}!GREEN@{GREEN}}
+\index{GREEN@{GREEN}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{GREEN}{GREEN}}
+{\footnotesize\ttfamily \#define G\+R\+E\+EN~\char`\"{}\textbackslash{}033\mbox{[}32m\char`\"{}      /$\ast$ Green $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_acb00992efca56626cdf0907e5edb5b51}\label{_log_8h_acb00992efca56626cdf0907e5edb5b51}} 
+\index{Log.h@{Log.h}!KO@{KO}}
+\index{KO@{KO}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{KO}{KO}}
+{\footnotesize\ttfamily \#define KO~\mbox{\hyperlink{_log_8h_a8d23feea868a983c8c2b661e1e16972f}{R\+ED}} \char`\"{}\mbox{[}KO\mbox{]}\char`\"{} R\+E\+S\+ET}
+
+\mbox{\Hypertarget{_log_8h_a754b3d074e0af4ad3c7b918dd77ecb2d}\label{_log_8h_a754b3d074e0af4ad3c7b918dd77ecb2d}} 
+\index{Log.h@{Log.h}!LOG\_DEBUG@{LOG\_DEBUG}}
+\index{LOG\_DEBUG@{LOG\_DEBUG}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{LOG\_DEBUG}{LOG\_DEBUG}}
+{\footnotesize\ttfamily \#define L\+O\+G\+\_\+\+D\+E\+B\+UG(\begin{DoxyParamCaption}\item[{}]{... }\end{DoxyParamCaption})~\mbox{\hyperlink{class_nodable_1_1_log_a10c6bd50033cc768f52852d8d81a9286}{Nodable\+::\+Log\+::\+Push}}( Nodable\+::\+Log\+Type\+::\+Message, \+\_\+\+\_\+\+V\+A\+\_\+\+A\+R\+G\+S\+\_\+\+\_\+ )}
+
+\mbox{\Hypertarget{_log_8h_ad4a9117ce894e3319e903142347a0f63}\label{_log_8h_ad4a9117ce894e3319e903142347a0f63}} 
+\index{Log.h@{Log.h}!LOG\_ERROR@{LOG\_ERROR}}
+\index{LOG\_ERROR@{LOG\_ERROR}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{LOG\_ERROR}{LOG\_ERROR}}
+{\footnotesize\ttfamily \#define L\+O\+G\+\_\+\+E\+R\+R\+OR(\begin{DoxyParamCaption}\item[{}]{... }\end{DoxyParamCaption})~\mbox{\hyperlink{class_nodable_1_1_log_a10c6bd50033cc768f52852d8d81a9286}{Nodable\+::\+Log\+::\+Push}}( \mbox{\hyperlink{namespace_nodable_acd78d00f37c12537264dcb5e6bb20957a4c2a8fe7eaf24721cc7a9f0175115bd4}{Nodable\+::\+Log\+Type\+::\+Error}}, \+\_\+\+\_\+\+V\+A\+\_\+\+A\+R\+G\+S\+\_\+\+\_\+ )}
+
+\mbox{\Hypertarget{_log_8h_a774143da048e827ac483612d78cc342b}\label{_log_8h_a774143da048e827ac483612d78cc342b}} 
+\index{Log.h@{Log.h}!LOG\_MESSAGE@{LOG\_MESSAGE}}
+\index{LOG\_MESSAGE@{LOG\_MESSAGE}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{LOG\_MESSAGE}{LOG\_MESSAGE}}
+{\footnotesize\ttfamily \#define L\+O\+G\+\_\+\+M\+E\+S\+S\+A\+GE(\begin{DoxyParamCaption}\item[{}]{... }\end{DoxyParamCaption})~\mbox{\hyperlink{class_nodable_1_1_log_a10c6bd50033cc768f52852d8d81a9286}{Nodable\+::\+Log\+::\+Push}}( Nodable\+::\+Log\+Type\+::\+Message, \+\_\+\+\_\+\+V\+A\+\_\+\+A\+R\+G\+S\+\_\+\+\_\+ )}
+
+\mbox{\Hypertarget{_log_8h_afef5ff03ea272d388345cf47148953d4}\label{_log_8h_afef5ff03ea272d388345cf47148953d4}} 
+\index{Log.h@{Log.h}!LOG\_WARNING@{LOG\_WARNING}}
+\index{LOG\_WARNING@{LOG\_WARNING}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{LOG\_WARNING}{LOG\_WARNING}}
+{\footnotesize\ttfamily \#define L\+O\+G\+\_\+\+W\+A\+R\+N\+I\+NG(\begin{DoxyParamCaption}\item[{}]{... }\end{DoxyParamCaption})~\mbox{\hyperlink{class_nodable_1_1_log_a10c6bd50033cc768f52852d8d81a9286}{Nodable\+::\+Log\+::\+Push}}( Nodable\+::\+Log\+Type\+::\+Warning, \+\_\+\+\_\+\+V\+A\+\_\+\+A\+R\+G\+S\+\_\+\+\_\+ )}
+
+\mbox{\Hypertarget{_log_8h_a6f699060902f800f12aaae150f3a708e}\label{_log_8h_a6f699060902f800f12aaae150f3a708e}} 
+\index{Log.h@{Log.h}!MAGENTA@{MAGENTA}}
+\index{MAGENTA@{MAGENTA}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{MAGENTA}{MAGENTA}}
+{\footnotesize\ttfamily \#define M\+A\+G\+E\+N\+TA~\char`\"{}\textbackslash{}033\mbox{[}35m\char`\"{}      /$\ast$ Magenta $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_aba51915c87d64af47fb1cc59348961c9}\label{_log_8h_aba51915c87d64af47fb1cc59348961c9}} 
+\index{Log.h@{Log.h}!OK@{OK}}
+\index{OK@{OK}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{OK}{OK}}
+{\footnotesize\ttfamily \#define OK~\mbox{\hyperlink{_log_8h_acfbc006ea433ad708fdee3e82996e721}{G\+R\+E\+EN}} \char`\"{}\mbox{[}OK\mbox{]}\char`\"{} R\+E\+S\+ET}
+
+\mbox{\Hypertarget{_log_8h_a8d23feea868a983c8c2b661e1e16972f}\label{_log_8h_a8d23feea868a983c8c2b661e1e16972f}} 
+\index{Log.h@{Log.h}!RED@{RED}}
+\index{RED@{RED}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{RED}{RED}}
+{\footnotesize\ttfamily \#define R\+ED~\char`\"{}\textbackslash{}033\mbox{[}31m\char`\"{}      /$\ast$ Red $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_ab702106cf3b3e96750b6845ded4e0299}\label{_log_8h_ab702106cf3b3e96750b6845ded4e0299}} 
+\index{Log.h@{Log.h}!RESET@{RESET}}
+\index{RESET@{RESET}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{RESET}{RESET}}
+{\footnotesize\ttfamily \#define R\+E\+S\+ET~\char`\"{}\textbackslash{}033\mbox{[}0m\char`\"{}}
+
+\mbox{\Hypertarget{_log_8h_a87b537f5fa5c109d3c05c13d6b18f382}\label{_log_8h_a87b537f5fa5c109d3c05c13d6b18f382}} 
+\index{Log.h@{Log.h}!WHITE@{WHITE}}
+\index{WHITE@{WHITE}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{WHITE}{WHITE}}
+{\footnotesize\ttfamily \#define W\+H\+I\+TE~\char`\"{}\textbackslash{}033\mbox{[}37m\char`\"{}      /$\ast$ White $\ast$/}
+
+\mbox{\Hypertarget{_log_8h_abf681265909adf3d3e8116c93c0ba179}\label{_log_8h_abf681265909adf3d3e8116c93c0ba179}} 
+\index{Log.h@{Log.h}!YELLOW@{YELLOW}}
+\index{YELLOW@{YELLOW}!Log.h@{Log.h}}
+\doxysubsubsection{\texorpdfstring{YELLOW}{YELLOW}}
+{\footnotesize\ttfamily \#define Y\+E\+L\+L\+OW~\char`\"{}\textbackslash{}033\mbox{[}33m\char`\"{}      /$\ast$ Yellow $\ast$/}
+

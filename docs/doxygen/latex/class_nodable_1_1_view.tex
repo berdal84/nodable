@@ -1,0 +1,227 @@
+\hypertarget{class_nodable_1_1_view}{}\doxysection{Nodable\+::View Class Reference}
+\label{class_nodable_1_1_view}\index{Nodable::View@{Nodable::View}}
+
+
+{\ttfamily \#include $<$View.\+h$>$}
+
+Inheritance diagram for Nodable\+::View\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.731707cm]{class_nodable_1_1_view}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0}{Color\+Type\+\_\+}} \{ \newline
+\mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0adc161ea5a1fc04d834399bd9472ed10d}{Color\+Type\+\_\+\+Fill}}, 
+\mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0ab74e7a4caaf59a6fa27df8536bfb9a18}{Color\+Type\+\_\+\+Highlighted}}, 
+\mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0a5c99d21693a96f2fc167530b2504a673}{Color\+Type\+\_\+\+Border}}, 
+\mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0abfb8f9e9f3856dcf967594415413eed0}{Color\+Type\+\_\+\+Border\+Highlights}}, 
+\newline
+\mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0ad6eadb69f46b4bf93cd05d8a9414baaa}{Color\+Type\+\_\+\+Shadow}}, 
+\mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0a89aad2c45962a085accce7cfc644ecc2}{Color\+Type\+\_\+\+C\+O\+U\+NT}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_nodable_1_1_view_a44ad60a768422d3fa8fbd7576950080a}{View}} ()
+\item 
+virtual \mbox{\hyperlink{class_nodable_1_1_view_ab71ea61a6bbe08e70d2fee853a64e377}{$\sim$\+View}} ()
+\item 
+virtual bool \mbox{\hyperlink{class_nodable_1_1_view_a615a038fee9fca08f9a1b235bb5bcdcb}{draw}} ()=0
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_view_a6d30d37461dc62404a8cb2046a966b4e}{draw\+As\+Child}} (const char $\ast$\+\_\+name, const Im\+Vec2 \&\+\_\+size, bool border=false, Im\+Gui\+Window\+Flags flags=0)
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_view_a0496d17aaf163ae12783891e0bb170cb}{set\+Color}} (\mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0}{Color\+Type\+\_\+}}, Im\+Color)
+\item 
+Im\+Color \mbox{\hyperlink{class_nodable_1_1_view_a653fdd5ef8b6ac89409b30c64d15c27e}{get\+Color}} (\mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0}{Color\+Type\+\_\+}})
+\item 
+void \mbox{\hyperlink{class_nodable_1_1_view_a41c26ec12eb3378832e7d9f9bec8dbbb}{set\+Visible}} (bool \+\_\+b)
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_view_acf2bb3ebb0e1f76c364fcf912e507fa3}{is\+Visible}} () const
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_view_aa9aee02e7b9ad02917f4bd74c848e1c6}{is\+Hovered}} () const
+\item 
+M\+I\+R\+R\+O\+R\+\_\+\+C\+L\+A\+SS() \mbox{\hyperlink{class_nodable_1_1_view_abf5edefe7d4ef6fe21f3f43cc42ebd11}{View}} (M\+I\+R\+R\+O\+R\+\_\+\+P\+A\+R\+E\+NT(\mbox{\hyperlink{class_nodable_1_1_component}{Component}}))
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \mbox{\hyperlink{class_nodable_1_1_view_a982567fba5343c60e0e3669d1088c912}{Draw\+Rect\+Shadow}} (Im\+Vec2 \+\_\+top\+Left\+Corner, Im\+Vec2 \+\_\+bottom\+Right\+Corner, float \+\_\+border\+Radius=0.\+0f, int \+\_\+shadow\+Radius=10, Im\+Vec2 \+\_\+shadow\+Offset=Im\+Vec2(), Im\+Color \+\_\+shadow\+Color=Im\+Color(0.\+0f, 0.\+0f, 0.\+0f))
+\item 
+static void \mbox{\hyperlink{class_nodable_1_1_view_ad440cf8a20897abc20d19d9daf8b4574}{Shadowed\+Text}} (Im\+Vec2 \+\_\+offset, Im\+Color \+\_\+shadow\+Color, const char $\ast$,...)
+\item 
+static void \mbox{\hyperlink{class_nodable_1_1_view_ab5b0ac2a203033322aca5fe3b7918e8b}{Colored\+Shadowed\+Text}} (Im\+Vec2 \+\_\+offset, Im\+Color \+\_\+text\+Color, Im\+Color \+\_\+shadow\+Color, const char $\ast$,...)
+\item 
+static Im\+Vec2 \mbox{\hyperlink{class_nodable_1_1_view_a84600f9d40075fbe8067f58a9dd54215}{Cursor\+Pos\+To\+Screen\+Pos}} (Im\+Vec2)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Im\+Rect \mbox{\hyperlink{class_nodable_1_1_view_aa019d60220e1a60cce80f3de30dd7827}{visible\+Rect}}
+\item 
+Im\+Rect \mbox{\hyperlink{class_nodable_1_1_view_ab17689e31b503f3591817aa4f8ee2ba4}{visible\+Screen\+Rect}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_view_a335e1bc9f7f9333b5ecbc2f31413c860}{hovered}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0}\label{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0}} 
+\index{Nodable::View@{Nodable::View}!ColorType\_@{ColorType\_}}
+\index{ColorType\_@{ColorType\_}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{ColorType\_}{ColorType\_}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0}{Nodable\+::\+View\+::\+Color\+Type\+\_\+}}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColorType\_Fill@{ColorType\_Fill}!Nodable::View@{Nodable::View}}\index{Nodable::View@{Nodable::View}!ColorType\_Fill@{ColorType\_Fill}}}\mbox{\Hypertarget{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0adc161ea5a1fc04d834399bd9472ed10d}\label{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0adc161ea5a1fc04d834399bd9472ed10d}} 
+Color\+Type\+\_\+\+Fill&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColorType\_Highlighted@{ColorType\_Highlighted}!Nodable::View@{Nodable::View}}\index{Nodable::View@{Nodable::View}!ColorType\_Highlighted@{ColorType\_Highlighted}}}\mbox{\Hypertarget{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0ab74e7a4caaf59a6fa27df8536bfb9a18}\label{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0ab74e7a4caaf59a6fa27df8536bfb9a18}} 
+Color\+Type\+\_\+\+Highlighted&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColorType\_Border@{ColorType\_Border}!Nodable::View@{Nodable::View}}\index{Nodable::View@{Nodable::View}!ColorType\_Border@{ColorType\_Border}}}\mbox{\Hypertarget{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0a5c99d21693a96f2fc167530b2504a673}\label{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0a5c99d21693a96f2fc167530b2504a673}} 
+Color\+Type\+\_\+\+Border&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColorType\_BorderHighlights@{ColorType\_BorderHighlights}!Nodable::View@{Nodable::View}}\index{Nodable::View@{Nodable::View}!ColorType\_BorderHighlights@{ColorType\_BorderHighlights}}}\mbox{\Hypertarget{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0abfb8f9e9f3856dcf967594415413eed0}\label{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0abfb8f9e9f3856dcf967594415413eed0}} 
+Color\+Type\+\_\+\+Border\+Highlights&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColorType\_Shadow@{ColorType\_Shadow}!Nodable::View@{Nodable::View}}\index{Nodable::View@{Nodable::View}!ColorType\_Shadow@{ColorType\_Shadow}}}\mbox{\Hypertarget{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0ad6eadb69f46b4bf93cd05d8a9414baaa}\label{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0ad6eadb69f46b4bf93cd05d8a9414baaa}} 
+Color\+Type\+\_\+\+Shadow&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ColorType\_COUNT@{ColorType\_COUNT}!Nodable::View@{Nodable::View}}\index{Nodable::View@{Nodable::View}!ColorType\_COUNT@{ColorType\_COUNT}}}\mbox{\Hypertarget{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0a89aad2c45962a085accce7cfc644ecc2}\label{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0a89aad2c45962a085accce7cfc644ecc2}} 
+Color\+Type\+\_\+\+C\+O\+U\+NT&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_view_a44ad60a768422d3fa8fbd7576950080a}\label{class_nodable_1_1_view_a44ad60a768422d3fa8fbd7576950080a}} 
+\index{Nodable::View@{Nodable::View}!View@{View}}
+\index{View@{View}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{View()}{View()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily View\+::\+View (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_ab71ea61a6bbe08e70d2fee853a64e377}\label{class_nodable_1_1_view_ab71ea61a6bbe08e70d2fee853a64e377}} 
+\index{Nodable::View@{Nodable::View}!````~View@{$\sim$View}}
+\index{````~View@{$\sim$View}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{$\sim$View()}{~View()}}
+{\footnotesize\ttfamily virtual Nodable\+::\+View\+::$\sim$\+View (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_abf5edefe7d4ef6fe21f3f43cc42ebd11}\label{class_nodable_1_1_view_abf5edefe7d4ef6fe21f3f43cc42ebd11}} 
+\index{Nodable::View@{Nodable::View}!View@{View}}
+\index{View@{View}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{View()}{View()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily M\+I\+R\+R\+O\+R\+\_\+\+C\+L\+A\+SS() Nodable\+::\+View\+::\+View (\begin{DoxyParamCaption}\item[{M\+I\+R\+R\+O\+R\+\_\+\+P\+A\+R\+E\+NT(\mbox{\hyperlink{class_nodable_1_1_component}{Component}})}]{ }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_view_ab5b0ac2a203033322aca5fe3b7918e8b}\label{class_nodable_1_1_view_ab5b0ac2a203033322aca5fe3b7918e8b}} 
+\index{Nodable::View@{Nodable::View}!ColoredShadowedText@{ColoredShadowedText}}
+\index{ColoredShadowedText@{ColoredShadowedText}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{ColoredShadowedText()}{ColoredShadowedText()}}
+{\footnotesize\ttfamily void View\+::\+Colored\+Shadowed\+Text (\begin{DoxyParamCaption}\item[{Im\+Vec2}]{\+\_\+offset,  }\item[{Im\+Color}]{\+\_\+text\+Color,  }\item[{Im\+Color}]{\+\_\+shadow\+Color,  }\item[{const char $\ast$}]{\+\_\+format,  }\item[{}]{... }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_a84600f9d40075fbe8067f58a9dd54215}\label{class_nodable_1_1_view_a84600f9d40075fbe8067f58a9dd54215}} 
+\index{Nodable::View@{Nodable::View}!CursorPosToScreenPos@{CursorPosToScreenPos}}
+\index{CursorPosToScreenPos@{CursorPosToScreenPos}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{CursorPosToScreenPos()}{CursorPosToScreenPos()}}
+{\footnotesize\ttfamily Im\+Vec2 Nodable\+::\+View\+::\+Cursor\+Pos\+To\+Screen\+Pos (\begin{DoxyParamCaption}\item[{Im\+Vec2}]{\+\_\+position }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_a615a038fee9fca08f9a1b235bb5bcdcb}\label{class_nodable_1_1_view_a615a038fee9fca08f9a1b235bb5bcdcb}} 
+\index{Nodable::View@{Nodable::View}!draw@{draw}}
+\index{draw@{draw}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily virtual bool Nodable\+::\+View\+::draw (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_wire_view_a368ccce273fab90e2644f8eec997e8d5}{Nodable\+::\+Wire\+View}}, \mbox{\hyperlink{class_nodable_1_1_node_view_a43aeea4745075993f3e747f2266b0898}{Nodable\+::\+Node\+View}}, \mbox{\hyperlink{class_nodable_1_1_file_view_a6865799b163cdad241f6e86beef0f0d1}{Nodable\+::\+File\+View}}, \mbox{\hyperlink{class_nodable_1_1_container_view_a0a7f64631bf49c0ecae1967e54c455bc}{Nodable\+::\+Container\+View}}, and \mbox{\hyperlink{class_nodable_1_1_application_view_a500e07097875f562bed5087f190434d7}{Nodable\+::\+Application\+View}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_view_a6d30d37461dc62404a8cb2046a966b4e}\label{class_nodable_1_1_view_a6d30d37461dc62404a8cb2046a966b4e}} 
+\index{Nodable::View@{Nodable::View}!drawAsChild@{drawAsChild}}
+\index{drawAsChild@{drawAsChild}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{drawAsChild()}{drawAsChild()}}
+{\footnotesize\ttfamily bool Nodable\+::\+View\+::draw\+As\+Child (\begin{DoxyParamCaption}\item[{const char $\ast$}]{\+\_\+name,  }\item[{const Im\+Vec2 \&}]{\+\_\+size,  }\item[{bool}]{border = {\ttfamily false},  }\item[{Im\+Gui\+Window\+Flags}]{flags = {\ttfamily 0} }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_a982567fba5343c60e0e3669d1088c912}\label{class_nodable_1_1_view_a982567fba5343c60e0e3669d1088c912}} 
+\index{Nodable::View@{Nodable::View}!DrawRectShadow@{DrawRectShadow}}
+\index{DrawRectShadow@{DrawRectShadow}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{DrawRectShadow()}{DrawRectShadow()}}
+{\footnotesize\ttfamily void View\+::\+Draw\+Rect\+Shadow (\begin{DoxyParamCaption}\item[{Im\+Vec2}]{\+\_\+top\+Left\+Corner,  }\item[{Im\+Vec2}]{\+\_\+bottom\+Right\+Corner,  }\item[{float}]{\+\_\+border\+Radius = {\ttfamily 0.0f},  }\item[{int}]{\+\_\+shadow\+Radius = {\ttfamily 10},  }\item[{Im\+Vec2}]{\+\_\+shadow\+Offset = {\ttfamily ImVec2()},  }\item[{Im\+Color}]{\+\_\+shadow\+Color = {\ttfamily ImColor(0.0f,~0.0f,~0.0f)} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_a653fdd5ef8b6ac89409b30c64d15c27e}\label{class_nodable_1_1_view_a653fdd5ef8b6ac89409b30c64d15c27e}} 
+\index{Nodable::View@{Nodable::View}!getColor@{getColor}}
+\index{getColor@{getColor}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{getColor()}{getColor()}}
+{\footnotesize\ttfamily Im\+Color View\+::get\+Color (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0}{Color\+Type\+\_\+}}}]{\+\_\+type }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_aa9aee02e7b9ad02917f4bd74c848e1c6}\label{class_nodable_1_1_view_aa9aee02e7b9ad02917f4bd74c848e1c6}} 
+\index{Nodable::View@{Nodable::View}!isHovered@{isHovered}}
+\index{isHovered@{isHovered}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{isHovered()}{isHovered()}}
+{\footnotesize\ttfamily bool Nodable\+::\+View\+::is\+Hovered (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_acf2bb3ebb0e1f76c364fcf912e507fa3}\label{class_nodable_1_1_view_acf2bb3ebb0e1f76c364fcf912e507fa3}} 
+\index{Nodable::View@{Nodable::View}!isVisible@{isVisible}}
+\index{isVisible@{isVisible}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{isVisible()}{isVisible()}}
+{\footnotesize\ttfamily bool Nodable\+::\+View\+::is\+Visible (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_a0496d17aaf163ae12783891e0bb170cb}\label{class_nodable_1_1_view_a0496d17aaf163ae12783891e0bb170cb}} 
+\index{Nodable::View@{Nodable::View}!setColor@{setColor}}
+\index{setColor@{setColor}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{setColor()}{setColor()}}
+{\footnotesize\ttfamily void View\+::set\+Color (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_nodable_1_1_view_afb140bd06734965468d9c7df9f9d3fb0}{Color\+Type\+\_\+}}}]{\+\_\+type,  }\item[{Im\+Color}]{\+\_\+color }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_a41c26ec12eb3378832e7d9f9bec8dbbb}\label{class_nodable_1_1_view_a41c26ec12eb3378832e7d9f9bec8dbbb}} 
+\index{Nodable::View@{Nodable::View}!setVisible@{setVisible}}
+\index{setVisible@{setVisible}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{setVisible()}{setVisible()}}
+{\footnotesize\ttfamily void Nodable\+::\+View\+::set\+Visible (\begin{DoxyParamCaption}\item[{bool}]{\+\_\+b }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_ad440cf8a20897abc20d19d9daf8b4574}\label{class_nodable_1_1_view_ad440cf8a20897abc20d19d9daf8b4574}} 
+\index{Nodable::View@{Nodable::View}!ShadowedText@{ShadowedText}}
+\index{ShadowedText@{ShadowedText}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{ShadowedText()}{ShadowedText()}}
+{\footnotesize\ttfamily void View\+::\+Shadowed\+Text (\begin{DoxyParamCaption}\item[{Im\+Vec2}]{\+\_\+offset,  }\item[{Im\+Color}]{\+\_\+shadow\+Color,  }\item[{const char $\ast$}]{\+\_\+format,  }\item[{}]{... }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_view_a335e1bc9f7f9333b5ecbc2f31413c860}\label{class_nodable_1_1_view_a335e1bc9f7f9333b5ecbc2f31413c860}} 
+\index{Nodable::View@{Nodable::View}!hovered@{hovered}}
+\index{hovered@{hovered}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{hovered}{hovered}}
+{\footnotesize\ttfamily bool Nodable\+::\+View\+::hovered\hspace{0.3cm}{\ttfamily [protected]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_aa019d60220e1a60cce80f3de30dd7827}\label{class_nodable_1_1_view_aa019d60220e1a60cce80f3de30dd7827}} 
+\index{Nodable::View@{Nodable::View}!visibleRect@{visibleRect}}
+\index{visibleRect@{visibleRect}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{visibleRect}{visibleRect}}
+{\footnotesize\ttfamily Im\+Rect Nodable\+::\+View\+::visible\+Rect}
+
+\mbox{\Hypertarget{class_nodable_1_1_view_ab17689e31b503f3591817aa4f8ee2ba4}\label{class_nodable_1_1_view_ab17689e31b503f3591817aa4f8ee2ba4}} 
+\index{Nodable::View@{Nodable::View}!visibleScreenRect@{visibleScreenRect}}
+\index{visibleScreenRect@{visibleScreenRect}!Nodable::View@{Nodable::View}}
+\doxysubsubsection{\texorpdfstring{visibleScreenRect}{visibleScreenRect}}
+{\footnotesize\ttfamily Im\+Rect Nodable\+::\+View\+::visible\+Screen\+Rect}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+sources/\+Component/\mbox{\hyperlink{_view_8h}{View.\+h}}\item 
+sources/\+Component/\mbox{\hyperlink{_view_8cpp}{View.\+cpp}}\end{DoxyCompactItemize}

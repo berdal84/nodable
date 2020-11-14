@@ -1,0 +1,108 @@
+\hypertarget{class_nodable_1_1_cmd}{}\doxysection{Nodable\+::Cmd Class Reference}
+\label{class_nodable_1_1_cmd}\index{Nodable::Cmd@{Nodable::Cmd}}
+
+
+{\ttfamily \#include $<$History.\+h$>$}
+
+Inheritance diagram for Nodable\+::Cmd\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_nodable_1_1_cmd}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_nodable_1_1_cmd_a5a0d50e5b35976a666101ebab2566de8}{Cmd}} ()
+\item 
+virtual \mbox{\hyperlink{class_nodable_1_1_cmd_ae05866659f875e5e9e267d9548e2db1a}{$\sim$\+Cmd}} ()
+\item 
+virtual void \mbox{\hyperlink{class_nodable_1_1_cmd_a497c2fce24e1ccb88a03c04b7507b0a3}{execute}} ()=0
+\item 
+virtual void \mbox{\hyperlink{class_nodable_1_1_cmd_ab908ac8f9699b88fe24a5c7ad60fbc72}{undo}} ()=0
+\item 
+virtual void \mbox{\hyperlink{class_nodable_1_1_cmd_a3ccae1830d78a325a43e62d4cd9331d4}{redo}} ()=0
+\item 
+virtual const char $\ast$ \mbox{\hyperlink{class_nodable_1_1_cmd_ac8c932a33d4214893ac29a503234dc2c}{get\+Description}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string \mbox{\hyperlink{class_nodable_1_1_cmd_a0774a215a8f9e2cd5afe3f9752c0ce9a}{description}} = \char`\"{}\char`\"{}
+\item 
+bool \mbox{\hyperlink{class_nodable_1_1_cmd_a1fa440d011188c2ed19bbfaf3711cf42}{done}} = false
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_cmd_a5a0d50e5b35976a666101ebab2566de8}\label{class_nodable_1_1_cmd_a5a0d50e5b35976a666101ebab2566de8}} 
+\index{Nodable::Cmd@{Nodable::Cmd}!Cmd@{Cmd}}
+\index{Cmd@{Cmd}!Nodable::Cmd@{Nodable::Cmd}}
+\doxysubsubsection{\texorpdfstring{Cmd()}{Cmd()}}
+{\footnotesize\ttfamily Nodable\+::\+Cmd\+::\+Cmd (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_cmd_ae05866659f875e5e9e267d9548e2db1a}\label{class_nodable_1_1_cmd_ae05866659f875e5e9e267d9548e2db1a}} 
+\index{Nodable::Cmd@{Nodable::Cmd}!````~Cmd@{$\sim$Cmd}}
+\index{````~Cmd@{$\sim$Cmd}!Nodable::Cmd@{Nodable::Cmd}}
+\doxysubsubsection{\texorpdfstring{$\sim$Cmd()}{~Cmd()}}
+{\footnotesize\ttfamily virtual Nodable\+::\+Cmd\+::$\sim$\+Cmd (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_cmd_a497c2fce24e1ccb88a03c04b7507b0a3}\label{class_nodable_1_1_cmd_a497c2fce24e1ccb88a03c04b7507b0a3}} 
+\index{Nodable::Cmd@{Nodable::Cmd}!execute@{execute}}
+\index{execute@{execute}!Nodable::Cmd@{Nodable::Cmd}}
+\doxysubsubsection{\texorpdfstring{execute()}{execute()}}
+{\footnotesize\ttfamily virtual void Nodable\+::\+Cmd\+::execute (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_cmd___text_editor___insert_text_acbb5eaaa2dbf57cb281efeef4f813783}{Nodable\+::\+Cmd\+\_\+\+Text\+Editor\+\_\+\+Insert\+Text}}, and \mbox{\hyperlink{class_nodable_1_1_cmd___connect_wire_a68dcd134d05db9042bbc00b19f328d3d}{Nodable\+::\+Cmd\+\_\+\+Connect\+Wire}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_cmd_ac8c932a33d4214893ac29a503234dc2c}\label{class_nodable_1_1_cmd_ac8c932a33d4214893ac29a503234dc2c}} 
+\index{Nodable::Cmd@{Nodable::Cmd}!getDescription@{getDescription}}
+\index{getDescription@{getDescription}!Nodable::Cmd@{Nodable::Cmd}}
+\doxysubsubsection{\texorpdfstring{getDescription()}{getDescription()}}
+{\footnotesize\ttfamily virtual const char$\ast$ Nodable\+::\+Cmd\+::get\+Description (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_cmd_a3ccae1830d78a325a43e62d4cd9331d4}\label{class_nodable_1_1_cmd_a3ccae1830d78a325a43e62d4cd9331d4}} 
+\index{Nodable::Cmd@{Nodable::Cmd}!redo@{redo}}
+\index{redo@{redo}!Nodable::Cmd@{Nodable::Cmd}}
+\doxysubsubsection{\texorpdfstring{redo()}{redo()}}
+{\footnotesize\ttfamily virtual void Nodable\+::\+Cmd\+::redo (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_cmd___text_editor___insert_text_ab9d1d73005877f4c14cafa18728057b4}{Nodable\+::\+Cmd\+\_\+\+Text\+Editor\+\_\+\+Insert\+Text}}, and \mbox{\hyperlink{class_nodable_1_1_cmd___connect_wire_a9a6950282ed51f2dddc9cb3b3014fe7e}{Nodable\+::\+Cmd\+\_\+\+Connect\+Wire}}.
+
+\mbox{\Hypertarget{class_nodable_1_1_cmd_ab908ac8f9699b88fe24a5c7ad60fbc72}\label{class_nodable_1_1_cmd_ab908ac8f9699b88fe24a5c7ad60fbc72}} 
+\index{Nodable::Cmd@{Nodable::Cmd}!undo@{undo}}
+\index{undo@{undo}!Nodable::Cmd@{Nodable::Cmd}}
+\doxysubsubsection{\texorpdfstring{undo()}{undo()}}
+{\footnotesize\ttfamily virtual void Nodable\+::\+Cmd\+::undo (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{class_nodable_1_1_cmd___text_editor___insert_text_ac0e76b3b3f85335d786bb82b1fc6cddd}{Nodable\+::\+Cmd\+\_\+\+Text\+Editor\+\_\+\+Insert\+Text}}, and \mbox{\hyperlink{class_nodable_1_1_cmd___connect_wire_a448460038ff5d59cf7ae3d732005de19}{Nodable\+::\+Cmd\+\_\+\+Connect\+Wire}}.
+
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{class_nodable_1_1_cmd_a0774a215a8f9e2cd5afe3f9752c0ce9a}\label{class_nodable_1_1_cmd_a0774a215a8f9e2cd5afe3f9752c0ce9a}} 
+\index{Nodable::Cmd@{Nodable::Cmd}!description@{description}}
+\index{description@{description}!Nodable::Cmd@{Nodable::Cmd}}
+\doxysubsubsection{\texorpdfstring{description}{description}}
+{\footnotesize\ttfamily std\+::string Nodable\+::\+Cmd\+::description = \char`\"{}\char`\"{}\hspace{0.3cm}{\ttfamily [protected]}}
+
+\mbox{\Hypertarget{class_nodable_1_1_cmd_a1fa440d011188c2ed19bbfaf3711cf42}\label{class_nodable_1_1_cmd_a1fa440d011188c2ed19bbfaf3711cf42}} 
+\index{Nodable::Cmd@{Nodable::Cmd}!done@{done}}
+\index{done@{done}!Nodable::Cmd@{Nodable::Cmd}}
+\doxysubsubsection{\texorpdfstring{done}{done}}
+{\footnotesize\ttfamily bool Nodable\+::\+Cmd\+::done = false\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+sources/\+Component/\mbox{\hyperlink{_history_8h}{History.\+h}}\end{DoxyCompactItemize}

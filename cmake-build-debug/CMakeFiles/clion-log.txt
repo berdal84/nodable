@@ -1,0 +1,5 @@
+"E:\Program Files\JetBrains\CLion 2020.2.4\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - NMake Makefiles" E:\Repositories\Nodable
+Mirror (mirror-config.cmake) script read, use MIRROR_SOURCES and MIRROR_INCLUDE_DIRS.
+-- Configuring done
+-- Generating done
+-- Build files have been written to: E:/Repositories/Nodable/cmake-build-debug

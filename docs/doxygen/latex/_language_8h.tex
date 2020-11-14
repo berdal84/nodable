@@ -1,0 +1,183 @@
+\hypertarget{_language_8h}{}\doxysection{sources/\+Language/\+Language.h File Reference}
+\label{_language_8h}\index{sources/Language/Language.h@{sources/Language/Language.h}}
+{\ttfamily \#include $<$map$>$}\newline
+{\ttfamily \#include $<$functional$>$}\newline
+{\ttfamily \#include $<$tuple$>$}\newline
+{\ttfamily \#include $<$regex$>$}\newline
+{\ttfamily \#include \char`\"{}Nodable.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Function.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Operator.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Token\+Type.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Dictionnary.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Type.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Log.\+h\char`\"{}}\newline
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{class_nodable_1_1_language}{Nodable\+::\+Language}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+ \mbox{\hyperlink{namespace_nodable}{Nodable}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{_language_8h_aa90cac659d18e8ef6294c7ae337f6b58}{S\+U\+C\+C\+E\+SS}}~return 0;
+\item 
+\#define \mbox{\hyperlink{_language_8h_abb508ea8227673f419e9fe3a86c30d8e}{F\+A\+IL}}
+\item 
+\#define \mbox{\hyperlink{_language_8h_ab73011dc79ed3f663a1e49d974840813}{A\+RG}}(n)~($\ast$\+\_\+args\mbox{[}n\mbox{]})
+\item 
+\#define \mbox{\hyperlink{_language_8h_a718b5a64da18fa468c0204b102a4e773}{B\+E\+G\+I\+N\+\_\+\+I\+M\+PL}}
+\item 
+\#define \mbox{\hyperlink{_language_8h_aabb6a3d87a813bf7b582e4aa4606b8e1}{R\+E\+T\+U\+RN}}(expr)~	\+\_\+result-\/$>$set( expr );
+\item 
+\#define \mbox{\hyperlink{_language_8h_a4af49c5de63a92b4d0653775e497b3b1}{E\+N\+D\+\_\+\+I\+M\+PL}}
+\item 
+\#define \mbox{\hyperlink{_language_8h_a0e10124cc65b03c53e930cde456dc4ef}{B\+I\+N\+A\+R\+Y\+\_\+\+O\+P\+\_\+\+B\+E\+G\+IN}}(\+\_\+type,  \+\_\+identifier,  \+\_\+ltype,  \+\_\+rtype,  \+\_\+precedence,  \+\_\+label)
+\item 
+\#define \mbox{\hyperlink{_language_8h_a815dae9ce2cc1f7e27863b3060018e5d}{U\+N\+A\+R\+Y\+\_\+\+O\+P\+\_\+\+B\+E\+G\+IN}}(\+\_\+type,  \+\_\+identifier,  \+\_\+ltype,  \+\_\+precedence,  \+\_\+label)
+\item 
+\#define \mbox{\hyperlink{_language_8h_a92b1fa564b6676bd603445040a738a3a}{F\+C\+T\+\_\+\+B\+E\+G\+IN}}(\+\_\+type,  \+\_\+identifier, ...)
+\item 
+\#define \mbox{\hyperlink{_language_8h_a20914165111ec5fe59dc41a8602da257}{F\+C\+T\+\_\+\+E\+ND}}
+\item 
+\#define \mbox{\hyperlink{_language_8h_a6f78e2b584cb63faea09a1fda5096559}{O\+P\+E\+R\+A\+T\+O\+R\+\_\+\+E\+ND}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{_language_8h_ab73011dc79ed3f663a1e49d974840813}\label{_language_8h_ab73011dc79ed3f663a1e49d974840813}} 
+\index{Language.h@{Language.h}!ARG@{ARG}}
+\index{ARG@{ARG}!Language.h@{Language.h}}
+\doxysubsubsection{\texorpdfstring{ARG}{ARG}}
+{\footnotesize\ttfamily \#define A\+RG(\begin{DoxyParamCaption}\item[{}]{n }\end{DoxyParamCaption})~($\ast$\+\_\+args\mbox{[}n\mbox{]})}
+
+\mbox{\Hypertarget{_language_8h_a718b5a64da18fa468c0204b102a4e773}\label{_language_8h_a718b5a64da18fa468c0204b102a4e773}} 
+\index{Language.h@{Language.h}!BEGIN\_IMPL@{BEGIN\_IMPL}}
+\index{BEGIN\_IMPL@{BEGIN\_IMPL}!Language.h@{Language.h}}
+\doxysubsubsection{\texorpdfstring{BEGIN\_IMPL}{BEGIN\_IMPL}}
+{\footnotesize\ttfamily \#define B\+E\+G\+I\+N\+\_\+\+I\+M\+PL}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    \textcolor{keyword}{auto} implementation = [](Member* \_result, \textcolor{keyword}{const} std::vector<Member*>\& \_args)-\/>\textcolor{keywordtype}{int} \{ \(\backslash\)}
+\DoxyCodeLine{    for(\textcolor{keyword}{auto} it = \_args.begin(); it != \_args.end(); it++) \(\backslash\)}
+\DoxyCodeLine{    \{\(\backslash\)}
+\DoxyCodeLine{        if( (*it)-\/>isType(Type::Any) ) \(\backslash\)}
+\DoxyCodeLine{        \{\(\backslash\)}
+\DoxyCodeLine{            LOG\_WARNING( 1u, \textcolor{stringliteral}{"{}Argument \%i (\%s) is unknown.\(\backslash\)n"{}}, std::distance(\_args.begin(), it), (*it)-\/>getName().c\_str() );\(\backslash\)}
+\DoxyCodeLine{        \}\(\backslash\)}
+\DoxyCodeLine{    \}}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_language_8h_a0e10124cc65b03c53e930cde456dc4ef}\label{_language_8h_a0e10124cc65b03c53e930cde456dc4ef}} 
+\index{Language.h@{Language.h}!BINARY\_OP\_BEGIN@{BINARY\_OP\_BEGIN}}
+\index{BINARY\_OP\_BEGIN@{BINARY\_OP\_BEGIN}!Language.h@{Language.h}}
+\doxysubsubsection{\texorpdfstring{BINARY\_OP\_BEGIN}{BINARY\_OP\_BEGIN}}
+{\footnotesize\ttfamily \#define B\+I\+N\+A\+R\+Y\+\_\+\+O\+P\+\_\+\+B\+E\+G\+IN(\begin{DoxyParamCaption}\item[{}]{\+\_\+type,  }\item[{}]{\+\_\+identifier,  }\item[{}]{\+\_\+ltype,  }\item[{}]{\+\_\+rtype,  }\item[{}]{\+\_\+precedence,  }\item[{}]{\+\_\+label }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{\(\backslash\)}
+\DoxyCodeLine{    auto precedence = \_precedence; \(\backslash\)}
+\DoxyCodeLine{    auto identifier = std::string(\_identifier); \(\backslash\)}
+\DoxyCodeLine{    FunctionSignature signature( std::string(\textcolor{stringliteral}{"{}operator"{}}) + \_identifier, \_type, \_label ); \(\backslash\)}
+\DoxyCodeLine{    signature.pushArgs(\_ltype, \_rtype); \(\backslash\)}
+\DoxyCodeLine{    BEGIN\_IMPL}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_language_8h_a4af49c5de63a92b4d0653775e497b3b1}\label{_language_8h_a4af49c5de63a92b4d0653775e497b3b1}} 
+\index{Language.h@{Language.h}!END\_IMPL@{END\_IMPL}}
+\index{END\_IMPL@{END\_IMPL}!Language.h@{Language.h}}
+\doxysubsubsection{\texorpdfstring{END\_IMPL}{END\_IMPL}}
+{\footnotesize\ttfamily \#define E\+N\+D\+\_\+\+I\+M\+PL}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    \mbox{\hyperlink{_language_8h_aa90cac659d18e8ef6294c7ae337f6b58}{SUCCESS}}\(\backslash\)}
+\DoxyCodeLine{    \};}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_language_8h_abb508ea8227673f419e9fe3a86c30d8e}\label{_language_8h_abb508ea8227673f419e9fe3a86c30d8e}} 
+\index{Language.h@{Language.h}!FAIL@{FAIL}}
+\index{FAIL@{FAIL}!Language.h@{Language.h}}
+\doxysubsubsection{\texorpdfstring{FAIL}{FAIL}}
+{\footnotesize\ttfamily \#define F\+A\+IL}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\_result-\/>setType(Type::Any); \textcolor{comment}{/* We intentionnaly force result type any to avoid crashing.*/} \(\backslash\)}
+\DoxyCodeLine{return 1;}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_language_8h_a92b1fa564b6676bd603445040a738a3a}\label{_language_8h_a92b1fa564b6676bd603445040a738a3a}} 
+\index{Language.h@{Language.h}!FCT\_BEGIN@{FCT\_BEGIN}}
+\index{FCT\_BEGIN@{FCT\_BEGIN}!Language.h@{Language.h}}
+\doxysubsubsection{\texorpdfstring{FCT\_BEGIN}{FCT\_BEGIN}}
+{\footnotesize\ttfamily \#define F\+C\+T\+\_\+\+B\+E\+G\+IN(\begin{DoxyParamCaption}\item[{}]{\+\_\+type,  }\item[{}]{\+\_\+identifier,  }\item[{}]{... }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{ \(\backslash\)}
+\DoxyCodeLine{    auto signature = FunctionSignature::Create( \_type, \_identifier, \_\_VA\_ARGS\_\_); \(\backslash\)}
+\DoxyCodeLine{    BEGIN\_IMPL}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_language_8h_a20914165111ec5fe59dc41a8602da257}\label{_language_8h_a20914165111ec5fe59dc41a8602da257}} 
+\index{Language.h@{Language.h}!FCT\_END@{FCT\_END}}
+\index{FCT\_END@{FCT\_END}!Language.h@{Language.h}}
+\doxysubsubsection{\texorpdfstring{FCT\_END}{FCT\_END}}
+{\footnotesize\ttfamily \#define F\+C\+T\+\_\+\+E\+ND}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    END\_IMPL \(\backslash\)}
+\DoxyCodeLine{    addToAPI( signature, implementation );\(\backslash\)}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_language_8h_a6f78e2b584cb63faea09a1fda5096559}\label{_language_8h_a6f78e2b584cb63faea09a1fda5096559}} 
+\index{Language.h@{Language.h}!OPERATOR\_END@{OPERATOR\_END}}
+\index{OPERATOR\_END@{OPERATOR\_END}!Language.h@{Language.h}}
+\doxysubsubsection{\texorpdfstring{OPERATOR\_END}{OPERATOR\_END}}
+{\footnotesize\ttfamily \#define O\+P\+E\+R\+A\+T\+O\+R\+\_\+\+E\+ND}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    END\_IMPL \(\backslash\)}
+\DoxyCodeLine{    addOperator(identifier, precedence, signature, implementation);\(\backslash\)}
+\DoxyCodeLine{    addToAPI( signature , implementation );\(\backslash\)}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{_language_8h_aabb6a3d87a813bf7b582e4aa4606b8e1}\label{_language_8h_aabb6a3d87a813bf7b582e4aa4606b8e1}} 
+\index{Language.h@{Language.h}!RETURN@{RETURN}}
+\index{RETURN@{RETURN}!Language.h@{Language.h}}
+\doxysubsubsection{\texorpdfstring{RETURN}{RETURN}}
+{\footnotesize\ttfamily \#define R\+E\+T\+U\+RN(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~	\+\_\+result-\/$>$set( expr );}
+
+\mbox{\Hypertarget{_language_8h_aa90cac659d18e8ef6294c7ae337f6b58}\label{_language_8h_aa90cac659d18e8ef6294c7ae337f6b58}} 
+\index{Language.h@{Language.h}!SUCCESS@{SUCCESS}}
+\index{SUCCESS@{SUCCESS}!Language.h@{Language.h}}
+\doxysubsubsection{\texorpdfstring{SUCCESS}{SUCCESS}}
+{\footnotesize\ttfamily \#define S\+U\+C\+C\+E\+SS~return 0;}
+
+\mbox{\Hypertarget{_language_8h_a815dae9ce2cc1f7e27863b3060018e5d}\label{_language_8h_a815dae9ce2cc1f7e27863b3060018e5d}} 
+\index{Language.h@{Language.h}!UNARY\_OP\_BEGIN@{UNARY\_OP\_BEGIN}}
+\index{UNARY\_OP\_BEGIN@{UNARY\_OP\_BEGIN}!Language.h@{Language.h}}
+\doxysubsubsection{\texorpdfstring{UNARY\_OP\_BEGIN}{UNARY\_OP\_BEGIN}}
+{\footnotesize\ttfamily \#define U\+N\+A\+R\+Y\+\_\+\+O\+P\+\_\+\+B\+E\+G\+IN(\begin{DoxyParamCaption}\item[{}]{\+\_\+type,  }\item[{}]{\+\_\+identifier,  }\item[{}]{\+\_\+ltype,  }\item[{}]{\+\_\+precedence,  }\item[{}]{\+\_\+label }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{\(\backslash\)}
+\DoxyCodeLine{    auto precedence = \_precedence; \(\backslash\)}
+\DoxyCodeLine{    auto identifier = std::string(\_identifier); \(\backslash\)}
+\DoxyCodeLine{    FunctionSignature signature( std::string(\textcolor{stringliteral}{"{}operator"{}}) + \_identifier, \_type, \_label ); \(\backslash\)}
+\DoxyCodeLine{    signature.pushArgs(\_ltype); \(\backslash\)}
+\DoxyCodeLine{    BEGIN\_IMPL}
+
+\end{DoxyCode}
