@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 
 	// Here the tests are all OK, we can instantiate, init and run nodable loop.
 
-	Application nodable("Nodable " NODABLE_VERSION);
+	Application nodable("Nodable " NODABLE_VERSION_EXTENDED );
 	nodable.init();
     auto startupFilePath = nodable.getAssetPath("startup.txt");
 	std::cout << "Opening startup file: " << startupFilePath << std::endl;
