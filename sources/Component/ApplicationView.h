@@ -45,6 +45,7 @@ namespace Nodable
         ImFont *paragraphFont;
         ImFont *headingFont;
         bool isHistoryDragged;
+        const char* startupScreenTitle = "##STARTUPSCREEN";
 	public:
 		void browseFile();
 

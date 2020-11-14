@@ -137,7 +137,7 @@ bool ApplicationView::init()
         //io.Fonts->AddFontDefault();
         auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
         LOG_MESSAGE( 0u, "Adding font from file: %s\n", fontPath.c_str());
-        this->headingFont = io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 40.0f, &config);
+        this->headingFont = io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 25.0f, &config);
     }
 
     // Configure ImGui Style
@@ -262,51 +262,62 @@ bool ApplicationView::draw()
 
     // Startup Window
     {
-        if ( isStartupWindowVisible && !ImGui::IsPopupOpen("Startup Screen"))
+        if ( isStartupWindowVisible && !ImGui::IsPopupOpen(startupScreenTitle))
         {
-            ImGui::OpenPopup("Startup Screen");
+            ImGui::OpenPopup(startupScreenTitle);
         }
 
-        ImGui::SetNextWindowSizeConstraints(ImVec2(600,100), ImVec2(600,-1.0f));
+        ImGui::SetNextWindowSizeConstraints(ImVec2(500,100), ImVec2(500,-1.0f));
         ImGui::SetNextWindowPosCenter();
 
         auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
-        if ( ImGui::BeginPopupModal("Startup Screen", NULL, flags) )
+        if ( ImGui::BeginPopupModal(startupScreenTitle, NULL, flags) )
         {
             std::filesystem::path path(NODABLE_ASSETS_DIR"/nodable-logo-xs.png");
             auto logo = Texture::GetWithPath(path);
+            ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
             ImGui::Image((void*)(intptr_t)logo->image, ImVec2(logo->width, logo->height));
 
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(25.0f, 20.0f) );
             ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
-            ImGui::PushFont(this->headingFont);
             {
-                ImGui::Text("Welcome to Nodable %s !", NODABLE_VERSION);
+                ImGui::PushFont(this->headingFont);
+                ImGui::NewLine();
+                ImGui::Text("Nodable is node-able");
+                ImGui::PopFont();
+                ImGui::NewLine();
             }
-            ImGui::PopFont();
 
-            ImGui::NewLine();
-            ImGui::TextWrapped("Nodable is node-able." );
-            ImGui::NewLine();
-            ImGui::TextWrapped("It means you can edit a program by editing both its textual and graph representation."
-                               "At any time user can switch to node or code edition."
-                               "Editing code will automatically update its graph representation, logically any changes made to the graph will update the code." );
 
-            ImGui::NewLine();
-            ImGui::Text( "Manifest:" );
-            ImGui::BulletText( "Each program representation paradigm has its pros and cons." );
-            ImGui::BulletText( "User never had to choose between code or graph." );
+            ImGui::TextWrapped("The goal of Nodable is to allow you to edit a computer program in a textual and nodal way at the same time." );
 
-            ImGui::NewLine();
-            ImGui::Text( "Disclaimers:" );
-            ImGui::BulletText( "This software is a prototype. Use at your own risks." );
-            ImGui::BulletText( "The development is not driven by any roadmap." );
+            {
+                ImGui::PushFont(this->headingFont);
+                ImGui::NewLine();
+                ImGui::Text("Manifest");
+                ImGui::PopFont();
+                ImGui::NewLine();
+            }
+
+            ImGui::TextWrapped( "The nodal and textual points of view each have pros and cons. The user should not be forced to choose one of the two." );
+
+            {
+                ImGui::PushFont(this->headingFont);
+                ImGui::NewLine();
+                ImGui::Text("Disclaimer");
+                ImGui::PopFont();
+                ImGui::NewLine();
+            }
+
+            ImGui::TextWrapped( "This software is a prototype, use at your own risk." );
 
             ImGui::NewLine();ImGui::NewLine();
-            ImGui::SameLine(300);
-            ImGui::TextWrapped("by %s", "Berdal84");
+
+            const char* credit = "berenger@dalle-cort.fr";
+            ImGui::SameLine( ImGui::GetContentRegionAvailWidth() - ImGui::CalcTextSize(credit).x);
+            ImGui::TextWrapped( credit );
 
             if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
             {
@@ -470,6 +481,21 @@ bool ApplicationView::draw()
 
 					ImGui::EndMenu();
 				}
+
+                if ( ImGui::BeginMenu( "An issue ?" ) )
+                {
+                    if ( ImGui::MenuItem( "Report on Github.com"))
+                    {
+                        System::OpenURL( "https://github.com/berdal84/Nodable/issues" );
+                    }
+
+                    if ( ImGui::MenuItem( "Report by email"))
+                    {
+                        System::OpenURL( "mail:berenger@dalle-cort.fr" );
+                    }
+
+                    ImGui::EndMenu();
+                }
 
                 if ( ImGui::BeginMenu( "Help" ) )
                 {
