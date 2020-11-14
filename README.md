@@ -63,6 +63,7 @@ Dependencies / Credits :
 - ImGuiColorTextEdit by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
 - mirror by Grouflon : https://github.com/grouflon/mirror
 - ImGui FileBrowser by AirGuanZ: https://github.com/AirGuanZ/imgui-filebrowser
+- LodePNG by Lode Vandevenne
 
 Licence:
 =========

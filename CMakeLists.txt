@@ -48,6 +48,7 @@ find_package(MIRROR REQUIRED HINTS "./extern/mirror")
 aux_source_directory( "./extern/imgui" IMGUI)
 aux_source_directory( "./extern/ImGuiColorTextEdit" TEXTEDIT)
 aux_source_directory( "./libs/gl3w/GL" GL3W)
+aux_source_directory( "./libs/lodepng" LODE_PNG)
 
 # Get all files in sources directory recursively
 file(GLOB_RECURSE NODABLE_SRC "${CMAKE_CURRENT_LIST_DIR}/sources/*")
@@ -59,6 +60,7 @@ set(SOURCES
   ${TEXTEDIT}
   ${IMGUI}
   ${MIRROR_SOURCES}
+  ${LODE_PNG}
   "./extern/imgui/examples/imgui_impl_opengl3.cpp"
   "./extern/imgui/examples/imgui_impl_sdl.cpp" 
   )
@@ -88,6 +90,7 @@ include_directories(
     "./libs/gl3w/GL"
     "./libs/gl3w"
     "./libs/glfw/include/GLFW"
+    "./libs/lodepng"
     ${MIRROR_INCLUDE_DIRS}
 )
 

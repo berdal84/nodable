@@ -1,4 +1,5 @@
 #include "ApplicationView.h"
+#include "Core/Texture.h"
 
 // Includes for ImGui
 #include <GL/gl3w.h>
@@ -8,6 +9,7 @@
 
 #include <iostream>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <Core/Texture.h>
 #include "System.h"
 #include "Application.h"
 #include "Container.h"
@@ -47,7 +49,7 @@ ApplicationView::~ApplicationView()
 
 bool ApplicationView::init()
 {
-	    // Setup SDL
+    // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
         LOG_ERROR( 0u, "SDL Error: %s\n", SDL_GetError());
@@ -272,6 +274,10 @@ bool ApplicationView::draw()
 
         if ( ImGui::BeginPopupModal("Startup Screen", NULL, flags) )
         {
+            std::filesystem::path path(NODABLE_ASSETS_DIR"/nodable-logo-xs.png");
+            auto logo = Texture::GetTexture(path);
+            ImGui::Image((void*)(intptr_t)logo->image, ImVec2(logo->width, logo->height));
+
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(25.0f, 20.0f) );
             ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
