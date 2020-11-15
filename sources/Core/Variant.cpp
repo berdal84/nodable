@@ -12,34 +12,40 @@ Variant::~Variant(){};
 
 Type Variant::getType()const
 {
-	return this->type;
+    Type result;
+
+	size_t i = data.index();
+
+	if ( i != std::variant_npos )
+	{
+        result = Variant::s_nodableTypeByIndex.at(i);
+    }
+	else
+    {
+        result = Type::Any;
+    }
+
+	return result;
 }
 
 bool  Variant::isType(Type _type)const
 {
-	return this->type == _type;
+	return getType() == _type;
 }
 
 void Variant::set(double _var)
 {
-	switch(type)
+	switch( getType() )
 	{
 		case Type::String:
 		{
-			set(std::to_string(_var));
+			data.emplace<std::string>( std::to_string(_var) );
 			break;
 		}
 
-		case Type::Double:
+        default:
 		{
-			*reinterpret_cast<double*>(data) = _var;
-			break;
-		}
-
-		default:
-		{
-			type = Type::Double;
-			data = new double(_var);
+			data.emplace<double>( _var );
 			break;
 		}
 	}
@@ -47,59 +53,45 @@ void Variant::set(double _var)
 
 void Variant::set(const std::string& _var)
 {
-	set(_var.c_str());
+   this->set(_var.c_str());
 }
 
 void Variant::set(const char* _var)
 {
-	switch(type)
-	{
-		case Type::String:
-		{
-			*reinterpret_cast<std::string*>(data) = _var;
-			break;
-		}
+    switch (getType())
+    {
+        case Type::String:
+        {
+            data = _var;
+        }
 
-		case Type::Double:
-		{
-			*reinterpret_cast<double*>(data) = std::stod(_var);
-			break;
-		}
-		
-		default:
-		{
-			data = new std::string(_var);
-			type = Type::String;
-			break;
-		}
-	}
+        default:
+        {
+            data = std::string(_var);
+        }
+    }
+
 }
 
 void Variant::set(bool _var)
 {
-	switch(type)
+	switch(getType())
 	{
 		case Type::String:
 		{
-			*reinterpret_cast<std::string*>(data) = _var ? "true" : "false";
+			data.emplace<std::string>( _var ? "true" : "false" );
 			break;
 		}
 
 		case Type::Double:
 		{
-			*reinterpret_cast<double*>(data) = _var ? double(1) : double(0);
+			data.emplace<double>( _var ? double(1) : double(0) );
 			break;
 		}
-		case Type::Boolean:
-		{
-			*reinterpret_cast<bool*>(data) = _var;
-			break;
 
-		}
 		default:
 		{
-			data = new bool(_var);
-			type = Type::Boolean;
+			data.emplace<bool>( _var );
 			break;
 		}
 	}
@@ -108,35 +100,17 @@ void Variant::set(bool _var)
 
 bool Variant::isSet()const
 {
-	return type != Type::Any;
+	return getType() != Type::Any;
 }
 
-void Variant::set(const Variant* _v)
+void Variant::set(const Variant* _other)
 {
-	setType(_v->getType());
-
-	switch (type)
-	{
-	case Type::Boolean:
-		set((bool)*_v);
-		break;
-	case Type::Double:
-		set((double)*_v);
-		break;
-	case Type::String:
-		set((std::string)*_v);
-		break;
-	case Type::Any:
-		break;
-	default:
-		NODABLE_ASSERT(false); // The case you're trying to set is not yet implemented
-		break;
-	}
+	data = _other->data;
 }
 
 std::string Variant::getTypeAsString()const
 {
-	switch(type)
+	switch(getType())
 	{
 		case Type::String:		{return "String";}
 		case Type::Double:		{return "Double";}
@@ -147,89 +121,82 @@ std::string Variant::getTypeAsString()const
 
 void Variant::setType(Type _type)
 {
-	if (type != _type)
+	if (getType() != _type)
 	{
-		// Reset data is type has already been initialized
-		if (type != Type::Any)
-		{
-			switch (type)
-			{
-			case Type::Boolean:
-				delete reinterpret_cast<bool*>(data);
-				break;
-			case Type::Double:
-				delete reinterpret_cast<double*>(data);
-				break;
-			case Type::String:
-				delete reinterpret_cast<std::string*>(data);
-				break;
-			default:
-				break;
-			}
-
-			type = Type::Any;
-		}
 
 		// Set a default value (this will change the type too)
 		switch (_type)
 		{
 		case Type::String:
-			set("");
+			data.emplace<std::string>();
 			break;
 		case Type::Double:
-			set(double(0));
+			data.emplace<double>();
 			break;
 		case Type::Boolean:
-			set(false);
+			data.emplace<bool>();
 			break;
 		default:
+            data.emplace<Any>();
 			break;
 		}
 	}
 
 }
 
-Variant::operator double()const {
-	switch (type) {
-	case Type::String:  return double((*reinterpret_cast<std::string*>(data)).size());
-	case Type::Double:  return *reinterpret_cast<double*>(data);
-	case Type::Boolean: return *reinterpret_cast<bool*>(data) ? double(1) : double(0);
-	default:           return double(0);
+Variant::operator int()const
+{
+    return (int)(double)*this;
+}
+
+Variant::operator double()const
+{
+	switch (getType())
+	{
+		case Type::String:  return double( std::get<std::string>(data).size());
+		case Type::Double:  return std::get<double>(data);
+		case Type::Boolean: return std::get<bool>(data) ? double(1) : double(0);
+		default:           return double(0);
 	}
 }
 
 Variant::operator bool()const {
-	switch (type) {
-	case Type::String:  return !(*reinterpret_cast<std::string*>(data)).empty();
-	case Type::Double:  return (*reinterpret_cast<double*>(data)) != 0.0F;
-	case Type::Boolean: return *reinterpret_cast<bool*>(data);
-	default:           return false;
+	switch (getType())
+	{
+		case Type::String:  return !std::get<std::string>(data).empty();
+		case Type::Double:  return std::get<double>(data) != 0.0F;
+		case Type::Boolean: return std::get<bool>(data);
+		default:           return false;
 	}
 }
 
 Variant::operator std::string()const {
 
-	switch (type) {
-	case Type::String: {
-		return *reinterpret_cast<std::string*>(data);
-	}
-
-	case Type::Double: {
-		// Format the num as a string without any useless ending zeros/dot
-		std::string str = std::to_string(*reinterpret_cast<double*>(data));
-		str.erase(str.find_last_not_of('0') + 1, std::string::npos);
-		if (str.find_last_of('.') + 1 == str.size())
-			str.erase(str.find_last_of('.'), std::string::npos);
-		return str;
-	}
-
-	case Type::Boolean: {
-		return *reinterpret_cast<bool*>(data) ? "true" : "false";
-	}
-
-	default:
+	switch (getType())
 	{
-		return "";
-	}
+		case Type::String:
+		{
+			return std::get<std::string>(data);
+		}
+
+		case Type::Double:
+		{
+			// Format the num as a string without any useless ending zeros/dot
+			std::string str = std::to_string( std::get<double>(data));
+			str.erase(str.find_last_not_of('0') + 1, std::string::npos);
+			if (str.find_last_of('.') + 1 == str.size())
+				str.erase(str.find_last_of('.'), std::string::npos);
+			return str;
+		}
+
+		case Type::Boolean:
+		{
+			return  std::get<bool>(data) ? "true" : "false";
+		}
+
+		default:
+		{
+			return "";
+		}
 	}
 }
