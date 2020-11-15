@@ -30,10 +30,34 @@ void Node::Disconnect(Wire* _wire)
 }
 
 Wire* Node::Connect( Member* _from, Member* _to)
-{	
-	Cmd_ConnectWire command(_from, _to);
-	command.execute();
-	return command.getWire();
+{
+    Wire* wire;
+
+    _to->setInputMember(_from);
+    auto targetNode = _to->getOwner()->as<Node>();
+    auto sourceNode = _from->getOwner()->as<Node>();
+
+    // Link wire to members
+    auto sourceContainer = sourceNode->getParentContainer();
+
+    if (sourceContainer != nullptr)
+    {
+        wire = sourceContainer->newWire();
+    }
+    else
+    {
+        wire = new Wire();
+    }
+
+    wire->setSource(_from);
+    wire->setTarget(_to);
+
+    targetNode->addWire(wire);
+    sourceNode->addWire(wire);
+
+    NodeTraversal::SetDirty(targetNode);
+
+    return wire;
 }
 
 Node::Node(std::string _label):
