@@ -47,9 +47,10 @@ namespace Nodable{
 		Type                getType()const;
 		std::string         getTypeAsString()const;
 
-		inline operator bool()const        { return data; }
-		inline operator double()const      { return data; }
-		inline operator std::string()const { return data; }
+		inline explicit operator int()const        { return (int)data; }
+        inline explicit operator bool()const        { return (bool)data; }
+        inline explicit operator double()const      { return (double)data; }
+		inline explicit operator std::string()const { return (std::string)data; }
 
 		Visibility          getVisibility()const;
 		Way                 getConnectorWay()const;		
