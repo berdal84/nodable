@@ -542,20 +542,19 @@ void NodeView::drawConnector(ImVec2& connectorPos, const Connector* _connector, 
 {
 	// Unvisible Button on top of the Circle
 
-	ImVec2 cpos = ImGui::GetCursorPos();
+    ImVec2 cursorPos = ImGui::GetCursorPos();
+    ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+    ImVec2 connnectorScreenPos = connectorPos + cursorScreenPos - cursorPos;
+
 	auto invisibleButtonOffsetFactor = 1.2f;
-	ImGui::SetCursorScreenPos(connectorPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor) + ImGui::GetWindowPos());
+	ImGui::SetCursorScreenPos(connnectorScreenPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor));
 	ImGui::PushID(_connector->member);
 	bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * 2.0f * invisibleButtonOffsetFactor, connectorRadius * 2.0f * invisibleButtonOffsetFactor));
 	ImGui::PopID();
-	ImGui::SetCursorPos(cpos);
+	ImGui::SetCursorPos(cursorPos);
 
 	// Circle
 	auto isItemHovered = ImGui::IsItemHoveredRect();
-	ImVec2 cursorPos = ImGui::GetCursorPos();
-	ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
-
-	ImVec2 connnectorScreenPos = connectorPos + cursorScreenPos - cursorPos;
 
 	if (isItemHovered)
 		draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Highlighted));
