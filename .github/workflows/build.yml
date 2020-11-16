@@ -58,5 +58,5 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
-        name: ${{env.date}}-Nodable-${{runner.os}}-${{env.buildType}}-sha${{github.sha}}
+        name: Nodable-${{runner.os}}-commit-${{github.sha}}
         path: ${{runner.workspace}}/Nodable/install/${{env.buildType}}
