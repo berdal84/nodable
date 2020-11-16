@@ -3,6 +3,7 @@
 #include "Member.h"
 #include "Variable.h"
 #include "Language.h"
+#include "ComputeUnaryOperation.h"
 
 using namespace Nodable;
 
@@ -30,20 +31,29 @@ void ComputeBinaryOperation::updateResultSourceExpression()const
 	*/
 	auto getMemberSourceBinOp = [](Member * _member)-> const Operator*
 	{
+	    const Operator* result{};
+
 		if (_member != nullptr )
 		{
 			auto node = _member->getOwner()->as<Node>();
-			if (auto component = node->getComponent<ComputeBinaryOperation>())
-				return component->ope;
+			if (auto binOpComponent = node->getComponent<ComputeBinaryOperation>())
+            {
+				result = binOpComponent->ope;
+            }
+			else if (auto unaryOpComponent = node->getComponent<ComputeUnaryOperation>())
+            {
+                result = unaryOpComponent->ope;
+            }
 		}
-		return nullptr;
+
+		return result;
 	};
 
 	// Get the left and right source bin operator
-	auto lBinOp = getMemberSourceBinOp(this->args[0]->getInputMember());
-	auto rBinOp = getMemberSourceBinOp(this->args[1]->getInputMember());
+	auto lOperator = getMemberSourceBinOp(this->args[0]->getInputMember());
+	auto rOperator = getMemberSourceBinOp(this->args[1]->getInputMember());
 
-	auto expr   = language->serializeBinaryOp(ope, args, lBinOp, rBinOp);
+	auto expr   = language->serializeBinaryOp(ope, args, lOperator, rOperator);
 
 	// Apply the new string to the result's source expression.
 	result->setSourceExpression(expr.c_str());

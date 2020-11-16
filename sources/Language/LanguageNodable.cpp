@@ -56,13 +56,13 @@ std::string LanguageNodable::serialize(const TokenType& _type) const {
 	return dictionnary.convert(_type);
 }
 
-std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<Member*> _args, const Operator* _lBinOp, const Operator* _rBinOp) const
+std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<Member*> _args, const Operator* _leftOp, const Operator* _rightOp) const
 {
 	std::string result;
 
 	// Left part of the expression
 	{
-		bool needBrackets = _lBinOp && !hasHigherPrecedenceThan(_lBinOp, _op);
+		bool needBrackets = _leftOp && /*( _leftOp->getType() == Operator::Type::Unary ||*/ !hasHigherPrecedenceThan(_leftOp, _op) ;
 		if (needBrackets) result.append( serialize(TokenType::LBracket) + " ");
 		result.append(_args[0]->getSourceExpression());
 		if (needBrackets) result.append(" " + serialize(TokenType::RBracket));
@@ -75,7 +75,7 @@ std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<
 
 	// Right part of the expression
 	{
-		bool needBrackets = _rBinOp && !hasHigherPrecedenceThan(_rBinOp, _op);
+		bool needBrackets = _rightOp && (  _rightOp->getType() == Operator::Type::Unary || !hasHigherPrecedenceThan(_rightOp, _op) );
 		if (needBrackets) result.append(serialize(TokenType::LBracket) + " ");
 		result.append(_args[1]->getSourceExpression());
 		if (needBrackets) result.append(" " + serialize(TokenType::RBracket));
