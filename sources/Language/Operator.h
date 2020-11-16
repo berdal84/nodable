@@ -17,6 +17,14 @@ namespace Nodable {
 	*/
 	class Operator: public Function {
 	public:
+
+	    enum class Type: int
+        {
+	        Unary,
+            Binary,
+            Ternary
+        };
+
 		Operator(
 			std::string       _identifier,
 			unsigned short    _precedence,
@@ -31,5 +39,15 @@ namespace Nodable {
 
 		const std::string    identifier;
 		const unsigned short precedence;
-	};
+
+        Operator::Type getType() const
+        {
+            switch (signature.getArgs().size()) {
+                case 1: return Type::Unary;
+                case 2: return Type::Binary;
+                case 3: return Type::Ternary;
+                default: assert(false);
+            }
+        }
+    };
 }

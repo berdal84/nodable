@@ -202,6 +202,18 @@ Variable* Container::newString(const char* _value)
 	return node;
 }
 
+Node* Container::newOperator(const Operator* _operator)
+{
+    switch ( _operator->getType() )
+    {
+        case Operator::Type::Binary:
+            return newBinOp(_operator);
+        case Operator::Type::Unary:
+            return newUnaryOp(_operator);
+        default:
+            assert(false); // Operator type not implemented yet !
+    }
+}
 
 Node* Container::newBinOp(const Operator* _operator)
 {

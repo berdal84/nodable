@@ -51,8 +51,8 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 		if (op != nullptr )
 		{
 			auto lambda = [container, function, op]()->Node*
-			{	
-				return container->newBinOp(op);		
+			{
+                return container->newOperator(op);
 			};
 
 			auto label = op->signature.getLabel();

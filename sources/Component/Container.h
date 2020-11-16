@@ -36,6 +36,7 @@ namespace Nodable{
 		Variable*					newString(const char*);	
 		Node*                       newBinOp(const Operator*);
 		Node*                       newUnaryOp(const Operator*);
+        Node*                       newOperator(const Operator*);
 		Wire*                       newWire();
 		Node*                       newFunction(const Function* _proto);
 
