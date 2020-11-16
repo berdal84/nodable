@@ -130,3 +130,18 @@ std::filesystem::path Application::getAssetPath(const char* _fileName)const
 	assetPath /= _fileName;
 	return assetPath;
 }
+
+size_t Application::getFileCount() const
+{
+	return loadedFiles.size();
+}
+
+File *Application::getFileAtIndex(size_t _index) const
+{
+	return loadedFiles[_index];
+}
+
+size_t Application::getCurrentFileIndex() const
+{
+	return currentFileIndex;
+}
