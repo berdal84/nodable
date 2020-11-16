@@ -180,3 +180,13 @@ void Node::onMemberValueChanged(const char* _name)
 	updateLabel();
 	NodeTraversal::SetDirty(this);
 }
+
+Container *Node::getInnerContainer() const
+{
+    return this->innerContainer;
+}
+
+void Node::setInnerContainer(Container *_container)
+{
+    this->innerContainer = _container;
+}
