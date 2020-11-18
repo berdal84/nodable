@@ -91,44 +91,44 @@ bool Member_Connections_Tests() {
 	TEST_BEGIN("Member Way"){
 
 		TEST_BEGIN("Member 1: In"){
-			std::unique_ptr<Member> m(new Member);
+			auto m = std::make_unique<Member>(nullptr);
 			m->setConnectorWay(Way_In);
 
-			EXPECT(m->allows(Way_Out)	, false)
-			EXPECT(m->allows(Way_InOut)	, false)
-			EXPECT(m->allows(Way_In)	, true)
-			EXPECT(m->allows(Way_None)	, true)
+			EXPECT(m->allowsConnection(Way_Out)	, false)
+			EXPECT(m->allowsConnection(Way_InOut)	, false)
+			EXPECT(m->allowsConnection(Way_In)	, true)
+			EXPECT(m->allowsConnection(Way_None)	, true)
 		}TEST_END
 
 
 		TEST_BEGIN("Member 2: Out"){
-			std::unique_ptr<Member> m(new Member);
+		    auto m = std::make_unique<Member>(nullptr);
 			m->setConnectorWay(Way_Out);
 
-			EXPECT(m->allows(Way_Out)	, true)
-			EXPECT(m->allows(Way_InOut)	, false)
-			EXPECT(m->allows(Way_In)		, false)
-			EXPECT(m->allows(Way_None)	, true)
+			EXPECT(m->allowsConnection(Way_Out)	, true)
+			EXPECT(m->allowsConnection(Way_InOut)	, false)
+			EXPECT(m->allowsConnection(Way_In)		, false)
+			EXPECT(m->allowsConnection(Way_None)	, true)
 		}TEST_END
 
 		TEST_BEGIN("Member 3: None"){
-			std::unique_ptr<Member> m(new Member);
+            auto m = std::make_unique<Member>(nullptr);
 			m->setConnectorWay(Way_Out);
 
-			EXPECT(m->allows(Way_Out)	, true)
-			EXPECT(m->allows(Way_InOut)	, false)
-			EXPECT(m->allows(Way_In)		, false)
-			EXPECT(m->allows(Way_None)	, true)
+			EXPECT(m->allowsConnection(Way_Out)	, true)
+			EXPECT(m->allowsConnection(Way_InOut)	, false)
+			EXPECT(m->allowsConnection(Way_In)		, false)
+			EXPECT(m->allowsConnection(Way_None)	, true)
 		}TEST_END
 
 		TEST_BEGIN("Member 4: InOut"){
-			std::unique_ptr<Member> m(new Member);
+		    auto m = std::make_unique<Member>(nullptr);
 			m->setConnectorWay(Way_InOut);
 
-			EXPECT(m->allows(Way_Out)	, true)
-			EXPECT(m->allows(Way_InOut)	, true)
-			EXPECT(m->allows(Way_In)	, true)
-			EXPECT(m->allows(Way_None)	, true)
+			EXPECT(m->allowsConnection(Way_Out)	, true)
+			EXPECT(m->allowsConnection(Way_InOut)	, true)
+			EXPECT(m->allowsConnection(Way_In)	, true)
+			EXPECT(m->allowsConnection(Way_None)	, true)
 		}TEST_END
 
 	}TEST_END
@@ -140,7 +140,7 @@ bool Member_AsBoolean_Tests() {
 
 	TEST_BEGIN("Member: Booleans"){
 
-		std::unique_ptr<Member> m(new Member);
+	    auto m = std::make_unique<Member>(nullptr);
 
 		m->set(true);
 		EXPECT((bool)*m, true)
@@ -148,7 +148,7 @@ bool Member_AsBoolean_Tests() {
 
 		m->set(false);
 		EXPECT((bool)*m, false)
-		EXPECT(m->isSet(), true)
+		EXPECT(m->isDefined(), true)
 
 	}TEST_END
 
@@ -159,7 +159,7 @@ bool Member_AsString_Tests() {
 
 	TEST_BEGIN("Member: String"){
 
-		auto m = new Member();
+	    auto m = std::make_unique<Member>(nullptr);
 		m->set("Hello world !");
 		const std::string str = "Hello world !";
 
@@ -167,7 +167,7 @@ bool Member_AsString_Tests() {
 		EXPECT((bool)*m, true)
 		EXPECT(m->getType(), Type::String)
 		EXPECT((double)*m, str.length())
-		EXPECT(m->isSet(), true)
+		EXPECT(m->isDefined(), true)
 	}TEST_END
 
 	return s_lastGroupTestPassed;
@@ -176,13 +176,13 @@ bool Member_AsString_Tests() {
 bool Member_AsNumber_Tests() {
 
 	TEST_BEGIN("Member: Double"){
-				
-		std::unique_ptr<Member> m(new Member);
+
+	    auto m = std::make_unique<Member>(nullptr);
 		m->set((double)50);
 
 		EXPECT((double)*m, (double)50)
 		EXPECT(m->getType(), Type::Double)
-		EXPECT(m->isSet(), true)	
+		EXPECT(m->isDefined(), true)
 
 	}TEST_END
 
@@ -205,9 +205,9 @@ bool Parser_Test(
 	auto result = container.getResultVariable();
 	container.update();
 
-	Member expectedMember;
-	expectedMember.set(_expectedValue);
-	auto success = result->getMember()->equals(&expectedMember);
+    auto expectedMember = std::make_unique<Member>(nullptr);
+	expectedMember->set(_expectedValue);
+	auto success = result->getMember()->equals(expectedMember.get());
 
 	return success;
 }

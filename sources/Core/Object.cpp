@@ -58,9 +58,7 @@ Member* Object::getFirstWithConn(Way _connection)const
 
 Member* Object::add (const char* _name, Visibility _visibility, Type _type, Way _flags )
 {
-	auto v = new Member();
-
-	v->setOwner     (this);	
+	auto v = new Member(this);
 	v->setName		(_name);
 	v->setVisibility(_visibility);
 	v->setType		(_type);
