@@ -88,10 +88,14 @@ bool Parser::eval(const std::string& _expression)
 
 	// If the value has no owner, we simply set the variable value
 	if (resultValue->getOwner() == nullptr)
-		result->set(resultValue);
-	// Else we connect resultValue with resultVariable.value
-	else
-		Node::Connect(resultValue, result->getMember());
+	{
+        result->set(resultValue);
+        delete resultValue;
+    }
+	else // we connect resultValue with resultVariable.value
+    {
+        Node::Connect(resultValue, result->getMember());
+    }
 
 	LOG_MESSAGE(0u, "Expression evaluated: %s\n", _expression.c_str() );
 	return true;
@@ -107,7 +111,7 @@ Member* Parser::tokenToMember(const Token& _token) {
 
 		case TokenType::Boolean:
 		{
-			result = new Member();
+			result = new Member(nullptr);
 			const bool value = _token.word == "true";
 			result->set(value);
 			break;
@@ -130,14 +134,14 @@ Member* Parser::tokenToMember(const Token& _token) {
 		}
 
 		case TokenType::Double: {
-			result = new Member();
+			result = new Member(nullptr);
 			const double number = std::stod(_token.word);
 			result->set(number);
 			break;
 		}
 
 		case TokenType::String: {
-			result = new Member();
+			result = new Member(nullptr);
 			result->set(_token.word);
 			break;
 		}

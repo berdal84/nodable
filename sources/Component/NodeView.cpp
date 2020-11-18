@@ -465,7 +465,7 @@ bool NodeView::drawMember(Member* _member) {
 		{
 			auto f = (double)*_member;
 
-			if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && _member->isEditable())
+			if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->hasInputConnected())
 			{
 				_member->set(f);
 				NodeTraversal::SetDirty(node);
@@ -478,7 +478,7 @@ bool NodeView::drawMember(Member* _member) {
 			char str[255];
 			snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
 
-			if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && _member->isEditable() )
+			if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->hasInputConnected() )
 			{
 				_member->set(str);
 				NodeTraversal::SetDirty(node);
@@ -492,7 +492,7 @@ bool NodeView::drawMember(Member* _member) {
 
 		auto b = (bool)*_member;
 
-		if (ImGui::Checkbox( checkBoxLabel.c_str(), &b ) && _member->isEditable() ) {
+		if (ImGui::Checkbox( checkBoxLabel.c_str(), &b ) && !_member->hasInputConnected() ) {
 			_member->set(b);
 			NodeTraversal::SetDirty(node);
 			edited |= true;
@@ -525,12 +525,12 @@ bool NodeView::drawMember(Member* _member) {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	auto memberName       = _member->getName();
 
-	if (_member->allows(Way_In)) {
+	if (_member->allowsConnection(Way_In)) {
 		ImVec2      connectorPos = getConnectorPosition( memberName, Way_In);
 		drawConnector(connectorPos, _member->input(), draw_list);
 	}
 		
-	if (_member->allows(Way_Out)) {
+	if (_member->allowsConnection(Way_Out)) {
 		ImVec2      connectorPos = getConnectorPosition( memberName, Way_Out);
 		drawConnector(connectorPos, _member->output(), draw_list);
 	}

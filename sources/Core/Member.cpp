@@ -6,26 +6,24 @@
 
 using namespace Nodable;
 
-Member::Member()
+Member::Member(Object* _owner):owner(_owner)
 {
 }
 
-Member::~Member(){
-	if (in != nullptr)
-		delete in;
-
-	if (out != nullptr)
-		delete out;
-};
+Member::~Member()
+{
+    delete in;
+    delete out;
+}
 
 Type Member::getType()const
 {
 	return data.getType();
 }
 
-bool Member::isEditable() const
+bool Member::hasInputConnected() const
 {
-    return this->getInputMember() == nullptr;
+    return this->getInputMember();
 }
 
 bool  Member::isType(Type _type)const
@@ -81,7 +79,7 @@ void Nodable::Member::updateValueFromInputMemberValue()
 	this->set(this->inputMember);
 }
 
-bool Member::allows(Way _way)const
+bool Member::allowsConnection(Way _way)const
 {
 	auto maskedFlags = getConnectorWay() & _way;
 	return maskedFlags == _way;
@@ -144,14 +142,9 @@ Way Member::getConnectorWay() const
 		return Way_None;
 }
 
-bool Member::isSet()const
+bool Member::isDefined()const
 {
 	return data.isSet();
-}
-
-void Nodable::Member::setOwner(Object* _owner)
-{
-	owner = _owner;
 }
 
 std::string Member::getTypeAsString()const
@@ -163,7 +156,7 @@ std::string Member::getSourceExpression()const
 {
 	std::string expression;
 
-	if ( allows(Way_In) && inputMember != nullptr)
+	if (allowsConnection(Way_In) && inputMember != nullptr)
 	{
 		// if inputMember is a variable we add the variable name and an equal sign
 		if (inputMember->getOwner()->getClass()->getName() == "Variable" &&

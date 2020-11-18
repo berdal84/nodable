@@ -20,7 +20,7 @@ namespace Nodable{
 		~Variable();
 
 		void              setName         (const char*);
-		bool              isSet           ()const{return getMember()->isSet(); }
+		bool              isSet           ()const{return getMember()->isDefined(); }
 		bool              isType          (Type _type)const;		
 		const char*       getName         ()const;
 
