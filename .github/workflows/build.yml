@@ -33,8 +33,8 @@ jobs:
 
     - name: Install dependencies
       if: matrix.os == 'ubuntu-20.04'
-      run: sudo apt-get update && sudo apt-get install libsdl2-dev libegl1-mesa-dev
-      
+      run: sudo apt-get update && sudo apt-get install libsdl2-dev libegl1-mesa-dev doxygen
+
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
       # We'll use this as our working directory for all subsequent commands
@@ -55,8 +55,19 @@ jobs:
       shell: bash
       run: ctest -C ${{env.buildType}} --verbose
 
-    - name: Upload artifact
+    - name: Upload binary artifact
       uses: actions/upload-artifact@v2
       with:
         name: Nodable-${{runner.os}}-commit-${{github.sha}}
         path: ${{runner.workspace}}/Nodable/install/${{env.buildType}}
+
+    - name: Generate documentation
+      if: matrix.os == 'ubuntu-20.04'
+      run: cd docs && doxygen
+
+    - name: Upload documentation artifact
+      if: matrix.os == 'ubuntu-20.04'
+      uses: actions/upload-artifact@v2
+      with:
+        name: Nodable-technical-documentation-commit-${{github.sha}}
+        path: ${{runner.workspace}}/Nodable/docs/doxygen
