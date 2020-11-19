@@ -326,9 +326,10 @@ void Container::tryToRestoreResultNodePosition()
 			nodeView->setPosition(Container::LastResultNodePosition);			
 		}
 
-		if ( !NodeView::IsInsideRect(nodeView, view->visibleRect) ){     		
-			ImVec2 defaultPosition = view->visibleRect.GetCenter();
-			defaultPosition.x += view->visibleRect.GetWidth() * 1.0f / 6.0f;
+		auto rect = view->getVisibleRect();
+		if ( !NodeView::IsInsideRect(nodeView, rect ) ){
+			ImVec2 defaultPosition = rect.GetCenter();
+			defaultPosition.x += rect.GetWidth() * 1.0f / 6.0f;
 			nodeView->setPosition(defaultPosition);
 		}
 	}

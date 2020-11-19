@@ -96,7 +96,7 @@ bool FileView::draw()
 	auto container = file->getInnerContainer();
 	auto view      = container->getComponent<View>();
 
-	view->visibleRect = this->visibleRect;
+	view->setVisibleRect( this->visibleRect );
 	view->draw();
 
 	return true;
