@@ -58,7 +58,7 @@ jobs:
     - name: Upload binary artifact
       uses: actions/upload-artifact@v2
       with:
-        name: Nodable-${{runner.os}}-commit-${{github.sha}}
+        name: Nodable-${{ env.buildType }}-${{ runner.os }}
         path: ${{runner.workspace}}/Nodable/install/${{env.buildType}}
 
     - name: Generate documentation
@@ -69,5 +69,5 @@ jobs:
       if: matrix.os == 'ubuntu-20.04'
       uses: actions/upload-artifact@v2
       with:
-        name: Nodable-technical-documentation-commit-${{github.sha}}
+        name: Nodable-Technical-Documentation
         path: ${{runner.workspace}}/Nodable/docs/doxygen
