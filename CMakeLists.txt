@@ -15,6 +15,7 @@ endif ()
 project("Nodable" VERSION "0.7.0")
 set(PROJECT_ASSETS_DIR "assets")
 
+# Configure headers
 configure_file("sources/Core/Config.h.in" "configured/Config.h" )
 
 include(CheckPIESupported) 
@@ -25,6 +26,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
+
+if(MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
 
 # If a default install prefix has not been set, we set it.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -42,6 +47,7 @@ ELSE()
   find_package(SDL2 REQUIRED)
 ENDIF()
 
+# reflexion framework
 find_package(MIRROR REQUIRED HINTS "./extern/mirror")
 
 # Add additionnal source directories
@@ -51,7 +57,7 @@ aux_source_directory( "./libs/gl3w/GL" GL3W)
 aux_source_directory( "./libs/lodepng" LODE_PNG)
 
 # Get all files in sources directory recursively
-file(GLOB_RECURSE NODABLE_SRC "${CMAKE_CURRENT_LIST_DIR}/sources/*")
+file(GLOB_RECURSE NODABLE_SRC "${CMAKE_CURRENT_LIST_DIR}/sources/**/*")
 
 # Create a variable with all sources
 set(SOURCES
@@ -94,45 +100,60 @@ include_directories(
     ${MIRROR_INCLUDE_DIRS}
 )
 
-# Build:
-#=======
+# Nodable Library:
+#=================
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
-# Add an executable called Nodable(.exe on windows) 
-add_executable (Nodable "sources/main.cpp" ${SOURCES}) # WIN32 will give WIN32_EXECUTABLE flag if targets windows (no console)
-set_property(TARGET Nodable PROPERTY POSITION_INDEPENDENT_CODE FALSE)
-set_property(TARGET Nodable PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}")
+# Add a nodable library to build it once for the app and tests
+add_library(NodableLib ${SOURCES})
 
-# Link libraries
+# link SDL
 IF (WIN32)
-  target_link_libraries(Nodable LINK_PRIVATE ${SDL2_STATIC})
+    target_link_libraries(NodableLib LINK_PUBLIC ${SDL2_STATIC} )
 ELSE()
-  target_link_libraries(Nodable PRIVATE ${SDL2_LIBRARIES})
+    target_link_libraries(NodableLib PUBLIC ${SDL2_LIBRARIES})
 ENDIF()
 
-target_link_libraries(Nodable PRIVATE ${OPENGL_LIBRARY}) 
-target_link_libraries(Nodable PRIVATE ${CMAKE_DL_LIBS})
-target_link_libraries(Nodable PRIVATE Threads::Threads)
+# link other libs
+target_link_libraries(NodableLib PUBLIC ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS} Threads::Threads)
 
-# Configure files (a link is created between source and target, if source is modified, target will be updated)
+# Nodable Application:
+#=====================
 
+# add sources
+add_executable (Nodable "sources/main.cpp")
+
+# link with lib
+target_link_libraries(Nodable PRIVATE NodableLib)
+
+# required to run well on recent os (ex: ubuntu)
+set_property(TARGET Nodable PROPERTY POSITION_INDEPENDENT_CODE FALSE)
+
+# fix working directory for visual studio
+set_property(TARGET Nodable PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}")
+
+# AFTER BUILD:
+#=============
+
+# Copy assets (fonts, scripts, etc..)
 add_custom_command(
-        TARGET Nodable PRE_BUILD
+    TARGET Nodable PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_ASSETS_DIR}
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_ASSETS_DIR}
+)
 
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  # Copy assets (fonts, scripts, etc..)
-                ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_ASSETS_DIR}
-                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_ASSETS_DIR})
-
+# Copy SDL2.dll
 IF (WIN32)
   add_custom_command(
     TARGET Nodable PRE_BUILD
-
-    COMMAND ${CMAKE_COMMAND} -E copy # Copy SDL2 runtime library
-            ${SDL2_RUNTIME}
-            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${SDL2_RUNTIME}
+    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+  )
 ENDIF()
 
 # Installation :
@@ -151,11 +172,25 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/README.md DESTINATION ${INSTALL_PATH} 
 # Copy executable
 install(TARGETS Nodable RUNTIME DESTINATION ${INSTALL_PATH})
 
-# Tests :
-#=========
+# Testing (using google test)
+#============================
 
 enable_testing()
-add_test(NAME Test COMMAND Nodable "--run-tests" CONFIGURATIONS ${CONFIG} WORKING_DIRECTORY ${BUILD_PATH})
+
+# add gtest
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+add_subdirectory(libs/googletest-release-1.10.0)
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+
+# find test sources
+file(GLOB_RECURSE TEST_SRC "${CMAKE_CURRENT_LIST_DIR}/tests/*")
+add_executable( Tests ${TEST_SRC})
+
+# Link libraries
+target_link_libraries(Tests PRIVATE NodableLib gtest gtest_main)
+
+# declare tests
+add_test( NAME Tests COMMAND Tests )
 
 # MMMMMMMMMMMMMMMMMMMMMMNOo:;,;;lxKWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 # MMMMMMMMMMMMMMMMMMMMW0o:;;;;;;;;lkXWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM

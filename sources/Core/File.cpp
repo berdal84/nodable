@@ -88,6 +88,7 @@ modified = false;
 
 File* File::OpenFile(std::filesystem::path _filePath)
 {
+    LOG_MESSAGE(0u, "Loading file \"%s\"...\n", _filePath.c_str());
 
 	std::ifstream fileStream(_filePath);
 
@@ -101,7 +102,6 @@ File* File::OpenFile(std::filesystem::path _filePath)
 	std::string content((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
 
 	File* file = new File(_filePath.c_str(), content.c_str());
-
 
 	return file;
 }
