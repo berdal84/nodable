@@ -20,9 +20,9 @@
 
 	TODO: I don't like these big macros. Use function traits instead.
 */
-#define SUCCESS return 0;
+#define RETURN_SUCCESS return 0;
 
-#define FAIL \
+#define RETURN_FAILED \
 _result->setType(Type::Any); /* We intentionnaly force result type any to avoid crashing.*/ \
 return 1;
 
@@ -41,7 +41,7 @@ return 1;
 	_result->set( expr );
 
 
-#define END_IMPL SUCCESS\
+#define END_IMPL RETURN_SUCCESS\
 	};
 
 #define BINARY_OP_BEGIN( _type, _identifier, _ltype, _rtype, _precedence, _label )\
