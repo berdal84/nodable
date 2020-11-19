@@ -10,19 +10,28 @@ Nodable is node-able !
 Introduction:
 -------------
 
-This software is **a node-able bidirectionnal expression editor**.
+The goal of **Nodable** is to **provide an original hybrid source code editor**, using both textual and nodal paradigm.
 
-More precisely, it means **Text-to-Node and Node-to-Text seamless edition**.
+What does it mean ?
 
-To download a binary: go to this [article](https://www.dalle-cort.fr/nodable-node-oriented-programming/). By the way, if you're interested by the architecture, the language or the history of Nodable you'll find some documentation too.
+In Nodable, textual and nodal point of views are strongly linked, in both ways:
 
-You still don't understand what I'm doing? I hope this GIF will make this more understandable:
+- A change to the source code will update the graph.
+- A change to the graph will update the source code.
+
+_Disclaimer: Nodable is a prototype, do not expect too much from it._
+
+Here, Nodable in action:
 
 ![Demo GIF](https://www.dalle-cort.fr/wp-content/uploads/2018/01/2019_06_06_Nodable_0.4.1wip_Berenger_Dalle-Cort.gif)
 
+How to try:
+-----------
+
+Download binaries from [home page](https://www.dalle-cort.fr/nodable-node-oriented-programming/) or browse Release section.
 
 How to compile ? :
-==================
+----------------
 
 Requirements:
 - A **C++17** compatible build system (tested with make/g++-10 and MSVC14.27.29110)
@@ -42,7 +51,7 @@ cd ./Nodable
 cmake . -B build
 cmake --build build --config Release [--target install]
 ```
-*Optionnal `--target install` is to create a clean `./install/Release` directory with only necessary files to run the software.*
+*Optional `--target install` is to create a clean `./install/Release` directory with only necessary files to run the software.*
 
 Nodable will be built into `./build/`
 
@@ -52,9 +61,18 @@ cd build
 ./Nodable
 ```
 
+Licence:
+-------
+**Nodable** is licensed under the GPL License, see LICENSE for more information.
 
-Dependencies / Credits :
-==============
+Each submodule are licensed, browse */extern* folder.
+
+Credits :
+---------
+
+**Nodable** is developped by @berdal84
+
+Dependencies
 
 - SDL2 : https://www.libsdl.org/
 - GLFW3 : http://www.glfw.org/
@@ -64,9 +82,3 @@ Dependencies / Credits :
 - mirror by Grouflon : https://github.com/grouflon/mirror
 - ImGui FileBrowser by AirGuanZ: https://github.com/AirGuanZ/imgui-filebrowser
 - LodePNG by Lode Vandevenne
-
-Licence:
-=========
-**Nodable** is licensed under the GPL License, see LICENSE for more information.
-
-Each submodule are licensed, browse */extern* folder.
