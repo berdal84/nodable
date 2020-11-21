@@ -267,12 +267,12 @@ bool ApplicationView::draw()
             ImGui::OpenPopup(startupScreenTitle);
         }
 
-        ImGui::SetNextWindowSizeConstraints(ImVec2(500,100), ImVec2(500,-1.0f));
+        ImGui::SetNextWindowSizeConstraints(ImVec2(500,200), ImVec2(500,50000));
         ImGui::SetNextWindowPosCenter();
 
         auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
-        if ( ImGui::BeginPopupModal(startupScreenTitle, NULL, flags) )
+        if ( ImGui::BeginPopupModal(startupScreenTitle, nullptr, flags) )
         {
             std::filesystem::path path(NODABLE_ASSETS_DIR"/nodable-logo-xs.png");
             auto logo = Texture::GetWithPath(path);
