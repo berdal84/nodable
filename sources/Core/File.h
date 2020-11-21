@@ -35,11 +35,15 @@ namespace Nodable
 		inline History* getHistory() {
 			return getComponent<History>();
 		}
+        bool& isOpen();
 
 	private:
+	    bool open = true;
 		bool                      modified = false;
 		std::filesystem::path     path;		
 		const Language*           language;
 		MIRROR_CLASS(File)();
-	};
+
+
+    };
 }

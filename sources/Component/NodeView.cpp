@@ -554,7 +554,7 @@ void NodeView::drawConnector(ImVec2& connectorPos, const Connector* _connector, 
 	ImGui::SetCursorPos(cursorPos);
 
 	// Circle
-	auto isItemHovered = ImGui::IsItemHoveredRect();
+	auto isItemHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
 
 	if (isItemHovered)
 		draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Highlighted));

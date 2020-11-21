@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Nodable.h"
+
 #include <imgui/imgui.h>
 #include <SDL2/include/SDL.h>
 #include <string>
@@ -53,5 +54,15 @@ namespace Nodable
 			MIRROR_PARENT(View)
 		);
 
+        void drawHistoryBar(History *currentFileHistory);
+
+        void drawStatusBar() const;
+
+        void drawMenuBar(History *currentFileHistory, bool &userWantsToDeleteSelectedNode,
+                         bool &userWantsToArrangeSelectedNodeHierarchy, bool &redock_all);
+
+        void drawStartupWindow();
+
+        void drawPropertiesWindow();
     };
 }
