@@ -67,8 +67,8 @@ set(SOURCES
   ${IMGUI}
   ${MIRROR_SOURCES}
   ${LODE_PNG}
-  "./extern/imgui/examples/imgui_impl_opengl3.cpp"
-  "./extern/imgui/examples/imgui_impl_sdl.cpp" 
+  "./extern/imgui/backends/imgui_impl_opengl3.cpp"
+  "./extern/imgui/backends/imgui_impl_sdl.cpp"
   )
 
 # Group the previous files using the folder tree 

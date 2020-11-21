@@ -169,3 +169,7 @@ bool File::evaluateSelectedExpression()
 
 	return success;
 }
+
+bool& File::isOpen() {
+    return open;
+}

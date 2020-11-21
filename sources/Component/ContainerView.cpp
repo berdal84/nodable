@@ -154,7 +154,7 @@ bool ContainerView::draw()
 
 	bool isMousePanEnable = false;
 	if (isMousePanEnable)
-	{	if (ImGui::IsMouseDragging() && ImGui::IsWindowFocused() && !isAnyNodeDragged)
+	{	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged)
 		{
 			auto drag = ImGui::GetMouseDragDelta();
 			for (auto eachNode : entities)
@@ -170,7 +170,7 @@ bool ContainerView::draw()
 		Mouse right-click popup menu
 	*/
 
-	if (ImGui::IsMouseHoveringWindow() && ImGui::IsMouseClicked(1)) {
+	if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1)) {
 		if (draggedConnector == nullptr)
 			ImGui::OpenPopup("ContainerViewContextualMenu");
 		else if (ImGui::IsPopupOpen("ContainerViewContextualMenu")) {
