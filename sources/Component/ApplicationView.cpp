@@ -545,7 +545,7 @@ void ApplicationView::drawMenuBar(
             //ImGui::MenuItem(ICON_FA_FILE   "  New", "Ctrl + N");
             if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) browseFile();
             if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) application->saveCurrentFile();
-            if (ImGui::MenuItem(ICON_FA_TIMES       "  Close","Ctrl + W")) application->closeCurrentFile();
+            if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) application->closeCurrentFile();
             if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4")) application->stopExecution();
 
             ImGui::EndMenu();
@@ -560,14 +560,14 @@ void ApplicationView::drawMenuBar(
             }
 
             auto isAtLeastANodeSelected = NodeView::GetSelected() != nullptr;
-userWantsToDeleteSelectedNode |= ImGui::MenuItem("Delete", "Del.", false, isAtLeastANodeSelected);
-            userWantsToArrangeSelectedNodeHierarchy |= ImGui::MenuItem("ReArrange nodes", "A", false, isAtLeastANodeSelected);
+            userWantsToDeleteSelectedNode |= ImGui::MenuItem("Delete", "Del.", false, isAtLeastANodeSelected);
+            userWantsToArrangeSelectedNodeHierarchy |= ImGui::MenuItem("ReArrange nodes", "A", false,
+                                                                       isAtLeastANodeSelected);
 
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("View"))
-        {
+        if (ImGui::BeginMenu("View")) {
             //auto frame = ImGui::MenuItem("Frame All", "F");
             redock_all |= ImGui::MenuItem("Redock documents");
 
@@ -577,8 +577,8 @@ userWantsToDeleteSelectedNode |= ImGui::MenuItem("Delete", "Del.", false, isAtLe
             auto detailComplex = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex);
 
             ImGui::Separator();
-            auto showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", (bool)*get("showProperties"));
-            auto showImGuiDemo = ImGui::MenuItem("Show ImGui Demo", "", (bool)*get("showImGuiDemo"));
+            auto showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", (bool) *get("showProperties"));
+            auto showImGuiDemo = ImGui::MenuItem("Show ImGui Demo", "", (bool) *get("showImGuiDemo"));
 
             ImGui::Separator();
 
@@ -586,8 +586,7 @@ userWantsToDeleteSelectedNode |= ImGui::MenuItem("Delete", "Del.", false, isAtLe
                 auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", true);
                 if (toggleFullscreen)
                     SDL_SetWindowFullscreen(sdlWindow, 0);
-            }
-            else {
+            } else {
                 auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", false);
                 if (toggleFullscreen)
                     SDL_SetWindowFullscreen(sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -595,34 +594,29 @@ userWantsToDeleteSelectedNode |= ImGui::MenuItem("Delete", "Del.", false, isAtLe
 
             ImGui::Separator();
 
-            if ( ImGui::BeginMenu("Verbosity Level") )
-{
-if( ImGui::MenuItem("Normal (0)", "", Log::GetVerbosityLevel() == 0u ) )
-{
-Log::SetVerbosityLevel(0u);
-}
+            if (ImGui::BeginMenu("Verbosity Level")) {
+                if (ImGui::MenuItem("Normal (0)", "", Log::GetVerbosityLevel() == 0u)) {
+                    Log::SetVerbosityLevel(0u);
+                }
 
-if( ImGui::MenuItem("Verbose (1)", "", Log::GetVerbosityLevel() == 1u ) )
-{
-Log::SetVerbosityLevel(1u);
-}
+                if (ImGui::MenuItem("Verbose (1)", "", Log::GetVerbosityLevel() == 1u)) {
+                    Log::SetVerbosityLevel(1u);
+                }
 
-if( ImGui::MenuItem("Extra-Verbose (2)", "", Log::GetVerbosityLevel() == 2u ) )
-{
-Log::SetVerbosityLevel(2u);
-}
+                if (ImGui::MenuItem("Extra-Verbose (2)", "", Log::GetVerbosityLevel() == 2u)) {
+                    Log::SetVerbosityLevel(2u);
+                }
 
-if( ImGui::MenuItem("Most-Verbose-Ever (3)", "", Log::GetVerbosityLevel() == 3u ) )
-{
-Log::SetVerbosityLevel(3u);
-}
+                if (ImGui::MenuItem("Most-Verbose-Ever (3)", "", Log::GetVerbosityLevel() == 3u)) {
+                    Log::SetVerbosityLevel(3u);
+                }
 
-ImGui::EndMenu();
-}
+                ImGui::EndMenu();
+            }
 
 
             //if( frame)
-                // TODO
+            // TODO
 
             if (detailSimple)
                 NodeView::s_drawDetail = DrawDetail_Simple;
@@ -634,50 +628,42 @@ ImGui::EndMenu();
                 NodeView::s_drawDetail = DrawDetail_Complex;
 
             if (showProperties)
-                set("showProperties", !(bool)*get("showProperties"));
+                set("showProperties", !(bool) *get("showProperties"));
 
             if (showImGuiDemo)
-                set("showImGuiDemo", !(bool)*get("showImGuiDemo"));
-
+                set("showImGuiDemo", !(bool) *get("showImGuiDemo"));
 
 
             ImGui::EndMenu();
         }
 
-if ( ImGui::BeginMenu( "An issue ?" ) )
-{
-if ( ImGui::MenuItem( "Report on Github.com"))
-{
-System::OpenURL( "https://github.com/berdal84/Nodable/issues" );
-}
+        if (ImGui::BeginMenu("An issue ?")) {
+            if (ImGui::MenuItem("Report on Github.com")) {
+                System::OpenURL("https://github.com/berdal84/Nodable/issues");
+            }
 
-if ( ImGui::MenuItem( "Report by email"))
-{
-System::OpenURL( "mail:berenger@dalle-cort.fr" );
-}
+            if (ImGui::MenuItem("Report by email")) {
+                System::OpenURL("mail:berenger@dalle-cort.fr");
+            }
 
-ImGui::EndMenu();
-}
+            ImGui::EndMenu();
+        }
 
-if ( ImGui::BeginMenu( "Help" ) )
-{
-if ( ImGui::MenuItem( "Show Startup Screen", "F1"))
-{
-    isStartupWindowVisible = true;
-}
+        if (ImGui::BeginMenu("Help")) {
+            if (ImGui::MenuItem("Show Startup Screen", "F1")) {
+                isStartupWindowVisible = true;
+            }
 
-if ( ImGui::MenuItem( "Browse source code"))
-{
-System::OpenURL( "https://www.github.com/berdal84/nodable" );
-}
+            if (ImGui::MenuItem("Browse source code")) {
+                System::OpenURL("https://www.github.com/berdal84/nodable");
+            }
 
-if ( ImGui::MenuItem( "Extern deps. credits"))
-{
-System::OpenURL( "https://github.com/berdal84/nodable#dependencies--credits-" );
-}
+            if (ImGui::MenuItem("Extern deps. credits")) {
+                System::OpenURL("https://github.com/berdal84/nodable#dependencies--credits-");
+            }
 
-ImGui::EndMenu();
-}
+            ImGui::EndMenu();
+        }
 
         ImGui::EndMenuBar();
     }
