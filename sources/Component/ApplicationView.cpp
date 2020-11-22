@@ -343,13 +343,17 @@ bool ApplicationView::draw()
                 ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
                 ImGuiWindowFlags window_flags = (eachFile->isModified() ? ImGuiWindowFlags_UnsavedDocument : 0);
 
-                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 10));
-                ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0, 0, 0, 0));
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+                auto win_bg = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
+                win_bg.w = 0;
+                auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
+                child_bg.w = 0;
+                //ImGui::PushStyleColor(ImGuiCol_TitleBgActive, win_bg);
+                ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
                 bool open = true;
                 bool visible = ImGui::Begin(eachFile->getName().c_str(), &open, window_flags);
                 {
-                    ImGui::PopStyleColor(2);
+                    ImGui::PopStyleColor(1);
                     ImGui::PopStyleVar();
 
                     if (visible) {
@@ -697,16 +701,12 @@ void ApplicationView::drawStatusBar() const {/*
     }
 }
 
-void ApplicationView::drawHistoryBar(History *currentFileHistory) {/*
-    UNDO HISTORY / TIME SLIDER
-*/
-
+void ApplicationView::drawHistoryBar(History *currentFileHistory) {
     if (currentFileHistory) {
 
-        if ( ImGui::IsMouseReleased(0) )
-{
-    isHistoryDragged = false;
-}
+        if (ImGui::IsMouseReleased(0)) {
+            isHistoryDragged = false;
+        }
 
 //				ImGui::Text(ICON_FA_CLOCK " History: ");
 
@@ -717,39 +717,36 @@ void ApplicationView::drawHistoryBar(History *currentFileHistory) {/*
         auto historySize = currentFileHistory->getSize();
         auto historyCurrentCursorPosition = currentFileHistory->getCursorPosition();
         auto availableWidth = ImGui::GetContentRegionAvailWidth();
-        auto historyButtonWidth = fmin(historyButtonMaxWidth, availableWidth / float(historySize + 1) - historyButtonSpacing);
+        auto historyButtonWidth = fmin(historyButtonMaxWidth,
+                                       availableWidth / float(historySize + 1) - historyButtonSpacing);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0));
 
-
-        ImGui::NewLine();
-
-        for (size_t commandId = 0; commandId <= historySize; commandId++)
-        {
+        for (size_t commandId = 0; commandId <= historySize; commandId++) {
             ImGui::SameLine();
+
+            std::string label("##" + std::to_string(commandId));
 
             // Draw an highlighted button for the current history position
             if (commandId == historyCurrentCursorPosition) {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-                ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
+                ImGui::Button(label.c_str(), ImVec2(historyButtonWidth, historyButtonHeight));
                 ImGui::PopStyleColor();
 
                 // or a simple one for other history positions
-            }
-            else
-                ImGui::Button("", ImVec2(historyButtonWidth, historyButtonHeight));
+            } else
+                ImGui::Button(label.c_str(), ImVec2(historyButtonWidth, historyButtonHeight));
 
             // Hovered item
-            if (ImGui::IsItemHovered())
-            {
+            if (ImGui::IsItemHovered()) {
                 if (ImGui::IsMouseDown(0)) // hovered + mouse down
-{
-    isHistoryDragged = true;
-}
+                {
+                    isHistoryDragged = true;
+                }
 
                 // Draw command description
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
                 ImGui::BeginTooltip();
-                ImGui::Text( "%s", currentFileHistory->getCommandDescriptionAtPosition(commandId).c_str());
+                ImGui::Text("%s", currentFileHistory->getCommandDescriptionAtPosition(commandId).c_str());
                 ImGui::EndTooltip();
                 ImGui::PopStyleVar();
             }
@@ -758,11 +755,10 @@ void ApplicationView::drawHistoryBar(History *currentFileHistory) {/*
             const auto xMin = ImGui::GetItemRectMin().x;
             const auto xMax = ImGui::GetItemRectMax().x;
             if (isHistoryDragged &&
-                 ImGui::GetMousePos().x < xMax &&
-                 ImGui::GetMousePos().x > xMin )
-{
-currentFileHistory->setCursorPosition(commandId); // update history cursor position
-}
+                ImGui::GetMousePos().x < xMax &&
+                ImGui::GetMousePos().x > xMin) {
+                currentFileHistory->setCursorPosition(commandId); // update history cursor position
+            }
 
 
         }
