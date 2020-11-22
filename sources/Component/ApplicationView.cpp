@@ -314,8 +314,9 @@ bool ApplicationView::draw()
 
 
         // Remove padding
+        bool isMainWindowOpen = true;
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("Nodable", NULL, window_flags);
+        ImGui::Begin("Nodable", &isMainWindowOpen, window_flags);
         {
             ImGui::PopStyleVar();
 
@@ -345,7 +346,8 @@ bool ApplicationView::draw()
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 10));
                 ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0, 0, 0, 0));
                 ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
-                bool visible = ImGui::Begin(eachFile->getName().c_str(), &eachFile->isOpen(), window_flags);
+                bool open = true;
+                bool visible = ImGui::Begin(eachFile->getName().c_str(), &open, window_flags);
                 {
                     ImGui::PopStyleColor(2);
                     ImGui::PopStyleVar();
@@ -370,6 +372,11 @@ bool ApplicationView::draw()
                     }
                 }
                 ImGui::End(); // File Window
+
+                if (!open)
+                {
+                    application->closeFile(fileIndex);
+                }
 
             } // for each File
         }
@@ -430,6 +437,7 @@ bool ApplicationView::draw()
     }
 
     SDL_GL_SwapWindow(sdlWindow);
+
 
     return false;
 }
