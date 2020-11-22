@@ -138,5 +138,6 @@ namespace Nodable
 		/** Reflection using mirror*/
 		MIRROR_CLASS(Application)();
 
-	};
+        void closeFile(int _fileIndex);
+    };
 }

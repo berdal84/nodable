@@ -35,25 +35,22 @@ bool Application::init()
 
 UpdateResult Application::update()
 {
-	auto file = getCurrentFile();
-	
-	if (!file)
-	{
-		return UpdateResult::Failed;
-	}
-	else
-	{
-		const auto fileUpdateResult = file->update();
+	File* file = getCurrentFile();
+    UpdateResult fileUpdateResult = UpdateResult::Failed;
 
-		if( quit )
-        {
-		    return UpdateResult::Stopped;
-        }
-		else
-        {
-            return fileUpdateResult;
-        }
-	}
+	if (file)
+	{
+        fileUpdateResult = file->update();
+    }
+
+    if( quit )
+    {
+        return UpdateResult::Stopped;
+    }
+    else
+    {
+        return fileUpdateResult;
+    }
 }
 
 void Application::stopExecution()
@@ -87,17 +84,7 @@ void Application::saveCurrentFile() const
 
 void Application::closeCurrentFile()
 {
-	auto currentFile = loadedFiles.at(currentFileIndex);
-	if (currentFile != nullptr)
-	{
-		auto it = std::find(loadedFiles.begin(), loadedFiles.end(), currentFile);
-		loadedFiles.erase(it);
-		delete currentFile;
-		if (currentFileIndex > 0)
-			setCurrentFileWithIndex(currentFileIndex - 1);
-		else
-			setCurrentFileWithIndex(currentFileIndex);
-	}
+    this->closeFile(this->currentFileIndex);
 }
 
 File* Application::getCurrentFile()const {
@@ -144,4 +131,19 @@ File *Application::getFileAtIndex(size_t _index) const
 size_t Application::getCurrentFileIndex() const
 {
 	return currentFileIndex;
+}
+
+void Application::closeFile(int _fileIndex)
+{
+    auto currentFile = loadedFiles.at(_fileIndex);
+    if (currentFile != nullptr)
+    {
+        auto it = std::find(loadedFiles.begin(), loadedFiles.end(), currentFile);
+        loadedFiles.erase(it);
+        delete currentFile;
+        if (currentFileIndex > 0)
+            setCurrentFileWithIndex(currentFileIndex - 1);
+        else
+            setCurrentFileWithIndex(currentFileIndex);
+    }
 }
