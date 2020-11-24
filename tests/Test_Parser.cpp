@@ -29,6 +29,27 @@ bool Parser_Test(
     return success;
 }
 
+
+std::string ParseEvalSerialize(
+        const std::string& expression,
+        const Language* _language = Language::Nodable()
+){
+
+    Container container(_language);
+    Parser parser(_language, &container);
+
+    parser.eval(expression);
+
+    auto result = container.getResultVariable();
+    container.update();
+
+    auto resultExpression = result->getMember()->getSourceExpression();
+
+    std::cout << resultExpression << std::endl;
+
+    return resultExpression;
+}
+
 TEST(Parser, DNAtoProtein )
 {
     EXPECT_TRUE(Parser_Test("DNAtoProtein(\"TAA\")", "_"));
@@ -111,4 +132,24 @@ TEST(Parser, Strings)
     EXPECT_TRUE(Parser_Test("a = string(-15.5)", "-15.5"));
     EXPECT_TRUE(Parser_Test("b = string(true)", "true"));
     EXPECT_TRUE(Parser_Test("b = string(false)", "false"));
+}
+
+TEST(Parser, Eval_Serialize_Compare)
+{
+    // TODO: problem with result variable not updating its source expression when expression is atomic
+    EXPECT_EQ(ParseEvalSerialize("1"), "1");
+
+    EXPECT_EQ(ParseEvalSerialize("1+1"), "1 + 1");
+    EXPECT_EQ(ParseEvalSerialize("1-1"), "1 - 1");
+    EXPECT_EQ(ParseEvalSerialize("-1"), "-1");
+    EXPECT_EQ(ParseEvalSerialize("a=5"), "a = 5");
+
+    // TODO: generate source expression in a smarter way to avoid unnecessary brackets.
+    EXPECT_EQ(ParseEvalSerialize("-1+1"), "-1 + 1");
+
+    // TODO: generate source expression in a smarter way to avoid unnecessary spaces.
+    EXPECT_EQ(ParseEvalSerialize("(a+b)*(c+d)"), "(a + b) * (c + d)");
+
+    // TODO: generate source expression in a smarter way to avoid unnecessary spaces.
+    EXPECT_EQ(ParseEvalSerialize("b = string(false)"), "b = string(false)");
 }
