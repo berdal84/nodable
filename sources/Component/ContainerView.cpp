@@ -1,18 +1,14 @@
 #include "ContainerView.h"
 #include "Log.h"
-#include "Parser.h"
 #include "Node.h"
 #include "Container.h"
 #include "Variable.h"
 #include "Wire.h"
 #include "WireView.h"
-#include "DataAccess.h"
-#include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
-#include "Application.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include <math.h>
+
 
 using namespace Nodable;
 
@@ -85,60 +81,63 @@ bool ContainerView::draw()
 			}
 		}
 
-		// Draw temporary wire on top (overlay draw list)
-		if (draggedConnector != nullptr)
-		{
-			ImVec2 lineScreenPosStart;
-			{
-				auto member   = draggedConnector->member;
-				auto node     = member->getOwner()->as<Node>();
-				auto view     = node->getComponent<NodeView>();
-				auto position = view->getConnectorPosition(member->getName(), draggedConnector->way);
+		if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
+        {
+            // Draw temporary wire on top (overlay draw list)
+            if (draggedConnector != nullptr)
+            {
+                ImVec2 lineScreenPosStart;
+                {
+                    auto member   = draggedConnector->member;
+                    auto node     = member->getOwner()->as<Node>();
+                    auto view     = node->getComponent<NodeView>();
+                    auto position = view->getConnectorPosition(member->getName(), draggedConnector->way);
 
-				lineScreenPosStart = position + ImGui::GetWindowPos();
-			}
+                    lineScreenPosStart = position + ImGui::GetWindowPos();
+                }
 
-			auto lineScreenPosEnd = ImGui::GetMousePos();
+                auto lineScreenPosEnd = ImGui::GetMousePos();
 
-			// Snap lineEndPosition to hoveredByMouse member's currentPosition
-			if (hoveredConnector != nullptr) {
-				auto member     = hoveredConnector->member;
-				auto node       = member->getOwner()->as<Node>();
-				auto view       = node->getComponent<NodeView>();
-				auto position   = view->getConnectorPosition(member->getName(), hoveredConnector->way);
+                // Snap lineEndPosition to hoveredByMouse member's currentPosition
+                if (hoveredConnector != nullptr) {
+                    auto member     = hoveredConnector->member;
+                    auto node       = member->getOwner()->as<Node>();
+                    auto view       = node->getComponent<NodeView>();
+                    auto position   = view->getConnectorPosition(member->getName(), hoveredConnector->way);
 
-				lineScreenPosEnd = position + ImGui::GetWindowPos();
-			}
+                    lineScreenPosEnd = position + ImGui::GetWindowPos();
+                }
 
-			ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
-				                                  lineScreenPosEnd,
-				                                  getColor(ColorType_BorderHighlights),
-				                                  connectorRadius * float(0.9));
+                ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
+                                                      lineScreenPosEnd,
+                                                      getColor(ColorType_BorderHighlights),
+                                                      connectorRadius * float(0.9));
 
-		}
+            }
 
-		// If user release mouse button
-		if (ImGui::IsMouseReleased(0))
-		{
-			// Add a new wire if needed (mouse drag'n drop)
-			if (draggedConnector != nullptr &&
-				hoveredConnector != nullptr)
-			{
-				if (draggedConnector->member != hoveredConnector->member)
-				{
-					Node::Connect(draggedConnector->member, hoveredConnector->member);
-				}
+            // If user release mouse button
+            if (ImGui::IsMouseReleased(0))
+            {
+                // Add a new wire if needed (mouse drag'n drop)
+                if (draggedConnector != nullptr &&
+                    hoveredConnector != nullptr)
+                {
+                    if (draggedConnector->member != hoveredConnector->member)
+                    {
+                        Node::Connect(draggedConnector->member, hoveredConnector->member);
+                    }
 
-				NodeView::ResetDraggedConnector();
-				
+                    NodeView::ResetDraggedConnector();
 
-			}// If user release mouse without hovering a member, we display a menu to create a linked node
-			else if (draggedConnector != nullptr)
-			{
-				if ( !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
-					ImGui::OpenPopup("ContainerViewContextualMenu");	
-			}
-		}
+
+                }// If user release mouse without hovering a member, we display a menu to create a linked node
+                else if (draggedConnector != nullptr)
+                {
+                    if ( !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
+                        ImGui::OpenPopup("ContainerViewContextualMenu");
+                }
+            }
+	    }
 	}
 
 	/*
