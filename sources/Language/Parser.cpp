@@ -62,24 +62,24 @@ bool Parser::eval(const std::string& _expression)
 {
 
 	if (!tokenizeExpressionString(_expression)) {
-		LOG_WARNING(0u, "Unable to parse expression due to unrecognysed tokens.\n");
+		LOG_WARNING(Log::Verbosity::Normal, "Unable to parse expression due to unrecognysed tokens.\n");
 		return false;
 	}
 
 	if(tokens.size() == 0 )
     {
-        LOG_MESSAGE(0u, "Nothing to evaluate.\n");
+        LOG_MESSAGE(Log::Verbosity::Normal, "Nothing to evaluate.\n");
         return false;
     }
 
 	if (!isSyntaxValid()) {
-		LOG_WARNING(0u, "Unable to parse expression due to syntax error.\n");
+		LOG_WARNING(Log::Verbosity::Normal, "Unable to parse expression due to syntax error.\n");
 		return false;
 	}
 
 	Member* resultValue = parseRootExpression();
 	if (resultValue == nullptr) {
-		LOG_WARNING(0u, "Unable to parse expression due to abstract syntax tree failure.\n");
+		LOG_WARNING(Log::Verbosity::Normal, "Unable to parse expression due to abstract syntax tree failure.\n");
 		return false;
 	}
 
@@ -97,7 +97,7 @@ bool Parser::eval(const std::string& _expression)
         Node::Connect(resultValue, result->getMember());
     }
 
-	LOG_MESSAGE(0u, "Expression evaluated: %s\n", _expression.c_str() );
+	LOG_MESSAGE(Log::Verbosity::Normal, "Expression evaluated: %s\n", _expression.c_str() );
 	return true;
 }
 

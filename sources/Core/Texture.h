@@ -66,7 +66,7 @@ namespace Nodable
             auto isLoaded = Texture::LoadPNG(path, image, &texture, &width, &height);
             if ( isLoaded )
             {
-                LOG_MESSAGE(0u, "Texture %s loaded.\n", path.c_str());
+                LOG_MESSAGE(Log::Verbosity::Default, "Texture %s loaded.\n", path.c_str());
                 auto newTexture = new Texture(texture, width, height);
 
                 // Store for later use
@@ -76,7 +76,7 @@ namespace Nodable
             }
             else
             {
-                LOG_ERROR(0u, "Texture %s NOT loaded !\n", path.c_str());
+                LOG_ERROR(Log::Verbosity::Default, "Texture %s NOT loaded !\n", path.c_str());
                 return nullptr;
             }
         }
