@@ -64,5 +64,11 @@ namespace Nodable
         void drawStartupWindow();
 
         void drawPropertiesWindow();
+
+        void drawFileEditor(ImGuiID dockspace_id, bool redock_all, int fileIndex);
+
+        void drawFileBrowser();
+
+        void drawBackground();
     };
 }
