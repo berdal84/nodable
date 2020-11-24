@@ -17,7 +17,7 @@ void Nodable::System::OpenURL(std::string _URL)
 
         if (result != 0)
         {
-            LOG_ERROR( 0u, "Unable to open %s. Because the command %s is not available on your system.",
+            LOG_ERROR( Log::Verbosity::Normal, "Unable to open %s. Because the command %s is not available on your system.",
                        _URL.c_str(), command.c_str());
         }
 

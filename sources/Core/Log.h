@@ -27,10 +27,10 @@
 #define LOG_ENABLE true
 
 #if LOG_ENABLE
-#   define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::LogType::Message, __VA_ARGS__ )
-#   define LOG_DEBUG(...) Nodable::Log::Push( Nodable::LogType::Message, __VA_ARGS__ )
-#   define LOG_WARNING(...) Nodable::Log::Push( Nodable::LogType::Warning, __VA_ARGS__ )
-#   define LOG_ERROR(...)   Nodable::Log::Push( Nodable::LogType::Error, __VA_ARGS__ )
+#   define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::Log::Type::Message, __VA_ARGS__ )
+#   define LOG_DEBUG(...) Nodable::Log::Push( Nodable::Log::Type::Message, __VA_ARGS__ )
+#   define LOG_WARNING(...) Nodable::Log::Push( Nodable::Log::Type::Warning, __VA_ARGS__ )
+#   define LOG_ERROR(...)   Nodable::Log::Push( Nodable::Log::Type::Error, __VA_ARGS__ )
 #else
 #   define LOG_MESSAGE(...)
 #   define LOG_DEBUG(...)
@@ -40,31 +40,40 @@
 
 namespace Nodable{	
 
-	enum class LogType
-    {
-		Message,
-		Warning,
-		Error
-	};
-
-	struct Message
-    {
-		LogType type;
-		short unsigned int verbosity;
-		std::string text;
-	};
-
 	class Log
     {
+    public:
+        enum class Verbosity: int
+        {
+            Normal = 0,
+            Verbose = 1,
+            ExtraVerbose = 2,
+            All = 3,
+            Default = Normal
+        };
+
+        enum class Type
+        {
+            Message,
+            Warning,
+            Error
+        };
+
+        struct Message
+        {
+            Type type;
+            Verbosity verbosity;
+            std::string text;
+        };
+
 	private:
         static std::vector<Message> Logs;
-        static const short unsigned int DefaultVerbosityLevel = 0u;
-        static short unsigned int VerbosityLevel;
+        static Verbosity s_verbosityLevel;
 
 	public:
-        inline static short unsigned int GetVerbosityLevel(){ return Log::VerbosityLevel; }
+        static inline Verbosity GetVerbosityLevel(){ return s_verbosityLevel; }
         static const Message* GetLastMessage();
-	    static void SetVerbosityLevel(short unsigned int _verbosityLevel);
-		static void Push(LogType _type, short unsigned int _verbosityLevel, const char* _format, ...);
+	    static void SetVerbosityLevel(Verbosity _verbosityLevel);
+		static void Push(Type _type, Verbosity _verbosityLevel, const char* _format, ...);
 	};
 }

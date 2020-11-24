@@ -32,7 +32,7 @@ void Container::clear()
 		Container::LastResultNodePosition = view->getRoundedPosition();
 	}
 
-	LOG_MESSAGE(1u, "=================== Container::clear() ==================\n");
+	LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "=================== Container::clear() ==================\n");
 
 	auto nodeIndex = nodes.size();
 
@@ -40,13 +40,13 @@ void Container::clear()
     {
         nodeIndex--;
 	    auto node = nodes.at(nodeIndex);
-        LOG_MESSAGE(1u, "remove and delete: %s \n", node->getLabel() );
+        LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "remove and delete: %s \n", node->getLabel() );
         remove(node);
         delete node;
 	}
     nodes.resize(0);
 
-    LOG_MESSAGE(1u, "===================================================\n");
+    LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "===================================================\n");
 
 
     resultNode = nullptr;
@@ -211,7 +211,7 @@ Node* Container::newOperator(const Operator* _operator)
         case Operator::Type::Unary:
             return newUnaryOp(_operator);
         default:
-            assert(false); // Operator type not implemented yet !
+            return nullptr;
     }
 }
 

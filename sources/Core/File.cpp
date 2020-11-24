@@ -88,13 +88,13 @@ modified = false;
 
 File* File::OpenFile(std::filesystem::path _filePath)
 {
-    LOG_MESSAGE(0u, "Loading file \"%s\"...\n", _filePath.c_str());
+    LOG_MESSAGE(Log::Verbosity::Normal, "Loading file \"%s\"...\n", _filePath.c_str());
 
 	std::ifstream fileStream(_filePath);
 
 	if (!fileStream.is_open())
 	{
-		LOG_ERROR(0u, "Unable to load \"%s\"\n", _filePath.c_str());
+		LOG_ERROR(Log::Verbosity::Normal, "Unable to load \"%s\"\n", _filePath.c_str());
 		return nullptr;
 	}
 
@@ -120,7 +120,7 @@ bool File::evaluateExpression(std::string& _expression)
 		auto result = container->getResultVariable();
 		auto view   = result->getComponent<NodeView>();
 		NodeView::ArrangeRecursively(view);
-		LOG_MESSAGE(0u, "Expression evaluated: %s\n", _expression.c_str());
+		LOG_MESSAGE(Log::Verbosity::Normal, "Expression evaluated: %s\n", _expression.c_str());
 		return true;
 	}
 	return false;

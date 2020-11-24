@@ -17,12 +17,12 @@ bool ComputeFunction::update()
 {
 
 	if (function->implementation == NULL) {
-		LOG_ERROR(0u, "Unable to find %s's nativeFunction.\n", language->serialize(function->signature).c_str());
+		LOG_ERROR(Log::Verbosity::Normal, "Unable to find %s's nativeFunction.\n", language->serialize(function->signature).c_str());
 		return false;
 	}
 
 	if (function->implementation(result, args))
-		LOG_MESSAGE(0u, "Evaluation of %s's native function failed !\n", language->serialize(function->signature).c_str());
+		LOG_MESSAGE(Log::Verbosity::Normal, "Evaluation of %s's native function failed !\n", language->serialize(function->signature).c_str());
 
 	this->updateResultSourceExpression();
 

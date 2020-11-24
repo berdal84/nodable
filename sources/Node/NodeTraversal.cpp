@@ -5,18 +5,18 @@
 using namespace Nodable;
 
 Result NodeTraversal::Update(Node* _rootNode) {
-    LOG_MESSAGE(1u, "NodeTraversal::Update %s \n", _rootNode->getLabel() );
+    LOG_MESSAGE(Log::Verbosity::Verbose, "NodeTraversal::Update %s \n", _rootNode->getLabel() );
     std::vector<Node*> traversed;
     auto result = NodeTraversal::UpdateRecursively(_rootNode, traversed);
-    LOG_MESSAGE(2u, "NodeTraversal::Update done.\n");
+    LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "NodeTraversal::Update done.\n");
     return result;
 }
 
 Result NodeTraversal::SetDirty(Node* _rootNode) {
-    LOG_MESSAGE(1u, "NodeTraversal::SetDirty %s \n", _rootNode->getLabel() );
+    LOG_MESSAGE(Log::Verbosity::Verbose, "NodeTraversal::SetDirty %s \n", _rootNode->getLabel() );
     std::vector<Node*> traversed;
     auto result = NodeTraversal::SetDirtyRecursively(_rootNode, traversed);
-    LOG_MESSAGE(2u, "NodeTraversal::SetDirty done.\n");
+    LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "NodeTraversal::SetDirty done.\n");
     return result;
 }
 
@@ -24,7 +24,7 @@ Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _trav
 
     Result result;
     
-    LOG_MESSAGE(2u, "NodeTraversal::SetDirtyEx\n");
+    LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "NodeTraversal::SetDirtyEx\n");
     
     // Check if we already updated this node
     auto alreadyUpdated = std::find( _traversed.cbegin(), _traversed.cend(), _node ) != _traversed.cend();
@@ -59,7 +59,7 @@ Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _trav
 Result NodeTraversal::UpdateRecursively(Node* _node, std::vector<Node*>& _traversed) {
     
     Result result;
-    LOG_MESSAGE(2u, "NodeTraversal::UpdateEx\n");
+    LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "NodeTraversal::UpdateEx\n");
     
     // Check if we already updated this node
     auto alreadyUpdated = std::find( _traversed.cbegin(), _traversed.cend(), _node ) != _traversed.cend();
@@ -111,7 +111,7 @@ Result NodeTraversal::UpdateRecursively(Node* _node, std::vector<Node*>& _traver
 
     } else {
         result = Result::Failure;
-        LOG_WARNING(0u, "Unable to update Node %s, cycle detected.", _node->getLabel() );
+        LOG_WARNING(Log::Verbosity::Normal, "Unable to update Node %s, cycle detected.", _node->getLabel() );
     }
 
     return result;

@@ -44,7 +44,7 @@ bool ApplicationView::init()
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
-        LOG_ERROR( 0u, "SDL Error: %s\n", SDL_GetError());
+        LOG_ERROR( Log::Verbosity::Default, "SDL Error: %s\n", SDL_GetError());
         return false;
     }
 
@@ -98,7 +98,7 @@ bool ApplicationView::init()
 
             //io.Fonts->AddFontDefault();
             auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
-            LOG_MESSAGE(0u, "Adding font from file: %s\n", fontPath.c_str());
+            LOG_MESSAGE(Log::Verbosity::Default, "Adding font from file: %s\n", fontPath.c_str());
             this->paragraphFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 20.0f, &config);
         }
 
@@ -113,7 +113,7 @@ bool ApplicationView::init()
             config.PixelSnapH = true;
             config.GlyphMinAdvanceX = 20.0f; // monospace to fix text alignment in drop down menus.
             auto fontPath = application->getAssetPath("fa-solid-900.ttf").string();
-            LOG_MESSAGE(0u, "Adding font from file: %s\n", fontPath.c_str());
+            LOG_MESSAGE(Log::Verbosity::Default, "Adding font from file: %s\n", fontPath.c_str());
             io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 20.0f, &config, icons_ranges);
         }
     }
@@ -126,7 +126,7 @@ bool ApplicationView::init()
 
         //io.Fonts->AddFontDefault();
         auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
-        LOG_MESSAGE( 0u, "Adding font from file: %s\n", fontPath.c_str());
+        LOG_MESSAGE( Log::Verbosity::Default, "Adding font from file: %s\n", fontPath.c_str());
         this->headingFont = io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 25.0f, &config);
     }
 
@@ -502,7 +502,7 @@ void ApplicationView::drawStartupWindow() {
         std::filesystem::path path(NODABLE_ASSETS_DIR"/nodable-logo-xs.png");
         auto logo = Texture::GetWithPath(path);
         ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
-        ImGui::Image((void*)(intptr_t)logo->image, ImVec2(logo->width, logo->height));
+        ImGui::Image((void*)(intptr_t)logo->image, ImVec2((float)logo->width, (float)logo->height));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(25.0f, 20.0f) );
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
@@ -618,20 +618,20 @@ void ApplicationView::drawMenuBar(
             ImGui::Separator();
 
             if (ImGui::BeginMenu("Verbosity Level")) {
-                if (ImGui::MenuItem("Normal (0)", "", Log::GetVerbosityLevel() == 0u)) {
-                    Log::SetVerbosityLevel(0u);
+                if (ImGui::MenuItem("Normal (0)", "", Log::GetVerbosityLevel() == Log::Verbosity::Normal)) {
+                    Log::SetVerbosityLevel(Log::Verbosity::Normal);
                 }
 
-                if (ImGui::MenuItem("Verbose (1)", "", Log::GetVerbosityLevel() == 1u)) {
-                    Log::SetVerbosityLevel(1u);
+                if (ImGui::MenuItem("Verbose (1)", "", Log::GetVerbosityLevel() == Log::Verbosity::Verbose)) {
+                    Log::SetVerbosityLevel(Log::Verbosity::Verbose);
                 }
 
-                if (ImGui::MenuItem("Extra-Verbose (2)", "", Log::GetVerbosityLevel() == 2u)) {
-                    Log::SetVerbosityLevel(2u);
+                if (ImGui::MenuItem("Extra-Verbose (2)", "", Log::GetVerbosityLevel() == Log::Verbosity::ExtraVerbose)) {
+                    Log::SetVerbosityLevel(Log::Verbosity::ExtraVerbose);
                 }
 
-                if (ImGui::MenuItem("Most-Verbose-Ever (3)", "", Log::GetVerbosityLevel() == 3u)) {
-                    Log::SetVerbosityLevel(3u);
+                if (ImGui::MenuItem("All (3)", "", Log::GetVerbosityLevel() == Log::Verbosity::All)) {
+                    Log::SetVerbosityLevel(Log::Verbosity::All);
                 }
 
                 ImGui::EndMenu();
@@ -704,11 +704,11 @@ void ApplicationView::drawStatusBar() const {/*
 
         switch ( lastLog->type ) {
 
-            case LogType::Error:
+            case Log::Type::Error:
                 statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
                 break;
 
-            case LogType::Warning:
+            case Log::Type::Warning:
                 statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
                 break;
 
@@ -839,7 +839,7 @@ void ApplicationView::drawBackground()
         for( int y = 0; y < 5; y++ )
         {
             ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
-            ImGui::Image((void*)(intptr_t)logo->image, ImVec2(logo->width, logo->height));
+            ImGui::Image((void*)(intptr_t)logo->image, ImVec2((float)logo->width, (float)logo->height));
         }
         ImGui::NewLine();
     }
