@@ -133,7 +133,7 @@ size_t Application::getCurrentFileIndex() const
 	return currentFileIndex;
 }
 
-void Application::closeFile(int _fileIndex)
+void Application::closeFile(size_t _fileIndex)
 {
     auto currentFile = loadedFiles.at(_fileIndex);
     if (currentFile != nullptr)

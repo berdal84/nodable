@@ -5,6 +5,8 @@
 
 namespace Nodable
 {
+    class Language;
+
 	class ComputeBase : public Component {
 	public:
 		ComputeBase(const Language* _language) :language(_language) {};

@@ -5,6 +5,7 @@
 #include <mirror.h>
 #include <map>
 #include <string>
+#include <functional>
 
 namespace Nodable{
 
