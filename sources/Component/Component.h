@@ -8,6 +8,8 @@
 
 namespace Nodable{
 
+    class Node;
+    
 	class Component: public Object
 	{
 	public:

@@ -1,18 +1,10 @@
 #include "ApplicationView.h"
 #include "Core/Texture.h"
-
-// Includes for ImGui
-#include <GL/gl3w.h>
-#include <imgui/imgui.h>
 #include <imgui/backends/imgui_impl_sdl.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
-
 #include <iostream>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include <Core/Texture.h>
 #include "System.h"
 #include "Application.h"
-#include "Container.h"
 #include "NodeView.h"
 #include "File.h"
 #include "Log.h"

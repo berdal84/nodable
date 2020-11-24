@@ -2,6 +2,8 @@
 #include "Nodable.h"
 #include "Member.h"   // for Type enum
 #include "mirror.h"
+#include "Visibility.h"
+#include "Way.h"
 
 namespace Nodable
 {

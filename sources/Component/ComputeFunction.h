@@ -5,6 +5,9 @@
 
 namespace Nodable
 {
+    class Function;
+    class Language;
+
 	/**
 	  * ComputeFunction is a class able to eval a function (using its prototype and a language)
 	  */
@@ -13,8 +16,10 @@ namespace Nodable
 		ComputeFunction(const Function* _function, const Language* _language);
 		~ComputeFunction() {};
 
-		void setArg(size_t _index, Member* _value) { args[_index] = _value; };
-		bool update()override;
+		void setArg(size_t _index, Member* _value) { args[_index] = _value; }
+		Member* getArg(size_t _index)const  { return args[_index]; }
+		const std::vector<Member*>& getArgs()const { return args; }
+		bool update() override;
 		void updateResultSourceExpression() const override;
 	protected:
 		std::vector<Member*> args;

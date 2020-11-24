@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <gl3w/GL/glcorearb.h>
 #include <gl3w/GL/gl3w.h>
+#include <Core/Log.h>
 
 namespace Nodable
 {

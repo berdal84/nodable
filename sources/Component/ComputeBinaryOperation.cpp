@@ -26,35 +26,6 @@ void ComputeBinaryOperation::setRValue(Member* _value) {
 
 void ComputeBinaryOperation::updateResultSourceExpression()const
 {
-	/*
-		Labmda funtion to check if parentheses are needed for the expression of the inputMember speficied as parameter.
-	*/
-	auto getMemberSourceBinOp = [](Member * _member)-> const Operator*
-	{
-	    const Operator* result{};
-
-		if (_member != nullptr )
-		{
-			auto node = _member->getOwner()->as<Node>();
-			if (auto binOpComponent = node->getComponent<ComputeBinaryOperation>())
-            {
-				result = binOpComponent->ope;
-            }
-			else if (auto unaryOpComponent = node->getComponent<ComputeUnaryOperation>())
-            {
-                result = unaryOpComponent->ope;
-            }
-		}
-
-		return result;
-	};
-
-	// Get the left and right source bin operator
-	auto lOperator = getMemberSourceBinOp(this->args[0]->getInputMember());
-	auto rOperator = getMemberSourceBinOp(this->args[1]->getInputMember());
-
-	auto expr   = language->serializeBinaryOp(ope, args, lOperator, rOperator);
-
-	// Apply the new string to the result's source expression.
+	auto expr   = language->serialize(this);
 	result->setSourceExpression(expr.c_str());
 }

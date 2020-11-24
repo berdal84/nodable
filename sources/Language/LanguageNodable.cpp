@@ -487,3 +487,9 @@ const Type LanguageNodable::tokenTypeToType(TokenType _tokenType)const
 		break;
 	}
 }
+
+std::string LanguageNodable::serialize(const Member *) const
+{
+
+    return std::string();
+}

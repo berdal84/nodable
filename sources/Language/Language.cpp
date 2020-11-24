@@ -4,6 +4,10 @@
 #include <type_traits>
 #include <time.h>
 #include <vector>
+#include <Component/ComputeBinaryOperation.h>
+#include <Component/ComputeUnaryOperation.h>
+
+#include <Node/Node.h>
 
 using namespace Nodable;
 
@@ -86,4 +90,55 @@ void Nodable::Language::addToAPI(FunctionSignature& _signature, FunctionImplem _
 {
 	Function f(_signature, _implementation);
 	this->api.push_back(f);
+}
+
+std::string Language::serialize(const ComputeUnaryOperation* _operation) const
+{
+    auto getMemberSourceBinOp = [](Member * _member)-> const Operator*
+    {
+        if (_member != nullptr )
+        {
+            auto node = _member->getOwner()->as<Node>();
+            if (auto component = node->getComponent<ComputeBinaryOperation>())
+                return component->ope;
+        }
+        return nullptr;
+    };
+
+    // Get the inner source bin operator
+    // Get the left and right source operator
+    auto args = _operation->getArgs();
+    auto inner_operator = getMemberSourceBinOp(args[0]->getInputMember());
+
+    return serializeUnaryOp(_operation->ope, args, inner_operator);
+}
+
+std::string Language::serialize(const ComputeBinaryOperation * _operation) const {
+
+    auto getMemberSourceBinOp = [](Member * _member)-> const Operator*
+    {
+        const Operator* result{};
+
+        if (_member != nullptr )
+        {
+            auto node = _member->getOwner()->as<Node>();
+            if (auto binOpComponent = node->getComponent<ComputeBinaryOperation>())
+            {
+                result = binOpComponent->ope;
+            }
+            else if (auto unaryOpComponent = node->getComponent<ComputeUnaryOperation>())
+            {
+                result = unaryOpComponent->ope;
+            }
+        }
+
+        return result;
+    };
+
+    // Get the left and right source operator
+    std::vector<Member*> args = _operation->getArgs();
+    auto l_handed_operator = getMemberSourceBinOp(args[0]->getInputMember());
+    auto r_handed_operator = getMemberSourceBinOp(args[1]->getInputMember());
+
+    return this->serializeBinaryOp(_operation->ope, args, l_handed_operator, r_handed_operator);
 }

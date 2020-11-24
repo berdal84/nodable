@@ -32,5 +32,6 @@ namespace Nodable {
     private:
         static Result SetDirtyRecursively(Node* _node, std::vector<Node*>& _traversed);
         static Result UpdateRecursively(Node* _node, std::vector<Node*>& _traversed);
+
     };
 }

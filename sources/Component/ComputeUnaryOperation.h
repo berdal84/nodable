@@ -1,14 +1,14 @@
 #pragma once
 
 #include "Nodable.h"   // for constants and forward declarations
-#include "Component.h" // base class
 #include "mirror.h"
-#include "Language.h"
 #include "ComputeFunction.h"
 #include <functional>
 
 namespace Nodable {
 
+    class Operator;
+    class Language;
 
 	/* BinaryOperationComponent is an interface for all binary operations
 	*

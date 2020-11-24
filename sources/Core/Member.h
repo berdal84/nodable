@@ -2,7 +2,6 @@
 
 #include "Nodable.h"    // for constants and forward declarations
 #include "Variant.h"
-#include "Language.h"
 #include "Connector.h"
 #include "Visibility.h"
 
