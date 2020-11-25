@@ -134,6 +134,19 @@ TEST(Parser, Strings)
     EXPECT_TRUE(Parser_Test("b = string(false)", "false"));
 }
 
+TEST(Parser, Serialize_Precedence)
+{
+    EXPECT_EQ(ParseEvalSerialize("(1+1)*2"), "( 1 + 1 ) * 2");
+    EXPECT_EQ(ParseEvalSerialize("(1*1)+2"), "1 * 1 + 2");
+    EXPECT_EQ(ParseEvalSerialize("-(-1)"), "-( -1 )");
+    EXPECT_EQ(ParseEvalSerialize("-(2*5)"), "-( 2 * 5 )");
+
+    // TODO: improve that. -2 should not be with parenthesis
+    EXPECT_EQ(ParseEvalSerialize("-2*5"), "-2 * 5");
+
+    EXPECT_EQ(ParseEvalSerialize("-(2+5)"), "-( 2 + 5 )");
+}
+
 TEST(Parser, Eval_Serialize_Compare)
 {
     // TODO: problem with result variable not updating its source expression when expression is atomic
@@ -143,9 +156,6 @@ TEST(Parser, Eval_Serialize_Compare)
     EXPECT_EQ(ParseEvalSerialize("1-1"), "1 - 1");
     EXPECT_EQ(ParseEvalSerialize("-1"), "-1");
     EXPECT_EQ(ParseEvalSerialize("a=5"), "a = 5");
-
-    // TODO: generate source expression in a smarter way to avoid unnecessary brackets.
-    EXPECT_EQ(ParseEvalSerialize("-1+1"), "-1 + 1");
 
     // TODO: generate source expression in a smarter way to avoid unnecessary spaces.
     EXPECT_EQ(ParseEvalSerialize("(a+b)*(c+d)"), "(a + b) * (c + d)");

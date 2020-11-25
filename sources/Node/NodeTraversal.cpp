@@ -85,7 +85,8 @@ Result NodeTraversal::UpdateRecursively(Node* _node, std::vector<Node*>& _traver
                     NodeTraversal::UpdateRecursively(sourceNode, _traversed);
                     
                     /* transfert the freshly updated value from source to target member */
-                    wireTarget->updateValueFromInputMemberValue();
+                    wireTarget->set(wireSource);
+
                 }
             }
 

@@ -94,51 +94,17 @@ void Nodable::Language::addToAPI(FunctionSignature& _signature, FunctionImplem _
 
 std::string Language::serialize(const ComputeUnaryOperation* _operation) const
 {
-    auto getMemberSourceBinOp = [](Member * _member)-> const Operator*
-    {
-        if (_member != nullptr )
-        {
-            auto node = _member->getOwner()->as<Node>();
-            if (auto component = node->getComponent<ComputeBinaryOperation>())
-                return component->ope;
-        }
-        return nullptr;
-    };
-
-    // Get the inner source bin operator
-    // Get the left and right source operator
     auto args = _operation->getArgs();
-    auto inner_operator = getMemberSourceBinOp(args[0]->getInputMember());
-
+    auto inner_operator = _operation->getOwner()->getConnectedOperator(args[0]);
     return serializeUnaryOp(_operation->ope, args, inner_operator);
 }
 
-std::string Language::serialize(const ComputeBinaryOperation * _operation) const {
-
-    auto getMemberSourceBinOp = [](Member * _member)-> const Operator*
-    {
-        const Operator* result{};
-
-        if (_member != nullptr )
-        {
-            auto node = _member->getOwner()->as<Node>();
-            if (auto binOpComponent = node->getComponent<ComputeBinaryOperation>())
-            {
-                result = binOpComponent->ope;
-            }
-            else if (auto unaryOpComponent = node->getComponent<ComputeUnaryOperation>())
-            {
-                result = unaryOpComponent->ope;
-            }
-        }
-
-        return result;
-    };
-
+std::string Language::serialize(const ComputeBinaryOperation * _operation) const
+{
     // Get the left and right source operator
     std::vector<Member*> args = _operation->getArgs();
-    auto l_handed_operator = getMemberSourceBinOp(args[0]->getInputMember());
-    auto r_handed_operator = getMemberSourceBinOp(args[1]->getInputMember());
+    auto l_handed_operator = _operation->getOwner()->getConnectedOperator(args[0]);
+    auto r_handed_operator = _operation->getOwner()->getConnectedOperator(args[1]);
 
     return this->serializeBinaryOp(_operation->ope, args, l_handed_operator, r_handed_operator);
 }

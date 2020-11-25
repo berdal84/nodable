@@ -76,9 +76,19 @@ std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<
 	// Right part of the expression
 	{
 		bool needBrackets = _rightOp && (  _rightOp->getType() == Operator::Type::Unary || !hasHigherPrecedenceThan(_rightOp, _op) );
-		if (needBrackets) result.append(serialize(TokenType::LBracket) + " ");
+
+		if (needBrackets)
+        {
+		    result.append(serialize(TokenType::LBracket) + " ");
+        }
+
+        // TODO: do a recursive call to generate expression instead of getting it from Member class.
 		result.append(_args[1]->getSourceExpression());
-		if (needBrackets) result.append(" " + serialize(TokenType::RBracket));
+
+		if (needBrackets)
+        {
+		    result.append(" " + serialize(TokenType::RBracket));
+        }
 	}
 
 	return result;
@@ -95,10 +105,20 @@ std::string LanguageNodable::serializeUnaryOp(const Operator* _op, std::vector<M
 
 	// Inner part of the expression
 	{
-		bool needBrackets = _innerOp && !hasHigherPrecedenceThan(_innerOp, _op);
-		if (needBrackets) result.append(serialize(TokenType::LBracket) + " ");
+		bool needBrackets = _innerOp;
+
+		if (needBrackets)
+		{
+            result.append(serialize(TokenType::LBracket) + " ");
+		}
+
+		// TODO: do a recursive call to generate expression instead of getting it from Member class.
 		result.append(_args[0]->getSourceExpression());
-		if (needBrackets) result.append(" " + serialize(TokenType::RBracket));
+
+		if (needBrackets)
+        {
+		    result.append(" " + serialize(TokenType::RBracket));
+        }
 	}
 
 	return result;

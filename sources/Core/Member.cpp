@@ -74,11 +74,6 @@ void Member::setVisibility(Visibility _v)
 	visibility = _v;
 }
 
-void Nodable::Member::updateValueFromInputMemberValue()
-{
-	this->set(this->inputMember);
-}
-
 bool Member::allowsConnection(Way _way)const
 {
 	auto maskedFlags = getConnectorWay() & _way;
