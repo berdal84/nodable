@@ -511,7 +511,7 @@ bool NodeView::drawMember(Member* _member) {
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::BeginTooltip();
-		ImGui::Text("%s", _member->getSourceExpression().c_str());
+		ImGui::Text("%s", getOwner()->getParentContainer()->getLanguage()->serialize(_member).c_str() );
 		ImGui::EndTooltip();
 	}
 

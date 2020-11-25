@@ -27,7 +27,8 @@ namespace Nodable{
 		std::vector<Node*>& 	    getEntities(){return nodes;}
 		Variable*                   getResultVariable(){ return resultNode;}
 		void                        tryToRestoreResultNodePosition();
-		
+        const Language*             getLanguage()const;
+
 		/* node factory */
 		Variable*					newResult();
 		Variable*					newVariable(std::string = "");
@@ -50,5 +51,6 @@ namespace Nodable{
 
 		MIRROR_CLASS(Container)(
 			MIRROR_PARENT(Component));
-	};
+
+    };
 }

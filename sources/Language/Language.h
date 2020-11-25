@@ -37,10 +37,8 @@ namespace Nodable {
 	public:
 
 		Language(std::string _name): name(_name){};
-		~Language() {};
+		virtual ~Language() = default;
 
-        virtual std::string serialize(const ComputeUnaryOperation * _operation)const;
-        virtual std::string serialize(const ComputeBinaryOperation * _operation)const;
 
         void                                  addOperator(Operator);
         void                                  addOperator(std::string       _identifier,
@@ -54,6 +52,10 @@ namespace Nodable {
         void                                  addToAPI(FunctionSignature&, FunctionImplem);
         bool                                  hasHigherPrecedenceThan(const Operator *_firstOperator, const Operator* _secondOperator)const;
         const std::vector<Function>&          getAllFunctions()const { return api; }
+
+        std::string serialize(const ComputeUnaryOperation * _operation)const;
+        std::string serialize(const ComputeBinaryOperation * _operation)const;
+        std::string serialize(const ComputeBase * _operation)const;
 
         /* Serialize a function call with a signature and some values */
 		virtual std::string                   serialize(const FunctionSignature&, std::vector<Member*>)const = 0;
@@ -81,7 +83,6 @@ namespace Nodable {
 		virtual const TokenType               typeToTokenType(Type _type)const = 0;
 		virtual const Type                    tokenTypeToType(TokenType _tokenType)const = 0;
 
-
 		/**
 		  * To generate the Nodable Language reference
 		  * New language generators will be found here later...
@@ -100,6 +101,8 @@ namespace Nodable {
 		std::string name;
 		std::vector<Operator> operators;
 		std::vector<Function> api;
+
+        std::string serialize(const ComputeFunction *_computeFunction) const;
     };
 
 }

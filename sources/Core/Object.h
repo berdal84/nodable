@@ -20,7 +20,7 @@ namespace Nodable
 		/* Adds a new member identified by its _name. */
 		Member*             add         (const char*, Visibility = Visibility::Default, Type = Type::Any, Way = Way_Default);
 
-		bool                has         (Member* _value);
+		bool                has         (const Member* _value);
 
 		/* Set deleted flag on. Will be deleted by its controller next frame */
 		void                deleteNextFrame   (){deleted = true;}
@@ -55,9 +55,16 @@ namespace Nodable
 		T* as()
 		{
 			auto casted = dynamic_cast<T*>(this);
-			NODABLE_ASSERT(casted != nullptr);
 			return casted;
 		}
+
+        template<typename T>
+        const T* as()const
+        {
+            auto casted = dynamic_cast<const T*>(this);
+            return casted;
+        }
+
 	private:
 		Members             members;
 		bool                deleted = false;

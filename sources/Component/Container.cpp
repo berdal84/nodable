@@ -344,3 +344,7 @@ Container::Container(const Language* _language)
 {
 	language = _language;
 }
+
+const Language *Container::getLanguage()const {
+    return language;
+}

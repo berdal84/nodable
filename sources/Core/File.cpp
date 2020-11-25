@@ -148,9 +148,8 @@ UpdateResult File::update() {
 	}
 
 	auto member		= result->getMember();
-	auto expression = member->getSourceExpression();
+	auto expression = language->serialize(member);
 	
-
 	view->replaceSelectedText(expression);
 	
 	return UpdateResult::SuccessWithChanges;
