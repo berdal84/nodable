@@ -148,7 +148,6 @@ TEST(Parser, Serialize_Precedence)
 
 TEST(Parser, Eval_Serialize_Compare)
 {
-    // TODO: problem with result variable not updating its source expression when expression is atomic
     EXPECT_EQ(ParseEvalSerialize("1"), "1");
     EXPECT_EQ(ParseEvalSerialize("1+1"), "1 + 1");
     EXPECT_EQ(ParseEvalSerialize("1-1"), "1 - 1");
