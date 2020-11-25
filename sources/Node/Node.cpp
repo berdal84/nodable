@@ -7,8 +7,8 @@
 #include "WireView.h"
 #include "History.h"
 #include "DataAccess.h"
-#include "ComputeBase.h"
-#include "NodeTraversal.h"
+#include "ComputeUnaryOperation.h"
+#include "ComputeBinaryOperation.h"
 
 using namespace Nodable;
 
@@ -189,4 +189,38 @@ Container *Node::getInnerContainer() const
 void Node::setInnerContainer(Container *_container)
 {
     this->innerContainer = _container;
+}
+
+const Operator* Node::getConnectedOperator(Member *_member)
+{
+    assert(this->has(_member));
+
+    const Operator* result{};
+
+    /*
+     * Find a wire connected to _member
+     */
+    auto found = std::find_if(wires.cbegin(),wires.cend(), [_member](const Wire* wire)->bool {
+        return wire->getTarget() == _member;
+    });
+
+    /*
+     * If found, we try to get the ComputeXXXXXOperator from it's source
+     */
+    if ( found != wires.end() )
+    {
+        auto node = (*found)->getSource()->getOwner()->as<Node>();
+        // TODO: factorise
+        if (auto binOpComponent = node->getComponent<ComputeBinaryOperation>())
+        {
+            result = binOpComponent->ope;
+        }
+        else if (auto unaryOpComponent = node->getComponent<ComputeUnaryOperation>())
+        {
+            result = unaryOpComponent->ope;
+        }
+    }
+
+    return result;
+
 }

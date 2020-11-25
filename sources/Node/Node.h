@@ -12,6 +12,8 @@
 
 namespace Nodable{
 
+    class Operator;
+
     /**
      * Distinguish between all possible update result
      */
@@ -107,6 +109,9 @@ namespace Nodable{
 		
 		/** Update the state of this (and only this) node */
 		virtual UpdateResult update();
+
+		/** Get the operator connected to a given Member */
+        const Operator* getConnectedOperator(Member *_member);
 
 		/** Connects two Member using a Wire (oriented edge) */
 		static Wire* Connect(Member* /*_from*/, Member* /*_to*/);
@@ -222,6 +227,8 @@ namespace Nodable{
 	public:
 		MIRROR_CLASS(Node)(
 			MIRROR_PARENT(Object)
-		);	
-	};
+		);
+
+
+    };
 }

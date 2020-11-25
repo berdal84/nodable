@@ -130,12 +130,6 @@ namespace Nodable
 		void setVisibility(Visibility _v);
 
 		/**
-		 * Get the value of the inputMember Member and set it to this Member.
-		 * Call hasInputConnected() to ensure Member is connected first.
-		 */
-		void updateValueFromInputMemberValue();
-
-		/**
 		 * Get the owner Object
 		 * @return a pointer to the owner Object.
 		 */
