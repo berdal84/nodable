@@ -3,7 +3,10 @@
 #include <time.h>
 #include "IconsFontAwesome5.h"
 #include <cmath>
-#include <iostream>
+#include "Node.h"
+#include "Variable.h"
+#include "ComputeUnaryOperation.h"
+#include "Container.h"
 
 using namespace Nodable;
 
@@ -13,18 +16,18 @@ std::string LanguageNodable::serialize(
 {
 	std::string expr;
 	expr.append(_signature.getIdentifier());
-	expr.append(serialize(TokenType::LBracket) + " ");
+	expr.append(serialize(TokenType::LBracket));
 
 	for (auto it = _args.begin(); it != _args.end(); it++) {
-		expr.append((*it)->getSourceExpression());
+		expr.append(serialize(*it));
 
 		if (*it != _args.back()) {
 			expr.append(serialize(TokenType::Separator));
-			expr.append(" ");
+			expr.append(serialize(TokenType::Space));
 		}
 	}
 
-	expr.append(" " + serialize(TokenType::RBracket));
+	expr.append(serialize(TokenType::RBracket));
 	return expr;
 
 }
@@ -62,16 +65,24 @@ std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<
 
 	// Left part of the expression
 	{
-		bool needBrackets = _leftOp && /*( _leftOp->getType() == Operator::Type::Unary ||*/ !hasHigherPrecedenceThan(_leftOp, _op) ;
-		if (needBrackets) result.append( serialize(TokenType::LBracket) + " ");
-		result.append(_args[0]->getSourceExpression());
-		if (needBrackets) result.append(" " + serialize(TokenType::RBracket));
+		bool needBrackets = _leftOp && !hasHigherPrecedenceThan(_leftOp, _op);
+		if (needBrackets)
+        {
+		    result.append( serialize(TokenType::LBracket));
+        }
+
+		result.append(serialize(_args[0]));
+
+		if (needBrackets)
+        {
+            result.append( serialize(TokenType::RBracket));
+        }
 	}
 
 	// Operator
-	result.append(" ");
+    result.append( serialize(TokenType::Space));
 	result.append(_op->identifier);
-	result.append(" ");
+    result.append( serialize(TokenType::Space));
 
 	// Right part of the expression
 	{
@@ -79,15 +90,14 @@ std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<
 
 		if (needBrackets)
         {
-		    result.append(serialize(TokenType::LBracket) + " ");
+		    result.append(serialize(TokenType::LBracket));
         }
 
-        // TODO: do a recursive call to generate expression instead of getting it from Member class.
-		result.append(_args[1]->getSourceExpression());
+		result.append(serialize(_args[1]));
 
 		if (needBrackets)
         {
-		    result.append(" " + serialize(TokenType::RBracket));
+		    result.append(serialize(TokenType::RBracket));
         }
 	}
 
@@ -109,15 +119,14 @@ std::string LanguageNodable::serializeUnaryOp(const Operator* _op, std::vector<M
 
 		if (needBrackets)
 		{
-            result.append(serialize(TokenType::LBracket) + " ");
+            result.append(serialize(TokenType::LBracket));
 		}
 
-		// TODO: do a recursive call to generate expression instead of getting it from Member class.
-		result.append(_args[0]->getSourceExpression());
+		result.append(serialize(_args[0]));
 
 		if (needBrackets)
         {
-		    result.append(" " + serialize(TokenType::RBracket));
+		    result.append(serialize(TokenType::RBracket));
         }
 	}
 
@@ -181,6 +190,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	dictionnary.insert("("	     , TokenType::LBracket);
 	dictionnary.insert(")"	     , TokenType::RBracket);
 	dictionnary.insert(","	     , TokenType::Separator);
+	dictionnary.insert(" "	     , TokenType::Space);
 	dictionnary.insert(";"      , TokenType::EndOfInstruction);
 
 	// To easily declare types
@@ -508,8 +518,46 @@ const Type LanguageNodable::tokenTypeToType(TokenType _tokenType)const
 	}
 }
 
-std::string LanguageNodable::serialize(const Member *) const
+std::string LanguageNodable::serialize(const Member * _member) const
 {
 
-    return std::string();
+    std::string expression;
+
+    auto owner = _member->getOwner()->as<Node>();
+
+    if ( owner && _member->allowsConnection(Way_In) && owner->hasWireConnectedTo(_member) )
+    {
+        auto sourceMember = owner->getSourceMemberOf(_member);
+
+        if ( auto computeBase = sourceMember->getOwner()->as<Node>()->getComponent<ComputeBase>() )
+        {
+            expression = Language::serialize(computeBase);
+        }
+        else
+        {
+            expression = serialize(sourceMember);
+        }
+
+    }
+    else if (owner->getClass() == mirror::GetClass<Variable>() &&
+             owner->getParentContainer()->getResultVariable() != owner)
+    {
+        auto variable = owner->as<Variable>();
+        expression = variable->getName();
+    }
+    else
+    {
+
+        if (_member->isType(Type::String))
+        {
+            expression = '"' + (std::string)*_member + '"';
+        }
+        else
+        {
+            expression = (std::string)*_member;
+        }
+    }
+
+    return expression;
+
 }

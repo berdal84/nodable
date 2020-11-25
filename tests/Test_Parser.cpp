@@ -43,7 +43,7 @@ std::string ParseEvalSerialize(
     auto result = container.getResultVariable();
     container.update();
 
-    auto resultExpression = result->getMember()->getSourceExpression();
+    auto resultExpression = _language->serialize(result->getMember());
 
     std::cout << resultExpression << std::endl;
 
@@ -136,30 +136,24 @@ TEST(Parser, Strings)
 
 TEST(Parser, Serialize_Precedence)
 {
-    EXPECT_EQ(ParseEvalSerialize("(1+1)*2"), "( 1 + 1 ) * 2");
+    EXPECT_EQ(ParseEvalSerialize("(1+1)*2"), "(1 + 1) * 2");
     EXPECT_EQ(ParseEvalSerialize("(1*1)+2"), "1 * 1 + 2");
-    EXPECT_EQ(ParseEvalSerialize("-(-1)"), "-( -1 )");
-    EXPECT_EQ(ParseEvalSerialize("-(2*5)"), "-( 2 * 5 )");
-
-    // TODO: improve that. -2 should not be with parenthesis
-    EXPECT_EQ(ParseEvalSerialize("-2*5"), "-2 * 5");
-
-    EXPECT_EQ(ParseEvalSerialize("-(2+5)"), "-( 2 + 5 )");
+    EXPECT_EQ(ParseEvalSerialize("-(-1)"), "-(-1)");
+    EXPECT_EQ(ParseEvalSerialize("-(-1)"), "-(-1)");
+    EXPECT_EQ(ParseEvalSerialize("-(2*5)"), "-(2 * 5)");
+    EXPECT_EQ(ParseEvalSerialize("-2*5"), "(-2) * 5");
+    EXPECT_EQ(ParseEvalSerialize("-(2+5)"), "-(2 + 5)");
+    EXPECT_EQ(ParseEvalSerialize("5 + (-1) * 3"), "5 + (-1) * 3");
 }
 
 TEST(Parser, Eval_Serialize_Compare)
 {
     // TODO: problem with result variable not updating its source expression when expression is atomic
     EXPECT_EQ(ParseEvalSerialize("1"), "1");
-
     EXPECT_EQ(ParseEvalSerialize("1+1"), "1 + 1");
     EXPECT_EQ(ParseEvalSerialize("1-1"), "1 - 1");
     EXPECT_EQ(ParseEvalSerialize("-1"), "-1");
     EXPECT_EQ(ParseEvalSerialize("a=5"), "a = 5");
-
-    // TODO: generate source expression in a smarter way to avoid unnecessary spaces.
     EXPECT_EQ(ParseEvalSerialize("(a+b)*(c+d)"), "(a + b) * (c + d)");
-
-    // TODO: generate source expression in a smarter way to avoid unnecessary spaces.
     EXPECT_EQ(ParseEvalSerialize("b = string(false)"), "b = string(false)");
 }

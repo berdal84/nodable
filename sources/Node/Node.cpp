@@ -191,17 +191,17 @@ void Node::setInnerContainer(Container *_container)
     this->innerContainer = _container;
 }
 
-const Operator* Node::getConnectedOperator(Member *_member)
+const Operator* Node::getConnectedOperator(const Member *_localMember)
 {
-    assert(this->has(_member));
+    assert(this->has(_localMember));
 
     const Operator* result{};
 
     /*
      * Find a wire connected to _member
      */
-    auto found = std::find_if(wires.cbegin(),wires.cend(), [_member](const Wire* wire)->bool {
-        return wire->getTarget() == _member;
+    auto found = std::find_if(wires.cbegin(),wires.cend(), [_localMember](const Wire* wire)->bool {
+        return wire->getTarget() == _localMember;
     });
 
     /*
@@ -223,4 +223,25 @@ const Operator* Node::getConnectedOperator(Member *_member)
 
     return result;
 
+}
+
+bool Node::hasWireConnectedTo(const Member *_localMember)
+{
+    /*
+     * Find a wire connected to _member
+     */
+    auto found = std::find_if(wires.cbegin(),wires.cend(), [_localMember](const Wire* wire)->bool {
+        return wire->getTarget() == _localMember;
+    });
+
+    return found != wires.end();
+}
+
+Member* Node::getSourceMemberOf(const Member *_localMember)
+{
+    auto found = std::find_if(wires.begin(),wires.end(), [_localMember](const Wire* wire)->bool {
+        return wire->getTarget() == _localMember;
+    });
+
+    return (*found)->getSource();
 }

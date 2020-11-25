@@ -111,7 +111,7 @@ namespace Nodable{
 		virtual UpdateResult update();
 
 		/** Get the operator connected to a given Member */
-        const Operator* getConnectedOperator(Member *_member);
+        const Operator* getConnectedOperator(const Member* _localMember);
 
 		/** Connects two Member using a Wire (oriented edge) */
 		static Wire* Connect(Member* /*_from*/, Member* /*_to*/);
@@ -230,5 +230,8 @@ namespace Nodable{
 		);
 
 
+        bool hasWireConnectedTo(const Member *_localMember);
+
+        Member *getSourceMemberOf(const Member *_localMember);
     };
 }

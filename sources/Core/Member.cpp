@@ -147,41 +147,6 @@ std::string Member::getTypeAsString()const
 	return data.getTypeAsString();
 }
 
-std::string Member::getSourceExpression()const
-{
-	std::string expression;
-
-	if (allowsConnection(Way_In) && inputMember != nullptr)
-	{
-		// if inputMember is a variable we add the variable name and an equal sign
-		if (inputMember->getOwner()->getClass()->getName() == "Variable" &&
-			getOwner()->getClass()->getName() == "Variable")
-		{
-			auto variable = inputMember->getOwner()->as<Variable>();
-			expression.append(variable->getName());
-			expression.append("=");
-			expression.append(inputMember->getSourceExpression());
-
-		}else
-			expression = inputMember->getSourceExpression();
-
-	} else if (sourceExpression != "") {
-		expression = sourceExpression;
-
-	} else {
-
-		if (isType(Type::String)) {
-			expression = '"' + (std::string)*this + '"';
-		}
-		else {
-			expression = (std::string)*this;
-		}
-	}
-
-	return expression;
-}
-
-
 void Member::set(const Member* _v)
 {
 	data.set(&_v->data);

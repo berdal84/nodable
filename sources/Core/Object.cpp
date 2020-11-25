@@ -20,7 +20,7 @@ const Members&   Object::getMembers      ()const
 	return members;
 }
 
-bool Object::has(Member* _value)
+bool Object::has(const Member* _value)
 {
 	auto foundWithName = members.find(_value->getName());
 	if( foundWithName != members.end())

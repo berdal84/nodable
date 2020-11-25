@@ -10,6 +10,7 @@ namespace Nodable {
 	{
 	public:
 		LanguageNodable();
+        ~LanguageNodable() override = default;
 
 		// Inherited via Language
 		virtual std::string serialize(const FunctionSignature&, std::vector<Member*>) const;

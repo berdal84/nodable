@@ -19,6 +19,7 @@ namespace Nodable
 		void setArg(size_t _index, Member* _value) { args[_index] = _value; }
 		Member* getArg(size_t _index)const  { return args[_index]; }
 		const std::vector<Member*>& getArgs()const { return args; }
+		const Function* getFunction()const { return function; }
 		bool update() override;
 		void updateResultSourceExpression() const override;
 	protected:

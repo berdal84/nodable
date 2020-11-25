@@ -147,13 +147,6 @@ namespace Nodable
 		 */
 		[[nodiscard]] const std::string&  getName()const;
 
-        /**
-         * Get the source expression string for this Member.
-         * Nothing will be computed, the string will be stored for later use.
-         * TODO: remove this method.
-         */
-		[[nodiscard]] std::string getSourceExpression()const;
-
 		/**
 		 * Type getter
 		 * @return this.data.getType()

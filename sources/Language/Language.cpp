@@ -108,3 +108,34 @@ std::string Language::serialize(const ComputeBinaryOperation * _operation) const
 
     return this->serializeBinaryOp(_operation->ope, args, l_handed_operator, r_handed_operator);
 }
+
+std::string Language::serialize(const ComputeFunction *_computeFunction)const
+{
+    std::string result = serialize(
+            _computeFunction->getFunction()->signature,
+            _computeFunction->getArgs());
+    return result;
+}
+
+std::string Language::serialize(const ComputeBase *_operation)const
+{
+
+    std::string result;
+
+    auto computeFunction = _operation->as<ComputeFunction>();
+
+    if(auto computeBinOp = computeFunction->as<ComputeBinaryOperation>() )
+    {
+        result = serialize(computeBinOp);
+    }
+    else if (auto computeUnaryOp = computeFunction->as<ComputeUnaryOperation>() )
+    {
+        result = serialize(computeUnaryOp);
+    }
+    else
+    {
+        result = serialize(computeFunction);
+    }
+
+    return result;
+}
