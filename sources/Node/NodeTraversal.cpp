@@ -1,6 +1,7 @@
 #include "NodeTraversal.h"
 #include "Wire.h"
 #include "Log.h"
+#include <algorithm>
 
 using namespace Nodable;
 
