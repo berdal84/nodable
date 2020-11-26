@@ -2,7 +2,7 @@
 #include "gtest/gtest.h"
 #include <Core/Member.h>
 #include <Component/Container.h>
-#include <Language/Parser.h>
+#include <Language/Common/Parser.h>
 #include <Node/Variable.h>
 
 using namespace Nodable;
@@ -43,7 +43,7 @@ std::string ParseEvalSerialize(
     auto result = container.getResultVariable();
     container.update();
 
-    auto resultExpression = _language->serialize(result->getMember());
+    auto resultExpression = _language->getSerializer()->serialize(result->getMember());
 
     std::cout << resultExpression << std::endl;
 

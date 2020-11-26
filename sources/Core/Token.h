@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TokenType.h"
+#include "Language/Common/TokenType.h"
 #include <string>
 
 namespace Nodable {

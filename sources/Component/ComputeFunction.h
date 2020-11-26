@@ -21,7 +21,6 @@ namespace Nodable
 		const std::vector<Member*>& getArgs()const { return args; }
 		const Function* getFunction()const { return function; }
 		bool update() override;
-		void updateResultSourceExpression() const override;
 	protected:
 		std::vector<Member*> args;
 		const Function* function;

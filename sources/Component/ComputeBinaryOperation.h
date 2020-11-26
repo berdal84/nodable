@@ -20,8 +20,7 @@ namespace Nodable{
 		ComputeBinaryOperation(const Operator*, const Language*);
 		~ComputeBinaryOperation(){};
 		void                setLValue(Member* _value);
-		void                setRValue(Member* _value);		
-		void                updateResultSourceExpression() const override;
+		void                setRValue(Member* _value);
 		const Operator* ope;
 	protected:		
 		MIRROR_CLASS(ComputeBinaryOperation)(

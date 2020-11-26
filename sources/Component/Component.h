@@ -2,7 +2,6 @@
 
 #include "Nodable.h"
 #include "Object.h"
-#include "Compound.h"
 
 #include <mirror.h>
 

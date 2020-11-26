@@ -3,7 +3,7 @@
 #include "FileView.h"
 #include "ContainerView.h"
 #include "Container.h"
-#include "Parser.h"
+#include "Language/Common/Parser.h"
 #include "View.h"
 #include "Variable.h"
 #include "Log.h"
@@ -65,7 +65,7 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 				return container->newFunction(function);
 			};
 
-			auto label = language->serialize((*it).signature);
+			auto label = language->getSerializer()->serialize((*it).signature);
 			containerView->addContextualMenuItem( "Functions", label, lambda);
 		}
 		
@@ -148,7 +148,7 @@ UpdateResult File::update() {
 	}
 
 	auto member		= result->getMember();
-	auto expression = language->serialize(member);
+	auto expression = language->getSerializer()->serialize(member);
 	
 	view->replaceSelectedText(expression);
 	

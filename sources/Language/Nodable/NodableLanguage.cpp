@@ -1,4 +1,4 @@
-#include "LanguageNodable.h"
+#include "NodableLanguage.h"
 #include "Member.h"
 #include <time.h>
 #include "IconsFontAwesome5.h"
@@ -10,130 +10,7 @@
 
 using namespace Nodable;
 
-std::string LanguageNodable::serialize(
-	const FunctionSignature&   _signature,
-	std::vector<Member*> _args) const
-{
-	std::string expr;
-	expr.append(_signature.getIdentifier());
-	expr.append(serialize(TokenType::LBracket));
-
-	for (auto it = _args.begin(); it != _args.end(); it++) {
-		expr.append(serialize(*it));
-
-		if (*it != _args.back()) {
-			expr.append(serialize(TokenType::Separator));
-			expr.append(serialize(TokenType::Space));
-		}
-	}
-
-	expr.append(serialize(TokenType::RBracket));
-	return expr;
-
-}
-
-std::string LanguageNodable::serialize(const FunctionSignature& _signature) const {
-
-	std::string result = _signature.getIdentifier() + serialize(TokenType::LBracket);
-	auto args = _signature.getArgs();
-
-	for (auto it = args.begin(); it != args.end(); it++) {
-
-		if (it != args.begin()) {
-			result.append(serialize(TokenType::Separator));
-			result.append(" ");
-
-		}
-		const auto argType = (*it).type;
-		result.append( serialize(argType) );
-
-	}
-
-	result.append( serialize(TokenType::RBracket) );
-
-	return result;
-
-}
-
-std::string LanguageNodable::serialize(const TokenType& _type) const {
-	return dictionnary.convert(_type);
-}
-
-std::string LanguageNodable::serializeBinaryOp(const Operator* _op, std::vector<Member*> _args, const Operator* _leftOp, const Operator* _rightOp) const
-{
-	std::string result;
-
-	// Left part of the expression
-	{
-		bool needBrackets = _leftOp && !hasHigherPrecedenceThan(_leftOp, _op);
-		if (needBrackets)
-        {
-		    result.append( serialize(TokenType::LBracket));
-        }
-
-		result.append(serialize(_args[0]));
-
-		if (needBrackets)
-        {
-            result.append( serialize(TokenType::RBracket));
-        }
-	}
-
-	// Operator
-    result.append( serialize(TokenType::Space));
-	result.append(_op->identifier);
-    result.append( serialize(TokenType::Space));
-
-	// Right part of the expression
-	{
-		bool needBrackets = _rightOp && (  _rightOp->getType() == Operator::Type::Unary || !hasHigherPrecedenceThan(_rightOp, _op) );
-
-		if (needBrackets)
-        {
-		    result.append(serialize(TokenType::LBracket));
-        }
-
-		result.append(serialize(_args[1]));
-
-		if (needBrackets)
-        {
-		    result.append(serialize(TokenType::RBracket));
-        }
-	}
-
-	return result;
-}
-
-std::string LanguageNodable::serializeUnaryOp(const Operator* _op, std::vector<Member*> _args, const Operator* _innerOp) const
-{
-	std::string result;
-
-	// operator ( ... innerOperator ... )   ex:   -(a+b)
-
-	// Operator
-	result.append(_op->identifier);
-
-	// Inner part of the expression
-	{
-		bool needBrackets = _innerOp;
-
-		if (needBrackets)
-		{
-            result.append(serialize(TokenType::LBracket));
-		}
-
-		result.append(serialize(_args[0]));
-
-		if (needBrackets)
-        {
-		    result.append(serialize(TokenType::RBracket));
-        }
-	}
-
-	return result;
-}
-
-const FunctionSignature LanguageNodable::createBinOperatorSignature(
+const FunctionSignature NodableLanguage::createBinOperatorSignature(
 	Type _type,
 	std::string _identifier,
 	Type _ltype,
@@ -150,7 +27,7 @@ const FunctionSignature LanguageNodable::createBinOperatorSignature(
 	return signature;
 }
 
-const FunctionSignature LanguageNodable::createUnaryOperatorSignature(
+const FunctionSignature NodableLanguage::createUnaryOperatorSignature(
 	Type _type,
 	std::string _identifier,
 	Type _ltype) const
@@ -165,7 +42,8 @@ const FunctionSignature LanguageNodable::createUnaryOperatorSignature(
 	return signature;
 }
 
-LanguageNodable::LanguageNodable(): Language("Nodable")
+NodableLanguage::NodableLanguage():
+    Language("Nodable", new Serializer(this) )
 {
 
 	// Setup dictionnary:
@@ -490,7 +368,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 	OPERATOR_END
 }
 
-const TokenType LanguageNodable::typeToTokenType(Type _type)const
+const TokenType NodableLanguage::typeToTokenType(Type _type)const
 {
 	// TODO: build a map in constructor
 	switch (_type)
@@ -504,7 +382,7 @@ const TokenType LanguageNodable::typeToTokenType(Type _type)const
 	}
 }
 
-const Type LanguageNodable::tokenTypeToType(TokenType _tokenType)const
+const Type NodableLanguage::tokenTypeToType(TokenType _tokenType)const
 {
 	// TODO: build a map in constructor
 	switch (_tokenType)
@@ -516,48 +394,4 @@ const Type LanguageNodable::tokenTypeToType(TokenType _tokenType)const
 		return Type::Any;
 		break;
 	}
-}
-
-std::string LanguageNodable::serialize(const Member * _member) const
-{
-
-    std::string expression;
-
-    auto owner = _member->getOwner()->as<Node>();
-
-    if ( owner && _member->allowsConnection(Way_In) && owner->hasWireConnectedTo(_member) )
-    {
-        auto sourceMember = owner->getSourceMemberOf(_member);
-
-        if ( auto computeBase = sourceMember->getOwner()->as<Node>()->getComponent<ComputeBase>() )
-        {
-            expression = Language::serialize(computeBase);
-        }
-        else
-        {
-            expression = serialize(sourceMember);
-        }
-
-    }
-    else if (owner->getClass() == mirror::GetClass<Variable>() &&
-             owner->getParentContainer()->getResultVariable() != owner)
-    {
-        auto variable = owner->as<Variable>();
-        expression = variable->getName();
-    }
-    else
-    {
-
-        if (_member->isType(Type::String))
-        {
-            expression = '"' + (std::string)*_member + '"';
-        }
-        else
-        {
-            expression = (std::string)*_member;
-        }
-    }
-
-    return expression;
-
 }
