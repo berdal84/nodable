@@ -8,7 +8,7 @@
 #include "Nodable.h"
 #include "Component.h"
 #include "Node.h"
-#include "Language.h"
+#include "Language/Common/Language.h"
 
 namespace Nodable{
 

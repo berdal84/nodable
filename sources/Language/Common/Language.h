@@ -16,12 +16,11 @@
 #include "Dictionnary.h"
 #include "Operator.h"
 #include "Language_MACROS.h"
-
+#include <Language/Common/Serializer.h>
 
 namespace Nodable {
 
-    class ComputeUnaryOperation;
-    class ComputeBinaryOperation;
+
 
 	/*
 		The role of this class is to define an interface for all languages in Nodable.
@@ -36,9 +35,13 @@ namespace Nodable {
 	class Language {
 	public:
 
-		Language(std::string _name): name(_name){};
-		virtual ~Language() = default;
+		Language(std::string _name, Serializer* _serializer):
+		    name(_name),
+		    serializer(_serializer)
+        {
+        };
 
+		virtual ~Language() = default;
 
         void                                  addOperator(Operator);
         void                                  addOperator(std::string       _identifier,
@@ -53,35 +56,12 @@ namespace Nodable {
         bool                                  hasHigherPrecedenceThan(const Operator *_firstOperator, const Operator* _secondOperator)const;
         const std::vector<Function>&          getAllFunctions()const { return api; }
 
-        std::string serialize(const ComputeUnaryOperation * _operation)const;
-        std::string serialize(const ComputeBinaryOperation * _operation)const;
-        std::string serialize(const ComputeBase * _operation)const;
-
-        /* Serialize a function call with a signature and some values */
-		virtual std::string                   serialize(const FunctionSignature&, std::vector<Member*>)const = 0;
-
-		/* Serialize a function signature */
-		virtual std::string                   serialize(const FunctionSignature&)const = 0;
-
-		/* Serialize a TokenType
-		   ex:
-		   TokenType::LBracket => "("
-		   TokenType::StringType = > "std::string" (for C++) */
-		virtual std::string                   serialize(const TokenType&)const = 0;
-
-        /* Serialize a Member */
-        virtual std::string                   serialize(const Member*)const = 0;
-
-		/* Serialize a binary operation call using an operator and two operands.
-		   The last two operators are the source operators that creates the two operands as result.
-		   Those are used to check precedence and add some brackets if needed.
-		*/
-        virtual std::string                   serializeUnaryOp(const Operator*, std::vector<Member*>, const Operator*)const = 0;
-		virtual std::string                   serializeBinaryOp(const Operator*, std::vector<Member*>, const Operator*, const Operator*)const = 0;
-		virtual const FunctionSignature       createBinOperatorSignature(Type, std::string, Type, Type) const = 0;
+        virtual const FunctionSignature       createBinOperatorSignature(Type, std::string, Type, Type) const = 0;
 		virtual const FunctionSignature       createUnaryOperatorSignature(Type, std::string, Type) const = 0;
 		virtual const TokenType               typeToTokenType(Type _type)const = 0;
 		virtual const Type                    tokenTypeToType(TokenType _tokenType)const = 0;
+
+		[[nodiscard]] inline const Serializer* getSerializer()const { return serializer; }
 
 		/**
 		  * To generate the Nodable Language reference
@@ -101,8 +81,7 @@ namespace Nodable {
 		std::string name;
 		std::vector<Operator> operators;
 		std::vector<Function> api;
-
-        std::string serialize(const ComputeFunction *_computeFunction) const;
+		const Serializer* serializer;
     };
 
 }

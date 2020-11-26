@@ -20,7 +20,6 @@ namespace Nodable {
 		ComputeUnaryOperation(const Operator*, const Language*);
 		~ComputeUnaryOperation() {};
 		void                setLValue(Member* _value);
-		void                updateResultSourceExpression() const override;
 		const Operator* ope;
 
 	protected:

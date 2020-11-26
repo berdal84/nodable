@@ -9,6 +9,7 @@
 #include "Application.h"
 #include "ComputeBase.h"
 #include "NodeTraversal.h"
+#include <Language/Common/Serializer.h>
 
 using namespace Nodable;
 
@@ -511,7 +512,8 @@ bool NodeView::drawMember(Member* _member) {
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::BeginTooltip();
-		ImGui::Text("%s", getOwner()->getParentContainer()->getLanguage()->serialize(_member).c_str() );
+		auto language = getOwner()->getParentContainer()->getLanguage();
+		ImGui::Text("%s", language->getSerializer()->serialize(_member).c_str() );
 		ImGui::EndTooltip();
 	}
 

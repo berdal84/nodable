@@ -1,9 +1,7 @@
 #include "ComputeBinaryOperation.h"
-#include "Log.h"		// for LOG_DEBUG(...)
 #include "Member.h"
 #include "Variable.h"
-#include "Language.h"
-#include "ComputeUnaryOperation.h"
+#include "Language/Common/Language.h"
 
 using namespace Nodable;
 
@@ -23,9 +21,3 @@ void ComputeBinaryOperation::setLValue(Member* _value){
 void ComputeBinaryOperation::setRValue(Member* _value) {
 	this->args[1] = _value;
 };
-
-void ComputeBinaryOperation::updateResultSourceExpression()const
-{
-	auto expr   = language->serialize(this);
-	result->setSourceExpression(expr.c_str());
-}
