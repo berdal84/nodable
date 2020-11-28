@@ -99,7 +99,7 @@ UpdateResult Container::update()
 	if( result != Result::Failure &&
 	    updatedNodesCount > 0 && NodeView::GetSelected() != nullptr)
     {
-	    return UpdateResult::SuccessWithChanges;
+	    return UpdateResult::Success;
     }
 	else
     {

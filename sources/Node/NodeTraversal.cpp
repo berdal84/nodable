@@ -91,22 +91,7 @@ Result NodeTraversal::UpdateRecursively(Node* _node, std::vector<Node*>& _traver
                 }
             }
 
-            // Update
             _node->update();
-            _node->setDirty(false);
-       
-            /* Set dirty all childrens
-            for (auto wire : wires)
-            {
-
-                if (wire->getSource()->getOwner() == _node &&
-                    wire->getTarget() != nullptr)
-                {
-                    auto targetNode = reinterpret_cast<Node*>(wire->getTarget()->getOwner());
-                    NodeTraversal::SetDirty(targetNode);
-                }
-            };*/
-
 
         }
         result = Result::Success;

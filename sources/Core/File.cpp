@@ -152,7 +152,7 @@ UpdateResult File::update() {
 	
 	view->replaceSelectedText(expression);
 	
-	return UpdateResult::SuccessWithChanges;
+	return UpdateResult::Success;
 }
 
 bool File::evaluateSelectedExpression()

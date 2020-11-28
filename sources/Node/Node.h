@@ -20,7 +20,7 @@ namespace Nodable{
     enum class UpdateResult
     {
         SuccessWithoutChanges,
-        SuccessWithChanges,
+        Success,
         Failed,
         Stopped
     };
