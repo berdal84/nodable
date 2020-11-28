@@ -13,7 +13,7 @@
 #include "Type.h"
 #include "Log.h"
 #include "Function.h"
-#include "Dictionnary.h"
+#include "Semantic.h"
 #include "Operator.h"
 #include "Language_MACROS.h"
 #include <Language/Common/Serializer.h>
@@ -76,7 +76,7 @@ namespace Nodable {
 		static const Language* NODABLE;
 
 	public:
-		Dictionnary dictionnary;
+		Semantic dictionnary;
 	private:
 		std::string name;
 		std::vector<Operator> operators;
