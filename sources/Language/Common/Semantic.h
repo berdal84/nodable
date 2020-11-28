@@ -19,11 +19,11 @@ namespace Nodable
 	*   "^(true|false)" => TokenType::Boolean
 	* 
 	*/
-	class Dictionnary
+	class Semantic
 	{
 	public:
-		Dictionnary() {}
-		~Dictionnary() {}
+		Semantic() {}
+		~Semantic() {}
 		std::string convert(const TokenType&)const;
 		void        insert(std::regex, TokenType);
 		void        insert(std::string, TokenType);

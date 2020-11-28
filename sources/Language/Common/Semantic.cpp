@@ -1,13 +1,13 @@
-#include "Dictionnary.h"
+#include "Semantic.h"
 
 using namespace Nodable;
 
-std::string Dictionnary::convert(const TokenType& _type)const
+std::string Semantic::convert(const TokenType& _type)const
 {
     return tokenTypeToString.at(_type);
 }
 
-void Dictionnary::insert(
+void Semantic::insert(
     std::regex _regex,
     TokenType _tokenType)
 {    
@@ -16,7 +16,7 @@ void Dictionnary::insert(
     tokenTypeToRegex[_tokenType] = _regex;
 }
 
-void Dictionnary::insert(
+void Semantic::insert(
     std::string _string,
     TokenType _tokenType)
 {
