@@ -172,7 +172,9 @@ UpdateResult Node::update()
         getComponent<DataAccess>()->update();
     }
 
-	return UpdateResult::SuccessWithChanges;
+    this->dirty = false;
+
+	return UpdateResult::Success;
 }
 
 void Node::onMemberValueChanged(const char* _name)
