@@ -1,89 +1,66 @@
 #include "NodableLanguage.h"
 #include "Member.h"
-#include <time.h>
+#include <ctime>
 #include "IconsFontAwesome5.h"
 #include <cmath>
 #include "Node.h"
 #include "Variable.h"
-#include "ComputeUnaryOperation.h"
 #include "Container.h"
 
 using namespace Nodable;
 
-const FunctionSignature NodableLanguage::createBinOperatorSignature(
-	Type _type,
-	std::string _identifier,
-	Type _ltype,
-	Type _rtype) const
+NodableLanguage::NodableLanguage(): Language("Nodable")
 {
-	auto tokType  = typeToTokenType(_type);
-	auto tokLType = typeToTokenType(_ltype);
-	auto tokRType = typeToTokenType(_rtype);
+    /*
+     *  Configure the Semantic.
+     *
+     *  The order of insertion is important. First inserted will be taken in priority by Parser.
+     */
 
-	FunctionSignature signature("operator" + _identifier, tokType);
+    // values
+    semantic.insert_RegexToTokenType(std::regex("^(true|false)"), TokenType::Boolean);
+    semantic.insert_RegexToTokenType(std::regex("^(\"[a-zA-Z0-9 ]+\")"), TokenType::String);
+    semantic.insert_RegexToTokenType(std::regex("^[a-zA-Z_]+"), TokenType::Symbol);
+    semantic.insert_RegexToTokenType(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType::Double);
 
-	signature.pushArgs(tokLType, tokRType);
+    // types
+    semantic.insert_StringToTokenType("bool", TokenType::BooleanType);
+    semantic.insert_StringToTokenType("string", TokenType::StringType);
+    semantic.insert_StringToTokenType("number", TokenType::DoubleType);
+    semantic.insert_StringToTokenType("any", TokenType::AnyType);
 
-	return signature;
-}
+    // operators
+    semantic.insert_RegexToTokenType(std::regex("^(<=>)"),TokenType::Operator); // 3 chars
+    semantic.insert_RegexToTokenType(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>))"),TokenType::Operator); // 2 chars
+    semantic.insert_RegexToTokenType(std::regex("^[/+\\-*!=<>]"),TokenType::Operator); // single char
 
-const FunctionSignature NodableLanguage::createUnaryOperatorSignature(
-	Type _type,
-	std::string _identifier,
-	Type _ltype) const
-{
-	auto tokType = typeToTokenType(_type);
-	auto tokLType = typeToTokenType(_ltype);
+    // comments
+    semantic.insert_RegexToTokenType(std::regex("^(//(.+?)$)"),TokenType::Ignore); // Single line
+    semantic.insert_RegexToTokenType(std::regex("^((/\\*(.+?)\\*/)|[ \t])"),TokenType::Ignore); // Multi line
 
-	FunctionSignature signature("operator" + _identifier, tokType);
+    // punctuation
+    semantic.insert_StringToTokenType("(", TokenType::LBracket);
+    semantic.insert_StringToTokenType(")", TokenType::RBracket);
+    semantic.insert_StringToTokenType(",", TokenType::Separator);
+    semantic.insert_StringToTokenType(" ", TokenType::Space);
+    semantic.insert_StringToTokenType(";", TokenType::EndOfInstruction);
 
-	signature.pushArgs(tokLType);
+    // type correspondence
+    semantic.insert_TypeToTokenType(Type::Boolean, TokenType::BooleanType );
+    semantic.insert_TypeToTokenType(Type::Double, TokenType::DoubleType );
+    semantic.insert_TypeToTokenType(Type::String, TokenType::StringType );
+    semantic.insert_TypeToTokenType(Type::Any, TokenType::AnyType );
 
-	return signature;
-}
+    /*
+     * Create a minimal set of functions/operators
+     */
 
-NodableLanguage::NodableLanguage():
-    Language("Nodable", new Serializer(this) )
-{
-
-	// Setup dictionnary:
-	dictionnary.insert(std::regex("^(true|false)")       , TokenType::Boolean );
-	dictionnary.insert(std::regex("^(\"[a-zA-Z0-9 ]+\")"), TokenType::String );
-	dictionnary.insert(std::regex("^[a-zA-Z_]+")         , TokenType::Symbol);
-	dictionnary.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?") , TokenType::Double);
-
-	dictionnary.insert("bool"  , TokenType::BooleanType);
-	dictionnary.insert("string", TokenType::StringType);
-	dictionnary.insert("number", TokenType::DoubleType);
-	dictionnary.insert("any"   , TokenType::AnyType);
-
-	dictionnary.insert( 
-		std::regex("^(&&|[|][|]|==|>|<(?!(=))|<=>|=>|=(?!(>|=))|<=(?!(>))|>=|[+]|[-]|[/]|[*]|[!])"),
-		TokenType::Operator);
-
-	dictionnary.insert(
-		std::regex("^((//(.+?)$)|(/\\*(.+?)\\*/)|[ \t])"), // comments (single line, multi) and space and tab
-		TokenType::Ignore); 
-
-	dictionnary.insert("("	     , TokenType::LBracket);
-	dictionnary.insert(")"	     , TokenType::RBracket);
-	dictionnary.insert(","	     , TokenType::Separator);
-	dictionnary.insert(" "	     , TokenType::Space);
-	dictionnary.insert(";"      , TokenType::EndOfInstruction);
-
-	// To easily declare types
-	auto Double = TokenType::DoubleType;
-	auto Bool   = TokenType::BooleanType;
-	auto Str    = TokenType::StringType;
-
-	////////////////////////////////
-	//
-	//  FUNCTIONS :
-	//
-	///////////////////////////////
+    // To easily declare types
+    auto Double = TokenType::DoubleType;
+    auto Bool   = TokenType::BooleanType;
+    auto Str    = TokenType::StringType;
 
 	// returnNumber(number)
-
 	FCT_BEGIN(Double, "returnNumber", Double)
 		RETURN( (double)ARG(0) )
 	FCT_END
@@ -255,13 +232,6 @@ NodableLanguage::NodableLanguage():
 
 		RETURN( protein )
 	FCT_END
-	
-
-	////////////////////////////////
-	//
-	//  OPERATORS :
-	//
-	///////////////////////////////
 
 	// operator+(number, number)
 	BINARY_OP_BEGIN(Double, "+", Double, Double, 10u, ICON_FA_PLUS " Add")
@@ -366,32 +336,4 @@ NodableLanguage::NodableLanguage():
 	BINARY_OP_BEGIN(Bool, "<", Double, Double,10u, "< Less")
 		RETURN((double)ARG(0) < (double)ARG(1))
 	OPERATOR_END
-}
-
-const TokenType NodableLanguage::typeToTokenType(Type _type)const
-{
-	// TODO: build a map in constructor
-	switch (_type)
-	{
-	case Type::Boolean: return TokenType::BooleanType;
-	case Type::Double:  return TokenType::DoubleType;
-	case Type::String:  return TokenType::StringType;
-	default:
-		return TokenType::AnyType;
-		break;
-	}
-}
-
-const Type NodableLanguage::tokenTypeToType(TokenType _tokenType)const
-{
-	// TODO: build a map in constructor
-	switch (_tokenType)
-	{
-	case TokenType::BooleanType: return Type::Boolean;
-	case TokenType::DoubleType:  return Type::Double;
-	case TokenType::StringType:  return Type::String;
-	default:
-		return Type::Any;
-		break;
-	}
 }

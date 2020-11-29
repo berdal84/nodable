@@ -101,8 +101,9 @@ std::string Serializer::serialize(const FunctionSignature& _signature) const {
 
 }
 
-std::string Serializer::serialize(const TokenType& _type) const {
-    return language->dictionnary.convert(_type);
+std::string Serializer::serialize(const TokenType& _type) const
+{
+    return language->getSemantic()->tokenTypeToString(_type);
 }
 
 std::string Serializer::serializeBinaryOp(const Operator* _op, std::vector<Member*> _args, const Operator* _leftOp, const Operator* _rightOp) const

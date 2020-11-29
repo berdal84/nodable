@@ -12,12 +12,13 @@
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
 
 #include <fstream>
+#include <Language/Common/LanguageLibrary.h>
 
 using namespace Nodable;
 
 Nodable::File::File( std::filesystem::path _path, const char* _content):
 	path(_path),
-	language(Language::Nodable()) /* Detect the language (TODO) */
+	language(LanguageLibrary::GetNodable()) /* Detect the language (TODO) */
 {		
 
 	/* Creates the FileView	*/
@@ -108,22 +109,25 @@ File* File::OpenFile(std::filesystem::path _filePath)
 
 bool File::evaluateExpression(std::string& _expression)
 {
+	Parser* parser = language->getParser();
+	Container* container = getInnerContainer();
 
-	auto container = getInnerContainer();
-
-	/* Create a Parser node. The Parser will cut expression string into tokens
-	(ex: "2*3" will be tokenized as : number"->"2", "operator"->"*", "number"->"3")*/
-	Parser parser(language, container);
-	
-	if (parser.eval(_expression))
+	try
 	{
-		auto result = container->getResultVariable();
-		auto view   = result->getComponent<NodeView>();
-		NodeView::ArrangeRecursively(view);
-		LOG_MESSAGE(Log::Verbosity::Normal, "Expression evaluated: %s\n", _expression.c_str());
-		return true;
-	}
-	return false;
+        if (parser->evalExprIntoContainer(_expression, container)) {
+            auto result = container->getResultVariable();
+            auto view = result->getComponent<NodeView>();
+            NodeView::ArrangeRecursively(view);
+            LOG_MESSAGE(Log::Verbosity::Normal, "Expression evaluated: %s\n", _expression.c_str());
+            return true;
+        }
+        return false;
+
+    }
+	catch (const std::runtime_error& error)
+    {
+        LOG_ERROR(Log::Verbosity::Normal, "Unable to evaluate expression. Reason: %s\n", error.what());
+    }
 }
 
 UpdateResult File::update() {
@@ -147,7 +151,7 @@ UpdateResult File::update() {
 		return UpdateResult::SuccessWithoutChanges;
 	}
 
-	auto member		= result->getMember();
+	auto member		= result->value();
 	auto expression = language->getSerializer()->serialize(member);
 	
 	view->replaceSelectedText(expression);

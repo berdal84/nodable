@@ -11,11 +11,6 @@ namespace Nodable {
 	public:
 		NodableLanguage();
         ~NodableLanguage() override = default;
-
-		virtual const FunctionSignature createBinOperatorSignature(Type, std::string, Type, Type) const;
-		virtual const FunctionSignature createUnaryOperatorSignature(Type, std::string, Type) const;
-		virtual const TokenType typeToTokenType(Type _type)const;
-		virtual const Type tokenTypeToType(TokenType _tokenType)const;
 	};
 }
 

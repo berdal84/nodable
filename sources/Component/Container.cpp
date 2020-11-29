@@ -225,9 +225,10 @@ Node* Container::newBinOp(const Operator* _operator)
 	auto signature = _operator->signature;
 	node->setLabel(signature.getLabel());
 	const auto args = signature.getArgs();
-	auto left   = node->add("lvalue", Visibility::Default, language->tokenTypeToType(args[0].type), Way_In);
-	auto right  = node->add("rvalue", Visibility::Default, language->tokenTypeToType(args[1].type), Way_In);
-	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
+	const Semantic* semantic = language->getSemantic();
+	auto left   = node->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
+	auto right  = node->add("rvalue", Visibility::Default, semantic->tokenTypeToType(args[1].type), Way_In);
+	auto result = node->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation component and link values.
 	auto binOpComponent = new ComputeBinaryOperation(_operator, language);	
@@ -255,8 +256,9 @@ Node* Container::newUnaryOp(const Operator* _operator)
 	auto signature = _operator->signature;
 	node->setLabel(signature.getLabel());
 	const auto args = signature.getArgs();
-	auto left = node->add("lvalue", Visibility::Default, language->tokenTypeToType(args[0].type), Way_In);
-	auto result = node->add("result", Visibility::Default, language->tokenTypeToType(signature.getType()), Way_Out);
+    const Semantic* semantic = language->getSemantic();
+	auto left = node->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
+	auto result = node->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation binOpComponent and link values.
 	auto unaryOperationComponent = new ComputeUnaryOperation(_operator, language);
@@ -281,7 +283,8 @@ Node* Container::newFunction(const Function* _function) {
 	// Create a node with 2 inputs and 1 output
 	auto node = new Node();
 	node->setLabel(ICON_FA_CODE " " + _function->signature.getIdentifier());
-	node->add("result", Visibility::Default, language->tokenTypeToType(_function->signature.getType()), Way_Out);
+    const Semantic* semantic = language->getSemantic();
+	node->add("result", Visibility::Default, semantic->tokenTypeToType(_function->signature.getType()), Way_Out);
 
 	// Create ComputeBase binOpComponent and link values.
 	auto functionComponent = new ComputeFunction(_function, language);
@@ -291,7 +294,7 @@ Node* Container::newFunction(const Function* _function) {
 	auto args = _function->signature.getArgs();
 	for (size_t argIndex = 0; argIndex < args.size(); argIndex++) {
 		std::string memberName = args[argIndex].name;
-		auto member = node->add(memberName.c_str(), Visibility::Default, language->tokenTypeToType(args[argIndex].type), Way_In); // create node input
+		auto member = node->add(memberName.c_str(), Visibility::Default, semantic->tokenTypeToType(args[argIndex].type), Way_In); // create node input
 		functionComponent->setArg(argIndex, member); // link input to binOpComponent
 	}	
 	

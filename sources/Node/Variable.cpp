@@ -29,10 +29,10 @@ const char* Variable::getName()const
 
 bool Variable::isType(Type _type)const
 {
-	return getMember()->isType(_type);
+	return value()->isType(_type);
 }
 
 std::string Variable::getTypeAsString()const
 {
-	return getMember()->getTypeAsString();
+	return value()->getTypeAsString();
 }

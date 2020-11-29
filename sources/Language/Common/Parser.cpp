@@ -20,17 +20,10 @@
 
 using namespace Nodable;
 
-Parser::Parser(const Language* _language, Container* _container):
-	                 language(_language), container(_container)
+std::string Parser::logTokens(
+        const std::vector<Token> _tokens,
+        const size_t _highlight)
 {
-}
-
-Parser::~Parser()
-{
-
-}
-
-std::string Parser::logTokens(const std::vector<Token> _tokens, const size_t _highlight){
 	std::string result;
 
 	for (auto it = _tokens.begin(); it != _tokens.end(); it++ ) {
@@ -58,27 +51,33 @@ std::string Parser::logTokens(const std::vector<Token> _tokens, const size_t _hi
 	return result;
 }
 
-bool Parser::eval(const std::string& _expression)
+bool Parser::evalExprIntoContainer(const std::string& _expression,
+                                   Container* _container )
 {
+    this->tokens.clear();
+    this->container = _container;
 
-	if (!tokenizeExpressionString(_expression)) {
-		LOG_WARNING(Log::Verbosity::Normal, "Unable to parse expression due to unrecognysed tokens.\n");
-		return false;
+	if (!tokenizeExpressionString(_expression))
+	{
+		LOG_WARNING(Log::Verbosity::Normal, "Unable to parse expression due to unrecognized tokens.\n");
+       return false;
 	}
 
-	if(tokens.size() == 0 )
+	if ( tokens.empty() )
     {
         LOG_MESSAGE(Log::Verbosity::Normal, "Nothing to evaluate.\n");
         return false;
     }
 
-	if (!isSyntaxValid()) {
+	if (!isSyntaxValid())
+	{
 		LOG_WARNING(Log::Verbosity::Normal, "Unable to parse expression due to syntax error.\n");
 		return false;
 	}
 
 	Member* resultValue = parseRootExpression();
-	if (resultValue == nullptr) {
+	if (resultValue == nullptr)
+	{
 		LOG_WARNING(Log::Verbosity::Normal, "Unable to parse expression due to abstract syntax tree failure.\n");
 		return false;
 	}
@@ -94,7 +93,7 @@ bool Parser::eval(const std::string& _expression)
     }
 	else // we connect resultValue with resultVariable.value
     {
-        Node::Connect(resultValue, result->getMember());
+        Node::Connect(resultValue, result->value());
     }
 
 	LOG_MESSAGE(Log::Verbosity::Normal, "Expression evaluated: %s\n", _expression.c_str() );
@@ -126,9 +125,9 @@ Member* Parser::tokenToMember(const Token& _token) {
 				variable = context->newVariable(_token.word);
 
 			NODABLE_ASSERT(variable != nullptr);
-			NODABLE_ASSERT(variable->getMember() != nullptr);
+			NODABLE_ASSERT(variable->value() != nullptr);
 
-			result = variable->getMember();
+			result = variable->value();
 
 			break;
 		}
@@ -531,7 +530,7 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
 	auto chars = _expression;
 
 	/* shortcuts to language members */
-	auto regex    = language->dictionnary.getTokenTypeToRegexMap();
+	auto regex    = language->getSemantic()->getTokenTypeToRegexMap();
 
 	for(auto it = chars.cbegin(); it != chars.cend(); ++it)
 	{
@@ -643,7 +642,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 		if (auto member = parseExpression(localTokenId))
 		{
 			args.push_back(member); // store argument as member (already parsed)
-			signature.pushArg( language->typeToTokenType(member->getType()) );  // add a new argument type to the proto.
+			signature.pushArg( language->getSemantic()->typeToTokenType(member->getType()) );  // add a new argument type to the proto.
 
 			if (tokens.at(localTokenId).type == TokenType::Separator)
 				localTokenId++;
