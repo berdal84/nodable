@@ -70,5 +70,7 @@ namespace Nodable
         void drawFileBrowser();
 
         void drawBackground();
+
+        void drawLanguageBrowser(ImGuiID dockspace_id, bool redock_all);
     };
 }

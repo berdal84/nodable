@@ -29,7 +29,7 @@ namespace Nodable
 		bool                             isModified() { return modified; }
 		bool                             evaluateExpression(std::string&);
 		bool                             evaluateSelectedExpression();
-
+        inline const Language* getLanguage()const { return language; }
 		static File*                     OpenFile(std::filesystem::path _filePath);
 
 		inline History* getHistory() {
