@@ -4,6 +4,7 @@
 #include <Component/Container.h>
 #include <Language/Common/Parser.h>
 #include <Node/Variable.h>
+#include <Language/Common/LanguageLibrary.h>
 
 using namespace Nodable;
 
@@ -11,20 +12,20 @@ template <typename T>
 bool Parser_Test(
         const std::string& expression,
         T _expectedValue,
-        const Language* _language = Language::Nodable()
+        const Language* _language = LanguageLibrary::GetNodable()
 ){
 
     Container container(_language);
-    Parser parser(_language, &container);
 
-    parser.eval(expression);
-
-    auto result = container.getResultVariable();
+    Parser* parser = _language->getParser();
+    parser->evalExprIntoContainer(expression, &container);
     container.update();
 
     auto expectedMember = std::make_unique<Member>(nullptr);
     expectedMember->set(_expectedValue);
-    auto success = result->getMember()->equals(expectedMember.get());
+
+    auto result = container.getResultVariable();
+    auto success = result->value()->equals(expectedMember.get());
 
     return success;
 }
@@ -32,18 +33,18 @@ bool Parser_Test(
 
 std::string ParseEvalSerialize(
         const std::string& expression,
-        const Language* _language = Language::Nodable()
+        const Language* _language = LanguageLibrary::GetNodable()
 ){
 
     Container container(_language);
-    Parser parser(_language, &container);
-
-    parser.eval(expression);
+    Parser* parser = _language->getParser();
+    parser->evalExprIntoContainer(expression, &container);
 
     auto result = container.getResultVariable();
     container.update();
 
-    auto resultExpression = _language->getSerializer()->serialize(result->getMember());
+    Serializer* serializer = _language->getSerializer();
+    auto resultExpression = serializer->serialize(result->value());
 
     std::cout << resultExpression << std::endl;
 
@@ -57,7 +58,6 @@ TEST(Parser, DNAtoProtein )
     EXPECT_TRUE(Parser_Test("DNAtoProtein(\"TGA\")", "_"));
     EXPECT_TRUE(Parser_Test("DNAtoProtein(\"ATG\")", "M"));
 }
-
 
 TEST(Parser, Simple_expressions)
 {

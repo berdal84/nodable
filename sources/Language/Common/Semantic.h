@@ -4,34 +4,55 @@
 #include <string>
 #include <map>
 #include <regex>
+#include <Core/Type.h>
 
 namespace Nodable
 {
 	/**
-	* The role of this class is to store make easy to convert a string to a TokenType
-	* and a TokenType to a string.
-	* We can also use reglar expressions.
-	* 
-	* ex:
-	* 
-	*   "true"          => TokenType::Boolean
-	*   "boolean"       => TokenType::BooleanType
-	*   "^(true|false)" => TokenType::Boolean
-	* 
+	* The role of Semantic is to provide a way to insert and apply simple conversions:
+	 *
+	 * std::string   <===> TokenType
+	 * std::regex    <===> TokenType
+	 * Nodable::Type <===> TokenType
+	 *
+	 * A Semantic is designed to a part of a Language.
 	*/
 	class Semantic
 	{
 	public:
-		Semantic() {}
-		~Semantic() {}
-		std::string convert(const TokenType&)const;
-		void        insert(std::regex, TokenType);
-		void        insert(std::string, TokenType);
-		const auto& getTokenTypeToRegexMap()const { return tokenTypeToRegex;  }
+		Semantic() = default;
+		~Semantic() = default;
+
+		/**
+		 * Insert a regular expression to TokenType correspondence (for a Parser).
+		 *
+		 * A string that matching with the regular expression will be interpreted as a specific given type.
+		 */
+		void insert_RegexToTokenType(std::regex, TokenType);
+
+		/**
+		 * Insert a string to TokenType correspondence.
+		 *
+		 * This will provide:
+		 * - a TokenType/std::string simple correspondence (for a Serializer).
+		 * - a std::regex/TokenType correspondence (for a Parser).
+		 */
+		void insert_StringToTokenType(std::string, TokenType);
+
+		/**
+		 * Insert a bidirectional correspondence between a type and a token type (for a Language)
+		 */
+		void insert_TypeToTokenType(Type _type, TokenType _tokenType);
+
+		[[nodiscard]] inline const auto& getTokenTypeToRegexMap()const { return m_tokenTypeToRegex;  }
+        [[nodiscard]] std::string tokenTypeToString(const TokenType&)const;
+        [[nodiscard]] TokenType  typeToTokenType(Type _type)const;
+        [[nodiscard]] Type tokenTypeToType(TokenType _tokenType)const;
+
 	private:
-		std::string numbers;
-		std::string letters;
-		std::map<TokenType, std::string> tokenTypeToString;
-		std::map<TokenType, std::regex>  tokenTypeToRegex;
+		std::map<TokenType, std::string> m_tokenTypeToString;
+		std::multimap<TokenType, std::regex>  m_tokenTypeToRegex;
+		std::map<TokenType, Type> m_tokenTypeToTypeMap;
+		std::map<Type, TokenType> m_typeToTokenTypeMap;
 	};
 }

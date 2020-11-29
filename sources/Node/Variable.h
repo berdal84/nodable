@@ -20,11 +20,11 @@ namespace Nodable{
 		~Variable();
 
 		void              setName         (const char*);
-		bool              isSet           ()const{return getMember()->isDefined(); }
+		bool              isSet           ()const{return value()->isDefined(); }
 		bool              isType          (Type _type)const;		
 		const char*       getName         ()const;
 
-		Member* getMember()const {
+		Member* value()const {
 			return get("value");
 		}
 

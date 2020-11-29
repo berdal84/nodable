@@ -9,7 +9,7 @@
 namespace Nodable{
 
 
-	/*
+	/**
 		The role of this class is to convert code string to a Nodable graph.
 
 		The main strategy is:
@@ -29,32 +29,32 @@ namespace Nodable{
 		   - a Language (to understand the code)
 		   - a Container (to store the result)
 		*/
-		Parser(const Language* _language, Container* _container);
-		~Parser();
+		explicit Parser(const Language* _language): language(_language), container(nullptr){}
+		~Parser() = default;
 
-		/* Evaluates an expression as a string.
+		/** Evaluates an expression as a string.
 		   Return true if evaluation went well and false otherwise. */
-		bool eval(const std::string& );
+		bool evalExprIntoContainer(const std::string &_expression, Container* _container );
 
 	private:
-		/* Convert a Token to a Member*/
+		/** Convert a Token to a Member*/
 		Member* tokenToMember(const Token& _token);
 
-		/* Parse the root expression.
+		/** Parse the root expression.
 		   The root expression is set when calling eval().
 		   Return the result as a Member or nullptr if parsing failed. */
 		Member* parseRootExpression();
 
-		/* Parse a Function call starting at a specific token index.
+		/** Parse a Function call starting at a specific token index.
 		   Return the result as a Member or nullptr if parsing failed. */
 		Member* parseFunctionCall(size_t& _tokenId);
 
-		/* Parse a sub expression starting at a specific token index.
+		/** Parse a sub expression starting at a specific token index.
 		   A sub expression is like: "( expression )"
 		   Return the result as Member or nullptr if parsing failed. */
 		Member* parseParenthesisExpression(size_t& _tokenId);
 
-		/* Parse binary operation expression starting at a specific token index.
+		/** Parse binary operation expression starting at a specific token index.
 		   _precedence is the precedence value of the previous operator.
 		   _left is the left handed side of the operation.
 		*/
@@ -66,29 +66,29 @@ namespace Nodable{
 		/** To parse a primary expression (ex: "myVariable", "10.4", etc... ) */
 		Member* parseAtomicExpression(size_t& _tokenId);
 
-		/* Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
+		/** Build a graph resursively starting at the token _tokenIndex reading up to _tokenIdMax tokens.*/
 		Member* parseExpression(size_t& _tokenIndex, unsigned short _precedence = 0u, Member* _left = nullptr);
 
-		/* Cut the member "expression" into tokens to identifies its type (cf. TokenType enum) */
+		/** Cut the member "expression" into tokens to identifies its type (cf. TokenType enum) */
 		bool tokenizeExpressionString(const std::string& _expression);
 
-		/* Check if the existing tokens match with the syntax of the language. tokenize() should be called first */
+		/** Check if the existing tokens match with the syntax of the language. tokenize() should be called first */
 		bool isSyntaxValid();
 
 		/** Generate a string with all tokens with _tokens[_highlight] colored in green*/
-		std::string logTokens(const std::vector<Token> _tokens, const size_t _highlight);
+		std::string logTokens(std::vector<Token> _tokens, size_t _highlight);
 
-		/* Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
+		/** Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
 		void addToken(TokenType _type, std::string _string, size_t _charIndex);
 
-		/* To store the result of the tokenizeExpressionString() method
+		/** To store the result of the tokenizeExpressionString() method
 		   contain a vector of Tokens to be converted to a Nodable graph by all parseXXX functions */
 		std::vector<Token> tokens;
 
-		/* The language that defines a dictionnary, some functions and operators*/
+		/** Semantic and Syntax */
 		const Language* language;
 
-		/* The target container of the parser in which all generated nodes will be pushed into*/
+		/** The target container of the parser in which all generated nodes will be pushed into*/
 		Container* container;
 	};
 

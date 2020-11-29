@@ -1,18 +1,21 @@
 #include "Language.h"
-#include "Language/Nodable/NodableLanguage.h"
 #include <vector>
 #include <Node/Node.h>
+#include <Language/Common/Parser.h>
 
 using namespace Nodable;
 
-const Language* Language::NODABLE = nullptr;
+Language::Language(std::string _name):
+    name(_name),
+    serializer(new Serializer(this)),
+    parser(new Parser(this))
+{
+};
 
-const Language* Language::Nodable() {
-
-	if (Language::NODABLE == nullptr)
-		Language::NODABLE = new NodableLanguage();
-
-	return Language::NODABLE;
+Language::~Language()
+{
+    delete parser;
+    delete serializer;
 }
 
 void Language::addOperator( Operator _operator)
@@ -84,4 +87,36 @@ void Nodable::Language::addToAPI(FunctionSignature& _signature, FunctionImplem _
 {
 	Function f(_signature, _implementation);
 	this->api.push_back(f);
+}
+
+const FunctionSignature Language::createBinOperatorSignature(
+        Type _type,
+        std::string _identifier,
+        Type _ltype,
+        Type _rtype) const
+{
+    auto tokType  = semantic.typeToTokenType(_type);
+    auto tokLType = semantic.typeToTokenType(_ltype);
+    auto tokRType = semantic.typeToTokenType(_rtype);
+
+    FunctionSignature signature("operator" + _identifier, tokType);
+
+    signature.pushArgs(tokLType, tokRType);
+
+    return signature;
+}
+
+const FunctionSignature Language::createUnaryOperatorSignature(
+        Type _type,
+        std::string _identifier,
+        Type _ltype) const
+{
+    auto tokType = semantic.typeToTokenType(_type);
+    auto tokLType = semantic.typeToTokenType(_ltype);
+
+    FunctionSignature signature("operator" + _identifier, tokType);
+
+    signature.pushArgs(tokLType);
+
+    return signature;
 }

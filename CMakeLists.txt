@@ -12,7 +12,7 @@ endif ()
 #==========
 
 # Declare project name
-project("Nodable" VERSION "0.7.0")
+project("Nodable" VERSION "0.8.0")
 set(PROJECT_ASSETS_DIR "assets")
 
 # Configure headers
