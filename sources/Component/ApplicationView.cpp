@@ -335,6 +335,8 @@ bool ApplicationView::draw()
             ImGuiID dockspace_id = ImGui::GetID("DocumentsDockspace");
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
+            drawLanguageBrowser(dockspace_id, redock_all);
+
             // Draw each FileView
             for (int fileIndex = 0; fileIndex < application->getFileCount(); fileIndex++)
             {
@@ -844,6 +846,48 @@ void ApplicationView::drawBackground()
         ImGui::NewLine();
     }
     ImGui::EndChild();
+
+}
+
+void ApplicationView::drawLanguageBrowser(ImGuiID dockspace_id, bool redock_all)
+{
+
+    ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
+    ImGuiWindowFlags window_flags = 0;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
+    auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
+    child_bg.w = 0;
+
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
+
+    bool open = true;
+    bool visible = ImGui::Begin("Language Browser", &open, window_flags);
+    {
+        ImGui::PopStyleColor(1);
+        ImGui::PopStyleVar();
+
+        if (visible)
+        {
+            const File* curr_file = application->getCurrentFile();
+            const Language* language = curr_file->getLanguage();
+            const auto functions = language->getAllFunctions();
+            const auto serializer = language->getSerializer();
+
+            for(const auto& each_fct : functions )
+            {
+                auto name = serializer->serialize(each_fct.signature);
+
+                if ( ImGui::TreeNode(name.c_str()) )
+                {
+                    ImGui::Text("Here something");
+                    ImGui::TreePop();
+                }
+            }
+        }
+    }
+    ImGui::End(); // File Window
 
 }
 
