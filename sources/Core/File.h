@@ -22,7 +22,8 @@ namespace Nodable
 	public:
 		File(std::filesystem::path, const char* /*_content*/);
 
-		std::string                      getName()const { return std::string {path.filename().u8string()}; }	
+		std::string                      getName()const { return std::string {path.filename().u8string()}; }
+        std::string                      getPath()const { return std::string {path.u8string()}; }
 		void                             save();
 		UpdateResult                     update();
 		void                             setModified() { modified = true; }
