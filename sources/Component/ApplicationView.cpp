@@ -168,8 +168,8 @@ bool ApplicationView::init()
     colors[ImGuiCol_Tab]                    = ImVec4(0.58f, 0.54f, 0.50f, 0.86f);
     colors[ImGuiCol_TabHovered]             = ImVec4(1.00f, 0.79f, 0.45f, 1.00f);
     colors[ImGuiCol_TabActive]              = ImVec4(1.00f, 0.73f, 0.25f, 1.00f);
-    colors[ImGuiCol_TabUnfocused]           = ImVec4(0.15f, 0.15f, 0.15f, 0.97f);
-    colors[ImGuiCol_TabUnfocusedActive]     = ImVec4(0.45f, 0.45f, 0.45f, 1.00f);
+    colors[ImGuiCol_TabUnfocused]           = ImVec4(0.53f, 0.53f, 0.53f, 0.97f);
+    colors[ImGuiCol_TabUnfocusedActive]     = ImVec4(0.79f, 0.79f, 0.79f, 1.00f);
     colors[ImGuiCol_DockingPreview]         = ImVec4(1.00f, 0.70f, 0.09f, 0.70f);
     colors[ImGuiCol_DockingEmptyBg]         = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
     colors[ImGuiCol_PlotLines]              = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -274,9 +274,6 @@ bool ApplicationView::draw()
     // Startup Window
     drawStartupWindow();
 
-    // Properties panel sdlWindow
-    drawPropertiesWindow();
-
     // Demo Window
     {
         auto b = (bool)*get("showImGuiDemo");
@@ -327,21 +324,84 @@ bool ApplicationView::draw()
                         userWantsToArrangeSelectedNodeHierarchy, redock_all);
 
 
+
             /*
-                HYBRID EDITOR
-            */
+             * Main Layout
+             */
 
-            // DockSpace
-            ImGuiID dockspace_id = ImGui::GetID("DocumentsDockspace");
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+            ImGuiID dockspace_id = ImGui::GetID("dockspace_main");
+            ImGuiID dockspace_documents = ImGui::GetID("dockspace_documents");
+            ImGuiID dockspace_properties = ImGui::GetID("dockspace_properties");
 
-            drawLanguageBrowser(dockspace_id, redock_all);
 
-            // Draw each FileView
+            if ( !this->isLayoutInitialized )
+            {
+               ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
+               ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace );
+               ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
+               ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.2f, &dockspace_properties, NULL);
+               ImGui::DockBuilderDockWindow("Global Props", dockspace_properties);
+               ImGui::DockBuilderDockWindow("Properties", dockspace_properties);
+               ImGui::DockBuilderDockWindow("File Info", dockspace_properties);
+               ImGui::DockBuilderFinish(dockspace_id);
+                this->isLayoutInitialized = true;
+            }
+
+             /*
+             * Fill the layout with content
+             */
+            ImGui::DockSpace(dockspace_id);
+
+            // Global Props
+            if (ImGui::Begin("Global Props"))
+            {
+                this->drawPropertiesWindow();
+            }
+            ImGui::End();
+
+
+            // File info
+            ImGui::Begin("File Info");
+            {
+                ImGui::Text("File properties will be there");
+                const File* currFile = application->getCurrentFile();
+
+                if (currFile)
+                {
+                    ImGui::Text("Name: %s", currFile->getName().c_str());
+                    ImGui::Text("Path: %s", currFile->getPath().c_str());
+                }
+
+                if (ImGui::TreeNode("Language"))
+                {
+                    this->drawLanguageBrowser(application->getCurrentFile());
+                    ImGui::TreePop();
+                }
+
+            }
+            ImGui::End();
+
+            // Language browser
+            if ( ImGui::Begin("Properties") )
+            {
+                NodeView* view = NodeView::GetSelected();
+                if ( view != nullptr )
+                {
+                    auto node = view->getOwner();
+                    ImGui::Text("Selected Node: %s", node->getLabel());
+                    ImGui::NewLine();
+                    NodeView::DrawPropertyPanel(view);
+                }
+            }
+            ImGui::End();
+
+
+            // Opened documents
             for (int fileIndex = 0; fileIndex < application->getFileCount(); fileIndex++)
             {
-                drawFileEditor(dockspace_id, redock_all, fileIndex);
+                this->drawFileEditor(dockspace_id, redock_all, fileIndex);
             }
+
 
         }
         ImGui::End(); // Main window
@@ -467,24 +527,15 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, int 
     }
 }
 
-void ApplicationView::drawPropertiesWindow() {
-    auto b = (bool)*get("showProperties");
-    if( b ){
-        if (ImGui::Begin("Properties", &b))
-        {
-
-            ImGui::Text("Wires");
-            ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
-            ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
-            ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
-            ImGui::SliderFloat("connector radius", &connectorRadius, 1.0f, 10.0f);
-            ImGui::SliderFloat("node padding", &nodePadding, 1.0f, 20.0f);
-            ImGui::Checkbox("arrows", &displayArrows);
-
-        }
-        ImGui::End();
-        set("showProperties", b);
-    }
+void ApplicationView::drawPropertiesWindow()
+{
+    ImGui::Text("Wires");
+    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
+    ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
+    ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
+    ImGui::SliderFloat("connector radius", &connectorRadius, 1.0f, 10.0f);
+    ImGui::SliderFloat("node padding", &nodePadding, 1.0f, 20.0f);
+    ImGui::Checkbox("arrows", &displayArrows);
 }
 
 void ApplicationView::drawStartupWindow() {
@@ -849,45 +900,26 @@ void ApplicationView::drawBackground()
 
 }
 
-void ApplicationView::drawLanguageBrowser(ImGuiID dockspace_id, bool redock_all)
+void ApplicationView::drawLanguageBrowser(const File* file )const
 {
-
-    ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
-    ImGuiWindowFlags window_flags = 0;
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-
-    auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
-    child_bg.w = 0;
-
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
-
-    bool open = true;
-    bool visible = ImGui::Begin("Language Browser", &open, window_flags);
+    if (file != nullptr)
     {
-        ImGui::PopStyleColor(1);
-        ImGui::PopStyleVar();
+        const Language* language = file->getLanguage();
+        const auto functions = language->getAllFunctions();
+        const Serializer* serializer = language->getSerializer();
 
-        if (visible)
+
+        ImGui::Columns(1);
+        for(const auto& each_fct : functions )
         {
-            const File* curr_file = application->getCurrentFile();
-            const Language* language = curr_file->getLanguage();
-            const auto functions = language->getAllFunctions();
-            const auto serializer = language->getSerializer();
-
-            for(const auto& each_fct : functions )
-            {
-                auto name = serializer->serialize(each_fct.signature);
-
-                if ( ImGui::TreeNode(name.c_str()) )
-                {
-                    ImGui::Text("Here something");
-                    ImGui::TreePop();
-                }
-            }
+            auto name = serializer->serialize(each_fct.signature);
+            ImGui::Text("%s", name.c_str());
         }
     }
-    ImGui::End(); // File Window
+    else
+    {
+        ImGui::Text("Open a file to see its properties");
+    }
 
 }
 

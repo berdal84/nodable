@@ -2,11 +2,7 @@
 
 using namespace Nodable;
 
-Object::Object()
-{
-	add("__class__", Visibility::OnlyWhenUncollapsed);
-	add("name",      Visibility::OnlyWhenUncollapsed);
-}
+Object::Object(){}
 
 Object::~Object()
 {

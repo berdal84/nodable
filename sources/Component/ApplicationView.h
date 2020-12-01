@@ -16,6 +16,8 @@
 
 namespace Nodable
 {
+    class Language;
+
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
 	*/
@@ -54,6 +56,7 @@ namespace Nodable
 			MIRROR_PARENT(View)
 		);
 
+	private:
         void drawHistoryBar(History *currentFileHistory);
 
         void drawStatusBar() const;
@@ -71,6 +74,8 @@ namespace Nodable
 
         void drawBackground();
 
-        void drawLanguageBrowser(ImGuiID dockspace_id, bool redock_all);
+        void drawLanguageBrowser(const File* )const;
+
+        bool isLayoutInitialized = false;
     };
 }

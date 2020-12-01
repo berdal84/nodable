@@ -14,7 +14,6 @@ Application::Application(const char* _name):
     currentFileIndex(0),
     assetsFolderPath(NODABLE_ASSETS_DIR)
 {
-	set("__class__", "Application");
 	setLabel(_name);
 	addComponent(new ApplicationView(_name, this));
 }

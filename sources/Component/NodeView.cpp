@@ -448,74 +448,12 @@ void NodeView::ArrangeRecursively(NodeView* _view)
 	}
 }
 
-bool NodeView::drawMember(Member* _member) {
+bool NodeView::drawMember(Member* _member)
+{
 
-	bool edited = false;
-	auto node   = getOwner();
 	auto memberTopPositionOffsetY = ImGui::GetCursorPos().y - getRoundedPosition().y;
 
-	std::string label("##");
-	label.append(_member->getName());
-
-    auto inputFlags = ImGuiInputTextFlags_None;
-
-	/* Draw the member */
-	switch (_member->getType())
-	{
-	case Type::Double:
-		{
-			auto f = (double)*_member;
-
-			if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->hasInputConnected())
-			{
-				_member->set(f);
-				NodeTraversal::SetDirty(node);
-				edited |= true;
-			}
-			break;
-		}
-	case Type::String:
-		{				
-			char str[255];
-			snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
-
-			if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->hasInputConnected() )
-			{
-				_member->set(str);
-				NodeTraversal::SetDirty(node);
-				edited |= true;
-			}
-			break;
-		}
-	case Type::Boolean:
-	{			
-		std::string checkBoxLabel = _member->getName();
-
-		auto b = (bool)*_member;
-
-		if (ImGui::Checkbox( checkBoxLabel.c_str(), &b ) && !_member->hasInputConnected() ) {
-			_member->set(b);
-			NodeTraversal::SetDirty(node);
-			edited |= true;
-		}
-		break;
-	}
-	default:
-		{
-			ImGui::Text( "%s", _member->getName().c_str());
-			break;
-		}
-	}
-
-
-	/* If value is hovered, we draw a tooltip that print the source expression of the value*/
-	if (ImGui::IsItemHovered())
-	{
-		ImGui::BeginTooltip();
-		auto language = getOwner()->getParentContainer()->getLanguage();
-		ImGui::Text("%s", language->getSerializer()->serialize(_member).c_str() );
-		ImGui::EndTooltip();
-	}
+    bool edited = NodeView::DrawMemberInput(_member);
 
 	auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - getRoundedPosition().y;
 	connectorOffsetPositionsY[_member->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f; // store y axis middle
@@ -538,6 +476,77 @@ bool NodeView::drawMember(Member* _member) {
 	}
 
 	return edited;
+}
+
+bool NodeView::DrawMemberInput(Member *_member)
+{
+    bool edited = false;
+
+    Node* node  = _member->getOwner()->as<Node>();
+
+    std::string label("##");
+    label.append(_member->getName());
+
+    auto inputFlags = ImGuiInputTextFlags_None;
+
+    /* Draw the member */
+    switch (_member->getType())
+    {
+    case Type::Double:
+        {
+            auto f = (double)*_member;
+
+            if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->hasInputConnected())
+            {
+                _member->set(f);
+                NodeTraversal::SetDirty(node);
+                edited |= true;
+            }
+            break;
+        }
+    case Type::String:
+        {
+            char str[255];
+            snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
+
+            if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->hasInputConnected() )
+            {
+                _member->set(str);
+                NodeTraversal::SetDirty(node);
+                edited |= true;
+            }
+            break;
+        }
+    case Type::Boolean:
+    {
+        std::string checkBoxLabel = _member->getName();
+
+        auto b = (bool)*_member;
+
+        if (ImGui::Checkbox( checkBoxLabel.c_str(), &b ) && !_member->hasInputConnected() ) {
+            _member->set(b);
+            NodeTraversal::SetDirty(node);
+            edited |= true;
+        }
+        break;
+    }
+    default:
+        {
+            ImGui::Text( "%s", ((std::string)*_member).c_str());
+            break;
+        }
+    }
+
+    /* If value is hovered, we draw a tooltip that print the source expression of the value*/
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::BeginTooltip();
+        auto language = node->getParentContainer()->getLanguage();
+        ImGui::Text("%s", language->getSerializer()->serialize(_member).c_str() );
+        ImGui::EndTooltip();
+    }
+
+    return edited;
 }
 
 void NodeView::drawConnector(ImVec2& connectorPos, const Connector* _connector, ImDrawList* draw_list)
@@ -593,6 +602,21 @@ ImRect Nodable::NodeView::getRect() const {
 bool Nodable::NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
 	auto nodeRect = _nodeView->getRect();
 	return _rect.Contains(nodeRect);
+}
+
+void Nodable::NodeView::DrawPropertyPanel(NodeView* _view)
+{
+    Node* node = _view->getOwner();
+
+    // Then draw the rest
+    for (auto& eachPair : node->getMembers() )
+    {
+        ImGui::SetNextItemWidth(100.0f);
+        ImGui::Text("%s: ", eachPair.first.c_str());
+        ImGui::SameLine(100.0f);
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+        NodeView::DrawMemberInput(eachPair.second);
+    }
 }
 
 void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
