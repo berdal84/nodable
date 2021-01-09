@@ -453,7 +453,7 @@ bool NodeView::drawMember(Member* _member)
 
 	auto memberTopPositionOffsetY = ImGui::GetCursorPos().y - getRoundedPosition().y;
 
-    bool edited = NodeView::DrawMemberInput(_member);
+    bool edited = NodeView::DrawMemberInput(_member );
 
 	auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - getRoundedPosition().y;
 	connectorOffsetPositionsY[_member->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f; // store y axis middle
@@ -478,14 +478,22 @@ bool NodeView::drawMember(Member* _member)
 	return edited;
 }
 
-bool NodeView::DrawMemberInput(Member *_member)
+bool NodeView::DrawMemberInput( Member *_member, const char* _label )
 {
     bool edited = false;
 
     Node* node  = _member->getOwner()->as<Node>();
 
-    std::string label("##");
-    label.append(_member->getName());
+    // Create a label (everything after ## will not be displayed)
+    std::string label;
+    if ( _label != nullptr )
+    {
+        label.append(_label);
+    }
+    else
+    {
+        label.append("##" + _member->getName());
+    }
 
     auto inputFlags = ImGuiInputTextFlags_None;
 

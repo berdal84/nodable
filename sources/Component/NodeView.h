@@ -120,7 +120,7 @@ namespace Nodable{
 		MIRROR_CLASS(NodeView)(
 			MIRROR_PARENT(View));
 
-		static bool DrawMemberInput(Member *_member);
+		static bool DrawMemberInput(Member *_member, const char* _label = nullptr);
 		static void DrawPropertyPanel(NodeView *_view);
 	};
 }
