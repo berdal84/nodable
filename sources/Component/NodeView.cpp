@@ -63,21 +63,22 @@ ImVec2 NodeView::getConnectorPosition(const std::string& _name, Way _way)const
 {
 	auto pos = position;
 
-	auto it = connectorOffsetPositionsY.find(_name);
-	if (it != connectorOffsetPositionsY.end())
-		pos.y += (*it).second;
+	auto it = connectorOffsetPositionsX.find(_name);
+	if (it != connectorOffsetPositionsX.end())
+		pos.x = (*it).second;
 
-	// Inputs are displayed on the left
+	// Input => Top
 	if (_way == Way_In)
-		return ImVec2(pos.x - size.x * 0.5f, pos.y);
-
-	// Outputs are displayed on the right
+    {
+		return ImVec2(pos.x , pos.y - size.y * 0.5f);
+    }
+	// Outputs => Bottom
 	else if (_way == Way_Out)
-		return ImVec2(pos.x + size.x * 0.5f, pos.y);
-	else {
-		NODABLE_ASSERT(false); // _way should be only In or Out.
-		return ImVec2();
-	}
+	{
+        return ImVec2(pos.x, pos.y + size.y * 0.5f);
+    }
+
+    NODABLE_ASSERT(false); // _way should be only In or Out.
 }
 
 void NodeView::setPosition(ImVec2 _position)
@@ -146,8 +147,8 @@ void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 	auto inputIndex = 0;
 
 	// Compute the cumulated height and the size x max of the input node view:
-	auto cumulatedHeight = 0.0f;
-	auto maxSizeX = 0.0f;
+	auto cumulatedSize = 0.0f;
+	auto sizeMax = 0.0f;
 	for (auto eachWire : wires)
 	{
 		auto sourceNode    = eachWire->getSource()->getOwner()->as<Node>(); // TODO: add some checks
@@ -156,8 +157,8 @@ void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 
 		if (isWireAnInput && !inputView->pinned)
 		{
-			cumulatedHeight += inputView->size.y;
-			maxSizeX = std::max(maxSizeX, inputView->size.x);
+            cumulatedSize += inputView->size.x;
+            sizeMax = std::max(sizeMax, inputView->size.x);
 		}
 	}
 
@@ -166,9 +167,9 @@ void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 	This code maintain them stacked together with a little attenuated movement.
 	*/
 
-	auto posY = position.y - cumulatedHeight / 2.0f;
+	auto posX = position.x - cumulatedSize / 2.0f;
 
-	float nodeVerticalSpacing(10);
+	float nodeSpacing(10);
 
 	for (auto eachWire : wires)
 	{
@@ -181,8 +182,8 @@ void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 			if (!inputView->pinned)
 			{
 				// Compute new position for this input view
-				ImVec2 newPos( position.x - size.x / 2.0f - maxSizeX - spacingDist + inputView->size.x / 2.0f, posY + inputView->size.y / 2.0f);
-				posY += inputView->size.y + nodeVerticalSpacing;
+				ImVec2 newPos(posX + inputView->size.x / 2.0f, position.y - spacingDist - inputView->size.y / 2.0f - size.y / 2.0f );
+                posX += inputView->size.x + nodeSpacing;
 
 				// Compute a delta to apply to move to this new position
 				auto currentPos = inputView->position;				
@@ -281,18 +282,23 @@ bool NodeView::draw()
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + nodePadding);
 	ImGui::Indent(nodePadding);
 
-	connectorOffsetPositionsY.clear();
+	connectorOffsetPositionsX.clear();
 
-
+    ImGui::SetCursorPos(cursorPositionBeforeContent );
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 100.0f);
+    int memberCount = 0;
 	// Draw visible members
 	{
 		// Draw input only first
+
 		for(auto& m : node->getMembers())
 		{		
 			auto member = m.second;
 			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() == Way_In)
 			{
+                ImGui::SetCursorPosX(cursorPositionBeforeContent.x + 100.0f + 25.0f * float(memberCount));
 				drawMember(m.second);
+                memberCount++;
 			}
 		}
 
@@ -302,8 +308,10 @@ bool NodeView::draw()
 			auto member = m.second;
 			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() != Way_In)
 			{
+                ImGui::SetCursorPosX(cursorPositionBeforeContent.x + 100.0f + 25.0f * float(memberCount));
 				drawMember(member);
-			}
+                memberCount++;
+            }
 		}
 	}
 
@@ -318,6 +326,7 @@ bool NodeView::draw()
 			if( member->getVisibility() == Visibility::OnlyWhenUncollapsed ||
 				member->getVisibility() == Visibility::Hidden)
 			{
+                ImGui::SameLine();
 				this->drawMember(member);
 			}
 		}	
@@ -413,7 +422,7 @@ bool NodeView::draw()
 	}	
 
 	// interpolate size.y to fit with its content
-	size.y = (cursorPosAfterContent.y - cursorPositionBeforeContent.y);
+//	size.x = (cursorPosAfterContent.x - cursorPositionBeforeContent.x);
 
 
 	ImGui::PopStyleVar();
@@ -450,13 +459,16 @@ void NodeView::ArrangeRecursively(NodeView* _view)
 
 bool NodeView::drawMember(Member* _member)
 {
+    bool edited = false; // NodeView::DrawMemberInput(_member );
+    connectorOffsetPositionsX[_member->getName()] = ImGui::GetCursorScreenPos().x + 10.0f;
+    ImGui::Button("m", ImVec2(20.0f, 35.0f));
 
-	auto memberTopPositionOffsetY = ImGui::GetCursorPos().y - getRoundedPosition().y;
-
-    bool edited = NodeView::DrawMemberInput(_member );
-
-	auto memberBottomPositionOffsetY = ImGui::GetCursorPos().y - getRoundedPosition().y;
-	connectorOffsetPositionsY[_member->getName()] = (memberTopPositionOffsetY + memberBottomPositionOffsetY) / 2.0f; // store y axis middle
+    if ( ImGui::IsItemHovered() )
+    {
+        ImGui::BeginTooltip();
+        ImGui::Text("%s", _member->getName().c_str() );
+        ImGui::EndTooltip();
+    }
 
 	/*
 		Draw the wire connectors (In or Out only)
@@ -467,12 +479,14 @@ bool NodeView::drawMember(Member* _member)
 
 	if (_member->allowsConnection(Way_In)) {
 		ImVec2      connectorPos = getConnectorPosition( memberName, Way_In);
+		ImGui::SameLine();
 		drawConnector(connectorPos, _member->input(), draw_list);
 	}
 		
 	if (_member->allowsConnection(Way_Out)) {
 		ImVec2      connectorPos = getConnectorPosition( memberName, Way_Out);
-		drawConnector(connectorPos, _member->output(), draw_list);
+        ImGui::SameLine();
+        drawConnector(connectorPos, _member->output(), draw_list);
 	}
 
 	return edited;
@@ -570,7 +584,7 @@ void NodeView::drawConnector(ImVec2& connectorPos, const Connector* _connector, 
 	ImGui::PushID(_connector->member);
 	bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * 2.0f * invisibleButtonOffsetFactor, connectorRadius * 2.0f * invisibleButtonOffsetFactor));
 	ImGui::PopID();
-	ImGui::SetCursorPos(cursorPos);
+	ImGui::SetCursorScreenPos(cursorScreenPos);
 
 	// Circle
 	auto isItemHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
@@ -599,7 +613,7 @@ void NodeView::drawConnector(ImVec2& connectorPos, const Connector* _connector, 
 	{
 		s_hoveredConnector = nullptr;
 	}
-	
+
 }
 
 ImRect Nodable::NodeView::getRect() const {
