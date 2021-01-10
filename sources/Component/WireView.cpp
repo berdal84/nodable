@@ -49,9 +49,9 @@ bool WireView::draw()
 	    	pos1.x -= 7.0f;
 
 	    // Compute tangents
-	    float distX = pos1.x - pos0.x;
-	    float positiveDistX = distX < 0.0f ? -distX : distX;
-	    positiveDistX = positiveDistX < 200.0f ? 200.0f : positiveDistX;        
+	    float dist = pos1.y - pos0.y;
+	    float positiveDist = dist < 0.0f ? -dist : dist;
+        positiveDist = positiveDist < 200.0f ? 200.0f : positiveDist;
 
 	    extern float bezierCurveOutRoundness;
 	    extern float bezierCurveInRoundness;
@@ -59,8 +59,8 @@ bool WireView::draw()
 	    extern bool displayArrows;    
 	    ImVec2 arrowSize(8.0f, 12.0f); 
 
-	    ImVec2 cp0(pos0.x + positiveDistX*bezierCurveOutRoundness, pos0.y);
-	    ImVec2 cp1(pos1.x - positiveDistX*bezierCurveInRoundness, pos1.y);
+	    ImVec2 cp0(pos0.x , pos0.y + positiveDist * bezierCurveOutRoundness);
+	    ImVec2 cp1(pos1.x , pos1.y - positiveDist * bezierCurveInRoundness);
 
 	    // draw bezier curve
 	    ImVec2 arrowPos(pos1.x, pos1.y);

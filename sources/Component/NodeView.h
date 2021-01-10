@@ -8,7 +8,7 @@
 #include "Member.h"
 #include <mirror.h>
 
-#define NODE_VIEW_DEFAULT_SIZE ImVec2(120.0f, 120.0f)
+#define NODE_VIEW_DEFAULT_SIZE ImVec2(180.0f, 35.0f)
 
 namespace Nodable{
 
@@ -111,7 +111,7 @@ namespace Nodable{
 		bool            pinned              = false;                  // false: follow its outputs.
 		float           borderRadius        = 5.0f;
 		ImColor         borderColorSelected = ImColor(1.0f, 1.0f, 1.0f);
-		std::map<std::string, float> connectorOffsetPositionsY;
+		std::map<std::string, float> connectorOffsetPositionsX;
 		static NodeView* s_selected; // pointer to the currently selected NodeView.
 		static NodeView* s_draggedNode;	 // pointer to the currently dragged NodeView.	
 		static const Connector* s_draggedConnector;
