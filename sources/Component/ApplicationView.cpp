@@ -417,7 +417,7 @@ bool ApplicationView::draw()
 			if (userWantsToDeleteSelectedNode)
 			{
 			    auto node = selectedNodeView->getOwner();
-                node->deleteNextFrame();
+                node->flagForDeletion();
             }
 			else if (userWantsToArrangeSelectedNodeHierarchy)
             {

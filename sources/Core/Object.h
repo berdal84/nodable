@@ -23,7 +23,7 @@ namespace Nodable
 		bool                has         (const Member* _value);
 
 		/* Set deleted flag on. Will be deleted by its controller next frame */
-		void                deleteNextFrame   (){deleted = true;}
+		void                flagForDeletion   (){ deleted = true;}
 
 		/* Returns a pointer to the member value identified by its name.
 		Or nullptr if this member doesn't exists. */

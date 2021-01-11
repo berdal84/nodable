@@ -101,6 +101,7 @@ namespace Nodable{
 		/*	Draw a Node Member at cursor position.
 			Returns true if Member's value has been modified, false either */
 		bool drawMember(Member* _v);
+        void drawMemberConnectors(Member *_member);
 
 		void drawConnector(ImVec2& , const Connector* , ImDrawList*);
 
@@ -122,5 +123,5 @@ namespace Nodable{
 
 		static bool DrawMemberInput(Member *_member, const char* _label = nullptr);
 		static void DrawPropertyPanel(NodeView *_view);
-	};
+    };
 }
