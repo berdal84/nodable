@@ -223,13 +223,8 @@ bool NodeView::draw()
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);
 
-	
 	const auto halfSize = size / 2.0;
-
-	if ( position.x != -1.0f || position.y != -1.0f)
-		ImGui::SetCursorPos( getRoundedPosition() - halfSize );
-	else
-		ImGui::SetCursorPos(ImVec2());
+	ImGui::SetCursorPos( getRoundedPosition() - halfSize );
 
 	ImGui::PushID(this);
 	ImGui::BeginGroup();
@@ -243,15 +238,14 @@ bool NodeView::draw()
 	{			
 		auto borderCol = IsSelected(this) ? borderColorSelected : getColor(ColorType_Border);
 
-		
 		auto itemRectMin = screenPosition - halfSize;
 		auto itemRectMax = screenPosition + halfSize;
 
 		// Draw the rectangle under everything
-		View::DrawRectShadow	(itemRectMin,					itemRectMax, borderRadius, 4, ImVec2(1.0f), getColor(ColorType_Shadow));
-		draw_list->AddRectFilled(itemRectMin,					itemRectMax, getColor(ColorType_Fill), borderRadius);
-		draw_list->AddRect		(itemRectMin + ImVec2(1.0f)	,	itemRectMax, getColor(ColorType_BorderHighlights), borderRadius);
-		draw_list->AddRect		(itemRectMin,					itemRectMax, borderCol, borderRadius);				
+		View::DrawRectShadow(itemRectMin, itemRectMax, borderRadius, 4, ImVec2(1.0f), getColor(ColorType_Shadow));
+		draw_list->AddRectFilled(itemRectMin, itemRectMax, getColor(ColorType_Fill), borderRadius);
+		draw_list->AddRect(itemRectMin + ImVec2(1.0f),	itemRectMax, getColor(ColorType_BorderHighlights), borderRadius);
+		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, borderRadius);
 
 		// darken the background under the content
 		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + nodePadding), itemRectMax, ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
@@ -286,7 +280,7 @@ bool NodeView::draw()
 
     ImGui::SetCursorPos(cursorPositionBeforeContent );
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 100.0f);
-    int memberCount = 0;
+
 	// Draw visible members
 	{
 		// Draw input only first
@@ -296,9 +290,8 @@ bool NodeView::draw()
 			auto member = m.second;
 			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() == Way_In)
 			{
-                ImGui::SetCursorPosX(cursorPositionBeforeContent.x + 100.0f + 25.0f * float(memberCount));
+                ImGui::SameLine();
 				drawMember(m.second);
-                memberCount++;
 			}
 		}
 
@@ -308,9 +301,8 @@ bool NodeView::draw()
 			auto member = m.second;
 			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() != Way_In)
 			{
-                ImGui::SetCursorPosX(cursorPositionBeforeContent.x + 100.0f + 25.0f * float(memberCount));
-				drawMember(member);
-                memberCount++;
+                ImGui::SameLine();
+                drawMember(member);
             }
 		}
 	}
@@ -335,8 +327,8 @@ bool NodeView::draw()
 		ImGui::NewLine();
 		ImGui::Text("Components :");
 
-		for (auto& pair : node->getComponents()) {
-
+		for (auto& pair : node->getComponents())
+		{
 			auto component	= pair.second;
 			auto name		= pair.first;
 			auto className	= component->getClass()->getName();
@@ -348,8 +340,12 @@ bool NodeView::draw()
 		ImGui::NewLine();
 		ImGui::Text("Parameters :");
 		std::string parentName = "NULL";
+
 		if ( node->getParentContainer() )
+        {
 			parentName = node->getParentContainer()->getLabel();
+		}
+
 		ImGui::Text("Parent: %s", parentName.c_str());
 		
 		// Draw dirty state 
@@ -362,29 +358,48 @@ bool NodeView::draw()
 		}
 	}
 
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + nodePadding );
+	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + nodePadding );
 	ImGui::PopItemWidth();
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + nodePadding);
+    ImGui::EndGroup();
 
-	auto cursorPosAfterContent = ImGui::GetCursorPos();
+    // Ends the Window
+    //----------------
 
-	// Ends the Window
-	//----------------
+    size.x = std::ceil( ImGui::GetItemRectSize().x );
+    size.y = std::ceil( ImGui::GetItemRectSize().y );
 
-	ImGui::EndGroup();
+	// Draw connectors for always visible members
+    for(auto& m : node->getMembers())
+    {
+        auto member = m.second;
+        if (member->getVisibility() == Visibility::Always)
+        {
+            drawMemberConnectors(member);
+        }
+    }
 
+    // Contextual menu (right click)
     if (hovered && ImGui::IsMouseReleased(1))
+    {
         ImGui::OpenPopup("NodeViewContextualMenu");
+    }
 
     if (ImGui::BeginPopup("NodeViewContextualMenu"))
     {
         if( ImGui::MenuItem("Arrange"))
+        {
             this->arrangeRecursively();
+        }
 
         ImGui::MenuItem("Pinned",    "", &this->pinned,    true);
 		ImGui::MenuItem("Collapsed", "", &this->collapsed, true);
         ImGui::Separator();
+
         if(ImGui::Selectable("Delete"))
-            node->deleteNextFrame();
+        {
+            node->flagForDeletion();
+        }
 
         if(ImGui::Selectable("Save to JSON"))
         {
@@ -393,37 +408,33 @@ bool NodeView::draw()
         ImGui::EndPopup();
     }
 
-	// Selection by mouse
-
+	// Selection by mouse (left or right click)
 	if ( hovered && (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)))
-		SetSelected(this);
+	{
+        SetSelected(this);
+    }
 
-	// Dragging by mouse
-
-	if ( GetDragged() != this) {
+	// Mouse dragging
+	if ( GetDragged() != this)
+	{
 		if( GetDragged() == nullptr && ImGui::IsMouseDown(0) && hovered)
+        {
 			StartDragNode(this);
-
-	} else if ( ImGui::IsMouseReleased(0)) {
+        }
+	}
+	else if ( ImGui::IsMouseReleased(0))
+	{
 		StartDragNode(nullptr);				
 	}		
 
-	// Collapse/uncollapse by double click (double/divide x size by 2)
+	// Collapse on/off
 	if( hovered && ImGui::IsMouseDoubleClicked(0))
 	{
-		if (collapsed) {
-			collapsed = false;
-			size.x   *= float(2);
-		}
-		else {
-			collapsed  = true;
-			size.x    /= float(2);
-		}			
+		this->collapsed = !this->collapsed;
 	}
 
     // interpolate size.y to fit with its content
-	size.y = std::max( 35.0f, cursorPosAfterContent.y - cursorPositionBeforeContent.y);
-
+	//size.y = std::max( 35.0f, cursorPosAfterContent.y - cursorPositionBeforeContent.y);
 
 	ImGui::PopStyleVar();
 	ImGui::PopID();
@@ -457,6 +468,26 @@ void NodeView::ArrangeRecursively(NodeView* _view)
 	}
 }
 
+void NodeView::drawMemberConnectors(Member* _member)
+{
+    /*
+    Draw the wire connectors (In or Out only)
+   */
+
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    auto memberName       = _member->getName();
+
+    if (_member->allowsConnection(Way_In)) {
+        ImVec2      connectorPos = getConnectorPosition( memberName, Way_In);
+        drawConnector(connectorPos, _member->input(), draw_list);
+    }
+
+    if (_member->allowsConnection(Way_Out)) {
+        ImVec2      connectorPos = getConnectorPosition( memberName, Way_Out);
+        drawConnector(connectorPos, _member->output(), draw_list);
+    }
+}
+
 bool NodeView::drawMember(Member* _member)
 {
     bool edited = false; // NodeView::DrawMemberInput(_member );
@@ -469,27 +500,7 @@ bool NodeView::drawMember(Member* _member)
         ImGui::Text("%s", _member->getName().c_str() );
         ImGui::EndTooltip();
     }
-
-	/*
-		Draw the wire connectors (In or Out only)
-	*/
-
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	auto memberName       = _member->getName();
-
-	if (_member->allowsConnection(Way_In)) {
-		ImVec2      connectorPos = getConnectorPosition( memberName, Way_In);
-		ImGui::SameLine();
-		drawConnector(connectorPos, _member->input(), draw_list);
-	}
-		
-	if (_member->allowsConnection(Way_Out)) {
-		ImVec2      connectorPos = getConnectorPosition( memberName, Way_Out);
-        ImGui::SameLine();
-        drawConnector(connectorPos, _member->output(), draw_list);
-	}
-
-	return edited;
+    return edited;
 }
 
 bool NodeView::DrawMemberInput( Member *_member, const char* _label )
