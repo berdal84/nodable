@@ -419,10 +419,10 @@ bool NodeView::draw()
 			collapsed  = true;
 			size.x    /= float(2);
 		}			
-	}	
+	}
 
-	// interpolate size.y to fit with its content
-//	size.x = (cursorPosAfterContent.x - cursorPositionBeforeContent.x);
+    // interpolate size.y to fit with its content
+	size.y = std::max( 35.0f, cursorPosAfterContent.y - cursorPositionBeforeContent.y);
 
 
 	ImGui::PopStyleVar();
