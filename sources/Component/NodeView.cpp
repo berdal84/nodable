@@ -266,7 +266,7 @@ bool NodeView::draw()
 	hovered = ImGui::IsItemHovered();
 	ImGui::SetCursorPos(cursorPositionBeforeContent + nodePadding );
 
-	ImGui::PushItemWidth(size.x - float(2) * nodePadding);
+	ImGui::PushItemWidth(150.0f);
 
 	// Draw the window content 
 	//------------------------
@@ -279,7 +279,7 @@ bool NodeView::draw()
 	connectorOffsetPositionsX.clear();
 
     ImGui::SetCursorPos(cursorPositionBeforeContent );
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 100.0f);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 150.0f + 10.0f);
 
 	// Draw visible members
 	{
@@ -306,6 +306,24 @@ bool NodeView::draw()
             }
 		}
 	}
+
+    // Draw input for unconnected visible members
+    ImGui::NewLine();
+    ImGui::NewLine();
+    int memberIndex = 0;
+    for(auto& m : node->getMembers())
+    {
+        auto member = m.second;
+        if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_In))
+        {
+            if (  member->getInputMember() == nullptr || node->getClass() == Variable::GetClass() )
+            {
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + float(memberIndex) * 10.0f);
+                NodeView::DrawMemberInput(member);
+            }
+        }
+        memberIndex++;
+    }
 
 	// if needed draw additionnal infos 
 	if (!collapsed)
@@ -491,9 +509,9 @@ void NodeView::drawMemberConnectors(Member* _member)
 bool NodeView::drawMember(Member* _member)
 {
     bool edited = false; // NodeView::DrawMemberInput(_member );
-    connectorOffsetPositionsX[_member->getName()] = ImGui::GetCursorScreenPos().x + 15.0f;
+    connectorOffsetPositionsX[_member->getName()] = ImGui::GetCursorScreenPos().x + 10.0f;
     // ImGui::Button("m", ImVec2(20.0f, 35.0f));
-    ImGui::SetCursorPosX( ImGui::GetCursorPosX() + 30.0f);
+    ImGui::SetCursorPosX( ImGui::GetCursorPosX() + 20.0f);
 
 //    if ( ImGui::IsItemHovered() )
 //    {
