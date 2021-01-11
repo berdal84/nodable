@@ -290,7 +290,7 @@ bool NodeView::draw()
 			auto member = m.second;
 			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() == Way_In)
 			{
-                ImGui::SameLine();
+                //ImGui::SameLine();
 				drawMember(m.second);
 			}
 		}
@@ -301,7 +301,7 @@ bool NodeView::draw()
 			auto member = m.second;
 			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() != Way_In)
 			{
-                ImGui::SameLine();
+                //ImGui::SameLine();
                 drawMember(member);
             }
 		}
@@ -491,15 +491,16 @@ void NodeView::drawMemberConnectors(Member* _member)
 bool NodeView::drawMember(Member* _member)
 {
     bool edited = false; // NodeView::DrawMemberInput(_member );
-    connectorOffsetPositionsX[_member->getName()] = ImGui::GetCursorScreenPos().x + 10.0f;
-    ImGui::Button("m", ImVec2(20.0f, 35.0f));
+    connectorOffsetPositionsX[_member->getName()] = ImGui::GetCursorScreenPos().x + 15.0f;
+    // ImGui::Button("m", ImVec2(20.0f, 35.0f));
+    ImGui::SetCursorPosX( ImGui::GetCursorPosX() + 30.0f);
 
-    if ( ImGui::IsItemHovered() )
-    {
-        ImGui::BeginTooltip();
-        ImGui::Text("%s", _member->getName().c_str() );
-        ImGui::EndTooltip();
-    }
+//    if ( ImGui::IsItemHovered() )
+//    {
+//        ImGui::BeginTooltip();
+//        ImGui::Text("%s", _member->getName().c_str() );
+//        ImGui::EndTooltip();
+//    }
     return edited;
 }
 
@@ -610,16 +611,18 @@ void NodeView::drawConnector(ImVec2& connectorPos, const Connector* _connector, 
 
 	// Manage mouse events in order to link two members by a Wire :
 
-
 	// DRAG
 	if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedConnector == nullptr) {
 		StartDragConnector(_connector);
 	}
 
-	// HOVERED
 	if (isItemHovered)
+    {
 		s_hoveredConnector = _connector;
-
+        ImGui::BeginTooltip();
+        ImGui::Text("%s", _connector->member->getName().c_str() );
+        ImGui::EndTooltip();
+    }
 	else if (s_hoveredConnector != nullptr && s_hoveredConnector->equals(_connector))
 	{
 		s_hoveredConnector = nullptr;
