@@ -349,7 +349,7 @@ bool NodeView::draw()
 		ImGui::Text("Parameters :");
 		std::string parentName = "NULL";
 		if ( node->getParentContainer() )
-			parentName = (std::string)*node->getParentContainer()->get("name");
+			parentName = node->getParentContainer()->getLabel();
 		ImGui::Text("Parent: %s", parentName.c_str());
 		
 		// Draw dirty state 
