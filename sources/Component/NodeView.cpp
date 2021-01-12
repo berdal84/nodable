@@ -11,6 +11,8 @@
 #include "NodeTraversal.h"
 #include <Language/Common/Serializer.h>
 
+#define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
+
 using namespace Nodable;
 
 NodeView*   NodeView::s_selected              = nullptr;
@@ -18,6 +20,18 @@ NodeView*   NodeView::s_draggedNode               = nullptr;
 DrawDetail_ NodeView::s_drawDetail            = Nodable::DrawDetail_Default;
 const Connector*  NodeView::s_draggedConnector      = nullptr;
 const Connector*  NodeView::s_hoveredConnector      = nullptr;
+
+NodeView::NodeView():
+        position(500.0f, -1.0f),
+        size(NODE_VIEW_DEFAULT_SIZE),
+        opacity(1.0f),
+        collapsed(true),
+        pinned(false),
+        borderRadius(5.0f),
+        borderColorSelected(1.0f, 1.0f, 1.0f)
+{
+
+}
 
 void NodeView::SetSelected(NodeView* _view)
 {
@@ -266,7 +280,8 @@ bool NodeView::draw()
 	hovered = ImGui::IsItemHovered();
 	ImGui::SetCursorPos(cursorPositionBeforeContent + nodePadding );
 
-	ImGui::PushItemWidth(150.0f);
+	float inputWidth = 80.0f;
+	ImGui::PushItemWidth(inputWidth);
 
 	// Draw the window content 
 	//------------------------
@@ -279,7 +294,7 @@ bool NodeView::draw()
 	connectorOffsetPositionsX.clear();
 
     ImGui::SetCursorPos(cursorPositionBeforeContent );
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 150.0f + 10.0f);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + inputWidth + 10.0f);
 
 	// Draw visible members
 	{
@@ -699,5 +714,3 @@ void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 	}
 
 }
-
-
