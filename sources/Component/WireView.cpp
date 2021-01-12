@@ -92,14 +92,15 @@ bool WireView::draw()
 
 
 	    // function to draw source and target texts
+	    ImGui::SetWindowFontScale(0.5f);
 	    auto drawSourceAndTargetTexts = [&](const char* _source, const char* _target)
 	    {
-	    	float offsetX = 6.0f;
+	    	float offset = 6.0f;
 
 		    // Draw source text
 		    {
 		    	auto textSize = ImGui::CalcTextSize(_source);
-				ImGui::SetCursorScreenPos(ImVec2(pos0.x + offsetX, pos0.y ));
+				ImGui::SetCursorScreenPos(ImVec2(pos0.x + offset, pos0.y + offset));
 
 		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill), getColor(ColorType_Shadow), _source);
 			}
@@ -107,11 +108,12 @@ bool WireView::draw()
 		    // Draw target text
 		    {
 		    	auto textSize = ImGui::CalcTextSize( _target);
-				ImGui::SetCursorScreenPos(ImVec2(pos1.x - offsetX - textSize.x, pos1.y));
+				ImGui::SetCursorScreenPos(ImVec2(pos1.x + offset, pos1.y - offset - textSize.y));
 
 		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), _target);
 			}
 	    };
+        ImGui::SetWindowFontScale(1.0f);
 
 	    // Draw source and target texts depending on DrawDetail_
 	    switch(NodeView::s_drawDetail)
@@ -126,7 +128,9 @@ bool WireView::draw()
 
 	    	case DrawDetail_Advanced:
 	    	{
-				drawSourceAndTargetTexts(sourceName.c_str(), targetName.c_str());
+                const char *label;
+                label = (sourceName.substr(0, 3) + "..").c_str();
+				drawSourceAndTargetTexts(label, targetName.c_str());
 				break;
 			}
 
