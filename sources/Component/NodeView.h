@@ -8,8 +8,6 @@
 #include "Member.h"
 #include <mirror.h>
 
-#define NODE_VIEW_DEFAULT_SIZE ImVec2(180.0f, 35.0f)
-
 namespace Nodable{
 
 	/* We use this enum to identify all GUI detail modes */
@@ -28,7 +26,7 @@ namespace Nodable{
 		bool              update(float _deltaTime);
 
 	public:
-		NodeView() {};
+		NodeView();
 
 		/* Draw the view at its position into the current window
 		   Returns true if nod has been edited, false either */
@@ -105,13 +103,13 @@ namespace Nodable{
 
 		void drawConnector(ImVec2& , const Connector* , ImDrawList*);
 
-		ImVec2          position            = ImVec2(500.0f, -1.0f);    // center position vector
-		ImVec2          size                = NODE_VIEW_DEFAULT_SIZE;  // size of the window
-		float           opacity             = 1.0f;                   // global transparency of this view                 
-		bool            collapsed           = true;
-		bool            pinned              = false;                  // false: follow its outputs.
-		float           borderRadius        = 5.0f;
-		ImColor         borderColorSelected = ImColor(1.0f, 1.0f, 1.0f);
+		ImVec2          position;    // center position vector
+		ImVec2          size;  // size of the window
+		float           opacity; // global transparency of this view
+		bool            collapsed;
+		bool            pinned; // false: follow its outputs.
+		float           borderRadius;
+		ImColor         borderColorSelected;
 		std::map<std::string, float> connectorOffsetPositionsX;
 		static NodeView* s_selected; // pointer to the currently selected NodeView.
 		static NodeView* s_draggedNode;	 // pointer to the currently dragged NodeView.	
