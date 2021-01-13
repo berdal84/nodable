@@ -294,7 +294,7 @@ bool NodeView::draw()
 	connectorOffsetPositionsX.clear();
 
     ImGui::SetCursorPos(cursorPositionBeforeContent );
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + inputWidth + 10.0f);
+    //ImGui::SetCursorPosX(ImGui::GetCursorPosX() + inputWidth + 10.0f);
 
 	// Draw visible members
 	{
@@ -303,10 +303,10 @@ bool NodeView::draw()
 		for(auto& m : node->getMembers())
 		{		
 			auto member = m.second;
-			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() == Way_In)
+			if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_In) )
 			{
                 ImGui::SameLine();
-				drawMember(m.second);
+				drawMember(member);
 			}
 		}
 
@@ -314,7 +314,7 @@ bool NodeView::draw()
 		for (auto& m : node->getMembers())
 		{
 			auto member = m.second;
-			if (member->getVisibility() == Visibility::Always && member->getConnectorWay() != Way_In)
+			if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_Out))
 			{
                 ImGui::SameLine();
                 drawMember(member);
@@ -323,27 +323,8 @@ bool NodeView::draw()
 	}
 
 	ImGui::SameLine();
-    ImGui::InvisibleButton("", ImVec2(nodePadding));
 
-    // Draw input for unconnected visible members
-//    ImGui::NewLine();
-//    ImGui::NewLine();
-//    int memberIndex = 0;
-//    for(auto& m : node->getMembers())
-//    {
-//        auto member = m.second;
-//        if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_In))
-//        {
-//            if (  member->getInputMember() == nullptr || node->getClass() == Variable::GetClass() )
-//            {
-//                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + float(memberIndex) * 10.0f);
-//                NodeView::DrawMemberInput(member);
-//            }
-//        }
-//        memberIndex++;
-//    }
-
-	// if needed draw additionnal infos 
+	// if needed draw additionnal infos
 	if (!collapsed)
 	{	
 		// Draw visible members
@@ -528,19 +509,16 @@ bool NodeView::drawMember(Member* _member)
 {
     bool edited = false; // NodeView::DrawMemberInput(_member );
 
-
-    if (_member->getVisibility() == Visibility::Always && _member->allowsConnection(Way_In))
+    if ( _member->isDefined() &&
+        (_member->getInputMember() == nullptr && _member->getOwner()->getClass() == Variable::GetClass() && !_member->allowsConnection(Way_Out) ))
     {
-        if (_member->getInputMember() == nullptr || _member->getOwner()->getClass() == Variable::GetClass() )
-        {
-            connectorOffsetPositionsX[_member->getName()] = ImGui::GetCursorScreenPos().x + 25.0f;
-            NodeView::DrawMemberInput(_member);
-        }
-        else
-        {
-            connectorOffsetPositionsX[_member->getName()] = ImGui::GetCursorScreenPos().x + 10.0f;
-            ImGui::InvisibleButton("", ImVec2(20.0f));
-        }
+        connectorOffsetPositionsX[_member->getName()] = ImGui::GetCursorScreenPos().x + 25.0f;
+        NodeView::DrawMemberInput(_member);
+    }
+    else
+    {
+        connectorOffsetPositionsX[_member->getName()] = ImGui::GetCursorScreenPos().x + 5.0f;
+        ImGui::Button("", ImVec2(10.0f, 25.0f));
     }
 
 //    ImGui::SetCursorPosX( ImGui::GetCursorPosX() + 20.0f);
