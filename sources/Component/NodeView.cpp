@@ -34,6 +34,14 @@ NodeView::NodeView():
 
 }
 
+NodeView::~NodeView()
+{
+    if ( s_selected == this )
+    {
+        s_selected = nullptr;
+    }
+}
+
 void NodeView::exposeMember(Member* _member)
 {
     this->exposedMemberViews.emplace_back(_member);

@@ -54,6 +54,7 @@ namespace Nodable{
 
 	public:
 		NodeView();
+		~NodeView();
 
 		/** override method to extract some information from owner */
 		void setOwner(Node* _node)override;
