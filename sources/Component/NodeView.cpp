@@ -19,7 +19,8 @@ NodeView*   NodeView::s_draggedNode = nullptr;
 DrawDetail_ NodeView::s_drawDetail  = Nodable::DrawDetail_Default;
 const Connector*  NodeView::s_draggedConnector      = nullptr;
 const Connector*  NodeView::s_hoveredConnector      = nullptr;
-float NodeView::s_memberInputSizeMin = 10.0f;
+const float NodeView::s_memberInputSizeMin = 10.0f;
+const ImVec2 NodeView::s_toggleBtnSize(10.0, 25.0f);
 
 NodeView::NodeView():
         position(500.0f, -1.0f),
@@ -316,9 +317,6 @@ bool NodeView::draw()
 	//------------------------
     ImGui::BeginGroup();
 	ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), node->getLabel()); // text with a lighter shadow (incrust effect)
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + nodePadding);
-	ImGui::Indent(nodePadding);
-    ImGui::SetCursorPos(cursorPositionBeforeContent );
 
 	// Draw visible members
     for( auto& memberView : this->exposedMemberViews )
@@ -512,51 +510,47 @@ void NodeView::drawMemberConnectors(Member* _member)
 bool NodeView::drawMemberView(MemberView &_memberView )
 {
     bool edited = false;
-    const ImVec2 toggleBtnSize(10.0, 25.0f);
     auto member = _memberView.member;
 
-    ImGui::BeginGroup();
-
-    // collapse/uncollapse button
-    _memberView.screenPos.x = ImGui::GetCursorScreenPos().x + toggleBtnSize.x / 2.0f;
-    _memberView.screenPos.y = ImGui::GetCursorScreenPos().y;
-    ImGui::Button("", toggleBtnSize);
-
-    if ( ImGui::IsItemHovered() )
-    {
-        ImGui::BeginTooltip();
-        ImGui::Text("%s (%s)",
-                    member->getName().c_str(),
-                    member->getTypeAsString().c_str());
-        ImGui::EndTooltip();
-    }
-
-    if ( ImGui::IsItemClicked(0) )
-    {
-        _memberView.showInput = !_memberView.showInput;
-        _memberView.touched = true;
-    }
-    else if( !_memberView.touched )
+    if( !_memberView.touched )
     {
         const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
         const bool isVariable = member->getOwner()->getClass() == Variable::GetClass();
         _memberView.showInput = !isAnInputUnconnected || isVariable;
     }
 
+    _memberView.screenPos = ImGui::GetCursorScreenPos();
+
     // input
     if ( _memberView.showInput )
     {
-        ImGui::SameLine(toggleBtnSize.x - 2.0f);
-
         // try to draw an as small as possible input field
         float inputWidth = 5.0f + std::max( ImGui::CalcTextSize(((std::string)*member).c_str()).x, NodeView::s_memberInputSizeMin );
-
+        _memberView.screenPos.x += inputWidth / 2.0f;
         ImGui::PushItemWidth(inputWidth);
         edited = NodeView::DrawMemberInput(member);
         ImGui::PopItemWidth();
     }
+    else
+    {
+        ImGui::Button("", NodeView::s_toggleBtnSize);
+        _memberView.screenPos.x += NodeView::s_toggleBtnSize.x / 2.0f;
 
-    ImGui::EndGroup();
+        if ( ImGui::IsItemHovered() )
+        {
+            ImGui::BeginTooltip();
+            ImGui::Text("%s (%s)",
+                        member->getName().c_str(),
+                        member->getTypeAsString().c_str());
+            ImGui::EndTooltip();
+        }
+
+        if ( ImGui::IsItemClicked(0) )
+        {
+            _memberView.showInput = !_memberView.showInput;
+            _memberView.touched = true;
+        }
+    }
 
     return edited;
 }

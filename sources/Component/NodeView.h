@@ -152,7 +152,8 @@ namespace Nodable{
 		static NodeView* s_draggedNode;	 // pointer to the currently dragged NodeView.	
 		static const Connector* s_draggedConnector;
 		static const Connector* s_hoveredConnector;
-        static float s_memberInputSizeMin;
+        static const float s_memberInputSizeMin;
+        static const ImVec2 s_toggleBtnSize;
 
 		MIRROR_CLASS(NodeView)(
 			MIRROR_PARENT(View));
