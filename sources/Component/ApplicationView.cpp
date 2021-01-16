@@ -385,10 +385,9 @@ bool ApplicationView::draw()
             if ( ImGui::Begin("Properties") )
             {
                 NodeView* view = NodeView::GetSelected();
-                if ( view != nullptr )
+                if ( view )
                 {
-                    auto node = view->getOwner();
-                    ImGui::Text("Selected Node: %s", node->getLabel());
+                    ImGui::Text("Selected Node: %s", view->getOwner()->getLabel());
                     ImGui::NewLine();
                     NodeView::DrawNodeViewAsPropertiesPanel(view);
                 }
