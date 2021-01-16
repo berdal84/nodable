@@ -1,6 +1,5 @@
 #include "NodeView.h"
 #include "Log.h"		          // for LOG_DEBUG(...)
-#include <imgui/imgui.h>
 #include "Container.h"
 #include "Variable.h"
 #include "Wire.h"
@@ -31,6 +30,36 @@ NodeView::NodeView():
         borderColorSelected(1.0f, 1.0f, 1.0f)
 {
 
+}
+
+void NodeView::exposeMember(Member* _member)
+{
+    this->exposedMemberViews.emplace_back(_member);
+}
+
+void NodeView::setOwner(Node* _node)
+{
+    //  We expose first the members which allows input connections
+    for(auto& m : _node->getMembers())
+    {
+        auto member = m.second;
+        if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_In) )
+        {
+            this->exposeMember(member);
+        }
+    }
+
+    // Then we expose node which allows output connection (if they are not yet exposed)
+    for (auto& m : _node->getMembers())
+    {
+        auto member = m.second;
+        if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_Out) && !this->isMemberExposed(member) )
+        {
+            this->exposeMember(member);
+        }
+    }
+
+    Component::setOwner(_node);
 }
 
 void NodeView::SetSelected(NodeView* _view)
@@ -73,13 +102,20 @@ ImVec2 NodeView::getRoundedPosition()const
 	return roundedPosition;
 }
 
-ImVec2 NodeView::getConnectorPosition(const std::string& _name, Way _way)const
+ImVec2 NodeView::getConnectorPosition(const Member *_member, Way _way)const
 {
 	auto pos = position;
 
-	auto it = connectorOffsetPositionsX.find(_name);
-	if (it != connectorOffsetPositionsX.end())
-		pos.x = (*it).second;
+	auto it = std::find_if(
+	        exposedMemberViews.begin(),
+	        exposedMemberViews.end(),
+	        [&_member](const MemberView& _view)->bool
+	        {
+	            return _member == _view.member;
+	        });
+
+	if (it != exposedMemberViews.end())
+		pos.x = (*it).screenPos.x;
 
 	// Input => Top
 	if (_way == Way_In)
@@ -236,16 +272,11 @@ bool NodeView::draw()
 	// Begin the window
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);
-
 	const auto halfSize = size / 2.0;
 	ImGui::SetCursorPos( getRoundedPosition() - halfSize );
-
 	ImGui::PushID(this);
-	ImGui::BeginGroup();
-
 	ImVec2 cursorPositionBeforeContent = ImGui::GetCursorPos();
 	ImVec2 screenPosition  = View::CursorPosToScreenPos( getRoundedPosition() );
-
 
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -285,42 +316,18 @@ bool NodeView::draw()
 
 	// Draw the window content 
 	//------------------------
-
+    ImGui::BeginGroup();
 	ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), node->getLabel()); // text with a lighter shadow (incrust effect)
-
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + nodePadding);
 	ImGui::Indent(nodePadding);
-
-	connectorOffsetPositionsX.clear();
-
     ImGui::SetCursorPos(cursorPositionBeforeContent );
-    //ImGui::SetCursorPosX(ImGui::GetCursorPosX() + inputWidth + 10.0f);
 
 	// Draw visible members
-	{
-		// Draw input only first
-
-		for(auto& m : node->getMembers())
-		{		
-			auto member = m.second;
-			if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_In) )
-			{
-                ImGui::SameLine();
-				drawMember(member);
-			}
-		}
-
-		// Then draw the rest
-		for (auto& m : node->getMembers())
-		{
-			auto member = m.second;
-			if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_Out))
-			{
-                ImGui::SameLine();
-                drawMember(member);
-            }
-		}
-	}
+    for( auto& memberView : this->exposedMemberViews )
+    {
+        ImGui::SameLine();
+        drawMemberView(memberView);
+    }
 
 	ImGui::SameLine();
 
@@ -335,8 +342,7 @@ bool NodeView::draw()
 			if( member->getVisibility() == Visibility::OnlyWhenUncollapsed ||
 				member->getVisibility() == Visibility::Hidden)
 			{
-                ImGui::SameLine();
-				this->drawMember(member);
+                DrawMemberInput(member);
 			}
 		}	
 
@@ -384,7 +390,7 @@ bool NodeView::draw()
     //----------------
 
     size.x = std::ceil( ImGui::GetItemRectSize().x );
-    size.y = std::ceil( ImGui::GetItemRectSize().y );
+    size.y = std::max(NODE_VIEW_DEFAULT_SIZE.y, std::ceil( ImGui::GetItemRectSize().y ));
 
 	// Draw connectors for always visible members
     for(auto& m : node->getMembers())
@@ -492,43 +498,63 @@ void NodeView::drawMemberConnectors(Member* _member)
    */
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    auto memberName       = _member->getName();
 
-    if (_member->allowsConnection(Way_In)) {
-        ImVec2      connectorPos = getConnectorPosition( memberName, Way_In);
+    if (_member->allowsConnection(Way_In))
+    {
+        ImVec2      connectorPos = getConnectorPosition( _member, Way_In);
         drawConnector(connectorPos, _member->input(), draw_list);
     }
 
-    if (_member->allowsConnection(Way_Out)) {
-        ImVec2      connectorPos = getConnectorPosition( memberName, Way_Out);
+    if (_member->allowsConnection(Way_Out))
+    {
+        ImVec2      connectorPos = getConnectorPosition( _member, Way_Out);
         drawConnector(connectorPos, _member->output(), draw_list);
     }
 }
 
-bool NodeView::drawMember(Member* _member)
+bool NodeView::drawMemberView(MemberView &_memberView )
 {
-    bool edited = false; // NodeView::DrawMemberInput(_member );
+    bool edited = false;
+    const ImVec2 toggleBtnSize(10.0, 25.0f);
+    auto member = _memberView.member;
 
-    if ( _member->isDefined() &&
-        (_member->getInputMember() == nullptr && _member->getOwner()->getClass() == Variable::GetClass() && !_member->allowsConnection(Way_Out) ))
+    ImGui::BeginGroup();
+
+    // collapse/uncollapse button
+    _memberView.screenPos.x = ImGui::GetCursorScreenPos().x + toggleBtnSize.x / 2.0f;
+    _memberView.screenPos.y = ImGui::GetCursorScreenPos().y;
+    ImGui::Button("", toggleBtnSize);
+
+    if ( ImGui::IsItemHovered() )
     {
-        connectorOffsetPositionsX[_member->getName()] = ImGui::GetCursorScreenPos().x + 25.0f;
-        NodeView::DrawMemberInput(_member);
+        ImGui::BeginTooltip();
+        ImGui::Text("%s (%s)",
+                    member->getName().c_str(),
+                    member->getTypeAsString().c_str());
+        ImGui::EndTooltip();
     }
-    else
+
+    if ( ImGui::IsItemClicked(0) )
     {
-        connectorOffsetPositionsX[_member->getName()] = ImGui::GetCursorScreenPos().x + 5.0f;
-        ImGui::Button("", ImVec2(10.0f, 25.0f));
+        _memberView.showInput = !_memberView.showInput;
+        _memberView.touched = true;
+    }
+    else if( !_memberView.touched )
+    {
+        const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
+        const bool isVariable = member->getOwner()->getClass() == Variable::GetClass();
+        _memberView.showInput = !isAnInputUnconnected || isVariable;
     }
 
-//    ImGui::SetCursorPosX( ImGui::GetCursorPosX() + 20.0f);
+    // input
+    if ( _memberView.showInput )
+    {
+        ImGui::SameLine(toggleBtnSize.x - 2.0f);
+        edited = NodeView::DrawMemberInput(member);
+    }
 
-//    if ( ImGui::IsItemHovered() )
-//    {
-//        ImGui::BeginTooltip();
-//        ImGui::Text("%s", _member->getName().c_str() );
-//        ImGui::EndTooltip();
-//    }
+    ImGui::EndGroup();
+
     return edited;
 }
 
@@ -668,7 +694,7 @@ bool Nodable::NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
 	return _rect.Contains(nodeRect);
 }
 
-void Nodable::NodeView::DrawPropertyPanel(NodeView* _view)
+void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
 {
     Node* node = _view->getOwner();
 
@@ -709,3 +735,15 @@ void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 	}
 
 }
+
+bool NodeView::isMemberExposed(Member *_member)
+{
+    return std::find_if(
+            exposedMemberViews.begin(),
+            exposedMemberViews.end(),
+            [&_member](const MemberView& _eachMemberView)->bool
+            {
+                return _eachMemberView.member == _member;
+            }) != exposedMemberViews.end();
+}
+                                                   
