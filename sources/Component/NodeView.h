@@ -19,6 +19,33 @@ namespace Nodable{
 		DrawDetail_Default  = DrawDetail_Simple
 	};	
 
+	class Node;
+
+	/**
+	 * Simple struct to store a member view state
+	 */
+	struct MemberView
+    {
+	    Member* member;
+
+	    /** determine if input should be visible or not */
+	    bool showInput;
+
+	    /** false by default, will be true if user toggle showInput on/off */
+	    bool touched;
+
+	    /** Position in screen space */
+	    ImVec2 screenPos;
+
+	    explicit MemberView(Member* _member)
+        {
+	        member = _member;
+            member = _member;
+            showInput = true;
+            touched = false;
+        }
+    };
+
 	class NodeView : public View
 	{
 	private:
@@ -27,6 +54,12 @@ namespace Nodable{
 
 	public:
 		NodeView();
+
+		/** override method to extract some information from owner */
+		void setOwner(Node* _node)override;
+
+		/** Expose a member (connector and input if uncollapsed) */
+		void exposeMember(Member* _member);
 
 		/* Draw the view at its position into the current window
 		   Returns true if nod has been edited, false either */
@@ -43,7 +76,7 @@ namespace Nodable{
 		ImRect            getRect()const;
 
 		/* Get the connector position of the specified member (by name) for its Way way (In or Out ONLY !) */
-		ImVec2            getConnectorPosition(const std::string& /*_name*/, Way /*_connection*/)const;
+		ImVec2            getConnectorPosition(const Member *_member /*_name*/, Way /*_connection*/_way)const;
 
 		/* Set a new position (top-left corner) vector to this view */ 
 		void              setPosition         (ImVec2);
@@ -92,16 +125,19 @@ namespace Nodable{
 		/* Return a pointer to the dragged view or nullptr if no view are dragged */
 		static NodeView*  GetDragged          ();
 
-		static DrawDetail_ s_drawDetail;  // global draw detail (check DrawDetail_ enum)
+        static bool DrawMemberInput(Member *_member, const char* _label = nullptr);
 
+        static void DrawNodeViewAsPropertiesPanel(NodeView *_view);
 
-	private:
+        /** set globally the draw detail of nodes */
+        static DrawDetail_ s_drawDetail;
+    private:
 		/*	Draw a Node Member at cursor position.
 			Returns true if Member's value has been modified, false either */
-		bool drawMember(Member* _v);
+		bool drawMemberView(MemberView &_memberView);
         void drawMemberConnectors(Member *_member);
-
 		void drawConnector(ImVec2& , const Connector* , ImDrawList*);
+        bool isMemberExposed(Member *_member);
 
 		ImVec2          position;    // center position vector
 		ImVec2          size;  // size of the window
@@ -110,7 +146,8 @@ namespace Nodable{
 		bool            pinned; // false: follow its outputs.
 		float           borderRadius;
 		ImColor         borderColorSelected;
-		std::map<std::string, float> connectorOffsetPositionsX;
+		std::vector<MemberView> exposedMemberViews;
+
 		static NodeView* s_selected; // pointer to the currently selected NodeView.
 		static NodeView* s_draggedNode;	 // pointer to the currently dragged NodeView.	
 		static const Connector* s_draggedConnector;
@@ -119,7 +156,5 @@ namespace Nodable{
 		MIRROR_CLASS(NodeView)(
 			MIRROR_PARENT(View));
 
-		static bool DrawMemberInput(Member *_member, const char* _label = nullptr);
-		static void DrawPropertyPanel(NodeView *_view);
     };
 }
