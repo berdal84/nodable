@@ -14,11 +14,12 @@
 
 using namespace Nodable;
 
-NodeView*   NodeView::s_selected              = nullptr;
-NodeView*   NodeView::s_draggedNode               = nullptr;
-DrawDetail_ NodeView::s_drawDetail            = Nodable::DrawDetail_Default;
+NodeView*   NodeView::s_selected    = nullptr;
+NodeView*   NodeView::s_draggedNode = nullptr;
+DrawDetail_ NodeView::s_drawDetail  = Nodable::DrawDetail_Default;
 const Connector*  NodeView::s_draggedConnector      = nullptr;
 const Connector*  NodeView::s_hoveredConnector      = nullptr;
+float NodeView::s_memberInputSizeMin = 10.0f;
 
 NodeView::NodeView():
         position(500.0f, -1.0f),
@@ -311,10 +312,7 @@ bool NodeView::draw()
 	hovered = ImGui::IsItemHovered();
 	ImGui::SetCursorPos(cursorPositionBeforeContent + nodePadding );
 
-	float inputWidth = 50.0f;
-	ImGui::PushItemWidth(inputWidth);
-
-	// Draw the window content 
+	// Draw the window content
 	//------------------------
     ImGui::BeginGroup();
 	ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), node->getLabel()); // text with a lighter shadow (incrust effect)
@@ -383,7 +381,6 @@ bool NodeView::draw()
 
 	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + nodePadding );
 	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + nodePadding );
-	ImGui::PopItemWidth();
     ImGui::EndGroup();
 
     // Ends the Window
@@ -550,7 +547,13 @@ bool NodeView::drawMemberView(MemberView &_memberView )
     if ( _memberView.showInput )
     {
         ImGui::SameLine(toggleBtnSize.x - 2.0f);
+
+        // try to draw an as small as possible input field
+        float inputWidth = 5.0f + std::max( ImGui::CalcTextSize(((std::string)*member).c_str()).x, NodeView::s_memberInputSizeMin );
+
+        ImGui::PushItemWidth(inputWidth);
         edited = NodeView::DrawMemberInput(member);
+        ImGui::PopItemWidth();
     }
 
     ImGui::EndGroup();
