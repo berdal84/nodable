@@ -38,11 +38,8 @@ bool WireView::draw()
 		if (!sourceView->isVisible() || !targetView->isVisible() ) // in case of of the node have hidden view we can't draw the wire.
 			return false;
 
-	    auto sourceName = wire->getSource()->getName();
-	    auto targetName = wire->getTarget()->getName();
-
-		ImVec2 pos0 = View::CursorPosToScreenPos( sourceView->getConnectorPosition(sourceName, Way_Out) );
-		ImVec2 pos1 = View::CursorPosToScreenPos( targetView->getConnectorPosition(targetName, Way_In) );
+		ImVec2 pos0 = View::CursorPosToScreenPos( sourceView->getConnectorPosition(wire->getSource(), Way_Out) );
+		ImVec2 pos1 = View::CursorPosToScreenPos( targetView->getConnectorPosition(wire->getTarget(), Way_In) );
 
 
 	    if (displayArrows) // if arrows are displayed we offset x to see the edge of the arrow.
@@ -116,6 +113,9 @@ bool WireView::draw()
         ImGui::SetWindowFontScale(1.0f);
 
 	    // Draw source and target texts depending on DrawDetail_
+        auto sourceName = wire->getSource()->getName();
+        auto targetName = wire->getTarget()->getName();
+
 	    switch(NodeView::s_drawDetail)
 	    {
 	    	case DrawDetail_Complex:

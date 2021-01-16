@@ -70,6 +70,6 @@ namespace Nodable
 		bool                deleted = false;
 
 	public:
-		MIRROR_CLASS_NOVIRTUAL(Object)();
+		MIRROR_CLASS(Object)();
 	};	
 }

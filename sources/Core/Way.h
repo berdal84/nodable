@@ -1,9 +1,10 @@
 #pragma once
 #include <bitset>
+#include <string>
 
 namespace Nodable
 {
-	/*
+	/**
 	  The role of this enum is to distinguish the way
 	  to connect a specific connector.
 	*/
@@ -16,4 +17,10 @@ namespace Nodable
 		Way_Default = Way_None
 	} Way;
 
+	/**
+	 * Get the string representation for a given Way_ enum
+	 * @param _way
+	 * @return
+	 */
+	std::string WayToString(Way _way);
 }

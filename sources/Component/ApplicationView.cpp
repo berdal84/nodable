@@ -390,14 +390,14 @@ bool ApplicationView::draw()
                     auto node = view->getOwner();
                     ImGui::Text("Selected Node: %s", node->getLabel());
                     ImGui::NewLine();
-                    NodeView::DrawPropertyPanel(view);
+                    NodeView::DrawNodeViewAsPropertiesPanel(view);
                 }
             }
             ImGui::End();
 
 
             // Opened documents
-            for (int fileIndex = 0; fileIndex < application->getFileCount(); fileIndex++)
+            for (size_t fileIndex = 0; fileIndex < application->getFileCount(); fileIndex++)
             {
                 this->drawFileEditor(dockspace_id, redock_all, fileIndex);
             }
@@ -469,7 +469,7 @@ void ApplicationView::drawFileBrowser()
     }
 }
 
-void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, int fileIndex)
+void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex)
 {
     File *file = application->getFileAtIndex(fileIndex);
 
