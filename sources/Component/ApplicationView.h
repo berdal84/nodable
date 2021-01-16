@@ -36,7 +36,11 @@ namespace Nodable
 		/* call this once just after the instantiation. */
 		bool init();
 
-		
+        void browseFile();
+
+        MIRROR_CLASS(ApplicationView)(
+                MIRROR_PARENT(View)
+        );
 
 	private:
 		ImGui::FileBrowser fileBrowser;
@@ -49,19 +53,13 @@ namespace Nodable
         ImFont *headingFont;
         bool isHistoryDragged;
         const char* startupScreenTitle = "##STARTUPSCREEN";
-	public:
-		void browseFile();
+        bool isLayoutInitialized = false;
 
-		MIRROR_CLASS(ApplicationView)(
-			MIRROR_PARENT(View)
-		);
-
-	private:
         void drawHistoryBar(History *currentFileHistory);
 
         void drawStatusBar() const;
 
-        void drawMenuBar(History *currentFileHistory, bool &userWantsToDeleteSelectedNode,
+        void drawMenuBar(History*, bool &userWantsToDeleteSelectedNode,
                          bool &userWantsToArrangeSelectedNodeHierarchy, bool &redock_all);
 
         void drawStartupWindow();
@@ -75,7 +73,5 @@ namespace Nodable
         void drawBackground();
 
         void drawLanguageBrowser(const File* )const;
-
-        bool isLayoutInitialized = false;
     };
 }
