@@ -36,6 +36,7 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 	
 	/* Creates a node container */
 	auto container = new Container(language);
+	container->setLabel(_path.filename().string() + "'s inner container");
 	setInnerContainer(container);
 	auto containerView = new ContainerView();
 	container->addComponent(containerView);
