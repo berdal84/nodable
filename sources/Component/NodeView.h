@@ -40,7 +40,6 @@ namespace Nodable{
 	    explicit MemberView(Member* _member)
         {
 	        member = _member;
-            member = _member;
             showInput = true;
             touched = false;
         }
@@ -135,6 +134,10 @@ namespace Nodable{
 
         /** set globally the draw detail of nodes */
         static ViewDetail_ s_viewDetail;
+
+        /** Change view detail globally */
+        static void SetDetail(ViewDetail_ _viewDetail);
+
     private:
 		/*	Draw a Node Member at cursor position.
 			Returns true if Member's value has been modified, false either */
@@ -164,6 +167,8 @@ namespace Nodable{
         static const ImVec2 s_memberInputToggleButtonSize;
         /** distance (on y axis) between two nodes */
         static const float s_nodeSpacingDistance;
+        /** to store all instances */
+        static std::vector<NodeView*> s_instances;
 
         MIRROR_CLASS(NodeView)(
                 MIRROR_PARENT(View));
