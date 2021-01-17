@@ -701,16 +701,23 @@ bool Nodable::NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
 
 void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
 {
-    Node* node = _view->getOwner();
+    const float labelColumnWidth = ImGui::GetContentRegionAvailWidth() / 2.0f;
 
     // Then draw the rest
-    for (auto& eachPair : node->getMembers() )
+    for (auto& eachView : _view->exposedMemberViews )
     {
-        ImGui::SetNextItemWidth(100.0f);
-        ImGui::Text("%s: ", eachPair.first.c_str());
-        ImGui::SameLine(100.0f);
+        // label (<name> (<way> <type>): )
+        ImGui::SetNextItemWidth(labelColumnWidth);
+        ImGui::Text(
+                "%s (%s, %s): ",
+                eachView.member->getName().c_str(),
+                WayToString(eachView.member->getConnectorWay()).c_str(),
+                eachView.member->getTypeAsString().c_str());
+
+        // input
+        ImGui::SameLine(labelColumnWidth);
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-        NodeView::DrawMemberInput(eachPair.second);
+        NodeView::DrawMemberInput(eachView.member);
     }
 }
 
@@ -751,4 +758,3 @@ bool NodeView::isMemberExposed(Member *_member)
                 return _eachMemberView.member == _member;
             }) != exposedMemberViews.end();
 }
-                                                   
