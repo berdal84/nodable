@@ -48,9 +48,15 @@ NodeView::~NodeView()
     s_instances.erase(found);
 }
 
-void NodeView::exposeMember(Member* _member)
+std::string NodeView::getLabel()
 {
-    this->exposedMemberViews.emplace_back(_member);
+    Node* node = getOwner();
+
+    if ( s_viewDetail == ViewDetail_Minimalist )
+    {
+        return std::string(node->getLabel()).substr(0,4);
+    }
+    return node->getLabel();
 }
 
 void NodeView::setOwner(Node* _node)
@@ -61,7 +67,7 @@ void NodeView::setOwner(Node* _node)
         auto member = m.second;
         if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_In) )
         {
-            this->exposeMember(member);
+            this->exposedInputs.emplace_back(member);
         }
     }
 
@@ -71,7 +77,7 @@ void NodeView::setOwner(Node* _node)
         auto member = m.second;
         if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_Out) && !this->isMemberExposed(member) )
         {
-            this->exposeMember(member);
+            this->exposedOutputs.emplace_back(member);
         }
     }
 
@@ -118,21 +124,46 @@ ImVec2 NodeView::getRoundedPosition()const
 	return roundedPosition;
 }
 
+const MemberView* NodeView::getMemberView(const Member* _member)const
+{
+    auto it = std::find_if(
+            exposedInputs.begin(),
+            exposedInputs.end(),
+            [&_member](const MemberView& _view)->bool
+            {
+                return _member == _view.member;
+            });
+
+    if (it != exposedInputs.end())
+    {
+        return &*it;
+    }
+
+    it = std::find_if(
+            exposedOutputs.begin(),
+            exposedOutputs.end(),
+            [&_member](const MemberView& _view)->bool
+            {
+                return _member == _view.member;
+            });
+
+    if (it != exposedOutputs.end())
+    {
+        return &*it;
+    }
+
+    return nullptr;
+}
+
 ImVec2 NodeView::getConnectorPosition(const Member *_member, Way _way)const
 {
+    ImVec2 pos = position;
 
-	auto it = std::find_if(
-	        exposedMemberViews.begin(),
-	        exposedMemberViews.end(),
-	        [&_member](const MemberView& _view)->bool
-	        {
-	            return _member == _view.member;
-	        });
-
-    auto pos = position;
-
-	if (it != exposedMemberViews.end())
-        pos = (*it).screenPos;
+	auto memberView = getMemberView(_member);
+    if (memberView)
+    {
+        pos = memberView->screenPos;
+    }
 
 	auto nodeViewScreenPosition = View::CursorPosToScreenPos(position);
 
@@ -275,7 +306,7 @@ bool NodeView::draw()
 	// Mouse interactions
 	//-------------------
 
-	if (GetDragged() == this && ImGui::IsMouseDragging(0, 0.1f))
+	if (GetDragged() == this && ImGui::IsMouseDragging(0))
 	{
 		translate(ImGui::GetMouseDragDelta());
 		ImGui::ResetMouseDragDelta();
@@ -327,12 +358,21 @@ bool NodeView::draw()
 	// Draw the window content
 	//------------------------
     ImGui::BeginGroup();
-	ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), node->getLabel()); // text with a lighter shadow (incrust effect)
+	ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), getLabel().c_str()); // text with a lighter shadow (incrust effect)
 
-	// Draw visible members
-    for( auto& memberView : this->exposedMemberViews )
+	// Draw inputs
+    for( auto& memberView : this->exposedInputs )
     {
         ImGui::SameLine();
+        ImGui::SetCursorPosY(cursorPositionBeforeContent.y + 1.0f);
+        drawMemberView(memberView);
+    }
+
+    // Draw outputs
+    for( auto& memberView : this->exposedOutputs )
+    {
+        ImGui::SameLine();
+        ImGui::SetCursorPosY(cursorPositionBeforeContent.y + 8.0f);
         drawMemberView(memberView);
     }
 
@@ -368,14 +408,16 @@ bool NodeView::draw()
     size.x = std::ceil( ImGui::GetItemRectSize().x );
     size.y = std::max(NODE_VIEW_DEFAULT_SIZE.y, std::ceil( ImGui::GetItemRectSize().y ));
 
-	// Draw connectors for always visible members
-    for(auto& m : node->getMembers())
+	// Draw input connectors
+    for( auto& memberView : exposedInputs )
     {
-        auto member = m.second;
-        if (member->getVisibility() == Visibility::Always)
-        {
-            drawMemberConnectors(member);
-        }
+        drawMemberConnectors(memberView.member);
+    }
+
+	// Draw out connectors
+    for( auto& memberView : exposedOutputs )
+    {
+        drawMemberConnectors(memberView.member);
     }
 
     // Contextual menu (right click)
@@ -416,7 +458,7 @@ bool NodeView::draw()
 	// Mouse dragging
 	if ( GetDragged() != this)
 	{
-		if( GetDragged() == nullptr && ImGui::IsMouseDown(0) && hovered)
+		if( GetDragged() == nullptr && ImGui::IsMouseDown(0) && hovered && ImGui::IsMouseDragPastThreshold(0))
         {
 			StartDragNode(this);
         }
@@ -497,7 +539,7 @@ bool NodeView::drawMemberView(MemberView &_memberView )
     {
         const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
         const bool isVariable = member->getOwner()->getClass() == Variable::GetClass();
-        _memberView.showInput = _memberView.member->isDefined() && (s_viewDetail != ViewDetail_Minimalist) && (!isAnInputUnconnected || isVariable || s_viewDetail == ViewDetail_Exhaustive) ;
+        _memberView.showInput = _memberView.member->isDefined() && (!isAnInputUnconnected || isVariable || s_viewDetail == ViewDetail_Exhaustive) ;
     }
 
     _memberView.screenPos = ImGui::GetCursorScreenPos();
@@ -678,21 +720,39 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
 {
     const float labelColumnWidth = ImGui::GetContentRegionAvailWidth() / 2.0f;
 
-    // Draww exposed members
-    for (auto& eachView : _view->exposedMemberViews )
+    auto drawMember = [&](Member* _member)
     {
         // label (<name> (<way> <type>): )
         ImGui::SetNextItemWidth(labelColumnWidth);
         ImGui::Text(
                 "%s (%s, %s): ",
-                eachView.member->getName().c_str(),
-                WayToString(eachView.member->getConnectorWay()).c_str(),
-                eachView.member->getTypeAsString().c_str());
+                _member->getName().c_str(),
+                WayToString(_member->getConnectorWay()).c_str(),
+                _member->getTypeAsString().c_str());
 
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-        NodeView::DrawMemberInput(eachView.member);
+        NodeView::DrawMemberInput(_member);
+    };
+
+    // Draw exposed input members
+    ImGui::Text("Inputs:");
+    ImGui::Indent();
+    for (auto& eachView : _view->exposedInputs )
+    {
+        drawMember(eachView.member);
     }
+    ImGui::Unindent();
+
+    // Draw exposed output members
+    ImGui::NewLine();
+    ImGui::Text("Outputs:");
+    ImGui::Indent();
+    for (auto& eachView : _view->exposedOutputs )
+    {
+        drawMember(eachView.member);
+    }
+    ImGui::Unindent();
 
     // Advanced properties
     ImGui::NewLine();
@@ -729,12 +789,12 @@ void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 bool NodeView::isMemberExposed(Member *_member)
 {
     return std::find_if(
-            exposedMemberViews.begin(),
-            exposedMemberViews.end(),
+            exposedInputs.begin(),
+            exposedInputs.end(),
             [&_member](const MemberView& _eachMemberView)->bool
             {
                 return _eachMemberView.member == _member;
-            }) != exposedMemberViews.end();
+            }) != exposedInputs.end();
 }
 
 void NodeView::drawAdvancedProperties()
@@ -772,7 +832,13 @@ void NodeView::SetDetail(ViewDetail_ _viewDetail)
 
     for( auto& eachView : NodeView::s_instances)
     {
-        for( auto& eachMemberView : eachView->exposedMemberViews )
+        for( auto& eachMemberView : eachView->exposedInputs )
+        {
+            eachMemberView.touched = false;
+            eachMemberView.showInput = false;
+        }
+
+        for( auto& eachMemberView : eachView->exposedOutputs )
         {
             eachMemberView.touched = false;
             eachMemberView.showInput = false;

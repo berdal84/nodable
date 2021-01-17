@@ -89,6 +89,9 @@ namespace Nodable{
 
 		/** Draw advance properties (components, dirty state, etc.) */
 		void drawAdvancedProperties();
+
+		/** Get the node label (depends on s_viewDetail) */
+        std::string getLabel();
 		
 		/* Arrange input nodes recursively while keeping the nodeView at the position vector _position */
 		static void       ArrangeRecursively  (NodeView* /*_nodeView*/);		
@@ -145,6 +148,7 @@ namespace Nodable{
         void drawMemberConnectors(Member *_member);
 		void drawConnector(ImVec2& , const Connector* , ImDrawList*);
         bool isMemberExposed(Member *_member);
+        const MemberView* getMemberView(const Member* _member)const;
 
 		ImVec2          position;    // center position vector
 		ImVec2          size;  // size of the window
@@ -153,7 +157,8 @@ namespace Nodable{
 		bool            pinned; // false: follow its outputs.
 		float           borderRadius;
 		ImColor         borderColorSelected;
-		std::vector<MemberView> exposedMemberViews;
+		std::vector<MemberView> exposedInputs;
+		std::vector<MemberView> exposedOutputs;
 
         /** pointer to the currently selected NodeView. */
 		static NodeView* s_selected;
