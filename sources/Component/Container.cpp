@@ -32,7 +32,7 @@ void Container::clear()
 		Container::LastResultNodePosition = view->getRoundedPosition();
 	}
 
-	LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "=================== Container::clear() ==================\n");
+	LOG_VERBOSE( "Container", "=================== clear() ==================\n");
 
 	auto nodeIndex = nodes.size();
 
@@ -40,14 +40,13 @@ void Container::clear()
     {
         nodeIndex--;
 	    auto node = nodes.at(nodeIndex);
-        LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "remove and delete: %s \n", node->getLabel() );
+        LOG_VERBOSE("Container", "remove and delete: %s \n", node->getLabel() );
         remove(node);
         delete node;
 	}
     nodes.resize(0);
 
-    LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "===================================================\n");
-
+    LOG_VERBOSE("Container", "===================================================\n");
 
     resultNode = nullptr;
 }
