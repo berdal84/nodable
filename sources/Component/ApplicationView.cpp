@@ -510,7 +510,7 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size
                 availSize.y -= ImGui::GetTextLineHeightWithSpacing();
             }
 
-            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0,0,0,0.4f) );
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0,0,0,0.35f) );
             eachFileView->drawAsChild("FileView", availSize);
             ImGui::PopStyleColor();
 
@@ -651,9 +651,9 @@ void ApplicationView::drawMenuBar(
             redock_all |= ImGui::MenuItem("Redock documents");
 
             ImGui::Separator();
-            auto detailSimple = ImGui::MenuItem("Simple View", "", NodeView::s_drawDetail == DrawDetail_Simple);
-            auto detailAdvanced = ImGui::MenuItem("Advanced View", "", NodeView::s_drawDetail == DrawDetail_Advanced);
-            auto detailComplex = ImGui::MenuItem("Complex View", "", NodeView::s_drawDetail == DrawDetail_Complex);
+            auto detailSimple = ImGui::MenuItem("Minimalist View", "", NodeView::s_viewDetail == ViewDetail_Minimalist);
+            auto detailAdvanced = ImGui::MenuItem("Essential View", "", NodeView::s_viewDetail == ViewDetail_Essential);
+            auto detailComplex = ImGui::MenuItem("Exhaustive View", "", NodeView::s_viewDetail == ViewDetail_Exhaustive);
 
             ImGui::Separator();
             auto showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", (bool) *get("showProperties"));
@@ -698,13 +698,13 @@ void ApplicationView::drawMenuBar(
             // TODO
 
             if (detailSimple)
-                NodeView::s_drawDetail = DrawDetail_Simple;
+                NodeView::s_viewDetail = ViewDetail_Minimalist;
 
             if (detailAdvanced)
-                NodeView::s_drawDetail = DrawDetail_Advanced;
+                NodeView::s_viewDetail = ViewDetail_Essential;
 
             if (detailComplex)
-                NodeView::s_drawDetail = DrawDetail_Complex;
+                NodeView::s_viewDetail = ViewDetail_Exhaustive;
 
             if (showProperties)
                 set("showProperties", !(bool) *get("showProperties"));

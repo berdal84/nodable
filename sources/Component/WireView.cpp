@@ -89,57 +89,57 @@ bool WireView::draw()
 
 
 	    // function to draw source and target texts
-	    ImGui::SetWindowFontScale(0.5f);
-	    auto drawSourceAndTargetTexts = [&](const char* _source, const char* _target)
-	    {
-	    	float offset = 6.0f;
-
-		    // Draw source text
-		    {
-		    	auto textSize = ImGui::CalcTextSize(_source);
-				ImGui::SetCursorScreenPos(ImVec2(pos0.x + offset, pos0.y + offset));
-
-		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill), getColor(ColorType_Shadow), _source);
-			}
-
-		    // Draw target text
-		    {
-		    	auto textSize = ImGui::CalcTextSize( _target);
-				ImGui::SetCursorScreenPos(ImVec2(pos1.x + offset, pos1.y - offset - textSize.y));
-
-		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), _target);
-			}
-	    };
-        ImGui::SetWindowFontScale(1.0f);
-
-	    // Draw source and target texts depending on DrawDetail_
-        auto sourceName = wire->getSource()->getName();
-        auto targetName = wire->getTarget()->getName();
-
-	    switch(NodeView::s_drawDetail)
-	    {
-	    	case DrawDetail_Complex:
-	    	{
-	    		std::string sourceStr = sourceName + " (" + wire->getSource()->getTypeAsString() + ")";
-	    		std::string targetStr = targetName + " (" + wire->getTarget()->getTypeAsString() + ")";
-				drawSourceAndTargetTexts(sourceStr.c_str(), targetStr.c_str());
-				break;
-			}
-
-	    	case DrawDetail_Advanced:
-	    	{
-                const char *label;
-                label = (sourceName.substr(0, 3) + "..").c_str();
-				drawSourceAndTargetTexts(label, targetName.c_str());
-				break;
-			}
-
-			default:
-			{
-				// Draw nothing by default !
-			}
-		}
-    }  
+//	    ImGui::SetWindowFontScale(0.5f);
+//	    auto drawSourceAndTargetTexts = [&](const char* _source, const char* _target)
+//	    {
+//	    	float offset = 6.0f;
+//
+//		    // Draw source text
+//		    {
+//		    	auto textSize = ImGui::CalcTextSize(_source);
+//				ImGui::SetCursorScreenPos(ImVec2(pos0.x + offset, pos0.y + offset));
+//
+//		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill), getColor(ColorType_Shadow), _source);
+//			}
+//
+//		    // Draw target text
+//		    {
+//		    	auto textSize = ImGui::CalcTextSize( _target);
+//				ImGui::SetCursorScreenPos(ImVec2(pos1.x + offset, pos1.y - offset - textSize.y));
+//
+//		    	ColoredShadowedText(ImVec2(1.0f, 1.0f),getColor(ColorType_Fill),  getColor(ColorType_Shadow), _target);
+//			}
+//	    };
+//        ImGui::SetWindowFontScale(1.0f);
+//
+//	    // Draw source and target texts depending on DrawDetail_
+//        auto sourceName = wire->getSource()->getName();
+//        auto targetName = wire->getTarget()->getName();
+//
+//	    switch(NodeView::s_drawDetail)
+//	    {
+//	    	case DrawDetail_Complex:
+//	    	{
+//	    		std::string sourceStr = sourceName + " (" + wire->getSource()->getTypeAsString() + ")";
+//	    		std::string targetStr = targetName + " (" + wire->getTarget()->getTypeAsString() + ")";
+//				drawSourceAndTargetTexts(sourceStr.c_str(), targetStr.c_str());
+//				break;
+//			}
+//
+//	    	case DrawDetail_Advanced:
+//	    	{
+//                const char *label;
+//                label = (sourceName.substr(0, 3) + "..").c_str();
+//				drawSourceAndTargetTexts(label, targetName.c_str());
+//				break;
+//			}
+//
+//			default:
+//			{
+//				// Draw nothing by default !
+//			}
+//		}
+    }
 
     return false;
 }

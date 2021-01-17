@@ -11,12 +11,12 @@
 namespace Nodable{
 
 	/* We use this enum to identify all GUI detail modes */
-	enum DrawDetail_
+	enum ViewDetail_
 	{
-		DrawDetail_Simple   = 0,                 // node and links.
-		DrawDetail_Advanced = 1,                 // node, links and input/output names.
-		DrawDetail_Complex  = 2,                 // node, links, input/output names and types.
-		DrawDetail_Default  = DrawDetail_Simple
+		ViewDetail_Minimalist  = 0,
+		ViewDetail_Essential   = 1,
+		ViewDetail_Exhaustive  = 2,
+		ViewDetail_Default     = ViewDetail_Essential
 	};	
 
 	class Node;
@@ -131,7 +131,7 @@ namespace Nodable{
         static void DrawNodeViewAsPropertiesPanel(NodeView *_view);
 
         /** set globally the draw detail of nodes */
-        static DrawDetail_ s_drawDetail;
+        static ViewDetail_ s_viewDetail;
     private:
 		/*	Draw a Node Member at cursor position.
 			Returns true if Member's value has been modified, false either */
@@ -149,15 +149,20 @@ namespace Nodable{
 		ImColor         borderColorSelected;
 		std::vector<MemberView> exposedMemberViews;
 
-		static NodeView* s_selected; // pointer to the currently selected NodeView.
-		static NodeView* s_draggedNode;	 // pointer to the currently dragged NodeView.	
+        /** pointer to the currently selected NodeView. */
+		static NodeView* s_selected;
+        /** pointer to the currently dragged NodeView. */
+		static NodeView* s_draggedNode;
 		static const Connector* s_draggedConnector;
 		static const Connector* s_hoveredConnector;
+		/** Minimum size for an input field */
         static const float s_memberInputSizeMin;
-        static const ImVec2 s_toggleBtnSize;
+        /** Size of the small button to toggle input visibility on/off */
+        static const ImVec2 s_memberInputToggleButtonSize;
+        /** distance (on y axis) between two nodes */
+        static const float s_nodeSpacingDistance;
 
-		MIRROR_CLASS(NodeView)(
-			MIRROR_PARENT(View));
-
-    };
+        MIRROR_CLASS(NodeView)(
+                MIRROR_PARENT(View));
+        };
 }
