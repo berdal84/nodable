@@ -6,26 +6,26 @@
 using namespace Nodable;
 
 Result NodeTraversal::Update(Node* _rootNode) {
-    LOG_MESSAGE(Log::Verbosity::Verbose, "NodeTraversal::Update %s \n", _rootNode->getLabel() );
+    LOG_VERBOSE("NodeTraversal", "Update %s \n", _rootNode->getLabel() );
     std::vector<Node*> traversed;
     auto result = NodeTraversal::UpdateRecursively(_rootNode, traversed);
-    LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "NodeTraversal::Update done.\n");
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::Update done.\n");
     return result;
 }
 
 Result NodeTraversal::SetDirty(Node* _rootNode) {
-    LOG_MESSAGE(Log::Verbosity::Verbose, "NodeTraversal::SetDirty %s \n", _rootNode->getLabel() );
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::SetDirty %s \n", _rootNode->getLabel() );
     std::vector<Node*> traversed;
     auto result = NodeTraversal::SetDirtyRecursively(_rootNode, traversed);
-    LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "NodeTraversal::SetDirty done.\n");
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::SetDirty done.\n");
     return result;
 }
 
 Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _traversed) {
 
     Result result;
-    
-    LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "NodeTraversal::SetDirtyEx\n");
+
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::SetDirtyEx\n");
     
     // Check if we already updated this node
     auto alreadyUpdated = std::find( _traversed.cbegin(), _traversed.cend(), _node ) != _traversed.cend();
@@ -60,7 +60,7 @@ Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _trav
 Result NodeTraversal::UpdateRecursively(Node* _node, std::vector<Node*>& _traversed) {
     
     Result result;
-    LOG_MESSAGE(Log::Verbosity::ExtraVerbose, "NodeTraversal::UpdateEx\n");
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::UpdateEx\n");
     
     // Check if we already updated this node
     auto alreadyUpdated = std::find( _traversed.cbegin(), _traversed.cend(), _node ) != _traversed.cend();
@@ -98,7 +98,7 @@ Result NodeTraversal::UpdateRecursively(Node* _node, std::vector<Node*>& _traver
 
     } else {
         result = Result::Failure;
-        LOG_WARNING(Log::Verbosity::Normal, "Unable to update Node %s, cycle detected.", _node->getLabel() );
+        LOG_WARNING("NodeTraversal", "Unable to update Node %s, cycle detected.", _node->getLabel() );
     }
 
     return result;

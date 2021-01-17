@@ -44,7 +44,7 @@ bool ApplicationView::init()
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
-        LOG_ERROR( Log::Verbosity::Default, "SDL Error: %s\n", SDL_GetError());
+        LOG_ERROR( "ApplicationView", "SDL Error: %s\n", SDL_GetError());
         return false;
     }
 
@@ -98,7 +98,7 @@ bool ApplicationView::init()
 
             //io.Fonts->AddFontDefault();
             auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
-            LOG_MESSAGE(Log::Verbosity::Default, "Adding font from file: %s\n", fontPath.c_str());
+            LOG_MESSAGE("ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
             this->paragraphFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 20.0f, &config);
         }
 
@@ -113,7 +113,7 @@ bool ApplicationView::init()
             config.PixelSnapH = true;
             config.GlyphMinAdvanceX = 20.0f; // monospace to fix text alignment in drop down menus.
             auto fontPath = application->getAssetPath("fa-solid-900.ttf").string();
-            LOG_MESSAGE(Log::Verbosity::Default, "Adding font from file: %s\n", fontPath.c_str());
+            LOG_MESSAGE("ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
             io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 20.0f, &config, icons_ranges);
         }
     }
@@ -126,7 +126,7 @@ bool ApplicationView::init()
 
         //io.Fonts->AddFontDefault();
         auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
-        LOG_MESSAGE( Log::Verbosity::Default, "Adding font from file: %s\n", fontPath.c_str());
+        LOG_MESSAGE( "ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
         this->headingFont = io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 25.0f, &config);
     }
 
@@ -673,27 +673,6 @@ void ApplicationView::drawMenuBar(
 
             ImGui::Separator();
 
-            if (ImGui::BeginMenu("Verbosity Level")) {
-                if (ImGui::MenuItem("Normal (0)", "", Log::GetVerbosityLevel() == Log::Verbosity::Normal)) {
-                    Log::SetVerbosityLevel(Log::Verbosity::Normal);
-                }
-
-                if (ImGui::MenuItem("Verbose (1)", "", Log::GetVerbosityLevel() == Log::Verbosity::Verbose)) {
-                    Log::SetVerbosityLevel(Log::Verbosity::Verbose);
-                }
-
-                if (ImGui::MenuItem("Extra-Verbose (2)", "", Log::GetVerbosityLevel() == Log::Verbosity::ExtraVerbose)) {
-                    Log::SetVerbosityLevel(Log::Verbosity::ExtraVerbose);
-                }
-
-                if (ImGui::MenuItem("All (3)", "", Log::GetVerbosityLevel() == Log::Verbosity::All)) {
-                    Log::SetVerbosityLevel(Log::Verbosity::All);
-                }
-
-                ImGui::EndMenu();
-            }
-
-
             //if( frame)
             // TODO
 
@@ -758,13 +737,13 @@ void ApplicationView::drawStatusBar() const {/*
     {
         ImVec4 statusLineColor;
 
-        switch ( lastLog->type ) {
-
-            case Log::Type::Error:
+        switch ( lastLog->verbosity )
+        {
+            case Log::Verbosity::Error:
                 statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
                 break;
 
-            case Log::Type::Warning:
+            case Log::Verbosity::Warning:
                 statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
                 break;
 
