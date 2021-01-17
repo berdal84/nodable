@@ -497,7 +497,7 @@ bool NodeView::drawMemberView(MemberView &_memberView )
     {
         const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
         const bool isVariable = member->getOwner()->getClass() == Variable::GetClass();
-        _memberView.showInput = (s_viewDetail != ViewDetail_Minimalist) && (!isAnInputUnconnected || isVariable || s_viewDetail == ViewDetail_Exhaustive) ;
+        _memberView.showInput = _memberView.member->isDefined() && (s_viewDetail != ViewDetail_Minimalist) && (!isAnInputUnconnected || isVariable || s_viewDetail == ViewDetail_Exhaustive) ;
     }
 
     _memberView.screenPos = ImGui::GetCursorScreenPos();
