@@ -588,7 +588,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     /* Draw the member */
     switch (_member->getType())
     {
-    case Type::Double:
+        case Type::Double:
         {
             auto f = (double)*_member;
 
@@ -600,7 +600,8 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             }
             break;
         }
-    case Type::String:
+
+        case Type::String:
         {
             char str[255];
             snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
@@ -613,20 +614,23 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             }
             break;
         }
-    case Type::Boolean:
-    {
-        std::string checkBoxLabel = _member->getName();
 
-        auto b = (bool)*_member;
+        case Type::Boolean:
+        {
+            std::string checkBoxLabel = _member->getName();
 
-        if (ImGui::Checkbox( checkBoxLabel.c_str(), &b ) && !_member->hasInputConnected() ) {
-            _member->set(b);
-            NodeTraversal::SetDirty(node);
-            edited |= true;
+            auto b = (bool)*_member;
+
+            if (ImGui::Checkbox(label.c_str(), &b ) && !_member->hasInputConnected() )
+            {
+                _member->set(b);
+                NodeTraversal::SetDirty(node);
+                edited |= true;
+            }
+            break;
         }
-        break;
-    }
-    default:
+
+        default:
         {
             ImGui::Text( "%s", ((std::string)*_member).c_str());
             break;
