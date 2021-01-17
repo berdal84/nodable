@@ -206,7 +206,7 @@ bool ContainerView::draw()
 						if ( labelFunctionPair.second != nullptr  )
 							newNode = labelFunctionPair.second();
 						else
-							LOG_WARNING( Log::Verbosity::Verbose, "The function associated to the key %s is nullptr", itemLabel );
+							LOG_WARNING( "ContainerView", "The function associated to the key %s is nullptr", itemLabel );
 					}
 				}
 

@@ -128,7 +128,7 @@ void FileView::replaceSelectedText(std::string _val)
 	/* insert text (and select it) */
 	m_textEditor->InsertText(_val, true);
 
-	LOG_MESSAGE(Log::Verbosity::Normal, "Graph serialized: %s \n", _val.c_str());
+	LOG_MESSAGE( "FileView", "Graph serialized: %s \n", _val.c_str());
 }
 
 void FileView::setText(const std::string& _content)

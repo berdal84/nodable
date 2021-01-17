@@ -6,7 +6,7 @@
 #define RETURN_SUCCESS return 0;
 
 #define RETURN_FAILED \
-_result->setType(Type::Any); /* We intentionnaly force result type any to avoid crashing.*/ \
+_result->setType(Type::Any); /* We intentionally force result type any to avoid crashing.*/ \
 return 1;
 
 #define ARG(n) (*_args[n])
@@ -16,7 +16,7 @@ return 1;
 	{\
 		if( (*it)->isType(Type::Any) ) \
 		{\
-			LOG_WARNING( Log::Verbosity::Verbose, "Argument %i (%s) is unknown.\n", std::distance(_args.begin(), it), (*it)->getName().c_str() );\
+			LOG_WARNING( "Language_MACROS", "Argument %i (%s) is unknown.\n", std::distance(_args.begin(), it), (*it)->getName().c_str() );\
 		}\
 	}
 

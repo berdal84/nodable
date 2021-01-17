@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
@@ -27,15 +28,15 @@
 #define LOG_ENABLE true
 
 #if LOG_ENABLE
-#   define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::Log::Type::Message, __VA_ARGS__ )
-#   define LOG_DEBUG(...) Nodable::Log::Push( Nodable::Log::Type::Message, __VA_ARGS__ )
-#   define LOG_WARNING(...) Nodable::Log::Push( Nodable::Log::Type::Warning, __VA_ARGS__ )
-#   define LOG_ERROR(...)   Nodable::Log::Push( Nodable::Log::Type::Error, __VA_ARGS__ )
+#   define LOG_ERROR(...)   Nodable::Log::Push( Nodable::Log::Verbosity::Error  , __VA_ARGS__ )
+#   define LOG_WARNING(...) Nodable::Log::Push( Nodable::Log::Verbosity::Warning, __VA_ARGS__ )
+#   define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::Log::Verbosity::Message, __VA_ARGS__ )
+#   define LOG_VERBOSE(...) Nodable::Log::Push( Nodable::Log::Verbosity::Verbose, __VA_ARGS__ )
 #else
-#   define LOG_MESSAGE(...)
-#   define LOG_DEBUG(...)
-#   define LOG_WARNING(...)
 #   define LOG_ERROR(...)
+#   define LOG_WARNING(...)
+#   define LOG_MESSAGE(...)
+#   define LOG_VERBOSE(...)
 #endif
 
 namespace Nodable{	
@@ -43,37 +44,30 @@ namespace Nodable{
 	class Log
     {
     public:
-        enum class Verbosity: int
-        {
-            Normal = 0,
-            Verbose = 1,
-            ExtraVerbose = 2,
-            All = 3,
-            Default = Normal
-        };
 
-        enum class Type
+        enum class Verbosity
         {
-            Message,
+            Error,
             Warning,
-            Error
+            Message,
+            Verbose
         };
 
         struct Message
         {
-            Type type;
+            std::string category;
             Verbosity verbosity;
             std::string text;
         };
 
 	private:
         static std::vector<Message> Logs;
-        static Verbosity s_verbosityLevel;
+        static std::map<std::string, Verbosity> s_verbosityLevels;
 
 	public:
-        static inline Verbosity GetVerbosityLevel(){ return s_verbosityLevel; }
         static const Message* GetLastMessage();
-	    static void SetVerbosityLevel(Verbosity _verbosityLevel);
-		static void Push(Type _type, Verbosity _verbosityLevel, const char* _format, ...);
+	    static void           SetVerbosityLevel(const std::string& _category, Verbosity _verbosityLevel);
+        static Verbosity      GetVerbosityLevel(const std::string& _category);
+		static void           Push(Verbosity _verbosityLevel, const std::string& _category, const char* _format, ...);
 	};
 }
