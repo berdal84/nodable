@@ -14,13 +14,14 @@
 
 using namespace Nodable;
 
-NodeView*   NodeView::s_selected    = nullptr;
-NodeView*   NodeView::s_draggedNode = nullptr;
-DrawDetail_ NodeView::s_drawDetail  = Nodable::DrawDetail_Default;
-const Connector*  NodeView::s_draggedConnector      = nullptr;
-const Connector*  NodeView::s_hoveredConnector      = nullptr;
-const float NodeView::s_memberInputSizeMin = 10.0f;
-const ImVec2 NodeView::s_toggleBtnSize(10.0, 25.0f);
+NodeView*          NodeView::s_selected               = nullptr;
+NodeView*          NodeView::s_draggedNode            = nullptr;
+ViewDetail_        NodeView::s_viewDetail             = Nodable::ViewDetail_Default;
+const Connector*   NodeView::s_draggedConnector       = nullptr;
+const Connector*   NodeView::s_hoveredConnector       = nullptr;
+const float        NodeView::s_memberInputSizeMin     = 10.0f;
+const ImVec2       NodeView::s_memberInputToggleButtonSize   = ImVec2(10.0, 25.0f);
+const float        NodeView::s_nodeSpacingDistance           = 25.0f;
 
 NodeView::NodeView():
         position(500.0f, -1.0f),
@@ -198,12 +199,6 @@ void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 	// automatically moves input connected nodes
 	//------------------------------------------
 
-	// first we get the spacing distance between nodes sepending on drawDetail global variable
-
-	float spacingDistBase = 25.0f;
-	float distances[3] = { spacingDistBase * 1.0f, spacingDistBase * 1.5f, spacingDistBase * 1.5f };
-	float spacingDist = distances[s_drawDetail];
-
 	// then we constraint each input view
 
 	auto wires = node->getWires();
@@ -245,7 +240,7 @@ void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 			if (!inputView->pinned)
 			{
 				// Compute new position for this input view
-				ImVec2 newPos(posX + inputView->size.x / 2.0f, position.y - spacingDist - inputView->size.y / 2.0f - size.y / 2.0f );
+				ImVec2 newPos(posX + inputView->size.x / 2.0f, position.y - s_nodeSpacingDistance - inputView->size.y / 2.0f - size.y / 2.0f );
                 posX += inputView->size.x + nodeSpacing;
 
 				// Compute a delta to apply to move to this new position
@@ -527,7 +522,7 @@ bool NodeView::drawMemberView(MemberView &_memberView )
     {
         const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
         const bool isVariable = member->getOwner()->getClass() == Variable::GetClass();
-        _memberView.showInput = !isAnInputUnconnected || isVariable;
+        _memberView.showInput = s_viewDetail != ViewDetail_Minimalist && (!isAnInputUnconnected || isVariable || s_viewDetail == ViewDetail_Exhaustive) ;
     }
 
     _memberView.screenPos = ImGui::GetCursorScreenPos();
@@ -544,8 +539,8 @@ bool NodeView::drawMemberView(MemberView &_memberView )
     }
     else
     {
-        ImGui::Button("", NodeView::s_toggleBtnSize);
-        _memberView.screenPos.x += NodeView::s_toggleBtnSize.x / 2.0f;
+        ImGui::Button("", NodeView::s_memberInputToggleButtonSize);
+        _memberView.screenPos.x += NodeView::s_memberInputToggleButtonSize.x / 2.0f;
 
         if ( ImGui::IsItemHovered() )
         {
