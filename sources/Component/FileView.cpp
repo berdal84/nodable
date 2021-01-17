@@ -70,6 +70,7 @@ bool FileView::draw()
 
 	m_textEditor->SetHandleKeyboardInputs(allowkeyboard);
 	m_textEditor->SetHandleMouseInputs(allowMouse);
+
 	m_textEditor->Render("Text Editor Plugin", availSize);
 
 	auto currentCursorPosition = m_textEditor->GetCursorPosition();

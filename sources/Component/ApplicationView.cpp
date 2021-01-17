@@ -135,11 +135,11 @@ bool ApplicationView::init()
     colors[ImGuiCol_Text]                   = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
     colors[ImGuiCol_TextDisabled]           = ImVec4(0.21f, 0.21f, 0.21f, 1.00f);
     colors[ImGuiCol_WindowBg]               = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-    colors[ImGuiCol_ChildBg]                = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+    colors[ImGuiCol_ChildBg]                = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
     colors[ImGuiCol_PopupBg]                = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
     colors[ImGuiCol_Border]                 = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
     colors[ImGuiCol_BorderShadow]           = ImVec4(0.30f, 0.30f, 0.30f, 0.50f);
-    colors[ImGuiCol_FrameBg]                = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
+    colors[ImGuiCol_FrameBg]                = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     colors[ImGuiCol_FrameBgHovered]         = ImVec4(0.90f, 0.80f, 0.80f, 1.00f);
     colors[ImGuiCol_FrameBgActive]          = ImVec4(0.90f, 0.65f, 0.65f, 1.00f);
     colors[ImGuiCol_TitleBg]                = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
@@ -356,6 +356,7 @@ bool ApplicationView::draw()
             if (ImGui::Begin("Global Props"))
             {
                 this->drawPropertiesWindow();
+                ImGui::ShowStyleEditor();
             }
             ImGui::End();
 
@@ -508,7 +509,10 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size
             {
                 availSize.y -= ImGui::GetTextLineHeightWithSpacing();
             }
+
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0,0,0,0.4f) );
             eachFileView->drawAsChild("FileView", availSize);
+            ImGui::PopStyleColor();
 
             // Status bar
             if ( isCurrentFile )
@@ -837,47 +841,9 @@ void ApplicationView::drawHistoryBar(History *currentFileHistory) {
     }
 }
 
-void Nodable::ApplicationView::drawFileTabs()
-{
-	bool userSwitchesFile = false;
-	{
-
-		float tabsVerticalOffset = ImGui::GetStyle().FramePadding.y;
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + tabsVerticalOffset);
-
-		ImGui::BeginTabBar("FileTabBar",
-                     ImGuiTabBarFlags_Reorderable |
-                     ImGuiTabBarFlags_AutoSelectNewTabs |
-                     ImGuiTabBarFlags_DockNode);
-
-		for (size_t i = 0; i < application->getFileCount(); i++)
-		{
-			auto file = application->getFileAtIndex(i);
-			std::string tabLabel = file->getName();
-			if (file->isModified())
-				tabLabel.append("*");
-			tabLabel.append("##");
-			tabLabel.append(std::to_string(i));
-
-			if (ImGui::BeginTabItem(tabLabel.c_str()))
-				ImGui::EndTabItem();
-
-			if (ImGui::IsItemClicked(0))
-			{
-				application->setCurrentFileWithIndex(i);
-				userSwitchesFile = true;
-			}
-		}
-
-		ImGui::EndTabBar();
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - tabsVerticalOffset);
-	}
-}
-
 void Nodable::ApplicationView::browseFile()
 {
 	fileBrowser.Open();
-	//application->openFile(fileAbsolutePath.c_str());
 }
 
 void ApplicationView::drawBackground()
