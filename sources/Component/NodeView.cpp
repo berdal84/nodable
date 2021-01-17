@@ -114,7 +114,6 @@ ImVec2 NodeView::getRoundedPosition()const
 
 ImVec2 NodeView::getConnectorPosition(const Member *_member, Way _way)const
 {
-	auto pos = position;
 
 	auto it = std::find_if(
 	        exposedMemberViews.begin(),
@@ -124,18 +123,22 @@ ImVec2 NodeView::getConnectorPosition(const Member *_member, Way _way)const
 	            return _member == _view.member;
 	        });
 
+    auto pos = position;
+
 	if (it != exposedMemberViews.end())
-		pos.x = (*it).screenPos.x;
+        pos = (*it).screenPos;
+
+	auto nodeViewScreenPosition = View::CursorPosToScreenPos(position);
 
 	// Input => Top
 	if (_way == Way_In)
     {
-		return ImVec2(pos.x , pos.y - size.y * 0.5f);
+		return ImVec2(pos.x , nodeViewScreenPosition.y - size.y * 0.5f);
     }
 	// Outputs => Bottom
 	else if (_way == Way_Out)
 	{
-        return ImVec2(pos.x, pos.y + size.y * 0.5f);
+        return ImVec2(pos.x, nodeViewScreenPosition.y + size.y * 0.5f);
     }
 
     NODABLE_ASSERT(false); // _way should be only In or Out.
@@ -642,13 +645,11 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     return edited;
 }
 
-void NodeView::drawConnector(ImVec2& connectorPos, const Connector* _connector, ImDrawList* draw_list)
+void NodeView::drawConnector(ImVec2& connnectorScreenPos, const Connector* _connector, ImDrawList* draw_list)
 {
 	// Unvisible Button on top of the Circle
 
-    ImVec2 cursorPos = ImGui::GetCursorPos();
     ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
-    ImVec2 connnectorScreenPos = connectorPos + cursorScreenPos - cursorPos;
 
 	auto invisibleButtonOffsetFactor = 1.2f;
 	ImGui::SetCursorScreenPos(connnectorScreenPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor));

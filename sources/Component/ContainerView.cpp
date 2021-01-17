@@ -91,9 +91,7 @@ bool ContainerView::draw()
                     auto member   = draggedConnector->member;
                     auto node     = member->getOwner()->as<Node>();
                     auto view     = node->getComponent<NodeView>();
-                    auto position = view->getConnectorPosition(member, draggedConnector->way);
-
-                    lineScreenPosStart = position + ImGui::GetWindowPos();
+                    lineScreenPosStart = view->getConnectorPosition(member, draggedConnector->way);
                 }
 
                 auto lineScreenPosEnd = ImGui::GetMousePos();
@@ -104,9 +102,7 @@ bool ContainerView::draw()
                     auto member     = hoveredConnector->member;
                     auto node       = member->getOwner()->as<Node>();
                     auto view       = node->getComponent<NodeView>();
-                    auto position   = view->getConnectorPosition(member, hoveredConnector->way);
-
-                    lineScreenPosEnd = position + ImGui::GetWindowPos();
+                    lineScreenPosEnd = view->getConnectorPosition(member, hoveredConnector->way);
                 }
 
                 ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
