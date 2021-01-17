@@ -38,8 +38,8 @@ bool WireView::draw()
 		if (!sourceView->isVisible() || !targetView->isVisible() ) // in case of of the node have hidden view we can't draw the wire.
 			return false;
 
-		ImVec2 pos0 = View::CursorPosToScreenPos( sourceView->getConnectorPosition(wire->getSource(), Way_Out) );
-		ImVec2 pos1 = View::CursorPosToScreenPos( targetView->getConnectorPosition(wire->getTarget(), Way_In) );
+		ImVec2 pos0 = sourceView->getConnectorPosition(wire->getSource(), Way_Out);
+		ImVec2 pos1 = targetView->getConnectorPosition(wire->getTarget(), Way_In);
 
 
 	    if (displayArrows) // if arrows are displayed we offset x to see the edge of the arrow.
