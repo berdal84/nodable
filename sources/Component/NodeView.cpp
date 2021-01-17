@@ -22,6 +22,7 @@ const Connector*   NodeView::s_hoveredConnector       = nullptr;
 const float        NodeView::s_memberInputSizeMin     = 10.0f;
 const ImVec2       NodeView::s_memberInputToggleButtonSize   = ImVec2(10.0, 25.0f);
 const float        NodeView::s_nodeSpacingDistance           = 25.0f;
+std::vector<NodeView*> NodeView::s_instances;
 
 NodeView::NodeView():
         position(500.0f, -1.0f),
@@ -32,7 +33,7 @@ NodeView::NodeView():
         borderRadius(5.0f),
         borderColorSelected(1.0f, 1.0f, 1.0f)
 {
-
+    NodeView::s_instances.push_back(this);
 }
 
 NodeView::~NodeView()
@@ -41,6 +42,10 @@ NodeView::~NodeView()
     {
         s_selected = nullptr;
     }
+
+    auto found = std::find( s_instances.begin(), s_instances.end(), this);
+    NODABLE_ASSERT(found != s_instances.end() );
+    s_instances.erase(found);
 }
 
 void NodeView::exposeMember(Member* _member)
@@ -492,7 +497,7 @@ bool NodeView::drawMemberView(MemberView &_memberView )
     {
         const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
         const bool isVariable = member->getOwner()->getClass() == Variable::GetClass();
-        _memberView.showInput = s_viewDetail != ViewDetail_Minimalist && (!isAnInputUnconnected || isVariable || s_viewDetail == ViewDetail_Exhaustive) ;
+        _memberView.showInput = (s_viewDetail != ViewDetail_Minimalist) && (!isAnInputUnconnected || isVariable || s_viewDetail == ViewDetail_Exhaustive) ;
     }
 
     _memberView.screenPos = ImGui::GetCursorScreenPos();
@@ -737,22 +742,18 @@ void NodeView::drawAdvancedProperties()
     const Node* node = getOwner();
     const float indent = 20.0f;
 
+    // Components
     ImGui::Text("Components :");
-
     for (auto& pair : node->getComponents())
     {
         auto component	= pair.second;
         auto name		= pair.first;
         auto className	= component->getClass()->getName();
-        ImGui::BulletText("%s", name.c_str());
-        ImGui::Indent();
-        ImGui::Text("- Class: %s", className);
-        ImGui::Unindent();
+        ImGui::BulletText("%s", className);
     }
 
     // Parent container
     ImGui::NewLine();
-    ImGui::Text("Parameters :");
     std::string parentName = "NULL";
 
     if ( node->getParentContainer() )
@@ -760,5 +761,21 @@ void NodeView::drawAdvancedProperties()
         parentName = node->getParentContainer()->getLabel();
     }
 
-    ImGui::Text("Parent: %s", parentName.c_str());
+    ImGui::Text("Parent:");
+    ImGui::Indent();
+    ImGui::Text("- name: \"%s\"", parentName.c_str());
+}
+
+void NodeView::SetDetail(ViewDetail_ _viewDetail)
+{
+    NodeView::s_viewDetail = _viewDetail;
+
+    for( auto& eachView : NodeView::s_instances)
+    {
+        for( auto& eachMemberView : eachView->exposedMemberViews )
+        {
+            eachMemberView.touched = false;
+            eachMemberView.showInput = false;
+        }
+    }
 }

@@ -620,10 +620,10 @@ void ApplicationView::drawMenuBar(
         bool &userWantsToArrangeSelectedNodeHierarchy,
         bool &redock_all)
 {
-    if (ImGui::BeginMenuBar()) {
-
-        if (ImGui::BeginMenu("File")) {
-
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
             //ImGui::MenuItem(ICON_FA_FILE   "  New", "Ctrl + N");
             if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) browseFile();
             if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) application->saveCurrentFile();
@@ -633,9 +633,10 @@ void ApplicationView::drawMenuBar(
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Edit")) {
-
-            if (currentFileHistory) {
+        if (ImGui::BeginMenu("Edit"))
+        {
+            if (currentFileHistory)
+            {
                 if (ImGui::MenuItem("Undo", "Ctrl + Z")) currentFileHistory->undo();
                 if (ImGui::MenuItem("Redo", "Ctrl + Y")) currentFileHistory->redo();
                 ImGui::Separator();
@@ -643,20 +644,33 @@ void ApplicationView::drawMenuBar(
 
             auto isAtLeastANodeSelected = NodeView::GetSelected() != nullptr;
             userWantsToDeleteSelectedNode |= ImGui::MenuItem("Delete", "Del.", false, isAtLeastANodeSelected);
-            userWantsToArrangeSelectedNodeHierarchy |= ImGui::MenuItem("ReArrange nodes", "A", false,
-                                                                       isAtLeastANodeSelected);
+            userWantsToArrangeSelectedNodeHierarchy |= ImGui::MenuItem("ReArrange nodes", "A", false, isAtLeastANodeSelected);
 
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("View")) {
+        if (ImGui::BeginMenu("View"))
+        {
             //auto frame = ImGui::MenuItem("Frame All", "F");
             redock_all |= ImGui::MenuItem("Redock documents");
 
             ImGui::Separator();
-            auto detailSimple = ImGui::MenuItem("Minimalist View", "", NodeView::s_viewDetail == ViewDetail_Minimalist);
-            auto detailAdvanced = ImGui::MenuItem("Essential View", "", NodeView::s_viewDetail == ViewDetail_Essential);
-            auto detailComplex = ImGui::MenuItem("Exhaustive View", "", NodeView::s_viewDetail == ViewDetail_Exhaustive);
+            auto viewDdetail_Minimalist = ImGui::MenuItem("Minimalist View", "", NodeView::s_viewDetail == ViewDetail_Minimalist);
+            auto viewDetail_Essential   = ImGui::MenuItem("Essential View",  "", NodeView::s_viewDetail == ViewDetail_Essential);
+            auto viewDetail_Exhaustive  = ImGui::MenuItem("Exhaustive View", "", NodeView::s_viewDetail == ViewDetail_Exhaustive);
+
+            if (viewDdetail_Minimalist)
+            {
+                NodeView::SetDetail(ViewDetail_Minimalist);
+            }
+            else if (viewDetail_Essential)
+            {
+                NodeView::SetDetail(ViewDetail_Essential);
+            }
+            else if (viewDetail_Exhaustive)
+            {
+                NodeView::SetDetail(ViewDetail_Exhaustive);
+            }
 
             ImGui::Separator();
             auto showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", (bool) *get("showProperties"));
@@ -664,62 +678,65 @@ void ApplicationView::drawMenuBar(
 
             ImGui::Separator();
 
-            if (SDL_GetWindowFlags(sdlWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+            if (SDL_GetWindowFlags(sdlWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP)
+            {
                 auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", true);
                 if (toggleFullscreen)
                     SDL_SetWindowFullscreen(sdlWindow, 0);
-            } else {
+            }
+            else
+            {
                 auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", false);
                 if (toggleFullscreen)
+                {
                     SDL_SetWindowFullscreen(sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+                }
             }
 
             ImGui::Separator();
 
-            //if( frame)
-            // TODO
-
-            if (detailSimple)
-                NodeView::s_viewDetail = ViewDetail_Minimalist;
-
-            if (detailAdvanced)
-                NodeView::s_viewDetail = ViewDetail_Essential;
-
-            if (detailComplex)
-                NodeView::s_viewDetail = ViewDetail_Exhaustive;
-
             if (showProperties)
+            {
                 set("showProperties", !(bool) *get("showProperties"));
+            }
 
             if (showImGuiDemo)
+            {
                 set("showImGuiDemo", !(bool) *get("showImGuiDemo"));
-
+            }
 
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("An issue ?")) {
-            if (ImGui::MenuItem("Report on Github.com")) {
+        if (ImGui::BeginMenu("An issue ?"))
+        {
+            if (ImGui::MenuItem("Report on Github.com"))
+            {
                 System::OpenURL("https://github.com/berdal84/Nodable/issues");
             }
 
-            if (ImGui::MenuItem("Report by email")) {
+            if (ImGui::MenuItem("Report by email"))
+            {
                 System::OpenURL("mail:berenger@dalle-cort.fr");
             }
 
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Help")) {
-            if (ImGui::MenuItem("Show Startup Screen", "F1")) {
+        if (ImGui::BeginMenu("Help"))
+        {
+            if (ImGui::MenuItem("Show Startup Screen", "F1"))
+            {
                 isStartupWindowVisible = true;
             }
 
-            if (ImGui::MenuItem("Browse source code")) {
+            if (ImGui::MenuItem("Browse source code"))
+            {
                 System::OpenURL("https://www.github.com/berdal84/nodable");
             }
 
-            if (ImGui::MenuItem("Extern deps. credits")) {
+            if (ImGui::MenuItem("Extern deps. credits"))
+            {
                 System::OpenURL("https://github.com/berdal84/nodable#dependencies--credits-");
             }
 
