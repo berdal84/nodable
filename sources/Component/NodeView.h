@@ -87,6 +87,9 @@ namespace Nodable{
 
 		/* Arrange input nodes recursively while keeping this node position unchanged */
 		void              arrangeRecursively  ();
+
+		/** Draw advance properties (components, dirty state, etc.) */
+		void drawAdvancedProperties();
 		
 		/* Arrange input nodes recursively while keeping the nodeView at the position vector _position */
 		static void       ArrangeRecursively  (NodeView* /*_nodeView*/);		
