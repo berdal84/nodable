@@ -30,8 +30,8 @@ namespace Nodable
 
 		/* call this every frame */
 		bool draw();
+
 		virtual bool update() { return true; };
-		void drawFileTabs();
 
 		/* call this once just after the instantiation. */
 		bool init();
