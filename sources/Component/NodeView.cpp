@@ -350,37 +350,7 @@ bool NodeView::draw()
 
 		// Draw component names
 		ImGui::NewLine();
-		ImGui::Text("Components :");
-
-		for (auto& pair : node->getComponents())
-		{
-			auto component	= pair.second;
-			auto name		= pair.first;
-			auto className	= component->getClass()->getName();
-
-			ImGui::Text("- %s (%s)", name.c_str(), className);
-		}
-
-		// Draw parentContainer's name
-		ImGui::NewLine();
-		ImGui::Text("Parameters :");
-		std::string parentName = "NULL";
-
-		if ( node->getParentContainer() )
-        {
-			parentName = node->getParentContainer()->getLabel();
-		}
-
-		ImGui::Text("Parent: %s", parentName.c_str());
-		
-		// Draw dirty state 
-		ImGui::Text("Dirty : %s", node->isDirty() ? "Yes":"No");
-		if ( node->isDirty())
-		{
-			ImGui::SameLine();
-			if ( ImGui::Button("update()"))
-				node->update();
-		}
+		drawAdvancedProperties();
 	}
 
 	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + nodePadding );
@@ -703,7 +673,7 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
 {
     const float labelColumnWidth = ImGui::GetContentRegionAvailWidth() / 2.0f;
 
-    // Then draw the rest
+    // Draww exposed members
     for (auto& eachView : _view->exposedMemberViews )
     {
         // label (<name> (<way> <type>): )
@@ -715,10 +685,13 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
                 eachView.member->getTypeAsString().c_str());
 
         // input
-        ImGui::SameLine(labelColumnWidth);
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
         NodeView::DrawMemberInput(eachView.member);
     }
+
+    // Advanced properties
+    ImGui::NewLine();
+   _view->drawAdvancedProperties();
 }
 
 void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
@@ -757,4 +730,35 @@ bool NodeView::isMemberExposed(Member *_member)
             {
                 return _eachMemberView.member == _member;
             }) != exposedMemberViews.end();
+}
+
+void NodeView::drawAdvancedProperties()
+{
+    const Node* node = getOwner();
+    const float indent = 20.0f;
+
+    ImGui::Text("Components :");
+
+    for (auto& pair : node->getComponents())
+    {
+        auto component	= pair.second;
+        auto name		= pair.first;
+        auto className	= component->getClass()->getName();
+        ImGui::BulletText("%s", name.c_str());
+        ImGui::Indent();
+        ImGui::Text("- Class: %s", className);
+        ImGui::Unindent();
+    }
+
+    // Parent container
+    ImGui::NewLine();
+    ImGui::Text("Parameters :");
+    std::string parentName = "NULL";
+
+    if ( node->getParentContainer() )
+    {
+        parentName = node->getParentContainer()->getLabel();
+    }
+
+    ImGui::Text("Parent: %s", parentName.c_str());
 }
