@@ -61,12 +61,12 @@ bool FileView::draw()
 	auto previousSelectedText = m_textEditor->GetSelectedText();
 	auto previousLineText = m_textEditor->GetCurrentLineText();
 
-	auto allowkeyboard = !NodeView::IsANodeDragged() &&
+	auto allowkeyboard = !NodeView::IsAnyDragged() &&
 		                  NodeView::GetSelected() == nullptr; // disable keyboard for text editor when a node is selected.
 
-	auto allowMouse = !NodeView::IsANodeDragged() &&
-		              !ImGui::IsAnyItemHovered() &&
-		              !ImGui::IsAnyItemFocused();
+	auto allowMouse = !NodeView::IsAnyDragged() &&
+                      !ImGui::IsAnyItemHovered() &&
+                      !ImGui::IsAnyItemFocused();
 
 	m_textEditor->SetHandleKeyboardInputs(allowkeyboard);
 	m_textEditor->SetHandleMouseInputs(allowMouse);
