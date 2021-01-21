@@ -551,7 +551,7 @@ void ApplicationView::drawStartupWindow() {
     }
 
     ImGui::SetNextWindowSizeConstraints(ImVec2(500,200), ImVec2(500,50000));
-    ImGui::SetNextWindowPos( ImGui::GetMainViewport()->GetCenter(), NULL, ImVec2(0.5f,0.5f) );
+    ImGui::SetNextWindowPos( ImGui::GetMainViewport()->GetCenter(), 0, ImVec2(0.5f,0.5f) );
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
@@ -655,21 +655,21 @@ void ApplicationView::drawMenuBar(
             redock_all |= ImGui::MenuItem("Redock documents");
 
             ImGui::Separator();
-            auto viewDdetail_Minimalist = ImGui::MenuItem("Minimalist View", "", NodeView::s_viewDetail == ViewDetail_Minimalist);
-            auto viewDetail_Essential   = ImGui::MenuItem("Essential View",  "", NodeView::s_viewDetail == ViewDetail_Essential);
-            auto viewDetail_Exhaustive  = ImGui::MenuItem("Exhaustive View", "", NodeView::s_viewDetail == ViewDetail_Exhaustive);
+            auto viewDetail_Minimalist  = ImGui::MenuItem("Minimalist View", "", NodeView::s_viewDetail == NodeViewDetail::Minimalist);
+            auto viewDetail_Essential   = ImGui::MenuItem("Essential View",  "", NodeView::s_viewDetail == NodeViewDetail::Essential);
+            auto viewDetail_Exhaustive  = ImGui::MenuItem("Exhaustive View", "", NodeView::s_viewDetail == NodeViewDetail::Exhaustive);
 
-            if (viewDdetail_Minimalist)
+            if (viewDetail_Minimalist)
             {
-                NodeView::SetDetail(ViewDetail_Minimalist);
+                NodeView::SetDetail(NodeViewDetail::Minimalist);
             }
             else if (viewDetail_Essential)
             {
-                NodeView::SetDetail(ViewDetail_Essential);
+                NodeView::SetDetail(NodeViewDetail::Essential);
             }
             else if (viewDetail_Exhaustive)
             {
-                NodeView::SetDetail(ViewDetail_Exhaustive);
+                NodeView::SetDetail(NodeViewDetail::Exhaustive);
             }
 
             ImGui::Separator();

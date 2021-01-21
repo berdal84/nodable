@@ -11,10 +11,10 @@ return 1;
 
 #define ARG(n) (*_args[n])
 #define BEGIN_IMPL\
-	auto implementation = [](Member* _result, const std::vector<Member*>& _args)->int { \
-	for(auto it = _args.begin(); it != _args.end(); it++) \
+	auto implementation = [](Member* _result, const std::vector<Member*>& _args)->int {\
+	for(auto it = _args.begin(); it != _args.end(); it++)\
 	{\
-		if( (*it)->isType(Type::Any) ) \
+		if( (*it)->isType(Type::Any) )\
 		{\
 			LOG_WARNING( "Language_MACROS", "Argument %i (%s) is unknown.\n", std::distance(_args.begin(), it), (*it)->getName().c_str() );\
 		}\
@@ -29,32 +29,32 @@ return 1;
 
 #define BINARY_OP_BEGIN( _type, _identifier, _ltype, _rtype, _precedence, _label )\
 {\
-	auto precedence = _precedence; \
-	auto identifier = std::string(_identifier); \
-	FunctionSignature signature( std::string("operator") + _identifier, _type, _label ); \
-	signature.pushArgs(_ltype, _rtype); \
+	auto precedence = _precedence;\
+	auto identifier = std::string(_identifier);\
+	FunctionSignature signature( std::string("operator") + _identifier, _type, _label );\
+	signature.pushArgs(_ltype, _rtype);\
 	BEGIN_IMPL
 
 #define UNARY_OP_BEGIN( _type, _identifier, _ltype, _precedence, _label )\
 {\
-	auto precedence = _precedence; \
-	auto identifier = std::string(_identifier); \
-	FunctionSignature signature( std::string("operator") + _identifier, _type, _label ); \
-	signature.pushArgs(_ltype); \
+	auto precedence = _precedence;\
+	auto identifier = std::string(_identifier);\
+	FunctionSignature signature( std::string("operator") + _identifier, _type, _label );\
+	signature.pushArgs(_ltype);\
 	BEGIN_IMPL
 
-#define FCT_BEGIN( _type, _identifier, ... ) \
-{ \
-	auto signature = FunctionSignature::Create( _type, _identifier, __VA_ARGS__); \
+#define FCT_BEGIN( _type, _identifier, ... )\
+{\
+	auto signature = FunctionSignature::Create( _type, _identifier, __VA_ARGS__);\
 	BEGIN_IMPL
 
-#define FCT_END \
-	END_IMPL \
+#define FCT_END\
+	END_IMPL\
 	addToAPI( signature, implementation );\
 }
 
-#define OPERATOR_END \
-	END_IMPL \
+#define OPERATOR_END\
+	END_IMPL\
 	addOperator(identifier, precedence, signature, implementation);\
 	addToAPI( signature , implementation );\
 }

@@ -16,7 +16,7 @@ using namespace Nodable;
 
 NodeView*          NodeView::s_selected               = nullptr;
 NodeView*          NodeView::s_draggedNode            = nullptr;
-ViewDetail_        NodeView::s_viewDetail             = Nodable::ViewDetail_Default;
+NodeViewDetail     NodeView::s_viewDetail             = NodeViewDetail::Default;
 const Connector*   NodeView::s_draggedConnector       = nullptr;
 const Connector*   NodeView::s_hoveredConnector       = nullptr;
 const float        NodeView::s_memberInputSizeMin     = 10.0f;
@@ -52,7 +52,7 @@ std::string NodeView::getLabel()
 {
     Node* node = getOwner();
 
-    if ( s_viewDetail == ViewDetail_Minimalist )
+    if (s_viewDetail == NodeViewDetail::Minimalist )
     {
         return std::string(node->getLabel()).substr(0,4);
     }
@@ -61,6 +61,8 @@ std::string NodeView::getLabel()
 
 void NodeView::setOwner(Node* _node)
 {
+    std::vector<Member*> notExposedMembers;
+
     //  We expose first the members which allows input connections
     for(auto& m : _node->getMembers())
     {
@@ -69,13 +71,16 @@ void NodeView::setOwner(Node* _node)
         {
             this->exposedInputs.emplace_back(member);
         }
+        else
+        {
+            notExposedMembers.push_back(member);
+        }
     }
 
     // Then we expose node which allows output connection (if they are not yet exposed)
-    for (auto& m : _node->getMembers())
+    for (auto& member : notExposedMembers)
     {
-        auto member = m.second;
-        if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_Out) && !this->isMemberExposed(member) )
+        if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_Out))
         {
             this->exposedOutputs.emplace_back(member);
         }
@@ -100,7 +105,7 @@ void NodeView::StartDragNode(NodeView* _view)
 		s_draggedNode = _view;
 }
 
-bool NodeView::IsANodeDragged() {
+bool NodeView::IsAnyDragged() {
 	return GetDragged() != nullptr;
 }
 
@@ -173,12 +178,7 @@ ImVec2 NodeView::getConnectorPosition(const Member *_member, Way _way)const
 		return ImVec2(pos.x , nodeViewScreenPosition.y - size.y * 0.5f);
     }
 	// Outputs => Bottom
-	else if (_way == Way_Out)
-	{
-        return ImVec2(pos.x, nodeViewScreenPosition.y + size.y * 0.5f);
-    }
-
-    NODABLE_ASSERT(false); // _way should be only In or Out.
+	return ImVec2(pos.x, nodeViewScreenPosition.y + size.y * 0.5f);
 }
 
 void NodeView::setPosition(ImVec2 _position)
@@ -539,7 +539,7 @@ bool NodeView::drawMemberView(MemberView &_memberView )
     {
         const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
         const bool isVariable = member->getOwner()->getClass() == Variable::GetClass();
-        _memberView.showInput = _memberView.member->isDefined() && (!isAnInputUnconnected || isVariable || s_viewDetail == ViewDetail_Exhaustive) ;
+        _memberView.showInput = _memberView.member->isDefined() && (!isAnInputUnconnected || isVariable || s_viewDetail == NodeViewDetail::Exhaustive) ;
     }
 
     _memberView.screenPos = ImGui::GetCursorScreenPos();
@@ -786,16 +786,16 @@ void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 
 }
 
-bool NodeView::isMemberExposed(Member *_member)
-{
-    return std::find_if(
-            exposedInputs.begin(),
-            exposedInputs.end(),
-            [&_member](const MemberView& _eachMemberView)->bool
-            {
-                return _eachMemberView.member == _member;
-            }) != exposedInputs.end();
-}
+//bool NodeView::isMemberExposed(Member *_member)
+//{
+//    return std::find_if(
+//            exposedInputs.begin(),
+//            exposedInputs.end(),
+//            [&_member](const MemberView& _eachMemberView)->bool
+//            {
+//                return _eachMemberView.member == _member;
+//            }) != exposedInputs.end();
+//}
 
 void NodeView::drawAdvancedProperties()
 {
@@ -826,7 +826,7 @@ void NodeView::drawAdvancedProperties()
     ImGui::Text("- name: \"%s\"", parentName.c_str());
 }
 
-void NodeView::SetDetail(ViewDetail_ _viewDetail)
+void NodeView::SetDetail(NodeViewDetail _viewDetail)
 {
     NodeView::s_viewDetail = _viewDetail;
 
