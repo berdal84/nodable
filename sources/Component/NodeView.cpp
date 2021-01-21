@@ -375,26 +375,6 @@ bool NodeView::draw()
 
 	ImGui::SameLine();
 
-	// if needed draw additionnal infos
-	if (!collapsed)
-	{	
-		// Draw visible members
-		for(auto& m : node->getMembers())
-		{		
-			auto member = m.second;
-
-			if( member->getVisibility() == Visibility::OnlyWhenUncollapsed ||
-				member->getVisibility() == Visibility::Hidden)
-			{
-                DrawMemberInput(member);
-			}
-		}	
-
-		// Draw component names
-		ImGui::NewLine();
-		drawAdvancedProperties();
-	}
-
 	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + nodePadding );
 	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + nodePadding );
     ImGui::EndGroup();
@@ -469,6 +449,19 @@ bool NodeView::draw()
 	if( hovered && ImGui::IsMouseDoubleClicked(0))
 	{
 		this->collapsed = !this->collapsed;
+
+        for( auto& eachMemberView : exposedInputs )
+        {
+            eachMemberView.touched = !collapsed;
+            eachMemberView.showInput = !collapsed;
+        }
+
+        for( auto& eachMemberView : exposedOutputs )
+        {
+            eachMemberView.touched = !collapsed;
+            eachMemberView.showInput = !collapsed;
+        }
+
 	}
 
     // interpolate size.y to fit with its content
