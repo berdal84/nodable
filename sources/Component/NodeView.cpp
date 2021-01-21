@@ -137,12 +137,7 @@ bool NodeView::IsSelected(NodeView* _view)
 
 ImVec2 NodeView::getRoundedPosition()const
 {
-	ImVec2 roundedPosition;
-
-	roundedPosition.x = std::round(position.x);
-	roundedPosition.y = std::round(position.y);
-
-	return roundedPosition;
+	return ImVec2(std::round(position.x), std::round(position.y));
 }
 
 const MemberView* NodeView::getMemberView(const Member* _member)const
