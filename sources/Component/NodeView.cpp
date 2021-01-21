@@ -87,6 +87,20 @@ void NodeView::setOwner(Node* _node)
         }
     }
 
+    // Determine a color depending on node type
+    if (_node->hasComponent<ComputeBase>())
+    {
+        setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
+    }
+    else if ( _node->getClass() == mirror::GetClass<Variable>() )
+    {
+        setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f));
+    }
+    else
+    {
+        setColor(ColorType_Fill, ImColor(0.9f, 0.9f, 0.7f));
+    }
+
     Component::setOwner(_node);
 }
 
@@ -178,13 +192,12 @@ ImVec2 NodeView::getConnectorPosition(const Member *_member, Way _way)const
 
 void NodeView::setPosition(ImVec2 _position)
 {
-	this->position.x =  _position.x;
-	this->position.y =  _position.y;
+	this->position = _position;
 }
 
 void NodeView::translate(ImVec2 _delta)
 {
-	setPosition( position + _delta);
+	this->setPosition( position + _delta);
 }
 
 void NodeView::arrangeRecursively()
@@ -199,26 +212,20 @@ bool NodeView::update()
 	return update(deltaTime);
 }
 
-bool NodeView::update(float _deltaTime) {
+bool NodeView::update(float _deltaTime)
+{
 	// Update opacity to reach 1.0f
 	//-----------------------------
 
 	if (opacity < 1.0f)
+    {
 		opacity += (1.0f - opacity) * float(10) * _deltaTime;
+    }
 
 	// Set background color according to node class 
 	//---------------------------------------------
 	auto node = getOwner();
 	NODABLE_ASSERT(node != nullptr);
-
-	if (node->hasComponent<ComputeBase>())
-		setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
-	else if (dynamic_cast<Variable*>(node) != nullptr)
-		setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f));
-	else
-		setColor(ColorType_Fill, ImColor(0.9f, 0.9f, 0.7f));
-
-
 	updateInputConnectedNodes(node, _deltaTime);
 
 	return true;
