@@ -54,6 +54,7 @@ std::string NodeView::getLabel()
 
     if (s_viewDetail == NodeViewDetail::Minimalist )
     {
+        // I always add an ICON_FA at the begining of any node label string (encoded in 4 bytes)
         return std::string(node->getLabel()).substr(0,4);
     }
     return node->getLabel();
@@ -105,7 +106,8 @@ void NodeView::StartDragNode(NodeView* _view)
 		s_draggedNode = _view;
 }
 
-bool NodeView::IsAnyDragged() {
+bool NodeView::IsAnyDragged()
+{
 	return GetDragged() != nullptr;
 }
 
@@ -131,30 +133,23 @@ ImVec2 NodeView::getRoundedPosition()const
 
 const MemberView* NodeView::getMemberView(const Member* _member)const
 {
-    auto it = std::find_if(
-            exposedInputs.begin(),
-            exposedInputs.end(),
-            [&_member](const MemberView& _view)->bool
-            {
-                return _member == _view.member;
-            });
-
-    if (it != exposedInputs.end())
+    auto predicate = [&_member](const MemberView& _view)->bool
     {
-        return &*it;
+        return _member == _view.member;
+    };
+
+    // Find in inputs
+    auto found = std::find_if(exposedInputs.begin(), exposedInputs.end(), predicate);
+    if (found != exposedInputs.end())
+    {
+        return &*found;
     }
 
-    it = std::find_if(
-            exposedOutputs.begin(),
-            exposedOutputs.end(),
-            [&_member](const MemberView& _view)->bool
-            {
-                return _member == _view.member;
-            });
-
-    if (it != exposedOutputs.end())
+    // Find in outputs
+    found = std::find_if(exposedOutputs.begin(),exposedOutputs.end(), predicate);
+    if (found != exposedOutputs.end())
     {
-        return &*it;
+        return &*found;
     }
 
     return nullptr;
