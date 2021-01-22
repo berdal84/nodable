@@ -28,7 +28,7 @@ NodeView::NodeView():
         position(500.0f, -1.0f),
         size(NODE_VIEW_DEFAULT_SIZE),
         opacity(1.0f),
-        collapsed(true),
+        forceMemberInputVisible(false),
         pinned(false),
         borderRadius(5.0f),
         borderColorSelected(1.0f, 1.0f, 1.0f)
@@ -38,13 +38,21 @@ NodeView::NodeView():
 
 NodeView::~NodeView()
 {
+    // delete MemberViews
+    for ( auto& pair: exposedMembers )
+    {
+        delete pair.second;
+    }
+
+    // deselect
     if ( s_selected == this )
     {
         s_selected = nullptr;
     }
 
+    // Erase instance in static vector
     auto found = std::find( s_instances.begin(), s_instances.end(), this);
-    NODABLE_ASSERT(found != s_instances.end() );
+    assert(found != s_instances.end() );
     s_instances.erase(found);
 }
 
@@ -60,6 +68,24 @@ std::string NodeView::getLabel()
     return node->getLabel();
 }
 
+void NodeView::exposeMember(Member* _member, Way _way)
+{
+    assert(_way == Way_In || _way == Way_Out);
+
+    MemberView* memberView = new MemberView(_member);
+
+    if( _way == Way_In )
+    {
+        this->exposedInputsMembers.push_back(memberView);
+    }
+    else // Way_Out
+    {
+        this->exposedOutputMembers.push_back(memberView);
+    }
+
+    this->exposedMembers.insert_or_assign(_member, memberView);
+}
+
 void NodeView::setOwner(Node* _node)
 {
     std::vector<Member*> notExposedMembers;
@@ -70,7 +96,7 @@ void NodeView::setOwner(Node* _node)
         auto member = m.second;
         if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_In) )
         {
-            this->exposedInputs.emplace_back(member);
+           this->exposeMember(member, Way_In);
         }
         else
         {
@@ -83,7 +109,7 @@ void NodeView::setOwner(Node* _node)
     {
         if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_Out))
         {
-            this->exposedOutputs.emplace_back(member);
+            this->exposeMember(member, Way_Out);
         }
     }
 
@@ -142,26 +168,7 @@ ImVec2 NodeView::getRoundedPosition()const
 
 const MemberView* NodeView::getMemberView(const Member* _member)const
 {
-    auto predicate = [&_member](const MemberView& _view)->bool
-    {
-        return _member == _view.member;
-    };
-
-    // Find in inputs
-    auto found = std::find_if(exposedInputs.begin(), exposedInputs.end(), predicate);
-    if (found != exposedInputs.end())
-    {
-        return &*found;
-    }
-
-    // Find in outputs
-    found = std::find_if(exposedOutputs.begin(),exposedOutputs.end(), predicate);
-    if (found != exposedOutputs.end())
-    {
-        return &*found;
-    }
-
-    return nullptr;
+    return exposedMembers.at(_member);
 }
 
 ImVec2 NodeView::getConnectorPosition(const Member *_member, Way _way)const
@@ -358,7 +365,7 @@ bool NodeView::draw()
 	ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), getLabel().c_str()); // text with a lighter shadow (incrust effect)
 
 	// Draw inputs
-    for( auto& memberView : this->exposedInputs )
+    for( auto& memberView : this->exposedInputsMembers )
     {
         ImGui::SameLine();
         ImGui::SetCursorPosY(cursorPositionBeforeContent.y + 1.0f);
@@ -366,7 +373,7 @@ bool NodeView::draw()
     }
 
     // Draw outputs
-    for( auto& memberView : this->exposedOutputs )
+    for( auto& memberView : this->exposedOutputMembers )
     {
         ImGui::SameLine();
         ImGui::SetCursorPosY(cursorPositionBeforeContent.y + 8.0f);
@@ -386,15 +393,15 @@ bool NodeView::draw()
     size.y = std::max(NODE_VIEW_DEFAULT_SIZE.y, std::ceil( ImGui::GetItemRectSize().y ));
 
 	// Draw input connectors
-    for( auto& memberView : exposedInputs )
+    for( auto& memberView : exposedInputsMembers )
     {
-        drawMemberConnectors(memberView.member);
+        drawMemberConnectors(memberView->member);
     }
 
 	// Draw out connectors
-    for( auto& memberView : exposedOutputs )
+    for( auto& memberView : exposedOutputMembers )
     {
-        drawMemberConnectors(memberView.member);
+        drawMemberConnectors(memberView->member);
     }
 
     // Contextual menu (right click)
@@ -411,7 +418,7 @@ bool NodeView::draw()
         }
 
         ImGui::MenuItem("Pinned",    "", &this->pinned,    true);
-		ImGui::MenuItem("Collapsed", "", &this->collapsed, true);
+		ImGui::MenuItem("Collapsed", "", &this->forceMemberInputVisible, true);
         ImGui::Separator();
 
         if(ImGui::Selectable("Delete"))
@@ -448,24 +455,15 @@ bool NodeView::draw()
 	// Collapse on/off
 	if( hovered && ImGui::IsMouseDoubleClicked(0))
 	{
-		this->collapsed = !this->collapsed;
+		this->forceMemberInputVisible = !this->forceMemberInputVisible;
 
-        for( auto& eachMemberView : exposedInputs )
+        for( auto& pair : exposedMembers )
         {
-            eachMemberView.touched = !collapsed;
-            eachMemberView.showInput = !collapsed;
+            auto& eachMemberView = pair.second;
+            eachMemberView->touched = forceMemberInputVisible;
+            eachMemberView->showInput = forceMemberInputVisible;
         }
-
-        for( auto& eachMemberView : exposedOutputs )
-        {
-            eachMemberView.touched = !collapsed;
-            eachMemberView.showInput = !collapsed;
-        }
-
 	}
-
-    // interpolate size.y to fit with its content
-	//size.y = std::max( 35.0f, cursorPosAfterContent.y - cursorPositionBeforeContent.y);
 
 	ImGui::PopStyleVar();
 	ImGui::PopID();
@@ -520,26 +518,26 @@ void NodeView::drawMemberConnectors(Member* _member)
     }
 }
 
-bool NodeView::drawMemberView(MemberView &_memberView )
+bool NodeView::drawMemberView(MemberView* _memberView )
 {
     bool edited = false;
-    auto member = _memberView.member;
+    Member* member = _memberView->member;
 
-    if( !_memberView.touched )
+    if( !_memberView->touched )
     {
         const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
         const bool isVariable = member->getOwner()->getClass() == Variable::GetClass();
-        _memberView.showInput = _memberView.member->isDefined() && (!isAnInputUnconnected || isVariable || s_viewDetail == NodeViewDetail::Exhaustive) ;
+        _memberView->showInput = _memberView->member->isDefined() && (!isAnInputUnconnected || isVariable || s_viewDetail == NodeViewDetail::Exhaustive) ;
     }
 
-    _memberView.screenPos = ImGui::GetCursorScreenPos();
+    _memberView->screenPos = ImGui::GetCursorScreenPos();
 
     // input
-    if ( _memberView.showInput )
+    if ( _memberView->showInput )
     {
         // try to draw an as small as possible input field
         float inputWidth = 5.0f + std::max( ImGui::CalcTextSize(((std::string)*member).c_str()).x, NodeView::s_memberInputSizeMin );
-        _memberView.screenPos.x += inputWidth / 2.0f;
+        _memberView->screenPos.x += inputWidth / 2.0f;
         ImGui::PushItemWidth(inputWidth);
         edited = NodeView::DrawMemberInput(member);
         ImGui::PopItemWidth();
@@ -547,7 +545,7 @@ bool NodeView::drawMemberView(MemberView &_memberView )
     else
     {
         ImGui::Button("", NodeView::s_memberInputToggleButtonSize);
-        _memberView.screenPos.x += NodeView::s_memberInputToggleButtonSize.x / 2.0f;
+        _memberView->screenPos.x += NodeView::s_memberInputToggleButtonSize.x / 2.0f;
 
         if ( ImGui::IsItemHovered() )
         {
@@ -560,8 +558,8 @@ bool NodeView::drawMemberView(MemberView &_memberView )
 
         if ( ImGui::IsItemClicked(0) )
         {
-            _memberView.showInput = !_memberView.showInput;
-            _memberView.touched = true;
+            _memberView->showInput = !_memberView->showInput;
+            _memberView->touched = true;
         }
     }
 
@@ -728,9 +726,9 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
     // Draw exposed input members
     ImGui::Text("Inputs:");
     ImGui::Indent();
-    for (auto& eachView : _view->exposedInputs )
+    for (auto& eachView : _view->exposedInputsMembers )
     {
-        drawMember(eachView.member);
+        drawMember(eachView->member);
     }
     ImGui::Unindent();
 
@@ -738,9 +736,9 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
     ImGui::NewLine();
     ImGui::Text("Outputs:");
     ImGui::Indent();
-    for (auto& eachView : _view->exposedOutputs )
+    for (auto& eachView : _view->exposedOutputMembers )
     {
-        drawMember(eachView.member);
+        drawMember(eachView->member);
     }
     ImGui::Unindent();
 
@@ -776,16 +774,10 @@ void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 
 }
 
-//bool NodeView::isMemberExposed(Member *_member)
-//{
-//    return std::find_if(
-//            exposedInputs.begin(),
-//            exposedInputs.end(),
-//            [&_member](const MemberView& _eachMemberView)->bool
-//            {
-//                return _eachMemberView.member == _member;
-//            }) != exposedInputs.end();
-//}
+bool NodeView::isMemberExposed(const Member *_member)const
+{
+    return exposedMembers.find(_member) != exposedMembers.end();
+}
 
 void NodeView::drawAdvancedProperties()
 {
@@ -822,16 +814,10 @@ void NodeView::SetDetail(NodeViewDetail _viewDetail)
 
     for( auto& eachView : NodeView::s_instances)
     {
-        for( auto& eachMemberView : eachView->exposedInputs )
+        for( auto& eachPair : eachView->exposedMembers )
         {
-            eachMemberView.touched = false;
-            eachMemberView.showInput = false;
-        }
-
-        for( auto& eachMemberView : eachView->exposedOutputs )
-        {
-            eachMemberView.touched = false;
-            eachMemberView.showInput = false;
+            MemberView* memberView = eachPair.second;
+            memberView->reset();
         }
     }
 }

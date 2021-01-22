@@ -38,12 +38,21 @@ namespace Nodable
 	    /** Position in screen space */
 	    ImVec2 screenPos;
 
-	    explicit MemberView(Member* _member)
+	    explicit MemberView(Member* _member):
+	        member(_member),
+	        showInput(false),
+	        touched(false)
         {
-	        NODABLE_ASSERT(_member != nullptr); // Member must be defined
-	        member    = _member;
-            showInput = true;
-            touched   = false;
+	        assert(_member != nullptr); // Member must be defined
+        }
+
+        /**
+         * Reset the view
+         */
+        void reset()
+        {
+            touched = false;
+            showInput = false;
         }
     };
 
@@ -59,8 +68,9 @@ namespace Nodable
 		/** override Component::setOwner(Node*) to extract some information from owner before to actually set it */
 		void setOwner(Node* _node)override;
 
-		/** Expose a member in the NodeView */
-		void exposeMember(Member* _member);
+		/** Expose a member in the NodeView
+		 * Way can only be Way_In or Way_Out */
+		void exposeMember(Member*, Way );
 
 		/** Draw the view at its position into the current window
 		   Returns true if nod has been edited, false either */
@@ -69,7 +79,9 @@ namespace Nodable
 		/** Should be called once per frame to update the view */
 		bool update()override;
 
-		void updateInputConnectedNodes(Nodable::Node* node, float deltaTime);
+		/** Maintain a coherent layout between this NodeView and the NodeView connected
+		 * This create the "spring-like" effect while dragging a NodeView */
+		void updateInputConnectedNodes(Node* node, float deltaTime);
 
 		/** Get top-left corner vector position */
 		ImVec2 getRoundedPosition()const;
@@ -165,7 +177,7 @@ namespace Nodable
 
         /**	Draw a Node Member at cursor position.
 			Returns true if Member's value has been modified, false either */
-		bool drawMemberView(MemberView &_memberView);
+		bool drawMemberView(MemberView *_memberView);
 
 		/** Draw all member connector(s). Can be 0, 1 or 2 depending on member's connectorWay (cf enum Way_) */
         void drawMemberConnectors(Member *_member);
@@ -173,7 +185,8 @@ namespace Nodable
         /** Draw a single connector at a specific position into the IMGuiDrawList */
 		void drawConnector(ImVec2& , const Connector* , ImDrawList*);
 
-        // bool isMemberExposed(Member *_member); // adapt this to take in account exposedInputs and exposedOutputs
+		/** Check if a Member is exposed (as an input or output) */
+        bool isMemberExposed(const Member *_member)const;
 
         /** Get a MemberView given a Member */
         const MemberView* getMemberView(const Member* _member)const;
@@ -188,14 +201,15 @@ namespace Nodable
 		float           opacity;
 
 		/* @deprecated */
-		bool            collapsed;
+		bool            forceMemberInputVisible;
 
 		/** when true, the NodeView is pinned to the document and do not follow it's connected Node */
 		bool            pinned;
 		float           borderRadius;
 		ImColor         borderColorSelected;
-		std::vector<MemberView> exposedInputs;
-		std::vector<MemberView> exposedOutputs;
+		std::vector<MemberView*> exposedInputsMembers;
+		std::vector<MemberView*> exposedOutputMembers;
+        std::map<const Member*, MemberView*> exposedMembers;
 
         /** pointer to the currently selected NodeView. */
 		static NodeView* s_selected;
