@@ -143,13 +143,13 @@ Member* Parser::tokenToMember(const Token& _token) {
 
 Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short _precedence, Member* _left) {
 
-    LOG_VERBOSE("Parser", "parseBinaryOperationExpression...\n");
+    LOG_VERBOSE("Parser", "parse binary operation expr...\n");
     LOG_VERBOSE("Parser", "%s \n", Parser::logTokens(tokens, _tokenId).c_str());
 
 	Member* result = nullptr;
 
 	if (_tokenId + 1 >= tokens.size()) {
-		LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (not enought tokens)\n");
+		LOG_VERBOSE("Parser", "parse binary operation expr...... " KO " (not enought tokens)\n");
 		return nullptr;
 	}
 
@@ -162,7 +162,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 			             token2.type != TokenType::Operator;
 
 	if (!isValid) {
-		LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (Structure)\n");
+		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Structure)\n");
 		return nullptr;
 	}
 
@@ -171,7 +171,7 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 
 	if (currentOperatorPrecedence <= _precedence &&
 	    _precedence > 0u) { // always eval the first operation if they have the same precedence or less.
-		LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (Precedence)\n");
+		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n");
 		return nullptr;
 	}
 
@@ -222,13 +222,13 @@ Member* Parser::parseBinaryOperationExpression(size_t& _tokenId, unsigned short 
 		result = binOpNode->get("result");
 
 	}else {
-		LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (unable to find operator prototype)\n");
+		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator prototype)\n");
 		return nullptr;
 	}
 
 	_tokenId = rightTokenId;
 
-	LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " OK "\n");
+	LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n");
 
 	return result;
 }
@@ -242,7 +242,10 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 
 	const bool hasEnoughtTokens = tokens.size() > _tokenId + 1;
 	if (!hasEnoughtTokens)
+	{
+		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (not enough tokens)\n");
 		return nullptr;
+	}
 
 	const Token& token1(tokens.at(_tokenId));
 
@@ -271,7 +274,6 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 
 	if (matchingOperator != nullptr)
 	{
-
 		auto binOpNode = container->newUnaryOp(matchingOperator);
 
 		// Connect the Left Operand :
@@ -288,25 +290,25 @@ Member* Parser::parseUnaryOperationExpression(size_t& _tokenId, unsigned short _
 
 		// Set the left !
 		result = binOpNode->get("result");
+		_tokenId = valueTokenId;
+		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
 
-	} else {
+		return result;
+	}
+	else
+	{
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (unrecognysed operator)\n");
 		return nullptr;
 	}
-
-	_tokenId = valueTokenId;
-	LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
-
-	return result;
 }
 
 Member* Parser::parseAtomicExpression(size_t& _tokenId) {
 
-	LOG_VERBOSE("Parser", "parseAtomicExpression... \n");
+	LOG_VERBOSE("Parser", "parse atomic expr... \n");
 
 	// Check if there is index is not out of bounds
 	if (tokens.size() <= _tokenId) {
-		LOG_VERBOSE("Parser", "parseAtomicExpression... " KO "(not enought tokens)\n");
+		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(not enough tokens)\n");
 		return nullptr;
 	}
 
@@ -314,7 +316,7 @@ Member* Parser::parseAtomicExpression(size_t& _tokenId) {
 
 	// Check if token is not an operator
 	if (token.type == TokenType::Operator) {
-		LOG_VERBOSE("Parser", "parseAtomicExpression... " KO "(token is an operator)\n");
+		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n");
 		return nullptr;
 	}
 
@@ -323,50 +325,46 @@ Member* Parser::parseAtomicExpression(size_t& _tokenId) {
 	if( result != nullptr)
 		_tokenId++;
 
-	LOG_VERBOSE("Parser", "parseAtomicExpression... " OK "\n");
+	LOG_VERBOSE("Parser", "parse atomic expr... " OK "\n");
 
 	return result;
 }
 
 Member* Parser::parseParenthesisExpression(size_t& _tokenId) {
 
-	LOG_VERBOSE("Parser", "parseParenthesisExpression...");
+	LOG_VERBOSE("Parser", "parse parenthesis expr...\n");
 	LOG_VERBOSE("Parser", "%s \n", Parser::logTokens(tokens, _tokenId).c_str());
 
 	if (_tokenId >= tokens.size())
+	{
+		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " no enough tokens.\n");
 		return nullptr;
+	}
 
 	auto token1(tokens.at(_tokenId));
 
 	if (token1.type != TokenType::LBracket)
 	{
+		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n");
 		return nullptr;
 	}
 
 	Member* result(nullptr);
+	auto subToken = _tokenId + 1;
+	result = parseExpression(subToken, 0u, nullptr);
 
-	if (token1.word == "(")
+	if (result)
 	{
-		auto subToken = _tokenId + 1;
-		result = parseExpression(subToken, 0u, nullptr);
-
-		if (result)
+		if (tokens.at(subToken).word != ")")
 		{
-			_tokenId = subToken + 1;
-
-			if (tokens.at(subToken).word != ")")
-			{
-				LOG_VERBOSE("Parser", "%s \n", Parser::logTokens(tokens, _tokenId).c_str());
-                LOG_VERBOSE("Parser", "parseParenthesisExpression failed... " KO " ( \")\" expected after %s )\n", tokens.at(subToken - 1));
-			}
-			else {
-                LOG_VERBOSE("Parser", "parseParenthesisExpression... " OK  "\n");
-			}
+			LOG_VERBOSE("Parser", "%s \n", Parser::logTokens(tokens, subToken).c_str());
+			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected after %s )\n", tokens.at(subToken - 1));
 		}
-	} else {
-        LOG_VERBOSE("Parser", "parseParenthesisExpression... " KO " (open parenthesis not found) \n");
+		else {
+			LOG_VERBOSE("Parser", "parse parenthesis expr..." OK  "\n");
+			_tokenId = subToken + 1;
+		}
 	}
-
 
 	return result;
 }
@@ -395,11 +393,11 @@ Member* Parser::parseRootExpression() {
 
 Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Member* _leftOverride) {
 
-	LOG_VERBOSE("Parser", "parseExpression...\n");
+	LOG_VERBOSE("Parser", "parse expr...\n");
 	LOG_VERBOSE("Parser", "%s \n", Parser::logTokens(tokens, _tokenId).c_str());
 
 	if (_tokenId >= tokens.size()) {
-		LOG_VERBOSE("Parser", "parseExpression..." KO " (last token)\n");
+		LOG_VERBOSE("Parser", "parse expr..." KO " (last token)\n");
 	}
 
 	/**
@@ -414,7 +412,7 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 	else if (left = parseAtomicExpression(_tokenId))
 
 	if (_tokenId >= tokens.size()) {
-		LOG_VERBOSE("Parser", "parseExpression..." OK " (parsing only left, last token)\n");
+		LOG_VERBOSE("Parser", "parse expr... " OK " (last token reached)\n");
 		return left;
 	}
 
@@ -424,13 +422,13 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 		Get the right handed operand
 	*/
 
-	if (left != nullptr) {
+	if ( left ) {
 
-		LOG_VERBOSE("Parser", "left parsed, we parse right\n");
+		LOG_VERBOSE("Parser", "parse expr... left parsed, we parse right\n");
 		auto binResult = parseBinaryOperationExpression(_tokenId, _precedence, left);
 
 		if (binResult) {
-			LOG_VERBOSE("Parser", "right parsed, recursive call\n");
+			LOG_VERBOSE("Parser", "parse expr... right parsed, recursive call\n");
 			result = parseExpression(_tokenId, _precedence, binResult);
 		}
 		else {
@@ -438,7 +436,7 @@ Member* Parser::parseExpression(size_t& _tokenId, unsigned short _precedence, Me
 		}
 
 	} else {
-		LOG_VERBOSE("Parser", "left is nullptr, we return it\n");
+		LOG_VERBOSE("Parser", "parse expr... left is nullptr, we return it\n");
 		result = left;
 	}
 
@@ -582,6 +580,8 @@ void Parser::addToken(TokenType  _type, std::string _string, size_t _charIndex)
 
 Member* Parser::parseFunctionCall(size_t& _tokenId)
 {
+	LOG_VERBOSE("Parser", "parse function call...\n");
+
 	size_t localTokenId = _tokenId;
 
 	std::string identifier;
@@ -589,7 +589,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 	// Check if the minimum token count required is available ( 0: identifier, 1: open parenthesis, 2: close parenthesis)
 	if (localTokenId + 2 >= tokens.size() )
 	{
-		LOG_VERBOSE("Parser", "parseFunctionCall aborted. Not enough tokens.");
+		LOG_VERBOSE("Parser", "parse function call... " KO " aborted, not enough tokens.\n");
 		return nullptr;
 	}
 
@@ -604,6 +604,7 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 	{
 		identifier = token_0.word;
 		localTokenId++;
+		LOG_VERBOSE("Parser", "parse function call... " KO " regular function pattern detected.\n");
 	}
 
 	// operator like (ex: operator==(..,..))
@@ -614,10 +615,11 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
                 // ex: "operator" + ">="
 		identifier = token_0.word + token_1.word;
 		localTokenId += 2;
+		LOG_VERBOSE("Parser", "parse function call... " KO " operator function-like pattern detected.\n");
 	}
 	else
 	{
-		LOG_VERBOSE("Parser", "parseFunctionCall aborted. (no regular function or function-like operator found)");
+		LOG_VERBOSE("Parser", "parse function call... " KO " abort, this is not a function.\n");
 		return nullptr;
 	}
 
@@ -650,8 +652,9 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 	}
 
 
-	if (tokens.at(localTokenId).type != TokenType::RBracket ) {
-		LOG_VERBOSE("Parser", "parseFunctionCall aborted. Close parenthesis expected !");
+	if (tokens.at(localTokenId).type != TokenType::RBracket )
+	{
+		LOG_VERBOSE("Parser", "parse function call... " KO " abort, close parenthesis expected. \n");
 		return nullptr;
 	}
 
@@ -680,11 +683,13 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 			connectArg(argIndex);
 
 		_tokenId = localTokenId;
+		LOG_VERBOSE("Parser", "parse function call... " OK "\n");
+
 		return node->get("result");
 
-	} else {
-		LOG_VERBOSE("Parser", "Unable to parse function, prototype not found.");
 	}
+
+	LOG_VERBOSE("Parser", "parse function call... " KO " prototype not found.");
 
 	return nullptr;
 }
