@@ -8,15 +8,19 @@ namespace Nodable {
 	class Token
 	{
 	public:
-		TokenType  type = TokenType::Default; // the type of the token
-		std::string word = "";                // the word as a string
-		size_t      charIndex = 0;                 // the index of the first character of the token in the evaluated expression.
+		TokenType  type;
+		std::string word;
+		size_t charIndex; // the index of the first character of the token in the evaluated expression.
+
+		Token(TokenType _type, const std::string& _word, size_t _index):
+		    type(_type),
+		    word(_word),
+            charIndex(_index)
+        {}
 
 		bool isOperand()const { // TODO: move this into "Parser" or "Language"
-			return type == TokenType::DoubleType ||
-				type == TokenType::BooleanType ||
-				type == TokenType::StringType ||
-				type == TokenType::Symbol;
+			return type == TokenType::Double || type == TokenType::Boolean ||
+				   type == TokenType::String || type == TokenType::Symbol;
 		}
 
 	};
