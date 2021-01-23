@@ -604,18 +604,18 @@ Member* Parser::parseFunctionCall(size_t& _tokenId)
 	{
 		identifier = token_0.word;
 		localTokenId++;
-		LOG_VERBOSE("Parser", "parse function call... " KO " regular function pattern detected.\n");
+		LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n");
 	}
 
 	// operator like (ex: operator==(..,..))
-	else if (token_0.type == TokenType::Symbol &&
-		     token_1.type == TokenType::Operator &&
+	else if (token_0.type == TokenType::Symbol && token_0.word == language->getSemantic()->tokenTypeToString(TokenType::KeywordOperator) &&
+			 token_1.type == TokenType::Operator &&
 		     token_2.type == TokenType::LBracket)
 	{
                 // ex: "operator" + ">="
 		identifier = token_0.word + token_1.word;
 		localTokenId += 2;
-		LOG_VERBOSE("Parser", "parse function call... " KO " operator function-like pattern detected.\n");
+		LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n");
 	}
 	else
 	{
