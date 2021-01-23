@@ -11,7 +11,7 @@ namespace Nodable{
 
 
     /**
-     * A class to add tokens in a vector and o easily read them.
+     * A class to add tokens in a vector and navigate into them.
      *
      * This works like a ribbon full of token, with some cursors into a stack to allow a transaction like system.
      * User can eat several token an then decide to rollback or commit.
