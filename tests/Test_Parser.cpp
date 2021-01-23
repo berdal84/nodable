@@ -51,14 +51,6 @@ std::string ParseEvalSerialize(
     return resultExpression;
 }
 
-TEST(Parser, DNAtoProtein )
-{
-    EXPECT_TRUE(Parser_Test("DNAtoProtein(\"TAA\")", "_"));
-    EXPECT_TRUE(Parser_Test("DNAtoProtein(\"TAG\")", "_"));
-    EXPECT_TRUE(Parser_Test("DNAtoProtein(\"TGA\")", "_"));
-    EXPECT_TRUE(Parser_Test("DNAtoProtein(\"ATG\")", "M"));
-}
-
 TEST(Parser, Simple_expressions)
 {
     EXPECT_TRUE( Parser_Test("-5", -5));
@@ -155,4 +147,12 @@ TEST(Parser, Eval_Serialize_Compare)
     EXPECT_EQ(ParseEvalSerialize("a=5"), "a = 5");
     EXPECT_EQ(ParseEvalSerialize("(a+b)*(c+d)"), "(a + b) * (c + d)");
     EXPECT_EQ(ParseEvalSerialize("b = string(false)"), "b = string(false)");
+}
+
+TEST(Parser, DNAtoProtein )
+{
+    EXPECT_TRUE(Parser_Test("DNAtoProtein(\"TAA\")", "_"));
+    EXPECT_TRUE(Parser_Test("DNAtoProtein(\"TAG\")", "_"));
+    EXPECT_TRUE(Parser_Test("DNAtoProtein(\"TGA\")", "_"));
+    EXPECT_TRUE(Parser_Test("DNAtoProtein(\"ATG\")", "M"));
 }
