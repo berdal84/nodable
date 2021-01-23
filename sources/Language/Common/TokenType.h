@@ -34,6 +34,7 @@ namespace Nodable {
         StringType,
         DoubleType,
         BooleanType,
+        KeywordOperator,
 
 		Default = Unknown
 

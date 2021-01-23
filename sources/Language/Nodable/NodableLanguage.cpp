@@ -30,6 +30,7 @@ NodableLanguage::NodableLanguage(): Language("Nodable")
     semantic.insert_StringToTokenType("any", TokenType::AnyType);
 
     // operators
+    semantic.insert_StringToTokenType("operator", TokenType::KeywordOperator); // 3 chars
     semantic.insert_RegexToTokenType(std::regex("^(<=>)"),TokenType::Operator); // 3 chars
     semantic.insert_RegexToTokenType(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>))"),TokenType::Operator); // 2 chars
     semantic.insert_RegexToTokenType(std::regex("^[/+\\-*!=<>]"),TokenType::Operator); // single char
