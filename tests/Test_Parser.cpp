@@ -5,6 +5,7 @@
 #include <Language/Common/Parser.h>
 #include <Node/Variable.h>
 #include <Language/Common/LanguageLibrary.h>
+#include "ResultNode.h"
 
 using namespace Nodable;
 
@@ -18,13 +19,13 @@ bool Parser_Test(
     Container container(_language);
 
     Parser* parser = _language->getParser();
-    parser->evalExprIntoContainer(expression, &container);
+    parser->evalCodeIntoContainer(expression, &container);
     container.update();
 
     auto expectedMember = std::make_unique<Member>(nullptr);
     expectedMember->set(_expectedValue);
 
-    auto result = container.getResultVariable();
+    auto result = container.getResults().back();
     auto success = result->value()->equals(expectedMember.get());
 
     return success;
@@ -38,13 +39,12 @@ std::string ParseEvalSerialize(
 
     Container container(_language);
     Parser* parser = _language->getParser();
-    parser->evalExprIntoContainer(expression, &container);
+    parser->evalCodeIntoContainer(expression, &container);
 
-    auto result = container.getResultVariable();
     container.update();
 
     Serializer* serializer = _language->getSerializer();
-    auto resultExpression = serializer->serialize(result->value());
+    auto resultExpression = serializer->serialize( container.getScope() );
 
     std::cout << resultExpression << std::endl;
 
@@ -147,6 +147,25 @@ TEST(Parser, Eval_Serialize_Compare)
     EXPECT_EQ(ParseEvalSerialize("a=5"), "a = 5");
     EXPECT_EQ(ParseEvalSerialize("(a+b)*(c+d)"), "(a + b) * (c + d)");
     EXPECT_EQ(ParseEvalSerialize("b = string(false)"), "b = string(false)");
+}
+
+TEST(Parser, Single_Instruction_With_EndOfInstruction )
+{
+    EXPECT_TRUE(Parser_Test("a = 5;", double(5)));
+    EXPECT_EQ(ParseEvalSerialize("a = 5;"), "a = 5;");
+}
+
+TEST(Parser, Multiple_Instructions_Single_Line )
+{
+    EXPECT_TRUE(Parser_Test("a = 5;b = 2 * a;", double(10)));
+    EXPECT_EQ(ParseEvalSerialize("a = 5;b = 2 * a;"), "a = 5;b = 2 * a;");
+}
+
+TEST(Parser, Multiple_Instructions_Multi_Line )
+{
+    EXPECT_TRUE(Parser_Test("a = 5;\nb = 2 * a;", double(10)));
+    EXPECT_EQ(ParseEvalSerialize("a = 5;\nb = 2 * a;"), "a = 5;\nb = 2 * a;");
+    EXPECT_EQ(ParseEvalSerialize("a = 5;b = 2 * a;\nc = 33 + 5;"), "a = 5;b = 2 * a;\nc = 33 + 5;");
 }
 
 TEST(Parser, DNAtoProtein )

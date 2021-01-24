@@ -8,7 +8,7 @@
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-
+#include "ResultNode.h"
 
 using namespace Nodable;
 
@@ -28,10 +28,11 @@ bool ContainerView::draw()
 	{
 		// Constraints
 		auto container = getOwner()->as<Container>();
-		auto result    = container->getResultVariable();
 
-		if (result != nullptr) { // Make sure result node is always visible
-			auto view = result->getComponent<NodeView>();
+		if ( !container->getResults().empty() )
+		{
+            // Make sure result node is always visible
+			auto view = container->getResults().back()->getComponent<NodeView>();
 			auto rect = ImRect(ImVec2(0,0), ImGui::GetWindowSize());
 			rect.Max.y = 1000000000000.0f;
 			NodeView::ConstraintToRect(view, rect );
@@ -223,7 +224,7 @@ bool ContainerView::draw()
 			newNode = container->newVariable("Variable");
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
-			newNode = container->newResult();
+			newNode = container->newInstructionResult();
 
 
 		/*

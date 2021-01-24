@@ -14,6 +14,7 @@
 #include "Application.h"
 #include "NodeTraversal.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include "ResultNode.h"
 
 using namespace Nodable;
 
@@ -22,13 +23,16 @@ ImVec2 Container::LastResultNodePosition = ImVec2(-1, -1); // draft try to store
 Container::~Container()
 {
 	clear();
+	delete scope;
 }
 
 void Container::clear()
 {
 	// Store the Result node position to restore it later
-	if (resultNode != nullptr) {
-		auto view = resultNode->getComponent<NodeView>();
+	// TODO: handle multiple results
+	if ( !results.empty() )
+	{
+		auto view = results.back()->getComponent<NodeView>();
 		Container::LastResultNodePosition = view->getRoundedPosition();
 	}
 
@@ -45,10 +49,9 @@ void Container::clear()
         delete node;
 	}
     nodes.resize(0);
-
+	results.clear();
+    scope->clear();
     LOG_VERBOSE("Container", "===================================================\n");
-
-    resultNode = nullptr;
 }
 
 UpdateResult Container::update()
@@ -131,10 +134,13 @@ void Container::remove(Node* _node)
         }
     }
 
-    if (_node == this->resultNode)
-    {
-        this->resultNode = nullptr;
-    }
+	{
+		auto it = std::find(results.begin(), results.end(), _node);
+		if (it != results.end())
+		{
+			results.erase(it);
+		}
+	}
 }
 
 Variable* Container::findVariable(std::string _name)
@@ -154,14 +160,13 @@ Variable* Container::findVariable(std::string _name)
 	return result;
 }
 
-Variable* Container::newResult()
+ResultNode* Container::newInstructionResult()
 {
-	auto variable = newVariable(ICON_FA_SIGN_OUT_ALT " Result");
-	auto member = variable->get("value");
-	member->setConnectorWay(Way_In);                     // disable output because THIS node is the output !
-	resultNode = variable;
-
-	return variable;
+	auto resultNode = new ResultNode(ICON_FA_SIGN_OUT_ALT " Result");
+    resultNode->addComponent( new NodeView);
+	results.push_back(resultNode);
+	this->add(resultNode);
+	return resultNode;
 }
 
 Variable* Container::newVariable(std::string _name)
@@ -316,7 +321,8 @@ Wire* Container::newWire()
 void Container::tryToRestoreResultNodePosition()
 {
 	// Store the Result node position to restore it later
-	auto nodeView = resultNode->getComponent<NodeView>();
+	// TODO: handle this with multiple results
+	auto nodeView = results.back()->getComponent<NodeView>();
 	bool resultNodeHadPosition = Container::LastResultNodePosition.x != -1 &&
 	                             Container::LastResultNodePosition.y != -1;
 
@@ -345,6 +351,7 @@ size_t Container::getNodeCount()const
 Container::Container(const Language* _language)
 {
 	language = _language;
+    scope = new Scope(nullptr);
 }
 
 const Language *Container::getLanguage()const {

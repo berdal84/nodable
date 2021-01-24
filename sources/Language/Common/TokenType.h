@@ -20,23 +20,22 @@ namespace Nodable {
 	{
 		Unknown,
         Ignore,
+        EndOfInstruction,
+        EndOfLine,
 		AnyType,
 		String,
 		Boolean,
 		Double,
 		Operator,
-		LBracket,
-		RBracket, 
+		OpenBracket,
+		CloseBracket,
 		Separator,
 		Space,
         Symbol,
-		EndOfInstruction,
         StringType,
         DoubleType,
         BooleanType,
         KeywordOperator,
-
 		Default = Unknown
-
-	};
+    };
 }

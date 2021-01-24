@@ -22,10 +22,13 @@ void Semantic::insert_StringToTokenType(
 
     // Clean string before to create a regex
     // TODO: improve it to solve all regex escape char problems
-    if (_string.size() == 1) {
+    if (_string == ")" || _string == "(") {
         _string.insert(_string.begin(), '[');
         _string.insert(_string.end()  , ']');
     }
+
+    _string.insert(_string.begin(), '(');
+    _string.insert(_string.end()  , ')');
 
     insert_RegexToTokenType(std::regex("^" + _string), _tokenType);
 }

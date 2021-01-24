@@ -62,9 +62,9 @@ Wire* Node::Connect( Member* _from, Member* _to)
 
 Node::Node(std::string _label):
 
-	parentContainer(nullptr),
-	label(_label),
-	dirty(true)
+        parentContainer(nullptr),
+        label(_label),
+        dirty(true)
 {
 
 }

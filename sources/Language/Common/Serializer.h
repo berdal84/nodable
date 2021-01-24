@@ -4,9 +4,11 @@
 #include <vector>
 #include <Language/Common/TokenType.h>
 #include <Language/Common/Function.h>
+#include "Token.h"
 
 namespace Nodable
 {
+    // forward declarations
     class ComputeBase;
     class ComputeFunction;
     class ComputeUnaryOperation;
@@ -14,6 +16,10 @@ namespace Nodable
     class Member;
     class Operator;
     class Language;
+    class CodeBlock;
+    class InstructionBlock;
+    class Scope;
+    struct Instruction;
 
     class Serializer
     {
@@ -42,6 +48,9 @@ namespace Nodable
         /** Serialize a Member */
         std::string serialize(const Member*)const;
 
+        /** Serialize a token ( <token-serialized><suffix> ) */
+        std::string serialize(const Token*) const;
+
         std::string serializeUnaryOp(const Operator*, std::vector<Member*>, const Operator*)const;
 
         /** Serialize a binary operation call using an operator and two operands.
@@ -50,6 +59,13 @@ namespace Nodable
         */
         std::string serializeBinaryOp(const Operator*, std::vector<Member*>, const Operator*, const Operator*)const;
 
+        /** Serialize a complete scope (a set of instructions) */
+        std::string serialize(const InstructionBlock*) const;
+
+        /** Serialize a single instruction ( can be a simple expression ) */
+        std::string serialize(const Instruction*)const;
+
+        std::string serialize(const Scope*)const;
     protected:
         const Language* language;
     };

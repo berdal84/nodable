@@ -803,9 +803,9 @@ void NodeView::drawAdvancedProperties()
         parentName = node->getParentContainer()->getLabel();
     }
 
-    ImGui::Text("Parent:");
     ImGui::Indent();
-    ImGui::Text("- name: \"%s\"", parentName.c_str());
+    ImGui::Text("Parent is \"%s\"", parentName.c_str());
+    // ImGui::Text("Is an instruction result: %s", node-> ? "YES" : "NO");
 }
 
 void NodeView::SetDetail(NodeViewDetail _viewDetail)

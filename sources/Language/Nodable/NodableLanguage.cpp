@@ -17,10 +17,20 @@ NodableLanguage::NodableLanguage(): Language("Nodable")
      *  The order of insertion is important. First inserted will be taken in priority by Parser.
      */
 
+    // punctuation
+    semantic.insert_RegexToTokenType(std::regex("^[ \t]"), TokenType::Ignore);
+    semantic.insert_StringToTokenType("(", TokenType::OpenBracket);
+    semantic.insert_StringToTokenType(")", TokenType::CloseBracket);
+    semantic.insert_StringToTokenType(",", TokenType::Separator);
+    semantic.insert_StringToTokenType(" ", TokenType::Space);
+    semantic.insert_StringToTokenType(";", TokenType::EndOfInstruction);
+    semantic.insert_StringToTokenType("\n", TokenType::EndOfLine);
+
+
     // values
     semantic.insert_RegexToTokenType(std::regex("^(true|false)"), TokenType::Boolean);
     semantic.insert_RegexToTokenType(std::regex("^(\"[a-zA-Z0-9 ]+\")"), TokenType::String);
-    semantic.insert_RegexToTokenType(std::regex("^[a-zA-Z_]+"), TokenType::Symbol);
+    semantic.insert_RegexToTokenType(std::regex("^([a-zA-Z_]+)"), TokenType::Symbol);
     semantic.insert_RegexToTokenType(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType::Double);
 
     // types
@@ -37,14 +47,7 @@ NodableLanguage::NodableLanguage(): Language("Nodable")
 
     // comments
     semantic.insert_RegexToTokenType(std::regex("^(//(.+?)$)"),TokenType::Ignore); // Single line
-    semantic.insert_RegexToTokenType(std::regex("^((/\\*(.+?)\\*/)|[ \t])"),TokenType::Ignore); // Multi line
-
-    // punctuation
-    semantic.insert_StringToTokenType("(", TokenType::LBracket);
-    semantic.insert_StringToTokenType(")", TokenType::RBracket);
-    semantic.insert_StringToTokenType(",", TokenType::Separator);
-    semantic.insert_StringToTokenType(" ", TokenType::Space);
-    semantic.insert_StringToTokenType(";", TokenType::EndOfInstruction);
+    semantic.insert_RegexToTokenType(std::regex("^(/\\*(.+?)\\*/)"),TokenType::Ignore); // Multi line
 
     // type correspondence
     semantic.insert_TypeToTokenType(Type::Boolean, TokenType::BooleanType );
@@ -135,7 +138,7 @@ NodableLanguage::NodableLanguage(): Language("Nodable")
 
 	// mod(number, number)
 	FCT_BEGIN(Double, "mod", Double, Double)
-		RETURN( (int)ARG(0) % (int)ARG(1) )
+		RETURN( std::fmod((double)ARG(0), (double)ARG(1)) );
 	FCT_END
 
 	// pow(number)
@@ -287,19 +290,19 @@ NodableLanguage::NodableLanguage(): Language("Nodable")
 
 	// number operator=(number, number)
 	BINARY_OP_BEGIN(Double, "=", Double, Double, 0u, ICON_FA_EQUALS " Assign")
-		_args[0]->set(ARG(1));
+	    _args[0]->getInputMember()->set(ARG(1)); // TODO: find a better mecanism to declare out params
 		RETURN((double)ARG(1))
 	OPERATOR_END
 
     // string operator=(string, string)
     BINARY_OP_BEGIN(Str, "=", Str, Str, 0u, ICON_FA_EQUALS " Assign")
-            _args[0]->set(ARG(1));
+            _args[0]->getInputMember()->set(ARG(1)); // TODO: find a better mecanism to declare out params
             RETURN((std::string)ARG(1))
     OPERATOR_END
 
 	// bool operator=(bool, bool)
 	BINARY_OP_BEGIN(Bool, "=", Bool, Bool, 0u, ICON_FA_EQUALS " Assign")
-			_args[0]->set(ARG(1));
+            _args[0]->getInputMember()->set(ARG(1)); // TODO: find a better mecanism to declare out params
 			RETURN((bool)ARG(1))
 	OPERATOR_END
 

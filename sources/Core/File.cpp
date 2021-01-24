@@ -8,7 +8,7 @@
 #include "Variable.h"
 #include "Log.h"
 #include "NodeView.h"
-
+#include "ResultNode.h"
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
 
 #include <fstream>
@@ -115,8 +115,9 @@ bool File::evaluateExpression(std::string& _expression)
 
 	try
 	{
-        if (parser->evalExprIntoContainer(_expression, container)) {
-            auto result = container->getResultVariable();
+        if ( parser->evalCodeIntoContainer(_expression, container) && !container->getResults().empty() )
+        {
+            auto result = container->getResults().back();
             auto view = result->getComponent<NodeView>();
             NodeView::ArrangeRecursively(view);
             LOG_MESSAGE("File", "Expression evaluated: %s\n", _expression.c_str());
@@ -133,8 +134,10 @@ bool File::evaluateExpression(std::string& _expression)
 
 UpdateResult File::update() {
 
-	if (auto history = this->getComponent<History>()) {
-		if (history->dirty) {
+	if (auto history = this->getComponent<History>())
+	{
+		if (history->dirty)
+		{
 			this->evaluateSelectedExpression();
 			history->dirty = false;
 		}
@@ -143,19 +146,18 @@ UpdateResult File::update() {
 	auto containerUpdateResult = getInnerContainer()->update();
 	auto view = getComponent<FileView>();
 
-	if (containerUpdateResult == UpdateResult::SuccessWithoutChanges && view->getSelectedText() != "")
-		return UpdateResult::SuccessWithoutChanges;
+	if (containerUpdateResult == UpdateResult::SuccessWithoutChanges && !view->getSelectedText().empty() )
+    {
+        return UpdateResult::SuccessWithoutChanges;
+    }
 
-	auto result		= getInnerContainer()->getResultVariable();
+	auto scope = getInnerContainer()->getScope();
 
-	if (!result) {
-		return UpdateResult::SuccessWithoutChanges;
-	}
-
-	auto member		= result->value();
-	auto expression = language->getSerializer()->serialize(member);
-	
-	view->replaceSelectedText(expression);
+	if ( !scope->innerBlocs.empty() )
+    {
+        std::string code = language->getSerializer()->serialize( scope );
+        view->replaceSelectedText(code);
+    }
 	
 	return UpdateResult::Success;
 }
