@@ -12,13 +12,7 @@ return 1;
 #define ARG(n) (*_args[n])
 #define BEGIN_IMPL\
 	auto implementation = [](Member* _result, const std::vector<Member*>& _args)->int {\
-	for(auto it = _args.begin(); it != _args.end(); it++)\
-	{\
-		if( (*it)->isType(Type::Any) )\
-		{\
-			LOG_WARNING( "Language_MACROS", "Argument %i (%s) is unknown.\n", std::distance(_args.begin(), it), (*it)->getName().c_str() );\
-		}\
-	}
+	Function::CheckArgumentsAndLogWarnings(_args);
 
 #define RETURN( expr )\
 	_result->set( expr );

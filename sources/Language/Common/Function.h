@@ -83,5 +83,7 @@ namespace Nodable {
 
 		FunctionImplem    implementation;
 		FunctionSignature signature;
+
+		static void CheckArgumentsAndLogWarnings(const std::vector<Member*>& _args);
 	};
 }
