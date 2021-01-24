@@ -23,5 +23,18 @@ namespace Nodable {
 				   type == TokenType::String || type == TokenType::Symbol;
 		}
 
-	};
+		/**
+		 * Convert a token to a string using the pattern: "{ word: "<word>", charIndex: <index> }"
+		 * @return
+		 */
+        std::string toString()const
+        {
+            std::string result;
+            result.append("{ ");
+            result.append( "word: " + this->word );
+            result.append( ", charIndex: " + std::to_string(this->charIndex) );
+            result.append(" }");
+            return result;
+        }
+    };
 }
