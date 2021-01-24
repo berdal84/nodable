@@ -4,6 +4,7 @@
 #include <vector>
 #include <imgui/imgui.h>   // for ImVec2
 #include <mirror.h>
+#include <Language/Common/CodeBlock.h>
 
 #include "Nodable.h"
 #include "Component.h"
@@ -11,6 +12,10 @@
 #include "Language/Common/Language.h"
 
 namespace Nodable{
+
+    // forward declaration
+    class Scope;
+    class ResultNode;
 
 	class Container: public Node {
 	public:
@@ -25,12 +30,12 @@ namespace Nodable{
 		size_t                    	getNodeCount()const;
 		std::vector<Variable*>& 	getVariables(){return variables;}
 		std::vector<Node*>& 	    getEntities(){return nodes;}
-		Variable*                   getResultVariable(){ return resultNode;}
+		const std::vector<ResultNode*>& getResults(){ return results;}
 		void                        tryToRestoreResultNodePosition();
         const Language*             getLanguage()const;
 
 		/* node factory */
-		Variable*					newResult();
+		ResultNode*					newInstructionResult();
 		Variable*					newVariable(std::string = "");
 		Variable*					newNumber(double = 0);
 		Variable*					newNumber(const char*);
@@ -42,15 +47,20 @@ namespace Nodable{
 		Node*                       newFunction(const Function* _proto);
 
 	private:		
-		Variable*                   resultNode = nullptr;
+		std::vector<ResultNode*>    results;
 		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<Node*>          nodes;   /* Contain all Objects created by this context */
 		const Language*             language;
+		Scope*                      scope;
 	public:
 		static ImVec2               LastResultNodePosition;
 
 		MIRROR_CLASS(Container)(
 			MIRROR_PARENT(Component));
 
+        Scope *getScope()
+        {
+            return scope;
+        }
     };
 }

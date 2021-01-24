@@ -4,7 +4,7 @@
 
 using namespace Nodable;
 
-Variable::Variable():Node("Variable")
+Variable::Variable(): Node("Variable")
 {
 	add("value", Visibility::Always, Type::Any, Way_InOut);	
 }

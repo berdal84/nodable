@@ -11,11 +11,13 @@ namespace Nodable {
 		TokenType  type;
 		std::string word;
 		size_t charIndex; // the index of the first character of the token in the evaluated expression.
+        std::string suffix; // additional text only useful for layout (spaces, tabs, new line, etc.)
 
-		Token(TokenType _type, const std::string& _word, size_t _index):
+		Token(TokenType _type, const std::string& _word, size_t _index, std::string _suffix):
 		    type(_type),
 		    word(_word),
-            charIndex(_index)
+            charIndex(_index),
+            suffix(_suffix)
         {}
 
 		bool isOperand()const { // TODO: move this into "Parser" or "Language"

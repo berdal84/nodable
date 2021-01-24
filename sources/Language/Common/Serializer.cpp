@@ -62,7 +62,7 @@ std::string Serializer::serialize(
 {
     std::string expr;
     expr.append(_signature.getIdentifier());
-    expr.append(serialize(TokenType::LBracket));
+    expr.append(serialize(TokenType::OpenBracket));
 
     for (auto it = _args.begin(); it != _args.end(); it++) {
         expr.append(serialize(*it));
@@ -73,14 +73,14 @@ std::string Serializer::serialize(
         }
     }
 
-    expr.append(serialize(TokenType::RBracket));
+    expr.append(serialize(TokenType::CloseBracket));
     return expr;
 
 }
 
 std::string Serializer::serialize(const FunctionSignature& _signature) const {
 
-    std::string result = _signature.getIdentifier() + serialize(TokenType::LBracket);
+    std::string result = _signature.getIdentifier() + serialize(TokenType::OpenBracket);
     auto args = _signature.getArgs();
 
     for (auto it = args.begin(); it != args.end(); it++) {
@@ -95,7 +95,7 @@ std::string Serializer::serialize(const FunctionSignature& _signature) const {
 
     }
 
-    result.append( serialize(TokenType::RBracket) );
+    result.append( serialize(TokenType::CloseBracket) );
 
     return result;
 
@@ -115,14 +115,14 @@ std::string Serializer::serializeBinaryOp(const Operator* _op, std::vector<Membe
         bool needBrackets = _leftOp && !language->hasHigherPrecedenceThan(_leftOp, _op);
         if (needBrackets)
         {
-            result.append( serialize(TokenType::LBracket));
+            result.append( serialize(TokenType::OpenBracket));
         }
 
         result.append(serialize(_args[0]));
 
         if (needBrackets)
         {
-            result.append( serialize(TokenType::RBracket));
+            result.append( serialize(TokenType::CloseBracket));
         }
     }
 
@@ -137,14 +137,14 @@ std::string Serializer::serializeBinaryOp(const Operator* _op, std::vector<Membe
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType::LBracket));
+            result.append(serialize(TokenType::OpenBracket));
         }
 
         result.append(serialize(_args[1]));
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType::RBracket));
+            result.append(serialize(TokenType::CloseBracket));
         }
     }
 
@@ -166,14 +166,14 @@ std::string Serializer::serializeUnaryOp(const Operator* _op, std::vector<Member
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType::LBracket));
+            result.append(serialize(TokenType::OpenBracket));
         }
 
         result.append(serialize(_args[0]));
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType::RBracket));
+            result.append(serialize(TokenType::CloseBracket));
         }
     }
 
@@ -202,8 +202,7 @@ std::string Serializer::serialize(const Member * _member) const
         }
 
     }
-    else if (owner->getClass() == mirror::GetClass<Variable>() &&
-             owner->getParentContainer()->getResultVariable() != owner)
+    else if ( owner->getClass() == mirror::GetClass<Variable>() )
     {
         auto variable = owner->as<Variable>();
         expression = variable->getName();
@@ -222,5 +221,64 @@ std::string Serializer::serialize(const Member * _member) const
     }
 
     return expression;
+}
 
+std::string Serializer::serialize(const InstructionBlock* _block) const
+{
+    if (_block->instructions.empty())
+    {
+        // TODO: implement curly brackets {} if scope explicitly has them
+        return "";
+    }
+
+    std::string result;
+
+    for( auto& eachInstruction : _block->instructions )
+    {
+        result.append( serialize(eachInstruction) );
+    }
+
+    return result;
+}
+
+std::string Serializer::serialize(const Instruction* _instruction ) const
+{
+    std::string result;
+
+    result.append( serialize(_instruction->result) );
+    result.append( serialize(_instruction->endOfInstructionToken));
+
+    return result;
+}
+
+std::string Serializer::serialize(const Token* _token)const
+{
+    std::string result;
+
+    if ( _token )
+    {
+        result.append( serialize(_token->type));
+        result.append(_token->suffix);
+    }
+
+    return result;
+}
+
+std::string Serializer::serialize(const Scope* _scope)const
+{
+    std::string result;
+
+    for(auto eachBlock : _scope->innerBlocs )
+    {
+        if ( eachBlock->getClass() == mirror::GetClass<InstructionBlock>() )
+        {
+            result.append( serialize( (const InstructionBlock*)(eachBlock) ) );
+        }
+        else // is Scope for sure
+        {
+            result.append( serialize( (const Scope*)(eachBlock) ) );
+        }
+    }
+
+    return result;
 }

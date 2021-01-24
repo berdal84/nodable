@@ -9,6 +9,9 @@
 
 namespace Nodable{
 
+    // forward declaration
+    struct Instruction;
+    class Scope;
 
     /**
      * A class to add tokens in a vector and navigate into them.
@@ -27,7 +30,7 @@ namespace Nodable{
         [[nodiscard]] std::string toString() const;
 
         /** Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
-        void push(TokenType _type, const std::string& _string, size_t _charIndex);
+        void push(TokenType _type, std::string _string, size_t _charIndex, std::string _suffix = "");
 
         /** Get current token and move cursor by one */
         const Token& eatToken();
@@ -54,16 +57,14 @@ namespace Nodable{
         /** return true if some token count can be eaten */
         [[nodiscard]] bool canEat(size_t _tokenCount = 1)const;
 
-        /** return a ref to the underlying token vector */
-        [[nodiscard]] const std::vector<Token>& getTokens()const;
-
         /** get a ref to the current token without moving cursor */
-        [[nodiscard]] const Token& peekToken()const;
-    private:
+        [[nodiscard]] Token& peekToken();
+
         /** To store the result of the tokenizeExpressionString() method
             contain a vector of Tokens to be converted to a Nodable graph by all parseXXX functions */
         std::vector<Token> tokens;
 
+    private:
         /** Current cursor position */
         size_t currentTokenIndex;
 
@@ -96,7 +97,7 @@ namespace Nodable{
 
 		/** Evaluates an expression as a string.
 		   Return true if evaluation went well and false otherwise. */
-		bool evalExprIntoContainer(const std::string &_expression, Container* _container );
+		bool evalCodeIntoContainer(const std::string &_code, Container* _container );
 
 	private:
 		/** Convert a Token to a Member*/
@@ -105,7 +106,12 @@ namespace Nodable{
 		/** Parse the root expression.
 		   The root expression is set when calling eval().
 		   Return the result as a Member or nullptr if parsing failed. */
-		Member* parseRootExpression();
+		Scope* parseScope(Scope* _parent);
+
+        CodeBlock* parseInstructionBlock();
+
+		/** Parse a single instruction */
+        Instruction* parseInstruction();
 
 		/** Parse a Function call starting at current cursor position.
 		   Return the result as a Member or nullptr if parsing failed. */
@@ -144,7 +150,7 @@ namespace Nodable{
 		/** The target container of the parser in which all generated nodes will be pushed into*/
 		Container* container;
 
-		TokenRibbon tokens;
+		TokenRibbon tokenList;
 	};
 
 }

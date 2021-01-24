@@ -29,10 +29,8 @@ namespace Nodable{
 		}
 
 		std::string       getTypeAsString ()const;
-
 	private:
 		std::string       name;
-
 	public:
 
 		template<class Value>
@@ -52,5 +50,5 @@ namespace Nodable{
 		MIRROR_CLASS(Variable)(
 			MIRROR_PARENT(Node)
 		);
-	};
+    };
 }

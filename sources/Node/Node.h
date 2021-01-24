@@ -223,7 +223,7 @@ namespace Nodable{
 
         /** contains all wires connected to or from this node.*/
 		Wires  wires;
-	
+
 	public:
 		MIRROR_CLASS(Node)(
 			MIRROR_PARENT(Object)
