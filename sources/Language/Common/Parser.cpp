@@ -619,6 +619,7 @@ std::string TokenRibbon::toString()const
 
 const Token& TokenRibbon::eatToken()
 {
+    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", currentTokenIndex, peekToken().toString().c_str() );
     return tokens.at(currentTokenIndex++);
 }
 
