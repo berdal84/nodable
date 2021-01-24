@@ -30,7 +30,7 @@ Log::Verbosity Log::GetVerbosityLevel(const std::string& _category)
     return Verbosity::Message;
 }
 
-void Log::Push(Verbosity _verbosityLevel, const std::string& _category, const char* _format, ...)
+void Log::Push(Verbosity _verbosityLevel, const char* _category, const char* _format, ...)
 {
 	// Print log only if verbosity level allows it
 
@@ -43,12 +43,17 @@ void Log::Push(Verbosity _verbosityLevel, const std::string& _category, const ch
         vsnprintf(buffer, sizeof(buffer), _format, arglist); // store into buffer
         va_end( arglist );
 
-        if( _verbosityLevel == Log::Verbosity::Error )
-            std::cout << RED "ERR " RESET << buffer;
-        else if( _verbosityLevel == Log::Verbosity::Warning )
-            std::cout << MAGENTA "WRN " RESET << buffer;
-        else
-            std::cout << "MSG " << buffer;
+        // Print the verbosity:
+        switch (_verbosityLevel)
+        {
+            case Log::Verbosity::Error:   std::cout << RED "[ERR|" RESET;      break;
+            case Log::Verbosity::Warning: std::cout << MAGENTA "[WRN|" RESET;  break;
+            case Log::Verbosity::Message: std::cout << "[MSG|";                break;
+            default:                      std::cout << "[VRB|";
+        }
+
+        // the text
+        std::cout << _category << "] " << buffer;
 
         // Store type and buffer in history
         Logs.push_back( {_category, _verbosityLevel, buffer} );

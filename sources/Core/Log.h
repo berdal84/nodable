@@ -68,6 +68,6 @@ namespace Nodable{
         static const Message* GetLastMessage();
 	    static void           SetVerbosityLevel(const std::string& _category, Verbosity _verbosityLevel);
         static Verbosity      GetVerbosityLevel(const std::string& _category);
-		static void           Push(Verbosity _verbosityLevel, const std::string& _category, const char* _format, ...);
+		static void           Push(Verbosity _verbosityLevel, const char* _category, const char* _format, ...);
 	};
 }
