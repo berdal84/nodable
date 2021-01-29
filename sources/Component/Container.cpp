@@ -18,7 +18,7 @@
 
 using namespace Nodable;
 
-ImVec2 Container::LastResultNodePosition = ImVec2(-1, -1); // draft try to store node position
+ImVec2 Container::LastResultNodeViewPosition = ImVec2(-1, -1); // draft try to store node position
 
 Container::~Container()
 {
@@ -32,8 +32,8 @@ void Container::clear()
 	// TODO: handle multiple results
 	if ( !results.empty() )
 	{
-		auto view = results.back()->getComponent<NodeView>();
-		Container::LastResultNodePosition = view->getRoundedPosition();
+		auto view = results.front()->getComponent<NodeView>();
+		Container::LastResultNodeViewPosition = view->getRoundedPosition();
 	}
 
 	LOG_VERBOSE( "Container", "=================== clear() ==================\n");
@@ -318,29 +318,35 @@ Wire* Container::newWire()
 	return wire;
 }
 
-void Container::tryToRestoreResultNodePosition()
+void Container::arrangeResultNodeViews()
 {
-	// Store the Result node position to restore it later
-	// TODO: handle this with multiple results
-	auto nodeView = results.back()->getComponent<NodeView>();
-	bool resultNodeHadPosition = Container::LastResultNodePosition.x != -1 &&
-	                             Container::LastResultNodePosition.y != -1;
+    for (auto it = results.begin(); it != results.end(); it++)
+    {
+        NodeView *nodeView = (*it)->getComponent<NodeView>();
 
-	if (nodeView && this->hasComponent<View>() ) {
+        // Store the Result node position to restore it later
+        bool resultNodeHadPosition = Container::LastResultNodeViewPosition.x != -1 &&
+                                     Container::LastResultNodeViewPosition.y != -1;
 
-		auto view = this->getComponent<View>();
+        if (nodeView && this->hasComponent<View>())
+        {
+            auto view = this->getComponent<View>();
 
-		if ( resultNodeHadPosition) {                                 /* if result node had a position stored, we restore it */
-			nodeView->setPosition(Container::LastResultNodePosition);			
-		}
+            if (resultNodeHadPosition)
+            {                                 /* if result node had a position stored, we restore it */
+                nodeView->setPosition(Container::LastResultNodeViewPosition);
+                nodeView->translate(ImVec2(float(200) * (float)std::distance(results.begin(), it), 0));
+            }
 
-		auto rect = view->getVisibleRect();
-		if ( !NodeView::IsInsideRect(nodeView, rect ) ){
-			ImVec2 defaultPosition = rect.GetCenter();
-			defaultPosition.x += rect.GetWidth() * 1.0f / 6.0f;
-			nodeView->setPosition(defaultPosition);
-		}
-	}
+            auto rect = view->getVisibleRect();
+            if (!NodeView::IsInsideRect(nodeView, rect))
+            {
+                ImVec2 defaultPosition = rect.GetCenter();
+                defaultPosition.x += rect.GetWidth() * 1.0f / 6.0f;
+                nodeView->setPosition(defaultPosition);
+            }
+        }
+    }
 }
 
 size_t Container::getNodeCount()const
