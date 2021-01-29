@@ -1,37 +1,21 @@
 /*
- 	Hello World !
+ 	Welcome into Nodable !
 
      First, few tips:
 
      - You can edit a line as a graph by clicking on it.
      - You can also edit only a portion of the line by selecting it.
      - Edition is seamless, you can modify both text or nodes.
-     - You can create a line by adding nodes manually (use right-click menu).
+     - You can put your cursor on an empty line and add nodes with right-click menu.
 
-
-     Then, follow this short tutorial to better understand how Nodable works:
- 
  */
 
 
-// 1 - The next line contain a simple addition, simply click on it to generate the corresponding nodes:
-//-----------------------------------------------------------------------------------------------------
-5 + 3
+ // Simple expression
+ a = 2 + 5;
 
-	
-// 2 - A more complex one, again click on it:
-//-------------------------------------------
-10 * 3 + 50 / 0.1 + 1
+ // Multi line
+ f = pow(2, 2) - 1;
+ g = sqrt(64);
+ h = f + g;
 
-
-// 3 - Try to create your own expression by typing something with your keyboard:
-//------------------------------------------------------------------------------
-
-
-// 4 - Now, try to create your own expression using nodes:
-//--------------------------------------------------------
-// Simply click on an empty line and add some nodes using the right-click menu.
-// Don't forget to connect your graph to result node to see your graph converted to code:
-
-
-// You're now familiar with the main functionnalities.
