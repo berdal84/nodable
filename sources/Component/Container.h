@@ -31,7 +31,7 @@ namespace Nodable{
 		std::vector<Variable*>& 	getVariables(){return variables;}
 		std::vector<Node*>& 	    getEntities(){return nodes;}
 		const std::vector<ResultNode*>& getResults(){ return results;}
-		void                        tryToRestoreResultNodePosition();
+		void                        arrangeResultNodeViews();
         const Language*             getLanguage()const;
 
 		/* node factory */
@@ -53,7 +53,7 @@ namespace Nodable{
 		const Language*             language;
 		Scope*                      scope;
 	public:
-		static ImVec2               LastResultNodePosition;
+		static ImVec2               LastResultNodeViewPosition;
 
 		MIRROR_CLASS(Container)(
 			MIRROR_PARENT(Component));

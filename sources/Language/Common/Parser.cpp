@@ -29,7 +29,7 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
     size_t lineCount = 0;
     while (std::getline(iss, line, eol[0] ))
     {
-        if ( lineCount != 0 )
+        if ( lineCount != 0 && !tokenList.tokens.empty() )
         {
             tokenList.tokens.back().suffix.append(eol);
         }
@@ -61,6 +61,8 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
 		LOG_WARNING("Parser", "Unable to parse main scope due to abstract syntax tree failure.\n");
 		return false;
 	}
+
+    container->arrangeResultNodeViews();
 
 	LOG_MESSAGE("Parser", "Expression evaluated: <expr>%s</expr>\"\n", _code.c_str() );
 	return true;
@@ -407,8 +409,6 @@ Instruction* Parser::parseInstruction()
             instruction->hasEndOfLine = true;
         }
     }
-
-    container->tryToRestoreResultNodePosition();
 
     // If the value has no owner, we simply set the variable value
     if (parsedExpression->getOwner() == nullptr)
