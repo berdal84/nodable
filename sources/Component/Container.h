@@ -14,7 +14,7 @@
 namespace Nodable{
 
     // forward declaration
-    class Scope;
+    class ScopedCodeBlock;
     class ResultNode;
 
 	class Container: public Node {
@@ -51,14 +51,14 @@ namespace Nodable{
 		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */
 		std::vector<Node*>          nodes;   /* Contain all Objects created by this context */
 		const Language*             language;
-		Scope*                      scope;
+		ScopedCodeBlock*                      scope;
 	public:
 		static ImVec2               LastResultNodeViewPosition;
 
 		MIRROR_CLASS(Container)(
 			MIRROR_PARENT(Component));
 
-        Scope *getScope()
+        ScopedCodeBlock *getScope()
         {
             return scope;
         }

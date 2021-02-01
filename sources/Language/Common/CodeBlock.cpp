@@ -2,7 +2,7 @@
 
 using namespace Nodable;
 
-CodeBlock::CodeBlock(Scope *_parent)
+AbstractCodeBlock::AbstractCodeBlock(ScopedCodeBlock *_parent)
 {
     parent = _parent;
 
@@ -12,12 +12,12 @@ CodeBlock::CodeBlock(Scope *_parent)
     }
 }
 
-Scope::~Scope()
+ScopedCodeBlock::~ScopedCodeBlock()
 {
     clear();
 }
 
-void Scope::clear()
+void ScopedCodeBlock::clear()
 {
     for(auto& each: innerBlocs)
     {
@@ -26,12 +26,12 @@ void Scope::clear()
     innerBlocs.clear();
 }
 
-InstructionBlock::~InstructionBlock()
+CodeBlock::~CodeBlock()
 {
     clear();
 }
 
-void InstructionBlock::clear()
+void CodeBlock::clear()
 {
     for(auto& each: instructions)
     {

@@ -11,7 +11,7 @@ namespace Nodable{
 
     // forward declaration
     struct Instruction;
-    class Scope;
+    class ScopedCodeBlock;
 
     /**
      * A class to add tokens in a vector and navigate into them.
@@ -30,10 +30,13 @@ namespace Nodable{
         [[nodiscard]] std::string toString() const;
 
         /** Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
-        void push(TokenType _type, std::string _string, size_t _charIndex, std::string _suffix = "");
+        Token* push(TokenType _type, std::string _string, size_t _charIndex);
 
-        /** Get current token and move cursor by one */
-        const Token& eatToken();
+        /** Get current token and increment */
+        Token* eatToken();
+
+        /** Get current token and increment cursor ONLY if token type is expected */
+        Token* eatToken(TokenType);
 
         /** Start a transaction by saving the current cursor position in a stack
          * Multiple transaction can be stacked */
@@ -58,7 +61,7 @@ namespace Nodable{
         [[nodiscard]] bool canEat(size_t _tokenCount = 1)const;
 
         /** get a ref to the current token without moving cursor */
-        [[nodiscard]] Token& peekToken();
+        [[nodiscard]] Token* peekToken();
 
         /** To store the result of the tokenizeExpressionString() method
             contain a vector of Tokens to be converted to a Nodable graph by all parseXXX functions */
@@ -101,14 +104,14 @@ namespace Nodable{
 
 	private:
 		/** Convert a Token to a Member*/
-		Member* tokenToMember(const Token& _token);
+		Member* tokenToMember(const Token* _token);
 
 		/** Parse the root expression.
 		   The root expression is set when calling eval().
 		   Return the result as a Member or nullptr if parsing failed. */
-		Scope* parseScope(Scope* _parent);
+		ScopedCodeBlock* parseScope(ScopedCodeBlock* _parent);
 
-        CodeBlock* parseInstructionBlock();
+        AbstractCodeBlock* parseInstructionBlock();
 
 		/** Parse a single instruction */
         Instruction* parseInstruction();

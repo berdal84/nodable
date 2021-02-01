@@ -357,7 +357,7 @@ size_t Container::getNodeCount()const
 Container::Container(const Language* _language)
 {
 	language = _language;
-    scope = new Scope(nullptr);
+    scope = new ScopedCodeBlock(nullptr);
 }
 
 const Language *Container::getLanguage()const {

@@ -18,6 +18,7 @@ namespace Nodable {
      */
 	enum class TokenType
 	{
+	    Any,
 		Unknown,
         Ignore,
         EndOfInstruction,

@@ -223,7 +223,7 @@ std::string Serializer::serialize(const Member * _member) const
     return expression;
 }
 
-std::string Serializer::serialize(const InstructionBlock* _block) const
+std::string Serializer::serialize(const CodeBlock* _block) const
 {
     if (_block->instructions.empty())
     {
@@ -245,7 +245,7 @@ std::string Serializer::serialize(const Instruction* _instruction ) const
 {
     std::string result;
 
-    result.append( serialize(_instruction->result) );
+    result.append( serialize(_instruction->nodeGraphRoot) );
     result.append( serialize(_instruction->endOfInstructionToken));
 
     return result;
@@ -257,26 +257,27 @@ std::string Serializer::serialize(const Token* _token)const
 
     if ( _token )
     {
+        result.append( _token->prefix);
         result.append( serialize(_token->type));
-        result.append(_token->suffix);
+        result.append( _token->suffix);
     }
 
     return result;
 }
 
-std::string Serializer::serialize(const Scope* _scope)const
+std::string Serializer::serialize(const ScopedCodeBlock* _scope)const
 {
     std::string result;
 
     for(auto eachBlock : _scope->innerBlocs )
     {
-        if ( eachBlock->getClass() == mirror::GetClass<InstructionBlock>() )
+        if ( eachBlock->getClass() == mirror::GetClass<CodeBlock>() )
         {
-            result.append( serialize( (const InstructionBlock*)(eachBlock) ) );
+            result.append( serialize( (const CodeBlock*)(eachBlock) ) );
         }
         else // is Scope for sure
         {
-            result.append( serialize( (const Scope*)(eachBlock) ) );
+            result.append( serialize( (const ScopedCodeBlock*)(eachBlock) ) );
         }
     }
 
