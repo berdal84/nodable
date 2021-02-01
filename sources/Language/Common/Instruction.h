@@ -12,12 +12,10 @@ namespace Nodable
      */
     struct Instruction
     {
+        /** End of instruction token */
         Token* endOfInstructionToken = nullptr;
-        bool hasEndOfLine = false;
 
-        // TODO: move this somewhere else, this class should be abstract from Members/Nodes etc....
-        Member* result = nullptr;
-
-        std::string suffix;
+        /** Pointer to the graph root of this instruction, this is the link between this instruction and Nodable */
+        Member* nodeGraphRoot = nullptr;
     };
 }

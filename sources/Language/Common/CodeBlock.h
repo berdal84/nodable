@@ -6,44 +6,52 @@
 namespace Nodable
 {
     // forward declarations
-    class Scope;
+    class ScopedCodeBlock;
 
-    class CodeBlock
+    /**
+     * Code bloc abstract class as foundation for Scoped and Unscoped instruction blocs
+     */
+    class AbstractCodeBlock
     {
     protected:
-        explicit CodeBlock(Scope* _parent );
+        explicit AbstractCodeBlock(ScopedCodeBlock* _parent );
     public:
-        virtual ~CodeBlock() = default;;
-        Scope* parent;
+        virtual ~AbstractCodeBlock() = default;
+        ScopedCodeBlock* parent;
 
-        MIRROR_CLASS(CodeBlock)()
+        MIRROR_CLASS(AbstractCodeBlock)()
     };
 
-    class Scope: public CodeBlock
+    /**
+     * A Scoped code block able to contain inner code blocs.
+     */
+    class ScopedCodeBlock: public AbstractCodeBlock
     {
     public:
-        std::vector<CodeBlock*> innerBlocs;
-        explicit Scope(Scope* _parent): CodeBlock(_parent){}
-        virtual ~Scope();
+        explicit ScopedCodeBlock(ScopedCodeBlock* _parent): AbstractCodeBlock(_parent){}
+        ~ScopedCodeBlock() override;
         void clear();
-
-        MIRROR_CLASS(Scope)
+        std::vector<AbstractCodeBlock*> innerBlocs;
+        MIRROR_CLASS(ScopedCodeBlock)
         (
-            MIRROR_PARENT(CodeBlock)
+            MIRROR_PARENT(AbstractCodeBlock)
         )
     };
 
-    class InstructionBlock: public CodeBlock
+    /**
+     * A Code block class to contain a set of instructions.
+     * This class can't contain other Code blocks.
+     */
+    class CodeBlock: public AbstractCodeBlock
     {
     public:
-        std::vector<Instruction*> instructions;
-        explicit InstructionBlock(Scope* _parent): CodeBlock(_parent){}
-        virtual ~InstructionBlock();
+        explicit CodeBlock(ScopedCodeBlock* _parent): AbstractCodeBlock(_parent){}
+        ~CodeBlock() override;
         void clear();
-
-        MIRROR_CLASS(InstructionBlock)
+        std::vector<Instruction*> instructions;
+        MIRROR_CLASS(CodeBlock)
         (
-            MIRROR_PARENT(CodeBlock)
+            MIRROR_PARENT(AbstractCodeBlock)
         )
     };
 }

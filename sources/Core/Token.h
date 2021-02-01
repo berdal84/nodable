@@ -2,6 +2,7 @@
 
 #include "Language/Common/TokenType.h"
 #include <string>
+#include <vector>
 
 namespace Nodable {
 
@@ -11,13 +12,13 @@ namespace Nodable {
 		TokenType  type;
 		std::string word;
 		size_t charIndex; // the index of the first character of the token in the evaluated expression.
+        std::string prefix; // additional text only useful for layout (spaces, tabs, new line, etc.)
         std::string suffix; // additional text only useful for layout (spaces, tabs, new line, etc.)
 
-		Token(TokenType _type, const std::string& _word, size_t _index, std::string _suffix):
+		Token(TokenType _type, const std::string& _word, size_t _index):
 		    type(_type),
 		    word(_word),
-            charIndex(_index),
-            suffix(_suffix)
+            charIndex(_index)
         {}
 
 		bool isOperand()const { // TODO: move this into "Parser" or "Language"

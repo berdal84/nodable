@@ -31,7 +31,8 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
     {
         if ( lineCount != 0 && !tokenList.tokens.empty() )
         {
-            tokenList.tokens.back().suffix.append(eol);
+            Token& lastToken = tokenList.tokens.back();
+            lastToken.suffix.append(eol);
         }
 
         if (!tokenizeExpressionString(line))
@@ -54,7 +55,7 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
 		return false;
 	}
 
-	Scope* scope = parseScope(container->getScope() );
+	ScopedCodeBlock* scope = parseScope(container->getScope() );
 
 	if ( scope == nullptr)
 	{
@@ -68,18 +69,18 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
 	return true;
 }
 
-Member* Parser::tokenToMember(const Token& _token) {
+Member* Parser::tokenToMember(const Token* _token) {
 
 
 	Member* result = nullptr;
 
-	switch (_token.type)
+	switch (_token->type)
 	{
 
 		case TokenType::Boolean:
 		{
 			result = new Member(nullptr);
-			const bool value = _token.word == "true";
+			const bool value = _token->word == "true";
 			result->set(value);
 			break;
 		}
@@ -87,10 +88,10 @@ Member* Parser::tokenToMember(const Token& _token) {
 		case TokenType::Symbol:
 		{
 			auto context = container;
-			Variable* variable = context->findVariable(_token.word);
+			Variable* variable = context->findVariable(_token->word);
 
 			if (variable == nullptr)
-				variable = context->newVariable(_token.word);
+				variable = context->newVariable(_token->word);
 
 			NODABLE_ASSERT(variable != nullptr);
 			NODABLE_ASSERT(variable->value() != nullptr);
@@ -102,14 +103,14 @@ Member* Parser::tokenToMember(const Token& _token) {
 
 		case TokenType::Double: {
 			result = new Member(nullptr);
-			const double number = std::stod(_token.word);
+			const double number = std::stod(_token->word);
 			result->set(number);
 			break;
 		}
 
 		case TokenType::String: {
 			result = new Member(nullptr);
-			result->set(_token.word);
+			result->set(_token->word);
 			break;
 		}
 
@@ -137,13 +138,13 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	tokenList.startTransaction();
-	const Token& token1 = tokenList.eatToken();
-	const Token& token2 = tokenList.peekToken();
+	const Token* token1 = tokenList.eatToken();
+	const Token* token2 = tokenList.peekToken();
 
 	// Structure check
 	const bool isValid = _left != nullptr &&
-			             token1.type == TokenType::Operator &&
-			             token2.type != TokenType::Operator;
+			             token1->type == TokenType::Operator &&
+			             token2->type != TokenType::Operator;
 
 	if (!isValid)
 	{
@@ -153,7 +154,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	// Precedence check
-	const auto currentOperatorPrecedence = language->findOperator(token1.word)->precedence;
+	const auto currentOperatorPrecedence = language->findOperator(token1->word)->precedence;
 
 	if (currentOperatorPrecedence <= _precedence &&
 	    _precedence > 0u) { // always eval the first operation if they have the same precedence or less.
@@ -174,7 +175,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	auto signature        = language->createBinOperatorSignature(Type::Any, token1.word, _left->getType(), right->getType());
+	auto signature        = language->createBinOperatorSignature(Type::Any, token1->word, _left->getType(), right->getType());
 	auto matchingOperator = language->findOperator(signature);
 
 	if ( matchingOperator != nullptr )
@@ -233,10 +234,10 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	}
 
 	tokenList.startTransaction();
-	const Token& operatorToken = tokenList.eatToken();
+	const Token* operatorToken = tokenList.eatToken();
 
 	// Check if we get an operator first
-	if (operatorToken.type != TokenType::Operator)
+	if (operatorToken->type != TokenType::Operator)
 	{
 	    tokenList.rollbackTransaction();
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n");
@@ -244,7 +245,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	}
 
 	// Parse expression after the operator
-	auto precedence = language->findOperator(operatorToken.word)->precedence;
+	auto precedence = language->findOperator(operatorToken->word)->precedence;
 	Member* value = nullptr;
 
 	     if ( value = parseAtomicExpression() );
@@ -257,7 +258,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	}
 
 	// Create a function signature
-	auto signature = language->createUnaryOperatorSignature(Type::Any, operatorToken.word, value->getType() );
+	auto signature = language->createUnaryOperatorSignature(Type::Any, operatorToken->word, value->getType() );
 	auto matchingOperator = language->findOperator(signature);
 
 	if (matchingOperator != nullptr)
@@ -303,8 +304,8 @@ Member* Parser::parseAtomicExpression()
 	}
 
 	tokenList.startTransaction();
-	const Token& token = tokenList.eatToken();
-	if (token.type == TokenType::Operator)
+	const Token* token = tokenList.eatToken();
+	if (token->type == TokenType::Operator)
 	{
 		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n");
 		tokenList.rollbackTransaction();
@@ -338,8 +339,8 @@ Member* Parser::parseParenthesisExpression()
 	}
 
 	tokenList.startTransaction();
-	const Token& currentToken = tokenList.eatToken();
-	if (currentToken.type != TokenType::OpenBracket)
+	const Token* currentToken = tokenList.eatToken();
+	if (currentToken->type != TokenType::OpenBracket)
 	{
 		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n");
 		tokenList.rollbackTransaction();
@@ -349,11 +350,11 @@ Member* Parser::parseParenthesisExpression()
     Member* result = parseExpression();
 	if (result)
 	{
-        const Token& token = tokenList.eatToken();
-		if ( token.type != TokenType::CloseBracket )
+        const Token* token = tokenList.eatToken();
+		if ( token->type != TokenType::CloseBracket )
 		{
 			LOG_VERBOSE("Parser", "%s \n", tokenList.toString().c_str());
-			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token.word.c_str() );
+			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->word.c_str() );
             tokenList.rollbackTransaction();
 		}
 		else
@@ -383,14 +384,14 @@ Instruction* Parser::parseInstruction()
     }
 
     auto instruction = new Instruction();
-    instruction->result = container->newInstructionResult()->value();
+    instruction->nodeGraphRoot = container->newInstructionResult()->value();
 
     if ( tokenList.canEat() )
     {
-        const Token& expectedEOI = tokenList.eatToken();
-        if ( expectedEOI.type == TokenType::EndOfInstruction )
+        Token* expectedEOI = tokenList.eatToken();
+        if ( expectedEOI )
         {
-            instruction->endOfInstructionToken = (Token*)&expectedEOI;
+            instruction->endOfInstructionToken = expectedEOI;
         }
         else
         {
@@ -400,25 +401,16 @@ Instruction* Parser::parseInstruction()
         }
     }
 
-    if (tokenList.canEat() && tokenList.peekToken().type == TokenType::EndOfLine )
-    {
-        auto expectedEOL = tokenList.eatToken();
-        if (expectedEOL.type == TokenType::EndOfLine)
-        {
-            LOG_VERBOSE("Parser", "parse instruction (end of instruction line found)\n");
-            instruction->hasEndOfLine = true;
-        }
-    }
 
     // If the value has no owner, we simply set the variable value
     if (parsedExpression->getOwner() == nullptr)
     {
-        instruction->result->set(parsedExpression);
+        instruction->nodeGraphRoot->set(parsedExpression);
         delete parsedExpression;
     }
     else // we connect resultValue with resultVariable.value
     {
-        Node::Connect(parsedExpression, instruction->result);
+        Node::Connect(parsedExpression, instruction->nodeGraphRoot);
     }
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n");
@@ -426,9 +418,9 @@ Instruction* Parser::parseInstruction()
     return instruction;
 }
 
-Scope* Parser::parseScope(Scope* _parent)
+ScopedCodeBlock* Parser::parseScope(ScopedCodeBlock* _parent)
 {
-	auto scope = new Scope(_parent);
+	auto scope = new ScopedCodeBlock(_parent);
 	auto block = parseInstructionBlock();
 	block->parent = scope;
 	scope->innerBlocs.push_back( block );
@@ -436,9 +428,9 @@ Scope* Parser::parseScope(Scope* _parent)
 	return scope;
 }
 
-CodeBlock* Parser::parseInstructionBlock()
+AbstractCodeBlock* Parser::parseInstructionBlock()
 {
-    auto block      = new InstructionBlock(nullptr);
+    auto block      = new CodeBlock(nullptr);
     bool errorFound = false;
 
     while(tokenList.canEat() && !errorFound )
@@ -603,6 +595,8 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
     /* shortcuts to language members */
     auto regex    = language->getSemantic()->getTokenTypeToRegexMap();
 
+    std::string prefix;
+
     // Unified parsing using a char iterator (loop over all regex)
     auto unifiedParsing = [&](auto& it) -> auto
     {
@@ -613,33 +607,46 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
 
             if (match)
             {
-                auto str   = sm.str();
-                auto type = pair_it->first;
+                auto matchedTokenString = sm.str();
+                auto matchedTokenType   = pair_it->first;
 
-                if (type != TokenType::Ignore)
+                if (matchedTokenType != TokenType::Ignore)
                 {
+                    Token* newToken;
 
-                    if (type == TokenType::String)
+                    if (matchedTokenType == TokenType::String)
                     {
-                        tokenList.push(type, std::string(++str.cbegin(), --str.cend()),
+                        newToken = tokenList.push(matchedTokenType, std::string(++matchedTokenString.cbegin(), --matchedTokenString.cend()),
                                        std::distance(chars.cbegin(), it));
-                        LOG_VERBOSE("Parser", "tokenize <word>\"%s\"</word>\n", str.c_str() );
+                        LOG_VERBOSE("Parser", "tokenize <word>\"%s\"</word>\n", matchedTokenString.c_str() );
                     }
                     else
                     {
-                        tokenList.push(type, str, std::distance(chars.cbegin(), it));
-                        LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", str.c_str() );
+                        newToken = tokenList.push(matchedTokenType, matchedTokenString, std::distance(chars.cbegin(), it));
+                        LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matchedTokenString.c_str() );
                     }
+
+                    // If a we have so prefix tokens we copy them to the newToken prefixes.
+                    if ( !prefix.empty() )
+                    {
+                        newToken->prefix = prefix;
+                        prefix.clear();
+                    }
+
                 }
                 else if ( !tokenList.empty() )
                 {
-                    auto lastToken = tokenList.peekToken();
-                    lastToken.suffix.append(str);
-                    LOG_VERBOSE("Parser", "append ignored <word>%s</word> to <word>%s</word>\n", str.c_str(), lastToken.word.c_str() );
+                    auto lastToken = &tokenList.tokens.back();
+                    lastToken->suffix.append(matchedTokenString);
+                    LOG_VERBOSE("Parser", "append ignored <word>%s</word> to <word>%s</word>\n", matchedTokenString.c_str(), lastToken->word.c_str() );
+                }
+                else
+                {
+                    prefix.append(matchedTokenString);
                 }
 
                 // advance iterator to the end of the str
-                std::advance(it, str.length());
+                std::advance(it, matchedTokenString.length());
                 return true;
             }
         }
@@ -663,9 +670,9 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
 
 }
 
-void TokenRibbon::push(TokenType  _type, std::string _string, size_t _charIndex, std::string _suffix )
+Token* TokenRibbon::push(TokenType  _type, std::string _string, size_t _charIndex )
 {
-	tokens.emplace_back(_type, std::move(_string), _charIndex, _suffix);
+	return &tokens.emplace_back(_type, std::move(_string), _charIndex);
 }
 
 TokenRibbon::TokenRibbon():
@@ -717,10 +724,19 @@ std::string TokenRibbon::toString()const
     return result;
 }
 
-const Token& TokenRibbon::eatToken()
+Token* TokenRibbon::eatToken(TokenType expectedType)
 {
-    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", currentTokenIndex, peekToken().toString().c_str() );
-    return tokens.at(currentTokenIndex++);
+   if ( peekToken()->type == expectedType )
+   {
+       return eatToken();
+   }
+   return nullptr;
+}
+
+Token* TokenRibbon::eatToken()
+{
+    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", currentTokenIndex, peekToken()->toString().c_str() );
+    return &tokens.at(currentTokenIndex++);
 }
 
 void TokenRibbon::startTransaction()
@@ -765,9 +781,9 @@ bool TokenRibbon::canEat(size_t _tokenCount) const
     return  currentTokenIndex + _tokenCount <= tokens.size() ;
 }
 
-Token &TokenRibbon::peekToken()
+Token* TokenRibbon::peekToken()
 {
-    return tokens.at(currentTokenIndex);
+    return &tokens.at(currentTokenIndex);
 }
 
 Member* Parser::parseFunctionCall()
@@ -785,25 +801,25 @@ Member* Parser::parseFunctionCall()
 
     // Try to parse regular function: function(...)
     std::string identifier;
-    const Token &token_0 = tokenList.eatToken();
-    const Token &token_1 = tokenList.eatToken();
-    if (token_0.type == TokenType::Symbol &&
-        token_1.type == TokenType::OpenBracket)
+    const Token* token_0 = tokenList.eatToken();
+    const Token* token_1 = tokenList.eatToken();
+    if (token_0->type == TokenType::Symbol &&
+        token_1->type == TokenType::OpenBracket)
     {
-        identifier = token_0.word;
+        identifier = token_0->word;
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n");
     }
     else // Try to parse operator like (ex: operator==(..,..))
     {
-        const Token &token_2 = tokenList.eatToken(); // eat a "supposed open bracket"
+        const Token* token_2 = tokenList.eatToken(); // eat a "supposed open bracket"
 
-        if (token_0.type == TokenType::Symbol && token_0.word == language->getSemantic()
+        if (token_0->type == TokenType::Symbol && token_0->word == language->getSemantic()
                 ->tokenTypeToString(TokenType::KeywordOperator /* TODO: TokenType::Keyword + word="operator" */) &&
-            token_1.type == TokenType::Operator &&
-            token_2.type == TokenType::OpenBracket)
+            token_1->type == TokenType::Operator &&
+            token_2->type == TokenType::OpenBracket)
         {
             // ex: "operator" + ">="
-            identifier = token_0.word + token_1.word;
+            identifier = token_0->word + token_1->word;
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n");
         }
         else
@@ -819,21 +835,14 @@ Member* Parser::parseFunctionCall()
     FunctionSignature signature(identifier, TokenType::AnyType);
 
     bool parsingError = false;
-    while (!parsingError && tokenList.canEat() && tokenList.peekToken()
-                                                          .type != TokenType::CloseBracket)
+    while (!parsingError && tokenList.canEat() && tokenList.peekToken()->type != TokenType::CloseBracket)
     {
 
         if (auto member = parseExpression())
         {
             args.push_back(member); // store argument as member (already parsed)
-            signature.pushArg(language->getSemantic()
-                                      ->typeToTokenType(member->getType()));  // add a new argument type to the proto.
-
-            if (tokenList.peekToken()
-                        .type == TokenType::Separator)
-            {
-                tokenList.eatToken();
-            }
+            signature.pushArg(language->getSemantic()->typeToTokenType(member->getType()));  // add a new argument type to the proto.
+            tokenList.eatToken(TokenType::Separator);
         }
         else
         {
@@ -842,8 +851,7 @@ Member* Parser::parseFunctionCall()
     }
 
     // eat "close bracket supposed" token
-    const Token &currToken = tokenList.eatToken();
-    if (currToken.type != TokenType::CloseBracket)
+    if ( !tokenList.eatToken( TokenType::CloseBracket) )
     {
         LOG_VERBOSE("Parser", "parse function call... " KO " abort, close parenthesis expected. \n");
         tokenList.rollbackTransaction();
