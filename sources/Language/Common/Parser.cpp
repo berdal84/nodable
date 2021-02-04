@@ -31,8 +31,8 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
     {
         if ( lineCount != 0 && !tokenList.tokens.empty() )
         {
-            Token& lastToken = tokenList.tokens.back();
-            lastToken.suffix.append(eol);
+            Token* lastToken = tokenList.tokens.back();
+            lastToken->suffix.append(eol);
         }
 
         if (!tokenizeExpressionString(line))
@@ -69,9 +69,8 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
 	return true;
 }
 
-Member* Parser::tokenToMember(const Token* _token) {
-
-
+Member* Parser::tokenToMember(Token* _token)
+{
 	Member* result = nullptr;
 
 	switch (_token->type)
@@ -118,6 +117,12 @@ Member* Parser::tokenToMember(const Token* _token) {
 	        assert("This TokenType is not handled by this method.");
 
 	}
+
+	// Attach the token to the member (for Serializer, to preserve code formatting)
+	if (result)
+    {
+	    result->setSourceToken(_token);
+    }
 
 	return result;
 }
@@ -186,7 +191,12 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 		//---------------------------
 		if (_left->getOwner() == nullptr)
 		{
-            binOpNode->set("lvalue", _left);
+            Member* lvalue = binOpNode->get("lvalue");
+
+            // TODO: implem a "replace Member"
+            lvalue->set(_left);
+            lvalue->setSourceToken( _left->getSourceToken() );
+            _left->setSourceToken(nullptr);
             delete _left;
         }
 		else
@@ -198,7 +208,12 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 
 		if (right->getOwner() == nullptr)
 		{
-            binOpNode->set("rvalue", right);
+            Member* rvalue = binOpNode->get("rvalue");
+
+            // TODO: implem a "replace Member"
+            rvalue->set(right);
+            rvalue->setSourceToken( right->getSourceToken() );
+            right->setSourceToken(nullptr);
             delete right;
         }
 		else
@@ -269,7 +284,12 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 		//---------------------------
 		if (value->getOwner() == nullptr)
 		{
-            binOpNode->set("lvalue", value);
+            Member* lvalue = binOpNode->get("lvalue");
+
+            // TODO: implem a "replace Member"
+            lvalue->set(value);
+            lvalue->setSourceToken( value->getSourceToken() );
+            value->setSourceToken(nullptr);
             delete value;
         }
 		else
@@ -304,7 +324,7 @@ Member* Parser::parseAtomicExpression()
 	}
 
 	tokenList.startTransaction();
-	const Token* token = tokenList.eatToken();
+	Token* token = tokenList.eatToken();
 	if (token->type == TokenType::Operator)
 	{
 		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n");
@@ -405,8 +425,7 @@ Instruction* Parser::parseInstruction()
     // If the value has no owner, we simply set the variable value
     if (parsedExpression->getOwner() == nullptr)
     {
-        instruction->nodeGraphRoot->set(parsedExpression);
-        delete parsedExpression;
+        instruction->nodeGraphRoot = parsedExpression;
     }
     else // we connect resultValue with resultVariable.value
     {
@@ -518,8 +537,6 @@ Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverrid
 	return result;
 }
 
-
-
 bool Parser::isSyntaxValid()
 {
 	bool success                     = true;
@@ -528,51 +545,50 @@ bool Parser::isSyntaxValid()
 
 	while(it != tokenList.tokens.end() && success == true) {
 
-		auto current = *it;
+		auto currToken = *it;
 		const bool isLastToken = tokenList.tokens.end() - it == 1;
 
-		switch (current.type)
+		switch (currToken->type)
 		{
-
-		case TokenType::Operator:
-		{
-
-			if (isLastToken)
-			{
-                LOG_VERBOSE("Parser", "syntax error, an expression can't end with %s\n", current.word.c_str());
-                success = false; // Last token can't be an operator
-			}
-			else
+            case TokenType::Operator:
             {
-				auto next = *(it + 1);
-				if (next.type == TokenType::Operator)
+
+                if (isLastToken)
                 {
-                    LOG_VERBOSE("Parser", "syntax error, unexpected token %s after %s \n", next.word.c_str(), current.word.c_str());
-                    success = false; // An operator can't be followed by another operator.
+                    LOG_VERBOSE("Parser", "syntax error, an expression can't end with %s\n", currToken->word.c_str());
+                    success = false; // Last token can't be an operator
                 }
-			}
+                else
+                {
+                    auto next = *(it + 1);
+                    if (next->type == TokenType::Operator)
+                    {
+                        LOG_VERBOSE("Parser", "syntax error, unexpected token %s after %s \n", next->word.c_str(), currToken->word.c_str());
+                        success = false; // An operator can't be followed by another operator.
+                    }
+                }
 
-			break;
-		}
-		case TokenType::OpenBracket:
-		{
-			openedParenthesisCount++;
-			break;
-		}
-		case TokenType::CloseBracket:
-		{
-			openedParenthesisCount--;
+                break;
+            }
+            case TokenType::OpenBracket:
+            {
+                openedParenthesisCount++;
+                break;
+            }
+            case TokenType::CloseBracket:
+            {
+                openedParenthesisCount--;
 
-			if (openedParenthesisCount < 0)
-			{
-				LOG_VERBOSE("Parser", "Unexpected %s\n", current.word.c_str());
-				success = false;
-			}
+                if (openedParenthesisCount < 0)
+                {
+                    LOG_VERBOSE("Parser", "Unexpected %s\n", currToken->word.c_str());
+                    success = false;
+                }
 
-			break;
-		}
-		default:
-			break;
+                break;
+            }
+            default:
+                break;
 		}
 
 		std::advance(it, 1);
@@ -636,7 +652,7 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
                 }
                 else if ( !tokenList.empty() )
                 {
-                    auto lastToken = &tokenList.tokens.back();
+                    auto lastToken = tokenList.tokens.back();
                     lastToken->suffix.append(matchedTokenString);
                     LOG_VERBOSE("Parser", "append ignored <word>%s</word> to <word>%s</word>\n", matchedTokenString.c_str(), lastToken->word.c_str() );
                 }
@@ -670,9 +686,11 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
 
 }
 
-Token* TokenRibbon::push(TokenType  _type, std::string _string, size_t _charIndex )
+Token* TokenRibbon::push(TokenType  _type, const std::string& _string, size_t _charIndex )
 {
-	return &tokens.emplace_back(_type, std::move(_string), _charIndex);
+    Token* newToken = new Token(_type, _string, _charIndex);
+	tokens.push_back(newToken);
+	return newToken;
 }
 
 TokenRibbon::TokenRibbon():
@@ -698,12 +716,12 @@ std::string TokenRibbon::toString()const
         if ( index == currentTokenIndex )
         {
             result.append(BOLDGREEN);
-            result.append((*it).word);
+            result.append((*it)->word);
             result.append(RESET);
         }
         else
         {
-            result.append((*it).word);
+            result.append((*it)->word);
         }
     }
 
@@ -736,7 +754,7 @@ Token* TokenRibbon::eatToken(TokenType expectedType)
 Token* TokenRibbon::eatToken()
 {
     LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", currentTokenIndex, peekToken()->toString().c_str() );
-    return &tokens.at(currentTokenIndex++);
+    return tokens.at(currentTokenIndex++);
 }
 
 void TokenRibbon::startTransaction()
@@ -783,7 +801,7 @@ bool TokenRibbon::canEat(size_t _tokenCount) const
 
 Token* TokenRibbon::peekToken()
 {
-    return &tokens.at(currentTokenIndex);
+    return tokens.at(currentTokenIndex);
 }
 
 Member* Parser::parseFunctionCall()

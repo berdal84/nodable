@@ -30,9 +30,9 @@ namespace Nodable{
         [[nodiscard]] std::string toString() const;
 
         /** Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
-        Token* push(TokenType _type, std::string _string, size_t _charIndex);
+        [[nodiscard]] Token* push(TokenType _type, const std::string& _string, size_t _charIndex);
 
-        /** Get current token and increment */
+        /** Get current token and increment cursor */
         Token* eatToken();
 
         /** Get current token and increment cursor ONLY if token type is expected */
@@ -65,7 +65,7 @@ namespace Nodable{
 
         /** To store the result of the tokenizeExpressionString() method
             contain a vector of Tokens to be converted to a Nodable graph by all parseXXX functions */
-        std::vector<Token> tokens;
+        std::vector<Token*> tokens;
 
     private:
         /** Current cursor position */
@@ -103,8 +103,12 @@ namespace Nodable{
 		bool evalCodeIntoContainer(const std::string &_code, Container* _container );
 
 	private:
-		/** Convert a Token to a Member*/
-		Member* tokenToMember(const Token* _token);
+		/** Convert a Token to a Member.
+		 * The result Member pointer is responsible for _token.
+	     * @param _token
+	     * @return
+	     */
+		Member* tokenToMember(Token* _token);
 
 		/** Parse the root expression.
 		   The root expression is set when calling eval().

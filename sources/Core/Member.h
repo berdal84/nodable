@@ -4,6 +4,7 @@
 #include "Variant.h"
 #include "Connector.h"
 #include "Visibility.h"
+#include "Token.h"
 
 #include <string>
 
@@ -220,7 +221,15 @@ namespace Nodable
 		    return (std::string)data;
 		}
 
-	private:
+		/**
+		 * Set the source token, this will be used to Serialize and keep formatting.
+		 * @param pToken
+		 */
+        void setSourceToken(Token* _token);
+
+        Token *getSourceToken();
+
+    private:
         /**
          * The Object that owns this. Owner is responsible to create/delete this.
          */
@@ -235,6 +244,11 @@ namespace Nodable
 		 * The source expression that the value of this Member should be the result.
 		 */
 		std::string         sourceExpression;
+
+        /**
+         * The source token this Member comes from, used to keep formatting
+         */
+        Token *sourceToken;
 
 		/**
 		 * A name for this Member.
@@ -260,5 +274,5 @@ namespace Nodable
          * The input connector, nullptr (default) means no output connections are allowed.
          */
 		Connector*          out                 = nullptr;
-	};
+    };
 }

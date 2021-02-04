@@ -6,7 +6,11 @@
 
 using namespace Nodable;
 
-Member::Member(Object* _owner):owner(_owner)
+Member::Member(Object* _owner):
+    owner(_owner),
+    sourceToken(nullptr),
+    out(nullptr),
+    in(nullptr)
 {
 }
 
@@ -14,6 +18,7 @@ Member::~Member()
 {
     delete in;
     delete out;
+    delete sourceToken;
 }
 
 Type Member::getType()const
@@ -183,4 +188,14 @@ void Member::set(bool _value)
 {
 	data.setType(Type::Boolean);
 	data.set(_value);
+}
+
+void Member::setSourceToken(Token *_token)
+{
+    this->sourceToken = _token;
+}
+
+Token *Member::getSourceToken()
+{
+    return this->sourceToken;
 }
