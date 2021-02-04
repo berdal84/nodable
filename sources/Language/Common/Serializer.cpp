@@ -10,19 +10,101 @@ using namespace Nodable;
 
 std::string Serializer::serialize(const ComputeUnaryOperation* _operation) const
 {
+    std::string result;
+
     auto args = _operation->getArgs();
     auto inner_operator = _operation->getOwner()->getConnectedOperator(args[0]);
-    return serializeUnaryOp(_operation->ope, args, inner_operator);
+
+    // operator ( ... innerOperator ... )   ex:   -(a+b)
+
+    // Operator
+    const Token* sourceToken = _operation->getSourceToken();
+    if ( sourceToken )
+    {
+        result.append( sourceToken->prefix);
+    }
+
+    result.append(_operation->ope->identifier);
+
+    if ( sourceToken )
+    {
+        result.append( sourceToken->suffix);
+    }
+
+    // Inner part of the expression
+    {
+        bool needBrackets = inner_operator;
+
+        if (needBrackets)
+        {
+            result.append(serialize(TokenType::OpenBracket));
+        }
+
+        result.append(serialize(args[0]));
+
+        if (needBrackets)
+        {
+            result.append(serialize(TokenType::CloseBracket));
+        }
+    }
+
+    return result;
 }
 
 std::string Serializer::serialize(const ComputeBinaryOperation * _operation) const
 {
+    std::string result;
+
     // Get the left and right source operator
     std::vector<Member*> args = _operation->getArgs();
     auto l_handed_operator = _operation->getOwner()->getConnectedOperator(args[0]);
     auto r_handed_operator = _operation->getOwner()->getConnectedOperator(args[1]);
+    // Left part of the expression
+    {
+        bool needBrackets = l_handed_operator && !language->hasHigherPrecedenceThan(l_handed_operator, _operation->ope);
+        if (needBrackets)
+        {
+            result.append( serialize(TokenType::OpenBracket));
+        }
 
-    return this->serializeBinaryOp(_operation->ope, args, l_handed_operator, r_handed_operator);
+        result.append(serialize(args[0]));
+
+        if (needBrackets)
+        {
+            result.append( serialize(TokenType::CloseBracket));
+        }
+    }
+
+    // Operator
+    const Token* sourceToken = _operation->getSourceToken();
+    if ( sourceToken )
+    {
+        result.append( sourceToken->prefix);
+    }
+    result.append(_operation->ope->identifier);
+    if ( sourceToken )
+    {
+        result.append( sourceToken->suffix);
+    }
+
+    // Right part of the expression
+    {
+        bool needBrackets = r_handed_operator && (  r_handed_operator->getType() == Operator::Type::Unary || !language->hasHigherPrecedenceThan(r_handed_operator, _operation->ope) );
+
+        if (needBrackets)
+        {
+            result.append(serialize(TokenType::OpenBracket));
+        }
+
+        result.append(serialize(args[1]));
+
+        if (needBrackets)
+        {
+            result.append(serialize(TokenType::CloseBracket));
+        }
+    }
+
+    return result;
 }
 
 std::string Serializer::serialize(const ComputeFunction *_computeFunction)const
@@ -69,7 +151,6 @@ std::string Serializer::serialize(
 
         if (*it != _args.back()) {
             expr.append(serialize(TokenType::Separator));
-            expr.append(serialize(TokenType::Space));
         }
     }
 
@@ -106,80 +187,6 @@ std::string Serializer::serialize(const TokenType& _type) const
     return language->getSemantic()->tokenTypeToString(_type);
 }
 
-std::string Serializer::serializeBinaryOp(const Operator* _op, std::vector<Member*> _args, const Operator* _leftOp, const Operator* _rightOp) const
-{
-    std::string result;
-
-    // Left part of the expression
-    {
-        bool needBrackets = _leftOp && !language->hasHigherPrecedenceThan(_leftOp, _op);
-        if (needBrackets)
-        {
-            result.append( serialize(TokenType::OpenBracket));
-        }
-
-        result.append(serialize(_args[0]));
-
-        if (needBrackets)
-        {
-            result.append( serialize(TokenType::CloseBracket));
-        }
-    }
-
-    // Operator
-    result.append( serialize(TokenType::Space));
-    result.append(_op->identifier);
-    result.append( serialize(TokenType::Space));
-
-    // Right part of the expression
-    {
-        bool needBrackets = _rightOp && (  _rightOp->getType() == Operator::Type::Unary || !language->hasHigherPrecedenceThan(_rightOp, _op) );
-
-        if (needBrackets)
-        {
-            result.append(serialize(TokenType::OpenBracket));
-        }
-
-        result.append(serialize(_args[1]));
-
-        if (needBrackets)
-        {
-            result.append(serialize(TokenType::CloseBracket));
-        }
-    }
-
-    return result;
-}
-
-std::string Serializer::serializeUnaryOp(const Operator* _op, std::vector<Member*> _args, const Operator* _innerOp) const
-{
-    std::string result;
-
-    // operator ( ... innerOperator ... )   ex:   -(a+b)
-
-    // Operator
-    result.append(_op->identifier);
-
-    // Inner part of the expression
-    {
-        bool needBrackets = _innerOp;
-
-        if (needBrackets)
-        {
-            result.append(serialize(TokenType::OpenBracket));
-        }
-
-        result.append(serialize(_args[0]));
-
-        if (needBrackets)
-        {
-            result.append(serialize(TokenType::CloseBracket));
-        }
-    }
-
-    return result;
-}
-
 
 std::string Serializer::serialize(const Member * _member) const
 {
@@ -187,7 +194,6 @@ std::string Serializer::serialize(const Member * _member) const
     std::string expression;
 
     auto owner = _member->getOwner()->as<Node>();
-
     if ( owner && _member->allowsConnection(Way_In) && owner->hasWireConnectedTo(_member) )
     {
         auto sourceMember = owner->getSourceMemberOf(_member);
@@ -202,21 +208,34 @@ std::string Serializer::serialize(const Member * _member) const
         }
 
     }
-    else if ( owner->getClass() == mirror::GetClass<Variable>() )
-    {
-        auto variable = owner->as<Variable>();
-        expression = variable->getName();
-    }
     else
     {
-
-        if (_member->isType(Type::String))
+        const Token *sourceToken = _member->getSourceToken();
+        if (sourceToken)
         {
-            expression = '"' + (std::string)*_member + '"';
+            expression.append(sourceToken->prefix);
+        }
+
+        if (owner->getClass() == mirror::GetClass<Variable>())
+        {
+            auto variable = owner->as<Variable>();
+            expression = variable->getName();
         }
         else
         {
-            expression = (std::string)*_member;
+            if (_member->isType(Type::String))
+            {
+                expression = '"' + (std::string) *_member + '"';
+            }
+            else
+            {
+                expression = (std::string) *_member;
+            }
+        }
+
+        if (sourceToken)
+        {
+            expression.append(sourceToken->suffix);
         }
     }
 
