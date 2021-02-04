@@ -195,7 +195,7 @@ void Member::setSourceToken(Token *_token)
     this->sourceToken = _token;
 }
 
-Token *Member::getSourceToken()
+Token *Member::getSourceToken() const
 {
     return this->sourceToken;
 }

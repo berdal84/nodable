@@ -128,25 +128,25 @@ TEST(Parser, Strings)
 
 TEST(Parser, Serialize_Precedence)
 {
-    EXPECT_EQ(ParseEvalSerialize("(1+1)*2"), "(1 + 1) * 2");
-    EXPECT_EQ(ParseEvalSerialize("(1*1)+2"), "1 * 1 + 2");
+    EXPECT_EQ(ParseEvalSerialize("(1+1)*2"), "(1+1)*2");
+    EXPECT_EQ(ParseEvalSerialize("(1*1)+2"), "1*1+2");
     EXPECT_EQ(ParseEvalSerialize("-(-1)"), "-(-1)");
     EXPECT_EQ(ParseEvalSerialize("-(-1)"), "-(-1)");
-    EXPECT_EQ(ParseEvalSerialize("-(2*5)"), "-(2 * 5)");
-    EXPECT_EQ(ParseEvalSerialize("-2*5"), "(-2) * 5");
-    EXPECT_EQ(ParseEvalSerialize("-(2+5)"), "-(2 + 5)");
-    EXPECT_EQ(ParseEvalSerialize("5 + (-1) * 3"), "5 + (-1) * 3");
+    EXPECT_EQ(ParseEvalSerialize("-(2*5)"), "-(2*5)");
+    EXPECT_EQ(ParseEvalSerialize("-2*5"), "(-2)*5");
+    EXPECT_EQ(ParseEvalSerialize("-(2+5)"), "-(2+5)");
+    EXPECT_EQ(ParseEvalSerialize("5+(-1)*3"), "5+(-1)*3");
 }
 
 TEST(Parser, Eval_Serialize_Compare)
 {
     EXPECT_EQ(ParseEvalSerialize("1"), "1");
-    EXPECT_EQ(ParseEvalSerialize("1+1"), "1 + 1");
-    EXPECT_EQ(ParseEvalSerialize("1-1"), "1 - 1");
+    EXPECT_EQ(ParseEvalSerialize("1+1"), "1+1");
+    EXPECT_EQ(ParseEvalSerialize("1-1"), "1-1");
     EXPECT_EQ(ParseEvalSerialize("-1"), "-1");
-    EXPECT_EQ(ParseEvalSerialize("a=5"), "a = 5");
-    EXPECT_EQ(ParseEvalSerialize("(a+b)*(c+d)"), "(a + b) * (c + d)");
-    EXPECT_EQ(ParseEvalSerialize("b = string(false)"), "b = string(false)");
+    EXPECT_EQ(ParseEvalSerialize("a=5"), "a=5");
+    EXPECT_EQ(ParseEvalSerialize("(a+b)*(c+d)"), "(a+b)*(c+d)");
+    EXPECT_EQ(ParseEvalSerialize("b=string(false)"), "b=string(false)");
 }
 
 TEST(Parser, Single_Instruction_With_EndOfInstruction )
@@ -174,4 +174,10 @@ TEST(Parser, DNAtoProtein )
     EXPECT_TRUE(Parser_Test("DNAtoProtein(\"TAG\")", "_"));
     EXPECT_TRUE(Parser_Test("DNAtoProtein(\"TGA\")", "_"));
     EXPECT_TRUE(Parser_Test("DNAtoProtein(\"ATG\")", "M"));
+}
+
+TEST(Parser, Code_Formatting_Preserving )
+{
+    EXPECT_EQ(ParseEvalSerialize("a =5;\nb=2*a;"), "a =5;\nb=2*a;");
+    EXPECT_EQ(ParseEvalSerialize("a =5;\nb=2  *  a;"), "a =5;\nb=2  *  a;");
 }

@@ -227,7 +227,7 @@ namespace Nodable
 		 */
         void setSourceToken(Token* _token);
 
-        Token *getSourceToken();
+        Token *getSourceToken() const;
 
     private:
         /**

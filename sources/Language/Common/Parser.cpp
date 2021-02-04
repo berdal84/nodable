@@ -143,12 +143,12 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	tokenList.startTransaction();
-	const Token* token1 = tokenList.eatToken();
+	Token* operatorToken = tokenList.eatToken();
 	const Token* token2 = tokenList.peekToken();
 
 	// Structure check
 	const bool isValid = _left != nullptr &&
-			             token1->type == TokenType::Operator &&
+                         operatorToken->type == TokenType::Operator &&
 			             token2->type != TokenType::Operator;
 
 	if (!isValid)
@@ -159,7 +159,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	// Precedence check
-	const auto currentOperatorPrecedence = language->findOperator(token1->word)->precedence;
+	const auto currentOperatorPrecedence = language->findOperator(operatorToken->word)->precedence;
 
 	if (currentOperatorPrecedence <= _precedence &&
 	    _precedence > 0u) { // always eval the first operation if they have the same precedence or less.
@@ -180,12 +180,13 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	auto signature        = language->createBinOperatorSignature(Type::Any, token1->word, _left->getType(), right->getType());
+	auto signature        = language->createBinOperatorSignature(Type::Any, operatorToken->word, _left->getType(), right->getType());
 	auto matchingOperator = language->findOperator(signature);
 
 	if ( matchingOperator != nullptr )
 	{
 		auto binOpNode = container->newBinOp( matchingOperator);
+        binOpNode->getComponent<ComputeBase>()->setSourceToken(operatorToken);
 
 		// Connect the Left Operand :
 		//---------------------------
@@ -249,7 +250,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	}
 
 	tokenList.startTransaction();
-	const Token* operatorToken = tokenList.eatToken();
+	Token* operatorToken = tokenList.eatToken();
 
 	// Check if we get an operator first
 	if (operatorToken->type != TokenType::Operator)
@@ -278,13 +279,14 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 
 	if (matchingOperator != nullptr)
 	{
-		auto binOpNode = container->newUnaryOp(matchingOperator);
+		auto unaryOpNode = container->newUnaryOp(matchingOperator);
+        unaryOpNode->getComponent<ComputeBase>()->setSourceToken(operatorToken);
 
 		// Connect the Left Operand :
 		//---------------------------
 		if (value->getOwner() == nullptr)
 		{
-            Member* lvalue = binOpNode->get("lvalue");
+            Member* lvalue = unaryOpNode->get("lvalue");
 
             // TODO: implem a "replace Member"
             lvalue->set(value);
@@ -294,11 +296,11 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
         }
 		else
         {
-			Node::Connect(value, binOpNode->get("lvalue"));
+			Node::Connect(value, unaryOpNode->get("lvalue"));
         }
 
 		// Set the left !
-        Member* result = binOpNode->get("result");
+        Member* result = unaryOpNode->get("result");
 
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
         tokenList.commitTransaction();

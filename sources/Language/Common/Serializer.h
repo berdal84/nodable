@@ -51,8 +51,6 @@ namespace Nodable
         /** Serialize a token ( <token-serialized><suffix> ) */
         std::string serialize(const Token*) const;
 
-        std::string serializeUnaryOp(const Operator*, std::vector<Member*>, const Operator*)const;
-
         /** Serialize a binary operation call using an operator and two operands.
            The last two operators are the source operators that creates the two operands as result.
            Those are used to check precedence and add some brackets if needed.
