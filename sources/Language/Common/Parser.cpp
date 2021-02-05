@@ -193,12 +193,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 		if (_left->getOwner() == nullptr)
 		{
             Member* lvalue = binOpNode->get("lvalue");
-
-            // TODO: implem a "replace Member"
-            lvalue->set(_left);
-            lvalue->setSourceToken( _left->getSourceToken() );
-            _left->setSourceToken(nullptr);
-            delete _left;
+            lvalue->digest(_left);
         }
 		else
         {
@@ -210,12 +205,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 		if (right->getOwner() == nullptr)
 		{
             Member* rvalue = binOpNode->get("rvalue");
-
-            // TODO: implem a "replace Member"
-            rvalue->set(right);
-            rvalue->setSourceToken( right->getSourceToken() );
-            right->setSourceToken(nullptr);
-            delete right;
+            rvalue->digest(right);
         }
 		else
         {
@@ -287,12 +277,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 		if (value->getOwner() == nullptr)
 		{
             Member* lvalue = unaryOpNode->get("lvalue");
-
-            // TODO: implem a "replace Member"
-            lvalue->set(value);
-            lvalue->setSourceToken( value->getSourceToken() );
-            value->setSourceToken(nullptr);
-            delete value;
+            lvalue->digest(value);
         }
 		else
         {
@@ -406,7 +391,6 @@ Instruction* Parser::parseInstruction()
     }
 
     auto instruction = new Instruction();
-    instruction->nodeGraphRoot = container->newInstructionResult()->value();
 
     if ( tokenList.canEat() )
     {
@@ -423,11 +407,12 @@ Instruction* Parser::parseInstruction()
         }
     }
 
-
+    auto resultNode = container->newInstructionResult();
+    instruction->nodeGraphRoot = resultNode->value();
     // If the value has no owner, we simply set the variable value
     if (parsedExpression->getOwner() == nullptr)
     {
-        instruction->nodeGraphRoot = parsedExpression;
+        instruction->nodeGraphRoot->digest(parsedExpression);
     }
     else // we connect resultValue with resultVariable.value
     {
