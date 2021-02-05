@@ -223,11 +223,23 @@ namespace Nodable
 
 		/**
 		 * Set the source token, this will be used to Serialize and keep formatting.
-		 * @param pToken
+		 * @param _token
 		 */
         void setSourceToken(Token* _token);
 
-        Token *getSourceToken() const;
+        /**
+         * Get the source token, this will be used to Serialize and keep formatting.
+         * @return
+         */
+        [[nodiscard]] Token *getSourceToken() const;
+
+        /**
+         * This member will digest another.
+         * - source token ownership will be transfered to this
+         * - _member will be deleted.
+         * @param _member
+         */
+        void digest(Member *_member);
 
     private:
         /**

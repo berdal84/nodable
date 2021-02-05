@@ -199,3 +199,16 @@ Token *Member::getSourceToken() const
 {
     return this->sourceToken;
 }
+
+void Member::digest(Member *_member)
+{
+    // Transfert value
+    this->data = _member->data;
+
+    // Transfert Token ownership
+    this->setSourceToken(_member->getSourceToken());
+    _member->setSourceToken(nullptr);
+
+    // release member
+    delete _member;
+}
