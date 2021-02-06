@@ -1,6 +1,6 @@
 #include "Wire.h"
 #include "WireView.h"
-#include "Variable.h"
+#include "VariableNode.h"
 #include <algorithm> // for std::find()
 
 using namespace Nodable;

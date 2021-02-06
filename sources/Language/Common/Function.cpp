@@ -1,7 +1,7 @@
 #include "Function.h"
 #include "Member.h"   // to check member arguments
 #include "Object.h"   // to use getClass()
-#include "Variable.h" // to use mirror::GetClass<Variable>()
+#include "VariableNode.h" // to use mirror::GetClass<Variable>()
 #include "Log.h"
 
 using namespace Nodable;
@@ -70,7 +70,7 @@ void Function::CheckArgumentsAndLogWarnings(const std::vector<Member*> &_args)
     for(auto it = _args.cbegin(); it != _args.cend(); it++)
 	{
         const Member* eachArgument = *it;
-		if( eachArgument->isType(Type::Any) && ( !eachArgument->getInputMember() || eachArgument->getInputMember()->getOwner()->getClass() != mirror::GetClass<Variable>()) )
+		if( eachArgument->isType(Type::Any) && ( !eachArgument->getInputMember() || eachArgument->getInputMember()->getOwner()->getClass() != mirror::GetClass<VariableNode>()) )
 		{
 			LOG_WARNING(
 			    "Language_MACROS", "Argument \"%s\" (at index %i) is Type::Any. This argument should be a variable, its type will be affected by evaluation. \n",

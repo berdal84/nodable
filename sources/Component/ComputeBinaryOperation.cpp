@@ -1,6 +1,6 @@
 #include "ComputeBinaryOperation.h"
 #include "Member.h"
-#include "Variable.h"
+#include "VariableNode.h"
 #include "Language/Common/Language.h"
 
 using namespace Nodable;

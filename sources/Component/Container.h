@@ -15,7 +15,7 @@ namespace Nodable{
 
     // forward declaration
     class ScopedCodeBlock;
-    class ResultNode;
+    class InstructionNode;
 
 	class Container: public Node {
 	public:
@@ -24,22 +24,21 @@ namespace Nodable{
 		virtual ~Container();
         UpdateResult                update() override;
 		void                      	clear();		
-		Variable* 	          		findVariable(std::string);
+		VariableNode* 	          	findVariable(std::string);
 		void                      	add(Node*);
 		void                      	remove(Node*);
 		size_t                    	getNodeCount()const;
-		std::vector<Variable*>& 	getVariables(){return variables;}
 		std::vector<Node*>& 	    getEntities(){return nodes;}
-		const std::vector<ResultNode*>& getResults(){ return results;}
 		void                        arrangeResultNodeViews();
         const Language*             getLanguage()const;
+        ScopedCodeBlock*            getScope(){ return scope;}
 
 		/* node factory */
-		ResultNode*					newInstructionResult();
-		Variable*					newVariable(std::string = "");
-		Variable*					newNumber(double = 0);
-		Variable*					newNumber(const char*);
-		Variable*					newString(const char*);	
+        InstructionNode*		    newInstruction();
+		VariableNode*				newVariable(std::string, ScopedCodeBlock*);
+		VariableNode*				newNumber(double = 0);
+		VariableNode*				newNumber(const char*);
+		VariableNode*				newString(const char*);
 		Node*                       newBinOp(const Operator*);
 		Node*                       newUnaryOp(const Operator*);
         Node*                       newOperator(const Operator*);
@@ -47,20 +46,15 @@ namespace Nodable{
 		Node*                       newFunction(const Function* _proto);
 
 	private:		
-		std::vector<ResultNode*>    results;
-		std::vector<Variable*> 		variables; /* Contain all Symbol Nodes created by this context */
-		std::vector<Node*>          nodes;   /* Contain all Objects created by this context */
+		std::vector<Node*>          nodes;
 		const Language*             language;
-		ScopedCodeBlock*                      scope;
+		ScopedCodeBlock*            scope;
 	public:
 		static ImVec2               LastResultNodeViewPosition;
 
 		MIRROR_CLASS(Container)(
 			MIRROR_PARENT(Component));
 
-        ScopedCodeBlock *getScope()
-        {
-            return scope;
-        }
+        bool hasInstructions();
     };
 }

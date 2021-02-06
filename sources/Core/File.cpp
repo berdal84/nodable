@@ -5,10 +5,10 @@
 #include "Container.h"
 #include "Language/Common/Parser.h"
 #include "View.h"
-#include "Variable.h"
+#include "VariableNode.h"
 #include "Log.h"
 #include "NodeView.h"
-#include "ResultNode.h"
+#include "InstructionNode.h"
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
 
 #include <fstream>
@@ -115,9 +115,9 @@ bool File::evaluateExpression(std::string& _expression)
 
 	try
 	{
-        if ( parser->evalCodeIntoContainer(_expression, container) && !container->getResults().empty() )
+        if ( parser->evalCodeIntoContainer(_expression, container) && container->hasInstructions() )
         {
-            auto result = container->getResults().back();
+            auto result = container->getScope()->getFirstInstruction();
             auto view = result->getComponent<NodeView>();
             NodeView::ArrangeRecursively(view);
             LOG_MESSAGE("File", "Expression evaluated: %s\n", _expression.c_str());

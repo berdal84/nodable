@@ -1,15 +1,15 @@
-#include <ResultNode.h>
+#include <InstructionNode.h>
 #include <Member.h>
 #include <Log.h>
 
 using namespace Nodable;
 
-ResultNode::ResultNode(const char* _label): Node(_label)
+InstructionNode::InstructionNode(const char* _label): Node(_label)
 {
     add("value", Visibility::Default, Type::Any, Way_In);
 }
 
-std::string ResultNode::getTypeAsString()const
+std::string InstructionNode::getTypeAsString()const
 {
     return value()->getTypeAsString();
 }

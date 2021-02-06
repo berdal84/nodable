@@ -1,6 +1,6 @@
 #include "Application.h"
 #include "ApplicationView.h"
-#include "Variable.h"
+#include "VariableNode.h"
 #include "DataAccess.h"
 #include "File.h"
 #include "Config.h"

@@ -63,7 +63,7 @@ namespace Nodable{
 	class Node;
 	class Application;	
 	class Parser;
-	class Variable;
+	class VariableNode;
 	class Container;
 
 	// Other

@@ -14,10 +14,10 @@ namespace Nodable{
 		The variable can be accessed through a single Member called "value".
 		The value member can be linked to other node members.
 	*/
-	class Variable : public Node {
+	class VariableNode : public Node {
 	public:
-		Variable();
-		~Variable();
+		VariableNode();
+		~VariableNode();
 
 		void              setName         (const char*);
 		bool              isSet           ()const{return value()->isDefined(); }
@@ -47,7 +47,7 @@ namespace Nodable{
 			updateLabel();
 		};
 
-		MIRROR_CLASS(Variable)(
+		MIRROR_CLASS(VariableNode)(
 			MIRROR_PARENT(Node)
 		);
     };

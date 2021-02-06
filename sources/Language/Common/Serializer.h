@@ -19,7 +19,7 @@ namespace Nodable
     class AbstractCodeBlock;
     class CodeBlock;
     class ScopedCodeBlock;
-    struct Instruction;
+    class InstructionNode;
 
     class Serializer
     {
@@ -61,7 +61,7 @@ namespace Nodable
         std::string serialize(const CodeBlock*) const;
 
         /** Serialize a single instruction ( can be a simple expression ) */
-        std::string serialize(const Instruction*)const;
+        std::string serialize(const InstructionNode*)const;
 
         std::string serialize(const ScopedCodeBlock*)const;
     protected:

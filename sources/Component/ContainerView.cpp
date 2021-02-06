@@ -2,13 +2,13 @@
 #include "Log.h"
 #include "Node.h"
 #include "Container.h"
-#include "Variable.h"
+#include "VariableNode.h"
 #include "Wire.h"
 #include "WireView.h"
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include "ResultNode.h"
+#include "InstructionNode.h"
 
 using namespace Nodable;
 
@@ -29,10 +29,10 @@ bool ContainerView::draw()
 		// Constraints
 		auto container = getOwner()->as<Container>();
 
-		if ( !container->getResults().empty() )
+		if ( container->hasInstructions() )
 		{
             // Make sure result node is always visible
-			auto view = container->getResults().back()->getComponent<NodeView>();
+			auto view = container->getScope()->getFirstInstruction()->getComponent<NodeView>();
 			auto rect = ImRect(ImVec2(0,0), ImGui::GetWindowSize());
 			rect.Max.y = 1000000000000.0f;
 			NodeView::ConstraintToRect(view, rect );
@@ -221,10 +221,24 @@ bool ContainerView::draw()
 		ImGui::Separator();
 		
 		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-			newNode = container->newVariable("Variable");
+			newNode = container->newVariable("Variable", container->getScope()); // new variable in global scope
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
-			newNode = container->newInstructionResult();
+        {
+            newNode = container->newInstruction();
+
+            // Initialize (since it is a manual creation)
+            auto newInstructionNode = reinterpret_cast<InstructionNode*>(newNode);
+            newInstructionNode->endOfInstructionToken = new Token(TokenType::EndOfInstruction, "", 0);
+            // add to code block
+            auto scope = container->getScope();
+            if ( !scope->hasInstructions() )
+            {
+                scope->innerBlocs.push_back(new CodeBlock(scope));
+            }
+            auto block = scope->getLastCodeBlock();
+            block->instructionNodes.push_back(newInstructionNode);
+        }
 
 
 		/*

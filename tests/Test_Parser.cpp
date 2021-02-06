@@ -3,9 +3,9 @@
 #include <Core/Member.h>
 #include <Component/Container.h>
 #include <Language/Common/Parser.h>
-#include <Node/Variable.h>
+#include <Node/VariableNode.h>
 #include <Language/Common/LanguageLibrary.h>
-#include "ResultNode.h"
+#include "InstructionNode.h"
 
 using namespace Nodable;
 
@@ -16,17 +16,17 @@ bool Parser_Test(
         const Language* _language = LanguageLibrary::GetNodable()
 ){
 
-    Container container(_language);
+    auto container = std::make_unique<Container>(_language);
 
     Parser* parser = _language->getParser();
-    parser->evalCodeIntoContainer(expression, &container);
-    container.update();
+    parser->evalCodeIntoContainer(expression, container.get());
+    container->update();
 
     auto expectedMember = std::make_unique<Member>(nullptr);
     expectedMember->set(_expectedValue);
 
-    auto result = container.getResults().back();
-    auto success = result->value()->equals(expectedMember.get());
+    auto result = container->getScope()->getLastCodeBlock()->instructionNodes.back()->value();
+    auto success = result->equals(expectedMember.get());
 
     return success;
 }
