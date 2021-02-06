@@ -193,6 +193,12 @@ std::string Serializer::serialize(const Member * _member) const
 
     std::string expression;
 
+    const Token *sourceToken = _member->getSourceToken();
+    if (sourceToken)
+    {
+        expression.append(sourceToken->prefix);
+    }
+
     auto owner = _member->getOwner()->as<Node>();
     if ( owner && _member->allowsConnection(Way_In) && owner->hasWireConnectedTo(_member) )
     {
@@ -200,43 +206,37 @@ std::string Serializer::serialize(const Member * _member) const
 
         if ( auto computeBase = sourceMember->getOwner()->as<Node>()->getComponent<ComputeBase>() )
         {
-            expression = Serializer::serialize(computeBase);
+            expression.append( Serializer::serialize(computeBase) );
         }
         else
         {
-            expression = serialize(sourceMember);
+            expression.append( serialize(sourceMember) );
         }
 
     }
     else
     {
-        const Token *sourceToken = _member->getSourceToken();
-        if (sourceToken)
-        {
-            expression.append(sourceToken->prefix);
-        }
-
         if (owner->getClass() == mirror::GetClass<Variable>())
         {
             auto variable = owner->as<Variable>();
-            expression = variable->getName();
+            expression.append( variable->getName() );
         }
         else
         {
             if (_member->isType(Type::String))
             {
-                expression = '"' + (std::string) *_member + '"';
+                expression.append('"' + (std::string) *_member + '"');
             }
             else
             {
-                expression = (std::string) *_member;
+                expression.append( (std::string) *_member );
             }
         }
+    }
 
-        if (sourceToken)
-        {
-            expression.append(sourceToken->suffix);
-        }
+    if (sourceToken)
+    {
+        expression.append(sourceToken->suffix);
     }
 
     return expression;

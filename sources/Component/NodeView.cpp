@@ -645,7 +645,14 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
         ImGui::Text("%s", language->getSerializer()->serialize(_member).c_str() );
         ImGui::EndTooltip();
     }
-
+    if ( _member->getSourceToken() )
+    {
+        auto token = _member->getSourceToken();
+        ImGui::Text("SourceToken '%s', prefix: '%s', suffix: '%s'",
+                    token->word.c_str(),
+                    token->prefix.c_str(),
+                    token->suffix.c_str());
+    }
     return edited;
 }
 

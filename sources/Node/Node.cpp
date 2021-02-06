@@ -31,6 +31,12 @@ void Node::Disconnect(Wire* _wire)
 
 Wire* Node::Connect( Member* _from, Member* _to)
 {
+    if (_from->getOwner() == nullptr)
+    {
+        _to->digest(_from);
+        return nullptr;
+    }
+
     Wire* wire;
 
     _to->setInputMember(_from);
@@ -56,6 +62,22 @@ Wire* Node::Connect( Member* _from, Member* _to)
     sourceNode->addWire(wire);
 
     NodeTraversal::SetDirty(targetNode);
+
+    // TODO: move this somewhere else
+    auto fromToken = _from->getSourceToken();
+    if ( fromToken )
+    {
+        if (!_to->getSourceToken())
+        {
+            _to->setSourceToken(new Token(fromToken->type, "", fromToken->charIndex));
+        }
+
+        auto toToken = _to->getSourceToken();
+        toToken->suffix = fromToken->suffix;
+        toToken->prefix = fromToken->prefix;
+        fromToken->suffix = "";
+        fromToken->prefix = "";
+    }
 
     return wire;
 }
