@@ -2,15 +2,14 @@
 #include "Log.h"          // for LOG_VERBOSE(...)
 #include "Member.h"
 #include "Container.h"
-#include "Variable.h"
+#include "VariableNode.h"
 #include "Wire.h"
 #include "Language.h"
 #include "Log.h"
-#include "Instruction.h"
 #include <regex>
 #include <algorithm>
 #include <sstream>
-#include "ResultNode.h"
+#include "InstructionNode.h"
 
 using namespace Nodable;
 
@@ -56,9 +55,9 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
 		return false;
 	}
 
-	ScopedCodeBlock* scope = parseScope(container->getScope() );
+	CodeBlock* codeBlock = parseCodeBlock(container->getScope());
 
-	if ( scope == nullptr)
+	if (codeBlock == nullptr)
 	{
 		LOG_WARNING("Parser", "Unable to parse main scope due to abstract syntax tree failure.\n");
 		return false;
@@ -88,10 +87,10 @@ Member* Parser::tokenToMember(Token* _token)
 		case TokenType::Symbol:
 		{
 			auto context = container;
-			Variable* variable = context->findVariable(_token->word);
+			VariableNode* variable = context->findVariable(_token->word);
 
 			if (variable == nullptr)
-				variable = context->newVariable(_token->word);
+				variable = context->newVariable(_token->word, this->getCurrentScope());
 
 			NODABLE_ASSERT(variable != nullptr);
 			NODABLE_ASSERT(variable->value() != nullptr);
@@ -344,7 +343,7 @@ Member* Parser::parseParenthesisExpression()
 	return result;
 }
 
-Instruction* Parser::parseInstruction()
+InstructionNode* Parser::parseInstruction()
 {
     tokenList.startTransaction();
 
@@ -356,7 +355,7 @@ Instruction* Parser::parseInstruction()
        return nullptr;
     }
 
-    auto instruction = new Instruction();
+    auto instruction = container->newInstruction();
 
     if ( tokenList.canEat() )
     {
@@ -373,38 +372,32 @@ Instruction* Parser::parseInstruction()
         }
     }
 
-    auto resultNode = container->newInstructionResult();
-    instruction->nodeGraphRoot = resultNode->value();
-
-    Node::Connect(parsedExpression, instruction->nodeGraphRoot);
+    Node::Connect(parsedExpression, instruction->value());
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n");
     tokenList.commitTransaction();
     return instruction;
 }
 
-ScopedCodeBlock* Parser::parseScope(ScopedCodeBlock* _parent)
+CodeBlock* Parser::parseCodeBlock(ScopedCodeBlock* _parent)
 {
-	auto scope = new ScopedCodeBlock(_parent);
 	auto block = parseInstructionBlock();
-	block->parent = scope;
-	scope->innerBlocs.push_back( block );
-
-	return scope;
+	_parent->innerBlocs.push_back(block);
+	return block;
 }
 
-AbstractCodeBlock* Parser::parseInstructionBlock()
+CodeBlock* Parser::parseInstructionBlock()
 {
     auto block      = new CodeBlock(nullptr);
     bool errorFound = false;
 
     while(tokenList.canEat() && !errorFound )
     {
-        Instruction* instruction = parseInstruction();
+        InstructionNode* instruction = parseInstruction();
         if (instruction != nullptr )
         {
-            block->instructions.push_back(instruction );
-            LOG_VERBOSE("Parser", "parse program (instruction %i parsed)\n", (int)block->instructions.size() );
+            block->instructionNodes.push_back(instruction );
+            LOG_VERBOSE("Parser", "parse program (instruction %i parsed)\n", (int)block->instructionNodes.size() );
         }
         else
         {
@@ -412,9 +405,9 @@ AbstractCodeBlock* Parser::parseInstructionBlock()
         }
     }
 
-    if ( !block->instructions.empty() )
+    if ( !block->instructionNodes.empty() )
     {
-        LOG_VERBOSE("Parser", "parse program " OK "(%i instructions parsed) \n", block->instructions.size() );
+        LOG_VERBOSE("Parser", "parse program " OK "(%i instructions parsed) \n", block->instructionNodes.size() );
     }
     else
     {
@@ -858,4 +851,10 @@ Member* Parser::parseFunctionCall()
 
     tokenList.rollbackTransaction();
     LOG_VERBOSE("Parser", "parse function call... " KO "\n");
+}
+
+ScopedCodeBlock *Parser::getCurrentScope()
+{
+    // TODO: implement. For now return only the global scope
+    return container->getScope();
 }

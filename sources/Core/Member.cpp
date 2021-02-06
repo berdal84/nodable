@@ -1,7 +1,7 @@
 #include "Member.h"
 #include "Log.h"		 // for LOG_DEBUG(...)
 #include "Object.h"
-#include "Variable.h"
+#include "VariableNode.h"
 #include "Language/Common/Language.h"
 
 using namespace Nodable;

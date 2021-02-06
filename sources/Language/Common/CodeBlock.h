@@ -1,7 +1,8 @@
 #pragma once
 #include <vector>
-#include "Instruction.h"
+#include <Node/InstructionNode.h>
 #include "mirror.h"
+#include "VariableNode.h"
 
 namespace Nodable
 {
@@ -17,6 +18,10 @@ namespace Nodable
         explicit AbstractCodeBlock(ScopedCodeBlock* _parent );
     public:
         virtual ~AbstractCodeBlock() = default;
+        virtual void clear() = 0;
+        [[nodiscard]] virtual bool             hasInstructions() const = 0;
+        [[nodiscard]] virtual InstructionNode* getFirstInstruction() = 0;
+        [[nodiscard]] virtual VariableNode*    findVariable(std::string _name) { return nullptr; };
         ScopedCodeBlock* parent;
 
         MIRROR_CLASS(AbstractCodeBlock)()
@@ -25,13 +30,20 @@ namespace Nodable
     /**
      * A Scoped code block able to contain inner code blocs.
      */
+    class CodeBlock;
     class ScopedCodeBlock: public AbstractCodeBlock
     {
     public:
         explicit ScopedCodeBlock(ScopedCodeBlock* _parent): AbstractCodeBlock(_parent){}
         ~ScopedCodeBlock() override;
         void clear();
+        [[nodiscard]] bool             hasInstructions() const;
+        [[nodiscard]] InstructionNode* getFirstInstruction();
+        [[nodiscard]] VariableNode*    findVariable(std::string _name);
+        [[nodiscard]] CodeBlock*       getLastCodeBlock();
         std::vector<AbstractCodeBlock*> innerBlocs;
+        std::vector<VariableNode*>      variables;
+
         MIRROR_CLASS(ScopedCodeBlock)
         (
             MIRROR_PARENT(AbstractCodeBlock)
@@ -48,7 +60,9 @@ namespace Nodable
         explicit CodeBlock(ScopedCodeBlock* _parent): AbstractCodeBlock(_parent){}
         ~CodeBlock() override;
         void clear();
-        std::vector<Instruction*> instructions;
+        [[nodiscard]] bool             hasInstructions() const;
+        [[nodiscard]] InstructionNode* getFirstInstruction();
+        std::vector<InstructionNode*> instructionNodes;
         MIRROR_CLASS(CodeBlock)
         (
             MIRROR_PARENT(AbstractCodeBlock)

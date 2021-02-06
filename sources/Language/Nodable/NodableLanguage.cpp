@@ -4,7 +4,7 @@
 #include "IconsFontAwesome5.h"
 #include <cmath>
 #include "Node.h"
-#include "Variable.h"
+#include "VariableNode.h"
 #include "Container.h"
 
 using namespace Nodable;

@@ -4,7 +4,7 @@
 #include <Component/ComputeUnaryOperation.h>
 #include <Node.h>
 #include <Component/Container.h>
-#include <Node/Variable.h>
+#include <Node/VariableNode.h>
 
 using namespace Nodable;
 
@@ -216,9 +216,9 @@ std::string Serializer::serialize(const Member * _member) const
     }
     else
     {
-        if (owner->getClass() == mirror::GetClass<Variable>())
+        if (owner->getClass() == mirror::GetClass<VariableNode>())
         {
-            auto variable = owner->as<Variable>();
+            auto variable = owner->as<VariableNode>();
             expression.append( variable->getName() );
         }
         else
@@ -244,7 +244,7 @@ std::string Serializer::serialize(const Member * _member) const
 
 std::string Serializer::serialize(const CodeBlock* _block) const
 {
-    if (_block->instructions.empty())
+    if (_block->instructionNodes.empty())
     {
         // TODO: implement curly brackets {} if scope explicitly has them
         return "";
@@ -252,7 +252,7 @@ std::string Serializer::serialize(const CodeBlock* _block) const
 
     std::string result;
 
-    for( auto& eachInstruction : _block->instructions )
+    for( auto& eachInstruction : _block->instructionNodes )
     {
         result.append( serialize(eachInstruction) );
     }
@@ -260,11 +260,11 @@ std::string Serializer::serialize(const CodeBlock* _block) const
     return result;
 }
 
-std::string Serializer::serialize(const Instruction* _instruction ) const
+std::string Serializer::serialize(const InstructionNode* _instruction ) const
 {
     std::string result;
 
-    result.append( serialize(_instruction->nodeGraphRoot) );
+    result.append( serialize(_instruction->value() ) );
     result.append( serialize(_instruction->endOfInstructionToken));
 
     return result;

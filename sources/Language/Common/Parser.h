@@ -10,8 +10,9 @@
 namespace Nodable{
 
     // forward declaration
-    struct Instruction;
+    class InstructionNode;
     class ScopedCodeBlock;
+    class AbstractCodeBlock;
 
     /**
      * A class to add tokens in a vector and navigate into them.
@@ -80,12 +81,11 @@ namespace Nodable{
 
 		The main strategy is:
 		- cut string into tokens
-		(TODO: before converting to Nodable graph, we need to build an AST)
 		- parse token list to convert it to Nodable graph.
 
-		ex: "a+b" will became an Add node connected to two Variable* a and b.
+		ex: "a+b" will became an Add node connected to two VariableNode* a and b.
 
-		*:Variable is a Node extended class
+	    There is no AST (Abstract Syntax Tree) since Nodable keep graph (Nodes) linked to text (tokens) all the time.
 	*/
 
 	class Parser
@@ -113,12 +113,12 @@ namespace Nodable{
 		/** Parse the root expression.
 		   The root expression is set when calling eval().
 		   Return the result as a Member or nullptr if parsing failed. */
-		ScopedCodeBlock* parseScope(ScopedCodeBlock* _parent);
+        CodeBlock* parseCodeBlock(ScopedCodeBlock* _parent);
 
-        AbstractCodeBlock* parseInstructionBlock();
+        CodeBlock* parseInstructionBlock();
 
 		/** Parse a single instruction */
-        Instruction* parseInstruction();
+        InstructionNode* parseInstruction();
 
 		/** Parse a Function call starting at current cursor position.
 		   Return the result as a Member or nullptr if parsing failed. */
@@ -150,6 +150,8 @@ namespace Nodable{
 		/** Check if the existing tokens match with the syntax of the language.
 		 * tokenizeExpressionString() must be called first */
 		bool isSyntaxValid();
+
+        ScopedCodeBlock* getCurrentScope();
 
 		/** Semantic and Syntax */
 		const Language* language;

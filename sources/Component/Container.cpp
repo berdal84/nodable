@@ -2,7 +2,7 @@
 #include "Log.h"
 #include "Language/Common/Parser.h"
 #include "Node.h"
-#include "Variable.h"
+#include "VariableNode.h"
 #include "ComputeBinaryOperation.h"
 #include "ComputeUnaryOperation.h"
 #include "Wire.h"
@@ -14,7 +14,7 @@
 #include "Application.h"
 #include "NodeTraversal.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include "ResultNode.h"
+#include "InstructionNode.h"
 
 using namespace Nodable;
 
@@ -30,9 +30,9 @@ void Container::clear()
 {
 	// Store the Result node position to restore it later
 	// TODO: handle multiple results
-	if ( !results.empty() )
+	if ( scope->hasInstructions() )
 	{
-		auto view = results.front()->getComponent<NodeView>();
+		auto view = scope->getFirstInstruction()->getComponent<NodeView>();
 		Container::LastResultNodeViewPosition = view->getRoundedPosition();
 	}
 
@@ -49,7 +49,6 @@ void Container::clear()
         delete node;
 	}
     nodes.resize(0);
-	results.clear();
     scope->clear();
     LOG_VERBOSE("Container", "===================================================\n");
 }
@@ -118,13 +117,7 @@ void Container::add(Node* _node)
 
 void Container::remove(Node* _node)
 {
-    {
-        auto it = std::find(variables.begin(), variables.end(), _node);
-        if (it != variables.end())
-        {
-            variables.erase(it);
-        }
-    }
+    // TODO: remove Node from this->scope
 
     {
         auto it = std::find(nodes.begin(), nodes.end(), _node);
@@ -133,73 +126,52 @@ void Container::remove(Node* _node)
             nodes.erase(it);
         }
     }
-
-	{
-		auto it = std::find(results.begin(), results.end(), _node);
-		if (it != results.end())
-		{
-			results.erase(it);
-		}
-	}
 }
 
-Variable* Container::findVariable(std::string _name)
+VariableNode* Container::findVariable(std::string _name)
 {
-	Variable* result = nullptr;
-
-	auto findFunction = [_name](const Variable* _variable ) -> bool
-	{
-		return strcmp(_variable->getName(), _name.c_str()) == 0;
-	};
-
-	auto it = std::find_if(variables.begin(), variables.end(), findFunction);
-	if (it != variables.end()){
-		result = *it;
-	}
-
-	return result;
+	return scope->findVariable(_name);
 }
 
-ResultNode* Container::newInstructionResult()
+InstructionNode* Container::newInstruction()
 {
-	auto resultNode = new ResultNode(ICON_FA_SIGN_OUT_ALT " Result");
-    resultNode->addComponent( new NodeView);
-	results.push_back(resultNode);
-	this->add(resultNode);
-	return resultNode;
+	auto instructionNode = new InstructionNode(ICON_FA_SIGN_OUT_ALT " Result");
+    instructionNode->addComponent(new NodeView);
+	this->add(instructionNode);
+	return instructionNode;
 }
 
-Variable* Container::newVariable(std::string _name)
+VariableNode* Container::newVariable(std::string _name, ScopedCodeBlock* _scope)
 {
-	auto node = new Variable();
+	auto node = new VariableNode();
 	node->addComponent( new NodeView);
 	node->setName(_name.c_str());
-	this->variables.push_back(node);
 	this->add(node);
+	_scope->variables.push_back(node);
 	return node;
 }
 
-Variable* Container::newNumber(double _value)
+VariableNode* Container::newNumber(double _value)
 {
-	auto node = new Variable();
+	auto node = new VariableNode();
 	node->addComponent( new NodeView);
 	node->set(_value);
 	this->add(node);
 	return node;
 }
 
-Variable* Container::newNumber(const char* _value)
+VariableNode* Container::newNumber(const char* _value)
 {
-	auto node = new Variable();
+	auto node = new VariableNode();
 	node->addComponent( new NodeView);
 	node->set(std::stod(_value));
 	this->add(node);
 	return node;
 }
 
-Variable* Container::newString(const char* _value)
+VariableNode* Container::newString(const char* _value)
 {
-	auto node = new Variable();
+	auto node = new VariableNode();
 	node->addComponent( new NodeView);
 	node->set(_value);
 	this->add(node);
@@ -320,9 +292,19 @@ Wire* Container::newWire()
 
 void Container::arrangeResultNodeViews()
 {
-    for (auto it = results.begin(); it != results.end(); it++)
+    // TODO: fix this function, traverse the scope recursively.
+
+//    std::vector<InstructionNode*> results;
+//
+//    for (auto it = results.begin(); it != results.end(); it++)
+//    {
+    auto instruction = scope->getFirstInstruction();
+    if ( !instruction)
     {
-        NodeView *nodeView = (*it)->getComponent<NodeView>();
+        return;
+    }
+
+        NodeView *nodeView = instruction->getComponent<NodeView>();
 
         // Store the Result node position to restore it later
         bool resultNodeHadPosition = Container::LastResultNodeViewPosition.x != -1 &&
@@ -335,7 +317,7 @@ void Container::arrangeResultNodeViews()
             if (resultNodeHadPosition)
             {                                 /* if result node had a position stored, we restore it */
                 nodeView->setPosition(Container::LastResultNodeViewPosition);
-                nodeView->translate(ImVec2(float(200) * (float)std::distance(results.begin(), it), 0));
+//                nodeView->translate(ImVec2(float(200) * (float)std::distance(results.begin(), it), 0));
             }
 
             auto rect = view->getVisibleRect();
@@ -346,7 +328,7 @@ void Container::arrangeResultNodeViews()
                 nodeView->setPosition(defaultPosition);
             }
         }
-    }
+//    }
 }
 
 size_t Container::getNodeCount()const
@@ -362,4 +344,9 @@ Container::Container(const Language* _language)
 
 const Language *Container::getLanguage()const {
     return language;
+}
+
+bool Container::hasInstructions()
+{
+    return false;
 }

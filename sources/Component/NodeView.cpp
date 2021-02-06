@@ -1,7 +1,7 @@
 #include "NodeView.h"
 #include "Log.h"		          // for LOG_DEBUG(...)
 #include "Container.h"
-#include "Variable.h"
+#include "VariableNode.h"
 #include "Wire.h"
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
@@ -118,7 +118,7 @@ void NodeView::setOwner(Node* _node)
     {
         setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
     }
-    else if ( _node->getClass() == mirror::GetClass<Variable>() )
+    else if ( _node->getClass() == mirror::GetClass<VariableNode>() )
     {
         setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f));
     }
@@ -526,7 +526,7 @@ bool NodeView::drawMemberView(MemberView* _memberView )
     if( !_memberView->touched )
     {
         const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
-        const bool isVariable = member->getOwner()->getClass() == Variable::GetClass();
+        const bool isVariable = member->getOwner()->getClass() == VariableNode::GetClass();
         _memberView->showInput = _memberView->member->isDefined() && (!isAnInputUnconnected || isVariable || s_viewDetail == NodeViewDetail::Exhaustive) ;
     }
 
