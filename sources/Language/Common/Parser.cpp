@@ -40,6 +40,7 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
             LOG_WARNING("Parser", "Unable to parse code due to unrecognized tokens.\n");
             return false;
         }
+
         lineCount++;
     }
 
@@ -188,31 +189,8 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 		auto binOpNode = container->newBinOp( matchingOperator);
         binOpNode->getComponent<ComputeBase>()->setSourceToken(operatorToken);
 
-		// Connect the Left Operand :
-		//---------------------------
-		if (_left->getOwner() == nullptr)
-		{
-            Member* lvalue = binOpNode->get("lvalue");
-            lvalue->digest(_left);
-        }
-		else
-        {
-			Node::Connect( _left, binOpNode->get("lvalue"));
-        }
-
-		// Connect the Right Operand :
-
-		if (right->getOwner() == nullptr)
-		{
-            Member* rvalue = binOpNode->get("rvalue");
-            rvalue->digest(right);
-        }
-		else
-        {
-			Node::Connect(right, binOpNode->get("rvalue"));
-        }
-
-		// Set the left !
+        Node::Connect(_left, binOpNode->get("lvalue"));
+        Node::Connect(right, binOpNode->get("rvalue"));
 		result = binOpNode->get("result");
 
         tokenList.commitTransaction();
@@ -272,19 +250,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 		auto unaryOpNode = container->newUnaryOp(matchingOperator);
         unaryOpNode->getComponent<ComputeBase>()->setSourceToken(operatorToken);
 
-		// Connect the Left Operand :
-		//---------------------------
-		if (value->getOwner() == nullptr)
-		{
-            Member* lvalue = unaryOpNode->get("lvalue");
-            lvalue->digest(value);
-        }
-		else
-        {
-			Node::Connect(value, unaryOpNode->get("lvalue"));
-        }
-
-		// Set the left !
+		Node::Connect(value, unaryOpNode->get("lvalue"));
         Member* result = unaryOpNode->get("result");
 
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
@@ -409,15 +375,8 @@ Instruction* Parser::parseInstruction()
 
     auto resultNode = container->newInstructionResult();
     instruction->nodeGraphRoot = resultNode->value();
-    // If the value has no owner, we simply set the variable value
-    if (parsedExpression->getOwner() == nullptr)
-    {
-        instruction->nodeGraphRoot->digest(parsedExpression);
-    }
-    else // we connect resultValue with resultVariable.value
-    {
-        Node::Connect(parsedExpression, instruction->nodeGraphRoot);
-    }
+
+    Node::Connect(parsedExpression, instruction->nodeGraphRoot);
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n");
     tokenList.commitTransaction();
@@ -637,7 +596,7 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
                     }
 
                 }
-                else if ( !tokenList.empty() )
+                else if ( !tokenList.empty()  )
                 {
                     auto lastToken = tokenList.tokens.back();
                     lastToken->suffix.append(matchedTokenString);
@@ -880,14 +839,7 @@ Member* Parser::parseFunctionCall()
                     .at(_argIndex)
                     .name;
 
-            if (arg->getOwner() == nullptr)
-            {
-                node->set(memberName.c_str(), arg);
-            }
-            else
-            {
-                Node::Connect(arg, node->get(memberName.c_str()));
-            }
+            Node::Connect(arg, node->get(memberName.c_str()));
         };
 
         for (size_t argIndex = 0; argIndex < fct->signature

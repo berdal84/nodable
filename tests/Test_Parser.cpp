@@ -157,8 +157,8 @@ TEST(Parser, Single_Instruction_With_EndOfInstruction )
 
 TEST(Parser, Multiple_Instructions_Single_Line )
 {
-    EXPECT_TRUE(Parser_Test("a = 5;b = 2 * a;", double(10)));
-    EXPECT_EQ(ParseEvalSerialize("a = 5;b = 2 * a;"), "a = 5;b = 2 * a;");
+    EXPECT_TRUE(Parser_Test("a = 5;b = 2 * 5;", double(10)));
+    EXPECT_EQ(ParseEvalSerialize("a = 5;b = 2 * 5;"), "a = 5;b = 2 * 5;");
 }
 
 TEST(Parser, Multiple_Instructions_Multi_Line )
@@ -180,4 +180,6 @@ TEST(Parser, Code_Formatting_Preserving )
 {
     EXPECT_EQ(ParseEvalSerialize("a =5;\nb=2*a;"), "a =5;\nb=2*a;");
     EXPECT_EQ(ParseEvalSerialize("a =5;\nb=2  *  a;"), "a =5;\nb=2  *  a;");
+    EXPECT_EQ(ParseEvalSerialize(" 5 + 2;"), " 5 + 2;");
+    EXPECT_EQ(ParseEvalSerialize("5 + 2;  "), "5 + 2;  ");
 }
