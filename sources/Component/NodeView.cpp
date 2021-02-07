@@ -231,13 +231,8 @@ bool NodeView::update(float _deltaTime)
 	auto node = getOwner();
 	NODABLE_ASSERT(node != nullptr);
 
-	if( node->getInputWireCount() > 0)
-    {
-        updateInputConnectedNodes(node, _deltaTime);
-    }
-
 	// set avg position
-	if ( node->getClass() == mirror::GetClass<CodeBlockNode>() )
+	if ( node->getClass() == mirror::GetClass<CodeBlockNode>() && !pinned)
     {
 	    ImVec2 childrenPosSum;
 	    auto codeBlockNode = node->as<CodeBlockNode>();
@@ -248,7 +243,51 @@ bool NodeView::update(float _deltaTime)
 	    float count(codeBlockNode->instructionNodes.size());
 	    ImVec2 childrenPosAvg(childrenPosSum.x / count,childrenPosSum.y / count);
 	    this->setPosition(childrenPosAvg + ImVec2(0,size.y * 2.0f));
+
+    // Constrain Node With multiple output connections
+    } else if ( node->getOutputWireCount() > 1 && !pinned )
+    {
+	    // zone to frame output connected nodes
+	    ImRect zone(std::numeric_limits<float>::max(),
+                    std::numeric_limits<float>::max(),
+                    std::numeric_limits<float>::min(),
+                    std::numeric_limits<float>::min());
+
+        float maxY = std::numeric_limits<float>::max();
+        ImVec2 posSum;
+
+        auto outputCount = 0;
+        for (auto eachWire : node->getWires())
+        {
+            bool isWireAnOutput = node->has(eachWire->getSource());
+            if (isWireAnOutput)
+            {
+                auto targetNode = eachWire->getTarget()->getOwner()->as<Node>();
+                auto targetNodeView  = targetNode->getComponent<NodeView>();
+                zone.Min.y = std::min( zone.Min.y, targetNodeView->position.y);
+                zone.Min.x = std::min( zone.Min.x, targetNodeView->position.x);
+                zone.Max.y = std::max( zone.Max.y, targetNodeView->position.y);
+                zone.Max.x = std::max( zone.Max.x, targetNodeView->position.x);
+                outputCount++;
+            }
+        }
+
+        // Compute a delta to apply to move to this new position
+        ImVec2 newPos( zone.GetCenter().x, zone.Min.y - size.y * 2.0f);
+        ImVec2 delta(newPos.x - position.x, newPos.y - position.y);
+
+        bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
+        if (!isDeltaTooSmall) {
+            auto factor = std::min(1.0f, 10.f * _deltaTime);
+            translate(delta * factor);
+        }
+
+    } else if( node->getInputWireCount() > 0)
+    {
+        updateInputConnectedNodes(node, _deltaTime);
     }
+
+
 
 	return true;
 }
@@ -297,7 +336,8 @@ void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
 			auto sourceNode = eachWire->getSource()->getOwner()->as<Node>();
 			auto inputView  = sourceNode->getComponent<NodeView>();
 
-			if (!inputView->pinned)
+			// Contrain only unpinned node that have only a single output connection
+			if (!inputView->pinned && inputView->getOwner()->getOutputWireCount() <= 1 )
 			{
 				// Compute new position for this input view
 				ImVec2 newPos(posX + inputView->size.x / 2.0f, position.y - s_nodeSpacingDistance - inputView->size.y / 2.0f - size.y / 2.0f );
