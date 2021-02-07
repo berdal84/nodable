@@ -9,6 +9,7 @@
 #include "NodeView.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "InstructionNode.h"
+#include "CodeBlockNode.h"
 
 using namespace Nodable;
 
@@ -19,6 +20,25 @@ bool ContainerView::draw()
 	ImGui::SetCursorPos(ImVec2(0,0));
 	auto container = reinterpret_cast<Container*>(getOwner());
 	auto entities  = container->getEntities();
+
+    /*
+        Lines between CodeBlock and each Instructions
+     */
+    ScopedCodeBlock* scope = container->getScope();
+    if ( !scope->isEmpty() )
+    {
+        CodeBlockNode* block = dynamic_cast<CodeBlockNode*>(scope->getLastCodeBlock());
+
+        for(auto& eachInstr: block->instructionNodes )
+        {
+            // Draw a line
+            ImVec2 start = block->getComponent<NodeView>()->getScreenPos();
+            ImVec2 end   = eachInstr->getComponent<NodeView>()->getScreenPos();
+            ImColor color(255,255,255,64);
+            ImColor shadowColor(0,0,0,64);
+            WireView::DrawLine(ImGui::GetWindowDrawList(), start, end, color, shadowColor);
+        }
+    }
 
 	/*
 		NodeViews
@@ -225,19 +245,31 @@ bool ContainerView::draw()
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
         {
-            newNode = container->newInstruction();
+            auto newInstructionNode = container->newInstruction();
 
             // Initialize (since it is a manual creation)
-            auto newInstructionNode = reinterpret_cast<InstructionNode*>(newNode);
-            newInstructionNode->endOfInstructionToken = new Token(TokenType::EndOfInstruction, "", 0);
+            std::string eol = container->getLanguage()->getSerializer()->serialize(TokenType::EndOfLine);
+            Token* token = new Token(TokenType::EndOfInstruction);
+            token->suffix = eol;
+            newInstructionNode->endOfInstructionToken = token;
+
             // add to code block
             auto scope = container->getScope();
             if ( !scope->hasInstructions() )
             {
-                scope->innerBlocs.push_back(new CodeBlock(scope));
+                scope->innerBlocs.push_back( reinterpret_cast<AbstractCodeBlock*>(container->newCodeBlock()) );
             }
+            else
+            {
+                // insert an eol
+               InstructionNode* lastInstruction = scope->getLastInstruction();
+               lastInstruction->endOfInstructionToken->suffix += eol;
+            }
+
             auto block = scope->getLastCodeBlock();
             block->instructionNodes.push_back(newInstructionNode);
+
+            newNode = newInstructionNode;
         }
 
 

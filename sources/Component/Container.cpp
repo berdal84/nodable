@@ -15,6 +15,7 @@
 #include "NodeTraversal.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "InstructionNode.h"
+#include "CodeBlockNode.h"
 
 using namespace Nodable;
 
@@ -33,7 +34,7 @@ void Container::clear()
 	if ( scope->hasInstructions() )
 	{
 		auto view = scope->getFirstInstruction()->getComponent<NodeView>();
-		Container::LastResultNodeViewPosition = view->getRoundedPosition();
+		Container::LastResultNodeViewPosition = view->getPosition();
 	}
 
 	LOG_VERBOSE( "Container", "=================== clear() ==================\n");
@@ -292,19 +293,17 @@ Wire* Container::newWire()
 
 void Container::arrangeResultNodeViews()
 {
-    // TODO: fix this function, traverse the scope recursively.
-
-//    std::vector<InstructionNode*> results;
-//
-//    for (auto it = results.begin(); it != results.end(); it++)
-//    {
-    auto instruction = scope->getFirstInstruction();
-    if ( !instruction)
+    if ( scope->innerBlocs.empty())
     {
         return;
     }
 
-        NodeView *nodeView = instruction->getComponent<NodeView>();
+    auto* block = dynamic_cast<CodeBlockNode*>(scope->innerBlocs.front());
+
+    for (auto it = block->instructionNodes.begin(); it != block->instructionNodes.end(); it++)
+    {
+        InstructionNode* instructionNode = *it;
+        NodeView *nodeView = instructionNode->getComponent<NodeView>();
 
         // Store the Result node position to restore it later
         bool resultNodeHadPosition = Container::LastResultNodeViewPosition.x != -1 &&
@@ -317,7 +316,7 @@ void Container::arrangeResultNodeViews()
             if (resultNodeHadPosition)
             {                                 /* if result node had a position stored, we restore it */
                 nodeView->setPosition(Container::LastResultNodeViewPosition);
-//                nodeView->translate(ImVec2(float(200) * (float)std::distance(results.begin(), it), 0));
+                nodeView->translate(ImVec2(float(200) * (float)std::distance(block->instructionNodes.begin(), it), 0));
             }
 
             auto rect = view->getVisibleRect();
@@ -328,7 +327,7 @@ void Container::arrangeResultNodeViews()
                 nodeView->setPosition(defaultPosition);
             }
         }
-//    }
+    }
 }
 
 size_t Container::getNodeCount()const
@@ -349,4 +348,17 @@ const Language *Container::getLanguage()const {
 bool Container::hasInstructions()
 {
     return false;
+}
+
+CodeBlockNode *Container::newCodeBlock()
+{
+    auto codeBlockNode = new CodeBlockNode(nullptr);
+    std::string label = ICON_FA_SQUARE " Block " + std::to_string(this->scope->innerBlocs.size());
+    codeBlockNode->setLabel(label);
+    codeBlockNode->addComponent(new NodeView);
+
+    // do not add. Code blocks are owned by scope
+    this->add(codeBlockNode);
+
+    return codeBlockNode;
 }

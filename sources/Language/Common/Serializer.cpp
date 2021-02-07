@@ -5,6 +5,7 @@
 #include <Node.h>
 #include <Component/Container.h>
 #include <Node/VariableNode.h>
+#include <Node/CodeBlockNode.h>
 
 using namespace Nodable;
 
@@ -242,7 +243,7 @@ std::string Serializer::serialize(const Member * _member) const
     return expression;
 }
 
-std::string Serializer::serialize(const CodeBlock* _block) const
+std::string Serializer::serialize(const CodeBlockNode* _block) const
 {
     if (_block->instructionNodes.empty())
     {
@@ -290,9 +291,9 @@ std::string Serializer::serialize(const ScopedCodeBlock* _scope)const
 
     for(auto eachBlock : _scope->innerBlocs )
     {
-        if ( eachBlock->getClass() == mirror::GetClass<CodeBlock>() )
+        if ( eachBlock->getClass()->isChildOf(mirror::GetClass<CodeBlockNode>()) )
         {
-            result.append( serialize( (const CodeBlock*)(eachBlock) ) );
+            result.append( serialize( (const CodeBlockNode*)(eachBlock) ) );
         }
         else // is Scope for sure
         {

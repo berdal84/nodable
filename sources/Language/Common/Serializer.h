@@ -17,7 +17,7 @@ namespace Nodable
     class Operator;
     class Language;
     class AbstractCodeBlock;
-    class CodeBlock;
+    class CodeBlockNode;
     class ScopedCodeBlock;
     class InstructionNode;
 
@@ -58,7 +58,7 @@ namespace Nodable
         std::string serializeBinaryOp(const Operator*, std::vector<Member*>, const Operator*, const Operator*)const;
 
         /** Serialize a complete scope (a set of instructions) */
-        std::string serialize(const CodeBlock*) const;
+        std::string serialize(const CodeBlockNode*) const;
 
         /** Serialize a single instruction ( can be a simple expression ) */
         std::string serialize(const InstructionNode*)const;

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <sstream>
 #include "InstructionNode.h"
+#include "CodeBlockNode.h"
 
 using namespace Nodable;
 
@@ -55,7 +56,7 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
 		return false;
 	}
 
-	CodeBlock* codeBlock = parseCodeBlock(container->getScope());
+	CodeBlockNode* codeBlock = parseCodeBlock(container->getScope());
 
 	if (codeBlock == nullptr)
 	{
@@ -379,16 +380,16 @@ InstructionNode* Parser::parseInstruction()
     return instruction;
 }
 
-CodeBlock* Parser::parseCodeBlock(ScopedCodeBlock* _parent)
+CodeBlockNode* Parser::parseCodeBlock(ScopedCodeBlock* _parent)
 {
 	auto block = parseInstructionBlock();
-	_parent->innerBlocs.push_back(block);
+	_parent->add(block);
 	return block;
 }
 
-CodeBlock* Parser::parseInstructionBlock()
+CodeBlockNode* Parser::parseInstructionBlock()
 {
-    auto block      = new CodeBlock(nullptr);
+    auto block      = container->newCodeBlock();
     bool errorFound = false;
 
     while(tokenList.canEat() && !errorFound )

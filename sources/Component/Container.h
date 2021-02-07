@@ -16,6 +16,7 @@ namespace Nodable{
     // forward declaration
     class ScopedCodeBlock;
     class InstructionNode;
+    class CodeBlockNode;
 
 	class Container: public Node {
 	public:
@@ -34,6 +35,7 @@ namespace Nodable{
         ScopedCodeBlock*            getScope(){ return scope;}
 
 		/* node factory */
+		CodeBlockNode*              newCodeBlock();
         InstructionNode*		    newInstruction();
 		VariableNode*				newVariable(std::string, ScopedCodeBlock*);
 		VariableNode*				newNumber(double = 0);
