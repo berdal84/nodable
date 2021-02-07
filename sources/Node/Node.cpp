@@ -45,15 +45,7 @@ Wire* Node::Connect( Member* _from, Member* _to)
 
     // Link wire to members
     auto sourceContainer = sourceNode->getParentContainer();
-
-    if (sourceContainer != nullptr)
-    {
-        wire = sourceContainer->newWire();
-    }
-    else
-    {
-        wire = new Wire();
-    }
+    wire = sourceContainer->newWire();
 
     wire->setSource(_from);
     wire->setTarget(_to);
@@ -61,9 +53,8 @@ Wire* Node::Connect( Member* _from, Member* _to)
     targetNode->addWire(wire);
     sourceNode->addWire(wire);
 
-    NodeTraversal::SetDirty(targetNode);
-
     // TODO: move this somewhere else
+    // (transfer prefix/suffix)
     auto fromToken = _from->getSourceToken();
     if ( fromToken )
     {
@@ -144,6 +135,7 @@ const char* Node::getLabel()const
 void Nodable::Node::addWire(Wire* _wire)
 {
 	wires.push_back(_wire);
+    NodeTraversal::SetDirty(this);
 }
 
 void Nodable::Node::removeWire(Wire* _wire)

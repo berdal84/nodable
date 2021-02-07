@@ -15,6 +15,8 @@ namespace Nodable {
         std::string prefix; // additional text only useful for layout (spaces, tabs, new line, etc.)
         std::string suffix; // additional text only useful for layout (spaces, tabs, new line, etc.)
 
+        Token(TokenType _type): Token(_type, "", 0) {}
+
 		Token(TokenType _type, const std::string& _word, size_t _index):
 		    type(_type),
 		    word(_word),

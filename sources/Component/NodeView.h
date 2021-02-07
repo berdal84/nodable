@@ -21,6 +21,7 @@ namespace Nodable
 
 	// forward declaration
 	class Node;
+    class ScopedCodeBlock;
 
 	/**
 	 * Simple struct to store a member view state
@@ -84,7 +85,7 @@ namespace Nodable
 		void updateInputConnectedNodes(Node* node, float deltaTime);
 
 		/** Get top-left corner vector position */
-		ImVec2 getRoundedPosition()const;
+		ImVec2 getPosition()const;
 
 		/** Get the ImRect bounding rectangle of this NodeView */
 		ImRect getRect()const;
@@ -112,6 +113,9 @@ namespace Nodable
         /** Arrange input nodes recursively while keeping this node position unchanged.
          *  Note: Some input connected Nodes can stay fixed if they are pinned. */
 		static void ArrangeRecursively(NodeView* /*_nodeView*/);
+
+        /** Arrange recursively an entire scope */
+        static void ArrangeRecursively(ScopedCodeBlock*);
 
 		/** Set a NodeView as selected.
 		 * Note: Only a single view can be selected at the same time */
@@ -235,5 +239,6 @@ namespace Nodable
         // Reflect this class
         MIRROR_CLASS(NodeView)(
                 MIRROR_PARENT(View)); // I only need to know the parent
-        };
+        ImVec2 getScreenPos();
+    };
 }

@@ -13,6 +13,7 @@ namespace Nodable{
     class InstructionNode;
     class ScopedCodeBlock;
     class AbstractCodeBlock;
+    class CodeBlockNode;
 
     /**
      * A class to add tokens in a vector and navigate into them.
@@ -113,9 +114,9 @@ namespace Nodable{
 		/** Parse the root expression.
 		   The root expression is set when calling eval().
 		   Return the result as a Member or nullptr if parsing failed. */
-        CodeBlock* parseCodeBlock(ScopedCodeBlock* _parent);
+        CodeBlockNode* parseCodeBlock(ScopedCodeBlock* _parent);
 
-        CodeBlock* parseInstructionBlock();
+        CodeBlockNode* parseInstructionBlock();
 
 		/** Parse a single instruction */
         InstructionNode* parseInstruction();

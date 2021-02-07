@@ -9,6 +9,8 @@
 #include "ComputeBase.h"
 #include "NodeTraversal.h"
 #include <Language/Common/Serializer.h>
+#include <Language/Common/CodeBlock.h>
+#include "CodeBlockNode.h"
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 
@@ -161,7 +163,7 @@ bool NodeView::IsSelected(NodeView* _view)
 	return s_selected == _view;
 }
 
-ImVec2 NodeView::getRoundedPosition()const
+ImVec2 NodeView::getPosition()const
 {
 	return ImVec2(std::round(position.x), std::round(position.y));
 }
@@ -228,7 +230,25 @@ bool NodeView::update(float _deltaTime)
 	//---------------------------------------------
 	auto node = getOwner();
 	NODABLE_ASSERT(node != nullptr);
-	updateInputConnectedNodes(node, _deltaTime);
+
+	if( node->getInputWireCount() > 0)
+    {
+        updateInputConnectedNodes(node, _deltaTime);
+    }
+
+	// set avg position
+	if ( node->getClass() == mirror::GetClass<CodeBlockNode>() )
+    {
+	    ImVec2 childrenPosSum;
+	    auto codeBlockNode = node->as<CodeBlockNode>();
+	    for( auto& children: codeBlockNode->instructionNodes )
+        {
+            childrenPosSum += children->getComponent<NodeView>()->getPosition();
+        }
+	    float count(codeBlockNode->instructionNodes.size());
+	    ImVec2 childrenPosAvg(childrenPosSum.x / count,childrenPosSum.y / count);
+	    this->setPosition(childrenPosAvg + ImVec2(0,size.y * 2.0f));
+    }
 
 	return true;
 }
@@ -321,10 +341,10 @@ bool NodeView::draw()
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, opacity);
 	const auto halfSize = size / 2.0;
-	ImGui::SetCursorPos( getRoundedPosition() - halfSize );
+	ImGui::SetCursorPos(getPosition() - halfSize );
 	ImGui::PushID(this);
 	ImVec2 cursorPositionBeforeContent = ImGui::GetCursorPos();
-	ImVec2 screenPosition  = View::CursorPosToScreenPos( getRoundedPosition() );
+	ImVec2 screenPosition  = View::CursorPosToScreenPos(getPosition() );
 
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -695,7 +715,7 @@ void NodeView::drawConnector(ImVec2& connnectorScreenPos, const Connector* _conn
 }
 
 ImRect Nodable::NodeView::getRect() const {
-	return ImRect(getRoundedPosition() - size * 0.5f, getRoundedPosition() + size * 0.5f);
+	return ImRect(getPosition() - size * 0.5f, getPosition() + size * 0.5f);
 }
 
 
@@ -756,7 +776,7 @@ void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 
 		auto nodeRect = _view->getRect();
 
-		auto newPos = _view->getRoundedPosition();
+		auto newPos = _view->getPosition();
 
 		auto left  = _rect.Min.x - nodeRect.Min.x;
 		auto right = _rect.Max.x - nodeRect.Max.x;
@@ -820,4 +840,33 @@ void NodeView::SetDetail(NodeViewDetail _viewDetail)
             memberView->reset();
         }
     }
+}
+
+void NodeView::ArrangeRecursively(ScopedCodeBlock* _scope)
+{
+    if ( _scope->innerBlocs.empty() )
+    {
+        return;
+    }
+
+    // TODO: this is uncomplete and assume there is only a single code block inside the scope
+    auto block = dynamic_cast<CodeBlockNode*>(_scope->innerBlocs.front());
+
+    for(auto& eachInstruction: block->instructionNodes)
+    {
+        auto view = eachInstruction->getComponent<NodeView>();
+
+        if ( view )
+        {
+            NodeView::ArrangeRecursively(view);
+        }
+    }
+}
+
+ImVec2 NodeView::getScreenPos()
+{
+    ImVec2 offset(
+            ImGui::GetCursorPos().x - ImGui::GetCursorScreenPos().x,
+            ImGui::GetCursorPos().y - ImGui::GetCursorScreenPos().y);
+    return position - offset;
 }

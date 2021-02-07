@@ -1,4 +1,4 @@
-#include "CodeBlock.h"
+#include "CodeBlockNode.h"
 
 using namespace Nodable;
 
@@ -12,6 +12,17 @@ AbstractCodeBlock::AbstractCodeBlock(ScopedCodeBlock *_parent)
     }
 }
 
+void AbstractCodeBlock::setParent(ScopedCodeBlock *_scope)
+{
+    assert(this->parent == nullptr); // Parent can't be set once
+    this->parent = _scope;
+}
+
+ScopedCodeBlock *AbstractCodeBlock::getParent()
+{
+    return nullptr;
+}
+
 ScopedCodeBlock::~ScopedCodeBlock()
 {
     clear();
@@ -19,10 +30,6 @@ ScopedCodeBlock::~ScopedCodeBlock()
 
 void ScopedCodeBlock::clear()
 {
-    for(auto& each: innerBlocs)
-    {
-        delete each;
-    }
     innerBlocs.clear();
     variables.clear();
 }
@@ -74,37 +81,24 @@ VariableNode* ScopedCodeBlock::findVariable(std::string _name)
     return result;
 }
 
-CodeBlock *ScopedCodeBlock::getLastCodeBlock()
+CodeBlockNode *ScopedCodeBlock::getLastCodeBlock()
 {
-    // TODO: mode this somewhere
-    // (we put instruction into the last code block
-
-    if ( innerBlocs.empty())
-    {
-        innerBlocs.push_back(new CodeBlock(this));
-    }
-    auto block = dynamic_cast<CodeBlock*>(innerBlocs.back());
-
-    return block;
+    return dynamic_cast<CodeBlockNode*>(innerBlocs.back());
 }
 
-CodeBlock::~CodeBlock()
+void ScopedCodeBlock::add(CodeBlockNode* _block)
 {
-    clear();
+    assert(std::find(innerBlocs.begin(), innerBlocs.end(), _block) == innerBlocs.end() ); // can be added only once
+    this->innerBlocs.push_back(_block);
+    _block->setParent(this);
 }
 
-void CodeBlock::clear()
+bool ScopedCodeBlock::isEmpty()
 {
-    // a code block do NOT owns its instructions nodes
-    instructionNodes.clear();
+    return innerBlocs.empty();
 }
 
-bool CodeBlock::hasInstructions() const
+InstructionNode *ScopedCodeBlock::getLastInstruction()
 {
-    return !instructionNodes.empty();
-}
-
-InstructionNode* CodeBlock::getFirstInstruction()
-{
-    return instructionNodes.front();
+    return getLastCodeBlock()->instructionNodes.back();
 }

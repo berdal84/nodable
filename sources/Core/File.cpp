@@ -117,9 +117,7 @@ bool File::evaluateExpression(std::string& _expression)
 	{
         if ( parser->evalCodeIntoContainer(_expression, container) && container->hasInstructions() )
         {
-            auto result = container->getScope()->getFirstInstruction();
-            auto view = result->getComponent<NodeView>();
-            NodeView::ArrangeRecursively(view);
+            NodeView::ArrangeRecursively(container->getScope());
             LOG_MESSAGE("File", "Expression evaluated: %s\n", _expression.c_str());
             return true;
         }
