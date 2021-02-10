@@ -22,6 +22,7 @@ namespace Nodable
 	// forward declaration
 	class Node;
     class ScopedCodeBlock;
+    class CodeBlockNode;
 
 	/**
 	 * Simple struct to store a member view state
@@ -111,7 +112,7 @@ namespace Nodable
 		static void ArrangeRecursively(NodeView* /*_nodeView*/);
 
         /** Arrange recursively an entire scope */
-        static void ArrangeRecursively(ScopedCodeBlock*);
+        static void ArrangeRecursively(CodeBlockNode* _block);
 
 		/** Set a NodeView as selected.
 		 * Note: Only a single view can be selected at the same time */

@@ -134,9 +134,10 @@ VariableNode* Container::findVariable(std::string _name)
 	return scope->findVariable(_name);
 }
 
-InstructionNode* Container::newInstruction()
+InstructionNode* Container::newInstruction(CodeBlockNode* _parentCodeBlock)
 {
-	auto instructionNode = new InstructionNode(ICON_FA_SIGN_OUT_ALT " Result");
+	auto instructionNode = new InstructionNode(ICON_FA_SIGN_OUT_ALT " Result", _parentCodeBlock);
+    _parentCodeBlock->pushInstruction(instructionNode);
     instructionNode->addComponent(new NodeView);
 	this->add(instructionNode);
 	return instructionNode;

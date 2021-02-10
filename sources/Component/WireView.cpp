@@ -41,7 +41,8 @@ bool WireView::draw()
 		ImVec2 pos0 = sourceView->getConnectorPosition(wire->getSource(), Way_Out);
 		ImVec2 pos1 = targetView->getConnectorPosition(wire->getTarget(), Way_In);
 
-        WireView::DrawLine(draw_list, pos0, pos1, getColor(ColorType_Fill), getColor(ColorType_Shadow));
+        WireView::DrawVerticalWire(draw_list, pos0, pos1, getColor(ColorType_Fill), getColor(ColorType_Shadow),
+                                   bezierThickness);
 
         // dot at the output position
         draw_list->AddCircleFilled(pos0, connectorRadius, sourceView->getColor(ColorType_Fill));
@@ -65,7 +66,13 @@ bool WireView::draw()
     return false;
 }
 
-void WireView::DrawLine(ImDrawList *draw_list, ImVec2 pos0, ImVec2 pos1, ImColor color, ImColor shadowColor)
+void WireView::DrawVerticalWire(
+        ImDrawList *draw_list,
+        ImVec2 pos0,
+        ImVec2 pos1,
+        ImColor color,
+        ImColor shadowColor,
+        float thickness)
 {
     if (displayArrows) // if arrows are displayed we offset x to see the edge of the arrow.
         pos1.x -= 7.0f;
@@ -85,7 +92,36 @@ void WireView::DrawLine(ImDrawList *draw_list, ImVec2 pos0, ImVec2 pos1, ImColor
                                 cp1  + shadowOffset,
                                 pos1 + shadowOffset,
                                 shadowColor,
-                                bezierThickness); // shadow
+                                thickness); // shadow
 
-    draw_list->AddBezierCurve(pos0, cp0, cp1, pos1, color, bezierThickness); // fill
+    draw_list->AddBezierCurve(pos0, cp0, cp1, pos1, color, thickness); // fill
+}
+
+void WireView::DrawHorizontalWire(
+        ImDrawList *draw_list,
+        ImVec2 pos0,
+        ImVec2 pos1,
+        ImColor color,
+        ImColor shadowColor,
+        float thickness)
+{
+    constexpr float roundness = 0.5f;
+
+    // Compute tangents
+    float dist = std::abs(pos1.x - pos0.x);
+    dist = std::max(100.0f, dist);
+
+    ImVec2 cp0(pos0.x + dist * roundness , pos0.y );
+    ImVec2 cp1(pos1.x - dist * roundness , pos1.y );
+
+    // draw bezier curve
+    ImVec2 shadowOffset(1.0f, 2.0f);
+    draw_list->AddBezierCurve(  pos0 + shadowOffset,
+                                cp0  + shadowOffset,
+                                cp1  + shadowOffset,
+                                pos1 + shadowOffset,
+                                shadowColor,
+                                thickness); // shadow
+
+    draw_list->AddBezierCurve(pos0, cp0, cp1, pos1, color, thickness); // fill
 }

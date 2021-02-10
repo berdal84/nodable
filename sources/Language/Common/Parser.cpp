@@ -344,7 +344,7 @@ Member* Parser::parseParenthesisExpression()
 	return result;
 }
 
-InstructionNode* Parser::parseInstruction()
+InstructionNode* Parser::parseInstruction(CodeBlockNode* _parentCodeBlock)
 {
     tokenList.startTransaction();
 
@@ -356,7 +356,7 @@ InstructionNode* Parser::parseInstruction()
        return nullptr;
     }
 
-    auto instruction = container->newInstruction();
+    auto instruction = container->newInstruction(_parentCodeBlock);
 
     if ( tokenList.canEat() )
     {
@@ -394,10 +394,9 @@ CodeBlockNode* Parser::parseInstructionBlock()
 
     while(tokenList.canEat() && !errorFound )
     {
-        InstructionNode* instruction = parseInstruction();
+        InstructionNode* instruction = parseInstruction(block);
         if (instruction != nullptr )
         {
-            block->instructionNodes.push_back(instruction );
             LOG_VERBOSE("Parser", "parse program (instruction %i parsed)\n", (int)block->instructionNodes.size() );
         }
         else
