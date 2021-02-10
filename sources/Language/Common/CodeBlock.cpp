@@ -1,4 +1,5 @@
 #include "CodeBlockNode.h"
+#include <algorithm>
 
 using namespace Nodable;
 
