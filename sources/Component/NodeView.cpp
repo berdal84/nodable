@@ -11,6 +11,7 @@
 #include <Language/Common/Serializer.h>
 #include <Language/Common/CodeBlock.h>
 #include "CodeBlockNode.h"
+#include <Core/Maths.h>
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 
@@ -220,17 +221,18 @@ bool NodeView::update(float _deltaTime)
 {
     Maths::linear_interpolation( opacity, 1.0f, 10.0f * _deltaTime);
 
-	if (opacity < 1.0f)
-    {
-		opacity += (1.0f - opacity) * float(10) * _deltaTime;
-    }
-
-	// Set background color according to node class 
-	//---------------------------------------------
 	auto node = getOwner();
 	NODABLE_ASSERT(node != nullptr);
 
-	// set avg position
+	/*
+	 * Apply constraints to view, 3 possible ways
+	 *
+	 * 1 - move this to children average position
+	 * 2 - move this to children's bounding box's top
+	 * 3 - move input connected NodeViews recursively
+	 */
+
+	// 1 - move this to children average position
 	if ( node->getClass() == mirror::GetClass<CodeBlockNode>() && !pinned)
     {
 	    ImVec2 childrenPosSum;
@@ -243,19 +245,11 @@ bool NodeView::update(float _deltaTime)
 	    ImVec2 childrenPosAvg(childrenPosSum.x / count,childrenPosSum.y / count);
 	    this->setPosition(childrenPosAvg + ImVec2(0,size.y * 2.0f));
 
-    // Constrain Node With multiple output connections
+    // 2 - move this to children's bounding box's top
     } else if ( node->getOutputWireCount() > 1 && !pinned )
     {
-	    // zone to frame output connected nodes
-	    ImRect zone(std::numeric_limits<float>::max(),
-                    std::numeric_limits<float>::max(),
-                    std::numeric_limits<float>::min(),
-                    std::numeric_limits<float>::min());
-
-        float maxY = std::numeric_limits<float>::max();
-        ImVec2 posSum;
-
-        auto outputCount = 0;
+        // create an bounding box
+        std::vector<float> x_positions, y_positions;
         for (auto eachWire : node->getWires())
         {
             bool isWireAnOutput = node->has(eachWire->getSource());
@@ -263,100 +257,94 @@ bool NodeView::update(float _deltaTime)
             {
                 auto targetNode = eachWire->getTarget()->getOwner()->as<Node>();
                 auto targetNodeView  = targetNode->getComponent<NodeView>();
-                zone.Min.y = std::min( zone.Min.y, targetNodeView->position.y);
-                zone.Min.x = std::min( zone.Min.x, targetNodeView->position.x);
-                zone.Max.y = std::max( zone.Max.y, targetNodeView->position.y);
-                zone.Max.x = std::max( zone.Max.x, targetNodeView->position.x);
-                outputCount++;
+                x_positions.push_back( targetNodeView->position.x );
+                y_positions.push_back( targetNodeView->position.x );
             }
         }
+        constexpr float float_max = std::numeric_limits<float>::max();
+        auto x_minmax = std::minmax(x_positions.begin(), x_positions.end());
+        auto y_minmax = std::minmax(y_positions.begin(), y_positions.end());
+        ImRect zone(*x_minmax.first, *y_minmax.first, *x_minmax.second, *y_minmax.second );
 
-        // Compute a delta to apply to move to this new position
+        // Compute a delta to apply to move to this new position and translate.
         ImVec2 newPos( zone.GetCenter().x, zone.Min.y - size.y * 2.0f);
         ImVec2 delta(newPos.x - position.x, newPos.y - position.y);
-
         bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
         if (!isDeltaTooSmall) {
             auto factor = std::min(1.0f, 10.f * _deltaTime);
             translate(delta * factor);
         }
 
+    // 3 - move input connected NodeViews recursively
     } else if( node->getInputWireCount() > 0)
     {
-        updateInputConnectedNodes(node, _deltaTime);
+        // then we constraint each input view
+        auto wires = node->getWires();
+        auto inputIndex = 0;
+
+        // Compute the cumulated height and the size x max of the input node view:
+        auto cumulatedSize = 0.0f;
+        auto sizeMax = 0.0f;
+        for (auto eachWire : wires)
+        {
+            auto sourceNode = eachWire->getSource()->getOwner()->as<Node>(); // TODO: add some checks
+            bool isWireAnInput = node->has(eachWire->getTarget());
+            auto inputView = sourceNode->getComponent<NodeView>();
+
+            if (isWireAnInput && !inputView->pinned)
+            {
+                cumulatedSize += inputView->size.x;
+                sizeMax = std::max(sizeMax, inputView->size.x);
+            }
+        }
+
+        /*
+        Update Views that are linked to this input views.
+        This code maintain them stacked together with a little attenuated movement.
+        */
+
+        auto posX = position.x - cumulatedSize / 2.0f;
+
+        float nodeSpacing(10);
+
+        for (auto eachWire : wires)
+        {
+            bool isWireAnInput = node->has(eachWire->getTarget());
+            if (isWireAnInput)
+            {
+                auto sourceNode = eachWire->getSource()->getOwner()->as<Node>();
+                auto inputView = sourceNode->getComponent<NodeView>();
+
+                // Contrain only unpinned node that have only a single output connection
+                if (!inputView->pinned && inputView->getOwner()->getOutputWireCount() <= 1)
+                {
+                    // Compute new position for this input view
+                    ImVec2 newPos(
+                            posX + inputView->size.x / 2.0f,
+                            position.y - s_nodeSpacingDistance - inputView->size.y / 2.0f - size.y / 2.0f
+                            );
+                    posX += inputView->size.x + nodeSpacing;
+
+                    // Compute a delta to apply to move to this new position
+                    auto currentPos = inputView->position;
+                    ImVec2 delta((newPos.x - currentPos.x), (newPos.y - currentPos.y));
+
+                    bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
+                    if (!isDeltaTooSmall)
+                    {
+                        auto factor = std::min(1.0f, 10.f * _deltaTime);
+                        inputView->translate(delta * factor);
+                    }
+                }
+
+                inputIndex++;
+            }
+        }
     }
 
 
 
 	return true;
-}
-
-void NodeView::updateInputConnectedNodes(Nodable::Node* node, float deltaTime)
-{
-
-	// automatically moves input connected nodes
-	//------------------------------------------
-
-	// then we constraint each input view
-
-	auto wires = node->getWires();
-	auto inputIndex = 0;
-
-	// Compute the cumulated height and the size x max of the input node view:
-	auto cumulatedSize = 0.0f;
-	auto sizeMax = 0.0f;
-	for (auto eachWire : wires)
-	{
-		auto sourceNode    = eachWire->getSource()->getOwner()->as<Node>(); // TODO: add some checks
-		bool isWireAnInput = node->has(eachWire->getTarget());
-		auto inputView     = sourceNode->getComponent<NodeView>();
-
-		if (isWireAnInput && !inputView->pinned)
-		{
-            cumulatedSize += inputView->size.x;
-            sizeMax = std::max(sizeMax, inputView->size.x);
-		}
-	}
-
-	/*
-	Update Views that are linked to this input views.
-	This code maintain them stacked together with a little attenuated movement.
-	*/
-
-	auto posX = position.x - cumulatedSize / 2.0f;
-
-	float nodeSpacing(10);
-
-	for (auto eachWire : wires)
-	{
-		bool isWireAnInput = node->has(eachWire->getTarget());
-		if (isWireAnInput)
-		{
-			auto sourceNode = eachWire->getSource()->getOwner()->as<Node>();
-			auto inputView  = sourceNode->getComponent<NodeView>();
-
-			// Contrain only unpinned node that have only a single output connection
-			if (!inputView->pinned && inputView->getOwner()->getOutputWireCount() <= 1 )
-			{
-				// Compute new position for this input view
-				ImVec2 newPos(posX + inputView->size.x / 2.0f, position.y - s_nodeSpacingDistance - inputView->size.y / 2.0f - size.y / 2.0f );
-                posX += inputView->size.x + nodeSpacing;
-
-				// Compute a delta to apply to move to this new position
-				auto currentPos = inputView->position;				
-				ImVec2 delta((newPos.x - currentPos.x), (newPos.y - currentPos.y));
-
-				bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
-				if (!isDeltaTooSmall) {
-					auto factor = std::min(1.0f, 10.f * deltaTime);
-					inputView->translate(delta * factor);
-				}
-			}
-
-			inputIndex++;
-		}
-	}
-
 }
 
 bool NodeView::draw()

@@ -80,11 +80,7 @@ namespace Nodable
 		/** Should be called once per frame to update the view */
 		bool update()override;
 
-		/** Maintain a coherent layout between this NodeView and the NodeView connected
-		 * This create the "spring-like" effect while dragging a NodeView */
-		void updateInputConnectedNodes(Node* node, float deltaTime);
-
-		/** Get top-left corner vector position */
+        /** Get top-left corner vector position */
 		ImVec2 getPosition()const;
 
 		/** Get the ImRect bounding rectangle of this NodeView */
