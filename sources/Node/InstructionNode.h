@@ -10,6 +10,7 @@ namespace Nodable
 {
     // forward declarations
     class Token;
+    class CodeBlockNode;
 
     /*
         The role of this class is to symbolize an instruction.
@@ -18,7 +19,7 @@ namespace Nodable
     class InstructionNode : public Node
     {
     public:
-        InstructionNode(const char* _label);
+        InstructionNode(const char* _label, CodeBlockNode* _parent);
         ~InstructionNode(){};
 
         Member* value()const
@@ -31,12 +32,16 @@ namespace Nodable
             get("value")->set(_value);
         };
 
+        CodeBlockNode* getParent() { return parent; }
+
         std::string getTypeAsString()const;
 
         /** End of instruction token */
         Token* endOfInstructionToken = nullptr;
 
     private:
+        CodeBlockNode* parent;
+
         MIRROR_CLASS(InstructionNode)
         (
             MIRROR_PARENT(Node)

@@ -12,6 +12,7 @@
 #include <Language/Common/CodeBlock.h>
 #include "CodeBlockNode.h"
 #include <Core/Maths.h>
+#include <Node/CodeBlockNode.h>
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 
@@ -119,15 +120,15 @@ void NodeView::setOwner(Node* _node)
     // Determine a color depending on node type
     if (_node->hasComponent<ComputeBase>())
     {
-        setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f));
+        setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f)); // blue
     }
     else if ( _node->getClass() == mirror::GetClass<VariableNode>() )
     {
-        setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f));
+        setColor(ColorType_Fill, ImColor(0.9f, 0.9f, 0.7f)); // purple
     }
     else
     {
-        setColor(ColorType_Fill, ImColor(0.9f, 0.9f, 0.7f));
+        setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f)); // green
     }
 
     Component::setOwner(_node);
@@ -258,12 +259,12 @@ bool NodeView::update(float _deltaTime)
                 auto targetNode = eachWire->getTarget()->getOwner()->as<Node>();
                 auto targetNodeView  = targetNode->getComponent<NodeView>();
                 x_positions.push_back( targetNodeView->position.x );
-                y_positions.push_back( targetNodeView->position.x );
+                y_positions.push_back( targetNodeView->position.y );
             }
         }
         constexpr float float_max = std::numeric_limits<float>::max();
-        auto x_minmax = std::minmax(x_positions.begin(), x_positions.end());
-        auto y_minmax = std::minmax(y_positions.begin(), y_positions.end());
+        auto x_minmax = std::minmax_element(x_positions.begin(), x_positions.end());
+        auto y_minmax = std::minmax_element(y_positions.begin(), y_positions.end());
         ImRect zone(*x_minmax.first, *y_minmax.first, *x_minmax.second, *y_minmax.second );
 
         // Compute a delta to apply to move to this new position and translate.
@@ -342,7 +343,20 @@ bool NodeView::update(float _deltaTime)
         }
     }
 
-
+	// follow previous instruction
+    if ( node->getClass() == mirror::GetClass<InstructionNode>() && !pinned)
+    {
+        auto codeBlock = node->as<InstructionNode>()->getParent();
+        if ( codeBlock )
+        {
+            auto found = std::find( codeBlock->instructionNodes.begin(), codeBlock->instructionNodes.end(), node);
+            if ( found != codeBlock->instructionNodes.end() && found != codeBlock->instructionNodes.begin() )
+            {
+                auto previousInstructionViewPos = (*(found-1))->getComponent<NodeView>()->getPosition();
+                this->setPosition(previousInstructionViewPos + ImVec2(300.0f, 0));
+            }
+        }
+    }
 
 	return true;
 }
@@ -521,27 +535,35 @@ bool NodeView::draw()
 void NodeView::ArrangeRecursively(NodeView* _view)
 {
 
-	// Force and update of input connected nodes with a delta time extra high
-	// to ensure all nodes were well placed in a single call (no smooth moves)
-	_view->update( float(1000) );
+    if ( _view->getOwner()->getClass() == mirror::GetClass<CodeBlockNode>() )
+    {
+        NodeView::ArrangeRecursively( _view->getOwner()->as<CodeBlockNode>());
+    } else
+    {
 
-	// Get wires that go outside from this node :
-	auto wires = _view->getOwner()->getWires();
+        // Force and update of input connected nodes with a delta time extra high
+        // to ensure all nodes were well placed in a single call (no smooth moves)
+        _view->update(float(1000));
 
-	for(auto eachWire : wires)
-	{
-		if (eachWire != nullptr && _view->getOwner()->has(eachWire->getTarget()) )
-		{
+        // Get wires that go outside from this node :
+        auto wires = _view->getOwner()->getWires();
 
-			if ( eachWire->getSource() != nullptr)
-			{
-				auto node         = dynamic_cast<Node*>(eachWire->getSource()->getOwner());
-				auto inputView    = node->getComponent<NodeView>();
-				inputView->pinned = false;
-				ArrangeRecursively(inputView);
-			}
-		}
-	}
+        for (auto eachWire : wires)
+        {
+            if (eachWire != nullptr && _view->getOwner()->has(eachWire->getTarget()))
+            {
+
+                if (eachWire->getSource() != nullptr)
+                {
+                    auto node = dynamic_cast<Node *>(eachWire->getSource()
+                            ->getOwner());
+                    auto inputView = node->getComponent<NodeView>();
+                    inputView->pinned = false;
+                    ArrangeRecursively(inputView);
+                }
+            }
+        }
+    }
 }
 
 void NodeView::drawMemberConnectors(Member* _member)
@@ -869,23 +891,16 @@ void NodeView::SetDetail(NodeViewDetail _viewDetail)
     }
 }
 
-void NodeView::ArrangeRecursively(ScopedCodeBlock* _scope)
+void NodeView::ArrangeRecursively(CodeBlockNode* _block)
 {
-    if ( _scope->innerBlocs.empty() )
-    {
-        return;
-    }
-
-    // TODO: this is uncomplete and assume there is only a single code block inside the scope
-    auto block = dynamic_cast<CodeBlockNode*>(_scope->innerBlocs.front());
-
-    for(auto& eachInstruction: block->instructionNodes)
+    for(auto& eachInstruction: _block->instructionNodes)
     {
         auto view = eachInstruction->getComponent<NodeView>();
 
         if ( view )
         {
             NodeView::ArrangeRecursively(view);
+            view->pinned = false;
         }
     }
 }

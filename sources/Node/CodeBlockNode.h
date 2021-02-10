@@ -29,5 +29,7 @@ namespace Nodable
             MIRROR_PARENT(Node)
             MIRROR_PARENT(AbstractCodeBlock)
         )
+
+        void pushInstruction(InstructionNode *pNode);
     };
 }

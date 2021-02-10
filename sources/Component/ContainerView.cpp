@@ -22,13 +22,14 @@ bool ContainerView::draw()
 	auto entities  = container->getEntities();
 
     /*
-        Lines between CodeBlock and each Instructions
+       CodeBlock
      */
     ScopedCodeBlock* scope = container->getScope();
     if ( !scope->isEmpty() )
     {
         CodeBlockNode* block = dynamic_cast<CodeBlockNode*>(scope->getLastCodeBlock());
 
+        // Draw a wire to link CodeBlock to each instructions
         for(auto& eachInstr: block->instructionNodes )
         {
             // Draw a line
@@ -36,7 +37,21 @@ bool ContainerView::draw()
             ImVec2 end   = eachInstr->getComponent<NodeView>()->getScreenPos();
             ImColor color(255,255,255,64);
             ImColor shadowColor(0,0,0,64);
-            WireView::DrawLine(ImGui::GetWindowDrawList(), start, end, color, shadowColor);
+            WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, 2.0f);
+        }
+
+        // Draw a wire to link each instructions (ordered)
+        if ( block->instructionNodes.size() >= 2 )
+        {
+            for(auto it = block->instructionNodes.begin(); it < block->instructionNodes.end() - 1; it++ )
+            {
+                // Draw a line
+                ImVec2 start = (*it)->getComponent<NodeView>()->getScreenPos();
+                ImVec2 end   = (*(it+1))->getComponent<NodeView>()->getScreenPos();
+                ImColor color(200,255,200,100);
+                ImColor shadowColor(0,0,0,64);
+                WireView::DrawHorizontalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, 30.0f);
+            }
         }
     }
 
@@ -245,13 +260,7 @@ bool ContainerView::draw()
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
         {
-            auto newInstructionNode = container->newInstruction();
-
-            // Initialize (since it is a manual creation)
             std::string eol = container->getLanguage()->getSerializer()->serialize(TokenType::EndOfLine);
-            Token* token = new Token(TokenType::EndOfInstruction);
-            token->suffix = eol;
-            newInstructionNode->endOfInstructionToken = token;
 
             // add to code block
             auto scope = container->getScope();
@@ -267,7 +276,12 @@ bool ContainerView::draw()
             }
 
             auto block = scope->getLastCodeBlock();
-            block->instructionNodes.push_back(newInstructionNode);
+            auto newInstructionNode = container->newInstruction(block);
+
+            // Initialize (since it is a manual creation)
+            Token* token = new Token(TokenType::EndOfInstruction);
+            token->suffix = eol;
+            newInstructionNode->endOfInstructionToken = token;
 
             newNode = newInstructionNode;
         }

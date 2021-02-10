@@ -25,3 +25,8 @@ InstructionNode* CodeBlockNode::getFirstInstruction()
     return instructionNodes.front();
 }
 
+void CodeBlockNode::pushInstruction(InstructionNode *_node)
+{
+    this->instructionNodes.push_back(_node);
+}
+

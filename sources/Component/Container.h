@@ -36,7 +36,7 @@ namespace Nodable{
 
 		/* node factory */
 		CodeBlockNode*              newCodeBlock();
-        InstructionNode*		    newInstruction();
+        InstructionNode*		    newInstruction(CodeBlockNode* _parentCodeBlock);
 		VariableNode*				newVariable(std::string, ScopedCodeBlock*);
 		VariableNode*				newNumber(double = 0);
 		VariableNode*				newNumber(const char*);
