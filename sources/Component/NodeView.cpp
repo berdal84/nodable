@@ -218,8 +218,7 @@ bool NodeView::update()
 
 bool NodeView::update(float _deltaTime)
 {
-	// Update opacity to reach 1.0f
-	//-----------------------------
+    Maths::linear_interpolation( opacity, 1.0f, 10.0f * _deltaTime);
 
 	if (opacity < 1.0f)
     {
