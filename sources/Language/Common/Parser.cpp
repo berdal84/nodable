@@ -852,6 +852,7 @@ Member* Parser::parseFunctionCall()
 
     tokenList.rollbackTransaction();
     LOG_VERBOSE("Parser", "parse function call... " KO "\n");
+    return nullptr;
 }
 
 ScopedCodeBlockNode *Parser::getCurrentScope()
