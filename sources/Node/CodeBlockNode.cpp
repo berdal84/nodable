@@ -1,4 +1,5 @@
 #include "CodeBlockNode.h"
+#include "ScopedCodeBlockNode.h"
 
 using namespace Nodable;
 
@@ -28,5 +29,12 @@ InstructionNode* CodeBlockNode::getFirstInstruction()
 void CodeBlockNode::pushInstruction(InstructionNode *_node)
 {
     this->instructionNodes.push_back(_node);
+}
+
+CodeBlockNode::CodeBlockNode(ScopedCodeBlockNode *_parent)
+    :
+    AbstractCodeBlockNode(_parent)
+{
+    this->setLabel("unnamed ScopedCodeBlockNode");
 }
 

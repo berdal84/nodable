@@ -9,10 +9,11 @@
 #include "ComputeBase.h"
 #include "NodeTraversal.h"
 #include <Language/Common/Serializer.h>
-#include <Language/Common/CodeBlock.h>
+#include <Node/AbstractCodeBlockNode.h>
 #include "CodeBlockNode.h"
 #include <Core/Maths.h>
 #include <Node/CodeBlockNode.h>
+#include "Node/InstructionNode.h"
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 

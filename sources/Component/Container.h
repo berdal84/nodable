@@ -4,7 +4,7 @@
 #include <vector>
 #include <imgui/imgui.h>   // for ImVec2
 #include <mirror.h>
-#include <Language/Common/CodeBlock.h>
+#include <Node/AbstractCodeBlockNode.h>
 
 #include "Nodable.h"
 #include "Component.h"
@@ -14,7 +14,7 @@
 namespace Nodable{
 
     // forward declaration
-    class ScopedCodeBlock;
+    class ScopedCodeBlockNode;
     class InstructionNode;
     class CodeBlockNode;
 
@@ -32,12 +32,12 @@ namespace Nodable{
 		std::vector<Node*>& 	    getEntities(){return nodes;}
 		void                        arrangeResultNodeViews();
         const Language*             getLanguage()const;
-        ScopedCodeBlock*            getScope(){ return scope;}
+        ScopedCodeBlockNode*            getScope(){ return scope;}
 
 		/* node factory */
 		CodeBlockNode*              newCodeBlock();
         InstructionNode*		    newInstruction(CodeBlockNode* _parentCodeBlock);
-		VariableNode*				newVariable(std::string, ScopedCodeBlock*);
+		VariableNode*				newVariable(std::string, ScopedCodeBlockNode*);
 		VariableNode*				newNumber(double = 0);
 		VariableNode*				newNumber(const char*);
 		VariableNode*				newString(const char*);
@@ -50,7 +50,7 @@ namespace Nodable{
 	private:		
 		std::vector<Node*>          nodes;
 		const Language*             language;
-		ScopedCodeBlock*            scope;
+		ScopedCodeBlockNode*            scope;
 	public:
 		static ImVec2               LastResultNodeViewPosition;
 

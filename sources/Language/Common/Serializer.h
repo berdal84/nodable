@@ -16,9 +16,9 @@ namespace Nodable
     class Member;
     class Operator;
     class Language;
-    class AbstractCodeBlock;
+    class AbstractCodeBlockNode;
     class CodeBlockNode;
-    class ScopedCodeBlock;
+    class ScopedCodeBlockNode;
     class InstructionNode;
 
     class Serializer
@@ -63,7 +63,7 @@ namespace Nodable
         /** Serialize a single instruction ( can be a simple expression ) */
         std::string serialize(const InstructionNode*)const;
 
-        std::string serialize(const ScopedCodeBlock*)const;
+        std::string serialize(const ScopedCodeBlockNode*)const;
     protected:
         const Language* language;
     };

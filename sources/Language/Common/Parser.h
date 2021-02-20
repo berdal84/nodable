@@ -11,8 +11,8 @@ namespace Nodable{
 
     // forward declaration
     class InstructionNode;
-    class ScopedCodeBlock;
-    class AbstractCodeBlock;
+    class ScopedCodeBlockNode;
+    class AbstractCodeBlockNode;
     class CodeBlockNode;
 
     /**
@@ -114,7 +114,7 @@ namespace Nodable{
 		/** Parse the root expression.
 		   The root expression is set when calling eval().
 		   Return the result as a Member or nullptr if parsing failed. */
-        CodeBlockNode* parseCodeBlock(ScopedCodeBlock* _parent);
+        CodeBlockNode* parseCodeBlock(ScopedCodeBlockNode* _parent);
 
         CodeBlockNode* parseInstructionBlock();
 
@@ -152,7 +152,7 @@ namespace Nodable{
 		 * tokenizeExpressionString() must be called first */
 		bool isSyntaxValid();
 
-        ScopedCodeBlock* getCurrentScope();
+        ScopedCodeBlockNode* getCurrentScope();
 
 		/** Semantic and Syntax */
 		const Language* language;

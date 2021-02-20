@@ -1,21 +1,19 @@
 #pragma once
-#include "Node.h"
-#include "ScopedCodeBlockNode.h"
+#include "Node/AbstractCodeBlockNode.h"
 
 namespace Nodable
 {
     // Forward declarations
-    class ScopedCodeBlock;
     class InstructionNode;
 
     /**
      * A Code block class to contain a set of instructions.
      * This class can't contain other Code blocks.
      */
-    class CodeBlockNode: public AbstractCodeBlock, public Node
+    class CodeBlockNode: public AbstractCodeBlockNode
     {
     public:
-        explicit CodeBlockNode(ScopedCodeBlock* _parent): AbstractCodeBlock(_parent){}
+        explicit CodeBlockNode(ScopedCodeBlockNode* _parent);
         ~CodeBlockNode();
 
         public:
@@ -27,7 +25,7 @@ namespace Nodable
         MIRROR_CLASS(CodeBlockNode)
         (
             MIRROR_PARENT(Node)
-            MIRROR_PARENT(AbstractCodeBlock)
+            MIRROR_PARENT(AbstractCodeBlockNode)
         )
 
         void pushInstruction(InstructionNode *pNode);

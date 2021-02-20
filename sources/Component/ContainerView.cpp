@@ -9,7 +9,8 @@
 #include "NodeView.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "InstructionNode.h"
-#include "CodeBlockNode.h"
+#include "Node/CodeBlockNode.h"
+#include "Node/ScopedCodeBlockNode.h"
 
 using namespace Nodable;
 
@@ -24,7 +25,7 @@ bool ContainerView::draw()
     /*
        CodeBlock
      */
-    ScopedCodeBlock* scope = container->getScope();
+    ScopedCodeBlockNode* scope = container->getScope();
     if ( !scope->isEmpty() )
     {
         CodeBlockNode* block = dynamic_cast<CodeBlockNode*>(scope->getLastCodeBlock());
@@ -266,7 +267,7 @@ bool ContainerView::draw()
             auto scope = container->getScope();
             if ( !scope->hasInstructions() )
             {
-                scope->innerBlocs.push_back( reinterpret_cast<AbstractCodeBlock*>(container->newCodeBlock()) );
+                scope->innerBlocs.push_back( reinterpret_cast<AbstractCodeBlockNode*>(container->newCodeBlock()) );
             }
             else
             {
@@ -275,7 +276,7 @@ bool ContainerView::draw()
                lastInstruction->endOfInstructionToken->suffix += eol;
             }
 
-            auto block = scope->getLastCodeBlock();
+            auto block = scope->getLastCodeBlock()->as<CodeBlockNode>();
             auto newInstructionNode = container->newInstruction(block);
 
             // Initialize (since it is a manual creation)

@@ -1,18 +1,39 @@
-#pragma once
-#include <vector>
-#include <Node/InstructionNode.h>
-#include <Language/Common/CodeBlock.h>
-#include "mirror.h"
-#include "VariableNode.h"
+#include "AbstractCodeBlockNode.h" // abstract base class
 
 namespace Nodable
 {
-    class ScopedCodeBlockNode: public Node, public ScopedCodeBlock
-    {
-        explicit ScopedCodeBlockNode(ScopedCodeBlock* _parent):
-            Node("Scoped Block Code"),
-            ScopedCodeBlock(_parent){}
+    // Forward declarations
+    class InstructionNode;
+    class CodeBlockNode;
 
-        ~ScopedCodeBlockNode() = default;
+    /**
+     * A Scoped code block contains:
+     * - AbstractCodeBlocks (CodeBlock or ScopedCodeBlock)
+     * - VariableNodes
+     * All of them are NOT owned by this class.
+     *
+     * For now everything is public because it is WIP.
+     */
+    class ScopedCodeBlockNode: public AbstractCodeBlockNode
+    {
+    public:
+        explicit ScopedCodeBlockNode(ScopedCodeBlockNode* _parent);
+        ~ScopedCodeBlockNode() override;
+        void clear() override;
+        void add(AbstractCodeBlockNode*);
+        [[nodiscard]] bool isEmpty();
+        [[nodiscard]] bool hasInstructions() const override;
+        [[nodiscard]] InstructionNode* getFirstInstruction() override;
+        [[nodiscard]] VariableNode* findVariable(std::string _name) override;
+        [[nodiscard]] AbstractCodeBlockNode* getLastCodeBlock();
+        [[nodiscard]] InstructionNode *getLastInstruction();
+        std::vector<AbstractCodeBlockNode*> innerBlocs;
+        std::vector<VariableNode*> variables;
+
+        /** Reflect class */
+        MIRROR_CLASS(ScopedCodeBlockNode)
+        (
+            MIRROR_PARENT(AbstractCodeBlockNode)
+        )
     };
 }
