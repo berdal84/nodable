@@ -114,21 +114,13 @@ bool File::evaluateExpression(std::string& _expression)
 	Parser* parser = language->getParser();
 	Container* container = getInnerContainer();
 
-	try
-	{
-        if ( parser->evalCodeIntoContainer(_expression, container) && container->hasInstructions() )
-        {
-            NodeView::ArrangeRecursively(container->getScope()->getLastCodeBlock()->as<CodeBlockNode>());
-            LOG_MESSAGE("File", "Expression evaluated: %s\n", _expression.c_str());
-            return true;
-        }
-        return false;
-
-    }
-	catch (const std::runtime_error& error)
+    if ( parser->evalCodeIntoContainer(_expression, container) && container->hasInstructions() )
     {
-        LOG_ERROR("File", "Unable to evaluate expression. Reason: %s\n", error.what());
+        NodeView::ArrangeRecursively(container->getScope()->getLastCodeBlock()->as<CodeBlockNode>());
+        LOG_MESSAGE("File", "Expression evaluated: %s\n", _expression.c_str());
+        return true;
     }
+    return false;
 }
 
 UpdateResult File::update() {

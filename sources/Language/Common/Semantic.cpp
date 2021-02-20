@@ -1,4 +1,5 @@
 #include "Semantic.h"
+#include "Core/Log.h"
 
 using namespace Nodable;
 
@@ -47,7 +48,8 @@ TokenType Semantic::typeToTokenType(Type _type)const
         return found->second;
     }
 
-    throw std::runtime_error("Semantic not found for this Nodable::Type. Did you insert it using insert_TypeToTokenType() before ?");
+    LOG_ERROR("Semantic", "Semantic not found for this Nodable::Type. Did you insert it using insert_TypeToTokenType() before ?");
+    return TokenType::Unknown;
 }
 
 Type Semantic::tokenTypeToType(TokenType _tokenType)const
@@ -58,5 +60,6 @@ Type Semantic::tokenTypeToType(TokenType _tokenType)const
         return found->second;
     }
 
-    throw std::runtime_error("Semantic not found for this Nodable::TokenType to Nodable::Type. Did you insert it using insert_TypeToTokenType() before ?");
+    LOG_ERROR("Semantic", "Semantic not found for this Nodable::TokenType to Nodable::Type. Did you insert it using insert_TypeToTokenType() before ?");
+    return Type::Unknown;
 }
