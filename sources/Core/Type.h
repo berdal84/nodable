@@ -6,6 +6,7 @@ namespace Nodable
 	*/
 	enum class Type
 	{
+	    Unknown,
 		Any,
 		Boolean,
 		Double,
