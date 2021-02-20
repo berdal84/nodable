@@ -1,11 +1,13 @@
 #include "Serializer.h"
 #include "Member.h"
-#include <Component/ComputeBinaryOperation.h>
-#include <Component/ComputeUnaryOperation.h>
-#include <Node.h>
-#include <Component/Container.h>
-#include <Node/VariableNode.h>
-#include <Node/CodeBlockNode.h>
+#include "Component/ComputeBinaryOperation.h"
+#include "Component/ComputeUnaryOperation.h"
+#include "Component/Container.h"
+#include "Node/Node.h"
+#include "Node/VariableNode.h"
+#include "Node/CodeBlockNode.h"
+#include "Node/ScopedCodeBlockNode.h"
+#include "Node/InstructionNode.h"
 
 using namespace Nodable;
 
@@ -285,7 +287,7 @@ std::string Serializer::serialize(const Token* _token)const
     return result;
 }
 
-std::string Serializer::serialize(const ScopedCodeBlock* _scope)const
+std::string Serializer::serialize(const ScopedCodeBlockNode* _scope)const
 {
     std::string result;
 
@@ -297,7 +299,7 @@ std::string Serializer::serialize(const ScopedCodeBlock* _scope)const
         }
         else // is Scope for sure
         {
-            result.append( serialize( (const ScopedCodeBlock*)(eachBlock) ) );
+            result.append( serialize( (const ScopedCodeBlockNode*)(eachBlock) ) );
         }
     }
 

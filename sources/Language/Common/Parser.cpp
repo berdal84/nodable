@@ -9,8 +9,9 @@
 #include <regex>
 #include <algorithm>
 #include <sstream>
-#include "InstructionNode.h"
-#include "CodeBlockNode.h"
+#include "Node/InstructionNode.h"
+#include "Node/CodeBlockNode.h"
+#include "Node/ScopedCodeBlockNode.h"
 
 using namespace Nodable;
 
@@ -380,7 +381,7 @@ InstructionNode* Parser::parseInstruction(CodeBlockNode* _parentCodeBlock)
     return instruction;
 }
 
-CodeBlockNode* Parser::parseCodeBlock(ScopedCodeBlock* _parent)
+CodeBlockNode* Parser::parseCodeBlock(ScopedCodeBlockNode* _parent)
 {
 	auto block = parseInstructionBlock();
 	_parent->add(block);
@@ -853,7 +854,7 @@ Member* Parser::parseFunctionCall()
     LOG_VERBOSE("Parser", "parse function call... " KO "\n");
 }
 
-ScopedCodeBlock *Parser::getCurrentScope()
+ScopedCodeBlockNode *Parser::getCurrentScope()
 {
     // TODO: implement. For now return only the global scope
     return container->getScope();

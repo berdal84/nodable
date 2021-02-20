@@ -1,11 +1,13 @@
-
 #include "gtest/gtest.h"
-#include <Core/Member.h>
-#include <Component/Container.h>
-#include <Language/Common/Parser.h>
-#include <Node/VariableNode.h>
-#include <Language/Common/LanguageLibrary.h>
-#include "InstructionNode.h"
+
+#include "Core/Member.h"
+#include "Component/Container.h"
+#include "Language/Common/Parser.h"
+#include "Language/Common/LanguageLibrary.h"
+#include "Node/VariableNode.h"
+#include "Node/ScopedCodeBlockNode.h"
+#include "Node/InstructionNode.h"
+#include "Node/CodeBlockNode.h"
 
 using namespace Nodable;
 
@@ -25,7 +27,7 @@ bool Parser_Test(
     auto expectedMember = std::make_unique<Member>(nullptr);
     expectedMember->set(_expectedValue);
 
-    auto result = container->getScope()->getLastCodeBlock()->instructionNodes.back()->value();
+    auto result = container->getScope()->getLastCodeBlock()->as<CodeBlockNode>()->instructionNodes.back()->value();
     auto success = result->equals(expectedMember.get());
 
     return success;

@@ -16,6 +16,7 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "InstructionNode.h"
 #include "CodeBlockNode.h"
+#include "Node/ScopedCodeBlockNode.h"
 
 using namespace Nodable;
 
@@ -143,7 +144,7 @@ InstructionNode* Container::newInstruction(CodeBlockNode* _parentCodeBlock)
 	return instructionNode;
 }
 
-VariableNode* Container::newVariable(std::string _name, ScopedCodeBlock* _scope)
+VariableNode* Container::newVariable(std::string _name, ScopedCodeBlockNode* _scope)
 {
 	auto node = new VariableNode();
 	node->addComponent( new NodeView);
@@ -339,7 +340,7 @@ size_t Container::getNodeCount()const
 Container::Container(const Language* _language)
 {
 	language = _language;
-    scope = new ScopedCodeBlock(nullptr);
+    scope = new ScopedCodeBlockNode(nullptr);
 }
 
 const Language *Container::getLanguage()const {

@@ -1,18 +1,19 @@
-#include "File.h"
-#include "History.h"
-#include "FileView.h"
-#include "ContainerView.h"
-#include "Container.h"
+#include "Core/File.h"
+#include "Core/Log.h"
+#include "Component/History.h"
+#include "Component/FileView.h"
+#include "Component/ContainerView.h"
+#include "Component/Container.h"
+#include "Component/View.h"
+#include "Component/NodeView.h"
+#include "Node/CodeBlockNode.h"
+#include "Node/ScopedCodeBlockNode.h"
 #include "Language/Common/Parser.h"
-#include "View.h"
-#include "VariableNode.h"
-#include "Log.h"
-#include "NodeView.h"
-#include "InstructionNode.h"
+#include "Language/Common/LanguageLibrary.h"
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
 
 #include <fstream>
-#include <Language/Common/LanguageLibrary.h>
+
 
 using namespace Nodable;
 
@@ -117,7 +118,7 @@ bool File::evaluateExpression(std::string& _expression)
 	{
         if ( parser->evalCodeIntoContainer(_expression, container) && container->hasInstructions() )
         {
-            NodeView::ArrangeRecursively(container->getScope()->getLastCodeBlock());
+            NodeView::ArrangeRecursively(container->getScope()->getLastCodeBlock()->as<CodeBlockNode>());
             LOG_MESSAGE("File", "Expression evaluated: %s\n", _expression.c_str());
             return true;
         }
