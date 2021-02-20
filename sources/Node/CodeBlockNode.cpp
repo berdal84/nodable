@@ -1,5 +1,7 @@
 #include "CodeBlockNode.h"
 #include "ScopedCodeBlockNode.h"
+#include <algorithm> // for std::find
+#include <cstring>
 
 using namespace Nodable;
 

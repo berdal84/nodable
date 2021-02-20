@@ -2,6 +2,8 @@
 #include "Node/InstructionNode.h"
 #include "Node/VariableNode.h"
 #include "Node/CodeBlockNode.h"
+#include <cstring>
+#include <algorithm> // for std::find_if
 
 using namespace Nodable;
 
