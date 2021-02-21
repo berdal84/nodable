@@ -1,6 +1,6 @@
 #include "NodeView.h"
 #include "Log.h"		          // for LOG_DEBUG(...)
-#include "Container.h"
+#include "GraphNode.h"
 #include "VariableNode.h"
 #include "Wire.h"
 #include <cmath>                  // for sinus
@@ -711,7 +711,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
-        auto language = node->getParentContainer()->getLanguage();
+        auto language = node->getParentGraph()->getLanguage();
         ImGui::Text("%s", language->getSerializer()->serialize(_member).c_str() );
         ImGui::EndTooltip();
     }
@@ -868,9 +868,9 @@ void NodeView::drawAdvancedProperties()
     ImGui::NewLine();
     std::string parentName = "NULL";
 
-    if ( node->getParentContainer() )
+    if (node->getParentGraph() )
     {
-        parentName = node->getParentContainer()->getLabel();
+        parentName = node->getParentGraph()->getLabel();
     }
 
     ImGui::Indent();

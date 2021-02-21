@@ -44,7 +44,7 @@ Wire* Node::Connect( Member* _from, Member* _to)
     auto sourceNode = _from->getOwner()->as<Node>();
 
     // Link wire to members
-    auto sourceContainer = sourceNode->getParentContainer();
+    auto sourceContainer = sourceNode->getParentGraph();
     wire = sourceContainer->newWire();
 
     wire->setSource(_from);
@@ -75,7 +75,7 @@ Wire* Node::Connect( Member* _from, Member* _to)
 
 Node::Node(std::string _label):
 
-        parentContainer(nullptr),
+        parentGraph(nullptr),
         label(_label),
         dirty(true)
 {
@@ -105,16 +105,6 @@ bool Node::isDirty()const
 void Node::setDirty(bool _value)
 {
 	dirty = _value;
-}
-
-Container* Node::getParentContainer()const
-{
-	return this->parentContainer;
-}
-
-void Node::setParentContainer(Container* _container)
-{
-	this->parentContainer = _container;
 }
 
 void Node::setLabel(const char* _label)
@@ -197,14 +187,14 @@ void Node::onMemberValueChanged(const char* _name)
 	NodeTraversal::SetDirty(this);
 }
 
-Container *Node::getInnerContainer() const
+GraphNode *Node::getInnerGraph() const
 {
-    return this->innerContainer;
+    return this->innerGraph;
 }
 
-void Node::setInnerContainer(Container *_container)
+void Node::setInnerGraph(GraphNode *_graph)
 {
-    this->innerContainer = _container;
+    this->innerGraph = _graph;
 }
 
 const Operator* Node::getConnectedOperator(const Member *_localMember)

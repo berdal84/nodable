@@ -46,7 +46,7 @@ namespace Nodable{
 
 	// View Components
 	class NodeView;
-	class ContainerView;
+	class GraphNodeView;
 	class ApplicationView;
 	class WireView;
 	class FileView;
@@ -64,7 +64,7 @@ namespace Nodable{
 	class Application;	
 	class Parser;
 	class VariableNode;
-	class Container;
+	class GraphNode;
 
 	// Other
 	class Log;	

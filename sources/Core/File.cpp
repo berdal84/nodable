@@ -2,8 +2,8 @@
 #include "Core/Log.h"
 #include "Component/History.h"
 #include "Component/FileView.h"
-#include "Component/ContainerView.h"
-#include "Component/Container.h"
+#include "Component/GraphNodeView.h"
+#include "Node/GraphNode.h"
 #include "Component/View.h"
 #include "Component/NodeView.h"
 #include "Node/CodeBlockNode.h"
@@ -36,11 +36,11 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 	fileView->setUndoBuffer(undoBuffer);
 	
 	/* Creates a node container */
-	auto container = new Container(language);
-	container->setLabel(_path.filename().string() + "'s inner container");
-	setInnerContainer(container);
-	auto containerView = new ContainerView();
-	container->addComponent(containerView);
+	auto graphNode = new GraphNode(language);
+	graphNode->setLabel(_path.filename().string() + "'s inner container");
+    setInnerGraph(graphNode);
+	auto graphNodeView = new GraphNodeView();
+	graphNode->addComponent(graphNodeView);
 
 	/* Add inputs in contextual menu */
 	auto api = language->getAllFunctions();
@@ -53,23 +53,23 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 
 		if (op != nullptr )
 		{
-			auto lambda = [container, function, op]()->Node*
+			auto lambda = [graphNode, function, op]()->Node*
 			{
-                return container->newOperator(op);
+                return graphNode->newOperator(op);
 			};
 
 			auto label = op->signature.getLabel();
-			containerView->addContextualMenuItem( "Operators", label, lambda);
+			graphNodeView->addContextualMenuItem("Operators", label, lambda);
 		}
 		else
 		{
-			auto lambda = [container, function, op]()->Node*
+			auto lambda = [graphNode, function, op]()->Node*
 			{
-				return container->newFunction(function);
+				return graphNode->newFunction(function);
 			};
 
 			auto label = language->getSerializer()->serialize((*it).signature);
-			containerView->addContextualMenuItem( "Functions", label, lambda);
+			graphNodeView->addContextualMenuItem("Functions", label, lambda);
 		}
 		
 	}
@@ -112,11 +112,11 @@ File* File::OpenFile(std::filesystem::path _filePath)
 bool File::evaluateExpression(std::string& _expression)
 {
 	Parser* parser = language->getParser();
-	Container* container = getInnerContainer();
+	GraphNode* graph = getInnerGraph();
 
-    if ( parser->evalCodeIntoContainer(_expression, container) && container->hasInstructions() )
+    if (parser->evalCodeIntoContainer(_expression, graph) && graph->hasInstructionNodes() )
     {
-        NodeView::ArrangeRecursively(container->getScope()->getLastCodeBlock()->as<CodeBlockNode>());
+        graph->arrangeNodeViews();
         LOG_MESSAGE("File", "Expression evaluated: %s\n", _expression.c_str());
         return true;
     }
@@ -134,15 +134,15 @@ UpdateResult File::update() {
 		}
 	}
 
-	auto containerUpdateResult = getInnerContainer()->update();
+	auto graphUpdateResult = getInnerGraph()->update();
 	auto view = getComponent<FileView>();
 
-	if (containerUpdateResult == UpdateResult::SuccessWithoutChanges && !view->getSelectedText().empty() )
+	if (graphUpdateResult == UpdateResult::SuccessWithoutChanges && !view->getSelectedText().empty() )
     {
         return UpdateResult::SuccessWithoutChanges;
     }
 
-	auto scope = getInnerContainer()->getScope();
+	auto scope = getInnerGraph()->getScope();
 
 	if ( !scope->innerBlocs.empty() )
     {
@@ -157,7 +157,7 @@ bool File::evaluateSelectedExpression()
 {
 	bool success;
 
-	getInnerContainer()->clear();
+    getInnerGraph()->clear();
 
 	auto view = getComponent<FileView>();
 

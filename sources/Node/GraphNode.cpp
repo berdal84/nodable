@@ -1,4 +1,4 @@
-#include "Container.h"
+#include "GraphNode.h"
 #include "Log.h"
 #include "Language/Common/Parser.h"
 #include "Node.h"
@@ -20,25 +20,25 @@
 
 using namespace Nodable;
 
-ImVec2 Container::LastResultNodeViewPosition = ImVec2(-1, -1); // draft try to store node position
+ImVec2 GraphNode::LastResultNodeViewPosition = ImVec2(-1, -1); // draft try to store node position
 
-Container::~Container()
+GraphNode::~GraphNode()
 {
 	clear();
 	delete scope;
 }
 
-void Container::clear()
+void GraphNode::clear()
 {
 	// Store the Result node position to restore it later
 	// TODO: handle multiple results
 	if ( scope->hasInstructions() )
 	{
 		auto view = scope->getFirstInstruction()->getComponent<NodeView>();
-		Container::LastResultNodeViewPosition = view->getPosition();
+        GraphNode::LastResultNodeViewPosition = view->getPosition();
 	}
 
-	LOG_VERBOSE( "Container", "=================== clear() ==================\n");
+	LOG_VERBOSE( "GraphNode", "=================== clear() ==================\n");
 
 	auto nodeIndex = nodes.size();
 
@@ -46,16 +46,15 @@ void Container::clear()
     {
         nodeIndex--;
 	    auto node = nodes.at(nodeIndex);
-        LOG_VERBOSE("Container", "remove and delete: %s \n", node->getLabel() );
-        remove(node);
-        delete node;
+        LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->getLabel() );
+        deleteNode(node);
 	}
     nodes.resize(0);
     scope->clear();
-    LOG_VERBOSE("Container", "===================================================\n");
+    LOG_VERBOSE("GraphNode", "===================================================\n");
 }
 
-UpdateResult Container::update()
+UpdateResult GraphNode::update()
 {
     /*
         1 - Delete flagged Nodes
@@ -70,8 +69,7 @@ UpdateResult Container::update()
 
             if (node->needsToBeDeleted())
             {
-                remove(node);
-                delete node;
+                this->deleteNode(node);
             }
 
         }
@@ -111,16 +109,15 @@ UpdateResult Container::update()
 
 }
 
-void Container::add(Node* _node)
+void GraphNode::registerNode(Node* _node)
 {
 	this->nodes.push_back(_node);
-	_node->setParentContainer(this);
+    _node->setParentGraph(this);
 }
 
-void Container::remove(Node* _node)
+void GraphNode::unregisterNode(Node* _node)
 {
     // TODO: remove Node from this->scope
-
     {
         auto it = std::find(nodes.begin(), nodes.end(), _node);
         if (it != nodes.end())
@@ -130,58 +127,85 @@ void Container::remove(Node* _node)
     }
 }
 
-VariableNode* Container::findVariable(std::string _name)
+VariableNode* GraphNode::findVariable(std::string _name)
 {
 	return scope->findVariable(_name);
 }
 
-InstructionNode* Container::newInstruction(CodeBlockNode* _parentCodeBlock)
+InstructionNode* GraphNode::newInstruction(CodeBlockNode* _parentCodeBlock)
 {
 	auto instructionNode = new InstructionNode(ICON_FA_SIGN_OUT_ALT " Result", _parentCodeBlock);
     _parentCodeBlock->pushInstruction(instructionNode);
     instructionNode->addComponent(new NodeView);
-	this->add(instructionNode);
+    this->registerNode(instructionNode);
 	return instructionNode;
 }
 
-VariableNode* Container::newVariable(std::string _name, ScopedCodeBlockNode* _scope)
+InstructionNode* GraphNode::newInstruction()
+{
+    std::string eol = language->getSerializer()->serialize(TokenType::EndOfLine);
+
+    // add to code block
+    if ( !scope->hasInstructions() )
+    {
+        scope->innerBlocs.push_back( reinterpret_cast<AbstractCodeBlockNode*>(newCodeBlock()) );
+    }
+    else
+    {
+        // insert an eol
+        InstructionNode* lastInstruction = scope->getLastInstruction();
+        lastInstruction->endOfInstructionToken->suffix += eol;
+    }
+
+    auto block = scope->getLastCodeBlock()->as<CodeBlockNode>();
+    auto newInstructionNode = newInstruction(block);
+
+    // Initialize (since it is a manual creation)
+    Token* token = new Token(TokenType::EndOfInstruction);
+    token->suffix = eol;
+    newInstructionNode->endOfInstructionToken = token;
+
+    return newInstructionNode;
+}
+
+VariableNode* GraphNode::newVariable(std::string _name, ScopedCodeBlockNode* _scope)
 {
 	auto node = new VariableNode();
 	node->addComponent( new NodeView);
 	node->setName(_name.c_str());
-	this->add(node);
+    this->registerNode(node);
 	_scope->variables.push_back(node);
 	return node;
 }
 
-VariableNode* Container::newNumber(double _value)
+VariableNode* GraphNode::newNumber(double _value)
 {
 	auto node = new VariableNode();
 	node->addComponent( new NodeView);
 	node->set(_value);
-	this->add(node);
+    this->registerNode(node);
 	return node;
 }
 
-VariableNode* Container::newNumber(const char* _value)
+VariableNode* GraphNode::newNumber(const char* _value)
 {
 	auto node = new VariableNode();
 	node->addComponent( new NodeView);
 	node->set(std::stod(_value));
-	this->add(node);
+    this->registerNode(node);
 	return node;
 }
 
-VariableNode* Container::newString(const char* _value)
+VariableNode* GraphNode::newString(const char* _value)
 {
 	auto node = new VariableNode();
 	node->addComponent( new NodeView);
 	node->set(_value);
-	this->add(node);
+    this->registerNode(node);
 	return node;
 }
 
-Node* Container::newOperator(const Operator* _operator)
+Node* GraphNode::newOperator(const Operator* _operator)
 {
     switch ( _operator->getType() )
     {
@@ -194,11 +218,8 @@ Node* Container::newOperator(const Operator* _operator)
     }
 }
 
-Node* Container::newBinOp(const Operator* _operator)
+Node* GraphNode::newBinOp(const Operator* _operator)
 {
-	// CREATE THE NODE :
-	//------------------
-
 	// Create a node with 2 inputs and 1 output
 	auto node = new Node();
 	auto signature = _operator->signature;
@@ -220,16 +241,13 @@ Node* Container::newBinOp(const Operator* _operator)
 	node->addComponent(new NodeView());
 
 	// Add to this container
-	this->add(node);
+    this->registerNode(node);
 		
 	return node;
 }
 
-Node* Container::newUnaryOp(const Operator* _operator)
+Node* GraphNode::newUnaryOp(const Operator* _operator)
 {
-	// CREATE THE NODE :
-	//------------------
-
 	// Create a node with 2 inputs and 1 output
 	auto node = new Node();
 	auto signature = _operator->signature;
@@ -249,16 +267,13 @@ Node* Container::newUnaryOp(const Operator* _operator)
 	node->addComponent(new NodeView());
 
 	// Add to this container
-	this->add(node);
+    this->registerNode(node);
 
 	return node;
 }
 
-Node* Container::newFunction(const Function* _function) {
-
-	// CREATE THE NODE :
-	//------------------
-
+Node* GraphNode::newFunction(const Function* _function)
+{
 	// Create a node with 2 inputs and 1 output
 	auto node = new Node();
 	node->setLabel(ICON_FA_CODE " " + _function->signature.getIdentifier());
@@ -278,89 +293,88 @@ Node* Container::newFunction(const Function* _function) {
 	}	
 	
 	node->addComponent(functionComponent);
-	node->addComponent(new NodeView());	
+	node->addComponent(new NodeView());
 
-	this->add(node);
+    this->registerNode(node);
 
 	return node;
 }
 
 
-Wire* Container::newWire()
+Wire* GraphNode::newWire()
 {
 	Wire* wire = new Wire();
 	wire->addComponent(new WireView);	
 	return wire;
 }
 
-void Container::arrangeResultNodeViews()
+void GraphNode::arrangeNodeViews()
 {
-    if ( scope->innerBlocs.empty())
+    if ( !scope->innerBlocs.empty())
     {
-        return;
-    }
+        auto* block = dynamic_cast<CodeBlockNode*>(scope->innerBlocs.front());
 
-    auto* block = dynamic_cast<CodeBlockNode*>(scope->innerBlocs.front());
-
-    for (auto it = block->instructionNodes.begin(); it != block->instructionNodes.end(); it++)
-    {
-        InstructionNode* instructionNode = *it;
-        NodeView *nodeView = instructionNode->getComponent<NodeView>();
-
-        // Store the Result node position to restore it later
-        bool resultNodeHadPosition = Container::LastResultNodeViewPosition.x != -1 &&
-                                     Container::LastResultNodeViewPosition.y != -1;
-
-        if (nodeView && this->hasComponent<View>())
+        for (auto it = block->instructionNodes.begin(); it != block->instructionNodes.end(); it++)
         {
-            auto view = this->getComponent<View>();
+            InstructionNode* instructionNode = *it;
+            NodeView *nodeView = instructionNode->getComponent<NodeView>();
 
-            if (resultNodeHadPosition)
-            {                                 /* if result node had a position stored, we restore it */
-                nodeView->setPosition(Container::LastResultNodeViewPosition);
-                nodeView->translate(ImVec2(float(200) * (float)std::distance(block->instructionNodes.begin(), it), 0));
-            }
+            // Store the Result node position to restore it later
+            bool resultNodeHadPosition = GraphNode::LastResultNodeViewPosition.x != -1 &&
+                                         GraphNode::LastResultNodeViewPosition.y != -1;
 
-            auto rect = view->getVisibleRect();
-            if (!NodeView::IsInsideRect(nodeView, rect))
+            if (nodeView && this->hasComponent<View>())
             {
-                ImVec2 defaultPosition = rect.GetCenter();
-                defaultPosition.x += rect.GetWidth() * 1.0f / 6.0f;
-                nodeView->setPosition(defaultPosition);
+                auto view = this->getComponent<View>();
+
+                if (resultNodeHadPosition)
+                {                                 /* if result node had a position stored, we restore it */
+                    nodeView->setPosition(GraphNode::LastResultNodeViewPosition);
+                    nodeView->translate(ImVec2(float(200) * (float)std::distance(block->instructionNodes.begin(), it), 0));
+                }
+
+                auto rect = view->getVisibleRect();
+                if (!NodeView::IsInsideRect(nodeView, rect))
+                {
+                    ImVec2 defaultPosition = rect.GetCenter();
+                    defaultPosition.x += rect.GetWidth() * 1.0f / 6.0f;
+                    nodeView->setPosition(defaultPosition);
+                }
             }
         }
+
+        // TODO: handle multiple CodeBlockNode, not only the last (works for now because we have a single block).
+        auto lastCodeBlock = this->scope->getLastCodeBlock()->as<CodeBlockNode>();
+        NODABLE_ASSERT(lastCodeBlock != nullptr); // read to do above
+        NodeView::ArrangeRecursively(lastCodeBlock);
     }
 }
 
-size_t Container::getNodeCount()const
-{
-	return nodes.size();
-}
-
-Container::Container(const Language* _language)
+GraphNode::GraphNode(const Language* _language)
 {
 	language = _language;
     scope = new ScopedCodeBlockNode(nullptr);
 }
 
-const Language *Container::getLanguage()const {
-    return language;
-}
-
-bool Container::hasInstructions()
-{
-    return false;
-}
-
-CodeBlockNode *Container::newCodeBlock()
+CodeBlockNode *GraphNode::newCodeBlock()
 {
     auto codeBlockNode = new CodeBlockNode(nullptr);
     std::string label = ICON_FA_SQUARE " Block " + std::to_string(this->scope->innerBlocs.size());
     codeBlockNode->setLabel(label);
     codeBlockNode->addComponent(new NodeView);
 
-    // do not add. Code blocks are owned by scope
-    this->add(codeBlockNode);
+    this->registerNode(codeBlockNode);
 
     return codeBlockNode;
+}
+
+void GraphNode::deleteNode(Node* _node)
+{
+    unregisterNode(_node);
+    delete _node;
+}
+
+bool GraphNode::hasInstructionNodes()
+{
+    return scope->hasInstructions();
 }

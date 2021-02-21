@@ -5,7 +5,7 @@
 #include <cmath>
 #include "Node.h"
 #include "VariableNode.h"
-#include "Container.h"
+#include "GraphNode.h"
 
 using namespace Nodable;
 

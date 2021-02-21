@@ -2,7 +2,7 @@
 #include "Member.h"
 #include "Component/ComputeBinaryOperation.h"
 #include "Component/ComputeUnaryOperation.h"
-#include "Component/Container.h"
+#include "Node/GraphNode.h"
 #include "Node/Node.h"
 #include "Node/VariableNode.h"
 #include "Node/CodeBlockNode.h"

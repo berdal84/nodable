@@ -2,7 +2,7 @@
 #include "Nodable.h"
 #include "Log.h"
 #include "Node.h"
-#include "Container.h"
+#include "GraphNode.h"
 #include "History.h"
 #include <mirror.h>
 

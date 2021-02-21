@@ -94,14 +94,14 @@ namespace Nodable{
 	public:
 		/* The Parser need at least:
 		   - a Language (to understand the code)
-		   - a Container (to store the result)
+		   - a GraphNode (to store the result)
 		*/
-		explicit Parser(const Language* _language): language(_language), container(nullptr){}
+		explicit Parser(const Language* _language): language(_language), graphNode(nullptr){}
 		~Parser() = default;
 
 		/** Evaluates an expression as a string.
 		   Return true if evaluation went well and false otherwise. */
-		bool evalCodeIntoContainer(const std::string &_code, Container* _container );
+		bool evalCodeIntoContainer(const std::string &_code, GraphNode* _graphNode );
 
 	private:
 		/** Convert a Token to a Member.
@@ -158,7 +158,7 @@ namespace Nodable{
 		const Language* language;
 
 		/** The target container of the parser in which all generated nodes will be pushed into*/
-		Container* container;
+		GraphNode* graphNode;
 
 		TokenRibbon tokenList;
 	};
