@@ -2,7 +2,7 @@
 #include "View.h"
 #include "NodeView.h"
 #include "File.h"
-#include "Container.h"
+#include "GraphNode.h"
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 
@@ -94,8 +94,7 @@ bool FileView::draw()
 		NODE EDITOR
 	*/
 	ImGui::SetCursorPos(ImVec2(0, 0));
-	auto container = file->getInnerContainer();
-	auto view      = container->getComponent<View>();
+	auto view      = file->getInnerGraph()->getComponent<View>();
 
 	view->setVisibleRect( this->visibleRect );
 	view->draw();

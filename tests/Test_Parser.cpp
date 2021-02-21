@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "Core/Member.h"
-#include "Component/Container.h"
+#include "Node/GraphNode.h"
 #include "Language/Common/Parser.h"
 #include "Language/Common/LanguageLibrary.h"
 #include "Node/VariableNode.h"
@@ -18,7 +18,7 @@ bool Parser_Test(
         const Language* _language = LanguageLibrary::GetNodable()
 ){
 
-    auto container = std::make_unique<Container>(_language);
+    auto container = std::make_unique<GraphNode>(_language);
 
     Parser* parser = _language->getParser();
     parser->evalCodeIntoContainer(expression, container.get());
@@ -39,7 +39,7 @@ std::string ParseEvalSerialize(
         const Language* _language = LanguageLibrary::GetNodable()
 ){
 
-    Container container(_language);
+    GraphNode container(_language);
     Parser* parser = _language->getParser();
     parser->evalCodeIntoContainer(expression, &container);
 

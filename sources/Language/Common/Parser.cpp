@@ -1,7 +1,7 @@
 #include "Parser.h"
 #include "Log.h"          // for LOG_VERBOSE(...)
 #include "Member.h"
-#include "Container.h"
+#include "GraphNode.h"
 #include "VariableNode.h"
 #include "Wire.h"
 #include "Language.h"
@@ -16,9 +16,9 @@
 using namespace Nodable;
 
 bool Parser::evalCodeIntoContainer(const std::string& _code,
-                                   Container* _container )
+                                   GraphNode* _graphNode )
 {
-    container = _container;
+    graphNode = _graphNode;
     tokenList.clear();
 
     LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", _code.c_str() );
@@ -57,15 +57,13 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
 		return false;
 	}
 
-	CodeBlockNode* codeBlock = parseCodeBlock(container->getScope());
+	CodeBlockNode* codeBlock = parseCodeBlock(graphNode->getScope());
 
 	if (codeBlock == nullptr)
 	{
 		LOG_WARNING("Parser", "Unable to parse main scope due to abstract syntax tree failure.\n");
 		return false;
 	}
-
-    container->arrangeResultNodeViews();
 
 	LOG_MESSAGE("Parser", "Expression evaluated: <expr>%s</expr>\"\n", _code.c_str() );
 	return true;
@@ -88,7 +86,7 @@ Member* Parser::tokenToMember(Token* _token)
 
 		case TokenType::Symbol:
 		{
-			auto context = container;
+			auto context = graphNode;
 			VariableNode* variable = context->findVariable(_token->word);
 
 			if (variable == nullptr)
@@ -187,7 +185,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 
 	if ( matchingOperator != nullptr )
 	{
-		auto binOpNode = container->newBinOp( matchingOperator);
+		auto binOpNode = graphNode->newBinOp(matchingOperator);
         binOpNode->getComponent<ComputeBase>()->setSourceToken(operatorToken);
 
         Node::Connect(_left, binOpNode->get("lvalue"));
@@ -248,7 +246,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 
 	if (matchingOperator != nullptr)
 	{
-		auto unaryOpNode = container->newUnaryOp(matchingOperator);
+		auto unaryOpNode = graphNode->newUnaryOp(matchingOperator);
         unaryOpNode->getComponent<ComputeBase>()->setSourceToken(operatorToken);
 
 		Node::Connect(value, unaryOpNode->get("lvalue"));
@@ -357,7 +355,7 @@ InstructionNode* Parser::parseInstruction(CodeBlockNode* _parentCodeBlock)
        return nullptr;
     }
 
-    auto instruction = container->newInstruction(_parentCodeBlock);
+    auto instruction = graphNode->newInstruction(_parentCodeBlock);
 
     if ( tokenList.canEat() )
     {
@@ -390,7 +388,7 @@ CodeBlockNode* Parser::parseCodeBlock(ScopedCodeBlockNode* _parent)
 
 CodeBlockNode* Parser::parseInstructionBlock()
 {
-    auto block      = container->newCodeBlock();
+    auto block      = graphNode->newCodeBlock();
     bool errorFound = false;
 
     while(tokenList.canEat() && !errorFound )
@@ -822,7 +820,7 @@ Member* Parser::parseFunctionCall()
 
     if (fct != nullptr)
     {
-        auto node = container->newFunction(fct);
+        auto node = graphNode->newFunction(fct);
 
         auto connectArg = [&](size_t _argIndex) -> void
         { // lambda to connect input member to node for a specific argument index.
@@ -858,5 +856,5 @@ Member* Parser::parseFunctionCall()
 ScopedCodeBlockNode *Parser::getCurrentScope()
 {
     // TODO: implement. For now return only the global scope
-    return container->getScope();
+    return graphNode->getScope();
 }

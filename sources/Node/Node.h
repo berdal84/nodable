@@ -31,7 +31,7 @@ namespace Nodable{
 		A node is an Object (composed by Members) that can be linked together in
 		order to create graphs.
 
-		Every Node has a parent Container. All nodes are built from a Container, which first create an instance of this class (or derived) and then
+		Every Node has a parent GraphNode. All nodes are built from a GraphNode, which first create an instance of this class (or derived) and then
 		add some Component on it.
 	*/
 	class Node : public Object
@@ -47,27 +47,28 @@ namespace Nodable{
 		~Node() override;
 
         /**
-         * Get parent Container of this Node.
-         * @return the parent Container of this Node. Might be nullptr only if this node is a root.
+         * Get parent GraphNode of this Node.
+         * @return the parent GraphNode of this Node. Might be nullptr only if this node is a root.
          */
-		[[nodiscard]] Container* getParentContainer()const;
+		[[nodiscard]] inline GraphNode* getParentGraph()const { return this->parentGraph; }
 
 		/**
-		 * Set a parent Container to this Node.
+		 * Set a parent GraphNode to this Node.
 		 */
-		void setParentContainer(Container*);
+		inline void setParentGraph(GraphNode* _parentGraph)
+		{
+		    NODABLE_ASSERT(this->parentGraph == nullptr); // TODO: implement parentGraph switch
+		    this->parentGraph = _parentGraph;
+		}
 
 		/**
-		 * Get the inner Container of this Node.
-		 * @return a Container, might be nullptr.
+		 * Get the inner GraphNode of this Node.
+		 * @return a GraphNode, might be nullptr.
 		 */
-		[[nodiscard]] Container* getInnerContainer()const;
+		[[nodiscard]] GraphNode* getInnerGraph()const;
 
-		/**
-		 * Set an inner Container to this Node.
-		 * @param _container
-		 */
-		void setInnerContainer(Container* _container);
+		/** Set an inner GraphNode to this Node. */
+		void setInnerGraph(GraphNode*);
 
 		/**
 		 * Get the label of this Node
@@ -112,6 +113,26 @@ namespace Nodable{
 
 		/** Get the operator connected to a given Member */
         const Operator* getConnectedOperator(const Member* _localMember);
+
+        /**
+         * Return true is the local member is connected, false otherwise.
+         *
+         * source (?) ------> target (_localMember)
+         *
+         * @param _localMember
+         * @return
+         */
+        bool hasWireConnectedTo(const Member *_localMember);
+
+        /** Get the source Member of a given local Member.
+         * A source Member is connected to another as a source.
+         *
+         * source ------> target (_localMember)
+         *
+         * @param _localMember
+         * @return
+         */
+        Member* getSourceMemberOf(const Member *_localMember);
 
 		/** Connects two Member using a Wire (oriented edge)
 		 *  If _from is not owned, _to will digest it and nullptr is return.
@@ -213,10 +234,10 @@ namespace Nodable{
 		void onMemberValueChanged(const char* _name)override;
 
 		/** The inner container of this Node. (Recursion)*/
-		Container* innerContainer;
+		GraphNode*                innerGraph;
 
-		/** The Container that owns this Node */
-		Container*                parentContainer;
+		/** The GraphNode that owns this Node */
+		GraphNode*                parentGraph;
 
 		/** Label of the Node, will be visible */
 		std::string               label;
@@ -227,15 +248,10 @@ namespace Nodable{
         /** contains all wires connected to or from this node.*/
 		Wires  wires;
 
-        Token *sourceToken;
 	public:
+	    /* use mirror to refect class */
 		MIRROR_CLASS(Node)(
 			MIRROR_PARENT(Object)
 		);
-
-
-        bool hasWireConnectedTo(const Member *_localMember);
-
-        Member *getSourceMemberOf(const Member *_localMember);
     };
 }

@@ -1,7 +1,7 @@
-#include "ContainerView.h"
+#include "GraphNodeView.h"
 #include "Log.h"
 #include "Node.h"
-#include "Container.h"
+#include "GraphNode.h"
 #include "VariableNode.h"
 #include "Wire.h"
 #include "WireView.h"
@@ -14,24 +14,25 @@
 
 using namespace Nodable;
 
-bool ContainerView::draw()
+bool GraphNodeView::draw()
 {
-	
+    GraphNode* graph = getGraphNode();
+    auto entities    = graph->getNodes();
+
 	auto origin = ImGui::GetCursorScreenPos();
 	ImGui::SetCursorPos(ImVec2(0,0));
-	auto container = reinterpret_cast<Container*>(getOwner());
-	auto entities  = container->getEntities();
 
     /*
        CodeBlock
      */
-    ScopedCodeBlockNode* scope = container->getScope();
+    ScopedCodeBlockNode* scope = graph->getScope();
     if ( !scope->isEmpty() )
     {
         CodeBlockNode* block = dynamic_cast<CodeBlockNode*>(scope->getLastCodeBlock());
+        auto instructionNodes = block->instructionNodes;
 
         // Draw a wire to link CodeBlock to each instructions
-        for(auto& eachInstr: block->instructionNodes )
+        for(auto& eachInstr: instructionNodes )
         {
             // Draw a line
             ImVec2 start = block->getComponent<NodeView>()->getScreenPos();
@@ -42,9 +43,9 @@ bool ContainerView::draw()
         }
 
         // Draw a wire to link each instructions (ordered)
-        if ( block->instructionNodes.size() >= 2 )
+        if ( instructionNodes.size() >= 2 )
         {
-            for(auto it = block->instructionNodes.begin(); it < block->instructionNodes.end() - 1; it++ )
+            for(auto it = instructionNodes.begin(); it < instructionNodes.end() - 1; it++ )
             {
                 // Draw a line
                 ImVec2 start = (*it)->getComponent<NodeView>()->getScreenPos();
@@ -63,12 +64,10 @@ bool ContainerView::draw()
 	bool isAnyNodeHovered = false;
 	{
 		// Constraints
-		auto container = getOwner()->as<Container>();
-
-		if ( container->hasInstructions() )
+		if (graph->hasInstructionNodes() )
 		{
             // Make sure result node is always visible
-			auto view = container->getScope()->getFirstInstruction()->getComponent<NodeView>();
+			auto view = graph->getScope()->getFirstInstruction()->getComponent<NodeView>();
 			auto rect = ImRect(ImVec2(0,0), ImGui::GetWindowSize());
 			rect.Max.y = 1000000000000.0f;
 			NodeView::ConstraintToRect(view, rect );
@@ -203,10 +202,14 @@ bool ContainerView::draw()
 		Mouse right-click popup menu
 	*/
 
-	if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1)) {
+	if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
+	{
 		if (draggedConnector == nullptr)
-			ImGui::OpenPopup("ContainerViewContextualMenu");
-		else if (ImGui::IsPopupOpen("ContainerViewContextualMenu")) {
+        {
+            ImGui::OpenPopup("ContainerViewContextualMenu");
+        }
+		else if (ImGui::IsPopupOpen("ContainerViewContextualMenu"))
+		{
 			ImGui::CloseCurrentPopup();
 			NodeView::ResetDraggedConnector();
 		}
@@ -214,7 +217,6 @@ bool ContainerView::draw()
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{
-		auto    container = getOwner()->as<Container>();
 		Node* newNode = nullptr;
 
 		// Title :
@@ -243,7 +245,7 @@ bool ContainerView::draw()
 						if ( labelFunctionPair.second != nullptr  )
 							newNode = labelFunctionPair.second();
 						else
-							LOG_WARNING( "ContainerView", "The function associated to the key %s is nullptr", itemLabel );
+							LOG_WARNING( "GraphNodeView", "The function associated to the key %s is nullptr", itemLabel );
 					}
 				}
 
@@ -257,34 +259,11 @@ bool ContainerView::draw()
 		ImGui::Separator();
 		
 		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-			newNode = container->newVariable("Variable", container->getScope()); // new variable in global scope
+			newNode = graph->newVariable("Variable", graph->getScope()); // new variable in global scope
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
         {
-            std::string eol = container->getLanguage()->getSerializer()->serialize(TokenType::EndOfLine);
-
-            // add to code block
-            auto scope = container->getScope();
-            if ( !scope->hasInstructions() )
-            {
-                scope->innerBlocs.push_back( reinterpret_cast<AbstractCodeBlockNode*>(container->newCodeBlock()) );
-            }
-            else
-            {
-                // insert an eol
-               InstructionNode* lastInstruction = scope->getLastInstruction();
-               lastInstruction->endOfInstructionToken->suffix += eol;
-            }
-
-            auto block = scope->getLastCodeBlock()->as<CodeBlockNode>();
-            auto newInstructionNode = container->newInstruction(block);
-
-            // Initialize (since it is a manual creation)
-            Token* token = new Token(TokenType::EndOfInstruction);
-            token->suffix = eol;
-            newInstructionNode->endOfInstructionToken = token;
-
-            newNode = newInstructionNode;
+            newNode = graph->newInstruction();
         }
 
 
@@ -336,9 +315,13 @@ bool ContainerView::draw()
 	return true;
 }
 
-
-void Nodable::ContainerView::addContextualMenuItem(std::string _category, std::string _label, std::function<Node*(void)> _function)
+void Nodable::GraphNodeView::addContextualMenuItem(std::string _category, std::string _label, std::function<Node*(void)> _function)
 {
 	contextualMenus.insert( {_category, {_label, _function }} );
+}
+
+GraphNode *GraphNodeView::getGraphNode() const
+{
+    return getOwner()->as<GraphNode>();
 }
 

@@ -11,15 +11,20 @@ namespace Nodable{
 
 	typedef std::pair<std::string, std::function<Node*(void)>> ContextualMenuItem;
 
-	class ContainerView: public View{
+	class GraphNodeView: public View{
 	public:
-		virtual ~ContainerView(){};
+		virtual ~GraphNodeView(){};
 		virtual bool update(){return true;};
 		bool    draw();
 		void    addContextualMenuItem(std::string _category, std::string _label, std::function<Node*(void)> _lambda);
 	private:
+        GraphNode* getGraphNode() const;
 		std::multimap<std::string, ContextualMenuItem> contextualMenus;
-		MIRROR_CLASS(ContainerView)(
-			MIRROR_PARENT(View));
-	};
+
+		MIRROR_CLASS(GraphNodeView)
+		(
+			MIRROR_PARENT(View)
+        );
+
+    };
 }

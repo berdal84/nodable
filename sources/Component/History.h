@@ -12,7 +12,7 @@
 // Nodable
 #include "Component.h" // base class
 #include "Nodable.h"
-#include "Container.h"
+#include "GraphNode.h"
 #include "Wire.h"
 #include "WireView.h"
 #include "Member.h"
@@ -155,7 +155,7 @@ namespace Nodable
 			auto sourceNode = source->getOwner()->as<Node>();
 
 			// Link wire to members
-			auto sourceContainer = sourceNode->getParentContainer();
+			auto sourceContainer = sourceNode->getParentGraph();
 
 			if (sourceContainer != nullptr)
 				this->wire = sourceContainer->newWire();
