@@ -125,6 +125,8 @@ bool GraphNodeView::draw()
                 ImVec2 lineScreenPosStart;
                 {
                     auto member   = draggedConnector->member;
+                    NODABLE_ASSERT(member);
+                    NODABLE_ASSERT(member->getOwner());
                     auto node     = member->getOwner()->as<Node>();
                     auto view     = node->getComponent<NodeView>();
                     lineScreenPosStart = view->getConnectorPosition(member, draggedConnector->way);
