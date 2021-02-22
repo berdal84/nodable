@@ -371,10 +371,80 @@ CodeBlockNode *GraphNode::newCodeBlock()
 void GraphNode::deleteNode(Node* _node)
 {
     unregisterNode(_node);
+
+    /* disconnect all wires before to delete */
+    auto wires = _node->getWires();
+    std::for_each(wires.crbegin(), wires.crend(), [this](auto item)
+    {
+        this->disconnect(item);
+    });
+
     delete _node;
 }
 
 bool GraphNode::hasInstructionNodes()
 {
     return scope->hasInstructions();
+}
+
+Wire *GraphNode::connect(Member* _from, Member* _to)
+{
+    Wire* wire = nullptr;
+
+    /*
+     * If _from has no owner _to can digest it, no Wire neede in that case.
+     */
+    if (_from->getOwner() == nullptr)
+    {
+        _to->digest(_from);
+
+    }
+    else
+    {
+        _to->setInputMember(_from);
+        auto targetNode = _to->getOwner()->as<Node>();
+        auto sourceNode = _from->getOwner()->as<Node>();
+
+        // Link wire to members
+        auto sourceContainer = sourceNode->getParentGraph();
+        wire = sourceContainer->newWire();
+
+        wire->setSource(_from);
+        wire->setTarget(_to);
+
+        targetNode->addWire(wire);
+        sourceNode->addWire(wire);
+
+        // TODO: move this somewhere else
+        // (transfer prefix/suffix)
+        auto fromToken = _from->getSourceToken();
+        if (fromToken) {
+            if (!_to->getSourceToken()) {
+                _to->setSourceToken(new Token(fromToken->type, "", fromToken->charIndex));
+            }
+
+            auto toToken = _to->getSourceToken();
+            toToken->suffix = fromToken->suffix;
+            toToken->prefix = fromToken->prefix;
+            fromToken->suffix = "";
+            fromToken->prefix = "";
+        }
+    }
+
+    return wire;
+}
+
+void GraphNode::disconnect(Wire *_wire)
+{
+    _wire->getTarget()->setInputMember(nullptr);
+
+    auto targetNode = _wire->getTarget()->getOwner()->as<Node>();
+    auto sourceNode = _wire->getSource()->getOwner()->as<Node>();
+
+    targetNode->removeWire(_wire);
+    sourceNode->removeWire(_wire);
+
+    NodeTraversal::SetDirty(targetNode);
+
+    delete _wire;
 }

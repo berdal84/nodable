@@ -65,6 +65,15 @@ namespace Nodable{
 		Wire*                       newWire();
 		Node*                       newFunction(const Function* _proto);
 
+        /** Connects two Member using a Wire (oriented edge)
+         *  If _from is not owned, _to will digest it and nullptr is return.
+          * Otherwise a new Wire will be created ( _from -----> _to) and returned.
+          */
+        Wire* connect(Member *_source, Member *_target);
+
+        /** Disconnects a wire. This method is the opposite of Node::Connect.*/
+        void disconnect(Wire* _wire);
+
     private:
         /** Add an existing Node to the registry.
          * @param node - will be owned by the GraphNode. */
@@ -86,6 +95,6 @@ namespace Nodable{
 		MIRROR_CLASS(GraphNode)
 		(
 			MIRROR_PARENT(Component)
-        );
+        )
     };
 }
