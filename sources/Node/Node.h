@@ -134,15 +134,6 @@ namespace Nodable{
          */
         Member* getSourceMemberOf(const Member *_localMember);
 
-		/** Connects two Member using a Wire (oriented edge)
-		 *  If _from is not owned, _to will digest it and nullptr is return.
-          * Otherwise a new Wire will be created ( _from -----> _to) and returned.
-          */
-		static Wire* Connect(Member* /*_from*/, Member* /*_to*/);
-	
-		/** Disconnects a wire. This method is the opposite of Node::Connect.*/
-		static void Disconnect(Wire* _wire);
-
 		 /**
 		  * Add a component to this Node
 		  * Check this Node has no other Component of the same type using Node::hasComponent<T>().

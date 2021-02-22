@@ -96,7 +96,7 @@ namespace Nodable{
 		   - a Language (to understand the code)
 		   - a GraphNode (to store the result)
 		*/
-		explicit Parser(const Language* _language): language(_language), graphNode(nullptr){}
+		explicit Parser(const Language* _language): language(_language), graph(nullptr){}
 		~Parser() = default;
 
 		/** Evaluates an expression as a string.
@@ -158,7 +158,7 @@ namespace Nodable{
 		const Language* language;
 
 		/** The target container of the parser in which all generated nodes will be pushed into*/
-		GraphNode* graphNode;
+		GraphNode* graph;
 
 		TokenRibbon tokenList;
 	};

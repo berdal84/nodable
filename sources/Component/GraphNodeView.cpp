@@ -126,7 +126,7 @@ bool GraphNodeView::draw()
                 {
                     auto member   = draggedConnector->member;
                     NODABLE_ASSERT(member);
-                    NODABLE_ASSERT(member->getOwner());
+                    NODABLE_ASSERT(member->getOwner() != nullptr);
                     auto node     = member->getOwner()->as<Node>();
                     auto view     = node->getComponent<NodeView>();
                     lineScreenPosStart = view->getConnectorPosition(member, draggedConnector->way);
@@ -159,7 +159,7 @@ bool GraphNodeView::draw()
                 {
                     if (draggedConnector->member != hoveredConnector->member)
                     {
-                        Node::Connect(draggedConnector->member, hoveredConnector->member);
+                        graph->connect(draggedConnector->member, hoveredConnector->member);
                     }
 
                     NodeView::ResetDraggedConnector();
@@ -277,19 +277,24 @@ bool GraphNodeView::draw()
 		{
 			// if dragged member is an inputMember
 			if (draggedConnector->member->allowsConnection(Way_In))
-				Node::Connect(newNode->getFirstWithConn(Way_Out), draggedConnector->member);
-
+            {
+				graph->connect(newNode->getFirstWithConn(Way_Out), draggedConnector->member);
+            }
 			// if dragged member is an output
-			else if (draggedConnector->member->allowsConnection(Way_Out)) {
-
+			else if (draggedConnector->member->allowsConnection(Way_Out))
+			{
 				// try to get the first Input only member
 				auto targetMember = newNode->getFirstWithConn(Way_In);
 				
 				// If failed, try to get the first input/output member
 				if (targetMember == nullptr)
-					targetMember = newNode->getFirstWithConn(Way_InOut);
+                {
+                    targetMember = newNode->getFirstWithConn(Way_InOut);
+                }
 				else
-					Node::Connect(draggedConnector->member, targetMember);
+                {
+                    graph->connect(draggedConnector->member, targetMember);
+                }
 			}
 			NodeView::ResetDraggedConnector();
 		}

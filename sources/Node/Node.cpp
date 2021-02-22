@@ -12,67 +12,6 @@
 
 using namespace Nodable;
 
-void Node::Disconnect(Wire* _wire)
-{
-	_wire->getTarget()->setInputMember(nullptr);
-
-	auto targetNode = _wire->getTarget()->getOwner()->as<Node>();	
-	auto sourceNode = _wire->getSource()->getOwner()->as<Node>();
-
-	targetNode->removeWire(_wire);
-	sourceNode->removeWire(_wire);
-
-	NodeTraversal::SetDirty(targetNode);
-
-    delete _wire;
-
-	return;
-}
-
-Wire* Node::Connect( Member* _from, Member* _to)
-{
-    if (_from->getOwner() == nullptr)
-    {
-        _to->digest(_from);
-        return nullptr;
-    }
-
-    Wire* wire;
-
-    _to->setInputMember(_from);
-    auto targetNode = _to->getOwner()->as<Node>();
-    auto sourceNode = _from->getOwner()->as<Node>();
-
-    // Link wire to members
-    auto sourceContainer = sourceNode->getParentGraph();
-    wire = sourceContainer->newWire();
-
-    wire->setSource(_from);
-    wire->setTarget(_to);
-
-    targetNode->addWire(wire);
-    sourceNode->addWire(wire);
-
-    // TODO: move this somewhere else
-    // (transfer prefix/suffix)
-    auto fromToken = _from->getSourceToken();
-    if ( fromToken )
-    {
-        if (!_to->getSourceToken())
-        {
-            _to->setSourceToken(new Token(fromToken->type, "", fromToken->charIndex));
-        }
-
-        auto toToken = _to->getSourceToken();
-        toToken->suffix = fromToken->suffix;
-        toToken->prefix = fromToken->prefix;
-        fromToken->suffix = "";
-        fromToken->prefix = "";
-    }
-
-    return wire;
-}
-
 Node::Node(std::string _label):
 
         parentGraph(nullptr),
@@ -84,17 +23,11 @@ Node::Node(std::string _label):
 
 Node::~Node()
 {
-    // Disconnect and clear wires
-    std::for_each(wires.crbegin(), wires.crend(), [](auto item) {
-       Node::Disconnect(item);
-    });
-
 	// Delete all components
 	for(auto pair : components)
 	{
 		delete pair.second;
 	}
-
 }
 
 bool Node::isDirty()const
