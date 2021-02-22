@@ -126,8 +126,8 @@ void FileView::replaceSelectedText(std::string _val)
 
 	/* insert text (and select it) */
 	m_textEditor->InsertText(_val, true);
-
-	if (!hasSelection)
+    auto end = m_textEditor->GetCursorPosition();
+	if (!hasSelection && start.mLine == end.mLine ) // no selection and insert text is still on the same line
     {
         m_textEditor->SetSelection(selectionStart, selectionEnd);
     }
