@@ -28,5 +28,7 @@ namespace Nodable {
 		bool         m_hasChanged;
 		MIRROR_CLASS(FileView)(
 			MIRROR_PARENT(View));
-	};
+
+        void drawFileInfo();
+    };
 }

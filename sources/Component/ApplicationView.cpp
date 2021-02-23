@@ -9,6 +9,7 @@
 #include "File.h"
 #include "Log.h"
 #include "Config.h"
+#include "Component/FileView.h"
 
 using namespace Nodable;
 
@@ -356,6 +357,8 @@ bool ApplicationView::draw()
             if (ImGui::Begin("Global Props"))
             {
                 this->drawPropertiesWindow();
+                ImGui::NewLine();
+
                 ImGui::ShowStyleEditor();
             }
             ImGui::End();
@@ -364,25 +367,22 @@ bool ApplicationView::draw()
             // File info
             ImGui::Begin("File Info");
             {
-                ImGui::Text("File properties will be there");
                 const File* currFile = application->getCurrentFile();
 
                 if (currFile)
                 {
-                    ImGui::Text("Name: %s", currFile->getName().c_str());
-                    ImGui::Text("Path: %s", currFile->getPath().c_str());
+                    FileView* fileView = currFile->getComponent<FileView>();
+                    fileView->drawFileInfo();
                 }
-
-                if (ImGui::TreeNode("Language"))
+                else
                 {
-                    this->drawLanguageBrowser(application->getCurrentFile());
-                    ImGui::TreePop();
+                    ImGui::Text("No open file");
                 }
 
             }
             ImGui::End();
 
-            // Language browser
+            // Selected Node Properties
             if ( ImGui::Begin("Properties") )
             {
                 NodeView* view = NodeView::GetSelected();
@@ -536,12 +536,16 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size
 void ApplicationView::drawPropertiesWindow()
 {
     ImGui::Text("Wires");
+    ImGui::Indent();
+
     ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
     ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
     ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
     ImGui::SliderFloat("connector radius", &connectorRadius, 1.0f, 10.0f);
     ImGui::SliderFloat("node padding", &nodePadding, 1.0f, 20.0f);
     ImGui::Checkbox("arrows", &displayArrows);
+
+    ImGui::Unindent();
 }
 
 void ApplicationView::drawStartupWindow() {
@@ -863,27 +867,3 @@ void ApplicationView::drawBackground()
     ImGui::EndChild();
 
 }
-
-void ApplicationView::drawLanguageBrowser(const File* file )const
-{
-    if (file != nullptr)
-    {
-        const Language* language = file->getLanguage();
-        const auto functions = language->getAllFunctions();
-        const Serializer* serializer = language->getSerializer();
-
-
-        ImGui::Columns(1);
-        for(const auto& each_fct : functions )
-        {
-            auto name = serializer->serialize(each_fct.signature);
-            ImGui::Text("%s", name.c_str());
-        }
-    }
-    else
-    {
-        ImGui::Text("Open a file to see its properties");
-    }
-
-}
-
