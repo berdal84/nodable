@@ -152,3 +152,39 @@ File* FileView::getFile() {
 void FileView::setUndoBuffer(TextEditor::ExternalUndoBufferInterface* _buffer ) {
 	this->m_textEditor->SetExternalUndoBuffer(_buffer);
 }
+
+void FileView::drawFileInfo()
+{
+    File* file = getFile();
+
+    // Basic information
+    ImGui::Text("Name: %s", file->getName().c_str());
+    ImGui::Text("Path: %s", file->getPath().c_str());
+    ImGui::NewLine();
+
+    // Statistics
+    ImGui::Text("Graph statistics:");
+    ImGui::Indent();
+    GraphNode* graph = file->getInnerGraph();
+    ImGui::Text("Node count: %lu", graph->getNodeRegistry().size());
+    ImGui::Text("Wire count: %lu", graph->getWireRegistry().size());
+    ImGui::Unindent();
+    ImGui::NewLine();
+
+    // Language browser (list functions/operators)
+    if (ImGui::TreeNode("Language"))
+    {
+        const Language* language = file->getLanguage();
+        const auto& functions = language->getAllFunctions();
+        const Serializer* serializer = language->getSerializer();
+
+        ImGui::Columns(1);
+        for(const auto& each_fct : functions )
+        {
+            auto name = serializer->serialize(each_fct.signature);
+            ImGui::Text("%s", name.c_str());
+        }
+
+        ImGui::TreePop();
+    }
+}

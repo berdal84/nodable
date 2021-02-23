@@ -27,51 +27,37 @@ namespace Nodable
 	public:		
 		ApplicationView(const char* _name, Application* _application);
 		~ApplicationView();
-
-		/* call this every frame */
-		bool draw();
-
-		virtual bool update() { return true; };
-
-		/* call this once just after the instantiation. */
+		bool draw() override;
 		bool init();
-
         void browseFile();
-
-        MIRROR_CLASS(ApplicationView)(
-                MIRROR_PARENT(View)
-        );
 
 	private:
 		ImGui::FileBrowser fileBrowser;
-		Application       *application;
-		SDL_Window        *sdlWindow;
-		SDL_GLContext     glcontext;
-		ImColor backgroundColor;
-        bool isStartupWindowVisible;
-        ImFont *paragraphFont;
-        ImFont *headingFont;
-        bool isHistoryDragged;
-        const char* startupScreenTitle = "##STARTUPSCREEN";
-        bool isLayoutInitialized = false;
+		Application*       application;
+		SDL_Window*        sdlWindow;
+		SDL_GLContext      glcontext;
+		ImColor            backgroundColor;
+        bool               isStartupWindowVisible;
+        ImFont*            paragraphFont;
+        ImFont*            headingFont;
+        bool               isHistoryDragged;
+        const char*        startupScreenTitle = "##STARTUPSCREEN";
+        bool               isLayoutInitialized = false;
 
         void drawHistoryBar(History *currentFileHistory);
-
         void drawStatusBar() const;
-
         void drawMenuBar(History*, bool &userWantsToDeleteSelectedNode,
                          bool &userWantsToArrangeSelectedNodeHierarchy, bool &redock_all);
-
         void drawStartupWindow();
-
+        void drawFileEditor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex);
+        void drawFileBrowser();
+        void drawBackground();
         void drawPropertiesWindow();
 
-        void drawFileEditor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex);
-
-        void drawFileBrowser();
-
-        void drawBackground();
-
-        void drawLanguageBrowser(const File* )const;
+        /* reflect class using mirror */
+        MIRROR_CLASS(ApplicationView)
+        (
+            MIRROR_PARENT(View) // we only need to know parent
+        );
     };
 }
