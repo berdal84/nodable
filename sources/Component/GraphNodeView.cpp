@@ -17,7 +17,7 @@ using namespace Nodable;
 bool GraphNodeView::draw()
 {
     GraphNode* graph = getGraphNode();
-    auto entities    = graph->getNodes();
+    auto entities    = graph->getNodeRegistry();
 
 	auto origin = ImGui::GetCursorScreenPos();
 	ImGui::SetCursorPos(ImVec2(0,0));

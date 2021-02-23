@@ -40,16 +40,13 @@ void GraphNode::clear()
 
 	LOG_VERBOSE( "GraphNode", "=================== clear() ==================\n");
 
-	auto nodeIndex = nodes.size();
-
-	while ( nodeIndex > 0)
+	for(auto it = nodeRegistry.rbegin(); it != nodeRegistry.rend(); it++)
     {
-        nodeIndex--;
-	    auto node = nodes.at(nodeIndex);
+	    Node* node = *it;
         LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->getLabel() );
         deleteNode(node);
 	}
-    nodes.resize(0);
+    nodeRegistry.clear();
     scope->clear();
     LOG_VERBOSE("GraphNode", "===================================================\n");
 }
@@ -60,12 +57,12 @@ UpdateResult GraphNode::update()
         1 - Delete flagged Nodes
     */
     {
-        auto nodeIndex = nodes.size();
+        auto nodeIndex = nodeRegistry.size();
 
         while (nodeIndex > 0)
         {
             nodeIndex--;
-            auto node = nodes.at(nodeIndex);
+            auto node = nodeRegistry.at(nodeIndex);
 
             if (node->needsToBeDeleted())
             {
@@ -81,9 +78,9 @@ UpdateResult GraphNode::update()
     size_t updatedNodesCount(0);
     auto result = Result::Success;
     {
-        auto it = nodes.begin();
+        auto it = nodeRegistry.begin();
 
-        while (it < nodes.end() && result != Result::Failure)
+        while (it < nodeRegistry.end() && result != Result::Failure)
         {
             auto node = *it;
 
@@ -111,19 +108,16 @@ UpdateResult GraphNode::update()
 
 void GraphNode::registerNode(Node* _node)
 {
-	this->nodes.push_back(_node);
+	this->nodeRegistry.push_back(_node);
     _node->setParentGraph(this);
 }
 
 void GraphNode::unregisterNode(Node* _node)
 {
-    // TODO: remove Node from this->scope
+    auto it = std::find(nodeRegistry.begin(), nodeRegistry.end(), _node);
+    if (it != nodeRegistry.end())
     {
-        auto it = std::find(nodes.begin(), nodes.end(), _node);
-        if (it != nodes.end())
-        {
-            nodes.erase(it);
-        }
+        nodeRegistry.erase(it);
     }
 }
 
@@ -372,12 +366,11 @@ void GraphNode::deleteNode(Node* _node)
 {
     unregisterNode(_node);
 
-    /* disconnect all wires before to delete */
-    auto wires = _node->getWires();
-    std::for_each(wires.crbegin(), wires.crend(), [this](auto item)
+    for ( auto eachWire : _node->getWires() )
     {
-        this->disconnect(item);
-    });
+        unregisterWire(eachWire);
+        disconnect(eachWire);
+    }
 
     delete _node;
 }
@@ -431,6 +424,11 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
         }
     }
 
+    if ( wire != nullptr )
+    {
+        registerWire(wire);
+    }
+
     return wire;
 }
 
@@ -447,4 +445,22 @@ void GraphNode::disconnect(Wire *_wire)
     NodeTraversal::SetDirty(targetNode);
 
     delete _wire;
+}
+
+void GraphNode::registerWire(Wire* _wire)
+{
+    wireRegistry.push_back(_wire);
+}
+
+void GraphNode::unregisterWire(Wire* _wire)
+{
+    auto found = std::find(wireRegistry.begin(), wireRegistry.end(), _wire);
+    if (found != wireRegistry.end() )
+    {
+        wireRegistry.erase(found);
+    }
+    else
+    {
+        LOG_WARNING("GraphNode", "Unable to unregister wire\n");
+    }
 }

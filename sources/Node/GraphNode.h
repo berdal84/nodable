@@ -42,7 +42,8 @@ namespace Nodable{
 		 * @return - a valid VariableNode* or nullptr if variable is not found. */
 		VariableNode*               findVariable(std::string);
 
-		inline std::vector<Node*>&  getNodes() {return nodes;}
+		inline std::vector<Node*>&  getNodeRegistry() {return nodeRegistry;}
+		inline std::vector<Wire*>&  getWireRegistry() {return wireRegistry;}
 
         [[nodiscard]] inline const Language*      getLanguage()const { return language; }
         [[nodiscard]] inline ScopedCodeBlockNode* getScope(){ return scope;}
@@ -75,26 +76,26 @@ namespace Nodable{
         void disconnect(Wire* _wire);
 
     private:
-        /** Add an existing Node to the registry.
-         * @param node - will be owned by the GraphNode. */
-        void                        registerNode(Node* node);
+        void registerNode(Node* node);
+        void unregisterNode(Node* node);
+        void deleteNode(Node* _node);
 
-        /** Unregister a Node from this Graph (release ownership) */
-        void                        unregisterNode(Node* node);
-
-        /** Delete a registered Node */
-        void                        deleteNode(Node *pNode);
+        void registerWire(Wire *_wire);
+        void unregisterWire(Wire *_wire);
+        /*   deleteWire is disconnect(Wire*) */
 
 	private:		
-		std::vector<Node*>          nodes;
-		const Language*             language;
-		ScopedCodeBlockNode*        scope;
+		std::vector<Node*> nodeRegistry;
+		std::vector<Wire*> wireRegistry;
+		const Language* language;
+		ScopedCodeBlockNode* scope;
 	public:
 		static ImVec2               LastResultNodeViewPosition;
 
+		/** reflect class with mirror */
 		MIRROR_CLASS(GraphNode)
 		(
-			MIRROR_PARENT(Component)
+			MIRROR_PARENT(Node) // we only need to know parent
         )
     };
 }
