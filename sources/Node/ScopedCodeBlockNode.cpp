@@ -2,6 +2,7 @@
 #include "Node/InstructionNode.h"
 #include "Node/VariableNode.h"
 #include "Node/CodeBlockNode.h"
+#include "Node/AbstractCodeBlockNode.h"
 #include <cstring>
 #include <algorithm> // for std::find_if
 
@@ -14,36 +15,28 @@ ScopedCodeBlockNode::~ScopedCodeBlockNode()
 
 void ScopedCodeBlockNode::clear()
 {
-    innerBlocs.clear();
+    getChildren().clear();
     variables.clear();
 }
 
 bool ScopedCodeBlockNode::hasInstructions() const
 {
-    auto found = std::find_if(
-            innerBlocs.begin(),
-            innerBlocs.end(),
-            [](AbstractCodeBlockNode* block )
-            {
-                return block->hasInstructions();
-            });
-
-    return found != innerBlocs.end();
+    return getFirstInstruction() != nullptr;
 }
 
-InstructionNode *ScopedCodeBlockNode::getFirstInstruction()
+InstructionNode *ScopedCodeBlockNode::getFirstInstruction() const
 {
     auto found = std::find_if(
-            innerBlocs.begin(),
-            innerBlocs.end(),
-            [](AbstractCodeBlockNode* block )
+            children.begin(),
+            children.end(),
+            [](Node* block )
             {
-                return block->hasInstructions();
+                return block->as<AbstractCodeBlockNode>()->hasInstructions();
             });
 
-    if ( found != innerBlocs.end())
+    if ( found != children.end())
     {
-        return (*found)->getFirstInstruction();
+        return (*found)->as<AbstractCodeBlockNode>()->getFirstInstruction();
     }
     return nullptr;
 }
@@ -67,24 +60,30 @@ VariableNode* ScopedCodeBlockNode::findVariable(std::string _name)
 
 AbstractCodeBlockNode *ScopedCodeBlockNode::getLastCodeBlock()
 {
-    return innerBlocs.back();
+    auto back = children.back();
+    if ( back )
+    {
+        return back->as<AbstractCodeBlockNode>();
+    }
+    return nullptr;
 }
 
 void ScopedCodeBlockNode::add(AbstractCodeBlockNode* _block)
 {
-    assert(std::find(innerBlocs.begin(), innerBlocs.end(), _block) == innerBlocs.end() ); // can be added only once
-    this->innerBlocs.push_back(_block);
+    assert(std::find(children.begin(), children.end(), _block) == children.end() ); // can be added only once
+    this->addChild(_block);
     _block->setParent(this);
 }
 
 bool ScopedCodeBlockNode::isEmpty()
 {
-    return innerBlocs.empty();
+    return children.empty();
 }
 
 InstructionNode *ScopedCodeBlockNode::getLastInstruction()
 {
-    return getLastCodeBlock()->as<CodeBlockNode>()->instructionNodes.back();
+    return getLastCodeBlock()->as<CodeBlockNode>()
+            ->getInstructions().back()->as<InstructionNode>();
 }
 
 ScopedCodeBlockNode::ScopedCodeBlockNode(ScopedCodeBlockNode *_parent)
@@ -93,4 +92,3 @@ ScopedCodeBlockNode::ScopedCodeBlockNode(ScopedCodeBlockNode *_parent)
 {
     this->setLabel("unnamed ScopedCodeBlockNode");
 }
-

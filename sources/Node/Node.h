@@ -3,6 +3,7 @@
 // std
 #include <string>
 #include <memory>
+#include <algorithm>
 
 // Nodable
 #include <Core/Nodable.h>
@@ -44,7 +45,7 @@ namespace Nodable{
 	     */
 		explicit Node(std::string  _label = "UnnamedNode");
 
-		~Node() override;
+		~Node();
 
         /**
          * Get parent GraphNode of this Node.
@@ -59,6 +60,34 @@ namespace Nodable{
 		{
 		    NODABLE_ASSERT(this->parentGraph == nullptr); // TODO: implement parentGraph switch
 		    this->parentGraph = _parentGraph;
+		}
+
+		/**
+		 * Get the parent Node. Can be nullptr.
+		 */
+		[[nodiscard]] virtual Node* getParent()const { return this->parent; }
+
+		/**
+		 * Set the parent Node.
+		 * @param _node
+		 */
+		virtual void setParent(Node* _node) {
+		    NODABLE_ASSERT(_node); // TODO: handle unset parent
+		    NODABLE_ASSERT(this->parentGraph == nullptr); // TODO: implement parent switch
+		    this->parent = _node;
+		}
+
+		[[nodiscard]] virtual std::vector<Node*>& getChildren() { return this->children; }
+        [[nodiscard]] virtual const std::vector<Node*>& getChildren()const { return this->children; }
+
+		virtual void addChild(Node* _node) {
+		    this->children.push_back(_node);
+		}
+
+		virtual void removeChild(Node* _node) {
+		    auto found = std::find(children.begin(), children.end(), _node);
+		    NODABLE_ASSERT(found != children.end());
+		    children.erase(found);
 		}
 
 		/**
@@ -217,7 +246,10 @@ namespace Nodable{
 	protected:
 		Components components;
 
-	private:
+        /** The parent Node from a hierarchy point of view (parent is not owner) */
+        Node* parent;
+        std::vector<Node*> children;
+    private:
 		/**
 		 * This will be called automatically after a Member value change.
 		 * @param _name is the name of the Member that has changed.
@@ -230,7 +262,7 @@ namespace Nodable{
 		/** The GraphNode that owns this Node */
 		GraphNode*                parentGraph;
 
-		/** Label of the Node, will be visible */
+        /** Label of the Node, will be visible */
 		std::string               label;
 
         /** true means: needs to be evaluated. */

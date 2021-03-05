@@ -15,6 +15,7 @@ using namespace Nodable;
 Node::Node(std::string _label):
 
         parentGraph(nullptr),
+        parent(nullptr),
         label(_label),
         dirty(true)
 {

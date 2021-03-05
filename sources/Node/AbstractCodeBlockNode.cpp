@@ -9,21 +9,23 @@ using namespace Nodable;
 
 AbstractCodeBlockNode::AbstractCodeBlockNode(ScopedCodeBlockNode *_parent)
 {
-    parent = _parent;
-
-    if( parent )
+    if( _parent )
     {
-        parent->innerBlocs.push_back(this);
+        setParent(_parent);
     }
 }
 
 void AbstractCodeBlockNode::setParent(ScopedCodeBlockNode *_scope)
 {
-    assert(this->parent == nullptr); // Parent can't be set once
+    assert(this->parent == nullptr); // TODO: Parent can't be set twice
     this->parent = _scope;
+    _scope->addChild(this);
 }
 
 ScopedCodeBlockNode *AbstractCodeBlockNode::getParent()
 {
-    return this->parent;
+    if ( this->parent ) {
+        return this->parent->as<ScopedCodeBlockNode>();
+    }
+    return nullptr;
 }

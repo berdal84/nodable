@@ -144,7 +144,7 @@ UpdateResult File::update() {
 
 	auto scope = getInnerGraph()->getScope();
 
-	if ( !scope->innerBlocs.empty() )
+	if ( !scope->getChildren().empty() )
     {
         std::string code = language->getSerializer()->serialize( scope );
         view->replaceSelectedText(code);

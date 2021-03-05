@@ -21,14 +21,12 @@ namespace Nodable
         virtual ~AbstractCodeBlockNode() = default;
         virtual void clear() = 0;
         [[nodiscard]] virtual bool             hasInstructions() const = 0;
-        [[nodiscard]] virtual InstructionNode* getFirstInstruction() = 0;
+        [[nodiscard]] virtual InstructionNode* getFirstInstruction() const = 0;
         [[nodiscard]] virtual VariableNode*    findVariable(std::string _name) { return nullptr; };
-        void setParent(ScopedCodeBlockNode *_scope);
-        ScopedCodeBlockNode* getParent();
+        virtual void setParent(ScopedCodeBlockNode *_scope);
+        virtual ScopedCodeBlockNode* getParent();
 
     protected:
-        ScopedCodeBlockNode* parent;
-
         /** reflect class using mirror */
         MIRROR_CLASS(AbstractCodeBlockNode)
         (

@@ -27,7 +27,7 @@ bool Parser_Test(
     auto expectedMember = std::make_unique<Member>(nullptr);
     expectedMember->set(_expectedValue);
 
-    auto result = container->getScope()->getLastCodeBlock()->as<CodeBlockNode>()->instructionNodes.back()->value();
+    auto result = container->getScope()->getLastCodeBlock()->as<CodeBlockNode>()->getInstructions().back()->value();
     auto success = result->equals(expectedMember.get());
 
     return success;
