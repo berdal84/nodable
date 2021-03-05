@@ -396,7 +396,7 @@ CodeBlockNode* Parser::parseInstructionBlock()
         InstructionNode* instruction = parseInstruction(block);
         if (instruction != nullptr )
         {
-            LOG_VERBOSE("Parser", "parse program (instruction %i parsed)\n", (int)block->instructionNodes.size() );
+            LOG_VERBOSE("Parser", "parse program (instruction %i parsed)\n", (int)block->getChildren().size() );
         }
         else
         {
@@ -404,9 +404,9 @@ CodeBlockNode* Parser::parseInstructionBlock()
         }
     }
 
-    if ( !block->instructionNodes.empty() )
+    if ( !block->getChildren().empty() )
     {
-        LOG_VERBOSE("Parser", "parse program " OK "(%i instructions parsed) \n", block->instructionNodes.size() );
+        LOG_VERBOSE("Parser", "parse program " OK "(%i instructions parsed) \n", block->getChildren().size() );
     }
     else
     {

@@ -18,16 +18,16 @@ namespace Nodable
     {
     public:
         explicit ScopedCodeBlockNode(ScopedCodeBlockNode* _parent);
-        ~ScopedCodeBlockNode() override;
+        ~ScopedCodeBlockNode();
         void clear() override;
         void add(AbstractCodeBlockNode*);
         [[nodiscard]] bool isEmpty();
         [[nodiscard]] bool hasInstructions() const override;
-        [[nodiscard]] InstructionNode* getFirstInstruction() override;
+        [[nodiscard]] InstructionNode* getFirstInstruction() const override;
         [[nodiscard]] VariableNode* findVariable(std::string _name) override;
         [[nodiscard]] AbstractCodeBlockNode* getLastCodeBlock();
         [[nodiscard]] InstructionNode *getLastInstruction();
-        std::vector<AbstractCodeBlockNode*> innerBlocs;
+
         std::vector<VariableNode*> variables;
 
         /** Reflect class */

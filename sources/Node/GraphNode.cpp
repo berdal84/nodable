@@ -142,7 +142,7 @@ InstructionNode* GraphNode::newInstruction()
     // add to code block
     if ( !scope->hasInstructions() )
     {
-        scope->innerBlocs.push_back( reinterpret_cast<AbstractCodeBlockNode*>(newCodeBlock()) );
+        scope->addChild( newCodeBlock() );
     }
     else
     {
@@ -304,14 +304,14 @@ Wire* GraphNode::newWire()
 
 void GraphNode::arrangeNodeViews()
 {
-    if ( !scope->innerBlocs.empty())
+    if ( !scope->getChildren().empty())
     {
-        auto* block = dynamic_cast<CodeBlockNode*>(scope->innerBlocs.front());
+        auto* block = dynamic_cast<CodeBlockNode*>(scope->getChildren().front());
 
-        for (auto it = block->instructionNodes.begin(); it != block->instructionNodes.end(); it++)
+        for (auto it = block->getChildren().begin(); it != block->getChildren().end(); it++)
         {
-            InstructionNode* instructionNode = *it;
-            NodeView *nodeView = instructionNode->getComponent<NodeView>();
+            Node* node = *it;
+            NodeView *nodeView = node->getComponent<NodeView>();
 
             // Store the Result node position to restore it later
             bool resultNodeHadPosition = GraphNode::LastResultNodeViewPosition.x != -1 &&
@@ -324,7 +324,7 @@ void GraphNode::arrangeNodeViews()
                 if (resultNodeHadPosition)
                 {                                 /* if result node had a position stored, we restore it */
                     nodeView->setPosition(GraphNode::LastResultNodeViewPosition);
-                    nodeView->translate(ImVec2(float(200) * (float)std::distance(block->instructionNodes.begin(), it), 0));
+                    nodeView->translate(ImVec2(float(200) * (float)std::distance(block->getChildren().begin(), it), 0));
                 }
 
                 auto rect = view->getVisibleRect();
@@ -353,7 +353,7 @@ GraphNode::GraphNode(const Language* _language)
 CodeBlockNode *GraphNode::newCodeBlock()
 {
     auto codeBlockNode = new CodeBlockNode(nullptr);
-    std::string label = ICON_FA_SQUARE " Block " + std::to_string(this->scope->innerBlocs.size());
+    std::string label = ICON_FA_SQUARE " Block " + std::to_string(this->scope->getChildren().size());
     codeBlockNode->setLabel(label);
     codeBlockNode->addComponent(new NodeView);
 
@@ -366,10 +366,17 @@ void GraphNode::deleteNode(Node* _node)
 {
     unregisterNode(_node);
 
+    // clear wires
     for ( auto eachWire : _node->getWires() )
     {
         unregisterWire(eachWire);
         disconnect(eachWire);
+    }
+
+    // remove from parent
+    if ( Node* parent = _node->getParent() )
+    {
+        parent->removeChild(_node);
     }
 
     delete _node;

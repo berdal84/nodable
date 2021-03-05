@@ -239,11 +239,11 @@ bool NodeView::update(float _deltaTime)
     {
 	    ImVec2 childrenPosSum;
 	    auto codeBlockNode = node->as<CodeBlockNode>();
-	    for( auto& children: codeBlockNode->instructionNodes )
+	    for( auto& children: codeBlockNode->getInstructions() )
         {
             childrenPosSum += children->getComponent<NodeView>()->getPosition();
         }
-	    float count(codeBlockNode->instructionNodes.size());
+	    float count(codeBlockNode->getInstructions().size());
 	    ImVec2 childrenPosAvg(childrenPosSum.x / count,childrenPosSum.y / count);
 	    this->setPosition(childrenPosAvg + ImVec2(0,size.y * 2.0f));
 
@@ -347,11 +347,11 @@ bool NodeView::update(float _deltaTime)
 	// follow previous instruction
     if ( node->getClass() == mirror::GetClass<InstructionNode>() && !pinned)
     {
-        auto codeBlock = node->as<InstructionNode>()->getParent();
-        if ( codeBlock )
+        if ( Node* codeBlock = node->getParent() )
         {
-            auto found = std::find( codeBlock->instructionNodes.begin(), codeBlock->instructionNodes.end(), node);
-            if ( found != codeBlock->instructionNodes.end() && found != codeBlock->instructionNodes.begin() )
+            auto children = codeBlock->getChildren();
+            auto found = std::find( children.begin(), children.end(), node);
+            if ( found != children.end() && found != children.begin() )
             {
                 auto previousInstructionViewPos = (*(found-1))->getComponent<NodeView>()->getPosition();
                 this->setPosition(previousInstructionViewPos + ImVec2(300.0f, 0));
@@ -894,9 +894,9 @@ void NodeView::SetDetail(NodeViewDetail _viewDetail)
 
 void NodeView::ArrangeRecursively(CodeBlockNode* _block)
 {
-    for(auto& eachInstruction: _block->instructionNodes)
+    for(auto& eachChild: _block->getChildren())
     {
-        auto view = eachInstruction->getComponent<NodeView>();
+        auto view = eachChild->getComponent<NodeView>();
 
         if ( view )
         {

@@ -30,7 +30,7 @@ namespace Nodable{
 	public:
 
 		explicit GraphNode(const Language* _language);
-		~GraphNode() override;
+		~GraphNode();
 
 		/** Update the graph by evaluating its nodes only when necessary. */
         UpdateResult                update() override;

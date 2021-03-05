@@ -247,7 +247,7 @@ std::string Serializer::serialize(const Member * _member) const
 
 std::string Serializer::serialize(const CodeBlockNode* _block) const
 {
-    if (_block->instructionNodes.empty())
+    if (_block->getInstructions().empty())
     {
         // TODO: implement curly brackets {} if scope explicitly has them
         return "";
@@ -255,9 +255,9 @@ std::string Serializer::serialize(const CodeBlockNode* _block) const
 
     std::string result;
 
-    for( auto& eachInstruction : _block->instructionNodes )
+    for( auto& eachInstruction : _block->getInstructions() )
     {
-        result.append( serialize(eachInstruction) );
+        result.append( serialize( eachInstruction->as<InstructionNode>() ) );
     }
 
     return result;
@@ -291,7 +291,7 @@ std::string Serializer::serialize(const ScopedCodeBlockNode* _scope)const
 {
     std::string result;
 
-    for(auto eachBlock : _scope->innerBlocs )
+    for(auto eachBlock : _scope->getChildren() )
     {
         if ( eachBlock->getClass()->isChildOf(mirror::GetClass<CodeBlockNode>()) )
         {

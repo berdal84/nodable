@@ -19,15 +19,17 @@ namespace Nodable
         public:
             void clear();
             [[nodiscard]] bool             hasInstructions() const;
-            [[nodiscard]] InstructionNode* getFirstInstruction();
-            std::vector<InstructionNode*> instructionNodes;
+            [[nodiscard]] InstructionNode* getFirstInstruction() const;
+            void pushInstruction(InstructionNode *pNode);
+            [[nodiscard]] const std::vector<InstructionNode*>& getInstructions() const;
 
+        /** reflect class using mirror */
         MIRROR_CLASS(CodeBlockNode)
         (
             MIRROR_PARENT(Node)
             MIRROR_PARENT(AbstractCodeBlockNode)
         )
 
-        void pushInstruction(InstructionNode *pNode);
+
     };
 }

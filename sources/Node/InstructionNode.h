@@ -32,16 +32,12 @@ namespace Nodable
             get("value")->set(_value);
         };
 
-        CodeBlockNode* getParent() { return parent; }
-
         std::string getTypeAsString()const;
 
         /** End of instruction token */
         Token* endOfInstructionToken = nullptr;
 
-    private:
-        CodeBlockNode* parent;
-
+        /** reflect class using mirror */
         MIRROR_CLASS(InstructionNode)
         (
             MIRROR_PARENT(Node)

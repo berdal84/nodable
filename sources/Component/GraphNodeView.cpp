@@ -29,7 +29,7 @@ bool GraphNodeView::draw()
     if ( !scope->isEmpty() )
     {
         CodeBlockNode* block = dynamic_cast<CodeBlockNode*>(scope->getLastCodeBlock());
-        auto instructionNodes = block->instructionNodes;
+        auto instructionNodes = block->getInstructions();
 
         // Draw a wire to link CodeBlock to each instructions
         for(auto& eachInstr: instructionNodes )

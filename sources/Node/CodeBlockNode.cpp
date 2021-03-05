@@ -1,37 +1,29 @@
 #include "CodeBlockNode.h"
-#include "ScopedCodeBlockNode.h"
-#include <algorithm> // for std::find
-#include <cstring>
+#include "Node/InstructionNode.h"
 
 using namespace Nodable;
 
 CodeBlockNode::~CodeBlockNode()
 {
-    auto found = std::find( parent->innerBlocs.begin(), parent->innerBlocs.end(), this);
-    parent->innerBlocs.erase( found );
-    clear();
+    CodeBlockNode::clear();
 }
 
 void CodeBlockNode::clear()
 {
     // a code block do NOT owns its instructions nodes
-    instructionNodes.clear();
+    children.clear();
 }
 
 bool CodeBlockNode::hasInstructions() const
 {
-    return !instructionNodes.empty();
+    return !children.empty();
 }
 
-InstructionNode* CodeBlockNode::getFirstInstruction()
+InstructionNode* CodeBlockNode::getFirstInstruction() const
 {
-    return instructionNodes.front();
+    return children.front()->as<InstructionNode>();
 }
 
-void CodeBlockNode::pushInstruction(InstructionNode *_node)
-{
-    this->instructionNodes.push_back(_node);
-}
 
 CodeBlockNode::CodeBlockNode(ScopedCodeBlockNode *_parent)
     :
@@ -39,4 +31,13 @@ CodeBlockNode::CodeBlockNode(ScopedCodeBlockNode *_parent)
 {
     this->setLabel("unnamed ScopedCodeBlockNode");
 }
+
+void CodeBlockNode::pushInstruction(InstructionNode* _node) {
+    this->addChild(_node);
+}
+
+const std::vector<InstructionNode*>& CodeBlockNode::getInstructions() const {
+    return reinterpret_cast<const std::vector<InstructionNode*>&>( this->children );
+}
+
 
