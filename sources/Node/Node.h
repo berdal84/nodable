@@ -73,7 +73,7 @@ namespace Nodable{
 		 */
 		virtual void setParent(Node* _node) {
 		    NODABLE_ASSERT(_node); // TODO: handle unset parent
-		    NODABLE_ASSERT(this->parentGraph == nullptr); // TODO: implement parent switch
+		    NODABLE_ASSERT(this->parent == nullptr); // TODO: implement parent switch
 		    this->parent = _node;
 		}
 
@@ -81,6 +81,8 @@ namespace Nodable{
         [[nodiscard]] virtual const std::vector<Node*>& getChildren()const { return this->children; }
 
 		virtual void addChild(Node* _node) {
+            auto found = std::find(children.begin(), children.end(), _node);
+            NODABLE_ASSERT(found == children.end()); // check if node is not already child
 		    this->children.push_back(_node);
 		}
 

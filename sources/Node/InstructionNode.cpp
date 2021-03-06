@@ -5,12 +5,9 @@
 
 using namespace Nodable;
 
-InstructionNode::InstructionNode(
-        const char* _label,
-        CodeBlockNode* _parent): Node(_label)
+InstructionNode::InstructionNode(const char* _label): Node(_label)
 {
     add("value", Visibility::Default, Type::Any, Way_In);
-    this->parent = _parent;
 }
 
 std::string InstructionNode::getTypeAsString()const

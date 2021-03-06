@@ -19,7 +19,7 @@ namespace Nodable
     class InstructionNode : public Node
     {
     public:
-        InstructionNode(const char* _label, CodeBlockNode* _parent);
+        InstructionNode(const char* _label);
         ~InstructionNode(){};
 
         Member* value()const
