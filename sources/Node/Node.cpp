@@ -185,3 +185,32 @@ Member* Node::getSourceMemberOf(const Member *_localMember)
 
     return (*found)->getSource();
 }
+
+void Node::addChild(Node *_node)
+{
+    auto found = std::find(children.begin(), children.end(), _node);
+    NODABLE_ASSERT(found == children.end()); // check if node is not already child
+    this->children.push_back(_node);
+}
+
+void Node::removeChild(Node *_node)
+{
+    auto found = std::find(children.begin(), children.end(), _node);
+    NODABLE_ASSERT(found != children.end()); // check if node is found before to erase.
+    children.erase(found);
+}
+
+void Node::setParent(Node *_node)
+{
+    NODABLE_ASSERT(_node); // TODO: handle unset parent
+    NODABLE_ASSERT(this->parent == nullptr); // TODO: implement parent switch
+    this->parent = _node;
+}
+
+void Node::setParentGraph(GraphNode *_parentGraph)
+{
+    NODABLE_ASSERT(this->parentGraph == nullptr); // TODO: implement parentGraph switch
+    this->parentGraph = _parentGraph;
+}
+
+

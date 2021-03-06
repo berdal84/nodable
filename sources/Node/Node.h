@@ -47,59 +47,18 @@ namespace Nodable{
 
 		~Node();
 
-        /**
-         * Get parent GraphNode of this Node.
-         * @return the parent GraphNode of this Node. Might be nullptr only if this node is a root.
-         */
-		[[nodiscard]] inline GraphNode* getParentGraph()const { return this->parentGraph; }
+		[[nodiscard]] virtual Node*                     getParent()const { return this->parent; }
+		              virtual void                      setParent(Node* _node);
 
-		/**
-		 * Set a parent GraphNode to this Node.
-		 */
-		inline void setParentGraph(GraphNode* _parentGraph)
-		{
-		    NODABLE_ASSERT(this->parentGraph == nullptr); // TODO: implement parentGraph switch
-		    this->parentGraph = _parentGraph;
-		}
-
-		/**
-		 * Get the parent Node. Can be nullptr.
-		 */
-		[[nodiscard]] virtual Node* getParent()const { return this->parent; }
-
-		/**
-		 * Set the parent Node.
-		 * @param _node
-		 */
-		virtual void setParent(Node* _node) {
-		    NODABLE_ASSERT(_node); // TODO: handle unset parent
-		    NODABLE_ASSERT(this->parent == nullptr); // TODO: implement parent switch
-		    this->parent = _node;
-		}
-
-		[[nodiscard]] virtual std::vector<Node*>& getChildren() { return this->children; }
+		[[nodiscard]] virtual std::vector<Node*>&       getChildren() { return this->children; }
         [[nodiscard]] virtual const std::vector<Node*>& getChildren()const { return this->children; }
+		              virtual void                      addChild(Node* _node);
+		              virtual void                      removeChild(Node* _node);
 
-		virtual void addChild(Node* _node) {
-            auto found = std::find(children.begin(), children.end(), _node);
-            NODABLE_ASSERT(found == children.end()); // check if node is not already child
-		    this->children.push_back(_node);
-		}
-
-		virtual void removeChild(Node* _node) {
-		    auto found = std::find(children.begin(), children.end(), _node);
-		    NODABLE_ASSERT(found != children.end());
-		    children.erase(found);
-		}
-
-		/**
-		 * Get the inner GraphNode of this Node.
-		 * @return a GraphNode, might be nullptr.
-		 */
-		[[nodiscard]] GraphNode* getInnerGraph()const;
-
-		/** Set an inner GraphNode to this Node. */
-		void setInnerGraph(GraphNode*);
+        [[nodiscard]] inline GraphNode*                 getParentGraph()const { return this->parentGraph; }
+                      void                              setParentGraph(GraphNode* _parentGraph);
+		[[nodiscard]] GraphNode*                        getInnerGraph()const;
+		              void                              setInnerGraph(GraphNode*);
 
 		/**
 		 * Get the label of this Node
