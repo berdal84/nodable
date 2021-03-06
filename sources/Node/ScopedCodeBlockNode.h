@@ -17,10 +17,9 @@ namespace Nodable
     class ScopedCodeBlockNode: public AbstractCodeBlockNode
     {
     public:
-        explicit ScopedCodeBlockNode(ScopedCodeBlockNode* _parent);
+        explicit ScopedCodeBlockNode() = default;
         ~ScopedCodeBlockNode();
         void clear() override;
-        void add(AbstractCodeBlockNode*);
         [[nodiscard]] bool isEmpty();
         [[nodiscard]] bool hasInstructions() const override;
         [[nodiscard]] InstructionNode* getFirstInstruction() const override;

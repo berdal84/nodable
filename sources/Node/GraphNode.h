@@ -18,6 +18,11 @@ namespace Nodable{
     class InstructionNode;
     class CodeBlockNode;
 
+    enum class RelationType {
+        IS_CHILD_OF,
+        IS_PARENT_OF
+    };
+
     /**
      * @brief
      * The role of a GraphNode is to manage a set of Node and Wire used in a ScopedCodeBlockNode with a given language.
@@ -71,6 +76,12 @@ namespace Nodable{
           * Otherwise a new Wire will be created ( _from -----> _to) and returned.
           */
         Wire* connect(Member *_source, Member *_target);
+
+        /**
+         * Connect two nodes with a given connection type
+         * ex: _source IS_CHILD_OF _target
+        */
+        void connect(Node* _source, Node* _target, RelationType _connectionType);
 
         /** Disconnects a wire. This method is the opposite of Node::Connect.*/
         void disconnect(Wire* _wire);

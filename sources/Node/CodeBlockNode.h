@@ -13,7 +13,7 @@ namespace Nodable
     class CodeBlockNode: public AbstractCodeBlockNode
     {
     public:
-        explicit CodeBlockNode(ScopedCodeBlockNode* _parent);
+        explicit CodeBlockNode();
         ~CodeBlockNode();
 
         public:

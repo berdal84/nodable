@@ -68,13 +68,6 @@ AbstractCodeBlockNode *ScopedCodeBlockNode::getLastCodeBlock()
     return nullptr;
 }
 
-void ScopedCodeBlockNode::add(AbstractCodeBlockNode* _block)
-{
-    assert(std::find(children.begin(), children.end(), _block) == children.end() ); // can be added only once
-    this->addChild(_block);
-    _block->setParent(this);
-}
-
 bool ScopedCodeBlockNode::isEmpty()
 {
     return children.empty();
@@ -84,11 +77,4 @@ InstructionNode *ScopedCodeBlockNode::getLastInstruction()
 {
     return getLastCodeBlock()->as<CodeBlockNode>()
             ->getInstructions().back()->as<InstructionNode>();
-}
-
-ScopedCodeBlockNode::ScopedCodeBlockNode(ScopedCodeBlockNode *_parent)
-    :
-        AbstractCodeBlockNode(_parent)
-{
-    this->setLabel("unnamed ScopedCodeBlockNode");
 }

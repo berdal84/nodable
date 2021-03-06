@@ -7,14 +7,6 @@
 
 using namespace Nodable;
 
-AbstractCodeBlockNode::AbstractCodeBlockNode(ScopedCodeBlockNode *_parent)
-{
-    if( _parent )
-    {
-        setParent(_parent);
-    }
-}
-
 void AbstractCodeBlockNode::setParent(ScopedCodeBlockNode *_scope)
 {
     assert(this->parent == nullptr); // TODO: Parent can't be set twice

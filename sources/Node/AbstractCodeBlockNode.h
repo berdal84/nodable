@@ -16,7 +16,7 @@ namespace Nodable
     class AbstractCodeBlockNode: public Node
     {
     protected:
-        explicit AbstractCodeBlockNode(ScopedCodeBlockNode* _parent );
+        explicit AbstractCodeBlockNode() = default;
     public:
         virtual ~AbstractCodeBlockNode() = default;
         virtual void clear() = 0;

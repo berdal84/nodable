@@ -25,9 +25,7 @@ InstructionNode* CodeBlockNode::getFirstInstruction() const
 }
 
 
-CodeBlockNode::CodeBlockNode(ScopedCodeBlockNode *_parent)
-    :
-    AbstractCodeBlockNode(_parent)
+CodeBlockNode::CodeBlockNode():AbstractCodeBlockNode()
 {
     this->setLabel("unnamed ScopedCodeBlockNode");
 }

@@ -128,10 +128,16 @@ VariableNode* GraphNode::findVariable(std::string _name)
 
 InstructionNode* GraphNode::newInstruction(CodeBlockNode* _parentCodeBlock)
 {
-	auto instructionNode = new InstructionNode(ICON_FA_SIGN_OUT_ALT " Result", _parentCodeBlock);
-    _parentCodeBlock->pushInstruction(instructionNode);
+    // create
+	auto instructionNode = new InstructionNode(ICON_FA_SIGN_OUT_ALT " Result");
     instructionNode->addComponent(new NodeView);
+
+    // connect
+    this->connect(_parentCodeBlock, instructionNode, RelationType::IS_PARENT_OF);
+
+    // register
     this->registerNode(instructionNode);
+
 	return instructionNode;
 }
 
@@ -140,7 +146,7 @@ InstructionNode* GraphNode::newInstruction()
     std::string eol = language->getSerializer()->serialize(TokenType::EndOfLine);
 
     // add to code block
-    if ( !scope->hasInstructions() )
+    if ( scope->getChildren().empty())
     {
         scope->addChild( newCodeBlock() );
     }
@@ -347,12 +353,12 @@ void GraphNode::arrangeNodeViews()
 GraphNode::GraphNode(const Language* _language)
 {
 	language = _language;
-    scope = new ScopedCodeBlockNode(nullptr);
+    scope = new ScopedCodeBlockNode();
 }
 
 CodeBlockNode *GraphNode::newCodeBlock()
 {
-    auto codeBlockNode = new CodeBlockNode(nullptr);
+    auto codeBlockNode = new CodeBlockNode();
     std::string label = ICON_FA_SQUARE " Block " + std::to_string(this->scope->getChildren().size());
     codeBlockNode->setLabel(label);
     codeBlockNode->addComponent(new NodeView);
@@ -469,5 +475,24 @@ void GraphNode::unregisterWire(Wire* _wire)
     else
     {
         LOG_WARNING("GraphNode", "Unable to unregister wire\n");
+    }
+}
+
+void GraphNode::connect(Node *_source, Node *_target, RelationType _connectionType)
+{
+    switch ( _connectionType )
+    {
+        case RelationType::IS_CHILD_OF:
+            _target->addChild(_source);
+            _source->setParent(_target);
+            break;
+
+        case RelationType::IS_PARENT_OF:
+            _target->setParent(_source);
+            _source->addChild(_target);
+            break;
+
+        default:
+            NODABLE_ASSERT(false); // This connection type is not yet implemented
     }
 }
