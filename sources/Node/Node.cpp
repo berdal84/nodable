@@ -202,8 +202,6 @@ void Node::removeChild(Node *_node)
 
 void Node::setParent(Node *_node)
 {
-    NODABLE_ASSERT(_node); // TODO: handle unset parent
-    NODABLE_ASSERT(this->parent == nullptr); // TODO: implement parent switch
     this->parent = _node;
 }
 
@@ -213,4 +211,31 @@ void Node::setParentGraph(GraphNode *_parentGraph)
     this->parentGraph = _parentGraph;
 }
 
+void Node::addInput(Node* _node)
+{
+    this->inputs.push_back(_node);
+}
+
+void Node::addOutput(Node *_node)
+{
+    this->outputs.push_back(_node);
+}
+
+void Node::removeOutput(Node *_node)
+{
+    auto found = std::find(outputs.begin(), outputs.end(), _node);
+    NODABLE_ASSERT(found != outputs.end()); // check if node is found before to erase.
+    outputs.erase(found);
+}
+
+void Node::removeInput(Node *_node)
+{
+    auto found = std::find(inputs.begin(), inputs.end(), _node);
+    NODABLE_ASSERT(found != inputs.end()); // check if node is found before to erase.
+    inputs.erase(found);
+}
+
+std::vector<Node*>& Node::getInputs() {
+    return this->inputs;
+}
 

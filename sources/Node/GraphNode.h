@@ -20,7 +20,8 @@ namespace Nodable{
 
     enum class RelationType {
         IS_CHILD_OF,
-        IS_PARENT_OF
+        IS_PARENT_OF,
+        IS_INPUT_OF
     };
 
     /**
@@ -81,7 +82,10 @@ namespace Nodable{
          * Connect two nodes with a given connection type
          * ex: _source IS_CHILD_OF _target
         */
-        void connect(Node* _source, Node* _target, RelationType _connectionType);
+        void connect(Node* _source, Node* _target, RelationType);
+
+        /** Disconnect two nodes having a given relation type */
+        void disconnect(Node* _source, Node* _target, RelationType);
 
         /** Disconnects a wire. This method is the opposite of Node::Connect.*/
         void disconnect(Wire* _wire);
@@ -93,7 +97,7 @@ namespace Nodable{
 
         void registerWire(Wire *_wire);
         void unregisterWire(Wire *_wire);
-        /*   deleteWire is disconnect(Wire*) */
+        void deleteWire(Wire* _wire);
 
 	private:		
 		std::vector<Node*> nodeRegistry;

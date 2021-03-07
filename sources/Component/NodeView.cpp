@@ -202,9 +202,20 @@ void NodeView::setPosition(ImVec2 _position)
 	this->position = _position;
 }
 
-void NodeView::translate(ImVec2 _delta)
+void NodeView::translate(ImVec2 _delta, bool _translateInputsRecursively)
 {
 	this->setPosition( position + _delta);
+
+	if ( _translateInputsRecursively )
+    {
+	    for(auto eachInput : getOwner()->getInputs() )
+        {
+	        if ( NodeView* eachInputView = eachInput->getComponent<NodeView>() )
+	        {
+                eachInputView->translate(_delta, true);
+	        }
+        }
+    }
 }
 
 void NodeView::arrangeRecursively()
@@ -353,8 +364,20 @@ bool NodeView::update(float _deltaTime)
             auto found = std::find( children.begin(), children.end(), node);
             if ( found != children.end() && found != children.begin() )
             {
-                auto previousInstructionViewPos = (*(found-1))->getComponent<NodeView>()->getPosition();
-                this->setPosition(previousInstructionViewPos + ImVec2(300.0f, 0));
+                auto prevInstrView = (*(found - 1))->getComponent<NodeView>();
+                auto prevInstrPos  = prevInstrView->getPosition();
+                auto prevInstrRect = prevInstrView->computeBoundingRectRecursively();
+
+                ImVec2 offset = ImVec2(prevInstrRect.Max.x - this->computeBoundingRectRecursively().Min.x, 0);
+                ImVec2 newPos( position.x + offset.x + 20.0f, prevInstrPos.y);
+
+                ImVec2 delta((newPos.x - position.x), (newPos.y - position.y));
+                bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
+                if (!isDeltaTooSmall)
+                {
+                    auto factor = std::min(1.0f, 10.f * _deltaTime);
+                    translate(delta * factor, true);
+                }
             }
         }
     }
@@ -912,4 +935,39 @@ ImVec2 NodeView::getScreenPos()
             ImGui::GetCursorPos().x - ImGui::GetCursorScreenPos().x,
             ImGui::GetCursorPos().y - ImGui::GetCursorScreenPos().y);
     return position - offset;
+}
+
+ImRect NodeView::computeBoundingRectRecursively(bool _ignorePinned)
+{
+
+    std::vector<float> x;
+    std::vector<float> y;
+
+    ImRect rect = this->getRect();
+    x.push_back(rect.Min.x);
+    x.push_back(rect.Max.x);
+    y.push_back(rect.Min.y);
+    y.push_back(rect.Max.y);
+
+
+    for(Node* eachChild : this->getOwner()->getInputs() )
+    {
+        NodeView* childView = eachChild->getComponent<NodeView>();
+        if ( childView && !( childView->pinned && _ignorePinned) )
+        {
+            ImRect childRect = childView->computeBoundingRectRecursively();
+            x.push_back(childRect.Min.x);
+            x.push_back(childRect.Max.x);
+            y.push_back(childRect.Min.y);
+            y.push_back(childRect.Max.y);
+        }
+    }
+
+    auto minmax_x = std::minmax_element(x.begin(), x.end());
+    auto minmax_y = std::minmax_element(y.begin(), y.end());
+
+    return ImRect(
+            ImVec2 (*minmax_x.first, *minmax_y.first), // min
+            ImVec2 (*minmax_x.second, *minmax_x.second) // max
+    );
 }
