@@ -65,6 +65,7 @@ namespace Nodable{
         void removeInput(Node *_node);
         void removeOutput(Node *_node);
         std::vector<Node*>& getInputs();
+        std::vector<Node*>& getOutputs();
 
 		/**
 		 * Get the label of this Node
