@@ -938,7 +938,7 @@ ImVec2 NodeView::getScreenPos()
     return position - offset;
 }
 
-ImRect NodeView::computeBoundingRectRecursively(bool _ignorePinned)
+ImRect NodeView::computeBoundingRectRecursively(bool _ignorePinned, bool _ignoreMultiConstrained)
 {
 
     std::vector<float> x;
@@ -954,7 +954,9 @@ ImRect NodeView::computeBoundingRectRecursively(bool _ignorePinned)
     for(Node* eachChild : this->getOwner()->getInputs() )
     {
         NodeView* childView = eachChild->getComponent<NodeView>();
-        if ( childView && !( childView->pinned && _ignorePinned) )
+        if ( childView &&
+             !(childView->pinned && _ignorePinned) &&
+             !(childView->getOwner()->getOutputs().size() > 1 && _ignoreMultiConstrained) )
         {
             ImRect childRect = childView->computeBoundingRectRecursively();
             x.push_back(childRect.Min.x);

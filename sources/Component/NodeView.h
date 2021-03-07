@@ -108,7 +108,7 @@ namespace Nodable
         std::string getLabel();
 
         /** Compute the bounding rectangle of this view recursively */
-        ImRect computeBoundingRectRecursively(bool _ignorePinned = true);
+        ImRect computeBoundingRectRecursively(bool _ignorePinned = true, bool _ignoreMultiConstrained = true);
 
         /** Arrange input nodes recursively while keeping this node position unchanged.
          *  Note: Some input connected Nodes can stay fixed if they are pinned. */
