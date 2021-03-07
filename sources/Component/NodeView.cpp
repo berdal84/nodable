@@ -220,6 +220,7 @@ void NodeView::translate(ImVec2 _delta, bool _translateInputsRecursively)
 
 void NodeView::arrangeRecursively()
 {
+    this->pinned = false;
 	ArrangeRecursively(this);
 }
 
