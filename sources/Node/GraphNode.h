@@ -18,11 +18,20 @@ namespace Nodable{
     class InstructionNode;
     class CodeBlockNode;
 
-    enum class RelationType {
-        IS_CHILD_OF,
-        IS_PARENT_OF,
-        IS_INPUT_OF
+    enum class RelationType: int {
+        IS_CHILD_OF       = 0,
+        IS_PARENT_OF      = 1,
+        IS_INPUT_OF       = 2
     };
+
+    typedef std::pair<const RelationType, std::pair<Node*, Node*>> Relation;
+
+    inline bool operator==(
+            const Relation& _left,
+            const Relation& _right)
+    {
+        return (_left.first == _right.first) && (_left.second == _right.second);
+    }
 
     /**
      * @brief
@@ -50,7 +59,7 @@ namespace Nodable{
 
 		inline std::vector<Node*>&  getNodeRegistry() {return nodeRegistry;}
 		inline std::vector<Wire*>&  getWireRegistry() {return wireRegistry;}
-
+        inline std::multimap<Relation::first_type , Relation::second_type>& getRelationRegistry() {return relationRegistry;}
         [[nodiscard]] inline const Language*      getLanguage()const { return language; }
         [[nodiscard]] inline ScopedCodeBlockNode* getScope(){ return scope;}
         [[nodiscard]] bool                        hasInstructionNodes();
@@ -102,6 +111,7 @@ namespace Nodable{
 	private:		
 		std::vector<Node*> nodeRegistry;
 		std::vector<Wire*> wireRegistry;
+		std::multimap<Relation::first_type , Relation::second_type> relationRegistry;
 		const Language* language;
 		ScopedCodeBlockNode* scope;
 	public:
