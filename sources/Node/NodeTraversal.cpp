@@ -35,18 +35,11 @@ Result NodeTraversal::SetDirtyRecursively(Node* _node, std::vector<Node*>& _trav
 
         _node->setDirty();
 
-        for (auto wire : _node->getWires() )
+        for (auto eachOutput : _node->getOutputs() )
         {
-
-            if (wire->getSource()->getOwner() == _node &&
-                wire->getTarget() != nullptr)
-            {
-                auto targetNode = reinterpret_cast<Node*>(wire->getTarget()->getOwner());
-                
-                auto r = NodeTraversal::SetDirtyRecursively(targetNode, _traversed);
-                if( r == Result::Failure )
-                    return Result::Failure;
-            }
+            auto r = NodeTraversal::SetDirtyRecursively(eachOutput, _traversed);
+            if( r == Result::Failure )
+                return Result::Failure;
         };
 
         result = Result::Success;

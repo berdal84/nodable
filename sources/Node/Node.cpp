@@ -239,3 +239,7 @@ std::vector<Node*>& Node::getInputs() {
     return this->inputs;
 }
 
+std::vector<Node *>& Node::getOutputs() {
+    return this->outputs;
+}
+
