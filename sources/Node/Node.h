@@ -60,6 +60,12 @@ namespace Nodable{
 		[[nodiscard]] GraphNode*                        getInnerGraph()const;
 		              void                              setInnerGraph(GraphNode*);
 
+		void addInput(Node *_node);
+        void addOutput(Node *_node);
+        void removeInput(Node *_node);
+        void removeOutput(Node *_node);
+        std::vector<Node*>& getInputs();
+
 		/**
 		 * Get the label of this Node
 		 * @return
@@ -232,6 +238,8 @@ namespace Nodable{
         /** contains all wires connected to or from this node.*/
 		Wires  wires;
 
+		std::vector<Node*> inputs;
+		std::vector<Node*> outputs;
 	public:
 	    /* use mirror to refect class */
 		MIRROR_CLASS(Node)(

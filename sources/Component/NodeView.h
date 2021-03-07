@@ -94,7 +94,7 @@ namespace Nodable
 		void  setPosition(ImVec2);
 
 		/** Apply a translation vector to the view's position */
-		void translate(ImVec2);
+		void translate(ImVec2, bool _translateInputsRecursively = false);
 
 		/** Arrange input nodes recursively while keeping this node position unchanged.
 		 *  Note: Some input connected Nodes can stay fixed if they are pinned. */
@@ -106,6 +106,9 @@ namespace Nodable
 		/** Get the node label
 		 * Note: depends on s_viewDetail, can be just an ICON_FA (4 char) or an ICON_FA + a label */
         std::string getLabel();
+
+        /** Compute the bounding rectangle of this view recursively */
+        ImRect computeBoundingRectRecursively(bool _ignorePinned = true);
 
         /** Arrange input nodes recursively while keeping this node position unchanged.
          *  Note: Some input connected Nodes can stay fixed if they are pinned. */

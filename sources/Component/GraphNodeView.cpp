@@ -32,14 +32,17 @@ bool GraphNodeView::draw()
         auto instructionNodes = block->getInstructions();
 
         // Draw a wire to link CodeBlock to each instructions
-        for(auto& eachInstr: instructionNodes )
+        if ( block->hasComponent<NodeView>())
         {
-            // Draw a line
-            ImVec2 start = block->getComponent<NodeView>()->getScreenPos();
-            ImVec2 end   = eachInstr->getComponent<NodeView>()->getScreenPos();
-            ImColor color(255,255,255,64);
-            ImColor shadowColor(0,0,0,64);
-            WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, 2.0f);
+            for(auto& eachInstr: instructionNodes )
+            {
+                // Draw a line
+                ImVec2 start = block->getComponent<NodeView>()->getScreenPos();
+                ImVec2 end   = eachInstr->getComponent<NodeView>()->getScreenPos();
+                ImColor color(255,255,255,64);
+                ImColor shadowColor(0,0,0,64);
+                WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, 2.0f);
+            }
         }
 
         // Draw a wire to link each instructions (ordered)

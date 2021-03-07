@@ -382,7 +382,7 @@ InstructionNode* Parser::parseInstruction(CodeBlockNode* _parentCodeBlock)
 CodeBlockNode* Parser::parseCodeBlock(ScopedCodeBlockNode* _parent)
 {
 	auto block = parseInstructionBlock();
-	graph->connect(_parent, block, RelationType::IS_PARENT_OF);
+    graph->connect(_parent, block, RelationType::IS_PARENT_OF);
 	return block;
 }
 

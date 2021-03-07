@@ -3,6 +3,7 @@
 #include "Node/Node.h"
 #include "Node/GraphNode.h"
 #include "Node/InstructionNode.h"
+#include "Node/VariableNode.h"
 #include "Core/Wire.h"
 #include "Language/Nodable/NodableLanguage.h"
 
@@ -74,4 +75,33 @@ TEST( GraphNode, clear)
     // test
     EXPECT_EQ(graph->getWireRegistry().size(), 0);
     EXPECT_EQ(graph->getNodeRegistry().size(), 0);
+}
+
+
+TEST( GraphNode, createOrDeleteRelation)
+{
+    // prepare
+    auto language        = std::make_unique<NodableLanguage>();
+    auto graph           = std::make_unique<GraphNode>(language.get());
+
+    Node* n1 = graph->newInstruction();
+    Node* n2 = graph->newNumber();
+
+    EXPECT_EQ(n1->getChildren().size(), 0);
+    graph->connect(n1, n2, RelationType::IS_PARENT_OF);
+    EXPECT_EQ(n1->getChildren().size(), 1);
+    graph->disconnect(n1, n2, RelationType::IS_PARENT_OF);
+    EXPECT_EQ(n1->getChildren().size(), 0);
+
+    EXPECT_EQ(n2->getChildren().size(), 0);
+    graph->connect(n1, n2, RelationType::IS_CHILD_OF);
+    EXPECT_EQ(n2->getChildren().size(), 1);
+    graph->disconnect(n1, n2, RelationType::IS_CHILD_OF);
+    EXPECT_EQ(n2->getChildren().size(), 0);
+
+    EXPECT_EQ(n2->getInputs().size(), 0);
+    graph->connect(n1, n2, RelationType::IS_INPUT_OF);
+    EXPECT_EQ(n2->getInputs().size(), 1);
+    graph->disconnect(n1, n2, RelationType::IS_INPUT_OF);
+    EXPECT_EQ(n2->getInputs().size(), 0);
 }

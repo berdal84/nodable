@@ -361,7 +361,7 @@ CodeBlockNode *GraphNode::newCodeBlock()
     auto codeBlockNode = new CodeBlockNode();
     std::string label = ICON_FA_SQUARE " Block " + std::to_string(this->scope->getChildren().size());
     codeBlockNode->setLabel(label);
-    codeBlockNode->addComponent(new NodeView);
+    // codeBlockNode->addComponent(new NodeView);
 
     this->registerNode(codeBlockNode);
 
@@ -421,6 +421,8 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
         targetNode->addWire(wire);
         sourceNode->addWire(wire);
 
+        connect(sourceNode, targetNode, RelationType::IS_INPUT_OF);
+
         // TODO: move this somewhere else
         // (transfer prefix/suffix)
         auto fromToken = _from->getSourceToken();
@@ -447,17 +449,7 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
 
 void GraphNode::disconnect(Wire *_wire)
 {
-    _wire->getTarget()->setInputMember(nullptr);
-
-    auto targetNode = _wire->getTarget()->getOwner()->as<Node>();
-    auto sourceNode = _wire->getSource()->getOwner()->as<Node>();
-
-    targetNode->removeWire(_wire);
-    sourceNode->removeWire(_wire);
-
-    NodeTraversal::SetDirty(targetNode);
-
-    delete _wire;
+    deleteWire(_wire);
 }
 
 void GraphNode::registerWire(Wire* _wire)
@@ -478,9 +470,9 @@ void GraphNode::unregisterWire(Wire* _wire)
     }
 }
 
-void GraphNode::connect(Node *_source, Node *_target, RelationType _connectionType)
+void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType)
 {
-    switch ( _connectionType )
+    switch ( _relationType )
     {
         case RelationType::IS_CHILD_OF:
             _target->addChild(_source);
@@ -492,7 +484,53 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _connectionTy
             _source->addChild(_target);
             break;
 
+        case RelationType::IS_INPUT_OF:
+            _target->addInput(_source);
+            _source->addOutput(_target);
+            break;
+
         default:
             NODABLE_ASSERT(false); // This connection type is not yet implemented
     }
+}
+
+void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationType)
+{
+    switch ( _relationType )
+    {
+        case RelationType::IS_CHILD_OF:
+            _target->removeChild(_source);
+            _source->setParent(nullptr);
+            break;
+
+        case RelationType::IS_PARENT_OF:
+            _target->setParent(nullptr);
+            _source->removeChild(_target);
+            break;
+
+        case RelationType::IS_INPUT_OF:
+            _target->removeInput(_source);
+            _source->removeOutput(_target);
+            break;
+
+        default:
+            NODABLE_ASSERT(false); // This connection type is not yet implemented
+    }
+}
+
+void GraphNode::deleteWire(Wire *_wire)
+{
+    _wire->getTarget()->setInputMember(nullptr);
+
+    auto targetNode = _wire->getTarget()->getOwner()->as<Node>();
+    auto sourceNode = _wire->getSource()->getOwner()->as<Node>();
+
+    targetNode->removeWire(_wire);
+    sourceNode->removeWire(_wire);
+
+    disconnect(sourceNode, targetNode, RelationType::IS_INPUT_OF);
+
+    NodeTraversal::SetDirty(targetNode);
+
+    delete _wire;
 }
