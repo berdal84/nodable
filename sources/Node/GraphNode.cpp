@@ -46,7 +46,9 @@ void GraphNode::clear()
         LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->getLabel() );
         deleteNode(node);
 	}
+	wireRegistry.clear();
     nodeRegistry.clear();
+	relationRegistry.clear();
     scope->clear();
     LOG_VERBOSE("GraphNode", "===================================================\n");
 }
@@ -492,10 +494,21 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
         default:
             NODABLE_ASSERT(false); // This connection type is not yet implemented
     }
+
+    this->relationRegistry.emplace(_relationType, std::pair(_source, _target));
 }
 
 void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationType)
 {
+    // find relation
+    Relation pair{_relationType, {_source, _target}};
+    auto relation = std::find(relationRegistry.begin(), relationRegistry.end(), pair);
+    NODABLE_ASSERT(relation != relationRegistry.end());
+
+    // remove relation
+    relationRegistry.erase(relation);
+
+    // disconnect effectively
     switch ( _relationType )
     {
         case RelationType::IS_CHILD_OF:
