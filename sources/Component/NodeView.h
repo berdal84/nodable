@@ -99,7 +99,7 @@ namespace Nodable
 
 		/** Arrange input nodes recursively while keeping this node position unchanged.
 		 *  Note: Some input connected Nodes can stay fixed if they are pinned. */
-		void arrangeRecursively();
+		void arrangeRecursively(bool _smoothly = true);
 
 		/** Draw advance properties (components, dirty state, etc.) */
 		void drawAdvancedProperties();

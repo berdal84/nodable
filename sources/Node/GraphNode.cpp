@@ -345,7 +345,7 @@ void GraphNode::arrangeNodeViews()
             }
         }
 
-        getComponent<NodeView>()->arrangeRecursively();
+        getComponent<NodeView>()->arrangeRecursively(false);
     }
 }
 
