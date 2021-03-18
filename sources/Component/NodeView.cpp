@@ -1,18 +1,20 @@
 #include "NodeView.h"
-#include "Log.h"		          // for LOG_DEBUG(...)
-#include "GraphNode.h"
-#include "VariableNode.h"
-#include "Wire.h"
+
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
-#include "Application.h"
-#include "ComputeBase.h"
-#include "NodeTraversal.h"
-#include <Language/Common/Serializer.h>
-#include <Node/AbstractCodeBlockNode.h>
-#include "CodeBlockNode.h"
-#include <Core/Maths.h>
-#include <Node/CodeBlockNode.h>
+
+#include "Core/Application.h"
+#include "Core/Maths.h"
+#include "Core/Wire.h"
+#include "Core/Log.h"		     // for LOG_DEBUG(...)
+#include "Component/ComputeBase.h"
+#include "Language/Common/Serializer.h"
+#include "Node/AbstractCodeBlockNode.h"
+#include "Node/NodeTraversal.h"
+#include "Node/CodeBlockNode.h"
+#include "Node/ScopedCodeBlockNode.h"
+#include "Node/GraphNode.h"
+#include "Node/VariableNode.h"
 #include "Node/InstructionNode.h"
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
@@ -557,18 +559,34 @@ bool NodeView::draw()
 	return edited;
 }
 
-void NodeView::ArrangeRecursively(NodeView* _view)
+void NodeView::ArrangeRecursively(NodeView* _view, bool _smoothly)
 {
 
-    if ( _view->getOwner()->getClass() == mirror::GetClass<CodeBlockNode>() )
+    if ( _view->getOwner()->getClass() == mirror::GetClass<GraphNode>() )
     {
-        NodeView::ArrangeRecursively( _view->getOwner()->as<CodeBlockNode>());
-    } else
+        GraphNode *graph = _view->getOwner()->as<GraphNode>();
+        auto codeBlocks = graph->getScope()->getChildren();
+
+        NODABLE_ASSERT(codeBlocks.size() == 1); // != 1 not handled, TODO: implement
+
+        for (auto &eachChild: codeBlocks[0]->getChildren()) {
+            auto view = eachChild->getComponent<NodeView>();
+
+            if (view) {
+                view->pinned = false;
+                ArrangeRecursively(view, _smoothly);
+            }
+        }
+    }
+    else
     {
 
         // Force and update of input connected nodes with a delta time extra high
         // to ensure all nodes were well placed in a single call (no smooth moves)
-        _view->update(float(1000));
+        if ( !_smoothly )
+        {
+            _view->update(float(1000));
+        }
 
         // Get wires that go outside from this node :
         auto wires = _view->getOwner()->getWires();
@@ -584,7 +602,7 @@ void NodeView::ArrangeRecursively(NodeView* _view)
                             ->getOwner());
                     auto inputView = node->getComponent<NodeView>();
                     inputView->pinned = false;
-                    ArrangeRecursively(inputView);
+                    ArrangeRecursively(inputView, _smoothly);
                 }
             }
         }
@@ -912,20 +930,6 @@ void NodeView::SetDetail(NodeViewDetail _viewDetail)
         {
             MemberView* memberView = eachPair.second;
             memberView->reset();
-        }
-    }
-}
-
-void NodeView::ArrangeRecursively(CodeBlockNode* _block)
-{
-    for(auto& eachChild: _block->getChildren())
-    {
-        auto view = eachChild->getComponent<NodeView>();
-
-        if ( view )
-        {
-            NodeView::ArrangeRecursively(view);
-            view->pinned = false;
         }
     }
 }

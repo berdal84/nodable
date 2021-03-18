@@ -345,10 +345,7 @@ void GraphNode::arrangeNodeViews()
             }
         }
 
-        // TODO: handle multiple CodeBlockNode, not only the last (works for now because we have a single block).
-        auto lastCodeBlock = this->scope->getLastCodeBlock()->as<CodeBlockNode>();
-        NODABLE_ASSERT(lastCodeBlock != nullptr); // read to do above
-        NodeView::ArrangeRecursively(lastCodeBlock);
+        getComponent<NodeView>()->arrangeRecursively();
     }
 }
 

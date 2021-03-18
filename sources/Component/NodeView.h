@@ -23,6 +23,7 @@ namespace Nodable
 	class Node;
     class ScopedCodeBlockNode;
     class CodeBlockNode;
+    class GraphNode;
 
 	/**
 	 * Simple struct to store a member view state
@@ -112,10 +113,7 @@ namespace Nodable
 
         /** Arrange input nodes recursively while keeping this node position unchanged.
          *  Note: Some input connected Nodes can stay fixed if they are pinned. */
-		static void ArrangeRecursively(NodeView* /*_nodeView*/);
-
-        /** Arrange recursively an entire scope */
-        static void ArrangeRecursively(CodeBlockNode* _block);
+		static void ArrangeRecursively(NodeView* _view, bool _smoothly = true);
 
 		/** Set a NodeView as selected.
 		 * Note: Only a single view can be selected at the same time */

@@ -335,3 +335,5 @@ GraphNode *GraphNodeView::getGraphNode() const
     return getOwner()->as<GraphNode>();
 }
 
+GraphNodeView::GraphNodeView(): NodeView() {}
+
