@@ -789,7 +789,7 @@ void NodeView::drawConnector(ImVec2& connnectorScreenPos, const Connector* _conn
 }
 
 ImRect Nodable::NodeView::getRect() const {
-	return ImRect(getPosition() - size * 0.5f, getPosition() + size * 0.5f);
+	return ImRect(this->position - size * 0.5f, this->position + size * 0.5f);
 }
 
 
