@@ -51,11 +51,14 @@ bool GraphNodeView::draw()
             for(auto it = instructionNodes.begin(); it < instructionNodes.end() - 1; it++ )
             {
                 // Draw a line
-                ImVec2 start = (*it)->getComponent<NodeView>()->getScreenPos();
-                ImVec2 end   = (*(it+1))->getComponent<NodeView>()->getScreenPos();
-                ImColor color(200,255,200,100);
+                auto startView = (*it)->getComponent<NodeView>();
+                auto endView = (*(it+1))->getComponent<NodeView>();
+                ImVec2 start = startView->getScreenPos();
+                ImVec2 end   = endView->getScreenPos();
+                ImColor color(200,255,200,50);
                 ImColor shadowColor(0,0,0,64);
-                WireView::DrawHorizontalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, 30.0f);
+                float width = std::min(endView->getRect().GetSize().x, startView->getRect().GetSize().x) - 5.0f;
+                WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, width);
             }
         }
     }

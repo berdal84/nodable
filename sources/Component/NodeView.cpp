@@ -70,7 +70,7 @@ std::string NodeView::getLabel()
     if (s_viewDetail == NodeViewDetail::Minimalist )
     {
         // I always add an ICON_FA at the begining of any node label string (encoded in 4 bytes)
-        return std::string(node->getLabel()).substr(0,4);
+        return std::string(node->getShortLabel());
     }
     return node->getLabel();
 }
@@ -240,14 +240,6 @@ bool NodeView::update(float _deltaTime)
 	auto node = getOwner();
 	NODABLE_ASSERT(node != nullptr);
 
-	/*
-	 * Apply constraints to view, 3 possible ways
-	 *
-	 * 1 - move this to children average position
-	 * 2 - move this to children's bounding box's top
-	 * 3 - move input connected NodeViews recursively
-	 */
-
 	// 1 - move this to children average position
 	if ( node->getClass() == mirror::GetClass<CodeBlockNode>() && !pinned)
     {
@@ -273,8 +265,10 @@ bool NodeView::update(float _deltaTime)
             {
                 auto targetNode = eachWire->getTarget()->getOwner()->as<Node>();
                 auto targetNodeView  = targetNode->getComponent<NodeView>();
-                x_positions.push_back( targetNodeView->position.x );
-                y_positions.push_back( targetNodeView->position.y );
+                x_positions.push_back( targetNodeView->getRect().Min.x );
+                x_positions.push_back( targetNodeView->getRect().Max.x );
+                y_positions.push_back( targetNodeView->getRect().Min.y );
+                y_positions.push_back( targetNodeView->getRect().Max.y );
             }
         }
         constexpr float float_max = std::numeric_limits<float>::max();
@@ -283,7 +277,7 @@ bool NodeView::update(float _deltaTime)
         ImRect zone(*x_minmax.first, *y_minmax.first, *x_minmax.second, *y_minmax.second );
 
         // Compute a delta to apply to move to this new position and translate.
-        ImVec2 newPos( zone.GetCenter().x, zone.Min.y - size.y * 2.0f);
+        ImVec2 newPos( zone.GetTR() - ImVec2(0.0f, s_nodeSpacingDistance + size.y) );
         ImVec2 delta(newPos.x - position.x, newPos.y - position.y);
         bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
         if (!isDeltaTooSmall) {
@@ -291,7 +285,32 @@ bool NodeView::update(float _deltaTime)
             translate(delta * factor);
         }
 
-    // 3 - move input connected NodeViews recursively
+    // 3 - in case Node is an InstructionNode
+    }
+	else if( node->getClass() == mirror::GetClass<InstructionNode>())
+    {
+	    if ( node->getInputWireCount() > 0 )
+        {
+	        auto inputNode = node->getInputs().at(0);
+	        auto inputView = inputNode->getComponent<NodeView>();
+
+	        if ( !inputView->pinned )
+            {
+	            auto inputRect = inputView->computeBoundingRectRecursively(true, true);
+                auto currentPos = inputView->position;
+                ImVec2 newPos = position + ImVec2( inputRect.GetSize().x, -size.y - s_nodeSpacingDistance);
+                ImVec2 delta((newPos.x - currentPos.x), (newPos.y - currentPos.y));
+
+                bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
+                if (!isDeltaTooSmall)
+                {
+                    auto factor = std::min(1.0f, 10.f * _deltaTime);
+                    inputView->translate(delta * factor);
+                }
+            }
+        }
+
+    // 4 - in case not has several inputs
     } else if( node->getInputWireCount() > 0)
     {
         // then we constraint each input view
@@ -361,7 +380,7 @@ bool NodeView::update(float _deltaTime)
 	// follow previous instruction
     if ( node->getClass() == mirror::GetClass<InstructionNode>() && !pinned)
     {
-        if ( Node* codeBlock = node->getParent() )
+        if ( CodeBlockNode* codeBlock = node->getParent()->as<CodeBlockNode>() )
         {
             auto children = codeBlock->getChildren();
             auto found = std::find( children.begin(), children.end(), node);
@@ -370,9 +389,23 @@ bool NodeView::update(float _deltaTime)
                 auto prevInstrView = (*(found - 1))->getComponent<NodeView>();
                 auto prevInstrPos  = prevInstrView->getPosition();
                 auto prevInstrRect = prevInstrView->computeBoundingRectRecursively();
+                auto currRect = this->computeBoundingRectRecursively(true, true);
 
-                ImVec2 offset = ImVec2(prevInstrRect.Max.x - this->computeBoundingRectRecursively().Min.x, 0);
-                ImVec2 newPos( position.x + offset.x + 20.0f, prevInstrPos.y);
+                ImVec2 offset(prevInstrRect.Max - currRect.Min);
+                ImVec2 newPos = position;
+
+                switch ( codeBlock->getLayout() )
+                {
+                    case Layout::ROW:
+                        newPos = ImVec2( position.x + offset.x + s_nodeSpacingDistance, prevInstrPos.y);
+                        break;
+
+                    case Layout::AUTO:
+                    case Layout::COLUMN:
+                        newPos = ImVec2( prevInstrPos.x, position.y + offset.y + s_nodeSpacingDistance);
+                        break;
+                }
+
 
                 ImVec2 delta((newPos.x - position.x), (newPos.y - position.y));
                 bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
@@ -962,7 +995,7 @@ ImRect NodeView::computeBoundingRectRecursively(bool _ignorePinned, bool _ignore
              !(childView->pinned && _ignorePinned) &&
              !(childView->getOwner()->getOutputs().size() > 1 && _ignoreMultiConstrained) )
         {
-            ImRect childRect = childView->computeBoundingRectRecursively();
+            ImRect childRect = childView->computeBoundingRectRecursively(_ignorePinned, _ignoreMultiConstrained);
             x.push_back(childRect.Min.x);
             x.push_back(childRect.Max.x);
             y.push_back(childRect.Min.y);
@@ -975,6 +1008,6 @@ ImRect NodeView::computeBoundingRectRecursively(bool _ignorePinned, bool _ignore
 
     return ImRect(
             ImVec2 (*minmax_x.first, *minmax_y.first), // min
-            ImVec2 (*minmax_x.second, *minmax_x.second) // max
+            ImVec2 (*minmax_x.second, *minmax_y.second) // max
     );
 }

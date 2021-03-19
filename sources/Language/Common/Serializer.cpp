@@ -267,7 +267,7 @@ std::string Serializer::serialize(const InstructionNode* _instruction ) const
 {
     std::string result;
 
-    result.append( serialize(_instruction->value() ) );
+    result.append( serialize(_instruction->getValue() ) );
     result.append( serialize(_instruction->endOfInstructionToken));
 
     return result;

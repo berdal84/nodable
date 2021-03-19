@@ -243,3 +243,11 @@ std::vector<Node *>& Node::getOutputs() {
     return this->outputs;
 }
 
+void Node::setShortLabel(const char *_label) {
+    this->shortLabel = _label;
+}
+
+const char* Node::getShortLabel() const {
+    return this->shortLabel.c_str();
+}
+

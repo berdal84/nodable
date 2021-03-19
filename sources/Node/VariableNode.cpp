@@ -19,7 +19,17 @@ void VariableNode::setName(const char* _name)
 {
 	name = _name;
 	setLabel(_name);
-	get("value")->setSourceExpression(_name);
+
+	if ( name.length() > 4)
+    {
+        setShortLabel(name.substr(0,3).append("..").c_str());
+    }
+    else
+    {
+        setShortLabel(_name);
+    }
+
+    get("value")->setSourceExpression(_name);
 }
 
 const char* VariableNode::getName()const

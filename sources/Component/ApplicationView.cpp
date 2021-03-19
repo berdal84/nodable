@@ -2,7 +2,6 @@
 #include "Core/Texture.h"
 #include <imgui/backends/imgui_impl_sdl.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
-#include <iostream>
 #include "System.h"
 #include "Application.h"
 #include "NodeView.h"
@@ -10,6 +9,7 @@
 #include "Log.h"
 #include "Config.h"
 #include "Component/FileView.h"
+#include "IconsFontAwesome5.h"
 
 using namespace Nodable;
 

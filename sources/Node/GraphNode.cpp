@@ -11,7 +11,6 @@
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
-#include "Application.h"
 #include "NodeTraversal.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "InstructionNode.h"
@@ -131,8 +130,9 @@ VariableNode* GraphNode::findVariable(std::string _name)
 InstructionNode* GraphNode::newInstruction(CodeBlockNode* _parentCodeBlock)
 {
     // create
-	auto instructionNode = new InstructionNode(ICON_FA_SIGN_OUT_ALT " Result");
+	auto instructionNode = new InstructionNode(ICON_FA_CODE " Instr.");
     instructionNode->addComponent(new NodeView);
+    instructionNode->setShortLabel(ICON_FA_CODE);
 
     // connect
     this->connect(_parentCodeBlock, instructionNode, RelationType::IS_PARENT_OF);
@@ -226,7 +226,9 @@ Node* GraphNode::newBinOp(const Operator* _operator)
 	auto node = new Node();
 	auto signature = _operator->signature;
 	node->setLabel(signature.getLabel());
-	const auto args = signature.getArgs();
+    node->setShortLabel(signature.getLabel().substr(0, 4).c_str());
+
+    const auto args = signature.getArgs();
 	const Semantic* semantic = language->getSemantic();
 	auto left   = node->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
 	auto right  = node->add("rvalue", Visibility::Default, semantic->tokenTypeToType(args[1].type), Way_In);
@@ -254,6 +256,7 @@ Node* GraphNode::newUnaryOp(const Operator* _operator)
 	auto node = new Node();
 	auto signature = _operator->signature;
 	node->setLabel(signature.getLabel());
+    node->setShortLabel(signature.getLabel().substr(0, 4).c_str());
 	const auto args = signature.getArgs();
     const Semantic* semantic = language->getSemantic();
 	auto left = node->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
@@ -278,7 +281,8 @@ Node* GraphNode::newFunction(const Function* _function)
 {
 	// Create a node with 2 inputs and 1 output
 	auto node = new Node();
-	node->setLabel(ICON_FA_CODE " " + _function->signature.getIdentifier());
+	node->setLabel(_function->signature.getIdentifier() + "()");
+	node->setShortLabel("f(x)");
     const Semantic* semantic = language->getSemantic();
 	node->add("result", Visibility::Default, semantic->tokenTypeToType(_function->signature.getType()), Way_Out);
 
@@ -469,6 +473,15 @@ void GraphNode::unregisterWire(Wire* _wire)
     }
 }
 
+void GraphNode::connect(Member* _source, InstructionNode* _target)
+{
+    if ( connect(_source, _target->getValue()) )
+    {
+        connect(_source->getOwner()->as<Node>(), _target, RelationType::IS_VALUE_OF);
+    }
+}
+
+
 void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType)
 {
     switch ( _relationType )
@@ -486,6 +499,10 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
         case RelationType::IS_INPUT_OF:
             _target->addInput(_source);
             _source->addOutput(_target);
+            break;
+
+        case RelationType::IS_VALUE_OF:
+            // TODO
             break;
 
         default:

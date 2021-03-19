@@ -25,13 +25,12 @@ InstructionNode* CodeBlockNode::getFirstInstruction() const
 }
 
 
-CodeBlockNode::CodeBlockNode():AbstractCodeBlockNode()
+CodeBlockNode::CodeBlockNode()
+    :
+    AbstractCodeBlockNode(),
+    layout(Layout::DEFAULT)
 {
     this->setLabel("unnamed ScopedCodeBlockNode");
-}
-
-void CodeBlockNode::pushInstruction(InstructionNode* _node) {
-    this->addChild(_node);
 }
 
 const std::vector<InstructionNode*>& CodeBlockNode::getInstructions() const {
