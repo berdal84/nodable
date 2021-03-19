@@ -21,7 +21,8 @@ namespace Nodable{
     enum class RelationType: int {
         IS_CHILD_OF       = 0,
         IS_PARENT_OF      = 1,
-        IS_INPUT_OF       = 2
+        IS_INPUT_OF       = 2,
+        IS_VALUE_OF       = 3
     };
 
     typedef std::pair<const RelationType, std::pair<Node*, Node*>> Relation;
@@ -92,6 +93,8 @@ namespace Nodable{
          * ex: _source IS_CHILD_OF _target
         */
         void connect(Node* _source, Node* _target, RelationType);
+
+        void connect(Member* _source, InstructionNode* _target);
 
         /** Disconnect two nodes having a given relation type */
         void disconnect(Node* _source, Node* _target, RelationType);

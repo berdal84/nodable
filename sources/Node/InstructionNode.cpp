@@ -9,8 +9,3 @@ InstructionNode::InstructionNode(const char* _label): Node(_label)
 {
     add("value", Visibility::Default, Type::Any, Way_In);
 }
-
-std::string InstructionNode::getTypeAsString()const
-{
-    return value()->getTypeAsString();
-}

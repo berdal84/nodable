@@ -372,7 +372,7 @@ InstructionNode* Parser::parseInstruction(CodeBlockNode* _parentCodeBlock)
         }
     }
 
-    graph->connect(parsedExpression, instruction->value());
+    graph->connect(parsedExpression, instruction);
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n");
     tokenList.commitTransaction();

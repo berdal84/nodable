@@ -22,7 +22,7 @@ namespace Nodable
         InstructionNode(const char* _label);
         ~InstructionNode(){};
 
-        Member* value()const
+        Member* getValue()const
         {
             return get("value");
         }
@@ -31,8 +31,6 @@ namespace Nodable
         {
             get("value")->set(_value);
         };
-
-        std::string getTypeAsString()const;
 
         /** End of instruction token */
         Token* endOfInstructionToken = nullptr;

@@ -73,6 +73,8 @@ namespace Nodable{
 		 */
 		[[nodiscard]] const char* getLabel()const;
 
+        [[nodiscard]] const char* getShortLabel()const;
+
 		/** Update the label of the node.
 		   note: a label is not unique. */
 		virtual void updateLabel(){};
@@ -232,7 +234,8 @@ namespace Nodable{
 
         /** Label of the Node, will be visible */
 		std::string               label;
-
+		/** Short version of the label */
+		std::string               shortLabel;
         /** true means: needs to be evaluated. */
 		bool                      dirty;
 
@@ -246,5 +249,7 @@ namespace Nodable{
 		MIRROR_CLASS(Node)(
 			MIRROR_PARENT(Object)
 		);
+
+        void setShortLabel(const char *_label);
     };
 }
