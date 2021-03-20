@@ -127,15 +127,12 @@ VariableNode* GraphNode::findVariable(std::string _name)
 	return scope->findVariable(_name);
 }
 
-InstructionNode* GraphNode::newInstruction(CodeBlockNode* _parentCodeBlock)
+InstructionNode* GraphNode::newInstruction()
 {
     // create
 	auto instructionNode = new InstructionNode(ICON_FA_CODE " Instr.");
     instructionNode->addComponent(new NodeView);
     instructionNode->setShortLabel(ICON_FA_CODE);
-
-    // connect
-    this->connect(_parentCodeBlock, instructionNode, RelationType::IS_PARENT_OF);
 
     // register
     this->registerNode(instructionNode);
@@ -143,7 +140,7 @@ InstructionNode* GraphNode::newInstruction(CodeBlockNode* _parentCodeBlock)
 	return instructionNode;
 }
 
-InstructionNode* GraphNode::newInstruction()
+InstructionNode* GraphNode::appendInstruction()
 {
     std::string eol = language->getSerializer()->serialize(TokenType::EndOfLine);
 
@@ -160,7 +157,8 @@ InstructionNode* GraphNode::newInstruction()
     }
 
     auto block = scope->getLastCodeBlock()->as<CodeBlockNode>();
-    auto newInstructionNode = newInstruction(block);
+    auto newInstructionNode = newInstruction();
+    this->connect(block, newInstructionNode, RelationType::IS_PARENT_OF);
 
     // Initialize (since it is a manual creation)
     Token* token = new Token(TokenType::EndOfInstruction);

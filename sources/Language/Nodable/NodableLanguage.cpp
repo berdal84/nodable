@@ -55,6 +55,10 @@ NodableLanguage::NodableLanguage(): Language("Nodable")
     semantic.insert_TypeToTokenType(Type::String, TokenType::StringType );
     semantic.insert_TypeToTokenType(Type::Any, TokenType::AnyType );
 
+    // conditionnal structures
+    semantic.insert_StringToTokenType("if", TokenType::KeywordIf);
+    semantic.insert_StringToTokenType("else", TokenType::KeywordElse);
+
     /*
      * Create a minimal set of functions/operators
      */
