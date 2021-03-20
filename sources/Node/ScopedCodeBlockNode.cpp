@@ -60,6 +60,9 @@ VariableNode* ScopedCodeBlockNode::findVariable(std::string _name)
 
 AbstractCodeBlockNode *ScopedCodeBlockNode::getLastCodeBlock()
 {
+    if ( children.empty() )
+        return nullptr;
+
     auto back = children.back();
     if ( back )
     {
@@ -75,6 +78,16 @@ bool ScopedCodeBlockNode::isEmpty()
 
 InstructionNode *ScopedCodeBlockNode::getLastInstruction()
 {
-    return getLastCodeBlock()->as<CodeBlockNode>()
-            ->getInstructions().back()->as<InstructionNode>();
+    auto lastCodeBlock = getLastCodeBlock();
+
+    if ( lastCodeBlock )
+    {
+        auto instructions = lastCodeBlock->as<CodeBlockNode>()->getInstructions();
+        if ( !instructions.empty())
+        {
+            return instructions.back()->as<InstructionNode>();
+        }
+    }
+
+    return nullptr;
 }

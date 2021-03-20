@@ -70,7 +70,7 @@ namespace Nodable{
 
 		/* node factory */
 		CodeBlockNode*              newCodeBlock();
-        InstructionNode*		    newInstruction(CodeBlockNode* _parentCodeBlock);
+        InstructionNode*		    appendInstruction();
         InstructionNode*            newInstruction();
 		VariableNode*				newVariable(std::string, ScopedCodeBlockNode*);
 		VariableNode*				newNumber(double = 0);
@@ -102,10 +102,10 @@ namespace Nodable{
         /** Disconnects a wire. This method is the opposite of Node::Connect.*/
         void disconnect(Wire* _wire);
 
+        void deleteNode(Node* _node);
     private:
         void registerNode(Node* node);
         void unregisterNode(Node* node);
-        void deleteNode(Node* _node);
 
         void registerWire(Wire *_wire);
         void unregisterWire(Wire *_wire);

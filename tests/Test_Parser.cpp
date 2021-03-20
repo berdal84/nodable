@@ -18,17 +18,22 @@ bool Parser_Test(
         const Language* _language = LanguageLibrary::GetNodable()
 ){
 
-    auto container = std::make_unique<GraphNode>(_language);
+    auto graph = std::make_unique<GraphNode>(_language);
 
     Parser* parser = _language->getParser();
-    parser->evalCodeIntoContainer(expression, container.get());
-    container->update();
+    parser->evalCodeIntoContainer(expression, graph.get());
+    graph->update();
 
     auto expectedMember = std::make_unique<Member>(nullptr);
     expectedMember->set(_expectedValue);
 
-    auto result = container->getScope()->getLastCodeBlock()->as<CodeBlockNode>()->getInstructions().back()->value();
-    auto success = result->equals(expectedMember.get());
+    auto lastInstruction = graph->getScope()->getLastInstruction();
+    bool success = false;
+    if ( lastInstruction )
+    {
+        auto result = lastInstruction->getValue();
+        success = result->equals(expectedMember.get());
+    }
 
     return success;
 }
@@ -184,4 +189,10 @@ TEST(Parser, Code_Formatting_Preserving )
     EXPECT_EQ(ParseEvalSerialize("a =5;\nb=2  *  a;"), "a =5;\nb=2  *  a;");
     EXPECT_EQ(ParseEvalSerialize(" 5 + 2;"), " 5 + 2;");
     EXPECT_EQ(ParseEvalSerialize("5 + 2;  "), "5 + 2;  ");
+}
+
+TEST(Parser, Conditionnal_Structures )
+{
+    EXPECT_TRUE(Parser_Test("if(true){a=10;}", 10.0));
+//    EXPECT_EQ(ParseEvalSerialize("if(false){a=10;}"), "if(false){a=10;}");
 }

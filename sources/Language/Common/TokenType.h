@@ -37,6 +37,8 @@ namespace Nodable {
         DoubleType,
         BooleanType,
         KeywordOperator,
+        KeywordIf,
+        KeywordElse,
 		Default = Unknown
     };
 }

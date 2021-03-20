@@ -271,7 +271,7 @@ bool GraphNodeView::draw()
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
         {
-            newNode = graph->newInstruction();
+            newNode = graph->appendInstruction();
         }
 
 

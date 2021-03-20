@@ -57,7 +57,7 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
 		return false;
 	}
 
-	CodeBlockNode* codeBlock = parseCodeBlock(graph->getScope());
+	CodeBlockNode* codeBlock = parseScope(graph->getScope());
 
 	if (codeBlock == nullptr)
 	{
@@ -343,7 +343,7 @@ Member* Parser::parseParenthesisExpression()
 	return result;
 }
 
-InstructionNode* Parser::parseInstruction(CodeBlockNode* _parentCodeBlock)
+InstructionNode* Parser::parseInstruction()
 {
     tokenList.startTransaction();
 
@@ -355,7 +355,7 @@ InstructionNode* Parser::parseInstruction(CodeBlockNode* _parentCodeBlock)
        return nullptr;
     }
 
-    auto instruction = graph->newInstruction(_parentCodeBlock);
+    auto instruction = graph->newInstruction();
 
     if ( tokenList.canEat() )
     {
@@ -379,43 +379,50 @@ InstructionNode* Parser::parseInstruction(CodeBlockNode* _parentCodeBlock)
     return instruction;
 }
 
-CodeBlockNode* Parser::parseCodeBlock(ScopedCodeBlockNode* _parent)
+CodeBlockNode* Parser::parseScope(ScopedCodeBlockNode* _parent)
 {
-	auto block = parseInstructionBlock();
-    graph->connect(_parent, block, RelationType::IS_PARENT_OF);
-	return block;
+	auto block = parseCodeBlock(_parent);
+	if ( block )
+    {
+        graph->connect(_parent, block, RelationType::IS_PARENT_OF);
+    }
+    return block;
 }
 
-CodeBlockNode* Parser::parseInstructionBlock()
+CodeBlockNode* Parser::parseCodeBlock(ScopedCodeBlockNode* _parent)
 {
-    auto block      = graph->newCodeBlock();
-    bool errorFound = false;
+    tokenList.startTransaction();
 
-    while(tokenList.canEat() && !errorFound )
+    auto block = graph->newCodeBlock();
+    bool stop = false;
+
+    while(tokenList.canEat() && !stop )
     {
-        InstructionNode* instruction = parseInstruction(block);
-        if (instruction != nullptr )
+        if ( auto instruction = parseInstruction() )
         {
-            LOG_VERBOSE("Parser", "parse program (instruction %i parsed)\n", (int)block->getChildren().size() );
+            graph->connect(block, instruction, RelationType::IS_PARENT_OF);
+        }
+        else if ( auto condStruct = parseConditionalStructure() )
+        {
+            graph->connect(block, condStruct, RelationType::IS_PARENT_OF);
         }
         else
         {
-            errorFound = true;
+            stop = true;
         }
     }
 
-    if ( !block->getChildren().empty() )
+    if ( block->getChildren().empty() )
     {
-        LOG_VERBOSE("Parser", "parse program " OK "(%i instructions parsed) \n", block->getChildren().size() );
+        graph->deleteNode(block);
+        tokenList.rollbackTransaction();
+        return nullptr;
     }
     else
     {
-        LOG_VERBOSE("Parser", "parse program " KO " (no instructions in this scope)\n");
+        tokenList.commitTransaction();
+        return block;
     }
-
-    LOG_VERBOSE("Parser", "%s \n", tokenList.toString().c_str());
-
-    return block;
 }
 
 Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverride)
@@ -857,4 +864,8 @@ ScopedCodeBlockNode *Parser::getCurrentScope()
 {
     // TODO: implement. For now return only the global scope
     return graph->getScope();
+}
+
+CodeBlockNode* Parser::parseConditionalStructure() {
+    return nullptr;
 }

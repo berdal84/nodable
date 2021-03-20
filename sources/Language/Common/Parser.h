@@ -114,12 +114,10 @@ namespace Nodable{
 		/** Parse the root expression.
 		   The root expression is set when calling eval().
 		   Return the result as a Member or nullptr if parsing failed. */
-        CodeBlockNode* parseCodeBlock(ScopedCodeBlockNode* _parent);
-
-        CodeBlockNode* parseInstructionBlock();
+        CodeBlockNode* parseScope(ScopedCodeBlockNode* _parent);
 
 		/** Parse a single instruction */
-        InstructionNode* parseInstruction(CodeBlockNode* _parentCodeBlock);
+        InstructionNode* parseInstruction();
 
 		/** Parse a Function call starting at current cursor position.
 		   Return the result as a Member or nullptr if parsing failed. */
@@ -161,6 +159,10 @@ namespace Nodable{
 		GraphNode* graph;
 
 		TokenRibbon tokenList;
-	};
+
+        CodeBlockNode *parseCodeBlock(ScopedCodeBlockNode *_parent);
+
+        CodeBlockNode *parseConditionalStructure();
+    };
 
 }

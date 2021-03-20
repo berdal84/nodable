@@ -66,7 +66,7 @@ TEST( GraphNode, clear)
     operatorNode->set("rvalue", 2);
     operatorNode->set("lvalue", 2);
 
-    graph->connect(operatorNode->get("result"), instructionNode->value() );
+    graph->connect(operatorNode->get("result"), instructionNode->getValue() );
 
     EXPECT_TRUE(graph->getWireRegistry().size() != 0);
     EXPECT_TRUE(graph->getNodeRegistry().size() != 0);
