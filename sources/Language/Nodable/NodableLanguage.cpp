@@ -29,7 +29,7 @@ NodableLanguage::NodableLanguage(): Language("Nodable")
 
     // values
     semantic.insert_RegexToTokenType(std::regex("^(true|false)"), TokenType::Boolean);
-    semantic.insert_RegexToTokenType(std::regex("^(\"[a-zA-Z0-9 ]+\")"), TokenType::String);
+    semantic.insert_RegexToTokenType(std::regex("^(\"[a-zA-Z0-9. ]+\")"), TokenType::String);
     semantic.insert_RegexToTokenType(std::regex("^([a-zA-Z_]+)"), TokenType::Symbol);
     semantic.insert_RegexToTokenType(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType::Double);
 
