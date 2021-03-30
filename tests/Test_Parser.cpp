@@ -17,24 +17,29 @@ bool Parser_Test(
         T _expectedValue,
         const Language* _language = LanguageLibrary::GetNodable()
 ){
-
+    bool success = false;
     auto graph = std::make_unique<GraphNode>(_language);
 
     Parser* parser = _language->getParser();
     parser->expressionToGraph(expression, graph.get());
     graph->update();
 
-    auto expectedMember = std::make_unique<Member>(nullptr);
+    auto expectedMember = new Member(nullptr);
     expectedMember->set(_expectedValue);
 
-    auto lastInstruction = graph->getScope()->getLastInstruction();
-    bool success = false;
-    if ( lastInstruction )
+    if ( auto scope = graph->getScope())
     {
-        auto result = lastInstruction->getValue();
-        success = result->equals(expectedMember.get());
-    }
+        auto lastInstruction = scope->getLastInstruction();
 
+        if ( lastInstruction )
+        {
+            auto result = lastInstruction->getValue();
+            success = result->equals(expectedMember);
+        }
+    } else {
+        success = ((std::string)*expectedMember).empty();
+    }
+    delete expectedMember;
     return success;
 }
 
@@ -51,6 +56,7 @@ std::string ParseUpdateSerialize(
     container.update();
 
     Serializer* serializer = _language->getSerializer();
+
     auto resultExpression = serializer->serialize( container.getScope() );
 
     std::cout << resultExpression << std::endl;
@@ -191,8 +197,9 @@ TEST(Parser, Code_Formatting_Preserving )
     EXPECT_EQ(ParseUpdateSerialize("5 + 2;  "), "5 + 2;  ");
 }
 
-TEST(Parser, Conditional_Structures )
+TEST(Parser, Conditional_Structures_IF )
 {
+    EXPECT_EQ(ParseUpdateSerialize("if(sdfsd"), "");
     EXPECT_EQ(ParseUpdateSerialize("if(false){a=10;}"), "if(false){a=10;}");
     EXPECT_EQ(ParseUpdateSerialize("if (false){ a = 10; }"), "if (false){ a = 10; }");
     EXPECT_EQ(ParseUpdateSerialize("if (false){\n\ta = 10;\n}"), "if (false){\n\ta = 10;\n}");
@@ -203,6 +210,24 @@ TEST(Parser, Conditional_Structures )
             "alice = 10;"
             "if(bob > alice){"
             "   message = \"Bob is better than Alice.\";"
+            "}";
+
+    EXPECT_EQ(ParseUpdateSerialize(std::string(program)), std::string(program));
+
+}
+
+TEST(Parser, Conditional_Structures_IF_ELSE )
+{
+    EXPECT_EQ(ParseUpdateSerialize("if(false){a=10;}else"), "");
+    EXPECT_EQ(ParseUpdateSerialize("if(false){a=10;}else{a=9;}"), "if(false){a=10;}else{a=9;}");
+
+    const char *program =
+            "bob   = 10;"
+            "alice = 10;"
+            "if(bob > alice){"
+            "   message = \"Bob is better than Alice.\";"
+            "}else{"
+            "   message = \"Bob is worse than Alice.\";"
             "}";
 
     EXPECT_EQ(ParseUpdateSerialize(std::string(program)), std::string(program));

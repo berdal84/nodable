@@ -6,6 +6,7 @@ namespace Nodable
 {
     /**
      * @brief Class to represent a conditional structure ( IF/ELSE )
+     * TODO: add getter/setters for if/else scopes
      */
     class ConditionalStructNode: public ScopedCodeBlockNode {
     public:

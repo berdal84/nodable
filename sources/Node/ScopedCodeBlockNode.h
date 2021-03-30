@@ -27,7 +27,8 @@ namespace Nodable
         [[nodiscard]] VariableNode* findVariable(std::string _name) override;
         [[nodiscard]] AbstractCodeBlockNode* getLastCodeBlock();
         [[nodiscard]] InstructionNode *getLastInstruction();
-
+        void addVariable(VariableNode*);
+        [[nodiscard]] inline const std::vector<VariableNode*>& getVariables()const { return variables; }
         Token* beginScopeToken;
         Token* endScopeToken;
 

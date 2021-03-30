@@ -164,8 +164,6 @@ namespace Nodable{
 		GraphNode* graph;
 
 		TokenRibbon tokenList;
-
-        void parseAbstractCodeBlockContent(AbstractCodeBlockNode *_block);
     };
 
 }

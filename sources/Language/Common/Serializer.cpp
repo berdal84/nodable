@@ -303,20 +303,39 @@ std::string Serializer::serialize(const Token* _token)const
     return result;
 }
 
-std::string Serializer::serialize(const ScopedCodeBlockNode* _scope)const
+std::string Serializer::serialize(const ConditionalStructNode* _condStruct)const
 {
     std::string result;
 
-    // TODO: create a serialize specific for conditional struct
-    if( _scope->getClass() == ConditionalStructNode::GetClass())
+    // if ( <condition> )
+    result.append( serialize(_condStruct->token_if));
+    result.append( serialize(TokenType::OpenBracket));
+    result.append( serialize(_condStruct->getCondition()));
+    result.append( serialize(TokenType::CloseBracket));
+
+    // if scope
+    auto ifScope = _condStruct->getChildren()[0];
+    result.append( this->serialize(ifScope->as<ScopedCodeBlockNode>()));
+
+    // else & else scope
+    if ( _condStruct->token_else )
     {
-        auto condStruct = _scope->as<ConditionalStructNode>();
-        result.append( serialize(condStruct->token_if));
-        result.append( serialize(TokenType::OpenBracket));
-        result.append( serialize(condStruct->getCondition()));
-        result.append( serialize(TokenType::CloseBracket));
+        result.append( serialize(_condStruct->token_else));
+        auto elseScope = _condStruct->getChildren()[1];
+        result.append( this->serialize(elseScope->as<ScopedCodeBlockNode>()));
     }
 
+    return result;
+}
+
+std::string Serializer::serialize(const ScopedCodeBlockNode* _scope)const
+{
+    if ( _scope == nullptr )
+        return "";
+
+    NODABLE_ASSERT(_scope->getClass() == mirror::GetClass<ScopedCodeBlockNode>());
+
+    std::string result;
 
     result.append( serialize(_scope->beginScopeToken) );
 

@@ -193,7 +193,7 @@ VariableNode* GraphNode::newVariable(std::string _name, ScopedCodeBlockNode* _sc
 
     if( _scope)
     {
-        _scope->variables.push_back(node);
+        _scope->addVariable(node);
     }
     else
     {
@@ -400,7 +400,7 @@ void GraphNode::deleteNode(Node* _node)
     // remove from parent
     if ( Node* parent = _node->getParent() )
     {
-        parent->removeChild(_node);
+        disconnect(parent, _node, RelationType::IS_PARENT_OF);
     }
 
     delete _node;

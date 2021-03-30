@@ -778,6 +778,18 @@ void NodeView::drawAdvancedProperties()
     bool b = getOwner()->isDirty();
     ImGui::Checkbox("Is dirty ?", &b);
 
+    // Scope specific:
+
+    if ( node->getClass()->isChildOf( mirror::GetClass<ScopedCodeBlockNode>() ))
+    {
+        ImGui::NewLine();
+        auto vars = node->as<ScopedCodeBlockNode>()->getVariables();
+        for(auto eachVar : vars)
+        {
+            ImGui::Text("%s: %s", eachVar->getName(), ((std::string)*eachVar->value()).c_str());
+        }
+    }
+
     // ImGui::Text("Is an instruction result: %s", node-> ? "YES" : "NO");
 }
 
