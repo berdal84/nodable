@@ -20,8 +20,8 @@ namespace Nodable{
 	public:		
 		ComputeBinaryOperation(const Operator*, const Language*);
 		~ComputeBinaryOperation(){};
-		void                setRValue(Member* _value);
-
+		void            setRValue(Member* _value);
+        Member*         getRValue();
         // reflect class using mirror
 		MIRROR_CLASS(ComputeBinaryOperation)(
 			MIRROR_PARENT(ComputeUnaryOperation)

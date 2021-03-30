@@ -17,6 +17,10 @@ void ComputeUnaryOperation::setLValue(Member* _value) {
 	this->args[0] = _value;
 };
 
+Member* ComputeUnaryOperation::getLValue() {
+    return this->args[0];
+};
+
 const Operator *ComputeUnaryOperation::getOperator() const {
     return reinterpret_cast<const Operator*>(this->function);
 };

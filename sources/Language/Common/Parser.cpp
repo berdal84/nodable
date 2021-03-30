@@ -13,6 +13,7 @@
 #include "Node/CodeBlockNode.h"
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/ConditionalStructNode.h"
+#include "Component/ComputeBinaryOperation.h"
 
 using namespace Nodable;
 
@@ -194,10 +195,11 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	if ( matchingOperator != nullptr )
 	{
 		auto binOpNode = graph->newBinOp(matchingOperator);
-        binOpNode->getComponent<ComputeBase>()->setSourceToken(operatorToken);
+        auto computeComponent = binOpNode->getComponent<ComputeBinaryOperation>();
+        computeComponent->setSourceToken(operatorToken);
 
-        graph->connect(_left, binOpNode->get("lvalue"));
-        graph->connect(right, binOpNode->get("rvalue"));
+        graph->connect(_left, computeComponent->getLValue());
+        graph->connect(right, computeComponent->getRValue());
 		result = binOpNode->get("result");
 
         tokenList.commitTransaction();
@@ -255,9 +257,10 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	if (matchingOperator != nullptr)
 	{
 		auto unaryOpNode = graph->newUnaryOp(matchingOperator);
-        unaryOpNode->getComponent<ComputeBase>()->setSourceToken(operatorToken);
+        auto computeComponent = unaryOpNode->getComponent<ComputeUnaryOperation>();
+        computeComponent->setSourceToken(operatorToken);
 
-        graph->connect(value, unaryOpNode->get("lvalue"));
+        graph->connect(value, computeComponent->getLValue());
         Member* result = unaryOpNode->get("result");
 
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
