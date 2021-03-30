@@ -105,7 +105,7 @@ namespace Nodable{
 		void setDirty(bool _value = true);
 
 		/** return true if this node needs to be updated and false otherwise */
-		[[nodiscard]] bool isDirty()const;
+		[[nodiscard]] bool isDirty(bool _checkChildren = false)const;
 		
 		/** Update the state of this (and only this) node */
 		virtual UpdateResult update();

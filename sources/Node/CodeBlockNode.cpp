@@ -27,14 +27,7 @@ InstructionNode* CodeBlockNode::getFirstInstruction() const
 
 CodeBlockNode::CodeBlockNode()
     :
-    AbstractCodeBlockNode(),
-    layout(Layout::DEFAULT)
+    AbstractCodeBlockNode()
 {
     this->setLabel("unnamed ScopedCodeBlockNode");
 }
-
-const std::vector<InstructionNode*>& CodeBlockNode::getInstructions() const {
-    return reinterpret_cast<const std::vector<InstructionNode*>&>( this->children );
-}
-
-

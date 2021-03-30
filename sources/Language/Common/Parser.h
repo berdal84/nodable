@@ -69,6 +69,8 @@ namespace Nodable{
             contain a vector of Tokens to be converted to a Nodable graph by all parseXXX functions */
         std::vector<Token*> tokens;
 
+        Token *getEaten();
+
     private:
         /** Current cursor position */
         size_t currentTokenIndex;
@@ -101,7 +103,7 @@ namespace Nodable{
 
 		/** Evaluates an expression as a string.
 		   Return true if evaluation went well and false otherwise. */
-		bool evalCodeIntoContainer(const std::string &_code, GraphNode* _graphNode );
+		bool expressionToGraph(const std::string &_code, GraphNode* _graphNode );
 
 	private:
 		/** Convert a Token to a Member.
@@ -111,13 +113,16 @@ namespace Nodable{
 	     */
 		Member* tokenToMember(Token* _token);
 
-		/** Parse the root expression.
-		   The root expression is set when calling eval().
-		   Return the result as a Member or nullptr if parsing failed. */
-        CodeBlockNode* parseScope(ScopedCodeBlockNode* _parent);
+        ScopedCodeBlockNode* parseScope();
 
 		/** Parse a single instruction */
         InstructionNode* parseInstruction();
+
+        CodeBlockNode *parseCodeBlock();
+
+        ScopedCodeBlockNode * parseConditionalStructure();
+
+        CodeBlockNode *parseProgram();
 
 		/** Parse a Function call starting at current cursor position.
 		   Return the result as a Member or nullptr if parsing failed. */
@@ -160,9 +165,7 @@ namespace Nodable{
 
 		TokenRibbon tokenList;
 
-        CodeBlockNode *parseCodeBlock(ScopedCodeBlockNode *_parent);
-
-        CodeBlockNode *parseConditionalStructure();
+        void parseAbstractCodeBlockContent(AbstractCodeBlockNode *_block);
     };
 
 }

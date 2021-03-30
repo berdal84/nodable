@@ -113,8 +113,8 @@ bool File::evaluateExpression(std::string& _expression)
 {
 	Parser* parser = language->getParser();
 	GraphNode* graph = getInnerGraph();
-
-    if (parser->evalCodeIntoContainer(_expression, graph) && graph->hasInstructionNodes() )
+    graph->clear();
+    if (parser->expressionToGraph(_expression, graph) && graph->hasInstructionNodes() )
     {
         graph->arrangeNodeViews();
         LOG_MESSAGE("File", "Expression evaluated: %s\n", _expression.c_str());
@@ -144,7 +144,7 @@ UpdateResult File::update() {
 
 	auto scope = getInnerGraph()->getScope();
 
-	if ( !scope->getChildren().empty() )
+	if ( scope && !scope->getChildren().empty() )
     {
         std::string code = language->getSerializer()->serialize( scope );
         view->replaceSelectedText(code);
@@ -156,14 +156,9 @@ UpdateResult File::update() {
 bool File::evaluateSelectedExpression()
 {
 	bool success;
-
-    getInnerGraph()->clear();
-
 	auto view = getComponent<FileView>();
-
 	auto expression = view->getSelectedText();
 	success = evaluateExpression(expression);
-
 	return success;
 }
 

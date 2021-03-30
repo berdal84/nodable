@@ -12,11 +12,12 @@
 #include "Node/InstructionNode.h"
 #include "Node/CodeBlockNode.h"
 #include "Node/ScopedCodeBlockNode.h"
+#include "Node/ConditionalStructNode.h"
 
 using namespace Nodable;
 
-bool Parser::evalCodeIntoContainer(const std::string& _code,
-                                   GraphNode* _graphNode )
+bool Parser::expressionToGraph(const std::string& _code,
+                               GraphNode* _graphNode )
 {
     graph = _graphNode;
     tokenList.clear();
@@ -57,13 +58,20 @@ bool Parser::evalCodeIntoContainer(const std::string& _code,
 		return false;
 	}
 
-	CodeBlockNode* codeBlock = parseScope(graph->getScope());
+	CodeBlockNode* program = parseProgram();
 
-	if (codeBlock == nullptr)
+	if (program == nullptr)
 	{
 		LOG_WARNING("Parser", "Unable to parse main scope due to abstract syntax tree failure.\n");
 		return false;
 	}
+
+    if ( tokenList.canEat() )
+    {
+        graph->clear();
+        LOG_ERROR("Parser", "Unable to evaluate the full expression.\n");
+        return false;
+    }
 
 	LOG_MESSAGE("Parser", "Expression evaluated: <expr>%s</expr>\"\n", _code.c_str() );
 	return true;
@@ -162,7 +170,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	const auto currentOperatorPrecedence = language->findOperator(operatorToken->word)->precedence;
 
 	if (currentOperatorPrecedence <= _precedence &&
-	    _precedence > 0u) { // always eval the first operation if they have the same precedence or less.
+	    _precedence > 0u) { // always update the first operation if they have the same precedence or less.
 		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n");
 		tokenList.rollbackTransaction();
 		return nullptr;
@@ -379,38 +387,82 @@ InstructionNode* Parser::parseInstruction()
     return instruction;
 }
 
-CodeBlockNode* Parser::parseScope(ScopedCodeBlockNode* _parent)
+CodeBlockNode* Parser::parseProgram()
 {
-	auto block = parseCodeBlock(_parent);
-	if ( block )
+    tokenList.startTransaction();
+    auto scope = graph->newProgram();
+    if(CodeBlockNode* block = parseCodeBlock())
     {
-        graph->connect(_parent, block, RelationType::IS_PARENT_OF);
+        graph->connect(scope, block, RelationType::IS_PARENT_OF);
+        tokenList.commitTransaction();
+        return block;
     }
-    return block;
+    else
+    {
+        graph->clear();
+        tokenList.rollbackTransaction();
+        return nullptr;
+    }
 }
 
-CodeBlockNode* Parser::parseCodeBlock(ScopedCodeBlockNode* _parent)
+ScopedCodeBlockNode* Parser::parseScope()
 {
     tokenList.startTransaction();
 
-    auto block = graph->newCodeBlock();
+    if ( !tokenList.eatToken(TokenType::BeginScope))
+    {
+        tokenList.rollbackTransaction();
+        return nullptr;
+    }
+
+    auto block = graph->newScopedCodeBlock();
+    block->beginScopeToken = tokenList.getEaten();
+
+    parseAbstractCodeBlockContent(block);
+
+    if ( !tokenList.eatToken(TokenType::EndScope))
+    {
+        tokenList.rollbackTransaction();
+        return nullptr;
+    }
+    block->endScopeToken = tokenList.getEaten();
+
+    tokenList.commitTransaction();
+    return block;
+}
+
+void Parser::parseAbstractCodeBlockContent(AbstractCodeBlockNode* _block)
+{
     bool stop = false;
 
     while(tokenList.canEat() && !stop )
     {
         if ( auto instruction = parseInstruction() )
         {
-            graph->connect(block, instruction, RelationType::IS_PARENT_OF);
+            graph->connect(_block, instruction, RelationType::IS_PARENT_OF);
         }
         else if ( auto condStruct = parseConditionalStructure() )
         {
-            graph->connect(block, condStruct, RelationType::IS_PARENT_OF);
+            graph->connect(_block, condStruct, RelationType::IS_PARENT_OF);
+        }
+        else if ( auto scope = parseScope() )
+        {
+            graph->connect(_block, scope, RelationType::IS_PARENT_OF);
         }
         else
         {
             stop = true;
         }
     }
+}
+
+CodeBlockNode* Parser::parseCodeBlock()
+{
+    tokenList.startTransaction();
+
+    auto block = graph->newCodeBlock();
+
+    parseAbstractCodeBlockContent(block);
 
     if ( block->getChildren().empty() )
     {
@@ -689,7 +741,7 @@ std::string TokenRibbon::toString()const
 
 Token* TokenRibbon::eatToken(TokenType expectedType)
 {
-   if ( peekToken()->type == expectedType )
+   if ( canEat() && peekToken()->type == expectedType )
    {
        return eatToken();
    }
@@ -747,6 +799,11 @@ bool TokenRibbon::canEat(size_t _tokenCount) const
 Token* TokenRibbon::peekToken()
 {
     return tokens.at(currentTokenIndex);
+}
+
+Token *TokenRibbon::getEaten()
+{
+    return currentTokenIndex == 0 ? nullptr : tokens.at(currentTokenIndex - 1);
 }
 
 Member* Parser::parseFunctionCall()
@@ -866,6 +923,47 @@ ScopedCodeBlockNode *Parser::getCurrentScope()
     return graph->getScope();
 }
 
-CodeBlockNode* Parser::parseConditionalStructure() {
+ScopedCodeBlockNode * Parser::parseConditionalStructure()
+{
+    tokenList.startTransaction();
+
+    auto condStruct = graph->newConditionalStructure();
+
+    if ( tokenList.canEat() && tokenList.eatToken(TokenType::KeywordIf))
+    {
+        condStruct->token_if = tokenList.getEaten();
+
+        auto condition = parseParenthesisExpression();
+
+        if ( condition)
+        {
+            graph->connect(condition, condStruct->get("condition") );
+
+            auto scopeIf = parseScope();
+
+            if ( scopeIf )
+            {
+                graph->connect(condStruct, scopeIf, RelationType::IS_PARENT_OF);
+
+                if ( tokenList.canEat() && tokenList.eatToken(TokenType::KeywordElse))
+                {
+                    auto scopeElse = parseScope();
+
+                    if ( scopeElse )
+                    {
+                        graph->connect(condStruct, scopeElse, RelationType::IS_PARENT_OF);
+                        tokenList.commitTransaction();
+                        return condStruct;
+                    }
+                } else {
+                    tokenList.commitTransaction();
+                    return condStruct;
+                }
+            }
+        }
+    }
+
+    graph->deleteNode(condStruct);
+    tokenList.rollbackTransaction();
     return nullptr;
 }

@@ -23,7 +23,7 @@ void Semantic::insert_StringToTokenType(
 
     // Clean string before to create a regex
     // TODO: improve it to solve all regex escape char problems
-    if (_string == ")" || _string == "(") {
+    if (_string == ")" || _string == "(" || _string == "}" || _string == "{") {
         _string.insert(_string.begin(), '[');
         _string.insert(_string.end()  , ']');
     }

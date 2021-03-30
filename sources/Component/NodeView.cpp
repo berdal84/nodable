@@ -28,8 +28,10 @@ const Connector*   NodeView::s_draggedConnector       = nullptr;
 const Connector*   NodeView::s_hoveredConnector       = nullptr;
 const float        NodeView::s_memberInputSizeMin     = 10.0f;
 const ImVec2       NodeView::s_memberInputToggleButtonSize   = ImVec2(10.0, 25.0f);
-const float        NodeView::s_nodeSpacingDistance           = 25.0f;
 std::vector<NodeView*> NodeView::s_instances;
+
+const float ViewConstraint::s_viewSpacing = 15.0f;
+const float ViewConstraint::s_viewSpeed   = 20.0f;
 
 NodeView::NodeView():
         position(500.0f, -1.0f),
@@ -204,17 +206,18 @@ void NodeView::setPosition(ImVec2 _position)
 	this->position = _position;
 }
 
-void NodeView::translate(ImVec2 _delta, bool _translateInputsRecursively)
+void NodeView::translate(ImVec2 _delta, bool _recurse)
 {
 	this->setPosition( position + _delta);
 
-	if ( _translateInputsRecursively )
+	if ( _recurse )
     {
 	    for(auto eachInput : getOwner()->getInputs() )
         {
 	        if ( NodeView* eachInputView = eachInput->getComponent<NodeView>() )
 	        {
-                eachInputView->translate(_delta, true);
+	            if ( !eachInputView->pinned )
+                    eachInputView->translate(_delta, true);
 	        }
         }
     }
@@ -236,188 +239,8 @@ bool NodeView::update()
 bool NodeView::update(float _deltaTime)
 {
     Maths::linear_interpolation( opacity, 1.0f, 10.0f * _deltaTime);
-
-	auto node = getOwner();
-	NODABLE_ASSERT(node != nullptr);
-
-	// 1 - move this to children average position
-	if ( node->getClass() == mirror::GetClass<CodeBlockNode>() && !pinned)
-    {
-	    ImVec2 childrenPosSum;
-	    auto codeBlockNode = node->as<CodeBlockNode>();
-	    for( auto& children: codeBlockNode->getInstructions() )
-        {
-            childrenPosSum += children->getComponent<NodeView>()->getPosition();
-        }
-	    float count(codeBlockNode->getInstructions().size());
-	    ImVec2 childrenPosAvg(childrenPosSum.x / count,childrenPosSum.y / count);
-	    this->setPosition(childrenPosAvg + ImVec2(0,size.y * 2.0f));
-
-    // 2 - move this to children's bounding box's top
-    } else if ( node->getOutputWireCount() > 1 && !pinned )
-    {
-        // create an bounding box
-        std::vector<float> x_positions, y_positions;
-        for (auto eachWire : node->getWires())
-        {
-            bool isWireAnOutput = node->has(eachWire->getSource());
-            if (isWireAnOutput)
-            {
-                auto targetNode = eachWire->getTarget()->getOwner()->as<Node>();
-                auto targetNodeView  = targetNode->getComponent<NodeView>();
-                x_positions.push_back( targetNodeView->getRect().Min.x );
-                x_positions.push_back( targetNodeView->getRect().Max.x );
-                y_positions.push_back( targetNodeView->getRect().Min.y );
-                y_positions.push_back( targetNodeView->getRect().Max.y );
-            }
-        }
-        constexpr float float_max = std::numeric_limits<float>::max();
-        auto x_minmax = std::minmax_element(x_positions.begin(), x_positions.end());
-        auto y_minmax = std::minmax_element(y_positions.begin(), y_positions.end());
-        ImRect zone(*x_minmax.first, *y_minmax.first, *x_minmax.second, *y_minmax.second );
-
-        // Compute a delta to apply to move to this new position and translate.
-        ImVec2 newPos( zone.GetTR() - ImVec2(0.0f, s_nodeSpacingDistance + size.y) );
-        ImVec2 delta(newPos.x - position.x, newPos.y - position.y);
-        bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
-        if (!isDeltaTooSmall) {
-            auto factor = std::min(1.0f, 10.f * _deltaTime);
-            translate(delta * factor);
-        }
-
-    // 3 - in case Node is an InstructionNode
-    }
-	else if( node->getClass() == mirror::GetClass<InstructionNode>())
-    {
-	    if ( node->getInputWireCount() > 0 )
-        {
-	        auto inputNode = node->getInputs().at(0);
-	        auto inputView = inputNode->getComponent<NodeView>();
-
-	        if ( !inputView->pinned )
-            {
-	            auto inputRect = inputView->computeBoundingRectRecursively(true, true);
-                auto currentPos = inputView->position;
-                ImVec2 newPos = position + ImVec2( inputRect.GetSize().x, -size.y - s_nodeSpacingDistance);
-                ImVec2 delta((newPos.x - currentPos.x), (newPos.y - currentPos.y));
-
-                bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
-                if (!isDeltaTooSmall)
-                {
-                    auto factor = std::min(1.0f, 10.f * _deltaTime);
-                    inputView->translate(delta * factor);
-                }
-            }
-        }
-
-    // 4 - in case not has several inputs
-    } else if( node->getInputWireCount() > 0)
-    {
-        // then we constraint each input view
-        auto wires = node->getWires();
-        auto inputIndex = 0;
-
-        // Compute the cumulated height and the size x max of the input node view:
-        auto cumulatedSize = 0.0f;
-        auto sizeMax = 0.0f;
-        for (auto eachWire : wires)
-        {
-            auto sourceNode = eachWire->getSource()->getOwner()->as<Node>(); // TODO: add some checks
-            bool isWireAnInput = node->has(eachWire->getTarget());
-            auto inputView = sourceNode->getComponent<NodeView>();
-
-            if (isWireAnInput && !inputView->pinned)
-            {
-                cumulatedSize += inputView->size.x;
-                sizeMax = std::max(sizeMax, inputView->size.x);
-            }
-        }
-
-        /*
-        Update Views that are linked to this input views.
-        This code maintain them stacked together with a little attenuated movement.
-        */
-
-        auto posX = position.x - cumulatedSize / 2.0f;
-
-        float nodeSpacing(10);
-
-        for (auto eachWire : wires)
-        {
-            bool isWireAnInput = node->has(eachWire->getTarget());
-            if (isWireAnInput)
-            {
-                auto sourceNode = eachWire->getSource()->getOwner()->as<Node>();
-                auto inputView = sourceNode->getComponent<NodeView>();
-
-                // Contrain only unpinned node that have only a single output connection
-                if (!inputView->pinned && inputView->getOwner()->getOutputWireCount() <= 1)
-                {
-                    // Compute new position for this input view
-                    ImVec2 newPos(
-                            posX + inputView->size.x / 2.0f,
-                            position.y - s_nodeSpacingDistance - inputView->size.y / 2.0f - size.y / 2.0f
-                            );
-                    posX += inputView->size.x + nodeSpacing;
-
-                    // Compute a delta to apply to move to this new position
-                    auto currentPos = inputView->position;
-                    ImVec2 delta((newPos.x - currentPos.x), (newPos.y - currentPos.y));
-
-                    bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
-                    if (!isDeltaTooSmall)
-                    {
-                        auto factor = std::min(1.0f, 10.f * _deltaTime);
-                        inputView->translate(delta * factor);
-                    }
-                }
-
-                inputIndex++;
-            }
-        }
-    }
-
-	// follow previous instruction
-    if ( node->getClass() == mirror::GetClass<InstructionNode>() && !pinned)
-    {
-        if ( CodeBlockNode* codeBlock = node->getParent()->as<CodeBlockNode>() )
-        {
-            auto children = codeBlock->getChildren();
-            auto found = std::find( children.begin(), children.end(), node);
-            if ( found != children.end() && found != children.begin() )
-            {
-                auto prevInstrView = (*(found - 1))->getComponent<NodeView>();
-                auto prevInstrPos  = prevInstrView->getPosition();
-                auto prevInstrRect = prevInstrView->computeBoundingRectRecursively();
-                auto currRect = this->computeBoundingRectRecursively(true, true);
-
-                ImVec2 offset(prevInstrRect.Max - currRect.Min);
-                ImVec2 newPos = position;
-
-                switch ( codeBlock->getLayout() )
-                {
-                    case Layout::ROW:
-                        newPos = ImVec2( position.x + offset.x + s_nodeSpacingDistance, prevInstrPos.y);
-                        break;
-
-                    case Layout::AUTO:
-                    case Layout::COLUMN:
-                        newPos = ImVec2( prevInstrPos.x, position.y + offset.y + s_nodeSpacingDistance);
-                        break;
-                }
-
-
-                ImVec2 delta((newPos.x - position.x), (newPos.y - position.y));
-                bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
-                if (!isDeltaTooSmall)
-                {
-                    auto factor = std::min(1.0f, 10.f * _deltaTime);
-                    translate(delta * factor, true);
-                }
-            }
-        }
-    }
-
+    this->applyConstraints(_deltaTime);
+    this->applyForces();
 	return true;
 }
 
@@ -594,51 +417,36 @@ bool NodeView::draw()
 
 void NodeView::ArrangeRecursively(NodeView* _view, bool _smoothly)
 {
+    std::vector<NodeView*> views;
 
-    if ( _view->getOwner()->getClass() == mirror::GetClass<GraphNode>() )
+    // Get input views
+    for (auto eachInput : _view->getOwner()->getInputs())
     {
-        GraphNode *graph = _view->getOwner()->as<GraphNode>();
-        auto codeBlocks = graph->getScope()->getChildren();
-
-        NODABLE_ASSERT(codeBlocks.size() == 1); // != 1 not handled, TODO: implement
-
-        for (auto &eachChild: codeBlocks[0]->getChildren()) {
-            auto view = eachChild->getComponent<NodeView>();
-
-            if (view) {
-                view->pinned = false;
-                ArrangeRecursively(view, _smoothly);
-            }
-        }
+        auto inputView = eachInput->getComponent<NodeView>();
+        if ( inputView )
+            views.push_back(inputView);
     }
-    else
+
+    // Get input views
+    for (auto eachChild : _view->getOwner()->getChildren())
     {
+        auto inputView = eachChild->getComponent<NodeView>();
+        if ( inputView )
+            views.push_back(inputView);
+    }
 
-        // Force and update of input connected nodes with a delta time extra high
-        // to ensure all nodes were well placed in a single call (no smooth moves)
-        if ( !_smoothly )
-        {
-            _view->update(float(1000));
-        }
+    // Recursive calls
+    for(auto eachView : views)
+    {
+        eachView->pinned = false;
+        ArrangeRecursively(eachView, _smoothly);
+    }
 
-        // Get wires that go outside from this node :
-        auto wires = _view->getOwner()->getWires();
-
-        for (auto eachWire : wires)
-        {
-            if (eachWire != nullptr && _view->getOwner()->has(eachWire->getTarget()))
-            {
-
-                if (eachWire->getSource() != nullptr)
-                {
-                    auto node = dynamic_cast<Node *>(eachWire->getSource()
-                            ->getOwner());
-                    auto inputView = node->getComponent<NodeView>();
-                    inputView->pinned = false;
-                    ArrangeRecursively(inputView, _smoothly);
-                }
-            }
-        }
+    // Force and update of input connected nodes with a delta time extra high
+    // to ensure all nodes were well placed in a single call (no smooth moves)
+    if ( !_smoothly )
+    {
+        _view->update(float(1000));
     }
 }
 
@@ -740,7 +548,8 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->hasInputConnected())
             {
                 _member->set(f);
-                NodeTraversal::SetDirty(node);
+                NodeTraversal traversal;
+                traversal.setDirty(node);
                 edited |= true;
             }
             break;
@@ -754,7 +563,8 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->hasInputConnected() )
             {
                 _member->set(str);
-                NodeTraversal::SetDirty(node);
+                NodeTraversal traversal;
+                traversal.setDirty(node);
                 edited |= true;
             }
             break;
@@ -769,7 +579,8 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             if (ImGui::Checkbox(label.c_str(), &b ) && !_member->hasInputConnected() )
             {
                 _member->set(b);
-                NodeTraversal::SetDirty(node);
+                NodeTraversal traversal;
+                traversal.setDirty(node);
                 edited |= true;
             }
             break;
@@ -838,11 +649,6 @@ void NodeView::drawConnector(ImVec2& connnectorScreenPos, const Connector* _conn
 	}
 
 }
-
-ImRect Nodable::NodeView::getRect() const {
-	return ImRect(this->position - size * 0.5f, this->position + size * 0.5f);
-}
-
 
 bool Nodable::NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
 	auto nodeRect = _nodeView->getRect();
@@ -939,17 +745,39 @@ void NodeView::drawAdvancedProperties()
         ImGui::BulletText("%s", className);
     }
 
-    // Parent container
-    ImGui::NewLine();
-    std::string parentName = "NULL";
-
-    if (node->getParentGraph() )
+    // Parent graph
     {
-        parentName = node->getParentGraph()->getLabel();
+        ImGui::NewLine();
+        std::string parentName = "NULL";
+
+        if (node->getParentGraph() )
+        {
+            parentName = node->getParentGraph()->getLabel();
+            parentName.append( node->getParentGraph()->isDirty() ? " (dirty)" : "");
+
+        }
+        ImGui::Text("Parent graph is \"%s\"", parentName.c_str());
     }
 
-    ImGui::Indent();
-    ImGui::Text("Parent is \"%s\"", parentName.c_str());
+    // Parent
+    {
+        ImGui::NewLine();
+        std::string parentName = "NULL";
+
+        if (node->getParent() )
+        {
+            parentName = node->getParent()->getLabel();
+            parentName.append( node->getParent()->isDirty() ? " (dirty)" : "");
+        }
+        ImGui::Text("Parent node is \"%s\"", parentName.c_str());
+
+    }
+
+    // dirty state
+    ImGui::NewLine();
+    bool b = getOwner()->isDirty();
+    ImGui::Checkbox("Is dirty ?", &b);
+
     // ImGui::Text("Is an instruction result: %s", node-> ? "YES" : "NO");
 }
 
@@ -975,18 +803,25 @@ ImVec2 NodeView::getScreenPos()
     return position - offset;
 }
 
-ImRect NodeView::computeBoundingRectRecursively(bool _ignorePinned, bool _ignoreMultiConstrained)
+ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMultiConstrained, bool _ignoreSelf)
 {
+
+    if( !_recursively)
+    {
+        return ImRect(this->position - size * 0.5f, this->position + size * 0.5f);
+    }
 
     std::vector<float> x;
     std::vector<float> y;
 
-    ImRect rect = this->getRect();
-    x.push_back(rect.Min.x);
-    x.push_back(rect.Max.x);
-    y.push_back(rect.Min.y);
-    y.push_back(rect.Max.y);
-
+    if ( !_ignoreSelf)
+    {
+        ImRect rect = this->getRect(false);
+        x.push_back(rect.Min.x);
+        x.push_back(rect.Max.x);
+        y.push_back(rect.Min.y);
+        y.push_back(rect.Max.y);
+    }
 
     for(Node* eachChild : this->getOwner()->getInputs() )
     {
@@ -995,7 +830,7 @@ ImRect NodeView::computeBoundingRectRecursively(bool _ignorePinned, bool _ignore
              !(childView->pinned && _ignorePinned) &&
              !(childView->getOwner()->getOutputs().size() > 1 && _ignoreMultiConstrained) )
         {
-            ImRect childRect = childView->computeBoundingRectRecursively(_ignorePinned, _ignoreMultiConstrained);
+            ImRect childRect = childView->getRect(true, _ignorePinned, _ignoreMultiConstrained);
             x.push_back(childRect.Min.x);
             x.push_back(childRect.Max.x);
             y.push_back(childRect.Min.y);
@@ -1010,4 +845,217 @@ ImRect NodeView::computeBoundingRectRecursively(bool _ignorePinned, bool _ignore
             ImVec2 (*minmax_x.first, *minmax_y.first), // min
             ImVec2 (*minmax_x.second, *minmax_y.second) // max
     );
+}
+
+void NodeView::clearConstraints() {
+    this->constraints.clear();
+}
+
+void NodeView::addConstraint(ViewConstraint _constraint) {
+    this->constraints.push_back(std::move(_constraint));
+}
+
+void NodeView::applyConstraints(float _dt) {
+    for ( ViewConstraint& eachConstraint : this->constraints)
+    {
+        eachConstraint.apply(_dt);
+    }
+}
+
+bool NodeView::isPinned() const {
+    return this->pinned;
+}
+
+ImVec2 NodeView::getSize() const {
+    return this->size;
+}
+
+void NodeView::addForceToTranslateTo(ImVec2 desiredPos, float _factor, bool _recurse)
+{
+    ImVec2 delta(desiredPos - position);
+    auto factor = std::min(1.0f, _factor);
+    addForce(delta * factor, _recurse);
+}
+
+void NodeView::addForce(ImVec2 force, bool _recurse)
+{
+    forces += force;
+
+    if ( _recurse )
+    {
+        for(auto eachInput : getOwner()->getInputs() )
+        {
+            if ( NodeView* eachInputView = eachInput->getComponent<NodeView>() )
+            {
+                if ( !eachInputView->pinned )
+                    eachInputView->addForce(force, _recurse);
+            }
+        }
+    }
+}
+
+void NodeView::applyForces(bool _recurse)
+{
+    // apply
+    bool tooSmall = forces.x * forces.x + forces.y * forces.y < 0.1f;
+    if (!tooSmall)
+        this->translate(forces);
+
+    // reset
+    forces = ImVec2();
+}
+
+void NodeView::translateTo(ImVec2 desiredPos, float _factor, bool _recurse) {
+
+    ImVec2 delta(desiredPos - position);
+
+    bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
+    if (!isDeltaTooSmall)
+    {
+        auto factor = std::min(1.0f, _factor);
+        translate(delta * factor, _recurse);
+    }
+}
+
+ImRect NodeView::GetRect(
+        const std::vector<NodeView *>& _views,
+        bool _recursive,
+        bool _ignorePinned,
+        bool _ignoreMultiConstrained) {
+
+    std::vector<float> x_positions, y_positions;
+    for (auto eachView : _views)
+    {
+        auto rect = eachView->getRect(_recursive, _ignorePinned, _ignoreMultiConstrained);
+        x_positions.push_back(rect.Min.x );
+        x_positions.push_back(rect.Max.x );
+        y_positions.push_back(rect.Min.y );
+        y_positions.push_back(rect.Max.y );
+    }
+    auto x_minmax = std::minmax_element(x_positions.begin(), x_positions.end());
+    auto y_minmax = std::minmax_element(y_positions.begin(), y_positions.end());
+
+    return ImRect(*x_minmax.first, *y_minmax.first, *x_minmax.second, *y_minmax.second );;
+}
+
+ViewConstraint::ViewConstraint(ViewConstraint::Type _type):type(_type) {}
+
+void ViewConstraint::apply(float _dt) {
+
+    LOG_VERBOSE("ViewConstraint", "applying constraint\n");
+    auto master = masters.at(0);
+
+    switch ( this->type )
+    {
+        case Type::AlignOnBBoxLeft:
+        {
+            auto slave = slaves.at(0);
+            if( !slave->isPinned() )
+            {
+                ImRect bbox = NodeView::GetRect(masters, true);
+                ImVec2 newPos(bbox.GetCenter() - ImVec2(bbox.GetSize().x * 0.5 + s_viewSpacing + slave->getRect().GetSize().x * 0.5, 0 ));
+                slave->addForceToTranslateTo(newPos + offset, _dt * s_viewSpeed);
+            }
+
+            break;
+        }
+
+        case Type::AlignOnBBoxTop:
+        {
+            auto slave = slaves.at(0);
+            if( !slave->isPinned() )
+            {
+                ImRect bbox = NodeView::GetRect(masters, true);
+                ImVec2 newPos(bbox.GetCenter());
+                newPos.y -= bbox.GetSize().y / 2.0f + s_viewSpacing + slave->getRect().GetSize().y / 2.0f;
+                slave->addForceToTranslateTo(newPos + offset, _dt * s_viewSpeed);
+            }
+
+            break;
+        }
+
+        case Type::MakeRowAndAlignOnBBoxTop:
+        {
+            auto inputIndex = 0;
+
+            // Compute the cumulated width and the size y max of the input node view:
+            auto cumulatedSize = 0.0f;
+            auto sizeMax = 0.0f;
+            for (auto eachSlave : slaves) {
+                if (!eachSlave->isPinned()) {
+                    auto sx = eachSlave->getSize().x;
+                    cumulatedSize += sx;
+                    sizeMax = std::max(sizeMax, sx);
+                }
+            }
+
+            auto posX = master->getPosition().x - cumulatedSize / 2.0f;
+
+            // TODO: remove this "hack"
+            if ( master->getOwner()->getClass() == mirror::GetClass<InstructionNode>())
+            {
+                posX += cumulatedSize / 2.0f + s_viewSpacing + master->getSize().x / 2.0f;
+            }
+
+            float nodeSpacing(10);
+
+            for (auto eachSlave : slaves)
+            {
+                // Contrain only unpinned node that have only a single output connection
+                if (!eachSlave->isPinned() && eachSlave->getOwner()->getOutputs().size() <= 1) {
+                    // Compute new position for this input view
+                    ImVec2 eachDrivenNewPos = ImVec2(
+                            posX + eachSlave->getSize().x / 2.0f,
+                            master->getPosition().y - s_viewSpacing - eachSlave->getSize().y / 2.0f - master->getSize().y / 2.0f
+                    );
+                    posX += eachSlave->getSize().x + nodeSpacing;
+                    eachSlave->addForceToTranslateTo(eachDrivenNewPos + offset, _dt * s_viewSpeed, true);
+                }
+                inputIndex++;
+            }
+            break;
+        }
+
+        case Type::FollowWithChildren:
+        {
+            auto slave = slaves.at(0);
+            if ( !slave->isPinned() )
+            {
+                // compute
+                auto masterRect = master->getRect();
+                auto slaveRect = slave->getRect(true,true, true);
+                ImVec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
+                ImVec2 newPos(master->getPosition().x, slave->getPosition().y + slaveMasterOffset.y + s_viewSpacing);
+
+                // apply
+                slave->addForceToTranslateTo(newPos + offset, _dt * s_viewSpeed * 0.8, true);
+                break;
+            }
+        }
+
+        case Type::Follow:
+        {
+            auto slave = slaves.at(0);
+            if ( !slave->isPinned() )
+            {
+                // compute
+                ImVec2 newPos(master->getPosition() + ImVec2(0.0f, master->getSize().y));
+                newPos.y += s_viewSpacing + slave->getSize().y;
+
+                // apply
+                slave->addForceToTranslateTo(newPos + offset, _dt * s_viewSpeed);
+                break;
+            }
+        }
+    }
+}
+
+void ViewConstraint::addSlave(NodeView *_subject) {
+    NODABLE_ASSERT(_subject != nullptr);
+    this->slaves.push_back(_subject);
+}
+
+void ViewConstraint::addMaster(NodeView *_subject) {
+    NODABLE_ASSERT(_subject != nullptr);
+    this->masters.push_back(_subject);
 }

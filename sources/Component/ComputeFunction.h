@@ -9,7 +9,7 @@ namespace Nodable
     class Language;
 
 	/**
-	  * ComputeFunction is a class able to eval a function (using its prototype and a language)
+	  * ComputeFunction is a class able to update a function (using its prototype and a language)
 	  */
 	class ComputeFunction : public ComputeBase {
 	public:

@@ -5,6 +5,13 @@
 
 namespace Nodable
 {
+    enum class Layout {
+        ROW,
+        COLUMN,
+        AUTO,
+        DEFAULT = AUTO
+    };
+
     // forward declarations
     class ScopedCodeBlockNode;
     class InstructionNode;
@@ -25,7 +32,10 @@ namespace Nodable
         [[nodiscard]] virtual VariableNode*    findVariable(std::string _name) { return nullptr; };
         virtual void setParent(ScopedCodeBlockNode *_scope);
         virtual ScopedCodeBlockNode* getParent();
-
+        [[nodiscard]] inline Layout getLayout() const { return layout; }
+        inline void   setLayout(Layout _layout) { layout = _layout; }
+    private:
+        Layout layout = Layout::DEFAULT;
     protected:
         /** reflect class using mirror */
         MIRROR_CLASS(AbstractCodeBlockNode)

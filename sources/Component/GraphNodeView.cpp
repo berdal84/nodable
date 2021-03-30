@@ -26,41 +26,9 @@ bool GraphNodeView::draw()
        CodeBlock
      */
     ScopedCodeBlockNode* scope = graph->getScope();
-    if ( !scope->isEmpty() )
+    if ( scope && !scope->isEmpty() )
     {
-        CodeBlockNode* block = dynamic_cast<CodeBlockNode*>(scope->getLastCodeBlock());
-        auto instructionNodes = block->getInstructions();
-
-        // Draw a wire to link CodeBlock to each instructions
-        if ( block->hasComponent<NodeView>())
-        {
-            for(auto& eachInstr: instructionNodes )
-            {
-                // Draw a line
-                ImVec2 start = block->getComponent<NodeView>()->getScreenPos();
-                ImVec2 end   = eachInstr->getComponent<NodeView>()->getScreenPos();
-                ImColor color(255,255,255,64);
-                ImColor shadowColor(0,0,0,64);
-                WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, 2.0f);
-            }
-        }
-
-        // Draw a wire to link each instructions (ordered)
-        if ( instructionNodes.size() >= 2 )
-        {
-            for(auto it = instructionNodes.begin(); it < instructionNodes.end() - 1; it++ )
-            {
-                // Draw a line
-                auto startView = (*it)->getComponent<NodeView>();
-                auto endView = (*(it+1))->getComponent<NodeView>();
-                ImVec2 start = startView->getScreenPos();
-                ImVec2 end   = endView->getScreenPos();
-                ImColor color(200,255,200,50);
-                ImColor shadowColor(0,0,0,64);
-                float width = std::min(endView->getRect().GetSize().x, startView->getRect().GetSize().x) - 5.0f;
-                WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, width);
-            }
-        }
+        drawCodeFlow(scope);
     }
 
 	/*
@@ -340,3 +308,150 @@ GraphNode *GraphNodeView::getGraphNode() const
 
 GraphNodeView::GraphNodeView(): NodeView() {}
 
+void GraphNodeView::drawCodeFlow(AbstractCodeBlockNode* _node)
+{
+    for (auto each : _node->getChildren())
+    {
+        if ( each->getClass()->isChildOf(mirror::GetClass<AbstractCodeBlockNode>()))
+            drawCodeFlow(each->as<AbstractCodeBlockNode>());
+    }
+
+    auto children = _node->getChildren();
+
+    // Draw a wire to link CodeBlock to each child
+    if ( _node->hasComponent<NodeView>())
+    {
+//        for(auto& eachInstr: children )
+//        {
+//            // Draw a line
+//            ImVec2 start = _node->getComponent<NodeView>()->getScreenPos();
+//            ImVec2 end   = eachInstr->getComponent<NodeView>()->getScreenPos();
+//            ImColor color(255,255,255,64);
+//            ImColor shadowColor(0,0,0,64);
+//            WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, 5.0f);
+//        }
+
+        if ( !children.empty())
+        {
+            auto startView = _node->getComponent<NodeView>();
+            auto endView = children[0]->getComponent<NodeView>();
+            DrawCodeFlowLine(startView, endView);
+        }
+    }
+
+    // Draw a wire between each child
+    if (children.size() >= 2 )
+    {
+        for(auto it = children.begin(); it < children.end() - 1; it++ )
+        {
+            // Draw a line
+            auto startView = (*it)->getComponent<NodeView>();
+            auto endView = (*(it+1))->getComponent<NodeView>();
+            DrawCodeFlowLine(startView, endView);
+        }
+    }
+}
+
+void GraphNodeView::DrawCodeFlowLine(NodeView *startView, NodeView *endView) {
+    ImVec2 start = startView->getScreenPos();
+    ImVec2 end   = endView->getScreenPos();
+    ImColor color(200,255,200,50);
+    ImColor shadowColor(0,0,0,64);
+    float width = std::min(endView->getRect().GetSize().x, startView->getRect().GetSize().x) - 5.0f;
+    WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, width);
+}
+
+void GraphNodeView::updateViewConstraints()
+{
+    LOG_VERBOSE("GraphNodeView", "updateViewConstraints()\n");
+
+    for(Node* _eachNode: this->getGraphNode()->getNodeRegistry()) {
+        if (auto eachView = _eachNode->getComponent<NodeView>()) {
+            eachView->clearConstraints();
+        }
+    }
+
+    for(Node* _eachNode: this->getGraphNode()->getNodeRegistry())
+    {
+        if ( auto eachView = _eachNode->getComponent<NodeView>() )
+        {
+            auto clss = _eachNode->getClass();
+
+            //     (1) CodeBlockNode must follow average position of each inner block
+            // AND (2) Each child must follow its previous
+            if ( clss->isChildOf(mirror::GetClass<AbstractCodeBlockNode>()))
+            {
+                // (1)
+//                ViewConstraint constraint(ViewConstraint::Type::AlignOnBBoxLeft);
+//                constraint.addSlave(eachView);
+//                for (auto instr : _eachNode->getChildren())
+//                {
+//                    if (auto instrView = instr->getComponent<NodeView>())
+//                    {
+//                        constraint.addMaster(instrView);
+//                    }
+//                }
+//                eachView->addConstraint(constraint);
+
+                // (2)
+                if ( _eachNode->getChildren().size() > 1 )
+                {
+                    for (size_t i = 1; i < _eachNode->getChildren().size(); i++)
+                    {
+                        auto eachChildView = _eachNode->getChildren().at(i)->getComponent<NodeView>();
+                        auto previousView = _eachNode->getChildren().at(i - 1)->getComponent<NodeView>();
+
+                        ViewConstraint followConstr(ViewConstraint::Type::FollowWithChildren);
+                        followConstr.addMaster(previousView);
+                        followConstr.addSlave(eachChildView);
+//                        followConstr.offset = ImVec2(20.0f, 0);
+                        eachChildView->addConstraint(followConstr);
+                    }
+                }
+
+                if( !_eachNode->getChildren().empty() )
+                {
+                    if ( auto childView = _eachNode->getChildren()[0]->getComponent<NodeView>())
+                    {
+                        ViewConstraint followConstr(ViewConstraint::Type::FollowWithChildren);
+                        followConstr.addMaster(eachView);
+                        followConstr.addSlave(childView);
+                        followConstr.offset = ImVec2(30.0f, 0); // indent
+                        childView->addConstraint(followConstr);
+                    }
+                }
+            }
+
+            // Each Node with more than 1 output needs to be aligned with the bbox top of output nodes
+            if ( _eachNode->getOutputs().size() > 1 )
+            {
+                ViewConstraint constraint(ViewConstraint::Type::AlignOnBBoxTop);
+                constraint.addSlave(eachView);
+
+                for (auto eachOutput : _eachNode->getOutputs())
+                {
+                    if (auto eachOutView = eachOutput->getComponent<NodeView>())
+                    {
+                        constraint.addMaster(eachOutView);
+                    }
+                }
+                eachView->addConstraint(constraint);
+            }
+
+            // Input nodes must be aligned to their output
+            if ( !_eachNode->getInputs().empty() )
+            {
+                ViewConstraint constraint(ViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
+                constraint.addMaster(eachView);
+                for (auto eachInput : _eachNode->getInputs())
+                {
+                    if (auto eachInputView = eachInput->getComponent<NodeView>())
+                    {
+                        constraint.addSlave(eachInputView);
+                    }
+                }
+                eachView->addConstraint(constraint);
+            }
+        }
+    }
+}

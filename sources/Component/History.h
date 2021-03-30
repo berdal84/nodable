@@ -169,7 +169,8 @@ namespace Nodable
 			targetNode->addWire(wire);
 			sourceNode->addWire(wire);
 
-			NodeTraversal::SetDirty(targetNode);
+			NodeTraversal traversal;
+            traversal.setDirty(targetNode);
 		}
 
 		void redo() {
@@ -183,7 +184,8 @@ namespace Nodable
             auto sourceNode = source->getOwner()->as<Node>();
 
             target->setInputMember(nullptr);
-            NodeTraversal::SetDirty(targetNode);
+            NodeTraversal traversal;
+            traversal.setDirty(targetNode);
 
 			// Link Members
 			wire->setSource(nullptr);

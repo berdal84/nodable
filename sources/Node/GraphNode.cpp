@@ -1,54 +1,68 @@
 #include "GraphNode.h"
-#include "Log.h"
-#include "Language/Common/Parser.h"
-#include "Node.h"
-#include "VariableNode.h"
-#include "ComputeBinaryOperation.h"
-#include "ComputeUnaryOperation.h"
-#include "Wire.h"
-#include "WireView.h"
-#include "DataAccess.h"
+
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
-#include "NodeView.h"
-#include "NodeTraversal.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include "InstructionNode.h"
-#include "CodeBlockNode.h"
+
+#include "Core/Log.h"
+#include "Core/Wire.h"
+#include "Language/Common/Parser.h"
+#include "Node/Node.h"
+#include "Node/VariableNode.h"
+#include "Component/ComputeBinaryOperation.h"
+#include "Component/ComputeUnaryOperation.h"
+#include "Component/WireView.h"
+#include "Component/DataAccess.h"
+#include "Component/NodeView.h"
+#include "Component/GraphNodeView.h"
+#include "Node/NodeTraversal.h"
+#include "Node/InstructionNode.h"
+#include "Node/CodeBlockNode.h"
 #include "Node/ScopedCodeBlockNode.h"
+#include "Node/ConditionalStructNode.h"
 
 using namespace Nodable;
 
-ImVec2 GraphNode::LastResultNodeViewPosition = ImVec2(-1, -1); // draft try to store node position
+ImVec2 GraphNode::ScopeViewLastKnownPosition = ImVec2(-1, -1); // draft try to store node position
 
 GraphNode::~GraphNode()
 {
 	clear();
-	delete scope;
 }
 
 void GraphNode::clear()
 {
+
 	// Store the Result node position to restore it later
 	// TODO: handle multiple results
-	if ( scope->hasInstructions() )
+	if ( scope && scope->hasInstructions() )
 	{
-		auto view = scope->getFirstInstruction()->getComponent<NodeView>();
-        GraphNode::LastResultNodeViewPosition = view->getPosition();
-	}
+        auto view = scope->getComponent<NodeView>();
+        GraphNode::ScopeViewLastKnownPosition = view->getPosition();
+        scope = nullptr;
+    }
 
 	LOG_VERBOSE( "GraphNode", "=================== clear() ==================\n");
 
-	for(auto it = nodeRegistry.rbegin(); it != nodeRegistry.rend(); it++)
-    {
-	    Node* node = *it;
-        LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->getLabel() );
-        deleteNode(node);
+	if ( !nodeRegistry.empty() )
+	{
+        for ( auto i = nodeRegistry.size(); i > 0; i--)
+        {
+            Node* node = nodeRegistry[i-1];
+            LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->getLabel() );
+            deleteNode(node);
+        }
 	}
+
 	wireRegistry.clear();
     nodeRegistry.clear();
 	relationRegistry.clear();
-    scope->clear();
+
+    if ( auto view = this->getComponent<GraphNodeView>())
+    {
+        view->clearConstraints();
+    }
+
     LOG_VERBOSE("GraphNode", "===================================================\n");
 }
 
@@ -73,44 +87,43 @@ UpdateResult GraphNode::update()
         }
     }
 
-	/*
-	    2 - Update all Nodes
-    */
-    size_t updatedNodesCount(0);
-    auto result = Result::Success;
+    /*
+       2 - update view constraints
+     */
+    if ( this->isDirty())
     {
-        auto it = nodeRegistry.begin();
-
-        while (it < nodeRegistry.end() && result != Result::Failure)
+        if (auto view = getComponent<GraphNodeView>() )
         {
-            auto node = *it;
-
-            if (node && node->isDirty())
-            {
-                updatedNodesCount++;
-                result = NodeTraversal::Update(node);
-            }
-
-            ++it;
+            view->updateViewConstraints();
         }
     }
 
-	if( result != Result::Failure &&
-	    updatedNodesCount > 0 && NodeView::GetSelected() != nullptr)
+	/*
+	    3 - Update all Nodes
+    */
+	if (this->scope)
     {
-	    return UpdateResult::Success;
+        NodeTraversal nodeTraversal;
+        auto result = nodeTraversal.update(this->scope);
+        if ( result == Result::Success )
+        {
+            if ( nodeTraversal.getStats().traversed.empty() )
+            {
+                return UpdateResult::SuccessWithoutChanges;
+            }
+            nodeTraversal.logStats();
+            return UpdateResult::Success;
+        }
+        return UpdateResult::Failed;
     }
-	else
-    {
-	    return UpdateResult::SuccessWithoutChanges;
-    }
-
+	return UpdateResult::Success;
 }
 
 void GraphNode::registerNode(Node* _node)
 {
 	this->nodeRegistry.push_back(_node);
     _node->setParentGraph(this);
+
 }
 
 void GraphNode::unregisterNode(Node* _node)
@@ -147,7 +160,7 @@ InstructionNode* GraphNode::appendInstruction()
     // add to code block
     if ( scope->getChildren().empty())
     {
-        scope->addChild( newCodeBlock() );
+        connect(scope, newCodeBlock(), RelationType::IS_PARENT_OF);
     }
     else
     {
@@ -170,11 +183,23 @@ InstructionNode* GraphNode::appendInstruction()
 
 VariableNode* GraphNode::newVariable(std::string _name, ScopedCodeBlockNode* _scope)
 {
+    // create
 	auto node = new VariableNode();
 	node->addComponent( new NodeView);
 	node->setName(_name.c_str());
+
+	// register
     this->registerNode(node);
-	_scope->variables.push_back(node);
+
+    if( _scope)
+    {
+        _scope->variables.push_back(node);
+    }
+    else
+    {
+        LOG_WARNING("GraphNode", "You create a variable without defining its scope.");
+    }
+
 	return node;
 }
 
@@ -314,55 +339,46 @@ Wire* GraphNode::newWire()
 
 void GraphNode::arrangeNodeViews()
 {
-    if ( !scope->getChildren().empty())
-    {
-        auto* block = dynamic_cast<CodeBlockNode*>(scope->getChildren().front());
+    if ( scope ) {
+        if (auto scopeView = scope->getComponent<NodeView>()) {
+            bool hasKnownPosition = GraphNode::ScopeViewLastKnownPosition.x != -1 &&
+                                    GraphNode::ScopeViewLastKnownPosition.y != -1;
 
-        for (auto it = block->getChildren().begin(); it != block->getChildren().end(); it++)
-        {
-            Node* node = *it;
-            NodeView *nodeView = node->getComponent<NodeView>();
-
-            // Store the Result node position to restore it later
-            bool resultNodeHadPosition = GraphNode::LastResultNodeViewPosition.x != -1 &&
-                                         GraphNode::LastResultNodeViewPosition.y != -1;
-
-            if (nodeView && this->hasComponent<View>())
-            {
+            if ( this->hasComponent<View>()) {
                 auto view = this->getComponent<View>();
 
-                if (resultNodeHadPosition)
-                {                                 /* if result node had a position stored, we restore it */
-                    nodeView->setPosition(GraphNode::LastResultNodeViewPosition);
-                    nodeView->translate(ImVec2(float(200) * (float)std::distance(block->getChildren().begin(), it), 0));
+                if (hasKnownPosition) {                                 /* if result node had a position stored, we restore it */
+                    scopeView->setPosition(GraphNode::ScopeViewLastKnownPosition);
                 }
 
                 auto rect = view->getVisibleRect();
-                if (!NodeView::IsInsideRect(nodeView, rect))
-                {
+                if (!NodeView::IsInsideRect(scopeView, rect)) {
                     ImVec2 defaultPosition = rect.GetCenter();
                     defaultPosition.x += rect.GetWidth() * 1.0f / 6.0f;
-                    nodeView->setPosition(defaultPosition);
+                    scopeView->setPosition(defaultPosition);
                 }
             }
         }
 
-        getComponent<NodeView>()->arrangeRecursively(false);
+        scope->getComponent<NodeView>()->arrangeRecursively(false);
     }
 }
 
 GraphNode::GraphNode(const Language* _language)
+    :
+    language(_language),
+    scope(nullptr)
 {
-	language = _language;
-    scope = new ScopedCodeBlockNode();
+	this->clear();
 }
 
 CodeBlockNode *GraphNode::newCodeBlock()
 {
     auto codeBlockNode = new CodeBlockNode();
-    std::string label = ICON_FA_SQUARE " Block " + std::to_string(this->scope->getChildren().size());
+    std::string label = ICON_FA_CODE " Block " + std::to_string(this->scope->getChildren().size());
     codeBlockNode->setLabel(label);
-    // codeBlockNode->addComponent(new NodeView);
+    codeBlockNode->setShortLabel(ICON_FA_CODE "Bl");
+    codeBlockNode->addComponent(new NodeView);
 
     this->registerNode(codeBlockNode);
 
@@ -374,11 +390,12 @@ void GraphNode::deleteNode(Node* _node)
     unregisterNode(_node);
 
     // clear wires
-    for ( auto eachWire : _node->getWires() )
+    auto wires = _node->getWires();
+    for (auto it = wires.rbegin(); it != wires.rend(); it++)
     {
-        unregisterWire(eachWire);
-        disconnect(eachWire);
-    }
+        unregisterWire(*it);
+        disconnect(*it);
+     }
 
     // remove from parent
     if ( Node* parent = _node->getParent() )
@@ -391,7 +408,7 @@ void GraphNode::deleteNode(Node* _node)
 
 bool GraphNode::hasInstructionNodes()
 {
-    return scope->hasInstructions();
+    return scope && scope->hasInstructions();
 }
 
 Wire *GraphNode::connect(Member* _from, Member* _to)
@@ -444,6 +461,8 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
     {
         registerWire(wire);
     }
+
+    this->setDirty();
 
     return wire;
 }
@@ -508,14 +527,19 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
     }
 
     this->relationRegistry.emplace(_relationType, std::pair(_source, _target));
+    this->setDirty();
 }
 
 void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationType)
 {
+    NODABLE_ASSERT(_source && _target);
+
     // find relation
     Relation pair{_relationType, {_source, _target}};
     auto relation = std::find(relationRegistry.begin(), relationRegistry.end(), pair);
-    NODABLE_ASSERT(relation != relationRegistry.end());
+
+    if(relation == relationRegistry.end())
+        return;
 
     // remove relation
     relationRegistry.erase(relation);
@@ -541,6 +565,8 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
         default:
             NODABLE_ASSERT(false); // This connection type is not yet implemented
     }
+
+    this->setDirty();
 }
 
 void GraphNode::deleteWire(Wire *_wire)
@@ -555,7 +581,36 @@ void GraphNode::deleteWire(Wire *_wire)
 
     disconnect(sourceNode, targetNode, RelationType::IS_INPUT_OF);
 
-    NodeTraversal::SetDirty(targetNode);
+    NodeTraversal traversal;
+    traversal.setDirty(targetNode);
 
     delete _wire;
+}
+
+ScopedCodeBlockNode *GraphNode::newScopedCodeBlock()
+{
+    auto scopeNode = new ScopedCodeBlockNode();
+    std::string label = ICON_FA_CODE_BRANCH " Scope";
+    scopeNode->setLabel(label);
+    scopeNode->setShortLabel(ICON_FA_CODE_BRANCH "Sc.");
+    scopeNode->addComponent(new NodeView());
+    this->registerNode(scopeNode);
+    return scopeNode;
+}
+
+ConditionalStructNode *GraphNode::newConditionalStructure()
+{
+    auto scopeNode = new ConditionalStructNode();
+    std::string label = ICON_FA_QUESTION " IF";
+    scopeNode->setLabel(label);
+    scopeNode->setShortLabel(ICON_FA_QUESTION);
+    scopeNode->addComponent(new NodeView());
+    this->registerNode(scopeNode);
+    return scopeNode;
+}
+
+ScopedCodeBlockNode *GraphNode::newProgram() {
+    this->clear();
+    this->scope = this->newScopedCodeBlock();
+    return this->scope;
 }
