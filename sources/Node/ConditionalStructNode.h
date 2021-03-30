@@ -21,6 +21,7 @@ namespace Nodable
             get("condition")->set(_value);
         };
         Token* token_if;
+        Token* token_else;
 
     // reflect class using mirror
     MIRROR_CLASS(ConditionalStructNode)

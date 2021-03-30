@@ -39,7 +39,6 @@ void GraphNode::clear()
 	{
         auto view = scope->getComponent<NodeView>();
         GraphNode::ScopeViewLastKnownPosition = view->getPosition();
-        scope = nullptr;
     }
 
 	LOG_VERBOSE( "GraphNode", "=================== clear() ==================\n");
@@ -57,6 +56,7 @@ void GraphNode::clear()
 	wireRegistry.clear();
     nodeRegistry.clear();
 	relationRegistry.clear();
+    scope = nullptr;
 
     if ( auto view = this->getComponent<GraphNodeView>())
     {

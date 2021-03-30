@@ -16,12 +16,12 @@ namespace Nodable {
         std::string suffix; // additional text only useful for layout (spaces, tabs, new line, etc.)
 
         Token(TokenType _type): Token(_type, "", 0) {}
-
 		Token(TokenType _type, const std::string& _word, size_t _index):
 		    type(_type),
 		    word(_word),
             charIndex(_index)
         {}
+        ~Token() {};
 
 		bool isOperand()const { // TODO: move this into "Parser" or "Language"
 			return type == TokenType::Double || type == TokenType::Boolean ||

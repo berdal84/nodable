@@ -161,11 +161,11 @@ const Operator* Node::getConnectedOperator(const Member *_localMember)
         // TODO: factorise
         if (auto binOpComponent = node->getComponent<ComputeBinaryOperation>())
         {
-            result = binOpComponent->ope;
+            result = binOpComponent->getOperator();
         }
         else if (auto unaryOpComponent = node->getComponent<ComputeUnaryOperation>())
         {
-            result = unaryOpComponent->ope;
+            result = unaryOpComponent->getOperator();
         }
     }
 

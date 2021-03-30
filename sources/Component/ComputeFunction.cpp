@@ -8,7 +8,7 @@ ComputeFunction::ComputeFunction(const Function* _function, const Language* _lan
 	ComputeBase(_language),
 	function(_function)
 {
-	size_t i = 0;
+    NODABLE_ASSERT(_function != nullptr); // must be defined !
 	while (args.size() < _function->signature.getArgs().size())
 		args.push_back(nullptr);
 }
