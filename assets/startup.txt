@@ -18,8 +18,8 @@ if ( a > b ) {
 
 if(false){ a=1; b=5; { c=7+5; d=4; }}
 
-if( cond1 ){
-    if( cond2 ){
+if( cond_a ){
+    if( cond_b ){
         a=1; b=5;
     } else {
         c=7+5; d=4;
