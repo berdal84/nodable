@@ -4,6 +4,7 @@
 #include <vector>
 #include <Language/Common/TokenType.h>
 #include <Language/Common/Function.h>
+#include <ConditionalStructNode.h>
 #include "Token.h"
 
 namespace Nodable
@@ -46,24 +47,21 @@ namespace Nodable
         std::string serialize(const TokenType&)const;
 
         /** Serialize a Member */
-        std::string serialize(const Member*)const;
+        virtual std::string serialize(const Member*)const;
 
         /** Serialize a token ( <token-serialized><suffix> ) */
-        std::string serialize(const Token*) const;
-
-        /** Serialize a binary operation call using an operator and two operands.
-           The last two operators are the source operators that creates the two operands as result.
-           Those are used to check precedence and add some brackets if needed.
-        */
-        std::string serializeBinaryOp(const Operator*, std::vector<Member*>, const Operator*, const Operator*)const;
+        virtual std::string serialize(const Token*) const;
 
         /** Serialize a complete scope (a set of instructions) */
-        std::string serialize(const CodeBlockNode*) const;
+        virtual std::string serialize(const CodeBlockNode*) const;
 
         /** Serialize a single instruction ( can be a simple expression ) */
-        std::string serialize(const InstructionNode*)const;
+        virtual std::string serialize(const InstructionNode*)const;
 
-        std::string serialize(const ScopedCodeBlockNode*)const;
+        virtual std::string serialize(const ScopedCodeBlockNode*)const;
+
+        virtual std::string serialize(const ConditionalStructNode*) const;
+
     protected:
         const Language* language;
     };

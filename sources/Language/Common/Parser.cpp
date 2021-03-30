@@ -418,45 +418,29 @@ ScopedCodeBlockNode* Parser::parseScope()
         return nullptr;
     }
 
-    auto block = graph->newScopedCodeBlock();
-    block->beginScopeToken = tokenList.getEaten();
+    auto scope = graph->newScopedCodeBlock();
+    scope->beginScopeToken = tokenList.getEaten();
 
-    parseAbstractCodeBlockContent(block);
+    if ( auto block = parseCodeBlock() )
+    {
+        graph->connect(scope, block, RelationType::IS_PARENT_OF);
+    }
+//  else
+//  {
+//      empty scopes are allowed
+//  }
+
 
     if ( !tokenList.eatToken(TokenType::EndScope))
     {
+        graph->deleteNode(scope);
         tokenList.rollbackTransaction();
         return nullptr;
     }
-    block->endScopeToken = tokenList.getEaten();
+    scope->endScopeToken = tokenList.getEaten();
 
     tokenList.commitTransaction();
-    return block;
-}
-
-void Parser::parseAbstractCodeBlockContent(AbstractCodeBlockNode* _block)
-{
-    bool stop = false;
-
-    while(tokenList.canEat() && !stop )
-    {
-        if ( auto instruction = parseInstruction() )
-        {
-            graph->connect(_block, instruction, RelationType::IS_PARENT_OF);
-        }
-        else if ( auto condStruct = parseConditionalStructure() )
-        {
-            graph->connect(_block, condStruct, RelationType::IS_PARENT_OF);
-        }
-        else if ( auto scope = parseScope() )
-        {
-            graph->connect(_block, scope, RelationType::IS_PARENT_OF);
-        }
-        else
-        {
-            stop = true;
-        }
-    }
+    return scope;
 }
 
 CodeBlockNode* Parser::parseCodeBlock()
@@ -465,7 +449,19 @@ CodeBlockNode* Parser::parseCodeBlock()
 
     auto block = graph->newCodeBlock();
 
-    parseAbstractCodeBlockContent(block);
+    bool stop = false;
+
+    while(tokenList.canEat() && !stop )
+    {
+        if ( auto instruction = parseInstruction() )
+        {
+            graph->connect(block, instruction, RelationType::IS_PARENT_OF);
+        }
+        else
+        {
+            stop = true;
+        }
+    }
 
     if ( block->getChildren().empty() )
     {

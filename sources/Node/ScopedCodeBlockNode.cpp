@@ -100,3 +100,11 @@ ScopedCodeBlockNode::ScopedCodeBlockNode()
 {
 
 }
+
+void ScopedCodeBlockNode::addVariable(VariableNode* _variableNode)
+{
+    NODABLE_ASSERT(this->findVariable(_variableNode->getName()) == nullptr); // TODO: implement something to handle that case
+    this->variables.push_back(_variableNode);
+}
+
+
