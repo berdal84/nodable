@@ -15,7 +15,6 @@ ScopedCodeBlockNode::~ScopedCodeBlockNode()
 
 void ScopedCodeBlockNode::clear()
 {
-    getChildren().clear();
     variables.clear();
 }
 
@@ -82,12 +81,22 @@ InstructionNode *ScopedCodeBlockNode::getLastInstruction()
 
     if ( lastCodeBlock )
     {
-        auto instructions = lastCodeBlock->as<CodeBlockNode>()->getInstructions();
+        auto instructions = lastCodeBlock->as<CodeBlockNode>()->getChildren();
         if ( !instructions.empty())
         {
-            return instructions.back()->as<InstructionNode>();
+            Node* instr = instructions.back();
+            NODABLE_ASSERT(instr->getClass() == InstructionNode::GetClass());
+            return instr->as<InstructionNode>();
         }
     }
 
     return nullptr;
+}
+
+ScopedCodeBlockNode::ScopedCodeBlockNode()
+    :
+    beginScopeToken(nullptr),
+    endScopeToken(nullptr)
+{
+
 }

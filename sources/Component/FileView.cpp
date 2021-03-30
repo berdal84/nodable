@@ -87,8 +87,9 @@ bool FileView::draw()
 	if (m_textEditor->IsTextChanged())
 		file->setModified();
 
-	if ( hasChanged() )
-		file->evaluateSelectedExpression();
+	if ( hasChanged() ) {
+        file->evaluateSelectedExpression();
+	}
 
 	/*
 		NODE EDITOR

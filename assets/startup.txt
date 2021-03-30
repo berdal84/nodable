@@ -1,15 +1,3 @@
-/*
- 	Welcome into Nodable !
-
-     First, few tips:
-
-     - You can edit a line as a graph by clicking on it.
-     - You can also edit only a portion of the line by selecting it.
-     - Edition is seamless, you can modify both text or nodes.
-     - You can put your cursor on an empty line and add nodes with right-click menu.
-
- */
-
 
  // Simple expression
  a = 2 + 5;
@@ -19,3 +7,21 @@
  g = sqrt(64);
  h = f + g;
 
+// Conditional structure
+a = 5;
+b = 4;
+if ( a > b ) {
+  result = "a is greater than b";
+} else {
+  result = "a is lower or equal to b";
+}
+
+if(false){ a=1; b=5; { c=7+5; d=4; }}
+
+if( cond1 ){
+    if( cond2 ){
+        a=1; b=5;
+    } else {
+        c=7+5; d=4;
+    }
+}

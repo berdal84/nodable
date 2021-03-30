@@ -17,8 +17,14 @@ NodableLanguage::NodableLanguage(): Language("Nodable")
      *  The order of insertion is important. First inserted will be taken in priority by Parser.
      */
 
+    // conditionnal structures
+    semantic.insert_StringToTokenType("if", TokenType::KeywordIf);
+    semantic.insert_StringToTokenType("else", TokenType::KeywordElse);
+
     // punctuation
     semantic.insert_RegexToTokenType(std::regex("^[ \t]"), TokenType::Ignore);
+    semantic.insert_StringToTokenType("{", TokenType::BeginScope);
+    semantic.insert_StringToTokenType("}", TokenType::EndScope);
     semantic.insert_StringToTokenType("(", TokenType::OpenBracket);
     semantic.insert_StringToTokenType(")", TokenType::CloseBracket);
     semantic.insert_StringToTokenType(",", TokenType::Separator);
@@ -39,6 +45,7 @@ NodableLanguage::NodableLanguage(): Language("Nodable")
     semantic.insert_StringToTokenType("number", TokenType::DoubleType);
     semantic.insert_StringToTokenType("any", TokenType::AnyType);
 
+
     // operators
     semantic.insert_StringToTokenType("operator", TokenType::KeywordOperator); // 3 chars
     semantic.insert_RegexToTokenType(std::regex("^(<=>)"),TokenType::Operator); // 3 chars
@@ -55,9 +62,6 @@ NodableLanguage::NodableLanguage(): Language("Nodable")
     semantic.insert_TypeToTokenType(Type::String, TokenType::StringType );
     semantic.insert_TypeToTokenType(Type::Any, TokenType::AnyType );
 
-    // conditionnal structures
-    semantic.insert_StringToTokenType("if", TokenType::KeywordIf);
-    semantic.insert_StringToTokenType("else", TokenType::KeywordElse);
 
     /*
      * Create a minimal set of functions/operators

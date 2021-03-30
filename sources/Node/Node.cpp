@@ -19,7 +19,7 @@ Node::Node(std::string _label):
         label(_label),
         dirty(true)
 {
-
+//    add("activator", Visibility::Always, Type::Boolean, Way::Way_In);
 }
 
 Node::~Node()
@@ -31,9 +31,15 @@ Node::~Node()
 	}
 }
 
-bool Node::isDirty()const
+bool Node::isDirty(bool _checkChildren)const
 {
-	return dirty;
+    if (_checkChildren)
+    {
+        NodeTraversal traversal;
+        return traversal.hasAChildDirty(this);
+    }
+
+    return dirty;
 }
 
 void Node::setDirty(bool _value)
@@ -59,7 +65,8 @@ const char* Node::getLabel()const
 void Nodable::Node::addWire(Wire* _wire)
 {
 	wires.push_back(_wire);
-    NodeTraversal::SetDirty(this);
+    NodeTraversal traversal;
+    traversal.setDirty(this);
 }
 
 void Nodable::Node::removeWire(Wire* _wire)
@@ -118,7 +125,8 @@ UpdateResult Node::update()
 void Node::onMemberValueChanged(const char* _name)
 {	
 	updateLabel();
-	NodeTraversal::SetDirty(this);
+    NodeTraversal traversal;
+    traversal.setDirty(this);
 }
 
 GraphNode *Node::getInnerGraph() const
@@ -202,6 +210,7 @@ void Node::removeChild(Node *_node)
 
 void Node::setParent(Node *_node)
 {
+    NODABLE_ASSERT(_node != nullptr || this->parent != nullptr);
     this->parent = _node;
 }
 

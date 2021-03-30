@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <functional>
+#include <AbstractCodeBlockNode.h>
 
 #include "mirror.h"
 #include "Nodable.h"     // forward declarations
@@ -16,10 +17,11 @@ namespace Nodable{
 	public:
 	    GraphNodeView();
 		virtual ~GraphNodeView(){};
-		virtual bool update() override {return true;} ;
+		void    updateViewConstraints();
 		bool    draw() override ;
 		void    addContextualMenuItem(std::string _category, std::string _label, std::function<Node*(void)> _lambda);
 	private:
+	    std::vector<ViewConstraint> constraints;
         [[nodiscard]] GraphNode* getGraphNode() const;
 		std::multimap<std::string, ContextualMenuItem> contextualMenus;
 
@@ -28,5 +30,8 @@ namespace Nodable{
 			MIRROR_PARENT(NodeView)
         );
 
+        void drawCodeFlow(AbstractCodeBlockNode *_node);
+
+        static void DrawCodeFlowLine(NodeView *startView, NodeView *endView) ;
     };
 }

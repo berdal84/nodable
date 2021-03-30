@@ -1,3 +1,4 @@
+#pragma once
 #include "AbstractCodeBlockNode.h" // abstract base class
 
 namespace Nodable
@@ -17,7 +18,7 @@ namespace Nodable
     class ScopedCodeBlockNode: public AbstractCodeBlockNode
     {
     public:
-        explicit ScopedCodeBlockNode() = default;
+        explicit ScopedCodeBlockNode();
         ~ScopedCodeBlockNode();
         void clear() override;
         [[nodiscard]] bool isEmpty();
@@ -26,6 +27,9 @@ namespace Nodable
         [[nodiscard]] VariableNode* findVariable(std::string _name) override;
         [[nodiscard]] AbstractCodeBlockNode* getLastCodeBlock();
         [[nodiscard]] InstructionNode *getLastInstruction();
+
+        Token* beginScopeToken;
+        Token* endScopeToken;
 
         std::vector<VariableNode*> variables;
 

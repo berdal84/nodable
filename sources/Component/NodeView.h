@@ -60,6 +60,34 @@ namespace Nodable
     };
 
 	/**
+	 * A class to abstract a constraint between some NodeView
+	 */
+	class ViewConstraint {
+	public:
+	    enum Type {
+	        AlignOnBBoxTop,
+	        AlignOnBBoxLeft,
+	        MakeRowAndAlignOnBBoxTop,
+	        FollowWithChildren,
+	        Follow,
+        };
+
+	    ViewConstraint(Type _type);
+	    void apply(float _dt);
+	    void addSlave(NodeView*);
+	    void addMaster(NodeView*);
+	    ImVec2 offset;
+	private:
+	    Type type;
+
+        std::vector<NodeView*> masters;
+	    std::vector<NodeView*> slaves;
+
+        static const float s_viewSpacing;
+        static const float s_viewSpeed;
+	};
+
+	/**
 	 * This class implement a view for Nodes using ImGui.
 	 */
 	class NodeView : public View
@@ -85,9 +113,6 @@ namespace Nodable
         /** Get top-left corner vector position */
 		ImVec2 getPosition()const;
 
-		/** Get the ImRect bounding rectangle of this NodeView */
-		ImRect getRect()const;
-
 		/** Get the connector position of the specified member (by name) for its Way way (In or Out ONLY !) */
 		ImVec2 getConnectorPosition(const Member *_member /*_name*/, Way /*_connection*/_way)const;
 
@@ -95,8 +120,9 @@ namespace Nodable
 		void  setPosition(ImVec2);
 
 		/** Apply a translation vector to the view's position */
-		void translate(ImVec2, bool _translateInputsRecursively = false);
+		void translate(ImVec2, bool _recurse = false);
 
+		void translateTo(ImVec2 desiredPos, float _factor, bool _recurse = false);
 		/** Arrange input nodes recursively while keeping this node position unchanged.
 		 *  Note: Some input connected Nodes can stay fixed if they are pinned. */
 		void arrangeRecursively(bool _smoothly = true);
@@ -108,8 +134,12 @@ namespace Nodable
 		 * Note: depends on s_viewDetail, can be just an ICON_FA (4 char) or an ICON_FA + a label */
         std::string getLabel();
 
-        /** Compute the bounding rectangle of this view recursively */
-        ImRect computeBoundingRectRecursively(bool _ignorePinned = true, bool _ignoreMultiConstrained = true);
+        /** Compute the bounding rectangle of this view */
+        ImRect getRect(bool _recursive = false, bool _ignorePinned = true, bool _ignoreMultiConstrained = true, bool _ignoreSelf = false);
+
+        void addConstraint(ViewConstraint _constraint);
+        void applyConstraints(float _dt);
+        void clearConstraints();
 
         /** Arrange input nodes recursively while keeping this node position unchanged.
          *  Note: Some input connected Nodes can stay fixed if they are pinned. */
@@ -175,7 +205,7 @@ namespace Nodable
 
     private:
         /** Update function that takes a specific delta time (can be hacked by sending a custom value) */
-        bool update(float _deltaTime);
+        virtual bool update(float _deltaTime);
 
         /**	Draw a Node Member at cursor position.
 			Returns true if Member's value has been modified, false either */
@@ -213,6 +243,9 @@ namespace Nodable
 		std::vector<MemberView*> exposedOutputMembers;
         std::map<const Member*, MemberView*> exposedMembers;
 
+        /** The constraints this view is subject to */
+        std::vector<ViewConstraint> constraints;
+
         /** pointer to the currently selected NodeView. */
 		static NodeView* s_selected;
 
@@ -228,9 +261,6 @@ namespace Nodable
         /** Size of the small button to toggle input visibility on/off */
         static const ImVec2 s_memberInputToggleButtonSize;
 
-        /** distance (on y axis) between two nodes */
-        static const float s_nodeSpacingDistance;
-
         /** to store all instances */
         static std::vector<NodeView*> s_instances;
 
@@ -238,5 +268,24 @@ namespace Nodable
         MIRROR_CLASS(NodeView)(
                 MIRROR_PARENT(View)); // I only need to know the parent
         ImVec2 getScreenPos();
+
+        bool isPinned() const;
+
+        ImVec2 getSize() const;
+
+        static ImRect GetRect(
+                const std::vector<NodeView *>&,
+                bool _recursive = false,
+                bool _ignorePinned = true,
+                bool _ignoreMultiConstrained = true);
+
+        void addForceToTranslateTo(ImVec2 desiredPos, float _factor, bool _recurse = false);
+
+        void addForce(ImVec2 force, bool _recurse = false);
+
+        // sum of forces applied to this
+        ImVec2 forces;
+
+        void applyForces(bool _recurse = false);
     };
 }

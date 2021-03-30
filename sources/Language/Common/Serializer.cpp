@@ -8,6 +8,7 @@
 #include "Node/CodeBlockNode.h"
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/InstructionNode.h"
+#include "Node/ConditionalStructNode.h"
 
 using namespace Nodable;
 
@@ -247,17 +248,27 @@ std::string Serializer::serialize(const Member * _member) const
 
 std::string Serializer::serialize(const CodeBlockNode* _block) const
 {
-    if (_block->getInstructions().empty())
+    if (_block->getChildren().empty())
     {
-        // TODO: implement curly brackets {} if scope explicitly has them
         return "";
     }
 
     std::string result;
 
-    for( auto& eachInstruction : _block->getInstructions() )
+    for( auto& eachChild : _block->getChildren() )
     {
-        result.append( serialize( eachInstruction->as<InstructionNode>() ) );
+        if ( eachChild->getClass() == InstructionNode::GetClass())
+        {
+            result.append( serialize(eachChild->as<InstructionNode>()) );
+        }
+        else if ( eachChild->getClass()->isChildOf(ScopedCodeBlockNode::GetClass()))
+        {
+            result.append( serialize(eachChild->as<ScopedCodeBlockNode>()) );
+        }
+        else
+        {
+            NODABLE_ASSERT(false); // Node class not handled !
+        }
     }
 
     return result;
@@ -291,17 +302,40 @@ std::string Serializer::serialize(const ScopedCodeBlockNode* _scope)const
 {
     std::string result;
 
-    for(auto eachBlock : _scope->getChildren() )
+    // TODO: create a serialize specific for conditional struct
+    if( _scope->getClass() == ConditionalStructNode::GetClass())
     {
-        if ( eachBlock->getClass()->isChildOf(mirror::GetClass<CodeBlockNode>()) )
+        auto condStruct = _scope->as<ConditionalStructNode>();
+        result.append( serialize(condStruct->token_if));
+        result.append( serialize(TokenType::OpenBracket));
+        result.append( serialize(condStruct->getCondition()));
+        result.append( serialize(TokenType::CloseBracket));
+    }
+
+
+    result.append( serialize(_scope->beginScopeToken) );
+
+    for(auto eachChild : _scope->getChildren() )
+    {
+        if ( eachChild->getClass()->isChildOf(mirror::GetClass<CodeBlockNode>()) )
         {
-            result.append( serialize( (const CodeBlockNode*)(eachBlock) ) );
+            result.append( serialize(eachChild->as<CodeBlockNode>() ) );
         }
-        else // is Scope for sure
+        else if ( eachChild->getClass()->isChildOf(mirror::GetClass<InstructionNode>()))
         {
-            result.append( serialize( (const ScopedCodeBlockNode*)(eachBlock) ) );
+            result.append( serialize(eachChild->as<InstructionNode>()) );
+        }
+        else if ( eachChild->getClass()->isChildOf(mirror::GetClass<ScopedCodeBlockNode>()))
+        {
+            result.append( serialize(eachChild->as<ScopedCodeBlockNode>()) );
+        }
+        else
+        {
+            NODABLE_ASSERT(false); // Node class not handled !
         }
     }
+
+    result.append( serialize(_scope->endScopeToken) );
 
     return result;
 }

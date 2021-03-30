@@ -20,6 +20,8 @@ namespace Nodable {
 	{
 	    Any,
 		Unknown,
+        KeywordIf,
+        KeywordElse,
         Ignore,
         EndOfInstruction,
         EndOfLine,
@@ -28,8 +30,12 @@ namespace Nodable {
 		Boolean,
 		Double,
 		Operator,
+
 		OpenBracket,
 		CloseBracket,
+        BeginScope,
+        EndScope,
+
 		Separator,
 		Space,
         Symbol,
@@ -37,8 +43,6 @@ namespace Nodable {
         DoubleType,
         BooleanType,
         KeywordOperator,
-        KeywordIf,
-        KeywordElse,
-		Default = Unknown
+		Default = Unknown,
     };
 }

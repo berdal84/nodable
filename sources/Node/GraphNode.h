@@ -17,6 +17,7 @@ namespace Nodable{
     class ScopedCodeBlockNode;
     class InstructionNode;
     class CodeBlockNode;
+    class ConditionalStructNode;
 
     enum class RelationType: int {
         IS_CHILD_OF       = 0,
@@ -81,6 +82,8 @@ namespace Nodable{
         Node*                       newOperator(const Operator*);
 		Wire*                       newWire();
 		Node*                       newFunction(const Function* _proto);
+        ScopedCodeBlockNode*       newScopedCodeBlock();
+        ConditionalStructNode*     newConditionalStructure();
 
         /** Connects two Member using a Wire (oriented edge)
          *  If _from is not owned, _to will digest it and nullptr is return.
@@ -118,12 +121,14 @@ namespace Nodable{
 		const Language* language;
 		ScopedCodeBlockNode* scope;
 	public:
-		static ImVec2               LastResultNodeViewPosition;
+		static ImVec2               ScopeViewLastKnownPosition;
 
-		/** reflect class with mirror */
-		MIRROR_CLASS(GraphNode)
-		(
-			MIRROR_PARENT(Node) // we only need to know parent
-        )
+    /** reflect class with mirror */
+    MIRROR_CLASS(GraphNode)
+    (
+        MIRROR_PARENT(Node) // we only need to know parent
+    )
+
+        ScopedCodeBlockNode *newProgram();
     };
 }
