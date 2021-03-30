@@ -20,6 +20,7 @@ namespace Nodable {
 		ComputeUnaryOperation(const Operator*, const Language*);
 		~ComputeUnaryOperation() {};
 		void            setLValue(Member* _value);
+        Member*         getLValue();
         const Operator* getOperator() const;
 
 		MIRROR_CLASS(ComputeUnaryOperation)(

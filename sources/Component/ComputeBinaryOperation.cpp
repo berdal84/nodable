@@ -16,3 +16,7 @@ Nodable::ComputeBinaryOperation::ComputeBinaryOperation(
 void ComputeBinaryOperation::setRValue(Member* _value) {
 	this->args[1] = _value;
 }
+
+Member* ComputeBinaryOperation::getRValue() {
+    return this->args[1];
+}
