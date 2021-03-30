@@ -19,12 +19,11 @@ namespace Nodable {
 	public:
 		ComputeUnaryOperation(const Operator*, const Language*);
 		~ComputeUnaryOperation() {};
-		void                setLValue(Member* _value);
-		const Operator* ope;
+		void            setLValue(Member* _value);
+        const Operator* getOperator() const;
 
-	protected:
 		MIRROR_CLASS(ComputeUnaryOperation)(
 			MIRROR_PARENT(ComputeFunction)
-			);
-	};
+		);
+    };
 }

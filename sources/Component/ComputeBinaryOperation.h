@@ -3,6 +3,7 @@
 #include "Nodable.h"   // for constants and forward declarations
 #include "mirror.h"
 #include "ComputeFunction.h"
+#include "ComputeUnaryOperation.h"
 #include <functional>
 
 namespace Nodable{
@@ -15,16 +16,15 @@ namespace Nodable{
 	* Note for later: This class and all derivate should be destroyed and replaced by an "OperatorComponent"
 	*                 using prototypes but with different serialization and parsing methods.
 	*/
-	class ComputeBinaryOperation: public ComputeFunction {
+	class ComputeBinaryOperation: public ComputeUnaryOperation {
 	public:		
 		ComputeBinaryOperation(const Operator*, const Language*);
 		~ComputeBinaryOperation(){};
-		void                setLValue(Member* _value);
 		void                setRValue(Member* _value);
-		const Operator* ope;
-	protected:		
+
+        // reflect class using mirror
 		MIRROR_CLASS(ComputeBinaryOperation)(
-			MIRROR_PARENT(ComputeFunction)
+			MIRROR_PARENT(ComputeUnaryOperation)
 		);
 	};
 }

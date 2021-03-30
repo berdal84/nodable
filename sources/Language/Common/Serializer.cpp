@@ -28,7 +28,7 @@ std::string Serializer::serialize(const ComputeUnaryOperation* _operation) const
         result.append( sourceToken->prefix);
     }
 
-    result.append(_operation->ope->identifier);
+    result.append(_operation->getOperator()->identifier);
 
     if ( sourceToken )
     {
@@ -65,7 +65,8 @@ std::string Serializer::serialize(const ComputeBinaryOperation * _operation) con
     auto r_handed_operator = _operation->getOwner()->getConnectedOperator(args[1]);
     // Left part of the expression
     {
-        bool needBrackets = l_handed_operator && !language->hasHigherPrecedenceThan(l_handed_operator, _operation->ope);
+        // TODO: check parsed brackets for prefix/suffix
+        bool needBrackets = l_handed_operator && !language->hasHigherPrecedenceThan(l_handed_operator, _operation->getOperator());
         if (needBrackets)
         {
             result.append( serialize(TokenType::OpenBracket));
@@ -85,7 +86,7 @@ std::string Serializer::serialize(const ComputeBinaryOperation * _operation) con
     {
         result.append( sourceToken->prefix);
     }
-    result.append(_operation->ope->identifier);
+    result.append(_operation->getOperator()->identifier);
     if ( sourceToken )
     {
         result.append( sourceToken->suffix);
@@ -93,7 +94,11 @@ std::string Serializer::serialize(const ComputeBinaryOperation * _operation) con
 
     // Right part of the expression
     {
-        bool needBrackets = r_handed_operator && (  r_handed_operator->getType() == Operator::Type::Unary || !language->hasHigherPrecedenceThan(r_handed_operator, _operation->ope) );
+        // TODO: check parsed brackets for prefix/suffix
+        bool needBrackets = r_handed_operator
+                            && (  r_handed_operator->getType() == Operator::Type::Unary
+                                  || !language->hasHigherPrecedenceThan(r_handed_operator, _operation->getOperator())
+                               );
 
         if (needBrackets)
         {

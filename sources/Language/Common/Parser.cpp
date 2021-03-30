@@ -925,11 +925,12 @@ ScopedCodeBlockNode *Parser::getCurrentScope()
 
 ScopedCodeBlockNode * Parser::parseConditionalStructure()
 {
+    LOG_VERBOSE("Parser", "try to parse IF{...} or IF{...}ELSE{...} ...\n");
     tokenList.startTransaction();
 
     auto condStruct = graph->newConditionalStructure();
 
-    if ( tokenList.canEat() && tokenList.eatToken(TokenType::KeywordIf))
+    if ( tokenList.eatToken(TokenType::KeywordIf))
     {
         condStruct->token_if = tokenList.getEaten();
 
@@ -938,27 +939,33 @@ ScopedCodeBlockNode * Parser::parseConditionalStructure()
         if ( condition)
         {
             graph->connect(condition, condStruct->get("condition") );
-
-            auto scopeIf = parseScope();
-
-            if ( scopeIf )
+            if ( ScopedCodeBlockNode* scopeIf = parseScope() )
             {
                 graph->connect(condStruct, scopeIf, RelationType::IS_PARENT_OF);
 
-                if ( tokenList.canEat() && tokenList.eatToken(TokenType::KeywordElse))
+                if ( tokenList.eatToken(TokenType::KeywordElse))
                 {
-                    auto scopeElse = parseScope();
-
-                    if ( scopeElse )
+                    condStruct->token_else = tokenList.getEaten();
+                    if ( ScopedCodeBlockNode* scopeElse = parseScope() )
                     {
                         graph->connect(condStruct, scopeElse, RelationType::IS_PARENT_OF);
                         tokenList.commitTransaction();
+                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n");
                         return condStruct;
                     }
+
+                    LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n");
+                    graph->deleteNode(scopeIf);
+
                 } else {
                     tokenList.commitTransaction();
+                    LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n");
                     return condStruct;
                 }
+            }
+            else
+            {
+                LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n");
             }
         }
     }
