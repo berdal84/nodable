@@ -212,10 +212,10 @@ namespace Nodable
 		bool drawMemberView(MemberView *_memberView);
 
 		/** Draw all member connector(s). Can be 0, 1 or 2 depending on member's connectorWay (cf enum Way_) */
-        void drawMemberConnectors(Member *_member);
+        void drawMemberConnectors(Member *_member, float _connectorRadius);
 
         /** Draw a single connector at a specific position into the IMGuiDrawList */
-		void drawConnector(ImVec2& , const Connector* , ImDrawList*);
+		void drawConnector(ImVec2& , const Connector* , ImDrawList*, float _connectorRadius);
 
 		/** Check if a Member is exposed (as an input or output) */
         bool isMemberExposed(const Member *_member)const;

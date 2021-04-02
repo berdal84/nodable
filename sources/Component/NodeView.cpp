@@ -3,6 +3,8 @@
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
 #include <vector>
+#include <Settings.h>
+#include "IconsFontAwesome5.h"
 
 #include "Core/Application.h"
 #include "Core/Maths.h"
@@ -250,6 +252,8 @@ bool NodeView::draw()
 	bool edited = false;
 	auto node   = getOwner();
 
+	auto settings = Settings::GetCurrent();
+
 	NODABLE_ASSERT(node != nullptr);
 
 	// Mouse interactions
@@ -286,7 +290,7 @@ bool NodeView::draw()
 		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, borderRadius);
 
 		// darken the background under the content
-		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + nodePadding), itemRectMax, ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
+		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings.ui.nodes.padding), itemRectMax, ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
 
 		// Draw an additionnal blinking rectangle when selected
 		if (IsSelected(this))
@@ -302,7 +306,7 @@ bool NodeView::draw()
 	ImGui::InvisibleButton("##", size);
 	ImGui::SetItemAllowOverlap();
 	hovered = ImGui::IsItemHovered();
-	ImGui::SetCursorPos(cursorPositionBeforeContent + nodePadding );
+	ImGui::SetCursorPos(cursorPositionBeforeContent + settings.ui.nodes.padding );
 
 	// Draw the window content
 	//------------------------
@@ -329,18 +333,20 @@ bool NodeView::draw()
     if ( !getOwner()->getChildren().empty() || !getOwner()->getInputs().empty() )
     {
         ImGui::SameLine();
-        if ( ImGui::Button(childrenVisible ? "-" : "+", ImVec2(15.0f, 25.0f)) )
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+        if ( ImGui::Button(childrenVisible ? ICON_FA_MINUS: ICON_FA_PLUS, ImVec2(20.0f, 20.0f)) )
         {
             bool visibility = !childrenVisible;
             setChildrenVisible(visibility, true);
             setInputsVisible(visibility, true);
         }
+        ImGui::PopStyleVar();
     }
 
 	ImGui::SameLine();
 
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + nodePadding );
-	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + nodePadding );
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings.ui.nodes.padding );
+	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings.ui.nodes.padding );
     ImGui::EndGroup();
 
     // Ends the Window
@@ -352,13 +358,13 @@ bool NodeView::draw()
 	// Draw input connectors
     for( auto& memberView : exposedInputsMembers )
     {
-        drawMemberConnectors(memberView->member);
+        drawMemberConnectors(memberView->member, settings.ui.nodes.connectorRadius);
     }
 
 	// Draw out connectors
     for( auto& memberView : exposedOutputMembers )
     {
-        drawMemberConnectors(memberView->member);
+        drawMemberConnectors(memberView->member, settings.ui.nodes.connectorRadius);
     }
 
     // Contextual menu (right click)
@@ -463,7 +469,7 @@ void NodeView::ArrangeRecursively(NodeView* _view, bool _smoothly)
     }
 }
 
-void NodeView::drawMemberConnectors(Member* _member)
+void NodeView::drawMemberConnectors(Member* _member, float _connectorRadius)
 {
     /*
     Draw the wire connectors (In or Out only)
@@ -474,13 +480,13 @@ void NodeView::drawMemberConnectors(Member* _member)
     if (_member->allowsConnection(Way_In))
     {
         ImVec2      connectorPos = getConnectorPosition( _member, Way_In);
-        drawConnector(connectorPos, _member->input(), draw_list);
+        drawConnector(connectorPos, _member->input(), draw_list, _connectorRadius);
     }
 
     if (_member->allowsConnection(Way_Out))
     {
         ImVec2      connectorPos = getConnectorPosition( _member, Way_Out);
-        drawConnector(connectorPos, _member->output(), draw_list);
+        drawConnector(connectorPos, _member->output(), draw_list, _connectorRadius);
     }
 }
 
@@ -618,16 +624,16 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     return edited;
 }
 
-void NodeView::drawConnector(ImVec2& connnectorScreenPos, const Connector* _connector, ImDrawList* draw_list)
+void NodeView::drawConnector(ImVec2& connnectorScreenPos, const Connector* _connector, ImDrawList* draw_list, float _connectorRadius)
 {
 	// Unvisible Button on top of the Circle
 
     ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
 
 	auto invisibleButtonOffsetFactor = 1.2f;
-	ImGui::SetCursorScreenPos(connnectorScreenPos - ImVec2(connectorRadius * invisibleButtonOffsetFactor));
+	ImGui::SetCursorScreenPos(connnectorScreenPos - ImVec2(_connectorRadius * invisibleButtonOffsetFactor));
 	ImGui::PushID(_connector->member);
-	bool clicked = ImGui::InvisibleButton("###", ImVec2(connectorRadius * 2.0f * invisibleButtonOffsetFactor, connectorRadius * 2.0f * invisibleButtonOffsetFactor));
+	bool clicked = ImGui::InvisibleButton("###", ImVec2(_connectorRadius * 2.0f * invisibleButtonOffsetFactor, _connectorRadius * 2.0f * invisibleButtonOffsetFactor));
 	ImGui::PopID();
 	ImGui::SetCursorScreenPos(cursorScreenPos);
 
@@ -635,11 +641,11 @@ void NodeView::drawConnector(ImVec2& connnectorScreenPos, const Connector* _conn
 	auto isItemHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
 
 	if (isItemHovered)
-		draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Highlighted));
+		draw_list->AddCircleFilled(connnectorScreenPos, _connectorRadius, getColor(ColorType_Highlighted));
 	else
-		draw_list->AddCircleFilled(connnectorScreenPos, connectorRadius, getColor(ColorType_Fill));
+		draw_list->AddCircleFilled(connnectorScreenPos, _connectorRadius, getColor(ColorType_Fill));
 
-	draw_list->AddCircle(connnectorScreenPos, connectorRadius, getColor(ColorType_Border));
+	draw_list->AddCircle(connnectorScreenPos, _connectorRadius, getColor(ColorType_Border));
 
 
 	// Manage mouse events in order to link two members by a Wire :
