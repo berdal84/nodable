@@ -317,9 +317,10 @@ void GraphNodeView::drawCodeFlow(AbstractCodeBlockNode* _node)
     }
 
     auto children = _node->getChildren();
+    auto view = _node->getComponent<NodeView>();
 
     // Draw a wire to link CodeBlock to each child
-    if ( _node->hasComponent<NodeView>())
+    if ( view->isVisible() )
     {
 //        for(auto& eachInstr: children )
 //        {
@@ -335,7 +336,8 @@ void GraphNodeView::drawCodeFlow(AbstractCodeBlockNode* _node)
         {
             auto startView = _node->getComponent<NodeView>();
             auto endView = children[0]->getComponent<NodeView>();
-            DrawCodeFlowLine(startView, endView);
+            if ( startView->isVisible() && endView->isVisible() )
+                DrawCodeFlowLine(startView, endView);
         }
     }
 
@@ -347,7 +349,9 @@ void GraphNodeView::drawCodeFlow(AbstractCodeBlockNode* _node)
             // Draw a line
             auto startView = (*it)->getComponent<NodeView>();
             auto endView = (*(it+1))->getComponent<NodeView>();
-            DrawCodeFlowLine(startView, endView);
+
+            if ( startView->isVisible() && endView->isVisible() )
+                DrawCodeFlowLine(startView, endView);
         }
     }
 }
@@ -357,7 +361,7 @@ void GraphNodeView::DrawCodeFlowLine(NodeView *startView, NodeView *endView) {
     ImVec2 end   = endView->getScreenPos();
     ImColor color(200,255,200,50);
     ImColor shadowColor(0,0,0,64);
-    float width = std::min(endView->getRect().GetSize().x, startView->getRect().GetSize().x) - 5.0f;
+    float width = std::min(endView->getRect().GetSize().x, startView->getRect().GetSize().x) * 0.5f;
     WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, width);
 }
 
