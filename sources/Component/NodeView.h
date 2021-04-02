@@ -287,5 +287,17 @@ namespace Nodable
         ImVec2 forces;
 
         void applyForces(bool _recurse = false);
+
+        void setChildrenVisible(bool _visible, bool _recursive = false);
+        bool childrenVisible = true;
+        std::vector<NodeView *> getChildren();
+
+        void setInputsVisible(bool _visible, bool _recursive = false);
+
+        std::vector<NodeView *> getInputs();
+
+        bool hasOnlyASingleOutputVisible();
+
+        std::vector<NodeView *> getOutputs();
     };
 }

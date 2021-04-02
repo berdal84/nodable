@@ -2,6 +2,7 @@
 
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
+#include <vector>
 
 #include "Core/Application.h"
 #include "Core/Maths.h"
@@ -322,6 +323,18 @@ bool NodeView::draw()
         ImGui::SameLine();
         ImGui::SetCursorPosY(cursorPositionBeforeContent.y + 8.0f);
         drawMemberView(memberView);
+    }
+
+    // If needed, show a button to show/hide children and inputs.
+    if ( !getOwner()->getChildren().empty() || !getOwner()->getInputs().empty() )
+    {
+        ImGui::SameLine();
+        if ( ImGui::Button(childrenVisible ? "-" : "+", ImVec2(15.0f, 25.0f)) )
+        {
+            bool visibility = !childrenVisible;
+            setChildrenVisible(visibility, true);
+            setInputsVisible(visibility, true);
+        }
     }
 
 	ImGui::SameLine();
@@ -835,14 +848,17 @@ ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMult
         y.push_back(rect.Max.y);
     }
 
-    for(Node* eachChild : this->getOwner()->getInputs() )
+    std::vector<NodeView*> views = getChildren();
+    auto inputs = getInputs();
+    views.insert(views.end(), inputs.begin(), inputs.end() );
+
+    for(auto eachView : views)
     {
-        NodeView* childView = eachChild->getComponent<NodeView>();
-        if ( childView &&
-             !(childView->pinned && _ignorePinned) &&
-             !(childView->getOwner()->getOutputs().size() > 1 && _ignoreMultiConstrained) )
+        if (eachView && eachView->isVisible() &&
+            !(eachView->pinned && _ignorePinned) &&
+            !(eachView->getOwner()->getOutputs().size() > 1 && _ignoreMultiConstrained) )
         {
-            ImRect childRect = childView->getRect(true, _ignorePinned, _ignoreMultiConstrained);
+            ImRect childRect = eachView->getRect(true, _ignorePinned, _ignoreMultiConstrained);
             x.push_back(childRect.Min.x);
             x.push_back(childRect.Max.x);
             y.push_back(childRect.Min.y);
@@ -938,16 +954,106 @@ ImRect NodeView::GetRect(
     std::vector<float> x_positions, y_positions;
     for (auto eachView : _views)
     {
-        auto rect = eachView->getRect(_recursive, _ignorePinned, _ignoreMultiConstrained);
-        x_positions.push_back(rect.Min.x );
-        x_positions.push_back(rect.Max.x );
-        y_positions.push_back(rect.Min.y );
-        y_positions.push_back(rect.Max.y );
+        if ( eachView->isVisible())
+        {
+            auto rect = eachView->getRect(_recursive, _ignorePinned, _ignoreMultiConstrained);
+            x_positions.push_back(rect.Min.x );
+            x_positions.push_back(rect.Max.x );
+            y_positions.push_back(rect.Min.y );
+            y_positions.push_back(rect.Max.y );
+        }
     }
     auto x_minmax = std::minmax_element(x_positions.begin(), x_positions.end());
     auto y_minmax = std::minmax_element(y_positions.begin(), y_positions.end());
 
     return ImRect(*x_minmax.first, *y_minmax.first, *x_minmax.second, *y_minmax.second );;
+}
+
+
+std::vector<NodeView*> NodeView::getChildren()
+{
+    std::vector<NodeView*> result;
+
+    for(auto& each : getOwner()->getChildren())
+    {
+        NodeView* eachView = each->getComponent<NodeView>();
+        if ( eachView )
+            result.push_back(eachView);
+    }
+
+    return std::move(result);
+}
+
+std::vector<NodeView*> NodeView::getInputs()
+{
+    std::vector<NodeView*> result;
+
+    for(auto& each : getOwner()->getInputs())
+    {
+        NodeView* eachView = each->getComponent<NodeView>();
+        if ( eachView )
+            result.push_back(eachView);
+    }
+
+    return std::move(result);
+}
+
+std::vector<NodeView*> NodeView::getOutputs()
+{
+    std::vector<NodeView*> result;
+
+    for(auto& each : getOwner()->getOutputs())
+    {
+        NodeView* eachView = each->getComponent<NodeView>();
+        if ( eachView )
+            result.push_back(eachView);
+    }
+
+    return std::move(result);
+}
+
+void NodeView::setChildrenVisible(bool _visible, bool _recursive)
+{
+    childrenVisible = _visible;
+
+    for( auto eachChild : getChildren() )
+    {
+        eachChild->setVisible(_visible);
+
+        if ( _recursive)
+        {
+            eachChild->setChildrenVisible(_visible, true);
+            eachChild->setInputsVisible(_visible, true);
+        }
+    }
+}
+
+bool NodeView::hasOnlyASingleOutputVisible()
+{
+    int count = 0;
+    for( auto eachChild : getOutputs() )
+    {
+        if( eachChild->isVisible())
+            count++;
+    }
+    return count <= 1;
+}
+
+void NodeView::setInputsVisible(bool _visible, bool _recursive)
+{
+
+    for( auto eachChild : getInputs() )
+    {
+        if( _visible || (getOutputs().empty() || eachChild->hasOnlyASingleOutputVisible()) )
+        {
+            if ( _recursive)
+            {
+                eachChild->setChildrenVisible(_visible, true);
+                eachChild->setInputsVisible(_visible, true);
+            }
+            eachChild->setVisible(_visible);
+        }
+    }
 }
 
 ViewConstraint::ViewConstraint(ViewConstraint::Type _type):type(_type) {}
@@ -962,7 +1068,7 @@ void ViewConstraint::apply(float _dt) {
         case Type::AlignOnBBoxLeft:
         {
             auto slave = slaves.at(0);
-            if( !slave->isPinned() )
+            if( !slave->isPinned() && slave->isVisible())
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
                 ImVec2 newPos(bbox.GetCenter() - ImVec2(bbox.GetSize().x * 0.5 + s_viewSpacing + slave->getRect().GetSize().x * 0.5, 0 ));
@@ -975,7 +1081,7 @@ void ViewConstraint::apply(float _dt) {
         case Type::AlignOnBBoxTop:
         {
             auto slave = slaves.at(0);
-            if( !slave->isPinned() )
+            if( !slave->isPinned() && slave->isVisible())
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
                 ImVec2 newPos(bbox.GetCenter());
@@ -994,7 +1100,7 @@ void ViewConstraint::apply(float _dt) {
             auto cumulatedSize = 0.0f;
             auto sizeMax = 0.0f;
             for (auto eachSlave : slaves) {
-                if (!eachSlave->isPinned()) {
+                if (!eachSlave->isPinned() && eachSlave->isVisible()) {
                     auto sx = eachSlave->getSize().x;
                     cumulatedSize += sx;
                     sizeMax = std::max(sizeMax, sx);
@@ -1004,7 +1110,9 @@ void ViewConstraint::apply(float _dt) {
             auto posX = master->getPosition().x - cumulatedSize / 2.0f;
 
             // TODO: remove this "hack"
-            if ( master->getOwner()->getClass() == mirror::GetClass<InstructionNode>())
+            auto clss = master->getOwner()->getClass();
+            if ( clss == mirror::GetClass<InstructionNode>() ||
+                 clss->isChildOf( mirror::GetClass<AbstractCodeBlockNode>()) )
             {
                 posX += cumulatedSize / 2.0f + s_viewSpacing + master->getSize().x / 2.0f;
             }
@@ -1014,7 +1122,7 @@ void ViewConstraint::apply(float _dt) {
             for (auto eachSlave : slaves)
             {
                 // Contrain only unpinned node that have only a single output connection
-                if (!eachSlave->isPinned() && eachSlave->getOwner()->getOutputs().size() <= 1) {
+                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->getOwner()->getOutputs().size() <= 1) {
                     // Compute new position for this input view
                     ImVec2 eachDrivenNewPos = ImVec2(
                             posX + eachSlave->getSize().x / 2.0f,
@@ -1031,10 +1139,10 @@ void ViewConstraint::apply(float _dt) {
         case Type::FollowWithChildren:
         {
             auto slave = slaves.at(0);
-            if ( !slave->isPinned() )
+            if ( !slave->isPinned() && slave->isVisible() )
             {
                 // compute
-                auto masterRect = master->getRect();
+                auto masterRect = master->getRect(false, true, true);
                 auto slaveRect = slave->getRect(true,true, true);
                 ImVec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
                 ImVec2 newPos(master->getPosition().x, slave->getPosition().y + slaveMasterOffset.y + s_viewSpacing);
@@ -1048,7 +1156,7 @@ void ViewConstraint::apply(float _dt) {
         case Type::Follow:
         {
             auto slave = slaves.at(0);
-            if ( !slave->isPinned() )
+            if ( !slave->isPinned() && slave->isVisible() )
             {
                 // compute
                 ImVec2 newPos(master->getPosition() + ImVec2(0.0f, master->getSize().y));
