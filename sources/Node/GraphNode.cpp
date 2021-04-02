@@ -128,10 +128,20 @@ void GraphNode::registerNode(Node* _node)
 
 void GraphNode::unregisterNode(Node* _node)
 {
-    auto it = std::find(nodeRegistry.begin(), nodeRegistry.end(), _node);
-    if (it != nodeRegistry.end())
+    auto found = std::find(nodeRegistry.begin(), nodeRegistry.end(), _node);
+    nodeRegistry.erase(found);
+
+    // check if nothing if left
+    auto relationFound = std::find_if(
+            relationRegistry.begin(),
+            relationRegistry.end(),
+            [&_node](Relation& rel)->bool {
+                return rel.second.first == _node || rel.second.second == _node;
+            });
+
+    if ( relationFound != relationRegistry.end())
     {
-        nodeRegistry.erase(it);
+        NODABLE_ASSERT(false); // Check if you remove all relations before to destroy
     }
 }
 
@@ -160,7 +170,7 @@ InstructionNode* GraphNode::appendInstruction()
     // add to code block
     if ( scope->getChildren().empty())
     {
-        connect(scope, newCodeBlock(), RelationType::IS_PARENT_OF);
+        connect( newCodeBlock(), scope,RelationType::IS_CHILD_OF);
     }
     else
     {
@@ -171,7 +181,7 @@ InstructionNode* GraphNode::appendInstruction()
 
     auto block = scope->getLastCodeBlock()->as<CodeBlockNode>();
     auto newInstructionNode = newInstruction();
-    this->connect(block, newInstructionNode, RelationType::IS_PARENT_OF);
+    this->connect(newInstructionNode, block,  RelationType::IS_CHILD_OF);
 
     // Initialize (since it is a manual creation)
     Token* token = new Token(TokenType::EndOfInstruction);
@@ -387,7 +397,7 @@ CodeBlockNode *GraphNode::newCodeBlock()
 
 void GraphNode::deleteNode(Node* _node)
 {
-    // clear wires
+    // disconnect wires
     auto wires = _node->getWires();
     for (auto it = wires.rbegin(); it != wires.rend(); it++)
     {
@@ -395,11 +405,17 @@ void GraphNode::deleteNode(Node* _node)
         disconnect(*it);
      }
 
-    // remove from parent
+    // disconnect parent->node relation
     Node* parent = _node->getParent();
     if ( parent )
     {
-        disconnect(parent, _node, RelationType::IS_PARENT_OF);
+        disconnect(_node, parent, RelationType::IS_CHILD_OF);
+    }
+
+    // disconnect children->node relations
+    for(Node* eachChild : _node->getChildren() )
+    {
+        disconnect(eachChild, _node, RelationType::IS_CHILD_OF);
     }
 
     // unregister and delete
@@ -493,10 +509,7 @@ void GraphNode::unregisterWire(Wire* _wire)
 
 void GraphNode::connect(Member* _source, InstructionNode* _target)
 {
-    if ( connect(_source, _target->getValue()) )
-    {
-        connect(_source->getOwner()->as<Node>(), _target, RelationType::IS_VALUE_OF);
-    }
+    connect(_source, _target->getValue());
 }
 
 
@@ -509,18 +522,9 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
             _source->setParent(_target);
             break;
 
-        case RelationType::IS_PARENT_OF:
-            _target->setParent(_source);
-            _source->addChild(_target);
-            break;
-
         case RelationType::IS_INPUT_OF:
             _target->addInput(_source);
             _source->addOutput(_target);
-            break;
-
-        case RelationType::IS_VALUE_OF:
-            // TODO
             break;
 
         default:
@@ -548,11 +552,6 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
         case RelationType::IS_CHILD_OF:
             _target->removeChild(_source);
             _source->setParent(nullptr);
-            break;
-
-        case RelationType::IS_PARENT_OF:
-            _source->removeChild(_target);
-            _target->setParent(nullptr);
             break;
 
         case RelationType::IS_INPUT_OF:

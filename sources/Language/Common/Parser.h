@@ -106,6 +106,10 @@ namespace Nodable{
 		bool expressionToGraph(const std::string &_code, GraphNode* _graphNode );
 
 	private:
+        void startTransaction();
+        void rollbackTransaction();
+        void commitTransaction();
+
 		/** Convert a Token to a Member.
 		 * The result Member pointer is responsible for _token.
 	     * @param _token

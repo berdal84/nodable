@@ -17,6 +17,21 @@
 
 using namespace Nodable;
 
+void Parser::rollbackTransaction()
+{
+    tokenList.rollbackTransaction();
+}
+
+void Parser::startTransaction()
+{
+    tokenList.startTransaction();
+}
+
+void Parser::commitTransaction()
+{
+    tokenList.commitTransaction();
+}
+
 bool Parser::expressionToGraph(const std::string& _code,
                                GraphNode* _graphNode )
 {
@@ -151,7 +166,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 		return nullptr;
 	}
 
-	tokenList.startTransaction();
+	startTransaction();
 	Token* operatorToken = tokenList.eatToken();
 	const Token* token2 = tokenList.peekToken();
 
@@ -162,7 +177,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 
 	if (!isValid)
 	{
-	    tokenList.rollbackTransaction();
+	    rollbackTransaction();
 		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Structure)\n");
 		return nullptr;
 	}
@@ -173,7 +188,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	if (currentOperatorPrecedence <= _precedence &&
 	    _precedence > 0u) { // always update the first operation if they have the same precedence or less.
 		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n");
-		tokenList.rollbackTransaction();
+		rollbackTransaction();
 		return nullptr;
 	}
 
@@ -184,7 +199,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	if (!right)
 	{
 		LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (right expression is nullptr)\n");
-		tokenList.rollbackTransaction();
+		rollbackTransaction();
 		return nullptr;
 	}
 
@@ -202,7 +217,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
         graph->connect(right, computeComponent->getRValue());
 		result = binOpNode->get("result");
 
-        tokenList.commitTransaction();
+        commitTransaction();
         LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n");
 
         return result;
@@ -210,7 +225,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
     else
     {
         LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator prototype)\n");
-        tokenList.rollbackTransaction();
+        rollbackTransaction();
         return nullptr;
     }
 }
@@ -226,13 +241,13 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 		return nullptr;
 	}
 
-	tokenList.startTransaction();
+	startTransaction();
 	Token* operatorToken = tokenList.eatToken();
 
 	// Check if we get an operator first
 	if (operatorToken->type != TokenType::Operator)
 	{
-	    tokenList.rollbackTransaction();
+	    rollbackTransaction();
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n");
 		return nullptr;
 	}
@@ -246,7 +261,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	else
 	{
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n");
-		tokenList.rollbackTransaction();
+		rollbackTransaction();
 		return nullptr;
 	}
 
@@ -264,14 +279,14 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
         Member* result = unaryOpNode->get("result");
 
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
-        tokenList.commitTransaction();
+        commitTransaction();
 
 		return result;
 	}
 	else
 	{
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (unrecognysed operator)\n");
-		tokenList.rollbackTransaction();
+		rollbackTransaction();
 		return nullptr;
 	}
 }
@@ -286,24 +301,24 @@ Member* Parser::parseAtomicExpression()
 		return nullptr;
 	}
 
-	tokenList.startTransaction();
+	startTransaction();
 	Token* token = tokenList.eatToken();
 	if (token->type == TokenType::Operator)
 	{
 		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n");
-		tokenList.rollbackTransaction();
+		rollbackTransaction();
 		return nullptr;
 	}
 
 	auto result = tokenToMember(token);
 	if( result != nullptr)
     {
-	    tokenList.commitTransaction();
+	    commitTransaction();
         LOG_VERBOSE("Parser", "parse atomic expr... " OK "\n");
     }
 	else
     {
-        tokenList.rollbackTransaction();
+        rollbackTransaction();
         LOG_VERBOSE("Parser", "parse atomic expr... " KO " (result is nullptr)\n");
 	}
 
@@ -321,12 +336,12 @@ Member* Parser::parseParenthesisExpression()
 		return nullptr;
 	}
 
-	tokenList.startTransaction();
+	startTransaction();
 	const Token* currentToken = tokenList.eatToken();
 	if (currentToken->type != TokenType::OpenBracket)
 	{
 		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n");
-		tokenList.rollbackTransaction();
+		rollbackTransaction();
 		return nullptr;
 	}
 
@@ -338,7 +353,7 @@ Member* Parser::parseParenthesisExpression()
 		{
 			LOG_VERBOSE("Parser", "%s \n", tokenList.toString().c_str());
 			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->word.c_str() );
-            tokenList.rollbackTransaction();
+            rollbackTransaction();
 		}
 		else
         {
@@ -348,21 +363,22 @@ Member* Parser::parseParenthesisExpression()
 	else
     {
         LOG_VERBOSE("Parser", "parse parenthesis expr..." KO ", expression in parenthesis is nullptr.\n");
-	    tokenList.rollbackTransaction();
+	    rollbackTransaction();
 	}
-    tokenList.commitTransaction();
+    commitTransaction();
 	return result;
 }
 
 InstructionNode* Parser::parseInstruction()
 {
-    tokenList.startTransaction();
+    startTransaction();
 
     Member* parsedExpression = parseExpression();
 
     if ( parsedExpression == nullptr )
     {
         LOG_ERROR("Parser", "parse instruction " KO " (parsed is nullptr)\n");
+        rollbackTransaction();
        return nullptr;
     }
 
@@ -378,7 +394,7 @@ InstructionNode* Parser::parseInstruction()
         else
         {
             LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n");
-            tokenList.rollbackTransaction();
+            rollbackTransaction();
             return nullptr;
         }
     }
@@ -386,35 +402,35 @@ InstructionNode* Parser::parseInstruction()
     graph->connect(parsedExpression, instruction);
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n");
-    tokenList.commitTransaction();
+    commitTransaction();
     return instruction;
 }
 
 CodeBlockNode* Parser::parseProgram()
 {
-    tokenList.startTransaction();
+    startTransaction();
     auto scope = graph->newProgram();
     if(CodeBlockNode* block = parseCodeBlock())
     {
-        graph->connect(scope, block, RelationType::IS_PARENT_OF);
-        tokenList.commitTransaction();
+        graph->connect(block, scope, RelationType::IS_CHILD_OF);
+        commitTransaction();
         return block;
     }
     else
     {
         graph->clear();
-        tokenList.rollbackTransaction();
+        rollbackTransaction();
         return nullptr;
     }
 }
 
 ScopedCodeBlockNode* Parser::parseScope()
 {
-    tokenList.startTransaction();
+    startTransaction();
 
     if ( !tokenList.eatToken(TokenType::BeginScope))
     {
-        tokenList.rollbackTransaction();
+        rollbackTransaction();
         return nullptr;
     }
 
@@ -423,24 +439,24 @@ ScopedCodeBlockNode* Parser::parseScope()
 
     if ( auto block = parseCodeBlock() )
     {
-        graph->connect(scope, block, RelationType::IS_PARENT_OF);
+        graph->connect(block, scope, RelationType::IS_CHILD_OF);
     }
 
     if ( !tokenList.eatToken(TokenType::EndScope))
     {
         graph->deleteNode(scope);
-        tokenList.rollbackTransaction();
+        rollbackTransaction();
         return nullptr;
     }
     scope->endScopeToken = tokenList.getEaten();
 
-    tokenList.commitTransaction();
+    commitTransaction();
     return scope;
 }
 
 CodeBlockNode* Parser::parseCodeBlock()
 {
-    tokenList.startTransaction();
+    startTransaction();
 
     auto block = graph->newCodeBlock();
 
@@ -450,15 +466,15 @@ CodeBlockNode* Parser::parseCodeBlock()
     {
         if ( InstructionNode* instruction = parseInstruction() )
         {
-            graph->connect(block, instruction, RelationType::IS_PARENT_OF);
+            graph->connect(instruction, block, RelationType::IS_CHILD_OF);
         }
         else if ( ScopedCodeBlockNode* scope = parseScope() )
         {
-            graph->connect(block, scope, RelationType::IS_PARENT_OF);
+            graph->connect(scope, block, RelationType::IS_CHILD_OF);
         }
         else if ( ConditionalStructNode* condStruct = parseConditionalStructure() )
         {
-            graph->connect(block, condStruct, RelationType::IS_PARENT_OF);
+            graph->connect(condStruct, block, RelationType::IS_CHILD_OF);
         }
         else
         {
@@ -469,12 +485,12 @@ CodeBlockNode* Parser::parseCodeBlock()
     if ( block->getChildren().empty() )
     {
         graph->deleteNode(block);
-        tokenList.rollbackTransaction();
+        rollbackTransaction();
         return nullptr;
     }
     else
     {
-        tokenList.commitTransaction();
+        commitTransaction();
         return block;
     }
 }
@@ -819,7 +835,7 @@ Member* Parser::parseFunctionCall()
         return nullptr;
     }
 
-    tokenList.startTransaction();
+    startTransaction();
 
     // Try to parse regular function: function(...)
     std::string identifier;
@@ -847,7 +863,7 @@ Member* Parser::parseFunctionCall()
         else
         {
             LOG_VERBOSE("Parser", "parse function call... " KO " abort, this is not a function.\n");
-            tokenList.rollbackTransaction();
+            rollbackTransaction();
             return nullptr;
         }
     }
@@ -876,7 +892,7 @@ Member* Parser::parseFunctionCall()
     if ( !tokenList.eatToken( TokenType::CloseBracket) )
     {
         LOG_VERBOSE("Parser", "parse function call... " KO " abort, close parenthesis expected. \n");
-        tokenList.rollbackTransaction();
+        rollbackTransaction();
         return nullptr;
     }
 
@@ -907,14 +923,14 @@ Member* Parser::parseFunctionCall()
             connectArg(argIndex);
         }
 
-        tokenList.commitTransaction();
+        commitTransaction();
         LOG_VERBOSE("Parser", "parse function call... " OK "\n");
 
         return node->get("result");
 
     }
 
-    tokenList.rollbackTransaction();
+    rollbackTransaction();
     LOG_VERBOSE("Parser", "parse function call... " KO "\n");
     return nullptr;
 }
@@ -928,7 +944,7 @@ ScopedCodeBlockNode *Parser::getCurrentScope()
 ConditionalStructNode * Parser::parseConditionalStructure()
 {
     LOG_VERBOSE("Parser", "try to parse IF{...} or IF{...}ELSE{...} ...\n");
-    tokenList.startTransaction();
+    startTransaction();
 
     auto condStruct = graph->newConditionalStructure();
 
@@ -943,15 +959,15 @@ ConditionalStructNode * Parser::parseConditionalStructure()
             graph->connect(condition, condStruct->get("condition") );
             if ( ScopedCodeBlockNode* scopeIf = parseScope() )
             {
-                graph->connect(condStruct, scopeIf, RelationType::IS_PARENT_OF);
+                graph->connect(scopeIf, condStruct, RelationType::IS_CHILD_OF);
 
                 if ( tokenList.eatToken(TokenType::KeywordElse))
                 {
                     condStruct->token_else = tokenList.getEaten();
                     if ( ScopedCodeBlockNode* scopeElse = parseScope() )
                     {
-                        graph->connect(condStruct, scopeElse, RelationType::IS_PARENT_OF);
-                        tokenList.commitTransaction();
+                        graph->connect(scopeElse, condStruct, RelationType::IS_CHILD_OF);
+                        commitTransaction();
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n");
                         return condStruct;
                     }
@@ -960,7 +976,7 @@ ConditionalStructNode * Parser::parseConditionalStructure()
                     graph->deleteNode(scopeIf);
 
                 } else {
-                    tokenList.commitTransaction();
+                    commitTransaction();
                     LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n");
                     return condStruct;
                 }
@@ -973,6 +989,6 @@ ConditionalStructNode * Parser::parseConditionalStructure()
     }
 
     graph->deleteNode(condStruct);
-    tokenList.rollbackTransaction();
+    rollbackTransaction();
     return nullptr;
 }

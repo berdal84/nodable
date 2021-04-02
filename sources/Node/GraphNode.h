@@ -20,10 +20,8 @@ namespace Nodable{
     class ConditionalStructNode;
 
     enum class RelationType: int {
-        IS_CHILD_OF       = 0,
-        IS_PARENT_OF      = 1,
-        IS_INPUT_OF       = 2,
-        IS_VALUE_OF       = 3
+        IS_CHILD_OF,
+        IS_INPUT_OF
     };
 
     typedef std::pair<const RelationType, std::pair<Node*, Node*>> Relation;
@@ -70,6 +68,7 @@ namespace Nodable{
         void                        arrangeNodeViews();
 
 		/* node factory */
+        ScopedCodeBlockNode*        newProgram();
 		CodeBlockNode*              newCodeBlock();
         InstructionNode*		    appendInstruction();
         InstructionNode*            newInstruction();
@@ -82,8 +81,8 @@ namespace Nodable{
         Node*                       newOperator(const Operator*);
 		Wire*                       newWire();
 		Node*                       newFunction(const Function* _proto);
-        ScopedCodeBlockNode*       newScopedCodeBlock();
-        ConditionalStructNode*     newConditionalStructure();
+        ScopedCodeBlockNode*        newScopedCodeBlock();
+        ConditionalStructNode*      newConditionalStructure();
 
         /** Connects two Member using a Wire (oriented edge)
          *  If _from is not owned, _to will digest it and nullptr is return.
@@ -129,6 +128,5 @@ namespace Nodable{
         MIRROR_PARENT(Node) // we only need to know parent
     )
 
-        ScopedCodeBlockNode *newProgram();
     };
 }
