@@ -8,6 +8,7 @@
 #include <algorithm>    // for std::find_if
 #include "NodeView.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <Settings.h>
 #include "InstructionNode.h"
 #include "Node/CodeBlockNode.h"
 #include "Node/ScopedCodeBlockNode.h"
@@ -16,6 +17,7 @@ using namespace Nodable;
 
 bool GraphNodeView::draw()
 {
+    Settings settings = Settings::GetCurrent();
     GraphNode* graph = getGraphNode();
     auto entities    = graph->getNodeRegistry();
 
@@ -120,7 +122,7 @@ bool GraphNodeView::draw()
                 ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
                                                       lineScreenPosEnd,
                                                       getColor(ColorType_BorderHighlights),
-                                                      connectorRadius * float(0.9));
+                                                      settings.ui.wire.bezier.thickness * float(0.9));
 
             }
 

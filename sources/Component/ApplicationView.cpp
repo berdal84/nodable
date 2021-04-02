@@ -1,5 +1,9 @@
 #include "ApplicationView.h"
+
+#include "Config.h"
 #include "Core/Texture.h"
+#include "Core/Settings.h"
+
 #include <imgui/backends/imgui_impl_sdl.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include "System.h"
@@ -7,7 +11,6 @@
 #include "NodeView.h"
 #include "File.h"
 #include "Log.h"
-#include "Config.h"
 #include "Component/FileView.h"
 #include "IconsFontAwesome5.h"
 
@@ -535,15 +538,20 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size
 
 void ApplicationView::drawPropertiesWindow()
 {
+    Settings& config = Settings::GetCurrent();
+
     ImGui::Text("Wires");
     ImGui::Indent();
 
-    ImGui::SliderFloat("thickness", &bezierThickness, 0.5f, 10.0f);
-    ImGui::SliderFloat("out roundness", &bezierCurveOutRoundness, 0.0f, 1.0f);
-    ImGui::SliderFloat("in roundness", &bezierCurveInRoundness, 0.0f, 1.0f);
-    ImGui::SliderFloat("connector radius", &connectorRadius, 1.0f, 10.0f);
-    ImGui::SliderFloat("node padding", &nodePadding, 1.0f, 20.0f);
-    ImGui::Checkbox("arrows", &displayArrows);
+    // wires
+    ImGui::SliderFloat("thickness", &config.ui.wire.bezier.thickness, 0.5f, 10.0f);
+    ImGui::SliderFloat("out roundness", &config.ui.wire.bezier.roundnessOut, 0.0f, 1.0f);
+    ImGui::SliderFloat("in roundness", &config.ui.wire.bezier.roundnessIn, 0.0f, 1.0f);
+    ImGui::Checkbox("arrows", &config.ui.wire.displayArrows);
+    // nodes
+    ImGui::SliderFloat("connector radius", &config.ui.nodes.connectorRadius, 1.0f, 10.0f);
+    ImGui::SliderFloat("node padding", &config.ui.nodes.padding, 1.0f, 20.0f);
+
 
     ImGui::Unindent();
 }
