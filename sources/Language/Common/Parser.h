@@ -118,11 +118,11 @@ namespace Nodable{
 		/** Parse a single instruction */
         InstructionNode* parseInstruction();
 
-        CodeBlockNode *parseCodeBlock();
+        CodeBlockNode* parseCodeBlock();
 
-        ScopedCodeBlockNode * parseConditionalStructure();
+        ConditionalStructNode* parseConditionalStructure();
 
-        CodeBlockNode *parseProgram();
+        CodeBlockNode* parseProgram();
 
 		/** Parse a Function call starting at current cursor position.
 		   Return the result as a Member or nullptr if parsing failed. */

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Node/ScopedCodeBlockNode.h" // base class
+#include "Node/CodeBlockNode.h" // base class
 
 namespace Nodable
 {
@@ -8,7 +8,7 @@ namespace Nodable
      * @brief Class to represent a conditional structure ( IF/ELSE )
      * TODO: add getter/setters for if/else scopes
      */
-    class ConditionalStructNode: public ScopedCodeBlockNode {
+    class ConditionalStructNode: public CodeBlockNode {
     public:
         ConditionalStructNode();
         ~ConditionalStructNode() = default;
@@ -27,7 +27,7 @@ namespace Nodable
     // reflect class using mirror
     MIRROR_CLASS(ConditionalStructNode)
     (
-        MIRROR_PARENT(ScopedCodeBlockNode)
+        MIRROR_PARENT(CodeBlockNode)
     )
     };
 }

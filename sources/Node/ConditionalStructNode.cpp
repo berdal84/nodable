@@ -4,6 +4,7 @@ using namespace Nodable;
 
 ConditionalStructNode::ConditionalStructNode()
     :
+    CodeBlockNode(),
     token_if(nullptr),
     token_else(nullptr)
 {
