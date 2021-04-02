@@ -262,13 +262,18 @@ std::string Serializer::serialize(const CodeBlockNode* _block) const
 
     for( auto& eachChild : _block->getChildren() )
     {
-        if ( eachChild->getClass() == InstructionNode::GetClass())
+        auto clss = eachChild->getClass();
+        if ( clss == InstructionNode::GetClass())
         {
             result.append( serialize(eachChild->as<InstructionNode>()) );
         }
-        else if ( eachChild->getClass()->isChildOf(ScopedCodeBlockNode::GetClass()))
+        else if ( clss == ScopedCodeBlockNode::GetClass())
         {
             result.append( serialize(eachChild->as<ScopedCodeBlockNode>()) );
+        }
+        else if ( clss == ConditionalStructNode::GetClass())
+        {
+            result.append( serialize(eachChild->as<ConditionalStructNode>()) );
         }
         else
         {

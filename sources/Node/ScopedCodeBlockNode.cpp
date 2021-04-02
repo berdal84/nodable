@@ -8,10 +8,16 @@
 
 using namespace Nodable;
 
-ScopedCodeBlockNode::~ScopedCodeBlockNode()
+ScopedCodeBlockNode::ScopedCodeBlockNode()
+        :
+        AbstractCodeBlockNode(),
+        beginScopeToken(nullptr),
+        endScopeToken(nullptr)
 {
-    clear();
+
 }
+
+ScopedCodeBlockNode::~ScopedCodeBlockNode(){}
 
 void ScopedCodeBlockNode::clear()
 {
@@ -91,14 +97,6 @@ InstructionNode *ScopedCodeBlockNode::getLastInstruction()
     }
 
     return nullptr;
-}
-
-ScopedCodeBlockNode::ScopedCodeBlockNode()
-    :
-    beginScopeToken(nullptr),
-    endScopeToken(nullptr)
-{
-
 }
 
 void ScopedCodeBlockNode::addVariable(VariableNode* _variableNode)

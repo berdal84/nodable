@@ -123,7 +123,7 @@ void GraphNode::registerNode(Node* _node)
 {
 	this->nodeRegistry.push_back(_node);
     _node->setParentGraph(this);
-
+    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->getLabel(), _node->getClass()->getName());
 }
 
 void GraphNode::unregisterNode(Node* _node)
@@ -387,8 +387,6 @@ CodeBlockNode *GraphNode::newCodeBlock()
 
 void GraphNode::deleteNode(Node* _node)
 {
-    unregisterNode(_node);
-
     // clear wires
     auto wires = _node->getWires();
     for (auto it = wires.rbegin(); it != wires.rend(); it++)
@@ -398,11 +396,14 @@ void GraphNode::deleteNode(Node* _node)
      }
 
     // remove from parent
-    if ( Node* parent = _node->getParent() )
+    Node* parent = _node->getParent();
+    if ( parent )
     {
         disconnect(parent, _node, RelationType::IS_PARENT_OF);
     }
 
+    // unregister and delete
+    unregisterNode(_node);
     delete _node;
 }
 
@@ -541,9 +542,6 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
     if(relation == relationRegistry.end())
         return;
 
-    // remove relation
-    relationRegistry.erase(relation);
-
     // disconnect effectively
     switch ( _relationType )
     {
@@ -553,8 +551,8 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
             break;
 
         case RelationType::IS_PARENT_OF:
-            _target->setParent(nullptr);
             _source->removeChild(_target);
+            _target->setParent(nullptr);
             break;
 
         case RelationType::IS_INPUT_OF:
@@ -565,6 +563,9 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
         default:
             NODABLE_ASSERT(false); // This connection type is not yet implemented
     }
+
+    // remove relation
+    relationRegistry.erase(relation);
 
     this->setDirty();
 }

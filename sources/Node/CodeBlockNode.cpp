@@ -3,10 +3,14 @@
 
 using namespace Nodable;
 
-CodeBlockNode::~CodeBlockNode()
+CodeBlockNode::CodeBlockNode()
+        :
+        AbstractCodeBlockNode()
 {
-    CodeBlockNode::clear();
+    this->setLabel("unnamed ScopedCodeBlockNode");
 }
+
+CodeBlockNode::~CodeBlockNode(){}
 
 void CodeBlockNode::clear()
 {
@@ -22,12 +26,4 @@ bool CodeBlockNode::hasInstructions() const
 InstructionNode* CodeBlockNode::getFirstInstruction() const
 {
     return children.front()->as<InstructionNode>();
-}
-
-
-CodeBlockNode::CodeBlockNode()
-    :
-    AbstractCodeBlockNode()
-{
-    this->setLabel("unnamed ScopedCodeBlockNode");
 }

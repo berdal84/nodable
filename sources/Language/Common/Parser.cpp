@@ -425,11 +425,6 @@ ScopedCodeBlockNode* Parser::parseScope()
     {
         graph->connect(scope, block, RelationType::IS_PARENT_OF);
     }
-//  else
-//  {
-//      empty scopes are allowed
-//  }
-
 
     if ( !tokenList.eatToken(TokenType::EndScope))
     {
@@ -453,9 +448,17 @@ CodeBlockNode* Parser::parseCodeBlock()
 
     while(tokenList.canEat() && !stop )
     {
-        if ( auto instruction = parseInstruction() )
+        if ( InstructionNode* instruction = parseInstruction() )
         {
             graph->connect(block, instruction, RelationType::IS_PARENT_OF);
+        }
+        else if ( ScopedCodeBlockNode* scope = parseScope() )
+        {
+            graph->connect(block, scope, RelationType::IS_PARENT_OF);
+        }
+        else if ( ConditionalStructNode* condStruct = parseConditionalStructure() )
+        {
+            graph->connect(block, condStruct, RelationType::IS_PARENT_OF);
         }
         else
         {
@@ -922,7 +925,7 @@ ScopedCodeBlockNode *Parser::getCurrentScope()
     return graph->getScope();
 }
 
-ScopedCodeBlockNode * Parser::parseConditionalStructure()
+ConditionalStructNode * Parser::parseConditionalStructure()
 {
     LOG_VERBOSE("Parser", "try to parse IF{...} or IF{...}ELSE{...} ...\n");
     tokenList.startTransaction();
