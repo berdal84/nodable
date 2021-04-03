@@ -68,6 +68,7 @@ namespace Nodable
 	        AlignOnBBoxTop,
 	        AlignOnBBoxLeft,
 	        MakeRowAndAlignOnBBoxTop,
+	        MakeRowAndAlignOnBBoxBottom,
 	        FollowWithChildren,
 	        Follow,
         };
@@ -76,8 +77,11 @@ namespace Nodable
 	    void apply(float _dt);
 	    void addSlave(NodeView*);
 	    void addMaster(NodeView*);
-	    ImVec2 offset;
-	private:
+        void addSlaves(const std::vector<NodeView *> &vector);
+        void addMasters(const std::vector<NodeView *> &vector);
+        ImVec2 offset;
+
+    private:
 	    Type type;
 
         std::vector<NodeView*> masters;
@@ -85,7 +89,7 @@ namespace Nodable
 
         static const float s_viewSpacing;
         static const float s_viewSpeed;
-	};
+    };
 
 	/**
 	 * This class implement a view for Nodes using ImGui.
@@ -296,7 +300,7 @@ namespace Nodable
 
         std::vector<NodeView *> getInputs();
 
-        bool hasOnlyASingleOutputVisible();
+        bool hasNoMoreThanASingleOutputVisible();
 
         std::vector<NodeView *> getOutputs();
     };

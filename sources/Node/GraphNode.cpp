@@ -101,22 +101,32 @@ UpdateResult GraphNode::update()
 	/*
 	    3 - Update all Nodes
     */
+	UpdateResult result;
 	if (this->scope)
     {
         NodeTraversal nodeTraversal;
-        auto result = nodeTraversal.update(this->scope);
-        if ( result == Result::Success )
+        if ( nodeTraversal.update(this->scope) == Result::Success )
         {
             if ( nodeTraversal.getStats().traversed.empty() )
             {
-                return UpdateResult::SuccessWithoutChanges;
+                result = UpdateResult::SuccessWithoutChanges;
+            } else {
+                nodeTraversal.logStats();
+                result = UpdateResult::Success;
             }
-            nodeTraversal.logStats();
-            return UpdateResult::Success;
         }
-        return UpdateResult::Failed;
+        else
+        {
+            result =  UpdateResult::Failed;
+        }
     }
-	return UpdateResult::Success;
+	else
+    {
+        result = UpdateResult::SuccessWithoutChanges;
+    }
+
+    this->setDirty(false);
+    return result;
 }
 
 void GraphNode::registerNode(Node* _node)
@@ -592,7 +602,7 @@ ScopedCodeBlockNode *GraphNode::newScopedCodeBlock()
     auto scopeNode = new ScopedCodeBlockNode();
     std::string label = ICON_FA_CODE_BRANCH " Scope";
     scopeNode->setLabel(label);
-    scopeNode->setShortLabel(ICON_FA_CODE_BRANCH "Sc.");
+    scopeNode->setShortLabel(ICON_FA_CODE_BRANCH " Scop.");
     scopeNode->addComponent(new NodeView());
     this->registerNode(scopeNode);
     return scopeNode;
@@ -601,9 +611,9 @@ ScopedCodeBlockNode *GraphNode::newScopedCodeBlock()
 ConditionalStructNode *GraphNode::newConditionalStructure()
 {
     auto scopeNode = new ConditionalStructNode();
-    std::string label = ICON_FA_QUESTION " IF";
+    std::string label = ICON_FA_QUESTION " Condition";
     scopeNode->setLabel(label);
-    scopeNode->setShortLabel(ICON_FA_QUESTION);
+    scopeNode->setShortLabel(ICON_FA_QUESTION" Cond.");
     scopeNode->addComponent(new NodeView());
     this->registerNode(scopeNode);
     return scopeNode;
