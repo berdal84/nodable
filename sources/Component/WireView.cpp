@@ -44,7 +44,8 @@ bool WireView::draw()
 		ImVec2 pos1 = targetView->getConnectorPosition(wire->getTarget(), Way_In);
 
         WireView::DrawVerticalWire(draw_list, pos0, pos1, getColor(ColorType_Fill), getColor(ColorType_Shadow),
-                                   settings.ui.wire.bezier.thickness);
+                                   settings.ui.wire.bezier.thickness,
+                                   settings.ui.wire.bezier.roundness);
 
         // dot at the output position
         draw_list->AddCircleFilled(pos0, settings.ui.nodes.connectorRadius, sourceView->getColor(ColorType_Fill));
@@ -74,18 +75,14 @@ void WireView::DrawVerticalWire(
         ImVec2 pos1,
         ImColor color,
         ImColor shadowColor,
-        float thickness)
+        float thickness,
+        float roundness)
 {
-    // TODO: use params for roundnessIn/Out
-    auto settings = Settings::GetCurrent();
-
     // Compute tangents
-    float dist = pos1.y - pos0.y;
-    float positiveDist = dist < 0.0f ? -dist : dist;
-    positiveDist = positiveDist < 200.0f ? 200.0f : positiveDist;
+    float dist = std::abs(pos1.y - pos0.y);
 
-    ImVec2 cp0(pos0.x , pos0.y + positiveDist * settings.ui.wire.bezier.roundnessOut);
-    ImVec2 cp1(pos1.x , pos1.y - positiveDist * settings.ui.wire.bezier.roundnessIn);
+    ImVec2 cp0(pos0.x , pos0.y + dist * roundness);
+    ImVec2 cp1(pos1.x , pos1.y - dist * roundness);
 
     // draw bezier curve
     ImVec2 shadowOffset(1.0f, 2.0f);
@@ -105,13 +102,12 @@ void WireView::DrawHorizontalWire(
         ImVec2 pos1,
         ImColor color,
         ImColor shadowColor,
-        float thickness)
+        float thickness,
+        float roundness)
 {
-    constexpr float roundness = 0.5f;
 
     // Compute tangents
-    float dist = std::abs(pos1.x - pos0.x);
-    dist = std::max(100.0f, dist);
+    float dist = std::max(std::abs(pos1.y - pos0.y), 200.0f);
 
     ImVec2 cp0(pos0.x + dist * roundness , pos0.y );
     ImVec2 cp1(pos1.x - dist * roundness , pos1.y );

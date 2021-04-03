@@ -20,7 +20,8 @@ namespace Nodable{
                 ImVec2 pos1,
                 ImColor color,
                 ImColor shadowColor,
-                float thickness);
+                float thickness = 1.0f,
+                float roundness = 0.5f);
 
         static void DrawHorizontalWire(
                 ImDrawList *draw_list,
@@ -28,6 +29,7 @@ namespace Nodable{
                 ImVec2 pos1,
                 ImColor color,
                 ImColor shadowColor,
-                float thickness);
+                float thickness = 1.0f,
+                float roundness = 0.5f);
     };
 }
