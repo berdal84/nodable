@@ -90,8 +90,7 @@ bool ApplicationView::init()
 	//io.WantCaptureMouse     = true;
 
 	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsClassic();
+    Settings settings = Settings::GetCurrent();
 
     /** Add a paragraph font */
     {
@@ -101,9 +100,9 @@ bool ApplicationView::init()
             config.OversampleV = 1;
 
             //io.Fonts->AddFontDefault();
-            auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
+            auto fontPath = application->getAssetPath(settings.ui.text.p.font).string();
             LOG_MESSAGE("ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
-            this->paragraphFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 20.0f, &config);
+            this->paragraphFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings.ui.text.p.size, &config);
         }
 
         // Add Icons my merging to previous (paragraphFont) font.
@@ -115,10 +114,10 @@ bool ApplicationView::init()
             config.OversampleV = 1;
             config.MergeMode = true;
             config.PixelSnapH = true;
-            config.GlyphMinAdvanceX = 20.0f; // monospace to fix text alignment in drop down menus.
+            config.GlyphMinAdvanceX = settings.ui.text.p.size; // monospace to fix text alignment in drop down menus.
             auto fontPath = application->getAssetPath("fa-solid-900.ttf").string();
             LOG_MESSAGE("ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
-            io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 20.0f, &config, icons_ranges);
+            io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings.ui.text.p.size, &config, icons_ranges);
         }
     }
 
@@ -129,74 +128,13 @@ bool ApplicationView::init()
         config.OversampleV    = 1;
 
         //io.Fonts->AddFontDefault();
-        auto fontPath = application->getAssetPath("CenturyGothic.ttf").string();
+        auto fontPath = application->getAssetPath(settings.ui.text.h1.font).string();
         LOG_MESSAGE( "ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
-        this->headingFont = io.Fonts->AddFontFromFileTTF( fontPath.c_str(), 25.0f, &config);
+        this->headingFont = io.Fonts->AddFontFromFileTTF( fontPath.c_str(), settings.ui.text.h1.size, &config);
     }
 
     // Configure ImGui Style
-    ImVec4* colors = ImGui::GetStyle().Colors;
-    colors[ImGuiCol_Text]                   = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-    colors[ImGuiCol_TextDisabled]           = ImVec4(0.21f, 0.21f, 0.21f, 1.00f);
-    colors[ImGuiCol_WindowBg]               = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-    colors[ImGuiCol_ChildBg]                = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
-    colors[ImGuiCol_PopupBg]                = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
-    colors[ImGuiCol_Border]                 = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
-    colors[ImGuiCol_BorderShadow]           = ImVec4(0.30f, 0.30f, 0.30f, 0.50f);
-    colors[ImGuiCol_FrameBg]                = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    colors[ImGuiCol_FrameBgHovered]         = ImVec4(0.90f, 0.80f, 0.80f, 1.00f);
-    colors[ImGuiCol_FrameBgActive]          = ImVec4(0.90f, 0.65f, 0.65f, 1.00f);
-    colors[ImGuiCol_TitleBg]                = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
-    colors[ImGuiCol_TitleBgActive]          = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
-    colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.49f, 0.63f, 0.69f, 1.00f);
-    colors[ImGuiCol_MenuBarBg]              = ImVec4(0.60f, 0.60f, 0.60f, 0.98f);
-    colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
-    colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.61f, 0.61f, 0.62f, 1.00f);
-    colors[ImGuiCol_ScrollbarGrabHovered]   = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
-    colors[ImGuiCol_ScrollbarGrabActive]    = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
-    colors[ImGuiCol_CheckMark]              = ImVec4(0.31f, 0.23f, 0.14f, 1.00f);
-    colors[ImGuiCol_SliderGrab]             = ImVec4(0.71f, 0.46f, 0.22f, 0.63f);
-    colors[ImGuiCol_SliderGrabActive]       = ImVec4(0.71f, 0.46f, 0.22f, 1.00f);
-    colors[ImGuiCol_Button]                 = ImVec4(0.50f, 0.50f, 0.50f, 0.63f);
-    colors[ImGuiCol_ButtonHovered]          = ImVec4(0.70f, 0.70f, 0.70f, 0.95f);
-    colors[ImGuiCol_ButtonActive]           = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
-    colors[ImGuiCol_Header]                 = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
-    colors[ImGuiCol_HeaderHovered]          = ImVec4(0.89f, 0.65f, 0.11f, 0.96f);
-    colors[ImGuiCol_HeaderActive]           = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    colors[ImGuiCol_Separator]              = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
-    colors[ImGuiCol_SeparatorHovered]       = ImVec4(0.71f, 0.71f, 0.71f, 0.78f);
-    colors[ImGuiCol_SeparatorActive]        = ImVec4(1.00f, 0.62f, 0.00f, 1.00f);
-    colors[ImGuiCol_ResizeGrip]             = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
-    colors[ImGuiCol_ResizeGripHovered]      = ImVec4(1.00f, 1.00f, 1.00f, 0.60f);
-    colors[ImGuiCol_ResizeGripActive]       = ImVec4(1.00f, 1.00f, 1.00f, 0.90f);
-    colors[ImGuiCol_Tab]                    = ImVec4(0.58f, 0.54f, 0.50f, 0.86f);
-    colors[ImGuiCol_TabHovered]             = ImVec4(1.00f, 0.79f, 0.45f, 1.00f);
-    colors[ImGuiCol_TabActive]              = ImVec4(1.00f, 0.73f, 0.25f, 1.00f);
-    colors[ImGuiCol_TabUnfocused]           = ImVec4(0.53f, 0.53f, 0.53f, 0.97f);
-    colors[ImGuiCol_TabUnfocusedActive]     = ImVec4(0.79f, 0.79f, 0.79f, 1.00f);
-    colors[ImGuiCol_DockingPreview]         = ImVec4(1.00f, 0.70f, 0.09f, 0.70f);
-    colors[ImGuiCol_DockingEmptyBg]         = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-    colors[ImGuiCol_PlotLines]              = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    colors[ImGuiCol_PlotLinesHovered]       = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-    colors[ImGuiCol_PlotHistogram]          = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-    colors[ImGuiCol_PlotHistogramHovered]   = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-    colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.00f, 0.00f, 1.00f, 0.35f);
-    colors[ImGuiCol_DragDropTarget]         = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
-    colors[ImGuiCol_NavHighlight]           = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-    colors[ImGuiCol_NavWindowingHighlight]  = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
-    colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
-    colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.20f, 0.20f, 0.20f, 0.55f);
-
     ImGuiStyle& style = ImGui::GetStyle();
-    style.WindowBorderSize   = 1.0f;
-    style.FrameBorderSize    = 1.0f;
-	style.FrameRounding      = 3.0f;
-    style.ChildRounding      = 3.0f;
-    style.WindowRounding     = 0.0f;
-	style.AntiAliasedFill    = true;
-	style.AntiAliasedLines   = true;
-    style.WindowPadding      = ImVec2(10.0f,10.0f);
-
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -343,7 +281,7 @@ bool ApplicationView::draw()
                ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
                ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace );
                ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
-               ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.2f, &dockspace_properties, NULL);
+               ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, Settings::GetCurrent().ui.layout.propertiesRatio, &dockspace_properties, NULL);
                ImGui::DockBuilderDockWindow("Global Props", dockspace_properties);
                ImGui::DockBuilderDockWindow("Properties", dockspace_properties);
                ImGui::DockBuilderDockWindow("File Info", dockspace_properties);
