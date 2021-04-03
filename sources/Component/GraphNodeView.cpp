@@ -324,27 +324,25 @@ void GraphNodeView::drawCodeFlow(AbstractCodeBlockNode* _node)
     // Draw a wire to link CodeBlock to each child
     if ( view->isVisible() )
     {
-//        for(auto& eachInstr: children )
-//        {
-//            // Draw a line
-//            ImVec2 start = _node->getComponent<NodeView>()->getScreenPos();
-//            ImVec2 end   = eachInstr->getComponent<NodeView>()->getScreenPos();
-//            ImColor color(255,255,255,64);
-//            ImColor shadowColor(0,0,0,64);
-//            WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, 5.0f);
-//        }
-
         if ( !children.empty())
         {
-            auto startView = _node->getComponent<NodeView>();
-            auto endView = children[0]->getComponent<NodeView>();
-            if ( startView->isVisible() && endView->isVisible() )
-                DrawCodeFlowLine(startView, endView);
+            {
+                auto endView = children[0]->getComponent<NodeView>();
+                if (endView->isVisible())
+                    DrawCodeFlowLine(view, endView);
+            }
+
+            if ( children.size() == 2 && _node->getClass() == mirror::GetClass<ConditionalStructNode>())
+            {
+                auto endView = children[1]->getComponent<NodeView>();
+                if ( endView->isVisible() )
+                    DrawCodeFlowLine(view, endView);
+            }
         }
     }
 
-    // Draw a wire between each child
-    if (children.size() >= 2 )
+    // Draw a wire between each child except for condition struct
+    if (children.size() >= 2 && _node->getClass() != mirror::GetClass<ConditionalStructNode>())
     {
         for(auto it = children.begin(); it < children.end() - 1; it++ )
         {
@@ -382,43 +380,36 @@ void GraphNodeView::updateViewConstraints()
         if ( auto eachView = _eachNode->getComponent<NodeView>() )
         {
             auto clss = _eachNode->getClass();
+            auto children = eachView->getChildren();
 
-            //     (1) CodeBlockNode must follow average position of each inner block
-            // AND (2) Each child must follow its previous
             if ( clss->isChildOf(mirror::GetClass<AbstractCodeBlockNode>()))
             {
-                // (1)
-//                ViewConstraint constraint(ViewConstraint::Type::AlignOnBBoxLeft);
-//                constraint.addSlave(eachView);
-//                for (auto instr : _eachNode->getChildren())
-//                {
-//                    if (auto instrView = instr->getComponent<NodeView>())
-//                    {
-//                        constraint.addMaster(instrView);
-//                    }
-//                }
-//                eachView->addConstraint(constraint);
-
-                // (2)
-                if ( _eachNode->getChildren().size() > 1 )
+                if ( children.size() > 1 && clss != mirror::GetClass<ConditionalStructNode>())
                 {
-                    for (size_t i = 1; i < _eachNode->getChildren().size(); i++)
+                    for (size_t i = 1; i < children.size(); i++)
                     {
-                        auto eachChildView = _eachNode->getChildren().at(i)->getComponent<NodeView>();
-                        auto previousView = _eachNode->getChildren().at(i - 1)->getComponent<NodeView>();
+                        auto eachChildView = children.at(i);
+                        auto previousView = children.at(i - 1);
 
                         ViewConstraint followConstr(ViewConstraint::Type::FollowWithChildren);
                         followConstr.addMaster(previousView);
                         followConstr.addSlave(eachChildView);
-//                        followConstr.offset = ImVec2(20.0f, 0);
                         eachChildView->addConstraint(followConstr);
                     }
                 }
 
-                if( !_eachNode->getChildren().empty() )
+                if( !children.empty() )
                 {
-                    if ( auto childView = _eachNode->getChildren()[0]->getComponent<NodeView>())
+                    if ( clss == mirror::GetClass<ConditionalStructNode>())
                     {
+                        ViewConstraint followConstr(ViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
+                        followConstr.addMaster(eachView);
+                        followConstr.addSlaves(children);
+                        eachView->addConstraint(followConstr);
+                    }
+                    else
+                    {
+                        auto childView = children[0];
                         ViewConstraint followConstr(ViewConstraint::Type::FollowWithChildren);
                         followConstr.addMaster(eachView);
                         followConstr.addSlave(childView);
@@ -433,14 +424,7 @@ void GraphNodeView::updateViewConstraints()
             {
                 ViewConstraint constraint(ViewConstraint::Type::AlignOnBBoxTop);
                 constraint.addSlave(eachView);
-
-                for (auto eachOutput : _eachNode->getOutputs())
-                {
-                    if (auto eachOutView = eachOutput->getComponent<NodeView>())
-                    {
-                        constraint.addMaster(eachOutView);
-                    }
-                }
+                constraint.addMasters(eachView->getOutputs());
                 eachView->addConstraint(constraint);
             }
 
@@ -449,13 +433,7 @@ void GraphNodeView::updateViewConstraints()
             {
                 ViewConstraint constraint(ViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
                 constraint.addMaster(eachView);
-                for (auto eachInput : _eachNode->getInputs())
-                {
-                    if (auto eachInputView = eachInput->getComponent<NodeView>())
-                    {
-                        constraint.addSlave(eachInputView);
-                    }
-                }
+                constraint.addSlaves(eachView->getInputs());
                 eachView->addConstraint(constraint);
             }
         }

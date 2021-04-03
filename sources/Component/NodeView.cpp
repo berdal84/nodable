@@ -1034,7 +1034,7 @@ void NodeView::setChildrenVisible(bool _visible, bool _recursive)
     }
 }
 
-bool NodeView::hasOnlyASingleOutputVisible()
+bool NodeView::hasNoMoreThanASingleOutputVisible()
 {
     int count = 0;
     for( auto eachChild : getOutputs() )
@@ -1050,7 +1050,7 @@ void NodeView::setInputsVisible(bool _visible, bool _recursive)
 
     for( auto eachChild : getInputs() )
     {
-        if( _visible || (getOutputs().empty() || eachChild->hasOnlyASingleOutputVisible()) )
+        if( _visible || (getOutputs().empty() || eachChild->hasNoMoreThanASingleOutputVisible()) )
         {
             if ( _recursive)
             {
@@ -1087,7 +1087,7 @@ void ViewConstraint::apply(float _dt) {
         case Type::AlignOnBBoxTop:
         {
             auto slave = slaves.at(0);
-            if( !slave->isPinned() && slave->isVisible())
+            if( !slave->isPinned() && slave->isVisible() && !slave->hasNoMoreThanASingleOutputVisible())
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
                 ImVec2 newPos(bbox.GetCenter());
@@ -1099,6 +1099,7 @@ void ViewConstraint::apply(float _dt) {
         }
 
         case Type::MakeRowAndAlignOnBBoxTop:
+        case Type::MakeRowAndAlignOnBBoxBottom:
         {
             auto inputIndex = 0;
 
@@ -1106,19 +1107,30 @@ void ViewConstraint::apply(float _dt) {
             auto cumulatedSize = 0.0f;
             auto sizeMax = 0.0f;
             for (auto eachSlave : slaves) {
-                if (!eachSlave->isPinned() && eachSlave->isVisible()) {
-                    auto sx = eachSlave->getSize().x;
+                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->hasNoMoreThanASingleOutputVisible()) {
+                    float sx;
+                    if ( type == Type::MakeRowAndAlignOnBBoxTop )
+                        sx = eachSlave->getSize().x;
+                    else
+                        sx = eachSlave->getRect(true).GetSize().x;
+
                     cumulatedSize += sx;
                     sizeMax = std::max(sizeMax, sx);
                 }
             }
 
-            auto posX = master->getPosition().x - cumulatedSize / 2.0f;
+            float posX;
+
+            if ( type == Type::MakeRowAndAlignOnBBoxTop)
+                posX = master->getPosition().x - cumulatedSize / 2.0f;
+            else
+                posX = master->getRect().GetBL().x;
+
 
             // TODO: remove this "hack"
-            auto clss = master->getOwner()->getClass();
-            if ( clss == mirror::GetClass<InstructionNode>() ||
-                 clss->isChildOf( mirror::GetClass<AbstractCodeBlockNode>()) )
+            auto masterClass = master->getOwner()->getClass();
+            if (masterClass == mirror::GetClass<InstructionNode>() ||
+                 ( masterClass == mirror::GetClass<ConditionalStructNode>() && type == Type::MakeRowAndAlignOnBBoxTop))
             {
                 posX += cumulatedSize / 2.0f + s_viewSpacing + master->getSize().x / 2.0f;
             }
@@ -1128,13 +1140,26 @@ void ViewConstraint::apply(float _dt) {
             for (auto eachSlave : slaves)
             {
                 // Contrain only unpinned node that have only a single output connection
-                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->getOwner()->getOutputs().size() <= 1) {
+                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->hasNoMoreThanASingleOutputVisible()) {
                     // Compute new position for this input view
                     ImVec2 eachDrivenNewPos = ImVec2(
                             posX + eachSlave->getSize().x / 2.0f,
-                            master->getPosition().y - s_viewSpacing - eachSlave->getSize().y / 2.0f - master->getSize().y / 2.0f
+                            master->getPosition().y
                     );
-                    posX += eachSlave->getSize().x + nodeSpacing;
+
+                    float verticalOffset = s_viewSpacing + eachSlave->getSize().y / 2.0f + master->getSize().y / 2.0f;
+                    if( type == MakeRowAndAlignOnBBoxTop )
+                    {
+                        posX += eachSlave->getSize().x + nodeSpacing;
+                        verticalOffset *= -1.0f;
+                    }
+                    else
+                    {
+                        float sx = eachSlave->getRect(true, true, true).GetSize().x;
+                        posX += sx + nodeSpacing;
+                    }
+                    eachDrivenNewPos.y += verticalOffset;
+
                     eachSlave->addForceToTranslateTo(eachDrivenNewPos + offset, _dt * s_viewSpeed, true);
                 }
                 inputIndex++;
@@ -1184,4 +1209,16 @@ void ViewConstraint::addSlave(NodeView *_subject) {
 void ViewConstraint::addMaster(NodeView *_subject) {
     NODABLE_ASSERT(_subject != nullptr);
     this->masters.push_back(_subject);
+}
+
+void ViewConstraint::addSlaves(const std::vector<NodeView *> &vector)
+{
+    for(auto each : vector)
+        addSlave(each);
+}
+
+void ViewConstraint::addMasters(const std::vector<NodeView *> &vector)
+{
+    for(auto each : vector)
+        addMaster(each);
 }
