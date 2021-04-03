@@ -545,8 +545,7 @@ void ApplicationView::drawPropertiesWindow()
 
     // wires
     ImGui::SliderFloat("thickness", &config.ui.wire.bezier.thickness, 0.5f, 10.0f);
-    ImGui::SliderFloat("out roundness", &config.ui.wire.bezier.roundnessOut, 0.0f, 1.0f);
-    ImGui::SliderFloat("in roundness", &config.ui.wire.bezier.roundnessIn, 0.0f, 1.0f);
+    ImGui::SliderFloat("roundness", &config.ui.wire.bezier.roundness, 0.0f, 1.0f);
     ImGui::Checkbox("arrows", &config.ui.wire.displayArrows);
     // nodes
     ImGui::SliderFloat("connector radius", &config.ui.nodes.connectorRadius, 1.0f, 10.0f);

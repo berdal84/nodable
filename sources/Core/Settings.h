@@ -7,8 +7,7 @@ namespace Nodable {
         struct {
             struct {
                 struct {
-                    float roundnessIn;
-                    float roundnessOut;
+                    float roundness;
                     float thickness;
                 } bezier;
                 bool displayArrows;

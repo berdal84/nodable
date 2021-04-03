@@ -13,9 +13,9 @@ Nodable::Settings &Nodable::Settings::GetCurrent()
         // nodes
         g_conf->ui.nodes.padding                = 6.0f;
         g_conf->ui.nodes.connectorRadius        = 5.0f;
+
         // wires
-        g_conf->ui.wire.bezier.roundnessIn      = 0.1f;
-        g_conf->ui.wire.bezier.roundnessOut     = 0.1f;
+        g_conf->ui.wire.bezier.roundness        = 0.5f;
         g_conf->ui.wire.bezier.thickness        = 2.0f;
         g_conf->ui.wire.displayArrows           = false;
     }
