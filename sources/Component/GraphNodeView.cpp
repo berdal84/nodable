@@ -422,7 +422,7 @@ void GraphNodeView::updateViewConstraints()
             // Each Node with more than 1 output needs to be aligned with the bbox top of output nodes
             if ( _eachNode->getOutputs().size() > 1 )
             {
-                ViewConstraint constraint(ViewConstraint::Type::AlignOnBBoxTop);
+                ViewConstraint constraint(ViewConstraint::Type::AlignOnBBoxTR);
                 constraint.addSlave(eachView);
                 constraint.addMasters(eachView->getOutputs());
                 eachView->addConstraint(constraint);
