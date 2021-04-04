@@ -11,11 +11,14 @@
 a = 5;
 b = 4;
 if ( a > b ) {
-  result = "a is greater than b";
+  result1 = "a > b";
 } else {
-  result = "a is lower or equal to b";
+  result2 = "a <= b";
 }
 
+if(false){ a=1; } else { b=7+5; }
+if(false){ a=1; } else if (true) { b=7+5; }
+if(false){ a=1; } else if (true) { b=7+5; } else { c = 5; }
 if(false){ a=1; b=5; { c=7+5; d=4; }}
 
 if( cond_a ){
