@@ -943,7 +943,7 @@ ScopedCodeBlockNode *Parser::getCurrentScope()
 
 ConditionalStructNode * Parser::parseConditionalStructure()
 {
-    LOG_VERBOSE("Parser", "try to parse IF{...} or IF{...}ELSE{...} ...\n");
+    LOG_VERBOSE("Parser", "try to parse conditional structure...\n");
     startTransaction();
 
     auto condStruct = graph->newConditionalStructure();
@@ -964,12 +964,20 @@ ConditionalStructNode * Parser::parseConditionalStructure()
                 if ( tokenList.eatToken(TokenType::KeywordElse))
                 {
                     condStruct->token_else = tokenList.getEaten();
+
                     if ( ScopedCodeBlockNode* scopeElse = parseScope() )
                     {
                         graph->connect(scopeElse, condStruct, RelationType::IS_CHILD_OF);
                         commitTransaction();
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n");
                         return condStruct;
+                    }
+                    else if ( ConditionalStructNode* elseIfCondStruct = parseConditionalStructure() )
+                    {
+						graph->connect(elseIfCondStruct, condStruct, RelationType::IS_CHILD_OF);
+						commitTransaction();
+						LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n");
+						return condStruct;
                     }
 
                     LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n");
