@@ -1,17 +1,16 @@
 #include "GraphNodeView.h"
-#include "Log.h"
-#include "Node.h"
-#include "GraphNode.h"
-#include "VariableNode.h"
-#include "Wire.h"
-#include "WireView.h"
-#include <algorithm>    // for std::find_if
-#include "NodeView.h"
+
+#include <algorithm>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include <Settings.h>
-#include "InstructionNode.h"
-#include "Node/CodeBlockNode.h"
-#include "Node/ScopedCodeBlockNode.h"
+
+#include "Core/Settings.h"
+#include "Core/Log.h"
+#include "Core/Wire.h"
+#include "Node/ProgramNode.h"
+#include "Node/GraphNode.h"
+#include "Node/VariableNode.h"
+#include "Node/InstructionNode.h"
+#include "Component/WireView.h"
 
 using namespace Nodable;
 
@@ -27,7 +26,7 @@ bool GraphNodeView::draw()
     /*
        CodeBlock
      */
-    ScopedCodeBlockNode* scope = graph->getScope();
+    ProgramNode* scope = graph->getProgram();
     if ( scope && !scope->isEmpty() )
     {
         drawCodeFlow(scope);
@@ -43,7 +42,7 @@ bool GraphNodeView::draw()
 		if (graph->hasInstructionNodes() )
 		{
             // Make sure result node is always visible
-			auto view = graph->getScope()->getFirstInstruction()->getComponent<NodeView>();
+			auto view = graph->getProgram()->getFirstInstruction()->getComponent<NodeView>();
 			auto rect = ImRect(ImVec2(0,0), ImGui::GetWindowSize());
 			rect.Max.y = 1000000000000.0f;
 			NodeView::ConstraintToRect(view, rect );
@@ -237,7 +236,7 @@ bool GraphNodeView::draw()
 		ImGui::Separator();
 		
 		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-			newNode = graph->newVariable("Variable", graph->getScope()); // new variable in global scope
+			newNode = graph->newVariable("Variable", graph->getProgram()); // new variable in global scope
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
         {

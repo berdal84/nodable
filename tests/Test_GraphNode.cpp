@@ -90,7 +90,7 @@ TEST( GraphNode, create_and_delete_relations)
     auto graph           = std::make_unique<GraphNode>(language.get());
 
     EXPECT_EQ(graph->getRelationRegistry().size(), 0);
-    Node* n1 = graph->newVariable("unit test", graph->getScope());
+    Node* n1 = graph->newVariable("unit test", graph->getProgram());
     EXPECT_EQ(graph->getRelationRegistry().size(), 0);
     Node* n2 = graph->newNumber();
 

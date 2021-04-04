@@ -9,6 +9,7 @@
 
 // Nodable
 #include "Nodable.h" /* Forward declarations and defines */
+#include "VM.h"
 #include <Node/Node.h>
 #include <Component/History.h>
 #include <Core/File.h>
@@ -139,5 +140,9 @@ namespace Nodable
 		MIRROR_CLASS(Application)();
 
         void closeFile(size_t _fileIndex);
+
+        void runSelection();
+
+        VM vm;
     };
 }

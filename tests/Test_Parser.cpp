@@ -27,7 +27,7 @@ bool Parser_Test(
     auto expectedMember = new Member(nullptr);
     expectedMember->set(_expectedValue);
 
-    if ( auto scope = graph->getScope())
+    if ( auto scope = graph->getProgram())
     {
         auto lastInstruction = scope->getLastInstruction();
 
@@ -57,7 +57,7 @@ std::string ParseUpdateSerialize(
 
     Serializer* serializer = _language->getSerializer();
 
-    auto resultExpression = serializer->serialize( container.getScope() );
+    auto resultExpression = serializer->serialize(container.getProgram() );
 
     std::cout << resultExpression << std::endl;
 

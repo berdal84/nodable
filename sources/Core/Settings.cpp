@@ -38,7 +38,7 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
         g_conf->ui.wire.displayArrows           = false;
 
         // code flow
-        g_conf->ui.codeFlow.lineWidthMax        = 15.0f;
+        g_conf->ui.codeFlow.lineWidthMax        = 40.0f;
     }
     return g_conf;
 }

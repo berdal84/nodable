@@ -11,7 +11,7 @@
 #include <sstream>
 #include "Node/InstructionNode.h"
 #include "Node/CodeBlockNode.h"
-#include "Node/ScopedCodeBlockNode.h"
+#include "Node/ProgramNode.h"
 #include "Node/ConditionalStructNode.h"
 #include "Component/ComputeBinaryOperation.h"
 
@@ -939,7 +939,7 @@ Member* Parser::parseFunctionCall()
 ScopedCodeBlockNode *Parser::getCurrentScope()
 {
     // TODO: implement. For now return only the global scope
-    return graph->getScope();
+    return graph->getProgram();
 }
 
 ConditionalStructNode * Parser::parseConditionalStructure()

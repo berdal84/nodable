@@ -18,6 +18,7 @@ namespace Nodable{
     class InstructionNode;
     class CodeBlockNode;
     class ConditionalStructNode;
+    class ProgramNode;
 
     enum class RelationType: int {
         IS_CHILD_OF,
@@ -62,7 +63,7 @@ namespace Nodable{
 		inline std::vector<Wire*>&  getWireRegistry() {return wireRegistry;}
         inline std::multimap<Relation::first_type , Relation::second_type>& getRelationRegistry() {return relationRegistry;}
         [[nodiscard]] inline const Language*      getLanguage()const { return language; }
-        [[nodiscard]] inline ScopedCodeBlockNode* getScope(){ return scope;}
+        [[nodiscard]] inline ProgramNode* getProgram(){ return program; }
         [[nodiscard]] bool                        hasInstructionNodes();
 
 		/** This will arrange all NodeViews after a Graph modification. */
@@ -119,7 +120,7 @@ namespace Nodable{
 		std::vector<Wire*> wireRegistry;
 		std::multimap<Relation::first_type , Relation::second_type> relationRegistry;
 		const Language* language;
-		ScopedCodeBlockNode* scope;
+		ProgramNode* program;
 	public:
 		static ImVec2               ScopeViewLastKnownPosition;
 
