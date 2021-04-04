@@ -20,6 +20,7 @@
 #include "Node/CodeBlockNode.h"
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/ConditionalStructNode.h"
+#include "ProgramNode.h"
 
 using namespace Nodable;
 
@@ -35,9 +36,9 @@ void GraphNode::clear()
 
 	// Store the Result node position to restore it later
 	// TODO: handle multiple results
-	if ( scope && scope->hasInstructions() )
+	if (program && program->hasInstructions() )
 	{
-        auto view = scope->getComponent<NodeView>();
+        auto view = program->getComponent<NodeView>();
         GraphNode::ScopeViewLastKnownPosition = view->getPosition();
     }
 
@@ -56,7 +57,7 @@ void GraphNode::clear()
 	wireRegistry.clear();
     nodeRegistry.clear();
 	relationRegistry.clear();
-    scope = nullptr;
+    program = nullptr;
 
     if ( auto view = this->getComponent<GraphNodeView>())
     {
@@ -102,28 +103,28 @@ UpdateResult GraphNode::update()
 	    3 - Update all Nodes
     */
 	UpdateResult result;
-	if (this->scope)
-    {
-        NodeTraversal nodeTraversal;
-        if ( nodeTraversal.update(this->scope) == Result::Success )
-        {
-            if ( nodeTraversal.getStats().traversed.empty() )
-            {
-                result = UpdateResult::SuccessWithoutChanges;
-            } else {
-                nodeTraversal.logStats();
-                result = UpdateResult::Success;
-            }
-        }
-        else
-        {
-            result =  UpdateResult::Failed;
-        }
-    }
-	else
-    {
+//	if (this->program)
+//    {
+//        NodeTraversal nodeTraversal;
+//        if (nodeTraversal.update(this->program) == Result::Success )
+//        {
+//            if ( nodeTraversal.getStats().traversed.empty() )
+//            {
+//                result = UpdateResult::SuccessWithoutChanges;
+//            } else {
+//                nodeTraversal.logStats();
+//                result = UpdateResult::Success;
+//            }
+//        }
+//        else
+//        {
+//            result =  UpdateResult::Failed;
+//        }
+//    }
+//	else
+//    {
         result = UpdateResult::SuccessWithoutChanges;
-    }
+//    }
 
     this->setDirty(false);
     return result;
@@ -157,7 +158,7 @@ void GraphNode::unregisterNode(Node* _node)
 
 VariableNode* GraphNode::findVariable(std::string _name)
 {
-	return scope->findVariable(_name);
+	return program->findVariable(_name);
 }
 
 InstructionNode* GraphNode::newInstruction()
@@ -178,18 +179,18 @@ InstructionNode* GraphNode::appendInstruction()
     std::string eol = language->getSerializer()->serialize(TokenType::EndOfLine);
 
     // add to code block
-    if ( scope->getChildren().empty())
+    if ( program->getChildren().empty())
     {
-        connect( newCodeBlock(), scope,RelationType::IS_CHILD_OF);
+        connect(newCodeBlock(), program, RelationType::IS_CHILD_OF);
     }
     else
     {
         // insert an eol
-        InstructionNode* lastInstruction = scope->getLastInstruction();
+        InstructionNode* lastInstruction = program->getLastInstruction();
         lastInstruction->endOfInstructionToken->suffix += eol;
     }
 
-    auto block = scope->getLastCodeBlock()->as<CodeBlockNode>();
+    auto block = program->getLastCodeBlock()->as<CodeBlockNode>();
     auto newInstructionNode = newInstruction();
     this->connect(newInstructionNode, block,  RelationType::IS_CHILD_OF);
 
@@ -359,8 +360,8 @@ Wire* GraphNode::newWire()
 
 void GraphNode::arrangeNodeViews()
 {
-    if ( scope ) {
-        if (auto scopeView = scope->getComponent<NodeView>()) {
+    if ( program ) {
+        if (auto scopeView = program->getComponent<NodeView>()) {
             bool hasKnownPosition = GraphNode::ScopeViewLastKnownPosition.x != -1 &&
                                     GraphNode::ScopeViewLastKnownPosition.y != -1;
 
@@ -380,14 +381,14 @@ void GraphNode::arrangeNodeViews()
             }
         }
 
-        scope->getComponent<NodeView>()->arrangeRecursively(false);
+        program->getComponent<NodeView>()->arrangeRecursively(false);
     }
 }
 
 GraphNode::GraphNode(const Language* _language)
     :
-    language(_language),
-    scope(nullptr)
+        language(_language),
+        program(nullptr)
 {
 	this->clear();
 }
@@ -395,7 +396,7 @@ GraphNode::GraphNode(const Language* _language)
 CodeBlockNode *GraphNode::newCodeBlock()
 {
     auto codeBlockNode = new CodeBlockNode();
-    std::string label = ICON_FA_CODE " Block " + std::to_string(this->scope->getChildren().size());
+    std::string label = ICON_FA_CODE " Block " + std::to_string(this->program->getChildren().size());
     codeBlockNode->setLabel(label);
     codeBlockNode->setShortLabel(ICON_FA_CODE "Bl");
     codeBlockNode->addComponent(new NodeView);
@@ -435,7 +436,7 @@ void GraphNode::deleteNode(Node* _node)
 
 bool GraphNode::hasInstructionNodes()
 {
-    return scope && scope->hasInstructions();
+    return program && program->hasInstructions();
 }
 
 Wire *GraphNode::connect(Member* _from, Member* _to)
@@ -620,7 +621,11 @@ ConditionalStructNode *GraphNode::newConditionalStructure()
 }
 
 ScopedCodeBlockNode *GraphNode::newProgram() {
-    this->clear();
-    this->scope = this->newScopedCodeBlock();
-    return this->scope;
+    clear();
+    program = new ProgramNode();
+    program->setLabel(ICON_FA_FILE_CODE " Program");
+    program->setShortLabel(ICON_FA_FILE_CODE " Prog.");
+    program->addComponent(new NodeView());
+    registerNode(program);
+    return this->program;
 }

@@ -40,9 +40,11 @@ Result NodeTraversal::update(ScopedCodeBlockNode *_scope)
 Node* NodeTraversal::getNext(Node *_node)
 {
     initialize();
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::getNext %s \n", _node->getLabel() );
+    LOG_VERBOSE("NodeTraversal", "getNext( %s )...\n", _node->getLabel() );
     auto result = getNextRec(_node);
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::getNext done.\n");
+    if (result)
+        LOG_VERBOSE("NodeTraversal", "%s's next is %s\n", _node->getLabel(), result->getLabel());
+
     return result;
 }
 
@@ -94,7 +96,7 @@ Result NodeTraversal::setDirtyRecursively(Node* _node) {
 Result NodeTraversal::updateRecursively(Node* _node) {
 
     Result result;
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::UpdateEx\n");
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::UpdateEx %s\n", _node->getLabel());
 
     if( !stats.hasBeenTraversed(_node) )
     {
@@ -124,14 +126,11 @@ Result NodeTraversal::updateRecursively(Node* _node) {
             }
 
             _node->update();
-
-            for (auto& eachChild : _node->getChildren() )
-            {
-                updateRecursively(eachChild);
-            }
-
         }
+
         result = Result::Success;
+
+        _node->setDirty(false);
 
     } else {
         result = Result::Failure;
@@ -219,9 +218,20 @@ Node* NodeTraversal::getNextRec(Node* _node)
             result = *found;
     }
 
-    if ( result == nullptr )
+    if ( result == nullptr ) {
         if ( auto parent = _node->getParent() )
+        {
+            // set previous children traversed
+            auto it = parent->getChildren().begin();
+            while( *it != _node) {
+                stats.traversed.push_back(*it);
+                it++;
+            }
+
             result = getNextRec(parent);
+        }
+    }
+
 
     stats.traversed.push_back(result);
     return result;

@@ -146,3 +146,13 @@ void Application::closeFile(size_t _fileIndex)
             setCurrentFileWithIndex(currentFileIndex);
     }
 }
+
+void Application::runSelection()
+{
+    File* curr = getCurrentFile();
+    if (curr)
+    {
+        vm.load(curr->getInnerGraph()->getProgram());
+        vm.run();
+    }
+}

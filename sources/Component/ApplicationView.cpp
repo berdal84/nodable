@@ -684,6 +684,16 @@ void ApplicationView::drawMenuBar(
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Run"))
+        {
+            if (ImGui::MenuItem("Run selection"))
+            {
+               application->runSelection();
+            }
+
+            ImGui::EndMenu();
+        }
+
         if (ImGui::BeginMenu("An issue ?"))
         {
             if (ImGui::MenuItem("Report on Github.com"))

@@ -7,7 +7,7 @@
 #include "Component/View.h"
 #include "Component/NodeView.h"
 #include "Node/CodeBlockNode.h"
-#include "Node/ScopedCodeBlockNode.h"
+#include "Node/ProgramNode.h"
 #include "Language/Common/Parser.h"
 #include "Language/Common/LanguageLibrary.h"
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
@@ -142,7 +142,7 @@ UpdateResult File::update() {
         return UpdateResult::SuccessWithoutChanges;
     }
 
-	auto scope = getInnerGraph()->getScope();
+	auto scope = getInnerGraph()->getProgram();
 
 	if ( scope && !scope->getChildren().empty() )
     {
