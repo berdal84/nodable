@@ -61,13 +61,13 @@ namespace Nodable
 		 * @param _type
 		 * @param _color an ImColor (see ImGui)
 		 */
-		void         setColor(ColorType_ _type, ImColor _color );
+		void setColor(ColorType_ _type, ImVec4* _color );
 
 		/**
 		 * Get the color of a given color type.
 		 * @return an ImColor (see ImGui)
 		 */
-		ImColor      getColor(ColorType_);
+		ImColor getColor(ColorType_);
 
 
 		/**
@@ -139,7 +139,7 @@ namespace Nodable
 		/**
 		 * Color table
 		 */
-		ImColor colors[ColorType_COUNT];
+        std::map<ColorType_, ImVec4*> colors;
 
 	public:
 

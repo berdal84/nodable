@@ -15,8 +15,8 @@ bool WireView::draw()
 	NODABLE_ASSERT(wire != nullptr);
 
 	// Update fill color depending on current state 
-	ImColor stateColors[Wire::State_COUNT] = {ImColor(1.0f, 0.0f, 0.0f), ImColor(0.8f, 0.8f, 0.8f)};
-	setColor(ColorType_Fill, stateColors[wire->getState()]);
+	ImVec4 stateColors[Wire::State_COUNT] = {ImColor(1.0f, 0.0f, 0.0f), ImColor(0.8f, 0.8f, 0.8f)};
+	setColor(ColorType_Fill, &stateColors[wire->getState()]);
 
 	// draw the wire
 	auto source = wire->getSource();
@@ -44,25 +44,25 @@ bool WireView::draw()
 		ImVec2 pos1 = targetView->getConnectorPosition(wire->getTarget(), Way_In);
 
         WireView::DrawVerticalWire(draw_list, pos0, pos1, getColor(ColorType_Fill), getColor(ColorType_Shadow),
-                                   settings.ui.wire.bezier.thickness,
-                                   settings.ui.wire.bezier.roundness);
+                                   settings->ui.wire.bezier.thickness,
+                                   settings->ui.wire.bezier.roundness);
 
         // dot at the output position
-        draw_list->AddCircleFilled(pos0, settings.ui.nodes.connectorRadius, sourceView->getColor(ColorType_Fill));
-        draw_list->AddCircle      (pos0, settings.ui.nodes.connectorRadius, sourceView->getColor(ColorType_Border));
+        draw_list->AddCircleFilled(pos0, settings->ui.nodes.connectorRadius, sourceView->getColor(ColorType_Fill));
+        draw_list->AddCircle      (pos0, settings->ui.nodes.connectorRadius, sourceView->getColor(ColorType_Border));
 
         ImVec2 arrowSize(8.0f, 12.0f);
-        if (settings.ui.wire.displayArrows)
+        if (settings->ui.wire.displayArrows)
         {
             // Arrow at the input position
-            draw_list->AddLine(ImVec2(pos1.x - arrowSize.x, pos1.y + arrowSize.y/2.0f), pos1, getColor(ColorType_Fill), settings.ui.wire.bezier.thickness);
-            draw_list->AddLine(ImVec2(pos1.x - arrowSize.x, pos1.y - arrowSize.y/2.0f), pos1, getColor(ColorType_Fill), settings.ui.wire.bezier.thickness);
+            draw_list->AddLine(ImVec2(pos1.x - arrowSize.x, pos1.y + arrowSize.y/2.0f), pos1, getColor(ColorType_Fill), settings->ui.wire.bezier.thickness);
+            draw_list->AddLine(ImVec2(pos1.x - arrowSize.x, pos1.y - arrowSize.y/2.0f), pos1, getColor(ColorType_Fill), settings->ui.wire.bezier.thickness);
         }
         else
         {
             // dot at the input position
-            draw_list->AddCircleFilled(pos1, settings.ui.nodes.connectorRadius, targetView->getColor(ColorType_Fill));
-            draw_list->AddCircle      (pos1, settings.ui.nodes.connectorRadius, targetView->getColor(ColorType_Border));
+            draw_list->AddCircleFilled(pos1, settings->ui.nodes.connectorRadius, targetView->getColor(ColorType_Fill));
+            draw_list->AddCircle      (pos1, settings->ui.nodes.connectorRadius, targetView->getColor(ColorType_Border));
         }
     }
 
