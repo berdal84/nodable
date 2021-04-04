@@ -80,10 +80,10 @@ Result NodeTraversal::setDirtyRecursively(Node* _node) {
                 return Result::Failure;
         }
 
-        if( auto parent = _node->getParent())
-        {
-            setDirtyRecursively(parent);
-        }
+//        if( auto parent = _node->getParent())
+//        {
+//            setDirtyRecursively(parent);
+//        }
 
         result = Result::Success;
     } else {
