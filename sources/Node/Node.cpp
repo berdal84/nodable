@@ -17,7 +17,8 @@ Node::Node(std::string _label):
         parentGraph(nullptr),
         parent(nullptr),
         label(_label),
-        dirty(true)
+        dirty(true),
+        next(nullptr)
 {
 //    add("activator", Visibility::Always, Type::Boolean, Way::Way_In);
 }
@@ -259,4 +260,3 @@ void Node::setShortLabel(const char *_label) {
 const char* Node::getShortLabel() const {
     return this->shortLabel.c_str();
 }
-

@@ -52,16 +52,15 @@ namespace Nodable {
 
         bool hasAChildDirty(const Node *_node);
 
+        Node* getNext(Node *_node);
     private:
         /** initialize this node traversal to make it like a new instance */
         void initialize();
 
+        Node* getNextRec(Node *_node);
         Result setDirtyRecursively(Node* _node);
-
         Result updateRecursively(Node* _node);
-
         bool hasAChildDirtyRec(const Node* _node);
-
         Stats stats;
     };
 }

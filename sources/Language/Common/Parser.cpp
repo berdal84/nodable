@@ -462,6 +462,7 @@ CodeBlockNode* Parser::parseCodeBlock()
 
     bool stop = false;
 
+//    Node* previous = block;
     while(tokenList.canEat() && !stop )
     {
         if ( InstructionNode* instruction = parseInstruction() )

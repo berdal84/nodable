@@ -1,9 +1,12 @@
 #include "gtest/gtest.h"
 #include "Core/Log.h"
 
+using namespace Nodable;
+using Verbosity = Log::Verbosity;
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
-    Nodable::Log::SetVerbosityLevel("Parser", Nodable::Log::Verbosity::Verbose);
-    Nodable::Log::SetVerbosityLevel("GraphNode", Nodable::Log::Verbosity::Verbose);
+//    Log::SetVerbosityLevel("Parser", Verbosity::Verbose);
+//    Log::SetVerbosityLevel("GraphNode", Verbosity::Verbose);
     return RUN_ALL_TESTS();
 }
