@@ -21,7 +21,8 @@ namespace Nodable{
 
     enum class RelationType: int {
         IS_CHILD_OF,
-        IS_INPUT_OF
+        IS_INPUT_OF,
+        IS_NEXT_OF
     };
 
     typedef std::pair<const RelationType, std::pair<Node*, Node*>> Relation;

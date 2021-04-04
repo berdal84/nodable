@@ -1,8 +1,12 @@
 #include "NodeTraversal.h"
-#include "Wire.h"
-#include "Log.h"
+
 #include <algorithm>
+
+#include "Core/Wire.h"
+#include "Core/Log.h"
 #include "Node/ScopedCodeBlockNode.h"
+#include "Node/InstructionNode.h"
+#include "Node/ConditionalStructNode.h"
 
 using namespace Nodable;
 
@@ -30,6 +34,15 @@ Result NodeTraversal::update(ScopedCodeBlockNode *_scope)
     LOG_VERBOSE("NodeTraversal", "NodeTraversal::update %s \n", _scope->getLabel() );
     auto result = updateRecursively(_scope);
     LOG_VERBOSE("NodeTraversal", "NodeTraversal::update done.\n");
+    return result;
+}
+
+Node* NodeTraversal::getNext(Node *_node)
+{
+    initialize();
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::getNext %s \n", _node->getLabel() );
+    auto result = getNextRec(_node);
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::getNext done.\n");
     return result;
 }
 
@@ -170,4 +183,46 @@ bool NodeTraversal::hasAChildDirtyRec(const Node *_node)
 bool Stats::hasBeenTraversed(const Node* _node) const
 {
     return  std::find( traversed.cbegin(), traversed.cend(), _node ) != traversed.cend();
+}
+
+Node* NodeTraversal::getNextRec(Node* _node)
+{
+    NODABLE_ASSERT(!stats.hasBeenTraversed(_node));
+    stats.traversed.push_back(_node);
+
+    /*
+     * Get the next Node from an execution point of view.
+     */
+    Node* result  = nullptr;
+    auto clss     = _node->getClass();
+    auto children = _node->getChildren();
+
+    if ( clss == mirror::GetClass<ConditionalStructNode>())
+    {
+       /*
+        * Get the branch depending on condition
+        */
+       auto next = _node->getNext(); // is virtual
+       if ( !stats.hasBeenTraversed(next) )
+           result = next;
+    }
+    else if ( !children.empty() )//if ( clss->isChildOf( mirror::GetClass<AbstractCodeBlockNode>() ) )
+    {
+        /*
+         * Get the first not already traversed child
+         */
+        auto notAlreadyTraversed = [&](auto each )-> bool {
+            return !stats.hasBeenTraversed(each);
+        };
+        auto found = std::find_if(children.begin(), children.end(), notAlreadyTraversed);
+        if ( found != children.end())
+            result = *found;
+    }
+
+    if ( result == nullptr )
+        if ( auto parent = _node->getParent() )
+            result = getNextRec(parent);
+
+    stats.traversed.push_back(result);
+    return result;
 }

@@ -12,15 +12,11 @@ namespace Nodable
     public:
         ConditionalStructNode();
         ~ConditionalStructNode() = default;
-        [[nodiscard]] Member* getCondition()const
-        {
-            return get("condition");
-        }
-
-        void setCondition(Member* _value)
-        {
-            get("condition")->set(_value);
-        };
+        inline Member* getCondition()const { return get("condition"); }
+        inline void setCondition(Member* _value){ get("condition")->set(_value);};
+        virtual AbstractCodeBlockNode* getNext();
+        AbstractCodeBlockNode*         getBranchTrue();
+        AbstractCodeBlockNode*         getBranchFalse();
         Token* token_if;
         Token* token_else;
 
@@ -29,5 +25,6 @@ namespace Nodable
     (
         MIRROR_PARENT(CodeBlockNode)
     )
+
     };
 }

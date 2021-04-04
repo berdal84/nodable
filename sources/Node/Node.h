@@ -66,6 +66,8 @@ namespace Nodable{
         void removeOutput(Node *_node);
         std::vector<Node*>& getInputs();
         std::vector<Node*>& getOutputs();
+        void setNext(Node* _node) { this->next = _node; };
+        virtual Node* getNext() { return this->next; }
 
 		/**
 		 * Get the label of this Node
@@ -215,9 +217,11 @@ namespace Nodable{
 
 	protected:
 		Components components;
-
         /** The parent Node from a hierarchy point of view (parent is not owner) */
         Node* parent;
+        /** Next node in execution point of view */
+        Node* next;
+        /** Children from a hierarchical point of view */
         std::vector<Node*> children;
     private:
 		/**

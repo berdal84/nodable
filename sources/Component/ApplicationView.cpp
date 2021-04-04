@@ -157,9 +157,10 @@ bool ApplicationView::init()
 bool ApplicationView::draw()
 {
 
-    // Declare variables that can be modified my mouse and keyboard
+    // TODO: create an event list (fill, execute, clear)
     auto userWantsToDeleteSelectedNode(false);
     auto userWantsToArrangeSelectedNodeHierarchy(false);
+    auto userWantsToSelectedNextNode(false);
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -196,6 +197,10 @@ bool ApplicationView::draw()
 			else if (key == SDLK_a)
             {
                 userWantsToArrangeSelectedNodeHierarchy = true;
+            }
+            else if (key == SDLK_n)
+            {
+                userWantsToSelectedNextNode = true;
             }
 			else if (key == SDLK_F1 )
             {
@@ -368,6 +373,14 @@ bool ApplicationView::draw()
 			else if (userWantsToArrangeSelectedNodeHierarchy)
             {
 				selectedNodeView->arrangeRecursively();
+            }
+			else if (userWantsToSelectedNextNode)
+            {
+			    NodeTraversal traversal;
+			    Node* next = traversal.getNext(selectedNodeView->getOwner());
+			    if ( next )
+			        if( auto nextView = next->getComponent<NodeView>())
+                        NodeView::SetSelected(nextView);
             }
 		}
     }
