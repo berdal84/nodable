@@ -32,6 +32,6 @@ namespace Nodable{
 
         void drawCodeFlow(AbstractCodeBlockNode *_node);
 
-        static void DrawCodeFlowLine(NodeView *startView, NodeView *endView) ;
+        static void DrawCodeFlowLine(NodeView *startView, NodeView *endView, short _slotCount = 1, short _slotPosition = 0);
     };
 }

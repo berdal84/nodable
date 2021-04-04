@@ -17,7 +17,7 @@ using namespace Nodable;
 
 bool GraphNodeView::draw()
 {
-    Settings settings = Settings::GetCurrent();
+    Settings* settings = Settings::GetCurrent();
     GraphNode* graph = getGraphNode();
     auto entities    = graph->getNodeRegistry();
 
@@ -122,7 +122,7 @@ bool GraphNodeView::draw()
                 ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
                                                       lineScreenPosEnd,
                                                       getColor(ColorType_BorderHighlights),
-                                                      settings.ui.wire.bezier.thickness * float(0.9));
+                                                      settings->ui.wire.bezier.thickness * float(0.9));
 
             }
 
@@ -312,57 +312,74 @@ GraphNodeView::GraphNodeView(): NodeView() {}
 
 void GraphNodeView::drawCodeFlow(AbstractCodeBlockNode* _node)
 {
-    for (auto each : _node->getChildren())
-    {
-        if ( each->getClass()->isChildOf(mirror::GetClass<AbstractCodeBlockNode>()))
-            drawCodeFlow(each->as<AbstractCodeBlockNode>());
-    }
-
-    auto children = _node->getChildren();
     auto view = _node->getComponent<NodeView>();
-
-    // Draw a wire to link CodeBlock to each child
     if ( view->isVisible() )
     {
+
+        for (auto each : _node->getChildren())
+        {
+            if ( each->getClass()->isChildOf(mirror::GetClass<AbstractCodeBlockNode>()))
+                drawCodeFlow(each->as<AbstractCodeBlockNode>());
+        }
+
+        auto children = view->getChildren();
+
+        // Draw a line between node and its first child OR between all children if it is a conditional structure.
         if ( !children.empty())
         {
+            if ( _node->getClass() == mirror::GetClass<ConditionalStructNode>())
             {
-                auto endView = children[0]->getComponent<NodeView>();
+                short position(0);
+                for(auto eachChild : children)
+                {
+                    if ( eachChild->isVisible() ) {
+                        DrawCodeFlowLine(view, eachChild, (short)children.size(), position);
+                        position++;
+                    }
+                }
+            }
+            else
+            {
+                auto endView = children[0];
                 if (endView->isVisible())
                     DrawCodeFlowLine(view, endView);
             }
-
-            if ( children.size() == 2 && _node->getClass() == mirror::GetClass<ConditionalStructNode>())
-            {
-                auto endView = children[1]->getComponent<NodeView>();
-                if ( endView->isVisible() )
-                    DrawCodeFlowLine(view, endView);
-            }
         }
-    }
 
-    // Draw a wire between each child except for condition struct
-    if (children.size() >= 2 && _node->getClass() != mirror::GetClass<ConditionalStructNode>())
-    {
-        for(auto it = children.begin(); it < children.end() - 1; it++ )
+        // Draw a wire between each child except for condition struct
+        if (children.size() >= 2 && _node->getClass() != mirror::GetClass<ConditionalStructNode>())
         {
-            // Draw a line
-            auto startView = (*it)->getComponent<NodeView>();
-            auto endView = (*(it+1))->getComponent<NodeView>();
+            for(auto it = children.begin(); it < children.end() - 1; it++ )
+            {
+                // Draw a line
+                auto startView = (*it);
+                auto endView = (*(it+1));
 
-            if ( startView->isVisible() && endView->isVisible() )
-                DrawCodeFlowLine(startView, endView);
+                if ( startView->isVisible() && endView->isVisible() )
+                    DrawCodeFlowLine(startView, endView);
+            }
         }
     }
 }
 
-void GraphNodeView::DrawCodeFlowLine(NodeView *startView, NodeView *endView) {
-    ImVec2 start = startView->getScreenPos();
+void GraphNodeView::DrawCodeFlowLine(NodeView *startView, NodeView *endView, short _slotCount, short _slotPosition)
+{
+    float padding      = 2.0f;
+    float linePadding  = 5.0f;
+    float viewWidthMin = std::min(endView->getRect().GetSize().x, startView->getRect().GetSize().x);
+    float lineWidth    = std::min(Settings::GetCurrent()->ui.codeFlow.lineWidthMax, viewWidthMin / float(_slotCount) - (padding * 2.0f));
+
+    ImVec2 start     = startView->getScreenPos();
+    start.x          -= std::max(startView->getSize().x * 0.5f, lineWidth * float(_slotCount) * 0.5f);
+    start.x          += lineWidth * 0.5f + float(_slotPosition) * lineWidth;
+
     ImVec2 end   = endView->getScreenPos();
+    end.x -= endView->getSize().x * 0.5f;
+    end.x += lineWidth * 0.5f;
+
     ImColor color(200,255,200,50);
     ImColor shadowColor(0,0,0,64);
-    float width = std::min(endView->getRect().GetSize().x, startView->getRect().GetSize().x) * 0.5f;
-    WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, width);
+    WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, lineWidth - linePadding*2.0f, 0.0f);
 }
 
 void GraphNodeView::updateViewConstraints()

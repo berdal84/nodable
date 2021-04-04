@@ -8,15 +8,7 @@
 
 #include "Core/Application.h"
 #include "Core/Maths.h"
-#include "Core/Wire.h"
-#include "Core/Log.h"		     // for LOG_DEBUG(...)
-#include "Component/ComputeBase.h"
-#include "Language/Common/Serializer.h"
-#include "Node/AbstractCodeBlockNode.h"
-#include "Node/NodeTraversal.h"
-#include "Node/CodeBlockNode.h"
 #include "Node/ScopedCodeBlockNode.h"
-#include "Node/GraphNode.h"
 #include "Node/VariableNode.h"
 #include "Node/InstructionNode.h"
 
@@ -126,17 +118,18 @@ void NodeView::setOwner(Node* _node)
     }
 
     // Determine a color depending on node type
+    auto settings = Settings::GetCurrent();
     if (_node->hasComponent<ComputeBase>())
     {
-        setColor(ColorType_Fill, ImColor(0.7f, 0.7f, 0.9f)); // blue
+        setColor(ColorType_Fill, &settings->ui.nodes.functionColor); // blue
     }
     else if ( _node->getClass() == mirror::GetClass<VariableNode>() )
     {
-        setColor(ColorType_Fill, ImColor(0.9f, 0.9f, 0.7f)); // purple
+        setColor(ColorType_Fill, &settings->ui.nodes.variableColor); // purple
     }
     else
     {
-        setColor(ColorType_Fill, ImColor(0.7f, 0.9f, 0.7f)); // green
+        setColor(ColorType_Fill, &settings->ui.nodes.instructionColor); // green
     }
 
     Component::setOwner(_node);
@@ -290,7 +283,7 @@ bool NodeView::draw()
 		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, borderRadius);
 
 		// darken the background under the content
-		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings.ui.nodes.padding), itemRectMax, ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
+		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings->ui.nodes.padding), itemRectMax, ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
 
 		// Draw an additionnal blinking rectangle when selected
 		if (IsSelected(this))
@@ -306,7 +299,7 @@ bool NodeView::draw()
 	ImGui::InvisibleButton("##", size);
 	ImGui::SetItemAllowOverlap();
 	hovered = ImGui::IsItemHovered();
-	ImGui::SetCursorPos(cursorPositionBeforeContent + settings.ui.nodes.padding );
+	ImGui::SetCursorPos(cursorPositionBeforeContent + settings->ui.nodes.padding );
 
 	// Draw the window content
 	//------------------------
@@ -345,8 +338,8 @@ bool NodeView::draw()
 
 	ImGui::SameLine();
 
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings.ui.nodes.padding );
-	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings.ui.nodes.padding );
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui.nodes.padding );
+	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui.nodes.padding );
     ImGui::EndGroup();
 
     // Ends the Window
@@ -358,13 +351,13 @@ bool NodeView::draw()
 	// Draw input connectors
     for( auto& memberView : exposedInputsMembers )
     {
-        drawMemberConnectors(memberView->member, settings.ui.nodes.connectorRadius);
+        drawMemberConnectors(memberView->member, settings->ui.nodes.connectorRadius);
     }
 
 	// Draw out connectors
     for( auto& memberView : exposedOutputMembers )
     {
-        drawMemberConnectors(memberView->member, settings.ui.nodes.connectorRadius);
+        drawMemberConnectors(memberView->member, settings->ui.nodes.connectorRadius);
     }
 
     // Contextual menu (right click)

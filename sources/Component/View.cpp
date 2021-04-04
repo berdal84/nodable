@@ -1,5 +1,6 @@
 #include "View.h"
 #include "Log.h"
+#include "Settings.h"
 
 using namespace Nodable;
 
@@ -9,12 +10,14 @@ View::View():
 	visible(true),
 	visibleRect()
 {
+    Settings* settings = Settings::GetCurrent();
+
 	// set default colors
-	colors[ColorType_Fill]             = {1.0f, 1.0f, 1.0f, 1.0f};
-	colors[ColorType_Highlighted]      = {1.0f, 1.0f, 1.0f, 1.0f};
-	colors[ColorType_Border]           = {0.2f, 0.2f, 0.2f, 1.0f};
-	colors[ColorType_BorderHighlights] = {1.0f, 1.0f, 1.0f, 0.8f};
-	colors[ColorType_Shadow]           = {0.0f, 0.0f, 0.0f, 0.2f};
+	colors.insert({ColorType_Fill,              &settings->ui.nodes.fillColor});
+	colors.insert({ ColorType_Highlighted,      &settings->ui.nodes.highlightedColor});
+	colors.insert({ ColorType_Border,           &settings->ui.nodes.borderColor});
+	colors.insert({ ColorType_BorderHighlights, &settings->ui.nodes.borderHighlightedColor});
+	colors.insert({ ColorType_Shadow,           &settings->ui.nodes.shadowColor});
 }
 
 ImVec2 Nodable::View::CursorPosToScreenPos(ImVec2 _position)
@@ -23,14 +26,15 @@ ImVec2 Nodable::View::CursorPosToScreenPos(ImVec2 _position)
 	return _position + offset;
 }
 
-void View::setColor(ColorType_ _type, ImColor _color)
+void View::setColor(ColorType_ _type, ImVec4* _color)
 {
-	colors[_type] = _color;
+	colors.insert_or_assign(_type, _color);
 }
 
 ImColor View::getColor(ColorType_ _type)
 {
-	return colors[_type];
+    ImVec4 c = *colors[_type];
+	return  ImColor(c);
 }
 
 bool Nodable::View::drawAsChild(const char* _name, const ImVec2& _size, bool border, ImGuiWindowFlags flags)

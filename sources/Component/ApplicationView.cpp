@@ -45,6 +45,8 @@ ApplicationView::~ApplicationView()
 
 bool ApplicationView::init()
 {
+    Settings* settings = Settings::GetCurrent();
+
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
@@ -90,7 +92,7 @@ bool ApplicationView::init()
 	//io.WantCaptureMouse     = true;
 
 	// Setup Dear ImGui style
-    Settings settings = Settings::GetCurrent();
+    settings->setImGuiStyle(ImGui::GetStyle());
 
     /** Add a paragraph font */
     {
@@ -100,9 +102,9 @@ bool ApplicationView::init()
             config.OversampleV = 1;
 
             //io.Fonts->AddFontDefault();
-            auto fontPath = application->getAssetPath(settings.ui.text.p.font).string();
+            auto fontPath = application->getAssetPath(settings->ui.text.p.font).string();
             LOG_MESSAGE("ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
-            this->paragraphFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings.ui.text.p.size, &config);
+            this->paragraphFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui.text.p.size, &config);
         }
 
         // Add Icons my merging to previous (paragraphFont) font.
@@ -114,10 +116,10 @@ bool ApplicationView::init()
             config.OversampleV = 1;
             config.MergeMode = true;
             config.PixelSnapH = true;
-            config.GlyphMinAdvanceX = settings.ui.text.p.size; // monospace to fix text alignment in drop down menus.
+            config.GlyphMinAdvanceX = settings->ui.text.p.size; // monospace to fix text alignment in drop down menus.
             auto fontPath = application->getAssetPath("fa-solid-900.ttf").string();
             LOG_MESSAGE("ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
-            io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings.ui.text.p.size, &config, icons_ranges);
+            io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui.text.p.size, &config, icons_ranges);
         }
     }
 
@@ -128,9 +130,9 @@ bool ApplicationView::init()
         config.OversampleV    = 1;
 
         //io.Fonts->AddFontDefault();
-        auto fontPath = application->getAssetPath(settings.ui.text.h1.font).string();
+        auto fontPath = application->getAssetPath(settings->ui.text.h1.font).string();
         LOG_MESSAGE( "ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
-        this->headingFont = io.Fonts->AddFontFromFileTTF( fontPath.c_str(), settings.ui.text.h1.size, &config);
+        this->headingFont = io.Fonts->AddFontFromFileTTF( fontPath.c_str(), settings->ui.text.h1.size, &config);
     }
 
     // Configure ImGui Style
@@ -281,7 +283,7 @@ bool ApplicationView::draw()
                ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
                ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace );
                ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
-               ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, Settings::GetCurrent().ui.layout.propertiesRatio, &dockspace_properties, NULL);
+               ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, Settings::GetCurrent()->ui.layout.propertiesRatio, &dockspace_properties, NULL);
                ImGui::DockBuilderDockWindow("Global Props", dockspace_properties);
                ImGui::DockBuilderDockWindow("Properties", dockspace_properties);
                ImGui::DockBuilderDockWindow("File Info", dockspace_properties);
@@ -476,19 +478,31 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size
 
 void ApplicationView::drawPropertiesWindow()
 {
-    Settings& config = Settings::GetCurrent();
+    Settings* config = Settings::GetCurrent();
 
-    ImGui::Text("Wires");
+    ImGui::Text("Nodable Settings:");
     ImGui::Indent();
+        ImGui::Text("Wires:");
+        ImGui::Indent();
+            ImGui::SliderFloat("thickness", &config->ui.wire.bezier.thickness, 0.5f, 10.0f);
+            ImGui::SliderFloat("roundness", &config->ui.wire.bezier.roundness, 0.0f, 1.0f);
+            ImGui::Checkbox("arrows", &config->ui.wire.displayArrows);
+        ImGui::Unindent();
 
-    // wires
-    ImGui::SliderFloat("thickness", &config.ui.wire.bezier.thickness, 0.5f, 10.0f);
-    ImGui::SliderFloat("roundness", &config.ui.wire.bezier.roundness, 0.0f, 1.0f);
-    ImGui::Checkbox("arrows", &config.ui.wire.displayArrows);
-    // nodes
-    ImGui::SliderFloat("connector radius", &config.ui.nodes.connectorRadius, 1.0f, 10.0f);
-    ImGui::SliderFloat("node padding", &config.ui.nodes.padding, 1.0f, 20.0f);
+        ImGui::Text("Nodes:");
+        ImGui::Indent();
+            ImGui::SliderFloat("connector radius", &config->ui.nodes.connectorRadius, 1.0f, 10.0f);
+            ImGui::SliderFloat("padding", &config->ui.nodes.padding, 1.0f, 20.0f);
+            ImGui::ColorEdit3("variables color", &config->ui.nodes.variableColor.x);
+            ImGui::ColorEdit3("instruction color", &config->ui.nodes.instructionColor.x);
+            ImGui::ColorEdit3("function color", &config->ui.nodes.functionColor.x);
+        ImGui::Unindent();
 
+        // code flow
+        ImGui::Text("Code flow:");
+        ImGui::Indent();
+            ImGui::SliderFloat("line width min", &config->ui.codeFlow.lineWidthMax, 1.0f, 100.0f);
+        ImGui::Unindent();
 
     ImGui::Unindent();
 }
