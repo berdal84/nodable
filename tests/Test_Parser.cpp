@@ -225,9 +225,28 @@ TEST(Parser, Conditional_Structures_IF_ELSE )
             "bob   = 10;"
             "alice = 10;"
             "if(bob > alice){"
-            "   message = \"Bob is better than Alice.\";"
+            "   message = \"Bob is the best.\";"
             "}else{"
-            "   message = \"Bob is worse than Alice.\";"
+            "   message = \"Bob is not the best.\";"
+            "}";
+
+    EXPECT_EQ(ParseUpdateSerialize(std::string(program)), std::string(program));
+}
+
+TEST(Parser, Conditional_Structures_IF_ELSE_IF )
+{
+    EXPECT_EQ(ParseUpdateSerialize("if(false){a=10;}else if"), "");
+    EXPECT_EQ(ParseUpdateSerialize("if(false){a=10;}else if(false){a=9;}"), "if(false){a=10;}else if(false){a=9;}");
+
+    const char *program =
+            "bob   = 10;"
+            "alice = 10;"
+            "if (bob > alice){"
+            "   message = \"Bob is greater than Alice.\";"
+            "} else if (bob < alice ){"
+            "   message = \"Bob is lower than Alice.\";"
+            "} else {"
+            "   message = \"Bob and Alice are equals.\";"
             "}";
 
     EXPECT_EQ(ParseUpdateSerialize(std::string(program)), std::string(program));
