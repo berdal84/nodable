@@ -103,28 +103,28 @@ UpdateResult GraphNode::update()
 	    3 - Update all Nodes
     */
 	UpdateResult result;
-//	if (this->program)
-//    {
-//        NodeTraversal nodeTraversal;
-//        if (nodeTraversal.update(this->program) == Result::Success )
-//        {
-//            if ( nodeTraversal.getStats().traversed.empty() )
-//            {
-//                result = UpdateResult::SuccessWithoutChanges;
-//            } else {
-//                nodeTraversal.logStats();
-//                result = UpdateResult::Success;
-//            }
-//        }
-//        else
-//        {
-//            result =  UpdateResult::Failed;
-//        }
-//    }
-//	else
-//    {
+	if (this->program)
+    {
+        NodeTraversal nodeTraversal;
+        if (nodeTraversal.update(this->program) == Result::Success )
+        {
+            if ( nodeTraversal.getStats().traversed.size() <= 1)
+            {
+                result = UpdateResult::SuccessWithoutChanges;
+            } else {
+                nodeTraversal.logStats();
+                result = UpdateResult::Success;
+            }
+        }
+        else
+        {
+            result =  UpdateResult::Failed;
+        }
+    }
+	else
+    {
         result = UpdateResult::SuccessWithoutChanges;
-//    }
+    }
 
     this->setDirty(false);
     return result;
