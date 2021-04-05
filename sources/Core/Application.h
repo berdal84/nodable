@@ -115,6 +115,8 @@ namespace Nodable
 		 */
 		void setCurrentFileWithIndex(size_t _index);
 
+        inline VM& getVM() { return vm; }
+
 		/**
 		 * @deprecated
 		 *

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <NodeTraversal.h>
+
 namespace Nodable
 {
     // forward declarations
@@ -12,18 +14,22 @@ namespace Nodable
     public:
         VM();
         void load(ProgramNode*);
+        void unload();
         void run();
+        bool isProgramOver();
         void stop();
-//        void debug();
+        void debug();
+        inline bool isRunning(){ return m_isRunning; }
 //        void pause();
 //        void stop();
-//        void stepOver();
+        bool stepOver();
 //        void stepInto();
 //        void stepOut();
     private:
-        ProgramNode* program;
-
-        void unload();
+        NodeTraversal m_traversal;
+        ProgramNode* m_program;
+        Node* m_currentNode;
+        bool m_isRunning = false;
     };
 }
 

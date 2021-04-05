@@ -5,21 +5,22 @@
 
 using namespace Nodable;
 
-VM::VM():program(nullptr)
+VM::VM(): m_program(nullptr)
 {
 
 }
 
 void VM::load(Nodable::ProgramNode* _program)
 {
-    if ( this->program )
+    if ( this->m_program )
         unload();
-    this->program = _program;
+    this->m_program = _program;
 }
 
 void VM::run()
 {
-    NODABLE_ASSERT(this->program != nullptr);
+    NODABLE_ASSERT(this->m_program != nullptr);
+    m_isRunning = true;
 
     /*
      * Strategy:
@@ -31,24 +32,45 @@ void VM::run()
      */
 
     // temp poor update
-    NodeTraversal nodeTraversal;
-    std::stack<Node*> flow;
-    Node* cursor = program;
-    while( cursor != nullptr )
+    m_currentNode = m_program;
+    while(!isProgramOver())
     {
-        nodeTraversal.update(cursor);
-        cursor = nodeTraversal.getNext(cursor);
+        m_traversal.update(m_currentNode);
+        m_currentNode = m_traversal.getNext(m_currentNode);
     }
-
     stop();
 }
 
 void VM::stop()
 {
-
+    m_isRunning = false;
+    m_currentNode = nullptr;
 }
 
 void VM::unload() {
     // TODO: clear context
-    this->program = nullptr;
+    this->m_program = nullptr;
+}
+
+bool VM::stepOver()
+{
+    m_traversal.update(m_currentNode);
+    m_currentNode = m_traversal.getNext(m_currentNode);
+    bool over = isProgramOver();
+    if (over)
+        stop();
+    return !over;
+}
+
+bool VM::isProgramOver()
+{
+    return m_currentNode == nullptr;
+}
+
+void VM::debug()
+{
+    NODABLE_ASSERT(this->m_program != nullptr);
+    m_isRunning = true;
+    m_currentNode = m_program;
+    stepOver();
 }
