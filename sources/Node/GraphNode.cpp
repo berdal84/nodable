@@ -141,19 +141,6 @@ void GraphNode::unregisterNode(Node* _node)
 {
     auto found = std::find(nodeRegistry.begin(), nodeRegistry.end(), _node);
     nodeRegistry.erase(found);
-
-    // check if nothing if left
-    auto relationFound = std::find_if(
-            relationRegistry.begin(),
-            relationRegistry.end(),
-            [&_node](Relation& rel)->bool {
-                return rel.second.first == _node || rel.second.second == _node;
-            });
-
-    if ( relationFound != relationRegistry.end())
-    {
-        NODABLE_ASSERT(false); // Check if you remove all relations before to destroy
-    }
 }
 
 VariableNode* GraphNode::findVariable(std::string _name)
@@ -408,25 +395,24 @@ CodeBlockNode *GraphNode::newCodeBlock()
 
 void GraphNode::deleteNode(Node* _node)
 {
-    // disconnect wires
-    auto wires = _node->getWires();
-    for (auto it = wires.rbegin(); it != wires.rend(); it++)
+    // delete any relation with this node
+    for ( auto it = relationRegistry.begin(); it != relationRegistry.end();)
     {
-        unregisterWire(*it);
-        disconnect(*it);
-     }
-
-    // disconnect parent->node relation
-    Node* parent = _node->getParent();
-    if ( parent )
-    {
-        disconnect(_node, parent, RelationType::IS_CHILD_OF);
+        auto pair = (*it).second;
+        if( pair.second == _node || pair.first == _node)
+            it = relationRegistry.erase(it);
+        else
+            it++;
     }
 
-    // disconnect children->node relations
-    for(Node* eachChild : _node->getChildren() )
+    // delete any wire linked to this node
+    for ( auto it = wireRegistry.begin(); it != wireRegistry.end();)
     {
-        disconnect(eachChild, _node, RelationType::IS_CHILD_OF);
+        auto wire = (*it);
+        if( wire->getSource()->getOwner() == _node || wire->getTarget()->getOwner() == _node)
+            it = wireRegistry.erase(it);
+        else
+            it++;
     }
 
     // unregister and delete
@@ -497,6 +483,7 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
 
 void GraphNode::disconnect(Wire *_wire)
 {
+    unregisterWire(_wire);
     deleteWire(_wire);
 }
 

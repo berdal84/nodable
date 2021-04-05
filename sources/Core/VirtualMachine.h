@@ -30,7 +30,7 @@ namespace Nodable
     private:
         NodeTraversal m_traversal;
         ProgramNode* m_program;
-        Node* m_currentNode;
+        Node* m_currentNode{};
         bool m_isRunning;
         bool m_isDebugging;
     };

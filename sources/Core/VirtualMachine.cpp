@@ -1,14 +1,16 @@
 #include "VirtualMachine.h"
-#include "Nodable.h"
+
 #include "Node/ProgramNode.h"
-#include <stack>
+#include "Component/NodeView.h"
 
 using namespace Nodable;
 
-VirtualMachine::VirtualMachine():
-m_program(nullptr),
-m_isDebugging(false),
-m_isRunning(false)
+VirtualMachine::VirtualMachine()
+    :
+    m_program(nullptr),
+    m_isDebugging(false),
+    m_isRunning(false),
+    m_currentNode(nullptr)
 {
 
 }
@@ -62,7 +64,14 @@ bool VirtualMachine::stepOver()
     m_currentNode = m_traversal.getNext(m_currentNode);
     bool over = isProgramOver();
     if (over)
+    {
         stop();
+        NodeView::SetSelected(nullptr);
+    }
+    else if ( auto view = m_currentNode->getComponent<NodeView>() )
+    {
+        NodeView::SetSelected(view);
+    }
     return !over;
 }
 
