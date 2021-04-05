@@ -31,8 +31,8 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
         g_conf->ui.nodes.borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
         g_conf->ui.nodes.borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
         g_conf->ui.nodes.shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
-        g_conf->ui.nodes.spacing                = 15.0f;
-        g_conf->ui.nodes.speed                  = 20.0f;
+        g_conf->ui.nodes.spacing                = 10.0f;
+        g_conf->ui.nodes.speed                  = 40.0f;
 
         // wires
         g_conf->ui.wire.bezier.roundness        = 0.5f;
