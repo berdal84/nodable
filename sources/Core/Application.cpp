@@ -147,12 +147,51 @@ void Application::closeFile(size_t _fileIndex)
     }
 }
 
-void Application::runProgram()
+ProgramNode *Application::getCurrentFileProgram() const
 {
-    File* curr = getCurrentFile();
-    if (curr)
+    if ( auto file = getCurrentFile())
+        return file->getInnerGraph()->getProgram();
+    return nullptr;
+}
+
+void Application::runCurrentFileProgram()
+{
+    ProgramNode* program = getCurrentFileProgram();
+    if (program)
     {
-        vm.load(curr->getInnerGraph()->getProgram());
-        vm.run();
+        virtualMachine.load(program);
+        virtualMachine.run();
+    }
+}
+
+void Application::debugCurrentFileProgram()
+{
+    ProgramNode* program = getCurrentFileProgram();
+    if (program)
+    {
+        virtualMachine.load(program);
+        virtualMachine.debug();
+    }
+}
+
+void Application::stepOverCurrentFileProgram()
+{
+    virtualMachine.stepOver();
+}
+
+void Application::stopCurrentFileProgram()
+{
+    virtualMachine.stop();
+}
+
+void Application::resetCurrentFileProgram()
+{
+    if ( auto currFile = getCurrentFile() )
+    {
+        if( virtualMachine.isRunning())
+            virtualMachine.stop();
+
+        // TODO: restore graph state without parsing again like that:
+        currFile->evaluateSelectedExpression();
     }
 }

@@ -1,23 +1,26 @@
-#include "VM.h"
+#include "VirtualMachine.h"
 #include "Nodable.h"
 #include "Node/ProgramNode.h"
 #include <stack>
 
 using namespace Nodable;
 
-VM::VM(): m_program(nullptr)
+VirtualMachine::VirtualMachine():
+m_program(nullptr),
+m_isDebugging(false),
+m_isRunning(false)
 {
 
 }
 
-void VM::load(Nodable::ProgramNode* _program)
+void VirtualMachine::load(Nodable::ProgramNode* _program)
 {
     if ( this->m_program )
         unload();
     this->m_program = _program;
 }
 
-void VM::run()
+void VirtualMachine::run()
 {
     NODABLE_ASSERT(this->m_program != nullptr);
     m_isRunning = true;
@@ -41,18 +44,19 @@ void VM::run()
     stop();
 }
 
-void VM::stop()
+void VirtualMachine::stop()
 {
     m_isRunning = false;
+    m_isDebugging = false;
     m_currentNode = nullptr;
 }
 
-void VM::unload() {
+void VirtualMachine::unload() {
     // TODO: clear context
     this->m_program = nullptr;
 }
 
-bool VM::stepOver()
+bool VirtualMachine::stepOver()
 {
     m_traversal.update(m_currentNode);
     m_currentNode = m_traversal.getNext(m_currentNode);
@@ -62,15 +66,15 @@ bool VM::stepOver()
     return !over;
 }
 
-bool VM::isProgramOver()
+bool VirtualMachine::isProgramOver()
 {
     return m_currentNode == nullptr;
 }
 
-void VM::debug()
+void VirtualMachine::debug()
 {
     NODABLE_ASSERT(this->m_program != nullptr);
-    m_isRunning = true;
+    m_isDebugging = true;
     m_currentNode = m_program;
     stepOver();
 }

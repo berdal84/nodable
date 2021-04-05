@@ -508,19 +508,19 @@ void ApplicationView::drawPropertiesWindow()
 
         ImGui::Text("Nodes:");
         ImGui::Indent();
-            ImGui::SliderFloat("connector radius", &config->ui.nodes.connectorRadius, 1.0f, 10.0f);
-            ImGui::SliderFloat("padding", &config->ui.nodes.padding, 1.0f, 20.0f);
-            ImGui::SliderFloat("speed", &config->ui.nodes.speed, 0.0f, 100.0f);
-            ImGui::SliderFloat("spacing", &config->ui.nodes.spacing, 0.0f, 100.0f);
+            ImGui::SliderFloat("connector radius", &config->ui.node.connectorRadius, 1.0f, 10.0f);
+            ImGui::SliderFloat("padding", &config->ui.node.padding, 1.0f, 20.0f);
+            ImGui::SliderFloat("speed", &config->ui.node.speed, 0.0f, 100.0f);
+            ImGui::SliderFloat("spacing", &config->ui.node.spacing, 0.0f, 100.0f);
 
-            ImGui::ColorEdit3("variables color", &config->ui.nodes.variableColor.x);
-            ImGui::ColorEdit3("instruction color", &config->ui.nodes.instructionColor.x);
-            ImGui::ColorEdit3("function color", &config->ui.nodes.functionColor.x);
-            ImGui::ColorEdit3("shadow color", &config->ui.nodes.shadowColor.x);
-            ImGui::ColorEdit3("border color", &config->ui.nodes.borderColor.x);
-            ImGui::ColorEdit3("high. color", &config->ui.nodes.highlightedColor.x);
-            ImGui::ColorEdit3("border high. color", &config->ui.nodes.borderHighlightedColor.x);
-            ImGui::ColorEdit3("fill color", &config->ui.nodes.fillColor.x);
+            ImGui::ColorEdit3("variables color", &config->ui.node.variableColor.x);
+            ImGui::ColorEdit3("instruction color", &config->ui.node.instructionColor.x);
+            ImGui::ColorEdit3("function color", &config->ui.node.functionColor.x);
+            ImGui::ColorEdit3("shadow color", &config->ui.node.shadowColor.x);
+            ImGui::ColorEdit3("border color", &config->ui.node.borderColor.x);
+            ImGui::ColorEdit3("high. color", &config->ui.node.highlightedColor.x);
+            ImGui::ColorEdit3("border high. color", &config->ui.node.borderHighlightedColor.x);
+            ImGui::ColorEdit3("fill color", &config->ui.node.fillColor.x);
 
         ImGui::Unindent();
 
@@ -699,21 +699,32 @@ void ApplicationView::drawMenuBar(
 
         if (ImGui::BeginMenu("Run"))
         {
-            if (ImGui::MenuItem("Run all"))
+            auto vm = application->getVirtualMachine();
+
+            if (ImGui::MenuItem(ICON_FA_PLAY" Run") && vm.isStopped())
             {
-                application->runProgram();
+               application->runCurrentFileProgram();
             }
 
-            if (ImGui::MenuItem("Run step-by-step"))
+            if (ImGui::MenuItem(ICON_FA_BUG" Debug") && vm.isStopped())
             {
-//               application->debugProgram();
+               application->debugCurrentFileProgram();
             }
 
-            if (ImGui::MenuItem("Run next step"))
+            if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && vm.isDebugging())
             {
-//                application->debugProgram();
+                application->stepOverCurrentFileProgram();
             }
 
+            if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !vm.isStopped())
+            {
+                application->stopCurrentFileProgram();
+            }
+
+            if (ImGui::MenuItem(ICON_FA_UNDO " Reset"))
+            {
+                application->stopCurrentFileProgram();
+            }
             ImGui::EndMenu();
         }
 
@@ -875,38 +886,60 @@ void ApplicationView::drawBackground()
 
 void ApplicationView::drawToolBar()
 {
+    auto settings = Settings::GetCurrent();
+
     // small margin
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
 
-    ProgramNode* prog = application->getCurrentFile()->getInnerGraph()->getProgram();
-    VM& vm = application->getVM();
+    auto vm = application->getVirtualMachine();
 
+    ImGui::BeginGroup();
 
-    if ( ImGui::Button(ICON_FA_PLAY) && !vm.isRunning())
+    // run
+    bool isRunning = vm.isRunning();
+    if ( isRunning )
+        ImGui::PushStyleColor(ImGuiCol_Button, settings->ui.button.activeColor);
+
+    if ( ImGui::Button(ICON_FA_PLAY) && vm.isStopped())
     {
-        vm.load(prog);
-        vm.run();
+        application->runCurrentFileProgram();
+    }
+    if ( isRunning )
+        ImGui::PopStyleColor();
+    ImGui::SameLine();
+
+    // debug
+    bool isDebugging = vm.isDebugging();
+    if ( isDebugging )
+        ImGui::PushStyleColor(ImGuiCol_Button, settings->ui.button.activeColor);
+    if ( ImGui::Button(ICON_FA_BUG) && vm.isStopped())
+    {
+        application->debugCurrentFileProgram();
+    }
+    if ( isDebugging )
+        ImGui::PopStyleColor();
+    ImGui::SameLine();
+
+    // stepOver
+    if ( ImGui::Button(ICON_FA_ARROW_RIGHT) && vm.isDebugging())
+    {
+        application->stepOverCurrentFileProgram();
     }
     ImGui::SameLine();
 
-    if ( ImGui::Button(ICON_FA_BUG) && !vm.isRunning())
+    // stop
+    if ( ImGui::Button(ICON_FA_STOP) && !vm.isStopped())
     {
-        vm.load(prog);
-        vm.debug();
+        application->stopCurrentFileProgram();
     }
     ImGui::SameLine();
 
-    if ( ImGui::Button(ICON_FA_ARROW_RIGHT) && vm.isRunning())
-    {
-        vm.stepOver();
-    }
-    ImGui::SameLine();
-
+    // reset
     if ( ImGui::Button(ICON_FA_UNDO))
     {
-        vm.stop();
-        // TODO: restore graph state without parsing again like that:
-        application->getCurrentFile()->evaluateSelectedExpression();
+        application->resetCurrentFileProgram();
     }
+    ImGui::SameLine();
+    ImGui::EndGroup();
 
 }

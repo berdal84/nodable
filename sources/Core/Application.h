@@ -9,7 +9,7 @@
 
 // Nodable
 #include "Nodable.h" /* Forward declarations and defines */
-#include "VM.h"
+#include "VirtualMachine.h"
 #include <Node/Node.h>
 #include <Component/History.h>
 #include <Core/File.h>
@@ -83,6 +83,7 @@ namespace Nodable
 		 * Does nothing if not file is open.
 		 */
 		void closeCurrentFile();
+        void closeFile(size_t _fileIndex);
 
 		/**
 		 * Get the current file.
@@ -115,7 +116,16 @@ namespace Nodable
 		 */
 		void setCurrentFileWithIndex(size_t _index);
 
-        inline VM& getVM() { return vm; }
+        inline VirtualMachine& getVirtualMachine() { return virtualMachine; }
+
+        ProgramNode *getCurrentFileProgram() const;
+
+        // shortcuts to virtual machine:
+        void runCurrentFileProgram();
+        void debugCurrentFileProgram();
+        void stepOverCurrentFileProgram();
+        void stopCurrentFileProgram();
+        void resetCurrentFileProgram();
 
 		/**
 		 * @deprecated
@@ -138,13 +148,11 @@ namespace Nodable
 		/** The asset base folder path */
 		const std::filesystem::path assetsFolderPath;
 
-		/** Reflection using mirror*/
-		MIRROR_CLASS(Application)();
+        /** A minimalist "virtual machine" to run instructions */
+        VirtualMachine virtualMachine;
 
-        void closeFile(size_t _fileIndex);
+    // Reflect class using mirror
+    MIRROR_CLASS(Application)();
 
-        void runProgram();
-
-        VM vm;
     };
 }

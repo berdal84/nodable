@@ -5,7 +5,7 @@ namespace Nodable
 {
     /**
      * Class to define a program inside Nodable.
-     * A program can be loaded by the Nodable::VM
+     * A program can be loaded by the Nodable::VirtualMachine
      */
     class ProgramNode: public ScopedCodeBlockNode
     {
