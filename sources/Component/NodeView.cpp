@@ -118,15 +118,15 @@ void NodeView::setOwner(Node* _node)
     auto settings = Settings::GetCurrent();
     if (_node->hasComponent<ComputeBase>())
     {
-        setColor(ColorType_Fill, &settings->ui.nodes.functionColor); // blue
+        setColor(ColorType_Fill, &settings->ui.node.functionColor); // blue
     }
     else if ( _node->getClass() == mirror::GetClass<VariableNode>() )
     {
-        setColor(ColorType_Fill, &settings->ui.nodes.variableColor); // purple
+        setColor(ColorType_Fill, &settings->ui.node.variableColor); // purple
     }
     else
     {
-        setColor(ColorType_Fill, &settings->ui.nodes.instructionColor); // green
+        setColor(ColorType_Fill, &settings->ui.node.instructionColor); // green
     }
 
     Component::setOwner(_node);
@@ -280,7 +280,7 @@ bool NodeView::draw()
 		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, borderRadius);
 
 		// darken the background under the content
-		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings->ui.nodes.padding), itemRectMax, ImColor(0.0f,0.0f,0.0f, 0.1f), borderRadius, 4);
+		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings->ui.node.padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), borderRadius, 4);
 
 		// Draw an additionnal blinking rectangle when selected
 		if (IsSelected(this))
@@ -296,7 +296,7 @@ bool NodeView::draw()
 	ImGui::InvisibleButton("##", size);
 	ImGui::SetItemAllowOverlap();
 	hovered = ImGui::IsItemHovered();
-	ImGui::SetCursorPos(cursorPositionBeforeContent + settings->ui.nodes.padding );
+	ImGui::SetCursorPos(cursorPositionBeforeContent + settings->ui.node.padding );
 
 	// Draw the window content
 	//------------------------
@@ -335,8 +335,8 @@ bool NodeView::draw()
 
 	ImGui::SameLine();
 
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui.nodes.padding );
-	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui.nodes.padding );
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui.node.padding );
+	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui.node.padding );
     ImGui::EndGroup();
 
     // Ends the Window
@@ -348,13 +348,13 @@ bool NodeView::draw()
 	// Draw input connectors
     for( auto& memberView : exposedInputsMembers )
     {
-        drawMemberConnectors(memberView->member, settings->ui.nodes.connectorRadius);
+        drawMemberConnectors(memberView->member, settings->ui.node.connectorRadius);
     }
 
 	// Draw out connectors
     for( auto& memberView : exposedOutputMembers )
     {
-        drawMemberConnectors(memberView->member, settings->ui.nodes.connectorRadius);
+        drawMemberConnectors(memberView->member, settings->ui.node.connectorRadius);
     }
 
     // Contextual menu (right click)
@@ -1069,8 +1069,8 @@ void ViewConstraint::apply(float _dt) {
             if( !slave->isPinned() && slave->isVisible())
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
-                ImVec2 newPos(bbox.GetCenter() - ImVec2(bbox.GetSize().x * 0.5 + settings->ui.nodes.spacing + slave->getRect().GetSize().x * 0.5, 0 ));
-                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.nodes.speed);
+                ImVec2 newPos(bbox.GetCenter() - ImVec2(bbox.GetSize().x * 0.5 + settings->ui.node.spacing + slave->getRect().GetSize().x * 0.5, 0 ));
+                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed);
             }
 
             break;
@@ -1083,9 +1083,9 @@ void ViewConstraint::apply(float _dt) {
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
                 ImVec2 newPos(bbox.GetTR());
-                newPos.y -= settings->ui.nodes.spacing + slave->getSize().y / 2.0f;
-                newPos.x += settings->ui.nodes.spacing + slave->getSize().x / 2.0f;
-                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.nodes.speed);
+                newPos.y -= settings->ui.node.spacing + slave->getSize().y / 2.0f;
+                newPos.x += settings->ui.node.spacing + slave->getSize().x / 2.0f;
+                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed);
             }
 
             break;
@@ -1125,7 +1125,7 @@ void ViewConstraint::apply(float _dt) {
             if (masterClass == mirror::GetClass<InstructionNode>() ||
                  ( masterClass == mirror::GetClass<ConditionalStructNode>() && type == Type::MakeRowAndAlignOnBBoxTop))
             {
-                posX += cumulatedSize / 2.0f + settings->ui.nodes.spacing + master->getSize().x / 2.0f;
+                posX += cumulatedSize / 2.0f + settings->ui.node.spacing + master->getSize().x / 2.0f;
             }
 
             float nodeSpacing(10);
@@ -1140,7 +1140,7 @@ void ViewConstraint::apply(float _dt) {
                             master->getPosition().y
                     );
 
-                    float verticalOffset = settings->ui.nodes.spacing + eachSlave->getSize().y / 2.0f + master->getSize().y / 2.0f;
+                    float verticalOffset = settings->ui.node.spacing + eachSlave->getSize().y / 2.0f + master->getSize().y / 2.0f;
                     if( type == MakeRowAndAlignOnBBoxTop )
                     {
                         posX += eachSlave->getSize().x + nodeSpacing;
@@ -1153,7 +1153,7 @@ void ViewConstraint::apply(float _dt) {
                     }
                     eachDrivenNewPos.y += verticalOffset;
 
-                    eachSlave->addForceToTranslateTo(eachDrivenNewPos + offset, _dt * settings->ui.nodes.speed, true);
+                    eachSlave->addForceToTranslateTo(eachDrivenNewPos + offset, _dt * settings->ui.node.speed, true);
                 }
                 inputIndex++;
             }
@@ -1169,10 +1169,10 @@ void ViewConstraint::apply(float _dt) {
                 auto masterRect = master->getRect(false, true, true);
                 auto slaveRect = slave->getRect(true,true, true);
                 ImVec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
-                ImVec2 newPos(master->getPosition().x, slave->getPosition().y + slaveMasterOffset.y + settings->ui.nodes.spacing);
+                ImVec2 newPos(master->getPosition().x, slave->getPosition().y + slaveMasterOffset.y + settings->ui.node.spacing);
 
                 // apply
-                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.nodes.speed * 0.8, true);
+                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed * 0.8, true);
                 break;
             }
         }
@@ -1184,10 +1184,10 @@ void ViewConstraint::apply(float _dt) {
             {
                 // compute
                 ImVec2 newPos(master->getPosition() + ImVec2(0.0f, master->getSize().y));
-                newPos.y += settings->ui.nodes.spacing + slave->getSize().y;
+                newPos.y += settings->ui.node.spacing + slave->getSize().y;
 
                 // apply
-                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.nodes.speed);
+                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed);
                 break;
             }
         }

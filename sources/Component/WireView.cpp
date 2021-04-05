@@ -48,8 +48,8 @@ bool WireView::draw()
                                    settings->ui.wire.bezier.roundness);
 
         // dot at the output position
-        draw_list->AddCircleFilled(pos0, settings->ui.nodes.connectorRadius, sourceView->getColor(ColorType_Fill));
-        draw_list->AddCircle      (pos0, settings->ui.nodes.connectorRadius, sourceView->getColor(ColorType_Border));
+        draw_list->AddCircleFilled(pos0, settings->ui.node.connectorRadius, sourceView->getColor(ColorType_Fill));
+        draw_list->AddCircle      (pos0, settings->ui.node.connectorRadius, sourceView->getColor(ColorType_Border));
 
         ImVec2 arrowSize(8.0f, 12.0f);
         if (settings->ui.wire.displayArrows)
@@ -61,8 +61,8 @@ bool WireView::draw()
         else
         {
             // dot at the input position
-            draw_list->AddCircleFilled(pos1, settings->ui.nodes.connectorRadius, targetView->getColor(ColorType_Fill));
-            draw_list->AddCircle      (pos1, settings->ui.nodes.connectorRadius, targetView->getColor(ColorType_Border));
+            draw_list->AddCircleFilled(pos1, settings->ui.node.connectorRadius, targetView->getColor(ColorType_Fill));
+            draw_list->AddCircle      (pos1, settings->ui.node.connectorRadius, targetView->getColor(ColorType_Border));
         }
     }
 

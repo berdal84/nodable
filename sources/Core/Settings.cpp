@@ -21,18 +21,18 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
         g_conf->ui.text.h1.font                 = "CenturyGothic.ttf";
 
         // nodes
-        g_conf->ui.nodes.padding                = 6.0f;
-        g_conf->ui.nodes.connectorRadius        = 5.0f;
-        g_conf->ui.nodes.functionColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
-        g_conf->ui.nodes.variableColor          = ImVec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
-        g_conf->ui.nodes.instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f); // green
-        g_conf->ui.nodes.fillColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        g_conf->ui.nodes.highlightedColor       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        g_conf->ui.nodes.borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-        g_conf->ui.nodes.borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
-        g_conf->ui.nodes.shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
-        g_conf->ui.nodes.spacing                = 10.0f;
-        g_conf->ui.nodes.speed                  = 40.0f;
+        g_conf->ui.node.padding                = 6.0f;
+        g_conf->ui.node.connectorRadius        = 5.0f;
+        g_conf->ui.node.functionColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
+        g_conf->ui.node.variableColor          = ImVec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
+        g_conf->ui.node.instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f); // green
+        g_conf->ui.node.fillColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        g_conf->ui.node.highlightedColor       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        g_conf->ui.node.borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+        g_conf->ui.node.borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
+        g_conf->ui.node.shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
+        g_conf->ui.node.spacing                = 10.0f;
+        g_conf->ui.node.speed                  = 40.0f;
 
         // wires
         g_conf->ui.wire.bezier.roundness        = 0.5f;
@@ -41,6 +41,12 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
 
         // code flow
         g_conf->ui.codeFlow.lineWidthMax        = 40.0f;
+
+        // buttons
+        g_conf->ui.button.color                 = ImVec4(0.50f, 0.50f, 0.50f, 0.63f);
+        g_conf->ui.button.hoveredColor          = ImVec4(0.70f, 0.70f, 0.70f, 0.95f);
+        g_conf->ui.button.activeColor           = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
+
     }
     return g_conf;
 }
@@ -69,9 +75,9 @@ void Nodable::Settings::setImGuiStyle(ImGuiStyle& _style)
     colors[ImGuiCol_CheckMark]              = ImVec4(0.31f, 0.23f, 0.14f, 1.00f);
     colors[ImGuiCol_SliderGrab]             = ImVec4(0.71f, 0.46f, 0.22f, 0.63f);
     colors[ImGuiCol_SliderGrabActive]       = ImVec4(0.71f, 0.46f, 0.22f, 1.00f);
-    colors[ImGuiCol_Button]                 = ImVec4(0.50f, 0.50f, 0.50f, 0.63f);
-    colors[ImGuiCol_ButtonHovered]          = ImVec4(0.70f, 0.70f, 0.70f, 0.95f);
-    colors[ImGuiCol_ButtonActive]           = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
+    colors[ImGuiCol_Button]                 = ui.button.color;
+    colors[ImGuiCol_ButtonHovered]          = ui.button.hoveredColor;
+    colors[ImGuiCol_ButtonActive]           = ui.button.activeColor;
     colors[ImGuiCol_Header]                 = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
     colors[ImGuiCol_HeaderHovered]          = ImVec4(0.89f, 0.65f, 0.11f, 0.96f);
     colors[ImGuiCol_HeaderActive]           = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);

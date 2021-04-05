@@ -13,11 +13,11 @@ View::View():
     Settings* settings = Settings::GetCurrent();
 
 	// set default colors
-	colors.insert({ColorType_Fill,              &settings->ui.nodes.fillColor});
-	colors.insert({ ColorType_Highlighted,      &settings->ui.nodes.highlightedColor});
-	colors.insert({ ColorType_Border,           &settings->ui.nodes.borderColor});
-	colors.insert({ ColorType_BorderHighlights, &settings->ui.nodes.borderHighlightedColor});
-	colors.insert({ ColorType_Shadow,           &settings->ui.nodes.shadowColor});
+	colors.insert({ColorType_Fill,              &settings->ui.node.fillColor});
+	colors.insert({ ColorType_Highlighted,      &settings->ui.node.highlightedColor});
+	colors.insert({ ColorType_Border,           &settings->ui.node.borderColor});
+	colors.insert({ ColorType_BorderHighlights, &settings->ui.node.borderHighlightedColor});
+	colors.insert({ ColorType_Shadow,           &settings->ui.node.shadowColor});
 }
 
 ImVec2 Nodable::View::CursorPosToScreenPos(ImVec2 _position)

@@ -38,7 +38,7 @@ namespace Nodable {
                 ImVec4 fillColor;
                 float spacing;
                 float speed;
-            } nodes;
+            } node;
 
             struct {
                 float propertiesRatio;
@@ -48,6 +48,11 @@ namespace Nodable {
                 float lineWidthMax;
             } codeFlow;
 
+            struct {
+                ImVec4 activeColor;
+                ImVec4 hoveredColor;
+                ImVec4 color;
+            } button;
         } ui;
 
         void setImGuiStyle(ImGuiStyle&);
