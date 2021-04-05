@@ -686,9 +686,19 @@ void ApplicationView::drawMenuBar(
 
         if (ImGui::BeginMenu("Run"))
         {
-            if (ImGui::MenuItem("Run selection"))
+            if (ImGui::MenuItem("Run all"))
             {
-               application->runSelection();
+                application->runProgram();
+            }
+
+            if (ImGui::MenuItem("Run step-by-step"))
+            {
+//               application->debugProgram();
+            }
+
+            if (ImGui::MenuItem("Run next step"))
+            {
+//                application->debugProgram();
             }
 
             ImGui::EndMenu();

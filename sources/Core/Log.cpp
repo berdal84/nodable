@@ -12,7 +12,11 @@ std::map<std::string, Log::Verbosity> Log::s_verbosityLevels;
 
 const Log::Message* Log::GetLastMessage()
 {
-    return &Log::Logs.back();
+#if LOG_ENABLE
+    return  &Log::Logs.back();
+#else
+    return nullptr;
+#endif
 }
 
 void Log::SetVerbosityLevel(const std::string& _category, Verbosity _verbosityLevel)

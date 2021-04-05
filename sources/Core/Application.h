@@ -141,7 +141,7 @@ namespace Nodable
 
         void closeFile(size_t _fileIndex);
 
-        void runSelection();
+        void runProgram();
 
         VM vm;
     };
