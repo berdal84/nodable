@@ -58,5 +58,7 @@ namespace Nodable
         (
             MIRROR_PARENT(View) // we only need to know parent
         );
+
+        void drawToolBar();
     };
 }

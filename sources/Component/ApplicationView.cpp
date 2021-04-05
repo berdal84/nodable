@@ -270,7 +270,7 @@ bool ApplicationView::draw()
 
             drawMenuBar(currentFileHistory, userWantsToDeleteSelectedNode,
                         userWantsToArrangeSelectedNodeHierarchy, redock_all);
-
+            drawToolBar();
 
 
             /*
@@ -870,5 +870,43 @@ void ApplicationView::drawBackground()
         ImGui::NewLine();
     }
     ImGui::EndChild();
+
+}
+
+void ApplicationView::drawToolBar()
+{
+    // small margin
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
+
+    ProgramNode* prog = application->getCurrentFile()->getInnerGraph()->getProgram();
+    VM& vm = application->getVM();
+
+
+    if ( ImGui::Button(ICON_FA_PLAY) && !vm.isRunning())
+    {
+        vm.load(prog);
+        vm.run();
+    }
+    ImGui::SameLine();
+
+    if ( ImGui::Button(ICON_FA_BUG) && !vm.isRunning())
+    {
+        vm.load(prog);
+        vm.debug();
+    }
+    ImGui::SameLine();
+
+    if ( ImGui::Button(ICON_FA_ARROW_RIGHT) && vm.isRunning())
+    {
+        vm.stepOver();
+    }
+    ImGui::SameLine();
+
+    if ( ImGui::Button(ICON_FA_UNDO))
+    {
+        vm.stop();
+        // TODO: restore graph state without parsing again like that:
+        application->getCurrentFile()->evaluateSelectedExpression();
+    }
 
 }
