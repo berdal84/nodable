@@ -510,9 +510,18 @@ void ApplicationView::drawPropertiesWindow()
         ImGui::Indent();
             ImGui::SliderFloat("connector radius", &config->ui.nodes.connectorRadius, 1.0f, 10.0f);
             ImGui::SliderFloat("padding", &config->ui.nodes.padding, 1.0f, 20.0f);
+            ImGui::SliderFloat("speed", &config->ui.nodes.speed, 0.0f, 100.0f);
+            ImGui::SliderFloat("spacing", &config->ui.nodes.spacing, 0.0f, 100.0f);
+
             ImGui::ColorEdit3("variables color", &config->ui.nodes.variableColor.x);
             ImGui::ColorEdit3("instruction color", &config->ui.nodes.instructionColor.x);
             ImGui::ColorEdit3("function color", &config->ui.nodes.functionColor.x);
+            ImGui::ColorEdit3("shadow color", &config->ui.nodes.shadowColor.x);
+            ImGui::ColorEdit3("border color", &config->ui.nodes.borderColor.x);
+            ImGui::ColorEdit3("high. color", &config->ui.nodes.highlightedColor.x);
+            ImGui::ColorEdit3("border high. color", &config->ui.nodes.borderHighlightedColor.x);
+            ImGui::ColorEdit3("fill color", &config->ui.nodes.fillColor.x);
+
         ImGui::Unindent();
 
         // code flow
