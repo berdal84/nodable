@@ -358,6 +358,7 @@ Member* Parser::parseParenthesisExpression()
 		else
         {
 			LOG_VERBOSE("Parser", "parse parenthesis expr..." OK  "\n");
+            commitTransaction();
 		}
 	}
 	else
@@ -365,7 +366,6 @@ Member* Parser::parseParenthesisExpression()
         LOG_VERBOSE("Parser", "parse parenthesis expr..." KO ", expression in parenthesis is nullptr.\n");
 	    rollbackTransaction();
 	}
-    commitTransaction();
 	return result;
 }
 
