@@ -156,7 +156,6 @@ bool ApplicationView::init()
 
 bool ApplicationView::draw()
 {
-
     // TODO: create an event list (fill, execute, clear)
     auto userWantsToDeleteSelectedNode(false);
     auto userWantsToArrangeSelectedNodeHierarchy(false);
@@ -409,6 +408,11 @@ bool ApplicationView::draw()
     }
 
     SDL_GL_SwapWindow(sdlWindow);
+
+    // limit frame rate
+    constexpr float desiredFrameRate = 1.0f/60.0f;
+    if ( ImGui::GetIO().DeltaTime  < desiredFrameRate)
+        SDL_Delay((desiredFrameRate - ImGui::GetIO().DeltaTime) * 1000.0f );
 
     return false;
 }
