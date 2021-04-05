@@ -147,7 +147,7 @@ void Application::closeFile(size_t _fileIndex)
     }
 }
 
-void Application::runSelection()
+void Application::runProgram()
 {
     File* curr = getCurrentFile();
     if (curr)

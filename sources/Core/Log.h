@@ -25,7 +25,7 @@
 #define KO RED "[KO]" RESET
 #define OK GREEN "[OK]" RESET
 
-#define LOG_ENABLE true
+#define LOG_ENABLE DEBUG
 
 #if LOG_ENABLE
 #   define LOG_ERROR(...)   Nodable::Log::Push( Nodable::Log::Verbosity::Error  , __VA_ARGS__ )
