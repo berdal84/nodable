@@ -36,6 +36,8 @@ namespace Nodable {
                 ImVec4 borderColor;
                 ImVec4 highlightedColor;
                 ImVec4 fillColor;
+                float spacing;
+                float speed;
             } nodes;
 
             struct {

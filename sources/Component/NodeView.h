@@ -83,12 +83,8 @@ namespace Nodable
 
     private:
 	    Type type;
-
         std::vector<NodeView*> masters;
 	    std::vector<NodeView*> slaves;
-
-        static const float s_viewSpacing;
-        static const float s_viewSpeed;
     };
 
 	/**

@@ -25,9 +25,6 @@ const float        NodeView::s_memberInputSizeMin     = 10.0f;
 const ImVec2       NodeView::s_memberInputToggleButtonSize   = ImVec2(10.0, 25.0f);
 std::vector<NodeView*> NodeView::s_instances;
 
-const float ViewConstraint::s_viewSpacing = 15.0f;
-const float ViewConstraint::s_viewSpeed   = 20.0f;
-
 NodeView::NodeView():
         position(500.0f, -1.0f),
         size(NODE_VIEW_DEFAULT_SIZE),
@@ -1059,6 +1056,8 @@ ViewConstraint::ViewConstraint(ViewConstraint::Type _type):type(_type) {}
 
 void ViewConstraint::apply(float _dt) {
 
+    auto settings = Settings::GetCurrent();
+
     LOG_VERBOSE("ViewConstraint", "applying constraint\n");
     auto master = masters.at(0);
 
@@ -1070,8 +1069,8 @@ void ViewConstraint::apply(float _dt) {
             if( !slave->isPinned() && slave->isVisible())
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
-                ImVec2 newPos(bbox.GetCenter() - ImVec2(bbox.GetSize().x * 0.5 + s_viewSpacing + slave->getRect().GetSize().x * 0.5, 0 ));
-                slave->addForceToTranslateTo(newPos + offset, _dt * s_viewSpeed);
+                ImVec2 newPos(bbox.GetCenter() - ImVec2(bbox.GetSize().x * 0.5 + settings->ui.nodes.spacing + slave->getRect().GetSize().x * 0.5, 0 ));
+                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.nodes.speed);
             }
 
             break;
@@ -1084,9 +1083,9 @@ void ViewConstraint::apply(float _dt) {
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
                 ImVec2 newPos(bbox.GetTR());
-                newPos.y -= s_viewSpacing + slave->getSize().y / 2.0f;
-                newPos.x += s_viewSpacing + slave->getSize().x / 2.0f;
-                slave->addForceToTranslateTo(newPos + offset, _dt * s_viewSpeed);
+                newPos.y -= settings->ui.nodes.spacing + slave->getSize().y / 2.0f;
+                newPos.x += settings->ui.nodes.spacing + slave->getSize().x / 2.0f;
+                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.nodes.speed);
             }
 
             break;
@@ -1126,7 +1125,7 @@ void ViewConstraint::apply(float _dt) {
             if (masterClass == mirror::GetClass<InstructionNode>() ||
                  ( masterClass == mirror::GetClass<ConditionalStructNode>() && type == Type::MakeRowAndAlignOnBBoxTop))
             {
-                posX += cumulatedSize / 2.0f + s_viewSpacing + master->getSize().x / 2.0f;
+                posX += cumulatedSize / 2.0f + settings->ui.nodes.spacing + master->getSize().x / 2.0f;
             }
 
             float nodeSpacing(10);
@@ -1141,7 +1140,7 @@ void ViewConstraint::apply(float _dt) {
                             master->getPosition().y
                     );
 
-                    float verticalOffset = s_viewSpacing + eachSlave->getSize().y / 2.0f + master->getSize().y / 2.0f;
+                    float verticalOffset = settings->ui.nodes.spacing + eachSlave->getSize().y / 2.0f + master->getSize().y / 2.0f;
                     if( type == MakeRowAndAlignOnBBoxTop )
                     {
                         posX += eachSlave->getSize().x + nodeSpacing;
@@ -1154,7 +1153,7 @@ void ViewConstraint::apply(float _dt) {
                     }
                     eachDrivenNewPos.y += verticalOffset;
 
-                    eachSlave->addForceToTranslateTo(eachDrivenNewPos + offset, _dt * s_viewSpeed, true);
+                    eachSlave->addForceToTranslateTo(eachDrivenNewPos + offset, _dt * settings->ui.nodes.speed, true);
                 }
                 inputIndex++;
             }
@@ -1170,10 +1169,10 @@ void ViewConstraint::apply(float _dt) {
                 auto masterRect = master->getRect(false, true, true);
                 auto slaveRect = slave->getRect(true,true, true);
                 ImVec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
-                ImVec2 newPos(master->getPosition().x, slave->getPosition().y + slaveMasterOffset.y + s_viewSpacing);
+                ImVec2 newPos(master->getPosition().x, slave->getPosition().y + slaveMasterOffset.y + settings->ui.nodes.spacing);
 
                 // apply
-                slave->addForceToTranslateTo(newPos + offset, _dt * s_viewSpeed * 0.8, true);
+                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.nodes.speed * 0.8, true);
                 break;
             }
         }
@@ -1185,10 +1184,10 @@ void ViewConstraint::apply(float _dt) {
             {
                 // compute
                 ImVec2 newPos(master->getPosition() + ImVec2(0.0f, master->getSize().y));
-                newPos.y += s_viewSpacing + slave->getSize().y;
+                newPos.y += settings->ui.nodes.spacing + slave->getSize().y;
 
                 // apply
-                slave->addForceToTranslateTo(newPos + offset, _dt * s_viewSpeed);
+                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.nodes.speed);
                 break;
             }
         }
