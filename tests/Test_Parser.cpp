@@ -1,3 +1,4 @@
+#include <VirtualMachine.h>
 #include "gtest/gtest.h"
 
 #include "Core/Member.h"
@@ -17,20 +18,24 @@ bool Parser_Test(
         T _expectedValue,
         const Language* _language = LanguageLibrary::GetNodable()
 ){
+    // prepare
     bool success = false;
     auto graph = std::make_unique<GraphNode>(_language);
 
-    Parser* parser = _language->getParser();
-    parser->expressionToGraph(expression, graph.get());
-    graph->update();
+    // act
+    _language->getParser()->expressionToGraph(expression, graph.get());
 
-    auto expectedMember = new Member(nullptr);
-    expectedMember->set(_expectedValue);
+    auto expectedMember = new Member(_expectedValue);
 
-    if ( auto scope = graph->getProgram())
+    if ( auto program = graph->getProgram())
     {
-        auto lastInstruction = scope->getLastInstruction();
+        // run
+        VirtualMachine vm;
+        vm.load(graph->getProgram());
+        vm.run();
 
+        // compare result
+        auto lastInstruction = program->getLastInstruction();
         if ( lastInstruction )
         {
             auto result = lastInstruction->getValue();
@@ -39,6 +44,7 @@ bool Parser_Test(
     } else {
         success = ((std::string)*expectedMember).empty();
     }
+
     delete expectedMember;
     return success;
 }

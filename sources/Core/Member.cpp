@@ -6,13 +6,45 @@
 
 using namespace Nodable;
 
-Member::Member(Object* _owner):
+Member::Member()
+    :
+    owner(nullptr),
+    sourceToken(nullptr),
+    out(nullptr),
+    in(nullptr) {
+
+}
+
+
+Member::Member(Object* _owner)
+    :
     owner(_owner),
     sourceToken(nullptr),
     out(nullptr),
     in(nullptr)
 {
 }
+
+Member::Member(double d): Member()
+{
+    set(d);
+}
+
+Member::Member(bool b): Member()
+{
+    set(b);
+}
+
+Member::Member(int i): Member()
+{
+    set((double)i);
+}
+
+Member::Member(std::string s): Member()
+{
+    set(s);
+}
+
 
 Member::~Member()
 {
