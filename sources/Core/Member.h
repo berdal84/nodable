@@ -19,13 +19,19 @@ namespace Nodable
 	class Member
     {
 	public:
+        Member();
         /**
          * Construct a new Member
          * @param _owner is the Object responsible for the Member.
          */
 		explicit Member(Object* _owner);
 
-		~Member();
+		Member(std::string s);
+        Member(int i);
+        Member(bool b);
+        Member(double d);
+
+        ~Member();
 
         /**
          * Get if allows connections in a given direction
