@@ -102,10 +102,8 @@ Member* Parser::tokenToMember(Token* _token)
 
 		case TokenType::Boolean:
 		{
-			result = new Member(nullptr);
-			const bool value = _token->word == "true";
-			result->set(value);
-			break;
+            result = new Member(_token->word == "true");
+            break;
 		}
 
 		case TokenType::Symbol:
@@ -125,15 +123,13 @@ Member* Parser::tokenToMember(Token* _token)
 		}
 
 		case TokenType::Double: {
-			result = new Member(nullptr);
-			const double number = std::stod(_token->word);
-			result->set(number);
+            const double number = std::stod(_token->word);
+			result = new Member(number);
 			break;
 		}
 
 		case TokenType::String: {
-			result = new Member(nullptr);
-			result->set(_token->word);
+			result = new Member(_token->word);
 			break;
 		}
 

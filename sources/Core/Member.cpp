@@ -15,16 +15,6 @@ Member::Member()
 
 }
 
-
-Member::Member(Object* _owner)
-    :
-    owner(_owner),
-    sourceToken(nullptr),
-    out(nullptr),
-    in(nullptr)
-{
-}
-
 Member::Member(double d): Member()
 {
     set(d);
@@ -35,10 +25,7 @@ Member::Member(bool b): Member()
     set(b);
 }
 
-Member::Member(int i): Member()
-{
-    set((double)i);
-}
+Member::Member(int i): Member((double)i){}
 
 Member::Member(std::string s): Member()
 {
@@ -243,4 +230,9 @@ void Member::digest(Member *_member)
 
     // release member
     delete _member;
+}
+
+void Member::setOwner(Object *_owner)
+{
+    this->owner = _owner;
 }
