@@ -20,17 +20,10 @@ namespace Nodable
     {
 	public:
         Member();
-        /**
-         * Construct a new Member
-         * @param _owner is the Object responsible for the Member.
-         */
-		explicit Member(Object* _owner);
-
 		Member(std::string s);
         Member(int i);
         Member(bool b);
         Member(double d);
-
         ~Member();
 
         /**
@@ -246,6 +239,8 @@ namespace Nodable
          * @param _member
          */
         void digest(Member *_member);
+
+        void setOwner(Object *_owner);
 
     private:
         /**
