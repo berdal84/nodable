@@ -5,13 +5,6 @@
 
 using namespace Nodable;
 
-Language::Language(std::string _name):
-    name(_name),
-    serializer(new Serializer(this)),
-    parser(new Parser(this))
-{
-};
-
 Language::~Language()
 {
     delete parser;

@@ -9,7 +9,7 @@
 #include "Node/CodeBlockNode.h"
 #include "Node/ProgramNode.h"
 #include "Language/Common/Parser.h"
-#include "Language/Common/LanguageLibrary.h"
+#include "Language/Common/LanguageFactory.h"
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
 
 #include <fstream>
@@ -19,7 +19,7 @@ using namespace Nodable;
 
 Nodable::File::File( std::filesystem::path _path, const char* _content):
 	path(_path),
-	language(LanguageLibrary::GetNodable()) /* Detect the language (TODO) */
+	language(LanguageFactory::GetNodable()) /* Detect the language (TODO) */
 {		
 
 	/* Creates the FileView	*/

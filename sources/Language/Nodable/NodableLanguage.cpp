@@ -6,10 +6,14 @@
 #include "Node.h"
 #include "VariableNode.h"
 #include "GraphNode.h"
+#include "NodableParser.h"
+#include "NodableSerializer.h"
 
 using namespace Nodable;
 
-NodableLanguage::NodableLanguage(): Language("Nodable")
+NodableLanguage::NodableLanguage()
+    :
+    Language("Nodable", new NodableParser(this), new NodableSerializer(this))
 {
     /*
      *  Configure the Semantic.
