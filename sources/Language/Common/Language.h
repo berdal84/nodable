@@ -33,12 +33,11 @@ namespace Nodable {
 	class Language {
 	public:
 
-        explicit Language(std::string _name);
-
 		Language(
 		        std::string _name,
-                Serializer* _serializer,
-                Parser* _parser)
+                Parser* _parser,
+                Serializer* _serializer
+                )
                 :
                 name(_name),
 		        serializer(_serializer),

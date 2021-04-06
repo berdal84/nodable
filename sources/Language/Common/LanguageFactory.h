@@ -6,7 +6,7 @@ namespace Nodable
     /**
      * Static class to get a specific Language
      */
-    class LanguageLibrary
+    class LanguageFactory
     {
     public:
         /**

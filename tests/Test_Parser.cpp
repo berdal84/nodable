@@ -4,7 +4,7 @@
 #include "Core/Member.h"
 #include "Node/GraphNode.h"
 #include "Language/Common/Parser.h"
-#include "Language/Common/LanguageLibrary.h"
+#include "Language/Common/LanguageFactory.h"
 #include "Node/VariableNode.h"
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/InstructionNode.h"
@@ -16,7 +16,7 @@ template <typename T>
 bool Parser_Test(
         const std::string& expression,
         T _expectedValue,
-        const Language* _language = LanguageLibrary::GetNodable()
+        const Language* _language = LanguageFactory::GetNodable()
 ){
     // prepare
     bool success = false;
@@ -52,7 +52,7 @@ bool Parser_Test(
 
 std::string ParseUpdateSerialize(
         const std::string& expression,
-        const Language* _language = LanguageLibrary::GetNodable()
+        const Language* _language = LanguageFactory::GetNodable()
 ){
 
     GraphNode container(_language);
