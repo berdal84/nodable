@@ -4,6 +4,7 @@
 #include "Node/GraphNode.h"
 #include "Node/InstructionNode.h"
 #include "Node/VariableNode.h"
+#include "Node/ProgramNode.h"
 #include "Core/Wire.h"
 #include "Language/Nodable/NodableLanguage.h"
 
@@ -88,15 +89,15 @@ TEST( GraphNode, create_and_delete_relations)
     // prepare
     auto language        = std::make_unique<NodableLanguage>();
     auto graph           = std::make_unique<GraphNode>(language.get());
-
+    ScopedCodeBlockNode* program = graph->getProgram();
     EXPECT_EQ(graph->getRelationRegistry().size(), 0);
-    Node* n1 = graph->newVariable("unit test", graph->getProgram());
+    Node* n1 = graph->newVariable("unit test", program);
     EXPECT_EQ(graph->getRelationRegistry().size(), 0);
     Node* n2 = graph->newNumber();
 
     // Act and test
 
-    // is child of
+    // is child of (and by reciprocity "is parent of")
     EXPECT_EQ(graph->getRelationRegistry().size(), 0);
     EXPECT_EQ(n2->getChildren().size(), 0);
     graph->connect(n1, n2, RelationType::IS_CHILD_OF);

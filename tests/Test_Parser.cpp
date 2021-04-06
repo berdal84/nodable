@@ -7,7 +7,7 @@
 #include "Node/VariableNode.h"
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/InstructionNode.h"
-#include "Node/CodeBlockNode.h"
+#include "Node/ProgramNode.h"
 
 using namespace Nodable;
 
@@ -57,7 +57,7 @@ std::string ParseUpdateSerialize(
 
     Serializer* serializer = _language->getSerializer();
 
-    auto resultExpression = serializer->serialize(container.getProgram() );
+    auto resultExpression = serializer->serialize(container.getProgram());
 
     std::cout << resultExpression << std::endl;
 
