@@ -27,11 +27,11 @@ Member::Member(bool b): Member()
 
 Member::Member(int i): Member((double)i){}
 
-Member::Member(std::string s): Member()
-{
-    set(s);
+Member::Member(const char * str): Member() {
+    set(str);
 }
 
+Member::Member(std::string s): Member(s.c_str()){}
 
 Member::~Member()
 {

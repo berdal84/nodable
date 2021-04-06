@@ -20,10 +20,12 @@ namespace Nodable
     {
 	public:
         Member();
-		Member(std::string s);
-        Member(int i);
-        Member(bool b);
-        Member(double d);
+		Member(std::string);
+        Member(int);
+        Member(bool);
+        Member(double);
+        Member(const char *);
+
         ~Member();
 
         /**
