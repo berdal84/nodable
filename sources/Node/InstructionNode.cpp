@@ -7,5 +7,5 @@ using namespace Nodable;
 
 InstructionNode::InstructionNode(const char* _label): Node(_label)
 {
-    add("value", Visibility::Default, Type::Any, Way_In);
+    add("value", Visibility::Default, Type_Any, Way_In);
 }

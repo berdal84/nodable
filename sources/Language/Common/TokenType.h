@@ -12,37 +12,34 @@
 
 namespace Nodable {
 
-    /**
-     * Note: the order has an impact on parsing.
-     *       I should fix that. Language derived must define the parsing priorities.
-     */
-	enum class TokenType
+	enum TokenType
 	{
-	    Any,
-		Unknown,
-        KeywordIf,
-        KeywordElse,
-        Ignore,
-        EndOfInstruction,
-        EndOfLine,
-		AnyType,
-		String,
-		Boolean,
-		Double,
-		Operator,
+        TokenType_Any = 0,
+        TokenType_Unknown,
+        TokenType_KeywordIf,
+        TokenType_KeywordElse,
+        TokenType_Ignore,
+        TokenType_EndOfInstruction,
+        TokenType_EndOfLine,
+        TokenType_AnyType,
+        TokenType_String,
+        TokenType_Boolean,
+        TokenType_Double,
+        TokenType_Operator,
+        TokenType_OpenBracket,
+        TokenType_CloseBracket,
+        TokenType_BeginScope,
+        TokenType_EndScope,
+        TokenType_Separator,
+        TokenType_Space,
+        TokenType_Symbol,
+        TokenType_StringType,
+        TokenType_DoubleType,
+        TokenType_BooleanType,
+        TokenType_KeywordOperator,
 
-		OpenBracket,
-		CloseBracket,
-        BeginScope,
-        EndScope,
+        TokenType_COUNT,
 
-		Separator,
-		Space,
-        Symbol,
-        StringType,
-        DoubleType,
-        BooleanType,
-        KeywordOperator,
-		Default = Unknown,
+        TokenType_Default = TokenType_Unknown,
     };
 }

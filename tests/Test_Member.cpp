@@ -55,7 +55,7 @@ TEST(Member, Type_Boolean)
 
     m.set(true);
     EXPECT_TRUE((bool)m);
-    EXPECT_EQ(m.getType(), Type::Boolean);
+    EXPECT_EQ(m.getType(), Type_Boolean);
 
     m.set(false);
     EXPECT_FALSE((bool)m);
@@ -71,7 +71,7 @@ TEST(Member, Type_String)
 
     EXPECT_EQ((std::string)m, str);
     EXPECT_TRUE((bool)m);
-    EXPECT_EQ(m.getType(), Type::String);
+    EXPECT_EQ(m.getType(), Type_String);
     EXPECT_EQ((double)m, str.length());
     EXPECT_TRUE(m.isDefined());
 }
@@ -82,6 +82,6 @@ TEST(Member, Type_Double)
     m.set((double)50);
 
     EXPECT_EQ((double)m, (double)50);
-    EXPECT_EQ(m.getType(), Type::Double);
+    EXPECT_EQ(m.getType(), Type_Double);
     EXPECT_TRUE(m.isDefined());
 }

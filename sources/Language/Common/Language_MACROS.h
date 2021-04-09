@@ -6,7 +6,7 @@
 #define RETURN_SUCCESS return 0;
 
 #define RETURN_FAILED \
-_result->setType(Type::Any); /* We intentionally force result type any to avoid crashing.*/ \
+_result->setType(Type_Any); /* We intentionally force result type any to avoid crashing.*/ \
 return 1;
 
 #define ARG(n) (*_args[n])

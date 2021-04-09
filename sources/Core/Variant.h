@@ -39,10 +39,10 @@ namespace Nodable{
 
 	    /** Nodable::Type to native type */
 	    constexpr static const std::array<Type, 4> s_nodableTypeByIndex = {{
-	        Type::Any,
-	        Type::Boolean,
-	        Type::Double,
-	        Type::String
+	        Type_Any,
+	        Type_Boolean,
+	        Type_Double,
+	        Type_String
 	    }};
 
         typedef void* Any;

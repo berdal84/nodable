@@ -39,7 +39,7 @@ bool Parser::expressionToGraph(const std::string& _code,
 
     std::istringstream iss(_code);
     std::string line;
-    std::string eol = language->getSerializer()->serialize(TokenType::EndOfLine);
+    std::string eol = language->getSerializer()->serialize(TokenType_EndOfLine);
 
     size_t lineCount = 0;
     while (std::getline(iss, line, eol[0] ))
@@ -97,13 +97,13 @@ Member* Parser::tokenToMember(Token* _token)
 	switch (_token->type)
 	{
 
-		case TokenType::Boolean:
+		case TokenType_Boolean:
 		{
             result = new Member(_token->word == "true");
             break;
 		}
 
-		case TokenType::Symbol:
+		case TokenType_Symbol:
 		{
 			auto context = graph;
 			VariableNode* variable = context->findVariable(_token->word);
@@ -119,13 +119,13 @@ Member* Parser::tokenToMember(Token* _token)
 			break;
 		}
 
-		case TokenType::Double: {
+		case TokenType_Double: {
             const double number = std::stod(_token->word);
 			result = new Member(number);
 			break;
 		}
 
-		case TokenType::String: {
+		case TokenType_String: {
 			result = new Member(_token->word);
 			break;
 		}
@@ -165,8 +165,8 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 
 	// Structure check
 	const bool isValid = _left != nullptr &&
-                         operatorToken->type == TokenType::Operator &&
-			             token2->type != TokenType::Operator;
+                         operatorToken->type == TokenType_Operator &&
+			             token2->type != TokenType_Operator;
 
 	if (!isValid)
 	{
@@ -197,7 +197,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	auto signature        = language->createBinOperatorSignature(Type::Any, operatorToken->word, _left->getType(), right->getType());
+	auto signature        = language->createBinOperatorSignature(Type_Any, operatorToken->word, _left->getType(), right->getType());
 	auto matchingOperator = language->findOperator(signature);
 
 	if ( matchingOperator != nullptr )
@@ -238,7 +238,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	Token* operatorToken = tokenRibbon.eatToken();
 
 	// Check if we get an operator first
-	if (operatorToken->type != TokenType::Operator)
+	if (operatorToken->type != TokenType_Operator)
 	{
 	    rollbackTransaction();
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n");
@@ -259,7 +259,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	}
 
 	// Create a function signature
-	auto signature = language->createUnaryOperatorSignature(Type::Any, operatorToken->word, value->getType() );
+	auto signature = language->createUnaryOperatorSignature(Type_Any, operatorToken->word, value->getType() );
 	auto matchingOperator = language->findOperator(signature);
 
 	if (matchingOperator != nullptr)
@@ -296,7 +296,7 @@ Member* Parser::parseAtomicExpression()
 
 	startTransaction();
 	Token* token = tokenRibbon.eatToken();
-	if (token->type == TokenType::Operator)
+	if (token->type == TokenType_Operator)
 	{
 		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n");
 		rollbackTransaction();
@@ -331,7 +331,7 @@ Member* Parser::parseParenthesisExpression()
 
 	startTransaction();
 	const Token* currentToken = tokenRibbon.eatToken();
-	if (currentToken->type != TokenType::OpenBracket)
+	if (currentToken->type != TokenType_OpenBracket)
 	{
 		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n");
 		rollbackTransaction();
@@ -342,7 +342,7 @@ Member* Parser::parseParenthesisExpression()
 	if (result)
 	{
         const Token* token = tokenRibbon.eatToken();
-		if ( token->type != TokenType::CloseBracket )
+		if ( token->type != TokenType_CloseBracket )
 		{
 			LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str());
 			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->word.c_str() );
@@ -421,7 +421,7 @@ ScopedCodeBlockNode* Parser::parseScope()
 {
     startTransaction();
 
-    if ( !tokenRibbon.eatToken(TokenType::BeginScope))
+    if ( !tokenRibbon.eatToken(TokenType_BeginScope))
     {
         rollbackTransaction();
         return nullptr;
@@ -435,7 +435,7 @@ ScopedCodeBlockNode* Parser::parseScope()
         graph->connect(block, scope, RelationType::IS_CHILD_OF);
     }
 
-    if ( !tokenRibbon.eatToken(TokenType::EndScope))
+    if ( !tokenRibbon.eatToken(TokenType_EndScope))
     {
         graph->deleteNode(scope);
         rollbackTransaction();
@@ -559,7 +559,7 @@ bool Parser::isSyntaxValid()
 
 		switch (currToken->type)
 		{
-            case TokenType::Operator:
+            case TokenType_Operator:
             {
 
                 if (isLastToken)
@@ -570,7 +570,7 @@ bool Parser::isSyntaxValid()
                 else
                 {
                     auto next = *(it + 1);
-                    if (next->type == TokenType::Operator)
+                    if (next->type == TokenType_Operator)
                     {
                         LOG_VERBOSE("Parser", "syntax error, unexpected token %s after %s \n", next->word.c_str(), currToken->word.c_str());
                         success = false; // An operator can't be followed by another operator.
@@ -579,12 +579,12 @@ bool Parser::isSyntaxValid()
 
                 break;
             }
-            case TokenType::OpenBracket:
+            case TokenType_OpenBracket:
             {
                 openedParenthesisCount++;
                 break;
             }
-            case TokenType::CloseBracket:
+            case TokenType_CloseBracket:
             {
                 openedParenthesisCount--;
 
@@ -618,28 +618,29 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
     auto chars = _expression;
 
     /* shortcuts to language members */
-    auto regex    = language->getSemantic()->getTokenTypeToRegexMap();
+    std::vector<std::regex> regex           = language->getSemantic()->getRegex();
+    std::vector<TokenType> regexIdToTokType = language->getSemantic()->getRegexIndexToTokenType();
 
     std::string prefix;
 
     // Unified parsing using a char iterator (loop over all regex)
     auto unifiedParsing = [&](auto& it) -> auto
     {
-        for (auto pair_it = regex.cbegin(); pair_it != regex.cend(); pair_it++)
+        for (auto eachRegexIt = regex.cbegin(); eachRegexIt != regex.cend(); eachRegexIt++)
         {
             std::smatch sm;
-            auto match = std::regex_search(it, chars.cend(), sm, pair_it->second);
+            auto match = std::regex_search(it, chars.cend(), sm, *eachRegexIt);
 
             if (match)
             {
                 auto matchedTokenString = sm.str();
-                auto matchedTokenType   = pair_it->first;
+                auto matchedTokenType   = regexIdToTokType[std::distance(regex.cbegin(), eachRegexIt)];
 
-                if (matchedTokenType != TokenType::Ignore)
+                if (matchedTokenType != TokenType_Ignore)
                 {
                     Token* newToken;
 
-                    if (matchedTokenType == TokenType::String)
+                    if (matchedTokenType == TokenType_String)
                     {
                         newToken = tokenRibbon.push(matchedTokenType, std::string(++matchedTokenString.cbegin(), --matchedTokenString.cend()),
                                                     std::distance(chars.cbegin(), it));
@@ -712,8 +713,8 @@ Member* Parser::parseFunctionCall()
     std::string identifier;
     const Token* token_0 = tokenRibbon.eatToken();
     const Token* token_1 = tokenRibbon.eatToken();
-    if (token_0->type == TokenType::Symbol &&
-        token_1->type == TokenType::OpenBracket)
+    if (token_0->type == TokenType_Symbol &&
+        token_1->type == TokenType_OpenBracket)
     {
         identifier = token_0->word;
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n");
@@ -722,10 +723,10 @@ Member* Parser::parseFunctionCall()
     {
         const Token* token_2 = tokenRibbon.eatToken(); // eat a "supposed open bracket"
 
-        if (token_0->type == TokenType::Symbol && token_0->word == language->getSemantic()
-                ->tokenTypeToString(TokenType::KeywordOperator /* TODO: TokenType::Keyword + word="operator" */) &&
-            token_1->type == TokenType::Operator &&
-            token_2->type == TokenType::OpenBracket)
+        if (token_0->type == TokenType_Symbol && token_0->word == language->getSemantic()
+                ->tokenTypeToString(TokenType_KeywordOperator /* TODO: TokenType_Keyword + word="operator" */) &&
+            token_1->type == TokenType_Operator &&
+            token_2->type == TokenType_OpenBracket)
         {
             // ex: "operator" + ">="
             identifier = token_0->word + token_1->word;
@@ -741,17 +742,17 @@ Member* Parser::parseFunctionCall()
     std::vector<Member *> args;
 
     // Declare a new function prototype
-    FunctionSignature signature(identifier, TokenType::AnyType);
+    FunctionSignature signature(identifier, TokenType_AnyType);
 
     bool parsingError = false;
-    while (!parsingError && tokenRibbon.canEat() && tokenRibbon.peekToken()->type != TokenType::CloseBracket)
+    while (!parsingError && tokenRibbon.canEat() && tokenRibbon.peekToken()->type != TokenType_CloseBracket)
     {
 
         if (auto member = parseExpression())
         {
             args.push_back(member); // store argument as member (already parsed)
             signature.pushArg(language->getSemantic()->typeToTokenType(member->getType()));  // add a new argument type to the proto.
-            tokenRibbon.eatToken(TokenType::Separator);
+            tokenRibbon.eatToken(TokenType_Separator);
         }
         else
         {
@@ -760,7 +761,7 @@ Member* Parser::parseFunctionCall()
     }
 
     // eat "close bracket supposed" token
-    if ( !tokenRibbon.eatToken(TokenType::CloseBracket) )
+    if ( !tokenRibbon.eatToken(TokenType_CloseBracket) )
     {
         LOG_VERBOSE("Parser", "parse function call... " KO " abort, close parenthesis expected. \n");
         rollbackTransaction();
@@ -819,7 +820,7 @@ ConditionalStructNode * Parser::parseConditionalStructure()
 
     auto condStruct = graph->newConditionalStructure();
 
-    if ( tokenRibbon.eatToken(TokenType::KeywordIf))
+    if ( tokenRibbon.eatToken(TokenType_KeywordIf))
     {
         condStruct->token_if = tokenRibbon.getEaten();
 
@@ -832,7 +833,7 @@ ConditionalStructNode * Parser::parseConditionalStructure()
             {
                 graph->connect(scopeIf, condStruct, RelationType::IS_CHILD_OF);
 
-                if ( tokenRibbon.eatToken(TokenType::KeywordElse))
+                if ( tokenRibbon.eatToken(TokenType_KeywordElse))
                 {
                     condStruct->token_else = tokenRibbon.getEaten();
 

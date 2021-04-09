@@ -42,8 +42,8 @@ namespace Nodable
 
         /** Serialize a TokenType
            ex:
-           TokenType::LBracket => "("
-           TokenType::StringType = > "std::string" (for C++) */
+           TokenType_LBracket => "("
+           TokenType_StringType = > "std::string" (for C++) */
         std::string serialize(const TokenType&)const;
 
         /** Serialize a Member */

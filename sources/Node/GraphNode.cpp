@@ -163,7 +163,7 @@ InstructionNode* GraphNode::newInstruction()
 
 InstructionNode* GraphNode::appendInstruction()
 {
-    std::string eol = language->getSerializer()->serialize(TokenType::EndOfLine);
+    std::string eol = language->getSerializer()->serialize(TokenType_EndOfLine);
 
     // add to code block
     if ( program->getChildren().empty())
@@ -182,7 +182,7 @@ InstructionNode* GraphNode::appendInstruction()
     this->connect(newInstructionNode, block,  RelationType::IS_CHILD_OF);
 
     // Initialize (since it is a manual creation)
-    Token* token = new Token(TokenType::EndOfInstruction);
+    Token* token = new Token(TokenType_EndOfInstruction);
     token->suffix = eol;
     newInstructionNode->endOfInstructionToken = token;
 

@@ -41,14 +41,14 @@ std::string Serializer::serialize(const ComputeUnaryOperation* _operation) const
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType::OpenBracket));
+            result.append(serialize(TokenType_OpenBracket));
         }
 
         result.append(serialize(args[0]));
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType::CloseBracket));
+            result.append(serialize(TokenType_CloseBracket));
         }
     }
 
@@ -69,14 +69,14 @@ std::string Serializer::serialize(const ComputeBinaryOperation * _operation) con
         bool needBrackets = l_handed_operator && !language->hasHigherPrecedenceThan(l_handed_operator, _operation->getOperator());
         if (needBrackets)
         {
-            result.append( serialize(TokenType::OpenBracket));
+            result.append( serialize(TokenType_OpenBracket));
         }
 
         result.append(serialize(args[0]));
 
         if (needBrackets)
         {
-            result.append( serialize(TokenType::CloseBracket));
+            result.append( serialize(TokenType_CloseBracket));
         }
     }
 
@@ -102,14 +102,14 @@ std::string Serializer::serialize(const ComputeBinaryOperation * _operation) con
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType::OpenBracket));
+            result.append(serialize(TokenType_OpenBracket));
         }
 
         result.append(serialize(args[1]));
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType::CloseBracket));
+            result.append(serialize(TokenType_CloseBracket));
         }
     }
 
@@ -153,30 +153,30 @@ std::string Serializer::serialize(
 {
     std::string expr;
     expr.append(_signature.getIdentifier());
-    expr.append(serialize(TokenType::OpenBracket));
+    expr.append(serialize(TokenType_OpenBracket));
 
     for (auto it = _args.begin(); it != _args.end(); it++) {
         expr.append(serialize(*it));
 
         if (*it != _args.back()) {
-            expr.append(serialize(TokenType::Separator));
+            expr.append(serialize(TokenType_Separator));
         }
     }
 
-    expr.append(serialize(TokenType::CloseBracket));
+    expr.append(serialize(TokenType_CloseBracket));
     return expr;
 
 }
 
 std::string Serializer::serialize(const FunctionSignature& _signature) const {
 
-    std::string result = _signature.getIdentifier() + serialize(TokenType::OpenBracket);
+    std::string result = _signature.getIdentifier() + serialize(TokenType_OpenBracket);
     auto args = _signature.getArgs();
 
     for (auto it = args.begin(); it != args.end(); it++) {
 
         if (it != args.begin()) {
-            result.append(serialize(TokenType::Separator));
+            result.append(serialize(TokenType_Separator));
             result.append(" ");
 
         }
@@ -185,7 +185,7 @@ std::string Serializer::serialize(const FunctionSignature& _signature) const {
 
     }
 
-    result.append( serialize(TokenType::CloseBracket) );
+    result.append( serialize(TokenType_CloseBracket) );
 
     return result;
 
@@ -232,7 +232,7 @@ std::string Serializer::serialize(const Member * _member) const
         }
         else
         {
-            if (_member->isType(Type::String))
+            if (_member->isType(Type_String))
             {
                 expression.append('"' + (std::string) *_member + '"');
             }
@@ -314,9 +314,9 @@ std::string Serializer::serialize(const ConditionalStructNode* _condStruct)const
 
     // if ( <condition> )
     result.append( serialize(_condStruct->token_if));
-    result.append( serialize(TokenType::OpenBracket));
+    result.append( serialize(TokenType_OpenBracket));
     result.append( serialize(_condStruct->getCondition()));
-    result.append( serialize(TokenType::CloseBracket));
+    result.append( serialize(TokenType_CloseBracket));
 
     // if scope
     auto ifScope = _condStruct->getChildren()[0];
