@@ -22,48 +22,48 @@ NodableLanguage::NodableLanguage()
      */
 
     // conditionnal structures
-    semantic.insert_StringToTokenType("if", TokenType::KeywordIf);
-    semantic.insert_StringToTokenType("else", TokenType::KeywordElse);
+    semantic.insert("if", TokenType::KeywordIf);
+    semantic.insert("else", TokenType::KeywordElse);
 
     // punctuation
-    semantic.insert_RegexToTokenType(std::regex("^[ \t]"), TokenType::Ignore);
-    semantic.insert_StringToTokenType("{", TokenType::BeginScope);
-    semantic.insert_StringToTokenType("}", TokenType::EndScope);
-    semantic.insert_StringToTokenType("(", TokenType::OpenBracket);
-    semantic.insert_StringToTokenType(")", TokenType::CloseBracket);
-    semantic.insert_StringToTokenType(",", TokenType::Separator);
-    semantic.insert_StringToTokenType(" ", TokenType::Space);
-    semantic.insert_StringToTokenType(";", TokenType::EndOfInstruction);
-    semantic.insert_StringToTokenType("\n", TokenType::EndOfLine);
+    semantic.insert(std::regex("^[ \t]"), TokenType::Ignore);
+    semantic.insert("{", TokenType::BeginScope);
+    semantic.insert("}", TokenType::EndScope);
+    semantic.insert("(", TokenType::OpenBracket);
+    semantic.insert(")", TokenType::CloseBracket);
+    semantic.insert(",", TokenType::Separator);
+    semantic.insert(" ", TokenType::Space);
+    semantic.insert(";", TokenType::EndOfInstruction);
+    semantic.insert("\n", TokenType::EndOfLine);
 
     // values
-    semantic.insert_RegexToTokenType(std::regex("^(true|false)"), TokenType::Boolean);
-    semantic.insert_RegexToTokenType(std::regex("^(\".*\")"), TokenType::String);
-    semantic.insert_RegexToTokenType(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType::Symbol);
-    semantic.insert_RegexToTokenType(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType::Double);
+    semantic.insert(std::regex("^(true|false)"), TokenType::Boolean);
+    semantic.insert(std::regex("^(\".*\")"), TokenType::String);
+    semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType::Symbol);
+    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType::Double);
 
     // types
-    semantic.insert_StringToTokenType("bool", TokenType::BooleanType);
-    semantic.insert_StringToTokenType("string", TokenType::StringType);
-    semantic.insert_StringToTokenType("number", TokenType::DoubleType);
-    semantic.insert_StringToTokenType("any", TokenType::AnyType);
+    semantic.insert("bool", TokenType::BooleanType);
+    semantic.insert("string", TokenType::StringType);
+    semantic.insert("number", TokenType::DoubleType);
+    semantic.insert("any", TokenType::AnyType);
 
 
     // operators
-    semantic.insert_StringToTokenType("operator", TokenType::KeywordOperator); // 3 chars
-    semantic.insert_RegexToTokenType(std::regex("^(<=>)"),TokenType::Operator); // 3 chars
-    semantic.insert_RegexToTokenType(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>))"),TokenType::Operator); // 2 chars
-    semantic.insert_RegexToTokenType(std::regex("^[/+\\-*!=<>]"),TokenType::Operator); // single char
+    semantic.insert("operator", TokenType::KeywordOperator); // 3 chars
+    semantic.insert(std::regex("^(<=>)"), TokenType::Operator); // 3 chars
+    semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>))"), TokenType::Operator); // 2 chars
+    semantic.insert(std::regex("^[/+\\-*!=<>]"), TokenType::Operator); // single char
 
     // comments
-    semantic.insert_RegexToTokenType(std::regex("^(//(.+?)$)"),TokenType::Ignore); // Single line
-    semantic.insert_RegexToTokenType(std::regex("^(/\\*(.+?)\\*/)"),TokenType::Ignore); // Multi line
+    semantic.insert(std::regex("^(//(.+?)$)"), TokenType::Ignore); // Single line
+    semantic.insert(std::regex("^(/\\*(.+?)\\*/)"), TokenType::Ignore); // Multi line
 
     // type correspondence
-    semantic.insert_TypeToTokenType(Type::Boolean, TokenType::BooleanType );
-    semantic.insert_TypeToTokenType(Type::Double, TokenType::DoubleType );
-    semantic.insert_TypeToTokenType(Type::String, TokenType::StringType );
-    semantic.insert_TypeToTokenType(Type::Any, TokenType::AnyType );
+    semantic.insert(Type::Boolean, TokenType::BooleanType);
+    semantic.insert(Type::Double, TokenType::DoubleType);
+    semantic.insert(Type::String, TokenType::StringType);
+    semantic.insert(Type::Any, TokenType::AnyType);
 
 
     /*
