@@ -28,7 +28,7 @@ namespace Nodable
 		 *
 		 * A string that matching with the regular expression will be interpreted as a specific given type.
 		 */
-		void insert_RegexToTokenType(std::regex, TokenType);
+		void insert(std::regex, TokenType);
 
 		/**
 		 * Insert a string to TokenType correspondence.
@@ -37,16 +37,16 @@ namespace Nodable
 		 * - a TokenType/std::string simple correspondence (for a Serializer).
 		 * - a std::regex/TokenType correspondence (for a Parser).
 		 */
-		void insert_StringToTokenType(std::string, TokenType);
+		void insert(std::string _string, TokenType _tokenType);
 
 		/**
 		 * Insert a bidirectional correspondence between a type and a token type (for a Language)
 		 */
-		void insert_TypeToTokenType(Type _type, TokenType _tokenType);
+		void insert(Type _type, TokenType _tokenType);
 
 		[[nodiscard]] inline const auto& getTokenTypeToRegexMap()const { return m_tokenTypeToRegex;  }
-        [[nodiscard]] std::string tokenTypeToString(const TokenType&)const;
-        [[nodiscard]] TokenType  typeToTokenType(Type _type)const;
+        [[nodiscard]] inline std::string tokenTypeToString(const TokenType& _type)const{ return m_tokenTypeToString.at(_type); }
+        [[nodiscard]] TokenType typeToTokenType(Type _type)const;
         [[nodiscard]] Type tokenTypeToType(TokenType _tokenType)const;
 
 	private:
