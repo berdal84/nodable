@@ -22,7 +22,7 @@ Type Variant::getType()const
     }
 	else
     {
-        result = Type::Any;
+        result = Type_Any;
     }
 
 	return result;
@@ -37,7 +37,7 @@ void Variant::set(double _var)
 {
 	switch( getType() )
 	{
-		case Type::String:
+		case Type_String:
 		{
 			data.emplace<std::string>( std::to_string(_var) );
 			break;
@@ -60,7 +60,7 @@ void Variant::set(const char* _var)
 {
     switch (getType())
     {
-        case Type::String:
+        case Type_String:
         {
             data = _var;
         }
@@ -77,13 +77,13 @@ void Variant::set(bool _var)
 {
 	switch(getType())
 	{
-		case Type::String:
+		case Type_String:
 		{
 			data.emplace<std::string>( _var ? "true" : "false" );
 			break;
 		}
 
-		case Type::Double:
+		case Type_Double:
 		{
 			data.emplace<double>( _var ? double(1) : double(0) );
 			break;
@@ -100,7 +100,7 @@ void Variant::set(bool _var)
 
 bool Variant::isSet()const
 {
-	return getType() != Type::Any;
+	return getType() != Type_Any;
 }
 
 void Variant::set(const Variant* _other)
@@ -112,9 +112,9 @@ std::string Variant::getTypeAsString()const
 {
 	switch(getType())
 	{
-		case Type::String:		{return "String";}
-		case Type::Double:		{return "Double";}
-		case Type::Boolean: 	{return "Boolean";}
+		case Type_String:		{return "String";}
+		case Type_Double:		{return "Double";}
+		case Type_Boolean: 	{return "Boolean";}
 		default:				{return "Unknown";}
 	}
 }
@@ -127,13 +127,13 @@ void Variant::setType(Type _type)
 		// Set a default value (this will change the type too)
 		switch (_type)
 		{
-		case Type::String:
+		case Type_String:
 			data.emplace<std::string>();
 			break;
-		case Type::Double:
+		case Type_Double:
 			data.emplace<double>();
 			break;
-		case Type::Boolean:
+		case Type_Boolean:
 			data.emplace<bool>();
 			break;
 		default:
@@ -153,9 +153,9 @@ Variant::operator double()const
 {
 	switch (getType())
 	{
-		case Type::String:  return double( std::get<std::string>(data).size());
-		case Type::Double:  return std::get<double>(data);
-		case Type::Boolean: return std::get<bool>(data) ? double(1) : double(0);
+		case Type_String:  return double( std::get<std::string>(data).size());
+		case Type_Double:  return std::get<double>(data);
+		case Type_Boolean: return std::get<bool>(data) ? double(1) : double(0);
 		default:           return double(0);
 	}
 }
@@ -163,9 +163,9 @@ Variant::operator double()const
 Variant::operator bool()const {
 	switch (getType())
 	{
-		case Type::String:  return !std::get<std::string>(data).empty();
-		case Type::Double:  return std::get<double>(data) != 0.0F;
-		case Type::Boolean: return std::get<bool>(data);
+		case Type_String:  return !std::get<std::string>(data).empty();
+		case Type_Double:  return std::get<double>(data) != 0.0F;
+		case Type_Boolean: return std::get<bool>(data);
 		default:           return false;
 	}
 }
@@ -174,12 +174,12 @@ Variant::operator std::string()const {
 
 	switch (getType())
 	{
-		case Type::String:
+		case Type_String:
 		{
 			return std::get<std::string>(data);
 		}
 
-		case Type::Double:
+		case Type_Double:
 		{
 			// Format the num as a string without any useless ending zeros/dot
 			std::string str = std::to_string( std::get<double>(data));
@@ -189,7 +189,7 @@ Variant::operator std::string()const {
 			return str;
 		}
 
-		case Type::Boolean:
+		case Type_Boolean:
 		{
 			return  std::get<bool>(data) ? "true" : "false";
 		}

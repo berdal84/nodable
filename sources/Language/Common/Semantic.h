@@ -1,10 +1,13 @@
 #pragma once
-#include "Nodable.h"
-#include "TokenType.h"
+
 #include <string>
 #include <map>
+#include <vector>
 #include <regex>
-#include <Core/Type.h>
+
+#include "Nodable.h"
+#include "Language/Common/TokenType.h"
+#include "Core/Type.h"
 
 namespace Nodable
 {
@@ -20,7 +23,7 @@ namespace Nodable
 	class Semantic
 	{
 	public:
-		Semantic() = default;
+		Semantic();
 		~Semantic() = default;
 
 		/**
@@ -28,7 +31,7 @@ namespace Nodable
 		 *
 		 * A string that matching with the regular expression will be interpreted as a specific given type.
 		 */
-		void insert(std::regex, TokenType);
+		void insert(const std::regex&, TokenType);
 
 		/**
 		 * Insert a string to TokenType correspondence.
@@ -44,15 +47,26 @@ namespace Nodable
 		 */
 		void insert(Type _type, TokenType _tokenType);
 
-		[[nodiscard]] inline const auto& getTokenTypeToRegexMap()const { return m_tokenTypeToRegex;  }
-        [[nodiscard]] inline std::string tokenTypeToString(const TokenType& _type)const{ return m_tokenTypeToString.at(_type); }
-        [[nodiscard]] TokenType typeToTokenType(Type _type)const;
-        [[nodiscard]] Type tokenTypeToType(TokenType _tokenType)const;
+		[[nodiscard]] inline const std::vector<std::regex>& getRegex()const { return m_regex;  }
+        [[nodiscard]] inline std::string tokenTypeToString(TokenType _type)const { return m_tokenTypeToString[_type]; }
+        [[nodiscard]] inline TokenType typeToTokenType(Type _type)const { return m_typeToTokenType[_type]; }
+        [[nodiscard]] inline Type tokenTypeToType(TokenType _tokenType)const { return m_tokenTypeToType[_tokenType]; }
+        [[nodiscard]] inline const std::vector<TokenType>& getRegexIndexToTokenType()const { return m_regexIndexToTokenType; }
 
-	private:
-		std::map<TokenType, std::string> m_tokenTypeToString;
-		std::multimap<TokenType, std::regex>  m_tokenTypeToRegex;
-		std::map<TokenType, Type> m_tokenTypeToTypeMap;
-		std::map<Type, TokenType> m_typeToTokenTypeMap;
-	};
+    private:
+	    /**
+	     * Two vector to:
+	     *  1- iterate fast when we parse using all regex (in m_regex)
+	     *  2- once we found a regex that matches we get the TokenType (located at same index in m_type)
+	     */
+        std::vector<std::regex> m_regex;
+        std::vector<TokenType> m_regexIndexToTokenType;
+
+		/** uses Type as index */
+		std::vector<TokenType> m_typeToTokenType;
+        /** uses TokenType as index */
+        std::vector<Type> m_tokenTypeToType;
+        /** uses TokenType as index */
+        std::vector<std::string> m_tokenTypeToString;
+    };
 }

@@ -24,8 +24,8 @@ namespace Nodable {
         ~Token() {};
 
 		bool isOperand()const { // TODO: move this into "Parser" or "Language"
-			return type == TokenType::Double || type == TokenType::Boolean ||
-				   type == TokenType::String || type == TokenType::Symbol;
+			return type == TokenType_Double || type == TokenType_Boolean ||
+				   type == TokenType_String || type == TokenType_Symbol;
 		}
 
 		/**

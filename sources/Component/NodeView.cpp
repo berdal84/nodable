@@ -550,7 +550,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     /* Draw the member */
     switch (_member->getType())
     {
-        case Type::Double:
+        case Type_Double:
         {
             auto f = (double)*_member;
 
@@ -564,7 +564,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             break;
         }
 
-        case Type::String:
+        case Type_String:
         {
             char str[255];
             snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
@@ -579,7 +579,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             break;
         }
 
-        case Type::Boolean:
+        case Type_Boolean:
         {
             std::string checkBoxLabel = _member->getName();
 

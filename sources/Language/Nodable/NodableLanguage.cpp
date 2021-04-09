@@ -22,48 +22,48 @@ NodableLanguage::NodableLanguage()
      */
 
     // conditionnal structures
-    semantic.insert("if", TokenType::KeywordIf);
-    semantic.insert("else", TokenType::KeywordElse);
+    semantic.insert("if", TokenType_KeywordIf);
+    semantic.insert("else", TokenType_KeywordElse);
 
     // punctuation
-    semantic.insert(std::regex("^[ \t]"), TokenType::Ignore);
-    semantic.insert("{", TokenType::BeginScope);
-    semantic.insert("}", TokenType::EndScope);
-    semantic.insert("(", TokenType::OpenBracket);
-    semantic.insert(")", TokenType::CloseBracket);
-    semantic.insert(",", TokenType::Separator);
-    semantic.insert(" ", TokenType::Space);
-    semantic.insert(";", TokenType::EndOfInstruction);
-    semantic.insert("\n", TokenType::EndOfLine);
+    semantic.insert(std::regex("^[ \t]"), TokenType_Ignore);
+    semantic.insert("{", TokenType_BeginScope);
+    semantic.insert("}", TokenType_EndScope);
+    semantic.insert("(", TokenType_OpenBracket);
+    semantic.insert(")", TokenType_CloseBracket);
+    semantic.insert(",", TokenType_Separator);
+    semantic.insert(" ", TokenType_Space);
+    semantic.insert(";", TokenType_EndOfInstruction);
+    semantic.insert("\n", TokenType_EndOfLine);
 
     // values
-    semantic.insert(std::regex("^(true|false)"), TokenType::Boolean);
-    semantic.insert(std::regex("^(\".*\")"), TokenType::String);
-    semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType::Symbol);
-    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType::Double);
+    semantic.insert(std::regex("^(true|false)"), TokenType_Boolean);
+    semantic.insert(std::regex("^(\".*\")"), TokenType_String);
+    semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType_Symbol);
+    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Double);
 
     // types
-    semantic.insert("bool", TokenType::BooleanType);
-    semantic.insert("string", TokenType::StringType);
-    semantic.insert("number", TokenType::DoubleType);
-    semantic.insert("any", TokenType::AnyType);
+    semantic.insert("bool", TokenType_BooleanType);
+    semantic.insert("string", TokenType_StringType);
+    semantic.insert("number", TokenType_DoubleType);
+    semantic.insert("any", TokenType_AnyType);
 
 
     // operators
-    semantic.insert("operator", TokenType::KeywordOperator); // 3 chars
-    semantic.insert(std::regex("^(<=>)"), TokenType::Operator); // 3 chars
-    semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>))"), TokenType::Operator); // 2 chars
-    semantic.insert(std::regex("^[/+\\-*!=<>]"), TokenType::Operator); // single char
+    semantic.insert("operator", TokenType_KeywordOperator); // 3 chars
+    semantic.insert(std::regex("^(<=>)"), TokenType_Operator); // 3 chars
+    semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>))"), TokenType_Operator); // 2 chars
+    semantic.insert(std::regex("^[/+\\-*!=<>]"), TokenType_Operator); // single char
 
     // comments
-    semantic.insert(std::regex("^(//(.+?)$)"), TokenType::Ignore); // Single line
-    semantic.insert(std::regex("^(/\\*(.+?)\\*/)"), TokenType::Ignore); // Multi line
+    semantic.insert(std::regex("^(//(.+?)$)"), TokenType_Ignore); // Single line
+    semantic.insert(std::regex("^(/\\*(.+?)\\*/)"), TokenType_Ignore); // Multi line
 
     // type correspondence
-    semantic.insert(Type::Boolean, TokenType::BooleanType);
-    semantic.insert(Type::Double, TokenType::DoubleType);
-    semantic.insert(Type::String, TokenType::StringType);
-    semantic.insert(Type::Any, TokenType::AnyType);
+    semantic.insert(Type_Boolean, TokenType_BooleanType);
+    semantic.insert(Type_Double, TokenType_DoubleType);
+    semantic.insert(Type_String, TokenType_StringType);
+    semantic.insert(Type_Any, TokenType_AnyType);
 
 
     /*
@@ -71,9 +71,9 @@ NodableLanguage::NodableLanguage()
      */
 
     // To easily declare types
-    auto Double = TokenType::DoubleType;
-    auto Bool   = TokenType::BooleanType;
-    auto Str    = TokenType::StringType;
+    auto Double = TokenType_DoubleType;
+    auto Bool   = TokenType_BooleanType;
+    auto Str    = TokenType_StringType;
 
 	// returnNumber(number)
 	FCT_BEGIN(Double, "returnNumber", Double)

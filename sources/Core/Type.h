@@ -4,13 +4,13 @@ namespace Nodable
 	/*
 		The role of this enum class is to distinguish between all types that Nodable can handle.
 	*/
-	enum class Type
+	enum Type
 	{
-	    Unknown,
-		Any,
-		Boolean,
-		Double,
-		String,
-		COUNT
+        Type_Unknown = 0,
+        Type_Any,
+        Type_Boolean,
+        Type_Double,
+        Type_String,
+        Type_COUNT
 	};
 }

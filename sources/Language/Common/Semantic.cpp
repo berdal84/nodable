@@ -3,9 +3,17 @@
 
 using namespace Nodable;
 
-void Semantic::insert(std::regex _regex, TokenType _tokenType)
-{    
-    m_tokenTypeToRegex.insert({_tokenType, _regex});
+Semantic::Semantic()
+{
+    m_typeToTokenType.resize(Type_COUNT);
+    m_tokenTypeToType.resize(TokenType_COUNT);
+    m_tokenTypeToString.resize(TokenType_COUNT);
+}
+
+void Semantic::insert(const std::regex& _regex, TokenType _tokenType)
+{
+    m_regex.push_back(_regex);
+    m_regexIndexToTokenType.push_back(_tokenType);
 }
 
 void Semantic::insert(std::string _string, TokenType _tokenType)
@@ -27,30 +35,6 @@ void Semantic::insert(std::string _string, TokenType _tokenType)
 
 void Semantic::insert(Type _type, TokenType _tokenType)
 {
-    m_tokenTypeToTypeMap.insert({_tokenType, _type});
-    m_typeToTokenTypeMap.insert({_type, _tokenType});
-}
-
-TokenType Semantic::typeToTokenType(Type _type)const
-{
-    auto found = m_typeToTokenTypeMap.find(_type);
-    if ( found != m_typeToTokenTypeMap.end() )
-    {
-        return found->second;
-    }
-
-    LOG_ERROR("Semantic", "Semantic not found for this Nodable::Type. Did you insert it using insert() before ?");
-    return TokenType::Unknown;
-}
-
-Type Semantic::tokenTypeToType(TokenType _tokenType)const
-{
-    auto found = m_tokenTypeToTypeMap.find(_tokenType);
-    if ( found != m_tokenTypeToTypeMap.end() )
-    {
-        return found->second;
-    }
-
-    LOG_ERROR("Semantic", "Semantic not found for this Nodable::TokenType to Nodable::Type. Did you insert it using insert() before ?");
-    return Type::Unknown;
+    m_tokenTypeToType[_tokenType] = _type;
+    m_typeToTokenType[_type] = _tokenType;
 }

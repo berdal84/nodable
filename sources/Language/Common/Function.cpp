@@ -36,7 +36,7 @@ bool FunctionSignature::match(const FunctionSignature& _other)const {
 	size_t i = 0;
 	bool isMatching = true;
 	while(i < args.size() && isMatching) {
-		if (_other.args[i].type != TokenType::AnyType) // in case argument's type is unknown we allow casting
+		if (_other.args[i].type != TokenType_AnyType) // in case argument's type is unknown we allow casting
 			if (args[i].type != _other.args[i].type)
 				isMatching = false;
 		i++;
@@ -70,10 +70,10 @@ void Function::CheckArgumentsAndLogWarnings(const std::vector<Member*> &_args)
     for(auto it = _args.cbegin(); it != _args.cend(); it++)
 	{
         const Member* eachArgument = *it;
-		if( eachArgument->isType(Type::Any) && ( !eachArgument->getInputMember() || eachArgument->getInputMember()->getOwner()->getClass() != mirror::GetClass<VariableNode>()) )
+		if( eachArgument->isType(Type_Any) && ( !eachArgument->getInputMember() || eachArgument->getInputMember()->getOwner()->getClass() != mirror::GetClass<VariableNode>()) )
 		{
 			LOG_WARNING(
-			    "Language_MACROS", "Argument \"%s\" (at index %i) is Type::Any. This argument should be a variable, its type will be affected by evaluation. \n",
+			    "Language_MACROS", "Argument \"%s\" (at index %i) is Type_Any. This argument should be a variable, its type will be affected by evaluation. \n",
 			    eachArgument->getName().c_str(),
 			    std::distance(_args.begin(), it)
 			    );

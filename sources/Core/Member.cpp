@@ -183,7 +183,7 @@ void Member::set(const Member& _v)
 
 void Member::set(double _value)
 {
-	data.setType(Type::Double);
+	data.setType(Type_Double);
 	data.set(_value);
 }
 
@@ -199,13 +199,13 @@ void Member::set(const std::string& _value)
 
 void Member::set(const char* _value)
 {
-	data.setType(Type::String);
+	data.setType(Type_String);
 	data.set(_value);
 }
 
 void Member::set(bool _value)
 {
-	data.setType(Type::Boolean);
+	data.setType(Type_Boolean);
 	data.set(_value);
 }
 

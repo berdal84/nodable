@@ -20,7 +20,7 @@ Node::Node(std::string _label):
         dirty(true),
         next(nullptr)
 {
-//    add("activator", Visibility::Always, Type::Boolean, Way::Way_In);
+//    add("activator", Visibility::Always, Type_Boolean, Way::Way_In);
 }
 
 Node::~Node()
