@@ -21,6 +21,10 @@ NodableLanguage::NodableLanguage()
      *  The order of insertion is important. First inserted will be taken in priority by Parser.
      */
 
+    // comments
+    semantic.insert(std::regex("^(//(.+?)$)"), TokenType_Ignore); // Single line
+    semantic.insert(std::regex("^(/\\*(.+?)\\*/)"), TokenType_Ignore); // Multi line
+
     // conditionnal structures
     semantic.insert("if", TokenType_KeywordIf);
     semantic.insert("else", TokenType_KeywordElse);
@@ -48,16 +52,11 @@ NodableLanguage::NodableLanguage()
     semantic.insert("number", TokenType_DoubleType);
     semantic.insert("any", TokenType_AnyType);
 
-
     // operators
     semantic.insert("operator", TokenType_KeywordOperator); // 3 chars
     semantic.insert(std::regex("^(<=>)"), TokenType_Operator); // 3 chars
     semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>))"), TokenType_Operator); // 2 chars
     semantic.insert(std::regex("^[/+\\-*!=<>]"), TokenType_Operator); // single char
-
-    // comments
-    semantic.insert(std::regex("^(//(.+?)$)"), TokenType_Ignore); // Single line
-    semantic.insert(std::regex("^(/\\*(.+?)\\*/)"), TokenType_Ignore); // Multi line
 
     // type correspondence
     semantic.insert(Type_Boolean, TokenType_BooleanType);
