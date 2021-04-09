@@ -755,9 +755,9 @@ void ApplicationView::drawMenuBar(
                 System::OpenURL("https://www.github.com/berdal84/nodable");
             }
 
-            if (ImGui::MenuItem("Extern deps. credits"))
+            if (ImGui::MenuItem("Credits"))
             {
-                System::OpenURL("https://github.com/berdal84/nodable#dependencies--credits-");
+                System::OpenURL("https://github.com/berdal84/nodable#credits-");
             }
 
             ImGui::EndMenu();
