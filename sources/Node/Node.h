@@ -44,8 +44,7 @@ namespace Nodable{
 	     * @param _label
 	     */
 		explicit Node(std::string  _label = "UnnamedNode");
-
-		~Node();
+		~Node() = default;
 
 		[[nodiscard]] virtual Node*                     getParent()const { return this->parent; }
 		              virtual void                      setParent(Node* _node);

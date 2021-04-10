@@ -10,23 +10,23 @@ namespace Nodable
 	class ComputeBase : public Component {
 	public:
 		ComputeBase(const Language* _language) :language(_language) {};
-		virtual ~ComputeBase() { delete this->sourceToken; };
+		virtual ~ComputeBase() {};
 		void         setResult(Member* _value) { result = _value; };
 
         void setSourceToken(Token *token)
         {
-            this->sourceToken = token;
+            if ( token )
+                this->sourceToken = *token;
+            else
+                this->sourceToken = TokenType_NULL;
         }
 
-        Token* getSourceToken()const
-        {
-            return this->sourceToken;
-        }
+        [[nodiscard]] const Token* getSourceToken()const { return &this->sourceToken; }
 
 	protected:
 		const Language* language;
 		Member* result = nullptr;
-		Token* sourceToken = nullptr;
+		Token sourceToken = Token::Null;
 		MIRROR_CLASS(ComputeBase)(
 			MIRROR_PARENT(Component)
 			);

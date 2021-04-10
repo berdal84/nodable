@@ -1,4 +1,5 @@
 #include <algorithm>    // for std::find
+#include <utility>
 
 #include "Node.h"
 #include "Log.h"		// for LOG_DEBUG(...)
@@ -16,20 +17,12 @@ Node::Node(std::string _label):
 
         parentGraph(nullptr),
         parent(nullptr),
-        label(_label),
+        label(std::move(_label)),
+        innerGraph(nullptr),
         dirty(true),
         next(nullptr)
 {
 //    add("activator", Visibility::Always, Type_Boolean, Way::Way_In);
-}
-
-Node::~Node()
-{
-	// Delete all components
-	for(auto pair : components)
-	{
-		delete pair.second;
-	}
 }
 
 bool Node::isDirty(bool _checkChildren)const

@@ -36,6 +36,7 @@ ApplicationView::ApplicationView(const char* _name, Application* _application):
 
 ApplicationView::~ApplicationView()
 {
+    Texture::ReleaseResources();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext    ();
     SDL_GL_DeleteContext     (glcontext);
