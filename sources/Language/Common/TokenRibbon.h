@@ -61,7 +61,7 @@ namespace Nodable
 
         /** To store the result of the tokenizeExpressionString() method
             contain a vector of Tokens to be converted to a Nodable graph by all parseXXX functions */
-        std::vector<Token*> tokens;
+        std::vector<Token> tokens;
 
         Token *getEaten();
 

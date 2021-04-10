@@ -46,7 +46,7 @@ bool Parser::expressionToGraph(const std::string& _code,
     {
         if ( lineCount != 0 && !tokenRibbon.tokens.empty() )
         {
-            Token* lastToken = tokenRibbon.tokens.back();
+            Token* lastToken = &tokenRibbon.tokens.back();
             lastToken->suffix.append(eol);
         }
 
@@ -548,37 +548,16 @@ Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverrid
 
 bool Parser::isSyntaxValid()
 {
-	bool success                     = true;
-	auto it                          = tokenRibbon.tokens.begin();
+    // TODO: optimization: is this function really useful ? It check only few things.
+    //                     The parsing steps that follow (parseProgram) is doing a better check, by looking to what exist in the Language.
+	bool success   = true;
+	auto currTokIt = tokenRibbon.tokens.begin();
 	short int openedParenthesisCount = 0;
 
-	while(it != tokenRibbon.tokens.end() && success == true) {
-
-		auto currToken = *it;
-		const bool isLastToken = tokenRibbon.tokens.end() - it == 1;
-
-		switch (currToken->type)
+	while(currTokIt != tokenRibbon.tokens.end() && success == true)
+	{
+		switch (currTokIt->type)
 		{
-            case TokenType_Operator:
-            {
-
-                if (isLastToken)
-                {
-                    LOG_VERBOSE("Parser", "syntax error, an expression can't end with %s\n", currToken->word.c_str());
-                    success = false; // Last token can't be an operator
-                }
-                else
-                {
-                    auto next = *(it + 1);
-                    if (next->type == TokenType_Operator)
-                    {
-                        LOG_VERBOSE("Parser", "syntax error, unexpected token %s after %s \n", next->word.c_str(), currToken->word.c_str());
-                        success = false; // An operator can't be followed by another operator.
-                    }
-                }
-
-                break;
-            }
             case TokenType_OpenBracket:
             {
                 openedParenthesisCount++;
@@ -590,7 +569,7 @@ bool Parser::isSyntaxValid()
 
                 if (openedParenthesisCount < 0)
                 {
-                    LOG_VERBOSE("Parser", "Unexpected %s\n", currToken->word.c_str());
+                    LOG_VERBOSE("Parser", "Unexpected %s\n", currTokIt->word.c_str());
                     success = false;
                 }
 
@@ -600,7 +579,7 @@ bool Parser::isSyntaxValid()
                 break;
 		}
 
-		std::advance(it, 1);
+		std::advance(currTokIt, 1);
 	}
 
 	if (openedParenthesisCount != 0) // same opened/closed parenthesis count required.
@@ -618,8 +597,8 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
     auto chars = _expression;
 
     /* shortcuts to language members */
-    std::vector<std::regex> regex           = language->getSemantic()->getRegex();
-    std::vector<TokenType> regexIdToTokType = language->getSemantic()->getRegexIndexToTokenType();
+    const std::vector<std::regex> regex           = language->getSemantic()->getRegex();
+    const std::vector<TokenType> regexIdToTokType = language->getSemantic()->getRegexIndexToTokenType();
 
     std::string prefix;
 
@@ -662,9 +641,9 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
                 }
                 else if ( !tokenRibbon.empty()  )
                 {
-                    auto lastToken = tokenRibbon.tokens.back();
-                    lastToken->suffix.append(matchedTokenString);
-                    LOG_VERBOSE("Parser", "append ignored <word>%s</word> to <word>%s</word>\n", matchedTokenString.c_str(), lastToken->word.c_str() );
+                    Token& lastToken = tokenRibbon.tokens.back();
+                    lastToken.suffix.append(matchedTokenString);
+                    LOG_VERBOSE("Parser", "append ignored <word>%s</word> to <word>%s</word>\n", matchedTokenString.c_str(), lastToken.word.c_str() );
                 }
                 else
                 {
@@ -679,14 +658,12 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
         return false;
     };
 
-	for(auto curr = chars.cbegin(); curr != chars.cend();)
+    auto currTokIt = chars.cbegin();
+	while(currTokIt != chars.cend())
 	{
-		std::string currStr    = chars.substr(curr - chars.cbegin(), 1);
-		auto        currDist   = std::distance(chars.cbegin(), curr);
-
-		if (parseToken(curr, chars.end()) || !unifiedParsing(curr))
+		if (!unifiedParsing(currTokIt))
 		{
-		    LOG_VERBOSE("Parser", "tokenize " KO ", unable to tokenize at index %i\n", (int)std::distance(chars.cbegin(), curr) );
+		    LOG_VERBOSE("Parser", "tokenize " KO ", unable to tokenize at index %i\n", (int)std::distance(chars.cbegin(), currTokIt) );
 			return false;
 		}
 	}
