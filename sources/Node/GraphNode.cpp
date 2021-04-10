@@ -341,7 +341,8 @@ Node* GraphNode::newFunction(const Function* _function)
 Wire* GraphNode::newWire()
 {
 	Wire* wire = new Wire();
-	wire->addComponent(new WireView);	
+	wire->addComponent(new WireView);
+	registerWire(wire);
 	return wire;
 }
 
@@ -413,6 +414,12 @@ void GraphNode::deleteNode(Node* _node)
             it = wireRegistry.erase(it);
         else
             it++;
+    }
+
+    // delete components
+    for ( const auto& keyComponentPair : _node->getComponents())
+    {
+        delete keyComponentPair.second;
     }
 
     // unregister and delete
@@ -581,6 +588,11 @@ void GraphNode::deleteWire(Wire *_wire)
 
     NodeTraversal traversal;
     traversal.setDirty(targetNode);
+
+    for ( const auto& keyComponentPair : _wire->getComponents())
+    {
+        delete keyComponentPair.second;
+    }
 
     delete _wire;
 }

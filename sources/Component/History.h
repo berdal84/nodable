@@ -42,8 +42,8 @@ namespace Nodable
 
 	class History : public Component {
 	public:
-		History(size_t _sizeMax = 100):sizeMax(_sizeMax){}
-		~History();
+		explicit History(size_t _sizeMax = 100):sizeMax(_sizeMax), dirty(false){}
+		~History() override;
 
 		/* Execute a command and add it to the history.
 		If there are other commands after they will be erased from the history */

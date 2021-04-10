@@ -605,8 +605,10 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
     // Unified parsing using a char iterator (loop over all regex)
     auto unifiedParsing = [&](auto& it) -> auto
     {
+        int i = 0;
         for (auto eachRegexIt = regex.cbegin(); eachRegexIt != regex.cend(); eachRegexIt++)
         {
+            i++;
             std::smatch sm;
             auto match = std::regex_search(it, chars.cend(), sm, *eachRegexIt);
 

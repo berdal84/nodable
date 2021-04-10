@@ -20,18 +20,18 @@ bool Parser_Test(
 ){
     // prepare
     bool success = false;
-    auto graph = std::make_unique<GraphNode>(_language);
+    GraphNode graph(_language);
 
     // act
-    _language->getParser()->expressionToGraph(expression, graph.get());
+    _language->getParser()->expressionToGraph(expression, &graph);
 
     auto expectedMember = new Member(_expectedValue);
 
-    if ( auto program = graph->getProgram())
+    if ( auto program = graph.getProgram())
     {
         // run
         VirtualMachine vm;
-        vm.load(graph->getProgram());
+        vm.load(graph.getProgram());
         vm.run();
 
         // compare result

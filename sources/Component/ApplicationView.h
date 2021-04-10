@@ -25,7 +25,7 @@ namespace Nodable
 		
 	public:		
 		ApplicationView(const char* _name, Application* _application);
-		~ApplicationView();
+		~ApplicationView() override;
 		bool draw() override;
 		bool init();
         void browseFile();

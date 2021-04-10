@@ -13,7 +13,7 @@ namespace Nodable
     class Texture
     {
     private:
-        static std::map<std::filesystem::path, Texture*> s_textures;
+        static std::map<std::filesystem::path, Texture> s_textures;
 
     public:
 
@@ -27,10 +27,7 @@ namespace Nodable
             image(_image)
         {}
 
-        ~Texture()
-        {
-            glDeleteTextures(1, &image);
-        }
+        ~Texture() {}
 
         int width;
         int height;
@@ -47,12 +44,23 @@ namespace Nodable
             // Return if already exists
             auto tex = Texture::s_textures.find( path.string() );
             if ( tex != s_textures.end() )
-                return tex->second;
+                return &tex->second;
 
             return CreateTextureFromFile(path);
         }
 
+        static void ReleaseResources()
+        {
+            for( const auto& eachTxt : s_textures )
+            {
+                glDeleteTextures(1, &eachTxt.second.image);
+                LOG_MESSAGE("Texture", "Texture %s released.\n", eachTxt.first.c_str());
+            }
+            s_textures.clear();
+        }
+
     private:
+
 
         static Texture* CreateTextureFromFile(std::filesystem::path& path)
         {
@@ -67,12 +75,11 @@ namespace Nodable
             if ( isLoaded )
             {
                 LOG_MESSAGE("Texture", "Texture %s loaded.\n", path.c_str());
-                auto newTexture = new Texture(texture, width, height);
 
                 // Store for later use
-                s_textures.insert( { path, newTexture });
+                auto res = s_textures.insert( { path, {texture, width, height }});
 
-                return newTexture;
+                return &res.first->second;
             }
             else
             {
@@ -128,5 +135,5 @@ namespace Nodable
         }
     };
 
-    std::map<std::filesystem::path, Texture*> Texture::s_textures;
+    std::map<std::filesystem::path, Texture> Texture::s_textures;
 }

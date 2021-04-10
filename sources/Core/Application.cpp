@@ -46,10 +46,7 @@ UpdateResult Application::update()
     {
         return UpdateResult::Stopped;
     }
-    else
-    {
-        return fileUpdateResult;
-    }
+    return fileUpdateResult;
 }
 
 void Application::stopExecution()
