@@ -342,7 +342,6 @@ Wire* GraphNode::newWire()
 {
 	Wire* wire = new Wire(); // <--- TODO: valgring detect memory leak here, check why & fix.
 	wire->addComponent(new WireView);
-	registerWire(wire);
 	return wire;
 }
 
@@ -451,8 +450,7 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
         auto sourceNode = _from->getOwner()->as<Node>();
 
         // Link wire to members
-        auto sourceContainer = sourceNode->getParentGraph();
-        wire = sourceContainer->newWire();
+        wire = this->newWire();
 
         wire->setSource(_from);
         wire->setTarget(_to);

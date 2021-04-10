@@ -54,15 +54,17 @@ namespace Nodable
 		template<typename T>
 		T* as()
 		{
-            NODABLE_ASSERT(T::GetClass()->isChildOf(Object::getClass(), true));
-            return reinterpret_cast<T*>(this);
+            if(!T::GetClass()->isChildOf(this->getClass(), false) && this->getClass()->isChildOf(T::GetClass(), true))
+                return reinterpret_cast<T*>(this);
+            return nullptr;
 		}
 
         template<typename T>
         const T* as()const
         {
-            NODABLE_ASSERT(T::GetClass()->isChildOf(Object::getClass(), true));
-            return reinterpret_cast<const T*>(this);
+            if(!T::GetClass()->isChildOf(this->getClass(), false) && this->getClass()->isChildOf(T::GetClass(), true))
+                return reinterpret_cast<const T*>(this);
+            return nullptr;
         }
 
 	private:
