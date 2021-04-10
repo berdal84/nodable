@@ -9,7 +9,7 @@ using namespace Nodable;
 Member::Member()
     :
     owner(nullptr),
-    sourceToken(nullptr),
+    sourceToken(Token::Null),
     out(nullptr),
     in(nullptr) {
 
@@ -37,7 +37,6 @@ Member::~Member()
 {
     delete in;
     delete out;
-    delete sourceToken;
 }
 
 Type Member::getType()const
@@ -209,14 +208,16 @@ void Member::set(bool _value)
 	data.set(_value);
 }
 
-void Member::setSourceToken(Token *_token)
+void Member::setSourceToken(const Token* _token)
 {
-    this->sourceToken = _token;
-}
-
-Token *Member::getSourceToken() const
-{
-    return this->sourceToken;
+    if ( _token )
+    {
+        this->sourceToken = *_token;
+    }
+    else
+    {
+        this->sourceToken = Token::Null;
+    }
 }
 
 void Member::digest(Member *_member)
@@ -225,8 +226,8 @@ void Member::digest(Member *_member)
     this->data = _member->data;
 
     // Transfert Token ownership
-    this->setSourceToken(_member->getSourceToken());
-    _member->setSourceToken(nullptr);
+    this->sourceToken = _member->sourceToken;
+    _member->sourceToken = Token::Null;
 
     // release member
     delete _member;

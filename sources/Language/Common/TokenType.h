@@ -40,6 +40,7 @@ namespace Nodable {
 
         TokenType_COUNT,
 
+		TokenType_NULL, // to say 'absence of token', not token 'NULL'
         TokenType_Default = TokenType_Unknown,
     };
 }

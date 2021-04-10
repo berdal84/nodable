@@ -15,18 +15,18 @@ TokenRibbon::TokenRibbon()
 
 Token* TokenRibbon::push(TokenType  _type, const std::string& _string, size_t _charIndex )
 {
-    Token* newToken = new Token(_type, _string, _charIndex);
-    tokens.push_back(newToken);
-    return newToken;
+    return &tokens.emplace_back(_type, _string, _charIndex);
 }
 
 std::string TokenRibbon::toString()const
 {
+    // TODO: optimization: split in 3 loops (before current transaction, current transaction range, after transaction range)
+    //       to avoid those if in loops.
     std::string result;
 
-    for (auto it = tokens.begin(); it != tokens.end(); it++)
+    for (auto eachTokIt = tokens.begin(); eachTokIt != tokens.end(); eachTokIt++)
     {
-        size_t index = it - tokens.begin();
+        size_t index = eachTokIt - tokens.begin();
 
         // Set a color to identify tokens that are inside current transaction
         if ( !transactionStartTokenIndexes.empty() && index >= transactionStartTokenIndexes.top() && index < currentTokenIndex )
@@ -37,16 +37,16 @@ std::string TokenRibbon::toString()const
         if ( index == currentTokenIndex )
         {
             result.append(BOLDGREEN);
-            result.append((*it)->word);
+            result.append((*eachTokIt).word);
             result.append(RESET);
         }
         else
         {
-            result.append((*it)->word);
+            result.append((*eachTokIt).word);
         }
     }
 
-    const std::string endOfLine("<end>");
+    const std::string endOfLine("<eol>");
 
     if (tokens.size() == currentTokenIndex )
     {
@@ -74,8 +74,8 @@ Token* TokenRibbon::eatToken(TokenType expectedType)
 
 Token* TokenRibbon::eatToken()
 {
-    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", currentTokenIndex, peekToken()->toString().c_str() );
-    return tokens.at(currentTokenIndex++);
+    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", currentTokenIndex, Token::toString( peekToken() ).c_str() );
+    return &tokens.at(currentTokenIndex++);
 }
 
 void TokenRibbon::startTransaction()
@@ -122,10 +122,11 @@ bool TokenRibbon::canEat(size_t _tokenCount) const
 
 Token* TokenRibbon::peekToken()
 {
-    return tokens.at(currentTokenIndex);
+    return &tokens.at(currentTokenIndex);
 }
 
 Token *TokenRibbon::getEaten()
 {
-    return currentTokenIndex == 0 ? nullptr : tokens.at(currentTokenIndex - 1);
+    // TODO: optimization: store a pointer to the last eaten Token ?
+    return currentTokenIndex == 0 ? nullptr : &tokens.at(currentTokenIndex - 1);
 }

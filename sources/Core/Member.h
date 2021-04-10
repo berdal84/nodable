@@ -226,13 +226,14 @@ namespace Nodable
 		 * Set the source token, this will be used to Serialize and keep formatting.
 		 * @param _token
 		 */
-        void setSourceToken(Token* _token);
+        void setSourceToken(const Token* _token);
 
         /**
          * Get the source token, this will be used to Serialize and keep formatting.
          * @return
          */
-        [[nodiscard]] Token *getSourceToken() const;
+        [[nodiscard]] inline const Token* getSourceToken() const { return &sourceToken; }
+        [[nodiscard]] inline Token* getSourceToken() { return &sourceToken; }
 
         /**
          * This member will digest another.
@@ -263,7 +264,7 @@ namespace Nodable
         /**
          * The source token this Member comes from, used to keep formatting
          */
-        Token *sourceToken;
+        Token sourceToken;
 
 		/**
 		 * A name for this Member.
