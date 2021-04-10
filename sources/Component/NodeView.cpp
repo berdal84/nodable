@@ -968,6 +968,7 @@ ImRect NodeView::GetRect(
 
 std::vector<NodeView*> NodeView::getChildren()
 {
+    // TODO: this cost too much, compute when dirty only
     std::vector<NodeView*> result;
 
     for(auto& each : getOwner()->getChildren())
@@ -982,6 +983,7 @@ std::vector<NodeView*> NodeView::getChildren()
 
 std::vector<NodeView*> NodeView::getInputs()
 {
+    //  TODO: this cost too much, compute when dirty only
     std::vector<NodeView*> result;
 
     for(auto& each : getOwner()->getInputs())
@@ -996,6 +998,7 @@ std::vector<NodeView*> NodeView::getInputs()
 
 std::vector<NodeView*> NodeView::getOutputs()
 {
+    //  TODO: this cost too much, compute when dirty only
     std::vector<NodeView*> result;
 
     for(auto& each : getOwner()->getOutputs())
