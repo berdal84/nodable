@@ -99,6 +99,7 @@ Member* Parser::tokenToMember(Token* _token)
 
 		case TokenType_Boolean:
 		{
+		    // TODO: mem leak here, create a LiteralBooleanNode ?
             result = new Member(_token->word == "true");
             break;
 		}

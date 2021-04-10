@@ -22,6 +22,7 @@ Application::~Application()
 {
 	for (auto it = loadedFiles.begin(); it != loadedFiles.end(); it++)
 		delete* it;
+	delete getComponent<ApplicationView>();
 }
 
 bool Application::init()
