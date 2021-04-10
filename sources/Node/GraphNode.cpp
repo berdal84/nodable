@@ -340,7 +340,7 @@ Node* GraphNode::newFunction(const Function* _function)
 
 Wire* GraphNode::newWire()
 {
-	Wire* wire = new Wire();
+	Wire* wire = new Wire(); // <--- TODO: valgring detect memory leak here, check why & fix.
 	wire->addComponent(new WireView);
 	registerWire(wire);
 	return wire;
