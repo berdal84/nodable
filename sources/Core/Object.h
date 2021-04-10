@@ -54,15 +54,15 @@ namespace Nodable
 		template<typename T>
 		T* as()
 		{
-			auto casted = dynamic_cast<T*>(this);
-			return casted;
+            NODABLE_ASSERT(T::GetClass()->isChildOf(Object::getClass(), true));
+            return reinterpret_cast<T*>(this);
 		}
 
         template<typename T>
         const T* as()const
         {
-            auto casted = dynamic_cast<const T*>(this);
-            return casted;
+            NODABLE_ASSERT(T::GetClass()->isChildOf(Object::getClass(), true));
+            return reinterpret_cast<const T*>(this);
         }
 
 	private:
