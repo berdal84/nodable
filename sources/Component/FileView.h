@@ -6,6 +6,9 @@
 
 namespace Nodable {	
 
+    // forwward declarations
+    class File;
+
 	class FileView : public View
 	{
 	public:

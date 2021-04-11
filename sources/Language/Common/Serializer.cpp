@@ -129,19 +129,17 @@ std::string Serializer::serialize(const ComputeBase *_operation)const
 
     std::string result;
 
-    auto computeFunction = _operation->as<ComputeFunction>();
-
-    if(auto computeBinOp = computeFunction->as<ComputeBinaryOperation>() )
+    if( auto computeBinOp = _operation->as<ComputeBinaryOperation>() )
     {
         result = serialize(computeBinOp);
     }
-    else if (auto computeUnaryOp = computeFunction->as<ComputeUnaryOperation>() )
+    else if (auto computeUnaryOp = _operation->as<ComputeUnaryOperation>() )
     {
         result = serialize(computeUnaryOp);
     }
-    else
+    else if (auto fct = _operation->as<ComputeFunction>())
     {
-        result = serialize(computeFunction);
+        result = serialize(fct);
     }
 
     return result;
@@ -208,12 +206,12 @@ std::string Serializer::serialize(const Member * _member) const
         expression.append(sourceToken->prefix);
     }
 
-    auto owner = _member->getOwner()->as<Node>();
+    auto owner = _member->getOwner();
     if ( owner && _member->allowsConnection(Way_In) && owner->hasWireConnectedTo(_member) )
     {
         auto sourceMember = owner->getSourceMemberOf(_member);
 
-        if ( auto computeBase = sourceMember->getOwner()->as<Node>()->getComponent<ComputeBase>() )
+        if ( auto computeBase = sourceMember->getOwner()->getComponent<ComputeBase>() )
         {
             expression.append( Serializer::serialize(computeBase) );
         }
@@ -221,11 +219,10 @@ std::string Serializer::serialize(const Member * _member) const
         {
             expression.append( serialize(sourceMember) );
         }
-
     }
     else
     {
-        if (owner->getClass() == mirror::GetClass<VariableNode>())
+        if (owner && owner->getClass() == mirror::GetClass<VariableNode>())
         {
             auto variable = owner->as<VariableNode>();
             expression.append( variable->getName() );

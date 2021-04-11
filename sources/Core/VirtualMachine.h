@@ -19,9 +19,9 @@ namespace Nodable
         bool isProgramOver();
         void stop();
         void debug();
-        inline bool isRunning(){ return m_isRunning; }
-        inline bool isDebugging(){ return m_isDebugging; }
-        inline bool isStopped(){ return !m_isDebugging && !m_isRunning; }
+        [[nodiscard]] inline bool isRunning() const{ return m_isRunning; }
+        [[nodiscard]] inline bool isDebugging() const{ return m_isDebugging; }
+        [[nodiscard]] inline bool isStopped() const{ return !m_isDebugging && !m_isRunning; }
 //        void pause();
 //        void stop();
         bool stepOver();

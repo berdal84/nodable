@@ -21,6 +21,8 @@
 
 namespace Nodable
 {
+    // forward declarations
+    class History;
 	class Cmd;
 	class Cmd_TextEditor_InsertText;
 
@@ -123,87 +125,87 @@ namespace Nodable
 	/*
 		Command to add a wire between two Members
 	*/
-
-	class Cmd_ConnectWire : public Cmd
-	{
-	public:
-		Cmd_ConnectWire(Member* _source, Member* _target)
-		{			
-			this->source     = _source;
-			this->target     = _target;
-
-			// Title
-			description.append("Connect Wire\n");
-
-			// Details
-			description.append( "\"" + _source->getName() + "\" ---> \"" + _target->getName() + "\"\n");
-
-			// Time
-			std::time_t time = std::time(nullptr);
-			auto localTime   = std::localtime(&time);
-			std::string timeString( std::asctime(localTime) );
-			description.append(timeString);
-
-		};
-
-		~Cmd_ConnectWire(){};
-
-		void execute()
-		{
-			target->setInputMember(source);
-			auto targetNode = target->getOwner()->as<Node>();
-			auto sourceNode = source->getOwner()->as<Node>();
-
-			// Link wire to members
-			auto sourceContainer = sourceNode->getParentGraph();
-
-			if (sourceContainer != nullptr)
-				this->wire = sourceContainer->newWire();
-			else
-				this->wire = new Wire();
-
-			wire->setSource(source);
-			wire->setTarget(target);
-
-			// Add the wire pointer to the Entitis instance to speed up drawing process.
-			targetNode->addWire(wire);
-			sourceNode->addWire(wire);
-
-			NodeTraversal traversal;
-            traversal.setDirty(targetNode);
-		}
-
-		void redo() {
-			execute();
-		}
-
-		void undo()
-		{
-
-            auto targetNode = target->getOwner()->as<Node>();
-            auto sourceNode = source->getOwner()->as<Node>();
-
-            target->setInputMember(nullptr);
-            NodeTraversal traversal;
-            traversal.setDirty(targetNode);
-
-			// Link Members
-			wire->setSource(nullptr);
-			wire->setTarget(nullptr);
-
-			// Add the wire pointer to the Node instance to speed up drawing process.
-            targetNode->removeWire(wire);
-            sourceNode->removeWire(wire);
-
-			delete wire;
-		}
-
-		Wire* getWire() { return wire; }
-	private:
-		Wire*      wire          = nullptr;
-		Member*    source        = nullptr;
-		Member*    target        = nullptr;
-	};
+//
+//	class Cmd_ConnectWire : public Cmd
+//	{
+//	public:
+//		Cmd_ConnectWire(Member* _source, Member* _target)
+//		{
+//			this->source     = _source;
+//			this->target     = _target;
+//
+//			// Title
+//			description.append("Connect Wire\n");
+//
+//			// Details
+//			description.append( "\"" + _source->getName() + "\" ---> \"" + _target->getName() + "\"\n");
+//
+//			// Time
+//			std::time_t time = std::time(nullptr);
+//			auto localTime   = std::localtime(&time);
+//			std::string timeString( std::asctime(localTime) );
+//			description.append(timeString);
+//
+//		};
+//
+//		~Cmd_ConnectWire(){};
+//
+//		void execute()
+//		{
+//			target->setInputMember(source);
+//			auto targetNode = target->getOwner()->as<Node>();
+//			auto sourceNode = source->getOwner()->as<Node>();
+//
+//			// Link wire to members
+//			auto sourceContainer = sourceNode->getParentGraph();
+//
+//			if (sourceContainer != nullptr)
+//				this->wire = sourceContainer->newWire();
+//			else
+//				this->wire = new Wire();
+//
+//			wire->setSource(source);
+//			wire->setTarget(target);
+//
+//			// Add the wire pointer to the Entitis instance to speed up drawing process.
+//			targetNode->addWire(wire);
+//			sourceNode->addWire(wire);
+//
+//			NodeTraversal traversal;
+//            traversal.setDirty(targetNode);
+//		}
+//
+//		void redo() {
+//			execute();
+//		}
+//
+//		void undo()
+//		{
+//
+//            auto targetNode = target->getOwner()->as<Node>();
+//            auto sourceNode = source->getOwner()->as<Node>();
+//
+//            target->setInputMember(nullptr);
+//            NodeTraversal traversal;
+//            traversal.setDirty(targetNode);
+//
+//			// Link Members
+//			wire->setSource(nullptr);
+//			wire->setTarget(nullptr);
+//
+//			// Add the wire pointer to the Node instance to speed up drawing process.
+//            targetNode->removeWire(wire);
+//            sourceNode->removeWire(wire);
+//
+//			delete wire;
+//		}
+//
+//		Wire* getWire() { return wire; }
+//	private:
+//		Wire*      wire          = nullptr;
+//		Member*    source        = nullptr;
+//		Member*    target        = nullptr;
+//	};
 
 
 

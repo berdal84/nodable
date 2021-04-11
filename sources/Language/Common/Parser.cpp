@@ -209,7 +209,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 
         graph->connect(_left, computeComponent->getLValue());
         graph->connect(right, computeComponent->getRValue());
-		result = binOpNode->get("result");
+		result = binOpNode->getProps()->get("result");
 
         commitTransaction();
         LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n");
@@ -270,7 +270,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
         computeComponent->setSourceToken(operatorToken);
 
         graph->connect(value, computeComponent->getLValue());
-        Member* result = unaryOpNode->get("result");
+        Member* result = unaryOpNode->getProps()->get("result");
 
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
         commitTransaction();
@@ -765,7 +765,7 @@ Member* Parser::parseFunctionCall()
                     .at(_argIndex)
                     .name;
 
-            graph->connect(arg, node->get(memberName.c_str()));
+            graph->connect(arg, node->getProps()->get(memberName.c_str()));
         };
 
         for (size_t argIndex = 0; argIndex < fct->signature
@@ -778,7 +778,7 @@ Member* Parser::parseFunctionCall()
         commitTransaction();
         LOG_VERBOSE("Parser", "parse function call... " OK "\n");
 
-        return node->get("result");
+        return node->getProps()->get("result");
 
     }
 
@@ -808,7 +808,7 @@ ConditionalStructNode * Parser::parseConditionalStructure()
 
         if ( condition)
         {
-            graph->connect(condition, condStruct->get("condition") );
+            graph->connect(condition, condStruct->getCondition() );
             if ( ScopedCodeBlockNode* scopeIf = parseScope() )
             {
                 graph->connect(scopeIf, condStruct, RelationType::IS_CHILD_OF);

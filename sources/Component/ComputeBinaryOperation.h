@@ -19,7 +19,7 @@ namespace Nodable{
 	class ComputeBinaryOperation: public ComputeUnaryOperation {
 	public:		
 		ComputeBinaryOperation(const Operator*, const Language*);
-		~ComputeBinaryOperation(){};
+		~ComputeBinaryOperation() = default;
 		void            setRValue(Member* _value);
         Member*         getRValue();
         // reflect class using mirror

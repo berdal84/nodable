@@ -135,6 +135,7 @@ namespace Nodable
 		 */
 		static void SaveNode(Node* _node);
 
+		static Application* s_instance;
 	private:
 		/** When set to true, the application will close next frame */
 		bool quit = false;

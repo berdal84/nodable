@@ -10,10 +10,14 @@
 
 using namespace Nodable;
 
+Application* Application::s_instance = nullptr;
+
 Application::Application(const char* _name):
     currentFileIndex(0),
     assetsFolderPath(NODABLE_ASSETS_DIR)
 {
+    NODABLE_ASSERT(s_instance == nullptr); // can't create more than a single app
+    s_instance = this;
 	setLabel(_name);
 	addComponent(new ApplicationView(_name, this));
 }
@@ -23,6 +27,7 @@ Application::~Application()
 	for (auto & loadedFile : loadedFiles)
 		delete loadedFile;
 	delete getComponent<ApplicationView>();
+	s_instance = nullptr;
 }
 
 bool Application::init()

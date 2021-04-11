@@ -1,6 +1,6 @@
 #include "Member.h"
 #include "Log.h"		 // for LOG_DEBUG(...)
-#include "Object.h"
+#include "Properties.h"
 #include "VariableNode.h"
 #include "Language/Common/Language.h"
 
@@ -51,7 +51,7 @@ bool Member::hasInputConnected() const
 
 bool  Member::isType(Type _type)const
 {
-	return data.isType(_type);
+	return data.isType(_type) || getType() == Type_Any || _type == Type_Any;
 }
 
 bool Member::equals(const Member *_other)const {
@@ -103,7 +103,7 @@ bool Member::allowsConnection(Way _way)const
 	return maskedFlags == _way;
 }
 
-Object* Member::getOwner() const
+Node* Member::getOwner() const
 {
 	return owner;
 }
@@ -231,9 +231,4 @@ void Member::digest(Member *_member)
 
     // release member
     delete _member;
-}
-
-void Member::setOwner(Object *_owner)
-{
-    this->owner = _owner;
 }

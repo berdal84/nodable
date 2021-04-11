@@ -7,13 +7,16 @@
 
 // Nodable
 #include <Core/Nodable.h>
-#include <Core/Object.h>
+#include <Core/Properties.h>
 #include <Component/Component.h>
 #include <Node/NodeTraversal.h>
+#include "Properties.h"
 
 namespace Nodable{
 
+    // forward declarations
     class Operator;
+    class GraphNode;
 
     /**
      * Distinguish between all possible update result
@@ -35,7 +38,7 @@ namespace Nodable{
 		Every Node has a parent GraphNode. All nodes are built from a GraphNode, which first create an instance of this class (or derived) and then
 		add some Component on it.
 	*/
-	class Node : public Object
+	class Node
 	{
 	public:
 
@@ -44,7 +47,7 @@ namespace Nodable{
 	     * @param _label
 	     */
 		explicit Node(std::string  _label = "UnnamedNode");
-		~Node() = default;
+		virtual ~Node() = default;
 
 		[[nodiscard]] virtual Node*                     getParent()const { return this->parent; }
 		              virtual void                      setParent(Node* _node);
@@ -67,6 +70,10 @@ namespace Nodable{
         std::vector<Node*>& getOutputs();
         void setNext(Node* _node) { this->next = _node; };
         virtual Node* getNext() { return this->next; }
+
+        bool needsToBeDeleted  (){return deleted;}
+        /* Set deleted flag on. Will be deleted by its controller next frame */
+        void                flagForDeletion   (){ deleted = true;}
 
 		/**
 		 * Get the label of this Node
@@ -108,12 +115,12 @@ namespace Nodable{
 		void setDirty(bool _value = true);
 
 		/** return true if this node needs to be updated and false otherwise */
-		[[nodiscard]] bool isDirty(bool _checkChildren = false)const;
+		[[nodiscard]] bool isDirty()const;
 		
 		/** Update the state of this (and only this) node
 		 * This WON'T evaluate it */
 		virtual UpdateResult update();
-        bool eval();
+        bool eval() const;
 
 		/** Get the operator connected to a given Member */
         const Operator* getConnectedOperator(const Member* _localMember);
@@ -218,7 +225,26 @@ namespace Nodable{
 			return nullptr;
 		};
 
+        template<class T> [[nodiscard]] T* as()
+        {
+            if( this->getClass()->isChildOf(mirror::GetClass<T>()))
+                return reinterpret_cast<T*>(this);
+            return nullptr;
+        }
+
+        template<class T> [[nodiscard]] const T* as()const
+        {
+            if( this->getClass()->isChildOf(mirror::GetClass<T>()))
+                return reinterpret_cast<const T*>(this);
+            return nullptr;
+        }
+
+        Properties* getProps() { return &props; }
+        void onMemberChanges();
+
 	protected:
+        Properties props;
+
 		Components components;
         /** The parent Node from a hierarchy point of view (parent is not owner) */
         Node* parent;
@@ -226,13 +252,9 @@ namespace Nodable{
         Node* next;
         /** Children from a hierarchical point of view */
         std::vector<Node*> children;
-    private:
-		/**
-		 * This will be called automatically after a Member value change.
-		 * @param _name is the name of the Member that has changed.
-		 */
-		void onMemberValueChanged(const char* _name)override;
 
+        bool deleted;
+    private:
 		/** The inner container of this Node. (Recursion)*/
 		GraphNode*                innerGraph;
 
@@ -253,8 +275,6 @@ namespace Nodable{
 		std::vector<Node*> outputs;
 	public:
 	    /* use mirror to refect class */
-		MIRROR_CLASS(Node)(
-			MIRROR_PARENT(Object)
-		);
+		MIRROR_CLASS(Node)();
     };
 }

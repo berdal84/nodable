@@ -5,16 +5,20 @@
 #include <imgui/imgui.h>
 #include <mirror.h>
 
-namespace Nodable{
-	class WireView : public View
-	{
-	public:
-		bool update()override {return true;}
-		bool draw()override;
-		MIRROR_CLASS(WireView)(
-			MIRROR_PARENT(View));
+namespace Nodable
+{
+    // forward
+    class MemberView;
+    class NodeView;
 
-        static void DrawVerticalWire(
+    namespace WireView
+    {
+        void Draw(
+                ImDrawList *draw_list,
+                ImVec2 _from, ImVec2 _to,
+                const NodeView *_fromNode, const NodeView *_toNode);
+
+        void DrawVerticalWire(
                 ImDrawList *draw_list,
                 ImVec2 pos0,
                 ImVec2 pos1,
@@ -23,7 +27,7 @@ namespace Nodable{
                 float thickness = 1.0f,
                 float roundness = 0.5f);
 
-        static void DrawHorizontalWire(
+        void DrawHorizontalWire(
                 ImDrawList *draw_list,
                 ImVec2 pos0,
                 ImVec2 pos1,

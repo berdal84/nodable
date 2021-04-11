@@ -20,6 +20,9 @@
 
 namespace Nodable {
 
+    // forward declarations
+    class Parser;
+
 	/**
 		The role of this class is to define an interface for all languages in Nodable.
 

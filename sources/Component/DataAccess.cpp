@@ -50,7 +50,7 @@ bool DataAccess::update()
     	writer.Key("members");
     	writer.StartObject();
     	{
-		    for(auto& each : owner->getMembers())
+		    for(auto& each : owner->getProps()->getMembers())
 		    {
 		    	auto value = each.second;
 
@@ -70,11 +70,7 @@ bool DataAccess::update()
 		    	writer.Key   (eachComponent.first.c_str());
 		    	writer.StartObject();
 
-		    	for(auto& each : eachComponent.second->getMembers())
-			    {
-			    	auto value = each.second;
-			    	writeMember(value);
-			    }
+		    	// TODO: use mirror to serialize members
 
 			    writer.EndObject();
 		    }

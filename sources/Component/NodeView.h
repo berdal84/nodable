@@ -24,6 +24,7 @@ namespace Nodable
     class ScopedCodeBlockNode;
     class CodeBlockNode;
     class GraphNode;
+    class NodeView;
 
 	/**
 	 * Simple struct to store a member view state
@@ -203,6 +204,8 @@ namespace Nodable
         /** Change view detail globally */
         static void SetDetail(NodeViewDetail _viewDetail);
 
+        /** Get a MemberView given a Member */
+        const MemberView* getMemberView(const Member* _member)const;
     private:
         /** Update function that takes a specific delta time (can be hacked by sending a custom value) */
         virtual bool update(float _deltaTime);
@@ -219,9 +222,6 @@ namespace Nodable
 
 		/** Check if a Member is exposed (as an input or output) */
         bool isMemberExposed(const Member *_member)const;
-
-        /** Get a MemberView given a Member */
-        const MemberView* getMemberView(const Member* _member)const;
 
         /** position in pixels (center of the NodeView) */
 		ImVec2          position;
@@ -264,9 +264,7 @@ namespace Nodable
         /** to store all instances */
         static std::vector<NodeView*> s_instances;
 
-        // Reflect this class
-        MIRROR_CLASS(NodeView)(
-                MIRROR_PARENT(View)); // I only need to know the parent
+	public:
         ImVec2 getScreenPos();
 
         bool isPinned() const;
@@ -299,5 +297,8 @@ namespace Nodable
         bool hasNoMoreThanASingleOutputVisible();
 
         std::vector<NodeView *> getOutputs();
+
+        // Reflect this class
+    MIRROR_CLASS(NodeView) (MIRROR_PARENT(View)); // I only need to know the parent
     };
 }

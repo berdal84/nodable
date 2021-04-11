@@ -18,7 +18,7 @@ namespace Nodable {
 	class ComputeUnaryOperation : public ComputeFunction {
 	public:
 		ComputeUnaryOperation(const Operator*, const Language*);
-		~ComputeUnaryOperation() {};
+		~ComputeUnaryOperation() = default;
 		void            setLValue(Member* _value);
         Member*         getLValue();
         const Operator* getOperator() const;

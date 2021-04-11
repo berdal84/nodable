@@ -16,17 +16,17 @@ TEST( GraphNode, connect)
     auto graph = std::make_unique<GraphNode>(&language);
 
     auto node1 = graph->newNode();
-    node1->add("output");
+    node1->getProps()->add("output");
 
     auto node2  = graph->newNode();
-    node2->add("input");
+    node2->getProps()->add("input");
 
     auto wire = graph->connect(
-            node1->get("output"),
-            node2->get("input"));
+            node1->getProps()->get("output"),
+            node2->getProps()->get("input"));
 
-    EXPECT_EQ(wire->getSource() , node1->get("output"));
-    EXPECT_EQ(wire->getTarget() , node2->get("input"));
+    EXPECT_EQ(wire->getSource() , node1->getProps()->get("output"));
+    EXPECT_EQ(wire->getTarget() , node2->getProps()->get("input"));
     EXPECT_EQ(graph->getWireRegistry().size(), 1);
  }
 
@@ -36,15 +36,15 @@ TEST( GraphNode, disconnect)
     auto graph = std::make_unique<GraphNode>(language.get());
 
     auto a = std::make_unique<Node>();
-    a->add("output");
+    auto output = a->getProps()->add("output");
 
     auto b = std::make_unique<Node>();
-    b->add("input");
+    auto input = b->getProps()->add("input");
 
     EXPECT_EQ(graph->getWireRegistry().size(), 0);
     EXPECT_EQ(graph->getRelationRegistry().size(), 0);
 
-    auto wire = graph->connect(a->get("output"), b->get("input"));
+    auto wire = graph->connect(output, input);
 
     EXPECT_EQ(graph->getWireRegistry().size(), 1); // wire must be registered when connected
     EXPECT_EQ(graph->getRelationRegistry().size(), 1); // relation must be registered when connected
@@ -64,10 +64,11 @@ TEST( GraphNode, clear)
     InstructionNode* instructionNode = graph->newInstruction();
 
     Node* operatorNode = graph->newOperator(language->findOperator("+"));
-    operatorNode->set("rvalue", 2);
-    operatorNode->set("lvalue", 2);
+    auto props = operatorNode->getProps();
+    props->get("rvalue")->set(2);
+    props->get("lvalue")->set(2);
 
-    graph->connect(operatorNode->get("result"), instructionNode->getValue() );
+    graph->connect(props->get("result"), instructionNode->getValue() );
 
     EXPECT_TRUE(graph->getWireRegistry().size() != 0);
     EXPECT_TRUE(graph->getNodeRegistry().size() != 0);

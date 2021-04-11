@@ -12,8 +12,8 @@ namespace Nodable
     public:
         ConditionalStructNode();
         ~ConditionalStructNode() = default;
-        inline Member* getCondition()const { return get("condition"); }
-        inline void setCondition(Member* _value){ get("condition")->set(_value);};
+        inline Member* getCondition()const { return props.get("condition"); }
+        inline void setCondition(Member* _value){ getCondition()->set(_value);};
         virtual AbstractCodeBlockNode* getNext();
         AbstractCodeBlockNode*         getBranchTrue();
         AbstractCodeBlockNode*         getBranchFalse();

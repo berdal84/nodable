@@ -25,7 +25,7 @@ namespace Nodable{
 		const char*       getName         ()const;
 
 		Member* value()const {
-			return get("value");
+			return props.get("value");
 		}
 
 		std::string       getTypeAsString ()const;
@@ -36,14 +36,14 @@ namespace Nodable{
 		template<class Value>
 		void set(Value _value)
 		{
-			get("value")->set(_value);
+            props.get("value")->set(_value);
 			updateLabel();
 		};
 
 		template<class Value>
 		void set(Value* _value)
 		{
-			get("value")->set(_value);
+            props.get("value")->set(_value);
 			updateLabel();
 		};
 

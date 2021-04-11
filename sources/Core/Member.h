@@ -10,6 +10,11 @@
 
 namespace Nodable
 {
+
+    // forward declarations
+    class Node;
+    class Properties;
+
     /**
      * The role of a Member is to store a value in an underlying Variant object. A Member always has an Object as owner and
      * should do not exists alone.
@@ -135,7 +140,9 @@ namespace Nodable
 		 * Get the owner Object
 		 * @return a pointer to the owner Object.
 		 */
-		[[nodiscard]] Object* getOwner()const;
+		[[nodiscard]] Node* getOwner()const;
+
+        [[nodiscard]] Properties* getParentProperties()const { return parentProperties; }
 
 		/**
 		 * Get the input connected Member
@@ -192,7 +199,9 @@ namespace Nodable
          */
 		inline explicit operator int()const
 		{
-		    return (int)data;
+		    if ( inputMember )
+                return (int)inputMember->data;
+            return (int)this->data;
 		}
 
         /**
@@ -201,7 +210,9 @@ namespace Nodable
          */
         inline explicit operator bool()const
         {
-            return (bool)data;
+            if ( inputMember )
+                return (bool)inputMember->data;
+            return (bool)this->data;
         }
 
         /**
@@ -210,7 +221,9 @@ namespace Nodable
          */
         inline explicit operator double()const
         {
-            return (double)data;
+            if ( inputMember )
+                return (double)inputMember->data;
+            return (double)this->data;
         }
 
         /**
@@ -219,7 +232,9 @@ namespace Nodable
          */
 		inline explicit operator std::string()const
 		{
-		    return (std::string)data;
+            if ( inputMember )
+                return (std::string)inputMember->data;
+            return (std::string)this->data;
 		}
 
 		/**
@@ -242,53 +257,21 @@ namespace Nodable
          * @param _member
          */
         void digest(Member *_member);
-
-        void setOwner(Object *_owner);
+        void setOwner(Node* _owner) { this->owner = _owner; }
+        void setParentProperties(Properties *_parent) { this->parentProperties = _parent; }
 
     private:
-        /**
-         * The Object that owns this. Owner is responsible to create/delete this.
-         */
-		Object* owner;
-
-		/**
-		 * A possible input connected Member.
-		 */
-		Member* inputMember = nullptr;
-
-		/**
-		 * The source expression that the value of this Member should be the result.
-		 */
-		std::string         sourceExpression;
-
-        /**
-         * The source token this Member comes from, used to keep formatting
-         */
-        Token sourceToken;
-
-		/**
-		 * A name for this Member.
-		 */
-		std::string 		name 				= "Unknown";
-
-		/**
-		 * The underlying data.
-		 */
+		Node*             owner;
+		Properties*       parentProperties;
+		Member*           inputMember = nullptr;
+		std::string       sourceExpression;
+        /** The source token this Member comes from, used to keep formatting*/
+        Token             sourceToken;
+		std::string       name = "Unknown";
+		/** underlying data */
 		Variant       		data;
-
-		/**
-		 * The visibility of this Member.
-		 */
 		Visibility 		    visibility = Visibility::Default;
-
-		/**
-		 * The input connector, nullptr (default) means no input connection is allowed.
-		 */
 		Connector*          in                  = nullptr;
-
-        /**
-         * The input connector, nullptr (default) means no output connections are allowed.
-         */
 		Connector*          out                 = nullptr;
     };
 }

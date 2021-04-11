@@ -10,11 +10,28 @@
 
 using namespace Nodable;
 
+enum TraversalFlag {
+    TraversalFlag_None             = 0,
+    TraversalFlag_FollowInputs     = 1 << 0,
+    TraversalFlag_FollowOutputs    = 1 << 1,
+    TraversalFlag_FollowChildren   = 1 << 2,
+    TraversalFlag_FollowParent     = 1 << 3,
+    TraversalFlag_FollowNotDirty     = 1 << 4,
+};
+
 Result NodeTraversal::update(Node* _rootNode)
 {
     initialize();
     LOG_VERBOSE("NodeTraversal", "Update %s \n", _rootNode->getLabel() );
-    auto result = updateRecursively(_rootNode);
+    auto result = traverseRec(_rootNode, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren | TraversalFlag_FollowNotDirty);
+    for(Node* eachNode : stats.traversed )
+    {
+        if ( eachNode->isDirty() )
+        {
+            eachNode->eval();
+            eachNode->update();
+        }
+    }
     LOG_VERBOSE("NodeTraversal", "NodeTraversal::Update done.\n");
     return result;
 }
@@ -23,27 +40,82 @@ Result NodeTraversal::setDirty(Node* _rootNode)
 {
     initialize();
     LOG_VERBOSE("NodeTraversal", "NodeTraversal::setDirty %s \n", _rootNode->getLabel() );
-    auto result = setDirtyRecursively(_rootNode);
+    auto result = traverseRec(_rootNode, TraversalFlag_FollowOutputs);
+    for(Node* eachNode : stats.traversed )
+        eachNode->update();
     LOG_VERBOSE("NodeTraversal", "NodeTraversal::setDirty done.\n");
     return result;
 }
 
-Result NodeTraversal::update(ScopedCodeBlockNode *_scope)
+//Result NodeTraversal::update(ScopedCodeBlockNode *_scope)
+//{
+//    initialize();
+//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::update %s \n", _scope->getLabel() );
+//    auto result = updateRecursively(_scope);
+//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::update done.\n");
+//    return result;
+//}
+
+Result NodeTraversal::traverseForEval(Node* _node)
 {
     initialize();
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::update %s \n", _scope->getLabel() );
-    auto result = updateRecursively(_scope);
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::update done.\n");
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::traverseForEval %s \n", _node->getLabel() );
+    auto result = traverseRec(_node, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty );
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::traverseForEval done.\n");
     return result;
 }
 
-Result NodeTraversal::eval(Node* _scope)
+Result NodeTraversal::traverse(Node *_node, TraversalFlag _flags)
 {
     initialize();
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::eval %s \n", _scope->getLabel() );
-    auto result = evalRecursively(_scope);
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::eval done.\n");
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::traverse %s \n", _node->getLabel() );
+    auto result = traverseRec(_node, _flags);
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::traverse done.\n");
     return result;
+}
+
+Result NodeTraversal::traverseRec(Node* _node, TraversalFlag _flags)
+{
+
+    if( !stats.hasBeenTraversed(_node) )
+    {
+        if ( _node->isDirty() || (_flags & TraversalFlag_FollowNotDirty ) )
+        {
+            if ( _flags & TraversalFlag_FollowInputs )
+            {
+                for (auto eachInput : _node->getInputs())
+                {
+                    if ( traverseRec(eachInput, _flags) == Result::Failure)
+                        return Result::Failure;
+                }
+            }
+
+            stats.traversed.push_back(_node);
+
+            if ( _flags & TraversalFlag_FollowChildren )
+            {
+                for (auto eachChild :  _node->getChildren())
+                {
+                    if ( traverseRec(eachChild, _flags) == Result::Failure)
+                        return Result::Failure;
+                }
+            }
+
+            if ( _flags & TraversalFlag_FollowParent )
+            {
+                if (auto parent = _node->getParent())
+                {
+                    if ( traverseRec(parent, _flags) == Result::Failure)
+                        return Result::Failure;
+                }
+            }
+        }
+
+        return Result::Success;
+
+    }
+    LOG_WARNING("NodeTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
+    return Result::Failure;
 }
 
 Node* NodeTraversal::getNext(Node *_node)
@@ -63,169 +135,140 @@ void NodeTraversal::initialize()
 }
 
 
-Result NodeTraversal::setDirtyRecursively(Node* _node) {
-
-    Result result;
-
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::SetDirtyEx\n");
-
-    if( !stats.hasBeenTraversed(_node) )
-    {
-        stats.traversed.push_back(_node);
-
-        _node->setDirty();
-
-        for (auto eachOutput : _node->getOutputs() )
-        {
-            auto r = setDirtyRecursively(eachOutput);
-            if( r == Result::Failure )
-                return Result::Failure;
-        };
-
-        for (auto& eachChild : _node->getChildren() )
-        {
-            auto r = setDirtyRecursively(eachChild);
-            if( r == Result::Failure )
-                return Result::Failure;
-        }
-
+//Result NodeTraversal::setDirtyRecursively(Node* _node) {
+//
+//    Result result;
+//
+//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::SetDirtyEx\n");
+//
+//    if( !stats.hasBeenTraversed(_node) )
+//    {
+//        stats.traversed.push_back(_node);
+//
+//        _node->setDirty();
+//
+//        for (auto eachOutput : _node->getOutputs() )
+//        {
+//            auto r = setDirtyRecursively(eachOutput);
+//            if( r == Result::Failure )
+//                return Result::Failure;
+//        };
+//
+//        for (auto& eachChild : _node->getChildren() )
+//        {
+//            auto r = setDirtyRecursively(eachChild);
+//            if( r == Result::Failure )
+//                return Result::Failure;
+//        }
+//
 //        if( auto parent = _node->getParent())
 //        {
-//            setDirtyRecursively(parent);
+//            auto r = setDirtyRecursively(parent);
+//            if( r == Result::Failure )
+//                return Result::Failure;
 //        }
+//
+//        result = Result::Success;
+//    } else {
+//        result = Result::Failure;
+//    }
+//
+//    return result;
+//}
 
-        result = Result::Success;
-    } else {
-        result = Result::Failure;
-    }
-
-    return result;
-}
-
-Result NodeTraversal::evalRecursively(Node* _node) {
-
-    Result result;
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::evalRecursively %s\n", _node->getLabel());
-
-    if( !stats.hasBeenTraversed(_node) )
-    {
-        stats.traversed.push_back(_node);
-
-        // first we need to evaluate each input and transmit its results thru the wire
-        auto wires = _node->getWires();
-        for (auto wire : wires)
-        {
-            auto wireTarget = wire->getTarget();
-            auto wireSource = wire->getSource();
-
-            if ( _node->has(wireTarget) &&
-                 wireSource != nullptr)
-            {
-                /* update the source entity */
-                auto sourceNode = reinterpret_cast<Node*>(wireSource->getOwner());
-                evalRecursively(sourceNode);
-
-                /* transfert the freshly updated value from source to target member */
-                wireTarget->set(wireSource);
-            }
-        }
-
-        _node->eval();
-        result = Result::Success;
-
-    } else {
-        result = Result::Failure;
-        LOG_WARNING("NodeTraversal", "Unable to evalRecursively Node %s, cycle detected.\n", _node->getLabel() );
-    }
-
-    return result;
-}
-
-Result NodeTraversal::updateRecursively(Node* _node) {
-
-    Result result;
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::UpdateEx %s\n", _node->getLabel());
-
-    if( !stats.hasBeenTraversed(_node) )
-    {
-        // Evaluates only if dirty flag is on
-        if (_node->isDirty(true))
-        {
-            stats.traversed.push_back(_node);
-
-            // first we need to evaluate each input and transmit its results thru the wire
-            auto wires = _node->getWires();
-            for (auto wire : wires)
-            {
-                auto wireTarget = wire->getTarget();
-                auto wireSource = wire->getSource();
-
-                if ( _node->has(wireTarget) &&
-                     wireSource != nullptr)
-                {
-                    /* update the source entity */
-                    auto sourceNode = reinterpret_cast<Node*>(wireSource->getOwner());
-                    updateRecursively(sourceNode);
-
-                    /* transfert the freshly updated value from source to target member */
-                    wireTarget->set(wireSource);
-
-                }
-            }
-
-            _node->update();
-        }
-
-        result = Result::Success;
-
-        _node->setDirty(false);
-
-    } else {
-        result = Result::Failure;
-        LOG_WARNING("NodeTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
-    }
-
-    return result;
-}
+//Result NodeTraversal::traverseForEvalRecursively(Node* _node) {
+//
+//    Result result;
+//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::traverseForEvalRecursively %s\n", _node->getLabel());
+//
+//    if( !stats.hasBeenTraversed(_node) )
+//    {
+//        // first we do a recursive call
+//        for (auto eachInput : _node->getInputs())
+//        {
+//            if( traverseForEvalRecursively(eachInput) == Result::Failure )
+//                return Result::Failure;
+//        }
+//
+//        // then we push node
+//        stats.traversed.push_back(_node);
+//        result = Result::Success;
+//    } else {
+//        result = Result::Failure;
+//        LOG_WARNING("NodeTraversal", "Unable to traverseForEvalRecursively Node %s, cycle detected.\n", _node->getLabel() );
+//    }
+//
+//    return result;
+//}
+//
+//Result NodeTraversal::updateRecursively(Node* _node) {
+//
+//    Result result;
+//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::UpdateEx %s\n", _node->getLabel());
+//
+//    if( !stats.hasBeenTraversed(_node) && _node->isDirty() )
+//    {
+//        stats.traversed.push_back(_node);
+//
+//        for (auto eachInput : _node->getInputs())
+//        {
+//            if ( updateRecursively(eachInput) == Result::Failure)
+//                return Result::Failure;
+//        }
+//
+//        _node->update();
+//
+//        for (auto eachChild :  _node->getChildren())
+//        {
+//            if ( updateRecursively(eachChild) == Result::Failure)
+//                return Result::Failure;
+//        }
+//
+//        result = Result::Success;
+//
+//    } else {
+//        result = Result::Failure;
+//        LOG_WARNING("NodeTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
+//    }
+//
+//    return result;
+//}
 
 void NodeTraversal::logStats()
 {
     LOG_MESSAGE("NodeTraversal", "traversed %i node(s).\n", (int)stats.traversed.size());
 }
-
-bool NodeTraversal::hasAChildDirty(const Node *_node)
-{
-    initialize();
-    return hasAChildDirtyRec(_node);
-}
-
-bool NodeTraversal::hasAChildDirtyRec(const Node *_node)
-{
-    bool result = false;
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::UpdateEx\n");
-
-    if( !stats.hasBeenTraversed(_node) )
-    {
-        stats.traversed.push_back(_node);
-
-        if( _node->getChildren().empty())
-        {
-            result = _node->isDirty();
-        }
-        else
-        {
-            for (auto& eachChild : _node->getChildren() )
-            {
-                result |= hasAChildDirtyRec(eachChild);
-            }
-        }
-
-    } else {
-        LOG_WARNING("NodeTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
-    }
-
-    return result;
-}
+//
+//bool NodeTraversal::hasAChildDirty(Node *_node)
+//{
+//    initialize();
+//    return hasAChildDirtyRec(_node);
+//}
+//
+//bool NodeTraversal::hasAChildDirtyRec(Node *_node)
+//{
+//    bool result = false;
+//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::UpdateEx\n");
+//
+//    if( !stats.hasBeenTraversed(_node) )
+//    {
+//        stats.traversed.push_back(_node);
+//        result = _node->isDirty();
+//
+//        if( !result && !_node->getChildren().empty())
+//        {
+//            for (auto& eachChild : _node->getChildren() )
+//            {
+//                result |= hasAChildDirtyRec(eachChild);
+//            }
+//        }
+//
+//    } else {
+//        LOG_WARNING("NodeTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
+//    }
+//
+//    return result;
+//}
 
 bool Stats::hasBeenTraversed(const Node* _node) const
 {

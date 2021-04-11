@@ -8,7 +8,7 @@ ConditionalStructNode::ConditionalStructNode()
     token_if(nullptr),
     token_else(nullptr)
 {
-    this->add("condition", Visibility::Always, Type_Boolean, Way::Way_In);
+    props.add("condition", Visibility::Always, Type_Boolean, Way::Way_In);
 }
 
 AbstractCodeBlockNode *ConditionalStructNode::getNext()

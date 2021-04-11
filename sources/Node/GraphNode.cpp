@@ -3,6 +3,7 @@
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <Application.h>
 
 #include "Core/Log.h"
 #include "Core/Wire.h"
@@ -21,6 +22,7 @@
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/ConditionalStructNode.h"
 #include "ProgramNode.h"
+#include "VirtualMachine.h"
 
 using namespace Nodable;
 
@@ -76,9 +78,7 @@ void GraphNode::clear()
 
 UpdateResult GraphNode::update()
 {
-    /*
-        1 - Delete flagged Nodes
-    */
+    // Delete flagged Nodes
     {
         auto nodeIndex = nodeRegistry.size();
 
@@ -95,30 +95,25 @@ UpdateResult GraphNode::update()
         }
     }
 
-    /*
-       2 - update view constraints
-     */
+    UpdateResult result = UpdateResult::SuccessWithoutChanges;
+
     if ( this->isDirty())
     {
+        // update view constraints
         if (auto view = getComponent<GraphNodeView>() )
         {
             view->updateViewConstraints();
         }
     }
 
-	/*
-	    3 - Update all Nodes
-    */
-	UpdateResult result;
-	if (this->program)
+    // update nodes
+    if (this->program && Application::s_instance && Application::s_instance->getVirtualMachine().isStopped() )
     {
         NodeTraversal nodeTraversal;
         if (nodeTraversal.update(this->program) == Result::Success )
         {
-            if ( nodeTraversal.getStats().traversed.size() <= 1)
+            if ( !nodeTraversal.getStats().traversed.empty() )
             {
-                result = UpdateResult::SuccessWithoutChanges;
-            } else {
                 nodeTraversal.logStats();
                 result = UpdateResult::Success;
             }
@@ -127,10 +122,6 @@ UpdateResult GraphNode::update()
         {
             result =  UpdateResult::Failed;
         }
-    }
-	else
-    {
-        result = UpdateResult::SuccessWithoutChanges;
     }
 
     this->setDirty(false);
@@ -268,9 +259,10 @@ Node* GraphNode::newBinOp(const Operator* _operator)
 
     const auto args = signature.getArgs();
 	const Semantic* semantic = language->getSemantic();
-	auto left   = node->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
-	auto right  = node->add("rvalue", Visibility::Default, semantic->tokenTypeToType(args[1].type), Way_In);
-	auto result = node->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
+	auto props = node->getProps();
+	auto left   = props->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
+	auto right  = props->add("rvalue", Visibility::Default, semantic->tokenTypeToType(args[1].type), Way_In);
+	auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation component and link values.
 	auto binOpComponent = new ComputeBinaryOperation(_operator, language);	
@@ -297,8 +289,9 @@ Node* GraphNode::newUnaryOp(const Operator* _operator)
     node->setShortLabel(signature.getLabel().substr(0, 4).c_str());
 	const auto args = signature.getArgs();
     const Semantic* semantic = language->getSemantic();
-	auto left = node->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
-	auto result = node->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
+    auto props = node->getProps();
+    auto left = props->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
+	auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation binOpComponent and link values.
 	auto unaryOperationComponent = new ComputeUnaryOperation(_operator, language);
@@ -322,17 +315,18 @@ Node* GraphNode::newFunction(const Function* _function)
 	node->setLabel(_function->signature.getIdentifier() + "()");
 	node->setShortLabel("f(x)");
     const Semantic* semantic = language->getSemantic();
-	node->add("result", Visibility::Default, semantic->tokenTypeToType(_function->signature.getType()), Way_Out);
+	auto props = node->getProps();
+	props->add("result", Visibility::Default, semantic->tokenTypeToType(_function->signature.getType()), Way_Out);
 
 	// Create ComputeBase binOpComponent and link values.
 	auto functionComponent = new ComputeFunction(_function, language);
-	functionComponent->setResult(node->get("result"));
+	functionComponent->setResult(props->get("result"));
 
 	// Arguments
 	auto args = _function->signature.getArgs();
 	for (size_t argIndex = 0; argIndex < args.size(); argIndex++) {
 		std::string memberName = args[argIndex].name;
-		auto member = node->add(memberName.c_str(), Visibility::Default, semantic->tokenTypeToType(args[argIndex].type), Way_In); // create node input
+		auto member = props->add(memberName.c_str(), Visibility::Default, semantic->tokenTypeToType(args[argIndex].type), Way_In); // create node input
 		functionComponent->setArg(argIndex, member); // link input to binOpComponent
 	}	
 	
@@ -347,9 +341,7 @@ Node* GraphNode::newFunction(const Function* _function)
 
 Wire* GraphNode::newWire()
 {
-	Wire* wire = new Wire(); // <--- TODO: valgring detect memory leak here, check why & fix.
-	wire->addComponent(new WireView);
-	return wire;
+	return new Wire();
 }
 
 void GraphNode::arrangeNodeViews()
@@ -596,11 +588,6 @@ void GraphNode::deleteWire(Wire *_wire)
 
     if( targetNode && sourceNode )
         disconnect(sourceNode->as<Node>(), targetNode->as<Node>(), RelationType::IS_INPUT_OF);
-
-    for ( const auto& keyComponentPair : _wire->getComponents())
-    {
-        delete keyComponentPair.second;
-    }
 
     delete _wire;
 }

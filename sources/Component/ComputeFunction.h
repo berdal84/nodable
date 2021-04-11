@@ -14,7 +14,7 @@ namespace Nodable
 	class ComputeFunction : public ComputeBase {
 	public:
 		ComputeFunction(const Function* _function, const Language* _language);
-		~ComputeFunction() {};
+		~ComputeFunction() = default;
 
 		void setArg(size_t _index, Member* _value) { args[_index] = _value; }
 		Member* getArg(size_t _index)const  { return args[_index]; }

@@ -38,7 +38,7 @@ namespace Nodable
 
 		View();
 
-		~View() override = default;
+		~View() = default;
 
 		/**
 		 * Method draw to implement in derived.
@@ -67,7 +67,7 @@ namespace Nodable
 		 * Get the color of a given color type.
 		 * @return an ImColor (see ImGui)
 		 */
-		ImColor getColor(ColorType_);
+		ImColor getColor(ColorType_) const;
 
 
 		/**
