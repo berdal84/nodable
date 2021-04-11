@@ -1175,7 +1175,7 @@ void ViewConstraint::apply(float _dt) {
                 ImVec2 newPos(master->getPosition().x, slave->getPosition().y + slaveMasterOffset.y + settings->ui.node.spacing);
 
                 // apply
-                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed * 0.8, true);
+                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed, true);
                 break;
             }
         }
