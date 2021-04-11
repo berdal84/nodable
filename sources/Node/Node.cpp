@@ -97,15 +97,16 @@ int Node::getOutputWireCount()const
 	return count;
 }
 
-UpdateResult Node::update()
+bool Node::eval()
 {
-    // TODO: take in account the result of component's update()
-
-	if(hasComponent<ComputeBase>())
+    if(hasComponent<ComputeBase>())
     {
         getComponent<ComputeBase>()->update();
     }
+}
 
+UpdateResult Node::update()
+{
 	if(hasComponent<DataAccess>())
     {
         getComponent<DataAccess>()->update();

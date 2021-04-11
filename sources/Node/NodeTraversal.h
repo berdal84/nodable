@@ -45,6 +45,9 @@ namespace Nodable {
         /** Evaluate a given scope */
         Result update(ScopedCodeBlockNode *_scope);
 
+        /** Evaluate a given scope */
+        Result eval(Node* _rootNode);
+
         /** get statistics, usually needed after a traversal */
         [[nodiscard]] const Stats& getStats() const { return stats; }
 
@@ -60,6 +63,7 @@ namespace Nodable {
         Node* getNextRec(Node *_node);
         Result setDirtyRecursively(Node* _node);
         Result updateRecursively(Node* _node);
+        Result evalRecursively(Node* _node);
         bool hasAChildDirtyRec(const Node* _node);
         Stats stats;
     };

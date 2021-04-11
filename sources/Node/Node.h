@@ -86,7 +86,9 @@ namespace Nodable{
 		/** Set a label for this Node */
 		void setLabel(std::string);
 
-		/** Adds a new Wire connected to one of the Node's Members.*/
+        void setShortLabel(const char *_label);
+
+        /** Adds a new Wire connected to one of the Node's Members.*/
 		void addWire(Wire*);
 
 		/** Removes a wire from this Node
@@ -108,8 +110,10 @@ namespace Nodable{
 		/** return true if this node needs to be updated and false otherwise */
 		[[nodiscard]] bool isDirty(bool _checkChildren = false)const;
 		
-		/** Update the state of this (and only this) node */
+		/** Update the state of this (and only this) node
+		 * This WON'T evaluate it */
 		virtual UpdateResult update();
+        bool eval();
 
 		/** Get the operator connected to a given Member */
         const Operator* getConnectedOperator(const Member* _localMember);
@@ -252,7 +256,5 @@ namespace Nodable{
 		MIRROR_CLASS(Node)(
 			MIRROR_PARENT(Object)
 		);
-
-        void setShortLabel(const char *_label);
     };
 }

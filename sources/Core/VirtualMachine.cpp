@@ -40,7 +40,7 @@ void VirtualMachine::run()
     m_currentNode = m_program;
     while(!isProgramOver())
     {
-        m_traversal.update(m_currentNode);
+        m_traversal.eval(m_currentNode);
         m_currentNode = m_traversal.getNext(m_currentNode);
     }
     stop();
