@@ -14,25 +14,20 @@
 using namespace Nodable;
 
 Node::Node(std::string _label):
-
+        props(this),
         parentGraph(nullptr),
         parent(nullptr),
         label(std::move(_label)),
         innerGraph(nullptr),
         dirty(true),
-        next(nullptr)
+        next(nullptr),
+        deleted(false)
 {
 //    add("activator", Visibility::Always, Type_Boolean, Way::Way_In);
 }
 
-bool Node::isDirty(bool _checkChildren)const
+bool Node::isDirty()const
 {
-    if (_checkChildren)
-    {
-        NodeTraversal traversal;
-        return traversal.hasAChildDirty(this);
-    }
-
     return dirty;
 }
 
@@ -97,12 +92,13 @@ int Node::getOutputWireCount()const
 	return count;
 }
 
-bool Node::eval()
+bool Node::eval() const
 {
     if(hasComponent<ComputeBase>())
     {
-        getComponent<ComputeBase>()->update();
+        return getComponent<ComputeBase>()->update();
     }
+    return true;
 }
 
 UpdateResult Node::update()
@@ -117,13 +113,6 @@ UpdateResult Node::update()
 	return UpdateResult::Success;
 }
 
-void Node::onMemberValueChanged(const char* _name)
-{	
-	updateLabel();
-    NodeTraversal traversal;
-    traversal.setDirty(this);
-}
-
 GraphNode *Node::getInnerGraph() const
 {
     return this->innerGraph;
@@ -136,7 +125,7 @@ void Node::setInnerGraph(GraphNode *_graph)
 
 const Operator* Node::getConnectedOperator(const Member *_localMember)
 {
-    assert(this->has(_localMember));
+    assert(props.has(_localMember));
 
     const Operator* result{};
 

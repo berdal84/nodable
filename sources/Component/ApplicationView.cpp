@@ -20,18 +20,11 @@ ApplicationView::ApplicationView(const char* _name, Application* _application):
         application(_application),
         backgroundColor(50, 50, 50),
         isStartupWindowVisible(true),
-        isHistoryDragged(false)
+        isHistoryDragged(false),
+        m_glWindowName(_name),
+        m_showProperties(false),
+        m_showImGuiDemo(false)
 {
-    add("glWindowName");
-    set("glWindowName", _name);
-
-    // Add a member to know if we should display the properties panel or not
-    add("showProperties");
-    set("showProperties", false);
-
-    add("showImGuiDemo");
-    set("showImGuiDemo", false);
-
 }
 
 ApplicationView::~ApplicationView()
@@ -65,7 +58,7 @@ bool ApplicationView::init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    sdlWindow = SDL_CreateWindow( ((std::string)*get("glWindowName")).c_str(),
+    sdlWindow = SDL_CreateWindow( m_glWindowName.c_str(),
                                 SDL_WINDOWPOS_CENTERED,
                                 SDL_WINDOWPOS_CENTERED,
                                 800,
@@ -225,11 +218,9 @@ bool ApplicationView::draw()
 
     // Demo Window
     {
-        auto b = (bool)*get("showImGuiDemo");
-        if (b){
+        if (m_showImGuiDemo){
             ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-            ImGui::ShowDemoWindow(&b);
-            set("showImGuiDemo", b);
+            ImGui::ShowDemoWindow(&m_showImGuiDemo);
         }
     }
 
@@ -663,8 +654,8 @@ void ApplicationView::drawMenuBar(
             }
 
             ImGui::Separator();
-            auto showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", (bool) *get("showProperties"));
-            auto showImGuiDemo = ImGui::MenuItem("Show ImGui Demo", "", (bool) *get("showImGuiDemo"));
+            m_showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", m_showProperties);
+            m_showImGuiDemo = ImGui::MenuItem("Show ImGui Demo", "", m_showImGuiDemo);
 
             ImGui::Separator();
 
@@ -684,16 +675,6 @@ void ApplicationView::drawMenuBar(
             }
 
             ImGui::Separator();
-
-            if (showProperties)
-            {
-                set("showProperties", !(bool) *get("showProperties"));
-            }
-
-            if (showImGuiDemo)
-            {
-                set("showImGuiDemo", !(bool) *get("showImGuiDemo"));
-            }
 
             ImGui::EndMenu();
         }

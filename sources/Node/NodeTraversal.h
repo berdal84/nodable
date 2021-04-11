@@ -11,6 +11,8 @@ namespace Nodable {
         Failure
     };
 
+    typedef int TraversalFlag;
+
     // forward declarations
     class ScopedCodeBlockNode;
 
@@ -18,7 +20,7 @@ namespace Nodable {
      * Structure to store some statistics about a traversal
      */
     struct Stats {
-        std::vector<const Node*> traversed;
+        std::vector<Node*> traversed;
         /** Return true if _node has been traversed, false otherwise */
         bool hasBeenTraversed(const Node* _node) const;
     };
@@ -42,29 +44,32 @@ namespace Nodable {
         /** Update a Node after its input connected Nodes (only if dirty) */
         Result update(Node* _rootNode);
 
-        /** Evaluate a given scope */
-        Result update(ScopedCodeBlockNode *_scope);
+//        /** Evaluate a given scope */
+//        Result update(ScopedCodeBlockNode *_scope);
 
-        /** Evaluate a given scope */
-        Result eval(Node* _rootNode);
+        /** Traverse following nodes like if we were evaluating */
+        Result traverseForEval(Node* _rootNode);
+
+        Result traverse(Node*, TraversalFlag);
 
         /** get statistics, usually needed after a traversal */
         [[nodiscard]] const Stats& getStats() const { return stats; }
 
         void logStats();
 
-        bool hasAChildDirty(const Node *_node);
+//        bool hasAChildDirty(Node *_node);
 
         Node* getNext(Node *_node);
     private:
         /** initialize this node traversal to make it like a new instance */
         void initialize();
 
+//        Result setDirtyRecursively(Node* _node);
+//        Result updateRecursively(Node* _node);
+//        Result traverseForEvalRecursively(Node* _node);
         Node* getNextRec(Node *_node);
-        Result setDirtyRecursively(Node* _node);
-        Result updateRecursively(Node* _node);
-        Result evalRecursively(Node* _node);
-        bool hasAChildDirtyRec(const Node* _node);
+        Result traverseRec(Node* _node, TraversalFlag _flags);
+//        bool hasAChildDirtyRec(Node* _node);
         Stats stats;
     };
 }

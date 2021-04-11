@@ -8,65 +8,35 @@
 
 using namespace Nodable;
 
-bool WireView::draw()
+void WireView::Draw(
+        ImDrawList *draw_list,
+        ImVec2 _from, ImVec2 _to,
+        const NodeView *_fromNode, const NodeView *_toNode)
 {
     auto settings = Settings::GetCurrent();
-    auto wire = getOwner()->as<Wire>();
-	NODABLE_ASSERT(wire != nullptr);
 
-	// Update fill color depending on current state 
-	ImVec4 stateColors[Wire::State_COUNT] = {ImColor(1.0f, 0.0f, 0.0f), ImColor(0.8f, 0.8f, 0.8f)};
-	setColor(ColorType_Fill, &stateColors[wire->getState()]);
+    WireView::DrawVerticalWire(draw_list, _from, _to, settings->ui.wire.fillColor, settings->ui.wire.shadowColor,
+                               settings->ui.wire.bezier.thickness,
+                               settings->ui.wire.bezier.roundness);
 
-	// draw the wire
-	auto source = wire->getSource();
-	auto target = wire->getTarget();
+    // dot at the output position
+    draw_list->AddCircleFilled(_from, settings->ui.node.connectorRadius, _fromNode->getColor(View::ColorType_Fill));
+    draw_list->AddCircle      (_from, settings->ui.node.connectorRadius, _fromNode->getColor(View::ColorType_Border));
 
-	if ( source && target )
-	{
-		ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-	    // Compute start and end point
-	    auto sourceNode 	= source->getOwner()->as<Node>();
-		auto targetNode 	= target->getOwner()->as<Node>();
-
-		if (!sourceNode->hasComponent<View>() || // in case of of the node have no view we can't draw the wire.
-			!targetNode->hasComponent<View>() )
-			return false;
-
-	    auto sourceView = sourceNode->getComponent<NodeView>();
-	    auto targetView = targetNode->getComponent<NodeView>();
-
-		if (!sourceView->isVisible() || !targetView->isVisible() ) // in case of of the node have hidden view we can't draw the wire.
-			return false;
-
-		ImVec2 pos0 = sourceView->getConnectorPosition(wire->getSource(), Way_Out);
-		ImVec2 pos1 = targetView->getConnectorPosition(wire->getTarget(), Way_In);
-
-        WireView::DrawVerticalWire(draw_list, pos0, pos1, getColor(ColorType_Fill), getColor(ColorType_Shadow),
-                                   settings->ui.wire.bezier.thickness,
-                                   settings->ui.wire.bezier.roundness);
-
-        // dot at the output position
-        draw_list->AddCircleFilled(pos0, settings->ui.node.connectorRadius, sourceView->getColor(ColorType_Fill));
-        draw_list->AddCircle      (pos0, settings->ui.node.connectorRadius, sourceView->getColor(ColorType_Border));
-
-        ImVec2 arrowSize(8.0f, 12.0f);
-        if (settings->ui.wire.displayArrows)
-        {
-            // Arrow at the input position
-            draw_list->AddLine(ImVec2(pos1.x - arrowSize.x, pos1.y + arrowSize.y/2.0f), pos1, getColor(ColorType_Fill), settings->ui.wire.bezier.thickness);
-            draw_list->AddLine(ImVec2(pos1.x - arrowSize.x, pos1.y - arrowSize.y/2.0f), pos1, getColor(ColorType_Fill), settings->ui.wire.bezier.thickness);
-        }
-        else
-        {
-            // dot at the input position
-            draw_list->AddCircleFilled(pos1, settings->ui.node.connectorRadius, targetView->getColor(ColorType_Fill));
-            draw_list->AddCircle      (pos1, settings->ui.node.connectorRadius, targetView->getColor(ColorType_Border));
-        }
+    ImVec2 arrowSize(8.0f, 12.0f);
+    if (settings->ui.wire.displayArrows)
+    {
+        // Arrow at the input position
+        draw_list->AddLine(ImVec2(_to.x - arrowSize.x, _to.y + arrowSize.y/2.0f), _to, ImColor(settings->ui.wire.fillColor), settings->ui.wire.bezier.thickness);
+        draw_list->AddLine(ImVec2(_to.x - arrowSize.x, _to.y - arrowSize.y/2.0f), _to, ImColor(settings->ui.wire.fillColor), settings->ui.wire.bezier.thickness);
+    }
+    else
+    {
+        // dot at the input position
+        draw_list->AddCircleFilled(_to, settings->ui.node.connectorRadius, _toNode->getColor(View::ColorType_Fill));
+        draw_list->AddCircle      (_to, settings->ui.node.connectorRadius, _toNode->getColor(View::ColorType_Border));
     }
 
-    return false;
 }
 
 void WireView::DrawVerticalWire(

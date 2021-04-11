@@ -23,6 +23,8 @@ namespace Nodable {
                     float thickness;
                 } bezier;
                 bool displayArrows;
+                ImVec4 fillColor;
+                ImVec4 shadowColor;
             } wire;
 
             struct {

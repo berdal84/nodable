@@ -15,7 +15,10 @@
 
 namespace Nodable
 {
+    // forward declarations
     class Language;
+    class Application;
+    class History;
 
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
@@ -42,6 +45,9 @@ namespace Nodable
         bool               isHistoryDragged;
         const char*        startupScreenTitle = "##STARTUPSCREEN";
         bool               isLayoutInitialized = false;
+        std::string        m_glWindowName;
+        bool               m_showProperties;
+        bool               m_showImGuiDemo;
 
         void drawHistoryBar(History *currentFileHistory);
         void drawStatusBar() const;

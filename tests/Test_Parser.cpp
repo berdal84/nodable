@@ -39,8 +39,11 @@ bool Parser_Test(
         if ( lastInstruction )
         {
             auto result = lastInstruction->getValue();
+            LOG_MESSAGE("Test_Parser", "Result is: %s\n", ((std::string)*result).c_str());
+            LOG_MESSAGE("Test_Parser", "Expected is: %s\n", ((std::string)*expectedMember).c_str() );
             success = result->equals(expectedMember);
         }
+
     } else {
         success = ((std::string)*expectedMember).empty();
     }

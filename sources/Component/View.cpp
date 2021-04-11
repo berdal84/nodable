@@ -31,10 +31,9 @@ void View::setColor(ColorType_ _type, ImVec4* _color)
 	colors.insert_or_assign(_type, _color);
 }
 
-ImColor View::getColor(ColorType_ _type)
+ImColor View::getColor(ColorType_ _type) const
 {
-    ImVec4 c = *colors[_type];
-	return  ImColor(c);
+	return  ImColor(*colors.at(_type));
 }
 
 bool Nodable::View::drawAsChild(const char* _name, const ImVec2& _size, bool border, ImGuiWindowFlags flags)

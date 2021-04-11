@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Nodable.h"
+#include "Token.h"
 #include "Component.h"
 
 namespace Nodable
@@ -10,7 +11,7 @@ namespace Nodable
 	class ComputeBase : public Component {
 	public:
 		ComputeBase(const Language* _language) :language(_language) {};
-		virtual ~ComputeBase() {};
+		~ComputeBase() = default;
 		void         setResult(Member* _value) { result = _value; };
 
         void setSourceToken(Token *token)

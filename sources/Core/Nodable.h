@@ -24,43 +24,11 @@
 	Forward declarations
 */
 
-namespace Nodable{
-
-	// Common
+namespace Nodable
+{
 	class Wire;
 	class Member;
-	class Variant;
-	class Object;
-	
-	// Components :
 	class Component;
-	class History;
-
-	// View Components
-	class NodeView;
-	class GraphNodeView;
-	class ApplicationView;
-	class WireView;
-	class FileView;
-
-	// Binary Operation Components
-	class ComputeBinaryOperation;
-	class Add;
-	class Subtract;
-	class Assign;
-	class Divide;
-	class Multiply;
-
-	// Nodes
-	class Node;
-	class Application;	
-	class Parser;
-	class VariableNode;
-	class GraphNode;
-
-	// Other
-	class Log;	
-	class File;
 
 	typedef std::map<std::string, Component*>  Components;
 	typedef std::map<std::string, Member*>     Members;

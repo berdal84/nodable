@@ -92,7 +92,7 @@ void NodeView::setOwner(Node* _node)
     std::vector<Member*> notExposedMembers;
 
     //  We expose first the members which allows input connections
-    for(auto& m : _node->getMembers())
+    for(auto& m : _node->getProps()->getMembers())
     {
         auto member = m.second;
         if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_In) )
@@ -308,7 +308,7 @@ bool NodeView::draw()
     {
         ImGui::SameLine();
         ImGui::SetCursorPosY(cursorPositionBeforeContent.y + 1.0f);
-        drawMemberView(memberView);
+        edited |= drawMemberView(memberView);
     }
 
     // Draw outputs
@@ -316,7 +316,7 @@ bool NodeView::draw()
     {
         ImGui::SameLine();
         ImGui::SetCursorPosY(cursorPositionBeforeContent.y + 8.0f);
-        drawMemberView(memberView);
+        edited |= drawMemberView(memberView);
     }
 
     // If needed, show a button to show/hide children and inputs.
@@ -420,6 +420,9 @@ bool NodeView::draw()
 
 	ImGui::PopStyleVar();
 	ImGui::PopID();
+
+	if( edited )
+	    getOwner()->setDirty();
 
 	return edited;
 }
@@ -532,7 +535,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
 {
     bool edited = false;
 
-    Node* node  = _member->getOwner()->as<Node>();
+    Node* node  = _member->getOwner();
 
     // Create a label (everything after ## will not be displayed)
     std::string label;

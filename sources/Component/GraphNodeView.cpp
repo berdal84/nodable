@@ -11,11 +11,14 @@
 #include "Node/VariableNode.h"
 #include "Node/InstructionNode.h"
 #include "Component/WireView.h"
+#include "Component/NodeView.h"
 
 using namespace Nodable;
 
 bool GraphNodeView::draw()
 {
+    bool edited = false;
+
     Settings* settings = Settings::GetCurrent();
     GraphNode* graph = getGraphNode();
     auto entities    = graph->getNodeRegistry();
@@ -83,12 +86,20 @@ bool GraphNodeView::draw()
 		// Draw existing wires
 		for (auto eachNode : entities)
 		{
-			auto wires = eachNode->getWires();
+			auto members = eachNode->getProps()->getMembers();
 
-			for (auto eachWire : wires)
+			for (auto pair : members)
 			{
-				if (eachWire->getTarget()->getOwner() == eachNode)
-					eachWire->getView()->draw();
+			    auto end = pair.second;
+
+			    if ( auto start = end->getInputMember() )
+                {
+			        auto endNodeView   = eachNode->getComponent<NodeView>();
+			        auto startNodeView = start->getOwner()->getComponent<NodeView>();
+                    auto endPos   = endNodeView->getConnectorPosition(end, Way_In);
+                    auto startPos = startNodeView->getConnectorPosition(start, Way_Out);
+                    WireView::Draw(ImGui::GetWindowDrawList(), startPos, endPos , startNodeView, endNodeView );
+                }
 			}
 		}
 
@@ -102,8 +113,7 @@ bool GraphNodeView::draw()
                     auto member   = draggedConnector->member;
                     NODABLE_ASSERT(member);
                     NODABLE_ASSERT(member->getOwner() != nullptr);
-                    auto node     = member->getOwner()->as<Node>();
-                    auto view     = node->getComponent<NodeView>();
+                    auto view     = member->getOwner()->getComponent<NodeView>();
                     lineScreenPosStart = view->getConnectorPosition(member, draggedConnector->way);
                 }
 
@@ -113,8 +123,7 @@ bool GraphNodeView::draw()
                 if (hoveredConnector != nullptr)
                 {
                     auto member     = hoveredConnector->member;
-                    auto node       = member->getOwner()->as<Node>();
-                    auto view       = node->getComponent<NodeView>();
+                    auto view       = member->getOwner()->getComponent<NodeView>();
                     lineScreenPosEnd = view->getConnectorPosition(member, hoveredConnector->way);
                 }
 
@@ -250,21 +259,22 @@ bool GraphNodeView::draw()
 
 		if (draggedConnector != nullptr && newNode != nullptr)
 		{
+		    auto props = newNode->getProps();
 			// if dragged member is an inputMember
 			if (draggedConnector->member->allowsConnection(Way_In))
             {
-				graph->connect(newNode->getFirstWithConn(Way_Out), draggedConnector->member);
+				graph->connect(props->getFirstWithConn(Way_Out), draggedConnector->member);
             }
 			// if dragged member is an output
 			else if (draggedConnector->member->allowsConnection(Way_Out))
 			{
 				// try to get the first Input only member
-				auto targetMember = newNode->getFirstWithConn(Way_In);
+				auto targetMember = props->getFirstWithConn(Way_In);
 				
 				// If failed, try to get the first input/output member
 				if (targetMember == nullptr)
                 {
-                    targetMember = newNode->getFirstWithConn(Way_InOut);
+                    targetMember = props->getFirstWithConn(Way_InOut);
                 }
 				else
                 {
@@ -294,7 +304,7 @@ bool GraphNodeView::draw()
 
 	}
 
-	return true;
+	return edited;
 }
 
 void Nodable::GraphNodeView::addContextualMenuItem(std::string _category, std::string _label, std::function<Node*(void)> _function)
@@ -302,7 +312,7 @@ void Nodable::GraphNodeView::addContextualMenuItem(std::string _category, std::s
 	contextualMenus.insert( {_category, {_label, _function }} );
 }
 
-GraphNode *GraphNodeView::getGraphNode() const
+GraphNode* GraphNodeView::getGraphNode() const
 {
     return getOwner()->as<GraphNode>();
 }
@@ -317,8 +327,10 @@ void GraphNodeView::drawCodeFlow(AbstractCodeBlockNode* _node)
 
         for (auto each : _node->getChildren())
         {
-            if ( each->getClass()->isChildOf(mirror::GetClass<AbstractCodeBlockNode>()))
+            if ( each->getClass()->isChildOf(mirror::GetClass<AbstractCodeBlockNode>(), false))
                 drawCodeFlow(each->as<AbstractCodeBlockNode>());
+            else if ( each->getClass() == mirror::GetClass<AbstractCodeBlockNode>())
+                drawCodeFlow(reinterpret_cast<AbstractCodeBlockNode*>(each));
         }
 
         auto children = view->getChildren();

@@ -19,18 +19,11 @@ namespace Nodable
     class InstructionNode : public Node
     {
     public:
-        InstructionNode(const char* _label);
-        ~InstructionNode(){};
+        explicit InstructionNode(const char* _label);
+        ~InstructionNode()= default;;
 
-        Member* getValue()const
-        {
-            return get("value");
-        }
-
-        void setValue(Member* _value)
-        {
-            get("value")->set(_value);
-        };
+        [[nodiscard]] Member* getValue()const { return props.get("value"); }
+        void setValue(Member* _value) const { getValue()->set(_value); };
 
         /** End of instruction token */
         Token* endOfInstructionToken = nullptr;

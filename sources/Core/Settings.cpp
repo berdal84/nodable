@@ -38,6 +38,8 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
         g_conf->ui.wire.bezier.roundness        = 0.5f;
         g_conf->ui.wire.bezier.thickness        = 2.0f;
         g_conf->ui.wire.displayArrows           = false;
+        g_conf->ui.wire.fillColor               = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        g_conf->ui.wire.shadowColor             = g_conf->ui.node.shadowColor;
 
         // code flow
         g_conf->ui.codeFlow.lineWidthMax        = 40.0f;
