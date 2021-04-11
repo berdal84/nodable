@@ -37,6 +37,15 @@ Result NodeTraversal::update(ScopedCodeBlockNode *_scope)
     return result;
 }
 
+Result NodeTraversal::eval(Node* _scope)
+{
+    initialize();
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::eval %s \n", _scope->getLabel() );
+    auto result = evalRecursively(_scope);
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::eval done.\n");
+    return result;
+}
+
 Node* NodeTraversal::getNext(Node *_node)
 {
     initialize();
@@ -88,6 +97,45 @@ Result NodeTraversal::setDirtyRecursively(Node* _node) {
         result = Result::Success;
     } else {
         result = Result::Failure;
+    }
+
+    return result;
+}
+
+Result NodeTraversal::evalRecursively(Node* _node) {
+
+    Result result;
+    LOG_VERBOSE("NodeTraversal", "NodeTraversal::evalRecursively %s\n", _node->getLabel());
+
+    if( !stats.hasBeenTraversed(_node) )
+    {
+        stats.traversed.push_back(_node);
+
+        // first we need to evaluate each input and transmit its results thru the wire
+        auto wires = _node->getWires();
+        for (auto wire : wires)
+        {
+            auto wireTarget = wire->getTarget();
+            auto wireSource = wire->getSource();
+
+            if ( _node->has(wireTarget) &&
+                 wireSource != nullptr)
+            {
+                /* update the source entity */
+                auto sourceNode = reinterpret_cast<Node*>(wireSource->getOwner());
+                evalRecursively(sourceNode);
+
+                /* transfert the freshly updated value from source to target member */
+                wireTarget->set(wireSource);
+            }
+        }
+
+        _node->eval();
+        result = Result::Success;
+
+    } else {
+        result = Result::Failure;
+        LOG_WARNING("NodeTraversal", "Unable to evalRecursively Node %s, cycle detected.\n", _node->getLabel() );
     }
 
     return result;
