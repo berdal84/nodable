@@ -85,6 +85,7 @@ namespace Nodable{
 		Node*                       newFunction(const Function* _proto);
         ScopedCodeBlockNode*        newScopedCodeBlock();
         ConditionalStructNode*      newConditionalStructure();
+        Node*                       newNode();
 
         /** Connects two Member using a Wire (oriented edge)
          *  If _from is not owned, _to will digest it and nullptr is return.
