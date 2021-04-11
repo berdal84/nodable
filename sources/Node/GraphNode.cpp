@@ -44,6 +44,15 @@ void GraphNode::clear()
 
 	LOG_VERBOSE( "GraphNode", "=================== clear() ==================\n");
 
+    if ( !wireRegistry.empty() )
+    {
+        for ( auto it = wireRegistry.rbegin(); it != wireRegistry.rend(); it++)
+        {
+            deleteWire(*it);
+        }
+    }
+    wireRegistry.clear();
+
 	if ( !nodeRegistry.empty() )
 	{
         for ( auto i = nodeRegistry.size(); i > 0; i--)
@@ -53,8 +62,6 @@ void GraphNode::clear()
             deleteNode(node);
         }
 	}
-
-	wireRegistry.clear();
     nodeRegistry.clear();
 	relationRegistry.clear();
     program = nullptr;
@@ -396,21 +403,24 @@ CodeBlockNode *GraphNode::newCodeBlock()
 void GraphNode::deleteNode(Node* _node)
 {
     // delete any relation with this node
+    for ( auto it = wireRegistry.begin(); it != wireRegistry.end();)
+    {
+        Wire* wire = *it;
+        if( wire->getSource()->getOwner() == _node || wire->getTarget()->getOwner() == _node )
+        {
+            deleteWire(wire);
+            it = wireRegistry.erase(it);
+        }
+        else
+            it++;
+    }
+
+    // delete any relation with this node
     for ( auto it = relationRegistry.begin(); it != relationRegistry.end();)
     {
         auto pair = (*it).second;
         if( pair.second == _node || pair.first == _node)
             it = relationRegistry.erase(it);
-        else
-            it++;
-    }
-
-    // delete any wire linked to this node
-    for ( auto it = wireRegistry.begin(); it != wireRegistry.end();)
-    {
-        auto wire = (*it);
-        if( wire->getSource()->getOwner() == _node || wire->getTarget()->getOwner() == _node)
-            it = wireRegistry.erase(it);
         else
             it++;
     }
@@ -576,16 +586,16 @@ void GraphNode::deleteWire(Wire *_wire)
 {
     _wire->getTarget()->setInputMember(nullptr);
 
-    auto targetNode = _wire->getTarget()->getOwner()->as<Node>();
-    auto sourceNode = _wire->getSource()->getOwner()->as<Node>();
+    auto targetNode = _wire->getTarget()->getOwner();
+    auto sourceNode = _wire->getSource()->getOwner();
 
-    targetNode->removeWire(_wire);
-    sourceNode->removeWire(_wire);
+    if( targetNode )
+        targetNode->as<Node>()->removeWire(_wire);
+    if( sourceNode )
+        sourceNode->as<Node>()->removeWire(_wire);
 
-    disconnect(sourceNode, targetNode, RelationType::IS_INPUT_OF);
-
-    NodeTraversal traversal;
-    traversal.setDirty(targetNode);
+    if( targetNode && sourceNode )
+        disconnect(sourceNode->as<Node>(), targetNode->as<Node>(), RelationType::IS_INPUT_OF);
 
     for ( const auto& keyComponentPair : _wire->getComponents())
     {
@@ -625,4 +635,10 @@ ScopedCodeBlockNode *GraphNode::newProgram() {
     program->addComponent(new NodeView());
     registerNode(program);
     return this->program;
+}
+
+Node* GraphNode::newNode() {
+    Node* node = new Node();
+    registerNode(node);
+    return node;
 }

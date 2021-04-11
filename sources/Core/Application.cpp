@@ -20,8 +20,8 @@ Application::Application(const char* _name):
 
 Application::~Application()
 {
-	for (auto it = loadedFiles.begin(); it != loadedFiles.end(); it++)
-		delete* it;
+	for (auto & loadedFile : loadedFiles)
+		delete loadedFile;
 	delete getComponent<ApplicationView>();
 }
 

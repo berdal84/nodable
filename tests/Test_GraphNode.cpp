@@ -12,13 +12,13 @@ using namespace Nodable;
 
 TEST( GraphNode, connect)
 {
-    auto language = std::make_unique<NodableLanguage>();
-    auto graph = std::make_unique<GraphNode>(language.get());
+    NodableLanguage language;
+    auto graph = std::make_unique<GraphNode>(&language);
 
-    auto node1 = std::make_unique<Node>();
+    auto node1 = graph->newNode();
     node1->add("output");
 
-    auto node2 = std::make_unique<Node>();
+    auto node2  = graph->newNode();
     node2->add("input");
 
     auto wire = graph->connect(
@@ -61,9 +61,9 @@ TEST( GraphNode, clear)
     // prepare
     auto language        = std::make_unique<NodableLanguage>();
     auto graph           = std::make_unique<GraphNode>(language.get());
-    auto instructionNode = graph->newInstruction()->as<InstructionNode>();
+    InstructionNode* instructionNode = graph->newInstruction();
 
-    auto operatorNode = graph->newOperator(language->findOperator("+"));
+    Node* operatorNode = graph->newOperator(language->findOperator("+"));
     operatorNode->set("rvalue", 2);
     operatorNode->set("lvalue", 2);
 
