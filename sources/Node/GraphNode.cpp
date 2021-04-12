@@ -95,8 +95,6 @@ UpdateResult GraphNode::update()
         }
     }
 
-    UpdateResult result = UpdateResult::SuccessWithoutChanges;
-
     if ( this->isDirty())
     {
         // update view constraints
@@ -107,20 +105,21 @@ UpdateResult GraphNode::update()
     }
 
     // update nodes
+    UpdateResult result = UpdateResult::Failed;
     if (this->program && Application::s_instance && Application::s_instance->getVirtualMachine().isStopped() )
     {
         NodeTraversal nodeTraversal;
         if (nodeTraversal.update(this->program) == Result::Success )
         {
-            if ( !nodeTraversal.getStats().traversed.empty() )
+            if ( !nodeTraversal.getStats().changed.empty() )
             {
                 nodeTraversal.logStats();
                 result = UpdateResult::Success;
             }
-        }
-        else
-        {
-            result =  UpdateResult::Failed;
+            else
+            {
+                result = UpdateResult::SuccessWithoutChanges;
+            }
         }
     }
 

@@ -21,8 +21,10 @@ namespace Nodable {
      */
     struct Stats {
         std::vector<Node*> traversed;
+        std::vector<Node*> changed;
         /** Return true if _node has been traversed, false otherwise */
         bool hasBeenTraversed(const Node* _node) const;
+        bool hasBeenChanged(const Node* _node) const;
     };
 
     /**

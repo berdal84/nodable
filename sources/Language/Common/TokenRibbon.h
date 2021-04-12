@@ -7,7 +7,7 @@
 namespace Nodable
 {
     // forward declarations
-    class Token;
+    struct Token;
 
     /**
          * A class to add tokens in a vector and navigate into them.
