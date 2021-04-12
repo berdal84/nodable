@@ -19,7 +19,7 @@ Node::Node(std::string _label):
         parent(nullptr),
         label(std::move(_label)),
         innerGraph(nullptr),
-        dirty(true),
+        dirty(false),
         next(nullptr),
         deleted(false)
 {

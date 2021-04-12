@@ -1,5 +1,6 @@
 #include "Core/File.h"
 #include "Core/Log.h"
+#include "Core/Application.h"
 #include "Component/History.h"
 #include "Component/FileView.h"
 #include "Component/GraphNodeView.h"
@@ -13,7 +14,6 @@
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
 
 #include <fstream>
-
 
 using namespace Nodable;
 
@@ -136,23 +136,24 @@ UpdateResult File::update() {
 			history->dirty = false;
 		}
 	}
-
-	auto graphUpdateResult = getInnerGraph()->update();
-	auto view = getComponent<FileView>();
-
-	if (graphUpdateResult == UpdateResult::SuccessWithoutChanges && !view->getSelectedText().empty() )
+    bool vmIsStopped = Application::s_instance && Application::s_instance->getVirtualMachine().isStopped();
+	if( vmIsStopped )
     {
-        return UpdateResult::SuccessWithoutChanges;
-    }
+        auto graphUpdateResult = getInnerGraph()->update();
+        auto view = getComponent<FileView>();
 
-	auto scope = getInnerGraph()->getProgram();
+        if (graphUpdateResult == UpdateResult::SuccessWithoutChanges && !view->getSelectedText().empty() )
+        {
+            return UpdateResult::SuccessWithoutChanges;
+        }
 
-	if ( scope && !scope->getChildren().empty() )
-    {
-        std::string code = language->getSerializer()->serialize( scope );
-        view->replaceSelectedText(code);
+        auto scope = getInnerGraph()->getProgram();
+        if ( scope && !scope->getChildren().empty() )
+        {
+            std::string code = language->getSerializer()->serialize( scope );
+            view->replaceSelectedText(code);
+        }
     }
-	
 	return UpdateResult::Success;
 }
 

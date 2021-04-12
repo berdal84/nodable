@@ -498,6 +498,7 @@ Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverrid
 	if ( !tokenRibbon.canEat() )
 	{
 		LOG_VERBOSE("Parser", "parse expr..." KO " (unable to eat a single token)\n");
+        return nullptr;
 	}
 
 	/*

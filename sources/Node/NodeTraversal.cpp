@@ -30,8 +30,12 @@ Result NodeTraversal::update(Node* _rootNode)
         {
             eachNode->eval();
             eachNode->update();
+            eachNode->setDirty(false);
+            stats.changed.push_back(eachNode);
         }
     }
+
+
     LOG_VERBOSE("NodeTraversal", "NodeTraversal::Update done.\n");
     return result;
 }
@@ -273,6 +277,10 @@ void NodeTraversal::logStats()
 bool Stats::hasBeenTraversed(const Node* _node) const
 {
     return  std::find( traversed.cbegin(), traversed.cend(), _node ) != traversed.cend();
+}
+bool Stats::hasBeenChanged(const Node* _node) const
+{
+    return  std::find( changed.cbegin(), changed.cend(), _node ) != changed.cend();
 }
 
 Node* NodeTraversal::getNextRec(Node* _node)
