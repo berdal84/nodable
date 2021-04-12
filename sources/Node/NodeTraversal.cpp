@@ -10,7 +10,7 @@
 
 using namespace Nodable;
 
-enum TraversalFlag {
+enum TraversalFlag_ {
     TraversalFlag_None             = 0,
     TraversalFlag_FollowInputs     = 1 << 0,
     TraversalFlag_FollowOutputs    = 1 << 1,

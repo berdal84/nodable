@@ -11,7 +11,7 @@ namespace Nodable {
         Failure
     };
 
-    typedef int TraversalFlag;
+    typedef int TraversalFlag; // -> enum TraversalFlag_
 
     // forward declarations
     class ScopedCodeBlockNode;

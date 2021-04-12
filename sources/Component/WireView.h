@@ -8,7 +8,7 @@
 namespace Nodable
 {
     // forward
-    class MemberView;
+    struct MemberView;
     class NodeView;
 
     namespace WireView
