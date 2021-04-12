@@ -9,7 +9,7 @@
 namespace Nodable
 {
     // forward declarations
-    class Token;
+    struct Token;
     class CodeBlockNode;
 
     /*

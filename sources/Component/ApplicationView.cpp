@@ -404,7 +404,7 @@ bool ApplicationView::draw()
     // limit frame rate
     constexpr float desiredFrameRate = 1.0f/60.0f;
     if ( ImGui::GetIO().DeltaTime  < desiredFrameRate)
-        SDL_Delay((desiredFrameRate - ImGui::GetIO().DeltaTime) * 1000.0f );
+        SDL_Delay((desiredFrameRate - ImGui::GetIO().DeltaTime) * 1000u );
 
     return false;
 }
