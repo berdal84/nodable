@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NodeTraversal.h>
+#include <GraphTraversal.h>
 
 namespace Nodable
 {
@@ -28,7 +28,7 @@ namespace Nodable
 //        void stepInto();
 //        void stepOut();
     private:
-        NodeTraversal m_traversal;
+        GraphTraversal m_traversal;
         ProgramNode* m_program;
         Node* m_currentNode{};
         bool m_isRunning;

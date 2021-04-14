@@ -1,4 +1,4 @@
-#include "NodeTraversal.h"
+#include "GraphTraversal.h"
 
 #include <algorithm>
 
@@ -19,10 +19,10 @@ enum TraversalFlag_ {
     TraversalFlag_FollowNotDirty     = 1 << 4,
 };
 
-Result NodeTraversal::update(Node* _rootNode)
+Result GraphTraversal::update(Node* _rootNode)
 {
     initialize();
-    LOG_VERBOSE("NodeTraversal", "Update %s \n", _rootNode->getLabel() );
+    LOG_VERBOSE("GraphTraversal", "Update %s \n", _rootNode->getLabel() );
     auto result = traverseRec(_rootNode, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren | TraversalFlag_FollowNotDirty);
     for(Node* eachNode : stats.traversed )
     {
@@ -36,49 +36,49 @@ Result NodeTraversal::update(Node* _rootNode)
     }
 
 
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::Update done.\n");
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::Update done.\n");
     return result;
 }
 
-Result NodeTraversal::setDirty(Node* _rootNode)
+Result GraphTraversal::setDirty(Node* _rootNode)
 {
     initialize();
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::setDirty %s \n", _rootNode->getLabel() );
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::setDirty %s \n", _rootNode->getLabel() );
     auto result = traverseRec(_rootNode, TraversalFlag_FollowOutputs);
     for(Node* eachNode : stats.traversed )
         eachNode->update();
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::setDirty done.\n");
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::setDirty done.\n");
     return result;
 }
 
-//Result NodeTraversal::update(ScopedCodeBlockNode *_scope)
+//Result GraphTraversal::update(ScopedCodeBlockNode *_scope)
 //{
 //    initialize();
-//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::update %s \n", _scope->getLabel() );
+//    LOG_VERBOSE("GraphTraversal", "GraphTraversal::update %s \n", _scope->getLabel() );
 //    auto result = updateRecursively(_scope);
-//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::update done.\n");
+//    LOG_VERBOSE("GraphTraversal", "GraphTraversal::update done.\n");
 //    return result;
 //}
 
-Result NodeTraversal::traverseForEval(Node* _node)
+Result GraphTraversal::traverseForEval(Node* _node)
 {
     initialize();
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::traverseForEval %s \n", _node->getLabel() );
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::traverseForEval %s \n", _node->getLabel() );
     auto result = traverseRec(_node, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty );
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::traverseForEval done.\n");
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::traverseForEval done.\n");
     return result;
 }
 
-Result NodeTraversal::traverse(Node *_node, TraversalFlag _flags)
+Result GraphTraversal::traverse(Node *_node, TraversalFlag _flags)
 {
     initialize();
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::traverse %s \n", _node->getLabel() );
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::traverse %s \n", _node->getLabel() );
     auto result = traverseRec(_node, _flags);
-    LOG_VERBOSE("NodeTraversal", "NodeTraversal::traverse done.\n");
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::traverse done.\n");
     return result;
 }
 
-Result NodeTraversal::traverseRec(Node* _node, TraversalFlag _flags)
+Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
 {
 
     if( !stats.hasBeenTraversed(_node) )
@@ -118,32 +118,32 @@ Result NodeTraversal::traverseRec(Node* _node, TraversalFlag _flags)
         return Result::Success;
 
     }
-    LOG_WARNING("NodeTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
+    LOG_WARNING("GraphTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
     return Result::Failure;
 }
 
-Node* NodeTraversal::getNext(Node *_node)
+Node* GraphTraversal::getNext(Node *_node)
 {
     initialize();
-    LOG_VERBOSE("NodeTraversal", "getNext( %s )...\n", _node->getLabel() );
+    LOG_VERBOSE("GraphTraversal", "getNext( %s )...\n", _node->getLabel() );
     auto result = getNextRec(_node);
     if (result)
-        LOG_VERBOSE("NodeTraversal", "%s's next is %s\n", _node->getLabel(), result->getLabel());
+        LOG_VERBOSE("GraphTraversal", "%s's next is %s\n", _node->getLabel(), result->getLabel());
 
     return result;
 }
 
-void NodeTraversal::initialize()
+void GraphTraversal::initialize()
 {
     this->stats = {};
 }
 
 
-//Result NodeTraversal::setDirtyRecursively(Node* _node) {
+//Result GraphTraversal::setDirtyRecursively(Node* _node) {
 //
 //    Result result;
 //
-//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::SetDirtyEx\n");
+//    LOG_VERBOSE("GraphTraversal", "GraphTraversal::SetDirtyEx\n");
 //
 //    if( !stats.hasBeenTraversed(_node) )
 //    {
@@ -180,10 +180,10 @@ void NodeTraversal::initialize()
 //    return result;
 //}
 
-//Result NodeTraversal::traverseForEvalRecursively(Node* _node) {
+//Result GraphTraversal::traverseForEvalRecursively(Node* _node) {
 //
 //    Result result;
-//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::traverseForEvalRecursively %s\n", _node->getLabel());
+//    LOG_VERBOSE("GraphTraversal", "GraphTraversal::traverseForEvalRecursively %s\n", _node->getLabel());
 //
 //    if( !stats.hasBeenTraversed(_node) )
 //    {
@@ -199,16 +199,16 @@ void NodeTraversal::initialize()
 //        result = Result::Success;
 //    } else {
 //        result = Result::Failure;
-//        LOG_WARNING("NodeTraversal", "Unable to traverseForEvalRecursively Node %s, cycle detected.\n", _node->getLabel() );
+//        LOG_WARNING("GraphTraversal", "Unable to traverseForEvalRecursively Node %s, cycle detected.\n", _node->getLabel() );
 //    }
 //
 //    return result;
 //}
 //
-//Result NodeTraversal::updateRecursively(Node* _node) {
+//Result GraphTraversal::updateRecursively(Node* _node) {
 //
 //    Result result;
-//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::UpdateEx %s\n", _node->getLabel());
+//    LOG_VERBOSE("GraphTraversal", "GraphTraversal::UpdateEx %s\n", _node->getLabel());
 //
 //    if( !stats.hasBeenTraversed(_node) && _node->isDirty() )
 //    {
@@ -232,27 +232,27 @@ void NodeTraversal::initialize()
 //
 //    } else {
 //        result = Result::Failure;
-//        LOG_WARNING("NodeTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
+//        LOG_WARNING("GraphTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
 //    }
 //
 //    return result;
 //}
 
-void NodeTraversal::logStats()
+void GraphTraversal::logStats()
 {
-    LOG_MESSAGE("NodeTraversal", "traversed %i node(s).\n", (int)stats.traversed.size());
+    LOG_MESSAGE("GraphTraversal", "traversed %i node(s).\n", (int)stats.traversed.size());
 }
 //
-//bool NodeTraversal::hasAChildDirty(Node *_node)
+//bool GraphTraversal::hasAChildDirty(Node *_node)
 //{
 //    initialize();
 //    return hasAChildDirtyRec(_node);
 //}
 //
-//bool NodeTraversal::hasAChildDirtyRec(Node *_node)
+//bool GraphTraversal::hasAChildDirtyRec(Node *_node)
 //{
 //    bool result = false;
-//    LOG_VERBOSE("NodeTraversal", "NodeTraversal::UpdateEx\n");
+//    LOG_VERBOSE("GraphTraversal", "GraphTraversal::UpdateEx\n");
 //
 //    if( !stats.hasBeenTraversed(_node) )
 //    {
@@ -268,7 +268,7 @@ void NodeTraversal::logStats()
 //        }
 //
 //    } else {
-//        LOG_WARNING("NodeTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
+//        LOG_WARNING("GraphTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
 //    }
 //
 //    return result;
@@ -283,7 +283,7 @@ bool Stats::hasBeenChanged(const Node* _node) const
     return  std::find( changed.cbegin(), changed.cend(), _node ) != changed.cend();
 }
 
-Node* NodeTraversal::getNextRec(Node* _node)
+Node* GraphTraversal::getNextRec(Node* _node)
 {
     NODABLE_ASSERT(!stats.hasBeenTraversed(_node));
     stats.traversed.push_back(_node);

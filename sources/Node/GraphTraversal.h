@@ -31,14 +31,14 @@ namespace Nodable {
      * @brief 
      * The intend of this class is to traverse Node hierarchy and do some operations on them.
      * 
-     * TODO: create a generic method: NodeTraversal::Traverse(_rootNode, _operation, _branchStrategy ) ?
+     * TODO: create a generic method: GraphTraversal::Traverse(_rootNode, _operation, _branchStrategy ) ?
      * 
      */
-    class NodeTraversal {
+    class GraphTraversal {
         friend class Node;
     public:
-        NodeTraversal() = default;
-        ~NodeTraversal() = default;
+        GraphTraversal() = default;
+        ~GraphTraversal() = default;
 
         /** Set dirty a Node and all its output connected Nodes recursively */
         Result setDirty(Node* _rootNode);
