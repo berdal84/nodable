@@ -172,6 +172,26 @@ bool GraphNodeView::draw()
 	            draw_list->AddCircleFilled(
 	                    view->getScreenPos() - view->getSize() * 0.5f, 5.0f,
 	                    ImColor(255,0,0) );
+
+	            ImVec2 linePos = view->getScreenPos() + ImVec2(-view->getSize().x * 0.5f - 10.0f, 0.5f);
+	            float size = 20.0f;
+	            float width = 2.0f;
+	            ImColor color = ImColor(255,255,255);
+	            draw_list->AddLine(
+	                    linePos,
+                        linePos - ImVec2(size, 0.0f),
+                        color,
+                        width);
+                draw_list->AddLine(
+                        linePos,
+                        linePos - ImVec2(size * 0.5f, -size * 0.5f),
+                        color,
+                        width);
+                draw_list->AddLine(
+                        linePos,
+                        linePos - ImVec2(size * 0.5f, size * 0.5f),
+                        color,
+                        width);
             }
         }
     }
