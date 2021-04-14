@@ -17,7 +17,7 @@
 #include "WireView.h"
 #include "Member.h"
 #include "Log.h"
-#include "NodeTraversal.h"
+#include "GraphTraversal.h"
 
 namespace Nodable
 {
@@ -171,7 +171,7 @@ namespace Nodable
 //			targetNode->addWire(wire);
 //			sourceNode->addWire(wire);
 //
-//			NodeTraversal traversal;
+//			GraphTraversal traversal;
 //            traversal.setDirty(targetNode);
 //		}
 //
@@ -186,7 +186,7 @@ namespace Nodable
 //            auto sourceNode = source->getOwner()->as<Node>();
 //
 //            target->setInputMember(nullptr);
-//            NodeTraversal traversal;
+//            GraphTraversal traversal;
 //            traversal.setDirty(targetNode);
 //
 //			// Link Members

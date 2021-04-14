@@ -16,7 +16,7 @@
 #include "Component/DataAccess.h"
 #include "Component/NodeView.h"
 #include "Component/GraphNodeView.h"
-#include "Node/NodeTraversal.h"
+#include "Node/GraphTraversal.h"
 #include "Node/InstructionNode.h"
 #include "Node/CodeBlockNode.h"
 #include "Node/ScopedCodeBlockNode.h"
@@ -108,7 +108,7 @@ UpdateResult GraphNode::update()
     UpdateResult result = UpdateResult::Failed;
     if (this->program && Application::s_instance && Application::s_instance->getVirtualMachine().isStopped() )
     {
-        NodeTraversal nodeTraversal;
+        GraphTraversal nodeTraversal;
         if (nodeTraversal.update(this->program) == Result::Success )
         {
             if ( !nodeTraversal.getStats().changed.empty() )

@@ -9,7 +9,7 @@
 #include <Core/Nodable.h>
 #include <Core/Properties.h>
 #include <Component/Component.h>
-#include <Node/NodeTraversal.h>
+#include <Node/GraphTraversal.h>
 #include "Properties.h"
 
 namespace Nodable{
