@@ -926,7 +926,7 @@ void NodeView::applyForces(bool _recurse)
     // apply
     bool tooSmall = forces.x * forces.x + forces.y * forces.y < 0.1f;
     if (!tooSmall)
-        this->translate(forces);
+        this->translate(forces, _recurse);
 
     // reset
     forces = ImVec2();
