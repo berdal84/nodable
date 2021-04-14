@@ -368,7 +368,7 @@ bool ApplicationView::draw()
 			else if (userWantsToSelectedNextNode)
             {
 			    GraphTraversal traversal;
-			    Node* next = traversal.getNext(selectedNodeView->getOwner());
+			    Node* next = traversal.getNextInstrToEval(selectedNodeView->getOwner());
 			    if ( next )
 			        if( auto nextView = next->getComponent<NodeView>())
                         NodeView::SetSelected(nextView);

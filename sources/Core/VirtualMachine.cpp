@@ -46,7 +46,7 @@ void VirtualMachine::run()
             eachNodeToEval->eval();
         }
 
-        m_currentNode = m_traversal.getNext(m_currentNode);
+        m_currentNode = m_traversal.getNextInstrToEval(m_currentNode);
     }
     stop();
 }
@@ -69,7 +69,7 @@ bool VirtualMachine::stepOver()
     for (auto eachNode : m_traversal.getStats().traversed)
         eachNode->eval();
 
-    m_currentNode = m_traversal.getNext(m_currentNode);
+    m_currentNode = m_traversal.getNextInstrToEval(m_currentNode);
     bool over = isProgramOver();
     if (over)
     {
@@ -92,9 +92,5 @@ void VirtualMachine::debug()
 {
     NODABLE_ASSERT(this->m_program != nullptr);
     m_isDebugging = true;
-    m_currentNode = m_program;
-    if ( auto view = m_currentNode->getComponent<NodeView>() )
-    {
-        NodeView::SetSelected(view);
-    }
+    m_currentNode = m_traversal.getNextInstrToEval(m_program);
 }

@@ -122,11 +122,11 @@ Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
     return Result::Failure;
 }
 
-Node* GraphTraversal::getNext(Node *_node)
+Node* GraphTraversal::getNextInstrToEval(Node *_node)
 {
     initialize();
-    LOG_VERBOSE("GraphTraversal", "getNext( %s )...\n", _node->getLabel() );
-    auto result = getNextRec(_node);
+    LOG_VERBOSE("GraphTraversal", "getNextInstrToEval( %s )...\n", _node->getLabel() );
+    auto result = getNextInstrToEvalRec(_node);
     if (result)
         LOG_VERBOSE("GraphTraversal", "%s's next is %s\n", _node->getLabel(), result->getLabel());
 
@@ -283,7 +283,7 @@ bool Stats::hasBeenChanged(const Node* _node) const
     return  std::find( changed.cbegin(), changed.cend(), _node ) != changed.cend();
 }
 
-Node* GraphTraversal::getNextRec(Node* _node)
+Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
 {
     NODABLE_ASSERT(!stats.hasBeenTraversed(_node));
     stats.traversed.push_back(_node);
@@ -317,21 +317,30 @@ Node* GraphTraversal::getNextRec(Node* _node)
             result = *found;
     }
 
-    if ( result == nullptr ) {
+    if ( result == nullptr )
+    {
         if ( auto parent = _node->getParent() )
         {
             // set previous children traversed
             auto it = parent->getChildren().begin();
-            while( *it != _node) {
+            while( *it != _node)
+            {
                 stats.traversed.push_back(*it);
                 it++;
             }
 
-            result = getNextRec(parent);
+            result = getNextInstrToEvalRec(parent);
         }
     }
-
-
+    else
+    {
+        mirror::Class* resultClass = result->getClass();
+        if (resultClass == mirror::GetClass<ScopedCodeBlockNode>() || resultClass == mirror::GetClass<CodeBlockNode>())
+        {
+            result = getNextInstrToEvalRec(result);
+        }
+    }
     stats.traversed.push_back(result);
+
     return result;
 }
