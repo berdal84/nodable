@@ -27,6 +27,7 @@ namespace Nodable
         bool stepOver();
 //        void stepInto();
 //        void stepOut();
+        [[nodiscard]] inline const Node* getCurrentNode() const {return m_currentNode; }
     private:
         GraphTraversal m_traversal;
         ProgramNode* m_program;

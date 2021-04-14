@@ -6,6 +6,7 @@
 #include "Core/Settings.h"
 #include "Core/Log.h"
 #include "Core/Wire.h"
+#include "Core/Application.h"
 #include "Node/ProgramNode.h"
 #include "Node/GraphNode.h"
 #include "Node/VariableNode.h"
@@ -158,6 +159,23 @@ bool GraphNodeView::draw()
             }
 	    }
 	}
+
+	// Virtual Machine cursor
+	if( VirtualMachine* vm = &Application::s_instance->getVirtualMachine() )
+    {
+	    if ( !vm->isStopped())
+        {
+	        auto node = vm->getCurrentNode();
+	        if( auto view = node->getComponent<NodeView>())
+            {
+	            auto draw_list = ImGui::GetWindowDrawList();
+	            draw_list->AddCircleFilled(
+	                    view->getScreenPos() - view->getSize() * 0.5f, 5.0f,
+	                    ImColor(255,0,0) );
+            }
+        }
+    }
+
 
 	/*
 		Deselection

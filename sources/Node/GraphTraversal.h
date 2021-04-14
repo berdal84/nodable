@@ -61,7 +61,7 @@ namespace Nodable {
 
 //        bool hasAChildDirty(Node *_node);
 
-        Node* getNext(Node *_node);
+        Node* getNextInstrToEval(Node *_node);
     private:
         /** initialize this node traversal to make it like a new instance */
         void initialize();
@@ -69,7 +69,7 @@ namespace Nodable {
 //        Result setDirtyRecursively(Node* _node);
 //        Result updateRecursively(Node* _node);
 //        Result traverseForEvalRecursively(Node* _node);
-        Node* getNextRec(Node *_node);
+        Node* getNextInstrToEvalRec(Node *_node);
         Result traverseRec(Node* _node, TraversalFlag _flags);
 //        bool hasAChildDirtyRec(Node* _node);
         Stats stats;
