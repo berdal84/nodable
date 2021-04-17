@@ -66,5 +66,7 @@ namespace Nodable
         );
 
         void drawToolBar();
+
+        void shutdown();
     };
 }

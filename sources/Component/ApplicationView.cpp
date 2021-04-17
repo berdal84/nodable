@@ -28,14 +28,7 @@ ApplicationView::ApplicationView(const char* _name, Application* _application):
 }
 
 ApplicationView::~ApplicationView()
-{
-    Texture::ReleaseResources();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext    ();
-    SDL_GL_DeleteContext     (glcontext);
-    SDL_DestroyWindow        (sdlWindow);
-    SDL_Quit                 ();
-}
+{}
 
 bool ApplicationView::init()
 {
@@ -924,4 +917,14 @@ void ApplicationView::drawToolBar()
     ImGui::SameLine();
     ImGui::EndGroup();
 
+}
+
+void ApplicationView::shutdown()
+{
+    Texture::ReleaseResources();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext    ();
+    SDL_GL_DeleteContext     (glcontext);
+    SDL_DestroyWindow        (sdlWindow);
+    SDL_Quit                 ();
 }
