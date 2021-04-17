@@ -2,6 +2,8 @@
 
 #include "Node/ProgramNode.h"
 #include "Component/NodeView.h"
+#include "Node/GraphTraversal.h"
+#include "Core/Log.h"
 
 using namespace Nodable;
 
@@ -25,6 +27,7 @@ void VirtualMachine::load(Nodable::ProgramNode* _program)
 void VirtualMachine::run()
 {
     NODABLE_ASSERT(this->m_program != nullptr);
+    LOG_VERBOSE("VirtualMachine", "Running...\n");
     m_isRunning = true;
 
     /*
@@ -37,13 +40,17 @@ void VirtualMachine::run()
      */
 
     // temp poor update
-    m_currentNode = m_program;
+    m_currentNode = m_traversal.getNextInstrToEval(m_program);
     while(!isProgramOver())
     {
-        m_traversal.traverseForEval(m_currentNode);
+        m_traversal.traverse(m_currentNode, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty);
+        size_t total(m_traversal.getStats().traversed.size());
+        size_t idx = 1;
         for(auto& eachNodeToEval : m_traversal.getStats().traversed)
         {
             eachNodeToEval->eval();
+            LOG_VERBOSE("VirtualMachine", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int)total, eachNodeToEval->getLabel(), eachNodeToEval->getClass()->getName());
+            idx++;
         }
 
         m_currentNode = m_traversal.getNextInstrToEval(m_currentNode);
@@ -56,6 +63,7 @@ void VirtualMachine::stop()
     m_isRunning = false;
     m_isDebugging = false;
     m_currentNode = nullptr;
+    LOG_VERBOSE("VirtualMachine", "Stopped.\n");
 }
 
 void VirtualMachine::unload() {
@@ -65,7 +73,7 @@ void VirtualMachine::unload() {
 
 bool VirtualMachine::stepOver()
 {
-    m_traversal.traverseForEval(m_currentNode);
+    m_traversal.traverse(m_currentNode, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty);
     for (auto eachNode : m_traversal.getStats().traversed)
         eachNode->eval();
 
