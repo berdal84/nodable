@@ -62,6 +62,8 @@ void Application::stopExecution()
 
 void Application::shutdown()
 {
+    auto view = getComponent<ApplicationView>();
+    view->shutdown();
 }
 
 bool Application::openFile(std::filesystem::path _filePath)
