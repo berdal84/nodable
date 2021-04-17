@@ -21,7 +21,7 @@ namespace Nodable
 	{
 	public:
 		File(std::filesystem::path, const char* /*_content*/);
-        ~File() { delete getHistory(); }
+        ~File() override { deleteComponents(); }
 		std::string                      getName()const { return std::string {path.filename().u8string()}; }
         std::string                      getPath()const { return std::string {path.u8string()}; }
 		void                             save();

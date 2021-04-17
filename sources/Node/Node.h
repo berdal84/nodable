@@ -47,7 +47,7 @@ namespace Nodable{
 	     * @param _label
 	     */
 		explicit Node(std::string  _label = "UnnamedNode");
-		virtual ~Node() = default;
+		virtual ~Node();
 
 		[[nodiscard]] virtual Node*                     getParent()const { return this->parent; }
 		              virtual void                      setParent(Node* _node);
@@ -224,6 +224,8 @@ namespace Nodable{
 
 			return nullptr;
 		};
+        size_t deleteComponents();
+        [[nodiscard]] size_t getComponentCount() const;
 
         template<class T> [[nodiscard]] T* as()
         {
@@ -240,7 +242,6 @@ namespace Nodable{
         }
 
         Properties* getProps() { return &props; }
-        void onMemberChanges();
 
 	protected:
         Properties props;
@@ -273,6 +274,7 @@ namespace Nodable{
 
 		std::vector<Node*> inputs;
 		std::vector<Node*> outputs;
+
 	public:
 	    /* use mirror to refect class */
 		MIRROR_CLASS(Node)();

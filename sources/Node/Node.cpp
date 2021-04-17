@@ -1,6 +1,6 @@
 #include <algorithm>    // for std::find
 #include <utility>
-
+#include "Nodable.h"
 #include "Node.h"
 #include "Log.h"		// for LOG_DEBUG(...)
 #include "NodeView.h"
@@ -242,4 +242,25 @@ void Node::setShortLabel(const char *_label) {
 
 const char* Node::getShortLabel() const {
     return this->shortLabel.c_str();
+}
+
+Node::~Node()
+{
+    NODABLE_ASSERT(std::find_if(components.begin(), components.end(), [](auto& c) { return c.second != nullptr; } ) == components.end()); // You forgot to delete components, Node is not responsible for that
+}
+
+size_t Node::getComponentCount() const
+{
+    return components.size();
+}
+
+size_t Node::deleteComponents()
+{
+    size_t count(components.size());
+    for ( const auto& keyComponentPair : components)
+    {
+        delete keyComponentPair.second;
+    }
+    components.clear();
+    return count;
 }

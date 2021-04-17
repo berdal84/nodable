@@ -416,10 +416,9 @@ void GraphNode::deleteNode(Node* _node)
             it++;
     }
 
-    // delete components
-    for ( const auto& keyComponentPair : _node->getComponents())
+    if ( _node->getComponentCount() > 0 )
     {
-        delete keyComponentPair.second;
+        _node->deleteComponents();
     }
 
     // unregister and delete
