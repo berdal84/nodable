@@ -48,14 +48,14 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 	auto api = language->getAllFunctions();
 
 	for (auto it = api.cbegin(); it != api.cend(); it++) {
-		const auto function = new Function(*it);
+		const auto function = &*it;
 
 		auto op = language->findOperator(function->signature);
 
 
 		if (op != nullptr )
 		{
-			auto lambda = [graphNode, function, op]()->Node*
+			auto lambda = [graphNode, op]()->Node*
 			{
                 return graphNode->newOperator(op);
 			};
@@ -65,7 +65,7 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 		}
 		else
 		{
-			auto lambda = [graphNode, function, op]()->Node*
+			auto lambda = [graphNode, function]()->Node*
 			{
 				return graphNode->newFunction(function);
 			};
