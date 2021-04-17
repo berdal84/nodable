@@ -14,11 +14,9 @@ void FileView::init()
 	/*
 		Configure ImGuiTextColorEdit
 	*/
-
-	m_textEditor = new TextEditor();
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
-	m_textEditor->SetLanguageDefinition(lang);
-	m_textEditor->SetImGuiChildIgnored(true);
+	m_textEditor.SetLanguageDefinition(lang);
+	m_textEditor.SetImGuiChildIgnored(true);
 
 	TextEditor::Palette palette = { {
 		0xffffffff, // None
@@ -44,7 +42,7 @@ void FileView::init()
 		0x40a0a0a0, // Current line edge
 		} };
 
-	m_textEditor->SetPalette(palette);
+	m_textEditor.SetPalette(palette);
 }
 
 bool FileView::draw()
@@ -57,9 +55,9 @@ bool FileView::draw()
 
 	auto availSize = ImGui::GetContentRegionAvail();
 
-	auto previousCursorPosition = m_textEditor->GetCursorPosition();
-	auto previousSelectedText = m_textEditor->GetSelectedText();
-	auto previousLineText = m_textEditor->GetCurrentLineText();
+	auto previousCursorPosition = m_textEditor.GetCursorPosition();
+	auto previousSelectedText = m_textEditor.GetSelectedText();
+	auto previousLineText = m_textEditor.GetCurrentLineText();
 
 	auto allowkeyboard = !NodeView::IsAnyDragged() &&
 		                  NodeView::GetSelected() == nullptr; // disable keyboard for text editor when a node is selected.
@@ -68,23 +66,23 @@ bool FileView::draw()
                       !ImGui::IsAnyItemHovered() &&
                       !ImGui::IsAnyItemFocused();
 
-	m_textEditor->SetHandleKeyboardInputs(allowkeyboard);
-	m_textEditor->SetHandleMouseInputs(allowMouse);
+	m_textEditor.SetHandleKeyboardInputs(allowkeyboard);
+	m_textEditor.SetHandleMouseInputs(allowMouse);
 
-	m_textEditor->Render("Text Editor Plugin", availSize);
+	m_textEditor.Render("Text Editor Plugin", availSize);
 
-	auto currentCursorPosition = m_textEditor->GetCursorPosition();
-	auto currentSelectedText = m_textEditor->GetSelectedText();
-	auto currentLineText = m_textEditor->GetCurrentLineText();
+	auto currentCursorPosition = m_textEditor.GetCursorPosition();
+	auto currentSelectedText = m_textEditor.GetSelectedText();
+	auto currentLineText = m_textEditor.GetCurrentLineText();
 
 	auto isCurrentLineModified = currentLineText != previousLineText;
 	auto isSelectedTextModified = previousSelectedText != currentSelectedText;
 
 	m_hasChanged = isCurrentLineModified ||
-		m_textEditor->IsTextChanged() ||
+		m_textEditor.IsTextChanged() ||
 		isSelectedTextModified;
 
-	if (m_textEditor->IsTextChanged())
+	if (m_textEditor.IsTextChanged())
 		file->setModified();
 
 	if ( hasChanged() ) {
@@ -105,32 +103,32 @@ bool FileView::draw()
 
 std::string FileView::getText()const
 {
-	return m_textEditor->GetText();
+	return m_textEditor.GetText();
 }
 
 void FileView::replaceSelectedText(std::string _val)
 {
-	auto start = m_textEditor->GetCursorPosition();
+	auto start = m_textEditor.GetCursorPosition();
 
 	/* If there is no selection, selects current line */
-	auto hasSelection    = m_textEditor->HasSelection();
-	auto selectionStart  = m_textEditor->GetSelectionStart();
-	auto selectionEnd    = m_textEditor->GetSelectionEnd();
+	auto hasSelection    = m_textEditor.HasSelection();
+	auto selectionStart  = m_textEditor.GetSelectionStart();
+	auto selectionEnd    = m_textEditor.GetSelectionEnd();
 
 	// Select the whole line if no selection is set
 	if (!hasSelection)
 	{
-		m_textEditor->MoveHome(false);
-		m_textEditor->MoveEnd(true);
-		m_textEditor->SetCursorPosition(TextEditor::Coordinates(start.mLine, 0));
+		m_textEditor.MoveHome(false);
+		m_textEditor.MoveEnd(true);
+		m_textEditor.SetCursorPosition(TextEditor::Coordinates(start.mLine, 0));
 	}
 
 	/* insert text (and select it) */
-	m_textEditor->InsertText(_val, true);
-    auto end = m_textEditor->GetCursorPosition();
+	m_textEditor.InsertText(_val, true);
+    auto end = m_textEditor.GetCursorPosition();
 	if (!hasSelection && start.mLine == end.mLine ) // no selection and insert text is still on the same line
     {
-        m_textEditor->SetSelection(selectionStart, selectionEnd);
+        m_textEditor.SetSelection(selectionStart, selectionEnd);
     }
 
 	LOG_MESSAGE( "FileView", "Graph serialized: %s \n", _val.c_str());
@@ -138,12 +136,12 @@ void FileView::replaceSelectedText(std::string _val)
 
 void FileView::setText(const std::string& _content)
 {
-	m_textEditor->SetText(_content);
+	m_textEditor.SetText(_content);
 }
 
 std::string FileView::getSelectedText()const
 {
-	return m_textEditor->HasSelection() ? m_textEditor->GetSelectedText() : m_textEditor->GetCurrentLineText();
+	return m_textEditor.HasSelection() ? m_textEditor.GetSelectedText() : m_textEditor.GetCurrentLineText();
 }
 
 File* FileView::getFile() {
@@ -151,7 +149,7 @@ File* FileView::getFile() {
 }
 
 void FileView::setUndoBuffer(TextEditor::ExternalUndoBufferInterface* _buffer ) {
-	this->m_textEditor->SetExternalUndoBuffer(_buffer);
+	this->m_textEditor.SetExternalUndoBuffer(_buffer);
 }
 
 void FileView::drawFileInfo()
