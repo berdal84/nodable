@@ -70,13 +70,10 @@ namespace Nodable
 		std::string getCommandDescriptionAtPosition(size_t _commandId);
 
 		/* To get the special buffer for TextEditor */
-		TextEditorBuffer* createTextEditorUndoBuffer(TextEditor* _textEditor) {
-
-			textEditorBuffer = new TextEditorBuffer();
-			textEditorBuffer->setTextEditor(_textEditor);
-			textEditorBuffer->setHistory(this);
-
-			return textEditorBuffer;
+		TextEditorBuffer* getUndoBuffer(TextEditor* _textEditor) {
+			textEditorBuffer.setTextEditor(_textEditor);
+			textEditorBuffer.setHistory(this);
+			return &textEditorBuffer;
 		}
 
 		// Future: For command groups (ex: 5 commands that are atomic)
@@ -90,7 +87,7 @@ namespace Nodable
 	    size_t sizeMax;
 		std::vector<Cmd*>	commands;		/* Command history */
 		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
-		TextEditorBuffer*   textEditorBuffer = nullptr;
+		TextEditorBuffer    textEditorBuffer;
 
 		MIRROR_CLASS(History)(
 			MIRROR_PARENT(Component));

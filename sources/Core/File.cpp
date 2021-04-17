@@ -34,7 +34,7 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 	/* Creates an history for UNDO/REDO	*/
 	auto history = new History();
 	addComponent(history);
-    auto undoBuffer = history->createTextEditorUndoBuffer(textEditor);
+    auto undoBuffer = history->getUndoBuffer(textEditor);
 	fileView->setUndoBuffer(undoBuffer);
 	
 	/* Creates a node container */

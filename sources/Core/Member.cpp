@@ -222,13 +222,11 @@ void Member::setSourceToken(const Token* _token)
 
 void Member::digest(Member *_member)
 {
-    // Transfert value
+    // Transfer
     this->data = _member->data;
-
-    // Transfert Token ownership
     this->sourceToken = _member->sourceToken;
-    _member->sourceToken = Token::Null;
 
     // release member
+    _member->sourceToken = Token::Null;
     delete _member;
 }
