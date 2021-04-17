@@ -26,7 +26,7 @@ Application::~Application()
 {
 	for (auto & loadedFile : loadedFiles)
 		delete loadedFile;
-	delete getComponent<ApplicationView>();
+	deleteComponents();
 	s_instance = nullptr;
 }
 
