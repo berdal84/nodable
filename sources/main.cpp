@@ -14,7 +14,7 @@ using namespace Nodable;
 int main(int argc, char* argv[])
 {
 
-    Log::SetVerbosityLevel("GraphTraversal", Log::Verbosity::Verbose);
+//    Log::SetVerbosityLevel("GraphTraversal", Log::Verbosity::Verbose);
 //    Log::SetVerbosityLevel("Parser", Log::Verbosity::Verbose);
 //    Log::SetVerbosityLevel("GraphNode", Log::Verbosity::Verbose);
 

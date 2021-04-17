@@ -416,11 +416,6 @@ void GraphNode::deleteNode(Node* _node)
             it++;
     }
 
-    if ( _node->getComponentCount() > 0 )
-    {
-        _node->deleteComponents();
-    }
-
     // unregister and delete
     unregisterNode(_node);
     delete _node;

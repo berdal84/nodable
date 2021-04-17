@@ -246,7 +246,8 @@ const char* Node::getShortLabel() const {
 
 Node::~Node()
 {
-    NODABLE_ASSERT(std::find_if(components.begin(), components.end(), [](auto& c) { return c.second != nullptr; } ) == components.end()); // You forgot to delete components, Node is not responsible for that
+    if ( !components.empty())
+        deleteComponents();
 }
 
 size_t Node::getComponentCount() const

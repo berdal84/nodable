@@ -169,3 +169,8 @@ bool File::evaluateSelectedExpression()
 bool& File::isOpen() {
     return open;
 }
+
+File::~File()
+{
+    delete getInnerGraph();
+}
