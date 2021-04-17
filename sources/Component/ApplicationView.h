@@ -32,7 +32,7 @@ namespace Nodable
 		bool draw() override;
 		bool init();
         void browseFile();
-
+        void shutdown();
 	private:
 		ImGui::FileBrowser fileBrowser;
 		Application*       application;
@@ -58,15 +58,12 @@ namespace Nodable
         void drawFileBrowser();
         void drawBackground();
         void drawPropertiesWindow();
+        void drawToolBar();
 
         /* reflect class using mirror */
         MIRROR_CLASS(ApplicationView)
         (
             MIRROR_PARENT(View) // we only need to know parent
         );
-
-        void drawToolBar();
-
-        void shutdown();
     };
 }
