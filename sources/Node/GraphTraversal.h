@@ -12,6 +12,15 @@ namespace Nodable {
     };
 
     typedef int TraversalFlag; // -> enum TraversalFlag_
+    enum TraversalFlag_ {
+        TraversalFlag_None             = 0,
+        TraversalFlag_FollowInputs     = 1 << 0,
+        TraversalFlag_FollowOutputs    = 1 << 1,
+        TraversalFlag_FollowChildren   = 1 << 2,
+        TraversalFlag_FollowParent     = 1 << 3,
+        TraversalFlag_FollowNotDirty   = 1 << 4,
+        TraversalFlag_ReverseResult    = 1 << 5,
+    };
 
     // forward declarations
     class ScopedCodeBlockNode;
@@ -39,39 +48,16 @@ namespace Nodable {
     public:
         GraphTraversal() = default;
         ~GraphTraversal() = default;
-
-        /** Set dirty a Node and all its output connected Nodes recursively */
         Result setDirty(Node* _rootNode);
-
-        /** Update a Node after its input connected Nodes (only if dirty) */
         Result update(Node* _rootNode);
-
-//        /** Evaluate a given scope */
-//        Result update(ScopedCodeBlockNode *_scope);
-
-        /** Traverse following nodes like if we were evaluating */
-        Result traverseForEval(Node* _rootNode);
-
         Result traverse(Node*, TraversalFlag);
-
-        /** get statistics, usually needed after a traversal */
-        [[nodiscard]] const Stats& getStats() const { return stats; }
-
+        [[nodiscard]] inline const Stats& getStats() const { return stats; }
         void logStats();
-
-//        bool hasAChildDirty(Node *_node);
-
         Node* getNextInstrToEval(Node *_node);
     private:
-        /** initialize this node traversal to make it like a new instance */
         void initialize();
-
-//        Result setDirtyRecursively(Node* _node);
-//        Result updateRecursively(Node* _node);
-//        Result traverseForEvalRecursively(Node* _node);
         Node* getNextInstrToEvalRec(Node *_node);
         Result traverseRec(Node* _node, TraversalFlag _flags);
-//        bool hasAChildDirtyRec(Node* _node);
         Stats stats;
     };
 }
