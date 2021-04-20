@@ -97,9 +97,13 @@ bool GraphNodeView::draw()
                 {
 			        auto endNodeView   = eachNode->getComponent<NodeView>();
 			        auto startNodeView = start->getOwner()->getComponent<NodeView>();
-                    auto endPos   = endNodeView->getConnectorPosition(end, Way_In);
-                    auto startPos = startNodeView->getConnectorPosition(start, Way_Out);
-                    WireView::Draw(ImGui::GetWindowDrawList(), startPos, endPos , startNodeView, endNodeView );
+
+			        if ( startNodeView->isVisible() && endNodeView->isVisible() )
+                    {
+                        auto endPos   = endNodeView->getConnectorPosition(end, Way_In);
+                        auto startPos = startNodeView->getConnectorPosition(start, Way_Out);
+                        WireView::Draw(ImGui::GetWindowDrawList(), startPos, endPos , startNodeView, endNodeView );
+                    }
                 }
 			}
 		}
