@@ -11,8 +11,7 @@ return 1;
 
 #define ARG(n) (*_args[n])
 #define BEGIN_IMPL\
-	auto implementation = [](Member* _result, const std::vector<Member*>& _args)->int {\
-	Function::CheckArgumentsAndLogWarnings(_args);
+	auto implementation = [](Member* _result, const std::vector<Member*>& _args)->int {
 
 #define RETURN( expr )\
 	_result->set( expr );

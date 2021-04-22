@@ -684,6 +684,11 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
         NodeView::DrawMemberInput(_member);
+        ImGui::Text(R"(token: [%s,%s,%s])",
+                    _member->getSourceToken()->prefix.c_str(),
+                    _member->getSourceToken()->word.c_str(),
+                    _member->getSourceToken()->suffix.c_str()
+                    );
     };
 
     // Draw exposed input members
@@ -795,12 +800,14 @@ void NodeView::drawAdvancedProperties()
     if ( node->getClass()->isChildOf( mirror::GetClass<ScopedCodeBlockNode>() ))
     {
         ImGui::NewLine();
+        ImGui::Text("Variables:");
         auto vars = node->as<ScopedCodeBlockNode>()->getVariables();
         for(auto eachVar : vars)
         {
             ImGui::Text("%s: %s", eachVar->getName(), ((std::string)*eachVar->value()).c_str());
         }
     }
+
 
     // ImGui::Text("Is an instruction result: %s", node-> ? "YES" : "NO");
 }

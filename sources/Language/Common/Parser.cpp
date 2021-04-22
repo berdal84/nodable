@@ -104,19 +104,17 @@ Member* Parser::tokenToMember(Token* _token)
             break;
 		}
 
-		case TokenType_Symbol:
+		case TokenType_Identifier:
 		{
-			auto context = graph;
-			VariableNode* variable = context->findVariable(_token->word);
+			VariableNode* variable = graph->findVariable(_token->word);
 
-			if (variable == nullptr)
-				variable = context->newVariable(_token->word, this->getCurrentScope());
+			if (variable == nullptr) {
+                LOG_ERROR("Parser", "Unable to find declaration for %s \n", _token->word.c_str());
+                variable = graph->newVariable( _token->word, getCurrentScope() );
+                variable->value()->setSourceToken(_token);
+            }
 
-			NODABLE_ASSERT(variable != nullptr);
-			NODABLE_ASSERT(variable->value() != nullptr);
-
-			result = variable->value();
-
+            result = variable->value();
 			break;
 		}
 
@@ -510,7 +508,8 @@ Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverrid
 	else if (left = parseParenthesisExpression());
 	else if (left = parseUnaryOperationExpression(_precedence));
 	else if (left = parseFunctionCall());
-	else if (left = parseAtomicExpression())
+    else if (left = parseVariableDecl());
+    else if (left = parseAtomicExpression());
 
 	if ( !tokenRibbon.canEat() )
 	{
@@ -693,7 +692,7 @@ Member* Parser::parseFunctionCall()
     std::string identifier;
     const Token* token_0 = tokenRibbon.eatToken();
     const Token* token_1 = tokenRibbon.eatToken();
-    if (token_0->type == TokenType_Symbol &&
+    if (token_0->type == TokenType_Identifier &&
         token_1->type == TokenType_OpenBracket)
     {
         identifier = token_0->word;
@@ -703,7 +702,7 @@ Member* Parser::parseFunctionCall()
     {
         const Token* token_2 = tokenRibbon.eatToken(); // eat a "supposed open bracket"
 
-        if (token_0->type == TokenType_Symbol && token_0->word == language->getSemantic()
+        if (token_0->type == TokenType_Identifier && token_0->word == language->getSemantic()
                 ->tokenTypeToString(TokenType_KeywordOperator /* TODO: TokenType_Keyword + word="operator" */) &&
             token_1->type == TokenType_Operator &&
             token_2->type == TokenType_OpenBracket)
@@ -849,6 +848,52 @@ ConditionalStructNode * Parser::parseConditionalStructure()
     }
 
     graph->deleteNode(condStruct);
+    rollbackTransaction();
+    return nullptr;
+}
+
+Member *Parser::parseVariableDecl()
+{
+
+    if( !tokenRibbon.canEat(2))
+        return nullptr;
+
+    startTransaction();
+
+    Token* typeTok = tokenRibbon.eatToken();
+    Token* identifierTok = tokenRibbon.eatToken();
+
+    if( Token::isType(typeTok->type) && identifierTok->type == TokenType_Identifier )
+    {
+        VariableNode* variable = graph->newVariable(identifierTok->word, this->getCurrentScope());
+        variable->typeToken = typeTok;
+        variable->identifierToken = identifierTok;
+
+        variable->value()->setType( language->getSemantic()->tokenTypeToType(typeTok->type));
+        variable->value()->setSourceToken(identifierTok); // we also pass it to the member, this one will be modified my connections
+
+        // try to parse assignment
+        auto assignmentTok = tokenRibbon.eatToken(TokenType_Operator);
+        if ( assignmentTok && assignmentTok->word == "=" )
+        {
+            if( auto value = parseExpression() )
+            {
+                graph->connect(value, variable->value());
+                variable->assignmentOperatorToken = assignmentTok;
+            }
+            else
+            {
+                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifierTok->word.c_str());
+                rollbackTransaction();
+                graph->deleteNode(variable);
+                return nullptr;
+            }
+        }
+
+        commitTransaction();
+        return variable->value();
+    }
+
     rollbackTransaction();
     return nullptr;
 }

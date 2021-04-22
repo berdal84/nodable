@@ -4,11 +4,6 @@ using namespace Nodable;
 
 const Token Token::Null = Token(TokenType_NULL);
 
-bool Token::isOperand(TokenType type)
-{
-    return 0 != (type & TokenType_Double | TokenType_Boolean | TokenType_String | TokenType_Symbol);
-}
-
 std::string Token::toString(const Token* _token)
 {
     std::string result;

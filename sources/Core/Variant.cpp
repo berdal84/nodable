@@ -4,7 +4,7 @@
 
 using namespace Nodable;
 
-Variant::Variant()
+Variant::Variant(): m_isDefined(false)
 {
 }
 
@@ -12,20 +12,7 @@ Variant::~Variant(){};
 
 Type Variant::getType()const
 {
-    Type result;
-
-	size_t i = data.index();
-
-	if ( i != std::variant_npos )
-	{
-        result = Variant::s_nodableTypeByIndex.at(i);
-    }
-	else
-    {
-        result = Type_Any;
-    }
-
-	return result;
+	return Variant::s_nodableTypeByIndex.at(data.index());
 }
 
 bool  Variant::isType(Type _type)const
@@ -49,6 +36,7 @@ void Variant::set(double _var)
 			break;
 		}
 	}
+	m_isDefined = true;
 }
 
 void Variant::set(const std::string& _var)
@@ -70,7 +58,7 @@ void Variant::set(const char* _var)
             data = std::string(_var);
         }
     }
-
+    m_isDefined = true;
 }
 
 void Variant::set(bool _var)
@@ -95,25 +83,26 @@ void Variant::set(bool _var)
 			break;
 		}
 	}
-
+    m_isDefined = true;
 }
 
-bool Variant::isSet()const
+bool Variant::isDefined()const
 {
-	return getType() != Type_Any;
+	return m_isDefined;
 }
 
 void Variant::set(const Variant* _other)
 {
 	data = _other->data;
+    m_isDefined = true;
 }
 
 std::string Variant::getTypeAsString()const
 {
 	switch(getType())
 	{
-		case Type_String:		{return "String";}
-		case Type_Double:		{return "Double";}
+		case Type_String:	{return "String";}
+		case Type_Double:	{return "Double";}
 		case Type_Boolean: 	{return "Boolean";}
 		default:				{return "Unknown";}
 	}

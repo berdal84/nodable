@@ -47,7 +47,7 @@ namespace Nodable
         std::string serialize(const TokenType&)const;
 
         /** Serialize a Member */
-        virtual std::string serialize(const Member*)const;
+        virtual std::string serialize(const Member*, bool followConnections = true)const;
 
         /** Serialize a token ( <token-serialized><suffix> ) */
         virtual std::string serialize(const Token*) const;
@@ -61,8 +61,10 @@ namespace Nodable
         virtual std::string serialize(const ScopedCodeBlockNode*)const;
 
         virtual std::string serialize(const ConditionalStructNode*) const;
-
+        virtual void serialize(std::string &out, const Variant* variant) const;
     protected:
         const Language* language;
+
+        std::string serialize(const VariableNode *_node) const;
     };
 }

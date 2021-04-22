@@ -32,7 +32,7 @@ namespace Nodable {
         TokenType_EndScope,
         TokenType_Separator,
         TokenType_Space,
-        TokenType_Symbol,
+        TokenType_Identifier,
         TokenType_StringType,
         TokenType_DoubleType,
         TokenType_BooleanType,

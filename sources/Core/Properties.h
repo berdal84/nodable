@@ -13,7 +13,7 @@ namespace Nodable
 	public:
 		Properties(Node* owner);
 		virtual ~Properties();
-		Member*             add(const char*, Visibility = Visibility::Default, Type = Type_Any, Way = Way_Default);
+		Member*             add(const char*, Visibility, Type, Way);
 		bool                has(const Member* _value);
 		Member*             get(const std::string& _name)const;
 		Member*             get(const char* _name)const;

@@ -27,10 +27,12 @@ namespace Nodable{
 		Member* value()const {
 			return props.get("value");
 		}
-
-		std::string       getTypeAsString ()const;
+        Token*      typeToken = nullptr;
+        Token*      assignmentOperatorToken = nullptr;
+        Token*      identifierToken = nullptr;
+        std::string getTypeAsString ()const;
 	private:
-		std::string       name;
+		std::string name;
 	public:
 
 		template<class Value>

@@ -11,6 +11,7 @@ namespace Nodable
         Type_Boolean,
         Type_Double,
         Type_String,
+        // TODO: implement references
         Type_COUNT
 	};
 }

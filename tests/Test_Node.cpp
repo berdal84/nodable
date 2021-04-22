@@ -9,7 +9,7 @@ TEST(Node, Add_member_Double)
 {
     Node node;
     auto props = node.getProps();
-    props->add("val");
+    props->add("val", Visibility::Default, Type_Double, Way_Default);
     props->get("val")->set(100.0);
 
     auto val = props->get("val");

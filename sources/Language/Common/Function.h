@@ -44,9 +44,9 @@ namespace Nodable {
 
 		bool                           match(const FunctionSignature& _other)const;
 		const std::string&             getIdentifier()const;
-		const std::vector<FunctionArg> getArgs() const;
-		const TokenType               getType() const;
-		const std::string              getLabel() const;
+		std::vector<FunctionArg> getArgs() const;
+		TokenType               getType() const;
+		std::string              getLabel() const;
 
 	private:
 		std::string label;

@@ -194,8 +194,53 @@ std::string Serializer::serialize(const TokenType& _type) const
     return language->getSemantic()->tokenTypeToString(_type);
 }
 
+std::string Serializer::serialize(const VariableNode* _node) const
+{
+    std::string result;
+    Member* value = _node->value();
 
-std::string Serializer::serialize(const Member * _member) const
+    // type
+    result.append( serialize(_node->typeToken) );
+
+    // var name
+    result.append( _node->identifierToken->prefix);
+    result.append( _node->getName());
+    result.append( _node->identifierToken->suffix);
+
+    // assigment ?
+    if ( _node->assignmentOperatorToken )
+    {
+        result.append(_node->assignmentOperatorToken->prefix );
+        result.append(_node->assignmentOperatorToken->word );
+        result.append(_node->assignmentOperatorToken->suffix );
+
+        if ( value->hasInputConnected() )
+            result.append(serialize(value));
+        else
+        {
+            result.append( _node->value()->getSourceToken()->prefix);
+            serialize(result, _node->value()->getData());
+            result.append( _node->value()->getSourceToken()->suffix);
+        }
+
+    }
+
+    return result;
+}
+
+void Serializer::serialize(std::string& out, const Variant* variant) const
+{
+    if (variant->isType(Type_String))
+    {
+        out.append('"' + (std::string)*variant + '"');
+    }
+    else
+    {
+        out.append( (std::string)*variant );
+    }
+}
+
+std::string Serializer::serialize(const Member * _member, bool followConnections) const
 {
 
     std::string expression;
@@ -207,17 +252,17 @@ std::string Serializer::serialize(const Member * _member) const
     }
 
     auto owner = _member->getOwner();
-    if ( owner && _member->allowsConnection(Way_In) && owner->hasWireConnectedTo(_member) )
+    if ( followConnections && owner && _member->allowsConnection(Way_In) && owner->hasWireConnectedTo(_member) )
     {
         auto sourceMember = owner->getSourceMemberOf(_member);
 
         if ( auto computeBase = sourceMember->getOwner()->getComponent<ComputeBase>() )
         {
-            expression.append( Serializer::serialize(computeBase) );
+            expression.append( serialize(computeBase) );
         }
         else
         {
-            expression.append( serialize(sourceMember) );
+            expression.append( serialize(sourceMember, false) );
         }
     }
     else
@@ -229,14 +274,7 @@ std::string Serializer::serialize(const Member * _member) const
         }
         else
         {
-            if (_member->isType(Type_String))
-            {
-                expression.append('"' + (std::string) *_member + '"');
-            }
-            else
-            {
-                expression.append( (std::string) *_member );
-            }
+            serialize( expression, _member->getData() );
         }
     }
 
@@ -285,7 +323,25 @@ std::string Serializer::serialize(const InstructionNode* _instruction ) const
 {
     std::string result;
 
-    result.append( serialize(_instruction->getValue() ) );
+    auto value = _instruction->getValue();
+
+    if ( value->hasInputConnected() )
+    {
+        // var declaration ?
+        if ( auto variableNode = value->getInputMember()->getOwner()->as<VariableNode>() )
+        {
+            result.append( serialize( variableNode) );
+        }
+        else
+        {
+            result.append( serialize( value) );
+        }
+    }
+    else
+    {
+        result.append( serialize( value) );
+    }
+
     result.append( serialize(_instruction->endOfInstructionToken));
 
     return result;
