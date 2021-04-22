@@ -94,6 +94,19 @@ int Node::getOutputWireCount()const
 
 bool Node::eval() const
 {
+    // read data from inputs
+    for(auto& eachNameToMemberPair : props.getMembers())
+    {
+        Member* eachMember = eachNameToMemberPair.second;
+        if( Member* input = eachMember->getInputMember() )
+        {
+            // transfer value:  input ----> X
+            eachMember->setType(input->getType()); // dynamic type, TODO: show a warning ?
+            eachMember->set(input);
+        }
+    }
+
+    // update
     if(hasComponent<ComputeBase>())
     {
         return getComponent<ComputeBase>()->update();

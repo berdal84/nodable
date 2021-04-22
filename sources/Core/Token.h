@@ -22,8 +22,19 @@ namespace Nodable {
             charIndex(_index)
         {}
         ~Token() = default;
-		[[nodiscard]] static bool isOperand(TokenType type);
+
         static std::string toString(const Token* _token);
         static const Token Null;
+
+        static inline bool isOperand(TokenType type)
+        {
+            return type == TokenType_Double || type == TokenType_Boolean || type == TokenType_String || type == TokenType_Identifier;
+        }
+
+        static inline bool isType(TokenType type)
+        {
+            return type == TokenType_DoubleType || type == TokenType_BooleanType || type == TokenType_StringType;
+        }
+
     };
 }

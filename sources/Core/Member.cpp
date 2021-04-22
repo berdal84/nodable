@@ -8,12 +8,15 @@ using namespace Nodable;
 
 Member::Member()
     :
-    owner(nullptr),
-    sourceToken(Token::Null),
-    out(nullptr),
-    in(nullptr) {
-
-}
+    m_owner(nullptr),
+    m_visibility(Visibility::Default),
+    m_name("Unknown"),
+    m_sourceToken(Token::Null),
+    m_inputMember(nullptr),
+    m_parentProperties(nullptr),
+    m_out(nullptr),
+    m_in(nullptr)
+    {}
 
 Member::Member(double d): Member()
 {
@@ -35,13 +38,8 @@ Member::Member(std::string s): Member(s.c_str()){}
 
 Member::~Member()
 {
-    delete in;
-    delete out;
-}
-
-Type Member::getType()const
-{
-	return data.getType();
+    delete m_in;
+    delete m_out;
 }
 
 bool Member::hasInputConnected() const
@@ -49,52 +47,29 @@ bool Member::hasInputConnected() const
     return this->getInputMember();
 }
 
-bool  Member::isType(Type _type)const
-{
-	return data.isType(_type) || getType() == Type_Any || _type == Type_Any;
-}
-
 bool Member::equals(const Member *_other)const {
 	return _other != nullptr &&
-	       _other->isType(this->getType() ) &&
+	       _other->m_data.getType() == this->m_data.getType() &&
 		   (std::string)*_other == (std::string)*this;
 }
 
 void Member::setConnectorWay(Way _flags)
 {
 	// Delete existing (we could reuse...)
-	if (in != nullptr)
-		delete in;
-
-	if (out != nullptr)
-		delete out;
+	delete m_in;
+	delete m_out;
 
 	// Create an input if needed
 	if (_flags & Way_In)
-		in = new Connector(this, Way_In);
+        m_in = new Connector(this, Way_In);
 	else
-		in = nullptr;
+        m_in = nullptr;
 
 	// Create an output if needed
 	if (_flags & Way_Out)
-		out = new Connector(this, Way_Out);
+        m_out = new Connector(this, Way_Out);
 	else
-		out = nullptr;
-}
-
-void Nodable::Member::setSourceExpression(const char* _val)
-{
-	sourceExpression = _val;
-}
-
-void Member::setType(Type _type)
-{
-	data.setType(_type);
-}
-
-void Member::setVisibility(Visibility _v)
-{
-	visibility = _v;
+        m_out = nullptr;
 }
 
 bool Member::allowsConnection(Way _way)const
@@ -103,130 +78,63 @@ bool Member::allowsConnection(Way _way)const
 	return maskedFlags == _way;
 }
 
-Node* Member::getOwner() const
-{
-	return owner;
-}
-
-Member* Member::getInputMember() const
-{
-	return inputMember;
-}
-
-const std::string& Nodable::Member::getName() const
-{
-	return name;
-}
-
-
-
-const Nodable::Connector* Member::input() const
-{
-	return in;
-}
-
-const Nodable::Connector* Member::output() const
-{
-	return out;
-}
-
 void Member::setInputMember(Member* _val)
 {
-	inputMember = _val;
+    m_inputMember = _val;
 
 	if (_val == nullptr)
-		sourceExpression = "";
-}
-
-void Nodable::Member::setName(const char* _name)
-{
-	name = _name;
-}
-
-Visibility Member::getVisibility() const
-{
-	return visibility;
+        m_sourceExpression = "";
 }
 
 Way Member::getConnectorWay() const
 {
-	if (in != nullptr && out != nullptr)
+	if (m_in != nullptr && m_out != nullptr)
 		return Way_InOut;
-	else if (out != nullptr)
+	else if (m_out != nullptr)
 		return Way_Out;
-	else if (in != nullptr)
+	else if (m_in != nullptr)
 		return Way_In;
 	else
 		return Way_None;
 }
 
-bool Member::isDefined()const
-{
-	return data.isSet();
-}
-
-std::string Member::getTypeAsString()const
-{
-	return data.getTypeAsString();
-}
-
-void Member::set(const Member* _v)
-{
-	data.set(&_v->data);
-}
-
-void Member::set(const Member& _v)
-{
-	data.set(&_v.data);
-}
-
 void Member::set(double _value)
 {
-	data.setType(Type_Double);
-	data.set(_value);
-}
-
-void Member::set(int _value)
-{
-	set(double(_value));
-}
-
-void Member::set(const std::string& _value)
-{
-	this->set(_value.c_str());
+	m_data.setType(Type_Double);
+	m_data.set(_value);
 }
 
 void Member::set(const char* _value)
 {
-	data.setType(Type_String);
-	data.set(_value);
+	m_data.setType(Type_String);
+	m_data.set(_value);
 }
 
 void Member::set(bool _value)
 {
-	data.setType(Type_Boolean);
-	data.set(_value);
+	m_data.setType(Type_Boolean);
+	m_data.set(_value);
 }
 
 void Member::setSourceToken(const Token* _token)
 {
     if ( _token )
     {
-        this->sourceToken = *_token;
+        this->m_sourceToken = *_token;
     }
     else
     {
-        this->sourceToken = Token::Null;
+        this->m_sourceToken = Token::Null;
     }
 }
 
 void Member::digest(Member *_member)
 {
     // Transfer
-    this->data = _member->data;
-    this->sourceToken = _member->sourceToken;
+    this->m_data = _member->m_data;
+    this->m_sourceToken = _member->m_sourceToken;
 
     // release member
-    _member->sourceToken = Token::Null;
+    _member->m_sourceToken = Token::Null;
     delete _member;
 }

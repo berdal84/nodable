@@ -59,6 +59,8 @@ namespace Nodable{
 		/** Parse a single instruction */
         InstructionNode* parseInstruction();
 
+        Member* parseVariableDecl();
+
         CodeBlockNode* parseCodeBlock();
 
         ConditionalStructNode* parseConditionalStructure();

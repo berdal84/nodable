@@ -5,6 +5,7 @@
 #include "Node/AbstractCodeBlockNode.h"
 #include <cstring>
 #include <algorithm> // for std::find_if
+#include <Log.h>
 
 using namespace Nodable;
 
@@ -101,8 +102,10 @@ InstructionNode *ScopedCodeBlockNode::getLastInstruction()
 
 void ScopedCodeBlockNode::addVariable(VariableNode* _variableNode)
 {
-    NODABLE_ASSERT(this->findVariable(_variableNode->getName()) == nullptr); // TODO: implement something to handle that case
-    this->variables.push_back(_variableNode);
+    if ( this->findVariable(_variableNode->getName()) == nullptr)
+        this->variables.push_back(_variableNode);
+    else
+        LOG_ERROR("ScopedCodeBlockNode", "Unable to add variable %s, already declared.\n", _variableNode->getName());
 }
 
 

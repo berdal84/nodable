@@ -16,10 +16,10 @@ TEST( GraphNode, connect)
     auto graph = std::make_unique<GraphNode>(&language);
 
     auto node1 = graph->newNode();
-    node1->getProps()->add("output");
+    node1->getProps()->add("output", Nodable::Visibility::Default, Type_Boolean, Way_Default);
 
     auto node2  = graph->newNode();
-    node2->getProps()->add("input");
+    node2->getProps()->add("input", Nodable::Visibility::Default, Type_Boolean, Way_Default);
 
     auto wire = graph->connect(
             node1->getProps()->get("output"),
@@ -36,10 +36,10 @@ TEST( GraphNode, disconnect)
     auto graph = std::make_unique<GraphNode>(language.get());
 
     auto a = std::make_unique<Node>();
-    auto output = a->getProps()->add("output");
+    auto output = a->getProps()->add("output", Nodable::Visibility::Default, Type_Boolean, Way_Default);
 
     auto b = std::make_unique<Node>();
-    auto input = b->getProps()->add("input");
+    auto input = b->getProps()->add("input", Nodable::Visibility::Default, Type_Boolean, Way_Default);
 
     EXPECT_EQ(graph->getWireRegistry().size(), 0);
     EXPECT_EQ(graph->getRelationRegistry().size(), 0);

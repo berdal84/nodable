@@ -40,17 +40,17 @@ NodableLanguage::NodableLanguage()
     semantic.insert(";", TokenType_EndOfInstruction);
     semantic.insert("\n", TokenType_EndOfLine);
 
-    // values
-    semantic.insert(std::regex("^(true|false)"), TokenType_Boolean);
-    semantic.insert(std::regex("^(\".*\")"), TokenType_String);
-    semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType_Symbol);
-    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Double);
-
     // types
     semantic.insert("bool", TokenType_BooleanType);
     semantic.insert("string", TokenType_StringType);
-    semantic.insert("number", TokenType_DoubleType);
+    semantic.insert("double", TokenType_DoubleType);
     semantic.insert("any", TokenType_AnyType);
+
+    // values
+    semantic.insert(std::regex("^(true|false)"), TokenType_Boolean);
+    semantic.insert(std::regex("^(\".*\")"), TokenType_String);
+    semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType_Identifier);
+    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Double);
 
     // operators
     semantic.insert("operator", TokenType_KeywordOperator); // 3 chars
@@ -137,12 +137,12 @@ NodableLanguage::NodableLanguage()
 	FCT_END
 
     // string string(number)
-    FCT_BEGIN(Str, "string", Double)
+    FCT_BEGIN(Str, "to_string", Double)
             RETURN( (std::string)ARG(0))
     FCT_END
 
     // string string(boolean)
-    FCT_BEGIN(Str, "string", Bool)
+    FCT_BEGIN(Str, "to_string", Bool)
         RETURN(ARG(0) ? "true" : "false" );
     FCT_END
 
@@ -300,19 +300,19 @@ NodableLanguage::NodableLanguage()
 
 	// number operator=(number, number)
 	BINARY_OP_BEGIN(Double, "=", Double, Double, 0u, ICON_FA_EQUALS " Assign")
-	    _args[0]->getInputMember()->set(ARG(1)); // TODO: find a better mecanism to declare out params
+	    _args[0]->getInputMember()->set(ARG(1)); // TODO: implement references
 		RETURN((double)ARG(1))
 	OPERATOR_END
 
     // string operator=(string, string)
     BINARY_OP_BEGIN(Str, "=", Str, Str, 0u, ICON_FA_EQUALS " Assign")
-            _args[0]->getInputMember()->set(ARG(1)); // TODO: find a better mecanism to declare out params
+            _args[0]->getInputMember()->set(ARG(1)); // TODO: implement references
             RETURN((std::string)ARG(1))
     OPERATOR_END
 
 	// bool operator=(bool, bool)
 	BINARY_OP_BEGIN(Bool, "=", Bool, Bool, 0u, ICON_FA_EQUALS " Assign")
-            _args[0]->getInputMember()->set(ARG(1)); // TODO: find a better mecanism to declare out params
+            _args[0]->getInputMember()->set(ARG(1)); // // TODO: implement references
 			RETURN((bool)ARG(1))
 	OPERATOR_END
 

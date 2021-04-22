@@ -19,7 +19,7 @@ namespace Nodable{
 		Variant();
 		~Variant();
 
-		bool        isSet()const;
+		bool        isDefined()const;
 		bool        isType(Type _type)const;
 		void        set(const Variant*);
 		void        set(const std::string&);
@@ -36,6 +36,7 @@ namespace Nodable{
 		explicit operator std::string()const;
 
 	private:
+        bool m_isDefined;
 
 	    /** Nodable::Type to native type */
 	    constexpr static const std::array<Type, 4> s_nodableTypeByIndex = {{

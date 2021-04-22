@@ -302,7 +302,7 @@ bool GraphNodeView::draw()
 		if (draggedConnector != nullptr && newNode != nullptr)
 		{
 		    auto props = newNode->getProps();
-			// if dragged member is an inputMember
+			// if dragged member is an m_inputMember
 			if (draggedConnector->member->allowsConnection(Way_In))
             {
 				graph->connect(props->getFirstWithConn(Way_Out), draggedConnector->member);

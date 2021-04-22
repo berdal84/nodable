@@ -133,19 +133,17 @@ TEST(Parser, Imbricated_functions)
 
 TEST(Parser, Successive_assigns)
 {
-    EXPECT_TRUE(Parser_Test("a = b = 5", 5));
-    EXPECT_TRUE(Parser_Test("a = b = c = 10", 10));
+    EXPECT_TRUE(Parser_Test("double a; double b; a = b = 5;", 5));
 }
 
 TEST(Parser, Strings)
 {
-    EXPECT_TRUE(Parser_Test("a = \"coucou\"", "coucou"));
-//    EXPECT_TRUE(Parser_Test("\"hello \" + \"world\"", "hello world"));
-//    EXPECT_TRUE(Parser_Test("a = string(15)", "15"));
-//    EXPECT_TRUE(Parser_Test("a = string(-15)", "-15"));
-//    EXPECT_TRUE(Parser_Test("a = string(-15.5)", "-15.5"));
-//    EXPECT_TRUE(Parser_Test("b = string(true)", "true"));
-//    EXPECT_TRUE(Parser_Test("b = string(false)", "false"));
+    EXPECT_TRUE(Parser_Test("string a = \"coucou\"", "coucou"));
+    EXPECT_TRUE(Parser_Test("string a = to_string(15)", "15"));
+    EXPECT_TRUE(Parser_Test("string a = to_string(-15)", "-15"));
+    EXPECT_TRUE(Parser_Test("string a = to_string(-15.5)", "-15.5"));
+    EXPECT_TRUE(Parser_Test("string b = to_string(true)", "true"));
+    EXPECT_TRUE(Parser_Test("string b = to_string(false)", "false"));
 }
 
 TEST(Parser, Serialize_Precedence)
@@ -166,28 +164,34 @@ TEST(Parser, Eval_Serialize_Compare)
     EXPECT_EQ(ParseUpdateSerialize("1+1"), "1+1");
     EXPECT_EQ(ParseUpdateSerialize("1-1"), "1-1");
     EXPECT_EQ(ParseUpdateSerialize("-1"), "-1");
-    EXPECT_EQ(ParseUpdateSerialize("a=5"), "a=5");
+    EXPECT_EQ(ParseUpdateSerialize("double a = 5"), "double a = 5");
     EXPECT_EQ(ParseUpdateSerialize("(a+b)*(c+d)"), "(a+b)*(c+d)");
-    EXPECT_EQ(ParseUpdateSerialize("b=string(false)"), "b=string(false)");
+    EXPECT_EQ(ParseUpdateSerialize("string b = to_string(false)"), "string b = to_string(false)");
+}
+
+TEST(Parser, Declare_and_define_vars)
+{
+//    EXPECT_EQ(ParseUpdateSerialize("double a=1+1;"), "double a=1+1;");
+    EXPECT_EQ(ParseUpdateSerialize("double a = b+1;"), "double a = b+1;");
 }
 
 TEST(Parser, Single_Instruction_With_EndOfInstruction )
 {
-    EXPECT_TRUE(Parser_Test("a = 5;", double(5)));
-    EXPECT_EQ(ParseUpdateSerialize("a = 5;"), "a = 5;");
+    EXPECT_TRUE(Parser_Test("double a = 5;", double(5)));
+    EXPECT_EQ(ParseUpdateSerialize("double a = 5;"), "double a = 5;");
 }
 
 TEST(Parser, Multiple_Instructions_Single_Line )
 {
-    EXPECT_TRUE(Parser_Test("a = 5;b = 2 * 5;", double(10)));
-    EXPECT_EQ(ParseUpdateSerialize("a = 5;b = 2 * 5;"), "a = 5;b = 2 * 5;");
+    EXPECT_TRUE(Parser_Test("double a = 5;double b = 2 * 5;", double(10)));
+    EXPECT_EQ(ParseUpdateSerialize("double a = 5;double b = 2 * 5;"), "double a = 5;double b = 2 * 5;");
 }
 
 TEST(Parser, Multiple_Instructions_Multi_Line )
 {
-    EXPECT_TRUE(Parser_Test("a = 5;\nb = 2 * a;", double(10)));
-    EXPECT_EQ(ParseUpdateSerialize("a = 5;\nb = 2 * a;"), "a = 5;\nb = 2 * a;");
-    EXPECT_EQ(ParseUpdateSerialize("a = 5;b = 2 * a;\nc = 33 + 5;"), "a = 5;b = 2 * a;\nc = 33 + 5;");
+    EXPECT_TRUE(Parser_Test("double a = 5;\ndouble b = 2 * a;", double(10)));
+    EXPECT_EQ(ParseUpdateSerialize("double a = 5;\ndouble b = 2 * a;"), "double a = 5;\ndouble b = 2 * a;");
+    EXPECT_EQ(ParseUpdateSerialize("double a = 5;double b = 2 * a;\ndouble c = 33 + 5;"), "double a = 5;double b = 2 * a;\ndouble c = 33 + 5;");
 }
 
 TEST(Parser, DNAtoProtein )
@@ -209,16 +213,16 @@ TEST(Parser, Code_Formatting_Preserving )
 TEST(Parser, Conditional_Structures_IF )
 {
     EXPECT_EQ(ParseUpdateSerialize("if(sdfsd"), "");
-    EXPECT_EQ(ParseUpdateSerialize("if(false){a=10;}"), "if(false){a=10;}");
-    EXPECT_EQ(ParseUpdateSerialize("if (false){ a = 10; }"), "if (false){ a = 10; }");
-    EXPECT_EQ(ParseUpdateSerialize("if (false){\n\ta = 10;\n}"), "if (false){\n\ta = 10;\n}");
-    EXPECT_EQ(ParseUpdateSerialize("if(5 > 2){a=10;}"), "if(5 > 2){a=10;}");
+    EXPECT_EQ(ParseUpdateSerialize("if(false){double a=10;}"), "if(false){double a=10;}");
+    EXPECT_EQ(ParseUpdateSerialize("if (false){ double a = 10; }"), "if (false){ double a = 10; }");
+    EXPECT_EQ(ParseUpdateSerialize("if (false){\n\tdouble a = 10;\n}"), "if (false){\n\tdouble a = 10;\n}");
+    EXPECT_EQ(ParseUpdateSerialize("if(5 > 2){double a=10;}"), "if(5 > 2){double a=10;}");
 
     const char *program =
-            "bob   = 10;"
-            "alice = 10;"
+            "double bob   = 10;"
+            "double alice = 10;"
             "if(bob > alice){"
-            "   message = \"Bob is better than Alice.\";"
+            "   string message = \"Bob is better than Alice.\";"
             "}";
 
     EXPECT_EQ(ParseUpdateSerialize(std::string(program)), std::string(program));

@@ -49,6 +49,7 @@ void VirtualMachine::run()
         for(auto& eachNodeToEval : m_traversal.getStats().traversed)
         {
             eachNodeToEval->eval();
+            eachNodeToEval->setDirty(false);
             LOG_VERBOSE("VirtualMachine", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int)total, eachNodeToEval->getLabel(), eachNodeToEval->getClass()->getName());
             idx++;
         }
@@ -74,8 +75,11 @@ void VirtualMachine::unload() {
 bool VirtualMachine::stepOver()
 {
     m_traversal.traverse(m_currentNode, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty);
-    for (auto eachNode : m_traversal.getStats().traversed)
-        eachNode->eval();
+    for (auto eachNodeToEval : m_traversal.getStats().traversed)
+    {
+        eachNodeToEval->eval();
+        eachNodeToEval->setDirty(false);
+    }
 
     m_currentNode = m_traversal.getNextInstrToEval(m_currentNode);
     bool over = isProgramOver();
