@@ -12,7 +12,8 @@ VirtualMachine::VirtualMachine()
     m_program(nullptr),
     m_isDebugging(false),
     m_isRunning(false),
-    m_currentNode(nullptr)
+    m_currentNode(nullptr),
+    m_lastInstructionNode(nullptr)
 {
 
 }
@@ -50,10 +51,14 @@ void VirtualMachine::run()
         {
             eachNodeToEval->eval();
             eachNodeToEval->setDirty(false);
+            if ( eachNodeToEval->getClass() == mirror::GetClass<InstructionNode>())
+            {
+                m_lastInstructionNode = eachNodeToEval->as<InstructionNode>();
+            }
+
             LOG_VERBOSE("VirtualMachine", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int)total, eachNodeToEval->getLabel(), eachNodeToEval->getClass()->getName());
             idx++;
         }
-
         m_currentNode = m_traversal.getNextInstrToEval(m_currentNode);
     }
     stop();
@@ -79,6 +84,10 @@ bool VirtualMachine::stepOver()
     {
         eachNodeToEval->eval();
         eachNodeToEval->setDirty(false);
+        if ( eachNodeToEval->getClass() == mirror::GetClass<InstructionNode>())
+        {
+            m_lastInstructionNode = eachNodeToEval->as<InstructionNode>();
+        }
     }
 
     m_currentNode = m_traversal.getNextInstrToEval(m_currentNode);

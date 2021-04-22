@@ -58,15 +58,27 @@ std::string ParseUpdateSerialize(
         const Language* _language = LanguageFactory::GetNodable()
 ){
 
-    GraphNode container(_language);
+    GraphNode graph(_language);
     Parser* parser = _language->getParser();
-    parser->expressionToGraph(expression, &container);
+    parser->expressionToGraph(expression, &graph);
 
-    container.update();
+    if ( auto program = graph.getProgram())
+    {
+        // run
+        VirtualMachine vm;
+        vm.load(program);
+        vm.run();
+
+        if ( auto lastEvaluatedNode = vm.getLastEvaluatedInstruction() )
+        {
+            std::string result;
+            _language->getSerializer()->serialize(result, lastEvaluatedNode->getValue()->getData() );
+            LOG_MESSAGE("Test_Parser", "ParseUpdateSerialize result is: %s\n", result.c_str());
+        }
+    }
 
     Serializer* serializer = _language->getSerializer();
-
-    auto resultExpression = serializer->serialize(container.getProgram());
+    auto resultExpression = serializer->serialize(graph.getProgram());
 
     std::cout << resultExpression << std::endl;
 
@@ -212,12 +224,6 @@ TEST(Parser, Code_Formatting_Preserving )
 
 TEST(Parser, Conditional_Structures_IF )
 {
-    EXPECT_EQ(ParseUpdateSerialize("if(sdfsd"), "");
-    EXPECT_EQ(ParseUpdateSerialize("if(false){double a=10;}"), "if(false){double a=10;}");
-    EXPECT_EQ(ParseUpdateSerialize("if (false){ double a = 10; }"), "if (false){ double a = 10; }");
-    EXPECT_EQ(ParseUpdateSerialize("if (false){\n\tdouble a = 10;\n}"), "if (false){\n\tdouble a = 10;\n}");
-    EXPECT_EQ(ParseUpdateSerialize("if(5 > 2){double a=10;}"), "if(5 > 2){double a=10;}");
-
     const char *program =
             "double bob   = 10;"
             "double alice = 10;"
@@ -231,12 +237,10 @@ TEST(Parser, Conditional_Structures_IF )
 
 TEST(Parser, Conditional_Structures_IF_ELSE )
 {
-    EXPECT_EQ(ParseUpdateSerialize("if(false){a=10;}else"), "");
-    EXPECT_EQ(ParseUpdateSerialize("if(false){a=10;}else{a=9;}"), "if(false){a=10;}else{a=9;}");
-
     const char *program =
-            "bob   = 10;"
-            "alice = 10;"
+            "double bob   = 10;"
+            "double alice = 10;"
+            "string message;"
             "if(bob > alice){"
             "   message = \"Bob is the best.\";"
             "}else{"
@@ -248,12 +252,10 @@ TEST(Parser, Conditional_Structures_IF_ELSE )
 
 TEST(Parser, Conditional_Structures_IF_ELSE_IF )
 {
-    EXPECT_EQ(ParseUpdateSerialize("if(false){a=10;}else if"), "");
-    EXPECT_EQ(ParseUpdateSerialize("if(false){a=10;}else if(false){a=9;}"), "if(false){a=10;}else if(false){a=9;}");
-
     const char *program =
-            "bob   = 10;"
-            "alice = 10;"
+            "double bob   = 10;"
+            "double alice = 10;"
+            "string message;"
             "if (bob > alice){"
             "   message = \"Bob is greater than Alice.\";"
             "} else if (bob < alice ){"

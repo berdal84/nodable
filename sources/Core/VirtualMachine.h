@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GraphTraversal.h>
+#include <InstructionNode.h>
 
 namespace Nodable
 {
@@ -28,10 +29,14 @@ namespace Nodable
 //        void stepInto();
 //        void stepOut();
         [[nodiscard]] inline const Node* getCurrentNode() const {return m_currentNode; }
+
+        inline InstructionNode *getLastEvaluatedInstruction() { return m_lastInstructionNode; }
+
     private:
         GraphTraversal m_traversal;
         ProgramNode* m_program;
-        Node* m_currentNode{};
+        Node* m_currentNode;
+        InstructionNode* m_lastInstructionNode;
         bool m_isRunning;
         bool m_isDebugging;
     };
