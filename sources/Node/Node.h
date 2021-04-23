@@ -49,31 +49,33 @@ namespace Nodable{
 		explicit Node(std::string  _label = "UnnamedNode");
 		virtual ~Node();
 
-		[[nodiscard]] virtual Node*                     getParent()const { return this->parent; }
+		[[nodiscard]] virtual Node*                     getParent()const { return this->m_parent; }
 		              virtual void                      setParent(Node* _node);
 
-		[[nodiscard]] virtual std::vector<Node*>&       getChildren() { return this->children; }
-        [[nodiscard]] virtual const std::vector<Node*>& getChildren()const { return this->children; }
+		[[nodiscard]] virtual std::vector<Node*>&       getChildren() { return this->m_children; }
+        [[nodiscard]] virtual const std::vector<Node*>& getChildren()const { return this->m_children; }
 		              virtual void                      addChild(Node* _node);
 		              virtual void                      removeChild(Node* _node);
 
-        [[nodiscard]] inline GraphNode*                 getParentGraph()const { return this->parentGraph; }
+        [[nodiscard]] inline GraphNode*                 getParentGraph()const { return this->m_parentGraph; }
                       void                              setParentGraph(GraphNode* _parentGraph);
 		[[nodiscard]] GraphNode*                        getInnerGraph()const;
 		              void                              setInnerGraph(GraphNode*);
 
-		void addInput(Node *_node);
-        void addOutput(Node *_node);
-        void removeInput(Node *_node);
-        void removeOutput(Node *_node);
-        std::vector<Node*>& getInputs();
-        std::vector<Node*>& getOutputs();
-        void setNext(Node* _node) { this->next = _node; };
-        virtual Node* getNext() { return this->next; }
+		              void                addInput(Node *_node);
+                      void                addOutput(Node *_node);
+                      void                removeInput(Node *_node);
+                      void                removeOutput(Node *_node);
+                      std::vector<Node*>& getInputs();
+                      std::vector<Node*>& getOutputs();
 
-        bool needsToBeDeleted  (){return deleted;}
+                      void                setNext(Node* _node) { this->m_next = _node; };
+                      virtual Node*       getNext() { return this->m_next; }
+
+        bool needsToBeDeleted  () const { return m_deletedFlag; }
+
         /* Set deleted flag on. Will be deleted by its controller next frame */
-        void                flagForDeletion   (){ deleted = true;}
+        void                flagForDeletion   (){ m_deletedFlag = true;}
 
 		/**
 		 * Get the label of this Node
@@ -156,7 +158,7 @@ namespace Nodable{
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
 			std::string name(T::GetClass()->getName());
-			components.emplace(std::make_pair(name, _component));
+			m_components.emplace(std::make_pair(name, _component));
 			_component->setOwner(this);
 		}
 
@@ -177,7 +179,7 @@ namespace Nodable{
 		 */
 		[[nodiscard]] inline const Components& getComponents()const
 		{
-			return components;
+			return m_components;
 		}
 
 		 /**
@@ -190,7 +192,7 @@ namespace Nodable{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
 			auto name = T::GetClass()->getName();
 			auto component = getComponent<T>();
-			components.erase(name);
+			m_components.erase(name);
 			delete component;
 		}
 
@@ -208,14 +210,14 @@ namespace Nodable{
 
 			// Search with class name
 			{
-				auto it = components.find(name);
-				if (it != components.end()) {
+				auto it = m_components.find(name);
+				if (it != m_components.end()) {
 					return reinterpret_cast<T*>(it->second);
 				}
 			}
 
 			// Search for a derived class
-			for (const auto & it : components) {
+			for (const auto & it : m_components) {
 				Component* component = it.second;
 				if (component->getClass()->isChildOf(c, false)) {
 					return reinterpret_cast<T*>(component);
@@ -241,39 +243,25 @@ namespace Nodable{
             return nullptr;
         }
 
-        Properties* getProps() { return &props; }
+        Properties* getProps() { return &m_props; }
 
 	protected:
-        Properties props;
+        Properties         m_props;
+		Components         m_components;
+        Node*              m_parent;
+        Node*              m_next;
+        std::vector<Node*> m_children;
+        bool               m_deletedFlag;
 
-		Components components;
-        /** The parent Node from a hierarchy point of view (parent is not owner) */
-        Node* parent;
-        /** Next node in execution point of view */
-        Node* next;
-        /** Children from a hierarchical point of view */
-        std::vector<Node*> children;
-
-        bool deleted;
     private:
-		/** The inner container of this Node. (Recursion)*/
-		GraphNode*                innerGraph;
-
-		/** The GraphNode that owns this Node */
-		GraphNode*                parentGraph;
-
-        /** Label of the Node, will be visible */
-		std::string               label;
-		/** Short version of the label */
-		std::string               shortLabel;
-        /** true means: needs to be evaluated. */
-		bool                      dirty;
-
-        /** contains all wires connected to or from this node.*/
-		Wires  wires;
-
-		std::vector<Node*> inputs;
-		std::vector<Node*> outputs;
+		GraphNode*         m_innerGraph;
+		GraphNode*         m_parentGraph;
+		std::string        m_label;
+		std::string        m_shortLabel;
+		bool               m_dirty;
+		Wires              m_wires;
+		std::vector<Node*> m_inputs;
+		std::vector<Node*> m_outputs;
 
 	public:
 	    /* use mirror to refect class */

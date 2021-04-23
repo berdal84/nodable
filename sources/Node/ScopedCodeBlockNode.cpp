@@ -33,14 +33,14 @@ bool ScopedCodeBlockNode::hasInstructions() const
 InstructionNode *ScopedCodeBlockNode::getFirstInstruction() const
 {
     auto found = std::find_if(
-            children.begin(),
-            children.end(),
+            m_children.begin(),
+            m_children.end(),
             [](Node* block )
             {
                 return block->as<AbstractCodeBlockNode>()->hasInstructions();
             });
 
-    if ( found != children.end())
+    if (found != m_children.end())
     {
         return (*found)->as<AbstractCodeBlockNode>()->getFirstInstruction();
     }
@@ -66,10 +66,10 @@ VariableNode* ScopedCodeBlockNode::findVariable(const std::string& _name)
 
 AbstractCodeBlockNode *ScopedCodeBlockNode::getLastCodeBlock()
 {
-    if ( children.empty() )
+    if ( m_children.empty() )
         return nullptr;
 
-    auto back = children.back();
+    auto back = m_children.back();
     if ( back )
     {
         return back->as<AbstractCodeBlockNode>();
@@ -79,7 +79,7 @@ AbstractCodeBlockNode *ScopedCodeBlockNode::getLastCodeBlock()
 
 bool ScopedCodeBlockNode::isEmpty()
 {
-    return children.empty();
+    return m_children.empty();
 }
 
 InstructionNode *ScopedCodeBlockNode::getLastInstruction()

@@ -25,7 +25,7 @@ namespace Nodable{
 		const char*       getName         ()const;
 
 		Member* value()const {
-			return props.get("value");
+			return m_props.get("value");
 		}
         Token*      typeToken = nullptr;
         Token*      assignmentOperatorToken = nullptr;
@@ -38,14 +38,14 @@ namespace Nodable{
 		template<class Value>
 		void set(Value _value)
 		{
-            props.get("value")->set(_value);
+            m_props.get("value")->set(_value);
 			updateLabel();
 		};
 
 		template<class Value>
 		void set(Value* _value)
 		{
-            props.get("value")->set(_value);
+            m_props.get("value")->set(_value);
 			updateLabel();
 		};
 

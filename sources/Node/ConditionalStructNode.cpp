@@ -8,7 +8,7 @@ ConditionalStructNode::ConditionalStructNode()
     m_token_if(nullptr),
     m_token_else(nullptr)
 {
-    props.add("condition", Visibility::Always, Type_Boolean, Way::Way_In);
+    m_props.add("condition", Visibility::Always, Type_Boolean, Way::Way_In);
 }
 
 AbstractCodeBlockNode *ConditionalStructNode::getNext()
@@ -18,10 +18,10 @@ AbstractCodeBlockNode *ConditionalStructNode::getNext()
 
 AbstractCodeBlockNode *ConditionalStructNode::getBranchTrue()
 {
-    return !children.empty() ? children[0]->as<AbstractCodeBlockNode>() : nullptr;
+    return !m_children.empty() ? m_children[0]->as<AbstractCodeBlockNode>() : nullptr;
 }
 
 AbstractCodeBlockNode *ConditionalStructNode::getBranchFalse()
 {
-    return children.size() > 1 ? children[1]->as<AbstractCodeBlockNode>() : nullptr;
+    return m_children.size() > 1 ? m_children[1]->as<AbstractCodeBlockNode>() : nullptr;
 }

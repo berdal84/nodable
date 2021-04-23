@@ -19,7 +19,7 @@ namespace Nodable
         virtual AbstractCodeBlockNode* getNext();
         AbstractCodeBlockNode*         getBranchTrue();
         AbstractCodeBlockNode*         getBranchFalse();
-        [[nodiscard]] inline Member*   getCondition()const { return props.get("condition"); }
+        [[nodiscard]] inline Member*   getCondition()const { return m_props.get("condition"); }
         [[nodiscard]] inline const Token* getTokenIf()const   { return m_token_if; }
         [[nodiscard]] inline const Token* getTokenElse()const   { return m_token_else; }
 

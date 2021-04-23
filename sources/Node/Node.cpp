@@ -14,65 +14,65 @@
 using namespace Nodable;
 
 Node::Node(std::string _label):
-        props(this),
-        parentGraph(nullptr),
-        parent(nullptr),
-        label(std::move(_label)),
-        innerGraph(nullptr),
-        dirty(false),
-        next(nullptr),
-        deleted(false)
+        m_props(this),
+        m_parentGraph(nullptr),
+        m_parent(nullptr),
+        m_label(std::move(_label)),
+        m_innerGraph(nullptr),
+        m_dirty(false),
+        m_next(nullptr),
+        m_deletedFlag(false)
 {
 //    add("activator", Visibility::Always, Type_Boolean, Way::Way_In);
 }
 
 bool Node::isDirty()const
 {
-    return dirty;
+    return m_dirty;
 }
 
 void Node::setDirty(bool _value)
 {
-	dirty = _value;
+    m_dirty = _value;
 }
 
 void Node::setLabel(const char* _label)
 {
-	this->label = _label;
+	this->m_label = _label;
 }
 
 void Node::setLabel(std::string _label)
 {
-	this->label = _label;
+	this->m_label = _label;
 }
 
 const char* Node::getLabel()const
 {
-	return this->label.c_str();
+	return this->m_label.c_str();
 }
 
 void Nodable::Node::addWire(Wire* _wire)
 {
-	wires.push_back(_wire);
+	m_wires.push_back(_wire);
     GraphTraversal::TraverseAndSetDirty(this);
 }
 
 void Nodable::Node::removeWire(Wire* _wire)
 {
-	auto found = std::find(wires.begin(), wires.end(), _wire);
-	if(found != wires.end())
-		wires.erase(found);
+	auto found = std::find(m_wires.begin(), m_wires.end(), _wire);
+	if(found != m_wires.end())
+		m_wires.erase(found);
 }
 
 std::vector<Wire*>& Node::getWires()
 {
-	return wires;
+	return m_wires;
 }
 
 int Node::getInputWireCount()const
 {
 	int count = 0;
-	for(auto w : wires)
+	for(auto w : m_wires)
 	{
 		if ( w->getTarget()->getOwner() == this)
 			count++;
@@ -83,7 +83,7 @@ int Node::getInputWireCount()const
 int Node::getOutputWireCount()const
 {
 	int count = 0;
-	for(auto w : wires)
+	for(auto w : m_wires)
 	{
 		if ( w->getSource()->getOwner() == this)
 			count++;
@@ -94,7 +94,7 @@ int Node::getOutputWireCount()const
 bool Node::eval() const
 {
     // read data from inputs
-    for(auto& eachNameToMemberPair : props.getMembers())
+    for(auto& eachNameToMemberPair : m_props.getMembers())
     {
         Member* eachMember = eachNameToMemberPair.second;
         if( Member* input = eachMember->getInputMember() )
@@ -120,38 +120,38 @@ UpdateResult Node::update()
         getComponent<DataAccess>()->update();
     }
 
-    this->dirty = false;
+    this->m_dirty = false;
 
 	return UpdateResult::Success;
 }
 
 GraphNode *Node::getInnerGraph() const
 {
-    return this->innerGraph;
+    return this->m_innerGraph;
 }
 
 void Node::setInnerGraph(GraphNode *_graph)
 {
-    this->innerGraph = _graph;
+    this->m_innerGraph = _graph;
 }
 
 const Operator* Node::getConnectedOperator(const Member *_localMember)
 {
-    assert(props.has(_localMember));
+    assert(m_props.has(_localMember));
 
     const Operator* result{};
 
     /*
      * Find a wire connected to _member
      */
-    auto found = std::find_if(wires.cbegin(),wires.cend(), [_localMember](const Wire* wire)->bool {
+    auto found = std::find_if(m_wires.cbegin(), m_wires.cend(), [_localMember](const Wire* wire)->bool {
         return wire->getTarget() == _localMember;
     });
 
     /*
      * If found, we try to get the ComputeXXXXXOperator from it's source
      */
-    if ( found != wires.end() )
+    if (found != m_wires.end() )
     {
         auto node = (*found)->getSource()->getOwner()->as<Node>();
         // TODO: factorise
@@ -174,16 +174,16 @@ bool Node::hasWireConnectedTo(const Member *_localMember)
     /*
      * Find a wire connected to _member
      */
-    auto found = std::find_if(wires.cbegin(),wires.cend(), [_localMember](const Wire* wire)->bool {
+    auto found = std::find_if(m_wires.cbegin(), m_wires.cend(), [_localMember](const Wire* wire)->bool {
         return wire->getTarget() == _localMember;
     });
 
-    return found != wires.end();
+    return found != m_wires.end();
 }
 
 Member* Node::getSourceMemberOf(const Member *_localMember)
 {
-    auto found = std::find_if(wires.begin(),wires.end(), [_localMember](const Wire* wire)->bool {
+    auto found = std::find_if(m_wires.begin(), m_wires.end(), [_localMember](const Wire* wire)->bool {
         return wire->getTarget() == _localMember;
     });
 
@@ -192,88 +192,88 @@ Member* Node::getSourceMemberOf(const Member *_localMember)
 
 void Node::addChild(Node *_node)
 {
-    auto found = std::find(children.begin(), children.end(), _node);
-    NODABLE_ASSERT(found == children.end()); // check if node is not already child
-    this->children.push_back(_node);
+    auto found = std::find(m_children.begin(), m_children.end(), _node);
+    NODABLE_ASSERT(found == m_children.end()); // check if node is not already child
+    this->m_children.push_back(_node);
 }
 
 void Node::removeChild(Node *_node)
 {
-    auto found = std::find(children.begin(), children.end(), _node);
-    NODABLE_ASSERT(found != children.end()); // check if node is found before to erase.
-    children.erase(found);
+    auto found = std::find(m_children.begin(), m_children.end(), _node);
+    NODABLE_ASSERT(found != m_children.end()); // check if node is found before to erase.
+    m_children.erase(found);
 }
 
 void Node::setParent(Node *_node)
 {
-    NODABLE_ASSERT(_node != nullptr || this->parent != nullptr);
-    this->parent = _node;
+    NODABLE_ASSERT(_node != nullptr || this->m_parent != nullptr);
+    this->m_parent = _node;
 }
 
 void Node::setParentGraph(GraphNode *_parentGraph)
 {
-    NODABLE_ASSERT(this->parentGraph == nullptr); // TODO: implement parentGraph switch
-    this->parentGraph = _parentGraph;
+    NODABLE_ASSERT(this->m_parentGraph == nullptr); // TODO: implement parentGraph switch
+    this->m_parentGraph = _parentGraph;
 }
 
 void Node::addInput(Node* _node)
 {
-    this->inputs.push_back(_node);
+    this->m_inputs.push_back(_node);
 }
 
 void Node::addOutput(Node *_node)
 {
-    this->outputs.push_back(_node);
+    this->m_outputs.push_back(_node);
 }
 
 void Node::removeOutput(Node *_node)
 {
-    auto found = std::find(outputs.begin(), outputs.end(), _node);
-    NODABLE_ASSERT(found != outputs.end()); // check if node is found before to erase.
-    outputs.erase(found);
+    auto found = std::find(m_outputs.begin(), m_outputs.end(), _node);
+    NODABLE_ASSERT(found != m_outputs.end()); // check if node is found before to erase.
+    m_outputs.erase(found);
 }
 
 void Node::removeInput(Node *_node)
 {
-    auto found = std::find(inputs.begin(), inputs.end(), _node);
-    NODABLE_ASSERT(found != inputs.end()); // check if node is found before to erase.
-    inputs.erase(found);
+    auto found = std::find(m_inputs.begin(), m_inputs.end(), _node);
+    NODABLE_ASSERT(found != m_inputs.end()); // check if node is found before to erase.
+    m_inputs.erase(found);
 }
 
 std::vector<Node*>& Node::getInputs() {
-    return this->inputs;
+    return this->m_inputs;
 }
 
 std::vector<Node *>& Node::getOutputs() {
-    return this->outputs;
+    return this->m_outputs;
 }
 
 void Node::setShortLabel(const char *_label) {
-    this->shortLabel = _label;
+    this->m_shortLabel = _label;
 }
 
 const char* Node::getShortLabel() const {
-    return this->shortLabel.c_str();
+    return this->m_shortLabel.c_str();
 }
 
 Node::~Node()
 {
-    if ( !components.empty())
+    if ( !m_components.empty())
         deleteComponents();
 }
 
 size_t Node::getComponentCount() const
 {
-    return components.size();
+    return m_components.size();
 }
 
 size_t Node::deleteComponents()
 {
-    size_t count(components.size());
-    for ( const auto& keyComponentPair : components)
+    size_t count(m_components.size());
+    for ( const auto& keyComponentPair : m_components)
     {
         delete keyComponentPair.second;
     }
-    components.clear();
+    m_components.clear();
     return count;
 }
