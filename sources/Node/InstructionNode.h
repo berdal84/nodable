@@ -20,13 +20,15 @@ namespace Nodable
     {
     public:
         explicit InstructionNode(const char* _label);
-        ~InstructionNode()= default;;
+        ~InstructionNode()= default;
 
-        [[nodiscard]] Member* getValue()const { return props.get("value"); }
-        void setValue(Member* _value) const { getValue()->set(_value); };
+        [[nodiscard]] inline Member* getValue()const { return props.get("value"); }
+                      inline void    setValue(Member* _value) const { getValue()->set(_value); };
+        [[nodiscard]] inline Token*  getEndOfInstrToken()const { return m_endOfInstrToken; }
+                      inline void    setEndOfInstrToken(Token* token) { m_endOfInstrToken = token; }
 
-        /** End of instruction token */
-        Token* endOfInstructionToken = nullptr;
+    private:
+        Token* m_endOfInstrToken = nullptr;
 
         /** reflect class using mirror */
         MIRROR_CLASS(InstructionNode)
