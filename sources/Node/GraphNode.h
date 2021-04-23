@@ -57,14 +57,14 @@ namespace Nodable{
 
 		/** Find a VariableNode given its name/identifier
 		 * @return - a valid VariableNode* or nullptr if variable is not found. */
-		VariableNode*               findVariable(std::string);
+        [[nodiscard]] VariableNode*           findVariable(std::string);
 
-		inline std::vector<Node*>&  getNodeRegistry() {return nodeRegistry;}
-		inline std::vector<Wire*>&  getWireRegistry() {return wireRegistry;}
-        inline std::multimap<Relation::first_type , Relation::second_type>& getRelationRegistry() {return relationRegistry;}
-        [[nodiscard]] inline const Language*      getLanguage()const { return language; }
-        [[nodiscard]] inline ProgramNode* getProgram(){ return program; }
-        [[nodiscard]] bool                        hasInstructionNodes();
+        [[nodiscard]] std::vector<Node*>&     getNodeRegistry() {return m_nodeRegistry;}
+        [[nodiscard]] std::vector<Wire*>&     getWireRegistry() {return m_wireRegistry;}
+        [[nodiscard]] inline const Language*  getLanguage()const { return m_language; }
+        [[nodiscard]] inline ProgramNode*     getProgram(){ return m_program; }
+        [[nodiscard]] bool                    hasInstructionNodes();
+        [[nodiscard]] std::multimap<Relation::first_type , Relation::second_type>& getRelationRegistry() {return m_relationRegistry;}
 
 		/** This will arrange all NodeViews after a Graph modification. */
         void                        arrangeNodeViews();
@@ -98,32 +98,25 @@ namespace Nodable{
          * ex: _source IS_CHILD_OF _target
         */
         void connect(Node* _source, Node* _target, RelationType);
-
         void connect(Member* _source, InstructionNode* _target);
-
-        /** Disconnect two nodes having a given relation type */
         void disconnect(Node* _source, Node* _target, RelationType);
-
-        /** Disconnects a wire. This method is the opposite of Node::Connect.*/
         void disconnect(Wire* _wire);
-
         void deleteNode(Node* _node);
     private:
         void registerNode(Node* node);
         void unregisterNode(Node* node);
-
         void registerWire(Wire *_wire);
         void unregisterWire(Wire *_wire);
         void deleteWire(Wire* _wire);
 
 	private:		
-		std::vector<Node*> nodeRegistry;
-		std::vector<Wire*> wireRegistry;
-		std::multimap<Relation::first_type , Relation::second_type> relationRegistry;
-		const Language* language;
-		ProgramNode* program;
+		std::vector<Node*> m_nodeRegistry;
+		std::vector<Wire*> m_wireRegistry;
+		std::multimap<Relation::first_type , Relation::second_type> m_relationRegistry;
+		const Language* m_language;
+		ProgramNode* m_program;
 	public:
-		static ImVec2               ScopeViewLastKnownPosition;
+		static ImVec2 s_mainScopeView_lastKnownPosition;
 
     /** reflect class with mirror */
     MIRROR_CLASS(GraphNode)
