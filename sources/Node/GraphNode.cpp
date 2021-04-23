@@ -26,7 +26,7 @@
 
 using namespace Nodable;
 
-ImVec2 GraphNode::ScopeViewLastKnownPosition = ImVec2(-1, -1); // draft try to store node position
+ImVec2 GraphNode::s_mainScopeView_lastKnownPosition = ImVec2(-1, -1); // draft try to store node position
 
 GraphNode::~GraphNode()
 {
@@ -38,35 +38,35 @@ void GraphNode::clear()
 
 	// Store the Result node position to restore it later
 	// TODO: handle multiple results
-	if (program && program->hasInstructions() )
+	if (m_program && m_program->hasInstructions() )
 	{
-        auto view = program->getComponent<NodeView>();
-        GraphNode::ScopeViewLastKnownPosition = view->getPosition();
+        auto view = m_program->getComponent<NodeView>();
+        GraphNode::s_mainScopeView_lastKnownPosition = view->getPosition();
     }
 
 	LOG_VERBOSE( "GraphNode", "=================== clear() ==================\n");
 
-    if ( !wireRegistry.empty() )
+    if ( !m_wireRegistry.empty() )
     {
-        for ( auto it = wireRegistry.rbegin(); it != wireRegistry.rend(); it++)
+        for (auto it = m_wireRegistry.rbegin(); it != m_wireRegistry.rend(); it++)
         {
             deleteWire(*it);
         }
     }
-    wireRegistry.clear();
+    m_wireRegistry.clear();
 
-	if ( !nodeRegistry.empty() )
+	if ( !m_nodeRegistry.empty() )
 	{
-        for ( auto i = nodeRegistry.size(); i > 0; i--)
+        for (auto i = m_nodeRegistry.size(); i > 0; i--)
         {
-            Node* node = nodeRegistry[i-1];
+            Node* node = m_nodeRegistry[i - 1];
             LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->getLabel() );
             deleteNode(node);
         }
 	}
-    nodeRegistry.clear();
-	relationRegistry.clear();
-    program = nullptr;
+    m_nodeRegistry.clear();
+	m_relationRegistry.clear();
+    m_program = nullptr;
 
     if ( auto view = this->getComponent<GraphNodeView>())
     {
@@ -80,12 +80,12 @@ UpdateResult GraphNode::update()
 {
     // Delete flagged Nodes
     {
-        auto nodeIndex = nodeRegistry.size();
+        auto nodeIndex = m_nodeRegistry.size();
 
         while (nodeIndex > 0)
         {
             nodeIndex--;
-            auto node = nodeRegistry.at(nodeIndex);
+            auto node = m_nodeRegistry.at(nodeIndex);
 
             if (node->needsToBeDeleted())
             {
@@ -106,10 +106,10 @@ UpdateResult GraphNode::update()
 
     // update nodes
     UpdateResult result = UpdateResult::Failed;
-    if (this->program && Application::s_instance && Application::s_instance->getVirtualMachine().isStopped() )
+    if (this->m_program && Application::s_instance && Application::s_instance->getVirtualMachine().isStopped() )
     {
         GraphTraversal nodeTraversal;
-        if (nodeTraversal.update(this->program) == Result::Success )
+        if (nodeTraversal.update(this->m_program) == Result::Success )
         {
             if ( !nodeTraversal.getStats().changed.empty() )
             {
@@ -129,20 +129,20 @@ UpdateResult GraphNode::update()
 
 void GraphNode::registerNode(Node* _node)
 {
-	this->nodeRegistry.push_back(_node);
+	this->m_nodeRegistry.push_back(_node);
     _node->setParentGraph(this);
     LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->getLabel(), _node->getClass()->getName());
 }
 
 void GraphNode::unregisterNode(Node* _node)
 {
-    auto found = std::find(nodeRegistry.begin(), nodeRegistry.end(), _node);
-    nodeRegistry.erase(found);
+    auto found = std::find(m_nodeRegistry.begin(), m_nodeRegistry.end(), _node);
+    m_nodeRegistry.erase(found);
 }
 
 VariableNode* GraphNode::findVariable(std::string _name)
 {
-	return program->findVariable(_name);
+	return m_program->findVariable(_name);
 }
 
 InstructionNode* GraphNode::newInstruction()
@@ -160,21 +160,21 @@ InstructionNode* GraphNode::newInstruction()
 
 InstructionNode* GraphNode::appendInstruction()
 {
-    std::string eol = language->getSerializer()->serialize(TokenType_EndOfLine);
+    std::string eol = m_language->getSerializer()->serialize(TokenType_EndOfLine);
 
     // add to code block
-    if ( program->getChildren().empty())
+    if ( m_program->getChildren().empty())
     {
-        connect(newCodeBlock(), program, RelationType::IS_CHILD_OF);
+        connect(newCodeBlock(), m_program, RelationType::IS_CHILD_OF);
     }
     else
     {
         // insert an eol
-        InstructionNode* lastInstruction = program->getLastInstruction();
+        InstructionNode* lastInstruction = m_program->getLastInstruction();
         lastInstruction->endOfInstructionToken->suffix += eol;
     }
 
-    auto block = program->getLastCodeBlock()->as<CodeBlockNode>();
+    auto block = m_program->getLastCodeBlock()->as<CodeBlockNode>();
     auto newInstructionNode = newInstruction();
     this->connect(newInstructionNode, block,  RelationType::IS_CHILD_OF);
 
@@ -257,14 +257,14 @@ Node* GraphNode::newBinOp(const Operator* _operator)
     node->setShortLabel(signature.getLabel().substr(0, 4).c_str());
 
     const auto args = signature.getArgs();
-	const Semantic* semantic = language->getSemantic();
+	const Semantic* semantic = m_language->getSemantic();
 	auto props = node->getProps();
 	auto left   = props->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
 	auto right  = props->add("rvalue", Visibility::Default, semantic->tokenTypeToType(args[1].type), Way_In);
 	auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation component and link values.
-	auto binOpComponent = new ComputeBinaryOperation(_operator, language);	
+	auto binOpComponent = new ComputeBinaryOperation(_operator, m_language);
 	binOpComponent->setResult(result);	
 	binOpComponent->setLValue( left );	
 	binOpComponent->setRValue(right);
@@ -287,13 +287,13 @@ Node* GraphNode::newUnaryOp(const Operator* _operator)
 	node->setLabel(signature.getLabel());
     node->setShortLabel(signature.getLabel().substr(0, 4).c_str());
 	const auto args = signature.getArgs();
-    const Semantic* semantic = language->getSemantic();
+    const Semantic* semantic = m_language->getSemantic();
     auto props = node->getProps();
     auto left = props->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
 	auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
 
 	// Create ComputeBinaryOperation binOpComponent and link values.
-	auto unaryOperationComponent = new ComputeUnaryOperation(_operator, language);
+	auto unaryOperationComponent = new ComputeUnaryOperation(_operator, m_language);
 	unaryOperationComponent->setResult(result);
 	unaryOperationComponent->setLValue(left);
 	node->addComponent(unaryOperationComponent);
@@ -313,12 +313,12 @@ Node* GraphNode::newFunction(const Function* _function)
 	auto node = new Node();
 	node->setLabel(_function->signature.getIdentifier() + "()");
 	node->setShortLabel("f(x)");
-    const Semantic* semantic = language->getSemantic();
+    const Semantic* semantic = m_language->getSemantic();
 	auto props = node->getProps();
 	props->add("result", Visibility::Default, semantic->tokenTypeToType(_function->signature.getType()), Way_Out);
 
 	// Create ComputeBase binOpComponent and link values.
-	auto functionComponent = new ComputeFunction(_function, language);
+	auto functionComponent = new ComputeFunction(_function, m_language);
 	functionComponent->setResult(props->get("result"));
 
 	// Arguments
@@ -345,16 +345,16 @@ Wire* GraphNode::newWire()
 
 void GraphNode::arrangeNodeViews()
 {
-    if ( program ) {
-        if (auto scopeView = program->getComponent<NodeView>()) {
-            bool hasKnownPosition = GraphNode::ScopeViewLastKnownPosition.x != -1 &&
-                                    GraphNode::ScopeViewLastKnownPosition.y != -1;
+    if ( m_program ) {
+        if (auto scopeView = m_program->getComponent<NodeView>()) {
+            bool hasKnownPosition = GraphNode::s_mainScopeView_lastKnownPosition.x != -1 &&
+                                    GraphNode::s_mainScopeView_lastKnownPosition.y != -1;
 
             if ( this->hasComponent<View>()) {
                 auto view = this->getComponent<View>();
 
                 if (hasKnownPosition) {                                 /* if result node had a position stored, we restore it */
-                    scopeView->setPosition(GraphNode::ScopeViewLastKnownPosition);
+                    scopeView->setPosition(GraphNode::s_mainScopeView_lastKnownPosition);
                 }
 
                 auto rect = view->getVisibleRect();
@@ -366,14 +366,14 @@ void GraphNode::arrangeNodeViews()
             }
         }
 
-        program->getComponent<NodeView>()->arrangeRecursively(false);
+        m_program->getComponent<NodeView>()->arrangeRecursively(false);
     }
 }
 
 GraphNode::GraphNode(const Language* _language)
     :
-        language(_language),
-        program(nullptr)
+        m_language(_language),
+        m_program(nullptr)
 {
 	this->clear();
 }
@@ -381,7 +381,7 @@ GraphNode::GraphNode(const Language* _language)
 CodeBlockNode *GraphNode::newCodeBlock()
 {
     auto codeBlockNode = new CodeBlockNode();
-    std::string label = ICON_FA_CODE " Block " + std::to_string(this->program->getChildren().size());
+    std::string label = ICON_FA_CODE " Block " + std::to_string(this->m_program->getChildren().size());
     codeBlockNode->setLabel(label);
     codeBlockNode->setShortLabel(ICON_FA_CODE "Bl");
     codeBlockNode->addComponent(new NodeView);
@@ -394,24 +394,24 @@ CodeBlockNode *GraphNode::newCodeBlock()
 void GraphNode::deleteNode(Node* _node)
 {
     // delete any relation with this node
-    for ( auto it = wireRegistry.begin(); it != wireRegistry.end();)
+    for (auto it = m_wireRegistry.begin(); it != m_wireRegistry.end();)
     {
         Wire* wire = *it;
         if( wire->getSource()->getOwner() == _node || wire->getTarget()->getOwner() == _node )
         {
             deleteWire(wire);
-            it = wireRegistry.erase(it);
+            it = m_wireRegistry.erase(it);
         }
         else
             it++;
     }
 
     // delete any relation with this node
-    for ( auto it = relationRegistry.begin(); it != relationRegistry.end();)
+    for (auto it = m_relationRegistry.begin(); it != m_relationRegistry.end();)
     {
         auto pair = (*it).second;
         if( pair.second == _node || pair.first == _node)
-            it = relationRegistry.erase(it);
+            it = m_relationRegistry.erase(it);
         else
             it++;
     }
@@ -423,7 +423,7 @@ void GraphNode::deleteNode(Node* _node)
 
 bool GraphNode::hasInstructionNodes()
 {
-    return program && program->hasInstructions();
+    return m_program && m_program->hasInstructions();
 }
 
 Wire *GraphNode::connect(Member* _from, Member* _to)
@@ -489,15 +489,15 @@ void GraphNode::disconnect(Wire *_wire)
 
 void GraphNode::registerWire(Wire* _wire)
 {
-    wireRegistry.push_back(_wire);
+    m_wireRegistry.push_back(_wire);
 }
 
 void GraphNode::unregisterWire(Wire* _wire)
 {
-    auto found = std::find(wireRegistry.begin(), wireRegistry.end(), _wire);
-    if (found != wireRegistry.end() )
+    auto found = std::find(m_wireRegistry.begin(), m_wireRegistry.end(), _wire);
+    if (found != m_wireRegistry.end() )
     {
-        wireRegistry.erase(found);
+        m_wireRegistry.erase(found);
     }
     else
     {
@@ -529,7 +529,7 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
             NODABLE_ASSERT(false); // This connection type is not yet implemented
     }
 
-    this->relationRegistry.emplace(_relationType, std::pair(_source, _target));
+    this->m_relationRegistry.emplace(_relationType, std::pair(_source, _target));
     this->setDirty();
 }
 
@@ -539,9 +539,9 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
 
     // find relation
     Relation pair{_relationType, {_source, _target}};
-    auto relation = std::find(relationRegistry.begin(), relationRegistry.end(), pair);
+    auto relation = std::find(m_relationRegistry.begin(), m_relationRegistry.end(), pair);
 
-    if(relation == relationRegistry.end())
+    if(relation == m_relationRegistry.end())
         return;
 
     // disconnect effectively
@@ -562,7 +562,7 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
     }
 
     // remove relation
-    relationRegistry.erase(relation);
+    m_relationRegistry.erase(relation);
 
     this->setDirty();
 }
@@ -609,12 +609,12 @@ ConditionalStructNode *GraphNode::newConditionalStructure()
 
 ScopedCodeBlockNode *GraphNode::newProgram() {
     clear();
-    program = new ProgramNode();
-    program->setLabel(ICON_FA_FILE_CODE " Program");
-    program->setShortLabel(ICON_FA_FILE_CODE " Prog.");
-    program->addComponent(new NodeView());
-    registerNode(program);
-    return this->program;
+    m_program = new ProgramNode();
+    m_program->setLabel(ICON_FA_FILE_CODE " Program");
+    m_program->setShortLabel(ICON_FA_FILE_CODE " Prog.");
+    m_program->addComponent(new NodeView());
+    registerNode(m_program);
+    return this->m_program;
 }
 
 Node* GraphNode::newNode() {
