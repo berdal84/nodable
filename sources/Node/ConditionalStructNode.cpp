@@ -5,8 +5,8 @@ using namespace Nodable;
 ConditionalStructNode::ConditionalStructNode()
     :
     CodeBlockNode(),
-    token_if(nullptr),
-    token_else(nullptr)
+    m_token_if(nullptr),
+    m_token_else(nullptr)
 {
     props.add("condition", Visibility::Always, Type_Boolean, Way::Way_In);
 }

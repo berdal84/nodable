@@ -366,7 +366,7 @@ std::string Serializer::serialize(const ConditionalStructNode* _condStruct)const
     std::string result;
 
     // if ( <condition> )
-    result.append( serialize(_condStruct->token_if));
+    result.append( serialize(_condStruct->getTokenIf()));
     result.append( serialize(TokenType_OpenBracket));
     result.append( serialize(_condStruct->getCondition()));
     result.append( serialize(TokenType_CloseBracket));
@@ -376,9 +376,9 @@ std::string Serializer::serialize(const ConditionalStructNode* _condStruct)const
     result.append( this->serialize(ifScope->as<ScopedCodeBlockNode>()));
 
     // else & else scope
-    if ( _condStruct->token_else )
+    if ( const Token* tokenElse = _condStruct->getTokenElse() )
     {
-        result.append( serialize(_condStruct->token_else));
+        result.append( serialize(tokenElse));
         auto elseScope = _condStruct->getChildren()[1];
         auto elseClass = elseScope->getClass();
         if ( elseClass == mirror::GetClass<ConditionalStructNode>())

@@ -801,7 +801,7 @@ ConditionalStructNode * Parser::parseConditionalStructure()
 
     if ( tokenRibbon.eatToken(TokenType_KeywordIf))
     {
-        condStruct->token_if = tokenRibbon.getEaten();
+        condStruct->setTokenIf(tokenRibbon.getEaten());
 
         auto condition = parseParenthesisExpression();
 
@@ -814,7 +814,7 @@ ConditionalStructNode * Parser::parseConditionalStructure()
 
                 if ( tokenRibbon.eatToken(TokenType_KeywordElse))
                 {
-                    condStruct->token_else = tokenRibbon.getEaten();
+                    condStruct->setTokenElse( tokenRibbon.getEaten() );
 
                     if ( ScopedCodeBlockNode* scopeElse = parseScope() )
                     {
