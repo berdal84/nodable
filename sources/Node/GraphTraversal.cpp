@@ -15,14 +15,14 @@ Result GraphTraversal::update(Node* _rootNode)
     initialize();
     LOG_VERBOSE("GraphTraversal", "Update %s \n", _rootNode->getLabel() );
     auto result = traverseRec(_rootNode, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren | TraversalFlag_FollowNotDirty);
-    for(Node* eachNode : stats.traversed )
+    for(Node* eachNode : m_stats.m_traversed )
     {
         if ( eachNode->isDirty() )
         {
             eachNode->eval();
             eachNode->update();
             eachNode->setDirty(false);
-            stats.changed.push_back(eachNode);
+            m_stats.m_changed.push_back(eachNode);
         }
     }
 
@@ -36,7 +36,7 @@ Result GraphTraversal::setDirty(Node* _rootNode)
     initialize();
     LOG_VERBOSE("GraphTraversal", "GraphTraversal::setDirty %s \n", _rootNode->getLabel() );
     auto result = traverseRec(_rootNode, TraversalFlag_FollowOutputs);
-    for(Node* eachNode : stats.traversed )
+    for(Node* eachNode : m_stats.m_traversed )
         eachNode->update();
     LOG_VERBOSE("GraphTraversal", "GraphTraversal::setDirty done.\n");
     return result;
@@ -50,8 +50,8 @@ Result GraphTraversal::traverse(Node *_node, TraversalFlag _flags)
 
     if ( _flags & TraversalFlag_ReverseResult )
     {
-        std::reverse(stats.traversed.begin(), stats.traversed.end());
-        std::reverse(stats.changed.begin(), stats.changed.end());
+        std::reverse(m_stats.m_traversed.begin(), m_stats.m_traversed.end());
+        std::reverse(m_stats.m_changed.begin(), m_stats.m_changed.end());
     }
     LOG_VERBOSE("GraphTraversal", "GraphTraversal::traverse done.\n");
     return result;
@@ -60,7 +60,7 @@ Result GraphTraversal::traverse(Node *_node, TraversalFlag _flags)
 Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
 {
 
-    if( !stats.hasBeenTraversed(_node) )
+    if( !m_stats.hasBeenTraversed(_node) )
     {
         if ( _node->isDirty() || (_flags & TraversalFlag_FollowNotDirty ) )
         {
@@ -73,7 +73,7 @@ Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
                 }
             }
 
-            stats.traversed.push_back(_node);
+            m_stats.m_traversed.push_back(_node);
 
             if ( _flags & TraversalFlag_FollowChildren )
             {
@@ -114,27 +114,27 @@ Node* GraphTraversal::getNextInstrToEval(Node *_node)
 
 void GraphTraversal::initialize()
 {
-    this->stats = {};
+    this->m_stats = {};
 }
 
 void GraphTraversal::logStats()
 {
-    LOG_MESSAGE("GraphTraversal", "traversed %i node(s).\n", (int)stats.traversed.size());
+    LOG_MESSAGE("GraphTraversal", "traversed %i node(s).\n", (int)m_stats.m_traversed.size());
 }
 
 bool Stats::hasBeenTraversed(const Node* _node) const
 {
-    return  std::find( traversed.cbegin(), traversed.cend(), _node ) != traversed.cend();
+    return std::find(m_traversed.cbegin(), m_traversed.cend(), _node ) != m_traversed.cend();
 }
 bool Stats::hasBeenChanged(const Node* _node) const
 {
-    return  std::find( changed.cbegin(), changed.cend(), _node ) != changed.cend();
+    return std::find(m_changed.cbegin(), m_changed.cend(), _node ) != m_changed.cend();
 }
 
 Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
 {
-    NODABLE_ASSERT(!stats.hasBeenTraversed(_node));
-    stats.traversed.push_back(_node);
+    NODABLE_ASSERT(!m_stats.hasBeenTraversed(_node));
+    m_stats.m_traversed.push_back(_node);
 
     /*
      * Get the next Node from an execution point of view.
@@ -149,7 +149,7 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
         * Get the branch depending on condition
         */
        auto next = _node->getNext(); // is virtual
-       if ( !stats.hasBeenTraversed(next) )
+       if ( !m_stats.hasBeenTraversed(next) )
            result = next;
     }
     else if ( !children.empty() )//if ( clss->isChildOf( mirror::GetClass<AbstractCodeBlockNode>() ) )
@@ -158,7 +158,7 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
          * Get the first not already traversed child
          */
         auto notAlreadyTraversed = [&](auto each )-> bool {
-            return !stats.hasBeenTraversed(each);
+            return !m_stats.hasBeenTraversed(each);
         };
         auto found = std::find_if(children.begin(), children.end(), notAlreadyTraversed);
         if ( found != children.end())
@@ -173,7 +173,7 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
             auto it = parent->getChildren().begin();
             while( *it != _node)
             {
-                stats.traversed.push_back(*it);
+                m_stats.m_traversed.push_back(*it);
                 it++;
             }
 
@@ -188,7 +188,7 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
             result = getNextInstrToEvalRec(result);
         }
     }
-    stats.traversed.push_back(result);
+    m_stats.m_traversed.push_back(result);
 
     return result;
 }

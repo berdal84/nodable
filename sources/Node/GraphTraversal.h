@@ -29,8 +29,8 @@ namespace Nodable {
      * Structure to store some statistics about a traversal
      */
     struct Stats {
-        std::vector<Node*> traversed;
-        std::vector<Node*> changed;
+        std::vector<Node*> m_traversed;
+        std::vector<Node*> m_changed;
         /** Return true if _node has been traversed, false otherwise */
         bool hasBeenTraversed(const Node* _node) const;
         bool hasBeenChanged(const Node* _node) const;
@@ -39,25 +39,26 @@ namespace Nodable {
     /**
      * @brief 
      * The intend of this class is to traverse Node hierarchy and do some operations on them.
-     * 
-     * TODO: create a generic method: GraphTraversal::Traverse(_rootNode, _operation, _branchStrategy ) ?
-     * 
      */
     class GraphTraversal {
         friend class Node;
     public:
         GraphTraversal() = default;
         ~GraphTraversal() = default;
-        Result setDirty(Node* _rootNode);
-        Result update(Node* _rootNode);
-        Result traverse(Node*, TraversalFlag);
-        [[nodiscard]] inline const Stats& getStats() const { return stats; }
-        void logStats();
-        Node* getNextInstrToEval(Node *_node);
+
+                      Result              setDirty(Node* _rootNode);
+                      Result              update(Node* _rootNode);
+                      /** generic traverse method */
+                      Result              traverse(Node*, TraversalFlag);
+                      void                logStats();
+        [[nodiscard]] Node*               getNextInstrToEval(Node *_node);
+        [[nodiscard]] inline const Stats& getStats() const { return m_stats; }
+
     private:
-        void initialize();
-        Node* getNextInstrToEvalRec(Node *_node);
-        Result traverseRec(Node* _node, TraversalFlag _flags);
-        Stats stats;
+        void    initialize();
+        Node*   getNextInstrToEvalRec(Node *_node);
+        Result  traverseRec(Node* _node, TraversalFlag _flags);
+
+        Stats m_stats;
     };
 }

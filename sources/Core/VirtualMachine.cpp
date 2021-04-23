@@ -45,9 +45,9 @@ void VirtualMachine::run()
     while(!isProgramOver())
     {
         m_traversal.traverse(m_currentNode, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty);
-        size_t total(m_traversal.getStats().traversed.size());
+        size_t total(m_traversal.getStats().m_traversed.size());
         size_t idx = 1;
-        for(auto& eachNodeToEval : m_traversal.getStats().traversed)
+        for(auto& eachNodeToEval : m_traversal.getStats().m_traversed)
         {
             eachNodeToEval->eval();
             eachNodeToEval->setDirty(false);
@@ -80,7 +80,7 @@ void VirtualMachine::unload() {
 bool VirtualMachine::stepOver()
 {
     m_traversal.traverse(m_currentNode, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty);
-    for (auto eachNodeToEval : m_traversal.getStats().traversed)
+    for (auto eachNodeToEval : m_traversal.getStats().m_traversed)
     {
         eachNodeToEval->eval();
         eachNodeToEval->setDirty(false);
