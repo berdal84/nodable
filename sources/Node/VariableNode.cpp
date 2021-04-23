@@ -6,7 +6,7 @@ using namespace Nodable;
 
 VariableNode::VariableNode(): Node("Variable")
 {
-	props.add("value", Visibility::Always, Type_Any, Way_InOut);
+	m_props.add("value", Visibility::Always, Type_Any, Way_InOut);
 }
 
 VariableNode::~VariableNode()

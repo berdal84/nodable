@@ -15,15 +15,15 @@ CodeBlockNode::~CodeBlockNode(){}
 void CodeBlockNode::clear()
 {
     // a code block do NOT owns its instructions nodes
-    children.clear();
+    m_children.clear();
 }
 
 bool CodeBlockNode::hasInstructions() const
 {
-    return !children.empty();
+    return !m_children.empty();
 }
 
 InstructionNode* CodeBlockNode::getFirstInstruction() const
 {
-    return children.front()->as<InstructionNode>();
+    return m_children.front()->as<InstructionNode>();
 }

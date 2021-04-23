@@ -253,7 +253,7 @@ private:
         if (ChunkHeader* chunk = reinterpret_cast<ChunkHeader*>(baseAllocator_->Malloc(RAPIDJSON_ALIGN(sizeof(ChunkHeader)) + capacity))) {
             chunk->capacity = capacity;
             chunk->size = 0;
-            chunk->next = chunkHead_;
+            chunk->m_next = chunkHead_;
             chunkHead_ =  chunk;
             return true;
         }

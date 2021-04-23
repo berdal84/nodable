@@ -7,8 +7,8 @@ using namespace Nodable;
 
 ScopedCodeBlockNode *AbstractCodeBlockNode::getParent()
 {
-    if ( this->parent ) {
-        return this->parent->as<ScopedCodeBlockNode>();
+    if ( this->m_parent ) {
+        return this->m_parent->as<ScopedCodeBlockNode>();
     }
     return nullptr;
 }
