@@ -342,7 +342,7 @@ std::string Serializer::serialize(const InstructionNode* _instruction ) const
         result.append( serialize( value) );
     }
 
-    result.append( serialize(_instruction->endOfInstructionToken));
+    result.append( serialize(_instruction->getEndOfInstrToken() ));
 
     return result;
 }

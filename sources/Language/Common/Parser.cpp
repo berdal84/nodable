@@ -378,10 +378,10 @@ InstructionNode* Parser::parseInstruction()
 
     if ( tokenRibbon.canEat() )
     {
-        Token* expectedEOI = tokenRibbon.eatToken();
+        Token* expectedEOI = tokenRibbon.eatToken(TokenType_EndOfInstruction);
         if ( expectedEOI )
         {
-            instruction->endOfInstructionToken = expectedEOI;
+            instruction->setEndOfInstrToken( expectedEOI );
         }
         else
         {

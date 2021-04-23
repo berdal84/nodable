@@ -184,7 +184,7 @@ InstructionNode* GraphNode::appendInstruction()
     {
         // insert an eol
         InstructionNode* lastInstruction = m_program->getLastInstruction();
-        lastInstruction->endOfInstructionToken->suffix += eol;
+        lastInstruction->getEndOfInstrToken()->suffix.append( eol );
     }
 
     auto block = m_program->getLastCodeBlock()->as<CodeBlockNode>();
@@ -194,7 +194,7 @@ InstructionNode* GraphNode::appendInstruction()
     // Initialize (since it is a manual creation)
     Token* token = new Token(TokenType_EndOfInstruction);
     token->suffix = eol;
-    newInstructionNode->endOfInstructionToken = token;
+    newInstructionNode->setEndOfInstrToken( token );
 
     return newInstructionNode;
 }
