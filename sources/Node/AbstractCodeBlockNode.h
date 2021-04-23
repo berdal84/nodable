@@ -25,17 +25,19 @@ namespace Nodable
     protected:
         explicit AbstractCodeBlockNode() = default;
     public:
-        virtual ~AbstractCodeBlockNode() = default;
-        virtual void clear() = 0;
-        [[nodiscard]] virtual bool             hasInstructions() const = 0;
-        [[nodiscard]] virtual InstructionNode* getFirstInstruction() const = 0;
-        [[nodiscard]] virtual VariableNode*    findVariable(std::string _name) { return nullptr; };
-        virtual ScopedCodeBlockNode* getParent();
-        [[nodiscard]] inline Layout getLayout() const { return layout; }
-        inline void   setLayout(Layout _layout) { layout = _layout; }
+        ~AbstractCodeBlockNode() override = default;
+
+                      virtual void                 clear() = 0;
+        [[nodiscard]] virtual bool                 hasInstructions() const = 0;
+        [[nodiscard]] virtual InstructionNode*     getFirstInstruction() const = 0;
+        [[nodiscard]] virtual VariableNode*        findVariable(const std::string& _name) { return nullptr; }
+        [[nodiscard]] virtual ScopedCodeBlockNode* getParent();
+        [[nodiscard]] inline Layout                getLayout() const { return layout; }
+
+                      inline void                  setLayout(Layout _layout) { layout = _layout; }
     private:
         Layout layout = Layout::DEFAULT;
-    protected:
+
         /** reflect class using mirror */
         MIRROR_CLASS(AbstractCodeBlockNode)
         (

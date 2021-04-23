@@ -47,7 +47,7 @@ InstructionNode *ScopedCodeBlockNode::getFirstInstruction() const
     return nullptr;
 }
 
-VariableNode* ScopedCodeBlockNode::findVariable(std::string _name)
+VariableNode* ScopedCodeBlockNode::findVariable(const std::string& _name)
 {
     VariableNode* result = nullptr;
 
