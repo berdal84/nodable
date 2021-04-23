@@ -24,7 +24,7 @@ namespace Nodable
         [[nodiscard]] bool isEmpty();
         [[nodiscard]] bool hasInstructions() const override;
         [[nodiscard]] InstructionNode* getFirstInstruction() const override;
-        [[nodiscard]] VariableNode* findVariable(std::string _name) override;
+        [[nodiscard]] VariableNode* findVariable(const std::string& _name) override;
         [[nodiscard]] AbstractCodeBlockNode* getLastCodeBlock();
         [[nodiscard]] InstructionNode *getLastInstruction();
         void addVariable(VariableNode*);
