@@ -111,7 +111,7 @@ UpdateResult GraphNode::update()
         GraphTraversal nodeTraversal;
         if (nodeTraversal.update(this->m_program) == Result::Success )
         {
-            if ( !nodeTraversal.getStats().changed.empty() )
+            if ( !nodeTraversal.getStats().m_changed.empty() )
             {
                 nodeTraversal.logStats();
                 result = UpdateResult::Success;
