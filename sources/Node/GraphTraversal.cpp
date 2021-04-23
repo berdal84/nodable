@@ -10,35 +10,14 @@
 
 using namespace Nodable;
 
-Result GraphTraversal::update(Node* _rootNode)
+Result GraphTraversal::TraverseAndSetDirty(Node *_rootNode)
 {
-    initialize();
-    LOG_VERBOSE("GraphTraversal", "Update %s \n", _rootNode->getLabel() );
-    auto result = traverseRec(_rootNode, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren | TraversalFlag_FollowNotDirty);
-    for(Node* eachNode : m_stats.m_traversed )
-    {
-        if ( eachNode->isDirty() )
-        {
-            eachNode->eval();
-            eachNode->update();
-            eachNode->setDirty(false);
-            m_stats.m_changed.push_back(eachNode);
-        }
-    }
-
-
-    LOG_VERBOSE("GraphTraversal", "GraphTraversal::Update done.\n");
-    return result;
-}
-
-Result GraphTraversal::setDirty(Node* _rootNode)
-{
-    initialize();
-    LOG_VERBOSE("GraphTraversal", "GraphTraversal::setDirty %s \n", _rootNode->getLabel() );
-    auto result = traverseRec(_rootNode, TraversalFlag_FollowOutputs);
-    for(Node* eachNode : m_stats.m_traversed )
-        eachNode->update();
-    LOG_VERBOSE("GraphTraversal", "GraphTraversal::setDirty done.\n");
+    GraphTraversal traversal;
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::TraverseAndSetDirty %s \n", _rootNode->getLabel() );
+    auto result = traversal.traverseRec(_rootNode, TraversalFlag_FollowOutputs);
+    for(Node* eachNode : traversal.m_stats.m_traversed )
+        eachNode->setDirty();
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::TraverseAndSetDirty done.\n");
     return result;
 }
 

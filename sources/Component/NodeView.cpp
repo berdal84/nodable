@@ -560,8 +560,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->hasInputConnected())
             {
                 _member->set(f);
-                GraphTraversal traversal;
-                traversal.setDirty(node);
+                GraphTraversal::TraverseAndSetDirty(node);
                 edited |= true;
             }
             break;
@@ -575,8 +574,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->hasInputConnected() )
             {
                 _member->set(str);
-                GraphTraversal traversal;
-                traversal.setDirty(node);
+                GraphTraversal::TraverseAndSetDirty(node);
                 edited |= true;
             }
             break;
@@ -591,8 +589,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             if (ImGui::Checkbox(label.c_str(), &b ) && !_member->hasInputConnected() )
             {
                 _member->set(b);
-                GraphTraversal traversal;
-                traversal.setDirty(node);
+                GraphTraversal::TraverseAndSetDirty(node);
                 edited |= true;
             }
             break;

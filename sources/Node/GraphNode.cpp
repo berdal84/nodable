@@ -108,12 +108,25 @@ UpdateResult GraphNode::update()
     UpdateResult result = UpdateResult::Failed;
     if (this->m_program && Application::s_instance && Application::s_instance->getVirtualMachine().isStopped() )
     {
-        GraphTraversal nodeTraversal;
-        if (nodeTraversal.update(this->m_program) == Result::Success )
+        GraphTraversal traversal;
+        auto updateResult = traversal.traverse(m_program, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren | TraversalFlag_FollowNotDirty);
+        bool changed = false;
+        for(Node* eachNode : traversal.getStats().m_traversed )
         {
-            if ( !nodeTraversal.getStats().m_changed.empty() )
+            if ( eachNode->isDirty() )
             {
-                nodeTraversal.logStats();
+                eachNode->eval();
+                eachNode->update();
+                eachNode->setDirty(false);
+                changed |= true;
+            }
+        }
+
+        if ( updateResult == Result::Success )
+        {
+            if ( changed )
+            {
+                traversal.logStats();
                 result = UpdateResult::Success;
             }
             else

@@ -54,8 +54,7 @@ const char* Node::getLabel()const
 void Nodable::Node::addWire(Wire* _wire)
 {
 	wires.push_back(_wire);
-    GraphTraversal traversal;
-    traversal.setDirty(this);
+    GraphTraversal::TraverseAndSetDirty(this);
 }
 
 void Nodable::Node::removeWire(Wire* _wire)

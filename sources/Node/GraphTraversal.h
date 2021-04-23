@@ -45,14 +45,13 @@ namespace Nodable {
     public:
         GraphTraversal() = default;
         ~GraphTraversal() = default;
-
-                      Result              setDirty(Node* _rootNode);
-                      Result              update(Node* _rootNode);
                       /** generic traverse method */
                       Result              traverse(Node*, TraversalFlag);
                       void                logStats();
         [[nodiscard]] Node*               getNextInstrToEval(Node *_node);
         [[nodiscard]] inline const Stats& getStats() const { return m_stats; }
+
+                      static Result       TraverseAndSetDirty(Node* _rootNode);
 
     private:
         void    initialize();
