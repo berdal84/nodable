@@ -11,6 +11,7 @@
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/VariableNode.h"
 #include "Node/InstructionNode.h"
+#include "Node/LiteralNode.h"
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 
@@ -492,7 +493,8 @@ bool NodeView::drawMemberView(MemberView* _memberView )
     {
         const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
         const bool isVariable = member->getOwner()->getClass() == VariableNode::GetClass();
-        _memberView->showInput = _memberView->member->isDefined() && (!isAnInputUnconnected || isVariable || s_viewDetail == NodeViewDetail::Exhaustive) ;
+        const bool isLiteral  = member->getOwner()->getClass() == LiteralNode::GetClass();
+        _memberView->showInput = _memberView->member->isDefined() && (!isAnInputUnconnected || isLiteral || isVariable || s_viewDetail == NodeViewDetail::Exhaustive) ;
     }
 
     _memberView->screenPos = ImGui::GetCursorScreenPos();

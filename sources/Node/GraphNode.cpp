@@ -7,22 +7,23 @@
 
 #include "Core/Log.h"
 #include "Core/Wire.h"
+#include "Core/VirtualMachine.h"
 #include "Language/Common/Parser.h"
-#include "Node/Node.h"
-#include "Node/VariableNode.h"
 #include "Component/ComputeBinaryOperation.h"
 #include "Component/ComputeUnaryOperation.h"
 #include "Component/WireView.h"
 #include "Component/DataAccess.h"
 #include "Component/NodeView.h"
 #include "Component/GraphNodeView.h"
+#include "Node/Node.h"
+#include "Node/VariableNode.h"
 #include "Node/GraphTraversal.h"
 #include "Node/InstructionNode.h"
 #include "Node/CodeBlockNode.h"
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/ConditionalStructNode.h"
-#include "ProgramNode.h"
-#include "VirtualMachine.h"
+#include "Node/LiteralNode.h"
+#include "Node/ProgramNode.h"
 
 using namespace Nodable;
 
@@ -199,12 +200,13 @@ InstructionNode* GraphNode::appendInstruction()
     return newInstructionNode;
 }
 
-VariableNode* GraphNode::newVariable(std::string _name, ScopedCodeBlockNode* _scope)
+VariableNode* GraphNode::newVariable(Type _type, const std::string& _name, ScopedCodeBlockNode* _scope)
 {
     // create
 	auto node = new VariableNode();
-	node->addComponent( new NodeView);
+	node->addComponent( new NodeView() );
 	node->setName(_name.c_str());
+    node->value()->setType(_type);
 
 	// register
     this->registerNode(node);
@@ -218,33 +220,6 @@ VariableNode* GraphNode::newVariable(std::string _name, ScopedCodeBlockNode* _sc
         LOG_WARNING("GraphNode", "You create a variable without defining its scope.");
     }
 
-	return node;
-}
-
-VariableNode* GraphNode::newNumber(double _value)
-{
-	auto node = new VariableNode();
-	node->addComponent( new NodeView);
-	node->set(_value);
-    this->registerNode(node);
-	return node;
-}
-
-VariableNode* GraphNode::newNumber(const char* _value)
-{
-	auto node = new VariableNode();
-	node->addComponent( new NodeView);
-	node->set(std::stod(_value));
-    this->registerNode(node);
-	return node;
-}
-
-VariableNode* GraphNode::newString(const char* _value)
-{
-	auto node = new VariableNode();
-	node->addComponent( new NodeView);
-	node->set(_value);
-    this->registerNode(node);
 	return node;
 }
 
@@ -449,7 +424,14 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
     if (_from->getOwner() == nullptr)
     {
         _to->digest(_from);
-
+        delete _from;
+    }
+    else if (_from->getOwner()->getClass() == mirror::GetClass<LiteralNode>() &&
+             _to->getOwner()->getClass() != mirror::GetClass<VariableNode>())
+    {
+        Node* owner = _from->getOwner();
+        _to->digest(_from);
+        deleteNode(owner);
     }
     else
     {
@@ -632,6 +614,14 @@ ScopedCodeBlockNode *GraphNode::newProgram() {
 
 Node* GraphNode::newNode() {
     Node* node = new Node();
+    registerNode(node);
+    return node;
+}
+
+LiteralNode *GraphNode::newLiteral(const Type &type)
+{
+    LiteralNode* node = new LiteralNode(type);
+    node->addComponent(new NodeView());
     registerNode(node);
     return node;
 }

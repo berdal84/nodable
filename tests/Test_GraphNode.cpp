@@ -92,9 +92,9 @@ TEST( GraphNode, create_and_delete_relations)
     auto graph           = std::make_unique<GraphNode>(language.get());
     ScopedCodeBlockNode* program = graph->getProgram();
     EXPECT_EQ(graph->getRelationRegistry().size(), 0);
-    Node* n1 = graph->newVariable("unit test", program);
+    Node* n1 = graph->newVariable(Type_Any, "n1", program);
     EXPECT_EQ(graph->getRelationRegistry().size(), 0);
-    Node* n2 = graph->newNumber();
+    Node* n2 = graph->newVariable(Type_Double, "n2", program);
 
     // Act and test
 

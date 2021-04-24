@@ -1,16 +1,19 @@
 #include "Parser.h"
-#include "Log.h"          // for LOG_VERBOSE(...)
-#include "Member.h"
-#include "GraphNode.h"
-#include "VariableNode.h"
-#include "Wire.h"
+
 #include <regex>
 #include <algorithm>
 #include <sstream>
+#include <string>
+
+#include "Core/Log.h"
+#include "Core/Member.h"
+#include "Core/Wire.h"
+#include "Node/GraphNode.h"
 #include "Node/InstructionNode.h"
 #include "Node/ProgramNode.h"
+#include "Node/LiteralNode.h"
+#include "Node/VariableNode.h"
 #include "Component/ComputeBinaryOperation.h"
-#include <string>
 
 using namespace Nodable;
 
@@ -99,8 +102,11 @@ Member* Parser::tokenToMember(Token* _token)
 
 		case TokenType_Boolean:
 		{
-		    // TODO: mem leak here, create a LiteralBooleanNode ?
-            result = new Member(_token->m_word == "true");
+		    LiteralNode* node = graph->newLiteral(Type_Boolean);
+		    node->setLabel( language->getSerializer()->serialize(TokenType_BooleanType) );
+		    node->value()->set(_token->m_word == "true");
+		    node->value()->setSourceToken(_token);
+		    result = node->value();
             break;
 		}
 
@@ -110,7 +116,7 @@ Member* Parser::tokenToMember(Token* _token)
 
 			if (variable == nullptr) {
                 LOG_ERROR("Parser", "Unable to find declaration for %s \n", _token->m_word.c_str());
-                variable = graph->newVariable(_token->m_word, getCurrentScope() );
+                variable = graph->newVariable(Type_Any, _token->m_word, getCurrentScope() );
                 variable->value()->setSourceToken(_token);
             }
 
@@ -119,13 +125,20 @@ Member* Parser::tokenToMember(Token* _token)
 		}
 
 		case TokenType_Double: {
-            const double number = std::stod(_token->m_word);
-			result = new Member(number);
+            LiteralNode* node = graph->newLiteral(Type_Double);
+            node->setLabel( language->getSerializer()->serialize(TokenType_DoubleType) );
+            node->value()->set(std::stod(_token->m_word));
+            node->value()->setSourceToken(_token);
+            result = node->value();
 			break;
 		}
 
 		case TokenType_String: {
-			result = new Member(_token->m_word);
+            LiteralNode* node = graph->newLiteral(Type_String);
+            node->setLabel( language->getSerializer()->serialize(TokenType_StringType) );
+            node->value()->set(_token->m_word);
+            node->value()->setSourceToken(_token);
+            result = node->value();
 			break;
 		}
 
@@ -133,12 +146,6 @@ Member* Parser::tokenToMember(Token* _token)
 	        assert("This TokenType is not handled by this method.");
 
 	}
-
-	// Attach the token to the member (for Serializer, to preserve code formatting)
-	if (result)
-    {
-	    result->setSourceToken(_token);
-    }
 
 	return result;
 }
@@ -865,7 +872,8 @@ Member *Parser::parseVariableDecl()
 
     if(Token::isType(typeTok->m_type) && identifierTok->m_type == TokenType_Identifier )
     {
-        VariableNode* variable = graph->newVariable(identifierTok->m_word, this->getCurrentScope());
+        Type type = language->getSemantic()->tokenTypeToType(typeTok->m_type);
+        VariableNode* variable = graph->newVariable(type, identifierTok->m_word, this->getCurrentScope());
         variable->setTypeToken( typeTok );
         variable->setIdentifierToken( identifierTok );
 
