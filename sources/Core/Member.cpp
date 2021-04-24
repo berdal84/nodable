@@ -136,5 +136,4 @@ void Member::digest(Member *_member)
 
     // release member
     _member->m_sourceToken = Token::s_null;
-    delete _member;
 }

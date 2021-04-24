@@ -286,8 +286,14 @@ bool GraphNodeView::draw()
 
 		ImGui::Separator();
 		
-		if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-			newNode = graph->newVariable("Variable", graph->getProgram()); // new variable in global scope
+		if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean Variable"))
+			newNode = graph->newVariable(Type_Boolean, "Bool Var", graph->getProgram());
+
+		if (ImGui::MenuItem(ICON_FA_DATABASE " Double Variable"))
+			newNode = graph->newVariable(Type_Double, "Double Var", graph->getProgram());
+
+        if (ImGui::MenuItem(ICON_FA_DATABASE " String Variable"))
+            newNode = graph->newVariable(Type_String, "Str Var", graph->getProgram());
 
 		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
         {

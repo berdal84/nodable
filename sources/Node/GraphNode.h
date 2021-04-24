@@ -19,6 +19,7 @@ namespace Nodable{
     class CodeBlockNode;
     class ConditionalStructNode;
     class ProgramNode;
+    class LiteralNode;
 
     enum class RelationType: int {
         IS_CHILD_OF,
@@ -74,10 +75,8 @@ namespace Nodable{
 		CodeBlockNode*              newCodeBlock();
         InstructionNode*		    appendInstruction();
         InstructionNode*            newInstruction();
-		VariableNode*				newVariable(std::string, ScopedCodeBlockNode*);
-		VariableNode*				newNumber(double = 0);
-		VariableNode*				newNumber(const char*);
-		VariableNode*				newString(const char*);
+		VariableNode*				newVariable(Type, const std::string&, ScopedCodeBlockNode*);
+		LiteralNode*                newLiteral(const Type &type);
 		Node*                       newBinOp(const Operator*);
 		Node*                       newUnaryOp(const Operator*);
         Node*                       newOperator(const Operator*);
