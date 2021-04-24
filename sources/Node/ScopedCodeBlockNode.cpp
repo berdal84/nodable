@@ -12,17 +12,15 @@ using namespace Nodable;
 ScopedCodeBlockNode::ScopedCodeBlockNode()
         :
         AbstractCodeBlockNode(),
-        beginScopeToken(nullptr),
-        endScopeToken(nullptr)
+        m_beginScopeToken(nullptr),
+        m_endScopeToken(nullptr)
 {
 
 }
 
-ScopedCodeBlockNode::~ScopedCodeBlockNode(){}
-
 void ScopedCodeBlockNode::clear()
 {
-    variables.clear();
+    m_variables.clear();
 }
 
 bool ScopedCodeBlockNode::hasInstructions() const
@@ -56,8 +54,8 @@ VariableNode* ScopedCodeBlockNode::findVariable(const std::string& _name)
         return strcmp(_variable->getName(), _name.c_str()) == 0;
     };
 
-    auto it = std::find_if(variables.begin(), variables.end(), findFunction);
-    if (it != variables.end()){
+    auto it = std::find_if(m_variables.begin(), m_variables.end(), findFunction);
+    if (it != m_variables.end()){
         result = *it;
     }
 
@@ -103,7 +101,7 @@ InstructionNode *ScopedCodeBlockNode::getLastInstruction()
 void ScopedCodeBlockNode::addVariable(VariableNode* _variableNode)
 {
     if ( this->findVariable(_variableNode->getName()) == nullptr)
-        this->variables.push_back(_variableNode);
+        this->m_variables.push_back(_variableNode);
     else
         LOG_ERROR("ScopedCodeBlockNode", "Unable to add variable %s, already declared.\n", _variableNode->getName());
 }
