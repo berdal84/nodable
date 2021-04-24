@@ -866,8 +866,8 @@ Member *Parser::parseVariableDecl()
     if( Token::isType(typeTok->type) && identifierTok->type == TokenType_Identifier )
     {
         VariableNode* variable = graph->newVariable(identifierTok->word, this->getCurrentScope());
-        variable->typeToken = typeTok;
-        variable->identifierToken = identifierTok;
+        variable->setTypeToken( typeTok );
+        variable->setIdentifierToken( identifierTok );
 
         variable->value()->setType( language->getSemantic()->tokenTypeToType(typeTok->type));
         variable->value()->setSourceToken(identifierTok); // we also pass it to the member, this one will be modified my connections
@@ -879,7 +879,7 @@ Member *Parser::parseVariableDecl()
             if( auto value = parseExpression() )
             {
                 graph->connect(value, variable->value());
-                variable->assignmentOperatorToken = assignmentTok;
+                variable->setAssignmentOperatorToken( assignmentTok );
             }
             else
             {

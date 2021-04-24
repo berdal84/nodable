@@ -4,25 +4,24 @@
 
 using namespace Nodable;
 
-VariableNode::VariableNode(): Node("Variable")
+VariableNode::VariableNode()
+    :
+    Node("Variable"),
+    m_typeToken(nullptr),
+    m_identifierToken(nullptr),
+    m_assignmentOperatorToken(nullptr)
 {
 	m_props.add("value", Visibility::Always, Type_Any, Way_InOut);
 }
 
-VariableNode::~VariableNode()
-{
-
-}
-
-
 void VariableNode::setName(const char* _name)
 {
-	name = _name;
+    m_name = _name;
 	setLabel(_name);
 
-	if ( name.length() > 4)
+	if (m_name.length() > 4)
     {
-        setShortLabel(name.substr(0,3).append("..").c_str());
+        setShortLabel(m_name.substr(0, 3).append("..").c_str());
     }
     else
     {
@@ -30,19 +29,4 @@ void VariableNode::setName(const char* _name)
     }
 
     value()->setSourceExpression(_name);
-}
-
-const char* VariableNode::getName()const
-{
-	return name.c_str();
-}
-
-bool VariableNode::isType(Type _type)const
-{
-	return value()->isType(_type);
-}
-
-std::string VariableNode::getTypeAsString()const
-{
-	return value()->getTypeAsString();
 }
