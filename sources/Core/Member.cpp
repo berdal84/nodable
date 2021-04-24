@@ -11,7 +11,7 @@ Member::Member()
     m_owner(nullptr),
     m_visibility(Visibility::Default),
     m_name("Unknown"),
-    m_sourceToken(Token::Null),
+    m_sourceToken(Token::s_null),
     m_inputMember(nullptr),
     m_parentProperties(nullptr),
     m_out(nullptr),
@@ -124,7 +124,7 @@ void Member::setSourceToken(const Token* _token)
     }
     else
     {
-        this->m_sourceToken = Token::Null;
+        this->m_sourceToken = Token::s_null;
     }
 }
 
@@ -135,6 +135,6 @@ void Member::digest(Member *_member)
     this->m_sourceToken = _member->m_sourceToken;
 
     // release member
-    _member->m_sourceToken = Token::Null;
+    _member->m_sourceToken = Token::s_null;
     delete _member;
 }

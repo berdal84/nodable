@@ -5,26 +5,26 @@
 #include <utility>
 #include <vector>
 
-namespace Nodable {
-
+namespace Nodable
+{
 	struct Token
 	{
-		TokenType  type;
-		std::string word;
-		size_t charIndex; // the index of the first character of the token in the evaluated expression.
-        std::string prefix; // additional text only useful for layout (spaces, tabs, new line, etc.)
-        std::string suffix; // additional text only useful for layout (spaces, tabs, new line, etc.)
+		TokenType   m_type;
+		std::string m_word;
+		size_t      m_charIndex; // the index of the first character of the token in the evaluated expression.
+        std::string m_prefix; // additional text only useful for layout (spaces, tabs, new line, etc.)
+        std::string m_suffix; // additional text only useful for layout (spaces, tabs, new line, etc.)
 
         Token(TokenType _type = TokenType_Default): Token(_type, "", 0) {}
 		Token(TokenType _type, const std::string& _word, size_t _index):
-		    type(_type),
-		    word(_word),
-            charIndex(_index)
+                m_type(_type),
+                m_word(_word),
+                m_charIndex(_index)
         {}
         ~Token() = default;
 
         static std::string toString(const Token* _token);
-        static const Token Null;
+        static const Token s_null;
 
         static inline bool isOperand(TokenType type)
         {
