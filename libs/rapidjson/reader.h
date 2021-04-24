@@ -856,7 +856,7 @@ private:
         is.Take();
 
         if (RAPIDJSON_LIKELY(Consume(is, 'u') && Consume(is, 'l') && Consume(is, 'l'))) {
-            if (RAPIDJSON_UNLIKELY(!handler.Null()))
+            if (RAPIDJSON_UNLIKELY(!handler.s_null()))
                 RAPIDJSON_PARSE_ERROR(kParseErrorTermination, is.Tell());
         }
         else

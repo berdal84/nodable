@@ -25,14 +25,14 @@ std::string Serializer::serialize(const ComputeUnaryOperation* _operation) const
     const Token* sourceToken = _operation->getSourceToken();
     if ( sourceToken )
     {
-        result.append( sourceToken->prefix);
+        result.append( sourceToken->m_prefix);
     }
 
     result.append(_operation->getOperator()->identifier);
 
     if ( sourceToken )
     {
-        result.append( sourceToken->suffix);
+        result.append( sourceToken->m_suffix);
     }
 
     // Inner part of the expression
@@ -84,12 +84,12 @@ std::string Serializer::serialize(const ComputeBinaryOperation * _operation) con
     const Token* sourceToken = _operation->getSourceToken();
     if ( sourceToken )
     {
-        result.append( sourceToken->prefix);
+        result.append( sourceToken->m_prefix);
     }
     result.append(_operation->getOperator()->identifier);
     if ( sourceToken )
     {
-        result.append( sourceToken->suffix);
+        result.append( sourceToken->m_suffix);
     }
 
     // Right part of the expression
@@ -203,24 +203,24 @@ std::string Serializer::serialize(const VariableNode* _node) const
     result.append( serialize(_node->getTypeToken() ) );
 
     // var name
-    result.append( _node->getIdentifierToken()->prefix);
+    result.append( _node->getIdentifierToken()->m_prefix);
     result.append( _node->getName());
-    result.append( _node->getIdentifierToken()->suffix);
+    result.append( _node->getIdentifierToken()->m_suffix);
 
     // assigment ?
     if ( _node->getAssignmentOperatorToken() )
     {
-        result.append(_node->getAssignmentOperatorToken()->prefix );
-        result.append(_node->getAssignmentOperatorToken()->word );
-        result.append(_node->getAssignmentOperatorToken()->suffix );
+        result.append(_node->getAssignmentOperatorToken()->m_prefix );
+        result.append(_node->getAssignmentOperatorToken()->m_word );
+        result.append(_node->getAssignmentOperatorToken()->m_suffix );
 
         if ( value->hasInputConnected() )
             result.append(serialize(value));
         else
         {
-            result.append( _node->value()->getSourceToken()->prefix);
+            result.append( _node->value()->getSourceToken()->m_prefix);
             serialize(result, _node->value()->getData());
-            result.append( _node->value()->getSourceToken()->suffix);
+            result.append( _node->value()->getSourceToken()->m_suffix);
         }
 
     }
@@ -248,7 +248,7 @@ std::string Serializer::serialize(const Member * _member, bool followConnections
     const Token *sourceToken = _member->getSourceToken();
     if (sourceToken)
     {
-        expression.append(sourceToken->prefix);
+        expression.append(sourceToken->m_prefix);
     }
 
     auto owner = _member->getOwner();
@@ -280,7 +280,7 @@ std::string Serializer::serialize(const Member * _member, bool followConnections
 
     if (sourceToken)
     {
-        expression.append(sourceToken->suffix);
+        expression.append(sourceToken->m_suffix);
     }
 
     return expression;
@@ -353,9 +353,9 @@ std::string Serializer::serialize(const Token* _token)const
 
     if ( _token )
     {
-        result.append( _token->prefix);
-        result.append( serialize(_token->type));
-        result.append( _token->suffix);
+        result.append( _token->m_prefix);
+        result.append( serialize(_token->m_type));
+        result.append( _token->m_suffix);
     }
 
     return result;

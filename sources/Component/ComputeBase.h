@@ -27,7 +27,7 @@ namespace Nodable
 	protected:
 		const Language* language;
 		Member* result = nullptr;
-		Token sourceToken = Token::Null;
+		Token sourceToken = Token::s_null;
 		MIRROR_CLASS(ComputeBase)(
 			MIRROR_PARENT(Component)
 			);

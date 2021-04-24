@@ -37,12 +37,12 @@ std::string TokenRibbon::toString()const
         if ( index == currentTokenIndex )
         {
             result.append(BOLDGREEN);
-            result.append((*eachTokIt).word);
+            result.append((*eachTokIt).m_word);
             result.append(RESET);
         }
         else
         {
-            result.append((*eachTokIt).word);
+            result.append((*eachTokIt).m_word);
         }
     }
 
@@ -65,7 +65,7 @@ std::string TokenRibbon::toString()const
 
 Token* TokenRibbon::eatToken(TokenType expectedType)
 {
-    if ( canEat() && peekToken()->type == expectedType )
+    if ( canEat() && peekToken()->m_type == expectedType )
     {
         return eatToken();
     }

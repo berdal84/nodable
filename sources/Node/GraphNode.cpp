@@ -184,7 +184,7 @@ InstructionNode* GraphNode::appendInstruction()
     {
         // insert an eol
         InstructionNode* lastInstruction = m_program->getLastInstruction();
-        lastInstruction->getEndOfInstrToken()->suffix.append( eol );
+        lastInstruction->getEndOfInstrToken()->m_suffix.append(eol );
     }
 
     auto block = m_program->getLastCodeBlock()->as<CodeBlockNode>();
@@ -193,7 +193,7 @@ InstructionNode* GraphNode::appendInstruction()
 
     // Initialize (since it is a manual creation)
     Token* token = new Token(TokenType_EndOfInstruction);
-    token->suffix = eol;
+    token->m_suffix = eol;
     newInstructionNode->setEndOfInstrToken( token );
 
     return newInstructionNode;
@@ -473,14 +473,14 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
         auto fromToken = _from->getSourceToken();
         if (fromToken) {
             if (!_to->getSourceToken()) {
-                _to->setSourceToken(new Token(fromToken->type, "", fromToken->charIndex));
+                _to->setSourceToken(new Token(fromToken->m_type, "", fromToken->m_charIndex));
             }
 
             auto toToken = _to->getSourceToken();
-            toToken->suffix = fromToken->suffix;
-            toToken->prefix = fromToken->prefix;
-            fromToken->suffix = "";
-            fromToken->prefix = "";
+            toToken->m_suffix = fromToken->m_suffix;
+            toToken->m_prefix = fromToken->m_prefix;
+            fromToken->m_suffix = "";
+            fromToken->m_prefix = "";
         }
     }
 

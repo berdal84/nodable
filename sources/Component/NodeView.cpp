@@ -682,9 +682,9 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
         NodeView::DrawMemberInput(_member);
         ImGui::Text(R"(token: [%s,%s,%s])",
-                    _member->getSourceToken()->prefix.c_str(),
-                    _member->getSourceToken()->word.c_str(),
-                    _member->getSourceToken()->suffix.c_str()
+                    _member->getSourceToken()->m_prefix.c_str(),
+                    _member->getSourceToken()->m_word.c_str(),
+                    _member->getSourceToken()->m_suffix.c_str()
                     );
     };
 

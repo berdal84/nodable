@@ -1863,7 +1863,7 @@ public:
     template <typename Handler>
     bool Accept(Handler& handler) const {
         switch(GetType()) {
-        case kNullType:     return handler.Null();
+        case kNullType:     return handler.s_null();
         case kFalseType:    return handler.Bool(false);
         case kTrueType:     return handler.Bool(true);
 

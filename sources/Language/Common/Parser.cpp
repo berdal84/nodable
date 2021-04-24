@@ -47,7 +47,7 @@ bool Parser::expressionToGraph(const std::string& _code,
         if ( lineCount != 0 && !tokenRibbon.tokens.empty() )
         {
             Token* lastToken = &tokenRibbon.tokens.back();
-            lastToken->suffix.append(eol);
+            lastToken->m_suffix.append(eol);
         }
 
         if (!tokenizeExpressionString(line))
@@ -94,23 +94,23 @@ Member* Parser::tokenToMember(Token* _token)
 {
 	Member* result = nullptr;
 
-	switch (_token->type)
+	switch (_token->m_type)
 	{
 
 		case TokenType_Boolean:
 		{
 		    // TODO: mem leak here, create a LiteralBooleanNode ?
-            result = new Member(_token->word == "true");
+            result = new Member(_token->m_word == "true");
             break;
 		}
 
 		case TokenType_Identifier:
 		{
-			VariableNode* variable = graph->findVariable(_token->word);
+			VariableNode* variable = graph->findVariable(_token->m_word);
 
 			if (variable == nullptr) {
-                LOG_ERROR("Parser", "Unable to find declaration for %s \n", _token->word.c_str());
-                variable = graph->newVariable( _token->word, getCurrentScope() );
+                LOG_ERROR("Parser", "Unable to find declaration for %s \n", _token->m_word.c_str());
+                variable = graph->newVariable(_token->m_word, getCurrentScope() );
                 variable->value()->setSourceToken(_token);
             }
 
@@ -119,13 +119,13 @@ Member* Parser::tokenToMember(Token* _token)
 		}
 
 		case TokenType_Double: {
-            const double number = std::stod(_token->word);
+            const double number = std::stod(_token->m_word);
 			result = new Member(number);
 			break;
 		}
 
 		case TokenType_String: {
-			result = new Member(_token->word);
+			result = new Member(_token->m_word);
 			break;
 		}
 
@@ -164,8 +164,8 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 
 	// Structure check
 	const bool isValid = _left != nullptr &&
-                         operatorToken->type == TokenType_Operator &&
-			             token2->type != TokenType_Operator;
+                         operatorToken->m_type == TokenType_Operator &&
+                         token2->m_type != TokenType_Operator;
 
 	if (!isValid)
 	{
@@ -175,7 +175,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	// Precedence check
-	const auto currentOperatorPrecedence = language->findOperator(operatorToken->word)->precedence;
+	const auto currentOperatorPrecedence = language->findOperator(operatorToken->m_word)->precedence;
 
 	if (currentOperatorPrecedence <= _precedence &&
 	    _precedence > 0u) { // always update the first operation if they have the same precedence or less.
@@ -196,7 +196,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	auto signature        = language->createBinOperatorSignature(Type_Any, operatorToken->word, _left->getType(), right->getType());
+	auto signature        = language->createBinOperatorSignature(Type_Any, operatorToken->m_word, _left->getType(), right->getType());
 	auto matchingOperator = language->findOperator(signature);
 
 	if ( matchingOperator != nullptr )
@@ -237,7 +237,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	Token* operatorToken = tokenRibbon.eatToken();
 
 	// Check if we get an operator first
-	if (operatorToken->type != TokenType_Operator)
+	if (operatorToken->m_type != TokenType_Operator)
 	{
 	    rollbackTransaction();
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n");
@@ -245,7 +245,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	}
 
 	// Parse expression after the operator
-	auto precedence = language->findOperator(operatorToken->word)->precedence;
+	auto precedence = language->findOperator(operatorToken->m_word)->precedence;
 	Member* value = nullptr;
 
 	     if ( value = parseAtomicExpression() );
@@ -258,7 +258,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	}
 
 	// Create a function signature
-	auto signature = language->createUnaryOperatorSignature(Type_Any, operatorToken->word, value->getType() );
+	auto signature = language->createUnaryOperatorSignature(Type_Any, operatorToken->m_word, value->getType() );
 	auto matchingOperator = language->findOperator(signature);
 
 	if (matchingOperator != nullptr)
@@ -295,7 +295,7 @@ Member* Parser::parseAtomicExpression()
 
 	startTransaction();
 	Token* token = tokenRibbon.eatToken();
-	if (token->type == TokenType_Operator)
+	if (token->m_type == TokenType_Operator)
 	{
 		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n");
 		rollbackTransaction();
@@ -330,7 +330,7 @@ Member* Parser::parseParenthesisExpression()
 
 	startTransaction();
 	const Token* currentToken = tokenRibbon.eatToken();
-	if (currentToken->type != TokenType_OpenBracket)
+	if (currentToken->m_type != TokenType_OpenBracket)
 	{
 		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n");
 		rollbackTransaction();
@@ -341,10 +341,10 @@ Member* Parser::parseParenthesisExpression()
 	if (result)
 	{
         const Token* token = tokenRibbon.eatToken();
-		if ( token->type != TokenType_CloseBracket )
+		if (token->m_type != TokenType_CloseBracket )
 		{
 			LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str());
-			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->word.c_str() );
+			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->m_word.c_str() );
             rollbackTransaction();
 		}
 		else
@@ -556,7 +556,7 @@ bool Parser::isSyntaxValid()
 
 	while(currTokIt != tokenRibbon.tokens.end() && success == true)
 	{
-		switch (currTokIt->type)
+		switch (currTokIt->m_type)
 		{
             case TokenType_OpenBracket:
             {
@@ -569,7 +569,7 @@ bool Parser::isSyntaxValid()
 
                 if (openedParenthesisCount < 0)
                 {
-                    LOG_VERBOSE("Parser", "Unexpected %s\n", currTokIt->word.c_str());
+                    LOG_VERBOSE("Parser", "Unexpected %s\n", currTokIt->m_word.c_str());
                     success = false;
                 }
 
@@ -636,7 +636,7 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
                     // If a we have so prefix tokens we copy them to the newToken prefixes.
                     if ( !prefix.empty() )
                     {
-                        newToken->prefix = prefix;
+                        newToken->m_prefix = prefix;
                         prefix.clear();
                     }
 
@@ -644,8 +644,8 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
                 else if ( !tokenRibbon.empty()  )
                 {
                     Token& lastToken = tokenRibbon.tokens.back();
-                    lastToken.suffix.append(matchedTokenString);
-                    LOG_VERBOSE("Parser", "append ignored <word>%s</word> to <word>%s</word>\n", matchedTokenString.c_str(), lastToken.word.c_str() );
+                    lastToken.m_suffix.append(matchedTokenString);
+                    LOG_VERBOSE("Parser", "append ignored <word>%s</word> to <word>%s</word>\n", matchedTokenString.c_str(), lastToken.m_word.c_str() );
                 }
                 else
                 {
@@ -692,23 +692,23 @@ Member* Parser::parseFunctionCall()
     std::string identifier;
     const Token* token_0 = tokenRibbon.eatToken();
     const Token* token_1 = tokenRibbon.eatToken();
-    if (token_0->type == TokenType_Identifier &&
-        token_1->type == TokenType_OpenBracket)
+    if (token_0->m_type == TokenType_Identifier &&
+        token_1->m_type == TokenType_OpenBracket)
     {
-        identifier = token_0->word;
+        identifier = token_0->m_word;
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n");
     }
     else // Try to parse operator like (ex: operator==(..,..))
     {
         const Token* token_2 = tokenRibbon.eatToken(); // eat a "supposed open bracket"
 
-        if (token_0->type == TokenType_Identifier && token_0->word == language->getSemantic()
+        if (token_0->m_type == TokenType_Identifier && token_0->m_word == language->getSemantic()
                 ->tokenTypeToString(TokenType_KeywordOperator /* TODO: TokenType_Keyword + word="operator" */) &&
-            token_1->type == TokenType_Operator &&
-            token_2->type == TokenType_OpenBracket)
+            token_1->m_type == TokenType_Operator &&
+            token_2->m_type == TokenType_OpenBracket)
         {
             // ex: "operator" + ">="
-            identifier = token_0->word + token_1->word;
+            identifier = token_0->m_word + token_1->m_word;
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n");
         }
         else
@@ -724,7 +724,7 @@ Member* Parser::parseFunctionCall()
     FunctionSignature signature(identifier, TokenType_AnyType);
 
     bool parsingError = false;
-    while (!parsingError && tokenRibbon.canEat() && tokenRibbon.peekToken()->type != TokenType_CloseBracket)
+    while (!parsingError && tokenRibbon.canEat() && tokenRibbon.peekToken()->m_type != TokenType_CloseBracket)
     {
 
         if (auto member = parseExpression())
@@ -863,18 +863,18 @@ Member *Parser::parseVariableDecl()
     Token* typeTok = tokenRibbon.eatToken();
     Token* identifierTok = tokenRibbon.eatToken();
 
-    if( Token::isType(typeTok->type) && identifierTok->type == TokenType_Identifier )
+    if(Token::isType(typeTok->m_type) && identifierTok->m_type == TokenType_Identifier )
     {
-        VariableNode* variable = graph->newVariable(identifierTok->word, this->getCurrentScope());
+        VariableNode* variable = graph->newVariable(identifierTok->m_word, this->getCurrentScope());
         variable->setTypeToken( typeTok );
         variable->setIdentifierToken( identifierTok );
 
-        variable->value()->setType( language->getSemantic()->tokenTypeToType(typeTok->type));
+        variable->value()->setType( language->getSemantic()->tokenTypeToType(typeTok->m_type));
         variable->value()->setSourceToken(identifierTok); // we also pass it to the member, this one will be modified my connections
 
         // try to parse assignment
         auto assignmentTok = tokenRibbon.eatToken(TokenType_Operator);
-        if ( assignmentTok && assignmentTok->word == "=" )
+        if ( assignmentTok && assignmentTok->m_word == "=" )
         {
             if( auto value = parseExpression() )
             {
@@ -883,7 +883,7 @@ Member *Parser::parseVariableDecl()
             }
             else
             {
-                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifierTok->word.c_str());
+                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifierTok->m_word.c_str());
                 rollbackTransaction();
                 graph->deleteNode(variable);
                 return nullptr;
