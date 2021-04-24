@@ -403,7 +403,7 @@ std::string Serializer::serialize(const ScopedCodeBlockNode* _scope)const
 
     std::string result;
 
-    result.append( serialize(_scope->beginScopeToken) );
+    result.append( serialize(_scope->getBeginScopeToken() ) );
 
     for(auto eachChild : _scope->getChildren() )
     {
@@ -425,7 +425,7 @@ std::string Serializer::serialize(const ScopedCodeBlockNode* _scope)const
         }
     }
 
-    result.append( serialize(_scope->endScopeToken) );
+    result.append( serialize(_scope->getEndScopeToken()) );
 
     return result;
 }

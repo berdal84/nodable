@@ -427,7 +427,7 @@ ScopedCodeBlockNode* Parser::parseScope()
     }
 
     auto scope = graph->newScopedCodeBlock();
-    scope->beginScopeToken = tokenRibbon.getEaten();
+    scope->setBeginScopeToken( tokenRibbon.getEaten() );
 
     if ( auto block = parseCodeBlock() )
     {
@@ -440,7 +440,7 @@ ScopedCodeBlockNode* Parser::parseScope()
         rollbackTransaction();
         return nullptr;
     }
-    scope->endScopeToken = tokenRibbon.getEaten();
+    scope->setEndScopeToken( tokenRibbon.getEaten() );
 
     commitTransaction();
     return scope;
