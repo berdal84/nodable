@@ -200,19 +200,19 @@ std::string Serializer::serialize(const VariableNode* _node) const
     Member* value = _node->value();
 
     // type
-    result.append( serialize(_node->typeToken) );
+    result.append( serialize(_node->getTypeToken() ) );
 
     // var name
-    result.append( _node->identifierToken->prefix);
+    result.append( _node->getIdentifierToken()->prefix);
     result.append( _node->getName());
-    result.append( _node->identifierToken->suffix);
+    result.append( _node->getIdentifierToken()->suffix);
 
     // assigment ?
-    if ( _node->assignmentOperatorToken )
+    if ( _node->getAssignmentOperatorToken() )
     {
-        result.append(_node->assignmentOperatorToken->prefix );
-        result.append(_node->assignmentOperatorToken->word );
-        result.append(_node->assignmentOperatorToken->suffix );
+        result.append(_node->getAssignmentOperatorToken()->prefix );
+        result.append(_node->getAssignmentOperatorToken()->word );
+        result.append(_node->getAssignmentOperatorToken()->suffix );
 
         if ( value->hasInputConnected() )
             result.append(serialize(value));
