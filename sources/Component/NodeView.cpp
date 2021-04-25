@@ -1089,13 +1089,13 @@ void ViewConstraint::apply(float _dt) {
             break;
         }
 
-        case Type::AlignOnBBoxTR:
+        case Type::AlignOnBBoxTop:
         {
             auto slave = slaves.at(0);
             if( !slave->isPinned() && slave->isVisible() && !slave->hasNoMoreThanASingleOutputVisible())
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
-                ImVec2 newPos(bbox.GetTR());
+                ImVec2 newPos(bbox.GetCenter() + ImVec2(0.0, -bbox.GetHeight() * 0.5f - settings->ui.node.spacing));
                 newPos.y -= settings->ui.node.spacing + slave->getSize().y / 2.0f;
                 newPos.x += settings->ui.node.spacing + slave->getSize().x / 2.0f;
                 slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed);
