@@ -6,7 +6,7 @@ namespace Nodable
     class LiteralNode: public Node
     {
     public:
-        explicit LiteralNode(Type type): Node("Literal")
+        explicit LiteralNode(Type type): Node()
         {
             m_props.add("value", Visibility::Always, type, Way_Out);
         };

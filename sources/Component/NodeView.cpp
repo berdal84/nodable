@@ -608,8 +608,10 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
-        auto language = node->getParentGraph()->getLanguage();
-        ImGui::Text("%s", language->getSerializer()->serialize(_member).c_str() );
+        Serializer* serializer = node->getParentGraph()->getLanguage()->getSerializer();
+        std::string buffer;
+        serializer->serialize(buffer, _member);
+        ImGui::Text("%s", buffer.c_str() );
         ImGui::EndTooltip();
     }
 

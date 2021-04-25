@@ -42,7 +42,8 @@ bool Parser::expressionToGraph(const std::string& _code,
 
     std::istringstream iss(_code);
     std::string line;
-    std::string eol = language->getSerializer()->serialize(TokenType_EndOfLine);
+    std::string eol;
+    language->getSerializer()->serialize(eol, TokenType_EndOfLine);
 
     size_t lineCount = 0;
     while (std::getline(iss, line, eol[0] ))
@@ -103,7 +104,6 @@ Member* Parser::tokenToMember(Token* _token)
 		case TokenType_Boolean:
 		{
 		    LiteralNode* node = graph->newLiteral(Type_Boolean);
-		    node->setLabel( language->getSerializer()->serialize(TokenType_BooleanType) );
 		    node->value()->set(_token->m_word == "true");
 		    node->value()->setSourceToken(_token);
 		    result = node->value();
@@ -126,7 +126,6 @@ Member* Parser::tokenToMember(Token* _token)
 
 		case TokenType_Double: {
             LiteralNode* node = graph->newLiteral(Type_Double);
-            node->setLabel( language->getSerializer()->serialize(TokenType_DoubleType) );
             node->value()->set(std::stod(_token->m_word));
             node->value()->setSourceToken(_token);
             result = node->value();
@@ -135,7 +134,6 @@ Member* Parser::tokenToMember(Token* _token)
 
 		case TokenType_String: {
             LiteralNode* node = graph->newLiteral(Type_String);
-            node->setLabel( language->getSerializer()->serialize(TokenType_StringType) );
             node->value()->set(_token->m_word);
             node->value()->setSourceToken(_token);
             result = node->value();
