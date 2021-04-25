@@ -295,7 +295,7 @@ bool GraphNodeView::draw()
         if (ImGui::MenuItem(ICON_FA_DATABASE " String Variable"))
             newNode = graph->newVariable(Type_String, "Str Var", graph->getProgram());
 
-		if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Output"))
+		if (ImGui::MenuItem(ICON_FA_CODE " Instruction"))
         {
             newNode = graph->appendInstruction();
         }
