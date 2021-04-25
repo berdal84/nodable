@@ -16,13 +16,20 @@ ComputeFunction::ComputeFunction(const Function* _function, const Language* _lan
 bool ComputeFunction::update()
 {
 
-	if (function->implementation == NULL) {
-		LOG_ERROR( "ComputeFunction", "Unable to find %s's nativeFunction.\n", language->getSerializer()->serialize(function->signature).c_str());
+	if (!function->implementation)
+	{
+	    std::string sig;
+        language->getSerializer()->serialize(sig, function->signature);
+		LOG_ERROR( "ComputeFunction", "Unable to find %s's nativeFunction.\n", sig.c_str());
 		return false;
 	}
 
 	if (function->implementation(result, args))
-		LOG_MESSAGE( "ComputeFunction", "Evaluation of %s's native function failed !\n", language->getSerializer()->serialize(function->signature).c_str());
+    {
+        std::string sig;
+        language->getSerializer()->serialize(sig, function->signature);
+        LOG_MESSAGE( "ComputeFunction", "Evaluation of %s's native function failed !\n", sig.c_str());
+    }
 
 	return true;
 }

@@ -12,10 +12,8 @@
 
 using namespace Nodable;
 
-std::string Serializer::serialize(const ComputeUnaryOperation* _operation) const
+std::string& Serializer::serialize(std::string &_result, const ComputeUnaryOperation* _operation) const
 {
-    std::string result;
-
     auto args = _operation->getArgs();
     auto inner_operator = _operation->getOwner()->getConnectedOperator(args[0]);
 
@@ -25,14 +23,14 @@ std::string Serializer::serialize(const ComputeUnaryOperation* _operation) const
     const Token* sourceToken = _operation->getSourceToken();
     if ( sourceToken )
     {
-        result.append( sourceToken->m_prefix);
+        _result.append(sourceToken->m_prefix);
     }
 
-    result.append(_operation->getOperator()->identifier);
+    _result.append(_operation->getOperator()->identifier);
 
     if ( sourceToken )
     {
-        result.append( sourceToken->m_suffix);
+        _result.append(sourceToken->m_suffix);
     }
 
     // Inner part of the expression
@@ -41,24 +39,21 @@ std::string Serializer::serialize(const ComputeUnaryOperation* _operation) const
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType_OpenBracket));
+            serialize(_result, TokenType_OpenBracket);
         }
 
-        result.append(serialize(args[0]));
+        serialize(_result, args[0]);
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType_CloseBracket));
+            serialize(_result, TokenType_CloseBracket);
         }
     }
-
-    return result;
+    return _result;
 }
 
-std::string Serializer::serialize(const ComputeBinaryOperation * _operation) const
+std::string& Serializer::serialize(std::string& _result, const ComputeBinaryOperation * _operation) const
 {
-    std::string result;
-
     // Get the left and right source operator
     std::vector<Member*> args = _operation->getArgs();
     auto l_handed_operator = _operation->getOwner()->getConnectedOperator(args[0]);
@@ -69,14 +64,14 @@ std::string Serializer::serialize(const ComputeBinaryOperation * _operation) con
         bool needBrackets = l_handed_operator && !language->hasHigherPrecedenceThan(l_handed_operator, _operation->getOperator());
         if (needBrackets)
         {
-            result.append( serialize(TokenType_OpenBracket));
+            serialize(_result, TokenType_OpenBracket);
         }
 
-        result.append(serialize(args[0]));
+        serialize(_result, args[0]);
 
         if (needBrackets)
         {
-            result.append( serialize(TokenType_CloseBracket));
+            serialize(_result, TokenType_CloseBracket);
         }
     }
 
@@ -84,12 +79,12 @@ std::string Serializer::serialize(const ComputeBinaryOperation * _operation) con
     const Token* sourceToken = _operation->getSourceToken();
     if ( sourceToken )
     {
-        result.append( sourceToken->m_prefix);
+        _result.append( sourceToken->m_prefix);
     }
-    result.append(_operation->getOperator()->identifier);
+    _result.append(_operation->getOperator()->identifier);
     if ( sourceToken )
     {
-        result.append( sourceToken->m_suffix);
+        _result.append( sourceToken->m_suffix);
     }
 
     // Right part of the expression
@@ -102,153 +97,133 @@ std::string Serializer::serialize(const ComputeBinaryOperation * _operation) con
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType_OpenBracket));
+            serialize(_result, TokenType_OpenBracket);
         }
 
-        result.append(serialize(args[1]));
+        serialize(_result, args[1]);
 
         if (needBrackets)
         {
-            result.append(serialize(TokenType_CloseBracket));
+            serialize(_result, TokenType_CloseBracket);
         }
     }
-
-    return result;
+    return _result;
 }
 
-std::string Serializer::serialize(const ComputeFunction *_computeFunction)const
+std::string& Serializer::serialize(std::string& _result, const ComputeFunction *_computeFunction)const
 {
-    std::string result = serialize(
-            _computeFunction->getFunction()->signature,
-            _computeFunction->getArgs());
-    return result;
+    return serialize(_result, _computeFunction->getFunction()->signature, _computeFunction->getArgs());
 }
 
-std::string Serializer::serialize(const ComputeBase *_operation)const
+std::string& Serializer::serialize(std::string& _result, const ComputeBase *_operation)const
 {
-
-    std::string result;
-
     if( auto computeBinOp = _operation->as<ComputeBinaryOperation>() )
     {
-        result = serialize(computeBinOp);
+        return serialize(_result, computeBinOp);
     }
     else if (auto computeUnaryOp = _operation->as<ComputeUnaryOperation>() )
     {
-        result = serialize(computeUnaryOp);
+        return serialize(_result, computeUnaryOp);
     }
     else if (auto fct = _operation->as<ComputeFunction>())
     {
-        result = serialize(fct);
+        return serialize(_result, fct);
     }
-
-    return result;
 }
 
-std::string Serializer::serialize(
-        const FunctionSignature&   _signature,
-        std::vector<Member*> _args) const
+std::string& Serializer::serialize(std::string& _result, const FunctionSignature&   _signature, const std::vector<Member*>& _args) const
 {
-    std::string expr;
-    expr.append(_signature.getIdentifier());
-    expr.append(serialize(TokenType_OpenBracket));
+    _result.append(_signature.getIdentifier());
+    serialize(_result, TokenType_OpenBracket);
 
     for (auto it = _args.begin(); it != _args.end(); it++) {
-        expr.append(serialize(*it));
+        serialize(_result, *it);
 
         if (*it != _args.back()) {
-            expr.append(serialize(TokenType_Separator));
+            serialize(_result, TokenType_Separator);
         }
     }
 
-    expr.append(serialize(TokenType_CloseBracket));
-    return expr;
-
+    serialize(_result, TokenType_CloseBracket);
+    return _result;
 }
 
-std::string Serializer::serialize(const FunctionSignature& _signature) const {
+std::string& Serializer::serialize(std::string& _result, const FunctionSignature& _signature) const {
 
-    std::string result = _signature.getIdentifier() + serialize(TokenType_OpenBracket);
+    _result.append( _signature.getIdentifier() );
+    serialize(_result, TokenType_OpenBracket);
+
     auto args = _signature.getArgs();
-
     for (auto it = args.begin(); it != args.end(); it++) {
 
         if (it != args.begin()) {
-            result.append(serialize(TokenType_Separator));
-            result.append(" ");
-
+            serialize( _result, TokenType_Separator);
+            serialize(_result, TokenType_Space);
         }
-        const auto argType = (*it).type;
-        result.append( serialize(argType) );
-
+        serialize(_result, (*it).type);
     }
 
-    result.append( serialize(TokenType_CloseBracket) );
-
-    return result;
-
+    serialize(_result, TokenType_CloseBracket );
+    return  _result;
 }
 
-std::string Serializer::serialize(const TokenType& _type) const
+std::string& Serializer::serialize(std::string& _result, const TokenType& _type) const
 {
-    return language->getSemantic()->tokenTypeToString(_type);
+    return _result.append( language->getSemantic()->tokenTypeToString(_type) );
 }
 
-std::string Serializer::serialize(const VariableNode* _node) const
+std::string& Serializer::serialize(std::string& _result, const VariableNode* _node) const
 {
-    std::string result;
-    Member* value = _node->value();
-
     // type
-    result.append( serialize(_node->getTypeToken() ) );
+    serialize(_result, _node->getTypeToken() );
 
     // var name
-    result.append( _node->getIdentifierToken()->m_prefix);
-    result.append( _node->getName());
-    result.append( _node->getIdentifierToken()->m_suffix);
+    _result.append( _node->getIdentifierToken()->m_prefix);
+    _result.append( _node->getName());
+    _result.append( _node->getIdentifierToken()->m_suffix);
 
     // assigment ?
     if ( _node->getAssignmentOperatorToken() )
     {
-        result.append(_node->getAssignmentOperatorToken()->m_prefix );
-        result.append(_node->getAssignmentOperatorToken()->m_word );
-        result.append(_node->getAssignmentOperatorToken()->m_suffix );
+        Member* value = _node->value();
+
+        _result.append(_node->getAssignmentOperatorToken()->m_prefix );
+        _result.append(_node->getAssignmentOperatorToken()->m_word );
+        _result.append(_node->getAssignmentOperatorToken()->m_suffix );
 
         if ( value->hasInputConnected() )
-            result.append(serialize(value));
+        {
+            serialize(_result, value);
+        }
         else
         {
-            result.append( _node->value()->getSourceToken()->m_prefix);
-            serialize(result, _node->value()->getData());
-            result.append( _node->value()->getSourceToken()->m_suffix);
+            _result.append( value->getSourceToken()->m_prefix);
+            serialize(_result, _node->value()->getData());
+            _result.append( value->getSourceToken()->m_suffix);
         }
 
     }
-
-    return result;
+    return _result;
 }
 
-void Serializer::serialize(std::string& out, const Variant* variant) const
+std::string& Serializer::serialize(std::string& _result, const Variant* variant) const
 {
     if (variant->isType(Type_String))
     {
-        out.append('"' + (std::string)*variant + '"');
+        return _result.append('"' + (std::string)*variant + '"');
     }
     else
     {
-        out.append( (std::string)*variant );
+        return _result.append((std::string)*variant );
     }
 }
 
-std::string Serializer::serialize(const Member * _member, bool followConnections) const
+std::string& Serializer::serialize(std::string& _result, const Member * _member, bool followConnections) const
 {
-
-    std::string expression;
-
     const Token *sourceToken = _member->getSourceToken();
     if (sourceToken)
     {
-        expression.append(sourceToken->m_prefix);
+        _result.append(sourceToken->m_prefix);
     }
 
     auto owner = _member->getOwner();
@@ -258,11 +233,11 @@ std::string Serializer::serialize(const Member * _member, bool followConnections
 
         if ( auto computeBase = sourceMember->getOwner()->getComponent<ComputeBase>() )
         {
-            expression.append( serialize(computeBase) );
+            serialize(_result, computeBase );
         }
         else
         {
-            expression.append( serialize(sourceMember, false) );
+            serialize(_result, sourceMember, false);
         }
     }
     else
@@ -270,162 +245,144 @@ std::string Serializer::serialize(const Member * _member, bool followConnections
         if (owner && owner->getClass() == mirror::GetClass<VariableNode>())
         {
             auto variable = owner->as<VariableNode>();
-            expression.append( variable->getName() );
+            _result.append(variable->getName() );
         }
         else
         {
-            serialize( expression, _member->getData() );
+            serialize(_result, _member->getData() );
         }
     }
 
     if (sourceToken)
     {
-        expression.append(sourceToken->m_suffix);
+        _result.append(sourceToken->m_suffix);
     }
-
-    return expression;
+    return _result;
 }
 
-std::string Serializer::serialize(const CodeBlockNode* _block) const
+std::string& Serializer::serialize(std::string& _result, const CodeBlockNode* _block) const
 {
-    if (_block->getChildren().empty())
+    if (!_block->getChildren().empty())
     {
-        return "";
-    }
-
-    std::string result;
-
-    for( auto& eachChild : _block->getChildren() )
-    {
-        auto clss = eachChild->getClass();
-        if ( clss == InstructionNode::GetClass())
+        for( auto& eachChild : _block->getChildren() )
         {
-            result.append( serialize(eachChild->as<InstructionNode>()) );
-        }
-        else if ( clss == ScopedCodeBlockNode::GetClass())
-        {
-            result.append( serialize(eachChild->as<ScopedCodeBlockNode>()) );
-        }
-        else if ( clss == ConditionalStructNode::GetClass())
-        {
-            result.append( serialize(eachChild->as<ConditionalStructNode>()) );
-        }
-        else
-        {
-            NODABLE_ASSERT(false); // Node class not handled !
+            auto clss = eachChild->getClass();
+            if ( clss == InstructionNode::GetClass())
+            {
+                serialize(_result, eachChild->as<InstructionNode>());
+            }
+            else if ( clss == ScopedCodeBlockNode::GetClass())
+            {
+                serialize( _result, eachChild->as<ScopedCodeBlockNode>());
+            }
+            else if ( clss == ConditionalStructNode::GetClass())
+            {
+                 serialize( _result, eachChild->as<ConditionalStructNode>());
+            }
+            else
+            {
+                NODABLE_ASSERT(false); // Node class not handled !
+            }
         }
     }
-
-    return result;
+    return _result;
 }
 
-std::string Serializer::serialize(const InstructionNode* _instruction ) const
+std::string& Serializer::serialize(std::string& _result, const InstructionNode* _instruction ) const
 {
-    std::string result;
-
-    auto value = _instruction->getValue();
+    const Member* value = _instruction->getValue();
 
     if ( value->hasInputConnected() )
     {
         // var declaration ?
         if ( auto variableNode = value->getInputMember()->getOwner()->as<VariableNode>() )
         {
-            result.append( serialize( variableNode) );
+            serialize( _result, variableNode );
         }
         else
         {
-            result.append( serialize( value) );
+            serialize( _result, value );
         }
     }
     else
     {
-        result.append( serialize( value) );
+        serialize( _result, value );
     }
 
-    result.append( serialize(_instruction->getEndOfInstrToken() ));
-
-    return result;
+    return serialize( _result, _instruction->getEndOfInstrToken() );
 }
 
-std::string Serializer::serialize(const Token* _token)const
+std::string& Serializer::serialize(std::string& _result, const Token* _token)const
 {
-    std::string result;
-
     if ( _token )
     {
-        result.append( _token->m_prefix);
-        result.append( serialize(_token->m_type));
-        result.append( _token->m_suffix);
+        _result.append( _token->m_prefix);
+        serialize( _result, _token->m_type );
+        _result.append( _token->m_suffix);
     }
-
-    return result;
+    return _result;
 }
 
-std::string Serializer::serialize(const ConditionalStructNode* _condStruct)const
+std::string& Serializer::serialize(std::string& _result, const ConditionalStructNode* _condStruct)const
 {
-    std::string result;
-
     // if ( <condition> )
-    result.append( serialize(_condStruct->getTokenIf()));
-    result.append( serialize(TokenType_OpenBracket));
-    result.append( serialize(_condStruct->getCondition()));
-    result.append( serialize(TokenType_CloseBracket));
+    serialize( _result, _condStruct->getTokenIf() );
+    serialize( _result, TokenType_OpenBracket );
+    serialize( _result, _condStruct->getCondition() );
+    serialize( _result, TokenType_CloseBracket );
 
     // if scope
-    auto ifScope = _condStruct->getChildren()[0];
-    result.append( this->serialize(ifScope->as<ScopedCodeBlockNode>()));
+    Node* ifScope = _condStruct->getChildren()[0];
+    serialize( _result, ifScope->as<ScopedCodeBlockNode>() );
 
     // else & else scope
     if ( const Token* tokenElse = _condStruct->getTokenElse() )
     {
-        result.append( serialize(tokenElse));
-        auto elseScope = _condStruct->getChildren()[1];
-        auto elseClass = elseScope->getClass();
-        if ( elseClass == mirror::GetClass<ConditionalStructNode>())
+        serialize( _result, tokenElse );
+        Node* elseScope = _condStruct->getChildren()[1];
+        mirror::Class* elseClass = elseScope->getClass();
+        if ( elseClass == mirror::GetClass<ConditionalStructNode>()) // else if ?
         {
-            result.append( this->serialize(elseScope->as<ConditionalStructNode>()));
+            this->serialize( _result, elseScope->as<ConditionalStructNode>() );
         }
         else
         {
-            result.append( this->serialize(elseScope->as<ScopedCodeBlockNode>()));
+            this->serialize( _result, elseScope->as<ScopedCodeBlockNode>() );
         }
     }
-
-    return result;
+    return _result;
 }
 
-std::string Serializer::serialize(const ScopedCodeBlockNode* _scope)const
+std::string& Serializer::serialize(std::string& _result, const ScopedCodeBlockNode* _scope)const
 {
-    if ( _scope == nullptr )
-        return "";
-
-    NODABLE_ASSERT(_scope->getClass() == mirror::GetClass<ScopedCodeBlockNode>());
-
-    std::string result;
-
-    result.append( serialize(_scope->getBeginScopeToken() ) );
-
-    for(auto eachChild : _scope->getChildren() )
+    if ( _scope != nullptr )
     {
-        if ( eachChild->getClass()->isChildOf(mirror::GetClass<CodeBlockNode>()) )
+        NODABLE_ASSERT(_scope->getClass() == mirror::GetClass<ScopedCodeBlockNode>());
+
+        serialize( _result, _scope->getBeginScopeToken() );
+
+        for (auto eachChild : _scope->getChildren())
         {
-            result.append( serialize(eachChild->as<CodeBlockNode>() ) );
+            mirror::Class* clss = eachChild->getClass();
+            if (clss->isChildOf(mirror::GetClass<CodeBlockNode>()))
+            {
+                serialize( _result, eachChild->as<CodeBlockNode>() );
+            }
+            else if (clss->isChildOf(mirror::GetClass<InstructionNode>()))
+            {
+                serialize( _result, eachChild->as<InstructionNode>() );
+            }
+            else if (clss->isChildOf(mirror::GetClass<ScopedCodeBlockNode>()))
+            {
+                serialize( _result, eachChild->as<ScopedCodeBlockNode>());
+            }
+            else
+            {
+                NODABLE_ASSERT(false); // Node class not handled !
+            }
         }
-        else if ( eachChild->getClass()->isChildOf(mirror::GetClass<InstructionNode>()))
-        {
-            result.append( serialize(eachChild->as<InstructionNode>()) );
-        }
-        else if ( eachChild->getClass()->isChildOf(mirror::GetClass<ScopedCodeBlockNode>()))
-        {
-            result.append( serialize(eachChild->as<ScopedCodeBlockNode>()) );
-        }
-        else
-        {
-            NODABLE_ASSERT(false); // Node class not handled !
-        }
+
+        serialize( _result, _scope->getEndScopeToken());
     }
-
-    result.append( serialize(_scope->getEndScopeToken()) );
-
-    return result;
+    return _result;
 }

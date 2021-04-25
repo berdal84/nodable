@@ -70,7 +70,8 @@ Nodable::File::File( std::filesystem::path _path, const char* _content):
 				return graphNode->newFunction(function);
 			};
 
-			auto label = language->getSerializer()->serialize((*it).signature);
+			std::string label;
+			language->getSerializer()->serialize(label, (*it).signature);
 			graphNodeView->addContextualMenuItem("Functions", label, lambda);
 		}
 		
@@ -150,7 +151,8 @@ UpdateResult File::update() {
         auto scope = getInnerGraph()->getProgram();
         if ( scope && !scope->getChildren().empty() )
         {
-            std::string code = language->getSerializer()->serialize( scope );
+            std::string code;
+            language->getSerializer()->serialize( code, scope );
             view->replaceSelectedText(code);
         }
     }

@@ -26,45 +26,26 @@ namespace Nodable
     {
     public:
 
-        Serializer(const Language* _language): language(_language) {};
+        explicit Serializer(const Language* _language): language(_language) {};
         ~Serializer() = default;
 
-        std::string serialize(const ComputeUnaryOperation * _operation)const;
-        std::string serialize(const ComputeBinaryOperation * _operation)const;
-        std::string serialize(const ComputeBase * _operation)const;
-        std::string serialize(const ComputeFunction* _computeFunction) const;
-
-        /** Serialize a function call with a signature and some values */
-        std::string serialize(const FunctionSignature&, std::vector<Member*>)const;
-
-        /** Serialize a function signature */
-        std::string serialize(const FunctionSignature&)const;
-
-        /** Serialize a TokenType
-           ex:
-           TokenType_LBracket => "("
-           TokenType_StringType = > "std::string" (for C++) */
-        std::string serialize(const TokenType&)const;
-
-        /** Serialize a Member */
-        virtual std::string serialize(const Member*, bool followConnections = true)const;
-
-        /** Serialize a token ( <token-serialized><suffix> ) */
-        virtual std::string serialize(const Token*) const;
-
-        /** Serialize a complete scope (a set of instructions) */
-        virtual std::string serialize(const CodeBlockNode*) const;
-
-        /** Serialize a single instruction ( can be a simple expression ) */
-        virtual std::string serialize(const InstructionNode*)const;
-
-        virtual std::string serialize(const ScopedCodeBlockNode*)const;
-
-        virtual std::string serialize(const ConditionalStructNode*) const;
-        virtual void serialize(std::string &out, const Variant* variant) const;
+        std::string& serialize(std::string &_result, const ComputeUnaryOperation * _operation)const;
+        std::string& serialize(std::string &_result, const ComputeBinaryOperation * _operation)const;
+        std::string& serialize(std::string &_result, const ComputeBase * _operation)const;
+        std::string& serialize(std::string &_result, const ComputeFunction* _computeFunction) const;
+        std::string& serialize(std::string &_result, const FunctionSignature&, const std::vector<Member*>&)const;
+        std::string& serialize(std::string &_result, const FunctionSignature&)const;
+        std::string& serialize(std::string &_result, const TokenType&)const;
+        virtual std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
+        virtual std::string& serialize(std::string &_result, const Token*) const;
+        virtual std::string& serialize(std::string &_result, const CodeBlockNode*) const;
+        virtual std::string& serialize(std::string &_result, const InstructionNode*)const;
+        virtual std::string& serialize(std::string &_result, const ScopedCodeBlockNode*)const;
+        virtual std::string& serialize(std::string &_result, const ConditionalStructNode*) const;
+        virtual std::string& serialize(std::string &_result, const Variant* variant) const;
     protected:
         const Language* language;
 
-        std::string serialize(const VariableNode *_node) const;
+        std::string& serialize(std::string &_result, const VariableNode *_node) const;
     };
 }

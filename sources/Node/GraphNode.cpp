@@ -174,7 +174,8 @@ InstructionNode* GraphNode::newInstruction()
 
 InstructionNode* GraphNode::appendInstruction()
 {
-    std::string eol = m_language->getSerializer()->serialize(TokenType_EndOfLine);
+    std::string eol;
+    m_language->getSerializer()->serialize(eol, TokenType_EndOfLine);
 
     // add to code block
     if ( m_program->getChildren().empty())
@@ -621,6 +622,8 @@ Node* GraphNode::newNode() {
 LiteralNode *GraphNode::newLiteral(const Type &type)
 {
     LiteralNode* node = new LiteralNode(type);
+    node->setLabel("Literal");
+    node->setShortLabel("");
     node->addComponent(new NodeView());
     registerNode(node);
     return node;

@@ -180,7 +180,8 @@ void FileView::drawFileInfo()
         ImGui::Columns(1);
         for(const auto& each_fct : functions )
         {
-            auto name = serializer->serialize(each_fct.signature);
+            std::string name;
+            serializer->serialize(name, each_fct.signature);
             ImGui::Text("%s", name.c_str());
         }
 
