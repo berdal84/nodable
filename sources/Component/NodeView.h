@@ -66,7 +66,7 @@ namespace Nodable
 	class ViewConstraint {
 	public:
 	    enum Type {
-	        AlignOnBBoxTR,
+	        AlignOnBBoxTop,
 	        AlignOnBBoxLeft,
 	        MakeRowAndAlignOnBBoxTop,
 	        MakeRowAndAlignOnBBoxBottom,
