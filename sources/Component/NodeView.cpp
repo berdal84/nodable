@@ -1098,7 +1098,7 @@ void ViewConstraint::apply(float _dt) {
                 ImVec2 newPos(bbox.GetCenter() + ImVec2(0.0, -bbox.GetHeight() * 0.5f - settings->ui.node.spacing));
                 newPos.y -= settings->ui.node.spacing + slave->getSize().y / 2.0f;
                 newPos.x += settings->ui.node.spacing + slave->getSize().x / 2.0f;
-                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed);
+                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed, true);
             }
 
             break;
