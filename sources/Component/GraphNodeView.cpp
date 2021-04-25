@@ -52,10 +52,20 @@ bool GraphNodeView::draw()
 			NodeView::ConstraintToRect(view, rect );
 		}
 
+		// Apply Forces
+        auto deltaTime = ImGui::GetIO().DeltaTime;
+        for (auto eachNode : entities)
+        {
+            if (auto view = eachNode->getComponent<NodeView>() )
+            {
+                view->applyConstraints(deltaTime);
+            }
+        }
+
 		// Update
 		for (auto eachNode : entities)
 		{
-			if (auto view = eachNode->getComponent<View>() )
+			if (auto view = eachNode->getComponent<NodeView>() )
 				view->update();
 		}
 
