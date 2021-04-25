@@ -233,7 +233,6 @@ bool NodeView::update()
 bool NodeView::update(float _deltaTime)
 {
     Maths::linear_interpolation( opacity, 1.0f, 10.0f * _deltaTime);
-    this->applyConstraints(_deltaTime);
     this->applyForces();
 	return true;
 }
