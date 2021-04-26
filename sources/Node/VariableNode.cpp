@@ -4,20 +4,23 @@
 
 using namespace Nodable;
 
-VariableNode::VariableNode()
+VariableNode::VariableNode(Type type)
     :
     Node("Variable"),
     m_typeToken(nullptr),
     m_identifierToken(nullptr),
     m_assignmentOperatorToken(nullptr)
 {
-	m_props.add("value", Visibility::Always, Type_Any, Way_InOut);
+	m_props.add("value", Visibility::Always, type, Way_InOut);
 }
 
 void VariableNode::setName(const char* _name)
 {
     m_name = _name;
-	setLabel(_name);
+    std::string str = getTypeAsString();
+    str.append(" ");
+    str.append( _name );
+	setLabel(str);
 
 	if (m_name.length() > 4)
     {

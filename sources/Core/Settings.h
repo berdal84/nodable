@@ -33,6 +33,7 @@ namespace Nodable {
                 ImVec4 variableColor;
                 ImVec4 functionColor;
                 ImVec4 instructionColor;
+                ImVec4 literalColor;
                 ImVec4 shadowColor;
                 ImVec4 borderHighlightedColor;
                 ImVec4 borderColor;

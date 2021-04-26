@@ -26,6 +26,7 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
         g_conf->ui.node.functionColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
         g_conf->ui.node.variableColor          = ImVec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
         g_conf->ui.node.instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f); // green
+        g_conf->ui.node.literalColor           = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
         g_conf->ui.node.fillColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
         g_conf->ui.node.highlightedColor       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
         g_conf->ui.node.borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);

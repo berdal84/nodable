@@ -101,10 +101,10 @@ std::string Variant::getTypeAsString()const
 {
 	switch(getType())
 	{
-		case Type_String:	{return "String";}
-		case Type_Double:	{return "Double";}
-		case Type_Boolean: 	{return "Boolean";}
-		default:				{return "Unknown";}
+		case Type_String:	{return "string";}
+		case Type_Double:	{return "double";}
+		case Type_Boolean: 	{return "boolean";}
+		default:				{return "unknown";}
 	}
 }
 
