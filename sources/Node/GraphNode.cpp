@@ -204,10 +204,9 @@ InstructionNode* GraphNode::appendInstruction()
 VariableNode* GraphNode::newVariable(Type _type, const std::string& _name, ScopedCodeBlockNode* _scope)
 {
     // create
-	auto node = new VariableNode();
+	auto node = new VariableNode(_type);
 	node->addComponent( new NodeView() );
-	node->setName(_name.c_str());
-    node->value()->setType(_type);
+    node->setName(_name.c_str());
 
 	// register
     this->registerNode(node);

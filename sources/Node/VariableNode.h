@@ -16,7 +16,7 @@ namespace Nodable{
 	*/
 	class VariableNode : public Node {
 	public:
-		VariableNode();
+		VariableNode(Type);
 		~VariableNode() override = default;
 
 		[[nodiscard]] inline bool             isSet()const { return value()->isDefined(); }

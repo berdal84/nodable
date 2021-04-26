@@ -125,6 +125,10 @@ void NodeView::setOwner(Node* _node)
     {
         setColor(ColorType_Fill, &settings->ui.node.variableColor); // purple
     }
+    else if ( _node->getClass() == mirror::GetClass<LiteralNode>() )
+    {
+        setColor(ColorType_Fill, &settings->ui.node.literalColor);
+    }
     else
     {
         setColor(ColorType_Fill, &settings->ui.node.instructionColor); // green

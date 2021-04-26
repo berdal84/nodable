@@ -500,6 +500,7 @@ void ApplicationView::drawPropertiesWindow()
 
             ImGui::ColorEdit3("variables color", &config->ui.node.variableColor.x);
             ImGui::ColorEdit3("instruction color", &config->ui.node.instructionColor.x);
+            ImGui::ColorEdit3("literal color", &config->ui.node.literalColor.x);
             ImGui::ColorEdit3("function color", &config->ui.node.functionColor.x);
             ImGui::ColorEdit3("shadow color", &config->ui.node.shadowColor.x);
             ImGui::ColorEdit3("border color", &config->ui.node.borderColor.x);
