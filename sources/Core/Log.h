@@ -32,11 +32,13 @@
 #   define LOG_WARNING(...) Nodable::Log::Push( Nodable::Log::Verbosity::Warning, __VA_ARGS__ )
 #   define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::Log::Verbosity::Message, __VA_ARGS__ )
 #   define LOG_VERBOSE(...) Nodable::Log::Push( Nodable::Log::Verbosity::Verbose, __VA_ARGS__ )
+#   define LOG_FLUSH()      Nodable::Log::Flush()
 #else
 #   define LOG_ERROR(...)
 #   define LOG_WARNING(...)
 #   define LOG_MESSAGE(...)
 #   define LOG_VERBOSE(...)
+#   define LOG_FLUSH()
 #endif
 
 namespace Nodable{	
@@ -69,5 +71,6 @@ namespace Nodable{
 	    static void           SetVerbosityLevel(const std::string& _category, Verbosity _verbosityLevel);
         static Verbosity      GetVerbosityLevel(const std::string& _category);
 		static void           Push(Verbosity _verbosityLevel, const char* _category, const char* _format, ...);
+		static void           Flush();
 	};
 }
