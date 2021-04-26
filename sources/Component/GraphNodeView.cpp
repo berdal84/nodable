@@ -69,7 +69,29 @@ bool GraphNodeView::draw()
 				view->update();
 		}
 
-		//  Draw
+		//  Draw (Wires first, Node after)
+        for (auto eachNode : entities)
+        {
+            auto members = eachNode->getProps()->getMembers();
+
+            for (auto pair : members)
+            {
+                auto end = pair.second;
+
+                if ( auto start = end->getInputMember() )
+                {
+                    auto endNodeView   = eachNode->getComponent<NodeView>();
+                    auto startNodeView = start->getOwner()->getComponent<NodeView>();
+
+                    if ( startNodeView->isVisible() && endNodeView->isVisible() )
+                    {
+                        auto endPos   = endNodeView->getConnectorPosition(end, Way_In);
+                        auto startPos = startNodeView->getConnectorPosition(start, Way_Out);
+                        WireView::Draw(ImGui::GetWindowDrawList(), startPos, endPos /*, startNodeView, endNodeView */);
+                    }
+                }
+            }
+        }
 
 		for (auto eachNode : entities)
 		{
@@ -88,36 +110,7 @@ bool GraphNodeView::draw()
 	const auto draggedConnector = NodeView::GetDraggedConnector();
 	const auto hoveredConnector = NodeView::GetHoveredConnector();
 
-	/*
-		Wires
-	*/
 	{
-		
-
-		// Draw existing wires
-		for (auto eachNode : entities)
-		{
-			auto members = eachNode->getProps()->getMembers();
-
-			for (auto pair : members)
-			{
-			    auto end = pair.second;
-
-			    if ( auto start = end->getInputMember() )
-                {
-			        auto endNodeView   = eachNode->getComponent<NodeView>();
-			        auto startNodeView = start->getOwner()->getComponent<NodeView>();
-
-			        if ( startNodeView->isVisible() && endNodeView->isVisible() )
-                    {
-                        auto endPos   = endNodeView->getConnectorPosition(end, Way_In);
-                        auto startPos = startNodeView->getConnectorPosition(start, Way_Out);
-                        WireView::Draw(ImGui::GetWindowDrawList(), startPos, endPos , startNodeView, endNodeView );
-                    }
-                }
-			}
-		}
-
 		if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
         {
             // Draw temporary wire on top (overlay draw list)
