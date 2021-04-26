@@ -15,8 +15,8 @@ namespace Nodable
     {
         void Draw(
                 ImDrawList *draw_list,
-                ImVec2 _from, ImVec2 _to,
-                const NodeView *_fromNode, const NodeView *_toNode);
+                ImVec2 _from, ImVec2 _to/*,
+                const NodeView *_fromNode, const NodeView *_toNode*/);
 
         void DrawVerticalWire(
                 ImDrawList *draw_list,
