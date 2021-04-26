@@ -862,7 +862,7 @@ ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMult
     {
         if (eachView && eachView->isVisible() &&
             !(eachView->pinned && _ignorePinned) &&
-            !(eachView->getOwner()->getOutputs().size() > 1 && _ignoreMultiConstrained) )
+                eachView->canFollow(this) )
         {
             ImRect childRect = eachView->getRect(true, _ignorePinned, _ignoreMultiConstrained);
             x.push_back(childRect.Min.x);
@@ -1037,15 +1037,19 @@ void NodeView::setChildrenVisible(bool _visible, bool _recursive)
     }
 }
 
-bool NodeView::hasNoMoreThanASingleOutputVisible()
+bool NodeView::canFollow(const NodeView* other)
 {
-    int count = 0;
-    for( auto eachChild : getOutputs() )
+    auto outputs = getOutputs();
+
+    if ( outputs.empty())
+        return true;
+
+    for( auto eachChild : outputs )
     {
         if( eachChild->isVisible())
-            count++;
+            return eachChild == other;
     }
-    return count <= 1;
+    return false;
 }
 
 void NodeView::setInputsVisible(bool _visible, bool _recursive)
@@ -1053,7 +1057,7 @@ void NodeView::setInputsVisible(bool _visible, bool _recursive)
 
     for( auto eachChild : getInputs() )
     {
-        if( _visible || (getOutputs().empty() || eachChild->hasNoMoreThanASingleOutputVisible()) )
+        if( _visible || (getOutputs().empty() || eachChild->canFollow(this)) )
         {
             if ( _recursive)
             {
@@ -1092,9 +1096,9 @@ void ViewConstraint::apply(float _dt) {
         case Type::AlignOnBBoxTop:
         {
             auto slave = slaves.at(0);
-            if( !slave->isPinned() && slave->isVisible() && !slave->hasNoMoreThanASingleOutputVisible())
+            if( !slave->isPinned() && slave->isVisible() && slave->canFollow(master))
             {
-                ImRect bbox = NodeView::GetRect(masters, true);
+                ImRect bbox = NodeView::GetRect(masters);
                 ImVec2 newPos(bbox.GetCenter() + ImVec2(0.0, -bbox.GetHeight() * 0.5f - settings->ui.node.spacing));
                 newPos.y -= settings->ui.node.spacing + slave->getSize().y / 2.0f;
                 newPos.x += settings->ui.node.spacing + slave->getSize().x / 2.0f;
@@ -1112,8 +1116,10 @@ void ViewConstraint::apply(float _dt) {
             // Compute the cumulated width and the size y max of the input node view:
             auto cumulatedSize = 0.0f;
             auto sizeMax = 0.0f;
-            for (auto eachSlave : slaves) {
-                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->hasNoMoreThanASingleOutputVisible()) {
+            for (auto eachSlave : slaves)
+            {
+                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->canFollow(master))
+                {
                     float sx;
                     if ( type == Type::MakeRowAndAlignOnBBoxTop )
                         sx = eachSlave->getSize().x;
@@ -1146,7 +1152,8 @@ void ViewConstraint::apply(float _dt) {
             for (auto eachSlave : slaves)
             {
                 // Contrain only unpinned node that have only a single output connection
-                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->hasNoMoreThanASingleOutputVisible()) {
+                if (!eachSlave->isPinned() && eachSlave->isVisible() /*&& eachSlave->mustFollow(master)*/)
+                {
                     // Compute new position for this input view
                     ImVec2 eachDrivenNewPos = ImVec2(
                             posX + eachSlave->getSize().x / 2.0f,
@@ -1179,8 +1186,8 @@ void ViewConstraint::apply(float _dt) {
             if ( !slave->isPinned() && slave->isVisible() )
             {
                 // compute
-                auto masterRect = master->getRect(false, true, true);
-                auto slaveRect = slave->getRect(true,true, true);
+                auto masterRect = master->getRect(false, true);
+                auto slaveRect = slave->getRect(true,true );
                 ImVec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
                 ImVec2 newPos(master->getPosition().x, slave->getPosition().y + slaveMasterOffset.y + settings->ui.node.spacing);
 

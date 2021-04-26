@@ -294,7 +294,7 @@ namespace Nodable
 
         std::vector<NodeView *> getInputs();
 
-        bool hasNoMoreThanASingleOutputVisible();
+        bool canFollow(const NodeView* other);
 
         std::vector<NodeView *> getOutputs();
 
