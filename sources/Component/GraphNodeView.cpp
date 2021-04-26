@@ -48,7 +48,7 @@ bool GraphNodeView::draw()
             // Make sure result node is always visible
 			auto view = graph->getProgram()->getFirstInstruction()->getComponent<NodeView>();
 			auto rect = ImRect(ImVec2(0,0), ImGui::GetWindowSize());
-			rect.Max.y = 1000000000000.0f;
+			rect.Max.y = std::numeric_limits<float>::max();
 			NodeView::ConstraintToRect(view, rect );
 		}
 
