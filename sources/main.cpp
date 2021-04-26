@@ -24,16 +24,17 @@ int main(int argc, char* argv[])
     auto startupFilePath = nodable.getAssetPath("startup.txt");
 	nodable.openFile(startupFilePath); // Init and open a startup file
 
-	while ( nodable.update() != UpdateResult::Stopped )
-	{
-		if(auto view = nodable.getComponent<View>())
-        {
-            view->draw();
+	try {
+        while (nodable.update() != UpdateResult::Stopped) {
+            if (auto view = nodable.getComponent<View>()) {
+                view->draw();
+            }
         }
+    } catch (std::exception& err) {
+        LOG_ERROR("main", "Application crashes: %s\n", err.what() );
 	}
-
 	nodable.shutdown();
-
+    LOG_FLUSH();
 	return 0;
 }
 

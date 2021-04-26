@@ -71,3 +71,8 @@ void Log::Push(Verbosity _verbosityLevel, const char* _category, const char* _fo
     }
 
 }
+
+void Log::Flush()
+{
+    std::cout << std::flush;
+}
