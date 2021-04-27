@@ -16,12 +16,12 @@ namespace Nodable
         inline void setTokenIf(Token* token) { m_token_if = token; }
         inline void setTokenElse(Token* token) { m_token_else = token; }
 
-        virtual AbstractCodeBlockNode* getNext();
         AbstractCodeBlockNode*         getBranchTrue();
         AbstractCodeBlockNode*         getBranchFalse();
         [[nodiscard]] inline Member*   getCondition()const { return m_props.get("condition"); }
         [[nodiscard]] inline const Token* getTokenIf()const   { return m_token_if; }
         [[nodiscard]] inline const Token* getTokenElse()const   { return m_token_else; }
+        void                              getLastInstructions(std::vector<InstructionNode*>& out);
 
     private:
         Token* m_token_if;
@@ -32,6 +32,5 @@ namespace Nodable
     (
         MIRROR_PARENT(CodeBlockNode)
     )
-
     };
 }

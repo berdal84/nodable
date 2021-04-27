@@ -22,19 +22,27 @@ bool GraphNodeView::draw()
 
     Settings* settings = Settings::GetCurrent();
     GraphNode* graph = getGraphNode();
-    auto entities    = graph->getNodeRegistry();
+    auto nodeRegistry = graph->getNodeRegistry();
 
 	auto origin = ImGui::GetCursorScreenPos();
 	ImGui::SetCursorPos(ImVec2(0,0));
 
     /*
-       CodeBlock
+       Draw Code Flow
      */
-    ProgramNode* scope = graph->getProgram();
-    if ( scope && !scope->isEmpty() )
+    for( auto& each_node : nodeRegistry)
     {
-        drawCodeFlow(scope);
+        for (auto& each_next : each_node->getNext() )
+        {
+            NodeView *each_view      = each_node->getComponent<NodeView>();
+            NodeView *each_next_view = each_next->getComponent<NodeView>();
+            if (each_view && each_next_view && each_view->isVisible() && each_next_view->isVisible() )
+            {
+                DrawCodeFlowLine(each_view, each_next_view);
+            }
+        }
     }
+
 
 	/*
 		NodeViews
@@ -54,7 +62,7 @@ bool GraphNodeView::draw()
 
 		// Apply Forces
         auto deltaTime = ImGui::GetIO().DeltaTime;
-        for (auto eachNode : entities)
+        for (auto eachNode : nodeRegistry)
         {
             if (auto view = eachNode->getComponent<NodeView>() )
             {
@@ -63,14 +71,14 @@ bool GraphNodeView::draw()
         }
 
 		// Update
-		for (auto eachNode : entities)
+		for (auto eachNode : nodeRegistry)
 		{
 			if (auto view = eachNode->getComponent<NodeView>() )
 				view->update();
 		}
 
 		//  Draw (Wires first, Node after)
-        for (auto eachNode : entities)
+        for (auto eachNode : nodeRegistry)
         {
             auto members = eachNode->getProps()->getMembers();
 
@@ -93,7 +101,7 @@ bool GraphNodeView::draw()
             }
         }
 
-		for (auto eachNode : entities)
+		for (auto eachNode : nodeRegistry)
 		{
 			if (auto view = eachNode->getComponent<View>())
 			{
@@ -220,7 +228,7 @@ bool GraphNodeView::draw()
 	{	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged)
 		{
 			auto drag = ImGui::GetMouseDragDelta();
-			for (auto eachNode : entities)
+			for (auto eachNode : nodeRegistry)
 			{
 				if (auto view = eachNode->getComponent<NodeView>() ) 
 					view->translate(drag);
@@ -370,60 +378,6 @@ GraphNode* GraphNodeView::getGraphNode() const
 
 GraphNodeView::GraphNodeView(): NodeView() {}
 
-void GraphNodeView::drawCodeFlow(AbstractCodeBlockNode* _node)
-{
-    auto view = _node->getComponent<NodeView>();
-    if ( view->isVisible() )
-    {
-
-        for (auto each : _node->getChildren())
-        {
-            if ( each->getClass()->isChildOf(mirror::GetClass<AbstractCodeBlockNode>(), false))
-                drawCodeFlow(each->as<AbstractCodeBlockNode>());
-            else if ( each->getClass() == mirror::GetClass<AbstractCodeBlockNode>())
-                drawCodeFlow(reinterpret_cast<AbstractCodeBlockNode*>(each));
-        }
-
-        auto children = view->getChildren();
-
-        // Draw a line between node and its first child OR between all children if it is a conditional structure.
-        if ( !children.empty())
-        {
-            if ( _node->getClass() == mirror::GetClass<ConditionalStructNode>())
-            {
-                short position(0);
-                for(auto eachChild : children)
-                {
-                    if ( eachChild->isVisible() ) {
-                        DrawCodeFlowLine(view, eachChild, (short)children.size(), position);
-                        position++;
-                    }
-                }
-            }
-            else
-            {
-                auto endView = children[0];
-                if (endView->isVisible())
-                    DrawCodeFlowLine(view, endView);
-            }
-        }
-
-        // Draw a wire between each child except for condition struct
-        if (children.size() >= 2 && _node->getClass() != mirror::GetClass<ConditionalStructNode>())
-        {
-            for(auto it = children.begin(); it < children.end() - 1; it++ )
-            {
-                // Draw a line
-                auto startView = (*it);
-                auto endView = (*(it+1));
-
-                if ( startView->isVisible() && endView->isVisible() )
-                    DrawCodeFlowLine(startView, endView);
-            }
-        }
-    }
-}
-
 void GraphNodeView::DrawCodeFlowLine(NodeView *startView, NodeView *endView, short _slotCount, short _slotPosition)
 {
     float padding      = 2.0f;
@@ -459,23 +413,31 @@ void GraphNodeView::updateViewConstraints()
         if ( auto eachView = _eachNode->getComponent<NodeView>() )
         {
             auto clss = _eachNode->getClass();
+
+            // follow prev
+            auto prev = _eachNode->getPrev();
+            if ( !prev.empty())
+            {
+                ViewConstraint followConstr(ViewConstraint::Type::FollowWithChildren);
+                for(auto eachPrev : prev )
+                {
+                    if (auto eachPrevView = eachPrev->getComponent<NodeView>())
+                        followConstr.addMaster(eachPrevView);
+                }
+                followConstr.addSlave(eachView);
+
+                // indent if previous is parent
+//                if ( prev[0] == _eachNode->getParent() )
+//                    followConstr.offset = ImVec2(30.0f, 0);
+
+                eachView->addConstraint(followConstr);
+            }
+
+
             auto children = eachView->getChildren();
 
             if ( clss->isChildOf(mirror::GetClass<AbstractCodeBlockNode>()))
             {
-                if ( children.size() > 1 && clss != mirror::GetClass<ConditionalStructNode>())
-                {
-                    for (size_t i = 1; i < children.size(); i++)
-                    {
-                        auto eachChildView = children.at(i);
-                        auto previousView = children.at(i - 1);
-
-                        ViewConstraint followConstr(ViewConstraint::Type::FollowWithChildren);
-                        followConstr.addMaster(previousView);
-                        followConstr.addSlave(eachChildView);
-                        eachChildView->addConstraint(followConstr);
-                    }
-                }
 
                 if( !children.empty() )
                 {
@@ -486,26 +448,17 @@ void GraphNodeView::updateViewConstraints()
                         followConstr.addSlaves(children);
                         eachView->addConstraint(followConstr);
                     }
-                    else
-                    {
-                        auto childView = children[0];
-                        ViewConstraint followConstr(ViewConstraint::Type::FollowWithChildren);
-                        followConstr.addMaster(eachView);
-                        followConstr.addSlave(childView);
-                        followConstr.offset = ImVec2(30.0f, 0); // indent
-                        childView->addConstraint(followConstr);
-                    }
                 }
             }
 
             // Each Node with more than 1 output needs to be aligned with the bbox top of output nodes
-            if ( _eachNode->getOutputs().size() > 1 )
-            {
-                ViewConstraint constraint(ViewConstraint::Type::AlignOnBBoxTop);
-                constraint.addSlave(eachView);
-                constraint.addMasters(eachView->getOutputs());
-                eachView->addConstraint(constraint);
-            }
+//            if ( _eachNode->getOutputs().size() > 1 )
+//            {
+//                ViewConstraint constraint(ViewConstraint::Type::AlignOnBBoxTop);
+//                constraint.addSlave(eachView);
+//                constraint.addMasters(eachView->getOutputs());
+//                eachView->addConstraint(constraint);
+//            }
 
             // Input nodes must be aligned to their output
             if ( !_eachNode->getInputs().empty() )
