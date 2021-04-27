@@ -30,8 +30,6 @@ namespace Nodable{
 			MIRROR_PARENT(NodeView)
         );
 
-        void drawCodeFlow(AbstractCodeBlockNode *_node);
-
         static void DrawCodeFlowLine(NodeView *startView, NodeView *endView, short _slotCount = 1, short _slotPosition = 0);
     };
 }

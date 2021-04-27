@@ -20,7 +20,6 @@ Node::Node(std::string _label):
         m_label(std::move(_label)),
         m_innerGraph(nullptr),
         m_dirty(false),
-        m_next(nullptr),
         m_deletedFlag(false)
 {
 //    add("activator", Visibility::Always, Type_Boolean, Way::Way_In);
@@ -276,4 +275,16 @@ size_t Node::deleteComponents()
     }
     m_components.clear();
     return count;
+}
+
+void Node::removeNext(Node *_node)
+{
+    auto found = std::find(m_next.begin(), m_next.end(), _node);
+    m_next.erase(found);
+}
+
+void Node::removePrev(Node *_node)
+{
+    auto found = std::find(m_previous.begin(), m_previous.end(), _node);
+    m_previous.erase(found);
 }

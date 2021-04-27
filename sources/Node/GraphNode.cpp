@@ -511,13 +511,59 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
     switch ( _relationType )
     {
         case RelationType::IS_CHILD_OF:
+        {
+            // create "next" links
+            auto& target_children = _target->getChildren();
+            if ( !target_children.empty() )
+            {
+                auto lastChild = target_children.back();
+                auto lastChildParent = lastChild->getParent();
+                if ( lastChildParent )
+                {
+                    if (lastChildParent->getClass() == mirror::GetClass<ConditionalStructNode>())
+                    {
+                        _target->addNext(_source);
+                    }
+                    else if (auto condStructNode = lastChild->as<ConditionalStructNode>() )
+                    {
+                        // last instructions -> _source
+                        std::vector<InstructionNode*> last_instr;
+                        condStructNode->getLastInstructions(last_instr);
+
+                        for(auto& each_inst : last_instr)
+                        {
+                            connect(_source, each_inst, RelationType::IS_NEXT_OF);
+                        }
+                    }
+                    else
+                    {
+                        connect(_source, lastChild, RelationType::IS_NEXT_OF);
+                    }
+                }
+                else
+                {
+                    connect(_source, _target, RelationType::IS_NEXT_OF);
+                }
+            }
+            else
+            {
+                connect(_source, _target, RelationType::IS_NEXT_OF);
+            }
+
+            // create "parent-child" links
             _target->addChild(_source);
             _source->setParent(_target);
             break;
+        }
 
         case RelationType::IS_INPUT_OF:
             _target->addInput(_source);
             _source->addOutput(_target);
+            break;
+
+        case RelationType::IS_NEXT_OF:
+            _target->addNext(_source);
+            _source->addPrev(_target);
             break;
 
         default:
@@ -550,6 +596,11 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
         case RelationType::IS_INPUT_OF:
             _target->removeInput(_source);
             _source->removeOutput(_target);
+            break;
+
+        case RelationType::IS_NEXT_OF:
+            _target->removeNext(_source);
+            _source->removePrev(_target);
             break;
 
         default:

@@ -284,7 +284,7 @@ namespace Nodable
         // sum of forces applied to this
         ImVec2 forces;
 
-        void applyForces(bool _recurse = false);
+        void applyForces(float _dt, bool _recurse);
 
         void setChildrenVisible(bool _visible, bool _recursive = false);
         bool childrenVisible = true;
@@ -294,9 +294,10 @@ namespace Nodable
 
         std::vector<NodeView *> getInputs();
 
-        bool canFollow(const NodeView* other);
+        bool shouldFollowOutput(const NodeView*);
 
         std::vector<NodeView *> getOutputs();
+        void getNext(std::vector<NodeView *> &out);
 
         // Reflect this class
     MIRROR_CLASS(NodeView) (MIRROR_PARENT(View)); // I only need to know the parent

@@ -119,15 +119,14 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
      * Get the next Node from an execution point of view.
      */
     Node* result  = nullptr;
-    auto clss     = _node->getClass();
     auto children = _node->getChildren();
 
-    if ( clss == mirror::GetClass<ConditionalStructNode>())
+    if ( auto condStructNode = _node->as<ConditionalStructNode>() )
     {
        /*
         * Get the branch depending on condition
         */
-       auto next = _node->getNext(); // is virtual
+       auto next = *condStructNode->getCondition() ? condStructNode->getBranchTrue() : condStructNode->getBranchFalse();
        if ( !m_stats.hasBeenTraversed(next) )
            result = next;
     }

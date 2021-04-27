@@ -69,8 +69,13 @@ namespace Nodable{
                       std::vector<Node*>& getInputs();
                       std::vector<Node*>& getOutputs();
 
-                      void                setNext(Node* _node) { this->m_next = _node; };
-                      virtual Node*       getNext() { return this->m_next; }
+                      void                addNext(Node* _node) { m_next.push_back(_node ); };
+                      auto&               getNext() { return m_next; }
+                      void                removeNext(Node* _node );
+
+                      void                addPrev(Node* _node) { m_previous.push_back(_node ); };
+                      auto&               getPrev() { return m_previous; }
+                      void                removePrev(Node* _node );
 
         bool needsToBeDeleted  () const { return m_deletedFlag; }
 
@@ -249,7 +254,8 @@ namespace Nodable{
         Properties         m_props;
 		Components         m_components;
         Node*              m_parent;
-        Node*              m_next;
+        std::vector<Node*> m_next;
+        std::vector<Node*> m_previous;
         std::vector<Node*> m_children;
         bool               m_deletedFlag;
 

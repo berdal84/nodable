@@ -214,7 +214,7 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
         {
 	        if ( NodeView* eachInputView = eachInput->getComponent<NodeView>() )
 	        {
-	            if ( !eachInputView->pinned )
+	            if ( !eachInputView->pinned && eachInputView->shouldFollowOutput(this) )
                     eachInputView->translate(_delta, true);
 	        }
         }
@@ -237,7 +237,7 @@ bool NodeView::update()
 bool NodeView::update(float _deltaTime)
 {
     Maths::linear_interpolation( opacity, 1.0f, 10.0f * _deltaTime);
-    this->applyForces();
+    this->applyForces(_deltaTime, false);
 	return true;
 }
 
@@ -255,7 +255,7 @@ bool NodeView::draw()
 
 	if (GetDragged() == this && ImGui::IsMouseDragging(0))
 	{
-		translate(ImGui::GetMouseDragDelta());
+		translate(ImGui::GetMouseDragDelta(), true);
 		ImGui::ResetMouseDragDelta();
 		pinned = true;
 	}
@@ -436,34 +436,34 @@ void NodeView::ArrangeRecursively(NodeView* _view, bool _smoothly)
     std::vector<NodeView*> views;
 
     // Get input views
-    for (auto eachInput : _view->getOwner()->getInputs())
-    {
-        auto inputView = eachInput->getComponent<NodeView>();
-        if ( inputView )
-            views.push_back(inputView);
-    }
+//    for (auto eachInput : _view->getOwner()->getInputs())
+//    {
+//        auto inputView = eachInput->getComponent<NodeView>();
+//        if ( inputView && inputView->shouldFollowOutput(_view))
+//            views.push_back(inputView);
+//    }
 
     // Get input views
-    for (auto eachChild : _view->getOwner()->getChildren())
-    {
-        auto inputView = eachChild->getComponent<NodeView>();
-        if ( inputView )
-            views.push_back(inputView);
-    }
+//    for (auto eachChild : _view->getOwner()->getChildren())
+//    {
+//        auto inputView = eachChild->getComponent<NodeView>();
+//        if ( inputView )
+//            views.push_back(inputView);
+//    }
 
     // Recursive calls
-    for(auto eachView : views)
-    {
-        eachView->pinned = false;
-        ArrangeRecursively(eachView, _smoothly);
-    }
+//    for(auto eachView : views)
+//    {
+//        eachView->pinned = false;
+//        ArrangeRecursively(eachView, _smoothly);
+//    }
 
     // Force and update of input connected nodes with a delta time extra high
     // to ensure all nodes were well placed in a single call (no smooth moves)
-    if ( !_smoothly )
-    {
-        _view->update(float(1000));
-    }
+//    if ( !_smoothly )
+//    {
+//        _view->update(float(1000));
+//    }
 }
 
 void NodeView::drawMemberConnectors(Member* _member, float _connectorRadius)
@@ -866,7 +866,7 @@ ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMult
     {
         if (eachView && eachView->isVisible() &&
             !(eachView->pinned && _ignorePinned) &&
-                eachView->canFollow(this) )
+                eachView->shouldFollowOutput(this) )
         {
             ImRect childRect = eachView->getRect(true, _ignorePinned, _ignoreMultiConstrained);
             x.push_back(childRect.Min.x);
@@ -932,14 +932,23 @@ void NodeView::addForce(ImVec2 force, bool _recurse)
     }
 }
 
-void NodeView::applyForces(bool _recurse)
-{
+void NodeView::applyForces(float _dt, bool _recurse) {
+    //
+    float mag = std::sqrt( forces.x * forces.x + forces.y * forces.y );
+
     // apply
-    bool tooSmall = forces.x * forces.x + forces.y * forces.y < 0.1f;
+    bool tooSmall = mag < 0.1f;
     if (!tooSmall)
+    {
+//        if ( mag * _dt > 200.0f)
+//        {
+//            forces.x *= 200.0f / mag;
+//            forces.y *= 200.0f / mag;
+//        }
         this->translate(forces, _recurse);
 
-    // reset
+        // reset
+    }
     forces = ImVec2();
 }
 
@@ -1041,19 +1050,21 @@ void NodeView::setChildrenVisible(bool _visible, bool _recursive)
     }
 }
 
-bool NodeView::canFollow(const NodeView* other)
+bool NodeView::shouldFollowOutput(const NodeView* output)
 {
     auto outputs = getOutputs();
 
     if ( outputs.empty())
         return true;
 
-    for( auto eachChild : outputs )
-    {
-        if( eachChild->isVisible())
-            return eachChild == other;
-    }
-    return false;
+    return outputs[0] == output;
+//    NodeView* higher = nullptr;
+//    for( auto eachChild : outputs )
+//    {
+//        if( eachChild->isVisible() && (!higher || higher->getPosition().y > eachChild->getPosition().y ))
+//            higher = eachChild;
+//    }
+//    return higher == other;
 }
 
 void NodeView::setInputsVisible(bool _visible, bool _recursive)
@@ -1061,7 +1072,7 @@ void NodeView::setInputsVisible(bool _visible, bool _recursive)
 
     for( auto eachChild : getInputs() )
     {
-        if( _visible || (getOutputs().empty() || eachChild->canFollow(this)) )
+        if( _visible || (getOutputs().empty() || eachChild->shouldFollowOutput(this)) )
         {
             if ( _recursive)
             {
@@ -1071,6 +1082,18 @@ void NodeView::setInputsVisible(bool _visible, bool _recursive)
             eachChild->setVisible(_visible);
         }
     }
+}
+
+void NodeView::getNext(std::vector<NodeView *>& out)
+{
+    for( auto& each : getOwner()->getNext())
+    {
+         if ( each )
+        {
+             if ( auto each_view = each->getComponent<NodeView>() )
+                 out.push_back(each_view);
+        }
+     }
 }
 
 ViewConstraint::ViewConstraint(ViewConstraint::Type _type):type(_type) {}
@@ -1100,13 +1123,15 @@ void ViewConstraint::apply(float _dt) {
         case Type::AlignOnBBoxTop:
         {
             auto slave = slaves.at(0);
-            if( !slave->isPinned() && slave->isVisible() && slave->canFollow(master))
+            if( !slave->isPinned() && slave->isVisible() && slave->shouldFollowOutput(master))
             {
                 ImRect bbox = NodeView::GetRect(masters);
                 ImVec2 newPos(bbox.GetCenter() + ImVec2(0.0, -bbox.GetHeight() * 0.5f - settings->ui.node.spacing));
                 newPos.y -= settings->ui.node.spacing + slave->getSize().y / 2.0f;
                 newPos.x += settings->ui.node.spacing + slave->getSize().x / 2.0f;
-                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed, true);
+
+                if ( newPos.y < slave->getPosition().y )
+                    slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed, true);
             }
 
             break;
@@ -1122,7 +1147,7 @@ void ViewConstraint::apply(float _dt) {
             auto sizeMax = 0.0f;
             for (auto eachSlave : slaves)
             {
-                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->canFollow(master))
+                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->shouldFollowOutput(master))
                 {
                     float sx;
                     if ( type == Type::MakeRowAndAlignOnBBoxTop )
@@ -1156,10 +1181,10 @@ void ViewConstraint::apply(float _dt) {
             for (auto eachSlave : slaves)
             {
                 // Contrain only unpinned node that have only a single output connection
-                if (!eachSlave->isPinned() && eachSlave->isVisible() /*&& eachSlave->mustFollow(master)*/)
+                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->shouldFollowOutput(master) )
                 {
                     // Compute new position for this input view
-                    ImVec2 eachDrivenNewPos = ImVec2(
+                    ImVec2 eachSlaveNewPos = ImVec2(
                             posX + eachSlave->getSize().x / 2.0f,
                             master->getPosition().y
                     );
@@ -1172,12 +1197,12 @@ void ViewConstraint::apply(float _dt) {
                     }
                     else
                     {
-                        float sx = eachSlave->getRect(true, true, true).GetSize().x;
+                        float sx = eachSlave->getRect(true).GetSize().x;
                         posX += sx + nodeSpacing;
                     }
-                    eachDrivenNewPos.y += verticalOffset;
+                    eachSlaveNewPos.y += verticalOffset;
 
-                    eachSlave->addForceToTranslateTo(eachDrivenNewPos + offset, _dt * settings->ui.node.speed, true);
+                    eachSlave->addForceToTranslateTo(eachSlaveNewPos + offset, _dt * settings->ui.node.speed, true);
                 }
                 inputIndex++;
             }
@@ -1190,10 +1215,10 @@ void ViewConstraint::apply(float _dt) {
             if ( !slave->isPinned() && slave->isVisible() )
             {
                 // compute
-                auto masterRect = master->getRect(false, true);
+                auto masterRect = NodeView::GetRect(masters,false, true);
                 auto slaveRect = slave->getRect(true,true );
                 ImVec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
-                ImVec2 newPos(master->getPosition().x, slave->getPosition().y + slaveMasterOffset.y + settings->ui.node.spacing);
+                ImVec2 newPos(masterRect.GetCenter().x, slave->getPosition().y + slaveMasterOffset.y + settings->ui.node.spacing);
 
                 // apply
                 slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed, true);

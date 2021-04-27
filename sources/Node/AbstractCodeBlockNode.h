@@ -30,6 +30,7 @@ namespace Nodable
                       virtual void                 clear() = 0;
         [[nodiscard]] virtual bool                 hasInstructions() const = 0;
         [[nodiscard]] virtual InstructionNode*     getFirstInstruction() const = 0;
+                      virtual void                 getLastInstructions(std::vector<InstructionNode *>& out);
         [[nodiscard]] virtual VariableNode*        findVariable(const std::string& _name) { return nullptr; }
         [[nodiscard]] virtual ScopedCodeBlockNode* getParent();
         [[nodiscard]] inline Layout                getLayout() const { return layout; }
