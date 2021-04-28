@@ -1072,7 +1072,7 @@ void ViewConstraint::apply(float _dt) {
             auto sizeMax = 0.0f;
             for (auto eachSlave : slaves)
             {
-                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->shouldFollowOutput(master))
+                if (!eachSlave->isPinned() && eachSlave->isVisible())
                 {
                     float sx;
                     if ( type == Type::MakeRowAndAlignOnBBoxTop )
@@ -1106,7 +1106,7 @@ void ViewConstraint::apply(float _dt) {
             for (auto eachSlave : slaves)
             {
                 // Contrain only unpinned node that have only a single output connection
-                if (!eachSlave->isPinned() && eachSlave->isVisible() && eachSlave->shouldFollowOutput(master) )
+                if (!eachSlave->isPinned() && eachSlave->isVisible() )
                 {
                     // Compute new position for this input view
                     ImVec2 eachSlaveNewPos = ImVec2(
@@ -1127,7 +1127,12 @@ void ViewConstraint::apply(float _dt) {
                     }
                     eachSlaveNewPos.y += verticalOffset;
 
+                    if ( !eachSlave->shouldFollowOutput(master) )
+                    {
+                        eachSlaveNewPos.y = eachSlave->getPosition().y;
+                    }
                     eachSlave->addForceToTranslateTo(eachSlaveNewPos + offset, _dt * settings->ui.node.speed, true);
+
                 }
                 inputIndex++;
             }
