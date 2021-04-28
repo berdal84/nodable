@@ -193,7 +193,7 @@ void Node::addChild(Node *_node)
 {
     auto found = std::find(m_children.begin(), m_children.end(), _node);
     NODABLE_ASSERT(found == m_children.end()); // check if node is not already child
-    this->m_children.push_back(_node);
+    m_children.push_back(_node);
 }
 
 void Node::removeChild(Node *_node)
