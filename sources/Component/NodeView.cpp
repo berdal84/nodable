@@ -830,10 +830,7 @@ void NodeView::SetDetail(NodeViewDetail _viewDetail)
 
 ImVec2 NodeView::getScreenPos()
 {
-    ImVec2 offset(
-            ImGui::GetCursorPos().x - ImGui::GetCursorScreenPos().x,
-            ImGui::GetCursorPos().y - ImGui::GetCursorScreenPos().y);
-    return m_position - offset;
+    return m_position - (ImGui::GetCursorPos() - ImGui::GetCursorScreenPos());
 }
 
 ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMultiConstrained, bool _ignoreSelf)
@@ -844,40 +841,36 @@ ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMult
         return ImRect(m_position - m_size * 0.5f, m_position + m_size * 0.5f);
     }
 
-    std::vector<float> x;
-    std::vector<float> y;
+    ImRect rect(
+            ImVec2(std::numeric_limits<float>().max()),
+            ImVec2(-std::numeric_limits<float>().max()) );
+
+    auto enlarge_to_fit = [&rect](const ImRect& other) {
+        if( other.Min.x < rect.Min.x) rect.Min.x = other.Min.x;
+        if( other.Min.y < rect.Min.y) rect.Min.y = other.Min.y;
+        if( other.Max.x > rect.Max.x) rect.Max.x = other.Max.x;
+        if( other.Max.y > rect.Max.y) rect.Max.y = other.Max.y;
+    };
 
     if ( !_ignoreSelf)
     {
-        ImRect rect = this->getRect(false);
-        x.push_back(rect.Min.x);
-        x.push_back(rect.Max.x);
-        y.push_back(rect.Min.y);
-        y.push_back(rect.Max.y);
+        ImRect self_rect = getRect(false);
+        enlarge_to_fit(self_rect);
     }
 
-    auto get_rect_recurse = [&](NodeView* eachView) {
+    auto enlarge_to_fit_all = [&](NodeView* eachView) {
         if (eachView && eachView->isVisible() &&
             !(eachView->m_pinned && _ignorePinned) &&
             eachView->shouldFollowOutput(this)) {
             ImRect childRect = eachView->getRect(true, _ignorePinned, _ignoreMultiConstrained);
-            x.push_back(childRect.Min.x);
-            x.push_back(childRect.Max.x);
-            y.push_back(childRect.Min.y);
-            y.push_back(childRect.Max.y);
+            enlarge_to_fit(childRect);
         }
     };
 
-    std::for_each(m_children.begin(), m_children.end(), get_rect_recurse);
-    std::for_each(m_inputs.begin(), m_inputs.end(), get_rect_recurse);
+    std::for_each(m_children.begin(), m_children.end(), enlarge_to_fit_all);
+    std::for_each(m_inputs.begin(), m_inputs.end(), enlarge_to_fit_all);
 
-    auto minmax_x = std::minmax_element(x.begin(), x.end());
-    auto minmax_y = std::minmax_element(y.begin(), y.end());
-
-    return ImRect(
-            ImVec2 (*minmax_x.first, *minmax_y.first), // min
-            ImVec2 (*minmax_x.second, *minmax_y.second) // max
-    );
+    return rect;
 }
 
 void NodeView::clearConstraints() {
