@@ -94,9 +94,13 @@ bool GraphNodeView::draw()
 
                     if ( startNodeView->isVisible() && endNodeView->isVisible() )
                     {
-                        auto endPos   = endNodeView->getConnectorPosition(end, Way_In);
-                        auto startPos = startNodeView->getConnectorPosition(start, Way_Out);
-                        WireView::Draw(ImGui::GetWindowDrawList(), startPos, endPos /*, startNodeView, endNodeView */);
+                        auto endView   = endNodeView->getMemberView(end);
+                        auto startView = startNodeView->getMemberView(start);
+
+                        if ( endView && startView )
+                        {
+                            WireView::Draw(ImGui::GetWindowDrawList(), startView->m_out->getPos(), endView->m_in->getPos() );
+                        }
                     }
                 }
             }
@@ -125,24 +129,8 @@ bool GraphNodeView::draw()
             // Draw temporary wire on top (overlay draw list)
             if (draggedConnector != nullptr)
             {
-                ImVec2 lineScreenPosStart;
-                {
-                    auto member   = draggedConnector->member;
-                    NODABLE_ASSERT(member);
-                    NODABLE_ASSERT(member->getOwner() != nullptr);
-                    auto view     = member->getOwner()->getComponent<NodeView>();
-                    lineScreenPosStart = view->getConnectorPosition(member, draggedConnector->way);
-                }
-
-                auto lineScreenPosEnd = ImGui::GetMousePos();
-
-                // Snap lineEndPosition to hoveredByMouse member's currentPosition
-                if (hoveredConnector != nullptr)
-                {
-                    auto member     = hoveredConnector->member;
-                    auto view       = member->getOwner()->getComponent<NodeView>();
-                    lineScreenPosEnd = view->getConnectorPosition(member, hoveredConnector->way);
-                }
+                ImVec2 lineScreenPosStart = draggedConnector->getPos();
+                ImVec2 lineScreenPosEnd   = hoveredConnector ? hoveredConnector->getPos() : ImGui::GetMousePos();
 
                 ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
                                                       lineScreenPosEnd,
@@ -155,12 +143,11 @@ bool GraphNodeView::draw()
             if (ImGui::IsMouseReleased(0))
             {
                 // Add a new wire if needed (mouse drag'n drop)
-                if (draggedConnector != nullptr &&
-                    hoveredConnector != nullptr)
+                if (draggedConnector && hoveredConnector)
                 {
-                    if (draggedConnector->member != hoveredConnector->member)
+                    if ( !Connector::ShareSameMember(draggedConnector, hoveredConnector) )
                     {
-                        graph->connect(draggedConnector->member, hoveredConnector->member);
+                        graph->connect(draggedConnector->getMember(), hoveredConnector->getMember() );
                     }
 
                     NodeView::ResetDraggedConnector();
@@ -321,12 +308,12 @@ bool GraphNodeView::draw()
 		{
 		    auto props = newNode->getProps();
 			// if dragged member is an m_inputMember
-			if (draggedConnector->member->allowsConnection(Way_In))
+			if (draggedConnector->m_memberView->m_in)
             {
-				graph->connect(props->getFirstWithConn(Way_Out), draggedConnector->member);
+				graph->connect(props->getFirstWithConn(Way_Out), draggedConnector->m_memberView->m_member);
             }
 			// if dragged member is an output
-			else if (draggedConnector->member->allowsConnection(Way_Out))
+			else if (draggedConnector->m_memberView->m_out)
 			{
 				// try to get the first Input only member
 				auto targetMember = props->getFirstWithConn(Way_In);
@@ -338,7 +325,7 @@ bool GraphNodeView::draw()
                 }
 				else
                 {
-                    graph->connect(draggedConnector->member, targetMember);
+                    graph->connect(draggedConnector->m_memberView->m_member, targetMember);
                 }
 			}
 			NodeView::ResetDraggedConnector();

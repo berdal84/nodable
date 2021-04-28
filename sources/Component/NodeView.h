@@ -26,39 +26,50 @@ namespace Nodable
     class CodeBlockNode;
     class GraphNode;
     class NodeView;
+    struct MemberView;
+    struct Connector;
 
-	/**
-	 * Simple struct to store a member view state
-	 */
-	struct MemberView
+    /**
+     * Simple struct to store a member view state
+     */
+    struct MemberView
     {
-	    Member* member;
+        Member*           m_member;
+        NodeView*         m_nodeView;
+        Connector*        m_in;
+        Connector*        m_out;
+        bool              m_showInput;
+        bool              m_touched;
+        ImVec2            m_screenPos;
 
-	    /** determine if input should be visible or not */
-	    bool showInput;
-
-	    /** false by default, will be true if user toggle showInput on/off */
-	    bool touched;
-
-	    /** Position in screen space */
-	    ImVec2 screenPos;
-
-	    explicit MemberView(Member* _member):
-	        member(_member),
-	        showInput(false),
-	        touched(false)
-        {
-	        assert(_member != nullptr); // Member must be defined
-        }
+        explicit MemberView(Member* _member, NodeView* _nodeView);
+        ~MemberView();
 
         /**
          * Reset the view
          */
         void reset()
         {
-            touched = false;
-            showInput = false;
+            m_touched = false;
+            m_showInput = false;
         }
+    };
+
+    /**
+     * @brief A Connector is related to a MemberView for a given Way (In or Out)
+     */
+    struct Connector
+    {
+    public:
+        MemberView* m_memberView;
+        Way         m_way;
+
+        Connector(MemberView* _member, Way _way): m_memberView(_member), m_way(_way) {};
+        ~Connector() {};
+        bool               equals(const Connector* _other)const{ return m_memberView == _other->m_memberView && m_way == _other->m_way; };
+        inline Member*     getMember()const { return m_memberView->m_member; }
+        inline static bool ShareSameMember(const Connector *const lh, const Connector *const rh) { return lh->getMember() == rh->getMember();}
+        ImVec2             getPos()const;
     };
 
 	/**
@@ -112,11 +123,8 @@ namespace Nodable
 		/** Should be called once per frame to update the view */
 		bool update()override;
 
-        /** Get top-left corner vector position */
-		ImVec2 getPosition()const;
-
-		/** Get the connector position of the specified member (by name) for its Way way (In or Out ONLY !) */
-		ImVec2 getConnectorPosition(const Member *_member /*_name*/, Way /*_connection*/_way)const;
+		inline const ImVec2& getPos()const { return m_position; }
+		inline ImVec2 getPosRounded()const { return ImVec2(std::round(m_position.x), std::round(m_position.y)); }
 
 		/** Set a new position (top-left corner relative) vector to this view */
 		void  setPosition(ImVec2);
@@ -240,11 +248,10 @@ namespace Nodable
 			Returns true if Member's value has been modified, false either */
 		bool drawMemberView(MemberView *_memberView);
 
-		/** Draw all member connector(s). Can be 0, 1 or 2 depending on member's connectorWay (cf enum Way_) */
-        void drawMemberConnectors(Member *_member, float _connectorRadius);
+        void drawMemberViewConnector(MemberView* _view, Way _way, float _connectorRadius);
 
         /** Draw a single connector at a specific position into the IMGuiDrawList */
-		void drawConnector(ImVec2& , const Connector* , ImDrawList*, float _connectorRadius);
+		void drawConnector(const ImVec2 &connnectorScreenPos, const Connector *_connector, ImDrawList *draw_list, float _connectorRadius);
 
 		/** Check if a Member is exposed (as an input or output) */
         bool isMemberExposed(const Member *_member)const;
