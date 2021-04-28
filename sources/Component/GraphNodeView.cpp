@@ -64,8 +64,9 @@ bool GraphNodeView::draw()
         auto deltaTime = ImGui::GetIO().DeltaTime;
         for (auto eachNode : nodeRegistry)
         {
-            if (auto view = eachNode->getComponent<NodeView>() )
+            if (auto view = eachNode->getComponent<NodeView>())
             {
+                if( view->isVisible() )
                 view->applyConstraints(deltaTime);
             }
         }

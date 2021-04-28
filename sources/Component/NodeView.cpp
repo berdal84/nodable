@@ -1030,6 +1030,10 @@ ViewConstraint::ViewConstraint(ViewConstraint::Type _type):type(_type) {}
 
 void ViewConstraint::apply(float _dt) {
 
+    auto is_visible = [](NodeView* view) { return view->isVisible(); };
+    if ( std::find_if(masters.begin(), masters.end(), is_visible) == masters.end()) return;
+    if ( std::find_if(slaves.begin(), slaves.end(), is_visible) == slaves.end()) return;
+
     auto settings = Settings::GetCurrent();
 
     LOG_VERBOSE("ViewConstraint", "applying constraint\n");
