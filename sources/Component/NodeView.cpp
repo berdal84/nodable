@@ -224,8 +224,31 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
 
 void NodeView::arrangeRecursively(bool _smoothly)
 {
-    this->m_pinned = false;
-	ArrangeRecursively(this, _smoothly);
+    std::vector<NodeView*> views;
+
+    for (auto inputView : m_inputs)
+    {
+        if ( inputView->shouldFollowOutput(this))
+        {
+            views.push_back(inputView);
+            inputView->arrangeRecursively();
+        }
+    }
+
+    for (auto eachChild : m_children)
+    {
+        views.push_back(eachChild);
+        eachChild->arrangeRecursively();
+    }
+
+//     Force and update of input connected nodes with a delta time extra high
+//     to ensure all nodes were well placed in a single call (no smooth moves)
+    if ( !_smoothly )
+    {
+        update(float(1000));
+    }
+
+    m_pinned = false;
 }
 
 bool NodeView::update()
@@ -430,41 +453,6 @@ bool NodeView::draw()
 	    getOwner()->setDirty();
 
 	return edited;
-}
-
-void NodeView::ArrangeRecursively(NodeView* _view, bool _smoothly)
-{
-    std::vector<NodeView*> views;
-
-    // Get input views
-//    for (auto eachInput : _view->getOwner()->getInputs())
-//    {
-//        auto inputView = eachInput->getComponent<NodeView>();
-//        if ( inputView && inputView->shouldFollowOutput(_view))
-//            views.push_back(inputView);
-//    }
-
-    // Get input views
-//    for (auto eachChild : _view->getOwner()->getChildren())
-//    {
-//        auto inputView = eachChild->getComponent<NodeView>();
-//        if ( inputView )
-//            views.push_back(inputView);
-//    }
-
-    // Recursive calls
-//    for(auto eachView : views)
-//    {
-//        eachView->pinned = false;
-//        ArrangeRecursively(eachView, _smoothly);
-//    }
-
-    // Force and update of input connected nodes with a delta time extra high
-    // to ensure all nodes were well placed in a single call (no smooth moves)
-//    if ( !_smoothly )
-//    {
-//        _view->update(float(1000));
-//    }
 }
 
 void NodeView::drawMemberConnectors(Member* _member, float _connectorRadius)
@@ -911,7 +899,7 @@ void NodeView::addForce(ImVec2 force, bool _recurse)
     {
         for ( auto eachInputView : m_inputs )
         {
-            if ( !eachInputView->m_pinned )
+            if ( !eachInputView->m_pinned && eachInputView->shouldFollowOutput(this))
                 eachInputView->addForce(force, _recurse);
         }
     }

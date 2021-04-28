@@ -143,10 +143,6 @@ namespace Nodable
         void applyConstraints(float _dt);
         void clearConstraints();
 
-        /** Arrange input nodes recursively while keeping this node position unchanged.
-         *  Note: Some input connected Nodes can stay fixed if they are pinned. */
-		static void ArrangeRecursively(NodeView* _view, bool _smoothly = true);
-
 		/** Set a NodeView as selected.
 		 * Note: Only a single view can be selected at the same time */
 		static void SetSelected(NodeView*);
