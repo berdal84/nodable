@@ -51,8 +51,7 @@ namespace Nodable
 
         void drawHistoryBar(History *currentFileHistory);
         void drawStatusBar() const;
-        void drawMenuBar(History*, bool &userWantsToDeleteSelectedNode,
-                         bool &userWantsToArrangeSelectedNodeHierarchy, bool &redock_all);
+
         void drawStartupWindow();
         void drawFileEditor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex);
         void drawFileBrowser();

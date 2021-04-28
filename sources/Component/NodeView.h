@@ -276,5 +276,6 @@ namespace Nodable
 
         // Reflect this class
     MIRROR_CLASS(NodeView) (MIRROR_PARENT(View)); // I only need to know the parent
+        void toggleExpansion();
     };
 }

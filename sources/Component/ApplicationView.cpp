@@ -144,9 +144,10 @@ bool ApplicationView::init()
 bool ApplicationView::draw()
 {
     // TODO: create an event list (fill, execute, clear)
-    auto userWantsToDeleteSelectedNode(false);
-    auto userWantsToArrangeSelectedNodeHierarchy(false);
+    auto delete_node(false);
+    auto arrange_node(false);
     auto userWantsToSelectedNextNode(false);
+    auto expand_node(false);
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -178,11 +179,15 @@ bool ApplicationView::draw()
 			}
 			else if (key == SDLK_DELETE )
             {
-                userWantsToDeleteSelectedNode = true;
+                delete_node = true;
             }
 			else if (key == SDLK_a)
             {
-                userWantsToArrangeSelectedNodeHierarchy = true;
+                arrange_node = true;
+            }
+			else if (key == SDLK_x)
+            {
+                expand_node = true;
             }
             else if (key == SDLK_n)
             {
@@ -253,8 +258,128 @@ bool ApplicationView::draw()
 
             bool redock_all = false;
 
-            drawMenuBar(currentFileHistory, userWantsToDeleteSelectedNode,
-                        userWantsToArrangeSelectedNodeHierarchy, redock_all);
+            if (ImGui::BeginMenuBar()) {
+                if (ImGui::BeginMenu("File")) {
+                    //ImGui::MenuItem(ICON_FA_FILE   "  New", "Ctrl + N");
+                    if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) browseFile();
+                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) application->saveCurrentFile();
+                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) application->closeCurrentFile();
+                    if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4")) application->stopExecution();
+
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Edit")) {
+                    if (currentFileHistory) {
+                        if (ImGui::MenuItem("Undo", "Ctrl + Z")) currentFileHistory->undo();
+                        if (ImGui::MenuItem("Redo", "Ctrl + Y")) currentFileHistory->redo();
+                        ImGui::Separator();
+                    }
+
+                    auto has_selection = NodeView::GetSelected() != nullptr;
+                    delete_node  |= ImGui::MenuItem("Delete", "Del.", false, has_selection);
+                    arrange_node |= ImGui::MenuItem("Arrange nodes", "A", false, has_selection);
+                    expand_node  |= ImGui::MenuItem("Expand (toggle)", "X", false, has_selection);
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("View")) {
+                    //auto frame = ImGui::MenuItem("Frame All", "F");
+                    redock_all |= ImGui::MenuItem("Redock documents");
+
+                    ImGui::Separator();
+                    auto viewDetailMinimalist = ImGui::MenuItem("Minimalist View", "",
+                                                                NodeView::s_viewDetail == NodeViewDetail::Minimalist);
+                    auto viewDetailEssential = ImGui::MenuItem("Essential View", "",
+                                                               NodeView::s_viewDetail == NodeViewDetail::Essential);
+                    auto viewDetailExhaustive = ImGui::MenuItem("Exhaustive View", "",
+                                                                NodeView::s_viewDetail == NodeViewDetail::Exhaustive);
+
+                    if (viewDetailMinimalist) {
+                        NodeView::SetDetail(NodeViewDetail::Minimalist);
+                    } else if (viewDetailEssential) {
+                        NodeView::SetDetail(NodeViewDetail::Essential);
+                    } else if (viewDetailExhaustive) {
+                        NodeView::SetDetail(NodeViewDetail::Exhaustive);
+                    }
+
+                    ImGui::Separator();
+                    m_showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", m_showProperties);
+                    m_showImGuiDemo = ImGui::MenuItem("Show ImGui Demo", "", m_showImGuiDemo);
+
+                    ImGui::Separator();
+
+                    if (SDL_GetWindowFlags(sdlWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+                        auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", true);
+                        if (toggleFullscreen)
+                            SDL_SetWindowFullscreen(sdlWindow, 0);
+                    } else {
+                        auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", false);
+                        if (toggleFullscreen) {
+                            SDL_SetWindowFullscreen(sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+                        }
+                    }
+
+                    ImGui::Separator();
+
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Run")) {
+                    auto vm = application->getVirtualMachine();
+
+                    if (ImGui::MenuItem(ICON_FA_PLAY" Run") && vm.isStopped()) {
+                        application->runCurrentFileProgram();
+                    }
+
+                    if (ImGui::MenuItem(ICON_FA_BUG" Debug") && vm.isStopped()) {
+                        application->debugCurrentFileProgram();
+                    }
+
+                    if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && vm.isDebugging()) {
+                        application->stepOverCurrentFileProgram();
+                    }
+
+                    if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !vm.isStopped()) {
+                        application->stopCurrentFileProgram();
+                    }
+
+                    if (ImGui::MenuItem(ICON_FA_UNDO " Reset")) {
+                        application->stopCurrentFileProgram();
+                    }
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("An issue ?")) {
+                    if (ImGui::MenuItem("Report on Github.com")) {
+                        System::OpenURL("https://github.com/berdal84/Nodable/issues");
+                    }
+
+                    if (ImGui::MenuItem("Report by email")) {
+                        System::OpenURL("mail:berenger@dalle-cort.fr");
+                    }
+
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Help")) {
+                    if (ImGui::MenuItem("Show Startup Screen", "F1")) {
+                        isStartupWindowVisible = true;
+                    }
+
+                    if (ImGui::MenuItem("Browse source code")) {
+                        System::OpenURL("https://www.github.com/berdal84/nodable");
+                    }
+
+                    if (ImGui::MenuItem("Credits")) {
+                        System::OpenURL("https://github.com/berdal84/nodable#credits-");
+                    }
+
+                    ImGui::EndMenu();
+                }
+
+                ImGui::EndMenuBar();
+            }
             drawToolBar();
 
 
@@ -267,7 +392,7 @@ bool ApplicationView::draw()
             ImGuiID dockspace_properties = ImGui::GetID("dockspace_properties");
 
 
-            if ( !this->isLayoutInitialized )
+            if ( !isLayoutInitialized)
             {
                ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
                ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace );
@@ -277,7 +402,7 @@ bool ApplicationView::draw()
                ImGui::DockBuilderDockWindow("Properties", dockspace_properties);
                ImGui::DockBuilderDockWindow("File Info", dockspace_properties);
                ImGui::DockBuilderFinish(dockspace_id);
-                this->isLayoutInitialized = true;
+                isLayoutInitialized = true;
             }
 
              /*
@@ -288,7 +413,7 @@ bool ApplicationView::draw()
             // Global Props
             if (ImGui::Begin("Global Props"))
             {
-                this->drawPropertiesWindow();
+                drawPropertiesWindow();
                 ImGui::NewLine();
 
                 ImGui::ShowStyleEditor();
@@ -334,7 +459,7 @@ bool ApplicationView::draw()
             // Opened documents
             for (size_t fileIndex = 0; fileIndex < application->getFileCount(); fileIndex++)
             {
-                this->drawFileEditor(dockspace_id, redock_all, fileIndex);
+                drawFileEditor(dockspace_id, redock_all, fileIndex);
             }
 
 
@@ -349,14 +474,18 @@ bool ApplicationView::draw()
 		auto selectedNodeView = NodeView::GetSelected();
 		if (selectedNodeView)
 		{
-			if (userWantsToDeleteSelectedNode)
+			if (delete_node)
 			{
 			    auto node = selectedNodeView->getOwner();
                 node->flagForDeletion();
             }
-			else if (userWantsToArrangeSelectedNodeHierarchy)
+			else if (arrange_node)
             {
 				selectedNodeView->arrangeRecursively();
+            }
+            else if (expand_node)
+            {
+                selectedNodeView->toggleExpansion();
             }
 			else if (userWantsToSelectedNextNode)
             {
@@ -587,160 +716,6 @@ void ApplicationView::drawStartupWindow() {
         ImGui::EndPopup();
     }
 
-}
-
-void ApplicationView::drawMenuBar(
-        History *currentFileHistory,
-        bool &userWantsToDeleteSelectedNode,
-        bool &userWantsToArrangeSelectedNodeHierarchy,
-        bool &redock_all)
-{
-    if (ImGui::BeginMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
-            //ImGui::MenuItem(ICON_FA_FILE   "  New", "Ctrl + N");
-            if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) browseFile();
-            if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) application->saveCurrentFile();
-            if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) application->closeCurrentFile();
-            if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4")) application->stopExecution();
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Edit"))
-        {
-            if (currentFileHistory)
-            {
-                if (ImGui::MenuItem("Undo", "Ctrl + Z")) currentFileHistory->undo();
-                if (ImGui::MenuItem("Redo", "Ctrl + Y")) currentFileHistory->redo();
-                ImGui::Separator();
-            }
-
-            auto isAtLeastANodeSelected = NodeView::GetSelected() != nullptr;
-            userWantsToDeleteSelectedNode |= ImGui::MenuItem("Delete", "Del.", false, isAtLeastANodeSelected);
-            userWantsToArrangeSelectedNodeHierarchy |= ImGui::MenuItem("ReArrange nodes", "A", false, isAtLeastANodeSelected);
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("View"))
-        {
-            //auto frame = ImGui::MenuItem("Frame All", "F");
-            redock_all |= ImGui::MenuItem("Redock documents");
-
-            ImGui::Separator();
-            auto viewDetail_Minimalist  = ImGui::MenuItem("Minimalist View", "", NodeView::s_viewDetail == NodeViewDetail::Minimalist);
-            auto viewDetail_Essential   = ImGui::MenuItem("Essential View",  "", NodeView::s_viewDetail == NodeViewDetail::Essential);
-            auto viewDetail_Exhaustive  = ImGui::MenuItem("Exhaustive View", "", NodeView::s_viewDetail == NodeViewDetail::Exhaustive);
-
-            if (viewDetail_Minimalist)
-            {
-                NodeView::SetDetail(NodeViewDetail::Minimalist);
-            }
-            else if (viewDetail_Essential)
-            {
-                NodeView::SetDetail(NodeViewDetail::Essential);
-            }
-            else if (viewDetail_Exhaustive)
-            {
-                NodeView::SetDetail(NodeViewDetail::Exhaustive);
-            }
-
-            ImGui::Separator();
-            m_showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", m_showProperties);
-            m_showImGuiDemo = ImGui::MenuItem("Show ImGui Demo", "", m_showImGuiDemo);
-
-            ImGui::Separator();
-
-            if (SDL_GetWindowFlags(sdlWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP)
-            {
-                auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", true);
-                if (toggleFullscreen)
-                    SDL_SetWindowFullscreen(sdlWindow, 0);
-            }
-            else
-            {
-                auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", false);
-                if (toggleFullscreen)
-                {
-                    SDL_SetWindowFullscreen(sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
-                }
-            }
-
-            ImGui::Separator();
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Run"))
-        {
-            auto vm = application->getVirtualMachine();
-
-            if (ImGui::MenuItem(ICON_FA_PLAY" Run") && vm.isStopped())
-            {
-               application->runCurrentFileProgram();
-            }
-
-            if (ImGui::MenuItem(ICON_FA_BUG" Debug") && vm.isStopped())
-            {
-               application->debugCurrentFileProgram();
-            }
-
-            if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && vm.isDebugging())
-            {
-                application->stepOverCurrentFileProgram();
-            }
-
-            if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !vm.isStopped())
-            {
-                application->stopCurrentFileProgram();
-            }
-
-            if (ImGui::MenuItem(ICON_FA_UNDO " Reset"))
-            {
-                application->stopCurrentFileProgram();
-            }
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("An issue ?"))
-        {
-            if (ImGui::MenuItem("Report on Github.com"))
-            {
-                System::OpenURL("https://github.com/berdal84/Nodable/issues");
-            }
-
-            if (ImGui::MenuItem("Report by email"))
-            {
-                System::OpenURL("mail:berenger@dalle-cort.fr");
-            }
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Help"))
-        {
-            if (ImGui::MenuItem("Show Startup Screen", "F1"))
-            {
-                isStartupWindowVisible = true;
-            }
-
-            if (ImGui::MenuItem("Browse source code"))
-            {
-                System::OpenURL("https://www.github.com/berdal84/nodable");
-            }
-
-            if (ImGui::MenuItem("Credits"))
-            {
-                System::OpenURL("https://github.com/berdal84/nodable#credits-");
-            }
-
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMenuBar();
-    }
 }
 
 void ApplicationView::drawStatusBar() const {/*

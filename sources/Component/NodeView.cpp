@@ -347,19 +347,17 @@ bool NodeView::draw()
         edited |= drawMemberView(memberView);
     }
 
-    // If needed, show a button to show/hide children and inputs.
-    if ( !getOwner()->getChildren().empty() || !getOwner()->getInputs().empty() )
-    {
-        ImGui::SameLine();
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
-        if ( ImGui::Button(m_childrenVisible ? ICON_FA_MINUS : ICON_FA_PLUS, ImVec2(20.0f, 20.0f)) )
-        {
-            bool visibility = !m_childrenVisible;
-            setChildrenVisible(visibility, true);
-            setInputsVisible(visibility, true);
-        }
-        ImGui::PopStyleVar();
-    }
+    // If needed, show a button to show/hide children and inputs. now accessible with "X" or Edit->Expand
+//    if ( !getOwner()->getChildren().empty() || !getOwner()->getInputs().empty() )
+//    {
+//        ImGui::SameLine();
+//        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+//        if ( ImGui::Button(m_childrenVisible ? ICON_FA_MINUS : ICON_FA_PLUS, ImVec2(20.0f, 20.0f)) )
+//        {
+//            toggleExpansion();
+//        }
+//        ImGui::PopStyleVar();
+//    }
 
 	ImGui::SameLine();
 
@@ -1019,6 +1017,13 @@ void NodeView::getNext(std::vector<NodeView *>& out)
                  out.push_back(each_view);
         }
      }
+}
+
+void NodeView::toggleExpansion()
+{
+    bool visibility = !m_childrenVisible;
+    setChildrenVisible(visibility, true);
+    setInputsVisible(visibility, true);
 }
 
 ViewConstraint::ViewConstraint(ViewConstraint::Type _type):type(_type) {}
