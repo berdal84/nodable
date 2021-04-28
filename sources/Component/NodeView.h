@@ -7,6 +7,7 @@
 #include <map>
 #include "Member.h"
 #include <mirror.h>
+#include <algorithm>
 
 namespace Nodable
 {
@@ -206,6 +207,35 @@ namespace Nodable
 
         /** Get a MemberView given a Member */
         const MemberView* getMemberView(const Member* _member)const;
+
+        ImVec2 getScreenPos();
+
+        bool isPinned() const;
+
+        ImVec2 getSize() const;
+
+        static ImRect GetRect(
+                const std::vector<NodeView *>&,
+                bool _recursive = false,
+                bool _ignorePinned = true,
+                bool _ignoreMultiConstrained = true);
+
+        void                    addForceToTranslateTo(ImVec2 desiredPos, float _factor, bool _recurse = false);
+        void                    addForce(ImVec2 force, bool _recurse = false);
+        void                    applyForces(float _dt, bool _recurse);
+        void                    setChildrenVisible(bool _visible, bool _recursive = false);
+        void                    setInputsVisible(bool _visible, bool _recursive = false);
+        bool                    shouldFollowOutput(const NodeView*);
+        void                    getNext(std::vector<NodeView *> &out);
+        std::vector<NodeView*>& getChildren() { return m_children; }
+        std::vector<NodeView*>& getOutputs() { return m_outputs; }
+        std::vector<NodeView*>& getInputs() { return m_inputs; }
+        void                    addInput(NodeView* view) { m_inputs.push_back(view); }
+        void                    addChild(NodeView* view) { m_children.push_back(view); }
+        void                    addOutput(NodeView* view) { m_outputs.push_back(view); }
+        void                    removeInput(NodeView* view) { m_inputs.erase( std::find(m_inputs.begin(), m_inputs.end(), view));}
+        void                    removeOutput(NodeView* view) { m_outputs.erase( std::find(m_outputs.begin(), m_outputs.end(), view));}
+        void                    removeChild(NodeView* view) { m_children.erase( std::find(m_children.begin(), m_children.end(), view));}
     private:
         /** Update function that takes a specific delta time (can be hacked by sending a custom value) */
         virtual bool update(float _deltaTime);
@@ -223,81 +253,30 @@ namespace Nodable
 		/** Check if a Member is exposed (as an input or output) */
         bool isMemberExposed(const Member *_member)const;
 
-        /** position in pixels (center of the NodeView) */
-		ImVec2          position;
+        ImVec2          m_forces;
+        bool            m_childrenVisible;
+		ImVec2          m_position;
+		ImVec2          m_size;
+		float           m_opacity;
+		bool            m_forceMemberInputVisible;
+		bool            m_pinned;
+		float           m_borderRadius;
+		ImColor         m_borderColorSelected;
+		std::vector<NodeView*>               m_children;
+		std::vector<NodeView*>               m_inputs;
+		std::vector<NodeView*>               m_outputs;
+		std::vector<MemberView*>             m_exposedInputsMembers;
+		std::vector<MemberView*>             m_exposedOutputMembers;
+        std::map<const Member*, MemberView*> m_exposedMembers;
+        std::vector<ViewConstraint>          m_constraints;
 
-		/** Size in pixels */
-		ImVec2          size;
-
-        /** global transparency of this view */
-		float           opacity;
-
-		/* @deprecated */
-		bool            forceMemberInputVisible;
-
-		/** when true, the NodeView is pinned to the document and do not follow it's connected Node */
-		bool            pinned;
-		float           borderRadius;
-		ImColor         borderColorSelected;
-		std::vector<MemberView*> exposedInputsMembers;
-		std::vector<MemberView*> exposedOutputMembers;
-        std::map<const Member*, MemberView*> exposedMembers;
-
-        /** The constraints this view is subject to */
-        std::vector<ViewConstraint> constraints;
-
-        /** pointer to the currently selected NodeView. */
-		static NodeView* s_selected;
-
-        /** pointer to the currently dragged NodeView. */
-		static NodeView* s_draggedNode;
-
-		static const Connector* s_draggedConnector;
-		static const Connector* s_hoveredConnector;
-
-		/** Minimum size for an input field */
-        static const float s_memberInputSizeMin;
-
-        /** Size of the small button to toggle input visibility on/off */
-        static const ImVec2 s_memberInputToggleButtonSize;
-
-        /** to store all instances */
+		static NodeView*              s_selected;
+		static NodeView*              s_draggedNode;
+		static const Connector*       s_draggedConnector;
+		static const Connector*       s_hoveredConnector;
+        static const float            s_memberInputSizeMin;
+        static const ImVec2           s_memberInputToggleButtonSize;
         static std::vector<NodeView*> s_instances;
-
-	public:
-        ImVec2 getScreenPos();
-
-        bool isPinned() const;
-
-        ImVec2 getSize() const;
-
-        static ImRect GetRect(
-                const std::vector<NodeView *>&,
-                bool _recursive = false,
-                bool _ignorePinned = true,
-                bool _ignoreMultiConstrained = true);
-
-        void addForceToTranslateTo(ImVec2 desiredPos, float _factor, bool _recurse = false);
-
-        void addForce(ImVec2 force, bool _recurse = false);
-
-        // sum of forces applied to this
-        ImVec2 forces;
-
-        void applyForces(float _dt, bool _recurse);
-
-        void setChildrenVisible(bool _visible, bool _recursive = false);
-        bool childrenVisible = true;
-        std::vector<NodeView *> getChildren();
-
-        void setInputsVisible(bool _visible, bool _recursive = false);
-
-        std::vector<NodeView *> getInputs();
-
-        bool shouldFollowOutput(const NodeView*);
-
-        std::vector<NodeView *> getOutputs();
-        void getNext(std::vector<NodeView *> &out);
 
         // Reflect this class
     MIRROR_CLASS(NodeView) (MIRROR_PARENT(View)); // I only need to know the parent
