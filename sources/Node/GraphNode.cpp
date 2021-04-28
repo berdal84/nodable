@@ -42,7 +42,7 @@ void GraphNode::clear()
 	if (m_program && m_program->hasInstructions() )
 	{
         auto view = m_program->getComponent<NodeView>();
-        GraphNode::s_mainScopeView_lastKnownPosition = view->getPosition();
+        GraphNode::s_mainScopeView_lastKnownPosition = view->getPosRounded();
     }
 
 	LOG_VERBOSE( "GraphNode", "=================== clear() ==================\n");

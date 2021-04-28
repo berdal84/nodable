@@ -75,7 +75,7 @@ void NodeView::exposeMember(Member* _member, Way _way)
 {
     assert(_way == Way_In || _way == Way_Out);
 
-    MemberView* memberView = new MemberView(_member);
+    MemberView* memberView = new MemberView(_member, this);
 
     if( _way == Way_In )
     {
@@ -169,35 +169,11 @@ bool NodeView::IsSelected(NodeView* _view)
 	return s_selected == _view;
 }
 
-ImVec2 NodeView::getPosition()const
-{
-	return ImVec2(std::round(m_position.x), std::round(m_position.y));
-}
-
 const MemberView* NodeView::getMemberView(const Member* _member)const
 {
-    return m_exposedMembers.at(_member);
-}
-
-ImVec2 NodeView::getConnectorPosition(const Member *_member, Way _way)const
-{
-    ImVec2 pos = m_position;
-
-	auto memberView = getMemberView(_member);
-    if (memberView)
-    {
-        pos = memberView->screenPos;
-    }
-
-	auto nodeViewScreenPosition = View::CursorPosToScreenPos(m_position);
-
-	// Input => Top
-	if (_way == Way_In)
-    {
-		return ImVec2(pos.x , nodeViewScreenPosition.y - m_size.y * 0.5f);
-    }
-	// Outputs => Bottom
-	return ImVec2(pos.x, nodeViewScreenPosition.y + m_size.y * 0.5f);
+    if ( m_exposedMembers.find(_member) != m_exposedMembers.end())
+        return m_exposedMembers.at(_member);
+    return nullptr;
 }
 
 void NodeView::setPosition(ImVec2 _position)
@@ -288,10 +264,10 @@ bool NodeView::draw()
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
 	const auto halfSize = m_size / 2.0;
-	ImGui::SetCursorPos(getPosition() - halfSize );
+	ImGui::SetCursorPos(getPosRounded() - halfSize );
 	ImGui::PushID(this);
 	ImVec2 cursorPositionBeforeContent = ImGui::GetCursorPos();
-	ImVec2 screenPosition  = View::CursorPosToScreenPos(getPosition() );
+	ImVec2 screenPosition  = View::CursorPosToScreenPos(getPosRounded() );
 
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -374,13 +350,13 @@ bool NodeView::draw()
 	// Draw input connectors
     for( auto& memberView : m_exposedInputsMembers )
     {
-        drawMemberConnectors(memberView->member, settings->ui.node.connectorRadius);
+        drawMemberViewConnector(memberView, Way_In, settings->ui.node.connectorRadius);
     }
 
 	// Draw out connectors
     for( auto& memberView : m_exposedOutputMembers )
     {
-        drawMemberConnectors(memberView->member, settings->ui.node.connectorRadius);
+        drawMemberViewConnector(memberView, Way_Out, settings->ui.node.connectorRadius);
     }
 
     // Contextual menu (right click)
@@ -439,8 +415,8 @@ bool NodeView::draw()
         for( auto& pair : m_exposedMembers )
         {
             auto& eachMemberView = pair.second;
-            eachMemberView->touched = m_forceMemberInputVisible;
-            eachMemberView->showInput = m_forceMemberInputVisible;
+            eachMemberView->m_touched = m_forceMemberInputVisible;
+            eachMemberView->m_showInput = m_forceMemberInputVisible;
         }
 	}
 
@@ -453,7 +429,7 @@ bool NodeView::draw()
 	return edited;
 }
 
-void NodeView::drawMemberConnectors(Member* _member, float _connectorRadius)
+void NodeView::drawMemberViewConnector(MemberView* _view, Way _way, float _connectorRadius)
 {
     /*
     Draw the wire connectors (In or Out only)
@@ -461,40 +437,31 @@ void NodeView::drawMemberConnectors(Member* _member, float _connectorRadius)
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    if (_member->allowsConnection(Way_In))
-    {
-        ImVec2      connectorPos = getConnectorPosition( _member, Way_In);
-        drawConnector(connectorPos, _member->input(), draw_list, _connectorRadius);
-    }
-
-    if (_member->allowsConnection(Way_Out))
-    {
-        ImVec2      connectorPos = getConnectorPosition( _member, Way_Out);
-        drawConnector(connectorPos, _member->output(), draw_list, _connectorRadius);
-    }
+    if ( _view->m_in )  drawConnector(_view->m_in->getPos(), _view->m_in, draw_list, _connectorRadius);
+    if ( _view->m_out ) drawConnector(_view->m_out->getPos(), _view->m_out, draw_list, _connectorRadius);
 }
 
 bool NodeView::drawMemberView(MemberView* _memberView )
 {
     bool edited = false;
-    Member* member = _memberView->member;
+    Member* member = _memberView->m_member;
 
-    if( !_memberView->touched )
+    if( !_memberView->m_touched )
     {
         const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
         const bool isVariable = member->getOwner()->getClass() == VariableNode::GetClass();
         const bool isLiteral  = member->getOwner()->getClass() == LiteralNode::GetClass();
-        _memberView->showInput = _memberView->member->isDefined() && (!isAnInputUnconnected || isLiteral || isVariable || s_viewDetail == NodeViewDetail::Exhaustive) ;
+        _memberView->m_showInput = _memberView->m_member->isDefined() && (!isAnInputUnconnected || isLiteral || isVariable || s_viewDetail == NodeViewDetail::Exhaustive) ;
     }
 
-    _memberView->screenPos = ImGui::GetCursorScreenPos();
+    _memberView->m_screenPos = ImGui::GetCursorScreenPos();
 
     // input
-    if ( _memberView->showInput )
+    if ( _memberView->m_showInput )
     {
         // try to draw an as small as possible input field
         float inputWidth = 5.0f + std::max( ImGui::CalcTextSize(((std::string)*member).c_str()).x, NodeView::s_memberInputSizeMin );
-        _memberView->screenPos.x += inputWidth / 2.0f;
+        _memberView->m_screenPos.x += inputWidth / 2.0f;
         ImGui::PushItemWidth(inputWidth);
         edited = NodeView::DrawMemberInput(member);
         ImGui::PopItemWidth();
@@ -502,7 +469,7 @@ bool NodeView::drawMemberView(MemberView* _memberView )
     else
     {
         ImGui::Button("", NodeView::s_memberInputToggleButtonSize);
-        _memberView->screenPos.x += NodeView::s_memberInputToggleButtonSize.x / 2.0f;
+        _memberView->m_screenPos.x += NodeView::s_memberInputToggleButtonSize.x / 2.0f;
 
         if ( ImGui::IsItemHovered() )
         {
@@ -515,8 +482,8 @@ bool NodeView::drawMemberView(MemberView* _memberView )
 
         if ( ImGui::IsItemClicked(0) )
         {
-            _memberView->showInput = !_memberView->showInput;
-            _memberView->touched = true;
+            _memberView->m_showInput = !_memberView->m_showInput;
+            _memberView->m_touched = true;
         }
     }
 
@@ -608,7 +575,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     return edited;
 }
 
-void NodeView::drawConnector(ImVec2& connnectorScreenPos, const Connector* _connector, ImDrawList* draw_list, float _connectorRadius)
+void NodeView::drawConnector(const ImVec2 &connnectorScreenPos, const Connector* _connector, ImDrawList* draw_list, float _connectorRadius)
 {
 	// Unvisible Button on top of the Circle
 
@@ -616,7 +583,7 @@ void NodeView::drawConnector(ImVec2& connnectorScreenPos, const Connector* _conn
 
 	auto invisibleButtonOffsetFactor = 1.2f;
 	ImGui::SetCursorScreenPos(connnectorScreenPos - ImVec2(_connectorRadius * invisibleButtonOffsetFactor));
-	ImGui::PushID(_connector->member);
+	ImGui::PushID(_connector->m_memberView);
 	bool clicked = ImGui::InvisibleButton("###", ImVec2(_connectorRadius * 2.0f * invisibleButtonOffsetFactor, _connectorRadius * 2.0f * invisibleButtonOffsetFactor));
 	ImGui::PopID();
 	ImGui::SetCursorScreenPos(cursorScreenPos);
@@ -643,10 +610,10 @@ void NodeView::drawConnector(ImVec2& connnectorScreenPos, const Connector* _conn
     {
 		s_hoveredConnector = _connector;
         ImGui::BeginTooltip();
-        ImGui::Text("%s", _connector->member->getName().c_str() );
+        ImGui::Text("%s", _connector->getMember()->getName().c_str() );
         ImGui::EndTooltip();
     }
-	else if (s_hoveredConnector != nullptr && s_hoveredConnector->equals(_connector))
+	else if (s_hoveredConnector != nullptr && s_hoveredConnector == _connector)
 	{
 		s_hoveredConnector = nullptr;
 	}
@@ -687,7 +654,7 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
     ImGui::Indent();
     for (auto& eachView : _view->m_exposedInputsMembers )
     {
-        drawMember(eachView->member);
+        drawMember(eachView->m_member);
     }
     ImGui::Unindent();
 
@@ -697,7 +664,7 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
     ImGui::Indent();
     for (auto& eachView : _view->m_exposedOutputMembers )
     {
-        drawMember(eachView->member);
+        drawMember(eachView->m_member);
     }
     ImGui::Unindent();
 
@@ -715,7 +682,7 @@ void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 
 		auto nodeRect = _view->getRect();
 
-		auto newPos = _view->getPosition();
+		auto newPos = _view->getPosRounded();
 
 		auto left  = _rect.Min.x - nodeRect.Min.x;
 		auto right = _rect.Max.x - nodeRect.Max.x;
@@ -1064,7 +1031,7 @@ void ViewConstraint::apply(float _dt) {
                 newPos.y -= settings->ui.node.spacing + slave->getSize().y / 2.0f;
                 newPos.x += settings->ui.node.spacing + slave->getSize().x / 2.0f;
 
-                if ( newPos.y < slave->getPosition().y )
+                if ( newPos.y < slave->getPos().y )
                     slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed, true);
             }
 
@@ -1097,7 +1064,7 @@ void ViewConstraint::apply(float _dt) {
             float posX;
 
             if ( type == Type::MakeRowAndAlignOnBBoxTop)
-                posX = master->getPosition().x - cumulatedSize / 2.0f;
+                posX = master->getPos().x - cumulatedSize / 2.0f;
             else
                 posX = master->getRect().GetBL().x;
 
@@ -1120,7 +1087,7 @@ void ViewConstraint::apply(float _dt) {
                     // Compute new position for this input view
                     ImVec2 eachSlaveNewPos = ImVec2(
                             posX + eachSlave->getSize().x / 2.0f,
-                            master->getPosition().y
+                            master->getPos().y
                     );
 
                     float verticalOffset = settings->ui.node.spacing + eachSlave->getSize().y / 2.0f + master->getSize().y / 2.0f;
@@ -1138,7 +1105,7 @@ void ViewConstraint::apply(float _dt) {
 
                     if ( !eachSlave->shouldFollowOutput(master) )
                     {
-                        eachSlaveNewPos.y = eachSlave->getPosition().y;
+                        eachSlaveNewPos.y = eachSlave->getPos().y;
                     }
                     eachSlave->addForceToTranslateTo(eachSlaveNewPos + offset, _dt * settings->ui.node.speed, true);
 
@@ -1157,7 +1124,7 @@ void ViewConstraint::apply(float _dt) {
                 auto masterRect = NodeView::GetRect(masters,false, true);
                 auto slaveRect = slave->getRect(true,true );
                 ImVec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
-                ImVec2 newPos(masterRect.GetCenter().x, slave->getPosition().y + slaveMasterOffset.y + settings->ui.node.spacing);
+                ImVec2 newPos(masterRect.GetCenter().x,slave->getPos().y + slaveMasterOffset.y + settings->ui.node.spacing);
 
                 // apply
                 slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed, true);
@@ -1171,7 +1138,7 @@ void ViewConstraint::apply(float _dt) {
             if ( !slave->isPinned() && slave->isVisible() )
             {
                 // compute
-                ImVec2 newPos(master->getPosition() + ImVec2(0.0f, master->getSize().y));
+                ImVec2 newPos(master->getPos() + ImVec2(0.0f, master->getSize().y));
                 newPos.y += settings->ui.node.spacing + slave->getSize().y;
 
                 // apply
@@ -1202,4 +1169,33 @@ void ViewConstraint::addMasters(const std::vector<NodeView *> &vector)
 {
     for(auto each : vector)
         addMaster(each);
+}
+
+MemberView::MemberView(Member* _member, NodeView* _nodeView)
+    : m_member(_member)
+    , m_showInput(false)
+    , m_touched(false)
+    , m_in(nullptr)
+    , m_out(nullptr)
+    , m_nodeView(_nodeView)
+{
+    NODABLE_ASSERT(_member != nullptr); // Member must be defined
+    if ( m_member->allowsConnection(Way_In) )   m_in  = new Connector(this, Way_In);
+    if ( m_member->allowsConnection(Way_Out) )  m_out = new Connector(this, Way_Out);
+}
+
+MemberView::~MemberView()
+{
+    delete m_in;
+    delete m_out;
+}
+
+ImVec2 Connector::getPos()const
+{
+    ImVec2 pos                  = m_memberView->m_screenPos;
+    auto nodeViewScreenPosition = View::CursorPosToScreenPos(m_memberView->m_nodeView->getPos());
+    auto nodeSemiHeight         = m_memberView->m_nodeView->getSize().y * 0.5f;
+    if (m_way == Way_In) nodeSemiHeight = -nodeSemiHeight;
+
+    return ImVec2(pos.x, nodeViewScreenPosition.y + nodeSemiHeight);
 }

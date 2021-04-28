@@ -2,9 +2,9 @@
 
 #include "Nodable.h"    // for constants and forward declarations
 #include "Variant.h"
-#include "Connector.h"
 #include "Visibility.h"
-#include "Token.h"
+#include "Core/Token.h"
+#include "Core/Way.h"
 
 #include <string>
 
@@ -25,20 +25,20 @@ namespace Nodable
     {
 	public:
         Member();
-		explicit Member(std::string);
+		explicit Member(const std::string&);
         explicit Member(int);
         explicit Member(bool);
         explicit Member(double);
         explicit Member(const char *);
         ~Member();
 
-		[[nodiscard]] bool allowsConnection(Way)const;
+        [[nodiscard]] bool allowsConnection(Way wayFlags)const { return (m_wayFlags & wayFlags) == wayFlags;}
 		[[nodiscard]] bool hasInputConnected()const;
         [[nodiscard]] inline bool isDefined() const { return m_data.isDefined(); }
 		[[nodiscard]] bool isType(Type type)const { return m_data.isType(type); }
         [[nodiscard]] bool equals(const Member *)const;
 
-		void setConnectorWay(Way);
+		void setConnectorWay(Way wayFlags) { m_wayFlags = wayFlags; }
 		void setSourceExpression(const char* expr) { m_sourceExpression = expr; }
 		void setInputMember(Member*);
 		void setName(const char* name) { m_name = name; }
@@ -62,11 +62,9 @@ namespace Nodable
 		[[nodiscard]] inline Type                  getType()const { return m_data.getType(); }
 		[[nodiscard]] inline std::string           getTypeAsString()const { return m_data.getTypeAsString(); }
         [[nodiscard]] inline Visibility            getVisibility()const { return m_visibility; }
-        [[nodiscard]] Way                          getConnectorWay()const;
+        [[nodiscard]] Way                          getConnectorWay()const { return m_wayFlags; }
         [[nodiscard]] inline const Token*          getSourceToken() const { return &m_sourceToken; }
         [[nodiscard]] inline Token*                getSourceToken() { return &m_sourceToken; }
-        [[nodiscard]] inline const Connector*      input() const { return m_in; }
-        [[nodiscard]] inline const Connector*      output() const { return m_out; }
         [[nodiscard]] inline const Variant*        getData()const { return &m_data; }
 
 		inline explicit operator int()const       { return (int)this->m_data; }
@@ -87,8 +85,7 @@ namespace Nodable
         Node*             m_owner;
 		Properties*       m_parentProperties;
 		Member*           m_inputMember;
-        Connector*        m_in;
-        Connector*        m_out;
+		Way               m_wayFlags;
         Token             m_sourceToken;
         std::string       m_sourceExpression;
 		std::string       m_name;
