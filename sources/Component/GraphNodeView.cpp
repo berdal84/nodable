@@ -435,20 +435,12 @@ void GraphNodeView::updateViewConstraints()
 
 
             auto children = eachView->getChildren();
-
-            if ( clss->isChildOf(mirror::GetClass<AbstractCodeBlockNode>()))
+            if( children.size() > 1 && clss == mirror::GetClass<ConditionalStructNode>())
             {
-
-                if( !children.empty() )
-                {
-                    if ( clss == mirror::GetClass<ConditionalStructNode>())
-                    {
-                        ViewConstraint followConstr(ViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
-                        followConstr.addMaster(eachView);
-                        followConstr.addSlaves(children);
-                        eachView->addConstraint(followConstr);
-                    }
-                }
+                ViewConstraint followConstr(ViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
+                followConstr.addMaster(eachView);
+                followConstr.addSlaves(children);
+                eachView->addConstraint(followConstr);
             }
 
             // Each Node with more than 1 output needs to be aligned with the bbox top of output nodes
