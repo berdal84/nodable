@@ -52,11 +52,12 @@ bool GraphNodeView::draw()
 	bool isAnyNodeHovered = false;
 	{
 		// Constraints
-		if (graph->hasInstructionNodes() )
+		if (auto program = graph->getProgram() )
 		{
             // Make sure result node is always visible
-			auto view = graph->getProgram()->getFirstInstruction()->getComponent<NodeView>();
+			auto view = program->getComponent<NodeView>();
 			auto rect = ImRect(ImVec2(0,0), ImGui::GetWindowSize());
+			rect.Expand(-20.f);
 			rect.Max.y = std::numeric_limits<float>::max();
 			NodeView::ConstraintToRect(view, rect );
 		}
@@ -244,19 +245,16 @@ bool GraphNodeView::draw()
 		Mouse PAN (global)
 	*/
 
-	bool isMousePanEnable = false;
-	if (isMousePanEnable)
-	{	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged)
-		{
-			auto drag = ImGui::GetMouseDragDelta();
-			for (auto eachNode : nodeRegistry)
-			{
-				if (auto view = eachNode->getComponent<NodeView>() ) 
-					view->translate(drag);
-			}
-			ImGui::ResetMouseDragDelta();
-		}
-	}
+	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged)
+    {
+        auto drag = ImGui::GetMouseDragDelta();
+        for (auto eachNode : nodeRegistry)
+        {
+            if (auto view = eachNode->getComponent<NodeView>() )
+                view->translate(drag);
+        }
+        ImGui::ResetMouseDragDelta();
+    }
 
 	/*
 		Mouse right-click popup menu

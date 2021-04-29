@@ -118,7 +118,7 @@ bool File::evaluateExpression(std::string& _expression)
 	Parser* parser = language->getParser();
 	GraphNode* graph = getInnerGraph();
     graph->clear();
-    if (parser->expressionToGraph(_expression, graph) && graph->hasInstructionNodes() )
+    if (parser->expressionToGraph(_expression, graph) && graph->hasProgram() )
     {
         graph->arrangeNodeViews();
         LOG_MESSAGE("File", "Expression evaluated: %s\n", _expression.c_str());
