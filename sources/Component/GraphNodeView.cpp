@@ -145,7 +145,7 @@ bool GraphNodeView::draw()
                 // Add a new wire if needed (mouse drag'n drop)
                 if (draggedConnector && hoveredConnector)
                 {
-                    if ( !Connector::ShareSameMember(draggedConnector, hoveredConnector) )
+                    if ( !MemberConnector::ShareSameMember(draggedConnector, hoveredConnector) )
                     {
                         graph->connect(draggedConnector->getMember(), hoveredConnector->getMember() );
                     }

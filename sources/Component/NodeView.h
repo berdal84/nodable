@@ -27,7 +27,7 @@ namespace Nodable
     class GraphNode;
     class NodeView;
     struct MemberView;
-    struct Connector;
+    struct MemberConnector;
 
     /**
      * Simple struct to store a member view state
@@ -36,8 +36,8 @@ namespace Nodable
     {
         Member*           m_member;
         NodeView*         m_nodeView;
-        Connector*        m_in;
-        Connector*        m_out;
+        MemberConnector*        m_in;
+        MemberConnector*        m_out;
         bool              m_showInput;
         bool              m_touched;
         ImVec2            m_screenPos;
@@ -56,19 +56,19 @@ namespace Nodable
     };
 
     /**
-     * @brief A Connector is related to a MemberView for a given Way (In or Out)
+     * @brief A MemberConnector is related to a MemberView for a given Way (In or Out)
      */
-    struct Connector
+    struct MemberConnector
     {
     public:
         MemberView* m_memberView;
         Way         m_way;
 
-        Connector(MemberView* _member, Way _way): m_memberView(_member), m_way(_way) {};
-        ~Connector() {};
-        bool               equals(const Connector* _other)const{ return m_memberView == _other->m_memberView && m_way == _other->m_way; };
+        MemberConnector(MemberView* _member, Way _way): m_memberView(_member), m_way(_way) {};
+        ~MemberConnector() {};
+        bool               equals(const MemberConnector* _other)const{ return m_memberView == _other->m_memberView && m_way == _other->m_way; };
         inline Member*     getMember()const { return m_memberView->m_member; }
-        inline static bool ShareSameMember(const Connector *const lh, const Connector *const rh) { return lh->getMember() == rh->getMember();}
+        inline static bool ShareSameMember(const MemberConnector *const lh, const MemberConnector *const rh) { return lh->getMember() == rh->getMember();}
         ImVec2             getPos()const;
     };
 
@@ -159,15 +159,15 @@ namespace Nodable
 		static NodeView* GetSelected();
 
 		/** Return a pointer to the dragged Connector or nullptr if no connectors are currently dragged */
-		static const Connector*  GetDraggedConnector() { return s_draggedConnector; }
+		static const MemberConnector*  GetDraggedConnector() { return s_draggedConnector; }
 		static void              ResetDraggedConnector() { s_draggedConnector = nullptr; }
-		static void              StartDragConnector(const Connector* _connector) {
+		static void              StartDragConnector(const MemberConnector* _connector) {
 			if(s_draggedNode == nullptr)
 				s_draggedConnector = _connector;
 		};
 
 		/** Return a pointer to the hovered member or nullptr if no member is dragged */
-		static const Connector*  GetHoveredConnector() { return s_hoveredConnector; }
+		static const MemberConnector*  GetHoveredConnector() { return s_hoveredConnector; }
 
 		/** Return true if the given NodeView is selected */
 		static bool       IsSelected(NodeView*);
@@ -251,7 +251,7 @@ namespace Nodable
         void drawMemberViewConnector(MemberView* _view, Way _way, float _connectorRadius);
 
         /** Draw a single connector at a specific position into the IMGuiDrawList */
-		void drawConnector(const ImVec2 &connnectorScreenPos, const Connector *_connector, ImDrawList *draw_list, float _connectorRadius);
+		void drawConnector(const ImVec2 &connnectorScreenPos, const MemberConnector *_connector, ImDrawList *draw_list, float _connectorRadius);
 
 		/** Check if a Member is exposed (as an input or output) */
         bool isMemberExposed(const Member *_member)const;
@@ -275,8 +275,8 @@ namespace Nodable
 
 		static NodeView*              s_selected;
 		static NodeView*              s_draggedNode;
-		static const Connector*       s_draggedConnector;
-		static const Connector*       s_hoveredConnector;
+		static const MemberConnector*       s_draggedConnector;
+		static const MemberConnector*       s_hoveredConnector;
         static const float            s_memberInputSizeMin;
         static const ImVec2           s_memberInputToggleButtonSize;
         static std::vector<NodeView*> s_instances;
