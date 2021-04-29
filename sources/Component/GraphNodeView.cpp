@@ -11,6 +11,7 @@
 #include "Node/GraphNode.h"
 #include "Node/VariableNode.h"
 #include "Node/InstructionNode.h"
+#include "Node/LiteralNode.h"
 #include "Component/WireView.h"
 #include "Component/NodeView.h"
 
@@ -120,17 +121,18 @@ bool GraphNodeView::draw()
 		}
 	}
 
-	const auto draggedConnector = NodeView::GetDraggedConnector();
-	const auto hoveredConnector = NodeView::GetHoveredConnector();
-
+	const auto draggedMemberConnector = NodeView::GetDraggedMemberConnector();
+	const auto hoveredMemberConnector = NodeView::GetHoveredMemberConnector();
+    const auto draggedNodeConnector = NodeView::GetDraggedNodeConnector();
+    const auto hoveredNodeConnector = NodeView::GetHoveredNodeConnector();
 	{
 		if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
         {
             // Draw temporary wire on top (overlay draw list)
-            if (draggedConnector != nullptr)
+            if (draggedMemberConnector)
             {
-                ImVec2 lineScreenPosStart = draggedConnector->getPos();
-                ImVec2 lineScreenPosEnd   = hoveredConnector ? hoveredConnector->getPos() : ImGui::GetMousePos();
+                ImVec2 lineScreenPosStart = draggedMemberConnector->getPos();
+                ImVec2 lineScreenPosEnd   = hoveredMemberConnector ? hoveredMemberConnector->getPos() : ImGui::GetMousePos();
 
                 ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
                                                       lineScreenPosEnd,
@@ -139,26 +141,57 @@ bool GraphNodeView::draw()
 
             }
 
+            // Draw temporary wire on top (overlay draw list)
+            if (draggedNodeConnector)
+            {
+                ImVec2 lineScreenPosStart = draggedNodeConnector->getScreenPos();
+                ImVec2 lineScreenPosEnd   = hoveredNodeConnector ? hoveredNodeConnector->getScreenPos() : ImGui::GetMousePos();
+
+                ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
+                                                      lineScreenPosEnd,
+                                                      getColor(ColorType_BorderHighlights),
+                                                      settings->ui.codeFlow.lineWidthMax);
+            }
+
             // If user release mouse button
             if (ImGui::IsMouseReleased(0))
             {
+                bool openPopUp = false;
+
                 // Add a new wire if needed (mouse drag'n drop)
-                if (draggedConnector && hoveredConnector)
+                if (draggedMemberConnector && hoveredMemberConnector)
                 {
-                    if ( !MemberConnector::ShareSameMember(draggedConnector, hoveredConnector) )
+                    if ( !MemberConnector::ShareSameMember(draggedMemberConnector, hoveredMemberConnector) )
                     {
-                        graph->connect(draggedConnector->getMember(), hoveredConnector->getMember() );
+                        graph->connect(draggedMemberConnector->getMember(), hoveredMemberConnector->getMember() );
+                    }
+                    NodeView::ResetDraggedMemberConnector();
+
+                }// If user release mouse without hovering a member, we display a menu to create a linked node
+                else if (draggedMemberConnector != nullptr)
+                {
+                    openPopUp = true;
+                }
+
+                // Add a new wire if needed (mouse drag'n drop)
+                if (draggedNodeConnector && hoveredNodeConnector)
+                {
+                    if ( !NodeConnector::ShareSameNode(draggedNodeConnector, hoveredNodeConnector) )
+                    {
+                        graph->connect(draggedNodeConnector->getNode(), hoveredNodeConnector->getNode(), RelationType::IS_NEXT_OF );
                     }
 
-                    NodeView::ResetDraggedConnector();
+                    NodeView::ResetDraggedNodeConnector();
 
 
                 }// If user release mouse without hovering a member, we display a menu to create a linked node
-                else if (draggedConnector != nullptr)
+                else if (draggedNodeConnector != nullptr)
                 {
-                    if ( !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
-                        ImGui::OpenPopup("ContainerViewContextualMenu");
+                    openPopUp = true;
                 }
+
+                if ( openPopUp && !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
+                    ImGui::OpenPopup("ContainerViewContextualMenu");
             }
 	    }
 	}
@@ -231,14 +264,15 @@ bool GraphNodeView::draw()
 
 	if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
 	{
-		if (draggedConnector == nullptr)
+		if (draggedMemberConnector == nullptr)
         {
             ImGui::OpenPopup("ContainerViewContextualMenu");
         }
 		else if (ImGui::IsPopupOpen("ContainerViewContextualMenu"))
 		{
 			ImGui::CloseCurrentPopup();
-			NodeView::ResetDraggedConnector();
+            NodeView::ResetDraggedMemberConnector();
+            NodeView::ResetDraggedNodeConnector();
 		}
 	}
 
@@ -284,64 +318,104 @@ bool GraphNodeView::draw()
 		drawMenu("Functions");
 
 		ImGui::Separator();
-		
-		if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean Variable"))
-			newNode = graph->newVariable(Type_Boolean, "Bool Var", graph->getProgram());
 
-		if (ImGui::MenuItem(ICON_FA_DATABASE " Double Variable"))
-			newNode = graph->newVariable(Type_Double, "Double Var", graph->getProgram());
-
-        if (ImGui::MenuItem(ICON_FA_DATABASE " String Variable"))
-            newNode = graph->newVariable(Type_String, "Str Var", graph->getProgram());
-
-		if (ImGui::MenuItem(ICON_FA_CODE " Instruction"))
+        if (ImGui::BeginMenu("Variable"))
         {
-            newNode = graph->appendInstruction();
+            if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
+                newNode = graph->newVariable(Type_Boolean, "var", graph->getProgram());
+
+            if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
+                newNode = graph->newVariable(Type_Double, "var", graph->getProgram());
+
+            if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
+                newNode = graph->newVariable(Type_String, "var", graph->getProgram());
+
+            ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Literal"))
+        {
+            if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
+                newNode = graph->newLiteral(Type_Boolean);
 
-		/*
-			Connect the New Node with the current dragged a member
-		*/
+            if (ImGui::MenuItem(ICON_FA_FILE " Double"))
+                newNode = graph->newLiteral(Type_Double);
 
-		if (draggedConnector != nullptr && newNode != nullptr)
-		{
-		    auto props = newNode->getProps();
-			// if dragged member is an m_inputMember
-			if (draggedConnector->m_memberView->m_in)
+            if (ImGui::MenuItem(ICON_FA_FILE " String"))
+                newNode = graph->newLiteral(Type_String);
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem(ICON_FA_CODE " Instruction"))
+            newNode = graph->newInstruction_UserCreated();
+
+        if (ImGui::MenuItem(ICON_FA_CODE " Condition"))
+            newNode = graph->newConditionalStructure();
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem(ICON_FA_CODE " Block"))
+            newNode = graph->newCodeBlock();
+
+        if (ImGui::MenuItem(ICON_FA_CODE " Scope"))
+            newNode = graph->newScopedCodeBlock();
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem(ICON_FA_CODE " Program"))
+            newNode = graph->newProgram();
+
+
+        if (newNode)
+        {
+            if (draggedNodeConnector)
             {
-				graph->connect(props->getFirstWithConn(Way_Out), draggedConnector->m_memberView->m_member);
+                if ( draggedNodeConnector->m_way == Way_Out )
+                {
+                    graph->connect(newNode, draggedNodeConnector->getNode(), RelationType::IS_NEXT_OF);
+                }
+                else
+                {
+                    graph->connect(draggedNodeConnector->getNode(), newNode, RelationType::IS_NEXT_OF);
+                }
+                NodeView::ResetDraggedNodeConnector();
             }
-			// if dragged member is an output
-			else if (draggedConnector->m_memberView->m_out)
-			{
-				// try to get the first Input only member
-				auto targetMember = props->getFirstWithConn(Way_In);
-				
-				// If failed, try to get the first input/output member
-				if (targetMember == nullptr)
-                {
-                    targetMember = props->getFirstWithConn(Way_InOut);
-                }
-				else
-                {
-                    graph->connect(draggedConnector->m_memberView->m_member, targetMember);
-                }
-			}
-			NodeView::ResetDraggedConnector();
-		}
 
-		/*
-			Set New Node's currentPosition were mouse cursor is 
-		*/
+            // Connect the New Node with the current dragged a member
+            if (draggedMemberConnector)
+            {
+                auto props = newNode->getProps();
+                // if dragged member is an m_inputMember
+                if (draggedMemberConnector->m_memberView->m_in)
+                {
+                    graph->connect(props->getFirstWithConn(Way_Out), draggedMemberConnector->m_memberView->m_member);
+                }
+                // if dragged member is an output
+                else if (draggedMemberConnector->m_memberView->m_out)
+                {
+                    // try to get the first Input only member
+                    auto targetMember = props->getFirstWithConn(Way_In);
 
-		if (newNode != nullptr)
-		{
+                    // If failed, try to get the first input/output member
+                    if (targetMember == nullptr)
+                    {
+                        targetMember = props->getFirstWithConn(Way_InOut);
+                    }
+                    else
+                    {
+                        graph->connect(draggedMemberConnector->m_memberView->m_member, targetMember);
+                    }
+                }
+                NodeView::ResetDraggedMemberConnector();
+            }
+
+            // Set New Node's currentPosition were mouse cursor is
 			if (auto view = newNode->getComponent<NodeView>())
 			{
-				auto pos = ImGui::GetMousePos();
-				pos.x -= origin.x;
-				pos.y -= origin.y;
+				auto pos = ImGui::GetMousePos() - origin;
 				view->setPosition(pos);
 			}
 			
@@ -354,7 +428,7 @@ bool GraphNodeView::draw()
 	return edited;
 }
 
-void Nodable::GraphNodeView::addContextualMenuItem(std::string _category, std::string _label, std::function<Node*(void)> _function)
+void Nodable::GraphNodeView::addContextualMenuItem(const std::string& _category, std::string _label, std::function<Node*(void)> _function)
 {
 	contextualMenus.insert( {_category, {_label, _function }} );
 }

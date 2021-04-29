@@ -22,8 +22,12 @@ View::View():
 
 ImVec2 Nodable::View::CursorPosToScreenPos(ImVec2 _position)
 {
-	const ImVec2 offset = ImGui::GetCursorScreenPos() - ImGui::GetCursorPos();
-	return _position + offset;
+	return _position + View::ToScreenPosOffset();
+}
+
+ImVec2 Nodable::View::ToScreenPosOffset()
+{
+    return ImGui::GetCursorScreenPos() - ImGui::GetCursorPos();
 }
 
 void View::setColor(ColorType_ _type, ImVec4* _color)

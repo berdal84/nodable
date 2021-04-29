@@ -279,6 +279,10 @@ std::string& Serializer::serialize(std::string& _result, const CodeBlockNode* _b
             {
                  serialize( _result, eachChild->as<ConditionalStructNode>());
             }
+            else if ( clss == CodeBlockNode::GetClass())
+            {
+                serialize( _result, eachChild->as<CodeBlockNode>());
+            }
             else
             {
                 NODABLE_ASSERT(false); // Node class not handled !

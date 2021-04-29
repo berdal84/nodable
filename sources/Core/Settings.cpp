@@ -22,7 +22,7 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
 
         // nodes
         g_conf->ui.node.padding                = 6.0f;
-        g_conf->ui.node.connectorRadius        = 5.0f;
+        g_conf->ui.node.memberConnectorRadius        = 5.0f;
         g_conf->ui.node.functionColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
         g_conf->ui.node.variableColor          = ImVec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
         g_conf->ui.node.instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f); // green
@@ -32,8 +32,12 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
         g_conf->ui.node.borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
         g_conf->ui.node.borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
         g_conf->ui.node.shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
+        g_conf->ui.node.nodeConnectorHoveredColor = ImColor(127,200, 127);
+        g_conf->ui.node.nodeConnectorColor     = ImColor(127,127, 127);
         g_conf->ui.node.spacing                = 15.0f;
         g_conf->ui.node.speed                  = 30.0f;
+        g_conf->ui.node.nodeConnectorHeight    = 10.0f;
+        g_conf->ui.node.nodeConnectorPadding   = 4.0f;
 
         // wires
         g_conf->ui.wire.bezier.roundness        = 0.5f;

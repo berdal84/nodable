@@ -69,11 +69,12 @@ namespace Nodable{
                       std::vector<Node*>& getInputs();
                       std::vector<Node*>& getOutputs();
 
-                      void                addNext(Node* _node) { m_next.push_back(_node ); };
+                      void                limitNext(size_t _count);
+                      void                addNext(Node* _node);
                       auto&               getNext() { return m_next; }
                       void                removeNext(Node* _node );
 
-                      void                addPrev(Node* _node) { m_previous.push_back(_node ); };
+                      void                addPrev(Node* _node);;
                       auto&               getPrev() { return m_previous; }
                       void                removePrev(Node* _node );
 

@@ -22,6 +22,7 @@ Node::Node(std::string _label):
         m_dirty(false),
         m_deletedFlag(false)
 {
+    limitNext(1);
 //    add("activator", Visibility::Always, Type_Boolean, Way::Way_In);
 }
 
@@ -287,4 +288,20 @@ void Node::removePrev(Node *_node)
 {
     auto found = std::find(m_previous.begin(), m_previous.end(), _node);
     m_previous.erase(found);
+}
+
+void Node::addPrev(Node *_node)
+{
+    m_previous.push_back(_node );
+}
+
+void Node::addNext(Node *_node)
+{
+    NODABLE_ASSERT(m_next.size() < m_next.capacity());
+    m_next.push_back(_node );
+}
+
+void Node::limitNext(size_t _count)
+{
+    m_next.reserve(_count);
 }
