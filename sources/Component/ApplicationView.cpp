@@ -622,20 +622,24 @@ void ApplicationView::drawPropertiesWindow()
 
         ImGui::Text("Nodes:");
         ImGui::Indent();
-            ImGui::SliderFloat("connector radius", &config->ui.node.connectorRadius, 1.0f, 10.0f);
+            ImGui::SliderFloat("member connector radius", &config->ui.node.memberConnectorRadius, 1.0f, 10.0f);
             ImGui::SliderFloat("padding", &config->ui.node.padding, 1.0f, 20.0f);
             ImGui::SliderFloat("speed", &config->ui.node.speed, 0.0f, 100.0f);
             ImGui::SliderFloat("spacing", &config->ui.node.spacing, 0.0f, 100.0f);
+            ImGui::SliderFloat("node connector padding", &config->ui.node.nodeConnectorPadding, 0.0f, 100.0f);
+            ImGui::SliderFloat("node connector height", &config->ui.node.nodeConnectorHeight, 2.0f, 100.0f);
 
-            ImGui::ColorEdit3("variables color", &config->ui.node.variableColor.x);
-            ImGui::ColorEdit3("instruction color", &config->ui.node.instructionColor.x);
-            ImGui::ColorEdit3("literal color", &config->ui.node.literalColor.x);
-            ImGui::ColorEdit3("function color", &config->ui.node.functionColor.x);
-            ImGui::ColorEdit3("shadow color", &config->ui.node.shadowColor.x);
-            ImGui::ColorEdit3("border color", &config->ui.node.borderColor.x);
-            ImGui::ColorEdit3("high. color", &config->ui.node.highlightedColor.x);
-            ImGui::ColorEdit3("border high. color", &config->ui.node.borderHighlightedColor.x);
-            ImGui::ColorEdit3("fill color", &config->ui.node.fillColor.x);
+            ImGui::ColorEdit4("variables color", &config->ui.node.variableColor.x);
+            ImGui::ColorEdit4("instruction color", &config->ui.node.instructionColor.x);
+            ImGui::ColorEdit4("literal color", &config->ui.node.literalColor.x);
+            ImGui::ColorEdit4("function color", &config->ui.node.functionColor.x);
+            ImGui::ColorEdit4("shadow color", &config->ui.node.shadowColor.x);
+            ImGui::ColorEdit4("border color", &config->ui.node.borderColor.x);
+            ImGui::ColorEdit4("high. color", &config->ui.node.highlightedColor.x);
+            ImGui::ColorEdit4("border high. color", &config->ui.node.borderHighlightedColor.x);
+            ImGui::ColorEdit4("fill color", &config->ui.node.fillColor.x);
+            ImGui::ColorEdit4("node connector color", &config->ui.node.nodeConnectorColor.x);
+            ImGui::ColorEdit4("node connector hovered color", &config->ui.node.nodeConnectorHoveredColor.x);
 
         ImGui::Unindent();
 

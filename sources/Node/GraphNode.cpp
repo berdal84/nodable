@@ -172,30 +172,12 @@ InstructionNode* GraphNode::newInstruction()
 	return instructionNode;
 }
 
-InstructionNode* GraphNode::appendInstruction()
+InstructionNode* GraphNode::newInstruction_UserCreated()
 {
-    std::string eol;
-    m_language->getSerializer()->serialize(eol, TokenType_EndOfLine);
-
-    // add to code block
-    if ( m_program->getChildren().empty())
-    {
-        connect(newCodeBlock(), m_program, RelationType::IS_CHILD_OF);
-    }
-    else
-    {
-        // insert an eol
-        InstructionNode* lastInstruction = m_program->getLastInstruction();
-        lastInstruction->getEndOfInstrToken()->m_suffix.append(eol );
-    }
-
-    auto block = m_program->getLastCodeBlock()->as<CodeBlockNode>();
     auto newInstructionNode = newInstruction();
-    this->connect(newInstructionNode, block,  RelationType::IS_CHILD_OF);
 
-    // Initialize (since it is a manual creation)
     Token* token = new Token(TokenType_EndOfInstruction);
-    token->m_suffix = eol;
+    m_language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
     newInstructionNode->setEndOfInstrToken( token );
 
     return newInstructionNode;
@@ -506,48 +488,51 @@ void GraphNode::connect(Member* _source, InstructionNode* _target)
 }
 
 
-void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType)
+void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType, bool _sideEffects)
 {
     switch ( _relationType )
     {
         case RelationType::IS_CHILD_OF:
         {
-            // create "next" links
-            auto& target_children = _target->getChildren();
-            if ( !target_children.empty() )
+            if ( _sideEffects )
             {
-                auto lastChild = target_children.back();
-                auto lastChildParent = lastChild->getParent();
-                if ( lastChildParent )
+                // create "next" links
+                auto &target_children = _target->getChildren();
+                if (!target_children.empty())
                 {
-                    if (lastChildParent->getClass() == mirror::GetClass<ConditionalStructNode>())
+                    auto lastChild = target_children.back();
+                    auto lastChildParent = lastChild->getParent();
+                    if (lastChildParent)
                     {
-                        _target->addNext(_source);
-                    }
-                    else if (auto condStructNode = lastChild->as<ConditionalStructNode>() )
-                    {
-                        // last instructions -> _source
-                        std::vector<InstructionNode*> last_instr;
-                        condStructNode->getLastInstructions(last_instr);
-
-                        for(auto& each_inst : last_instr)
+                        if (lastChildParent->getClass() == mirror::GetClass<ConditionalStructNode>())
                         {
-                            connect(_source, each_inst, RelationType::IS_NEXT_OF);
+                            connect(_source, _target, RelationType::IS_NEXT_OF, false);
+                        }
+                        else if (auto condStructNode = lastChild->as<ConditionalStructNode>())
+                        {
+                            // last instructions -> _source
+                            std::vector<InstructionNode *> last_instr;
+                            condStructNode->getLastInstructions(last_instr);
+
+                            for (auto &each_inst : last_instr)
+                            {
+                                connect(_source, each_inst, RelationType::IS_NEXT_OF, false);
+                            }
+                        }
+                        else
+                        {
+                            connect(_source, lastChild, RelationType::IS_NEXT_OF, false);
                         }
                     }
                     else
                     {
-                        connect(_source, lastChild, RelationType::IS_NEXT_OF);
+                        connect(_source, _target, RelationType::IS_NEXT_OF, false);
                     }
                 }
                 else
                 {
-                    connect(_source, _target, RelationType::IS_NEXT_OF);
+                    connect(_source, _target, RelationType::IS_NEXT_OF, false);
                 }
-            }
-            else
-            {
-                connect(_source, _target, RelationType::IS_NEXT_OF);
             }
 
             // create "parent-child" links
@@ -583,6 +568,14 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
         case RelationType::IS_NEXT_OF:
             _target->addNext(_source);
             _source->addPrev(_target);
+
+            if (_sideEffects)
+            {
+                if (auto parent = _target->getParent())
+                {
+                    connect(_source, parent, RelationType::IS_CHILD_OF, false);
+                }
+            }
             break;
 
         default:
@@ -674,6 +667,8 @@ ConditionalStructNode *GraphNode::newConditionalStructure()
 
 ScopedCodeBlockNode *GraphNode::newProgram() {
     clear();
+
+    // create Node
     m_program = new ProgramNode();
     m_program->setLabel(ICON_FA_FILE_CODE " Program");
     m_program->setShortLabel(ICON_FA_FILE_CODE " Prog.");
@@ -688,7 +683,7 @@ Node* GraphNode::newNode() {
     return node;
 }
 
-LiteralNode *GraphNode::newLiteral(const Type &type)
+LiteralNode* GraphNode::newLiteral(const Type &type)
 {
     LiteralNode* node = new LiteralNode(type);
     node->setLabel("Literal");

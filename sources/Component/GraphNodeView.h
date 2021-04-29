@@ -19,7 +19,7 @@ namespace Nodable{
 		virtual ~GraphNodeView(){};
 		void    updateViewConstraints();
 		bool    draw() override ;
-		void    addContextualMenuItem(std::string _category, std::string _label, std::function<Node*(void)> _lambda);
+		void    addContextualMenuItem(const std::string& _category, std::string _label, std::function<Node*(void)> _lambda);
 	private:
 	    std::vector<ViewConstraint> constraints;
         [[nodiscard]] GraphNode* getGraphNode() const;

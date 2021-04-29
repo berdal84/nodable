@@ -73,7 +73,7 @@ namespace Nodable{
 		/* node factory */
         ScopedCodeBlockNode*        newProgram();
 		CodeBlockNode*              newCodeBlock();
-        InstructionNode*		    appendInstruction();
+        InstructionNode*		    newInstruction_UserCreated();
         InstructionNode*            newInstruction();
 		VariableNode*				newVariable(Type, const std::string&, ScopedCodeBlockNode*);
 		LiteralNode*                newLiteral(const Type &type);
@@ -96,7 +96,7 @@ namespace Nodable{
          * Connect two nodes with a given connection type
          * ex: _source IS_CHILD_OF _target
         */
-        void connect(Node* _source, Node* _target, RelationType);
+        void connect(Node* _source, Node* _target, RelationType, bool _sideEffects = true);
         void connect(Member* _source, InstructionNode* _target);
         void disconnect(Node* _source, Node* _target, RelationType);
         void disconnect(Wire* _wire);

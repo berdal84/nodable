@@ -28,7 +28,7 @@ namespace Nodable {
             } wire;
 
             struct {
-                float connectorRadius;
+                float memberConnectorRadius;
                 float padding;
                 ImVec4 variableColor;
                 ImVec4 functionColor;
@@ -39,8 +39,12 @@ namespace Nodable {
                 ImVec4 borderColor;
                 ImVec4 highlightedColor;
                 ImVec4 fillColor;
+                ImVec4 nodeConnectorColor;
+                ImVec4 nodeConnectorHoveredColor;
                 float spacing;
                 float speed;
+                float nodeConnectorHeight;
+                float nodeConnectorPadding;
             } node;
 
             struct {

@@ -197,8 +197,10 @@ namespace Nodable
 		 * @return the screen position
 		 */
 		static ImVec2 CursorPosToScreenPos(ImVec2 _cursorPosition);
+        static ImVec2 ToScreenPosOffset();
 
 		MIRROR_CLASS(View)(
 			MIRROR_PARENT(Component));
-	};
+
+    };
 }

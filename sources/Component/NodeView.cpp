@@ -20,8 +20,10 @@ using namespace Nodable;
 NodeView*          NodeView::s_selected               = nullptr;
 NodeView*          NodeView::s_draggedNode            = nullptr;
 NodeViewDetail     NodeView::s_viewDetail             = NodeViewDetail::Default;
-const MemberConnector*   NodeView::s_draggedConnector       = nullptr;
-const MemberConnector*   NodeView::s_hoveredConnector       = nullptr;
+const MemberConnector*   NodeView::s_draggedMemberConnector = nullptr;
+const MemberConnector*   NodeView::s_hoveredMemberConnector = nullptr;
+const NodeConnector*   NodeView::s_draggedNodeConnector = nullptr;
+const NodeConnector*   NodeView::s_hoveredNodeConnector = nullptr;
 const float        NodeView::s_memberInputSizeMin     = 10.0f;
 const ImVec2       NodeView::s_memberInputToggleButtonSize   = ImVec2(10.0, 25.0f);
 std::vector<NodeView*> NodeView::s_instances;
@@ -42,16 +44,14 @@ NodeView::NodeView():
 NodeView::~NodeView()
 {
     // delete MemberViews
-    for ( auto& pair: m_exposedMembers )
-    {
-        delete pair.second;
-    }
+    for ( auto& pair: m_exposedMembers ) delete pair.second;
 
     // deselect
-    if ( s_selected == this )
-    {
-        s_selected = nullptr;
-    }
+    if ( s_selected == this ) s_selected = nullptr;
+
+    // delete NodeConnectors
+    for( auto& conn : m_nextNodeConnectors ) delete conn;
+    for( auto& conn : m_prevNodeConnnectors ) delete conn;
 
     // Erase instance in static vector
     auto found = std::find( s_instances.begin(), s_instances.end(), this);
@@ -135,6 +135,15 @@ void NodeView::setOwner(Node* _node)
         setColor(ColorType_Fill, &settings->ui.node.instructionColor); // green
     }
 
+    // create NodeConnectors
+    size_t count = _node->getNext().capacity();
+    for(size_t index = 0; index < count; ++index )
+    {
+        m_nextNodeConnectors.push_back(new NodeConnector(this, Way_Out, index, count));
+    }
+
+    m_prevNodeConnnectors.push_back(new NodeConnector(this, Way_In, 0, 1));
+
     Component::setOwner(_node);
 }
 
@@ -150,7 +159,7 @@ NodeView* NodeView::GetSelected()
 
 void NodeView::StartDragNode(NodeView* _view)
 {
-	if( s_draggedConnector == nullptr) // Prevent dragging node while dragging connector
+	if(s_draggedMemberConnector == nullptr) // Prevent dragging node while dragging connector
 		s_draggedNode = _view;
 }
 
@@ -260,6 +269,33 @@ bool NodeView::draw()
         m_pinned = true;
 	}
 
+    // Draw Node connectors (in background)
+    ImColor color        = settings->ui.node.nodeConnectorColor;
+    ImColor hoveredColor = settings->ui.node.nodeConnectorHoveredColor;
+
+    auto drawConnectorAndHandleUserEvents = [color, hoveredColor](NodeConnector* connector)
+    {
+        NodeConnector::Draw(connector, color, hoveredColor);
+        if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
+        {
+            if (ImGui::IsMouseDown(0))
+            {
+                if ( s_draggedNodeConnector == nullptr) StartDragNodeConnector(connector);
+            }
+            else
+            {
+                ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+            }
+            s_hoveredNodeConnector = connector;
+         }
+        else if (s_hoveredNodeConnector && s_hoveredNodeConnector == connector)
+        {
+            s_hoveredNodeConnector = nullptr;
+        }
+    };
+    std::for_each(m_prevNodeConnnectors.begin(), m_prevNodeConnnectors.end(), drawConnectorAndHandleUserEvents);
+    std::for_each(m_nextNodeConnectors.begin(), m_nextNodeConnectors.end(), drawConnectorAndHandleUserEvents);
+
 	// Begin the window
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
@@ -347,16 +383,16 @@ bool NodeView::draw()
     m_size.x = std::ceil(ImGui::GetItemRectSize().x );
     m_size.y = std::max(NODE_VIEW_DEFAULT_SIZE.y, std::ceil(ImGui::GetItemRectSize().y ));
 
-	// Draw input connectors
+	// Draw Member input connectors
     for( auto& memberView : m_exposedInputsMembers )
     {
-        drawMemberViewConnector(memberView, Way_In, settings->ui.node.connectorRadius);
+        drawMemberViewConnector(memberView, Way_In, settings->ui.node.memberConnectorRadius);
     }
 
-	// Draw out connectors
+	// Draw Member output connectors
     for( auto& memberView : m_exposedOutputMembers )
     {
-        drawMemberViewConnector(memberView, Way_Out, settings->ui.node.connectorRadius);
+        drawMemberViewConnector(memberView, Way_Out, settings->ui.node.memberConnectorRadius);
     }
 
     // Contextual menu (right click)
@@ -431,14 +467,48 @@ bool NodeView::draw()
 
 void NodeView::drawMemberViewConnector(MemberView* _view, Way _way, float _connectorRadius)
 {
+
+    auto handleUserActions = [](MemberConnector* _connector)
+    {
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
+        {
+            if (ImGui::IsMouseDown(0))
+            {
+                if ( s_draggedMemberConnector == nullptr)
+                    StartDragMemberConnector(_connector);
+            }
+            else
+            {
+                ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+            }
+
+            s_hoveredMemberConnector = _connector;
+            ImGui::BeginTooltip();
+            ImGui::Text("%s", _connector->getMember()->getName().c_str() );
+            ImGui::EndTooltip();
+        }
+        else if (s_hoveredMemberConnector != nullptr && s_hoveredMemberConnector == _connector)
+        {
+            s_hoveredMemberConnector = nullptr;
+        }
+    };
+
     /*
     Draw the wire connectors (In or Out only)
    */
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    if ( _view->m_in )  drawConnector(_view->m_in->getPos(), _view->m_in, draw_list, _connectorRadius);
-    if ( _view->m_out ) drawConnector(_view->m_out->getPos(), _view->m_out, draw_list, _connectorRadius);
+    if ( _view->m_in )
+    {
+        drawConnector(_view->m_in->getPos(), _view->m_in, draw_list, _connectorRadius);
+        handleUserActions(_view->m_in);
+    }
+    if ( _view->m_out )
+    {
+        drawConnector(_view->m_out->getPos(), _view->m_out, draw_list, _connectorRadius);
+        handleUserActions(_view->m_out);
+    }
 }
 
 bool NodeView::drawMemberView(MemberView* _memberView )
@@ -597,27 +667,6 @@ void NodeView::drawConnector(const ImVec2 &connnectorScreenPos, const MemberConn
 		draw_list->AddCircleFilled(connnectorScreenPos, _connectorRadius, getColor(ColorType_Fill));
 
 	draw_list->AddCircle(connnectorScreenPos, _connectorRadius, getColor(ColorType_Border));
-
-
-	// Manage mouse events in order to link two members by a Wire :
-
-	// DRAG
-	if (isItemHovered && ImGui::IsMouseDown(0) && s_draggedConnector == nullptr) {
-		StartDragConnector(_connector);
-	}
-
-	if (isItemHovered)
-    {
-		s_hoveredConnector = _connector;
-        ImGui::BeginTooltip();
-        ImGui::Text("%s", _connector->getMember()->getName().c_str() );
-        ImGui::EndTooltip();
-    }
-	else if (s_hoveredConnector != nullptr && s_hoveredConnector == _connector)
-	{
-		s_hoveredConnector = nullptr;
-	}
-
 }
 
 bool Nodable::NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
@@ -993,6 +1042,16 @@ void NodeView::toggleExpansion()
     setInputsVisible(visibility, true);
 }
 
+void NodeView::StartDragMemberConnector(const MemberConnector *_connector) {
+    if(s_draggedMemberConnector == nullptr)
+        s_draggedMemberConnector = _connector;
+}
+
+void NodeView::StartDragNodeConnector(const NodeConnector *_connector) {
+    if(s_draggedNodeConnector == nullptr)
+        s_draggedNodeConnector = _connector;
+}
+
 ViewConstraint::ViewConstraint(ViewConstraint::Type _type):type(_type) {}
 
 void ViewConstraint::apply(float _dt) {
@@ -1198,4 +1257,44 @@ ImVec2 MemberConnector::getPos()const
     if (m_way == Way_In) nodeSemiHeight = -nodeSemiHeight;
 
     return ImVec2(pos.x, nodeViewScreenPosition.y + nodeSemiHeight);
+}
+
+bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor)
+{
+    float rounding = 6.0f;
+
+    auto draw_list = ImGui::GetWindowDrawList();
+    auto rect      = _connector->getRect();
+    rect.Translate(View::ToScreenPosOffset());
+
+    ImDrawCornerFlags cornerFlags = _connector->m_way == Way_Out ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
+
+    auto cursorScreenPos = ImGui::GetCursorScreenPos();
+    ImGui::SetCursorScreenPos(rect.GetTL());
+    ImGui::PushID(_connector);
+    bool clicked = ImGui::InvisibleButton("###", rect.GetSize());
+    ImGui::PopID();
+    ImGui::SetCursorScreenPos(cursorScreenPos);
+
+    ImColor color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? _hoveredColor : _color;
+    draw_list->AddRectFilled(rect.Min, rect.Max, color, rounding, cornerFlags );
+    draw_list->AddRect(rect.Min, rect.Max, ImColor(50,50, 50), rounding, cornerFlags );
+
+    return clicked;
+}
+
+ImRect NodeConnector::getRect() const
+{
+    ImVec2 leftCornerPos = m_way == Way_In ? m_nodeView->getRect().GetTL() : m_nodeView->getRect().GetBL();
+
+    ImVec2 size(Settings::GetCurrent()->ui.codeFlow.lineWidthMax, Settings::GetCurrent()->ui.node.nodeConnectorHeight);
+    ImRect rect(leftCornerPos, leftCornerPos + size);
+    rect.Translate(ImVec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
+    rect.Expand(ImVec2(-Settings::GetCurrent()->ui.node.nodeConnectorPadding, 0.0f));
+    return rect;
+}
+
+ImVec2 NodeConnector::getScreenPos()const
+{
+    return getRect().GetCenter() + View::ToScreenPosOffset();
 }
