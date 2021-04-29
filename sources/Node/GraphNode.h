@@ -64,7 +64,7 @@ namespace Nodable{
         [[nodiscard]] std::vector<Wire*>&     getWireRegistry() {return m_wireRegistry;}
         [[nodiscard]] inline const Language*  getLanguage()const { return m_language; }
         [[nodiscard]] inline ProgramNode*     getProgram(){ return m_program; }
-        [[nodiscard]] bool                    hasInstructionNodes();
+        [[nodiscard]] bool                    hasProgram();
         [[nodiscard]] std::multimap<Relation::first_type , Relation::second_type>& getRelationRegistry() {return m_relationRegistry;}
 
 		/** This will arrange all NodeViews after a Graph modification. */

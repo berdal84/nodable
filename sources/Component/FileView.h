@@ -30,6 +30,8 @@ namespace Nodable {
 		File*        getFile();
 		TextEditor   m_textEditor;
 		bool         m_hasChanged;
+		float        m_childSize1 = 0.3f;
+		float        m_childSize2 = 0.7f;
 
 		// reflect class using mirror
 		MIRROR_CLASS(FileView)(

@@ -3,6 +3,7 @@
 #include "NodeView.h"
 #include "File.h"
 #include "GraphNode.h"
+#include "GraphNodeView.h"
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 
@@ -47,56 +48,73 @@ void FileView::init()
 
 bool FileView::draw()
 {
+    auto availSize = ImGui::GetContentRegionAvail();
 
-	/*
-		TEXT EDITOR
-	*/
-	auto file = getFile();
+     // Splitter
+    //---------
 
-	auto availSize = ImGui::GetContentRegionAvail();
+    if ( m_childSize1 + m_childSize2 != availSize.x )
+    {
+        float ratio = availSize.x / (m_childSize1 + m_childSize2);
+        m_childSize1 *= ratio;
+        m_childSize2 *= ratio;
+    }
 
-	auto previousCursorPosition = m_textEditor.GetCursorPosition();
-	auto previousSelectedText = m_textEditor.GetSelectedText();
-	auto previousLineText = m_textEditor.GetCurrentLineText();
+    ImRect rect;
+    rect.Max.y = availSize.y;
+    rect.Max.x = 4.0f;
+    rect.TranslateX(m_childSize1 + 2.0f);
+    rect.Translate(View::ToScreenPosOffset());
+    ImGui::SplitterBehavior( rect, ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_childSize1, &m_childSize2, 20.0f, 20.0f);
 
-	auto allowkeyboard = !NodeView::IsAnyDragged() &&
-		                  NodeView::GetSelected() == nullptr; // disable keyboard for text editor when a node is selected.
+     // TEXT EDITOR
+    //------------
 
-	auto allowMouse = !NodeView::IsAnyDragged() &&
+    ImGui::BeginChild("file", ImVec2(m_childSize1, availSize.y));
+
+    auto file = getFile();
+    auto previousCursorPosition = m_textEditor.GetCursorPosition();
+    auto previousSelectedText = m_textEditor.GetSelectedText();
+    auto previousLineText = m_textEditor.GetCurrentLineText();
+
+    auto allowkeyboard = !NodeView::IsAnyDragged() &&
+                         NodeView::GetSelected() ==
+                         nullptr; // disable keyboard for text editor when a node is selected.
+
+    auto allowMouse = !NodeView::IsAnyDragged() &&
                       !ImGui::IsAnyItemHovered() &&
                       !ImGui::IsAnyItemFocused();
 
-	m_textEditor.SetHandleKeyboardInputs(allowkeyboard);
-	m_textEditor.SetHandleMouseInputs(allowMouse);
+    m_textEditor.SetHandleKeyboardInputs(allowkeyboard);
+    m_textEditor.SetHandleMouseInputs(allowMouse);
 
-	m_textEditor.Render("Text Editor Plugin", availSize);
+    m_textEditor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
 
-	auto currentCursorPosition = m_textEditor.GetCursorPosition();
-	auto currentSelectedText = m_textEditor.GetSelectedText();
-	auto currentLineText = m_textEditor.GetCurrentLineText();
+    auto currentCursorPosition = m_textEditor.GetCursorPosition();
+    auto currentSelectedText = m_textEditor.GetSelectedText();
+    auto currentLineText = m_textEditor.GetCurrentLineText();
 
-	auto isCurrentLineModified = currentLineText != previousLineText;
-	auto isSelectedTextModified = previousSelectedText != currentSelectedText;
+    auto isCurrentLineModified = currentLineText != previousLineText;
+    auto isSelectedTextModified = previousSelectedText != currentSelectedText;
 
-	m_hasChanged = isCurrentLineModified ||
-		m_textEditor.IsTextChanged() ||
-		isSelectedTextModified;
+    m_hasChanged = isCurrentLineModified ||
+                   m_textEditor.IsTextChanged() ||
+                   isSelectedTextModified;
 
-	if (m_textEditor.IsTextChanged())
-		file->setModified();
+    if (m_textEditor.IsTextChanged())
+        file->setModified();
 
-	if ( hasChanged() ) {
+    if (hasChanged()) {
         file->evaluateSelectedExpression();
-	}
+    }
+    ImGui::EndChild();
 
-	/*
-		NODE EDITOR
-	*/
-	ImGui::SetCursorPos(ImVec2(0, 0));
-	auto view      = file->getInnerGraph()->getComponent<View>();
+     // NODE EDITOR
+    //-------------
 
-	view->setVisibleRect( this->visibleRect );
-	view->draw();
+    ImGui::SameLine();
+    auto view = file->getInnerGraph()->getComponent<GraphNodeView>();
+    view->drawAsChild("graph", ImVec2(m_childSize2, availSize.y));
 
 	return true;
 }

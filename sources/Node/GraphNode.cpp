@@ -315,23 +315,24 @@ Wire* GraphNode::newWire()
 
 void GraphNode::arrangeNodeViews()
 {
-    if ( m_program ) {
-        if (auto scopeView = m_program->getComponent<NodeView>()) {
+    if ( m_program )
+    {
+        if (auto scopeView = m_program->getComponent<NodeView>())
+        {
             bool hasKnownPosition = GraphNode::s_mainScopeView_lastKnownPosition.x != -1 &&
                                     GraphNode::s_mainScopeView_lastKnownPosition.y != -1;
 
-            if ( this->hasComponent<View>()) {
-                auto view = this->getComponent<View>();
-
+            if ( auto graphView = this->getComponent<View>())
+            {
                 if (hasKnownPosition) {                                 /* if result node had a position stored, we restore it */
                     scopeView->setPosition(GraphNode::s_mainScopeView_lastKnownPosition);
                 }
 
-                auto rect = view->getVisibleRect();
-                if (!NodeView::IsInsideRect(scopeView, rect)) {
-                    ImVec2 defaultPosition = rect.GetCenter();
-                    defaultPosition.x += rect.GetWidth() * 1.0f / 6.0f;
-                    scopeView->setPosition(defaultPosition);
+                auto graphViewRect = graphView->getVisibleRect();
+                graphViewRect.Expand(-20.f);
+                if (!NodeView::IsInsideRect(scopeView, graphViewRect))
+                {
+                    scopeView->setPosition( scopeView->getSize() * 1.5f );
                 }
             }
         }
@@ -391,9 +392,9 @@ void GraphNode::deleteNode(Node* _node)
     delete _node;
 }
 
-bool GraphNode::hasInstructionNodes()
+bool GraphNode::hasProgram()
 {
-    return m_program && m_program->hasInstructions();
+    return m_program;
 }
 
 Wire *GraphNode::connect(Member* _from, Member* _to)
