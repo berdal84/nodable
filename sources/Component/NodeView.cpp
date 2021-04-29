@@ -20,8 +20,8 @@ using namespace Nodable;
 NodeView*          NodeView::s_selected               = nullptr;
 NodeView*          NodeView::s_draggedNode            = nullptr;
 NodeViewDetail     NodeView::s_viewDetail             = NodeViewDetail::Default;
-const Connector*   NodeView::s_draggedConnector       = nullptr;
-const Connector*   NodeView::s_hoveredConnector       = nullptr;
+const MemberConnector*   NodeView::s_draggedConnector       = nullptr;
+const MemberConnector*   NodeView::s_hoveredConnector       = nullptr;
 const float        NodeView::s_memberInputSizeMin     = 10.0f;
 const ImVec2       NodeView::s_memberInputToggleButtonSize   = ImVec2(10.0, 25.0f);
 std::vector<NodeView*> NodeView::s_instances;
@@ -575,7 +575,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     return edited;
 }
 
-void NodeView::drawConnector(const ImVec2 &connnectorScreenPos, const Connector* _connector, ImDrawList* draw_list, float _connectorRadius)
+void NodeView::drawConnector(const ImVec2 &connnectorScreenPos, const MemberConnector* _connector, ImDrawList* draw_list, float _connectorRadius)
 {
 	// Unvisible Button on top of the Circle
 
@@ -1180,8 +1180,8 @@ MemberView::MemberView(Member* _member, NodeView* _nodeView)
     , m_nodeView(_nodeView)
 {
     NODABLE_ASSERT(_member != nullptr); // Member must be defined
-    if ( m_member->allowsConnection(Way_In) )   m_in  = new Connector(this, Way_In);
-    if ( m_member->allowsConnection(Way_Out) )  m_out = new Connector(this, Way_Out);
+    if ( m_member->allowsConnection(Way_In) )   m_in  = new MemberConnector(this, Way_In);
+    if ( m_member->allowsConnection(Way_Out) )  m_out = new MemberConnector(this, Way_Out);
 }
 
 MemberView::~MemberView()
@@ -1190,7 +1190,7 @@ MemberView::~MemberView()
     delete m_out;
 }
 
-ImVec2 Connector::getPos()const
+ImVec2 MemberConnector::getPos()const
 {
     ImVec2 pos                  = m_memberView->m_screenPos;
     auto nodeViewScreenPosition = View::CursorPosToScreenPos(m_memberView->m_nodeView->getPos());
