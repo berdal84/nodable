@@ -800,7 +800,8 @@ void NodeView::clearConstraints() {
     m_constraints.clear();
 }
 
-void NodeView::addConstraint(ViewConstraint _constraint) {
+void NodeView::addConstraint(ViewConstraint &_constraint)
+{
     m_constraints.push_back(std::move(_constraint));
 }
 

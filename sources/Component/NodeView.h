@@ -103,7 +103,7 @@ namespace Nodable
         /** Compute the bounding rectangle of this view */
         ImRect getRect(bool _recursive = false, bool _ignorePinned = true, bool _ignoreMultiConstrained = true, bool _ignoreSelf = false);
 
-        void addConstraint(ViewConstraint _constraint);
+        void addConstraint(ViewConstraint &_constraint);
         void applyConstraints(float _dt);
         void clearConstraints();
 
