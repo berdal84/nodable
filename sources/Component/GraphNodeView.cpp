@@ -19,6 +19,7 @@ using namespace Nodable;
 bool GraphNodeView::draw()
 {
     bool edited = false;
+    VirtualMachine* vm = &Application::s_instance->getVirtualMachine();
 
     Settings* settings = Settings::GetCurrent();
     GraphNode* graph = getGraphNode();
@@ -87,6 +88,9 @@ bool GraphNodeView::draw()
             {
                 eachNodeView->draw();
 
+                if( vm && vm->isDebugging() && vm->getCurrentNode() == eachNodeView->getOwner())
+                    ImGui::SetScrollHereY();
+
                 // dragging
                 if (GetDragged() == eachNodeView && ImGui::IsMouseDragging(0))
                 {
@@ -147,7 +151,7 @@ bool GraphNodeView::draw()
     }
 
 	// Virtual Machine cursor
-	if( VirtualMachine* vm = &Application::s_instance->getVirtualMachine() )
+	if( vm )
     {
 	    if ( !vm->isStopped())
         {
@@ -372,6 +376,9 @@ bool GraphNodeView::draw()
 		ImGui::EndPopup();
 
 	}
+
+	// add some empty space
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
 
 	return edited;
 }
