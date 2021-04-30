@@ -20,7 +20,8 @@ void FileView::init()
 
 bool FileView::draw()
 {
-    auto availSize = ImGui::GetContentRegionAvail();
+    const ImVec2 margin(10.0f, 0.0f);
+    auto availSize = ImGui::GetContentRegionAvail() - margin;
 
      // Splitter
     //---------
@@ -34,7 +35,7 @@ bool FileView::draw()
 
     ImRect rect;
     rect.Max.y = availSize.y;
-    rect.Max.x = 4.0f;
+    rect.Max.x = 2.0f;
     rect.TranslateX(m_childSize1 + 2.0f);
     rect.Translate(View::ToScreenPosOffset());
     ImGui::SplitterBehavior( rect, ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_childSize1, &m_childSize2, 20.0f, 20.0f);
@@ -42,7 +43,7 @@ bool FileView::draw()
      // TEXT EDITOR
     //------------
 
-    ImGui::BeginChild("file", ImVec2(m_childSize1, availSize.y));
+    ImGui::BeginChild("file", ImVec2(m_childSize1, availSize.y), false);
 
     auto file = getFile();
     auto previousCursorPosition = m_textEditor.GetCursorPosition();
@@ -60,7 +61,7 @@ bool FileView::draw()
     m_textEditor.SetHandleKeyboardInputs(allowkeyboard);
     m_textEditor.SetHandleMouseInputs(allowMouse);
 
-    m_textEditor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail(), false);
+    m_textEditor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
 
     auto currentCursorPosition = m_textEditor.GetCursorPosition();
     auto currentSelectedText = m_textEditor.GetSelectedText();
