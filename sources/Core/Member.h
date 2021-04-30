@@ -32,7 +32,7 @@ namespace Nodable
         explicit Member(const char *);
         ~Member();
 
-        [[nodiscard]] bool allowsConnection(Way wayFlags)const { return (m_wayFlags & wayFlags) == wayFlags;}
+        [[nodiscard]] bool allowsConnection(Way wayFlags)const { return  m_wayFlags & wayFlags; }
 		[[nodiscard]] bool hasInputConnected()const;
         [[nodiscard]] inline bool isDefined() const { return m_data.isDefined(); }
 		[[nodiscard]] bool isType(Type type)const { return m_data.isType(type); }

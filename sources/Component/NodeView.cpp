@@ -71,22 +71,14 @@ std::string NodeView::getLabel()
     return node->getLabel();
 }
 
-void NodeView::exposeMember(Member* _member, Way _way)
+void NodeView::exposeMember(Member* _member)
 {
-    assert(_way == Way_In || _way == Way_Out);
-
     MemberView* memberView = new MemberView(_member, this);
 
-    if( _way == Way_In )
-    {
-        m_exposedInputsMembers.push_back(memberView);
-    }
-    else // Way_Out
-    {
-        m_exposedOutputMembers.push_back(memberView);
-    }
+    if( memberView->m_in )  m_exposedInputsMembers.push_back(memberView);
+    if( memberView->m_out ) m_exposedOutputMembers.push_back(memberView);
 
-    m_exposedMembers.insert_or_assign(_member, memberView);
+    m_exposedMembers.insert({_member, memberView});
 }
 
 void NodeView::setOwner(Node* _node)
@@ -99,7 +91,7 @@ void NodeView::setOwner(Node* _node)
         auto member = m.second;
         if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_In) )
         {
-           this->exposeMember(member, Way_In);
+           exposeMember(member);
         }
         else
         {
@@ -112,7 +104,7 @@ void NodeView::setOwner(Node* _node)
     {
         if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_Out))
         {
-            this->exposeMember(member, Way_Out);
+            exposeMember(member);
         }
     }
 

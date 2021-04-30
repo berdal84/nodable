@@ -70,9 +70,7 @@ namespace Nodable
 		/** override Component::setOwner(Node*) to extract some information from owner before to actually set it */
 		void setOwner(Node* _node)override;
 
-		/** Expose a member in the NodeView
-		 * Way can only be Way_In or Way_Out */
-		void exposeMember(Member*, Way );
+		void exposeMember(Member* );
 
 		/** Draw the view at its position into the current window
 		   Returns true if nod has been edited, false either */
