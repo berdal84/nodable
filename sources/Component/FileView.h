@@ -26,6 +26,14 @@ namespace Nodable {
 		TextEditor::Coordinates        getTextEditorCursorPosition()const { return m_textEditor.GetCursorPosition(); }
 		void						   setUndoBuffer(TextEditor::ExternalUndoBufferInterface*);
         void                           drawFileInfo();
+        void                           experimental_clipboard_auto_paste(bool val)
+        {
+            m_experimental_clipboard_auto_paste = val;
+            if( val ) {
+                m_experimental_clipboard_prev = "";
+            }
+        }
+        bool                           experimental_clipboard_auto_paste() { return m_experimental_clipboard_auto_paste; }
 	private:
 		File*        getFile();
 		TextEditor   m_textEditor;
@@ -33,7 +41,11 @@ namespace Nodable {
 		float        m_childSize1 = 0.3f;
 		float        m_childSize2 = 0.7f;
 
-		// reflect class using mirror
+        std::string  m_experimental_clipboard_curr;
+        std::string  m_experimental_clipboard_prev;
+        bool         m_experimental_clipboard_auto_paste = false;
+
+        // reflect class using mirror
 		MIRROR_CLASS(FileView)(
 			MIRROR_PARENT(View)
         );
