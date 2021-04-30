@@ -1,6 +1,7 @@
 #pragma once
 
 #include <imgui.h>
+#include <TextEditor.h>
 
 namespace Nodable {
 
@@ -15,6 +16,7 @@ namespace Nodable {
             struct {
                 TextStyle p;
                 TextStyle h1;
+                TextEditor::Palette textEditorPalette;
             } text;
 
             struct {

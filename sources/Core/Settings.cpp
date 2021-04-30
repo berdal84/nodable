@@ -19,6 +19,29 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
         g_conf->ui.text.p.font                  = "CenturyGothic.ttf";
         g_conf->ui.text.h1.size                 = 25.0f;
         g_conf->ui.text.h1.font                 = "CenturyGothic.ttf";
+        g_conf->ui.text.textEditorPalette       = {
+            0xffffffff, // None
+            0xffd69c56, // Keyword
+            0xff00ff00, // Number
+            0xff7070e0, // String
+            0xff70a0e0, // Char literal
+            0xffffffff, // Punctuation
+            0xff409090, // Preprocessor
+            0xffaaaaaa, // Identifier
+            0xff9bc64d, // Known identifier
+            0xffc040a0, // Preproc identifier
+            0xff909090, // Comment (single line)
+            0xff909090, // Comment (multi line)
+            0x30000000, // Background
+            0xffe0e0e0, // Cursor
+            0x20ffffff, // Selection
+            0x800020ff, // ErrorMarker
+            0x40f08000, // Breakpoint
+            0x88909090, // Line number
+            0x40000000, // Current line fill
+            0x40808080, // Current line fill (inactive)
+            0x40a0a0a0, // Current line edge
+        };
 
         // nodes
         g_conf->ui.node.padding                = 6.0f;

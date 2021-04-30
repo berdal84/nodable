@@ -4,6 +4,7 @@
 #include "File.h"
 #include "GraphNode.h"
 #include "GraphNodeView.h"
+#include "Settings.h"
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 
@@ -11,39 +12,10 @@ using namespace Nodable;
 
 void FileView::init()
 {
-
-	/*
-		Configure ImGuiTextColorEdit
-	*/
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_textEditor.SetLanguageDefinition(lang);
 	m_textEditor.SetImGuiChildIgnored(true);
-
-	TextEditor::Palette palette = { {
-		0xffffffff, // None
-		0xffd69c56, // Keyword  
-		0xff00ff00, // Number
-		0xff7070e0, // String
-		0xff70a0e0, // Char literal
-		0xffffffff, // Punctuation
-		0xff409090, // Preprocessor
-		0xffaaaaaa, // Identifier
-		0xff9bc64d, // Known identifier
-		0xffc040a0, // Preproc identifier
-		0xff909090, // Comment (single line)
-		0xff909090, // Comment (multi line)
-		0x30000000, // Background
-		0xffe0e0e0, // Cursor
-		0x20ffffff, // Selection
-		0x800020ff, // ErrorMarker
-		0x40f08000, // Breakpoint
-		0x88909090, // Line number
-		0x40000000, // Current line fill
-		0x40808080, // Current line fill (inactive)
-		0x40a0a0a0, // Current line edge
-		} };
-
-	m_textEditor.SetPalette(palette);
+	m_textEditor.SetPalette(Settings::GetCurrent()->ui.text.textEditorPalette);
 }
 
 bool FileView::draw()
