@@ -294,7 +294,7 @@ namespace Nodable
     class NodeConnector: public AbstractConnector<NodeConnector>
     {
     public:
-        NodeConnector(NodeView* _nodeView, Way _way, size_t _index, size_t _count): m_nodeView(_nodeView), m_way(_way), m_index(_index), m_count(_count) {};
+        NodeConnector(NodeView* _nodeView, Way _way, size_t _index = 0, size_t _count = 1): m_nodeView(_nodeView), m_way(_way), m_index(_index), m_count(_count) {};
         ~NodeConnector() = default;
         inline Node*       getNode()const { return m_nodeView->getOwner(); }
         ImRect             getRect()const;

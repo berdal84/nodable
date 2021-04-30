@@ -5,6 +5,12 @@
 
 using namespace Nodable;
 
+AbstractCodeBlockNode::AbstractCodeBlockNode()
+{
+    setNextMaxCount(1);
+    setPrevMaxCount(-1);
+}
+
 ScopedCodeBlockNode *AbstractCodeBlockNode::getParent()
 {
     if ( this->m_parent ) {

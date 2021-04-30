@@ -49,34 +49,38 @@ namespace Nodable{
 		explicit Node(std::string  _label = "UnnamedNode");
 		virtual ~Node();
 
-		[[nodiscard]] virtual Node*                     getParent()const { return this->m_parent; }
-		              virtual void                      setParent(Node* _node);
+		virtual Node*                     getParent()const { return this->m_parent; }
+        virtual void                      setParent(Node* _node);
 
-		[[nodiscard]] virtual std::vector<Node*>&       getChildren() { return this->m_children; }
-        [[nodiscard]] virtual const std::vector<Node*>& getChildren()const { return this->m_children; }
-		              virtual void                      addChild(Node* _node);
-		              virtual void                      removeChild(Node* _node);
+		virtual std::vector<Node*>&       getChildren() { return this->m_children; }
+        virtual const std::vector<Node*>& getChildren()const { return this->m_children; }
+        virtual void                      addChild(Node* _node);
+		virtual void                      removeChild(Node* _node);
 
-        [[nodiscard]] inline GraphNode*                 getParentGraph()const { return this->m_parentGraph; }
-                      void                              setParentGraph(GraphNode* _parentGraph);
-		[[nodiscard]] GraphNode*                        getInnerGraph()const;
-		              void                              setInnerGraph(GraphNode*);
+        inline GraphNode*                 getParentGraph()const { return this->m_parentGraph; }
+        void                              setParentGraph(GraphNode* _parentGraph);
+		GraphNode*                        getInnerGraph()const;
+		void                              setInnerGraph(GraphNode*);
 
-		              void                addInput(Node *_node);
-                      void                addOutput(Node *_node);
-                      void                removeInput(Node *_node);
-                      void                removeOutput(Node *_node);
-                      std::vector<Node*>& getInputs();
-                      std::vector<Node*>& getOutputs();
+        void                addInput(Node *_node);
+        void                addOutput(Node *_node);
+        void                removeInput(Node *_node);
+        void                removeOutput(Node *_node);
+        std::vector<Node*>& getInputs();
+        std::vector<Node*>& getOutputs();
 
-                      void                limitNext(size_t _count);
-                      void                addNext(Node* _node);
-                      auto&               getNext() { return m_next; }
-                      void                removeNext(Node* _node );
+        // TODO: create a NodeList container and reuse for next/prev/children/input/output
+        inline void         setNextMaxCount(int _count) { m_nextMaxCount = _count;}
+        inline int          getNextMaxCount() { return m_nextMaxCount;}
+        void                addNext(Node* _node);
+        const auto&         getNext() { return m_next; }
+        void                removeNext(Node* _node );
 
-                      void                addPrev(Node* _node);;
-                      auto&               getPrev() { return m_previous; }
-                      void                removePrev(Node* _node );
+        inline void         setPrevMaxCount(int _count) { m_previousMaxCount = _count;}
+        inline int          getPrevMaxCount() { return m_previousMaxCount;}
+        void                addPrev(Node* _node);
+        const auto&         getPrev() { return m_previous; }
+        void                removePrev(Node* _node );
 
         bool needsToBeDeleted  () const { return m_deletedFlag; }
 
@@ -269,6 +273,8 @@ namespace Nodable{
 		Components         m_components;
         Node*              m_parent;
         std::vector<Node*> m_next;
+        int                m_previousMaxCount;
+        int                m_nextMaxCount;
         std::vector<Node*> m_previous;
         std::vector<Node*> m_children;
         bool               m_deletedFlag;
