@@ -90,7 +90,8 @@ bool Parser::expressionToGraph(const std::string& _code,
         return false;
     }
 
-	LOG_MESSAGE("Parser", "Expression evaluated: <expr>%s</expr>\"\n", _code.c_str() );
+	LOG_MESSAGE("Parser", "Graph well updated.\n", _code.c_str() );
+	LOG_VERBOSE("Parser", "Expression evaluated: <expr>%s</expr>\"\n", _code.c_str() );
 	return true;
 }
 

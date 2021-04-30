@@ -107,6 +107,8 @@ File* File::OpenFile(std::filesystem::path _filePath)
 	File* file = new File(_filePath.c_str(), content.c_str());
     file->open = true;
 
+    LOG_MESSAGE( "File", "File \"%s\" loaded.\n", _filePath.c_str());
+
 	return file;
 }
 
@@ -118,7 +120,6 @@ bool File::evaluateExpression(std::string& _expression)
     if (parser->expressionToGraph(_expression, graph) && graph->hasProgram() )
     {
         graph->arrangeNodeViews();
-        LOG_MESSAGE("File", "Expression evaluated: %s\n", _expression.c_str());
         return true;
     }
     return false;

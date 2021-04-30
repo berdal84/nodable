@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 //    Log::SetVerbosityLevel("GraphTraversal", Log::Verbosity::Verbose);
 //    Log::SetVerbosityLevel("Parser", Log::Verbosity::Verbose);
 //    Log::SetVerbosityLevel("GraphNode", Log::Verbosity::Verbose);
-    Log::SetVerbosityLevel("VirtualMachine", Log::Verbosity::Verbose);
+//    Log::SetVerbosityLevel("VirtualMachine", Log::Verbosity::Verbose);
 
 	Application nodable("Nodable " NODABLE_VERSION_EXTENDED );
 	nodable.init();
