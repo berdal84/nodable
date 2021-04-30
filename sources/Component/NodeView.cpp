@@ -777,9 +777,8 @@ ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMult
     }
 
     auto enlarge_to_fit_all = [&](NodeView* eachView) {
-        if (eachView && eachView->isVisible() &&
-            !(eachView->m_pinned && _ignorePinned) &&
-            eachView->shouldFollowOutput(this)) {
+        if (eachView && eachView->isVisible() && !(eachView->m_pinned && _ignorePinned) && eachView->shouldFollowOutput(this) )
+        {
             ImRect childRect = eachView->getRect(true, _ignorePinned, _ignoreMultiConstrained);
             enlarge_to_fit(childRect);
         }
@@ -787,6 +786,12 @@ ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMult
 
     std::for_each(m_children.begin(), m_children.end(), enlarge_to_fit_all);
     std::for_each(m_inputs.begin(), m_inputs.end(), enlarge_to_fit_all);
+
+//    auto draw_list = ImGui::GetForegroundDrawList();
+//    auto screen_rect = rect;
+//    screen_rect.Translate( View::ToScreenPosOffset() );
+//    if ( NodeView::IsSelected(this) )
+//        draw_list->AddRect(screen_rect.Min, screen_rect.Max, ImColor(0,255,0));
 
     return rect;
 }
@@ -1018,20 +1023,20 @@ void ViewConstraint::apply(float _dt) {
                 }
             }
 
-            float posX;
+            float start_pos_x;
 
-            if ( type == Type::MakeRowAndAlignOnBBoxTop)
-                posX = master->getPos().x - cumulatedSize / 2.0f;
-            else
-                posX = master->getRect().GetBL().x;
+//            if ( type == Type::MakeRowAndAlignOnBBoxTop)
+                start_pos_x = master->getPos().x - cumulatedSize / 2.0f;
+//            else
+//                posX = master->getRect().GetBL().x;
 
 
-            // TODO: remove this "hack"
+            // Indent right
             auto masterClass = master->getOwner()->getClass();
             if (masterClass == mirror::GetClass<InstructionNode>() ||
                  ( masterClass == mirror::GetClass<ConditionalStructNode>() && type == Type::MakeRowAndAlignOnBBoxTop))
             {
-                posX += cumulatedSize / 2.0f + settings->ui.node.spacing + master->getSize().x / 2.0f;
+                start_pos_x += cumulatedSize / 2.0f + settings->ui.node.spacing + master->getSize().x / 2.0f;
             }
 
             float nodeSpacing(10);
@@ -1042,23 +1047,21 @@ void ViewConstraint::apply(float _dt) {
                 if (!eachSlave->isPinned() && eachSlave->isVisible() )
                 {
                     // Compute new position for this input view
-                    ImVec2 eachSlaveNewPos = ImVec2(
-                            posX + eachSlave->getSize().x / 2.0f,
-                            master->getPos().y
-                    );
-
                     float verticalOffset = settings->ui.node.spacing + eachSlave->getSize().y / 2.0f + master->getSize().y / 2.0f;
+                    float size_x;
                     if( type == MakeRowAndAlignOnBBoxTop )
                     {
-                        posX += eachSlave->getSize().x + nodeSpacing;
+                        size_x = eachSlave->getSize().x;
                         verticalOffset *= -1.0f;
                     }
                     else
                     {
-                        float sx = eachSlave->getRect(true).GetSize().x;
-                        posX += sx + nodeSpacing;
+                        size_x = eachSlave->getRect(true).GetSize().x;
                     }
-                    eachSlaveNewPos.y += verticalOffset;
+
+                    ImVec2 eachSlaveNewPos = ImVec2(start_pos_x + size_x / 2.0f,master->getPos().y + verticalOffset);
+
+                    start_pos_x += size_x + nodeSpacing;
 
                     if ( !eachSlave->shouldFollowOutput(master) )
                     {
