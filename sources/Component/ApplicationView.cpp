@@ -591,7 +591,7 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size
             }
 
             ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0,0,0,0.35f) );
-            eachFileView->drawAsChild("FileView", availSize);
+            eachFileView->drawAsChild("FileView", availSize, false);
             ImGui::PopStyleColor();
 
             // Status bar
