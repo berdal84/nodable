@@ -27,8 +27,8 @@ namespace Nodable
     class GraphNode;
     class NodeView;
     struct MemberView;
-    struct MemberConnector;
-    struct NodeConnector;
+    class MemberConnector;
+    class NodeConnector;
 
 	/**
 	 * A class to abstract a constraint between some NodeView
@@ -116,16 +116,6 @@ namespace Nodable
 		/** Return a pointer to the selected view or nullptr if no view are selected */
 		static NodeView* GetSelected();
 
-		static const MemberConnector* GetDraggedMemberConnector() { return s_draggedMemberConnector; }
-		static void                   ResetDraggedMemberConnector() { s_draggedMemberConnector = nullptr; }
-		static void                   StartDragMemberConnector(const MemberConnector* _connector);
-        static const MemberConnector* GetHoveredMemberConnector() { return s_hoveredMemberConnector; }
-
-        static const NodeConnector*   GetDraggedNodeConnector() { return s_draggedNodeConnector; }
-        static void                   ResetDraggedNodeConnector() { s_draggedNodeConnector = nullptr; }
-        static void                   StartDragNodeConnector(const NodeConnector* _connector);
-		static const NodeConnector*   GetHoveredNodeConnector() { return s_hoveredNodeConnector; }
-
 		/** Return true if the given NodeView is selected */
 		static bool       IsSelected(NodeView*);
 
@@ -167,20 +157,13 @@ namespace Nodable
         static void SetDetail(NodeViewDetail _viewDetail);
 
         /** Get a MemberView given a Member */
-        const MemberView* getMemberView(const Member* _member)const;
-
-        ImVec2 getScreenPos();
-
-        bool isPinned() const;
-
-        ImVec2 getSize() const;
-
-        static ImRect GetRect(
-                const std::vector<NodeView *>&,
-                bool _recursive = false,
-                bool _ignorePinned = true,
-                bool _ignoreMultiConstrained = true);
-
+        const MemberView*       getMemberView(const Member* _member)const;
+        inline ImVec2           getSize() const { return m_size; }
+        ImVec2                  getScreenPos();
+        inline void             setPinned(bool b) { m_pinned = b; }
+        inline bool             isPinned()const { return m_pinned; }
+        inline bool             isDragged() { return s_draggedNode == this; }
+        static ImRect           GetRect(const std::vector<NodeView *>&, bool _recursive = false, bool _ignorePinned = true, bool _ignoreMultiConstrained = true);
         void                    addForceToTranslateTo(ImVec2 desiredPos, float _factor, bool _recurse = false);
         void                    addForce(ImVec2 force, bool _recurse = false);
         void                    applyForces(float _dt, bool _recurse);
@@ -199,20 +182,10 @@ namespace Nodable
         void                    removeChild(NodeView* view) { m_children.erase( std::find(m_children.begin(), m_children.end(), view));}
         void                    toggleExpansion();
     private:
-        /** Update function that takes a specific delta time (can be hacked by sending a custom value) */
-        virtual bool update(float _deltaTime);
-
-        /**	Draw a Node Member at cursor position.
-			Returns true if Member's value has been modified, false either */
-		bool drawMemberView(MemberView *_memberView);
-
-        void drawMemberViewConnector(MemberView* _view, Way _way, float _connectorRadius);
-
-        /** Draw a single connector at a specific position into the IMGuiDrawList */
-		void drawConnector(const ImVec2 &connnectorScreenPos, const MemberConnector *_connector, ImDrawList *draw_list, float _connectorRadius);
-
-		/** Check if a Member is exposed (as an input or output) */
-        bool isMemberExposed(const Member *_member)const;
+        virtual bool    update(float _deltaTime);
+		bool            drawMemberView(MemberView *_memberView);
+        void            drawMemberViewConnector(MemberView* _view, Way _way, float _connectorRadius);
+        bool            isMemberExposed(const Member *_member)const;
 
         ImVec2          m_forces;
         bool            m_childrenVisible;
@@ -235,10 +208,6 @@ namespace Nodable
 
 		static NodeView*              s_selected;
 		static NodeView*              s_draggedNode;
-		static const MemberConnector* s_draggedMemberConnector;
-		static const MemberConnector* s_hoveredMemberConnector;
-        static const NodeConnector*   s_draggedNodeConnector;
-        static const NodeConnector*   s_hoveredNodeConnector;
         static const float            s_memberInputSizeMin;
         static const ImVec2           s_memberInputToggleButtonSize;
         static std::vector<NodeView*> s_instances;
@@ -276,39 +245,72 @@ namespace Nodable
     };
 
     /**
-     * @brief A MemberConnector represents a physical input or output on a MemberView.
+     * @brief Base class for all connectors
      */
-    struct MemberConnector
+    template<typename T>
+    class AbstractConnector
     {
     public:
+        virtual ImVec2   getPos()const = 0;
+        virtual bool     isAbleToConnect(const T*) const = 0;
+        virtual void     connect(const T*) const = 0;
+
+        static void      StartDrag(const T* connector) { if( T::s_dragged == nullptr) T::s_dragged = connector; }
+        static const T*  GetHovered() { return T::s_hovered; }
+        static const T*  GetDragged() { return T::s_dragged; }
+        static bool      IsDragging() { return T::s_dragged; }
+        static void      StopDrag() { T::s_dragged = nullptr; }
+    };
+
+    /**
+     * @brief A MemberConnector represents a physical input or output on a MemberView.
+     */
+    class MemberConnector: public AbstractConnector<MemberConnector>
+    {
+    public:
+
         MemberConnector(MemberView* _member, Way _way): m_memberView(_member), m_way(_way) {};
         ~MemberConnector() = default;
         inline Member*     getMember()const { return m_memberView->m_member; }
-        inline static bool ShareSameMember(const MemberConnector *const lh, const MemberConnector *const rh) { return lh->getMember() == rh->getMember();}
-        ImVec2             getPos()const;
+        ImVec2             getPos()const override;
+        bool               isAbleToConnect(const MemberConnector* other)const override;
+        void               connect(const MemberConnector *other)const override;
+
+        static void        Draw(const MemberConnector*, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor);
+        static void        DropBehavior(bool &needsANewNode);
 
         MemberView* m_memberView;
         Way         m_way;
+
+        static const MemberConnector* s_hovered;
+        static const MemberConnector* s_dragged;
+
+        static void Draw(const MemberConnector *connector);
     };
 
     /**
      * @brief A NodeConnector represents a physical input or output on a NodeView.
      */
-    struct NodeConnector
+    class NodeConnector: public AbstractConnector<NodeConnector>
     {
     public:
         NodeConnector(NodeView* _nodeView, Way _way, size_t _index, size_t _count): m_nodeView(_nodeView), m_way(_way), m_index(_index), m_count(_count) {};
         ~NodeConnector() = default;
         inline Node*       getNode()const { return m_nodeView->getOwner(); }
         ImRect             getRect()const;
-        ImVec2             getScreenPos()const;
+        ImVec2             getPos()const override;
+        void               connect(const NodeConnector *other) const override;
+        virtual bool       isAbleToConnect(const NodeConnector*) const override;
 
-        inline static bool ShareSameNode(const NodeConnector *const lhanded, const NodeConnector *const rhanded) { return lhanded->getNode() == rhanded->getNode();}
-        static bool Draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor);
+        static bool        Draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor);
+        static void        DropBehavior(bool &needsANewNode);
 
         size_t    m_index;
         size_t    m_count;
         NodeView* m_nodeView;
         Way       m_way;
+
+        static const NodeConnector* s_hovered;
+        static const NodeConnector* s_dragged;
     };
 }

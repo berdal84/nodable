@@ -12,7 +12,7 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
         // TODO: create themes
 
         // main layout
-        g_conf->ui.layout.propertiesRatio       = 0.15f;
+        g_conf->ui.layout.propertiesRatio       = 0.25f;
 
         // text
         g_conf->ui.text.p.size                  = 18.0f;
@@ -63,7 +63,8 @@ void Nodable::Settings::setImGuiStyle(ImGuiStyle& _style)
     ImVec4* colors = _style.Colors;
     colors[ImGuiCol_Text]                   = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
     colors[ImGuiCol_TextDisabled]           = ImVec4(0.21f, 0.21f, 0.21f, 1.00f);
-    colors[ImGuiCol_WindowBg]               = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+    colors[ImGuiCol_WindowBg]               = ImVec4(0.76f, 0.76f, 0.76f, 1.00f);
+    colors[ImGuiCol_DockingEmptyBg]         = ImVec4(0.64f, 0.24f, 0.24f, 1.00f);
     colors[ImGuiCol_ChildBg]                = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
     colors[ImGuiCol_PopupBg]                = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
     colors[ImGuiCol_Border]                 = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);

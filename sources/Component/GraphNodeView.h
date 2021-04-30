@@ -15,10 +15,12 @@ namespace Nodable{
 
 	class GraphNodeView: public NodeView {
 	public:
-	    GraphNodeView();
-		virtual ~GraphNodeView(){};
+	    GraphNodeView() = default;
+		~GraphNodeView() = default;
+
 		void    updateViewConstraints();
 		bool    draw() override ;
+		bool    update() override;
 		void    addContextualMenuItem(const std::string& _category, std::string _label, std::function<Node*(void)> _lambda);
 	private:
 	    std::vector<ViewConstraint> constraints;

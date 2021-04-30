@@ -10,7 +10,6 @@
 #include "Node/ProgramNode.h"
 #include "Node/GraphNode.h"
 #include "Node/VariableNode.h"
-#include "Node/InstructionNode.h"
 #include "Node/LiteralNode.h"
 #include "Component/WireView.h"
 #include "Component/NodeView.h"
@@ -51,36 +50,7 @@ bool GraphNodeView::draw()
 	bool isAnyNodeDragged = false;
 	bool isAnyNodeHovered = false;
 	{
-		// Constraints
-		if (auto program = graph->getProgram() )
-		{
-            // Make sure result node is always visible
-			auto view = program->getComponent<NodeView>();
-			auto rect = ImRect(ImVec2(0,0), ImGui::GetWindowSize());
-			rect.Expand(-20.f);
-			rect.Max.y = std::numeric_limits<float>::max();
-			NodeView::ConstraintToRect(view, rect );
-		}
-
-		// Apply Forces
-        auto deltaTime = ImGui::GetIO().DeltaTime;
-        for (auto eachNode : nodeRegistry)
-        {
-            if (auto view = eachNode->getComponent<NodeView>())
-            {
-                if( view->isVisible() )
-                view->applyConstraints(deltaTime);
-            }
-        }
-
-		// Update
-		for (auto eachNode : nodeRegistry)
-		{
-			if (auto view = eachNode->getComponent<NodeView>() )
-				view->update();
-		}
-
-		//  Draw (Wires first, Node after)
+		//  Draw Wires
         for (auto eachNode : nodeRegistry)
         {
             auto members = eachNode->getProps()->getMembers();
@@ -108,94 +78,73 @@ bool GraphNodeView::draw()
             }
         }
 
-		for (auto eachNode : nodeRegistry)
+        // Draw NodeViews
+        std::vector<NodeView*> nodeViews;
+        Node::GetComponents(nodeRegistry, nodeViews);
+		for (auto eachNodeView : nodeViews)
 		{
-			if (auto view = eachNode->getComponent<View>())
-			{
-				if (view->isVisible())
-				{
-					view->draw();
-					isAnyNodeDragged |= NodeView::GetDragged() == view;
-					isAnyNodeHovered |= view->isHovered();
-				}
-			}
+            if (eachNodeView->isVisible())
+            {
+                eachNodeView->draw();
+
+                // dragging
+                if (GetDragged() == eachNodeView && ImGui::IsMouseDragging(0))
+                {
+                    eachNodeView->translate(ImGui::GetMouseDragDelta(), true);
+                    ImGui::ResetMouseDragDelta();
+                    eachNodeView->setPinned(true);
+                }
+
+                isAnyNodeDragged |= NodeView::GetDragged() == eachNodeView;
+                isAnyNodeHovered |= eachNodeView->isHovered();
+            }
 		}
 	}
 
-	const auto draggedMemberConnector = NodeView::GetDraggedMemberConnector();
-	const auto hoveredMemberConnector = NodeView::GetHoveredMemberConnector();
-    const auto draggedNodeConnector = NodeView::GetDraggedNodeConnector();
-    const auto hoveredNodeConnector = NodeView::GetHoveredNodeConnector();
-	{
-		if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
+	isAnyNodeDragged |= NodeConnector::IsDragging();
+	isAnyNodeDragged |= MemberConnector::IsDragging();
+
+	// Connector Drag'n Drop
+    if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
+    {
+        // Draw temporary Member connection
+        if (auto draggedMemberConnector = MemberConnector::GetDragged())
         {
-            // Draw temporary wire on top (overlay draw list)
-            if (draggedMemberConnector)
-            {
-                ImVec2 lineScreenPosStart = draggedMemberConnector->getPos();
-                ImVec2 lineScreenPosEnd   = hoveredMemberConnector ? hoveredMemberConnector->getPos() : ImGui::GetMousePos();
+            auto hoveredMemberConnector = MemberConnector::GetHovered();
+            ImVec2 lineScreenPosStart = draggedMemberConnector->getPos();
+            ImVec2 lineScreenPosEnd   = hoveredMemberConnector ? hoveredMemberConnector->getPos() : ImGui::GetMousePos();
 
-                ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
-                                                      lineScreenPosEnd,
-                                                      getColor(ColorType_BorderHighlights),
-                                                      settings->ui.wire.bezier.thickness * float(0.9));
+            ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
+                                                  lineScreenPosEnd,
+                                                  getColor(ColorType_BorderHighlights),
+                                                  settings->ui.wire.bezier.thickness * float(0.9));
 
-            }
+        }
 
-            // Draw temporary wire on top (overlay draw list)
-            if (draggedNodeConnector)
-            {
-                ImVec2 lineScreenPosStart = draggedNodeConnector->getScreenPos();
-                ImVec2 lineScreenPosEnd   = hoveredNodeConnector ? hoveredNodeConnector->getScreenPos() : ImGui::GetMousePos();
+        // Draw temporary Node connection
+        if (auto draggedNodeConnector = NodeConnector::GetDragged())
+        {
+            auto hoveredNodeConnector = NodeConnector::GetHovered();
+            ImVec2 lineScreenPosStart = draggedNodeConnector->getPos();
+            ImVec2 lineScreenPosEnd   = hoveredNodeConnector ? hoveredNodeConnector->getPos() : ImGui::GetMousePos();
 
-                ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
-                                                      lineScreenPosEnd,
-                                                      getColor(ColorType_BorderHighlights),
-                                                      settings->ui.codeFlow.lineWidthMax);
-            }
+            ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
+                                                  lineScreenPosEnd,
+                                                  getColor(ColorType_BorderHighlights),
+                                                  settings->ui.codeFlow.lineWidthMax);
+        }
 
-            // If user release mouse button
-            if (ImGui::IsMouseReleased(0))
-            {
-                bool openPopUp = false;
+        // Drops ?
+        bool needsANewNode = false;
+        MemberConnector::DropBehavior(needsANewNode);
+        NodeConnector::DropBehavior(needsANewNode);
 
-                // Add a new wire if needed (mouse drag'n drop)
-                if (draggedMemberConnector && hoveredMemberConnector)
-                {
-                    if ( !MemberConnector::ShareSameMember(draggedMemberConnector, hoveredMemberConnector) )
-                    {
-                        graph->connect(draggedMemberConnector->getMember(), hoveredMemberConnector->getMember() );
-                    }
-                    NodeView::ResetDraggedMemberConnector();
-
-                }// If user release mouse without hovering a member, we display a menu to create a linked node
-                else if (draggedMemberConnector != nullptr)
-                {
-                    openPopUp = true;
-                }
-
-                // Add a new wire if needed (mouse drag'n drop)
-                if (draggedNodeConnector && hoveredNodeConnector)
-                {
-                    if ( !NodeConnector::ShareSameNode(draggedNodeConnector, hoveredNodeConnector) )
-                    {
-                        graph->connect(draggedNodeConnector->getNode(), hoveredNodeConnector->getNode(), RelationType::IS_NEXT_OF );
-                    }
-
-                    NodeView::ResetDraggedNodeConnector();
-
-
-                }// If user release mouse without hovering a member, we display a menu to create a linked node
-                else if (draggedNodeConnector != nullptr)
-                {
-                    openPopUp = true;
-                }
-
-                if ( openPopUp && !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
-                    ImGui::OpenPopup("ContainerViewContextualMenu");
-            }
-	    }
-	}
+        // Need a need node ?
+        if (needsANewNode && !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
+        {
+            ImGui::OpenPopup("ContainerViewContextualMenu");
+        }
+    }
 
 	// Virtual Machine cursor
 	if( VirtualMachine* vm = &Application::s_instance->getVirtualMachine() )
@@ -262,15 +211,15 @@ bool GraphNodeView::draw()
 
 	if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
 	{
-		if (draggedMemberConnector == nullptr)
+		if ( !MemberConnector::IsDragging())
         {
             ImGui::OpenPopup("ContainerViewContextualMenu");
         }
 		else if (ImGui::IsPopupOpen("ContainerViewContextualMenu"))
 		{
 			ImGui::CloseCurrentPopup();
-            NodeView::ResetDraggedMemberConnector();
-            NodeView::ResetDraggedNodeConnector();
+            MemberConnector::StopDrag();
+            NodeConnector::StopDrag();
 		}
 	}
 
@@ -369,7 +318,8 @@ bool GraphNodeView::draw()
 
         if (newNode)
         {
-            if (draggedNodeConnector)
+            // if new node is created after a NodeConnector drag:
+            if (auto draggedNodeConnector = NodeConnector::GetDragged())
             {
                 if ( draggedNodeConnector->m_way == Way_Out )
                 {
@@ -379,11 +329,11 @@ bool GraphNodeView::draw()
                 {
                     graph->connect(draggedNodeConnector->getNode(), newNode, RelationType::IS_NEXT_OF);
                 }
-                NodeView::ResetDraggedNodeConnector();
+                NodeConnector::StopDrag();
             }
 
-            // Connect the New Node with the current dragged a member
-            if (draggedMemberConnector)
+            // if new node is created after a MemberConnector drag:
+            if (auto draggedMemberConnector = MemberConnector::GetDragged())
             {
                 auto props = newNode->getProps();
                 // if dragged member is an m_inputMember
@@ -407,7 +357,7 @@ bool GraphNodeView::draw()
                         graph->connect(draggedMemberConnector->m_memberView->m_member, targetMember);
                     }
                 }
-                NodeView::ResetDraggedMemberConnector();
+                MemberConnector::StopDrag();
             }
 
             // Set New Node's currentPosition were mouse cursor is
@@ -435,8 +385,6 @@ GraphNode* GraphNodeView::getGraphNode() const
 {
     return getOwner()->as<GraphNode>();
 }
-
-GraphNodeView::GraphNodeView(): NodeView() {}
 
 void GraphNodeView::DrawCodeFlowLine(NodeView *startView, NodeView *endView, short _slotCount, short _slotPosition)
 {
@@ -522,4 +470,35 @@ void GraphNodeView::updateViewConstraints()
             }
         }
     }
+}
+
+bool GraphNodeView::update()
+{
+    GraphNode* graph                 = getGraphNode();
+    std::vector<Node*>& nodeRegistry = graph->getNodeRegistry();
+
+    // Constraints
+    if (auto program = graph->getProgram() )
+    {
+        // Make sure result node is always visible
+        auto view = program->getComponent<NodeView>();
+        auto rect = ImRect(ImVec2(0,0), ImGui::GetWindowSize());
+        rect.Expand(-20.f);
+        rect.Max.y = std::numeric_limits<float>::max();
+        NodeView::ConstraintToRect(view, rect );
+    }
+
+    // Find NodeView components
+    auto deltaTime = ImGui::GetIO().DeltaTime;
+    std::vector<NodeView*> views;
+    Node::GetComponents(nodeRegistry, views);
+
+    // Apply constraints
+    for (auto eachView : views)
+        if( eachView->isVisible() )
+            eachView->applyConstraints(deltaTime);
+
+    // Update
+    for (auto eachView : views)
+        eachView->update();
 }
