@@ -9,7 +9,7 @@ ConditionalStructNode::ConditionalStructNode()
     m_token_else(nullptr)
 {
     m_props.add("condition", Visibility::Always, Type_Boolean, Way::Way_In);
-    limitNext(2); // allow 2 Nodes to be next.
+    setNextMaxCount(2); // allow 2 Nodes to be next.
 }
 
 AbstractCodeBlockNode *ConditionalStructNode::getBranchTrue()

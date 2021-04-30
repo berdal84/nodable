@@ -10,7 +10,7 @@ namespace Nodable
     class ProgramNode: public ScopedCodeBlockNode
     {
     public:
-        ProgramNode(){}
+        ProgramNode() = default;
         ~ProgramNode(){}
     };
 }

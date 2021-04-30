@@ -23,7 +23,7 @@ namespace Nodable
     class AbstractCodeBlockNode: public Node
     {
     protected:
-        explicit AbstractCodeBlockNode() = default;
+        explicit AbstractCodeBlockNode();
     public:
         ~AbstractCodeBlockNode() override = default;
 

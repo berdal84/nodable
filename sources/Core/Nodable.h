@@ -4,6 +4,7 @@
 #include <map>	  	// for some typedefs
 #include <vector> 	// for some typedefs
 #include <assert.h> // for ASSERT and VERIFY
+#include "Log.h"
 
 #define NODABLE_VERIFY(expression) assert(expression)
 
@@ -12,7 +13,7 @@
 */
 
 #ifdef _DEBUG
-	#define NODABLE_ASSERT(expression) assert(expression)
+	#define NODABLE_ASSERT(expression) LOG_FLUSH(); assert(expression)
 #else
     #define NODABLE_ASSERT(expression)
 #endif

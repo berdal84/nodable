@@ -135,14 +135,20 @@ void NodeView::setOwner(Node* _node)
         setColor(ColorType_Fill, &settings->ui.node.instructionColor); // green
     }
 
-    // create NodeConnectors
-    size_t count = _node->getNext().capacity();
-    for(size_t index = 0; index < count; ++index )
+    // NodeConnectors
+    //---------------
+
+    // a "next" connector per next slot
+    auto nextMaxCount = _node->getNextMaxCount();
+    for(size_t index = 0; index <  nextMaxCount; ++index )
     {
-        m_nextNodeConnectors.push_back(new NodeConnector(this, Way_Out, index, count));
+        m_nextNodeConnectors.push_back(new NodeConnector(this, Way_Out, index, nextMaxCount));
     }
 
-    m_prevNodeConnnectors.push_back(new NodeConnector(this, Way_In, 0, 1));
+    // a single "previous" connector if node can be connected in this way
+    if( _node->getPrevMaxCount() != 0)
+        m_prevNodeConnnectors.push_back(new NodeConnector(this, Way_In));
+
 
     Component::setOwner(_node);
 }
