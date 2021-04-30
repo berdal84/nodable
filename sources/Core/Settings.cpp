@@ -27,7 +27,7 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
             0xff70a0e0, // Char literal
             0xffffffff, // Punctuation
             0xff409090, // Preprocessor
-            0xffaaaaaa, // Identifier
+            0xffdddddd, // Identifier
             0xff9bc64d, // Known identifier
             0xffc040a0, // Preproc identifier
             0xff909090, // Comment (single line)
