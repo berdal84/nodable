@@ -417,58 +417,52 @@ void GraphNodeView::updateViewConstraints()
 {
     LOG_VERBOSE("GraphNodeView", "updateViewConstraints()\n");
 
-    for(Node* _eachNode: this->getGraphNode()->getNodeRegistry()) {
-        if (auto eachView = _eachNode->getComponent<NodeView>()) {
+    auto nodeRegistry = getGraphNode()->getNodeRegistry();
+
+    for(Node* _eachNode: nodeRegistry)
+    {
+        if (auto eachView = _eachNode->getComponent<NodeView>())
+        {
             eachView->clearConstraints();
         }
     }
 
-    for(Node* _eachNode: this->getGraphNode()->getNodeRegistry())
+    for(Node* _eachNode: nodeRegistry)
     {
         if ( auto eachView = _eachNode->getComponent<NodeView>() )
         {
             auto clss = _eachNode->getClass();
 
-            // follow prev
-            auto prev = _eachNode->getPrev();
-            if ( !prev.empty())
+            // Follow previous Node(s), except if previous is a Conditional Structure Node.
+            //-----------------------------------------------------------------------------
+
+            auto previousNodes = _eachNode->getPrev();
+            std::vector<NodeView*> previousNodesView;
+            Node::GetComponents<NodeView>( previousNodes, previousNodesView);
+            if ( !previousNodes.empty() && !previousNodes[0]->as<ConditionalStructNode>())
             {
-                ViewConstraint followConstr(ViewConstraint::Type::FollowWithChildren);
-                for(auto eachPrev : prev )
-                {
-                    if (auto eachPrevView = eachPrev->getComponent<NodeView>())
-                        followConstr.addMaster(eachPrevView);
-                }
-                followConstr.addSlave(eachView);
-
-                // indent if previous is parent
-//                if ( prev[0] == _eachNode->getParent() )
-//                    followConstr.offset = ImVec2(30.0f, 0);
-
-                eachView->addConstraint(followConstr);
+                ViewConstraint constraint(ViewConstraint::Type::FollowWithChildren);
+                constraint.addMasters(previousNodesView);
+                constraint.addSlave(eachView);
+                eachView->addConstraint(constraint);
             }
 
+            // Align in row Conditional Struct Node's children
+            //------------------------------------------------
 
             auto children = eachView->getChildren();
             if( children.size() > 1 && clss == mirror::GetClass<ConditionalStructNode>())
             {
-                ViewConstraint followConstr(ViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
-                followConstr.addMaster(eachView);
-                followConstr.addSlaves(children);
-                eachView->addConstraint(followConstr);
+                ViewConstraint constraint(ViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
+                constraint.addMaster(eachView);
+                constraint.addSlaves(children);
+                eachView->addConstraint(constraint);
             }
 
-            // Each Node with more than 1 output needs to be aligned with the bbox top of output nodes
-//            if ( _eachNode->getOutputs().size() > 1 )
-//            {
-//                ViewConstraint constraint(ViewConstraint::Type::AlignOnBBoxTop);
-//                constraint.addSlave(eachView);
-//                constraint.addMasters(eachView->getOutputs());
-//                eachView->addConstraint(constraint);
-//            }
+            // Align in row Input connected Nodes
+            //-----------------------------------
 
-            // Input nodes must be aligned to their output
-            if ( !_eachNode->getInputs().empty() )
+            if ( !eachView->getInputs().empty() )
             {
                 ViewConstraint constraint(ViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
                 constraint.addMaster(eachView);
