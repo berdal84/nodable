@@ -75,8 +75,10 @@ void NodeView::exposeMember(Member* _member)
 {
     MemberView* memberView = new MemberView(_member, this);
 
-    if( memberView->m_in )  m_exposedInputsMembers.push_back(memberView);
-    if( memberView->m_out ) m_exposedOutputMembers.push_back(memberView);
+    if( _member->getConnectorWay() == Way_In )
+         m_exposedInputOnlyMembers.push_back(memberView);
+    else
+        m_exposedOutOrInOutMembers.push_back(memberView);
 
     m_exposedMembers.insert({_member, memberView});
 }
@@ -317,7 +319,7 @@ bool NodeView::draw()
 	ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), getLabel().c_str()); // text with a lighter shadow (incrust effect)
 
 	// Draw inputs
-    for( auto& memberView : m_exposedInputsMembers )
+    for( auto& memberView : m_exposedInputOnlyMembers )
     {
         ImGui::SameLine();
         ImGui::SetCursorPosY(cursorPositionBeforeContent.y + 1.0f);
@@ -325,7 +327,7 @@ bool NodeView::draw()
     }
 
     // Draw outputs
-    for( auto& memberView : m_exposedOutputMembers )
+    for( auto& memberView : m_exposedOutOrInOutMembers )
     {
         ImGui::SameLine();
         ImGui::SetCursorPosY(cursorPositionBeforeContent.y + 8.0f);
@@ -362,14 +364,17 @@ bool NodeView::draw()
         float borderCol = getColor(ColorType_Border);
         float hoverCol  = getColor(ColorType_BorderHighlights);
 
-        for( auto& memberView : m_exposedInputsMembers )
+        for( auto& memberView : m_exposedInputOnlyMembers )
         {
             MemberConnector::Draw(memberView->m_in, radius, color, borderCol, hoverCol);
         }
 
-        for( auto& memberView : m_exposedOutputMembers )
+        for( auto& memberView : m_exposedOutOrInOutMembers )
         {
-            MemberConnector::Draw(memberView->m_out, radius, color, borderCol, hoverCol);
+            if ( memberView->m_in)
+                MemberConnector::Draw(memberView->m_in, radius, color, borderCol, hoverCol);
+            if ( memberView->m_out)
+                MemberConnector::Draw(memberView->m_out, radius, color, borderCol, hoverCol);
         }
     }
 
@@ -612,7 +617,7 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
     // Draw exposed input members
     ImGui::Text("Inputs:");
     ImGui::Indent();
-    for (auto& eachView : _view->m_exposedInputsMembers )
+    for (auto& eachView : _view->m_exposedInputOnlyMembers )
     {
         drawMember(eachView->m_member);
     }
@@ -622,7 +627,7 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
     ImGui::NewLine();
     ImGui::Text("Outputs:");
     ImGui::Indent();
-    for (auto& eachView : _view->m_exposedOutputMembers )
+    for (auto& eachView : _view->m_exposedOutOrInOutMembers )
     {
         drawMember(eachView->m_member);
     }
