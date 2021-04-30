@@ -34,7 +34,7 @@ void FileView::init()
 		0xff909090, // Comment (multi line)
 		0x30000000, // Background
 		0xffe0e0e0, // Cursor
-		0x40ffffff, // Selection
+		0x20ffffff, // Selection
 		0x800020ff, // ErrorMarker
 		0x40f08000, // Breakpoint
 		0x88909090, // Line number
@@ -88,7 +88,7 @@ bool FileView::draw()
     m_textEditor.SetHandleKeyboardInputs(allowkeyboard);
     m_textEditor.SetHandleMouseInputs(allowMouse);
 
-    m_textEditor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
+    m_textEditor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail(), false);
 
     auto currentCursorPosition = m_textEditor.GetCursorPosition();
     auto currentSelectedText = m_textEditor.GetSelectedText();
@@ -113,8 +113,9 @@ bool FileView::draw()
     //-------------
 
     ImGui::SameLine();
-    auto view = file->getInnerGraph()->getComponent<GraphNodeView>();
-    view->drawAsChild("graph", ImVec2(m_childSize2, availSize.y));
+    auto graphNodeView = file->getInnerGraph()->getComponent<GraphNodeView>();
+    graphNodeView->update();
+    graphNodeView->drawAsChild("graph", ImVec2(m_childSize2, availSize.y), false);
 
 	return true;
 }

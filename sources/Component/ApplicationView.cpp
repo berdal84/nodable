@@ -398,7 +398,8 @@ bool ApplicationView::draw()
                ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace );
                ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
                ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, Settings::GetCurrent()->ui.layout.propertiesRatio, &dockspace_properties, NULL);
-               ImGui::DockBuilderDockWindow("Global Props", dockspace_properties);
+               ImGui::DockBuilderDockWindow("ImGui", dockspace_properties);
+               ImGui::DockBuilderDockWindow("Settings", dockspace_properties);
                ImGui::DockBuilderDockWindow("Properties", dockspace_properties);
                ImGui::DockBuilderDockWindow("File Info", dockspace_properties);
                ImGui::DockBuilderFinish(dockspace_id);
@@ -411,15 +412,17 @@ bool ApplicationView::draw()
             ImGui::DockSpace(dockspace_id);
 
             // Global Props
-            if (ImGui::Begin("Global Props"))
+            if (ImGui::Begin("Settings"))
             {
                 drawPropertiesWindow();
-                ImGui::NewLine();
-
-                ImGui::ShowStyleEditor();
             }
             ImGui::End();
 
+            if (ImGui::Begin("ImGui"))
+            {
+                ImGui::ShowStyleEditor();
+            }
+            ImGui::End();
 
             // File info
             ImGui::Begin("File Info");

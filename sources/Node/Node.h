@@ -232,6 +232,19 @@ namespace Nodable{
 
 			return nullptr;
 		};
+
+        template<class T>
+		static void GetComponents(const std::vector<Node*>& inNodes, std::vector<T*>& outComponents)
+        {
+		    // ensure a single alloc
+		    outComponents.reserve(inNodes.size());
+
+            for (auto eachNode : inNodes)
+                if (T* view = eachNode->getComponent<T>())
+                    outComponents.push_back(view);
+        }
+
+
         size_t deleteComponents();
         [[nodiscard]] size_t getComponentCount() const;
 
