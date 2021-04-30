@@ -440,6 +440,9 @@ bool NodeView::draw()
 	if( edited )
 	    getOwner()->setDirty();
 
+	if( hovered && !ImGui::IsAnyItemFocused() && !ImGui::IsAnyItemActive())
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+
 	return edited;
 }
 

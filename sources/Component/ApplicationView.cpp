@@ -146,7 +146,7 @@ bool ApplicationView::draw()
     // TODO: create an event list (fill, execute, clear)
     auto delete_node(false);
     auto arrange_node(false);
-    auto userWantsToSelectedNextNode(false);
+    auto select_next(false);
     auto expand_node(false);
 
     SDL_Event event;
@@ -191,7 +191,7 @@ bool ApplicationView::draw()
             }
             else if (key == SDLK_n)
             {
-                userWantsToSelectedNextNode = true;
+                select_next = true;
             }
 			else if (key == SDLK_F1 )
             {
@@ -207,9 +207,6 @@ bool ApplicationView::draw()
 	ImGui_ImplSDL2_NewFrame(sdlWindow);
 	ImGui::NewFrame();
     ImGui::SetCurrentFont(this->paragraphFont);
-
-	// Reset default mouse cursor
-	ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
 
     // Startup Window
     drawStartupWindow();
@@ -504,7 +501,7 @@ bool ApplicationView::draw()
             {
                 selectedNodeView->toggleExpansion();
             }
-			else if (userWantsToSelectedNextNode)
+			else if (select_next)
             {
 			    GraphTraversal traversal;
 			    Node* next = traversal.getNextInstrToEval(selectedNodeView->getOwner());
