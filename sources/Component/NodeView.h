@@ -199,8 +199,8 @@ namespace Nodable
 		std::vector<NodeView*>               m_outputs;
 		std::vector<NodeConnector*>          m_prevNodeConnnectors;
 		std::vector<NodeConnector*>          m_nextNodeConnectors;
-		std::vector<MemberView*>             m_exposedInputsMembers;
-		std::vector<MemberView*>             m_exposedOutputMembers;
+		std::vector<MemberView*>             m_exposedInputOnlyMembers;
+		std::vector<MemberView*>             m_exposedOutOrInOutMembers;
         std::map<const Member*, MemberView*> m_exposedMembers;
         std::vector<ViewConstraint>          m_constraints;
 
