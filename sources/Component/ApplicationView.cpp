@@ -264,6 +264,20 @@ bool ApplicationView::draw()
                     if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) browseFile();
                     if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) application->saveCurrentFile();
                     if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) application->closeCurrentFile();
+
+                    FileView* fileView = nullptr;
+                    bool auto_paste;
+                    if ( auto file = application->getCurrentFile())
+                    {
+                        fileView = file->getComponent<FileView>();
+                        auto_paste = fileView->experimental_clipboard_auto_paste();
+                    }
+
+                    if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, fileView))
+                    {
+                        fileView->experimental_clipboard_auto_paste(!auto_paste);
+                    }
+
                     if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4")) application->stopExecution();
 
                     ImGui::EndMenu();

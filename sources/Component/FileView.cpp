@@ -61,6 +61,18 @@ bool FileView::draw()
     m_textEditor.SetHandleKeyboardInputs(allowkeyboard);
     m_textEditor.SetHandleMouseInputs(allowMouse);
 
+    // listen to clipboard in background (disable by default)
+    if (m_experimental_clipboard_auto_paste)
+    {
+        m_experimental_clipboard_curr = ImGui::GetClipboardText();
+        if (!m_experimental_clipboard_curr.empty() && m_experimental_clipboard_curr != m_experimental_clipboard_prev)
+        {
+            if ( !m_experimental_clipboard_prev.empty() )
+                m_textEditor.InsertText(m_experimental_clipboard_curr.c_str(), true);
+            m_experimental_clipboard_prev = std::move(m_experimental_clipboard_curr);
+        }
+    }
+
     m_textEditor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
 
     auto currentCursorPosition = m_textEditor.GetCursorPosition();
@@ -80,6 +92,7 @@ bool FileView::draw()
     if (hasChanged()) {
         file->evaluateSelectedExpression();
     }
+
     ImGui::EndChild();
 
      // NODE EDITOR
