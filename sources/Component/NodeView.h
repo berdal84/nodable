@@ -50,7 +50,7 @@ namespace Nodable
 	    void addMaster(NodeView*);
         void addSlaves(const std::vector<NodeView *> &vector);
         void addMasters(const std::vector<NodeView *> &vector);
-        ImVec2 offset;
+        ImVec2 m_offset;
 
     private:
 	    Type type;
