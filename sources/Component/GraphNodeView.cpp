@@ -33,14 +33,17 @@ bool GraphNodeView::draw()
      */
     for( auto& each_node : nodeRegistry)
     {
+        int slot_index = 0;
+        int slot_count = each_node->getNextMaxCount();
         for (auto& each_next : each_node->getNext() )
         {
             NodeView *each_view      = each_node->getComponent<NodeView>();
             NodeView *each_next_view = each_next->getComponent<NodeView>();
             if (each_view && each_next_view && each_view->isVisible() && each_next_view->isVisible() )
             {
-                DrawCodeFlowLine(each_view, each_next_view);
+                DrawCodeFlowLine(each_view, each_next_view, slot_count, slot_index);
             }
+            ++slot_index;
         }
     }
 
