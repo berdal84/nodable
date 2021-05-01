@@ -2,6 +2,7 @@
 
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
+#include <numeric>                // for std::accumulate
 #include <vector>
 #include <Settings.h>
 #include "IconsFontAwesome5.h"
@@ -978,7 +979,7 @@ void ViewConstraint::apply(float _dt) {
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
                 ImVec2 newPos(bbox.GetCenter() - ImVec2(bbox.GetSize().x * 0.5 + settings->ui.node.spacing + slave->getRect().GetSize().x * 0.5, 0 ));
-                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed);
+                slave->addForceToTranslateTo(newPos + m_offset, _dt * settings->ui.node.speed);
             }
 
             break;
@@ -995,7 +996,7 @@ void ViewConstraint::apply(float _dt) {
                 newPos.x += settings->ui.node.spacing + slave->getSize().x / 2.0f;
 
                 if ( newPos.y < slave->getPos().y )
-                    slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed, true);
+                    slave->addForceToTranslateTo(newPos + m_offset, _dt * settings->ui.node.speed, true);
             }
 
             break;
@@ -1004,74 +1005,54 @@ void ViewConstraint::apply(float _dt) {
         case Type::MakeRowAndAlignOnBBoxTop:
         case Type::MakeRowAndAlignOnBBoxBottom:
         {
-            auto inputIndex = 0;
+            // Compute size_x_total :
+            //-----------------------
 
-            // Compute the cumulated width and the size y max of the input node view:
-            auto cumulatedSize = 0.0f;
-            auto sizeMax = 0.0f;
+            std::vector<float> size_x;
+            bool recursively = type == Type::MakeRowAndAlignOnBBoxBottom;
             for (auto eachSlave : slaves)
             {
-                if (!eachSlave->isPinned() && eachSlave->isVisible())
-                {
-                    float sx;
-                    if ( type == Type::MakeRowAndAlignOnBBoxTop )
-                        sx = eachSlave->getSize().x;
-                    else
-                        sx = eachSlave->getRect(true).GetSize().x;
-
-                    cumulatedSize += sx;
-                    sizeMax = std::max(sizeMax, sx);
-                }
+                bool ignore = eachSlave->isPinned() || !eachSlave->isVisible();
+                size_x.push_back( ignore ? 0.f : eachSlave->getRect(recursively).GetSize().x);
             }
+            auto size_x_total = std::accumulate(size_x.begin(), size_x.end(), 0.0f);
 
-            float start_pos_x;
+            // Determine x position start:
+            //---------------------------
 
-//            if ( type == Type::MakeRowAndAlignOnBBoxTop)
-                start_pos_x = master->getPos().x - cumulatedSize / 2.0f;
-//            else
-//                posX = master->getRect().GetBL().x;
-
-
-            // Indent right
+            float start_pos_x = master->getPos().x - size_x_total / 2.0f;
             auto masterClass = master->getOwner()->getClass();
             if (masterClass == mirror::GetClass<InstructionNode>() ||
                  ( masterClass == mirror::GetClass<ConditionalStructNode>() && type == Type::MakeRowAndAlignOnBBoxTop))
             {
-                start_pos_x += cumulatedSize / 2.0f + settings->ui.node.spacing + master->getSize().x / 2.0f;
+                // indent
+                start_pos_x = master->getPos().x + master->getSize().x / 2.0f + settings->ui.node.spacing;
             }
 
-            float nodeSpacing(10);
-
+            // Constraint in row:
+            //-------------------
+            auto node_index = 0;
             for (auto eachSlave : slaves)
             {
-                // Contrain only unpinned node that have only a single output connection
                 if (!eachSlave->isPinned() && eachSlave->isVisible() )
                 {
                     // Compute new position for this input view
                     float verticalOffset = settings->ui.node.spacing + eachSlave->getSize().y / 2.0f + master->getSize().y / 2.0f;
-                    float size_x;
                     if( type == MakeRowAndAlignOnBBoxTop )
                     {
-                        size_x = eachSlave->getSize().x;
                         verticalOffset *= -1.0f;
                     }
-                    else
-                    {
-                        size_x = eachSlave->getRect(true).GetSize().x;
-                    }
 
-                    ImVec2 eachSlaveNewPos = ImVec2(start_pos_x + size_x / 2.0f,master->getPos().y + verticalOffset);
-
-                    start_pos_x += size_x + nodeSpacing;
+                    ImVec2 new_pos = ImVec2(start_pos_x + size_x[node_index] / 2.0f, master->getPos().y + verticalOffset);
 
                     if ( !eachSlave->shouldFollowOutput(master) )
-                    {
-                        eachSlaveNewPos.y = eachSlave->getPos().y;
-                    }
-                    eachSlave->addForceToTranslateTo(eachSlaveNewPos + offset, _dt * settings->ui.node.speed, true);
+                        new_pos.y = eachSlave->getPos().y; // remove constraint on Y axis
 
+                    eachSlave->addForceToTranslateTo(new_pos + m_offset, _dt * settings->ui.node.speed, true);
+
+                    start_pos_x += size_x[node_index] + settings->ui.node.spacing;
+                    node_index++;
                 }
-                inputIndex++;
             }
             break;
         }
@@ -1088,7 +1069,7 @@ void ViewConstraint::apply(float _dt) {
                 ImVec2 newPos(masterRect.GetCenter().x,slave->getPos().y + slaveMasterOffset.y + settings->ui.node.spacing);
 
                 // apply
-                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed, true);
+                slave->addForceToTranslateTo(newPos + m_offset, _dt * settings->ui.node.speed, true);
                 break;
             }
         }
@@ -1103,7 +1084,7 @@ void ViewConstraint::apply(float _dt) {
                 newPos.y += settings->ui.node.spacing + slave->getSize().y;
 
                 // apply
-                slave->addForceToTranslateTo(newPos + offset, _dt * settings->ui.node.speed);
+                slave->addForceToTranslateTo(newPos + m_offset, _dt * settings->ui.node.speed);
                 break;
             }
         }
