@@ -38,7 +38,7 @@ namespace Nodable
 
 		View();
 
-		~View() = default;
+		virtual ~View() = default;
 
 		/**
 		 * Method draw to implement in derived.

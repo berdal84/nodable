@@ -502,4 +502,6 @@ bool GraphNodeView::update()
     // Update
     for (auto eachView : views)
         eachView->update();
+
+    return true;
 }
