@@ -254,7 +254,7 @@ TEST(Parser, Conditional_Structures_IF )
     std::string program =
             "double bob   = 10;"
             "double alice = 10;"
-            "if(bob > alice){"
+            "if(bob>alice){"
             "   string message = \"Bob is better than Alice.\";"
             "}";
 
@@ -267,10 +267,10 @@ TEST(Parser, Conditional_Structures_IF_ELSE )
             "double bob   = 10;"
             "double alice = 10;"
             "string message;"
-            "if(bob > alice){"
-            "   message = \"Bob is the best.\";"
+            "if(bob>alice){"
+            "   message= \"Bob is the best.\";"
             "}else{"
-            "   message = \"Bob is not the best.\";"
+            "   message= \"Bob is not the best.\";"
             "}";
 
     ParseEvalSerializeExpressions({program});
@@ -282,12 +282,12 @@ TEST(Parser, Conditional_Structures_IF_ELSE_IF )
             "double bob   = 10;"
             "double alice = 10;"
             "string message;"
-            "if (bob > alice){"
-            "   message = \"Bob is greater than Alice.\";"
-            "} else if (bob < alice ){"
-            "   message = \"Bob is lower than Alice.\";"
+            "if(bob>alice){"
+            "   message= \"Bob is greater than Alice.\";"
+            "} else if(bob<alice){"
+            "   message= \"Bob is lower than Alice.\";"
             "} else {"
-            "   message = \"Bob and Alice are equals.\";"
+            "   message= \"Bob and Alice are equals.\";"
             "}";
 
     ParseEvalSerializeExpressions({program});

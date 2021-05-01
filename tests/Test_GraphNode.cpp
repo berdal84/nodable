@@ -101,7 +101,7 @@ TEST( GraphNode, create_and_delete_relations)
     // is child of (and by reciprocity "is parent of")
     EXPECT_EQ(graph->getRelationRegistry().size(), 0);
     EXPECT_EQ(n2->getChildren().size(), 0);
-    graph->connect(n1, n2, RelationType::IS_CHILD_OF);
+    graph->connect(n1, n2, RelationType::IS_CHILD_OF, false);
     EXPECT_EQ(n2->getChildren().size(), 1);
     EXPECT_EQ(graph->getRelationRegistry().size(), 1);
     graph->disconnect(n1, n2, RelationType::IS_CHILD_OF);
@@ -110,7 +110,7 @@ TEST( GraphNode, create_and_delete_relations)
     // Is input of
     EXPECT_EQ(graph->getRelationRegistry().size(), 0);
     EXPECT_EQ(n2->getInputs().size(), 0);
-    graph->connect(n1, n2, RelationType::IS_INPUT_OF);
+    graph->connect(n1, n2, RelationType::IS_INPUT_OF, false);
     EXPECT_EQ(n2->getInputs().size(), 1);
     EXPECT_EQ(graph->getRelationRegistry().size(), 1);
     graph->disconnect(n1, n2, RelationType::IS_INPUT_OF);
