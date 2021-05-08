@@ -1,6 +1,7 @@
 #include "GraphNodeView.h"
 
 #include <algorithm>
+#include <utility>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #include "Core/Settings.h"
@@ -233,34 +234,53 @@ bool GraphNodeView::draw()
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
 	{
 		Node* newNode = nullptr;
+        bool is_dragging_node_connector = NodeConnector::GetDragged() != nullptr;
+        bool is_dragging_member_connector = MemberConnector::GetDragged() != nullptr;
 
 		// Title :
 		ImGuiEx::ColoredShadowedText( ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
 		ImGui::Separator();
 
-		/*
-			Menu Items...
-		*/
-
-
+		// lambda to draw operator/function submenus
 		auto drawMenu = [&](const std::string _key)-> void {
 			char menuLabel[255];
 			snprintf( menuLabel, 255, ICON_FA_CALCULATOR" %s", _key.c_str());
+
 
 			if (ImGui::BeginMenu(menuLabel))
 			{		
 				auto range = contextualMenus.equal_range(_key);
 				for (auto it = range.first; it != range.second; it++)
 				{
-					auto labelFunctionPair = it->second;
-					auto itemLabel = labelFunctionPair.first.c_str();
+				    auto menu_item = it->second;
 
-					if (ImGui::MenuItem(itemLabel))
+				    bool has_compatible_signature = false;
+
+				    if ( !is_dragging_member_connector )
+				    {
+				        has_compatible_signature = true;
+				    }
+				    else
+                    {
+                        const MemberConnector* dragged_member_conn = MemberConnector::GetDragged();
+                        TokenType dragged_member_type = graph->getLanguage()->getSemantic()->typeToTokenType(dragged_member_conn->getMember()->getType());
+
+                        if ( dragged_member_conn->m_way == Way_Out )
+                        {
+                            has_compatible_signature = menu_item.function_signature.hasAtLeastOneArgOfType(dragged_member_type);
+                        }
+                        else
+                        {
+                            has_compatible_signature = menu_item.function_signature.getType() == dragged_member_type;
+                        }
+                    }
+
+					if ( has_compatible_signature && ImGui::MenuItem( menu_item.label.c_str() ))
 					{
-						if ( labelFunctionPair.second != nullptr  )
-							newNode = labelFunctionPair.second();
+						if ( menu_item.create_node_fct  )
+							newNode = menu_item.create_node_fct();
 						else
-							LOG_WARNING( "GraphNodeView", "The function associated to the key %s is nullptr", itemLabel );
+							LOG_WARNING( "GraphNodeView", "The function associated to the key %s is nullptr", menu_item.label.c_str() );
 					}
 				}
 
@@ -268,37 +288,56 @@ bool GraphNodeView::draw()
 			}	
 		};
 
-		drawMenu("Operators");
-		drawMenu("Functions");
-
-		ImGui::Separator();
-
-        if (ImGui::BeginMenu("Variable"))
-        {
-            if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                newNode = graph->newVariable(Type_Boolean, "var", graph->getProgram());
-
-            if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                newNode = graph->newVariable(Type_Double, "var", graph->getProgram());
-
-            if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                newNode = graph->newVariable(Type_String, "var", graph->getProgram());
-
-            ImGui::EndMenu();
+		if ( !is_dragging_node_connector )
+		{
+		    drawMenu("Operators");
+            drawMenu("Functions");
+            ImGui::Separator();
         }
 
-        if (ImGui::BeginMenu("Literal"))
+
+        if ( !is_dragging_node_connector )
         {
-            if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
-                newNode = graph->newLiteral(Type_Boolean);
+            if ( is_dragging_member_connector )
+            {
+                if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
+                    newNode = graph->newVariable(MemberConnector::GetDragged()->getMember()->getType(), "var", graph->getProgram());
+            }
+            else if ( ImGui::BeginMenu("Variable") )
+            {
+                if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
+                    newNode = graph->newVariable(Type_Boolean, "var", graph->getProgram());
 
-            if (ImGui::MenuItem(ICON_FA_FILE " Double"))
-                newNode = graph->newLiteral(Type_Double);
+                if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
+                    newNode = graph->newVariable(Type_Double, "var", graph->getProgram());
 
-            if (ImGui::MenuItem(ICON_FA_FILE " String"))
-                newNode = graph->newLiteral(Type_String);
+                if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
+                    newNode = graph->newVariable(Type_String, "var", graph->getProgram());
 
-            ImGui::EndMenu();
+                ImGui::EndMenu();
+            }
+        }
+
+        if ( !is_dragging_node_connector )
+        {
+            if ( is_dragging_member_connector )
+            {
+                if (ImGui::MenuItem(ICON_FA_FILE " Literal"))
+                    newNode = graph->newLiteral(MemberConnector::GetDragged()->getMember()->getType());
+            }
+            else if ( ImGui::BeginMenu("Literal") )
+            {
+                if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
+                    newNode = graph->newLiteral(Type_Boolean);
+
+                if (ImGui::MenuItem(ICON_FA_FILE " Double"))
+                    newNode = graph->newLiteral(Type_Double);
+
+                if (ImGui::MenuItem(ICON_FA_FILE " String"))
+                    newNode = graph->newLiteral(Type_String);
+
+                ImGui::EndMenu();
+            }
         }
 
         ImGui::Separator();
@@ -306,22 +345,24 @@ bool GraphNodeView::draw()
         if (ImGui::MenuItem(ICON_FA_CODE " Instruction"))
             newNode = graph->newInstruction_UserCreated();
 
-        if (ImGui::MenuItem(ICON_FA_CODE " Condition"))
-            newNode = graph->newConditionalStructure();
+        if( !is_dragging_member_connector )
+        {
+            if (ImGui::MenuItem(ICON_FA_CODE " Condition"))
+                newNode = graph->newConditionalStructure();
 
-        ImGui::Separator();
+            ImGui::Separator();
 
-        if (ImGui::MenuItem(ICON_FA_CODE " Block"))
-            newNode = graph->newCodeBlock();
+            if (ImGui::MenuItem(ICON_FA_CODE " Block"))
+                newNode = graph->newCodeBlock();
 
-        if (ImGui::MenuItem(ICON_FA_CODE " Scope"))
-            newNode = graph->newScopedCodeBlock();
+            if (ImGui::MenuItem(ICON_FA_CODE " Scope"))
+                newNode = graph->newScopedCodeBlock();
 
-        ImGui::Separator();
+            ImGui::Separator();
 
-        if (ImGui::MenuItem(ICON_FA_CODE " Program"))
-            newNode = graph->newProgram();
-
+            if (ImGui::MenuItem(ICON_FA_CODE " Program"))
+                newNode = graph->newProgram();
+        }
 
         if (newNode)
         {
@@ -386,9 +427,13 @@ bool GraphNodeView::draw()
 	return edited;
 }
 
-void Nodable::GraphNodeView::addContextualMenuItem(const std::string& _category, std::string _label, std::function<Node*(void)> _function)
+void Nodable::GraphNodeView::addContextualMenuItem(
+        const std::string& _category,
+        std::string _label,
+        std::function<Node*(void)> _function,
+        const FunctionSignature& _signature)
 {
-	contextualMenus.insert( {_category, {_label, _function }} );
+	contextualMenus.insert( {_category, {std::move(_label), std::move(_function), _signature }} );
 }
 
 GraphNode* GraphNodeView::getGraphNode() const
@@ -507,4 +552,43 @@ bool GraphNodeView::update()
         eachView->update();
 
     return true;
+}
+
+void GraphNodeView::setOwner(Node* _owner)
+{
+    NodeView::setOwner( _owner );
+
+    // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
+    auto graphNode = _owner->as<GraphNode>();
+    auto language  = graphNode->getLanguage();
+    auto api       = language->getAllFunctions();
+
+    for ( auto it = api.cbegin(); it != api.cend(); it++)
+    {
+        const auto function = &*it;
+        auto op = language->findOperator(function->signature);
+
+        if (op != nullptr )
+        {
+            auto lambda = [graphNode, op]()->Node*
+            {
+                return graphNode->newOperator(op);
+            };
+
+            auto label = op->signature.getLabel();
+            addContextualMenuItem("Operators", label, lambda, op->signature);
+        }
+        else
+        {
+            auto lambda = [graphNode, function]()->Node*
+            {
+                return graphNode->newFunction(function);
+            };
+
+            std::string label;
+            language->getSerializer()->serialize(label, (*it).signature);
+            addContextualMenuItem("Functions", label, lambda, (*it).signature);
+        }
+
+    }
 }

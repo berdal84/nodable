@@ -64,3 +64,9 @@ std::string FunctionSignature::getLabel() const
 {
 	return label;
 }
+
+bool FunctionSignature::hasAtLeastOneArgOfType(TokenType _type)
+{
+    auto found = std::find_if( args.begin(), args.end(), [&_type](FunctionArg& each) { return  each.type == _type; } );
+    return found != args.end();
+}

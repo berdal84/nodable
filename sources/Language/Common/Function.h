@@ -41,12 +41,12 @@ namespace Nodable {
 		void pushArgs(TokenType&&... args) {
 			int dummy[] = { 0, ((void)pushArg(std::forward<TokenType>(args)),0)... };
 		}
-
+        bool                           hasAtLeastOneArgOfType(TokenType type);
 		bool                           match(const FunctionSignature& _other)const;
 		const std::string&             getIdentifier()const;
-		std::vector<FunctionArg> getArgs() const;
-		TokenType               getType() const;
-		std::string              getLabel() const;
+		std::vector<FunctionArg>       getArgs() const;
+		TokenType                      getType() const;
+		std::string                    getLabel() const;
 
 	private:
 		std::string label;
@@ -61,7 +61,7 @@ namespace Nodable {
 			signature.pushArgs(_args...);
 			return signature;
 		}
-	};
+    };
 
 	
 

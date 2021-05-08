@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <AbstractCodeBlockNode.h>
+#include <Common/Function.h>
 
 #include "mirror.h"
 #include "Nodable.h"     // forward declarations
@@ -11,21 +12,26 @@
 
 namespace Nodable{
 
-	typedef std::pair<std::string, std::function<Node*(void)>> ContextualMenuItem;
+	typedef struct {
+        std::string label;
+        std::function<Node *(void)> create_node_fct;
+        FunctionSignature function_signature;
+	} FunctionMenuItem;
 
 	class GraphNodeView: public NodeView {
 	public:
 	    GraphNodeView() = default;
 		~GraphNodeView() = default;
 
+		void    setOwner(Node*) override;
 		void    updateViewConstraints();
 		bool    draw() override ;
 		bool    update() override;
-		void    addContextualMenuItem(const std::string& _category, std::string _label, std::function<Node*(void)> _lambda);
+		void    addContextualMenuItem(const std::string& _category, std::string _label, std::function<Node*(void)> _lambda, const FunctionSignature& _signature);
 	private:
 	    std::vector<ViewConstraint> constraints;
         [[nodiscard]] GraphNode* getGraphNode() const;
-		std::multimap<std::string, ContextualMenuItem> contextualMenus;
+		std::multimap<std::string, FunctionMenuItem> contextualMenus;
 
 		MIRROR_CLASS(GraphNodeView)
 		(
