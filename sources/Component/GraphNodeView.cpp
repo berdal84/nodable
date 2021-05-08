@@ -202,7 +202,7 @@ bool GraphNodeView::draw()
 		Mouse PAN (global)
 	*/
 
-	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged)
+	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged )
     {
         auto drag = ImGui::GetMouseDragDelta();
         for (auto eachNode : nodeRegistry)
@@ -223,12 +223,6 @@ bool GraphNodeView::draw()
         {
             ImGui::OpenPopup("ContainerViewContextualMenu");
         }
-		else if (ImGui::IsPopupOpen("ContainerViewContextualMenu"))
-		{
-			ImGui::CloseCurrentPopup();
-            MemberConnector::StopDrag();
-            NodeConnector::StopDrag();
-		}
 	}
 
 	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
@@ -415,6 +409,14 @@ bool GraphNodeView::draw()
 		ImGui::EndPopup();
 
 	}
+
+	// reset dragged if right click
+	if ( ImGui::IsMouseClicked(1) )
+    {
+        ImGui::CloseCurrentPopup();
+        MemberConnector::StopDrag();
+        NodeConnector::StopDrag();
+    }
 
 	// add some empty space
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
