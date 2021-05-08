@@ -219,7 +219,7 @@ bool GraphNodeView::draw()
 
 	if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
 	{
-		if ( !MemberConnector::IsDragging())
+		if ( !MemberConnector::IsDragging() && !NodeConnector::IsDragging())
         {
             ImGui::OpenPopup("ContainerViewContextualMenu");
         }
@@ -254,7 +254,7 @@ bool GraphNodeView::draw()
 				{
 				    auto menu_item = it->second;
 
-				    bool has_compatible_signature = false;
+				    bool has_compatible_signature;
 
 				    if ( !is_dragging_member_connector )
 				    {
@@ -366,13 +366,15 @@ bool GraphNodeView::draw()
 
         if (newNode)
         {
-            // if new node is created after a NodeConnector drag:
+            // dragging node connector ?
             if (auto draggedNodeConnector = NodeConnector::GetDragged())
             {
+                //  [ dragged ](next) ---- dragging this way ----> (prev)[ new node ]
                 if ( draggedNodeConnector->m_way == Way_Out )
                 {
                     graph->connect(newNode, draggedNodeConnector->getNode(), RelationType::IS_NEXT_OF);
                 }
+                //  [ new node ](next) <--- dragging this way ---- (prev)[ dragged ]
                 else
                 {
                     graph->connect(draggedNodeConnector->getNode(), newNode, RelationType::IS_NEXT_OF);
@@ -380,30 +382,23 @@ bool GraphNodeView::draw()
                 NodeConnector::StopDrag();
             }
 
-            // if new node is created after a MemberConnector drag:
+            // dragging member connector ?
             if (auto draggedMemberConnector = MemberConnector::GetDragged())
             {
-                auto props = newNode->getProps();
-                // if dragged member is an m_inputMember
-                if (draggedMemberConnector->m_memberView->m_in)
+                // [ new node ](out) <---- dragging this way ---- (in)[ dragged connector ]
+                if ( draggedMemberConnector->m_way == Way_In )
                 {
-                    graph->connect(props->getFirstWithConn(Way_Out), draggedMemberConnector->m_memberView->m_member);
+                    graph->connect(
+                            newNode->getProps()->getFirstWithConn(Way_Out),
+                            draggedMemberConnector->m_memberView->m_member);
                 }
-                // if dragged member is an output
-                else if (draggedMemberConnector->m_memberView->m_out)
+                //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
+                else
                 {
-                    // try to get the first Input only member
-                    auto targetMember = props->getFirstWithConn(Way_In);
-
-                    // If failed, try to get the first input/output member
-                    if (targetMember == nullptr)
-                    {
-                        targetMember = props->getFirstWithConn(Way_InOut);
-                    }
-                    else
-                    {
-                        graph->connect(draggedMemberConnector->m_memberView->m_member, targetMember);
-                    }
+                    // connect dragged (out) to first input on new node.
+                    graph->connect(
+                            draggedMemberConnector->m_memberView->m_member,
+                            newNode->getProps()->getFirstWithConn(Way_In));
                 }
                 MemberConnector::StopDrag();
             }
