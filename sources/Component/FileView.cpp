@@ -37,7 +37,7 @@ bool FileView::draw()
     rect.Max.y = availSize.y;
     rect.Max.x = 4.0f;
     rect.TranslateX(m_childSize1 + 2.0f);
-    rect.Translate(View::ToScreenPosOffset());
+    rect.Translate(ImGuiEx::ToScreenPosOffset());
     ImGui::SplitterBehavior( rect, ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_childSize1, &m_childSize2, 20.0f, 20.0f);
 
      // TEXT EDITOR

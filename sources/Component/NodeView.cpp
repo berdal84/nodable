@@ -8,7 +8,7 @@
 #include "IconsFontAwesome5.h"
 
 #include "Core/Application.h"
-#include "Core/Maths.h"
+#include "Utils/Maths.h"
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/VariableNode.h"
 #include "Node/InstructionNode.h"
@@ -246,7 +246,7 @@ bool NodeView::update()
 
 bool NodeView::update(float _deltaTime)
 {
-    Maths::linear_interpolation(m_opacity, 1.0f, 10.0f * _deltaTime);
+    Maths::lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
     this->applyForces(_deltaTime, false);
 	return true;
 }
@@ -279,7 +279,7 @@ bool NodeView::draw()
 	ImGui::SetCursorPos(getPosRounded() - halfSize );
 	ImGui::PushID(this);
 	ImVec2 cursorPositionBeforeContent = ImGui::GetCursorPos();
-	ImVec2 screenPosition  = View::CursorPosToScreenPos(getPosRounded() );
+	ImVec2 screenPosition  = ImGuiEx::CursorPosToScreenPos(getPosRounded() );
 
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -290,7 +290,7 @@ bool NodeView::draw()
 		auto itemRectMax = screenPosition + halfSize;
 
 		// Draw the rectangle under everything
-		View::DrawRectShadow(itemRectMin, itemRectMax, m_borderRadius, 4, ImVec2(1.0f), getColor(ColorType_Shadow));
+		ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_borderRadius, 4, ImVec2(1.0f), getColor(ColorType_Shadow));
 		draw_list->AddRectFilled(itemRectMin, itemRectMax, getColor(ColorType_Fill), m_borderRadius);
 		draw_list->AddRect(itemRectMin + ImVec2(1.0f), itemRectMax, getColor(ColorType_BorderHighlights), m_borderRadius);
 		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_borderRadius);
@@ -317,7 +317,7 @@ bool NodeView::draw()
 	// Draw the window content
 	//------------------------
     ImGui::BeginGroup();
-	ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), getLabel().c_str()); // text with a lighter shadow (incrust effect)
+	ImGuiEx::ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), getLabel().c_str()); // text with a lighter shadow (incrust effect)
 
 	// Draw inputs
     for( auto& memberView : m_exposedInputOnlyMembers )
@@ -1135,7 +1135,7 @@ MemberView::~MemberView()
 ImVec2 MemberConnector::getPos()const
 {
     ImVec2 pos                  = m_memberView->m_screenPos;
-    auto nodeViewScreenPosition = View::CursorPosToScreenPos(m_memberView->m_nodeView->getPos());
+    auto nodeViewScreenPosition = ImGuiEx::CursorPosToScreenPos(m_memberView->m_nodeView->getPos());
     auto nodeSemiHeight         = m_memberView->m_nodeView->getSize().y * 0.5f;
     if (m_way == Way_In) nodeSemiHeight = -nodeSemiHeight;
 
@@ -1230,7 +1230,7 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
 
     auto draw_list = ImGui::GetWindowDrawList();
     auto rect      = _connector->getRect();
-    rect.Translate(View::ToScreenPosOffset());
+    rect.Translate(ImGuiEx::ToScreenPosOffset());
 
     ImDrawCornerFlags cornerFlags = _connector->m_way == Way_Out ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
 
@@ -1280,7 +1280,7 @@ ImRect NodeConnector::getRect() const
 
 ImVec2 NodeConnector::getPos()const
 {
-    return getRect().GetCenter() + View::ToScreenPosOffset();
+    return getRect().GetCenter() + ImGuiEx::ToScreenPosOffset();
 }
 
 void NodeConnector::connect(const NodeConnector* other) const

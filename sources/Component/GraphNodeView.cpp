@@ -235,7 +235,7 @@ bool GraphNodeView::draw()
 		Node* newNode = nullptr;
 
 		// Title :
-		View::ColoredShadowedText( ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
+		ImGuiEx::ColoredShadowedText( ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
 		ImGui::Separator();
 
 		/*
