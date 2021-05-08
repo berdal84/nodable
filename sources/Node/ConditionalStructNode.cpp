@@ -1,4 +1,5 @@
 #include "ConditionalStructNode.h"
+#include "Node/ScopedCodeBlockNode.h"
 
 using namespace Nodable;
 
@@ -12,14 +13,14 @@ ConditionalStructNode::ConditionalStructNode()
     setNextMaxCount(2); // allow 2 Nodes to be next.
 }
 
-AbstractCodeBlockNode *ConditionalStructNode::getBranchTrue()
+ScopedCodeBlockNode *ConditionalStructNode::getBranchTrue() const
 {
-    return !m_children.empty() ? m_children[0]->as<AbstractCodeBlockNode>() : nullptr;
+    return !m_next.empty() ? m_next[0]->as<ScopedCodeBlockNode>() : nullptr;
 }
 
-AbstractCodeBlockNode *ConditionalStructNode::getBranchFalse()
+ScopedCodeBlockNode *ConditionalStructNode::getBranchFalse() const
 {
-    return m_children.size() > 1 ? m_children[1]->as<AbstractCodeBlockNode>() : nullptr;
+    return m_next.size() > 1 ? m_next[1]->as<ScopedCodeBlockNode>() : nullptr;
 }
 
 void ConditionalStructNode::getLastInstructions(std::vector<InstructionNode *>& out)
