@@ -336,8 +336,8 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     serialize( _result, TokenType_CloseBracket );
 
     // if scope
-    Node* ifScope = _condStruct->getChildren()[0];
-    serialize( _result, ifScope->as<ScopedCodeBlockNode>() );
+    if ( auto* ifScope = _condStruct->getBranchTrue() )
+        serialize( _result, ifScope );
 
     // else & else scope
     if ( const Token* tokenElse = _condStruct->getTokenElse() )
