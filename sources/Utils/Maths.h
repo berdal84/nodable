@@ -7,5 +7,8 @@ namespace Nodable::Maths
      * @param _factor
      * @return
      */
-    float linear_interpolation(float _source, float _target, float _factor);
+    float lerp(float _source, float _target, float _factor)
+    {
+        return _source + (_target - _source ) * std::clamp(_factor, 0.0f, 1.0f);
+    }
 }
