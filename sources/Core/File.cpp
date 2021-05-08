@@ -19,62 +19,26 @@ Nodable::File::File( std::filesystem::path _path, const char* _content)
     , modified(false)
     , open(false)
     , language(LanguageFactory::GetNodable()) /* Detect the language (TODO) */
-{		
-
-	/* Creates the FileView	*/
+{
+	// FileView
 	auto fileView = new FileView();
 	addComponent(fileView);
 	fileView->init();
 	fileView->setText(_content);
 	auto textEditor = fileView->getTextEditor();
 
-	/* Creates an history for UNDO/REDO	*/
+	// History
 	auto history = new History();
 	addComponent(history);
     auto undoBuffer = history->getUndoBuffer(textEditor);
 	fileView->setUndoBuffer(undoBuffer);
 	
-	/* Creates a node container */
+	// GraphNode
 	auto graphNode = new GraphNode(language);
 	graphNode->setLabel(_path.filename().string() + "'s inner container");
     setInnerGraph(graphNode);
 	auto graphNodeView = new GraphNodeView();
 	graphNode->addComponent(graphNodeView);
-
-	/* Add inputs in contextual menu */
-	auto api = language->getAllFunctions();
-
-	for (auto it = api.cbegin(); it != api.cend(); it++) {
-		const auto function = &*it;
-
-		auto op = language->findOperator(function->signature);
-
-
-		if (op != nullptr )
-		{
-			auto lambda = [graphNode, op]()->Node*
-			{
-                return graphNode->newOperator(op);
-			};
-
-			auto label = op->signature.getLabel();
-			graphNodeView->addContextualMenuItem("Operators", label, lambda);
-		}
-		else
-		{
-			auto lambda = [graphNode, function]()->Node*
-			{
-				return graphNode->newFunction(function);
-			};
-
-			std::string label;
-			language->getSerializer()->serialize(label, (*it).signature);
-			graphNodeView->addContextualMenuItem("Functions", label, lambda);
-		}
-		
-	}
-
-
 }
 
 void File::save()
