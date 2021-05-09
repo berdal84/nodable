@@ -13,9 +13,9 @@
 namespace Nodable{
 
 	typedef struct {
-        std::string label;
+        std::string                 label;
         std::function<Node *(void)> create_node_fct;
-        FunctionSignature function_signature;
+        FunctionSignature           function_signature;
 	} FunctionMenuItem;
 
 	class GraphNodeView: public NodeView {
