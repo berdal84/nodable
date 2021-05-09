@@ -6,30 +6,33 @@
 
 namespace Nodable
 {
+    // forward declarations
     class Language;
 
-	class ComputeBase : public Component {
-	public:
-		ComputeBase(const Language* _language) :language(_language) {};
+    /**
+     * @brief Base for Compute Components.
+     */
+	class ComputeBase : public Component
+    {
+    protected:
+		ComputeBase()
+		    : m_result( nullptr )
+		    , m_sourceToken( Token::s_null )
+		    {};
 		~ComputeBase() = default;
-		void         setResult(Member* _value) { result = _value; };
 
-        void setSourceToken(Token *token)
-        {
-            if ( token )
-                this->sourceToken = *token;
-            else
-                this->sourceToken = TokenType_NULL;
-        }
-
-        [[nodiscard]] const Token* getSourceToken()const { return &this->sourceToken; }
+    public:
+		void         setResult(Member* _value) { m_result = _value; };
+        void         setSourceToken(Token *token) { m_sourceToken = token ? *token : TokenType_NULL; }
+        const Token* getSourceToken()const { return &this->m_sourceToken; }
 
 	protected:
-		const Language* language;
-		Member* result = nullptr;
-		Token sourceToken = Token::s_null;
+		Member*         m_result;
+		Token           m_sourceToken;
+
+		// reflect class using mirror
 		MIRROR_CLASS(ComputeBase)(
 			MIRROR_PARENT(Component)
-			);
+		);
 	};
 }
