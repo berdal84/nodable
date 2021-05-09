@@ -1270,10 +1270,18 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
     // behavior
     if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
     {
-        if (ImGui::IsMouseDown(0))
+        if (ImGui::IsMouseDown(0) && !IsDragging() && !NodeView::IsAnyDragged())
         {
-            if ( !IsDragging() && !NodeView::IsAnyDragged())
-                StartDrag(_connector);
+            if ( _connector->m_way == Way_Out)
+            {
+                if ( _connector->getNode()->getNext().size() < _connector->getNode()->getNextMaxCount() )
+                    StartDrag(_connector);
+            }
+            else
+            {
+                if ( _connector->getNode()->getPrev().size() < _connector->getNode()->getPrevMaxCount() )
+                    StartDrag(_connector);
+            }
         }
         else
         {
