@@ -455,7 +455,7 @@ void GraphNodeView::DrawCodeFlowLine(NodeView *startView, NodeView *endView, sho
 
     ImColor color(200,255,200,50);
     ImColor shadowColor(0,0,0,64);
-    WireView::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, lineWidth - linePadding*2.0f, 0.0f);
+    ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, lineWidth - linePadding*2.0f, 0.0f);
 }
 
 void GraphNodeView::updateViewConstraints()

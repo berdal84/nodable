@@ -7,6 +7,9 @@
 
 #include <imgui/imgui_internal.h>
 
+/**
+ * @brief Namespace to gather all custom ImGui-like functions.
+ */
 namespace ImGuiEx {
     /**
      * Draw a rounded-rectangle shadow
@@ -19,21 +22,33 @@ namespace ImGuiEx {
             int _shadowRadius = 10,
             ImVec2 _shadowOffset = ImVec2(),
             ImColor _shadowColor = ImColor(0.0f, 0.0f, 0.0f));
-
     void ShadowedText(
             ImVec2 _offset,
             ImColor _shadowColor,
             const char *_format,
             ...);
-
     void ColoredShadowedText(
             ImVec2 _offset,
             ImColor _textColor,
             ImColor _shadowColor,
             const char *_format,
             ...);
-
     ImVec2 CursorPosToScreenPos(ImVec2 _cursorPosition);
-
     ImVec2 ToScreenPosOffset();
+    void DrawVerticalWire(
+            ImDrawList *draw_list,
+            ImVec2 pos0,
+            ImVec2 pos1,
+            ImColor color,
+            ImColor shadowColor,
+            float thickness = 1.0f,
+            float roundness = 0.5f);
+    void DrawHorizontalWire(
+            ImDrawList *draw_list,
+            ImVec2 pos0,
+            ImVec2 pos1,
+            ImColor color,
+            ImColor shadowColor,
+            float thickness = 1.0f,
+            float roundness = 0.5f);
 }

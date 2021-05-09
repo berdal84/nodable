@@ -8,16 +8,15 @@
 
 using namespace Nodable;
 
-void WireView::Draw(
-        ImDrawList *draw_list,
-        ImVec2 _from, ImVec2 _to
-        /*, const NodeView *_fromNode, const NodeView *_toNode*/)
+void WireView::Draw(ImDrawList *draw_list, ImVec2 _from, ImVec2 _to)
 {
-    auto settings = Settings::GetCurrent();
+    auto& wire = Settings::GetCurrent()->ui.wire;
 
-    WireView::DrawVerticalWire(draw_list, _from, _to, settings->ui.wire.fillColor, settings->ui.wire.shadowColor,
-                               settings->ui.wire.bezier.thickness,
-                               settings->ui.wire.bezier.roundness);
+    ImGuiEx::DrawVerticalWire(draw_list, _from, _to,
+                               wire.fillColor,
+                               wire.shadowColor,
+                               wire.bezier.thickness,
+                               wire.bezier.roundness);
 
     // dot at the output position
 //    draw_list->AddCircleFilled(_from, settings->ui.node.connectorRadius, _fromNode->getColor(View::ColorType_Fill));
@@ -37,59 +36,4 @@ void WireView::Draw(
 //        draw_list->AddCircle      (_to, settings->ui.node.connectorRadius, _toNode->getColor(View::ColorType_Border));
 //    }
 
-}
-
-void WireView::DrawVerticalWire(
-        ImDrawList *draw_list,
-        ImVec2 pos0,
-        ImVec2 pos1,
-        ImColor color,
-        ImColor shadowColor,
-        float thickness,
-        float roundness)
-{
-    // Compute tangents
-    float roundedDist = std::abs(pos1.y - pos0.y) * roundness;
-
-    ImVec2 cp0_fill(pos0.x , pos0.y + roundedDist);
-    ImVec2 cp1_fill(pos1.x , pos1.y - roundedDist);
-
-    ImVec2 pos_shadow_offset(1.f, 1.f);
-    ImVec2 pos0_shadow(pos0 + pos_shadow_offset);
-    ImVec2 pos1_shadow(pos1 + pos_shadow_offset);
-    ImVec2 cp0_shadow(pos0_shadow.x , pos0_shadow.y + roundedDist * 1.05f);
-    ImVec2 cp1_shadow(pos1_shadow.x , pos1_shadow.y - roundedDist * 0.95f);
-
-    // shadow
-    draw_list->AddBezierCurve( pos0_shadow, cp0_shadow, cp1_shadow, pos1_shadow, shadowColor, thickness);
-    // fill
-    draw_list->AddBezierCurve( pos0, cp0_fill, cp1_fill, pos1, color, thickness);
-}
-
-void WireView::DrawHorizontalWire(
-        ImDrawList *draw_list,
-        ImVec2 pos0,
-        ImVec2 pos1,
-        ImColor color,
-        ImColor shadowColor,
-        float thickness,
-        float roundness)
-{
-
-    // Compute tangents
-    float dist = std::max(std::abs(pos1.y - pos0.y), 200.0f);
-
-    ImVec2 cp0(pos0.x + dist * roundness , pos0.y );
-    ImVec2 cp1(pos1.x - dist * roundness , pos1.y );
-
-    // draw bezier curve
-    ImVec2 shadowOffset(1.0f, 2.0f);
-    draw_list->AddBezierCurve(  pos0 + shadowOffset,
-                                cp0  + shadowOffset,
-                                cp1  + shadowOffset,
-                                pos1 + shadowOffset,
-                                shadowColor,
-                                thickness); // shadow
-
-    draw_list->AddBezierCurve(pos0, cp0, cp1, pos1, color, thickness); // fill
 }
