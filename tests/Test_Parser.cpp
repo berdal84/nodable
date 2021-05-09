@@ -9,6 +9,7 @@
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/InstructionNode.h"
 #include "Node/ProgramNode.h"
+#include "Node/DefaultNodeFactory.h"
 
 using namespace Nodable;
 
@@ -16,14 +17,15 @@ template <typename T>
 T ParseAndEvalExpression(const std::string& expression)
 {
     // prepare
-    const Language* _language = LanguageFactory::GetNodable();
     bool success = false;
-    GraphNode graph(_language);
+    const Language* lang = LanguageFactory::GetNodable();
+    DefaultNodeFactory factory(lang);
+    GraphNode graph(lang, &factory );
 
     // act
-    _language->getParser()->expressionToGraph(expression, &graph);
+    lang->getParser()->expressionToGraph(expression, &graph);
 
-    T result;
+    T result{};
     if ( auto program = graph.getProgram())
     {
         // run
@@ -43,31 +45,30 @@ T ParseAndEvalExpression(const std::string& expression)
 }
 
 
-std::string& ParseUpdateSerialize(
-              std::string& result,
-        const std::string& expression,
-        const Language* _language = LanguageFactory::GetNodable()
-){
+std::string& ParseUpdateSerialize( std::string& result, const std::string& expression )
+{
+    // prepare
+    const Language* lang = LanguageFactory::GetNodable();
+    DefaultNodeFactory factory(lang);
+    GraphNode graph(lang, &factory );
 
-    GraphNode graph(_language);
-    _language->getParser()->expressionToGraph(expression, &graph);
-
+    // act
+    lang->getParser()->expressionToGraph(expression, &graph);
     if ( ProgramNode* program = graph.getProgram())
     {
-        // run
         VirtualMachine vm;
         vm.load(program);
         vm.run();
 
         if ( auto lastEvaluatedNode = vm.getLastEvaluatedInstruction() )
         {
-            std::string result;
-            _language->getSerializer()->serialize(result, lastEvaluatedNode->getValue()->getData() );
-            LOG_MESSAGE("Test_Parser", "ParseUpdateSerialize result is: %s\n", result.c_str());
+            std::string result_str;
+            lang->getSerializer()->serialize(result_str, lastEvaluatedNode->getValue()->getData() );
+            LOG_MESSAGE("Test_Parser", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
         }
     }
 
-    Serializer* serializer = _language->getSerializer();
+    Serializer* serializer = lang->getSerializer();
     serializer->serialize(result, graph.getProgram());
 
     std::cout << result << std::endl;
