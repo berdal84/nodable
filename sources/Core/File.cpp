@@ -9,20 +9,28 @@
 #include "Node/ProgramNode.h"
 #include "Language/Common/Parser.h"
 #include "Language/Common/LanguageFactory.h"
+#include "Node/DefaultNodeFactory.h"
 
 #include <fstream>
 
 using namespace Nodable;
 
 Nodable::File::File( std::filesystem::path _path, const char* _content)
-    : path(_path)
-    , modified(false)
-    , open(false)
-    , language(LanguageFactory::GetNodable()) /* Detect the language (TODO) */
+    : m_path(_path)
+    , m_modified(false)
+    , m_open(false)
+    , m_language(nullptr)
+    , m_factory(nullptr)
 {
+    // TODO: Detect the language
+    m_language = LanguageFactory::GetNodable();
+    m_factory  = new DefaultNodeFactory(m_language);
+
 	// FileView
+#ifndef NODABLE_HEADLESS
 	auto fileView = new FileView();
 	addComponent(fileView);
+#endif
 	fileView->init();
 	fileView->setText(_content);
 	auto textEditor = fileView->getTextEditor();
@@ -34,21 +42,24 @@ Nodable::File::File( std::filesystem::path _path, const char* _content)
 	fileView->setUndoBuffer(undoBuffer);
 	
 	// GraphNode
-	auto graphNode = new GraphNode(language);
+	auto graphNode = new GraphNode( m_language, m_factory );
 	graphNode->setLabel(_path.filename().string() + "'s inner container");
     setInnerGraph(graphNode);
+#ifndef NODABLE_HEADLESS
 	auto graphNodeView = new GraphNodeView();
 	graphNode->addComponent(graphNodeView);
+#endif
 }
 
 void File::save()
 {
-	if (modified) {
-		std::ofstream fileStream(this->path.c_str());
+	if ( m_modified )
+	{
+		std::ofstream fileStream(this->m_path.c_str());
 		auto view    = getComponent<FileView>();
 		auto content = view->getText();
-fileStream.write(content.c_str(), content.size());
-modified = false;
+        fileStream.write(content.c_str(), content.size());
+        m_modified = false;
 	}
 
 }
@@ -69,7 +80,7 @@ File* File::OpenFile(std::filesystem::path _filePath)
 	std::string content((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
 
 	File* file = new File(_filePath.c_str(), content.c_str());
-    file->open = true;
+    file->m_open = true;
 
     LOG_MESSAGE( "File", "File \"%s\" loaded.\n", _filePath.c_str());
 
@@ -78,12 +89,14 @@ File* File::OpenFile(std::filesystem::path _filePath)
 
 bool File::evaluateExpression(std::string& _expression)
 {
-	Parser* parser = language->getParser();
+	Parser* parser = m_language->getParser();
 	GraphNode* graph = getInnerGraph();
     graph->clear();
     if (parser->expressionToGraph(_expression, graph) && graph->hasProgram() )
     {
+#ifndef NODABLE_HEADLESS
         graph->arrangeNodeViews();
+#endif
         return true;
     }
     return false;
@@ -114,7 +127,7 @@ UpdateResult File::update() {
         if ( scope && !scope->getChildren().empty() )
         {
             std::string code;
-            language->getSerializer()->serialize( code, scope );
+            m_language->getSerializer()->serialize(code, scope );
             view->replaceSelectedText(code);
         }
     }
@@ -131,10 +144,11 @@ bool File::evaluateSelectedExpression()
 }
 
 bool& File::isOpen() {
-    return open;
+    return m_open;
 }
 
 File::~File()
 {
     delete getInnerGraph();
+    delete m_factory;
 }

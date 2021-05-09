@@ -20,6 +20,7 @@ namespace Nodable{
     class ConditionalStructNode;
     class ProgramNode;
     class LiteralNode;
+    class AbstractNodeFactory;
 
     enum class RelationType: int {
         IS_CHILD_OF,
@@ -47,7 +48,7 @@ namespace Nodable{
 	class GraphNode: public Node {
 	public:
 
-		explicit GraphNode(const Language* _language);
+		explicit GraphNode(const Language* _language, const AbstractNodeFactory* _factory);
 		~GraphNode();
 
 		/** Update the graph by evaluating its nodes only when necessary. */
@@ -112,8 +113,9 @@ namespace Nodable{
 		std::vector<Node*> m_nodeRegistry;
 		std::vector<Wire*> m_wireRegistry;
 		std::multimap<Relation::first_type , Relation::second_type> m_relationRegistry;
-		const Language* m_language;
-		ProgramNode* m_program;
+		const Language*            m_language;
+		ProgramNode*               m_program;
+		const AbstractNodeFactory* m_factory;
 	public:
 		static ImVec2 s_mainScopeView_lastKnownPosition;
 

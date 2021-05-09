@@ -22,15 +22,15 @@ namespace Nodable
 	public:
 		File(std::filesystem::path, const char* /*_content*/);
         ~File();
-		std::string                      getName()const { return std::string {path.filename().u8string()}; }
-        std::string                      getPath()const { return std::string {path.u8string()}; }
+		std::string                      getName()const { return std::string {m_path.filename().u8string()}; }
+        std::string                      getPath()const { return std::string {m_path.u8string()}; }
 		void                             save();
 		UpdateResult                     update();
-		void                             setModified() { modified = true; }
-		bool                             isModified() { return modified; }
+		void                             setModified() { m_modified = true; }
+		bool                             isModified() { return m_modified; }
 		bool                             evaluateExpression(std::string&);
 		bool                             evaluateSelectedExpression();
-        inline const Language* getLanguage()const { return language; }
+        inline const Language* getLanguage()const { return m_language; }
 		static File*                     OpenFile(std::filesystem::path _filePath);
 
 		inline History* getHistory() {
@@ -39,14 +39,14 @@ namespace Nodable
         bool& isOpen();
 
 	private:
-	    bool open = true;
-		bool                      modified = false;
-		std::filesystem::path     path;		
-		const Language*           language;
+	    bool                   m_open = true;
+		bool                   m_modified = false;
+		std::filesystem::path  m_path;
+		const Language*        m_language;
+		const AbstractNodeFactory* m_factory;
+
 		MIRROR_CLASS(File)(
 		    MIRROR_PARENT(Node)
 		);
-
-
     };
 }

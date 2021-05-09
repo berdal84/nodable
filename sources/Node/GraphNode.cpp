@@ -2,12 +2,10 @@
 
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include <Application.h>
 
 #include "Core/Log.h"
 #include "Core/Wire.h"
-#include "Core/VirtualMachine.h"
 #include "Language/Common/Parser.h"
 #include "Component/ComputeBinaryOperation.h"
 #include "Component/ComputeUnaryOperation.h"
@@ -24,6 +22,7 @@
 #include "Node/ConditionalStructNode.h"
 #include "Node/LiteralNode.h"
 #include "Node/ProgramNode.h"
+#include "Node/AbstractNodeFactory.h"
 
 using namespace Nodable;
 
@@ -161,149 +160,59 @@ VariableNode* GraphNode::findVariable(std::string _name)
 
 InstructionNode* GraphNode::newInstruction()
 {
-    // create
-	auto instructionNode = new InstructionNode(ICON_FA_CODE " Instr.");
-    instructionNode->addComponent(new NodeView);
-    instructionNode->setShortLabel(ICON_FA_CODE);
-
-    // register
-    this->registerNode(instructionNode);
+	auto instructionNode = m_factory->newInstruction();
+    registerNode(instructionNode);
 
 	return instructionNode;
 }
 
 InstructionNode* GraphNode::newInstruction_UserCreated()
 {
-    auto newInstructionNode = newInstruction();
+    auto instructionNode = m_factory->newInstruction();
+    registerNode(instructionNode);
 
-    Token* token = new Token(TokenType_EndOfInstruction);
-    m_language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
-    newInstructionNode->setEndOfInstrToken( token );
-
-    return newInstructionNode;
+    return instructionNode;
 }
 
 VariableNode* GraphNode::newVariable(Type _type, const std::string& _name, ScopedCodeBlockNode* _scope)
 {
-    // create
-	auto node = new VariableNode(_type);
-	node->addComponent( new NodeView() );
-    node->setName(_name.c_str());
-
-	// register
-    this->registerNode(node);
-
-    if( _scope)
-    {
-        _scope->addVariable(node);
-    }
-    else
-    {
-        LOG_WARNING("GraphNode", "You create a variable without defining its scope.");
-    }
+	auto node = m_factory->newVariable(_type, _name, _scope);
+    registerNode(node);
 
 	return node;
 }
 
 Node* GraphNode::newOperator(const Operator* _operator)
 {
-    switch ( _operator->getType() )
+    Node* node = m_factory->newOperator( _operator );
+
+    if ( node )
     {
-        case Operator::Type::Binary:
-            return newBinOp(_operator);
-        case Operator::Type::Unary:
-            return newUnaryOp(_operator);
-        default:
-            return nullptr;
+        registerNode(node);
     }
+
+    return node;
 }
 
 Node* GraphNode::newBinOp(const Operator* _operator)
 {
-	// Create a node with 2 inputs and 1 output
-	auto node = new Node();
-	auto signature = _operator->signature;
-	node->setLabel(signature.getLabel());
-    node->setShortLabel(signature.getLabel().substr(0, 4).c_str());
-
-    const auto args = signature.getArgs();
-	const Semantic* semantic = m_language->getSemantic();
-	auto props = node->getProps();
-	auto left   = props->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
-	auto right  = props->add("rvalue", Visibility::Default, semantic->tokenTypeToType(args[1].type), Way_In);
-	auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
-
-	// Create ComputeBinaryOperation component and link values.
-	auto binOpComponent = new ComputeBinaryOperation(_operator, m_language);
-	binOpComponent->setResult(result);	
-	binOpComponent->setLValue( left );	
-	binOpComponent->setRValue(right);
-	node->addComponent(binOpComponent);
-
-	// Create a NodeView component
-	node->addComponent(new NodeView());
-
-	// Add to this container
-    this->registerNode(node);
-		
+	Node* node = m_factory->newBinOp( _operator );
+    registerNode(node);
 	return node;
 }
 
 Node* GraphNode::newUnaryOp(const Operator* _operator)
 {
-	// Create a node with 2 inputs and 1 output
-	auto node = new Node();
-	auto signature = _operator->signature;
-	node->setLabel(signature.getLabel());
-    node->setShortLabel(signature.getLabel().substr(0, 4).c_str());
-	const auto args = signature.getArgs();
-    const Semantic* semantic = m_language->getSemantic();
-    auto props = node->getProps();
-    auto left = props->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
-	auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
-
-	// Create ComputeBinaryOperation binOpComponent and link values.
-	auto unaryOperationComponent = new ComputeUnaryOperation(_operator, m_language);
-	unaryOperationComponent->setResult(result);
-	unaryOperationComponent->setLValue(left);
-	node->addComponent(unaryOperationComponent);
-
-	// Create a NodeView Component
-	node->addComponent(new NodeView());
-
-	// Add to this container
-    this->registerNode(node);
+	Node* node = m_factory->newUnaryOp( _operator );
+    registerNode(node);
 
 	return node;
 }
 
 Node* GraphNode::newFunction(const Function* _function)
 {
-	// Create a node with 2 inputs and 1 output
-	auto node = new Node();
-	node->setLabel(_function->signature.getIdentifier() + "()");
-	node->setShortLabel("f(x)");
-    const Semantic* semantic = m_language->getSemantic();
-	auto props = node->getProps();
-	props->add("result", Visibility::Default, semantic->tokenTypeToType(_function->signature.getType()), Way_Out);
-
-	// Create ComputeBase binOpComponent and link values.
-	auto functionComponent = new ComputeFunction(_function, m_language);
-	functionComponent->setResult(props->get("result"));
-
-	// Arguments
-	auto args = _function->signature.getArgs();
-	for (size_t argIndex = 0; argIndex < args.size(); argIndex++) {
-		std::string memberName = args[argIndex].name;
-		auto member = props->add(memberName.c_str(), Visibility::Default, semantic->tokenTypeToType(args[argIndex].type), Way_In); // create node input
-		functionComponent->setArg(argIndex, member); // link input to binOpComponent
-	}	
-	
-	node->addComponent(functionComponent);
-	node->addComponent(new NodeView());
-
-    this->registerNode(node);
-
+	Node* node = m_factory->newFunction( _function );
+    registerNode(node);
 	return node;
 }
 
@@ -341,9 +250,10 @@ void GraphNode::arrangeNodeViews()
     }
 }
 
-GraphNode::GraphNode(const Language* _language)
+GraphNode::GraphNode(const Language* _language, const AbstractNodeFactory* _factory)
     :
         m_language(_language),
+        m_factory(_factory),
         m_program(nullptr)
 {
 	this->clear();
@@ -351,14 +261,8 @@ GraphNode::GraphNode(const Language* _language)
 
 CodeBlockNode *GraphNode::newCodeBlock()
 {
-    auto codeBlockNode = new CodeBlockNode();
-    std::string label = ICON_FA_CODE " Block " + std::to_string(this->m_program->getChildren().size());
-    codeBlockNode->setLabel(label);
-    codeBlockNode->setShortLabel(ICON_FA_CODE "Bl");
-    codeBlockNode->addComponent(new NodeView);
-
-    this->registerNode(codeBlockNode);
-
+    CodeBlockNode* codeBlockNode = m_factory->newCodeBlock();
+    registerNode(codeBlockNode);
     return codeBlockNode;
 }
 
@@ -646,50 +550,36 @@ void GraphNode::deleteWire(Wire *_wire)
 
 ScopedCodeBlockNode *GraphNode::newScopedCodeBlock()
 {
-    auto scopeNode = new ScopedCodeBlockNode();
-    std::string label = ICON_FA_CODE_BRANCH " Scope";
-    scopeNode->setLabel(label);
-    scopeNode->setShortLabel(ICON_FA_CODE_BRANCH " Scop.");
-    scopeNode->addComponent(new NodeView());
-    this->registerNode(scopeNode);
+    ScopedCodeBlockNode* scopeNode = m_factory->newScopedCodeBlock();
+    registerNode(scopeNode);
     return scopeNode;
 }
 
 ConditionalStructNode *GraphNode::newConditionalStructure()
 {
-    auto scopeNode = new ConditionalStructNode();
-    std::string label = ICON_FA_QUESTION " Condition";
-    scopeNode->setLabel(label);
-    scopeNode->setShortLabel(ICON_FA_QUESTION" Cond.");
-    scopeNode->addComponent(new NodeView());
-    this->registerNode(scopeNode);
-    return scopeNode;
+    ConditionalStructNode* condStructNode = m_factory->newConditionalStructure();
+    registerNode(condStructNode);
+    return condStructNode;
 }
 
-ScopedCodeBlockNode *GraphNode::newProgram() {
+ScopedCodeBlockNode *GraphNode::newProgram()
+{
     clear();
-
-    // create Node
-    m_program = new ProgramNode();
-    m_program->setLabel(ICON_FA_FILE_CODE " Program");
-    m_program->setShortLabel(ICON_FA_FILE_CODE " Prog.");
-    m_program->addComponent(new NodeView());
+    m_program = m_factory->newProgram();
     registerNode(m_program);
-    return this->m_program;
+    return m_program;
 }
 
-Node* GraphNode::newNode() {
-    Node* node = new Node();
+Node* GraphNode::newNode()
+{
+    Node* node = m_factory->newNode();
     registerNode(node);
     return node;
 }
 
 LiteralNode* GraphNode::newLiteral(const Type &type)
 {
-    LiteralNode* node = new LiteralNode(type);
-    node->setLabel("Literal");
-    node->setShortLabel("");
-    node->addComponent(new NodeView());
+    LiteralNode* node = m_factory->newLiteral(type);
     registerNode(node);
     return node;
 }
