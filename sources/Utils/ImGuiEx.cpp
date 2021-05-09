@@ -1,4 +1,5 @@
 #include "ImGuiEx.h"
+#include <math.h>
 
 ImVec2 ImGuiEx::CursorPosToScreenPos(ImVec2 _position)
 {
