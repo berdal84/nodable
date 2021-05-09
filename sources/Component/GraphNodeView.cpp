@@ -152,6 +152,7 @@ bool GraphNodeView::draw()
                 {
                     eachNodeView->translate(ImGui::GetMouseDragDelta(), true);
                     ImGui::ResetMouseDragDelta();
+                    eachNodeView->setPinned(true);
                 }
 
                 isAnyNodeDragged |= NodeView::GetDragged() == eachNodeView;
