@@ -1147,10 +1147,12 @@ bool MemberConnector::isAbleToConnect(const MemberConnector* other) const
     return getMember() != other->getMember();
 }
 
-void MemberConnector::connect(const MemberConnector *other) const
+bool MemberConnector::connect(const MemberConnector *other) const
 {
     auto graph = getMember()->getOwner()->getParentGraph();
+    // TODO: handle incompatibility
     graph->connect(getMember(), other->getMember());
+    return true;
 }
 
 void MemberConnector::DropBehavior(bool &needsANewNode)
@@ -1159,9 +1161,8 @@ void MemberConnector::DropBehavior(bool &needsANewNode)
     {
         if ( s_hovered )
         {
-            if (s_dragged->isAbleToConnect(s_hovered))
+            if ( MemberConnector::Connect(s_dragged, s_hovered) )
             {
-                s_dragged->connect(s_hovered);
                 s_dragged = nullptr;
                 s_hovered = nullptr;
             }
@@ -1225,6 +1226,25 @@ void MemberConnector::Draw(
     }
 }
 
+bool MemberConnector::Connect(const MemberConnector *_left, const MemberConnector *_right)
+{
+    if ( _left->getMember() == _right->getMember())
+    {
+        LOG_MESSAGE("Unable to connect two connectors from the same Member.\n", "");
+        return false;
+    }
+
+    if (_left->m_way == _right->m_way)
+    {
+        LOG_MESSAGE("Unable to connect two connectors with the same nature (in and in, out and out)\n", "");
+        return false;
+    }
+
+    if ( s_dragged->m_way == Way_Out )
+        return s_dragged->connect(s_hovered);
+    return s_hovered->connect(s_dragged);
+}
+
 bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor)
 {
     // draw
@@ -1285,10 +1305,13 @@ ImVec2 NodeConnector::getPos()const
     return getRect().GetCenter() + ImGuiEx::ToScreenPosOffset();
 }
 
-void NodeConnector::connect(const NodeConnector* other) const
+bool NodeConnector::connect(const NodeConnector* other) const
 {
     auto graph = getNode()->getParentGraph();
-    graph->connect(getNode(), other->getNode(), RelationType::IS_NEXT_OF );
+    // TODO: handle incompatibility
+    graph->connect(other->getNode(), getNode() , RelationType::IS_NEXT_OF );
+
+    return true;
 }
 
 void NodeConnector::DropBehavior(bool &needsANewNode)
@@ -1297,9 +1320,8 @@ void NodeConnector::DropBehavior(bool &needsANewNode)
     {
         if ( s_hovered )
         {
-            if (s_dragged->isAbleToConnect(s_hovered))
+            if ( NodeConnector::Connect(s_dragged, s_hovered) )
             {
-                s_dragged->connect(s_hovered);
                 s_dragged = nullptr;
                 s_hovered = nullptr;
             }
@@ -1312,4 +1334,21 @@ void NodeConnector::DropBehavior(bool &needsANewNode)
 bool NodeConnector::isAbleToConnect(const NodeConnector *other) const
 {
     return getNode() != other->getNode();
+}
+
+bool NodeConnector::Connect(const NodeConnector *_left, const NodeConnector *_right)
+{
+    if ( ! _left->isAbleToConnect(_right) )
+    {
+        return false;
+    }
+
+    if( _left->m_way == _right->m_way )
+    {
+        return false;
+    }
+
+    if ( _left->m_way == Way_Out )
+        return _left->connect(_right);
+    return _right->connect(_left);
 }

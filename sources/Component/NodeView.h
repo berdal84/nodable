@@ -251,7 +251,7 @@ namespace Nodable
     public:
         virtual ImVec2   getPos()const = 0;
         virtual bool     isAbleToConnect(const T*) const = 0;
-        virtual void     connect(const T*) const = 0;
+        virtual bool     connect(const T*) const = 0;
 
         static void      StartDrag(const T* connector) { if( T::s_dragged == nullptr) T::s_dragged = connector; }
         static const T*  GetHovered() { return T::s_hovered; }
@@ -272,7 +272,7 @@ namespace Nodable
         inline Member*     getMember()const { return m_memberView->m_member; }
         ImVec2             getPos()const override;
         bool               isAbleToConnect(const MemberConnector* other)const override;
-        void               connect(const MemberConnector *other)const override;
+        bool               connect(const MemberConnector *other)const override;
 
         static void        Draw(const MemberConnector*, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor);
         static void        DropBehavior(bool &needsANewNode);
@@ -284,6 +284,8 @@ namespace Nodable
         static const MemberConnector* s_dragged;
 
         static void Draw(const MemberConnector *connector);
+
+        static bool Connect(const MemberConnector *_left, const MemberConnector *_right);
     };
 
     /**
@@ -297,7 +299,7 @@ namespace Nodable
         inline Node*       getNode()const { return m_nodeView->getOwner(); }
         ImRect             getRect()const;
         ImVec2             getPos()const override;
-        void               connect(const NodeConnector *other) const override;
+        bool               connect(const NodeConnector *other) const override;
         virtual bool       isAbleToConnect(const NodeConnector*) const override;
 
         static bool        Draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor);
@@ -310,5 +312,7 @@ namespace Nodable
 
         static const NodeConnector* s_hovered;
         static const NodeConnector* s_dragged;
+
+        static bool Connect(const NodeConnector *_left, const NodeConnector *_right);
     };
 }

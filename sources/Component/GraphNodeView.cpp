@@ -363,12 +363,20 @@ bool GraphNodeView::draw()
             // dragging node connector ?
             if (auto draggedNodeConnector = NodeConnector::GetDragged())
             {
-                //  [ dragged ](next) ---- dragging this way ----> (prev)[ new node ]
+                //  [ dragged ]
+                //       |
+                //       |   (drag direction)
+                //       v
+                //  [ new node ]
                 if ( draggedNodeConnector->m_way == Way_Out )
                 {
                     graph->connect(newNode, draggedNodeConnector->getNode(), RelationType::IS_NEXT_OF);
                 }
-                //  [ new node ](next) <--- dragging this way ---- (prev)[ dragged ]
+                //  [ new node ]
+                //       ^
+                //       |   (drag direction)
+                //       |
+                //  [ dragged ]
                 else
                 {
                     graph->connect(draggedNodeConnector->getNode(), newNode, RelationType::IS_NEXT_OF);
