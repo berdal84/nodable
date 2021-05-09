@@ -1162,6 +1162,8 @@ void MemberConnector::DropBehavior(bool &needsANewNode)
             if (s_dragged->isAbleToConnect(s_hovered))
             {
                 s_dragged->connect(s_hovered);
+                s_dragged = nullptr;
+                s_hovered = nullptr;
             }
         } else {
             needsANewNode = true;
@@ -1298,6 +1300,8 @@ void NodeConnector::DropBehavior(bool &needsANewNode)
             if (s_dragged->isAbleToConnect(s_hovered))
             {
                 s_dragged->connect(s_hovered);
+                s_dragged = nullptr;
+                s_hovered = nullptr;
             }
         } else {
             needsANewNode = true;
