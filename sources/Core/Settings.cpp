@@ -71,6 +71,8 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
 
         // code flow
         g_conf->ui.codeFlow.lineWidthMax        = 40.0f;
+        g_conf->ui.codeFlow.lineColor           = ImColor(200,255,200,50);
+        g_conf->ui.codeFlow.lineShadowColor     = ImColor(0,0,0,64);
 
         // buttons
         g_conf->ui.button.color                 = ImVec4(0.50f, 0.50f, 0.50f, 0.63f);

@@ -54,7 +54,9 @@ namespace Nodable {
             } layout;
 
             struct {
-                float lineWidthMax;
+                float  lineWidthMax;
+                ImVec4 lineColor;
+                ImVec4 lineShadowColor;
             } codeFlow;
 
             struct {

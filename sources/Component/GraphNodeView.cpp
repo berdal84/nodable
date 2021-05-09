@@ -36,18 +36,70 @@ bool GraphNodeView::draw()
     {
         int slot_index = 0;
         int slot_count = each_node->getNextMaxCount();
+        float padding = 2.0f;
+        float linePadding = 5.0f;
         for (auto& each_next : each_node->getNext() )
         {
             NodeView *each_view      = each_node->getComponent<NodeView>();
             NodeView *each_next_view = each_next->getComponent<NodeView>();
             if (each_view && each_next_view && each_view->isVisible() && each_next_view->isVisible() )
             {
-                DrawCodeFlowLine(each_view, each_next_view, slot_count, slot_index);
+                float viewWidthMin = std::min(each_next_view->getRect().GetSize().x, each_view->getRect().GetSize().x);
+                float lineWidth = std::min(Settings::GetCurrent()->ui.codeFlow.lineWidthMax,
+                                           viewWidthMin / float(slot_count) - (padding * 2.0f));
+
+                ImVec2 start = each_view->getScreenPos();
+                start.x -= std::max(each_view->getSize().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
+                start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
+
+                ImVec2 end = each_next_view->getScreenPos();
+                end.x -= each_next_view->getSize().x * 0.5f;
+                end.x += lineWidth * 0.5f;
+
+                ImColor color(Settings::GetCurrent()->ui.codeFlow.lineColor);
+                ImColor shadowColor(Settings::GetCurrent()->ui.codeFlow.lineShadowColor);
+                ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,
+                                          lineWidth - linePadding * 2.0f, 0.0f);
             }
             ++slot_index;
         }
     }
 
+    // Connector Drag'n Drop
+    if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
+    {
+        // Draw temporary Member connection
+        if (auto draggedMemberConnector = MemberConnector::GetDragged())
+        {
+            auto hoveredMemberConnector = MemberConnector::GetHovered();
+            ImVec2 start = draggedMemberConnector->getPos();
+            ImVec2 end   = hoveredMemberConnector ? hoveredMemberConnector->getPos() : ImGui::GetMousePos();
+            ImGui::GetWindowDrawList()->AddLine(start, end,getColor(ColorType_BorderHighlights), settings->ui.wire.bezier.thickness);
+        }
+
+        // Draw temporary Node connection
+        if (auto draggedNodeConnector = NodeConnector::GetDragged())
+        {
+            auto hoveredNodeConnector = NodeConnector::GetHovered();
+            auto codeFlowSettings     = Settings::GetCurrent()->ui.codeFlow;
+            ImVec2 start = draggedNodeConnector->getPos();
+            ImVec2 end   = hoveredNodeConnector ? hoveredNodeConnector->getPos() : ImGui::GetMousePos();
+            ImColor color(codeFlowSettings.lineColor);
+            ImColor shadowColor(codeFlowSettings.lineShadowColor);
+            ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,codeFlowSettings.lineWidthMax, 0.0f);
+        }
+
+        // Drops ?
+        bool needsANewNode = false;
+        MemberConnector::DropBehavior(needsANewNode);
+        NodeConnector::DropBehavior(needsANewNode);
+
+        // Need a need node ?
+        if (needsANewNode && !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
+        {
+            ImGui::OpenPopup("ContainerViewContextualMenu");
+        }
+    }
 
 	/*
 		NodeViews
@@ -100,7 +152,6 @@ bool GraphNodeView::draw()
                 {
                     eachNodeView->translate(ImGui::GetMouseDragDelta(), true);
                     ImGui::ResetMouseDragDelta();
-                    eachNodeView->setPinned(true);
                 }
 
                 isAnyNodeDragged |= NodeView::GetDragged() == eachNodeView;
@@ -111,48 +162,6 @@ bool GraphNodeView::draw()
 
 	isAnyNodeDragged |= NodeConnector::IsDragging();
 	isAnyNodeDragged |= MemberConnector::IsDragging();
-
-	// Connector Drag'n Drop
-    if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
-    {
-        // Draw temporary Member connection
-        if (auto draggedMemberConnector = MemberConnector::GetDragged())
-        {
-            auto hoveredMemberConnector = MemberConnector::GetHovered();
-            ImVec2 lineScreenPosStart = draggedMemberConnector->getPos();
-            ImVec2 lineScreenPosEnd   = hoveredMemberConnector ? hoveredMemberConnector->getPos() : ImGui::GetMousePos();
-
-            ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
-                                                  lineScreenPosEnd,
-                                                  getColor(ColorType_BorderHighlights),
-                                                  settings->ui.wire.bezier.thickness * float(0.9));
-
-        }
-
-        // Draw temporary Node connection
-        if (auto draggedNodeConnector = NodeConnector::GetDragged())
-        {
-            auto hoveredNodeConnector = NodeConnector::GetHovered();
-            ImVec2 lineScreenPosStart = draggedNodeConnector->getPos();
-            ImVec2 lineScreenPosEnd   = hoveredNodeConnector ? hoveredNodeConnector->getPos() : ImGui::GetMousePos();
-
-            ImGui::GetOverlayDrawList()->AddLine( lineScreenPosStart,
-                                                  lineScreenPosEnd,
-                                                  getColor(ColorType_BorderHighlights),
-                                                  settings->ui.codeFlow.lineWidthMax);
-        }
-
-        // Drops ?
-        bool needsANewNode = false;
-        MemberConnector::DropBehavior(needsANewNode);
-        NodeConnector::DropBehavior(needsANewNode);
-
-        // Need a need node ?
-        if (needsANewNode && !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
-        {
-            ImGui::OpenPopup("ContainerViewContextualMenu");
-        }
-    }
 
 	// Virtual Machine cursor
 	if( vm )
@@ -336,8 +345,13 @@ bool GraphNodeView::draw()
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem(ICON_FA_CODE " Instruction"))
-            newNode = graph->newInstruction_UserCreated();
+        if ( !is_dragging_member_connector || MemberConnector::GetDragged()->m_way == Way_Out)
+        {
+            if ( ImGui::MenuItem(ICON_FA_CODE " Instruction") )
+            {
+                newNode = graph->newInstruction_UserCreated();
+            }
+        }
 
         if( !is_dragging_member_connector )
         {
@@ -444,26 +458,6 @@ void Nodable::GraphNodeView::addContextualMenuItem(
 GraphNode* GraphNodeView::getGraphNode() const
 {
     return getOwner()->as<GraphNode>();
-}
-
-void GraphNodeView::DrawCodeFlowLine(NodeView *startView, NodeView *endView, short _slotCount, short _slotPosition)
-{
-    float padding      = 2.0f;
-    float linePadding  = 5.0f;
-    float viewWidthMin = std::min(endView->getRect().GetSize().x, startView->getRect().GetSize().x);
-    float lineWidth    = std::min(Settings::GetCurrent()->ui.codeFlow.lineWidthMax, viewWidthMin / float(_slotCount) - (padding * 2.0f));
-
-    ImVec2 start     = startView->getScreenPos();
-    start.x          -= std::max(startView->getSize().x * 0.5f, lineWidth * float(_slotCount) * 0.5f);
-    start.x          += lineWidth * 0.5f + float(_slotPosition) * lineWidth;
-
-    ImVec2 end   = endView->getScreenPos();
-    end.x -= endView->getSize().x * 0.5f;
-    end.x += lineWidth * 0.5f;
-
-    ImColor color(200,255,200,50);
-    ImColor shadowColor(0,0,0,64);
-    ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, lineWidth - linePadding*2.0f, 0.0f);
 }
 
 void GraphNodeView::updateViewConstraints()
