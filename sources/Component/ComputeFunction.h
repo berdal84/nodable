@@ -5,28 +5,32 @@
 
 namespace Nodable
 {
+    // forward declarations
     class Function;
     class Language;
 
 	/**
-	  * ComputeFunction is a class able to update a function (using its prototype and a language)
+	  * @brief ComputeFunction extends Compute base to provide a Component that represents a Function.
+	  *        This function has some arguments.
 	  */
-	class ComputeFunction : public ComputeBase {
+	class ComputeFunction : public ComputeBase
+    {
 	public:
-		ComputeFunction(const Function* _function, const Language* _language);
+		ComputeFunction(const Function* _function);
 		~ComputeFunction() = default;
 
-		void setArg(size_t _index, Member* _value) { args[_index] = _value; }
-		Member* getArg(size_t _index)const  { return args[_index]; }
-		const std::vector<Member*>& getArgs()const { return args; }
-		const Function* getFunction()const { return function; }
-		bool update() override;
+		inline void                        setArg(size_t _index, Member* _value) { m_args[_index] = _value; }
+		inline Member*                     getArg(size_t _index)const  { return m_args[_index]; }
+		inline const std::vector<Member*>& getArgs()const { return m_args; }
+		inline const Function*             getFunction()const { return m_function; }
+		bool                               update() override;
 	protected:
-		std::vector<Member*> args;
-		const Function* function;
+		std::vector<Member*> m_args;
+		const Function*      m_function;
 
+		// reflect class using mirror
 		MIRROR_CLASS(ComputeFunction)(
 			MIRROR_PARENT(ComputeBase)
-			);
+		);
 	};
 }

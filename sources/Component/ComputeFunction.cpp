@@ -4,31 +4,27 @@
 
 using namespace Nodable;
 
-ComputeFunction::ComputeFunction(const Function* _function, const Language* _language) :
-	ComputeBase(_language),
-	function(_function)
+ComputeFunction::ComputeFunction(const Function* _function)
+    : ComputeBase()
+    , m_function(_function)
 {
     NODABLE_ASSERT(_function != nullptr); // must be defined !
-	while (args.size() < _function->signature.getArgs().size())
-		args.push_back(nullptr);
+    m_args.resize(_function->signature.getArgs().size(), nullptr );
 }
 
 bool ComputeFunction::update()
 {
 
-	if (!function->implementation)
+	if (!m_function->implementation)
 	{
-	    std::string sig;
-        language->getSerializer()->serialize(sig, function->signature);
-		LOG_ERROR( "ComputeFunction", "Unable to find %s's nativeFunction.\n", sig.c_str());
+		LOG_ERROR("ComputeFunction", "Unable to find %s's implementation.\n", m_function->signature.getIdentifier().c_str());
 		return false;
 	}
 
-	if (function->implementation(result, args))
+	if (m_function->implementation(m_result, m_args))
     {
-        std::string sig;
-        language->getSerializer()->serialize(sig, function->signature);
-        LOG_MESSAGE( "ComputeFunction", "Evaluation of %s's native function failed !\n", sig.c_str());
+        LOG_ERROR("ComputeFunction", "Unable to evaluate %s's implementation.\n", m_function->signature.getIdentifier().c_str());
+        return false;
     }
 
 	return true;

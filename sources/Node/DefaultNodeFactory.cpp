@@ -91,7 +91,7 @@ Node* DefaultNodeFactory::newBinOp(const Operator* _operator) const
     auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
 
     // Create ComputeBinaryOperation component and link values.
-    auto binOpComponent = new ComputeBinaryOperation(_operator, m_language);
+    auto binOpComponent = new ComputeBinaryOperation( _operator );
     binOpComponent->setResult(result);
     binOpComponent->setLValue( left );
     binOpComponent->setRValue(right);
@@ -119,7 +119,7 @@ Node* DefaultNodeFactory::newUnaryOp(const Operator* _operator) const
     auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
 
     // Create ComputeBinaryOperation binOpComponent and link values.
-    auto unaryOperationComponent = new ComputeUnaryOperation(_operator, m_language);
+    auto unaryOperationComponent = new ComputeUnaryOperation( _operator );
     unaryOperationComponent->setResult(result);
     unaryOperationComponent->setLValue(left);
     node->addComponent(unaryOperationComponent);
@@ -143,7 +143,7 @@ Node* DefaultNodeFactory::newFunction(const Function* _function) const
     props->add("result", Visibility::Default, semantic->tokenTypeToType(_function->signature.getType()), Way_Out);
 
     // Create ComputeBase binOpComponent and link values.
-    auto functionComponent = new ComputeFunction(_function, m_language);
+    auto functionComponent = new ComputeFunction( _function );
     functionComponent->setResult(props->get("result"));
 
     // Arguments

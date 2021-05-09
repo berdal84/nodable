@@ -3,25 +3,23 @@
 #include "Nodable.h"   // for constants and forward declarations
 #include "mirror.h"
 #include "ComputeFunction.h"
+#include "Language/Common/Function.h"
+#include "Language/Common/Operator.h"
 #include <functional>
 
-namespace Nodable {
-
-    class Operator;
-    class Language;
-
-	/* BinaryOperationComponent is an interface for all binary operations
-	*
-	* Note for later: This class and all derivate should be destroyed and replaced by an "OperatorComponent"
-	*                 using prototypes but with different serialization and parsing methods.
+namespace Nodable
+{
+	/**
+	 * @brief Extends ComputeFunction to work with UnaryOperations expose a L value and an operator.
 	*/
-	class ComputeUnaryOperation : public ComputeFunction {
+	class ComputeUnaryOperation : public ComputeFunction
+    {
 	public:
-		ComputeUnaryOperation(const Operator*, const Language*);
+		ComputeUnaryOperation( const Operator* _operator) : ComputeFunction( reinterpret_cast<const Function*>(_operator)) {}
 		~ComputeUnaryOperation() = default;
-		void            setLValue(Member* _value);
-        Member*         getLValue();
-        const Operator* getOperator() const;
+		void            setLValue(Member* _value) { m_args[0] = _value; }
+        Member*         getLValue() { return m_args[0]; };
+        const Operator* getOperator() const { return reinterpret_cast<const Operator*>(m_function); };
 
 		MIRROR_CLASS(ComputeUnaryOperation)(
 			MIRROR_PARENT(ComputeFunction)
