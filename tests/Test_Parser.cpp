@@ -1,4 +1,4 @@
-#include <VirtualMachine.h>
+#include <Runner.h>
 #include "gtest/gtest.h"
 
 #include "Core/Member.h"
@@ -29,9 +29,9 @@ T ParseAndEvalExpression(const std::string& expression)
     if ( auto program = graph.getProgram())
     {
         // run
-        VirtualMachine vm;
-        vm.load(graph.getProgram());
-        vm.run();
+        Runner runner;
+        runner.load(graph.getProgram());
+        runner.run();
 
         // compare result
         auto lastInstruction = program->getLastInstruction();
@@ -56,11 +56,11 @@ std::string& ParseUpdateSerialize( std::string& result, const std::string& expre
     lang->getParser()->expressionToGraph(expression, &graph);
     if ( ProgramNode* program = graph.getProgram())
     {
-        VirtualMachine vm;
-        vm.load(program);
-        vm.run();
+        Runner runner;
+        runner.load(program);
+        runner.run();
 
-        if ( auto lastEvaluatedNode = vm.getLastEvaluatedInstruction() )
+        if ( auto lastEvaluatedNode = runner.getLastEvaluatedInstruction() )
         {
             std::string result_str;
             lang->getSerializer()->serialize(result_str, lastEvaluatedNode->getValue()->getData() );

@@ -112,8 +112,8 @@ UpdateResult File::update() {
 			history->dirty = false;
 		}
 	}
-    bool vmIsStopped = Application::s_instance && Application::s_instance->getVirtualMachine().isStopped();
-	if( vmIsStopped )
+    bool runner_is_stopped = Application::s_instance && Application::s_instance->getRunner().isStopped();
+	if( runner_is_stopped )
     {
         auto graphUpdateResult = getInnerGraph()->update();
         auto view = getComponent<FileView>();

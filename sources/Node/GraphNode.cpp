@@ -106,7 +106,7 @@ UpdateResult GraphNode::update()
 
     // update nodes
     UpdateResult result = UpdateResult::Failed;
-    if (this->m_program && Application::s_instance && Application::s_instance->getVirtualMachine().isStopped() )
+    if ( m_program && Application::s_instance && Application::s_instance->getRunner().isStopped() )
     {
         GraphTraversal traversal;
         auto updateResult = traversal.traverse(m_program, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren | TraversalFlag_FollowNotDirty);
