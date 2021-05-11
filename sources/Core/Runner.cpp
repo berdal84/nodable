@@ -1,4 +1,4 @@
-#include "VirtualMachine.h"
+#include "Runner.h"
 
 #include "Node/ProgramNode.h"
 #include "Component/NodeView.h"
@@ -7,7 +7,7 @@
 
 using namespace Nodable;
 
-VirtualMachine::VirtualMachine()
+Runner::Runner()
     :
     m_program(nullptr),
     m_isDebugging(false),
@@ -18,17 +18,17 @@ VirtualMachine::VirtualMachine()
 
 }
 
-void VirtualMachine::load(Nodable::ProgramNode* _program)
+void Runner::load(Nodable::ProgramNode* _program)
 {
     if ( this->m_program )
         unload();
     this->m_program = _program;
 }
 
-void VirtualMachine::run()
+void Runner::run()
 {
     NODABLE_ASSERT(this->m_program != nullptr);
-    LOG_VERBOSE("VirtualMachine", "Running...\n");
+    LOG_VERBOSE("Runner", "Running...\n");
     m_isRunning = true;
 
     /*
@@ -56,7 +56,7 @@ void VirtualMachine::run()
                 m_lastInstructionNode = eachNodeToEval->as<InstructionNode>();
             }
 
-            LOG_VERBOSE("VirtualMachine", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int)total, eachNodeToEval->getLabel(), eachNodeToEval->getClass()->getName());
+            LOG_VERBOSE("Runner", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int)total, eachNodeToEval->getLabel(), eachNodeToEval->getClass()->getName());
             idx++;
         }
         m_currentNode = m_traversal.getNextInstrToEval(m_currentNode);
@@ -64,20 +64,20 @@ void VirtualMachine::run()
     stop();
 }
 
-void VirtualMachine::stop()
+void Runner::stop()
 {
     m_isRunning = false;
     m_isDebugging = false;
     m_currentNode = nullptr;
-    LOG_VERBOSE("VirtualMachine", "Stopped.\n");
+    LOG_VERBOSE("Runner", "Stopped.\n");
 }
 
-void VirtualMachine::unload() {
+void Runner::unload() {
     // TODO: clear context
     this->m_program = nullptr;
 }
 
-bool VirtualMachine::stepOver()
+bool Runner::stepOver()
 {
     m_traversal.traverse(m_currentNode, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty);
     for (auto eachNodeToEval : m_traversal.getStats().m_traversed)
@@ -104,12 +104,12 @@ bool VirtualMachine::stepOver()
     return !over;
 }
 
-bool VirtualMachine::isProgramOver()
+bool Runner::isProgramOver()
 {
     return m_currentNode == nullptr;
 }
 
-void VirtualMachine::debug()
+void Runner::debug()
 {
     NODABLE_ASSERT(this->m_program != nullptr);
     m_isDebugging = true;

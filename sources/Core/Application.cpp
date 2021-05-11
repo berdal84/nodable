@@ -164,8 +164,8 @@ void Application::runCurrentFileProgram()
     ProgramNode* program = getCurrentFileProgram();
     if (program)
     {
-        virtualMachine.load(program);
-        virtualMachine.run();
+        m_runner.load(program);
+        m_runner.run();
     }
 }
 
@@ -174,27 +174,27 @@ void Application::debugCurrentFileProgram()
     ProgramNode* program = getCurrentFileProgram();
     if (program)
     {
-        virtualMachine.load(program);
-        virtualMachine.debug();
+        m_runner.load(program);
+        m_runner.debug();
     }
 }
 
 void Application::stepOverCurrentFileProgram()
 {
-    virtualMachine.stepOver();
+    m_runner.stepOver();
 }
 
 void Application::stopCurrentFileProgram()
 {
-    virtualMachine.stop();
+    m_runner.stop();
 }
 
 void Application::resetCurrentFileProgram()
 {
     if ( auto currFile = getCurrentFile() )
     {
-        if( virtualMachine.isRunning())
-            virtualMachine.stop();
+        if( m_runner.isRunning())
+            m_runner.stop();
 
         // TODO: restore graph state without parsing again like that:
         currFile->evaluateSelectedExpression();

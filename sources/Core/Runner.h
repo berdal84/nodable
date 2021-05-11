@@ -11,9 +11,9 @@ namespace Nodable
     /**
      * Class to execute a Nodable program.
      */
-    class VirtualMachine {
+    class Runner {
     public:
-        VirtualMachine();
+        Runner();
         void load(ProgramNode*);
         void unload();
         void run();
@@ -33,12 +33,12 @@ namespace Nodable
         inline InstructionNode *getLastEvaluatedInstruction() { return m_lastInstructionNode; }
 
     private:
-        GraphTraversal m_traversal;
-        ProgramNode* m_program;
-        Node* m_currentNode;
+        GraphTraversal   m_traversal;
+        ProgramNode*     m_program;
+        Node*            m_currentNode;
         InstructionNode* m_lastInstructionNode;
-        bool m_isRunning;
-        bool m_isDebugging;
+        bool             m_isRunning;
+        bool             m_isDebugging;
     };
 }
 

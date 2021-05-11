@@ -20,7 +20,7 @@ using namespace Nodable;
 bool GraphNodeView::draw()
 {
     bool edited = false;
-    VirtualMachine* vm = &Application::s_instance->getVirtualMachine();
+    Runner* runner = &Application::s_instance->getRunner();
 
     Settings* settings = Settings::GetCurrent();
     GraphNode* graph = getGraphNode();
@@ -144,7 +144,7 @@ bool GraphNodeView::draw()
             {
                 eachNodeView->draw();
 
-                if( vm && vm->isDebugging() && vm->getCurrentNode() == eachNodeView->getOwner())
+                if(runner && runner->isDebugging() && runner->getCurrentNode() == eachNodeView->getOwner())
                     ImGui::SetScrollHereY();
 
                 // dragging
@@ -165,11 +165,11 @@ bool GraphNodeView::draw()
 	isAnyNodeDragged |= MemberConnector::IsDragging();
 
 	// Virtual Machine cursor
-	if( vm )
+	if( runner )
     {
-	    if ( !vm->isStopped())
+	    if ( !runner->isStopped())
         {
-	        auto node = vm->getCurrentNode();
+	        auto node = runner->getCurrentNode();
 	        if( auto view = node->getComponent<NodeView>())
             {
 	            auto draw_list = ImGui::GetWindowDrawList();

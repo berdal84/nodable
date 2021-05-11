@@ -337,21 +337,21 @@ bool ApplicationView::draw()
                 }
 
                 if (ImGui::BeginMenu("Run")) {
-                    auto vm = application->getVirtualMachine();
+                    auto runner = application->getRunner();
 
-                    if (ImGui::MenuItem(ICON_FA_PLAY" Run") && vm.isStopped()) {
+                    if (ImGui::MenuItem(ICON_FA_PLAY" Run") && runner.isStopped()) {
                         application->runCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_BUG" Debug") && vm.isStopped()) {
+                    if (ImGui::MenuItem(ICON_FA_BUG" Debug") && runner.isStopped()) {
                         application->debugCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && vm.isDebugging()) {
+                    if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && runner.isDebugging()) {
                         application->stepOverCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !vm.isStopped()) {
+                    if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !runner.isStopped()) {
                         application->stopCurrentFileProgram();
                     }
 
@@ -860,16 +860,16 @@ void ApplicationView::drawToolBar()
     // small margin
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
 
-    auto vm = application->getVirtualMachine();
+    auto runner = application->getRunner();
 
     ImGui::BeginGroup();
 
     // run
-    bool isRunning = vm.isRunning();
+    bool isRunning = runner.isRunning();
     if ( isRunning )
         ImGui::PushStyleColor(ImGuiCol_Button, settings->ui.button.activeColor);
 
-    if ( ImGui::Button(ICON_FA_PLAY) && vm.isStopped())
+    if (ImGui::Button(ICON_FA_PLAY) && runner.isStopped())
     {
         application->runCurrentFileProgram();
     }
@@ -878,10 +878,10 @@ void ApplicationView::drawToolBar()
     ImGui::SameLine();
 
     // debug
-    bool isDebugging = vm.isDebugging();
+    bool isDebugging = runner.isDebugging();
     if ( isDebugging )
         ImGui::PushStyleColor(ImGuiCol_Button, settings->ui.button.activeColor);
-    if ( ImGui::Button(ICON_FA_BUG) && vm.isStopped())
+    if (ImGui::Button(ICON_FA_BUG) && runner.isStopped())
     {
         application->debugCurrentFileProgram();
     }
@@ -890,14 +890,14 @@ void ApplicationView::drawToolBar()
     ImGui::SameLine();
 
     // stepOver
-    if ( ImGui::Button(ICON_FA_ARROW_RIGHT) && vm.isDebugging())
+    if (ImGui::Button(ICON_FA_ARROW_RIGHT) && runner.isDebugging())
     {
         application->stepOverCurrentFileProgram();
     }
     ImGui::SameLine();
 
     // stop
-    if ( ImGui::Button(ICON_FA_STOP) && !vm.isStopped())
+    if ( ImGui::Button(ICON_FA_STOP) && !runner.isStopped())
     {
         application->stopCurrentFileProgram();
     }

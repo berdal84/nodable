@@ -9,7 +9,7 @@
 
 // Nodable
 #include "Nodable.h" /* Forward declarations and defines */
-#include "VirtualMachine.h"
+#include "Runner.h"
 #include <Node/Node.h>
 #include <Component/History.h>
 #include <Core/File.h>
@@ -116,7 +116,7 @@ namespace Nodable
 		 */
 		void setCurrentFileWithIndex(size_t _index);
 
-        inline VirtualMachine& getVirtualMachine() { return virtualMachine; }
+        inline Runner& getRunner() { return m_runner; }
 
         ProgramNode *getCurrentFileProgram() const;
 
@@ -150,7 +150,7 @@ namespace Nodable
 		const std::filesystem::path assetsFolderPath;
 
         /** A minimalist "virtual machine" to run instructions */
-        VirtualMachine virtualMachine;
+        Runner m_runner;
 
     // Reflect class using mirror
     MIRROR_CLASS(Application)();
