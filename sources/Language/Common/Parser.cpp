@@ -116,7 +116,7 @@ Member* Parser::tokenToMember(Token* _token)
 			VariableNode* variable = graph->findVariable(_token->m_word);
 
 			if (variable == nullptr) {
-                LOG_ERROR("Parser", "Unable to find declaration for %s \n", _token->m_word.c_str());
+                LOG_WARNING("Parser", "Unable to find declaration for %s \n", _token->m_word.c_str());
                 variable = graph->newVariable(Type_Any, _token->m_word, getCurrentScope() );
                 variable->value()->setSourceToken(_token);
             }
@@ -375,8 +375,8 @@ InstructionNode* Parser::parseInstruction()
 
     if ( parsedExpression == nullptr )
     {
-        LOG_ERROR("Parser", "parse instruction " KO " (parsed is nullptr)\n");
-        rollbackTransaction();
+       LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n");
+       rollbackTransaction();
        return nullptr;
     }
 

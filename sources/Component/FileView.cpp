@@ -136,7 +136,7 @@ void FileView::replaceSelectedText(std::string _val)
         m_textEditor.SetSelection(selectionStart, selectionEnd);
     }
 
-	LOG_MESSAGE( "FileView", "Graph serialized: %s \n", _val.c_str());
+	LOG_VERBOSE( "FileView", "Graph serialized: %s \n", _val.c_str());
 }
 
 void FileView::setText(const std::string& _content)
