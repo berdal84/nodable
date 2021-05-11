@@ -1142,9 +1142,9 @@ ImVec2 MemberConnector::getPos()const
     return ImVec2(pos.x, nodeViewScreenPosition.y + nodeSemiHeight);
 }
 
-bool MemberConnector::isAbleToConnect(const MemberConnector* other) const
+bool MemberConnector::hasSameParentWith(const MemberConnector* other) const
 {
-    return getMember() != other->getMember();
+    return getMember() == other->getMember();
 }
 
 bool MemberConnector::connect(const MemberConnector *other) const
@@ -1161,11 +1161,8 @@ void MemberConnector::DropBehavior(bool &needsANewNode)
     {
         if ( s_hovered )
         {
-            if ( MemberConnector::Connect(s_dragged, s_hovered) )
-            {
-                s_dragged = nullptr;
-                s_hovered = nullptr;
-            }
+            MemberConnector::Connect(s_dragged, s_hovered);
+            s_dragged = s_hovered = nullptr;
         } else {
             needsANewNode = true;
         }
@@ -1220,7 +1217,7 @@ void MemberConnector::Draw(
         ImGui::Text("%s", _connector->getMember()->getName().c_str() );
         ImGui::EndTooltip();
     }
-    else if (s_hovered != nullptr && s_hovered == _connector)
+    else if ( s_hovered == _connector )
     {
         s_hovered = nullptr;
     }
@@ -1228,15 +1225,15 @@ void MemberConnector::Draw(
 
 bool MemberConnector::Connect(const MemberConnector *_left, const MemberConnector *_right)
 {
-    if ( _left->getMember() == _right->getMember())
+    if ( _left->hasSameParentWith(_right) )
     {
-        LOG_MESSAGE("Unable to connect two connectors from the same Member.\n", "");
+        LOG_WARNING( "MemberConnector", "Unable to connect two connectors from the same Member.\n" );
         return false;
     }
 
     if (_left->m_way == _right->m_way)
     {
-        LOG_MESSAGE("Unable to connect two connectors with the same nature (in and in, out and out)\n", "");
+        LOG_WARNING( "MemberConnector", "Unable to connect two connectors with the same nature (in and in, out and out)\n" );
         return false;
     }
 
@@ -1289,7 +1286,7 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
         }
         s_hovered = _connector;
     }
-    else if (s_hovered && s_hovered == _connector)
+    else if ( s_hovered == _connector )
     {
         s_hovered = nullptr;
     }
@@ -1328,31 +1325,30 @@ void NodeConnector::DropBehavior(bool &needsANewNode)
     {
         if ( s_hovered )
         {
-            if ( NodeConnector::Connect(s_dragged, s_hovered) )
-            {
-                s_dragged = nullptr;
-                s_hovered = nullptr;
-            }
+            NodeConnector::Connect(s_dragged, s_hovered);
+            s_dragged = s_hovered = nullptr;
         } else {
             needsANewNode = true;
         }
     }
 }
 
-bool NodeConnector::isAbleToConnect(const NodeConnector *other) const
+bool NodeConnector::hasSameParentWith(const NodeConnector *other) const
 {
-    return getNode() != other->getNode();
+    return getNode() == other->getNode();
 }
 
 bool NodeConnector::Connect(const NodeConnector *_left, const NodeConnector *_right)
 {
-    if ( ! _left->isAbleToConnect(_right) )
+    if ( _left->hasSameParentWith(_right) )
     {
+        LOG_WARNING("NodeConnector", "Unable to connect these two Connectors from the same Node.\n");
         return false;
     }
 
     if( _left->m_way == _right->m_way )
     {
+        LOG_WARNING("NodeConnector", "Unable to connect these two Node Connectors (must have different ways).\n");
         return false;
     }
 
