@@ -109,7 +109,7 @@ UpdateResult GraphNode::update()
     if ( m_program && Application::s_instance && Application::s_instance->getRunner().isStopped() )
     {
         GraphTraversal traversal;
-        auto updateResult = traversal.traverse(m_program, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren | TraversalFlag_FollowNotDirty);
+        auto updateResult = traversal.traverse(m_program, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren | TraversalFlag_FollowNotDirty | TraversalFlag_AvoidCycles );
         bool changed = false;
         for(Node* eachNode : traversal.getStats().m_traversed )
         {

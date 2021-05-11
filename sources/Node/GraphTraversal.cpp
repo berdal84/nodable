@@ -7,6 +7,7 @@
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/InstructionNode.h"
 #include "Node/ConditionalStructNode.h"
+#include "Node/VariableNode.h"
 
 using namespace Nodable;
 
@@ -38,7 +39,6 @@ Result GraphTraversal::traverse(Node *_node, TraversalFlag _flags)
 
 Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
 {
-
     if( !m_stats.hasBeenTraversed(_node) )
     {
         if ( _node->isDirty() || (_flags & TraversalFlag_FollowNotDirty ) )
@@ -76,8 +76,15 @@ Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
         return Result::Success;
 
     }
-    LOG_WARNING("GraphTraversal", "Unable to update Node %s, cycle detected.\n", _node->getLabel() );
+    else if ( _flags & TraversalFlag_AvoidCycles )
+    {
+        NODABLE_ASSERT(_node->getClass() == mirror::GetClass<VariableNode>());
+        return Result::Success;
+    }
+
+    LOG_ERROR("GraphTraversal", "Unable to update Node %s, cycle detected (consider using TraversalFlag_AvoidCycles).\n", _node->getLabel() );
     return Result::Failure;
+
 }
 
 Node* GraphTraversal::getNextInstrToEval(Node *_node)
