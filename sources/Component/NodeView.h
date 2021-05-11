@@ -250,7 +250,7 @@ namespace Nodable
     {
     public:
         virtual ImVec2   getPos()const = 0;
-        virtual bool     isAbleToConnect(const T*) const = 0;
+        virtual bool     hasSameParentWith(const T *) const = 0;
         virtual bool     connect(const T*) const = 0;
 
         static void      StartDrag(const T* connector) { if( T::s_dragged == nullptr) T::s_dragged = connector; }
@@ -271,7 +271,7 @@ namespace Nodable
         ~MemberConnector() = default;
         inline Member*     getMember()const { return m_memberView->m_member; }
         ImVec2             getPos()const override;
-        bool               isAbleToConnect(const MemberConnector* other)const override;
+        bool               hasSameParentWith(const MemberConnector* other)const override;
         bool               connect(const MemberConnector *other)const override;
 
         static void        Draw(const MemberConnector*, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor);
@@ -300,7 +300,7 @@ namespace Nodable
         ImRect             getRect()const;
         ImVec2             getPos()const override;
         bool               connect(const NodeConnector *other) const override;
-        virtual bool       isAbleToConnect(const NodeConnector*) const override;
+        virtual bool       hasSameParentWith(const NodeConnector *other) const override;
 
         static bool        Draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor);
         static void        DropBehavior(bool &needsANewNode);
