@@ -20,6 +20,7 @@ namespace Nodable {
         TraversalFlag_FollowParent     = 1 << 3,
         TraversalFlag_FollowNotDirty   = 1 << 4,
         TraversalFlag_ReverseResult    = 1 << 5,
+        TraversalFlag_AvoidCycles      = 1 << 6
     };
 
     // forward declarations
