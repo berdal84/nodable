@@ -60,3 +60,6 @@ _screenshots/
 /build
 /nodable/install/
 /bin/
+/cmake-build-release/
+/cmake-build-debug/
+/bin/

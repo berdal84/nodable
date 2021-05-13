@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "Core/Log.h"
+#include "Log.h"
 
 using namespace Nodable;
 using Verbosity = Log::Verbosity;

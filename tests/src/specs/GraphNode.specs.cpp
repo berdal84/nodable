@@ -1,20 +1,20 @@
 #include "gtest/gtest.h"
-#include "Core/Member.h"
-#include "Node/Node.h"
-#include "Node/GraphNode.h"
-#include "Node/InstructionNode.h"
-#include "Node/VariableNode.h"
-#include "Node/ProgramNode.h"
-#include "Node/DefaultNodeFactory.h"
-#include "Core/Wire.h"
-#include "Language/Nodable/NodableLanguage.h"
+#include "Member.h"
+#include "Node.h"
+#include "GraphNode.h"
+#include "InstructionNode.h"
+#include "VariableNode.h"
+#include "ProgramNode.h"
+#include "HeadlessNodeFactory.h"
+#include "Wire.h"
+#include "NodableLanguage.h"
 
 using namespace Nodable;
 
 TEST( GraphNode, connect)
 {
     NodableLanguage language;
-    DefaultNodeFactory factory(&language);
+    HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
 
     auto node1 = graph.newNode();
@@ -35,7 +35,7 @@ TEST( GraphNode, connect)
 TEST( GraphNode, disconnect)
 {
     NodableLanguage language;
-    DefaultNodeFactory factory(&language);
+    HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
 
     auto a = graph.newNode();
@@ -63,7 +63,7 @@ TEST( GraphNode, clear)
 {
     // prepare
     NodableLanguage language;
-    DefaultNodeFactory factory(&language);
+    HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
     InstructionNode* instructionNode = graph.newInstruction();
 
@@ -93,7 +93,7 @@ TEST( GraphNode, create_and_delete_relations)
 {
     // prepare
     NodableLanguage language;
-    DefaultNodeFactory factory(&language);
+    HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
     ScopedCodeBlockNode* program = graph.getProgram();
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);

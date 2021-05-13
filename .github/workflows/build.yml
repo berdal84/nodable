@@ -59,7 +59,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Nodable-${{ env.buildType }}-${{ runner.os }}
-        path: ${{runner.workspace}}/Nodable/install/${{env.buildType}}
+        path: ${{runner.workspace}}/Nodable/bin/${{env.buildType}}
 
     - name: Generate documentation
       if: matrix.os == 'ubuntu-20.04'

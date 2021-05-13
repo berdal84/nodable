@@ -1,16 +1,16 @@
 #include "gtest/gtest.h"
 
-#include "Core/Member.h"
-#include "Core/Runner.h"
+#include "Member.h"
+#include "Runner.h"
 
-#include "Node/GraphNode.h"
-#include "Language/Common/Parser.h"
-#include "Language/Common/LanguageFactory.h"
-#include "Node/VariableNode.h"
-#include "Node/ScopedCodeBlockNode.h"
-#include "Node/InstructionNode.h"
-#include "Node/ProgramNode.h"
-#include "Node/DefaultNodeFactory.h"
+#include "GraphNode.h"
+#include "Parser.h"
+#include "LanguageFactory.h"
+#include "VariableNode.h"
+#include "ScopedCodeBlockNode.h"
+#include "InstructionNode.h"
+#include "ProgramNode.h"
+#include "HeadlessNodeFactory.h"
 
 using namespace Nodable;
 
@@ -20,7 +20,7 @@ T ParseAndEvalExpression(const std::string& expression)
     // prepare
     bool success = false;
     const Language* lang = LanguageFactory::GetNodable();
-    DefaultNodeFactory factory(lang);
+    HeadlessNodeFactory factory(lang);
     GraphNode graph(lang, &factory );
 
     // act
@@ -50,7 +50,7 @@ std::string& ParseUpdateSerialize( std::string& result, const std::string& expre
 {
     // prepare
     const Language* lang = LanguageFactory::GetNodable();
-    DefaultNodeFactory factory(lang);
+    HeadlessNodeFactory factory(lang);
     GraphNode graph(lang, &factory );
 
     // act
