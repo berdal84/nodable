@@ -1,11 +1,7 @@
 #pragma once
 #include "Nodable.h"
 #include "Log.h"
-#include "Node.h"
-#include "GraphNode.h"
-#include "History.h"
 #include <mirror.h>
-
 #include <SDL.h>
 #include <cstdio>
 #include <cstdlib>
@@ -17,36 +13,43 @@
 
 namespace Nodable
 {
-	class File: public Node
+    // forward declarations
+    class GraphNode;
+    class History;
+    class FileView;
+    class Language;
+    class AbstractNodeFactory;
+
+	class File
 	{
 	public:
 		File(std::filesystem::path, const char* /*_content*/);
         ~File();
+
 		std::string                      getName()const { return std::string {m_path.filename().u8string()}; }
         std::string                      getPath()const { return std::string {m_path.u8string()}; }
 		void                             save();
-		UpdateResult                     update();
-		void                             setModified() { m_modified = true; }
-		bool                             isModified() { return m_modified; }
+		bool                             update();
+		inline void                      setModified() { m_modified = true; }
+		inline bool                      isModified() { return m_modified; }
 		bool                             evaluateExpression(std::string&);
 		bool                             evaluateSelectedExpression();
-        inline const Language* getLanguage()const { return m_language; }
-		static File*                     OpenFile(std::filesystem::path _filePath);
+        inline const Language*           getLanguage()const { return m_language; }
+        inline FileView*                 getView()const { return m_view; };
+		inline History*                  getHistory() { return m_history; }
+        inline bool                      isOpen()  { return m_open; }
+        inline GraphNode*                getGraph() { return m_graph; }
 
-		inline History* getHistory() {
-			return getComponent<History>();
-		}
-        bool& isOpen();
+        static File*                     OpenFile(std::filesystem::path _filePath);
 
 	private:
-	    bool                   m_open = true;
-		bool                   m_modified = false;
-		std::filesystem::path  m_path;
-		const Language*        m_language;
+        bool                       m_open;
+		bool                       m_modified;
+		std::filesystem::path      m_path;
+		const Language*            m_language;
 		const AbstractNodeFactory* m_factory;
-
-		MIRROR_CLASS(File)(
-		    MIRROR_PARENT(Node)
-		);
+		FileView*                  m_view;
+		History*                   m_history;
+		GraphNode*                 m_graph;
     };
 }

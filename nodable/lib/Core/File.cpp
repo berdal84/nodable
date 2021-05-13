@@ -1,15 +1,13 @@
-#include "Core/File.h"
-#include "Core/Log.h"
+#include "File.h"
+
 #include "Core/Application.h"
-#include "Component/History.h"
 #include "Component/FileView.h"
 #include "Component/GraphNodeView.h"
-#include "Node/GraphNode.h"
-#include "Node/CodeBlockNode.h"
 #include "Node/ProgramNode.h"
+#include "Node/DefaultNodeFactory.h"
 #include "Language/Common/Parser.h"
 #include "Language/Common/LanguageFactory.h"
-#include "Node/DefaultNodeFactory.h"
+#include "History.h"
 
 #include <fstream>
 
@@ -28,26 +26,22 @@ Nodable::File::File( std::filesystem::path _path, const char* _content)
 
 	// FileView
 #ifndef NODABLE_HEADLESS
-	auto fileView = new FileView();
-	addComponent(fileView);
-#endif
-	fileView->init();
-	fileView->setText(_content);
-	auto textEditor = fileView->getTextEditor();
+	m_view = new FileView(this);
+    m_view->init();
+    m_view->setText(_content);
+	auto textEditor = m_view->getTextEditor();
 
 	// History
-	auto history = new History();
-	addComponent(history);
-    auto undoBuffer = history->getUndoBuffer(textEditor);
-	fileView->setUndoBuffer(undoBuffer);
-	
+	m_history = new History();
+    auto undoBuffer = m_history->getUndoBuffer(textEditor);
+    m_view->setUndoBuffer(undoBuffer);
+#endif
 	// GraphNode
-	auto graphNode = new GraphNode( m_language, m_factory );
-	graphNode->setLabel(_path.filename().string() + "'s inner container");
-    setInnerGraph(graphNode);
+    m_graph = new GraphNode( m_language, m_factory );
+    m_graph->setLabel(_path.filename().string() + "'s inner container");
+
 #ifndef NODABLE_HEADLESS
-	auto graphNodeView = new GraphNodeView();
-	graphNode->addComponent(graphNodeView);
+    m_graph->addComponent( new GraphNodeView() );
 #endif
 }
 
@@ -56,8 +50,7 @@ void File::save()
 	if ( m_modified )
 	{
 		std::ofstream fileStream(this->m_path.c_str());
-		auto view    = getComponent<FileView>();
-		auto content = view->getText();
+		auto content = m_view->getText();
         fileStream.write(content.c_str(), content.size());
         m_modified = false;
 	}
@@ -90,65 +83,57 @@ File* File::OpenFile(std::filesystem::path _filePath)
 bool File::evaluateExpression(std::string& _expression)
 {
 	Parser* parser = m_language->getParser();
-	GraphNode* graph = getInnerGraph();
-    graph->clear();
-    if (parser->expressionToGraph(_expression, graph) && graph->hasProgram() )
+    m_graph->clear();
+    if (parser->expressionToGraph(_expression, m_graph) && m_graph->hasProgram() )
     {
 #ifndef NODABLE_HEADLESS
-        graph->arrangeNodeViews();
+        m_graph->arrangeNodeViews();
 #endif
         return true;
     }
     return false;
 }
 
-UpdateResult File::update() {
+bool File::update() {
 
-	if (auto history = this->getComponent<History>())
+	if ( m_history && m_history->dirty )
 	{
-		if (history->dirty)
-		{
-			this->evaluateSelectedExpression();
-			history->dirty = false;
-		}
+        evaluateSelectedExpression();
+        m_history->dirty = false;
 	}
+
     bool runner_is_stopped = Application::s_instance && Application::s_instance->getRunner().isStopped();
 	if( runner_is_stopped )
     {
-        auto graphUpdateResult = getInnerGraph()->update();
-        auto view = getComponent<FileView>();
+        auto graphUpdateResult = m_graph->update();
 
-        if (graphUpdateResult == UpdateResult::SuccessWithoutChanges && !view->getSelectedText().empty() )
+        if (graphUpdateResult == UpdateResult::SuccessWithoutChanges && !m_view->getSelectedText().empty() )
         {
-            return UpdateResult::SuccessWithoutChanges;
+            return false;
         }
 
-        auto scope = getInnerGraph()->getProgram();
+        auto scope = m_graph->getProgram();
         if ( scope && !scope->getChildren().empty() )
         {
             std::string code;
             m_language->getSerializer()->serialize(code, scope );
-            view->replaceSelectedText(code);
+            m_view->replaceSelectedText(code);
         }
     }
-	return UpdateResult::Success;
+	return true;
 }
 
 bool File::evaluateSelectedExpression()
 {
 	bool success;
-	auto view = getComponent<FileView>();
-	auto expression = view->getSelectedText();
+	auto expression = m_view->getSelectedText();
 	success = evaluateExpression(expression);
 	return success;
 }
 
-bool& File::isOpen() {
-    return m_open;
-}
-
 File::~File()
 {
-    delete getInnerGraph();
+    delete m_graph;
     delete m_factory;
+    delete m_view;
 }

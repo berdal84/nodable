@@ -12,10 +12,10 @@ namespace Nodable {
 	class FileView : public View
 	{
 	public:
-		FileView():m_textEditor(), m_hasChanged(false){};
+		FileView(File* _file): m_textEditor(), m_hasChanged(false), m_file(_file) {};
+		~FileView() override = default;
 		void                           init();
 		bool                           draw();
-		virtual bool update(){return true; };
 		bool                           hasChanged() const { return this->m_hasChanged; }
 		void                           setText(const std::string&);
 		std::string                    getSelectedText()const;
@@ -25,7 +25,7 @@ namespace Nodable {
 		void                           setTextEditorCursorPosition(const TextEditor::Coordinates& _cursorPosition) { m_textEditor.SetCursorPosition(_cursorPosition); }
 		TextEditor::Coordinates        getTextEditorCursorPosition()const { return m_textEditor.GetCursorPosition(); }
 		void						   setUndoBuffer(TextEditor::ExternalUndoBufferInterface*);
-        void                           drawFileInfo();
+        void                           drawFileInfo()const;
         void                           experimental_clipboard_auto_paste(bool val)
         {
             m_experimental_clipboard_auto_paste = val;
@@ -33,9 +33,9 @@ namespace Nodable {
                 m_experimental_clipboard_prev = "";
             }
         }
-        bool                           experimental_clipboard_auto_paste() { return m_experimental_clipboard_auto_paste; }
+        bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
 	private:
-		File*        getFile();
+		File*        m_file;
 		TextEditor   m_textEditor;
 		bool         m_hasChanged;
 		float        m_childSize1 = 0.3f;

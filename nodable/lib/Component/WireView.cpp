@@ -8,6 +8,7 @@
 
 using namespace Nodable;
 
+// TODO: move this to ImGuiEx
 void WireView::Draw(ImDrawList *draw_list, ImVec2 _from, ImVec2 _to)
 {
     auto& wire = Settings::GetCurrent()->ui.wire;

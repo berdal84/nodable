@@ -1,12 +1,13 @@
 
 // Standard includes
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 #include <iostream>
 #include <filesystem>
 
 // Nodable includes
 #include "Application.h"
+#include "ApplicationView.h"
 #include "Config.h"
 
 using namespace Nodable;
@@ -25,8 +26,10 @@ int main(int argc, char* argv[])
 	nodable.openFile(startupFilePath); // Init and open a startup file
 
 	try {
-        while (nodable.update() != UpdateResult::Stopped) {
-            if (auto view = nodable.getComponent<View>()) {
+        while ( nodable.update() )
+        {
+            if (ApplicationView* view = nodable.getView() )
+            {
                 view->draw();
             }
         }

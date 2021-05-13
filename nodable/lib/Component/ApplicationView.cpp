@@ -12,6 +12,7 @@
 #include "File.h"
 #include "Log.h"
 #include "Component/FileView.h"
+#include "History.h"
 #include "IconsFontAwesome5.h"
 
 using namespace Nodable;
@@ -266,7 +267,7 @@ bool ApplicationView::draw()
                     bool auto_paste;
                     if ( auto file = application->getCurrentFile())
                     {
-                        fileView = file->getComponent<FileView>();
+                        fileView = file->getView();
                         auto_paste = fileView->experimental_clipboard_auto_paste();
                     }
 
@@ -442,7 +443,7 @@ bool ApplicationView::draw()
 
                 if (currFile)
                 {
-                    FileView* fileView = currFile->getComponent<FileView>();
+                    FileView* fileView = currFile->getView();
                     fileView->drawFileInfo();
                 }
                 else
@@ -593,7 +594,7 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size
             drawHistoryBar(file->getHistory());
 
             // File View in the middle
-            View* eachFileView = file->getComponent<View>();
+            View* eachFileView = file->getView();
             ImVec2 availSize = ImGui::GetContentRegionAvail();
 
             if ( isCurrentFile )

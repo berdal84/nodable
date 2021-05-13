@@ -4,7 +4,6 @@
 using namespace Nodable;
 
 View::View():
-	Component(),
 	hovered(false),
 	visible(true),
 	visibleRect()

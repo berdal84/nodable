@@ -1,12 +1,10 @@
 #include "FileView.h"
-#include "View.h"
+
 #include "NodeView.h"
 #include "File.h"
 #include "GraphNode.h"
 #include "GraphNodeView.h"
 #include "Settings.h"
-
-#include <ImGuiColorTextEdit/TextEditor.h>
 
 using namespace Nodable;
 
@@ -45,7 +43,6 @@ bool FileView::draw()
 
     ImGui::BeginChild("file", ImVec2(m_childSize1, availSize.y), false);
 
-    auto file = getFile();
     auto previousCursorPosition = m_textEditor.GetCursorPosition();
     auto previousSelectedText = m_textEditor.GetSelectedText();
     auto previousLineText = m_textEditor.GetCurrentLineText();
@@ -87,10 +84,10 @@ bool FileView::draw()
                    isSelectedTextModified;
 
     if (m_textEditor.IsTextChanged())
-        file->setModified();
+        m_file->setModified();
 
     if (hasChanged()) {
-        file->evaluateSelectedExpression();
+        m_file->evaluateSelectedExpression();
     }
 
     ImGui::EndChild();
@@ -99,7 +96,10 @@ bool FileView::draw()
     //-------------
 
     ImGui::SameLine();
-    auto graphNodeView = file->getInnerGraph()->getComponent<GraphNodeView>();
+    GraphNode* graph = m_file->getGraph();
+    NODABLE_ASSERT(graph != nullptr);
+    NodeView* graphNodeView = graph->getComponent<GraphNodeView>();
+    NODABLE_ASSERT(graphNodeView != nullptr);
     graphNodeView->update();
     graphNodeView->drawAsChild("graph", ImVec2(m_childSize2, availSize.y), false);
 
@@ -149,36 +149,29 @@ std::string FileView::getSelectedText()const
 	return m_textEditor.HasSelection() ? m_textEditor.GetSelectedText() : m_textEditor.GetCurrentLineText();
 }
 
-File* FileView::getFile() {
-	return getOwner()->as<File>();
-}
-
 void FileView::setUndoBuffer(TextEditor::ExternalUndoBufferInterface* _buffer ) {
 	this->m_textEditor.SetExternalUndoBuffer(_buffer);
 }
 
-void FileView::drawFileInfo()
+void FileView::drawFileInfo() const
 {
-    File* file = getFile();
-
     // Basic information
-    ImGui::Text("Name: %s", file->getName().c_str());
-    ImGui::Text("Path: %s", file->getPath().c_str());
+    ImGui::Text("Name: %s", m_file->getName().c_str());
+    ImGui::Text("Path: %s", m_file->getPath().c_str());
     ImGui::NewLine();
 
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    GraphNode* graph = file->getInnerGraph();
-    ImGui::Text("Node count: %lu", graph->getNodeRegistry().size());
-    ImGui::Text("Wire count: %lu", graph->getWireRegistry().size());
+    ImGui::Text("Node count: %u", m_file->getGraph()->getNodeRegistry().size());
+    ImGui::Text("Wire count: %u", m_file->getGraph()->getWireRegistry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 
     // Language browser (list functions/operators)
     if (ImGui::TreeNode("Language"))
     {
-        const Language* language = file->getLanguage();
+        const Language* language = m_file->getLanguage();
         const auto& functions = language->getAllFunctions();
         const Serializer* serializer = language->getSerializer();
 

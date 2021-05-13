@@ -59,8 +59,3 @@ if ( ENABLE_TESTS )
     enable_testing()
     add_subdirectory( tests )
 endif()
-
-#--------------------------------------------------------------------------------
-
-# Group sources in a tree (mainly for VisualStudio)
-source_group(TREE ".." FILES ${NODABLE_SOURCES})
