@@ -42,10 +42,10 @@ namespace Nodable
 		History* history;
 	};
 
-	class History : public Component {
+	class History {
 	public:
 		explicit History(size_t _sizeMax = 100):sizeMax(_sizeMax), dirty(false){}
-		~History() override;
+		~History();
 
 		/* Execute a command and add it to the history.
 		If there are other commands after they will be erased from the history */
@@ -88,9 +88,6 @@ namespace Nodable
 		std::vector<Cmd*>	commands;		/* Command history */
 		size_t           	commandsCursor = 0;	/* Command history cursor (zero based index) */
 		TextEditorBuffer    textEditorBuffer;
-
-		MIRROR_CLASS(History)(
-			MIRROR_PARENT(Component));
 	};
 
 

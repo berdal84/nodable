@@ -5,14 +5,14 @@
 #include <numeric>                // for std::accumulate
 #include <vector>
 #include <Settings.h>
-#include "IconsFontAwesome5.h"
+#include <Common/Serializer.h>
 
 #include "Core/Application.h"
 #include "Utils/Maths.h"
 #include "Node/ScopedCodeBlockNode.h"
 #include "Node/VariableNode.h"
-#include "Node/InstructionNode.h"
 #include "Node/LiteralNode.h"
+#include "Node/GraphNode.h"
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 
@@ -29,15 +29,17 @@ const float        NodeView::s_memberInputSizeMin     = 10.0f;
 const ImVec2       NodeView::s_memberInputToggleButtonSize   = ImVec2(10.0, 25.0f);
 std::vector<NodeView*> NodeView::s_instances;
 
-NodeView::NodeView():
-        m_position(500.0f, -1.0f),
-        m_size(NODE_VIEW_DEFAULT_SIZE),
-        m_opacity(1.0f),
-        m_childrenVisible(true),
-        m_forceMemberInputVisible(false),
-        m_pinned(false),
-        m_borderRadius(5.0f),
-        m_borderColorSelected(1.0f, 1.0f, 1.0f)
+NodeView::NodeView()
+        : Component()
+        , View()
+        , m_position(500.0f, -1.0f)
+        , m_size(NODE_VIEW_DEFAULT_SIZE)
+        , m_opacity(1.0f)
+        , m_childrenVisible(true)
+        , m_forceMemberInputVisible(false)
+        , m_pinned(false)
+        , m_borderRadius(5.0f)
+        , m_borderColorSelected(1.0f, 1.0f, 1.0f)
 {
     NodeView::s_instances.push_back(this);
 }

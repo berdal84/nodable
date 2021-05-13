@@ -18,7 +18,8 @@ namespace Nodable{
         FunctionSignature           function_signature;
 	} FunctionMenuItem;
 
-	class GraphNodeView: public NodeView {
+	class GraphNodeView: public NodeView
+    {
 	public:
 	    GraphNodeView() = default;
 		~GraphNodeView() = default;

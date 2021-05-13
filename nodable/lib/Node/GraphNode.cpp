@@ -231,7 +231,7 @@ void GraphNode::arrangeNodeViews()
             bool hasKnownPosition = GraphNode::s_mainScopeView_lastKnownPosition.x != -1 &&
                                     GraphNode::s_mainScopeView_lastKnownPosition.y != -1;
 
-            if ( auto graphView = this->getComponent<View>())
+            if ( auto graphView = getComponent<NodeView>())
             {
                 if (hasKnownPosition) {                                 /* if result node had a position stored, we restore it */
                     scopeView->setPosition(GraphNode::s_mainScopeView_lastKnownPosition);

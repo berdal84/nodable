@@ -1,58 +1,55 @@
 #include "Application.h"
-#include "ApplicationView.h"
-#include "VariableNode.h"
-#include "DataAccess.h"
-#include "File.h"
-#include "Config.h"
 
 #include <string>
 #include <algorithm>
+
+#include "ApplicationView.h"
+#include "File.h"
+#include "Config.h"
+#include "Node/GraphNode.h"
+#include "Node/VariableNode.h"
+#include "Component/DataAccess.h"
 
 using namespace Nodable;
 
 Application* Application::s_instance = nullptr;
 
-Application::Application(const char* _name):
-    currentFileIndex(0),
-    assetsFolderPath(NODABLE_ASSETS_DIR)
+Application::Application(const char* _name)
+    : currentFileIndex(0)
+    , assetsFolderPath(NODABLE_ASSETS_DIR)
+    , m_name(_name)
 {
     NODABLE_ASSERT(s_instance == nullptr); // can't create more than a single app
     s_instance = this;
-	setLabel(_name);
-	addComponent(new ApplicationView(_name, this));
+	m_view = new ApplicationView(_name, this);
 }
 
 Application::~Application()
 {
-	for (auto & loadedFile : loadedFiles)
-		delete loadedFile;
-	deleteComponents();
+	delete m_view;
 	s_instance = nullptr;
 }
 
 bool Application::init()
 {
-	auto view = getComponent<ApplicationView>();
-	view->init();
-
+    m_view->init();
 	return true;
 }
 
-UpdateResult Application::update()
+bool Application::update()
 {
 	File* file = getCurrentFile();
-    UpdateResult fileUpdateResult = UpdateResult::Failed;
 
 	if (file)
 	{
-        fileUpdateResult = file->update();
+        file->update();
     }
 
     if( quit )
     {
-        return UpdateResult::Stopped;
+        return false;
     }
-    return fileUpdateResult;
+    return true;
 }
 
 void Application::stopExecution()
@@ -62,8 +59,7 @@ void Application::stopExecution()
 
 void Application::shutdown()
 {
-    auto view = getComponent<ApplicationView>();
-    view->shutdown();
+    m_view->shutdown();
 }
 
 bool Application::openFile(std::filesystem::path _filePath)
@@ -154,8 +150,8 @@ void Application::closeFile(size_t _fileIndex)
 
 ProgramNode *Application::getCurrentFileProgram() const
 {
-    if ( auto file = getCurrentFile())
-        return file->getInnerGraph()->getProgram();
+    if ( File* file = getCurrentFile())
+        return file->getGraph()->getProgram();
     return nullptr;
 }
 

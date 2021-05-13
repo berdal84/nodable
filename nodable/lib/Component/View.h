@@ -12,7 +12,7 @@ namespace Nodable
      *
      * TODO: split "interface" and "ImGui implementation"
      */
-	class View : public Component
+	class View
 	{
 	public:
 
@@ -134,8 +134,7 @@ namespace Nodable
 		 */
         std::map<ColorType_, ImVec4*> colors;
 
-		MIRROR_CLASS(View)(
-			MIRROR_PARENT(Component));
+		MIRROR_CLASS(View)();
 
     };
 }

@@ -8,21 +8,22 @@
 #include <future>
 
 // Nodable
-#include "Nodable.h" /* Forward declarations and defines */
-#include "Runner.h"
-#include <Node/Node.h>
-#include <Component/History.h>
-#include <Core/File.h>
+#include "Core/Nodable.h"
+#include "Core/Runner.h"
 
 namespace Nodable
 {
+    // forward declarations
+    class ApplicationView;
+    class File;
+
     /**
      * This class is the master class of Nodable.
      * Using it you can launch a Nodable Application with ease.
      *
      * As you can see Application extends Node, because everything (or almost) is a Node in Nodable.
      */
-	class Application : public Node
+	class Application
 	{
 	public:
 
@@ -31,7 +32,7 @@ namespace Nodable
 	     */
 		explicit Application(const char*);
 
-		~Application() override;
+		~Application();
 
 		/**
 		 * Initialize the application.
@@ -50,7 +51,7 @@ namespace Nodable
 		 * this must be called once per frame
 		 * @return
 		 */
-		UpdateResult update() override;
+		bool update();
 
 		/**
 		 * Force application to stops.
@@ -126,6 +127,7 @@ namespace Nodable
         void stepOverCurrentFileProgram();
         void stopCurrentFileProgram();
         void resetCurrentFileProgram();
+        ApplicationView* getView()const { return m_view; };
 
 		/**
 		 * @deprecated
@@ -137,6 +139,7 @@ namespace Nodable
 
 		static Application* s_instance;
 	private:
+	    ApplicationView* m_view;
 		/** When set to true, the application will close next frame */
 		bool quit = false;
 
@@ -152,8 +155,6 @@ namespace Nodable
         /** A minimalist "virtual machine" to run instructions */
         Runner m_runner;
 
-    // Reflect class using mirror
-    MIRROR_CLASS(Application)();
-
+        std::string m_name;
     };
 }

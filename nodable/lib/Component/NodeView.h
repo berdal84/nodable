@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Nodable.h" // for constants and forward declarations
-#include "View.h"    // base class
+#include "View.h"       // base class
+#include "Component.h"  // base class
 #include <imgui/imgui.h>   // for ImVec2
 #include <string>
 #include <map>
@@ -61,7 +62,7 @@ namespace Nodable
 	/**
 	 * This class implement a view for Nodes using ImGui.
 	 */
-	class NodeView : public View
+	class NodeView :  public Component, public View
 	{
 	public:
 		NodeView();
@@ -211,7 +212,11 @@ namespace Nodable
         static std::vector<NodeView*> s_instances;
 
         // Reflect this class
-    MIRROR_CLASS(NodeView) (MIRROR_PARENT(View)); // I only need to know the parent
+        MIRROR_CLASS(NodeView)
+        (
+            MIRROR_PARENT(View)
+            MIRROR_PARENT(Component)
+        ); // I only need to know the parent
 
     };
 
