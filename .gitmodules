@@ -13,3 +13,6 @@
 [submodule "libs/ImGuiColorTextEdit"]
 	path = libs/ImGuiColorTextEdit
 	url = https://github.com/berdal84/ImGuiColorTextEdit
+[submodule "libs/Observe"]
+	path = libs/Observe
+	url = https://github.com/berdal84/Observe.git

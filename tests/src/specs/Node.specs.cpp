@@ -1,6 +1,6 @@
 
 #include "gtest/gtest.h"
-#include <Core/Member.h>
+#include <Member.h>
 #include <Node.h>
 
 using namespace Nodable;

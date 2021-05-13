@@ -61,9 +61,9 @@ Enter the following command to ask cmake to build from `./build` directory using
 ```
 cmake --build build --config Release --target install -j 6
 ```
-*Note: `--target install` is to create a clean `./bin` directory with only necessary files to run the software.*
+*Note: `--target install` is to create a clean `./bin/Release` directory with only necessary files to run the software.*
 
-Once build succeed, move to install folder and run `./Nodable`:
+Once build succeed, move to install folder and run `./nodable`:
 ```
 cd bin && ./Nodable
 ```
@@ -89,3 +89,4 @@ Dependencies
 - mirror by Grouflon : https://github.com/grouflon/mirror
 - ImGui FileBrowser by AirGuanZ: https://github.com/AirGuanZ/imgui-filebrowser
 - LodePNG by Lode Vandevenne
+- Observe by Lars Melchior

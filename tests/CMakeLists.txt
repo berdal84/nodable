@@ -1,6 +1,6 @@
-# include helpers for libs
-include( ../nodable/lib/lib-config.cmake )
-include( ../libs/libs-config.cmake )
+
+# Do not use this CMaleLists.txt directly, take the one from base directory.
+#---------------------------------------------------------------------------
 
 # https://stackoverflow.com/questions/12540970/how-to-make-gtest-build-mdd-instead-of-mtd-by-default-using-cmake
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -10,19 +10,26 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 # build directory.
 add_subdirectory( ../libs/googletest-release-1.10.0 ./gtest)
 
-# Includes
-include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ${NODABLE_INCLUDE_DIRS} ${LIBS_INCLUDE_DIRS} )
+# glob the specs
+file( GLOB_RECURSE SPECS CONFIGURE_DEPENDS *.specs.cpp )
 
-# Declare our main "Tests" executable
-add_executable( nodable_tests
-        src/main.cpp
-        src/specs/GraphNode.specs.cpp
-        src/specs/Member.specs.cpp
-        src/specs/Node.specs.cpp
-        src/specs/Parser.specs.cpp)
+# Declare our main executable
+add_executable( nodable_tests src/main.cpp ${SPECS})
 
+target_include_directories(
+        nodable_tests
+        PUBLIC
+            ../src/app/src/
+            ../src/core/src/
+)
 # Link libraries
-target_link_libraries(nodable_tests PUBLIC nodable_lib gtest gtest_main)
+target_link_libraries(
+        nodable_tests
+        PUBLIC
+            gtest_main
+            gtest
+            nodable_app
+            mirror)
 
-# declare tests
+# declare a single test
 add_test( NAME nodable_tests COMMAND nodable_tests )
