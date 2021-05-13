@@ -55,7 +55,7 @@ add_subdirectory( nodable )
 
 # Unit tests (gtest)
 #-------------------
-if ( ENABLE_GTESTS )
+if ( ENABLE_TESTS )
     enable_testing()
     add_subdirectory( tests )
 endif()

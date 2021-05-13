@@ -2,8 +2,8 @@
 
 project("Nodable" VERSION "0.8.0")
 
-# Nodable asset path relative to this CMakeLists
-set(PROJECT_ASSETS_DIR "${CMAKE_CURRENT_LIST_DIR}/app/assets")
+set(NODABLE_APP_ASSETS_ABSOLUTE_DIR "${CMAKE_CURRENT_LIST_DIR}/app/assets")
+set(NODABLE_APP_ASSETS_RELATIVE_DIR ./assets)
 
 option(NODABLE_ENABLE_CONFIG_LOGS "Enable log message during configuration" off)
 
@@ -64,7 +64,10 @@ set_property(TARGET Nodable PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH
 # Copy assets (fonts, scripts, etc..)
 add_custom_command(
     TARGET Nodable PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_ASSETS_DIR} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_ASSETS_DIR}
+    COMMAND ${CMAKE_COMMAND}
+            -E copy_directory
+            ${NODABLE_APP_ASSETS_ABSOLUTE_DIR}
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NODABLE_APP_ASSETS_RELATIVE_DIR}
 )
 
 # Copy SDL2.dll
@@ -84,7 +87,7 @@ set(INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/$<CONFIG>)
 install(FILES ${SDL2_RUNTIME} DESTINATION ${INSTALL_PATH})
 
 # Copy assets
-install(DIRECTORY ${PROJECT_ASSETS_DIR} DESTINATION ${INSTALL_PATH} )
+install(DIRECTORY ${NODABLE_APP_ASSETS_ABSOLUTE_DIR} DESTINATION ${INSTALL_PATH} )
 install(FILES ../CHANGELOG.md DESTINATION ${INSTALL_PATH} )
 install(FILES ../README.md DESTINATION ${INSTALL_PATH} )
 
