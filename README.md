@@ -36,8 +36,7 @@ To linux users: OpenGL and SDL libraries are required.
 Download binaries from [home page](https://www.dalle-cort.fr/nodable-node-oriented-programming/) or from [Releases](https://github.com/berdal84/Nodable/releases) section.
 
 
-
-## How to compile ? :
+## How to compile Nodable from sources ?
 
 Requirements:
 - A **C++17** compatible build system (tested with make/g++-10 and MSVC14.27.29110)
@@ -52,19 +51,21 @@ git clone https://github.com/berdal84/Nodable.git --recurse-submodules
 
 Configure and run the build:
 
+From nodable base directory type the following command to configure a new ./build directory from sources in current current directory:
 ```
-cd ./Nodable
 cmake . -B build
-cmake --build build --config Release [--target install]
 ```
-*Optional `--target install` is to create a clean `./install/Release` directory with only necessary files to run the software.*
+Then cmake must have created the `./build` folder. We can now build the program from this configured folder.
 
-Nodable will be built into `./build/`
-
-To run it:
+Enter the following command to ask cmake to build from `./build` directory using a `Release` configuration.
 ```
-cd build
-./Nodable
+cmake --build build --config Release --target install -j 6
+```
+*Note: `--target install` is to create a clean `./bin` directory with only necessary files to run the software.*
+
+Once build succeed, move to install folder and run `./Nodable`:
+```
+cd bin && ./Nodable
 ```
 
 ## Licence:

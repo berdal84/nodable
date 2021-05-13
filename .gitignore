@@ -58,3 +58,5 @@ _screenshots/
 /install
 /out/build/x64-Debug
 /build
+/nodable/install/
+/bin/

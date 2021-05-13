@@ -1,15 +1,15 @@
-[submodule "extern/ImGuiColorTextEdit"]
-	path = extern/ImGuiColorTextEdit
-	url = https://github.com/berdal84/ImGuiColorTextEdit
-[submodule "extern/imgui"]
-	path = extern/imgui
+[submodule "libs/imgui"]
+	path = libs/imgui
 	url = https://github.com/berdal84/imgui
-[submodule "extern/IconFontCppHeaders"]
-	path = extern/IconFontCppHeaders
+[submodule "libs/IconFontCppHeaders"]
+	path = libs/IconFontCppHeaders
 	url = https://github.com/berdal84/IconFontCppHeaders
-[submodule "extern/mirror"]
-	path = extern/mirror
+[submodule "libs/mirror"]
+	path = libs/mirror
 	url = https://github.com/berdal84/mirror
-[submodule "extern/imgui-filebrowser"]
-	path = extern/imgui-filebrowser
+[submodule "libs/imgui-filebrowser"]
+	path = libs/imgui-filebrowser
 	url = https://github.com/berdal84/imgui-filebrowser.git
+[submodule "libs/ImGuiColorTextEdit"]
+	path = libs/ImGuiColorTextEdit
+	url = https://github.com/berdal84/ImGuiColorTextEdit
