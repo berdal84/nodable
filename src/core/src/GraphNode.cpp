@@ -18,12 +18,10 @@
 #include "LiteralNode.h"
 #include "ProgramNode.h"
 #include "AbstractNodeFactory.h"
-
-// TODO: remove this dependency
-#include "NodeView.h"
+#include "NodeView.h" // TODO: remove this dependency
 
 using namespace Nodable::core;
-using namespace Nodable::app;
+using namespace Nodable::app; // TODO: remove this dependency
 
 ImVec2 GraphNode::s_mainScopeView_lastKnownPosition = ImVec2(-1, -1); // draft try to store node position
 

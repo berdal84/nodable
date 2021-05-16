@@ -21,7 +21,7 @@ target_link_libraries(
             gtest_main
             gtest
             nodable_core
-            # nodable_app Should compile without it.
+            nodable_app # TODO: Should compile without it (pb: Node depends on NodeView ! XD )
 
 )
 
