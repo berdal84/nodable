@@ -1,6 +1,7 @@
 name: build
 
 on:
+  workflow_dispatch:
   release:
     types:
       - created    
@@ -11,7 +12,6 @@ on:
   
 jobs:
   build:
-    name: build - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     
     strategy:
