@@ -11,7 +11,7 @@
 #include "Node.h"
 #include "Language.h"
 
-namespace Nodable{
+namespace Nodable::core{
 
     // forward declaration
     class ScopedCodeBlockNode;

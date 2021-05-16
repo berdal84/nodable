@@ -1,7 +1,7 @@
 #pragma once
 #include "Language.h"
 
-namespace Nodable
+namespace Nodable::core
 {
     /**
      * Static class to get a specific Language

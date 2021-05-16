@@ -4,7 +4,7 @@
 #include "Token.h"
 #include "Log.h"
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 TokenRibbon::TokenRibbon()
     :

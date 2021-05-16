@@ -3,7 +3,7 @@
 #include <GraphTraversal.h>
 #include <InstructionNode.h>
 
-namespace Nodable
+namespace Nodable::core
 {
     // forward declarations
     class ProgramNode;

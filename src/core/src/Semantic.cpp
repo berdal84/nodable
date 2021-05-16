@@ -1,7 +1,7 @@
 #include "Semantic.h"
 #include "Log.h"
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 Semantic::Semantic()
 {

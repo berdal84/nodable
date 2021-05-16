@@ -2,7 +2,7 @@
 #include <Member.h>
 #include <Log.h>
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 VariableNode::VariableNode(Type type)
     :

@@ -3,7 +3,7 @@
 #include <Node.h>
 #include <Parser.h>
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 Language::~Language()
 {
@@ -28,7 +28,7 @@ bool  Language::hasHigherPrecedenceThan(const Operator* _firstOperator, const Op
 	return _firstOperator->precedence >= _secondOperator->precedence;
 }
 
-const Function* Nodable::Language::findFunction(const FunctionSignature& _signature) const
+const Function* Language::findFunction(const FunctionSignature& _signature) const
 {
 	auto predicate = [&](Function fct) {
 		return fct.signature.match(_signature);
@@ -71,12 +71,12 @@ const Operator* Language::findOperator(const FunctionSignature& _signature) cons
 }
 
 
-void Nodable::Language::addToAPI(Function _function)
+void Language::addToAPI(Function _function)
 {
 	this->api.push_back(_function);
 }
 
-void Nodable::Language::addToAPI(FunctionSignature& _signature, FunctionImplem _implementation)
+void Language::addToAPI(FunctionSignature& _signature, FunctionImplem _implementation)
 {
 	Function f(_signature, _implementation);
 	this->api.push_back(f);

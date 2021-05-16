@@ -25,7 +25,7 @@
 	Forward declarations
 */
 
-namespace Nodable
+namespace Nodable::core
 {
 	class Wire;
 	class Member;

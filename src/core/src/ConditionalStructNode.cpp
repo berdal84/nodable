@@ -1,7 +1,7 @@
 #include "ConditionalStructNode.h"
 #include "ScopedCodeBlockNode.h"
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 ConditionalStructNode::ConditionalStructNode()
     :

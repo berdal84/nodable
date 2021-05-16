@@ -2,7 +2,9 @@
 #include "Log.h"
 #include <thread>
 
-void Nodable::System::OpenURL(std::string _URL)
+using namespace Nodable::core;
+
+void System::OpenURL(std::string _URL)
 {
     auto openURLambda = [](std::string _URL)
     {

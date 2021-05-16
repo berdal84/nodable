@@ -8,7 +8,7 @@
 #include "ComputeUnaryOperation.h"
 #include "ComputeBinaryOperation.h"
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 Node::Node(std::string _label):
         m_props(this),
@@ -49,13 +49,13 @@ const char* Node::getLabel()const
 	return this->m_label.c_str();
 }
 
-void Nodable::Node::addWire(Wire* _wire)
+void Node::addWire(Wire* _wire)
 {
 	m_wires.push_back(_wire);
     GraphTraversal::TraverseAndSetDirty(this);
 }
 
-void Nodable::Node::removeWire(Wire* _wire)
+void Node::removeWire(Wire* _wire)
 {
 	auto found = std::find(m_wires.begin(), m_wires.end(), _wire);
 	if(found != m_wires.end())

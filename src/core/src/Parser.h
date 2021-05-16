@@ -8,7 +8,7 @@
 #include "Token.h"
 #include "TokenRibbon.h"
 
-namespace Nodable{
+namespace Nodable::core{
 
     // forward declaration
     class InstructionNode;

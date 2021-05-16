@@ -7,7 +7,7 @@
 #include "Operator.h"
 #include <functional>
 
-namespace Nodable
+namespace Nodable::core
 {
 	/**
 	 * @brief Extends ComputeFunction to work with UnaryOperations expose a L value and an operator.

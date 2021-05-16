@@ -3,7 +3,7 @@
 #include "VariableNode.h"
 #include <InstructionNode.h>
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 AbstractCodeBlockNode::AbstractCodeBlockNode()
 {

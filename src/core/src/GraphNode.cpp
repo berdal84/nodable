@@ -22,7 +22,7 @@
 // TODO: remove this dependency
 #include "NodeView.h"
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 ImVec2 GraphNode::s_mainScopeView_lastKnownPosition = ImVec2(-1, -1); // draft try to store node position
 

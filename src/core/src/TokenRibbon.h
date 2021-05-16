@@ -4,7 +4,7 @@
 #include <stack>
 #include "TokenType.h"
 
-namespace Nodable
+namespace Nodable::core
 {
     // forward declarations
     struct Token;

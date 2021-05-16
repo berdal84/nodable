@@ -12,7 +12,7 @@
 #include <GraphTraversal.h>
 #include "Properties.h"
 
-namespace Nodable{
+namespace Nodable::core {
 
     // forward declarations
     class Operator;

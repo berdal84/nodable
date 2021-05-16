@@ -1,7 +1,7 @@
 #pragma once
 #include "Node.h"
 
-namespace Nodable
+namespace Nodable::core
 {
     class LiteralNode: public Node
     {

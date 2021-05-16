@@ -4,7 +4,7 @@
 #include "Component.h"
 #include <mirror.h>
 
-namespace Nodable
+namespace Nodable::core
 {
 	class DataAccess : public Component
 	{
