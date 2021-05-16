@@ -9,7 +9,7 @@
 #include "Wire.h"
 #include "NodableLanguage.h"
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 TEST( GraphNode, connect)
 {
@@ -18,10 +18,10 @@ TEST( GraphNode, connect)
     GraphNode graph(&language, &factory);
 
     auto node1 = graph.newNode();
-    node1->getProps()->add("output", Nodable::Visibility::Default, Type_Boolean, Way_Default);
+    node1->getProps()->add("output", Visibility::Default, Type_Boolean, Way_Default);
 
     auto node2  = graph.newNode();
-    node2->getProps()->add("input", Nodable::Visibility::Default, Type_Boolean, Way_Default);
+    node2->getProps()->add("input", Visibility::Default, Type_Boolean, Way_Default);
 
     auto wire = graph.connect(
             node1->getProps()->get("output"),
@@ -39,10 +39,10 @@ TEST( GraphNode, disconnect)
     GraphNode graph(&language, &factory);
 
     auto a = graph.newNode();
-    auto output = a->getProps()->add("output", Nodable::Visibility::Default, Type_Boolean, Way_Default);
+    auto output = a->getProps()->add("output", Visibility::Default, Type_Boolean, Way_Default);
 
     auto b = graph.newNode();
-    auto input = b->getProps()->add("input", Nodable::Visibility::Default, Type_Boolean, Way_Default);
+    auto input = b->getProps()->add("input", Visibility::Default, Type_Boolean, Way_Default);
 
     EXPECT_EQ(graph.getWireRegistry().size(), 0);
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);

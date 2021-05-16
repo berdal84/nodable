@@ -3,7 +3,7 @@
 #include <Member.h>
 #include <Node.h>
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 TEST(Node, Add_member_Double)
 {

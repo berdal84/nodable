@@ -5,7 +5,7 @@
 #include <iostream>
 #include <algorithm>
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 std::vector<Log::Message> Log::Logs;
 std::map<std::string, Log::Verbosity> Log::s_verbosityLevels;

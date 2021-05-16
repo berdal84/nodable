@@ -12,6 +12,8 @@
 
 namespace Nodable
 {
+    using namespace core;
+
 	/** We use this enum to identify all NodeView detail modes */
 	enum class NodeViewDetail: unsigned short int
 	{
@@ -22,10 +24,13 @@ namespace Nodable
 	};	
 
 	// forward declaration
-	class Node;
-    class ScopedCodeBlockNode;
-    class CodeBlockNode;
-    class GraphNode;
+	namespace core {
+        class Node;
+        class ScopedCodeBlockNode;
+        class CodeBlockNode;
+        class GraphNode;
+    }
+
     class NodeView;
     struct MemberView;
     class MemberConnector;

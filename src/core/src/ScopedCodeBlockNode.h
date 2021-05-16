@@ -1,7 +1,7 @@
 #pragma once
 #include "AbstractCodeBlockNode.h" // abstract base class
 
-namespace Nodable
+namespace Nodable::core
 {
     // Forward declarations
     class InstructionNode;

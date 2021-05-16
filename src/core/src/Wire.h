@@ -4,7 +4,7 @@
 #include "Node.h"
 #include "mirror.h"
 
-namespace Nodable
+namespace Nodable::core
 {
 	class Wire
 	{

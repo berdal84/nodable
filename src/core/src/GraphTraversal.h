@@ -4,7 +4,7 @@
 #include "Node.h"
 #include <vector>
 
-namespace Nodable {
+namespace Nodable::core {
 
     enum class Result {
         Success,

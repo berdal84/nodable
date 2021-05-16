@@ -2,7 +2,7 @@
 
 #include "CodeBlockNode.h" // base class
 
-namespace Nodable
+namespace Nodable::core
 {
     // forward declarations
     class ScopedCodeBlockNode;

@@ -7,7 +7,7 @@
 #include "Operator.h"
 #include <functional>
 
-namespace Nodable
+namespace Nodable::core
 {
     // forward declarations
     class Language;

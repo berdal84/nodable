@@ -2,7 +2,7 @@
 #include <Serializer.h>
 #include "NodableLanguage.h"
 
-namespace Nodable
+namespace Nodable::core
 {
     class NodableSerializer: public Serializer {
     public:

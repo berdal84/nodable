@@ -1,7 +1,7 @@
 #include "CodeBlockNode.h"
 #include "InstructionNode.h"
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 CodeBlockNode::CodeBlockNode()
         :

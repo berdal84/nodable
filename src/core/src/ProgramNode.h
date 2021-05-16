@@ -1,7 +1,7 @@
 #pragma once
 #include "ScopedCodeBlockNode.h"
 
-namespace Nodable
+namespace Nodable::core
 {
     /**
      * Class to define a program inside Nodable.

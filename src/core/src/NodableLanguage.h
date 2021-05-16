@@ -1,7 +1,7 @@
 #pragma once
 #include "Language.h"
 
-namespace Nodable {
+namespace Nodable::core {
 
 	/*
 		The role of this class is to define a first language for Nodable.

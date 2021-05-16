@@ -9,7 +9,7 @@
 #include "NodableParser.h"
 #include "NodableSerializer.h"
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 NodableLanguage::NodableLanguage()
     :

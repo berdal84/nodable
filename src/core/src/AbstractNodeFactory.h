@@ -2,7 +2,7 @@
 #include <string>
 #include "Type.h"
 
-namespace Nodable
+namespace Nodable::core
 {
     // forward declarations
     class Node;

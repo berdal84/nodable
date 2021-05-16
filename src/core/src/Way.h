@@ -2,7 +2,7 @@
 #include <bitset>
 #include <string>
 
-namespace Nodable
+namespace Nodable::core
 {
 	/**
 	  The role of this enum is to distinguish the way

@@ -4,7 +4,7 @@
 #include "GraphTraversal.h"
 #include "Log.h"
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 Runner::Runner()
     :
@@ -17,7 +17,7 @@ Runner::Runner()
 
 }
 
-void Runner::load(Nodable::ProgramNode* _program)
+void Runner::load( ProgramNode* _program)
 {
     if ( this->m_program )
         unload();

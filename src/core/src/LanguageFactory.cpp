@@ -4,7 +4,7 @@
 #include <NodableSerializer.h>
 #include "NodableLanguage.h"
 
-using namespace Nodable;
+using namespace Nodable::core;
 
 const Language* LanguageFactory::Nodable = nullptr;
 
