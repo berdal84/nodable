@@ -15,7 +15,7 @@
 #include "History.h"
 #include "IconFontCppHeaders/IconsFontAwesome5.h"
 
-using namespace Nodable;
+using namespace Nodable::app;
 
 ApplicationView::ApplicationView(const char* _name, Application* _application):
         application(_application),
@@ -830,7 +830,7 @@ void ApplicationView::drawHistoryBar(History *currentFileHistory) {
     }
 }
 
-void Nodable::ApplicationView::browseFile()
+void ApplicationView::browseFile()
 {
 	fileBrowser.Open();
 }

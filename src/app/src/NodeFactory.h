@@ -2,6 +2,8 @@
 
 namespace Nodable::app
 {
+    using namespace core;
+
     /**
      * @brief Node Factory implementation by default.
      */

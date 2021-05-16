@@ -19,12 +19,12 @@
 #include "Log.h"
 #include "GraphTraversal.h"
 
-namespace Nodable
+namespace Nodable::app
 {
     // forward declarations
     class History;
-	class Cmd;
-	class Cmd_TextEditor_InsertText;
+    class Cmd;
+    class Cmd_TextEditor_InsertText;
 
 	/* TextEditorBuffer is a class to handle TextEditor UndoRecords
 	This class will catch these object using AddUndo method.

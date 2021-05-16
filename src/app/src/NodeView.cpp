@@ -16,7 +16,8 @@
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 
-using namespace Nodable;
+using namespace Nodable::app;
+using namespace Nodable::core;
 
 NodeView*          NodeView::s_selected               = nullptr;
 NodeView*          NodeView::s_draggedNode            = nullptr;
@@ -588,12 +589,12 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     return edited;
 }
 
-bool Nodable::NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
+bool NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
 	auto nodeRect = _nodeView->getRect();
 	return _rect.Contains(nodeRect);
 }
 
-void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
+void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
 {
     const float labelColumnWidth = ImGui::GetContentRegionAvailWidth() / 2.0f;
 
@@ -641,7 +642,7 @@ void Nodable::NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
    _view->drawAdvancedProperties();
 }
 
-void Nodable::NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
+void NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 {
 	
 	if ( !NodeView::IsInsideRect(_view, _rect)) {

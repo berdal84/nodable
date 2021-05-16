@@ -10,7 +10,15 @@
 #include <mirror.h>
 #include <algorithm>
 
-namespace Nodable
+// forward declaration
+namespace Nodable::core {
+    class Node;
+    class ScopedCodeBlockNode;
+    class CodeBlockNode;
+    class GraphNode;
+}
+
+namespace Nodable::app
 {
     using namespace core;
 
@@ -21,15 +29,7 @@ namespace Nodable
 		Essential   = 1,
 		Exhaustive  = 2,
 		Default     = Essential
-	};	
-
-	// forward declaration
-	namespace core {
-        class Node;
-        class ScopedCodeBlockNode;
-        class CodeBlockNode;
-        class GraphNode;
-    }
+	};
 
     class NodeView;
     struct MemberView;

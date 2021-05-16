@@ -1,7 +1,7 @@
 #include "View.h"
 #include "Settings.h"
 
-using namespace Nodable;
+using namespace Nodable::app;
 
 View::View():
 	hovered(false),
@@ -28,7 +28,7 @@ ImColor View::getColor(ColorType_ _type) const
 	return  ImColor(*colors.at(_type));
 }
 
-bool Nodable::View::drawAsChild(const char* _name, const ImVec2& _size, bool border, ImGuiWindowFlags flags)
+bool View::drawAsChild(const char* _name, const ImVec2& _size, bool border, ImGuiWindowFlags flags)
 {
 	bool result;
 

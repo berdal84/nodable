@@ -2,7 +2,7 @@
 
 using namespace Nodable::core;
 
-std::string WayToString(Way _way)
+std::string Nodable::core::WayToString(Way _way)
 {
     switch(_way)
     {

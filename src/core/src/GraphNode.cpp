@@ -23,6 +23,7 @@
 #include "NodeView.h"
 
 using namespace Nodable::core;
+using namespace Nodable::app;
 
 ImVec2 GraphNode::s_mainScopeView_lastKnownPosition = ImVec2(-1, -1); // draft try to store node position
 

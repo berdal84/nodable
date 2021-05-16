@@ -15,7 +15,8 @@
 #include "WireView.h"
 #include "NodeView.h"
 
-using namespace Nodable;
+using namespace Nodable::core;
+using namespace Nodable::app;
 
 bool GraphNodeView::draw()
 {
@@ -447,7 +448,7 @@ bool GraphNodeView::draw()
 	return edited;
 }
 
-void Nodable::GraphNodeView::addContextualMenuItem(
+void GraphNodeView::addContextualMenuItem(
         const std::string& _category,
         std::string _label,
         std::function<Node*(void)> _function,

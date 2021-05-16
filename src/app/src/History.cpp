@@ -1,6 +1,6 @@
 #include "History.h"
 
-using namespace Nodable;
+using namespace Nodable::app;
 
 History* History::global = nullptr;
 
@@ -54,7 +54,7 @@ void History::redo()
 	}
 }
 
-void Nodable::History::clear()
+void History::clear()
 {
 	commands.clear();
 	commandsCursor = 0;
@@ -78,7 +78,7 @@ void History::setCursorPosition(size_t _pos)
 	dirty = true;
 }
 
-std::string Nodable::History::getCommandDescriptionAtPosition(size_t _commandId)
+std::string History::getCommandDescriptionAtPosition(size_t _commandId)
 {
 	const auto headId = commands.size();
 	

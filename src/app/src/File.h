@@ -11,14 +11,26 @@
 
 #include "ImGuiColorTextEdit/TextEditor.h" // for coordinates
 
+// forward declarations:
 namespace Nodable
 {
-    // forward declarations
-    class GraphNode;
-    class History;
-    class FileView;
-    class Language;
-    class AbstractNodeFactory;
+    namespace core
+    {
+        class GraphNode;
+        class Language;
+        class AbstractNodeFactory;
+    }
+
+    namespace app
+    {
+        class History;
+        class FileView;
+    }
+}
+
+namespace Nodable::app
+{
+    using namespace core;
 
 	class File
 	{
