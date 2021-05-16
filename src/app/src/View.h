@@ -4,7 +4,7 @@
 #include <Component.h>
 #include <mirror.h>
 
-namespace Nodable
+namespace Nodable::app
 {
     /**
      * View is an abstract class to provide a GUI for a specific Node.

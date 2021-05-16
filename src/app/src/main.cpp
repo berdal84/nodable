@@ -10,7 +10,7 @@
 #include "ApplicationView.h"
 #include "Config.h"
 
-using namespace Nodable;
+using namespace Nodable::app;
 
 int main(int argc, char* argv[])
 {

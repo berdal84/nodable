@@ -13,10 +13,14 @@
 #define IMFILEBROWSER_FOLDER_ICON ICON_FA_FOLDER
 #include "imgui-filebrowser/imfilebrowser.h"
 
-namespace Nodable
+// forward declarations
+namespace Nodable::core {
+    class Language;
+}
+
+namespace Nodable::app
 {
     // forward declarations
-    class Language;
     class Application;
     class History;
 

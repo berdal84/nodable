@@ -1,7 +1,9 @@
 #include "Settings.h"
 #include "imgui.h"
 
-Nodable::Settings* Nodable::Settings::GetCurrent()
+using namespace Nodable::app;
+
+Settings* Settings::GetCurrent()
 {
     static Settings* g_conf = nullptr;
 
@@ -83,7 +85,7 @@ Nodable::Settings* Nodable::Settings::GetCurrent()
     return g_conf;
 }
 
-void Nodable::Settings::setImGuiStyle(ImGuiStyle& _style)
+void Settings::setImGuiStyle(ImGuiStyle& _style)
 {
     ImVec4* colors = _style.Colors;
     colors[ImGuiCol_Text]                   = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);

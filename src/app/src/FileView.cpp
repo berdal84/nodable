@@ -6,7 +6,7 @@
 #include "GraphNodeView.h"
 #include "Settings.h"
 
-using namespace Nodable;
+using namespace Nodable::app;
 
 void FileView::init()
 {

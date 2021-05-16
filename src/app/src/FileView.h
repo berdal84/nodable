@@ -4,9 +4,9 @@
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include <mirror.h>
 
-namespace Nodable {	
-
-    // forwward declarations
+namespace Nodable::app
+{
+    // forward declarations
     class File;
 
 	class FileView : public View

@@ -5,7 +5,7 @@
 #include <imgui/imgui.h>
 #include <mirror.h>
 
-namespace Nodable
+namespace Nodable::app
 {
     namespace WireView
     {

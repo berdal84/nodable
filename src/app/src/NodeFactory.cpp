@@ -13,9 +13,9 @@
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-using namespace Nodable;
+using namespace Nodable::app;
 
-InstructionNode* app::NodeFactory::newInstruction() const
+InstructionNode* NodeFactory::newInstruction() const
 {
     auto instructionNode = new InstructionNode(ICON_FA_CODE " Instr.");
 
@@ -27,7 +27,7 @@ InstructionNode* app::NodeFactory::newInstruction() const
     return instructionNode;
 }
 
-InstructionNode* app::NodeFactory::newInstruction_UserCreated()const
+InstructionNode* NodeFactory::newInstruction_UserCreated()const
 {
     auto newInstructionNode = newInstruction();
 
@@ -38,7 +38,7 @@ InstructionNode* app::NodeFactory::newInstruction_UserCreated()const
     return newInstructionNode;
 }
 
-VariableNode* app::NodeFactory::newVariable(Type _type, const std::string& _name, ScopedCodeBlockNode* _scope) const
+VariableNode* NodeFactory::newVariable(Type _type, const std::string& _name, ScopedCodeBlockNode* _scope) const
 {
     // create
     auto node = new VariableNode(_type);
@@ -61,7 +61,7 @@ VariableNode* app::NodeFactory::newVariable(Type _type, const std::string& _name
     return node;
 }
 
-Node* app::NodeFactory::newOperator(const Operator* _operator) const
+Node* NodeFactory::newOperator(const Operator* _operator) const
 {
     switch ( _operator->getType() )
     {
@@ -74,7 +74,7 @@ Node* app::NodeFactory::newOperator(const Operator* _operator) const
     }
 }
 
-Node* app::NodeFactory::newBinOp(const Operator* _operator) const
+Node* NodeFactory::newBinOp(const Operator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
@@ -104,7 +104,7 @@ Node* app::NodeFactory::newBinOp(const Operator* _operator) const
     return node;
 }
 
-Node* app::NodeFactory::newUnaryOp(const Operator* _operator) const
+Node* NodeFactory::newUnaryOp(const Operator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
@@ -131,7 +131,7 @@ Node* app::NodeFactory::newUnaryOp(const Operator* _operator) const
     return node;
 }
 
-Node* app::NodeFactory::newFunction(const Function* _function) const
+Node* NodeFactory::newFunction(const Function* _function) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
@@ -163,7 +163,7 @@ Node* app::NodeFactory::newFunction(const Function* _function) const
 }
 
 
-CodeBlockNode* app::NodeFactory::newCodeBlock() const
+CodeBlockNode* NodeFactory::newCodeBlock() const
 {
     auto codeBlockNode = new CodeBlockNode();
     std::string label = ICON_FA_CODE " Block";
@@ -178,7 +178,7 @@ CodeBlockNode* app::NodeFactory::newCodeBlock() const
 }
 
 
-ScopedCodeBlockNode* app::NodeFactory::newScopedCodeBlock() const
+ScopedCodeBlockNode* NodeFactory::newScopedCodeBlock() const
 {
     auto scopeNode = new ScopedCodeBlockNode();
     std::string label = ICON_FA_CODE_BRANCH " Scope";
@@ -192,7 +192,7 @@ ScopedCodeBlockNode* app::NodeFactory::newScopedCodeBlock() const
     return scopeNode;
 }
 
-ConditionalStructNode* app::NodeFactory::newConditionalStructure() const
+ConditionalStructNode* NodeFactory::newConditionalStructure() const
 {
     auto scopeNode = new ConditionalStructNode();
     std::string label = ICON_FA_QUESTION " Condition";
@@ -206,7 +206,7 @@ ConditionalStructNode* app::NodeFactory::newConditionalStructure() const
     return scopeNode;
 }
 
-ProgramNode* app::NodeFactory::newProgram() const
+ProgramNode* NodeFactory::newProgram() const
 {
     ProgramNode* programNode = new ProgramNode();
     programNode->setLabel(ICON_FA_FILE_CODE " Program");
@@ -219,12 +219,12 @@ ProgramNode* app::NodeFactory::newProgram() const
     return programNode;
 }
 
-Node* app::NodeFactory::newNode() const
+Node* NodeFactory::newNode() const
 {
     return new Node();
 }
 
-LiteralNode* app::NodeFactory::newLiteral(const Type &type) const
+LiteralNode* NodeFactory::newLiteral(const Type &type) const
 {
     LiteralNode* node = new LiteralNode(type);
     node->setLabel("Literal");

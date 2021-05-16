@@ -10,7 +10,9 @@
 #include "Nodable.h"     // forward declarations
 #include "NodeView.h"     // base class
 
-namespace Nodable{
+namespace Nodable::app
+{
+    using namespace core;
 
 	typedef struct {
         std::string                 label;

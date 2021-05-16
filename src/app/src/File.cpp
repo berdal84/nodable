@@ -11,9 +11,9 @@
 
 #include <fstream>
 
-using namespace Nodable;
+using namespace Nodable::app;
 
-Nodable::File::File( std::filesystem::path _path, const char* _content)
+File::File( std::filesystem::path _path, const char* _content)
     : m_path(_path)
     , m_modified(false)
     , m_open(false)

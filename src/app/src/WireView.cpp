@@ -6,7 +6,7 @@
 #include <imgui/imgui.h>
 #include <Settings.h>
 
-using namespace Nodable;
+using namespace Nodable::app;
 
 // TODO: move this to ImGuiEx
 void WireView::Draw(ImDrawList *draw_list, ImVec2 _from, ImVec2 _to)

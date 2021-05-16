@@ -1,5 +1,4 @@
 #pragma once
-#include <bitset>
 #include <string>
 
 namespace Nodable::core
