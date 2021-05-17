@@ -3,17 +3,20 @@
 #include "View.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include <mirror.h>
+#include <observe/observer.h>
 
 namespace Nodable::app
 {
     // forward declarations
     class File;
-
 	class FileView : public View
 	{
 	public:
-		FileView(File* _file): m_textEditor(), m_hasChanged(false), m_file(_file) {};
+		explicit FileView(File* _file);
 		~FileView() override = default;
+
+		observe::Observer m_observer;
+
 		void                           init();
 		bool                           draw();
 		bool                           hasChanged() const { return this->m_hasChanged; }

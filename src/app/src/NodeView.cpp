@@ -147,6 +147,18 @@ void NodeView::setOwner(Node* _node)
     if( _node->getPrevMaxCount() != 0)
         m_prevNodeConnnectors.push_back(new NodeConnector(this, Way_In));
 
+    nodeObserver = _node->m_onRelationAdded.createObserver([this](Node* otherNode, RelationType rel ) {
+        LOG_MESSAGE("NodeView", "Event received");
+        switch ( rel )
+        {
+            case RelationType::IS_CHILD_OF:
+                addChild( otherNode->getComponent<NodeView>() );
+                break;
+            case RelationType::IS_INPUT_OF:
+                addInput( otherNode->getComponent<NodeView>() );
+                break;
+        }
+    });
 
     Component::setOwner(_node);
 }

@@ -34,6 +34,12 @@ namespace Nodable::core
 	typedef std::map<std::string, Component*>  Components;
 	typedef std::map<std::string, Member*>     Members;
 	typedef std::vector<Wire*>                 Wires;
+
+    enum class RelationType: int {
+        IS_CHILD_OF,
+        IS_INPUT_OF,
+        IS_NEXT_OF
+    };
 }
 
 

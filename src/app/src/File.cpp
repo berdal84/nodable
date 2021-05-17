@@ -85,14 +85,6 @@ bool File::evaluateExpression(std::string& _expression)
 	Parser* parser = m_language->getParser();
     m_graph->clear();
 
-    // Store the Result node position to restore it later
-    // TODO: handle multiple results
-    if ( auto program = m_graph->getProgram()  )
-    {
-        auto view = program->getComponent<NodeView>();
-        GraphNode::s_mainScopeView_lastKnownPosition = view->getPosRounded();
-    }
-
     auto graphView = m_graph->getComponent<GraphNodeView>();
     if (graphView)
     {
@@ -101,31 +93,7 @@ bool File::evaluateExpression(std::string& _expression)
 
     if (parser->expressionToGraph(_expression, m_graph) && m_graph->hasProgram() )
     {
-        if ( auto program = m_graph->getProgram() )
-        {
-            if (auto programView = program->getComponent<NodeView>())
-            {
-                bool hasKnownPosition = GraphNode::s_mainScopeView_lastKnownPosition.x != -1 &&
-                                        GraphNode::s_mainScopeView_lastKnownPosition.y != -1;
-
-                if ( graphView )
-                {
-                    if (hasKnownPosition)
-                    {                                 /* if result node had a position stored, we restore it */
-                        programView->setPosition(GraphNode::s_mainScopeView_lastKnownPosition);
-                    }
-
-                    auto graphViewRect = graphView->getVisibleRect();
-                    graphViewRect.Expand(-20.f);
-                    if (!NodeView::IsInsideRect(programView, graphViewRect))
-                    {
-                        programView->setPosition(programView->getSize() * 1.5f);
-                    }
-                }
-
-                programView->arrangeRecursively(false);
-            }
-        }
+        m_onExpressionParsedIntoGraph.emit(m_graph->getProgram() );
         return true;
     }
     return false;

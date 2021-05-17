@@ -114,9 +114,10 @@ add_library(
             ./rapidjson/rapidjson.h
             ./rapidjson/document.h
 )
+target_include_directories(rapidjson INTERFACE ./)
 
 # Observe
-# add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/Observe ./Observe )
+add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/Observe ./Observe )
 
 # SDL2
 #------

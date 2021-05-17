@@ -18,12 +18,8 @@
 #include "LiteralNode.h"
 #include "ProgramNode.h"
 #include "AbstractNodeFactory.h"
-#include "NodeView.h" // TODO: remove this dependency
 
 using namespace Nodable::core;
-using namespace Nodable::app; // TODO: remove this dependency
-
-ImVec2 GraphNode::s_mainScopeView_lastKnownPosition = ImVec2(-1, -1); // draft try to store node position
 
 GraphNode::~GraphNode()
 {
@@ -400,30 +396,12 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
             _target->addChild(_source);
             _source->setParent(_target);
 
-            if ( auto target_view = _target->getComponent<NodeView>())
-            {
-                if ( auto source_view = _source->getComponent<NodeView>())
-                {
-                    target_view->addChild(source_view);
-                }
-            }
-
             break;
         }
 
         case RelationType::IS_INPUT_OF:
-
             _target->addInput(_source);
             _source->addOutput(_target);
-
-            if ( auto target_view = _target->getComponent<NodeView>())
-            {
-                if ( auto source_view = _source->getComponent<NodeView>())
-                {
-                    target_view->addInput(source_view);
-                    source_view->addOutput(target_view);
-                }
-            }
             break;
 
         case RelationType::IS_NEXT_OF:

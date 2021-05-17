@@ -9,6 +9,7 @@
 #include "Member.h"
 #include <mirror.h>
 #include <algorithm>
+#include <observe/observer.h>
 
 // forward declaration
 namespace Nodable::core {
@@ -72,6 +73,8 @@ namespace Nodable::app
 	public:
 		NodeView();
 		~NodeView();
+
+		observe::Observer nodeObserver;
 
 		/** override Component::setOwner(Node*) to extract some information from owner before to actually set it */
 		void setOwner(Node* _node)override;
