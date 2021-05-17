@@ -147,7 +147,7 @@ void NodeView::setOwner(Node* _node)
     if( _node->getPrevMaxCount() != 0)
         m_prevNodeConnnectors.push_back(new NodeConnector(this, Way_In));
 
-    nodeObserver = _node->m_onRelationAdded.createObserver([this](Node* otherNode, RelationType rel ) {
+    m_nodeRelationAddedObserver = _node->m_onRelationAdded.createObserver([this](Node* otherNode, RelationType rel ) {
         LOG_MESSAGE("NodeView", "Event received");
         switch ( rel )
         {
