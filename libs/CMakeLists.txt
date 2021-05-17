@@ -117,7 +117,7 @@ add_library(
 target_include_directories(rapidjson INTERFACE ./)
 
 # Observe
-add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/Observe ./Observe )
+add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/Observe ./Observe EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL: we don't want to install it.
 
 # SDL2
 #------
