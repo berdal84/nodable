@@ -30,8 +30,8 @@ if ( ENABLE_TESTS )
     # https://stackoverflow.com/questions/12540970/how-to-make-gtest-build-mdd-instead-of-mtd-by-default-using-cmake
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     # we don't need mocks (for now) nor install
-    set(BUILD_GMOCK OFF)
-    set(INSTALL_GTEST OFF)
+    option(BUILD_GMOCK OFF)
+    option(INSTALL_GTEST OFF)
     # we need to set ./gtest since directory is not a subdirectory...
     # this will tell cmake where to put the configured files inside
     # build directory.
