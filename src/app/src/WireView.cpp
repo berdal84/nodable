@@ -1,10 +1,9 @@
-#include "WireView.h"
-#include "NodeView.h"
-#include "Wire.h"
-#include "Node.h"
+#include <nodable/WireView.h>
 
 #include <imgui/imgui.h>
-#include <Settings.h>
+
+#include <nodable/Node.h>
+#include <nodable/Settings.h>
 
 using namespace Nodable::app;
 

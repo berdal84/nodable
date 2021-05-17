@@ -1,4 +1,4 @@
-#include "Way.h"
+#include <nodable/Way.h>
 
 using namespace Nodable::core;
 

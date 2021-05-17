@@ -1,5 +1,5 @@
-#include "Variant.h"
-#include "Log.h"		 // for LOG_DEBUG(...)
+#include <nodable/Variant.h>
+#include <nodable/Log.h> // for LOG_DEBUG(...)
 #include <assert.h>
 
 using namespace Nodable::core;

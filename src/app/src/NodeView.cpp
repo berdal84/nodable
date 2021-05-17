@@ -1,18 +1,18 @@
-#include "NodeView.h"
+#include <nodable/NodeView.h>
 
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
 #include <numeric>                // for std::accumulate
 #include <vector>
-#include <Settings.h>
-#include <Serializer.h>
 
-#include "Application.h"
-#include "Maths.h"
-#include "ScopedCodeBlockNode.h"
-#include "VariableNode.h"
-#include "LiteralNode.h"
-#include "GraphNode.h"
+#include <nodable/Settings.h>
+#include <nodable/Serializer.h>
+#include <nodable/Application.h>
+#include <nodable/Maths.h>
+#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/VariableNode.h>
+#include <nodable/LiteralNode.h>
+#include <nodable/GraphNode.h>
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 

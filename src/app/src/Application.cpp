@@ -1,15 +1,15 @@
-#include "Application.h"
+#include <nodable/Application.h>
 
 #include <string>
 #include <algorithm>
-#include <NodeView.h>
 
-#include "ApplicationView.h"
-#include "File.h"
-#include "Config.h"
-#include "GraphNode.h"
-#include "VariableNode.h"
-#include "DataAccess.h"
+#include <nodable/NodeView.h>
+#include <nodable/ApplicationView.h>
+#include <nodable/File.h>
+#include <nodable/Config.h>
+#include <nodable/GraphNode.h>
+#include <nodable/VariableNode.h>
+#include <nodable/DataAccess.h>
 
 using namespace Nodable::app;
 

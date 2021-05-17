@@ -1,8 +1,8 @@
-#include "Function.h"
-#include "Member.h"   // to check member arguments
-#include "Properties.h"   // to use getClass()
-#include "VariableNode.h" // to use mirror::GetClass<Variable>()
-#include "Log.h"
+#include <nodable/Function.h>
+#include <nodable/Member.h>       // to check member arguments
+#include <nodable/Properties.h>   // to use getClass()
+#include <nodable/VariableNode.h> // to use mirror::GetClass<Variable>()
+#include <nodable/Log.h>
 
 using namespace Nodable::core;
 

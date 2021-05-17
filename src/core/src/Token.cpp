@@ -1,4 +1,4 @@
-#include "Token.h"
+#include <nodable/Token.h>
 
 using namespace Nodable::core;
 

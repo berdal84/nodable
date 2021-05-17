@@ -1,7 +1,7 @@
 
 #include "gtest/gtest.h"
-#include <Member.h>
-#include <Node.h>
+#include "../../../src/core/include/nodable/Member.h"
+#include "../../../src/core/include/nodable/Node.h"
 
 using namespace Nodable::core;
 

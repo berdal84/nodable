@@ -1,12 +1,12 @@
 #include <algorithm>    // for std::find
 #include <utility>
-#include "Nodable.h"
-#include "Node.h"
-#include "Log.h"		// for LOG_DEBUG(...)
-#include "Wire.h"
-#include "DataAccess.h"
-#include "ComputeUnaryOperation.h"
-#include "ComputeBinaryOperation.h"
+#include <nodable/Nodable.h>
+#include <nodable/Node.h>
+#include <nodable/Log.h> // for LOG_DEBUG(...)
+#include <nodable/Wire.h>
+#include <nodable/DataAccess.h>
+#include <nodable/ComputeUnaryOperation.h>
+#include <nodable/ComputeBinaryOperation.h>
 
 using namespace Nodable::core;
 

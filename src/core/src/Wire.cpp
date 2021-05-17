@@ -1,4 +1,4 @@
-#include "Wire.h"
+#include <nodable/Wire.h>
 
 using namespace Nodable::core;
 

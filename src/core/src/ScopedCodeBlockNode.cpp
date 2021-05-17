@@ -1,11 +1,11 @@
-#include "ScopedCodeBlockNode.h"
-#include "InstructionNode.h"
-#include "VariableNode.h"
-#include "CodeBlockNode.h"
-#include "AbstractCodeBlockNode.h"
+#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/InstructionNode.h>
+#include <nodable/VariableNode.h>
+#include <nodable/CodeBlockNode.h>
+#include <nodable/AbstractCodeBlockNode.h>
 #include <cstring>
 #include <algorithm> // for std::find_if
-#include <Log.h>
+#include <nodable/Log.h>
 
 using namespace Nodable::core;
 

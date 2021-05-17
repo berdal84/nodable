@@ -1,5 +1,5 @@
-#include "CodeBlockNode.h"
-#include "InstructionNode.h"
+#include <nodable/CodeBlockNode.h>
+#include <nodable/InstructionNode.h>
 
 using namespace Nodable::core;
 

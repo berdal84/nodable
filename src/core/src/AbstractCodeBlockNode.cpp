@@ -1,7 +1,7 @@
-#include "AbstractCodeBlockNode.h"
-#include "ScopedCodeBlockNode.h"
-#include "VariableNode.h"
-#include <InstructionNode.h>
+#include <nodable/AbstractCodeBlockNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/VariableNode.h>
+#include <nodable/InstructionNode.h>
 
 using namespace Nodable::core;
 

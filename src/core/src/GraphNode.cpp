@@ -1,23 +1,23 @@
-#include "GraphNode.h"
+#include <nodable/GraphNode.h>
 
 #include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
-#include "Log.h"
-#include "Wire.h"
-#include "Parser.h"
-#include "ComputeBinaryOperation.h"
-#include "ComputeUnaryOperation.h"
-#include "DataAccess.h"
-#include "Node.h"
-#include "VariableNode.h"
-#include "GraphTraversal.h"
-#include "InstructionNode.h"
-#include "CodeBlockNode.h"
-#include "ScopedCodeBlockNode.h"
-#include "ConditionalStructNode.h"
-#include "LiteralNode.h"
-#include "ProgramNode.h"
-#include "AbstractNodeFactory.h"
+#include <nodable/Log.h>
+#include <nodable/Wire.h>
+#include <nodable/Parser.h>
+#include <nodable/ComputeBinaryOperation.h>
+#include <nodable/ComputeUnaryOperation.h>
+#include <nodable/DataAccess.h>
+#include <nodable/Node.h>
+#include <nodable/VariableNode.h>
+#include <nodable/GraphTraversal.h>
+#include <nodable/InstructionNode.h>
+#include <nodable/CodeBlockNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ConditionalStructNode.h>
+#include <nodable/LiteralNode.h>
+#include <nodable/ProgramNode.h>
+#include <nodable/AbstractNodeFactory.h>
 
 using namespace Nodable::core;
 

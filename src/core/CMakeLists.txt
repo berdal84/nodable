@@ -5,10 +5,7 @@
 # Declare source files:
 file( GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp )
 
-# Declare header files:
-file( GLOB HEADERS CONFIGURE_DEPENDS src/*.h )
-
-add_library( nodable_core STATIC ${SOURCES} ${HEADERS} )
+add_library( nodable_core STATIC ${SOURCES} )
 
 target_link_libraries(
         nodable_core
@@ -21,7 +18,7 @@ target_link_libraries(
 target_include_directories(
         nodable_core
         PUBLIC
-            src/
+            include/
 )
 
 # Installation :
@@ -29,4 +26,4 @@ target_include_directories(
 
 set(INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib/$<CONFIG>)
 install( TARGETS   nodable_core DESTINATION ${INSTALL_PATH} )
-install( DIRECTORY src/         DESTINATION ${INSTALL_PATH}/include/nodable FILES_MATCHING PATTERN "*.h")
+install( DIRECTORY include/         DESTINATION ${INSTALL_PATH}/include FILES_MATCHING PATTERN "*.h")

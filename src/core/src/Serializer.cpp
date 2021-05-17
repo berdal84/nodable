@@ -1,14 +1,14 @@
-#include "Serializer.h"
-#include "Member.h"
-#include "ComputeBinaryOperation.h"
-#include "ComputeUnaryOperation.h"
-#include "GraphNode.h"
-#include "Node.h"
-#include "VariableNode.h"
-#include "CodeBlockNode.h"
-#include "ScopedCodeBlockNode.h"
-#include "InstructionNode.h"
-#include "ConditionalStructNode.h"
+#include <nodable/Serializer.h>
+#include <nodable/Member.h>
+#include <nodable/ComputeBinaryOperation.h>
+#include <nodable/ComputeUnaryOperation.h>
+#include <nodable/GraphNode.h>
+#include <nodable/Node.h>
+#include <nodable/VariableNode.h>
+#include <nodable/CodeBlockNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/InstructionNode.h>
+#include <nodable/ConditionalStructNode.h>
 
 using namespace Nodable::core;
 

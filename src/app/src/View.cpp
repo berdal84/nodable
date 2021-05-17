@@ -1,5 +1,5 @@
-#include "View.h"
-#include "Settings.h"
+#include <nodable/View.h>
+#include <nodable/Settings.h>
 
 using namespace Nodable::app;
 
