@@ -23,3 +23,10 @@ target_include_directories(
         PUBLIC
             src/
 )
+
+# Installation :
+#===============
+
+set(INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib/$<CONFIG>)
+install( TARGETS   nodable_core DESTINATION ${INSTALL_PATH} )
+install( DIRECTORY src/         DESTINATION ${INSTALL_PATH}/include/nodable FILES_MATCHING PATTERN "*.h")
