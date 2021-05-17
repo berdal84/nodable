@@ -87,7 +87,7 @@ endif()
 # Installation :
 #===============
 
-set(INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/$<CONFIG>)
+set(INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/app/$<CONFIG>)
 
 # Copy DLLs
 install( FILES     ${SDL2_RUNTIME}                    DESTINATION ${INSTALL_PATH} )
