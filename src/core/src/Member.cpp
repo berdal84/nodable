@@ -1,8 +1,8 @@
-#include "Member.h"
-#include "Log.h"		 // for LOG_DEBUG(...)
-#include "Properties.h"
-#include "VariableNode.h"
-#include "Language.h"
+#include <nodable/Member.h>
+#include <nodable/Log.h> // for LOG_DEBUG(...)
+#include <nodable/Properties.h>
+#include <nodable/VariableNode.h>
+#include <nodable/Language.h>
 
 using namespace Nodable::core;
 

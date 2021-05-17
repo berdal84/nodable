@@ -1,19 +1,19 @@
-#include "ApplicationView.h"
-
-#include "Config.h"
-#include "Texture.h"
-#include "Settings.h"
+#include <nodable/ApplicationView.h>
 
 #include <imgui/backends/imgui_impl_sdl.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
-#include "System.h"
-#include "Application.h"
-#include "NodeView.h"
-#include "File.h"
-#include "Log.h"
-#include "FileView.h"
-#include "History.h"
-#include "IconFontCppHeaders/IconsFontAwesome5.h"
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
+
+#include <nodable/Config.h>
+#include <nodable/Texture.h>
+#include <nodable/Settings.h>
+#include <nodable/System.h>
+#include <nodable/Application.h>
+#include <nodable/NodeView.h>
+#include <nodable/File.h>
+#include <nodable/Log.h>
+#include <nodable/FileView.h>
+#include <nodable/History.h>
 
 using namespace Nodable::app;
 

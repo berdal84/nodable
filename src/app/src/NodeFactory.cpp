@@ -1,15 +1,12 @@
-#include "NodeFactory.h"
-#include "InstructionNode.h"
-#include "VariableNode.h"
-#include "LiteralNode.h"
-#include "ScopedCodeBlockNode.h"
-#include "ProgramNode.h"
-#include "ComputeBinaryOperation.h"
-#include "Language.h"
-
-#ifndef NODABLE_HEADLESS
-#   include "NodeView.h"
-#endif
+#include <nodable/NodeFactory.h>
+#include <nodable/InstructionNode.h>
+#include <nodable/VariableNode.h>
+#include <nodable/LiteralNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ProgramNode.h>
+#include <nodable/ComputeBinaryOperation.h>
+#include <nodable/Language.h>
+#include <nodable/NodeView.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
@@ -18,11 +15,8 @@ using namespace Nodable::app;
 InstructionNode* NodeFactory::newInstruction() const
 {
     auto instructionNode = new InstructionNode(ICON_FA_CODE " Instr.");
-
-#ifndef NODABLE_HEADLESS
     instructionNode->addComponent(new NodeView());
     instructionNode->setShortLabel(ICON_FA_CODE);
-#endif
 
     return instructionNode;
 }
@@ -43,10 +37,7 @@ VariableNode* NodeFactory::newVariable(Type _type, const std::string& _name, Sco
     // create
     auto node = new VariableNode(_type);
 
-#ifndef NODABLE_HEADLESS
     node->addComponent( new NodeView() );
-#endif
-
     node->setName(_name.c_str());
 
     if( _scope)
@@ -96,10 +87,8 @@ Node* NodeFactory::newBinOp(const Operator* _operator) const
     binOpComponent->setRValue(right);
     node->addComponent(binOpComponent);
 
-#ifndef NODABLE_HEADLESS
     // Create a NodeView component
     node->addComponent(new NodeView());
-#endif
 
     return node;
 }
@@ -123,10 +112,8 @@ Node* NodeFactory::newUnaryOp(const Operator* _operator) const
     unaryOperationComponent->setLValue(left);
     node->addComponent(unaryOperationComponent);
 
-#ifndef NODABLE_HEADLESS
     // Create a NodeView Component
     node->addComponent(new NodeView());
-#endif
 
     return node;
 }
@@ -154,10 +141,7 @@ Node* NodeFactory::newFunction(const Function* _function) const
     }
 
     node->addComponent(functionComponent);
-
-#ifndef NODABLE_HEADLESS
     node->addComponent(new NodeView());
-#endif
 
     return node;
 }
@@ -170,9 +154,7 @@ CodeBlockNode* NodeFactory::newCodeBlock() const
     codeBlockNode->setLabel(label);
     codeBlockNode->setShortLabel(ICON_FA_CODE "Bl");
 
-#ifndef NODABLE_HEADLESS
     codeBlockNode->addComponent(new NodeView() );
-#endif
 
     return codeBlockNode;
 }
@@ -185,9 +167,7 @@ ScopedCodeBlockNode* NodeFactory::newScopedCodeBlock() const
     scopeNode->setLabel(label);
     scopeNode->setShortLabel(ICON_FA_CODE_BRANCH " Scop.");
 
-#ifndef NODABLE_HEADLESS
     scopeNode->addComponent(new NodeView());
-#endif
 
     return scopeNode;
 }
@@ -199,9 +179,7 @@ ConditionalStructNode* NodeFactory::newConditionalStructure() const
     scopeNode->setLabel(label);
     scopeNode->setShortLabel(ICON_FA_QUESTION" Cond.");
 
-#ifndef NODABLE_HEADLESS
     scopeNode->addComponent(new NodeView());
-#endif
 
     return scopeNode;
 }
@@ -212,9 +190,7 @@ ProgramNode* NodeFactory::newProgram() const
     programNode->setLabel(ICON_FA_FILE_CODE " Program");
     programNode->setShortLabel(ICON_FA_FILE_CODE " Prog.");
 
-#ifndef NODABLE_HEADLESS
     programNode->addComponent( new NodeView() );
-#endif
 
     return programNode;
 }
@@ -230,9 +206,7 @@ LiteralNode* NodeFactory::newLiteral(const Type &type) const
     node->setLabel("Literal");
     node->setShortLabel("");
 
-#ifndef NODABLE_HEADLESS
     node->addComponent(new NodeView());
-#endif
 
     return node;
 }

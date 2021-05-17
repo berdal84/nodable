@@ -1,6 +1,6 @@
-#include "InstructionNode.h"
-#include "Member.h"
-#include "Log.h"
+#include <nodable/InstructionNode.h>
+#include <nodable/Member.h>
+#include <nodable/Log.h>
 
 using namespace Nodable::core;
 

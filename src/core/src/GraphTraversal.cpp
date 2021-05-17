@@ -1,13 +1,13 @@
-#include "GraphTraversal.h"
+#include <nodable/GraphTraversal.h>
 
 #include <algorithm>
 
-#include "Wire.h"
-#include "Log.h"
-#include "ScopedCodeBlockNode.h"
-#include "InstructionNode.h"
-#include "ConditionalStructNode.h"
-#include "VariableNode.h"
+#include <nodable/Wire.h>
+#include <nodable/Log.h>
+#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/InstructionNode.h>
+#include <nodable/ConditionalStructNode.h>
+#include <nodable/VariableNode.h>
 
 using namespace Nodable::core;
 

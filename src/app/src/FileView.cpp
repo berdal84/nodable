@@ -1,11 +1,11 @@
-#include "FileView.h"
+#include <nodable/FileView.h>
 
-#include "NodeView.h"
-#include "File.h"
-#include "GraphNode.h"
-#include "GraphNodeView.h"
-#include "Settings.h"
-#include "ProgramNode.h"
+#include <nodable/NodeView.h>
+#include <nodable/File.h>
+#include <nodable/GraphNode.h>
+#include <nodable/GraphNodeView.h>
+#include <nodable/Settings.h>
+#include <nodable/ProgramNode.h>
 
 using namespace Nodable::app;
 

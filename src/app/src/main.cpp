@@ -1,14 +1,9 @@
 
-// Standard includes
-#include <cstdio>
 #include <string>
-#include <iostream>
-#include <filesystem>
 
-// Nodable includes
-#include "Application.h"
-#include "ApplicationView.h"
-#include "Config.h"
+#include <nodable/Application.h>
+#include <nodable/ApplicationView.h>
+#include <nodable/Config.h>
 
 using namespace Nodable::app;
 

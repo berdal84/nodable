@@ -1,19 +1,19 @@
-#include "GraphNodeView.h"
+#include <nodable/GraphNodeView.h>
 
 #include <algorithm>
 #include <utility>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-#include "Settings.h"
-#include "Log.h"
-#include "Wire.h"
-#include "Application.h"
-#include "ProgramNode.h"
-#include "GraphNode.h"
-#include "VariableNode.h"
-#include "LiteralNode.h"
-#include "WireView.h"
-#include "NodeView.h"
+#include <nodable/Settings.h>
+#include <nodable/Log.h>
+#include <nodable/Wire.h>
+#include <nodable/Application.h>
+#include <nodable/ProgramNode.h>
+#include <nodable/GraphNode.h>
+#include <nodable/VariableNode.h>
+#include <nodable/LiteralNode.h>
+#include <nodable/WireView.h>
+#include <nodable/NodeView.h>
 
 using namespace Nodable::core;
 using namespace Nodable::app;

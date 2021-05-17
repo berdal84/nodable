@@ -1,13 +1,15 @@
-#include "NodableLanguage.h"
-#include "Member.h"
+#include <nodable/NodableLanguage.h>
+
 #include <ctime>
-#include "IconFontCppHeaders/IconsFontAwesome5.h"
 #include <cmath>
-#include "Node.h"
-#include "VariableNode.h"
-#include "GraphNode.h"
-#include "NodableParser.h"
-#include "NodableSerializer.h"
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
+
+#include <nodable/GraphNode.h>
+#include <nodable/Member.h>
+#include <nodable/NodableParser.h>
+#include <nodable/NodableSerializer.h>
+#include <nodable/Node.h>
+#include <nodable/VariableNode.h>
 
 using namespace Nodable::core;
 

@@ -1,15 +1,15 @@
-#include "File.h"
-
-#include "Application.h"
-#include "FileView.h"
-#include "GraphNodeView.h"
-#include "ProgramNode.h"
-#include "Parser.h"
-#include "LanguageFactory.h"
-#include "History.h"
-#include "NodeFactory.h"
+#include <nodable/File.h>
 
 #include <fstream>
+
+#include <nodable/Application.h>
+#include <nodable/FileView.h>
+#include <nodable/GraphNodeView.h>
+#include <nodable/ProgramNode.h>
+#include <nodable/Parser.h>
+#include <nodable/LanguageFactory.h>
+#include <nodable/History.h>
+#include <nodable/NodeFactory.h>
 
 using namespace Nodable::app;
 

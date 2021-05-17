@@ -1,6 +1,6 @@
-#include "ComputeFunction.h"
-#include "Log.h"
-#include "Language.h"
+#include <nodable/ComputeFunction.h>
+#include <nodable/Log.h>
+#include <nodable/Language.h>
 
 using namespace Nodable::core;
 

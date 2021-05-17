@@ -1,5 +1,5 @@
-#include "Properties.h"
-#include "Node.h"
+#include <nodable/Properties.h>
+#include <nodable/Node.h>
 
 using namespace Nodable::core;
 

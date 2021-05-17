@@ -6,8 +6,6 @@
 #====
 
 file( GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp )
-file( GLOB HEADERS CONFIGURE_DEPENDS src/*.h )
-
 set( LIBS_DIR ../../libs )
 
 # add sources
@@ -15,7 +13,6 @@ add_library(
         nodable_app
         STATIC
             ${SOURCES}
-            ${HEADERS}
             ${LIBS_DIR}/imgui/backends/imgui_impl_opengl3.cpp
             ${LIBS_DIR}/imgui/backends/imgui_impl_sdl.cpp
             )
@@ -24,7 +21,7 @@ add_library(
 target_include_directories(
         nodable_app
         PUBLIC
-            src
+            include/
             ${PROJECT_BINARY_DIR}/conf
             ${LIBS_INCLUDE_DIRS} )
 

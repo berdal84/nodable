@@ -1,4 +1,4 @@
-#include "LiteralNode.h"
+#include <nodable/LiteralNode.h>
 
 using namespace Nodable::core;
 

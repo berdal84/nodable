@@ -1,8 +1,8 @@
-#include "Runner.h"
+#include <nodable/Runner.h>
 
-#include "ProgramNode.h"
-#include "GraphTraversal.h"
-#include "Log.h"
+#include <nodable/ProgramNode.h>
+#include <nodable/GraphTraversal.h>
+#include <nodable/Log.h>
 
 using namespace Nodable::core;
 

@@ -1,11 +1,11 @@
-#include "HeadlessNodeFactory.h"
-#include "InstructionNode.h"
-#include "VariableNode.h"
-#include "LiteralNode.h"
-#include "ScopedCodeBlockNode.h"
-#include "ProgramNode.h"
-#include "ComputeBinaryOperation.h"
-#include "Language.h"
+#include <nodable/HeadlessNodeFactory.h>
+#include <nodable/InstructionNode.h>
+#include <nodable/VariableNode.h>
+#include <nodable/LiteralNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ProgramNode.h>
+#include <nodable/ComputeBinaryOperation.h>
+#include <nodable/Language.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable::core;

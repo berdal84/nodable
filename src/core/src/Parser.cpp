@@ -1,19 +1,19 @@
-#include "Parser.h"
+#include <nodable/Parser.h>
 
 #include <regex>
 #include <algorithm>
 #include <sstream>
 #include <string>
 
-#include "Log.h"
-#include "Member.h"
-#include "Wire.h"
-#include "GraphNode.h"
-#include "InstructionNode.h"
-#include "ProgramNode.h"
-#include "LiteralNode.h"
-#include "VariableNode.h"
-#include "ComputeBinaryOperation.h"
+#include <nodable/Log.h>
+#include <nodable/Member.h>
+#include <nodable/Wire.h>
+#include <nodable/GraphNode.h>
+#include <nodable/InstructionNode.h>
+#include <nodable/ProgramNode.h>
+#include <nodable/LiteralNode.h>
+#include <nodable/VariableNode.h>
+#include <nodable/ComputeBinaryOperation.h>
 
 using namespace Nodable::core;
 
@@ -706,14 +706,14 @@ Member* Parser::parseFunctionCall()
     }
     else // Try to parse operator like (ex: operator==(..,..))
     {
-        const Token* token_2 = tokenRibbon.eatToken(); // eat a "supposed open bracket"
+        const Token* token_2 = tokenRibbon.eatToken(); // eat a "supposed open bracket>
 
         if (token_0->m_type == TokenType_Identifier && token_0->m_word == language->getSemantic()
                 ->tokenTypeToString(TokenType_KeywordOperator /* TODO: TokenType_Keyword + word="operator" */) &&
             token_1->m_type == TokenType_Operator &&
             token_2->m_type == TokenType_OpenBracket)
         {
-            // ex: "operator" + ">="
+            // ex: "operator" + ">=>
             identifier = token_0->m_word + token_1->m_word;
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n");
         }

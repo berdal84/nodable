@@ -1,8 +1,8 @@
-#include <Nodable.h>
-#include "TokenRibbon.h"
-#include "TokenType.h"
-#include "Token.h"
-#include "Log.h"
+#include <nodable/Nodable.h>
+#include <nodable/TokenRibbon.h>
+#include <nodable/TokenType.h>
+#include <nodable/Token.h>
+#include <nodable/Log.h>
 
 using namespace Nodable::core;
 

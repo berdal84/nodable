@@ -1,5 +1,5 @@
-#include "ConditionalStructNode.h"
-#include "ScopedCodeBlockNode.h"
+#include <nodable/ConditionalStructNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
 
 using namespace Nodable::core;
 

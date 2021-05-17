@@ -1,6 +1,6 @@
-#include <VariableNode.h>
-#include <Member.h>
-#include <Log.h>
+#include <nodable/VariableNode.h>
+#include <nodable/Member.h>
+#include <nodable/Log.h>
 
 using namespace Nodable::core;
 

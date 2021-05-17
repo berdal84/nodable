@@ -1,16 +1,16 @@
 #include "gtest/gtest.h"
 
-#include "Member.h"
-#include "Runner.h"
+#include "../../../src/core/include/nodable/Member.h"
+#include "../../../src/core/include/nodable/Runner.h"
 
-#include "GraphNode.h"
-#include "Parser.h"
-#include "LanguageFactory.h"
-#include "VariableNode.h"
-#include "ScopedCodeBlockNode.h"
-#include "InstructionNode.h"
-#include "ProgramNode.h"
-#include "HeadlessNodeFactory.h"
+#include "../../../src/core/include/nodable/GraphNode.h"
+#include "../../../src/core/include/nodable/Parser.h"
+#include "../../../src/core/include/nodable/LanguageFactory.h"
+#include "../../../src/core/include/nodable/VariableNode.h"
+#include "../../../src/core/include/nodable/ScopedCodeBlockNode.h"
+#include "../../../src/core/include/nodable/InstructionNode.h"
+#include "../../../src/core/include/nodable/ProgramNode.h"
+#include "../../../src/core/include/nodable/HeadlessNodeFactory.h"
 
 using namespace Nodable::core;
 
