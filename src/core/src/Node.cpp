@@ -225,12 +225,14 @@ void Node::addInput(Node* _node)
 void Node::addOutput(Node *_node)
 {
     this->m_outputs.push_back(_node);
+    m_onRelationAdded.emit(_node, RelationType::IS_OUTPUT_OF );
 }
 
 void Node::removeOutput(Node *_node)
 {
     auto found = std::find(m_outputs.begin(), m_outputs.end(), _node);
     NODABLE_ASSERT(found != m_outputs.end()); // check if node is found before to erase.
+    m_onRelationRemoved.emit(_node, RelationType::IS_OUTPUT_OF );
     m_outputs.erase(found);
 }
 
@@ -238,6 +240,7 @@ void Node::removeInput(Node *_node)
 {
     auto found = std::find(m_inputs.begin(), m_inputs.end(), _node);
     NODABLE_ASSERT(found != m_inputs.end()); // check if node is found before to erase.
+    m_onRelationRemoved.emit(_node, RelationType::IS_INPUT_OF );
     m_inputs.erase(found);
 }
 

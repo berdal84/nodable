@@ -148,7 +148,6 @@ void NodeView::setOwner(Node* _node)
         m_prevNodeConnnectors.push_back(new NodeConnector(this, Way_In));
 
     m_nodeRelationAddedObserver = _node->m_onRelationAdded.createObserver([this](Node* otherNode, RelationType rel ) {
-        LOG_MESSAGE("NodeView", "Event received");
         switch ( rel )
         {
             case RelationType::IS_CHILD_OF:
@@ -156,6 +155,24 @@ void NodeView::setOwner(Node* _node)
                 break;
             case RelationType::IS_INPUT_OF:
                 addInput( otherNode->getComponent<NodeView>() );
+                break;
+            case RelationType::IS_OUTPUT_OF:
+                addOutput( otherNode->getComponent<NodeView>() );
+                break;
+        }
+    });
+
+    m_nodeRelationRemovedObserver = _node->m_onRelationRemoved.createObserver([this](Node* otherNode, RelationType rel ) {
+        switch ( rel )
+        {
+            case RelationType::IS_CHILD_OF:
+                removeChild( otherNode->getComponent<NodeView>() );
+                break;
+            case RelationType::IS_INPUT_OF:
+                removeInput( otherNode->getComponent<NodeView>() );
+                break;
+            case RelationType::IS_OUTPUT_OF:
+                removeOutput( otherNode->getComponent<NodeView>() );
                 break;
         }
     });
