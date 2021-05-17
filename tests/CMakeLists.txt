@@ -8,12 +8,6 @@ file( GLOB_RECURSE SPECS CONFIGURE_DEPENDS *.specs.cpp )
 # Declare our main executable
 add_executable( nodable_tests src/main.cpp ${SPECS})
 
-target_include_directories(
-        nodable_tests
-        PUBLIC
-            ../src/app/src/
-            ../src/core/src/
-)
 # Link libraries
 target_link_libraries(
         nodable_tests
@@ -21,8 +15,7 @@ target_link_libraries(
             gtest_main
             gtest
             nodable_core
-            nodable_app # TODO: Should compile without it (pb: Node depends on NodeView ! XD )
-
+            # nodable_app (We are not testing the whole app, just the core).
 )
 
 # declare a single test

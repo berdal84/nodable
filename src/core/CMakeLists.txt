@@ -13,15 +13,13 @@ add_library( nodable_core STATIC ${SOURCES} ${HEADERS} )
 target_link_libraries(
         nodable_core
         PUBLIC
-            imgui # TODO: remove this dependency ASAP
             mirror
             rapidjson
+            Observe
 )
 
 target_include_directories(
         nodable_core
         PUBLIC
             src/
-            ../app/src/ # for NodeView, TODO: remove this dependency ASAP
-            ${PROJECT_BINARY_DIR}/conf
-            ${LIBS_INCLUDE_DIRS})
+)

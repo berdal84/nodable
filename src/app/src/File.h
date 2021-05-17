@@ -8,7 +8,7 @@
 #include <string>
 #include <algorithm>
 #include <filesystem>
-
+#include <observe/event.h>
 #include "ImGuiColorTextEdit/TextEditor.h" // for coordinates
 
 // forward declarations:
@@ -19,6 +19,7 @@ namespace Nodable
         class GraphNode;
         class Language;
         class AbstractNodeFactory;
+        class ProgramNode;
     }
 
     namespace app
@@ -37,6 +38,8 @@ namespace Nodable::app
 	public:
 		File(std::filesystem::path, const char* /*_content*/);
         ~File();
+
+        observe::Event<ProgramNode*>     m_onExpressionParsedIntoGraph;
 
 		std::string                      getName()const { return std::string {m_path.filename().u8string()}; }
         std::string                      getPath()const { return std::string {m_path.u8string()}; }

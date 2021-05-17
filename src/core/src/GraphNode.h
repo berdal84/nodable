@@ -2,7 +2,6 @@
 
 #include <string>
 #include <vector>
-#include <imgui/imgui.h>   // for ImVec2
 #include <mirror.h>
 #include <AbstractCodeBlockNode.h>
 
@@ -21,12 +20,6 @@ namespace Nodable::core{
     class ProgramNode;
     class LiteralNode;
     class AbstractNodeFactory;
-
-    enum class RelationType: int {
-        IS_CHILD_OF,
-        IS_INPUT_OF,
-        IS_NEXT_OF
-    };
 
     typedef std::pair<const RelationType, std::pair<Node*, Node*>> Relation;
 
@@ -114,8 +107,6 @@ namespace Nodable::core{
 		ProgramNode*               m_program;
 		const AbstractNodeFactory* m_factory;
 	public:
-		static ImVec2 s_mainScopeView_lastKnownPosition;
-
     /** reflect class with mirror */
     MIRROR_CLASS(GraphNode)
     (

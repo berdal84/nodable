@@ -1,5 +1,8 @@
 #pragma once
 
+// libs
+#include <observe/event.h>
+
 // std
 #include <string>
 #include <memory>
@@ -48,6 +51,9 @@ namespace Nodable::core {
 	     */
 		explicit Node(std::string  _label = "UnnamedNode");
 		virtual ~Node();
+
+        observe::Event<Node*, RelationType> m_onRelationAdded;
+        observe::Event<Node*, RelationType> m_onRelationRemoved;
 
 		virtual Node*                     getParent()const { return this->m_parent; }
         virtual void                      setParent(Node* _node);

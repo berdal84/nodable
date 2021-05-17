@@ -5,8 +5,36 @@
 #include "GraphNode.h"
 #include "GraphNodeView.h"
 #include "Settings.h"
+#include "ProgramNode.h"
 
 using namespace Nodable::app;
+
+FileView::FileView(File *_file)
+        : m_textEditor()
+        , m_hasChanged(false)
+        , m_file(_file)
+{
+    m_observer.observe( _file->m_onExpressionParsedIntoGraph, [](ProgramNode* program)
+    {
+        if ( program )
+        {
+            NodeView* programView = program->getComponent<NodeView>();
+            NodeView* graphView   = program->getComponent<NodeView>();
+            if ( programView )
+            {
+                if ( graphView )
+                {
+                    auto graphViewRect = graphView->getVisibleRect();
+                    graphViewRect.Expand(-20.f);
+                    if (!NodeView::IsInsideRect(programView, graphViewRect)) {
+                        programView->setPosition(programView->getSize() * 1.5f);
+                    }
+                }
+                programView->arrangeRecursively(false);
+            }
+        }
+    });
+}
 
 void FileView::init()
 {

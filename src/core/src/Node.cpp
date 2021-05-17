@@ -192,6 +192,7 @@ void Node::addChild(Node *_node)
 {
     auto found = std::find(m_children.begin(), m_children.end(), _node);
     NODABLE_ASSERT(found == m_children.end()); // check if node is not already child
+    m_onRelationAdded.emit(_node, RelationType::IS_CHILD_OF );
     m_children.push_back(_node);
 }
 
@@ -199,6 +200,7 @@ void Node::removeChild(Node *_node)
 {
     auto found = std::find(m_children.begin(), m_children.end(), _node);
     NODABLE_ASSERT(found != m_children.end()); // check if node is found before to erase.
+    m_onRelationRemoved.emit(_node, RelationType::IS_CHILD_OF );
     m_children.erase(found);
 }
 
@@ -217,6 +219,7 @@ void Node::setParentGraph(GraphNode *_parentGraph)
 void Node::addInput(Node* _node)
 {
     this->m_inputs.push_back(_node);
+    m_onRelationAdded.emit(_node, RelationType::IS_INPUT_OF );
 }
 
 void Node::addOutput(Node *_node)
