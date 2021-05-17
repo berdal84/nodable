@@ -76,6 +76,7 @@ namespace Nodable::app
 		~NodeView();
 
 		observe::Observer m_nodeRelationAddedObserver;
+		observe::Observer m_nodeRelationRemovedObserver;
 
 		/** override Component::setOwner(Node*) to extract some information from owner before to actually set it */
 		void setOwner(Node* _node)override;

@@ -38,7 +38,8 @@ namespace Nodable::core
     enum class RelationType: int {
         IS_CHILD_OF,
         IS_INPUT_OF,
-        IS_NEXT_OF
+        IS_NEXT_OF,
+        IS_OUTPUT_OF
     };
 }
 
