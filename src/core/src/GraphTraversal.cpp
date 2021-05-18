@@ -9,7 +9,7 @@
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/VariableNode.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 Result GraphTraversal::TraverseAndSetDirty(Node *_rootNode)
 {

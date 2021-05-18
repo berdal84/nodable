@@ -11,7 +11,7 @@
 #include <nodable/VariableNode.h>
 #include <nodable/DataAccess.h>
 
-using namespace Nodable::app;
+using namespace Nodable;
 
 Application* Application::s_instance = nullptr;
 

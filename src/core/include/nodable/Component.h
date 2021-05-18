@@ -3,7 +3,7 @@
 #include <nodable/Nodable.h>
 #include <mirror.h>
 
-namespace Nodable::core{
+namespace Nodable{
 
     class Node;
     

@@ -9,7 +9,7 @@
 #include <nodable/TokenType.h>
 #include <nodable/Type.h>
 
-namespace Nodable::core
+namespace Nodable
 {
 	/**
 	* The role of Semantic is to provide a way to insert and apply simple conversions:

@@ -12,17 +12,17 @@
 #include <nodable/Component.h>  // base class
 #include <nodable/Member.h>
 
-// forward declaration
-namespace Nodable::core {
+namespace Nodable
+{
+    // forward declaration
     class Node;
     class ScopedCodeBlockNode;
     class CodeBlockNode;
     class GraphNode;
-}
-
-namespace Nodable::app
-{
-    using namespace core;
+    class NodeView;
+    struct MemberView;
+    class MemberConnector;
+    class NodeConnector;
 
 	/** We use this enum to identify all NodeView detail modes */
 	enum class NodeViewDetail: unsigned short int
@@ -32,11 +32,6 @@ namespace Nodable::app
 		Exhaustive  = 2,
 		Default     = Essential
 	};
-
-    class NodeView;
-    struct MemberView;
-    class MemberConnector;
-    class NodeConnector;
 
 	/**
 	 * A class to abstract a constraint between some NodeView

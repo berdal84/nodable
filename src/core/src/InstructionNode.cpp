@@ -2,7 +2,7 @@
 #include <nodable/Member.h>
 #include <nodable/Log.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 InstructionNode::InstructionNode(const char* _label): Node(_label)
 {

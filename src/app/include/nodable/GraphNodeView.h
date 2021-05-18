@@ -10,10 +10,8 @@
 #include <nodable/Nodable.h>     // forward declarations
 #include <nodable/NodeView.h>     // base class
 
-namespace Nodable::app
+namespace Nodable
 {
-    using namespace core;
-
 	typedef struct {
         std::string                 label;
         std::function<Node *(void)> create_node_fct;

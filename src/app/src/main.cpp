@@ -5,7 +5,7 @@
 #include <nodable/ApplicationView.h>
 #include <nodable/Config.h>
 
-using namespace Nodable::app;
+using namespace Nodable;
 
 int main(int argc, char* argv[])
 {

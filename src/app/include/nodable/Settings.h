@@ -3,7 +3,7 @@
 #include <imgui/imgui.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 
-namespace Nodable::app {
+namespace Nodable {
 
     struct TextStyle {
         float size;

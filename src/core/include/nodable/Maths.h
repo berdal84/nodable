@@ -1,4 +1,4 @@
-namespace Nodable::core::Maths
+namespace Nodable::Maths
 {
     /**
      * Interpolate linearly _source to _target with a _factor (in [0.0f, 1.0f] )

@@ -10,7 +10,7 @@
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 std::string& Serializer::serialize(std::string &_result, const ComputeUnaryOperation* _operation) const
 {

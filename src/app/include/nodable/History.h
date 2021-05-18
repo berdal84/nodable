@@ -15,7 +15,7 @@
 #include <nodable/Log.h>
 #include <nodable/GraphTraversal.h>
 
-namespace Nodable::app
+namespace Nodable
 {
     // forward declarations
     class History;

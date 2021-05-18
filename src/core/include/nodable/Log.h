@@ -28,11 +28,11 @@
 #define LOG_ENABLE _DEBUG
 
 #if LOG_ENABLE
-#   define LOG_ERROR(...)   Nodable::core::Log::Push( Nodable::core::Log::Verbosity::Error  , __VA_ARGS__ )
-#   define LOG_WARNING(...) Nodable::core::Log::Push( Nodable::core::Log::Verbosity::Warning, __VA_ARGS__ )
-#   define LOG_MESSAGE(...) Nodable::core::Log::Push( Nodable::core::Log::Verbosity::Message, __VA_ARGS__ )
-#   define LOG_VERBOSE(...) Nodable::core::Log::Push( Nodable::core::Log::Verbosity::Verbose, __VA_ARGS__ )
-#   define LOG_FLUSH()      Nodable::core::Log::Flush()
+#   define LOG_ERROR(...)   Nodable::Log::Push( Nodable::Log::Verbosity::Error  , __VA_ARGS__ )
+#   define LOG_WARNING(...) Nodable::Log::Push( Nodable::Log::Verbosity::Warning, __VA_ARGS__ )
+#   define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::Log::Verbosity::Message, __VA_ARGS__ )
+#   define LOG_VERBOSE(...) Nodable::Log::Push( Nodable::Log::Verbosity::Verbose, __VA_ARGS__ )
+#   define LOG_FLUSH()      Nodable::Log::Flush()
 #else
 #   define LOG_ERROR(...)
 #   define LOG_WARNING(...)
@@ -41,7 +41,7 @@
 #   define LOG_FLUSH()
 #endif
 
-namespace Nodable::core {
+namespace Nodable {
 
 	class Log
     {

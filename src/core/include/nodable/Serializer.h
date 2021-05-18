@@ -7,7 +7,7 @@
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/Token.h>
 
-namespace Nodable::core
+namespace Nodable
 {
     // forward declarations
     class ComputeBase;

@@ -4,7 +4,7 @@
 #include <nodable/Token.h>
 #include <nodable/Component.h>
 
-namespace Nodable::core
+namespace Nodable
 {
     // forward declarations
     class Language;

@@ -13,27 +13,15 @@
 #include <nodable/Nodable.h>
 #include <nodable/Log.h>
 
-// forward declarations:
 namespace Nodable
 {
-    namespace core
-    {
-        class GraphNode;
-        class Language;
-        class AbstractNodeFactory;
-        class ProgramNode;
-    }
-
-    namespace app
-    {
-        class History;
-        class FileView;
-    }
-}
-
-namespace Nodable::app
-{
-    using namespace core;
+    // forward declarations
+    class GraphNode;
+    class Language;
+    class AbstractNodeFactory;
+    class ProgramNode;
+    class History;
+    class FileView;
 
 	class File
 	{

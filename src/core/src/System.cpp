@@ -2,7 +2,7 @@
 #include <nodable/Log.h>
 #include <thread>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 void System::OpenURL(std::string _URL)
 {

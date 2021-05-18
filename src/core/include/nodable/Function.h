@@ -6,7 +6,7 @@
 #include <tuple>
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 
-namespace Nodable::core {
+namespace Nodable {
 
 	/*
 	 * Type of a callable function.

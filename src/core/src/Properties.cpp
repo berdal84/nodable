@@ -1,7 +1,7 @@
 #include <nodable/Properties.h>
 #include <nodable/Node.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 Properties::Properties(Node* _owner):m_owner(_owner){}
 

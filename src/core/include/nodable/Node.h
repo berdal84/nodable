@@ -15,7 +15,7 @@
 #include <nodable/GraphTraversal.h>
 #include <nodable/Properties.h>
 
-namespace Nodable::core {
+namespace Nodable {
 
     // forward declarations
     class Operator;

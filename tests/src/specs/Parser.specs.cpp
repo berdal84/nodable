@@ -12,7 +12,7 @@
 #include "../../../src/core/include/nodable/ProgramNode.h"
 #include "../../../src/core/include/nodable/HeadlessNodeFactory.h"
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 template <typename T>
 T ParseAndEvalExpression(const std::string& expression)

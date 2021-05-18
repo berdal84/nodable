@@ -6,7 +6,7 @@
 #include <nodable/Node.h> // base class
 #include <nodable/Member.h>
 
-namespace Nodable::core{
+namespace Nodable{
 	
 	/**
 		@brief The role of this class is to wrap a variable as a Node.

@@ -1,6 +1,6 @@
 #include <nodable/Wire.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 void Wire::setSource(Member* _source)
 {

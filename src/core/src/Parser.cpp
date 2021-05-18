@@ -15,7 +15,7 @@
 #include <nodable/VariableNode.h>
 #include <nodable/ComputeBinaryOperation.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 void Parser::rollbackTransaction()
 {

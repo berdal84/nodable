@@ -4,7 +4,7 @@
 #include <nodable/VariableNode.h> // to use mirror::GetClass<Variable>()
 #include <nodable/Log.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 FunctionArg::FunctionArg(TokenType _type, std::string _name) {
 	type = _type;

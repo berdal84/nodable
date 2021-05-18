@@ -19,7 +19,7 @@
 #include <nodable/ProgramNode.h>
 #include <nodable/AbstractNodeFactory.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 GraphNode::~GraphNode()
 {

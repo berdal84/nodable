@@ -5,7 +5,7 @@
 #include <nodable/Parser.h>
 #include <string>
 
-namespace Nodable::core {
+namespace Nodable {
 
     // forward declarations
     class Language;

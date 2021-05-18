@@ -8,7 +8,7 @@
 
 #include <string>
 
-namespace Nodable::core
+namespace Nodable
 {
 
     // forward declarations

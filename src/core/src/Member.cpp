@@ -4,7 +4,7 @@
 #include <nodable/VariableNode.h>
 #include <nodable/Language.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 Member::Member()
     :

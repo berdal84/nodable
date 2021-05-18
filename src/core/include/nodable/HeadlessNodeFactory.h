@@ -1,6 +1,6 @@
 #include <nodable/AbstractNodeFactory.h>
 
-namespace Nodable::core
+namespace Nodable
 {
     /**
      * @brief Node Factory implementation by default.

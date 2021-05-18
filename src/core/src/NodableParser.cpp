@@ -1,6 +1,6 @@
 #include <nodable/NodableParser.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 bool NodableParser::parseToken(
         std::string::const_iterator& start,

@@ -18,7 +18,7 @@
 #include <nodable/Language_MACROS.h>
 #include <nodable/Serializer.h>
 
-namespace Nodable::core {
+namespace Nodable {
 
     // forward declarations
     class Parser;

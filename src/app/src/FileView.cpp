@@ -7,7 +7,7 @@
 #include <nodable/Settings.h>
 #include <nodable/ProgramNode.h>
 
-using namespace Nodable::app;
+using namespace Nodable;
 
 FileView::FileView(File *_file)
         : m_textEditor()

@@ -5,7 +5,7 @@
 #include <nodable/Nodable.h>
 #include <nodable/Node.h>
 
-namespace Nodable::core
+namespace Nodable
 {
 	class Wire
 	{

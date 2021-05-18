@@ -8,7 +8,7 @@
 #include <gl3w/GL/gl3w.h>
 #include <nodable/Log.h>
 
-namespace Nodable::core
+namespace Nodable
 {
     class Texture
     {

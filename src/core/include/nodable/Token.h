@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-namespace Nodable::core
+namespace Nodable
 {
 	struct Token
 	{

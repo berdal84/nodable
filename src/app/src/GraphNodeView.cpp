@@ -15,8 +15,7 @@
 #include <nodable/WireView.h>
 #include <nodable/NodeView.h>
 
-using namespace Nodable::core;
-using namespace Nodable::app;
+using namespace Nodable;
 
 bool GraphNodeView::draw()
 {

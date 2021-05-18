@@ -10,7 +10,7 @@
 #include <nodable/Node.h>
 #include <nodable/Language.h>
 
-namespace Nodable::core{
+namespace Nodable{
 
     // forward declaration
     class ScopedCodeBlockNode;

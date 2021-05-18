@@ -3,7 +3,7 @@
 #include <nodable/Node.h>
 #include <nodable/Parser.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 Language::~Language()
 {
