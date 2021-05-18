@@ -6,7 +6,7 @@
 #include <variant>
 #include <array>
 
-namespace Nodable::core{
+namespace Nodable{
 
 	/**
 		This class is a variant implementation.

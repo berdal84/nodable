@@ -5,7 +5,7 @@
 #include <nodable/Node.h>
 #include <nodable/Settings.h>
 
-using namespace Nodable::app;
+using namespace Nodable;
 
 // TODO: move this to ImGuiEx
 void WireView::Draw(ImDrawList *draw_list, ImVec2 _from, ImVec2 _to)

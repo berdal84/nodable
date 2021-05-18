@@ -1,5 +1,5 @@
 #pragma once
-namespace Nodable::core
+namespace Nodable
 {
 	/*
 		The role of this enum class is to distinguish between all types that Nodable can handle.

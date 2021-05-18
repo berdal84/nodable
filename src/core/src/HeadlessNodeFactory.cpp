@@ -8,7 +8,7 @@
 #include <nodable/Language.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 InstructionNode* HeadlessNodeFactory::newInstruction() const
 {

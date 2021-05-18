@@ -1,6 +1,6 @@
 #include <nodable/History.h>
 
-using namespace Nodable::app;
+using namespace Nodable;
 
 History* History::global = nullptr;
 

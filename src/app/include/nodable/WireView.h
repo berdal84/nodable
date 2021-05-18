@@ -6,7 +6,7 @@
 #include <nodable/Nodable.h>
 #include <nodable/View.h> // base class
 
-namespace Nodable::app
+namespace Nodable
 {
     namespace WireView
     {

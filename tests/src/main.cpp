@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "../../src/core/include/nodable/Log.h"
 
-using namespace Nodable::core;
+using namespace Nodable;
 using Verbosity = Log::Verbosity;
 
 int main(int argc, char **argv) {

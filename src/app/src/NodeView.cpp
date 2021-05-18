@@ -16,8 +16,7 @@
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 
-using namespace Nodable::app;
-using namespace Nodable::core;
+using namespace Nodable;
 
 NodeView*          NodeView::s_selected               = nullptr;
 NodeView*          NodeView::s_draggedNode            = nullptr;

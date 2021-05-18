@@ -3,7 +3,7 @@
 #include "../../../src/core/include/nodable/Member.h"
 #include "../../../src/core/include/nodable/Node.h"
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 TEST(Node, Add_member_Double)
 {

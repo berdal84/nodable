@@ -1,7 +1,7 @@
 #pragma once
 #include <nodable/Node.h>
 
-namespace Nodable::core
+namespace Nodable
 {
     class LiteralNode: public Node
     {

@@ -11,7 +11,7 @@
 #include <nodable/History.h>
 #include <nodable/NodeFactory.h>
 
-using namespace Nodable::app;
+using namespace Nodable;
 
 File::File( std::filesystem::path _path, const char* _content)
     : m_path(_path)
@@ -22,7 +22,7 @@ File::File( std::filesystem::path _path, const char* _content)
 {
     // TODO: Detect the language
     m_language = LanguageFactory::GetNodable();
-    m_factory  = new app::NodeFactory(m_language);
+    m_factory  = new NodeFactory(m_language);
 
 	// FileView
 #ifndef NODABLE_HEADLESS

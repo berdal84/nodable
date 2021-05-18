@@ -3,7 +3,7 @@
 #include <nodable/Nodable.h>
 #include <nodable/ComputeBase.h>
 
-namespace Nodable::core
+namespace Nodable
 {
     // forward declarations
     class Function;

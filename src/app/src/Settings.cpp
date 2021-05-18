@@ -1,7 +1,7 @@
 #include <nodable/Settings.h>
 #include <imgui/imgui.h>
 
-using namespace Nodable::app;
+using namespace Nodable;
 
 Settings* Settings::GetCurrent()
 {

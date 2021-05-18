@@ -7,10 +7,11 @@
 #include <nodable/Nodable.h>
 #include <nodable/View.h>
 
-namespace Nodable::app
+namespace Nodable
 {
     // forward declarations
     class File;
+    
 	class FileView : public View
 	{
 	public:

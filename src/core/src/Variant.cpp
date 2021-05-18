@@ -2,7 +2,7 @@
 #include <nodable/Log.h> // for LOG_DEBUG(...)
 #include <assert.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 Variant::Variant(): m_isDefined(false)
 {

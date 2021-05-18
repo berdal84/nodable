@@ -9,7 +9,7 @@
 #include "../../../src/core/include/nodable/Wire.h"
 #include "../../../src/core/include/nodable/NodableLanguage.h"
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 TEST( GraphNode, connect)
 {

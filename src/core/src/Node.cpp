@@ -8,7 +8,7 @@
 #include <nodable/ComputeUnaryOperation.h>
 #include <nodable/ComputeBinaryOperation.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 Node::Node(std::string _label):
         m_props(this),

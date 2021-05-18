@@ -1,8 +1,8 @@
 #include <nodable/Way.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
-std::string Nodable::core::WayToString(Way _way)
+std::string Nodable::WayToString(Way _way)
 {
     switch(_way)
     {

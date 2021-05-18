@@ -1,7 +1,7 @@
 #include <nodable/View.h>
 #include <nodable/Settings.h>
 
-using namespace Nodable::app;
+using namespace Nodable;
 
 View::View():
 	hovered(false),

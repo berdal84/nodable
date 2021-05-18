@@ -5,7 +5,7 @@
 #include <nodable/ImGuiEx.h>
 #include <nodable/Component.h>
 
-namespace Nodable::app
+namespace Nodable
 {
     /**
      * View is an abstract class to provide a GUI for a specific Node.

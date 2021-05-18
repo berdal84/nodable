@@ -2,7 +2,7 @@
 #include <nodable/Log.h>
 #include <nodable/Language.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 ComputeFunction::ComputeFunction(const Function* _function)
     : ComputeBase()

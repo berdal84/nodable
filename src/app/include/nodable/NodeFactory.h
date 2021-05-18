@@ -1,9 +1,7 @@
 #include <nodable/AbstractNodeFactory.h>
 
-namespace Nodable::app
+namespace Nodable
 {
-    using namespace core;
-
     /**
      * @brief Node Factory implementation by default.
      */

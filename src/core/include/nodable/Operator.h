@@ -4,7 +4,7 @@
 #include <nodable/Language.h>
 #include <nodable/Function.h>
 
-namespace Nodable::core {
+namespace Nodable {
 
 	/**
 		The role of this class is to link an operator string (ex: "=", ">=", "!=", etc.) with a Function.

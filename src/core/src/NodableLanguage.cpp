@@ -11,7 +11,7 @@
 #include <nodable/Node.h>
 #include <nodable/VariableNode.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 NodableLanguage::NodableLanguage()
     :

@@ -3,7 +3,7 @@
 #include <mirror.h>
 #include <nodable/Node.h> // base class
 
-namespace Nodable::core
+namespace Nodable
 {
     enum class Layout {
         ROW,

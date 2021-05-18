@@ -13,16 +13,12 @@
 #define IMFILEBROWSER_FOLDER_ICON ICON_FA_FOLDER
 #include <imgui-filebrowser/imfilebrowser.h>
 
-// forward declarations
-namespace Nodable::core {
-    class Language;
-}
-
-namespace Nodable::app
+namespace Nodable
 {
     // forward declarations
     class Application;
     class History;
+    class Language;
 
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.

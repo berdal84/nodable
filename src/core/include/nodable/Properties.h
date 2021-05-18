@@ -7,7 +7,7 @@
 #include <nodable/Visibility.h>
 #include <nodable/Way.h>
 
-namespace Nodable::core
+namespace Nodable
 {
 
 	class Properties

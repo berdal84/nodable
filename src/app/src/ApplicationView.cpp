@@ -15,7 +15,7 @@
 #include <nodable/FileView.h>
 #include <nodable/History.h>
 
-using namespace Nodable::app;
+using namespace Nodable;
 
 ApplicationView::ApplicationView(const char* _name, Application* _application):
         application(_application),

@@ -1,6 +1,6 @@
 #include <nodable/Token.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 const Token Token::s_null = Token(TokenType_NULL);
 

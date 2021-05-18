@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace Nodable::core
+namespace Nodable
 {
     /**
      * Static library cross platform to deal with system

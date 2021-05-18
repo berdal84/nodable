@@ -4,7 +4,7 @@
 #include <nodable/GraphTraversal.h>
 #include <nodable/Log.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 Runner::Runner()
     :

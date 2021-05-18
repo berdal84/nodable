@@ -11,9 +11,8 @@
 #include <nodable/Nodable.h>
 #include <nodable/Runner.h>
 
-namespace Nodable::app
+namespace Nodable
 {
-    using namespace core;
     // forward declarations
     class ApplicationView;
     class File;

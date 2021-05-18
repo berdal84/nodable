@@ -10,7 +10,7 @@
 	(cf. Semantic class)
 */
 
-namespace Nodable::core {
+namespace Nodable {
 
 	enum TokenType
 	{

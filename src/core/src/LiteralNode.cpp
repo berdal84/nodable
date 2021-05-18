@@ -1,6 +1,6 @@
 #include <nodable/LiteralNode.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 LiteralNode::LiteralNode(Type type) : Node()
 {

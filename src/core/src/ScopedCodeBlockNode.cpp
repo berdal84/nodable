@@ -7,7 +7,7 @@
 #include <algorithm> // for std::find_if
 #include <nodable/Log.h>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 ScopedCodeBlockNode::ScopedCodeBlockNode()
         :

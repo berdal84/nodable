@@ -6,7 +6,7 @@
 #include <iostream>
 #include <fstream>
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 bool DataAccess::update()
 {

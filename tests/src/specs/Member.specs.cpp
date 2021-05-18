@@ -2,7 +2,7 @@
 #include "gtest/gtest.h"
 #include "../../../src/core/include/nodable/Member.h"
 
-using namespace Nodable::core;
+using namespace Nodable;
 
 TEST(Member, Way_In)
 {
