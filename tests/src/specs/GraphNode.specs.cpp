@@ -1,13 +1,14 @@
-#include "gtest/gtest.h"
-#include "../../../src/core/include/nodable/Member.h"
-#include "../../../src/core/include/nodable/Node.h"
-#include "../../../src/core/include/nodable/GraphNode.h"
-#include "../../../src/core/include/nodable/InstructionNode.h"
-#include "../../../src/core/include/nodable/VariableNode.h"
-#include "../../../src/core/include/nodable/ProgramNode.h"
-#include "../../../src/core/include/nodable/HeadlessNodeFactory.h"
-#include "../../../src/core/include/nodable/Wire.h"
-#include "../../../src/core/include/nodable/NodableLanguage.h"
+#include <gtest/gtest.h>
+
+#include <nodable/Member.h>
+#include <nodable/Node.h>
+#include <nodable/GraphNode.h>
+#include <nodable/InstructionNode.h>
+#include <nodable/VariableNode.h>
+#include <nodable/ProgramNode.h>
+#include <nodable/HeadlessNodeFactory.h>
+#include <nodable/Wire.h>
+#include <nodable/NodableLanguage.h>
 
 using namespace Nodable;
 
