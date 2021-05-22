@@ -19,18 +19,18 @@ FileView::FileView(File *_file)
         if ( program )
         {
             NodeView* programView = program->getComponent<NodeView>();
-            NodeView* graphView   = program->getComponent<NodeView>();
+            NodeView* graphView   = program->getParentGraph()->getComponent<NodeView>();
             if ( programView )
             {
                 if ( graphView )
                 {
                     auto graphViewRect = graphView->getVisibleRect();
-                    graphViewRect.Expand(-20.f);
-                    if (!NodeView::IsInsideRect(programView, graphViewRect)) {
-                        programView->setPosition(programView->getSize() * 1.5f);
-                    }
+                    auto newPos = graphViewRect.GetTL();
+                    newPos.x += graphViewRect.GetSize().x * 0.33f;
+                    newPos.y += programView->getSize().y;
+                    programView->setPosition( newPos );
                 }
-                programView->arrangeRecursively(false);
+
             }
         }
     });
@@ -129,7 +129,8 @@ bool FileView::draw()
     NodeView* graphNodeView = graph->getComponent<GraphNodeView>();
     NODABLE_ASSERT(graphNodeView != nullptr);
     graphNodeView->update();
-    graphNodeView->drawAsChild("graph", ImVec2(m_childSize2, availSize.y), false);
+    auto flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    graphNodeView->drawAsChild("graph", ImVec2(m_childSize2, availSize.y), false, flags);
 
 	return true;
 }
