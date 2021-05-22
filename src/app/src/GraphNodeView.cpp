@@ -526,17 +526,6 @@ bool GraphNodeView::update()
     GraphNode* graph                 = getGraphNode();
     std::vector<Node*>& nodeRegistry = graph->getNodeRegistry();
 
-    // Constraints
-    if (auto program = graph->getProgram() )
-    {
-        // Make sure result node is always visible
-        auto view = program->getComponent<NodeView>();
-        auto rect = ImRect(ImVec2(0,0), ImGui::GetWindowSize());
-        rect.Expand(-20.f);
-        rect.Max.y = std::numeric_limits<float>::max();
-        NodeView::ConstraintToRect(view, rect );
-    }
-
     // Find NodeView components
     auto deltaTime = ImGui::GetIO().DeltaTime;
     std::vector<NodeView*> views;
