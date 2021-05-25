@@ -57,7 +57,7 @@ Settings* Settings::GetCurrent()
         g_conf->ui.node.borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
         g_conf->ui.node.borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
         g_conf->ui.node.shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
-        g_conf->ui.node.nodeConnectorHoveredColor = ImColor(127,200, 127);
+        g_conf->ui.node.nodeConnectorHoveredColor = ImColor(200,200, 200);
         g_conf->ui.node.nodeConnectorColor     = ImColor(127,127, 127);
         g_conf->ui.node.spacing                = 15.0f;
         g_conf->ui.node.speed                  = 30.0f;

@@ -13,6 +13,7 @@
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/GraphNode.h>
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 
@@ -23,8 +24,10 @@ NodeView*          NodeView::s_draggedNode            = nullptr;
 NodeViewDetail     NodeView::s_viewDetail             = NodeViewDetail::Default;
 const MemberConnector*   MemberConnector::s_dragged = nullptr;
 const MemberConnector*   MemberConnector::s_hovered = nullptr;
+const MemberConnector*   MemberConnector::s_focused = nullptr;
 const NodeConnector*     NodeConnector::s_dragged   = nullptr;
 const NodeConnector*     NodeConnector::s_hovered   = nullptr;
+const NodeConnector*     NodeConnector::s_focused   = nullptr;
 const float        NodeView::s_memberInputSizeMin     = 10.0f;
 const ImVec2       NodeView::s_memberInputToggleButtonSize   = ImVec2(10.0, 25.0f);
 std::vector<NodeView*> NodeView::s_instances;
@@ -292,16 +295,17 @@ bool NodeView::draw()
 	NODABLE_ASSERT(node != nullptr);
 
     // Draw Node connectors (in background)
-    ImColor color        = settings->ui.node.nodeConnectorColor;
-    ImColor hoveredColor = settings->ui.node.nodeConnectorHoveredColor;
-
-    auto drawConnectorAndHandleUserEvents = [color, hoveredColor](NodeConnector* connector)
     {
-        NodeConnector::Draw(connector, color, hoveredColor);
+        ImColor color = settings->ui.node.nodeConnectorColor;
+        ImColor hoveredColor = settings->ui.node.nodeConnectorHoveredColor;
 
-    };
-    std::for_each(m_prevNodeConnnectors.begin(), m_prevNodeConnnectors.end(), drawConnectorAndHandleUserEvents);
-    std::for_each(m_nextNodeConnectors.begin(), m_nextNodeConnectors.end(), drawConnectorAndHandleUserEvents);
+        auto drawConnectorAndHandleUserEvents = [color, hoveredColor](NodeConnector *connector) {
+            NodeConnector::Draw(connector, color, hoveredColor);
+        };
+
+        std::for_each(m_prevNodeConnnectors.begin(), m_prevNodeConnnectors.end(), drawConnectorAndHandleUserEvents);
+        std::for_each(m_nextNodeConnectors.begin(), m_nextNodeConnectors.end(), drawConnectorAndHandleUserEvents);
+    }
 
 	// Begin the window
 	//-----------------
@@ -340,10 +344,10 @@ bool NodeView::draw()
 
 	// Add an invisible just on top of the background to detect mouse hovering
 	ImGui::SetCursorPos(cursorPositionBeforeContent);
-	ImGui::InvisibleButton("##", m_size);
-	ImGui::SetItemAllowOverlap();
-	hovered = ImGui::IsItemHovered();
+	ImGui::InvisibleButton("node", m_size);
+    ImGui::SetItemAllowOverlap();
 	ImGui::SetCursorPos(cursorPositionBeforeContent + settings->ui.node.padding );
+    bool is_node_hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
 	//------------------------
@@ -390,28 +394,38 @@ bool NodeView::draw()
     m_size.x = std::ceil(ImGui::GetItemRectSize().x );
     m_size.y = std::max(NODE_VIEW_DEFAULT_SIZE.y, std::ceil(ImGui::GetItemRectSize().y ));
 
+    bool is_connector_hovered = false;
     // Draw Member in/out connectors
     {
-        float radius    = settings->ui.node.memberConnectorRadius;
-        float borderCol = getColor(ColorType_Border);
-        float hoverCol  = getColor(ColorType_BorderHighlights);
+        float radius      = settings->ui.node.memberConnectorRadius;
+        ImColor color     = settings->ui.node.nodeConnectorColor;
+        ImColor borderCol = settings->ui.node.borderColor;
+        ImColor hoverCol  = settings->ui.node.nodeConnectorHoveredColor;
 
         for( auto& memberView : m_exposedInputOnlyMembers )
         {
             MemberConnector::Draw(memberView->m_in, radius, color, borderCol, hoverCol);
+            is_connector_hovered |= ImGui::IsItemHovered();
         }
 
         for( auto& memberView : m_exposedOutOrInOutMembers )
         {
             if ( memberView->m_in)
+            {
                 MemberConnector::Draw(memberView->m_in, radius, color, borderCol, hoverCol);
+                is_connector_hovered |= ImGui::IsItemHovered();
+            }
+
             if ( memberView->m_out)
+            {
                 MemberConnector::Draw(memberView->m_out, radius, color, borderCol, hoverCol);
+                is_connector_hovered |= ImGui::IsItemHovered();
+            }
         }
     }
 
     // Contextual menu (right click)
-    if (hovered && ImGui::IsMouseReleased(1))
+    if ( is_node_hovered && !is_connector_hovered && ImGui::IsMouseReleased(1))
     {
         ImGui::OpenPopup("NodeViewContextualMenu");
     }
@@ -440,7 +454,7 @@ bool NodeView::draw()
     }
 
 	// Selection by mouse (left or right click)
-	if ( hovered && (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)))
+	if ( is_node_hovered && (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)))
 	{
         SetSelected(this);
     }
@@ -448,7 +462,7 @@ bool NodeView::draw()
 	// Mouse dragging
 	if ( GetDragged() != this)
 	{
-		if( GetDragged() == nullptr && ImGui::IsMouseDown(0) && hovered && ImGui::IsMouseDragPastThreshold(0))
+		if( GetDragged() == nullptr && ImGui::IsMouseDown(0) && is_node_hovered && ImGui::IsMouseDragPastThreshold(0))
         {
 			StartDragNode(this);
         }
@@ -459,7 +473,7 @@ bool NodeView::draw()
 	}		
 
 	// Collapse on/off
-	if( hovered && ImGui::IsMouseDoubleClicked(0))
+	if( is_node_hovered && ImGui::IsMouseDoubleClicked(0))
 	{
 		m_forceMemberInputVisible = !m_forceMemberInputVisible;
 
@@ -477,8 +491,7 @@ bool NodeView::draw()
 	if( edited )
 	    getOwner()->setDirty();
 
-	if( hovered && !ImGui::IsAnyItemFocused() && !ImGui::IsAnyItemActive())
-        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+	hovered = is_node_hovered || is_connector_hovered;
 
 	return edited;
 }
@@ -1217,19 +1230,37 @@ void MemberConnector::Draw(
     ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
     auto invisibleButtonOffsetFactor = 1.2f;
     ImGui::SetCursorScreenPos(connnectorScreenPos - ImVec2(_radius * invisibleButtonOffsetFactor));
-    ImGui::PushID(_connector->m_memberView);
+    ImGui::PushID(_connector);
     bool clicked = ImGui::InvisibleButton("###", ImVec2(_radius * 2.0f * invisibleButtonOffsetFactor, _radius * 2.0f * invisibleButtonOffsetFactor));
     ImGui::PopID();
     ImGui::SetCursorScreenPos(cursorScreenPos);
-    auto isItemHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
+    auto isItemHovered = ImGui::IsItemHovered();
 
     // Circle
-    auto color = isItemHovered ? _hoverColor : _color;
-    draw_list->AddCircleFilled(connnectorScreenPos, _radius, _color);
+    draw_list->AddCircleFilled(connnectorScreenPos, _radius, isItemHovered ? _hoverColor : _color);
     draw_list->AddCircle(connnectorScreenPos, _radius, _borderColor);
 
     // behavior
     //--------
+
+    if ( ImGui::BeginPopupContextItem() )
+    {
+        if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
+        {
+            auto member = _connector->getMember();
+            auto graph  = member->getOwner()->getParentGraph();
+            graph->disconnect( member, _connector->m_way );
+        }
+
+        ImGui::EndPopup();
+    }
+    else if ( isItemHovered )
+    {
+        s_hovered = _connector;
+        ImGui::BeginTooltip();
+        ImGui::Text("%s", _connector->getMember()->getName().c_str() );
+        ImGui::EndTooltip();
+    }
 
     if (isItemHovered)
     {
@@ -1238,15 +1269,6 @@ void MemberConnector::Draw(
             if ( s_dragged == nullptr && !NodeView::IsAnyDragged())
                 MemberConnector::StartDrag(_connector);
         }
-        else
-        {
-            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-        }
-
-        s_hovered = _connector;
-        ImGui::BeginTooltip();
-        ImGui::Text("%s", _connector->getMember()->getName().c_str() );
-        ImGui::EndTooltip();
     }
     else if ( s_hovered == _connector )
     {
@@ -1311,10 +1333,7 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
                     StartDrag(_connector);
             }
         }
-        else
-        {
-            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-        }
+
         s_hovered = _connector;
     }
     else if ( s_hovered == _connector )

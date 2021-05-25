@@ -227,15 +227,7 @@ bool GraphNodeView::draw()
 		Mouse right-click popup menu
 	*/
 
-	if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
-	{
-		if ( !MemberConnector::IsDragging() && !NodeConnector::IsDragging())
-        {
-            ImGui::OpenPopup("ContainerViewContextualMenu");
-        }
-	}
-
-	if (ImGui::BeginPopup("ContainerViewContextualMenu"))
+	if ( !isAnyNodeHovered && ImGui::BeginPopupContextWindow("ContainerViewContextualMenu") )
 	{
 		Node* newNode = nullptr;
         bool is_dragging_node_connector = NodeConnector::GetDragged() != nullptr;
