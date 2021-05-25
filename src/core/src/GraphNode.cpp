@@ -82,8 +82,7 @@ UpdateResult GraphNode::update()
         auto updateResult = traversal.traverse(m_program, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren |
                                                           TraversalFlag_FollowNotDirty | TraversalFlag_AvoidCycles);
         bool changed = false;
-        for (Node *eachNode : traversal.getStats()
-                .m_traversed)
+        for (Node *eachNode : traversal.getStats().m_traversed)
         {
             if (eachNode->isDirty())
             {
@@ -116,7 +115,6 @@ UpdateResult GraphNode::update()
         result = UpdateResult::SuccessWithoutChanges;
     }
 
-    setDirty(false);
     return result;
 }
 
@@ -516,4 +514,39 @@ LiteralNode* GraphNode::newLiteral(const Type &type)
     LiteralNode* node = m_factory->newLiteral(type);
     registerNode(node);
     return node;
+}
+
+void GraphNode::disconnect(Member *_member, Way _way)
+{
+    auto should_be_deleted = [&](const Wire* wire) {
+        if ( (_way & Way_Out) && wire->getSource() == _member ) return true;
+        if ( (_way & Way_In) && wire->getTarget() == _member ) return true;
+        return false;
+    };
+
+    for ( auto it = m_wireRegistry.begin(); it != m_wireRegistry.end(); )
+    {
+        if ( should_be_deleted(*it) )
+        {
+            auto wire = *it;
+            it = m_wireRegistry.erase(it);
+
+            Node *targetNode = wire->getTarget()->getOwner();
+            Node *sourceNode = wire->getSource()->getOwner();
+
+            targetNode->removeWire(wire);
+            sourceNode->removeWire(wire);
+
+            disconnect(sourceNode, targetNode, RelationType::IS_INPUT_OF);
+
+            deleteWire(wire);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    setDirty();
+
 }

@@ -266,8 +266,11 @@ namespace Nodable
         static void      StartDrag(const T* connector) { if( T::s_dragged == nullptr) T::s_dragged = connector; }
         static const T*  GetHovered() { return T::s_hovered; }
         static const T*  GetDragged() { return T::s_dragged; }
+        static const T*  GetFocused() { return T::s_dragged; }
         static bool      IsDragging() { return T::s_dragged; }
         static void      StopDrag() { T::s_dragged = nullptr; }
+        static void      SetFocused(const T* connector) { T::s_focused = connector; }
+        static void      UnsetFocused() { T::s_focused = nullptr; }
     };
 
     /**
@@ -292,6 +295,7 @@ namespace Nodable
 
         static const MemberConnector* s_hovered;
         static const MemberConnector* s_dragged;
+        static const MemberConnector* s_focused;
 
         static void Draw(const MemberConnector *connector);
 
@@ -322,6 +326,7 @@ namespace Nodable
 
         static const NodeConnector* s_hovered;
         static const NodeConnector* s_dragged;
+        static const NodeConnector* s_focused;
 
         static bool Connect(const NodeConnector *_left, const NodeConnector *_right);
     };

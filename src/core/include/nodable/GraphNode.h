@@ -91,6 +91,7 @@ namespace Nodable{
         void connect(Member* _source, InstructionNode* _target);
         void disconnect(Node* _source, Node* _target, RelationType);
         void disconnect(Wire* _wire);
+        void disconnect(Member* _member, Way _way = Way_InOut);
         void deleteNode(Node* _node);
     private:
         void registerNode(Node* node);
