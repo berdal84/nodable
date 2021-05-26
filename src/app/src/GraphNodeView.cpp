@@ -14,6 +14,8 @@
 #include <nodable/LiteralNode.h>
 #include <nodable/WireView.h>
 #include <nodable/NodeView.h>
+#include <nodable/MemberConnector.h>
+#include <nodable/NodeConnector.h>
 
 using namespace Nodable;
 

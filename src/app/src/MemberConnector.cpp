@@ -1,12 +1,17 @@
-#include <nodable/NodeView.h>
+#include <nodable/MemberConnector.h>
 
 #include <nodable/Settings.h>
 #include <nodable/Node.h>
 #include <nodable/GraphNode.h>
+#include <nodable/NodeView.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
+
+const MemberConnector*   MemberConnector::s_dragged = nullptr;
+const MemberConnector*   MemberConnector::s_hovered = nullptr;
+const MemberConnector*   MemberConnector::s_focused = nullptr;
 
 ImVec2 MemberConnector::getPos()const
 {
@@ -129,4 +134,9 @@ bool MemberConnector::Connect(const MemberConnector *_left, const MemberConnecto
 
 bool MemberConnector::hasConnectedNode() const {
     return m_way == Way_In ? getMember()->getInput() != nullptr : !getMember()->getOutputs().empty();
+}
+
+Member* MemberConnector::getMember()const
+{
+    return m_memberView->m_member;
 }

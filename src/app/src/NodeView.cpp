@@ -13,7 +13,8 @@
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/GraphNode.h>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <nodable/NodeConnector.h>
+#include <nodable/MemberConnector.h>
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 
@@ -22,12 +23,6 @@ using namespace Nodable;
 NodeView*          NodeView::s_selected               = nullptr;
 NodeView*          NodeView::s_draggedNode            = nullptr;
 NodeViewDetail     NodeView::s_viewDetail             = NodeViewDetail::Default;
-const MemberConnector*   MemberConnector::s_dragged = nullptr;
-const MemberConnector*   MemberConnector::s_hovered = nullptr;
-const MemberConnector*   MemberConnector::s_focused = nullptr;
-const NodeConnector*     NodeConnector::s_dragged   = nullptr;
-const NodeConnector*     NodeConnector::s_hovered   = nullptr;
-const NodeConnector*     NodeConnector::s_focused   = nullptr;
 const float        NodeView::s_memberInputSizeMin     = 10.0f;
 const ImVec2       NodeView::s_memberInputToggleButtonSize   = ImVec2(10.0, 25.0f);
 std::vector<NodeView*> NodeView::s_instances;
