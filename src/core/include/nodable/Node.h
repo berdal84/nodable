@@ -298,5 +298,7 @@ namespace Nodable {
 	public:
 	    /* use mirror to refect class */
 		MIRROR_CLASS(Node)();
+
+        Node *getFirstNext();
     };
 }

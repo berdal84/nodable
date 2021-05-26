@@ -316,3 +316,7 @@ void Node::addNext(Node *_node)
     m_next.push_back(_node );
     setDirty();
 }
+
+Node *Node::getFirstNext() {
+    return m_next.empty() ? nullptr : m_next[0];
+}
