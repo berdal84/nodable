@@ -425,7 +425,7 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
     this->setDirty();
 }
 
-void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationType)
+void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationType, bool _sideEffects)
 {
     NODABLE_ASSERT(_source && _target);
 
@@ -452,6 +452,19 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
         case RelationType::IS_NEXT_OF:
             _target->removeNext(_source);
             _source->removePrev(_target);
+
+            if ( _sideEffects )
+            {
+                if ( auto parent = _source->getParent() )
+                {
+                    auto next = _source;
+                    while ( next && next->getParent() == parent )
+                    {
+                        disconnect(next, parent, RelationType::IS_CHILD_OF, false );
+                        next = next->getNext().empty() ? nullptr : next->getNext()[0];
+                    }
+                }
+            }
             break;
 
         default:

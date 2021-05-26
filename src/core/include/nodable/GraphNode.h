@@ -89,7 +89,7 @@ namespace Nodable{
         */
         void connect(Node* _source, Node* _target, RelationType, bool _sideEffects = true);
         void connect(Member* _source, InstructionNode* _target);
-        void disconnect(Node* _source, Node* _target, RelationType);
+        void disconnect(Node* _source, Node* _target, RelationType, bool _sideEffects = true);
         void disconnect(Wire* _wire);
         void disconnect(Member* _member, Way _way = Way_InOut);
         void deleteNode(Node* _node);
