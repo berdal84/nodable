@@ -7,6 +7,7 @@
 #include <nodable/Way.h>
 
 #include <string>
+#include <vector>
 
 namespace Nodable
 {
@@ -40,7 +41,7 @@ namespace Nodable
 
 		void setConnectorWay(Way wayFlags) { m_wayFlags = wayFlags; }
 		void setSourceExpression(const char* expr) { m_sourceExpression = expr; }
-		void setInputMember(Member*);
+		void setInput(Member*);
 		void setName(const char* name) { m_name = name; }
 		void set(const Member* other) { m_data.set(&other->m_data); }
 		void set(const Member& other) { m_data.set(&other.m_data); }
@@ -57,7 +58,8 @@ namespace Nodable
 
 		[[nodiscard]] inline Node*                 getOwner()const { return m_owner; };
         [[nodiscard]] inline Properties*           getParentProperties()const { return m_parentProperties; }
-		[[nodiscard]] inline Member*               getInputMember()const { return m_inputMember; }
+		[[nodiscard]] inline Member*               getInput()const { return m_input; }
+		[[nodiscard]] inline std::vector<Member*>& getOutputs() { return m_outputs; }
         [[nodiscard]] inline const std::string&    getName()const { return m_name; }
 		[[nodiscard]] inline Type                  getType()const { return m_data.getType(); }
 		[[nodiscard]] inline std::string           getTypeAsString()const { return m_data.getTypeAsString(); }
@@ -84,7 +86,8 @@ namespace Nodable
         Visibility 		  m_visibility;
         Node*             m_owner;
 		Properties*       m_parentProperties;
-		Member*           m_inputMember;
+		Member*           m_input;
+		std::vector<Member*> m_outputs;
 		Way               m_wayFlags;
         Token             m_sourceToken;
         std::string       m_sourceExpression;

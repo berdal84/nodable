@@ -492,7 +492,7 @@ bool NodeView::drawMemberView(MemberView* _memberView )
 
     if( !_memberView->m_touched )
     {
-        const bool isAnInputUnconnected = member->getInputMember() != nullptr || !member->allowsConnection(Way_In);
+        const bool isAnInputUnconnected = member->getInput() != nullptr || !member->allowsConnection(Way_In);
         const bool isVariable = member->getOwner()->getClass() == VariableNode::GetClass();
         const bool isLiteral  = member->getOwner()->getClass() == LiteralNode::GetClass();
         _memberView->m_showInput = _memberView->m_member->isDefined() && (!isAnInputUnconnected || isLiteral || isVariable || s_viewDetail == NodeViewDetail::Exhaustive) ;
@@ -1231,8 +1231,7 @@ void MemberConnector::Draw(
 
     // behavior
     //--------
-
-    if ( ImGui::BeginPopupContextItem() )
+    if ( _connector->hasConnectedNode() && ImGui::BeginPopupContextItem() )
     {
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
@@ -1282,6 +1281,10 @@ bool MemberConnector::Connect(const MemberConnector *_left, const MemberConnecto
     if ( s_dragged->m_way == Way_Out )
         return s_dragged->connect(s_hovered);
     return s_hovered->connect(s_dragged);
+}
+
+bool MemberConnector::hasConnectedNode() const {
+    return m_way == Way_In ? getMember()->getInput() != nullptr : !getMember()->getOutputs().empty();
 }
 
 bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor)

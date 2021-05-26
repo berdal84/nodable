@@ -285,6 +285,7 @@ namespace Nodable
         inline Member*     getMember()const { return m_memberView->m_member; }
         ImVec2             getPos()const override;
         bool               hasSameParentWith(const MemberConnector* other)const override;
+        bool               hasConnectedNode() const;
         bool               connect(const MemberConnector *other)const override;
 
         static void        Draw(const MemberConnector*, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor);

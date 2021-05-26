@@ -116,7 +116,7 @@ bool GraphNodeView::draw()
             {
                 auto end = pair.second;
 
-                if ( auto start = end->getInputMember() )
+                if ( auto start = end->getInput() )
                 {
                     auto endNodeView   = eachNode->getComponent<NodeView>();
                     auto startNodeView = start->getOwner()->getComponent<NodeView>();

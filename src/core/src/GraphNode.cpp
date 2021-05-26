@@ -272,7 +272,9 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
     }
     else
     {
-        _to->setInputMember(_from);
+        _to->setInput(_from);
+        _from->getOutputs().push_back(_to);
+
         auto targetNode = _to->getOwner()->as<Node>();
         auto sourceNode = _from->getOwner()->as<Node>();
 
@@ -464,7 +466,9 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
 
 void GraphNode::deleteWire(Wire *_wire)
 {
-    _wire->getTarget()->setInputMember(nullptr);
+    _wire->getTarget()->setInput(nullptr);
+    auto& outputs = _wire->getSource()->getOutputs();
+    outputs.erase( std::find(outputs.begin(), outputs.end(), _wire->getTarget()));
 
     auto targetNode = _wire->getTarget()->getOwner();
     auto sourceNode = _wire->getSource()->getOwner();
