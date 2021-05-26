@@ -410,9 +410,14 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
 
             if (_sideEffects)
             {
-                if (auto parent = _target->getParent())
+                if ( auto parent = _target->getParent() )
                 {
-                    connect(_source, parent, RelationType::IS_CHILD_OF, false);
+                    auto next = _source;
+                    while ( next )
+                    {
+                        connect(next, parent, RelationType::IS_CHILD_OF, false);
+                        next = next->getFirstNext();
+                    }
                 }
             }
             break;
@@ -461,7 +466,7 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
                     while ( next && next->getParent() == parent )
                     {
                         disconnect(next, parent, RelationType::IS_CHILD_OF, false );
-                        next = next->getNext().empty() ? nullptr : next->getNext()[0];
+                        next = next->getFirstNext();
                     }
                 }
             }
