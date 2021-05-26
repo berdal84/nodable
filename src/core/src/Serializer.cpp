@@ -178,9 +178,10 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
     serialize(_result, _node->getTypeToken() );
 
     // var name
-    _result.append( _node->getIdentifierToken()->m_prefix);
+    auto identifierTok = _node->getIdentifierToken();
+    if ( identifierTok ) _result.append( identifierTok->m_prefix);
     _result.append( _node->getName());
-    _result.append( _node->getIdentifierToken()->m_suffix);
+    if ( identifierTok ) _result.append( _node->getIdentifierToken()->m_suffix);
 
     // assigment ?
     if ( _node->getAssignmentOperatorToken() )

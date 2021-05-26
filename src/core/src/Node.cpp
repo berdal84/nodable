@@ -194,6 +194,7 @@ void Node::addChild(Node *_node)
     NODABLE_ASSERT(found == m_children.end()); // check if node is not already child
     m_onRelationAdded.emit(_node, RelationType::IS_CHILD_OF );
     m_children.push_back(_node);
+    setDirty();
 }
 
 void Node::removeChild(Node *_node)
@@ -202,12 +203,14 @@ void Node::removeChild(Node *_node)
     NODABLE_ASSERT(found != m_children.end()); // check if node is found before to erase.
     m_onRelationRemoved.emit(_node, RelationType::IS_CHILD_OF );
     m_children.erase(found);
+    setDirty();
 }
 
 void Node::setParent(Node *_node)
 {
     NODABLE_ASSERT(_node != nullptr || this->m_parent != nullptr);
     this->m_parent = _node;
+    setDirty();
 }
 
 void Node::setParentGraph(GraphNode *_parentGraph)
@@ -220,12 +223,14 @@ void Node::addInput(Node* _node)
 {
     this->m_inputs.push_back(_node);
     m_onRelationAdded.emit(_node, RelationType::IS_INPUT_OF );
+    setDirty();
 }
 
 void Node::addOutput(Node *_node)
 {
     this->m_outputs.push_back(_node);
     m_onRelationAdded.emit(_node, RelationType::IS_OUTPUT_OF );
+    setDirty();
 }
 
 void Node::removeOutput(Node *_node)
@@ -234,6 +239,7 @@ void Node::removeOutput(Node *_node)
     NODABLE_ASSERT(found != m_outputs.end()); // check if node is found before to erase.
     m_onRelationRemoved.emit(_node, RelationType::IS_OUTPUT_OF );
     m_outputs.erase(found);
+    setDirty();
 }
 
 void Node::removeInput(Node *_node)
@@ -242,6 +248,7 @@ void Node::removeInput(Node *_node)
     NODABLE_ASSERT(found != m_inputs.end()); // check if node is found before to erase.
     m_onRelationRemoved.emit(_node, RelationType::IS_INPUT_OF );
     m_inputs.erase(found);
+    setDirty();
 }
 
 std::vector<Node*>& Node::getInputs() {
@@ -286,22 +293,26 @@ void Node::removeNext(Node *_node)
 {
     auto found = std::find(m_next.begin(), m_next.end(), _node);
     m_next.erase(found);
+    setDirty();
 }
 
 void Node::removePrev(Node *_node)
 {
     auto found = std::find(m_previous.begin(), m_previous.end(), _node);
     m_previous.erase(found);
+    setDirty();
 }
 
 void Node::addPrev(Node *_node)
 {
     NODABLE_ASSERT(m_previous.size() < m_previousMaxCount);
     m_previous.push_back(_node );
+    setDirty();
 }
 
 void Node::addNext(Node *_node)
 {
     NODABLE_ASSERT(m_next.size() < m_nextMaxCount);
     m_next.push_back(_node );
+    setDirty();
 }

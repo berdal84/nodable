@@ -140,32 +140,35 @@ std::string FileView::getText()const
 	return m_textEditor.GetText();
 }
 
-void FileView::replaceSelectedText(std::string _val)
+void FileView::replaceSelectedText(const std::string &_val)
 {
-	auto start = m_textEditor.GetCursorPosition();
-
-	/* If there is no selection, selects current line */
-	auto hasSelection    = m_textEditor.HasSelection();
-	auto selectionStart  = m_textEditor.GetSelectionStart();
-	auto selectionEnd    = m_textEditor.GetSelectionEnd();
-
-	// Select the whole line if no selection is set
-	if (!hasSelection)
-	{
-		m_textEditor.MoveHome(false);
-		m_textEditor.MoveEnd(true);
-		m_textEditor.SetCursorPosition(TextEditor::Coordinates(start.mLine, 0));
-	}
-
-	/* insert text (and select it) */
-	m_textEditor.InsertText(_val, true);
-    auto end = m_textEditor.GetCursorPosition();
-	if (!hasSelection && start.mLine == end.mLine ) // no selection and insert text is still on the same line
+    if ( getSelectedText() != _val )
     {
-        m_textEditor.SetSelection(selectionStart, selectionEnd);
+        auto start = m_textEditor.GetCursorPosition();
+
+        /* If there is no selection, selects current line */
+        auto hasSelection = m_textEditor.HasSelection();
+        auto selectionStart = m_textEditor.GetSelectionStart();
+        auto selectionEnd = m_textEditor.GetSelectionEnd();
+
+        // Select the whole line if no selection is set
+        if (!hasSelection) {
+            m_textEditor.MoveHome(false);
+            m_textEditor.MoveEnd(true);
+            m_textEditor.SetCursorPosition(TextEditor::Coordinates(start.mLine, 0));
+        }
+
+        /* insert text (and select it) */
+        m_textEditor.InsertText(_val, true);
+
+        auto end = m_textEditor.GetCursorPosition();
+        if (!hasSelection && start.mLine == end.mLine) // no selection and insert text is still on the same line
+        {
+            m_textEditor.SetSelection(selectionStart, selectionEnd);
+        }
+        LOG_MESSAGE("FileView", "Selected text updated from graph.\n");
+        LOG_VERBOSE("FileView", "%s \n", _val.c_str());
     }
-    LOG_MESSAGE( "FileView", "Graph serialized\n");
-	LOG_VERBOSE( "FileView", "%s \n", _val.c_str());
 }
 
 void FileView::setText(const std::string& _content)
