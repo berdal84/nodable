@@ -481,7 +481,7 @@ void GraphNodeView::updateViewConstraints()
             Node::GetComponents<NodeView>( previousNodes, previousNodesView);
             if ( !previousNodes.empty() && !previousNodes[0]->as<ConditionalStructNode>())
             {
-                ViewConstraint constraint(ViewConstraint::Type::FollowWithChildren);
+                NodeViewConstraint constraint(NodeViewConstraint::Type::FollowWithChildren);
                 constraint.addMasters(previousNodesView);
                 constraint.addSlave(eachView);
                 eachView->addConstraint(constraint);
@@ -493,7 +493,7 @@ void GraphNodeView::updateViewConstraints()
             auto children = eachView->getChildren();
             if( !children.empty() && clss == mirror::GetClass<ConditionalStructNode>())
             {
-                ViewConstraint constraint(ViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
+                NodeViewConstraint constraint(NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
                 constraint.addMaster(eachView);
                 constraint.addSlaves(children);
                 eachView->addConstraint(constraint);
@@ -504,7 +504,7 @@ void GraphNodeView::updateViewConstraints()
 
             if ( !eachView->getInputs().empty() )
             {
-                ViewConstraint constraint(ViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
+                NodeViewConstraint constraint(NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
                 constraint.addMaster(eachView);
                 constraint.addSlaves(eachView->getInputs());
                 eachView->addConstraint(constraint);
