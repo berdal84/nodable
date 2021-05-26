@@ -1223,7 +1223,7 @@ void MemberConnector::Draw(
     bool clicked = ImGui::InvisibleButton("###", ImVec2(_radius * 2.0f * invisibleButtonOffsetFactor, _radius * 2.0f * invisibleButtonOffsetFactor));
     ImGui::PopID();
     ImGui::SetCursorScreenPos(cursorScreenPos);
-    auto isItemHovered = ImGui::IsItemHovered();
+    auto isItemHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
 
     // Circle
     draw_list->AddCircleFilled(connnectorScreenPos, _radius, isItemHovered ? _hoverColor : _color);
@@ -1242,7 +1242,8 @@ void MemberConnector::Draw(
 
         ImGui::EndPopup();
     }
-    else if ( isItemHovered )
+
+    if ( isItemHovered )
     {
         s_hovered = _connector;
         ImGui::BeginTooltip();
@@ -1326,7 +1327,8 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
 
         ImGui::EndPopup();
     }
-    else if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
+
+    if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
     {
         if (ImGui::IsMouseDown(0) && !IsDragging() && !NodeView::IsAnyDragged())
         {
