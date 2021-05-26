@@ -311,7 +311,8 @@ namespace Nodable
         NodeConnector(NodeView* _nodeView, Way _way, size_t _index = 0, size_t _count = 1): m_nodeView(_nodeView), m_way(_way), m_index(_index), m_count(_count) {};
         ~NodeConnector() = default;
         inline Node*       getNode()const { return m_nodeView->getOwner(); }
-        ImRect             getRect()const;
+		Node*              getConnectedNode() const;
+		ImRect             getRect()const;
         ImVec2             getPos()const override;
         bool               connect(const NodeConnector *other) const override;
         virtual bool       hasSameParentWith(const NodeConnector *other) const override;
