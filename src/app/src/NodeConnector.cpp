@@ -1,3 +1,5 @@
+#include <nodable/NodeConnector.h>
+
 #include <nodable/NodeView.h>
 #include <nodable/Node.h>
 #include <nodable/GraphNode.h>
@@ -6,6 +8,10 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
+
+const NodeConnector*     NodeConnector::s_dragged   = nullptr;
+const NodeConnector*     NodeConnector::s_hovered   = nullptr;
+const NodeConnector*     NodeConnector::s_focused   = nullptr;
 
 bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor)
 {
@@ -152,3 +158,9 @@ Node* NodeConnector::getConnectedNode() const
     return nullptr;
 
 }
+
+Node* NodeConnector::getNode()const
+{
+    return m_nodeView->getOwner();
+}
+

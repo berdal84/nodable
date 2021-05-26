@@ -1,5 +1,6 @@
 #include <nodable/NodeView.h>
 #include <nodable/Member.h>
+#include <nodable/MemberConnector.h>
 
 using namespace Nodable;
 
