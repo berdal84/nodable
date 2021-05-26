@@ -30,7 +30,7 @@ namespace Nodable
 		bool    update() override;
 		void    addContextualMenuItem(const std::string& _category, std::string _label, std::function<Node*(void)> _lambda, const FunctionSignature& _signature);
 	private:
-	    std::vector<ViewConstraint> constraints;
+	    std::vector<NodeViewConstraint> constraints;
         [[nodiscard]] GraphNode* getGraphNode() const;
 		std::multimap<std::string, FunctionMenuItem> contextualMenus;
 

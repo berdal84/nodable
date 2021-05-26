@@ -36,7 +36,7 @@ namespace Nodable
 	/**
 	 * A class to abstract a constraint between some NodeView
 	 */
-	class ViewConstraint {
+	class NodeViewConstraint {
 	public:
 	    enum Type {
 	        AlignOnBBoxTop,
@@ -47,7 +47,7 @@ namespace Nodable
 	        Follow,
         };
 
-	    ViewConstraint(Type _type);
+	    NodeViewConstraint(Type _type);
 	    void apply(float _dt);
 	    void addSlave(NodeView*);
 	    void addMaster(NodeView*);
@@ -109,7 +109,7 @@ namespace Nodable
         /** Compute the bounding rectangle of this view */
         ImRect getRect(bool _recursive = false, bool _ignorePinned = true, bool _ignoreMultiConstrained = true, bool _ignoreSelf = false);
 
-        void addConstraint(ViewConstraint &_constraint);
+        void addConstraint(NodeViewConstraint &_constraint);
         void applyConstraints(float _dt);
         void clearConstraints();
 
@@ -208,7 +208,7 @@ namespace Nodable
 		std::vector<MemberView*>             m_exposedInputOnlyMembers;
 		std::vector<MemberView*>             m_exposedOutOrInOutMembers;
         std::map<const Member*, MemberView*> m_exposedMembers;
-        std::vector<ViewConstraint>          m_constraints;
+        std::vector<NodeViewConstraint>          m_constraints;
 
 		static NodeView*              s_selected;
 		static NodeView*              s_draggedNode;
