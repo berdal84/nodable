@@ -295,12 +295,14 @@ bool NodeView::draw()
 	NODABLE_ASSERT(node != nullptr);
 
     // Draw Node connectors (in background)
+    bool is_connector_hovered = false;
     {
         ImColor color = settings->ui.node.nodeConnectorColor;
         ImColor hoveredColor = settings->ui.node.nodeConnectorHoveredColor;
 
-        auto drawConnectorAndHandleUserEvents = [color, hoveredColor](NodeConnector *connector) {
+        auto drawConnectorAndHandleUserEvents = [&](NodeConnector *connector) {
             NodeConnector::Draw(connector, color, hoveredColor);
+            is_connector_hovered |= ImGui::IsItemHovered();
         };
 
         std::for_each(m_prevNodeConnnectors.begin(), m_prevNodeConnnectors.end(), drawConnectorAndHandleUserEvents);
@@ -370,18 +372,6 @@ bool NodeView::draw()
         edited |= drawMemberView(memberView);
     }
 
-    // If needed, show a button to show/hide children and inputs. now accessible with "X" or Edit->Expand
-//    if ( !getOwner()->getChildren().empty() || !getOwner()->getInputs().empty() )
-//    {
-//        ImGui::SameLine();
-//        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
-//        if ( ImGui::Button(m_childrenVisible ? ICON_FA_MINUS : ICON_FA_PLUS, ImVec2(20.0f, 20.0f)) )
-//        {
-//            toggleExpansion();
-//        }
-//        ImGui::PopStyleVar();
-//    }
-
 	ImGui::SameLine();
 
 	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui.node.padding );
@@ -394,7 +384,6 @@ bool NodeView::draw()
     m_size.x = std::ceil(ImGui::GetItemRectSize().x );
     m_size.y = std::max(NODE_VIEW_DEFAULT_SIZE.y, std::ceil(ImGui::GetItemRectSize().y ));
 
-    bool is_connector_hovered = false;
     // Draw Member in/out connectors
     {
         float radius      = settings->ui.node.memberConnectorRadius;
@@ -1318,7 +1307,23 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
     draw_list->AddRect(rect.Min, rect.Max, ImColor(50,50, 50), rounding, cornerFlags );
 
     // behavior
-    if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
+    auto connectedNode = _connector->getConnectedNode();
+    if ( connectedNode && ImGui::BeginPopupContextItem() )
+    {
+        if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
+        {
+            auto node   = _connector->getNode();
+            auto graph  = node->getParentGraph();
+
+            if ( _connector->m_way == Way_In )
+                graph->disconnect(node, connectedNode, RelationType::IS_NEXT_OF);
+            else
+                graph->disconnect(connectedNode, node, RelationType::IS_NEXT_OF);
+        }
+
+        ImGui::EndPopup();
+    }
+    else if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
     {
         if (ImGui::IsMouseDown(0) && !IsDragging() && !NodeView::IsAnyDragged())
         {
@@ -1405,4 +1410,21 @@ bool NodeConnector::Connect(const NodeConnector *_left, const NodeConnector *_ri
     if ( _left->m_way == Way_Out )
         return _left->connect(_right);
     return _right->connect(_left);
+}
+
+Node* NodeConnector::getConnectedNode() const
+{
+    auto node = getNode();
+
+    if ( m_way == Way_In )
+    {
+        if ( node->getPrev().size() > m_index )
+            return node->getPrev()[m_index];
+    }
+    else if ( node->getNext().size() > m_index )
+    {
+        return node->getNext()[m_index];
+    }
+    return nullptr;
+
 }
