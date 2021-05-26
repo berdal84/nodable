@@ -302,19 +302,19 @@ NodableLanguage::NodableLanguage()
 
 	// number operator=(number, number)
 	BINARY_OP_BEGIN(Double, "=", Double, Double, 0u, ICON_FA_EQUALS " Assign")
-	    _args[0]->getInputMember()->set(ARG(1)); // TODO: implement references
+            _args[0]->getInput()->set(ARG(1)); // TODO: implement references
 		RETURN((double)ARG(1))
 	OPERATOR_END
 
     // string operator=(string, string)
     BINARY_OP_BEGIN(Str, "=", Str, Str, 0u, ICON_FA_EQUALS " Assign")
-            _args[0]->getInputMember()->set(ARG(1)); // TODO: implement references
+            _args[0]->getInput()->set(ARG(1)); // TODO: implement references
             RETURN((std::string)ARG(1))
     OPERATOR_END
 
 	// bool operator=(bool, bool)
 	BINARY_OP_BEGIN(Bool, "=", Bool, Bool, 0u, ICON_FA_EQUALS " Assign")
-            _args[0]->getInputMember()->set(ARG(1)); // // TODO: implement references
+            _args[0]->getInput()->set(ARG(1)); // // TODO: implement references
 			RETURN((bool)ARG(1))
 	OPERATOR_END
 

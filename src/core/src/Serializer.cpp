@@ -299,7 +299,7 @@ std::string& Serializer::serialize(std::string& _result, const InstructionNode* 
     if ( value->hasInputConnected() )
     {
         // var declaration ?
-        if ( auto variableNode = value->getInputMember()->getOwner()->as<VariableNode>() )
+        if ( auto variableNode = value->getInput()->getOwner()->as<VariableNode>() )
         {
             serialize( _result, variableNode );
         }

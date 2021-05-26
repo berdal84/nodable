@@ -8,12 +8,12 @@ using namespace Nodable;
 
 Member::Member()
     :
-    m_owner(nullptr),
-    m_visibility(Visibility::Default),
-    m_name("Unknown"),
-    m_sourceToken(Token::s_null),
-    m_inputMember(nullptr),
-    m_parentProperties(nullptr)
+        m_owner(nullptr),
+        m_visibility(Visibility::Default),
+        m_name("Unknown"),
+        m_sourceToken(Token::s_null),
+        m_input(nullptr),
+        m_parentProperties(nullptr)
     {}
 
 Member::Member(double d): Member()
@@ -38,7 +38,7 @@ Member::~Member(){}
 
 bool Member::hasInputConnected() const
 {
-    return this->getInputMember();
+    return this->getInput();
 }
 
 bool Member::equals(const Member *_other)const {
@@ -47,9 +47,9 @@ bool Member::equals(const Member *_other)const {
 		   (std::string)*_other == (std::string)*this;
 }
 
-void Member::setInputMember(Member* _val)
+void Member::setInput(Member* _val)
 {
-    m_inputMember = _val;
+    m_input = _val;
 
 	if (_val == nullptr)
         m_sourceExpression = "";

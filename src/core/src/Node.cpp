@@ -95,7 +95,7 @@ bool Node::eval() const
     for(auto& eachNameToMemberPair : m_props.getMembers())
     {
         Member* eachMember = eachNameToMemberPair.second;
-        if( Member* input = eachMember->getInputMember() )
+        if( Member* input = eachMember->getInput() )
         {
             // transfer value:  input ----> X
             eachMember->setType(input->getType()); // dynamic type, TODO: show a warning ?
