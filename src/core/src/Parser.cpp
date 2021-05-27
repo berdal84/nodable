@@ -90,6 +90,11 @@ bool Parser::expressionToGraph(const std::string& _code,
         return false;
     }
 
+    // We unset dirty, since we did a lot of connections but we don't want any update now
+    auto& nodes = graph->getNodeRegistry();
+    for(auto eachNode : nodes )
+        eachNode->setDirty(false);
+
 	LOG_MESSAGE("Parser", "Graph well updated.\n", _code.c_str() );
 	LOG_VERBOSE("Parser", "Expression evaluated: <expr>%s</expr>\"\n", _code.c_str() );
 	return true;
