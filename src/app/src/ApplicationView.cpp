@@ -725,7 +725,7 @@ void ApplicationView::drawStartupWindow() {
         const char* credit = "berenger@dalle-cort.fr";
         ImGui::SameLine( ImGui::GetContentRegionAvailWidth() - ImGui::CalcTextSize(credit).x);
         ImGui::TextWrapped( credit );
-
+        ImGui::TextWrapped( NODABLE_VERSION );
         if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
         {
             ImGui::CloseCurrentPopup();
