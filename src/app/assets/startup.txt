@@ -1,19 +1,19 @@
 
- // Simple expression
- double a = 2 + 5;
+// Simple expression
+double a = 2 + 5;
 
- // Multi line
- double f = pow(2, 2) - 1;
- double g = sqrt(64);
- double h = f + g;
+// Multi line
+double f = pow(2, 2) - 1;
+double g = sqrt(64);
+double h = f + g;
 
-// Conditional structure
+// Conditional structure:
 double a = 5;
 double b = 4;
 if ( a > b ) {
-  string result1 = "a > b";
+    string result1 = "a > b";
 } else {
-  string result2 = "a <= b";
+    string result2 = "a <= b";
 }
 
 bool cond_a = true;
