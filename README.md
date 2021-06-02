@@ -1,4 +1,4 @@
-<img src="https://github.com/berdal84/Nodable/blob/master/assets/nodable-logo-xs.png" />
+<img src="https://github.com/berdal84/Nodable/blob/master/src/app/assets/nodable-logo-xs.png" />
    
 <a href="https://github.com/berdal84/Nodable/actions?query=workflow%3Abuild" title="linux/windows x64">
 <img src="https://github.com/berdal84/nodable/workflows/build/badge.svg" />
@@ -17,11 +17,16 @@ In Nodable, textual and nodal point of views are strongly linked, in both ways:
 
 Demos:
 
-_Single line (graph to code)_
+_Single line (graph to code):_
+
 ![](https://www.dalle-cort.fr/wp-content/uploads/2021/06/demo_01.gif)
-_Single line (code to graph)_
+
+_Single line (code to graph):_
+
 ![](https://www.dalle-cort.fr/wp-content/uploads/2021/06/demo_01b.gif)
-_Multiple lines_
+
+_Multiple lines:_
+
 ![](https://www.dalle-cort.fr/wp-content/uploads/2021/06/demo_02.gif)
 
 ## How to try ?:
