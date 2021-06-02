@@ -15,11 +15,14 @@ In Nodable, textual and nodal point of views are strongly linked, in both ways:
 - A change to the source code will update the graph.
 - A change to the graph will update the source code.
 
-_Disclaimer: Nodable is a prototype, do not expect too much from it._
+Demos:
 
-Here, Nodable in action:
-
-![Demo GIF](https://www.dalle-cort.fr/wp-content/uploads/2018/01/2019_06_06_Nodable_0.4.1wip_Berenger_Dalle-Cort.gif)
+_Single line (graph to code)_
+![](https://www.dalle-cort.fr/wp-content/uploads/2021/06/demo_01.gif)
+_Single line (code to graph)_
+![](https://www.dalle-cort.fr/wp-content/uploads/2021/06/demo_01b.gif)
+_Multiple lines_
+![](https://www.dalle-cort.fr/wp-content/uploads/2021/06/demo_02.gif)
 
 ## How to try ?:
 
@@ -30,6 +33,8 @@ Compatible with:
 - Linux 64bits (tested under Ubuntu 20.04)
 
 To linux users: OpenGL and SDL libraries are required.
+
+_Disclaimer: Nodable is a prototype, do not expect too much from it._
 
 ### Download:
 
