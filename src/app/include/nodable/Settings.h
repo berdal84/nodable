@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <imgui/imgui.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 
@@ -16,6 +17,8 @@ namespace Nodable {
             struct {
                 TextStyle p;
                 TextStyle h1;
+                TextStyle icons;
+                TextStyle code;
                 TextEditor::Palette textEditorPalette;
             } text;
 
@@ -64,6 +67,10 @@ namespace Nodable {
                 ImVec4 hoveredColor;
                 ImVec4 color;
             } button;
+
+            struct {
+                std::string imagePath;
+            } splashscreen;
         } ui;
 
         void setImGuiStyle(ImGuiStyle&);

@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 
 	Application nodable("Nodable " NODABLE_VERSION_EXTENDED );
 	nodable.init();
-    auto startupFilePath = nodable.getAssetPath("startup.txt");
+    auto startupFilePath = nodable.getAssetPath("txt/startup.txt");
 	nodable.openFile(startupFilePath); // Init and open a startup file
 
 	try {

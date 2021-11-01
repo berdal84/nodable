@@ -1,4 +1,4 @@
-<img src="https://github.com/berdal84/Nodable/blob/master/src/app/assets/nodable-logo-xs.png" />
+<img src="https://github.com/berdal84/Nodable/blob/master/src/app/assets/images/nodable-logo-xs.png" />
    
 <a href="https://github.com/berdal84/Nodable/actions?query=workflow%3Abuild" title="linux/windows x64">
 <img src="https://github.com/berdal84/nodable/workflows/build/badge.svg" />

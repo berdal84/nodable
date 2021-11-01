@@ -42,6 +42,7 @@ namespace Nodable
         bool               isStartupWindowVisible;
         ImFont*            paragraphFont;
         ImFont*            headingFont;
+        ImFont*            codeFont;
         bool               isHistoryDragged;
         const char*        startupScreenTitle = "##STARTUPSCREEN";
         bool               isLayoutInitialized = false;

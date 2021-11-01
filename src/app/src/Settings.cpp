@@ -16,11 +16,19 @@ Settings* Settings::GetCurrent()
         // main layout
         g_conf->ui.layout.propertiesRatio       = 0.25f;
 
+        // splashscreen
+        g_conf->ui.splashscreen.imagePath = "images/nodable-logo-xs.png";
+
         // text
+        g_conf->ui.text.code.size               = 18.0f;
+        g_conf->ui.text.code.font               = "fonts/JetBrainsMono-Regular.ttf";
         g_conf->ui.text.p.size                  = 18.0f;
-        g_conf->ui.text.p.font                  = "CenturyGothic.ttf";
+        g_conf->ui.text.p.font                  = "fonts/JetBrainsMono-Medium.ttf";
+        g_conf->ui.text.icons.size              = g_conf->ui.text.p.size;
+        g_conf->ui.text.icons.font              = "fonts/fa-solid-900.ttf";
         g_conf->ui.text.h1.size                 = 25.0f;
-        g_conf->ui.text.h1.font                 = "CenturyGothic.ttf";
+        g_conf->ui.text.h1.font                 = "fonts/JetBrainsMono-Bold.ttf";
+
         g_conf->ui.text.textEditorPalette       = {
             0xffffffff, // None
             0xffd69c56, // Keyword

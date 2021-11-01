@@ -104,10 +104,10 @@ bool ApplicationView::init()
             config.OversampleV = 1;
             config.MergeMode = true;
             config.PixelSnapH = true;
-            config.GlyphMinAdvanceX = settings->ui.text.p.size; // monospace to fix text alignment in drop down menus.
-            auto fontPath = application->getAssetPath("fa-solid-900.ttf").string();
+            config.GlyphMinAdvanceX = settings->ui.text.icons.size; // monospace to fix text alignment in drop down menus.
+            auto fontPath = application->getAssetPath(settings->ui.text.icons.font).string();
             LOG_MESSAGE("ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
-            io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui.text.p.size, &config, icons_ranges);
+            io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui.text.icons.size, &config, icons_ranges);
         }
     }
 
@@ -121,6 +121,18 @@ bool ApplicationView::init()
         auto fontPath = application->getAssetPath(settings->ui.text.h1.font).string();
         LOG_MESSAGE( "ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
         this->headingFont = io.Fonts->AddFontFromFileTTF( fontPath.c_str(), settings->ui.text.h1.size, &config);
+    }
+
+    /** code font */
+    {
+        ImFontConfig config;
+        config.OversampleH = 3;
+        config.OversampleV = 1;
+
+        //io.Fonts->AddFontDefault();
+        auto fontPath = application->getAssetPath(settings->ui.text.code.font).string();
+        LOG_MESSAGE("ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
+        this->codeFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui.text.code.size, &config);
     }
 
     // Configure ImGui Style
@@ -603,7 +615,9 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size
             }
 
             ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0,0,0,0.35f) );
+            ImGui::PushFont(codeFont);
             eachFileView->drawAsChild("FileView", availSize, false);
+            ImGui::PopFont();
             ImGui::PopStyleColor();
 
             // Status bar
@@ -681,7 +695,7 @@ void ApplicationView::drawStartupWindow() {
     if ( ImGui::BeginPopupModal(startupScreenTitle, nullptr, flags) )
     {
 
-        std::filesystem::path path(NODABLE_ASSETS_DIR"/nodable-logo-xs.png");
+        auto path = application->getAssetPath(Settings::GetCurrent()->ui.splashscreen.imagePath.c_str());
         auto logo = Texture::GetWithPath(path);
         ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
         ImGui::Image((void*)(intptr_t)logo->image, ImVec2((float)logo->width, (float)logo->height));
