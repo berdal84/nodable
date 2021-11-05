@@ -4,9 +4,11 @@
 #include <SDL.h>
 #include <string>
 #include <mirror.h>
+#include <map>
 
 #include <nodable/Nodable.h>
 #include <nodable/View.h>
+#include <nodable/FontConf.h>
 
 // Override imfilebrowser.h icons
 #define IMFILEBROWSER_FILE_ICON ICON_FA_FILE
@@ -40,19 +42,24 @@ namespace Nodable
 		SDL_GLContext      glcontext;
 		ImColor            backgroundColor;
         bool               isStartupWindowVisible;
-        ImFont*            paragraphFont;
-        ImFont*            headingFont;
-        ImFont*            codeFont;
         bool               isHistoryDragged;
         const char*        startupScreenTitle = "##STARTUPSCREEN";
         bool               isLayoutInitialized = false;
         std::string        m_glWindowName;
         bool               m_showProperties;
         bool               m_showImGuiDemo;
+        /** All fonts registered in the app */
+        std::map<std::string, ImFont*> m_fontRegister;
+        /** Fonts currently used by the app */
+        struct {
+            ImFont*            p;
+            ImFont*            h1;
+            ImFont*            code;
+        } fonts;
 
+        ImFont* createFont( const FontConf& );
         void drawHistoryBar(History *currentFileHistory);
         void drawStatusBar() const;
-
         void drawStartupWindow();
         void drawFileEditor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex);
         void drawFileBrowser();

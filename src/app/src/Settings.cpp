@@ -20,14 +20,30 @@ Settings* Settings::GetCurrent()
         g_conf->ui.splashscreen.imagePath = "images/nodable-logo-xs.png";
 
         // text
-        g_conf->ui.text.code.size               = 18.0f;
-        g_conf->ui.text.code.font               = "fonts/JetBrainsMono-Regular.ttf";
-        g_conf->ui.text.p.size                  = 18.0f;
-        g_conf->ui.text.p.font                  = "fonts/JetBrainsMono-Medium.ttf";
-        g_conf->ui.text.icons.size              = g_conf->ui.text.p.size;
-        g_conf->ui.text.icons.font              = "fonts/fa-solid-900.ttf";
-        g_conf->ui.text.h1.size                 = 25.0f;
-        g_conf->ui.text.h1.font                 = "fonts/JetBrainsMono-Bold.ttf";
+        g_conf->ui.text = {
+                .p = {
+                        .id = "p",
+                        .size = 18.0f,
+                        .path = "fonts/JetBrainsMono-Medium.ttf",
+                        .enableIcons = true
+                },
+                .h1 = {
+                        .id = "p",
+                        .size = 25.0f,
+                        .path = "fonts/JetBrainsMono-Bold.ttf",
+                        .enableIcons = true
+                },
+                .code = {
+                        .id = "code",
+                        .size = 18.0f,
+                        .path = "fonts/JetBrainsMono-Regular.ttf",
+                        .enableIcons = true
+                }
+        };
+
+        g_conf->ui.icons.size              = g_conf->ui.text.p.size;
+        g_conf->ui.icons.path              = "fonts/fa-solid-900.ttf";
+
 
         g_conf->ui.text.textEditorPalette       = {
             0xffffffff, // None

@@ -3,24 +3,21 @@
 #include <string>
 #include <imgui/imgui.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
+#include <nodable/FontConf.h>
 
 namespace Nodable {
-
-    struct TextStyle {
-        float size;
-        const char* font;
-    };
 
     struct Settings {
     public:
         struct {
             struct {
-                TextStyle p;
-                TextStyle h1;
-                TextStyle icons;
-                TextStyle code;
+                FontConf p;
+                FontConf h1;
+                FontConf code;
                 TextEditor::Palette textEditorPalette;
             } text;
+
+            FontConf icons;
 
             struct {
                 struct {

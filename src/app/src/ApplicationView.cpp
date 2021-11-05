@@ -82,58 +82,10 @@ bool ApplicationView::init()
 	// Setup Dear ImGui style
     settings->setImGuiStyle(ImGui::GetStyle());
 
-    /** Add a paragraph font */
-    {
-        {
-            ImFontConfig config;
-            config.OversampleH = 3;
-            config.OversampleV = 1;
-
-            //io.Fonts->AddFontDefault();
-            auto fontPath = application->getAssetPath(settings->ui.text.p.font).string();
-            LOG_MESSAGE("ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
-            this->paragraphFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui.text.p.size, &config);
-        }
-
-        // Add Icons my merging to previous (paragraphFont) font.
-        {
-            // merge in icons from Font Awesome
-            static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
-            ImFontConfig config;
-            config.OversampleH = 3;
-            config.OversampleV = 1;
-            config.MergeMode = true;
-            config.PixelSnapH = true;
-            config.GlyphMinAdvanceX = settings->ui.text.icons.size; // monospace to fix text alignment in drop down menus.
-            auto fontPath = application->getAssetPath(settings->ui.text.icons.font).string();
-            LOG_MESSAGE("ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
-            io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui.text.icons.size, &config, icons_ranges);
-        }
-    }
-
-    /** Add a heading font */
-    {
-        ImFontConfig config;
-        config.OversampleH    = 3;
-        config.OversampleV    = 1;
-
-        //io.Fonts->AddFontDefault();
-        auto fontPath = application->getAssetPath(settings->ui.text.h1.font).string();
-        LOG_MESSAGE( "ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
-        this->headingFont = io.Fonts->AddFontFromFileTTF( fontPath.c_str(), settings->ui.text.h1.size, &config);
-    }
-
-    /** code font */
-    {
-        ImFontConfig config;
-        config.OversampleH = 3;
-        config.OversampleV = 1;
-
-        //io.Fonts->AddFontDefault();
-        auto fontPath = application->getAssetPath(settings->ui.text.code.font).string();
-        LOG_MESSAGE("ApplicationView", "Adding font from file: %s\n", fontPath.c_str());
-        this->codeFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui.text.code.size, &config);
-    }
+    // Create fonts
+    fonts.p    = createFont( settings->ui.text.p );
+    fonts.h1   = createFont( settings->ui.text.h1 );
+    fonts.code = createFont( settings->ui.text.code );
 
     // Configure ImGui Style
     ImGuiStyle& style = ImGui::GetStyle();
@@ -152,6 +104,44 @@ bool ApplicationView::init()
     ImGui_ImplOpenGL3_Init(glsl_version);
 
 	return true;
+}
+
+ImFont* ApplicationView::createFont( const FontConf& fontConf) {
+
+    ImFont*  font     = nullptr;
+    auto&    io       = ImGui::GetIO();
+    auto     settings = Settings::GetCurrent();
+
+    // Create font
+    {
+        ImFontConfig config;
+        config.OversampleH = 3;
+        config.OversampleV = 1;
+
+        //io.Fonts->AddFontDefault();
+        auto fontPath = application->getAssetPath(fontConf.path).string();
+        LOG_MESSAGE("ApplicationView", "Adding font from file ... %s\n", fontPath.c_str());
+        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), fontConf.size, &config);
+    }
+
+    // Add Icons my merging to previous font.
+    if ( fontConf.enableIcons ) {
+        // merge in icons from Font Awesome
+        static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+        ImFontConfig config;
+        config.OversampleH = 3;
+        config.OversampleV = 1;
+        config.MergeMode = true;
+        config.PixelSnapH = true;
+        config.GlyphMinAdvanceX = settings->ui.icons.size; // monospace to fix text alignment in drop down menus.
+        auto fontPath = application->getAssetPath(settings->ui.icons.path).string();
+        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui.icons.size, &config, icons_ranges);
+        LOG_VERBOSE("ApplicationView", "Adding icons to font ...\n");
+    }
+
+    m_fontRegister.insert({fontConf.id, font});
+    LOG_MESSAGE("ApplicationView", "Font %s added to register with the id %s\n", fontConf.path, fontConf.id);
+    return font;
 }
 
 bool ApplicationView::draw()
@@ -219,7 +209,7 @@ bool ApplicationView::draw()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(sdlWindow);
 	ImGui::NewFrame();
-    ImGui::SetCurrentFont(this->paragraphFont);
+    ImGui::SetCurrentFont(fonts.p );
 
     // Startup Window
     drawStartupWindow();
@@ -615,7 +605,7 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size
             }
 
             ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0,0,0,0.35f) );
-            ImGui::PushFont(codeFont);
+            ImGui::PushFont( fonts.code );
             eachFileView->drawAsChild("FileView", availSize, false);
             ImGui::PopFont();
             ImGui::PopStyleColor();
@@ -704,7 +694,7 @@ void ApplicationView::drawStartupWindow() {
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
         {
-            ImGui::PushFont(headingFont);
+            ImGui::PushFont( fonts.h1 );
             ImGui::NewLine();
             ImGui::Text("Nodable is node-able");
             ImGui::PopFont();
@@ -715,7 +705,7 @@ void ApplicationView::drawStartupWindow() {
         ImGui::TextWrapped("The goal of Nodable is to allow you to edit a computer program in a textual and nodal way at the same time." );
 
         {
-            ImGui::PushFont(headingFont);
+            ImGui::PushFont( fonts.h1 );
             ImGui::NewLine();
             ImGui::Text("Manifest");
             ImGui::PopFont();
@@ -725,7 +715,7 @@ void ApplicationView::drawStartupWindow() {
         ImGui::TextWrapped( "The nodal and textual points of view each have pros and cons. The user should not be forced to choose one of the two." );
 
         {
-            ImGui::PushFont(headingFont);
+            ImGui::PushFont( fonts.h1 );
             ImGui::NewLine();
             ImGui::Text("Disclaimer");
             ImGui::PopFont();
