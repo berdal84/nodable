@@ -9,6 +9,7 @@
 #include <nodable/Nodable.h>
 #include <nodable/View.h>
 #include <nodable/FontConf.h>
+#include <nodable/FontSlot.h>
 
 // Override imfilebrowser.h icons
 #define IMFILEBROWSER_FILE_ICON ICON_FA_FILE
@@ -48,16 +49,9 @@ namespace Nodable
         std::string        m_glWindowName;
         bool               m_showProperties;
         bool               m_showImGuiDemo;
-        /** All fonts registered in the app */
-        std::map<std::string, ImFont*> m_fontRegister;
-        /** Fonts currently used by the app */
-        struct {
-            ImFont*            p;
-            ImFont*            h1;
-            ImFont*            code;
-        } fonts;
+        std::map<std::string, ImFont*> m_loadedFonts; // All fonts loaded in memory
+        std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
 
-        ImFont* createFont( const FontConf& );
         void drawHistoryBar(History *currentFileHistory);
         void drawStatusBar() const;
         void drawStartupWindow();
@@ -66,11 +60,14 @@ namespace Nodable
         void drawBackground();
         void drawPropertiesWindow();
         void drawToolBar();
+        ImFont* loadFont(const FontConf &fontConf);
+        ImFont* getFontById(const char *id );
 
         /* reflect class using mirror */
         MIRROR_CLASS(ApplicationView)
         (
             MIRROR_PARENT(View) // we only need to know parent
         );
+
     };
 }

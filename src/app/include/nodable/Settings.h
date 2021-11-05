@@ -1,9 +1,11 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <imgui/imgui.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <nodable/FontConf.h>
+#include "FontSlot.h"
 
 namespace Nodable {
 
@@ -11,9 +13,8 @@ namespace Nodable {
     public:
         struct {
             struct {
-                FontConf p;
-                FontConf h1;
-                FontConf code;
+                std::vector<FontConf> fonts;
+                std::array<const char *, FontSlot_COUNT> defaultFontsId;
                 TextEditor::Palette textEditorPalette;
             } text;
 

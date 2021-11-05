@@ -82,10 +82,18 @@ bool ApplicationView::init()
 	// Setup Dear ImGui style
     settings->setImGuiStyle(ImGui::GetStyle());
 
-    // Create fonts
-    fonts.p    = createFont( settings->ui.text.p );
-    fonts.h1   = createFont( settings->ui.text.h1 );
-    fonts.code = createFont( settings->ui.text.code );
+    // load fonts (TODO: hum, load only if font is used...)
+    for ( auto& each_font : settings->ui.text.fonts )
+    {
+        loadFont(each_font);
+    }
+
+    // Assign fonts (user might want to change it later, but we need defaults)
+    for( auto each_slot = 0; each_slot < FontSlot_COUNT; ++each_slot )
+    {
+        const char* font_id = settings->ui.text.defaultFontsId[each_slot];
+        m_fonts[each_slot] = getFontById(font_id);
+    }
 
     // Configure ImGui Style
     ImGuiStyle& style = ImGui::GetStyle();
@@ -106,7 +114,13 @@ bool ApplicationView::init()
 	return true;
 }
 
-ImFont* ApplicationView::createFont( const FontConf& fontConf) {
+ImFont* ApplicationView::getFontById(const char* id ) {
+    return m_loadedFonts.at(id );
+}
+
+ImFont* ApplicationView::loadFont(const FontConf& fontConf) {
+
+    NODABLE_ASSERT(m_loadedFonts.find(fontConf.id) == m_loadedFonts.end()); // do not allow the use of same key for different fonts
 
     ImFont*  font     = nullptr;
     auto&    io       = ImGui::GetIO();
@@ -120,7 +134,7 @@ ImFont* ApplicationView::createFont( const FontConf& fontConf) {
 
         //io.Fonts->AddFontDefault();
         auto fontPath = application->getAssetPath(fontConf.path).string();
-        LOG_MESSAGE("ApplicationView", "Adding font from file ... %s\n", fontPath.c_str());
+        LOG_VERBOSE("ApplicationView", "Adding font from file ... %s\n", fontPath.c_str());
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), fontConf.size, &config);
     }
 
@@ -139,8 +153,8 @@ ImFont* ApplicationView::createFont( const FontConf& fontConf) {
         LOG_VERBOSE("ApplicationView", "Adding icons to font ...\n");
     }
 
-    m_fontRegister.insert({fontConf.id, font});
-    LOG_MESSAGE("ApplicationView", "Font %s added to register with the id %s\n", fontConf.path, fontConf.id);
+    m_loadedFonts.insert({fontConf.id, font});
+    LOG_MESSAGE("ApplicationView", "Font %s added to register with the id \"%s\"\n", fontConf.path, fontConf.id);
     return font;
 }
 
@@ -209,7 +223,7 @@ bool ApplicationView::draw()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(sdlWindow);
 	ImGui::NewFrame();
-    ImGui::SetCurrentFont(fonts.p );
+    ImGui::SetCurrentFont( m_fonts[FontSlot_Paragraph] );
 
     // Startup Window
     drawStartupWindow();
@@ -605,7 +619,7 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size
             }
 
             ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0,0,0,0.35f) );
-            ImGui::PushFont( fonts.code );
+            ImGui::PushFont(m_fonts[FontSlot_Code] );
             eachFileView->drawAsChild("FileView", availSize, false);
             ImGui::PopFont();
             ImGui::PopStyleColor();
@@ -694,7 +708,7 @@ void ApplicationView::drawStartupWindow() {
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
         {
-            ImGui::PushFont( fonts.h1 );
+            ImGui::PushFont(m_fonts[FontSlot_Heading] );
             ImGui::NewLine();
             ImGui::Text("Nodable is node-able");
             ImGui::PopFont();
@@ -705,7 +719,7 @@ void ApplicationView::drawStartupWindow() {
         ImGui::TextWrapped("The goal of Nodable is to allow you to edit a computer program in a textual and nodal way at the same time." );
 
         {
-            ImGui::PushFont( fonts.h1 );
+            ImGui::PushFont(m_fonts[FontSlot_Heading] );
             ImGui::NewLine();
             ImGui::Text("Manifest");
             ImGui::PopFont();
@@ -715,7 +729,7 @@ void ApplicationView::drawStartupWindow() {
         ImGui::TextWrapped( "The nodal and textual points of view each have pros and cons. The user should not be forced to choose one of the two." );
 
         {
-            ImGui::PushFont( fonts.h1 );
+            ImGui::PushFont(m_fonts[FontSlot_Heading] );
             ImGui::NewLine();
             ImGui::Text("Disclaimer");
             ImGui::PopFont();

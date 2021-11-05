@@ -20,28 +20,32 @@ Settings* Settings::GetCurrent()
         g_conf->ui.splashscreen.imagePath = "images/nodable-logo-xs.png";
 
         // text
-        g_conf->ui.text = {
+        g_conf->ui.text.fonts = {
             {
-                "p",
+                "Medium 18px",
                 18.0f,
                 "fonts/JetBrainsMono-Medium.ttf",
                 true
             },
             {
-                "h1",
+                "Bold 25px",
                 25.0f,
                 "fonts/JetBrainsMono-Bold.ttf",
                 true
             },
             {
-                "code",
+                "Regular 18px",
                 18.0f,
                 "fonts/JetBrainsMono-Regular.ttf",
                 true
             }
         };
 
-        g_conf->ui.icons.size              = g_conf->ui.text.p.size;
+        g_conf->ui.text.defaultFontsId[FontSlot_Paragraph] = "Medium 18px";
+        g_conf->ui.text.defaultFontsId[FontSlot_Heading]   = "Bold 25px";
+        g_conf->ui.text.defaultFontsId[FontSlot_Code]      = "Regular 18px";
+
+        g_conf->ui.icons.size              = 18.0f;
         g_conf->ui.icons.path              = "fonts/fa-solid-900.ttf";
 
 
