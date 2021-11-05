@@ -21,24 +21,24 @@ Settings* Settings::GetCurrent()
 
         // text
         g_conf->ui.text = {
-                .p = {
-                        .id = "p",
-                        .size = 18.0f,
-                        .path = "fonts/JetBrainsMono-Medium.ttf",
-                        .enableIcons = true
-                },
-                .h1 = {
-                        .id = "p",
-                        .size = 25.0f,
-                        .path = "fonts/JetBrainsMono-Bold.ttf",
-                        .enableIcons = true
-                },
-                .code = {
-                        .id = "code",
-                        .size = 18.0f,
-                        .path = "fonts/JetBrainsMono-Regular.ttf",
-                        .enableIcons = true
-                }
+            {
+                "p",
+                18.0f,
+                "fonts/JetBrainsMono-Medium.ttf",
+                true
+            },
+            {
+                "h1",
+                25.0f,
+                "fonts/JetBrainsMono-Bold.ttf",
+                true
+            },
+            {
+                "code",
+                18.0f,
+                "fonts/JetBrainsMono-Regular.ttf",
+                true
+            }
         };
 
         g_conf->ui.icons.size              = g_conf->ui.text.p.size;
