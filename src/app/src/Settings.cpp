@@ -1,9 +1,15 @@
 #include <nodable/Settings.h>
 #include <imgui/imgui.h>
+#include <string>
+#include <fstream>
+#include <nodable/Log.h>
+#include <rapidjson/istreamwrapper.h>
+#include <rapidjson/document.h>
+#include <nodable/SimpleKeyValueSerializer.h>
 
 using namespace Nodable;
 
-Settings* Settings::GetCurrent()
+Settings* Settings::Get()
 {
     static Settings* g_conf = nullptr;
 
@@ -14,13 +20,13 @@ Settings* Settings::GetCurrent()
         // TODO: create themes
 
         // main layout
-        g_conf->ui.layout.propertiesRatio       = 0.25f;
+        g_conf->ui_layout_propertiesRatio = 0.25f;
 
         // splashscreen
-        g_conf->ui.splashscreen.imagePath = "images/nodable-logo-xs.png";
+        g_conf->ui_splashscreen_imagePath = "images/nodable-logo-xs.png";
 
         // text
-        g_conf->ui.text.fonts = {
+        g_conf->ui_text_fonts = {
             {
                 "Medium 18px",
                 18.0f,
@@ -41,15 +47,18 @@ Settings* Settings::GetCurrent()
             }
         };
 
-        g_conf->ui.text.defaultFontsId[FontSlot_Paragraph] = "Medium 18px";
-        g_conf->ui.text.defaultFontsId[FontSlot_Heading]   = "Bold 25px";
-        g_conf->ui.text.defaultFontsId[FontSlot_Code]      = "Regular 18px";
+        g_conf->ui_text_defaultFontsId[FontSlot_Paragraph] = "Medium 18px";
+        g_conf->ui_text_defaultFontsId[FontSlot_Heading]   = "Bold 25px";
+        g_conf->ui_text_defaultFontsId[FontSlot_Code]      = "Regular 18px";
 
-        g_conf->ui.icons.size              = 18.0f;
-        g_conf->ui.icons.path              = "fonts/fa-solid-900.ttf";
+        g_conf->ui_icons = {
+                "Icons",
+                18.0f,
+                "fonts/fa-solid-900.ttf"
+        };
 
 
-        g_conf->ui.text.textEditorPalette       = {
+        g_conf->ui_text_textEditorPalette       = {
             0xffffffff, // None
             0xffd69c56, // Keyword
             0xff00ff00, // Number
@@ -74,40 +83,40 @@ Settings* Settings::GetCurrent()
         };
 
         // nodes
-        g_conf->ui.node.padding                = 6.0f;
-        g_conf->ui.node.memberConnectorRadius        = 5.0f;
-        g_conf->ui.node.functionColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
-        g_conf->ui.node.variableColor          = ImVec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
-        g_conf->ui.node.instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f); // green
-        g_conf->ui.node.literalColor           = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
-        g_conf->ui.node.fillColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        g_conf->ui.node.highlightedColor       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        g_conf->ui.node.borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-        g_conf->ui.node.borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
-        g_conf->ui.node.shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
-        g_conf->ui.node.nodeConnectorHoveredColor = ImColor(200,200, 200);
-        g_conf->ui.node.nodeConnectorColor     = ImColor(127,127, 127);
-        g_conf->ui.node.spacing                = 15.0f;
-        g_conf->ui.node.speed                  = 30.0f;
-        g_conf->ui.node.nodeConnectorHeight    = 10.0f;
-        g_conf->ui.node.nodeConnectorPadding   = 4.0f;
+        g_conf->ui_node_padding                = 6.0f;
+        g_conf->ui_node_memberConnectorRadius  = 5.0f;
+        g_conf->ui_node_functionColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
+        g_conf->ui_node_variableColor          = ImVec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
+        g_conf->ui_node_instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f); // green
+        g_conf->ui_node_literalColor           = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
+        g_conf->ui_node_fillColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        g_conf->ui_node_highlightedColor       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        g_conf->ui_node_borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+        g_conf->ui_node_borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
+        g_conf->ui_node_shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
+        g_conf->ui_node_nodeConnectorHoveredColor = ImColor(200,200, 200);
+        g_conf->ui_node_nodeConnectorColor     = ImColor(127,127, 127);
+        g_conf->ui_node_spacing                = 15.0f;
+        g_conf->ui_node_speed                  = 30.0f;
+        g_conf->ui_node_nodeConnectorHeight    = 10.0f;
+        g_conf->ui_node_nodeConnectorPadding   = 4.0f;
 
         // wires
-        g_conf->ui.wire.bezier.roundness        = 0.5f;
-        g_conf->ui.wire.bezier.thickness        = 2.0f;
-        g_conf->ui.wire.displayArrows           = false;
-        g_conf->ui.wire.fillColor               = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        g_conf->ui.wire.shadowColor             = g_conf->ui.node.shadowColor;
+        g_conf->ui_wire_bezier_roundness        = 0.5f;
+        g_conf->ui_wire_bezier_thickness        = 2.0f;
+        g_conf->ui_wire_displayArrows           = false;
+        g_conf->ui_wire_fillColor               = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        g_conf->ui_wire_shadowColor             = g_conf->ui_node_shadowColor;
 
         // code flow
-        g_conf->ui.codeFlow.lineWidthMax        = 40.0f;
-        g_conf->ui.codeFlow.lineColor           = ImColor(200,255,200,50);
-        g_conf->ui.codeFlow.lineShadowColor     = ImColor(0,0,0,64);
+        g_conf->ui_codeFlow_lineWidthMax        = 40.0f;
+        g_conf->ui_codeFlow_lineColor           = ImColor(200,255,200,50);
+        g_conf->ui_codeFlow_lineShadowColor     = ImColor(0,0,0,64);
 
         // buttons
-        g_conf->ui.button.color                 = ImVec4(0.50f, 0.50f, 0.50f, 0.63f);
-        g_conf->ui.button.hoveredColor          = ImVec4(0.70f, 0.70f, 0.70f, 0.95f);
-        g_conf->ui.button.activeColor           = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
+        g_conf->ui_button_color                 = ImVec4(0.50f, 0.50f, 0.50f, 0.63f);
+        g_conf->ui_button_hoveredColor          = ImVec4(0.70f, 0.70f, 0.70f, 0.95f);
+        g_conf->ui_button_activeColor           = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
 
     }
     return g_conf;
@@ -138,9 +147,9 @@ void Settings::setImGuiStyle(ImGuiStyle& _style)
     colors[ImGuiCol_CheckMark]              = ImVec4(0.31f, 0.23f, 0.14f, 1.00f);
     colors[ImGuiCol_SliderGrab]             = ImVec4(0.71f, 0.46f, 0.22f, 0.63f);
     colors[ImGuiCol_SliderGrabActive]       = ImVec4(0.71f, 0.46f, 0.22f, 1.00f);
-    colors[ImGuiCol_Button]                 = ui.button.color;
-    colors[ImGuiCol_ButtonHovered]          = ui.button.hoveredColor;
-    colors[ImGuiCol_ButtonActive]           = ui.button.activeColor;
+    colors[ImGuiCol_Button]                 = ui_button_color;
+    colors[ImGuiCol_ButtonHovered]          = ui_button_hoveredColor;
+    colors[ImGuiCol_ButtonActive]           = ui_button_activeColor;
     colors[ImGuiCol_Header]                 = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
     colors[ImGuiCol_HeaderHovered]          = ImVec4(0.89f, 0.65f, 0.11f, 0.96f);
     colors[ImGuiCol_HeaderActive]           = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);

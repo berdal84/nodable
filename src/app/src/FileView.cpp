@@ -41,7 +41,7 @@ void FileView::init()
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_textEditor.SetLanguageDefinition(lang);
 	m_textEditor.SetImGuiChildIgnored(true);
-	m_textEditor.SetPalette(Settings::GetCurrent()->ui.text.textEditorPalette);
+	m_textEditor.SetPalette(Settings::Get()->ui_text_textEditorPalette);
 }
 
 bool FileView::draw()

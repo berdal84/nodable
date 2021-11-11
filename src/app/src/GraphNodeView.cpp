@@ -24,7 +24,7 @@ bool GraphNodeView::draw()
     bool edited = false;
     Runner* runner = &Application::s_instance->getRunner();
 
-    Settings* settings = Settings::GetCurrent();
+    Settings* settings = Settings::Get();
     GraphNode* graph = getGraphNode();
     auto nodeRegistry = graph->getNodeRegistry();
 
@@ -47,7 +47,7 @@ bool GraphNodeView::draw()
             if (each_view && each_next_view && each_view->isVisible() && each_next_view->isVisible() )
             {
                 float viewWidthMin = std::min(each_next_view->getRect().GetSize().x, each_view->getRect().GetSize().x);
-                float lineWidth = std::min(Settings::GetCurrent()->ui.codeFlow.lineWidthMax,
+                float lineWidth = std::min(Settings::Get()->ui_codeFlow_lineWidthMax,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
                 ImVec2 start = each_view->getScreenPos();
@@ -58,8 +58,8 @@ bool GraphNodeView::draw()
                 end.x -= each_next_view->getSize().x * 0.5f;
                 end.x += lineWidth * 0.5f;
 
-                ImColor color(Settings::GetCurrent()->ui.codeFlow.lineColor);
-                ImColor shadowColor(Settings::GetCurrent()->ui.codeFlow.lineShadowColor);
+                ImColor color(Settings::Get()->ui_codeFlow_lineColor);
+                ImColor shadowColor(Settings::Get()->ui_codeFlow_lineShadowColor);
                 ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,
                                           lineWidth - linePadding * 2.0f, 0.0f);
             }
@@ -76,19 +76,19 @@ bool GraphNodeView::draw()
             auto hoveredMemberConnector = MemberConnector::GetHovered();
             ImVec2 start = draggedMemberConnector->getPos();
             ImVec2 end   = hoveredMemberConnector ? hoveredMemberConnector->getPos() : ImGui::GetMousePos();
-            ImGui::GetWindowDrawList()->AddLine(start, end,getColor(ColorType_BorderHighlights), settings->ui.wire.bezier.thickness);
+            ImGui::GetWindowDrawList()->AddLine(start, end,getColor(ColorType_BorderHighlights), settings->ui_wire_bezier_thickness);
         }
 
         // Draw temporary Node connection
         if (auto draggedNodeConnector = NodeConnector::GetDragged())
         {
             auto hoveredNodeConnector = NodeConnector::GetHovered();
-            auto codeFlowSettings     = Settings::GetCurrent()->ui.codeFlow;
+            auto settings     = Settings::Get();
             ImVec2 start = draggedNodeConnector->getPos();
             ImVec2 end   = hoveredNodeConnector ? hoveredNodeConnector->getPos() : ImGui::GetMousePos();
-            ImColor color(codeFlowSettings.lineColor);
-            ImColor shadowColor(codeFlowSettings.lineShadowColor);
-            ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,codeFlowSettings.lineWidthMax, 0.0f);
+            ImColor color(settings->ui_codeFlow_lineColor);
+            ImColor shadowColor(settings->ui_codeFlow_lineShadowColor);
+            ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,settings->ui_codeFlow_lineWidthMax, 0.0f);
         }
 
         // Drops ?

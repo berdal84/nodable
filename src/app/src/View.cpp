@@ -8,14 +8,14 @@ View::View():
 	visible(true),
 	visibleRect()
 {
-    Settings* settings = Settings::GetCurrent();
+    Settings* settings = Settings::Get();
 
 	// set default colors
-	colors.insert({ColorType_Fill,              &settings->ui.node.fillColor});
-	colors.insert({ ColorType_Highlighted,      &settings->ui.node.highlightedColor});
-	colors.insert({ ColorType_Border,           &settings->ui.node.borderColor});
-	colors.insert({ ColorType_BorderHighlights, &settings->ui.node.borderHighlightedColor});
-	colors.insert({ ColorType_Shadow,           &settings->ui.node.shadowColor});
+	colors.insert({ColorType_Fill,              &settings->ui_node_fillColor});
+	colors.insert({ ColorType_Highlighted,      &settings->ui_node_highlightedColor});
+	colors.insert({ ColorType_Border,           &settings->ui_node_borderColor});
+	colors.insert({ ColorType_BorderHighlights, &settings->ui_node_borderHighlightedColor});
+	colors.insert({ ColorType_Shadow,           &settings->ui_node_shadowColor});
 }
 
 void View::setColor(ColorType_ _type, ImVec4* _color)

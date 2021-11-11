@@ -112,22 +112,22 @@ void NodeView::setOwner(Node* _node)
     }
 
     // Determine a color depending on node type
-    auto settings = Settings::GetCurrent();
+    auto settings = Settings::Get();
     if (_node->hasComponent<ComputeBase>())
     {
-        setColor(ColorType_Fill, &settings->ui.node.functionColor); // blue
+        setColor(ColorType_Fill, &settings->ui_node_functionColor); // blue
     }
     else if ( _node->getClass() == mirror::GetClass<VariableNode>() )
     {
-        setColor(ColorType_Fill, &settings->ui.node.variableColor); // purple
+        setColor(ColorType_Fill, &settings->ui_node_variableColor); // purple
     }
     else if ( _node->getClass() == mirror::GetClass<LiteralNode>() )
     {
-        setColor(ColorType_Fill, &settings->ui.node.literalColor);
+        setColor(ColorType_Fill, &settings->ui_node_literalColor);
     }
     else
     {
-        setColor(ColorType_Fill, &settings->ui.node.instructionColor); // green
+        setColor(ColorType_Fill, &settings->ui_node_instructionColor); // green
     }
 
     // NodeConnectors
@@ -285,15 +285,15 @@ bool NodeView::draw()
 	bool edited = false;
 	auto node   = getOwner();
 
-	auto settings = Settings::GetCurrent();
+	auto settings = Settings::Get();
 
 	NODABLE_ASSERT(node != nullptr);
 
     // Draw Node connectors (in background)
     bool is_connector_hovered = false;
     {
-        ImColor color = settings->ui.node.nodeConnectorColor;
-        ImColor hoveredColor = settings->ui.node.nodeConnectorHoveredColor;
+        ImColor color = settings->ui_node_nodeConnectorColor;
+        ImColor hoveredColor = settings->ui_node_nodeConnectorHoveredColor;
 
         auto drawConnectorAndHandleUserEvents = [&](NodeConnector *connector) {
             NodeConnector::Draw(connector, color, hoveredColor);
@@ -328,7 +328,7 @@ bool NodeView::draw()
 		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_borderRadius);
 
 		// darken the background under the content
-		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings->ui.node.padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_borderRadius, 4);
+		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings->ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_borderRadius, 4);
 
 		// Draw an additionnal blinking rectangle when selected
 		if (IsSelected(this))
@@ -343,7 +343,7 @@ bool NodeView::draw()
 	ImGui::SetCursorPos(cursorPositionBeforeContent);
 	ImGui::InvisibleButton("node", m_size);
     ImGui::SetItemAllowOverlap();
-	ImGui::SetCursorPos(cursorPositionBeforeContent + settings->ui.node.padding );
+	ImGui::SetCursorPos(cursorPositionBeforeContent + settings->ui_node_padding );
     bool is_node_hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
@@ -369,8 +369,8 @@ bool NodeView::draw()
 
 	ImGui::SameLine();
 
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui.node.padding );
-	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui.node.padding );
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui_node_padding );
+	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui_node_padding );
     ImGui::EndGroup();
 
     // Ends the Window
@@ -381,10 +381,10 @@ bool NodeView::draw()
 
     // Draw Member in/out connectors
     {
-        float radius      = settings->ui.node.memberConnectorRadius;
-        ImColor color     = settings->ui.node.nodeConnectorColor;
-        ImColor borderCol = settings->ui.node.borderColor;
-        ImColor hoverCol  = settings->ui.node.nodeConnectorHoveredColor;
+        float radius      = settings->ui_node_memberConnectorRadius;
+        ImColor color     = settings->ui_node_nodeConnectorColor;
+        ImColor borderCol = settings->ui_node_borderColor;
+        ImColor hoverCol  = settings->ui_node_nodeConnectorHoveredColor;
 
         for( auto& memberView : m_exposedInputOnlyMembers )
         {

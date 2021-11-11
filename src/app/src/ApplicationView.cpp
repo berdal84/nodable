@@ -33,7 +33,7 @@ ApplicationView::~ApplicationView()
 
 bool ApplicationView::init()
 {
-    Settings* settings = Settings::GetCurrent();
+    Settings* settings = Settings::Get();
 
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
@@ -83,7 +83,7 @@ bool ApplicationView::init()
     settings->setImGuiStyle(ImGui::GetStyle());
 
     // load fonts (TODO: hum, load only if font is used...)
-    for ( auto& each_font : settings->ui.text.fonts )
+    for ( auto& each_font : settings->ui_text_fonts )
     {
         loadFont(each_font);
     }
@@ -91,7 +91,7 @@ bool ApplicationView::init()
     // Assign fonts (user might want to change it later, but we need defaults)
     for( auto each_slot = 0; each_slot < FontSlot_COUNT; ++each_slot )
     {
-        const char* font_id = settings->ui.text.defaultFontsId[each_slot];
+        const char* font_id = settings->ui_text_defaultFontsId[each_slot];
         m_fonts[each_slot] = getFontById(font_id);
     }
 
@@ -124,7 +124,7 @@ ImFont* ApplicationView::loadFont(const FontConf& fontConf) {
 
     ImFont*  font     = nullptr;
     auto&    io       = ImGui::GetIO();
-    auto     settings = Settings::GetCurrent();
+    auto     settings = Settings::Get();
 
     // Create font
     {
@@ -147,9 +147,9 @@ ImFont* ApplicationView::loadFont(const FontConf& fontConf) {
         config.OversampleV = 1;
         config.MergeMode = true;
         config.PixelSnapH = true;
-        config.GlyphMinAdvanceX = settings->ui.icons.size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = application->getAssetPath(settings->ui.icons.path).string();
-        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui.icons.size, &config, icons_ranges);
+        config.GlyphMinAdvanceX = settings->ui_icons.size; // monospace to fix text alignment in drop down menus.
+        auto fontPath = application->getAssetPath(settings->ui_icons.path).string();
+        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui_icons.size, &config, icons_ranges);
         LOG_VERBOSE("ApplicationView", "Adding icons to font ...\n");
     }
 
@@ -425,7 +425,7 @@ bool ApplicationView::draw()
                ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
                ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace );
                ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
-               ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, Settings::GetCurrent()->ui.layout.propertiesRatio, &dockspace_properties, NULL);
+               ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, Settings::Get()->ui_layout_propertiesRatio, &dockspace_properties, NULL);
                ImGui::DockBuilderDockWindow("ImGui", dockspace_properties);
                ImGui::DockBuilderDockWindow("Settings", dockspace_properties);
                ImGui::DockBuilderDockWindow("Properties", dockspace_properties);
@@ -642,44 +642,44 @@ void ApplicationView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size
 
 void ApplicationView::drawPropertiesWindow()
 {
-    Settings* config = Settings::GetCurrent();
+    Settings* config = Settings::Get();
 
     ImGui::Text("Nodable Settings:");
     ImGui::Indent();
         ImGui::Text("Wires:");
         ImGui::Indent();
-            ImGui::SliderFloat("thickness", &config->ui.wire.bezier.thickness, 0.5f, 10.0f);
-            ImGui::SliderFloat("roundness", &config->ui.wire.bezier.roundness, 0.0f, 1.0f);
-            ImGui::Checkbox("arrows", &config->ui.wire.displayArrows);
+            ImGui::SliderFloat("thickness", &config->ui_wire_bezier_thickness, 0.5f, 10.0f);
+            ImGui::SliderFloat("roundness", &config->ui_wire_bezier_roundness, 0.0f, 1.0f);
+            ImGui::Checkbox("arrows", &config->ui_wire_displayArrows);
         ImGui::Unindent();
 
         ImGui::Text("Nodes:");
         ImGui::Indent();
-            ImGui::SliderFloat("member connector radius", &config->ui.node.memberConnectorRadius, 1.0f, 10.0f);
-            ImGui::SliderFloat("padding", &config->ui.node.padding, 1.0f, 20.0f);
-            ImGui::SliderFloat("speed", &config->ui.node.speed, 0.0f, 100.0f);
-            ImGui::SliderFloat("spacing", &config->ui.node.spacing, 0.0f, 100.0f);
-            ImGui::SliderFloat("node connector padding", &config->ui.node.nodeConnectorPadding, 0.0f, 100.0f);
-            ImGui::SliderFloat("node connector height", &config->ui.node.nodeConnectorHeight, 2.0f, 100.0f);
+            ImGui::SliderFloat("member connector radius", &config->ui_node_memberConnectorRadius, 1.0f, 10.0f);
+            ImGui::SliderFloat("padding", &config->ui_node_padding, 1.0f, 20.0f);
+            ImGui::SliderFloat("speed", &config->ui_node_speed, 0.0f, 100.0f);
+            ImGui::SliderFloat("spacing", &config->ui_node_spacing, 0.0f, 100.0f);
+            ImGui::SliderFloat("node connector padding", &config->ui_node_nodeConnectorPadding, 0.0f, 100.0f);
+            ImGui::SliderFloat("node connector height", &config->ui_node_nodeConnectorHeight, 2.0f, 100.0f);
 
-            ImGui::ColorEdit4("variables color", &config->ui.node.variableColor.x);
-            ImGui::ColorEdit4("instruction color", &config->ui.node.instructionColor.x);
-            ImGui::ColorEdit4("literal color", &config->ui.node.literalColor.x);
-            ImGui::ColorEdit4("function color", &config->ui.node.functionColor.x);
-            ImGui::ColorEdit4("shadow color", &config->ui.node.shadowColor.x);
-            ImGui::ColorEdit4("border color", &config->ui.node.borderColor.x);
-            ImGui::ColorEdit4("high. color", &config->ui.node.highlightedColor.x);
-            ImGui::ColorEdit4("border high. color", &config->ui.node.borderHighlightedColor.x);
-            ImGui::ColorEdit4("fill color", &config->ui.node.fillColor.x);
-            ImGui::ColorEdit4("node connector color", &config->ui.node.nodeConnectorColor.x);
-            ImGui::ColorEdit4("node connector hovered color", &config->ui.node.nodeConnectorHoveredColor.x);
+            ImGui::ColorEdit4("variables color", &config->ui_node_variableColor.x);
+            ImGui::ColorEdit4("instruction color", &config->ui_node_instructionColor.x);
+            ImGui::ColorEdit4("literal color", &config->ui_node_literalColor.x);
+            ImGui::ColorEdit4("function color", &config->ui_node_functionColor.x);
+            ImGui::ColorEdit4("shadow color", &config->ui_node_shadowColor.x);
+            ImGui::ColorEdit4("border color", &config->ui_node_borderColor.x);
+            ImGui::ColorEdit4("high. color", &config->ui_node_highlightedColor.x);
+            ImGui::ColorEdit4("border high. color", &config->ui_node_borderHighlightedColor.x);
+            ImGui::ColorEdit4("fill color", &config->ui_node_fillColor.x);
+            ImGui::ColorEdit4("node connector color", &config->ui_node_nodeConnectorColor.x);
+            ImGui::ColorEdit4("node connector hovered color", &config->ui_node_nodeConnectorHoveredColor.x);
 
         ImGui::Unindent();
 
         // code flow
         ImGui::Text("Code flow:");
         ImGui::Indent();
-            ImGui::SliderFloat("line width min", &config->ui.codeFlow.lineWidthMax, 1.0f, 100.0f);
+            ImGui::SliderFloat("line width min", &config->ui_codeFlow_lineWidthMax, 1.0f, 100.0f);
         ImGui::Unindent();
 
     ImGui::Unindent();
@@ -699,7 +699,7 @@ void ApplicationView::drawStartupWindow() {
     if ( ImGui::BeginPopupModal(startupScreenTitle, nullptr, flags) )
     {
 
-        auto path = application->getAssetPath(Settings::GetCurrent()->ui.splashscreen.imagePath.c_str());
+        auto path = application->getAssetPath(Settings::Get()->ui_splashscreen_imagePath.c_str());
         auto logo = Texture::GetWithPath(path);
         ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
         ImGui::Image((void*)(intptr_t)logo->image, ImVec2((float)logo->width, (float)logo->height));
@@ -874,7 +874,7 @@ void ApplicationView::drawBackground()
 
 void ApplicationView::drawToolBar()
 {
-    auto settings = Settings::GetCurrent();
+    auto settings = Settings::Get();
 
     // small margin
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
@@ -886,7 +886,7 @@ void ApplicationView::drawToolBar()
     // run
     bool isRunning = runner.isRunning();
     if ( isRunning )
-        ImGui::PushStyleColor(ImGuiCol_Button, settings->ui.button.activeColor);
+        ImGui::PushStyleColor(ImGuiCol_Button, settings->ui_button_activeColor);
 
     if (ImGui::Button(ICON_FA_PLAY) && runner.isStopped())
     {
@@ -899,7 +899,7 @@ void ApplicationView::drawToolBar()
     // debug
     bool isDebugging = runner.isDebugging();
     if ( isDebugging )
-        ImGui::PushStyleColor(ImGuiCol_Button, settings->ui.button.activeColor);
+        ImGui::PushStyleColor(ImGuiCol_Button, settings->ui_button_activeColor);
     if (ImGui::Button(ICON_FA_BUG) && runner.isStopped())
     {
         application->debugCurrentFileProgram();
