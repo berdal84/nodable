@@ -64,7 +64,7 @@ namespace Nodable {
              MIRROR_MEMBER(ui_codeFlow_lineWidthMax)()
              MIRROR_MEMBER(ui_wire_displayArrows)()
              MIRROR_MEMBER(ui_splashscreen_imagePath)()
-        );
+        )
 
     private:
         /** Create a default Settings instance */
