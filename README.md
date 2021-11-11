@@ -89,14 +89,16 @@ Credits :
 
 **Nodable** is developped by @berdal84
 
-Dependencies
-
-- SDL2 : https://www.libsdl.org/
-- GLFW3 : http://www.glfw.org/
-- *Dear ImGui* developed by Omar Cornut: https://github.com/omarcornut/imgui
-- IconFontCppHeaders by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
-- ImGuiColorTextEdit by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
-- mirror by Grouflon : https://github.com/grouflon/mirror
-- ImGui FileBrowser by AirGuanZ: https://github.com/AirGuanZ/imgui-filebrowser
-- LodePNG by Lode Vandevenne
-- Observe by Lars Melchior
+- Dependencies
+  - Code:
+    - SDL2 : https://www.libsdl.org/
+    - GLFW3 : http://www.glfw.org/
+    - *Dear ImGui* developed by Omar Cornut: https://github.com/omarcornut/imgui
+    - IconFontCppHeaders by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
+    - ImGuiColorTextEdit by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
+    - mirror by Grouflon : https://github.com/grouflon/mirror
+    - ImGui FileBrowser by AirGuanZ: https://github.com/AirGuanZ/imgui-filebrowser
+    - LodePNG by Lode Vandevenne
+    - Observe by Lars Melchior
+  - Resources
+    - JetBrains Mono Font: https://www.jetbrains.com/lp/mono/
