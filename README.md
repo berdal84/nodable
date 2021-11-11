@@ -56,7 +56,7 @@ Requirements:
 Clone the Nodable repository (with submodules):
 
 ```
-git clone https://github.com/berdal84/Nodable.git --recurse-submodules
+git clone --branch v0.8.0 https://github.com/berdal84/Nodable.git --recurse-submodules
 ```
 
 Configure and run the build:
