@@ -20,7 +20,7 @@ namespace Nodable
     class CodeBlockNode;
     class GraphNode;
     class NodeView;
-    struct MemberView;
+    class MemberView;
     class MemberConnector;
     class NodeConnector;
 
@@ -229,7 +229,7 @@ namespace Nodable
     /**
  * Simple struct to store a member view state
  */
-    struct MemberView
+    class MemberView
     {
         Member*           m_member;
         NodeView*         m_nodeView;
@@ -239,7 +239,7 @@ namespace Nodable
         bool              m_touched;
         ImVec2            m_screenPos;
 
-        explicit MemberView(Member* _member, NodeView* _nodeView);
+        MemberView(Member* _member, NodeView* _nodeView);
         ~MemberView();
 
         /**
