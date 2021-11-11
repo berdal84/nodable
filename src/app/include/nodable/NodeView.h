@@ -231,6 +231,7 @@ namespace Nodable
  */
     class MemberView
     {
+    public:
         Member*           m_member;
         NodeView*         m_nodeView;
         MemberConnector*        m_in;
