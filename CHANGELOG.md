@@ -6,12 +6,13 @@ Author: Bérenger Dalle-Cort, 2017-2021
 
 0.9 (WIP):
     - save / restore settings from file
+	- use JetBrains Mono fonts
 
 0.8:
-	- vertical layout
-	- if/else node
-	- step-by-step execution
-	- auto-paste experimental node (copy and get text pasted in Nodable automatically)
+    - Multi instructions
+    - Conditional structures (if/else only)
+    - Execution (with optional step-by-step)
+    - Experimental "clipboard auto-paste" (File -> enable autopaste, copy something from a text editor to see the graph)
 
 0.7:
     - CI for Linux and Windows
