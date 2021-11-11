@@ -16,7 +16,7 @@ jobs:
     
     strategy:
       matrix:
-        os: [windows-2019, ubuntu-20.04]
+        os: [ubuntu-20.04]
 
     env:
       # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -37,7 +37,6 @@ jobs:
         submodules: recursive
 
     - name: Install dependencies
-      if: matrix.os == 'ubuntu-20.04'
       run: sudo apt-get update && sudo apt-get install libsdl2-dev libegl1-mesa-dev doxygen
 
     - name: Create Build Environment
@@ -88,11 +87,9 @@ jobs:
     #----------------------
 
     - name: Generate documentation
-      if: matrix.os == 'ubuntu-20.04'
       run: cd docs && doxygen
 
     - name: Upload documentation artifact
-      if: matrix.os == 'ubuntu-20.04'
       uses: actions/upload-artifact@v2
       with:
         name: Nodable-Technical-Documentation

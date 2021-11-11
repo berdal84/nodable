@@ -1,7 +1,11 @@
 <img src="https://github.com/berdal84/Nodable/blob/master/src/app/assets/images/nodable-logo-xs.png" />
    
-<a href="https://github.com/berdal84/Nodable/actions?query=workflow%3Abuild" title="linux/windows x64">
-<img src="https://github.com/berdal84/nodable/workflows/build/badge.svg" />
+<a href="https://github.com/berdal84/Nodable/actions?query=workflow%3Agnu-linux" title="linux">
+<img src="https://github.com/berdal84/nodable/workflows/gnu-linux/badge.svg" />
+</a>
+
+<a href="https://github.com/berdal84/Nodable/actions?query=workflow%3Awindows" title="windows">
+<img src="https://github.com/berdal84/nodable/workflows/windows/badge.svg" />
 </a>
 
 # Nodable is node-able !
