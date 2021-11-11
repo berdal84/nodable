@@ -645,6 +645,10 @@ void ApplicationView::drawPropertiesWindow()
     Settings* config = Settings::Get();
 
     ImGui::Text("Nodable Settings:");
+    if ( ImGui::Button("Save to settings/default.cfg") )
+    {
+        Settings::Save();
+    }
     ImGui::Indent();
         ImGui::Text("Wires:");
         ImGui::Indent();
@@ -699,7 +703,7 @@ void ApplicationView::drawStartupWindow() {
     if ( ImGui::BeginPopupModal(startupScreenTitle, nullptr, flags) )
     {
 
-        auto path = application->getAssetPath(Settings::Get()->ui_splashscreen_imagePath.c_str());
+        auto path = application->getAssetPath(Settings::Get()->ui_splashscreen_imagePath);
         auto logo = Texture::GetWithPath(path);
         ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
         ImGui::Image((void*)(intptr_t)logo->image, ImVec2((float)logo->width, (float)logo->height));

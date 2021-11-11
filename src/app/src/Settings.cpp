@@ -3,62 +3,57 @@
 #include <string>
 #include <fstream>
 #include <nodable/Log.h>
-#include <rapidjson/istreamwrapper.h>
-#include <rapidjson/document.h>
 #include <nodable/SimpleKeyValueSerializer.h>
+#include <nodable/Application.h>
 
 using namespace Nodable;
 
-Settings* Settings::Get()
+Settings* Settings::CreateInstance()
 {
-    static Settings* g_conf = nullptr;
+    Settings* conf = new Settings();
 
-    if ( g_conf == nullptr)
-    {
-        g_conf = new Settings();
+    // TODO: create themes
 
-        // TODO: create themes
+    // main layout
+    conf->ui_layout_propertiesRatio = 0.25f;
 
-        // main layout
-        g_conf->ui_layout_propertiesRatio = 0.25f;
+    // splashscreen
+    conf->ui_splashscreen_imagePath = "images/nodable-logo-xs.png";
 
-        // splashscreen
-        g_conf->ui_splashscreen_imagePath = "images/nodable-logo-xs.png";
-
-        // text
-        g_conf->ui_text_fonts = {
+    // text
+    conf->ui_text_fonts = {
             {
-                "Medium 18px",
-                18.0f,
-                "fonts/JetBrainsMono-Medium.ttf",
-                true
+                    "Medium 18px",
+                    18.0f,
+                    "fonts/JetBrainsMono-Medium.ttf",
+                    true
             },
             {
-                "Bold 25px",
-                25.0f,
-                "fonts/JetBrainsMono-Bold.ttf",
-                true
+                    "Bold 25px",
+                    25.0f,
+                    "fonts/JetBrainsMono-Bold.ttf",
+                    true
             },
             {
-                "Regular 18px",
-                18.0f,
-                "fonts/JetBrainsMono-Regular.ttf",
-                true
+                    "Regular 18px",
+                    18.0f,
+                    "fonts/JetBrainsMono-Regular.ttf",
+                    true
             }
-        };
+    };
 
-        g_conf->ui_text_defaultFontsId[FontSlot_Paragraph] = "Medium 18px";
-        g_conf->ui_text_defaultFontsId[FontSlot_Heading]   = "Bold 25px";
-        g_conf->ui_text_defaultFontsId[FontSlot_Code]      = "Regular 18px";
+    conf->ui_text_defaultFontsId[FontSlot_Paragraph] = "Medium 18px";
+    conf->ui_text_defaultFontsId[FontSlot_Heading]   = "Bold 25px";
+    conf->ui_text_defaultFontsId[FontSlot_Code]      = "Regular 18px";
 
-        g_conf->ui_icons = {
-                "Icons",
-                18.0f,
-                "fonts/fa-solid-900.ttf"
-        };
+    conf->ui_icons = {
+            "Icons",
+            18.0f,
+            "fonts/fa-solid-900.ttf"
+    };
 
 
-        g_conf->ui_text_textEditorPalette       = {
+    conf->ui_text_textEditorPalette       = {
             0xffffffff, // None
             0xffd69c56, // Keyword
             0xff00ff00, // Number
@@ -80,45 +75,50 @@ Settings* Settings::Get()
             0x40000000, // Current line fill
             0x40808080, // Current line fill (inactive)
             0x40a0a0a0, // Current line edge
-        };
+    };
 
-        // nodes
-        g_conf->ui_node_padding                = 6.0f;
-        g_conf->ui_node_memberConnectorRadius  = 5.0f;
-        g_conf->ui_node_functionColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
-        g_conf->ui_node_variableColor          = ImVec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
-        g_conf->ui_node_instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f); // green
-        g_conf->ui_node_literalColor           = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
-        g_conf->ui_node_fillColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        g_conf->ui_node_highlightedColor       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        g_conf->ui_node_borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-        g_conf->ui_node_borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
-        g_conf->ui_node_shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
-        g_conf->ui_node_nodeConnectorHoveredColor = ImColor(200,200, 200);
-        g_conf->ui_node_nodeConnectorColor     = ImColor(127,127, 127);
-        g_conf->ui_node_spacing                = 15.0f;
-        g_conf->ui_node_speed                  = 30.0f;
-        g_conf->ui_node_nodeConnectorHeight    = 10.0f;
-        g_conf->ui_node_nodeConnectorPadding   = 4.0f;
+    // nodes
+    conf->ui_node_padding                = 6.0f;
+    conf->ui_node_memberConnectorRadius  = 5.0f;
+    conf->ui_node_functionColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
+    conf->ui_node_variableColor          = ImVec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
+    conf->ui_node_instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f); // green
+    conf->ui_node_literalColor           = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
+    conf->ui_node_fillColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    conf->ui_node_highlightedColor       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    conf->ui_node_borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    conf->ui_node_borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
+    conf->ui_node_shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
+    conf->ui_node_nodeConnectorHoveredColor = ImColor(200,200, 200);
+    conf->ui_node_nodeConnectorColor     = ImColor(127,127, 127);
+    conf->ui_node_spacing                = 15.0f;
+    conf->ui_node_speed                  = 30.0f;
+    conf->ui_node_nodeConnectorHeight    = 10.0f;
+    conf->ui_node_nodeConnectorPadding   = 4.0f;
 
-        // wires
-        g_conf->ui_wire_bezier_roundness        = 0.5f;
-        g_conf->ui_wire_bezier_thickness        = 2.0f;
-        g_conf->ui_wire_displayArrows           = false;
-        g_conf->ui_wire_fillColor               = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        g_conf->ui_wire_shadowColor             = g_conf->ui_node_shadowColor;
+    // wires
+    conf->ui_wire_bezier_roundness        = 0.5f;
+    conf->ui_wire_bezier_thickness        = 2.0f;
+    conf->ui_wire_displayArrows           = false;
+    conf->ui_wire_fillColor               = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    conf->ui_wire_shadowColor             = conf->ui_node_shadowColor;
 
-        // code flow
-        g_conf->ui_codeFlow_lineWidthMax        = 40.0f;
-        g_conf->ui_codeFlow_lineColor           = ImColor(200,255,200,50);
-        g_conf->ui_codeFlow_lineShadowColor     = ImColor(0,0,0,64);
+    // code flow
+    conf->ui_codeFlow_lineWidthMax        = 40.0f;
+    conf->ui_codeFlow_lineColor           = ImColor(200,255,200,50);
+    conf->ui_codeFlow_lineShadowColor     = ImColor(0,0,0,64);
 
-        // buttons
-        g_conf->ui_button_color                 = ImVec4(0.50f, 0.50f, 0.50f, 0.63f);
-        g_conf->ui_button_hoveredColor          = ImVec4(0.70f, 0.70f, 0.70f, 0.95f);
-        g_conf->ui_button_activeColor           = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
+    // buttons
+    conf->ui_button_color                 = ImVec4(0.50f, 0.50f, 0.50f, 0.63f);
+    conf->ui_button_hoveredColor          = ImVec4(0.70f, 0.70f, 0.70f, 0.95f);
+    conf->ui_button_activeColor           = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
 
-    }
+    return conf;
+}
+
+Settings* Settings::Get()
+{
+    static Settings* g_conf = Settings::CreateInstance();
     return g_conf;
 }
 
@@ -185,4 +185,38 @@ void Settings::setImGuiStyle(ImGuiStyle& _style)
     _style.AntiAliasedFill    = true;
     _style.AntiAliasedLines   = true;
     _style.WindowPadding      = ImVec2(10.0f,10.0f);
+}
+
+void Settings::Save()
+{
+    // Output this default settings to default.cfg file
+    std::filesystem::path path( Application::GetAssetPath("settings/") );
+    std::filesystem::create_directory( path );
+    path.append("default.cfg");
+    Settings::Save(path);
+}
+
+void Settings::Save(std::filesystem::path& _path)
+{
+    mirror::SimpleKeyValueSerializer serializer;
+    std::string                      out;
+
+    serializer.serialize(Settings::Get(), out);
+
+    std::ofstream outfile ( _path ,std::ofstream::binary);
+    outfile.write (out.c_str(), out.size());
+    outfile.close();
+
+    printf("SimpleKeyValueSerializer out:\n%s\n", out.c_str());
+}
+
+Settings *Settings::Load(const char * _path) {
+
+    LOG_MESSAGE( "Settings", "Loading file \"%s\"...\n", _path);
+    Settings* settings = Settings::Get();
+    mirror::SimpleKeyValueSerializer serializer;
+    std::string out;
+    serializer.serialize(settings, out);
+    printf("Json Serialisation out:\n%s\n", out.c_str());
+    return nullptr;
 };

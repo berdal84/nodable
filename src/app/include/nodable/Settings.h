@@ -2,6 +2,8 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
+
 #include <imgui/imgui.h>
 #include <mirror.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
@@ -45,7 +47,7 @@ namespace Nodable {
         ImVec4 ui_button_activeColor;
         ImVec4 ui_button_hoveredColor;
         ImVec4 ui_button_color;
-        std::string ui_splashscreen_imagePath;
+        const char* ui_splashscreen_imagePath;
 
         void setImGuiStyle(ImGuiStyle&);
 
@@ -55,12 +57,19 @@ namespace Nodable {
         /** Load from a file */
         static Settings* Load(const char *_each_member);
 
-        /** Log current settings */
-        void Log();
+        /** Save current settings to default file (settings/default.cfg) */
+        static void Save();
 
         MIRROR_CLASS_NOVIRTUAL(Settings)(
              MIRROR_MEMBER(ui_codeFlow_lineWidthMax)()
              MIRROR_MEMBER(ui_wire_displayArrows)()
+             MIRROR_MEMBER(ui_splashscreen_imagePath)()
         );
+
+    private:
+        /** Create a default Settings instance */
+        static Settings* CreateInstance();
+        /** Save current settings to a specific path */
+        static void Save(std::filesystem::path& _path);
     };
 }
