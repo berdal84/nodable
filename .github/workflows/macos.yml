@@ -1,0 +1,84 @@
+name: "MacOS"
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - created    
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [macos-10.15]
+
+    env:
+      # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+      buildType: Release
+    
+    steps:
+
+    # Prepare build
+    #--------------
+
+    - name: Get current date
+      id: date
+      run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+    
+    - name: Git recursive checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+#    - name: Install dependencies
+#      run: sudo apt-get update && sudo apt-get install libsdl2-dev libegl1-mesa-dev doxygen
+
+    - name: Create Build Environment
+      # Some projects don't allow in-source building, so create a separate build directory
+      # We'll use this as our working directory for all subsequent commands
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.buildType}}
+
+    # Build
+    #------
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --config ${{env.buildType}} --target install
+
+    # Tests
+    #------
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: ctest -C ${{env.buildType}} --verbose
+
+    # Upload application binary
+    #--------------------------
+
+    - name: Upload application binary artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: nodable-${{ env.buildType }}-${{ runner.os }}
+        path: ${{runner.workspace}}/Nodable/bin/app/${{env.buildType}}
+
+    # Upload library (nodable_core) headers and *.lib files.
+    #------------------------------------------------------
+
+    - name: Upload library artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: core-${{ env.buildType }}-${{ runner.os }}
+        path: ${{runner.workspace}}/Nodable/bin/lib/${{env.buildType}}
