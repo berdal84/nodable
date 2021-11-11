@@ -1,4 +1,4 @@
-name: gnu-linux
+name: "GNU/Linux"
 
 on:
   workflow_dispatch:
