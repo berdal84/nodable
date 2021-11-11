@@ -8,6 +8,10 @@
 <img src="https://github.com/berdal84/nodable/workflows/Windows/badge.svg" />
 </a>
 
+<a href="https://github.com/berdal84/Nodable/actions?query=workflow%3AMacOS" title="macos">
+<img src="https://github.com/berdal84/nodable/workflows/MacOS/badge.svg" />
+</a>
+
 # Nodable is node-able !
 
 ## Introduction:
