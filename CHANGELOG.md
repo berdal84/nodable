@@ -2,9 +2,18 @@
 Nodable Change Log :
 ====================
 
-Author: Bérenger Dalle-Cort, 2017-2020
+Author: Bérenger Dalle-Cort, 2017-2021
 
-(0.7, still wip)
+0.9 (WIP):
+    - save / restore settings from file
+
+0.8:
+	- vertical layout
+	- if/else node
+	- step-by-step execution
+	- auto-paste experimental node (copy and get text pasted in Nodable automatically)
+
+0.7:
     - CI for Linux and Windows
 	- refactor of Language and related classes (Dictionnary, TokenType, etc.)
 	- Parser now check types.
