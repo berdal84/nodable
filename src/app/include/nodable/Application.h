@@ -138,7 +138,10 @@ namespace Nodable
 		static void SaveNode(Node* _node);
 
 		static Application* s_instance;
-	private:
+
+        static std::filesystem::path GetAssetPath(const char *_path);
+
+    private:
 	    ApplicationView* m_view;
 		/** When set to true, the application will close next frame */
 		bool quit = false;

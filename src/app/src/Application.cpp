@@ -205,3 +205,8 @@ void Application::resetCurrentFileProgram()
         currFile->evaluateSelectedExpression();
     }
 }
+
+std::filesystem::path Application::GetAssetPath(const char *_path)
+{
+    return s_instance->getAssetPath( _path );
+}
