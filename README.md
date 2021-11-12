@@ -41,11 +41,17 @@ _Multiple lines:_
 
 ### Prerequisites:
 
-Compatible with:
-- Windows 64bits (tested under Windows 10)
-- Linux 64bits (tested under Ubuntu 20.04)
+Hardware:
+- a 64 bits architecture
 
-To linux users: OpenGL and SDL libraries are required.
+Software:
+- Operating Systems:
+  - Windows (tested under Windows 10)
+  - Linux (tested under Ubuntu 20.04)
+  - MacOS 10.15+
+- Libraries
+  - Linux: install sdl2 and mesa (`sudo apt-get install libsdl2 libegl1-mesa`)
+  - MacOS: install sdl2 (`brew install sdl2`)
 
 _Disclaimer: Nodable is a prototype, do not expect too much from it._
 
@@ -57,14 +63,17 @@ Download binaries from [home page](https://www.dalle-cort.fr/nodable-node-orient
 ## How to compile Nodable from sources ?
 
 Requirements:
-- A **C++17** compatible build system (tested with make/g++-10 and MSVC14.27.29110)
-- Libraries `libsdl2-dev` and `libegl1-mesa-dev` (for linux only, win32 binaries are included)
-- **CMake 3.14+**
+- Build system:
+  - **CMake 3.14+**
+  - A **C++17** compatible build system (tested with make/g++-10 and MSVC14.27.29110)
+- Libraries
+  - Linux: install sdl2 and mesa (sudo apt-get install libsdl2 libegl1-mesa)
+  - MacOS: install sdl2 (brew install sdl2)
 
 Clone the Nodable repository (with submodules):
 
 ```
-git clone --branch v0.8.0 https://github.com/berdal84/Nodable.git --recurse-submodules
+git clone --branch v0.8.1 https://github.com/berdal84/Nodable.git --recurse-submodules
 ```
 
 Configure and run the build:
