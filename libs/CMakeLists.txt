@@ -58,13 +58,6 @@ add_library(
             ./gl3w/GL/gl3w.gcda
             ./gl3w/GL/gl3w.gcno
 )
-find_package(OpenGL REQUIRED)
-target_link_libraries(
-        gl3w
-        PUBLIC
-            ${CMAKE_DL_LIBS}
-            OpenGL::GL
-)
 
 target_include_directories(
         gl3w
