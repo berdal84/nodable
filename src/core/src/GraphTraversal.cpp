@@ -14,18 +14,18 @@ using namespace Nodable;
 Result GraphTraversal::TraverseAndSetDirty(Node *_rootNode)
 {
     GraphTraversal traversal;
-    LOG_VERBOSE("GraphTraversal", "GraphTraversal::TraverseAndSetDirty %s \n", _rootNode->getLabel() );
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::TraverseAndSetDirty %s \n", _rootNode->getLabel() )
     auto result = traversal.traverseRec(_rootNode, TraversalFlag_FollowOutputs);
     for(Node* eachNode : traversal.m_stats.m_traversed )
         eachNode->setDirty();
-    LOG_VERBOSE("GraphTraversal", "GraphTraversal::TraverseAndSetDirty done.\n");
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::TraverseAndSetDirty done.\n")
     return result;
 }
 
 Result GraphTraversal::traverse(Node *_node, TraversalFlag _flags)
 {
     initialize();
-    LOG_VERBOSE("GraphTraversal", "GraphTraversal::traverse %s \n", _node->getLabel() );
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::traverse %s \n", _node->getLabel() )
     auto result = traverseRec(_node, _flags);
 
     if ( _flags & TraversalFlag_ReverseResult )
@@ -33,7 +33,7 @@ Result GraphTraversal::traverse(Node *_node, TraversalFlag _flags)
         std::reverse(m_stats.m_traversed.begin(), m_stats.m_traversed.end());
         std::reverse(m_stats.m_changed.begin(), m_stats.m_changed.end());
     }
-    LOG_VERBOSE("GraphTraversal", "GraphTraversal::traverse done.\n");
+    LOG_VERBOSE("GraphTraversal", "GraphTraversal::traverse done.\n")
     return result;
 }
 
@@ -82,7 +82,7 @@ Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
         return Result::Success;
     }
 
-    LOG_ERROR("GraphTraversal", "Unable to update Node %s, cycle detected (consider using TraversalFlag_AvoidCycles).\n", _node->getLabel() );
+    LOG_ERROR("GraphTraversal", "Unable to update Node %s, cycle detected (consider using TraversalFlag_AvoidCycles).\n", _node->getLabel() )
     return Result::Failure;
 
 }
@@ -90,10 +90,12 @@ Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
 Node* GraphTraversal::getNextInstrToEval(Node *_node)
 {
     initialize();
-    LOG_VERBOSE("GraphTraversal", "getNextInstrToEval( %s )...\n", _node->getLabel() );
+    LOG_VERBOSE("GraphTraversal", "getNextInstrToEval( %s )...\n", _node->getLabel() )
     auto result = getNextInstrToEvalRec(_node);
     if (result)
-        LOG_VERBOSE("GraphTraversal", "%s's next is %s\n", _node->getLabel(), result->getLabel());
+    {
+        LOG_VERBOSE("GraphTraversal", "%s's next is %s\n", _node->getLabel(), result->getLabel())
+    }
 
     return result;
 }
@@ -105,7 +107,7 @@ void GraphTraversal::initialize()
 
 void GraphTraversal::logStats()
 {
-    LOG_MESSAGE("GraphTraversal", "traversed %i node(s).\n", (int)m_stats.m_traversed.size());
+    LOG_MESSAGE("GraphTraversal", "traversed %i node(s).\n", (int)m_stats.m_traversed.size())
 }
 
 bool Stats::hasBeenTraversed(const Node* _node) const

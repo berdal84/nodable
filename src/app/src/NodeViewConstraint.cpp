@@ -19,7 +19,7 @@ void NodeViewConstraint::apply(float _dt) {
 
     auto settings = Settings::Get();
 
-    LOG_VERBOSE("ViewConstraint", "applying constraint\n");
+    LOG_VERBOSE("ViewConstraint", "applying constraint\n")
     auto master = masters.at(0);
 
     switch ( this->type )

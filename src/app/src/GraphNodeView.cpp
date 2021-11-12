@@ -276,9 +276,14 @@ bool GraphNodeView::draw()
 					if ( has_compatible_signature && ImGui::MenuItem( menu_item.label.c_str() ))
 					{
 						if ( menu_item.create_node_fct  )
-							newNode = menu_item.create_node_fct();
+                        {
+                            newNode = menu_item.create_node_fct();
+                        }
 						else
-							LOG_WARNING( "GraphNodeView", "The function associated to the key %s is nullptr", menu_item.label.c_str() );
+                        {
+                            LOG_WARNING("GraphNodeView", "The function associated to the key %s is nullptr",
+                                        menu_item.label.c_str())
+                        }
 					}
 				}
 
@@ -457,7 +462,7 @@ GraphNode* GraphNodeView::getGraphNode() const
 
 void GraphNodeView::updateViewConstraints()
 {
-    LOG_VERBOSE("GraphNodeView", "updateViewConstraints()\n");
+    LOG_VERBOSE("GraphNodeView", "updateViewConstraints()\n")
 
     auto nodeRegistry = getGraphNode()->getNodeRegistry();
 

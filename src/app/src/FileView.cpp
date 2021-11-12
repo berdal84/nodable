@@ -166,8 +166,8 @@ void FileView::replaceSelectedText(const std::string &_val)
         {
             m_textEditor.SetSelection(selectionStart, selectionEnd);
         }
-        LOG_MESSAGE("FileView", "Selected text updated from graph.\n");
-        LOG_VERBOSE("FileView", "%s \n", _val.c_str());
+        LOG_MESSAGE("FileView", "Selected text updated from graph.\n")
+        LOG_VERBOSE("FileView", "%s \n", _val.c_str())
     }
 }
 

@@ -17,13 +17,13 @@ bool ComputeFunction::update()
 
 	if (!m_function->implementation)
 	{
-		LOG_ERROR("ComputeFunction", "Unable to find %s's implementation.\n", m_function->signature.getIdentifier().c_str());
+		LOG_ERROR("ComputeFunction", "Unable to find %s's implementation.\n", m_function->signature.getIdentifier().c_str())
 		return false;
 	}
 
 	if (m_function->implementation(m_result, m_args))
     {
-        LOG_ERROR("ComputeFunction", "Unable to evaluate %s's implementation.\n", m_function->signature.getIdentifier().c_str());
+        LOG_ERROR("ComputeFunction", "Unable to evaluate %s's implementation.\n", m_function->signature.getIdentifier().c_str())
         return false;
     }
 

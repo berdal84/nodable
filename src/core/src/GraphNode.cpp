@@ -28,7 +28,7 @@ GraphNode::~GraphNode()
 
 void GraphNode::clear()
 {
-	LOG_VERBOSE( "GraphNode", "=================== clear() ==================\n");
+	LOG_VERBOSE( "GraphNode", "=================== clear() ==================\n")
 
     if ( !m_wireRegistry.empty() )
     {
@@ -44,7 +44,7 @@ void GraphNode::clear()
         for (auto i = m_nodeRegistry.size(); i > 0; i--)
         {
             Node* node = m_nodeRegistry[i - 1];
-            LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->getLabel() );
+            LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->getLabel() )
             deleteNode(node);
         }
 	}
@@ -52,7 +52,7 @@ void GraphNode::clear()
 	m_relationRegistry.clear();
     m_program = nullptr;
 
-    LOG_VERBOSE("GraphNode", "===================================================\n");
+    LOG_VERBOSE("GraphNode", "===================================================\n")
 }
 
 UpdateResult GraphNode::update()
@@ -122,7 +122,7 @@ void GraphNode::registerNode(Node* _node)
 {
 	this->m_nodeRegistry.push_back(_node);
     _node->setParentGraph(this);
-    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->getLabel(), _node->getClass()->getName());
+    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->getLabel(), _node->getClass()->getName())
 }
 
 void GraphNode::unregisterNode(Node* _node)
@@ -335,7 +335,7 @@ void GraphNode::unregisterWire(Wire* _wire)
     }
     else
     {
-        LOG_WARNING("GraphNode", "Unable to unregister wire\n");
+        LOG_WARNING("GraphNode", "Unable to unregister wire\n")
     }
 }
 

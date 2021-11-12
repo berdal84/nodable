@@ -38,7 +38,7 @@ bool Parser::expressionToGraph(const std::string& _code,
     graph = _graphNode;
     tokenRibbon.clear();
 
-    LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", _code.c_str() );
+    LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", _code.c_str() )
 
     std::istringstream iss(_code);
     std::string line;
@@ -56,7 +56,7 @@ bool Parser::expressionToGraph(const std::string& _code,
 
         if (!tokenizeExpressionString(line))
         {
-            LOG_WARNING("Parser", "Unable to parse code due to unrecognized tokens.\n");
+            LOG_WARNING("Parser", "Unable to parse code due to unrecognized tokens.\n")
             return false;
         }
 
@@ -65,13 +65,13 @@ bool Parser::expressionToGraph(const std::string& _code,
 
 	if (tokenRibbon.empty() )
     {
-        LOG_MESSAGE("Parser", "Empty code. Nothing to evaluate.\n");
+        LOG_MESSAGE("Parser", "Empty code. Nothing to evaluate.\n")
         return false;
     }
 
 	if (!isSyntaxValid())
 	{
-		LOG_WARNING("Parser", "Unable to parse code due to syntax error.\n");
+		LOG_WARNING("Parser", "Unable to parse code due to syntax error.\n")
 		return false;
 	}
 
@@ -79,14 +79,14 @@ bool Parser::expressionToGraph(const std::string& _code,
 
 	if (program == nullptr)
 	{
-		LOG_WARNING("Parser", "Unable to parse main scope due to abstract syntax tree failure.\n");
+		LOG_WARNING("Parser", "Unable to parse main scope due to abstract syntax tree failure.\n")
 		return false;
 	}
 
     if ( tokenRibbon.canEat() )
     {
         graph->clear();
-        LOG_ERROR("Parser", "Unable to evaluate the full expression.\n");
+        LOG_ERROR("Parser", "Unable to evaluate the full expression.\n")
         return false;
     }
 
@@ -95,8 +95,8 @@ bool Parser::expressionToGraph(const std::string& _code,
     for(auto eachNode : nodes )
         eachNode->setDirty(false);
 
-	LOG_MESSAGE("Parser", "Graph well updated.\n", _code.c_str() );
-	LOG_VERBOSE("Parser", "Expression evaluated: <expr>%s</expr>\"\n", _code.c_str() );
+	LOG_MESSAGE("Parser", "Graph well updated.\n", _code.c_str() )
+	LOG_VERBOSE("Parser", "Expression evaluated: <expr>%s</expr>\"\n", _code.c_str() )
 	return true;
 }
 
@@ -121,7 +121,7 @@ Member* Parser::tokenToMember(Token* _token)
 			VariableNode* variable = graph->findVariable(_token->m_word);
 
 			if (variable == nullptr) {
-                LOG_WARNING("Parser", "Unable to find declaration for %s \n", _token->m_word.c_str());
+                LOG_WARNING("Parser", "Unable to find declaration for %s \n", _token->m_word.c_str())
                 variable = graph->newVariable(Type_Any, _token->m_word, getCurrentScope() );
                 variable->value()->setSourceToken(_token);
             }
@@ -158,14 +158,14 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 
     assert(_left != nullptr);
 
-    LOG_VERBOSE("Parser", "parse binary operation expr...\n");
-    LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str());
+    LOG_VERBOSE("Parser", "parse binary operation expr...\n")
+    LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str())
 
 	Member* result = nullptr;
 
 	if ( !tokenRibbon.canEat(2))
 	{
-		LOG_VERBOSE("Parser", "parse binary operation expr...... " KO " (not enought tokens)\n");
+		LOG_VERBOSE("Parser", "parse binary operation expr...... " KO " (not enought tokens)\n")
 		return nullptr;
 	}
 
@@ -181,7 +181,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	if (!isValid)
 	{
 	    rollbackTransaction();
-		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Structure)\n");
+		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Structure)\n")
 		return nullptr;
 	}
 
@@ -190,7 +190,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 
 	if (currentOperatorPrecedence <= _precedence &&
 	    _precedence > 0u) { // always update the first operation if they have the same precedence or less.
-		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n");
+		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n")
 		rollbackTransaction();
 		return nullptr;
 	}
@@ -201,7 +201,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 
 	if (!right)
 	{
-		LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (right expression is nullptr)\n");
+		LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (right expression is nullptr)\n")
 		rollbackTransaction();
 		return nullptr;
 	}
@@ -221,13 +221,13 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 		result = binOpNode->getProps()->get("result");
 
         commitTransaction();
-        LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n");
+        LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
 
         return result;
     }
     else
     {
-        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator prototype)\n");
+        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator prototype)\n")
         rollbackTransaction();
         return nullptr;
     }
@@ -235,12 +235,12 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 
 Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 {
-	LOG_VERBOSE("Parser", "parseUnaryOperationExpression...\n");
-	LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str());
+	LOG_VERBOSE("Parser", "parseUnaryOperationExpression...\n")
+	LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str())
 
 	if (!tokenRibbon.canEat(2) )
 	{
-		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (not enough tokens)\n");
+		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (not enough tokens)\n")
 		return nullptr;
 	}
 
@@ -251,7 +251,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	if (operatorToken->m_type != TokenType_Operator)
 	{
 	    rollbackTransaction();
-		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n");
+		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n")
 		return nullptr;
 	}
 
@@ -263,7 +263,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	else if ( value = parseParenthesisExpression() );
 	else
 	{
-		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n");
+		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n")
 		rollbackTransaction();
 		return nullptr;
 	}
@@ -281,14 +281,14 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
         graph->connect(value, computeComponent->getLValue());
         Member* result = unaryOpNode->getProps()->get("result");
 
-		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
+		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
         commitTransaction();
 
 		return result;
 	}
 	else
 	{
-		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (unrecognysed operator)\n");
+		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (unrecognysed operator)\n")
 		rollbackTransaction();
 		return nullptr;
 	}
@@ -296,11 +296,11 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 
 Member* Parser::parseAtomicExpression()
 {
-	LOG_VERBOSE("Parser", "parse atomic expr... \n");
+	LOG_VERBOSE("Parser", "parse atomic expr... \n")
 
 	if ( !tokenRibbon.canEat() )
 	{
-		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(not enough tokens)\n");
+		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(not enough tokens)\n")
 		return nullptr;
 	}
 
@@ -308,7 +308,7 @@ Member* Parser::parseAtomicExpression()
 	Token* token = tokenRibbon.eatToken();
 	if (token->m_type == TokenType_Operator)
 	{
-		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n");
+		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n")
 		rollbackTransaction();
 		return nullptr;
 	}
@@ -317,12 +317,12 @@ Member* Parser::parseAtomicExpression()
 	if( result != nullptr)
     {
 	    commitTransaction();
-        LOG_VERBOSE("Parser", "parse atomic expr... " OK "\n");
+        LOG_VERBOSE("Parser", "parse atomic expr... " OK "\n")
     }
 	else
     {
         rollbackTransaction();
-        LOG_VERBOSE("Parser", "parse atomic expr... " KO " (result is nullptr)\n");
+        LOG_VERBOSE("Parser", "parse atomic expr... " KO " (result is nullptr)\n")
 	}
 
 	return result;
@@ -330,12 +330,12 @@ Member* Parser::parseAtomicExpression()
 
 Member* Parser::parseParenthesisExpression()
 {
-	LOG_VERBOSE("Parser", "parse parenthesis expr...\n");
-	LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str());
+	LOG_VERBOSE("Parser", "parse parenthesis expr...\n")
+	LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str())
 
 	if ( !tokenRibbon.canEat() )
 	{
-		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " no enough tokens.\n");
+		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " no enough tokens.\n")
 		return nullptr;
 	}
 
@@ -343,7 +343,7 @@ Member* Parser::parseParenthesisExpression()
 	const Token* currentToken = tokenRibbon.eatToken();
 	if (currentToken->m_type != TokenType_OpenBracket)
 	{
-		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n");
+		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n")
 		rollbackTransaction();
 		return nullptr;
 	}
@@ -354,19 +354,19 @@ Member* Parser::parseParenthesisExpression()
         const Token* token = tokenRibbon.eatToken();
 		if (token->m_type != TokenType_CloseBracket )
 		{
-			LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str());
-			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->m_word.c_str() );
+			LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str())
+			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->m_word.c_str() )
             rollbackTransaction();
 		}
 		else
         {
-			LOG_VERBOSE("Parser", "parse parenthesis expr..." OK  "\n");
+			LOG_VERBOSE("Parser", "parse parenthesis expr..." OK  "\n")
             commitTransaction();
 		}
 	}
 	else
     {
-        LOG_VERBOSE("Parser", "parse parenthesis expr..." KO ", expression in parenthesis is nullptr.\n");
+        LOG_VERBOSE("Parser", "parse parenthesis expr..." KO ", expression in parenthesis is nullptr.\n")
 	    rollbackTransaction();
 	}
 	return result;
@@ -380,7 +380,7 @@ InstructionNode* Parser::parseInstruction()
 
     if ( parsedExpression == nullptr )
     {
-       LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n");
+       LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n")
        rollbackTransaction();
        return nullptr;
     }
@@ -396,7 +396,7 @@ InstructionNode* Parser::parseInstruction()
         }
         else
         {
-            LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n");
+            LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n")
             rollbackTransaction();
             return nullptr;
         }
@@ -404,7 +404,7 @@ InstructionNode* Parser::parseInstruction()
 
     graph->connect(parsedExpression, instruction);
 
-    LOG_VERBOSE("Parser", "parse instruction " OK "\n");
+    LOG_VERBOSE("Parser", "parse instruction " OK "\n")
     commitTransaction();
     return instruction;
 }
@@ -501,12 +501,12 @@ CodeBlockNode* Parser::parseCodeBlock()
 
 Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverride)
 {
-	LOG_VERBOSE("Parser", "parse expr...\n");
-	LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str());
+	LOG_VERBOSE("Parser", "parse expr...\n")
+	LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str())
 
 	if ( !tokenRibbon.canEat() )
 	{
-		LOG_VERBOSE("Parser", "parse expr..." KO " (unable to eat a single token)\n");
+		LOG_VERBOSE("Parser", "parse expr..." KO " (unable to eat a single token)\n")
         return _leftOverride;
 	}
 
@@ -524,7 +524,7 @@ Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverrid
 
 	if ( !tokenRibbon.canEat() )
 	{
-		LOG_VERBOSE("Parser", "parse expr... " OK " (last token reached)\n");
+		LOG_VERBOSE("Parser", "parse expr... " OK " (last token reached)\n")
 	}
 
 	Member* result;
@@ -534,12 +534,12 @@ Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverrid
 	*/
 	if ( left )
 	{
-		LOG_VERBOSE("Parser", "parse expr... left parsed, we parse right\n");
+		LOG_VERBOSE("Parser", "parse expr... left parsed, we parse right\n")
 		auto binResult = parseBinaryOperationExpression(_precedence, left);
 
 		if (binResult)
 		{
-			LOG_VERBOSE("Parser", "parse expr... right parsed, recursive call\n");
+			LOG_VERBOSE("Parser", "parse expr... right parsed, recursive call\n")
 			result = parseExpression(_precedence, binResult);
 		}
 		else
@@ -550,7 +550,7 @@ Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverrid
 	}
 	else
     {
-		LOG_VERBOSE("Parser", "parse expr... left is nullptr, we return it\n");
+		LOG_VERBOSE("Parser", "parse expr... left is nullptr, we return it\n")
 		result = left;
 	}
 
@@ -580,7 +580,7 @@ bool Parser::isSyntaxValid()
 
                 if (openedParenthesisCount < 0)
                 {
-                    LOG_VERBOSE("Parser", "Unexpected %s\n", currTokIt->m_word.c_str());
+                    LOG_VERBOSE("Parser", "Unexpected %s\n", currTokIt->m_word.c_str())
                     success = false;
                 }
 
@@ -595,7 +595,7 @@ bool Parser::isSyntaxValid()
 
 	if (openedParenthesisCount != 0) // same opened/closed parenthesis count required.
     {
-        LOG_VERBOSE("Parser", "bracket count mismatch, %i still opened.\n", openedParenthesisCount);
+        LOG_VERBOSE("Parser", "bracket count mismatch, %i still opened.\n", openedParenthesisCount)
         success = false;
     }
 
@@ -636,12 +636,12 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
                     {
                         newToken = tokenRibbon.push(matchedTokenType, std::string(++matchedTokenString.cbegin(), --matchedTokenString.cend()),
                                                     std::distance(chars.cbegin(), it));
-                        LOG_VERBOSE("Parser", "tokenize <word>\"%s\"</word>\n", matchedTokenString.c_str() );
+                        LOG_VERBOSE("Parser", "tokenize <word>\"%s\"</word>\n", matchedTokenString.c_str() )
                     }
                     else
                     {
                         newToken = tokenRibbon.push(matchedTokenType, matchedTokenString, std::distance(chars.cbegin(), it));
-                        LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matchedTokenString.c_str() );
+                        LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matchedTokenString.c_str() )
                     }
 
                     // If a we have so prefix tokens we copy them to the newToken prefixes.
@@ -656,7 +656,7 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
                 {
                     Token& lastToken = tokenRibbon.tokens.back();
                     lastToken.m_suffix.append(matchedTokenString);
-                    LOG_VERBOSE("Parser", "append ignored <word>%s</word> to <word>%s</word>\n", matchedTokenString.c_str(), lastToken.m_word.c_str() );
+                    LOG_VERBOSE("Parser", "append ignored <word>%s</word> to <word>%s</word>\n", matchedTokenString.c_str(), lastToken.m_word.c_str() )
                 }
                 else
                 {
@@ -676,24 +676,24 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
 	{
 		if (!unifiedParsing(currTokIt))
 		{
-		    LOG_VERBOSE("Parser", "tokenize " KO ", unable to tokenize at index %i\n", (int)std::distance(chars.cbegin(), currTokIt) );
+		    LOG_VERBOSE("Parser", "tokenize " KO ", unable to tokenize at index %i\n", (int)std::distance(chars.cbegin(), currTokIt) )
 			return false;
 		}
 	}
 
-    LOG_VERBOSE("Parser", "tokenize " OK " \n" );
+    LOG_VERBOSE("Parser", "tokenize " OK " \n" )
 	return true;
 
 }
 
 Member* Parser::parseFunctionCall()
 {
-    LOG_VERBOSE("Parser", "parse function call...\n");
+    LOG_VERBOSE("Parser", "parse function call...\n")
 
     // Check if the minimum token count required is available ( 0: identifier, 1: open parenthesis, 2: close parenthesis)
     if (!tokenRibbon.canEat(3))
     {
-        LOG_VERBOSE("Parser", "parse function call... " KO " aborted, not enough tokens.\n");
+        LOG_VERBOSE("Parser", "parse function call... " KO " aborted, not enough tokens.\n")
         return nullptr;
     }
 
@@ -707,7 +707,7 @@ Member* Parser::parseFunctionCall()
         token_1->m_type == TokenType_OpenBracket)
     {
         identifier = token_0->m_word;
-        LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n");
+        LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
     }
     else // Try to parse operator like (ex: operator==(..,..))
     {
@@ -720,11 +720,11 @@ Member* Parser::parseFunctionCall()
         {
             // ex: "operator" + ">=>
             identifier = token_0->m_word + token_1->m_word;
-            LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n");
+            LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
         }
         else
         {
-            LOG_VERBOSE("Parser", "parse function call... " KO " abort, this is not a function.\n");
+            LOG_VERBOSE("Parser", "parse function call... " KO " abort, this is not a function.\n")
             rollbackTransaction();
             return nullptr;
         }
@@ -753,7 +753,7 @@ Member* Parser::parseFunctionCall()
     // eat "close bracket supposed" token
     if ( !tokenRibbon.eatToken(TokenType_CloseBracket) )
     {
-        LOG_VERBOSE("Parser", "parse function call... " KO " abort, close parenthesis expected. \n");
+        LOG_VERBOSE("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
         rollbackTransaction();
         return nullptr;
     }
@@ -786,14 +786,14 @@ Member* Parser::parseFunctionCall()
         }
 
         commitTransaction();
-        LOG_VERBOSE("Parser", "parse function call... " OK "\n");
+        LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
         return node->getProps()->get("result");
 
     }
 
     rollbackTransaction();
-    LOG_VERBOSE("Parser", "parse function call... " KO "\n");
+    LOG_VERBOSE("Parser", "parse function call... " KO "\n")
     return nullptr;
 }
 
@@ -805,7 +805,7 @@ ScopedCodeBlockNode *Parser::getCurrentScope()
 
 ConditionalStructNode * Parser::parseConditionalStructure()
 {
-    LOG_VERBOSE("Parser", "try to parse conditional structure...\n");
+    LOG_VERBOSE("Parser", "try to parse conditional structure...\n")
     startTransaction();
 
     auto condStruct = graph->newConditionalStructure();
@@ -831,29 +831,29 @@ ConditionalStructNode * Parser::parseConditionalStructure()
                     {
                         graph->connect(scopeElse, condStruct, RelationType::IS_CHILD_OF);
                         commitTransaction();
-                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n");
+                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
                         return condStruct;
                     }
                     else if ( ConditionalStructNode* elseIfCondStruct = parseConditionalStructure() )
                     {
 						graph->connect(elseIfCondStruct, condStruct, RelationType::IS_CHILD_OF);
 						commitTransaction();
-						LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n");
+						LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
 						return condStruct;
                     }
 
-                    LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n");
+                    LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
                     graph->deleteNode(scopeIf);
 
                 } else {
                     commitTransaction();
-                    LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n");
+                    LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n")
                     return condStruct;
                 }
             }
             else
             {
-                LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n");
+                LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n")
             }
         }
     }
@@ -895,7 +895,7 @@ Member *Parser::parseVariableDecl()
             }
             else
             {
-                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifierTok->m_word.c_str());
+                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifierTok->m_word.c_str())
                 rollbackTransaction();
                 graph->deleteNode(variable);
                 return nullptr;

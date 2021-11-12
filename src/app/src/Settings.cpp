@@ -212,7 +212,7 @@ void Settings::Save(std::filesystem::path& _path)
 
 Settings *Settings::Load(const char * _path) {
 
-    LOG_MESSAGE( "Settings", "Loading file \"%s\"...\n", _path);
+    LOG_MESSAGE( "Settings", "Loading file \"%s\"...\n", _path)
     Settings* settings = Settings::Get();
     mirror::SimpleKeyValueSerializer serializer;
     std::string out;

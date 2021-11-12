@@ -38,7 +38,7 @@ bool ApplicationView::init()
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
-        LOG_ERROR( "ApplicationView", "SDL Error: %s\n", SDL_GetError());
+        LOG_ERROR( "ApplicationView", "SDL Error: %s\n", SDL_GetError())
         return false;
     }
 
@@ -134,7 +134,7 @@ ImFont* ApplicationView::loadFont(const FontConf& fontConf) {
 
         //io.Fonts->AddFontDefault();
         auto fontPath = application->getAssetPath(fontConf.path).string();
-        LOG_VERBOSE("ApplicationView", "Adding font from file ... %s\n", fontPath.c_str());
+        LOG_VERBOSE("ApplicationView", "Adding font from file ... %s\n", fontPath.c_str())
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), fontConf.size, &config);
     }
 
@@ -150,11 +150,11 @@ ImFont* ApplicationView::loadFont(const FontConf& fontConf) {
         config.GlyphMinAdvanceX = settings->ui_icons.size; // monospace to fix text alignment in drop down menus.
         auto fontPath = application->getAssetPath(settings->ui_icons.path).string();
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui_icons.size, &config, icons_ranges);
-        LOG_VERBOSE("ApplicationView", "Adding icons to font ...\n");
+        LOG_VERBOSE("ApplicationView", "Adding icons to font ...\n")
     }
 
     m_loadedFonts.insert({fontConf.id, font});
-    LOG_MESSAGE("ApplicationView", "Font %s added to register with the id \"%s\"\n", fontConf.path, fontConf.id);
+    LOG_MESSAGE("ApplicationView", "Font %s added to register with the id \"%s\"\n", fontConf.path, fontConf.id)
     return font;
 }
 

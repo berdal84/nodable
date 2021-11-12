@@ -117,13 +117,13 @@ bool MemberConnector::Connect(const MemberConnector *_left, const MemberConnecto
 {
     if ( _left->hasSameParentWith(_right) )
     {
-        LOG_WARNING( "MemberConnector", "Unable to connect two connectors from the same Member.\n" );
+        LOG_WARNING( "MemberConnector", "Unable to connect two connectors from the same Member.\n" )
         return false;
     }
 
     if (_left->m_way == _right->m_way)
     {
-        LOG_WARNING( "MemberConnector", "Unable to connect two connectors with the same nature (in and in, out and out)\n" );
+        LOG_WARNING( "MemberConnector", "Unable to connect two connectors with the same nature (in and in, out and out)\n" )
         return false;
     }
 

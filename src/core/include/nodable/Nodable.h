@@ -13,7 +13,7 @@
 */
 
 #ifdef _DEBUG
-	#define NODABLE_ASSERT(expression) LOG_FLUSH(); assert(expression)
+	#define NODABLE_ASSERT(expression) LOG_FLUSH(); assert(expression);
 #else
     #define NODABLE_ASSERT(expression)
 #endif
