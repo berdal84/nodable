@@ -26,9 +26,12 @@ target_include_directories(
             ${LIBS_INCLUDE_DIRS} )
 
 # Linking
-find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 find_package(SDL2 REQUIRED)
+find_package(OpenGL REQUIRED)
+if (NOT OpenGL_FOUND)
+    message(FATAL_ERROR "OpenGL not found")
+endif()
 
 IF (WIN32)
     target_link_libraries(nodable_app LINK_PUBLIC ${SDL2_STATIC} )
@@ -36,18 +39,31 @@ ELSE()
     target_link_libraries(nodable_app LINK_PUBLIC ${SDL2_LIBRARIES})
 ENDIF()
 
-target_link_libraries(
-        nodable_app
-        PUBLIC
-            Threads::Threads
-            nodable_core
-            imgui
-            imgui_textedit
-            imgui_filebrowser
-            IconFontCppHeaders
-            lodepng
-            gl3w
-)
+set( NODABLE_STATIC_LIBS
+        Threads::Threads
+        imgui
+        imgui_textedit
+        imgui_filebrowser
+        IconFontCppHeaders
+        lodepng
+        gl3w
+        nodable_core
+        ${CMAKE_DL_LIBS}
+        OpenGL::GL
+        )
+
+IF (APPLE)
+    find_library(APPLE_CORE_FOUNDATION_FRAMEWORK CoreFoundation)
+    find_library(APPLE_COCOA_FRAMEWORK Cocoa)
+    find_library(APPLE_CARBON_FRAMEWORK Carbon)
+    set( NODABLE_STATIC_LIBS
+            ${NODABLE_STATIC_LIBS}
+            ${APPLE_CORE_FOUNDATION_FRAMEWORK}
+            ${APPLE_CARBON_FRAMEWORK}
+            ${APPLE_COCOA_FRAMEWORK} )
+ENDIF()
+
+target_link_libraries(nodable_app PUBLIC ${NODABLE_STATIC_LIBS})
 
 # Main
 #=====
