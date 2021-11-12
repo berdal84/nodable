@@ -59,13 +59,13 @@ void File::save()
 
 File* File::OpenFile(std::filesystem::path _filePath)
 {
-    LOG_MESSAGE( "File", "Loading file \"%s\"...\n", _filePath.c_str());
+    LOG_MESSAGE( "File", "Loading file \"%s\"...\n", _filePath.c_str())
 
 	std::ifstream fileStream(_filePath);
 
 	if (!fileStream.is_open())
 	{
-		LOG_ERROR("File", "Unable to load \"%s\"\n", _filePath.c_str());
+		LOG_ERROR("File", "Unable to load \"%s\"\n", _filePath.c_str())
 		return nullptr;
 	}
 
@@ -75,7 +75,7 @@ File* File::OpenFile(std::filesystem::path _filePath)
 	File* file = new File(_filePath.c_str(), content.c_str());
     file->m_open = true;
 
-    LOG_MESSAGE( "File", "File \"%s\" loaded.\n", _filePath.c_str());
+    LOG_MESSAGE( "File", "File \"%s\" loaded.\n", _filePath.c_str())
 
 	return file;
 }

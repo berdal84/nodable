@@ -27,7 +27,7 @@ void Runner::load( ProgramNode* _program)
 void Runner::run()
 {
     NODABLE_ASSERT(this->m_program != nullptr);
-    LOG_VERBOSE("Runner", "Running...\n");
+    LOG_VERBOSE("Runner", "Running...\n")
     m_isRunning = true;
 
     /*
@@ -55,7 +55,7 @@ void Runner::run()
                 m_lastInstructionNode = eachNodeToEval->as<InstructionNode>();
             }
 
-            LOG_VERBOSE("Runner", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int)total, eachNodeToEval->getLabel(), eachNodeToEval->getClass()->getName());
+            LOG_VERBOSE("Runner", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int)total, eachNodeToEval->getLabel(), eachNodeToEval->getClass()->getName())
             idx++;
         }
         m_currentNode = m_traversal.getNextInstrToEval(m_currentNode);
@@ -68,7 +68,7 @@ void Runner::stop()
     m_isRunning = false;
     m_isDebugging = false;
     m_currentNode = nullptr;
-    LOG_VERBOSE("Runner", "Stopped.\n");
+    LOG_VERBOSE("Runner", "Stopped.\n")
 }
 
 void Runner::unload() {

@@ -127,13 +127,13 @@ bool NodeConnector::Connect(const NodeConnector *_left, const NodeConnector *_ri
 {
     if ( _left->hasSameParentWith(_right) )
     {
-        LOG_WARNING("NodeConnector", "Unable to connect these two Connectors from the same Node.\n");
+        LOG_WARNING("NodeConnector", "Unable to connect these two Connectors from the same Node.\n")
         return false;
     }
 
     if( _left->m_way == _right->m_way )
     {
-        LOG_WARNING("NodeConnector", "Unable to connect these two Node Connectors (must have different ways).\n");
+        LOG_WARNING("NodeConnector", "Unable to connect these two Node Connectors (must have different ways).\n")
         return false;
     }
 

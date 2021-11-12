@@ -234,8 +234,8 @@ namespace Nodable
     public:
         Member*           m_member;
         NodeView*         m_nodeView;
-        MemberConnector*        m_in;
-        MemberConnector*        m_out;
+        MemberConnector*  m_in;
+        MemberConnector*  m_out;
         bool              m_showInput;
         bool              m_touched;
         ImVec2            m_screenPos;

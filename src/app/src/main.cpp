@@ -67,9 +67,9 @@ int main(int argc, char* argv[])
             }
         }
     } catch (std::exception& err) {
-        LOG_ERROR("main", "Application crashes: %s\n", err.what() );
+        LOG_ERROR("main", "Application crashes: %s\n", err.what() )
 	}
 	nodable.shutdown();
-    LOG_FLUSH();
+    LOG_FLUSH()
 	return 0;
 }

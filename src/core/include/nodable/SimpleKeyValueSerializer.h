@@ -68,7 +68,7 @@ namespace mirror
                             }
                             else
                             {
-                                LOG_ERROR("SimpleKeyValueSerializer", "Pointers non char* can't be serialized. Not implemented yet.");
+                                LOG_ERROR("SimpleKeyValueSerializer", "Pointers non char* can't be serialized. Not implemented yet.")
                                 NODABLE_ASSERT(false);
                             }
                         }

@@ -54,7 +54,7 @@ namespace Nodable
             for( const auto& eachTxt : s_textures )
             {
                 glDeleteTextures(1, &eachTxt.second.image);
-                LOG_MESSAGE("Texture", "Texture %s released.\n", eachTxt.first.c_str());
+                LOG_MESSAGE("Texture", "Texture %s released.\n", eachTxt.first.c_str())
             }
             s_textures.clear();
         }
@@ -74,7 +74,7 @@ namespace Nodable
             auto isLoaded = Texture::LoadPNG(path, image, &texture, &width, &height);
             if ( isLoaded )
             {
-                LOG_MESSAGE("Texture", "Texture %s loaded.\n", path.c_str());
+                LOG_MESSAGE("Texture", "Texture %s loaded.\n", path.c_str())
 
                 // Store for later use
                 auto res = s_textures.insert( { path, {texture, width, height }});
@@ -83,7 +83,7 @@ namespace Nodable
             }
             else
             {
-                LOG_ERROR("Texture", "Texture %s NOT loaded !\n", path.c_str());
+                LOG_ERROR("Texture", "Texture %s NOT loaded !\n", path.c_str())
                 return nullptr;
             }
         }

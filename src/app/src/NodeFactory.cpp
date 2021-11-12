@@ -46,7 +46,7 @@ VariableNode* NodeFactory::newVariable(Type _type, const std::string& _name, Sco
     }
     else
     {
-        LOG_WARNING("NodeFactory", "You create a variable without defining its scope.");
+        LOG_WARNING("NodeFactory", "You create a variable without defining its scope.")
     }
 
     return node;

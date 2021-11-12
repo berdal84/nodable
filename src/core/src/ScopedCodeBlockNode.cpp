@@ -101,9 +101,13 @@ InstructionNode *ScopedCodeBlockNode::getLastInstruction()
 void ScopedCodeBlockNode::addVariable(VariableNode* _variableNode)
 {
     if ( this->findVariable(_variableNode->getName()) == nullptr)
+    {
         this->m_variables.push_back(_variableNode);
+    }
     else
-        LOG_ERROR("ScopedCodeBlockNode", "Unable to add variable %s, already declared.\n", _variableNode->getName());
+    {
+        LOG_ERROR("ScopedCodeBlockNode", "Unable to add variable %s, already declared.\n", _variableNode->getName())
+    }
 }
 
 

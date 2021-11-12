@@ -39,7 +39,7 @@ VariableNode* HeadlessNodeFactory::newVariable(Type _type, const std::string& _n
     }
     else
     {
-        LOG_WARNING("NodeFactory", "You create a variable without defining its scope.");
+        LOG_WARNING("NodeFactory", "You create a variable without defining its scope.")
     }
 
     return node;

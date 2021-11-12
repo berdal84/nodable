@@ -74,26 +74,26 @@ Token* TokenRibbon::eatToken(TokenType expectedType)
 
 Token* TokenRibbon::eatToken()
 {
-    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", currentTokenIndex, Token::toString( peekToken() ).c_str() );
+    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", currentTokenIndex, Token::toString( peekToken() ).c_str() )
     return &tokens.at(currentTokenIndex++);
 }
 
 void TokenRibbon::startTransaction()
 {
     transactionStartTokenIndexes.push(currentTokenIndex);
-    LOG_VERBOSE("Parser", "Start Transaction (idx %i)\n", currentTokenIndex);
+    LOG_VERBOSE("Parser", "Start Transaction (idx %i)\n", currentTokenIndex)
 }
 
 void TokenRibbon::rollbackTransaction()
 {
     currentTokenIndex = transactionStartTokenIndexes.top();
-    LOG_VERBOSE("Parser", "Rollback transaction (idx %i)\n", currentTokenIndex);
+    LOG_VERBOSE("Parser", "Rollback transaction (idx %i)\n", currentTokenIndex)
     transactionStartTokenIndexes.pop();
 }
 
 void TokenRibbon::commitTransaction()
 {
-    LOG_VERBOSE("Parser", "Commit transaction (idx %i)\n", currentTokenIndex);
+    LOG_VERBOSE("Parser", "Commit transaction (idx %i)\n", currentTokenIndex)
     transactionStartTokenIndexes.pop();
 }
 
