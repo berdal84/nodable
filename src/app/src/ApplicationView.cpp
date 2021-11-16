@@ -108,7 +108,7 @@ bool ApplicationView::init()
     // Setup Platform/Renderer bindings
     gl3wInit();
     ImGui_ImplSDL2_InitForOpenGL(sdlWindow, glcontext);
-    const char* glsl_version = "#version 150";
+    const char* glsl_version = NULL; // let backend decide wich version to use, usually 130 (pc) or 150 (macos).
     ImGui_ImplOpenGL3_Init(glsl_version);
 
 	return true;
