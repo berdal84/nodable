@@ -108,7 +108,7 @@ bool ApplicationView::init()
     // Setup Platform/Renderer bindings
     gl3wInit();
     ImGui_ImplSDL2_InitForOpenGL(sdlWindow, glcontext);
-    const char* glsl_version = "#version 130";
+    const char* glsl_version = "#version 150";
     ImGui_ImplOpenGL3_Init(glsl_version);
 
 	return true;
