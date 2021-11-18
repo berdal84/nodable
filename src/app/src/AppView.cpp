@@ -652,6 +652,13 @@ void AppView::drawPropertiesWindow()
         Settings::Save();
     }
     ImGui::Indent();
+
+
+        ImGui::Text("Buttons:");
+        ImGui::Indent();
+            ImGui::SliderFloat2("ui_toolButton_size", &config->ui_toolButton_size.x, 20.0f, 50.0f);
+        ImGui::Unindent();
+
         ImGui::Text("Wires:");
         ImGui::Indent();
             ImGui::SliderFloat("thickness", &config->ui_wire_bezier_thickness, 0.5f, 10.0f);
