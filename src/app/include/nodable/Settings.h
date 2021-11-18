@@ -47,6 +47,7 @@ namespace Nodable {
         ImVec4 ui_button_activeColor;
         ImVec4 ui_button_hoveredColor;
         ImVec4 ui_button_color;
+        ImVec2 ui_toolButton_size;
         const char* ui_splashscreen_imagePath;
 
         void setImGuiStyle(ImGuiStyle&);

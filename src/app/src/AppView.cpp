@@ -880,13 +880,11 @@ void AppView::drawBackground()
 
 void AppView::drawToolBar()
 {
-    auto settings = Settings::Get();
+    Settings* settings = Settings::Get();
+    Runner& runner = m_app->getRunner();
 
     // small margin
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
-
-    auto runner = m_app->getRunner();
-
     ImGui::BeginGroup();
 
     // run
@@ -894,7 +892,7 @@ void AppView::drawToolBar()
     if ( isRunning )
         ImGui::PushStyleColor(ImGuiCol_Button, settings->ui_button_activeColor);
 
-    if (ImGui::Button(ICON_FA_PLAY) && runner.isStopped())
+    if (ImGui::Button(ICON_FA_PLAY, settings->ui_toolButton_size) && runner.isStopped())
     {
         m_app->runCurrentFileProgram();
     }
@@ -906,7 +904,7 @@ void AppView::drawToolBar()
     bool isDebugging = runner.isDebugging();
     if ( isDebugging )
         ImGui::PushStyleColor(ImGuiCol_Button, settings->ui_button_activeColor);
-    if (ImGui::Button(ICON_FA_BUG) && runner.isStopped())
+    if (ImGui::Button(ICON_FA_BUG, settings->ui_toolButton_size) && runner.isStopped())
     {
         m_app->debugCurrentFileProgram();
     }
@@ -915,21 +913,21 @@ void AppView::drawToolBar()
     ImGui::SameLine();
 
     // stepOver
-    if (ImGui::Button(ICON_FA_ARROW_RIGHT) && runner.isDebugging())
+    if (ImGui::Button(ICON_FA_ARROW_RIGHT, settings->ui_toolButton_size) && runner.isDebugging())
     {
         m_app->stepOverCurrentFileProgram();
     }
     ImGui::SameLine();
 
     // stop
-    if ( ImGui::Button(ICON_FA_STOP) && !runner.isStopped())
+    if ( ImGui::Button(ICON_FA_STOP, settings->ui_toolButton_size) && !runner.isStopped())
     {
         m_app->stopCurrentFileProgram();
     }
     ImGui::SameLine();
 
     // reset
-    if ( ImGui::Button(ICON_FA_UNDO))
+    if ( ImGui::Button(ICON_FA_UNDO, settings->ui_toolButton_size))
     {
         m_app->resetCurrentFileProgram();
     }

@@ -113,6 +113,8 @@ Settings* Settings::CreateInstance()
     conf->ui_button_hoveredColor          = ImVec4(0.70f, 0.70f, 0.70f, 0.95f);
     conf->ui_button_activeColor           = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
 
+    conf->ui_toolButton_size              = ImVec2(30.0f, 30.0f);
+
     return conf;
 }
 
