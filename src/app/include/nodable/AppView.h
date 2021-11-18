@@ -19,33 +19,33 @@
 namespace Nodable
 {
     // forward declarations
-    class Application;
+    class App;
     class History;
     class Language;
 
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
 	*/
-	class ApplicationView : public View
+	class AppView : public View
 	{
 		
 	public:		
-		ApplicationView(const char* _name, Application* _application);
-		~ApplicationView() override;
+		AppView(const char* _name, App* _application);
+		~AppView() override;
 		bool draw() override;
 		bool init();
         void browseFile();
         void shutdown();
 	private:
-		ImGui::FileBrowser fileBrowser;
-		Application*       application;
-		SDL_Window*        sdlWindow;
-		SDL_GLContext      glcontext;
-		ImColor            backgroundColor;
-        bool               isStartupWindowVisible;
-        bool               isHistoryDragged;
-        const char*        startupScreenTitle = "##STARTUPSCREEN";
-        bool               isLayoutInitialized = false;
+        App*               m_app;
+        ImGui::FileBrowser m_fileBrowser;
+		SDL_Window*        m_sdlWindow;
+		SDL_GLContext      m_sdlGLContext;
+		ImColor            m_bgColor;
+        bool               m_isStartupWindowVisible;
+        bool               m_isHistoryDragged;
+        const char*        m_startupScreenTitle;
+        bool               m_isLayoutInitialized;
         std::string        m_glWindowName;
         bool               m_showProperties;
         bool               m_showImGuiDemo;
@@ -64,7 +64,7 @@ namespace Nodable
         ImFont* getFontById(const char *id );
 
         /* reflect class using mirror */
-        MIRROR_CLASS(ApplicationView)
+        MIRROR_CLASS(AppView)
         (
             MIRROR_PARENT(View) // we only need to know parent
         );

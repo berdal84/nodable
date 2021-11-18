@@ -7,7 +7,7 @@
 
 #include <nodable/Settings.h>
 #include <nodable/Serializer.h>
-#include <nodable/Application.h>
+#include <nodable/App.h>
 #include <nodable/Maths.h>
 #include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/VariableNode.h>
@@ -432,7 +432,7 @@ bool NodeView::draw()
 
         if(ImGui::Selectable("Save to JSON"))
         {
-            Application::SaveNode(node);
+            App::SaveNode(node);
         }            
         ImGui::EndPopup();
     }

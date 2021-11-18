@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#include <nodable/Application.h>
+#include <nodable/App.h>
 #include <nodable/FileView.h>
 #include <nodable/GraphNodeView.h>
 #include <nodable/ProgramNode.h>
@@ -107,7 +107,8 @@ bool File::update() {
         m_history->dirty = false;
 	}
 
-    bool runner_is_stopped = Application::s_instance && Application::s_instance->getRunner().isStopped();
+    App* app = App::Get();
+    bool runner_is_stopped = app && app->getRunner().isStopped();
 	if( runner_is_stopped )
     {
         auto graphUpdateResult = m_graph->update();

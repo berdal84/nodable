@@ -4,7 +4,7 @@
 #include <fstream>
 #include <nodable/Log.h>
 #include <nodable/SimpleKeyValueSerializer.h>
-#include <nodable/Application.h>
+#include <nodable/App.h>
 
 using namespace Nodable;
 
@@ -190,7 +190,7 @@ void Settings::setImGuiStyle(ImGuiStyle& _style)
 void Settings::Save()
 {
     // Output this default settings to default.cfg file
-    std::filesystem::path path( Application::GetAssetPath("settings/") );
+    std::filesystem::path path( App::GetAssetPath("settings/") );
     std::filesystem::create_directory( path );
     path.append("default.cfg");
     Settings::Save(path);

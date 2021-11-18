@@ -2,8 +2,8 @@
 #include <mirror/mirror.h>
 #include <string>
 
-#include <nodable/Application.h>
-#include <nodable/ApplicationView.h>
+#include <nodable/App.h>
+#include <nodable/AppView.h>
 #include <nodable/Config.h>
 #include <nodable/GraphNodeView.h>
 #include <nodable/FileView.h>
@@ -24,7 +24,7 @@ MIRROR_INITIALIZER
 MIRROR_CLASS_DEFINITION(Settings);
 // View and derived
 MIRROR_CLASS_DEFINITION(View)
-MIRROR_CLASS_DEFINITION(ApplicationView)
+MIRROR_CLASS_DEFINITION(AppView)
 MIRROR_CLASS_DEFINITION(FileView)
 MIRROR_CLASS_DEFINITION(Component)
 MIRROR_CLASS_DEFINITION(ComputeBase)
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 //    Log::SetVerbosityLevel("GraphNode", Log::Verbosity::Verbose);
 //    Log::SetVerbosityLevel("Runner", Log::Verbosity::Verbose);
 
-	Application nodable("Nodable " NODABLE_VERSION_EXTENDED );
+	App nodable("Nodable " NODABLE_VERSION_EXTENDED );
 	nodable.init();
     auto startupFilePath = nodable.getAssetPath("txt/startup.txt");
 	nodable.openFile(startupFilePath); // Init and open a startup file
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 	try {
         while ( nodable.update() )
         {
-            if (ApplicationView* view = nodable.getView() )
+            if (AppView* view = nodable.getView() )
             {
                 view->draw();
             }

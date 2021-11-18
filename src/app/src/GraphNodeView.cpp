@@ -7,7 +7,7 @@
 #include <nodable/Settings.h>
 #include <nodable/Log.h>
 #include <nodable/Wire.h>
-#include <nodable/Application.h>
+#include <nodable/App.h>
 #include <nodable/ProgramNode.h>
 #include <nodable/GraphNode.h>
 #include <nodable/VariableNode.h>
@@ -22,7 +22,9 @@ using namespace Nodable;
 bool GraphNodeView::draw()
 {
     bool edited = false;
-    Runner* runner = &Application::s_instance->getRunner();
+    App* app = App::Get();
+    NODABLE_ASSERT(app != nullptr) // app needs to be defined
+    Runner* runner = &app->getRunner();
 
     Settings* settings = Settings::Get();
     GraphNode* graph = getGraphNode();

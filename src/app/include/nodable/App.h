@@ -14,7 +14,7 @@
 namespace Nodable
 {
     // forward declarations
-    class ApplicationView;
+    class AppView;
     class File;
 
     /**
@@ -23,16 +23,16 @@ namespace Nodable
      *
      * As you can see Application extends Node, because everything (or almost) is a Node in Nodable.
      */
-	class Application
+	class App
 	{
 	public:
 
 	    /**
 	     * Construct a new Application given an application name argument.
 	     */
-		explicit Application(const char*);
+		explicit App(const char*);
 
-		~Application();
+		~App();
 
 		/**
 		 * Initialize the application.
@@ -127,7 +127,7 @@ namespace Nodable
         void stepOverCurrentFileProgram();
         void stopCurrentFileProgram();
         void resetCurrentFileProgram();
-        ApplicationView* getView()const { return m_view; };
+        inline AppView* getView()const { return m_view; };
 
 		/**
 		 * @deprecated
@@ -137,27 +137,33 @@ namespace Nodable
 		 */
 		static void SaveNode(Node* _node);
 
-		static Application* s_instance;
-
+        /** Get current app's asset path */
         static std::filesystem::path GetAssetPath(const char *_path);
 
+        /** Get current App instance */
+        static App* Get();
+
     private:
-	    ApplicationView* m_view;
+	    AppView* m_view;
+
 		/** When set to true, the application will close next frame */
-		bool quit = false;
+		bool m_quit = false;
 
 		/** The list of loaded files. */
-		std::vector<File*> loadedFiles;
+		std::vector<File*> m_loadedFiles;
 
-        /** An index that identify the current file in loadedFiles */
-		size_t currentFileIndex;
+        /** An index identifying the current file in m_loadedFiles */
+		size_t m_currentFileIndex;
 
 		/** The asset base folder path */
-		const std::filesystem::path assetsFolderPath;
+		const std::filesystem::path m_assetsFolderPath;
 
         /** A minimalist "virtual machine" to run instructions */
         Runner m_runner;
 
         std::string m_name;
+
+        /** App singleton */
+        static App* s_instance;
     };
 }
