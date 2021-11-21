@@ -30,10 +30,6 @@ namespace Nodable
         Token* m_token_if;
         Token* m_token_else;
 
-    // reflect class using mirror
-    MIRROR_CLASS(ConditionalStructNode)
-    (
-        MIRROR_PARENT(CodeBlockNode)
-    )
+        REFLECT_WITH_INHERITANCE(ConditionalStructNode, CodeBlockNode)
     };
 }

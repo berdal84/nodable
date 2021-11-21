@@ -10,7 +10,6 @@ add_library( nodable_core STATIC ${SOURCES} )
 target_link_libraries(
         nodable_core
         PUBLIC
-            mirror
             rapidjson
             Observe
 )

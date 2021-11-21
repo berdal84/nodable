@@ -2,7 +2,8 @@
 
 #include <string>
 #include <map>
-#include <mirror.h>
+#include <cmath> // round()
+#include <nodable/Reflect.h>
 #include <algorithm>
 #include <observe/observer.h>
 #include <imgui/imgui.h>   // for ImVec2
@@ -217,12 +218,10 @@ namespace Nodable
         static std::vector<NodeView*> s_instances;
 
         // Reflect this class
-        MIRROR_CLASS(NodeView)
-        (
-            MIRROR_PARENT(View)
-            MIRROR_PARENT(Component)
-        ); // I only need to know the parent
-
+        REFLECT_BEGIN(NodeView)
+        REFLECT_INHERITS(View)
+        REFLECT_INHERITS(Component)
+        REFLECT_END
     };
 
 

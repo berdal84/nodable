@@ -3,18 +3,15 @@
 #include <imgui/imgui.h>
 #include <SDL.h>
 #include <string>
-#include <mirror.h>
 #include <map>
+#include <array>
 
+#include <nodable/Reflect.h>
 #include <nodable/Nodable.h>
 #include <nodable/View.h>
 #include <nodable/FontConf.h>
 #include <nodable/FontSlot.h>
-
-// Override imfilebrowser.h icons
-#define IMFILEBROWSER_FILE_ICON ICON_FA_FILE
-#define IMFILEBROWSER_FOLDER_ICON ICON_FA_FOLDER
-#include <imgui-filebrowser/imfilebrowser.h>
+#include <nodable/FileBrowser.h>
 
 namespace Nodable
 {
@@ -38,7 +35,7 @@ namespace Nodable
         void shutdown();
 	private:
         App*               m_app;
-        ImGui::FileBrowser m_fileBrowser;
+        FileBrowser        m_fileBrowser;
 		SDL_Window*        m_sdlWindow;
 		SDL_GLContext      m_sdlGLContext;
 		ImColor            m_bgColor;
@@ -63,11 +60,6 @@ namespace Nodable
         ImFont* loadFont(const FontConf &fontConf);
         ImFont* getFontById(const char *id );
 
-        /* reflect class using mirror */
-        MIRROR_CLASS(AppView)
-        (
-            MIRROR_PARENT(View) // we only need to know parent
-        );
-
+        REFLECT_WITH_INHERITANCE(AppView, View)
     };
 }

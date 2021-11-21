@@ -173,6 +173,7 @@ namespace Nodable {
 		void addComponent(T* _component)
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
+            NODABLE_ASSERT( _component != nullptr );
 			std::string name(T::GetClass()->getName());
 			m_components.emplace(std::make_pair(name, _component));
 			_component->setOwner(this);
@@ -260,14 +261,14 @@ namespace Nodable {
 
         template<class T> [[nodiscard]] T* as()
         {
-            if( this->getClass()->isChildOf(mirror::GetClass<T>()))
+            if( this->getClass()->isChildOf(T::GetClass()))
                 return reinterpret_cast<T*>(this);
             return nullptr;
         }
 
         template<class T> [[nodiscard]] const T* as()const
         {
-            if( this->getClass()->isChildOf(mirror::GetClass<T>()))
+            if( this->getClass()->isChildOf(T::GetClass()))
                 return reinterpret_cast<const T*>(this);
             return nullptr;
         }
@@ -296,9 +297,7 @@ namespace Nodable {
 		std::vector<Node*> m_outputs;
 
 	public:
-	    /* use mirror to refect class */
-		MIRROR_CLASS(Node)();
-
+		REFLECT(Node)
         Node *getFirstNext();
     };
 }

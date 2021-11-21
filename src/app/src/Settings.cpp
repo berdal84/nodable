@@ -3,7 +3,6 @@
 #include <string>
 #include <fstream>
 #include <nodable/Log.h>
-#include <nodable/SimpleKeyValueSerializer.h>
 #include <nodable/App.h>
 
 using namespace Nodable;
@@ -191,34 +190,27 @@ void Settings::setImGuiStyle(ImGuiStyle& _style)
 
 void Settings::Save()
 {
-    // Output this default settings to default.cfg file
-    std::filesystem::path path( App::GetAssetPath("settings/") );
-    std::filesystem::create_directory( path );
-    path.append("default.cfg");
-    Settings::Save(path);
+//    // Output this default settings to default.cfg file
+//    std::filesystem::path path( App::GetAssetPath("settings/") );
+//    std::filesystem::create_directory( path );
+//    path.append("default.cfg");
+//    Settings::Save(path);
 }
 
-void Settings::Save(std::filesystem::path& _path)
+void Settings::Save(std::string& _path)
 {
-    mirror::SimpleKeyValueSerializer serializer;
-    std::string                      out;
-
-    serializer.serialize(Settings::Get(), out);
-
-    std::ofstream outfile ( _path ,std::ofstream::binary);
-    outfile.write (out.c_str(), out.size());
-    outfile.close();
-
-    printf("SimpleKeyValueSerializer out:\n%s\n", out.c_str());
+//    mirror::SimpleKeyValueSerializer serializer;
+//    std::string                      out;
+//
+//    serializer.serialize(Settings::Get(), out);
+//
+//    std::ofstream outfile ( _path ,std::ofstream::binary);
+//    outfile.write (out.c_str(), out.size());
+//    outfile.close();
+//
+//    printf("SimpleKeyValueSerializer out:\n%s\n", out.c_str());
 }
 
 Settings *Settings::Load(const char * _path) {
-
-    LOG_MESSAGE( "Settings", "Loading file \"%s\"...\n", _path)
-    Settings* settings = Settings::Get();
-    mirror::SimpleKeyValueSerializer serializer;
-    std::string out;
-    serializer.serialize(settings, out);
-    printf("Json Serialisation out:\n%s\n", out.c_str());
     return nullptr;
 };

@@ -43,7 +43,6 @@ set( NODABLE_STATIC_LIBS
         Threads::Threads
         imgui
         imgui_textedit
-        imgui_filebrowser
         IconFontCppHeaders
         lodepng
         gl3w

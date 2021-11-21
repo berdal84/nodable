@@ -3,7 +3,7 @@
 #include <vector>
 #include <ctime>
 #include <string>
-#include <mirror.h>
+#include <nodable/Reflect.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 
 #include <nodable/Component.h> // base class

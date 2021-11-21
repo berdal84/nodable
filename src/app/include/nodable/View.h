@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mirror.h>
+#include <nodable/Reflect.h>
 
 #include <nodable/ImGuiEx.h>
 #include <nodable/Component.h>
@@ -135,7 +135,6 @@ namespace Nodable
 		 */
         std::map<ColorType_, ImVec4*> colors;
 
-		MIRROR_CLASS(View)();
-
+		REFLECT(View)
     };
 }

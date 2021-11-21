@@ -2,7 +2,7 @@
 
 #include <nodable/Nodable.h>
 #include <nodable/Component.h>
-#include <mirror.h>
+#include <nodable/Reflect.h>
 
 namespace Nodable
 {
@@ -11,7 +11,6 @@ namespace Nodable
 	public:
 		DataAccess() {};
 		bool update()override;
-		MIRROR_CLASS(DataAccess)(
-			MIRROR_PARENT(Component));
+		REFLECT_WITH_INHERITANCE(DataAccess, Component)
 	};
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <functional>
-#include <mirror.h>
+#include <nodable/Reflect.h>
 
 #include <nodable/Nodable.h> // for constants and forward declarations
 #include <nodable/ComputeFunction.h>
@@ -22,8 +22,6 @@ namespace Nodable
         Member*         getLValue() { return m_args[0]; };
         const Operator* getOperator() const { return reinterpret_cast<const Operator*>(m_function); };
 
-		MIRROR_CLASS(ComputeUnaryOperation)(
-			MIRROR_PARENT(ComputeFunction)
-		);
+		REFLECT_WITH_INHERITANCE(ComputeUnaryOperation, ComputeFunction)
     };
 }

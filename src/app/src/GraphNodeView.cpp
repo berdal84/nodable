@@ -500,7 +500,7 @@ void GraphNodeView::updateViewConstraints()
             //------------------------------------------------
 
             auto children = eachView->getChildren();
-            if( !children.empty() && clss == mirror::GetClass<ConditionalStructNode>())
+            if( !children.empty() && clss == ConditionalStructNode::GetClass())
             {
                 NodeViewConstraint constraint(NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
                 constraint.addMaster(eachView);

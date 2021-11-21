@@ -64,7 +64,7 @@ void App::shutdown()
     m_view->shutdown();
 }
 
-bool App::openFile(std::filesystem::path _filePath)
+bool App::openFile(std::string _filePath)
 {		
 	auto file = File::OpenFile(_filePath);
 
@@ -113,10 +113,11 @@ void App::SaveNode(Node* _node)
 	_node->deleteComponent<DataAccess>();
 }
 
-std::filesystem::path App::getAssetPath(const char* _fileName)const
+std::string App::getAssetPath(const char* _fileName)const
 {
-	auto assetPath = this->m_assetsFolderPath;
-	assetPath /= _fileName;
+	std::string assetPath(m_assetsFolderPath);
+	assetPath.append("/");
+    assetPath.append(_fileName);
 	return assetPath;
 }
 
@@ -207,7 +208,7 @@ void App::resetCurrentFileProgram()
     }
 }
 
-std::filesystem::path App::GetAssetPath(const char *_path)
+std::string App::GetAssetPath(const char *_path)
 {
     return s_instance->getAssetPath( _path );
 }

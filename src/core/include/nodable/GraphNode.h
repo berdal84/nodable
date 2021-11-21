@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <mirror.h>
+#include <nodable/Reflect.h>
 #include <nodable/AbstractCodeBlockNode.h>
 
 #include <nodable/Nodable.h>
@@ -107,12 +107,7 @@ namespace Nodable{
 		const Language*            m_language;
 		ProgramNode*               m_program;
 		const AbstractNodeFactory* m_factory;
-	public:
-    /** reflect class with mirror */
-    MIRROR_CLASS(GraphNode)
-    (
-        MIRROR_PARENT(Node) // we only need to know parent
-    )
 
+        REFLECT_WITH_INHERITANCE(GraphNode, Node)
     };
 }

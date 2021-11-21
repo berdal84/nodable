@@ -117,11 +117,11 @@ void NodeView::setOwner(Node* _node)
     {
         setColor(ColorType_Fill, &settings->ui_node_functionColor); // blue
     }
-    else if ( _node->getClass() == mirror::GetClass<VariableNode>() )
+    else if ( _node->getClass() == VariableNode::GetClass() )
     {
         setColor(ColorType_Fill, &settings->ui_node_variableColor); // purple
     }
-    else if ( _node->getClass() == mirror::GetClass<LiteralNode>() )
+    else if ( _node->getClass() == LiteralNode::GetClass() )
     {
         setColor(ColorType_Fill, &settings->ui_node_literalColor);
     }
@@ -749,7 +749,7 @@ void NodeView::drawAdvancedProperties()
 
     // Scope specific:
 
-    if ( node->getClass()->isChildOf( mirror::GetClass<ScopedCodeBlockNode>() ))
+    if ( node->getClass()->isChildOf( ScopedCodeBlockNode::GetClass() ))
     {
         ImGui::NewLine();
         ImGui::Text("Variables:");
