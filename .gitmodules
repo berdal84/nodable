@@ -4,12 +4,6 @@
 [submodule "libs/IconFontCppHeaders"]
 	path = libs/IconFontCppHeaders
 	url = https://github.com/berdal84/IconFontCppHeaders
-[submodule "libs/mirror"]
-	path = libs/mirror
-	url = https://github.com/berdal84/mirror
-[submodule "libs/imgui-filebrowser"]
-	path = libs/imgui-filebrowser
-	url = https://github.com/berdal84/imgui-filebrowser.git
 [submodule "libs/ImGuiColorTextEdit"]
 	path = libs/ImGuiColorTextEdit
 	url = https://github.com/berdal84/ImGuiColorTextEdit
