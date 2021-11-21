@@ -28,9 +28,6 @@ namespace Nodable
 		std::vector<Member*> m_args;
 		const Function*      m_function;
 
-		// reflect class using mirror
-		MIRROR_CLASS(ComputeFunction)(
-			MIRROR_PARENT(ComputeBase)
-		);
+		REFLECT_WITH_INHERITANCE(ComputeFunction, ComputeBase)
 	};
 }

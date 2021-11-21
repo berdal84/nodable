@@ -127,10 +127,18 @@ bool FileView::draw()
     GraphNode* graph = m_file->getGraph();
     NODABLE_ASSERT(graph != nullptr);
     NodeView* graphNodeView = graph->getComponent<GraphNodeView>();
-    NODABLE_ASSERT(graphNodeView != nullptr);
-    graphNodeView->update();
-    auto flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    graphNodeView->drawAsChild("graph", ImVec2(m_childSize2, availSize.y), false, flags);
+
+    if ( graphNodeView )
+    {
+        graphNodeView->update();
+        auto flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        graphNodeView->drawAsChild("graph", ImVec2(m_childSize2, availSize.y), false, flags);
+    }
+    else
+    {
+        ImGui::TextColored(ImColor(255,0,0), "ERROR: Unable to graw Graph View");
+        LOG_ERROR("FileView", "graphNodeView is null\n");
+    }
 
 	return true;
 }
@@ -195,8 +203,8 @@ void FileView::drawFileInfo() const
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %u", m_file->getGraph()->getNodeRegistry().size());
-    ImGui::Text("Wire count: %u", m_file->getGraph()->getWireRegistry().size());
+    ImGui::Text("Node count: %lu", m_file->getGraph()->getNodeRegistry().size());
+    ImGui::Text("Wire count: %lu", m_file->getGraph()->getWireRegistry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 

@@ -50,7 +50,7 @@ void Runner::run()
         {
             eachNodeToEval->eval();
             eachNodeToEval->setDirty(false);
-            if ( eachNodeToEval->getClass() == mirror::GetClass<InstructionNode>())
+            if ( eachNodeToEval->getClass() == InstructionNode::GetClass())
             {
                 m_lastInstructionNode = eachNodeToEval->as<InstructionNode>();
             }
@@ -83,7 +83,7 @@ bool Runner::stepOver()
     {
         eachNodeToEval->eval();
         eachNodeToEval->setDirty(false);
-        if ( eachNodeToEval->getClass() == mirror::GetClass<InstructionNode>())
+        if ( eachNodeToEval->getClass() == InstructionNode::GetClass())
         {
             m_lastInstructionNode = eachNodeToEval->as<InstructionNode>();
         }

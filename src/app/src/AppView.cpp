@@ -135,7 +135,7 @@ ImFont* AppView::loadFont(const FontConf& fontConf) {
         config.OversampleV = 1;
 
         //io.Fonts->AddFontDefault();
-        auto fontPath = m_app->getAssetPath(fontConf.path).string();
+        auto fontPath = m_app->getAssetPath(fontConf.path);
         LOG_VERBOSE("AppView", "Adding font from file ... %s\n", fontPath.c_str())
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), fontConf.size, &config);
     }
@@ -150,7 +150,7 @@ ImFont* AppView::loadFont(const FontConf& fontConf) {
         config.MergeMode = true;
         config.PixelSnapH = true;
         config.GlyphMinAdvanceX = settings->ui_icons.size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = m_app->getAssetPath(settings->ui_icons.path).string();
+        auto fontPath = m_app->getAssetPath(settings->ui_icons.path);
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui_icons.size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to font ...\n")
     }
@@ -572,7 +572,7 @@ void AppView::drawFileBrowser()
         auto selectedFiles = m_fileBrowser.GetMultiSelected();
         for (const auto & selectedFile : selectedFiles)
         {
-            m_app->openFile(selectedFile.string().c_str());
+            m_app->openFile(selectedFile.c_str());
         }
         m_fileBrowser.ClearSelected();
         m_fileBrowser.Close();
@@ -869,7 +869,7 @@ void AppView::browseFile()
 void AppView::drawBackground()
 {
     ImGui::BeginChild("background");
-    std::filesystem::path path(NODABLE_ASSETS_DIR"/nodable-logo-xs.png");
+    std::string path(NODABLE_ASSETS_DIR"/nodable-logo-xs.png");
     auto logo = Texture::GetWithPath(path);
 
     for( int x = 0; x < 5; x++ )

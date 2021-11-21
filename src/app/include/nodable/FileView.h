@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mirror.h>
+#include <nodable/Reflect.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <observe/observer.h>
 
@@ -21,7 +21,7 @@ namespace Nodable
 		observe::Observer m_observer;
 
 		void                           init();
-		bool                           draw();
+		bool                           draw() override;
 		bool                           hasChanged() const { return this->m_hasChanged; }
 		void                           setText(const std::string&);
 		std::string                    getSelectedText()const;
@@ -51,9 +51,6 @@ namespace Nodable
         std::string  m_experimental_clipboard_prev;
         bool         m_experimental_clipboard_auto_paste = false;
 
-        // reflect class using mirror
-		MIRROR_CLASS(FileView)(
-			MIRROR_PARENT(View)
-        );
+		REFLECT_WITH_INHERITANCE(FileView, View)
     };
 }

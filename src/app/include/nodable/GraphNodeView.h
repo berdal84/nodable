@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 #include <functional>
-#include <mirror.h>
+#include <nodable/Reflect.h>
 
 #include <nodable/AbstractCodeBlockNode.h>
 #include <nodable/Function.h>
@@ -34,10 +34,7 @@ namespace Nodable
         [[nodiscard]] GraphNode* getGraphNode() const;
 		std::multimap<std::string, FunctionMenuItem> contextualMenus;
 
-		MIRROR_CLASS(GraphNodeView)
-		(
-			MIRROR_PARENT(NodeView)
-        );
+		REFLECT_WITH_INHERITANCE(GraphNodeView, NodeView)
 
     };
 }

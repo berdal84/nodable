@@ -2,10 +2,9 @@
 
 #include <string>
 #include <vector>
-#include <filesystem>
 
 #include <imgui/imgui.h>
-#include <mirror.h>
+#include <nodable/Reflect.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <nodable/FontConf.h>
 #include <nodable/FontSlot.h>
@@ -61,16 +60,16 @@ namespace Nodable {
         /** Save current settings to default file (settings/default.cfg) */
         static void Save();
 
-        MIRROR_CLASS_NOVIRTUAL(Settings)(
-             MIRROR_MEMBER(ui_codeFlow_lineWidthMax)()
-             MIRROR_MEMBER(ui_wire_displayArrows)()
-             MIRROR_MEMBER(ui_splashscreen_imagePath)()
-        )
+        REFLECT_BEGIN(Settings)
+//             MIRROR_MEMBER(ui_codeFlow_lineWidthMax)()
+//             MIRROR_MEMBER(ui_wire_displayArrows)()
+//             MIRROR_MEMBER(ui_splashscreen_imagePath)()
+        REFLECT_END
 
     private:
         /** Create a default Settings instance */
         static Settings* CreateInstance();
         /** Save current settings to a specific path */
-        static void Save(std::filesystem::path& _path);
+        static void Save(std::string& _path);
     };
 }

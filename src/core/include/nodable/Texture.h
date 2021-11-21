@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <lodepng.h>
-#include <filesystem>
+#include <string>
 #include <gl3w/GL/glcorearb.h>
 #include <gl3w/GL/gl3w.h>
 #include <nodable/Log.h>
@@ -13,7 +13,8 @@ namespace Nodable
     class Texture
     {
     private:
-        static std::map<std::filesystem::path, Texture> s_textures;
+        /** path to Texture */
+        static std::map<std::string, Texture> s_textures;
 
     public:
 
@@ -39,10 +40,10 @@ namespace Nodable
          * @param path
          * @return
          */
-        static Texture *GetWithPath(std::filesystem::path& path)
+        static Texture *GetWithPath(std::string& path)
         {
             // Return if already exists
-            auto tex = Texture::s_textures.find( path.string() );
+            auto tex = Texture::s_textures.find( path );
             if ( tex != s_textures.end() )
                 return &tex->second;
 
@@ -62,7 +63,7 @@ namespace Nodable
     private:
 
 
-        static Texture* CreateTextureFromFile(std::filesystem::path& path)
+        static Texture* CreateTextureFromFile(std::string& path)
         {
             // Try to load a PNG
             std::vector<unsigned char> image;
@@ -95,7 +96,7 @@ namespace Nodable
          * @return
          */
         static int LoadPNG(
-                std::filesystem::path& filename,
+                std::string& filename,
                 std::vector<unsigned char>& image,
                 GLuint* out_texture,
                 int* out_width,
@@ -103,7 +104,7 @@ namespace Nodable
         {
             std::cout << "Loading " << filename << "..." << std::endl;
             std::vector<unsigned char> buffer;
-            lodepng::load_file(buffer, filename.string()); //load the image file with given filename
+            lodepng::load_file(buffer, filename); //load the image file with given filename
             unsigned w, h;
             unsigned error = lodepng::decode(image, w, h, buffer); //decode the png
 
@@ -135,5 +136,5 @@ namespace Nodable
         }
     };
 
-    std::map<std::filesystem::path, Texture> Texture::s_textures;
+    std::map<std::string, Texture> Texture::s_textures;
 }

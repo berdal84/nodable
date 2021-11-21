@@ -1,5 +1,4 @@
 
-#include <mirror/mirror.h>
 #include <string>
 
 #include <nodable/App.h>
@@ -18,36 +17,10 @@
 
 using namespace Nodable;
 
-MIRROR_INITIALIZER
-
-// Declare reflected classes:
-MIRROR_CLASS_DEFINITION(Settings);
-// View and derived
-MIRROR_CLASS_DEFINITION(View)
-MIRROR_CLASS_DEFINITION(AppView)
-MIRROR_CLASS_DEFINITION(FileView)
-MIRROR_CLASS_DEFINITION(Component)
-MIRROR_CLASS_DEFINITION(ComputeBase)
-MIRROR_CLASS_DEFINITION(ComputeFunction)
-MIRROR_CLASS_DEFINITION(ComputeUnaryOperation)
-MIRROR_CLASS_DEFINITION(ComputeBinaryOperation)
-MIRROR_CLASS_DEFINITION(NodeView) // inherits View and Component
-MIRROR_CLASS_DEFINITION(GraphNodeView) // inherits NodeView
-// Node and derived
-MIRROR_CLASS_DEFINITION(Node)
-MIRROR_CLASS_DEFINITION(GraphNode)
-MIRROR_CLASS_DEFINITION(VariableNode)
-MIRROR_CLASS_DEFINITION(LiteralNode)
-MIRROR_CLASS_DEFINITION(InstructionNode)
-MIRROR_CLASS_DEFINITION(AbstractCodeBlockNode)
-MIRROR_CLASS_DEFINITION(CodeBlockNode)
-MIRROR_CLASS_DEFINITION(ScopedCodeBlockNode)
-MIRROR_CLASS_DEFINITION(ConditionalStructNode)
-
-
 int main(int argc, char* argv[])
 {
 
+    Log::SetVerbosityLevel("File", Log::Verbosity::Verbose);
 //    Log::SetVerbosityLevel("GraphTraversal", Log::Verbosity::Verbose);
 //    Log::SetVerbosityLevel("Parser", Log::Verbosity::Verbose);
 //    Log::SetVerbosityLevel("GraphNode", Log::Verbosity::Verbose);

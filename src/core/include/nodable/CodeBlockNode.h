@@ -20,11 +20,6 @@ namespace Nodable
         [[nodiscard]] bool             hasInstructions() const;
         [[nodiscard]] InstructionNode* getFirstInstruction() const;
 
-    /** reflect class using mirror */
-    MIRROR_CLASS(CodeBlockNode)
-    (
-        MIRROR_PARENT(AbstractCodeBlockNode)
-    )
-
+        REFLECT_WITH_INHERITANCE(CodeBlockNode, AbstractCodeBlockNode)
     };
 }

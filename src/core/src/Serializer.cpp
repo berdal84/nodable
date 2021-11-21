@@ -129,6 +129,10 @@ std::string& Serializer::serialize(std::string& _result, const ComputeBase *_ope
     {
         return serialize(_result, fct);
     }
+    else
+    {
+        return _result;
+    }
 }
 
 std::string& Serializer::serialize(std::string& _result, const FunctionSignature&   _signature, const std::vector<Member*>& _args) const
@@ -243,7 +247,7 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
     }
     else
     {
-        if (owner && owner->getClass() == mirror::GetClass<VariableNode>())
+        if (owner && owner->getClass() == VariableNode::GetClass())
         {
             auto variable = owner->as<VariableNode>();
             _result.append(variable->getName() );
@@ -345,8 +349,8 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     {
         serialize( _result, tokenElse );
         Node* elseScope = _condStruct->getChildren()[1];
-        mirror::Class* elseClass = elseScope->getClass();
-        if ( elseClass == mirror::GetClass<ConditionalStructNode>()) // else if ?
+        Reflect::Class* elseClass = elseScope->getClass();
+        if ( elseClass == ConditionalStructNode::GetClass()) // else if ?
         {
             this->serialize( _result, elseScope->as<ConditionalStructNode>() );
         }
@@ -362,28 +366,24 @@ std::string& Serializer::serialize(std::string& _result, const ScopedCodeBlockNo
 {
     if ( _scope != nullptr )
     {
-        NODABLE_ASSERT(_scope->getClass() == mirror::GetClass<ScopedCodeBlockNode>());
+        NODABLE_ASSERT(_scope->getClass() == ScopedCodeBlockNode::GetClass());
 
         serialize( _result, _scope->getBeginScopeToken() );
 
         for (auto eachChild : _scope->getChildren())
         {
-            mirror::Class* clss = eachChild->getClass();
-            if (clss->isChildOf(mirror::GetClass<CodeBlockNode>()))
+            Reflect::Class* clss = eachChild->getClass();
+            if (clss->isChildOf(CodeBlockNode::GetClass()))
             {
                 serialize( _result, eachChild->as<CodeBlockNode>() );
             }
-            else if (clss->isChildOf(mirror::GetClass<InstructionNode>()))
+            else if (clss->isChildOf(InstructionNode::GetClass()))
             {
                 serialize( _result, eachChild->as<InstructionNode>() );
             }
-            else if (clss->isChildOf(mirror::GetClass<ScopedCodeBlockNode>()))
+            else if (clss->isChildOf(ScopedCodeBlockNode::GetClass()))
             {
                 serialize( _result, eachChild->as<ScopedCodeBlockNode>());
-            }
-            else
-            {
-                NODABLE_ASSERT(false); // Node class not handled !
             }
         }
 

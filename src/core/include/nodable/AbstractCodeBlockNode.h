@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <mirror.h>
+#include <nodable/Reflect.h>
 #include <nodable/Node.h> // base class
 
 namespace Nodable
@@ -39,10 +39,6 @@ namespace Nodable
     private:
         Layout layout = Layout::DEFAULT;
 
-        /** reflect class using mirror */
-        MIRROR_CLASS(AbstractCodeBlockNode)
-        (
-            MIRROR_PARENT(Node)
-        )
+        REFLECT_WITH_INHERITANCE(AbstractCodeBlockNode, Node)
     };
 }

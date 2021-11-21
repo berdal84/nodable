@@ -3,8 +3,7 @@
 // std
 #include <string>
 #include <memory>
-#include <mirror.h>
-#include <filesystem>
+#include <nodable/Reflect.h>
 #include <future>
 
 // Nodable
@@ -64,14 +63,14 @@ namespace Nodable
 		 * @param _filePath
 		 * @return true if succeed
 		 */
-		bool openFile(std::filesystem::path _filePath);
+		bool openFile(std::string _filePath);
 
 		/**
 		 * Returns the full path of an asset from a filename.
 		 * @param _fileName
 		 * @return full path
 		 */
-		std::filesystem::path getAssetPath(const char* _fileName)const;
+		std::string getAssetPath(const char* _fileName)const;
 
 		/**
 		 * Save the current file.
@@ -138,7 +137,7 @@ namespace Nodable
 		static void SaveNode(Node* _node);
 
         /** Get current app's asset path */
-        static std::filesystem::path GetAssetPath(const char *_path);
+        static std::string GetAssetPath(const char *_path);
 
         /** Get current App instance */
         static App* Get();
@@ -156,7 +155,7 @@ namespace Nodable
 		size_t m_currentFileIndex;
 
 		/** The asset base folder path */
-		const std::filesystem::path m_assetsFolderPath;
+		const std::string m_assetsFolderPath;
 
         /** A minimalist "virtual machine" to run instructions */
         Runner m_runner;

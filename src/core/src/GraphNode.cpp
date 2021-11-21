@@ -206,7 +206,6 @@ GraphNode::GraphNode(const Language* _language, const AbstractNodeFactory* _fact
         m_factory(_factory),
         m_program(nullptr)
 {
-	this->clear();
 }
 
 CodeBlockNode *GraphNode::newCodeBlock()
@@ -263,8 +262,8 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
         _to->digest(_from);
         delete _from;
     }
-    else if (_from->getOwner()->getClass() == mirror::GetClass<LiteralNode>() &&
-             _to->getOwner()->getClass() != mirror::GetClass<VariableNode>())
+    else if (_from->getOwner()->getClass() == LiteralNode::GetClass() &&
+             _to->getOwner()->getClass() != VariableNode::GetClass())
     {
         Node* owner = _from->getOwner();
         _to->digest(_from);
@@ -272,6 +271,7 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
     }
     else
     {
+        LOG_VERBOSE("GraphNode", "connect() ...\n")
         _to->setInput(_from);
         _from->getOutputs().push_back(_to);
 
@@ -284,8 +284,10 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
         wire->setSource(_from);
         wire->setTarget(_to);
 
+        LOG_VERBOSE("GraphNode", "connect() adding wire to nodes ...\n")
         targetNode->addWire(wire);
         sourceNode->addWire(wire);
+        LOG_VERBOSE("GraphNode", "connect() wires added to node ...\n")
 
         connect(sourceNode, targetNode, RelationType::IS_INPUT_OF);
 
@@ -361,7 +363,7 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
                     auto lastChildParent = lastChild->getParent();
                     if (lastChildParent)
                     {
-                        if (lastChildParent->getClass() == mirror::GetClass<ConditionalStructNode>())
+                        if (lastChildParent->getClass() == ConditionalStructNode::GetClass() )
                         {
                             connect(_source, _target, RelationType::IS_NEXT_OF, false);
                         }

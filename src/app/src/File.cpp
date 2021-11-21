@@ -13,36 +13,48 @@
 
 using namespace Nodable;
 
-File::File( std::filesystem::path _path, const char* _content)
+File::File( std::string _path, const char* _content)
     : m_path(_path)
     , m_modified(false)
     , m_open(false)
     , m_language(nullptr)
     , m_factory(nullptr)
 {
+    LOG_VERBOSE( "File", "Constructor being called ...\n");
+
     // TODO: Detect the language
     m_language = LanguageFactory::GetNodable();
     m_factory  = new NodeFactory(m_language);
 
-	// FileView
+    LOG_VERBOSE( "File", "Factory created, creating View ...\n");
+
+    // FileView
 #ifndef NODABLE_HEADLESS
 	m_view = new FileView(this);
     m_view->init();
     m_view->setText(_content);
 	auto textEditor = m_view->getTextEditor();
 
+    LOG_VERBOSE( "File", "View built, creating History ...\n");
+
 	// History
 	m_history = new History();
     auto undoBuffer = m_history->getUndoBuffer(textEditor);
     m_view->setUndoBuffer(undoBuffer);
+
+    LOG_VERBOSE( "File", "History built, creating graph ...\n");
+
 #endif
 	// GraphNode
     m_graph = new GraphNode( m_language, m_factory );
-    m_graph->setLabel(_path.filename().string() + "'s inner container");
+    m_graph->setLabel( getName() + "'s inner container");
 
 #ifndef NODABLE_HEADLESS
     m_graph->addComponent( new GraphNodeView() );
 #endif
+
+    LOG_VERBOSE( "File", "Constructor being called.\n");
+
 }
 
 void File::save()
@@ -57,20 +69,23 @@ void File::save()
 
 }
 
-File* File::OpenFile(std::filesystem::path _filePath)
+File* File::OpenFile(std::string _filePath)
 {
     LOG_MESSAGE( "File", "Loading file \"%s\"...\n", _filePath.c_str())
-
 	std::ifstream fileStream(_filePath);
+    LOG_VERBOSE( "File", "Input file stream created.\n");
 
 	if (!fileStream.is_open())
 	{
 		LOG_ERROR("File", "Unable to load \"%s\"\n", _filePath.c_str())
 		return nullptr;
 	}
+    LOG_VERBOSE( "File", "Input file stream is open, reading content ...\n");
 
 	// TODO: do that inside File constr ?
 	std::string content((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
+
+    LOG_VERBOSE( "File", "Content read, creating File object ...\n");
 
 	File* file = new File(_filePath.c_str(), content.c_str());
     file->m_open = true;

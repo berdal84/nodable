@@ -29,11 +29,6 @@ namespace Nodable
 
     private:
         Token* m_endOfInstrToken = nullptr;
-
-        /** reflect class using mirror */
-        MIRROR_CLASS(InstructionNode)
-        (
-            MIRROR_PARENT(Node)
-        );
+        REFLECT_WITH_INHERITANCE(InstructionNode, Node)
     };
 }

@@ -30,9 +30,6 @@ namespace Nodable
 		Member*         m_result;
 		Token           m_sourceToken;
 
-		// reflect class using mirror
-		MIRROR_CLASS(ComputeBase)(
-			MIRROR_PARENT(Component)
-		);
+		REFLECT_WITH_INHERITANCE(ComputeBase, Component)
 	};
 }

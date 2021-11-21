@@ -78,7 +78,7 @@ Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
     }
     else if ( _flags & TraversalFlag_AvoidCycles )
     {
-        NODABLE_ASSERT(_node->getClass() == mirror::GetClass<VariableNode>());
+        NODABLE_ASSERT(_node->getClass() == VariableNode::GetClass());
         return Result::Success;
     }
 
@@ -169,8 +169,8 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
     }
     else
     {
-        mirror::Class* resultClass = result->getClass();
-        if (resultClass == mirror::GetClass<ScopedCodeBlockNode>() || resultClass == mirror::GetClass<CodeBlockNode>())
+        Reflect::Class* resultClass = result->getClass();
+        if (resultClass == ScopedCodeBlockNode::GetClass() || resultClass == CodeBlockNode::GetClass())
         {
             result = getNextInstrToEvalRec(result);
         }

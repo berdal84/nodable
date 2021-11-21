@@ -41,8 +41,6 @@ namespace Nodable{
         Token*      m_identifierToken;
 		std::string m_name;
 
-		MIRROR_CLASS(VariableNode)(
-			MIRROR_PARENT(Node)
-		);
+		REFLECT_WITH_INHERITANCE(VariableNode, Node)
     };
 }

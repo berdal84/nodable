@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nodable/Nodable.h>
-#include <mirror.h>
+#include <nodable/Reflect.h>
 
 namespace Nodable{
 
@@ -20,20 +20,20 @@ namespace Nodable{
 
 		template<class T> [[nodiscard]] T* as()
 		{
-		    if( this->getClass()->isChildOf(mirror::GetClass<T>()))
+		    if( this->getClass()->isChildOf(T::GetClass()))
                 return reinterpret_cast<T*>(this);
             return nullptr;
 		}
 
         template<class T> [[nodiscard]] const T* as()const
         {
-            if( this->getClass()->isChildOf(mirror::GetClass<T>()))
+            if( this->getClass()->isChildOf(T::GetClass()))
                 return reinterpret_cast<const T*>(this);
             return nullptr;
         }
 
 	private:
 		Node* owner = nullptr;
-		MIRROR_CLASS(Component)();
+		REFLECT(Component)
     };
 }
