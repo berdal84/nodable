@@ -2,19 +2,6 @@
 # Create a target per library to facilitate usage by nodable targets
 #-------------------------------------------------------------------
 
-# mirror
-#-------
-include( ${CMAKE_CURRENT_LIST_DIR}/mirror/mirror-config.cmake )
-add_library(
-        mirror
-        STATIC
-            ${MIRROR_SOURCES} )
-
-target_include_directories(
-        mirror
-        PUBLIC
-            ${MIRROR_INCLUDE_DIRS} )
-
 # imgui
 #------
 add_library(
@@ -89,15 +76,6 @@ add_library(
             ./IconFontCppHeaders/IconsFontAwesome5.h
 )
 target_include_directories(IconFontCppHeaders INTERFACE ./)
-
-# imgui-filebrowser
-#---------
-add_library(
-        imgui_filebrowser
-        INTERFACE
-            ./imgui-filebrowser/imfilebrowser.h
-)
-target_include_directories(imgui_filebrowser INTERFACE ./)
 
 # Rapid JSON
 #---------
