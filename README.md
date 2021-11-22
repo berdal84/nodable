@@ -25,6 +25,8 @@ In Nodable, textual and nodal point of views are strongly linked, in both ways:
 
 ![](https://www.dalle-cort.fr/wp-content/uploads/2021/11/nodable-1.gif)
 
+![](https://www.dalle-cort.fr/wp-content/uploads/2021/11/nodable-2.gif)
+
 More information about this project [on my website](https://www.dalle-cort.fr/category/project/nodable).
 
 ## How to try ?:
