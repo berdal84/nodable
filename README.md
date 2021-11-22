@@ -57,8 +57,7 @@ _Disclaimer: Nodable is a prototype, do not expect too much from it._
 
 ### Download:
 
-Download binaries from [home page](https://www.dalle-cort.fr/nodable-node-oriented-programming/) or from [Releases](https://github.com/berdal84/Nodable/releases) section.
-
+Download binaries from [Releases](https://github.com/berdal84/Nodable/releases) section.
 
 ## How to compile Nodable from sources ?
 
