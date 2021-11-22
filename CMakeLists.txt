@@ -2,7 +2,7 @@
 
 # prerequisites:
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version") # earliest version supporting c++17
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment version") # earliest version supporting c++11
 
 # project declaration
 project( "Nodable" VERSION "0.8.0" )
