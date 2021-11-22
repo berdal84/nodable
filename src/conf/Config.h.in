@@ -6,7 +6,7 @@
     Config.h.in will be configured by cmake, check CMakelists.txt
 */
 
-#define NODABLE_ASSETS_DIR "@NODABLE_APP_ASSETS_RELATIVE_DIR@"
+#define NODABLE_ASSETS_DIR "@NODABLE_APP_ASSETS_DIR@"
 #define NODABLE_VERSION "@PROJECT_VERSION@"
 
 #ifdef _DEBUG

@@ -49,6 +49,7 @@ set( NODABLE_STATIC_LIBS
         nodable_core
         ${CMAKE_DL_LIBS}
         OpenGL::GL
+        ghc_filesystem
         )
 
 IF (APPLE)
@@ -68,7 +69,7 @@ target_link_libraries(nodable_app PUBLIC ${NODABLE_STATIC_LIBS})
 #=====
 
 add_executable( nodable ./src/main.cpp )
-target_link_libraries( nodable PUBLIC nodable_app )
+target_link_libraries( nodable PUBLIC nodable_app ghc_filesystem)
 
 # required to run well on recent os (ex: ubuntu)
 set_property(TARGET nodable PROPERTY POSITION_INDEPENDENT_CODE FALSE)
