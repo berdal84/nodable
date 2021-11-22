@@ -72,7 +72,7 @@ namespace Nodable
 		 * @param _fileName
 		 * @return full path
 		 */
-        ghc::filesystem::path getAssetPath(const char* _fileName)const;
+        std::string getAssetPath(const char* _fileName)const;
 
 		/**
 		 * Save the current file.

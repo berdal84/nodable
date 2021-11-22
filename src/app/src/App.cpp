@@ -67,7 +67,7 @@ void App::shutdown()
 
 bool App::openFile(const ghc::filesystem::path& _filePath)
 {		
-	auto file = File::OpenFile(_filePath);
+	auto file = File::OpenFile(_filePath.string() );
 
 	if (file != nullptr)
 	{
@@ -114,11 +114,11 @@ void App::SaveNode(Node* _node)
 	_node->deleteComponent<DataAccess>();
 }
 
-ghc::filesystem::path App::getAssetPath(const char* _fileName)const
+std::string App::getAssetPath(const char* _fileName)const
 {
     ghc::filesystem::path assetPath(m_assetsFolderPath);
 	assetPath /= _fileName;
-	return assetPath;
+	return assetPath.string();
 }
 
 size_t App::getFileCount() const
