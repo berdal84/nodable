@@ -6,6 +6,8 @@
 #include <nodable/Reflect.h>
 #include <future>
 
+#include <ghc/filesystem.hpp>
+
 // Nodable
 #include <nodable/Nodable.h>
 #include <nodable/Runner.h>
@@ -63,14 +65,14 @@ namespace Nodable
 		 * @param _filePath
 		 * @return true if succeed
 		 */
-		bool openFile(std::string _filePath);
+		bool openFile(const ghc::filesystem::path& _filePath);
 
 		/**
 		 * Returns the full path of an asset from a filename.
 		 * @param _fileName
 		 * @return full path
 		 */
-		std::string getAssetPath(const char* _fileName)const;
+        ghc::filesystem::path getAssetPath(const char* _fileName)const;
 
 		/**
 		 * Save the current file.
@@ -155,7 +157,7 @@ namespace Nodable
 		size_t m_currentFileIndex;
 
 		/** The asset base folder path */
-		const std::string m_assetsFolderPath;
+		const ghc::filesystem::path m_assetsFolderPath;
 
         /** A minimalist "virtual machine" to run instructions */
         Runner m_runner;

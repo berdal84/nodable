@@ -20,6 +20,8 @@ using namespace Nodable;
 int main(int argc, char* argv[])
 {
 
+    LOG_MESSAGE( "main", "%s\n", ghc::filesystem::path(argv[0]).c_str() );
+
     Log::SetVerbosityLevel("File", Log::Verbosity::Verbose);
 //    Log::SetVerbosityLevel("GraphTraversal", Log::Verbosity::Verbose);
 //    Log::SetVerbosityLevel("Parser", Log::Verbosity::Verbose);

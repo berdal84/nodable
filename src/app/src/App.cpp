@@ -22,10 +22,11 @@ App* App::Get()
 
 App::App(const char* _name)
     : m_currentFileIndex(0)
-    , m_assetsFolderPath(NODABLE_ASSETS_DIR)
+    , m_assetsFolderPath(ghc::filesystem::current_path() / NODABLE_ASSETS_DIR)
     , m_name(_name)
 {
     NODABLE_ASSERT(s_instance == nullptr); // can't create more than a single app
+    LOG_MESSAGE("App", "Asset folder is %s\n", m_assetsFolderPath.c_str() )
     s_instance = this;
 	m_view = new AppView(_name, this);
 }
@@ -64,7 +65,7 @@ void App::shutdown()
     m_view->shutdown();
 }
 
-bool App::openFile(std::string _filePath)
+bool App::openFile(const ghc::filesystem::path& _filePath)
 {		
 	auto file = File::OpenFile(_filePath);
 
@@ -113,11 +114,10 @@ void App::SaveNode(Node* _node)
 	_node->deleteComponent<DataAccess>();
 }
 
-std::string App::getAssetPath(const char* _fileName)const
+ghc::filesystem::path App::getAssetPath(const char* _fileName)const
 {
-	std::string assetPath(m_assetsFolderPath);
-	assetPath.append("/");
-    assetPath.append(_fileName);
+    ghc::filesystem::path assetPath(m_assetsFolderPath);
+	assetPath /= _fileName;
 	return assetPath;
 }
 

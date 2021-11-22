@@ -40,7 +40,7 @@ namespace Nodable
          * @param path
          * @return
          */
-        static Texture *GetWithPath(std::string& path)
+        static Texture *GetWithPath(const std::string& path)
         {
             // Return if already exists
             auto tex = Texture::s_textures.find( path );
@@ -63,7 +63,7 @@ namespace Nodable
     private:
 
 
-        static Texture* CreateTextureFromFile(std::string& path)
+        static Texture* CreateTextureFromFile(const std::string& path)
         {
             // Try to load a PNG
             std::vector<unsigned char> image;
@@ -96,7 +96,7 @@ namespace Nodable
          * @return
          */
         static int LoadPNG(
-                std::string& filename,
+                const std::string& filename,
                 std::vector<unsigned char>& image,
                 GLuint* out_texture,
                 int* out_width,

@@ -13,3 +13,9 @@
 [submodule "libs/3rdparty/variant"]
 	path = libs/3rdparty/variant
 	url = https://github.com/mpark/variant.git
+[submodule "libs/filesystem"]
+	path = libs/filesystem
+	url = https://github.com/gulrak/filesystem
+[submodule "libs/gulrak/filesystem"]
+	path = libs/gulrak/filesystem
+	url = https://github.com/gulrak/filesystem

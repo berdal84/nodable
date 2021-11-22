@@ -2,6 +2,10 @@
 # Create a target per library to facilitate usage by nodable targets
 #-------------------------------------------------------------------
 
+# filesystem (c++11 compatible)
+#------
+add_subdirectory(gulrak/filesystem)
+
 # imgui
 #------
 add_library(
