@@ -69,7 +69,7 @@ target_link_libraries(nodable_app PUBLIC ${NODABLE_STATIC_LIBS})
 #=====
 
 add_executable( nodable ./src/main.cpp )
-target_link_libraries( nodable PUBLIC nodable_app ghc_filesystem)
+target_link_libraries( nodable PUBLIC nodable_app )
 
 # required to run well on recent os (ex: ubuntu)
 set_property(TARGET nodable PROPERTY POSITION_INDEPENDENT_CODE FALSE)
