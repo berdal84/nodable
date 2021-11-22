@@ -48,7 +48,7 @@ Software:
 - Operating Systems:
   - Windows (tested under Windows 10)
   - Linux (tested under Ubuntu 20.04)
-  - MacOS 10.15+
+  - MacOS 10.9+ (tested under Ubuntu 10.13)
 - Libraries
   - Linux: install sdl2 and mesa (`sudo apt-get install libsdl2 libegl1-mesa`)
   - MacOS: install sdl2 (`brew install sdl2`)
@@ -64,7 +64,7 @@ Download binaries from [Releases](https://github.com/berdal84/Nodable/releases) 
 Requirements:
 - Build system:
   - **CMake 3.14+**
-  - A **C++17** compatible build system (tested with make/g++-10 and MSVC14.27.29110)
+  - A **C++11** compatible build system
 - Libraries
   - Linux: install sdl2 and mesa (sudo apt-get install libsdl2 libegl1-mesa)
   - MacOS: install sdl2 (brew install sdl2)
@@ -72,7 +72,7 @@ Requirements:
 Clone the Nodable repository (with submodules):
 
 ```
-git clone --branch v0.8.1 https://github.com/berdal84/Nodable.git --recurse-submodules
+git clone --branch v0.8.2 https://github.com/berdal84/Nodable.git --recurse-submodules
 ```
 
 Configure and run the build:
@@ -85,13 +85,13 @@ Then cmake must have created the `./build` folder. We can now build the program 
 
 Enter the following command to ask cmake to build from `./build` directory using a `Release` configuration.
 ```
-cmake --build build --config Release --target install -j 6
+cmake --build build --config Release --target install
 ```
 *Note: `--target install` is to create a clean `./bin/Release` directory with only necessary files to run the software.*
 
 Once build succeed, move to install folder and run `./nodable`:
 ```
-cd bin && ./Nodable
+cd bin && ./nodable
 ```
 
 ## Licence:
