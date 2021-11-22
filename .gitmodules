@@ -1,12 +1,12 @@
 [submodule "libs/imgui"]
 	path = libs/imgui
-	url = https://github.com/berdal84/imgui
+	url = ../imgui
 [submodule "libs/IconFontCppHeaders"]
 	path = libs/IconFontCppHeaders
-	url = https://github.com/berdal84/IconFontCppHeaders
+	url = ../IconFontCppHeaders
 [submodule "libs/ImGuiColorTextEdit"]
 	path = libs/ImGuiColorTextEdit
-	url = https://github.com/berdal84/ImGuiColorTextEdit
+	url = ../ImGuiColorTextEdit
 [submodule "libs/Observe"]
 	path = libs/Observe
 	url = https://github.com/berdal84/Observe.git
@@ -21,4 +21,4 @@
 	url = https://github.com/gulrak/filesystem
 [submodule "libs/imgui-filebrowser"]
 	path = libs/imgui-filebrowser
-	url = ./imgui-filebrowser
+	url = ../imgui-filebrowser
