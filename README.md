@@ -113,8 +113,6 @@ Credits :
     - *Dear ImGui* developed by Omar Cornut: https://github.com/omarcornut/imgui
     - IconFontCppHeaders by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
     - ImGuiColorTextEdit by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
-    - mirror by Grouflon : https://github.com/grouflon/mirror
-    - ImGui FileBrowser by AirGuanZ: https://github.com/AirGuanZ/imgui-filebrowser
     - LodePNG by Lode Vandevenne
     - Observe by Lars Melchior
   - Resources
