@@ -135,7 +135,7 @@ ImFont* AppView::loadFont(const FontConf& fontConf) {
         config.OversampleV = 1;
 
         //io.Fonts->AddFontDefault();
-        auto fontPath = m_app->getAssetPath(fontConf.path);
+        std::string fontPath = m_app->getAssetPath(fontConf.path);
         LOG_VERBOSE("AppView", "Adding font from file ... %s\n", fontPath.c_str())
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), fontConf.size, &config);
     }
