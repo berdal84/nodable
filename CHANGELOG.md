@@ -4,17 +4,19 @@ Nodable Change Log :
 
 Author: Bérenger Dalle-Cort, 2017-2021
 
-0.9 (WIP):
-    - save / restore settings from file
-	- use JetBrains Mono fonts
+### v0.9:
+    - WIP
 
-0.8:
+### v0.8:
+    - use now C++11 instead of C++17
+    - macOS 10.9+ compatible (C++11 \o/)
+    - use JetBrains Mono fonts
     - Multi instructions
     - Conditional structures (if/else only)
     - Execution (with optional step-by-step)
     - Experimental "clipboard auto-paste" (File -> enable autopaste, copy something from a text editor to see the graph)
 
-0.7:
+### v0.7:
     - CI for Linux and Windows
 	- refactor of Language and related classes (Dictionnary, TokenType, etc.)
 	- Parser now check types.
@@ -22,24 +24,24 @@ Author: Bérenger Dalle-Cort, 2017-2021
 	- refactor in Components: added FunctionComponent (can invoke a function defined with a Language)
 	- Assign operator is now a real node.
 
-0.6:
+### v0.6:
 	- use now mirror (by @Grouflon) as reflection framework.
 	- Result node constraint to stay on visible rect after updating.
 	- Build using CMake.
 	- Parser: functions rewrote, parenthesis, detailed logs.
 	- Language class.	
 
-0.5:
+### v0.5:
 	- fix(NodeView): Variable node drawing crash.
 	- First draft version of an UNDO/REDO system.
 
-0.4:
+### v0.4:
 	- A brand new logo !
 	- Nodable is now able to open existing files and to save them.
 	- The UI has a tab system to switch between multiple loaded files.
 	- Bug fixes
 
-0.3:
+### v0.3:
 	- New Node_Assign : '=' can be used to assign a value to a symbol (ex: a = 10)
 	- Now Able to perform binary operations on symbols (ex: c = a + b).
 	- Node_Context : is now used as a factory.
@@ -47,10 +49,10 @@ Author: Bérenger Dalle-Cort, 2017-2021
 	- Added a change log.
 	- Added version number into the header file (NODABLE_VERSION_MAJOR, NODABLE_VERSION_MINOR, NODABLE_VERSION)
 
-0.2:
+### v0.2:
 	- New Binary Operations : Node_Substract, Node_Multiply, Node_Divide
 	- Lexer : nos supports operator precedence.
 
-0.1:
+### v0.1:
 	- Node_Add : to add two Node_Numbers
 	- Lexer : first version able to evaluate additions.
