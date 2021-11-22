@@ -749,7 +749,7 @@ void AppView::drawStartupWindow() {
             ImGui::NewLine();
         }
 
-        ImGui::TextWrapped( "This software is a prototype, use at your own risk." );
+        ImGui::TextWrapped( "Nodable is a prototype, do not expect too much from it. Use at your own risk." );
 
         ImGui::NewLine();ImGui::NewLine();
 
