@@ -142,9 +142,9 @@ Variant::operator double()const
 {
 	switch (getType())
 	{
-		case Type_String:  return double( std::get<std::string>(data).size());
-		case Type_Double:  return std::get<double>(data);
-		case Type_Boolean: return std::get<bool>(data) ? double(1) : double(0);
+        case Type_String:  return double( mpark::get<std::string>(data).size());
+		case Type_Double:  return mpark::get<double>(data);
+		case Type_Boolean: return mpark::get<bool>(data) ? double(1) : double(0);
 		default:           return double(0);
 	}
 }
@@ -152,9 +152,9 @@ Variant::operator double()const
 Variant::operator bool()const {
 	switch (getType())
 	{
-		case Type_String:  return !std::get<std::string>(data).empty();
-		case Type_Double:  return std::get<double>(data) != 0.0F;
-		case Type_Boolean: return std::get<bool>(data);
+		case Type_String:  return !mpark::get<std::string>(data).empty();
+		case Type_Double:  return mpark::get<double>(data) != 0.0F;
+		case Type_Boolean: return mpark::get<bool>(data);
 		default:           return false;
 	}
 }
@@ -165,13 +165,13 @@ Variant::operator std::string()const {
 	{
 		case Type_String:
 		{
-			return std::get<std::string>(data);
+			return mpark::get<std::string>(data);
 		}
 
 		case Type_Double:
 		{
 			// Format the num as a string without any useless ending zeros/dot
-			std::string str = std::to_string( std::get<double>(data));
+			std::string str = std::to_string( mpark::get<double>(data));
 			str.erase(str.find_last_not_of('0') + 1, std::string::npos);
 			if (str.find_last_of('.') + 1 == str.size())
 				str.erase(str.find_last_of('.'), std::string::npos);
@@ -180,7 +180,7 @@ Variant::operator std::string()const {
 
 		case Type_Boolean:
 		{
-			return  std::get<bool>(data) ? "true" : "false";
+			return  mpark::get<bool>(data) ? "true" : "false";
 		}
 
 		default:

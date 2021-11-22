@@ -12,6 +12,7 @@ target_link_libraries(
         PUBLIC
             rapidjson
             Observe
+            mpark_variant
 )
 
 target_include_directories(
