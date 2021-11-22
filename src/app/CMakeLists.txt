@@ -86,7 +86,7 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND}
         -E copy_directory
         "${NODABLE_APP_ASSETS_ABSOLUTE_DIR}"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NODABLE_APP_ASSETS_RELATIVE_DIR}"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NODABLE_APP_ASSETS_DIR}"
 )
 
 # Copy SDL2.dll
