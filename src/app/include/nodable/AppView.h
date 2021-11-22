@@ -1,6 +1,12 @@
 #pragma once
 
 #include <imgui/imgui.h>
+
+#define IMFILEBROWSER_FILE_ICON            ICON_FA_FILE    // override icon
+#define IMFILEBROWSER_FOLDER_ICON          ICON_FA_FOLDER  // override icon
+#define IMGFILEBROWSER_USE_CPP11                           // use ghc::filesystem for c++11 compatibility
+#include <imgui-filebrowser/imfilebrowser.h>
+
 #include <SDL.h>
 #include <string>
 #include <map>
@@ -11,7 +17,6 @@
 #include <nodable/View.h>
 #include <nodable/FontConf.h>
 #include <nodable/FontSlot.h>
-#include <nodable/FileBrowser.h>
 
 namespace Nodable
 {
@@ -35,7 +40,7 @@ namespace Nodable
         void shutdown();
 	private:
         App*               m_app;
-        FileBrowser        m_fileBrowser;
+        ImGui::FileBrowser m_fileBrowser;
 		SDL_Window*        m_sdlWindow;
 		SDL_GLContext      m_sdlGLContext;
 		ImColor            m_bgColor;

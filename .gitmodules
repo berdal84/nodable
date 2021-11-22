@@ -19,3 +19,6 @@
 [submodule "libs/gulrak/filesystem"]
 	path = libs/gulrak/filesystem
 	url = https://github.com/gulrak/filesystem
+[submodule "libs/imgui-filebrowser"]
+	path = libs/imgui-filebrowser
+	url = ./imgui-filebrowser
