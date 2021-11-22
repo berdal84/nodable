@@ -1,12 +1,13 @@
 #pragma once
 
+#include <string>
+#include <array>
+#include <mpark/variant.hpp> // std::variant implem for C++11
+
 #include <nodable/Nodable.h> // for constants and forward declarations
 #include <nodable/Type.h>
-#include <string>
-#include <variant>
-#include <array>
 
-namespace Nodable{
+namespace Nodable {
 
 	/**
 		This class is a variant implementation.
@@ -47,6 +48,6 @@ namespace Nodable{
 	    }};
 
         typedef void* Any;
-		std::variant<Any, bool, double, std::string> data;
+		mpark::variant<Any, bool, double, std::string> data;
 	};
 }

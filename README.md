@@ -113,7 +113,8 @@ Credits :
     - *Dear ImGui* developed by Omar Cornut: https://github.com/omarcornut/imgui
     - IconFontCppHeaders by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
     - ImGuiColorTextEdit by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
-    - LodePNG by Lode Vandevenne
-    - Observe by Lars Melchior
+    - LodePNG by Lode Vandevenne: https://github.com/lvandeve/lodepng
+    - Observe by Lars Melchior: https://github.com/TheLartians/Observe
+    - MPark.Variant by Michael Park: https://github.com/mpark/variant
   - Resources
     - JetBrains Mono Font: https://www.jetbrains.com/lp/mono/
