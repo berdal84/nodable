@@ -29,4 +29,5 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_compile_definitions(NOMINMAX) # avoid macros min/max causing std::min / std::max conflicts
 endif()
