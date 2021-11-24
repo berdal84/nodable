@@ -16,9 +16,9 @@ namespace Nodable
         explicit CodeBlockNode();
         ~CodeBlockNode();
 
-        void clear();
-        [[nodiscard]] bool             hasInstructions() const;
-        [[nodiscard]] InstructionNode* getFirstInstruction() const;
+        void clear() override;
+        [[nodiscard]] bool             hasInstructions() const override;
+        [[nodiscard]] InstructionNode* getFirstInstruction() const override;
 
         REFLECT_WITH_INHERITANCE(CodeBlockNode, AbstractCodeBlockNode)
     };
