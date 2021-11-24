@@ -39,7 +39,8 @@ App::~App()
 
 bool App::init()
 {
-    m_view->init();
+  Reflect::Initialize();
+  m_view->init();
 	return true;
 }
 
