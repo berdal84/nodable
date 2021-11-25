@@ -150,4 +150,4 @@ public:\
  * A <- B <- C <- D, here only D needs to be explicitly defined in it's cpp.
  *
  */
-#define REFLECT_DEFINE(_Class) static ::Nodable::Reflect::Class* __reflect___Class = ::Nodable::_Class::GetClass();
+#define REFLECT_DEFINE(_Class) static ::Nodable::Reflect::Class* _Class##_Reflect = ::Nodable::_Class::GetClass();
