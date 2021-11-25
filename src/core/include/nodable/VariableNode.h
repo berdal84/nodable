@@ -41,6 +41,8 @@ namespace Nodable{
         Token*      m_identifierToken;
 		std::string m_name;
 
-		REFLECT_WITH_INHERITANCE(VariableNode, Node)
+		REFLECT_WITH_INHERITANCE(VariableNode)
+    REFLECT_INHERITS(Node)
+    REFLECT_END
     };
 }

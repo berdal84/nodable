@@ -17,12 +17,12 @@
 using namespace Nodable;
 
 int main(int argc, char *argv[]) {
-  Log::SetVerbosityLevel("Reflect", Log::Verbosity::Message);
-  Log::SetVerbosityLevel("File", Log::Verbosity::Verbose);
-  Log::SetVerbosityLevel("GraphTraversal", Log::Verbosity::Verbose);
-  Log::SetVerbosityLevel("Parser", Log::Verbosity::Verbose);
-  Log::SetVerbosityLevel("GraphNode", Log::Verbosity::Verbose);
-  Log::SetVerbosityLevel("Runner", Log::Verbosity::Verbose);
+  Log::SetVerbosityLevel("Reflect", Log::Verbosity::Verbose);
+  Log::SetVerbosityLevel("File", Log::Verbosity::Message);
+  Log::SetVerbosityLevel("GraphTraversal", Log::Verbosity::Message);
+  Log::SetVerbosityLevel("Parser", Log::Verbosity::Message);
+  Log::SetVerbosityLevel("GraphNode", Log::Verbosity::Message);
+  Log::SetVerbosityLevel("Runner", Log::Verbosity::Message);
 
   App app("Nodable " NODABLE_VERSION_EXTENDED);
   app.init();

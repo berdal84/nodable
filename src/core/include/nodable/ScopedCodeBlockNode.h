@@ -40,6 +40,8 @@ namespace Nodable
         std::vector<VariableNode*> m_variables;
 
         /** Reflect class */
-        REFLECT_WITH_INHERITANCE(ScopedCodeBlockNode, AbstractCodeBlockNode)
+        REFLECT_WITH_INHERITANCE(ScopedCodeBlockNode)
+          REFLECT_INHERITS(AbstractCodeBlockNode)
+        REFLECT_END
     };
 }

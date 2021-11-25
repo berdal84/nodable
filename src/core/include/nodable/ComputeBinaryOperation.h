@@ -28,6 +28,8 @@ namespace Nodable
         inline Member*         getRValue() { return m_args[1]; };
         inline const Operator* getOperator() const { return reinterpret_cast<const Operator*>(m_function); };
 
-		REFLECT_WITH_INHERITANCE(ComputeBinaryOperation, ComputeUnaryOperation)
+		REFLECT_WITH_INHERITANCE(ComputeBinaryOperation)
+    REFLECT_INHERITS(ComputeUnaryOperation)
+    REFLECT_END
 	};
 }

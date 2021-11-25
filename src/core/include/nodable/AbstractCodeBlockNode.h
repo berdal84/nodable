@@ -39,6 +39,8 @@ namespace Nodable
     private:
         Layout layout = Layout::DEFAULT;
 
-        REFLECT_WITH_INHERITANCE(AbstractCodeBlockNode, Node)
+      REFLECT_WITH_INHERITANCE(AbstractCodeBlockNode)
+        REFLECT_INHERITS(Node)
+      REFLECT_END
     };
 }

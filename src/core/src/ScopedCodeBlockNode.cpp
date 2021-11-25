@@ -9,6 +9,8 @@
 
 using namespace Nodable;
 
+REFLECT_CLASS_DEFINITION(CodeBlockNode)
+
 ScopedCodeBlockNode::ScopedCodeBlockNode()
         :
         AbstractCodeBlockNode(),

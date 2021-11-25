@@ -4,6 +4,8 @@
 
 using namespace Nodable;
 
+REFLECT_CLASS_DEFINITION(VariableNode)
+
 VariableNode::VariableNode(Type type)
     :
     Node("Variable"),

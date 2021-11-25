@@ -15,6 +15,16 @@
 namespace Nodable::Reflect
 {
     /**
+     * Initialize reflection, will perform runtime computation to precompute additional information.
+     */
+    static void Initialize()
+    {
+      LOG_VERBOSE("Reflect", "Initializing ...\n")
+      // TODO
+      LOG_VERBOSE("Reflect", "Initialized\n")
+    }
+
+    /**
      * Meta class to describe a class and get its information at runtime.
      */
     class Class
@@ -25,14 +35,14 @@ namespace Nodable::Reflect
         :
         m_name(name)
         {
-            LOG_VERBOSE("Reflect", "Constructor calling (%s)...\n", m_name)
+            LOG_VERBOSE("Reflect", "new Class(%s)...\n", m_name)
         }
 
         ~Class(){}
 
         bool isChildOf( const Class* clss, bool selfCheck = true )
         {
-            LOG_VERBOSE("Reflect", "isChildOf calling (%s)...\n", m_name)
+            //LOG_VERBOSE("Reflect", "isChildOf calling (%s)...\n", m_name)
 
             auto found = std::find(m_parents.begin(), m_parents.end(), clss);
 
@@ -62,25 +72,15 @@ namespace Nodable::Reflect
 
         void addParent(Class* parent)
         {
-            LOG_VERBOSE("Reflect", "addParent calling (%s)...\n", m_name)
+            LOG_VERBOSE("Reflect", "%s addParent %s...\n", m_name, parent->m_name)
             m_parents.push_back(parent);
-            LOG_VERBOSE("Reflect", "addParent called (%s)...\n", m_name)
         }
 
         virtual void addChild(Class* child)
         {
-            LOG_VERBOSE("Reflect", "addChild calling (%s)...\n", m_name)
+          LOG_VERBOSE("Reflect", "%s addChild %s...\n", m_name, child->m_name)
             m_children.push_back(child);
-            LOG_VERBOSE("Reflect", "addChild called (%s)...\n", m_name)
         }
-
-        /**
-         * Initialize reflection, will perform runtime computation to precompute additional information.
-         */
-        //static void Initialize()
-        //{
-            // TODO: here I would like to try to create parent-child links automaticaly using std::is_base_of<A, B>::value
-        //}
 
     private:
         const char* m_name;
@@ -95,28 +95,25 @@ namespace Nodable::Reflect
 #define REFLECT_BEGIN( _Class, ... ) \
 public:\
     \
-    virtual std::string getClassName() const \
-    {\
-         return _Class::GetClass()->getName();\
-    }\
-    \
-    virtual Reflect::Class* getClass() const { \
+    virtual Reflect::Class* getClass() const __VA_ARGS__ { \
       return _Class::GetClass();\
     } \
     \
     static Reflect::Class* GetClass() {  \
-      static Reflect::Class* clss = CreateClass(); \
+      static Reflect::Class* clss = ReflectClass(); \
       return clss; \
     } \
     \
-    static Reflect::Class* CreateClass() {  \
+    static Reflect::Class* ReflectClass() {   \
+      LOG_MESSAGE( "Reflect", "ReflectClass %s\n", #_Class ) \
       Reflect::Class* _class = new Reflect::Class(#_Class);
 
 /**
  * Must be inserted between REFLECT_BEGIN and REFLECT_END macro usage
  */
-#define REFLECT_INHERITS( _ParentClass ) \
+#define REFLECT_INHERITS(_ParentClass) \
       /* _class is defined in REFLECT_BEGIN */ \
+      LOG_MESSAGE( "Reflect", " - inherits %s \n", #_ParentClass ) \
       _class->addParent( _ParentClass::GetClass() ); \
       _ParentClass::GetClass()->addChild( _class );
 
@@ -130,14 +127,27 @@ public:\
 /*
  * Short-end to reflect a class with minimal information (ex: name)
  */
-#define REFLECT( _Class ) \
+#define REFLECT(_Class) \
     REFLECT_BEGIN( _Class ) \
     REFLECT_END
 
 /**
  * Short-end to reflect a class with minimal information with inheritance information.
  */
-#define REFLECT_WITH_INHERITANCE( _Class, _ParentClass ) \
-    REFLECT_BEGIN( _Class )    \
-    REFLECT_INHERITS( _ParentClass ) \
-    REFLECT_END
+#define REFLECT_WITH_INHERITANCE(_Class) \
+    REFLECT_BEGIN( _Class, override )
+
+/**
+ * Must be added to your class *.cpp file in order to generate MetaClass before main() starts.
+ * note this is not always required, for example with
+ *
+ * class A { ... };
+ * class B : class A { ... }
+ *
+ * here A DEFINITION can be omitted since B DEFINITION will also define A.
+ *
+ * It works with N level(s) of inheritance too.
+ * A <- B <- C <- D, here only D needs to be explicitly defined in it's cpp.
+ *
+ */
+#define REFLECT_CLASS_DEFINITION(_Class) static ::Nodable::Reflect::Class* __reflect___Class = ::Nodable::_Class::GetClass();

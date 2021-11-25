@@ -3,3 +3,5 @@
 //
 
 #include <nodable/ProgramNode.h>
+
+REFLECT_CLASS_DEFINITION(ProgramNode)

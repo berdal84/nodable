@@ -4,6 +4,8 @@
 
 using namespace Nodable;
 
+REFLECT_CLASS_DEFINITION(InstructionNode)
+
 InstructionNode::InstructionNode(const char* _label): Node(_label)
 {
     m_props.add("value", Visibility::Default, Type_Any, Way_In);

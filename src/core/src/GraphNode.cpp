@@ -21,6 +21,8 @@
 
 using namespace Nodable;
 
+REFLECT_CLASS_DEFINITION(InstructionNode)
+
 GraphNode::~GraphNode()
 {
 	clear();

@@ -28,6 +28,8 @@ namespace Nodable
 		std::vector<Member*> m_args;
 		const Function*      m_function;
 
-		REFLECT_WITH_INHERITANCE(ComputeFunction, ComputeBase)
+		REFLECT_WITH_INHERITANCE(ComputeFunction)
+      REFLECT_INHERITS(ComputeBase)
+    REFLECT_END
 	};
 }

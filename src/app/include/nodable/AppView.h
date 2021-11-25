@@ -65,6 +65,8 @@ namespace Nodable
         ImFont* loadFont(const FontConf &fontConf);
         ImFont* getFontById(const char *id );
 
-        REFLECT_WITH_INHERITANCE(AppView, View)
+        REFLECT_WITH_INHERITANCE(AppView)
+        REFLECT_INHERITS(View)
+        REFLECT_END
     };
 }

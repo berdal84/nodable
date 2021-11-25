@@ -22,6 +22,8 @@ namespace Nodable
         Member*         getLValue() { return m_args[0]; };
         const Operator* getOperator() const { return reinterpret_cast<const Operator*>(m_function); };
 
-		REFLECT_WITH_INHERITANCE(ComputeUnaryOperation, ComputeFunction)
+		  REFLECT_WITH_INHERITANCE(ComputeUnaryOperation)
+      REFLECT_INHERITS(ComputeFunction)
+      REFLECT_END
     };
 }

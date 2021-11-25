@@ -3,6 +3,8 @@
 
 using namespace Nodable;
 
+REFLECT_CLASS_DEFINITION(ConditionalStructNode)
+
 ConditionalStructNode::ConditionalStructNode()
     :
     CodeBlockNode(),

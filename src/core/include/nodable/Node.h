@@ -298,6 +298,6 @@ namespace Nodable {
 
 	public:
 		REFLECT(Node)
-        Node *getFirstNext();
+    Node *getFirstNext();
     };
 }

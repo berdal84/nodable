@@ -30,6 +30,8 @@ namespace Nodable
         Token* m_token_if;
         Token* m_token_else;
 
-        REFLECT_WITH_INHERITANCE(ConditionalStructNode, CodeBlockNode)
+        REFLECT_WITH_INHERITANCE(ConditionalStructNode)
+        REFLECT_INHERITS(CodeBlockNode)
+        REFLECT_END
     };
 }

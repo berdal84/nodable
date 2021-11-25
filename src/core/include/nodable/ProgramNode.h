@@ -1,5 +1,6 @@
 #pragma once
 #include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/Reflect.h>
 
 namespace Nodable
 {
@@ -12,6 +13,9 @@ namespace Nodable
     public:
         ProgramNode() = default;
         ~ProgramNode(){}
+        REFLECT_WITH_INHERITANCE(ScopedCodeBlockNode)
+        REFLECT_INHERITS(ProgramNode)
+        REFLECT_END
     };
 }
 

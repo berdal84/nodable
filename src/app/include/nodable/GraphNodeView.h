@@ -34,7 +34,9 @@ namespace Nodable
         [[nodiscard]] GraphNode* getGraphNode() const;
 		std::multimap<std::string, FunctionMenuItem> contextualMenus;
 
-		REFLECT_WITH_INHERITANCE(GraphNodeView, NodeView)
+		REFLECT_WITH_INHERITANCE(GraphNodeView)
+    REFLECT_INHERITS(NodeView)
+    REFLECT_END
 
     };
 }

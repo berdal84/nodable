@@ -20,14 +20,14 @@ namespace Nodable{
 
 		template<class T> [[nodiscard]] T* as()
 		{
-		    if( this->getClass()->isChildOf(T::GetClass()))
+		    if( getClass()->isChildOf(T::GetClass()))
                 return reinterpret_cast<T*>(this);
             return nullptr;
 		}
 
         template<class T> [[nodiscard]] const T* as()const
         {
-            if( this->getClass()->isChildOf(T::GetClass()))
+            if( getClass()->isChildOf(T::GetClass()))
                 return reinterpret_cast<const T*>(this);
             return nullptr;
         }
