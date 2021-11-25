@@ -3,7 +3,7 @@
 
 using namespace Nodable;
 
-REFLECT_CLASS_DEFINITION(ConditionalStructNode)
+REFLECT_DEFINE(ConditionalStructNode)
 
 ConditionalStructNode::ConditionalStructNode()
     :

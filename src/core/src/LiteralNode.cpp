@@ -2,7 +2,7 @@
 
 using namespace Nodable;
 
-REFLECT_CLASS_DEFINITION(LiteralNode)
+REFLECT_DEFINE(LiteralNode)
 
 LiteralNode::LiteralNode(Type type) : Node()
 {

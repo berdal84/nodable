@@ -51,8 +51,8 @@ namespace Nodable
         std::string  m_experimental_clipboard_prev;
         bool         m_experimental_clipboard_auto_paste = false;
 
-		    REFLECT_WITH_INHERITANCE(FileView)
-        REFLECT_INHERITS(View)
+		    REFLECT_DERIVED(FileView)
+        REFLECT_EXTENDS(View)
         REFLECT_END
     };
 }

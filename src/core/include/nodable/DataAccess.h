@@ -11,8 +11,8 @@ namespace Nodable
 	public:
 		DataAccess() {};
 		bool update()override;
-		REFLECT_WITH_INHERITANCE(DataAccess)
-    REFLECT_INHERITS(Component)
+		REFLECT_DERIVED(DataAccess)
+    REFLECT_EXTENDS(Component)
     REFLECT_END
 	};
 }

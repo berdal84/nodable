@@ -218,9 +218,9 @@ namespace Nodable
         static std::vector<NodeView*> s_instances;
 
         // Reflect this class
-        REFLECT_WITH_INHERITANCE(NodeView)
-        REFLECT_INHERITS(View)
-        REFLECT_INHERITS(Component)
+        REFLECT_DERIVED(NodeView)
+        REFLECT_EXTENDS(View)
+        REFLECT_EXTENDS(Component)
         REFLECT_END
     };
 

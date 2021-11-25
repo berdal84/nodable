@@ -20,8 +20,8 @@ namespace Nodable
         [[nodiscard]] bool             hasInstructions() const override;
         [[nodiscard]] InstructionNode* getFirstInstruction() const override;
 
-        REFLECT_WITH_INHERITANCE(CodeBlockNode)
-          REFLECT_INHERITS(AbstractCodeBlockNode)
+        REFLECT_DERIVED(CodeBlockNode)
+          REFLECT_EXTENDS(AbstractCodeBlockNode)
         REFLECT_END
     };
 }

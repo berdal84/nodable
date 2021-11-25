@@ -4,7 +4,7 @@
 
 using namespace Nodable;
 
-REFLECT_CLASS_DEFINITION(ComputeFunction)
+REFLECT_DEFINE(ComputeFunction)
 
 ComputeFunction::ComputeFunction(const Function* _function)
     : ComputeBase()

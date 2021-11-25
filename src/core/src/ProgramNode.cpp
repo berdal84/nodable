@@ -4,4 +4,4 @@
 
 #include <nodable/ProgramNode.h>
 
-REFLECT_CLASS_DEFINITION(ProgramNode)
+REFLECT_DEFINE(ProgramNode)

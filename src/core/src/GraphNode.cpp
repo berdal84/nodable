@@ -21,7 +21,7 @@
 
 using namespace Nodable;
 
-REFLECT_CLASS_DEFINITION(InstructionNode)
+REFLECT_DEFINE(InstructionNode)
 
 GraphNode::~GraphNode()
 {

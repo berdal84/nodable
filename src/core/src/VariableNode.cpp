@@ -4,7 +4,7 @@
 
 using namespace Nodable;
 
-REFLECT_CLASS_DEFINITION(VariableNode)
+REFLECT_DEFINE(VariableNode)
 
 VariableNode::VariableNode(Type type)
     :

@@ -11,8 +11,8 @@ namespace Nodable
 
         [[nodiscard]] inline Member* value() const { return m_props.get("value"); }
 
-        REFLECT_WITH_INHERITANCE(LiteralNode)
-        REFLECT_INHERITS(Node)
+        REFLECT_DERIVED(LiteralNode)
+        REFLECT_EXTENDS(Node)
         REFLECT_END
     };
 }

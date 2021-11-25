@@ -4,7 +4,7 @@
 
 using namespace Nodable;
 
-REFLECT_CLASS_DEFINITION(InstructionNode)
+REFLECT_DEFINE(InstructionNode)
 
 InstructionNode::InstructionNode(const char* _label): Node(_label)
 {

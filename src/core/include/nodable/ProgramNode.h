@@ -13,8 +13,8 @@ namespace Nodable
     public:
         ProgramNode() = default;
         ~ProgramNode(){}
-        REFLECT_WITH_INHERITANCE(ScopedCodeBlockNode)
-        REFLECT_INHERITS(ProgramNode)
+        REFLECT_DERIVED(ScopedCodeBlockNode)
+        REFLECT_EXTENDS(ProgramNode)
         REFLECT_END
     };
 }

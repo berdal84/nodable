@@ -30,8 +30,8 @@ namespace Nodable
 		Member*         m_result;
 		Token           m_sourceToken;
 
-		REFLECT_WITH_INHERITANCE(ComputeBase)
-    REFLECT_INHERITS(Component)
+		REFLECT_DERIVED(ComputeBase)
+    REFLECT_EXTENDS(Component)
     REFLECT_END
 	};
 }

@@ -111,7 +111,7 @@ public:\
 /**
  * Must be inserted between REFLECT_BEGIN and REFLECT_END macro usage
  */
-#define REFLECT_INHERITS(_ParentClass) \
+#define REFLECT_EXTENDS(_ParentClass) \
       /* _class is defined in REFLECT_BEGIN */ \
       LOG_MESSAGE( "Reflect", " - inherits %s \n", #_ParentClass ) \
       _class->addParent( _ParentClass::GetClass() ); \
@@ -134,7 +134,7 @@ public:\
 /**
  * Short-end to reflect a class with minimal information with inheritance information.
  */
-#define REFLECT_WITH_INHERITANCE(_Class) \
+#define REFLECT_DERIVED(_Class) \
     REFLECT_BEGIN( _Class, override )
 
 /**
@@ -150,4 +150,4 @@ public:\
  * A <- B <- C <- D, here only D needs to be explicitly defined in it's cpp.
  *
  */
-#define REFLECT_CLASS_DEFINITION(_Class) static ::Nodable::Reflect::Class* __reflect___Class = ::Nodable::_Class::GetClass();
+#define REFLECT_DEFINE(_Class) static ::Nodable::Reflect::Class* __reflect___Class = ::Nodable::_Class::GetClass();

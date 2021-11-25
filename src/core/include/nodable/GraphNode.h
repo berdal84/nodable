@@ -108,8 +108,8 @@ namespace Nodable{
 		ProgramNode*               m_program;
 		const AbstractNodeFactory* m_factory;
 
-        REFLECT_WITH_INHERITANCE(GraphNode)
-        REFLECT_INHERITS(Node)
+        REFLECT_DERIVED(GraphNode)
+        REFLECT_EXTENDS(Node)
         REFLECT_END
     };
 }
