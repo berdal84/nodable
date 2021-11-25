@@ -259,10 +259,19 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	auto precedence = language->findOperator(operatorToken->m_word)->precedence;
 	Member* value = nullptr;
 
-	     if ( value = parseAtomicExpression() );
-	else if ( value = parseParenthesisExpression() );
-	else
-	{
+
+	if ( value == nullptr )
+  {
+    value = parseAtomicExpression();
+  }
+
+  if ( value == nullptr )
+  {
+    value = parseParenthesisExpression();
+  }
+
+  if ( value == nullptr )
+  {
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n")
 		rollbackTransaction();
 		return nullptr;
@@ -513,14 +522,12 @@ Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverrid
 	/*
 		Get the left handed operand
 	*/
-	Member* left = nullptr;
-
-	if (left = _leftOverride);
-	else if (left = parseParenthesisExpression());
-	else if (left = parseUnaryOperationExpression(_precedence));
-	else if (left = parseFunctionCall());
-    else if (left = parseVariableDecl());
-    else if (left = parseAtomicExpression());
+	Member* left = _leftOverride;
+  if ( left == nullptr ) left = parseParenthesisExpression();
+  if ( left == nullptr ) left = parseUnaryOperationExpression(_precedence);
+  if ( left == nullptr ) left = parseFunctionCall();
+  if ( left == nullptr ) left = parseVariableDecl();
+  if ( left == nullptr ) left = parseAtomicExpression();
 
 	if ( !tokenRibbon.canEat() )
 	{
@@ -565,7 +572,7 @@ bool Parser::isSyntaxValid()
 	auto currTokIt = tokenRibbon.tokens.begin();
 	short int openedParenthesisCount = 0;
 
-	while(currTokIt != tokenRibbon.tokens.end() && success == true)
+	while(currTokIt != tokenRibbon.tokens.end() && success)
 	{
 		switch (currTokIt->m_type)
 		{
