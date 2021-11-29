@@ -17,6 +17,7 @@
 #include <nodable/Operator.h>
 #include <nodable/Language_MACROS.h>
 #include <nodable/Serializer.h>
+#include <nodable/Parser.h>
 
 namespace Nodable {
 
@@ -50,25 +51,23 @@ namespace Nodable {
 
 		virtual ~Language();
 
-        const Function* findFunction(const FunctionSignature& signature) const;
-        const Operator* findOperator(const FunctionSignature& _operator) const;
-        const Operator* findOperator(const std::string& _identifier) const;
+        const Invokable* findFunction(const FunctionSignature* signature) const;
+        const Operator* findOperator(const FunctionSignature* _operator) const;
+        const Operator* findOperator(const std::string& _short_identifier) const;
 
         inline Parser* getParser()const { return parser; }
         inline Serializer* getSerializer()const { return serializer; }
         inline const Semantic* getSemantic()const { return &semantic; }
-        inline const std::vector<Function>& getAllFunctions()const { return api; }
+        inline const std::vector<Invokable*>& getAllFunctions()const { return api; }
 
-        const FunctionSignature createUnaryOperatorSignature(Type _type, std::string _identifier, Type _ltype) const;
-        const FunctionSignature createBinOperatorSignature(Type _type, std::string _identifier, Type _ltype, Type _rtype) const;
+        const FunctionSignature* createUnaryOperatorSignature(Type _type, std::string _identifier, Type _ltype) const;
+        const FunctionSignature* createBinOperatorSignature(Type _type, std::string _identifier, Type _ltype, Type _rtype) const;
 
         bool hasHigherPrecedenceThan(const Operator *_firstOperator, const Operator* _secondOperator)const;
-
+        virtual void sanitizeFunctionName( std::string& name ) const = 0;
 	protected:
-        void addOperator(Operator);
-        void addOperator(std::string _identifier, unsigned short    _precedence, FunctionSignature _prototype, FunctionImplem  _implementation);
-        void addToAPI(Function);
-        void addToAPI(FunctionSignature&, FunctionImplem);
+        void addOperator(Operator*);
+        void addToAPI(Invokable*);
 
         Semantic semantic;
         Serializer* serializer;
@@ -76,8 +75,8 @@ namespace Nodable {
 
 	private:
 		std::string name;
-		std::vector<Operator> operators;
-		std::vector<Function> api;
+		std::vector<Operator*> operators;
+		std::vector<Invokable*> api;
     };
 
 }

@@ -33,8 +33,8 @@ namespace Nodable
         std::string& serialize(std::string &_result, const ComputeBinaryOperation * _operation)const;
         std::string& serialize(std::string &_result, const ComputeBase * _operation)const;
         std::string& serialize(std::string &_result, const ComputeFunction* _computeFunction) const;
-        std::string& serialize(std::string &_result, const FunctionSignature&, const std::vector<Member*>&)const;
-        std::string& serialize(std::string &_result, const FunctionSignature&)const;
+        std::string& serialize(std::string &_result, const FunctionSignature*, const std::vector<Member*>&)const;
+        std::string& serialize(std::string &_result, const FunctionSignature*)const;
         std::string& serialize(std::string &_result, const TokenType&)const;
         virtual std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
         virtual std::string& serialize(std::string &_result, const Token*) const;

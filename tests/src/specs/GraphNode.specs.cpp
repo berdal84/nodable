@@ -68,7 +68,9 @@ TEST( GraphNode, clear)
     GraphNode graph(&language, &factory);
     InstructionNode* instructionNode = graph.newInstruction();
 
-    Node* operatorNode = graph.newOperator(language.findOperator("+"));
+    auto ope = language.findOperator("+");
+    EXPECT_TRUE(ope != nullptr);
+    Node* operatorNode = graph.newOperator(ope);
     auto props = operatorNode->getProps();
     props->get("rvalue")->set(2);
     props->get("lvalue")->set(2);

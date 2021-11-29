@@ -6,8 +6,8 @@
 namespace Nodable
 {
     // forward declarations
-    class Function;
     class Language;
+    class Invokable;
 
 	/**
 	  * @brief ComputeFunction extends Compute base to provide a Component that represents a Function.
@@ -16,20 +16,20 @@ namespace Nodable
 	class ComputeFunction : public ComputeBase
     {
 	public:
-		ComputeFunction(const Function* _function);
+		ComputeFunction(const Invokable* _function);
 		~ComputeFunction() = default;
 
 		inline void                        setArg(size_t _index, Member* _value) { m_args[_index] = _value; }
 		inline Member*                     getArg(size_t _index)const  { return m_args[_index]; }
 		inline const std::vector<Member*>& getArgs()const { return m_args; }
-		inline const Function*             getFunction()const { return m_function; }
+		inline const Invokable*             getFunction()const { return m_function; }
 		bool                               update() override;
 	protected:
 		std::vector<Member*> m_args;
-		const Function*      m_function;
+		const Invokable* m_function;
 
 		REFLECT_DERIVED(ComputeFunction)
-      REFLECT_EXTENDS(ComputeBase)
-    REFLECT_END
+        REFLECT_EXTENDS(ComputeBase)
+        REFLECT_END
 	};
 }

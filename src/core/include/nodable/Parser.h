@@ -39,7 +39,6 @@ namespace Nodable{
 		bool expressionToGraph(const std::string &_code, GraphNode* _graphNode );
 
     protected:
-        virtual bool parseToken(std::string::const_iterator& start, const std::string::const_iterator& end) = 0;
 
 	    /** Start a parsing transaction.
 	     * This will memorise the current cursor position on the token ribbon.

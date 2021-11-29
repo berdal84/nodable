@@ -26,7 +26,7 @@ std::string& Serializer::serialize(std::string &_result, const ComputeUnaryOpera
         _result.append(sourceToken->m_prefix);
     }
 
-    _result.append(_operation->getOperator()->identifier);
+    _result.append( _operation->getOperator()->getShortIdentifier() );
 
     if ( sourceToken )
     {
@@ -81,7 +81,7 @@ std::string& Serializer::serialize(std::string& _result, const ComputeBinaryOper
     {
         _result.append( sourceToken->m_prefix);
     }
-    _result.append(_operation->getOperator()->identifier);
+    _result.append( _operation->getOperator()->getShortIdentifier() );
     if ( sourceToken )
     {
         _result.append( sourceToken->m_suffix);
@@ -112,7 +112,7 @@ std::string& Serializer::serialize(std::string& _result, const ComputeBinaryOper
 
 std::string& Serializer::serialize(std::string& _result, const ComputeFunction *_computeFunction)const
 {
-    return serialize(_result, _computeFunction->getFunction()->signature, _computeFunction->getArgs());
+    return serialize(_result, _computeFunction->getFunction()->getSignature(), _computeFunction->getArgs());
 }
 
 std::string& Serializer::serialize(std::string& _result, const ComputeBase *_operation)const
@@ -135,9 +135,9 @@ std::string& Serializer::serialize(std::string& _result, const ComputeBase *_ope
     }
 }
 
-std::string& Serializer::serialize(std::string& _result, const FunctionSignature&   _signature, const std::vector<Member*>& _args) const
+std::string& Serializer::serialize(std::string& _result, const FunctionSignature*   _signature, const std::vector<Member*>& _args) const
 {
-    _result.append(_signature.getIdentifier());
+    _result.append(_signature->getIdentifier());
     serialize(_result, TokenType_OpenBracket);
 
     for (auto it = _args.begin(); it != _args.end(); it++) {
@@ -152,19 +152,21 @@ std::string& Serializer::serialize(std::string& _result, const FunctionSignature
     return _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const FunctionSignature& _signature) const {
+std::string& Serializer::serialize(std::string& _result, const FunctionSignature* _signature) const {
 
-    _result.append( _signature.getIdentifier() );
+    serialize(_result, _signature->getType());
+    serialize(_result, TokenType_Space);
+    _result.append( _signature->getIdentifier() );
     serialize(_result, TokenType_OpenBracket);
 
-    auto args = _signature.getArgs();
+    auto args = _signature->getArgs();
     for (auto it = args.begin(); it != args.end(); it++) {
 
         if (it != args.begin()) {
             serialize( _result, TokenType_Separator);
             serialize(_result, TokenType_Space);
         }
-        serialize(_result, (*it).type);
+        serialize(_result, it->type);
     }
 
     serialize(_result, TokenType_CloseBracket );

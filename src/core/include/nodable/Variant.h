@@ -31,13 +31,15 @@ namespace Nodable {
 		Type        getType()const;
 		std::string getTypeAsString()const;
 
-        explicit operator int()const;
-		explicit operator double()const;
-		explicit operator bool()const;
-		explicit operator std::string()const;
+        operator int()const;
+		operator double()const;
+		operator bool()const;
+		operator std::string()const;
 
 	private:
         bool m_isDefined;
+
+        typedef void* Any;
 
 	    /** Nodable::Type to native type */
 	    constexpr static const std::array<Type, 4> s_nodableTypeByIndex = {{
@@ -47,7 +49,11 @@ namespace Nodable {
 	        Type_String
 	    }};
 
-        typedef void* Any;
-		mpark::variant<Any, bool, double, std::string> data;
+		mpark::variant<
+            Any,
+            bool,
+            double,
+            std::string
+		> data;
 	};
 }

@@ -6,16 +6,257 @@
 
 #include <nodable/GraphNode.h>
 #include <nodable/Member.h>
-#include <nodable/NodableParser.h>
-#include <nodable/NodableSerializer.h>
 #include <nodable/Node.h>
 #include <nodable/VariableNode.h>
 
 using namespace Nodable;
 
+/*
+ * Define functions/operators to be wrapped in nodable classes in order to be invoked at runtime.
+ */
+
+// FUNCTIONS
+
+double api_returnNumber(double n)
+{
+    return n;
+}
+
+double api_sin(double n)
+{
+    return sin(n);
+}
+
+double api_cos(double n)
+{
+    return cos(n);
+}
+
+double api_add(double a, double b)
+{
+    return a + b;
+}
+
+double api_minus(double a, double b)
+{
+    return a - b;
+}
+
+double api_invert_sign(double a)
+{
+    return -a;
+}
+
+double api_multiply(double a, double b)
+{
+    return a * b;
+}
+
+double api_divide(double a, double b)
+{
+    return a / b;
+}
+
+double api_sqrt(double n)
+{
+    return sqrt(n);
+}
+
+double api_not(bool b)
+{
+    return !b;
+}
+
+double api_assign_d(double a, double b)
+{
+    return a = b;
+}
+
+bool api_assign_b(bool a, bool b)
+{
+    return a = b;
+}
+
+bool api_implies(bool a, bool b)
+{
+    return !a || b;
+}
+
+std::string api_assign_s(std::string a, std::string b)
+{
+    return a = b;
+}
+
+bool api_and(bool a, bool b)
+{
+    return a && b;
+}
+
+bool api_or(bool a, bool b)
+{
+    return a || b;
+}
+
+bool api_xor(bool a, bool b)
+{
+    return a ^ b;
+}
+
+bool api_to_bool(double n)
+{
+    return n == 0.0;
+}
+
+std::string api_concat(std::string left, std::string right)
+{
+    left = right;
+    return  left;
+}
+
+double api_mod(double a, double b)
+{
+    return fmod(a, b);
+}
+
+double api_pow(double a, double b)
+{
+    return pow(a, b);
+}
+
+double api_secondDegreePolynomial(double a, double x, double b, double y, double c)
+{
+    return a * x * x + b * y + c;
+}
+
+bool api_greater_or_eq(double a, double b)
+{
+    return a >= b;
+}
+
+bool api_lower_or_eq(double a, double b)
+{
+    return a <= b;
+}
+
+bool api_equals(double a, double b)
+{
+    return a == b;
+}
+
+bool api_equivalent(bool a, bool b)
+{
+    return a == b;
+}
+
+bool api_greater(double a, double b)
+{
+    return a > b;
+}
+
+bool api_lower(double a, double b)
+{
+    return a < b;
+}
+
+std::string api_to_string(double n)
+{
+    return std::to_string(n);
+}
+
+std::string api_to_string(bool b)
+{
+    return b ? "true" : "false";
+}
+
+std::string api_DNAtoProtein(std::string baseChain)
+{
+    std::string protein = "";
+
+    // todo: change this naive approach by 3 tests, one per base.
+    std::map<std::string, char> table;
+    {
+        table["ATA"] = 'I'; // A__
+        table["ATC"] = 'I';
+        table["ATT"] = 'I';
+        table["ATG"] = 'M'; // (aka Start)
+        table["ACA"] = 'T';
+        table["ACC"] = 'T';
+        table["ACG"] = 'T';
+        table["ACT"] = 'T';
+        table["AAC"] = 'N';
+        table["AAT"] = 'N';
+        table["AAA"] = 'K';
+        table["AAG"] = 'K';
+        table["AGC"] = 'S';
+        table["AGT"] = 'S';
+        table["AGA"] = 'R';
+        table["AGG"] = 'R';
+        table["CTA"] = 'L'; // C__
+        table["CTC"] = 'L';
+        table["CTG"] = 'L';
+        table["CTT"] = 'L';
+        table["CCA"] = 'P';
+        table["CCC"] = 'P';
+        table["CCG"] = 'P';
+        table["CCT"] = 'P';
+        table["CAC"] = 'H';
+        table["CAT"] = 'H';
+        table["CAA"] = 'Q';
+        table["CAG"] = 'Q';
+        table["CGA"] = 'R';
+        table["CGC"] = 'R';
+        table["CGG"] = 'R';
+        table["CGT"] = 'R';
+        table["GTA"] = 'V'; // G__
+        table["GTC"] = 'V';
+        table["GTG"] = 'V';
+        table["GTT"] = 'V';
+        table["GCA"] = 'A';
+        table["GCC"] = 'A';
+        table["GCG"] = 'A';
+        table["GCT"] = 'A';
+        table["GAC"] = 'D';
+        table["GAT"] = 'D';
+        table["GAA"] = 'E';
+        table["GAG"] = 'E';
+        table["GGA"] = 'G';
+        table["GGC"] = 'G';
+        table["GGG"] = 'G';
+        table["GGT"] = 'G';
+        table["TCA"] = 'S'; // T__
+        table["TCC"] = 'S';
+        table["TCG"] = 'S';
+        table["TCT"] = 'S';
+        table["TTC"] = 'F';
+        table["TTT"] = 'F';
+        table["TTA"] = 'L';
+        table["TTG"] = 'L';
+        table["TAC"] = 'Y';
+        table["TAT"] = 'Y';
+        table["TAA"] = '_'; // (aka Stop)
+        table["TAG"] = '_'; // (aka Stop)
+        table["TGC"] = 'C';
+        table["TGT"] = 'C';
+        table["TGA"] = '_'; // (aka Stop)
+        table["TGG"] = 'W';
+    }
+
+    for (size_t i = 0; i < baseChain.size() / 3; i++) {
+        auto found = table.find(baseChain.substr(i, 3));
+        if (found != table.end())
+            protein += found->second;
+    }
+    return protein;
+}
+
+void NodableLanguage::sanitizeFunctionName( std::string& name ) const
+{
+    name = regex_replace(name, std::regex("^api_"), "");
+}
+
 NodableLanguage::NodableLanguage()
     :
-    Language("Nodable", new NodableParser(this), new NodableSerializer(this))
+    Language("Nodable", new Parser(this), new Serializer(this))
 {
     /*
      *  Configure the Semantic.
@@ -68,288 +309,48 @@ NodableLanguage::NodableLanguage()
 
 
     /*
-     * Create a minimal set of functions/operators
+     * Wrap a minimal set of functions/operators
      */
 
-    // To easily declare types
-    auto Double = TokenType_DoubleType;
-    auto Bool   = TokenType_BooleanType;
-    auto Str    = TokenType_StringType;
 
-	// returnNumber(number)
-	FCT_BEGIN(Double, "returnNumber", Double)
-		RETURN( (double)ARG(0) )
-	FCT_END
+    WRAP_FUNCTION(api_returnNumber)
+    WRAP_FUNCTION(api_sin)
+    WRAP_FUNCTION(api_cos)
+    WRAP_FUNCTION(api_add)
+    WRAP_FUNCTION(api_minus)
+    WRAP_FUNCTION(api_multiply)
+    WRAP_FUNCTION(api_sqrt)
+    WRAP_FUNCTION(api_not)
+    WRAP_FUNCTION(api_or)
+    WRAP_FUNCTION(api_and)
+    WRAP_FUNCTION(api_xor)
+    WRAP_FUNCTION(api_to_bool)
+    WRAP_POLYFUNCTION(api_to_string, std::string(bool))
+    WRAP_POLYFUNCTION(api_to_string, std::string(double))
+    WRAP_FUNCTION(api_mod)
+    WRAP_FUNCTION(api_pow)
+    WRAP_FUNCTION(api_secondDegreePolynomial)
+	WRAP_FUNCTION(api_DNAtoProtein)
 
-	// sin(number)
-	FCT_BEGIN(Double, "sin", Double)
-		RETURN( sin((double)ARG(0)) )
-	FCT_END
-
-	// cos(number)
-	FCT_BEGIN(Double, "cos", Double)
-		RETURN( cos((double)ARG(0)) )
-	FCT_END
-
-	// add(number)
-	FCT_BEGIN(Double, "add", Double, Double)
-		RETURN((double)ARG(0) + (double)ARG(1))
-	FCT_END
-
-	// minus(number)
-	FCT_BEGIN(Double, "minus", Double, Double)
-		RETURN( (double)ARG(0) - (double)ARG(1))
-	FCT_END
-
-	// mult(number)
-	FCT_BEGIN(Double, "mult", Double, Double)
-		RETURN( (double)ARG(0) * (double)ARG(1))
-	FCT_END
-
-	// sqrt(number)
-	FCT_BEGIN(Double, "sqrt", Double)
-		RETURN( sqrt((double)ARG(0)) )
-	FCT_END
-
-	// not(boolean)
-	FCT_BEGIN(Bool, "not", Bool)
-		RETURN( !(bool)ARG(0) )
-	FCT_END
-
-	// or(boolean, boolean)
-	FCT_BEGIN(Bool, "or", Bool, Bool)
-		RETURN( (bool)ARG(0) || ARG(1))
-	FCT_END
-	
-	// and(boolean, boolean)
-	FCT_BEGIN(Bool, "and", Bool, Bool)
-		RETURN( (bool)ARG(0) && ARG(1))
-	FCT_END
-
-	// xor(boolean, boolean)
-	FCT_BEGIN(Bool, "xor", Bool, Bool)
-		RETURN(
-		( (bool)ARG(0) && !(bool)ARG(1)) ||
-		(!(bool)ARG(0) &&  (bool)ARG(1)) )
-	FCT_END
-	
-	// boolean bool(number)
-	FCT_BEGIN(Bool, "bool", Double)
-		RETURN( (bool)ARG(0))
-	FCT_END
-
-    // string string(number)
-    FCT_BEGIN(Str, "to_string", Double)
-            RETURN( (std::string)ARG(0))
-    FCT_END
-
-    // string string(boolean)
-    FCT_BEGIN(Str, "to_string", Bool)
-        RETURN(ARG(0) ? "true" : "false" );
-    FCT_END
-
-	// mod(number, number)
-	FCT_BEGIN(Double, "mod", Double, Double)
-		RETURN( std::fmod((double)ARG(0), (double)ARG(1)) );
-	FCT_END
-
-	// pow(number)
-	FCT_BEGIN(Double, "pow", Double, Double)
-		RETURN( pow((double)ARG(0), (double)ARG(1)) )
-	FCT_END
-	
-	// secondDegreePolynomial(a: number, x: number, b:number, y:number, c:number)
-	FCT_BEGIN(Double, "secondDegreePolynomial", Double, Double, Double, Double, Double)
-		const auto value = 
-			(double)ARG(0) * pow((double)ARG(1), 2) * +  // ax� +
-			(double)ARG(2) * (double)ARG(3) +            // by +
-			(double)ARG(4);                              // c
-	RETURN(value)
-	FCT_END
-
-	// DNAtoProtein(string)
-	FCT_BEGIN(Str, "DNAtoProtein", Str)
-		auto baseChain = (std::string)ARG(0);
-		std::string protein = "";
-
-		std::map<std::string, char> table;
-		{
-			table["ATA"] = 'I'; // A__
-			table["ATC"] = 'I';
-			table["ATT"] = 'I';
-			table["ATG"] = 'M'; // (aka Start)
-			table["ACA"] = 'T';
-			table["ACC"] = 'T';
-			table["ACG"] = 'T';
-			table["ACT"] = 'T';
-			table["AAC"] = 'N';
-			table["AAT"] = 'N';
-			table["AAA"] = 'K';
-			table["AAG"] = 'K';
-			table["AGC"] = 'S';
-			table["AGT"] = 'S';
-			table["AGA"] = 'R';
-			table["AGG"] = 'R';
-			table["CTA"] = 'L'; // C__
-			table["CTC"] = 'L';
-			table["CTG"] = 'L';
-			table["CTT"] = 'L';
-			table["CCA"] = 'P';
-			table["CCC"] = 'P';
-			table["CCG"] = 'P';
-			table["CCT"] = 'P';
-			table["CAC"] = 'H';
-			table["CAT"] = 'H';
-			table["CAA"] = 'Q';
-			table["CAG"] = 'Q';
-			table["CGA"] = 'R';
-			table["CGC"] = 'R';
-			table["CGG"] = 'R';
-			table["CGT"] = 'R';
-			table["GTA"] = 'V'; // G__
-			table["GTC"] = 'V';
-			table["GTG"] = 'V';
-			table["GTT"] = 'V';
-			table["GCA"] = 'A';
-			table["GCC"] = 'A';
-			table["GCG"] = 'A';
-			table["GCT"] = 'A';
-			table["GAC"] = 'D';
-			table["GAT"] = 'D';
-			table["GAA"] = 'E';
-			table["GAG"] = 'E';
-			table["GGA"] = 'G';
-			table["GGC"] = 'G';
-			table["GGG"] = 'G';
-			table["GGT"] = 'G';
-			table["TCA"] = 'S'; // T__
-			table["TCC"] = 'S';
-			table["TCG"] = 'S';
-			table["TCT"] = 'S';
-			table["TTC"] = 'F';
-			table["TTT"] = 'F';
-			table["TTA"] = 'L';
-			table["TTG"] = 'L';
-			table["TAC"] = 'Y';
-			table["TAT"] = 'Y';
-			table["TAA"] = '_'; // (aka Stop)
-			table["TAG"] = '_'; // (aka Stop)
-			table["TGC"] = 'C';
-			table["TGT"] = 'C';
-			table["TGA"] = '_'; // (aka Stop)
-			table["TGG"] = 'W';
-		}
-
-		for (size_t i = 0; i < baseChain.size() / 3; i++) {
-			auto found = table.find(baseChain.substr(i, 3));
-			if (found != table.end())
-				protein += found->second;
-		}
-
-		RETURN( protein )
-	FCT_END
-
-	// operator+(number, number)
-	BINARY_OP_BEGIN(Double, "+", Double, Double, 10u, ICON_FA_PLUS " Add")
-		RETURN( (double)ARG(0) + (double)ARG(1))
-	OPERATOR_END
-
-	// operator+(number, number)
-	BINARY_OP_BEGIN(Str, "+", Str, Str, 10u, "Concat.")
-	RETURN((std::string)ARG(0) + (std::string)ARG(1))
-	OPERATOR_END
-
-	// operator+(number, number)
-	BINARY_OP_BEGIN(Str, "+", Str, Double, 10u, "Concat.")
-	RETURN((std::string)ARG(0) + (std::string)ARG(1))
-	OPERATOR_END
-
-	// bool operator||(bool, bool)
-	BINARY_OP_BEGIN(Bool, "||", Bool, Bool, 10u, "Logical Or")
-	RETURN((bool)ARG(0) || (bool)ARG(1))
-	OPERATOR_END
-
-	// bool operator&&(bool, bool)
-	BINARY_OP_BEGIN(Bool, "&&", Bool, Bool, 10u, "Logical And")
-	RETURN((bool)ARG(0) && (bool)ARG(1))
-	OPERATOR_END
-
-	// operator-(number, number)	
-	BINARY_OP_BEGIN(Double, "-", Double, Double, 10u, ICON_FA_MINUS " Subtract")
-		RETURN( (double)ARG(0) - (double)ARG(1) )
-	OPERATOR_END
-	
-	// operator/(number, number)
-	BINARY_OP_BEGIN(Double, "/", Double, Double, 20u, ICON_FA_DIVIDE " Divide");
-		RETURN( (double)ARG(0) / (double)ARG(1) )
-	OPERATOR_END
-	
-
-	// operator*(number, number)
-	BINARY_OP_BEGIN(Double, "*", Double, Double, 20u, ICON_FA_TIMES " Multiply")
-		RETURN( (double)ARG(0) * (double)ARG(1) )
-	OPERATOR_END
-
-	// operator!(boolean)
-	UNARY_OP_BEGIN(Bool, "!", Bool, 5u, "! not")
-		RETURN( !(bool)ARG(0) )
-	OPERATOR_END
-
-	// operator-(number)
-	UNARY_OP_BEGIN(Double, "-", Double, 5u, ICON_FA_MINUS " Minus")
-		RETURN( -(double)ARG(0) )
-	OPERATOR_END
-
-	// number operator=(number, number)
-	BINARY_OP_BEGIN(Double, "=", Double, Double, 0u, ICON_FA_EQUALS " Assign")
-            _args[0]->getInput()->set(ARG(1)); // TODO: implement references
-		RETURN((double)ARG(1))
-	OPERATOR_END
-
-    // string operator=(string, string)
-    BINARY_OP_BEGIN(Str, "=", Str, Str, 0u, ICON_FA_EQUALS " Assign")
-            _args[0]->getInput()->set(ARG(1)); // TODO: implement references
-            RETURN((std::string)ARG(1))
-    OPERATOR_END
-
-	// bool operator=(bool, bool)
-	BINARY_OP_BEGIN(Bool, "=", Bool, Bool, 0u, ICON_FA_EQUALS " Assign")
-            _args[0]->getInput()->set(ARG(1)); // // TODO: implement references
-			RETURN((bool)ARG(1))
-	OPERATOR_END
-
-	// bool operator=>(bool, bool)
-	BINARY_OP_BEGIN(Bool, "=>", Bool, Bool, 10u, "=> Implies")
-		RETURN(!(bool)ARG(0) || (bool)ARG(1) )
-	OPERATOR_END
-
-	// operator>=(double, double)
-	BINARY_OP_BEGIN(Bool, ">=", Double, Double, 10u, ">= Greater or equal")
-		RETURN((double)ARG(0) >= (double)ARG(1))
-	OPERATOR_END
-
-	// operator<=(double, double)
-	BINARY_OP_BEGIN(Bool, "<=", Double, Double, 10u, "<= Less or equal")
-		RETURN((double)ARG(0) <= (double)ARG(1))
-	OPERATOR_END
-
-	// operator==(double, double)
-	BINARY_OP_BEGIN(Bool, "==", Double, Double, 10u, "== Equals")
-		RETURN((double)ARG(0) == (double)ARG(1))
-	OPERATOR_END
-
-	// operator<=>(bool, bool)
-	BINARY_OP_BEGIN(Bool, "<=>", Bool, Bool, 10u, "<=> Equivalent")
-	RETURN((double)ARG(0) == (double)ARG(1))
-	OPERATOR_END
-
-	// operator>(bool, bool)
-	BINARY_OP_BEGIN(Bool, ">", Double, Double, 10u, "> Greater")
-		RETURN((double)ARG(0) > (double)ARG(1))
-	OPERATOR_END
-
-	// operator<(bool, bool)
-	BINARY_OP_BEGIN(Bool, "<", Double, Double,10u, "< Less")
-		RETURN((double)ARG(0) < (double)ARG(1))
-	OPERATOR_END
+	WRAP_OPERATOR(api_add        , "+" , 10, ICON_FA_PLUS " Add")
+    WRAP_OPERATOR(api_concat     , "+" , 10, "Concat.")
+    WRAP_OPERATOR(api_concat     , "+" , 10, "Concat.")
+    WRAP_OPERATOR(api_or         , "||", 10, "Logical Or")
+    WRAP_OPERATOR(api_and        , "&&", 10, "Logical And")
+    WRAP_OPERATOR(api_invert_sign, "-" , 10, ICON_FA_MINUS " Invert Sign")
+    WRAP_OPERATOR(api_minus      , "-" , 10, ICON_FA_MINUS " Subtract")
+    WRAP_OPERATOR(api_divide     , "/" , 20, ICON_FA_DIVIDE " Divide")
+    WRAP_OPERATOR(api_multiply   , "*" , 20, ICON_FA_TIMES " Multiply")
+    WRAP_OPERATOR(api_not        , "!" , 5 , "! not")
+    WRAP_OPERATOR(api_minus      , "-" , 5 , ICON_FA_MINUS " Minus")
+    WRAP_OPERATOR(api_assign_d   , "=" , 0, ICON_FA_EQUALS " Assign")
+    WRAP_OPERATOR(api_assign_b   , "=" , 0, ICON_FA_EQUALS " Assign")
+    WRAP_OPERATOR(api_assign_s   , "=" , 0, ICON_FA_EQUALS " Assign")
+    WRAP_OPERATOR(api_implies    , "=>", 10, "=> Implies")
+    WRAP_OPERATOR(api_greater_or_eq, ">=", 10u, ">= Greater or equal")
+    WRAP_OPERATOR(api_lower_or_eq, "<=", 10u, "<= Less or equal")
+    WRAP_OPERATOR(api_equals     , "==", 10u, "== Equals")
+    WRAP_OPERATOR(api_equivalent , "<=>", 10, "<=> Equivalent")
+    WRAP_OPERATOR(api_greater    ,">" , 10u, "> Greater")
+    WRAP_OPERATOR(api_lower       , "<", 10u, "< Less")
 }

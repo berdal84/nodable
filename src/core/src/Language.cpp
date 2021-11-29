@@ -11,78 +11,67 @@ Language::~Language()
     delete serializer;
 }
 
-void Language::addOperator( Operator _operator)
+void Language::addOperator( Operator* _operator)
 {
 	operators.push_back(_operator);
 }
 
-void Language::addOperator( std::string       _identifier,
-                            unsigned short    _precedence,
-                            FunctionSignature _prototype,
-                            FunctionImplem  _implementation) {
-	Operator op(_identifier, _precedence, _prototype, _implementation);
-	addOperator(op);
-}
-
 bool  Language::hasHigherPrecedenceThan(const Operator* _firstOperator, const Operator* _secondOperator)const {
-	return _firstOperator->precedence >= _secondOperator->precedence;
+	return _firstOperator->getPrecedence() >= _secondOperator->getPrecedence();
 }
 
-const Function* Language::findFunction(const FunctionSignature& _signature) const
+const Invokable* Language::findFunction(const FunctionSignature* _signature) const
 {
-	auto predicate = [&](Function fct) {
-		return fct.signature.match(_signature);
+	auto predicate = [&](Invokable* fct) {
+		return fct->getSignature()->match(_signature);
 	};
 
 	auto it = std::find_if(api.begin(), api.end(), predicate);
 
 	if (it != api.end())
-		return &*it;
+		return *it;
 
 	return nullptr;
 }
 
-const Operator* Language::findOperator(const std::string& _identifier) const {
+const Operator* Language::findOperator(const std::string& _short_identifier) const {
 
-	auto predicate = [&](Operator op) {
-		return op.identifier == _identifier;
+	auto predicate = [&](Operator* op) {
+		return op->getShortIdentifier() == _short_identifier;
 	};
 
 	auto it = std::find_if(operators.cbegin(), operators.cend(), predicate);
 
 	if (it != operators.end())
-		return &*it;
+		return *it;
 
 	return nullptr;
 }
 
-const Operator* Language::findOperator(const FunctionSignature& _signature) const {
+const Operator* Language::findOperator(const FunctionSignature* _signature) const {
 	
-	auto predicate = [&](Operator op) {
-		return op.signature.match(_signature);
+	auto predicate = [&](Operator* op) {
+		return op->getSignature()->match(_signature);
 	};
 
 	auto it = std::find_if(operators.cbegin(), operators.cend(), predicate );
 
 	if ( it != operators.end() )
-		return &*it;
+		return *it;
 
 	return nullptr;
 }
 
 
-void Language::addToAPI(Function _function)
+void Language::addToAPI(Invokable* _function)
 {
-	this->api.push_back(_function);
+	api.push_back(_function);
+	std::string signature;
+    serializer->serialize( signature, _function->getSignature() );
+	LOG_VERBOSE("Language", "add to API: %s\n", signature.c_str() );
 }
 
-void Language::addToAPI(FunctionSignature& _signature, FunctionImplem _implementation)
-{
-	Function f(_signature, _implementation);
-	this->api.push_back(f);
-}
-
-const FunctionSignature Language::createBinOperatorSignature(
+const FunctionSignature* Language::createBinOperatorSignature(
         Type _type,
         std::string _identifier,
         Type _ltype,
@@ -92,14 +81,14 @@ const FunctionSignature Language::createBinOperatorSignature(
     auto tokLType = semantic.typeToTokenType(_ltype);
     auto tokRType = semantic.typeToTokenType(_rtype);
 
-    FunctionSignature signature("operator" + _identifier, tokType);
+    auto signature = new FunctionSignature("operator" + _identifier, tokType);
 
-    signature.pushArgs(tokLType, tokRType);
+    signature->pushArgs(tokLType, tokRType);
 
     return signature;
 }
 
-const FunctionSignature Language::createUnaryOperatorSignature(
+const FunctionSignature* Language::createUnaryOperatorSignature(
         Type _type,
         std::string _identifier,
         Type _ltype) const
@@ -107,9 +96,9 @@ const FunctionSignature Language::createUnaryOperatorSignature(
     auto tokType = semantic.typeToTokenType(_type);
     auto tokLType = semantic.typeToTokenType(_ltype);
 
-    FunctionSignature signature("operator" + _identifier, tokType);
+    auto signature = new FunctionSignature("operator" + _identifier, tokType);
 
-    signature.pushArgs(tokLType);
+    signature->pushArgs(tokLType);
 
     return signature;
 }

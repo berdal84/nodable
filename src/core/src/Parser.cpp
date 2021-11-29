@@ -186,7 +186,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	// Precedence check
-	const auto currentOperatorPrecedence = language->findOperator(operatorToken->m_word)->precedence;
+	const auto currentOperatorPrecedence = language->findOperator(operatorToken->m_word)->getPrecedence();
 
 	if (currentOperatorPrecedence <= _precedence &&
 	    _precedence > 0u) { // always update the first operation if they have the same precedence or less.
@@ -207,8 +207,9 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	auto signature        = language->createBinOperatorSignature(Type_Any, operatorToken->m_word, _left->getType(), right->getType());
+	const FunctionSignature* signature = language->createBinOperatorSignature(Type_Any, operatorToken->m_word, _left->getType(), right->getType());
 	auto matchingOperator = language->findOperator(signature);
+    delete signature;
 
 	if ( matchingOperator != nullptr )
 	{
@@ -256,14 +257,7 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	}
 
 	// Parse expression after the operator
-	auto precedence = language->findOperator(operatorToken->m_word)->precedence;
-	Member* value = nullptr;
-
-
-	if ( value == nullptr )
-  {
-    value = parseAtomicExpression();
-  }
+	Member* value = parseAtomicExpression();
 
   if ( value == nullptr )
   {
@@ -760,14 +754,14 @@ Member* Parser::parseFunctionCall()
     // eat "close bracket supposed" token
     if ( !tokenRibbon.eatToken(TokenType_CloseBracket) )
     {
-        LOG_VERBOSE("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
+        LOG_ERROR("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
         rollbackTransaction();
         return nullptr;
     }
 
 
     // Find the prototype in the language library
-    auto fct = language->findFunction(signature);
+    auto fct = language->findFunction(&signature);
 
     if (fct != nullptr)
     {
@@ -777,17 +771,16 @@ Member* Parser::parseFunctionCall()
         { // lambda to connect input member to node for a specific argument index.
 
             auto arg = args.at(_argIndex);
-            auto memberName = fct->signature
-                    .getArgs()
+            auto memberName = fct
+                    ->getSignature()
+                    ->getArgs()
                     .at(_argIndex)
                     .name;
 
             graph->connect(arg, node->getProps()->get(memberName.c_str()));
         };
 
-        for (size_t argIndex = 0; argIndex < fct->signature
-                .getArgs()
-                .size(); argIndex++)
+        for (size_t argIndex = 0; argIndex < fct->getSignature()->getArgCount(); argIndex++)
         {
             connectArg(argIndex);
         }
@@ -799,8 +792,10 @@ Member* Parser::parseFunctionCall()
 
     }
 
+    std::string signature_str;
+    language->getSerializer()->serialize(signature_str, &signature);
+    LOG_ERROR("Parser", "parse function call... " KO " abort, reason: %s not found.\n", signature_str.c_str() )
     rollbackTransaction();
-    LOG_VERBOSE("Parser", "parse function call... " KO "\n")
     return nullptr;
 }
 

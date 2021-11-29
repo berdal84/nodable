@@ -30,7 +30,7 @@ GraphNode::~GraphNode()
 
 void GraphNode::clear()
 {
-	LOG_VERBOSE( "GraphNode", "=================== clear() ==================\n")
+	LOG_VERBOSE( "GraphNode", "Clearing graph ...\n")
 
     if ( !m_wireRegistry.empty() )
     {
@@ -38,6 +38,10 @@ void GraphNode::clear()
         {
             deleteWire(*it);
         }
+    }
+    else
+    {
+        LOG_VERBOSE("GraphNode", "No wires in registry.\n")
     }
     m_wireRegistry.clear();
 
@@ -50,11 +54,15 @@ void GraphNode::clear()
             deleteNode(node);
         }
 	}
+	else
+    {
+        LOG_VERBOSE("GraphNode", "No nodes in registry.\n")
+    }
     m_nodeRegistry.clear();
 	m_relationRegistry.clear();
     m_program = nullptr;
 
-    LOG_VERBOSE("GraphNode", "===================================================\n")
+    LOG_VERBOSE("GraphNode", "Graph cleared.\n")
 }
 
 UpdateResult GraphNode::update()
@@ -189,7 +197,7 @@ Node* GraphNode::newUnaryOp(const Operator* _operator)
 	return node;
 }
 
-Node* GraphNode::newFunction(const Function* _function)
+Node* GraphNode::newFunction(const Invokable* _function)
 {
 	Node* node = m_factory->newFunction( _function );
     registerNode(node);

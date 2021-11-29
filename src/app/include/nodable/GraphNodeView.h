@@ -15,7 +15,7 @@ namespace Nodable
 	typedef struct {
         std::string                 label;
         std::function<Node *(void)> create_node_fct;
-        FunctionSignature           function_signature;
+        const FunctionSignature*    function_signature;
 	} FunctionMenuItem;
 
 	class GraphNodeView: public NodeView
@@ -28,7 +28,11 @@ namespace Nodable
 		void    updateViewConstraints();
 		bool    draw() override ;
 		bool    update() override;
-		void    addContextualMenuItem(const std::string& _category, std::string _label, std::function<Node*(void)> _lambda, const FunctionSignature& _signature);
+		void    addContextualMenuItem(
+		            const std::string&         _category,
+		            const std::string&         _label,
+		            std::function<Node*(void)> _lambda,
+		            const FunctionSignature*   _signature);
 	private:
 	    std::vector<NodeViewConstraint> constraints;
         [[nodiscard]] GraphNode* getGraphNode() const;

@@ -6,28 +6,16 @@ using namespace Nodable;
 
 REFLECT_DEFINE(ComputeFunction)
 
-ComputeFunction::ComputeFunction(const Function* _function)
+ComputeFunction::ComputeFunction(const Invokable* _function)
     : ComputeBase()
     , m_function(_function)
 {
     NODABLE_ASSERT(_function != nullptr); // must be defined !
-    m_args.resize(_function->signature.getArgs().size(), nullptr );
+    m_args.resize(_function->getSignature()->getArgCount(), nullptr );
 }
 
 bool ComputeFunction::update()
 {
-
-	if (!m_function->implementation)
-	{
-		LOG_ERROR("ComputeFunction", "Unable to find %s's implementation.\n", m_function->signature.getIdentifier().c_str())
-		return false;
-	}
-
-	if (m_function->implementation(m_result, m_args))
-    {
-        LOG_ERROR("ComputeFunction", "Unable to evaluate %s's implementation.\n", m_function->signature.getIdentifier().c_str())
-        return false;
-    }
-
+	m_function->invoke(m_result, m_args);
 	return true;
 }

@@ -28,7 +28,7 @@
 #define LOG_ENABLE _DEBUG
 
 #if LOG_ENABLE
-#   define LOG_ERROR(...)   Nodable::Log::Push( Nodable::Log::Verbosity::Error  , __VA_ARGS__ );
+#   define LOG_ERROR(...)   Nodable::Log::Push( Nodable::Log::Verbosity::Error  , __VA_ARGS__ ); Nodable::Log::Flush();
 #   define LOG_WARNING(...) Nodable::Log::Push( Nodable::Log::Verbosity::Warning, __VA_ARGS__ );
 #   define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::Log::Verbosity::Message, __VA_ARGS__ );
 #   define LOG_VERBOSE(...) Nodable::Log::Push( Nodable::Log::Verbosity::Verbose, __VA_ARGS__ );
@@ -47,7 +47,7 @@ namespace Nodable {
     {
     public:
 
-        enum class Verbosity
+        enum class Verbosity: int
         {
             Error,
             Warning,

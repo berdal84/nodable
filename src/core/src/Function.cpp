@@ -20,25 +20,30 @@ FunctionSignature::FunctionSignature(std::string _identifier, TokenType _type, s
 }
 
 void FunctionSignature::pushArg(TokenType _type, std::string _name) {
-	if (_name == "")
+	if (_name == "" )
+    {
 		_name = "arg_" + std::to_string(args.size());
+    }
 	args.push_back(FunctionArg(_type, _name));
 }
 
-bool FunctionSignature::match(const FunctionSignature& _other)const {
+bool FunctionSignature::match(const FunctionSignature* _other)const {
 
-	if (identifier != _other.identifier)
+    if ( this == _other )
+        return true;
+
+	if ( args.size() != _other->args.size() )
 		return false;
 
-	if (args.size() != _other.args.size())
-		return false;
+	if ( identifier != _other->identifier )
+	    return false;
 
 	size_t i = 0;
 	bool isMatching = true;
-	while(i < args.size() && isMatching)
+	while( i < args.size() && isMatching )
 	{
-			if (args[i].type != _other.args[i].type && _other.args[i].type != TokenType_AnyType)
-				isMatching = false;
+	    if (args[i].type != _other->args[i].type && _other->args[i].type != TokenType_AnyType)
+	        isMatching = false;
 		i++;
 	}
 
@@ -65,8 +70,8 @@ std::string FunctionSignature::getLabel() const
 	return label;
 }
 
-bool FunctionSignature::hasAtLeastOneArgOfType(TokenType _type)
+bool FunctionSignature::hasAtLeastOneArgOfType(TokenType _type) const
 {
-    auto found = std::find_if( args.begin(), args.end(), [&_type](FunctionArg& each) { return  each.type == _type; } );
+    auto found = std::find_if( args.begin(), args.end(), [&_type](const FunctionArg& each) { return  each.type == _type; } );
     return found != args.end();
 }

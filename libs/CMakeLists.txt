@@ -76,8 +76,6 @@ target_include_directories(
 add_library(
         IconFontCppHeaders
         INTERFACE
-            ./IconFontCppHeaders/IconsFontAwesome4.h
-            ./IconFontCppHeaders/IconsFontAwesome5.h
 )
 target_include_directories(IconFontCppHeaders INTERFACE ./)
 
@@ -90,8 +88,6 @@ add_subdirectory(3rdparty/variant)
 add_library(
         rapidjson
         INTERFACE
-            ./rapidjson/rapidjson.h
-            ./rapidjson/document.h
 )
 target_include_directories(rapidjson INTERFACE ./)
 

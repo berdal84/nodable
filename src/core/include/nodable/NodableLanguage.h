@@ -11,6 +11,7 @@ namespace Nodable {
 	public:
 		NodableLanguage();
         ~NodableLanguage() override = default;
+        void sanitizeFunctionName( std::string& name ) const override ;
 	};
 }
 

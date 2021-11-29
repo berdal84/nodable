@@ -69,16 +69,16 @@ Node* NodeFactory::newBinOp(const Operator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
-    auto signature = _operator->signature;
-    node->setLabel(signature.getLabel());
-    node->setShortLabel(signature.getLabel().substr(0, 4).c_str());
+    const FunctionSignature* signature = _operator->getSignature();
+    node->setLabel(signature->getLabel());
+    node->setShortLabel(signature->getLabel().substr(0, 4).c_str());
 
-    const auto args = signature.getArgs();
+    const auto args = signature->getArgs();
     const Semantic* semantic = m_language->getSemantic();
     auto props = node->getProps();
     auto left   = props->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
     auto right  = props->add("rvalue", Visibility::Default, semantic->tokenTypeToType(args[1].type), Way_In);
-    auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
+    auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature->getType()), Way_Out);
 
     // Create ComputeBinaryOperation component and link values.
     auto binOpComponent = new ComputeBinaryOperation( _operator );
@@ -97,14 +97,14 @@ Node* NodeFactory::newUnaryOp(const Operator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
-    auto signature = _operator->signature;
-    node->setLabel(signature.getLabel());
-    node->setShortLabel(signature.getLabel().substr(0, 4).c_str());
-    const auto args = signature.getArgs();
+    const FunctionSignature* signature = _operator->getSignature();
+    node->setLabel(signature->getLabel());
+    node->setShortLabel(signature->getLabel().substr(0, 4).c_str());
+    const auto args = signature->getArgs();
     const Semantic* semantic = m_language->getSemantic();
     auto props = node->getProps();
     auto left = props->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
-    auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature.getType()), Way_Out);
+    auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature->getType()), Way_Out);
 
     // Create ComputeBinaryOperation binOpComponent and link values.
     auto unaryOperationComponent = new ComputeUnaryOperation( _operator );
@@ -118,22 +118,22 @@ Node* NodeFactory::newUnaryOp(const Operator* _operator) const
     return node;
 }
 
-Node* NodeFactory::newFunction(const Function* _function) const
+Node* NodeFactory::newFunction(const Invokable* _function) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
-    node->setLabel(_function->signature.getIdentifier() + "()");
+    node->setLabel(_function->getSignature()->getIdentifier() + "()");
     node->setShortLabel("f(x)");
     const Semantic* semantic = m_language->getSemantic();
     auto props = node->getProps();
-    props->add("result", Visibility::Default, semantic->tokenTypeToType(_function->signature.getType()), Way_Out);
+    props->add("result", Visibility::Default, semantic->tokenTypeToType(_function->getSignature()->getType()), Way_Out);
 
     // Create ComputeBase binOpComponent and link values.
     auto functionComponent = new ComputeFunction( _function );
     functionComponent->setResult(props->get("result"));
 
     // Arguments
-    auto args = _function->signature.getArgs();
+    auto args = _function->getSignature()->getArgs();
     for (size_t argIndex = 0; argIndex < args.size(); argIndex++) {
         std::string memberName = args[argIndex].name;
         auto member = props->add(memberName.c_str(), Visibility::Default, semantic->tokenTypeToType(args[argIndex].type), Way_In); // create node input

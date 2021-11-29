@@ -20,7 +20,7 @@ namespace Nodable
 	class ComputeBinaryOperation: public ComputeFunction
     {
 	public:		
-		ComputeBinaryOperation( const Operator* _operator): ComputeFunction( reinterpret_cast<const Function*>(_operator)) {}
+		ComputeBinaryOperation( const Operator* _operator): ComputeFunction( reinterpret_cast<const Invokable*>(_operator)) {}
         ~ComputeBinaryOperation() = default;
         inline void            setLValue(Member* _value) { m_args[0] = _value; }
         inline Member*         getLValue() { return m_args[0]; };
@@ -29,7 +29,7 @@ namespace Nodable
         inline const Operator* getOperator() const { return reinterpret_cast<const Operator*>(m_function); };
 
 		REFLECT_DERIVED(ComputeBinaryOperation)
-    REFLECT_EXTENDS(ComputeUnaryOperation)
-    REFLECT_END
+        REFLECT_EXTENDS(ComputeUnaryOperation)
+        REFLECT_END
 	};
 }

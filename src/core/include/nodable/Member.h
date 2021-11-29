@@ -69,10 +69,10 @@ namespace Nodable
         [[nodiscard]] inline Token*                getSourceToken() { return &m_sourceToken; }
         [[nodiscard]] inline const Variant*        getData()const { return &m_data; }
 
-		inline explicit operator int()const       { return (int)this->m_data; }
+        inline explicit operator int()const       { return (int)this->m_data; }
         inline explicit operator bool()const      { return (bool)this->m_data;}
         inline explicit operator double()const    { return (double)this->m_data;}
-		inline explicit operator std::string ()const{return (std::string)this->m_data;}
+        inline explicit operator std::string ()const{return (std::string)this->m_data;}
 
         /**
          * This member will digest another.

@@ -267,11 +267,11 @@ bool GraphNodeView::draw()
 
                         if ( dragged_member_conn->m_way == Way_Out )
                         {
-                            has_compatible_signature = menu_item.function_signature.hasAtLeastOneArgOfType(dragged_member_type);
+                            has_compatible_signature = menu_item.function_signature->hasAtLeastOneArgOfType(dragged_member_type);
                         }
                         else
                         {
-                            has_compatible_signature = menu_item.function_signature.getType() == dragged_member_type;
+                            has_compatible_signature = menu_item.function_signature->getType() == dragged_member_type;
                         }
                     }
 
@@ -450,11 +450,11 @@ bool GraphNodeView::draw()
 
 void GraphNodeView::addContextualMenuItem(
         const std::string& _category,
-        std::string _label,
+        const std::string& _label,
         std::function<Node*(void)> _function,
-        const FunctionSignature& _signature)
+        const FunctionSignature* _signature)
 {
-	contextualMenus.insert( {_category, {std::move(_label), std::move(_function), _signature }} );
+	contextualMenus.insert( {_category, {_label, _function, _signature }} );
 }
 
 GraphNode* GraphNodeView::getGraphNode() const
@@ -561,8 +561,12 @@ void GraphNodeView::setOwner(Node* _owner)
 
     for ( auto it = api.cbegin(); it != api.cend(); it++)
     {
-        const auto function = &*it;
-        auto op = language->findOperator(function->signature);
+        Invokable* function = *it;
+        auto op = language->findOperator(function->getSignature());
+
+        std::string label;
+        const FunctionSignature* signature = function->getSignature();
+        language->getSerializer()->serialize(label, signature);
 
         if (op != nullptr )
         {
@@ -571,8 +575,7 @@ void GraphNodeView::setOwner(Node* _owner)
                 return graphNode->newOperator(op);
             };
 
-            auto label = op->signature.getLabel();
-            addContextualMenuItem("Operators", label, lambda, op->signature);
+            addContextualMenuItem("Operators", label, lambda, signature);
         }
         else
         {
@@ -581,9 +584,7 @@ void GraphNodeView::setOwner(Node* _owner)
                 return graphNode->newFunction(function);
             };
 
-            std::string label;
-            language->getSerializer()->serialize(label, (*it).signature);
-            addContextualMenuItem("Functions", label, lambda, (*it).signature);
+            addContextualMenuItem("Functions", label, lambda, signature);
         }
 
     }

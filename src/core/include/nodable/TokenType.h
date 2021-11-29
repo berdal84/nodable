@@ -12,6 +12,7 @@
 
 namespace Nodable {
 
+
 	enum TokenType
 	{
         TokenType_Any = 0,
@@ -43,4 +44,8 @@ namespace Nodable {
 		TokenType_NULL, // to say 'absence of token', not token 'NULL'
         TokenType_Default = TokenType_Unknown,
     };
+
+    template<typename T>
+    TokenType TokenTypeFromCppType;
 }
+

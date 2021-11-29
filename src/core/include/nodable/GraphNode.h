@@ -72,7 +72,7 @@ namespace Nodable{
 		Node*                       newUnaryOp(const Operator*);
         Node*                       newOperator(const Operator*);
 		Wire*                       newWire();
-		Node*                       newFunction(const Function* _proto);
+		Node*                       newFunction(const Invokable* _proto);
         ScopedCodeBlockNode*        newScopedCodeBlock();
         ConditionalStructNode*      newConditionalStructure();
         Node*                       newNode();

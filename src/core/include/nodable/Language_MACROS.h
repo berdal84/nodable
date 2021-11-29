@@ -1,53 +1,28 @@
 /*
 	Here, some Macros to easily create function and add them to the Language.api
-
-	TODO: I don't like these big macros. Use function traits instead.
 */
-#define RETURN_SUCCESS return 0;
 
-#define RETURN_FAILED \
-_result->setType(Type_Any); /* We intentionally force result type any to avoid crashing.*/ \
-return 1;
+#define WRAP_POLYFUNCTION( function, signature ) \
+    { \
+        std::string function_name = #function; \
+        sanitizeFunctionName( function_name ); \
+        using function_type = signature; \
+        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
+        addToAPI( invokable ); \
+    }
 
-#define ARG(n) (*_args[n])
-#define BEGIN_IMPL\
-	auto implementation = [](Member* _result, const std::vector<Member*>& _args)->int {
+#define WRAP_FUNCTION( function ) \
+    { \
+        std::string function_name = #function; \
+        sanitizeFunctionName( function_name ); \
+        Invokable* invokable = new InvokableFunction<decltype(function)>(function, function_name.c_str()); \
+        addToAPI( invokable ); \
+    }
 
-#define RETURN( expr )\
-	_result->set( expr );
-
-
-#define END_IMPL RETURN_SUCCESS\
-	};
-
-#define BINARY_OP_BEGIN( _type, _identifier, _ltype, _rtype, _precedence, _label )\
-{\
-	auto precedence = _precedence;\
-	auto identifier = std::string(_identifier);\
-	FunctionSignature signature( std::string("operator") + _identifier, _type, _label );\
-	signature.pushArgs(_ltype, _rtype);\
-	BEGIN_IMPL
-
-#define UNARY_OP_BEGIN( _type, _identifier, _ltype, _precedence, _label )\
-{\
-	auto precedence = _precedence;\
-	auto identifier = std::string(_identifier);\
-	FunctionSignature signature( std::string("operator") + _identifier, _type, _label );\
-	signature.pushArgs(_ltype);\
-	BEGIN_IMPL
-
-#define FCT_BEGIN( _type, _identifier, ... )\
-{\
-	auto signature = FunctionSignature::Create( _type, _identifier, __VA_ARGS__);\
-	BEGIN_IMPL
-
-#define FCT_END\
-	END_IMPL\
-	addToAPI( signature, implementation );\
-}
-
-#define OPERATOR_END\
-	END_IMPL\
-	addOperator(identifier, precedence, signature, implementation);\
-	addToAPI( signature , implementation );\
-}
+#define WRAP_OPERATOR( Function, short_identifier, precedence, label ) \
+    { \
+        Invokable* invokable = new InvokableFunction<decltype(Function)>(Function, "operator" short_identifier ); \
+        Operator* op = new Operator( invokable, precedence, short_identifier );\
+        addOperator( op );\
+        addToAPI( invokable ); \
+    }

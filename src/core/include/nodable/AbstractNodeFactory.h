@@ -13,7 +13,7 @@ namespace Nodable
     class ConditionalStructNode;
     class CodeBlockNode;
     class Operator;
-    class Function;
+    class Invokable;
     class ProgramNode;
     class Language;
 
@@ -35,7 +35,7 @@ namespace Nodable
         virtual Node*                       newBinOp(const Operator*)const = 0;
         virtual Node*                       newUnaryOp(const Operator*)const = 0;
         virtual Node*                       newOperator(const Operator*)const = 0;
-        virtual Node*                       newFunction(const Function*)const = 0;
+        virtual Node*                       newFunction(const Invokable*)const = 0;
         virtual ScopedCodeBlockNode*        newScopedCodeBlock()const = 0;
         virtual ConditionalStructNode*      newConditionalStructure()const = 0;
         virtual Node*                       newNode()const = 0;

@@ -20,7 +20,7 @@ namespace Nodable
         virtual Node*                       newBinOp(const Operator*)const;
         virtual Node*                       newUnaryOp(const Operator*)const;
         virtual Node*                       newOperator(const Operator*)const;
-        virtual Node*                       newFunction(const Function*)const;
+        virtual Node*                       newFunction(const Invokable*)const;
         virtual ScopedCodeBlockNode*        newScopedCodeBlock()const;
         virtual ConditionalStructNode*      newConditionalStructure()const;
         virtual Node*                       newNode()const;

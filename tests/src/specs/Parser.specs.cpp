@@ -84,12 +84,29 @@ void ParseEvalSerializeExpressions(const std::vector<std::string>& expressions)
     }
 }
 
+TEST(Parser, Atomic_expressions)
+{
+    EXPECT_EQ(ParseAndEvalExpression<int>("5"), 5);
+    EXPECT_EQ(ParseAndEvalExpression<int>("10"), 10);
+}
 
-TEST(Parser, Simple_expressions)
+TEST(Parser, Unary_operators)
 {
     EXPECT_EQ(ParseAndEvalExpression<int>("-5"), -5);
+}
+
+TEST(Parser, Simple_binary_expressions)
+{
     EXPECT_EQ(ParseAndEvalExpression<int>("2+3"), 5);
+}
+
+TEST(Parser, Precedence_one_level)
+{
     EXPECT_EQ(ParseAndEvalExpression<int>("-5+4"), -1);
+}
+
+TEST(Parser, Precedence_two_levels)
+{
     EXPECT_EQ(ParseAndEvalExpression<double>("-1+2*5-3/6"), 8.5);
 }
 
@@ -101,7 +118,7 @@ TEST(Parser, Simple_parenthesis)
     EXPECT_EQ(ParseAndEvalExpression<int>("2*(5+3)"), 16);
 }
 
-TEST(Parser, Unary_operators)
+TEST(Parser, Unary_Binary_operators_mixed)
 {
     EXPECT_EQ(ParseAndEvalExpression<int>("-1*20"), -20);
     EXPECT_EQ(ParseAndEvalExpression<int>("-(1+4)"), -5);
@@ -119,15 +136,19 @@ TEST(Parser, Complex_parenthesis)
     EXPECT_EQ(ParseAndEvalExpression<double>("1/3"), 1.0 / 3.0);
 }
 
-TEST(Parser, Function_call)
+TEST(Parser, unexisting_function)
+{
+    EXPECT_EQ(ParseAndEvalExpression<int>("pow_unexisting(5)"), NULL );
+}
+
+TEST(Parser, function_call)
 {
     EXPECT_EQ(ParseAndEvalExpression<int>("returnNumber(5)"), 5);
-    EXPECT_EQ(ParseAndEvalExpression<int>("returnNumber(1)"), 1);
     EXPECT_EQ(ParseAndEvalExpression<int>("sqrt(81)"), 9);
     EXPECT_EQ(ParseAndEvalExpression<int>("pow(2,2)"), 4);
 }
 
-TEST(Parser, FunctionLike_operators_call)
+TEST(Parser, functionlike_operator_call)
 {
     EXPECT_EQ(ParseAndEvalExpression<double>("operator*(2,2)"), 4.0);
     EXPECT_EQ(ParseAndEvalExpression<bool>("operator>(2,2)"), false);
@@ -136,7 +157,7 @@ TEST(Parser, FunctionLike_operators_call)
     EXPECT_EQ(ParseAndEvalExpression<double>("operator/(4,2)"), 2.0);
 }
 
-TEST(Parser, Imbricated_functions)
+TEST(Parser, imbricated_functions)
 {
     EXPECT_EQ(ParseAndEvalExpression<int>("returnNumber(5+3)"), 8);
     EXPECT_EQ(ParseAndEvalExpression<int>("returnNumber(returnNumber(1))"), 1);
@@ -151,9 +172,9 @@ TEST(Parser, Successive_assigns)
 TEST(Parser, Strings)
 {
     EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = \"coucou\""), "coucou");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(15)"), "15");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(-15)"), "-15");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(-15.5)"), "-15.5");
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(15)"), "15.000000");
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(-15)"), "-15.000000");
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(-15.5)"), "-15.500000");
     EXPECT_EQ(ParseAndEvalExpression<std::string>("string b = to_string(true)"), "true");
     EXPECT_EQ(ParseAndEvalExpression<std::string>("string b = to_string(false)"), "false");
 }

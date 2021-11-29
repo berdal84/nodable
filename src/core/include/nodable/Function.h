@@ -1,10 +1,12 @@
 #pragma once
 
-#include <nodable/Nodable.h>
-#include <nodable/TokenType.h>
 #include <functional>
 #include <tuple>
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
+
+#include <nodable/Nodable.h>
+#include <nodable/TokenType.h>
+#include <nodable/Member.h>
 
 namespace Nodable {
 
@@ -41,10 +43,12 @@ namespace Nodable {
 		void pushArgs(TokenType&&... args) {
 			int dummy[] = { 0, ((void)pushArg(std::forward<TokenType>(args)),0)... };
 		}
-        bool                           hasAtLeastOneArgOfType(TokenType type);
-		bool                           match(const FunctionSignature& _other)const;
+
+        bool                           hasAtLeastOneArgOfType(TokenType type)const;
+		bool                           match(const FunctionSignature* _other)const;
 		const std::string&             getIdentifier()const;
 		std::vector<FunctionArg>       getArgs() const;
+		size_t                         getArgCount() const { return args.size(); }
 		TokenType                      getType() const;
 		std::string                    getLabel() const;
 
@@ -63,27 +67,140 @@ namespace Nodable {
 		}
     };
 
-	
 
 	/*
-	 * This class links a function signature with an implementation. 
+	 * WIP work to facilitate native function wrapping inside Nodable
 	 */
-	class Function {
-	public:
 
-		Function(
-			FunctionSignature _signature,
-			FunctionImplem    _implementation):
+	// todo: move to Semantic class
+    template<> constexpr TokenType TokenTypeFromCppType<double>       = TokenType_DoubleType;
+    template<> constexpr TokenType TokenTypeFromCppType<const char*>  = TokenType_StringType;
+    template<> constexpr TokenType TokenTypeFromCppType<std::string>  = TokenType_StringType;
+    template<> constexpr TokenType TokenTypeFromCppType<bool>         = TokenType_BooleanType;
 
-			signature(_signature),
-			implementation(_implementation)
-		{}
 
-		~Function() {}
+    /** Push Arg helpers */
 
-		FunctionImplem    implementation;
-		FunctionSignature signature;
+    template<class Tuple, std::size_t N> // push N+1 arguments
+    struct arg_pusher
+    {
+        static void push_into(FunctionSignature *_signature)
+        {
+            arg_pusher<Tuple, N - 1>::push_into(_signature);
 
-		static void CheckArgumentsAndLogWarnings(const std::vector<Member*>& _args);
-	};
+            using t = std::tuple_element_t<N-1, Tuple>;
+            TokenType tokenType = TokenTypeFromCppType<t>;
+            _signature->pushArg( tokenType );
+        }
+    };
+
+    template<class Tuple>  // push 1 arguments
+    struct arg_pusher<Tuple, 1>
+    {
+        static void push_into(FunctionSignature *_signature)
+        {
+            using t = std::tuple_element_t<0, Tuple>;
+            TokenType tokenType = TokenTypeFromCppType<t>;
+            _signature->pushArg( tokenType );
+        };
+    };
+
+    // create and argument_pusher and push arguments into signature
+    template<typename... Args, std::enable_if_t<std::tuple_size_v<Args...> != 0, int> = 0>
+    void push_args(FunctionSignature* _signature)
+    {
+        arg_pusher<Args..., std::tuple_size_v<Args...>>::push_into(_signature);
+    }
+
+    // empty function when pushing an empty arguments
+    template<typename... Args, std::enable_if_t<std::tuple_size_v<Args...> == 0, int> = 0>
+    void push_args(FunctionSignature* _signature){}
+
+    /** Helpers to call a function (need serious work here) */
+
+    /** 0 arg function */
+    template<typename R, typename F = R()>
+    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    {
+        _result->set( _function() );
+    }
+
+    /** 1 arg function */
+    template<typename R, typename A0, typename F = R(A0)>
+    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    {
+        _result->set( _function( (A0) *_args[0] ) );
+    }
+
+    /** 2 arg function */
+    template<typename R, typename A0, typename A1, typename F = R(A0, A1)>
+    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    {
+        _result->set( _function( (A0) *_args[0], (A1) *_args[1] ) );
+    }
+
+    /** 3 arg function */
+    template<typename R, typename A0, typename A1, typename A2, typename F = R(A0, A1, A2)>
+    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    {
+        _result->set( _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2] ) );
+    }
+
+    /** 4 arg function */
+    template<typename R, typename A0, typename A1, typename A2, typename A3, typename F = R(A0, A1, A2, A3)>
+    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    {
+        _result->set( _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2], (A3) *_args[3] ) );
+    }
+
+    /** 5 arg function */
+    template<typename R, typename A0, typename A1, typename A2, typename A3, typename A4, typename F = R(A0, A1, A2, A3, A4)>
+    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    {
+        _result->set( _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2], (A3) *_args[3], (A4) *_args[4] ) );
+    }
+
+
+
+    /**
+     * Interface to wrap any invokable function/operator
+     */
+    class Invokable
+    {
+    public:
+        virtual const FunctionSignature* getSignature() const = 0;
+        virtual void invoke(Member *_result, const std::vector<Member *> &_args) const = 0;
+    };
+
+
+    template<typename T>
+    class InvokableFunction;
+
+    /** Generic Invokable Function */
+    template<typename R, typename... Args>
+    class InvokableFunction<R(Args...)> : public Invokable
+    {
+    public:
+        using   FunctionType = R(Args...);
+        using   Tuple        = std::tuple<Args...>;
+
+        InvokableFunction(FunctionType* _function, const char* _identifier)
+        {
+            m_function  = _function;
+            m_signature = new FunctionSignature(_identifier, TokenTypeFromCppType<R>, _identifier);
+            push_args<Tuple>(m_signature);
+        }
+
+        inline void invoke(Member *_result, const std::vector<Member *> &_args) const
+        {
+            call<R, Args...>(m_function, _result, _args);
+        }
+
+        inline const FunctionSignature* getSignature() const { return m_signature; };
+
+    private:
+        FunctionType*      m_function;
+        FunctionSignature* m_signature;
+    };
+
 }
