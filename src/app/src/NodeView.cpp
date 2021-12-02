@@ -156,8 +156,8 @@ void NodeView::setOwner(Node* _node)
             case RelationType::IS_OUTPUT_OF:
                 addOutput( otherNode->getComponent<NodeView>() );
                 break;
-            default:
-                NODABLE_ASSERT(false); // not yet implemented
+            case RelationType::IS_NEXT_OF:;
+                // for grumpy compiler
         }
     });
 
@@ -173,6 +173,8 @@ void NodeView::setOwner(Node* _node)
             case RelationType::IS_OUTPUT_OF:
                 removeOutput( otherNode->getComponent<NodeView>() );
                 break;
+            case RelationType::IS_NEXT_OF:;
+                // for grumpy compiler
         }
     });
 

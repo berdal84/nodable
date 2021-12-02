@@ -73,10 +73,10 @@ namespace Nodable {
 	 */
 
 	// todo: move to Semantic class
-    template<> constexpr TokenType TokenTypeFromCppType<double>       = TokenType_DoubleType;
-    template<> constexpr TokenType TokenTypeFromCppType<const char*>  = TokenType_StringType;
-    template<> constexpr TokenType TokenTypeFromCppType<std::string>  = TokenType_StringType;
-    template<> constexpr TokenType TokenTypeFromCppType<bool>         = TokenType_BooleanType;
+    template<> static constexpr TokenType TokenTypeFromCppType<double>       = TokenType_DoubleType;
+    template<> static constexpr TokenType TokenTypeFromCppType<const char*>  = TokenType_StringType;
+    template<> static constexpr TokenType TokenTypeFromCppType<std::string>  = TokenType_StringType;
+    template<> static constexpr TokenType TokenTypeFromCppType<bool>         = TokenType_BooleanType;
 
 
     /** Push Arg helpers */

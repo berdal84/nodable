@@ -25,28 +25,26 @@ namespace Nodable {
             Ternary
         };
 
-		Operator( Invokable* _function, int _precedence, const char* _short_identifier )
+		Operator( const Invokable* _function, int _precedence, const char* _short_identifier )
 			:
 			m_precedence(_precedence),
 			m_short_identifier(_short_identifier),
 			m_function(_function)
-		{}
+		{
+            switch ( m_function->getSignature()->getArgCount() )
+            {
+                case 1: m_type = Type::Unary; break;
+                case 2: m_type = Type::Binary; break;
+                case 3: m_type = Type::Ternary; break;
+            }
+		}
 
         virtual void invoke(Member *_result, const std::vector<Member *> &_args) const override
         {
             m_function->invoke( _result, _args);
         }
 
-        Operator::Type getType() const
-        {
-            switch ( m_function->getSignature()->getArgCount() )
-            {
-                case 1: return Type::Unary;
-                case 2: return Type::Binary;
-                case 3: return Type::Ternary;
-                default: assert(false);
-            }
-        }
+        inline Type getType() const { return m_type; }
 
         inline std::string getShortIdentifier() const { return m_short_identifier; }
 
@@ -55,8 +53,9 @@ namespace Nodable {
         inline const FunctionSignature* getSignature() const override { return m_function->getSignature(); }
 
     private:
-        Invokable*  m_function;
+        const Invokable* m_function;
 		std::string m_short_identifier; // "+" not "operator+"
         int         m_precedence;
+        Type        m_type;
     };
 }
