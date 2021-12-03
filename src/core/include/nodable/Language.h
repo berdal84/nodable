@@ -64,7 +64,8 @@ namespace Nodable {
         const FunctionSignature* createBinOperatorSignature(Type _type, std::string _identifier, Type _ltype, Type _rtype) const;
 
         bool hasHigherPrecedenceThan(const Operator *_firstOperator, const Operator* _secondOperator)const;
-        virtual void sanitizeFunctionName( std::string& name ) const = 0;
+        virtual void sanitizeFunctionName( std::string& identifier ) const = 0;
+        virtual void sanitizeOperatorFunctionName( std::string& identifier ) const = 0;
 	protected:
         void addOperator(Operator*);
         void addToAPI(Invokable*);

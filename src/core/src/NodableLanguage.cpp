@@ -67,12 +67,17 @@ double api_not(bool b)
     return !b;
 }
 
-double api_assign_d(double a, double b)
+double api_assign(double a, double b)
 {
     return a = b;
 }
 
-bool api_assign_b(bool a, bool b)
+bool api_assign(bool a, bool b)
+{
+    return a = b;
+}
+
+std::string api_assign(std::string a, std::string b)
 {
     return a = b;
 }
@@ -82,10 +87,6 @@ bool api_implies(bool a, bool b)
     return !a || b;
 }
 
-std::string api_assign_s(std::string a, std::string b)
-{
-    return a = b;
-}
 
 bool api_and(bool a, bool b)
 {
@@ -138,12 +139,9 @@ bool api_lower_or_eq(double a, double b)
     return a <= b;
 }
 
-bool api_equals(double a, double b)
-{
-    return a == b;
-}
 
-bool api_equivalent(bool a, bool b)
+template<typename T>
+bool api_equals(T a, T b)
 {
     return a == b;
 }
@@ -158,19 +156,13 @@ bool api_lower(double a, double b)
     return a < b;
 }
 
-std::string api_to_string(double n)
-{
-    return std::to_string(n);
-}
-
-std::string api_to_string(bool b)
-{
-    return b ? "true" : "false";
-}
+std::string api_to_string(double n) { return std::to_string(n); }
+std::string api_to_string(bool b) { return b ? "true" : "false"; }
+std::string api_to_string(std::string s) { return s; }
 
 std::string api_DNAtoProtein(std::string baseChain)
 {
-    std::string protein = "";
+    std::string protein;
 
     // todo: change this naive approach by 3 tests, one per base.
     std::map<std::string, char> table;
@@ -254,6 +246,11 @@ void NodableLanguage::sanitizeFunctionName( std::string& name ) const
     name = regex_replace(name, std::regex("^api_"), "");
 }
 
+void NodableLanguage::sanitizeOperatorFunctionName( std::string& name ) const
+{
+    name.insert(0, "operator");
+}
+
 NodableLanguage::NodableLanguage()
     :
     Language("Nodable", new Parser(this), new Serializer(this))
@@ -318,8 +315,9 @@ NodableLanguage::NodableLanguage()
     WRAP_FUNCTION(api_and)
     WRAP_FUNCTION(api_xor)
     WRAP_FUNCTION(api_to_bool)
-    WRAP_POLYFUNCTION(api_to_string, std::string(bool))
-    WRAP_POLYFUNCTION(api_to_string, std::string(double))
+    WRAP_POLYFUNC(api_to_string, std::string(bool))
+    WRAP_POLYFUNC(api_to_string, std::string(double))
+    WRAP_POLYFUNC(api_to_string, std::string(std::string))
     WRAP_FUNCTION(api_mod)
     WRAP_FUNCTION(api_pow)
     WRAP_FUNCTION(api_secondDegreePolynomial)
@@ -336,14 +334,14 @@ NodableLanguage::NodableLanguage()
     WRAP_OPERATOR(api_multiply   , "*" , 20, ICON_FA_TIMES " Multiply")
     WRAP_OPERATOR(api_not        , "!" , 5 , "! not")
     WRAP_OPERATOR(api_minus      , "-" , 5 , ICON_FA_MINUS " Minus")
-    WRAP_OPERATOR(api_assign_d   , "=" , 0, ICON_FA_EQUALS " Assign")
-    WRAP_OPERATOR(api_assign_b   , "=" , 0, ICON_FA_EQUALS " Assign")
-    WRAP_OPERATOR(api_assign_s   , "=" , 0, ICON_FA_EQUALS " Assign")
+    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", std::string(std::string, std::string) )
+    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", bool(bool, bool) )
+    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", double(double, double) )
     WRAP_OPERATOR(api_implies    , "=>", 10, "=> Implies")
-    WRAP_OPERATOR(api_greater_or_eq, ">=", 10u, ">= Greater or equal")
-    WRAP_OPERATOR(api_lower_or_eq, "<=", 10u, "<= Less or equal")
-    WRAP_OPERATOR(api_equals     , "==", 10u, "== Equals")
-    WRAP_OPERATOR(api_equivalent , "<=>", 10, "<=> Equivalent")
-    WRAP_OPERATOR(api_greater    ,">" , 10u, "> Greater")
-    WRAP_OPERATOR(api_lower       , "<", 10u, "< Less")
+    WRAP_OPERATOR(api_greater_or_eq, ">=", 10, ">= Greater or equal")
+    WRAP_OPERATOR(api_lower_or_eq, "<=", 10, "<= Less or equal")
+    WRAP_POLYOPER(api_equals  , "==", 10, "== Equals" , bool(double, double) )
+    WRAP_POLYOPER(api_equals  , "<=>", 10, "<=> Equivalent" , bool(bool, bool) )
+    WRAP_OPERATOR(api_greater ,">" , 10, "> Greater")
+    WRAP_OPERATOR(api_lower   , "<", 10, "< Less")
 }

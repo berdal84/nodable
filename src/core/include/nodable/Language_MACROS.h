@@ -1,28 +1,70 @@
 /*
-	Here, some Macros to easily create function and add them to the Language.api
+	Macros to easily bind cpp functions to a Nodable::Language.
+    These MACROS must be used within Nodable::Language non-static scope
 */
 
-#define WRAP_POLYFUNCTION( function, signature ) \
-    { \
-        std::string function_name = #function; \
-        sanitizeFunctionName( function_name ); \
-        using function_type = signature; \
-        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
-        addToAPI( invokable ); \
-    }
-
+/**
+* Wrap a native non-polymorphic function.
+*
+* ex: WRAP_POLYFUNCTION( my_unique_name_function )
+*/
 #define WRAP_FUNCTION( function ) \
     { \
         std::string function_name = #function; \
         sanitizeFunctionName( function_name ); \
-        Invokable* invokable = new InvokableFunction<decltype(function)>(function, function_name.c_str()); \
+        using function_type = decltype(function); \
+        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
         addToAPI( invokable ); \
     }
 
-#define WRAP_OPERATOR( Function, short_identifier, precedence, label ) \
+/**
+* Wrap a native non-polymorphic function.
+*
+* ex: WRAP_POLYOPER( my_unique_name_function, "+", 0, "+ Add")
+*/
+#define WRAP_OPERATOR( function, identifier, precedence, label ) \
     { \
-        Invokable* invokable = new InvokableFunction<decltype(Function)>(Function, "operator" short_identifier ); \
-        Operator* op = new Operator( invokable, precedence, short_identifier );\
+        using function_type = decltype(function); \
+        std::string function_name = identifier; \
+        sanitizeOperatorFunctionName( function_name ); \
+        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str() ); \
+        Operator* op = new Operator( invokable, precedence, identifier );\
+        addOperator( op );\
+        addToAPI( invokable ); \
+    }
+
+/**
+ * Wrap a native function with a specific signature.
+ * If your function is not polynorphic you can also use WRAP_FUNCTION
+ *
+ * ex: Same functions with two different signatures:
+ *
+ *  WRAP_POLYFUNC( sin, double(double) )
+ *  WRAP_POLYFUNC( sin, double(float) )
+ */
+#define WRAP_POLYFUNC( function, function_type ) \
+    { \
+        std::string function_name = #function; \
+        sanitizeFunctionName( function_name ); \
+        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
+        addToAPI( invokable ); \
+    }
+
+/**
+* Wrap a native function with a specific signature as an operator.
+* If your function is not polymorphic you can also use WRAP_OPERATOR
+*
+* ex: Same function name with different label and signatures:
+ *
+*  WRAP_POLYOPER( add, "+", 0, "+ Add", double(double, double) )
+*  WRAP_POLYOPER( add, "+", 0, "Cat.", std::string(std::string, double) )
+*/
+#define WRAP_POLYOPER( function, identifier, precedence, label, function_type ) \
+    { \
+        std::string function_name = identifier; \
+        sanitizeOperatorFunctionName( function_name ); \
+        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str() ); \
+        Operator* op = new Operator( invokable, precedence, identifier );\
         addOperator( op );\
         addToAPI( invokable ); \
     }
