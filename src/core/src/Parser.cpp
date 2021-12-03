@@ -100,6 +100,50 @@ bool Parser::expressionToGraph(const std::string& _code,
 	return true;
 }
 
+Type Parser::getTokenLiteralType(const Nodable::Token *_token) const
+{
+    Type type = Type_Unknown;
+
+    const std::vector<std::regex> regex            = language->getSemantic()->get_type_regex();
+    const std::vector<Type>       regex_id_to_type = language->getSemantic()->get_type_regex_index_to_type();
+
+    auto each_regex_it = regex.cbegin();
+    while( each_regex_it != regex.cend() && type == Type_Unknown )
+    {
+        std::smatch sm;
+        auto match = std::regex_search(_token->m_word.cbegin(), _token->m_word.cend(), sm, *each_regex_it);
+
+        if (match)
+        {
+            size_t index = std::distance(regex.cbegin(), each_regex_it);
+            type = regex_id_to_type[index];
+        }
+        each_regex_it++;
+    }
+
+    NODABLE_ASSERT(type != Type_Unknown)
+
+    return type;
+}
+
+bool Parser::parseBool(const std::string& _str)
+{
+    return _str == std::string("true");
+}
+
+std::string Parser::parseString(const std::string& _str)
+{
+    NODABLE_ASSERT(_str.size() >= 2);
+    NODABLE_ASSERT(_str[0] == '\"');
+    NODABLE_ASSERT(_str[_str.size()-1] == '\"');
+    return std::string(++_str.cbegin(), --_str.cend());
+}
+
+double Parser::parseDouble(const std::string& _str)
+{
+    return stod(_str);
+}
+
 Member* Parser::tokenToMember(Token* _token)
 {
 	Member* result = nullptr;
@@ -107,14 +151,22 @@ Member* Parser::tokenToMember(Token* _token)
 	switch (_token->m_type)
 	{
 
-		case TokenType_Boolean:
-		{
-		    LiteralNode* node = graph->newLiteral(Type_Boolean);
-		    node->value()->set(_token->m_word == "true");
-		    node->value()->setSourceToken(_token);
-		    result = node->value();
+	    case TokenType_Literal:
+        {
+            Type type = getTokenLiteralType(_token);
+            LiteralNode* literal = graph->newLiteral(type);
+
+            switch ( type ) {
+                case Type_String: literal->set_value( parseString(_token->m_word) ); break;
+                case Type_Double: literal->set_value( parseDouble(_token->m_word) ); break;
+                case Type_Boolean: literal->set_value( parseBool(_token->m_word)  ); break;
+                default: {}
+            }
+
+            result = literal->get_value();
+            result->setSourceToken(_token);
             break;
-		}
+        }
 
 		case TokenType_Identifier:
 		{
@@ -127,22 +179,6 @@ Member* Parser::tokenToMember(Token* _token)
             }
 
             result = variable->value();
-			break;
-		}
-
-		case TokenType_Double: {
-            LiteralNode* node = graph->newLiteral(Type_Double);
-            node->value()->set(std::stod(_token->m_word));
-            node->value()->setSourceToken(_token);
-            result = node->value();
-			break;
-		}
-
-		case TokenType_String: {
-            LiteralNode* node = graph->newLiteral(Type_String);
-            node->value()->set(_token->m_word);
-            node->value()->setSourceToken(_token);
-            result = node->value();
 			break;
 		}
 
@@ -609,8 +645,8 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
     auto chars = _expression;
 
     /* shortcuts to language members */
-    const std::vector<std::regex> regex           = language->getSemantic()->getRegex();
-    const std::vector<TokenType> regexIdToTokType = language->getSemantic()->getRegexIndexToTokenType();
+    const std::vector<std::regex> regex           = language->getSemantic()->get_token_type_regex();
+    const std::vector<TokenType> regexIdToTokType = language->getSemantic()->get_token_type_regex_index_to_token_type();
 
     std::string prefix;
 
@@ -631,19 +667,8 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
 
                 if (matchedTokenType != TokenType_Ignore)
                 {
-                    Token* newToken;
-
-                    if (matchedTokenType == TokenType_String)
-                    {
-                        newToken = tokenRibbon.push(matchedTokenType, std::string(++matchedTokenString.cbegin(), --matchedTokenString.cend()),
-                                                    std::distance(chars.cbegin(), it));
-                        LOG_VERBOSE("Parser", "tokenize <word>\"%s\"</word>\n", matchedTokenString.c_str() )
-                    }
-                    else
-                    {
-                        newToken = tokenRibbon.push(matchedTokenType, matchedTokenString, std::distance(chars.cbegin(), it));
-                        LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matchedTokenString.c_str() )
-                    }
+                    Token* newToken = tokenRibbon.push(matchedTokenType, matchedTokenString, std::distance(chars.cbegin(), it));
+                    LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matchedTokenString.c_str() )
 
                     // If a we have so prefix tokens we copy them to the newToken prefixes.
                     if ( !prefix.empty() )
@@ -715,7 +740,8 @@ Member* Parser::parseFunctionCall()
         const Token* token_2 = tokenRibbon.eatToken(); // eat a "supposed open bracket>
 
         if (token_0->m_type == TokenType_Identifier && token_0->m_word == language->getSemantic()
-                ->tokenTypeToString(TokenType_KeywordOperator /* TODO: TokenType_Keyword + word="operator" */) &&
+                                                                                  ->token_type_to_string(
+                                                                                          TokenType_KeywordOperator /* TODO: TokenType_Keyword + word="operator" */) &&
             token_1->m_type == TokenType_Operator &&
             token_2->m_type == TokenType_OpenBracket)
         {
@@ -733,7 +759,7 @@ Member* Parser::parseFunctionCall()
     std::vector<Member *> args;
 
     // Declare a new function prototype
-    FunctionSignature signature(identifier, TokenType_AnyType);
+    FunctionSignature signature(identifier, Type_Any);
 
     bool parsingError = false;
     while (!parsingError && tokenRibbon.canEat() && tokenRibbon.peekToken()->m_type != TokenType_CloseBracket)
@@ -742,7 +768,7 @@ Member* Parser::parseFunctionCall()
         if (auto member = parseExpression())
         {
             args.push_back(member); // store argument as member (already parsed)
-            signature.pushArg(language->getSemantic()->typeToTokenType(member->getType()));  // add a new argument type to the proto.
+            signature.pushArg( member->getType() );  // add a new argument type to the proto.
             tokenRibbon.eatToken(TokenType_Separator);
         }
         else
@@ -878,12 +904,12 @@ Member *Parser::parseVariableDecl()
 
     if(Token::isType(typeTok->m_type) && identifierTok->m_type == TokenType_Identifier )
     {
-        Type type = language->getSemantic()->tokenTypeToType(typeTok->m_type);
+        Type type = language->getSemantic()->token_type_to_type(typeTok->m_type);
         VariableNode* variable = graph->newVariable(type, identifierTok->m_word, this->getCurrentScope());
         variable->setTypeToken( typeTok );
         variable->setIdentifierToken( identifierTok );
 
-        variable->value()->setType( language->getSemantic()->tokenTypeToType(typeTok->m_type));
+        variable->value()->setType(language->getSemantic()->token_type_to_type(typeTok->m_type));
         variable->value()->setSourceToken(identifierTok); // we also pass it to the member, this one will be modified my connections
 
         // try to parse assignment

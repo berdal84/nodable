@@ -6,12 +6,12 @@
 
 using namespace Nodable;
 
-FunctionArg::FunctionArg(TokenType _type, std::string _name) {
+FunctionArg::FunctionArg(Type _type, std::string _name) {
 	type = _type;
 	name = _name;
 }
 
-FunctionSignature::FunctionSignature(std::string _identifier, TokenType _type, std::string _label) :
+FunctionSignature::FunctionSignature(std::string _identifier, Type _type, std::string _label) :
 	identifier(_identifier),
 	type(_type),
 	label(_label)
@@ -19,7 +19,7 @@ FunctionSignature::FunctionSignature(std::string _identifier, TokenType _type, s
 
 }
 
-void FunctionSignature::pushArg(TokenType _type, std::string _name) {
+void FunctionSignature::pushArg(Type _type, std::string _name) {
 	if (_name == "" )
     {
 		_name = "arg_" + std::to_string(args.size());
@@ -42,7 +42,7 @@ bool FunctionSignature::match(const FunctionSignature* _other)const {
 	bool isMatching = true;
 	while( i < args.size() && isMatching )
 	{
-	    if (args[i].type != _other->args[i].type && _other->args[i].type != TokenType_AnyType)
+	    if (args[i].type != _other->args[i].type && _other->args[i].type != Type_Any)
 	        isMatching = false;
 		i++;
 	}
@@ -60,7 +60,7 @@ std::vector<FunctionArg> FunctionSignature::getArgs() const
 	return this->args;
 }
 
-TokenType FunctionSignature::getType() const
+Type FunctionSignature::getType() const
 {
 	return type;
 }
@@ -70,7 +70,7 @@ std::string FunctionSignature::getLabel() const
 	return label;
 }
 
-bool FunctionSignature::hasAtLeastOneArgOfType(TokenType _type) const
+bool FunctionSignature::hasAtLeastOneArgOfType(Type _type) const
 {
     auto found = std::find_if( args.begin(), args.end(), [&_type](const FunctionArg& each) { return  each.type == _type; } );
     return found != args.end();

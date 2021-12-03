@@ -264,49 +264,42 @@ NodableLanguage::NodableLanguage()
      *  The order of insertion is important. First inserted will be taken in priority by Parser.
      */
 
-    // comments
-    semantic.insert(std::regex("^(//(.+?)$)"), TokenType_Ignore); // Single line
+    // ignored
+    semantic.insert(std::regex("^(//(.+?)$)"), TokenType_Ignore);      // Single line
     semantic.insert(std::regex("^(/\\*(.+?)\\*/)"), TokenType_Ignore); // Multi line
+    semantic.insert("\t", TokenType_Ignore);
+    semantic.insert(" ", TokenType_Ignore);
 
-    // conditionnal structures
-    semantic.insert("if", TokenType_KeywordIf);
+    // keywords
+    semantic.insert("if", TokenType_KeywordIf);                        // conditional structures
     semantic.insert("else", TokenType_KeywordElse);
+    semantic.insert("bool",   TokenType_KeywordBoolean, Type_Boolean); // types
+    semantic.insert("string", TokenType_KeywordString,  Type_String);
+    semantic.insert("double", TokenType_KeywordDouble,  Type_Double);
+    semantic.insert("any",    TokenType_KeywordAny,     Type_Any);
 
     // punctuation
-    semantic.insert(std::regex("^[ \t]"), TokenType_Ignore);
     semantic.insert("{", TokenType_BeginScope);
     semantic.insert("}", TokenType_EndScope);
     semantic.insert("(", TokenType_OpenBracket);
     semantic.insert(")", TokenType_CloseBracket);
     semantic.insert(",", TokenType_Separator);
-    semantic.insert(" ", TokenType_Space);
     semantic.insert(";", TokenType_EndOfInstruction);
     semantic.insert("\n", TokenType_EndOfLine);
 
-    // types
-    semantic.insert("bool", TokenType_BooleanType);
-    semantic.insert("string", TokenType_StringType);
-    semantic.insert("double", TokenType_DoubleType);
-    semantic.insert("any", TokenType_AnyType);
+    // literals
+    semantic.insert(std::regex("^(true|false)"), TokenType_Literal, Type_Boolean);
+    semantic.insert(std::regex("^(\".*\")"), TokenType_Literal, Type_String);
+    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Literal, Type_Double);
 
-    // values
-    semantic.insert(std::regex("^(true|false)"), TokenType_Boolean);
-    semantic.insert(std::regex("^(\".*\")"), TokenType_String);
+    // identifier
     semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType_Identifier);
-    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Double);
 
     // operators
     semantic.insert("operator", TokenType_KeywordOperator); // 3 chars
     semantic.insert(std::regex("^(<=>)"), TokenType_Operator); // 3 chars
     semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>))"), TokenType_Operator); // 2 chars
     semantic.insert(std::regex("^[/+\\-*!=<>]"), TokenType_Operator); // single char
-
-    // type correspondence
-    semantic.insert(Type_Boolean, TokenType_BooleanType);
-    semantic.insert(Type_Double, TokenType_DoubleType);
-    semantic.insert(Type_String, TokenType_StringType);
-    semantic.insert(Type_Any, TokenType_AnyType);
-
 
     /*
      * Wrap a minimal set of functions/operators

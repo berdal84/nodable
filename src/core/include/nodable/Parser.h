@@ -47,7 +47,11 @@ namespace Nodable{
         void rollbackTransaction();
         void commitTransaction();
 
-		/**
+        bool parseBool(const std::string& _str);
+        std::string parseString(const std::string& _str);
+        double parseDouble(const std::string& _str);
+
+        /**
 		 * Convert a Token to a Member.
 	     * @return a Member* that owns _token.
 	     */
@@ -99,6 +103,9 @@ namespace Nodable{
 
 		/** Get the current scope (during parsing, scope changes, we need to know the current to push any new variable) */
         ScopedCodeBlockNode* getCurrentScope();
+
+        /** Given a Literal token, return its type */
+        Type getTokenLiteralType(const Token* _token )const;
 
 		/** A language to get Semantic and Syntax (not yet implemented) */
 		const Language* language;

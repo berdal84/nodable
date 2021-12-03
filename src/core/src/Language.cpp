@@ -77,13 +77,8 @@ const FunctionSignature* Language::createBinOperatorSignature(
         Type _ltype,
         Type _rtype) const
 {
-    auto tokType  = semantic.typeToTokenType(_type);
-    auto tokLType = semantic.typeToTokenType(_ltype);
-    auto tokRType = semantic.typeToTokenType(_rtype);
-
-    auto signature = new FunctionSignature("operator" + _identifier, tokType);
-
-    signature->pushArgs(tokLType, tokRType);
+    auto signature = new FunctionSignature("operator" + _identifier, _type);
+    signature->pushArgs(_ltype, _rtype);
 
     return signature;
 }
@@ -93,12 +88,8 @@ const FunctionSignature* Language::createUnaryOperatorSignature(
         std::string _identifier,
         Type _ltype) const
 {
-    auto tokType = semantic.typeToTokenType(_type);
-    auto tokLType = semantic.typeToTokenType(_ltype);
-
-    auto signature = new FunctionSignature("operator" + _identifier, tokType);
-
-    signature->pushArgs(tokLType);
+    auto signature = new FunctionSignature("operator" + _identifier, _type);
+    signature->pushArgs(_ltype);
 
     return signature;
 }

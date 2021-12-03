@@ -84,6 +84,28 @@ void ParseEvalSerializeExpressions(const std::vector<std::string>& expressions)
     }
 }
 
+TEST(Parser, Semantic_token_type_to_type)
+{
+    const Language* lang = LanguageFactory::GetNodable();
+    auto semantic = lang->getSemantic();
+
+    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordAny), Type_Any );
+    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordBoolean), Type_Boolean );
+    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordDouble), Type_Double );
+    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordString), Type_String );
+}
+
+TEST(Parser, Semantic_type_to_string)
+{
+    const Language* lang = LanguageFactory::GetNodable();
+    auto semantic = lang->getSemantic();
+
+    EXPECT_EQ( semantic->type_to_string(Type_Boolean), "bool" );
+    EXPECT_EQ( semantic->type_to_string(Type_Double), "double" );
+    EXPECT_EQ( semantic->type_to_string(Type_String), "string" );
+    EXPECT_EQ( semantic->type_to_string(Type_Any), "any" );
+}
+
 TEST(Parser, Atomic_expressions)
 {
     EXPECT_EQ(ParseAndEvalExpression<int>("5"), 5);

@@ -155,16 +155,17 @@ std::string& Serializer::serialize(std::string& _result, const FunctionSignature
 std::string& Serializer::serialize(std::string& _result, const FunctionSignature* _signature) const {
 
     serialize(_result, _signature->getType());
-    serialize(_result, TokenType_Space);
+    _result.append(" ");
     _result.append( _signature->getIdentifier() );
     serialize(_result, TokenType_OpenBracket);
 
     auto args = _signature->getArgs();
-    for (auto it = args.begin(); it != args.end(); it++) {
-
-        if (it != args.begin()) {
+    for (auto it = args.begin(); it != args.end(); it++)
+    {
+        if (it != args.begin())
+        {
             serialize( _result, TokenType_Separator);
-            serialize(_result, TokenType_Space);
+            _result.append(" ");
         }
         serialize(_result, it->type);
     }
@@ -175,7 +176,12 @@ std::string& Serializer::serialize(std::string& _result, const FunctionSignature
 
 std::string& Serializer::serialize(std::string& _result, const TokenType& _type) const
 {
-    return _result.append( language->getSemantic()->tokenTypeToString(_type) );
+    return _result.append(language->getSemantic()->token_type_to_string(_type) );
+}
+
+std::string& Serializer::serialize(std::string &_result, const Type& _type) const
+{
+    return _result.append(language->getSemantic()->type_to_string(_type) );
 }
 
 std::string& Serializer::serialize(std::string& _result, const VariableNode* _node) const

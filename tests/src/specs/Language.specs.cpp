@@ -19,8 +19,7 @@ TEST(Language, can_get_add_operator_with_short_identifier )
 
 TEST(Language, can_get_add_operator_with_signature )
 {
-    FunctionSignature signature("operator+", TokenType_DoubleType);
-    signature.pushArgs(TokenType_DoubleType, TokenType_DoubleType);
+    FunctionSignature signature = FunctionSignature::Create( Type_Double, "operator+", Type_Double, Type_Double);
     const Language* lang = LanguageFactory::GetNodable();
     const Operator* op = lang->findOperator((const FunctionSignature*)&signature );
     EXPECT_TRUE(op != nullptr);
@@ -28,8 +27,7 @@ TEST(Language, can_get_add_operator_with_signature )
 
 TEST(Language, can_get_invert_operator_with_signature )
 {
-    FunctionSignature signature("operator-", TokenType_DoubleType);
-    signature.pushArgs(TokenType_DoubleType); // is unary
+    FunctionSignature signature = FunctionSignature::Create( Type_Double, "operator-", Type_Double);
     const Language* lang = LanguageFactory::GetNodable();
     const Operator* op = lang->findOperator((const FunctionSignature*)&signature );
     EXPECT_TRUE(op != nullptr);

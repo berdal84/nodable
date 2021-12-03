@@ -32,6 +32,7 @@ namespace Nodable
 		 * A string that matching with the regular expression will be interpreted as a specific given type.
 		 */
 		void insert(const std::regex&, TokenType);
+        void insert(const std::regex&, TokenType, Type);
 
 		/**
 		 * Insert a string to TokenType correspondence.
@@ -40,18 +41,23 @@ namespace Nodable
 		 * - a TokenType/std::string simple correspondence (for a Serializer).
 		 * - a std::regex/TokenType correspondence (for a Parser).
 		 */
-		void insert(std::string _string, TokenType _tokenType);
+		void insert(std::string, TokenType);
+        void insert(std::string, TokenType, Type);
 
 		/**
 		 * Insert a bidirectional correspondence between a type and a token type (for a Language)
 		 */
-		void insert(Type _type, TokenType _tokenType);
+		void insert(std::string, Type);
 
-		[[nodiscard]] inline const std::vector<std::regex>& getRegex()const { return m_regex;  }
-        [[nodiscard]] inline std::string tokenTypeToString(TokenType _type)const { return m_tokenTypeToString[_type]; }
-        [[nodiscard]] inline TokenType typeToTokenType(Type _type)const { return m_typeToTokenType[_type]; }
-        [[nodiscard]] inline Type tokenTypeToType(TokenType _tokenType)const { return m_tokenTypeToType[_tokenType]; }
-        [[nodiscard]] inline const std::vector<TokenType>& getRegexIndexToTokenType()const { return m_regexIndexToTokenType; }
+
+		[[nodiscard]] inline const std::vector<std::regex>& get_token_type_regex()const { return m_token_type_regex;  }
+		[[nodiscard]] inline const std::vector<std::regex>& get_type_regex()const { return m_type_regex;  }
+        [[nodiscard]] inline std::string                    type_to_string(Type _type)const { return m_type_to_string[_type]; }
+        [[nodiscard]] inline std::string                    token_type_to_string(TokenType _type)const { return m_token_type_to_string[_type]; }
+        [[nodiscard]] inline TokenType                      type_to_token_type(Type _type)const { return m_type_to_token_type[_type]; }
+        [[nodiscard]] inline Type                           token_type_to_type(TokenType _tokenType)const { return m_token_type_to_type[_tokenType]; }
+        [[nodiscard]] inline const std::vector<TokenType>&  get_token_type_regex_index_to_token_type()const { return m_regex_index_to_token_type; }
+        [[nodiscard]] inline const std::vector<Type>&       get_type_regex_index_to_type()const { return m_regex_index_to_type; }
 
     private:
 	    /**
@@ -59,14 +65,16 @@ namespace Nodable
 	     *  1- iterate fast when we parse using all regex (in m_regex)
 	     *  2- once we found a regex that matches we get the TokenType (located at same index in m_type)
 	     */
-        std::vector<std::regex> m_regex;
-        std::vector<TokenType> m_regexIndexToTokenType;
+        std::vector<std::regex>  m_type_regex;
+        std::vector<std::regex>  m_token_type_regex;
 
-		/** uses Type as index */
-		std::vector<TokenType> m_typeToTokenType;
-        /** uses TokenType as index */
-        std::vector<Type> m_tokenTypeToType;
-        /** uses TokenType as index */
-        std::vector<std::string> m_tokenTypeToString;
+        std::vector<TokenType>   m_regex_index_to_token_type;
+        std::vector<Type>        m_regex_index_to_type;
+
+		std::vector<TokenType>   m_type_to_token_type;
+        std::vector<Type>        m_token_type_to_type;
+
+        std::vector<std::string> m_token_type_to_string;
+        std::vector<std::string> m_type_to_string;
     };
 }

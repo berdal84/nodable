@@ -12,13 +12,14 @@ using namespace Nodable;
 
 InstructionNode* HeadlessNodeFactory::newInstruction() const
 {
-    auto instructionNode = new InstructionNode(ICON_FA_CODE " Instr.");
-    return instructionNode;
+    InstructionNode* node = new InstructionNode(ICON_FA_CODE " Instr.");
+    node->setShortLabel(ICON_FA_CODE " I.");
+    return node;
 }
 
 InstructionNode* HeadlessNodeFactory::newInstruction_UserCreated()const
 {
-    auto newInstructionNode = newInstruction();
+    InstructionNode* newInstructionNode = newInstruction();
 
     Token* token = new Token(TokenType_EndOfInstruction);
     m_language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
@@ -39,7 +40,7 @@ VariableNode* HeadlessNodeFactory::newVariable(Type _type, const std::string& _n
     }
     else
     {
-        LOG_WARNING("NodeFactory", "You create a variable without defining its scope.")
+        LOG_WARNING("HeadlessNodeFactory", "Variable %s has been created without defining its scope.\n", _name.c_str())
     }
 
     return node;
@@ -62,16 +63,15 @@ Node* HeadlessNodeFactory::newBinOp(const Operator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
-    auto signature = _operator->getSignature();
-    node->setLabel(signature->getLabel());
-    node->setShortLabel(signature->getLabel().substr(0, 4).c_str());
 
+    setupNodeLabels(node, _operator);
+
+    const FunctionSignature* signature = _operator->getSignature();
     const auto args = signature->getArgs();
-    const Semantic* semantic = m_language->getSemantic();
-    auto props = node->getProps();
-    auto left   = props->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
-    auto right  = props->add("rvalue", Visibility::Default, semantic->tokenTypeToType(args[1].type), Way_In);
-    auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature->getType()), Way_Out);
+    auto props   = node->getProps();
+    Member* left   = props->add("lvalue", Visibility::Default, args[0].type, Way_In);
+    Member* right  = props->add("rvalue", Visibility::Default, args[1].type, Way_In);
+    Member* result = props->add("result", Visibility::Default, signature->getType(), Way_Out);
 
     // Create ComputeBinaryOperation component and link values.
     auto binOpComponent = new ComputeBinaryOperation( _operator );
@@ -83,18 +83,23 @@ Node* HeadlessNodeFactory::newBinOp(const Operator* _operator) const
     return node;
 }
 
+void HeadlessNodeFactory::setupNodeLabels(Node *_node, const Operator *_operator) {
+    _node->setLabel( _operator->getSignature()->getLabel() );
+    _node->setShortLabel( _operator->getShortIdentifier().c_str() );
+}
+
 Node* HeadlessNodeFactory::newUnaryOp(const Operator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
-    auto signature = _operator->getSignature();
-    node->setLabel(signature->getLabel());
-    node->setShortLabel(signature->getLabel().substr(0, 4).c_str());
+
+    setupNodeLabels(node, _operator);
+
+    const FunctionSignature* signature = _operator->getSignature();
     const auto args = signature->getArgs();
-    const Semantic* semantic = m_language->getSemantic();
-    auto props = node->getProps();
-    auto left = props->add("lvalue", Visibility::Default, semantic->tokenTypeToType(args[0].type), Way_In);
-    auto result = props->add("result", Visibility::Default, semantic->tokenTypeToType(signature->getType()), Way_Out);
+    Properties* props = node->getProps();
+    Member* left = props->add("lvalue", Visibility::Default, args[0].type, Way_In);
+    Member* result = props->add("result", Visibility::Default, signature->getType(), Way_Out);
 
     // Create ComputeBinaryOperation binOpComponent and link values.
     auto unaryOperationComponent = new ComputeUnaryOperation( _operator );
@@ -110,20 +115,22 @@ Node* HeadlessNodeFactory::newFunction(const Invokable* _function) const
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
     node->setLabel(_function->getSignature()->getIdentifier() + "()");
-    node->setShortLabel("f(x)");
+    std::string str = _function->getSignature()->getLabel().substr(0, 2) + "..()";
+    node->setShortLabel( str.c_str() );
     const Semantic* semantic = m_language->getSemantic();
     auto props = node->getProps();
-    props->add("result", Visibility::Default, semantic->tokenTypeToType(_function->getSignature()->getType()), Way_Out);
+    Member* result = props->add("result", Visibility::Default, _function->getSignature()->getType(), Way_Out);
 
     // Create ComputeBase binOpComponent and link values.
     auto functionComponent = new ComputeFunction( _function );
-    functionComponent->setResult(props->get("result"));
+    functionComponent->setResult(result);
 
     // Arguments
     auto args = _function->getSignature()->getArgs();
-    for (size_t argIndex = 0; argIndex < args.size(); argIndex++) {
+    for (size_t argIndex = 0; argIndex < args.size(); argIndex++)
+    {
         std::string memberName = args[argIndex].name;
-        auto member = props->add(memberName.c_str(), Visibility::Default, semantic->tokenTypeToType(args[argIndex].type), Way_In); // create node input
+        auto member = props->add(memberName.c_str(), Visibility::Default, args[argIndex].type, Way_In); // create node input
         functionComponent->setArg(argIndex, member); // link input to binOpComponent
     }
 
@@ -138,7 +145,7 @@ CodeBlockNode* HeadlessNodeFactory::newCodeBlock() const
     auto codeBlockNode = new CodeBlockNode();
     std::string label = ICON_FA_CODE " Block";
     codeBlockNode->setLabel(label);
-    codeBlockNode->setShortLabel(ICON_FA_CODE "Bl");
+    codeBlockNode->setShortLabel(ICON_FA_CODE " Bl.");
 
     return codeBlockNode;
 }
@@ -149,7 +156,7 @@ ScopedCodeBlockNode* HeadlessNodeFactory::newScopedCodeBlock() const
     auto scopeNode = new ScopedCodeBlockNode();
     std::string label = ICON_FA_CODE_BRANCH " Scope";
     scopeNode->setLabel(label);
-    scopeNode->setShortLabel(ICON_FA_CODE_BRANCH " Scop.");
+    scopeNode->setShortLabel(ICON_FA_CODE_BRANCH " Sc.");
 
     return scopeNode;
 }
@@ -182,6 +189,6 @@ LiteralNode* HeadlessNodeFactory::newLiteral(const Type &type) const
 {
     LiteralNode* node = new LiteralNode(type);
     node->setLabel("Literal");
-    node->setShortLabel("");
+    node->setShortLabel("Lit.");
     return node;
 }

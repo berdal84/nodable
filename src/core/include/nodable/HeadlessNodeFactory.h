@@ -1,4 +1,5 @@
 #include <nodable/AbstractNodeFactory.h>
+#include "Function.h"
 
 namespace Nodable
 {
@@ -9,20 +10,23 @@ namespace Nodable
     {
     public:
         HeadlessNodeFactory(const Language* _language): AbstractNodeFactory(_language) {}
-        virtual ~HeadlessNodeFactory() {}
+        ~HeadlessNodeFactory() {}
 
-        virtual ProgramNode*                newProgram()const;
-        virtual CodeBlockNode*              newCodeBlock()const;
-        virtual InstructionNode*		    newInstruction_UserCreated()const;
-        virtual InstructionNode*            newInstruction()const;
-        virtual VariableNode*				newVariable(Type, const std::string&, ScopedCodeBlockNode*)const;
-        virtual LiteralNode*                newLiteral(const Type &type)const;
-        virtual Node*                       newBinOp(const Operator*)const;
-        virtual Node*                       newUnaryOp(const Operator*)const;
-        virtual Node*                       newOperator(const Operator*)const;
-        virtual Node*                       newFunction(const Invokable*)const;
-        virtual ScopedCodeBlockNode*        newScopedCodeBlock()const;
-        virtual ConditionalStructNode*      newConditionalStructure()const;
-        virtual Node*                       newNode()const;
+        ProgramNode*                newProgram()const override ;
+        CodeBlockNode*              newCodeBlock()const override ;
+        InstructionNode*		    newInstruction_UserCreated()const override ;
+        InstructionNode*            newInstruction()const override ;
+        VariableNode*				newVariable(Type, const std::string&, ScopedCodeBlockNode*)const override ;
+        LiteralNode*                newLiteral(const Type &type)const override ;
+        Node*                       newBinOp(const Operator*)const override ;
+        Node*                       newUnaryOp(const Operator*)const override ;
+        Node*                       newOperator(const Operator*)const override ;
+        Node*                       newFunction(const Invokable*)const override ;
+        ScopedCodeBlockNode*        newScopedCodeBlock()const override ;
+        ConditionalStructNode*      newConditionalStructure()const override ;
+        Node*                       newNode()const override ;
+
+    private:
+        static void setupNodeLabels(Node *_node, const Operator *_operator);
     };
 }

@@ -36,6 +36,7 @@ namespace Nodable
         std::string& serialize(std::string &_result, const FunctionSignature*, const std::vector<Member*>&)const;
         std::string& serialize(std::string &_result, const FunctionSignature*)const;
         std::string& serialize(std::string &_result, const TokenType&)const;
+        std::string& serialize(std::string &_result, const Type&)const;
         virtual std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
         virtual std::string& serialize(std::string &_result, const Token*) const;
         virtual std::string& serialize(std::string &_result, const CodeBlockNode*) const;

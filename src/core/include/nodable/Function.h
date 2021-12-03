@@ -5,7 +5,7 @@
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 
 #include <nodable/Nodable.h>
-#include <nodable/TokenType.h>
+#include <nodable/Type.h>
 #include <nodable/Member.h>
 
 namespace Nodable {
@@ -24,8 +24,8 @@ namespace Nodable {
 	 */
 	class FunctionArg {
 	public:
-		FunctionArg(TokenType, std::string);
-		TokenType type;
+		FunctionArg(Type, std::string);
+		Type type;
 		std::string name;
 	};
 
@@ -35,32 +35,32 @@ namespace Nodable {
 	 */
 	class FunctionSignature {
 	public:
-		FunctionSignature(std::string _identifier, TokenType _type, std::string _label = "");
+		FunctionSignature(std::string _identifier, Type _type, std::string _label = "");
 		~FunctionSignature() {};
-		void                           pushArg(TokenType _type, std::string _name = "");
+		void                           pushArg(Type _type, std::string _name = "");
 
-		template <typename... TokenType>
-		void pushArgs(TokenType&&... args) {
-			int dummy[] = { 0, ((void)pushArg(std::forward<TokenType>(args)),0)... };
+		template <typename... Type>
+		void pushArgs(Type&&... args) {
+			int dummy[] = { 0, ((void)pushArg(std::forward<Type>(args)),0)... };
 		}
 
-        bool                           hasAtLeastOneArgOfType(TokenType type)const;
+        bool                           hasAtLeastOneArgOfType(Type type)const;
 		bool                           match(const FunctionSignature* _other)const;
 		const std::string&             getIdentifier()const;
 		std::vector<FunctionArg>       getArgs() const;
 		size_t                         getArgCount() const { return args.size(); }
-		TokenType                      getType() const;
+		Type                           getType() const;
 		std::string                    getLabel() const;
 
 	private:
 		std::string label;
 		std::string identifier;
 		std::vector<FunctionArg> args;
-		TokenType type;
+		Type type;
 
 	public:
-		template<typename R = TokenType, typename... TokenType>
-		static FunctionSignature Create(R _type, std::string _identifier, TokenType&& ..._args) {
+		template<typename R = Type, typename... Type>
+		static FunctionSignature Create(R _type, std::string _identifier, Type&& ..._args) {
 			FunctionSignature signature(_identifier, _type);
 			signature.pushArgs(_args...);
 			return signature;
@@ -82,8 +82,8 @@ namespace Nodable {
             arg_pusher<Tuple, N - 1>::push_into(_signature);
 
             using t = std::tuple_element_t<N-1, Tuple>;
-            TokenType tokenType = ToTokenType<t>::type;
-            _signature->pushArg( tokenType );
+            Type type = to_Type<t>::type;
+            _signature->pushArg( type );
         }
     };
 
@@ -93,8 +93,8 @@ namespace Nodable {
         static void push_into(FunctionSignature *_signature)
         {
             using t = std::tuple_element_t<0, Tuple>;
-            TokenType tokenType = ToTokenType<t>::type;
-            _signature->pushArg( tokenType );
+            Type type = to_Type<t>::type;
+            _signature->pushArg( type );
         };
     };
 
@@ -180,7 +180,7 @@ namespace Nodable {
         InvokableFunction(FunctionType* _function, const char* _identifier)
         {
             m_function  = _function;
-            m_signature = new FunctionSignature(_identifier, ToTokenType<R>::type , _identifier);
+            m_signature = new FunctionSignature(_identifier, to_Type<R>::type , _identifier);
             push_args<Tuple>(m_signature);
         }
 

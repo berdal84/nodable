@@ -263,7 +263,7 @@ bool GraphNodeView::draw()
 				    else
                     {
                         const MemberConnector* dragged_member_conn = MemberConnector::GetDragged();
-                        TokenType dragged_member_type = graph->getLanguage()->getSemantic()->typeToTokenType(dragged_member_conn->getMember()->getType());
+                        Type dragged_member_type = dragged_member_conn->getMember()->getType();
 
                         if ( dragged_member_conn->m_way == Way_Out )
                         {

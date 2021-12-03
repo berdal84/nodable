@@ -28,12 +28,12 @@ namespace Nodable
 
         static inline bool isOperand(TokenType type)
         {
-            return type == TokenType_Double || type == TokenType_Boolean || type == TokenType_String || type == TokenType_Identifier;
+            return type == TokenType_Literal || type == TokenType_Identifier;
         }
 
         static inline bool isType(TokenType type)
         {
-            return type == TokenType_DoubleType || type == TokenType_BooleanType || type == TokenType_StringType;
+            return type == TokenType_KeywordDouble || type == TokenType_KeywordBoolean || type == TokenType_KeywordString;
         }
 
     };

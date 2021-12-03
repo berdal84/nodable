@@ -9,7 +9,11 @@ namespace Nodable
         explicit LiteralNode(Type type);
         ~LiteralNode() override = default;
 
-        [[nodiscard]] inline Member* value() const { return m_props.get("value"); }
+        [[nodiscard]]
+        inline Member* get_value() const { return m_props.get("value"); }
+
+        template<typename T>
+        inline void set_value(T new_value) const { m_props.get("value")->set((T)new_value); }
 
         REFLECT_DERIVED(LiteralNode)
         REFLECT_EXTENDS(Node)
