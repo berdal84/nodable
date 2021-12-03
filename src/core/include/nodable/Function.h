@@ -72,13 +72,6 @@ namespace Nodable {
 	 * WIP work to facilitate native function wrapping inside Nodable
 	 */
 
-	// todo: move to Semantic class
-    template<> static constexpr TokenType TokenTypeFromCppType<double>       = TokenType_DoubleType;
-    template<> static constexpr TokenType TokenTypeFromCppType<const char*>  = TokenType_StringType;
-    template<> static constexpr TokenType TokenTypeFromCppType<std::string>  = TokenType_StringType;
-    template<> static constexpr TokenType TokenTypeFromCppType<bool>         = TokenType_BooleanType;
-
-
     /** Push Arg helpers */
 
     template<class Tuple, std::size_t N> // push N+1 arguments
@@ -89,7 +82,7 @@ namespace Nodable {
             arg_pusher<Tuple, N - 1>::push_into(_signature);
 
             using t = std::tuple_element_t<N-1, Tuple>;
-            TokenType tokenType = TokenTypeFromCppType<t>;
+            TokenType tokenType = ToTokenType<t>::type;
             _signature->pushArg( tokenType );
         }
     };
@@ -100,7 +93,7 @@ namespace Nodable {
         static void push_into(FunctionSignature *_signature)
         {
             using t = std::tuple_element_t<0, Tuple>;
-            TokenType tokenType = TokenTypeFromCppType<t>;
+            TokenType tokenType = ToTokenType<t>::type;
             _signature->pushArg( tokenType );
         };
     };
@@ -187,7 +180,7 @@ namespace Nodable {
         InvokableFunction(FunctionType* _function, const char* _identifier)
         {
             m_function  = _function;
-            m_signature = new FunctionSignature(_identifier, TokenTypeFromCppType<R>, _identifier);
+            m_signature = new FunctionSignature(_identifier, ToTokenType<R>::type , _identifier);
             push_args<Tuple>(m_signature);
         }
 

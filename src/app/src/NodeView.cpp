@@ -156,8 +156,8 @@ void NodeView::setOwner(Node* _node)
             case RelationType::IS_OUTPUT_OF:
                 addOutput( otherNode->getComponent<NodeView>() );
                 break;
-            case RelationType::IS_NEXT_OF:;
-                // for grumpy compiler
+            case RelationType::IS_NEXT_OF:
+                LOG_ERROR("NodeView", "Can't add output for RelationType::IS_NEXT_OF.\n");
         }
     });
 
@@ -173,8 +173,8 @@ void NodeView::setOwner(Node* _node)
             case RelationType::IS_OUTPUT_OF:
                 removeOutput( otherNode->getComponent<NodeView>() );
                 break;
-            case RelationType::IS_NEXT_OF:;
-                // for grumpy compiler
+            case RelationType::IS_NEXT_OF:
+                LOG_ERROR("NodeView", "Can't remove output for RelationType::IS_NEXT_OF.\n");
         }
     });
 

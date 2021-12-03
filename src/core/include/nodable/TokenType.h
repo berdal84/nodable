@@ -1,5 +1,5 @@
 #pragma once
-
+#include <string>
 /*
 	This enum identifies each Type of Token that a Language should handle in its Semantic.
 
@@ -45,7 +45,21 @@ namespace Nodable {
         TokenType_Default = TokenType_Unknown,
     };
 
+	/** few templates to convert token types to native types,
+	 * could be moved to Reflect */
     template<typename T>
-    TokenType TokenTypeFromCppType;
+    struct ToTokenType;
+
+#define DECL( Type, TokenType ) \
+    template<> \
+    struct ToTokenType<Type> { \
+        static constexpr auto type = TokenType; \
+        static constexpr auto name = #TokenType; \
+    };
+
+    DECL( double       , TokenType_DoubleType )
+    DECL( const char*  , TokenType_StringType )
+    DECL( std::string  , TokenType_StringType )
+    DECL( bool         , TokenType_BooleanType )
 }
 
