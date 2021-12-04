@@ -1,4 +1,7 @@
 #pragma once
+
+#include <string>
+
 #include <nodable/AbstractCodeBlock.h>
 #include <nodable/Node.h>
 

@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+
 #include <nodable/Node.h> // base class
 #include <nodable/AbstractCodeBlock.h> // interface
 
