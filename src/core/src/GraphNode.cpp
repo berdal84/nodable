@@ -5,8 +5,6 @@
 #include <nodable/Log.h>
 #include <nodable/Wire.h>
 #include <nodable/Parser.h>
-#include <nodable/ComputeBinaryOperation.h>
-#include <nodable/ComputeUnaryOperation.h>
 #include <nodable/DataAccess.h>
 #include <nodable/Node.h>
 #include <nodable/VariableNode.h>

@@ -5,8 +5,7 @@
 #include <nodable/Log.h> // for LOG_DEBUG(...)
 #include <nodable/Wire.h>
 #include <nodable/DataAccess.h>
-#include <nodable/ComputeUnaryOperation.h>
-#include <nodable/ComputeBinaryOperation.h>
+#include <nodable/InvokableComponent.h>
 
 using namespace Nodable;
 
@@ -104,9 +103,9 @@ bool Node::eval() const
     }
 
     // update
-    if(hasComponent<ComputeBase>())
+    if(hasComponent<InvokableComponent>())
     {
-        return getComponent<ComputeBase>()->update();
+        return getComponent<InvokableComponent>()->update();
     }
     return true;
 }
@@ -152,14 +151,14 @@ const Operator* Node::getConnectedOperator(const Member *_localMember)
     if (found != m_wires.end() )
     {
         auto node = (*found)->getSource()->getOwner()->as<Node>();
-        // TODO: factorise
-        if (auto binOpComponent = node->getComponent<ComputeBinaryOperation>())
+        InvokableComponent* compute_component = node->getComponent<InvokableComponent>();
+        if ( compute_component )
         {
-            result = binOpComponent->getOperator();
-        }
-        else if (auto unaryOpComponent = node->getComponent<ComputeUnaryOperation>())
-        {
-            result = unaryOpComponent->getOperator();
+            const Invokable* function = compute_component->get_invokable();
+            if ( function->get_invokable_type() == Invokable::Type::Operator )
+            {
+                result = reinterpret_cast<const Operator*>( function );
+            }
         }
     }
 

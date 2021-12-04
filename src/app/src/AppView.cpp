@@ -678,7 +678,7 @@ void AppView::drawPropertiesWindow()
             ImGui::ColorEdit4("variables color", &config->ui_node_variableColor.x);
             ImGui::ColorEdit4("instruction color", &config->ui_node_instructionColor.x);
             ImGui::ColorEdit4("literal color", &config->ui_node_literalColor.x);
-            ImGui::ColorEdit4("function color", &config->ui_node_functionColor.x);
+            ImGui::ColorEdit4("function color", &config->ui_node_invokableColor.x);
             ImGui::ColorEdit4("shadow color", &config->ui_node_shadowColor.x);
             ImGui::ColorEdit4("border color", &config->ui_node_borderColor.x);
             ImGui::ColorEdit4("high. color", &config->ui_node_highlightedColor.x);

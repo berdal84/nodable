@@ -4,8 +4,8 @@
 #include <nodable/LiteralNode.h>
 #include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/ProgramNode.h>
-#include <nodable/ComputeBinaryOperation.h>
 #include <nodable/Language.h>
+#include <nodable/InvokableComponent.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
@@ -74,10 +74,10 @@ Node* HeadlessNodeFactory::newBinOp(const Operator* _operator) const
     Member* result = props->add("result", Visibility::Default, signature->getType(), Way_Out);
 
     // Create ComputeBinaryOperation component and link values.
-    auto binOpComponent = new ComputeBinaryOperation( _operator );
-    binOpComponent->setResult(result);
-    binOpComponent->setLValue( left );
-    binOpComponent->setRValue(right);
+    auto binOpComponent = new InvokableComponent( _operator );
+    binOpComponent->set_result(result);
+    binOpComponent->set_l_handed_val(left);
+    binOpComponent->set_r_handed_val(right);
     node->addComponent(binOpComponent);
 
     return node;
@@ -102,9 +102,9 @@ Node* HeadlessNodeFactory::newUnaryOp(const Operator* _operator) const
     Member* result = props->add("result", Visibility::Default, signature->getType(), Way_Out);
 
     // Create ComputeBinaryOperation binOpComponent and link values.
-    auto unaryOperationComponent = new ComputeUnaryOperation( _operator );
-    unaryOperationComponent->setResult(result);
-    unaryOperationComponent->setLValue(left);
+    auto unaryOperationComponent = new InvokableComponent( _operator );
+    unaryOperationComponent->set_result(result);
+    unaryOperationComponent->set_l_handed_val(left);
     node->addComponent(unaryOperationComponent);
 
     return node;
@@ -122,8 +122,8 @@ Node* HeadlessNodeFactory::newFunction(const Invokable* _function) const
     Member* result = props->add("result", Visibility::Default, _function->getSignature()->getType(), Way_Out);
 
     // Create ComputeBase binOpComponent and link values.
-    auto functionComponent = new ComputeFunction( _function );
-    functionComponent->setResult(result);
+    auto functionComponent = new InvokableComponent( _function );
+    functionComponent->set_result(result);
 
     // Arguments
     auto args = _function->getSignature()->getArgs();
@@ -131,7 +131,7 @@ Node* HeadlessNodeFactory::newFunction(const Invokable* _function) const
     {
         std::string memberName = args[argIndex].name;
         auto member = props->add(memberName.c_str(), Visibility::Default, args[argIndex].type, Way_In); // create node input
-        functionComponent->setArg(argIndex, member); // link input to binOpComponent
+        functionComponent->set_arg(argIndex, member); // link input to binOpComponent
     }
 
     node->addComponent(functionComponent);

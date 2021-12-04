@@ -4,7 +4,7 @@
 #include <nodable/LiteralNode.h>
 #include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/ProgramNode.h>
-#include <nodable/ComputeBinaryOperation.h>
+#include <nodable/InvokableComponent.h>
 #include <nodable/Language.h>
 #include <nodable/NodeView.h>
 

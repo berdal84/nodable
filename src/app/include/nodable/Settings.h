@@ -25,7 +25,7 @@ namespace Nodable {
         float  ui_node_memberConnectorRadius;
         float  ui_node_padding;
         ImVec4 ui_node_variableColor;
-        ImVec4 ui_node_functionColor;
+        ImVec4 ui_node_invokableColor;
         ImVec4 ui_node_instructionColor;
         ImVec4 ui_node_literalColor;
         ImVec4 ui_node_shadowColor;

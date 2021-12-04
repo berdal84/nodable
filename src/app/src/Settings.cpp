@@ -79,7 +79,7 @@ Settings* Settings::CreateInstance()
     // nodes
     conf->ui_node_padding                = 6.0f;
     conf->ui_node_memberConnectorRadius  = 5.0f;
-    conf->ui_node_functionColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
+    conf->ui_node_invokableColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
     conf->ui_node_variableColor          = ImVec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
     conf->ui_node_instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f); // green
     conf->ui_node_literalColor           = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey

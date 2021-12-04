@@ -13,7 +13,7 @@
 #include <nodable/ProgramNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/VariableNode.h>
-#include <nodable/ComputeBinaryOperation.h>
+#include <nodable/InvokableComponent.h>
 
 using namespace Nodable;
 
@@ -250,11 +250,11 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	if ( matchingOperator != nullptr )
 	{
 		auto binOpNode = graph->newBinOp(matchingOperator);
-        auto computeComponent = binOpNode->getComponent<ComputeBinaryOperation>();
-        computeComponent->setSourceToken(operatorToken);
+        auto computeComponent = binOpNode->getComponent<InvokableComponent>();
+        computeComponent->set_source_token(operatorToken);
 
-        graph->connect(_left, computeComponent->getLValue());
-        graph->connect(right, computeComponent->getRValue());
+        graph->connect(_left, computeComponent->get_l_handed_val());
+        graph->connect(right, computeComponent->get_r_handed_val());
 		result = binOpNode->getProps()->get("result");
 
         commitTransaction();
@@ -314,10 +314,10 @@ Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
 	if (matchingOperator != nullptr)
 	{
 		auto unaryOpNode = graph->newUnaryOp(matchingOperator);
-        auto computeComponent = unaryOpNode->getComponent<ComputeUnaryOperation>();
-        computeComponent->setSourceToken(operatorToken);
+        auto computeComponent = unaryOpNode->getComponent<InvokableComponent>();
+        computeComponent->set_source_token(operatorToken);
 
-        graph->connect(value, computeComponent->getLValue());
+        graph->connect(value, computeComponent->get_l_handed_val());
         Member* result = unaryOpNode->getProps()->get("result");
 
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")

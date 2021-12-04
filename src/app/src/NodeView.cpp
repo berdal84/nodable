@@ -15,6 +15,7 @@
 #include <nodable/GraphNode.h>
 #include <nodable/NodeConnector.h>
 #include <nodable/MemberConnector.h>
+#include <nodable/InvokableComponent.h>
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 
@@ -113,9 +114,9 @@ void NodeView::setOwner(Node* _node)
 
     // Determine a color depending on node type
     auto settings = Settings::Get();
-    if (_node->hasComponent<ComputeBase>())
+    if (_node->hasComponent<InvokableComponent>())
     {
-        setColor(ColorType_Fill, &settings->ui_node_functionColor); // blue
+        setColor(ColorType_Fill, &settings->ui_node_invokableColor); // blue
     }
     else if ( _node->getClass() == VariableNode::GetClass() )
     {

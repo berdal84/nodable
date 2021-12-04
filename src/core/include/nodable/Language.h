@@ -5,7 +5,6 @@
 #include <functional>
 #include <tuple>
 #include <regex>
-#include <nodable/ComputeUnaryOperation.h>
 
 // Nodable
 #include <nodable/Nodable.h> // for constants and forward declarations

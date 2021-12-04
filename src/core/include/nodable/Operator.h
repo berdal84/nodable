@@ -52,6 +52,7 @@ namespace Nodable {
 
         inline const FunctionSignature* getSignature() const override { return m_function->getSignature(); }
 
+        Invokable::Type get_invokable_type() const override { return Invokable::Type::Operator; }
     private:
         const Invokable* m_function;
 		std::string m_short_identifier; // "+" not "operator+"

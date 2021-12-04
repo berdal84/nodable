@@ -54,6 +54,7 @@ double api_multiply(double a, double b)
 
 double api_divide(double a, double b)
 {
+    if ( b == 0.0 ) throw std::runtime_error("division by zero !");
     return a / b;
 }
 

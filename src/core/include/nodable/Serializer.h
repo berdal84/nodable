@@ -10,10 +10,7 @@
 namespace Nodable
 {
     // forward declarations
-    class ComputeBase;
-    class ComputeFunction;
-    class ComputeUnaryOperation;
-    class ComputeBinaryOperation;
+    class InvokableComponent;
     class Member;
     class Operator;
     class Language;
@@ -29,10 +26,7 @@ namespace Nodable
         explicit Serializer(const Language* _language): language(_language) {};
         ~Serializer() = default;
 
-        std::string& serialize(std::string &_result, const ComputeUnaryOperation * _operation)const;
-        std::string& serialize(std::string &_result, const ComputeBinaryOperation * _operation)const;
-        std::string& serialize(std::string &_result, const ComputeBase * _operation)const;
-        std::string& serialize(std::string &_result, const ComputeFunction* _computeFunction) const;
+        std::string& serialize(std::string &_result, const InvokableComponent*) const;
         std::string& serialize(std::string &_result, const FunctionSignature*, const std::vector<Member*>&)const;
         std::string& serialize(std::string &_result, const FunctionSignature*)const;
         std::string& serialize(std::string &_result, const TokenType&)const;

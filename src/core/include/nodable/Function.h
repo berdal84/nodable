@@ -161,8 +161,13 @@ namespace Nodable {
     class Invokable
     {
     public:
+        enum Type {
+            Function,
+            Operator
+        };
         virtual const FunctionSignature* getSignature() const = 0;
         virtual void invoke(Member *_result, const std::vector<Member *> &_args) const = 0;
+        virtual Invokable::Type get_invokable_type() const = 0;
     };
 
 
@@ -189,8 +194,8 @@ namespace Nodable {
             call<R, Args...>(m_function, _result, _args);
         }
 
-        inline const FunctionSignature* getSignature() const { return m_signature; };
-
+        inline const FunctionSignature* getSignature() const override { return m_signature; };
+        virtual Invokable::Type get_invokable_type() const override { return Invokable::Type::Function; };
     private:
         FunctionType*      m_function;
         FunctionSignature* m_signature;

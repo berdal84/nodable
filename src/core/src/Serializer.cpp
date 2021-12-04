@@ -1,7 +1,6 @@
 #include <nodable/Serializer.h>
 #include <nodable/Member.h>
-#include <nodable/ComputeBinaryOperation.h>
-#include <nodable/ComputeUnaryOperation.h>
+#include <nodable/InvokableComponent.h>
 #include <nodable/GraphNode.h>
 #include <nodable/Node.h>
 #include <nodable/VariableNode.h>
@@ -12,127 +11,95 @@
 
 using namespace Nodable;
 
-std::string& Serializer::serialize(std::string &_result, const ComputeUnaryOperation* _operation) const
+std::string& Serializer::serialize(std::string& _result, const InvokableComponent *_component)const
 {
-    auto args = _operation->getArgs();
-    auto inner_operator = _operation->getOwner()->getConnectedOperator(args[0]);
 
-    // operator ( ... innerOperator ... )   ex:   -(a+b)
+    const Invokable* invokable = _component->get_invokable();
 
-    // Operator
-    const Token* sourceToken = _operation->getSourceToken();
-    if ( sourceToken )
+    if ( invokable->get_invokable_type() == Invokable::Type::Function )
     {
-        _result.append(sourceToken->m_prefix);
-    }
-
-    _result.append( _operation->getOperator()->getShortIdentifier() );
-
-    if ( sourceToken )
-    {
-        _result.append(sourceToken->m_suffix);
-    }
-
-    // Inner part of the expression
-    {
-        bool needBrackets = inner_operator;
-
-        if (needBrackets)
-        {
-            serialize(_result, TokenType_OpenBracket);
-        }
-
-        serialize(_result, args[0]);
-
-        if (needBrackets)
-        {
-            serialize(_result, TokenType_CloseBracket);
-        }
-    }
-    return _result;
-}
-
-std::string& Serializer::serialize(std::string& _result, const ComputeBinaryOperation * _operation) const
-{
-    // Get the left and right source operator
-    std::vector<Member*> args = _operation->getArgs();
-    auto l_handed_operator = _operation->getOwner()->getConnectedOperator(args[0]);
-    auto r_handed_operator = _operation->getOwner()->getConnectedOperator(args[1]);
-    // Left part of the expression
-    {
-        // TODO: check parsed brackets for prefix/suffix
-        bool needBrackets = l_handed_operator && !language->hasHigherPrecedenceThan(l_handed_operator, _operation->getOperator());
-        if (needBrackets)
-        {
-            serialize(_result, TokenType_OpenBracket);
-        }
-
-        serialize(_result, args[0]);
-
-        if (needBrackets)
-        {
-            serialize(_result, TokenType_CloseBracket);
-        }
-    }
-
-    // Operator
-    const Token* sourceToken = _operation->getSourceToken();
-    if ( sourceToken )
-    {
-        _result.append( sourceToken->m_prefix);
-    }
-    _result.append( _operation->getOperator()->getShortIdentifier() );
-    if ( sourceToken )
-    {
-        _result.append( sourceToken->m_suffix);
-    }
-
-    // Right part of the expression
-    {
-        // TODO: check parsed brackets for prefix/suffix
-        bool needBrackets = r_handed_operator
-                            && (  r_handed_operator->getType() == Operator::Type::Unary
-                                  || !language->hasHigherPrecedenceThan(r_handed_operator, _operation->getOperator())
-                               );
-
-        if (needBrackets)
-        {
-            serialize(_result, TokenType_OpenBracket);
-        }
-
-        serialize(_result, args[1]);
-
-        if (needBrackets)
-        {
-            serialize(_result, TokenType_CloseBracket);
-        }
-    }
-    return _result;
-}
-
-std::string& Serializer::serialize(std::string& _result, const ComputeFunction *_computeFunction)const
-{
-    return serialize(_result, _computeFunction->getFunction()->getSignature(), _computeFunction->getArgs());
-}
-
-std::string& Serializer::serialize(std::string& _result, const ComputeBase *_operation)const
-{
-    if( auto computeBinOp = _operation->as<ComputeBinaryOperation>() )
-    {
-        return serialize(_result, computeBinOp);
-    }
-    else if (auto computeUnaryOp = _operation->as<ComputeUnaryOperation>() )
-    {
-        return serialize(_result, computeUnaryOp);
-    }
-    else if (auto fct = _operation->as<ComputeFunction>())
-    {
-        return serialize(_result, fct);
+        serialize(_result, _component->get_invokable()->getSignature(), _component->get_args());
     }
     else
     {
-        return _result;
+        // generic serialize member lambda
+        auto serialize_member_with_or_without_brackets = [this, &_result](Member* member, bool needs_brackets)
+        {
+            if (needs_brackets)
+            {
+                serialize(_result, TokenType_OpenBracket);
+            }
+
+            serialize(_result, member);
+
+            if (needs_brackets)
+            {
+                serialize(_result, TokenType_CloseBracket);
+            }
+        };
+
+        auto ope = reinterpret_cast<const Operator*>(invokable);
+        std::vector<Member *> args = _component->get_args();
+
+        if ( ope->getType() == Operator::Type::Binary )
+        {
+            // Get the left and right source operator
+            auto l_handed_operator = _component->getOwner()->getConnectedOperator(args[0]);
+            auto r_handed_operator = _component->getOwner()->getConnectedOperator(args[1]);
+            // Left part of the expression
+            {
+                // TODO: check parsed brackets for prefix/suffix
+                bool needs_brackets = l_handed_operator &&
+                                    !language->hasHigherPrecedenceThan(l_handed_operator, ope );
+
+                serialize_member_with_or_without_brackets(args[0], needs_brackets);
+            }
+
+            // Operator
+            const Token *sourceToken = _component->get_source_token();
+            if (sourceToken) {
+                _result.append(sourceToken->m_prefix);
+            }
+            _result.append( ope->getShortIdentifier());
+            if (sourceToken) {
+                _result.append(sourceToken->m_suffix);
+            }
+
+            // Right part of the expression
+            {
+                // TODO: check parsed brackets for prefix/suffix
+                bool needs_brackets = r_handed_operator
+                                    && (r_handed_operator->getType() == Operator::Type::Unary
+                                        || !language->hasHigherPrecedenceThan( r_handed_operator, ope )
+                                    );
+
+                serialize_member_with_or_without_brackets(args[1], needs_brackets);
+            }
+        }
+        else if ( ope->getType() == Operator::Type::Unary )
+        {
+            auto inner_operator = _component->getOwner()->getConnectedOperator(args[0]);
+
+            // operator ( ... innerOperator ... )   ex:   -(a+b)
+
+            // Operator
+            const Token *sourceToken = _component->get_source_token();
+
+            if (sourceToken) {
+                _result.append(sourceToken->m_prefix);
+            }
+
+            _result.append( ope->getShortIdentifier());
+
+            if (sourceToken) {
+                _result.append(sourceToken->m_suffix);
+            }
+
+            bool needs_brackets = inner_operator;
+            serialize_member_with_or_without_brackets(args[0], needs_brackets);
+        }
     }
+    return _result;
 }
 
 std::string& Serializer::serialize(std::string& _result, const FunctionSignature*   _signature, const std::vector<Member*>& _args) const
@@ -242,11 +209,12 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
     auto owner = _member->getOwner();
     if ( followConnections && owner && _member->allowsConnection(Way_In) && owner->hasWireConnectedTo(_member) )
     {
-        auto sourceMember = owner->getSourceMemberOf(_member);
+        Member*           sourceMember      = owner->getSourceMemberOf(_member);
+        InvokableComponent* compute_component = sourceMember->getOwner()->getComponent<InvokableComponent>();
 
-        if ( auto computeBase = sourceMember->getOwner()->getComponent<ComputeBase>() )
+        if ( compute_component )
         {
-            serialize(_result, computeBase );
+            serialize(_result, compute_component );
         }
         else
         {
