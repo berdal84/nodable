@@ -25,10 +25,10 @@ ScopedCodeBlockNode *ConditionalStructNode::getBranchFalse() const
     return m_next.size() > 1 ? m_next[1]->as<ScopedCodeBlockNode>() : nullptr;
 }
 
-void ConditionalStructNode::getLastInstructions(std::vector<InstructionNode *>& out)
+void ConditionalStructNode::get_last_instructions(std::vector<InstructionNode *> &out)
 {
     if(auto branch_true = getBranchTrue())
-        branch_true->getLastInstructions(out);
+        branch_true->get_last_instructions(out);
     if(auto branch_false = getBranchFalse())
-        branch_false->getLastInstructions(out);
+        branch_false->get_last_instructions(out);
 }

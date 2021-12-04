@@ -141,7 +141,7 @@ void GraphNode::unregisterNode(Node* _node)
 
 VariableNode* GraphNode::findVariable(std::string _name)
 {
-	return m_program->findVariable(_name);
+	return m_program->find_variable(_name);
 }
 
 InstructionNode* GraphNode::newInstruction()
@@ -168,7 +168,7 @@ VariableNode* GraphNode::newVariable(Type _type, const std::string& _name, Scope
 	return node;
 }
 
-Node* GraphNode::newOperator(const Operator* _operator)
+Node* GraphNode::newOperator(const InvokableOperator* _operator)
 {
     Node* node = m_factory->newOperator( _operator );
 
@@ -180,14 +180,14 @@ Node* GraphNode::newOperator(const Operator* _operator)
     return node;
 }
 
-Node* GraphNode::newBinOp(const Operator* _operator)
+Node* GraphNode::newBinOp(const InvokableOperator* _operator)
 {
 	Node* node = m_factory->newBinOp( _operator );
     registerNode(node);
 	return node;
 }
 
-Node* GraphNode::newUnaryOp(const Operator* _operator)
+Node* GraphNode::newUnaryOp(const InvokableOperator* _operator)
 {
 	Node* node = m_factory->newUnaryOp( _operator );
     registerNode(node);
@@ -364,11 +364,11 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
             if ( _sideEffects )
             {
                 // create "next" links
-                auto &target_children = _target->getChildren();
+                auto &target_children = _target->get_children();
                 if (!target_children.empty())
                 {
                     auto lastChild = target_children.back();
-                    auto lastChildParent = lastChild->getParent();
+                    auto lastChildParent = lastChild->get_parent();
                     if (lastChildParent)
                     {
                         if (lastChildParent->getClass() == ConditionalStructNode::GetClass() )
@@ -379,7 +379,7 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
                         {
                             // last instructions -> _source
                             std::vector<InstructionNode *> last_instr;
-                            condStructNode->getLastInstructions(last_instr);
+                            condStructNode->get_last_instructions(last_instr);
 
                             for (auto &each_inst : last_instr)
                             {
@@ -403,8 +403,8 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
             }
 
             // create "parent-child" links
-            _target->addChild(_source);
-            _source->setParent(_target);
+            _target->add_child(_source);
+            _source->set_parent(_target);
 
             break;
         }
@@ -420,7 +420,7 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
 
             if (_sideEffects)
             {
-                if ( auto parent = _target->getParent() )
+                if ( auto parent = _target->get_parent() )
                 {
                     auto next = _source;
                     while ( next )
@@ -455,8 +455,8 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
     switch ( _relationType )
     {
         case RelationType::IS_CHILD_OF:
-            _target->removeChild(_source);
-            _source->setParent(nullptr);
+            _target->remove_Child(_source);
+            _source->set_parent(nullptr);
             break;
 
         case RelationType::IS_INPUT_OF:
@@ -470,10 +470,10 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
 
             if ( _sideEffects )
             {
-                if ( auto parent = _source->getParent() )
+                if ( auto parent = _source->get_parent() )
                 {
                     auto next = _source;
-                    while ( next && next->getParent() == parent )
+                    while ( next && next->get_parent() == parent )
                     {
                         disconnect(next, parent, RelationType::IS_CHILD_OF, false );
                         next = next->getFirstNext();

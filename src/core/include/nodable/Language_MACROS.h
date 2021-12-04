@@ -28,7 +28,7 @@
         std::string function_name = identifier; \
         sanitizeOperatorFunctionName( function_name ); \
         Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str() ); \
-        Operator* op = new Operator( invokable, precedence, identifier );\
+        InvokableOperator* op = new InvokableOperator( invokable, precedence, identifier );\
         addOperator( op );\
         addToAPI( invokable ); \
     }
@@ -64,7 +64,7 @@
         std::string function_name = identifier; \
         sanitizeOperatorFunctionName( function_name ); \
         Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str() ); \
-        Operator* op = new Operator( invokable, precedence, identifier );\
+        InvokableOperator* op = new InvokableOperator( invokable, precedence, identifier );\
         addOperator( op );\
         addToAPI( invokable ); \
     }

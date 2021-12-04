@@ -13,7 +13,7 @@ namespace Nodable{
     // forward declaration
     class InstructionNode;
     class ScopedCodeBlockNode;
-    class AbstractCodeBlockNode;
+    class AbstractCodeBlock;
     class CodeBlockNode;
 
 	/**

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <nodable/TokenType.h>
-#include <nodable/Function.h>
+#include <nodable/InvokableFunction.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/Token.h>
 
@@ -12,9 +12,9 @@ namespace Nodable
     // forward declarations
     class InvokableComponent;
     class Member;
-    class Operator;
+    class InvokableOperator;
     class Language;
-    class AbstractCodeBlockNode;
+    class AbstractCodeBlock;
     class CodeBlockNode;
     class ScopedCodeBlockNode;
     class InstructionNode;

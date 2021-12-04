@@ -32,7 +32,7 @@ T ParseAndEvalExpression(const std::string& expression)
         runner.run();
 
         // compare result
-        auto lastInstruction = program->getLastInstruction();
+        auto lastInstruction = program->get_last_instruction();
         if ( lastInstruction )
         {
             result = (T)*lastInstruction->getValue();

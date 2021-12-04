@@ -8,13 +8,13 @@
 #include <nodable/ProgramNode.h>
 #include <nodable/HeadlessNodeFactory.h>
 #include <nodable/Wire.h>
-#include <nodable/NodableLanguage.h>
+#include <nodable/LanguageNodable.h>
 
 using namespace Nodable;
 
 TEST( GraphNode, connect)
 {
-    NodableLanguage language;
+    LanguageNodable language;
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
 
@@ -35,7 +35,7 @@ TEST( GraphNode, connect)
 
 TEST( GraphNode, disconnect)
 {
-    NodableLanguage language;
+    LanguageNodable language;
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
 
@@ -63,7 +63,7 @@ TEST( GraphNode, disconnect)
 TEST( GraphNode, clear)
 {
     // prepare
-    NodableLanguage language;
+    LanguageNodable language;
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
     InstructionNode* instructionNode = graph.newInstruction();
@@ -95,7 +95,7 @@ TEST( GraphNode, clear)
 TEST( GraphNode, create_and_delete_relations)
 {
     // prepare
-    NodableLanguage language;
+    LanguageNodable language;
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
     ScopedCodeBlockNode* program = graph.getProgram();
@@ -108,12 +108,12 @@ TEST( GraphNode, create_and_delete_relations)
 
     // is child of (and by reciprocity "is parent of")
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
-    EXPECT_EQ(n2->getChildren().size(), 0);
+    EXPECT_EQ(n2->get_children().size(), 0);
     graph.connect(n1, n2, RelationType::IS_CHILD_OF, false);
-    EXPECT_EQ(n2->getChildren().size(), 1);
+    EXPECT_EQ(n2->get_children().size(), 1);
     EXPECT_EQ(graph.getRelationRegistry().size(), 1);
     graph.disconnect(n1, n2, RelationType::IS_CHILD_OF);
-    EXPECT_EQ(n2->getChildren().size(), 0);
+    EXPECT_EQ(n2->get_children().size(), 0);
 
     // Is input of
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);

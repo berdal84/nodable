@@ -738,10 +738,10 @@ void NodeView::drawAdvancedProperties()
         ImGui::NewLine();
         std::string parentName = "NULL";
 
-        if (node->getParent() )
+        if (node->get_parent() )
         {
-            parentName = node->getParent()->getLabel();
-            parentName.append( node->getParent()->isDirty() ? " (dirty)" : "");
+            parentName = node->get_parent()->getLabel();
+            parentName.append(node->get_parent()->isDirty() ? " (dirty)" : "");
         }
         ImGui::Text("Parent node is \"%s\"", parentName.c_str());
 
@@ -758,7 +758,7 @@ void NodeView::drawAdvancedProperties()
     {
         ImGui::NewLine();
         ImGui::Text("Variables:");
-        auto vars = node->as<ScopedCodeBlockNode>()->getVariables();
+        auto vars = node->as<ScopedCodeBlockNode>()->get_variables();
         for(auto eachVar : vars)
         {
             ImGui::Text("%s: %s", eachVar->getName(), ((std::string)*eachVar->value()).c_str());

@@ -222,7 +222,7 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 	}
 
 	// Precedence check
-	const auto currentOperatorPrecedence = language->findOperator(operatorToken->m_word)->getPrecedence();
+	const auto currentOperatorPrecedence = language->findOperator(operatorToken->m_word)->get_precedence();
 
 	if (currentOperatorPrecedence <= _precedence &&
 	    _precedence > 0u) { // always update the first operation if they have the same precedence or less.
@@ -477,7 +477,7 @@ ScopedCodeBlockNode* Parser::parseScope()
     }
 
     auto scope = graph->newScopedCodeBlock();
-    scope->setBeginScopeToken( tokenRibbon.getEaten() );
+    scope->set_begin_scope_token(tokenRibbon.getEaten());
 
     if ( auto block = parseCodeBlock() )
     {
@@ -490,7 +490,7 @@ ScopedCodeBlockNode* Parser::parseScope()
         rollbackTransaction();
         return nullptr;
     }
-    scope->setEndScopeToken( tokenRibbon.getEaten() );
+    scope->set_end_Scope_token(tokenRibbon.getEaten());
 
     commitTransaction();
     return scope;
@@ -525,7 +525,7 @@ CodeBlockNode* Parser::parseCodeBlock()
         }
     }
 
-    if ( block->getChildren().empty() )
+    if (block->get_children().empty() )
     {
         graph->deleteNode(block);
         rollbackTransaction();
@@ -768,7 +768,7 @@ Member* Parser::parseFunctionCall()
         if (auto member = parseExpression())
         {
             args.push_back(member); // store argument as member (already parsed)
-            signature.pushArg( member->getType() );  // add a new argument type to the proto.
+            signature.push_arg(member->getType());  // add a new argument type to the proto.
             tokenRibbon.eatToken(TokenType_Separator);
         }
         else
@@ -798,15 +798,15 @@ Member* Parser::parseFunctionCall()
 
             auto arg = args.at(_argIndex);
             auto memberName = fct
-                    ->getSignature()
-                    ->getArgs()
+                    ->get_signature()
+                    ->get_args()
                     .at(_argIndex)
-                    .name;
+                    .m_name;
 
             graph->connect(arg, node->getProps()->get(memberName.c_str()));
         };
 
-        for (size_t argIndex = 0; argIndex < fct->getSignature()->getArgCount(); argIndex++)
+        for (size_t argIndex = 0; argIndex < fct->get_signature()->get_arg_count(); argIndex++)
         {
             connectArg(argIndex);
         }

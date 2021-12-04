@@ -11,19 +11,19 @@ Language::~Language()
     delete serializer;
 }
 
-void Language::addOperator( Operator* _operator)
+void Language::addOperator( InvokableOperator* _operator)
 {
 	operators.push_back(_operator);
 }
 
-bool  Language::hasHigherPrecedenceThan(const Operator* _firstOperator, const Operator* _secondOperator)const {
-	return _firstOperator->getPrecedence() >= _secondOperator->getPrecedence();
+bool  Language::hasHigherPrecedenceThan(const InvokableOperator* _firstOperator, const InvokableOperator* _secondOperator)const {
+	return _firstOperator->get_precedence() >= _secondOperator->get_precedence();
 }
 
 const Invokable* Language::findFunction(const FunctionSignature* _signature) const
 {
 	auto predicate = [&](Invokable* fct) {
-		return fct->getSignature()->match(_signature);
+		return fct->get_signature()->match(_signature);
 	};
 
 	auto it = std::find_if(api.begin(), api.end(), predicate);
@@ -34,10 +34,10 @@ const Invokable* Language::findFunction(const FunctionSignature* _signature) con
 	return nullptr;
 }
 
-const Operator* Language::findOperator(const std::string& _short_identifier) const {
+const InvokableOperator* Language::findOperator(const std::string& _short_identifier) const {
 
-	auto predicate = [&](Operator* op) {
-		return op->getShortIdentifier() == _short_identifier;
+	auto predicate = [&](InvokableOperator* op) {
+		return op->get_short_identifier() == _short_identifier;
 	};
 
 	auto it = std::find_if(operators.cbegin(), operators.cend(), predicate);
@@ -48,10 +48,10 @@ const Operator* Language::findOperator(const std::string& _short_identifier) con
 	return nullptr;
 }
 
-const Operator* Language::findOperator(const FunctionSignature* _signature) const {
+const InvokableOperator* Language::findOperator(const FunctionSignature* _signature) const {
 	
-	auto predicate = [&](Operator* op) {
-		return op->getSignature()->match(_signature);
+	auto predicate = [&](InvokableOperator* op) {
+		return op->get_signature()->match(_signature);
 	};
 
 	auto it = std::find_if(operators.cbegin(), operators.cend(), predicate );
@@ -67,7 +67,7 @@ void Language::addToAPI(Invokable* _function)
 {
 	api.push_back(_function);
 	std::string signature;
-    serializer->serialize( signature, _function->getSignature() );
+    serializer->serialize( signature, _function->get_signature() );
 	LOG_VERBOSE("Language", "add to API: %s\n", signature.c_str() );
 }
 
@@ -78,7 +78,7 @@ const FunctionSignature* Language::createBinOperatorSignature(
         Type _rtype) const
 {
     auto signature = new FunctionSignature("operator" + _identifier, _type);
-    signature->pushArgs(_ltype, _rtype);
+    signature->push_args(_ltype, _rtype);
 
     return signature;
 }
@@ -89,7 +89,7 @@ const FunctionSignature* Language::createUnaryOperatorSignature(
         Type _ltype) const
 {
     auto signature = new FunctionSignature("operator" + _identifier, _type);
-    signature->pushArgs(_ltype);
+    signature->push_args(_ltype);
 
     return signature;
 }

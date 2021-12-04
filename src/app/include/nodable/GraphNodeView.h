@@ -5,8 +5,8 @@
 #include <functional>
 #include <nodable/Reflect.h>
 
-#include <nodable/AbstractCodeBlockNode.h>
-#include <nodable/Function.h>
+#include <nodable/AbstractCodeBlock.h>
+#include <nodable/InvokableFunction.h>
 #include <nodable/Nodable.h>     // forward declarations
 #include <nodable/NodeView.h>     // base class
 

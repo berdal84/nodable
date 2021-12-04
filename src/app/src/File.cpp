@@ -134,7 +134,7 @@ bool File::update() {
         }
 
         auto scope = m_graph->getProgram();
-        if ( scope && !scope->getChildren().empty() )
+        if ( scope && !scope->get_children().empty() )
         {
             std::string code;
             m_language->getSerializer()->serialize(code, scope );

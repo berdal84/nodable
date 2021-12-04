@@ -21,9 +21,9 @@ namespace Nodable
         InstructionNode*            newInstruction()const override ;
         VariableNode*				newVariable(Type, const std::string&, ScopedCodeBlockNode*)const override ;
         LiteralNode*                newLiteral(const Type &type)const override ;
-        Node*                       newBinOp(const Operator*)const override ;
-        Node*                       newUnaryOp(const Operator*)const override ;
-        Node*                       newOperator(const Operator*)const override ;
+        Node*                       newBinOp(const InvokableOperator*)const override ;
+        Node*                       newUnaryOp(const InvokableOperator*)const override ;
+        Node*                       newOperator(const InvokableOperator*)const override ;
         Node*                       newFunction(const Invokable*)const override ;
         ScopedCodeBlockNode*        newScopedCodeBlock()const override ;
         ConditionalStructNode*      newConditionalStructure()const override ;

@@ -1,4 +1,4 @@
-#include <nodable/NodableLanguage.h>
+#include <nodable/LanguageNodable.h>
 
 #include <ctime>
 #include <cmath>
@@ -242,17 +242,17 @@ std::string api_DNAtoProtein(std::string baseChain)
     return protein;
 }
 
-void NodableLanguage::sanitizeFunctionName( std::string& name ) const
+void LanguageNodable::sanitizeFunctionName( std::string& name ) const
 {
     name = regex_replace(name, std::regex("^api_"), "");
 }
 
-void NodableLanguage::sanitizeOperatorFunctionName( std::string& name ) const
+void LanguageNodable::sanitizeOperatorFunctionName( std::string& name ) const
 {
     name.insert(0, "operator");
 }
 
-NodableLanguage::NodableLanguage()
+LanguageNodable::LanguageNodable()
     :
     Language("Nodable", new Parser(this), new Serializer(this))
 {

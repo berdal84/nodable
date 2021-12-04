@@ -6,11 +6,11 @@ namespace Nodable {
 	/*
 		The role of this class is to define a first language for Nodable.
 	*/
-	class NodableLanguage : public Language
+	class LanguageNodable : public Language
 	{
 	public:
-		NodableLanguage();
-        ~NodableLanguage() override = default;
+		LanguageNodable();
+        ~LanguageNodable() override = default;
         void sanitizeFunctionName( std::string& identifier ) const override ;
         void sanitizeOperatorFunctionName( std::string& identifier ) const override ;
 	};

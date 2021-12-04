@@ -18,7 +18,7 @@
 namespace Nodable {
 
     // forward declarations
-    class Operator;
+    class InvokableOperator;
     class GraphNode;
 
     /**
@@ -55,13 +55,13 @@ namespace Nodable {
         observe::Event<Node*, RelationType> m_onRelationAdded;
         observe::Event<Node*, RelationType> m_onRelationRemoved;
 
-		virtual Node*                     getParent()const { return this->m_parent; }
-        virtual void                      setParent(Node* _node);
+		virtual Node*                     get_parent()const { return m_parent; }
+        virtual void                      set_parent(Node *_node);
 
-		virtual std::vector<Node*>&       getChildren() { return this->m_children; }
-        virtual const std::vector<Node*>& getChildren()const { return this->m_children; }
-        virtual void                      addChild(Node* _node);
-		virtual void                      removeChild(Node* _node);
+		virtual std::vector<Node*>&       get_children() { return m_children; }
+        virtual const std::vector<Node*>& get_children()const { return m_children; }
+        virtual void                      add_child(Node *_node);
+		virtual void                      remove_Child(Node *_node);
 
         inline GraphNode*                 getParentGraph()const { return this->m_parentGraph; }
         void                              setParentGraph(GraphNode* _parentGraph);
@@ -141,7 +141,7 @@ namespace Nodable {
         bool eval() const;
 
 		/** Get the operator connected to a given Member */
-        const Operator* getConnectedOperator(const Member* _localMember);
+        const InvokableOperator* getConnectedOperator(const Member* _localMember);
 
         /**
          * Return true is the local member is connected, false otherwise.

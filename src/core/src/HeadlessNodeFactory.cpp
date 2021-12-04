@@ -36,7 +36,7 @@ VariableNode* HeadlessNodeFactory::newVariable(Type _type, const std::string& _n
 
     if( _scope)
     {
-        _scope->addVariable(node);
+        _scope->add_variable(node);
     }
     else
     {
@@ -46,32 +46,32 @@ VariableNode* HeadlessNodeFactory::newVariable(Type _type, const std::string& _n
     return node;
 }
 
-Node* HeadlessNodeFactory::newOperator(const Operator* _operator) const
+Node* HeadlessNodeFactory::newOperator(const InvokableOperator* _operator) const
 {
-    switch ( _operator->getType() )
+    switch (_operator->get_operator_type() )
     {
-        case Operator::Type::Binary:
+        case InvokableOperator::Type::Binary:
             return newBinOp(_operator);
-        case Operator::Type::Unary:
+        case InvokableOperator::Type::Unary:
             return newUnaryOp(_operator);
         default:
             return nullptr;
     }
 }
 
-Node* HeadlessNodeFactory::newBinOp(const Operator* _operator) const
+Node* HeadlessNodeFactory::newBinOp(const InvokableOperator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
 
     setupNodeLabels(node, _operator);
 
-    const FunctionSignature* signature = _operator->getSignature();
-    const auto args = signature->getArgs();
+    const FunctionSignature* signature = _operator->get_signature();
+    const auto args = signature->get_args();
     auto props   = node->getProps();
-    Member* left   = props->add("lvalue", Visibility::Default, args[0].type, Way_In);
-    Member* right  = props->add("rvalue", Visibility::Default, args[1].type, Way_In);
-    Member* result = props->add("result", Visibility::Default, signature->getType(), Way_Out);
+    Member* left   = props->add("lvalue", Visibility::Default, args[0].m_type, Way_In);
+    Member* right  = props->add("rvalue", Visibility::Default, args[1].m_type, Way_In);
+    Member* result = props->add("result", Visibility::Default, signature->get_return_type(), Way_Out);
 
     // Create ComputeBinaryOperation component and link values.
     auto binOpComponent = new InvokableComponent( _operator );
@@ -83,23 +83,23 @@ Node* HeadlessNodeFactory::newBinOp(const Operator* _operator) const
     return node;
 }
 
-void HeadlessNodeFactory::setupNodeLabels(Node *_node, const Operator *_operator) {
-    _node->setLabel( _operator->getSignature()->getLabel() );
-    _node->setShortLabel( _operator->getShortIdentifier().c_str() );
+void HeadlessNodeFactory::setupNodeLabels(Node *_node, const InvokableOperator *_operator) {
+    _node->setLabel(_operator->get_signature()->get_label() );
+    _node->setShortLabel(_operator->get_short_identifier().c_str() );
 }
 
-Node* HeadlessNodeFactory::newUnaryOp(const Operator* _operator) const
+Node* HeadlessNodeFactory::newUnaryOp(const InvokableOperator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
 
     setupNodeLabels(node, _operator);
 
-    const FunctionSignature* signature = _operator->getSignature();
-    const auto args = signature->getArgs();
+    const FunctionSignature* signature = _operator->get_signature();
+    const auto args = signature->get_args();
     Properties* props = node->getProps();
-    Member* left = props->add("lvalue", Visibility::Default, args[0].type, Way_In);
-    Member* result = props->add("result", Visibility::Default, signature->getType(), Way_Out);
+    Member* left = props->add("lvalue", Visibility::Default, args[0].m_type, Way_In);
+    Member* result = props->add("result", Visibility::Default, signature->get_return_type(), Way_Out);
 
     // Create ComputeBinaryOperation binOpComponent and link values.
     auto unaryOperationComponent = new InvokableComponent( _operator );
@@ -114,23 +114,23 @@ Node* HeadlessNodeFactory::newFunction(const Invokable* _function) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
-    node->setLabel(_function->getSignature()->getIdentifier() + "()");
-    std::string str = _function->getSignature()->getLabel().substr(0, 2) + "..()";
+    node->setLabel(_function->get_signature()->get_identifier() + "()");
+    std::string str = _function->get_signature()->get_label().substr(0, 2) + "..()";
     node->setShortLabel( str.c_str() );
     const Semantic* semantic = m_language->getSemantic();
     auto props = node->getProps();
-    Member* result = props->add("result", Visibility::Default, _function->getSignature()->getType(), Way_Out);
+    Member* result = props->add("result", Visibility::Default, _function->get_signature()->get_return_type(), Way_Out);
 
     // Create ComputeBase binOpComponent and link values.
     auto functionComponent = new InvokableComponent( _function );
     functionComponent->set_result(result);
 
     // Arguments
-    auto args = _function->getSignature()->getArgs();
+    auto args = _function->get_signature()->get_args();
     for (size_t argIndex = 0; argIndex < args.size(); argIndex++)
     {
-        std::string memberName = args[argIndex].name;
-        auto member = props->add(memberName.c_str(), Visibility::Default, args[argIndex].type, Way_In); // create node input
+        std::string memberName = args[argIndex].m_name;
+        auto member = props->add(memberName.c_str(), Visibility::Default, args[argIndex].m_type, Way_In); // create node input
         functionComponent->set_arg(argIndex, member); // link input to binOpComponent
     }
 

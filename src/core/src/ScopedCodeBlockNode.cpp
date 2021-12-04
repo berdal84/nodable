@@ -2,7 +2,7 @@
 #include <nodable/InstructionNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/CodeBlockNode.h>
-#include <nodable/AbstractCodeBlockNode.h>
+#include <nodable/AbstractCodeBlock.h>
 #include <cstring>
 #include <algorithm> // for std::find_if
 #include <nodable/Log.h>
@@ -13,11 +13,13 @@ REFLECT_DEFINE(CodeBlockNode)
 
 ScopedCodeBlockNode::ScopedCodeBlockNode()
         :
-        AbstractCodeBlockNode(),
-        m_beginScopeToken(nullptr),
-        m_endScopeToken(nullptr)
+        Node(),
+        m_begin_scope_token(nullptr),
+        m_end_scope_token(nullptr)
 {
-
+    setLabel("unnamed ScopedCodeBlockNode");
+    setNextMaxCount(1);
+    setPrevMaxCount(-1);
 }
 
 void ScopedCodeBlockNode::clear()
@@ -25,29 +27,29 @@ void ScopedCodeBlockNode::clear()
     m_variables.clear();
 }
 
-bool ScopedCodeBlockNode::hasInstructions() const
+bool ScopedCodeBlockNode::has_instructions() const
 {
-    return getFirstInstruction() != nullptr;
+    return get_first_instruction() != nullptr;
 }
 
-InstructionNode *ScopedCodeBlockNode::getFirstInstruction() const
+InstructionNode *ScopedCodeBlockNode::get_first_instruction() const
 {
     auto found = std::find_if(
             m_children.begin(),
             m_children.end(),
             [](Node* block )
             {
-                return block->as<AbstractCodeBlockNode>()->hasInstructions();
+                return block->as<CodeBlockNode>()->has_instructions();
             });
 
     if (found != m_children.end())
     {
-        return (*found)->as<AbstractCodeBlockNode>()->getFirstInstruction();
+        return (*found)->as<CodeBlockNode>()->get_first_instruction();
     }
     return nullptr;
 }
 
-VariableNode* ScopedCodeBlockNode::findVariable(const std::string& _name)
+VariableNode* ScopedCodeBlockNode::find_variable(const std::string &_name)
 {
     VariableNode* result = nullptr;
 
@@ -64,7 +66,7 @@ VariableNode* ScopedCodeBlockNode::findVariable(const std::string& _name)
     return result;
 }
 
-AbstractCodeBlockNode *ScopedCodeBlockNode::getLastCodeBlock()
+CodeBlockNode *ScopedCodeBlockNode::get_last_code_block()
 {
     if ( m_children.empty() )
         return nullptr;
@@ -72,23 +74,18 @@ AbstractCodeBlockNode *ScopedCodeBlockNode::getLastCodeBlock()
     auto back = m_children.back();
     if ( back )
     {
-        return back->as<AbstractCodeBlockNode>();
+        return back->as<CodeBlockNode>();
     }
     return nullptr;
 }
 
-bool ScopedCodeBlockNode::isEmpty()
+InstructionNode *ScopedCodeBlockNode::get_last_instruction()
 {
-    return m_children.empty();
-}
-
-InstructionNode *ScopedCodeBlockNode::getLastInstruction()
-{
-    auto lastCodeBlock = getLastCodeBlock();
+    CodeBlockNode* lastCodeBlock = get_last_code_block();
 
     if ( lastCodeBlock )
     {
-        auto instructions = lastCodeBlock->as<CodeBlockNode>()->getChildren();
+        auto instructions = lastCodeBlock->get_children();
         if ( !instructions.empty())
         {
             Node* instr = instructions.back();
@@ -100,9 +97,9 @@ InstructionNode *ScopedCodeBlockNode::getLastInstruction()
     return nullptr;
 }
 
-void ScopedCodeBlockNode::addVariable(VariableNode* _variableNode)
+void ScopedCodeBlockNode::add_variable(VariableNode* _variableNode)
 {
-    if ( this->findVariable(_variableNode->getName()) == nullptr)
+    if (this->find_variable(_variableNode->getName()) == nullptr)
     {
         this->m_variables.push_back(_variableNode);
     }
@@ -112,4 +109,12 @@ void ScopedCodeBlockNode::addVariable(VariableNode* _variableNode)
     }
 }
 
+void ScopedCodeBlockNode::get_last_instructions(std::vector<InstructionNode *> &out)
+{
+    CodeBlockNode::get_last_instructions(this, out);
+}
 
+Node* ScopedCodeBlockNode::get_parent() const
+{
+    return this->m_parent;
+}

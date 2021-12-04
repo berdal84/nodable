@@ -56,7 +56,7 @@ Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
 
             if ( _flags & TraversalFlag_FollowChildren )
             {
-                for (auto eachChild :  _node->getChildren())
+                for (auto eachChild :  _node->get_children())
                 {
                     if ( traverseRec(eachChild, _flags) == Result::Failure)
                         return Result::Failure;
@@ -65,7 +65,7 @@ Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
 
             if ( _flags & TraversalFlag_FollowParent )
             {
-                if (auto parent = _node->getParent())
+                if (auto parent = _node->get_parent())
                 {
                     if ( traverseRec(parent, _flags) == Result::Failure)
                         return Result::Failure;
@@ -128,7 +128,7 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
      * Get the next Node from an execution point of view.
      */
     Node* result  = nullptr;
-    auto children = _node->getChildren();
+    auto children = _node->get_children();
 
     if ( auto condStructNode = _node->as<ConditionalStructNode>() )
     {
@@ -154,10 +154,10 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
 
     if ( result == nullptr )
     {
-        if ( auto parent = _node->getParent() )
+        if ( auto parent = _node->get_parent() )
         {
             // set previous children traversed
-            auto it = parent->getChildren().begin();
+            auto it = parent->get_children().begin();
             while( *it != _node)
             {
                 m_stats.m_traversed.push_back(*it);

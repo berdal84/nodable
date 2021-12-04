@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <nodable/Reflect.h>
-#include <nodable/AbstractCodeBlockNode.h>
+#include <nodable/AbstractCodeBlock.h>
 
 #include <nodable/Nodable.h>
 #include <nodable/Component.h>
@@ -68,9 +68,9 @@ namespace Nodable{
         InstructionNode*            newInstruction();
 		VariableNode*				newVariable(Type, const std::string&, ScopedCodeBlockNode*);
 		LiteralNode*                newLiteral(const Type &type);
-		Node*                       newBinOp(const Operator*);
-		Node*                       newUnaryOp(const Operator*);
-        Node*                       newOperator(const Operator*);
+		Node*                       newBinOp(const InvokableOperator*);
+		Node*                       newUnaryOp(const InvokableOperator*);
+        Node*                       newOperator(const InvokableOperator*);
 		Wire*                       newWire();
 		Node*                       newFunction(const Invokable* _proto);
         ScopedCodeBlockNode*        newScopedCodeBlock();

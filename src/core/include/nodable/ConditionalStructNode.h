@@ -24,7 +24,7 @@ namespace Nodable
         [[nodiscard]] inline Member*         getCondition()const { return m_props.get("condition"); }
         [[nodiscard]] inline const Token*    getTokenIf()const   { return m_token_if; }
         [[nodiscard]] inline const Token*    getTokenElse()const   { return m_token_else; }
-                      void                   getLastInstructions(std::vector<InstructionNode*>& out) override;
+                      void                   get_last_instructions(std::vector<InstructionNode *> &out) override;
 
     private:
         Token* m_token_if;

@@ -11,9 +11,9 @@
 #include <nodable/TokenType.h>
 #include <nodable/Type.h>
 #include <nodable/Log.h>
-#include <nodable/Function.h>
+#include <nodable/InvokableFunction.h>
 #include <nodable/Semantic.h>
-#include <nodable/Operator.h>
+#include <nodable/InvokableOperator.h>
 #include <nodable/Language_MACROS.h>
 #include <nodable/Serializer.h>
 #include <nodable/Parser.h>
@@ -51,8 +51,8 @@ namespace Nodable {
 		virtual ~Language();
 
         const Invokable* findFunction(const FunctionSignature* signature) const;
-        const Operator* findOperator(const FunctionSignature* _operator) const;
-        const Operator* findOperator(const std::string& _short_identifier) const;
+        const InvokableOperator* findOperator(const FunctionSignature* _operator) const;
+        const InvokableOperator* findOperator(const std::string& _short_identifier) const;
 
         inline Parser* getParser()const { return parser; }
         inline Serializer* getSerializer()const { return serializer; }
@@ -62,11 +62,11 @@ namespace Nodable {
         const FunctionSignature* createUnaryOperatorSignature(Type _type, std::string _identifier, Type _ltype) const;
         const FunctionSignature* createBinOperatorSignature(Type _type, std::string _identifier, Type _ltype, Type _rtype) const;
 
-        bool hasHigherPrecedenceThan(const Operator *_firstOperator, const Operator* _secondOperator)const;
+        bool hasHigherPrecedenceThan(const InvokableOperator *_firstOperator, const InvokableOperator* _secondOperator)const;
         virtual void sanitizeFunctionName( std::string& identifier ) const = 0;
         virtual void sanitizeOperatorFunctionName( std::string& identifier ) const = 0;
 	protected:
-        void addOperator(Operator*);
+        void addOperator(InvokableOperator*);
         void addToAPI(Invokable*);
 
         Semantic semantic;
@@ -75,7 +75,7 @@ namespace Nodable {
 
 	private:
 		std::string name;
-		std::vector<Operator*> operators;
+		std::vector<InvokableOperator*> operators;
 		std::vector<Invokable*> api;
     };
 

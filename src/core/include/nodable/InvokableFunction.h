@@ -7,70 +7,10 @@
 #include <nodable/Nodable.h>
 #include <nodable/Type.h>
 #include <nodable/Member.h>
+#include <nodable/Invokable.h>
+#include <nodable/FunctionSignature.h>
 
 namespace Nodable {
-
-	/*
-	 * Type of a callable function.
-	 * Require an integer as output (works like an error code, 0: OK, 1 >= : error)
-	 * An output member and some arguments
-     *
-	 * TODO: try to replace Member* by Variant*
-	 */
-	typedef std::function <int (Member*, const std::vector<Member*>&)> FunctionImplem;
-
-	/*
-	 * Simple object to store a function argument (token, name)
-	 */
-	class FunctionArg {
-	public:
-		FunctionArg(Type, std::string);
-		Type type;
-		std::string name;
-	};
-
-	/*
-	 * Class to store a function signature.
-	 * We can check if two function signature are matching using this->match(other)
-	 */
-	class FunctionSignature {
-	public:
-		FunctionSignature(std::string _identifier, Type _type, std::string _label = "");
-		~FunctionSignature() {};
-		void                           pushArg(Type _type, std::string _name = "");
-
-		template <typename... Type>
-		void pushArgs(Type&&... args) {
-			int dummy[] = { 0, ((void)pushArg(std::forward<Type>(args)),0)... };
-		}
-
-        bool                           hasAtLeastOneArgOfType(Type type)const;
-		bool                           match(const FunctionSignature* _other)const;
-		const std::string&             getIdentifier()const;
-		std::vector<FunctionArg>       getArgs() const;
-		size_t                         getArgCount() const { return args.size(); }
-		Type                           getType() const;
-		std::string                    getLabel() const;
-
-	private:
-		std::string label;
-		std::string identifier;
-		std::vector<FunctionArg> args;
-		Type type;
-
-	public:
-		template<typename R = Type, typename... Type>
-		static FunctionSignature Create(R _type, std::string _identifier, Type&& ..._args) {
-			FunctionSignature signature(_identifier, _type);
-			signature.pushArgs(_args...);
-			return signature;
-		}
-    };
-
-
-	/*
-	 * WIP work to facilitate native function wrapping inside Nodable
-	 */
 
     /** Push Arg helpers */
 
@@ -83,7 +23,7 @@ namespace Nodable {
 
             using t = std::tuple_element_t<N-1, Tuple>;
             Type type = to_Type<t>::type;
-            _signature->pushArg( type );
+            _signature->push_arg(type);
         }
     };
 
@@ -94,11 +34,11 @@ namespace Nodable {
         {
             using t = std::tuple_element_t<0, Tuple>;
             Type type = to_Type<t>::type;
-            _signature->pushArg( type );
+            _signature->push_arg(type);
         };
     };
 
-    // create and argument_pusher and push arguments into signature
+    // create an argument_pusher and push arguments into signature
     template<typename... Args, std::enable_if_t<std::tuple_size_v<Args...> != 0, int> = 0>
     void push_args(FunctionSignature* _signature)
     {
@@ -154,23 +94,6 @@ namespace Nodable {
     }
 
 
-
-    /**
-     * Interface to wrap any invokable function/operator
-     */
-    class Invokable
-    {
-    public:
-        enum Type {
-            Function,
-            Operator
-        };
-        virtual const FunctionSignature* getSignature() const = 0;
-        virtual void invoke(Member *_result, const std::vector<Member *> &_args) const = 0;
-        virtual Invokable::Type get_invokable_type() const = 0;
-    };
-
-
     template<typename T>
     class InvokableFunction;
 
@@ -180,22 +103,22 @@ namespace Nodable {
     {
     public:
         using   FunctionType = R(Args...);
-        using   Tuple        = std::tuple<Args...>;
+        using   ArgTypes     = std::tuple<Args...>;
 
         InvokableFunction(FunctionType* _function, const char* _identifier)
         {
             m_function  = _function;
             m_signature = new FunctionSignature(_identifier, to_Type<R>::type , _identifier);
-            push_args<Tuple>(m_signature);
+            push_args<ArgTypes>(m_signature);
         }
 
-        inline void invoke(Member *_result, const std::vector<Member *> &_args) const
+        inline void invoke(Member *_result, const std::vector<Member *> &_args) const override
         {
             call<R, Args...>(m_function, _result, _args);
         }
 
-        inline const FunctionSignature* getSignature() const override { return m_signature; };
-        virtual Invokable::Type get_invokable_type() const override { return Invokable::Type::Function; };
+        inline const FunctionSignature* get_signature() const override { return m_signature; };
+        inline Invokable::Type          get_invokable_type() const override { return Invokable::Type::Function; };
     private:
         FunctionType*      m_function;
         FunctionSignature* m_signature;

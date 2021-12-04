@@ -13,7 +13,7 @@ InvokableComponent::InvokableComponent(const Invokable* _invokable)
     , m_invokable(_invokable)
 {
     NODABLE_ASSERT(_invokable != nullptr); // must be defined !
-    m_args.resize(_invokable->getSignature()->getArgCount(), nullptr );
+    m_args.resize(_invokable->get_signature()->get_arg_count(), nullptr );
 
 }
 

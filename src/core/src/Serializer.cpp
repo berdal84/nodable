@@ -18,7 +18,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
 
     if ( invokable->get_invokable_type() == Invokable::Type::Function )
     {
-        serialize(_result, _component->get_invokable()->getSignature(), _component->get_args());
+        serialize(_result, _component->get_invokable()->get_signature(), _component->get_args());
     }
     else
     {
@@ -38,10 +38,10 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             }
         };
 
-        auto ope = reinterpret_cast<const Operator*>(invokable);
+        auto ope = reinterpret_cast<const InvokableOperator*>(invokable);
         std::vector<Member *> args = _component->get_args();
 
-        if ( ope->getType() == Operator::Type::Binary )
+        if (ope->get_operator_type() == InvokableOperator::Type::Binary )
         {
             // Get the left and right source operator
             auto l_handed_operator = _component->getOwner()->getConnectedOperator(args[0]);
@@ -60,7 +60,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             if (sourceToken) {
                 _result.append(sourceToken->m_prefix);
             }
-            _result.append( ope->getShortIdentifier());
+            _result.append(ope->get_short_identifier());
             if (sourceToken) {
                 _result.append(sourceToken->m_suffix);
             }
@@ -69,14 +69,14 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             {
                 // TODO: check parsed brackets for prefix/suffix
                 bool needs_brackets = r_handed_operator
-                                    && (r_handed_operator->getType() == Operator::Type::Unary
+                                    && (r_handed_operator->get_operator_type() == InvokableOperator::Type::Unary
                                         || !language->hasHigherPrecedenceThan( r_handed_operator, ope )
                                     );
 
                 serialize_member_with_or_without_brackets(args[1], needs_brackets);
             }
         }
-        else if ( ope->getType() == Operator::Type::Unary )
+        else if (ope->get_operator_type() == InvokableOperator::Type::Unary )
         {
             auto inner_operator = _component->getOwner()->getConnectedOperator(args[0]);
 
@@ -89,7 +89,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
                 _result.append(sourceToken->m_prefix);
             }
 
-            _result.append( ope->getShortIdentifier());
+            _result.append(ope->get_short_identifier());
 
             if (sourceToken) {
                 _result.append(sourceToken->m_suffix);
@@ -104,7 +104,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
 
 std::string& Serializer::serialize(std::string& _result, const FunctionSignature*   _signature, const std::vector<Member*>& _args) const
 {
-    _result.append(_signature->getIdentifier());
+    _result.append(_signature->get_identifier());
     serialize(_result, TokenType_OpenBracket);
 
     for (auto it = _args.begin(); it != _args.end(); it++) {
@@ -121,12 +121,12 @@ std::string& Serializer::serialize(std::string& _result, const FunctionSignature
 
 std::string& Serializer::serialize(std::string& _result, const FunctionSignature* _signature) const {
 
-    serialize(_result, _signature->getType());
+    serialize(_result, _signature->get_return_type());
     _result.append(" ");
-    _result.append( _signature->getIdentifier() );
+    _result.append(_signature->get_identifier() );
     serialize(_result, TokenType_OpenBracket);
 
-    auto args = _signature->getArgs();
+    auto args = _signature->get_args();
     for (auto it = args.begin(); it != args.end(); it++)
     {
         if (it != args.begin())
@@ -134,7 +134,7 @@ std::string& Serializer::serialize(std::string& _result, const FunctionSignature
             serialize( _result, TokenType_Separator);
             _result.append(" ");
         }
-        serialize(_result, it->type);
+        serialize(_result, it->m_type);
     }
 
     serialize(_result, TokenType_CloseBracket );
@@ -243,9 +243,9 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
 
 std::string& Serializer::serialize(std::string& _result, const CodeBlockNode* _block) const
 {
-    if (!_block->getChildren().empty())
+    if (!_block->get_children().empty())
     {
-        for( auto& eachChild : _block->getChildren() )
+        for( auto& eachChild : _block->get_children() )
         {
             auto clss = eachChild->getClass();
             if ( clss == InstructionNode::GetClass())
@@ -324,7 +324,7 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     if ( const Token* tokenElse = _condStruct->getTokenElse() )
     {
         serialize( _result, tokenElse );
-        Node* elseScope = _condStruct->getChildren()[1];
+        Node* elseScope = _condStruct->get_children()[1];
         Reflect::Class* elseClass = elseScope->getClass();
         if ( elseClass == ConditionalStructNode::GetClass()) // else if ?
         {
@@ -344,9 +344,9 @@ std::string& Serializer::serialize(std::string& _result, const ScopedCodeBlockNo
     {
         NODABLE_ASSERT(_scope->getClass() == ScopedCodeBlockNode::GetClass());
 
-        serialize( _result, _scope->getBeginScopeToken() );
+        serialize( _result, _scope->get_begin_scope_token() );
 
-        for (auto eachChild : _scope->getChildren())
+        for (auto eachChild : _scope->get_children())
         {
             Reflect::Class* clss = eachChild->getClass();
             if (clss->isChildOf(CodeBlockNode::GetClass()))
@@ -363,7 +363,7 @@ std::string& Serializer::serialize(std::string& _result, const ScopedCodeBlockNo
             }
         }
 
-        serialize( _result, _scope->getEndScopeToken());
+        serialize( _result, _scope->get_end_scope_token());
     }
     return _result;
 }

@@ -36,7 +36,7 @@ VariableNode* NodeFactory::newVariable(Type _type, const std::string& _name, Sco
     return node;
 }
 
-Node* NodeFactory::newOperator(const Operator* _operator) const
+Node* NodeFactory::newOperator(const InvokableOperator* _operator) const
 {
     Node* node = m_headless_node_factory.newOperator(_operator);
     AddView(node);
@@ -44,7 +44,7 @@ Node* NodeFactory::newOperator(const Operator* _operator) const
     return node;
 }
 
-Node* NodeFactory::newBinOp(const Operator* _operator) const
+Node* NodeFactory::newBinOp(const InvokableOperator* _operator) const
 {
     Node* node = m_headless_node_factory.newBinOp(_operator);
     AddView(node);
@@ -52,7 +52,7 @@ Node* NodeFactory::newBinOp(const Operator* _operator) const
     return node;
 }
 
-Node* NodeFactory::newUnaryOp(const Operator* _operator) const
+Node* NodeFactory::newUnaryOp(const InvokableOperator* _operator) const
 {
     Node* node = m_headless_node_factory.newUnaryOp(_operator);
     AddView(node);

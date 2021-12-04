@@ -132,11 +132,11 @@ void Node::setInnerGraph(GraphNode *_graph)
     this->m_innerGraph = _graph;
 }
 
-const Operator* Node::getConnectedOperator(const Member *_localMember)
+const InvokableOperator* Node::getConnectedOperator(const Member *_localMember)
 {
     assert(m_props.has(_localMember));
 
-    const Operator* result{};
+    const InvokableOperator* result{};
 
     /*
      * Find a wire connected to _member
@@ -157,7 +157,7 @@ const Operator* Node::getConnectedOperator(const Member *_localMember)
             const Invokable* function = compute_component->get_invokable();
             if ( function->get_invokable_type() == Invokable::Type::Operator )
             {
-                result = reinterpret_cast<const Operator*>( function );
+                result = reinterpret_cast<const InvokableOperator*>( function );
             }
         }
     }
@@ -187,7 +187,7 @@ Member* Node::getSourceMemberOf(const Member *_localMember)
     return (*found)->getSource();
 }
 
-void Node::addChild(Node *_node)
+void Node::add_child(Node *_node)
 {
     auto found = std::find(m_children.begin(), m_children.end(), _node);
     NODABLE_ASSERT(found == m_children.end()); // check if node is not already child
@@ -196,7 +196,7 @@ void Node::addChild(Node *_node)
     setDirty();
 }
 
-void Node::removeChild(Node *_node)
+void Node::remove_Child(Node *_node)
 {
     auto found = std::find(m_children.begin(), m_children.end(), _node);
     NODABLE_ASSERT(found != m_children.end()); // check if node is found before to erase.
@@ -205,7 +205,7 @@ void Node::removeChild(Node *_node)
     setDirty();
 }
 
-void Node::setParent(Node *_node)
+void Node::set_parent(Node *_node)
 {
     NODABLE_ASSERT(_node != nullptr || this->m_parent != nullptr);
     this->m_parent = _node;

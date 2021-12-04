@@ -1,5 +1,6 @@
 #pragma once
-#include <nodable/AbstractCodeBlockNode.h> // abstract base class
+#include <nodable/Node.h> // base class
+#include <nodable/AbstractCodeBlock.h> // interface
 
 namespace Nodable
 {
@@ -13,35 +14,35 @@ namespace Nodable
      * - VariableNodes
      * All of them are NOT owned by this class.
      */
-    class ScopedCodeBlockNode: public AbstractCodeBlockNode
+    class ScopedCodeBlockNode: public Node, public AbstractCodeBlock
     {
     public:
         explicit ScopedCodeBlockNode();
         ~ScopedCodeBlockNode() override = default;
 
-                      void                    clear() override;
-        [[nodiscard]] bool                    isEmpty();
-        [[nodiscard]] bool                    hasInstructions() const override;
-        [[nodiscard]] InstructionNode*        getFirstInstruction() const override;
-        [[nodiscard]] VariableNode*           findVariable(const std::string& _name) override;
-        [[nodiscard]] AbstractCodeBlockNode*  getLastCodeBlock();
-        [[nodiscard]] InstructionNode*        getLastInstruction();
-        [[nodiscard]] inline const Token*     getBeginScopeToken() const { return m_beginScopeToken; }
-        [[nodiscard]] inline const Token*     getEndScopeToken() const { return m_endScopeToken; }
-        [[nodiscard]] inline const std::vector<VariableNode*>& getVariables()const { return m_variables; }
-
-        void        addVariable(VariableNode*);
-        inline void setBeginScopeToken(Token* token) { m_beginScopeToken = token; }
-        inline void setEndScopeToken(Token* token) { m_endScopeToken = token; }
+        void                    clear() override;
+        bool                    has_instructions() const override;
+        InstructionNode*        get_first_instruction() const override;
+        CodeBlockNode*          get_last_code_block();
+        InstructionNode*        get_last_instruction();
+        void                    get_last_instructions(std::vector<InstructionNode *> &out) override ;
+        inline const Token*     get_begin_scope_token() const { return m_begin_scope_token; }
+        inline const Token*     get_end_scope_token() const { return m_end_scope_token; }
+        inline void             set_begin_scope_token(Token *token) { m_begin_scope_token = token; }
+        inline void             set_end_Scope_token(Token *token) { m_end_scope_token = token; }
+        void                    add_variable(VariableNode*);
+        VariableNode*           find_variable(const std::string &_name) override;
+        Node*                   get_parent() const override ;
+        inline const std::vector<VariableNode*>& get_variables()const { return m_variables; }
 
     private:
-        Token* m_beginScopeToken;
-        Token* m_endScopeToken;
+        Token* m_begin_scope_token;
+        Token* m_end_scope_token;
         std::vector<VariableNode*> m_variables;
 
         /** Reflect class */
         REFLECT_DERIVED(ScopedCodeBlockNode)
-          REFLECT_EXTENDS(AbstractCodeBlockNode)
+          REFLECT_EXTENDS(Node)
         REFLECT_END
     };
 }

@@ -1,5 +1,5 @@
 #include <nodable/LanguageFactory.h>
-#include <nodable/NodableLanguage.h>
+#include <nodable/LanguageNodable.h>
 
 using namespace Nodable;
 
@@ -9,7 +9,7 @@ const Language* LanguageFactory::GetNodable()
 {
     if (LanguageFactory::Nodable == nullptr)
     {
-        LanguageFactory::Nodable = new NodableLanguage();
+        LanguageFactory::Nodable = new LanguageNodable();
     }
     return LanguageFactory::Nodable;
 }

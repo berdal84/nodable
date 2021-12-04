@@ -219,7 +219,7 @@ void FileView::drawFileInfo() const
         for(const auto& each_fct : functions )
         {
             std::string name;
-            serializer->serialize(name, each_fct->getSignature());
+            serializer->serialize(name, each_fct->get_signature());
             ImGui::Text("%s", name.c_str());
         }
 

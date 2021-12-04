@@ -2,8 +2,8 @@
 
 #include <nodable/Nodable.h>
 #include <nodable/Token.h>
-#include <nodable/Function.h>
-#include <nodable/Operator.h>
+#include <nodable/InvokableFunction.h>
+#include <nodable/InvokableOperator.h>
 
 namespace Nodable
 {

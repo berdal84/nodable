@@ -267,11 +267,13 @@ bool GraphNodeView::draw()
 
                         if ( dragged_member_conn->m_way == Way_Out )
                         {
-                            has_compatible_signature = menu_item.function_signature->hasAtLeastOneArgOfType(dragged_member_type);
+                            has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(
+                                    dragged_member_type);
                         }
                         else
                         {
-                            has_compatible_signature = menu_item.function_signature->getType() == dragged_member_type;
+                            has_compatible_signature =
+                                    menu_item.function_signature->get_return_type() == dragged_member_type;
                         }
                     }
 
@@ -562,10 +564,10 @@ void GraphNodeView::setOwner(Node* _owner)
     for ( auto it = api.cbegin(); it != api.cend(); it++)
     {
         Invokable* function = *it;
-        auto op = language->findOperator(function->getSignature());
+        auto op = language->findOperator(function->get_signature());
 
         std::string label;
-        const FunctionSignature* signature = function->getSignature();
+        const FunctionSignature* signature = function->get_signature();
         language->getSerializer()->serialize(label, signature);
 
         if (op != nullptr )
