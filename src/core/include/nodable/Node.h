@@ -222,22 +222,24 @@ namespace Nodable {
 		T* getComponent()const
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-			auto c = T::Get_class();
-			auto name = c->get_name();
+			Reflect::Class* desired_class = T::Get_class();
 
 			// Search with class name
 			{
-				auto it = m_components.find(name);
-				if (it != m_components.end()) {
-					return reinterpret_cast<T*>(it->second);
+				auto it = m_components.find( desired_class->get_name() );
+				if (it != m_components.end())
+				{
+					return static_cast<T*>(it->second);
 				}
 			}
 
 			// Search for a derived class
-			for (const auto & it : m_components) {
-				Component* component = it.second;
-				if (component->get_class()->is_child_of(c, false)) {
-					return reinterpret_cast<T*>(component);
+			for (const auto & it : m_components)
+			{
+				Component* each_component = it.second;
+				if ( each_component->get_class()->is_child_of(desired_class, false) )
+				{
+					return static_cast<T*>(each_component);
 				}
 			}
 

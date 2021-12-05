@@ -8,7 +8,9 @@
 #include <nodable/AbstractCodeBlock.h>
 #include <nodable/InvokableFunction.h>
 #include <nodable/Nodable.h>     // forward declarations
-#include <nodable/NodeView.h>     // base class
+#include <nodable/View.h>  // base class
+#include <nodable/Component.h>  // base class
+#include <nodable/NodeView.h> // for NodeViewConstraint
 
 namespace Nodable
 {
@@ -18,29 +20,31 @@ namespace Nodable
         const FunctionSignature*    function_signature;
 	} FunctionMenuItem;
 
-	class GraphNodeView: public NodeView
+	class GraphNodeView: public View, public Component
     {
 	public:
 	    GraphNodeView() = default;
-		~GraphNodeView() = default;
+		~GraphNodeView() override = default;
 
-		void    set_owner(Node *) override;
-		void    updateViewConstraints();
-		bool    draw() override ;
-		bool    update() override;
-		void    addContextualMenuItem(
-		            const std::string&         _category,
-		            const std::string&         _label,
-		            std::function<Node*(void)> _lambda,
-		            const FunctionSignature*   _signature);
+        void        set_owner(Node *) override;
+        bool        draw() override ;
+        bool        update() override;
+        void        update_child_view_constraints();
+        inline void clear_child_view_constraints() { m_child_view_constraints.clear(); };
+		void        add_contextual_menu_item(
+                        const std::string &_category,
+                        const std::string &_label,
+                        std::function<Node *(void)> _lambda,
+                        const FunctionSignature *_signature);
 	private:
-	    std::vector<NodeViewConstraint> constraints;
-        [[nodiscard]] GraphNode* getGraphNode() const;
-		std::multimap<std::string, FunctionMenuItem> contextualMenus;
+        [[nodiscard]] GraphNode* get_graph_node() const;
+        std::vector<NodeViewConstraint>              m_child_view_constraints;
+		std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
 
 		REFLECT_DERIVED(GraphNodeView)
-    REFLECT_EXTENDS(NodeView)
-    REFLECT_END
+        REFLECT_EXTENDS(View)
+        REFLECT_EXTENDS(Component)
+        REFLECT_END
 
     };
 }

@@ -103,7 +103,7 @@ bool File::evaluateExpression(std::string& _expression)
     auto graphView = m_graph->getComponent<GraphNodeView>();
     if (graphView)
     {
-        graphView->clearConstraints();
+        graphView->clear_child_view_constraints();
     }
 
     if (parser->expressionToGraph(_expression, m_graph) && m_graph->hasProgram() )

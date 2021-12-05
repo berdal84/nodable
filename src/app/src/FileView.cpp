@@ -18,17 +18,17 @@ FileView::FileView(File *_file)
     {
         if ( program )
         {
-            NodeView* programView = program->getComponent<NodeView>();
-            NodeView* graphView   = program->getParentGraph()->getComponent<NodeView>();
-            if ( programView )
+            NodeView* program_view = program->getComponent<NodeView>();
+            View*     graph_view   = program->getParentGraph()->getComponent<GraphNodeView>();
+            if ( program_view )
             {
-                if ( graphView )
+                if ( graph_view )
                 {
-                    auto graphViewRect = graphView->getVisibleRect();
-                    auto newPos = graphViewRect.GetTL();
+                    ImRect graphViewRect = graph_view->getVisibleRect();
+                    ImVec2 newPos = graphViewRect.GetTL();
                     newPos.x += graphViewRect.GetSize().x * 0.33f;
-                    newPos.y += programView->getSize().y;
-                    programView->setPosition( newPos );
+                    newPos.y += program_view->getSize().y;
+                    program_view->setPosition( newPos );
                 }
 
             }
@@ -126,7 +126,7 @@ bool FileView::draw()
     ImGui::SameLine();
     GraphNode* graph = m_file->getGraph();
     NODABLE_ASSERT(graph != nullptr);
-    NodeView* graphNodeView = graph->getComponent<GraphNodeView>();
+    GraphNodeView* graphNodeView = graph->getComponent<GraphNodeView>();
 
     if ( graphNodeView )
     {

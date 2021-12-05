@@ -21,8 +21,8 @@ namespace Nodable
         inline void set_token_if(Token *token) { m_token_if = token; }
         inline void set_token_else(Token *token) { m_token_else = token; }
 
-        ScopedCodeBlockNode*   get_true_branch()const;
-        ScopedCodeBlockNode*   get_false_branch()const;
+        ScopedCodeBlockNode*   get_if_branch()const;
+        ScopedCodeBlockNode*   get_else_branch()const;
         inline Member*         get_condition()const { return m_props.get("condition"); }
         inline const Token*    get_token_if()const   { return m_token_if; }
         inline const Token*    get_token_else()const   { return m_token_else; }

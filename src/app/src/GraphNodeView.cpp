@@ -28,7 +28,7 @@ bool GraphNodeView::draw()
     Runner* runner = &app->getRunner();
 
     Settings* settings = Settings::Get();
-    GraphNode* graph = getGraphNode();
+    GraphNode* graph = get_graph_node();
     auto nodeRegistry = graph->getNodeRegistry();
 
 	auto origin = ImGui::GetCursorScreenPos();
@@ -153,7 +153,7 @@ bool GraphNodeView::draw()
                     ImGui::SetScrollHereY();
 
                 // dragging
-                if (GetDragged() == eachNodeView && ImGui::IsMouseDragging(0))
+                if ( NodeView::GetDragged() == eachNodeView && ImGui::IsMouseDragging(0))
                 {
                     eachNodeView->translate(ImGui::GetMouseDragDelta(), true);
                     ImGui::ResetMouseDragDelta();
@@ -250,7 +250,7 @@ bool GraphNodeView::draw()
 
 			if (ImGui::BeginMenu(menuLabel))
 			{		
-				auto range = contextualMenus.equal_range(_key);
+				auto range = m_contextual_menus.equal_range(_key);
 				for (auto it = range.first; it != range.second; it++)
 				{
 				    auto menu_item = it->second;
@@ -451,25 +451,25 @@ bool GraphNodeView::draw()
 	return edited;
 }
 
-void GraphNodeView::addContextualMenuItem(
-        const std::string& _category,
-        const std::string& _label,
-        std::function<Node*(void)> _function,
-        const FunctionSignature* _signature)
+void GraphNodeView::add_contextual_menu_item(
+        const std::string &_category,
+        const std::string &_label,
+        std::function<Node *(void)> _function,
+        const FunctionSignature *_signature)
 {
-	contextualMenus.insert( {_category, {_label, _function, _signature }} );
+	m_contextual_menus.insert( {_category, {_label, _function, _signature }} );
 }
 
-GraphNode* GraphNodeView::getGraphNode() const
+GraphNode* GraphNodeView::get_graph_node() const
 {
     return get_owner()->as<GraphNode>();
 }
 
-void GraphNodeView::updateViewConstraints()
+void GraphNodeView::update_child_view_constraints()
 {
     LOG_VERBOSE("GraphNodeView", "updateViewConstraints()\n")
 
-    auto nodeRegistry = getGraphNode()->getNodeRegistry();
+    auto nodeRegistry = get_graph_node()->getNodeRegistry();
 
     for(Node* _eachNode: nodeRegistry)
     {
@@ -527,7 +527,7 @@ void GraphNodeView::updateViewConstraints()
 
 bool GraphNodeView::update()
 {
-    GraphNode* graph                 = getGraphNode();
+    GraphNode* graph                 = get_graph_node();
     std::vector<Node*>& nodeRegistry = graph->getNodeRegistry();
 
     // Find NodeView components
@@ -538,7 +538,7 @@ bool GraphNodeView::update()
     // updateContraints if needed
     if ( graph->isDirty() )
     {
-        updateViewConstraints();
+        update_child_view_constraints();
     }
 
     // Apply constraints
@@ -555,7 +555,7 @@ bool GraphNodeView::update()
 
 void GraphNodeView::set_owner(Node *_owner)
 {
-    NodeView::set_owner(_owner);
+    Component::set_owner(_owner);
 
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
     auto graphNode = _owner->as<GraphNode>();
@@ -578,7 +578,7 @@ void GraphNodeView::set_owner(Node *_owner)
                 return graphNode->newOperator(op);
             };
 
-            addContextualMenuItem("Operators", label, lambda, signature);
+            add_contextual_menu_item("Operators", label, lambda, signature);
         }
         else
         {
@@ -587,7 +587,7 @@ void GraphNodeView::set_owner(Node *_owner)
                 return graphNode->newFunction(function);
             };
 
-            addContextualMenuItem("Functions", label, lambda, signature);
+            add_contextual_menu_item("Functions", label, lambda, signature);
         }
 
     }

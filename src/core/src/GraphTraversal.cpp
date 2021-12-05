@@ -136,7 +136,7 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
        /*
         * Get the branch depending on condition
         */
-       auto next = *condStructNode->get_condition() ? condStructNode->get_true_branch() : condStructNode->get_false_branch();
+       auto next = *condStructNode->get_condition() ? condStructNode->get_if_branch() : condStructNode->get_else_branch();
        if ( !m_stats.hasBeenTraversed(next) )
            result = next;
     }

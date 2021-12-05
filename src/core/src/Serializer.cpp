@@ -317,7 +317,7 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     serialize( _result, TokenType_CloseBracket );
 
     // if scope
-    if ( auto* ifScope = _condStruct->get_true_branch() )
+    if ( auto* ifScope = _condStruct->get_if_branch() )
         serialize( _result, ifScope );
 
     // else & else scope
