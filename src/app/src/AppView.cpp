@@ -19,14 +19,14 @@ using namespace Nodable;
 
 AppView::AppView(const char* _name, App* _application):
         m_app(_application),
-        m_bgColor(50, 50, 50),
-        m_isStartupWindowVisible(true),
-        m_isLayoutInitialized(false),
-        m_startupScreenTitle("##STARTUPSCREEN"),
-        m_isHistoryDragged(false),
-        m_glWindowName(_name),
-        m_showProperties(false),
-        m_showImGuiDemo(false)
+        m_background_color(50, 50, 50),
+        m_show_startup_window(true),
+        m_is_layout_initialized(false),
+        m_startup_screen_title("##STARTUPSCREEN"),
+        m_is_history_dragged(false),
+        m_sdl_window_name(_name),
+        m_show_properties_editor(false),
+        m_show_imgui_demo(false)
 {
 }
 
@@ -54,7 +54,7 @@ bool AppView::init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    m_sdlWindow = SDL_CreateWindow(m_glWindowName.c_str(),
+    m_sdl_window = SDL_CreateWindow(m_sdl_window_name.c_str(),
                                    SDL_WINDOWPOS_CENTERED,
                                    SDL_WINDOWPOS_CENTERED,
                                    800,
@@ -65,7 +65,7 @@ bool AppView::init()
                                 SDL_WINDOW_SHOWN
                                 );
 
-    this->m_sdlGLContext = SDL_GL_CreateContext(m_sdlWindow);
+    this->m_sdl_gl_context = SDL_GL_CreateContext(m_sdl_window);
     SDL_GL_SetSwapInterval(1); // Enable vsync
 
 
@@ -87,14 +87,14 @@ bool AppView::init()
     // load fonts (TODO: hum, load only if font is used...)
     for ( auto& each_font : settings->ui_text_fonts )
     {
-        loadFont(each_font);
+        load_font(each_font);
     }
 
     // Assign fonts (user might want to change it later, but we need defaults)
     for( auto each_slot = 0; each_slot < FontSlot_COUNT; ++each_slot )
     {
         const char* font_id = settings->ui_text_defaultFontsId[each_slot];
-        m_fonts[each_slot] = getFontById(font_id);
+        m_fonts[each_slot] = get_font_by_id(font_id);
     }
 
     // Configure ImGui Style
@@ -109,20 +109,20 @@ bool AppView::init()
 
     // Setup Platform/Renderer bindings
     gl3wInit();
-    ImGui_ImplSDL2_InitForOpenGL(m_sdlWindow, m_sdlGLContext);
+    ImGui_ImplSDL2_InitForOpenGL(m_sdl_window, m_sdl_gl_context);
     const char* glsl_version = NULL; // let backend decide wich version to use, usually 130 (pc) or 150 (macos).
     ImGui_ImplOpenGL3_Init(glsl_version);
 
 	return true;
 }
 
-ImFont* AppView::getFontById(const char* id ) {
-    return m_loadedFonts.at(id );
+ImFont* AppView::get_font_by_id(const char *id) {
+    return m_loaded_fonts.at(id );
 }
 
-ImFont* AppView::loadFont(const FontConf& fontConf) {
+ImFont* AppView::load_font(const FontConf &fontConf) {
 
-    NODABLE_ASSERT(m_loadedFonts.find(fontConf.id) == m_loadedFonts.end()); // do not allow the use of same key for different fonts
+    NODABLE_ASSERT(m_loaded_fonts.find(fontConf.id) == m_loaded_fonts.end()); // do not allow the use of same key for different fonts
 
     ImFont*  font     = nullptr;
     auto&    io       = ImGui::GetIO();
@@ -155,7 +155,7 @@ ImFont* AppView::loadFont(const FontConf& fontConf) {
         LOG_VERBOSE("AppView", "Adding icons to font ...\n")
     }
 
-    m_loadedFonts.insert({fontConf.id, font});
+    m_loaded_fonts.insert({fontConf.id, font});
     LOG_MESSAGE("AppView", "Font %s added to register with the id \"%s\"\n", fontConf.path, fontConf.id)
     return font;
 }
@@ -194,7 +194,7 @@ bool AppView::draw()
 				// File
 				     if( key == SDLK_s)  m_app->saveCurrentFile();
 				else if( key == SDLK_w)  m_app->closeCurrentFile();
-				else if( key == SDLK_o)  this->browseFile();
+				else if( key == SDLK_o) this->browse_file();
 			}
 			else if (key == SDLK_DELETE )
             {
@@ -214,7 +214,7 @@ bool AppView::draw()
             }
 			else if (key == SDLK_F1 )
             {
-                m_isStartupWindowVisible = true;
+                m_show_startup_window = true;
             }
 
 			break;
@@ -223,18 +223,18 @@ bool AppView::draw()
     }
 
 	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame(m_sdlWindow);
+	ImGui_ImplSDL2_NewFrame(m_sdl_window);
 	ImGui::NewFrame();
     ImGui::SetCurrentFont( m_fonts[FontSlot_Paragraph] );
 
     // Startup Window
-    drawStartupWindow();
+    draw_startup_window();
 
     // Demo Window
     {
-        if (m_showImGuiDemo){
+        if (m_show_imgui_demo){
             ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-            ImGui::ShowDemoWindow(&m_showImGuiDemo);
+            ImGui::ShowDemoWindow(&m_show_imgui_demo);
         }
     }
 
@@ -277,7 +277,7 @@ bool AppView::draw()
             if (ImGui::BeginMenuBar()) {
                 if (ImGui::BeginMenu("File")) {
                     //ImGui::MenuItem(ICON_FA_FILE   "  New", "Ctrl + N");
-                    if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) browseFile();
+                    if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) browse_file();
                     if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) m_app->saveCurrentFile();
                     if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) m_app->closeCurrentFile();
 
@@ -334,19 +334,19 @@ bool AppView::draw()
                     }
 
                     ImGui::Separator();
-                    m_showProperties = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", m_showProperties);
-                    m_showImGuiDemo = ImGui::MenuItem("Show ImGui Demo", "", m_showImGuiDemo);
+                    m_show_properties_editor = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", m_show_properties_editor);
+                    m_show_imgui_demo = ImGui::MenuItem("Show ImGui Demo", "", m_show_imgui_demo);
 
                     ImGui::Separator();
 
-                    if (SDL_GetWindowFlags(m_sdlWindow) & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+                    if (SDL_GetWindowFlags(m_sdl_window) & SDL_WINDOW_FULLSCREEN_DESKTOP) {
                         auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", true);
                         if (toggleFullscreen)
-                            SDL_SetWindowFullscreen(m_sdlWindow, 0);
+                            SDL_SetWindowFullscreen(m_sdl_window, 0);
                     } else {
                         auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", false);
                         if (toggleFullscreen) {
-                            SDL_SetWindowFullscreen(m_sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+                            SDL_SetWindowFullscreen(m_sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
                         }
                     }
 
@@ -394,7 +394,7 @@ bool AppView::draw()
 
                 if (ImGui::BeginMenu("Help")) {
                     if (ImGui::MenuItem("Show Startup Screen", "F1")) {
-                        m_isStartupWindowVisible = true;
+                        m_show_startup_window = true;
                     }
 
                     if (ImGui::MenuItem("Browse source code")) {
@@ -410,7 +410,7 @@ bool AppView::draw()
 
                 ImGui::EndMenuBar();
             }
-            drawToolBar();
+            draw_tool_bar();
 
 
             /*
@@ -422,7 +422,7 @@ bool AppView::draw()
             ImGuiID dockspace_properties = ImGui::GetID("dockspace_properties");
 
 
-            if ( !m_isLayoutInitialized)
+            if ( !m_is_layout_initialized)
             {
                ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
                ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace );
@@ -433,7 +433,7 @@ bool AppView::draw()
                ImGui::DockBuilderDockWindow("Properties", dockspace_properties);
                ImGui::DockBuilderDockWindow("File Info", dockspace_properties);
                ImGui::DockBuilderFinish(dockspace_id);
-                m_isLayoutInitialized = true;
+                m_is_layout_initialized = true;
             }
 
              /*
@@ -444,7 +444,7 @@ bool AppView::draw()
             // Global Props
             if (ImGui::Begin("Settings"))
             {
-                drawPropertiesWindow();
+                draw_properties_editor();
             }
             ImGui::End();
 
@@ -492,7 +492,7 @@ bool AppView::draw()
             // Opened documents
             for (size_t fileIndex = 0; fileIndex < m_app->getFileCount(); fileIndex++)
             {
-                drawFileEditor(dockspace_id, redock_all, fileIndex);
+                draw_file_editor(dockspace_id, redock_all, fileIndex);
             }
 
 
@@ -531,14 +531,14 @@ bool AppView::draw()
 		}
     }
 
-    drawFileBrowser();
+    draw_file_browser();
 
     // Rendering
 	ImGui::Render();
-	SDL_GL_MakeCurrent(m_sdlWindow, this->m_sdlGLContext);
+	SDL_GL_MakeCurrent(m_sdl_window, this->m_sdl_gl_context);
 	auto io = ImGui::GetIO();
 	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-	glClearColor(m_bgColor.Value.x, m_bgColor.Value.y, m_bgColor.Value.z, m_bgColor.Value.w);
+	glClearColor(m_background_color.Value.x, m_background_color.Value.y, m_background_color.Value.z, m_background_color.Value.w);
 	glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -554,7 +554,7 @@ bool AppView::draw()
         SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
     }
 
-    SDL_GL_SwapWindow(m_sdlWindow);
+    SDL_GL_SwapWindow(m_sdl_window);
 
     // limit frame rate
     constexpr float desiredFrameRate = 1.0f/60.0f;
@@ -564,22 +564,22 @@ bool AppView::draw()
     return false;
 }
 
-void AppView::drawFileBrowser()
+void AppView::draw_file_browser()
 {
-    m_fileBrowser.Display();
-    if (m_fileBrowser.HasSelected())
+    m_file_browser.Display();
+    if (m_file_browser.HasSelected())
     {
-        auto selectedFiles = m_fileBrowser.GetMultiSelected();
+        auto selectedFiles = m_file_browser.GetMultiSelected();
         for (const auto & selectedFile : selectedFiles)
         {
             m_app->openFile(selectedFile.c_str());
         }
-        m_fileBrowser.ClearSelected();
-        m_fileBrowser.Close();
+        m_file_browser.ClearSelected();
+        m_file_browser.Close();
     }
 }
 
-void AppView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex)
+void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex)
 {
     File *file = m_app->getFileAtIndex(fileIndex);
 
@@ -609,7 +609,7 @@ void AppView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size_t fileI
             }
 
             // History bar on top
-            drawHistoryBar(file->getHistory());
+            draw_history_bar(file->getHistory());
 
             // File View in the middle
             View* eachFileView = file->getView();
@@ -629,7 +629,7 @@ void AppView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size_t fileI
             // Status bar
             if ( isCurrentFile )
             {
-                drawStatusBar();
+                draw_status_bar();
             }
 
         }
@@ -642,7 +642,7 @@ void AppView::drawFileEditor(ImGuiID dockspace_id, bool redock_all, size_t fileI
     }
 }
 
-void AppView::drawPropertiesWindow()
+void AppView::draw_properties_editor()
 {
     Settings* config = Settings::Get();
 
@@ -698,10 +698,10 @@ void AppView::drawPropertiesWindow()
     ImGui::Unindent();
 }
 
-void AppView::drawStartupWindow() {
-    if (m_isStartupWindowVisible && !ImGui::IsPopupOpen(m_startupScreenTitle))
+void AppView::draw_startup_window() {
+    if (m_show_startup_window && !ImGui::IsPopupOpen(m_startup_screen_title))
     {
-        ImGui::OpenPopup(m_startupScreenTitle);
+        ImGui::OpenPopup(m_startup_screen_title);
     }
 
     ImGui::SetNextWindowSizeConstraints(ImVec2(500,200), ImVec2(500,50000));
@@ -709,7 +709,7 @@ void AppView::drawStartupWindow() {
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
-    if ( ImGui::BeginPopupModal(m_startupScreenTitle, nullptr, flags) )
+    if ( ImGui::BeginPopupModal(m_startup_screen_title, nullptr, flags) )
     {
 
         auto path = m_app->getAssetPath(Settings::Get()->ui_splashscreen_imagePath);
@@ -760,7 +760,7 @@ void AppView::drawStartupWindow() {
         if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
         {
             ImGui::CloseCurrentPopup();
-            m_isStartupWindowVisible = false;
+            m_show_startup_window = false;
         }
         ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
         ImGui::EndPopup();
@@ -768,7 +768,7 @@ void AppView::drawStartupWindow() {
 
 }
 
-void AppView::drawStatusBar() const {/*
+void AppView::draw_status_bar() const {/*
   Status bar
 */
 
@@ -796,11 +796,11 @@ void AppView::drawStatusBar() const {/*
     }
 }
 
-void AppView::drawHistoryBar(History *currentFileHistory) {
+void AppView::draw_history_bar(History *currentFileHistory) {
     if (currentFileHistory) {
 
         if (ImGui::IsMouseReleased(0)) {
-            m_isHistoryDragged = false;
+            m_is_history_dragged = false;
         }
 
 //				ImGui::Text(ICON_FA_CLOCK " History: ");
@@ -835,7 +835,7 @@ void AppView::drawHistoryBar(History *currentFileHistory) {
             if (ImGui::IsItemHovered()) {
                 if (ImGui::IsMouseDown(0)) // hovered + mouse down
                 {
-                    m_isHistoryDragged = true;
+                    m_is_history_dragged = true;
                 }
 
                 // Draw command description
@@ -849,7 +849,7 @@ void AppView::drawHistoryBar(History *currentFileHistory) {
             // When dragging history
             const auto xMin = ImGui::GetItemRectMin().x;
             const auto xMax = ImGui::GetItemRectMax().x;
-            if (m_isHistoryDragged &&
+            if (m_is_history_dragged &&
                 ImGui::GetMousePos().x < xMax &&
                 ImGui::GetMousePos().x > xMin) {
                 currentFileHistory->setCursorPosition(commandId); // update history cursor position
@@ -861,12 +861,12 @@ void AppView::drawHistoryBar(History *currentFileHistory) {
     }
 }
 
-void AppView::browseFile()
+void AppView::browse_file()
 {
-	m_fileBrowser.Open();
+	m_file_browser.Open();
 }
 
-void AppView::drawBackground()
+void AppView::draw_background()
 {
     ImGui::BeginChild("background");
     std::string path(NODABLE_ASSETS_DIR"/nodable-logo-xs.png");
@@ -885,7 +885,7 @@ void AppView::drawBackground()
 
 }
 
-void AppView::drawToolBar()
+void AppView::draw_tool_bar()
 {
     Settings* settings = Settings::Get();
     Runner& runner = m_app->getRunner();
@@ -948,7 +948,7 @@ void AppView::shutdown()
     Texture::ReleaseResources();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext    ();
-    SDL_GL_DeleteContext     (m_sdlGLContext);
-    SDL_DestroyWindow        (m_sdlWindow);
+    SDL_GL_DeleteContext     (m_sdl_gl_context);
+    SDL_DestroyWindow        (m_sdl_window);
     SDL_Quit                 ();
 }

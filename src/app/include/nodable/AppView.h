@@ -36,34 +36,35 @@ namespace Nodable
 		~AppView() override;
 		bool draw() override;
 		bool init();
-        void browseFile();
+        void browse_file();
         void shutdown();
-	private:
-        App*               m_app;
-        ImGui::FileBrowser m_fileBrowser;
-		SDL_Window*        m_sdlWindow;
-		SDL_GLContext      m_sdlGLContext;
-		ImColor            m_bgColor;
-        bool               m_isStartupWindowVisible;
-        bool               m_isHistoryDragged;
-        const char*        m_startupScreenTitle;
-        bool               m_isLayoutInitialized;
-        std::string        m_glWindowName;
-        bool               m_showProperties;
-        bool               m_showImGuiDemo;
-        std::map<std::string, ImFont*> m_loadedFonts; // All fonts loaded in memory
-        std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
 
-        void drawHistoryBar(History *currentFileHistory);
-        void drawStatusBar() const;
-        void drawStartupWindow();
-        void drawFileEditor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex);
-        void drawFileBrowser();
-        void drawBackground();
-        void drawPropertiesWindow();
-        void drawToolBar();
-        ImFont* loadFont(const FontConf &fontConf);
-        ImFont* getFontById(const char *id );
+	private:
+        void draw_history_bar(History*);
+        void draw_status_bar() const;
+        void draw_startup_window();
+        void draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex);
+        void draw_file_browser();
+        void draw_background();
+        void draw_properties_editor();
+        void draw_tool_bar();
+        ImFont* load_font(const FontConf &fontConf);
+        ImFont* get_font_by_id(const char *id);
+
+        App*               m_app;
+        ImGui::FileBrowser m_file_browser;
+        SDL_Window*        m_sdl_window;
+        std::string        m_sdl_window_name;
+        SDL_GLContext      m_sdl_gl_context;
+        ImColor            m_background_color;
+        bool               m_is_history_dragged;
+        bool               m_is_layout_initialized;
+        const char*        m_startup_screen_title;
+        bool               m_show_startup_window;
+        bool               m_show_properties_editor;
+        bool               m_show_imgui_demo;
+        std::map<std::string, ImFont*>      m_loaded_fonts; // All fonts loaded in memory
+        std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
 
         REFLECT_DERIVED(AppView)
         REFLECT_EXTENDS(View)
