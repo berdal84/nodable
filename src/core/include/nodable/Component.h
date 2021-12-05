@@ -14,26 +14,13 @@ namespace Nodable{
 		Component() = default;
 		virtual ~Component() = default;
 
-		virtual bool update() = 0;
-		virtual inline void  setOwner(Node* _entity){ owner = _entity; }
-		[[nodiscard]] inline Node* getOwner()const { return owner; }
-
-		template<class T> [[nodiscard]] T* as()
-		{
-		    if( getClass()->isChildOf(T::GetClass()))
-                return reinterpret_cast<T*>(this);
-            return nullptr;
-		}
-
-        template<class T> [[nodiscard]] const T* as()const
-        {
-            if( getClass()->isChildOf(T::GetClass()))
-                return reinterpret_cast<const T*>(this);
-            return nullptr;
-        }
-
+		virtual bool         update() = 0;
+		virtual inline void  set_owner(Node *_entity){ m_owner = _entity; }
+		inline Node*         get_owner()const { return m_owner; }
+		template<class T> [[nodiscard]] inline       T* as()      { return Reflect::cast_pointer<T>(this); }
+        template<class T> [[nodiscard]] inline const T* as()const { return Reflect::cast_pointer<const T>(this); }
 	private:
-		Node* owner = nullptr;
+		Node* m_owner = nullptr;
 		REFLECT(Component)
     };
 }

@@ -63,7 +63,7 @@ NodeView::~NodeView()
 
 std::string NodeView::getLabel()
 {
-    Node* node = getOwner();
+    Node* node = get_owner();
 
     if (s_viewDetail == NodeViewDetail::Minimalist )
     {
@@ -85,7 +85,7 @@ void NodeView::exposeMember(Member* _member)
     m_exposedMembers.insert({_member, memberView});
 }
 
-void NodeView::setOwner(Node* _node)
+void NodeView::set_owner(Node *_node)
 {
     std::vector<Member*> notExposedMembers;
 
@@ -113,16 +113,18 @@ void NodeView::setOwner(Node* _node)
     }
 
     // Determine a color depending on node type
-    auto settings = Settings::Get();
+    Settings* settings = Settings::Get();
+    Reflect::Class* clss = _node->get_class();
+
     if (_node->hasComponent<InvokableComponent>())
     {
         setColor(ColorType_Fill, &settings->ui_node_invokableColor); // blue
     }
-    else if ( _node->getClass() == VariableNode::GetClass() )
+    else if ( clss->is<VariableNode>() )
     {
         setColor(ColorType_Fill, &settings->ui_node_variableColor); // purple
     }
-    else if ( _node->getClass() == LiteralNode::GetClass() )
+    else if ( clss->is<LiteralNode>() )
     {
         setColor(ColorType_Fill, &settings->ui_node_literalColor);
     }
@@ -179,7 +181,7 @@ void NodeView::setOwner(Node* _node)
         }
     });
 
-    Component::setOwner(_node);
+    Component::set_owner(_node);
 }
 
 void NodeView::SetSelected(NodeView* _view)
@@ -231,7 +233,7 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
 
 	if ( _recurse )
     {
-	    for(auto eachInput : getOwner()->getInputs() )
+	    for(auto eachInput : get_owner()->getInputs() )
         {
 	        if ( NodeView* eachInputView = eachInput->getComponent<NodeView>() )
 	        {
@@ -288,7 +290,7 @@ bool NodeView::update(float _deltaTime)
 bool NodeView::draw()
 {
 	bool edited = false;
-	auto node   = getOwner();
+	auto node   = get_owner();
 
 	auto settings = Settings::Get();
 
@@ -478,7 +480,7 @@ bool NodeView::draw()
 	ImGui::PopID();
 
 	if( edited )
-	    getOwner()->setDirty();
+        get_owner()->setDirty();
 
 	hovered = is_node_hovered || is_connector_hovered;
 
@@ -493,8 +495,8 @@ bool NodeView::drawMemberView(MemberView* _memberView )
     if( !_memberView->m_touched )
     {
         const bool isAnInputUnconnected = member->getInput() != nullptr || !member->allowsConnection(Way_In);
-        const bool isVariable = member->getOwner()->getClass() == VariableNode::GetClass();
-        const bool isLiteral  = member->getOwner()->getClass() == LiteralNode::GetClass();
+        const bool isVariable = member->getOwner()->get_class()->is<VariableNode>();
+        const bool isLiteral  = member->getOwner()->get_class()->is<LiteralNode>();
         _memberView->m_showInput = _memberView->m_member->isDefined() && (!isAnInputUnconnected || isLiteral || isVariable || s_viewDetail == NodeViewDetail::Exhaustive) ;
     }
 
@@ -706,17 +708,15 @@ bool NodeView::isMemberExposed(const Member *_member)const
 
 void NodeView::drawAdvancedProperties()
 {
-    const Node* node = getOwner();
+    const Node* node = get_owner();
     const float indent = 20.0f;
 
     // Components
     ImGui::Text("Components :");
     for (auto& pair : node->getComponents())
     {
-        auto component	= pair.second;
-        auto name		= pair.first;
-        auto className	= component->getClass()->getName();
-        ImGui::BulletText("%s", className);
+        Component* component = pair.second;
+        ImGui::BulletText("%s", component->get_class()->get_name() );
     }
 
     // Parent graph
@@ -749,12 +749,12 @@ void NodeView::drawAdvancedProperties()
 
     // dirty state
     ImGui::NewLine();
-    bool b = getOwner()->isDirty();
+    bool b = get_owner()->isDirty();
     ImGui::Checkbox("Is dirty ?", &b);
 
     // Scope specific:
 
-    if ( node->getClass()->isChildOf( ScopedCodeBlockNode::GetClass() ))
+    if ( node->get_class()->is_child_of( ScopedCodeBlockNode::Get_class() ))
     {
         ImGui::NewLine();
         ImGui::Text("Variables:");
@@ -973,7 +973,7 @@ void NodeView::setInputsVisible(bool _visible, bool _recursive)
 
 void NodeView::getNext(std::vector<NodeView *>& out)
 {
-    for( auto& each : getOwner()->getNext())
+    for( auto& each : get_owner()->getNext())
     {
          if ( each )
         {

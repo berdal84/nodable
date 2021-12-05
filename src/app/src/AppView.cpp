@@ -481,7 +481,7 @@ bool AppView::draw()
                     ImGui::Text("Selected Node Properties");
                     ImGui::NewLine();
                     ImGui::Indent(10.0f);
-                    ImGui::Text("Type: %s", view->getOwner()->getLabel());
+                    ImGui::Text("Type: %s", view->get_owner()->getLabel());
                     ImGui::NewLine();
                     NodeView::DrawNodeViewAsPropertiesPanel(view);
                 }
@@ -509,7 +509,7 @@ bool AppView::draw()
 		{
 			if (delete_node)
 			{
-			    auto node = selectedNodeView->getOwner();
+			    auto node = selectedNodeView->get_owner();
                 node->flagForDeletion();
             }
 			else if (arrange_node)
@@ -523,7 +523,7 @@ bool AppView::draw()
 			else if (select_next)
             {
 			    GraphTraversal traversal;
-			    Node* next = traversal.getNextInstrToEval(selectedNodeView->getOwner());
+			    Node* next = traversal.getNextInstrToEval(selectedNodeView->get_owner());
 			    if ( next )
 			        if( auto nextView = next->getComponent<NodeView>())
                         NodeView::SetSelected(nextView);

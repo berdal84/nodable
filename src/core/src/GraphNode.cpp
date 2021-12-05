@@ -269,8 +269,7 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
         _to->digest(_from);
         delete _from;
     }
-    else if (_from->getOwner()->getClass() == LiteralNode::GetClass() &&
-             _to->getOwner()->getClass() != VariableNode::GetClass())
+    else if (_from->getOwner()->get_class()->is<LiteralNode>() && _to->getOwner()->get_class()->is_not<VariableNode>() )
     {
         Node* owner = _from->getOwner();
         _to->digest(_from);
@@ -370,7 +369,7 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
                     auto lastChildParent = lastChild->get_parent();
                     if (lastChildParent)
                     {
-                        if (lastChildParent->getClass() == ConditionalStructNode::GetClass() )
+                        if (lastChildParent->get_class()->is<ConditionalStructNode>() )
                         {
                             connect(_source, _target, RelationType::IS_NEXT_OF, false);
                         }

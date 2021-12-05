@@ -38,9 +38,9 @@ bool DataAccess::update()
     	}
 	};
 
-    NODABLE_ASSERT(getOwner() != nullptr);
+    NODABLE_ASSERT(get_owner() != nullptr);
 
-    Node* owner = getOwner();
+    Node* owner = get_owner();
 
     writer.StartObject();
     {
@@ -80,7 +80,7 @@ bool DataAccess::update()
 	}
     writer.EndObject();
 
-    std::string fileName("Entity_" + std::to_string((size_t)getOwner()) + ".json");
+    std::string fileName("Entity_" + std::to_string((size_t) get_owner()) + ".json");
 
     std::ofstream outfile ("saves/" +fileName ,std::ofstream::binary);
     outfile.write (buffer.GetString(),buffer.GetSize());

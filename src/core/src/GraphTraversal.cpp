@@ -170,8 +170,8 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
     }
     else
     {
-        Reflect::Class* resultClass = result->getClass();
-        if (resultClass == ScopedCodeBlockNode::GetClass() || resultClass == CodeBlockNode::GetClass())
+        Reflect::Class* resultClass = result->get_class();
+        if (resultClass->is<ScopedCodeBlockNode>() || resultClass->is<CodeBlockNode>() )
         {
             result = getNextInstrToEvalRec(result);
         }

@@ -52,12 +52,12 @@ void Runner::run()
         {
             eachNodeToEval->eval();
             eachNodeToEval->setDirty(false);
-            if ( eachNodeToEval->getClass() == InstructionNode::GetClass())
+            if ( eachNodeToEval->get_class() == InstructionNode::Get_class())
             {
                 m_lastInstructionNode = eachNodeToEval->as<InstructionNode>();
             }
 
-            LOG_VERBOSE("Runner", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int)total, eachNodeToEval->getLabel(), eachNodeToEval->getClass()->getName())
+            LOG_VERBOSE("Runner", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int)total, eachNodeToEval->getLabel(), eachNodeToEval->get_class()->get_name())
             idx++;
         }
         m_currentNode = m_traversal.getNextInstrToEval(m_currentNode);
@@ -85,7 +85,7 @@ bool Runner::stepOver()
     {
         eachNodeToEval->eval();
         eachNodeToEval->setDirty(false);
-        if ( eachNodeToEval->getClass() == InstructionNode::GetClass())
+        if ( eachNodeToEval->get_class()->is<InstructionNode>() )
         {
             m_lastInstructionNode = eachNodeToEval->as<InstructionNode>();
         }

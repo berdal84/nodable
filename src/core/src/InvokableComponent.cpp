@@ -29,7 +29,7 @@ bool InvokableComponent::update()
     {
         LOG_ERROR("InvokableComponent", "Exception thrown during update %s:\n"
                                         " - while updating Node %s\n"
-                                        " - reason: %s\n", getOwner()->getLabel(), err.what() )
+                                        " - reason: %s\n", get_owner()->getLabel(), err.what() )
         success = false;
     }
 

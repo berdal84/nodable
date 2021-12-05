@@ -149,7 +149,7 @@ bool GraphNodeView::draw()
             {
                 eachNodeView->draw();
 
-                if(runner && runner->isDebugging() && runner->getCurrentNode() == eachNodeView->getOwner())
+                if(runner && runner->isDebugging() && runner->getCurrentNode() == eachNodeView->get_owner())
                     ImGui::SetScrollHereY();
 
                 // dragging
@@ -462,7 +462,7 @@ void GraphNodeView::addContextualMenuItem(
 
 GraphNode* GraphNodeView::getGraphNode() const
 {
-    return getOwner()->as<GraphNode>();
+    return get_owner()->as<GraphNode>();
 }
 
 void GraphNodeView::updateViewConstraints()
@@ -483,7 +483,7 @@ void GraphNodeView::updateViewConstraints()
     {
         if ( auto eachView = _eachNode->getComponent<NodeView>() )
         {
-            auto clss = _eachNode->getClass();
+            auto clss = _eachNode->get_class();
 
             // Follow previous Node(s), except if previous is a Conditional Structure Node.
             //-----------------------------------------------------------------------------
@@ -491,7 +491,7 @@ void GraphNodeView::updateViewConstraints()
             auto previousNodes = _eachNode->getPrev();
             std::vector<NodeView*> previousNodesView;
             Node::GetComponents<NodeView>( previousNodes, previousNodesView);
-            if ( !previousNodes.empty() && !previousNodes[0]->as<ConditionalStructNode>())
+            if ( !previousNodes.empty() && previousNodes[0]->get_class()->is_not<ConditionalStructNode>())
             {
                 NodeViewConstraint constraint(NodeViewConstraint::Type::FollowWithChildren);
                 constraint.addMasters(previousNodesView);
@@ -503,7 +503,7 @@ void GraphNodeView::updateViewConstraints()
             //------------------------------------------------
 
             auto children = eachView->getChildren();
-            if( !children.empty() && clss == ConditionalStructNode::GetClass())
+            if( !children.empty() && clss->is<ConditionalStructNode>() )
             {
                 NodeViewConstraint constraint(NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
                 constraint.addMaster(eachView);
@@ -553,9 +553,9 @@ bool GraphNodeView::update()
     return true;
 }
 
-void GraphNodeView::setOwner(Node* _owner)
+void GraphNodeView::set_owner(Node *_owner)
 {
-    NodeView::setOwner( _owner );
+    NodeView::set_owner(_owner);
 
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
     auto graphNode = _owner->as<GraphNode>();

@@ -75,7 +75,7 @@ namespace Nodable
 		observe::Observer m_nodeRelationRemovedObserver;
 
 		/** override Component::setOwner(Node*) to extract some information from owner before to actually set it */
-		void setOwner(Node* _node)override;
+		void set_owner(Node *_node)override;
 
 		void exposeMember(Member* );
 

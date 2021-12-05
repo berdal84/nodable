@@ -24,7 +24,7 @@ namespace Nodable
 	    GraphNodeView() = default;
 		~GraphNodeView() = default;
 
-		void    setOwner(Node*) override;
+		void    set_owner(Node *) override;
 		void    updateViewConstraints();
 		bool    draw() override ;
 		bool    update() override;

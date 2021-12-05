@@ -161,6 +161,6 @@ Node* NodeConnector::getConnectedNode() const
 
 Node* NodeConnector::getNode()const
 {
-    return m_nodeView->getOwner();
+    return m_nodeView->get_owner();
 }
 

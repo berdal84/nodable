@@ -44,8 +44,8 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
         if (ope->get_operator_type() == InvokableOperator::Type::Binary )
         {
             // Get the left and right source operator
-            auto l_handed_operator = _component->getOwner()->getConnectedOperator(args[0]);
-            auto r_handed_operator = _component->getOwner()->getConnectedOperator(args[1]);
+            auto l_handed_operator = _component->get_owner()->getConnectedOperator(args[0]);
+            auto r_handed_operator = _component->get_owner()->getConnectedOperator(args[1]);
             // Left part of the expression
             {
                 // TODO: check parsed brackets for prefix/suffix
@@ -78,7 +78,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
         }
         else if (ope->get_operator_type() == InvokableOperator::Type::Unary )
         {
-            auto inner_operator = _component->getOwner()->getConnectedOperator(args[0]);
+            auto inner_operator = _component->get_owner()->getConnectedOperator(args[0]);
 
             // operator ( ... innerOperator ... )   ex:   -(a+b)
 
@@ -223,7 +223,7 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
     }
     else
     {
-        if (owner && owner->getClass() == VariableNode::GetClass())
+        if (owner && owner->get_class() == VariableNode::Get_class())
         {
             auto variable = owner->as<VariableNode>();
             _result.append(variable->getName() );
@@ -247,20 +247,20 @@ std::string& Serializer::serialize(std::string& _result, const CodeBlockNode* _b
     {
         for( auto& eachChild : _block->get_children() )
         {
-            auto clss = eachChild->getClass();
-            if ( clss == InstructionNode::GetClass())
+            auto clss = eachChild->get_class();
+            if ( clss->is<InstructionNode>())
             {
                 serialize(_result, eachChild->as<InstructionNode>());
             }
-            else if ( clss == ScopedCodeBlockNode::GetClass())
+            else if ( clss->is<ScopedCodeBlockNode>() )
             {
                 serialize( _result, eachChild->as<ScopedCodeBlockNode>());
             }
-            else if ( clss == ConditionalStructNode::GetClass())
+            else if ( clss->is<ConditionalStructNode>() )
             {
                  serialize( _result, eachChild->as<ConditionalStructNode>());
             }
-            else if ( clss == CodeBlockNode::GetClass())
+            else if ( clss->is<CodeBlockNode>() )
             {
                 serialize( _result, eachChild->as<CodeBlockNode>());
             }
@@ -325,8 +325,8 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     {
         serialize( _result, tokenElse );
         Node* elseScope = _condStruct->get_children()[1];
-        Reflect::Class* elseClass = elseScope->getClass();
-        if ( elseClass == ConditionalStructNode::GetClass()) // else if ?
+        Reflect::Class* elseClass = elseScope->get_class();
+        if ( elseClass == ConditionalStructNode::Get_class()) // else if ?
         {
             this->serialize( _result, elseScope->as<ConditionalStructNode>() );
         }
@@ -342,22 +342,22 @@ std::string& Serializer::serialize(std::string& _result, const ScopedCodeBlockNo
 {
     if ( _scope != nullptr )
     {
-        NODABLE_ASSERT(_scope->getClass() == ScopedCodeBlockNode::GetClass());
+        NODABLE_ASSERT(_scope->get_class() == ScopedCodeBlockNode::Get_class());
 
         serialize( _result, _scope->get_begin_scope_token() );
 
         for (auto eachChild : _scope->get_children())
         {
-            Reflect::Class* clss = eachChild->getClass();
-            if (clss->isChildOf(CodeBlockNode::GetClass()))
+            Reflect::Class* clss = eachChild->get_class();
+            if (clss->is_child_of(CodeBlockNode::Get_class()))
             {
                 serialize( _result, eachChild->as<CodeBlockNode>() );
             }
-            else if (clss->isChildOf(InstructionNode::GetClass()))
+            else if (clss->is_child_of(InstructionNode::Get_class()))
             {
                 serialize( _result, eachChild->as<InstructionNode>() );
             }
-            else if (clss->isChildOf(ScopedCodeBlockNode::GetClass()))
+            else if (clss->is_child_of(ScopedCodeBlockNode::Get_class()))
             {
                 serialize( _result, eachChild->as<ScopedCodeBlockNode>());
             }

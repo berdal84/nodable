@@ -174,9 +174,9 @@ namespace Nodable {
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
             NODABLE_ASSERT( _component != nullptr );
-			std::string name(T::GetClass()->getName());
+			std::string name(T::Get_class()->get_name());
 			m_components.emplace(std::make_pair(name, _component));
-			_component->setOwner(this);
+			_component->set_owner(this);
 		}
 
 		 /**
@@ -207,7 +207,7 @@ namespace Nodable {
 		void deleteComponent()
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-			auto name = T::GetClass()->getName();
+			auto name = T::Get_class()->get_name();
 			auto component = getComponent<T>();
 			m_components.erase(name);
 			delete component;
@@ -222,8 +222,8 @@ namespace Nodable {
 		T* getComponent()const
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-			auto c = T::GetClass();
-			auto name = c->getName();
+			auto c = T::Get_class();
+			auto name = c->get_name();
 
 			// Search with class name
 			{
@@ -236,7 +236,7 @@ namespace Nodable {
 			// Search for a derived class
 			for (const auto & it : m_components) {
 				Component* component = it.second;
-				if (component->getClass()->isChildOf(c, false)) {
+				if (component->get_class()->is_child_of(c, false)) {
 					return reinterpret_cast<T*>(component);
 				}
 			}
@@ -259,19 +259,8 @@ namespace Nodable {
         size_t deleteComponents();
         [[nodiscard]] size_t getComponentCount() const;
 
-        template<class T> [[nodiscard]] T* as()
-        {
-            if( this->getClass()->isChildOf(T::GetClass()))
-                return reinterpret_cast<T*>(this);
-            return nullptr;
-        }
-
-        template<class T> [[nodiscard]] const T* as()const
-        {
-            if( this->getClass()->isChildOf(T::GetClass()))
-                return reinterpret_cast<const T*>(this);
-            return nullptr;
-        }
+        template<class T> [[nodiscard]] inline       T* as()      { return Reflect::cast_pointer<T>(this); }
+        template<class T> [[nodiscard]] inline const T* as()const { return Reflect::cast_pointer<const T>(this); }
 
         Properties* getProps() { return &m_props; }
 
