@@ -129,7 +129,7 @@ void GraphNode::registerNode(Node* _node)
 {
 	this->m_nodeRegistry.push_back(_node);
     _node->setParentGraph(this);
-    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->getLabel(), _node->getClass()->getName())
+    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->getLabel(), _node->get_class()->get_name())
 }
 
 void GraphNode::unregisterNode(Node* _node)

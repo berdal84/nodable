@@ -79,7 +79,7 @@ Result GraphTraversal::traverseRec(Node* _node, TraversalFlag _flags)
     }
     else if ( _flags & TraversalFlag_AvoidCycles )
     {
-        NODABLE_ASSERT(_node->getClass() == VariableNode::GetClass());
+        NODABLE_ASSERT(_node->get_class()->is<VariableNode>() );
         return Result::Success;
     }
 

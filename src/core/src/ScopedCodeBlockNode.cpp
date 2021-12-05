@@ -89,7 +89,7 @@ InstructionNode *ScopedCodeBlockNode::get_last_instruction()
         if ( !instructions.empty())
         {
             Node* instr = instructions.back();
-            NODABLE_ASSERT(instr->getClass() == InstructionNode::GetClass());
+            NODABLE_ASSERT( instr->get_class()->is<InstructionNode>() );
             return instr->as<InstructionNode>();
         }
     }

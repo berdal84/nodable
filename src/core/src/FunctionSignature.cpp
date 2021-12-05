@@ -1,4 +1,5 @@
 #include <nodable/FunctionSignature.h>
+#include <algorithm> // find_if
 
 using namespace Nodable;
 

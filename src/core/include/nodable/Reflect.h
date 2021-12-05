@@ -35,7 +35,7 @@ namespace Nodable::Reflect
         :
         m_name(_name)
         {
-            LOG_VERBOSE("Reflect", "new Class(%s)...\n", _m_name)
+            LOG_VERBOSE("Reflect", "new Class(%s)...\n", _name)
         }
 
         ~Class(){}
