@@ -6,7 +6,7 @@
 namespace Nodable
 {
     // forward declarations
-    class ProgramNode;
+    class ScopedCodeBlockNode;
 
     /**
      * Class to execute a Nodable program.
@@ -14,7 +14,7 @@ namespace Nodable
     class Runner {
     public:
         Runner();
-        void load(ProgramNode*);
+        void load(ScopedCodeBlockNode*);
         void unload();
         void run();
         bool isProgramOver();
@@ -33,12 +33,12 @@ namespace Nodable
         inline InstructionNode *getLastEvaluatedInstruction() { return m_lastInstructionNode; }
 
     private:
-        GraphTraversal   m_traversal;
-        ProgramNode*     m_program;
-        Node*            m_currentNode;
-        InstructionNode* m_lastInstructionNode;
-        bool             m_isRunning;
-        bool             m_isDebugging;
+        GraphTraversal        m_traversal;
+        ScopedCodeBlockNode*  m_program;
+        Node*                 m_currentNode;
+        InstructionNode*      m_lastInstructionNode;
+        bool                  m_isRunning;
+        bool                  m_isDebugging;
     };
 }
 

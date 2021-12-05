@@ -14,7 +14,6 @@
 #include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/LiteralNode.h>
-#include <nodable/ProgramNode.h>
 #include <nodable/AbstractNodeFactory.h>
 
 using namespace Nodable;

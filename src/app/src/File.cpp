@@ -5,7 +5,7 @@
 #include <nodable/App.h>
 #include <nodable/FileView.h>
 #include <nodable/GraphNodeView.h>
-#include <nodable/ProgramNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/Parser.h>
 #include <nodable/LanguageFactory.h>
 #include <nodable/History.h>

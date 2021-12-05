@@ -1,6 +1,6 @@
 #include <nodable/Runner.h>
 
-#include <nodable/ProgramNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/GraphTraversal.h>
 #include <nodable/Log.h>
 
@@ -17,11 +17,13 @@ Runner::Runner()
 
 }
 
-void Runner::load( ProgramNode* _program)
+void Runner::load( ScopedCodeBlockNode* _program)
 {
-    if ( this->m_program )
+    if ( m_program )
+    {
         unload();
-    this->m_program = _program;
+    }
+    m_program = _program;
 }
 
 void Runner::run()

@@ -6,7 +6,7 @@
 #include <nodable/Parser.h>
 #include <nodable/LanguageFactory.h>
 #include <nodable/VariableNode.h>
-#include <nodable/ProgramNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/HeadlessNodeFactory.h>
 
 using namespace Nodable;
@@ -52,7 +52,7 @@ std::string& ParseUpdateSerialize( std::string& result, const std::string& expre
 
     // act
     lang->getParser()->expressionToGraph(expression, &graph);
-    if ( ProgramNode* program = graph.getProgram())
+    if ( ScopedCodeBlockNode* program = graph.getProgram())
     {
         Runner runner;
         runner.load(program);

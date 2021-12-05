@@ -3,7 +3,7 @@
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/ScopedCodeBlockNode.h>
-#include <nodable/ProgramNode.h>
+#include <nodable/CodeBlockNode.h>
 #include <nodable/Language.h>
 #include <nodable/InvokableComponent.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
@@ -171,13 +171,13 @@ ConditionalStructNode* HeadlessNodeFactory::newConditionalStructure() const
     return scopeNode;
 }
 
-ProgramNode* HeadlessNodeFactory::newProgram() const
+ScopedCodeBlockNode* HeadlessNodeFactory::newProgram() const
 {
-    ProgramNode* programNode = new ProgramNode();
-    programNode->setLabel(ICON_FA_FILE_CODE " Program");
-    programNode->setShortLabel(ICON_FA_FILE_CODE " Prog.");
+    ScopedCodeBlockNode* scope = new ScopedCodeBlockNode();
+    scope->setLabel(ICON_FA_FILE_CODE " Program");
+    scope->setShortLabel(ICON_FA_FILE_CODE " Prog.");
 
-    return programNode;
+    return scope;
 }
 
 Node* HeadlessNodeFactory::newNode() const

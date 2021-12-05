@@ -8,7 +8,8 @@
 #include <nodable/Log.h>
 #include <nodable/Wire.h>
 #include <nodable/App.h>
-#include <nodable/ProgramNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/CodeBlockNode.h>
 #include <nodable/GraphNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>

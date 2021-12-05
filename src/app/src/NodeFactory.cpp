@@ -3,7 +3,7 @@
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/ScopedCodeBlockNode.h>
-#include <nodable/ProgramNode.h>
+#include <nodable/CodeBlockNode.h>
 #include <nodable/InvokableComponent.h>
 #include <nodable/Language.h>
 #include <nodable/NodeView.h>
@@ -94,9 +94,9 @@ ConditionalStructNode* NodeFactory::newConditionalStructure() const
     return node;
 }
 
-ProgramNode* NodeFactory::newProgram() const
+ScopedCodeBlockNode* NodeFactory::newProgram() const
 {
-    ProgramNode* node = m_headless_node_factory.newProgram();
+    ScopedCodeBlockNode* node = m_headless_node_factory.newProgram();
     AddView(node);
 
     return node;

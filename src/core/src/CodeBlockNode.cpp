@@ -43,12 +43,6 @@ void CodeBlockNode::get_last_instructions(std::vector<InstructionNode *> &out)
     CodeBlockNode::get_last_instructions(this, out);
 }
 
-VariableNode* CodeBlockNode::find_variable(const std::string &_name)
-{
-    // TODO: implement
-    return nullptr;
-}
-
 void CodeBlockNode::get_last_instructions(Node* _node, std::vector<InstructionNode *> & _out)
 {
     if (_node->get_children().empty())

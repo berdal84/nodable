@@ -15,7 +15,7 @@ namespace Nodable
 
         ~NodeFactory() {}
 
-        ProgramNode*                newProgram()const override ;
+        ScopedCodeBlockNode*        newProgram()const override ;
         CodeBlockNode*              newCodeBlock()const override ;
         InstructionNode*		    newInstruction_UserCreated()const override ;
         InstructionNode*            newInstruction()const override ;

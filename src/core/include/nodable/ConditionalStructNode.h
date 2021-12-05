@@ -1,6 +1,8 @@
 #pragma once
 
-#include <nodable/CodeBlockNode.h> // base class
+#include <nodable/Token.h> // base class
+#include <nodable/Node.h> // base class
+#include <nodable/AbstractCodeBlock.h> // base class
 
 namespace Nodable
 {
@@ -10,28 +12,30 @@ namespace Nodable
     /**
      * @brief Class to represent a conditional structure ( IF/ELSE )
      */
-    class ConditionalStructNode: public CodeBlockNode {
+    class ConditionalStructNode: public Node, public AbstractCodeBlock {
     public:
         ConditionalStructNode();
         ~ConditionalStructNode() = default;
 
-        inline void setCondition(Member* _value) const { getCondition()->set(_value); }
-        inline void setTokenIf(Token* token) { m_token_if = token; }
-        inline void setTokenElse(Token* token) { m_token_else = token; }
+        inline void set_condition(Member *_value) const { get_condition()->set(_value); }
+        inline void set_token_if(Token *token) { m_token_if = token; }
+        inline void set_token_else(Token *token) { m_token_else = token; }
 
-        [[nodiscard]] ScopedCodeBlockNode*   getBranchTrue()const;
-        [[nodiscard]] ScopedCodeBlockNode*   getBranchFalse()const;
-        [[nodiscard]] inline Member*         getCondition()const { return m_props.get("condition"); }
-        [[nodiscard]] inline const Token*    getTokenIf()const   { return m_token_if; }
-        [[nodiscard]] inline const Token*    getTokenElse()const   { return m_token_else; }
-                      void                   get_last_instructions(std::vector<InstructionNode *> &out) override;
-
+        ScopedCodeBlockNode*   get_true_branch()const;
+        ScopedCodeBlockNode*   get_false_branch()const;
+        inline Member*         get_condition()const { return m_props.get("condition"); }
+        inline const Token*    get_token_if()const   { return m_token_if; }
+        inline const Token*    get_token_else()const   { return m_token_else; }
+        inline void            clear() override { set_token_if(nullptr); set_token_else(nullptr);};
+        bool                   has_instructions() const override;
+        InstructionNode*       get_first_instruction() const override;
+        void                   get_last_instructions(std::vector<InstructionNode *> &out) override;
     private:
         Token* m_token_if;
         Token* m_token_else;
 
         REFLECT_DERIVED(ConditionalStructNode)
-        REFLECT_EXTENDS(CodeBlockNode)
+         REFLECT_EXTENDS(Node)
         REFLECT_END
     };
 }

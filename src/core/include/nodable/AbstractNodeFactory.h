@@ -14,7 +14,6 @@ namespace Nodable
     class CodeBlockNode;
     class InvokableOperator;
     class Invokable;
-    class ProgramNode;
     class Language;
 
     /**
@@ -26,7 +25,7 @@ namespace Nodable
         AbstractNodeFactory(const Language* _language): m_language(_language) {};
         virtual ~AbstractNodeFactory() = default;
 
-        virtual ProgramNode*                newProgram()const = 0;
+        virtual ScopedCodeBlockNode*        newProgram()const = 0;
         virtual CodeBlockNode*              newCodeBlock()const = 0;
         virtual InstructionNode*		    newInstruction_UserCreated()const = 0;
         virtual InstructionNode*            newInstruction()const = 0;

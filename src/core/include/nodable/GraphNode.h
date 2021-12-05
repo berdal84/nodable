@@ -17,7 +17,6 @@ namespace Nodable{
     class InstructionNode;
     class CodeBlockNode;
     class ConditionalStructNode;
-    class ProgramNode;
     class LiteralNode;
     class AbstractNodeFactory;
 
@@ -57,7 +56,7 @@ namespace Nodable{
         [[nodiscard]] std::vector<Node*>&     getNodeRegistry() {return m_nodeRegistry;}
         [[nodiscard]] std::vector<Wire*>&     getWireRegistry() {return m_wireRegistry;}
         [[nodiscard]] inline const Language*  getLanguage()const { return m_language; }
-        [[nodiscard]] inline ProgramNode*     getProgram(){ return m_program; }
+        [[nodiscard]] inline ScopedCodeBlockNode* getProgram(){ return m_program; }
         [[nodiscard]] bool                    hasProgram();
         [[nodiscard]] std::multimap<Relation::first_type , Relation::second_type>& getRelationRegistry() {return m_relationRegistry;}
 
@@ -105,7 +104,7 @@ namespace Nodable{
 		std::vector<Wire*> m_wireRegistry;
 		std::multimap<Relation::first_type , Relation::second_type> m_relationRegistry;
 		const Language*            m_language;
-		ProgramNode*               m_program;
+		ScopedCodeBlockNode*       m_program;
 		const AbstractNodeFactory* m_factory;
 
         REFLECT_DERIVED(GraphNode)

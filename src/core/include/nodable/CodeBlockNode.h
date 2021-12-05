@@ -26,8 +26,8 @@ namespace Nodable
         InstructionNode*        get_first_instruction() const override ;
         void                    get_last_instructions(std::vector<InstructionNode *> &out) override ;
         static void             get_last_instructions(Node* _node, std::vector<InstructionNode *> & _out);
-        VariableNode*           find_variable(const std::string &_name) override;
-        Node*                   get_parent() const override ;
+        Node*                   get_parent() const override;
+
         REFLECT_DERIVED(CodeBlockNode)
           REFLECT_EXTENDS(Node)
         REFLECT_END

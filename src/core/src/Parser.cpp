@@ -10,7 +10,8 @@
 #include <nodable/Wire.h>
 #include <nodable/GraphNode.h>
 #include <nodable/InstructionNode.h>
-#include <nodable/ProgramNode.h>
+#include <nodable/CodeBlockNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/InvokableComponent.h>
@@ -451,7 +452,7 @@ InstructionNode* Parser::parseInstruction()
 CodeBlockNode* Parser::parseProgram()
 {
     startTransaction();
-    auto scope = graph->newProgram();
+    ScopedCodeBlockNode* scope = graph->newProgram();
     if(CodeBlockNode* block = parseCodeBlock())
     {
         graph->connect(block, scope, RelationType::IS_CHILD_OF);
@@ -840,20 +841,20 @@ ConditionalStructNode * Parser::parseConditionalStructure()
 
     if ( tokenRibbon.eatToken(TokenType_KeywordIf))
     {
-        condStruct->setTokenIf(tokenRibbon.getEaten());
+        condStruct->set_token_if(tokenRibbon.getEaten());
 
         auto condition = parseParenthesisExpression();
 
         if ( condition)
         {
-            graph->connect(condition, condStruct->getCondition() );
+            graph->connect(condition, condStruct->get_condition() );
             if ( ScopedCodeBlockNode* scopeIf = parseScope() )
             {
                 graph->connect(scopeIf, condStruct, RelationType::IS_CHILD_OF);
 
                 if ( tokenRibbon.eatToken(TokenType_KeywordElse))
                 {
-                    condStruct->setTokenElse( tokenRibbon.getEaten() );
+                    condStruct->set_token_else(tokenRibbon.getEaten());
 
                     if ( ScopedCodeBlockNode* scopeElse = parseScope() )
                     {

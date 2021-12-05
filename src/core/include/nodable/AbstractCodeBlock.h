@@ -19,7 +19,5 @@ namespace Nodable
         virtual bool                   has_instructions() const = 0;
         virtual InstructionNode*       get_first_instruction() const = 0;
         virtual void                   get_last_instructions(std::vector<InstructionNode *> &out) = 0;
-        virtual VariableNode*          find_variable(const std::string&) = 0;
-        virtual Node*                  get_parent()const = 0;
     };
 }

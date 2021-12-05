@@ -12,7 +12,7 @@ namespace Nodable
         HeadlessNodeFactory(const Language* _language): AbstractNodeFactory(_language) {}
         ~HeadlessNodeFactory() {}
 
-        ProgramNode*                newProgram()const override ;
+        ScopedCodeBlockNode*        newProgram()const override ;
         CodeBlockNode*              newCodeBlock()const override ;
         InstructionNode*		    newInstruction_UserCreated()const override ;
         InstructionNode*            newInstruction()const override ;

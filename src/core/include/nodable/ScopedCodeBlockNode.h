@@ -33,7 +33,7 @@ namespace Nodable
         inline void             set_begin_scope_token(Token *token) { m_begin_scope_token = token; }
         inline void             set_end_Scope_token(Token *token) { m_end_scope_token = token; }
         void                    add_variable(VariableNode*);
-        VariableNode*           find_variable(const std::string &_name) override;
+        VariableNode*           find_variable(const std::string &_name);
         Node*                   get_parent() const override ;
         inline const std::vector<VariableNode*>& get_variables()const { return m_variables; }
 

@@ -5,7 +5,7 @@
 #include <nodable/GraphNode.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/VariableNode.h>
-#include <nodable/ProgramNode.h>
+#include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/HeadlessNodeFactory.h>
 #include <nodable/Wire.h>
 #include <nodable/LanguageNodable.h>

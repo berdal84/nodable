@@ -311,17 +311,17 @@ std::string& Serializer::serialize(std::string& _result, const Token* _token)con
 std::string& Serializer::serialize(std::string& _result, const ConditionalStructNode* _condStruct)const
 {
     // if ( <condition> )
-    serialize( _result, _condStruct->getTokenIf() );
+    serialize( _result, _condStruct->get_token_if() );
     serialize( _result, TokenType_OpenBracket );
-    serialize( _result, _condStruct->getCondition() );
+    serialize( _result, _condStruct->get_condition() );
     serialize( _result, TokenType_CloseBracket );
 
     // if scope
-    if ( auto* ifScope = _condStruct->getBranchTrue() )
+    if ( auto* ifScope = _condStruct->get_true_branch() )
         serialize( _result, ifScope );
 
     // else & else scope
-    if ( const Token* tokenElse = _condStruct->getTokenElse() )
+    if ( const Token* tokenElse = _condStruct->get_token_else() )
     {
         serialize( _result, tokenElse );
         Node* elseScope = _condStruct->get_children()[1];

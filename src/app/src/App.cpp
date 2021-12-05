@@ -10,6 +10,7 @@
 #include <nodable/GraphNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/DataAccess.h>
+#include <nodable/ScopedCodeBlockNode.h>
 
 using namespace Nodable;
 
@@ -152,7 +153,7 @@ void App::closeFile(size_t _fileIndex)
     }
 }
 
-ProgramNode *App::getCurrentFileProgram() const
+ScopedCodeBlockNode* App::getCurrentFileProgram() const
 {
     if ( File* file = getCurrentFile())
         return file->getGraph()->getProgram();
@@ -161,7 +162,7 @@ ProgramNode *App::getCurrentFileProgram() const
 
 void App::runCurrentFileProgram()
 {
-    ProgramNode* program = getCurrentFileProgram();
+    ScopedCodeBlockNode* program = getCurrentFileProgram();
     if (program)
     {
         m_runner.load(program);
@@ -171,7 +172,7 @@ void App::runCurrentFileProgram()
 
 void App::debugCurrentFileProgram()
 {
-    ProgramNode* program = getCurrentFileProgram();
+    ScopedCodeBlockNode* program = getCurrentFileProgram();
     if (program)
     {
         m_runner.load(program);

@@ -120,7 +120,7 @@ namespace Nodable
 
         inline Runner& getRunner() { return m_runner; }
 
-        ProgramNode *getCurrentFileProgram() const;
+        ScopedCodeBlockNode* getCurrentFileProgram() const;
 
         // shortcuts to virtual machine:
         void runCurrentFileProgram();

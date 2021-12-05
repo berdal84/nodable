@@ -4,6 +4,7 @@
 
 #include <nodable/Wire.h>
 #include <nodable/Log.h>
+#include <nodable/CodeBlockNode.h>
 #include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
@@ -135,7 +136,7 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
        /*
         * Get the branch depending on condition
         */
-       auto next = *condStructNode->getCondition() ? condStructNode->getBranchTrue() : condStructNode->getBranchFalse();
+       auto next = *condStructNode->get_condition() ? condStructNode->get_true_branch() : condStructNode->get_false_branch();
        if ( !m_stats.hasBeenTraversed(next) )
            result = next;
     }
