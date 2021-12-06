@@ -385,6 +385,8 @@ bool NodeView::draw()
 
     m_size.x = std::ceil(ImGui::GetItemRectSize().x );
     m_size.y = std::max(NODE_VIEW_DEFAULT_SIZE.y, std::ceil(ImGui::GetItemRectSize().y ));
+    m_size.x = std::max( 1.0f, m_size.x); // to avoid 0 sized rectangle 
+    m_size.y = std::max( 1.0f, m_size.y);
 
     // Draw Member in/out connectors
     {
