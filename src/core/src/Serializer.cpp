@@ -315,10 +315,23 @@ std::string& Serializer::serialize(std::string& _result, const Token* _token)con
 
 std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for_loop)const
 {
-    // if ( <condition> )
+
     serialize( _result, _for_loop->get_token_for() );
     serialize( _result, TokenType_OpenBracket );
-    serialize( _result, _for_loop->get_init_expr() );
+
+    // TODO: I don't like this if/else, should be implicit. Serialize Member* must do it.
+    //       More work to do to know if expression is a declaration or not.
+
+    Member* input = _for_loop->get_init_expr()->getInput();
+    if ( input && input->getOwner()->get_class()->is<VariableNode>() )
+    {
+        serialize( _result, input->getOwner()->as<VariableNode>() );
+    }
+    else
+    {
+        serialize( _result, _for_loop->get_init_expr() );
+    }
+
     serialize( _result, TokenType_EndOfInstruction );
     serialize( _result, _for_loop->get_condition() );
     serialize( _result, TokenType_EndOfInstruction );

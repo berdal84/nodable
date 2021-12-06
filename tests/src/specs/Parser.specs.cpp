@@ -46,6 +46,7 @@ T ParseAndEvalExpression(const std::string& expression)
 
 std::string& ParseUpdateSerialize( std::string& result, const std::string& expression )
 {
+    LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize parsing %s\n", expression.c_str());
     // prepare
     const Language* lang = LanguageFactory::GetNodable();
     HeadlessNodeFactory factory(lang);
@@ -63,14 +64,13 @@ std::string& ParseUpdateSerialize( std::string& result, const std::string& expre
         {
             std::string result_str;
             lang->getSerializer()->serialize(result_str, lastEvaluatedNode->getValue()->getData() );
-            LOG_MESSAGE("Test_Parser", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
+            LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
         }
     }
 
     Serializer* serializer = lang->getSerializer();
     serializer->serialize(result, graph.getProgram());
-
-    std::cout << result << std::endl;
+    LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize serialize output is: %s\n", result.c_str());
 
     return result;
 }
@@ -314,11 +314,22 @@ TEST(Parser, Conditional_Structures_IF_ELSE_IF )
     ParseEvalSerializeExpressions({program});
 }
 
-TEST(Parser, For_loop)
+TEST(Parser, For_loop_without_var_decl)
 {
     std::string program =
             "double i;"
+            "double score;"
             "for(i=0;i<10;i=i+1){"
+            "   score= score*2;"
+            "}";
+    ParseEvalSerializeExpressions({program});
+}
+
+TEST(Parser, For_loop_with_var_decl)
+{
+    std::string program =
+            "double score = 1;"
+            "for(double i=0;i<10;i=i+1){"
             "   score= score*2;"
             "}";
     ParseEvalSerializeExpressions({program});

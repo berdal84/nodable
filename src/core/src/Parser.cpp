@@ -975,7 +975,7 @@ ForLoopNode* Parser::parse_for_loop()
             return nullptr;
         }
 
-        for_loop_node->addNext( for_scope );
+        m_graph->connect(for_scope, for_loop_node, RelationType::IS_NEXT_OF );
 
         commit_transaction();
         return for_loop_node;
