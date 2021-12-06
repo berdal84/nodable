@@ -192,7 +192,8 @@ namespace Nodable
         void            drawMemberViewConnector(MemberView* _view, Way _way, float _connectorRadius);
         bool            isMemberExposed(const Member *_member)const;
 
-        ImVec2          m_forces;
+        ImVec2          m_forces_sum;
+        ImVec2          m_last_frame_forces_sum;
         bool            m_childrenVisible;
 		ImVec2          m_position;
 		ImVec2          m_size;

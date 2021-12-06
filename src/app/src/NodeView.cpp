@@ -851,13 +851,13 @@ void NodeView::applyConstraints(float _dt) {
 void NodeView::addForceToTranslateTo(ImVec2 desiredPos, float _factor, bool _recurse)
 {
     ImVec2 delta(desiredPos - m_position);
-    auto factor = std::min(1.0f, _factor);
+    auto factor = std::max(0.0f, _factor);
     addForce(delta * factor, _recurse);
 }
 
 void NodeView::addForce(ImVec2 force, bool _recurse)
 {
-    m_forces += force;
+    m_forces_sum += force;
 
     if ( _recurse )
     {
@@ -871,22 +871,16 @@ void NodeView::addForce(ImVec2 force, bool _recurse)
 
 void NodeView::applyForces(float _dt, bool _recurse) {
     //
-    float mag = std::sqrt(m_forces.x * m_forces.x + m_forces.y * m_forces.y );
+    float magnitude = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
 
     // apply
-    bool tooSmall = mag < 0.1f;
-    if (!tooSmall)
-    {
-//        if ( mag * _dt > 200.0f)
-//        {
-//            forces.x *= 200.0f / mag;
-//            forces.y *= 200.0f / mag;
-//        }
-        this->translate(m_forces, _recurse);
+    constexpr float magnitude_max  = 100.0f;
+    const float friction   = Maths::lerp (  0.0f, 0.5f, magnitude / magnitude_max);
+    const ImVec2 avg_forces_sum = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
+    this->translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);
 
-        // reset
-    }
-    m_forces = ImVec2();
+    m_last_frame_forces_sum = m_forces_sum;
+    m_forces_sum = ImVec2();
 }
 
 void NodeView::translateTo(ImVec2 desiredPos, float _factor, bool _recurse) {

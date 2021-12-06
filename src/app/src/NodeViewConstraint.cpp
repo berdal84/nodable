@@ -4,6 +4,7 @@
 #include <nodable/Node.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
+#include <nodable/ForLoopNode.h>
 
 #include <numeric>
 
@@ -31,7 +32,7 @@ void NodeViewConstraint::apply(float _dt) {
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
                 ImVec2 newPos(bbox.GetCenter() - ImVec2(bbox.GetSize().x * 0.5 + settings->ui_node_spacing + slave->getRect().GetSize().x * 0.5, 0 ));
-                slave->addForceToTranslateTo(newPos + m_offset, _dt * settings->ui_node_speed);
+                slave->addForceToTranslateTo(newPos + m_offset, settings->ui_node_speed);
             }
 
             break;
@@ -48,7 +49,7 @@ void NodeViewConstraint::apply(float _dt) {
                 newPos.x += settings->ui_node_spacing + slave->getSize().x / 2.0f;
 
                 if ( newPos.y < slave->getPos().y )
-                    slave->addForceToTranslateTo(newPos + m_offset, _dt * settings->ui_node_speed, true);
+                    slave->addForceToTranslateTo(newPos + m_offset, settings->ui_node_speed, true);
             }
 
             break;
@@ -74,7 +75,7 @@ void NodeViewConstraint::apply(float _dt) {
 
             float start_pos_x = master->getPos().x - size_x_total / 2.0f;
             Reflect::Class* masterClass = master->get_owner()->get_class();
-            if ( masterClass->is<InstructionNode>() || ( masterClass->is<ConditionalStructNode>() && type == Type::MakeRowAndAlignOnBBoxTop))
+            if ( masterClass->is<InstructionNode>() || masterClass->is<ForLoopNode>() || ( masterClass->is<ConditionalStructNode>() && type == Type::MakeRowAndAlignOnBBoxTop))
             {
                 // indent
                 start_pos_x = master->getPos().x + master->getSize().x / 2.0f + settings->ui_node_spacing;
@@ -99,7 +100,7 @@ void NodeViewConstraint::apply(float _dt) {
                     if ( !eachSlave->shouldFollowOutput(master) )
                         new_pos.y = eachSlave->getPos().y; // remove constraint on Y axis
 
-                    eachSlave->addForceToTranslateTo(new_pos + m_offset, _dt * settings->ui_node_speed, true);
+                    eachSlave->addForceToTranslateTo(new_pos + m_offset, settings->ui_node_speed, true);
 
                     start_pos_x += size_x[node_index] + settings->ui_node_spacing;
                     node_index++;
@@ -120,7 +121,7 @@ void NodeViewConstraint::apply(float _dt) {
                 ImVec2 newPos(masterRect.GetCenter().x,slave->getPos().y + slaveMasterOffset.y + settings->ui_node_spacing);
 
                 // apply
-                slave->addForceToTranslateTo(newPos + m_offset, _dt * settings->ui_node_speed, true);
+                slave->addForceToTranslateTo(newPos + m_offset, settings->ui_node_speed, true);
                 break;
             }
         }
@@ -135,7 +136,7 @@ void NodeViewConstraint::apply(float _dt) {
                 newPos.y += settings->ui_node_spacing + slave->getSize().y;
 
                 // apply
-                slave->addForceToTranslateTo(newPos + m_offset, _dt * settings->ui_node_speed);
+                slave->addForceToTranslateTo(newPos + m_offset, settings->ui_node_speed);
                 break;
             }
         }
