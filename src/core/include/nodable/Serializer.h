@@ -18,6 +18,7 @@ namespace Nodable
     class CodeBlockNode;
     class ScopedCodeBlockNode;
     class InstructionNode;
+    class ForLoopNode;
 
     class Serializer
     {
@@ -36,6 +37,7 @@ namespace Nodable
         virtual std::string& serialize(std::string &_result, const CodeBlockNode*) const;
         virtual std::string& serialize(std::string &_result, const InstructionNode*)const;
         virtual std::string& serialize(std::string &_result, const ScopedCodeBlockNode*)const;
+        virtual std::string& serialize(std::string& _result, const ForLoopNode* _for_loop)const;
         virtual std::string& serialize(std::string &_result, const ConditionalStructNode*) const;
         virtual std::string& serialize(std::string &_result, const Variant* variant) const;
     protected:

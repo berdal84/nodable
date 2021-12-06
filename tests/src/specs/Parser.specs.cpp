@@ -8,6 +8,7 @@
 #include <nodable/VariableNode.h>
 #include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/HeadlessNodeFactory.h>
+#include <nodable/Log.h>
 
 using namespace Nodable;
 
@@ -21,7 +22,7 @@ T ParseAndEvalExpression(const std::string& expression)
     GraphNode graph(lang, &factory );
 
     // act
-    lang->getParser()->expressionToGraph(expression, &graph);
+    lang->getParser()->expression_to_graph(expression, &graph);
 
     T result{};
     if ( auto program = graph.getProgram())
@@ -51,7 +52,7 @@ std::string& ParseUpdateSerialize( std::string& result, const std::string& expre
     GraphNode graph(lang, &factory );
 
     // act
-    lang->getParser()->expressionToGraph(expression, &graph);
+    lang->getParser()->expression_to_graph(expression, &graph);
     if ( ScopedCodeBlockNode* program = graph.getProgram())
     {
         Runner runner;
@@ -82,28 +83,6 @@ void ParseEvalSerializeExpressions(const std::vector<std::string>& expressions)
         ParseUpdateSerialize(result_expr, original_expr);
         EXPECT_EQ( result_expr, original_expr);
     }
-}
-
-TEST(Parser, Semantic_token_type_to_type)
-{
-    const Language* lang = LanguageFactory::GetNodable();
-    auto semantic = lang->getSemantic();
-
-    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordAny), Type_Any );
-    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordBoolean), Type_Boolean );
-    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordDouble), Type_Double );
-    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordString), Type_String );
-}
-
-TEST(Parser, Semantic_type_to_string)
-{
-    const Language* lang = LanguageFactory::GetNodable();
-    auto semantic = lang->getSemantic();
-
-    EXPECT_EQ( semantic->type_to_string(Type_Boolean), "bool" );
-    EXPECT_EQ( semantic->type_to_string(Type_Double), "double" );
-    EXPECT_EQ( semantic->type_to_string(Type_String), "string" );
-    EXPECT_EQ( semantic->type_to_string(Type_Any), "any" );
 }
 
 TEST(Parser, Atomic_expressions)
@@ -332,5 +311,15 @@ TEST(Parser, Conditional_Structures_IF_ELSE_IF )
             "   message= \"Bob and Alice are equals.\";"
             "}";
 
+    ParseEvalSerializeExpressions({program});
+}
+
+TEST(Parser, For_loop)
+{
+    std::string program =
+            "double i;"
+            "for(i=0;i<10;i=i+1){"
+            "   score= score*2;"
+            "}";
     ParseEvalSerializeExpressions({program});
 }

@@ -106,7 +106,7 @@ bool File::evaluateExpression(std::string& _expression)
         graphView->clear_child_view_constraints();
     }
 
-    if (parser->expressionToGraph(_expression, m_graph) && m_graph->hasProgram() )
+    if (parser->expression_to_graph(_expression, m_graph) && m_graph->hasProgram() )
     {
         m_onExpressionParsedIntoGraph.emit(m_graph->getProgram() );
         return true;

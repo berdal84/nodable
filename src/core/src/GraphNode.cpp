@@ -524,6 +524,13 @@ ConditionalStructNode *GraphNode::newConditionalStructure()
     return condStructNode;
 }
 
+ForLoopNode* GraphNode::new_for_loop_node()
+{
+    ForLoopNode* for_loop = m_factory->new_for_loop_node();
+    registerNode(for_loop);
+    return for_loop;
+}
+
 ScopedCodeBlockNode *GraphNode::newProgram()
 {
     clear();

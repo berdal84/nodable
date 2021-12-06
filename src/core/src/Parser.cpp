@@ -18,44 +18,44 @@
 
 using namespace Nodable;
 
-void Parser::rollbackTransaction()
+void Parser::rollback_transaction()
 {
-    tokenRibbon.rollbackTransaction();
+    m_token_ribbon.rollbackTransaction();
 }
 
-void Parser::startTransaction()
+void Parser::start_transaction()
 {
-    tokenRibbon.startTransaction();
+    m_token_ribbon.startTransaction();
 }
 
-void Parser::commitTransaction()
+void Parser::commit_transaction()
 {
-    tokenRibbon.commitTransaction();
+    m_token_ribbon.commitTransaction();
 }
 
-bool Parser::expressionToGraph(const std::string& _code,
-                               GraphNode* _graphNode )
+bool Parser::expression_to_graph(const std::string &_code,
+                                 GraphNode *_graphNode)
 {
-    graph = _graphNode;
-    tokenRibbon.clear();
+    m_graph = _graphNode;
+    m_token_ribbon.clear();
 
     LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", _code.c_str() )
 
     std::istringstream iss(_code);
     std::string line;
     std::string eol;
-    language->getSerializer()->serialize(eol, TokenType_EndOfLine);
+    m_language->getSerializer()->serialize(eol, TokenType_EndOfLine);
 
     size_t lineCount = 0;
     while (std::getline(iss, line, eol[0] ))
     {
-        if ( lineCount != 0 && !tokenRibbon.tokens.empty() )
+        if ( lineCount != 0 && !m_token_ribbon.tokens.empty() )
         {
-            Token* lastToken = &tokenRibbon.tokens.back();
+            Token* lastToken = &m_token_ribbon.tokens.back();
             lastToken->m_suffix.append(eol);
         }
 
-        if (!tokenizeExpressionString(line))
+        if (!tokenize_string(line))
         {
             LOG_WARNING("Parser", "Unable to parse code due to unrecognized tokens.\n")
             return false;
@@ -64,19 +64,19 @@ bool Parser::expressionToGraph(const std::string& _code,
         lineCount++;
     }
 
-	if (tokenRibbon.empty() )
+	if (m_token_ribbon.empty() )
     {
         LOG_MESSAGE("Parser", "Empty code. Nothing to evaluate.\n")
         return false;
     }
 
-	if (!isSyntaxValid())
+	if (!is_syntax_valid())
 	{
 		LOG_WARNING("Parser", "Unable to parse code due to syntax error.\n")
 		return false;
 	}
 
-	CodeBlockNode* program = parseProgram();
+	CodeBlockNode* program = parse_program();
 
 	if (program == nullptr)
 	{
@@ -84,15 +84,15 @@ bool Parser::expressionToGraph(const std::string& _code,
 		return false;
 	}
 
-    if ( tokenRibbon.canEat() )
+    if ( m_token_ribbon.canEat() )
     {
-        graph->clear();
+        m_graph->clear();
         LOG_ERROR("Parser", "Unable to evaluate the full expression.\n")
         return false;
     }
 
     // We unset dirty, since we did a lot of connections but we don't want any update now
-    auto& nodes = graph->getNodeRegistry();
+    auto& nodes = m_graph->getNodeRegistry();
     for(auto eachNode : nodes )
         eachNode->setDirty(false);
 
@@ -101,12 +101,12 @@ bool Parser::expressionToGraph(const std::string& _code,
 	return true;
 }
 
-Type Parser::getTokenLiteralType(const Nodable::Token *_token) const
+Type Parser::get_literal_type(const Nodable::Token *_token) const
 {
     Type type = Type_Unknown;
 
-    const std::vector<std::regex> regex            = language->getSemantic()->get_type_regex();
-    const std::vector<Type>       regex_id_to_type = language->getSemantic()->get_type_regex_index_to_type();
+    const std::vector<std::regex> regex            = m_language->getSemantic()->get_type_regex();
+    const std::vector<Type>       regex_id_to_type = m_language->getSemantic()->get_type_regex_index_to_type();
 
     auto each_regex_it = regex.cbegin();
     while( each_regex_it != regex.cend() && type == Type_Unknown )
@@ -127,12 +127,12 @@ Type Parser::getTokenLiteralType(const Nodable::Token *_token) const
     return type;
 }
 
-bool Parser::parseBool(const std::string& _str)
+bool Parser::parse_bool(const std::string &_str)
 {
     return _str == std::string("true");
 }
 
-std::string Parser::parseString(const std::string& _str)
+std::string Parser::parse_string(const std::string &_str)
 {
     NODABLE_ASSERT(_str.size() >= 2);
     NODABLE_ASSERT(_str[0] == '\"');
@@ -140,12 +140,12 @@ std::string Parser::parseString(const std::string& _str)
     return std::string(++_str.cbegin(), --_str.cend());
 }
 
-double Parser::parseDouble(const std::string& _str)
+double Parser::parse_double(const std::string &_str)
 {
     return stod(_str);
 }
 
-Member* Parser::tokenToMember(Token* _token)
+Member* Parser::token_to_member(Token *_token)
 {
 	Member* result = nullptr;
 
@@ -154,13 +154,13 @@ Member* Parser::tokenToMember(Token* _token)
 
 	    case TokenType_Literal:
         {
-            Type type = getTokenLiteralType(_token);
-            LiteralNode* literal = graph->newLiteral(type);
+            Type type = get_literal_type(_token);
+            LiteralNode* literal = m_graph->newLiteral(type);
 
             switch ( type ) {
-                case Type_String: literal->set_value( parseString(_token->m_word) ); break;
-                case Type_Double: literal->set_value( parseDouble(_token->m_word) ); break;
-                case Type_Boolean: literal->set_value( parseBool(_token->m_word)  ); break;
+                case Type_String: literal->set_value(parse_string(_token->m_word) ); break;
+                case Type_Double: literal->set_value(parse_double(_token->m_word) ); break;
+                case Type_Boolean: literal->set_value(parse_bool(_token->m_word)  ); break;
                 default: {}
             }
 
@@ -171,11 +171,11 @@ Member* Parser::tokenToMember(Token* _token)
 
 		case TokenType_Identifier:
 		{
-			VariableNode* variable = graph->findVariable(_token->m_word);
+			VariableNode* variable = m_graph->findVariable(_token->m_word);
 
 			if (variable == nullptr) {
                 LOG_WARNING("Parser", "Unable to find declaration for %s \n", _token->m_word.c_str())
-                variable = graph->newVariable(Type_Any, _token->m_word, getCurrentScope() );
+                variable = m_graph->newVariable(Type_Any, _token->m_word, get_current_scope() );
                 variable->value()->setSourceToken(_token);
             }
 
@@ -191,24 +191,24 @@ Member* Parser::tokenToMember(Token* _token)
 	return result;
 }
 
-Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Member* _left) {
+Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Member *_left) {
 
     assert(_left != nullptr);
 
     LOG_VERBOSE("Parser", "parse binary operation expr...\n")
-    LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str())
+    LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
 
 	Member* result = nullptr;
 
-	if ( !tokenRibbon.canEat(2))
+	if ( !m_token_ribbon.canEat(2))
 	{
 		LOG_VERBOSE("Parser", "parse binary operation expr...... " KO " (not enought tokens)\n")
 		return nullptr;
 	}
 
-	startTransaction();
-	Token* operatorToken = tokenRibbon.eatToken();
-	const Token* token2 = tokenRibbon.peekToken();
+    start_transaction();
+	Token* operatorToken = m_token_ribbon.eatToken();
+	const Token* token2 = m_token_ribbon.peekToken();
 
 	// Structure check
 	const bool isValid = _left != nullptr &&
@@ -217,48 +217,48 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
 
 	if (!isValid)
 	{
-	    rollbackTransaction();
+        rollback_transaction();
 		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Structure)\n")
 		return nullptr;
 	}
 
 	// Precedence check
-	const auto currentOperatorPrecedence = language->findOperator(operatorToken->m_word)->get_precedence();
+	const auto currentOperatorPrecedence = m_language->findOperator(operatorToken->m_word)->get_precedence();
 
 	if (currentOperatorPrecedence <= _precedence &&
 	    _precedence > 0u) { // always update the first operation if they have the same precedence or less.
 		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n")
-		rollbackTransaction();
+        rollback_transaction();
 		return nullptr;
 	}
 
 
 	// Parse right expression
-	auto right = parseExpression(currentOperatorPrecedence, nullptr );
+	auto right = parse_expression(currentOperatorPrecedence, nullptr);
 
 	if (!right)
 	{
 		LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (right expression is nullptr)\n")
-		rollbackTransaction();
+        rollback_transaction();
 		return nullptr;
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const FunctionSignature* signature = language->createBinOperatorSignature(Type_Any, operatorToken->m_word, _left->getType(), right->getType());
-	auto matchingOperator = language->findOperator(signature);
+	const FunctionSignature* signature = m_language->createBinOperatorSignature(Type_Any, operatorToken->m_word, _left->getType(), right->getType());
+	auto matchingOperator = m_language->findOperator(signature);
     delete signature;
 
 	if ( matchingOperator != nullptr )
 	{
-		auto binOpNode = graph->newBinOp(matchingOperator);
+		auto binOpNode = m_graph->newBinOp(matchingOperator);
         auto computeComponent = binOpNode->getComponent<InvokableComponent>();
         computeComponent->set_source_token(operatorToken);
 
-        graph->connect(_left, computeComponent->get_l_handed_val());
-        graph->connect(right, computeComponent->get_r_handed_val());
+        m_graph->connect(_left, computeComponent->get_l_handed_val());
+        m_graph->connect(right, computeComponent->get_r_handed_val());
 		result = binOpNode->getProps()->get("result");
 
-        commitTransaction();
+        commit_transaction();
         LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
 
         return result;
@@ -266,259 +266,263 @@ Member* Parser::parseBinaryOperationExpression(unsigned short _precedence, Membe
     else
     {
         LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator prototype)\n")
-        rollbackTransaction();
+        rollback_transaction();
         return nullptr;
     }
 }
 
-Member* Parser::parseUnaryOperationExpression(unsigned short _precedence)
+Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 {
 	LOG_VERBOSE("Parser", "parseUnaryOperationExpression...\n")
-	LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str())
+	LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
 
-	if (!tokenRibbon.canEat(2) )
+	if (!m_token_ribbon.canEat(2) )
 	{
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (not enough tokens)\n")
 		return nullptr;
 	}
 
-	startTransaction();
-	Token* operatorToken = tokenRibbon.eatToken();
+    start_transaction();
+	Token* operatorToken = m_token_ribbon.eatToken();
 
 	// Check if we get an operator first
 	if (operatorToken->m_type != TokenType_Operator)
 	{
-	    rollbackTransaction();
+        rollback_transaction();
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n")
 		return nullptr;
 	}
 
 	// Parse expression after the operator
-	Member* value = parseAtomicExpression();
+	Member* value = parse_atomic_expression();
 
   if ( value == nullptr )
   {
-    value = parseParenthesisExpression();
+    value = parse_parenthesis_expression();
   }
 
   if ( value == nullptr )
   {
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n")
-		rollbackTransaction();
+      rollback_transaction();
 		return nullptr;
 	}
 
 	// Create a function signature
-	auto signature = language->createUnaryOperatorSignature(Type_Any, operatorToken->m_word, value->getType() );
-	auto matchingOperator = language->findOperator(signature);
+	auto signature = m_language->createUnaryOperatorSignature(Type_Any, operatorToken->m_word, value->getType() );
+	auto matchingOperator = m_language->findOperator(signature);
 
 	if (matchingOperator != nullptr)
 	{
-		auto unaryOpNode = graph->newUnaryOp(matchingOperator);
+		auto unaryOpNode = m_graph->newUnaryOp(matchingOperator);
         auto computeComponent = unaryOpNode->getComponent<InvokableComponent>();
         computeComponent->set_source_token(operatorToken);
 
-        graph->connect(value, computeComponent->get_l_handed_val());
+        m_graph->connect(value, computeComponent->get_l_handed_val());
         Member* result = unaryOpNode->getProps()->get("result");
 
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
-        commitTransaction();
+        commit_transaction();
 
 		return result;
 	}
 	else
 	{
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (unrecognysed operator)\n")
-		rollbackTransaction();
+        rollback_transaction();
 		return nullptr;
 	}
 }
 
-Member* Parser::parseAtomicExpression()
+Member* Parser::parse_atomic_expression()
 {
 	LOG_VERBOSE("Parser", "parse atomic expr... \n")
 
-	if ( !tokenRibbon.canEat() )
+	if ( !m_token_ribbon.canEat() )
 	{
 		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(not enough tokens)\n")
 		return nullptr;
 	}
 
-	startTransaction();
-	Token* token = tokenRibbon.eatToken();
+    start_transaction();
+	Token* token = m_token_ribbon.eatToken();
 	if (token->m_type == TokenType_Operator)
 	{
 		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n")
-		rollbackTransaction();
+        rollback_transaction();
 		return nullptr;
 	}
 
-	auto result = tokenToMember(token);
+	auto result = token_to_member(token);
 	if( result != nullptr)
     {
-	    commitTransaction();
+        commit_transaction();
         LOG_VERBOSE("Parser", "parse atomic expr... " OK "\n")
     }
 	else
     {
-        rollbackTransaction();
+        rollback_transaction();
         LOG_VERBOSE("Parser", "parse atomic expr... " KO " (result is nullptr)\n")
 	}
 
 	return result;
 }
 
-Member* Parser::parseParenthesisExpression()
+Member* Parser::parse_parenthesis_expression()
 {
 	LOG_VERBOSE("Parser", "parse parenthesis expr...\n")
-	LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str())
+	LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
 
-	if ( !tokenRibbon.canEat() )
+	if ( !m_token_ribbon.canEat() )
 	{
 		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " no enough tokens.\n")
 		return nullptr;
 	}
 
-	startTransaction();
-	const Token* currentToken = tokenRibbon.eatToken();
+    start_transaction();
+	const Token* currentToken = m_token_ribbon.eatToken();
 	if (currentToken->m_type != TokenType_OpenBracket)
 	{
 		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n")
-		rollbackTransaction();
+        rollback_transaction();
 		return nullptr;
 	}
 
-    Member* result = parseExpression();
+    Member* result = parse_expression();
 	if (result)
 	{
-        const Token* token = tokenRibbon.eatToken();
+        const Token* token = m_token_ribbon.eatToken();
 		if (token->m_type != TokenType_CloseBracket )
 		{
-			LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str())
+			LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
 			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->m_word.c_str() )
-            rollbackTransaction();
+            rollback_transaction();
 		}
 		else
         {
 			LOG_VERBOSE("Parser", "parse parenthesis expr..." OK  "\n")
-            commitTransaction();
+            commit_transaction();
 		}
 	}
 	else
     {
         LOG_VERBOSE("Parser", "parse parenthesis expr..." KO ", expression in parenthesis is nullptr.\n")
-	    rollbackTransaction();
+        rollback_transaction();
 	}
 	return result;
 }
 
-InstructionNode* Parser::parseInstruction()
+InstructionNode* Parser::parse_instruction()
 {
-    startTransaction();
+    start_transaction();
 
-    Member* parsedExpression = parseExpression();
+    Member* parsedExpression = parse_expression();
 
     if ( parsedExpression == nullptr )
     {
        LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n")
-       rollbackTransaction();
+        rollback_transaction();
        return nullptr;
     }
 
-    auto instruction = graph->newInstruction();
+    auto instruction = m_graph->newInstruction();
 
-    if ( tokenRibbon.canEat() )
+    if ( m_token_ribbon.canEat() )
     {
-        Token* expectedEOI = tokenRibbon.eatToken(TokenType_EndOfInstruction);
+        Token* expectedEOI = m_token_ribbon.eatToken(TokenType_EndOfInstruction);
         if ( expectedEOI )
         {
             instruction->setEndOfInstrToken( expectedEOI );
         }
-        else
+        else if( m_token_ribbon.peekToken()->m_type != TokenType_CloseBracket )
         {
             LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n")
-            rollbackTransaction();
+            rollback_transaction();
             return nullptr;
         }
     }
 
-    graph->connect(parsedExpression, instruction);
+    m_graph->connect(parsedExpression, instruction);
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n")
-    commitTransaction();
+    commit_transaction();
     return instruction;
 }
 
-CodeBlockNode* Parser::parseProgram()
+CodeBlockNode* Parser::parse_program()
 {
-    startTransaction();
-    ScopedCodeBlockNode* scope = graph->newProgram();
-    if(CodeBlockNode* block = parseCodeBlock())
+    start_transaction();
+    ScopedCodeBlockNode* scope = m_graph->newProgram();
+    if(CodeBlockNode* block = parse_code_block())
     {
-        graph->connect(block, scope, RelationType::IS_CHILD_OF);
-        commitTransaction();
+        m_graph->connect(block, scope, RelationType::IS_CHILD_OF);
+        commit_transaction();
         return block;
     }
     else
     {
-        graph->clear();
-        rollbackTransaction();
+        m_graph->clear();
+        rollback_transaction();
         return nullptr;
     }
 }
 
-ScopedCodeBlockNode* Parser::parseScope()
+ScopedCodeBlockNode* Parser::parse_scope()
 {
-    startTransaction();
+    start_transaction();
 
-    if ( !tokenRibbon.eatToken(TokenType_BeginScope))
+    if ( !m_token_ribbon.eatToken(TokenType_BeginScope))
     {
-        rollbackTransaction();
+        rollback_transaction();
         return nullptr;
     }
 
-    auto scope = graph->newScopedCodeBlock();
-    scope->set_begin_scope_token(tokenRibbon.getEaten());
+    auto scope = m_graph->newScopedCodeBlock();
+    scope->set_begin_scope_token(m_token_ribbon.getEaten());
 
-    if ( auto block = parseCodeBlock() )
+    if ( auto block = parse_code_block() )
     {
-        graph->connect(block, scope, RelationType::IS_CHILD_OF);
+        m_graph->connect(block, scope, RelationType::IS_CHILD_OF);
     }
 
-    if ( !tokenRibbon.eatToken(TokenType_EndScope))
+    if ( !m_token_ribbon.eatToken(TokenType_EndScope))
     {
-        graph->deleteNode(scope);
-        rollbackTransaction();
+        m_graph->deleteNode(scope);
+        rollback_transaction();
         return nullptr;
     }
-    scope->set_end_Scope_token(tokenRibbon.getEaten());
+    scope->set_end_Scope_token(m_token_ribbon.getEaten());
 
-    commitTransaction();
+    commit_transaction();
     return scope;
 }
 
-CodeBlockNode* Parser::parseCodeBlock()
+CodeBlockNode* Parser::parse_code_block()
 {
-    startTransaction();
+    start_transaction();
 
-    auto block = graph->newCodeBlock();
+    auto block = m_graph->newCodeBlock();
 
     bool stop = false;
 
 //    Node* previous = block;
-    while(tokenRibbon.canEat() && !stop )
+    while(m_token_ribbon.canEat() && !stop )
     {
-        if ( InstructionNode* instruction = parseInstruction() )
+        if ( InstructionNode* instruction = parse_instruction() )
         {
-            graph->connect(instruction, block, RelationType::IS_CHILD_OF);
+            m_graph->connect(instruction, block, RelationType::IS_CHILD_OF);
         }
-        else if ( ScopedCodeBlockNode* scope = parseScope() )
+        else if ( ScopedCodeBlockNode* scope = parse_scope() )
         {
-            graph->connect(scope, block, RelationType::IS_CHILD_OF);
+            m_graph->connect(scope, block, RelationType::IS_CHILD_OF);
         }
-        else if ( ConditionalStructNode* condStruct = parseConditionalStructure() )
+        else if ( ConditionalStructNode* condStruct = parse_conditional_structure() )
         {
-            graph->connect(condStruct, block, RelationType::IS_CHILD_OF);
+            m_graph->connect(condStruct, block, RelationType::IS_CHILD_OF);
+        }
+        else if ( ForLoopNode* for_loop = parse_for_loop() )
+        {
+            m_graph->connect(for_loop, block, RelationType::IS_CHILD_OF);
         }
         else
         {
@@ -528,23 +532,23 @@ CodeBlockNode* Parser::parseCodeBlock()
 
     if (block->get_children().empty() )
     {
-        graph->deleteNode(block);
-        rollbackTransaction();
+        m_graph->deleteNode(block);
+        rollback_transaction();
         return nullptr;
     }
     else
     {
-        commitTransaction();
+        commit_transaction();
         return block;
     }
 }
 
-Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverride)
+Member* Parser::parse_expression(unsigned short _precedence, Member *_leftOverride)
 {
 	LOG_VERBOSE("Parser", "parse expr...\n")
-	LOG_VERBOSE("Parser", "%s \n", tokenRibbon.toString().c_str())
+	LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
 
-	if ( !tokenRibbon.canEat() )
+	if ( !m_token_ribbon.canEat() )
 	{
 		LOG_VERBOSE("Parser", "parse expr..." KO " (unable to eat a single token)\n")
         return _leftOverride;
@@ -554,13 +558,13 @@ Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverrid
 		Get the left handed operand
 	*/
 	Member* left = _leftOverride;
-  if ( left == nullptr ) left = parseParenthesisExpression();
-  if ( left == nullptr ) left = parseUnaryOperationExpression(_precedence);
-  if ( left == nullptr ) left = parseFunctionCall();
-  if ( left == nullptr ) left = parseVariableDecl();
-  if ( left == nullptr ) left = parseAtomicExpression();
+  if ( left == nullptr ) left = parse_parenthesis_expression();
+  if ( left == nullptr ) left = parse_unary_operator_expression(_precedence);
+  if ( left == nullptr ) left = parse_function_call();
+  if ( left == nullptr ) left = parse_variable_declaration();
+  if ( left == nullptr ) left = parse_atomic_expression();
 
-	if ( !tokenRibbon.canEat() )
+	if ( !m_token_ribbon.canEat() )
 	{
 		LOG_VERBOSE("Parser", "parse expr... " OK " (last token reached)\n")
 	}
@@ -573,12 +577,12 @@ Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverrid
 	if ( left )
 	{
 		LOG_VERBOSE("Parser", "parse expr... left parsed, we parse right\n")
-		auto binResult = parseBinaryOperationExpression(_precedence, left);
+		auto binResult = parse_binary_operator_expression(_precedence, left);
 
 		if (binResult)
 		{
 			LOG_VERBOSE("Parser", "parse expr... right parsed, recursive call\n")
-			result = parseExpression(_precedence, binResult);
+			result = parse_expression(_precedence, binResult);
 		}
 		else
         {
@@ -595,15 +599,15 @@ Member* Parser::parseExpression(unsigned short _precedence, Member* _leftOverrid
 	return result;
 }
 
-bool Parser::isSyntaxValid()
+bool Parser::is_syntax_valid()
 {
     // TODO: optimization: is this function really useful ? It check only few things.
     //                     The parsing steps that follow (parseProgram) is doing a better check, by looking to what exist in the Language.
 	bool success   = true;
-	auto currTokIt = tokenRibbon.tokens.begin();
+	auto currTokIt = m_token_ribbon.tokens.begin();
 	short int openedParenthesisCount = 0;
 
-	while(currTokIt != tokenRibbon.tokens.end() && success)
+	while(currTokIt != m_token_ribbon.tokens.end() && success)
 	{
 		switch (currTokIt->m_type)
 		{
@@ -640,14 +644,14 @@ bool Parser::isSyntaxValid()
 	return success;
 }
 
-bool Parser::tokenizeExpressionString(const std::string& _expression)
+bool Parser::tokenize_string(const std::string &_expression)
 {
     /* get expression chars */
     auto chars = _expression;
 
     /* shortcuts to language members */
-    const std::vector<std::regex> regex           = language->getSemantic()->get_token_type_regex();
-    const std::vector<TokenType> regexIdToTokType = language->getSemantic()->get_token_type_regex_index_to_token_type();
+    const std::vector<std::regex> regex           = m_language->getSemantic()->get_token_type_regex();
+    const std::vector<TokenType> regexIdToTokType = m_language->getSemantic()->get_token_type_regex_index_to_token_type();
 
     std::string prefix;
 
@@ -668,7 +672,7 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
 
                 if (matchedTokenType != TokenType_Ignore)
                 {
-                    Token* newToken = tokenRibbon.push(matchedTokenType, matchedTokenString, std::distance(chars.cbegin(), it));
+                    Token* newToken = m_token_ribbon.push(matchedTokenType, matchedTokenString, std::distance(chars.cbegin(), it));
                     LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matchedTokenString.c_str() )
 
                     // If a we have so prefix tokens we copy them to the newToken prefixes.
@@ -679,9 +683,9 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
                     }
 
                 }
-                else if ( !tokenRibbon.empty()  )
+                else if ( !m_token_ribbon.empty()  )
                 {
-                    Token& lastToken = tokenRibbon.tokens.back();
+                    Token& lastToken = m_token_ribbon.tokens.back();
                     lastToken.m_suffix.append(matchedTokenString);
                     LOG_VERBOSE("Parser", "append ignored <word>%s</word> to <word>%s</word>\n", matchedTokenString.c_str(), lastToken.m_word.c_str() )
                 }
@@ -713,23 +717,23 @@ bool Parser::tokenizeExpressionString(const std::string& _expression)
 
 }
 
-Member* Parser::parseFunctionCall()
+Member* Parser::parse_function_call()
 {
     LOG_VERBOSE("Parser", "parse function call...\n")
 
     // Check if the minimum token count required is available ( 0: identifier, 1: open parenthesis, 2: close parenthesis)
-    if (!tokenRibbon.canEat(3))
+    if (!m_token_ribbon.canEat(3))
     {
         LOG_VERBOSE("Parser", "parse function call... " KO " aborted, not enough tokens.\n")
         return nullptr;
     }
 
-    startTransaction();
+    start_transaction();
 
     // Try to parse regular function: function(...)
     std::string identifier;
-    const Token* token_0 = tokenRibbon.eatToken();
-    const Token* token_1 = tokenRibbon.eatToken();
+    const Token* token_0 = m_token_ribbon.eatToken();
+    const Token* token_1 = m_token_ribbon.eatToken();
     if (token_0->m_type == TokenType_Identifier &&
         token_1->m_type == TokenType_OpenBracket)
     {
@@ -738,9 +742,9 @@ Member* Parser::parseFunctionCall()
     }
     else // Try to parse operator like (ex: operator==(..,..))
     {
-        const Token* token_2 = tokenRibbon.eatToken(); // eat a "supposed open bracket>
+        const Token* token_2 = m_token_ribbon.eatToken(); // eat a "supposed open bracket>
 
-        if (token_0->m_type == TokenType_Identifier && token_0->m_word == language->getSemantic()
+        if (token_0->m_type == TokenType_Identifier && token_0->m_word == m_language->getSemantic()
                                                                                   ->token_type_to_string(
                                                                                           TokenType_KeywordOperator /* TODO: TokenType_Keyword + word="operator" */) &&
             token_1->m_type == TokenType_Operator &&
@@ -753,7 +757,7 @@ Member* Parser::parseFunctionCall()
         else
         {
             LOG_VERBOSE("Parser", "parse function call... " KO " abort, this is not a function.\n")
-            rollbackTransaction();
+            rollback_transaction();
             return nullptr;
         }
     }
@@ -763,14 +767,14 @@ Member* Parser::parseFunctionCall()
     FunctionSignature signature(identifier, Type_Any);
 
     bool parsingError = false;
-    while (!parsingError && tokenRibbon.canEat() && tokenRibbon.peekToken()->m_type != TokenType_CloseBracket)
+    while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != TokenType_CloseBracket)
     {
 
-        if (auto member = parseExpression())
+        if (auto member = parse_expression())
         {
             args.push_back(member); // store argument as member (already parsed)
             signature.push_arg(member->getType());  // add a new argument type to the proto.
-            tokenRibbon.eatToken(TokenType_Separator);
+            m_token_ribbon.eatToken(TokenType_Separator);
         }
         else
         {
@@ -779,20 +783,20 @@ Member* Parser::parseFunctionCall()
     }
 
     // eat "close bracket supposed" token
-    if ( !tokenRibbon.eatToken(TokenType_CloseBracket) )
+    if ( !m_token_ribbon.eatToken(TokenType_CloseBracket) )
     {
         LOG_ERROR("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
-        rollbackTransaction();
+        rollback_transaction();
         return nullptr;
     }
 
 
     // Find the prototype in the language library
-    auto fct = language->findFunction(&signature);
+    auto fct = m_language->findFunction(&signature);
 
     if (fct != nullptr)
     {
-        auto node = graph->newFunction(fct);
+        auto node = m_graph->newFunction(fct);
 
         auto connectArg = [&](size_t _argIndex) -> void
         { // lambda to connect input member to node for a specific argument index.
@@ -804,7 +808,7 @@ Member* Parser::parseFunctionCall()
                     .at(_argIndex)
                     .m_name;
 
-            graph->connect(arg, node->getProps()->get(memberName.c_str()));
+            m_graph->connect(arg, node->getProps()->get(memberName.c_str()));
         };
 
         for (size_t argIndex = 0; argIndex < fct->get_signature()->get_arg_count(); argIndex++)
@@ -812,7 +816,7 @@ Member* Parser::parseFunctionCall()
             connectArg(argIndex);
         }
 
-        commitTransaction();
+        commit_transaction();
         LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
         return node->getProps()->get("result");
@@ -820,62 +824,63 @@ Member* Parser::parseFunctionCall()
     }
 
     std::string signature_str;
-    language->getSerializer()->serialize(signature_str, &signature);
+    m_language->getSerializer()->serialize(signature_str, &signature);
     LOG_ERROR("Parser", "parse function call... " KO " abort, reason: %s not found.\n", signature_str.c_str() )
-    rollbackTransaction();
+    rollback_transaction();
     return nullptr;
 }
 
-ScopedCodeBlockNode *Parser::getCurrentScope()
+ScopedCodeBlockNode *Parser::get_current_scope()
 {
     // TODO: implement. For now return only the global scope
-    return graph->getProgram();
+    return m_graph->getProgram();
 }
 
-ConditionalStructNode * Parser::parseConditionalStructure()
+ConditionalStructNode * Parser::parse_conditional_structure()
 {
     LOG_VERBOSE("Parser", "try to parse conditional structure...\n")
-    startTransaction();
+    start_transaction();
 
-    auto condStruct = graph->newConditionalStructure();
+    auto condStruct = m_graph->newConditionalStructure();
 
-    if ( tokenRibbon.eatToken(TokenType_KeywordIf))
+    if ( m_token_ribbon.eatToken(TokenType_KeywordIf))
     {
-        condStruct->set_token_if(tokenRibbon.getEaten());
+        condStruct->set_token_if(m_token_ribbon.getEaten());
 
-        auto condition = parseParenthesisExpression();
+        auto condition = parse_parenthesis_expression();
 
         if ( condition)
         {
-            graph->connect(condition, condStruct->get_condition() );
-            if ( ScopedCodeBlockNode* scopeIf = parseScope() )
+            m_graph->connect(condition, condStruct->get_condition() );
+            if ( ScopedCodeBlockNode* scopeIf = parse_scope() )
             {
-                graph->connect(scopeIf, condStruct, RelationType::IS_CHILD_OF);
+                m_graph->connect(scopeIf, condStruct, RelationType::IS_CHILD_OF);
 
-                if ( tokenRibbon.eatToken(TokenType_KeywordElse))
+                if ( m_token_ribbon.eatToken(TokenType_KeywordElse))
                 {
-                    condStruct->set_token_else(tokenRibbon.getEaten());
+                    condStruct->set_token_else(m_token_ribbon.getEaten());
 
-                    if ( ScopedCodeBlockNode* scopeElse = parseScope() )
+                    if ( ScopedCodeBlockNode* scopeElse = parse_scope() )
                     {
-                        graph->connect(scopeElse, condStruct, RelationType::IS_CHILD_OF);
-                        commitTransaction();
+                        m_graph->connect(scopeElse, condStruct, RelationType::IS_CHILD_OF);
+                        commit_transaction();
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
                         return condStruct;
                     }
-                    else if ( ConditionalStructNode* elseIfCondStruct = parseConditionalStructure() )
+
+                    if ( ConditionalStructNode* elseIfCondStruct = parse_conditional_structure() )
                     {
-						graph->connect(elseIfCondStruct, condStruct, RelationType::IS_CHILD_OF);
-						commitTransaction();
+						m_graph->connect(elseIfCondStruct, condStruct, RelationType::IS_CHILD_OF);
+                        commit_transaction();
 						LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
 						return condStruct;
                     }
 
                     LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
-                    graph->deleteNode(scopeIf);
+                    m_graph->deleteNode(scopeIf);
 
                 } else {
-                    commitTransaction();
+                    commit_transaction();
                     LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n")
                     return condStruct;
                 }
@@ -887,54 +892,145 @@ ConditionalStructNode * Parser::parseConditionalStructure()
         }
     }
 
-    graph->deleteNode(condStruct);
-    rollbackTransaction();
+    m_graph->deleteNode(condStruct);
+    rollback_transaction();
     return nullptr;
 }
 
-Member *Parser::parseVariableDecl()
+ForLoopNode* Parser::parse_for_loop()
+{
+    start_transaction();
+
+    Token* token_for = m_token_ribbon.eatToken(TokenType_KeywordFor);
+
+    if( token_for != nullptr )
+    {
+        LOG_VERBOSE("Parser", "parse FOR (...) block...\n")
+        Token* open_bracket = m_token_ribbon.eatToken(TokenType_OpenBracket);
+        if( !open_bracket )
+        {
+            LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
+            rollback_transaction();
+            return nullptr;
+        }
+
+        Member* init_instr = parse_expression();
+        if ( !init_instr )
+        {
+            LOG_ERROR("Parser", "Unable to find initial instruction.\n")
+            rollback_transaction();
+            return nullptr;
+        }
+
+        if ( !m_token_ribbon.eatToken(TokenType_EndOfInstruction) )
+        {
+            LOG_ERROR("Parser", "Unable to find end of instruction after initial instruction.\n")
+            rollback_transaction();
+            return nullptr;
+        }
+
+        Member* cond_instr = parse_expression();
+        if ( !cond_instr )
+        {
+            LOG_ERROR("Parser", "Unable to find condition instruction.\n")
+            rollback_transaction();
+            return nullptr;
+        }
+
+        if ( !m_token_ribbon.eatToken(TokenType_EndOfInstruction) )
+        {
+            LOG_ERROR("Parser", "Unable to find end of instruction after condition.\n")
+            rollback_transaction();
+            return nullptr;
+        }
+
+        Member* iter_instr = parse_expression();
+        if ( !iter_instr )
+        {
+            LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
+            rollback_transaction();
+            return nullptr;
+        }
+
+        Token* close_bracket = m_token_ribbon.eatToken(TokenType_CloseBracket);
+        if ( !close_bracket )
+        {
+            LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
+            rollback_transaction();
+            return nullptr;
+        }
+
+        ForLoopNode* for_loop_node = m_graph->new_for_loop_node();
+        for_loop_node->set_token_for( token_for );
+
+        m_graph->connect(init_instr, for_loop_node->get_init_expr() );
+        m_graph->connect(cond_instr, for_loop_node->get_condition() );
+        m_graph->connect(iter_instr, for_loop_node->get_iter_expr() );
+
+        ScopedCodeBlockNode* for_scope = parse_scope();
+        if ( !for_scope )
+        {
+            LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")
+            rollback_transaction();
+            return nullptr;
+        }
+
+        for_loop_node->addNext( for_scope );
+
+        commit_transaction();
+        return for_loop_node;
+
+    }
+    else
+    {
+        rollback_transaction();
+        return nullptr;
+    }
+}
+
+Member *Parser::parse_variable_declaration()
 {
 
-    if( !tokenRibbon.canEat(2))
+    if( !m_token_ribbon.canEat(2))
         return nullptr;
 
-    startTransaction();
+    start_transaction();
 
-    Token* typeTok = tokenRibbon.eatToken();
-    Token* identifierTok = tokenRibbon.eatToken();
+    Token* typeTok = m_token_ribbon.eatToken();
+    Token* identifierTok = m_token_ribbon.eatToken();
 
     if(Token::isType(typeTok->m_type) && identifierTok->m_type == TokenType_Identifier )
     {
-        Type type = language->getSemantic()->token_type_to_type(typeTok->m_type);
-        VariableNode* variable = graph->newVariable(type, identifierTok->m_word, this->getCurrentScope());
+        Type type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
+        VariableNode* variable = m_graph->newVariable(type, identifierTok->m_word, this->get_current_scope());
         variable->setTypeToken( typeTok );
         variable->setIdentifierToken( identifierTok );
 
-        variable->value()->setType(language->getSemantic()->token_type_to_type(typeTok->m_type));
+        variable->value()->setType(m_language->getSemantic()->token_type_to_type(typeTok->m_type));
         variable->value()->setSourceToken(identifierTok); // we also pass it to the member, this one will be modified my connections
 
         // try to parse assignment
-        auto assignmentTok = tokenRibbon.eatToken(TokenType_Operator);
+        auto assignmentTok = m_token_ribbon.eatToken(TokenType_Operator);
         if ( assignmentTok && assignmentTok->m_word == "=" )
         {
-            if( auto value = parseExpression() )
+            if( auto value = parse_expression() )
             {
-                graph->connect(value, variable->value());
+                m_graph->connect(value, variable->value());
                 variable->setAssignmentOperatorToken( assignmentTok );
             }
             else
             {
                 LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifierTok->m_word.c_str())
-                rollbackTransaction();
-                graph->deleteNode(variable);
+                rollback_transaction();
+                m_graph->deleteNode(variable);
                 return nullptr;
             }
         }
 
-        commitTransaction();
+        commit_transaction();
         return variable->value();
     }
 
-    rollbackTransaction();
+    rollback_transaction();
     return nullptr;
 }

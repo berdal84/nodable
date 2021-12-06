@@ -11,6 +11,7 @@ namespace Nodable
     class VariableNode;
     class LiteralNode;
     class ConditionalStructNode;
+    class ForLoopNode;
     class CodeBlockNode;
     class InvokableOperator;
     class Invokable;
@@ -37,6 +38,7 @@ namespace Nodable
         virtual Node*                       newFunction(const Invokable*)const = 0;
         virtual ScopedCodeBlockNode*        newScopedCodeBlock()const = 0;
         virtual ConditionalStructNode*      newConditionalStructure()const = 0;
+        virtual ForLoopNode*                new_for_loop_node()const = 0;
         virtual Node*                       newNode()const = 0;
 
     protected:

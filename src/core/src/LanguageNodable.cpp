@@ -271,6 +271,7 @@ LanguageNodable::LanguageNodable()
     // keywords
     semantic.insert("if", TokenType_KeywordIf);                        // conditional structures
     semantic.insert("else", TokenType_KeywordElse);
+    semantic.insert("for", TokenType_KeywordFor);
     semantic.insert("bool",   TokenType_KeywordBoolean, Type_Boolean); // types
     semantic.insert("string", TokenType_KeywordString,  Type_String);
     semantic.insert("double", TokenType_KeywordDouble,  Type_Double);

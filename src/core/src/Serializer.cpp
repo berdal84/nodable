@@ -8,6 +8,7 @@
 #include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
+#include <nodable/ForLoopNode.h>
 
 using namespace Nodable;
 
@@ -260,6 +261,10 @@ std::string& Serializer::serialize(std::string& _result, const CodeBlockNode* _b
             {
                  serialize( _result, eachChild->as<ConditionalStructNode>());
             }
+            else if ( clss->is<ForLoopNode>() )
+            {
+                 serialize( _result, eachChild->as<ForLoopNode>());
+            }
             else if ( clss->is<CodeBlockNode>() )
             {
                 serialize( _result, eachChild->as<CodeBlockNode>());
@@ -308,6 +313,27 @@ std::string& Serializer::serialize(std::string& _result, const Token* _token)con
     return _result;
 }
 
+std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for_loop)const
+{
+    // if ( <condition> )
+    serialize( _result, _for_loop->get_token_for() );
+    serialize( _result, TokenType_OpenBracket );
+    serialize( _result, _for_loop->get_init_expr() );
+    serialize( _result, TokenType_EndOfInstruction );
+    serialize( _result, _for_loop->get_condition() );
+    serialize( _result, TokenType_EndOfInstruction );
+    serialize( _result, _for_loop->get_iter_expr() );
+    serialize( _result, TokenType_CloseBracket );
+
+    // if scope
+    if ( auto* scope = _for_loop->get_condition_true_branch() )
+    {
+        serialize( _result, scope );
+    }
+
+    return _result;
+}
+
 std::string& Serializer::serialize(std::string& _result, const ConditionalStructNode* _condStruct)const
 {
     // if ( <condition> )
@@ -317,7 +343,7 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     serialize( _result, TokenType_CloseBracket );
 
     // if scope
-    if ( auto* ifScope = _condStruct->get_if_branch() )
+    if ( auto* ifScope = _condStruct->get_condition_true_branch() )
         serialize( _result, ifScope );
 
     // else & else scope

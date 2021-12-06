@@ -21,6 +21,7 @@ namespace Nodable {
 
         TokenType_KeywordIf,          // if
         TokenType_KeywordElse,
+        TokenType_KeywordFor,
         TokenType_KeywordString,
         TokenType_KeywordDouble,
         TokenType_KeywordBoolean,

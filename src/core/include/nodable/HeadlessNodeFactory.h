@@ -24,6 +24,7 @@ namespace Nodable
         Node*                       newFunction(const Invokable*)const override ;
         ScopedCodeBlockNode*        newScopedCodeBlock()const override ;
         ConditionalStructNode*      newConditionalStructure()const override ;
+        ForLoopNode*                new_for_loop_node()const override ;
         Node*                       newNode()const override ;
 
     private:

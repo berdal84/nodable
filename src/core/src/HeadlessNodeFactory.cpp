@@ -171,6 +171,16 @@ ConditionalStructNode* HeadlessNodeFactory::newConditionalStructure() const
     return scopeNode;
 }
 
+ForLoopNode* HeadlessNodeFactory::new_for_loop_node() const
+{
+    auto for_loop = new ForLoopNode();
+    std::string label = ICON_FA_RECYCLE " For loop";
+    for_loop->setLabel(label);
+    for_loop->setShortLabel(ICON_FA_RECYCLE" For");
+
+    return for_loop;
+}
+
 ScopedCodeBlockNode* HeadlessNodeFactory::newProgram() const
 {
     ScopedCodeBlockNode* scope = new ScopedCodeBlockNode();

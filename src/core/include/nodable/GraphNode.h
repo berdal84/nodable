@@ -74,6 +74,7 @@ namespace Nodable{
 		Node*                       newFunction(const Invokable* _proto);
         ScopedCodeBlockNode*        newScopedCodeBlock();
         ConditionalStructNode*      newConditionalStructure();
+        ForLoopNode*                new_for_loop_node();
         Node*                       newNode();
 
         /** Connects two Member using a Wire (oriented edge)

@@ -7,6 +7,7 @@
 #include <nodable/InvokableComponent.h>
 #include <nodable/Language.h>
 #include <nodable/NodeView.h>
+#include <nodable/ForLoopNode.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
@@ -89,6 +90,14 @@ ScopedCodeBlockNode* NodeFactory::newScopedCodeBlock() const
 ConditionalStructNode* NodeFactory::newConditionalStructure() const
 {
     ConditionalStructNode* node = m_headless_node_factory.newConditionalStructure();
+    AddView(node);
+
+    return node;
+}
+
+ForLoopNode* NodeFactory::new_for_loop_node() const
+{
+    ForLoopNode* node = m_headless_node_factory.new_for_loop_node();
     AddView(node);
 
     return node;
