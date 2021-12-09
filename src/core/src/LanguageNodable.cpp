@@ -69,9 +69,9 @@ double api_not(bool b)
 }
 
 template<typename T>
-T api_assign(T* a, T b)
+T api_assign(T& a, T b)
 {
-    return *a = b;
+    return a = b;
 }
 
 bool api_implies(bool a, bool b)
@@ -342,9 +342,9 @@ LanguageNodable::LanguageNodable()
     WRAP_OPERATOR(api_multiply   , "*" , 20, ICON_FA_TIMES " Multiply")
     WRAP_OPERATOR(api_not        , "!" , 5 , "! not")
     WRAP_OPERATOR(api_minus      , "-" , 5 , ICON_FA_MINUS " Minus")
-    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", string(string*, string) )
-    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", bool(bool*, bool) )
-    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", double(double*, double) )
+    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", string(string&, string) )
+    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", bool(bool&, bool) )
+    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", double(double&, double) )
     WRAP_OPERATOR(api_implies    , "=>", 10, "=> Implies")
     WRAP_OPERATOR(api_greater_or_eq, ">=", 10, ">= Greater or equal")
     WRAP_OPERATOR(api_lower_or_eq, "<=", 10, "<= Less or equal")

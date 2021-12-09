@@ -36,15 +36,18 @@ namespace Nodable {
         T conv_to()const;
 
 		// by reference
-		inline explicit operator double*()        { return &mpark::get<double>(data); }
-        inline explicit operator bool*()          { return &mpark::get<bool>(data); }
-        inline explicit operator std::string * () { return &mpark::get<std::string>(data); }
+		inline operator double*()        { return &mpark::get<double>(data); }
+        inline operator bool*()          { return &mpark::get<bool>(data); }
+        inline operator std::string* () { return &mpark::get<std::string>(data); }
+        inline operator double&()        { return mpark::get<double>(data); }
+        inline operator bool&()          { return mpark::get<bool>(data); }
+        inline operator std::string& () { return mpark::get<std::string>(data); }
 
         // by value
-        explicit operator int()const;
-        explicit operator double()const;
-        explicit operator bool()const;
-        explicit operator std::string ()const;
+        operator int()const;
+        operator double()const;
+        operator bool()const;
+        operator std::string ()const;
 
 
     private:

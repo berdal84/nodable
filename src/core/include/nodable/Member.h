@@ -69,9 +69,23 @@ namespace Nodable
         [[nodiscard]] inline Token*                getSourceToken() { return &m_sourceToken; }
         [[nodiscard]] inline const Variant*        getData()const { return &m_variant; }
 
-        template<typename T> inline explicit operator T()const { return (T)m_variant; }
-        template<typename T> inline explicit operator T*() { return (T*)m_variant; }
-        template<typename T> inline T as()const { return m_variant.conv_to<T>(); }
+        // by address
+        inline explicit operator double*()         { return m_variant; }
+        inline explicit operator bool*()           { return m_variant; }
+        inline explicit operator std::string* ()   { return m_variant; }
+
+        // by value
+        inline explicit operator int()const         { return m_variant.conv_to<int>(); }
+        inline explicit operator double()const      { return m_variant.conv_to<double>(); }
+        inline explicit operator bool()const        { return m_variant.conv_to<bool>(); }
+        inline explicit operator std::string()const { return m_variant.conv_to<std::string>(); }
+
+        // by reference
+        inline explicit operator double&()        { return m_variant; }
+        inline explicit operator bool&()           { return m_variant; }
+        inline explicit operator std::string& ()   { return m_variant; }
+
+
 
         /**
          * This member will digest another.
