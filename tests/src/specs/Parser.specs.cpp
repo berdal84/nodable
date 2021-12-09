@@ -362,3 +362,14 @@ TEST(Parser, by_reference_assign)
             "double a = b = 6;";
     EXPECT_EQ( ParseAndEvalExpression<int>(program), 6 );
 }
+
+TEST(Parser, not_equals)
+{
+    EXPECT_TRUE( ParseAndEvalExpression<bool>("10.0 != 9.0;") );
+    EXPECT_FALSE( ParseAndEvalExpression<bool>("10.0 != 10.0;") );
+}
+
+TEST(Parser, not)
+{
+    EXPECT_TRUE( ParseAndEvalExpression<bool>("!false;") );
+}

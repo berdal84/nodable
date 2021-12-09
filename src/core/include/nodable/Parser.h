@@ -70,7 +70,7 @@ namespace Nodable{
         CodeBlockNode*         parse_code_block();
         ConditionalStructNode* parse_conditional_structure();
         ForLoopNode*           parse_for_loop();
-        CodeBlockNode*         parse_program();
+        ScopedCodeBlockNode*   parse_program();
 		Member*                parse_function_call();
 		Member*                parse_parenthesis_expression();
 		Member*                parse_binary_operator_expression(unsigned short _precedence = 0u, Member *_left = nullptr);

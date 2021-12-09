@@ -301,7 +301,7 @@ LanguageNodable::LanguageNodable()
     // operators
     semantic.insert("operator", TokenType_KeywordOperator); // 3 chars
     semantic.insert(std::regex("^(<=>)"), TokenType_Operator); // 3 chars
-    semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>)|(!=) )"), TokenType_Operator); // 2 chars
+    semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>)|(!=))"), TokenType_Operator); // 2 chars
     semantic.insert(std::regex("^[/+\\-*!=<>]"), TokenType_Operator); // single char
 
     /*

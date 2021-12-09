@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include <nodable/Reflect.h>
 #include <nodable/Node.h>
 
 namespace Nodable
@@ -30,5 +31,7 @@ namespace Nodable
          * Get the branch to follow if condition is evaluated false
          */
         virtual ScopedCodeBlockNode*   get_condition_false_branch()const = 0;
+
+        REFLECT(AbstractConditionalStruct)
     };
 }

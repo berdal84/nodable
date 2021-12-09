@@ -45,6 +45,7 @@ namespace Nodable
 
         REFLECT_DERIVED(ForLoopNode)
             REFLECT_EXTENDS(Node)
+            REFLECT_EXTENDS(AbstractConditionalStruct)
         REFLECT_END
     };
 }

@@ -76,7 +76,7 @@ bool Parser::expression_to_graph(const std::string &_code,
 		return false;
 	}
 
-	CodeBlockNode* program = parse_program();
+	ScopedCodeBlockNode* program = parse_program();
 
 	if (program == nullptr)
 	{
@@ -454,7 +454,7 @@ InstructionNode* Parser::parse_instruction()
     return instruction;
 }
 
-CodeBlockNode* Parser::parse_program()
+ScopedCodeBlockNode* Parser::parse_program()
 {
     start_transaction();
     ScopedCodeBlockNode* scope = m_graph->newProgram();
@@ -462,7 +462,7 @@ CodeBlockNode* Parser::parse_program()
     {
         m_graph->connect(block, scope, RelationType::IS_CHILD_OF);
         commit_transaction();
-        return block;
+        return scope;
     }
     else
     {
@@ -981,7 +981,7 @@ ForLoopNode* Parser::parse_for_loop()
             return nullptr;
         }
 
-        m_graph->connect(for_scope, for_loop_node, RelationType::IS_NEXT_OF );
+        m_graph->connect(for_scope, for_loop_node, RelationType::IS_CHILD_OF );
 
         commit_transaction();
         return for_loop_node;

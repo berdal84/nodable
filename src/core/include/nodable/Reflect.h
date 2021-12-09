@@ -40,7 +40,7 @@ namespace Nodable::Reflect
 
         ~Class(){}
 
-        bool is_child_of(const Class* _possible_parent_class, bool _selfCheck = true)
+        bool is_child_of(const Class* _possible_parent_class, bool _selfCheck = true)const
         {
             //LOG_VERBOSE("Reflect", "isChildOf calling (%s)...\n", m_name)
 
@@ -57,7 +57,7 @@ namespace Nodable::Reflect
             // check indirect
             for ( Class* each : m_parents )
             {
-                if (each->is_child_of(_possible_parent_class, false) )
+                if (each->is_child_of(_possible_parent_class, true) )
                 {
                     return true;
                 }
@@ -82,8 +82,8 @@ namespace Nodable::Reflect
             m_children.push_back(_child);
         }
 
-        template<class T> inline bool is() const { return T::Get_class() == this; }
-        template<class T> inline bool is_not() const { return T::Get_class() != this; }
+        template<class T> inline bool is() const { return is_child_of(T::Get_class(), true);}
+        template<class T> inline bool is_not() const { return !is_child_of(T::Get_class(), true); }
 
     private:
         const char* m_name;

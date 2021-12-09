@@ -491,7 +491,7 @@ void GraphNodeView::update_child_view_constraints()
             auto previousNodes = _eachNode->getPrev();
             std::vector<NodeView*> previousNodesView;
             Node::GetComponents<NodeView>( previousNodes, previousNodesView);
-            if ( !previousNodes.empty() && previousNodes[0]->get_class()->is_not<ConditionalStructNode>())
+            if ( !previousNodes.empty() && previousNodes[0]->get_class()->is_not<AbstractConditionalStruct>() )
             {
                 NodeViewConstraint constraint(NodeViewConstraint::Type::FollowWithChildren);
                 constraint.addMasters(previousNodesView);
@@ -503,7 +503,7 @@ void GraphNodeView::update_child_view_constraints()
             //------------------------------------------------
 
             auto children = eachView->getChildren();
-            if( !children.empty() && clss->is<ConditionalStructNode>() )
+            if( !children.empty() && clss->is<AbstractConditionalStruct>() )
             {
                 NodeViewConstraint constraint(NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
                 constraint.addMaster(eachView);
