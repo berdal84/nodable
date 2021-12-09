@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 
+#include <nodable/Reflect.h>
+
 namespace Nodable
 {
 
@@ -19,5 +21,6 @@ namespace Nodable
         virtual bool                   has_instructions() const = 0;
         virtual InstructionNode*       get_first_instruction() const = 0;
         virtual void                   get_last_instructions(std::vector<InstructionNode *> &out) = 0;
+        REFLECT(AbstractCodeBlock)
     };
 }

@@ -369,11 +369,11 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
                     auto lastChildParent = lastChild->get_parent();
                     if (lastChildParent)
                     {
-                        if (lastChildParent->get_class()->is<ConditionalStructNode>() )
+                        if (lastChildParent->get_class()->is<AbstractConditionalStruct>() )
                         {
                             connect(_source, _target, RelationType::IS_NEXT_OF, false);
                         }
-                        else if (auto condStructNode = lastChild->as<ConditionalStructNode>())
+                        else if (auto condStructNode = lastChild->as<AbstractCodeBlock>())
                         {
                             // last instructions -> _source
                             std::vector<InstructionNode *> last_instr;
