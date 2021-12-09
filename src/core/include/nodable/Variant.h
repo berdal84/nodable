@@ -33,7 +33,7 @@ namespace Nodable {
 
         // conversion
         template<typename T>
-        T conv_to()const;
+        T convert_to()const;
 
 		// by reference
 		inline operator double*()        { return &mpark::get<double>(data); }

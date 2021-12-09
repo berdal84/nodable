@@ -13,11 +13,11 @@
 
 using namespace Nodable;
 
-template <typename result_type>
-result_type ParseAndEvalExpression(const std::string& expression)
+template <typename expected_result_t>
+expected_result_t ParseAndEvalExpression(const std::string& expression)
 {
     // prepare
-    result_type result{};
+    expected_result_t result{};
     const Language* lang = LanguageFactory::GetNodable();
     HeadlessNodeFactory factory(lang);
     GraphNode graph(lang, &factory );
@@ -38,7 +38,7 @@ result_type ParseAndEvalExpression(const std::string& expression)
         EXPECT_TRUE( lastInstruction );
         if ( lastInstruction )
         {
-            result = (result_type)*lastInstruction->getValue();
+            result = lastInstruction->getValue()->convert_to<expected_result_t>();
         }
         else
         {

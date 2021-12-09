@@ -75,16 +75,17 @@ namespace Nodable
         inline explicit operator std::string* ()   { return m_variant; }
 
         // by value
-        inline explicit operator int()const         { return m_variant.conv_to<int>(); }
-        inline explicit operator double()const      { return m_variant.conv_to<double>(); }
-        inline explicit operator bool()const        { return m_variant.conv_to<bool>(); }
-        inline explicit operator std::string()const { return m_variant.conv_to<std::string>(); }
+        inline explicit operator double()const      { return m_variant.convert_to<double>(); }
+        inline explicit operator bool()const        { return m_variant.convert_to<bool>(); }
+        inline explicit operator std::string()const { return m_variant.convert_to<std::string>(); }
 
         // by reference
         inline explicit operator double&()        { return m_variant; }
         inline explicit operator bool&()           { return m_variant; }
         inline explicit operator std::string& ()   { return m_variant; }
 
+        template<typename T>
+        inline T convert_to()const { return m_variant.convert_to<T>(); }
 
 
         /**

@@ -195,7 +195,7 @@ std::string& Serializer::serialize(std::string& _result, const Variant* variant)
     }
     else
     {
-        return _result.append(variant->conv_to<std::string>() );
+        return _result.append(variant->convert_to<std::string>() );
     }
 }
 

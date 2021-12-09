@@ -70,9 +70,8 @@ TEST(Member, Type_String)
     const std::string str = "Hello world !";
 
     EXPECT_EQ((std::string)m, str);
-    EXPECT_TRUE((bool)m);
+    EXPECT_TRUE(m.convert_to<bool>());
     EXPECT_EQ(m.getType(), Type_String);
-    EXPECT_EQ((double)m, str.length());
     EXPECT_TRUE(m.isDefined());
 }
 
