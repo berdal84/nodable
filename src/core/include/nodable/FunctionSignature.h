@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <tuple>
 
 #include <nodable/Type.h>
 
@@ -24,7 +25,7 @@ namespace Nodable
      */
     class FunctionSignature {
     public:
-        FunctionSignature(std::string _identifier, Type _type, std::string _label = "");
+        FunctionSignature(std::string _identifier, std::string _label = "");
         ~FunctionSignature() {};
         void                           push_arg(Type _type, std::string _name = "");
 
@@ -39,6 +40,7 @@ namespace Nodable
         std::vector<FunctionArg>       get_args() const;
         size_t                         get_arg_count() const { return m_args.size(); }
         Type                           get_return_type() const;
+        void                           set_return_type(Type _type) { m_return_type = _type; };
         std::string                    get_label() const;
 
     private:
@@ -48,11 +50,61 @@ namespace Nodable
         std::vector<FunctionArg> m_args;
 
     public:
-        template<typename R = Type, typename... Type>
-        static FunctionSignature create(R _type, std::string _identifier, Type &&..._args) {
-            FunctionSignature signature(_identifier, _type);
-            signature.push_args(_args...);
-            return signature;
+
+        /** helpers to create a FunctionSignature */
+
+        template<typename T>
+        struct new_instance;
+
+        template<typename R, typename... Args>
+        struct new_instance<R(Args...)>
+        {
+            using F = R(Args...);
+            static FunctionSignature* with_id(const char* _identifier)
+            {
+                auto signature = new FunctionSignature(_identifier);
+                signature->set_return_type(to_Type<R>::type);
+                signature->push_args<std::tuple<Args...>>();
+                return signature;
+            }
+        };
+
+        /** Push Arg helpers */
+
+        template<class Tuple, std::size_t N> // push N+1 arguments
+        struct arg_pusher
+        {
+            static void push_into(FunctionSignature *_signature)
+            {
+                arg_pusher<Tuple, N - 1>::push_into(_signature);
+
+                using t = std::tuple_element_t<N-1, Tuple>;
+                Type type = to_Type<t>::type;
+                _signature->push_arg(type);
+            }
+        };
+
+        template<class Tuple>  // push 1 arguments
+        struct arg_pusher<Tuple, 1>
+        {
+            static void push_into(FunctionSignature *_signature)
+            {
+                using t = std::tuple_element_t<0, Tuple>;
+                Type type = to_Type<t>::type;
+                _signature->push_arg(type);
+            };
+        };
+
+        // create an argument_pusher and push arguments into signature
+        template<typename... Args, std::enable_if_t<std::tuple_size_v<Args...> != 0, int> = 0>
+        void push_args()
+        {
+            arg_pusher<Args..., std::tuple_size_v<Args...>>::push_into(this);
         }
+
+        // empty function when pushing an empty arguments
+        template<typename... Args, std::enable_if_t<std::tuple_size_v<Args...> == 0, int> = 0>
+        void push_args(){}
+
     };
 }

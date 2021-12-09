@@ -3,9 +3,8 @@
 
 using namespace Nodable;
 
-FunctionSignature::FunctionSignature(std::string _identifier, Type _type, std::string _label) :
+FunctionSignature::FunctionSignature(std::string _identifier, std::string _label) :
         m_identifier(_identifier),
-        m_return_type(_type),
         m_label(_label)
 {
 
@@ -21,25 +20,28 @@ void FunctionSignature::push_arg(Type _type, std::string _name) {
 
 bool FunctionSignature::match(const FunctionSignature* _other)const {
 
+    bool is_matching;
+
     if ( this == _other )
-        return true;
-
-    if ( m_args.size() != _other->m_args.size() )
-        return false;
-
-    if ( m_identifier != _other->m_identifier )
-        return false;
-
-    size_t i = 0;
-    bool isMatching = true;
-    while( i < m_args.size() && isMatching )
     {
-        if (m_args[i].m_type != _other->m_args[i].m_type && _other->m_args[i].m_type != Type_Any)
-            isMatching = false;
-        i++;
+        is_matching = true;
     }
-
-    return isMatching;
+    else if ( m_args.size() != _other->m_args.size() || m_identifier != _other->m_identifier )
+    {
+        is_matching = false;
+    }
+    else
+    {
+        size_t i = 0;
+        is_matching = true;
+        while( i < m_args.size() && is_matching )
+        {
+            if (m_args[i].m_type != _other->m_args[i].m_type && _other->m_args[i].m_type != Type_Any)
+                is_matching = false;
+            i++;
+        }
+    }
+    return is_matching;
 }
 
 const std::string& FunctionSignature::get_identifier()const

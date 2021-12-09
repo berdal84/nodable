@@ -77,7 +77,8 @@ const FunctionSignature* Language::createBinOperatorSignature(
         Type _ltype,
         Type _rtype) const
 {
-    auto signature = new FunctionSignature("operator" + _identifier, _type);
+    auto signature = new FunctionSignature("operator" + _identifier);
+    signature->set_return_type(_type);
     signature->push_args(_ltype, _rtype);
 
     return signature;
@@ -88,7 +89,8 @@ const FunctionSignature* Language::createUnaryOperatorSignature(
         std::string _identifier,
         Type _ltype) const
 {
-    auto signature = new FunctionSignature("operator" + _identifier, _type);
+    auto signature = new FunctionSignature("operator" + _identifier);
+    signature->set_return_type(_type);
     signature->push_args(_ltype);
 
     return signature;

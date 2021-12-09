@@ -35,22 +35,22 @@ namespace Nodable
 
         [[nodiscard]] bool allowsConnection(Way wayFlags)const { return (m_wayFlags & wayFlags) == wayFlags; }
 		[[nodiscard]] bool hasInputConnected()const;
-        [[nodiscard]] inline bool isDefined() const { return m_data.isDefined(); }
-		[[nodiscard]] bool isType(Type type)const { return m_data.isType(type); }
+        [[nodiscard]] inline bool isDefined() const { return m_variant.isDefined(); }
+		[[nodiscard]] bool isType(Type type)const { return m_variant.isType(type); }
         [[nodiscard]] bool equals(const Member *)const;
 
 		void setConnectorWay(Way wayFlags) { m_wayFlags = wayFlags; }
 		void setSourceExpression(const char* expr) { m_sourceExpression = expr; }
 		void setInput(Member*);
 		void setName(const char* name) { m_name = name; }
-		void set(const Member* other) { m_data.set(&other->m_data); }
-		void set(const Member& other) { m_data.set(&other.m_data); }
+		void set(const Member* other) { m_variant.set(&other->m_variant); }
+		void set(const Member& other) { m_variant.set(&other.m_variant); }
 		void set(double);
         void set(const char*);
         void set(bool);
 		inline void set(int val) { set((double)val); }
 		void set(const std::string& val) { set(val.c_str());}
-		void setType(Type type) { m_data.setType(type); }
+		void setType(Type type) { m_variant.setType(type); }
 		void setVisibility(Visibility _visibility) { m_visibility = _visibility; }
         void setSourceToken(const Token* _token);
         void setOwner(Node* _owner) { this->m_owner = _owner; }
@@ -61,18 +61,17 @@ namespace Nodable
 		[[nodiscard]] inline Member*               getInput()const { return m_input; }
 		[[nodiscard]] inline std::vector<Member*>& getOutputs() { return m_outputs; }
         [[nodiscard]] inline const std::string&    getName()const { return m_name; }
-		[[nodiscard]] inline Type                  getType()const { return m_data.getType(); }
-		[[nodiscard]] inline std::string           getTypeAsString()const { return m_data.getTypeAsString(); }
+		[[nodiscard]] inline Type                  getType()const { return m_variant.getType(); }
+		[[nodiscard]] inline std::string           getTypeAsString()const { return m_variant.getTypeAsString(); }
         [[nodiscard]] inline Visibility            getVisibility()const { return m_visibility; }
         [[nodiscard]] Way                          getConnectorWay()const { return m_wayFlags; }
         [[nodiscard]] inline const Token*          getSourceToken() const { return &m_sourceToken; }
         [[nodiscard]] inline Token*                getSourceToken() { return &m_sourceToken; }
-        [[nodiscard]] inline const Variant*        getData()const { return &m_data; }
+        [[nodiscard]] inline const Variant*        getData()const { return &m_variant; }
 
-        inline explicit operator int()const       { return (int)this->m_data; }
-        inline explicit operator bool()const      { return (bool)this->m_data;}
-        inline explicit operator double()const    { return (double)this->m_data;}
-        inline explicit operator std::string ()const{return (std::string)this->m_data;}
+        template<typename T> inline explicit operator T()const { return (T)m_variant; }
+        template<typename T> inline explicit operator T*() { return (T*)m_variant; }
+        template<typename T> inline T as()const { return m_variant.as<T>(); }
 
         /**
          * This member will digest another.
@@ -92,6 +91,6 @@ namespace Nodable
         Token             m_sourceToken;
         std::string       m_sourceExpression;
 		std::string       m_name;
-		Variant       	  m_data;
+		Variant       	  m_variant;
     };
 }

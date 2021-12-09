@@ -222,11 +222,16 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 		return nullptr;
 	}
 
-	// Precedence check
-	const auto currentOperatorPrecedence = m_language->findOperator(operatorToken->m_word)->get_precedence();
 
-	if (currentOperatorPrecedence <= _precedence &&
-	    _precedence > 0u) { // always update the first operation if they have the same precedence or less.
+	const InvokableOperator* ope = m_language->findOperator(operatorToken->m_word);
+    if ( ope == nullptr ) {
+        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator %s)\n", operatorToken->m_word.c_str())
+        rollback_transaction();
+        return nullptr;
+    }
+
+    // Precedence check
+	if ( ope->get_precedence() <= _precedence && _precedence > 0u) { // always update the first operation if they have the same precedence or less.
 		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n")
         rollback_transaction();
 		return nullptr;
@@ -234,7 +239,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 
 
 	// Parse right expression
-	auto right = parse_expression(currentOperatorPrecedence, nullptr);
+	auto right = parse_expression( ope->get_precedence(), nullptr);
 
 	if (!right)
 	{
@@ -764,7 +769,8 @@ Member* Parser::parse_function_call()
     std::vector<Member *> args;
 
     // Declare a new function prototype
-    FunctionSignature signature(identifier, Type_Any);
+    FunctionSignature signature(identifier);
+    signature.set_return_type(Type_Any);
 
     bool parsingError = false;
     while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != TokenType_CloseBracket)

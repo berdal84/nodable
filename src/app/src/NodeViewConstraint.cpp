@@ -75,7 +75,9 @@ void NodeViewConstraint::apply(float _dt) {
 
             float start_pos_x = master->getPos().x - size_x_total / 2.0f;
             Reflect::Class* masterClass = master->get_owner()->get_class();
-            if ( masterClass->is<InstructionNode>() || masterClass->is<ForLoopNode>() || ( masterClass->is<ConditionalStructNode>() && type == Type::MakeRowAndAlignOnBBoxTop))
+            if ( masterClass->is<InstructionNode>()
+                || ( masterClass->is<ForLoopNode>() && type == Type::MakeRowAndAlignOnBBoxTop)
+                || ( masterClass->is<ConditionalStructNode>() && type == Type::MakeRowAndAlignOnBBoxTop))
             {
                 // indent
                 start_pos_x = master->getPos().x + master->getSize().x / 2.0f + settings->ui_node_spacing;
@@ -97,12 +99,15 @@ void NodeViewConstraint::apply(float _dt) {
 
                     ImVec2 new_pos = ImVec2(start_pos_x + size_x[node_index] / 2.0f, master->getPos().y + verticalOffset);
 
-                    if ( !eachSlave->shouldFollowOutput(master) )
+                    if ( eachSlave->shouldFollowOutput(master) )
+                    {
+                        eachSlave->addForceToTranslateTo(new_pos + m_offset, settings->ui_node_speed, true);
+                        start_pos_x += size_x[node_index] + settings->ui_node_spacing;
+                    }
+                    else
+                    {
                         new_pos.y = eachSlave->getPos().y; // remove constraint on Y axis
-
-                    eachSlave->addForceToTranslateTo(new_pos + m_offset, settings->ui_node_speed, true);
-
-                    start_pos_x += size_x[node_index] + settings->ui_node_spacing;
+                    }
                     node_index++;
                 }
             }

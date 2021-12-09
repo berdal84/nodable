@@ -11,7 +11,18 @@ namespace Nodable
         Type_Boolean,
         Type_Double,
         Type_String,
-        // TODO: implement references
+
+        // the following are temporary solutions,
+        // TODO: implement a more complex Type, using Type_Ref and Type_Pointer
+        Type_Any_Ptr,
+        Type_Boolean_Ptr,
+        Type_Double_Ptr,
+        Type_String_Ptr,
+        Type_Any_Ref,
+        Type_Boolean_Ref,
+        Type_Double_Ref,
+        Type_String_Ref,
+
         Type_COUNT
 	};
 
@@ -38,7 +49,24 @@ namespace Nodable
     template<> \
     struct from_Type<nodable_type> { \
         using type = cpp_type; \
+    };\
+    template<> \
+    struct from_Type<nodable_type##_Ref> { \
+        using type = cpp_type&; \
+    };\
+    template<> \
+    struct to_Type<cpp_type&> { \
+        static constexpr Type type = nodable_type##_Ref; \
+        static constexpr const char* type_name = #nodable_type"&"; \
+        static constexpr const char* cpp_type_name = #cpp_type"&"; \
+    }; \
+    template<> \
+    struct to_Type<cpp_type*> { \
+        static constexpr Type type = nodable_type##_Ptr; \
+        static constexpr const char* type_name = #nodable_type"*"; \
+        static constexpr const char* cpp_type_name = #cpp_type"*"; \
     };
+
 
     DECL( double       , Type_Double )
     DECL( std::string  , Type_String )

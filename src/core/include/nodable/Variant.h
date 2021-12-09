@@ -31,12 +31,17 @@ namespace Nodable {
 		Type        getType()const;
 		std::string getTypeAsString()const;
 
-        operator int()const;
-		operator double()const;
-		operator bool()const;
-		operator std::string()const;
+		explicit operator double*() { return &mpark::get<double>(data); }
+        explicit operator bool*() { return &mpark::get<bool>(data); }
+        explicit operator std::string* () { return &mpark::get<std::string>(data); }
+        explicit operator int()const { return (int)mpark::get<double>(data); }
+        explicit operator double()const { return mpark::get<double>(data); }
+        explicit operator bool()const { return mpark::get<bool>(data); }
+        explicit operator std::string ()const { return mpark::get<std::string>(data); }
+		template<typename T>
+		T as()const;
 
-	private:
+    private:
         bool m_isDefined;
 
         typedef void* Any;

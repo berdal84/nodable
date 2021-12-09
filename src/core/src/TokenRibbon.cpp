@@ -23,7 +23,7 @@ std::string TokenRibbon::toString()const
     // TODO: optimization: split in 3 loops (before current transaction, current transaction range, after transaction range)
     //       to avoid those if in loops.
     std::string result;
-
+    result.append("[[ ");
     for (auto eachTokIt = tokens.begin(); eachTokIt != tokens.end(); eachTokIt++)
     {
         size_t index = eachTokIt - tokens.begin();
@@ -36,14 +36,19 @@ std::string TokenRibbon::toString()const
 
         if ( index == currentTokenIndex )
         {
+            result.append("> ");
             result.append(BOLDGREEN);
             result.append((*eachTokIt).m_word);
             result.append(RESET);
+            result.append(" <");
         }
         else
         {
             result.append((*eachTokIt).m_word);
         }
+
+        if ( tokens.end() != eachTokIt )
+            result.append("|");
     }
 
     const std::string endOfLine("<eol>");
@@ -58,6 +63,7 @@ std::string TokenRibbon::toString()const
         result.append(endOfLine);
     }
 
+    result.append(" ]]");
     result.append(RESET);
 
     return result;

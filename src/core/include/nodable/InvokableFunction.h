@@ -12,43 +12,6 @@
 
 namespace Nodable {
 
-    /** Push Arg helpers */
-
-    template<class Tuple, std::size_t N> // push N+1 arguments
-    struct arg_pusher
-    {
-        static void push_into(FunctionSignature *_signature)
-        {
-            arg_pusher<Tuple, N - 1>::push_into(_signature);
-
-            using t = std::tuple_element_t<N-1, Tuple>;
-            Type type = to_Type<t>::type;
-            _signature->push_arg(type);
-        }
-    };
-
-    template<class Tuple>  // push 1 arguments
-    struct arg_pusher<Tuple, 1>
-    {
-        static void push_into(FunctionSignature *_signature)
-        {
-            using t = std::tuple_element_t<0, Tuple>;
-            Type type = to_Type<t>::type;
-            _signature->push_arg(type);
-        };
-    };
-
-    // create an argument_pusher and push arguments into signature
-    template<typename... Args, std::enable_if_t<std::tuple_size_v<Args...> != 0, int> = 0>
-    void push_args(FunctionSignature* _signature)
-    {
-        arg_pusher<Args..., std::tuple_size_v<Args...>>::push_into(_signature);
-    }
-
-    // empty function when pushing an empty arguments
-    template<typename... Args, std::enable_if_t<std::tuple_size_v<Args...> == 0, int> = 0>
-    void push_args(FunctionSignature* _signature){}
-
     /** Helpers to call a function (need serious work here) */
 
     /** 0 arg function */
@@ -108,8 +71,13 @@ namespace Nodable {
         InvokableFunction(FunctionType* _function, const char* _identifier)
         {
             m_function  = _function;
-            m_signature = new FunctionSignature(_identifier, to_Type<R>::type , _identifier);
-            push_args<ArgTypes>(m_signature);
+            m_signature = FunctionSignature::new_instance<FunctionType>::with_id(_identifier );
+        }
+
+        ~InvokableFunction()
+        {
+            delete m_function;
+            delete m_signature;
         }
 
         inline void invoke(Member *_result, const std::vector<Member *> &_args) const override

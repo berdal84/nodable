@@ -133,59 +133,64 @@ void Variant::setType(Type _type)
 
 }
 
-Variant::operator int()const
+template<>
+[[nodiscard]] int Variant::as<int>()const
 {
-    return (int)(double)*this;
+    return (int)mpark::get<double>(data);
 }
 
-Variant::operator double()const
+template<>
+[[nodiscard]] double Variant::as<double>()const
 {
-	switch (getType())
-	{
+    switch (getType())
+    {
         case Type_String:  return double( mpark::get<std::string>(data).size());
-		case Type_Double:  return mpark::get<double>(data);
-		case Type_Boolean: return mpark::get<bool>(data) ? double(1) : double(0);
-		default:           return double(0);
-	}
+        case Type_Double:  return mpark::get<double>(data);
+        case Type_Boolean: return mpark::get<bool>(data) ? double(1) : double(0);
+        default:           return double(0);
+    }
 }
 
-Variant::operator bool()const {
-	switch (getType())
-	{
-		case Type_String:  return !mpark::get<std::string>(data).empty();
-		case Type_Double:  return mpark::get<double>(data) != 0.0F;
-		case Type_Boolean: return mpark::get<bool>(data);
-		default:           return false;
-	}
+template<>
+[[nodiscard]] bool Variant::as<bool>()const
+{
+    switch (getType())
+    {
+        case Type_String:  return !mpark::get<std::string>(data).empty();
+        case Type_Double:  return mpark::get<double>(data) != 0.0F;
+        case Type_Boolean: return mpark::get<bool>(data);
+        default:           return false;
+    }
 }
 
-Variant::operator std::string()const {
+template<>
+[[nodiscard]] std::string Variant::as<std::string>()const
+{
+    switch (getType())
+    {
+        case Type_String:
+        {
+            return mpark::get<std::string>(data);
+        }
 
-	switch (getType())
-	{
-		case Type_String:
-		{
-			return mpark::get<std::string>(data);
-		}
+        case Type_Double:
+        {
+            // Format the num as a string without any useless ending zeros/dot
+            std::string str = std::to_string( mpark::get<double>(data));
+            str.erase(str.find_last_not_of('0') + 1, std::string::npos);
+            if (str.find_last_of('.') + 1 == str.size())
+                str.erase(str.find_last_of('.'), std::string::npos);
+            return str;
+        }
 
-		case Type_Double:
-		{
-			// Format the num as a string without any useless ending zeros/dot
-			std::string str = std::to_string( mpark::get<double>(data));
-			str.erase(str.find_last_not_of('0') + 1, std::string::npos);
-			if (str.find_last_of('.') + 1 == str.size())
-				str.erase(str.find_last_of('.'), std::string::npos);
-			return str;
-		}
+        case Type_Boolean:
+        {
+            return  mpark::get<bool>(data) ? "true" : "false";
+        }
 
-		case Type_Boolean:
-		{
-			return  mpark::get<bool>(data) ? "true" : "false";
-		}
-
-		default:
-		{
-			return "";
-		}
-	}
+        default:
+        {
+            return "";
+        }
+    }
 }

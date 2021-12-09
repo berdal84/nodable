@@ -43,7 +43,7 @@ bool Member::hasInputConnected() const
 
 bool Member::equals(const Member *_other)const {
 	return _other != nullptr &&
-	       _other->m_data.getType() == this->m_data.getType() &&
+           _other->m_variant.getType() == this->m_variant.getType() &&
 		   (std::string)*_other == (std::string)*this;
 }
 
@@ -57,20 +57,20 @@ void Member::setInput(Member* _val)
 
 void Member::set(double _value)
 {
-	m_data.setType(Type_Double);
-	m_data.set(_value);
+	m_variant.setType(Type_Double);
+	m_variant.set(_value);
 }
 
 void Member::set(const char* _value)
 {
-	m_data.setType(Type_String);
-	m_data.set(_value);
+	m_variant.setType(Type_String);
+	m_variant.set(_value);
 }
 
 void Member::set(bool _value)
 {
-	m_data.setType(Type_Boolean);
-	m_data.set(_value);
+	m_variant.setType(Type_Boolean);
+	m_variant.set(_value);
 }
 
 void Member::setSourceToken(const Token* _token)
@@ -88,7 +88,7 @@ void Member::setSourceToken(const Token* _token)
 void Member::digest(Member *_member)
 {
     // Transfer
-    this->m_data = _member->m_data;
+    this->m_variant = _member->m_variant;
     this->m_sourceToken = _member->m_sourceToken;
 
     // release member

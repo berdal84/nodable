@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <exception>
 
 #include <nodable/Member.h>
 #include <nodable/Runner.h>
@@ -12,20 +13,20 @@
 
 using namespace Nodable;
 
-template <typename T>
-T ParseAndEvalExpression(const std::string& expression)
+template <typename result_type>
+result_type ParseAndEvalExpression(const std::string& expression)
 {
     // prepare
-    bool success = false;
+    result_type result{};
     const Language* lang = LanguageFactory::GetNodable();
     HeadlessNodeFactory factory(lang);
     GraphNode graph(lang, &factory );
 
-    // act
+    // create program
     lang->getParser()->expression_to_graph(expression, &graph);
 
-    T result{};
-    if ( auto program = graph.getProgram())
+    auto program = graph.getProgram();
+    if ( program )
     {
         // run
         Runner runner;
@@ -34,12 +35,21 @@ T ParseAndEvalExpression(const std::string& expression)
 
         // compare result
         auto lastInstruction = program->get_last_instruction();
+        EXPECT_TRUE( lastInstruction );
         if ( lastInstruction )
         {
-            result = (T)*lastInstruction->getValue();
+            result = (result_type)*lastInstruction->getValue();
         }
-
+        else
+        {
+            throw std::runtime_error( "Unable to get last instruction." );
+        }
     }
+    else
+    {
+        throw std::runtime_error( "Unable to convert expression to graph, program is nullptr." );
+    }
+
     return result;
 }
 
@@ -139,7 +149,7 @@ TEST(Parser, Complex_parenthesis)
 
 TEST(Parser, unexisting_function)
 {
-    EXPECT_EQ(ParseAndEvalExpression<int>("pow_unexisting(5)"), NULL );
+    EXPECT_ANY_THROW(ParseAndEvalExpression<int>("pow_unexisting(5)") );
 }
 
 TEST(Parser, function_call)
@@ -167,6 +177,7 @@ TEST(Parser, imbricated_functions)
 
 TEST(Parser, Successive_assigns)
 {
+    Log::SetVerbosityLevel("Parser", Log::Verbosity::Verbose);
     EXPECT_EQ(ParseAndEvalExpression<double>("double a; double b; a = b = 5;"), 5.0);
 }
 
@@ -272,6 +283,7 @@ TEST(Parser, Code_Formatting_Preserving )
 
 TEST(Parser, Conditional_Structures_IF )
 {
+    Log::SetVerbosityLevel("Parser", Log::Verbosity::Verbose);
     std::string program =
             "double bob   = 10;"
             "double alice = 10;"
@@ -333,4 +345,13 @@ TEST(Parser, For_loop_with_var_decl)
             "   score= score*2;"
             "}";
     ParseEvalSerializeExpressions({program});
+}
+
+TEST(Parser, by_reference_assign)
+{
+    Log::SetVerbosityLevel("Parser", Log::Verbosity::Verbose);
+    std::string program =
+            "double b = 6;"
+            "double a = b = 6;";
+    EXPECT_EQ( ParseAndEvalExpression<int>(program), 6 );
 }

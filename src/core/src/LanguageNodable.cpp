@@ -68,19 +68,19 @@ double api_not(bool b)
     return !b;
 }
 
-double api_assign(double a, double b)
+double api_assign(double* a, double b)
 {
-    return a = b;
+    return *a = b;
 }
 
-bool api_assign(bool a, bool b)
+bool api_assign(bool* a, bool b)
 {
-    return a = b;
+    return *a = b;
 }
 
-std::string api_assign(std::string a, std::string b)
+std::string api_assign(std::string* a, std::string b)
 {
-    return a = b;
+    return *a = b;
 }
 
 bool api_implies(bool a, bool b)
@@ -109,11 +109,18 @@ bool api_to_bool(double n)
     return n == 0.0;
 }
 
+template<typename T>
+std::string api_concat(std::string left, T right)
+{
+    return  left + std::to_string(right);
+}
+
+template<>
 std::string api_concat(std::string left, std::string right)
 {
-    left = right;
-    return  left;
+    return  left + right;
 }
+
 
 double api_mod(double a, double b)
 {
@@ -145,6 +152,12 @@ template<typename T>
 bool api_equals(T a, T b)
 {
     return a == b;
+}
+
+template<typename T>
+bool api_not_equals(T a, T b)
+{
+    return a != b;
 }
 
 bool api_greater(double a, double b)
@@ -297,13 +310,14 @@ LanguageNodable::LanguageNodable()
     // operators
     semantic.insert("operator", TokenType_KeywordOperator); // 3 chars
     semantic.insert(std::regex("^(<=>)"), TokenType_Operator); // 3 chars
-    semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>))"), TokenType_Operator); // 2 chars
+    semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>)|(!=) )"), TokenType_Operator); // 2 chars
     semantic.insert(std::regex("^[/+\\-*!=<>]"), TokenType_Operator); // single char
 
     /*
      * Wrap a minimal set of functions/operators
      */
 
+    using string = std::string;
 
     WRAP_FUNCTION(api_returnNumber)
     WRAP_FUNCTION(api_sin)
@@ -317,17 +331,18 @@ LanguageNodable::LanguageNodable()
     WRAP_FUNCTION(api_and)
     WRAP_FUNCTION(api_xor)
     WRAP_FUNCTION(api_to_bool)
-    WRAP_POLYFUNC(api_to_string, std::string(bool))
-    WRAP_POLYFUNC(api_to_string, std::string(double))
-    WRAP_POLYFUNC(api_to_string, std::string(std::string))
+    WRAP_POLYFUNC(api_to_string, string(bool))
+    WRAP_POLYFUNC(api_to_string, string(double))
+    WRAP_POLYFUNC(api_to_string, string(string))
     WRAP_FUNCTION(api_mod)
     WRAP_FUNCTION(api_pow)
     WRAP_FUNCTION(api_secondDegreePolynomial)
 	WRAP_FUNCTION(api_DNAtoProtein)
 
 	WRAP_OPERATOR(api_add        , "+" , 10, ICON_FA_PLUS " Add")
-    WRAP_OPERATOR(api_concat     , "+" , 10, "Concat.")
-    WRAP_OPERATOR(api_concat     , "+" , 10, "Concat.")
+    WRAP_POLYOPER(api_concat     , "+" , 10, "Concat.", string(string, string))
+    WRAP_POLYOPER(api_concat     , "+" , 10, "Concat.", string(string, double))
+    WRAP_POLYOPER(api_concat     , "+" , 10, "Concat.", string(string, bool))
     WRAP_OPERATOR(api_or         , "||", 10, "Logical Or")
     WRAP_OPERATOR(api_and        , "&&", 10, "Logical And")
     WRAP_OPERATOR(api_invert_sign, "-" , 10, ICON_FA_MINUS " Invert Sign")
@@ -336,14 +351,18 @@ LanguageNodable::LanguageNodable()
     WRAP_OPERATOR(api_multiply   , "*" , 20, ICON_FA_TIMES " Multiply")
     WRAP_OPERATOR(api_not        , "!" , 5 , "! not")
     WRAP_OPERATOR(api_minus      , "-" , 5 , ICON_FA_MINUS " Minus")
-    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", std::string(std::string, std::string) )
-    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", bool(bool, bool) )
-    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", double(double, double) )
+    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", string(string*, string) )
+    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", bool(bool*, bool) )
+    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", double(double*, double) )
     WRAP_OPERATOR(api_implies    , "=>", 10, "=> Implies")
     WRAP_OPERATOR(api_greater_or_eq, ">=", 10, ">= Greater or equal")
     WRAP_OPERATOR(api_lower_or_eq, "<=", 10, "<= Less or equal")
     WRAP_POLYOPER(api_equals  , "==", 10, "== Equals" , bool(double, double) )
+    WRAP_POLYOPER(api_equals  , "==", 10, "== Equals" , bool(string, string) )
     WRAP_POLYOPER(api_equals  , "<=>", 10, "<=> Equivalent" , bool(bool, bool) )
+    WRAP_POLYOPER(api_not_equals  , "!=", 10, "!= Not equal" , bool(bool, bool) )
+    WRAP_POLYOPER(api_not_equals  , "!=", 10, "!= Not equal" , bool(double, double) )
+    WRAP_POLYOPER(api_not_equals  , "!=", 10, "!= Not equal" , bool(string, string) )
     WRAP_OPERATOR(api_greater ,">" , 10, "> Greater")
     WRAP_OPERATOR(api_lower   , "<", 10, "< Less")
 }

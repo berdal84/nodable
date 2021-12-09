@@ -13,9 +13,9 @@ TEST(Node, Add_member_Double)
     props->add("val", Visibility::Default, Type_Double, Way_Default);
     props->get("val")->set(100.0);
 
-    auto val = props->get("val");
+    Member* val = props->get("val");
 
     EXPECT_EQ((double)*val, 100.0);
-    EXPECT_EQ((std::string)*val, "100");
-    EXPECT_TRUE((bool)*val);
+    EXPECT_EQ(val->as<std::string>(), "100");
+    EXPECT_TRUE(val->as<bool>());
 }
