@@ -71,7 +71,7 @@ namespace Nodable
 
         template<typename T> inline explicit operator T()const { return (T)m_variant; }
         template<typename T> inline explicit operator T*() { return (T*)m_variant; }
-        template<typename T> inline T as()const { return m_variant.as<T>(); }
+        template<typename T> inline T as()const { return m_variant.conv_to<T>(); }
 
         /**
          * This member will digest another.

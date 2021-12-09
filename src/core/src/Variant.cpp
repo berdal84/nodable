@@ -134,13 +134,13 @@ void Variant::setType(Type _type)
 }
 
 template<>
-[[nodiscard]] int Variant::as<int>()const
+[[nodiscard]] int Variant::conv_to<int>()const
 {
     return (int)mpark::get<double>(data);
 }
 
 template<>
-[[nodiscard]] double Variant::as<double>()const
+[[nodiscard]] double Variant::conv_to<double>()const
 {
     switch (getType())
     {
@@ -152,7 +152,7 @@ template<>
 }
 
 template<>
-[[nodiscard]] bool Variant::as<bool>()const
+[[nodiscard]] bool Variant::conv_to<bool>()const
 {
     switch (getType())
     {
@@ -164,7 +164,7 @@ template<>
 }
 
 template<>
-[[nodiscard]] std::string Variant::as<std::string>()const
+[[nodiscard]] std::string Variant::conv_to<std::string>()const
 {
     switch (getType())
     {
@@ -194,3 +194,8 @@ template<>
         }
     }
 }
+
+Variant::operator int()const          { return (int)(double)*this; }
+Variant::operator double()const       { return conv_to<double>(); }
+Variant::operator bool()const         { return conv_to<bool>(); }
+Variant::operator std::string ()const { return conv_to<std::string>(); }

@@ -70,12 +70,20 @@ std::string& ParseUpdateSerialize( std::string& result, const std::string& expre
         runner.load(program);
         runner.run();
 
-        if ( auto lastEvaluatedNode = runner.getLastEvaluatedInstruction() )
+        if ( auto last_evaluated_node = runner.getLastEvaluatedInstruction() )
         {
             std::string result_str;
-            lang->getSerializer()->serialize(result_str, lastEvaluatedNode->getValue()->getData() );
+            lang->getSerializer()->serialize(result_str, last_evaluated_node->getValue()->getData() );
             LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
         }
+        else
+        {
+            throw std::runtime_error("ParseUpdateSerialize: Unable to get last evaluated node.");
+        }
+    }
+    else
+    {
+        throw std::runtime_error("ParseUpdateSerialize: Unable to generate program.");
     }
 
     Serializer* serializer = lang->getSerializer();
@@ -177,7 +185,6 @@ TEST(Parser, imbricated_functions)
 
 TEST(Parser, Successive_assigns)
 {
-    Log::SetVerbosityLevel("Parser", Log::Verbosity::Verbose);
     EXPECT_EQ(ParseAndEvalExpression<double>("double a; double b; a = b = 5;"), 5.0);
 }
 
@@ -216,10 +223,10 @@ TEST(Parser, Eval_Serialize_Compare)
             "1-1",
             "-1",
             "double a = 5",
-            "(a+b)*(c+d)",
+            "double a=1;double b=2;double c=3;double d=4;(a+b)*(c+d)",
             "string b = to_string(false)"
     };
-
+    Log::SetVerbosityLevel("Runner", Log::Verbosity::Verbose );
     ParseEvalSerializeExpressions(expressions);
 }
 
@@ -273,8 +280,8 @@ TEST(Parser, DNAtoProtein )
 TEST(Parser, Code_Formatting_Preserving )
 {
     std::vector<std::string> expressions {
-            "a =5;\nb=2*a;",
-            "a =5;\nb=2  *  a;",
+            "double a =5;\ndouble b=2*a;",
+            "double a =5;\ndouble b=2  *  a;",
             " 5 + 2;",
             "5 + 2;  "
     };
@@ -283,7 +290,6 @@ TEST(Parser, Code_Formatting_Preserving )
 
 TEST(Parser, Conditional_Structures_IF )
 {
-    Log::SetVerbosityLevel("Parser", Log::Verbosity::Verbose);
     std::string program =
             "double bob   = 10;"
             "double alice = 10;"
@@ -302,8 +308,10 @@ TEST(Parser, Conditional_Structures_IF_ELSE )
             "string message;"
             "if(bob>alice){"
             "   message= \"Bob is the best.\";"
+            "}else if(bob<alice){"
+            "   message= \"Alice is the best.\";"
             "}else{"
-            "   message= \"Bob is not the best.\";"
+            "   message= \"Draw.\";"
             "}";
 
     ParseEvalSerializeExpressions({program});
@@ -349,7 +357,6 @@ TEST(Parser, For_loop_with_var_decl)
 
 TEST(Parser, by_reference_assign)
 {
-    Log::SetVerbosityLevel("Parser", Log::Verbosity::Verbose);
     std::string program =
             "double b = 6;"
             "double a = b = 6;";

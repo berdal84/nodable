@@ -36,7 +36,7 @@ bool FunctionSignature::match(const FunctionSignature* _other)const {
         is_matching = true;
         while( i < m_args.size() && is_matching )
         {
-            if (m_args[i].m_type != _other->m_args[i].m_type && _other->m_args[i].m_type != Type_Any)
+            if ( !is_convertible( m_args[i].m_type, _other->m_args[i].m_type ) )
                 is_matching = false;
             i++;
         }

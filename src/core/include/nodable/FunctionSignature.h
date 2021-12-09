@@ -60,9 +60,9 @@ namespace Nodable
         struct new_instance<R(Args...)>
         {
             using F = R(Args...);
-            static FunctionSignature* with_id(const char* _identifier)
+            static FunctionSignature* with_id(const char* _identifier, const char* _label = "")
             {
-                auto signature = new FunctionSignature(_identifier);
+                auto signature = new FunctionSignature(_identifier, _label);
                 signature->set_return_type(to_Type<R>::type);
                 signature->push_args<std::tuple<Args...>>();
                 return signature;

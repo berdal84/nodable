@@ -19,7 +19,8 @@ namespace Nodable{
 		VariableNode(Type);
 		~VariableNode() override = default;
 
-		[[nodiscard]] inline bool             isSet()const { return value()->isDefined(); }
+		[[nodiscard]] inline bool             isDeclared()const { return m_typeToken != nullptr; }
+		[[nodiscard]] inline bool             isDefined()const { return value()->isDefined(); }
 		[[nodiscard]] inline bool             isType(Type _type)const { return value()->isType(_type); }
 		[[nodiscard]] inline const char*      getName()const { return m_name.c_str(); };
 		[[nodiscard]] inline Member*          value()const { return m_props.get("value"); }

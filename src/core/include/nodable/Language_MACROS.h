@@ -6,7 +6,7 @@
 /**
 * Wrap a native non-polymorphic function.
 *
-* ex: WRAP_POLYFUNCTION( my_unique_name_function )
+* ex: WRAP_FUNCTION( my_unique_name_function )
 */
 #define WRAP_FUNCTION( function ) \
     { \
@@ -20,14 +20,14 @@
 /**
 * Wrap a native non-polymorphic function.
 *
-* ex: WRAP_POLYOPER( my_unique_name_function, "+", 0, "+ Add")
+* ex: WRAP_OPERATOR( my_unique_name_function, "+", 0, "+ Add")
 */
 #define WRAP_OPERATOR( function, identifier, precedence, label ) \
     { \
         using function_type = decltype(function); \
         std::string function_name = identifier; \
         sanitizeOperatorFunctionName( function_name ); \
-        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str() ); \
+        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str(), identifier ); \
         InvokableOperator* op = new InvokableOperator( invokable, precedence, identifier );\
         addOperator( op );\
         addToAPI( invokable ); \
@@ -35,7 +35,7 @@
 
 /**
  * Wrap a native function with a specific signature.
- * If your function is not polynorphic you can also use WRAP_FUNCTION
+ * If your function is not polymorphic you can also use WRAP_FUNCTION
  *
  * ex: Same functions with two different signatures:
  *
@@ -63,7 +63,7 @@
     { \
         std::string function_name = identifier; \
         sanitizeOperatorFunctionName( function_name ); \
-        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str() ); \
+        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str(), identifier ); \
         InvokableOperator* op = new InvokableOperator( invokable, precedence, identifier );\
         addOperator( op );\
         addToAPI( invokable ); \

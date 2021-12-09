@@ -68,10 +68,10 @@ namespace Nodable {
         using   FunctionType = R(Args...);
         using   ArgTypes     = std::tuple<Args...>;
 
-        InvokableFunction(FunctionType* _function, const char* _identifier)
+        InvokableFunction(FunctionType* _function, const char* _identifier, const char* _label = "")
         {
             m_function  = _function;
-            m_signature = FunctionSignature::new_instance<FunctionType>::with_id(_identifier );
+            m_signature = FunctionSignature::new_instance<FunctionType>::with_id(_identifier, _label );
         }
 
         ~InvokableFunction()

@@ -2,6 +2,7 @@
 
 #include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/GraphTraversal.h>
+#include <nodable/VariableNode.h>
 #include <nodable/Log.h>
 
 using namespace Nodable;
@@ -23,14 +24,35 @@ void Runner::load( ScopedCodeBlockNode* _program)
     {
         unload();
     }
+
     m_program = _program;
 }
 
 void Runner::run()
 {
-    NODABLE_ASSERT(this->m_program != nullptr);
+    NODABLE_ASSERT(m_program != nullptr);
     LOG_VERBOSE("Runner", "Running...\n")
     m_isRunning = true;
+
+    // check if program an be run
+    const std::vector<VariableNode*>& vars = m_program->get_variables();
+    bool found_a_var_uninit = false;
+    auto it = vars.begin();
+    while(!found_a_var_uninit && it != vars.end() )
+    {
+        if( !(*it)->isDeclared() )
+        {
+            LOG_ERROR("Runner", "Unable to load program because %s is not declared.\n", (*it)->getName() );
+            found_a_var_uninit = true;
+        }
+        ++it;
+    }
+
+    if( found_a_var_uninit )
+    {
+        stop();
+        return;
+    }
 
     /*
      * Strategy:

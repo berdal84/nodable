@@ -68,17 +68,8 @@ double api_not(bool b)
     return !b;
 }
 
-double api_assign(double* a, double b)
-{
-    return *a = b;
-}
-
-bool api_assign(bool* a, bool b)
-{
-    return *a = b;
-}
-
-std::string api_assign(std::string* a, std::string b)
+template<typename T>
+T api_assign(T* a, T b)
 {
     return *a = b;
 }
