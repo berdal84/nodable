@@ -485,8 +485,8 @@ void GraphNodeView::update_child_view_constraints()
         {
             auto clss = _eachNode->get_class();
 
-            // Follow previous Node(s), except if previous is a Conditional Structure Node.
-            //-----------------------------------------------------------------------------
+            // Follow previous Node(s), except if previous is a Conditional
+            //-------------------------------------------------------------
 
             auto previousNodes = _eachNode->getPrev();
             std::vector<NodeView*> previousNodesView;

@@ -359,45 +359,60 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
     {
         case RelationType::IS_CHILD_OF:
         {
+            /*
+             * Here we create IS_NEXT_OF connections.
+             */
             if ( _sideEffects )
             {
-                // create "next" links
-                auto &target_children = _target->get_children();
-                if (!target_children.empty())
+                // First case is easy, if no children on the target node, the next node of the target IS the source.
+                if (_target->get_class()->is<AbstractCodeBlock>() )
                 {
-                    auto lastChild = target_children.back();
-                    auto lastChildParent = lastChild->get_parent();
-                    if (lastChildParent)
+                    if ( _target->get_children().empty() )
                     {
-                        if (lastChildParent->get_class()->is<AbstractConditionalStruct>() )
-                        {
-                            connect(_source, _target, RelationType::IS_NEXT_OF, false);
-                        }
-                        else if (auto condStructNode = lastChild->as<AbstractCodeBlock>())
-                        {
-                            // last instructions -> _source
-                            std::vector<InstructionNode *> last_instr;
-                            condStructNode->get_last_instructions(last_instr);
-
-                            for (auto &each_inst : last_instr)
-                            {
-                                connect(_source, each_inst, RelationType::IS_NEXT_OF, false);
-                            }
-                        }
-                        else
-                        {
-                            connect(_source, lastChild, RelationType::IS_NEXT_OF, false);
-                        }
+                        connect(_source, _target, RelationType::IS_NEXT_OF, false);
+                    }
+                    else if ( _target->get_class()->is<ConditionalStructNode>() )
+                    {
+                        connect(_source, _target, RelationType::IS_NEXT_OF, false);
+                    }
+                    else if ( _target->get_children().back()->get_class()->is_not<AbstractCodeBlock>() )
+                    {
+                        connect(_source, _target->get_children().back(), RelationType::IS_NEXT_OF, false);
                     }
                     else
                     {
-                        connect(_source, _target, RelationType::IS_NEXT_OF, false);
+                        std::vector<InstructionNode *> last_instructions;
+                        if (auto last = _target->get_children().back()->as<ScopedCodeBlockNode>() )
+                        {
+                            last->get_last_instructions(last_instructions);
+                            NODABLE_ASSERT(!last_instructions.empty())
+                        }
+                        else if (auto last = _target->get_children().back()->as<CodeBlockNode>() )
+                        {
+                            last->get_last_instructions(last_instructions);
+                            NODABLE_ASSERT(!last_instructions.empty())
+                        }
+                        else if (auto last = _target->get_children().back()->as<ForLoopNode>() )
+                        {
+                            connect(_source, last, RelationType::IS_NEXT_OF, false);
+                        }
+                        else if (auto last = _target->get_children().back()->as<ConditionalStructNode>() )
+                        {
+                            last->get_last_instructions(last_instructions);
+                            NODABLE_ASSERT(!last_instructions.empty())
+                        }
+
+                        for (InstructionNode *each_instruction : last_instructions)
+                        {
+                            connect(_source, each_instruction, RelationType::IS_NEXT_OF, false);
+                        }
                     }
                 }
                 else
                 {
-                    connect(_source, _target, RelationType::IS_NEXT_OF, false);
+                  NODABLE_ASSERT(false);
                 }
+
             }
 
             // create "parent-child" links

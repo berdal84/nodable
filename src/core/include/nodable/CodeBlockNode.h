@@ -30,6 +30,7 @@ namespace Nodable
 
         REFLECT_DERIVED(CodeBlockNode)
           REFLECT_EXTENDS(Node)
+          REFLECT_EXTENDS(AbstractCodeBlock)
         REFLECT_END
     };
 }

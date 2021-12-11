@@ -45,6 +45,7 @@ namespace Nodable
         /** Reflect class */
         REFLECT_DERIVED(ScopedCodeBlockNode)
           REFLECT_EXTENDS(Node)
+          REFLECT_EXTENDS(AbstractCodeBlock)
         REFLECT_END
     };
 }

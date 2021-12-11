@@ -81,6 +81,7 @@ namespace Nodable {
         void                addNext(Node* _node);
         const auto&         getNext() { return m_next; }
         void                removeNext(Node* _node );
+        bool                accepts_next()const { return m_next.size() < m_nextMaxCount; }
 
         inline void         setPrevMaxCount(int _count) { m_previousMaxCount = _count;}
         inline int          getPrevMaxCount() { return m_previousMaxCount;}

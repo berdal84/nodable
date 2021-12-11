@@ -105,7 +105,7 @@ namespace Nodable::Reflect
     inline Dst* cast_pointer(Src *_source)
     {
         if(_source->get_class()->is_child_of(Dst::Get_class()))
-            return reinterpret_cast<Dst*>(_source);
+            return dynamic_cast<Dst*>(_source);
         return nullptr;
     };
 }

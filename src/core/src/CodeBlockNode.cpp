@@ -1,6 +1,8 @@
 #include <nodable/CodeBlockNode.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ConditionalStructNode.h>
+#include <nodable/ForLoopNode.h>
 
 using namespace Nodable;
 
@@ -51,17 +53,21 @@ void CodeBlockNode::get_last_instructions(Node* _node, std::vector<InstructionNo
     Node *last = _node->get_children().back();
     if (last)
     {
-        if (auto *instr = last->as<InstructionNode>())
+        if (auto* node = last->as<InstructionNode>())
         {
-            _out.push_back(instr);
+            _out.push_back(node);
         }
-        else if (auto *code_block = last->as<CodeBlockNode>())
+        else if (auto* node = last->as<CodeBlockNode>())
         {
-            code_block->get_last_instructions(_out);
+            node->get_last_instructions(_out);
         }
-        else if (auto *scoped_code_block = last->as<ScopedCodeBlockNode>())
+        else if (auto* node = last->as<ConditionalStructNode>())
         {
-            scoped_code_block->get_last_instructions(_out);
+            node->get_last_instructions(_out);
+        }
+        else if (auto* node = last->as<ForLoopNode>())
+        {
+            node->get_last_instructions(_out);
         }
     }
 }
