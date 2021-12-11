@@ -122,7 +122,7 @@ bool Stats::hasBeenChanged(const Node* _node) const
 
 Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
 {
-    NODABLE_ASSERT(!m_stats.hasBeenTraversed(_node));
+    // NODABLE_ASSERT(!m_stats.hasBeenTraversed(_node));
     m_stats.m_traversed.push_back(_node);
 
     /*
@@ -131,7 +131,7 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
     Node* result  = nullptr;
     auto children = _node->get_children();
 
-    if ( auto condStructNode = _node->as<ConditionalStructNode>() )
+    if ( auto condStructNode = _node->as<AbstractConditionalStruct>() )
     {
        /*
         * Get the branch depending on condition

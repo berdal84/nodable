@@ -672,8 +672,8 @@ void AppView::draw_properties_editor()
             ImGui::SliderFloat("padding", &config->ui_node_padding, 1.0f, 20.0f);
             ImGui::SliderFloat("speed", &config->ui_node_speed, 0.0f, 100.0f);
             ImGui::SliderFloat("spacing", &config->ui_node_spacing, 0.0f, 100.0f);
-            ImGui::SliderFloat("node connector padding", &config->ui_node_nodeConnectorPadding, 0.0f, 100.0f);
-            ImGui::SliderFloat("node connector height", &config->ui_node_nodeConnectorHeight, 2.0f, 100.0f);
+            ImGui::SliderFloat("node connector padding", &config->ui_node_connector_padding, 0.0f, 100.0f);
+            ImGui::SliderFloat("node connector height", &config->ui_node_connector_height, 2.0f, 100.0f);
 
             ImGui::ColorEdit4("variables color", &config->ui_node_variableColor.x);
             ImGui::ColorEdit4("instruction color", &config->ui_node_instructionColor.x);
@@ -692,7 +692,7 @@ void AppView::draw_properties_editor()
         // code flow
         ImGui::Text("Code flow:");
         ImGui::Indent();
-            ImGui::SliderFloat("line width min", &config->ui_codeFlow_lineWidthMax, 1.0f, 100.0f);
+            ImGui::SliderFloat("line width min", &config->ui_node_connector_width, 1.0f, 100.0f);
         ImGui::Unindent();
 
     ImGui::Unindent();

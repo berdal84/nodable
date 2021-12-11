@@ -83,10 +83,10 @@ ImRect NodeConnector::getRect() const
 {
     ImVec2 leftCornerPos = m_way == Way_In ? m_nodeView->getRect().GetTL() : m_nodeView->getRect().GetBL();
 
-    ImVec2 size(Settings::Get()->ui_codeFlow_lineWidthMax, Settings::Get()->ui_node_nodeConnectorHeight);
+    ImVec2 size(Settings::Get()->ui_node_connector_width, Settings::Get()->ui_node_connector_height);
     ImRect rect(leftCornerPos, leftCornerPos + size);
     rect.Translate(ImVec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
-    rect.Expand(ImVec2(-Settings::Get()->ui_node_nodeConnectorPadding, 0.0f));
+    rect.Expand(ImVec2(-Settings::Get()->ui_node_connector_padding, 0.0f));
     return rect;
 }
 

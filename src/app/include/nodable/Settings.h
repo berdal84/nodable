@@ -37,10 +37,10 @@ namespace Nodable {
         ImVec4 ui_node_nodeConnectorHoveredColor;
         float  ui_node_spacing;
         float  ui_node_speed;
-        float  ui_node_nodeConnectorHeight;
-        float  ui_node_nodeConnectorPadding;
+        float  ui_node_connector_height;
+        float  ui_node_connector_padding;
         float  ui_layout_propertiesRatio;
-        float  ui_codeFlow_lineWidthMax;
+        float  ui_node_connector_width;
         ImVec4 ui_codeFlow_lineColor;
         ImVec4 ui_codeFlow_lineShadowColor;
         ImVec4 ui_button_activeColor;

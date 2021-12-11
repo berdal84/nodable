@@ -90,10 +90,11 @@ Settings* Settings::CreateInstance()
     conf->ui_node_shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
     conf->ui_node_nodeConnectorHoveredColor = ImColor(200,200, 200);
     conf->ui_node_nodeConnectorColor     = ImColor(127,127, 127);
-    conf->ui_node_spacing                = 15.0f;
+    conf->ui_node_spacing                = 30.0f;
     conf->ui_node_speed                  = 30.0f;
-    conf->ui_node_nodeConnectorHeight    = 10.0f;
-    conf->ui_node_nodeConnectorPadding   = 4.0f;
+    conf->ui_node_connector_height       = 20.0f;
+    conf->ui_node_connector_padding      = 2.0f;
+    conf->ui_node_connector_width        = conf->ui_node_connector_height;
 
     // wires
     conf->ui_wire_bezier_roundness        = 0.5f;
@@ -103,7 +104,6 @@ Settings* Settings::CreateInstance()
     conf->ui_wire_shadowColor             = conf->ui_node_shadowColor;
 
     // code flow
-    conf->ui_codeFlow_lineWidthMax        = 40.0f;
     conf->ui_codeFlow_lineColor           = ImColor(200,255,200,50);
     conf->ui_codeFlow_lineShadowColor     = ImColor(0,0,0,64);
 

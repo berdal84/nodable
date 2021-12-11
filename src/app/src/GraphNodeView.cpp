@@ -50,16 +50,20 @@ bool GraphNodeView::draw()
             if (each_view && each_next_view && each_view->isVisible() && each_next_view->isVisible() )
             {
                 float viewWidthMin = std::min(each_next_view->getRect().GetSize().x, each_view->getRect().GetSize().x);
-                float lineWidth = std::min(Settings::Get()->ui_codeFlow_lineWidthMax,
+                float lineWidth = std::min(Settings::Get()->ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
                 ImVec2 start = each_view->getScreenPos();
                 start.x -= std::max(each_view->getSize().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
                 start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
+                start.y += each_view->getSize().y * 0.5f; // align bottom
+                start.y += settings->ui_node_connector_height * 0.25f;
 
                 ImVec2 end = each_next_view->getScreenPos();
                 end.x -= each_next_view->getSize().x * 0.5f;
                 end.x += lineWidth * 0.5f;
+                end.y -= each_next_view->getSize().y * 0.5f; // align top
+                end.y -= settings->ui_node_connector_height * 0.25f;
 
                 ImColor color(Settings::Get()->ui_codeFlow_lineColor);
                 ImColor shadowColor(Settings::Get()->ui_codeFlow_lineShadowColor);
@@ -91,7 +95,7 @@ bool GraphNodeView::draw()
             ImVec2 end   = hoveredNodeConnector ? hoveredNodeConnector->getPos() : ImGui::GetMousePos();
             ImColor color(settings->ui_codeFlow_lineColor);
             ImColor shadowColor(settings->ui_codeFlow_lineShadowColor);
-            ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,settings->ui_codeFlow_lineWidthMax, 0.0f);
+            ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, settings->ui_node_connector_width, 0.0f);
         }
 
         // Drops ?
@@ -485,7 +489,7 @@ void GraphNodeView::update_child_view_constraints()
         {
             auto clss = _eachNode->get_class();
 
-            // Follow previous Node(s), except if previous is a Conditional
+            // Follow previous Node(s), except if previous is a Conditional if/else
             //-------------------------------------------------------------
 
             auto previousNodes = _eachNode->getPrev();
@@ -508,6 +512,14 @@ void GraphNodeView::update_child_view_constraints()
                 NodeViewConstraint constraint(NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
                 constraint.addMaster(eachView);
                 constraint.addSlaves(children);
+
+                if ( clss->is<ForLoopNode>() )
+                {
+                    std::vector<NodeView*> next;
+                    eachView->getNext(next);
+                    constraint.addSlaves(next);
+                }
+
                 eachView->addConstraint(constraint);
             }
 

@@ -103,10 +103,6 @@ void NodeViewConstraint::apply(float _dt) {
                         eachSlave->addForceToTranslateTo(new_pos + m_offset, settings->ui_node_speed, true);
                         start_pos_x += size_x[node_index] + settings->ui_node_spacing;
                     }
-                    else
-                    {
-                        new_pos.y = eachSlave->getPos().y; // remove constraint on Y axis
-                    }
                     node_index++;
                 }
             }
