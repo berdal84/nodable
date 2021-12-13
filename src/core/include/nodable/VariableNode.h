@@ -28,13 +28,13 @@ namespace Nodable{
         [[nodiscard]] inline const Token*     getTypeToken() const { return m_typeToken; }
         [[nodiscard]] inline const Token*     getAssignmentOperatorToken() const { return m_assignmentOperatorToken; }
         [[nodiscard]] inline const Token*     getIdentifierToken() const { return m_identifierToken; }
-
-        void        setName         (const char*);
-        inline void setTypeToken(Token* token) { m_typeToken = token; }
-        inline void setAssignmentOperatorToken(Token* token) { m_assignmentOperatorToken = token; }
-        inline void setIdentifierToken(Token* token) { m_identifierToken = token; }
-        template<class Value> inline void set(Value _value) { value()->set(_value); };
-        template<class Value> inline void set(Value* _value){ value()->set(_value); };
+		                     bool             eval() const override   { return !isDefined() ? Node::eval() : true; /* variable must be evaluated once, when declared. */}
+                             void             setName         (const char*);
+                      inline void             setTypeToken(Token* token) { m_typeToken = token; }
+                      inline void             setAssignmentOperatorToken(Token* token) { m_assignmentOperatorToken = token; }
+                      inline void             setIdentifierToken(Token* token) { m_identifierToken = token; }
+        template<class Value> inline void     set(Value _value) { value()->set(_value); };
+        template<class Value> inline void     set(Value* _value){ value()->set(_value); };
 
     private:
         Token*      m_typeToken;
@@ -43,7 +43,7 @@ namespace Nodable{
 		std::string m_name;
 
 		REFLECT_DERIVED(VariableNode)
-    REFLECT_EXTENDS(Node)
-    REFLECT_END
+        REFLECT_EXTENDS(Node)
+        REFLECT_END
     };
 }

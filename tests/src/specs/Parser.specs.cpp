@@ -355,19 +355,29 @@ TEST(Parser, For_loop_with_var_decl)
     ParseEvalSerializeExpressions({program});
 }
 
-TEST(Parser, by_reference_assign)
-{
+TEST(Parser, declare_then_define ) {
+    std::string program_01 =
+            "double b;"
+            "b = 5;"
+            "b;";
+    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
+}
+
+TEST(Parser, declare_and_define_then_reassign ) {
     std::string program_01 =
             "double b = 6;"
             "b = 5;"
             "b;";
-    EXPECT_EQ( ParseAndEvalExpression<int>(program_01), 5 );
+    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
+}
 
-    std::string program_02 =
-            "double b = 6;"
+TEST(Parser, declare_then_define_then_reassign ) {
+    std::string program_01 =
+            "double b;"
+            "b = 6;"
             "b = 5;"
-            "double a = b;";
-    EXPECT_EQ( ParseAndEvalExpression<int>(program_02), 5 );
+            "b;";
+    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
 }
 
 TEST(Parser, not_equals)

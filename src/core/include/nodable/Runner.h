@@ -39,6 +39,8 @@ namespace Nodable
         InstructionNode*      m_lastInstructionNode;
         bool                  m_isRunning;
         bool                  m_isDebugging;
+
+        void eval(Node *_node);
     };
 }
 

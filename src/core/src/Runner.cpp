@@ -70,7 +70,7 @@ void Runner::run()
         m_traversal.traverse(m_currentNode, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty | TraversalFlag_AvoidCycles );
         size_t total(m_traversal.getStats().m_traversed.size());
         size_t idx = 1;
-        for(auto& eachNodeToEval : m_traversal.getStats().m_traversed)
+        for(auto* eachNodeToEval : m_traversal.getStats().m_traversed)
         {
             eachNodeToEval->eval();
             eachNodeToEval->setDirty(false);
