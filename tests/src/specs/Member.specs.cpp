@@ -99,3 +99,18 @@ TEST(Member, Modify_by_reference_using_a_pointer)
 
     EXPECT_EQ((double)m, 100.0);
 }
+
+TEST(Member, Modify_by_reference_using_a_reference)
+{
+    Member m1(50.0);
+    Member m2(50.0);
+
+    EXPECT_EQ((double)m1, 50.0);
+    EXPECT_EQ(m1.getType(), Type_Double);
+    EXPECT_TRUE(m1.isDefined());
+
+    auto add_right_to_left = [](double& a, double b) -> double { return  a = a + b; };
+    add_right_to_left((double&)m1, (double)m2);
+
+    EXPECT_EQ((double)m1, 100.0);
+}

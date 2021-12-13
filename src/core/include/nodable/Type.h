@@ -15,7 +15,7 @@ namespace Nodable
         Type_String       = 0b00100000, // 32
         Type_Any          = Type_Boolean | Type_Double | Type_String,
 
-        Type_COUNT        = 0b00111111,
+        Type_COUNT        = 0b01000000,
 
         Type_Boolean_Ptr  = Type_Boolean | Type_Pointer,
         Type_Double_Ptr   = Type_Double | Type_Pointer,

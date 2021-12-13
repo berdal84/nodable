@@ -280,7 +280,7 @@ std::string& Serializer::serialize(std::string& _result, const CodeBlockNode* _b
 
 std::string& Serializer::serialize(std::string& _result, const InstructionNode* _instruction ) const
 {
-    const Member* value = _instruction->getValue();
+    const Member* value = _instruction->value();
 
     if ( value->hasInputConnected() )
     {
@@ -299,7 +299,7 @@ std::string& Serializer::serialize(std::string& _result, const InstructionNode* 
         serialize( _result, value );
     }
 
-    return serialize( _result, _instruction->getEndOfInstrToken() );
+    return serialize( _result, _instruction->end_of_instr_token() );
 }
 
 std::string& Serializer::serialize(std::string& _result, const Token* _token)const

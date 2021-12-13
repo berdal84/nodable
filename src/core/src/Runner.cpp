@@ -67,7 +67,7 @@ void Runner::run()
     m_currentNode = m_traversal.getNextInstrToEval(m_program);
     while(!isProgramOver())
     {
-        m_traversal.traverse(m_currentNode, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty);
+        m_traversal.traverse(m_currentNode, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty | TraversalFlag_AvoidCycles );
         size_t total(m_traversal.getStats().m_traversed.size());
         size_t idx = 1;
         for(auto& eachNodeToEval : m_traversal.getStats().m_traversed)
@@ -102,7 +102,7 @@ void Runner::unload() {
 
 bool Runner::stepOver()
 {
-    m_traversal.traverse(m_currentNode, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty);
+    m_traversal.traverse(m_currentNode, TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty | TraversalFlag_AvoidCycles );
     for (auto eachNodeToEval : m_traversal.getStats().m_traversed)
     {
         eachNodeToEval->eval();

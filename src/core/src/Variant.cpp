@@ -134,12 +134,6 @@ void Variant::setType(Type _type)
 }
 
 template<>
-[[nodiscard]] int Variant::convert_to<int>()const
-{
-    return (int)mpark::get<double>(data);
-}
-
-template<>
 [[nodiscard]] double Variant::convert_to<double>()const
 {
     switch (getType())
@@ -149,6 +143,12 @@ template<>
         case Type_Boolean: return mpark::get<bool>(data) ? double(1) : double(0);
         default:           return double(0);
     }
+}
+
+template<>
+[[nodiscard]] int Variant::convert_to<int>()const
+{
+	return (int)this->convert_to<double>();
 }
 
 template<>

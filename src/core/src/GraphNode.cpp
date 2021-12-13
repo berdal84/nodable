@@ -257,7 +257,7 @@ bool GraphNode::hasProgram()
     return m_program;
 }
 
-Wire *GraphNode::connect(Member* _from, Member* _to)
+Wire *GraphNode::connect(Member* _from, Member* _to, ConnBy_ _connect_by)
 {
     Wire* wire = nullptr;
 
@@ -278,7 +278,7 @@ Wire *GraphNode::connect(Member* _from, Member* _to)
     else
     {
         LOG_VERBOSE("GraphNode", "connect() ...\n")
-        _to->setInput(_from);
+        _to->setInput(_from, _connect_by);
         _from->getOutputs().push_back(_to);
 
         auto targetNode = _to->getOwner()->as<Node>();
@@ -349,9 +349,14 @@ void GraphNode::unregisterWire(Wire* _wire)
 
 void GraphNode::connect(Member* _source, InstructionNode* _target)
 {
-    connect(_source, _target->getValue());
+    connect(_source, _target->value());
 }
 
+void GraphNode::connect(Member* _source, VariableNode* _target)
+{
+    // We connect the source member to the variable's value member in value mode (vs reference mode)
+    connect(_source, _target->value(), ConnectBy_Copy );
+}
 
 void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType, bool _sideEffects)
 {

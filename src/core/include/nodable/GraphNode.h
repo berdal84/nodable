@@ -81,7 +81,7 @@ namespace Nodable{
          *  If _from is not owned, _to will digest it and nullptr is return.
           * Otherwise a new Wire will be created ( _from -----> _to) and returned.
           */
-        Wire* connect(Member *_source, Member *_target);
+        Wire* connect(Member *_source, Member *_target, ConnBy_ _connect_by = ConnectBy_Ref );
 
         /**
          * Connect two nodes with a given connection type
@@ -89,6 +89,7 @@ namespace Nodable{
         */
         void connect(Node* _source, Node* _target, RelationType, bool _sideEffects = true);
         void connect(Member* _source, InstructionNode* _target);
+        void connect(Member* _source, VariableNode* _target);
         void disconnect(Node* _source, Node* _target, RelationType, bool _sideEffects = true);
         void disconnect(Wire* _wire);
         void disconnect(Member* _member, Way _way = Way_InOut);

@@ -437,7 +437,7 @@ InstructionNode* Parser::parse_instruction()
         Token* expectedEOI = m_token_ribbon.eatToken(TokenType_EndOfInstruction);
         if ( expectedEOI )
         {
-            instruction->setEndOfInstrToken( expectedEOI );
+            instruction->end_of_instr_token(expectedEOI);
         }
         else if( m_token_ribbon.peekToken()->m_type != TokenType_CloseBracket )
         {
@@ -1011,17 +1011,15 @@ Member *Parser::parse_variable_declaration()
         VariableNode* variable = m_graph->newVariable(type, identifierTok->m_word, this->get_current_scope());
         variable->setTypeToken( typeTok );
         variable->setIdentifierToken( identifierTok );
-
-        variable->value()->setType(m_language->getSemantic()->token_type_to_type(typeTok->m_type));
         variable->value()->setSourceToken(identifierTok); // we also pass it to the member, this one will be modified my connections
 
         // try to parse assignment
         auto assignmentTok = m_token_ribbon.eatToken(TokenType_Operator);
         if ( assignmentTok && assignmentTok->m_word == "=" )
         {
-            if( auto value = parse_expression() )
+            if( auto expression_result = parse_expression() )
             {
-                m_graph->connect(value, variable->value());
+                m_graph->connect( expression_result, variable );
                 variable->setAssignmentOperatorToken( assignmentTok );
             }
             else

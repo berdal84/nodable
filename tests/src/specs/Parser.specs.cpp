@@ -38,7 +38,7 @@ expected_result_t ParseAndEvalExpression(const std::string& expression)
         EXPECT_TRUE( lastInstruction );
         if ( lastInstruction )
         {
-            result = lastInstruction->getValue()->convert_to<expected_result_t>();
+            result = lastInstruction->value()->convert_to<expected_result_t>();
         }
         else
         {
@@ -73,7 +73,7 @@ std::string& ParseUpdateSerialize( std::string& result, const std::string& expre
         if ( auto last_evaluated_node = runner.getLastEvaluatedInstruction() )
         {
             std::string result_str;
-            lang->getSerializer()->serialize(result_str, last_evaluated_node->getValue()->getData() );
+            lang->getSerializer()->serialize(result_str, last_evaluated_node->value()->getData() );
             LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
         }
         else
@@ -357,10 +357,17 @@ TEST(Parser, For_loop_with_var_decl)
 
 TEST(Parser, by_reference_assign)
 {
-    std::string program =
+    std::string program_01 =
             "double b = 6;"
-            "double a = b = 6;";
-    EXPECT_EQ( ParseAndEvalExpression<int>(program), 6 );
+            "b = 5;"
+            "b;";
+    EXPECT_EQ( ParseAndEvalExpression<int>(program_01), 5 );
+
+    std::string program_02 =
+            "double b = 6;"
+            "b = 5;"
+            "double a = b;";
+    EXPECT_EQ( ParseAndEvalExpression<int>(program_02), 5 );
 }
 
 TEST(Parser, not_equals)

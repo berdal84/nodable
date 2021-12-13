@@ -22,13 +22,12 @@ namespace Nodable
         explicit InstructionNode(const char* _label);
         ~InstructionNode()= default;
 
-        [[nodiscard]] inline Member* getValue()const { return m_props.get("value"); }
-                      inline void    setValue(Member* _value) const { getValue()->set(_value); };
-        [[nodiscard]] inline Token*  getEndOfInstrToken()const { return m_endOfInstrToken; }
-                      inline void    setEndOfInstrToken(Token* token) { m_endOfInstrToken = token; }
+        [[nodiscard]] inline Member* value()const { return m_props.get("value"); }
+        [[nodiscard]] inline Token*  end_of_instr_token()const { return m_end_of_instr_token; }
+                      inline void    end_of_instr_token(Token* token) { m_end_of_instr_token = token; }
 
     private:
-        Token* m_endOfInstrToken = nullptr;
+        Token* m_end_of_instr_token = nullptr;
         REFLECT_DERIVED(InstructionNode)
         REFLECT_EXTENDS(Node)
         REFLECT_END

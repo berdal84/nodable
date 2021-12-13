@@ -90,15 +90,15 @@ int Node::getOutputWireCount()const
 
 bool Node::eval() const
 {
-    // read data from inputs
+    // copy values from input connections
     for(auto& eachNameToMemberPair : m_props.getMembers())
     {
         Member* eachMember = eachNameToMemberPair.second;
-        if( Member* input = eachMember->getInput() )
+        if( eachMember->getInput() && eachMember->is_connected_by(ConnectBy_Copy) )
         {
             // transfer value:  input ----> X
-            eachMember->setType(input->getType()); // dynamic type, TODO: show a warning ?
-            eachMember->set(input);
+            eachMember->setType(eachMember->getInput()->getType()); // dynamic type, TODO: show a warning ?
+            eachMember->set(eachMember->getInput());
         }
     }
 

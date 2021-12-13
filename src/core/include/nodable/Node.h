@@ -139,7 +139,7 @@ namespace Nodable {
 		/** Update the state of this (and only this) node
 		 * This WON'T evaluate it */
 		virtual UpdateResult update();
-        bool eval() const;
+        virtual bool eval() const;
 
 		/** Get the operator connected to a given Member */
         const InvokableOperator* getConnectedOperator(const Member* _localMember);

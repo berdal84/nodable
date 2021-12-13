@@ -33,6 +33,11 @@ namespace Nodable
         IS_NEXT_OF,
         IS_OUTPUT_OF
     };
+
+    enum ConnBy_ {
+        ConnectBy_Ref,
+        ConnectBy_Copy
+    };
 }
 
 

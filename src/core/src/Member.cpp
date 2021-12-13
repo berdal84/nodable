@@ -13,23 +13,24 @@ Member::Member()
         m_name("Unknown"),
         m_sourceToken(Token::s_null),
         m_input(nullptr),
-        m_parentProperties(nullptr)
+        m_parentProperties(nullptr),
+        m_connected_by(ConnectBy_Ref)
     {}
 
 Member::Member(double d): Member()
 {
-    set(d);
+    get_variant().set(d);
 }
 
 Member::Member(bool b): Member()
 {
-    set(b);
+    get_variant().set(b);
 }
 
 Member::Member(int i): Member((double)i){}
 
 Member::Member(const char * str): Member() {
-    set(str);
+    get_variant().set(str);
 }
 
 Member::Member(const std::string& s): Member(s.c_str()){}
@@ -38,18 +39,19 @@ Member::~Member(){}
 
 bool Member::hasInputConnected() const
 {
-    return this->getInput();
+    return m_input != nullptr;
 }
 
 bool Member::equals(const Member *_other)const {
 	return _other != nullptr &&
-           _other->m_variant.getType() == this->m_variant.getType() &&
-		   (std::string)*_other == (std::string)*this;
+           _other->m_variant.getType() == m_input->m_variant.getType() &&
+		   (std::string)*_other == (std::string)*m_input;
 }
 
-void Member::setInput(Member* _val)
+void Member::setInput(Member* _val, ConnBy_ _connect_by)
 {
     m_input = _val;
+    m_connected_by = _connect_by;
 
 	if (_val == nullptr)
         m_sourceExpression = "";
@@ -57,40 +59,44 @@ void Member::setInput(Member* _val)
 
 void Member::set(double _value)
 {
-	m_variant.setType(Type_Double);
-	m_variant.set(_value);
+    get_variant().setType(Type_Double);
+    get_variant().set(_value);
 }
 
 void Member::set(const char* _value)
 {
-	m_variant.setType(Type_String);
-	m_variant.set(_value);
+    get_variant().setType(Type_String);
+    get_variant().set(_value);
 }
 
 void Member::set(bool _value)
 {
-	m_variant.setType(Type_Boolean);
-	m_variant.set(_value);
+    get_variant().setType(Type_Boolean);
+    get_variant().set(_value);
 }
 
 void Member::setSourceToken(const Token* _token)
 {
     if ( _token )
     {
-        this->m_sourceToken = *_token;
+        m_sourceToken = *_token;
     }
     else
     {
-        this->m_sourceToken = Token::s_null;
+        m_sourceToken = Token::s_null;
     }
 }
 
 void Member::digest(Member *_member)
 {
     // Transfer
-    this->m_variant = _member->m_variant;
-    this->m_sourceToken = _member->m_sourceToken;
+    m_variant = _member->m_variant;
+    m_sourceToken = _member->m_sourceToken;
 
     // release member
     _member->m_sourceToken = Token::s_null;
+}
+
+bool Member::is_connected_by(ConnBy_ by) {
+    return m_connected_by == by;
 }

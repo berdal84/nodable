@@ -23,7 +23,7 @@ InstructionNode* HeadlessNodeFactory::newInstruction_UserCreated()const
 
     Token* token = new Token(TokenType_EndOfInstruction);
     m_language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
-    newInstructionNode->setEndOfInstrToken( token );
+    newInstructionNode->end_of_instr_token(token);
 
     return newInstructionNode;
 }
