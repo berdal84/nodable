@@ -9,6 +9,7 @@
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/VariableNode.h>
+#include <nodable/ForLoopNode.h>
 
 using namespace Nodable;
 
@@ -137,8 +138,8 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
         * Get the branch depending on condition
         */
        auto next = condStructNode->get_condition() ? condStructNode->get_condition_true_branch() : condStructNode->get_condition_false_branch();
-       if ( !m_stats.hasBeenTraversed(next) )
-           result = next;
+       if ( !m_stats.hasBeenTraversed(next) || condStructNode->get_class()->is<ForLoopNode>())
+           return next;
     }
     else if ( !children.empty() )//if ( clss->isChildOf( mirror::GetClass<AbstractCodeBlockNode>() ) )
     {

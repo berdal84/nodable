@@ -23,9 +23,7 @@ namespace Nodable
 
         inline void            set_token_for(Token* _token) { m_token_for = _token; }
         inline const Token*    get_token_for()const   { return m_token_for; }
-        void                   set_init_expr(Member *_value) const { get_init_expr()->set(_value); }
         Member*                get_init_expr()const { return m_props.get("init"); }
-        void                   set_iter_expr(Member *_value) const { get_iter_expr()->set(_value); }
         Member*                get_iter_expr()const { return m_props.get("iter"); }
 
         // override AbstractConditionalStruct

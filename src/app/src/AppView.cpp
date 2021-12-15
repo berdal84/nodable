@@ -358,19 +358,19 @@ bool AppView::draw()
                 if (ImGui::BeginMenu("Run")) {
                     auto runner = m_app->getRunner();
 
-                    if (ImGui::MenuItem(ICON_FA_PLAY" Run") && runner.isStopped()) {
+                    if (ImGui::MenuItem(ICON_FA_PLAY" Run") && runner.is_program_stopped()) {
                         m_app->runCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_BUG" Debug") && runner.isStopped()) {
+                    if (ImGui::MenuItem(ICON_FA_BUG" Debug") && runner.is_program_stopped()) {
                         m_app->debugCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && runner.isDebugging()) {
+                    if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && runner.is_debugging()) {
                         m_app->stepOverCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !runner.isStopped()) {
+                    if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !runner.is_program_stopped()) {
                         m_app->stopCurrentFileProgram();
                     }
 
@@ -895,11 +895,11 @@ void AppView::draw_tool_bar()
     ImGui::BeginGroup();
 
     // run
-    bool isRunning = runner.isRunning();
+    bool isRunning = runner.is_program_running();
     if ( isRunning )
         ImGui::PushStyleColor(ImGuiCol_Button, settings->ui_button_activeColor);
 
-    if (ImGui::Button(ICON_FA_PLAY, settings->ui_toolButton_size) && runner.isStopped())
+    if (ImGui::Button(ICON_FA_PLAY, settings->ui_toolButton_size) && runner.is_program_stopped())
     {
         m_app->runCurrentFileProgram();
     }
@@ -908,10 +908,10 @@ void AppView::draw_tool_bar()
     ImGui::SameLine();
 
     // debug
-    bool isDebugging = runner.isDebugging();
+    bool isDebugging = runner.is_debugging();
     if ( isDebugging )
         ImGui::PushStyleColor(ImGuiCol_Button, settings->ui_button_activeColor);
-    if (ImGui::Button(ICON_FA_BUG, settings->ui_toolButton_size) && runner.isStopped())
+    if (ImGui::Button(ICON_FA_BUG, settings->ui_toolButton_size) && runner.is_program_stopped())
     {
         m_app->debugCurrentFileProgram();
     }
@@ -920,14 +920,14 @@ void AppView::draw_tool_bar()
     ImGui::SameLine();
 
     // stepOver
-    if (ImGui::Button(ICON_FA_ARROW_RIGHT, settings->ui_toolButton_size) && runner.isDebugging())
+    if (ImGui::Button(ICON_FA_ARROW_RIGHT, settings->ui_toolButton_size) && runner.is_debugging())
     {
         m_app->stepOverCurrentFileProgram();
     }
     ImGui::SameLine();
 
     // stop
-    if ( ImGui::Button(ICON_FA_STOP, settings->ui_toolButton_size) && !runner.isStopped())
+    if ( ImGui::Button(ICON_FA_STOP, settings->ui_toolButton_size) && !runner.is_program_stopped())
     {
         m_app->stopCurrentFileProgram();
     }

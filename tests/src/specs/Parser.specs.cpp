@@ -30,8 +30,16 @@ expected_result_t ParseAndEvalExpression(const std::string& expression)
     {
         // run
         Runner runner;
-        runner.load(graph.getProgram());
-        runner.run();
+
+        if ( runner.load_program(graph.getProgram()) )
+        {
+            runner.run_program();
+        }
+        else
+        {
+            throw std::runtime_error( "Unable to load program." );
+        }
+
 
         // compare result
         auto lastInstruction = program->get_last_instruction();
@@ -67,10 +75,10 @@ std::string& ParseUpdateSerialize( std::string& result, const std::string& expre
     if ( ScopedCodeBlockNode* program = graph.getProgram())
     {
         Runner runner;
-        runner.load(program);
-        runner.run();
+        runner.load_program(program);
+        runner.run_program();
 
-        if ( auto last_evaluated_node = runner.getLastEvaluatedInstruction() )
+        if ( auto last_evaluated_node = runner.get_last_evaluated_instr() )
         {
             std::string result_str;
             lang->getSerializer()->serialize(result_str, last_evaluated_node->value()->getData() );
@@ -379,6 +387,17 @@ TEST(Parser, declare_then_define_then_reassign ) {
             "b;";
     EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
 }
+
+TEST(Parser, condition_which_contains_alterated_var ) {
+    std::string program_01 =
+            "double b = 6;"
+            //"b = 5;"
+            "string res = \"ok\";"
+            "if(b==6){res=\"error\";}"
+            "res;";
+    EXPECT_EQ(ParseAndEvalExpression<std::string>(program_01), "ok");
+}
+
 
 TEST(Parser, not_equals)
 {

@@ -153,7 +153,7 @@ bool GraphNodeView::draw()
             {
                 eachNodeView->draw();
 
-                if(runner && runner->isDebugging() && runner->getCurrentNode() == eachNodeView->get_owner())
+                if(runner && runner->is_debugging() && runner->get_current_node() == eachNodeView->get_owner())
                     ImGui::SetScrollHereY();
 
                 // dragging
@@ -176,9 +176,9 @@ bool GraphNodeView::draw()
 	// Virtual Machine cursor
 	if( runner )
     {
-	    if ( !runner->isStopped())
+	    if ( !runner->is_program_stopped())
         {
-	        auto node = runner->getCurrentNode();
+	        auto node = runner->get_current_node();
 	        if( auto view = node->getComponent<NodeView>())
             {
 	            auto draw_list = ImGui::GetWindowDrawList();
