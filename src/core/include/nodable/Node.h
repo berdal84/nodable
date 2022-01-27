@@ -266,6 +266,7 @@ namespace Nodable {
         template<class T> [[nodiscard]] inline const T* as()const { return Reflect::cast_pointer<const T>(this); }
 
         Properties* getProps() { return &m_props; }
+        const Properties* getProps()const { return &m_props; }
 
 	protected:
         Properties         m_props;
