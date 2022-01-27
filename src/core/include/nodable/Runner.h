@@ -10,12 +10,20 @@ namespace Nodable
     struct SimpleInstrList;
 
     enum Register {
-        LAST_EVAL = 0,
-        LAST_CONDITION,
-        //MEM1,
-        //MEM2,
+        RAX = 0, // accumulator register, we store the last result here.
+        RDX,     // data register, we can copy a value to keep it here.
         COUNT
     };
+
+    static std::string to_string(Register _register)
+    {
+        switch( _register)
+        {
+            case Register::RAX: return "RAX";
+            case Register::RDX: return "RDX";
+        }
+        return "???";
+    }
 
     /**
      * Class to execute a Nodable program.
@@ -53,12 +61,12 @@ namespace Nodable
 
     enum SIType
     {
-        Type_UND, // undefined
-        Type_EVA, // evaluate
-        Type_MOV, // store last eval in a register
-        Type_JMP, // always jump
-        Type_JNE, // jump only if last condition register is false
-        Type_EXI, // stop the program
+        UND, // undefined
+        EVA, // evaluate
+        MOV, // store last eval in a register
+        JMP, // always jump
+        JNE, // jump only if last condition register is false
+        EXI, // stop the program
     };
 
     class SimpleInstr
@@ -79,44 +87,44 @@ namespace Nodable
 
             switch ( m_type )
             {
-                case Type_EVA:
+                case EVA:
                 {
                     Member* member = mpark::get<Member*>(m_left_h_arg );
                     result.append("EVA ");
                     result.append( "&" + std::to_string((size_t)member) );
-                    result.append( " $" + std::to_string( Register::LAST_EVAL ) );
+                    result.append( " " + Nodable::to_string( Register::RAX ) );
                     break;
                 }
 
-                case Type_MOV:
+                case MOV:
                 {
                     result.append("MOV");
-                    result.append( " $" + std::to_string( (int)mpark::get<Register>(m_left_h_arg ) ) );
-                    result.append( " $" + std::to_string( (int)mpark::get<Register>(m_right_h_arg ) ) );
+                    result.append( " " + Nodable::to_string( mpark::get<Register>(m_left_h_arg ) ) );
+                    result.append( " " + Nodable::to_string( mpark::get<Register>(m_right_h_arg ) ) );
                     break;
                 }
 
-                case Type_JNE:
+                case JNE:
                 {
                     result.append("JNE ");
                     result.append( std::to_string( mpark::get<long>(m_left_h_arg ) ) );
                     break;
                 }
 
-                case Type_JMP:
+                case JMP:
                 {
                     result.append("JMP ");
                     result.append( std::to_string( mpark::get<long>(m_left_h_arg ) ) );
                     break;
                 }
 
-                case Type_UND:
+                case UND:
                 {
                     result.append("UND ");
                     break;
                 }
 
-                case Type_EXI:
+                case EXI:
                 {
                     result.append("EXI ");
                     break;
@@ -164,7 +172,7 @@ namespace Nodable
          SimpleInstr* get_curr(){ return m_cursor_position < m_instructions.size() ? m_instructions[m_cursor_position] : nullptr; };
          void         reset_cursor(){ m_cursor_position = 0; };
          long         get_next_line_nb(){ return m_instructions.size(); }
-         bool         is_over() { assert(get_curr()); return get_curr()->m_type == Type_EXI; }
+         bool         is_over() { assert(get_curr()); return get_curr()->m_type == EXI; }
      private:
          size_t m_cursor_position = 0;
          std::vector<SimpleInstr*> m_instructions;

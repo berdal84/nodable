@@ -34,21 +34,21 @@ void Runner::compile_node_and_append_to_program(const Node* _node)
             // for_loop init instruction
             if ( auto for_loop = _node->as<ForLoopNode>() )
             {
-                auto init_instr = m_program_compiled->push_instr(Type_EVA  );
+                auto init_instr = m_program_compiled->push_instr(EVA  );
                 init_instr->m_left_h_arg.emplace<Member*>(for_loop->get_init_expr() );
                 init_instr->m_comment = "init-loop";
             }
 
-            SimpleInstr* cond_instr = m_program_compiled->push_instr(Type_EVA);
+            SimpleInstr* cond_instr = m_program_compiled->push_instr(EVA);
             cond_instr->m_left_h_arg.emplace<Member*>(cond->get_condition() );
             cond_instr->m_comment = "condition";
 
-            SimpleInstr* store_instr = m_program_compiled->push_instr(Type_MOV);
-            store_instr->m_left_h_arg = Register::LAST_EVAL;
-            store_instr->m_right_h_arg = Register::LAST_CONDITION;
-            store_instr->m_comment = "copy LAST_EVAL to LAST_CONDITION register.";
+            SimpleInstr* store_instr = m_program_compiled->push_instr(MOV);
+            store_instr->m_left_h_arg = Register::RAX;
+            store_instr->m_right_h_arg = Register::RDX;
+            store_instr->m_comment = "copy last result to a data register.";
 
-            SimpleInstr* skip_true_branch = m_program_compiled->push_instr(Type_JNE);
+            SimpleInstr* skip_true_branch = m_program_compiled->push_instr(JNE);
             skip_true_branch->m_comment = "jump if register is false";
 
             SimpleInstr* skip_false_branch = nullptr;
@@ -60,18 +60,18 @@ void Runner::compile_node_and_append_to_program(const Node* _node)
                 if ( auto for_loop = _node->as<ForLoopNode>() )
                 {
                     // insert end-loop instruction.
-                    auto end_loop_instr = m_program_compiled->push_instr(Type_EVA);
+                    auto end_loop_instr = m_program_compiled->push_instr(EVA);
                     end_loop_instr->m_left_h_arg  = for_loop->get_iter_expr();
 
                     // insert jump to condition instructions.
-                    auto loop_jump = m_program_compiled->push_instr(Type_JMP);
+                    auto loop_jump = m_program_compiled->push_instr(JMP);
                     loop_jump->m_left_h_arg = cond_instr->m_line - loop_jump->m_line;
-                    loop_jump->m_comment = "end-loop";
+                    loop_jump->m_comment = "jump back to loop begining";
 
                 }
                 else if (cond->get_condition_false_branch())
                 {
-                    skip_false_branch = m_program_compiled->push_instr(Type_JMP);
+                    skip_false_branch = m_program_compiled->push_instr(JMP);
                     skip_false_branch->m_comment = "jump false branch";
                 }
             }
@@ -93,10 +93,10 @@ void Runner::compile_node_and_append_to_program(const Node* _node)
         }
         else
         {
-            SimpleInstr* instr   = m_program_compiled->push_instr(Type_EVA);
+            SimpleInstr* instr   = m_program_compiled->push_instr(EVA);
             instr->m_left_h_arg  = _node->getProps()->get("value");
-            instr->m_right_h_arg = Register::LAST_EVAL;
-            instr->m_comment     = "Evaluate node and store result in register LAST_EVAL.";
+            instr->m_right_h_arg = Register::RAX;
+            instr->m_comment     = "Evaluate a member and store result in the specified register";
         }
     }
 
@@ -111,7 +111,7 @@ SimpleInstrList* Runner::compile_program(const ScopedCodeBlockNode* _program)
     delete m_program_compiled;
     m_program_compiled = new SimpleInstrList();
     compile_node_and_append_to_program(_program);
-    m_program_compiled->push_instr(Type_EXI);
+    m_program_compiled->push_instr(EXI);
     return m_program_compiled;
 }
 
@@ -209,7 +209,7 @@ bool Runner::_stepOver()
 
     switch ( curr_instr->m_type )
     {
-        case Type_UND:
+        case UND:
         {
             LOG_ERROR("Runner", "Instruction %i is undefined.\n", (int)curr_instr->m_line);
             m_program_compiled->advance();
@@ -217,7 +217,7 @@ bool Runner::_stepOver()
             break;
         }
 
-        case Type_MOV:
+        case MOV:
         {
             NODABLE_ASSERT(m_register);
             Register src_register = mpark::get<Register>(curr_instr->m_left_h_arg );
@@ -228,7 +228,7 @@ bool Runner::_stepOver()
             break;
         }
 
-        case Type_EVA:
+        case EVA:
         {
             // TODO: traverse graph in advance during compilation step.
             Member* member = mpark::get<Member*>(curr_instr->m_left_h_arg);
@@ -249,22 +249,22 @@ bool Runner::_stepOver()
                 }
             }
 
-            m_register[LAST_EVAL] = *member->getData(); // store result.
+            m_register[RAX] = *member->getData(); // store result.
             m_program_compiled->advance();
             success = true;
             break;
         }
 
-        case Type_JMP:
+        case JMP:
         {
             m_program_compiled->advance(mpark::get<long>(curr_instr->m_left_h_arg) );
             success = true;
             break;
         }
 
-        case Type_JNE:
+        case JNE:
         {
-            if ( m_register[LAST_CONDITION] )
+            if ( m_register[RDX] )
             {
                 m_program_compiled->advance();
             }
@@ -276,7 +276,7 @@ bool Runner::_stepOver()
             break;
         }
 
-        case Type_EXI:
+        case EXI:
             success = true;
             break;
 
@@ -292,7 +292,7 @@ bool Runner::step_over()
     bool _break = false;
     while( !is_program_over() && !_break )
     {
-        _break = m_program_compiled->get_curr()->m_type == Type_EVA;
+        _break = m_program_compiled->get_curr()->m_type == EVA;
         _stepOver();
     }
 
