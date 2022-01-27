@@ -38,9 +38,9 @@ namespace Nodable{
             , m_graph(nullptr){}
 		~Parser(){}
 
-		/** Evaluates an expression as a string.
+		/** Try to convert a source code to a program tree.
 		   Return true if evaluation went well and false otherwise. */
-		bool                   expression_to_graph(const std::string &_code, GraphNode *_graphNode);
+		bool                   source_code_to_graph(const std::string &_source_code, GraphNode *_graphNode);
 
     protected:
 
@@ -84,8 +84,8 @@ namespace Nodable{
 		/** Build a graph recursively starting at the current cursor position. */
 		Member*                parse_expression(unsigned short _precedence = 0u, Member *_left = nullptr);
 
-		/** Split a given expression string into tokens (cf. Token) */
-		bool                   tokenize_string(const std::string &_expression);
+		/** Split a given code_source to tokens (cf. Token) */
+		bool                   tokenize_string(const std::string& _code_source_portion);
 
 		/** Check if the token ribbon match with the language's syntax.
 		 * tokenizeExpressionString() must be called first */

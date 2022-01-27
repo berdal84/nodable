@@ -22,7 +22,7 @@ namespace Nodable
         GraphNode graph(lang, &factory);
 
         // create program
-        lang->getParser()->expression_to_graph(expression, &graph);
+        lang->getParser()->source_code_to_graph(expression, &graph);
 
         auto program = graph.getProgram();
         if (program) {
@@ -60,7 +60,7 @@ namespace Nodable
         GraphNode graph(lang, &factory);
 
         // act
-        lang->getParser()->expression_to_graph(expression, &graph);
+        lang->getParser()->source_code_to_graph(expression, &graph);
         if (ScopedCodeBlockNode *program = graph.getProgram()) {
             Runner runner;
 

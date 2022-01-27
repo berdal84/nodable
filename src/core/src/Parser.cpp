@@ -33,15 +33,14 @@ void Parser::commit_transaction()
     m_token_ribbon.commitTransaction();
 }
 
-bool Parser::expression_to_graph(const std::string &_code,
-                                 GraphNode *_graphNode)
+bool Parser::source_code_to_graph(const std::string &_source_code, GraphNode *_graphNode)
 {
     m_graph = _graphNode;
     m_token_ribbon.clear();
 
-    LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", _code.c_str() )
+    LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", _source_code.c_str() )
 
-    std::istringstream iss(_code);
+    std::istringstream iss(_source_code);
     std::string line;
     std::string eol;
     m_language->getSerializer()->serialize(eol, TokenType_EndOfLine);
@@ -57,7 +56,7 @@ bool Parser::expression_to_graph(const std::string &_code,
 
         if (!tokenize_string(line))
         {
-            LOG_WARNING("Parser", "Unable to parse code due to unrecognized tokens.\n")
+            LOG_WARNING("Parser", "Unable to tokenize line %i: %s\n", lineCount, line.c_str() )
             return false;
         }
 
@@ -80,14 +79,14 @@ bool Parser::expression_to_graph(const std::string &_code,
 
 	if (program == nullptr)
 	{
-		LOG_WARNING("Parser", "Unable to parse main scope due to abstract syntax tree failure.\n")
+		LOG_WARNING("Parser", "Unable to generate program tree.\n")
 		return false;
 	}
 
     if ( m_token_ribbon.canEat() )
     {
         m_graph->clear();
-        LOG_ERROR("Parser", "Unable to evaluate the full expression.\n")
+        LOG_ERROR("Parser", "Unable to generate a full program tree.\n")
         return false;
     }
 
@@ -96,8 +95,8 @@ bool Parser::expression_to_graph(const std::string &_code,
     for(auto eachNode : nodes )
         eachNode->setDirty(false);
 
-	LOG_MESSAGE("Parser", "Graph well updated.\n", _code.c_str() )
-	LOG_VERBOSE("Parser", "Expression evaluated: <expr>%s</expr>\"\n", _code.c_str() )
+	LOG_MESSAGE("Parser", "Program tree updated.\n", _source_code.c_str() )
+	LOG_VERBOSE("Parser", "Source code: <expr>%s</expr>\"\n", _source_code.c_str() )
 	return true;
 }
 
@@ -649,11 +648,8 @@ bool Parser::is_syntax_valid()
 	return success;
 }
 
-bool Parser::tokenize_string(const std::string &_expression)
+bool Parser::tokenize_string(const std::string &_code_source_portion)
 {
-    /* get expression chars */
-    auto chars = _expression;
-
     /* shortcuts to language members */
     const std::vector<std::regex> regex           = m_language->getSemantic()->get_token_type_regex();
     const std::vector<TokenType> regexIdToTokType = m_language->getSemantic()->get_token_type_regex_index_to_token_type();
@@ -668,7 +664,7 @@ bool Parser::tokenize_string(const std::string &_expression)
         {
             i++;
             std::smatch sm;
-            auto match = std::regex_search(it, chars.cend(), sm, *eachRegexIt);
+            auto match = std::regex_search(it, _code_source_portion.cend(), sm, *eachRegexIt);
 
             if (match)
             {
@@ -677,7 +673,7 @@ bool Parser::tokenize_string(const std::string &_expression)
 
                 if (matchedTokenType != TokenType_Ignore)
                 {
-                    Token* newToken = m_token_ribbon.push(matchedTokenType, matchedTokenString, std::distance(chars.cbegin(), it));
+                    Token* newToken = m_token_ribbon.push(matchedTokenType, matchedTokenString, std::distance(_code_source_portion.cbegin(), it));
                     LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matchedTokenString.c_str() )
 
                     // If a we have so prefix tokens we copy them to the newToken prefixes.
@@ -707,12 +703,12 @@ bool Parser::tokenize_string(const std::string &_expression)
         return false;
     };
 
-    auto currTokIt = chars.cbegin();
-	while(currTokIt != chars.cend())
+    auto currTokIt = _code_source_portion.cbegin();
+	while(currTokIt != _code_source_portion.cend())
 	{
 		if (!unifiedParsing(currTokIt))
 		{
-		    LOG_VERBOSE("Parser", "tokenize " KO ", unable to tokenize at index %i\n", (int)std::distance(chars.cbegin(), currTokIt) )
+		    LOG_VERBOSE("Parser", "tokenize " KO ", unable to tokenize at index %i\n", (int)std::distance(_code_source_portion.cbegin(), currTokIt) )
 			return false;
 		}
 	}
