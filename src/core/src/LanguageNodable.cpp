@@ -293,7 +293,7 @@ LanguageNodable::LanguageNodable()
 
     // literals
     semantic.insert(std::regex("^(true|false)"), TokenType_Literal, Type_Boolean);
-    semantic.insert(std::regex("^(\"[. a-zA-Z0-9]*)\""), TokenType_Literal, Type_String);
+    semantic.insert(std::regex("^(\"[_. a-zA-Z0-9]*)\""), TokenType_Literal, Type_String);
     semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Literal, Type_Double);
 
     // identifier
