@@ -295,8 +295,8 @@ bool Runner::step_over()
     bool _break = false;
     while( !is_program_over() && !_break )
     {
-        _stepOver();
         _break = m_compiled_program->get_curr()->m_type == Type_EVAL;
+        _stepOver();
     }
 
     bool continue_execution = !is_program_over();
