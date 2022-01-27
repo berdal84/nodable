@@ -35,3 +35,16 @@ TEST(Runner, Cond_2 )
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "default" );
 }
+
+TEST(Runner, Loop_1 )
+{
+    std::string program =
+            "double n   = 0;"
+            "string res = \"\";"
+            "for(n=0;n<10;n=n+1){"
+            "   res = res + n;"
+            "}"
+            "res;";
+
+    EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "0123456789" );
+}

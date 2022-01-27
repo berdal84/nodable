@@ -8,6 +8,7 @@
 #include <nodable/Member.h>
 #include <nodable/Node.h>
 #include <nodable/VariableNode.h>
+#include <nodable/String.h>
 
 using namespace Nodable;
 
@@ -103,7 +104,7 @@ bool api_to_bool(double n)
 template<typename T>
 std::string api_concat(std::string left, T right)
 {
-    return  left + std::to_string(right);
+    return  left + Nodable::String::to_string(right);
 }
 
 template<>
