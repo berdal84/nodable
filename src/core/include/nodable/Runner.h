@@ -58,16 +58,8 @@ namespace Nodable
     {
     public:
 
-        SimpleInstr(SIType _type, long _line):m_type(_type), m_line(_line){}
-
-        SimpleInstr(const SimpleInstr& _other)
-        :
-        m_type(_other.m_type),
-        m_line(_other.m_line),
-        m_data(_other.m_data),
-        m_comment(_other.m_comment)
-        {
-        }
+        SimpleInstr(SIType _type, long _line):m_type(_type), m_line(_line) {}
+        SimpleInstr(const SimpleInstr& _other) = default;
 
         std::string to_string()
         {
@@ -131,7 +123,7 @@ namespace Nodable
         long   m_line;
         mpark::variant<void* , Node*, Member*, long> m_data;
         std::string m_comment;
-    };
+     };
 
     /**
      * Class to store a simple instruction list and navigate forward through it
