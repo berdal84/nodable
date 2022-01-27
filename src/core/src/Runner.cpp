@@ -131,7 +131,15 @@ bool Runner::load_program(ScopedCodeBlockNode* _program)
             SimpleInstr* curr = m_compiled_program->get_curr();
             while( curr )
             {
-                LOG_VERBOSE("Runner", "%s  // %s\n", curr->to_string().c_str(), curr->m_comment.c_str() );
+                if ( curr->m_comment.empty())
+                {
+                    LOG_VERBOSE("Runner", "%s \n", curr->to_string().c_str() );
+                }
+                else
+                {
+                    LOG_VERBOSE("Runner", "%s  ; %s\n", curr->to_string().c_str(), curr->m_comment.c_str() );
+                }
+
                 m_compiled_program->advance(1);
                 curr = m_compiled_program->get_curr();
             }

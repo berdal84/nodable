@@ -4,7 +4,7 @@ using namespace Nodable;
 
 const Token Token::s_null = Token(TokenType_NULL);
 
-std::string Token::toString(const Token* _token)
+std::string Token::to_string(const Token* _token)
 {
     std::string result;
     result.append("{ ");

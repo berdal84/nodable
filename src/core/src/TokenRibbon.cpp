@@ -8,14 +8,17 @@ using namespace Nodable;
 
 TokenRibbon::TokenRibbon()
     :
-    currentTokenIndex(0)
+        m_curr_tok_idx(0)
 {
     transactionStartTokenIndexes.push(0);
 }
 
 Token* TokenRibbon::push(TokenType  _type, const std::string& _string, size_t _charIndex )
 {
-    return &tokens.emplace_back(_type, _string, _charIndex);
+    Token token(_type, _string, _charIndex);
+    token.m_index = tokens.size();
+    tokens.push_back(token);
+    return &tokens.back();
 }
 
 std::string TokenRibbon::toString()const
@@ -29,12 +32,12 @@ std::string TokenRibbon::toString()const
         size_t index = eachTokIt - tokens.begin();
 
         // Set a color to identify tokens that are inside current transaction
-        if ( !transactionStartTokenIndexes.empty() && index >= transactionStartTokenIndexes.top() && index < currentTokenIndex )
+        if ( !transactionStartTokenIndexes.empty() && index >= transactionStartTokenIndexes.top() && index < m_curr_tok_idx )
         {
             result.append(YELLOW);
         }
 
-        if ( index == currentTokenIndex )
+        if (index == m_curr_tok_idx )
         {
             result.append("> ");
             result.append(BOLDGREEN);
@@ -53,7 +56,7 @@ std::string TokenRibbon::toString()const
 
     const std::string endOfLine("<eol>");
 
-    if (tokens.size() == currentTokenIndex )
+    if (tokens.size() == m_curr_tok_idx )
     {
         result.append(GREEN);
         result.append(endOfLine);
@@ -80,26 +83,26 @@ Token* TokenRibbon::eatToken(TokenType expectedType)
 
 Token* TokenRibbon::eatToken()
 {
-    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", currentTokenIndex, Token::toString( peekToken() ).c_str() )
-    return &tokens.at(currentTokenIndex++);
+    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", m_curr_tok_idx, Token::to_string(peekToken()).c_str() )
+    return &tokens.at(m_curr_tok_idx++);
 }
 
 void TokenRibbon::startTransaction()
 {
-    transactionStartTokenIndexes.push(currentTokenIndex);
-    LOG_VERBOSE("Parser", "Start Transaction (idx %i)\n", currentTokenIndex)
+    transactionStartTokenIndexes.push(m_curr_tok_idx);
+    LOG_VERBOSE("Parser", "Start Transaction (idx %i)\n", m_curr_tok_idx)
 }
 
 void TokenRibbon::rollbackTransaction()
 {
-    currentTokenIndex = transactionStartTokenIndexes.top();
-    LOG_VERBOSE("Parser", "Rollback transaction (idx %i)\n", currentTokenIndex)
+    m_curr_tok_idx = transactionStartTokenIndexes.top();
+    LOG_VERBOSE("Parser", "Rollback transaction (idx %i)\n", m_curr_tok_idx)
     transactionStartTokenIndexes.pop();
 }
 
 void TokenRibbon::commitTransaction()
 {
-    LOG_VERBOSE("Parser", "Commit transaction (idx %i)\n", currentTokenIndex)
+    LOG_VERBOSE("Parser", "Commit transaction (idx %i)\n", m_curr_tok_idx)
     transactionStartTokenIndexes.pop();
 }
 
@@ -107,7 +110,7 @@ void TokenRibbon::clear()
 {
     tokens.clear();
     transactionStartTokenIndexes = std::stack<size_t>();
-    currentTokenIndex = 0;
+    m_curr_tok_idx = 0;
 }
 
 bool TokenRibbon::empty() const
@@ -123,16 +126,16 @@ size_t TokenRibbon::size() const
 bool TokenRibbon::canEat(size_t _tokenCount) const
 {
     NODABLE_ASSERT(_tokenCount > 0);
-    return  currentTokenIndex + _tokenCount <= tokens.size() ;
+    return m_curr_tok_idx + _tokenCount <= tokens.size() ;
 }
 
 Token* TokenRibbon::peekToken()
 {
-    return &tokens.at(currentTokenIndex);
+    return &tokens.at(m_curr_tok_idx);
 }
 
 Token *TokenRibbon::getEaten()
 {
     // TODO: optimization: store a pointer to the last eaten Token ?
-    return currentTokenIndex == 0 ? nullptr : &tokens.at(currentTokenIndex - 1);
+    return m_curr_tok_idx == 0 ? nullptr : &tokens.at(m_curr_tok_idx - 1);
 }

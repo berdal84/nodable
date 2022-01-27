@@ -87,6 +87,13 @@ bool Parser::source_code_to_graph(const std::string &_source_code, GraphNode *_g
     {
         m_graph->clear();
         LOG_ERROR("Parser", "Unable to generate a full program tree.\n")
+        LOG_MESSAGE("Parser", "--- Token Ribbon begin ---\n");
+        for( auto each_token : m_token_ribbon.tokens )
+        {
+            LOG_MESSAGE("Parser", "%i: %s\n", each_token.m_index, Token::to_string(&each_token).c_str() );
+        }
+        LOG_MESSAGE("Parser", "--- Token Ribbon end ---\n");
+        LOG_ERROR("Parser", "Stuck at token %i (charIndex %i).\n", (int)m_token_ribbon.get_curr_tok_idx(), (int)m_token_ribbon.peekToken()->m_charIndex )
         return false;
     }
 

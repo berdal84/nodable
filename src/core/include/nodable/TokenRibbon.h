@@ -65,9 +65,10 @@ namespace Nodable
 
         Token *getEaten();
 
+        size_t get_curr_tok_idx() { return  m_curr_tok_idx; }
     private:
         /** Current cursor position */
-        size_t currentTokenIndex;
+        size_t m_curr_tok_idx;
 
         /** Stack of all transaction start indexes */
         std::stack<size_t> transactionStartTokenIndexes;
