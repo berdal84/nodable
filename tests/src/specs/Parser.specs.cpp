@@ -1,115 +1,9 @@
 #include <gtest/gtest.h>
-#include <exception>
-
-#include <nodable/Member.h>
-#include <nodable/Runner.h>
-#include <nodable/GraphNode.h>
-#include <nodable/Parser.h>
-#include <nodable/LanguageFactory.h>
-#include <nodable/VariableNode.h>
-#include <nodable/ScopedCodeBlockNode.h>
-#include <nodable/HeadlessNodeFactory.h>
 #include <nodable/Log.h>
+#include "../tools.h"
 
 using namespace Nodable;
 
-template <typename expected_result_t>
-expected_result_t ParseAndEvalExpression(const std::string& expression)
-{
-    // prepare
-    expected_result_t result{};
-    const Language* lang = LanguageFactory::GetNodable();
-    HeadlessNodeFactory factory(lang);
-    GraphNode graph(lang, &factory );
-
-    // create program
-    lang->getParser()->expression_to_graph(expression, &graph);
-
-    auto program = graph.getProgram();
-    if ( program )
-    {
-        // run
-        Runner runner;
-
-        if ( runner.load_program(graph.getProgram()) )
-        {
-            runner.run_program();
-        }
-        else
-        {
-            throw std::runtime_error( "Unable to load program." );
-        }
-
-
-        // compare result
-        auto lastInstruction = program->get_last_instruction();
-        EXPECT_TRUE( lastInstruction );
-        if ( lastInstruction )
-        {
-            result = lastInstruction->value()->convert_to<expected_result_t>();
-        }
-        else
-        {
-            throw std::runtime_error( "Unable to get last instruction." );
-        }
-    }
-    else
-    {
-        throw std::runtime_error( "Unable to convert expression to graph, program is nullptr." );
-    }
-
-    return result;
-}
-
-
-std::string& ParseUpdateSerialize( std::string& result, const std::string& expression )
-{
-    LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize parsing %s\n", expression.c_str());
-    // prepare
-    const Language* lang = LanguageFactory::GetNodable();
-    HeadlessNodeFactory factory(lang);
-    GraphNode graph(lang, &factory );
-
-    // act
-    lang->getParser()->expression_to_graph(expression, &graph);
-    if ( ScopedCodeBlockNode* program = graph.getProgram())
-    {
-        Runner runner;
-        runner.load_program(program);
-        runner.run_program();
-
-        if ( auto last_evaluated_node = runner.get_last_evaluated_instr() )
-        {
-            std::string result_str;
-            lang->getSerializer()->serialize(result_str, last_evaluated_node->value()->getData() );
-            LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
-        }
-        else
-        {
-            throw std::runtime_error("ParseUpdateSerialize: Unable to get last evaluated node.");
-        }
-    }
-    else
-    {
-        throw std::runtime_error("ParseUpdateSerialize: Unable to generate program.");
-    }
-
-    Serializer* serializer = lang->getSerializer();
-    serializer->serialize(result, graph.getProgram());
-    LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize serialize output is: %s\n", result.c_str());
-
-    return result;
-}
-
-void ParseEvalSerializeExpressions(const std::vector<std::string>& expressions)
-{
-    for ( const auto& original_expr : expressions )
-    {
-        std::string result_expr;
-        ParseUpdateSerialize(result_expr, original_expr);
-        EXPECT_EQ( result_expr, original_expr);
-    }
-}
 
 TEST(Parser, Atomic_expressions)
 {
@@ -345,10 +239,9 @@ TEST(Parser, Conditional_Structures_IF_ELSE_IF )
 TEST(Parser, For_loop_without_var_decl)
 {
     std::string program =
-            "double i;"
             "double score;"
-            "for(i=0;i<10;i=i+1){"
-            "   score= score*2;"
+            "for(double i=0;i<10;i=i+1){"
+            "   score= i*2;"
             "}";
     ParseEvalSerializeExpressions({program});
 }
@@ -391,9 +284,11 @@ TEST(Parser, declare_then_define_then_reassign ) {
 TEST(Parser, condition_which_contains_alterated_var ) {
     std::string program_01 =
             "double b = 6;"
-            //"b = 5;"
+            "b = 5;"
             "string res = \"ok\";"
-            "if(b==6){res=\"error\";}"
+            "if(b==6){"
+            "  res=\"error\";"
+            "}"
             "res;";
     EXPECT_EQ(ParseAndEvalExpression<std::string>(program_01), "ok");
 }
