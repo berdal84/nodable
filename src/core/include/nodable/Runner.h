@@ -9,6 +9,14 @@ namespace Nodable
     class ScopedCodeBlockNode;
     struct SimpleInstrList;
 
+    enum Register {
+        LAST_EVAL = 0,
+        LAST_CONDITION,
+        //MEM1,
+        //MEM2,
+        COUNT
+    };
+
     /**
      * Class to execute a Nodable program.
      */
@@ -26,7 +34,7 @@ namespace Nodable
         [[nodiscard]] inline bool             is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
                              bool             step_over();
         [[nodiscard]] inline const Node*      get_current_node() const {return m_current_node; }
-                      inline Member*          get_last_eval() { return m_last_eval; }
+                      inline Variant*         get_last_eval() { return &m_register[0]; }
 
     private:
         SimpleInstrList*      compile_program(const ScopedCodeBlockNode* _program);
@@ -34,24 +42,23 @@ namespace Nodable
         bool                  is_program_valid(const ScopedCodeBlockNode* _program);
         bool                  _stepOver();
         GraphTraversal        m_traversal;
-        ScopedCodeBlockNode*  m_program;
-        SimpleInstrList*      m_compiled_program;
+        ScopedCodeBlockNode*  m_program_tree;
+        SimpleInstrList*      m_program_compiled;
         Node*                 m_current_node;
-        Member*               m_last_eval;
         bool                  m_is_program_running;
         bool                  m_is_debugging;
-        bool                  m_registers[1]; // TODO: organise a set of flags in a char.
+        Variant               m_register[Register::COUNT]; // variants to store temp values
     };
 
 
     enum SIType
     {
-        Type_UNDEF,
-        Type_EVAL,
-        Type_STORE,
-        Type_JUMP,
-        Type_JUMP_IF_FALSE,
-        Type_EXIT,
+        Type_UND, // undefined
+        Type_EVA, // evaluate
+        Type_MOV, // store last eval in a register
+        Type_JMP, // always jump
+        Type_JNE, // jump only if last condition register is false
+        Type_EXI, // stop the program
     };
 
     class SimpleInstr
@@ -64,64 +71,73 @@ namespace Nodable
         std::string to_string()
         {
             std::string result;
-
-            result.append( std::to_string(m_line) );
+            std::string str = std::to_string(m_line);
+            while( str.length() < 4 )
+                str.append(" ");
+            result.append( str );
             result.append( ": " );
 
             switch ( m_type )
             {
-                case Type_EVAL:
+                case Type_EVA:
                 {
-                    Member* member = mpark::get<Member*>( m_data );
-                    result.append("EVAL");
-                    result.append( " " );
-                    result.append( member->getOwner()->get_class()->get_name() );
-                    result.append( "->" );
-                    result.append( member->getName() );
+                    Member* member = mpark::get<Member*>(m_left_h_arg );
+                    result.append("EVA ");
+                    result.append( "&" + std::to_string((size_t)member) );
+                    result.append( " $" + std::to_string( Register::LAST_EVAL ) );
                     break;
                 }
 
-                case Type_STORE:
+                case Type_MOV:
                 {
-                    result.append("STOR");
+                    result.append("MOV");
+                    result.append( " $" + std::to_string( (int)mpark::get<Register>(m_left_h_arg ) ) );
+                    result.append( " $" + std::to_string( (int)mpark::get<Register>(m_right_h_arg ) ) );
                     break;
                 }
 
-                case Type_JUMP_IF_FALSE:
+                case Type_JNE:
                 {
-                    result.append("CJMP");
-                    result.append( " " );
-                    result.append( std::to_string( mpark::get<long>( m_data ) ) );
+                    result.append("JNE ");
+                    result.append( std::to_string( mpark::get<long>(m_left_h_arg ) ) );
                     break;
                 }
 
-                case Type_JUMP:
+                case Type_JMP:
                 {
-                    result.append("JUMP");
-                    result.append( " " );
-                    result.append( std::to_string( mpark::get<long>( m_data ) ) );
+                    result.append("JMP ");
+                    result.append( std::to_string( mpark::get<long>(m_left_h_arg ) ) );
                     break;
                 }
 
-                case Type_UNDEF:
+                case Type_UND:
                 {
-                    result.append("UNDEF");
+                    result.append("UND ");
                     break;
                 }
 
-                case Type_EXIT:
+                case Type_EXI:
                 {
-                    result.append("EXIT");
+                    result.append("EXI ");
                     break;
                 }
 
+            }
+
+            if ( !m_comment.empty() )
+            {
+                while( result.length() < 50 ) // align on 80th char
+                    result.append(" ");
+                result.append( "; " );
+                result.append( m_comment );
             }
             return result;
         }
 
         SIType m_type;
         long   m_line;
-        mpark::variant<void* , Node*, Member*, long> m_data;
+        mpark::variant<void* , Node*, Member*, long, Register> m_left_h_arg;
+        mpark::variant<void* , Node*, Member*, long, Register> m_right_h_arg;
         std::string m_comment;
      };
 
@@ -148,7 +164,7 @@ namespace Nodable
          SimpleInstr* get_curr(){ return m_cursor_position < m_instructions.size() ? m_instructions[m_cursor_position] : nullptr; };
          void         reset_cursor(){ m_cursor_position = 0; };
          long         get_next_line_nb(){ return m_instructions.size(); }
-         bool         is_over() { assert(get_curr()); return get_curr()->m_type == Type_EXIT; }
+         bool         is_over() { assert(get_curr()); return get_curr()->m_type == Type_EXI; }
      private:
          size_t m_cursor_position = 0;
          std::vector<SimpleInstr*> m_instructions;

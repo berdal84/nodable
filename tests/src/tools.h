@@ -37,7 +37,7 @@ namespace Nodable
 
 
             // compare result
-            Member* last_eval = runner.get_last_eval();
+            Variant* last_eval = runner.get_last_eval();
             EXPECT_TRUE(last_eval);
             if (last_eval) {
                 result = last_eval->convert_to<expected_result_t>();
