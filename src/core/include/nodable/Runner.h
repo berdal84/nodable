@@ -34,22 +34,19 @@ namespace Nodable
                bool           step_over();
         inline const Node*    get_current_node() const {return m_current_node; }
         inline Variant*       get_last_eval() { return &m_register[0]; }
-        bool                  is_program_over() { assert(get_current_instruction()); return get_current_instruction()->m_type == Instr_ret; }
+        bool                  is_program_over() { assert(get_current_instruction()); return get_current_instruction()->m_type == Asm::Instr::Type::ret; }
     private:
         void                  advance_cursor(long _amount = 1) { m_cursor_position += _amount; }
         void                  reset_cursor(){ m_cursor_position = 0; };
-        AssemblyInstr*        get_current_instruction(){ return m_cursor_position < m_program_assembly->size() ? (*m_program_assembly)[m_cursor_position] : nullptr; };
-        AssemblyCode*         create_assembly_code(const ScopedCodeBlockNode* _program);
-        void                  append_to_assembly_code(const Node* _node);
-        bool                  is_program_valid(const ScopedCodeBlockNode* _program);
+        Asm::Instr*           get_current_instruction(){ return m_cursor_position < m_program_asm_code->size() ? (*m_program_asm_code)[m_cursor_position] : nullptr; };
         bool                  _stepOver();
         GraphTraversal        m_traversal;
-        ScopedCodeBlockNode*  m_program_tree;
-        AssemblyCode*         m_program_assembly;
+        ScopedCodeBlockNode*  m_program_graph;
+        Asm::Code*            m_program_asm_code;
         Node*                 m_current_node;
         bool                  m_is_program_running;
         bool                  m_is_debugging;
-        Variant               m_register[Register::COUNT]; // variants to store temp values
+        Variant               m_register[Asm::Register::COUNT]; // variants to store temp values
         size_t                m_cursor_position = 0;
     };
 }
