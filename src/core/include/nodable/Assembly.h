@@ -83,6 +83,7 @@ namespace Nodable
             inline size_t size() const { return  m_instructions.size(); }
             inline Instr* operator[](size_t _index) const { return  m_instructions[_index]; }
             long          get_next_pushed_instr_index() const { return m_instructions.size(); }
+            const std::vector<Instr*>& get_instructions()const { return m_instructions; }
         private:
             std::vector<Instr*> m_instructions;
         };

@@ -35,10 +35,11 @@ namespace Nodable
         inline const Node*    get_current_node() const {return m_current_node; }
         inline Variant*       get_last_eval() { return &m_register[0]; }
         bool                  is_program_over() { assert(get_current_instruction()); return get_current_instruction()->m_type == Asm::Instr::Type::ret; }
+        const Asm::Code*      get_program_asm_code()const { return m_program_asm_code; }
+        Asm::Instr*           get_current_instruction(){ return m_cursor_position < m_program_asm_code->size() ? (*m_program_asm_code)[m_cursor_position] : nullptr; };
     private:
         void                  advance_cursor(long _amount = 1) { m_cursor_position += _amount; }
         void                  reset_cursor(){ m_cursor_position = 0; };
-        Asm::Instr*           get_current_instruction(){ return m_cursor_position < m_program_asm_code->size() ? (*m_program_asm_code)[m_cursor_position] : nullptr; };
         bool                  _stepOver();
         GraphTraversal        m_traversal;
         ScopedCodeBlockNode*  m_program_graph;

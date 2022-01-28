@@ -432,6 +432,7 @@ bool AppView::draw()
                ImGui::DockBuilderDockWindow("Settings", dockspace_properties);
                ImGui::DockBuilderDockWindow("Properties", dockspace_properties);
                ImGui::DockBuilderDockWindow("File Info", dockspace_properties);
+               ImGui::DockBuilderDockWindow("Assembly", dockspace_properties);
                ImGui::DockBuilderFinish(dockspace_id);
                 m_is_layout_initialized = true;
             }
@@ -472,6 +473,31 @@ bool AppView::draw()
             }
             ImGui::End();
 
+            if ( ImGui::Begin("Assembly") )
+            {
+                const Asm::Code* code = m_app->getRunner().get_program_asm_code();
+                if ( code  )
+                {
+                    auto current_instr = m_app->getRunner().get_current_instruction();
+                    for( Asm::Instr* each_instr : code->get_instructions() )
+                    {
+                        auto str = Asm::Instr::to_string( *each_instr ).c_str();
+                        if ( each_instr == current_instr )
+                        {
+                            ImGui::TextColored( ImColor(200,0,0), ">%s", str );
+                        }
+                        else
+                        {
+                            ImGui::Text(  " %s", str );
+                        }
+                    }
+                } else
+                {
+                    ImGui::TextWrapped("When Nodable compiles source code, it will produce a x86_64 assembly-like code visible here. Try to compile, run or debug.");
+                }
+            }
+            ImGui::End(); // Compiler
+
             // Selected Node Properties
             if ( ImGui::Begin("Properties") )
             {
@@ -486,7 +512,7 @@ bool AppView::draw()
                     NodeView::DrawNodeViewAsPropertiesPanel(view);
                 }
             }
-            ImGui::End();
+            ImGui::End(); // Selected Node Properties
 
 
             // Opened documents
