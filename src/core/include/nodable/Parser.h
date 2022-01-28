@@ -106,6 +106,9 @@ namespace Nodable{
 
 		/** A token ribbon to store a token list and be able to eat them easily */
 		TokenRibbon     m_token_ribbon;
+
+		/** Scope stack */
+		std::stack<ScopedCodeBlockNode*> m_scope_stack;
     };
 
 }

@@ -462,50 +462,66 @@ InstructionNode* Parser::parse_instruction()
 
 ScopedCodeBlockNode* Parser::parse_program()
 {
+    ScopedCodeBlockNode* result;
+
     start_transaction();
-    ScopedCodeBlockNode* scope = m_graph->newProgram();
-    if(CodeBlockNode* block = parse_code_block())
+    ScopedCodeBlockNode* main_scope = m_graph->newProgram();
+    m_scope_stack.push(main_scope);
+
+    if (CodeBlockNode* block = parse_code_block())
     {
-        m_graph->connect(block, scope, RelationType::IS_CHILD_OF);
+        m_graph->connect(block, main_scope, RelationType::IS_CHILD_OF);
         commit_transaction();
-        return scope;
+        result = main_scope;
     }
     else
     {
         m_graph->clear();
         rollback_transaction();
-        return nullptr;
+        result = nullptr;
     }
+    m_scope_stack.pop();
+    return result;
 }
 
 ScopedCodeBlockNode* Parser::parse_scope()
 {
+    ScopedCodeBlockNode* result;
+
     start_transaction();
 
     if ( !m_token_ribbon.eatToken(TokenType_BeginScope))
     {
         rollback_transaction();
-        return nullptr;
+        result = nullptr;
     }
-
-    auto scope = m_graph->newScopedCodeBlock();
-    scope->set_begin_scope_token(m_token_ribbon.getEaten());
-
-    if ( auto block = parse_code_block() )
+    else
     {
-        m_graph->connect(block, scope, RelationType::IS_CHILD_OF);
-    }
+        auto scope = m_graph->newScopedCodeBlock();
+        m_scope_stack.push( scope );
+        scope->set_begin_scope_token(m_token_ribbon.getEaten());
 
-    if ( !m_token_ribbon.eatToken(TokenType_EndScope))
-    {
-        m_graph->deleteNode(scope);
-        rollback_transaction();
-        return nullptr;
-    }
-    scope->set_end_Scope_token(m_token_ribbon.getEaten());
+        if ( auto block = parse_code_block() )
+        {
+            m_graph->connect(block, scope, RelationType::IS_CHILD_OF);
+        }
 
-    commit_transaction();
-    return scope;
+        if ( !m_token_ribbon.eatToken(TokenType_EndScope))
+        {
+            m_graph->deleteNode(scope);
+            rollback_transaction();
+            result = nullptr;
+        }
+        else
+        {
+            scope->set_end_Scope_token(m_token_ribbon.getEaten());
+            commit_transaction();
+            result = scope;
+        }
+
+        m_scope_stack.pop();
+    }
+    return result;
 }
 
 CodeBlockNode* Parser::parse_code_block()
@@ -841,8 +857,7 @@ Member* Parser::parse_function_call()
 
 ScopedCodeBlockNode *Parser::get_current_scope()
 {
-    // TODO: implement. For now return only the global scope
-    return m_graph->getProgram();
+    return m_scope_stack.top();
 }
 
 ConditionalStructNode * Parser::parse_conditional_structure()
