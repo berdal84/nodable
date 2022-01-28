@@ -5,25 +5,31 @@
 
 namespace Nodable
 {
+    /**
+     * In this classes/struct/enum we try to follow as much as possible the x86_64 DASM reference
+     * (https://www.cs.uaf.edu/2017/fall/cs301/reference/x86_64.html)
+     * We do it in order to be maybe one day compatible, for now it is just to be inspired by something solid.
+     */
+
     // forward declarations
     class ScopedCodeBlockNode;
     struct SimpleInstrList;
 
+    /**
+     * Enum to identify each register, we try here to follow the x86_64 DASM reference from
+     * @see https://www.cs.uaf.edu/2017/fall/cs301/reference/x86_64.html
+     */
     enum Register {
-        RAX = 0, // accumulator register, we store the last result here.
-        RDX,     // data register, we can copy a value to keep it here.
-        COUNT
+        rax = 0, // accumulator
+        rdx      // storage
     };
+    static std::string to_string(Register);
 
-    static std::string to_string(Register _register)
+    enum FctId
     {
-        switch( _register)
-        {
-            case Register::RAX: return "RAX";
-            case Register::RDX: return "RDX";
-        }
-        return "???";
-    }
+        eval_member = 0
+    };
+    static std::string to_string(FctId);
 
     /**
      * Class to execute a Nodable program.
@@ -55,97 +61,33 @@ namespace Nodable
         Node*                 m_current_node;
         bool                  m_is_program_running;
         bool                  m_is_debugging;
-        Variant               m_register[Register::COUNT]; // variants to store temp values
+        Variant               m_register[2]; // variants to store temp values
     };
 
 
-    enum SIType
+    enum Instr
     {
-        UND, // undefined
-        EVA, // evaluate
-        MOV, // store last eval in a register
-        JMP, // always jump
-        JNE, // jump only if last condition register is false
-        EXI, // stop the program
+        Instr_udef,
+        Instr_call,
+        Instr_mov,
+        Instr_jmp,
+        Instr_jne,
+        Instr_ret,
     };
 
     class SimpleInstr
     {
     public:
 
-        SimpleInstr(SIType _type, long _line):m_type(_type), m_line(_line) {}
+        SimpleInstr(Instr _type, long _line): m_type(_type), m_line(_line) {}
         SimpleInstr(const SimpleInstr& _other) = default;
 
-        std::string to_string()
-        {
-            std::string result;
-            std::string str = std::to_string(m_line);
-            while( str.length() < 4 )
-                str.append(" ");
-            result.append( str );
-            result.append( ": " );
+        std::string to_string();
 
-            switch ( m_type )
-            {
-                case EVA:
-                {
-                    Member* member = mpark::get<Member*>(m_left_h_arg );
-                    result.append("EVA ");
-                    result.append( "&" + std::to_string((size_t)member) );
-                    result.append( " " + Nodable::to_string( Register::RAX ) );
-                    break;
-                }
-
-                case MOV:
-                {
-                    result.append("MOV");
-                    result.append( " " + Nodable::to_string( mpark::get<Register>(m_left_h_arg ) ) );
-                    result.append( " " + Nodable::to_string( mpark::get<Register>(m_right_h_arg ) ) );
-                    break;
-                }
-
-                case JNE:
-                {
-                    result.append("JNE ");
-                    result.append( std::to_string( mpark::get<long>(m_left_h_arg ) ) );
-                    break;
-                }
-
-                case JMP:
-                {
-                    result.append("JMP ");
-                    result.append( std::to_string( mpark::get<long>(m_left_h_arg ) ) );
-                    break;
-                }
-
-                case UND:
-                {
-                    result.append("UND ");
-                    break;
-                }
-
-                case EXI:
-                {
-                    result.append("EXI ");
-                    break;
-                }
-
-            }
-
-            if ( !m_comment.empty() )
-            {
-                while( result.length() < 50 ) // align on 80th char
-                    result.append(" ");
-                result.append( "; " );
-                result.append( m_comment );
-            }
-            return result;
-        }
-
-        SIType m_type;
+        Instr m_type;
         long   m_line;
-        mpark::variant<void* , Node*, Member*, long, Register> m_left_h_arg;
-        mpark::variant<void* , Node*, Member*, long, Register> m_right_h_arg;
+        mpark::variant<void* , Node*, Member*, long, Register, FctId> m_left_h_arg;
+        mpark::variant<void* , Node*, Member*, long, Register, FctId> m_right_h_arg;
         std::string m_comment;
      };
 
@@ -163,7 +105,7 @@ namespace Nodable
              m_instructions.clear();
          }
          void         advance(long _amount = 1) { m_cursor_position += _amount; }
-         SimpleInstr* push_instr(SIType _type)
+         SimpleInstr* push_instr(Instr _type)
          {
              SimpleInstr* instr = new SimpleInstr(_type, m_instructions.size());
              m_instructions.emplace_back(instr);
@@ -172,7 +114,7 @@ namespace Nodable
          SimpleInstr* get_curr(){ return m_cursor_position < m_instructions.size() ? m_instructions[m_cursor_position] : nullptr; };
          void         reset_cursor(){ m_cursor_position = 0; };
          long         get_next_line_nb(){ return m_instructions.size(); }
-         bool         is_over() { assert(get_curr()); return get_curr()->m_type == EXI; }
+         bool         is_over() { assert(get_curr()); return get_curr()->m_type == Instr_ret; }
      private:
          size_t m_cursor_position = 0;
          std::vector<SimpleInstr*> m_instructions;

@@ -34,21 +34,23 @@ void Runner::compile_node_and_append_to_program(const Node* _node)
             // for_loop init instruction
             if ( auto for_loop = _node->as<ForLoopNode>() )
             {
-                auto init_instr = m_program_compiled->push_instr(EVA  );
-                init_instr->m_left_h_arg.emplace<Member*>(for_loop->get_init_expr() );
+                auto init_instr = m_program_compiled->push_instr(Instr_call  );
+                init_instr->m_left_h_arg = FctId::eval_member;
+                init_instr->m_right_h_arg.emplace<Member*>(for_loop->get_init_expr() );
                 init_instr->m_comment = "init-loop";
             }
 
-            SimpleInstr* cond_instr = m_program_compiled->push_instr(EVA);
-            cond_instr->m_left_h_arg.emplace<Member*>(cond->get_condition() );
+            SimpleInstr* cond_instr = m_program_compiled->push_instr(Instr_call);
+            cond_instr->m_left_h_arg = FctId::eval_member;
+            cond_instr->m_right_h_arg.emplace<Member*>(cond->get_condition() );
             cond_instr->m_comment = "condition";
 
-            SimpleInstr* store_instr = m_program_compiled->push_instr(MOV);
-            store_instr->m_left_h_arg = Register::RAX;
-            store_instr->m_right_h_arg = Register::RDX;
+            SimpleInstr* store_instr = m_program_compiled->push_instr(Instr_mov);
+            store_instr->m_left_h_arg = Register::rdx;
+            store_instr->m_right_h_arg = Register::rax;
             store_instr->m_comment = "copy last result to a data register.";
 
-            SimpleInstr* skip_true_branch = m_program_compiled->push_instr(JNE);
+            SimpleInstr* skip_true_branch = m_program_compiled->push_instr(Instr_jne);
             skip_true_branch->m_comment = "jump if register is false";
 
             SimpleInstr* skip_false_branch = nullptr;
@@ -60,18 +62,19 @@ void Runner::compile_node_and_append_to_program(const Node* _node)
                 if ( auto for_loop = _node->as<ForLoopNode>() )
                 {
                     // insert end-loop instruction.
-                    auto end_loop_instr = m_program_compiled->push_instr(EVA);
-                    end_loop_instr->m_left_h_arg  = for_loop->get_iter_expr();
+                    auto end_loop_instr = m_program_compiled->push_instr(Instr_call);
+                    end_loop_instr->m_left_h_arg = FctId::eval_member;
+                    end_loop_instr->m_right_h_arg  = for_loop->get_iter_expr();
 
                     // insert jump to condition instructions.
-                    auto loop_jump = m_program_compiled->push_instr(JMP);
+                    auto loop_jump = m_program_compiled->push_instr(Instr_jmp);
                     loop_jump->m_left_h_arg = cond_instr->m_line - loop_jump->m_line;
                     loop_jump->m_comment = "jump back to loop begining";
 
                 }
                 else if (cond->get_condition_false_branch())
                 {
-                    skip_false_branch = m_program_compiled->push_instr(JMP);
+                    skip_false_branch = m_program_compiled->push_instr(Instr_jmp);
                     skip_false_branch->m_comment = "jump false branch";
                 }
             }
@@ -93,10 +96,10 @@ void Runner::compile_node_and_append_to_program(const Node* _node)
         }
         else
         {
-            SimpleInstr* instr   = m_program_compiled->push_instr(EVA);
-            instr->m_left_h_arg  = _node->getProps()->get("value");
-            instr->m_right_h_arg = Register::RAX;
-            instr->m_comment     = "Evaluate a member and store result in the specified register";
+            SimpleInstr* instr   = m_program_compiled->push_instr(Instr_call);
+            instr->m_left_h_arg  = FctId::eval_member;
+            instr->m_right_h_arg = _node->getProps()->get("value");
+            instr->m_comment     = "Evaluate a member and store result.";
         }
     }
 
@@ -111,7 +114,7 @@ SimpleInstrList* Runner::compile_program(const ScopedCodeBlockNode* _program)
     delete m_program_compiled;
     m_program_compiled = new SimpleInstrList();
     compile_node_and_append_to_program(_program);
-    m_program_compiled->push_instr(EXI);
+    m_program_compiled->push_instr(Instr_ret);
     return m_program_compiled;
 }
 
@@ -202,69 +205,77 @@ void Runner::unload_program() {
 
 bool Runner::_stepOver()
 {
-    bool success;
+    bool success = false;
     SimpleInstr* curr_instr = m_program_compiled->get_curr();
 
     LOG_VERBOSE("Runner", "processing line %i.\n", (int)curr_instr->m_line );
 
     switch ( curr_instr->m_type )
     {
-        case UND:
+        case Instr_udef:
         {
             LOG_ERROR("Runner", "Instruction %i is undefined.\n", (int)curr_instr->m_line);
             m_program_compiled->advance();
-            success = false;
             break;
         }
 
-        case MOV:
+        case Instr_mov:
         {
             NODABLE_ASSERT(m_register);
-            Register src_register = mpark::get<Register>(curr_instr->m_left_h_arg );
-            Register dst_register = mpark::get<Register>(curr_instr->m_right_h_arg );
+            Register dst_register = mpark::get<Register>(curr_instr->m_left_h_arg );
+            Register src_register = mpark::get<Register>(curr_instr->m_right_h_arg );
             m_register[dst_register].set(m_register[src_register].convert_to<bool>() );
             m_program_compiled->advance();
             success = true;
             break;
         }
 
-        case EVA:
+        case Instr_call:
         {
-            // TODO: traverse graph in advance during compilation step.
-            Member* member = mpark::get<Member*>(curr_instr->m_left_h_arg);
-            m_current_node = member->getOwner();
+            FctId fct_id = mpark::get<FctId>(curr_instr->m_left_h_arg );
 
-            if ( Member* input = member->getInput() )
+            switch( fct_id )
             {
-                m_traversal.traverse(input->getOwner(), TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty |
-                                                         TraversalFlag_AvoidCycles);
-                size_t total(m_traversal.getStats().m_traversed.size());
-                size_t idx = 1;
-                for (auto *eachNodeToEval : m_traversal.getStats().m_traversed) {
-                    eachNodeToEval->eval();
-                    eachNodeToEval->setDirty(false);
-                    LOG_VERBOSE("Runner", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int) total,
-                                eachNodeToEval->getLabel(), eachNodeToEval->get_class()->get_name())
-                    idx++;
+                case FctId::eval_member:
+                {
+                    // TODO: traverse graph in advance during compilation step.
+                    Member *member = mpark::get<Member *>(curr_instr->m_right_h_arg);
+                    m_current_node = member->getOwner();
+
+                    if (Member *input = member->getInput()) {
+                        m_traversal.traverse(input->getOwner(),
+                                             TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty |
+                                             TraversalFlag_AvoidCycles);
+                        size_t total(m_traversal.getStats().m_traversed.size());
+                        size_t idx = 1;
+                        for (auto *eachNodeToEval : m_traversal.getStats().m_traversed) {
+                            eachNodeToEval->eval();
+                            eachNodeToEval->setDirty(false);
+                            LOG_VERBOSE("Runner", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int) total,
+                                        eachNodeToEval->getLabel(), eachNodeToEval->get_class()->get_name())
+                            idx++;
+                        }
+                    }
+
+                    m_register[rax] = *member->getData(); // store result.
+                    m_program_compiled->advance();
+                    success = true;
                 }
             }
 
-            m_register[RAX] = *member->getData(); // store result.
-            m_program_compiled->advance();
-            success = true;
             break;
         }
 
-        case JMP:
+        case Instr_jmp:
         {
             m_program_compiled->advance(mpark::get<long>(curr_instr->m_left_h_arg) );
             success = true;
             break;
         }
 
-        case JNE:
+        case Instr_jne:
         {
-            if ( m_register[RDX] )
+            if ( m_register[rdx] )
             {
                 m_program_compiled->advance();
             }
@@ -276,7 +287,7 @@ bool Runner::_stepOver()
             break;
         }
 
-        case EXI:
+        case Instr_ret:
             success = true;
             break;
 
@@ -292,7 +303,7 @@ bool Runner::step_over()
     bool _break = false;
     while( !is_program_over() && !_break )
     {
-        _break = m_program_compiled->get_curr()->m_type == EVA;
+        _break = m_program_compiled->get_curr()->m_type == Instr_call;
         _stepOver();
     }
 
@@ -317,4 +328,91 @@ void Runner::debug_program()
     m_is_program_running = true;
     m_program_compiled->reset_cursor();
     m_current_node = m_program_tree;
+}
+
+std::string SimpleInstr::to_string()
+{
+    std::string result;
+    std::string str = std::to_string(m_line);
+    while( str.length() < 4 )
+        str.append(" ");
+    result.append( str );
+    result.append( ": " );
+
+    switch ( m_type )
+    {
+        case Instr_call:
+        {
+            FctId fct_id   = mpark::get<FctId>(m_left_h_arg );
+            Member* member = mpark::get<Member*>(m_right_h_arg );
+
+            result.append("call ");
+            result.append( Nodable::to_string(fct_id) );
+            result.append( " [" + std::to_string((size_t)member) + "]");
+            break;
+        }
+
+        case Instr_mov:
+        {
+            result.append("mov ");
+            result.append(       Nodable::to_string( mpark::get<Register>(m_left_h_arg ) ) );
+            result.append( ", " + Nodable::to_string( mpark::get<Register>(m_right_h_arg ) ) );
+            break;
+        }
+
+        case Instr_jne:
+        {
+            result.append("jne ");
+            result.append( std::to_string( mpark::get<long>(m_left_h_arg ) ) );
+            break;
+        }
+
+        case Instr_jmp:
+        {
+            result.append("jmp ");
+            result.append( std::to_string( mpark::get<long>(m_left_h_arg ) ) );
+            break;
+        }
+
+        case Instr_udef:
+        {
+            result.append("udef ");
+            break;
+        }
+
+        case Instr_ret:
+        {
+            result.append("ret ");
+            break;
+        }
+
+    }
+
+    if ( !m_comment.empty() )
+    {
+        while( result.length() < 50 ) // align on 80th char
+            result.append(" ");
+        result.append( "; " );
+        result.append( m_comment );
+    }
+    return result;
+}
+
+std::string Nodable::to_string(Register _register)
+{
+    switch( _register)
+    {
+        case Register::rax: return "rax";
+        case Register::rdx: return "rdx";
+    }
+    return "???";
+}
+
+std::string Nodable::to_string(FctId _id)
+{
+    switch( _id)
+    {
+        case FctId::eval_member: return "eval_member";
+    }
+    return "???";
 }
