@@ -15,12 +15,12 @@ Runner::Runner()
         m_is_debugging(false),
         m_is_program_running(false),
         m_current_node(nullptr),
-        m_program_compiled(nullptr)
+        m_program_assembly(nullptr)
 {
 
 }
 
-void Runner::compile_node_and_append_to_program(const Node* _node)
+void Runner::append_to_assembly_code(const Node* _node)
 {
     if ( _node )
     {
@@ -34,69 +34,69 @@ void Runner::compile_node_and_append_to_program(const Node* _node)
             // for_loop init instruction
             if ( auto for_loop = _node->as<ForLoopNode>() )
             {
-                auto init_instr = m_program_compiled->push_instr(Instr_call  );
+                auto init_instr = m_program_assembly->push_instr(Instr_call  );
                 init_instr->m_left_h_arg = FctId::eval_member;
                 init_instr->m_right_h_arg.emplace<Member*>(for_loop->get_init_expr() );
                 init_instr->m_comment = "init-loop";
             }
 
-            SimpleInstr* cond_instr = m_program_compiled->push_instr(Instr_call);
+            AssemblyInstr* cond_instr = m_program_assembly->push_instr(Instr_call);
             cond_instr->m_left_h_arg = FctId::eval_member;
             cond_instr->m_right_h_arg.emplace<Member*>(cond->get_condition() );
             cond_instr->m_comment = "condition";
 
-            SimpleInstr* store_instr = m_program_compiled->push_instr(Instr_mov);
+            AssemblyInstr* store_instr = m_program_assembly->push_instr(Instr_mov);
             store_instr->m_left_h_arg = Register::rdx;
             store_instr->m_right_h_arg = Register::rax;
             store_instr->m_comment = "copy last result to a data register.";
 
-            SimpleInstr* skip_true_branch = m_program_compiled->push_instr(Instr_jne);
+            AssemblyInstr* skip_true_branch = m_program_assembly->push_instr(Instr_jne);
             skip_true_branch->m_comment = "jump if register is false";
 
-            SimpleInstr* skip_false_branch = nullptr;
+            AssemblyInstr* skip_false_branch = nullptr;
 
             if ( auto true_branch = cond->get_condition_true_branch() )
             {
-                compile_node_and_append_to_program(true_branch);
+                append_to_assembly_code(true_branch);
 
                 if ( auto for_loop = _node->as<ForLoopNode>() )
                 {
                     // insert end-loop instruction.
-                    auto end_loop_instr = m_program_compiled->push_instr(Instr_call);
+                    auto end_loop_instr = m_program_assembly->push_instr(Instr_call);
                     end_loop_instr->m_left_h_arg = FctId::eval_member;
                     end_loop_instr->m_right_h_arg  = for_loop->get_iter_expr();
 
                     // insert jump to condition instructions.
-                    auto loop_jump = m_program_compiled->push_instr(Instr_jmp);
+                    auto loop_jump = m_program_assembly->push_instr(Instr_jmp);
                     loop_jump->m_left_h_arg = cond_instr->m_line - loop_jump->m_line;
                     loop_jump->m_comment = "jump back to loop begining";
 
                 }
                 else if (cond->get_condition_false_branch())
                 {
-                    skip_false_branch = m_program_compiled->push_instr(Instr_jmp);
+                    skip_false_branch = m_program_assembly->push_instr(Instr_jmp);
                     skip_false_branch->m_comment = "jump false branch";
                 }
             }
 
-            skip_true_branch->m_left_h_arg = m_program_compiled->get_next_line_nb() - skip_true_branch->m_line;
+            skip_true_branch->m_left_h_arg = m_program_assembly->get_next_pushed_instr_index() - skip_true_branch->m_line;
 
             if ( auto false_branch = cond->get_condition_false_branch() )
             {
-                compile_node_and_append_to_program(false_branch);
-                skip_false_branch->m_left_h_arg = m_program_compiled->get_next_line_nb() - skip_false_branch->m_line;
+                append_to_assembly_code(false_branch);
+                skip_false_branch->m_left_h_arg = m_program_assembly->get_next_pushed_instr_index() - skip_false_branch->m_line;
             }
         }
         else if ( _node->get_class()->is<AbstractCodeBlock>() )
         {
             for( auto each : _node->get_children() )
             {
-                compile_node_and_append_to_program(each);
+                append_to_assembly_code(each);
             }
         }
         else
         {
-            SimpleInstr* instr   = m_program_compiled->push_instr(Instr_call);
+            AssemblyInstr* instr   = m_program_assembly->push_instr(Instr_call);
             instr->m_left_h_arg  = FctId::eval_member;
             instr->m_right_h_arg = _node->getProps()->get("value");
             instr->m_comment     = "Evaluate a member and store result.";
@@ -104,18 +104,18 @@ void Runner::compile_node_and_append_to_program(const Node* _node)
     }
 
 }
-SimpleInstrList* Runner::compile_program(const ScopedCodeBlockNode* _program)
+AssemblyCode* Runner::create_assembly_code(const ScopedCodeBlockNode* _program)
 {
     /*
      * Here we take the program's base scope node (a tree) and we flatten it to an
      * instruction list. We add some jump instruction in order to skip portions of code.
      * This works "a little bit" like a compiler, at least for the "tree to list" point of view.
      */
-    delete m_program_compiled;
-    m_program_compiled = new SimpleInstrList();
-    compile_node_and_append_to_program(_program);
-    m_program_compiled->push_instr(Instr_ret);
-    return m_program_compiled;
+    delete m_program_assembly;
+    m_program_assembly = new AssemblyCode();
+    append_to_assembly_code(_program);
+    m_program_assembly->push_instr(Instr_ret);
+    return m_program_assembly;
 }
 
 bool Runner::load_program(ScopedCodeBlockNode* _program)
@@ -128,20 +128,20 @@ bool Runner::load_program(ScopedCodeBlockNode* _program)
             unload_program();
         }
 
-        if ( compile_program(_program) )
+        if (create_assembly_code(_program) )
         {
             m_program_tree = _program;
             LOG_MESSAGE("Runner", "Program's tree compiled.\n");
             LOG_VERBOSE("Runner", "Find bellow the compilation result:\n");
             LOG_VERBOSE("Runner", "---- Program begin -----\n");
-            SimpleInstr* curr = m_program_compiled->get_curr();
+            AssemblyInstr* curr = get_current_instruction();
             while( curr )
             {
-                LOG_VERBOSE("Runner", "%s \n", curr->to_string().c_str() );
-                m_program_compiled->advance(1);
-                curr = m_program_compiled->get_curr();
+                LOG_VERBOSE("Runner", "%s \n", to_string( *curr ).c_str() );
+                advance_cursor(1);
+                curr = get_current_instruction();
             }
-            m_program_compiled->reset_cursor();
+            reset_cursor();
             LOG_VERBOSE("Runner", "---- Program end -----\n");
             return true;
         }
@@ -206,26 +206,19 @@ void Runner::unload_program() {
 bool Runner::_stepOver()
 {
     bool success = false;
-    SimpleInstr* curr_instr = m_program_compiled->get_curr();
+    AssemblyInstr* curr_instr = get_current_instruction();
 
     LOG_VERBOSE("Runner", "processing line %i.\n", (int)curr_instr->m_line );
 
     switch ( curr_instr->m_type )
     {
-        case Instr_udef:
-        {
-            LOG_ERROR("Runner", "Instruction %i is undefined.\n", (int)curr_instr->m_line);
-            m_program_compiled->advance();
-            break;
-        }
-
         case Instr_mov:
         {
             NODABLE_ASSERT(m_register);
             Register dst_register = mpark::get<Register>(curr_instr->m_left_h_arg );
             Register src_register = mpark::get<Register>(curr_instr->m_right_h_arg );
             m_register[dst_register].set(m_register[src_register].convert_to<bool>() );
-            m_program_compiled->advance();
+            advance_cursor();
             success = true;
             break;
         }
@@ -258,7 +251,7 @@ bool Runner::_stepOver()
                     }
 
                     m_register[rax] = *member->getData(); // store result.
-                    m_program_compiled->advance();
+                    advance_cursor();
                     success = true;
                 }
             }
@@ -268,7 +261,7 @@ bool Runner::_stepOver()
 
         case Instr_jmp:
         {
-            m_program_compiled->advance(mpark::get<long>(curr_instr->m_left_h_arg) );
+            advance_cursor(mpark::get<long>(curr_instr->m_left_h_arg));
             success = true;
             break;
         }
@@ -277,11 +270,11 @@ bool Runner::_stepOver()
         {
             if ( m_register[rdx] )
             {
-                m_program_compiled->advance();
+                advance_cursor();
             }
             else
             {
-                m_program_compiled->advance(mpark::get<long>(curr_instr->m_left_h_arg) );
+                advance_cursor(mpark::get<long>(curr_instr->m_left_h_arg));
             }
             success = true;
             break;
@@ -303,7 +296,7 @@ bool Runner::step_over()
     bool _break = false;
     while( !is_program_over() && !_break )
     {
-        _break = m_program_compiled->get_curr()->m_type == Instr_call;
+        _break = get_current_instruction()->m_type == Instr_call;
         _stepOver();
     }
 
@@ -316,35 +309,30 @@ bool Runner::step_over()
     return continue_execution;
 }
 
-bool Runner::is_program_over()
-{
-    return m_program_compiled->is_over();
-}
-
 void Runner::debug_program()
 {
     NODABLE_ASSERT(this->m_program_tree != nullptr);
     m_is_debugging = true;
     m_is_program_running = true;
-    m_program_compiled->reset_cursor();
+    reset_cursor();
     m_current_node = m_program_tree;
 }
 
-std::string SimpleInstr::to_string()
+std::string Nodable::to_string(const AssemblyInstr& _instr)
 {
     std::string result;
-    std::string str = std::to_string(m_line);
+    std::string str = std::to_string(_instr.m_line);
     while( str.length() < 4 )
         str.append(" ");
     result.append( str );
     result.append( ": " );
 
-    switch ( m_type )
+    switch ( _instr.m_type )
     {
         case Instr_call:
         {
-            FctId fct_id   = mpark::get<FctId>(m_left_h_arg );
-            Member* member = mpark::get<Member*>(m_right_h_arg );
+            FctId fct_id   = mpark::get<FctId>(_instr.m_left_h_arg );
+            Member* member = mpark::get<Member*>(_instr.m_right_h_arg );
 
             result.append("call ");
             result.append( Nodable::to_string(fct_id) );
@@ -355,28 +343,22 @@ std::string SimpleInstr::to_string()
         case Instr_mov:
         {
             result.append("mov ");
-            result.append(       Nodable::to_string( mpark::get<Register>(m_left_h_arg ) ) );
-            result.append( ", " + Nodable::to_string( mpark::get<Register>(m_right_h_arg ) ) );
+            result.append(       Nodable::to_string( mpark::get<Register>(_instr.m_left_h_arg ) ) );
+            result.append( ", " + Nodable::to_string( mpark::get<Register>(_instr.m_right_h_arg ) ) );
             break;
         }
 
         case Instr_jne:
         {
             result.append("jne ");
-            result.append( std::to_string( mpark::get<long>(m_left_h_arg ) ) );
+            result.append( std::to_string( mpark::get<long>(_instr.m_left_h_arg ) ) );
             break;
         }
 
         case Instr_jmp:
         {
             result.append("jmp ");
-            result.append( std::to_string( mpark::get<long>(m_left_h_arg ) ) );
-            break;
-        }
-
-        case Instr_udef:
-        {
-            result.append("udef ");
+            result.append( std::to_string( mpark::get<long>(_instr.m_left_h_arg ) ) );
             break;
         }
 
@@ -388,12 +370,12 @@ std::string SimpleInstr::to_string()
 
     }
 
-    if ( !m_comment.empty() )
+    if ( !_instr.m_comment.empty() )
     {
         while( result.length() < 50 ) // align on 80th char
             result.append(" ");
         result.append( "; " );
-        result.append( m_comment );
+        result.append( _instr.m_comment );
     }
     return result;
 }
@@ -404,8 +386,8 @@ std::string Nodable::to_string(Register _register)
     {
         case Register::rax: return "rax";
         case Register::rdx: return "rdx";
+        default:            return "???";
     }
-    return "???";
 }
 
 std::string Nodable::to_string(FctId _id)
@@ -413,6 +395,6 @@ std::string Nodable::to_string(FctId _id)
     switch( _id)
     {
         case FctId::eval_member: return "eval_member";
+        default:                 return "???";
     }
-    return "???";
 }

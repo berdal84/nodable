@@ -13,7 +13,8 @@ namespace Nodable
 
     // forward declarations
     class ScopedCodeBlockNode;
-    struct SimpleInstrList;
+    class AssemblyCode;
+    struct AssemblyInstr;
 
     /**
      * Enum to identify each register, we try here to follow the x86_64 DASM reference from
@@ -21,10 +22,15 @@ namespace Nodable
      */
     enum Register {
         rax = 0, // accumulator
-        rdx      // storage
+        rdx,      // storage
+        COUNT
     };
     static std::string to_string(Register);
 
+    /**
+     * Enum to identify each function identifier.
+     * A function is specified when using "call" instruction.
+     */
     enum FctId
     {
         eval_member = 0
@@ -32,42 +38,10 @@ namespace Nodable
     static std::string to_string(FctId);
 
     /**
-     * Class to execute a Nodable program.
+     * Enumerate each possible instruction.
      */
-    class Runner {
-    public:
-        Runner();
-        [[nodiscard]] bool load_program(ScopedCodeBlockNode*);
-        void unload_program();
-        void run_program();
-        bool is_program_over();
-        void stop_program();
-        void debug_program();
-        [[nodiscard]] inline bool             is_program_running() const{ return m_is_program_running; }
-        [[nodiscard]] inline bool             is_debugging() const{ return m_is_debugging; }
-        [[nodiscard]] inline bool             is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
-                             bool             step_over();
-        [[nodiscard]] inline const Node*      get_current_node() const {return m_current_node; }
-                      inline Variant*         get_last_eval() { return &m_register[0]; }
-
-    private:
-        SimpleInstrList*      compile_program(const ScopedCodeBlockNode* _program);
-        void                  compile_node_and_append_to_program(const Node* _node);
-        bool                  is_program_valid(const ScopedCodeBlockNode* _program);
-        bool                  _stepOver();
-        GraphTraversal        m_traversal;
-        ScopedCodeBlockNode*  m_program_tree;
-        SimpleInstrList*      m_program_compiled;
-        Node*                 m_current_node;
-        bool                  m_is_program_running;
-        bool                  m_is_debugging;
-        Variant               m_register[2]; // variants to store temp values
-    };
-
-
     enum Instr
     {
-        Instr_udef,
         Instr_call,
         Instr_mov,
         Instr_jmp,
@@ -75,50 +49,98 @@ namespace Nodable
         Instr_ret,
     };
 
-    class SimpleInstr
+    /**
+     * Store a single assembly instruction ( line type larg rarg comment )
+     */
+    struct AssemblyInstr
     {
-    public:
+        // possible types for an argument. // TODO: use a single type, like char[4] for example.
+        typedef mpark::variant<
+                void*,
+                Node*,
+                Member*,
+                long,
+                Register,
+                FctId
+        > AsmInstrArg;
 
-        SimpleInstr(Instr _type, long _line): m_type(_type), m_line(_line) {}
-        SimpleInstr(const SimpleInstr& _other) = default;
+        AssemblyInstr(Instr _type, long _line): m_type(_type), m_line(_line) {}
 
-        std::string to_string();
-
-        Instr m_type;
-        long   m_line;
-        mpark::variant<void* , Node*, Member*, long, Register, FctId> m_left_h_arg;
-        mpark::variant<void* , Node*, Member*, long, Register, FctId> m_right_h_arg;
+        long        m_line;
+        Instr       m_type;
+        AsmInstrArg m_left_h_arg;
+        AsmInstrArg m_right_h_arg;
         std::string m_comment;
-     };
+    };
+
+    static std::string to_string(const AssemblyInstr&);
 
     /**
-     * Class to store a simple instruction list and navigate forward through it
+     * Wraps an AssemblyInstr vector and add a shortcut to insert item easily.
      */
-     class SimpleInstrList
-     {
-     public:
-         SimpleInstrList(){}
-         ~SimpleInstrList()
-         {
-             for( auto each : m_instructions )
-                 delete each;
-             m_instructions.clear();
-         }
-         void         advance(long _amount = 1) { m_cursor_position += _amount; }
-         SimpleInstr* push_instr(Instr _type)
-         {
-             SimpleInstr* instr = new SimpleInstr(_type, m_instructions.size());
-             m_instructions.emplace_back(instr);
-             return instr;
-         };
-         SimpleInstr* get_curr(){ return m_cursor_position < m_instructions.size() ? m_instructions[m_cursor_position] : nullptr; };
-         void         reset_cursor(){ m_cursor_position = 0; };
-         long         get_next_line_nb(){ return m_instructions.size(); }
-         bool         is_over() { assert(get_curr()); return get_curr()->m_type == Instr_ret; }
-     private:
-         size_t m_cursor_position = 0;
-         std::vector<SimpleInstr*> m_instructions;
-     };
+    class AssemblyCode
+    {
+    public:
+        AssemblyCode() = default;
+
+        ~AssemblyCode()
+        {
+            for( auto each : m_instructions )
+                delete each;
+            m_instructions.clear();
+        }
+
+        AssemblyInstr* push_instr(Instr _type)
+        {
+            AssemblyInstr* instr = new AssemblyInstr(_type, m_instructions.size());
+            m_instructions.emplace_back(instr);
+            return instr;
+        };
+
+        inline size_t size() const { return  m_instructions.size(); }
+        inline AssemblyInstr* operator[](size_t _index) const { return  m_instructions[_index]; }
+        long get_next_pushed_instr_index(){ return m_instructions.size(); }
+    private:
+        std::vector<AssemblyInstr*> m_instructions;
+    };
+
+    /**
+     * Class to compile and execute a Nodable program.
+     *
+     * TODO: extract compilation related code to a dedicated class Compiler.
+     */
+    class Runner {
+    public:
+        Runner();
+        [[nodiscard]] bool    load_program(ScopedCodeBlockNode*);
+        void                  unload_program();
+        void                  run_program();
+        void                  stop_program();
+        void                  debug_program();
+        inline bool           is_program_running() const{ return m_is_program_running; }
+        inline bool           is_debugging() const{ return m_is_debugging; }
+        inline bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
+               bool           step_over();
+        inline const Node*    get_current_node() const {return m_current_node; }
+        inline Variant*       get_last_eval() { return &m_register[0]; }
+        bool                  is_program_over() { assert(get_current_instruction()); return get_current_instruction()->m_type == Instr_ret; }
+    private:
+        void                  advance_cursor(long _amount = 1) { m_cursor_position += _amount; }
+        void                  reset_cursor(){ m_cursor_position = 0; };
+        AssemblyInstr*        get_current_instruction(){ return m_cursor_position < m_program_assembly->size() ? (*m_program_assembly)[m_cursor_position] : nullptr; };
+        AssemblyCode*         create_assembly_code(const ScopedCodeBlockNode* _program);
+        void                  append_to_assembly_code(const Node* _node);
+        bool                  is_program_valid(const ScopedCodeBlockNode* _program);
+        bool                  _stepOver();
+        GraphTraversal        m_traversal;
+        ScopedCodeBlockNode*  m_program_tree;
+        AssemblyCode*         m_program_assembly;
+        Node*                 m_current_node;
+        bool                  m_is_program_running;
+        bool                  m_is_debugging;
+        Variant               m_register[Register::COUNT]; // variants to store temp values
+        size_t                m_cursor_position = 0;
+    };
 }
 
 
