@@ -115,17 +115,32 @@ bool VirtualMachine::_stepOver()
             {
                 case FctId::eval_member:
                 {
-                    // TODO: traverse graph in advance during compilation step.
                     Member *member = mpark::get<Member *>(curr_instr->m_right_h_arg);
                     m_current_node = member->getOwner();
 
-                    if (Member *input = member->getInput()) {
-                        m_traversal.traverse(input->getOwner(),
-                                             TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty |
-                                             TraversalFlag_AvoidCycles);
+                    /*
+                     * if the member has no input it means it is a simple literal value and we have nothing to compute,
+                     * instead we traverse the syntax tree starting from the node connected to it.
+                     * Once we have the list of the nodes to be updated, we loop on them.
+                     * TODO: traverse graph in advance during compilation step.
+                     */
+
+                    if (Member *input = member->getInput())
+                    {
+                        /*
+                         * traverse the syntax tree (graph)
+                         */
+                        TraversalFlag flags = TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty |
+                                              TraversalFlag_AvoidCycles;
+                        m_traversal.traverse(input->getOwner(), flags);
+
+                        /*
+                         * eval each traversed node
+                         */
                         size_t total(m_traversal.getStats().m_traversed.size());
                         size_t idx = 1;
-                        for (auto *eachNodeToEval : m_traversal.getStats().m_traversed) {
+                        for (auto *eachNodeToEval : m_traversal.getStats().m_traversed)
+                        {
                             eachNodeToEval->eval();
                             eachNodeToEval->setDirty(false);
                             LOG_VERBOSE("VM", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int) total,
