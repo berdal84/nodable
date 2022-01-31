@@ -914,7 +914,7 @@ void AppView::draw_background()
 void AppView::draw_tool_bar()
 {
     Settings* settings = Settings::Get();
-    Runner& runner = m_app->getRunner();
+    VirtualMachine& runner = m_app->getRunner();
 
     // small margin
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);

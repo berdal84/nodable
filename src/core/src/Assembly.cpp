@@ -115,7 +115,7 @@ bool Asm::Compiler::is_program_valid(const ScopedCodeBlockNode* _program)
     {
         if( !(*it)->isDeclared() )
         {
-            LOG_ERROR("Runner", "Unable to load program because %s is not declared.\n", (*it)->getName() );
+            LOG_ERROR("Compiler", "Unable to load program because %s is not declared.\n", (*it)->getName() );
             found_a_var_uninit = true;
         }
         ++it;

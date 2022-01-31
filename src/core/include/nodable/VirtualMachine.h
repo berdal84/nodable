@@ -20,9 +20,9 @@ namespace Nodable
      *
      * TODO: extract compilation related code to a dedicated class Compiler.
      */
-    class Runner {
+    class VirtualMachine {
     public:
-        Runner();
+        VirtualMachine();
         [[nodiscard]] bool    load_program(ScopedCodeBlockNode*);
         void                  unload_program();
         void                  run_program();

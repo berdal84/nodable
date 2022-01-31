@@ -1,4 +1,4 @@
-#include <nodable/Runner.h>
+#include <nodable/VirtualMachine.h>
 
 #include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/GraphTraversal.h>
@@ -10,7 +10,7 @@
 using namespace Nodable;
 using namespace Nodable::Asm;
 
-Runner::Runner()
+VirtualMachine::VirtualMachine()
     : m_program_graph(nullptr)
     , m_is_debugging(false)
     , m_is_program_running(false)
@@ -20,7 +20,7 @@ Runner::Runner()
 
 }
 
-bool Runner::load_program(ScopedCodeBlockNode* _program)
+bool VirtualMachine::load_program(ScopedCodeBlockNode* _program)
 {
     Asm::Compiler compiler;
 
@@ -37,23 +37,23 @@ bool Runner::load_program(ScopedCodeBlockNode* _program)
             m_program_graph     = _program;
             m_program_asm_code = compiler.get_output_assembly();
 
-            LOG_MESSAGE("Runner", "Program's tree compiled.\n");
-            LOG_VERBOSE("Runner", "Find bellow the compilation result:\n");
-            LOG_VERBOSE("Runner", "---- Program begin -----\n");
+            LOG_MESSAGE("VM", "Program's tree compiled.\n");
+            LOG_VERBOSE("VM", "Find bellow the compilation result:\n");
+            LOG_VERBOSE("VM", "---- Program begin -----\n");
             Instr* curr = get_current_instruction();
             while( curr )
             {
-                LOG_VERBOSE("Runner", "%s \n", Instr::to_string(*curr ).c_str() );
+                LOG_VERBOSE("VM", "%s \n", Instr::to_string(*curr ).c_str() );
                 advance_cursor(1);
                 curr = get_current_instruction();
             }
             reset_cursor();
-            LOG_VERBOSE("Runner", "---- Program end -----\n");
+            LOG_VERBOSE("VM", "---- Program end -----\n");
             return true;
         }
         else
         {
-            LOG_ERROR("Runner", "Unable to compile program's tree.\n");
+            LOG_ERROR("VM", "Unable to compile program's tree.\n");
             return false;
         }
 
@@ -61,10 +61,10 @@ bool Runner::load_program(ScopedCodeBlockNode* _program)
     return false;
 }
 
-void Runner::run_program()
+void VirtualMachine::run_program()
 {
     NODABLE_ASSERT(m_program_graph != nullptr);
-    LOG_VERBOSE("Runner", "Running...\n")
+    LOG_VERBOSE("VM", "Running...\n")
     m_is_program_running = true;
 
     while(!is_program_over())
@@ -74,25 +74,25 @@ void Runner::run_program()
     stop_program();
 }
 
-void Runner::stop_program()
+void VirtualMachine::stop_program()
 {
     m_is_program_running = false;
     m_is_debugging = false;
     m_current_node = nullptr;
-    LOG_VERBOSE("Runner", "Stopped.\n")
+    LOG_VERBOSE("VM", "Stopped.\n")
 }
 
-void Runner::unload_program() {
+void VirtualMachine::unload_program() {
     // TODO: clear context
     this->m_program_graph = nullptr;
 }
 
-bool Runner::_stepOver()
+bool VirtualMachine::_stepOver()
 {
     bool success = false;
     Instr* curr_instr = get_current_instruction();
 
-    LOG_VERBOSE("Runner", "processing line %i.\n", (int)curr_instr->m_line );
+    LOG_VERBOSE("VM", "processing line %i.\n", (int)curr_instr->m_line );
 
     switch ( curr_instr->m_type )
     {
@@ -128,7 +128,7 @@ bool Runner::_stepOver()
                         for (auto *eachNodeToEval : m_traversal.getStats().m_traversed) {
                             eachNodeToEval->eval();
                             eachNodeToEval->setDirty(false);
-                            LOG_VERBOSE("Runner", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int) total,
+                            LOG_VERBOSE("VM", "Eval (%i/%i): \"%s\" (class %s) \n", idx, (int) total,
                                         eachNodeToEval->getLabel(), eachNodeToEval->get_class()->get_name())
                             idx++;
                         }
@@ -175,7 +175,7 @@ bool Runner::_stepOver()
     return success;
 }
 
-bool Runner::step_over()
+bool VirtualMachine::step_over()
 {
     bool _break = false;
     while( !is_program_over() && !_break )
@@ -193,7 +193,7 @@ bool Runner::step_over()
     return continue_execution;
 }
 
-void Runner::debug_program()
+void VirtualMachine::debug_program()
 {
     NODABLE_ASSERT(this->m_program_graph != nullptr);
     m_is_debugging = true;

@@ -25,7 +25,7 @@ bool GraphNodeView::draw()
     bool edited = false;
     App* app = App::Get();
     NODABLE_ASSERT(app != nullptr) // app needs to be defined
-    Runner* runner = &app->getRunner();
+    VirtualMachine* runner = &app->getRunner();
 
     Settings* settings = Settings::Get();
     GraphNode* graph = get_graph_node();

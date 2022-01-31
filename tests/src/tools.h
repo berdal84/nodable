@@ -3,7 +3,7 @@
 #include <exception>
 
 #include <nodable/Member.h>
-#include <nodable/Runner.h>
+#include <nodable/VirtualMachine.h>
 #include <nodable/GraphNode.h>
 #include <nodable/Parser.h>
 #include <nodable/LanguageFactory.h>
@@ -27,7 +27,7 @@ namespace Nodable
         auto program = graph.getProgram();
         if (program) {
             // run
-            Runner runner;
+            VirtualMachine runner;
 
             if (runner.load_program(graph.getProgram())) {
                 runner.run_program();
@@ -62,7 +62,7 @@ namespace Nodable
         // act
         lang->getParser()->source_code_to_graph(expression, &graph);
         if (ScopedCodeBlockNode *program = graph.getProgram()) {
-            Runner runner;
+            VirtualMachine runner;
 
             if (runner.load_program(program)) {
                 runner.run_program();

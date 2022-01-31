@@ -10,7 +10,7 @@
 
 // Nodable
 #include <nodable/Nodable.h>
-#include <nodable/Runner.h>
+#include <nodable/VirtualMachine.h>
 
 namespace Nodable
 {
@@ -118,7 +118,7 @@ namespace Nodable
 		 */
 		void setCurrentFileWithIndex(size_t _index);
 
-        inline Runner& getRunner() { return m_runner; }
+        inline VirtualMachine& getRunner() { return m_runner; }
 
         ScopedCodeBlockNode* getCurrentFileProgram() const;
 
@@ -160,7 +160,7 @@ namespace Nodable
 		const ghc::filesystem::path m_assetsFolderPath;
 
         /** A minimalist "virtual machine" to run instructions */
-        Runner m_runner;
+        VirtualMachine m_runner;
 
         std::string m_name;
 

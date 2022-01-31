@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
   Log::SetVerbosityLevel("GraphTraversal", Log::Verbosity::Message);
   Log::SetVerbosityLevel("Parser", Log::Verbosity::Message);
   Log::SetVerbosityLevel("GraphNode", Log::Verbosity::Message);
-  Log::SetVerbosityLevel("Runner", Log::Verbosity::Message);
+  Log::SetVerbosityLevel("VM", Log::Verbosity::Message);
 
   App app("Nodable " NODABLE_VERSION_EXTENDED);
   app.init();
