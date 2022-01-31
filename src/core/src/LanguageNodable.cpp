@@ -104,7 +104,7 @@ bool api_to_bool(double n)
 template<typename T>
 std::string api_concat(std::string left, T right)
 {
-    return  left + Nodable::String::to_string(right);
+    return  left + Nodable::String::from(right);
 }
 
 template<>

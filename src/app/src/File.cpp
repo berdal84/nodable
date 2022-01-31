@@ -123,8 +123,7 @@ bool File::update() {
 	}
 
     App* app = App::Get();
-    bool runner_is_stopped = app && app->getRunner().is_program_stopped();
-	if( runner_is_stopped )
+	if( app && app->getVM().is_program_stopped() )
     {
         auto graphUpdateResult = m_graph->update();
 

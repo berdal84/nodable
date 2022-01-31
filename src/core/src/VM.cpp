@@ -1,16 +1,14 @@
-#include <nodable/VirtualMachine.h>
+#include <nodable/VM.h>
 
 #include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/GraphTraversal.h>
 #include <nodable/VariableNode.h>
 #include <nodable/Log.h>
-#include <nodable/AbstractConditionalStruct.h>
-#include <nodable/ForLoopNode.h>
 
 using namespace Nodable;
 using namespace Nodable::Asm;
 
-VirtualMachine::VirtualMachine()
+VM::VM()
     : m_program_graph(nullptr)
     , m_is_debugging(false)
     , m_is_program_running(false)
@@ -20,7 +18,7 @@ VirtualMachine::VirtualMachine()
 
 }
 
-bool VirtualMachine::load_program(ScopedCodeBlockNode* _program)
+bool VM::load_program(ScopedCodeBlockNode* _program)
 {
     Asm::Compiler compiler;
 
@@ -61,7 +59,7 @@ bool VirtualMachine::load_program(ScopedCodeBlockNode* _program)
     return false;
 }
 
-void VirtualMachine::run_program()
+void VM::run_program()
 {
     NODABLE_ASSERT(m_program_graph != nullptr);
     LOG_VERBOSE("VM", "Running...\n")
@@ -74,7 +72,7 @@ void VirtualMachine::run_program()
     stop_program();
 }
 
-void VirtualMachine::stop_program()
+void VM::stop_program()
 {
     m_is_program_running = false;
     m_is_debugging = false;
@@ -82,12 +80,12 @@ void VirtualMachine::stop_program()
     LOG_VERBOSE("VM", "Stopped.\n")
 }
 
-void VirtualMachine::unload_program() {
+void VM::unload_program() {
     // TODO: clear context
     this->m_program_graph = nullptr;
 }
 
-bool VirtualMachine::_stepOver()
+bool VM::_stepOver()
 {
     bool success = false;
     Instr* curr_instr = get_current_instruction();
@@ -96,26 +94,36 @@ bool VirtualMachine::_stepOver()
 
     switch ( curr_instr->m_type )
     {
-        case Instr::mov:
+//        case Instr::cmp:
+//        {
+//
+//            auto dst_register = (Register)curr_instr->m_left_h_arg;
+//            auto src_register = (Register)curr_instr->m_right_h_arg;
+//            m_register[Register::rax] = m_register[dst_register] - m_register[src_register];
+//            advance_cursor();
+//            success = true;
+//            break;
+//        }
+
+        case Instr_t::mov:
         {
-            NODABLE_ASSERT(m_register);
-            Register dst_register = mpark::get<Register>(curr_instr->m_left_h_arg );
-            Register src_register = mpark::get<Register>(curr_instr->m_right_h_arg );
-            m_register[dst_register].set(m_register[src_register].convert_to<bool>() );
+            auto dst_register = (Register)curr_instr->m_left_h_arg;
+            auto src_register = (Register)curr_instr->m_right_h_arg;
+            m_register[dst_register] = m_register[src_register];
             advance_cursor();
             success = true;
             break;
         }
 
-        case Instr::call:
+        case Instr_t::call:
         {
-            FctId fct_id = mpark::get<FctId>(curr_instr->m_left_h_arg );
+            auto fct_id = (FctId)curr_instr->m_left_h_arg;
 
             switch( fct_id )
             {
                 case FctId::eval_member:
                 {
-                    Member *member = mpark::get<Member *>(curr_instr->m_right_h_arg);
+                    auto member = (Member*)curr_instr->m_right_h_arg;
                     m_current_node = member->getOwner();
 
                     /*
@@ -149,7 +157,7 @@ bool VirtualMachine::_stepOver()
                         }
                     }
 
-                    m_register[rax] = *member->getData(); // store result.
+                    m_register[rax] = (i64_t)member->getData(); // variant address
                     advance_cursor();
                     success = true;
                 }
@@ -158,28 +166,29 @@ bool VirtualMachine::_stepOver()
             break;
         }
 
-        case Instr::jmp:
+        case Instr_t::jmp:
         {
-            advance_cursor(mpark::get<long>(curr_instr->m_left_h_arg));
+            advance_cursor(curr_instr->m_left_h_arg);
             success = true;
             break;
         }
 
-        case Instr::jne:
+        case Instr_t::jne:
         {
-            if ( m_register[rdx] )
+            bool cmp = ((Variant*)m_register[rax])->convert_to<bool>();
+            if ( cmp )
             {
                 advance_cursor();
             }
             else
             {
-                advance_cursor(mpark::get<long>(curr_instr->m_left_h_arg));
+                advance_cursor(curr_instr->m_left_h_arg);
             }
             success = true;
             break;
         }
 
-        case Instr::ret:
+        case Instr_t::ret:
             success = true;
             break;
 
@@ -190,12 +199,12 @@ bool VirtualMachine::_stepOver()
     return success;
 }
 
-bool VirtualMachine::step_over()
+bool VM::step_over()
 {
     bool _break = false;
     while( !is_program_over() && !_break )
     {
-        _break = get_current_instruction()->m_type == Instr::call;
+        _break = get_current_instruction()->m_type == Instr_t::call;
         _stepOver();
     }
 
@@ -208,7 +217,7 @@ bool VirtualMachine::step_over()
     return continue_execution;
 }
 
-void VirtualMachine::debug_program()
+void VM::debug_program()
 {
     NODABLE_ASSERT(this->m_program_graph != nullptr);
     m_is_debugging = true;

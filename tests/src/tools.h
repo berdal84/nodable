@@ -3,20 +3,22 @@
 #include <exception>
 
 #include <nodable/Member.h>
-#include <nodable/VirtualMachine.h>
+#include <nodable/VM.h>
 #include <nodable/GraphNode.h>
 #include <nodable/Parser.h>
 #include <nodable/LanguageFactory.h>
 #include <nodable/VariableNode.h>
 #include <nodable/ScopedCodeBlockNode.h>
 #include <nodable/HeadlessNodeFactory.h>
+#include <nodable/String.h>
 
 namespace Nodable
 {
-    template<typename expected_result_t>
-    static expected_result_t ParseAndEvalExpression(const std::string &expression) {
+    template<typename return_t>
+    static return_t ParseAndEvalExpression(const std::string &expression)
+    {
         // prepare
-        expected_result_t result{};
+        return_t result{};
         const Language *lang = LanguageFactory::GetNodable();
         HeadlessNodeFactory factory(lang);
         GraphNode graph(lang, &factory);
@@ -25,26 +27,25 @@ namespace Nodable
         lang->getParser()->source_code_to_graph(expression, &graph);
 
         auto program = graph.getProgram();
-        if (program) {
+        if (program)
+        {
             // run
-            VirtualMachine runner;
+            Asm::VM runner;
 
-            if (runner.load_program(graph.getProgram())) {
+            if (runner.load_program(graph.getProgram()))
+            {
                 runner.run_program();
-            } else {
+            }
+            else
+            {
                 throw std::runtime_error("Unable to load program.");
             }
 
-
-            // compare result
-            Variant* last_eval = runner.get_last_eval();
-            EXPECT_TRUE(last_eval);
-            if (last_eval) {
-                result = last_eval->convert_to<expected_result_t>();
-            } else {
-                throw std::runtime_error("Unable to get last instruction.");
-            }
-        } else {
+            // store result
+            result = runner.get_last_result()->convert_to<return_t>();
+        }
+        else
+        {
             throw std::runtime_error("Unable to convert expression to graph, program is nullptr.");
         }
 
@@ -62,23 +63,29 @@ namespace Nodable
         // act
         lang->getParser()->source_code_to_graph(expression, &graph);
         if (ScopedCodeBlockNode *program = graph.getProgram()) {
-            VirtualMachine runner;
+            Asm::VM runner;
 
             if (runner.load_program(program)) {
                 runner.run_program();
 
-                if (auto last_eval = runner.get_last_eval()) {
-                    std::string result_str;
-                    lang->getSerializer()->serialize(result_str, last_eval);
+                if (auto last_eval = runner.get_last_result())
+                {
+                    std::string result_str = last_eval->convert_to<std::string>();
                     LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
-                } else {
+                }
+                else
+                {
                     throw std::runtime_error("ParseUpdateSerialize: Unable to get last evaluated member.");
                 }
-            } else {
+            }
+            else
+            {
                 throw std::runtime_error("ParseUpdateSerialize: Unable to load program.");
             }
 
-        } else {
+        }
+        else
+        {
             throw std::runtime_error("ParseUpdateSerialize: Unable to generate program.");
         }
 

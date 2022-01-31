@@ -1,6 +1,7 @@
 #include <nodable/Variant.h>
 #include <nodable/Log.h> // for LOG_DEBUG(...)
-#include <assert.h>
+#include <cassert>
+#include <nodable/Nodable.h>
 #include <nodable/String.h>
 
 using namespace Nodable;
@@ -135,13 +136,25 @@ void Variant::setType(Type _type)
 }
 
 template<>
+[[nodiscard]] i64_t Variant::convert_to<i64_t>()const
+{
+    switch (getType())
+    {
+        case Type_String:  return double( mpark::get<std::string>(data).size());
+        case Type_Double:  return mpark::get<double>(data);
+        case Type_Boolean: return mpark::get<bool>(data);
+        default:           return double(0);
+    }
+}
+
+template<>
 [[nodiscard]] double Variant::convert_to<double>()const
 {
     switch (getType())
     {
         case Type_String:  return double( mpark::get<std::string>(data).size());
         case Type_Double:  return mpark::get<double>(data);
-        case Type_Boolean: return mpark::get<bool>(data) ? double(1) : double(0);
+        case Type_Boolean: return mpark::get<bool>(data);
         default:           return double(0);
     }
 }
@@ -176,7 +189,7 @@ template<>
 
         case Type_Double:
         {
-            return String::to_string( mpark::get<double>(data) );
+            return String::from(mpark::get<double>(data));
         }
 
         case Type_Boolean:

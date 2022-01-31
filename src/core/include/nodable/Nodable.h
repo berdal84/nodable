@@ -38,6 +38,11 @@ namespace Nodable
         ConnectBy_Ref,
         ConnectBy_Copy
     };
+
+    typedef long long i64_t;
+    typedef long      i32_t;
+    typedef int       i16_t;
+    typedef short int i8_t;
 }
 
 

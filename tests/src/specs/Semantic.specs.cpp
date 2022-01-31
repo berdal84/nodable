@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <nodable/Member.h>
-#include <nodable/VirtualMachine.h>
+#include <nodable/VM.h>
 #include <nodable/GraphNode.h>
 #include <nodable/Parser.h>
 #include <nodable/LanguageFactory.h>

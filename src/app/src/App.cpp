@@ -163,29 +163,29 @@ ScopedCodeBlockNode* App::getCurrentFileProgram() const
 void App::runCurrentFileProgram()
 {
     ScopedCodeBlockNode* program = getCurrentFileProgram();
-    if ( program && m_runner.load_program(program) )
+    if (program && m_vm.load_program(program) )
     {
-        m_runner.run_program();
+        m_vm.run_program();
     }
 }
 
 void App::debugCurrentFileProgram()
 {
     ScopedCodeBlockNode* program = getCurrentFileProgram();
-    if ( program && m_runner.load_program(program) )
+    if (program && m_vm.load_program(program) )
     {
-        m_runner.debug_program();
+        m_vm.debug_program();
     }
 }
 
 void App::stepOverCurrentFileProgram()
 {
-    m_runner.step_over();
-    if (m_runner.is_program_over() )
+    m_vm.step_over();
+    if (m_vm.is_program_over() )
     {
         NodeView::SetSelected(nullptr);
     }
-    else if ( auto view = m_runner.get_current_node()->getComponent<NodeView>() )
+    else if ( auto view = m_vm.get_current_node()->getComponent<NodeView>() )
     {
         NodeView::SetSelected(view);
     }
@@ -193,15 +193,15 @@ void App::stepOverCurrentFileProgram()
 
 void App::stopCurrentFileProgram()
 {
-    m_runner.stop_program();
+    m_vm.stop_program();
 }
 
 void App::resetCurrentFileProgram()
 {
     if ( auto currFile = getCurrentFile() )
     {
-        if(m_runner.is_program_running())
-            m_runner.stop_program();
+        if(m_vm.is_program_running())
+            m_vm.stop_program();
 
         // TODO: restore graph state without parsing again like that:
         currFile->evaluateSelectedExpression();

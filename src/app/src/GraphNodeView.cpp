@@ -19,13 +19,14 @@
 #include <nodable/NodeConnector.h>
 
 using namespace Nodable;
+using namespace Nodable::Asm;
 
 bool GraphNodeView::draw()
 {
     bool edited = false;
     App* app = App::Get();
     NODABLE_ASSERT(app != nullptr) // app needs to be defined
-    VirtualMachine* runner = &app->getRunner();
+    VM* vm = &app->getVM();
 
     Settings* settings = Settings::Get();
     GraphNode* graph = get_graph_node();
@@ -153,7 +154,7 @@ bool GraphNodeView::draw()
             {
                 eachNodeView->draw();
 
-                if(runner && runner->is_debugging() && runner->get_current_node() == eachNodeView->get_owner())
+                if(vm && vm->is_debugging() && vm->get_current_node() == eachNodeView->get_owner())
                     ImGui::SetScrollHereY();
 
                 // dragging
@@ -174,11 +175,11 @@ bool GraphNodeView::draw()
 	isAnyNodeDragged |= MemberConnector::IsDragging();
 
 	// Virtual Machine cursor
-	if( runner )
+	if( vm )
     {
-	    if ( !runner->is_program_stopped())
+	    if ( !vm->is_program_stopped())
         {
-	        auto node = runner->get_current_node();
+	        auto node = vm->get_current_node();
 	        if( auto view = node->getComponent<NodeView>())
             {
 	            auto draw_list = ImGui::GetWindowDrawList();

@@ -16,6 +16,7 @@
 #include <nodable/History.h>
 
 using namespace Nodable;
+using namespace Nodable::Asm;
 
 AppView::AppView(const char* _name, App* _application):
         m_app(_application),
@@ -356,21 +357,21 @@ bool AppView::draw()
                 }
 
                 if (ImGui::BeginMenu("Run")) {
-                    auto runner = m_app->getRunner();
+                    auto vm = m_app->getVM();
 
-                    if (ImGui::MenuItem(ICON_FA_PLAY" Run") && runner.is_program_stopped()) {
+                    if (ImGui::MenuItem(ICON_FA_PLAY" Run") && vm.is_program_stopped()) {
                         m_app->runCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_BUG" Debug") && runner.is_program_stopped()) {
+                    if (ImGui::MenuItem(ICON_FA_BUG" Debug") && vm.is_program_stopped()) {
                         m_app->debugCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && runner.is_debugging()) {
+                    if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && vm.is_debugging()) {
                         m_app->stepOverCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !runner.is_program_stopped()) {
+                    if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !vm.is_program_stopped()) {
                         m_app->stopCurrentFileProgram();
                     }
 
@@ -475,10 +476,10 @@ bool AppView::draw()
 
             if ( ImGui::Begin("Assembly") )
             {
-                const Asm::Code* code = m_app->getRunner().get_program_asm_code();
+                const Asm::Code* code = m_app->getVM().get_program_asm_code();
                 if ( code  )
                 {
-                    auto current_instr = m_app->getRunner().get_current_instruction();
+                    auto current_instr = m_app->getVM().get_current_instruction();
                     for( Asm::Instr* each_instr : code->get_instructions() )
                     {
                         auto str = Asm::Instr::to_string( *each_instr ).c_str();
@@ -914,18 +915,18 @@ void AppView::draw_background()
 void AppView::draw_tool_bar()
 {
     Settings* settings = Settings::Get();
-    VirtualMachine& runner = m_app->getRunner();
+    VM& vm = m_app->getVM();
 
     // small margin
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
     ImGui::BeginGroup();
 
     // run
-    bool isRunning = runner.is_program_running();
+    bool isRunning = vm.is_program_running();
     if ( isRunning )
         ImGui::PushStyleColor(ImGuiCol_Button, settings->ui_button_activeColor);
 
-    if (ImGui::Button(ICON_FA_PLAY, settings->ui_toolButton_size) && runner.is_program_stopped())
+    if (ImGui::Button(ICON_FA_PLAY, settings->ui_toolButton_size) && vm.is_program_stopped())
     {
         m_app->runCurrentFileProgram();
     }
@@ -934,10 +935,10 @@ void AppView::draw_tool_bar()
     ImGui::SameLine();
 
     // debug
-    bool isDebugging = runner.is_debugging();
+    bool isDebugging = vm.is_debugging();
     if ( isDebugging )
         ImGui::PushStyleColor(ImGuiCol_Button, settings->ui_button_activeColor);
-    if (ImGui::Button(ICON_FA_BUG, settings->ui_toolButton_size) && runner.is_program_stopped())
+    if (ImGui::Button(ICON_FA_BUG, settings->ui_toolButton_size) && vm.is_program_stopped())
     {
         m_app->debugCurrentFileProgram();
     }
@@ -946,14 +947,14 @@ void AppView::draw_tool_bar()
     ImGui::SameLine();
 
     // stepOver
-    if (ImGui::Button(ICON_FA_ARROW_RIGHT, settings->ui_toolButton_size) && runner.is_debugging())
+    if (ImGui::Button(ICON_FA_ARROW_RIGHT, settings->ui_toolButton_size) && vm.is_debugging())
     {
         m_app->stepOverCurrentFileProgram();
     }
     ImGui::SameLine();
 
     // stop
-    if ( ImGui::Button(ICON_FA_STOP, settings->ui_toolButton_size) && !runner.is_program_stopped())
+    if ( ImGui::Button(ICON_FA_STOP, settings->ui_toolButton_size) && !vm.is_program_stopped())
     {
         m_app->stopCurrentFileProgram();
     }

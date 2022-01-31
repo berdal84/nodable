@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <mpark/variant.hpp>
+#include <nodable/Nodable.h>
 
 namespace Nodable
 {
@@ -19,7 +20,9 @@ namespace Nodable
          */
         enum Register {
             rax = 0, // accumulator
-            rdx,      // storage
+            rdx,     // storage
+            esp,     // The stack pointer.  Points to the top of the stack
+            ebp,     // Preserved register. Sometimes used to store the old value of the stack pointer, or the "base".
             COUNT
         };
 
@@ -28,9 +31,22 @@ namespace Nodable
          * Enum to identify each function identifier.
          * A function is specified when using "call" instruction.
          */
-        enum FctId
+        enum class FctId: i64_t
         {
-            eval_member = 0
+            eval_member
+        };
+
+        /**
+         * Enumerate each possible instruction.
+         */
+        enum class Instr_t: i8_t
+        {
+            call,
+            mov,
+            jmp,
+            jne,
+            ret,
+            cmp /* compare */
         };
 
         /**
@@ -38,34 +54,12 @@ namespace Nodable
          */
         struct Instr
         {
-            /**
-             * Enumerate each possible instruction.
-             */
-            enum Type
-            {
-                call,
-                mov,
-                jmp,
-                jne,
-                ret,
-            };
+            Instr(Instr_t _type, long _line): m_type(_type), m_line(_line) {}
 
-            // possible types for an argument. // TODO: use a single type, like char[4] for example.
-            typedef mpark::variant<
-                    void*,
-                    Node*,
-                    Member*,
-                    long,
-                    Register,
-                    FctId
-            > AsmInstrArg;
-
-            Instr(Type _type, long _line): m_type(_type), m_line(_line) {}
-
-            long        m_line;
-            Type        m_type;
-            AsmInstrArg m_left_h_arg;
-            AsmInstrArg m_right_h_arg;
+            i64_t   m_line;
+            Instr_t m_type;
+            i64_t   m_left_h_arg;
+            i64_t   m_right_h_arg;
             std::string m_comment;
             static std::string to_string(const Instr&);
         };
@@ -79,7 +73,7 @@ namespace Nodable
             Code() = default;
             ~Code();
 
-            Instr*        push_instr(Instr::Type _type);
+            Instr*        push_instr(Instr_t _type);
             inline size_t size() const { return  m_instructions.size(); }
             inline Instr* operator[](size_t _index) const { return  m_instructions[_index]; }
             long          get_next_pushed_instr_index() const { return m_instructions.size(); }
@@ -106,5 +100,5 @@ namespace Nodable
 
     static std::string to_string(Asm::Register);
     static std::string to_string(Asm::FctId);
-    static std::string to_string(Asm::Instr::Type);
+    static std::string to_string(Asm::Instr_t);
 }

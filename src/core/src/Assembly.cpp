@@ -25,28 +25,32 @@ std::string Asm::Instr::to_string(const Instr& _instr)
     // optionally append parameters
     switch ( _instr.m_type )
     {
-        case call:
+        case Instr_t::call:
         {
-            FctId fct_id   = mpark::get<FctId>(_instr.m_left_h_arg );
-            Member* member = mpark::get<Member*>(_instr.m_right_h_arg );
+            FctId fct_id   = (FctId)_instr.m_left_h_arg;
+            Member* member = (Member*)_instr.m_right_h_arg;
             result.append( Nodable::to_string(fct_id) );
             result.append( " [" + std::to_string((size_t)member) + "]");
             break;
         }
 
-        case mov:
+        case Instr_t::mov:
+        case Instr_t::cmp:
         {
-            result.append(       Nodable::to_string( mpark::get<Register>(_instr.m_left_h_arg ) ) );
-            result.append( ", " + Nodable::to_string( mpark::get<Register>(_instr.m_right_h_arg ) ) );
+            result.append("%" + std::to_string( _instr.m_left_h_arg ) );
+            result.append(", %" + std::to_string( _instr.m_right_h_arg ) );
             break;
         }
 
-        case jne:
-        case jmp:
+        case Instr_t::jne:
+        case Instr_t::jmp:
         {
-            result.append( std::to_string( mpark::get<long>(_instr.m_left_h_arg ) ) );
+            result.append( std::to_string( _instr.m_left_h_arg ) );
             break;
         }
+
+        case Instr_t::ret: // nothing else to do.
+            break;
     }
 
     // optionally append comment
@@ -60,16 +64,16 @@ std::string Asm::Instr::to_string(const Instr& _instr)
     return result;
 }
 
-std::string Nodable::to_string(Instr::Type _type)
+std::string Nodable::to_string(Instr_t _type)
 {
     switch( _type)
     {
-        case Instr::Type::mov:   return "mov";
-        case Instr::Type::ret:   return "ret";
-        case Instr::Type::call:  return "call";
-        case Instr::Type::jmp:   return "jpm";
-        case Instr::Type::jne:   return "jne";
-        default:                 return "???";
+        case Instr_t::mov:   return "mov";
+        case Instr_t::ret:   return "ret";
+        case Instr_t::call:  return "call";
+        case Instr_t::jmp:   return "jpm";
+        case Instr_t::jne:   return "jne";
+        default:             return "???";
     }
 }
 
@@ -99,7 +103,7 @@ Code::~Code()
     m_instructions.clear();
 }
 
-Instr* Code::push_instr(Instr::Type _type)
+Instr* Code::push_instr(Instr_t _type)
 {
     Instr* instr = new Instr(_type, m_instructions.size());
     m_instructions.emplace_back(instr);
@@ -148,23 +152,23 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
             // for_loop init instruction
             if ( auto for_loop = _node->as<ForLoopNode>() )
             {
-                auto init_instr = m_output->push_instr(Instr::call  );
-                init_instr->m_left_h_arg = FctId::eval_member;
-                init_instr->m_right_h_arg.emplace<Member*>(for_loop->get_init_expr() );
+                auto init_instr = m_output->push_instr(Instr_t::call  );
+                init_instr->m_left_h_arg = (i64_t)FctId::eval_member;
+                init_instr->m_right_h_arg = (i64_t)for_loop->get_init_expr();
                 init_instr->m_comment = "init-loop";
             }
 
-            Instr* cond_instr = m_output->push_instr(Instr::call);
-            cond_instr->m_left_h_arg = FctId::eval_member;
-            cond_instr->m_right_h_arg.emplace<Member*>(cond->get_condition() );
+            Instr* cond_instr = m_output->push_instr(Instr_t::call);
+            cond_instr->m_left_h_arg = (i64_t)FctId::eval_member;
+            cond_instr->m_right_h_arg = (i64_t)cond->get_condition();
             cond_instr->m_comment = "condition";
 
-            Instr* store_instr = m_output->push_instr(Instr::mov);
+            Instr* store_instr = m_output->push_instr(Instr_t::mov);
             store_instr->m_left_h_arg = Register::rdx;
             store_instr->m_right_h_arg = Register::rax;
             store_instr->m_comment = "copy last result to a data register.";
 
-            Instr* skip_true_branch = m_output->push_instr(Instr::jne);
+            Instr* skip_true_branch = m_output->push_instr(Instr_t::jne);
             skip_true_branch->m_comment = "jump if register is false";
 
             Instr* skip_false_branch = nullptr;
@@ -176,19 +180,19 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
                 if ( auto for_loop = _node->as<ForLoopNode>() )
                 {
                     // insert end-loop instruction.
-                    auto end_loop_instr = m_output->push_instr(Instr::call);
-                    end_loop_instr->m_left_h_arg = FctId::eval_member;
-                    end_loop_instr->m_right_h_arg  = for_loop->get_iter_expr();
+                    auto end_loop_instr = m_output->push_instr(Instr_t::call);
+                    end_loop_instr->m_left_h_arg = (i64_t)FctId::eval_member;
+                    end_loop_instr->m_right_h_arg  = (i64_t)for_loop->get_iter_expr();
 
                     // insert jump to condition instructions.
-                    auto loop_jump = m_output->push_instr(Instr::jmp);
+                    auto loop_jump = m_output->push_instr(Instr_t::jmp);
                     loop_jump->m_left_h_arg = cond_instr->m_line - loop_jump->m_line;
                     loop_jump->m_comment = "jump back to loop begining";
 
                 }
                 else if (cond->get_condition_false_branch())
                 {
-                    skip_false_branch = m_output->push_instr(Instr::jmp);
+                    skip_false_branch = m_output->push_instr(Instr_t::jmp);
                     skip_false_branch->m_comment = "jump false branch";
                 }
             }
@@ -210,9 +214,9 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
         }
         else
         {
-            Instr* instr = m_output->push_instr(Instr::call);
-            instr->m_left_h_arg  = FctId::eval_member;
-            instr->m_right_h_arg = _node->getProps()->get("value");
+            Instr* instr = m_output->push_instr(Instr_t::call);
+            instr->m_left_h_arg  = (i64_t)FctId::eval_member;
+            instr->m_right_h_arg = (i64_t)_node->getProps()->get("value");
             instr->m_comment     = "Evaluate a member and store result.";
         }
     }
@@ -231,7 +235,7 @@ bool Asm::Compiler::create_assembly_code(const ScopedCodeBlockNode* _program)
     try
     {
         append_to_assembly_code(_program);
-        m_output->push_instr(Instr::ret);
+        m_output->push_instr(Instr_t::ret);
     }
     catch ( const std::exception& e )
     {

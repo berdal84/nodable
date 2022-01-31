@@ -8,7 +8,7 @@ namespace Nodable
     {
     public:
         template<typename T>
-        static std::string to_string(T d)
+        static std::string from(T d)
         {
             std::string str {std::to_string(d)};
             remove_trailing_zeros(str);
