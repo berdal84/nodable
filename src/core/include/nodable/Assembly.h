@@ -106,4 +106,5 @@ namespace Nodable
 
     static std::string to_string(Asm::Register);
     static std::string to_string(Asm::FctId);
+    static std::string to_string(Asm::Instr::Type);
 }

@@ -11,20 +11,24 @@ using namespace Nodable::Asm;
 std::string Asm::Instr::to_string(const Instr& _instr)
 {
     std::string result;
+
+    // append "<line> :"
     std::string str = std::to_string(_instr.m_line);
     while( str.length() < 4 )
         str.append(" ");
     result.append( str );
     result.append( ": " );
 
+    // append instruction type
+    result.append( Nodable::to_string(_instr.m_type) + " " );
+
+    // optionally append parameters
     switch ( _instr.m_type )
     {
         case call:
         {
             FctId fct_id   = mpark::get<FctId>(_instr.m_left_h_arg );
             Member* member = mpark::get<Member*>(_instr.m_right_h_arg );
-
-            result.append("call ");
             result.append( Nodable::to_string(fct_id) );
             result.append( " [" + std::to_string((size_t)member) + "]");
             break;
@@ -32,34 +36,20 @@ std::string Asm::Instr::to_string(const Instr& _instr)
 
         case mov:
         {
-            result.append("mov ");
             result.append(       Nodable::to_string( mpark::get<Register>(_instr.m_left_h_arg ) ) );
             result.append( ", " + Nodable::to_string( mpark::get<Register>(_instr.m_right_h_arg ) ) );
             break;
         }
 
         case jne:
-        {
-            result.append("jne ");
-            result.append( std::to_string( mpark::get<long>(_instr.m_left_h_arg ) ) );
-            break;
-        }
-
         case jmp:
         {
-            result.append("jmp ");
             result.append( std::to_string( mpark::get<long>(_instr.m_left_h_arg ) ) );
             break;
         }
-
-        case ret:
-        {
-            result.append("ret ");
-            break;
-        }
-
     }
 
+    // optionally append comment
     if ( !_instr.m_comment.empty() )
     {
         while( result.length() < 50 ) // align on 80th char
@@ -70,13 +60,26 @@ std::string Asm::Instr::to_string(const Instr& _instr)
     return result;
 }
 
+std::string Nodable::to_string(Instr::Type _type)
+{
+    switch( _type)
+    {
+        case Instr::Type::mov:   return "mov";
+        case Instr::Type::ret:   return "ret";
+        case Instr::Type::call:  return "call";
+        case Instr::Type::jmp:   return "jpm";
+        case Instr::Type::jne:   return "jne";
+        default:                 return "???";
+    }
+}
+
 std::string Nodable::to_string(Register _register)
 {
     switch( _register)
     {
-        case Register::rax: return "rax";
-        case Register::rdx: return "rdx";
-        default:            return "???";
+        case Register::rax: return "%rax";
+        case Register::rdx: return "%rdx";
+        default:            return "%???";
     }
 }
 
