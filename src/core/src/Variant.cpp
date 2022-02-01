@@ -93,6 +93,11 @@ bool Variant::isDefined()const
 	return m_isDefined;
 }
 
+void Variant::undefine()
+{
+	m_isDefined = false;
+}
+
 void Variant::set(const Variant* _other)
 {
 	data = _other->data;

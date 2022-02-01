@@ -5,7 +5,7 @@
 #include <nodable/GraphNode.h>
 #include <nodable/GraphNodeView.h>
 #include <nodable/Settings.h>
-#include <nodable/ScopeNode.h>
+#include <nodable/Node.h>
 
 using namespace Nodable;
 
@@ -14,12 +14,12 @@ FileView::FileView(File *_file)
         , m_hasChanged(false)
         , m_file(_file)
 {
-    m_observer.observe( _file->m_onExpressionParsedIntoGraph, [](ScopeNode* program)
+    m_observer.observe( _file->m_onExpressionParsedIntoGraph, [](Node* program)
     {
         if ( program )
         {
-            NodeView* program_view = program->getComponent<NodeView>();
-            View*     graph_view   = program->getParentGraph()->getComponent<GraphNodeView>();
+            NodeView* program_view = program->get<NodeView>();
+            View*     graph_view   = program->getParentGraph()->get<GraphNodeView>();
             if ( program_view )
             {
                 if ( graph_view )
@@ -126,7 +126,7 @@ bool FileView::draw()
     ImGui::SameLine();
     GraphNode* graph = m_file->getGraph();
     NODABLE_ASSERT(graph != nullptr);
-    GraphNodeView* graphNodeView = graph->getComponent<GraphNodeView>();
+    GraphNodeView* graphNodeView = graph->get<GraphNodeView>();
 
     if ( graphNodeView )
     {

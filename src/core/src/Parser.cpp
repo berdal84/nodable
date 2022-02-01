@@ -10,10 +10,10 @@
 #include <nodable/Wire.h>
 #include <nodable/GraphNode.h>
 #include <nodable/InstructionNode.h>
-#include <nodable/ScopeNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/InvokableComponent.h>
+#include <nodable/Scope.h>
 
 using namespace Nodable;
 
@@ -74,7 +74,7 @@ bool Parser::source_code_to_graph(const std::string &_source_code, GraphNode *_g
 		return false;
 	}
 
-	ScopeNode* program = parse_program();
+	Node* program = parse_program();
 
 	if (program == nullptr)
 	{
@@ -176,7 +176,7 @@ Member* Parser::token_to_member(Token *_token)
 
 		case TokenType_Identifier:
 		{
-			VariableNode* variable = m_graph->findVariable(_token->m_word);
+			VariableNode* variable = get_current_scope()->find_variable(_token->m_word);
 
 			if (variable == nullptr) {
                 LOG_WARNING("Parser", "Unable to find declaration for %s \n", _token->m_word.c_str())
@@ -261,7 +261,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	if ( matchingOperator != nullptr )
 	{
 		auto binOpNode = m_graph->newBinOp(matchingOperator);
-        auto computeComponent = binOpNode->getComponent<InvokableComponent>();
+        auto computeComponent = binOpNode->get<InvokableComponent>();
         computeComponent->set_source_token(operatorToken);
 
         m_graph->connect(_left, computeComponent->get_l_handed_val());
@@ -325,7 +325,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	if (matchingOperator != nullptr)
 	{
 		auto unaryOpNode = m_graph->newUnaryOp(matchingOperator);
-        auto computeComponent = unaryOpNode->getComponent<InvokableComponent>();
+        auto computeComponent = unaryOpNode->get<InvokableComponent>();
         computeComponent->set_source_token(operatorToken);
 
         m_graph->connect(value, computeComponent->get_l_handed_val());
@@ -459,19 +459,18 @@ InstructionNode* Parser::parse_instruction()
     return instruction;
 }
 
-ScopeNode* Parser::parse_program()
+Node* Parser::parse_program()
 {
-    ScopeNode* result;
+    Node* result;
 
     start_transaction();
-    ScopeNode* main_scope = m_graph->newProgram();
-    m_scope_stack.push(main_scope);
+    Node* program = m_graph->newProgram();
+    m_scope_stack.push( program->get<Scope>() );
 
-    if ( ScopeNode* block = parse_code_block(true) )
+    if ( parse_code_block(false) )
     {
-        m_graph->connect(block, main_scope, RelationType::IS_CHILD_OF);
         commit_transaction();
-        result = main_scope;
+        result = program;
     }
     else
     {
@@ -479,13 +478,14 @@ ScopeNode* Parser::parse_program()
         rollback_transaction();
         result = nullptr;
     }
+
     m_scope_stack.pop();
     return result;
 }
 
-ScopeNode* Parser::parse_scope()
+Node* Parser::parse_scope()
 {
-    ScopeNode* result;
+    Node* result;
 
     start_transaction();
 
@@ -496,15 +496,27 @@ ScopeNode* Parser::parse_scope()
     }
     else
     {
-        auto scope = m_graph->newScope();
+        auto scope_node = m_graph->newScope();
+        auto scope      = scope_node->get<Scope>();
+        /*
+         * link scope with parent_scope.
+         * They must be linked in order to find_variables recursively.
+         */
+        auto parent_scope = m_scope_stack.top();
+        if ( parent_scope )
+        {
+            m_graph->connect(scope_node, parent_scope->get_owner(), Relation_t::IS_CHILD_OF );
+        }
+
         m_scope_stack.push( scope );
+
         scope->set_begin_scope_token(m_token_ribbon.getEaten());
 
         parse_code_block(false);
 
         if ( !m_token_ribbon.eatToken(TokenType_EndScope))
         {
-            m_graph->deleteNode(scope);
+            m_graph->deleteNode(scope_node);
             rollback_transaction();
             result = nullptr;
         }
@@ -512,7 +524,7 @@ ScopeNode* Parser::parse_scope()
         {
             scope->set_end_Scope_token(m_token_ribbon.getEaten());
             commit_transaction();
-            result = scope;
+            result = scope_node;
         }
 
         m_scope_stack.pop();
@@ -520,11 +532,13 @@ ScopeNode* Parser::parse_scope()
     return result;
 }
 
-ScopeNode* Parser::parse_code_block(bool _create_scope)
+AbstractScope* Parser::parse_code_block(bool _create_scope)
 {
     start_transaction();
 
-    auto curr_scope = _create_scope ? m_graph->newScope() : get_current_scope();
+    auto curr_scope = _create_scope ? m_graph->newScope()->get<Scope>() : get_current_scope();
+
+    NODABLE_ASSERT(curr_scope); // needed
 
     bool stop = false;
 
@@ -533,27 +547,18 @@ ScopeNode* Parser::parse_code_block(bool _create_scope)
     {
         if ( InstructionNode* instruction = parse_instruction() )
         {
-            m_graph->connect(instruction, curr_scope, RelationType::IS_CHILD_OF);
+            m_graph->connect(instruction, curr_scope->get_owner(), Relation_t::IS_CHILD_OF);
         }
-        else if ( ConditionalStructNode* condStruct = parse_conditional_structure() )
-        {
-            m_graph->connect(condStruct, curr_scope, RelationType::IS_CHILD_OF);
-        }
-        else if ( ForLoopNode* for_loop = parse_for_loop() )
-        {
-            m_graph->connect(for_loop, curr_scope, RelationType::IS_CHILD_OF);
-        }
-        else if ( ScopeNode* inner_scope = parse_scope() )
-        {
-            m_graph->connect(inner_scope, curr_scope, RelationType::IS_CHILD_OF);
-        }
+        else if ( parse_conditional_structure() ) {}
+        else if ( parse_for_loop() ) {}
+        else if ( parse_scope() ) {}
         else
         {
             stop = true;
         }
     }
 
-    if (curr_scope->get_children().empty() )
+    if (curr_scope->get_owner()->get_children().empty() )
     {
         rollback_transaction();
         return nullptr;
@@ -850,8 +855,9 @@ Member* Parser::parse_function_call()
     return nullptr;
 }
 
-ScopeNode *Parser::get_current_scope()
+Scope* Parser::get_current_scope()
 {
+    NODABLE_ASSERT(m_scope_stack.top()); // stack SHALL not be empty.
     return m_scope_stack.top();
 }
 
@@ -871,17 +877,14 @@ ConditionalStructNode * Parser::parse_conditional_structure()
         if ( condition)
         {
             m_graph->connect(condition, condStruct->get_condition() );
-            if ( ScopeNode* scopeIf = parse_scope() )
+            if ( Node* scopeIf = parse_scope() )
             {
-                m_graph->connect(scopeIf, condStruct, RelationType::IS_CHILD_OF);
-
                 if ( m_token_ribbon.eatToken(TokenType_KeywordElse))
                 {
                     condStruct->set_token_else(m_token_ribbon.getEaten());
 
-                    if ( ScopeNode* scopeElse = parse_scope() )
+                    if ( Node* scopeElse = parse_scope() )
                     {
-                        m_graph->connect(scopeElse, condStruct, RelationType::IS_CHILD_OF);
                         commit_transaction();
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
                         return condStruct;
@@ -889,7 +892,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
                     if ( ConditionalStructNode* elseIfCondStruct = parse_conditional_structure() )
                     {
-						m_graph->connect(elseIfCondStruct, condStruct, RelationType::IS_CHILD_OF);
+						m_graph->connect(elseIfCondStruct, condStruct, Relation_t::IS_CHILD_OF);
                         commit_transaction();
 						LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
 						return condStruct;
@@ -918,93 +921,101 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
 ForLoopNode* Parser::parse_for_loop()
 {
+    bool success = false;
+    ForLoopNode* for_loop_node = nullptr;
     start_transaction();
 
     Token* token_for = m_token_ribbon.eatToken(TokenType_KeywordFor);
 
     if( token_for != nullptr )
     {
+        for_loop_node = m_graph->new_for_loop_node();
+        for_loop_node->set_token_for( token_for );
+
         LOG_VERBOSE("Parser", "parse FOR (...) block...\n")
         Token* open_bracket = m_token_ribbon.eatToken(TokenType_OpenBracket);
         if( !open_bracket )
         {
             LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
-            rollback_transaction();
-            return nullptr;
         }
-
-        Member* init_instr = parse_expression();
-        if ( !init_instr )
+        else
         {
-            LOG_ERROR("Parser", "Unable to find initial instruction.\n")
-            rollback_transaction();
-            return nullptr;
+            m_scope_stack.push( for_loop_node->get<Scope>() );
+
+            Member *init_instr = parse_expression();
+            if (!init_instr)
+            {
+                LOG_ERROR("Parser", "Unable to find initial instruction.\n")
+            }
+            else
+            {
+                m_graph->connect(init_instr, for_loop_node->get_init_expr());
+
+                if (!m_token_ribbon.eatToken(TokenType_EndOfInstruction))
+                {
+                    LOG_ERROR("Parser", "Unable to find end of instruction after initial instruction.\n")
+                }
+                else
+                {
+                    Member *cond_instr = parse_expression();
+                    if (!cond_instr)
+                    {
+                        LOG_ERROR("Parser", "Unable to find condition instruction.\n")
+                    }
+                    else
+                    {
+                        m_graph->connect(cond_instr, for_loop_node->get_condition());
+
+                        if (!m_token_ribbon.eatToken(TokenType_EndOfInstruction))
+                        {
+                            LOG_ERROR("Parser", "Unable to find end of instruction after condition.\n")
+                        }
+                        else
+                        {
+                            Member *iter_instr = parse_expression();
+                            if (!iter_instr)
+                            {
+                                LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
+                            }
+                            else
+                            {
+                                m_graph->connect(iter_instr, for_loop_node->get_iter_expr());
+
+                                Token *close_bracket = m_token_ribbon.eatToken(TokenType_CloseBracket);
+                                if (!close_bracket)
+                                {
+                                    LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
+                                }
+                                else if (!parse_scope())
+                                {
+                                    LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")
+                                }
+                                else
+                                {
+                                    success = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            m_scope_stack.pop();
         }
+    }
 
-        if ( !m_token_ribbon.eatToken(TokenType_EndOfInstruction) )
-        {
-            LOG_ERROR("Parser", "Unable to find end of instruction after initial instruction.\n")
-            rollback_transaction();
-            return nullptr;
-        }
-
-        Member* cond_instr = parse_expression();
-        if ( !cond_instr )
-        {
-            LOG_ERROR("Parser", "Unable to find condition instruction.\n")
-            rollback_transaction();
-            return nullptr;
-        }
-
-        if ( !m_token_ribbon.eatToken(TokenType_EndOfInstruction) )
-        {
-            LOG_ERROR("Parser", "Unable to find end of instruction after condition.\n")
-            rollback_transaction();
-            return nullptr;
-        }
-
-        Member* iter_instr = parse_expression();
-        if ( !iter_instr )
-        {
-            LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
-            rollback_transaction();
-            return nullptr;
-        }
-
-        Token* close_bracket = m_token_ribbon.eatToken(TokenType_CloseBracket);
-        if ( !close_bracket )
-        {
-            LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
-            rollback_transaction();
-            return nullptr;
-        }
-
-        ForLoopNode* for_loop_node = m_graph->new_for_loop_node();
-        for_loop_node->set_token_for( token_for );
-
-        m_graph->connect(init_instr, for_loop_node->get_init_expr() );
-        m_graph->connect(cond_instr, for_loop_node->get_condition() );
-        m_graph->connect(iter_instr, for_loop_node->get_iter_expr() );
-
-        ScopeNode* for_scope = parse_scope();
-        if ( !for_scope )
-        {
-            LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")
-            rollback_transaction();
-            return nullptr;
-        }
-
-        m_graph->connect(for_scope, for_loop_node, RelationType::IS_CHILD_OF );
-
+    if ( success )
+    {
         commit_transaction();
-        return for_loop_node;
-
     }
     else
     {
         rollback_transaction();
-        return nullptr;
+        if ( for_loop_node ) m_graph->deleteNode(for_loop_node);
+        for_loop_node = nullptr;
     }
+
+    return for_loop_node;
 }
 
 Member *Parser::parse_variable_declaration()

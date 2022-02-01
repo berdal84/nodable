@@ -1,6 +1,5 @@
 #include <nodable/GraphNode.h>
 
-#include <cstring>      // for strcmp
 #include <algorithm>    // for std::find_if
 #include <nodable/Log.h>
 #include <nodable/Wire.h>
@@ -10,10 +9,10 @@
 #include <nodable/VariableNode.h>
 #include <nodable/GraphTraversal.h>
 #include <nodable/InstructionNode.h>
-#include <nodable/ScopeNode.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/AbstractNodeFactory.h>
+#include <nodable/Scope.h>
 
 using namespace Nodable;
 
@@ -56,7 +55,7 @@ void GraphNode::clear()
     }
     m_nodeRegistry.clear();
 	m_relationRegistry.clear();
-    m_program = nullptr;
+    m_program_root = nullptr;
 
     LOG_VERBOSE("GraphNode", "Graph cleared.\n")
 }
@@ -82,11 +81,11 @@ UpdateResult GraphNode::update()
 
     // update nodes
     UpdateResult result;
-    if( m_program )
+    if( m_program_root )
     {
         GraphTraversal traversal;
-        auto updateResult = traversal.traverse(m_program, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren |
-                                                          TraversalFlag_FollowNotDirty | TraversalFlag_AvoidCycles);
+        auto updateResult = traversal.traverse(m_program_root, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren |
+                                                               TraversalFlag_FollowNotDirty | TraversalFlag_AvoidCycles);
         bool changed = false;
         for (Node *eachNode : traversal.getStats().m_traversed)
         {
@@ -139,7 +138,7 @@ void GraphNode::unregisterNode(Node* _node)
 
 VariableNode* GraphNode::findVariable(std::string _name)
 {
-	return m_program->find_variable(_name);
+	return m_program_root->get<Scope>()->find_variable(_name);
 }
 
 InstructionNode* GraphNode::newInstruction()
@@ -158,7 +157,7 @@ InstructionNode* GraphNode::newInstruction_UserCreated()
     return instructionNode;
 }
 
-VariableNode* GraphNode::newVariable(Type _type, const std::string& _name, ScopeNode* _scope)
+VariableNode* GraphNode::newVariable(Type _type, const std::string& _name, AbstractScope* _scope)
 {
 	auto node = m_factory->newVariable(_type, _name, _scope);
     registerNode(node);
@@ -210,7 +209,7 @@ GraphNode::GraphNode(const Language* _language, const AbstractNodeFactory* _fact
     :
         m_language(_language),
         m_factory(_factory),
-        m_program(nullptr)
+        m_program_root(nullptr)
 {
 }
 
@@ -246,7 +245,7 @@ void GraphNode::deleteNode(Node* _node)
 
 bool GraphNode::hasProgram()
 {
-    return m_program;
+    return m_program_root;
 }
 
 Wire *GraphNode::connect(Member* _from, Member* _to, ConnBy_ _connect_by)
@@ -287,7 +286,7 @@ Wire *GraphNode::connect(Member* _from, Member* _to, ConnBy_ _connect_by)
         sourceNode->addWire(wire);
         LOG_VERBOSE("GraphNode", "connect() wires added to node ...\n")
 
-        connect(sourceNode, targetNode, RelationType::IS_INPUT_OF);
+        connect(sourceNode, targetNode, Relation_t::IS_INPUT_OF);
 
         // TODO: move this somewhere else
         // (transfer prefix/suffix)
@@ -350,11 +349,11 @@ void GraphNode::connect(Member* _source, VariableNode* _target)
     connect(_source, _target->value(), ConnectBy_Copy );
 }
 
-void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType, bool _sideEffects)
+void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, bool _sideEffects)
 {
     switch ( _relationType )
     {
-        case RelationType::IS_CHILD_OF:
+        case Relation_t::IS_CHILD_OF:
         {
             /*
              * Here we create IS_NEXT_OF connections.
@@ -362,47 +361,43 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
             if ( _sideEffects )
             {
                 // First case is easy, if no children on the target node, the next node of the target IS the source.
-                if (_target->get_class()->is<AbstractCodeBlock>() )
+                if (_target->has<Scope>() )
                 {
                     if ( _target->get_children().empty() )
                     {
-                        connect(_source, _target, RelationType::IS_NEXT_OF, false);
+                        connect(_source, _target, Relation_t::IS_NEXT_OF, false);
                     }
                     else if ( _target->get_class()->is<ConditionalStructNode>() )
                     {
-                        connect(_source, _target, RelationType::IS_NEXT_OF, false);
-                    }
-                    else if ( _target->get_children().back()->get_class()->is_not<AbstractCodeBlock>() )
-                    {
-                        connect(_source, _target->get_children().back(), RelationType::IS_NEXT_OF, false);
+                        connect(_source, _target, Relation_t::IS_NEXT_OF, false);
                     }
                     else
                     {
                         std::vector<InstructionNode *> last_instructions;
-                        if (auto last = _target->get_children().back()->as<ScopeNode>() )
+                        auto back = _target->get_children().back();
+                        if (auto scope = back->get<Scope>() )
                         {
-                            last->get_last_instructions(last_instructions);
-                            NODABLE_ASSERT(!last_instructions.empty())
-                        }
-                        else if (auto last = _target->get_children().back()->as<ForLoopNode>() )
-                        {
-                            connect(_source, last, RelationType::IS_NEXT_OF, false);
-                        }
-                        else if (auto last = _target->get_children().back()->as<ConditionalStructNode>() )
-                        {
-                            last->get_last_instructions(last_instructions);
-                            NODABLE_ASSERT(!last_instructions.empty())
+                            if (back->get_class()->is<ForLoopNode>() )
+                            {
+                                connect(_source, back, Relation_t::IS_NEXT_OF, false);
+                            }
+                            else
+                            {
+                                scope->get_last_instructions(last_instructions);
+                                NODABLE_ASSERT(!last_instructions.empty())
+                            }
                         }
 
                         for (InstructionNode *each_instruction : last_instructions)
                         {
-                            connect(_source, each_instruction, RelationType::IS_NEXT_OF, false);
+                            connect(_source, each_instruction, Relation_t::IS_NEXT_OF, false);
                         }
                     }
+
                 }
                 else
                 {
-                  NODABLE_ASSERT(false);
+                  NODABLE_ASSERT(false); // case missing
                 }
 
             }
@@ -414,12 +409,12 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
             break;
         }
 
-        case RelationType::IS_INPUT_OF:
+        case Relation_t::IS_INPUT_OF:
             _target->addInput(_source);
             _source->addOutput(_target);
             break;
 
-        case RelationType::IS_NEXT_OF:
+        case Relation_t::IS_NEXT_OF:
             _target->addNext(_source);
             _source->addPrev(_target);
 
@@ -430,7 +425,7 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
                     auto next = _source;
                     while ( next )
                     {
-                        connect(next, parent, RelationType::IS_CHILD_OF, false);
+                        connect(next, parent, Relation_t::IS_CHILD_OF, false);
                         next = next->getFirstNext();
                     }
                 }
@@ -445,7 +440,7 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
     this->setDirty();
 }
 
-void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationType, bool _sideEffects)
+void GraphNode::disconnect(Node *_source, Node *_target, Relation_t _relationType, bool _sideEffects)
 {
     NODABLE_ASSERT(_source && _target);
 
@@ -459,17 +454,17 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
     // disconnect effectively
     switch ( _relationType )
     {
-        case RelationType::IS_CHILD_OF:
+        case Relation_t::IS_CHILD_OF:
             _target->remove_Child(_source);
             _source->set_parent(nullptr);
             break;
 
-        case RelationType::IS_INPUT_OF:
+        case Relation_t::IS_INPUT_OF:
             _target->removeInput(_source);
             _source->removeOutput(_target);
             break;
 
-        case RelationType::IS_NEXT_OF:
+        case Relation_t::IS_NEXT_OF:
             _target->removeNext(_source);
             _source->removePrev(_target);
 
@@ -480,7 +475,7 @@ void GraphNode::disconnect(Node *_source, Node *_target, RelationType _relationT
                     auto next = _source;
                     while ( next && next->get_parent() == parent )
                     {
-                        disconnect(next, parent, RelationType::IS_CHILD_OF, false );
+                        disconnect(next, parent, Relation_t::IS_CHILD_OF, false );
                         next = next->getFirstNext();
                     }
                 }
@@ -503,23 +498,23 @@ void GraphNode::deleteWire(Wire *_wire)
     auto& outputs = _wire->getSource()->getOutputs();
     outputs.erase( std::find(outputs.begin(), outputs.end(), _wire->getTarget()));
 
-    auto targetNode = _wire->getTarget()->getOwner();
-    auto sourceNode = _wire->getSource()->getOwner();
+    Node* targetNode = _wire->getTarget()->getOwner();
+    Node* sourceNode = _wire->getSource()->getOwner();
 
     if( targetNode )
-        targetNode->as<Node>()->removeWire(_wire);
+        targetNode->removeWire(_wire);
     if( sourceNode )
-        sourceNode->as<Node>()->removeWire(_wire);
+        sourceNode->removeWire(_wire);
 
     if( targetNode && sourceNode )
-        disconnect(sourceNode->as<Node>(), targetNode->as<Node>(), RelationType::IS_INPUT_OF);
+        disconnect(sourceNode->as<Node>(), targetNode->as<Node>(), Relation_t::IS_INPUT_OF);
 
     delete _wire;
 }
 
-ScopeNode *GraphNode::newScope()
+Node *GraphNode::newScope()
 {
-    ScopeNode* scopeNode = m_factory->newScope();
+    Node* scopeNode = m_factory->newScope();
     registerNode(scopeNode);
     return scopeNode;
 }
@@ -538,12 +533,12 @@ ForLoopNode* GraphNode::new_for_loop_node()
     return for_loop;
 }
 
-ScopeNode *GraphNode::newProgram()
+Node *GraphNode::newProgram()
 {
     clear();
-    m_program = m_factory->newProgram();
-    registerNode(m_program);
-    return m_program;
+    m_program_root = m_factory->newProgram();
+    registerNode(m_program_root);
+    return m_program_root;
 }
 
 Node* GraphNode::newNode()
@@ -581,7 +576,7 @@ void GraphNode::disconnect(Member *_member, Way _way)
             targetNode->removeWire(wire);
             sourceNode->removeWire(wire);
 
-            disconnect(sourceNode, targetNode, RelationType::IS_INPUT_OF);
+            disconnect(sourceNode, targetNode, Relation_t::IS_INPUT_OF);
 
             deleteWire(wire);
         }

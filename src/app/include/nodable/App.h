@@ -120,7 +120,7 @@ namespace Nodable
 
         inline Asm::VM& getVM() { return m_vm; }
 
-        ScopeNode* getCurrentFileProgram() const;
+        Node* getCurrentFileProgram() const;
 
         // shortcuts to virtual machine:
         void runCurrentFileProgram();

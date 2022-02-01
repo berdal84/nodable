@@ -23,9 +23,6 @@ namespace Nodable {
         TraversalFlag_AvoidCycles      = 1 << 6
     };
 
-    // forward declarations
-    class ScopeNode;
-
     /**
      * Structure to store some statistics about a traversal
      */

@@ -45,9 +45,9 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
             auto graph  = node->getParentGraph();
 
             if ( _connector->m_way == Way_In )
-                graph->disconnect(node, connectedNode, RelationType::IS_NEXT_OF);
+                graph->disconnect(node, connectedNode, Relation_t::IS_NEXT_OF);
             else
-                graph->disconnect(connectedNode, node, RelationType::IS_NEXT_OF);
+                graph->disconnect(connectedNode, node, Relation_t::IS_NEXT_OF);
         }
 
         ImGui::EndPopup();
@@ -99,7 +99,7 @@ bool NodeConnector::connect(const NodeConnector* other) const
 {
     auto graph = getNode()->getParentGraph();
     // TODO: handle incompatibility
-    graph->connect(other->getNode(), getNode() , RelationType::IS_NEXT_OF );
+    graph->connect(other->getNode(), getNode() , Relation_t::IS_NEXT_OF );
 
     return true;
 }

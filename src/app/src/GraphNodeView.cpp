@@ -8,7 +8,6 @@
 #include <nodable/Log.h>
 #include <nodable/Wire.h>
 #include <nodable/App.h>
-#include <nodable/ScopeNode.h>
 #include <nodable/GraphNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
@@ -45,7 +44,7 @@ bool GraphNodeView::draw()
         float linePadding = 5.0f;
         for (auto& each_next : each_node->getNext() )
         {
-            NodeView *each_view      = each_node->getComponent<NodeView>();
+            NodeView *each_view      = each_node->get<NodeView>();
             NodeView *each_next_view = each_next->getComponent<NodeView>();
             if (each_view && each_next_view && each_view->isVisible() && each_next_view->isVisible() )
             {
@@ -127,8 +126,8 @@ bool GraphNodeView::draw()
 
                 if ( auto start = end->getInput() )
                 {
-                    auto endNodeView   = eachNode->getComponent<NodeView>();
-                    auto startNodeView = start->getOwner()->getComponent<NodeView>();
+                    auto endNodeView   = eachNode->get<NodeView>();
+                    auto startNodeView = start->getOwner()->get<NodeView>();
 
                     if ( startNodeView->isVisible() && endNodeView->isVisible() )
                     {
@@ -179,7 +178,7 @@ bool GraphNodeView::draw()
 	    if ( !vm->is_program_stopped())
         {
 	        auto node = vm->get_next_node();
-	        if( auto view = node->getComponent<NodeView>())
+	        if( auto view = node->get<NodeView>())
             {
 	            auto draw_list = ImGui::GetWindowDrawList();
 	            draw_list->AddCircleFilled(
@@ -226,7 +225,7 @@ bool GraphNodeView::draw()
         auto drag = ImGui::GetMouseDragDelta();
         for (auto eachNode : nodeRegistry)
         {
-            if (auto view = eachNode->getComponent<NodeView>() )
+            if (auto view = eachNode->get<NodeView>() )
                 view->translate(drag);
         }
         ImGui::ResetMouseDragDelta();
@@ -390,7 +389,7 @@ bool GraphNodeView::draw()
                 //  [ new node ]
                 if ( draggedNodeConnector->m_way == Way_Out )
                 {
-                    graph->connect(newNode, draggedNodeConnector->getNode(), RelationType::IS_NEXT_OF);
+                    graph->connect(newNode, draggedNodeConnector->getNode(), Relation_t::IS_NEXT_OF);
                 }
                 //  [ new node ]
                 //       ^
@@ -399,7 +398,7 @@ bool GraphNodeView::draw()
                 //  [ dragged ]
                 else
                 {
-                    graph->connect(draggedNodeConnector->getNode(), newNode, RelationType::IS_NEXT_OF);
+                    graph->connect(draggedNodeConnector->getNode(), newNode, Relation_t::IS_NEXT_OF);
                 }
                 NodeConnector::StopDrag();
             }
@@ -426,7 +425,7 @@ bool GraphNodeView::draw()
             }
 
             // Set New Node's currentPosition were mouse cursor is
-			if (auto view = newNode->getComponent<NodeView>())
+			if (auto view = newNode->get<NodeView>())
 			{
 				auto pos = ImGui::GetMousePos() - origin;
 				view->setPosition(pos);
@@ -474,7 +473,7 @@ void GraphNodeView::update_child_view_constraints()
 
     for(Node* _eachNode: nodeRegistry)
     {
-        if (auto eachView = _eachNode->getComponent<NodeView>())
+        if (auto eachView = _eachNode->get<NodeView>())
         {
             eachView->clearConstraints();
         }
@@ -482,7 +481,7 @@ void GraphNodeView::update_child_view_constraints()
 
     for(Node* _eachNode: nodeRegistry)
     {
-        if ( auto eachView = _eachNode->getComponent<NodeView>() )
+        if ( auto eachView = _eachNode->get<NodeView>() )
         {
             auto clss = _eachNode->get_class();
 

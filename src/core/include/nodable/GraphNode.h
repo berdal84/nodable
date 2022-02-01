@@ -3,8 +3,7 @@
 #include <string>
 #include <vector>
 #include <nodable/Reflect.h>
-#include <nodable/AbstractCodeBlock.h>
-
+#include <nodable/AbstractScope.h>
 #include <nodable/Nodable.h>
 #include <nodable/Component.h>
 #include <nodable/Node.h>
@@ -13,13 +12,12 @@
 namespace Nodable{
 
     // forward declaration
-    class ScopeNode;
     class InstructionNode;
     class ConditionalStructNode;
     class LiteralNode;
     class AbstractNodeFactory;
 
-    typedef std::pair<const RelationType, std::pair<Node*, Node*>> Relation;
+    typedef std::pair<const Relation_t, std::pair<Node*, Node*>> Relation;
 
     inline bool operator==(
             const Relation& _left,
@@ -30,7 +28,7 @@ namespace Nodable{
 
     /**
      * @brief
-     * The role of a GraphNode is to manage a set of Node and Wire used in a ScopeNode with a given language.
+     * The role of a GraphNode is to manage a set of Node and Wire stored in a m_program_root Node with a given language.
      *
      * @details
      * Nodes and Wires are instantiated and destroyed by this class.
@@ -55,22 +53,22 @@ namespace Nodable{
         [[nodiscard]] std::vector<Node*>&     getNodeRegistry() {return m_nodeRegistry;}
         [[nodiscard]] std::vector<Wire*>&     getWireRegistry() {return m_wireRegistry;}
         [[nodiscard]] inline const Language*  getLanguage()const { return m_language; }
-        [[nodiscard]] inline ScopeNode* getProgram(){ return m_program; }
+        [[nodiscard]] inline Node*            getProgram(){ return m_program_root; }
         [[nodiscard]] bool                    hasProgram();
         [[nodiscard]] std::multimap<Relation::first_type , Relation::second_type>& getRelationRegistry() {return m_relationRegistry;}
 
         /* node factory */
-        ScopeNode*        newProgram();
+        Node*                       newProgram();
         InstructionNode*		    newInstruction_UserCreated();
         InstructionNode*            newInstruction();
-		VariableNode*				newVariable(Type, const std::string&, ScopeNode*);
+		VariableNode*				newVariable(Type, const std::string&, AbstractScope*);
 		LiteralNode*                newLiteral(const Type &type);
 		Node*                       newBinOp(const InvokableOperator*);
 		Node*                       newUnaryOp(const InvokableOperator*);
         Node*                       newOperator(const InvokableOperator*);
 		Wire*                       newWire();
 		Node*                       newFunction(const Invokable* _proto);
-        ScopeNode*        newScope();
+        Node*                       newScope();
         ConditionalStructNode*      newConditionalStructure();
         ForLoopNode*                new_for_loop_node();
         Node*                       newNode();
@@ -85,10 +83,10 @@ namespace Nodable{
          * Connect two nodes with a given connection type
          * ex: _source IS_CHILD_OF _target
         */
-        void connect(Node* _source, Node* _target, RelationType, bool _sideEffects = true);
+        void connect(Node* _source, Node* _target, Relation_t, bool _sideEffects = true);
         void connect(Member* _source, InstructionNode* _target);
         void connect(Member* _source, VariableNode* _target);
-        void disconnect(Node* _source, Node* _target, RelationType, bool _sideEffects = true);
+        void disconnect(Node* _source, Node* _target, Relation_t, bool _sideEffects = true);
         void disconnect(Wire* _wire);
         void disconnect(Member* _member, Way _way = Way_InOut);
         void deleteNode(Node* _node);
@@ -103,8 +101,8 @@ namespace Nodable{
 		std::vector<Node*> m_nodeRegistry;
 		std::vector<Wire*> m_wireRegistry;
 		std::multimap<Relation::first_type , Relation::second_type> m_relationRegistry;
-		const Language*            m_language;
-		ScopeNode*       m_program;
+		const Language* m_language;
+		Node*           m_program_root;
 		const AbstractNodeFactory* m_factory;
 
         REFLECT_DERIVED(GraphNode)

@@ -10,7 +10,6 @@
 #include <nodable/GraphNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/DataAccess.h>
-#include <nodable/ScopeNode.h>
 
 using namespace Nodable;
 
@@ -153,7 +152,7 @@ void App::closeFile(size_t _fileIndex)
     }
 }
 
-ScopeNode* App::getCurrentFileProgram() const
+Node* App::getCurrentFileProgram() const
 {
     if ( File* file = getCurrentFile())
         return file->getGraph()->getProgram();
@@ -162,7 +161,7 @@ ScopeNode* App::getCurrentFileProgram() const
 
 void App::runCurrentFileProgram()
 {
-    ScopeNode* program = getCurrentFileProgram();
+    Node* program = getCurrentFileProgram();
     if (program && m_vm.load_program(program) )
     {
         m_vm.run_program();
@@ -171,7 +170,7 @@ void App::runCurrentFileProgram()
 
 void App::debugCurrentFileProgram()
 {
-    ScopeNode* program = getCurrentFileProgram();
+    Node* program = getCurrentFileProgram();
     if (program && m_vm.load_program(program) )
     {
         m_vm.debug_program();
@@ -185,7 +184,7 @@ void App::stepOverCurrentFileProgram()
     {
         NodeView::SetSelected(nullptr);
     }
-    else if ( auto view = m_vm.get_next_node()->getComponent<NodeView>() )
+    else if ( auto view = m_vm.get_next_node()->get<NodeView>() )
     {
         NodeView::SetSelected(view);
     }

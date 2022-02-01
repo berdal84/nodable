@@ -8,9 +8,9 @@
 #include <nodable/Parser.h>
 #include <nodable/LanguageFactory.h>
 #include <nodable/VariableNode.h>
-#include <nodable/ScopeNode.h>
 #include <nodable/HeadlessNodeFactory.h>
 #include <nodable/String.h>
+#include <nodable/Scope.h>
 
 namespace Nodable
 {
@@ -32,17 +32,18 @@ namespace Nodable
             // run
             Asm::VM runner;
 
-            if (runner.load_program(graph.getProgram()))
-            {
-                runner.run_program();
-            }
-            else
+            if (!runner.load_program(graph.getProgram()))
             {
                 throw std::runtime_error("Unable to load program.");
             }
+            runner.run_program();
 
-            // store result
-            result = runner.get_last_result()->convert_to<return_t>();
+            auto last_result = runner.get_last_result();
+            if ( last_result == nullptr )
+            {
+                throw std::runtime_error("Unable to get program's last result.");
+            }
+            result = last_result->convert_to<return_t>();
         }
         else
         {
@@ -62,7 +63,7 @@ namespace Nodable
 
         // act
         lang->getParser()->source_code_to_graph(expression, &graph);
-        if (ScopeNode *program = graph.getProgram()) {
+        if (Node* program = graph.getProgram()) {
             Asm::VM runner;
 
             if (runner.load_program(program)) {
@@ -90,7 +91,7 @@ namespace Nodable
         }
 
         Serializer *serializer = lang->getSerializer();
-        serializer->serialize(result, graph.getProgram());
+        serializer->serialize(result, graph.getProgram()->get<Scope>() );
         LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize serialize output is: %s\n", result.c_str());
 
         return result;

@@ -8,7 +8,6 @@
 namespace Nodable
 {
     // forward declarations
-    class ScopeNode;
     class Node;
     class Member;
 
@@ -33,7 +32,8 @@ namespace Nodable
          */
         enum class FctId: i64_t
         {
-            eval_member
+            eval_member,
+            unset_variables
         };
 
         /**
@@ -89,10 +89,10 @@ namespace Nodable
         {
         public:
             Compiler():m_output(nullptr){}
-            bool          create_assembly_code(const ScopeNode* _program);
+            bool          create_assembly_code(const Node* _program);
             void          append_to_assembly_code(const Node* _node);
             Code*         get_output_assembly();
-            static bool   is_program_valid(const ScopeNode* _program);
+            static bool   is_program_valid(const Node* _program);
         private:
             Code* m_output;
         };

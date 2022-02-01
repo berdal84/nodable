@@ -9,7 +9,7 @@
 #include <nodable/Serializer.h>
 #include <nodable/App.h>
 #include <nodable/Maths.h>
-#include <nodable/ScopeNode.h>
+#include <nodable/Scope.h>
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/GraphNode.h>
@@ -116,7 +116,7 @@ void NodeView::set_owner(Node *_node)
     Settings* settings = Settings::Get();
     Reflect::Class* clss = _node->get_class();
 
-    if (_node->hasComponent<InvokableComponent>())
+    if (_node->has<InvokableComponent>())
     {
         setColor(ColorType_Fill, &settings->ui_node_invokableColor); // blue
     }
@@ -147,36 +147,36 @@ void NodeView::set_owner(Node *_node)
     if( _node->getPrevMaxCount() != 0)
         m_prevNodeConnnectors.push_back(new NodeConnector(this, Way_In));
 
-    m_nodeRelationAddedObserver = _node->m_onRelationAdded.createObserver([this](Node* otherNode, RelationType rel ) {
+    m_nodeRelationAddedObserver = _node->m_onRelationAdded.createObserver([this](Node* otherNode, Relation_t rel ) {
         switch ( rel )
         {
-            case RelationType::IS_CHILD_OF:
-                addChild( otherNode->getComponent<NodeView>() );
+            case Relation_t::IS_CHILD_OF:
+                addChild(otherNode->get<NodeView>() );
                 break;
-            case RelationType::IS_INPUT_OF:
-                addInput( otherNode->getComponent<NodeView>() );
+            case Relation_t::IS_INPUT_OF:
+                addInput(otherNode->get<NodeView>() );
                 break;
-            case RelationType::IS_OUTPUT_OF:
-                addOutput( otherNode->getComponent<NodeView>() );
+            case Relation_t::IS_OUTPUT_OF:
+                addOutput(otherNode->get<NodeView>() );
                 break;
-            case RelationType::IS_NEXT_OF:
+            case Relation_t::IS_NEXT_OF:
                 LOG_ERROR("NodeView", "Can't add output for RelationType::IS_NEXT_OF.\n");
         }
     });
 
-    m_nodeRelationRemovedObserver = _node->m_onRelationRemoved.createObserver([this](Node* otherNode, RelationType rel ) {
+    m_nodeRelationRemovedObserver = _node->m_onRelationRemoved.createObserver([this](Node* otherNode, Relation_t rel ) {
         switch ( rel )
         {
-            case RelationType::IS_CHILD_OF:
-                removeChild( otherNode->getComponent<NodeView>() );
+            case Relation_t::IS_CHILD_OF:
+                removeChild(otherNode->get<NodeView>() );
                 break;
-            case RelationType::IS_INPUT_OF:
-                removeInput( otherNode->getComponent<NodeView>() );
+            case Relation_t::IS_INPUT_OF:
+                removeInput(otherNode->get<NodeView>() );
                 break;
-            case RelationType::IS_OUTPUT_OF:
-                removeOutput( otherNode->getComponent<NodeView>() );
+            case Relation_t::IS_OUTPUT_OF:
+                removeOutput(otherNode->get<NodeView>() );
                 break;
-            case RelationType::IS_NEXT_OF:
+            case Relation_t::IS_NEXT_OF:
                 LOG_ERROR("NodeView", "Can't remove output for RelationType::IS_NEXT_OF.\n");
         }
     });
@@ -235,7 +235,7 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
     {
 	    for(auto eachInput : get_owner()->getInputs() )
         {
-	        if ( NodeView* eachInputView = eachInput->getComponent<NodeView>() )
+	        if ( NodeView* eachInputView = eachInput->get<NodeView>() )
 	        {
 	            if (!eachInputView->m_pinned && eachInputView->shouldFollowOutput(this) )
                     eachInputView->translate(_delta, true);
@@ -756,11 +756,11 @@ void NodeView::drawAdvancedProperties()
 
     // Scope specific:
 
-    if ( node->get_class()->is_child_of( ScopeNode::Get_class() ))
+    if ( auto scope = node->get<Scope>() )
     {
         ImGui::NewLine();
         ImGui::Text("Variables:");
-        auto vars = node->as<ScopeNode>()->get_variables();
+        auto vars = scope->get_variables();
         for(auto eachVar : vars)
         {
             ImGui::Text("%s: %s", eachVar->getName(), ((std::string)*eachVar->value()).c_str());
@@ -973,7 +973,7 @@ void NodeView::getNext(std::vector<NodeView *>& out)
     {
          if ( each )
         {
-             if ( auto each_view = each->getComponent<NodeView>() )
+             if ( auto each_view = each->get<NodeView>() )
                  out.push_back(each_view);
         }
      }

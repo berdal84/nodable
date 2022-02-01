@@ -4,11 +4,11 @@
 
 #include <nodable/Wire.h>
 #include <nodable/Log.h>
-#include <nodable/ScopeNode.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/ForLoopNode.h>
+#include <nodable/Scope.h>
 
 using namespace Nodable;
 
@@ -136,9 +136,9 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
        /*
         * Get the branch depending on condition
         */
-       auto next = condStructNode->get_condition() ? condStructNode->get_condition_true_branch() : condStructNode->get_condition_false_branch();
-       if ( !m_stats.hasBeenTraversed(next) || condStructNode->get_class()->is<ForLoopNode>())
-           return next;
+       auto next_scope = condStructNode->get_condition() ? condStructNode->get_condition_true_branch() : condStructNode->get_condition_false_branch();
+       if (!m_stats.hasBeenTraversed( next_scope->get_owner() ) || condStructNode->get_class()->is<ForLoopNode>())
+           return next_scope->get_owner();
     }
     else if ( !children.empty() )
     {
@@ -168,7 +168,7 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
             result = getNextInstrToEvalRec(parent);
         }
     }
-    else if ( result->get_class()->is<AbstractCodeBlock>() )
+    else if ( result->get_class()->is<AbstractScope>() )
     {
         result = getNextInstrToEvalRec(result);
     }

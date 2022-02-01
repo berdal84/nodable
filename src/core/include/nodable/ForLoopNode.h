@@ -2,20 +2,19 @@
 
 #include <nodable/Token.h>
 #include <nodable/Node.h> // base class
-#include <nodable/AbstractCodeBlock.h> // interface
 #include <nodable/AbstractConditionalStruct.h> // interface
 
 namespace Nodable
 {
+
     // forward declarations
-    class ScopeNode;
+    class Scope;
 
     /**
      * @brief Class to represent a conditional iterative structure: for( init_state, condition_expr, iterate_expr ) { ... }
      */
     class ForLoopNode
             : public Node
-            , public AbstractCodeBlock
             , public AbstractConditionalStruct {
     public:
         ForLoopNode();
@@ -29,12 +28,8 @@ namespace Nodable
         // override AbstractConditionalStruct
         void                   set_condition(Member *_value) const override { get_condition()->set(_value); }
         Member*                get_condition()const override { return m_props.get("condition"); }
-        ScopeNode*   get_condition_true_branch()const override;
-        ScopeNode*   get_condition_false_branch()const override;
-
-        // override AbstractCodeBlock
-        void                   get_last_instructions(std::vector<InstructionNode *> &out) override;
-        inline void            clear() override { set_token_for(nullptr); };
+        Scope*        get_condition_true_branch()const override;
+        Scope*        get_condition_false_branch()const override;
 
     private:
         Token* m_token_for;
@@ -42,7 +37,6 @@ namespace Nodable
         REFLECT_DERIVED(ForLoopNode)
             REFLECT_EXTENDS(Node)
             REFLECT_EXTENDS(AbstractConditionalStruct)
-            REFLECT_EXTENDS(AbstractCodeBlock)
         REFLECT_END
     };
 }

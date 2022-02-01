@@ -14,10 +14,10 @@ namespace Nodable
     class Member;
     class InvokableOperator;
     class Language;
-    class AbstractCodeBlock;
-    class ScopeNode;
+    class AbstractScope;
     class InstructionNode;
     class ForLoopNode;
+    class Scope;
 
     class Serializer
     {
@@ -34,7 +34,7 @@ namespace Nodable
         virtual std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
         virtual std::string& serialize(std::string &_result, const Token*) const;
         virtual std::string& serialize(std::string &_result, const InstructionNode*)const;
-        virtual std::string& serialize(std::string &_result, const ScopeNode*)const;
+        virtual std::string& serialize(std::string &_result, const Scope*)const;
         virtual std::string& serialize(std::string& _result, const ForLoopNode* _for_loop)const;
         virtual std::string& serialize(std::string &_result, const ConditionalStructNode*) const;
         virtual std::string& serialize(std::string &_result, const Variant* variant) const;

@@ -36,6 +36,7 @@ namespace Nodable
         [[nodiscard]] bool allowsConnection(Way wayFlags)const { return (m_wayFlags & wayFlags) == wayFlags; }
 		[[nodiscard]] bool hasInputConnected()const;
         [[nodiscard]] inline bool isDefined() const { return get_variant().isDefined(); }
+                      inline void undefine() { get_variant().undefine(); }
 		[[nodiscard]] bool isType(Type type)const { return get_variant().isType(type); }
         [[nodiscard]] bool equals(const Member *)const;
 
@@ -90,7 +91,7 @@ namespace Nodable
         const Variant& get_variant()const{ return (m_input && m_connected_by == ConnectBy_Ref) ? m_input->m_variant : m_variant; }
 
         Member*           m_input;
-        ConnBy_        m_connected_by;
+        ConnBy_           m_connected_by;
         Visibility 		  m_visibility;
         Node*             m_owner;
 		Properties*       m_parentProperties;

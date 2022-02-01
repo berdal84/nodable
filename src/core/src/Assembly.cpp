@@ -1,9 +1,9 @@
 #include <nodable/Assembly.h>
 #include <nodable/VariableNode.h>
-#include <nodable/ScopeNode.h>
 #include <nodable/Log.h>
 #include <nodable/AbstractConditionalStruct.h>
 #include <nodable/ForLoopNode.h>
+#include <nodable/Scope.h>
 
 using namespace Nodable;
 using namespace Nodable::Asm;
@@ -110,12 +110,12 @@ Instr* Code::push_instr(Instr_t _type)
     return instr;
 }
 
-bool Asm::Compiler::is_program_valid(const ScopeNode* _program)
+bool Asm::Compiler::is_program_valid(const Node* _program)
 {
     bool is_valid;
 
     // check if program an be run
-    const std::vector<VariableNode*>& vars = _program->get_variables();
+    const VariableNodes& vars = _program->get<Scope>()->get_variables();
     bool found_a_var_uninit = false;
     auto it = vars.begin();
     while(!found_a_var_uninit && it != vars.end() )
@@ -172,7 +172,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
 
             if ( auto true_branch = cond->get_condition_true_branch() )
             {
-                append_to_assembly_code(true_branch);
+                append_to_assembly_code( true_branch->get_owner() );
 
                 if ( auto for_loop = _node->as<ForLoopNode>() )
                 {
@@ -198,15 +198,24 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
 
             if ( auto false_branch = cond->get_condition_false_branch() )
             {
-                append_to_assembly_code(false_branch);
+                append_to_assembly_code( false_branch->get_owner() );
                 skip_false_branch->m_left_h_arg = m_output->get_next_pushed_instr_index() - skip_false_branch->m_line;
             }
         }
-        else if ( _node->get_class()->is<AbstractCodeBlock>() )
+        else if (_node->has<Scope>() )
         {
             for( auto each : _node->get_children() )
             {
                 append_to_assembly_code(each);
+            }
+
+            // unset scope's VariableNodes except if is main_scope
+            if ( _node->get_parent() )
+            {
+                Instr *instr = m_output->push_instr(Instr_t::call);
+                instr->m_left_h_arg = (i64_t) FctId::unset_variables;
+                instr->m_right_h_arg = (i64_t) _node;
+                instr->m_comment = "reset stack (unset VariableNodes)";
             }
         }
         else
@@ -219,7 +228,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
     }
 }
 
-bool Asm::Compiler::create_assembly_code(const ScopeNode* _program)
+bool Asm::Compiler::create_assembly_code(const Node* _program)
 {
     /*
      * Here we take the program's base scope node (a tree) and we flatten it to an

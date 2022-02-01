@@ -2,9 +2,9 @@
 #include <nodable/InstructionNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
-#include <nodable/ScopeNode.h>
 #include <nodable/Language.h>
 #include <nodable/InvokableComponent.h>
+#include <nodable/Scope.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
@@ -27,7 +27,7 @@ InstructionNode* HeadlessNodeFactory::newInstruction_UserCreated()const
     return newInstructionNode;
 }
 
-VariableNode* HeadlessNodeFactory::newVariable(Type _type, const std::string& _name, ScopeNode* _scope) const
+VariableNode* HeadlessNodeFactory::newVariable(Type _type, const std::string& _name, AbstractScope *_scope) const
 {
     // create
     auto node = new VariableNode(_type);
@@ -138,12 +138,18 @@ Node* HeadlessNodeFactory::newFunction(const Invokable* _function) const
     return node;
 }
 
-ScopeNode* HeadlessNodeFactory::newScope() const
+Node* HeadlessNodeFactory::newScope() const
 {
-    auto scopeNode = new ScopeNode();
+    auto scopeNode = new Node();
     std::string label = ICON_FA_CODE_BRANCH " Scope";
     scopeNode->setLabel(label);
     scopeNode->setShortLabel(ICON_FA_CODE_BRANCH " Sc.");
+
+    scopeNode->setPrevMaxCount(1); // allow 1 Nodes to be previous.
+    scopeNode->setNextMaxCount(1); // allow 1 Nodes to be next.
+
+    auto* scope = new Scope();
+    scopeNode->addComponent( scope );
 
     return scopeNode;
 }
@@ -155,6 +161,9 @@ ConditionalStructNode* HeadlessNodeFactory::newConditionalStructure() const
     scopeNode->setLabel(label);
     scopeNode->setShortLabel(ICON_FA_QUESTION" Cond.");
 
+    auto* scope = new Scope();
+    scopeNode->addComponent( scope );
+
     return scopeNode;
 }
 
@@ -165,16 +174,19 @@ ForLoopNode* HeadlessNodeFactory::new_for_loop_node() const
     for_loop->setLabel(label);
     for_loop->setShortLabel(ICON_FA_RECYCLE" For");
 
+    auto* scope = new Scope();
+    for_loop->addComponent( scope );
+
     return for_loop;
 }
 
-ScopeNode* HeadlessNodeFactory::newProgram() const
+Node* HeadlessNodeFactory::newProgram() const
 {
-    ScopeNode* scope = new ScopeNode();
-    scope->setLabel(ICON_FA_FILE_CODE " Program");
-    scope->setShortLabel(ICON_FA_FILE_CODE " Prog.");
+    Node* prog = newScope();
+    prog->setLabel(ICON_FA_FILE_CODE " Program");
+    prog->setShortLabel(ICON_FA_FILE_CODE " Prog.");
 
-    return scope;
+    return prog;
 }
 
 Node* HeadlessNodeFactory::newNode() const

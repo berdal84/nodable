@@ -552,7 +552,7 @@ bool AppView::draw()
 			    GraphTraversal traversal;
 			    Node* next = traversal.getNextInstrToEval(selectedNodeView->get_owner());
 			    if ( next )
-			        if( auto nextView = next->getComponent<NodeView>())
+			        if( auto nextView = next->get<NodeView>())
                         NodeView::SetSelected(nextView);
             }
 		}

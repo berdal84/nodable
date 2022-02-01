@@ -1,5 +1,5 @@
 #include <nodable/ConditionalStructNode.h>
-#include <nodable/ScopeNode.h>
+#include <nodable/Scope.h>
 
 using namespace Nodable;
 
@@ -15,24 +15,12 @@ ConditionalStructNode::ConditionalStructNode()
     setNextMaxCount(2); // allow 2 Nodes to be next (branches if and else).
 }
 
-ScopeNode *ConditionalStructNode::get_condition_true_branch() const
+Scope* ConditionalStructNode::get_condition_true_branch() const
 {
-    return !m_next.empty() ? m_next[0]->as<ScopeNode>() : nullptr;
+    return !m_next.empty() ? m_next[0]->get<Scope>() : nullptr;
 }
 
-ScopeNode *ConditionalStructNode::get_condition_false_branch() const
+Scope* ConditionalStructNode::get_condition_false_branch() const
 {
-    return m_next.size() > 1 ? m_next[1]->as<ScopeNode>() : nullptr;
-}
-
-void ConditionalStructNode::get_last_instructions(std::vector<InstructionNode *> &out)
-{
-    if (get_condition_true_branch() )
-    {
-        get_condition_true_branch()->get_last_instructions(out);
-    }
-    if (get_condition_false_branch() )
-    {
-        get_condition_false_branch()->get_last_instructions(out);
-    }
+    return m_next.size() > 1 ? m_next[1]->get<Scope>() : nullptr;
 }

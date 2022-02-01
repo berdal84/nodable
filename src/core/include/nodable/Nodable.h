@@ -22,12 +22,13 @@ namespace Nodable
 	class Wire;
 	class Member;
 	class Component;
+    class VariableNode;
 
 	typedef std::map<std::string, Component*>  Components;
 	typedef std::map<std::string, Member*>     Members;
 	typedef std::vector<Wire*>                 Wires;
 
-    enum class RelationType: int {
+    enum class Relation_t: int {
         IS_CHILD_OF,
         IS_INPUT_OF,
         IS_NEXT_OF,
@@ -43,6 +44,8 @@ namespace Nodable
     typedef long      i32_t;
     typedef int       i16_t;
     typedef short int i8_t;
+
+    typedef std::vector<VariableNode*> VariableNodes ;
 }
 
 

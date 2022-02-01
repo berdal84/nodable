@@ -52,8 +52,8 @@ namespace Nodable {
 		explicit Node(std::string  _label = "UnnamedNode");
 		virtual ~Node();
 
-        observe::Event<Node*, RelationType> m_onRelationAdded;
-        observe::Event<Node*, RelationType> m_onRelationRemoved;
+        observe::Event<Node*, Relation_t> m_onRelationAdded;
+        observe::Event<Node*, Relation_t> m_onRelationRemoved;
 
 		virtual Node*                     get_parent()const { return m_parent; }
         virtual void                      set_parent(Node *_node);
@@ -186,10 +186,10 @@ namespace Nodable {
 		  * @return true if this node has the component specified by it's type T.
 		  */
 		template<typename T>
-		[[nodiscard]] bool hasComponent()const
+		[[nodiscard]] bool has()const
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-			return getComponent<T>() != nullptr;
+			return get<T>() != nullptr;
 		}
 
 		/**
@@ -209,7 +209,7 @@ namespace Nodable {
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
 			auto name = T::Get_class()->get_name();
-			auto component = getComponent<T>();
+			auto component = get<T>();
 			m_components.erase(name);
 			delete component;
 		}
@@ -220,7 +220,7 @@ namespace Nodable {
 		  * @return a T pointer.
 		  */
 		template<typename T>
-		T* getComponent()const
+		T* get()const
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
 			Reflect::Class* desired_class = T::Get_class();
@@ -254,7 +254,7 @@ namespace Nodable {
 		    outComponents.reserve(inNodes.size());
 
             for (auto eachNode : inNodes)
-                if (T* view = eachNode->getComponent<T>())
+                if (T* view = eachNode->get<T>())
                     outComponents.push_back(view);
         }
 

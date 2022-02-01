@@ -2,12 +2,11 @@
 #include <nodable/Member.h>
 #include <nodable/InvokableComponent.h>
 #include <nodable/GraphNode.h>
-#include <nodable/Node.h>
 #include <nodable/VariableNode.h>
-#include <nodable/ScopeNode.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/ForLoopNode.h>
+#include <nodable/Scope.h>
 
 using namespace Nodable;
 
@@ -210,7 +209,7 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
     if ( followConnections && owner && _member->allowsConnection(Way_In) && owner->hasWireConnectedTo(_member) )
     {
         Member*           sourceMember      = owner->getSourceMemberOf(_member);
-        InvokableComponent* compute_component = sourceMember->getOwner()->getComponent<InvokableComponent>();
+        InvokableComponent* compute_component = sourceMember->getOwner()->get<InvokableComponent>();
 
         if ( compute_component )
         {
@@ -241,23 +240,20 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
     return _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const ScopeNode* _block) const
+std::string& Serializer::serialize(std::string& _result, const Scope* _scope) const
 {
 
-    serialize( _result, _block->get_begin_scope_token() );
-
-    if (!_block->get_children().empty())
+    serialize(_result, _scope->get_begin_scope_token() );
+    auto children = _scope->get_owner()->get_children();
+    if (!children.empty())
     {
-        for( auto& eachChild : _block->get_children() )
+        for( auto& eachChild : children )
         {
             auto clss = eachChild->get_class();
+
             if ( clss->is<InstructionNode>())
             {
                 serialize(_result, eachChild->as<InstructionNode>());
-            }
-            else if ( clss->is<ScopeNode>() )
-            {
-                serialize( _result, eachChild->as<ScopeNode>());
             }
             else if ( clss->is<ConditionalStructNode>() )
             {
@@ -267,9 +263,9 @@ std::string& Serializer::serialize(std::string& _result, const ScopeNode* _block
             {
                  serialize( _result, eachChild->as<ForLoopNode>());
             }
-            else if ( clss->is<ScopeNode>() )
+            else if ( eachChild->has<Scope>() )
             {
-                serialize( _result, eachChild->as<ScopeNode>());
+                serialize( _result, eachChild->get<Scope>() );
             }
             else
             {
@@ -278,7 +274,7 @@ std::string& Serializer::serialize(std::string& _result, const ScopeNode* _block
         }
     }
 
-    serialize( _result, _block->get_end_scope_token() );
+    serialize(_result, _scope->get_end_scope_token() );
 
     return _result;
 }
@@ -368,15 +364,15 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     if ( const Token* tokenElse = _condStruct->get_token_else() )
     {
         serialize( _result, tokenElse );
-        Node* elseScope = _condStruct->get_children()[1];
+        Scope* elseScope = _condStruct->get_condition_false_branch();
         Reflect::Class* elseClass = elseScope->get_class();
         if ( elseClass == ConditionalStructNode::Get_class()) // else if ?
         {
-            this->serialize( _result, elseScope->as<ConditionalStructNode>() );
+            serialize( _result, elseScope->as<ConditionalStructNode>() );
         }
         else
         {
-            this->serialize( _result, elseScope->as<ScopeNode>() );
+            serialize( _result, elseScope );
         }
     }
     return _result;

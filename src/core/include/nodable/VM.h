@@ -13,9 +13,6 @@ namespace Nodable
      * We do it in order to be maybe one day compatible, for now it is just to be inspired by something solid.
      */
 
-    // forward declarations
-    class ScopeNode;
-
     namespace Asm
     {
         /**
@@ -24,7 +21,7 @@ namespace Nodable
         class VM {
         public:
             VM();
-            [[nodiscard]] bool    load_program(ScopeNode*);
+            [[nodiscard]] bool    load_program(Node*);
             void                  unload_program();
             void                  run_program();
             void                  stop_program();
@@ -43,7 +40,7 @@ namespace Nodable
             void                  reset_cursor(){ m_register[Asm::Register::esp] = 0; };
             bool                  _stepOver();
             GraphTraversal        m_traversal;
-            ScopeNode*            m_program_graph;
+            Node*                 m_program_graph;
             Asm::Code*            m_program_asm_code;
             Node*                 m_next_node;
             bool                  m_is_program_running;

@@ -2,7 +2,6 @@
 #include <nodable/InstructionNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
-#include <nodable/ScopeNode.h>
 #include <nodable/InvokableComponent.h>
 #include <nodable/Language.h>
 #include <nodable/NodeView.h>
@@ -28,7 +27,7 @@ InstructionNode* NodeFactory::newInstruction_UserCreated()const
     return node;
 }
 
-VariableNode* NodeFactory::newVariable(Type _type, const std::string& _name, ScopeNode* _scope) const
+VariableNode* NodeFactory::newVariable(Type _type, const std::string& _name, AbstractScope *_scope) const
 {
     VariableNode* node = m_headless_node_factory.newVariable(_type, _name, _scope);
     AddView(node);
@@ -68,9 +67,9 @@ Node* NodeFactory::newFunction(const Invokable* _function) const
     return node;
 }
 
-ScopeNode* NodeFactory::newScope() const
+Node* NodeFactory::newScope() const
 {
-    ScopeNode* node = m_headless_node_factory.newScope();
+    Node* node = m_headless_node_factory.newScope();
     AddView(node);
 
     return node;
@@ -92,9 +91,9 @@ ForLoopNode* NodeFactory::new_for_loop_node() const
     return node;
 }
 
-ScopeNode* NodeFactory::newProgram() const
+Node* NodeFactory::newProgram() const
 {
-    ScopeNode* node = m_headless_node_factory.newProgram();
+    Node* node = m_headless_node_factory.newProgram();
     AddView(node);
 
     return node;

@@ -5,7 +5,6 @@
 #include <nodable/App.h>
 #include <nodable/FileView.h>
 #include <nodable/GraphNodeView.h>
-#include <nodable/ScopeNode.h>
 #include <nodable/Parser.h>
 #include <nodable/LanguageFactory.h>
 #include <nodable/History.h>
@@ -100,7 +99,7 @@ bool File::evaluateExpression(std::string& _expression)
 	Parser* parser = m_language->getParser();
     m_graph->clear();
 
-    auto graphView = m_graph->getComponent<GraphNodeView>();
+    auto graphView = m_graph->get<GraphNodeView>();
     if (graphView)
     {
         graphView->clear_child_view_constraints();

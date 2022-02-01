@@ -96,25 +96,25 @@ bool Node::eval() const
         Member* eachMember = eachNameToMemberPair.second;
         if( eachMember->getInput() && eachMember->is_connected_by(ConnectBy_Copy) )
         {
-            // transfer value:  input ----> X
+            // transfer value from member's input to member
             eachMember->setType(eachMember->getInput()->getType()); // dynamic type, TODO: show a warning ?
             eachMember->set(eachMember->getInput());
         }
     }
 
     // update
-    if(hasComponent<InvokableComponent>())
+    if(has<InvokableComponent>())
     {
-        return getComponent<InvokableComponent>()->update();
+        return get<InvokableComponent>()->update();
     }
     return true;
 }
 
 UpdateResult Node::update()
 {
-	if(hasComponent<DataAccess>())
+	if(has<DataAccess>())
     {
-        getComponent<DataAccess>()->update();
+        get<DataAccess>()->update();
     }
 
     this->m_dirty = false;
@@ -151,7 +151,7 @@ const InvokableOperator* Node::getConnectedOperator(const Member *_localMember)
     if (found != m_wires.end() )
     {
         auto node = (*found)->getSource()->getOwner()->as<Node>();
-        InvokableComponent* compute_component = node->getComponent<InvokableComponent>();
+        InvokableComponent* compute_component = node->get<InvokableComponent>();
         if ( compute_component )
         {
             const Invokable* function = compute_component->get_invokable();
@@ -191,7 +191,7 @@ void Node::add_child(Node *_node)
 {
     auto found = std::find(m_children.begin(), m_children.end(), _node);
     NODABLE_ASSERT(found == m_children.end()); // check if node is not already child
-    m_onRelationAdded.emit(_node, RelationType::IS_CHILD_OF );
+    m_onRelationAdded.emit(_node, Relation_t::IS_CHILD_OF );
     m_children.push_back(_node);
     setDirty();
 }
@@ -200,7 +200,7 @@ void Node::remove_Child(Node *_node)
 {
     auto found = std::find(m_children.begin(), m_children.end(), _node);
     NODABLE_ASSERT(found != m_children.end()); // check if node is found before to erase.
-    m_onRelationRemoved.emit(_node, RelationType::IS_CHILD_OF );
+    m_onRelationRemoved.emit(_node, Relation_t::IS_CHILD_OF );
     m_children.erase(found);
     setDirty();
 }
@@ -221,14 +221,14 @@ void Node::setParentGraph(GraphNode *_parentGraph)
 void Node::addInput(Node* _node)
 {
     this->m_inputs.push_back(_node);
-    m_onRelationAdded.emit(_node, RelationType::IS_INPUT_OF );
+    m_onRelationAdded.emit(_node, Relation_t::IS_INPUT_OF );
     setDirty();
 }
 
 void Node::addOutput(Node *_node)
 {
     this->m_outputs.push_back(_node);
-    m_onRelationAdded.emit(_node, RelationType::IS_OUTPUT_OF );
+    m_onRelationAdded.emit(_node, Relation_t::IS_OUTPUT_OF );
     setDirty();
 }
 
@@ -236,7 +236,7 @@ void Node::removeOutput(Node *_node)
 {
     auto found = std::find(m_outputs.begin(), m_outputs.end(), _node);
     NODABLE_ASSERT(found != m_outputs.end()); // check if node is found before to erase.
-    m_onRelationRemoved.emit(_node, RelationType::IS_OUTPUT_OF );
+    m_onRelationRemoved.emit(_node, Relation_t::IS_OUTPUT_OF );
     m_outputs.erase(found);
     setDirty();
 }
@@ -245,7 +245,7 @@ void Node::removeInput(Node *_node)
 {
     auto found = std::find(m_inputs.begin(), m_inputs.end(), _node);
     NODABLE_ASSERT(found != m_inputs.end()); // check if node is found before to erase.
-    m_onRelationRemoved.emit(_node, RelationType::IS_INPUT_OF );
+    m_onRelationRemoved.emit(_node, Relation_t::IS_INPUT_OF );
     m_inputs.erase(found);
     setDirty();
 }

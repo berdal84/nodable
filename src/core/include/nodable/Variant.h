@@ -21,6 +21,7 @@ namespace Nodable {
 		~Variant();
 
 		bool        isDefined()const;
+        void        undefine();
 		bool        isType(Type _type)const;
 		void        set(const Variant*);
 		void        set(const std::string&);

@@ -39,10 +39,10 @@ TEST(Runner, Cond_2 )
 TEST(Runner, Loop_1 )
 {
     std::string program =
-            "double n   = 0;"
-            "string res = \"\";"
-            "for(n=0;n<10;n=n+1){"
-            "   res = res + n;"
+            "string res = \"\";" \
+            "for(double n=0;n<10;n=n+1){"
+            "   string tmp = to_string(n);"
+            "   res = res + tmp;"
             "}"
             "res;";
 

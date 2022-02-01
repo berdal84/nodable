@@ -21,6 +21,7 @@ namespace Nodable{
 
 		[[nodiscard]] inline bool             isDeclared()const { return m_typeToken != nullptr; }
 		[[nodiscard]] inline bool             isDefined()const { return value()->isDefined(); }
+		              inline void             undefine() { value()->undefine(); setDirty(true); }
 		[[nodiscard]] inline bool             isType(Type _type)const { return value()->isType(_type); }
 		[[nodiscard]] inline const char*      getName()const { return m_name.c_str(); };
 		[[nodiscard]] inline Member*          value()const { return m_props.get("value"); }

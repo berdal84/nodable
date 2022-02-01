@@ -5,11 +5,11 @@
 #include <nodable/GraphNode.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/VariableNode.h>
-#include <nodable/ScopeNode.h>
 #include <nodable/HeadlessNodeFactory.h>
 #include <nodable/Wire.h>
 #include <nodable/LanguageNodable.h>
 #include <nodable/InvokableComponent.h>
+#include <nodable/Scope.h>
 
 using namespace Nodable;
 
@@ -99,30 +99,30 @@ TEST( GraphNode, create_and_delete_relations)
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
-    ScopeNode* program = graph.getProgram();
+    Node* program = graph.newProgram();
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
-    Node* n1 = graph.newVariable(Type_Any, "n1", program);
+    Node* n1 = graph.newVariable(Type_Any, "n1", program->get<Scope>() );
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
-    Node* n2 = graph.newVariable(Type_Double, "n2", program);
+    Node* n2 = graph.newVariable(Type_Double, "n2", program->get<Scope>() );
 
     // Act and test
 
     // is child of (and by reciprocity "is parent of")
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
     EXPECT_EQ(n2->get_children().size(), 0);
-    graph.connect(n1, n2, RelationType::IS_CHILD_OF, false);
+    graph.connect(n1, n2, Relation_t::IS_CHILD_OF, false);
     EXPECT_EQ(n2->get_children().size(), 1);
     EXPECT_EQ(graph.getRelationRegistry().size(), 1);
-    graph.disconnect(n1, n2, RelationType::IS_CHILD_OF);
+    graph.disconnect(n1, n2, Relation_t::IS_CHILD_OF);
     EXPECT_EQ(n2->get_children().size(), 0);
 
     // Is input of
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
     EXPECT_EQ(n2->getInputs().size(), 0);
-    graph.connect(n1, n2, RelationType::IS_INPUT_OF, false);
+    graph.connect(n1, n2, Relation_t::IS_INPUT_OF, false);
     EXPECT_EQ(n2->getInputs().size(), 1);
     EXPECT_EQ(graph.getRelationRegistry().size(), 1);
-    graph.disconnect(n1, n2, RelationType::IS_INPUT_OF);
+    graph.disconnect(n1, n2, Relation_t::IS_INPUT_OF);
     EXPECT_EQ(n2->getInputs().size(), 0);
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
 }
@@ -138,10 +138,10 @@ TEST(Graph, by_reference_assign)
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
-    ScopeNode* program = graph.getProgram();
+    Node* program = graph.newProgram();
 
     // create b
-    auto b = graph.newVariable(Type_Double, "b", program);
+    auto b = graph.newVariable(Type_Double, "b", program->get<Scope>() );
     b->set(6.0);
 
     // create assign operator
@@ -149,7 +149,7 @@ TEST(Graph, by_reference_assign)
     signature.set_return_type(Type_Double);
     signature.push_args(Type_Double_Ref, Type_Double);
     auto assign = graph.newOperator( language.findOperator(&signature) );
-    auto op = assign->getComponent<InvokableComponent>();
+    auto op = assign->get<InvokableComponent>();
 
     // connect b and assign
     graph.connect( b->value(), assign->getProps()->get("lvalue") );

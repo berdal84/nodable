@@ -1,9 +1,9 @@
 #include <nodable/VM.h>
 
-#include <nodable/ScopeNode.h>
 #include <nodable/GraphTraversal.h>
 #include <nodable/VariableNode.h>
 #include <nodable/Log.h>
+#include <nodable/Scope.h>
 
 using namespace Nodable;
 using namespace Nodable::Asm;
@@ -18,7 +18,7 @@ VM::VM()
 
 }
 
-bool VM::load_program(ScopeNode* _program)
+bool VM::load_program(Node* _program)
 {
     Asm::Compiler compiler;
 
@@ -121,6 +121,22 @@ bool VM::_stepOver()
 
             switch( fct_id )
             {
+                case FctId::unset_variables:
+                {
+                    auto scope = ((Node *) next_instr->m_right_h_arg)->get<Scope>();
+                    for( VariableNode* each_var : scope->get_variables() )
+                    {
+                        if ( !each_var->isDefined() )
+                        {
+                            each_var->undefine();
+                            NODABLE_ASSERT(!each_var->isDefined());
+                        }
+                    }
+                    advance_cursor();
+                    success = true;
+                    break;
+                }
+
                 case FctId::eval_member:
                 {
                     auto member = (Member*)next_instr->m_right_h_arg;
@@ -137,8 +153,11 @@ bool VM::_stepOver()
                         /*
                          * traverse the syntax tree (graph)
                          */
-                        TraversalFlag flags = TraversalFlag_FollowInputs | TraversalFlag_FollowNotDirty |
-                                              TraversalFlag_AvoidCycles;
+                        TraversalFlag flags =
+                                  TraversalFlag_FollowInputs
+                                | TraversalFlag_FollowNotDirty // eval all
+                                | TraversalFlag_AvoidCycles;   // but avoid loops caused by references.
+
                         m_traversal.traverse(input->getOwner(), flags);
 
                         /*
