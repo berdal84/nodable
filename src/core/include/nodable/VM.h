@@ -33,21 +33,22 @@ namespace Nodable
             inline bool           is_debugging() const{ return m_is_debugging; }
             inline bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
                    bool           step_over();
-            inline const Node*    get_current_node() const {return m_current_node; }
+            inline const Node*    get_next_node() const {return m_next_node; }
             inline const Variant* get_last_result() { return (Variant*)m_register[Register::rax]; }
-            bool                  is_program_over() { assert(get_current_instruction()); return get_current_instruction()->m_type == Instr_t::ret; }
+            bool                  is_program_over() { assert(get_next_instr()); return get_next_instr()->m_type == Instr_t::ret; }
             const Code*           get_program_asm_code()const { return m_program_asm_code; }
-            Instr*                get_current_instruction(){ return m_register[Register::esp] < m_program_asm_code->size() ? (*m_program_asm_code)[m_register[Register::esp]] : nullptr; };
+            Instr*                get_next_instr(){ return m_register[Register::esp] < m_program_asm_code->size() ? (*m_program_asm_code)[m_register[Register::esp]] : nullptr; };
         private:
             void                  advance_cursor(i64_t _amount = 1) { m_register[Register::esp] += _amount; }
             void                  reset_cursor(){ m_register[Asm::Register::esp] = 0; };
             bool                  _stepOver();
             GraphTraversal        m_traversal;
-            ScopeNode*  m_program_graph;
+            ScopeNode*            m_program_graph;
             Asm::Code*            m_program_asm_code;
-            Node*                 m_current_node;
+            Node*                 m_next_node;
             bool                  m_is_program_running;
             bool                  m_is_debugging;
+            Instr*                m_last_step_next_instr;
             i64_t                 m_register[Register::COUNT];
         };
     }

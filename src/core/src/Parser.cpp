@@ -555,7 +555,6 @@ ScopeNode* Parser::parse_code_block(bool _create_scope)
 
     if (curr_scope->get_children().empty() )
     {
-        m_graph->deleteNode(curr_scope);
         rollback_transaction();
         return nullptr;
     }

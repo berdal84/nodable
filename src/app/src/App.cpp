@@ -185,7 +185,7 @@ void App::stepOverCurrentFileProgram()
     {
         NodeView::SetSelected(nullptr);
     }
-    else if ( auto view = m_vm.get_current_node()->getComponent<NodeView>() )
+    else if ( auto view = m_vm.get_next_node()->getComponent<NodeView>() )
     {
         NodeView::SetSelected(view);
     }

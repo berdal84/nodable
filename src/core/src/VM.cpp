@@ -12,7 +12,7 @@ VM::VM()
     : m_program_graph(nullptr)
     , m_is_debugging(false)
     , m_is_program_running(false)
-    , m_current_node(nullptr)
+    , m_next_node(nullptr)
     , m_program_asm_code(nullptr)
 {
 
@@ -38,12 +38,12 @@ bool VM::load_program(ScopeNode* _program)
             LOG_MESSAGE("VM", "Program's tree compiled.\n");
             LOG_VERBOSE("VM", "Find bellow the compilation result:\n");
             LOG_VERBOSE("VM", "---- Program begin -----\n");
-            Instr* curr = get_current_instruction();
+            Instr* curr = get_next_instr();
             while( curr )
             {
                 LOG_VERBOSE("VM", "%s \n", Instr::to_string(*curr ).c_str() );
                 advance_cursor(1);
-                curr = get_current_instruction();
+                curr = get_next_instr();
             }
             reset_cursor();
             LOG_VERBOSE("VM", "---- Program end -----\n");
@@ -76,7 +76,7 @@ void VM::stop_program()
 {
     m_is_program_running = false;
     m_is_debugging = false;
-    m_current_node = nullptr;
+    m_next_node = nullptr;
     LOG_VERBOSE("VM", "Stopped.\n")
 }
 
@@ -87,18 +87,18 @@ void VM::unload_program() {
 
 bool VM::_stepOver()
 {
-    bool success = false;
-    Instr* curr_instr = get_current_instruction();
+    bool success;
+    Instr* next_instr = get_next_instr();
 
-    LOG_VERBOSE("VM", "processing line %i.\n", (int)curr_instr->m_line );
+    LOG_VERBOSE("VM", "processing line %i.\n", (int)next_instr->m_line );
 
-    switch ( curr_instr->m_type )
+    switch ( next_instr->m_type )
     {
 //        case Instr::cmp:
 //        {
 //
-//            auto dst_register = (Register)curr_instr->m_left_h_arg;
-//            auto src_register = (Register)curr_instr->m_right_h_arg;
+//            auto dst_register = (Register)next_instr->m_left_h_arg;
+//            auto src_register = (Register)next_instr->m_right_h_arg;
 //            m_register[Register::rax] = m_register[dst_register] - m_register[src_register];
 //            advance_cursor();
 //            success = true;
@@ -107,8 +107,8 @@ bool VM::_stepOver()
 
         case Instr_t::mov:
         {
-            auto dst_register = (Register)curr_instr->m_left_h_arg;
-            auto src_register = (Register)curr_instr->m_right_h_arg;
+            auto dst_register = (Register)next_instr->m_left_h_arg;
+            auto src_register = (Register)next_instr->m_right_h_arg;
             m_register[dst_register] = m_register[src_register];
             advance_cursor();
             success = true;
@@ -117,14 +117,13 @@ bool VM::_stepOver()
 
         case Instr_t::call:
         {
-            auto fct_id = (FctId)curr_instr->m_left_h_arg;
+            auto fct_id = (FctId)next_instr->m_left_h_arg;
 
             switch( fct_id )
             {
                 case FctId::eval_member:
                 {
-                    auto member = (Member*)curr_instr->m_right_h_arg;
-                    m_current_node = member->getOwner();
+                    auto member = (Member*)next_instr->m_right_h_arg;
 
                     /*
                      * if the member has no input it means it is a simple literal value and we have nothing to compute,
@@ -168,7 +167,7 @@ bool VM::_stepOver()
 
         case Instr_t::jmp:
         {
-            advance_cursor(curr_instr->m_left_h_arg);
+            advance_cursor(next_instr->m_left_h_arg);
             success = true;
             break;
         }
@@ -182,7 +181,7 @@ bool VM::_stepOver()
             }
             else
             {
-                advance_cursor(curr_instr->m_left_h_arg);
+                advance_cursor(next_instr->m_left_h_arg);
             }
             success = true;
             break;
@@ -201,19 +200,37 @@ bool VM::_stepOver()
 
 bool VM::step_over()
 {
-    bool _break = false;
-    while( !is_program_over() && !_break )
+    auto must_break = [&]() -> bool {
+        return get_next_instr()->m_type == Instr_t::call // break on fct call
+               && m_last_step_next_instr != get_next_instr();    // except if we already break
+    };
+
+    while( !is_program_over() && !must_break() )
     {
-        _break = get_current_instruction()->m_type == Instr_t::call;
         _stepOver();
     }
+
 
     bool continue_execution = !is_program_over();
     if( !continue_execution )
     {
         stop_program();
-        m_current_node = nullptr;
+        m_next_node = nullptr;
+        m_last_step_next_instr = nullptr;
     }
+    else
+    {
+        // update m_current_node and m_last_step_instr
+        m_last_step_next_instr = get_next_instr();
+        auto next_instr = get_next_instr();
+        if (next_instr->m_type == Instr_t::call && (FctId)(next_instr->m_left_h_arg) == FctId::eval_member )
+        {
+            auto member = (Member*)next_instr->m_right_h_arg;
+            m_next_node = member->getOwner();
+        }
+    }
+
+
     return continue_execution;
 }
 
@@ -223,5 +240,5 @@ void VM::debug_program()
     m_is_debugging = true;
     m_is_program_running = true;
     reset_cursor();
-    m_current_node = m_program_graph;
+    m_next_node = m_program_graph;
 }

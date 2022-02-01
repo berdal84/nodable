@@ -479,7 +479,7 @@ bool AppView::draw()
                 const Asm::Code* code = m_app->getVM().get_program_asm_code();
                 if ( code  )
                 {
-                    auto current_instr = m_app->getVM().get_current_instruction();
+                    auto current_instr = m_app->getVM().get_next_instr();
                     for( Asm::Instr* each_instr : code->get_instructions() )
                     {
                         auto str = Asm::Instr::to_string( *each_instr ).c_str();
