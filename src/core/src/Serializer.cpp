@@ -4,8 +4,7 @@
 #include <nodable/GraphNode.h>
 #include <nodable/Node.h>
 #include <nodable/VariableNode.h>
-#include <nodable/CodeBlockNode.h>
-#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/ForLoopNode.h>
@@ -242,8 +241,11 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
     return _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const CodeBlockNode* _block) const
+std::string& Serializer::serialize(std::string& _result, const ScopeNode* _block) const
 {
+
+    serialize( _result, _block->get_begin_scope_token() );
+
     if (!_block->get_children().empty())
     {
         for( auto& eachChild : _block->get_children() )
@@ -253,9 +255,9 @@ std::string& Serializer::serialize(std::string& _result, const CodeBlockNode* _b
             {
                 serialize(_result, eachChild->as<InstructionNode>());
             }
-            else if ( clss->is<ScopedCodeBlockNode>() )
+            else if ( clss->is<ScopeNode>() )
             {
-                serialize( _result, eachChild->as<ScopedCodeBlockNode>());
+                serialize( _result, eachChild->as<ScopeNode>());
             }
             else if ( clss->is<ConditionalStructNode>() )
             {
@@ -265,9 +267,9 @@ std::string& Serializer::serialize(std::string& _result, const CodeBlockNode* _b
             {
                  serialize( _result, eachChild->as<ForLoopNode>());
             }
-            else if ( clss->is<CodeBlockNode>() )
+            else if ( clss->is<ScopeNode>() )
             {
-                serialize( _result, eachChild->as<CodeBlockNode>());
+                serialize( _result, eachChild->as<ScopeNode>());
             }
             else
             {
@@ -275,6 +277,9 @@ std::string& Serializer::serialize(std::string& _result, const CodeBlockNode* _b
             }
         }
     }
+
+    serialize( _result, _block->get_end_scope_token() );
+
     return _result;
 }
 
@@ -371,38 +376,8 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
         }
         else
         {
-            this->serialize( _result, elseScope->as<ScopedCodeBlockNode>() );
+            this->serialize( _result, elseScope->as<ScopeNode>() );
         }
-    }
-    return _result;
-}
-
-std::string& Serializer::serialize(std::string& _result, const ScopedCodeBlockNode* _scope)const
-{
-    if ( _scope != nullptr )
-    {
-        NODABLE_ASSERT(_scope->get_class() == ScopedCodeBlockNode::Get_class());
-
-        serialize( _result, _scope->get_begin_scope_token() );
-
-        for (auto eachChild : _scope->get_children())
-        {
-            Reflect::Class* clss = eachChild->get_class();
-            if (clss->is_child_of(CodeBlockNode::Get_class()))
-            {
-                serialize( _result, eachChild->as<CodeBlockNode>() );
-            }
-            else if (clss->is_child_of(InstructionNode::Get_class()))
-            {
-                serialize( _result, eachChild->as<InstructionNode>() );
-            }
-            else if (clss->is_child_of(ScopedCodeBlockNode::Get_class()))
-            {
-                serialize( _result, eachChild->as<ScopedCodeBlockNode>());
-            }
-        }
-
-        serialize( _result, _scope->get_end_scope_token());
     }
     return _result;
 }

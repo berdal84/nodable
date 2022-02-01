@@ -8,8 +8,7 @@
 #include <nodable/Log.h>
 #include <nodable/Wire.h>
 #include <nodable/App.h>
-#include <nodable/ScopedCodeBlockNode.h>
-#include <nodable/CodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/GraphNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
@@ -370,11 +369,8 @@ bool GraphNodeView::draw()
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem(ICON_FA_CODE " Block"))
-                newNode = graph->newCodeBlock();
-
             if (ImGui::MenuItem(ICON_FA_CODE " Scope"))
-                newNode = graph->newScopedCodeBlock();
+                newNode = graph->newScope();
 
             ImGui::Separator();
 

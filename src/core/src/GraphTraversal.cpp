@@ -4,8 +4,7 @@
 
 #include <nodable/Wire.h>
 #include <nodable/Log.h>
-#include <nodable/CodeBlockNode.h>
-#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/VariableNode.h>
@@ -141,7 +140,7 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
        if ( !m_stats.hasBeenTraversed(next) || condStructNode->get_class()->is<ForLoopNode>())
            return next;
     }
-    else if ( !children.empty() )//if ( clss->isChildOf( mirror::GetClass<AbstractCodeBlockNode>() ) )
+    else if ( !children.empty() )
     {
         /*
          * Get the first not already traversed child
@@ -169,13 +168,9 @@ Node* GraphTraversal::getNextInstrToEvalRec(Node* _node)
             result = getNextInstrToEvalRec(parent);
         }
     }
-    else
+    else if ( result->get_class()->is<AbstractCodeBlock>() )
     {
-        Reflect::Class* resultClass = result->get_class();
-        if (resultClass->is<ScopedCodeBlockNode>() || resultClass->is<CodeBlockNode>() )
-        {
-            result = getNextInstrToEvalRec(result);
-        }
+        result = getNextInstrToEvalRec(result);
     }
     m_stats.m_traversed.push_back(result);
 

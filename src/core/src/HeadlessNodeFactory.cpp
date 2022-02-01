@@ -2,8 +2,7 @@
 #include <nodable/InstructionNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
-#include <nodable/ScopedCodeBlockNode.h>
-#include <nodable/CodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/Language.h>
 #include <nodable/InvokableComponent.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
@@ -28,7 +27,7 @@ InstructionNode* HeadlessNodeFactory::newInstruction_UserCreated()const
     return newInstructionNode;
 }
 
-VariableNode* HeadlessNodeFactory::newVariable(Type _type, const std::string& _name, ScopedCodeBlockNode* _scope) const
+VariableNode* HeadlessNodeFactory::newVariable(Type _type, const std::string& _name, ScopeNode* _scope) const
 {
     // create
     auto node = new VariableNode(_type);
@@ -139,21 +138,9 @@ Node* HeadlessNodeFactory::newFunction(const Invokable* _function) const
     return node;
 }
 
-
-CodeBlockNode* HeadlessNodeFactory::newCodeBlock() const
+ScopeNode* HeadlessNodeFactory::newScope() const
 {
-    auto codeBlockNode = new CodeBlockNode();
-    std::string label = ICON_FA_CODE " Block";
-    codeBlockNode->setLabel(label);
-    codeBlockNode->setShortLabel(ICON_FA_CODE " Bl.");
-
-    return codeBlockNode;
-}
-
-
-ScopedCodeBlockNode* HeadlessNodeFactory::newScopedCodeBlock() const
-{
-    auto scopeNode = new ScopedCodeBlockNode();
+    auto scopeNode = new ScopeNode();
     std::string label = ICON_FA_CODE_BRANCH " Scope";
     scopeNode->setLabel(label);
     scopeNode->setShortLabel(ICON_FA_CODE_BRANCH " Sc.");
@@ -181,9 +168,9 @@ ForLoopNode* HeadlessNodeFactory::new_for_loop_node() const
     return for_loop;
 }
 
-ScopedCodeBlockNode* HeadlessNodeFactory::newProgram() const
+ScopeNode* HeadlessNodeFactory::newProgram() const
 {
-    ScopedCodeBlockNode* scope = new ScopedCodeBlockNode();
+    ScopeNode* scope = new ScopeNode();
     scope->setLabel(ICON_FA_FILE_CODE " Program");
     scope->setShortLabel(ICON_FA_FILE_CODE " Prog.");
 

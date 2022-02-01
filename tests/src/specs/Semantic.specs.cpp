@@ -6,7 +6,7 @@
 #include <nodable/Parser.h>
 #include <nodable/LanguageFactory.h>
 #include <nodable/VariableNode.h>
-#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/HeadlessNodeFactory.h>
 
 using namespace Nodable;

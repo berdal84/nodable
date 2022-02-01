@@ -9,7 +9,7 @@
 #include <nodable/Serializer.h>
 #include <nodable/App.h>
 #include <nodable/Maths.h>
-#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/GraphNode.h>
@@ -756,11 +756,11 @@ void NodeView::drawAdvancedProperties()
 
     // Scope specific:
 
-    if ( node->get_class()->is_child_of( ScopedCodeBlockNode::Get_class() ))
+    if ( node->get_class()->is_child_of( ScopeNode::Get_class() ))
     {
         ImGui::NewLine();
         ImGui::Text("Variables:");
-        auto vars = node->as<ScopedCodeBlockNode>()->get_variables();
+        auto vars = node->as<ScopeNode>()->get_variables();
         for(auto eachVar : vars)
         {
             ImGui::Text("%s: %s", eachVar->getName(), ((std::string)*eachVar->value()).c_str());

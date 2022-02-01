@@ -15,8 +15,7 @@ namespace Nodable
     class InvokableOperator;
     class Language;
     class AbstractCodeBlock;
-    class CodeBlockNode;
-    class ScopedCodeBlockNode;
+    class ScopeNode;
     class InstructionNode;
     class ForLoopNode;
 
@@ -34,9 +33,8 @@ namespace Nodable
         std::string& serialize(std::string &_result, const Type&)const;
         virtual std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
         virtual std::string& serialize(std::string &_result, const Token*) const;
-        virtual std::string& serialize(std::string &_result, const CodeBlockNode*) const;
         virtual std::string& serialize(std::string &_result, const InstructionNode*)const;
-        virtual std::string& serialize(std::string &_result, const ScopedCodeBlockNode*)const;
+        virtual std::string& serialize(std::string &_result, const ScopeNode*)const;
         virtual std::string& serialize(std::string& _result, const ForLoopNode* _for_loop)const;
         virtual std::string& serialize(std::string &_result, const ConditionalStructNode*) const;
         virtual std::string& serialize(std::string &_result, const Variant* variant) const;

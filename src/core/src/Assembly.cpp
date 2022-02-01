@@ -1,6 +1,6 @@
 #include <nodable/Assembly.h>
 #include <nodable/VariableNode.h>
-#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/Log.h>
 #include <nodable/AbstractConditionalStruct.h>
 #include <nodable/ForLoopNode.h>
@@ -110,7 +110,7 @@ Instr* Code::push_instr(Instr_t _type)
     return instr;
 }
 
-bool Asm::Compiler::is_program_valid(const ScopedCodeBlockNode* _program)
+bool Asm::Compiler::is_program_valid(const ScopeNode* _program)
 {
     bool is_valid;
 
@@ -145,9 +145,6 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
         if ( _node->get_class()->is<AbstractConditionalStruct>() )
         {
             auto cond = _node->as<AbstractConditionalStruct>();
-            // TODO: insert an EvalAndStoreResult on node condition,
-            // TODO: insert a jump depending on last result to go to "true" scope,
-            // TODO: if "false" branch exists, insert a jump to go,
 
             // for_loop init instruction
             if ( auto for_loop = _node->as<ForLoopNode>() )
@@ -222,7 +219,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
     }
 }
 
-bool Asm::Compiler::create_assembly_code(const ScopedCodeBlockNode* _program)
+bool Asm::Compiler::create_assembly_code(const ScopeNode* _program)
 {
     /*
      * Here we take the program's base scope node (a tree) and we flatten it to an

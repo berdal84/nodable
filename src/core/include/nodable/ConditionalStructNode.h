@@ -8,7 +8,7 @@
 namespace Nodable
 {
     // forward declarations
-    class ScopedCodeBlockNode;
+    class ScopeNode;
 
     /**
      * @brief Class to represent a conditional structure ( IF/ELSE )
@@ -29,13 +29,11 @@ namespace Nodable
 
         // override AbstractConditionalStruct
         void                   set_condition(Member *_value) const override { get_condition()->set(_value); }
-        ScopedCodeBlockNode*   get_condition_true_branch()const override;
-        ScopedCodeBlockNode*   get_condition_false_branch()const override;
+        ScopeNode*   get_condition_true_branch()const override;
+        ScopeNode*   get_condition_false_branch()const override;
         Member*                get_condition()const override { return m_props.get("condition"); }
 
         // override AbstractCodeBlock
-        bool                   has_instructions() const override;
-        InstructionNode*       get_first_instruction() const override;
         void                   get_last_instructions(std::vector<InstructionNode *> &out) override;
         inline void            clear() override { set_token_if(nullptr); set_token_else(nullptr);};
 

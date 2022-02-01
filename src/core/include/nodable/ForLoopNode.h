@@ -8,7 +8,7 @@
 namespace Nodable
 {
     // forward declarations
-    class ScopedCodeBlockNode;
+    class ScopeNode;
 
     /**
      * @brief Class to represent a conditional iterative structure: for( init_state, condition_expr, iterate_expr ) { ... }
@@ -29,12 +29,10 @@ namespace Nodable
         // override AbstractConditionalStruct
         void                   set_condition(Member *_value) const override { get_condition()->set(_value); }
         Member*                get_condition()const override { return m_props.get("condition"); }
-        ScopedCodeBlockNode*   get_condition_true_branch()const override;
-        ScopedCodeBlockNode*   get_condition_false_branch()const override;
+        ScopeNode*   get_condition_true_branch()const override;
+        ScopeNode*   get_condition_false_branch()const override;
 
         // override AbstractCodeBlock
-        bool                   has_instructions() const override;
-        InstructionNode*       get_first_instruction() const override;
         void                   get_last_instructions(std::vector<InstructionNode *> &out) override;
         inline void            clear() override { set_token_for(nullptr); };
 

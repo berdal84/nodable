@@ -8,7 +8,6 @@ namespace Nodable
 {
     // Forward declarations
     class InstructionNode;
-    class CodeBlockNode;
 
     /**
      * A Scoped code block contains:
@@ -16,16 +15,14 @@ namespace Nodable
      * - VariableNodes
      * All of them are NOT owned by this class.
      */
-    class ScopedCodeBlockNode: public Node, public AbstractCodeBlock
+    class ScopeNode: public Node, public AbstractCodeBlock
     {
     public:
-        explicit ScopedCodeBlockNode();
-        ~ScopedCodeBlockNode() override = default;
+        explicit ScopeNode();
+        ~ScopeNode() override = default;
 
         void                    clear() override;
-        bool                    has_instructions() const override;
-        InstructionNode*        get_first_instruction() const override;
-        CodeBlockNode*          get_last_code_block();
+        ScopeNode*    get_last_code_block();
         InstructionNode*        get_last_instruction();
         void                    get_last_instructions(std::vector<InstructionNode *> &out) override ;
         inline const Token*     get_begin_scope_token() const { return m_begin_scope_token; }
@@ -36,14 +33,14 @@ namespace Nodable
         VariableNode*           find_variable(const std::string &_name);
         Node*                   get_parent() const override ;
         inline const std::vector<VariableNode*>& get_variables()const { return m_variables; }
-
+        static void             get_last_instructions(Node* _node, std::vector<InstructionNode *> & _out);
     private:
         Token* m_begin_scope_token;
         Token* m_end_scope_token;
         std::vector<VariableNode*> m_variables;
 
         /** Reflect class */
-        REFLECT_DERIVED(ScopedCodeBlockNode)
+        REFLECT_DERIVED(ScopeNode)
           REFLECT_EXTENDS(Node)
           REFLECT_EXTENDS(AbstractCodeBlock)
         REFLECT_END

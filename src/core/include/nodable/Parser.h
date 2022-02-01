@@ -13,9 +13,8 @@ namespace Nodable{
 
     // forward declaration
     class InstructionNode;
-    class ScopedCodeBlockNode;
+    class ScopeNode;
     class AbstractCodeBlock;
-    class CodeBlockNode;
     class ForLoopNode;
 
 	/**
@@ -64,13 +63,13 @@ namespace Nodable{
 
 		// those parse_XXXX() are parsing from the token_ribbon at current_position.
 		// After a call, cursor may have moved or could have been reverted to initial position.
-        ScopedCodeBlockNode*   parse_scope();
+        ScopeNode*             parse_scope();
         InstructionNode*       parse_instruction();
         Member*                parse_variable_declaration();
-        CodeBlockNode*         parse_code_block();
+        ScopeNode*             parse_code_block(bool _create_scope);
         ConditionalStructNode* parse_conditional_structure();
         ForLoopNode*           parse_for_loop();
-        ScopedCodeBlockNode*   parse_program();
+        ScopeNode*             parse_program();
 		Member*                parse_function_call();
 		Member*                parse_parenthesis_expression();
 		Member*                parse_binary_operator_expression(unsigned short _precedence = 0u, Member *_left = nullptr);
@@ -92,7 +91,7 @@ namespace Nodable{
 		bool                   is_syntax_valid();
 
 		/** Get the current scope (during parsing, scope changes, we need to know the current to push any new variable) */
-        ScopedCodeBlockNode*   get_current_scope();
+        ScopeNode*   get_current_scope();
 
         /** Given a Literal token, return its type */
         Type                   get_literal_type(const Token *_token)const;
@@ -108,7 +107,7 @@ namespace Nodable{
 		TokenRibbon     m_token_ribbon;
 
 		/** Scope stack */
-		std::stack<ScopedCodeBlockNode*> m_scope_stack;
+		std::stack<ScopeNode*> m_scope_stack;
     };
 
 }

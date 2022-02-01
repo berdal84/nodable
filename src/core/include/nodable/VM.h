@@ -14,7 +14,7 @@ namespace Nodable
      */
 
     // forward declarations
-    class ScopedCodeBlockNode;
+    class ScopeNode;
 
     namespace Asm
     {
@@ -24,7 +24,7 @@ namespace Nodable
         class VM {
         public:
             VM();
-            [[nodiscard]] bool    load_program(ScopedCodeBlockNode*);
+            [[nodiscard]] bool    load_program(ScopeNode*);
             void                  unload_program();
             void                  run_program();
             void                  stop_program();
@@ -43,7 +43,7 @@ namespace Nodable
             void                  reset_cursor(){ m_register[Asm::Register::esp] = 0; };
             bool                  _stepOver();
             GraphTraversal        m_traversal;
-            ScopedCodeBlockNode*  m_program_graph;
+            ScopeNode*  m_program_graph;
             Asm::Code*            m_program_asm_code;
             Node*                 m_current_node;
             bool                  m_is_program_running;

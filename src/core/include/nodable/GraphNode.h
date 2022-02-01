@@ -13,9 +13,8 @@
 namespace Nodable{
 
     // forward declaration
-    class ScopedCodeBlockNode;
+    class ScopeNode;
     class InstructionNode;
-    class CodeBlockNode;
     class ConditionalStructNode;
     class LiteralNode;
     class AbstractNodeFactory;
@@ -31,11 +30,11 @@ namespace Nodable{
 
     /**
      * @brief
-     * The role of a GraphNode is to manage a set of Node and Wire used in a ScopedCodeBlockNode with a given language.
+     * The role of a GraphNode is to manage a set of Node and Wire used in a ScopeNode with a given language.
      *
      * @details
      * Nodes and Wires are instantiated and destroyed by this class.
-     * The ScopedCodeBlockNode contain the structure of the program in which Nodes are used.
+     * The ScopedNode contain the structure of the program in which Nodes are used.
      */
 	class GraphNode: public Node {
 	public:
@@ -56,23 +55,22 @@ namespace Nodable{
         [[nodiscard]] std::vector<Node*>&     getNodeRegistry() {return m_nodeRegistry;}
         [[nodiscard]] std::vector<Wire*>&     getWireRegistry() {return m_wireRegistry;}
         [[nodiscard]] inline const Language*  getLanguage()const { return m_language; }
-        [[nodiscard]] inline ScopedCodeBlockNode* getProgram(){ return m_program; }
+        [[nodiscard]] inline ScopeNode* getProgram(){ return m_program; }
         [[nodiscard]] bool                    hasProgram();
         [[nodiscard]] std::multimap<Relation::first_type , Relation::second_type>& getRelationRegistry() {return m_relationRegistry;}
 
         /* node factory */
-        ScopedCodeBlockNode*        newProgram();
-		CodeBlockNode*              newCodeBlock();
+        ScopeNode*        newProgram();
         InstructionNode*		    newInstruction_UserCreated();
         InstructionNode*            newInstruction();
-		VariableNode*				newVariable(Type, const std::string&, ScopedCodeBlockNode*);
+		VariableNode*				newVariable(Type, const std::string&, ScopeNode*);
 		LiteralNode*                newLiteral(const Type &type);
 		Node*                       newBinOp(const InvokableOperator*);
 		Node*                       newUnaryOp(const InvokableOperator*);
         Node*                       newOperator(const InvokableOperator*);
 		Wire*                       newWire();
 		Node*                       newFunction(const Invokable* _proto);
-        ScopedCodeBlockNode*        newScopedCodeBlock();
+        ScopeNode*        newScope();
         ConditionalStructNode*      newConditionalStructure();
         ForLoopNode*                new_for_loop_node();
         Node*                       newNode();
@@ -106,7 +104,7 @@ namespace Nodable{
 		std::vector<Wire*> m_wireRegistry;
 		std::multimap<Relation::first_type , Relation::second_type> m_relationRegistry;
 		const Language*            m_language;
-		ScopedCodeBlockNode*       m_program;
+		ScopeNode*       m_program;
 		const AbstractNodeFactory* m_factory;
 
         REFLECT_DERIVED(GraphNode)

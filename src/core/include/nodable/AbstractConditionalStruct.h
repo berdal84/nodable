@@ -8,7 +8,7 @@
 namespace Nodable
 {
     // forward declarations
-    class ScopedCodeBlockNode;
+    class ScopeNode;
     class Member;
     class InstructionNode;
 
@@ -26,11 +26,11 @@ namespace Nodable
         /**
          * Get the branch to follow if condition is evaluated true
          */
-        virtual ScopedCodeBlockNode*   get_condition_true_branch()const = 0;
+        virtual ScopeNode*   get_condition_true_branch()const = 0;
         /**
          * Get the branch to follow if condition is evaluated false
          */
-        virtual ScopedCodeBlockNode*   get_condition_false_branch()const = 0;
+        virtual ScopeNode*   get_condition_false_branch()const = 0;
 
         REFLECT(AbstractConditionalStruct)
     };

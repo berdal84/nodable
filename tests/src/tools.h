@@ -8,7 +8,7 @@
 #include <nodable/Parser.h>
 #include <nodable/LanguageFactory.h>
 #include <nodable/VariableNode.h>
-#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/HeadlessNodeFactory.h>
 #include <nodable/String.h>
 
@@ -62,7 +62,7 @@ namespace Nodable
 
         // act
         lang->getParser()->source_code_to_graph(expression, &graph);
-        if (ScopedCodeBlockNode *program = graph.getProgram()) {
+        if (ScopeNode *program = graph.getProgram()) {
             Asm::VM runner;
 
             if (runner.load_program(program)) {

@@ -24,7 +24,7 @@ namespace Nodable {
     };
 
     // forward declarations
-    class ScopedCodeBlockNode;
+    class ScopeNode;
 
     /**
      * Structure to store some statistics about a traversal

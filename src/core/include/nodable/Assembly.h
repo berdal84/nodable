@@ -8,7 +8,7 @@
 namespace Nodable
 {
     // forward declarations
-    class ScopedCodeBlockNode;
+    class ScopeNode;
     class Node;
     class Member;
 
@@ -89,10 +89,10 @@ namespace Nodable
         {
         public:
             Compiler():m_output(nullptr){}
-            bool          create_assembly_code(const ScopedCodeBlockNode* _program);
+            bool          create_assembly_code(const ScopeNode* _program);
             void          append_to_assembly_code(const Node* _node);
             Code*         get_output_assembly();
-            static bool   is_program_valid(const ScopedCodeBlockNode* _program);
+            static bool   is_program_valid(const ScopeNode* _program);
         private:
             Code* m_output;
         };

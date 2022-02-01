@@ -1,6 +1,6 @@
 #include <nodable/VM.h>
 
-#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/GraphTraversal.h>
 #include <nodable/VariableNode.h>
 #include <nodable/Log.h>
@@ -18,7 +18,7 @@ VM::VM()
 
 }
 
-bool VM::load_program(ScopedCodeBlockNode* _program)
+bool VM::load_program(ScopeNode* _program)
 {
     Asm::Compiler compiler;
 

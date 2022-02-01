@@ -10,8 +10,7 @@
 #include <nodable/VariableNode.h>
 #include <nodable/GraphTraversal.h>
 #include <nodable/InstructionNode.h>
-#include <nodable/CodeBlockNode.h>
-#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/AbstractNodeFactory.h>
@@ -159,7 +158,7 @@ InstructionNode* GraphNode::newInstruction_UserCreated()
     return instructionNode;
 }
 
-VariableNode* GraphNode::newVariable(Type _type, const std::string& _name, ScopedCodeBlockNode* _scope)
+VariableNode* GraphNode::newVariable(Type _type, const std::string& _name, ScopeNode* _scope)
 {
 	auto node = m_factory->newVariable(_type, _name, _scope);
     registerNode(node);
@@ -213,13 +212,6 @@ GraphNode::GraphNode(const Language* _language, const AbstractNodeFactory* _fact
         m_factory(_factory),
         m_program(nullptr)
 {
-}
-
-CodeBlockNode *GraphNode::newCodeBlock()
-{
-    CodeBlockNode* codeBlockNode = m_factory->newCodeBlock();
-    registerNode(codeBlockNode);
-    return codeBlockNode;
 }
 
 void GraphNode::deleteNode(Node* _node)
@@ -387,12 +379,7 @@ void GraphNode::connect(Node *_source, Node *_target, RelationType _relationType
                     else
                     {
                         std::vector<InstructionNode *> last_instructions;
-                        if (auto last = _target->get_children().back()->as<ScopedCodeBlockNode>() )
-                        {
-                            last->get_last_instructions(last_instructions);
-                            NODABLE_ASSERT(!last_instructions.empty())
-                        }
-                        else if (auto last = _target->get_children().back()->as<CodeBlockNode>() )
+                        if (auto last = _target->get_children().back()->as<ScopeNode>() )
                         {
                             last->get_last_instructions(last_instructions);
                             NODABLE_ASSERT(!last_instructions.empty())
@@ -530,9 +517,9 @@ void GraphNode::deleteWire(Wire *_wire)
     delete _wire;
 }
 
-ScopedCodeBlockNode *GraphNode::newScopedCodeBlock()
+ScopeNode *GraphNode::newScope()
 {
-    ScopedCodeBlockNode* scopeNode = m_factory->newScopedCodeBlock();
+    ScopeNode* scopeNode = m_factory->newScope();
     registerNode(scopeNode);
     return scopeNode;
 }
@@ -551,7 +538,7 @@ ForLoopNode* GraphNode::new_for_loop_node()
     return for_loop;
 }
 
-ScopedCodeBlockNode *GraphNode::newProgram()
+ScopeNode *GraphNode::newProgram()
 {
     clear();
     m_program = m_factory->newProgram();

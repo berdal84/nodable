@@ -10,8 +10,7 @@
 #include <nodable/Wire.h>
 #include <nodable/GraphNode.h>
 #include <nodable/InstructionNode.h>
-#include <nodable/CodeBlockNode.h>
-#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/LiteralNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/InvokableComponent.h>
@@ -75,7 +74,7 @@ bool Parser::source_code_to_graph(const std::string &_source_code, GraphNode *_g
 		return false;
 	}
 
-	ScopedCodeBlockNode* program = parse_program();
+	ScopeNode* program = parse_program();
 
 	if (program == nullptr)
 	{
@@ -460,15 +459,15 @@ InstructionNode* Parser::parse_instruction()
     return instruction;
 }
 
-ScopedCodeBlockNode* Parser::parse_program()
+ScopeNode* Parser::parse_program()
 {
-    ScopedCodeBlockNode* result;
+    ScopeNode* result;
 
     start_transaction();
-    ScopedCodeBlockNode* main_scope = m_graph->newProgram();
+    ScopeNode* main_scope = m_graph->newProgram();
     m_scope_stack.push(main_scope);
 
-    if (CodeBlockNode* block = parse_code_block())
+    if ( ScopeNode* block = parse_code_block(true) )
     {
         m_graph->connect(block, main_scope, RelationType::IS_CHILD_OF);
         commit_transaction();
@@ -484,9 +483,9 @@ ScopedCodeBlockNode* Parser::parse_program()
     return result;
 }
 
-ScopedCodeBlockNode* Parser::parse_scope()
+ScopeNode* Parser::parse_scope()
 {
-    ScopedCodeBlockNode* result;
+    ScopeNode* result;
 
     start_transaction();
 
@@ -497,14 +496,11 @@ ScopedCodeBlockNode* Parser::parse_scope()
     }
     else
     {
-        auto scope = m_graph->newScopedCodeBlock();
+        auto scope = m_graph->newScope();
         m_scope_stack.push( scope );
         scope->set_begin_scope_token(m_token_ribbon.getEaten());
 
-        if ( auto block = parse_code_block() )
-        {
-            m_graph->connect(block, scope, RelationType::IS_CHILD_OF);
-        }
+        parse_code_block(false);
 
         if ( !m_token_ribbon.eatToken(TokenType_EndScope))
         {
@@ -524,11 +520,11 @@ ScopedCodeBlockNode* Parser::parse_scope()
     return result;
 }
 
-CodeBlockNode* Parser::parse_code_block()
+ScopeNode* Parser::parse_code_block(bool _create_scope)
 {
     start_transaction();
 
-    auto block = m_graph->newCodeBlock();
+    auto curr_scope = _create_scope ? m_graph->newScope() : get_current_scope();
 
     bool stop = false;
 
@@ -537,19 +533,19 @@ CodeBlockNode* Parser::parse_code_block()
     {
         if ( InstructionNode* instruction = parse_instruction() )
         {
-            m_graph->connect(instruction, block, RelationType::IS_CHILD_OF);
-        }
-        else if ( ScopedCodeBlockNode* scope = parse_scope() )
-        {
-            m_graph->connect(scope, block, RelationType::IS_CHILD_OF);
+            m_graph->connect(instruction, curr_scope, RelationType::IS_CHILD_OF);
         }
         else if ( ConditionalStructNode* condStruct = parse_conditional_structure() )
         {
-            m_graph->connect(condStruct, block, RelationType::IS_CHILD_OF);
+            m_graph->connect(condStruct, curr_scope, RelationType::IS_CHILD_OF);
         }
         else if ( ForLoopNode* for_loop = parse_for_loop() )
         {
-            m_graph->connect(for_loop, block, RelationType::IS_CHILD_OF);
+            m_graph->connect(for_loop, curr_scope, RelationType::IS_CHILD_OF);
+        }
+        else if ( ScopeNode* inner_scope = parse_scope() )
+        {
+            m_graph->connect(inner_scope, curr_scope, RelationType::IS_CHILD_OF);
         }
         else
         {
@@ -557,16 +553,16 @@ CodeBlockNode* Parser::parse_code_block()
         }
     }
 
-    if (block->get_children().empty() )
+    if (curr_scope->get_children().empty() )
     {
-        m_graph->deleteNode(block);
+        m_graph->deleteNode(curr_scope);
         rollback_transaction();
         return nullptr;
     }
     else
     {
         commit_transaction();
-        return block;
+        return curr_scope;
     }
 }
 
@@ -855,7 +851,7 @@ Member* Parser::parse_function_call()
     return nullptr;
 }
 
-ScopedCodeBlockNode *Parser::get_current_scope()
+ScopeNode *Parser::get_current_scope()
 {
     return m_scope_stack.top();
 }
@@ -876,7 +872,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
         if ( condition)
         {
             m_graph->connect(condition, condStruct->get_condition() );
-            if ( ScopedCodeBlockNode* scopeIf = parse_scope() )
+            if ( ScopeNode* scopeIf = parse_scope() )
             {
                 m_graph->connect(scopeIf, condStruct, RelationType::IS_CHILD_OF);
 
@@ -884,7 +880,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
                 {
                     condStruct->set_token_else(m_token_ribbon.getEaten());
 
-                    if ( ScopedCodeBlockNode* scopeElse = parse_scope() )
+                    if ( ScopeNode* scopeElse = parse_scope() )
                     {
                         m_graph->connect(scopeElse, condStruct, RelationType::IS_CHILD_OF);
                         commit_transaction();
@@ -991,7 +987,7 @@ ForLoopNode* Parser::parse_for_loop()
         m_graph->connect(cond_instr, for_loop_node->get_condition() );
         m_graph->connect(iter_instr, for_loop_node->get_iter_expr() );
 
-        ScopedCodeBlockNode* for_scope = parse_scope();
+        ScopeNode* for_scope = parse_scope();
         if ( !for_scope )
         {
             LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")

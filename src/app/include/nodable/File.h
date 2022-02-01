@@ -18,7 +18,7 @@ namespace Nodable
     class GraphNode;
     class Language;
     class AbstractNodeFactory;
-    class ScopedCodeBlockNode;
+    class ScopeNode;
     class History;
     class FileView;
 
@@ -28,7 +28,7 @@ namespace Nodable
 		File(std::string, const char* /*_content*/);
         ~File();
 
-        observe::Event<ScopedCodeBlockNode*>     m_onExpressionParsedIntoGraph;
+        observe::Event<ScopeNode*>     m_onExpressionParsedIntoGraph;
 
 		std::string                      getName()const
         {

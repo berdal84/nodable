@@ -10,7 +10,6 @@ namespace Nodable
 {
     // forward declarations
     struct Token;
-    class CodeBlockNode;
 
     /*
         The role of this class is to symbolize an instruction.

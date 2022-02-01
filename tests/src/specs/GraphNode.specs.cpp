@@ -5,7 +5,7 @@
 #include <nodable/GraphNode.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/VariableNode.h>
-#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 #include <nodable/HeadlessNodeFactory.h>
 #include <nodable/Wire.h>
 #include <nodable/LanguageNodable.h>
@@ -99,7 +99,7 @@ TEST( GraphNode, create_and_delete_relations)
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
-    ScopedCodeBlockNode* program = graph.getProgram();
+    ScopeNode* program = graph.getProgram();
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
     Node* n1 = graph.newVariable(Type_Any, "n1", program);
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
@@ -138,7 +138,7 @@ TEST(Graph, by_reference_assign)
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
-    ScopedCodeBlockNode* program = graph.getProgram();
+    ScopeNode* program = graph.getProgram();
 
     // create b
     auto b = graph.newVariable(Type_Double, "b", program);

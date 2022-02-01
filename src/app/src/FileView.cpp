@@ -5,7 +5,7 @@
 #include <nodable/GraphNode.h>
 #include <nodable/GraphNodeView.h>
 #include <nodable/Settings.h>
-#include <nodable/ScopedCodeBlockNode.h>
+#include <nodable/ScopeNode.h>
 
 using namespace Nodable;
 
@@ -14,7 +14,7 @@ FileView::FileView(File *_file)
         , m_hasChanged(false)
         , m_file(_file)
 {
-    m_observer.observe( _file->m_onExpressionParsedIntoGraph, [](ScopedCodeBlockNode* program)
+    m_observer.observe( _file->m_onExpressionParsedIntoGraph, [](ScopeNode* program)
     {
         if ( program )
         {
