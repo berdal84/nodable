@@ -127,7 +127,7 @@ bool VM::_stepOver()
                     auto scope = ((Node *) next_instr->m_right_h_arg)->get<Scope>();
                     for( VariableNode* each_var : scope->get_variables() )
                     {
-                        if ( !each_var->isDefined() )
+                        if ( each_var->isDefined() )
                         {
                             each_var->undefine();
                             NODABLE_ASSERT(!each_var->isDefined());
