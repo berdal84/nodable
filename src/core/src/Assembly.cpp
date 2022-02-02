@@ -91,9 +91,12 @@ std::string Nodable::to_string(FctId _id)
 {
     switch( _id)
     {
-        case FctId::eval_member:     return "eval_member";
-        case FctId::pop_stack_frame: return "pop_stack_frame";
-        default:                     return "???";
+        case FctId::eval_member:      return "eval_member";
+        case FctId::eval_node:        return "eval_node";
+        case FctId::push:             return "push";
+        case FctId::pop_stack_frame:  return "pop_stack_frame";
+        case FctId::push_stack_frame: return "push_stack_frame";
+        default:                      return "???";
     }
 }
 
@@ -139,10 +142,69 @@ Code* Asm::Compiler::get_output_assembly()
     return m_output;
 }
 
+void Asm::Compiler::append_to_assembly_code(const Member *_member)
+{
+    if ( _member ) {
+        /*
+         * if the member has no input it means it is a simple literal value and we have nothing to compute,
+         * instead we traverse the syntax tree starting from the node connected to it.
+         * Once we have the list of the nodes to be updated, we loop on them.
+         * TODO: traverse graph in advance during compilation step.
+         */
+
+        if (Member *input = _member->getInput()) {
+            /*
+             * traverse the syntax tree (graph)
+             */
+            TraversalFlag flags =
+                    TraversalFlag_FollowInputs
+                    | TraversalFlag_FollowNotDirty // eval all
+                    | TraversalFlag_AvoidCycles;   // but avoid loops caused by references.
+
+            m_traversal.traverse(input->getOwner(), flags);
+
+            /*
+             * eval each traversed node
+             */
+            size_t idx = 1;
+            for (auto *each_node_to_eval : m_traversal.getStats().m_traversed) {
+                Instr *instr = m_output->push_instr(Instr_t::call);
+                instr->m_left_h_arg = (i64_t) FctId::eval_node;
+                instr->m_right_h_arg = (i64_t) each_node_to_eval;
+                instr->m_comment = "eval " + std::string{each_node_to_eval->getLabel()};
+                idx++;
+            }
+        }
+
+        {
+            Instr *instr = m_output->push_instr(Instr_t::call);
+            instr->m_left_h_arg = (i64_t) FctId::eval_node;
+            instr->m_right_h_arg = (i64_t) _member->getOwner();
+            instr->m_comment = "eval " + std::string{_member->getOwner()->getLabel()};
+        }
+
+        {
+            Instr *instr = m_output->push_instr(Instr_t::call);
+            instr->m_left_h_arg = (i64_t) FctId::eval_member;
+            instr->m_right_h_arg = (i64_t) _member;
+            instr->m_comment = "eval " + std::string{_member->getOwner()->getLabel()} + " -> " + _member->getName();
+        }
+    }
+}
+
 void Asm::Compiler::append_to_assembly_code(const Node* _node)
 {
     if ( _node )
     {
+        if (_node->has<Scope>() )
+        {
+            // push_stack_frame
+            Instr *instr = m_output->push_instr(Instr_t::call);
+            instr->m_left_h_arg = (i64_t) FctId::push_stack_frame;
+            instr->m_right_h_arg = (i64_t) _node;
+            instr->m_comment = "begin scope";
+        }
+
         if ( _node->get_class()->is<AbstractConditionalStruct>() )
         {
             auto cond = _node->as<AbstractConditionalStruct>();
@@ -150,16 +212,11 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
             // for_loop init instruction
             if ( auto for_loop = _node->as<ForLoopNode>() )
             {
-                auto init_instr = m_output->push_instr(Instr_t::call  );
-                init_instr->m_left_h_arg = (i64_t)FctId::eval_member;
-                init_instr->m_right_h_arg = (i64_t)for_loop->get_init_expr();
-                init_instr->m_comment = "init-loop";
+                append_to_assembly_code( for_loop->get_init_expr() );
             }
 
-            Instr* cond_instr = m_output->push_instr(Instr_t::call);
-            cond_instr->m_left_h_arg = (i64_t)FctId::eval_member;
-            cond_instr->m_right_h_arg = (i64_t)cond->get_condition();
-            cond_instr->m_comment = "condition";
+            long condition_instr_line = get_output_assembly()->get_next_pushed_instr_index();
+            append_to_assembly_code( cond->get_condition() );
 
             Instr* store_instr = m_output->push_instr(Instr_t::mov);
             store_instr->m_left_h_arg = Register::rdx;
@@ -178,13 +235,11 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
                 if ( auto for_loop = _node->as<ForLoopNode>() )
                 {
                     // insert end-loop instruction.
-                    auto end_loop_instr = m_output->push_instr(Instr_t::call);
-                    end_loop_instr->m_left_h_arg = (i64_t)FctId::eval_member;
-                    end_loop_instr->m_right_h_arg  = (i64_t)for_loop->get_iter_expr();
+                    append_to_assembly_code( for_loop->get_iter_expr() );
 
                     // insert jump to condition instructions.
                     auto loop_jump = m_output->push_instr(Instr_t::jmp);
-                    loop_jump->m_left_h_arg = cond_instr->m_line - loop_jump->m_line;
+                    loop_jump->m_left_h_arg = condition_instr_line - loop_jump->m_line;
                     loop_jump->m_comment = "jump back to loop begining";
 
                 }
@@ -209,22 +264,21 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
             {
                 append_to_assembly_code(each);
             }
+        }
+        else
+        {
+            append_to_assembly_code( _node->getProps()->get("value") );
+        }
 
-            // unset scope's VariableNodes except if is main_scope
-            if ( _node->get_parent() )
+        if (_node->has<Scope>() )
+        {
+            // pop_stack_frame
             {
                 Instr *instr = m_output->push_instr(Instr_t::call);
                 instr->m_left_h_arg = (i64_t) FctId::pop_stack_frame;
                 instr->m_right_h_arg = (i64_t) _node;
-                instr->m_comment = "reset stack (unset VariableNodes)";
+                instr->m_comment = "end scope";
             }
-        }
-        else
-        {
-            Instr* instr = m_output->push_instr(Instr_t::call);
-            instr->m_left_h_arg  = (i64_t)FctId::eval_member;
-            instr->m_right_h_arg = (i64_t)_node->getProps()->get("value");
-            instr->m_comment     = "Evaluate a member and store result.";
         }
     }
 }

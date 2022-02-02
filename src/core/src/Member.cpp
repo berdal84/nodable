@@ -14,7 +14,7 @@ Member::Member()
         m_sourceToken(Token::s_null),
         m_input(nullptr),
         m_parentProperties(nullptr),
-        m_connected_by(ConnectBy_Ref)
+        m_connected_by(ConnectBy_Copy)
     {}
 
 Member::Member(double d): Member()
@@ -99,4 +99,9 @@ void Member::digest(Member *_member)
 
 bool Member::is_connected_by(ConnBy_ by) {
     return m_connected_by == by;
+}
+
+void Member::define()
+{
+    m_variant.define();
 }

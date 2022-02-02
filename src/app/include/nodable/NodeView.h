@@ -186,7 +186,7 @@ namespace Nodable
         void                    toggleExpansion();
     private:
         virtual bool    update(float _deltaTime);
-		bool            drawMemberView(MemberView *_memberView);
+		bool            drawMemberView(MemberView *_view);
         void            drawMemberViewConnector(MemberView* _view, Way _way, float _connectorRadius);
         bool            isMemberExposed(const Member *_member)const;
 

@@ -4,6 +4,7 @@
 #include <vector>
 #include <mpark/variant.hpp>
 #include <nodable/Nodable.h>
+#include <nodable/GraphTraversal.h>
 
 namespace Nodable
 {
@@ -32,7 +33,10 @@ namespace Nodable
          */
         enum class FctId: i64_t
         {
+            push,
             eval_member,
+            eval_node,
+            push_stack_frame,
             pop_stack_frame
         };
 
@@ -90,11 +94,14 @@ namespace Nodable
         public:
             Compiler():m_output(nullptr){}
             bool          create_assembly_code(const Node* _program);
-            void          append_to_assembly_code(const Node* _node);
             Code*         get_output_assembly();
             static bool   is_program_valid(const Node* _program);
         private:
-            Code* m_output;
+            void          append_to_assembly_code(const Node* _node);
+            void          append_to_assembly_code(const Member *_member);
+
+            Code*          m_output;
+            GraphTraversal m_traversal;
         };
     }
 

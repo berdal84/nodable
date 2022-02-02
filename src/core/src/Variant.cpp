@@ -101,7 +101,8 @@ void Variant::undefine()
 void Variant::set(const Variant* _other)
 {
 	data = _other->data;
-    m_isDefined = true;
+    m_isDefined = _other->m_isDefined;
+    setType(_other->getType());
 }
 
 std::string Variant::getTypeAsString()const
@@ -119,6 +120,7 @@ void Variant::setType(Type _type)
 {
 	if (getType() != _type)
 	{
+		undefine();
 
 		// Set a default value (this will change the type too)
 		switch (_type)
@@ -213,3 +215,9 @@ Variant::operator int()const          { return (int)(double)*this; }
 Variant::operator double()const       { return convert_to<double>(); }
 Variant::operator bool()const         { return convert_to<bool>(); }
 Variant::operator std::string ()const { return convert_to<std::string>(); }
+
+void Variant::define()
+{
+    /* declare variant as "defined" without affecting a value, existing data will be used */
+    m_isDefined = true;
+}

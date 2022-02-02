@@ -85,6 +85,8 @@ namespace Nodable
 
         bool is_connected_by(ConnBy_ by);
 
+        void define();
+
     private:
         // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()
         Variant& get_variant(){ return (m_input && m_connected_by == ConnectBy_Ref) ? m_input->m_variant : m_variant; }

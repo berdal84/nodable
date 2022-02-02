@@ -489,27 +489,28 @@ bool NodeView::draw()
 	return edited;
 }
 
-bool NodeView::drawMemberView(MemberView* _memberView )
+bool NodeView::drawMemberView(MemberView* _view )
 {
     bool edited = false;
-    Member* member = _memberView->m_member;
+    Member* member = _view->m_member;
 
-    if( !_memberView->m_touched )
-    {
-        const bool isAnInputUnconnected = member->getInput() != nullptr || !member->allowsConnection(Way_In);
-        const bool isVariable = member->getOwner()->get_class()->is<VariableNode>();
-        const bool isLiteral  = member->getOwner()->get_class()->is<LiteralNode>();
-        _memberView->m_showInput = _memberView->m_member->isDefined() && (!isAnInputUnconnected || isLiteral || isVariable || s_viewDetail == NodeViewDetail::Exhaustive) ;
-    }
+    // show/hide
+    const bool isAnInputUnconnected = member->getInput() != nullptr || !member->allowsConnection(Way_In);
+    Reflect::Class* owner_class = member->getOwner()->get_class();
+    const bool isVariable = owner_class->is<VariableNode>();
+    const bool isLiteral  = owner_class->is<LiteralNode>();
+    _view->m_showInput = _view->m_touched;
+    _view->m_showInput |= member->isDefined() && (!isAnInputUnconnected || isLiteral || s_viewDetail == NodeViewDetail::Exhaustive);
+    _view->m_showInput |= isVariable && member->isDefined() && member->getOwner()->as<VariableNode>()->isDeclared();
 
-    _memberView->m_screenPos = ImGui::GetCursorScreenPos();
+    _view->m_screenPos = ImGui::GetCursorScreenPos();
 
     // input
-    if ( _memberView->m_showInput )
+    if ( _view->m_showInput )
     {
         // try to draw an as small as possible input field
         float inputWidth = 5.0f + std::max( ImGui::CalcTextSize(((std::string)*member).c_str()).x, NodeView::s_memberInputSizeMin );
-        _memberView->m_screenPos.x += inputWidth / 2.0f;
+        _view->m_screenPos.x += inputWidth / 2.0f;
         ImGui::PushItemWidth(inputWidth);
         edited = NodeView::DrawMemberInput(member);
         ImGui::PopItemWidth();
@@ -517,7 +518,7 @@ bool NodeView::drawMemberView(MemberView* _memberView )
     else
     {
         ImGui::Button("", NodeView::s_memberInputToggleButtonSize);
-        _memberView->m_screenPos.x += NodeView::s_memberInputToggleButtonSize.x / 2.0f;
+        _view->m_screenPos.x += NodeView::s_memberInputToggleButtonSize.x / 2.0f;
 
         if ( ImGui::IsItemHovered() )
         {
@@ -530,8 +531,8 @@ bool NodeView::drawMemberView(MemberView* _memberView )
 
         if ( ImGui::IsItemClicked(0) )
         {
-            _memberView->m_showInput = !_memberView->m_showInput;
-            _memberView->m_touched = true;
+            _view->m_showInput = !_view->m_showInput;
+            _view->m_touched = true;
         }
     }
 
@@ -637,19 +638,29 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
         // label (<name> (<way> <type>): )
         ImGui::SetNextItemWidth(labelColumnWidth);
         ImGui::Text(
-                "%s (%s, %s): ",
+                "%s (%s, %s%s %s): ",
                 _member->getName().c_str(),
                 WayToString(_member->getConnectorWay()).c_str(),
-                _member->getTypeAsString().c_str());
+                _member->is_connected_by(ConnectBy_Ref) ? "&" : "",
+                _member->getTypeAsString().c_str(),
+                _member->isDefined() ? "" : ", undefined!");
 
+        ImGui::SameLine();
+        ImGui::Text("(?)");
+        if ( ImGui::IsItemHovered() )
+        {
+            ImGui::BeginTooltip();
+            ImGui::Text(R"(Source token: [prefix: "%s", word: "%s", suffix: "%s"])",
+                        _member->getSourceToken()->m_prefix.c_str(),
+                        _member->getSourceToken()->m_word.c_str(),
+                        _member->getSourceToken()->m_suffix.c_str()
+            );
+            ImGui::EndTooltip();
+        }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
         NodeView::DrawMemberInput(_member);
-        ImGui::Text(R"(token: [%s,%s,%s])",
-                    _member->getSourceToken()->m_prefix.c_str(),
-                    _member->getSourceToken()->m_word.c_str(),
-                    _member->getSourceToken()->m_suffix.c_str()
-                    );
+
     };
 
     // Draw exposed input members

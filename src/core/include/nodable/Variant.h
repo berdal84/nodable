@@ -51,6 +51,8 @@ namespace Nodable {
         operator std::string ()const;
 
 
+        void define();
+
     private:
         bool m_isDefined;
 
@@ -70,5 +72,5 @@ namespace Nodable {
             double,
             std::string
 		> data;
-	};
+    };
 }

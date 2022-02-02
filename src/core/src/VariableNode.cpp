@@ -13,7 +13,17 @@ VariableNode::VariableNode(Type type)
     m_identifierToken(nullptr),
     m_assignmentOperatorToken(nullptr)
 {
-	m_props.add("value", Visibility::Always, type, Way_InOut);
+	Member* value = m_props.add("value", Visibility::Always, type, Way_InOut);
+}
+
+bool VariableNode::eval() const
+{
+    if ( !isDefined() )
+    {
+        value()->define();
+        Node::eval();
+    }
+    return true;
 }
 
 void VariableNode::setName(const char* _name)
@@ -34,4 +44,9 @@ void VariableNode::setName(const char* _name)
     }
 
     value()->setSourceExpression(_name);
+}
+
+void VariableNode::define()
+{
+    value()->define();
 }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nodable/Nodable.h>
-#include <nodable/GraphTraversal.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/Assembly.h>
 
@@ -39,7 +38,6 @@ namespace Nodable
             void                  advance_cursor(i64_t _amount = 1) { m_register[Register::esp] += _amount; }
             void                  reset_cursor(){ m_register[Asm::Register::esp] = 0; };
             bool                  _stepOver();
-            GraphTraversal        m_traversal;
             Node*                 m_program_graph;
             Asm::Code*            m_program_asm_code;
             Node*                 m_next_node;
