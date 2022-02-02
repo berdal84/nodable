@@ -240,6 +240,35 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
     return _result;
 }
 
+std::string& Serializer::serialize(std::string& _result, const Node* _node) const
+{
+    NODABLE_ASSERT(_node != nullptr)
+    auto clss = _node->get_class();
+
+    if ( clss->is<InstructionNode>())
+    {
+        serialize(_result, _node->as<InstructionNode>());
+    }
+    else if ( clss->is<ConditionalStructNode>() )
+    {
+        serialize( _result, _node->as<ConditionalStructNode>());
+    }
+    else if ( clss->is<ForLoopNode>() )
+    {
+        serialize( _result, _node->as<ForLoopNode>());
+    }
+    else if ( _node->has<Scope>() )
+    {
+        serialize( _result, _node->get<Scope>() );
+    }
+    else
+    {
+        NODABLE_ASSERT(false); // Node class not handled !
+    }
+
+    return _result;
+}
+
 std::string& Serializer::serialize(std::string& _result, const Scope* _scope) const
 {
 
@@ -249,28 +278,7 @@ std::string& Serializer::serialize(std::string& _result, const Scope* _scope) co
     {
         for( auto& eachChild : children )
         {
-            auto clss = eachChild->get_class();
-
-            if ( clss->is<InstructionNode>())
-            {
-                serialize(_result, eachChild->as<InstructionNode>());
-            }
-            else if ( clss->is<ConditionalStructNode>() )
-            {
-                 serialize( _result, eachChild->as<ConditionalStructNode>());
-            }
-            else if ( clss->is<ForLoopNode>() )
-            {
-                 serialize( _result, eachChild->as<ForLoopNode>());
-            }
-            else if ( eachChild->has<Scope>() )
-            {
-                serialize( _result, eachChild->get<Scope>() );
-            }
-            else
-            {
-                NODABLE_ASSERT(false); // Node class not handled !
-            }
+            serialize( _result, eachChild );
         }
     }
 
@@ -365,14 +373,9 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     {
         serialize( _result, tokenElse );
         Scope* elseScope = _condStruct->get_condition_false_branch();
-        Reflect::Class* elseClass = elseScope->get_class();
-        if ( elseClass == ConditionalStructNode::Get_class()) // else if ?
+        if ( elseScope )
         {
-            serialize( _result, elseScope->as<ConditionalStructNode>() );
-        }
-        else
-        {
-            serialize( _result, elseScope );
+            serialize( _result, elseScope->get_owner() );
         }
     }
     return _result;

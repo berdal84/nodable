@@ -91,7 +91,7 @@ namespace Nodable
         }
 
         Serializer *serializer = lang->getSerializer();
-        serializer->serialize(result, graph.getProgram()->get<Scope>() );
+        serializer->serialize(result, graph.getProgram() );
         LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize serialize output is: %s\n", result.c_str());
 
         return result;

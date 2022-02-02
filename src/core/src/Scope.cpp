@@ -72,9 +72,9 @@ Node* Scope::get_last_code_block()
 
 void Scope::add_variable(VariableNode* _variableNode)
 {
-    if (this->find_variable(_variableNode->getName()) == nullptr)
+    if ( !find_variable(_variableNode->getName()) )
     {
-        this->m_variables.push_back(_variableNode);
+        m_variables.push_back(_variableNode);
     }
     else
     {

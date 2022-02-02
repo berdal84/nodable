@@ -15,6 +15,7 @@
 #include <nodable/NodeView.h>
 #include <nodable/MemberConnector.h>
 #include <nodable/NodeConnector.h>
+#include <nodable/Scope.h>
 
 using namespace Nodable;
 using namespace Nodable::Asm;
@@ -45,7 +46,7 @@ bool GraphNodeView::draw()
         for (auto& each_next : each_node->getNext() )
         {
             NodeView *each_view      = each_node->get<NodeView>();
-            NodeView *each_next_view = each_next->getComponent<NodeView>();
+            NodeView *each_next_view = each_next->get<NodeView>();
             if (each_view && each_next_view && each_view->isVisible() && each_next_view->isVisible() )
             {
                 float viewWidthMin = std::min(each_next_view->getRect().GetSize().x, each_view->getRect().GetSize().x);
@@ -312,18 +313,18 @@ bool GraphNodeView::draw()
             if ( is_dragging_member_connector )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-                    newNode = graph->newVariable(MemberConnector::GetDragged()->getMember()->getType(), "var", graph->getProgram());
+                    newNode = graph->newVariable(MemberConnector::GetDragged()->getMember()->getType(), "var", graph->getProgram()->get<Scope>() );
             }
             else if ( ImGui::BeginMenu("Variable") )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                    newNode = graph->newVariable(Type_Boolean, "var", graph->getProgram());
+                    newNode = graph->newVariable(Type_Boolean, "var", graph->getProgram()->get<Scope>() );
 
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                    newNode = graph->newVariable(Type_Double, "var", graph->getProgram());
+                    newNode = graph->newVariable(Type_Double, "var", graph->getProgram()->get<Scope>() );
 
                 if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                    newNode = graph->newVariable(Type_String, "var", graph->getProgram());
+                    newNode = graph->newVariable(Type_String, "var", graph->getProgram()->get<Scope>() );
 
                 ImGui::EndMenu();
             }

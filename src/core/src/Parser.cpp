@@ -850,9 +850,10 @@ Member* Parser::parse_function_call()
 
     std::string signature_str;
     m_language->getSerializer()->serialize(signature_str, &signature);
-    LOG_ERROR("Parser", "parse function call... " KO " abort, reason: %s not found.\n", signature_str.c_str() )
+    std::string error_str {"parse function call... " KO " abort, reason: " + signature_str + " not found.\n"};
+    LOG_ERROR("Parser", error_str.c_str() );
     rollback_transaction();
-    return nullptr;
+    throw std::runtime_error( error_str );
 }
 
 Scope* Parser::get_current_scope()
@@ -866,10 +867,13 @@ ConditionalStructNode * Parser::parse_conditional_structure()
     LOG_VERBOSE("Parser", "try to parse conditional structure...\n")
     start_transaction();
 
+    bool success = false;
     auto condStruct = m_graph->newConditionalStructure();
 
     if ( m_token_ribbon.eatToken(TokenType_KeywordIf))
     {
+        m_scope_stack.push( condStruct->get<Scope>() );
+
         condStruct->set_token_if(m_token_ribbon.getEaten());
 
         auto condition = parse_parenthesis_expression();
@@ -883,28 +887,29 @@ ConditionalStructNode * Parser::parse_conditional_structure()
                 {
                     condStruct->set_token_else(m_token_ribbon.getEaten());
 
-                    if ( Node* scopeElse = parse_scope() )
+                    /* parse else scope */
+                    if ( parse_scope() )
                     {
-                        commit_transaction();
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
-                        return condStruct;
+                        success = true;
                     }
-
-                    if ( ConditionalStructNode* elseIfCondStruct = parse_conditional_structure() )
+                    /* (or) parse else if scope */
+                    else if ( ConditionalStructNode* elseIfCondStruct = parse_conditional_structure() )
                     {
 						m_graph->connect(elseIfCondStruct, condStruct, Relation_t::IS_CHILD_OF);
-                        commit_transaction();
 						LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
-						return condStruct;
+                        success = true;
+                    }
+                    else
+                    {
+                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
+                        m_graph->deleteNode(scopeIf);
                     }
 
-                    LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
-                    m_graph->deleteNode(scopeIf);
 
                 } else {
-                    commit_transaction();
-                    LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n")
-                    return condStruct;
+                     LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n")
+                    success = true;
                 }
             }
             else
@@ -912,11 +917,20 @@ ConditionalStructNode * Parser::parse_conditional_structure()
                 LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n")
             }
         }
+        m_scope_stack.pop();
     }
 
-    m_graph->deleteNode(condStruct);
-    rollback_transaction();
-    return nullptr;
+    if (success)
+    {
+        commit_transaction();
+    }
+    else
+    {
+        m_graph->deleteNode(condStruct);
+        rollback_transaction();
+    }
+
+    return condStruct;
 }
 
 ForLoopNode* Parser::parse_for_loop()

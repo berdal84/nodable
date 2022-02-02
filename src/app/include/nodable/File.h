@@ -15,6 +15,7 @@
 namespace Nodable
 {
     // forward declarations
+    class Node;
     class GraphNode;
     class Language;
     class AbstractNodeFactory;
