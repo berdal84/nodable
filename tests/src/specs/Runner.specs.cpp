@@ -36,7 +36,19 @@ TEST(Runner, Cond_2 )
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "default" );
 }
 
-TEST(Runner, Loop_1 )
+TEST(Runner, Loop_1_using_global_var )
+{
+    std::string program =
+            "string res = \"\";" \
+            "for(double n=0;n<10;n=n+1){"
+            "   res = res + to_string(n);"
+            "}"
+            "res;";
+
+    EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "0123456789" );
+}
+
+TEST(Runner, Loop_1_using_local_var )
 {
     std::string program =
             "string res = \"\";" \
@@ -49,7 +61,7 @@ TEST(Runner, Loop_1 )
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "0123456789" );
 }
 
-TEST(Runner, Loop_2 )
+TEST(Runner, Loop_2_using_global_var )
 {
     std::string program =
             "double n;"

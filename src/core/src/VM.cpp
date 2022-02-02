@@ -122,7 +122,7 @@ bool VM::_stepOver()
 
             switch( fct_id )
             {
-                case FctId::unset_variables:
+                case FctId::pop_stack_frame:
                 {
                     auto scope = ((Node *) next_instr->m_right_h_arg)->get<Scope>();
                     for( VariableNode* each_var : scope->get_variables() )

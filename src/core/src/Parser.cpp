@@ -949,6 +949,9 @@ ForLoopNode* Parser::parse_for_loop()
     if( token_for != nullptr )
     {
         for_loop_node = m_graph->new_for_loop_node();
+        m_graph->connect( for_loop_node, m_scope_stack.top()->get_owner(), Relation_t::IS_CHILD_OF );
+        m_scope_stack.push( for_loop_node->get<Scope>() );
+
         for_loop_node->set_token_for( token_for );
 
         LOG_VERBOSE("Parser", "parse FOR (...) block...\n")
@@ -959,8 +962,6 @@ ForLoopNode* Parser::parse_for_loop()
         }
         else
         {
-            m_scope_stack.push( for_loop_node->get<Scope>() );
-
             Member *init_instr = parse_expression();
             if (!init_instr)
             {
@@ -1018,9 +1019,8 @@ ForLoopNode* Parser::parse_for_loop()
                     }
                 }
             }
-
-            m_scope_stack.pop();
         }
+        m_scope_stack.pop();
     }
 
     if ( success )

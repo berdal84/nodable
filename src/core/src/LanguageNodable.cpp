@@ -162,7 +162,7 @@ bool api_lower(double a, double b)
     return a < b;
 }
 
-std::string api_to_string(double n) { return std::to_string(n); }
+std::string api_to_string(double n) { return String::from(n); }
 std::string api_to_string(bool b) { return b ? "true" : "false"; }
 std::string api_to_string(std::string s) { return s; }
 

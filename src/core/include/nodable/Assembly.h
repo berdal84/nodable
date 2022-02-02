@@ -33,7 +33,7 @@ namespace Nodable
         enum class FctId: i64_t
         {
             eval_member,
-            unset_variables
+            pop_stack_frame
         };
 
         /**

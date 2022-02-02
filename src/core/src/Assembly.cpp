@@ -91,8 +91,9 @@ std::string Nodable::to_string(FctId _id)
 {
     switch( _id)
     {
-        case FctId::eval_member: return "eval_member";
-        default:                 return "???";
+        case FctId::eval_member:     return "eval_member";
+        case FctId::pop_stack_frame: return "pop_stack_frame";
+        default:                     return "???";
     }
 }
 
@@ -213,7 +214,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
             if ( _node->get_parent() )
             {
                 Instr *instr = m_output->push_instr(Instr_t::call);
-                instr->m_left_h_arg = (i64_t) FctId::unset_variables;
+                instr->m_left_h_arg = (i64_t) FctId::pop_stack_frame;
                 instr->m_right_h_arg = (i64_t) _node;
                 instr->m_comment = "reset stack (unset VariableNodes)";
             }
