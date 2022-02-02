@@ -373,8 +373,8 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
                     }
                     else
                     {
-                        std::vector<InstructionNode *> last_instructions;
-                        auto back = _target->get_children().back();
+                        auto& children = _target->get_children();
+                        Node* back = children.back();
                         if (auto scope = back->get<Scope>() )
                         {
                             if (back->get_class()->is<ForLoopNode>() )
@@ -383,14 +383,13 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
                             }
                             else
                             {
+                                std::vector<InstructionNode *> last_instructions;
                                 scope->get_last_instructions(last_instructions);
-                                NODABLE_ASSERT(!last_instructions.empty())
+                                for (InstructionNode *each_instruction : last_instructions)
+                                {
+                                    connect(_source, each_instruction, Relation_t::IS_NEXT_OF, false);
+                                }
                             }
-                        }
-
-                        for (InstructionNode *each_instruction : last_instructions)
-                        {
-                            connect(_source, each_instruction, Relation_t::IS_NEXT_OF, false);
                         }
                     }
 

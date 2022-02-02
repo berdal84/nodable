@@ -145,7 +145,7 @@ Node* HeadlessNodeFactory::newScope() const
     scopeNode->setLabel(label);
     scopeNode->setShortLabel(ICON_FA_CODE_BRANCH " Sc.");
 
-    scopeNode->setPrevMaxCount(1); // allow 1 Nodes to be previous.
+    scopeNode->setPrevMaxCount( std::numeric_limits<int>::max() );
     scopeNode->setNextMaxCount(1); // allow 1 Nodes to be next.
 
     auto* scope = new Scope();

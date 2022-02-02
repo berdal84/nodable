@@ -27,7 +27,6 @@ namespace Nodable
         const VariableNodes&    get_variables()const override { return m_variables; };
 
     private:
-        Node*                   get_owner_parent() const;
 
         VariableNodes m_variables;
         Token*        m_begin_scope_token;

@@ -44,9 +44,12 @@ bool Parser::source_code_to_graph(const std::string &_source_code, GraphNode *_g
     std::string eol;
     m_language->getSerializer()->serialize(eol, TokenType_EndOfLine);
 
+    LOG_VERBOSE("Parser", "Tokenize begin\n" )
     size_t lineCount = 0;
     while (std::getline(iss, line, eol[0] ))
     {
+        LOG_VERBOSE("Parser", "Tokenize line %i ...\n", lineCount )
+
         if ( lineCount != 0 && !m_token_ribbon.tokens.empty() )
         {
             Token* lastToken = &m_token_ribbon.tokens.back();
@@ -58,9 +61,10 @@ bool Parser::source_code_to_graph(const std::string &_source_code, GraphNode *_g
             LOG_WARNING("Parser", "Unable to tokenize line %i: %s\n", lineCount, line.c_str() )
             return false;
         }
-
+        LOG_VERBOSE("Parser", "Tokenize line %i done.\n", lineCount )
         lineCount++;
     }
+    LOG_VERBOSE("Parser", "Tokenize end\n", lineCount )
 
 	if (m_token_ribbon.empty() )
     {
@@ -179,7 +183,7 @@ Member* Parser::token_to_member(Token *_token)
 			VariableNode* variable = get_current_scope()->find_variable(_token->m_word);
 
 			if (variable == nullptr) {
-                LOG_WARNING("Parser", "Unable to find declaration for %s \n", _token->m_word.c_str())
+                LOG_WARNING("Parser", "Unable to find declaration for %s, Type_Any will be used to allow graph visualisation, but compilation will fail.\n", _token->m_word.c_str())
                 variable = m_graph->newVariable(Type_Any, _token->m_word, get_current_scope() );
                 variable->value()->setSourceToken(_token);
             }
@@ -868,10 +872,11 @@ ConditionalStructNode * Parser::parse_conditional_structure()
     start_transaction();
 
     bool success = false;
-    auto condStruct = m_graph->newConditionalStructure();
+    ConditionalStructNode* condStruct = m_graph->newConditionalStructure();
 
     if ( m_token_ribbon.eatToken(TokenType_KeywordIf))
     {
+        m_graph->connect( condStruct, m_scope_stack.top()->get_owner(), Relation_t::IS_CHILD_OF );
         m_scope_stack.push( condStruct->get<Scope>() );
 
         condStruct->set_token_if(m_token_ribbon.getEaten());
@@ -894,9 +899,8 @@ ConditionalStructNode * Parser::parse_conditional_structure()
                         success = true;
                     }
                     /* (or) parse else if scope */
-                    else if ( ConditionalStructNode* elseIfCondStruct = parse_conditional_structure() )
+                    else if ( parse_conditional_structure() )
                     {
-						m_graph->connect(elseIfCondStruct, condStruct, Relation_t::IS_CHILD_OF);
 						LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
                         success = true;
                     }
@@ -927,6 +931,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
     else
     {
         m_graph->deleteNode(condStruct);
+        condStruct = nullptr;
         rollback_transaction();
     }
 

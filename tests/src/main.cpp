@@ -12,8 +12,8 @@ int main(int argc, char **argv) {
     Log::SetVerbosityLevel("Reflect", Verbosity::Warning);
     Log::SetVerbosityLevel("Language", Verbosity::Warning);
     Log::SetVerbosityLevel("GraphNode", Verbosity::Warning);
-    Log::SetVerbosityLevel("Parser", Verbosity::Message);
-    Log::SetVerbosityLevel("VM", Verbosity::Message);
+    Log::SetVerbosityLevel("Parser", Verbosity::Verbose);
+    Log::SetVerbosityLevel("VM", Verbosity::Verbose);
 
     Reflect::Initialize();
 

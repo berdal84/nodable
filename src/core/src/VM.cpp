@@ -21,6 +21,7 @@ VM::VM()
 bool VM::load_program(Node* _program)
 {
     Asm::Compiler compiler;
+    reset_cursor();
 
     if ( compiler.is_program_valid(_program) )
     {
@@ -45,7 +46,6 @@ bool VM::load_program(Node* _program)
                 advance_cursor(1);
                 curr = get_next_instr();
             }
-            reset_cursor();
             LOG_VERBOSE("VM", "---- Program end -----\n");
             return true;
         }
@@ -65,6 +65,7 @@ void VM::run_program()
     LOG_VERBOSE("VM", "Running...\n")
     m_is_program_running = true;
 
+    reset_cursor();
     while(!is_program_over())
     {
         _stepOver();

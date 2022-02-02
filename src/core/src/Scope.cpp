@@ -48,7 +48,7 @@ VariableNode* Scope::find_variable(const std::string &_name)
      */
     if ( result == nullptr )
     {
-        Node* owner_parent = get_owner_parent();
+        Node* owner_parent = get_owner()->get_parent();
 
         if ( owner_parent )
         {
@@ -82,11 +82,6 @@ void Scope::add_variable(VariableNode* _variableNode)
     }
 }
 
-Node* Scope::get_owner_parent() const
-{
-    return get_owner()->get_parent();
-}
-
 void Scope::get_last_instructions(std::vector<InstructionNode *> & _out)
 {
     auto owner_children = get_owner()->get_children();
@@ -100,9 +95,9 @@ void Scope::get_last_instructions(std::vector<InstructionNode *> & _out)
         {
             _out.push_back(node);
         }
-        else if ( last->has<Scope>() )
+        else if ( auto scope = last->get<Scope>() )
         {
-            node->get<Scope>()->get_last_instructions(_out);
+            scope->get_last_instructions(_out);
         }
     }
 }

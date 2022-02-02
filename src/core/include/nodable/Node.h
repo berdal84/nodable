@@ -188,8 +188,7 @@ namespace Nodable {
 		template<typename T>
 		[[nodiscard]] bool has()const
 		{
-			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-			return get<T>() != nullptr;
+			return get<T>();
 		}
 
 		/**
@@ -222,7 +221,13 @@ namespace Nodable {
 		template<typename T>
 		T* get()const
 		{
-			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
+            static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
+
+		    if ( m_components.empty() )
+            {
+                return nullptr;
+            }
+
 			Reflect::Class* desired_class = T::Get_class();
 
 			// Search with class name
