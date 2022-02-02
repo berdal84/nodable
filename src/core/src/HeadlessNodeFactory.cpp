@@ -161,6 +161,9 @@ ConditionalStructNode* HeadlessNodeFactory::newConditionalStructure() const
     scopeNode->setLabel(label);
     scopeNode->setShortLabel(ICON_FA_QUESTION" Cond.");
 
+    scopeNode->setPrevMaxCount( std::numeric_limits<int>::max() );
+    scopeNode->setNextMaxCount(2); // true/false branches
+
     auto* scope = new Scope();
     scopeNode->addComponent( scope );
 
@@ -173,6 +176,9 @@ ForLoopNode* HeadlessNodeFactory::new_for_loop_node() const
     std::string label = ICON_FA_RECYCLE " For loop";
     for_loop->setLabel(label);
     for_loop->setShortLabel(ICON_FA_RECYCLE" For");
+
+    for_loop->setPrevMaxCount( std::numeric_limits<int>::max() );
+    for_loop->setNextMaxCount(1); // allow 1 Nodes to be next.
 
     auto* scope = new Scope();
     for_loop->addComponent( scope );

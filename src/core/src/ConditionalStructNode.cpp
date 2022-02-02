@@ -11,8 +11,6 @@ ConditionalStructNode::ConditionalStructNode()
     m_token_else(nullptr)
 {
     m_props.add("condition", Visibility::Always, Type_Boolean, Way::Way_In);
-    setPrevMaxCount(1); // allow 1 Nodes to be previous.
-    setNextMaxCount(2); // allow 2 Nodes to be next (branches if and else).
 }
 
 Scope* ConditionalStructNode::get_condition_true_branch() const

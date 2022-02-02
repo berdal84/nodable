@@ -457,6 +457,7 @@ InstructionNode* Parser::parse_instruction()
     }
 
     m_graph->connect(parsedExpression, instruction);
+    m_graph->connect(instruction, m_scope_stack.top()->get_owner(), Relation_t::IS_CHILD_OF);
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n")
     commit_transaction();
@@ -549,10 +550,7 @@ AbstractScope* Parser::parse_code_block(bool _create_scope)
 //    Node* previous = block;
     while(m_token_ribbon.canEat() && !stop )
     {
-        if ( InstructionNode* instruction = parse_instruction() )
-        {
-            m_graph->connect(instruction, curr_scope->get_owner(), Relation_t::IS_CHILD_OF);
-        }
+             if ( parse_instruction() ) {}
         else if ( parse_conditional_structure() ) {}
         else if ( parse_for_loop() ) {}
         else if ( parse_scope() ) {}

@@ -46,10 +46,6 @@ namespace Nodable{
         /** Clear Graph. Delete all Nodes/Wires and reset scope */
 		void                        clear();
 
-		/** Find a VariableNode given its name/identifier
-		 * @return - a valid VariableNode* or nullptr if variable is not found. */
-        [[nodiscard]] VariableNode*           findVariable(std::string);
-
         [[nodiscard]] std::vector<Node*>&     getNodeRegistry() {return m_nodeRegistry;}
         [[nodiscard]] std::vector<Wire*>&     getWireRegistry() {return m_wireRegistry;}
         [[nodiscard]] inline const Language*  getLanguage()const { return m_language; }

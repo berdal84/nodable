@@ -12,8 +12,6 @@ ForLoopNode::ForLoopNode()
     m_props.add("init"     , Visibility::Always, Type_Any     , Way::Way_In);
     m_props.add("condition", Visibility::Always, Type_Boolean , Way::Way_In);
     m_props.add("iter"     , Visibility::Always, Type_Any     , Way::Way_In);
-    setPrevMaxCount(1); // allow 1 Nodes to be previous.
-    setNextMaxCount(2); // allow 2 Nodes to be next (branches if and else).
 }
 
 Scope* ForLoopNode::get_condition_true_branch() const

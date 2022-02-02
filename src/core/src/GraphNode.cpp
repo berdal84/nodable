@@ -136,11 +136,6 @@ void GraphNode::unregisterNode(Node* _node)
     m_nodeRegistry.erase(found);
 }
 
-VariableNode* GraphNode::findVariable(std::string _name)
-{
-	return m_program_root->get<Scope>()->find_variable(_name);
-}
-
 InstructionNode* GraphNode::newInstruction()
 {
 	auto instructionNode = m_factory->newInstruction();
@@ -371,24 +366,21 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
                     {
                         connect(_source, _target, Relation_t::IS_NEXT_OF, false);
                     }
+                    else if ( !_target->get_children().back()->has<Scope>() )
+                    {
+                        connect(_source, _target->get_children().back(), Relation_t::IS_NEXT_OF, false);
+                    }
                     else
                     {
                         auto& children = _target->get_children();
                         Node* back = children.back();
                         if (auto scope = back->get<Scope>() )
                         {
-                            if (back->get_class()->is<ForLoopNode>() )
+                            std::vector<InstructionNode *> last_instructions;
+                            scope->get_last_instructions(last_instructions);
+                            for (InstructionNode *each_instruction : last_instructions)
                             {
-                                connect(_source, back, Relation_t::IS_NEXT_OF, false);
-                            }
-                            else
-                            {
-                                std::vector<InstructionNode *> last_instructions;
-                                scope->get_last_instructions(last_instructions);
-                                for (InstructionNode *each_instruction : last_instructions)
-                                {
-                                    connect(_source, each_instruction, Relation_t::IS_NEXT_OF, false);
-                                }
+                                connect(_source, each_instruction, Relation_t::IS_NEXT_OF, false);
                             }
                         }
                     }
