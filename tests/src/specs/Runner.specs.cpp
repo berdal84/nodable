@@ -79,3 +79,20 @@ TEST(Runner, Loop_2_using_global_var )
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "__49162536496481" );
 }
+
+TEST(Runner, Loop_2_using_local_var )
+{
+    std::string program =
+            "string res = \"\";"
+            "for(double n=0;n<10;n=n+1){"
+            "   double p = pow(n,2);"
+            "   if( p != n ){         /* skip powers equals to n */"
+            "      res = res + p;     /* concat powers */"
+            "   }else{"
+            "      res = res + \"_\"; /* concat \"_\" */"
+            "   }"
+            "}"
+            "res;";
+
+    EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "__49162536496481" );
+}
