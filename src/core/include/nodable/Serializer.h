@@ -31,17 +31,16 @@ namespace Nodable
         std::string& serialize(std::string &_result, const FunctionSignature*)const;
         std::string& serialize(std::string &_result, const TokenType&)const;
         std::string& serialize(std::string &_result, const Type&)const;
-        virtual std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
-        virtual std::string& serialize(std::string &_result, const Token*) const;
-        virtual std::string& serialize(std::string &_result, const InstructionNode*)const;
-        virtual std::string& serialize(std::string &_result, const Node*)const;
-        virtual std::string& serialize(std::string &_result, const Scope*)const;
-        virtual std::string& serialize(std::string& _result, const ForLoopNode* _for_loop)const;
-        virtual std::string& serialize(std::string &_result, const ConditionalStructNode*) const;
-        virtual std::string& serialize(std::string &_result, const Variant* variant) const;
+        std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
+        std::string& serialize(std::string &_result, const Token*) const;
+        std::string& serialize(std::string &_result, const InstructionNode*)const;
+        std::string& serialize(std::string &_result, const Node*)const;
+        std::string& serialize(std::string &_result, const Scope*)const;
+        std::string& serialize(std::string& _result, const ForLoopNode* _for_loop)const;
+        std::string& serialize(std::string &_result, const ConditionalStructNode*) const;
+        std::string& serialize(std::string &_result, const Variant* variant) const;
+        std::string& serialize(std::string &_result, const VariableNode *_node) const;
     protected:
         const Language* language;
-
-        std::string& serialize(std::string &_result, const VariableNode *_node) const;
     };
 }
