@@ -20,6 +20,9 @@ namespace Nodable
         class VM {
         public:
             VM();
+            ~VM() {
+                delete m_program_asm_code;
+            }
             [[nodiscard]] bool    load_program(Node*);
             void                  unload_program();
             void                  run_program();
@@ -33,13 +36,14 @@ namespace Nodable
             inline const Variant* get_last_result() { return (Variant*)m_register[Register::rax]; }
             bool                  is_program_over() { assert(get_next_instr()); return get_next_instr()->m_type == Instr_t::ret; }
             const Code*           get_program_asm_code()const { return m_program_asm_code; }
-            Instr*                get_next_instr(){ return m_register[Register::esp] < m_program_asm_code->size() ? (*m_program_asm_code)[m_register[Register::esp]] : nullptr; };
+            Instr*                get_next_instr(){ return (size_t)m_register[Register::esp] < m_program_asm_code->size() ? m_program_asm_code->at(m_register[Register::esp]) : nullptr; };
         private:
+            void                  clear_registers();
             void                  advance_cursor(i64_t _amount = 1) { m_register[Register::esp] += _amount; }
             void                  reset_cursor(){ m_register[Asm::Register::esp] = 0; };
             bool                  _stepOver();
             Node*                 m_program_graph;
-            Asm::Code*            m_program_asm_code;
+            const Asm::Code*      m_program_asm_code;
             Node*                 m_next_node;
             bool                  m_is_program_running;
             bool                  m_is_debugging;

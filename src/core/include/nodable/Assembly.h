@@ -5,12 +5,15 @@
 #include <mpark/variant.hpp>
 #include <nodable/Nodable.h>
 #include <nodable/GraphTraversal.h>
+#include <unordered_set>
 
 namespace Nodable
 {
     // forward declarations
     class Node;
     class Member;
+    class VariableNode;
+    class InstructionNode;
 
     namespace Asm // Assembly namespace
     {
@@ -79,9 +82,10 @@ namespace Nodable
 
             Instr*        push_instr(Instr_t _type);
             inline size_t size() const { return  m_instructions.size(); }
-            inline Instr* operator[](size_t _index) const { return  m_instructions[_index]; }
+            inline Instr* at(size_t _index) const { return  m_instructions.at(_index); }
             long          get_next_pushed_instr_index() const { return m_instructions.size(); }
             const std::vector<Instr*>& get_instructions()const { return m_instructions; }
+            void          reset();
         private:
             std::vector<Instr*> m_instructions;
         };
@@ -92,16 +96,20 @@ namespace Nodable
         class Compiler
         {
         public:
-            Compiler():m_output(nullptr){}
-            bool          create_assembly_code(const Node* _program);
-            Code*         get_output_assembly();
+            Compiler()= default;
+            /** user is owner for Code*, delete if you don't want to use it anymore */
+            Code*         create_assembly_code(const Node* _program);
             static bool   is_program_valid(const Node* _program);
         private:
             void          append_to_assembly_code(const Node* _node);
             void          append_to_assembly_code(const Member *_member);
+            bool          is_var_declared(const VariableNode *_node)const;
 
+            std::unordered_set<const VariableNode*> m_declared_vars; // TODO: this member should not be needed. The problem is a concept is missing: VariableDeclNode.
             Code*          m_output;
             GraphTraversal m_traversal;
+
+
         };
     }
 

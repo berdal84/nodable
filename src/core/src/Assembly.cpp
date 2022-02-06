@@ -4,6 +4,7 @@
 #include <nodable/AbstractConditionalStruct.h>
 #include <nodable/ForLoopNode.h>
 #include <nodable/Scope.h>
+#include <nodable/InstructionNode.h>
 
 using namespace Nodable;
 using namespace Nodable::Asm;
@@ -102,9 +103,7 @@ std::string Nodable::to_string(FctId _id)
 
 Code::~Code()
 {
-    for( auto each : m_instructions )
-        delete each;
-    m_instructions.clear();
+    reset();
 }
 
 Instr* Code::push_instr(Instr_t _type)
@@ -112,6 +111,14 @@ Instr* Code::push_instr(Instr_t _type)
     Instr* instr = new Instr(_type, m_instructions.size());
     m_instructions.emplace_back(instr);
     return instr;
+}
+
+void Code::reset()
+{
+    for( auto each : m_instructions )
+        delete each;
+    m_instructions.clear();
+    m_instructions.resize(0);
 }
 
 bool Asm::Compiler::is_program_valid(const Node* _program)
@@ -137,42 +144,53 @@ bool Asm::Compiler::is_program_valid(const Node* _program)
     return is_valid;
 }
 
-Code* Asm::Compiler::get_output_assembly()
-{
-    return m_output;
-}
-
 void Asm::Compiler::append_to_assembly_code(const Member *_member)
 {
-    if ( _member ) {
+
+    if ( !_member )
+    {
+        LOG_ERROR("Compiler", "Unable to get member\n");
+    }
+    else
+    {
         /*
          * if the member has no input it means it is a simple literal value and we have nothing to compute,
          * instead we traverse the syntax tree starting from the node connected to it.
          * Once we have the list of the nodes to be updated, we loop on them.
-         * TODO: traverse graph in advance during compilation step.
          */
 
-        if (Member *input = _member->getInput()) {
-            /*
-             * traverse the syntax tree (graph)
-             */
-            TraversalFlag flags =
-                    TraversalFlag_FollowInputs
-                    | TraversalFlag_FollowNotDirty // eval all
-                    | TraversalFlag_AvoidCycles;   // but avoid loops caused by references.
+        Member *input = _member->getInput();
+        if ( input )
+        {
 
-            m_traversal.traverse(input->getOwner(), flags);
+            VariableNode* var_node = input->getOwner()->as<VariableNode>();
+            if ( !var_node || !is_var_declared(var_node))
+            {
+                if ( var_node )
+                {
+                    m_declared_vars.insert(var_node) ;
+                }
 
-            /*
-             * eval each traversed node
-             */
-            size_t idx = 1;
-            for (auto *each_node_to_eval : m_traversal.getStats().m_traversed) {
-                Instr *instr = m_output->push_instr(Instr_t::call);
-                instr->m_left_h_arg = (i64_t) FctId::eval_node;
-                instr->m_right_h_arg = (i64_t) each_node_to_eval;
-                instr->m_comment = "eval " + std::string{each_node_to_eval->getLabel()};
-                idx++;
+                /*
+                 * traverse the syntax tree (graph)
+                 */
+                TraversalFlag flags =
+                        TraversalFlag_FollowInputs
+                        | TraversalFlag_FollowNotDirty // eval all
+                        | TraversalFlag_AvoidCycles;   // but avoid loops caused by references.
+
+                m_traversal.traverse(input->getOwner(), flags);
+
+                /*
+                 * add eval instruction per each traversed node
+                 */
+                for (auto *each_node_to_eval : m_traversal.getStats().m_traversed)
+                {
+                    Instr *instr = m_output->push_instr(Instr_t::call);
+                    instr->m_left_h_arg = (i64_t) FctId::eval_node;
+                    instr->m_right_h_arg = (i64_t) each_node_to_eval;
+                    instr->m_comment = "eval " + std::string{each_node_to_eval->getLabel()};
+                }
             }
         }
 
@@ -215,7 +233,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
                 append_to_assembly_code( for_loop->get_init_expr() );
             }
 
-            long condition_instr_line = get_output_assembly()->get_next_pushed_instr_index();
+            long condition_instr_line = m_output->get_next_pushed_instr_index();
             append_to_assembly_code( cond->get_condition() );
 
             Instr* store_instr = m_output->push_instr(Instr_t::mov);
@@ -270,7 +288,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
             append_to_assembly_code( _node->getProps()->get("value") );
         }
 
-        if (_node->has<Scope>() )
+        if ( auto scope = _node->get<Scope>() )
         {
             // pop_stack_frame
             {
@@ -279,18 +297,24 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
                 instr->m_right_h_arg = (i64_t) _node;
                 instr->m_comment = "end scope";
             }
+
+            // remove vars declared in this scope
+            for ( auto each_var : scope->get_variables() )
+            {
+                m_declared_vars.erase(m_declared_vars.find(each_var ) ); // should never fail.
+            }
         }
     }
 }
 
-bool Asm::Compiler::create_assembly_code(const Node* _program)
+Code* Asm::Compiler::create_assembly_code(const Node* _program)
 {
     /*
      * Here we take the program's base scope node (a tree) and we flatten it to an
      * instruction list. We add some jump instruction in order to skip portions of code.
      * This works "a little bit" like a compiler, at least for the "tree to list" point of view.
      */
-    delete m_output;
+    // delete m_output; we are NOT responsible to delete, m_output point could be in use.
     m_output = new Code();
 
     try
@@ -301,9 +325,15 @@ bool Asm::Compiler::create_assembly_code(const Node* _program)
     catch ( const std::exception& e )
     {
         LOG_ERROR("Compiler", "Unable to create assembly code for program.");
-        m_output = nullptr;
     }
 
-    return m_output != nullptr;
+    return m_output;
+}
+
+bool Compiler::is_var_declared(const VariableNode *_node)const
+{
+    if ( !_node )
+        return false;
+    return m_declared_vars.find(_node) != m_declared_vars.end();
 }
 

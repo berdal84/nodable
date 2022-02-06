@@ -31,10 +31,11 @@ bool VM::load_program(Node* _program)
             unload_program();
         }
 
-        if ( compiler.create_assembly_code(_program) )
+        if ( Code* asm_output = compiler.create_assembly_code(_program) )
         {
             m_program_graph     = _program;
-            m_program_asm_code = compiler.get_output_assembly();
+            delete m_program_asm_code;
+            m_program_asm_code = asm_output;
 
             LOG_MESSAGE("VM", "Program's tree compiled.\n");
             LOG_VERBOSE("VM", "Find bellow the compilation result:\n");
@@ -59,6 +60,13 @@ bool VM::load_program(Node* _program)
     return false;
 }
 
+void VM::clear_registers()
+{
+    for( size_t i = 0; i < std::size( m_register ); ++i )
+    {
+        m_register[i] = (i64_t)0;
+    }
+}
 void VM::run_program()
 {
     NODABLE_ASSERT(m_program_graph != nullptr);
@@ -66,6 +74,7 @@ void VM::run_program()
     m_is_program_running = true;
 
     reset_cursor();
+    clear_registers();
     while(!is_program_over())
     {
         _stepOver();
@@ -270,5 +279,6 @@ void VM::debug_program()
     m_is_debugging = true;
     m_is_program_running = true;
     reset_cursor();
+    clear_registers();
     m_next_node = m_program_graph;
 }
