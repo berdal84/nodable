@@ -5,6 +5,7 @@
 #include <nodable/Node.h>
 
 using namespace Nodable;
+using namespace Nodable::Reflect;
 
 TEST(Node, Add_member_Double)
 {

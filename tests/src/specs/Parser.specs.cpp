@@ -305,8 +305,8 @@ TEST(Parser, not)
     EXPECT_TRUE( ParseAndEvalExpression<bool>("!false;") );
 }
 
-TEST(Parser, var_decl_in_cond )
-{
-    std::string program = "if(double b=0){}";
-    ParseEvalSerializeExpressions({program});
-}
+//TEST(Parser, var_decl_in_cond )
+//{
+//    std::string program = "if(double b=0){}";
+//    ParseEvalSerializeExpressions({program});
+//}

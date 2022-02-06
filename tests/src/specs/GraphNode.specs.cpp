@@ -12,6 +12,7 @@
 #include <nodable/Scope.h>
 
 using namespace Nodable;
+using namespace Nodable::Reflect;
 
 TEST( GraphNode, connect)
 {

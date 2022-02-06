@@ -3,6 +3,7 @@
 #include <nodable/Member.h>
 
 using namespace Nodable;
+using namespace Nodable::Reflect;
 
 TEST(Member, Way_In)
 {

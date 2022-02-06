@@ -8,6 +8,7 @@
 #include <nodable/Token.h>
 #include <nodable/TokenRibbon.h>
 #include <nodable/ForLoopNode.h>
+#include <nodable/Reflect.h>
 
 namespace Nodable{
 
@@ -93,7 +94,7 @@ namespace Nodable{
         Scope*        get_current_scope();
 
         /** Given a Literal token, return its type */
-        Type                   get_literal_type(const Token *_token)const;
+        Reflect::Type get_literal_type(const Token *_token)const;
 
     private:
 		/** A language to get Semantic and Syntax (not yet implemented) */

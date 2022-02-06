@@ -19,6 +19,7 @@
 
 using namespace Nodable;
 using namespace Nodable::Asm;
+using namespace Nodable::Reflect;
 
 bool GraphNodeView::draw()
 {

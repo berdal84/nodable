@@ -145,7 +145,7 @@ std::string& Serializer::serialize(std::string& _result, const TokenType& _type)
     return _result.append(language->getSemantic()->token_type_to_string(_type) );
 }
 
-std::string& Serializer::serialize(std::string &_result, const Type& _type) const
+std::string& Serializer::serialize(std::string &_result, const Reflect::Type& _type) const
 {
     return _result.append(language->getSemantic()->type_to_string(_type) );
 }
@@ -187,7 +187,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
 
 std::string& Serializer::serialize(std::string& _result, const Variant* variant) const
 {
-    if (variant->isType(Type_String))
+    if (variant->isType(Reflect::Type_String))
     {
         return _result.append('"' + (std::string)*variant + '"');
     }

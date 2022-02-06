@@ -27,7 +27,7 @@ InstructionNode* HeadlessNodeFactory::newInstruction_UserCreated()const
     return newInstructionNode;
 }
 
-VariableNode* HeadlessNodeFactory::newVariable(Type _type, const std::string& _name, AbstractScope *_scope) const
+VariableNode* HeadlessNodeFactory::newVariable(Reflect::Type _type, const std::string& _name, AbstractScope *_scope) const
 {
     // create
     auto node = new VariableNode(_type);
@@ -200,7 +200,7 @@ Node* HeadlessNodeFactory::newNode() const
     return new Node();
 }
 
-LiteralNode* HeadlessNodeFactory::newLiteral(const Type &type) const
+LiteralNode* HeadlessNodeFactory::newLiteral(const Reflect::Type &type) const
 {
     LiteralNode* node = new LiteralNode(type);
     node->setLabel("Literal");

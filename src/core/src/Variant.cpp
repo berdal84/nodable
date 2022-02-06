@@ -3,6 +3,7 @@
 #include <cassert>
 #include <nodable/Nodable.h>
 #include <nodable/String.h>
+#include <nodable/Node.h>
 
 using namespace Nodable;
 
@@ -12,12 +13,12 @@ Variant::Variant(): m_isDefined(false)
 
 Variant::~Variant(){};
 
-Type Variant::getType()const
+Reflect::Type Variant::getType()const
 {
 	return Variant::s_nodableTypeByIndex.at(data.index());
 }
 
-bool  Variant::isType(Type _type)const
+bool  Variant::isType(Reflect::Type _type)const
 {
 	return getType() == _type;
 }
@@ -26,7 +27,7 @@ void Variant::set(double _var)
 {
 	switch( getType() )
 	{
-		case Type_String:
+		case Reflect::Type_String:
 		{
 			data.emplace<std::string>( std::to_string(_var) );
 			break;
@@ -50,7 +51,7 @@ void Variant::set(const char* _var)
 {
     switch (getType())
     {
-        case Type_String:
+        case Reflect::Type_String:
         {
             data = _var;
         }
@@ -67,13 +68,13 @@ void Variant::set(bool _var)
 {
 	switch(getType())
 	{
-		case Type_String:
+		case Reflect::Type_String:
 		{
 			data.emplace<std::string>( _var ? "true" : "false" );
 			break;
 		}
 
-		case Type_Double:
+		case Reflect::Type_Double:
 		{
 			data.emplace<double>( _var ? double(1) : double(0) );
 			break;
@@ -98,6 +99,13 @@ void Variant::undefine()
 	m_isDefined = false;
 }
 
+void Variant::set(Node* _node)
+{
+    data = _node;
+    m_isDefined = true;
+    setType( Reflect::Type_Object_Ptr );
+}
+
 void Variant::set(const Variant* _other)
 {
 	data = _other->data;
@@ -107,16 +115,30 @@ void Variant::set(const Variant* _other)
 
 std::string Variant::getTypeAsString()const
 {
-	switch(getType())
-	{
-		case Type_String:	{return "string";}
-		case Type_Double:	{return "double";}
-		case Type_Boolean: 	{return "boolean";}
-		default:				{return "unknown";}
-	}
+    std::string result;
+
+	if (  getType() == Reflect::Type_Object_Ptr )
+    {
+        Node* _node = mpark::get<Node*>( data );
+        if ( _node )
+        {
+            result.append( _node->get_class()->get_name() );
+            result.append( "*" );
+        }
+        else
+        {
+            result.append( "Node*" );
+        }
+    }
+	else
+    {
+        result.append( Reflect::to_string( getType() ) );
+    }
+
+	return result;
 }
 
-void Variant::setType(Type _type)
+void Variant::setType(Reflect::Type _type)
 {
 	if (getType() != _type)
 	{
@@ -125,13 +147,13 @@ void Variant::setType(Type _type)
 		// Set a default value (this will change the type too)
 		switch (_type)
 		{
-		case Type_String:
+		case Reflect::Type_String:
 			data.emplace<std::string>();
 			break;
-		case Type_Double:
+		case Reflect::Type_Double:
 			data.emplace<double>();
 			break;
-		case Type_Boolean:
+		case Reflect::Type_Boolean:
 			data.emplace<bool>();
 			break;
 		default:
@@ -147,9 +169,9 @@ template<>
 {
     switch (getType())
     {
-        case Type_String:  return double( mpark::get<std::string>(data).size());
-        case Type_Double:  return mpark::get<double>(data);
-        case Type_Boolean: return mpark::get<bool>(data);
+        case Reflect::Type_String:  return double( mpark::get<std::string>(data).size());
+        case Reflect::Type_Double:  return mpark::get<double>(data);
+        case Reflect::Type_Boolean: return mpark::get<bool>(data);
         default:           return double(0);
     }
 }
@@ -159,9 +181,9 @@ template<>
 {
     switch (getType())
     {
-        case Type_String:  return double( mpark::get<std::string>(data).size());
-        case Type_Double:  return mpark::get<double>(data);
-        case Type_Boolean: return mpark::get<bool>(data);
+        case Reflect::Type_String:  return double( mpark::get<std::string>(data).size());
+        case Reflect::Type_Double:  return mpark::get<double>(data);
+        case Reflect::Type_Boolean: return mpark::get<bool>(data);
         default:           return double(0);
     }
 }
@@ -177,9 +199,9 @@ template<>
 {
     switch (getType())
     {
-        case Type_String:  return !mpark::get<std::string>(data).empty();
-        case Type_Double:  return mpark::get<double>(data) != 0.0F;
-        case Type_Boolean: return mpark::get<bool>(data);
+        case Reflect::Type_String:  return !mpark::get<std::string>(data).empty();
+        case Reflect::Type_Double:  return mpark::get<double>(data) != 0.0F;
+        case Reflect::Type_Boolean: return mpark::get<bool>(data);
         default:           return false;
     }
 }
@@ -189,17 +211,17 @@ template<>
 {
     switch (getType())
     {
-        case Type_String:
+        case Reflect::Type_String:
         {
             return mpark::get<std::string>(data);
         }
 
-        case Type_Double:
+        case Reflect::Type_Double:
         {
             return String::from(mpark::get<double>(data));
         }
 
-        case Type_Boolean:
+        case Reflect::Type_Boolean:
         {
             return  mpark::get<bool>(data) ? "true" : "false";
         }

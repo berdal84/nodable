@@ -16,7 +16,7 @@
 
 using namespace Nodable;
 
-REFLECT_DEFINE(InstructionNode)
+REFLECT_DEFINE_CLASS(InstructionNode)
 
 GraphNode::~GraphNode()
 {
@@ -152,7 +152,7 @@ InstructionNode* GraphNode::newInstruction_UserCreated()
     return instructionNode;
 }
 
-VariableNode* GraphNode::newVariable(Type _type, const std::string& _name, AbstractScope* _scope)
+VariableNode* GraphNode::newVariable(Reflect::Type _type, const std::string& _name, AbstractScope* _scope)
 {
 	auto node = m_factory->newVariable(_type, _name, _scope);
     registerNode(node);
@@ -539,7 +539,7 @@ Node* GraphNode::newNode()
     return node;
 }
 
-LiteralNode* GraphNode::newLiteral(const Type &type)
+LiteralNode* GraphNode::newLiteral(const Reflect::Type &type)
 {
     LiteralNode* node = m_factory->newLiteral(type);
     registerNode(node);

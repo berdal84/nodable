@@ -21,15 +21,15 @@ bool DataAccess::update()
 
     	switch( _value->getType())
     	{
-        case Type_String :
+        case Reflect::Type_String :
     		writer.String( ((std::string)*_value).c_str());
     		break;
 
-        case Type_Double :
+        case Reflect::Type_Double :
     		writer.Double((double)*_value);
     		break;
     		
-        case Type_Boolean:
+        case Reflect::Type_Boolean:
     		writer.Bool((bool)*_value);
     		break;
     	default:

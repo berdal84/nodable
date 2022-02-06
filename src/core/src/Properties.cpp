@@ -53,7 +53,7 @@ Member* Properties::getFirstWithConn(Way _connection)const
 	return found;
 }
 
-Member* Properties::add (const char* _name, Visibility _visibility, Type _type, Way _flags )
+Member* Properties::add (const char* _name, Visibility _visibility, Reflect::Type _type, Way _flags )
 {
 	auto v = new Member();
 	v->setParentProperties(this);

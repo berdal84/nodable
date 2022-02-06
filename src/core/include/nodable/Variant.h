@@ -5,9 +5,12 @@
 #include <mpark/variant.hpp> // std::variant implem for C++11
 
 #include <nodable/Nodable.h> // for constants and forward declarations
-#include <nodable/Type.h>
+#include <nodable/Reflect.h>
 
 namespace Nodable {
+
+    // forward declarations
+    class Node;
 
 	/**
 		This class is a variant implementation.
@@ -22,14 +25,15 @@ namespace Nodable {
 
 		bool        isDefined()const;
         void        undefine();
-		bool        isType(Type _type)const;
+		bool        isType(Reflect::Type _type)const;
+		void        set(Node*);
 		void        set(const Variant*);
 		void        set(const std::string&);
 		void        set(const char*);
 		void        set(double);
 		void        set(bool);
-		void        setType(Type _type);
-		Type        getType()const;
+		void        setType(Reflect::Type _type);
+        Reflect::Type getType()const;
 		std::string getTypeAsString()const;
 
         // conversion
@@ -37,6 +41,7 @@ namespace Nodable {
         T convert_to()const;
 
 		// by reference
+		inline operator Node*()        { return mpark::get<Node*>(data); }
 		inline operator double*()        { return &mpark::get<double>(data); }
         inline operator bool*()          { return &mpark::get<bool>(data); }
         inline operator std::string* () { return &mpark::get<std::string>(data); }
@@ -59,18 +64,20 @@ namespace Nodable {
         typedef void* Any;
 
 	    /** Nodable::Type to native type */
-	    constexpr static const std::array<Type, 4> s_nodableTypeByIndex = {{
-	        Type_Any,
-	        Type_Boolean,
-	        Type_Double,
-	        Type_String
+	    constexpr static const std::array<Reflect::Type, 5> s_nodableTypeByIndex = {{
+            Reflect::Type_Any,
+            Reflect::Type_Boolean,
+            Reflect::Type_Double,
+            Reflect::Type_String,
+            Reflect::Type_Object_Ptr
 	    }};
 
 		mpark::variant<
             Any,
             bool,
             double,
-            std::string
+            std::string,
+            Node*
 		> data;
     };
 }

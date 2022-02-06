@@ -9,7 +9,7 @@
 // Nodable
 #include <nodable/Nodable.h> // for constants and forward declarations
 #include <nodable/TokenType.h>
-#include <nodable/Type.h>
+#include <nodable/Reflect.h>
 #include <nodable/Log.h>
 #include <nodable/InvokableFunction.h>
 #include <nodable/Semantic.h>
@@ -59,8 +59,8 @@ namespace Nodable {
         inline const Semantic* getSemantic()const { return &semantic; }
         inline const std::vector<Invokable*>& getAllFunctions()const { return api; }
 
-        const FunctionSignature* createUnaryOperatorSignature(Type _type, std::string _identifier, Type _ltype) const;
-        const FunctionSignature* createBinOperatorSignature(Type _type, std::string _identifier, Type _ltype, Type _rtype) const;
+        const FunctionSignature* createUnaryOperatorSignature(Reflect::Type , std::string , Reflect::Type ) const;
+        const FunctionSignature* createBinOperatorSignature(Reflect::Type , std::string , Reflect::Type , Reflect::Type ) const;
 
         bool hasHigherPrecedenceThan(const InvokableOperator *_firstOperator, const InvokableOperator* _secondOperator)const;
         virtual void sanitizeFunctionName( std::string& identifier ) const = 0;

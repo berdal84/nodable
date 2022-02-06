@@ -8,6 +8,7 @@
 #include <nodable/InvokableComponent.h>
 
 using namespace Nodable;
+using namespace Nodable::Reflect;
 
 Node::Node(std::string _label):
         m_props(this),
@@ -20,7 +21,12 @@ Node::Node(std::string _label):
         m_previousMaxCount(0),
         m_nextMaxCount(0)
 {
-//    add("activator", Visibility::Always, Type_Boolean, Way::Way_In);
+    /*
+     * Add "this" Member to be able to connect this Node as an object pointer.
+     * Usually an object pointer is connected to an InstructionNode's "node_to_eval" Member.
+     */
+    Member* this_member = m_props.add("this", Visibility::Always, Type_Object_Ptr, Way::Way_Out);
+    this_member->set( this );
 }
 
 bool Node::isDirty()const

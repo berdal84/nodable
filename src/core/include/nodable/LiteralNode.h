@@ -1,12 +1,13 @@
 #pragma once
 #include <nodable/Node.h>
+#include <nodable/Reflect.h>
 
 namespace Nodable
 {
     class LiteralNode: public Node
     {
     public:
-        explicit LiteralNode(Type type);
+        explicit LiteralNode(Reflect::Type type);
         ~LiteralNode() override = default;
 
         [[nodiscard]]

@@ -29,11 +29,17 @@ Member::Member(bool b): Member()
 
 Member::Member(int i): Member((double)i){}
 
-Member::Member(const char * str): Member() {
+Member::Member(const char * str): Member()
+{
     get_variant().set(str);
 }
 
 Member::Member(const std::string& s): Member(s.c_str()){}
+
+Member::Member(Node* _node): Member()
+{
+    get_variant().set(_node);
+}
 
 Member::~Member(){}
 
@@ -57,21 +63,27 @@ void Member::setInput(Member* _val, ConnBy_ _connect_by)
         m_sourceExpression = "";
 }
 
+void Member::set(Node* _value)
+{
+    get_variant().setType(Reflect::Type_Object_Ref);
+    get_variant().set(_value);
+}
+
 void Member::set(double _value)
 {
-    get_variant().setType(Type_Double);
+    get_variant().setType(Reflect::Type_Double);
     get_variant().set(_value);
 }
 
 void Member::set(const char* _value)
 {
-    get_variant().setType(Type_String);
+    get_variant().setType(Reflect::Type_String);
     get_variant().set(_value);
 }
 
 void Member::set(bool _value)
 {
-    get_variant().setType(Type_Boolean);
+    get_variant().setType(Reflect::Type_Boolean);
     get_variant().set(_value);
 }
 

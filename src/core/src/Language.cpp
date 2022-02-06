@@ -72,10 +72,10 @@ void Language::addToAPI(Invokable* _function)
 }
 
 const FunctionSignature* Language::createBinOperatorSignature(
-        Type _type,
+        Reflect::Type _type,
         std::string _identifier,
-        Type _ltype,
-        Type _rtype) const
+        Reflect::Type _ltype,
+        Reflect::Type _rtype) const
 {
     auto signature = new FunctionSignature("operator" + _identifier);
     signature->set_return_type(_type);
@@ -85,9 +85,9 @@ const FunctionSignature* Language::createBinOperatorSignature(
 }
 
 const FunctionSignature* Language::createUnaryOperatorSignature(
-        Type _type,
+        Reflect::Type _type,
         std::string _identifier,
-        Type _ltype) const
+        Reflect::Type _ltype) const
 {
     auto signature = new FunctionSignature("operator" + _identifier);
     signature->set_return_type(_type);

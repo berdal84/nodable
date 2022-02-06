@@ -3,14 +3,14 @@
 
 using namespace Nodable;
 
-REFLECT_DEFINE(ConditionalStructNode)
+REFLECT_DEFINE_CLASS(ConditionalStructNode)
 
 ConditionalStructNode::ConditionalStructNode()
     :
     m_token_if(nullptr),
     m_token_else(nullptr)
 {
-    m_props.add("condition", Visibility::Always, Type_Boolean, Way::Way_In);
+    m_props.add("condition", Visibility::Always, Reflect::Type_Boolean, Way::Way_In);
 }
 
 Scope* ConditionalStructNode::get_condition_true_branch() const

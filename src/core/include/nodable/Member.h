@@ -26,6 +26,7 @@ namespace Nodable
     {
 	public:
         Member();
+        explicit Member(Node*);
 		explicit Member(const std::string&);
         explicit Member(int);
         explicit Member(bool);
@@ -37,7 +38,7 @@ namespace Nodable
 		[[nodiscard]] bool hasInputConnected()const;
         [[nodiscard]] inline bool isDefined() const { return get_variant().isDefined(); }
                       inline void undefine() { get_variant().undefine(); }
-		[[nodiscard]] bool isType(Type type)const { return get_variant().isType(type); }
+		[[nodiscard]] bool isType(Reflect::Type type)const { return get_variant().isType(type); }
         [[nodiscard]] bool equals(const Member *)const;
 
 		void setConnectorWay(Way wayFlags) { m_wayFlags = wayFlags; }
@@ -46,12 +47,13 @@ namespace Nodable
 		void setName(const char* name) { m_name = name; }
 		void set(const Member* other) { get_variant().set(&other->m_variant); }
 		void set(const Member& other) { get_variant().set(&other.m_variant); }
+		void set(Node*);
 		void set(double);
         void set(const char*);
         void set(bool);
 		inline void set(int val) { set((double)val); }
 		void set(const std::string& val) { set(val.c_str());}
-		void setType(Type type) { get_variant().setType(type); }
+		void setType(Reflect::Type type) { get_variant().setType(type); }
 		void setVisibility(Visibility _visibility) { m_visibility = _visibility; }
         void setSourceToken(const Token* _token);
         void setOwner(Node* _owner) { this->m_owner = _owner; }
@@ -62,7 +64,7 @@ namespace Nodable
 		[[nodiscard]] inline Member*               getInput()const { return m_input; }
 		[[nodiscard]] inline std::vector<Member*>& getOutputs() { return m_outputs; }
         [[nodiscard]] inline const std::string&    getName()const { return m_name; }
-		[[nodiscard]] inline Type                  getType()const { return get_variant().getType(); }
+		[[nodiscard]] inline Reflect::Type         getType()const { return get_variant().getType(); }
 		[[nodiscard]] inline std::string           getTypeAsString()const { return get_variant().getTypeAsString(); }
         [[nodiscard]] inline Visibility            getVisibility()const { return m_visibility; }
         [[nodiscard]] Way                          getConnectorWay()const { return m_wayFlags; }

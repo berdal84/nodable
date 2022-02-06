@@ -9,6 +9,7 @@
 #include <nodable/HeadlessNodeFactory.h>
 
 using namespace Nodable;
+using namespace Nodable::Reflect;
 
 TEST(Semantic, token_type_to_type)
 {

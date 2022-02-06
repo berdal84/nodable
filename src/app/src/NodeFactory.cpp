@@ -10,6 +10,7 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
+using namespace Nodable::Reflect;
 
 InstructionNode* NodeFactory::newInstruction() const
 {

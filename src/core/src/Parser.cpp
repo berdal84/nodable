@@ -110,15 +110,15 @@ bool Parser::source_code_to_graph(const std::string &_source_code, GraphNode *_g
 	return true;
 }
 
-Type Parser::get_literal_type(const Nodable::Token *_token) const
+Reflect::Type Parser::get_literal_type(const Nodable::Token *_token) const
 {
-    Type type = Type_Unknown;
+    Reflect::Type type = Reflect::Type_Unknown;
 
     const std::vector<std::regex> regex            = m_language->getSemantic()->get_type_regex();
-    const std::vector<Type>       regex_id_to_type = m_language->getSemantic()->get_type_regex_index_to_type();
+    const std::vector<Reflect::Type>       regex_id_to_type = m_language->getSemantic()->get_type_regex_index_to_type();
 
     auto each_regex_it = regex.cbegin();
-    while( each_regex_it != regex.cend() && type == Type_Unknown )
+    while( each_regex_it != regex.cend() && type == Reflect::Type_Unknown )
     {
         std::smatch sm;
         auto match = std::regex_search(_token->m_word.cbegin(), _token->m_word.cend(), sm, *each_regex_it);
@@ -131,7 +131,7 @@ Type Parser::get_literal_type(const Nodable::Token *_token) const
         each_regex_it++;
     }
 
-    NODABLE_ASSERT(type != Type_Unknown)
+    NODABLE_ASSERT(type != Reflect::Type_Unknown)
 
     return type;
 }
@@ -163,13 +163,13 @@ Member* Parser::token_to_member(Token *_token)
 
 	    case TokenType_Literal:
         {
-            Type type = get_literal_type(_token);
+            Reflect::Type type = get_literal_type(_token);
             LiteralNode* literal = m_graph->newLiteral(type);
 
             switch ( type ) {
-                case Type_String: literal->set_value(parse_string(_token->m_word) ); break;
-                case Type_Double: literal->set_value(parse_double(_token->m_word) ); break;
-                case Type_Boolean: literal->set_value(parse_bool(_token->m_word)  ); break;
+                case Reflect::Type_String: literal->set_value(parse_string(_token->m_word) ); break;
+                case Reflect::Type_Double: literal->set_value(parse_double(_token->m_word) ); break;
+                case Reflect::Type_Boolean: literal->set_value(parse_bool(_token->m_word)  ); break;
                 default: {}
             }
 
@@ -184,7 +184,7 @@ Member* Parser::token_to_member(Token *_token)
 
 			if (variable == nullptr) {
                 LOG_WARNING("Parser", "Unable to find declaration for %s, Type_Any will be used to allow graph visualisation, but compilation will fail.\n", _token->m_word.c_str())
-                variable = m_graph->newVariable(Type_Any, _token->m_word, get_current_scope() );
+                variable = m_graph->newVariable( Reflect::Type_Any, _token->m_word, get_current_scope() );
                 variable->value()->setSourceToken(_token);
             }
 
@@ -258,7 +258,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const FunctionSignature* signature = m_language->createBinOperatorSignature(Type_Any, operatorToken->m_word, _left->getType(), right->getType());
+	const FunctionSignature* signature = m_language->createBinOperatorSignature(Reflect::Type_Any, operatorToken->m_word, _left->getType(), right->getType());
 	auto matchingOperator = m_language->findOperator(signature);
     delete signature;
 
@@ -323,7 +323,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	}
 
 	// Create a function signature
-	auto signature = m_language->createUnaryOperatorSignature(Type_Any, operatorToken->m_word, value->getType() );
+	auto signature = m_language->createUnaryOperatorSignature(Reflect::Type_Any, operatorToken->m_word, value->getType() );
 	auto matchingOperator = m_language->findOperator(signature);
 
 	if (matchingOperator != nullptr)
@@ -791,7 +791,7 @@ Member* Parser::parse_function_call()
 
     // Declare a new function prototype
     FunctionSignature signature(identifier);
-    signature.set_return_type(Type_Any);
+    signature.set_return_type(Reflect::Type_Any );
 
     bool parsingError = false;
     while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != TokenType_CloseBracket)
@@ -1048,7 +1048,7 @@ Member *Parser::parse_variable_declaration()
 
     if(Token::isType(typeTok->m_type) && identifierTok->m_type == TokenType_Identifier )
     {
-        Type type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
+        Reflect::Type type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
         VariableNode* variable = m_graph->newVariable(type, identifierTok->m_word, this->get_current_scope());
         variable->setTypeToken( typeTok );
         variable->setIdentifierToken( identifierTok );

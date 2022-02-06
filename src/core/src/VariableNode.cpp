@@ -4,9 +4,9 @@
 
 using namespace Nodable;
 
-REFLECT_DEFINE(VariableNode)
+REFLECT_DEFINE_CLASS(VariableNode)
 
-VariableNode::VariableNode(Type type)
+VariableNode::VariableNode(Reflect::Type type)
     :
     Node("Variable"),
     m_typeToken(nullptr),

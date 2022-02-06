@@ -5,7 +5,7 @@
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 
 #include <nodable/Nodable.h>
-#include <nodable/Type.h>
+#include <nodable/Reflect.h>
 #include <nodable/Member.h>
 #include <nodable/Invokable.h>
 #include <nodable/FunctionSignature.h>

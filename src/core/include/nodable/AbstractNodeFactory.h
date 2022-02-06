@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <nodable/Type.h>
+#include <nodable/Reflect.h>
 
 namespace Nodable
 {
@@ -28,8 +28,8 @@ namespace Nodable
         virtual Node*                       newProgram()const = 0;
         virtual InstructionNode*		    newInstruction_UserCreated()const = 0;
         virtual InstructionNode*            newInstruction()const = 0;
-        virtual VariableNode*				newVariable(Type, const std::string&, AbstractScope *)const = 0;
-        virtual LiteralNode*                newLiteral(const Type &type)const = 0;
+        virtual VariableNode*				newVariable(Reflect::Type, const std::string&, AbstractScope *)const = 0;
+        virtual LiteralNode*                newLiteral(const Reflect::Type &type)const = 0;
         virtual Node*                       newBinOp(const InvokableOperator*)const = 0;
         virtual Node*                       newUnaryOp(const InvokableOperator*)const = 0;
         virtual Node*                       newOperator(const InvokableOperator*)const = 0;

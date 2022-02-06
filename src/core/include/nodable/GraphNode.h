@@ -57,8 +57,8 @@ namespace Nodable{
         Node*                       newProgram();
         InstructionNode*		    newInstruction_UserCreated();
         InstructionNode*            newInstruction();
-		VariableNode*				newVariable(Type, const std::string&, AbstractScope*);
-		LiteralNode*                newLiteral(const Type &type);
+		VariableNode*				newVariable(Reflect::Type, const std::string&, AbstractScope*);
+		LiteralNode*                newLiteral(const Reflect::Type &type);
 		Node*                       newBinOp(const InvokableOperator*);
 		Node*                       newUnaryOp(const InvokableOperator*);
         Node*                       newOperator(const InvokableOperator*);

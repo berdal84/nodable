@@ -2,9 +2,9 @@
 
 using namespace Nodable;
 
-REFLECT_DEFINE(LiteralNode)
+REFLECT_DEFINE_CLASS(LiteralNode)
 
-LiteralNode::LiteralNode(Type type) : Node()
+LiteralNode::LiteralNode(Reflect::Type type) : Node()
 {
     m_props.add("value", Visibility::Always, type, Way_Out);
 }

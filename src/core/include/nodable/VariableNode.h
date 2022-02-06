@@ -5,6 +5,7 @@
 #include <nodable/Nodable.h> // forward declarations and common stuff
 #include <nodable/Node.h> // base class
 #include <nodable/Member.h>
+#include <nodable/Reflect.h>
 
 namespace Nodable{
 	
@@ -16,13 +17,13 @@ namespace Nodable{
 	*/
 	class VariableNode : public Node {
 	public:
-		VariableNode(Type);
+		VariableNode(Reflect::Type);
 		~VariableNode() override = default;
 
 		[[nodiscard]] inline bool             isDeclared()const { return m_typeToken != nullptr; }
 		[[nodiscard]] inline bool             isDefined()const { return value()->isDefined(); }
 		              inline void             undefine() { value()->undefine(); setDirty(true); }
-		[[nodiscard]] inline bool             isType(Type _type)const { return value()->isType(_type); }
+		[[nodiscard]] inline bool             isType(Reflect::Type _type)const { return value()->isType(_type); }
 		[[nodiscard]] inline const char*      getName()const { return m_name.c_str(); };
 		[[nodiscard]] inline Member*          value()const { return m_props.get("value"); }
         [[nodiscard]] inline std::string      getTypeAsString ()const { return value()->getTypeAsString(); }

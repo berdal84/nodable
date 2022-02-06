@@ -3,6 +3,7 @@
 #include <nodable/InvokableFunction.h>
 
 using namespace Nodable;
+using namespace Nodable::Reflect;
 
 TEST( Function_Signature, no_arg_fct)
 {

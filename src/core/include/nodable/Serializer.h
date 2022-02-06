@@ -6,6 +6,7 @@
 #include <nodable/InvokableFunction.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/Token.h>
+#include <nodable/Reflect.h>
 
 namespace Nodable
 {
@@ -30,7 +31,7 @@ namespace Nodable
         std::string& serialize(std::string &_result, const FunctionSignature*, const std::vector<Member*>&)const;
         std::string& serialize(std::string &_result, const FunctionSignature*)const;
         std::string& serialize(std::string &_result, const TokenType&)const;
-        std::string& serialize(std::string &_result, const Type&)const;
+        std::string& serialize(std::string &_result, const Reflect::Type&)const;
         std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
         std::string& serialize(std::string &_result, const Token*) const;
         std::string& serialize(std::string &_result, const InstructionNode*)const;

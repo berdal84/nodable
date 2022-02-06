@@ -265,6 +265,13 @@ bool VM::step_over()
                     m_next_node = (Node*)next_instr->m_right_h_arg;
                     break;
                 }
+
+                case FctId::push_stack_frame:
+                case FctId::pop_stack_frame:
+                {
+                    // TODO: but unused for now.
+                    break;
+                }
             }
         }
     }
