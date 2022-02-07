@@ -11,7 +11,6 @@
 #include <nodable/GraphNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
-#include <nodable/WireView.h>
 #include <nodable/NodeView.h>
 #include <nodable/MemberConnector.h>
 #include <nodable/NodeConnector.h>
@@ -111,41 +110,67 @@ bool GraphNodeView::draw()
         }
     }
 
-	/*
-		NodeViews
-	*/
 	bool isAnyNodeDragged = false;
 	bool isAnyNodeHovered = false;
 	{
-		//  Draw Wires
+        /*
+            Wires
+        */
         for (auto eachNode : nodeRegistry)
         {
-            auto members = eachNode->getProps()->getMembers();
+            const Members& members = eachNode->getProps()->getMembers();
 
             for (auto pair : members)
             {
-                auto end = pair.second;
+                const Member* dst_member = pair.second;
 
-                if ( auto start = end->getInput() )
+                if ( const Member* src_member = dst_member->getInput() )
                 {
-                    auto endNodeView   = eachNode->get<NodeView>();
-                    auto startNodeView = start->getOwner()->get<NodeView>();
+                    auto src_node_view = src_member->getOwner()->get<NodeView>();
+                    auto dst_node_view = eachNode->get<NodeView>(); // equival to dst_member->getOwner()->get<NodeView>();
 
-                    if ( startNodeView->isVisible() && endNodeView->isVisible() )
+                    if ( src_node_view->isVisible() && dst_node_view->isVisible() )
                     {
-                        auto endView   = endNodeView->getMemberView(end);
-                        auto startView = startNodeView->getMemberView(start);
+                        const MemberView* src_member_view = src_node_view->getMemberView(src_member);
+                        const MemberView* dst_member_view = dst_node_view->getMemberView(dst_member);
 
-                        if ( endView && startView )
+                        if ( src_member_view && dst_member_view )
                         {
-                            WireView::Draw(ImGui::GetWindowDrawList(), startView->m_out->getPos(), endView->m_in->getPos() );
+                            ImVec2 src_pos = src_member_view->m_out->getPos();
+                            ImVec2 dst_pos = dst_member_view->m_in->getPos();
+
+                            // TODO: add multiple wire type settings
+
+                            // straight wide lines for node connections
+                            if ( src_member->isType(Type_Object_Ptr) )
+                            {
+                                ImGuiEx::DrawVerticalWire(
+                                        ImGui::GetWindowDrawList(),
+                                        src_pos, dst_pos,
+                                        settings->ui_codeFlow_lineColor,
+                                        settings->ui_codeFlow_lineShadowColor,
+                                        settings->ui_wire_bezier_thickness * 2.0f,
+                                        0.0f);
+                            }
+                            // curved thin for the others
+                            else{
+                                ImGuiEx::DrawVerticalWire(
+                                        ImGui::GetWindowDrawList(),
+                                        src_pos, dst_pos,
+                                        settings->ui_wire_fillColor,
+                                        settings->ui_wire_shadowColor,
+                                        settings->ui_wire_bezier_thickness,
+                                        settings->ui_wire_bezier_roundness);
+                            }
                         }
                     }
                 }
             }
         }
 
-        // Draw NodeViews
+        /*
+            NodeViews
+        */
         std::vector<NodeView*> nodeViews;
         Node::GetComponents(nodeRegistry, nodeViews);
 		for (auto eachNodeView : nodeViews)

@@ -80,7 +80,7 @@ namespace Nodable{
          * ex: _source IS_CHILD_OF _target
         */
         void connect(Node* _source, Node* _target, Relation_t, bool _sideEffects = true);
-        void connect(Member* _source, InstructionNode* _target);
+        void connect(Node* _source, InstructionNode* _target);
         void connect(Member* _source, VariableNode* _target);
         void disconnect(Node* _source, Node* _target, Relation_t, bool _sideEffects = true);
         void disconnect(Wire* _wire);

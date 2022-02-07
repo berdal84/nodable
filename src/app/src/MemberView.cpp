@@ -3,6 +3,7 @@
 #include <nodable/MemberConnector.h>
 
 using namespace Nodable;
+using Side = Nodable::MemberConnector::Side;
 
 MemberView::MemberView(Member* _member, NodeView* _nodeView)
         : m_member(_member)
@@ -12,9 +13,10 @@ MemberView::MemberView(Member* _member, NodeView* _nodeView)
         , m_out(nullptr)
         , m_nodeView(_nodeView)
 {
-    NODABLE_ASSERT(_member != nullptr); // Member must be defined
-    if ( m_member->allowsConnection(Way_In) )   m_in  = new MemberConnector(this, Way_In);
-    if ( m_member->allowsConnection(Way_Out) )  m_out = new MemberConnector(this, Way_Out);
+    NODABLE_ASSERT(_member ); // Member must be defined
+    NODABLE_ASSERT(_nodeView ); // Member must be defined
+    if ( m_member->allowsConnection(Way_In) )   m_in  = new MemberConnector(this, Way_In, Side::Top);
+    if ( m_member->allowsConnection(Way_Out) )  m_out = new MemberConnector(this, Way_Out, Side::Bottom);
 }
 
 MemberView::~MemberView()

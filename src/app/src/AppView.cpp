@@ -505,11 +505,7 @@ bool AppView::draw()
                 NodeView* view = NodeView::GetSelected();
                 if ( view )
                 {
-                    ImGui::Text("Selected Node Properties");
-                    ImGui::NewLine();
                     ImGui::Indent(10.0f);
-                    ImGui::Text("Type: %s", view->get_owner()->getLabel());
-                    ImGui::NewLine();
                     NodeView::DrawNodeViewAsPropertiesPanel(view);
                 }
             }
@@ -549,11 +545,15 @@ bool AppView::draw()
             }
 			else if (select_next)
             {
-			    GraphTraversal traversal;
-			    Node* next = traversal.getNextInstrToEval(selectedNodeView->get_owner());
-			    if ( next )
-			        if( auto nextView = next->get<NodeView>())
+			    auto possible_next = selectedNodeView->get_owner()->getNext();
+			    if ( !possible_next.empty()  )
+                {
+                    if( auto nextView = possible_next[0]->get<NodeView>())
+                    {
                         NodeView::SetSelected(nextView);
+                    }
+                }
+
             }
 		}
     }

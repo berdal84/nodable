@@ -12,7 +12,6 @@
 #include <nodable/Nodable.h>
 #include <nodable/Properties.h>
 #include <nodable/Component.h>
-#include <nodable/GraphTraversal.h>
 #include <nodable/Properties.h>
 
 namespace Nodable {
@@ -50,6 +49,8 @@ namespace Nodable {
 	     * @param _label
 	     */
 		explicit Node(std::string  _label = "UnnamedNode");
+        Node (const Node&) = delete;
+        Node& operator= (const Node&) = delete;
 		virtual ~Node();
 
         observe::Event<Node*, Relation_t> m_onRelationAdded;
@@ -73,6 +74,7 @@ namespace Nodable {
         void                removeInput(Node *_node);
         void                removeOutput(Node *_node);
         std::vector<Node*>& getInputs();
+        const std::vector<Node*>& getInputs() const;
         std::vector<Node*>& getOutputs();
 
         // TODO: create a NodeList container and reuse for next/prev/children/input/output
@@ -269,9 +271,11 @@ namespace Nodable {
 
         template<class T> [[nodiscard]] inline       T* as()      { return Reflect::cast_pointer<T>(this); }
         template<class T> [[nodiscard]] inline const T* as()const { return Reflect::cast_pointer<const T>(this); }
+        template<class T> [[nodiscard]] inline bool is()const { return as<T>() != nullptr; }
 
-        Properties* getProps() { return &m_props; }
+        Properties*       getProps() { return &m_props; }
         const Properties* getProps()const { return &m_props; }
+        Member*           get_this_member()const { return getProps()->get("this");}
 
 	protected:
         Properties         m_props;

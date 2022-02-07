@@ -73,6 +73,7 @@ namespace Nodable
         [[nodiscard]] inline const Variant*        getData()const { return &get_variant(); }
 
         template<typename T> inline explicit operator T*()     { return get_variant(); }
+        template<typename T> inline explicit operator const T*() const { return get_variant(); }
         template<typename T> inline explicit operator T()const { return get_variant().convert_to<T>(); }
         template<typename T> inline explicit operator T&()     { return get_variant(); }
         template<typename T> inline T convert_to()const        { return get_variant().convert_to<T>(); }

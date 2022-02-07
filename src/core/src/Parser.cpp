@@ -270,7 +270,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 
         m_graph->connect(_left, computeComponent->get_l_handed_val());
         m_graph->connect(right, computeComponent->get_r_handed_val());
-		result = binOpNode->getProps()->get("result");
+		result = binOpNode->getProps()->get("value");
 
         commit_transaction();
         LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
@@ -333,7 +333,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
         computeComponent->set_source_token(operatorToken);
 
         m_graph->connect(value, computeComponent->get_l_handed_val());
-        Member* result = unaryOpNode->getProps()->get("result");
+        Member* result = unaryOpNode->getProps()->get("value");
 
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
         commit_transaction();
@@ -430,23 +430,23 @@ InstructionNode* Parser::parse_instruction()
 {
     start_transaction();
 
-    Member* parsedExpression = parse_expression();
+    Member* expression = parse_expression();
 
-    if ( parsedExpression == nullptr )
+    if ( !expression )
     {
        LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n")
         rollback_transaction();
        return nullptr;
     }
 
-    auto instruction = m_graph->newInstruction();
+    InstructionNode* instr_node = m_graph->newInstruction();
 
     if ( m_token_ribbon.canEat() )
     {
         Token* expectedEOI = m_token_ribbon.eatToken(TokenType_EndOfInstruction);
         if ( expectedEOI )
         {
-            instruction->end_of_instr_token(expectedEOI);
+            instr_node->end_of_instr_token(expectedEOI);
         }
         else if( m_token_ribbon.peekToken()->m_type != TokenType_CloseBracket )
         {
@@ -456,12 +456,12 @@ InstructionNode* Parser::parse_instruction()
         }
     }
 
-    m_graph->connect(parsedExpression, instruction);
-    m_graph->connect(instruction, m_scope_stack.top()->get_owner(), Relation_t::IS_CHILD_OF);
+    m_graph->connect(expression->getOwner(), instr_node);
+    m_graph->connect(instr_node, m_scope_stack.top()->get_owner(), Relation_t::IS_CHILD_OF);
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n")
     commit_transaction();
-    return instruction;
+    return instr_node;
 }
 
 Node* Parser::parse_program()
@@ -846,7 +846,7 @@ Member* Parser::parse_function_call()
         commit_transaction();
         LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
-        return node->getProps()->get("result");
+        return node->getProps()->get("value");
 
     }
 

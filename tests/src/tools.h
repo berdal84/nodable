@@ -38,7 +38,7 @@ namespace Nodable
             }
             runner.run_program();
 
-            auto last_result = runner.get_last_result();
+            const Variant* last_result = runner.get_last_result();
             if ( last_result == nullptr )
             {
                 throw std::runtime_error("Unable to get program's last result.");
@@ -69,7 +69,7 @@ namespace Nodable
             if (runner.load_program(program)) {
                 runner.run_program();
 
-                if (auto last_eval = runner.get_last_result())
+                if (const Variant* last_eval = runner.get_last_result())
                 {
                     std::string result_str = last_eval->convert_to<std::string>();
                     LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize result is: %s\n", result_str.c_str());

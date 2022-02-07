@@ -101,16 +101,16 @@ void Variant::undefine()
 
 void Variant::set(Node* _node)
 {
+    setType( Reflect::Type_Object_Ptr );
     data = _node;
     m_isDefined = true;
-    setType( Reflect::Type_Object_Ptr );
 }
 
 void Variant::set(const Variant* _other)
 {
+    setType(_other->getType());
 	data = _other->data;
     m_isDefined = _other->m_isDefined;
-    setType(_other->getType());
 }
 
 std::string Variant::getTypeAsString()const
@@ -157,7 +157,7 @@ void Variant::setType(Reflect::Type _type)
 			data.emplace<bool>();
 			break;
 		default:
-            data.emplace<Any>();
+            data.emplace<std::nullptr_t>();
 			break;
 		}
 	}
@@ -209,28 +209,44 @@ template<>
 template<>
 [[nodiscard]] std::string Variant::convert_to<std::string>()const
 {
+    std::string result;
+
     switch (getType())
     {
         case Reflect::Type_String:
         {
-            return mpark::get<std::string>(data);
+            result.append( mpark::get<std::string>(data) );
+            break;
         }
 
         case Reflect::Type_Double:
         {
-            return String::from(mpark::get<double>(data));
+            result.append(  String::from(mpark::get<double>(data)) );
+            break;
         }
 
         case Reflect::Type_Boolean:
         {
-            return  mpark::get<bool>(data) ? "true" : "false";
+            result.append( mpark::get<bool>(data) ? "true" : "false" );
+            break;
+        }
+
+        case Reflect::Type_Object_Ptr:
+        {
+            result.append("[") ;
+            result.append( mpark::get<Node*>(data)->getLabel() );
+            result.append("]") ;
+            break;
         }
 
         default:
         {
-            return "";
+            result.append("<?>");
+            break;
         }
     }
+
+    return result;
 }
 
 Variant::operator int()const          { return (int)(double)*this; }

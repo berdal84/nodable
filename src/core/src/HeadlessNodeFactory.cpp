@@ -30,7 +30,7 @@ InstructionNode* HeadlessNodeFactory::newInstruction_UserCreated()const
 VariableNode* HeadlessNodeFactory::newVariable(Reflect::Type _type, const std::string& _name, AbstractScope *_scope) const
 {
     // create
-    auto node = new VariableNode(_type);
+    VariableNode* node = new VariableNode(_type);
     node->setName(_name.c_str());
 
     if( _scope)
@@ -70,7 +70,7 @@ Node* HeadlessNodeFactory::newBinOp(const InvokableOperator* _operator) const
     auto props   = node->getProps();
     Member* left   = props->add("lvalue", Visibility::Default, args[0].m_type, Way_In);
     Member* right  = props->add("rvalue", Visibility::Default, args[1].m_type, Way_In);
-    Member* result = props->add("result", Visibility::Default, signature->get_return_type(), Way_Out);
+    Member* result = props->add("value", Visibility::Default, signature->get_return_type(), Way_Out);
 
     // Create ComputeBinaryOperation component and link values.
     auto binOpComponent = new InvokableComponent( _operator );
@@ -98,7 +98,7 @@ Node* HeadlessNodeFactory::newUnaryOp(const InvokableOperator* _operator) const
     const auto args = signature->get_args();
     Properties* props = node->getProps();
     Member* left = props->add("lvalue", Visibility::Default, args[0].m_type, Way_In);
-    Member* result = props->add("result", Visibility::Default, signature->get_return_type(), Way_Out);
+    Member* result = props->add("value", Visibility::Default, signature->get_return_type(), Way_Out);
 
     // Create ComputeBinaryOperation binOpComponent and link values.
     auto unaryOperationComponent = new InvokableComponent( _operator );
@@ -116,9 +116,9 @@ Node* HeadlessNodeFactory::newFunction(const Invokable* _function) const
     node->setLabel(_function->get_signature()->get_identifier() + "()");
     std::string str = _function->get_signature()->get_label().substr(0, 2) + "..()";
     node->setShortLabel( str.c_str() );
-    const Semantic* semantic = m_language->getSemantic();
+
     auto props = node->getProps();
-    Member* result = props->add("result", Visibility::Default, _function->get_signature()->get_return_type(), Way_Out);
+    Member* result = props->add("value", Visibility::Default, _function->get_signature()->get_return_type(), Way_Out);
 
     // Create ComputeBase binOpComponent and link values.
     auto functionComponent = new InvokableComponent( _function );

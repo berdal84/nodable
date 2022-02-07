@@ -1,6 +1,5 @@
 #include <nodable/VM.h>
 
-#include <nodable/GraphTraversal.h>
 #include <nodable/VariableNode.h>
 #include <nodable/Log.h>
 #include <nodable/Scope.h>
@@ -173,6 +172,14 @@ bool VM::_stepOver()
                     auto node = (Node*)next_instr->m_right_h_arg;
                     node->eval();
                     node->setDirty(false);
+
+                    // eval value member if needed
+                    Member* member = node->getProps()->get("value");
+                    if ( member )
+                    {
+                        m_register[rax] = (i64_t)member->getData(); // copy variant address
+                    }
+
                     advance_cursor();
                     success = true;
                     break;
@@ -181,7 +188,7 @@ bool VM::_stepOver()
                 case FctId::eval_member:
                 {
                     auto member = (Member*)next_instr->m_right_h_arg;
-                    m_register[rax] = (i64_t)member->getData(); // variant address
+                    m_register[rax] = (i64_t)member->getData(); //copy variant address
                     advance_cursor();
                     success = true;
                     break;
@@ -214,6 +221,7 @@ bool VM::_stepOver()
         }
 
         case Instr_t::ret:
+
             success = true;
             break;
 

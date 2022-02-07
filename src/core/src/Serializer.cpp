@@ -7,6 +7,7 @@
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/ForLoopNode.h>
 #include <nodable/Scope.h>
+#include <nodable/LiteralNode.h>
 
 using namespace Nodable;
 
@@ -261,9 +262,23 @@ std::string& Serializer::serialize(std::string& _result, const Node* _node) cons
     {
         serialize( _result, _node->get<Scope>() );
     }
+    else if ( _node->is<LiteralNode>() )
+    {
+        serialize( _result, _node->as<LiteralNode>()->get_value() );
+    }
+    else if ( _node->is<VariableNode>() )
+    {
+        serialize( _result, _node->as<VariableNode>() );
+    }
+    else if ( _node->has<InvokableComponent>() )
+    {
+        serialize( _result, _node->get<InvokableComponent>() );
+    }
     else
     {
-        NODABLE_ASSERT(false); // Node class not handled !
+        std::string message = "Unable to serialize ";
+        message.append( _node->get_class()->get_name() );
+        throw std::runtime_error( message );
     }
 
     return _result;
@@ -289,23 +304,12 @@ std::string& Serializer::serialize(std::string& _result, const Scope* _scope) co
 
 std::string& Serializer::serialize(std::string& _result, const InstructionNode* _instruction ) const
 {
-    const Member* value = _instruction->value();
+    const Member* root_node_member = _instruction->get_root_node_member();
 
-    if ( value->hasInputConnected() )
+    if ( root_node_member->hasInputConnected() && root_node_member->isDefined() )
     {
-        // var declaration ?
-        if ( auto variableNode = value->getInput()->getOwner()->as<VariableNode>() )
-        {
-            serialize( _result, variableNode );
-        }
-        else
-        {
-            serialize( _result, value );
-        }
-    }
-    else
-    {
-        serialize( _result, value );
+        const Node* root_node = (const Node*)*root_node_member;
+        serialize( _result, root_node );
     }
 
     return serialize( _result, _instruction->end_of_instr_token() );

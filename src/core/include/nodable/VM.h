@@ -2,7 +2,7 @@
 
 #include <nodable/Nodable.h>
 #include <nodable/InstructionNode.h>
-#include <nodable/Assembly.h>
+#include <nodable/Compiler.h>
 
 namespace Nodable
 {

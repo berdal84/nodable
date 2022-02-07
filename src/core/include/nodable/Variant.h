@@ -41,6 +41,7 @@ namespace Nodable {
         T convert_to()const;
 
 		// by reference
+		inline operator const Node*()const { return mpark::get<Node*>(data); }
 		inline operator Node*()        { return mpark::get<Node*>(data); }
 		inline operator double*()        { return &mpark::get<double>(data); }
         inline operator bool*()          { return &mpark::get<bool>(data); }
@@ -61,11 +62,9 @@ namespace Nodable {
     private:
         bool m_isDefined;
 
-        typedef void* Any;
-
 	    /** Nodable::Type to native type */
 	    constexpr static const std::array<Reflect::Type, 5> s_nodableTypeByIndex = {{
-            Reflect::Type_Any,
+            Reflect::Type_Unknown,
             Reflect::Type_Boolean,
             Reflect::Type_Double,
             Reflect::Type_String,
@@ -73,7 +72,7 @@ namespace Nodable {
 	    }};
 
 		mpark::variant<
-            Any,
+            std::nullptr_t,
             bool,
             double,
             std::string,

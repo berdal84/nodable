@@ -15,12 +15,30 @@ const MemberConnector*   MemberConnector::s_focused = nullptr;
 
 ImVec2 MemberConnector::getPos()const
 {
-    ImVec2 pos                  = m_memberView->m_screenPos;
-    auto nodeViewScreenPosition = ImGuiEx::CursorPosToScreenPos(m_memberView->m_nodeView->getPos());
-    auto nodeSemiHeight         = m_memberView->m_nodeView->getSize().y * 0.5f;
-    if (m_way == Way_In) nodeSemiHeight = -nodeSemiHeight;
+    ImVec2 relative_pos_constrained = m_memberView->relative_pos();
 
-    return ImVec2(pos.x, nodeViewScreenPosition.y + nodeSemiHeight);
+    ImVec2 node_view_size = m_memberView->m_nodeView->getSize();
+
+    if (m_display_side == Side::Top )
+    {
+        relative_pos_constrained.y = - node_view_size.y * 0.5f;
+    }
+    else if (m_display_side == Side::Bottom )
+    {
+        relative_pos_constrained.y = node_view_size.y * 0.5f;
+    }
+    else if (m_display_side == Side::Left )
+    {
+        relative_pos_constrained.y = 0;
+        relative_pos_constrained.x = -node_view_size.x * 0.5f;
+    }
+    else if (m_display_side == Side::Right )
+    {
+        relative_pos_constrained.y = 0;
+        relative_pos_constrained.x = node_view_size.x * 0.5f;
+    }
+
+    return ImVec2( m_memberView->m_nodeView->getScreenPos() + relative_pos_constrained);
 }
 
 bool MemberConnector::hasSameParentWith(const MemberConnector* other) const
@@ -121,13 +139,13 @@ bool MemberConnector::Connect(const MemberConnector *_left, const MemberConnecto
         return false;
     }
 
-    if (_left->m_way == _right->m_way)
+    if (_left->m_display_side == _right->m_display_side)
     {
         LOG_WARNING( "MemberConnector", "Unable to connect two connectors with the same nature (in and in, out and out)\n" )
         return false;
     }
 
-    if ( s_dragged->m_way == Way_Out )
+    if (s_dragged->m_way == Way_Out )
         return s_dragged->connect(s_hovered);
     return s_hovered->connect(s_dragged);
 }

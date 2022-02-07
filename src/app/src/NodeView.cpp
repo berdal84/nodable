@@ -40,6 +40,7 @@ NodeView::NodeView()
         , m_pinned(false)
         , m_borderRadius(5.0f)
         , m_borderColorSelected(1.0f, 1.0f, 1.0f)
+        , m_exposed_this_member_view(nullptr)
 {
     NodeView::s_instances.push_back(this);
 }
@@ -76,18 +77,32 @@ std::string NodeView::getLabel()
 
 void NodeView::exposeMember(Member* _member)
 {
-    MemberView* memberView = new MemberView(_member, this);
+    auto member_view = new MemberView(_member, this);
 
-    if( _member->getConnectorWay() == Way_In )
-         m_exposedInputOnlyMembers.push_back(memberView);
+    if ( _member == get_owner()->get_this_member() )
+    {
+        member_view->m_out->m_display_side = MemberConnector::Side::Left; // force to be displayed on the left
+        m_exposed_this_member_view = member_view;
+    }
     else
-        m_exposedOutOrInOutMembers.push_back(memberView);
+    {
+        if (_member->getConnectorWay() == Way_In)
+        {
+            m_exposedInputOnlyMembers.push_back(member_view);
+        }
+        else
+        {
+            m_exposedOutOrInOutMembers.push_back(member_view);
+        }
+    }
 
-    m_exposedMembers.insert({_member, memberView});
+    m_exposedMembers.insert({_member, member_view});
 }
 
 void NodeView::set_owner(Node *_node)
 {
+    Component::set_owner(_node);
+
     std::vector<Member*> notExposedMembers;
 
     //  We expose first the members which allows input connections
@@ -111,6 +126,11 @@ void NodeView::set_owner(Node *_node)
         {
             exposeMember(member);
         }
+    }
+
+    if ( auto this_member = _node->get_this_member() )
+    {
+        exposeMember(this_member);
     }
 
     // Determine a color depending on node type
@@ -181,8 +201,6 @@ void NodeView::set_owner(Node *_node)
                 LOG_ERROR("NodeView", "Can't remove output for RelationType::IS_NEXT_OF.\n");
         }
     });
-
-    Component::set_owner(_node);
 }
 
 void NodeView::SetSelected(NodeView* _view)
@@ -218,9 +236,7 @@ bool NodeView::IsSelected(NodeView* _view)
 
 const MemberView* NodeView::getMemberView(const Member* _member)const
 {
-    if ( m_exposedMembers.find(_member) != m_exposedMembers.end())
-        return m_exposedMembers.at(_member);
-    return nullptr;
+    return m_exposedMembers.at(_member);
 }
 
 void NodeView::setPosition(ImVec2 _position)
@@ -318,16 +334,16 @@ bool NodeView::draw()
 	const auto halfSize = m_size / 2.0;
 	ImGui::SetCursorPos(getPosRounded() - halfSize );
 	ImGui::PushID(this);
-	ImVec2 cursorPositionBeforeContent = ImGui::GetCursorPos();
-	ImVec2 screenPosition  = ImGuiEx::CursorPosToScreenPos(getPosRounded() );
+	ImVec2 cursor_pos_content_start = ImGui::GetCursorPos();
+	ImVec2 screen_cursor_pos_content_start = ImGuiEx::CursorPosToScreenPos(getPosRounded() );
 
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	{			
 		auto borderCol = IsSelected(this) ? m_borderColorSelected : getColor(ColorType_Border);
 
-		auto itemRectMin = screenPosition - halfSize;
-		auto itemRectMax = screenPosition + halfSize;
+		auto itemRectMin = screen_cursor_pos_content_start - halfSize;
+		auto itemRectMax = screen_cursor_pos_content_start + halfSize;
 
 		// Draw the rectangle under everything
 		ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_borderRadius, 4, ImVec2(1.0f), getColor(ColorType_Shadow));
@@ -348,37 +364,44 @@ bool NodeView::draw()
 	}
 
 	// Add an invisible just on top of the background to detect mouse hovering
-	ImGui::SetCursorPos(cursorPositionBeforeContent);
+	ImGui::SetCursorPos(cursor_pos_content_start);
 	ImGui::InvisibleButton("node", m_size);
     ImGui::SetItemAllowOverlap();
-	ImGui::SetCursorPos(cursorPositionBeforeContent + settings->ui_node_padding );
+	ImGui::SetCursorPos(cursor_pos_content_start);
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui_node_padding * 2.0f); // x2 padding to keep space for "this" connector
+	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui_node_padding );
     bool is_node_hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
 	//------------------------
+
     ImGui::BeginGroup();
-	ImGuiEx::ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), getLabel().c_str()); // text with a lighter shadow (incrust effect)
+        ImGuiEx::ShadowedText(ImVec2(1.0f), getColor(ColorType_BorderHighlights), getLabel().c_str()); // text with a lighter shadow (incrust effect)
 
-	// Draw inputs
-    for( auto& memberView : m_exposedInputOnlyMembers )
-    {
         ImGui::SameLine();
-        ImGui::SetCursorPosY(cursorPositionBeforeContent.y + 1.0f);
-        edited |= drawMemberView(memberView);
-    }
 
-    // Draw outputs
-    for( auto& memberView : m_exposedOutOrInOutMembers )
-    {
+        ImGui::BeginGroup();
+        // Draw inputs
+        for (auto &memberView : m_exposedInputOnlyMembers)
+        {
+            ImGui::SameLine();
+            ImGui::SetCursorPosY(cursor_pos_content_start.y + 1.0f);
+            edited |= drawMemberView(memberView);
+        }
+
+        // Draw outputs
+        for (auto &memberView : m_exposedOutOrInOutMembers)
+        {
+            ImGui::SameLine();
+            ImGui::SetCursorPosY(cursor_pos_content_start.y + 8.0f);
+            edited |= drawMemberView(memberView);
+        }
+
+        ImGui::EndGroup();
         ImGui::SameLine();
-        ImGui::SetCursorPosY(cursorPositionBeforeContent.y + 8.0f);
-        edited |= drawMemberView(memberView);
-    }
 
-	ImGui::SameLine();
-
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui_node_padding );
-	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui_node_padding );
+        ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui_node_padding * 2.0f);
+        ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui_node_padding );
     ImGui::EndGroup();
 
     // Ends the Window
@@ -395,6 +418,12 @@ bool NodeView::draw()
         ImColor color     = settings->ui_node_nodeConnectorColor;
         ImColor borderCol = settings->ui_node_borderColor;
         ImColor hoverCol  = settings->ui_node_nodeConnectorHoveredColor;
+
+        if ( m_exposed_this_member_view )
+        {
+            MemberConnector::Draw(m_exposed_this_member_view->m_out, radius, color, borderCol, hoverCol);
+            is_connector_hovered |= ImGui::IsItemHovered();
+        }
 
         for( auto& memberView : m_exposedInputOnlyMembers )
         {
@@ -496,30 +525,42 @@ bool NodeView::drawMemberView(MemberView* _view )
     Member* member = _view->m_member;
 
     // show/hide
-    const bool isAnInputUnconnected = member->getInput() != nullptr || !member->allowsConnection(Way_In);
-    Reflect::Class* owner_class = member->getOwner()->get_class();
-    const bool isVariable = owner_class->is<VariableNode>();
-    const bool isLiteral  = owner_class->is<LiteralNode>();
-    _view->m_showInput = _view->m_touched;
-    _view->m_showInput |= member->isDefined() && (!isAnInputUnconnected || isLiteral || s_viewDetail == NodeViewDetail::Exhaustive);
-    _view->m_showInput |= isVariable && member->isDefined() && member->getOwner()->as<VariableNode>()->isDeclared();
+    const bool member_is_an_unconnected_input = member->getInput() != nullptr || !member->allowsConnection(Way_In);
 
-    _view->m_screenPos = ImGui::GetCursorScreenPos();
+    const Reflect::Class* owner_class = member->getOwner()->get_class();
+    const bool node_is_variable       = owner_class->is<VariableNode>();
+    const bool node_is_literal        = owner_class->is<LiteralNode>();
+    const bool member_is_object_ptr   = member->isType(Type::Type_Object_Ptr);
+
+    _view->m_showInput =
+            (_view->m_touched && !member_is_object_ptr)
+            || (
+                  (!member_is_object_ptr && member->isDefined())
+                  &&
+                  (
+                          (!member_is_an_unconnected_input || node_is_literal || s_viewDetail == NodeViewDetail::Exhaustive)
+                          ||
+                          node_is_variable )
+                  );
+
+    ImVec2 new_relative_pos = ImGui::GetCursorScreenPos() - getScreenPos();
 
     // input
+    float input_size;
+
     if ( _view->m_showInput )
     {
         // try to draw an as small as possible input field
-        float inputWidth = 5.0f + std::max( ImGui::CalcTextSize(((std::string)*member).c_str()).x, NodeView::s_memberInputSizeMin );
-        _view->m_screenPos.x += inputWidth / 2.0f;
-        ImGui::PushItemWidth(inputWidth);
+        input_size = 5.0f + std::max( ImGui::CalcTextSize(((std::string)*member).c_str()).x, NodeView::s_memberInputSizeMin );
+        ImGui::PushItemWidth(input_size);
         edited = NodeView::DrawMemberInput(member);
         ImGui::PopItemWidth();
     }
     else
     {
         ImGui::Button("", NodeView::s_memberInputToggleButtonSize);
-        _view->m_screenPos.x += NodeView::s_memberInputToggleButtonSize.x / 2.0f;
+
+        input_size = NodeView::s_memberInputToggleButtonSize.x;
 
         if ( ImGui::IsItemHovered() )
         {
@@ -536,6 +577,9 @@ bool NodeView::drawMemberView(MemberView* _view )
             _view->m_touched = true;
         }
     }
+
+    new_relative_pos.x += input_size * 0.5f; // center over input
+    _view->relative_pos(new_relative_pos);
 
     return edited;
 }
@@ -569,7 +613,6 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->hasInputConnected())
             {
                 _member->set(f);
-                GraphTraversal::TraverseAndSetDirty(node);
                 edited |= true;
             }
             break;
@@ -583,7 +626,6 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->hasInputConnected() )
             {
                 _member->set(str);
-                GraphTraversal::TraverseAndSetDirty(node);
                 edited |= true;
             }
             break;
@@ -598,7 +640,6 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             if (ImGui::Checkbox(label.c_str(), &b ) && !_member->hasInputConnected() )
             {
                 _member->set(b);
-                GraphTraversal::TraverseAndSetDirty(node);
                 edited |= true;
             }
             break;
@@ -651,7 +692,7 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
         if ( ImGui::IsItemHovered() )
         {
             ImGui::BeginTooltip();
-            ImGui::Text(R"(Source token: [prefix: "%s", word: "%s", suffix: "%s"])",
+            ImGui::Text("Source token: \n{\n\tprefix: \"%s\",\n\tword: \"%s\",\n\tsuffix: \"%s\"\n}",
                         _member->getSourceToken()->m_prefix.c_str(),
                         _member->getSourceToken()->m_word.c_str(),
                         _member->getSourceToken()->m_suffix.c_str()
@@ -664,27 +705,47 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
 
     };
 
+    ImGui::Text("Name:       \"%s\"",  _view->get_owner()->getLabel());
+    ImGui::Text("Short Name: \"%s\"", _view->get_owner()->getShortLabel());
+    ImGui::Text("Class:      %s", _view->get_owner()->get_class()->get_name());
+
     // Draw exposed input members
-    ImGui::Text("Inputs:");
+    ImGui::Separator();
+    ImGui::Text("Input(s):" );
     ImGui::Indent();
     for (auto& eachView : _view->m_exposedInputOnlyMembers )
     {
         drawMember(eachView->m_member);
     }
+    if( _view->m_exposedInputOnlyMembers.empty() )
+    {
+        ImGui::Text("None.");
+    }
     ImGui::Unindent();
 
     // Draw exposed output members
-    ImGui::NewLine();
-    ImGui::Text("Outputs:");
+    ImGui::Separator();
+    ImGui::Text("Output(s):" );
     ImGui::Indent();
     for (auto& eachView : _view->m_exposedOutOrInOutMembers )
     {
         drawMember(eachView->m_member);
     }
+    if( _view->m_exposedOutOrInOutMembers.empty() )
+    {
+        ImGui::Text("None.");
+    }
+    ImGui::Unindent();
+
+    // Draw exposed output members
+    ImGui::Separator();
+    ImGui::Text("Miscellaneous (%li):", 1L );
+    ImGui::Indent();
+    drawMember(_view->m_exposed_this_member_view->m_member);
     ImGui::Unindent();
 
     // Advanced properties
-    ImGui::NewLine();
+    ImGui::Separator();
    _view->drawAdvancedProperties();
 }
 
@@ -775,7 +836,7 @@ void NodeView::drawAdvancedProperties()
         auto vars = scope->get_variables();
         for(auto eachVar : vars)
         {
-            ImGui::Text("%s: %s", eachVar->getName(), ((std::string)*eachVar->value()).c_str());
+            ImGui::Text("%s: %s", eachVar->getName(), eachVar->value()->convert_to<std::string>().c_str());
         }
     }
 }

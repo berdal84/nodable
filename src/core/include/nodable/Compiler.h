@@ -2,10 +2,9 @@
 
 #include <string>
 #include <vector>
+#include <unordered_set>
 #include <mpark/variant.hpp>
 #include <nodable/Nodable.h>
-#include <nodable/GraphTraversal.h>
-#include <unordered_set>
 
 namespace Nodable
 {
@@ -103,13 +102,7 @@ namespace Nodable
         private:
             void          append_to_assembly_code(const Node* _node);
             void          append_to_assembly_code(const Member *_member);
-            bool          is_var_declared(const VariableNode *_node)const;
-
-            std::unordered_set<const VariableNode*> m_declared_vars; // TODO: this member should not be needed. The problem is a concept is missing: VariableDeclNode.
-            Code*          m_output;
-            GraphTraversal m_traversal;
-
-
+            Code*         m_output;
         };
     }
 

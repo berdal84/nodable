@@ -68,6 +68,8 @@ namespace Nodable
 	public:
 		NodeView();
 		~NodeView();
+        NodeView (const NodeView&) = delete;
+        NodeView& operator= (const NodeView&) = delete;
 
 		observe::Observer m_nodeRelationAddedObserver;
 		observe::Observer m_nodeRelationRemovedObserver;
@@ -208,7 +210,8 @@ namespace Nodable
 		std::vector<MemberView*>             m_exposedInputOnlyMembers;
 		std::vector<MemberView*>             m_exposedOutOrInOutMembers;
         std::map<const Member*, MemberView*> m_exposedMembers;
-        std::vector<NodeViewConstraint>          m_constraints;
+        MemberView*                          m_exposed_this_member_view;
+        std::vector<NodeViewConstraint>      m_constraints;
 
 		static NodeView*              s_selected;
 		static NodeView*              s_draggedNode;
@@ -229,6 +232,8 @@ namespace Nodable
  */
     class MemberView
     {
+        ImVec2            m_relative_pos;
+
     public:
         Member*           m_member;
         NodeView*         m_nodeView;
@@ -236,11 +241,11 @@ namespace Nodable
         MemberConnector*  m_out;
         bool              m_showInput;
         bool              m_touched;
-        ImVec2            m_screenPos;
 
         MemberView(Member* _member, NodeView* _nodeView);
         ~MemberView();
-
+        MemberView (const MemberView&) = delete;
+        MemberView& operator= (const MemberView&) = delete;
         /**
          * Reset the view
          */
@@ -249,5 +254,8 @@ namespace Nodable
             m_touched = false;
             m_showInput = false;
         }
+
+        ImVec2 relative_pos() const { return m_relative_pos; }
+        void relative_pos(ImVec2 _pos) { m_relative_pos = _pos; }
     };
 }

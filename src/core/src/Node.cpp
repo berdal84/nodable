@@ -57,7 +57,6 @@ const char* Node::getLabel()const
 void Node::addWire(Wire* _wire)
 {
 	m_wires.push_back(_wire);
-    GraphTraversal::TraverseAndSetDirty(this);
 }
 
 void Node::removeWire(Wire* _wire)
@@ -257,6 +256,10 @@ void Node::removeInput(Node *_node)
 }
 
 std::vector<Node*>& Node::getInputs() {
+    return this->m_inputs;
+}
+
+const std::vector<Node*>& Node::getInputs() const {
     return this->m_inputs;
 }
 

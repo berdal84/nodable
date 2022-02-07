@@ -13,6 +13,8 @@ namespace Nodable{
 
 		Component() = default;
 		virtual ~Component() = default;
+        Component (const Component&) = delete;
+        Component& operator= (const Component&) = delete;
 
 		virtual bool         update() = 0;
 		virtual inline void  set_owner(Node *_entity){ m_owner = _entity; }

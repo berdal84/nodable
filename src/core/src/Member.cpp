@@ -65,7 +65,7 @@ void Member::setInput(Member* _val, ConnBy_ _connect_by)
 
 void Member::set(Node* _value)
 {
-    get_variant().setType(Reflect::Type_Object_Ref);
+    get_variant().setType(Reflect::Type_Object_Ptr);
     get_variant().set(_value);
 }
 

@@ -21,7 +21,7 @@ namespace Nodable
         explicit InstructionNode(const char* _label);
         ~InstructionNode()= default;
 
-        [[nodiscard]] inline Member* value()const { return m_props.get("value"); }
+        [[nodiscard]] inline Member* get_root_node_member()const { return m_props.get("root_node"); }
         [[nodiscard]] inline Token*  end_of_instr_token()const { return m_end_of_instr_token; }
                       inline void    end_of_instr_token(Token* token) { m_end_of_instr_token = token; }
 

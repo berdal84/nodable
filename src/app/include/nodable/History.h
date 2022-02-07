@@ -10,10 +10,8 @@
 #include <nodable/Nodable.h>
 #include <nodable/GraphNode.h>
 #include <nodable/Wire.h>
-#include <nodable/WireView.h>
 #include <nodable/Member.h>
 #include <nodable/Log.h>
-#include <nodable/GraphTraversal.h>
 
 namespace Nodable
 {

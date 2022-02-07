@@ -77,7 +77,7 @@ TEST( GraphNode, clear)
     props->get("rvalue")->set(2);
     props->get("lvalue")->set(2);
 
-    graph.connect(props->get("result"), instructionNode->value() );
+    graph.connect(props->get("value"), instructionNode->get_root_node_member() );
 
     EXPECT_TRUE(graph.getWireRegistry().size() != 0);
     EXPECT_TRUE(graph.getNodeRegistry().size() != 0);
@@ -160,7 +160,7 @@ TEST(Graph, by_reference_assign)
     ASSERT_DOUBLE_EQ( b->value()->convert_to<double>(), 6.0 );
     ASSERT_DOUBLE_EQ( assign->getProps()->get("lvalue")->convert_to<double>(), 6.0 );
     ASSERT_DOUBLE_EQ( assign->getProps()->get("rvalue")->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ( assign->getProps()->get("result")->convert_to<double>(), 0.0 );
+    ASSERT_DOUBLE_EQ( assign->getProps()->get("value")->convert_to<double>(), 0.0 );
 
     // apply
     assign->eval();
@@ -168,5 +168,5 @@ TEST(Graph, by_reference_assign)
     ASSERT_DOUBLE_EQ( b->value()->convert_to<double>(), 5.0 );
     ASSERT_DOUBLE_EQ( assign->getProps()->get("lvalue")->convert_to<double>(), 5.0 );
     ASSERT_DOUBLE_EQ( assign->getProps()->get("rvalue")->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ( assign->getProps()->get("result")->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ( assign->getProps()->get("value")->convert_to<double>(), 5.0 );
 }

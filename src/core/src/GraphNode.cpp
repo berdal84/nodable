@@ -7,7 +7,6 @@
 #include <nodable/DataAccess.h>
 #include <nodable/Node.h>
 #include <nodable/VariableNode.h>
-#include <nodable/GraphTraversal.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/LiteralNode.h>
@@ -79,46 +78,8 @@ UpdateResult GraphNode::update()
         }
     }
 
-    // update nodes
-    UpdateResult result;
-    if( m_program_root )
-    {
-        GraphTraversal traversal;
-        auto updateResult = traversal.traverse(m_program_root, TraversalFlag_FollowInputs | TraversalFlag_FollowChildren |
-                                                               TraversalFlag_FollowNotDirty | TraversalFlag_AvoidCycles);
-        bool changed = false;
-        for (Node *eachNode : traversal.getStats().m_traversed)
-        {
-            if (eachNode->isDirty())
-            {
-                eachNode->eval();
-                eachNode->update();
-                eachNode->setDirty(false);
-                changed |= true;
-            }
-        }
-
-        if ( updateResult == Result::Success )
-        {
-            if ( changed )
-            {
-                traversal.logStats();
-                result = UpdateResult::Success;
-            }
-            else
-            {
-                result = UpdateResult::SuccessWithoutChanges;
-            }
-        }
-        else
-        {
-            result = UpdateResult::Failed;
-        }
-    }
-    else
-    {
-        result = UpdateResult::SuccessWithoutChanges;
-    }
+    UpdateResult result = UpdateResult::SuccessWithoutChanges;
+    // TODO; update selected node ?
 
     return result;
 }
@@ -255,7 +216,7 @@ Wire *GraphNode::connect(Member* _from, Member* _to, ConnBy_ _connect_by)
         _to->digest(_from);
         delete _from;
     }
-    else if (_from->getOwner()->get_class()->is<LiteralNode>() && _to->getOwner()->get_class()->is_not<VariableNode>() )
+    else if (_from->getOwner()->get_class()->is<LiteralNode>() && _to->getOwner()->get_class()->is_not<VariableNode>() && _to->getOwner()->get_class()->is_not<InstructionNode>() )
     {
         Node* owner = _from->getOwner();
         _to->digest(_from);
@@ -269,6 +230,8 @@ Wire *GraphNode::connect(Member* _from, Member* _to, ConnBy_ _connect_by)
 
         auto targetNode = _to->getOwner()->as<Node>();
         auto sourceNode = _from->getOwner()->as<Node>();
+
+        NODABLE_ASSERT(targetNode != sourceNode)
 
         // Link wire to members
         wire = this->newWire();
@@ -333,9 +296,9 @@ void GraphNode::unregisterWire(Wire* _wire)
     }
 }
 
-void GraphNode::connect(Member* _source, InstructionNode* _target)
+void GraphNode::connect(Node* _source, InstructionNode* _target)
 {
-    connect(_source, _target->value());
+    connect(_source->get_this_member(), _target->get_root_node_member() );
 }
 
 void GraphNode::connect(Member* _source, VariableNode* _target)
