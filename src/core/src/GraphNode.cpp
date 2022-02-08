@@ -78,8 +78,36 @@ UpdateResult GraphNode::update()
         }
     }
 
-    UpdateResult result = UpdateResult::SuccessWithoutChanges;
-    // TODO; update selected node ?
+    // update nodes
+    UpdateResult result;
+    if( m_program_root )
+    {
+        bool changed = false;
+        for (Node* each_node : m_nodeRegistry)
+        {
+            if (each_node->isDirty())
+            {
+                each_node->eval();
+                each_node->update();
+                each_node->setDirty(false);
+                changed |= true;
+            }
+        }
+        if ( changed )
+        {
+            result = UpdateResult::Success;
+        }
+        else
+        {
+            result = UpdateResult::SuccessWithoutChanges;
+        }
+
+    }
+    else
+    {
+        result = UpdateResult::SuccessWithoutChanges;
+    }
+
 
     return result;
 }
