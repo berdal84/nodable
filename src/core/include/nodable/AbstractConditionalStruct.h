@@ -19,9 +19,8 @@ namespace Nodable
     {
     public:
         /**
-         * Set a condition to be evaluated in order to branch to the right scope.
+         * Get a condition to be evaluated in order to branch to the right scope.
          */
-        virtual void                   set_condition(Member*) const = 0;
         virtual Member*                get_condition()const = 0;
         /**
          * Get the branch to follow if condition is evaluated true

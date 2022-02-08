@@ -26,8 +26,7 @@ namespace Nodable
         Member*                get_iter_expr()const { return m_props.get("iter"); }
 
         // override AbstractConditionalStruct
-        void                   set_condition(Member *_value) const override { get_condition()->set(_value); }
-        Member*                get_condition()const override { return m_props.get("condition"); }
+        Member*               get_condition()const override { return m_props.get("condition"); }
         Scope*        get_condition_true_branch()const override;
         Scope*        get_condition_false_branch()const override;
 

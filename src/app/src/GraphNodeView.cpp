@@ -149,8 +149,8 @@ bool GraphNodeView::draw()
                                         src_pos, dst_pos,
                                         settings->ui_codeFlow_lineColor,
                                         settings->ui_codeFlow_lineShadowColor,
-                                        settings->ui_wire_bezier_thickness * 2.0f,
-                                        0.0f);
+                                        settings->ui_wire_bezier_thickness * 3.0f,
+                                        settings->ui_wire_bezier_roundness * 0.25f);
                             }
                             // curved thin for the others
                             else{

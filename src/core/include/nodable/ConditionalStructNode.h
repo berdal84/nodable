@@ -25,7 +25,6 @@ namespace Nodable
         inline const Token*    get_token_else()const   { return m_token_else; }
 
         // override AbstractConditionalStruct
-        void                   set_condition(Member *_value) const override { get_condition()->set(_value); }
         Scope*        get_condition_true_branch()const override;
         Scope*        get_condition_false_branch()const override;
         Member*                get_condition()const override { return m_props.get("condition"); }

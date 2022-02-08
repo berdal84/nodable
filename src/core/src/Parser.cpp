@@ -368,6 +368,7 @@ Member* Parser::parse_atomic_expression()
 	}
 
 	auto result = token_to_member(token);
+
 	if( result != nullptr)
     {
         commit_transaction();
@@ -883,7 +884,8 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
         if ( condition)
         {
-            m_graph->connect(condition, condStruct->get_condition() );
+            m_graph->connect(condition->getOwner()->get_this_member(), condStruct->get_condition() );
+
             if ( Node* scopeIf = parse_scope() )
             {
                 if ( m_token_ribbon.eatToken(TokenType_KeywordElse))
@@ -982,7 +984,7 @@ ForLoopNode* Parser::parse_for_loop()
                     }
                     else
                     {
-                        m_graph->connect(cond_instr, for_loop_node->get_condition());
+                        m_graph->connect(cond_instr->getOwner()->get_this_member(), for_loop_node->get_condition());
 
                         if (!m_token_ribbon.eatToken(TokenType_EndOfInstruction))
                         {

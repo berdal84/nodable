@@ -195,10 +195,8 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
         instr->m_comment = std::string{_node->getShortLabel()} + "'s scope";
     }
 
-    if ( _node->get_class()->is<AbstractConditionalStruct>() )
+    if ( auto conditional_struct = _node->as<AbstractConditionalStruct>(); conditional_struct )
     {
-        auto cond = _node->as<AbstractConditionalStruct>();
-
         // for_loop init instruction
         if ( auto for_loop = _node->as<ForLoopNode>() )
         {
@@ -206,7 +204,11 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
         }
 
         long condition_instr_line = m_output->get_next_pushed_instr_index();
-        append_to_assembly_code( cond->get_condition() );
+
+        Member* condition_member = conditional_struct->get_condition();
+        NODABLE_ASSERT(condition_member)
+        Node* _condition_node = (Node*)*condition_member;
+        append_to_assembly_code( _condition_node );
 
         Instr* store_instr = m_output->push_instr(Instr_t::mov);
         store_instr->m_left_h_arg = Register::rdx;
@@ -218,7 +220,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
 
         Instr* skip_false_branch = nullptr;
 
-        if ( auto true_branch = cond->get_condition_true_branch() )
+        if ( auto true_branch = conditional_struct->get_condition_true_branch() )
         {
             append_to_assembly_code( true_branch->get_owner() );
 
@@ -233,7 +235,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
                 loop_jump->m_comment = "jump back to loop begining";
 
             }
-            else if (cond->get_condition_false_branch())
+            else if (conditional_struct->get_condition_false_branch())
             {
                 skip_false_branch = m_output->push_instr(Instr_t::jmp);
                 skip_false_branch->m_comment = "jump false branch";
@@ -242,7 +244,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
 
         skip_true_branch->m_left_h_arg = m_output->get_next_pushed_instr_index() - skip_true_branch->m_line;
 
-        if ( auto false_branch = cond->get_condition_false_branch() )
+        if ( auto false_branch = conditional_struct->get_condition_false_branch() )
         {
             append_to_assembly_code( false_branch->get_owner() );
             skip_false_branch->m_left_h_arg = m_output->get_next_pushed_instr_index() - skip_false_branch->m_line;
