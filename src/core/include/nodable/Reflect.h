@@ -18,21 +18,21 @@
 #define REFLECT_DEFINE_TYPE( cpp_T, reflect_T ) \
     /* 3 meta_type to get info on cpp_t*/ \
     template<> \
-    struct ::Nodable::Reflect::cpp<cpp_T> { \
+    struct Nodable::Reflect::cpp<cpp_T> { \
         static constexpr Type reflect_t = reflect_T; \
         static constexpr const char* type_name = #reflect_T; \
         static constexpr const char* cpp_t_name = #cpp_T; \
     }; \
     template<> \
     \
-    struct ::Nodable::Reflect::cpp<cpp_T&> { \
+    struct Nodable::Reflect::cpp<cpp_T&> { \
         static constexpr Type reflect_t = (Type)(reflect_T | Type_Reference); \
         static constexpr const char* type_name = #reflect_T"&"; \
         static constexpr const char* cpp_t_name = #cpp_T"&"; \
     }; \
     \
     template<> \
-    struct ::Nodable::Reflect::cpp<cpp_T*> { \
+    struct Nodable::Reflect::cpp<cpp_T*> { \
         static constexpr Type reflect_t = (Type)(reflect_T | Type_Pointer); \
         static constexpr const char* type_name = #reflect_T"*"; \
         static constexpr const char* cpp_t_name = #cpp_T"*"; \
@@ -40,17 +40,17 @@
     \
     /* 3 meta_type to get info on reflect_t*/ \
     template<> \
-    struct ::Nodable::Reflect::reflect<reflect_T> { \
+    struct Nodable::Reflect::reflect<reflect_T> { \
         using cpp_t = cpp_T; \
     };\
     \
     template<> \
-    struct ::Nodable::Reflect::reflect<reflect_T##_Ptr> { \
+    struct Nodable::Reflect::reflect<reflect_T##_Ptr> { \
         using cpp_t = cpp_T*; \
     };\
     \
     template<> \
-    struct ::Nodable::Reflect::reflect<reflect_T##_Ref> { \
+    struct Nodable::Reflect::reflect<reflect_T##_Ref> { \
         using cpp_t = cpp_T&; \
     };
 
@@ -117,7 +117,7 @@ public:\
  *
  */
 #define REFLECT_DEFINE_CLASS( _CLASS ) \
-    static ::Nodable::Reflect::Class* _CLASS##_Reflect = _CLASS::Get_class();
+    static Nodable::Reflect::Class* _CLASS##_Reflect = _CLASS::Get_class();
 
 namespace Nodable::Reflect
 {
@@ -290,10 +290,10 @@ namespace Nodable::Reflect
     };
 }
 
-REFLECT_DEFINE_TYPE(std::nullptr_t, ::Nodable::Reflect::Type_Unknown )
-REFLECT_DEFINE_TYPE(double, ::Nodable::Reflect::Type_Double )
-REFLECT_DEFINE_TYPE(std::string, ::Nodable::Reflect::Type_String )
-REFLECT_DEFINE_TYPE(bool, ::Nodable::Reflect::Type_Boolean )
-REFLECT_DEFINE_TYPE(void*, ::Nodable::Reflect::Type_Pointer )
+REFLECT_DEFINE_TYPE(std::nullptr_t, Nodable::Reflect::Type_Unknown )
+REFLECT_DEFINE_TYPE(double, Nodable::Reflect::Type_Double )
+REFLECT_DEFINE_TYPE(std::string, Nodable::Reflect::Type_String )
+REFLECT_DEFINE_TYPE(bool, Nodable::Reflect::Type_Boolean )
+REFLECT_DEFINE_TYPE(void*, Nodable::Reflect::Type_Pointer )
 
 
