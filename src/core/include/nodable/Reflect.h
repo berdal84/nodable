@@ -13,6 +13,112 @@
  * - get/set members (TODO)
  * - automatic REFLECT_INHERITS declaration (TODO)
  */
+
+
+#define REFLECT_DEFINE_TYPE( cpp_T, reflect_T ) \
+    /* 3 meta_type to get info on cpp_t*/ \
+    template<> \
+    struct ::Nodable::Reflect::cpp<cpp_T> { \
+        static constexpr Type reflect_t = reflect_T; \
+        static constexpr const char* type_name = #reflect_T; \
+        static constexpr const char* cpp_t_name = #cpp_T; \
+    }; \
+    template<> \
+    \
+    struct ::Nodable::Reflect::cpp<cpp_T&> { \
+        static constexpr Type reflect_t = (Type)(reflect_T | Type_Reference); \
+        static constexpr const char* type_name = #reflect_T"&"; \
+        static constexpr const char* cpp_t_name = #cpp_T"&"; \
+    }; \
+    \
+    template<> \
+    struct ::Nodable::Reflect::cpp<cpp_T*> { \
+        static constexpr Type reflect_t = (Type)(reflect_T | Type_Pointer); \
+        static constexpr const char* type_name = #reflect_T"*"; \
+        static constexpr const char* cpp_t_name = #cpp_T"*"; \
+    };\
+    \
+    /* 3 meta_type to get info on reflect_t*/ \
+    template<> \
+    struct ::Nodable::Reflect::reflect<reflect_T> { \
+        using cpp_t = cpp_T; \
+    };\
+    \
+    template<> \
+    struct ::Nodable::Reflect::reflect<reflect_T##_Ptr> { \
+        using cpp_t = cpp_T*; \
+    };\
+    \
+    template<> \
+    struct ::Nodable::Reflect::reflect<reflect_T##_Ref> { \
+        using cpp_t = cpp_T&; \
+    };
+
+
+/**
+ * Must be inserted to start a reflection declaration, short version exist ex: REFLECT or REFLECT_WITH_INHERITANCE
+ */
+#define REFLECT_BEGIN( _CLASS, ... ) \
+public:\
+    \
+    virtual Reflect::Class* get_class() const __VA_ARGS__ { \
+      return _CLASS::Get_class();\
+    } \
+    \
+    static Reflect::Class* Get_class() {  \
+      static Reflect::Class* clss = _CLASS::Reflect_class(); \
+      return clss; \
+    } \
+    \
+    static Reflect::Class* Reflect_class() {   \
+      LOG_MESSAGE( "Reflect", "ReflectClass %s\n", #_CLASS ) \
+      Reflect::Class* clss = new Reflect::Class(#_CLASS);
+
+/**
+ * Must be inserted between REFLECT_BEGIN and REFLECT_END macro usage
+ */
+#define REFLECT_EXTENDS(_PARENT_CLASS) \
+      /* _class is defined in REFLECT_BEGIN */ \
+      LOG_MESSAGE( "Reflect", " - inherits %s \n", #_PARENT_CLASS ) \
+      clss->add_parent( _PARENT_CLASS::Get_class() ); \
+      _PARENT_CLASS::Get_class()->add_child( clss );
+
+/**
+ * Must be added after any usage of REFLECT_BEGIN, can be placed after a REFLECT_INHERITS
+ */
+#define REFLECT_END \
+      return clss; /* return for CreateClass() */ \
+    }
+
+/*
+ * Short-end to reflect a class with minimal information (ex: name)
+ */
+#define REFLECT( _CLASS ) \
+    REFLECT_BEGIN( _CLASS ) \
+    REFLECT_END
+
+/**
+ * Short-end to reflect a class with minimal information with inheritance information.
+ */
+#define REFLECT_DERIVED(_CLASS ) \
+    REFLECT_BEGIN( _CLASS, override )
+
+/**
+ * Must be added to your class *.cpp file in order to generate MetaClass before main() starts.
+ * note this is not always required, for example with
+ *
+ * class A { ... };
+ * class B : class A { ... }
+ *
+ * here A DEFINITION can be omitted since B DEFINITION will also define A.
+ *
+ * It works with N level(s) of inheritance too.
+ * A <- B <- C <- D, here only D needs to be explicitly defined in it's cpp.
+ *
+ */
+#define REFLECT_DEFINE_CLASS( _CLASS ) \
+    static ::Nodable::Reflect::Class* _CLASS##_Reflect = _CLASS::Get_class();
+
 namespace Nodable::Reflect
 {
     /**
@@ -20,28 +126,31 @@ namespace Nodable::Reflect
      */
     enum Type
     {
-        Type_Unknown      = 0,
-        Type_Pointer      = 0b00000001, // multi-pointers not allowed.
-        Type_Reference    = 0b00000010, // multi-refs not allowed.
-        // = 0b00000100, for future use
-        Type_Boolean      = 0b00001000,
-        Type_Double       = 0b00010000,
-        Type_String       = 0b00100000,
-        Type_Object       = 0b01000000,
+        Type_Unknown      = 1u << 0u,
+
+        Type_Pointer      = 1u << 1u,
+        Type_DblPointer   = 1u << 2u,
+        Type_Reference    = 1u << 3u,
+
+        Type_Boolean      = 1u << 4u,
+        Type_Double       = 1u << 5u,
+        Type_String       = 1u << 6u,
         Type_Any          = Type_Boolean | Type_Double | Type_String,
 
-        Type_COUNT        = 0b10000000,
+        Type_COUNT,
 
+        Type_Unknown_Ptr  = Type_Unknown | Type_Pointer,
         Type_Boolean_Ptr  = Type_Boolean | Type_Pointer,
         Type_Double_Ptr   = Type_Double | Type_Pointer,
         Type_String_Ptr   = Type_String | Type_Pointer,
-        Type_Object_Ptr   = Type_Object | Type_Pointer,
+        Type_Pointer_Ptr  = Type_Pointer | Type_DblPointer,
         Type_Any_Ptr      = Type_Any | Type_Pointer,
 
+        Type_Unknown_Ref  = Type_Unknown | Type_Reference,
         Type_Boolean_Ref  = Type_Boolean | Type_Reference,
         Type_Double_Ref   = Type_Double | Type_Reference,
-        Type_Object_Ref   = Type_Object | Type_Reference,
         Type_String_Ref   = Type_String | Type_Reference,
+        Type_Pointer_Ref  = Type_Pointer | Type_Reference,
         Type_Any_Ref      = Type_Any | Type_Reference,
     };
 
@@ -50,7 +159,7 @@ namespace Nodable::Reflect
     {
         switch( _type )
         {
-            case Type_Object:	{return "object";}
+            case Type_Pointer:	{return "pointer";}
             case Type_String:	{return "string";}
             case Type_Double:	{return "double";}
             case Type_Boolean: 	{return "boolean";}
@@ -81,46 +190,10 @@ namespace Nodable::Reflect
         double* <--> Type_Double_Ptr
     */
     template<typename T>
-    struct to_Type;
+    struct cpp;
 
     template<Type T>
-    struct from_Type;
-
-    #define REFLECT_DEFINE_TYPE( cpp_type, reflect_type ) \
-        template<> \
-        struct Reflect::to_Type<cpp_type> { \
-            static constexpr Reflect::Type type = reflect_type; \
-            static constexpr const char* type_name = #reflect_type; \
-            static constexpr const char* cpp_type_name = #cpp_type; \
-        }; \
-        template<> \
-        struct Reflect::from_Type<Reflect::reflect_type> { \
-            using type = cpp_type; \
-        };\
-        template<> \
-        struct Reflect::from_Type<Reflect::reflect_type##_Ptr> { \
-            using type = cpp_type*; \
-        };\
-        template<> \
-        struct Reflect::from_Type<Reflect::reflect_type##_Ref> { \
-            using type = cpp_type&; \
-        };\
-        template<> \
-        struct Reflect::to_Type<cpp_type&> { \
-            static constexpr Type type = (Type)(reflect_type | Type_Reference); \
-            static constexpr const char* type_name = #reflect_type"&"; \
-            static constexpr const char* cpp_type_name = #cpp_type"&"; \
-        }; \
-        template<> \
-        struct Reflect::to_Type<cpp_type*> { \
-            static constexpr Type type = (Type)(reflect_type | Type_Pointer); \
-            static constexpr const char* type_name = #reflect_type"*"; \
-            static constexpr const char* cpp_type_name = #cpp_type"*"; \
-        };
-
-    REFLECT_DEFINE_TYPE(double, Type_Double )
-    REFLECT_DEFINE_TYPE(std::string, Type_String )
-    REFLECT_DEFINE_TYPE(bool, Type_Boolean )
+    struct reflect;
 
     /**
      * Initialize reflection, will perform runtime computation to precompute additional information.
@@ -128,7 +201,6 @@ namespace Nodable::Reflect
     static void Initialize()
     {
         LOG_VERBOSE("Reflect", "Initializing ...\n")
-
         LOG_VERBOSE("Reflect", "Initialized\n")
     }
 
@@ -218,67 +290,10 @@ namespace Nodable::Reflect
     };
 }
 
-/**
- * Must be inserted to start a reflection declaration, short version exist ex: REFLECT or REFLECT_WITH_INHERITANCE
- */
-#define REFLECT_BEGIN( _CLASS, ... ) \
-public:\
-    \
-    virtual Reflect::Class* get_class() const __VA_ARGS__ { \
-      return _CLASS::Get_class();\
-    } \
-    \
-    static Reflect::Class* Get_class() {  \
-      static Reflect::Class* clss = _CLASS::Reflect_class(); \
-      return clss; \
-    } \
-    \
-    static Reflect::Class* Reflect_class() {   \
-      LOG_MESSAGE( "Reflect", "ReflectClass %s\n", #_CLASS ) \
-      Reflect::Class* clss = new Reflect::Class(#_CLASS);
+REFLECT_DEFINE_TYPE(std::nullptr_t, ::Nodable::Reflect::Type_Unknown )
+REFLECT_DEFINE_TYPE(double, ::Nodable::Reflect::Type_Double )
+REFLECT_DEFINE_TYPE(std::string, ::Nodable::Reflect::Type_String )
+REFLECT_DEFINE_TYPE(bool, ::Nodable::Reflect::Type_Boolean )
+REFLECT_DEFINE_TYPE(void*, ::Nodable::Reflect::Type_Pointer )
 
-/**
- * Must be inserted between REFLECT_BEGIN and REFLECT_END macro usage
- */
-#define REFLECT_EXTENDS(_PARENT_CLASS) \
-      /* _class is defined in REFLECT_BEGIN */ \
-      LOG_MESSAGE( "Reflect", " - inherits %s \n", #_PARENT_CLASS ) \
-      clss->add_parent( _PARENT_CLASS::Get_class() ); \
-      _PARENT_CLASS::Get_class()->add_child( clss );
 
-/**
- * Must be added after any usage of REFLECT_BEGIN, can be placed after a REFLECT_INHERITS
- */
-#define REFLECT_END \
-      return clss; /* return for CreateClass() */ \
-    }
-
-/*
- * Short-end to reflect a class with minimal information (ex: name)
- */
-#define REFLECT( _CLASS ) \
-    REFLECT_BEGIN( _CLASS ) \
-    REFLECT_END
-
-/**
- * Short-end to reflect a class with minimal information with inheritance information.
- */
-#define REFLECT_DERIVED(_CLASS ) \
-    REFLECT_BEGIN( _CLASS, override )
-
-/**
- * Must be added to your class *.cpp file in order to generate MetaClass before main() starts.
- * note this is not always required, for example with
- *
- * class A { ... };
- * class B : class A { ... }
- *
- * here A DEFINITION can be omitted since B DEFINITION will also define A.
- *
- * It works with N level(s) of inheritance too.
- * A <- B <- C <- D, here only D needs to be explicitly defined in it's cpp.
- *
- */
-#define REFLECT_DEFINE_CLASS( _CLASS ) \
-    static ::Nodable::Reflect::Class* _CLASS##_Reflect = ::Nodable::_CLASS::Get_class(); \
-    REFLECT_DEFINE_TYPE( _CLASS, Type_Object ) // for conversions cpp_type <--> reflect_type

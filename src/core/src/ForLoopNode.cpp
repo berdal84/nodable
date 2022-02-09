@@ -10,7 +10,7 @@ ForLoopNode::ForLoopNode()
         m_token_for(nullptr)
 {
     m_props.add("init"     , Visibility::Always, Reflect::Type_Any        , Way::Way_In);
-    m_props.add("condition", Visibility::Always, Reflect::Type_Object_Ptr , Way::Way_In);
+    m_props.add("condition", Visibility::Always, Reflect::Type_Pointer    , Way::Way_In);
     m_props.add("iter"     , Visibility::Always, Reflect::Type_Any        , Way::Way_In);
 }
 

@@ -62,13 +62,13 @@ namespace Nodable {
     private:
         bool m_isDefined;
 
-	    /** Nodable::Type to native type */
+	    // TODO: use Reflect.h instead
 	    constexpr static const std::array<Reflect::Type, 5> s_nodableTypeByIndex = {{
-            Reflect::Type_Unknown,
-            Reflect::Type_Boolean,
-            Reflect::Type_Double,
-            Reflect::Type_String,
-            Reflect::Type_Object_Ptr
+            Reflect::cpp<std::nullptr_t>::reflect_t,
+            Reflect::cpp<bool>::reflect_t,
+            Reflect::cpp<double>::reflect_t,
+            Reflect::cpp<std::string>::reflect_t,
+            Reflect::cpp<void*>::reflect_t
 	    }};
 
 		mpark::variant<

@@ -245,7 +245,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _conn
         delete _src_member;
     }
     else if (
-            _src_member->getType() != Reflect::Type_Object_Ptr &&
+            _src_member->getType() != Reflect::Type_Pointer &&
             _src_member->getOwner()->get_class()->is<LiteralNode>() &&
             _dst_member->getOwner()->get_class()->is_not<VariableNode>())
     {

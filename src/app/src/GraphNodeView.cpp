@@ -142,7 +142,7 @@ bool GraphNodeView::draw()
                             // TODO: add multiple wire type settings
 
                             // straight wide lines for node connections
-                            if ( src_member->isType(Type_Object_Ptr) )
+                            if ( src_member->isType(Type_Pointer) )
                             {
                                 ImGuiEx::DrawVerticalWire(
                                         ImGui::GetWindowDrawList(),

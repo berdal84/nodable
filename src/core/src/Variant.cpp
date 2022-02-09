@@ -25,7 +25,7 @@ bool  Variant::isType(Reflect::Type _type)const
 
 void Variant::set(double _var)
 {
-	switch( getType() )
+	switch( getType() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
 	{
 		case Reflect::Type_String:
 		{
@@ -49,7 +49,7 @@ void Variant::set(const std::string& _var)
 
 void Variant::set(const char* _var)
 {
-    switch (getType())
+    switch (getType()) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
     {
         case Reflect::Type_String:
         {
@@ -66,7 +66,7 @@ void Variant::set(const char* _var)
 
 void Variant::set(bool _var)
 {
-	switch(getType())
+	switch(getType()) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
 	{
 		case Reflect::Type_String:
 		{
@@ -101,14 +101,14 @@ void Variant::undefine()
 
 void Variant::set(Node* _node)
 {
-    setType( Reflect::Type_Object_Ptr );
+    setType( Reflect::Type_Pointer ); // TODO: remove this
     data = _node;
     m_isDefined = true;
 }
 
 void Variant::set(const Variant* _other)
 {
-    setType(_other->getType());
+    setType(_other->getType());  // TODO: remove this
 	data = _other->data;
     m_isDefined = _other->m_isDefined;
 }
@@ -117,7 +117,7 @@ std::string Variant::getTypeAsString()const
 {
     std::string result;
 
-	if (  getType() == Reflect::Type_Object_Ptr )
+	if (  getType() == Reflect::Type_Pointer ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
     {
         Node* _node = mpark::get<Node*>( data );
         if ( _node )
@@ -138,9 +138,9 @@ std::string Variant::getTypeAsString()const
 	return result;
 }
 
-void Variant::setType(Reflect::Type _type)
+void Variant::setType(Reflect::Type _type) // TODO: remove this
 {
-	if (getType() != _type)
+	if (getType() != _type) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
 	{
 		undefine();
 
@@ -211,7 +211,7 @@ template<>
 {
     std::string result;
 
-    switch (getType())
+    switch (getType())  // TODO: consider using State pattern (a single context with n possible states implementing an interface)
     {
         case Reflect::Type_String:
         {
@@ -231,7 +231,7 @@ template<>
             break;
         }
 
-        case Reflect::Type_Object_Ptr:
+        case Reflect::Type_Pointer:
         {
             result.append("[") ;
             result.append( mpark::get<Node*>(data)->getLabel() );

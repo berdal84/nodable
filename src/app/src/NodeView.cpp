@@ -530,12 +530,12 @@ bool NodeView::drawMemberView(MemberView* _view )
     const Reflect::Class* owner_class = member->getOwner()->get_class();
     const bool node_is_variable       = owner_class->is<VariableNode>();
     const bool node_is_literal        = owner_class->is<LiteralNode>();
-    const bool member_is_object_ptr   = member->isType(Type::Type_Object_Ptr);
+    const bool member_is_pointer   = member->isType(Type::Type_Pointer);
 
     _view->m_showInput =
-            (_view->m_touched && !member_is_object_ptr)
+            (_view->m_touched && !member_is_pointer)
             || (
-                  (!member_is_object_ptr && member->isDefined())
+                  (!member_is_pointer && member->isDefined())
                   &&
                   (
                           (!member_is_an_unconnected_input || node_is_literal || s_viewDetail == NodeViewDetail::Exhaustive)

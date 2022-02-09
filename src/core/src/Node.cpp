@@ -10,6 +10,8 @@
 using namespace Nodable;
 using namespace Nodable::Reflect;
 
+REFLECT_DEFINE_CLASS(Node)
+
 Node::Node(std::string _label):
         m_props(this),
         m_parentGraph(nullptr),
@@ -25,7 +27,7 @@ Node::Node(std::string _label):
      * Add "this" Member to be able to connect this Node as an object pointer.
      * Usually an object pointer is connected to an InstructionNode's "node_to_eval" Member.
      */
-    Member* this_member = m_props.add("this", Visibility::Always, Type_Object_Ptr, Way::Way_Out);
+    Member* this_member = m_props.add("this", Visibility::Always, Type_Pointer, Way::Way_Out);
     this_member->set( this );
 }
 

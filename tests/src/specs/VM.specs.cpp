@@ -4,7 +4,7 @@
 
 using namespace Nodable;
 
-TEST(Runner, Cond_1 )
+TEST(VM, Cond_1 )
 {
     std::string program =
             "double bob   = 50;"
@@ -20,7 +20,7 @@ TEST(Runner, Cond_1 )
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "true" );
 }
 
-TEST(Runner, Cond_2 )
+TEST(VM, Cond_2 )
 {
     std::string program =
             "double bob   = 0;"
@@ -36,7 +36,7 @@ TEST(Runner, Cond_2 )
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "default" );
 }
 
-TEST(Runner, Loop_1_using_global_var )
+TEST(VM, Loop_1_using_global_var )
 {
     std::string program =
             "string res = \"\";" \
@@ -48,7 +48,7 @@ TEST(Runner, Loop_1_using_global_var )
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "0123456789" );
 }
 
-TEST(Runner, Loop_1_using_local_var )
+TEST(VM, Loop_1_using_local_var )
 {
     std::string program =
             "string res = \"\";" \
@@ -61,7 +61,7 @@ TEST(Runner, Loop_1_using_local_var )
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "0123456789" );
 }
 
-TEST(Runner, Loop_2_using_global_var )
+TEST(VM, Loop_2_using_global_var )
 {
     std::string program =
             "double n;"
@@ -80,7 +80,7 @@ TEST(Runner, Loop_2_using_global_var )
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "__49162536496481" );
 }
 
-TEST(Runner, Loop_2_using_local_var )
+TEST(VM, Loop_2_using_local_var )
 {
     std::string program =
             "string res = \"\";"

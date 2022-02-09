@@ -150,7 +150,7 @@ void Asm::Compiler::append_to_assembly_code( const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
-        if (_member->isType(Reflect::Type_Object_Ptr))
+        if (_member->isType(Reflect::Type_Pointer))
         {
             /*
              * Members can point to a Node*
