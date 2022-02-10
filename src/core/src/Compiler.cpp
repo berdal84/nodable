@@ -251,7 +251,7 @@ void Asm::Compiler::compile(const Node* _node)
     }
     else if (_node->has<Scope>() )
     {
-        for( auto each : _node->children_slots().get_data() )
+        for( auto each : _node->children_slots().content() )
         {
             compile(each);
         }
@@ -268,7 +268,7 @@ void Asm::Compiler::compile(const Node* _node)
     else
     {
         // eval inputs
-        for ( const Node* each_input : _node->input_slots().get_data() )
+        for ( const Node* each_input : _node->input_slots().content() )
         {
             if ( !each_input->is<VariableNode>() )
                 compile(each_input);

@@ -166,7 +166,7 @@ bool AppView::draw()
     // TODO: create an event list (fill, execute, clear)
     auto delete_node(false);
     auto arrange_node(false);
-    auto select_next(false);
+    auto select_successor_node(false);
     auto expand_node(false);
 
     SDL_Event event;
@@ -211,7 +211,7 @@ bool AppView::draw()
             }
             else if (key == SDLK_n)
             {
-                select_next = true;
+                select_successor_node = true;
             }
 			else if (key == SDLK_F1 )
             {
@@ -543,14 +543,14 @@ bool AppView::draw()
             {
                 selectedNodeView->toggleExpansion();
             }
-			else if (select_next)
+			else if (select_successor_node)
             {
-			    auto possible_next = selectedNodeView->get_owner()->successor_slots().get_first_or_nullptr();
-			    if ( !possible_next  )
+			    Node* possible_successor = selectedNodeView->get_owner()->successor_slots().get_front_or_nullptr();
+			    if ( !possible_successor  )
                 {
-                    if( auto nextView = possible_next->get<NodeView>())
+                    if( auto successor_view = possible_successor->get<NodeView>())
                     {
-                        NodeView::SetSelected(nextView);
+                        NodeView::SetSelected(successor_view);
                     }
                 }
 

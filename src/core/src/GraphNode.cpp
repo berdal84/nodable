@@ -345,7 +345,7 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
         case Relation_t::IS_CHILD_OF:
         {
             /*
-             * Here we create IS_NEXT_OF connections.
+             * Here we create IS_SUCCESSOR_OF connections.
              */
             if ( _sideEffects )
             {
@@ -354,15 +354,15 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
                 {
                     if (_target->children_slots().empty() )
                     {
-                        connect(_source, _target, Relation_t::IS_NEXT_OF, false);
+                        connect(_source, _target, Relation_t::IS_SUCCESSOR_OF, false);
                     }
                     else if ( _target->get_class()->is<ConditionalStructNode>() )
                     {
-                        connect(_source, _target, Relation_t::IS_NEXT_OF, false);
+                        connect(_source, _target, Relation_t::IS_SUCCESSOR_OF, false);
                     }
                     else if ( !_target->children_slots().back()->has<Scope>() )
                     {
-                        connect(_source, _target->children_slots().back(), Relation_t::IS_NEXT_OF, false);
+                        connect(_source, _target->children_slots().back(), Relation_t::IS_SUCCESSOR_OF, false);
                     }
                     else
                     {
@@ -374,7 +374,7 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
                             scope->get_last_instructions(last_instructions);
                             for (InstructionNode *each_instruction : last_instructions)
                             {
-                                connect(_source, each_instruction, Relation_t::IS_NEXT_OF, false);
+                                connect(_source, each_instruction, Relation_t::IS_SUCCESSOR_OF, false);
                             }
                         }
                     }
@@ -399,7 +399,7 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
             _source->output_slots().add(_target);
             break;
 
-        case Relation_t::IS_NEXT_OF:
+        case Relation_t::IS_SUCCESSOR_OF:
             _target->successor_slots().add(_source);
             _source->predecessor_slots().add(_target);
 
@@ -407,11 +407,11 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
             {
                 if ( auto parent = _target->get_parent() )
                 {
-                    auto next = _source;
-                    while ( next )
+                    Node* successor = _source;
+                    while ( successor )
                     {
-                        connect(next, parent, Relation_t::IS_CHILD_OF, false);
-                        next = next->successor_slots().get_first_or_nullptr();
+                        connect(successor, parent, Relation_t::IS_CHILD_OF, false);
+                        successor = successor->successor_slots().get_front_or_nullptr();
                     }
                 }
             }
@@ -449,7 +449,7 @@ void GraphNode::disconnect(Node *_source, Node *_target, Relation_t _relationTyp
             _source->output_slots().remove(_target);
             break;
 
-        case Relation_t::IS_NEXT_OF:
+        case Relation_t::IS_SUCCESSOR_OF:
             _target->successor_slots().remove(_source);
             _source->predecessor_slots().remove(_target);
 
@@ -457,11 +457,11 @@ void GraphNode::disconnect(Node *_source, Node *_target, Relation_t _relationTyp
             {
                 if ( auto parent = _source->get_parent() )
                 {
-                    auto next = _source;
-                    while ( next && next->get_parent() == parent )
+                    Node* successor = _source;
+                    while (successor && successor->get_parent() == parent )
                     {
-                        disconnect(next, parent, Relation_t::IS_CHILD_OF, false );
-                        next = next->successor_slots().get_first_or_nullptr();
+                        disconnect(successor, parent, Relation_t::IS_CHILD_OF, false );
+                        successor = successor->successor_slots().get_front_or_nullptr();
                     }
                 }
             }

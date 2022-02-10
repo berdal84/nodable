@@ -41,6 +41,10 @@ NodeView::NodeView()
         , m_borderRadius(5.0f)
         , m_borderColorSelected(1.0f, 1.0f, 1.0f)
         , m_exposed_this_member_view(nullptr)
+        , m_children_slots(this)
+        , m_input_slots(this)
+        , m_output_slots(this)
+        , m_successor_slots(this)
 {
     NodeView::s_instances.push_back(this);
 }
@@ -54,8 +58,8 @@ NodeView::~NodeView()
     if ( s_selected == this ) s_selected = nullptr;
 
     // delete NodeConnectors
-    for( auto& conn : m_nextNodeConnectors ) delete conn;
-    for( auto& conn : m_prevNodeConnnectors ) delete conn;
+    for( auto& conn : m_successors_node_connectors ) delete conn;
+    for( auto& conn : m_predecessors_node_connnectors ) delete conn;
 
     // Erase instance in static vector
     auto found = std::find( s_instances.begin(), s_instances.end(), this);
@@ -157,50 +161,42 @@ void NodeView::set_owner(Node *_node)
     // NodeConnectors
     //---------------
 
-    // a "next" connector per next slot
-    auto nextMaxCount = _node->successor_slots().get_max_count();
-    for(size_t index = 0; index <  nextMaxCount; ++index )
+    // add q successor connector per successor slot
+    const size_t successor_max_count = _node->successor_slots().get_limit();
+    for(size_t index = 0; index < successor_max_count; ++index )
     {
-        m_nextNodeConnectors.push_back(new NodeConnector(this, Way_Out, index, nextMaxCount));
+        m_successors_node_connectors.push_back(new NodeConnector(this, Way_Out, index, successor_max_count));
     }
 
-    // a single "previous" connector if node can be connected in this way
-    if(_node->predecessor_slots().get_max_count() != 0)
-        m_prevNodeConnnectors.push_back(new NodeConnector(this, Way_In));
+    // add a single predecessor connector if node can be connected in this way
+    if(_node->predecessor_slots().get_limit() != 0)
+        m_predecessors_node_connnectors.push_back(new NodeConnector(this, Way_In));
 
-    m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver([this](Node* otherNode, Relation_t rel ) {
-        switch ( rel )
+    m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver(
+        [this](Node* _other_node, Relation_t _relation )
         {
-            case Relation_t::IS_CHILD_OF:
-                addChild(otherNode->get<NodeView>() );
-                break;
-            case Relation_t::IS_INPUT_OF:
-                addInput(otherNode->get<NodeView>() );
-                break;
-            case Relation_t::IS_OUTPUT_OF:
-                addOutput(otherNode->get<NodeView>() );
-                break;
-            case Relation_t::IS_NEXT_OF:
-                LOG_ERROR("NodeView", "Can't add output for RelationType::IS_NEXT_OF.\n");
-        }
-    });
+            NodeView* _other_node_view = _other_node->get<NodeView>();
+            switch ( _relation )
+            {
+                case Relation_t::IS_CHILD_OF: children_slots().add( _other_node_view ); break;
+                case Relation_t::IS_INPUT_OF: input_slots().add( _other_node_view ); break;
+                case Relation_t::IS_OUTPUT_OF: output_slots().add( _other_node_view ); break;
+                case Relation_t::IS_SUCCESSOR_OF: successor_slots().add( _other_node_view ); break;
+            }
+        });
 
-    m_nodeRelationRemovedObserver = _node->m_on_relation_removed.createObserver([this](Node* otherNode, Relation_t rel ) {
-        switch ( rel )
+    m_nodeRelationRemovedObserver = _node->m_on_relation_removed.createObserver(
+    [this](Node* _other_node, Relation_t _relation )
         {
-            case Relation_t::IS_CHILD_OF:
-                removeChild(otherNode->get<NodeView>() );
-                break;
-            case Relation_t::IS_INPUT_OF:
-                removeInput(otherNode->get<NodeView>() );
-                break;
-            case Relation_t::IS_OUTPUT_OF:
-                removeOutput(otherNode->get<NodeView>() );
-                break;
-            case Relation_t::IS_NEXT_OF:
-                LOG_ERROR("NodeView", "Can't remove output for RelationType::IS_NEXT_OF.\n");
-        }
-    });
+            NodeView* _other_node_view = _other_node->get<NodeView>();
+            switch ( _relation )
+            {
+                case Relation_t::IS_CHILD_OF: children_slots().remove( _other_node_view ); break;
+                case Relation_t::IS_INPUT_OF: input_slots().remove( _other_node_view ); break;
+                case Relation_t::IS_OUTPUT_OF: output_slots().remove( _other_node_view ); break;
+                case Relation_t::IS_SUCCESSOR_OF: successor_slots().remove( _other_node_view ); break;
+            }
+        });
 }
 
 void NodeView::SetSelected(NodeView* _view)
@@ -265,7 +261,7 @@ void NodeView::arrangeRecursively(bool _smoothly)
 {
     std::vector<NodeView*> views;
 
-    for (auto inputView : m_inputs)
+    for (auto inputView : m_input_slots)
     {
         if ( inputView->shouldFollowOutput(this))
         {
@@ -274,7 +270,7 @@ void NodeView::arrangeRecursively(bool _smoothly)
         }
     }
 
-    for (auto eachChild : m_children)
+    for (auto eachChild : m_children_slots)
     {
         views.push_back(eachChild);
         eachChild->arrangeRecursively();
@@ -324,8 +320,8 @@ bool NodeView::draw()
             is_connector_hovered |= ImGui::IsItemHovered();
         };
 
-        std::for_each(m_prevNodeConnnectors.begin(), m_prevNodeConnnectors.end(), drawConnectorAndHandleUserEvents);
-        std::for_each(m_nextNodeConnectors.begin(), m_nextNodeConnectors.end(), drawConnectorAndHandleUserEvents);
+        std::for_each(m_predecessors_node_connnectors.begin(), m_predecessors_node_connnectors.end(), drawConnectorAndHandleUserEvents);
+        std::for_each(m_successors_node_connectors.begin(), m_successors_node_connectors.end(), drawConnectorAndHandleUserEvents);
     }
 
 	// Begin the window
@@ -901,8 +897,8 @@ ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMult
         }
     };
 
-    std::for_each(m_children.begin(), m_children.end(), enlarge_to_fit_all);
-    std::for_each(m_inputs.begin(), m_inputs.end(), enlarge_to_fit_all);
+    std::for_each(m_children_slots.begin(), m_children_slots.end(), enlarge_to_fit_all);
+    std::for_each(m_input_slots.begin(), m_input_slots.end(), enlarge_to_fit_all);
 
 //    auto draw_list = ImGui::GetForegroundDrawList();
 //    auto screen_rect = rect;
@@ -942,7 +938,7 @@ void NodeView::addForce(ImVec2 force, bool _recurse)
 
     if ( _recurse )
     {
-        for ( auto eachInputView : m_inputs )
+        for ( auto eachInputView : m_input_slots )
         {
             if ( !eachInputView->m_pinned && eachInputView->shouldFollowOutput(this))
                 eachInputView->addForce(force, _recurse);
@@ -1004,7 +1000,7 @@ void NodeView::setChildrenVisible(bool _visible, bool _recursive)
 {
     m_childrenVisible = _visible;
 
-    for( auto eachChild : m_children )
+    for( auto eachChild : m_children_slots )
     {
         eachChild->setVisible(_visible);
 
@@ -1018,10 +1014,10 @@ void NodeView::setChildrenVisible(bool _visible, bool _recursive)
 
 bool NodeView::shouldFollowOutput(const NodeView* output)
 {
-    if ( m_outputs.empty())
+    if ( m_output_slots.empty())
         return true;
 
-    return m_outputs[0] == output;
+    return m_output_slots[0] == output;
 //    NodeView* higher = nullptr;
 //    for( auto eachChild : outputs )
 //    {
@@ -1034,9 +1030,9 @@ bool NodeView::shouldFollowOutput(const NodeView* output)
 void NodeView::setInputsVisible(bool _visible, bool _recursive)
 {
 
-    for( auto each_input : m_inputs )
+    for( auto each_input : m_input_slots )
     {
-        if( _visible || (getOutputs().empty() || each_input->shouldFollowOutput(this)) )
+        if( _visible || (output_slots().empty() || each_input->shouldFollowOutput(this)) )
         {
             if ( _recursive)
             {
@@ -1046,18 +1042,6 @@ void NodeView::setInputsVisible(bool _visible, bool _recursive)
             each_input->setVisible(_visible);
         }
     }
-}
-
-void NodeView::getNext(std::vector<NodeView *>& out)
-{
-    for( auto& each : get_owner()->successor_slots())
-    {
-         if ( each )
-        {
-             if ( auto each_view = each->get<NodeView>() )
-                 out.push_back(each_view);
-        }
-     }
 }
 
 void NodeView::toggleExpansion()

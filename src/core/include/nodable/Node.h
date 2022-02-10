@@ -13,6 +13,7 @@
 #include <nodable/Properties.h>
 #include <nodable/Component.h>
 #include <nodable/Properties.h>
+#include <nodable/Slots.h>
 
 namespace Nodable {
 
@@ -43,57 +44,6 @@ namespace Nodable {
 	class Node
 	{
 	public:
-
-        /**
-         * @brief Slots is a container with limited size
-         * TODO: make it generic to use it with Wires too.
-         */
-        template<typename T>
-        struct Slots
-        {
-            Slots(T _parent, size_t _max_count = std::numeric_limits<size_t>::max() ): m_parent( _parent ), m_max_count(_max_count) {}
-
-            std::vector<T>&       get_data() { return m_slots; }
-            const std::vector<T>& get_data() const { return m_slots; }
-            auto        begin() { return m_slots.begin(); }
-            auto        end() { return m_slots.end(); }
-            void        set_max_count(int _count) { m_max_count = _count;}
-            int         get_max_count() { return m_max_count;}
-            T           back() { return m_slots.back(); }
-
-            void remove(T _node)
-            {
-                auto found = std::find(m_slots.begin(), m_slots.end(), _node);
-                m_slots.erase(found);
-                m_on_removed.emit(_node);
-            }
-
-            void add(T _node)
-            {
-                NODABLE_ASSERT(m_slots.size() < m_max_count);
-                m_slots.push_back(_node );
-                m_on_added.emit(_node);
-            }
-
-            bool        accepts()const { return m_slots.size() < m_max_count; }
-
-            T   get_first_or_nullptr()
-            {
-                return m_slots.empty() ? nullptr : m_slots[0];
-            }
-
-            bool        empty() const { return m_slots.empty(); }
-            size_t      size() const { return m_slots.size(); }
-            T          operator[](size_t _index)const { return m_slots[_index]; }
-
-            observe::Event<T> m_on_added;
-            observe::Event<T> m_on_removed;
-        private:
-            T          m_parent;
-            size_t      m_max_count;
-            std::vector<T> m_slots;
-        };
-
 	    /**
 	     * Create a new Node
 	     * @param _label

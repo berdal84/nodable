@@ -45,9 +45,9 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
             auto graph  = node->get_parent_graph();
 
             if ( _connector->m_way == Way_In )
-                graph->disconnect(node, connectedNode, Relation_t::IS_NEXT_OF);
+                graph->disconnect(node, connectedNode, Relation_t::IS_SUCCESSOR_OF);
             else
-                graph->disconnect(connectedNode, node, Relation_t::IS_NEXT_OF);
+                graph->disconnect(connectedNode, node, Relation_t::IS_SUCCESSOR_OF);
         }
 
         ImGui::EndPopup();
@@ -59,12 +59,14 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
         {
             if ( _connector->m_way == Way_Out)
             {
-                if (_connector->getNode()->successor_slots().size() < _connector->getNode()->successor_slots().get_max_count() )
+                if (_connector->getNode()->successor_slots().size() <
+                        _connector->getNode()->successor_slots().get_limit() )
                     StartDrag(_connector);
             }
             else
             {
-                if (_connector->getNode()->predecessor_slots().size() < _connector->getNode()->predecessor_slots().get_max_count() )
+                if (_connector->getNode()->predecessor_slots().size() <
+                        _connector->getNode()->predecessor_slots().get_limit() )
                     StartDrag(_connector);
             }
         }
@@ -99,7 +101,7 @@ bool NodeConnector::connect(const NodeConnector* other) const
 {
     auto graph = getNode()->get_parent_graph();
     // TODO: handle incompatibility
-    graph->connect(other->getNode(), getNode() , Relation_t::IS_NEXT_OF );
+    graph->connect(other->getNode(), getNode() , Relation_t::IS_SUCCESSOR_OF );
 
     return true;
 }

@@ -551,7 +551,6 @@ AbstractScope* Parser::parse_code_block(bool _create_scope)
 
     bool stop = false;
 
-//    Node* previous = block;
     while(m_token_ribbon.canEat() && !stop )
     {
              if ( parse_instruction() ) {}

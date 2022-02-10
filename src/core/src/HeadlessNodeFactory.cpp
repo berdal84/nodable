@@ -140,34 +140,34 @@ Node* HeadlessNodeFactory::newFunction(const Invokable* _function) const
 
 Node* HeadlessNodeFactory::newScope() const
 {
-    auto scopeNode = new Node();
+    auto scope_node = new Node();
     std::string label = ICON_FA_CODE_BRANCH " Scope";
-    scopeNode->set_label(label);
-    scopeNode->set_short_label(ICON_FA_CODE_BRANCH " Sc.");
+    scope_node->set_label(label);
+    scope_node->set_short_label(ICON_FA_CODE_BRANCH " Sc.");
 
-    scopeNode->predecessor_slots().set_max_count(std::numeric_limits<int>::max());
-    scopeNode->successor_slots().set_max_count(1); // allow 1 Nodes to be next.
+    scope_node->predecessor_slots().set_limit(std::numeric_limits<int>::max());
+    scope_node->successor_slots().set_limit(1);
 
     auto* scope = new Scope();
-    scopeNode->add_component(scope);
+    scope_node->add_component(scope);
 
-    return scopeNode;
+    return scope_node;
 }
 
 ConditionalStructNode* HeadlessNodeFactory::newConditionalStructure() const
 {
-    auto scopeNode = new ConditionalStructNode();
+    auto cond_struct_node = new ConditionalStructNode();
     std::string label = ICON_FA_QUESTION " Condition";
-    scopeNode->set_label(label);
-    scopeNode->set_short_label(ICON_FA_QUESTION" Cond.");
+    cond_struct_node->set_label(label);
+    cond_struct_node->set_short_label(ICON_FA_QUESTION" Cond.");
 
-    scopeNode->predecessor_slots().set_max_count(std::numeric_limits<int>::max());
-    scopeNode->successor_slots().set_max_count(2); // true/false branches
+    cond_struct_node->predecessor_slots().set_limit(std::numeric_limits<int>::max());
+    cond_struct_node->successor_slots().set_limit(2); // true/false branches
 
     auto* scope = new Scope();
-    scopeNode->add_component(scope);
+    cond_struct_node->add_component(scope);
 
-    return scopeNode;
+    return cond_struct_node;
 }
 
 ForLoopNode* HeadlessNodeFactory::new_for_loop_node() const
@@ -177,8 +177,8 @@ ForLoopNode* HeadlessNodeFactory::new_for_loop_node() const
     for_loop->set_label(label);
     for_loop->set_short_label(ICON_FA_RECYCLE" For");
 
-    for_loop->predecessor_slots().set_max_count(std::numeric_limits<int>::max());
-    for_loop->successor_slots().set_max_count(1); // allow 1 Nodes to be next.
+    for_loop->predecessor_slots().set_limit(std::numeric_limits<int>::max());
+    for_loop->successor_slots().set_limit(1);
 
     auto* scope = new Scope();
     for_loop->add_component(scope);

@@ -3,7 +3,6 @@
 #include <string>
 #include <map>
 #include <cmath> // round()
-#include <nodable/Reflect.h>
 #include <algorithm>
 #include <observe/observer.h>
 #include <imgui/imgui.h>   // for ImVec2
@@ -12,6 +11,8 @@
 #include <nodable/View.h>       // base class
 #include <nodable/Component.h>  // base class
 #include <nodable/Member.h>
+#include <nodable/Slots.h>
+#include <nodable/Reflect.h>
 
 namespace Nodable
 {
@@ -175,16 +176,10 @@ namespace Nodable
         void                    setChildrenVisible(bool _visible, bool _recursive = false);
         void                    setInputsVisible(bool _visible, bool _recursive = false);
         bool                    shouldFollowOutput(const NodeView*);
-        void                    getNext(std::vector<NodeView *> &out);
-        std::vector<NodeView*>& getChildren() { return m_children; }
-        std::vector<NodeView*>& getOutputs() { return m_outputs; }
-        std::vector<NodeView*>& getInputs() { return m_inputs; }
-        void                    addInput(NodeView* view) { m_inputs.push_back(view); }
-        void                    addChild(NodeView* view) { m_children.push_back(view); }
-        void                    addOutput(NodeView* view) { m_outputs.push_back(view); }
-        void                    removeInput(NodeView* view) { m_inputs.erase( std::find(m_inputs.begin(), m_inputs.end(), view));}
-        void                    removeOutput(NodeView* view) { m_outputs.erase( std::find(m_outputs.begin(), m_outputs.end(), view));}
-        void                    removeChild(NodeView* view) { m_children.erase( std::find(m_children.begin(), m_children.end(), view));}
+        Slots<NodeView*>&       successor_slots() { return m_successor_slots; }
+        Slots<NodeView*>&       children_slots() { return m_children_slots; }
+        Slots<NodeView*>&       output_slots() { return m_output_slots; }
+        Slots<NodeView*>&       input_slots() { return m_input_slots; }
         void                    toggleExpansion();
     private:
         virtual bool    update(float _deltaTime);
@@ -202,11 +197,12 @@ namespace Nodable
 		bool            m_pinned;
 		float           m_borderRadius;
 		ImColor         m_borderColorSelected;
-		std::vector<NodeView*>               m_children;
-		std::vector<NodeView*>               m_inputs;
-		std::vector<NodeView*>               m_outputs;
-		std::vector<NodeConnector*>          m_prevNodeConnnectors;
-		std::vector<NodeConnector*>          m_nextNodeConnectors;
+        Slots<NodeView*> m_children_slots;
+        Slots<NodeView*> m_input_slots;
+        Slots<NodeView*> m_output_slots;
+        Slots<NodeView*> m_successor_slots;
+		std::vector<NodeConnector*>          m_predecessors_node_connnectors;
+		std::vector<NodeConnector*>          m_successors_node_connectors;
 		std::vector<MemberView*>             m_exposedInputOnlyMembers;
 		std::vector<MemberView*>             m_exposedOutOrInOutMembers;
         std::map<const Member*, MemberView*> m_exposedMembers;

@@ -37,19 +37,20 @@ bool GraphNodeView::draw()
     /*
        Draw Code Flow
      */
-    for( auto& each_node : nodeRegistry)
+    for( Node* each_node : nodeRegistry)
     {
         int slot_index = 0;
-        int slot_count = each_node->successor_slots().get_max_count();
+        int slot_count = each_node->successor_slots().get_limit();
         float padding = 2.0f;
         float linePadding = 5.0f;
-        for (auto& each_next : each_node->successor_slots() )
+        for (Node* each_successor_node : each_node->successor_slots() )
         {
-            NodeView *each_view      = each_node->get<NodeView>();
-            NodeView *each_next_view = each_next->get<NodeView>();
-            if (each_view && each_next_view && each_view->isVisible() && each_next_view->isVisible() )
+            NodeView *each_view           = each_node->get<NodeView>();
+            NodeView *each_successor_view = each_successor_node->get<NodeView>();
+
+            if (each_view && each_successor_view && each_view->isVisible() && each_successor_view->isVisible() )
             {
-                float viewWidthMin = std::min(each_next_view->getRect().GetSize().x, each_view->getRect().GetSize().x);
+                float viewWidthMin = std::min(each_successor_view->getRect().GetSize().x, each_view->getRect().GetSize().x);
                 float lineWidth = std::min(Settings::Get()->ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
@@ -59,10 +60,10 @@ bool GraphNodeView::draw()
                 start.y += each_view->getSize().y * 0.5f; // align bottom
                 start.y += settings->ui_node_connector_height * 0.25f;
 
-                ImVec2 end = each_next_view->getScreenPos();
-                end.x -= each_next_view->getSize().x * 0.5f;
+                ImVec2 end = each_successor_view->getScreenPos();
+                end.x -= each_successor_view->getSize().x * 0.5f;
                 end.x += lineWidth * 0.5f;
-                end.y -= each_next_view->getSize().y * 0.5f; // align top
+                end.y -= each_successor_view->getSize().y * 0.5f; // align top
                 end.y -= settings->ui_node_connector_height * 0.25f;
 
                 ImColor color(Settings::Get()->ui_codeFlow_lineColor);
@@ -416,7 +417,7 @@ bool GraphNodeView::draw()
                 //  [ new node ]
                 if ( draggedNodeConnector->m_way == Way_Out )
                 {
-                    graph->connect(newNode, draggedNodeConnector->getNode(), Relation_t::IS_NEXT_OF);
+                    graph->connect(newNode, draggedNodeConnector->getNode(), Relation_t::IS_SUCCESSOR_OF);
                 }
                 //  [ new node ]
                 //       ^
@@ -425,7 +426,7 @@ bool GraphNodeView::draw()
                 //  [ dragged ]
                 else
                 {
-                    graph->connect(draggedNodeConnector->getNode(), newNode, Relation_t::IS_NEXT_OF);
+                    graph->connect(draggedNodeConnector->getNode(), newNode, Relation_t::IS_SUCCESSOR_OF);
                 }
                 NodeConnector::StopDrag();
             }
@@ -508,53 +509,51 @@ void GraphNodeView::update_child_view_constraints()
 
     for(Node* _eachNode: nodeRegistry)
     {
-        if ( auto eachView = _eachNode->get<NodeView>() )
+        if ( auto each_node_view = _eachNode->get<NodeView>() )
         {
             auto clss = _eachNode->get_class();
 
-            // Follow previous Node(s), except if previous is a Conditional if/else
-            //-------------------------------------------------------------
+            // Follow predecessor Node(s), except if first predecessor is a Conditional if/else
+            //---------------------------------------------------------------------------------
 
-            Nodes& previousNodes = _eachNode->predecessor_slots().get_data();
-            std::vector<NodeView*> previousNodesView;
-            Node::get_components<NodeView>(previousNodes, previousNodesView);
-            if ( !previousNodes.empty() && previousNodes[0]->get_class()->is_not<AbstractConditionalStruct>() )
+            Nodes& predecessor_nodes = _eachNode->predecessor_slots().content();
+            std::vector<NodeView*> predecessor_node_views;
+            Node::get_components<NodeView>(predecessor_nodes, predecessor_node_views);
+            if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not<AbstractConditionalStruct>() )
             {
                 NodeViewConstraint constraint(NodeViewConstraint::Type::FollowWithChildren);
-                constraint.addMasters(previousNodesView);
-                constraint.addSlave(eachView);
-                eachView->addConstraint(constraint);
+                constraint.addMasters(predecessor_node_views);
+                constraint.addSlave(each_node_view);
+                each_node_view->addConstraint(constraint);
             }
 
             // Align in row Conditional Struct Node's children
             //------------------------------------------------
 
-            auto children = eachView->getChildren();
+            NodeViews children = each_node_view->children_slots().content();
             if( !children.empty() && clss->is<AbstractConditionalStruct>() )
             {
                 NodeViewConstraint constraint(NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
-                constraint.addMaster(eachView);
+                constraint.addMaster(each_node_view);
                 constraint.addSlaves(children);
 
                 if ( clss->is<ForLoopNode>() )
                 {
-                    std::vector<NodeView*> next;
-                    eachView->getNext(next);
-                    constraint.addSlaves(next);
+                    constraint.addSlaves(each_node_view->successor_slots().content() );
                 }
 
-                eachView->addConstraint(constraint);
+                each_node_view->addConstraint(constraint);
             }
 
             // Align in row Input connected Nodes
             //-----------------------------------
 
-            if ( !eachView->getInputs().empty() )
+            if ( !each_node_view->input_slots().empty() )
             {
                 NodeViewConstraint constraint(NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
-                constraint.addMaster(eachView);
-                constraint.addSlaves(eachView->getInputs());
-                eachView->addConstraint(constraint);
+                constraint.addMaster(each_node_view);
+                constraint.addSlaves(each_node_view->input_slots().content());
+                each_node_view->addConstraint(constraint);
             }
         }
     }

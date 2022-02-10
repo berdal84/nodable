@@ -45,10 +45,10 @@ namespace Nodable
 		If there are other commands after they will be erased from the history */
 		void addAndExecute(Cmd*);
 
-		/* Undo the current (in the history) command  */
+		/* Undo the current command  */
 		void undo();
 
-		/* Redo the next (in the history) command */
+		/* Redo the next command */
 		void redo();
 		
 		/* clear the undo history */

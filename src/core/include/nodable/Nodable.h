@@ -23,6 +23,7 @@ namespace Nodable
 	class Member;
 	class Component;
     class Node;
+    class NodeView;
     class VariableNode;
 
 	typedef std::map<std::string, Component*>  Components;
@@ -32,7 +33,8 @@ namespace Nodable
     enum class Relation_t: int {
         IS_CHILD_OF,
         IS_INPUT_OF,
-        IS_NEXT_OF,
+        IS_SUCCESSOR_OF,
+        // IS_PREDECESSOR_OF, not useful yet
         IS_OUTPUT_OF
     };
 
@@ -48,6 +50,7 @@ namespace Nodable
 
     typedef std::vector<VariableNode*> VariableNodes ;
     typedef std::vector<Node*>         Nodes ;
+    typedef std::vector<NodeView*>     NodeViews ;
 }
 
 
