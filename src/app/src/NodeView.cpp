@@ -528,21 +528,29 @@ bool NodeView::drawMemberView(MemberView* _view )
     const bool member_is_an_unconnected_input = member->getInput() != nullptr || !member->allowsConnection(Way_In);
 
     const Reflect::Class* owner_class = member->getOwner()->get_class();
-    const bool node_is_variable       = owner_class->is<VariableNode>();
-    const bool node_is_literal        = owner_class->is<LiteralNode>();
-    const bool member_is_pointer   = member->isType(Type::Type_Pointer);
 
     _view->m_showInput =
-            (_view->m_touched && !member_is_pointer)
-            || (
-                  (!member_is_pointer && member->isDefined())
-                  &&
-                  (
-                          (!member_is_an_unconnected_input || node_is_literal || s_viewDetail == NodeViewDetail::Exhaustive)
-                          ||
-                          node_is_variable )
-                  );
-
+        member->isDefined()
+        &&
+        (
+            ( _view->m_touched && !member->isType(Type::Type_Pointer) )
+            ||
+            (
+                (!member->isType(Type::Type_Pointer) && member->isDefined())
+                &&
+                (
+                    (
+                        !member_is_an_unconnected_input
+                        ||
+                        owner_class->is<LiteralNode>()
+                        ||
+                        s_viewDetail == NodeViewDetail::Exhaustive
+                    )
+                    ||
+                    owner_class->is<VariableNode>()
+                )
+            )
+        );
     ImVec2 new_relative_pos = ImGui::GetCursorScreenPos() - getScreenPos();
 
     // input
