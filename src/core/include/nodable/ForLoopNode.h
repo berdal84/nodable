@@ -2,7 +2,7 @@
 
 #include <nodable/Token.h>
 #include <nodable/Node.h> // base class
-#include <nodable/AbstractConditionalStruct.h> // interface
+#include <nodable/IConditionalStruct.h> // interface
 
 namespace Nodable
 {
@@ -15,7 +15,7 @@ namespace Nodable
      */
     class ForLoopNode
             : public Node
-            , public AbstractConditionalStruct {
+            , public IConditionalStruct {
     public:
         ForLoopNode();
         ~ForLoopNode() = default;
@@ -25,17 +25,17 @@ namespace Nodable
         Member*                get_init_expr()const { return m_props.get("init"); }
         Member*                get_iter_expr()const { return m_props.get("iter"); }
 
-        // override AbstractConditionalStruct
-        Member*               get_condition()const override { return m_props.get("condition"); }
-        Scope*        get_condition_true_branch()const override;
-        Scope*        get_condition_false_branch()const override;
+        // override IConditionalStruct
+        Member* condition_member()const override { return m_props.get("condition"); }
+        Scope*  get_condition_true_branch()const override;
+        Scope*  get_condition_false_branch()const override;
 
     private:
         Token* m_token_for;
 
         REFLECT_DERIVED(ForLoopNode)
             REFLECT_EXTENDS(Node)
-            REFLECT_EXTENDS(AbstractConditionalStruct)
+            REFLECT_EXTENDS(IConditionalStruct)
         REFLECT_END
     };
 }

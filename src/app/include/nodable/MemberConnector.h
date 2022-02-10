@@ -1,5 +1,5 @@
 #pragma once
-#include <nodable/AbstractConnector.h>
+#include <nodable/Connector.h>
 #include <nodable/Nodable.h>
 
 namespace Nodable {
@@ -12,7 +12,7 @@ namespace Nodable {
     /**
      * @brief A MemberConnector represents a physical input or output on a MemberView.
      */
-    class MemberConnector: public AbstractConnector<MemberConnector>
+    class MemberConnector: public Connector<MemberConnector>
     {
     public:
 

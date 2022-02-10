@@ -1,7 +1,7 @@
 #include <nodable/Compiler.h>
 #include <nodable/VariableNode.h>
 #include <nodable/Log.h>
-#include <nodable/AbstractConditionalStruct.h>
+#include <nodable/IConditionalStruct.h>
 #include <nodable/ForLoopNode.h>
 #include <nodable/Scope.h>
 #include <nodable/InstructionNode.h>
@@ -194,7 +194,7 @@ void Asm::Compiler::compile(const Node* _node)
         instr->m_comment = std::string{_node->get_short_label()} + "'s scope";
     }
 
-    if ( auto conditional_struct = _node->as<AbstractConditionalStruct>(); conditional_struct )
+    if ( auto conditional_struct = _node->as<IConditionalStruct>(); conditional_struct )
     {
         // for_loop init instruction
         if ( auto for_loop = _node->as<ForLoopNode>() )
@@ -204,7 +204,7 @@ void Asm::Compiler::compile(const Node* _node)
 
         long condition_instr_line = m_output->get_next_pushed_instr_index();
 
-        Member* condition_member = conditional_struct->get_condition();
+        Member* condition_member = conditional_struct->condition_member();
         NODABLE_ASSERT(condition_member)
         Node* _condition_node = (Node*)*condition_member;
         compile(_condition_node);

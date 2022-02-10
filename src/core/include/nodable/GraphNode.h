@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <nodable/Reflect.h>
-#include <nodable/AbstractScope.h>
+#include <nodable/IScope.h>
 #include <nodable/Nodable.h>
 #include <nodable/Component.h>
 #include <nodable/Node.h>
@@ -15,7 +15,7 @@ namespace Nodable{
     class InstructionNode;
     class ConditionalStructNode;
     class LiteralNode;
-    class AbstractNodeFactory;
+    class INodeFactory;
 
     typedef std::pair<const Relation_t, std::pair<Node*, Node*>> Relation;
 
@@ -37,7 +37,7 @@ namespace Nodable{
 	class GraphNode: public Node {
 	public:
 
-		explicit GraphNode(const Language* _language, const AbstractNodeFactory* _factory);
+		explicit GraphNode(const Language* _language, const INodeFactory* _factory);
 		~GraphNode();
 
 		/** Update the graph by evaluating its nodes only when necessary. */
@@ -57,13 +57,13 @@ namespace Nodable{
         Node*                       newProgram();
         InstructionNode*		    newInstruction_UserCreated();
         InstructionNode*            newInstruction();
-		VariableNode*				newVariable(Reflect::Type, const std::string&, AbstractScope*);
+		VariableNode*				newVariable(Reflect::Type, const std::string&, IScope*);
 		LiteralNode*                newLiteral(const Reflect::Type &type);
 		Node*                       newBinOp(const InvokableOperator*);
 		Node*                       newUnaryOp(const InvokableOperator*);
         Node*                       newOperator(const InvokableOperator*);
 		Wire*                       newWire();
-		Node*                       newFunction(const Invokable* _proto);
+		Node*                       newFunction(const IInvokable* _proto);
         Node*                       newScope();
         ConditionalStructNode*      newConditionalStructure();
         ForLoopNode*                new_for_loop_node();
@@ -99,7 +99,7 @@ namespace Nodable{
 		std::multimap<Relation::first_type , Relation::second_type> m_relationRegistry;
 		const Language* m_language;
 		Node*           m_program_root;
-		const AbstractNodeFactory* m_factory;
+		const INodeFactory* m_factory;
 
         REFLECT_DERIVED(GraphNode)
         REFLECT_EXTENDS(Node)

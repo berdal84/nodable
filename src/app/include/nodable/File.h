@@ -18,7 +18,7 @@ namespace Nodable
     class Node;
     class GraphNode;
     class Language;
-    class AbstractNodeFactory;
+    class INodeFactory;
     class History;
     class FileView;
 
@@ -56,7 +56,7 @@ namespace Nodable
 		bool                       m_modified;
 		std::string                m_path;
 		const Language*            m_language;
-		const AbstractNodeFactory* m_factory;
+		const INodeFactory* m_factory;
 		FileView*                  m_view;
 		History*                   m_history;
 		GraphNode*                 m_graph;

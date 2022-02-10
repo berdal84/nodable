@@ -10,7 +10,7 @@
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/LiteralNode.h>
-#include <nodable/AbstractNodeFactory.h>
+#include <nodable/INodeFactory.h>
 #include <nodable/Scope.h>
 
 using namespace Nodable;
@@ -141,7 +141,7 @@ InstructionNode* GraphNode::newInstruction_UserCreated()
     return instructionNode;
 }
 
-VariableNode* GraphNode::newVariable(Reflect::Type _type, const std::string& _name, AbstractScope* _scope)
+VariableNode* GraphNode::newVariable(Reflect::Type _type, const std::string& _name, IScope* _scope)
 {
 	auto node = m_factory->newVariable(_type, _name, _scope);
     registerNode(node);
@@ -176,7 +176,7 @@ Node* GraphNode::newUnaryOp(const InvokableOperator* _operator)
 	return node;
 }
 
-Node* GraphNode::newFunction(const Invokable* _function)
+Node* GraphNode::newFunction(const IInvokable* _function)
 {
 	Node* node = m_factory->newFunction( _function );
     registerNode(node);
@@ -189,7 +189,7 @@ Wire* GraphNode::newWire()
 	return new Wire();
 }
 
-GraphNode::GraphNode(const Language* _language, const AbstractNodeFactory* _factory)
+GraphNode::GraphNode(const Language* _language, const INodeFactory* _factory)
     :
         m_language(_language),
         m_factory(_factory),

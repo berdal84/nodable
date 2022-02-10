@@ -519,7 +519,7 @@ void GraphNodeView::update_child_view_constraints()
             Nodes& predecessor_nodes = _eachNode->predecessor_slots().content();
             std::vector<NodeView*> predecessor_node_views;
             Node::get_components<NodeView>(predecessor_nodes, predecessor_node_views);
-            if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not<AbstractConditionalStruct>() )
+            if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint(NodeViewConstraint::Type::FollowWithChildren);
                 constraint.addMasters(predecessor_node_views);
@@ -531,7 +531,7 @@ void GraphNodeView::update_child_view_constraints()
             //------------------------------------------------
 
             NodeViews children = each_node_view->children_slots().content();
-            if( !children.empty() && clss->is<AbstractConditionalStruct>() )
+            if( !children.empty() && clss->is<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint(NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
                 constraint.addMaster(each_node_view);
@@ -598,7 +598,7 @@ void GraphNodeView::set_owner(Node *_owner)
 
     for ( auto it = api.cbegin(); it != api.cend(); it++)
     {
-        Invokable* function = *it;
+        IInvokable* function = *it;
         auto op = language->findOperator(function->get_signature());
 
         std::string label;

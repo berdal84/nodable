@@ -50,14 +50,14 @@ namespace Nodable {
 
 		virtual ~Language();
 
-        const Invokable* findFunction(const FunctionSignature* signature) const;
+        const IInvokable* findFunction(const FunctionSignature* signature) const;
         const InvokableOperator* findOperator(const FunctionSignature* _operator) const;
         const InvokableOperator* findOperator(const std::string& _short_identifier) const;
 
         inline Parser* getParser()const { return parser; }
         inline Serializer* getSerializer()const { return serializer; }
         inline const Semantic* getSemantic()const { return &semantic; }
-        inline const std::vector<Invokable*>& getAllFunctions()const { return api; }
+        inline const std::vector<IInvokable*>& getAllFunctions()const { return api; }
 
         const FunctionSignature* createUnaryOperatorSignature(Reflect::Type , std::string , Reflect::Type ) const;
         const FunctionSignature* createBinOperatorSignature(Reflect::Type , std::string , Reflect::Type , Reflect::Type ) const;
@@ -67,7 +67,7 @@ namespace Nodable {
         virtual void sanitizeOperatorFunctionName( std::string& identifier ) const = 0;
 	protected:
         void addOperator(InvokableOperator*);
-        void addToAPI(Invokable*);
+        void addToAPI(IInvokable*);
 
         Semantic semantic;
         Serializer* serializer;
@@ -76,7 +76,7 @@ namespace Nodable {
 	private:
 		std::string name;
 		std::vector<InvokableOperator*> operators;
-		std::vector<Invokable*> api;
+		std::vector<IInvokable*> api;
     };
 
 }

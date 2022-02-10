@@ -13,7 +13,7 @@
         std::string function_name = #function; \
         sanitizeFunctionName( function_name ); \
         using function_type = decltype(function); \
-        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
+        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
         addToAPI( invokable ); \
     }
 
@@ -27,7 +27,7 @@
         using function_type = decltype(function); \
         std::string function_name = identifier; \
         sanitizeOperatorFunctionName( function_name ); \
-        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str(), identifier ); \
+        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str(), identifier ); \
         InvokableOperator* op = new InvokableOperator( invokable, precedence, identifier );\
         addOperator( op );\
         addToAPI( invokable ); \
@@ -46,7 +46,7 @@
     { \
         std::string function_name = #function; \
         sanitizeFunctionName( function_name ); \
-        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
+        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
         addToAPI( invokable ); \
     }
 
@@ -63,7 +63,7 @@
     { \
         std::string function_name = identifier; \
         sanitizeOperatorFunctionName( function_name ); \
-        Invokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str(), identifier ); \
+        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str(), identifier ); \
         InvokableOperator* op = new InvokableOperator( invokable, precedence, identifier );\
         addOperator( op );\
         addToAPI( invokable ); \

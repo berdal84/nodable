@@ -20,9 +20,9 @@ bool  Language::hasHigherPrecedenceThan(const InvokableOperator* _firstOperator,
 	return _firstOperator->get_precedence() >= _secondOperator->get_precedence();
 }
 
-const Invokable* Language::findFunction(const FunctionSignature* _signature) const
+const IInvokable* Language::findFunction(const FunctionSignature* _signature) const
 {
-	auto predicate = [&](Invokable* fct) {
+	auto predicate = [&](IInvokable* fct) {
 		return fct->get_signature()->match(_signature);
 	};
 
@@ -63,7 +63,7 @@ const InvokableOperator* Language::findOperator(const FunctionSignature* _signat
 }
 
 
-void Language::addToAPI(Invokable* _function)
+void Language::addToAPI(IInvokable* _function)
 {
 	api.push_back(_function);
 	std::string signature;

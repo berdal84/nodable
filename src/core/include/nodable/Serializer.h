@@ -15,7 +15,7 @@ namespace Nodable
     class Member;
     class InvokableOperator;
     class Language;
-    class AbstractScope;
+    class IScope;
     class InstructionNode;
     class ForLoopNode;
     class Scope;

@@ -23,7 +23,7 @@ namespace Nodable
 	/* TextEditorBuffer is a class to handle TextEditor UndoRecords
 	This class will catch these object using AddUndo method.
 	*/
-	class TextEditorBuffer : public TextEditor::ExternalUndoBufferInterface {
+	class TextEditorBuffer : public TextEditor::IExternalUndoBuffer {
 
 	public:
 		void AddUndo(TextEditor::UndoRecord& _undoRecord);

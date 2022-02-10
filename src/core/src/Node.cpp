@@ -198,8 +198,8 @@ const InvokableOperator* Node::get_connected_operator(const Member *_localMember
         InvokableComponent* compute_component = node->get<InvokableComponent>();
         if ( compute_component )
         {
-            const Invokable* function = compute_component->get_invokable();
-            if ( function->get_invokable_type() == Invokable::Type::Operator )
+            const IInvokable* function = compute_component->get_invokable();
+            if (function->get_invokable_type() == IInvokable::Type::Operator )
             {
                 result = reinterpret_cast<const InvokableOperator*>( function );
             }

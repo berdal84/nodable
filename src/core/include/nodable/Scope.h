@@ -1,12 +1,12 @@
 #pragma once
 
 #include <nodable/Component.h>
-#include <nodable/AbstractScope.h>
+#include <nodable/IScope.h>
 #include <nodable/Token.h>
 
 namespace Nodable
 {
-    class Scope : public Component, public AbstractScope
+    class Scope : public Component, public IScope
     {
     public:
         Scope();
@@ -35,7 +35,7 @@ namespace Nodable
         /** Reflect class */
         REFLECT_DERIVED(Scope)
             REFLECT_EXTENDS(Component)
-            REFLECT_EXTENDS(AbstractScope)
+            REFLECT_EXTENDS(IScope)
         REFLECT_END
     };
 }

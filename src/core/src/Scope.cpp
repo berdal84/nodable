@@ -8,7 +8,7 @@
 #include <nodable/ForLoopNode.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/VariableNode.h>
-#include <nodable/AbstractScope.h>
+#include <nodable/IScope.h>
 
 using namespace Nodable;
 

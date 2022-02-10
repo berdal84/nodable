@@ -76,7 +76,7 @@ void NodeViewConstraint::apply(float _dt) {
             float start_pos_x = master->getPos().x - size_x_total / 2.0f;
             Reflect::Class* masterClass = master->get_owner()->get_class();
             if ( masterClass->is<InstructionNode>()
-                || ( masterClass->is<AbstractConditionalStruct>() && type == Type::MakeRowAndAlignOnBBoxTop))
+                || (masterClass->is<IConditionalStruct>() && type == Type::MakeRowAndAlignOnBBoxTop))
             {
                 // indent
                 start_pos_x = master->getPos().x + master->getSize().x / 2.0f + settings->ui_node_spacing;

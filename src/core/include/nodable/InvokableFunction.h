@@ -7,7 +7,7 @@
 #include <nodable/Nodable.h>
 #include <nodable/Reflect.h>
 #include <nodable/Member.h>
-#include <nodable/Invokable.h>
+#include <nodable/IInvokable.h>
 #include <nodable/FunctionSignature.h>
 
 namespace Nodable {
@@ -62,7 +62,7 @@ namespace Nodable {
 
     /** Generic Invokable Function */
     template<typename R, typename... Args>
-    class InvokableFunction<R(Args...)> : public Invokable
+    class InvokableFunction<R(Args...)> : public IInvokable
     {
     public:
         using   FunctionType = R(Args...);
@@ -86,7 +86,7 @@ namespace Nodable {
         }
 
         inline const FunctionSignature* get_signature() const override { return m_signature; };
-        inline Invokable::Type          get_invokable_type() const override { return Invokable::Type::Function; };
+        inline IInvokable::Type          get_invokable_type() const override { return IInvokable::Type::Function; };
     private:
         FunctionType*      m_function;
         FunctionSignature* m_signature;

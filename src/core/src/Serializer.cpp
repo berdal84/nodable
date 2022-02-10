@@ -14,9 +14,9 @@ using namespace Nodable;
 std::string& Serializer::serialize(std::string& _result, const InvokableComponent *_component)const
 {
 
-    const Invokable* invokable = _component->get_invokable();
+    const IInvokable* invokable = _component->get_invokable();
 
-    if ( invokable->get_invokable_type() == Invokable::Type::Function )
+    if (invokable->get_invokable_type() == IInvokable::Type::Function )
     {
         serialize(_result, _component->get_invokable()->get_signature(), _component->get_args());
     }
@@ -346,7 +346,7 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
     }
 
     serialize( _result, TokenType_EndOfInstruction );
-    serialize( _result, _for_loop->get_condition() );
+    serialize( _result, _for_loop->condition_member() );
     serialize( _result, TokenType_EndOfInstruction );
     serialize( _result, _for_loop->get_iter_expr() );
     serialize( _result, TokenType_CloseBracket );
@@ -365,7 +365,7 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     // if ( <condition> )
     serialize( _result, _condStruct->get_token_if() );
     serialize( _result, TokenType_OpenBracket );
-    serialize( _result, _condStruct->get_condition() );
+    serialize( _result, _condStruct->condition_member() );
     serialize( _result, TokenType_CloseBracket );
 
     // if scope

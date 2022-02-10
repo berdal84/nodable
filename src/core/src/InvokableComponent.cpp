@@ -6,7 +6,7 @@ using namespace Nodable;
 
 REFLECT_DEFINE_CLASS(InvokableComponent)
 
-InvokableComponent::InvokableComponent(const Invokable* _invokable)
+InvokableComponent::InvokableComponent(const IInvokable* _invokable)
     : Component()
     , m_result( nullptr )
     , m_source_token( Token::s_null )

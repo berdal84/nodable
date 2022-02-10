@@ -28,7 +28,7 @@ InstructionNode* NodeFactory::newInstruction_UserCreated()const
     return node;
 }
 
-VariableNode* NodeFactory::newVariable(Type _type, const std::string& _name, AbstractScope *_scope) const
+VariableNode* NodeFactory::newVariable(Type _type, const std::string& _name, IScope *_scope) const
 {
     VariableNode* node = m_headless_node_factory.newVariable(_type, _name, _scope);
     AddView(node);
@@ -60,7 +60,7 @@ Node* NodeFactory::newUnaryOp(const InvokableOperator* _operator) const
     return node;
 }
 
-Node* NodeFactory::newFunction(const Invokable* _function) const
+Node* NodeFactory::newFunction(const IInvokable* _function) const
 {
     Node* node = m_headless_node_factory.newFunction(_function);
     AddView(node);

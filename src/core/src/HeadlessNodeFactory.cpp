@@ -27,7 +27,7 @@ InstructionNode* HeadlessNodeFactory::newInstruction_UserCreated()const
     return newInstructionNode;
 }
 
-VariableNode* HeadlessNodeFactory::newVariable(Reflect::Type _type, const std::string& _name, AbstractScope *_scope) const
+VariableNode* HeadlessNodeFactory::newVariable(Reflect::Type _type, const std::string& _name, IScope *_scope) const
 {
     // create
     VariableNode* node = new VariableNode(_type);
@@ -109,7 +109,7 @@ Node* HeadlessNodeFactory::newUnaryOp(const InvokableOperator* _operator) const
     return node;
 }
 
-Node* HeadlessNodeFactory::newFunction(const Invokable* _function) const
+Node* HeadlessNodeFactory::newFunction(const IInvokable* _function) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();

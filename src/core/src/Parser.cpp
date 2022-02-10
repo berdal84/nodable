@@ -541,7 +541,7 @@ Node* Parser::parse_scope()
     return result;
 }
 
-AbstractScope* Parser::parse_code_block(bool _create_scope)
+IScope* Parser::parse_code_block(bool _create_scope)
 {
     start_transaction();
 
@@ -886,7 +886,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
         if ( condition)
         {
-            m_graph->connect(condition->get_owner()->get_this_member(), condStruct->get_condition() );
+            m_graph->connect(condition->get_owner()->get_this_member(), condStruct->condition_member() );
 
             if ( Node* scopeIf = parse_scope() )
             {
@@ -986,7 +986,7 @@ ForLoopNode* Parser::parse_for_loop()
                     }
                     else
                     {
-                        m_graph->connect(cond_instr->get_owner()->get_this_member(), for_loop_node->get_condition());
+                        m_graph->connect(cond_instr->get_owner()->get_this_member(), for_loop_node->condition_member());
 
                         if (!m_token_ribbon.eatToken(TokenType_EndOfInstruction))
                         {

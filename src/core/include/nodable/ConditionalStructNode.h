@@ -1,9 +1,9 @@
 #pragma once
 
 #include <nodable/Token.h>
-#include <nodable/Node.h> // base class
-#include <nodable/AbstractScope.h> // interface
-#include <nodable/AbstractConditionalStruct.h> // interface
+#include <nodable/Node.h>
+#include <nodable/IScope.h>
+#include <nodable/IConditionalStruct.h>
 
 namespace Nodable
 {
@@ -12,8 +12,8 @@ namespace Nodable
      * @brief Class to represent a conditional structure ( IF/ELSE )
      */
     class ConditionalStructNode
-            : public Node // base class
-            , public AbstractConditionalStruct // interface
+            : public Node
+            , public IConditionalStruct
     {
     public:
         ConditionalStructNode();
@@ -27,7 +27,7 @@ namespace Nodable
         // override AbstractConditionalStruct
         Scope*        get_condition_true_branch()const override;
         Scope*        get_condition_false_branch()const override;
-        Member*                get_condition()const override { return m_props.get("condition"); }
+        Member*       condition_member()const override { return m_props.get("condition"); }
 
     private:
         Token*         m_token_if;
@@ -35,7 +35,7 @@ namespace Nodable
 
         REFLECT_DERIVED(ConditionalStructNode)
          REFLECT_EXTENDS(Node)
-         REFLECT_EXTENDS(AbstractConditionalStruct)
+         REFLECT_EXTENDS(IConditionalStruct)
         REFLECT_END
     };
 }

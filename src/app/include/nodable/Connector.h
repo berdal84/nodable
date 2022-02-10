@@ -11,7 +11,7 @@ namespace Nodable {
      * @brief Base abstract class for all connectors
      */
     template<typename T>
-    class AbstractConnector
+    class Connector
     {
     public:
         virtual ImVec2   getPos()const = 0;

@@ -30,7 +30,7 @@ namespace Nodable
 		TextEditor*					   getTextEditor(){ return &m_textEditor; }
 		void                           setTextEditorCursorPosition(const TextEditor::Coordinates& _cursorPosition) { m_textEditor.SetCursorPosition(_cursorPosition); }
 		TextEditor::Coordinates        getTextEditorCursorPosition()const { return m_textEditor.GetCursorPosition(); }
-		void						   setUndoBuffer(TextEditor::ExternalUndoBufferInterface*);
+		void						   setUndoBuffer(TextEditor::IExternalUndoBuffer*);
         void                           drawFileInfo()const;
         void                           experimental_clipboard_auto_paste(bool val)
         {

@@ -189,7 +189,7 @@ std::string FileView::getSelectedText()const
 	return m_textEditor.HasSelection() ? m_textEditor.GetSelectedText() : m_textEditor.GetCurrentLineText();
 }
 
-void FileView::setUndoBuffer(TextEditor::ExternalUndoBufferInterface* _buffer ) {
+void FileView::setUndoBuffer(TextEditor::IExternalUndoBuffer* _buffer ) {
 	this->m_textEditor.SetExternalUndoBuffer(_buffer);
 }
 

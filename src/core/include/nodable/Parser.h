@@ -66,7 +66,7 @@ namespace Nodable{
 		Node*                  parse_scope();
         InstructionNode*       parse_instruction();
         Member*                parse_variable_declaration();
-        AbstractScope*         parse_code_block(bool _create_scope);
+        IScope*         parse_code_block(bool _create_scope);
         ConditionalStructNode* parse_conditional_structure();
         ForLoopNode*           parse_for_loop();
         Node*                  parse_program();
