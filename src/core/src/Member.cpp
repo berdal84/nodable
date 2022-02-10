@@ -7,15 +7,15 @@
 using namespace Nodable;
 
 Member::Member(Properties* _parent_properties)
-    :
-        m_owner(nullptr),
-        m_visibility(Visibility::Default),
-        m_name("Unknown"),
-        m_sourceToken(Token::s_null),
-        m_input(nullptr),
-        m_parentProperties(_parent_properties),
-        m_connected_by(ConnectBy_Copy)
-    {}
+    : m_visibility(Visibility::Default)
+    , m_name("Unknown")
+    , m_sourceToken(Token::s_null)
+    , m_input(nullptr)
+    , m_parentProperties(_parent_properties)
+    , m_connected_by(ConnectBy_Copy)
+{
+    m_owner = _parent_properties ? _parent_properties->get_owner() : nullptr;
+}
 
 Member::Member( Properties* _parent_properties, double d ): Member(_parent_properties)
 {

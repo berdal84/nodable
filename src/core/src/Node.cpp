@@ -98,7 +98,7 @@ int Node::getOutputWireCount()const
 bool Node::eval() const
 {
     // copy values from input connections
-    for(auto& eachNameToMemberPair : m_props.getMembers())
+    for(auto& eachNameToMemberPair : m_props.get_members())
     {
         Member* eachMember = eachNameToMemberPair.second;
         if(eachMember->get_input() && eachMember->is_connected_by(ConnectBy_Copy) )

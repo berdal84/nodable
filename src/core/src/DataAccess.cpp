@@ -50,7 +50,7 @@ bool DataAccess::update()
     	writer.Key("members");
     	writer.StartObject();
     	{
-		    for(auto& each : owner->getProps()->getMembers())
+		    for(auto& each : owner->getProps()->get_members())
 		    {
 		    	auto value = each.second;
 

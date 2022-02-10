@@ -118,7 +118,7 @@ bool GraphNodeView::draw()
         */
         for (auto eachNode : nodeRegistry)
         {
-            const Members& members = eachNode->getProps()->getMembers();
+            const Members& members = eachNode->getProps()->get_members();
 
             for (auto pair : members)
             {
@@ -437,7 +437,7 @@ bool GraphNodeView::draw()
                 if ( draggedMemberConnector->m_way == Way_In )
                 {
                     graph->connect(
-                            newNode->getProps()->getFirstWithConn(Way_Out),
+                            newNode->getProps()->get_first_member_with_conn(Way_Out),
                             draggedMemberConnector->m_memberView->m_member);
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
@@ -446,7 +446,7 @@ bool GraphNodeView::draw()
                     // connect dragged (out) to first input on new node.
                     graph->connect(
                             draggedMemberConnector->m_memberView->m_member,
-                            newNode->getProps()->getFirstWithConn(Way_In));
+                            newNode->getProps()->get_first_member_with_conn(Way_In));
                 }
                 MemberConnector::StopDrag();
             }

@@ -106,7 +106,7 @@ void NodeView::set_owner(Node *_node)
     std::vector<Member*> notExposedMembers;
 
     //  We expose first the members which allows input connections
-    for(auto& m : _node->getProps()->getMembers())
+    for(auto& m : _node->getProps()->get_members())
     {
         auto member = m.second;
         if (member->get_visibility() == Visibility::Always && member->allows_connection(Way_In) )
