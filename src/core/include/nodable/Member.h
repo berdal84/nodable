@@ -11,84 +11,70 @@
 
 namespace Nodable
 {
-
     // forward declarations
     class Node;
     class Properties;
 
     /**
-     * The role of a Member is to store a value in an underlying Variant object. A Member always has an Object as owner and
-     * should do not exists alone.
-     * Like for a regular class member in a lot of programming languages you can set the Visibility and the Type of a Member.
-     * But in Nodable, a Member can also be connected (see Wire) to another Member on its input or output Connector.
+     * @brief The role of a Member is to store a value for a Properties object (its parent).
+     *
+     * Like for a regular class member in a lot of programming languages, you can set visibility and type.
+     * But in Nodable, a Member can also be connected (see Wire) to another Member using their input/outputs.
      */
 	class Member
     {
 	public:
-        Member();
-        explicit Member(Node*);
-		explicit Member(const std::string&);
-        explicit Member(int);
-        explicit Member(bool);
-        explicit Member(double);
-        explicit Member(const char *);
+        explicit Member(Properties*);
+        explicit Member(Properties*, Node*);
+		explicit Member(Properties*, const std::string&);
+        explicit Member(Properties*, int);
+        explicit Member(Properties*, bool);
+        explicit Member(Properties*, double);
+        explicit Member(Properties*, const char *);
         ~Member();
 
-        [[nodiscard]] bool allowsConnection(Way wayFlags)const { return (m_wayFlags & wayFlags) == wayFlags; }
-		[[nodiscard]] bool hasInputConnected()const;
-        [[nodiscard]] inline bool isDefined() const { return get_variant().isDefined(); }
-                      inline void undefine() { get_variant().undefine(); }
-		[[nodiscard]] bool isType(Reflect::Type type)const { return get_variant().isType(type); }
-        [[nodiscard]] bool equals(const Member *)const;
+        void digest(Member *_member);
+        void define();
+        void undefine() { get_variant().undefine(); }
+        bool is_defined() const { return get_variant().isDefined(); }
+        bool is_connected_by(ConnBy_ by);
+        bool is_type(Reflect::Type _type)const { return get_variant().isType(_type); }
+        bool equals(const Member *)const;
+        bool allows_connection(Way _flag)const { return (m_allowed_connection & _flag) == _flag; }
+        bool has_input_connected()const;
 
-		void setConnectorWay(Way wayFlags) { m_wayFlags = wayFlags; }
-		void setSourceExpression(const char* expr) { m_sourceExpression = expr; }
-		void setInput(Member*, ConnBy_ _connect_by = ConnectBy_Ref);
-		void setName(const char* name) { m_name = name; }
-		void set(const Member* other) { get_variant().set(&other->m_variant); }
-		void set(const Member& other) { get_variant().set(&other.m_variant); }
+		void set_allowed_connection(Way wayFlags) { m_allowed_connection = wayFlags; }
+		void set_input(Member*, ConnBy_ _connect_by = ConnectBy_Ref);
+		void set_name(const char* _name) { m_name = _name; }
+		void set(const Member* _other) { get_variant().set(&_other->m_variant); }
+		void set(const Member& _other) { get_variant().set(&_other.m_variant); }
 		void set(Node*);
 		void set(double);
         void set(const char*);
         void set(bool);
-		inline void set(int val) { set((double)val); }
-		void set(const std::string& val) { set(val.c_str());}
-		void setType(Reflect::Type type) { get_variant().setType(type); }
-		void setVisibility(Visibility _visibility) { m_visibility = _visibility; }
-        void setSourceToken(const Token* _token);
-        void setOwner(Node* _owner) { this->m_owner = _owner; }
-        void setParentProperties(Properties *_parent) { this->m_parentProperties = _parent; }
+		void set(int val) { set((double)val); }
+		void set(const std::string& _val) { set(_val.c_str());}
+		void set_type(Reflect::Type _type) { get_variant().setType(_type); }
+		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
+        void set_src_token(const Token* _token);
+        void set_owner(Node* _owner) { m_owner = _owner; }
 
-		[[nodiscard]] inline Node*                 getOwner()const { return m_owner; };
-        [[nodiscard]] inline Properties*           getParentProperties()const { return m_parentProperties; }
-		[[nodiscard]] inline Member*               getInput()const { return m_input; }
-		[[nodiscard]] inline std::vector<Member*>& getOutputs() { return m_outputs; }
-        [[nodiscard]] inline const std::string&    getName()const { return m_name; }
-		[[nodiscard]] inline Reflect::Type         getType()const { return get_variant().getType(); }
-		[[nodiscard]] inline std::string           getTypeAsString()const { return get_variant().getTypeAsString(); }
-        [[nodiscard]] inline Visibility            getVisibility()const { return m_visibility; }
-        [[nodiscard]] Way                          getConnectorWay()const { return m_wayFlags; }
-        [[nodiscard]] inline const Token*          getSourceToken() const { return &m_sourceToken; }
-        [[nodiscard]] inline Token*                getSourceToken() { return &m_sourceToken; }
-        [[nodiscard]] inline const Variant*        getData()const { return &get_variant(); }
+		Node*                 get_owner()const { return m_owner; };
+		Member*               get_input()const { return m_input; }
+		std::vector<Member*>& get_outputs() { return m_outputs; }
+        const std::string&    get_name()const { return m_name; }
+		Reflect::Type         get_type()const { return get_variant().getType(); }
+        Visibility            get_visibility()const { return m_visibility; }
+        Way                   get_allowed_connection()const { return m_allowed_connection; }
+        const Token*          get_src_token() const { return &m_sourceToken; }
+        Token*                get_src_token() { return &m_sourceToken; }
+        const Variant*        get_data()const { return &get_variant(); }
 
         template<typename T> inline explicit operator T*()     { return get_variant(); }
         template<typename T> inline explicit operator const T*() const { return get_variant(); }
         template<typename T> inline explicit operator T()const { return get_variant().convert_to<T>(); }
         template<typename T> inline explicit operator T&()     { return get_variant(); }
         template<typename T> inline T convert_to()const        { return get_variant().convert_to<T>(); }
-
-        /**
-         * This member will digest another.
-         * - source token ownership will be transfered to this
-         * - _member will be deleted.
-         * @param _member
-         */
-        void digest(Member *_member);
-
-        bool is_connected_by(ConnBy_ by);
-
-        void define();
 
     private:
         // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()
@@ -101,9 +87,8 @@ namespace Nodable
         Node*             m_owner;
 		Properties*       m_parentProperties;
 		std::vector<Member*> m_outputs;
-		Way               m_wayFlags;
+		Way               m_allowed_connection;
         Token             m_sourceToken;
-        std::string       m_sourceExpression;
 		std::string       m_name;
 		Variant       	  m_variant;
     };

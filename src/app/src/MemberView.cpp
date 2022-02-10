@@ -15,8 +15,8 @@ MemberView::MemberView(Member* _member, NodeView* _nodeView)
 {
     NODABLE_ASSERT(_member ); // Member must be defined
     NODABLE_ASSERT(_nodeView ); // Member must be defined
-    if ( m_member->allowsConnection(Way_In) )   m_in  = new MemberConnector(this, Way_In, Side::Top);
-    if ( m_member->allowsConnection(Way_Out) )  m_out = new MemberConnector(this, Way_Out, Side::Bottom);
+    if (m_member->allows_connection(Way_In) ) m_in  = new MemberConnector(this, Way_In, Side::Top);
+    if (m_member->allows_connection(Way_Out) ) m_out = new MemberConnector(this, Way_Out, Side::Bottom);
 }
 
 MemberView::~MemberView()

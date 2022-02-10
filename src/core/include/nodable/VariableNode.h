@@ -22,7 +22,7 @@ namespace Nodable{
 		~VariableNode() override = default;
 
 		[[nodiscard]] inline bool             is_declared()const { return m_type_token != nullptr; }
-		[[nodiscard]] inline bool             is_defined()const { return m_value->isDefined(); }
+		[[nodiscard]] inline bool             is_defined()const { return m_value->is_defined(); }
 		              inline void             undefine() { m_value->undefine(); setDirty(true); }
 		[[nodiscard]] inline const char*      get_name()const { return m_name.c_str(); };
 		[[nodiscard]] inline Member*          get_value()const { return m_value; }

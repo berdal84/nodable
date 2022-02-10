@@ -28,7 +28,7 @@ bool VariableNode::eval() const
 void VariableNode::set_name(const char* _name)
 {
     m_name = _name;
-    std::string str = m_value->getTypeAsString();
+    std::string str = Reflect::to_string( m_value->get_type() );
     str.append(" ");
     str.append( _name );
 	setLabel(str);
@@ -41,6 +41,4 @@ void VariableNode::set_name(const char* _name)
     {
         setShortLabel(_name);
     }
-
-    m_value->setSourceExpression(_name);
 }

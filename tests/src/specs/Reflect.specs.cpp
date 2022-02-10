@@ -88,13 +88,13 @@ TEST(Reflect, node_as_pointer)
 {
     // prepare
     Node   node;
-    Member member;
+    Member member(nullptr);
 
     // act
     member.set(&node );
 
     // check
-    EXPECT_EQ(member.getType(), Type_Pointer );
+    EXPECT_EQ(member.get_type(), Type_Pointer );
     EXPECT_EQ( &node, (Node*)(member) );
-    EXPECT_TRUE( is_pointer( member.getType()) );
+    EXPECT_TRUE( is_pointer(member.get_type()) );
 }

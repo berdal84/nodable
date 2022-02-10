@@ -37,9 +37,9 @@ TEST(Language, by_pointer_assign )
     EXPECT_TRUE(op != nullptr);
 
     // prepare call
-    Member left(50.0);
-    Member right(200.0);
-    Member result(0.0);
+    Member left(nullptr, 50.0);
+    Member right(nullptr, 200.0);
+    Member result(nullptr, 0.0);
     std::vector<Member*> args{&left, &right};
 
     // call

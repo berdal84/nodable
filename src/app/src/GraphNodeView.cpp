@@ -124,9 +124,9 @@ bool GraphNodeView::draw()
             {
                 const Member* dst_member = pair.second;
 
-                if ( const Member* src_member = dst_member->getInput() )
+                if ( const Member* src_member = dst_member->get_input() )
                 {
-                    auto src_node_view = src_member->getOwner()->get<NodeView>();
+                    auto src_node_view = src_member->get_owner()->get<NodeView>();
                     auto dst_node_view = eachNode->get<NodeView>(); // equival to dst_member->getOwner()->get<NodeView>();
 
                     if ( src_node_view->isVisible() && dst_node_view->isVisible() )
@@ -142,7 +142,7 @@ bool GraphNodeView::draw()
                             // TODO: add multiple wire type settings
 
                             // straight wide lines for node connections
-                            if ( src_member->isType(Type_Pointer) )
+                            if (src_member->is_type(Type_Pointer) )
                             {
                                 ImGuiEx::DrawVerticalWire(
                                         ImGui::GetWindowDrawList(),
@@ -294,7 +294,7 @@ bool GraphNodeView::draw()
 				    else
                     {
                         const MemberConnector* dragged_member_conn = MemberConnector::GetDragged();
-                        Type dragged_member_type = dragged_member_conn->getMember()->getType();
+                        Type dragged_member_type = dragged_member_conn->getMember()->get_type();
 
                         if ( dragged_member_conn->m_way == Way_Out )
                         {
@@ -339,7 +339,7 @@ bool GraphNodeView::draw()
             if ( is_dragging_member_connector )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-                    newNode = graph->newVariable(MemberConnector::GetDragged()->getMember()->getType(), "var", graph->getProgram()->get<Scope>() );
+                    newNode = graph->newVariable(MemberConnector::GetDragged()->getMember()->get_type(), "var", graph->getProgram()->get<Scope>() );
             }
             else if ( ImGui::BeginMenu("Variable") )
             {
@@ -361,7 +361,7 @@ bool GraphNodeView::draw()
             if ( is_dragging_member_connector )
             {
                 if (ImGui::MenuItem(ICON_FA_FILE " Literal"))
-                    newNode = graph->newLiteral(MemberConnector::GetDragged()->getMember()->getType());
+                    newNode = graph->newLiteral(MemberConnector::GetDragged()->getMember()->get_type());
             }
             else if ( ImGui::BeginMenu("Literal") )
             {

@@ -164,7 +164,7 @@ bool VM::_stepOver()
                     Member* member = node->getProps()->get("value");
                     if ( member )
                     {
-                        m_register[rax] = (i64_t)member->getData(); // copy variant address
+                        m_register[rax] = (i64_t) member->get_data(); // copy variant address
                     }
 
                     advance_cursor();
@@ -175,7 +175,7 @@ bool VM::_stepOver()
                 case FctId::eval_member:
                 {
                     auto member = (Member*)next_instr->m_right_h_arg;
-                    m_register[rax] = (i64_t)member->getData(); //copy variant address
+                    m_register[rax] = (i64_t) member->get_data(); //copy variant address
                     advance_cursor();
                     success = true;
                     break;
@@ -251,7 +251,7 @@ bool VM::step_over()
                 case FctId::eval_member:
                 {
                     auto member = (Member *)next_instr->m_right_h_arg;
-                    m_next_node = member->getOwner();
+                    m_next_node = member->get_owner();
                     break;
                 }
 

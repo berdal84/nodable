@@ -174,7 +174,7 @@ Member* Parser::token_to_member(Token *_token)
             }
 
             result = literal->get_value();
-            result->setSourceToken(_token);
+            result->set_src_token(_token);
             break;
         }
 
@@ -185,7 +185,7 @@ Member* Parser::token_to_member(Token *_token)
 			if (variable == nullptr) {
                 LOG_WARNING("Parser", "Unable to find declaration for %s, Type_Any will be used to allow graph visualisation, but compilation will fail.\n", _token->m_word.c_str())
                 variable = m_graph->newVariable( Reflect::Type_Any, _token->m_word, get_current_scope() );
-                variable->get_value()->setSourceToken(_token);
+                variable->get_value()->set_src_token(_token);
             }
 
             result = variable->get_value();
@@ -258,7 +258,9 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const FunctionSignature* signature = m_language->createBinOperatorSignature(Reflect::Type_Any, operatorToken->m_word, _left->getType(), right->getType());
+	const FunctionSignature* signature = m_language->createBinOperatorSignature(Reflect::Type_Any, operatorToken->m_word,
+                                                                                _left->get_type(),
+                                                                                right->get_type());
 	auto matchingOperator = m_language->findOperator(signature);
     delete signature;
 
@@ -323,7 +325,8 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	}
 
 	// Create a function signature
-	auto signature = m_language->createUnaryOperatorSignature(Reflect::Type_Any, operatorToken->m_word, value->getType() );
+	auto signature = m_language->createUnaryOperatorSignature(Reflect::Type_Any, operatorToken->m_word,
+                                                              value->get_type() );
 	auto matchingOperator = m_language->findOperator(signature);
 
 	if (matchingOperator != nullptr)
@@ -457,7 +460,7 @@ InstructionNode* Parser::parse_instruction()
         }
     }
 
-    m_graph->connect(expression->getOwner(), instr_node);
+    m_graph->connect(expression->get_owner(), instr_node);
     m_graph->connect(instr_node, m_scope_stack.top()->get_owner(), Relation_t::IS_CHILD_OF);
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n")
@@ -801,7 +804,7 @@ Member* Parser::parse_function_call()
         if (auto member = parse_expression())
         {
             args.push_back(member); // store argument as member (already parsed)
-            signature.push_arg(member->getType());  // add a new argument type to the proto.
+            signature.push_arg(member->get_type());  // add a new argument type to the proto.
             m_token_ribbon.eatToken(TokenType_Separator);
         }
         else
@@ -884,7 +887,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
         if ( condition)
         {
-            m_graph->connect(condition->getOwner()->get_this_member(), condStruct->get_condition() );
+            m_graph->connect(condition->get_owner()->get_this_member(), condStruct->get_condition() );
 
             if ( Node* scopeIf = parse_scope() )
             {
@@ -984,7 +987,7 @@ ForLoopNode* Parser::parse_for_loop()
                     }
                     else
                     {
-                        m_graph->connect(cond_instr->getOwner()->get_this_member(), for_loop_node->get_condition());
+                        m_graph->connect(cond_instr->get_owner()->get_this_member(), for_loop_node->get_condition());
 
                         if (!m_token_ribbon.eatToken(TokenType_EndOfInstruction))
                         {
@@ -1054,7 +1057,7 @@ Member *Parser::parse_variable_declaration()
         VariableNode* variable = m_graph->newVariable(type, identifierTok->m_word, this->get_current_scope());
         variable->set_type_token(typeTok);
         variable->set_identifier_token(identifierTok);
-        variable->get_value()->setSourceToken(identifierTok); // we also pass it to the member, this one will be modified my connections
+        variable->get_value()->set_src_token(identifierTok); // we also pass it to the member, this one will be modified my connections
 
         // try to parse assignment
         auto assignmentTok = m_token_ribbon.eatToken(TokenType_Operator);

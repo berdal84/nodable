@@ -86,7 +86,7 @@ void NodeView::exposeMember(Member* _member)
     }
     else
     {
-        if (_member->getConnectorWay() == Way_In)
+        if (_member->get_allowed_connection() == Way_In)
         {
             m_exposedInputOnlyMembers.push_back(member_view);
         }
@@ -109,7 +109,7 @@ void NodeView::set_owner(Node *_node)
     for(auto& m : _node->getProps()->getMembers())
     {
         auto member = m.second;
-        if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_In) )
+        if (member->get_visibility() == Visibility::Always && member->allows_connection(Way_In) )
         {
            exposeMember(member);
         }
@@ -122,7 +122,7 @@ void NodeView::set_owner(Node *_node)
     // Then we expose node which allows output connection (if they are not yet exposed)
     for (auto& member : notExposedMembers)
     {
-        if (member->getVisibility() == Visibility::Always && member->allowsConnection(Way_Out))
+        if (member->get_visibility() == Visibility::Always && member->allows_connection(Way_Out))
         {
             exposeMember(member);
         }
@@ -525,18 +525,18 @@ bool NodeView::drawMemberView(MemberView* _view )
     Member* member = _view->m_member;
 
     // show/hide
-    const bool member_is_an_unconnected_input = member->getInput() != nullptr || !member->allowsConnection(Way_In);
+    const bool member_is_an_unconnected_input = member->get_input() != nullptr || !member->allows_connection(Way_In);
 
-    const Reflect::Class* owner_class = member->getOwner()->get_class();
+    const Reflect::Class* owner_class = member->get_owner()->get_class();
 
     _view->m_showInput =
-        member->isDefined()
+            member->is_defined()
         &&
         (
-            ( _view->m_touched && !member->isType(Type::Type_Pointer) )
+            ( _view->m_touched && !member->is_type(Type::Type_Pointer) )
             ||
             (
-                (!member->isType(Type::Type_Pointer) && member->isDefined())
+                (!member->is_type(Type::Type_Pointer) && member->is_defined())
                 &&
                 (
                     (
@@ -574,8 +574,8 @@ bool NodeView::drawMemberView(MemberView* _view )
         {
             ImGui::BeginTooltip();
             ImGui::Text("%s (%s)",
-                        member->getName().c_str(),
-                        member->getTypeAsString().c_str());
+                        member->get_name().c_str(),
+                        Reflect::to_string( member->get_type() ).c_str());
             ImGui::EndTooltip();
         }
 
@@ -596,7 +596,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
 {
     bool edited = false;
 
-    Node* node  = _member->getOwner();
+    Node* node  = _member->get_owner();
 
     // Create a label (everything after ## will not be displayed)
     std::string label;
@@ -606,19 +606,19 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     }
     else
     {
-        label.append("##" + _member->getName());
+        label.append("##" + _member->get_name());
     }
 
     auto inputFlags = ImGuiInputTextFlags_None;
 
     /* Draw the member */
-    switch (_member->getType())
+    switch (_member->get_type())
     {
         case Type_Double:
         {
             auto f = (double)*_member;
 
-            if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->hasInputConnected())
+            if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->has_input_connected())
             {
                 _member->set(f);
                 edited |= true;
@@ -631,7 +631,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             char str[255];
             snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
 
-            if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->hasInputConnected() )
+            if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->has_input_connected() )
             {
                 _member->set(str);
                 edited |= true;
@@ -641,11 +641,11 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
 
         case Type_Boolean:
         {
-            std::string checkBoxLabel = _member->getName();
+            std::string checkBoxLabel = _member->get_name();
 
             auto b = (bool)*_member;
 
-            if (ImGui::Checkbox(label.c_str(), &b ) && !_member->hasInputConnected() )
+            if (ImGui::Checkbox(label.c_str(), &b ) && !_member->has_input_connected() )
             {
                 _member->set(b);
                 edited |= true;
@@ -689,11 +689,11 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
         ImGui::SetNextItemWidth(labelColumnWidth);
         ImGui::Text(
                 "%s (%s, %s%s %s): ",
-                _member->getName().c_str(),
-                WayToString(_member->getConnectorWay()).c_str(),
+                _member->get_name().c_str(),
+                WayToString(_member->get_allowed_connection()).c_str(),
                 _member->is_connected_by(ConnectBy_Ref) ? "&" : "",
-                _member->getTypeAsString().c_str(),
-                _member->isDefined() ? "" : ", undefined!");
+                Reflect::to_string( _member->get_type() ).c_str(),
+                _member->is_defined() ? "" : ", undefined!");
 
         ImGui::SameLine();
         ImGui::Text("(?)");
@@ -701,9 +701,9 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
         {
             ImGui::BeginTooltip();
             ImGui::Text("Source token: \n{\n\tprefix: \"%s\",\n\tword: \"%s\",\n\tsuffix: \"%s\"\n}",
-                        _member->getSourceToken()->m_prefix.c_str(),
-                        _member->getSourceToken()->m_word.c_str(),
-                        _member->getSourceToken()->m_suffix.c_str()
+                        _member->get_src_token()->m_prefix.c_str(),
+                        _member->get_src_token()->m_word.c_str(),
+                        _member->get_src_token()->m_suffix.c_str()
             );
             ImGui::EndTooltip();
         }

@@ -17,9 +17,9 @@ bool DataAccess::update()
 
 	auto writeMember = [&writer](const Member* _value)
 	{
-		writer.Key(_value->getName().c_str());
+		writer.Key(_value->get_name().c_str());
 
-    	switch( _value->getType())
+    	switch(_value->get_type())
     	{
         case Reflect::Type_String :
     		writer.String( ((std::string)*_value).c_str());

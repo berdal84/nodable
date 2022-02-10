@@ -171,15 +171,15 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
         _result.append(_node->get_assignment_operator_token()->m_word );
         _result.append(_node->get_assignment_operator_token()->m_suffix );
 
-        if ( value->hasInputConnected() )
+        if (value->has_input_connected() )
         {
             serialize(_result, value);
         }
         else
         {
-            _result.append( value->getSourceToken()->m_prefix);
-            serialize(_result, _node->get_value()->getData());
-            _result.append( value->getSourceToken()->m_suffix);
+            _result.append(value->get_src_token()->m_prefix);
+            serialize(_result, _node->get_value()->get_data());
+            _result.append(value->get_src_token()->m_suffix);
         }
 
     }
@@ -200,17 +200,17 @@ std::string& Serializer::serialize(std::string& _result, const Variant* variant)
 
 std::string& Serializer::serialize(std::string& _result, const Member * _member, bool followConnections) const
 {
-    const Token *sourceToken = _member->getSourceToken();
+    const Token *sourceToken = _member->get_src_token();
     if (sourceToken)
     {
         _result.append(sourceToken->m_prefix);
     }
 
-    auto owner = _member->getOwner();
-    if ( followConnections && owner && _member->allowsConnection(Way_In) && owner->hasWireConnectedTo(_member) )
+    auto owner = _member->get_owner();
+    if (followConnections && owner && _member->allows_connection(Way_In) && owner->hasWireConnectedTo(_member) )
     {
         Member*           sourceMember      = owner->getSourceMemberOf(_member);
-        InvokableComponent* compute_component = sourceMember->getOwner()->get<InvokableComponent>();
+        InvokableComponent* compute_component = sourceMember->get_owner()->get<InvokableComponent>();
 
         if ( compute_component )
         {
@@ -230,7 +230,7 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
         }
         else
         {
-            serialize(_result, _member->getData() );
+            serialize(_result, _member->get_data() );
         }
     }
 
@@ -306,7 +306,7 @@ std::string& Serializer::serialize(std::string& _result, const InstructionNode* 
 {
     const Member* root_node_member = _instruction->get_root_node_member();
 
-    if ( root_node_member->hasInputConnected() && root_node_member->isDefined() )
+    if (root_node_member->has_input_connected() && root_node_member->is_defined() )
     {
         const Node* root_node = (const Node*)*root_node_member;
         serialize( _result, root_node );
@@ -335,10 +335,10 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
     // TODO: I don't like this if/else, should be implicit. Serialize Member* must do it.
     //       More work to do to know if expression is a declaration or not.
 
-    Member* input = _for_loop->get_init_expr()->getInput();
-    if ( input && input->getOwner()->get_class()->is<VariableNode>() )
+    Member* input = _for_loop->get_init_expr()->get_input();
+    if ( input && input->get_owner()->get_class()->is<VariableNode>() )
     {
-        serialize( _result, input->getOwner()->as<VariableNode>() );
+        serialize( _result, input->get_owner()->as<VariableNode>() );
     }
     else
     {

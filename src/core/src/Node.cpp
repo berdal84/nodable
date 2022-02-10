@@ -78,7 +78,7 @@ int Node::getInputWireCount()const
 	int count = 0;
 	for(auto w : m_wires)
 	{
-		if ( w->getTarget()->getOwner() == this)
+		if (w->getTarget()->get_owner() == this)
 			count++;
 	}
 	return count;
@@ -89,7 +89,7 @@ int Node::getOutputWireCount()const
 	int count = 0;
 	for(auto w : m_wires)
 	{
-		if ( w->getSource()->getOwner() == this)
+		if (w->getSource()->get_owner() == this)
 			count++;
 	}
 	return count;
@@ -101,11 +101,11 @@ bool Node::eval() const
     for(auto& eachNameToMemberPair : m_props.getMembers())
     {
         Member* eachMember = eachNameToMemberPair.second;
-        if( eachMember->getInput() && eachMember->is_connected_by(ConnectBy_Copy) )
+        if(eachMember->get_input() && eachMember->is_connected_by(ConnectBy_Copy) )
         {
             // transfer value from member's input to member
-            eachMember->setType(eachMember->getInput()->getType()); // dynamic type, TODO: show a warning ?
-            eachMember->set(eachMember->getInput());
+            eachMember->set_type(eachMember->get_input()->get_type()); // dynamic type, TODO: show a warning ?
+            eachMember->set(eachMember->get_input());
         }
     }
 
@@ -157,7 +157,7 @@ const InvokableOperator* Node::getConnectedOperator(const Member *_localMember)
      */
     if (found != m_wires.end() )
     {
-        auto node = (*found)->getSource()->getOwner()->as<Node>();
+        auto node = (*found)->getSource()->get_owner()->as<Node>();
         InvokableComponent* compute_component = node->get<InvokableComponent>();
         if ( compute_component )
         {

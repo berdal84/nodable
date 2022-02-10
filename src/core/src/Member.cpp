@@ -6,44 +6,44 @@
 
 using namespace Nodable;
 
-Member::Member()
+Member::Member(Properties* _parent_properties)
     :
         m_owner(nullptr),
         m_visibility(Visibility::Default),
         m_name("Unknown"),
         m_sourceToken(Token::s_null),
         m_input(nullptr),
-        m_parentProperties(nullptr),
+        m_parentProperties(_parent_properties),
         m_connected_by(ConnectBy_Copy)
     {}
 
-Member::Member(double d): Member()
+Member::Member( Properties* _parent_properties, double d ): Member(_parent_properties)
 {
-    get_variant().set(d);
+    m_variant.set(d);
 }
 
-Member::Member(bool b): Member()
+Member::Member(Properties* _parent_properties, bool b): Member(_parent_properties)
 {
-    get_variant().set(b);
+    m_variant.set(b);
 }
 
-Member::Member(int i): Member((double)i){}
+Member::Member(Properties* _parent_properties, int i): Member(_parent_properties, (double)i){}
 
-Member::Member(const char * str): Member()
+Member::Member(Properties* _parent_properties, const char * str): Member(_parent_properties)
 {
-    get_variant().set(str);
+    m_variant.set(str);
 }
 
-Member::Member(const std::string& s): Member(s.c_str()){}
+Member::Member(Properties* _parent_properties, const std::string& s): Member(_parent_properties, s.c_str()){}
 
-Member::Member(Node* _node): Member()
+Member::Member(Properties* _parent_properties, Node* _node): Member(_parent_properties)
 {
-    get_variant().set(_node);
+    m_variant.set(_node);
 }
 
 Member::~Member(){}
 
-bool Member::hasInputConnected() const
+bool Member::has_input_connected() const
 {
     return m_input != nullptr;
 }
@@ -54,13 +54,10 @@ bool Member::equals(const Member *_other)const {
 		   (std::string)*_other == (std::string)*m_input;
 }
 
-void Member::setInput(Member* _val, ConnBy_ _connect_by)
+void Member::set_input(Member* _val, ConnBy_ _connect_by)
 {
     m_input = _val;
     m_connected_by = _connect_by;
-
-	if (_val == nullptr)
-        m_sourceExpression = "";
 }
 
 void Member::set(Node* _value)
@@ -87,7 +84,7 @@ void Member::set(bool _value)
     get_variant().set(_value);
 }
 
-void Member::setSourceToken(const Token* _token)
+void Member::set_src_token(const Token* _token)
 {
     if ( _token )
     {

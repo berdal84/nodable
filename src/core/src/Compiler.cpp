@@ -149,7 +149,7 @@ void Asm::Compiler::append_to_assembly_code( const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
-        if (_member->isType(Reflect::Type_Pointer))
+        if (_member->is_type(Reflect::Type_Pointer))
         {
             /*
              * Members can point to a Node*
@@ -164,10 +164,10 @@ void Asm::Compiler::append_to_assembly_code( const Member * _member )
              * Once we have the list of the nodes to be updated, we loop on them.
              */
 
-            Member *input = _member->getInput();
+            Member *input = _member->get_input();
             if ( input )
             {
-                append_to_assembly_code( input->getOwner() );
+                append_to_assembly_code(input->get_owner() );
             }
         }
 
@@ -176,7 +176,7 @@ void Asm::Compiler::append_to_assembly_code( const Member * _member )
             Instr *instr = m_output->push_instr(Instr_t::call);
             instr->m_left_h_arg = (i64_t) FctId::eval_member;
             instr->m_right_h_arg = (i64_t) _member;
-            instr->m_comment = "eval " + std::string{_member->getOwner()->getLabel()} + " -> " + _member->getName();
+            instr->m_comment = "eval " + std::string{_member->get_owner()->getLabel()} + " -> " + _member->get_name();
         }
     }
 }

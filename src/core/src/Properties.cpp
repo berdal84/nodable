@@ -19,7 +19,7 @@ const Members&   Properties::getMembers      ()const
 
 bool Properties::has(const Member* _value)
 {
-	auto foundWithName = m_props.find(_value->getName());
+	auto foundWithName = m_props.find(_value->get_name());
 	if(foundWithName != m_props.end())
 		return (*foundWithName).second == _value;
 	return false;
@@ -45,7 +45,7 @@ Member* Properties::getFirstWithConn(Way _connection)const
 	auto m = this->m_props.begin();
 	while (m != this->m_props.end() && found == nullptr)
 	{
-		if (m->second->getConnectorWay() & _connection)
+		if (m->second->get_allowed_connection() & _connection)
 			found = m->second;
 		m++;
 	}
@@ -55,13 +55,12 @@ Member* Properties::getFirstWithConn(Way _connection)const
 
 Member* Properties::add (const char* _name, Visibility _visibility, Reflect::Type _type, Way _flags )
 {
-	auto v = new Member();
-	v->setParentProperties(this);
-	v->setOwner(this->m_owner);
-	v->setName		(_name);
-	v->setVisibility(_visibility);
-	v->setType		(_type);
-	v->setConnectorWay(_flags);
+	auto v = new Member(this);
+    v->set_owner(this->m_owner);
+    v->set_name(_name);
+    v->set_visibility(_visibility);
+    v->set_type(_type);
+    v->set_allowed_connection(_flags);
 	m_props[std::string(_name)] = v;
 
 	return v;

@@ -48,7 +48,7 @@ bool MemberConnector::hasSameParentWith(const MemberConnector* other) const
 
 bool MemberConnector::connect(const MemberConnector *other) const
 {
-    auto graph = getMember()->getOwner()->getParentGraph();
+    auto graph = getMember()->get_owner()->getParentGraph();
     // TODO: handle incompatibility
     graph->connect(getMember(), other->getMember());
     return true;
@@ -102,7 +102,7 @@ void MemberConnector::Draw(
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
             auto member = _connector->getMember();
-            auto graph  = member->getOwner()->getParentGraph();
+            auto graph  = member->get_owner()->getParentGraph();
             graph->disconnect( member, _connector->m_way );
         }
 
@@ -113,7 +113,7 @@ void MemberConnector::Draw(
     {
         s_hovered = _connector;
         ImGui::BeginTooltip();
-        ImGui::Text("%s", _connector->getMember()->getName().c_str() );
+        ImGui::Text("%s", _connector->getMember()->get_name().c_str() );
         ImGui::EndTooltip();
     }
 
@@ -151,7 +151,7 @@ bool MemberConnector::Connect(const MemberConnector *_left, const MemberConnecto
 }
 
 bool MemberConnector::hasConnectedNode() const {
-    return m_way == Way_In ? getMember()->getInput() != nullptr : !getMember()->getOutputs().empty();
+    return m_way == Way_In ? getMember()->get_input() != nullptr : !getMember()->get_outputs().empty();
 }
 
 Member* MemberConnector::getMember()const

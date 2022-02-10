@@ -203,7 +203,7 @@ void GraphNode::deleteNode(Node* _node)
     for (auto it = m_wireRegistry.begin(); it != m_wireRegistry.end();)
     {
         Wire* wire = *it;
-        if( wire->getSource()->getOwner() == _node || wire->getTarget()->getOwner() == _node )
+        if(wire->getSource()->get_owner() == _node || wire->getTarget()->get_owner() == _node )
         {
             deleteWire(wire);
             it = m_wireRegistry.erase(it);
@@ -239,28 +239,28 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _conn
     /*
      * If _from has no owner _to can digest it, no Wire neede in that case.
      */
-    if (_src_member->getOwner() == nullptr)
+    if (_src_member->get_owner() == nullptr)
     {
         _dst_member->digest(_src_member);
         delete _src_member;
     }
     else if (
-            _src_member->getType() != Reflect::Type_Pointer &&
-            _src_member->getOwner()->get_class()->is<LiteralNode>() &&
-            _dst_member->getOwner()->get_class()->is_not<VariableNode>())
+            _src_member->get_type() != Reflect::Type_Pointer &&
+            _src_member->get_owner()->get_class()->is<LiteralNode>() &&
+            _dst_member->get_owner()->get_class()->is_not<VariableNode>())
     {
-        Node* owner = _src_member->getOwner();
+        Node* owner = _src_member->get_owner();
         _dst_member->digest(_src_member);
         deleteNode(owner);
     }
     else
     {
         LOG_VERBOSE("GraphNode", "connect() ...\n")
-        _dst_member->setInput(_src_member, _connect_by);
-        _src_member->getOutputs().push_back(_dst_member);
+        _dst_member->set_input(_src_member, _connect_by);
+        _src_member->get_outputs().push_back(_dst_member);
 
-        auto targetNode = _dst_member->getOwner()->as<Node>();
-        auto sourceNode = _src_member->getOwner()->as<Node>();
+        auto targetNode = _dst_member->get_owner()->as<Node>();
+        auto sourceNode = _src_member->get_owner()->as<Node>();
 
         NODABLE_ASSERT(targetNode != sourceNode)
 
@@ -279,13 +279,13 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _conn
 
         // TODO: move this somewhere else
         // (transfer prefix/suffix)
-        auto fromToken = _src_member->getSourceToken();
+        auto fromToken = _src_member->get_src_token();
         if (fromToken) {
-            if (!_dst_member->getSourceToken()) {
-                _dst_member->setSourceToken(new Token(fromToken->m_type, "", fromToken->m_charIndex));
+            if (!_dst_member->get_src_token()) {
+                _dst_member->set_src_token(new Token(fromToken->m_type, "", fromToken->m_charIndex));
             }
 
-            auto toToken = _dst_member->getSourceToken();
+            auto toToken = _dst_member->get_src_token();
             toToken->m_suffix = fromToken->m_suffix;
             toToken->m_prefix = fromToken->m_prefix;
             fromToken->m_suffix = "";
@@ -479,12 +479,12 @@ void GraphNode::disconnect(Node *_source, Node *_target, Relation_t _relationTyp
 
 void GraphNode::deleteWire(Wire *_wire)
 {
-    _wire->getTarget()->setInput(nullptr);
-    auto& outputs = _wire->getSource()->getOutputs();
+    _wire->getTarget()->set_input(nullptr);
+    auto& outputs = _wire->getSource()->get_outputs();
     outputs.erase( std::find(outputs.begin(), outputs.end(), _wire->getTarget()));
 
-    Node* targetNode = _wire->getTarget()->getOwner();
-    Node* sourceNode = _wire->getSource()->getOwner();
+    Node* targetNode = _wire->getTarget()->get_owner();
+    Node* sourceNode = _wire->getSource()->get_owner();
 
     if( targetNode )
         targetNode->removeWire(_wire);
@@ -555,8 +555,8 @@ void GraphNode::disconnect(Member *_member, Way _way)
             auto wire = *it;
             it = m_wireRegistry.erase(it);
 
-            Node *targetNode = wire->getTarget()->getOwner();
-            Node *sourceNode = wire->getSource()->getOwner();
+            Node *targetNode = wire->getTarget()->get_owner();
+            Node *sourceNode = wire->getSource()->get_owner();
 
             targetNode->removeWire(wire);
             sourceNode->removeWire(wire);
