@@ -31,7 +31,7 @@ VariableNode* HeadlessNodeFactory::newVariable(Reflect::Type _type, const std::s
 {
     // create
     VariableNode* node = new VariableNode(_type);
-    node->setName(_name.c_str());
+    node->set_name(_name.c_str());
 
     if( _scope)
     {

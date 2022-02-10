@@ -335,7 +335,7 @@ void GraphNode::connect(Node* _source, InstructionNode* _target)
 void GraphNode::connect(Member* _source, VariableNode* _target)
 {
     // We connect the source member to the variable's value member in value mode (vs reference mode)
-    connect(_source, _target->value(), ConnectBy_Copy );
+    connect(_source, _target->get_value(), ConnectBy_Copy );
 }
 
 void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, bool _sideEffects)

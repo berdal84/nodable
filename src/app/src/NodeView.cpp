@@ -836,7 +836,7 @@ void NodeView::drawAdvancedProperties()
         auto vars = scope->get_variables();
         for(auto eachVar : vars)
         {
-            ImGui::Text("%s: %s", eachVar->getName(), eachVar->value()->convert_to<std::string>().c_str());
+            ImGui::Text("%s: %s", eachVar->get_name(), eachVar->get_value()->convert_to<std::string>().c_str());
         }
     }
 }

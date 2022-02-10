@@ -35,7 +35,6 @@ namespace Nodable
          */
         enum class FctId: i64_t
         {
-            push,
             eval_member,
             eval_node,
             push_stack_frame,

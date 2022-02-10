@@ -153,11 +153,11 @@ TEST(Graph, by_reference_assign)
     auto op = assign->get<InvokableComponent>();
 
     // connect b and assign
-    graph.connect( b->value(), assign->getProps()->get("lvalue") );
+    graph.connect(b->get_value(), assign->getProps()->get("lvalue") );
 
     op->get_r_handed_val()->set(5.0);
 
-    ASSERT_DOUBLE_EQ( b->value()->convert_to<double>(), 6.0 );
+    ASSERT_DOUBLE_EQ(b->get_value()->convert_to<double>(), 6.0 );
     ASSERT_DOUBLE_EQ( assign->getProps()->get("lvalue")->convert_to<double>(), 6.0 );
     ASSERT_DOUBLE_EQ( assign->getProps()->get("rvalue")->convert_to<double>(), 5.0 );
     ASSERT_DOUBLE_EQ( assign->getProps()->get("value")->convert_to<double>(), 0.0 );
@@ -165,7 +165,7 @@ TEST(Graph, by_reference_assign)
     // apply
     assign->eval();
 
-    ASSERT_DOUBLE_EQ( b->value()->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ(b->get_value()->convert_to<double>(), 5.0 );
     ASSERT_DOUBLE_EQ( assign->getProps()->get("lvalue")->convert_to<double>(), 5.0 );
     ASSERT_DOUBLE_EQ( assign->getProps()->get("rvalue")->convert_to<double>(), 5.0 );
     ASSERT_DOUBLE_EQ( assign->getProps()->get("value")->convert_to<double>(), 5.0 );

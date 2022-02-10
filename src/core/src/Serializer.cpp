@@ -154,22 +154,22 @@ std::string& Serializer::serialize(std::string &_result, const Reflect::Type& _t
 std::string& Serializer::serialize(std::string& _result, const VariableNode* _node) const
 {
     // type
-    serialize(_result, _node->getTypeToken() );
+    serialize(_result, _node->get_type_token() );
 
     // var name
-    auto identifierTok = _node->getIdentifierToken();
+    auto identifierTok = _node->get_identifier_token();
     if ( identifierTok ) _result.append( identifierTok->m_prefix);
-    _result.append( _node->getName());
-    if ( identifierTok ) _result.append( _node->getIdentifierToken()->m_suffix);
+    _result.append(_node->get_name());
+    if ( identifierTok ) _result.append(_node->get_identifier_token()->m_suffix);
 
     // assigment ?
-    if ( _node->getAssignmentOperatorToken() )
+    if (_node->get_assignment_operator_token() )
     {
-        Member* value = _node->value();
+        Member* value = _node->get_value();
 
-        _result.append(_node->getAssignmentOperatorToken()->m_prefix );
-        _result.append(_node->getAssignmentOperatorToken()->m_word );
-        _result.append(_node->getAssignmentOperatorToken()->m_suffix );
+        _result.append(_node->get_assignment_operator_token()->m_prefix );
+        _result.append(_node->get_assignment_operator_token()->m_word );
+        _result.append(_node->get_assignment_operator_token()->m_suffix );
 
         if ( value->hasInputConnected() )
         {
@@ -178,7 +178,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
         else
         {
             _result.append( value->getSourceToken()->m_prefix);
-            serialize(_result, _node->value()->getData());
+            serialize(_result, _node->get_value()->getData());
             _result.append( value->getSourceToken()->m_suffix);
         }
 
@@ -226,7 +226,7 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
         if (owner && owner->get_class() == VariableNode::Get_class())
         {
             auto variable = owner->as<VariableNode>();
-            _result.append(variable->getName() );
+            _result.append(variable->get_name() );
         }
         else
         {

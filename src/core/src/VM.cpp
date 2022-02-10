@@ -143,24 +143,11 @@ bool VM::_stepOver()
                     auto scope = ((Node *) next_instr->m_right_h_arg)->get<Scope>();
                     for( VariableNode* each_var : scope->get_variables() )
                     {
-                        if ( each_var->isDefined() )
+                        if (each_var->is_defined() )
                         {
                             each_var->undefine();
-                            NODABLE_ASSERT(!each_var->isDefined());
+                            NODABLE_ASSERT(!each_var->is_defined());
                         }
-                    }
-                    advance_cursor();
-                    success = true;
-                    break;
-                }
-
-                case FctId::push:
-                {
-                    auto var = ((VariableNode*)next_instr->m_right_h_arg);
-                    if ( !var->isDefined() )
-                    {
-                        var->define();
-                        NODABLE_ASSERT(var->isDefined());
                     }
                     advance_cursor();
                     success = true;

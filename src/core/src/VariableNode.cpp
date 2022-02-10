@@ -6,30 +6,29 @@ using namespace Nodable;
 
 REFLECT_DEFINE_CLASS(VariableNode)
 
-VariableNode::VariableNode(Reflect::Type type)
+VariableNode::VariableNode(Reflect::Type _type)
     :
-    Node("Variable"),
-    m_typeToken(nullptr),
-    m_identifierToken(nullptr),
-    m_assignmentOperatorToken(nullptr)
+        Node("Variable"),
+        m_type_token(nullptr),
+        m_identifier_token(nullptr),
+        m_assignment_operator_token(nullptr)
 {
-	Member* value = m_props.add("value", Visibility::Always, type, Way_InOut);
+	m_value = m_props.add("value", Visibility::Always, _type, Way_InOut);
 }
 
 bool VariableNode::eval() const
 {
-    if ( !isDefined() )
+    if ( !is_defined() )
     {
-        value()->define();
         Node::eval();
     }
     return true;
 }
 
-void VariableNode::setName(const char* _name)
+void VariableNode::set_name(const char* _name)
 {
     m_name = _name;
-    std::string str = getTypeAsString();
+    std::string str = m_value->getTypeAsString();
     str.append(" ");
     str.append( _name );
 	setLabel(str);
@@ -43,10 +42,5 @@ void VariableNode::setName(const char* _name)
         setShortLabel(_name);
     }
 
-    value()->setSourceExpression(_name);
-}
-
-void VariableNode::define()
-{
-    value()->define();
+    m_value->setSourceExpression(_name);
 }

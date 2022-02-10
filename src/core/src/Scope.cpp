@@ -35,7 +35,7 @@ VariableNode* Scope::find_variable(const std::string &_name)
      */
     auto findFunction = [_name](const VariableNode* _variable ) -> bool
     {
-        return strcmp(_variable->getName(), _name.c_str()) == 0;
+        return strcmp(_variable->get_name(), _name.c_str()) == 0;
     };
 
     auto it = std::find_if(m_variables.begin(), m_variables.end(), findFunction);
@@ -72,13 +72,13 @@ Node* Scope::get_last_code_block()
 
 void Scope::add_variable(VariableNode* _variableNode)
 {
-    if ( !find_variable(_variableNode->getName()) )
+    if ( !find_variable(_variableNode->get_name()) )
     {
         m_variables.push_back(_variableNode);
     }
     else
     {
-        LOG_ERROR("Scope", "Unable to add variable %s, already declared.\n", _variableNode->getName())
+        LOG_ERROR("Scope", "Unable to add variable %s, already declared.\n", _variableNode->get_name())
     }
 }
 

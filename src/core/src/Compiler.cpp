@@ -96,7 +96,6 @@ std::string Nodable::to_string(FctId _id)
     {
         case FctId::eval_member:      return "eval_member";
         case FctId::eval_node:        return "eval_node";
-        case FctId::push:             return "push";
         case FctId::pop_stack_frame:  return "pop_stack_frame";
         case FctId::push_stack_frame: return "push_stack_frame";
         default:                      return "???";
@@ -133,9 +132,9 @@ bool Asm::Compiler::is_program_valid(const Node* _program)
     auto it = vars.begin();
     while(!found_a_var_uninit && it != vars.end() )
     {
-        if( !(*it)->isDeclared() )
+        if( !(*it)->is_declared() )
         {
-            LOG_ERROR("Compiler", "Unable to load program because %s is not declared.\n", (*it)->getName() );
+            LOG_ERROR("Compiler", "Unable to load program because %s is not declared.\n", (*it)->get_name() );
             found_a_var_uninit = true;
         }
         ++it;

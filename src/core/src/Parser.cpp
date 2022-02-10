@@ -185,10 +185,10 @@ Member* Parser::token_to_member(Token *_token)
 			if (variable == nullptr) {
                 LOG_WARNING("Parser", "Unable to find declaration for %s, Type_Any will be used to allow graph visualisation, but compilation will fail.\n", _token->m_word.c_str())
                 variable = m_graph->newVariable( Reflect::Type_Any, _token->m_word, get_current_scope() );
-                variable->value()->setSourceToken(_token);
+                variable->get_value()->setSourceToken(_token);
             }
 
-            result = variable->value();
+            result = variable->get_value();
 			break;
 		}
 
@@ -1052,9 +1052,9 @@ Member *Parser::parse_variable_declaration()
     {
         Reflect::Type type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
         VariableNode* variable = m_graph->newVariable(type, identifierTok->m_word, this->get_current_scope());
-        variable->setTypeToken( typeTok );
-        variable->setIdentifierToken( identifierTok );
-        variable->value()->setSourceToken(identifierTok); // we also pass it to the member, this one will be modified my connections
+        variable->set_type_token(typeTok);
+        variable->set_identifier_token(identifierTok);
+        variable->get_value()->setSourceToken(identifierTok); // we also pass it to the member, this one will be modified my connections
 
         // try to parse assignment
         auto assignmentTok = m_token_ribbon.eatToken(TokenType_Operator);
@@ -1063,7 +1063,7 @@ Member *Parser::parse_variable_declaration()
             if( auto expression_result = parse_expression() )
             {
                 m_graph->connect( expression_result, variable );
-                variable->setAssignmentOperatorToken( assignmentTok );
+                variable->set_assignment_operator_token(assignmentTok);
             }
             else
             {
@@ -1075,7 +1075,7 @@ Member *Parser::parse_variable_declaration()
         }
 
         commit_transaction();
-        return variable->value();
+        return variable->get_value();
     }
 
     rollback_transaction();
