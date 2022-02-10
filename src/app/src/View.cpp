@@ -1,15 +1,16 @@
 #include <nodable/View.h>
 #include <nodable/Settings.h>
+#include <nodable/AppContext.h>
 
 using namespace Nodable;
 
-View::View():
+View::View(AppContext* _ctx):
+    m_context(_ctx),
 	hovered(false),
 	visible(true),
 	visibleRect()
 {
-    Settings* settings = Settings::Get();
-
+    Settings* settings = m_context->settings;
 	// set default colors
 	colors.insert({ColorType_Fill,              &settings->ui_node_fillColor});
 	colors.insert({ ColorType_Highlighted,      &settings->ui_node_highlightedColor});

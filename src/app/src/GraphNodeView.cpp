@@ -23,11 +23,7 @@ using namespace Nodable::Reflect;
 bool GraphNodeView::draw()
 {
     bool edited = false;
-    App* app = App::Get();
-    NODABLE_ASSERT(app != nullptr) // app needs to be defined
-    VM* vm = &app->getVM();
-
-    Settings* settings = Settings::Get();
+    Settings* settings = m_context->settings;
     GraphNode* graph = get_graph_node();
     auto nodeRegistry = graph->getNodeRegistry();
 
@@ -51,7 +47,7 @@ bool GraphNodeView::draw()
             if (each_view && each_successor_view && each_view->isVisible() && each_successor_view->isVisible() )
             {
                 float viewWidthMin = std::min(each_successor_view->getRect().GetSize().x, each_view->getRect().GetSize().x);
-                float lineWidth = std::min(Settings::Get()->ui_node_connector_width,
+                float lineWidth = std::min(settings->ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
                 ImVec2 start = each_view->getScreenPos();
@@ -66,8 +62,8 @@ bool GraphNodeView::draw()
                 end.y -= each_successor_view->getSize().y * 0.5f; // align top
                 end.y -= settings->ui_node_connector_height * 0.25f;
 
-                ImColor color(Settings::Get()->ui_codeFlow_lineColor);
-                ImColor shadowColor(Settings::Get()->ui_codeFlow_lineShadowColor);
+                ImColor color(settings->ui_codeFlow_lineColor);
+                ImColor shadowColor(settings->ui_codeFlow_lineShadowColor);
                 ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,
                                           lineWidth - linePadding * 2.0f, 0.0f);
             }
@@ -91,7 +87,6 @@ bool GraphNodeView::draw()
         if (auto draggedNodeConnector = NodeConnector::GetDragged())
         {
             auto hoveredNodeConnector = NodeConnector::GetHovered();
-            auto settings     = Settings::Get();
             ImVec2 start = draggedNodeConnector->getPos();
             ImVec2 end   = hoveredNodeConnector ? hoveredNodeConnector->getPos() : ImGui::GetMousePos();
             ImColor color(settings->ui_codeFlow_lineColor);
@@ -180,7 +175,7 @@ bool GraphNodeView::draw()
             {
                 eachNodeView->draw();
 
-                if(vm && vm->is_debugging() && vm->get_next_node() == eachNodeView->get_owner())
+                if(m_context->vm && m_context->vm->is_debugging() && m_context->vm->get_next_node() == eachNodeView->get_owner())
                     ImGui::SetScrollHereY();
 
                 // dragging
@@ -201,11 +196,11 @@ bool GraphNodeView::draw()
 	isAnyNodeDragged |= MemberConnector::IsDragging();
 
 	// Virtual Machine cursor
-	if( vm )
+	if( m_context->vm )
     {
-	    if ( !vm->is_program_stopped())
+	    if ( !m_context->vm->is_program_stopped())
         {
-	        auto node = vm->get_next_node();
+	        auto node = m_context->vm->get_next_node();
 	        if( auto view = node->get<NodeView>())
             {
 	            auto draw_list = ImGui::GetWindowDrawList();
@@ -521,7 +516,7 @@ void GraphNodeView::update_child_view_constraints()
             Node::get_components<NodeView>(predecessor_nodes, predecessor_node_views);
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not<IConditionalStruct>() )
             {
-                NodeViewConstraint constraint(NodeViewConstraint::Type::FollowWithChildren);
+                NodeViewConstraint constraint(m_context, NodeViewConstraint::Type::FollowWithChildren);
                 constraint.addMasters(predecessor_node_views);
                 constraint.addSlave(each_node_view);
                 each_node_view->addConstraint(constraint);
@@ -533,7 +528,7 @@ void GraphNodeView::update_child_view_constraints()
             NodeViews children = each_node_view->children_slots().content();
             if( !children.empty() && clss->is<IConditionalStruct>() )
             {
-                NodeViewConstraint constraint(NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
+                NodeViewConstraint constraint(m_context,NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
                 constraint.addMaster(each_node_view);
                 constraint.addSlaves(children);
 
@@ -550,7 +545,7 @@ void GraphNodeView::update_child_view_constraints()
 
             if ( !each_node_view->input_slots().empty() )
             {
-                NodeViewConstraint constraint(NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
+                NodeViewConstraint constraint(m_context,NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
                 constraint.addMaster(each_node_view);
                 constraint.addSlaves(each_node_view->input_slots().content());
                 each_node_view->addConstraint(constraint);
@@ -593,8 +588,8 @@ void GraphNodeView::set_owner(Node *_owner)
 
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
     auto graphNode = _owner->as<GraphNode>();
-    auto language  = graphNode->getLanguage();
-    auto api       = language->getAllFunctions();
+    const Language* language = m_context->language;
+    const auto api = m_context->language->getAllFunctions();
 
     for ( auto it = api.cbegin(); it != api.cend(); it++)
     {

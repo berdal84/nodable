@@ -23,6 +23,7 @@ namespace Nodable
     class MemberView;
     class MemberConnector;
     class NodeConnector;
+    class AppContext;
 
 	/** We use this enum to identify all NodeView detail modes */
 	enum class NodeViewDetail: unsigned short int
@@ -47,7 +48,7 @@ namespace Nodable
 	        Follow,
         };
 
-	    NodeViewConstraint(Type _type);
+	    NodeViewConstraint(const AppContext* _ctx, Type _type);
 	    void apply(float _dt);
 	    void addSlave(NodeView*);
 	    void addMaster(NodeView*);
@@ -56,6 +57,7 @@ namespace Nodable
         ImVec2 m_offset;
 
     private:
+        const AppContext* m_context;
 	    Type type;
         std::vector<NodeView*> masters;
 	    std::vector<NodeView*> slaves;
@@ -67,7 +69,7 @@ namespace Nodable
 	class NodeView :  public Component, public View
 	{
 	public:
-		NodeView();
+		NodeView(AppContext* _ctx);
 		~NodeView();
         NodeView (const NodeView&) = delete;
         NodeView& operator= (const NodeView&) = delete;
@@ -208,6 +210,7 @@ namespace Nodable
         std::map<const Member*, MemberView*> m_exposedMembers;
         MemberView*                          m_exposed_this_member_view;
         std::vector<NodeViewConstraint>      m_constraints;
+        AppContext* m_context;
 
 		static NodeView*              s_selected;
 		static NodeView*              s_draggedNode;
@@ -238,7 +241,7 @@ namespace Nodable
         bool              m_showInput;
         bool              m_touched;
 
-        MemberView(Member* _member, NodeView* _nodeView);
+        MemberView(const AppContext* _ctx, Member* _member, NodeView* _nodeView);
         ~MemberView();
         MemberView (const MemberView&) = delete;
         MemberView& operator= (const MemberView&) = delete;

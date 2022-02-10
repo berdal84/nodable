@@ -21,11 +21,12 @@ namespace Nodable
     class INodeFactory;
     class History;
     class FileView;
+    struct AppContext;
 
 	class File
 	{
 	public:
-		File(std::string, const char* /*_content*/);
+		File(AppContext* _ctx, std::string, const char* /*_content*/);
         ~File();
 
         observe::Event<Node*> m_onExpressionParsedIntoGraph;
@@ -43,20 +44,18 @@ namespace Nodable
 		inline bool                      isModified() { return m_modified; }
 		bool                             evaluateExpression(std::string&);
 		bool                             evaluateSelectedExpression();
-        inline const Language*           getLanguage()const { return m_language; }
         inline FileView*                 getView()const { return m_view; };
 		inline History*                  getHistory() { return m_history; }
         inline bool                      isOpen()  { return m_open; }
         inline GraphNode*                getGraph() { return m_graph; }
-
-        static File*                     OpenFile(std::string _filePath);
-
+        static File*                     OpenFile(AppContext* _ctx, std::string _filePath);
+        AppContext*                      get_context() { return m_context; }
 	private:
+		AppContext*                m_context;
         bool                       m_open;
 		bool                       m_modified;
 		std::string                m_path;
-		const Language*            m_language;
-		const INodeFactory* m_factory;
+		const INodeFactory*        m_factory;
 		FileView*                  m_view;
 		History*                   m_history;
 		GraphNode*                 m_graph;

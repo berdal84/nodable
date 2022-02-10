@@ -16,6 +16,7 @@
 #include <nodable/NodeConnector.h>
 #include <nodable/MemberConnector.h>
 #include <nodable/InvokableComponent.h>
+#include <nodable/AppContext.h>
 
 #define NODE_VIEW_DEFAULT_SIZE ImVec2(10.0f, 35.0f)
 
@@ -29,9 +30,10 @@ const float        NodeView::s_memberInputSizeMin     = 10.0f;
 const ImVec2       NodeView::s_memberInputToggleButtonSize   = ImVec2(10.0, 25.0f);
 std::vector<NodeView*> NodeView::s_instances;
 
-NodeView::NodeView()
+NodeView::NodeView(AppContext* _ctx)
         : Component()
-        , View()
+        , View(_ctx)
+        , m_context(_ctx)
         , m_position(500.0f, -1.0f)
         , m_size(NODE_VIEW_DEFAULT_SIZE)
         , m_opacity(1.0f)
@@ -81,7 +83,7 @@ std::string NodeView::getLabel()
 
 void NodeView::exposeMember(Member* _member)
 {
-    auto member_view = new MemberView(_member, this);
+    auto member_view = new MemberView(m_context, _member, this);
 
     if ( _member == get_owner()->get_this_member() )
     {
@@ -106,7 +108,7 @@ void NodeView::exposeMember(Member* _member)
 void NodeView::set_owner(Node *_node)
 {
     Component::set_owner(_node);
-
+    Settings* settings = m_context->settings;
     std::vector<Member*> notExposedMembers;
 
     //  We expose first the members which allows input connections
@@ -138,7 +140,6 @@ void NodeView::set_owner(Node *_node)
     }
 
     // Determine a color depending on node type
-    Settings* settings = Settings::Get();
     Reflect::Class* clss = _node->get_class();
 
     if (_node->has<InvokableComponent>())
@@ -165,12 +166,12 @@ void NodeView::set_owner(Node *_node)
     const size_t successor_max_count = _node->successor_slots().get_limit();
     for(size_t index = 0; index < successor_max_count; ++index )
     {
-        m_successors_node_connectors.push_back(new NodeConnector(this, Way_Out, index, successor_max_count));
+        m_successors_node_connectors.push_back(new NodeConnector(m_context, this, Way_Out, index, successor_max_count));
     }
 
     // add a single predecessor connector if node can be connected in this way
     if(_node->predecessor_slots().get_limit() != 0)
-        m_predecessors_node_connnectors.push_back(new NodeConnector(this, Way_In));
+        m_predecessors_node_connnectors.push_back(new NodeConnector(m_context, this, Way_In));
 
     m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver(
         [this](Node* _other_node, Relation_t _relation )
@@ -304,8 +305,7 @@ bool NodeView::draw()
 {
 	bool edited = false;
 	auto node   = get_owner();
-
-	auto settings = Settings::Get();
+	Settings* settings = m_context->settings;
 
 	NODABLE_ASSERT(node != nullptr);
 
@@ -465,10 +465,6 @@ bool NodeView::draw()
             node->flag_for_deletion();
         }
 
-        if(ImGui::Selectable("Save to JSON"))
-        {
-            App::SaveNode(node);
-        }            
         ImGui::EndPopup();
     }
 

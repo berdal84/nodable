@@ -2,8 +2,6 @@
 
 using namespace Nodable;
 
-History* History::global = nullptr;
-
 History::~History()
 {
 	for (auto cmd : commands )

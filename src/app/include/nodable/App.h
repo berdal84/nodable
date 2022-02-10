@@ -11,12 +11,14 @@
 // Nodable
 #include <nodable/Nodable.h>
 #include <nodable/VM.h>
+#include <nodable/Settings.h>
 
 namespace Nodable
 {
     // forward declarations
     class AppView;
     class File;
+    class AppContext;
 
     /**
      * This class is the master class of Nodable.
@@ -130,41 +132,15 @@ namespace Nodable
         void resetCurrentFileProgram();
         inline AppView* getView()const { return m_view; };
 
-		/**
-		 * @deprecated
-		 *
-		 * Save a node to a file (in JSON)
-		 * @param _node
-		 */
-		static void SaveNode(Node* _node);
-
-        /** Get current app's asset path */
-        static std::string GetAssetPath(const char *_path);
-
-        /** Get current App instance */
-        static App* Get();
-
+        AppContext* get_context()const { return m_context; };
     private:
-	    AppView* m_view;
-
-		/** When set to true, the application will close next frame */
-		bool m_quit = false;
-
-		/** The list of loaded files. */
+	    AppView*    m_view;
+        AppContext* m_context;
+		bool        m_quit = false;
 		std::vector<File*> m_loadedFiles;
-
-        /** An index identifying the current file in m_loadedFiles */
-		size_t m_currentFileIndex;
-
-		/** The asset base folder path */
-		const ghc::filesystem::path m_assetsFolderPath;
-
-        /** A minimalist "virtual machine" to run instructions */
-        Asm::VM m_vm;
-
+		size_t      m_currentFileIndex;
+        Asm::VM     m_vm;
         std::string m_name;
-
-        /** App singleton */
-        static App* s_instance;
+        const ghc::filesystem::path m_assetsFolderPath;
     };
 }

@@ -7,6 +7,9 @@
 
 namespace Nodable
 {
+    // forward decl
+    struct AppContext;
+
     /**
      * View is an abstract class to provide a GUI for a specific Node.
      * View also implement a small static library to draw custom ImGui widgets/graphics.
@@ -30,7 +33,7 @@ namespace Nodable
 			ColorType_COUNT
 		};
 
-		View();
+		View(AppContext* _ctx);
 
 		virtual ~View() = default;
 
@@ -124,6 +127,7 @@ namespace Nodable
 		 */
 		bool    hovered;
 
+        AppContext* m_context;
     private:
 	    /**
 	     * Visibility, View is drawn only if visible == true.

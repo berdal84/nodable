@@ -7,20 +7,20 @@
 
 using namespace Nodable;
 
-Settings* Settings::CreateInstance()
+Settings* Settings::create_default()
 {
-    Settings* conf = new Settings();
+    Settings* settings = new Settings();
 
     // TODO: create themes
 
     // main layout
-    conf->ui_layout_propertiesRatio = 0.25f;
+    settings->ui_layout_propertiesRatio = 0.25f;
 
     // splashscreen
-    conf->ui_splashscreen_imagePath = "images/nodable-logo-xs.png";
+    settings->ui_splashscreen_imagePath = "images/nodable-logo-xs.png";
 
     // text
-    conf->ui_text_fonts = {
+    settings->ui_text_fonts = {
             {
                     "Medium 18px",
                     18.0f,
@@ -41,18 +41,18 @@ Settings* Settings::CreateInstance()
             }
     };
 
-    conf->ui_text_defaultFontsId[FontSlot_Paragraph] = "Medium 18px";
-    conf->ui_text_defaultFontsId[FontSlot_Heading]   = "Bold 25px";
-    conf->ui_text_defaultFontsId[FontSlot_Code]      = "Regular 18px";
+    settings->ui_text_defaultFontsId[FontSlot_Paragraph] = "Medium 18px";
+    settings->ui_text_defaultFontsId[FontSlot_Heading]   = "Bold 25px";
+    settings->ui_text_defaultFontsId[FontSlot_Code]      = "Regular 18px";
 
-    conf->ui_icons = {
+    settings->ui_icons = {
             "Icons",
             18.0f,
             "fonts/fa-solid-900.ttf"
     };
 
 
-    conf->ui_text_textEditorPalette       = {
+    settings->ui_text_textEditorPalette       = {
             0xffffffff, // None
             0xffd69c56, // Keyword
             0xff00ff00, // Number
@@ -77,53 +77,47 @@ Settings* Settings::CreateInstance()
     };
 
     // nodes
-    conf->ui_node_padding                = 6.0f;
-    conf->ui_node_memberConnectorRadius  = 5.0f;
-    conf->ui_node_invokableColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
-    conf->ui_node_variableColor          = ImVec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
-    conf->ui_node_instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f); // green
-    conf->ui_node_literalColor           = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
-    conf->ui_node_fillColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-    conf->ui_node_highlightedColor       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-    conf->ui_node_borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-    conf->ui_node_borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
-    conf->ui_node_shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
-    conf->ui_node_nodeConnectorHoveredColor = ImColor(200,200, 200);
-    conf->ui_node_nodeConnectorColor     = ImColor(127,127, 127);
-    conf->ui_node_spacing                = 30.0f;
-    conf->ui_node_speed                  = 30.0f;
-    conf->ui_node_connector_height       = 20.0f;
-    conf->ui_node_connector_padding      = 2.0f;
-    conf->ui_node_connector_width        = conf->ui_node_connector_height;
+    settings->ui_node_padding                = 6.0f;
+    settings->ui_node_memberConnectorRadius  = 5.0f;
+    settings->ui_node_invokableColor          = ImVec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
+    settings->ui_node_variableColor          = ImVec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
+    settings->ui_node_instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f); // green
+    settings->ui_node_literalColor           = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
+    settings->ui_node_fillColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    settings->ui_node_highlightedColor       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    settings->ui_node_borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    settings->ui_node_borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
+    settings->ui_node_shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
+    settings->ui_node_nodeConnectorHoveredColor = ImColor(200, 200, 200);
+    settings->ui_node_nodeConnectorColor     = ImColor(127, 127, 127);
+    settings->ui_node_spacing                = 30.0f;
+    settings->ui_node_speed                  = 30.0f;
+    settings->ui_node_connector_height       = 20.0f;
+    settings->ui_node_connector_padding      = 2.0f;
+    settings->ui_node_connector_width        = settings->ui_node_connector_height;
 
     // wires
-    conf->ui_wire_bezier_roundness        = 0.5f;
-    conf->ui_wire_bezier_thickness        = 2.0f;
-    conf->ui_wire_displayArrows           = false;
-    conf->ui_wire_fillColor               = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-    conf->ui_wire_shadowColor             = conf->ui_node_shadowColor;
+    settings->ui_wire_bezier_roundness        = 0.5f;
+    settings->ui_wire_bezier_thickness        = 2.0f;
+    settings->ui_wire_displayArrows           = false;
+    settings->ui_wire_fillColor               = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    settings->ui_wire_shadowColor             = settings->ui_node_shadowColor;
 
     // code flow
-    conf->ui_codeFlow_lineColor           = ImColor(200,255,200,50);
-    conf->ui_codeFlow_lineShadowColor     = ImColor(0,0,0,64);
+    settings->ui_codeFlow_lineColor           = ImColor(200, 255, 200, 50);
+    settings->ui_codeFlow_lineShadowColor     = ImColor(0, 0, 0, 64);
 
     // buttons
-    conf->ui_button_color                 = ImVec4(0.50f, 0.50f, 0.50f, 0.63f);
-    conf->ui_button_hoveredColor          = ImVec4(0.70f, 0.70f, 0.70f, 0.95f);
-    conf->ui_button_activeColor           = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
+    settings->ui_button_color                 = ImVec4(0.50f, 0.50f, 0.50f, 0.63f);
+    settings->ui_button_hoveredColor          = ImVec4(0.70f, 0.70f, 0.70f, 0.95f);
+    settings->ui_button_activeColor           = ImVec4(0.98f, 0.73f, 0.29f, 0.95f);
 
-    conf->ui_toolButton_size              = ImVec2(24.0f, 30.0f);
+    settings->ui_toolButton_size              = ImVec2(24.0f, 30.0f);
 
-    return conf;
+    return settings;
 }
 
-Settings* Settings::Get()
-{
-    static Settings* g_conf = Settings::CreateInstance();
-    return g_conf;
-}
-
-void Settings::setImGuiStyle(ImGuiStyle& _style)
+void Settings::patch_imgui_style(ImGuiStyle& _style)
 {
     ImVec4* colors = _style.Colors;
     colors[ImGuiCol_Text]                   = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
@@ -188,17 +182,17 @@ void Settings::setImGuiStyle(ImGuiStyle& _style)
     _style.WindowPadding      = ImVec2(10.0f,10.0f);
 }
 
-void Settings::Save()
-{
+//void Settings::save()
+//{
 //    // Output this default settings to default.cfg file
 //    std::filesystem::path path( App::GetAssetPath("settings/") );
 //    std::filesystem::create_directory( path );
 //    path.append("default.cfg");
 //    Settings::Save(path);
-}
+//}
 
-void Settings::Save(std::string& _path)
-{
+//void Settings::Save(std::string& _path)
+//{
 //    mirror::SimpleKeyValueSerializer serializer;
 //    std::string                      out;
 //
@@ -209,8 +203,8 @@ void Settings::Save(std::string& _path)
 //    outfile.close();
 //
 //    printf("SimpleKeyValueSerializer out:\n%s\n", out.c_str());
-}
+//}
 
-Settings *Settings::Load(const char * _path) {
-    return nullptr;
-};
+//Settings *Settings::load(const char * _path) {
+//    return nullptr;
+//};

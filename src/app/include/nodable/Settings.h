@@ -11,7 +11,11 @@
 
 namespace Nodable {
 
-    struct Settings {
+    // forward decl
+    class AppContext;
+
+    class Settings  {
+        friend class AppContext;
     public:
         std::vector<FontConf>                    ui_text_fonts;
         std::array<const char *, FontSlot_COUNT> ui_text_defaultFontsId;
@@ -49,27 +53,11 @@ namespace Nodable {
         ImVec2 ui_toolButton_size;
         const char* ui_splashscreen_imagePath;
 
-        void setImGuiStyle(ImGuiStyle&);
-
-        /** Get the current settings */
-        static Settings* Get();
-
-        /** Load from a file */
-        static Settings* Load(const char *_each_member);
-
-        /** Save current settings to default file (settings/default.cfg) */
-        static void Save();
-
-        REFLECT_BEGIN(Settings)
-//             MIRROR_MEMBER(ui_codeFlow_lineWidthMax)()
-//             MIRROR_MEMBER(ui_wire_displayArrows)()
-//             MIRROR_MEMBER(ui_splashscreen_imagePath)()
-        REFLECT_END
+        void patch_imgui_style(ImGuiStyle&);
 
     private:
-        /** Create a default Settings instance */
-        static Settings* CreateInstance();
-        /** Save current settings to a specific path */
-        static void Save(std::string& _path);
+        static Settings* create_default();
+
+        REFLECT(Settings)
     };
 }

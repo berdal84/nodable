@@ -10,31 +10,25 @@
 #include <nodable/GraphNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/DataAccess.h>
+#include <nodable/AppContext.h>
 
 using namespace Nodable;
-
-App* App::s_instance = nullptr;
-
-App* App::Get()
-{
-    return App::s_instance;
-}
 
 App::App(const char* _name)
     : m_currentFileIndex(0)
     , m_assetsFolderPath(ghc::filesystem::current_path() / NODABLE_ASSETS_DIR)
     , m_name(_name)
 {
-    NODABLE_ASSERT(s_instance == nullptr); // can't create more than a single app
     LOG_MESSAGE("App", "Asset folder is %s\n", m_assetsFolderPath.c_str() )
-    s_instance = this;
-	m_view = new AppView(_name, this);
+
+    m_context = AppContext::create_default(this);
+	m_view = new AppView(m_context, _name);
 }
 
 App::~App()
 {
 	delete m_view;
-	s_instance = nullptr;
+	delete m_context;
 }
 
 bool App::init()
@@ -68,7 +62,7 @@ void App::shutdown()
 
 bool App::openFile(const ghc::filesystem::path& _filePath)
 {		
-	auto file = File::OpenFile(_filePath.string() );
+	auto file = File::OpenFile(m_context, _filePath.string() );
 
 	if (file != nullptr)
 	{
@@ -105,14 +99,6 @@ void App::setCurrentFileWithIndex(size_t _index)
 	{
         m_currentFileIndex = _index;
 	}
-}
-
-void App::SaveNode(Node* _node)
-{
-    auto component = new DataAccess;
-    _node->add_component(component);
-	component->update();
-    _node->delete_component<DataAccess>();
 }
 
 std::string App::getAssetPath(const char* _fileName)const
@@ -207,7 +193,3 @@ void App::resetCurrentFileProgram()
     }
 }
 
-std::string App::GetAssetPath(const char *_path)
-{
-    return s_instance->getAssetPath( _path );
-}

@@ -11,11 +11,12 @@ namespace Nodable
 {
     // forward declarations
     class File;
-    
+    struct AppContext;
+
 	class FileView : public View
 	{
 	public:
-		explicit FileView(File* _file);
+		explicit FileView(AppContext* _ctx, File* _file);
 		~FileView() override = default;
 
 		observe::Observer m_observer;
@@ -51,7 +52,7 @@ namespace Nodable
         std::string  m_experimental_clipboard_prev;
         bool         m_experimental_clipboard_auto_paste = false;
 
-		    REFLECT_DERIVED(FileView)
+        REFLECT_DERIVED(FileView)
         REFLECT_EXTENDS(View)
         REFLECT_END
     };

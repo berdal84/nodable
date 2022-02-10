@@ -75,8 +75,6 @@ namespace Nodable
 		// static EndGroup()
 		bool dirty;
 
-		static History*     global;
-
 	private:
 	    size_t sizeMax;
 		std::vector<Cmd*>	commands;		/* Command history */

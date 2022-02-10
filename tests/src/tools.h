@@ -6,11 +6,11 @@
 #include <nodable/VM.h>
 #include <nodable/GraphNode.h>
 #include <nodable/Parser.h>
-#include <nodable/LanguageFactory.h>
 #include <nodable/VariableNode.h>
 #include <nodable/HeadlessNodeFactory.h>
 #include <nodable/String.h>
 #include <nodable/Scope.h>
+#include <nodable/LanguageNodable.h>
 
 namespace Nodable
 {
@@ -19,12 +19,12 @@ namespace Nodable
     {
         // prepare
         return_t result{};
-        const Language *lang = LanguageFactory::GetNodable();
-        HeadlessNodeFactory factory(lang);
-        GraphNode graph(lang, &factory);
+        const LanguageNodable lang;
+        HeadlessNodeFactory factory(&lang);
+        GraphNode graph(&lang, &factory);
 
         // create program
-        lang->getParser()->source_code_to_graph(expression, &graph);
+        lang.getParser()->source_code_to_graph(expression, &graph);
 
         auto program = graph.getProgram();
         if (program)
@@ -57,12 +57,12 @@ namespace Nodable
     static std::string &ParseUpdateSerialize(std::string &result, const std::string &expression) {
         LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize parsing %s\n", expression.c_str());
         // prepare
-        const Language *lang = LanguageFactory::GetNodable();
-        HeadlessNodeFactory factory(lang);
-        GraphNode graph(lang, &factory);
+        const LanguageNodable lang;
+        HeadlessNodeFactory factory(&lang);
+        GraphNode graph(&lang, &factory);
 
         // act
-        lang->getParser()->source_code_to_graph(expression, &graph);
+        lang.getParser()->source_code_to_graph(expression, &graph);
         if (Node* program = graph.getProgram()) {
             Asm::VM runner;
 
@@ -90,7 +90,7 @@ namespace Nodable
             throw std::runtime_error("ParseUpdateSerialize: Unable to generate program.");
         }
 
-        Serializer *serializer = lang->getSerializer();
+        Serializer *serializer = lang.getSerializer();
         serializer->serialize(result, graph.getProgram() );
         LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize serialize output is: %s\n", result.c_str());
 

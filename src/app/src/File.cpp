@@ -6,30 +6,26 @@
 #include <nodable/FileView.h>
 #include <nodable/GraphNodeView.h>
 #include <nodable/Parser.h>
-#include <nodable/LanguageFactory.h>
 #include <nodable/History.h>
-#include <nodable/NodeFactory.h>
+#include <nodable/AppNodeFactory.h>
+#include <nodable/AppContext.h>
 
 using namespace Nodable;
 
-File::File( std::string _path, const char* _content)
+File::File( AppContext* _context, std::string _path, const char* _content)
     : m_path(_path)
+    , m_context( _context )
     , m_modified(false)
     , m_open(false)
-    , m_language(nullptr)
     , m_factory(nullptr)
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n");
-
-    // TODO: Detect the language
-    m_language = LanguageFactory::GetNodable();
-    m_factory  = new NodeFactory(m_language);
-
+    m_factory  = new AppNodeFactory(_context);
     LOG_VERBOSE( "File", "Factory created, creating View ...\n");
 
     // FileView
 #ifndef NODABLE_HEADLESS
-	m_view = new FileView(this);
+	m_view = new FileView(m_context, this);
     m_view->init();
     m_view->setText(_content);
 	auto textEditor = m_view->getTextEditor();
@@ -45,11 +41,11 @@ File::File( std::string _path, const char* _content)
 
 #endif
 	// GraphNode
-    m_graph = new GraphNode( m_language, m_factory );
+    m_graph = new GraphNode(m_context->language, m_factory );
     m_graph->set_label(getName() + "'s inner container");
 
 #ifndef NODABLE_HEADLESS
-    m_graph->add_component(new GraphNodeView());
+    m_graph->add_component(new GraphNodeView(m_context));
 #endif
 
     LOG_VERBOSE( "File", "Constructor being called.\n");
@@ -68,7 +64,7 @@ void File::save()
 
 }
 
-File* File::OpenFile(std::string _filePath)
+File* File::OpenFile(AppContext* _ctx, std::string _filePath)
 {
     LOG_MESSAGE( "File", "Loading file \"%s\"...\n", _filePath.c_str())
 	std::ifstream fileStream(_filePath);
@@ -86,7 +82,7 @@ File* File::OpenFile(std::string _filePath)
 
     LOG_VERBOSE( "File", "Content read, creating File object ...\n");
 
-	File* file = new File(_filePath.c_str(), content.c_str());
+	File* file = new File(_ctx, _filePath.c_str(), content.c_str());
     file->m_open = true;
 
     LOG_MESSAGE( "File", "File \"%s\" loaded.\n", _filePath.c_str())
@@ -96,7 +92,7 @@ File* File::OpenFile(std::string _filePath)
 
 bool File::evaluateExpression(std::string& _expression)
 {
-	Parser* parser = m_language->getParser();
+	Parser* parser = m_context->language->getParser();
     m_graph->clear();
 
     auto graphView = m_graph->get<GraphNodeView>();
@@ -121,8 +117,7 @@ bool File::update() {
         m_history->dirty = false;
 	}
 
-    App* app = App::Get();
-	if( app && app->getVM().is_program_stopped() )
+	if(m_context->vm && m_context->vm->is_program_stopped() )
     {
         auto graphUpdateResult = m_graph->update();
 
@@ -135,7 +130,7 @@ bool File::update() {
         if ( scope && !scope->children_slots().empty() )
         {
             std::string code;
-            m_language->getSerializer()->serialize(code, scope );
+            m_context->language->getSerializer()->serialize(code, scope );
             m_view->replaceSelectedText(code);
         }
     }

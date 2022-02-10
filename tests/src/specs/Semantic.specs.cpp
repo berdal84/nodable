@@ -3,18 +3,17 @@
 #include <nodable/Member.h>
 #include <nodable/VM.h>
 #include <nodable/GraphNode.h>
-#include <nodable/Parser.h>
-#include <nodable/LanguageFactory.h>
 #include <nodable/VariableNode.h>
 #include <nodable/HeadlessNodeFactory.h>
+#include <nodable/LanguageNodable.h>
 
 using namespace Nodable;
 using namespace Nodable::Reflect;
 
 TEST(Semantic, token_type_to_type)
 {
-    const Language* lang = LanguageFactory::GetNodable();
-    auto semantic = lang->getSemantic();
+    const LanguageNodable lang;
+    auto semantic = lang.getSemantic();
 
     EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordAny), Type_Any );
     EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordBoolean), Type_Boolean );
@@ -24,8 +23,8 @@ TEST(Semantic, token_type_to_type)
 
 TEST(Semantic, type_to_string)
 {
-    const Language* lang = LanguageFactory::GetNodable();
-    auto semantic = lang->getSemantic();
+    const LanguageNodable lang;
+    auto semantic = lang.getSemantic();
 
     EXPECT_EQ( semantic->type_to_string(Type_Boolean), "bool" );
     EXPECT_EQ( semantic->type_to_string(Type_Double), "double" );

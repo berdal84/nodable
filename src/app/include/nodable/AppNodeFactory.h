@@ -1,20 +1,23 @@
 #include <nodable/INodeFactory.h>
 #include <nodable/HeadlessNodeFactory.h>
 #include <nodable/Reflect.h>
+#include <nodable/AppContext.h>
 
 namespace Nodable
 {
+
     /**
      * @brief Node Factory implementation by default.
      */
-    class NodeFactory: public INodeFactory
+    class AppNodeFactory: public INodeFactory
     {
     public:
-        NodeFactory(const Language* _language)
-            : INodeFactory(_language)
-            , m_headless_node_factory(_language) {}
+        AppNodeFactory(AppContext* _ctx)
+            : m_context(_ctx)
+            , INodeFactory(_ctx->language)
+            , m_headless_node_factory(_ctx->language) {}
 
-        ~NodeFactory() {}
+        ~AppNodeFactory() {}
 
         Node*                       newProgram()const override ;
         InstructionNode*		    newInstruction_UserCreated()const override ;
@@ -31,7 +34,8 @@ namespace Nodable
         Node*                       newNode()const override ;
 
     private:
-        static void                 AddView(Node* _node);
+        void                        post_instantiation(Node* _node)const;
         HeadlessNodeFactory m_headless_node_factory;
+        AppContext*         m_context;
     };
 }

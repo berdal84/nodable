@@ -1,4 +1,4 @@
-#include <nodable/NodeFactory.h>
+#include <nodable/AppNodeFactory.h>
 #include <nodable/InstructionNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/LiteralNode.h>
@@ -12,108 +12,108 @@
 using namespace Nodable;
 using namespace Nodable::Reflect;
 
-InstructionNode* NodeFactory::newInstruction() const
+InstructionNode* AppNodeFactory::newInstruction() const
 {
     InstructionNode* node = m_headless_node_factory.newInstruction_UserCreated();
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-InstructionNode* NodeFactory::newInstruction_UserCreated()const
+InstructionNode* AppNodeFactory::newInstruction_UserCreated()const
 {
     InstructionNode* node = m_headless_node_factory.newInstruction_UserCreated();
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-VariableNode* NodeFactory::newVariable(Type _type, const std::string& _name, IScope *_scope) const
+VariableNode* AppNodeFactory::newVariable(Type _type, const std::string& _name, IScope *_scope) const
 {
     VariableNode* node = m_headless_node_factory.newVariable(_type, _name, _scope);
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-Node* NodeFactory::newOperator(const InvokableOperator* _operator) const
+Node* AppNodeFactory::newOperator(const InvokableOperator* _operator) const
 {
     Node* node = m_headless_node_factory.newOperator(_operator);
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-Node* NodeFactory::newBinOp(const InvokableOperator* _operator) const
+Node* AppNodeFactory::newBinOp(const InvokableOperator* _operator) const
 {
     Node* node = m_headless_node_factory.newBinOp(_operator);
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-Node* NodeFactory::newUnaryOp(const InvokableOperator* _operator) const
+Node* AppNodeFactory::newUnaryOp(const InvokableOperator* _operator) const
 {
     Node* node = m_headless_node_factory.newUnaryOp(_operator);
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-Node* NodeFactory::newFunction(const IInvokable* _function) const
+Node* AppNodeFactory::newFunction(const IInvokable* _function) const
 {
     Node* node = m_headless_node_factory.newFunction(_function);
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-Node* NodeFactory::newScope() const
+Node* AppNodeFactory::newScope() const
 {
     Node* node = m_headless_node_factory.newScope();
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-ConditionalStructNode* NodeFactory::newConditionalStructure() const
+ConditionalStructNode* AppNodeFactory::newConditionalStructure() const
 {
     ConditionalStructNode* node = m_headless_node_factory.newConditionalStructure();
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-ForLoopNode* NodeFactory::new_for_loop_node() const
+ForLoopNode* AppNodeFactory::new_for_loop_node() const
 {
     ForLoopNode* node = m_headless_node_factory.new_for_loop_node();
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-Node* NodeFactory::newProgram() const
+Node* AppNodeFactory::newProgram() const
 {
     Node* node = m_headless_node_factory.newProgram();
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-Node* NodeFactory::newNode() const
+Node* AppNodeFactory::newNode() const
 {
     return new Node();
 }
 
-LiteralNode* NodeFactory::newLiteral(const Type &type) const
+LiteralNode* AppNodeFactory::newLiteral(const Type &type) const
 {
     LiteralNode* node = m_headless_node_factory.newLiteral(type);
-    AddView(node);
+    post_instantiation(node);
 
     return node;
 }
 
-void NodeFactory::AddView(Node* _node)
+void AppNodeFactory::post_instantiation(Node* _node) const
 {
-    _node->add_component(new NodeView());
+    _node->add_component(new NodeView(m_context));
 }

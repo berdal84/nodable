@@ -4,6 +4,7 @@
 #include <nodable/Node.h>
 #include <nodable/GraphNode.h>
 #include <nodable/Settings.h>
+#include <nodable/AppContext.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
@@ -83,12 +84,13 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
 
 ImRect NodeConnector::getRect() const
 {
+    Settings* settings = m_context->settings;
     ImVec2 leftCornerPos = m_way == Way_In ? m_nodeView->getRect().GetTL() : m_nodeView->getRect().GetBL();
 
-    ImVec2 size(Settings::Get()->ui_node_connector_width, Settings::Get()->ui_node_connector_height);
+    ImVec2 size(settings->ui_node_connector_width, settings->ui_node_connector_height);
     ImRect rect(leftCornerPos, leftCornerPos + size);
     rect.Translate(ImVec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
-    rect.Expand(ImVec2(-Settings::Get()->ui_node_connector_padding, 0.0f));
+    rect.Expand(ImVec2(- settings->ui_node_connector_padding, 0.0f));
     return rect;
 }
 

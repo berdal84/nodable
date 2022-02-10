@@ -7,6 +7,7 @@ namespace Nodable {
     // forward declarations
     class MemberView;
     class Member;
+    class AppContext;
 
 
     /**
@@ -24,8 +25,9 @@ namespace Nodable {
             Right
         };
 
-        MemberConnector(MemberView* _member, Way _way, Side _pos)
-            : m_memberView(_member)
+        MemberConnector(const AppContext* _ctx, MemberView* _member, Way _way, Side _pos)
+            : m_context(_ctx)
+            , m_memberView(_member)
             , m_way(_way)
             , m_display_side(_pos)
         {
@@ -48,6 +50,7 @@ namespace Nodable {
         MemberView* m_memberView;
         Side        m_display_side;
         Way         m_way;
+        const AppContext* m_context;
         static const MemberConnector* s_hovered;
         static const MemberConnector* s_dragged;
         static const MemberConnector* s_focused;

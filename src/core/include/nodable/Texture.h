@@ -10,29 +10,26 @@
 
 namespace Nodable
 {
-    class Texture
+    /**
+     * @brief Simple data structure to store OpenGL texture information
+     */
+    struct Texture
     {
-    private:
-        /** path to Texture */
-        static std::map<std::string, Texture> s_textures;
-
-    public:
-
-        Texture(
-                GLuint& _image,
-                int& _width,
-                int& _height)
-        :
-            width(_width),
-            height(_height),
-            image(_image)
-        {}
-
+        Texture(GLuint& _image, int& _width, int& _height): image(_image), width(_width), height(_height){}
         ~Texture() {}
-
+        GLuint image;
         int width;
         int height;
-        GLuint image;
+    };
+
+    /**
+     * @brief Texture manager, could also be called texture resource manager.
+     */
+    class TextureManager
+    {
+    public:
+        TextureManager() = default;
+        ~TextureManager() = default;
 
         /**
          * Get a texture from file (first time) or from static map (next times).
@@ -40,30 +37,30 @@ namespace Nodable
          * @param path
          * @return
          */
-        static Texture *GetWithPath(const std::string& path)
+        Texture *get_or_create(const std::string& path)
         {
             // Return if already exists
-            auto tex = Texture::s_textures.find( path );
-            if ( tex != s_textures.end() )
+            auto tex = m_register.find(path );
+            if (tex != m_register.end() )
                 return &tex->second;
 
-            return CreateTextureFromFile(path);
+            return create_texture_from_file_path(path);
         }
 
-        static void ReleaseResources()
+        void release_resources()
         {
-            for( const auto& eachTxt : s_textures )
+            for( const auto& eachTxt : m_register )
             {
                 glDeleteTextures(1, &eachTxt.second.image);
                 LOG_MESSAGE("Texture", "Texture %s released.\n", eachTxt.first.c_str())
             }
-            s_textures.clear();
+            m_register.clear();
         }
 
     private:
 
 
-        static Texture* CreateTextureFromFile(const std::string& path)
+        Texture* create_texture_from_file_path(const std::string& path)
         {
             // Try to load a PNG
             std::vector<unsigned char> image;
@@ -72,13 +69,13 @@ namespace Nodable
             int width = 0;
             int height = 0;
 
-            auto isLoaded = Texture::LoadPNG(path, image, &texture, &width, &height);
+            auto isLoaded = load_png(path, image, &texture, &width, &height);
             if ( isLoaded )
             {
                 LOG_MESSAGE("Texture", "Texture %s loaded.\n", path.c_str())
 
                 // Store for later use
-                auto res = s_textures.insert( { path, {texture, width, height }});
+                auto res = m_register.insert({path, {texture, width, height }});
 
                 return &res.first->second;
             }
@@ -95,7 +92,7 @@ namespace Nodable
          * @param image
          * @return
          */
-        static int LoadPNG(
+        int load_png(
                 const std::string& filename,
                 std::vector<unsigned char>& image,
                 GLuint* out_texture,
@@ -134,7 +131,8 @@ namespace Nodable
 
             return true;
         }
+
+        std::map<std::string, Texture> m_register;
     };
 
-    std::map<std::string, Texture> Texture::s_textures;
 }

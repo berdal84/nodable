@@ -5,20 +5,21 @@
 #include <nodable/InstructionNode.h>
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/ForLoopNode.h>
+#include <nodable/AppContext.h>
 
 #include <numeric>
 
 using namespace Nodable;
 
-NodeViewConstraint::NodeViewConstraint(NodeViewConstraint::Type _type): type(_type) {}
+NodeViewConstraint::NodeViewConstraint(const AppContext* _ctx, NodeViewConstraint::Type _type): type(_type), m_context(_ctx) {}
 
-void NodeViewConstraint::apply(float _dt) {
+void NodeViewConstraint::apply(float _dt)
+{
+    Settings* settings = m_context->settings;
 
     auto is_visible = [](NodeView* view) { return view->isVisible(); };
     if ( std::find_if(masters.begin(), masters.end(), is_visible) == masters.end()) return;
     if ( std::find_if(slaves.begin(), slaves.end(), is_visible) == slaves.end()) return;
-
-    auto settings = Settings::Get();
 
     LOG_VERBOSE("ViewConstraint", "applying constraint\n")
     auto master = masters.at(0);

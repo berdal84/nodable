@@ -21,7 +21,7 @@
 namespace Nodable
 {
     // forward declarations
-    class App;
+    class AppContext;
     class History;
     class Language;
 
@@ -32,7 +32,7 @@ namespace Nodable
 	{
 		
 	public:		
-		AppView(const char* _name, App* _application);
+		AppView(AppContext* _ctx, const char* _name);
 		~AppView() override;
 		bool draw() override;
 		bool init();
@@ -51,7 +51,7 @@ namespace Nodable
         ImFont* load_font(const FontConf &fontConf);
         ImFont* get_font_by_id(const char *id);
 
-        App*               m_app;
+        AppContext*        m_context;
         ImGui::FileBrowser m_file_browser;
         SDL_Window*        m_sdl_window;
         std::string        m_sdl_window_name;

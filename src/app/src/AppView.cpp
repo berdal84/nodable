@@ -9,6 +9,8 @@
 #include <nodable/Settings.h>
 #include <nodable/System.h>
 #include <nodable/App.h>
+#include <nodable/AppContext.h>
+#include <nodable/Settings.h>
 #include <nodable/NodeView.h>
 #include <nodable/File.h>
 #include <nodable/Log.h>
@@ -18,16 +20,17 @@
 using namespace Nodable;
 using namespace Nodable::Asm;
 
-AppView::AppView(const char* _name, App* _application):
-        m_app(_application),
-        m_background_color(50, 50, 50),
-        m_show_startup_window(true),
-        m_is_layout_initialized(false),
-        m_startup_screen_title("##STARTUPSCREEN"),
-        m_is_history_dragged(false),
-        m_sdl_window_name(_name),
-        m_show_properties_editor(false),
-        m_show_imgui_demo(false)
+AppView::AppView(AppContext* _ctx, const char* _name )
+    : View(_ctx)
+    , m_context(_ctx)
+    , m_background_color()
+    , m_show_startup_window(true)
+    , m_is_layout_initialized(false)
+    , m_startup_screen_title("##STARTUPSCREEN")
+    , m_is_history_dragged(false)
+    , m_sdl_window_name(_name)
+    , m_show_properties_editor(false)
+    , m_show_imgui_demo(false)
 {
 }
 
@@ -36,8 +39,6 @@ AppView::~AppView()
 
 bool AppView::init()
 {
-    Settings* settings = Settings::Get();
-
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
@@ -83,10 +84,10 @@ bool AppView::init()
 	//io.WantCaptureMouse     = true;
 
 	// Setup Dear ImGui style
-    settings->setImGuiStyle(ImGui::GetStyle());
+    m_context->settings->patch_imgui_style(ImGui::GetStyle());
 
     // load fonts (TODO: hum, load only if font is used...)
-    for ( auto& each_font : settings->ui_text_fonts )
+    for ( auto& each_font : m_context->settings->ui_text_fonts )
     {
         load_font(each_font);
     }
@@ -94,7 +95,7 @@ bool AppView::init()
     // Assign fonts (user might want to change it later, but we need defaults)
     for( auto each_slot = 0; each_slot < FontSlot_COUNT; ++each_slot )
     {
-        const char* font_id = settings->ui_text_defaultFontsId[each_slot];
+        const char* font_id = m_context->settings->ui_text_defaultFontsId[each_slot];
         m_fonts[each_slot] = get_font_by_id(font_id);
     }
 
@@ -127,7 +128,7 @@ ImFont* AppView::load_font(const FontConf &fontConf) {
 
     ImFont*  font     = nullptr;
     auto&    io       = ImGui::GetIO();
-    auto     settings = Settings::Get();
+    Settings* settings = m_context->settings;
 
     // Create font
     {
@@ -136,7 +137,7 @@ ImFont* AppView::load_font(const FontConf &fontConf) {
         config.OversampleV = 1;
 
         //io.Fonts->AddFontDefault();
-        std::string fontPath = m_app->getAssetPath(fontConf.path);
+        std::string fontPath = m_context->app->getAssetPath(fontConf.path);
         LOG_VERBOSE("AppView", "Adding font from file ... %s\n", fontPath.c_str())
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), fontConf.size, &config);
     }
@@ -151,7 +152,7 @@ ImFont* AppView::load_font(const FontConf &fontConf) {
         config.MergeMode = true;
         config.PixelSnapH = true;
         config.GlyphMinAdvanceX = settings->ui_icons.size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = m_app->getAssetPath(settings->ui_icons.path);
+        auto fontPath = m_context->app->getAssetPath(settings->ui_icons.path);
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui_icons.size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to font ...\n")
     }
@@ -177,7 +178,7 @@ bool AppView::draw()
 		switch (event.type)
 		{
 		case SDL_QUIT:
-			m_app->stopExecution();
+			m_context->app->stopExecution();
 			break;
 
 		case SDL_KEYUP:
@@ -186,15 +187,15 @@ bool AppView::draw()
 			if ((event.key.keysym.mod & KMOD_LCTRL)) {
 
 				// History
-				if (auto file = m_app->getCurrentFile()) {
+				if (auto file = m_context->app->getCurrentFile()) {
 					History* currentFileHistory = file->getHistory();
 					     if (key == SDLK_z) currentFileHistory->undo();
 					else if (key == SDLK_y) currentFileHistory->redo();
 				}
 
 				// File
-				     if( key == SDLK_s)  m_app->saveCurrentFile();
-				else if( key == SDLK_w)  m_app->closeCurrentFile();
+				     if( key == SDLK_s)  m_context->app->saveCurrentFile();
+				else if( key == SDLK_w)  m_context->app->closeCurrentFile();
 				else if( key == SDLK_o) this->browse_file();
 			}
 			else if (key == SDLK_DELETE )
@@ -245,7 +246,7 @@ bool AppView::draw()
 		// Get current file's history
 		History* currentFileHistory = nullptr;
 
-		if ( auto file = m_app->getCurrentFile())
+		if ( auto file = m_context->app->getCurrentFile())
 			currentFileHistory = file->getHistory();
 
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
@@ -279,12 +280,12 @@ bool AppView::draw()
                 if (ImGui::BeginMenu("File")) {
                     //ImGui::MenuItem(ICON_FA_FILE   "  New", "Ctrl + N");
                     if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) browse_file();
-                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) m_app->saveCurrentFile();
-                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) m_app->closeCurrentFile();
+                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) m_context->app->saveCurrentFile();
+                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) m_context->app->closeCurrentFile();
 
                     FileView* fileView = nullptr;
                     bool auto_paste;
-                    if ( auto file = m_app->getCurrentFile())
+                    if ( auto file = m_context->app->getCurrentFile())
                     {
                         fileView = file->getView();
                         auto_paste = fileView->experimental_clipboard_auto_paste();
@@ -295,7 +296,7 @@ bool AppView::draw()
                         fileView->experimental_clipboard_auto_paste(!auto_paste);
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4")) m_app->stopExecution();
+                    if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4")) m_context->app->stopExecution();
 
                     ImGui::EndMenu();
                 }
@@ -357,26 +358,26 @@ bool AppView::draw()
                 }
 
                 if (ImGui::BeginMenu("Run")) {
-                    auto vm = m_app->getVM();
+                    auto vm = m_context->app->getVM();
 
                     if (ImGui::MenuItem(ICON_FA_PLAY" Run") && vm.is_program_stopped()) {
-                        m_app->runCurrentFileProgram();
+                        m_context->app->runCurrentFileProgram();
                     }
 
                     if (ImGui::MenuItem(ICON_FA_BUG" Debug") && vm.is_program_stopped()) {
-                        m_app->debugCurrentFileProgram();
+                        m_context->app->debugCurrentFileProgram();
                     }
 
                     if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && vm.is_debugging()) {
-                        m_app->stepOverCurrentFileProgram();
+                        m_context->app->stepOverCurrentFileProgram();
                     }
 
                     if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !vm.is_program_stopped()) {
-                        m_app->stopCurrentFileProgram();
+                        m_context->app->stopCurrentFileProgram();
                     }
 
                     if (ImGui::MenuItem(ICON_FA_UNDO " Reset")) {
-                        m_app->stopCurrentFileProgram();
+                        m_context->app->stopCurrentFileProgram();
                     }
                     ImGui::EndMenu();
                 }
@@ -428,7 +429,7 @@ bool AppView::draw()
                ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
                ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace );
                ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
-               ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, Settings::Get()->ui_layout_propertiesRatio, &dockspace_properties, NULL);
+               ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, m_context->settings->ui_layout_propertiesRatio, &dockspace_properties, NULL);
                ImGui::DockBuilderDockWindow("ImGui", dockspace_properties);
                ImGui::DockBuilderDockWindow("Settings", dockspace_properties);
                ImGui::DockBuilderDockWindow("Properties", dockspace_properties);
@@ -459,7 +460,7 @@ bool AppView::draw()
             // File info
             ImGui::Begin("File Info");
             {
-                const File* currFile = m_app->getCurrentFile();
+                const File* currFile = m_context->app->getCurrentFile();
 
                 if (currFile)
                 {
@@ -476,10 +477,10 @@ bool AppView::draw()
 
             if ( ImGui::Begin("Assembly") )
             {
-                const Asm::Code* code = m_app->getVM().get_program_asm_code();
+                const Asm::Code* code = m_context->app->getVM().get_program_asm_code();
                 if ( code  )
                 {
-                    auto current_instr = m_app->getVM().get_next_instr();
+                    auto current_instr = m_context->app->getVM().get_next_instr();
                     for( Asm::Instr* each_instr : code->get_instructions() )
                     {
                         auto str = Asm::Instr::to_string( *each_instr ).c_str();
@@ -513,7 +514,7 @@ bool AppView::draw()
 
 
             // Opened documents
-            for (size_t fileIndex = 0; fileIndex < m_app->getFileCount(); fileIndex++)
+            for (size_t fileIndex = 0; fileIndex < m_context->app->getFileCount(); fileIndex++)
             {
                 draw_file_editor(dockspace_id, redock_all, fileIndex);
             }
@@ -599,7 +600,7 @@ void AppView::draw_file_browser()
         auto selectedFiles = m_file_browser.GetMultiSelected();
         for (const auto & selectedFile : selectedFiles)
         {
-            m_app->openFile(selectedFile.c_str());
+            m_context->app->openFile(selectedFile.c_str());
         }
         m_file_browser.ClearSelected();
         m_file_browser.Close();
@@ -608,7 +609,7 @@ void AppView::draw_file_browser()
 
 void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex)
 {
-    File *file = m_app->getFileAtIndex(fileIndex);
+    File *file = m_context->app->getFileAtIndex(fileIndex);
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags = (file->isModified() ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
@@ -628,11 +629,11 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
 
         if (visible)
         {
-            const bool isCurrentFile = fileIndex == m_app->getCurrentFileIndex();
+            const bool isCurrentFile = fileIndex == m_context->app->getCurrentFileIndex();
 
             if ( !isCurrentFile && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
             {
-                m_app->setCurrentFileWithIndex(fileIndex);
+                m_context->app->setCurrentFileWithIndex(fileIndex);
             }
 
             // History bar on top
@@ -665,61 +666,56 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
 
     if (!open)
     {
-        m_app->closeFile(fileIndex);
+        m_context->app->closeFile(fileIndex);
     }
 }
 
 void AppView::draw_properties_editor()
 {
-    Settings* config = Settings::Get();
+    Settings* settings = m_context->settings;
 
     ImGui::Text("Nodable Settings:");
-    if ( ImGui::Button("Save to settings/default.cfg") )
-    {
-        Settings::Save();
-    }
     ImGui::Indent();
-
 
         ImGui::Text("Buttons:");
         ImGui::Indent();
-            ImGui::SliderFloat2("ui_toolButton_size", &config->ui_toolButton_size.x, 20.0f, 50.0f);
+            ImGui::SliderFloat2("ui_toolButton_size", &settings->ui_toolButton_size.x, 20.0f, 50.0f);
         ImGui::Unindent();
 
         ImGui::Text("Wires:");
         ImGui::Indent();
-            ImGui::SliderFloat("thickness", &config->ui_wire_bezier_thickness, 0.5f, 10.0f);
-            ImGui::SliderFloat("roundness", &config->ui_wire_bezier_roundness, 0.0f, 1.0f);
-            ImGui::Checkbox("arrows", &config->ui_wire_displayArrows);
+            ImGui::SliderFloat("thickness", &settings->ui_wire_bezier_thickness, 0.5f, 10.0f);
+            ImGui::SliderFloat("roundness", &settings->ui_wire_bezier_roundness, 0.0f, 1.0f);
+            ImGui::Checkbox("arrows", &settings->ui_wire_displayArrows);
         ImGui::Unindent();
 
         ImGui::Text("Nodes:");
         ImGui::Indent();
-            ImGui::SliderFloat("member connector radius", &config->ui_node_memberConnectorRadius, 1.0f, 10.0f);
-            ImGui::SliderFloat("padding", &config->ui_node_padding, 1.0f, 20.0f);
-            ImGui::SliderFloat("speed", &config->ui_node_speed, 0.0f, 100.0f);
-            ImGui::SliderFloat("spacing", &config->ui_node_spacing, 0.0f, 100.0f);
-            ImGui::SliderFloat("node connector padding", &config->ui_node_connector_padding, 0.0f, 100.0f);
-            ImGui::SliderFloat("node connector height", &config->ui_node_connector_height, 2.0f, 100.0f);
+            ImGui::SliderFloat("member connector radius", &settings->ui_node_memberConnectorRadius, 1.0f, 10.0f);
+            ImGui::SliderFloat("padding", &settings->ui_node_padding, 1.0f, 20.0f);
+            ImGui::SliderFloat("speed", &settings->ui_node_speed, 0.0f, 100.0f);
+            ImGui::SliderFloat("spacing", &settings->ui_node_spacing, 0.0f, 100.0f);
+            ImGui::SliderFloat("node connector padding", &settings->ui_node_connector_padding, 0.0f, 100.0f);
+            ImGui::SliderFloat("node connector height", &settings->ui_node_connector_height, 2.0f, 100.0f);
 
-            ImGui::ColorEdit4("variables color", &config->ui_node_variableColor.x);
-            ImGui::ColorEdit4("instruction color", &config->ui_node_instructionColor.x);
-            ImGui::ColorEdit4("literal color", &config->ui_node_literalColor.x);
-            ImGui::ColorEdit4("function color", &config->ui_node_invokableColor.x);
-            ImGui::ColorEdit4("shadow color", &config->ui_node_shadowColor.x);
-            ImGui::ColorEdit4("border color", &config->ui_node_borderColor.x);
-            ImGui::ColorEdit4("high. color", &config->ui_node_highlightedColor.x);
-            ImGui::ColorEdit4("border high. color", &config->ui_node_borderHighlightedColor.x);
-            ImGui::ColorEdit4("fill color", &config->ui_node_fillColor.x);
-            ImGui::ColorEdit4("node connector color", &config->ui_node_nodeConnectorColor.x);
-            ImGui::ColorEdit4("node connector hovered color", &config->ui_node_nodeConnectorHoveredColor.x);
+            ImGui::ColorEdit4("variables color", &settings->ui_node_variableColor.x);
+            ImGui::ColorEdit4("instruction color", &settings->ui_node_instructionColor.x);
+            ImGui::ColorEdit4("literal color", &settings->ui_node_literalColor.x);
+            ImGui::ColorEdit4("function color", &settings->ui_node_invokableColor.x);
+            ImGui::ColorEdit4("shadow color", &settings->ui_node_shadowColor.x);
+            ImGui::ColorEdit4("border color", &settings->ui_node_borderColor.x);
+            ImGui::ColorEdit4("high. color", &settings->ui_node_highlightedColor.x);
+            ImGui::ColorEdit4("border high. color", &settings->ui_node_borderHighlightedColor.x);
+            ImGui::ColorEdit4("fill color", &settings->ui_node_fillColor.x);
+            ImGui::ColorEdit4("node connector color", &settings->ui_node_nodeConnectorColor.x);
+            ImGui::ColorEdit4("node connector hovered color", &settings->ui_node_nodeConnectorHoveredColor.x);
 
         ImGui::Unindent();
 
         // code flow
         ImGui::Text("Code flow:");
         ImGui::Indent();
-            ImGui::SliderFloat("line width min", &config->ui_node_connector_width, 1.0f, 100.0f);
+            ImGui::SliderFloat("line width min", &settings->ui_node_connector_width, 1.0f, 100.0f);
         ImGui::Unindent();
 
     ImGui::Unindent();
@@ -739,8 +735,8 @@ void AppView::draw_startup_window() {
     if ( ImGui::BeginPopupModal(m_startup_screen_title, nullptr, flags) )
     {
 
-        auto path = m_app->getAssetPath(Settings::Get()->ui_splashscreen_imagePath);
-        auto logo = Texture::GetWithPath(path);
+        auto path = m_context->app->getAssetPath(m_context->settings->ui_splashscreen_imagePath);
+        Texture* logo = m_context->texture_manager->get_or_create(path);
         ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
         ImGui::Image((void*)(intptr_t)logo->image, ImVec2((float)logo->width, (float)logo->height));
 
@@ -896,8 +892,7 @@ void AppView::browse_file()
 void AppView::draw_background()
 {
     ImGui::BeginChild("background");
-    std::string path(NODABLE_ASSETS_DIR"/nodable-logo-xs.png");
-    auto logo = Texture::GetWithPath(path);
+    auto logo = m_context->texture_manager->get_or_create( NODABLE_ASSETS_DIR"/nodable-logo-xs.png" );
 
     for( int x = 0; x < 5; x++ )
     {
@@ -914,56 +909,53 @@ void AppView::draw_background()
 
 void AppView::draw_tool_bar()
 {
-    Settings* settings = Settings::Get();
-    VM& vm = m_app->getVM();
-
     // small margin
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
     ImGui::BeginGroup();
 
     // run
-    bool isRunning = vm.is_program_running();
+    bool isRunning = m_context->vm->is_program_running();
     if ( isRunning )
-        ImGui::PushStyleColor(ImGuiCol_Button, settings->ui_button_activeColor);
+        ImGui::PushStyleColor(ImGuiCol_Button, m_context->settings->ui_button_activeColor);
 
-    if (ImGui::Button(ICON_FA_PLAY, settings->ui_toolButton_size) && vm.is_program_stopped())
+    if (ImGui::Button(ICON_FA_PLAY, m_context->settings->ui_toolButton_size) && m_context->vm->is_program_stopped())
     {
-        m_app->runCurrentFileProgram();
+        m_context->app->runCurrentFileProgram();
     }
     if ( isRunning )
         ImGui::PopStyleColor();
     ImGui::SameLine();
 
     // debug
-    bool isDebugging = vm.is_debugging();
+    bool isDebugging = m_context->vm->is_debugging();
     if ( isDebugging )
-        ImGui::PushStyleColor(ImGuiCol_Button, settings->ui_button_activeColor);
-    if (ImGui::Button(ICON_FA_BUG, settings->ui_toolButton_size) && vm.is_program_stopped())
+        ImGui::PushStyleColor(ImGuiCol_Button, m_context->settings->ui_button_activeColor);
+    if (ImGui::Button(ICON_FA_BUG, m_context->settings->ui_toolButton_size) && m_context->vm->is_program_stopped())
     {
-        m_app->debugCurrentFileProgram();
+        m_context->vm->debug_program();
     }
     if ( isDebugging )
         ImGui::PopStyleColor();
     ImGui::SameLine();
 
     // stepOver
-    if (ImGui::Button(ICON_FA_ARROW_RIGHT, settings->ui_toolButton_size) && vm.is_debugging())
+    if (ImGui::Button(ICON_FA_ARROW_RIGHT, m_context->settings->ui_toolButton_size) && m_context->vm->is_debugging())
     {
-        m_app->stepOverCurrentFileProgram();
+        m_context->vm->step_over();
     }
     ImGui::SameLine();
 
     // stop
-    if ( ImGui::Button(ICON_FA_STOP, settings->ui_toolButton_size) && !vm.is_program_stopped())
+    if (ImGui::Button(ICON_FA_STOP, m_context->settings->ui_toolButton_size) && !m_context->vm->is_program_stopped())
     {
-        m_app->stopCurrentFileProgram();
+        m_context->app->stopCurrentFileProgram();
     }
     ImGui::SameLine();
 
     // reset
-    if ( ImGui::Button(ICON_FA_UNDO, settings->ui_toolButton_size))
+    if ( ImGui::Button(ICON_FA_UNDO, m_context->settings->ui_toolButton_size))
     {
-        m_app->resetCurrentFileProgram();
+        m_context->app->resetCurrentFileProgram();
     }
     ImGui::SameLine();
     ImGui::EndGroup();
@@ -972,7 +964,7 @@ void AppView::draw_tool_bar()
 
 void AppView::shutdown()
 {
-    Texture::ReleaseResources();
+    m_context->texture_manager->release_resources();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext    ();
     SDL_GL_DeleteContext     (m_sdl_gl_context);

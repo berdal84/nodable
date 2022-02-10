@@ -12,6 +12,8 @@
 #include <nodable/Component.h>  // base class
 #include <nodable/NodeView.h> // for NodeViewConstraint
 
+#include <nodable/AppContext.h>
+
 namespace Nodable
 {
 	typedef struct {
@@ -23,7 +25,7 @@ namespace Nodable
 	class GraphNodeView: public View, public Component
     {
 	public:
-	    GraphNodeView() = default;
+	    GraphNodeView(AppContext* _ctx): View(_ctx), m_context(_ctx) {};
 		~GraphNodeView() override = default;
 
         void        set_owner(Node *) override;
@@ -40,7 +42,7 @@ namespace Nodable
         [[nodiscard]] GraphNode* get_graph_node() const;
         std::vector<NodeViewConstraint>              m_child_view_constraints;
 		std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
-
+        AppContext* m_context;
 		REFLECT_DERIVED(GraphNodeView)
         REFLECT_EXTENDS(View)
         REFLECT_EXTENDS(Component)

@@ -6,11 +6,13 @@
 #include <nodable/GraphNodeView.h>
 #include <nodable/Settings.h>
 #include <nodable/Node.h>
+#include <nodable/AppContext.h>
 
 using namespace Nodable;
 
-FileView::FileView(File *_file)
-        : m_textEditor()
+FileView::FileView(AppContext* _ctx, File *_file)
+        : View(_ctx)
+        , m_textEditor()
         , m_hasChanged(false)
         , m_file(_file)
 {
@@ -41,7 +43,7 @@ void FileView::init()
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_textEditor.SetLanguageDefinition(lang);
 	m_textEditor.SetImGuiChildIgnored(true);
-	m_textEditor.SetPalette(Settings::Get()->ui_text_textEditorPalette);
+	m_textEditor.SetPalette(m_file->get_context()->settings->ui_text_textEditorPalette);
 }
 
 bool FileView::draw()
@@ -211,9 +213,8 @@ void FileView::drawFileInfo() const
     // Language browser (list functions/operators)
     if (ImGui::TreeNode("Language"))
     {
-        const Language* language = m_file->getLanguage();
-        const auto& functions = language->getAllFunctions();
-        const Serializer* serializer = language->getSerializer();
+        const auto&       functions  = m_context->language->getAllFunctions();
+        const Serializer* serializer = m_context->language->getSerializer();
 
         ImGui::Columns(1);
         for(const auto& each_fct : functions )
