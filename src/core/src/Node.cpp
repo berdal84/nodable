@@ -33,7 +33,7 @@ Node::Node(std::string _label)
     Member* this_member = m_props.add(THIS_MEMBER_NAME, Visibility::Always, Type_Pointer, Way::Way_Out);
     this_member->set( this );
 
-    // propagate "outputs" events
+    // propagate "inputs" events
     m_inputs.m_on_added.connect( [this](Node* _node){
         m_on_relation_added.emit(_node, Relation_t::IS_INPUT_OF);
         set_dirty();
