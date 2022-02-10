@@ -17,12 +17,12 @@ VM::VM()
 
 }
 
-bool VM::load_program(Node* _program)
+bool VM::load_program(Node* _program_graph_root)
 {
     Asm::Compiler compiler;
     reset_cursor();
 
-    if ( compiler.is_program_valid(_program) )
+    if ( compiler.is_program_valid(_program_graph_root) )
     {
         // unload current program
         if (m_program_graph)
@@ -30,9 +30,9 @@ bool VM::load_program(Node* _program)
             unload_program();
         }
 
-        if ( Code* asm_output = compiler.create_assembly_code(_program) )
+        if ( Code* asm_output = compiler.compile_program(_program_graph_root) )
         {
-            m_program_graph     = _program;
+            m_program_graph     = _program_graph_root;
             delete m_program_asm_code;
             m_program_asm_code = asm_output;
 
@@ -161,9 +161,9 @@ bool VM::_stepOver()
                     node->setDirty(false);
 
                     // eval value member if needed
-                    Member* member = node->getProps()->get("value");
-                    if ( member )
+                    if ( node->getProps()->has("value") )
                     {
+                        Member* member = node->getProps()->get("value");
                         m_register[rax] = (i64_t) member->get_data(); // copy variant address
                     }
 

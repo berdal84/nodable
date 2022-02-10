@@ -122,12 +122,12 @@ void Code::reset()
     m_instructions.resize(0);
 }
 
-bool Asm::Compiler::is_program_valid(const Node* _program)
+bool Asm::Compiler::is_program_valid(const Node* _program_graph_root)
 {
     bool is_valid;
 
     // check if program an be run
-    const VariableNodes& vars = _program->get<Scope>()->get_variables();
+    const VariableNodes& vars = _program_graph_root->get<Scope>()->get_variables();
     bool found_a_var_uninit = false;
     auto it = vars.begin();
     while(!found_a_var_uninit && it != vars.end() )
@@ -145,7 +145,7 @@ bool Asm::Compiler::is_program_valid(const Node* _program)
     return is_valid;
 }
 
-void Asm::Compiler::append_to_assembly_code( const Member * _member )
+void Asm::Compiler::compile(const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
@@ -154,7 +154,7 @@ void Asm::Compiler::append_to_assembly_code( const Member * _member )
             /*
              * Members can point to a Node*
              */
-            append_to_assembly_code( (const Node *)*_member);
+            compile((const Node *) *_member);
         }
         else
         {
@@ -167,7 +167,7 @@ void Asm::Compiler::append_to_assembly_code( const Member * _member )
             Member *input = _member->get_input();
             if ( input )
             {
-                append_to_assembly_code(input->get_owner() );
+                compile(input->get_owner());
             }
         }
 
@@ -181,7 +181,7 @@ void Asm::Compiler::append_to_assembly_code( const Member * _member )
     }
 }
 
-void Asm::Compiler::append_to_assembly_code(const Node* _node)
+void Asm::Compiler::compile(const Node* _node)
 {
     NODABLE_ASSERT(_node);
 
@@ -199,7 +199,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
         // for_loop init instruction
         if ( auto for_loop = _node->as<ForLoopNode>() )
         {
-            append_to_assembly_code( for_loop->get_init_expr() );
+            compile(for_loop->get_init_expr());
         }
 
         long condition_instr_line = m_output->get_next_pushed_instr_index();
@@ -207,7 +207,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
         Member* condition_member = conditional_struct->get_condition();
         NODABLE_ASSERT(condition_member)
         Node* _condition_node = (Node*)*condition_member;
-        append_to_assembly_code( _condition_node );
+        compile(_condition_node);
 
         Instr* store_instr = m_output->push_instr(Instr_t::mov);
         store_instr->m_left_h_arg = Register::rdx;
@@ -221,12 +221,12 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
 
         if ( auto true_branch = conditional_struct->get_condition_true_branch() )
         {
-            append_to_assembly_code( true_branch->get_owner() );
+            compile(true_branch->get_owner());
 
             if ( auto for_loop = _node->as<ForLoopNode>() )
             {
                 // insert end-loop instruction.
-                append_to_assembly_code( for_loop->get_iter_expr() );
+                compile(for_loop->get_iter_expr());
 
                 // insert jump to condition instructions.
                 auto loop_jump = m_output->push_instr(Instr_t::jmp);
@@ -245,7 +245,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
 
         if ( auto false_branch = conditional_struct->get_condition_false_branch() )
         {
-            append_to_assembly_code( false_branch->get_owner() );
+            compile(false_branch->get_owner());
             skip_false_branch->m_left_h_arg = m_output->get_next_pushed_instr_index() - skip_false_branch->m_line;
         }
     }
@@ -253,7 +253,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
     {
         for( auto each : _node->get_children() )
         {
-            append_to_assembly_code(each);
+            compile(each);
         }
     }
     else if ( auto instr_node = _node->as<InstructionNode>() )
@@ -263,7 +263,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
         Node* root_node = (Node*)*root_member;
 
         // eval node
-        append_to_assembly_code( root_node );
+        compile(root_node);
     }
     else
     {
@@ -271,7 +271,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
         for ( const Node* each_input : _node->getInputs() )
         {
             if ( !each_input->is<VariableNode>() )
-                append_to_assembly_code( each_input );
+                compile(each_input);
         }
     }
 
@@ -300,7 +300,7 @@ void Asm::Compiler::append_to_assembly_code(const Node* _node)
     }
 }
 
-Code* Asm::Compiler::create_assembly_code(const Node* _program)
+Code* Asm::Compiler::compile_program(const Node* _program_graph_root)
 {
     /*
      * Here we take the program's base scope node (a tree) and we flatten it to an
@@ -312,7 +312,7 @@ Code* Asm::Compiler::create_assembly_code(const Node* _program)
 
     try
     {
-        append_to_assembly_code(_program);
+        compile(_program_graph_root);
         m_output->push_instr(Instr_t::ret);
     }
     catch ( const std::exception& e )

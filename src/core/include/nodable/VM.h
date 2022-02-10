@@ -23,7 +23,7 @@ namespace Nodable
             ~VM() {
                 delete m_program_asm_code;
             }
-            [[nodiscard]] bool    load_program(Node*);
+            [[nodiscard]] bool    load_program(Node* _program_graph_root);
             void                  unload_program();
             void                  run_program();
             void                  stop_program();

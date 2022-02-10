@@ -89,18 +89,18 @@ namespace Nodable
         };
 
         /**
-         * Class to check a program node and convert it to Assembly::Code
+         * @brief Class to convert a program graph to Assembly::Code
          */
         class Compiler
         {
         public:
             Compiler()= default;
             /** user is owner for Code*, delete if you don't want to use it anymore */
-            Code*         create_assembly_code(const Node* _program);
-            static bool   is_program_valid(const Node* _program);
+            Code*         compile_program(const Node* _program_graph_root);
+            bool          is_program_valid(const Node* _program_graph_root);
         private:
-            void          append_to_assembly_code(const Node* _node);
-            void          append_to_assembly_code(const Member *_member);
+            void          compile(const Node* _node);
+            void          compile(const Member *_member);
             Code*         m_output;
         };
     }
