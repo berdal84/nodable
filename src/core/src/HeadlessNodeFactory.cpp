@@ -12,7 +12,7 @@ using namespace Nodable;
 InstructionNode* HeadlessNodeFactory::newInstruction() const
 {
     InstructionNode* node = new InstructionNode(ICON_FA_CODE " Instr.");
-    node->setShortLabel(ICON_FA_CODE " I.");
+    node->set_short_label(ICON_FA_CODE " I.");
     return node;
 }
 
@@ -67,24 +67,24 @@ Node* HeadlessNodeFactory::newBinOp(const InvokableOperator* _operator) const
 
     const FunctionSignature* signature = _operator->get_signature();
     const auto args = signature->get_args();
-    auto props   = node->getProps();
+    auto props   = node->props();
     Member* left   = props->add("lvalue", Visibility::Default, args[0].m_type, Way_In);
     Member* right  = props->add("rvalue", Visibility::Default, args[1].m_type, Way_In);
-    Member* result = props->add("value", Visibility::Default, signature->get_return_type(), Way_Out);
+    Member* result = props->add(Node::VALUE_MEMBER_NAME, Visibility::Default, signature->get_return_type(), Way_Out);
 
     // Create ComputeBinaryOperation component and link values.
     auto binOpComponent = new InvokableComponent( _operator );
     binOpComponent->set_result(result);
     binOpComponent->set_l_handed_val(left);
     binOpComponent->set_r_handed_val(right);
-    node->addComponent(binOpComponent);
+    node->add_component(binOpComponent);
 
     return node;
 }
 
 void HeadlessNodeFactory::setupNodeLabels(Node *_node, const InvokableOperator *_operator) {
-    _node->setLabel(_operator->get_signature()->get_label() );
-    _node->setShortLabel(_operator->get_short_identifier().c_str() );
+    _node->set_label(_operator->get_signature()->get_label());
+    _node->set_short_label(_operator->get_short_identifier().c_str());
 }
 
 Node* HeadlessNodeFactory::newUnaryOp(const InvokableOperator* _operator) const
@@ -96,15 +96,15 @@ Node* HeadlessNodeFactory::newUnaryOp(const InvokableOperator* _operator) const
 
     const FunctionSignature* signature = _operator->get_signature();
     const auto args = signature->get_args();
-    Properties* props = node->getProps();
+    Properties* props = node->props();
     Member* left = props->add("lvalue", Visibility::Default, args[0].m_type, Way_In);
-    Member* result = props->add("value", Visibility::Default, signature->get_return_type(), Way_Out);
+    Member* result = props->add(Node::VALUE_MEMBER_NAME, Visibility::Default, signature->get_return_type(), Way_Out);
 
     // Create ComputeBinaryOperation binOpComponent and link values.
     auto unaryOperationComponent = new InvokableComponent( _operator );
     unaryOperationComponent->set_result(result);
     unaryOperationComponent->set_l_handed_val(left);
-    node->addComponent(unaryOperationComponent);
+    node->add_component(unaryOperationComponent);
 
     return node;
 }
@@ -113,12 +113,12 @@ Node* HeadlessNodeFactory::newFunction(const Invokable* _function) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
-    node->setLabel(_function->get_signature()->get_identifier() + "()");
+    node->set_label(_function->get_signature()->get_identifier() + "()");
     std::string str = _function->get_signature()->get_label().substr(0, 2) + "..()";
-    node->setShortLabel( str.c_str() );
+    node->set_short_label(str.c_str());
 
-    auto props = node->getProps();
-    Member* result = props->add("value", Visibility::Default, _function->get_signature()->get_return_type(), Way_Out);
+    auto props = node->props();
+    Member* result = props->add(Node::VALUE_MEMBER_NAME, Visibility::Default, _function->get_signature()->get_return_type(), Way_Out);
 
     // Create ComputeBase binOpComponent and link values.
     auto functionComponent = new InvokableComponent( _function );
@@ -133,7 +133,7 @@ Node* HeadlessNodeFactory::newFunction(const Invokable* _function) const
         functionComponent->set_arg(argIndex, member); // link input to binOpComponent
     }
 
-    node->addComponent(functionComponent);
+    node->add_component(functionComponent);
 
     return node;
 }
@@ -142,14 +142,14 @@ Node* HeadlessNodeFactory::newScope() const
 {
     auto scopeNode = new Node();
     std::string label = ICON_FA_CODE_BRANCH " Scope";
-    scopeNode->setLabel(label);
-    scopeNode->setShortLabel(ICON_FA_CODE_BRANCH " Sc.");
+    scopeNode->set_label(label);
+    scopeNode->set_short_label(ICON_FA_CODE_BRANCH " Sc.");
 
-    scopeNode->setPrevMaxCount( std::numeric_limits<int>::max() );
-    scopeNode->setNextMaxCount(1); // allow 1 Nodes to be next.
+    scopeNode->predecessor_slots().set_max_count(std::numeric_limits<int>::max());
+    scopeNode->successor_slots().set_max_count(1); // allow 1 Nodes to be next.
 
     auto* scope = new Scope();
-    scopeNode->addComponent( scope );
+    scopeNode->add_component(scope);
 
     return scopeNode;
 }
@@ -158,14 +158,14 @@ ConditionalStructNode* HeadlessNodeFactory::newConditionalStructure() const
 {
     auto scopeNode = new ConditionalStructNode();
     std::string label = ICON_FA_QUESTION " Condition";
-    scopeNode->setLabel(label);
-    scopeNode->setShortLabel(ICON_FA_QUESTION" Cond.");
+    scopeNode->set_label(label);
+    scopeNode->set_short_label(ICON_FA_QUESTION" Cond.");
 
-    scopeNode->setPrevMaxCount( std::numeric_limits<int>::max() );
-    scopeNode->setNextMaxCount(2); // true/false branches
+    scopeNode->predecessor_slots().set_max_count(std::numeric_limits<int>::max());
+    scopeNode->successor_slots().set_max_count(2); // true/false branches
 
     auto* scope = new Scope();
-    scopeNode->addComponent( scope );
+    scopeNode->add_component(scope);
 
     return scopeNode;
 }
@@ -174,14 +174,14 @@ ForLoopNode* HeadlessNodeFactory::new_for_loop_node() const
 {
     auto for_loop = new ForLoopNode();
     std::string label = ICON_FA_RECYCLE " For loop";
-    for_loop->setLabel(label);
-    for_loop->setShortLabel(ICON_FA_RECYCLE" For");
+    for_loop->set_label(label);
+    for_loop->set_short_label(ICON_FA_RECYCLE" For");
 
-    for_loop->setPrevMaxCount( std::numeric_limits<int>::max() );
-    for_loop->setNextMaxCount(1); // allow 1 Nodes to be next.
+    for_loop->predecessor_slots().set_max_count(std::numeric_limits<int>::max());
+    for_loop->successor_slots().set_max_count(1); // allow 1 Nodes to be next.
 
     auto* scope = new Scope();
-    for_loop->addComponent( scope );
+    for_loop->add_component(scope);
 
     return for_loop;
 }
@@ -189,8 +189,8 @@ ForLoopNode* HeadlessNodeFactory::new_for_loop_node() const
 Node* HeadlessNodeFactory::newProgram() const
 {
     Node* prog = newScope();
-    prog->setLabel(ICON_FA_FILE_CODE " Program");
-    prog->setShortLabel(ICON_FA_FILE_CODE " Prog.");
+    prog->set_label(ICON_FA_FILE_CODE " Program");
+    prog->set_short_label(ICON_FA_FILE_CODE " Prog.");
 
     return prog;
 }
@@ -203,7 +203,7 @@ Node* HeadlessNodeFactory::newNode() const
 LiteralNode* HeadlessNodeFactory::newLiteral(const Reflect::Type &type) const
 {
     LiteralNode* node = new LiteralNode(type);
-    node->setLabel("Literal");
-    node->setShortLabel("Lit.");
+    node->set_label("Literal");
+    node->set_short_label("Lit.");
     return node;
 }

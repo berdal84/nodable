@@ -19,7 +19,7 @@ FileView::FileView(File *_file)
         if ( program )
         {
             NodeView* program_view = program->get<NodeView>();
-            View*     graph_view   = program->getParentGraph()->get<GraphNodeView>();
+            View*     graph_view   = program->get_parent_graph()->get<GraphNodeView>();
             if ( program_view )
             {
                 if ( graph_view )

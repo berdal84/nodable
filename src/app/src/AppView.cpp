@@ -533,7 +533,7 @@ bool AppView::draw()
 			if (delete_node)
 			{
 			    auto node = selectedNodeView->get_owner();
-                node->flagForDeletion();
+                node->flag_for_deletion();
             }
 			else if (arrange_node)
             {
@@ -545,10 +545,10 @@ bool AppView::draw()
             }
 			else if (select_next)
             {
-			    auto possible_next = selectedNodeView->get_owner()->getNext();
-			    if ( !possible_next.empty()  )
+			    auto possible_next = selectedNodeView->get_owner()->successor_slots().get_first_or_nullptr();
+			    if ( !possible_next  )
                 {
-                    if( auto nextView = possible_next[0]->get<NodeView>())
+                    if( auto nextView = possible_next->get<NodeView>())
                     {
                         NodeView::SetSelected(nextView);
                     }

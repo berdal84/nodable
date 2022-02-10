@@ -21,17 +21,17 @@ TEST( GraphNode, connect)
     GraphNode graph(&language, &factory);
 
     auto node1 = graph.newNode();
-    node1->getProps()->add("output", Visibility::Default, Type_Boolean, Way_Default);
+    node1->props()->add("output", Visibility::Default, Type_Boolean, Way_Default);
 
     auto node2  = graph.newNode();
-    node2->getProps()->add("input", Visibility::Default, Type_Boolean, Way_Default);
+    node2->props()->add("input", Visibility::Default, Type_Boolean, Way_Default);
 
     auto wire = graph.connect(
-            node1->getProps()->get("output"),
-            node2->getProps()->get("input"));
+            node1->props()->get("output"),
+            node2->props()->get("input"));
 
-    EXPECT_EQ(wire->getSource() , node1->getProps()->get("output"));
-    EXPECT_EQ(wire->getTarget() , node2->getProps()->get("input"));
+    EXPECT_EQ(wire->getSource() , node1->props()->get("output"));
+    EXPECT_EQ(wire->getTarget() , node2->props()->get("input"));
     EXPECT_EQ(graph.getWireRegistry().size(), 1);
  }
 
@@ -42,10 +42,10 @@ TEST( GraphNode, disconnect)
     GraphNode graph(&language, &factory);
 
     auto a = graph.newNode();
-    auto output = a->getProps()->add("output", Visibility::Default, Type_Boolean, Way_Default);
+    auto output = a->props()->add("output", Visibility::Default, Type_Boolean, Way_Default);
 
     auto b = graph.newNode();
-    auto input = b->getProps()->add("input", Visibility::Default, Type_Boolean, Way_Default);
+    auto input = b->props()->add("input", Visibility::Default, Type_Boolean, Way_Default);
 
     EXPECT_EQ(graph.getWireRegistry().size(), 0);
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
@@ -57,9 +57,9 @@ TEST( GraphNode, disconnect)
 
     graph.disconnect(wire);
 
-    EXPECT_EQ(graph.getWires().size(), 0); // wire must be unregistered when disconnected
-    EXPECT_EQ(a->getOutputWireCount(), 0);
-    EXPECT_EQ(b->getInputWireCount(), 0);
+    EXPECT_EQ(graph.get_wires().size(), 0); // wire must be unregistered when disconnected
+    EXPECT_EQ(a->get_output_wire_count(), 0);
+    EXPECT_EQ(b->get_input_wire_count(), 0);
 }
 
 TEST( GraphNode, clear)
@@ -73,11 +73,11 @@ TEST( GraphNode, clear)
     auto ope = language.findOperator("+");
     EXPECT_TRUE(ope != nullptr);
     Node* operatorNode = graph.newOperator(ope);
-    auto props = operatorNode->getProps();
+    auto props = operatorNode->props();
     props->get("rvalue")->set(2);
     props->get("lvalue")->set(2);
 
-    graph.connect(props->get("value"), instructionNode->get_root_node_member() );
+    graph.connect(props->get(Node::VALUE_MEMBER_NAME), instructionNode->get_root_node_member() );
 
     EXPECT_TRUE(graph.getWireRegistry().size() != 0);
     EXPECT_TRUE(graph.getNodeRegistry().size() != 0);
@@ -110,21 +110,21 @@ TEST( GraphNode, create_and_delete_relations)
 
     // is child of (and by reciprocity "is parent of")
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
-    EXPECT_EQ(n2->get_children().size(), 0);
+    EXPECT_EQ(n2->children_slots().size(), 0);
     graph.connect(n1, n2, Relation_t::IS_CHILD_OF, false);
-    EXPECT_EQ(n2->get_children().size(), 1);
+    EXPECT_EQ(n2->children_slots().size(), 1);
     EXPECT_EQ(graph.getRelationRegistry().size(), 1);
     graph.disconnect(n1, n2, Relation_t::IS_CHILD_OF);
-    EXPECT_EQ(n2->get_children().size(), 0);
+    EXPECT_EQ(n2->children_slots().size(), 0);
 
     // Is input of
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
-    EXPECT_EQ(n2->getInputs().size(), 0);
+    EXPECT_EQ(n2->input_slots().size(), 0);
     graph.connect(n1, n2, Relation_t::IS_INPUT_OF, false);
-    EXPECT_EQ(n2->getInputs().size(), 1);
+    EXPECT_EQ(n2->input_slots().size(), 1);
     EXPECT_EQ(graph.getRelationRegistry().size(), 1);
     graph.disconnect(n1, n2, Relation_t::IS_INPUT_OF);
-    EXPECT_EQ(n2->getInputs().size(), 0);
+    EXPECT_EQ(n2->input_slots().size(), 0);
     EXPECT_EQ(graph.getRelationRegistry().size(), 0);
 }
 
@@ -153,20 +153,20 @@ TEST(Graph, by_reference_assign)
     auto op = assign->get<InvokableComponent>();
 
     // connect b and assign
-    graph.connect(b->get_value(), assign->getProps()->get("lvalue") );
+    graph.connect(b->get_value(), assign->props()->get("lvalue") );
 
     op->get_r_handed_val()->set(5.0);
 
     ASSERT_DOUBLE_EQ(b->get_value()->convert_to<double>(), 6.0 );
-    ASSERT_DOUBLE_EQ( assign->getProps()->get("lvalue")->convert_to<double>(), 6.0 );
-    ASSERT_DOUBLE_EQ( assign->getProps()->get("rvalue")->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ( assign->getProps()->get("value")->convert_to<double>(), 0.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get("lvalue")->convert_to<double>(), 6.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get("rvalue")->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get(Node::VALUE_MEMBER_NAME)->convert_to<double>(), 0.0 );
 
     // apply
     assign->eval();
 
     ASSERT_DOUBLE_EQ(b->get_value()->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ( assign->getProps()->get("lvalue")->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ( assign->getProps()->get("rvalue")->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ( assign->getProps()->get("value")->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get("lvalue")->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get("rvalue")->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get(Node::VALUE_MEMBER_NAME)->convert_to<double>(), 5.0 );
 }

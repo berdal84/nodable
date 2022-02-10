@@ -70,9 +70,9 @@ std::string NodeView::getLabel()
     if (s_viewDetail == NodeViewDetail::Minimalist )
     {
         // I always add an ICON_FA at the begining of any node label string (encoded in 4 bytes)
-        return std::string(node->getShortLabel());
+        return std::string(node->get_short_label());
     }
-    return node->getLabel();
+    return node->get_label();
 }
 
 void NodeView::exposeMember(Member* _member)
@@ -106,7 +106,7 @@ void NodeView::set_owner(Node *_node)
     std::vector<Member*> notExposedMembers;
 
     //  We expose first the members which allows input connections
-    for(auto& m : _node->getProps()->get_members())
+    for(auto& m : _node->props()->get_members())
     {
         auto member = m.second;
         if (member->get_visibility() == Visibility::Always && member->allows_connection(Way_In) )
@@ -158,17 +158,17 @@ void NodeView::set_owner(Node *_node)
     //---------------
 
     // a "next" connector per next slot
-    auto nextMaxCount = _node->getNextMaxCount();
+    auto nextMaxCount = _node->successor_slots().get_max_count();
     for(size_t index = 0; index <  nextMaxCount; ++index )
     {
         m_nextNodeConnectors.push_back(new NodeConnector(this, Way_Out, index, nextMaxCount));
     }
 
     // a single "previous" connector if node can be connected in this way
-    if( _node->getPrevMaxCount() != 0)
+    if(_node->predecessor_slots().get_max_count() != 0)
         m_prevNodeConnnectors.push_back(new NodeConnector(this, Way_In));
 
-    m_nodeRelationAddedObserver = _node->m_onRelationAdded.createObserver([this](Node* otherNode, Relation_t rel ) {
+    m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver([this](Node* otherNode, Relation_t rel ) {
         switch ( rel )
         {
             case Relation_t::IS_CHILD_OF:
@@ -185,7 +185,7 @@ void NodeView::set_owner(Node *_node)
         }
     });
 
-    m_nodeRelationRemovedObserver = _node->m_onRelationRemoved.createObserver([this](Node* otherNode, Relation_t rel ) {
+    m_nodeRelationRemovedObserver = _node->m_on_relation_removed.createObserver([this](Node* otherNode, Relation_t rel ) {
         switch ( rel )
         {
             case Relation_t::IS_CHILD_OF:
@@ -250,7 +250,7 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
 
 	if ( _recurse )
     {
-	    for(auto eachInput : get_owner()->getInputs() )
+	    for(auto eachInput : get_owner()->input_slots() )
         {
 	        if ( NodeView* eachInputView = eachInput->get<NodeView>() )
 	        {
@@ -466,7 +466,7 @@ bool NodeView::draw()
 
         if(ImGui::Selectable("Delete"))
         {
-            node->flagForDeletion();
+            node->flag_for_deletion();
         }
 
         if(ImGui::Selectable("Save to JSON"))
@@ -512,7 +512,7 @@ bool NodeView::draw()
 	ImGui::PopID();
 
 	if( edited )
-        get_owner()->setDirty();
+        get_owner()->set_dirty();
 
 	hovered = is_node_hovered || is_connector_hovered;
 
@@ -664,7 +664,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
-        Serializer* serializer = node->getParentGraph()->getLanguage()->getSerializer();
+        Serializer* serializer = node->get_parent_graph()->getLanguage()->getSerializer();
         std::string buffer;
         serializer->serialize(buffer, _member);
         ImGui::Text("%s", buffer.c_str() );
@@ -713,8 +713,8 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
 
     };
 
-    ImGui::Text("Name:       \"%s\"",  _view->get_owner()->getLabel());
-    ImGui::Text("Short Name: \"%s\"", _view->get_owner()->getShortLabel());
+    ImGui::Text("Name:       \"%s\"", _view->get_owner()->get_label());
+    ImGui::Text("Short Name: \"%s\"", _view->get_owner()->get_short_label());
     ImGui::Text("Class:      %s", _view->get_owner()->get_class()->get_name());
 
     // Draw exposed input members
@@ -796,7 +796,7 @@ void NodeView::drawAdvancedProperties()
 
     // Components
     ImGui::Text("Components :");
-    for (auto& pair : node->getComponents())
+    for (auto& pair : node->get_components())
     {
         Component* component = pair.second;
         ImGui::BulletText("%s", component->get_class()->get_name() );
@@ -807,10 +807,10 @@ void NodeView::drawAdvancedProperties()
         ImGui::NewLine();
         std::string parentName = "NULL";
 
-        if (node->getParentGraph() )
+        if (node->get_parent_graph() )
         {
-            parentName = node->getParentGraph()->getLabel();
-            parentName.append( node->getParentGraph()->isDirty() ? " (dirty)" : "");
+            parentName = node->get_parent_graph()->get_label();
+            parentName.append(node->get_parent_graph()->is_dirty() ? " (dirty)" : "");
 
         }
         ImGui::Text("Parent graph is \"%s\"", parentName.c_str());
@@ -823,8 +823,8 @@ void NodeView::drawAdvancedProperties()
 
         if (node->get_parent() )
         {
-            parentName = node->get_parent()->getLabel();
-            parentName.append(node->get_parent()->isDirty() ? " (dirty)" : "");
+            parentName = node->get_parent()->get_label();
+            parentName.append(node->get_parent()->is_dirty() ? " (dirty)" : "");
         }
         ImGui::Text("Parent node is \"%s\"", parentName.c_str());
 
@@ -832,7 +832,7 @@ void NodeView::drawAdvancedProperties()
 
     // dirty state
     ImGui::NewLine();
-    bool b = get_owner()->isDirty();
+    bool b = get_owner()->is_dirty();
     ImGui::Checkbox("Is dirty ?", &b);
 
     // Scope specific:
@@ -1050,7 +1050,7 @@ void NodeView::setInputsVisible(bool _visible, bool _recursive)
 
 void NodeView::getNext(std::vector<NodeView *>& out)
 {
-    for( auto& each : get_owner()->getNext())
+    for( auto& each : get_owner()->successor_slots())
     {
          if ( each )
         {

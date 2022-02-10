@@ -110,9 +110,9 @@ void App::setCurrentFileWithIndex(size_t _index)
 void App::SaveNode(Node* _node)
 {
     auto component = new DataAccess;
-	_node->addComponent(component);
+    _node->add_component(component);
 	component->update();
-	_node->deleteComponent<DataAccess>();
+    _node->delete_component<DataAccess>();
 }
 
 std::string App::getAssetPath(const char* _fileName)const

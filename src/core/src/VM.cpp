@@ -158,12 +158,12 @@ bool VM::_stepOver()
                 {
                     auto node = (Node*)next_instr->m_right_h_arg;
                     node->eval();
-                    node->setDirty(false);
+                    node->set_dirty(false);
 
-                    // eval value member if needed
-                    if ( node->getProps()->has("value") )
+                    // Store a value if exists
+                    if (node->props()->has(Node::VALUE_MEMBER_NAME) )
                     {
-                        Member* member = node->getProps()->get("value");
+                        Member* member = node->props()->get(Node::VALUE_MEMBER_NAME);
                         m_register[rax] = (i64_t) member->get_data(); // copy variant address
                     }
 

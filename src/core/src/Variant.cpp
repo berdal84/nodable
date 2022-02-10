@@ -234,7 +234,7 @@ template<>
         case Reflect::Type_Pointer:
         {
             result.append("[") ;
-            result.append( mpark::get<Node*>(data)->getLabel() );
+            result.append(mpark::get<Node *>(data)->get_label() );
             result.append("]") ;
             break;
         }

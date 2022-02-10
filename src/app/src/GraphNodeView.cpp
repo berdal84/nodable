@@ -40,10 +40,10 @@ bool GraphNodeView::draw()
     for( auto& each_node : nodeRegistry)
     {
         int slot_index = 0;
-        int slot_count = each_node->getNextMaxCount();
+        int slot_count = each_node->successor_slots().get_max_count();
         float padding = 2.0f;
         float linePadding = 5.0f;
-        for (auto& each_next : each_node->getNext() )
+        for (auto& each_next : each_node->successor_slots() )
         {
             NodeView *each_view      = each_node->get<NodeView>();
             NodeView *each_next_view = each_next->get<NodeView>();
@@ -118,7 +118,7 @@ bool GraphNodeView::draw()
         */
         for (auto eachNode : nodeRegistry)
         {
-            const Members& members = eachNode->getProps()->get_members();
+            const Members& members = eachNode->props()->get_members();
 
             for (auto pair : members)
             {
@@ -172,7 +172,7 @@ bool GraphNodeView::draw()
             NodeViews
         */
         std::vector<NodeView*> nodeViews;
-        Node::GetComponents(nodeRegistry, nodeViews);
+        Node::get_components(nodeRegistry, nodeViews);
 		for (auto eachNodeView : nodeViews)
 		{
             if (eachNodeView->isVisible())
@@ -437,7 +437,7 @@ bool GraphNodeView::draw()
                 if ( draggedMemberConnector->m_way == Way_In )
                 {
                     graph->connect(
-                            newNode->getProps()->get_first_member_with_conn(Way_Out),
+                            newNode->props()->get_first_member_with_conn(Way_Out),
                             draggedMemberConnector->m_memberView->m_member);
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
@@ -446,7 +446,7 @@ bool GraphNodeView::draw()
                     // connect dragged (out) to first input on new node.
                     graph->connect(
                             draggedMemberConnector->m_memberView->m_member,
-                            newNode->getProps()->get_first_member_with_conn(Way_In));
+                            newNode->props()->get_first_member_with_conn(Way_In));
                 }
                 MemberConnector::StopDrag();
             }
@@ -515,9 +515,9 @@ void GraphNodeView::update_child_view_constraints()
             // Follow previous Node(s), except if previous is a Conditional if/else
             //-------------------------------------------------------------
 
-            auto previousNodes = _eachNode->getPrev();
+            Nodes& previousNodes = _eachNode->predecessor_slots().get_data();
             std::vector<NodeView*> previousNodesView;
-            Node::GetComponents<NodeView>( previousNodes, previousNodesView);
+            Node::get_components<NodeView>(previousNodes, previousNodesView);
             if ( !previousNodes.empty() && previousNodes[0]->get_class()->is_not<AbstractConditionalStruct>() )
             {
                 NodeViewConstraint constraint(NodeViewConstraint::Type::FollowWithChildren);
@@ -568,10 +568,10 @@ bool GraphNodeView::update()
     // Find NodeView components
     auto deltaTime = ImGui::GetIO().DeltaTime;
     std::vector<NodeView*> views;
-    Node::GetComponents(nodeRegistry, views);
+    Node::get_components(nodeRegistry, views);
 
     // updateContraints if needed
-    if ( graph->isDirty() )
+    if (graph->is_dirty() )
     {
         update_child_view_constraints();
     }

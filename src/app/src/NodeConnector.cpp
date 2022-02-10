@@ -42,7 +42,7 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
             auto node   = _connector->getNode();
-            auto graph  = node->getParentGraph();
+            auto graph  = node->get_parent_graph();
 
             if ( _connector->m_way == Way_In )
                 graph->disconnect(node, connectedNode, Relation_t::IS_NEXT_OF);
@@ -59,12 +59,12 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
         {
             if ( _connector->m_way == Way_Out)
             {
-                if ( _connector->getNode()->getNext().size() < _connector->getNode()->getNextMaxCount() )
+                if (_connector->getNode()->successor_slots().size() < _connector->getNode()->successor_slots().get_max_count() )
                     StartDrag(_connector);
             }
             else
             {
-                if ( _connector->getNode()->getPrev().size() < _connector->getNode()->getPrevMaxCount() )
+                if (_connector->getNode()->predecessor_slots().size() < _connector->getNode()->predecessor_slots().get_max_count() )
                     StartDrag(_connector);
             }
         }
@@ -97,7 +97,7 @@ ImVec2 NodeConnector::getPos()const
 
 bool NodeConnector::connect(const NodeConnector* other) const
 {
-    auto graph = getNode()->getParentGraph();
+    auto graph = getNode()->get_parent_graph();
     // TODO: handle incompatibility
     graph->connect(other->getNode(), getNode() , Relation_t::IS_NEXT_OF );
 
@@ -148,12 +148,12 @@ Node* NodeConnector::getConnectedNode() const
 
     if ( m_way == Way_In )
     {
-        if ( node->getPrev().size() > m_index )
-            return node->getPrev()[m_index];
+        if (node->predecessor_slots().size() > m_index )
+            return node->predecessor_slots()[m_index];
     }
-    else if ( node->getNext().size() > m_index )
+    else if (node->successor_slots().size() > m_index )
     {
-        return node->getNext()[m_index];
+        return node->successor_slots()[m_index];
     }
     return nullptr;
 

@@ -176,7 +176,7 @@ void Asm::Compiler::compile(const Member * _member )
             Instr *instr = m_output->push_instr(Instr_t::call);
             instr->m_left_h_arg = (i64_t) FctId::eval_member;
             instr->m_right_h_arg = (i64_t) _member;
-            instr->m_comment = "eval " + std::string{_member->get_owner()->getLabel()} + " -> " + _member->get_name();
+            instr->m_comment = "eval " + std::string{_member->get_owner()->get_label()} + " -> " + _member->get_name();
         }
     }
 }
@@ -191,7 +191,7 @@ void Asm::Compiler::compile(const Node* _node)
         Instr *instr = m_output->push_instr(Instr_t::call);
         instr->m_left_h_arg = (i64_t) FctId::push_stack_frame;
         instr->m_right_h_arg = (i64_t) _node;
-        instr->m_comment = std::string{_node->getShortLabel()} + "'s scope";
+        instr->m_comment = std::string{_node->get_short_label()} + "'s scope";
     }
 
     if ( auto conditional_struct = _node->as<AbstractConditionalStruct>(); conditional_struct )
@@ -251,7 +251,7 @@ void Asm::Compiler::compile(const Node* _node)
     }
     else if (_node->has<Scope>() )
     {
-        for( auto each : _node->get_children() )
+        for( auto each : _node->children_slots().get_data() )
         {
             compile(each);
         }
@@ -268,7 +268,7 @@ void Asm::Compiler::compile(const Node* _node)
     else
     {
         // eval inputs
-        for ( const Node* each_input : _node->getInputs() )
+        for ( const Node* each_input : _node->input_slots().get_data() )
         {
             if ( !each_input->is<VariableNode>() )
                 compile(each_input);
@@ -287,7 +287,7 @@ void Asm::Compiler::compile(const Node* _node)
         Instr *instr = m_output->push_instr(Instr_t::call);
         instr->m_left_h_arg = (i64_t) FctId::eval_node;
         instr->m_right_h_arg = (i64_t) _node;
-        instr->m_comment = std::string{_node->getLabel()};
+        instr->m_comment = std::string{_node->get_label()};
     }
 
     if ( _node->has<Scope>() && _node->get_parent() )
@@ -296,7 +296,7 @@ void Asm::Compiler::compile(const Node* _node)
         Instr *instr = m_output->push_instr(Instr_t::call);
         instr->m_left_h_arg = (i64_t) FctId::pop_stack_frame;
         instr->m_right_h_arg = (i64_t) _node;
-        instr->m_comment = std::string{_node->getShortLabel()} + "'s scope";
+        instr->m_comment = std::string{_node->get_short_label()} + "'s scope";
     }
 }
 

@@ -11,10 +11,10 @@ namespace Nodable
         ~LiteralNode() override = default;
 
         [[nodiscard]]
-        inline Member* get_value() const { return m_props.get("value"); }
+        inline Member* get_value() const { return m_props.get(Node::VALUE_MEMBER_NAME); }
 
         template<typename T>
-        inline void set_value(T new_value) const { m_props.get("value")->set((T)new_value); }
+        inline void set_value(T new_value) const { m_props.get(Node::VALUE_MEMBER_NAME)->set((T)new_value); }
 
         REFLECT_DERIVED(LiteralNode)
         REFLECT_EXTENDS(Node)

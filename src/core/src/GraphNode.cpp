@@ -44,7 +44,7 @@ void GraphNode::clear()
         for (auto i = m_nodeRegistry.size(); i > 0; i--)
         {
             Node* node = m_nodeRegistry[i - 1];
-            LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->getLabel() )
+            LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->get_label() )
             deleteNode(node);
         }
 	}
@@ -70,7 +70,7 @@ UpdateResult GraphNode::update()
             nodeIndex--;
             auto node = m_nodeRegistry.at(nodeIndex);
 
-            if (node->needsToBeDeleted())
+            if (node->needs_to_be_deleted())
             {
                 this->deleteNode(node);
             }
@@ -85,11 +85,11 @@ UpdateResult GraphNode::update()
         bool changed = false;
         for (Node* each_node : m_nodeRegistry)
         {
-            if (each_node->isDirty())
+            if (each_node->is_dirty())
             {
                 each_node->eval();
                 each_node->update();
-                each_node->setDirty(false);
+                each_node->set_dirty(false);
                 changed |= true;
             }
         }
@@ -115,8 +115,8 @@ UpdateResult GraphNode::update()
 void GraphNode::registerNode(Node* _node)
 {
 	this->m_nodeRegistry.push_back(_node);
-    _node->setParentGraph(this);
-    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->getLabel(), _node->get_class()->get_name())
+    _node->set_parent_graph(this);
+    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->get_label(), _node->get_class()->get_name())
 }
 
 void GraphNode::unregisterNode(Node* _node)
@@ -271,8 +271,8 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _conn
         wire->setTarget(_dst_member);
 
         LOG_VERBOSE("GraphNode", "connect() adding wire to nodes ...\n")
-        targetNode->addWire(wire);
-        sourceNode->addWire(wire);
+        targetNode->add_wire(wire);
+        sourceNode->add_wire(wire);
         LOG_VERBOSE("GraphNode", "connect() wires added to node ...\n")
 
         connect(sourceNode, targetNode, Relation_t::IS_INPUT_OF);
@@ -298,7 +298,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _conn
         registerWire(wire);
     }
 
-    this->setDirty();
+    this->set_dirty();
 
     return wire;
 }
@@ -352,7 +352,7 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
                 // First case is easy, if no children on the target node, the next node of the target IS the source.
                 if (_target->has<Scope>() )
                 {
-                    if ( _target->get_children().empty() )
+                    if (_target->children_slots().empty() )
                     {
                         connect(_source, _target, Relation_t::IS_NEXT_OF, false);
                     }
@@ -360,13 +360,13 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
                     {
                         connect(_source, _target, Relation_t::IS_NEXT_OF, false);
                     }
-                    else if ( !_target->get_children().back()->has<Scope>() )
+                    else if ( !_target->children_slots().back()->has<Scope>() )
                     {
-                        connect(_source, _target->get_children().back(), Relation_t::IS_NEXT_OF, false);
+                        connect(_source, _target->children_slots().back(), Relation_t::IS_NEXT_OF, false);
                     }
                     else
                     {
-                        auto& children = _target->get_children();
+                        auto& children = _target->children_slots();
                         Node* back = children.back();
                         if (auto scope = back->get<Scope>() )
                         {
@@ -388,20 +388,20 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
             }
 
             // create "parent-child" links
-            _target->add_child(_source);
+            _target->children_slots().add(_source);
             _source->set_parent(_target);
 
             break;
         }
 
         case Relation_t::IS_INPUT_OF:
-            _target->addInput(_source);
-            _source->addOutput(_target);
+            _target->input_slots().add(_source);
+            _source->output_slots().add(_target);
             break;
 
         case Relation_t::IS_NEXT_OF:
-            _target->addNext(_source);
-            _source->addPrev(_target);
+            _target->successor_slots().add(_source);
+            _source->predecessor_slots().add(_target);
 
             if (_sideEffects)
             {
@@ -411,7 +411,7 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
                     while ( next )
                     {
                         connect(next, parent, Relation_t::IS_CHILD_OF, false);
-                        next = next->getFirstNext();
+                        next = next->successor_slots().get_first_or_nullptr();
                     }
                 }
             }
@@ -422,7 +422,7 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
     }
 
     this->m_relationRegistry.emplace(_relationType, std::pair(_source, _target));
-    this->setDirty();
+    this->set_dirty();
 }
 
 void GraphNode::disconnect(Node *_source, Node *_target, Relation_t _relationType, bool _sideEffects)
@@ -440,18 +440,18 @@ void GraphNode::disconnect(Node *_source, Node *_target, Relation_t _relationTyp
     switch ( _relationType )
     {
         case Relation_t::IS_CHILD_OF:
-            _target->remove_Child(_source);
+            _target->children_slots().remove(_source);
             _source->set_parent(nullptr);
             break;
 
         case Relation_t::IS_INPUT_OF:
-            _target->removeInput(_source);
-            _source->removeOutput(_target);
+            _target->input_slots().remove(_source);
+            _source->output_slots().remove(_target);
             break;
 
         case Relation_t::IS_NEXT_OF:
-            _target->removeNext(_source);
-            _source->removePrev(_target);
+            _target->successor_slots().remove(_source);
+            _source->predecessor_slots().remove(_target);
 
             if ( _sideEffects )
             {
@@ -461,7 +461,7 @@ void GraphNode::disconnect(Node *_source, Node *_target, Relation_t _relationTyp
                     while ( next && next->get_parent() == parent )
                     {
                         disconnect(next, parent, Relation_t::IS_CHILD_OF, false );
-                        next = next->getFirstNext();
+                        next = next->successor_slots().get_first_or_nullptr();
                     }
                 }
             }
@@ -474,7 +474,7 @@ void GraphNode::disconnect(Node *_source, Node *_target, Relation_t _relationTyp
     // remove relation
     m_relationRegistry.erase(relation);
 
-    this->setDirty();
+    this->set_dirty();
 }
 
 void GraphNode::deleteWire(Wire *_wire)
@@ -487,9 +487,9 @@ void GraphNode::deleteWire(Wire *_wire)
     Node* sourceNode = _wire->getSource()->get_owner();
 
     if( targetNode )
-        targetNode->removeWire(_wire);
+        targetNode->remove_wire(_wire);
     if( sourceNode )
-        sourceNode->removeWire(_wire);
+        sourceNode->remove_wire(_wire);
 
     if( targetNode && sourceNode )
         disconnect(sourceNode->as<Node>(), targetNode->as<Node>(), Relation_t::IS_INPUT_OF);
@@ -558,8 +558,8 @@ void GraphNode::disconnect(Member *_member, Way _way)
             Node *targetNode = wire->getTarget()->get_owner();
             Node *sourceNode = wire->getSource()->get_owner();
 
-            targetNode->removeWire(wire);
-            sourceNode->removeWire(wire);
+            targetNode->remove_wire(wire);
+            sourceNode->remove_wire(wire);
 
             disconnect(sourceNode, targetNode, Relation_t::IS_INPUT_OF);
 
@@ -571,6 +571,6 @@ void GraphNode::disconnect(Member *_member, Way _way)
         }
     }
 
-    setDirty();
+    set_dirty();
 
 }

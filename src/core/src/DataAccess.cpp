@@ -50,7 +50,7 @@ bool DataAccess::update()
     	writer.Key("members");
     	writer.StartObject();
     	{
-		    for(auto& each : owner->getProps()->get_members())
+		    for(auto& each : owner->props()->get_members())
 		    {
 		    	auto value = each.second;
 
@@ -65,7 +65,7 @@ bool DataAccess::update()
     	writer.Key("components");
     	writer.StartObject();
     	{
-		    for(auto& eachComponent : owner->getComponents())
+		    for(auto& eachComponent : owner->get_components())
 		    {
 		    	writer.Key   (eachComponent.first.c_str());
 		    	writer.StartObject();

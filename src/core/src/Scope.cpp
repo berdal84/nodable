@@ -64,10 +64,9 @@ VariableNode* Scope::find_variable(const std::string &_name)
 
 Node* Scope::get_last_code_block()
 {
-    auto children = get_owner()->get_children();
-    if ( children.empty() )
+    if (get_owner()->children_slots().empty() )
         return nullptr;
-    return children.back();
+    return get_owner()->children_slots().back();
 }
 
 void Scope::add_variable(VariableNode* _variableNode)
@@ -84,7 +83,7 @@ void Scope::add_variable(VariableNode* _variableNode)
 
 void Scope::get_last_instructions(std::vector<InstructionNode *> & _out)
 {
-    auto owner_children = get_owner()->get_children();
+    auto& owner_children = get_owner()->children_slots();
     if ( owner_children.empty())
         return;
 

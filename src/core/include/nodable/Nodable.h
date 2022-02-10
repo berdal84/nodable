@@ -22,6 +22,7 @@ namespace Nodable
 	class Wire;
 	class Member;
 	class Component;
+    class Node;
     class VariableNode;
 
 	typedef std::map<std::string, Component*>  Components;
@@ -46,6 +47,7 @@ namespace Nodable
     typedef short int i8_t;
 
     typedef std::vector<VariableNode*> VariableNodes ;
+    typedef std::vector<Node*>         Nodes ;
 }
 
 

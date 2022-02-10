@@ -16,10 +16,10 @@ ConditionalStructNode::ConditionalStructNode()
 
 Scope* ConditionalStructNode::get_condition_true_branch() const
 {
-    return !m_next.empty() ? m_next[0]->get<Scope>() : nullptr;
+    return !m_successors.empty() ? m_successors[0]->get<Scope>() : nullptr;
 }
 
 Scope* ConditionalStructNode::get_condition_false_branch() const
 {
-    return m_next.size() > 1 ? m_next[1]->get<Scope>() : nullptr;
+    return m_successors.size() > 1 ? m_successors[1]->get<Scope>() : nullptr;
 }

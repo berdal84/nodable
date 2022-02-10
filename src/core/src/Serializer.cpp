@@ -44,8 +44,8 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
         if (ope->get_operator_type() == InvokableOperator::Type::Binary )
         {
             // Get the left and right source operator
-            auto l_handed_operator = _component->get_owner()->getConnectedOperator(args[0]);
-            auto r_handed_operator = _component->get_owner()->getConnectedOperator(args[1]);
+            auto l_handed_operator = _component->get_owner()->get_connected_operator(args[0]);
+            auto r_handed_operator = _component->get_owner()->get_connected_operator(args[1]);
             // Left part of the expression
             {
                 // TODO: check parsed brackets for prefix/suffix
@@ -78,7 +78,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
         }
         else if (ope->get_operator_type() == InvokableOperator::Type::Unary )
         {
-            auto inner_operator = _component->get_owner()->getConnectedOperator(args[0]);
+            auto inner_operator = _component->get_owner()->get_connected_operator(args[0]);
 
             // operator ( ... innerOperator ... )   ex:   -(a+b)
 
@@ -207,10 +207,10 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
     }
 
     auto owner = _member->get_owner();
-    if (followConnections && owner && _member->allows_connection(Way_In) && owner->hasWireConnectedTo(_member) )
+    if (followConnections && owner && _member->allows_connection(Way_In) && owner->has_wire_connected_to(_member) )
     {
-        Member*           sourceMember      = owner->getSourceMemberOf(_member);
-        InvokableComponent* compute_component = sourceMember->get_owner()->get<InvokableComponent>();
+        Member* src_member = _member->get_input();
+        InvokableComponent* compute_component = src_member->get_owner()->get<InvokableComponent>();
 
         if ( compute_component )
         {
@@ -218,7 +218,7 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
         }
         else
         {
-            serialize(_result, sourceMember, false);
+            serialize(_result, src_member, false);
         }
     }
     else
@@ -288,7 +288,7 @@ std::string& Serializer::serialize(std::string& _result, const Scope* _scope) co
 {
 
     serialize(_result, _scope->get_begin_scope_token() );
-    auto children = _scope->get_owner()->get_children();
+    auto& children = _scope->get_owner()->children_slots();
     if (!children.empty())
     {
         for( auto& eachChild : children )

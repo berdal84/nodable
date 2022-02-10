@@ -48,7 +48,7 @@ bool MemberConnector::hasSameParentWith(const MemberConnector* other) const
 
 bool MemberConnector::connect(const MemberConnector *other) const
 {
-    auto graph = getMember()->get_owner()->getParentGraph();
+    auto graph = getMember()->get_owner()->get_parent_graph();
     // TODO: handle incompatibility
     graph->connect(getMember(), other->getMember());
     return true;
@@ -102,7 +102,7 @@ void MemberConnector::Draw(
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
             auto member = _connector->getMember();
-            auto graph  = member->get_owner()->getParentGraph();
+            auto graph  = member->get_owner()->get_parent_graph();
             graph->disconnect( member, _connector->m_way );
         }
 

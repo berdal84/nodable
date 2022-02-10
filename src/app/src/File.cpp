@@ -46,10 +46,10 @@ File::File( std::string _path, const char* _content)
 #endif
 	// GraphNode
     m_graph = new GraphNode( m_language, m_factory );
-    m_graph->setLabel( getName() + "'s inner container");
+    m_graph->set_label(getName() + "'s inner container");
 
 #ifndef NODABLE_HEADLESS
-    m_graph->addComponent( new GraphNodeView() );
+    m_graph->add_component(new GraphNodeView());
 #endif
 
     LOG_VERBOSE( "File", "Constructor being called.\n");
@@ -132,7 +132,7 @@ bool File::update() {
         }
 
         auto scope = m_graph->getProgram();
-        if ( scope && !scope->get_children().empty() )
+        if ( scope && !scope->children_slots().empty() )
         {
             std::string code;
             m_language->getSerializer()->serialize(code, scope );

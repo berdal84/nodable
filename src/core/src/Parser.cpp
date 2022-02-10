@@ -103,7 +103,7 @@ bool Parser::source_code_to_graph(const std::string &_source_code, GraphNode *_g
     // We unset dirty, since we did a lot of connections but we don't want any update now
     auto& nodes = m_graph->getNodeRegistry();
     for(auto eachNode : nodes )
-        eachNode->setDirty(false);
+        eachNode->set_dirty(false);
 
 	LOG_MESSAGE("Parser", "Program tree updated.\n", _source_code.c_str() )
 	LOG_VERBOSE("Parser", "Source code: <expr>%s</expr>\"\n", _source_code.c_str() )
@@ -272,7 +272,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 
         m_graph->connect(_left, computeComponent->get_l_handed_val());
         m_graph->connect(right, computeComponent->get_r_handed_val());
-		result = binOpNode->getProps()->get("value");
+		result = binOpNode->props()->get(Node::VALUE_MEMBER_NAME);
 
         commit_transaction();
         LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
@@ -336,7 +336,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
         computeComponent->set_source_token(operatorToken);
 
         m_graph->connect(value, computeComponent->get_l_handed_val());
-        Member* result = unaryOpNode->getProps()->get("value");
+        Member* result = unaryOpNode->props()->get(Node::VALUE_MEMBER_NAME);
 
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
         commit_transaction();
@@ -564,7 +564,7 @@ AbstractScope* Parser::parse_code_block(bool _create_scope)
         }
     }
 
-    if (curr_scope->get_owner()->get_children().empty() )
+    if (curr_scope->get_owner()->children_slots().empty() )
     {
         rollback_transaction();
         return nullptr;
@@ -839,7 +839,7 @@ Member* Parser::parse_function_call()
                     .at(_argIndex)
                     .m_name;
 
-            m_graph->connect(arg, node->getProps()->get(memberName.c_str()));
+            m_graph->connect(arg, node->props()->get(memberName.c_str()));
         };
 
         for (size_t argIndex = 0; argIndex < fct->get_signature()->get_arg_count(); argIndex++)
@@ -850,7 +850,7 @@ Member* Parser::parse_function_call()
         commit_transaction();
         LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
-        return node->getProps()->get("value");
+        return node->props()->get(Node::VALUE_MEMBER_NAME);
 
     }
 

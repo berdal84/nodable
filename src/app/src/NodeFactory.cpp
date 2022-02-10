@@ -115,5 +115,5 @@ LiteralNode* NodeFactory::newLiteral(const Type &type) const
 
 void NodeFactory::AddView(Node* _node)
 {
-    _node->addComponent(new NodeView());
+    _node->add_component(new NodeView());
 }

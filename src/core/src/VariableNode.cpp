@@ -13,7 +13,7 @@ VariableNode::VariableNode(Reflect::Type _type)
         m_identifier_token(nullptr),
         m_assignment_operator_token(nullptr)
 {
-	m_value = m_props.add("value", Visibility::Always, _type, Way_InOut);
+	m_value = m_props.add(Node::VALUE_MEMBER_NAME, Visibility::Always, _type, Way_InOut);
 }
 
 bool VariableNode::eval() const
@@ -31,14 +31,14 @@ void VariableNode::set_name(const char* _name)
     std::string str = Reflect::to_string( m_value->get_type() );
     str.append(" ");
     str.append( _name );
-	setLabel(str);
+    set_label(str);
 
 	if (m_name.length() > 4)
     {
-        setShortLabel(m_name.substr(0, 3).append("..").c_str());
+        set_short_label(m_name.substr(0, 3).append("..").c_str());
     }
     else
     {
-        setShortLabel(_name);
+        set_short_label(_name);
     }
 }

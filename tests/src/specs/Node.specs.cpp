@@ -10,7 +10,7 @@ using namespace Nodable::Reflect;
 TEST(Node, Add_member_Double)
 {
     Node node;
-    auto props = node.getProps();
+    auto props = node.props();
     props->add("val", Visibility::Default, Type_Double, Way_Default);
     props->get("val")->set(100.0);
 

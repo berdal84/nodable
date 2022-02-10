@@ -44,6 +44,56 @@ namespace Nodable {
 	{
 	public:
 
+        /**
+         * @brief Slots is a container with limited size
+         * TODO: make it generic to use it with Wires too.
+         */
+        template<typename T>
+        struct Slots
+        {
+            Slots(T _parent, size_t _max_count = std::numeric_limits<size_t>::max() ): m_parent( _parent ), m_max_count(_max_count) {}
+
+            std::vector<T>&       get_data() { return m_slots; }
+            const std::vector<T>& get_data() const { return m_slots; }
+            auto        begin() { return m_slots.begin(); }
+            auto        end() { return m_slots.end(); }
+            void        set_max_count(int _count) { m_max_count = _count;}
+            int         get_max_count() { return m_max_count;}
+            T           back() { return m_slots.back(); }
+
+            void remove(T _node)
+            {
+                auto found = std::find(m_slots.begin(), m_slots.end(), _node);
+                m_slots.erase(found);
+                m_on_removed.emit(_node);
+            }
+
+            void add(T _node)
+            {
+                NODABLE_ASSERT(m_slots.size() < m_max_count);
+                m_slots.push_back(_node );
+                m_on_added.emit(_node);
+            }
+
+            bool        accepts()const { return m_slots.size() < m_max_count; }
+
+            T   get_first_or_nullptr()
+            {
+                return m_slots.empty() ? nullptr : m_slots[0];
+            }
+
+            bool        empty() const { return m_slots.empty(); }
+            size_t      size() const { return m_slots.size(); }
+            T          operator[](size_t _index)const { return m_slots[_index]; }
+
+            observe::Event<T> m_on_added;
+            observe::Event<T> m_on_removed;
+        private:
+            T          m_parent;
+            size_t      m_max_count;
+            std::vector<T> m_slots;
+        };
+
 	    /**
 	     * Create a new Node
 	     * @param _label
@@ -53,118 +103,55 @@ namespace Nodable {
         Node& operator= (const Node&) = delete;
 		virtual ~Node();
 
-        observe::Event<Node*, Relation_t> m_onRelationAdded;
-        observe::Event<Node*, Relation_t> m_onRelationRemoved;
+		virtual Node*        get_parent()const { return m_parent; }
+        virtual void         set_parent(Node*);
 
-		virtual Node*                     get_parent()const { return m_parent; }
-        virtual void                      set_parent(Node *_node);
+        Slots<Node*>&        children_slots() { return m_children; }
+        const Slots<Node*>&  children_slots()const { return m_children; }
 
-		virtual std::vector<Node*>&       get_children() { return m_children; }
-        virtual const std::vector<Node*>& get_children()const { return m_children; }
-        virtual void                      add_child(Node *_node);
-		virtual void                      remove_Child(Node *_node);
+        inline GraphNode*    get_parent_graph()const { return m_parent_graph; }
+        void                 set_parent_graph(GraphNode*);
+		GraphNode*           get_inner_graph()const;
+		void                 get_inner_graph(GraphNode*);
 
-        inline GraphNode*                 getParentGraph()const { return this->m_parentGraph; }
-        void                              setParentGraph(GraphNode* _parentGraph);
-		GraphNode*                        getInnerGraph()const;
-		void                              setInnerGraph(GraphNode*);
+        Slots<Node*>&        input_slots() { return m_inputs; };
+        const Slots<Node*>&  input_slots() const{ return m_inputs; };
+        Slots<Node*>&        output_slots(){ return m_outputs; };
+        Slots<Node*>&        successor_slots() { return m_successors; }
+        Slots<Node*>&        predecessor_slots() { return m_predecessors; }
 
-        void                addInput(Node *_node);
-        void                addOutput(Node *_node);
-        void                removeInput(Node *_node);
-        void                removeOutput(Node *_node);
-        std::vector<Node*>& getInputs();
-        const std::vector<Node*>& getInputs() const;
-        std::vector<Node*>& getOutputs();
+        bool                 needs_to_be_deleted() const { return m_needs_to_be_deleted; }
+        void                 flag_for_deletion(){ m_needs_to_be_deleted = true;}
 
-        // TODO: create a NodeList container and reuse for next/prev/children/input/output
-        inline void         setNextMaxCount(int _count) { m_nextMaxCount = _count;}
-        inline int          getNextMaxCount() { return m_nextMaxCount;}
-        void                addNext(Node* _node);
-        const auto&         getNext() { return m_next; }
-        void                removeNext(Node* _node );
-        bool                accepts_next()const { return m_next.size() < m_nextMaxCount; }
+		const char*          get_label()const;
+        const char*          get_short_label()const;
+		void                 set_label(const char*);
+		void                 set_label(std::string);
+        void                 set_short_label(const char *);
 
-        inline void         setPrevMaxCount(int _count) { m_previousMaxCount = _count;}
-        inline int          getPrevMaxCount() { return m_previousMaxCount;}
-        void                addPrev(Node* _node);
-        const auto&         getPrev() { return m_previous; }
-        void                removePrev(Node* _node );
+		void                 add_wire(Wire*);
+		void                 remove_wire(Wire*);
+		Wires&               get_wires();
+		int                  get_input_wire_count ()const;
+		int                  get_output_wire_count()const;
 
-        bool needsToBeDeleted  () const { return m_deletedFlag; }
+		void                 set_dirty(bool _value = true);
+		bool                 is_dirty()const;
 
-        /* Set deleted flag on. Will be deleted by its controller next frame */
-        void                flagForDeletion   (){ m_deletedFlag = true;}
-
-		/**
-		 * Get the label of this Node
-		 * @return
-		 */
-		[[nodiscard]] const char* getLabel()const;
-
-        [[nodiscard]] const char* getShortLabel()const;
-
-		/** Update the label of the node.
-		   note: a label is not unique. */
-		virtual void updateLabel(){};
-
-		/** Set a label for this Node */
-		void setLabel (const char*);
-
-		/** Set a label for this Node */
-		void setLabel(std::string);
-
-        void setShortLabel(const char *_label);
-
-        /** Adds a new Wire connected to one of the Node's Members.*/
-		void addWire(Wire*);
-
-		/** Removes a wire from this Node
-		 * It doesn't mean that the wire is disconnected. */
-		void removeWire(Wire*);
-
-		/** Get all wires connected to one of the Node's Members.*/
-		Wires& getWires();
-
-		/** Get the input connected Wire count. */
-		[[nodiscard]] int getInputWireCount ()const;
-
-		/** Get the output connected Wire count. */
-		[[nodiscard]] int getOutputWireCount()const;
-
-		/** Force this node to be evaluated at the next update() call */
-		void setDirty(bool _value = true);
-
-		/** return true if this node needs to be updated and false otherwise */
-		[[nodiscard]] bool isDirty()const;
-		
-		/** Update the state of this (and only this) node
-		 * This WON'T evaluate it */
 		virtual UpdateResult update();
-        virtual bool eval() const;
+        virtual bool         eval() const;
 
-		/** Get the operator connected to a given Member */
-        const InvokableOperator* getConnectedOperator(const Member* _localMember);
+        const InvokableOperator* get_connected_operator(const Member* _localMember); // TODO: weird, try to understand why I needed this
+        bool                 has_wire_connected_to(const Member *_localMember);
 
-        /**
-         * Return true is the local member is connected, false otherwise.
-         *
-         * source (?) ------> target (_localMember)
-         *
-         * @param _localMember
-         * @return
-         */
-        bool hasWireConnectedTo(const Member *_localMember);
+        template<class T> inline T*       as() { return Reflect::cast_pointer<T>(this); }
+        template<class T> inline const T* as()const { return Reflect::cast_pointer<const T>(this); }
+        template<class T> inline bool     is()const { return as<T>() != nullptr; }
 
-        /** Get the source Member of a given local Member.
-         * A source Member is connected to another as a source.
-         *
-         * source ------> target (_localMember)
-         *
-         * @param _localMember
-         * @return
-         */
-        Member* getSourceMemberOf(const Member *_localMember);
+        Properties*          props() { return &m_props; }
+        const Properties*    props()const { return &m_props; }
+
+        Member*              get_this_member()const { return props()->get(THIS_MEMBER_NAME);}
 
 		 /**
 		  * Add a component to this Node
@@ -173,7 +160,7 @@ namespace Nodable {
 		  * @param _component
 		  */
 		template<typename T>
-		void addComponent(T* _component)
+		void add_component(T* _component)
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
             NODABLE_ASSERT( _component != nullptr );
@@ -196,7 +183,7 @@ namespace Nodable {
 		/**
 		 * Get all components of this Node
 		 */
-		[[nodiscard]] inline const Components& getComponents()const
+		[[nodiscard]] inline const Components& get_components()const
 		{
 			return m_components;
 		}
@@ -206,7 +193,7 @@ namespace Nodable {
 		  * @tparam T must be Component derived.
 		  */
 		template<typename T>
-		void deleteComponent()
+		void delete_component()
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
 			auto name = T::Get_class()->get_name();
@@ -255,7 +242,7 @@ namespace Nodable {
 		};
 
         template<class T>
-		static void GetComponents(const std::vector<Node*>& inNodes, std::vector<T*>& outComponents)
+		static void get_components(const std::vector<Node*>& inNodes, std::vector<T*>& outComponents)
         {
 		    // ensure a single alloc
 		    outComponents.reserve(inNodes.size());
@@ -265,41 +252,33 @@ namespace Nodable {
                     outComponents.push_back(view);
         }
 
+        size_t delete_components();
+        [[nodiscard]] size_t get_component_count() const;
 
-        size_t deleteComponents();
-        [[nodiscard]] size_t getComponentCount() const;
+        observe::Event<Node*, Relation_t> m_on_relation_added;
+        observe::Event<Node*, Relation_t> m_on_relation_removed;
 
-        template<class T> [[nodiscard]] inline       T* as()      { return Reflect::cast_pointer<T>(this); }
-        template<class T> [[nodiscard]] inline const T* as()const { return Reflect::cast_pointer<const T>(this); }
-        template<class T> [[nodiscard]] inline bool is()const { return as<T>() != nullptr; }
-
-        Properties*       getProps() { return &m_props; }
-        const Properties* getProps()const { return &m_props; }
-        Member*           get_this_member()const { return getProps()->get("this");}
-
+        static constexpr const char* VALUE_MEMBER_NAME = "value";
+        static constexpr const char* THIS_MEMBER_NAME = "__this__";
 	protected:
         Properties         m_props;
 		Components         m_components;
         Node*              m_parent;
-        std::vector<Node*> m_next;
-        int                m_previousMaxCount;
-        int                m_nextMaxCount;
-        std::vector<Node*> m_previous;
-        std::vector<Node*> m_children;
-        bool               m_deletedFlag;
+        Slots<Node*>       m_successors;
+        Slots<Node*>       m_predecessors;
+        Slots<Node*>       m_children;
+        bool               m_needs_to_be_deleted;
 
     private:
-		GraphNode*         m_innerGraph;
-		GraphNode*         m_parentGraph;
+		GraphNode*         m_inner_graph;
+		GraphNode*         m_parent_graph;
 		std::string        m_label;
-		std::string        m_shortLabel;
+		std::string        m_short_label;
 		bool               m_dirty;
 		Wires              m_wires;
-		std::vector<Node*> m_inputs;
-		std::vector<Node*> m_outputs;
+        Slots<Node*>       m_inputs;
+        Slots<Node*>       m_outputs;
 
-	public:
 		REFLECT(Node)
-    Node *getFirstNext();
     };
 }
