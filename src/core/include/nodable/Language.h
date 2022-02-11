@@ -24,14 +24,14 @@ namespace Nodable {
     class Parser;
 
 	/**
-		The role of this class is to define an interface for all languages in Nodable.
-
-		using this class we can:
-		- serialize tokens, functions (calls and signatures) an operators (binary and unary).
-		- convert TokenType (abstract) to Type (Nodable types)
-		- create, add and find functions.
-		- create, add and find operators.
-
+	 * @brief The role of this class is to define a base abstract class for all languages.
+	 *
+	 * Using this class we can:
+	 * - serialize tokens, functions (calls and signatures) an operators (binary and unary).
+	 * - convert TokenType (abstract) to Type (Nodable types)
+	 * - create, add and find functions.
+	 * - create, add and find operators.
+	 * - etc.
 	 */
 	class Language {
 	public:
