@@ -357,22 +357,21 @@ bool AppView::draw()
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("Run")) {
-                    auto vm = m_context->app->getVM();
-
-                    if (ImGui::MenuItem(ICON_FA_PLAY" Run") && vm.is_program_stopped()) {
+                if (ImGui::BeginMenu("Run"))
+                {
+                    if (ImGui::MenuItem(ICON_FA_PLAY" Run") && m_context->vm->is_program_stopped()) {
                         m_context->app->runCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_BUG" Debug") && vm.is_program_stopped()) {
+                    if (ImGui::MenuItem(ICON_FA_BUG" Debug") && m_context->vm->is_program_stopped()) {
                         m_context->app->debugCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && vm.is_debugging()) {
+                    if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && m_context->vm->is_debugging()) {
                         m_context->app->stepOverCurrentFileProgram();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !vm.is_program_stopped()) {
+                    if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !m_context->vm->is_program_stopped()) {
                         m_context->app->stopCurrentFileProgram();
                     }
 
@@ -477,10 +476,10 @@ bool AppView::draw()
 
             if ( ImGui::Begin("Assembly") )
             {
-                const Asm::Code* code = m_context->app->getVM().get_program_asm_code();
+                const Asm::Code* code = m_context->vm->get_program_asm_code();
                 if ( code  )
                 {
-                    auto current_instr = m_context->app->getVM().get_next_instr();
+                    auto current_instr = m_context->vm->get_next_instr();
                     for( Asm::Instr* each_instr : code->get_instructions() )
                     {
                         auto str = Asm::Instr::to_string( *each_instr ).c_str();
@@ -932,7 +931,7 @@ void AppView::draw_tool_bar()
         ImGui::PushStyleColor(ImGuiCol_Button, m_context->settings->ui_button_activeColor);
     if (ImGui::Button(ICON_FA_BUG, m_context->settings->ui_toolButton_size) && m_context->vm->is_program_stopped())
     {
-        m_context->vm->debug_program();
+        m_context->app->debugCurrentFileProgram();
     }
     if ( isDebugging )
         ImGui::PopStyleColor();

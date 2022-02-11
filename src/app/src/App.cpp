@@ -148,29 +148,29 @@ Node* App::getCurrentFileProgram() const
 void App::runCurrentFileProgram()
 {
     Node* program = getCurrentFileProgram();
-    if (program && m_vm.load_program(program) )
+    if (program && m_context->vm->load_program(program) )
     {
-        m_vm.run_program();
+        m_context->vm->run_program();
     }
 }
 
 void App::debugCurrentFileProgram()
 {
     Node* program = getCurrentFileProgram();
-    if (program && m_vm.load_program(program) )
+    if (program && m_context->vm->load_program(program) )
     {
-        m_vm.debug_program();
+        m_context->vm->debug_program();
     }
 }
 
 void App::stepOverCurrentFileProgram()
 {
-    m_vm.step_over();
-    if (m_vm.is_program_over() )
+    m_context->vm->step_over();
+    if (m_context->vm->is_program_over() )
     {
         NodeView::SetSelected(nullptr);
     }
-    else if ( auto view = m_vm.get_next_node()->get<NodeView>() )
+    else if ( auto view = m_context->vm->get_next_node()->get<NodeView>() )
     {
         NodeView::SetSelected(view);
     }
@@ -178,15 +178,15 @@ void App::stepOverCurrentFileProgram()
 
 void App::stopCurrentFileProgram()
 {
-    m_vm.stop_program();
+    m_context->vm->stop_program();
 }
 
 void App::resetCurrentFileProgram()
 {
     if ( auto currFile = getCurrentFile() )
     {
-        if(m_vm.is_program_running())
-            m_vm.stop_program();
+        if(m_context->vm->is_program_running())
+            m_context->vm->stop_program();
 
         // TODO: restore graph state without parsing again like that:
         currFile->evaluateSelectedExpression();

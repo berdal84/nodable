@@ -277,7 +277,7 @@ bool VM::step_over()
 
 void VM::debug_program()
 {
-    NODABLE_ASSERT(this->m_program_graph != nullptr);
+    NODABLE_ASSERT(m_program_graph != nullptr);
     m_is_debugging = true;
     m_is_program_running = true;
     reset_cursor();

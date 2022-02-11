@@ -120,8 +120,6 @@ namespace Nodable
 		 */
 		void setCurrentFileWithIndex(size_t _index);
 
-        inline Asm::VM& getVM() { return m_vm; }
-
         Node* getCurrentFileProgram() const;
 
         // shortcuts to virtual machine:
@@ -139,7 +137,6 @@ namespace Nodable
 		bool        m_quit = false;
 		std::vector<File*> m_loadedFiles;
 		size_t      m_currentFileIndex;
-        Asm::VM     m_vm;
         std::string m_name;
         const ghc::filesystem::path m_assetsFolderPath;
     };
