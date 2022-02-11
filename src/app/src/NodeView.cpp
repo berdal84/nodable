@@ -517,13 +517,12 @@ bool NodeView::drawMemberView(MemberView* _view )
     Member* member = _view->m_member;
 
     // show/hide
-    const bool member_is_an_unconnected_input = member->get_input() != nullptr || !member->allows_connection(Way_In);
+    const bool member_is_an_unconnected_input = member->get_input() != nullptr && member->allows_connection(Way_Out);
 
     const Reflect::Class* owner_class = member->get_owner()->get_class();
 
     _view->m_showInput =
-            member->is_defined()
-        &&
+         member_is_an_unconnected_input || owner_class->is<VariableNode>() || owner_class->is<LiteralNode>() ||
         (
             ( _view->m_touched && !member->is_type(Type::Type_Pointer) )
             ||
