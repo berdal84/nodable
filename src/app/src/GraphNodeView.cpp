@@ -266,6 +266,7 @@ bool GraphNodeView::draw()
 		Node* newNode = nullptr;
         bool is_dragging_node_connector = NodeConnector::GetDragged() != nullptr;
         bool is_dragging_member_connector = MemberConnector::GetDragged() != nullptr;
+        Member *dragged_member_conn = is_dragging_node_connector ? MemberConnector::GetDragged()->getMember() : nullptr;
 
 		// Title :
 		ImGuiEx::ColoredShadowedText( vec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
@@ -333,7 +334,7 @@ bool GraphNodeView::draw()
         }
 
 
-        Member *dragged_member_conn = MemberConnector::GetDragged()->getMember();
+
         if ( !is_dragging_node_connector )
         {
             Node *root_node = graph->get_root();
