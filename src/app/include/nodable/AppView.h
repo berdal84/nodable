@@ -48,6 +48,8 @@ namespace Nodable
         void draw_background();
         void draw_properties_editor();
         void draw_tool_bar();
+        void draw_vm_view();
+
         ImFont* load_font(const FontConf &fontConf);
         ImFont* get_font_by_id(const char *id);
 
@@ -63,14 +65,15 @@ namespace Nodable
         bool               m_show_startup_window;
         bool               m_show_properties_editor;
         bool               m_show_imgui_demo;
+        bool               m_scroll_to_curr_instr;
         std::map<std::string, ImFont*>      m_loaded_fonts; // All fonts loaded in memory
         std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
 
-        static constexpr const char* k_imgui_window_name = "ImGui";
-        static constexpr const char* k_settings_window_name = "App. Settings";
-        static constexpr const char* k_properties_window_name = "Properties";
-        static constexpr const char* k_file_info_window_name = "File Info.";
-        static constexpr const char* k_assembly_window_name = "Assembly-like";
+        static constexpr const char* k_imgui_settings_window_name = "ImGui";
+        static constexpr const char* k_app_settings_window_name = "App";
+        static constexpr const char* k_node_props_window_name = "Node";
+        static constexpr const char* k_file_info_window_name = "File";
+        static constexpr const char* k_assembly_window_name = "VM";
 
         REFLECT_DERIVED(AppView)
         REFLECT_EXTENDS(View)

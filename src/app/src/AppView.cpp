@@ -30,6 +30,7 @@ AppView::AppView(AppContext* _ctx, const char* _name )
     , m_sdl_window_name(_name)
     , m_show_properties_editor(false)
     , m_show_imgui_demo(false)
+    , m_scroll_to_curr_instr(true)
 {
 }
 
@@ -282,16 +283,14 @@ bool AppView::draw()
                     if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) m_context->app->saveCurrentFile();
                     if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) m_context->app->closeCurrentFile();
 
-                    FileView* fileView = nullptr;
+                    FileView *fileView = nullptr;
                     bool auto_paste;
-                    if ( auto file = m_context->app->getCurrentFile())
-                    {
+                    if (auto file = m_context->app->getCurrentFile()) {
                         fileView = file->getView();
                         auto_paste = fileView->experimental_clipboard_auto_paste();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, fileView))
-                    {
+                    if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, fileView)) {
                         fileView->experimental_clipboard_auto_paste(!auto_paste);
                     }
 
@@ -308,9 +307,9 @@ bool AppView::draw()
                     }
 
                     auto has_selection = NodeView::GetSelected() != nullptr;
-                    delete_node  |= ImGui::MenuItem("Delete", "Del.", false, has_selection);
+                    delete_node |= ImGui::MenuItem("Delete", "Del.", false, has_selection);
                     arrange_node |= ImGui::MenuItem("Arrange nodes", "A", false, has_selection);
-                    expand_node  |= ImGui::MenuItem("Expand (toggle)", "X", false, has_selection);
+                    expand_node |= ImGui::MenuItem("Expand (toggle)", "X", false, has_selection);
                     ImGui::EndMenu();
                 }
 
@@ -335,7 +334,8 @@ bool AppView::draw()
                     }
 
                     ImGui::Separator();
-                    m_show_properties_editor = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "", m_show_properties_editor);
+                    m_show_properties_editor = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "",
+                                                               m_show_properties_editor);
                     m_show_imgui_demo = ImGui::MenuItem("Show ImGui Demo", "", m_show_imgui_demo);
 
                     ImGui::Separator();
@@ -356,8 +356,7 @@ bool AppView::draw()
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("Run"))
-                {
+                if (ImGui::BeginMenu("Run")) {
                     if (ImGui::MenuItem(ICON_FA_PLAY" Run") && m_context->vm->is_program_stopped()) {
                         m_context->app->runCurrentFileProgram();
                     }
@@ -422,36 +421,50 @@ bool AppView::draw()
             ImGuiID dockspace_side_panel = ImGui::GetID("dockspace_side_panel");
 
 
-            if ( !m_is_layout_initialized)
-            {
+            if (!m_is_layout_initialized) {
                 ImGui::DockBuilderRemoveNode(dockspace_main); // Clear out existing layout
-                ImGui::DockBuilderAddNode(dockspace_main, ImGuiDockNodeFlags_DockSpace );
+                ImGui::DockBuilderAddNode(dockspace_main, ImGuiDockNodeFlags_DockSpace);
                 ImGui::DockBuilderSetNodeSize(dockspace_main, ImGui::GetMainViewport()->Size);
-                ImGui::DockBuilderSplitNode(dockspace_main, ImGuiDir_Right, m_context->settings->ui_layout_propertiesRatio, &dockspace_side_panel, NULL);
+                ImGui::DockBuilderSplitNode(dockspace_main, ImGuiDir_Right,
+                                            m_context->settings->ui_layout_propertiesRatio, &dockspace_side_panel,
+                                            NULL);
 
-                ImGui::DockBuilderDockWindow(k_properties_window_name, dockspace_side_panel);
+                ImGui::DockBuilderDockWindow(k_node_props_window_name, dockspace_side_panel);
                 ImGui::DockBuilderDockWindow(k_assembly_window_name, dockspace_side_panel);
-                ImGui::DockBuilderDockWindow(k_settings_window_name, dockspace_side_panel);
+                ImGui::DockBuilderDockWindow(k_app_settings_window_name, dockspace_side_panel);
                 ImGui::DockBuilderDockWindow(k_file_info_window_name, dockspace_side_panel);
-                ImGui::DockBuilderDockWindow(k_imgui_window_name, dockspace_side_panel);
-
+                ImGui::DockBuilderDockWindow(k_imgui_settings_window_name, dockspace_side_panel);
                 ImGui::DockBuilderFinish(dockspace_main);
                 m_is_layout_initialized = true;
             }
 
-             /*
-             * Fill the layout with content
-             */
+            /*
+            * Fill the layout with content
+            */
             ImGui::DockSpace(dockspace_main);
 
-            // Global Props
-            if (ImGui::Begin(k_settings_window_name))
+            if (ImGui::Begin(k_node_props_window_name)) {
+                NodeView *view = NodeView::GetSelected();
+                if (view) {
+                    ImGui::Indent(10.0f);
+                    NodeView::DrawNodeViewAsPropertiesPanel(view);
+                }
+            }
+            ImGui::End();
+
+            if (ImGui::Begin(k_assembly_window_name))
+            {
+                draw_vm_view();
+            }
+            ImGui::End();
+
+            if (ImGui::Begin(k_app_settings_window_name))
             {
                 draw_properties_editor();
             }
             ImGui::End();
 
-            if (ImGui::Begin(k_imgui_window_name))
+            if (ImGui::Begin(k_imgui_settings_window_name))
             {
                 ImGui::ShowStyleEditor();
             }
@@ -474,44 +487,6 @@ bool AppView::draw()
 
             }
             ImGui::End();
-
-            if ( ImGui::Begin(k_assembly_window_name) )
-            {
-                const Asm::Code* code = m_context->vm->get_program_asm_code();
-                if ( code  )
-                {
-                    auto current_instr = m_context->vm->get_next_instr();
-                    for( Asm::Instr* each_instr : code->get_instructions() )
-                    {
-                        auto str = Asm::Instr::to_string( *each_instr ).c_str();
-                        if ( each_instr == current_instr )
-                        {
-                            ImGui::TextColored( ImColor(200,0,0), ">%s", str );
-                        }
-                        else
-                        {
-                            ImGui::Text(  " %s", str );
-                        }
-                    }
-                } else
-                {
-                    ImGui::TextWrapped("When Nodable compiles source code, it will produce a x86_64 assembly-like code visible here. Try to compile, run or debug.");
-                }
-            }
-            ImGui::End(); // Compiler
-
-            // Selected Node Properties
-            if ( ImGui::Begin(k_properties_window_name) )
-            {
-                NodeView* view = NodeView::GetSelected();
-                if ( view )
-                {
-                    ImGui::Indent(10.0f);
-                    NodeView::DrawNodeViewAsPropertiesPanel(view);
-                }
-            }
-            ImGui::End(); // Selected Node Properties
-
 
             // Opened documents
             for (size_t fileIndex = 0; fileIndex < m_context->app->getFileCount(); fileIndex++)
@@ -590,6 +565,78 @@ bool AppView::draw()
         SDL_Delay((desiredFrameRate - ImGui::GetIO().DeltaTime) * 1000u );
 
     return false;
+}
+
+void AppView::draw_vm_view()
+{
+    ImGui::Text("Virtual Machine State");
+    ImGui::Separator();
+
+    Asm::VM* vm = m_context->vm;
+    if ( !vm )
+    {
+        ImGui::Text("Sorry... Apparently the Virtual Machine can't be found.");
+    }
+    else
+    {
+        // VM registers
+        {
+            ImGui::Indent();
+            ImGui::Text("VM is %s", vm->is_program_running() ? "running" : "stopped");
+            ImGui::Text("Debug: %s", vm->is_debugging() ? "ON" : "OFF");
+            auto *code = vm->get_program_asm_code();
+            ImGui::Text("Has program: %s", code ? "YES" : "NO");
+            if (code)
+            {
+                ImGui::Text("Program over: %s", vm->is_program_over() ? "YES" : "NO");
+
+            }
+            ImGui::Unindent();
+        }
+
+        // Assembly-like code
+        ImGui::Separator();
+        ImGui::Text("Loaded Program:");
+        ImGui::Separator();
+        {
+            ImGui::Indent();
+            ImGui::Checkbox("Auto-scroll to current line", &m_scroll_to_curr_instr);
+            ImGui::Separator();
+
+            ImGui::Text("Assembly-like source:");
+            ImGui::Separator();
+            {
+                ImGui::BeginChild("AssemblyCodeChild", ImGui::GetContentRegionAvail(), true );
+                const Code* code = vm->get_program_asm_code();
+                if ( code  )
+                {
+                    auto current_instr = vm->get_next_instr();
+                    for( Instr* each_instr : code->get_instructions() )
+                    {
+                        auto str = Instr::to_string( *each_instr ).c_str();
+                        if ( each_instr == current_instr )
+                        {
+                            if ( m_scroll_to_curr_instr && vm->is_program_running() )
+                            {
+                                ImGui::SetScrollHereY();
+                            }
+                            ImGui::TextColored( ImColor(200,0,0), ">%s", str );
+                        }
+                        else
+                        {
+                            ImGui::Text(  " %s", str );
+                        }
+                    }
+                }
+                else
+                {
+                    ImGui::TextWrapped("Nothing loaded, try to compile, run or debug.");
+                }
+                ImGui::EndChild();
+            }
+            ImGui::Unindent();
+        }
+    }
 }
 
 void AppView::draw_file_browser()
