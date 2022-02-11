@@ -28,7 +28,7 @@ bool GraphNodeView::draw()
     auto nodeRegistry = graph->getNodeRegistry();
 
 	auto origin = ImGui::GetCursorScreenPos();
-	ImGui::SetCursorPos(ImVec2(0,0));
+	ImGui::SetCursorPos(vec2(0,0));
 
     /*
        Draw Code Flow
@@ -50,13 +50,13 @@ bool GraphNodeView::draw()
                 float lineWidth = std::min(settings->ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
-                ImVec2 start = each_view->getScreenPos();
+                vec2 start = each_view->getScreenPos();
                 start.x -= std::max(each_view->getSize().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
                 start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
                 start.y += each_view->getSize().y * 0.5f; // align bottom
                 start.y += settings->ui_node_connector_height * 0.25f;
 
-                ImVec2 end = each_successor_view->getScreenPos();
+                vec2 end = each_successor_view->getScreenPos();
                 end.x -= each_successor_view->getSize().x * 0.5f;
                 end.x += lineWidth * 0.5f;
                 end.y -= each_successor_view->getSize().y * 0.5f; // align top
@@ -78,8 +78,8 @@ bool GraphNodeView::draw()
         if (auto draggedMemberConnector = MemberConnector::GetDragged())
         {
             auto hoveredMemberConnector = MemberConnector::GetHovered();
-            ImVec2 start = draggedMemberConnector->getPos();
-            ImVec2 end   = hoveredMemberConnector ? hoveredMemberConnector->getPos() : ImGui::GetMousePos();
+            vec2 start = draggedMemberConnector->getPos();
+            vec2 end   = hoveredMemberConnector ? hoveredMemberConnector->getPos() : ImGui::GetMousePos();
             ImGui::GetWindowDrawList()->AddLine(start, end,getColor(ColorType_BorderHighlights), settings->ui_wire_bezier_thickness);
         }
 
@@ -87,8 +87,8 @@ bool GraphNodeView::draw()
         if (auto draggedNodeConnector = NodeConnector::GetDragged())
         {
             auto hoveredNodeConnector = NodeConnector::GetHovered();
-            ImVec2 start = draggedNodeConnector->getPos();
-            ImVec2 end   = hoveredNodeConnector ? hoveredNodeConnector->getPos() : ImGui::GetMousePos();
+            vec2 start = draggedNodeConnector->getPos();
+            vec2 end   = hoveredNodeConnector ? hoveredNodeConnector->getPos() : ImGui::GetMousePos();
             ImColor color(settings->ui_codeFlow_lineColor);
             ImColor shadowColor(settings->ui_codeFlow_lineShadowColor);
             ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, settings->ui_node_connector_width, 0.0f);
@@ -132,8 +132,8 @@ bool GraphNodeView::draw()
 
                         if ( src_member_view && dst_member_view )
                         {
-                            ImVec2 src_pos = src_member_view->m_out->getPos();
-                            ImVec2 dst_pos = dst_member_view->m_in->getPos();
+                            vec2 src_pos = src_member_view->m_out->getPos();
+                            vec2 dst_pos = dst_member_view->m_in->getPos();
 
                             // TODO: add multiple wire type settings
 
@@ -208,23 +208,23 @@ bool GraphNodeView::draw()
 	                    view->getScreenPos() - view->getSize() * 0.5f, 5.0f,
 	                    ImColor(255,0,0) );
 
-	            ImVec2 linePos = view->getScreenPos() + ImVec2(-view->getSize().x * 0.5f - 10.0f, 0.5f);
+	            vec2 linePos = view->getScreenPos() + vec2(-view->getSize().x * 0.5f - 10.0f, 0.5f);
 	            float size = 20.0f;
 	            float width = 2.0f;
 	            ImColor color = ImColor(255,255,255);
 	            draw_list->AddLine(
 	                    linePos,
-                        linePos - ImVec2(size, 0.0f),
+                        linePos - vec2(size, 0.0f),
                         color,
                         width);
                 draw_list->AddLine(
                         linePos,
-                        linePos - ImVec2(size * 0.5f, -size * 0.5f),
+                        linePos - vec2(size * 0.5f, -size * 0.5f),
                         color,
                         width);
                 draw_list->AddLine(
                         linePos,
-                        linePos - ImVec2(size * 0.5f, size * 0.5f),
+                        linePos - vec2(size * 0.5f, size * 0.5f),
                         color,
                         width);
             }
@@ -265,7 +265,7 @@ bool GraphNodeView::draw()
         bool is_dragging_member_connector = MemberConnector::GetDragged() != nullptr;
 
 		// Title :
-		ImGuiEx::ColoredShadowedText( ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
+		ImGuiEx::ColoredShadowedText( vec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
 		ImGui::Separator();
 
 		// lambda to draw operator/function submenus

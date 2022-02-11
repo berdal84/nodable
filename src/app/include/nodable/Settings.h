@@ -8,6 +8,7 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <nodable/FontConf.h>
 #include <nodable/FontSlot.h>
+#include <nodable/types.h>
 
 namespace Nodable {
 
@@ -24,33 +25,33 @@ namespace Nodable {
         float  ui_wire_bezier_roundness;
         float  ui_wire_bezier_thickness;
         bool   ui_wire_displayArrows;
-        ImVec4 ui_wire_fillColor;
-        ImVec4 ui_wire_shadowColor;
+        vec4 ui_wire_fillColor;
+        vec4 ui_wire_shadowColor;
         float  ui_node_memberConnectorRadius;
         float  ui_node_padding;
-        ImVec4 ui_node_variableColor;
-        ImVec4 ui_node_invokableColor;
-        ImVec4 ui_node_instructionColor;
-        ImVec4 ui_node_literalColor;
-        ImVec4 ui_node_shadowColor;
-        ImVec4 ui_node_borderHighlightedColor;
-        ImVec4 ui_node_borderColor;
-        ImVec4 ui_node_highlightedColor;
-        ImVec4 ui_node_fillColor;
-        ImVec4 ui_node_nodeConnectorColor;
-        ImVec4 ui_node_nodeConnectorHoveredColor;
+        vec4 ui_node_variableColor;
+        vec4 ui_node_invokableColor;
+        vec4 ui_node_instructionColor;
+        vec4 ui_node_literalColor;
+        vec4 ui_node_shadowColor;
+        vec4 ui_node_borderHighlightedColor;
+        vec4 ui_node_borderColor;
+        vec4 ui_node_highlightedColor;
+        vec4 ui_node_fillColor;
+        vec4 ui_node_nodeConnectorColor;
+        vec4 ui_node_nodeConnectorHoveredColor;
         float  ui_node_spacing;
         float  ui_node_speed;
         float  ui_node_connector_height;
         float  ui_node_connector_padding;
         float  ui_layout_propertiesRatio;
         float  ui_node_connector_width;
-        ImVec4 ui_codeFlow_lineColor;
-        ImVec4 ui_codeFlow_lineShadowColor;
-        ImVec4 ui_button_activeColor;
-        ImVec4 ui_button_hoveredColor;
-        ImVec4 ui_button_color;
-        ImVec2 ui_toolButton_size;
+        vec4 ui_codeFlow_lineColor;
+        vec4 ui_codeFlow_lineShadowColor;
+        vec4 ui_button_activeColor;
+        vec4 ui_button_hoveredColor;
+        vec4 ui_button_color;
+        vec2 ui_toolButton_size;
         const char* ui_splashscreen_imagePath;
 
         void patch_imgui_style(ImGuiStyle&);

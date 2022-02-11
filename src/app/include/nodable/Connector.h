@@ -1,6 +1,6 @@
 #pragma once
-#include <imgui/imgui.h>
 #include <nodable/Way.h>
+#include <nodable/types.h>
 
 namespace Nodable {
 
@@ -14,7 +14,7 @@ namespace Nodable {
     class Connector
     {
     public:
-        virtual ImVec2   getPos()const = 0;
+        virtual vec2   getPos()const = 0;
         virtual bool     hasSameParentWith(const T *) const = 0;
         virtual bool     connect(const T*) const = 0;
 

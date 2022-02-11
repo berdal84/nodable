@@ -13,11 +13,11 @@ const MemberConnector*   MemberConnector::s_dragged = nullptr;
 const MemberConnector*   MemberConnector::s_hovered = nullptr;
 const MemberConnector*   MemberConnector::s_focused = nullptr;
 
-ImVec2 MemberConnector::getPos()const
+vec2 MemberConnector::getPos()const
 {
-    ImVec2 relative_pos_constrained = m_memberView->relative_pos();
+    vec2 relative_pos_constrained = m_memberView->relative_pos();
 
-    ImVec2 node_view_size = m_memberView->m_nodeView->getSize();
+    vec2 node_view_size = m_memberView->m_nodeView->getSize();
 
     if (m_display_side == Side::Top )
     {
@@ -38,7 +38,7 @@ ImVec2 MemberConnector::getPos()const
         relative_pos_constrained.x = node_view_size.x * 0.5f;
     }
 
-    return ImVec2( m_memberView->m_nodeView->getScreenPos() + relative_pos_constrained);
+    return vec2( m_memberView->m_nodeView->getScreenPos() + relative_pos_constrained);
 }
 
 bool MemberConnector::hasSameParentWith(const MemberConnector* other) const
@@ -82,11 +82,11 @@ void MemberConnector::Draw(
     auto connnectorScreenPos = _connector->getPos();
 
     // Unvisible Button on top of the Circle
-    ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+    vec2 cursorScreenPos = ImGui::GetCursorScreenPos();
     auto invisibleButtonOffsetFactor = 1.2f;
-    ImGui::SetCursorScreenPos(connnectorScreenPos - ImVec2(_radius * invisibleButtonOffsetFactor));
+    ImGui::SetCursorScreenPos(connnectorScreenPos - vec2(_radius * invisibleButtonOffsetFactor));
     ImGui::PushID(_connector);
-    bool clicked = ImGui::InvisibleButton("###", ImVec2(_radius * 2.0f * invisibleButtonOffsetFactor, _radius * 2.0f * invisibleButtonOffsetFactor));
+    bool clicked = ImGui::InvisibleButton("###", vec2(_radius * 2.0f * invisibleButtonOffsetFactor, _radius * 2.0f * invisibleButtonOffsetFactor));
     ImGui::PopID();
     ImGui::SetCursorScreenPos(cursorScreenPos);
     auto isItemHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);

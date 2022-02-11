@@ -31,7 +31,7 @@ namespace Nodable {
         Node*              getNode()const;
         Node*              getConnectedNode() const;
         ImRect             getRect()const;
-        ImVec2             getPos()const override;
+        vec2             getPos()const override;
         bool               connect(const NodeConnector *other) const override;
         virtual bool       hasSameParentWith(const NodeConnector *other) const override;
 

@@ -85,16 +85,16 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
 ImRect NodeConnector::getRect() const
 {
     Settings* settings = m_context->settings;
-    ImVec2 leftCornerPos = m_way == Way_In ? m_nodeView->getRect().GetTL() : m_nodeView->getRect().GetBL();
+    vec2 leftCornerPos = m_way == Way_In ? m_nodeView->getRect().GetTL() : m_nodeView->getRect().GetBL();
 
-    ImVec2 size(settings->ui_node_connector_width, settings->ui_node_connector_height);
+    vec2 size(settings->ui_node_connector_width, settings->ui_node_connector_height);
     ImRect rect(leftCornerPos, leftCornerPos + size);
-    rect.Translate(ImVec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
-    rect.Expand(ImVec2(- settings->ui_node_connector_padding, 0.0f));
+    rect.Translate(vec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
+    rect.Expand(vec2(- settings->ui_node_connector_padding, 0.0f));
     return rect;
 }
 
-ImVec2 NodeConnector::getPos()const
+vec2 NodeConnector::getPos()const
 {
     return getRect().GetCenter() + ImGuiEx::ToScreenPosOffset();
 }

@@ -235,7 +235,7 @@ bool AppView::draw()
     // Demo Window
     {
         if (m_show_imgui_demo){
-            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+            ImGui::SetNextWindowPos(vec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowDemoWindow(&m_show_imgui_demo);
         }
     }
@@ -267,7 +267,7 @@ bool AppView::draw()
 
         // Remove padding
         bool isMainWindowOpen = true;
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0.0f, 0.0f));
         ImGui::Begin("Nodable", &isMainWindowOpen, window_flags);
         {
             ImGui::PopStyleVar();
@@ -614,7 +614,7 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags = (file->isModified() ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0, 0));
 
     auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
     child_bg.w = 0;
@@ -641,14 +641,14 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
 
             // File View in the middle
             View* eachFileView = file->getView();
-            ImVec2 availSize = ImGui::GetContentRegionAvail();
+            vec2 availSize = ImGui::GetContentRegionAvail();
 
             if ( isCurrentFile )
             {
                 availSize.y -= ImGui::GetTextLineHeightWithSpacing();
             }
 
-            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0,0,0,0.35f) );
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, vec4(0,0,0,0.35f) );
             ImGui::PushFont(m_fonts[FontSlot_Code] );
             eachFileView->drawAsChild("FileView", availSize, false);
             ImGui::PopFont();
@@ -727,8 +727,8 @@ void AppView::draw_startup_window() {
         ImGui::OpenPopup(m_startup_screen_title);
     }
 
-    ImGui::SetNextWindowSizeConstraints(ImVec2(500,200), ImVec2(500,50000));
-    ImGui::SetNextWindowPos( ImGui::GetMainViewport()->GetCenter(), 0, ImVec2(0.5f,0.5f) );
+    ImGui::SetNextWindowSizeConstraints(vec2(500,200), vec2(500,50000));
+    ImGui::SetNextWindowPos( ImGui::GetMainViewport()->GetCenter(), 0, vec2(0.5f,0.5f) );
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
@@ -738,9 +738,9 @@ void AppView::draw_startup_window() {
         auto path = m_context->app->getAssetPath(m_context->settings->ui_splashscreen_imagePath);
         Texture* logo = m_context->texture_manager->get_or_create(path);
         ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
-        ImGui::Image((void*)(intptr_t)logo->image, ImVec2((float)logo->width, (float)logo->height));
+        ImGui::Image((void*)(intptr_t)logo->image, vec2((float)logo->width, (float)logo->height));
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(25.0f, 20.0f) );
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(25.0f, 20.0f) );
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
         {
@@ -799,20 +799,20 @@ void AppView::draw_status_bar() const {/*
 
     if( lastLog != nullptr )
     {
-        ImVec4 statusLineColor;
+        vec4 statusLineColor;
 
         switch ( lastLog->verbosity )
         {
             case Log::Verbosity::Error:
-                statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
+                statusLineColor  = vec4(0.5f, 0.0f, 0.0f,1.0f);
                 break;
 
             case Log::Verbosity::Warning:
-                statusLineColor  = ImVec4(0.5f, 0.0f, 0.0f,1.0f);
+                statusLineColor  = vec4(0.5f, 0.0f, 0.0f,1.0f);
                 break;
 
             default:
-                statusLineColor  = ImVec4(0.0f, 0.0f, 0.0f,0.5f);
+                statusLineColor  = vec4(0.0f, 0.0f, 0.0f,0.5f);
         }
 
         ImGui::TextColored(statusLineColor, "%s", lastLog->text.c_str());
@@ -837,7 +837,7 @@ void AppView::draw_history_bar(History *currentFileHistory) {
         auto availableWidth = ImGui::GetContentRegionAvailWidth();
         auto historyButtonWidth = fmin(historyButtonMaxWidth,
                                        availableWidth / float(historySize + 1) - historyButtonSpacing);
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(historyButtonSpacing, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(historyButtonSpacing, 0));
 
         for (size_t commandId = 0; commandId <= historySize; commandId++) {
             ImGui::SameLine();
@@ -847,12 +847,12 @@ void AppView::draw_history_bar(History *currentFileHistory) {
             // Draw an highlighted button for the current history position
             if (commandId == historyCurrentCursorPosition) {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-                ImGui::Button(label.c_str(), ImVec2(historyButtonWidth, historyButtonHeight));
+                ImGui::Button(label.c_str(), vec2(historyButtonWidth, historyButtonHeight));
                 ImGui::PopStyleColor();
 
                 // or a simple one for other history positions
             } else
-                ImGui::Button(label.c_str(), ImVec2(historyButtonWidth, historyButtonHeight));
+                ImGui::Button(label.c_str(), vec2(historyButtonWidth, historyButtonHeight));
 
             // Hovered item
             if (ImGui::IsItemHovered()) {
@@ -899,7 +899,7 @@ void AppView::draw_background()
         for( int y = 0; y < 5; y++ )
         {
             ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
-            ImGui::Image((void*)(intptr_t)logo->image, ImVec2((float)logo->width, (float)logo->height));
+            ImGui::Image((void*)(intptr_t)logo->image, vec2((float)logo->width, (float)logo->height));
         }
         ImGui::NewLine();
     }

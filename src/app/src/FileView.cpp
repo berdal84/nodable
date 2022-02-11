@@ -27,7 +27,7 @@ FileView::FileView(AppContext* _ctx, File *_file)
                 if ( graph_view )
                 {
                     ImRect graphViewRect = graph_view->getVisibleRect();
-                    ImVec2 newPos = graphViewRect.GetTL();
+                    vec2 newPos = graphViewRect.GetTL();
                     newPos.x += graphViewRect.GetSize().x * 0.33f;
                     newPos.y += program_view->getSize().y;
                     program_view->setPosition( newPos );
@@ -48,7 +48,7 @@ void FileView::init()
 
 bool FileView::draw()
 {
-    const ImVec2 margin(10.0f, 0.0f);
+    const vec2 margin(10.0f, 0.0f);
     auto availSize = ImGui::GetContentRegionAvail() - margin;
 
      // Splitter
@@ -71,7 +71,7 @@ bool FileView::draw()
      // TEXT EDITOR
     //------------
 
-    ImGui::BeginChild("file", ImVec2(m_childSize1, availSize.y), false);
+    ImGui::BeginChild("file", vec2(m_childSize1, availSize.y), false);
 
     auto previousCursorPosition = m_textEditor.GetCursorPosition();
     auto previousSelectedText = m_textEditor.GetSelectedText();
@@ -134,7 +134,7 @@ bool FileView::draw()
     {
         graphNodeView->update();
         auto flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        graphNodeView->drawAsChild("graph", ImVec2(m_childSize2, availSize.y), false, flags);
+        graphNodeView->drawAsChild("graph", vec2(m_childSize2, availSize.y), false, flags);
     }
     else
     {

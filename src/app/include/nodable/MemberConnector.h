@@ -39,7 +39,7 @@ namespace Nodable {
         MemberConnector& operator= (const MemberConnector&) = delete;
 
         Member*            getMember()const;
-        ImVec2             getPos()const override;
+        vec2             getPos()const override;
         bool               hasSameParentWith(const MemberConnector*)const override;
         bool               hasConnectedNode() const;
         bool               connect(const MemberConnector*)const override;

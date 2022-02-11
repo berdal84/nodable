@@ -19,7 +19,7 @@ View::View(AppContext* _ctx):
 	colors.insert({ ColorType_Shadow,           &settings->ui_node_shadowColor});
 }
 
-void View::setColor(ColorType_ _type, ImVec4* _color)
+void View::setColor(ColorType_ _type, vec4* _color)
 {
 	colors.insert_or_assign(_type, _color);
 }
@@ -29,7 +29,7 @@ ImColor View::getColor(ColorType_ _type) const
 	return  ImColor(*colors.at(_type));
 }
 
-bool View::drawAsChild(const char* _name, const ImVec2& _size, bool border, ImGuiWindowFlags flags)
+bool View::drawAsChild(const char* _name, const vec2& _size, bool border, ImGuiWindowFlags flags)
 {
 	bool result;
 

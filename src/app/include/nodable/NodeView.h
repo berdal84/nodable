@@ -5,7 +5,7 @@
 #include <cmath> // round()
 #include <algorithm>
 #include <observe/observer.h>
-#include <imgui/imgui.h>   // for ImVec2
+#include <imgui/imgui.h>   // for vec2
 
 #include <nodable/Nodable.h>    // for constants and forward declarations
 #include <nodable/View.h>       // base class
@@ -54,7 +54,7 @@ namespace Nodable
 	    void addMaster(NodeView*);
         void addSlaves(const std::vector<NodeView *> &vector);
         void addMasters(const std::vector<NodeView *> &vector);
-        ImVec2 m_offset;
+        vec2 m_offset;
 
     private:
         const AppContext* m_context;
@@ -89,16 +89,16 @@ namespace Nodable
 		/** Should be called once per frame to update the view */
 		bool update()override;
 
-		inline const ImVec2& getPos()const { return m_position; }
-		inline ImVec2 getPosRounded()const { return ImVec2(std::round(m_position.x), std::round(m_position.y)); }
+		inline const vec2& getPos()const { return m_position; }
+		inline vec2 getPosRounded()const { return vec2(std::round(m_position.x), std::round(m_position.y)); }
 
 		/** Set a new position (top-left corner relative) vector to this view */
-		void  setPosition(ImVec2);
+		void  setPosition(vec2);
 
 		/** Apply a translation vector to the view's position */
-		void translate(ImVec2, bool _recurse = false);
+		void translate(vec2, bool _recurse = false);
 
-		void translateTo(ImVec2 desiredPos, float _factor, bool _recurse = false);
+		void translateTo(vec2 desiredPos, float _factor, bool _recurse = false);
 		/** Arrange input nodes recursively while keeping this node position unchanged.
 		 *  Note: Some input connected Nodes can stay fixed if they are pinned. */
 		void arrangeRecursively(bool _smoothly = true);
@@ -166,14 +166,14 @@ namespace Nodable
 
         /** Get a MemberView given a Member */
         const MemberView*       getMemberView(const Member* _member)const;
-        inline ImVec2           getSize() const { return m_size; }
-        ImVec2                  getScreenPos();
+        inline vec2           getSize() const { return m_size; }
+        vec2                  getScreenPos();
         inline void             setPinned(bool b) { m_pinned = b; }
         inline bool             isPinned()const { return m_pinned; }
         inline bool             isDragged() { return s_draggedNode == this; }
         static ImRect           GetRect(const std::vector<NodeView *>&, bool _recursive = false, bool _ignorePinned = true, bool _ignoreMultiConstrained = true);
-        void                    addForceToTranslateTo(ImVec2 desiredPos, float _factor, bool _recurse = false);
-        void                    addForce(ImVec2 force, bool _recurse = false);
+        void                    addForceToTranslateTo(vec2 desiredPos, float _factor, bool _recurse = false);
+        void                    addForce(vec2 force, bool _recurse = false);
         void                    applyForces(float _dt, bool _recurse);
         void                    setChildrenVisible(bool _visible, bool _recursive = false);
         void                    setInputsVisible(bool _visible, bool _recursive = false);
@@ -189,11 +189,11 @@ namespace Nodable
         void            drawMemberViewConnector(MemberView* _view, Way _way, float _connectorRadius);
         bool            isMemberExposed(const Member *_member)const;
 
-        ImVec2          m_forces_sum;
-        ImVec2          m_last_frame_forces_sum;
+        vec2          m_forces_sum;
+        vec2          m_last_frame_forces_sum;
         bool            m_childrenVisible;
-		ImVec2          m_position;
-		ImVec2          m_size;
+		vec2          m_position;
+		vec2          m_size;
 		float           m_opacity;
 		bool            m_forceMemberInputVisible;
 		bool            m_pinned;
@@ -215,7 +215,7 @@ namespace Nodable
 		static NodeView*              s_selected;
 		static NodeView*              s_draggedNode;
         static const float            s_memberInputSizeMin;
-        static const ImVec2           s_memberInputToggleButtonSize;
+        static const vec2           s_memberInputToggleButtonSize;
         static std::vector<NodeView*> s_instances;
 
         // Reflect this class
@@ -231,7 +231,7 @@ namespace Nodable
  */
     class MemberView
     {
-        ImVec2            m_relative_pos;
+        vec2            m_relative_pos;
 
     public:
         Member*           m_member;
@@ -254,7 +254,7 @@ namespace Nodable
             m_showInput = false;
         }
 
-        ImVec2 relative_pos() const { return m_relative_pos; }
-        void relative_pos(ImVec2 _pos) { m_relative_pos = _pos; }
+        vec2 relative_pos() const { return m_relative_pos; }
+        void relative_pos(vec2 _pos) { m_relative_pos = _pos; }
     };
 }

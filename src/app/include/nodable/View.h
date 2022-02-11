@@ -51,14 +51,14 @@ namespace Nodable
 		 * @param flags
 		 * @return true if View has been modified.
 		 */
-		bool drawAsChild(const char* _name, const ImVec2& _size, bool border = false, ImGuiWindowFlags flags = 0);
+		bool drawAsChild(const char* _name, const vec2& _size, bool border = false, ImGuiWindowFlags flags = 0);
 
 		/**
 		 * Set a color for a given color type.
 		 * @param _type
 		 * @param _color an ImColor (see ImGui)
 		 */
-		void setColor(ColorType_ _type, ImVec4* _color );
+		void setColor(ColorType_ _type, vec4* _color );
 
 		/**
 		 * Get the color of a given color type.
@@ -137,7 +137,7 @@ namespace Nodable
 		/**
 		 * Color table
 		 */
-        std::map<ColorType_, ImVec4*> colors;
+        std::map<ColorType_, vec4*> colors;
 
 		REFLECT(View)
     };

@@ -32,7 +32,7 @@ void NodeViewConstraint::apply(float _dt)
             if( !slave->isPinned() && slave->isVisible())
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
-                ImVec2 newPos(bbox.GetCenter() - ImVec2(bbox.GetSize().x * 0.5 + settings->ui_node_spacing + slave->getRect().GetSize().x * 0.5, 0 ));
+                vec2 newPos(bbox.GetCenter() - vec2(bbox.GetSize().x * 0.5 + settings->ui_node_spacing + slave->getRect().GetSize().x * 0.5, 0 ));
                 slave->addForceToTranslateTo(newPos + m_offset, settings->ui_node_speed);
             }
 
@@ -45,7 +45,7 @@ void NodeViewConstraint::apply(float _dt)
             if( !slave->isPinned() && slave->isVisible() && slave->shouldFollowOutput(master))
             {
                 ImRect bbox = NodeView::GetRect(masters);
-                ImVec2 newPos(bbox.GetCenter() + ImVec2(0.0, -bbox.GetHeight() * 0.5f - settings->ui_node_spacing));
+                vec2 newPos(bbox.GetCenter() + vec2(0.0, -bbox.GetHeight() * 0.5f - settings->ui_node_spacing));
                 newPos.y -= settings->ui_node_spacing + slave->getSize().y / 2.0f;
                 newPos.x += settings->ui_node_spacing + slave->getSize().x / 2.0f;
 
@@ -97,7 +97,7 @@ void NodeViewConstraint::apply(float _dt)
                         verticalOffset *= -1.0f;
                     }
 
-                    ImVec2 new_pos = ImVec2(start_pos_x + size_x[node_index] / 2.0f, master->getPos().y + verticalOffset);
+                    vec2 new_pos = vec2(start_pos_x + size_x[node_index] / 2.0f, master->getPos().y + verticalOffset);
 
                     if ( eachSlave->shouldFollowOutput(master) )
                     {
@@ -118,8 +118,8 @@ void NodeViewConstraint::apply(float _dt)
                 // compute
                 auto masterRect = NodeView::GetRect(masters,false, true);
                 auto slaveRect = slave->getRect(true,true );
-                ImVec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
-                ImVec2 newPos(masterRect.GetCenter().x,slave->getPos().y + slaveMasterOffset.y + settings->ui_node_spacing);
+                vec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
+                vec2 newPos(masterRect.GetCenter().x,slave->getPos().y + slaveMasterOffset.y + settings->ui_node_spacing);
 
                 // apply
                 slave->addForceToTranslateTo(newPos + m_offset, settings->ui_node_speed, true);
@@ -133,7 +133,7 @@ void NodeViewConstraint::apply(float _dt)
             if ( !slave->isPinned() && slave->isVisible() )
             {
                 // compute
-                ImVec2 newPos(master->getPos() + ImVec2(0.0f, master->getSize().y));
+                vec2 newPos(master->getPos() + vec2(0.0f, master->getSize().y));
                 newPos.y += settings->ui_node_spacing + slave->getSize().y;
 
                 // apply
