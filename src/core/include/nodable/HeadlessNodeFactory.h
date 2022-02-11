@@ -1,3 +1,5 @@
+#pragma once
+
 #include <nodable/INodeFactory.h>
 
 #include <nodable/InvokableFunction.h>
@@ -12,7 +14,7 @@ namespace Nodable
     class HeadlessNodeFactory: public INodeFactory
     {
     public:
-        HeadlessNodeFactory(const Language* _language): INodeFactory(_language) {}
+        HeadlessNodeFactory(const Language* _language): m_language(_language) {}
         ~HeadlessNodeFactory() {}
 
         Node*                       newProgram()const override ;
@@ -31,5 +33,6 @@ namespace Nodable
 
     private:
         static void setupNodeLabels(Node *_node, const InvokableOperator *_operator);
+        const Language* m_language;
     };
 }

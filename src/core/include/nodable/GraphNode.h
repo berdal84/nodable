@@ -8,9 +8,10 @@
 #include <nodable/Component.h>
 #include <nodable/Node.h>
 #include <nodable/Language.h>
+#include <nodable/INodeFactory.h>
 
-namespace Nodable{
-
+namespace Nodable
+{
     // forward declaration
     class InstructionNode;
     class ConditionalStructNode;
@@ -18,6 +19,7 @@ namespace Nodable{
     class INodeFactory;
 
     typedef std::pair<const Relation_t, std::pair<Node*, Node*>> Relation;
+    typedef std::multimap<Relation::first_type , Relation::second_type> RelationRegistry;
 
     inline bool operator==(
             const Relation& _left,
@@ -27,78 +29,74 @@ namespace Nodable{
     }
 
     /**
-     * @brief
-     * The role of a GraphNode is to manage a set of Node and Wire stored in a m_program_root Node with a given language.
-     *
-     * @details
-     * Nodes and Wires are instantiated and destroyed by this class.
-     * The ScopedNode contain the structure of the program in which Nodes are used.
+     * @brief a GraphNode is a context for a set of Nodes and Wires. It is also used to connect Nodes and Members.
      */
-	class GraphNode: public Node {
+	class GraphNode: public Node
+	{
 	public:
 
-		explicit GraphNode(const Language* _language, const INodeFactory* _factory);
+		explicit GraphNode(const Language*, const INodeFactory*);
 		~GraphNode();
 
 		/** Update the graph by evaluating its nodes only when necessary. */
-        UpdateResult                update() override;
+        UpdateResult            update() override;
 
         /** Clear Graph. Delete all Nodes/Wires and reset scope */
-		void                        clear();
+		void                    clear();
 
-        [[nodiscard]] std::vector<Node*>&     getNodeRegistry() {return m_nodeRegistry;}
-        [[nodiscard]] std::vector<Wire*>&     getWireRegistry() {return m_wireRegistry;}
-        [[nodiscard]] inline const Language*  getLanguage()const { return m_language; }
-        [[nodiscard]] inline Node*            getProgram(){ return m_program_root; }
-        [[nodiscard]] bool                    hasProgram();
-        [[nodiscard]] std::multimap<Relation::first_type , Relation::second_type>& getRelationRegistry() {return m_relationRegistry;}
+        std::vector<Node*>&     get_node_registry() {return m_node_registry;}
+        std::vector<Wire*>&     get_wire_registry() {return m_wire_registry;}
+        const Language*         get_language()const { return m_language; }
+        Node*                   get_root(){ return m_root; }
+        RelationRegistry&       get_relation_registry() {return m_relation_registry;}
+        bool                    is_empty();
 
         /* node factory */
-        Node*                       newProgram();
-        InstructionNode*		    newInstruction_UserCreated();
-        InstructionNode*            newInstruction();
-		VariableNode*				newVariable(Reflect::Type, const std::string&, IScope*);
-		LiteralNode*                newLiteral(const Reflect::Type &type);
-		Node*                       newBinOp(const InvokableOperator*);
-		Node*                       newUnaryOp(const InvokableOperator*);
-        Node*                       newOperator(const InvokableOperator*);
-		Wire*                       newWire();
-		Node*                       newFunction(const IInvokable* _proto);
-        Node*                       newScope();
-        ConditionalStructNode*      newConditionalStructure();
-        ForLoopNode*                new_for_loop_node();
-        Node*                       newNode();
+        Node*                       create_root();
+        InstructionNode*		    create_instr_user();
+        InstructionNode*            create_instr();
+		VariableNode*				create_variable(Reflect::Type, const std::string&, IScope*);
+		LiteralNode*                create_literal(const Reflect::Type&);
+		Node*                       create_bin_op(const InvokableOperator*);
+		Node*                       create_unary_op(const InvokableOperator*);
+        Node*                       create_operator(const InvokableOperator*);
+		Wire*                       create_wire();
+		Node*                       create_function(const IInvokable*);
+        Node*                       create_scope();
+        ConditionalStructNode*      create_cond_struct();
+        ForLoopNode*                create_for_loop();
+        Node*                       create_node();
 
         /** Connects two Member using a Wire (oriented edge)
          *  If _from is not owned, _to will digest it and nullptr is return.
           * Otherwise a new Wire will be created ( _from -----> _to) and returned.
           */
-        Wire* connect(Member *_src_member, Member *_dst_member, ConnBy_ _connect_by = ConnectBy_Ref );
+        Wire* connect(Member* _src, Member* _dst, ConnBy_ _connect_by = ConnectBy_Ref );
 
         /**
          * Connect two nodes with a given connection type
          * ex: _source IS_CHILD_OF _target
         */
-        void connect(Node* _source, Node* _target, Relation_t, bool _sideEffects = true);
-        void connect(Node* _source, InstructionNode* _target);
-        void connect(Member* _source, VariableNode* _target);
-        void disconnect(Node* _source, Node* _target, Relation_t, bool _sideEffects = true);
-        void disconnect(Wire* _wire);
+        void connect(Node* _src, Node* _dst, Relation_t, bool _side_effects = true);
+        void connect(Node* _src, InstructionNode* _dst);
+        void connect(Member* _src, VariableNode* _dst);
+        void disconnect(Node* _src, Node* _dst, Relation_t, bool _side_effects = true);
+        void disconnect(Wire*);
         void disconnect(Member* _member, Way _way = Way_InOut);
-        void deleteNode(Node* _node);
+        void destroy(Node*);
     private:
-        void registerNode(Node* node);
-        void unregisterNode(Node* node);
-        void registerWire(Wire *_wire);
-        void unregisterWire(Wire *_wire);
-        void deleteWire(Wire* _wire);
+        void add(Node*);
+        void remove(Node*);
+        void add(Wire*);
+        void remove(Wire*);
+        void destroy(Wire*);
 
 	private:		
-		std::vector<Node*> m_nodeRegistry;
-		std::vector<Wire*> m_wireRegistry;
-		std::multimap<Relation::first_type , Relation::second_type> m_relationRegistry;
-		const Language* m_language;
-		Node*           m_program_root;
+		std::vector<Node*> m_node_registry;
+		std::vector<Wire*> m_wire_registry;
+		RelationRegistry   m_relation_registry;
+		const Language*    m_language;
+		Node*              m_root;
 		const INodeFactory* m_factory;
 
         REFLECT_DERIVED(GraphNode)

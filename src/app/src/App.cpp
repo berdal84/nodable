@@ -141,7 +141,7 @@ void App::closeFile(size_t _fileIndex)
 Node* App::getCurrentFileProgram() const
 {
     if ( File* file = getCurrentFile())
-        return file->getGraph()->getProgram();
+        return file->getGraph()->get_root();
     return nullptr;
 }
 

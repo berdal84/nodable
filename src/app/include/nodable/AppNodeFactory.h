@@ -1,3 +1,5 @@
+#pragma once
+
 #include <nodable/INodeFactory.h>
 #include <nodable/HeadlessNodeFactory.h>
 #include <nodable/Reflect.h>
@@ -14,7 +16,6 @@ namespace Nodable
     public:
         AppNodeFactory(AppContext* _ctx)
             : m_context(_ctx)
-            , INodeFactory(_ctx->language)
             , m_headless_node_factory(_ctx->language) {}
 
         ~AppNodeFactory() {}

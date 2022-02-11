@@ -16,23 +16,22 @@ FileView::FileView(AppContext* _ctx, File *_file)
         , m_hasChanged(false)
         , m_file(_file)
 {
-    m_observer.observe( _file->m_onExpressionParsedIntoGraph, [](Node* program)
+    m_observer.observe(_file->m_on_graph_changed_evt, [](GraphNode* _graph)
     {
-        if ( program )
+        if ( !_graph->is_empty() )
         {
-            NodeView* program_view = program->get<NodeView>();
-            View*     graph_view   = program->get_parent_graph()->get<GraphNodeView>();
-            if ( program_view )
-            {
-                if ( graph_view )
-                {
-                    ImRect graphViewRect = graph_view->getVisibleRect();
-                    vec2 newPos = graphViewRect.GetTL();
-                    newPos.x += graphViewRect.GetSize().x * 0.33f;
-                    newPos.y += program_view->getSize().y;
-                    program_view->setPosition( newPos );
-                }
+            Node* root = _graph->get_root();
 
+            NodeView* root_node_view = root->get<NodeView>();
+            View*     graph_view   = root->get_parent_graph()->get<GraphNodeView>();
+
+            if ( root_node_view && graph_view )
+            {
+                ImRect graphViewRect = graph_view->getVisibleRect();
+                vec2 newPos = graphViewRect.GetTL();
+                newPos.x += graphViewRect.GetSize().x * 0.33f;
+                newPos.y += root_node_view->getSize().y;
+                root_node_view->setPosition(newPos );
             }
         }
     });
@@ -205,8 +204,8 @@ void FileView::drawFileInfo() const
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %lu", m_file->getGraph()->getNodeRegistry().size());
-    ImGui::Text("Wire count: %lu", m_file->getGraph()->getWireRegistry().size());
+    ImGui::Text("Node count: %lu", m_file->getGraph()->get_node_registry().size());
+    ImGui::Text("Wire count: %lu", m_file->getGraph()->get_wire_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 

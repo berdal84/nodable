@@ -24,15 +24,15 @@ namespace Nodable
         GraphNode graph(&lang, &factory);
 
         // create program
-        lang.getParser()->source_code_to_graph(expression, &graph);
+        lang.getParser()->parse_graph(expression, &graph);
 
-        auto program = graph.getProgram();
+        auto program = graph.get_root();
         if (program)
         {
             // run
             Asm::VM runner;
 
-            if (!runner.load_program(graph.getProgram()))
+            if (!runner.load_program(graph.get_root()))
             {
                 throw std::runtime_error("Unable to load program.");
             }
@@ -62,8 +62,8 @@ namespace Nodable
         GraphNode graph(&lang, &factory);
 
         // act
-        lang.getParser()->source_code_to_graph(expression, &graph);
-        if (Node* program = graph.getProgram()) {
+        lang.getParser()->parse_graph(expression, &graph);
+        if (Node* program = graph.get_root()) {
             Asm::VM runner;
 
             if (runner.load_program(program)) {
@@ -91,7 +91,7 @@ namespace Nodable
         }
 
         Serializer *serializer = lang.getSerializer();
-        serializer->serialize(result, graph.getProgram() );
+        serializer->serialize(result, graph.get_root() );
         LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize serialize output is: %s\n", result.c_str());
 
         return result;

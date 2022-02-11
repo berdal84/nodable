@@ -22,9 +22,6 @@ namespace Nodable
     class INodeFactory
     {
     public:
-        INodeFactory(const Language* _language): m_language(_language) {};
-        virtual ~INodeFactory() = default;
-
         virtual Node*                       newProgram()const = 0;
         virtual InstructionNode*		    newInstruction_UserCreated()const = 0;
         virtual InstructionNode*            newInstruction()const = 0;
@@ -38,10 +35,6 @@ namespace Nodable
         virtual ConditionalStructNode*      newConditionalStructure()const = 0;
         virtual ForLoopNode*                new_for_loop_node()const = 0;
         virtual Node*                       newNode()const = 0;
-
-    protected:
-        // 09/05/2021: I have some doubts, should I keep this pointer here or pass it in method arguments ?
-        const Language* m_language;
     };
 }
 

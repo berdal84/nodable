@@ -17,14 +17,13 @@ File::File( AppContext* _context, std::string _path, const char* _content)
     , m_context( _context )
     , m_modified(false)
     , m_open(false)
-    , m_factory(nullptr)
+    , m_graph(nullptr)
+    , m_factory(_context)
+    , m_history()
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n");
-    m_factory  = new AppNodeFactory(_context);
-    LOG_VERBOSE( "File", "Factory created, creating View ...\n");
 
     // FileView
-#ifndef NODABLE_HEADLESS
 	m_view = new FileView(m_context, this);
     m_view->init();
     m_view->setText(_content);
@@ -33,20 +32,16 @@ File::File( AppContext* _context, std::string _path, const char* _content)
     LOG_VERBOSE( "File", "View built, creating History ...\n");
 
 	// History
-	m_history = new History();
-    auto undoBuffer = m_history->getUndoBuffer(textEditor);
-    m_view->setUndoBuffer(undoBuffer);
+    TextEditorBuffer* text_editor_buf = m_history.getUndoBuffer(textEditor);
+    m_view->setUndoBuffer(text_editor_buf);
 
     LOG_VERBOSE( "File", "History built, creating graph ...\n");
 
-#endif
 	// GraphNode
-    m_graph = new GraphNode(m_context->language, m_factory );
+    m_graph = new GraphNode(m_context->language, &m_factory );
     m_graph->set_label(getName() + "'s inner container");
 
-#ifndef NODABLE_HEADLESS
     m_graph->add_component(new GraphNodeView(m_context));
-#endif
 
     LOG_VERBOSE( "File", "Constructor being called.\n");
 
@@ -101,40 +96,45 @@ bool File::evaluateExpression(std::string& _expression)
         graphView->clear_child_view_constraints();
     }
 
-    if (parser->source_code_to_graph(_expression, m_graph) && m_graph->hasProgram() )
+    if ( parser->parse_graph(_expression, m_graph) && !m_graph->is_empty() )
     {
-        m_onExpressionParsedIntoGraph.emit(m_graph->getProgram() );
+        m_on_graph_changed_evt.emit(m_graph);
         return true;
     }
     return false;
 }
 
-bool File::update() {
+bool File::update()
+{
+    bool graph_has_changed;
 
-	if ( m_history && m_history->dirty )
+	if ( m_history.dirty )
 	{
         evaluateSelectedExpression();
-        m_history->dirty = false;
+        m_history.dirty = false;
 	}
 
-	if(m_context->vm && m_context->vm->is_program_stopped() )
+	if(m_context->vm && !m_context->vm->is_program_running() )
     {
         auto graphUpdateResult = m_graph->update();
 
         if (graphUpdateResult == UpdateResult::SuccessWithoutChanges && !m_view->getSelectedText().empty() )
         {
-            return false;
+            graph_has_changed = false;
         }
-
-        auto scope = m_graph->getProgram();
-        if ( scope && !scope->children_slots().empty() )
+        else
         {
-            std::string code;
-            m_context->language->getSerializer()->serialize(code, scope );
-            m_view->replaceSelectedText(code);
+            auto scope = m_graph->get_root();
+            if ( scope && !scope->children_slots().empty() )
+            {
+                std::string code;
+                m_context->language->getSerializer()->serialize(code, scope );
+                m_view->replaceSelectedText(code);
+            }
+            graph_has_changed = true;
         }
     }
-	return true;
+	return graph_has_changed;
 }
 
 bool File::evaluateSelectedExpression()
@@ -148,6 +148,5 @@ bool File::evaluateSelectedExpression()
 File::~File()
 {
     delete m_graph;
-    delete m_factory;
     delete m_view;
 }

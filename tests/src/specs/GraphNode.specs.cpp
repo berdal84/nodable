@@ -20,10 +20,10 @@ TEST( GraphNode, connect)
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
 
-    auto node1 = graph.newNode();
+    auto node1 = graph.create_node();
     node1->props()->add("output", Visibility::Default, Type_Boolean, Way_Default);
 
-    auto node2  = graph.newNode();
+    auto node2  = graph.create_node();
     node2->props()->add("input", Visibility::Default, Type_Boolean, Way_Default);
 
     auto wire = graph.connect(
@@ -32,7 +32,7 @@ TEST( GraphNode, connect)
 
     EXPECT_EQ(wire->getSource() , node1->props()->get("output"));
     EXPECT_EQ(wire->getTarget() , node2->props()->get("input"));
-    EXPECT_EQ(graph.getWireRegistry().size(), 1);
+    EXPECT_EQ(graph.get_wire_registry().size(), 1);
  }
 
 TEST( GraphNode, disconnect)
@@ -41,19 +41,19 @@ TEST( GraphNode, disconnect)
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
 
-    auto a = graph.newNode();
+    auto a = graph.create_node();
     auto output = a->props()->add("output", Visibility::Default, Type_Boolean, Way_Default);
 
-    auto b = graph.newNode();
+    auto b = graph.create_node();
     auto input = b->props()->add("input", Visibility::Default, Type_Boolean, Way_Default);
 
-    EXPECT_EQ(graph.getWireRegistry().size(), 0);
-    EXPECT_EQ(graph.getRelationRegistry().size(), 0);
+    EXPECT_EQ(graph.get_wire_registry().size(), 0);
+    EXPECT_EQ(graph.get_relation_registry().size(), 0);
 
     auto wire = graph.connect(output, input);
 
-    EXPECT_EQ(graph.getWireRegistry().size(), 1); // wire must be registered when connected
-    EXPECT_EQ(graph.getRelationRegistry().size(), 1); // relation must be registered when connected
+    EXPECT_EQ(graph.get_wire_registry().size(), 1); // wire must be registered when connected
+    EXPECT_EQ(graph.get_relation_registry().size(), 1); // relation must be registered when connected
 
     graph.disconnect(wire);
 
@@ -68,28 +68,28 @@ TEST( GraphNode, clear)
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
-    InstructionNode* instructionNode = graph.newInstruction();
+    InstructionNode* instructionNode = graph.create_instr();
 
     auto ope = language.findOperator("+");
     EXPECT_TRUE(ope != nullptr);
-    Node* operatorNode = graph.newOperator(ope);
+    Node* operatorNode = graph.create_operator(ope);
     auto props = operatorNode->props();
     props->get("rvalue")->set(2);
     props->get("lvalue")->set(2);
 
     graph.connect(props->get(Node::VALUE_MEMBER_NAME), instructionNode->get_root_node_member() );
 
-    EXPECT_TRUE(graph.getWireRegistry().size() != 0);
-    EXPECT_TRUE(graph.getNodeRegistry().size() != 0);
-    EXPECT_TRUE(graph.getRelationRegistry().size() != 0);
+    EXPECT_TRUE(graph.get_wire_registry().size() != 0);
+    EXPECT_TRUE(graph.get_node_registry().size() != 0);
+    EXPECT_TRUE(graph.get_relation_registry().size() != 0);
 
     // act
     graph.clear();
 
     // test
-    EXPECT_EQ(graph.getWireRegistry().size(), 0);
-    EXPECT_EQ(graph.getNodeRegistry().size(), 0);
-    EXPECT_EQ(graph.getRelationRegistry().size(), 0);
+    EXPECT_EQ(graph.get_wire_registry().size(), 0);
+    EXPECT_EQ(graph.get_node_registry().size(), 0);
+    EXPECT_EQ(graph.get_relation_registry().size(), 0);
 
 }
 
@@ -100,32 +100,32 @@ TEST( GraphNode, create_and_delete_relations)
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
-    Node* program = graph.newProgram();
-    EXPECT_EQ(graph.getRelationRegistry().size(), 0);
-    Node* n1 = graph.newVariable(Type_Any, "n1", program->get<Scope>() );
-    EXPECT_EQ(graph.getRelationRegistry().size(), 0);
-    Node* n2 = graph.newVariable(Type_Double, "n2", program->get<Scope>() );
+    Node* program = graph.create_root();
+    EXPECT_EQ(graph.get_relation_registry().size(), 0);
+    Node* n1 = graph.create_variable(Type_Any, "n1", program->get<Scope>());
+    EXPECT_EQ(graph.get_relation_registry().size(), 0);
+    Node* n2 = graph.create_variable(Type_Double, "n2", program->get<Scope>());
 
     // Act and test
 
     // is child of (and by reciprocity "is parent of")
-    EXPECT_EQ(graph.getRelationRegistry().size(), 0);
+    EXPECT_EQ(graph.get_relation_registry().size(), 0);
     EXPECT_EQ(n2->children_slots().size(), 0);
     graph.connect(n1, n2, Relation_t::IS_CHILD_OF, false);
     EXPECT_EQ(n2->children_slots().size(), 1);
-    EXPECT_EQ(graph.getRelationRegistry().size(), 1);
+    EXPECT_EQ(graph.get_relation_registry().size(), 1);
     graph.disconnect(n1, n2, Relation_t::IS_CHILD_OF);
     EXPECT_EQ(n2->children_slots().size(), 0);
 
     // Is input of
-    EXPECT_EQ(graph.getRelationRegistry().size(), 0);
+    EXPECT_EQ(graph.get_relation_registry().size(), 0);
     EXPECT_EQ(n2->input_slots().size(), 0);
     graph.connect(n1, n2, Relation_t::IS_INPUT_OF, false);
     EXPECT_EQ(n2->input_slots().size(), 1);
-    EXPECT_EQ(graph.getRelationRegistry().size(), 1);
+    EXPECT_EQ(graph.get_relation_registry().size(), 1);
     graph.disconnect(n1, n2, Relation_t::IS_INPUT_OF);
     EXPECT_EQ(n2->input_slots().size(), 0);
-    EXPECT_EQ(graph.getRelationRegistry().size(), 0);
+    EXPECT_EQ(graph.get_relation_registry().size(), 0);
 }
 
 TEST(Graph, by_reference_assign)
@@ -139,17 +139,17 @@ TEST(Graph, by_reference_assign)
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
     GraphNode graph(&language, &factory);
-    Node* program = graph.newProgram();
+    Node* program = graph.create_root();
 
     // create b
-    auto b = graph.newVariable(Type_Double, "b", program->get<Scope>() );
+    auto b = graph.create_variable(Type_Double, "b", program->get<Scope>());
     b->set(6.0);
 
     // create assign operator
     FunctionSignature signature("operator=");
     signature.set_return_type(Type_Double);
     signature.push_args(Type_Double_Ref, Type_Double);
-    auto assign = graph.newOperator( language.findOperator(&signature) );
+    auto assign = graph.create_operator(language.findOperator(&signature));
     auto op = assign->get<InvokableComponent>();
 
     // connect b and assign

@@ -5,6 +5,7 @@
 #include <nodable/VM.h>
 #include <nodable/LanguageNodable.h>
 #include <nodable/Texture.h>
+#include <nodable/AppNodeFactory.h>
 
 using namespace Nodable;
 

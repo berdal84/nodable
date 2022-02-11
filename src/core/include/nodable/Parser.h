@@ -39,7 +39,7 @@ namespace Nodable{
 
 		/** Try to convert a source code to a program tree.
 		   Return true if evaluation went well and false otherwise. */
-		bool                   source_code_to_graph(const std::string &_source_code, GraphNode *_graphNode);
+		bool                   parse_graph(const std::string &_source_code, GraphNode *_graphNode);
 
     protected:
 

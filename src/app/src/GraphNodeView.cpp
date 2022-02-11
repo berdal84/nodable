@@ -25,7 +25,7 @@ bool GraphNodeView::draw()
     bool edited = false;
     Settings* settings = m_context->settings;
     GraphNode* graph = get_graph_node();
-    auto nodeRegistry = graph->getNodeRegistry();
+    auto nodeRegistry = graph->get_node_registry();
 
 	auto origin = ImGui::GetCursorScreenPos();
 	ImGui::SetCursorPos(vec2(0,0));
@@ -333,23 +333,26 @@ bool GraphNodeView::draw()
         }
 
 
+        Member *dragged_member_conn = MemberConnector::GetDragged()->getMember();
         if ( !is_dragging_node_connector )
         {
+            Node *root_node = graph->get_root();
             if ( is_dragging_member_connector )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-                    newNode = graph->newVariable(MemberConnector::GetDragged()->getMember()->get_type(), "var", graph->getProgram()->get<Scope>() );
+                    newNode = graph->create_variable(dragged_member_conn->get_type(), "var",
+                                                     root_node->get<Scope>());
             }
             else if ( ImGui::BeginMenu("Variable") )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                    newNode = graph->newVariable(Type_Boolean, "var", graph->getProgram()->get<Scope>() );
+                    newNode = graph->create_variable(Type_Boolean, "var", root_node->get<Scope>());
 
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                    newNode = graph->newVariable(Type_Double, "var", graph->getProgram()->get<Scope>() );
+                    newNode = graph->create_variable(Type_Double, "var", root_node->get<Scope>());
 
                 if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                    newNode = graph->newVariable(Type_String, "var", graph->getProgram()->get<Scope>() );
+                    newNode = graph->create_variable(Type_String, "var", root_node->get<Scope>());
 
                 ImGui::EndMenu();
             }
@@ -360,18 +363,18 @@ bool GraphNodeView::draw()
             if ( is_dragging_member_connector )
             {
                 if (ImGui::MenuItem(ICON_FA_FILE " Literal"))
-                    newNode = graph->newLiteral(MemberConnector::GetDragged()->getMember()->get_type());
+                    newNode = graph->create_literal( dragged_member_conn->get_type() );
             }
             else if ( ImGui::BeginMenu("Literal") )
             {
                 if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
-                    newNode = graph->newLiteral(Type_Boolean);
+                    newNode = graph->create_literal(Type_Boolean);
 
                 if (ImGui::MenuItem(ICON_FA_FILE " Double"))
-                    newNode = graph->newLiteral(Type_Double);
+                    newNode = graph->create_literal(Type_Double);
 
                 if (ImGui::MenuItem(ICON_FA_FILE " String"))
-                    newNode = graph->newLiteral(Type_String);
+                    newNode = graph->create_literal(Type_String);
 
                 ImGui::EndMenu();
             }
@@ -383,24 +386,24 @@ bool GraphNodeView::draw()
         {
             if ( ImGui::MenuItem(ICON_FA_CODE " Instruction") )
             {
-                newNode = graph->newInstruction_UserCreated();
+                newNode = graph->create_instr_user();
             }
         }
 
         if( !is_dragging_member_connector )
         {
             if (ImGui::MenuItem(ICON_FA_CODE " Condition"))
-                newNode = graph->newConditionalStructure();
+                newNode = graph->create_cond_struct();
 
             ImGui::Separator();
 
             if (ImGui::MenuItem(ICON_FA_CODE " Scope"))
-                newNode = graph->newScope();
+                newNode = graph->create_scope();
 
             ImGui::Separator();
 
             if (ImGui::MenuItem(ICON_FA_CODE " Program"))
-                newNode = graph->newProgram();
+                newNode = graph->create_root();
         }
 
         if (newNode)
@@ -495,7 +498,7 @@ void GraphNodeView::update_child_view_constraints()
 {
     LOG_VERBOSE("GraphNodeView", "updateViewConstraints()\n")
 
-    auto nodeRegistry = get_graph_node()->getNodeRegistry();
+    auto nodeRegistry = get_graph_node()->get_node_registry();
 
     for(Node* _eachNode: nodeRegistry)
     {
@@ -560,7 +563,7 @@ void GraphNodeView::update_child_view_constraints()
 bool GraphNodeView::update()
 {
     GraphNode* graph                 = get_graph_node();
-    std::vector<Node*>& nodeRegistry = graph->getNodeRegistry();
+    std::vector<Node*>& nodeRegistry = graph->get_node_registry();
 
     // Find NodeView components
     auto deltaTime = ImGui::GetIO().DeltaTime;
@@ -607,7 +610,7 @@ void GraphNodeView::set_owner(Node *_owner)
         {
             auto lambda = [graphNode, op]()->Node*
             {
-                return graphNode->newOperator(op);
+                return graphNode->create_operator(op);
             };
 
             add_contextual_menu_item("Operators", label, lambda, signature);
@@ -616,7 +619,7 @@ void GraphNodeView::set_owner(Node *_owner)
         {
             auto lambda = [graphNode, function]()->Node*
             {
-                return graphNode->newFunction(function);
+                return graphNode->create_function(function);
             };
 
             add_contextual_menu_item("Functions", label, lambda, signature);

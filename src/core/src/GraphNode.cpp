@@ -17,6 +17,13 @@ using namespace Nodable;
 
 REFLECT_DEFINE_CLASS(InstructionNode)
 
+GraphNode::GraphNode(const Language* _language, const INodeFactory* _factory)
+    : m_language(_language)
+    , m_factory(_factory)
+    , m_root(nullptr)
+{
+}
+
 GraphNode::~GraphNode()
 {
 	clear();
@@ -26,35 +33,35 @@ void GraphNode::clear()
 {
 	LOG_VERBOSE( "GraphNode", "Clearing graph ...\n")
 
-    if ( !m_wireRegistry.empty() )
+    if ( !m_wire_registry.empty() )
     {
-        for (auto it = m_wireRegistry.rbegin(); it != m_wireRegistry.rend(); it++)
+        for (auto it = m_wire_registry.rbegin(); it != m_wire_registry.rend(); it++)
         {
-            deleteWire(*it);
+            destroy(*it);
         }
     }
     else
     {
         LOG_VERBOSE("GraphNode", "No wires in registry.\n")
     }
-    m_wireRegistry.clear();
+    m_wire_registry.clear();
 
-	if ( !m_nodeRegistry.empty() )
+	if ( !m_node_registry.empty() )
 	{
-        for (auto i = m_nodeRegistry.size(); i > 0; i--)
+        for (auto i = m_node_registry.size(); i > 0; i--)
         {
-            Node* node = m_nodeRegistry[i - 1];
+            Node* node = m_node_registry[i - 1];
             LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->get_label() )
-            deleteNode(node);
+            destroy(node);
         }
 	}
 	else
     {
         LOG_VERBOSE("GraphNode", "No nodes in registry.\n")
     }
-    m_nodeRegistry.clear();
-	m_relationRegistry.clear();
-    m_program_root = nullptr;
+    m_node_registry.clear();
+	m_relation_registry.clear();
+    m_root = nullptr;
 
     LOG_VERBOSE("GraphNode", "Graph cleared.\n")
 }
@@ -63,16 +70,16 @@ UpdateResult GraphNode::update()
 {
     // Delete flagged Nodes
     {
-        auto nodeIndex = m_nodeRegistry.size();
+        auto nodeIndex = m_node_registry.size();
 
         while (nodeIndex > 0)
         {
             nodeIndex--;
-            auto node = m_nodeRegistry.at(nodeIndex);
+            auto node = m_node_registry.at(nodeIndex);
 
             if (node->needs_to_be_deleted())
             {
-                this->deleteNode(node);
+                destroy(node);
             }
 
         }
@@ -80,10 +87,10 @@ UpdateResult GraphNode::update()
 
     // update nodes
     UpdateResult result;
-    if( m_program_root )
+    if( m_root )
     {
         bool changed = false;
-        for (Node* each_node : m_nodeRegistry)
+        for (Node* each_node : m_node_registry)
         {
             if (each_node->is_dirty())
             {
@@ -112,127 +119,119 @@ UpdateResult GraphNode::update()
     return result;
 }
 
-void GraphNode::registerNode(Node* _node)
+void GraphNode::add(Node* _node)
 {
-	this->m_nodeRegistry.push_back(_node);
+	m_node_registry.push_back(_node);
     _node->set_parent_graph(this);
     LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->get_label(), _node->get_class()->get_name())
 }
 
-void GraphNode::unregisterNode(Node* _node)
+void GraphNode::remove(Node* _node)
 {
-    auto found = std::find(m_nodeRegistry.begin(), m_nodeRegistry.end(), _node);
-    m_nodeRegistry.erase(found);
+    auto found = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
+    m_node_registry.erase(found);
 }
 
-InstructionNode* GraphNode::newInstruction()
+InstructionNode* GraphNode::create_instr()
 {
 	auto instructionNode = m_factory->newInstruction();
-    registerNode(instructionNode);
+    add(instructionNode);
 
 	return instructionNode;
 }
 
-InstructionNode* GraphNode::newInstruction_UserCreated()
+InstructionNode* GraphNode::create_instr_user()
 {
     auto instructionNode = m_factory->newInstruction();
-    registerNode(instructionNode);
+    add(instructionNode);
 
     return instructionNode;
 }
 
-VariableNode* GraphNode::newVariable(Reflect::Type _type, const std::string& _name, IScope* _scope)
+VariableNode* GraphNode::create_variable(Reflect::Type _type, const std::string& _name, IScope* _scope)
 {
 	auto node = m_factory->newVariable(_type, _name, _scope);
-    registerNode(node);
+    add(node);
 
 	return node;
 }
 
-Node* GraphNode::newOperator(const InvokableOperator* _operator)
+Node* GraphNode::create_operator(const InvokableOperator* _operator)
 {
     Node* node = m_factory->newOperator( _operator );
 
     if ( node )
     {
-        registerNode(node);
+        add(node);
     }
 
     return node;
 }
 
-Node* GraphNode::newBinOp(const InvokableOperator* _operator)
+Node* GraphNode::create_bin_op(const InvokableOperator* _operator)
 {
 	Node* node = m_factory->newBinOp( _operator );
-    registerNode(node);
+    add(node);
 	return node;
 }
 
-Node* GraphNode::newUnaryOp(const InvokableOperator* _operator)
+Node* GraphNode::create_unary_op(const InvokableOperator* _operator)
 {
 	Node* node = m_factory->newUnaryOp( _operator );
-    registerNode(node);
+    add(node);
 
 	return node;
 }
 
-Node* GraphNode::newFunction(const IInvokable* _function)
+Node* GraphNode::create_function(const IInvokable* _function)
 {
 	Node* node = m_factory->newFunction( _function );
-    registerNode(node);
+    add(node);
 	return node;
 }
 
 
-Wire* GraphNode::newWire()
+Wire* GraphNode::create_wire()
 {
 	return new Wire();
 }
 
-GraphNode::GraphNode(const Language* _language, const INodeFactory* _factory)
-    :
-        m_language(_language),
-        m_factory(_factory),
-        m_program_root(nullptr)
-{
-}
-
-void GraphNode::deleteNode(Node* _node)
+void GraphNode::destroy(Node* _node)
 {
     // delete any relation with this node
-    for (auto it = m_wireRegistry.begin(); it != m_wireRegistry.end();)
+    for (auto it = m_wire_registry.begin(); it != m_wire_registry.end();)
     {
         Wire* wire = *it;
         if(wire->getSource()->get_owner() == _node || wire->getTarget()->get_owner() == _node )
         {
-            deleteWire(wire);
-            it = m_wireRegistry.erase(it);
+            destroy(wire);
+            it = m_wire_registry.erase(it);
         }
         else
             it++;
     }
 
     // delete any relation with this node
-    for (auto it = m_relationRegistry.begin(); it != m_relationRegistry.end();)
+    for (auto it = m_relation_registry.begin(); it != m_relation_registry.end();)
     {
         auto pair = (*it).second;
         if( pair.second == _node || pair.first == _node)
-            it = m_relationRegistry.erase(it);
+            it = m_relation_registry.erase(it);
         else
             it++;
     }
 
     // unregister and delete
-    unregisterNode(_node);
+    remove(_node);
     delete _node;
 }
 
-bool GraphNode::hasProgram()
+bool GraphNode::is_empty()
 {
-    return m_program_root;
+    return !m_root || m_root->children_slots().empty();
 }
 
-Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _connect_by)
+Wire *GraphNode::connect(Member* _src_member, Member* _dst, ConnBy_ _connect_by)
 {
     Wire* wire = nullptr;
 
@@ -241,34 +240,34 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _conn
      */
     if (_src_member->get_owner() == nullptr)
     {
-        _dst_member->digest(_src_member);
+        _dst->digest(_src_member);
         delete _src_member;
     }
     else if (
             _src_member->get_type() != Reflect::Type_Pointer &&
             _src_member->get_owner()->get_class()->is<LiteralNode>() &&
-            _dst_member->get_owner()->get_class()->is_not<VariableNode>())
+            _dst->get_owner()->get_class()->is_not<VariableNode>())
     {
         Node* owner = _src_member->get_owner();
-        _dst_member->digest(_src_member);
-        deleteNode(owner);
+        _dst->digest(_src_member);
+        destroy(owner);
     }
     else
     {
         LOG_VERBOSE("GraphNode", "connect() ...\n")
-        _dst_member->set_input(_src_member, _connect_by);
-        _src_member->get_outputs().push_back(_dst_member);
+        _dst->set_input(_src_member, _connect_by);
+        _src_member->get_outputs().push_back(_dst);
 
-        auto targetNode = _dst_member->get_owner()->as<Node>();
+        auto targetNode = _dst->get_owner()->as<Node>();
         auto sourceNode = _src_member->get_owner()->as<Node>();
 
         NODABLE_ASSERT(targetNode != sourceNode)
 
         // Link wire to members
-        wire = this->newWire();
+        wire = create_wire();
 
         wire->setSource(_src_member);
-        wire->setTarget(_dst_member);
+        wire->setTarget(_dst);
 
         LOG_VERBOSE("GraphNode", "connect() adding wire to nodes ...\n")
         targetNode->add_wire(wire);
@@ -281,11 +280,11 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _conn
         // (transfer prefix/suffix)
         auto fromToken = _src_member->get_src_token();
         if (fromToken) {
-            if (!_dst_member->get_src_token()) {
-                _dst_member->set_src_token(new Token(fromToken->m_type, "", fromToken->m_charIndex));
+            if (!_dst->get_src_token()) {
+                _dst->set_src_token(new Token(fromToken->m_type, "", fromToken->m_charIndex));
             }
 
-            auto toToken = _dst_member->get_src_token();
+            auto toToken = _dst->get_src_token();
             toToken->m_suffix = fromToken->m_suffix;
             toToken->m_prefix = fromToken->m_prefix;
             fromToken->m_suffix = "";
@@ -295,31 +294,31 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _conn
 
     if ( wire != nullptr )
     {
-        registerWire(wire);
+        add(wire);
     }
 
-    this->set_dirty();
+    set_dirty();
 
     return wire;
 }
 
 void GraphNode::disconnect(Wire *_wire)
 {
-    unregisterWire(_wire);
-    deleteWire(_wire);
+    remove(_wire);
+    destroy(_wire);
 }
 
-void GraphNode::registerWire(Wire* _wire)
+void GraphNode::add(Wire* _wire)
 {
-    m_wireRegistry.push_back(_wire);
+    m_wire_registry.push_back(_wire);
 }
 
-void GraphNode::unregisterWire(Wire* _wire)
+void GraphNode::remove(Wire* _wire)
 {
-    auto found = std::find(m_wireRegistry.begin(), m_wireRegistry.end(), _wire);
-    if (found != m_wireRegistry.end() )
+    auto found = std::find(m_wire_registry.begin(), m_wire_registry.end(), _wire);
+    if (found != m_wire_registry.end() )
     {
-        m_wireRegistry.erase(found);
+        m_wire_registry.erase(found);
     }
     else
     {
@@ -327,18 +326,18 @@ void GraphNode::unregisterWire(Wire* _wire)
     }
 }
 
-void GraphNode::connect(Node* _source, InstructionNode* _target)
+void GraphNode::connect(Node* _src, InstructionNode* _dst)
 {
-    connect(_source->get_this_member(), _target->get_root_node_member() );
+    connect(_src->get_this_member(), _dst->get_root_node_member() );
 }
 
-void GraphNode::connect(Member* _source, VariableNode* _target)
+void GraphNode::connect(Member* _src, VariableNode* _dst)
 {
     // We connect the source member to the variable's value member in value mode (vs reference mode)
-    connect(_source, _target->get_value(), ConnectBy_Copy );
+    connect(_src, _dst->get_value(), ConnectBy_Copy );
 }
 
-void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, bool _sideEffects)
+void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relationType, bool _side_effects)
 {
     switch ( _relationType )
     {
@@ -347,26 +346,26 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
             /*
              * Here we create IS_SUCCESSOR_OF connections.
              */
-            if ( _sideEffects )
+            if ( _side_effects )
             {
                 // First case is easy, if no children on the target node, the next node of the target IS the source.
-                if (_target->has<Scope>() )
+                if (_dst->has<Scope>() )
                 {
-                    if (_target->children_slots().empty() )
+                    if (_dst->children_slots().empty() )
                     {
-                        connect(_source, _target, Relation_t::IS_SUCCESSOR_OF, false);
+                        connect(_src, _dst, Relation_t::IS_SUCCESSOR_OF, false);
                     }
-                    else if ( _target->get_class()->is<ConditionalStructNode>() )
+                    else if ( _dst->get_class()->is<ConditionalStructNode>() )
                     {
-                        connect(_source, _target, Relation_t::IS_SUCCESSOR_OF, false);
+                        connect(_src, _dst, Relation_t::IS_SUCCESSOR_OF, false);
                     }
-                    else if ( !_target->children_slots().back()->has<Scope>() )
+                    else if ( !_dst->children_slots().back()->has<Scope>() )
                     {
-                        connect(_source, _target->children_slots().back(), Relation_t::IS_SUCCESSOR_OF, false);
+                        connect(_src, _dst->children_slots().back(), Relation_t::IS_SUCCESSOR_OF, false);
                     }
                     else
                     {
-                        auto& children = _target->children_slots();
+                        auto& children = _dst->children_slots();
                         Node* back = children.back();
                         if (auto scope = back->get<Scope>() )
                         {
@@ -374,7 +373,7 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
                             scope->get_last_instructions(last_instructions);
                             for (InstructionNode *each_instruction : last_instructions)
                             {
-                                connect(_source, each_instruction, Relation_t::IS_SUCCESSOR_OF, false);
+                                connect(_src, each_instruction, Relation_t::IS_SUCCESSOR_OF, false);
                             }
                         }
                     }
@@ -388,26 +387,26 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
             }
 
             // create "parent-child" links
-            _target->children_slots().add(_source);
-            _source->set_parent(_target);
+            _dst->children_slots().add(_src);
+            _src->set_parent(_dst);
 
             break;
         }
 
         case Relation_t::IS_INPUT_OF:
-            _target->input_slots().add(_source);
-            _source->output_slots().add(_target);
+            _dst->input_slots().add(_src);
+            _src->output_slots().add(_dst);
             break;
 
         case Relation_t::IS_SUCCESSOR_OF:
-            _target->successor_slots().add(_source);
-            _source->predecessor_slots().add(_target);
+            _dst->successor_slots().add(_src);
+            _src->predecessor_slots().add(_dst);
 
-            if (_sideEffects)
+            if (_side_effects)
             {
-                if ( auto parent = _target->get_parent() )
+                if ( auto parent = _dst->get_parent() )
                 {
-                    Node* successor = _source;
+                    Node* successor = _src;
                     while ( successor )
                     {
                         connect(successor, parent, Relation_t::IS_CHILD_OF, false);
@@ -421,43 +420,43 @@ void GraphNode::connect(Node *_source, Node *_target, Relation_t _relationType, 
             NODABLE_ASSERT(false); // This connection type is not yet implemented
     }
 
-    this->m_relationRegistry.emplace(_relationType, std::pair(_source, _target));
-    this->set_dirty();
+    m_relation_registry.emplace(_relationType, std::pair(_src, _dst));
+    set_dirty();
 }
 
-void GraphNode::disconnect(Node *_source, Node *_target, Relation_t _relationType, bool _sideEffects)
+void GraphNode::disconnect(Node *_src, Node *_dst, Relation_t _relationType, bool _side_effects)
 {
-    NODABLE_ASSERT(_source && _target);
+    NODABLE_ASSERT(_src && _dst);
 
     // find relation
-    Relation pair{_relationType, {_source, _target}};
-    auto relation = std::find(m_relationRegistry.begin(), m_relationRegistry.end(), pair);
+    Relation pair{_relationType, {_src, _dst}};
+    auto relation = std::find(m_relation_registry.begin(), m_relation_registry.end(), pair);
 
-    if(relation == m_relationRegistry.end())
+    if(relation == m_relation_registry.end())
         return;
 
     // disconnect effectively
     switch ( _relationType )
     {
         case Relation_t::IS_CHILD_OF:
-            _target->children_slots().remove(_source);
-            _source->set_parent(nullptr);
+            _dst->children_slots().remove(_src);
+            _src->set_parent(nullptr);
             break;
 
         case Relation_t::IS_INPUT_OF:
-            _target->input_slots().remove(_source);
-            _source->output_slots().remove(_target);
+            _dst->input_slots().remove(_src);
+            _src->output_slots().remove(_dst);
             break;
 
         case Relation_t::IS_SUCCESSOR_OF:
-            _target->successor_slots().remove(_source);
-            _source->predecessor_slots().remove(_target);
+            _dst->successor_slots().remove(_src);
+            _src->predecessor_slots().remove(_dst);
 
-            if ( _sideEffects )
+            if ( _side_effects )
             {
-                if ( auto parent = _source->get_parent() )
+                if ( auto parent = _src->get_parent() )
                 {
-                    Node* successor = _source;
+                    Node* successor = _src;
                     while (successor && successor->get_parent() == parent )
                     {
                         disconnect(successor, parent, Relation_t::IS_CHILD_OF, false );
@@ -472,12 +471,12 @@ void GraphNode::disconnect(Node *_source, Node *_target, Relation_t _relationTyp
     }
 
     // remove relation
-    m_relationRegistry.erase(relation);
+    m_relation_registry.erase(relation);
 
-    this->set_dirty();
+    set_dirty();
 }
 
-void GraphNode::deleteWire(Wire *_wire)
+void GraphNode::destroy(Wire *_wire)
 {
     _wire->getTarget()->set_input(nullptr);
     auto& outputs = _wire->getSource()->get_outputs();
@@ -497,46 +496,46 @@ void GraphNode::deleteWire(Wire *_wire)
     delete _wire;
 }
 
-Node *GraphNode::newScope()
+Node *GraphNode::create_scope()
 {
     Node* scopeNode = m_factory->newScope();
-    registerNode(scopeNode);
+    add(scopeNode);
     return scopeNode;
 }
 
-ConditionalStructNode *GraphNode::newConditionalStructure()
+ConditionalStructNode *GraphNode::create_cond_struct()
 {
     ConditionalStructNode* condStructNode = m_factory->newConditionalStructure();
-    registerNode(condStructNode);
+    add(condStructNode);
     return condStructNode;
 }
 
-ForLoopNode* GraphNode::new_for_loop_node()
+ForLoopNode* GraphNode::create_for_loop()
 {
     ForLoopNode* for_loop = m_factory->new_for_loop_node();
-    registerNode(for_loop);
+    add(for_loop);
     return for_loop;
 }
 
-Node *GraphNode::newProgram()
+Node *GraphNode::create_root()
 {
     clear();
-    m_program_root = m_factory->newProgram();
-    registerNode(m_program_root);
-    return m_program_root;
+    m_root = m_factory->newProgram();
+    add(m_root);
+    return m_root;
 }
 
-Node* GraphNode::newNode()
+Node* GraphNode::create_node()
 {
     Node* node = m_factory->newNode();
-    registerNode(node);
+    add(node);
     return node;
 }
 
-LiteralNode* GraphNode::newLiteral(const Reflect::Type &type)
+LiteralNode* GraphNode::create_literal(const Reflect::Type &type)
 {
     LiteralNode* node = m_factory->newLiteral(type);
-    registerNode(node);
+    add(node);
     return node;
 }
 
@@ -548,12 +547,12 @@ void GraphNode::disconnect(Member *_member, Way _way)
         return false;
     };
 
-    for ( auto it = m_wireRegistry.begin(); it != m_wireRegistry.end(); )
+    for (auto it = m_wire_registry.begin(); it != m_wire_registry.end(); )
     {
         if ( should_be_deleted(*it) )
         {
             auto wire = *it;
-            it = m_wireRegistry.erase(it);
+            it = m_wire_registry.erase(it);
 
             Node *targetNode = wire->getTarget()->get_owner();
             Node *sourceNode = wire->getSource()->get_owner();
@@ -563,7 +562,7 @@ void GraphNode::disconnect(Member *_member, Way _way)
 
             disconnect(sourceNode, targetNode, Relation_t::IS_INPUT_OF);
 
-            deleteWire(wire);
+            destroy(wire);
         }
         else
         {

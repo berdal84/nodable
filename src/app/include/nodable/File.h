@@ -11,6 +11,8 @@
 #include <nodable/Reflect.h>
 #include <nodable/Nodable.h>
 #include <nodable/Log.h>
+#include <nodable/AppNodeFactory.h>
+#include <nodable/History.h>
 
 namespace Nodable
 {
@@ -18,7 +20,6 @@ namespace Nodable
     class Node;
     class GraphNode;
     class Language;
-    class INodeFactory;
     class History;
     class FileView;
     struct AppContext;
@@ -29,7 +30,7 @@ namespace Nodable
 		File(AppContext* _ctx, std::string, const char* /*_content*/);
         ~File();
 
-        observe::Event<Node*> m_onExpressionParsedIntoGraph;
+        observe::Event<GraphNode*> m_on_graph_changed_evt;
 
 		std::string                      getName()const
         {
@@ -45,7 +46,7 @@ namespace Nodable
 		bool                             evaluateExpression(std::string&);
 		bool                             evaluateSelectedExpression();
         inline FileView*                 getView()const { return m_view; };
-		inline History*                  getHistory() { return m_history; }
+		inline History*                  getHistory() { return &m_history; }
         inline bool                      isOpen()  { return m_open; }
         inline GraphNode*                getGraph() { return m_graph; }
         static File*                     OpenFile(AppContext* _ctx, std::string _filePath);
@@ -55,9 +56,9 @@ namespace Nodable
         bool                       m_open;
 		bool                       m_modified;
 		std::string                m_path;
-		const INodeFactory*        m_factory;
+		const AppNodeFactory       m_factory;
 		FileView*                  m_view;
-		History*                   m_history;
+		History                    m_history;
 		GraphNode*                 m_graph;
     };
 }

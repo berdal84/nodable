@@ -32,7 +32,7 @@ void Parser::commit_transaction()
     m_token_ribbon.commitTransaction();
 }
 
-bool Parser::source_code_to_graph(const std::string &_source_code, GraphNode *_graphNode)
+bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 {
     m_graph = _graphNode;
     m_token_ribbon.clear();
@@ -101,7 +101,7 @@ bool Parser::source_code_to_graph(const std::string &_source_code, GraphNode *_g
     }
 
     // We unset dirty, since we did a lot of connections but we don't want any update now
-    auto& nodes = m_graph->getNodeRegistry();
+    auto& nodes = m_graph->get_node_registry();
     for(auto eachNode : nodes )
         eachNode->set_dirty(false);
 
@@ -164,7 +164,7 @@ Member* Parser::token_to_member(Token *_token)
 	    case TokenType_Literal:
         {
             Reflect::Type type = get_literal_type(_token);
-            LiteralNode* literal = m_graph->newLiteral(type);
+            LiteralNode* literal = m_graph->create_literal(type);
 
             switch ( type ) {
                 case Reflect::Type_String: literal->set_value(parse_string(_token->m_word) ); break;
@@ -184,7 +184,7 @@ Member* Parser::token_to_member(Token *_token)
 
 			if (variable == nullptr) {
                 LOG_WARNING("Parser", "Unable to find declaration for %s, Type_Any will be used to allow graph visualisation, but compilation will fail.\n", _token->m_word.c_str())
-                variable = m_graph->newVariable( Reflect::Type_Any, _token->m_word, get_current_scope() );
+                variable = m_graph->create_variable(Reflect::Type_Any, _token->m_word, get_current_scope());
                 variable->get_value()->set_src_token(_token);
             }
 
@@ -266,7 +266,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 
 	if ( matchingOperator != nullptr )
 	{
-		auto binOpNode = m_graph->newBinOp(matchingOperator);
+		auto binOpNode = m_graph->create_bin_op(matchingOperator);
         auto computeComponent = binOpNode->get<InvokableComponent>();
         computeComponent->set_source_token(operatorToken);
 
@@ -331,7 +331,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 
 	if (matchingOperator != nullptr)
 	{
-		auto unaryOpNode = m_graph->newUnaryOp(matchingOperator);
+		auto unaryOpNode = m_graph->create_unary_op(matchingOperator);
         auto computeComponent = unaryOpNode->get<InvokableComponent>();
         computeComponent->set_source_token(operatorToken);
 
@@ -443,7 +443,7 @@ InstructionNode* Parser::parse_instruction()
        return nullptr;
     }
 
-    InstructionNode* instr_node = m_graph->newInstruction();
+    InstructionNode* instr_node = m_graph->create_instr();
 
     if ( m_token_ribbon.canEat() )
     {
@@ -473,7 +473,7 @@ Node* Parser::parse_program()
     Node* result;
 
     start_transaction();
-    Node* program = m_graph->newProgram();
+    Node* program = m_graph->create_root();
     m_scope_stack.push( program->get<Scope>() );
 
     if ( parse_code_block(false) )
@@ -505,7 +505,7 @@ Node* Parser::parse_scope()
     }
     else
     {
-        auto scope_node = m_graph->newScope();
+        auto scope_node = m_graph->create_scope();
         auto scope      = scope_node->get<Scope>();
         /*
          * link scope with parent_scope.
@@ -525,7 +525,7 @@ Node* Parser::parse_scope()
 
         if ( !m_token_ribbon.eatToken(TokenType_EndScope))
         {
-            m_graph->deleteNode(scope_node);
+            m_graph->destroy(scope_node);
             rollback_transaction();
             result = nullptr;
         }
@@ -545,7 +545,7 @@ IScope* Parser::parse_code_block(bool _create_scope)
 {
     start_transaction();
 
-    auto curr_scope = _create_scope ? m_graph->newScope()->get<Scope>() : get_current_scope();
+    auto curr_scope = _create_scope ? m_graph->create_scope()->get<Scope>() : get_current_scope();
 
     NODABLE_ASSERT(curr_scope); // needed
 
@@ -826,7 +826,7 @@ Member* Parser::parse_function_call()
 
     if (fct != nullptr)
     {
-        auto node = m_graph->newFunction(fct);
+        auto node = m_graph->create_function(fct);
 
         auto connectArg = [&](size_t _argIndex) -> void
         { // lambda to connect input member to node for a specific argument index.
@@ -873,7 +873,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
     start_transaction();
 
     bool success = false;
-    ConditionalStructNode* condStruct = m_graph->newConditionalStructure();
+    ConditionalStructNode* condStruct = m_graph->create_cond_struct();
 
     if ( m_token_ribbon.eatToken(TokenType_KeywordIf))
     {
@@ -909,7 +909,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
                     else
                     {
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
-                        m_graph->deleteNode(scopeIf);
+                        m_graph->destroy(scopeIf);
                     }
 
 
@@ -932,7 +932,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
     }
     else
     {
-        m_graph->deleteNode(condStruct);
+        m_graph->destroy(condStruct);
         condStruct = nullptr;
         rollback_transaction();
     }
@@ -950,7 +950,7 @@ ForLoopNode* Parser::parse_for_loop()
 
     if( token_for != nullptr )
     {
-        for_loop_node = m_graph->new_for_loop_node();
+        for_loop_node = m_graph->create_for_loop();
         m_graph->connect( for_loop_node, m_scope_stack.top()->get_owner(), Relation_t::IS_CHILD_OF );
         m_scope_stack.push( for_loop_node->get<Scope>() );
 
@@ -1032,7 +1032,7 @@ ForLoopNode* Parser::parse_for_loop()
     else
     {
         rollback_transaction();
-        if ( for_loop_node ) m_graph->deleteNode(for_loop_node);
+        if ( for_loop_node ) m_graph->destroy(for_loop_node);
         for_loop_node = nullptr;
     }
 
@@ -1053,7 +1053,7 @@ Member *Parser::parse_variable_declaration()
     if(Token::isType(typeTok->m_type) && identifierTok->m_type == TokenType_Identifier )
     {
         Reflect::Type type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
-        VariableNode* variable = m_graph->newVariable(type, identifierTok->m_word, this->get_current_scope());
+        VariableNode* variable = m_graph->create_variable(type, identifierTok->m_word, this->get_current_scope());
         variable->set_type_token(typeTok);
         variable->set_identifier_token(identifierTok);
         variable->get_value()->set_src_token(identifierTok); // we also pass it to the member, this one will be modified my connections
@@ -1071,7 +1071,7 @@ Member *Parser::parse_variable_declaration()
             {
                 LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifierTok->m_word.c_str())
                 rollback_transaction();
-                m_graph->deleteNode(variable);
+                m_graph->destroy(variable);
                 return nullptr;
             }
         }
