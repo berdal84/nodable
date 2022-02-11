@@ -203,17 +203,20 @@ bool GraphNodeView::draw()
 	        auto node = m_context->vm->get_next_node();
 	        if( auto view = node->get<NodeView>())
             {
-	            auto draw_list = ImGui::GetWindowDrawList();
-	            draw_list->AddCircleFilled(
-	                    view->getScreenPos() - view->getSize() * 0.5f, 5.0f,
-	                    ImColor(255,0,0) );
+	            vec2 vm_cursor_pos = view->getScreenPos();
+	            vm_cursor_pos += view->getMemberView( node->get_this_member() )->relative_pos();
+	            vm_cursor_pos.x -= view->getSize().x * 0.5f;
 
-	            vec2 linePos = view->getScreenPos() + vec2(-view->getSize().x * 0.5f - 10.0f, 0.5f);
+	            auto draw_list = ImGui::GetWindowDrawList();
+	            draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
+
+	            vec2 linePos = vm_cursor_pos + vec2(- 10.0f, 0.5f);
+                linePos += vec2( sin(m_context->elapsed_time * 12.0f ) * 4.0f, 0.f ); // wave
 	            float size = 20.0f;
 	            float width = 2.0f;
 	            ImColor color = ImColor(255,255,255);
 	            draw_list->AddLine(
-	                    linePos,
+	                    linePos- vec2(1.f, 0.0f),
                         linePos - vec2(size, 0.0f),
                         color,
                         width);

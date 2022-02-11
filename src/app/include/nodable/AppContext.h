@@ -23,6 +23,10 @@ namespace Nodable
         AppContext(App* _app)
             : settings(nullptr)
             , app(_app)
+            , elapsed_time(0)
+            , language(nullptr)
+            , vm(nullptr)
+            , texture_manager(nullptr)
             {}
 
         ~AppContext();
@@ -32,6 +36,7 @@ namespace Nodable
         Asm::VM*  vm;
         const Language* language;
         TextureManager* texture_manager;
+        double elapsed_time;
     private:
         static AppContext* create_default(App* _app);
     };

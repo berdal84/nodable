@@ -959,6 +959,7 @@ void AppView::draw_tool_bar()
     ImGui::SameLine();
     ImGui::EndGroup();
 
+    m_context->elapsed_time += ImGui::GetIO().DeltaTime;
 }
 
 void AppView::shutdown()
