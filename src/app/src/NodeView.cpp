@@ -701,7 +701,11 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-        NodeView::DrawMemberInput(_member);
+        bool edited = NodeView::DrawMemberInput(_member);
+        if ( edited )
+        {
+            _member->get_owner()->set_dirty();
+        }
 
     };
 
