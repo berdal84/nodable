@@ -145,6 +145,8 @@ InstructionNode* GraphNode::create_instr_user()
     auto instructionNode = m_factory->newInstruction();
     add(instructionNode);
 
+    connect( instructionNode, m_root, Relation_t::IS_CHILD_OF  );
+
     return instructionNode;
 }
 
