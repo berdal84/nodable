@@ -66,6 +66,12 @@ namespace Nodable
         std::map<std::string, ImFont*>      m_loaded_fonts; // All fonts loaded in memory
         std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
 
+        static constexpr const char* k_imgui_window_name = "ImGui";
+        static constexpr const char* k_settings_window_name = "App. Settings";
+        static constexpr const char* k_properties_window_name = "Properties";
+        static constexpr const char* k_file_info_window_name = "File Info.";
+        static constexpr const char* k_assembly_window_name = "Assembly-like";
+
         REFLECT_DERIVED(AppView)
         REFLECT_EXTENDS(View)
         REFLECT_END

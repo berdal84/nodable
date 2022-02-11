@@ -10,7 +10,6 @@
 #include <nodable/System.h>
 #include <nodable/App.h>
 #include <nodable/AppContext.h>
-#include <nodable/Settings.h>
 #include <nodable/NodeView.h>
 #include <nodable/File.h>
 #include <nodable/Log.h>
@@ -418,46 +417,48 @@ bool AppView::draw()
              * Main Layout
              */
 
-            ImGuiID dockspace_id = ImGui::GetID("dockspace_main");
-            ImGuiID dockspace_documents = ImGui::GetID("dockspace_documents");
-            ImGuiID dockspace_properties = ImGui::GetID("dockspace_properties");
+            ImGuiID dockspace_main = ImGui::GetID("dockspace_main");
+            ImGuiID dockspace_center = ImGui::GetID("dockspace_center");
+            ImGuiID dockspace_side_panel = ImGui::GetID("dockspace_side_panel");
 
 
             if ( !m_is_layout_initialized)
             {
-               ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
-               ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace );
-               ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
-               ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, m_context->settings->ui_layout_propertiesRatio, &dockspace_properties, NULL);
-               ImGui::DockBuilderDockWindow("ImGui", dockspace_properties);
-               ImGui::DockBuilderDockWindow("Settings", dockspace_properties);
-               ImGui::DockBuilderDockWindow("Properties", dockspace_properties);
-               ImGui::DockBuilderDockWindow("File Info", dockspace_properties);
-               ImGui::DockBuilderDockWindow("Assembly", dockspace_properties);
-               ImGui::DockBuilderFinish(dockspace_id);
+                ImGui::DockBuilderRemoveNode(dockspace_main); // Clear out existing layout
+                ImGui::DockBuilderAddNode(dockspace_main, ImGuiDockNodeFlags_DockSpace );
+                ImGui::DockBuilderSetNodeSize(dockspace_main, ImGui::GetMainViewport()->Size);
+                ImGui::DockBuilderSplitNode(dockspace_main, ImGuiDir_Right, m_context->settings->ui_layout_propertiesRatio, &dockspace_side_panel, NULL);
+
+                ImGui::DockBuilderDockWindow(k_properties_window_name, dockspace_side_panel);
+                ImGui::DockBuilderDockWindow(k_assembly_window_name, dockspace_side_panel);
+                ImGui::DockBuilderDockWindow(k_settings_window_name, dockspace_side_panel);
+                ImGui::DockBuilderDockWindow(k_file_info_window_name, dockspace_side_panel);
+                ImGui::DockBuilderDockWindow(k_imgui_window_name, dockspace_side_panel);
+
+                ImGui::DockBuilderFinish(dockspace_main);
                 m_is_layout_initialized = true;
             }
 
              /*
              * Fill the layout with content
              */
-            ImGui::DockSpace(dockspace_id);
+            ImGui::DockSpace(dockspace_main);
 
             // Global Props
-            if (ImGui::Begin("Settings"))
+            if (ImGui::Begin(k_settings_window_name))
             {
                 draw_properties_editor();
             }
             ImGui::End();
 
-            if (ImGui::Begin("ImGui"))
+            if (ImGui::Begin(k_imgui_window_name))
             {
                 ImGui::ShowStyleEditor();
             }
             ImGui::End();
 
             // File info
-            ImGui::Begin("File Info");
+            ImGui::Begin(k_file_info_window_name);
             {
                 const File* currFile = m_context->app->getCurrentFile();
 
@@ -474,7 +475,7 @@ bool AppView::draw()
             }
             ImGui::End();
 
-            if ( ImGui::Begin("Assembly") )
+            if ( ImGui::Begin(k_assembly_window_name) )
             {
                 const Asm::Code* code = m_context->vm->get_program_asm_code();
                 if ( code  )
@@ -500,7 +501,7 @@ bool AppView::draw()
             ImGui::End(); // Compiler
 
             // Selected Node Properties
-            if ( ImGui::Begin("Properties") )
+            if ( ImGui::Begin(k_properties_window_name) )
             {
                 NodeView* view = NodeView::GetSelected();
                 if ( view )
@@ -515,7 +516,7 @@ bool AppView::draw()
             // Opened documents
             for (size_t fileIndex = 0; fileIndex < m_context->app->getFileCount(); fileIndex++)
             {
-                draw_file_editor(dockspace_id, redock_all, fileIndex);
+                draw_file_editor(dockspace_main, redock_all, fileIndex);
             }
 
 
