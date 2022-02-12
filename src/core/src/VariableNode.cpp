@@ -28,8 +28,15 @@ bool VariableNode::eval() const
 void VariableNode::set_name(const char* _name)
 {
     m_name = _name;
-    std::string str = Reflect::to_string( m_value->get_type() );
-    str.append(" ");
+    std::string str;
+
+    // append type only if not unknown
+    if ( m_value->get_type() != Reflect::Type_Unknown )
+    {
+        str.append( Reflect::to_string( m_value->get_type() ) );
+        str.append(" ");
+    }
+
     str.append( _name );
     set_label(str);
 
