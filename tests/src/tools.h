@@ -97,6 +97,28 @@ namespace Nodable
         return result;
     }
 
+    static std::string ParseAndSerialize(const std::string &expression) {
+        LOG_MESSAGE("Specs", "ParseAndSerialize parsing %s\n", expression.c_str());
+        // prepare
+        const LanguageNodable lang;
+        HeadlessNodeFactory factory(&lang);
+        GraphNode graph(&lang, &factory);
+
+        // act
+        lang.getParser()->parse_graph(expression, &graph);
+        if ( !graph.get_root())
+        {
+            throw std::runtime_error("ParseAndSerialize: Unable to generate program.");
+        }
+
+        Serializer *serializer = lang.getSerializer();
+        std::string result;
+        serializer->serialize(result, graph.get_root() );
+        LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize serialize output is: %s\n", result.c_str());
+
+        return result;
+    }
+
     static void ParseEvalSerializeExpressions(const std::vector<std::string> &expressions) {
         for (const auto &original_expr : expressions) {
             std::string result_expr;

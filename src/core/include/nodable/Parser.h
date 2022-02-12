@@ -32,8 +32,9 @@ namespace Nodable{
 	class Parser
 	{
 	public:
-		explicit Parser(const Language* _language)
-            : m_language(_language)
+		explicit Parser(const Language* _lang, bool _strict = false )
+            : m_language(_lang)
+            , m_strict_mode(_strict)
             , m_graph(nullptr){}
 		~Parser(){}
 
@@ -108,6 +109,10 @@ namespace Nodable{
 
 		/** Scope stack */
 		std::stack<Scope*> m_scope_stack;
+
+		/** In stric mode, parsing fails earlier.
+		 * Ex: if trying to parse "double b = a + c:" it will fail when trying to get a reference for variable a. */
+        bool m_strict_mode;
     };
 
 }

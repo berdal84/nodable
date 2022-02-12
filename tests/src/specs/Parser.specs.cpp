@@ -300,6 +300,15 @@ TEST(Parser, not_equals)
     EXPECT_FALSE( ParseAndEvalExpression<bool>("10.0 != 10.0;") );
 }
 
+TEST(Parser, undeclared_variables)
+{
+    std::string program1 = "double a = b + c;";
+    EXPECT_EQ( ParseAndSerialize(program1), program1);
+
+    std::string program2 = "if(a==b){}";
+    EXPECT_EQ( ParseAndSerialize(program2), program2);
+}
+
 TEST(Parser, not)
 {
     EXPECT_TRUE( ParseAndEvalExpression<bool>("!false;") );

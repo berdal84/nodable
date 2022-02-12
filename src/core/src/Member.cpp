@@ -19,11 +19,13 @@ Member::Member(Properties* _parent_properties)
 
 Member::Member( Properties* _parent_properties, double d ): Member(_parent_properties)
 {
+    m_variant.set_type<double>();
     m_variant.set(d);
 }
 
 Member::Member(Properties* _parent_properties, bool b): Member(_parent_properties)
 {
+    m_variant.set_type<bool>();
     m_variant.set(b);
 }
 
@@ -31,6 +33,7 @@ Member::Member(Properties* _parent_properties, int i): Member(_parent_properties
 
 Member::Member(Properties* _parent_properties, const char * str): Member(_parent_properties)
 {
+    m_variant.set_type<std::string>();
     m_variant.set(str);
 }
 
@@ -38,6 +41,7 @@ Member::Member(Properties* _parent_properties, const std::string& s): Member(_pa
 
 Member::Member(Properties* _parent_properties, Node* _node): Member(_parent_properties)
 {
+    m_variant.set_type<Node*>();
     m_variant.set(_node);
 }
 
@@ -50,7 +54,7 @@ bool Member::has_input_connected() const
 
 bool Member::equals(const Member *_other)const {
 	return _other != nullptr &&
-           _other->m_variant.getType() == m_input->m_variant.getType() &&
+            _other->m_variant.get_type() == m_input->m_variant.get_type() &&
 		   (std::string)*_other == (std::string)*m_input;
 }
 
@@ -62,25 +66,25 @@ void Member::set_input(Member* _val, ConnBy_ _connect_by)
 
 void Member::set(Node* _value)
 {
-    get_variant().setType(Reflect::Type_Pointer);
+    get_variant().set_type(Reflect::Type_Pointer);
     get_variant().set(_value);
 }
 
 void Member::set(double _value)
 {
-    get_variant().setType(Reflect::Type_Double);
+    get_variant().set_type(Reflect::Type_Double);
     get_variant().set(_value);
 }
 
 void Member::set(const char* _value)
 {
-    get_variant().setType(Reflect::Type_String);
+    get_variant().set_type(Reflect::Type_String);
     get_variant().set(_value);
 }
 
 void Member::set(bool _value)
 {
-    get_variant().setType(Reflect::Type_Boolean);
+    get_variant().set_type(Reflect::Type_Boolean);
     get_variant().set(_value);
 }
 

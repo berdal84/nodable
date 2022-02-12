@@ -48,16 +48,18 @@ const InvokableOperator* Language::findOperator(const std::string& _short_identi
 	return nullptr;
 }
 
-const InvokableOperator* Language::findOperator(const FunctionSignature* _signature) const {
+const InvokableOperator* Language::findOperator(const FunctionSignature* _signature) const
+{
 	
-	auto predicate = [&](InvokableOperator* op) {
-		return op->get_signature()->match(_signature);
+	auto predicate = [&](InvokableOperator* op)
+    {
+		return _signature->match( op->get_signature() );
 	};
 
-	auto it = std::find_if(operators.cbegin(), operators.cend(), predicate );
+	auto found = std::find_if(operators.cbegin(), operators.cend(), predicate );
 
-	if ( it != operators.end() )
-		return *it;
+	if (found != operators.end() )
+		return *found;
 
 	return nullptr;
 }

@@ -10,7 +10,7 @@ TEST(Reflect, is_convertible__type_to_ptr)
     EXPECT_TRUE( is_convertible( Type_Boolean, Type_Boolean_Ptr) );
     EXPECT_TRUE( is_convertible( Type_Double, Type_Double_Ptr) );
     EXPECT_TRUE( is_convertible( Type_String, Type_String_Ptr) );
-    EXPECT_TRUE( is_convertible( Type_Any, Type_Any_Ptr) );
+    EXPECT_TRUE( is_convertible(Type_Unknown, Type_Unknown_Ptr) );
 }
 
 TEST(Reflect, is_convertible__ptr_to_type)
@@ -18,20 +18,20 @@ TEST(Reflect, is_convertible__ptr_to_type)
     EXPECT_TRUE( is_convertible( Type_Boolean_Ptr, Type_Boolean) );
     EXPECT_TRUE( is_convertible( Type_Double_Ptr, Type_Double) );
     EXPECT_TRUE( is_convertible( Type_String_Ptr, Type_String) );
-    EXPECT_TRUE( is_convertible( Type_Any_Ptr, Type_Any) );
+    EXPECT_TRUE( is_convertible(Type_Unknown_Ptr, Type_Unknown) );
 }
 
 TEST(Reflect, is_convertible__compatible_types)
 {
-    EXPECT_TRUE( is_convertible( Type_Any, Type_Double) );
-    EXPECT_TRUE( is_convertible( Type_Any, Type_String) );
-    EXPECT_TRUE( is_convertible( Type_Any, Type_Boolean) );
-    EXPECT_TRUE( is_convertible( Type_Any, Type_Any) );
+    EXPECT_TRUE( is_convertible(Type_Unknown, Type_Double) );
+    EXPECT_TRUE( is_convertible(Type_Unknown, Type_String) );
+    EXPECT_TRUE( is_convertible(Type_Unknown, Type_Boolean) );
+    EXPECT_TRUE( is_convertible(Type_Unknown, Type_Unknown) );
 
-    EXPECT_TRUE( is_convertible( Type_Double, Type_Any) );
-    EXPECT_TRUE( is_convertible( Type_String, Type_Any) );
-    EXPECT_TRUE( is_convertible( Type_Boolean, Type_Any) );
-    EXPECT_TRUE( is_convertible( Type_Any, Type_Any) );
+    EXPECT_TRUE( is_convertible(Type_Double, Type_Unknown) );
+    EXPECT_TRUE( is_convertible(Type_String, Type_Unknown) );
+    EXPECT_TRUE( is_convertible(Type_Boolean, Type_Unknown) );
+    EXPECT_TRUE( is_convertible(Type_Unknown, Type_Unknown) );
 }
 
 TEST(Reflect, is_convertible__incompatible_types)
@@ -60,9 +60,9 @@ TEST(Reflect, is_pointer)
     EXPECT_FALSE( is_pointer( Type_Double_Ref) );
     EXPECT_FALSE( is_pointer( Type_Double) );
 
-    EXPECT_TRUE( is_pointer( Type_Any_Ptr) );
-    EXPECT_FALSE( is_pointer( Type_Any_Ref) );
-    EXPECT_FALSE( is_pointer( Type_Any) );
+    EXPECT_TRUE( is_pointer( Type_Unknown_Ptr) );
+    EXPECT_FALSE( is_pointer( Type_Unknown_Ref) );
+    EXPECT_FALSE( is_pointer(Type_Unknown) );
 }
 
 TEST(Reflect, is_reference)
@@ -79,9 +79,9 @@ TEST(Reflect, is_reference)
     EXPECT_TRUE( is_reference( Type_Double_Ref) );
     EXPECT_FALSE( is_reference( Type_Double) );
 
-    EXPECT_FALSE( is_reference( Type_Any_Ptr) );
-    EXPECT_TRUE( is_reference( Type_Any_Ref) );
-    EXPECT_FALSE( is_reference( Type_Any) );
+    EXPECT_FALSE( is_reference( Type_Unknown_Ptr) );
+    EXPECT_TRUE( is_reference( Type_Unknown_Ref) );
+    EXPECT_FALSE( is_reference(Type_Unknown) );
 }
 
 TEST(Reflect, node_as_pointer)

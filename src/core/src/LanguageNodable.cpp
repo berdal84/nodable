@@ -280,7 +280,6 @@ LanguageNodable::LanguageNodable()
     semantic.insert("bool",   TokenType_KeywordBoolean, Reflect::Type_Boolean); // types
     semantic.insert("string", TokenType_KeywordString,  Reflect::Type_String);
     semantic.insert("double", TokenType_KeywordDouble,  Reflect::Type_Double);
-    semantic.insert("any",    TokenType_KeywordAny,     Reflect::Type_Any);
 
     // punctuation
     semantic.insert("{", TokenType_BeginScope);

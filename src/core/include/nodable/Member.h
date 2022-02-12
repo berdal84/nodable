@@ -36,9 +36,9 @@ namespace Nodable
         void digest(Member *_member);
         void define();
         void undefine() { get_variant().undefine(); }
-        bool is_defined() const { return get_variant().isDefined(); }
+        bool is_defined() const { return get_variant().is_defined(); }
         bool is_connected_by(ConnBy_ by);
-        bool is_type(Reflect::Type _type)const { return get_variant().isType(_type); }
+        bool is_type(Reflect::Type _type)const { return get_variant().is(_type); }
         bool equals(const Member *)const;
         bool allows_connection(Way _flag)const { return (m_allowed_connection & _flag) == _flag; }
         bool has_input_connected()const;
@@ -54,7 +54,7 @@ namespace Nodable
         void set(bool);
 		void set(int val) { set((double)val); }
 		void set(const std::string& _val) { set(_val.c_str());}
-		void set_type(Reflect::Type _type) { get_variant().setType(_type); }
+		void set_type(Reflect::Type _type) { get_variant().set_type(_type); }
 		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
         void set_src_token(const Token* _token);
         void set_owner(Node* _owner) { m_owner = _owner; }
@@ -63,7 +63,7 @@ namespace Nodable
 		Member*               get_input()const { return m_input; }
 		std::vector<Member*>& get_outputs() { return m_outputs; }
         const std::string&    get_name()const { return m_name; }
-		Reflect::Type         get_type()const { return get_variant().getType(); }
+		Reflect::Type         get_type()const { return get_variant().get_type(); }
         Visibility            get_visibility()const { return m_visibility; }
         Way                   get_allowed_connection()const { return m_allowed_connection; }
         const Token*          get_src_token() const { return &m_sourceToken; }

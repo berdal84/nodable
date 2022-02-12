@@ -126,8 +126,6 @@ namespace Nodable::Reflect
      */
     enum Type
     {
-        Type_Unknown      = 1u << 0u,
-
         Type_Pointer      = 1u << 1u,
         Type_DblPointer   = 1u << 2u,
         Type_Reference    = 1u << 3u,
@@ -135,7 +133,8 @@ namespace Nodable::Reflect
         Type_Boolean      = 1u << 4u,
         Type_Double       = 1u << 5u,
         Type_String       = 1u << 6u,
-        Type_Any          = Type_Boolean | Type_Double | Type_String,
+
+        Type_Unknown      = Type_Boolean | Type_Double | Type_String,
 
         Type_COUNT,
 
@@ -144,14 +143,12 @@ namespace Nodable::Reflect
         Type_Double_Ptr   = Type_Double | Type_Pointer,
         Type_String_Ptr   = Type_String | Type_Pointer,
         Type_Pointer_Ptr  = Type_Pointer | Type_DblPointer,
-        Type_Any_Ptr      = Type_Any | Type_Pointer,
 
         Type_Unknown_Ref  = Type_Unknown | Type_Reference,
         Type_Boolean_Ref  = Type_Boolean | Type_Reference,
         Type_Double_Ref   = Type_Double | Type_Reference,
         Type_String_Ref   = Type_String | Type_Reference,
-        Type_Pointer_Ref  = Type_Pointer | Type_Reference,
-        Type_Any_Ref      = Type_Any | Type_Reference,
+        Type_Pointer_Ref  = Type_Pointer | Type_Reference
     };
 
 
@@ -169,7 +166,7 @@ namespace Nodable::Reflect
 
     inline static bool is_convertible( Type left, Type right )
     {
-        return (( left & Type_Any ) & ( right & Type_Any )) != 0; // check if type are matching (ignoring ref/pointer)
+        return ((left & Type_Unknown ) & (right & Type_Unknown )) != 0; // check if type are matching (ignoring ref/pointer)
     }
 
     inline static bool is_pointer( Type left)
@@ -288,9 +285,19 @@ namespace Nodable::Reflect
             return dynamic_cast<Dst*>(_source);
         return nullptr;
     };
+
+    using unknown_t = std::nullptr_t;
+
+    template<typename T>
+    struct Nodable::Reflect::cpp<T*>
+    {
+        static constexpr Type reflect_t = Type_Pointer;
+        static constexpr const char* type_name = "Type_Pointer";
+        static constexpr const char* cpp_t_name = "T*";
+    };
 }
 
-REFLECT_DEFINE_TYPE(std::nullptr_t, Nodable::Reflect::Type_Unknown )
+REFLECT_DEFINE_TYPE(Nodable::Reflect::unknown_t, Nodable::Reflect::Type_Unknown )
 REFLECT_DEFINE_TYPE(double, Nodable::Reflect::Type_Double )
 REFLECT_DEFINE_TYPE(std::string, Nodable::Reflect::Type_String )
 REFLECT_DEFINE_TYPE(bool, Nodable::Reflect::Type_Boolean )

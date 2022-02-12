@@ -102,7 +102,7 @@ TEST( GraphNode, create_and_delete_relations)
     GraphNode graph(&language, &factory);
     Node* program = graph.create_root();
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
-    Node* n1 = graph.create_variable(Type_Any, "n1", program->get<Scope>());
+    Node* n1 = graph.create_variable(Type_Unknown, "n1", program->get<Scope>());
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
     Node* n2 = graph.create_variable(Type_Double, "n2", program->get<Scope>());
 

@@ -263,10 +263,10 @@ bool GraphNodeView::draw()
 
 	if ( !isAnyNodeHovered && ImGui::BeginPopupContextWindow("ContainerViewContextualMenu") )
 	{
-		Node* newNode = nullptr;
+		Node* new_node = nullptr;
         bool is_dragging_node_connector = NodeConnector::GetDragged() != nullptr;
         bool is_dragging_member_connector = MemberConnector::GetDragged() != nullptr;
-        Member *dragged_member_conn = is_dragging_node_connector ? MemberConnector::GetDragged()->getMember() : nullptr;
+        Member *dragged_member_conn = is_dragging_member_connector ? MemberConnector::GetDragged()->getMember() : nullptr;
 
 		// Title :
 		ImGuiEx::ColoredShadowedText( vec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
@@ -312,7 +312,7 @@ bool GraphNodeView::draw()
 					{
 						if ( menu_item.create_node_fct  )
                         {
-                            newNode = menu_item.create_node_fct();
+                            new_node = menu_item.create_node_fct();
                         }
 						else
                         {
@@ -341,19 +341,19 @@ bool GraphNodeView::draw()
             if ( is_dragging_member_connector )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-                    newNode = graph->create_variable(dragged_member_conn->get_type(), "var",
-                                                     root_node->get<Scope>());
+                    new_node = graph->create_variable(dragged_member_conn->get_type(), "var",
+                                                      root_node->get<Scope>());
             }
             else if ( ImGui::BeginMenu("Variable") )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                    newNode = graph->create_variable(Type_Boolean, "var", root_node->get<Scope>());
+                    new_node = graph->create_variable(Type_Boolean, "var", root_node->get<Scope>());
 
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                    newNode = graph->create_variable(Type_Double, "var", root_node->get<Scope>());
+                    new_node = graph->create_variable(Type_Double, "var", root_node->get<Scope>());
 
                 if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                    newNode = graph->create_variable(Type_String, "var", root_node->get<Scope>());
+                    new_node = graph->create_variable(Type_String, "var", root_node->get<Scope>());
 
                 ImGui::EndMenu();
             }
@@ -364,18 +364,18 @@ bool GraphNodeView::draw()
             if ( is_dragging_member_connector )
             {
                 if (ImGui::MenuItem(ICON_FA_FILE " Literal"))
-                    newNode = graph->create_literal( dragged_member_conn->get_type() );
+                    new_node = graph->create_literal(dragged_member_conn->get_type() );
             }
             else if ( ImGui::BeginMenu("Literal") )
             {
                 if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
-                    newNode = graph->create_literal(Type_Boolean);
+                    new_node = graph->create_literal(Type_Boolean);
 
                 if (ImGui::MenuItem(ICON_FA_FILE " Double"))
-                    newNode = graph->create_literal(Type_Double);
+                    new_node = graph->create_literal(Type_Double);
 
                 if (ImGui::MenuItem(ICON_FA_FILE " String"))
-                    newNode = graph->create_literal(Type_String);
+                    new_node = graph->create_literal(Type_String);
 
                 ImGui::EndMenu();
             }
@@ -387,39 +387,40 @@ bool GraphNodeView::draw()
         {
             if ( ImGui::MenuItem(ICON_FA_CODE " Instruction") )
             {
-                newNode = graph->create_instr_user();
+                new_node = graph->create_instr_user();
             }
         }
 
         if( !is_dragging_member_connector )
         {
             if (ImGui::MenuItem(ICON_FA_CODE " Condition"))
-                newNode = graph->create_cond_struct();
+                new_node = graph->create_cond_struct();
 
             ImGui::Separator();
 
             if (ImGui::MenuItem(ICON_FA_CODE " Scope"))
-                newNode = graph->create_scope();
+                new_node = graph->create_scope();
 
             ImGui::Separator();
 
             if (ImGui::MenuItem(ICON_FA_CODE " Program"))
-                newNode = graph->create_root();
+                new_node = graph->create_root();
         }
 
-        if (newNode)
+        if (new_node)
         {
+
             // dragging node connector ?
-            if (auto draggedNodeConnector = NodeConnector::GetDragged())
+            if (auto dragged = NodeConnector::GetDragged())
             {
                 //  [ dragged ]
                 //       |
                 //       |   (drag direction)
                 //       v
                 //  [ new node ]
-                if ( draggedNodeConnector->m_way == Way_Out )
+                if (dragged->m_way == Way_Out )
                 {
-                    graph->connect(newNode, draggedNodeConnector->getNode(), Relation_t::IS_SUCCESSOR_OF);
+                    graph->connect(new_node, dragged->getNode()->get_parent(), Relation_t::IS_CHILD_OF);
                 }
                 //  [ new node ]
                 //       ^
@@ -428,7 +429,7 @@ bool GraphNodeView::draw()
                 //  [ dragged ]
                 else
                 {
-                    graph->connect(draggedNodeConnector->getNode(), newNode, Relation_t::IS_SUCCESSOR_OF);
+                    graph->connect(new_node, dragged->getNode()->get_parent(), Relation_t::IS_CHILD_OF);
                 }
                 NodeConnector::StopDrag();
             }
@@ -440,7 +441,7 @@ bool GraphNodeView::draw()
                 if ( draggedMemberConnector->m_way == Way_In )
                 {
                     graph->connect(
-                            newNode->props()->get_first_member_with_conn(Way_Out),
+                            new_node->props()->get_first_member_with_conn(Way_Out),
                             draggedMemberConnector->m_memberView->m_member);
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
@@ -449,18 +450,17 @@ bool GraphNodeView::draw()
                     // connect dragged (out) to first input on new node.
                     graph->connect(
                             draggedMemberConnector->m_memberView->m_member,
-                            newNode->props()->get_first_member_with_conn(Way_In));
+                            new_node->props()->get_first_member_with_conn(Way_In));
                 }
                 MemberConnector::StopDrag();
             }
 
             // Set New Node's currentPosition were mouse cursor is
-			if (auto view = newNode->get<NodeView>())
+			if (auto view = new_node->get<NodeView>())
 			{
 				auto pos = ImGui::GetMousePos() - origin;
 				view->setPosition(pos);
 			}
-			
 		}
 
 		ImGui::EndPopup();

@@ -156,7 +156,7 @@ double Parser::parse_double(const std::string &_str)
 
 Member* Parser::token_to_member(Token *_token)
 {
-	Member* result = nullptr;
+	Member* result;
 
 	switch (_token->m_type)
 	{
@@ -182,20 +182,36 @@ Member* Parser::token_to_member(Token *_token)
 		{
 			VariableNode* variable = get_current_scope()->find_variable(_token->m_word);
 
-			if (variable == nullptr) {
-                LOG_WARNING("Parser", "Unable to find declaration for %s, Type_Any will be used to allow graph visualisation, but compilation will fail.\n", _token->m_word.c_str())
-                variable = m_graph->create_variable(Reflect::Type_Any, _token->m_word, get_current_scope());
-                variable->get_value()->set_src_token(_token);
+			if (variable == nullptr)
+			{
+			    if ( m_strict_mode )
+                {
+                    LOG_ERROR("Parser", "Unable to find declaration for %s ! (strict mode) \n", _token->m_word.c_str())
+                 }
+			    else
+                {
+			        /* when strict mode is OFF, we just create a variable with Any type */
+                    LOG_WARNING("Parser", "Unable to find declaration for %s, Type_Unknown will be used to allow graph visualisation, but compilation will fail.\n", _token->m_word.c_str())
+                    variable = m_graph->create_variable(Reflect::Type_Unknown, _token->m_word, get_current_scope());
+                    variable->get_value()->set_src_token(_token);
+                }
+            }
+            if (variable == nullptr)
+            {
+                result = nullptr;
+            }
+            else
+            {
+                result = variable->get_value();
             }
 
-            result = variable->get_value();
 			break;
 		}
 
 	    default:
-	        assert("This TokenType is not handled by this method.");
-
-	}
+            LOG_ERROR("Parser", "Unable to perform token_to_member for token %s!\n", _token->m_word.c_str())
+            result = nullptr;
+    }
 
 	return result;
 }
@@ -258,7 +274,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const FunctionSignature* signature = m_language->createBinOperatorSignature(Reflect::Type_Any, operatorToken->m_word,
+	const FunctionSignature* signature = m_language->createBinOperatorSignature(Reflect::Type_Unknown, operatorToken->m_word,
                                                                                 _left->get_type(),
                                                                                 right->get_type());
 	auto matchingOperator = m_language->findOperator(signature);
@@ -325,8 +341,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	}
 
 	// Create a function signature
-	auto signature = m_language->createUnaryOperatorSignature(Reflect::Type_Any, operatorToken->m_word,
-                                                              value->get_type() );
+	auto signature = m_language->createUnaryOperatorSignature(Reflect::Type_Unknown, operatorToken->m_word, value->get_type() );
 	auto matchingOperator = m_language->findOperator(signature);
 
 	if (matchingOperator != nullptr)
@@ -794,7 +809,7 @@ Member* Parser::parse_function_call()
 
     // Declare a new function prototype
     FunctionSignature signature(identifier);
-    signature.set_return_type(Reflect::Type_Any );
+    signature.set_return_type(Reflect::Type_Unknown );
 
     bool parsingError = false;
     while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != TokenType_CloseBracket)

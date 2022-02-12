@@ -26,7 +26,6 @@ namespace Nodable {
         TokenType_KeywordDouble,
         TokenType_KeywordBoolean,
         TokenType_KeywordOperator,
-        TokenType_KeywordAny,
 
         TokenType_Literal,            // 5.0, "coucou" or true
         TokenType_Operator,           // ... operator ..., ex 5 + 7

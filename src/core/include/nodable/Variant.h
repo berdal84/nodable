@@ -7,48 +7,60 @@
 #include <nodable/Nodable.h> // for constants and forward declarations
 #include <nodable/Reflect.h>
 
-namespace Nodable {
-
-    // forward declarations
-    class Node;
-
-	/**
-		This class is a variant implementation.
-
-	    It wraps std::variant with a Nodable typing
-	*/
-
+namespace Nodable
+{
+    /**
+     * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data member)
+     */
 	class Variant {
 	public:
 		Variant();
 		~Variant();
 
-		bool        isDefined()const;
-        void        undefine();
-		bool        isType(Reflect::Type _type)const;
-		void        set(Node*);
-		void        set(const Variant*);
-		void        set(const std::string&);
-		void        set(const char*);
-		void        set(double);
-		void        set(bool);
-		void        setType(Reflect::Type _type);
-        Reflect::Type getType()const;
-		std::string getTypeAsString()const;
+        void define();
+        bool is_defined()const;
+        void undefine();
+		bool is(Reflect::Type _type)const;
+
+        template<class T>
+        void set(T* _pointer)
+        {
+            set_type(Reflect::Type_Pointer); // TODO: remove this
+            m_data = (void*)_pointer;
+            m_is_defined = true;
+        }
+
+		void set(const Variant*);
+		void set(const std::string&);
+		void set(const char*);
+		void set(double);
+		void set(bool);
+
+		void set_type(Reflect::Type _type);
+
+        template<typename T>
+        void set_type()
+        {
+            set_type( Reflect::cpp<T>::reflect_t );
+        };
+
+        Reflect::Type get_type()const;
 
         // conversion
         template<typename T>
         T convert_to()const;
 
 		// by reference
-		inline operator const Node*()const { return mpark::get<Node*>(data); }
-		inline operator Node*()        { return mpark::get<Node*>(data); }
-		inline operator double*()        { return &mpark::get<double>(data); }
-        inline operator bool*()          { return &mpark::get<bool>(data); }
-        inline operator std::string* () { return &mpark::get<std::string>(data); }
-        inline operator double&()        { return mpark::get<double>(data); }
-        inline operator bool&()          { return mpark::get<bool>(data); }
-        inline operator std::string& () { return mpark::get<std::string>(data); }
+		template<class T>
+		inline operator const T*()const { return reinterpret_cast<T*>( mpark::get<void*>(m_data) ); }
+        template<class T>
+		inline operator T*() { return reinterpret_cast<T*>( mpark::get<void*>(m_data) ); }
+		inline operator double*()        { return &mpark::get<double>(m_data); }
+        inline operator bool*()          { return &mpark::get<bool>(m_data); }
+        inline operator std::string* () { return &mpark::get<std::string>(m_data); }
+        inline operator double&()        { return mpark::get<double>(m_data); }
+        inline operator bool&()          { return mpark::get<bool>(m_data); }
+        inline operator std::string& () { return mpark::get<std::string>(m_data); }
 
         // by value
         operator int()const;
@@ -56,27 +68,9 @@ namespace Nodable {
         operator bool()const;
         operator std::string ()const;
 
-
-        void define();
-
     private:
-        bool m_isDefined;
-
-	    // TODO: use Reflect.h instead
-	    constexpr static const std::array<Reflect::Type, 5> s_nodableTypeByIndex = {{
-            Reflect::cpp<std::nullptr_t>::reflect_t,
-            Reflect::cpp<bool>::reflect_t,
-            Reflect::cpp<double>::reflect_t,
-            Reflect::cpp<std::string>::reflect_t,
-            Reflect::cpp<void*>::reflect_t
-	    }};
-
-		mpark::variant<
-            std::nullptr_t,
-            bool,
-            double,
-            std::string,
-            Node*
-		> data;
+        bool m_is_defined;
+        Reflect::Type m_type;
+		mpark::variant<bool, double, std::string, void*> m_data;
     };
 }

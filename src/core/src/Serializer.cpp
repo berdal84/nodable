@@ -188,7 +188,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
 
 std::string& Serializer::serialize(std::string& _result, const Variant* variant) const
 {
-    if (variant->isType(Reflect::Type_String))
+    if (variant->is(Reflect::Type_String))
     {
         return _result.append('"' + (std::string)*variant + '"');
     }
