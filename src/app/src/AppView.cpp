@@ -613,18 +613,18 @@ void AppView::draw_vm_view()
                     auto current_instr = vm->get_next_instr();
                     for( Instr* each_instr : code->get_instructions() )
                     {
-                        auto str = Instr::to_string( *each_instr ).c_str();
+                        auto str = Instr::to_string( *each_instr );
                         if ( each_instr == current_instr )
                         {
                             if ( m_scroll_to_curr_instr && vm->is_program_running() )
                             {
                                 ImGui::SetScrollHereY();
                             }
-                            ImGui::TextColored( ImColor(200,0,0), ">%s", str );
+                            ImGui::TextColored( ImColor(200,0,0), ">%s", str.c_str() );
                         }
                         else
                         {
-                            ImGui::Text(  " %s", str );
+                            ImGui::Text(  " %s", str.c_str() );
                         }
                     }
                 }
