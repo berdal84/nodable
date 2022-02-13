@@ -287,15 +287,17 @@ namespace Nodable::Reflect
     };
 
     using unknown_t = std::nullptr_t;
-
-    template<typename T>
-    struct Nodable::Reflect::cpp<T*>
-    {
-        static constexpr Type reflect_t = Type_Pointer;
-        static constexpr const char* type_name = "Type_Pointer";
-        static constexpr const char* cpp_t_name = "T*";
-    };
 }
+
+/* define a set of templates to contert types */
+
+template<typename T>
+struct Nodable::Reflect::cpp<T*>
+{
+    static constexpr Type reflect_t = Type_Pointer;
+    static constexpr const char* type_name = "Type_Pointer";
+    static constexpr const char* cpp_t_name = "T*";
+};
 
 REFLECT_DEFINE_TYPE(Nodable::Reflect::unknown_t, Nodable::Reflect::Type_Unknown )
 REFLECT_DEFINE_TYPE(double, Nodable::Reflect::Type_Double )
