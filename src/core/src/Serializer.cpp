@@ -198,7 +198,7 @@ std::string& Serializer::serialize(std::string& _result, const Variant* variant)
 {
     if (variant->is(Reflect::Type_String))
     {
-        return _result.append('"' + (std::string)*variant + '"');
+        return _result.append('"' + variant->convert_to<std::string>() + '"');
     }
     else
     {
