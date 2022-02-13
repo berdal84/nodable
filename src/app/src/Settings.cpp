@@ -114,6 +114,8 @@ Settings* Settings::create_default()
 
     settings->ui_toolButton_size              = vec2(24.0f, 30.0f);
 
+    settings->graph_autocompletion = true;    
+
     return settings;
 }
 

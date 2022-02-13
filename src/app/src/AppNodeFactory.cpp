@@ -12,17 +12,17 @@
 using namespace Nodable;
 using namespace Nodable::Reflect;
 
-InstructionNode* AppNodeFactory::newInstruction() const
+InstructionNode* AppNodeFactory::new_instr() const
 {
-    InstructionNode* node = m_headless_node_factory.newInstruction_UserCreated();
+    InstructionNode* node = m_headless_node_factory.new_instr();
     post_instantiation(node);
 
     return node;
 }
 
-InstructionNode* AppNodeFactory::newInstruction_UserCreated()const
+InstructionNode* AppNodeFactory::new_instr_user()const
 {
-    InstructionNode* node = m_headless_node_factory.newInstruction_UserCreated();
+    InstructionNode* node = m_headless_node_factory.new_instr_user();
     post_instantiation(node);
 
     return node;

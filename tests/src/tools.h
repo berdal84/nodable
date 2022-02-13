@@ -21,7 +21,8 @@ namespace Nodable
         return_t result{};
         const LanguageNodable lang;
         HeadlessNodeFactory factory(&lang);
-        GraphNode graph(&lang, &factory);
+        bool autocompletion = false;
+        GraphNode graph(&lang, &factory, &autocompletion);
 
         // create program
         lang.getParser()->parse_graph(expression, &graph);
@@ -59,7 +60,8 @@ namespace Nodable
         // prepare
         const LanguageNodable lang;
         HeadlessNodeFactory factory(&lang);
-        GraphNode graph(&lang, &factory);
+        bool autocompletion = false;
+        GraphNode graph(&lang, &factory, &autocompletion);
 
         // act
         lang.getParser()->parse_graph(expression, &graph);
@@ -102,7 +104,8 @@ namespace Nodable
         // prepare
         const LanguageNodable lang;
         HeadlessNodeFactory factory(&lang);
-        GraphNode graph(&lang, &factory);
+        bool autocompletion  = false;
+        GraphNode graph(&lang, &factory, &autocompletion);
 
         // act
         lang.getParser()->parse_graph(expression, &graph);

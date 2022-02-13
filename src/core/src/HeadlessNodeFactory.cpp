@@ -9,22 +9,22 @@
 
 using namespace Nodable;
 
-InstructionNode* HeadlessNodeFactory::newInstruction() const
+InstructionNode* HeadlessNodeFactory::new_instr() const
 {
-    InstructionNode* node = new InstructionNode(ICON_FA_CODE " Instr.");
-    node->set_short_label(ICON_FA_CODE " I.");
-    return node;
+    InstructionNode* instr_node = new InstructionNode(ICON_FA_CODE " Instr.");
+    instr_node->set_short_label(ICON_FA_CODE " I.");
+    return instr_node;
 }
 
-InstructionNode* HeadlessNodeFactory::newInstruction_UserCreated()const
+InstructionNode* HeadlessNodeFactory::new_instr_user()const
 {
-    InstructionNode* newInstructionNode = newInstruction();
+    InstructionNode* instr_node = new_instr();
 
     Token* token = new Token(TokenType_EndOfInstruction);
     m_language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
-    newInstructionNode->end_of_instr_token(token);
+    instr_node->end_of_instr_token(token);
 
-    return newInstructionNode;
+    return instr_node;
 }
 
 VariableNode* HeadlessNodeFactory::newVariable(Reflect::Type _type, const std::string& _name, IScope *_scope) const

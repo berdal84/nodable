@@ -17,10 +17,11 @@ using namespace Nodable;
 
 REFLECT_DEFINE_CLASS(InstructionNode)
 
-GraphNode::GraphNode(const Language* _language, const INodeFactory* _factory)
+GraphNode::GraphNode(const Language* _language, const INodeFactory* _factory, const bool* _autocompletion)
     : m_language(_language)
     , m_factory(_factory)
     , m_root(nullptr)
+    , m_autocompletion(_autocompletion)
 {
 }
 
@@ -134,28 +135,67 @@ void GraphNode::remove(Node* _node)
 
 InstructionNode* GraphNode::create_instr()
 {
-	auto instructionNode = m_factory->newInstruction();
+	auto instructionNode = m_factory->new_instr();
     add(instructionNode);
 
 	return instructionNode;
 }
 
+void GraphNode::ensure_has_root()
+{
+    if( is_empty() )
+    {
+        create_root();
+    }
+}
+
 InstructionNode* GraphNode::create_instr_user()
 {
-    auto instructionNode = m_factory->newInstruction();
-    add(instructionNode);
+    InstructionNode* instr_node = m_factory->new_instr_user();
+    add(instr_node);
 
-    connect( instructionNode, m_root, Relation_t::IS_CHILD_OF  );
+    if ( *m_autocompletion )
+    {
+        ensure_has_root();
+        connect( instr_node, m_root, Relation_t::IS_CHILD_OF  );
+    }
 
-    return instructionNode;
+    return instr_node;
 }
 
 VariableNode* GraphNode::create_variable(Reflect::Type _type, const std::string& _name, IScope* _scope)
 {
 	auto node = m_factory->newVariable(_type, _name, _scope);
     add(node);
-
 	return node;
+}
+
+VariableNode* GraphNode::create_variable_user(Reflect::Type _type, const std::string& _name, IScope* _scope)
+{
+    VariableNode* var_node;
+
+    if ( *m_autocompletion )
+    {
+        auto instr_node = create_instr_user();
+        var_node = create_variable(_type, _name, m_root->get<Scope>() );
+
+        // we should not do that TODO: fin a solution for Token management.
+        Token* tok  = new  Token();
+        tok->m_type = TokenType_Operator;
+        tok->m_prefix  = " ";
+        tok->m_suffix  = " ";
+        tok->m_word    = "=";
+        
+        var_node->set_assignment_operator_token(tok);
+
+        connect( var_node, instr_node );
+    }
+    else
+    {
+        var_node = create_variable(_type, _name, _scope);
+    }
+	
+	return var_node;
 }
 
 Node* GraphNode::create_operator(const InvokableOperator* _operator)
@@ -521,7 +561,6 @@ ForLoopNode* GraphNode::create_for_loop()
 
 Node *GraphNode::create_root()
 {
-    clear();
     m_root = m_factory->newProgram();
     add(m_root);
     return m_root;

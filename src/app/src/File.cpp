@@ -38,7 +38,7 @@ File::File( AppContext* _context, std::string _path, const char* _content)
     LOG_VERBOSE( "File", "History built, creating graph ...\n");
 
 	// GraphNode
-    m_graph = new GraphNode(m_context->language, &m_factory );
+    m_graph = new GraphNode(m_context->language, &m_factory, &m_context->settings->graph_autocompletion );
     m_graph->set_label(getName() + "'s inner container");
 
     m_graph->add_component(new GraphNodeView(m_context));

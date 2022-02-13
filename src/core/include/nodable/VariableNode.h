@@ -21,7 +21,7 @@ namespace Nodable{
 		explicit VariableNode(Reflect::Type);
 		~VariableNode() override = default;
 
-		[[nodiscard]] inline bool             is_declared()const { return m_type_token != nullptr; }
+		[[nodiscard]] inline bool             is_declared()const { return m_is_declared; }
 		[[nodiscard]] inline bool             is_defined()const { return m_value->is_defined(); }
 		              inline void             undefine() { m_value->undefine();
                           set_dirty(true); }
@@ -37,9 +37,10 @@ namespace Nodable{
                       inline void             set_identifier_token(Token* token) { m_identifier_token = token; }
         template<class T> inline void         set(T _value) { m_value->set(_value); };
         template<class T> inline void         set(T* _value){ m_value->set(_value); };
-
+        void                                  set_declared(bool b = true) { m_is_declared = b; } 
     private:
 	    Member*     m_value;
+        bool        m_is_declared;
         Token*      m_type_token;
         Token*      m_assignment_operator_token;
         Token*      m_identifier_token;

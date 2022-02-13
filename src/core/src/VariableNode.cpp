@@ -11,7 +11,8 @@ VariableNode::VariableNode(Reflect::Type _type)
         Node("Variable"),
         m_type_token(nullptr),
         m_identifier_token(nullptr),
-        m_assignment_operator_token(nullptr)
+        m_assignment_operator_token(nullptr),
+        m_is_declared(true)
 {
 	m_value = m_props.add(Node::VALUE_MEMBER_NAME, Visibility::Always, _type, Way_InOut);
 }

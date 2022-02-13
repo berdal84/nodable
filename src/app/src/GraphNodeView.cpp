@@ -341,19 +341,18 @@ bool GraphNodeView::draw()
             if ( is_dragging_member_connector )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-                    new_node = graph->create_variable(dragged_member_conn->get_type(), "var",
-                                                      root_node->get<Scope>());
+                    new_node = graph->create_variable_user(dragged_member_conn->get_type(), "var", nullptr);
             }
             else if ( ImGui::BeginMenu("Variable") )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                    new_node = graph->create_variable(Type_Boolean, "var", root_node->get<Scope>());
+                    new_node = graph->create_variable_user(Type_Boolean, "var", nullptr);
 
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                    new_node = graph->create_variable(Type_Double, "var", root_node->get<Scope>());
+                    new_node = graph->create_variable_user(Type_Double, "var", nullptr);
 
                 if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                    new_node = graph->create_variable(Type_String, "var", root_node->get<Scope>());
+                    new_node = graph->create_variable_user(Type_String, "var", nullptr);
 
                 ImGui::EndMenu();
             }
@@ -404,7 +403,11 @@ bool GraphNodeView::draw()
             ImGui::Separator();
 
             if (ImGui::MenuItem(ICON_FA_CODE " Program"))
+            {
+                graph->clear();
                 new_node = graph->create_root();
+            }
+                
         }
 
         if (new_node)

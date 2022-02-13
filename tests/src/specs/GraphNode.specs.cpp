@@ -18,7 +18,8 @@ TEST( GraphNode, connect)
 {
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
-    GraphNode graph(&language, &factory);
+    bool autocompletion = false;
+    GraphNode graph(&language, &factory, &autocompletion);
 
     auto node1 = graph.create_node();
     node1->props()->add("output", Visibility::Default, Type_Boolean, Way_Default);
@@ -39,7 +40,8 @@ TEST( GraphNode, disconnect)
 {
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
-    GraphNode graph(&language, &factory);
+    bool autocompletion  = false;
+    GraphNode graph(&language, &factory,  &autocompletion);
 
     auto a = graph.create_node();
     auto output = a->props()->add("output", Visibility::Default, Type_Boolean, Way_Default);
@@ -67,7 +69,8 @@ TEST( GraphNode, clear)
     // prepare
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
-    GraphNode graph(&language, &factory);
+    bool autocompletion  = false;
+    GraphNode graph(&language, &factory,  &autocompletion);
     InstructionNode* instructionNode = graph.create_instr();
 
     auto ope = language.findOperator("+");
@@ -99,7 +102,8 @@ TEST( GraphNode, create_and_delete_relations)
     // prepare
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
-    GraphNode graph(&language, &factory);
+    bool autocompletion  = false;
+    GraphNode graph(&language, &factory, &autocompletion);
     Node* program = graph.create_root();
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
     Node* n1 = graph.create_variable(Type_Unknown, "n1", program->get<Scope>());
@@ -138,7 +142,8 @@ TEST(Graph, by_reference_assign)
     // prepare
     LanguageNodable language;
     HeadlessNodeFactory factory(&language);
-    GraphNode graph(&language, &factory);
+    bool autocompletion  = false;
+    GraphNode graph(&language, &factory, &autocompletion);
     Node* program = graph.create_root();
 
     // create b

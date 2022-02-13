@@ -21,8 +21,8 @@ namespace Nodable
         ~AppNodeFactory() {}
 
         Node*                       newProgram()const override ;
-        InstructionNode*		    newInstruction_UserCreated()const override ;
-        InstructionNode*            newInstruction()const override ;
+        InstructionNode*		    new_instr_user()const override ;
+        InstructionNode*            new_instr()const override ;
         VariableNode*				newVariable(Reflect::Type, const std::string&, IScope *)const override ;
         LiteralNode*                newLiteral(const Reflect::Type &type)const override ;
         Node*                       newBinOp(const InvokableOperator*)const override ;

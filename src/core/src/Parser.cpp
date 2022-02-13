@@ -194,6 +194,7 @@ Member* Parser::token_to_member(Token *_token)
                     LOG_WARNING("Parser", "Unable to find declaration for %s, Type_Unknown will be used to allow graph visualisation, but compilation will fail.\n", _token->m_word.c_str())
                     variable = m_graph->create_variable(Reflect::Type_Unknown, _token->m_word, get_current_scope());
                     variable->get_value()->set_src_token(_token);
+                    variable->set_declared(false);
                 }
             }
             if (variable == nullptr)
@@ -488,13 +489,14 @@ Node* Parser::parse_program()
     Node* result;
 
     start_transaction();
-    Node* program = m_graph->create_root();
-    m_scope_stack.push( program->get<Scope>() );
+    m_graph->clear();
+    m_graph->create_root();
+    m_scope_stack.push( m_graph->get_root()->get<Scope>() );
 
     if ( parse_code_block(false) )
     {
         commit_transaction();
-        result = program;
+        result = m_graph->get_root();
     }
     else
     {
