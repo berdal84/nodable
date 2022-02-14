@@ -20,14 +20,6 @@ InstructionNode* AppNodeFactory::new_instr() const
     return node;
 }
 
-InstructionNode* AppNodeFactory::new_instr_user()const
-{
-    InstructionNode* node = m_headless_node_factory.new_instr_user();
-    post_instantiation(node);
-
-    return node;
-}
-
 VariableNode* AppNodeFactory::newVariable(Type _type, const std::string& _name, IScope *_scope) const
 {
     VariableNode* node = m_headless_node_factory.newVariable(_type, _name, _scope);

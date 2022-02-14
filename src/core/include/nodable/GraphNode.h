@@ -38,10 +38,8 @@ namespace Nodable
         void                    ensure_has_root() override;
         /* node factory */
         Node*                       create_root() override;
-        InstructionNode*		    create_instr_user() override;
         InstructionNode*            create_instr() override;
 		VariableNode*				create_variable(Reflect::Type, const std::string&, IScope*) override;
-        VariableNode*				create_variable_user(Reflect::Type, const std::string&, IScope*) override;
 		LiteralNode*                create_literal(const Reflect::Type&) override;
 		Node*                       create_bin_op(const InvokableOperator*) override;
 		Node*                       create_unary_op(const InvokableOperator*) override;

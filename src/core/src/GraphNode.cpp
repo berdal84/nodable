@@ -149,53 +149,11 @@ void GraphNode::ensure_has_root()
     }
 }
 
-InstructionNode* GraphNode::create_instr_user()
-{
-    InstructionNode* instr_node = m_factory->new_instr_user();
-    add(instr_node);
-
-    if ( *m_autocompletion )
-    {
-        ensure_has_root();
-        connect( instr_node, m_root, Relation_t::IS_CHILD_OF  );
-    }
-
-    return instr_node;
-}
-
 VariableNode* GraphNode::create_variable(Reflect::Type _type, const std::string& _name, IScope* _scope)
 {
 	auto node = m_factory->newVariable(_type, _name, _scope);
     add(node);
 	return node;
-}
-
-VariableNode* GraphNode::create_variable_user(Reflect::Type _type, const std::string& _name, IScope* _scope)
-{
-    VariableNode* var_node;
-
-    if ( *m_autocompletion )
-    {
-        auto instr_node = create_instr_user();
-        var_node = create_variable(_type, _name, m_root->get<Scope>() );
-
-        // we should not do that TODO: fin a solution for Token management.
-        Token* tok  = new  Token();
-        tok->m_type = TokenType_Operator;
-        tok->m_prefix  = " ";
-        tok->m_suffix  = " ";
-        tok->m_word    = "=";
-        
-        var_node->set_assignment_operator_token(tok);
-
-        connect( var_node, instr_node );
-    }
-    else
-    {
-        var_node = create_variable(_type, _name, _scope);
-    }
-	
-	return var_node;
 }
 
 Node* GraphNode::create_operator(const InvokableOperator* _operator)
@@ -270,7 +228,7 @@ void GraphNode::destroy(Node* _node)
 
 bool GraphNode::is_empty()
 {
-    return !m_root || m_root->children_slots().empty();
+    return !m_root;
 }
 
 Wire *GraphNode::connect(Member* _src_member, Member* _dst, ConnBy_ _connect_by)
@@ -383,6 +341,9 @@ void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relationType, bool _
 {
     switch ( _relationType )
     {
+        case Relation_t::IS_PREDECESSOR_OF:
+            return connect(_dst, _src, Relation_t::IS_SUCCESSOR_OF);
+
         case Relation_t::IS_CHILD_OF:
         {
             /*

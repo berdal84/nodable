@@ -23,7 +23,7 @@ Node::Node(std::string _label)
     , m_parent(nullptr)
     , m_label(std::move(_label))
     , m_inner_graph(nullptr)
-    , m_dirty(false)
+    , m_dirty(true)
     , m_needs_to_be_deleted(false)
 {
     /*

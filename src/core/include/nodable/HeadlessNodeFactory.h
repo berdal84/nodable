@@ -18,7 +18,6 @@ namespace Nodable
         ~HeadlessNodeFactory() {}
 
         Node*                       newProgram()const override ;
-        InstructionNode*		    new_instr_user()const override ;
         InstructionNode*            new_instr()const override ;
         VariableNode*				newVariable(Reflect::Type, const std::string&, IScope *)const override ;
         LiteralNode*                newLiteral(const Reflect::Type &type)const override ;

@@ -266,7 +266,8 @@ bool GraphNodeView::draw()
 		Node* new_node = nullptr;
         bool is_dragging_node_connector = NodeConnector::GetDragged() != nullptr;
         bool is_dragging_member_connector = MemberConnector::GetDragged() != nullptr;
-        Member *dragged_member_conn = is_dragging_member_connector ? MemberConnector::GetDragged()->getMember() : nullptr;
+        Member *dragged_member = is_dragging_member_connector ? MemberConnector::GetDragged()->getMember() : nullptr;
+        const MemberConnector *dragged_member_conn = is_dragging_member_connector ? MemberConnector::GetDragged() : nullptr;
 
 		// Title :
 		ImGuiEx::ColoredShadowedText( vec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
@@ -333,60 +334,87 @@ bool GraphNodeView::draw()
             ImGui::Separator();
         }
 
+        auto create_instr = [&]( Scope* _scope ) -> InstructionNode*
+        {
+            InstructionNode* instr_node = graph->create_instr();
+            Token* token = new Token(TokenType_EndOfInstruction);
+            m_context->language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
+            instr_node->end_of_instr_token(token);
+            return instr_node;
+        };
+
+        auto create_variable = [&](Type _type, const char*  _name, Scope*  _scope) -> VariableNode*
+        {
+            VariableNode* var_node;
+            Scope* scope = _scope ? scope : graph->get_root()->get<Scope>();
+
+            var_node = graph->create_variable(_type, _name, scope );
+
+            // we should not do that TODO: fin a solution for Token management.
+            Token* tok  = new  Token();
+            tok->m_type = TokenType_Operator;
+            tok->m_prefix  = " ";
+            tok->m_suffix  = " ";
+            tok->m_word    = "=";
+            
+            var_node->set_assignment_operator_token(tok);
+            return var_node;
+        };
 
 
         if ( !is_dragging_node_connector )
         {
             Node *root_node = graph->get_root();
-            if ( is_dragging_member_connector )
+
+            // If dragging a member we create a VariableNode with the same type.
+            if ( is_dragging_member_connector && dragged_member->get_type() != Type_Pointer )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-                    new_node = graph->create_variable_user(dragged_member_conn->get_type(), "var", nullptr);
-            }
-            else if ( ImGui::BeginMenu("Variable") )
-            {
-                if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                    new_node = graph->create_variable_user(Type_Boolean, "var", nullptr);
-
-                if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                    new_node = graph->create_variable_user(Type_Double, "var", nullptr);
-
-                if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                    new_node = graph->create_variable_user(Type_String, "var", nullptr);
-
-                ImGui::EndMenu();
-            }
-        }
-
-        if ( !is_dragging_node_connector )
-        {
-            if ( is_dragging_member_connector )
-            {
+                    new_node = create_variable(dragged_member->get_type(), "var", nullptr);
+                
                 if (ImGui::MenuItem(ICON_FA_FILE " Literal"))
-                    new_node = graph->create_literal(dragged_member_conn->get_type() );
+                    new_node = graph->create_literal(dragged_member->get_type() );
             }
-            else if ( ImGui::BeginMenu("Literal") )
-            {
-                if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
-                    new_node = graph->create_literal(Type_Boolean);
+            // By not knowing anything, we propose all possible types to the user.
+            else
+            {   
+                if ( ImGui::BeginMenu("Variable") )
+                {
+                    if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
+                        new_node = create_variable(Type_Boolean, "var", nullptr);
 
-                if (ImGui::MenuItem(ICON_FA_FILE " Double"))
-                    new_node = graph->create_literal(Type_Double);
+                    if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
+                        new_node = create_variable(Type_Double, "var", nullptr);
 
-                if (ImGui::MenuItem(ICON_FA_FILE " String"))
-                    new_node = graph->create_literal(Type_String);
+                    if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
+                        new_node = create_variable(Type_String, "var", nullptr);
 
-                ImGui::EndMenu();
+                    ImGui::EndMenu();
+                }
+
+                if ( ImGui::BeginMenu("Literal") )
+                {
+                    if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
+                        new_node = graph->create_literal(Type_Boolean);
+
+                    if (ImGui::MenuItem(ICON_FA_FILE " Double"))
+                        new_node = graph->create_literal(Type_Double);
+
+                    if (ImGui::MenuItem(ICON_FA_FILE " String"))
+                        new_node = graph->create_literal(Type_String);
+
+                    ImGui::EndMenu();
+                }
             }
         }
 
         ImGui::Separator();
 
-        if ( !is_dragging_member_connector || MemberConnector::GetDragged()->m_way == Way_Out)
+        if ( !is_dragging_member_connector  )
         {
             if ( ImGui::MenuItem(ICON_FA_CODE " Instruction") )
             {
-                new_node = graph->create_instr_user();
+                new_node = create_instr(nullptr);
             }
         }
 
@@ -410,52 +438,41 @@ bool GraphNodeView::draw()
                 
         }
 
+        /*
+        *  In case user has created a new node we need to connect it to the graph depending
+        *  on if a connector is being dragged and  what is its nature.
+        */
         if (new_node)
         {
 
             // dragging node connector ?
-            if (auto dragged = NodeConnector::GetDragged())
+            const NodeConnector* dragged_node_conn = NodeConnector::GetDragged();
+            if ( dragged_node_conn )
             {
-                //  [ dragged ]
-                //       |
-                //       |   (drag direction)
-                //       v
-                //  [ new node ]
-                if (dragged->m_way == Way_Out )
-                {
-                    graph->connect(new_node, dragged->getNode()->get_parent(), Relation_t::IS_CHILD_OF);
-                }
-                //  [ new node ]
-                //       ^
-                //       |   (drag direction)
-                //       |
-                //  [ dragged ]
-                else
-                {
-                    graph->connect(new_node, dragged->getNode()->get_parent(), Relation_t::IS_CHILD_OF);
-                }
+                Node* dragged_node = dragged_node_conn->getNode();
+                Relation_t relation_type = dragged_node_conn->m_way == Way_Out ?
+                    Relation_t::IS_SUCCESSOR_OF  : Relation_t::IS_PREDECESSOR_OF;
+                graph->connect( new_node, dragged_node, relation_type );
                 NodeConnector::StopDrag();
             }
-
-            // dragging member connector ?
-            if (auto draggedMemberConnector = MemberConnector::GetDragged())
+            else if ( dragged_member_conn )
             {
-                // [ new node ](out) <---- dragging this way ---- (in)[ dragged connector ]
-                if ( draggedMemberConnector->m_way == Way_In )
+                if ( dragged_member_conn->m_way == Way_In )
                 {
-                    graph->connect(
-                            new_node->props()->get_first_member_with_conn(Way_Out),
-                            draggedMemberConnector->m_memberView->m_member);
+                    graph->connect( new_node->props()->get_first_member_with_conn(Way_Out), dragged_member);
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
                 else
                 {
                     // connect dragged (out) to first input on new node.
-                    graph->connect(
-                            draggedMemberConnector->m_memberView->m_member,
-                            new_node->props()->get_first_member_with_conn(Way_In));
+                    graph->connect( dragged_member, new_node->props()->get_first_member_with_conn(Way_In));
                 }
                 MemberConnector::StopDrag();
+            }
+            else if ( new_node != graph->get_root() && m_context->settings->graph_autocompletion )
+            {
+                graph->ensure_has_root();
+                // graph->connect( new_node, graph->get_root(), Relation_t::IS_CHILD_OF  );
             }
 
             // Set New Node's currentPosition were mouse cursor is

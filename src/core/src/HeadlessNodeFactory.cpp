@@ -16,17 +16,6 @@ InstructionNode* HeadlessNodeFactory::new_instr() const
     return instr_node;
 }
 
-InstructionNode* HeadlessNodeFactory::new_instr_user()const
-{
-    InstructionNode* instr_node = new_instr();
-
-    Token* token = new Token(TokenType_EndOfInstruction);
-    m_language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
-    instr_node->end_of_instr_token(token);
-
-    return instr_node;
-}
-
 VariableNode* HeadlessNodeFactory::newVariable(Reflect::Type _type, const std::string& _name, IScope *_scope) const
 {
     // create

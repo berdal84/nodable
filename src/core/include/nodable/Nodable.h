@@ -34,7 +34,7 @@ namespace Nodable
         IS_CHILD_OF,
         IS_INPUT_OF,
         IS_SUCCESSOR_OF,
-        // IS_PREDECESSOR_OF, not useful yet
+        IS_PREDECESSOR_OF,
         IS_OUTPUT_OF
     };
 
