@@ -1,6 +1,8 @@
 #pragma once
+
 #include <nodable/Connector.h>
 #include <nodable/Nodable.h>
+#include <nodable/Reflect.h>
 
 namespace Nodable {
 
@@ -38,8 +40,9 @@ namespace Nodable {
         MemberConnector (const MemberConnector&) = delete;
         MemberConnector& operator= (const MemberConnector&) = delete;
 
-        Member*            getMember()const;
-        vec2             getPos()const override;
+        Member*            get_member()const;
+        Reflect::Type      get_member_type()const;
+        vec2               getPos()const override;
         bool               hasSameParentWith(const MemberConnector*)const override;
         bool               hasConnectedNode() const;
         bool               connect(const MemberConnector*)const override;

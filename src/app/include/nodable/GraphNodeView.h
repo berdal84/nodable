@@ -43,6 +43,8 @@ namespace Nodable
         std::vector<NodeViewConstraint>              m_child_view_constraints;
 		std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
         AppContext* m_context;
+        static constexpr const char* k_context_menu_popup = "GraphNodeView.ContextMenu";
+
 		REFLECT_DERIVED(GraphNodeView)
         REFLECT_EXTENDS(View)
         REFLECT_EXTENDS(Component)

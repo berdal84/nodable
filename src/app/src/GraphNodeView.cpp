@@ -22,18 +22,113 @@ using namespace Nodable::Reflect;
 
 bool GraphNodeView::draw()
 {
-    bool edited = false;
-    Settings* settings = m_context->settings;
-    GraphNode* graph = get_graph_node();
-    auto nodeRegistry = graph->get_node_registry();
+    bool         edited         = false;
+    Node*        new_node       = nullptr;
+    Settings*    settings       = m_context->settings;
+    GraphNode*   graph          = get_graph_node();
+    Nodes&       node_registry  = graph->get_node_registry();
+	vec2         origin         = ImGui::GetCursorScreenPos();
 
-	auto origin = ImGui::GetCursorScreenPos();
-	ImGui::SetCursorPos(vec2(0,0));
+	const MemberConnector* dragged_member_conn = MemberConnector::GetDragged();
+    const MemberConnector* hovered_member_conn = MemberConnector::GetHovered();
+    const NodeConnector*   dragged_node_conn   = NodeConnector::GetDragged();
+    const NodeConnector*   hovered_node_conn   = NodeConnector::GetHovered();
+    
+    ImGui::SetCursorPos(vec2(0,0));
 
     /*
-       Draw Code Flow
+    * Function to draw an invocable menu (operators or functions)
+    */
+    auto draw_invocable_menu = [&](
+        const MemberConnector* dragged_member_conn,
+        const std::string _key) -> void
+    {
+        char menuLabel[255];
+        snprintf( menuLabel, 255, ICON_FA_CALCULATOR" %s", _key.c_str());
+
+        if (ImGui::BeginMenu(menuLabel))
+        {		
+            auto range = m_contextual_menus.equal_range(_key);
+            for (auto it = range.first; it != range.second; it++)
+            {
+                FunctionMenuItem menu_item = it->second;
+
+                /*
+                * First  we determine  if the current menu_item points to a function with compatible signature.
+                */
+                bool has_compatible_signature;
+
+                if ( !dragged_member_conn )
+                {
+                    has_compatible_signature = true;
+                }
+                else
+                {
+                    Type dragged_member_type = dragged_member_conn->get_member_type();
+
+                    if ( dragged_member_conn->m_way == Way_Out )
+                    {
+                        has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(dragged_member_type);
+                    }
+                    else
+                    {
+                        has_compatible_signature = menu_item.function_signature->get_return_type() == dragged_member_type;
+                    }
+                }
+
+                /*
+                * Then, since we know signature  compatibility, we add or not a new MenuItem.
+                */
+                if ( has_compatible_signature && ImGui::MenuItem( menu_item.label.c_str() ))
+                {
+                    if ( menu_item.create_node_fct  )
+                    {
+                        new_node = menu_item.create_node_fct();
+                    }
+                    else
+                    {
+                        LOG_WARNING("GraphNodeView", "The function associated to the key %s is nullptr",
+                                    menu_item.label.c_str())
+                    }
+                }
+            }
+
+            ImGui::EndMenu();
+        }	
+    };
+
+    auto create_instr = [&]( Scope* _scope ) -> InstructionNode*
+    {
+        InstructionNode* instr_node = graph->create_instr();
+        Token* token = new Token(TokenType_EndOfInstruction);
+        m_context->language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
+        instr_node->end_of_instr_token(token);
+        return instr_node;
+    };
+
+    auto create_variable = [&](Type _type, const char*  _name, Scope*  _scope) -> VariableNode*
+    {
+        VariableNode* var_node;
+        Scope* scope = _scope ? scope : graph->get_root()->get<Scope>();
+
+        var_node = graph->create_variable(_type, _name, scope );
+
+        // we should not do that TODO: fin a solution for Token management.
+        Token* tok  = new  Token();
+        tok->m_type = TokenType_Operator;
+        tok->m_prefix  = " ";
+        tok->m_suffix  = " ";
+        tok->m_word    = "=";
+        
+        var_node->set_assignment_operator_token(tok);
+        return var_node;
+    };
+
+    /*
+       Draw Code Flow.
+       Code flow is the set of green lines that links  a set of nodes.
      */
-    for( Node* each_node : nodeRegistry)
+    for( Node* each_node : node_registry)
     {
         int slot_index = 0;
         int slot_count = each_node->successor_slots().get_limit();
@@ -75,34 +170,49 @@ bool GraphNodeView::draw()
     if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
     {
         // Draw temporary Member connection
-        if (auto draggedMemberConnector = MemberConnector::GetDragged())
+        if ( dragged_member_conn )
         {
-            auto hoveredMemberConnector = MemberConnector::GetHovered();
-            vec2 start = draggedMemberConnector->getPos();
-            vec2 end   = hoveredMemberConnector ? hoveredMemberConnector->getPos() : ImGui::GetMousePos();
-            ImGui::GetWindowDrawList()->AddLine(start, end,getColor(ColorType_BorderHighlights), settings->ui_wire_bezier_thickness);
+            vec2 src = dragged_member_conn->getPos();
+            vec2 dst = hovered_member_conn ? hovered_member_conn->getPos() : ImGui::GetMousePos();
+            ImGui::GetWindowDrawList()->AddLine(
+                src, dst,
+                getColor(ColorType_BorderHighlights),
+                settings->ui_wire_bezier_thickness
+                );
         }
 
         // Draw temporary Node connection
-        if (auto draggedNodeConnector = NodeConnector::GetDragged())
+        if ( dragged_node_conn )
         {
-            auto hoveredNodeConnector = NodeConnector::GetHovered();
-            vec2 start = draggedNodeConnector->getPos();
-            vec2 end   = hoveredNodeConnector ? hoveredNodeConnector->getPos() : ImGui::GetMousePos();
-            ImColor color(settings->ui_codeFlow_lineColor);
-            ImColor shadowColor(settings->ui_codeFlow_lineShadowColor);
-            ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor, settings->ui_node_connector_width, 0.0f);
+            vec2 src = dragged_node_conn->getPos();
+            vec2 dst = hovered_node_conn ? hovered_node_conn->getPos() : ImGui::GetMousePos();
+            ImGuiEx::DrawVerticalWire(
+                ImGui::GetWindowDrawList(),
+                src, dst,
+                settings->ui_codeFlow_lineColor,
+                settings->ui_codeFlow_lineShadowColor,
+                settings->ui_node_connector_width,
+                0.f // roundness
+                );
         }
 
         // Drops ?
-        bool needsANewNode = false;
-        MemberConnector::DropBehavior(needsANewNode);
-        NodeConnector::DropBehavior(needsANewNode);
+        bool require_to_create_node = false;
+        MemberConnector::DropBehavior(require_to_create_node);
+        NodeConnector::DropBehavior(require_to_create_node);
 
         // Need a need node ?
-        if (needsANewNode && !ImGui::IsPopupOpen("ContainerViewContextualMenu"))
+        if (require_to_create_node)
         {
-            ImGui::OpenPopup("ContainerViewContextualMenu");
+            if ( dragged_member_conn && dragged_member_conn->get_member_type() == Type_Pointer )
+            {
+                 new_node = create_instr(nullptr);
+
+            }
+            else if (!ImGui::IsPopupOpen(k_context_menu_popup) )
+            {
+                ImGui::OpenPopup(k_context_menu_popup);
+            }
         }
     }
 
@@ -112,7 +222,7 @@ bool GraphNodeView::draw()
         /*
             Wires
         */
-        for (auto eachNode : nodeRegistry)
+        for (auto eachNode : node_registry)
         {
             const Members& members = eachNode->props()->get_members();
 
@@ -168,7 +278,7 @@ bool GraphNodeView::draw()
             NodeViews
         */
         std::vector<NodeView*> nodeViews;
-        Node::get_components(nodeRegistry, nodeViews);
+        Node::get_components(node_registry, nodeViews);
 		for (auto eachNodeView : nodeViews)
 		{
             if (eachNodeView->isVisible())
@@ -249,7 +359,7 @@ bool GraphNodeView::draw()
 	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged )
     {
         auto drag = ImGui::GetMouseDragDelta();
-        for (auto eachNode : nodeRegistry)
+        for (auto eachNode : node_registry)
         {
             if (auto view = eachNode->get<NodeView>() )
                 view->translate(drag);
@@ -261,119 +371,31 @@ bool GraphNodeView::draw()
 		Mouse right-click popup menu
 	*/
 
-	if ( !isAnyNodeHovered && ImGui::BeginPopupContextWindow("ContainerViewContextualMenu") )
+	if ( !isAnyNodeHovered && ImGui::BeginPopupContextWindow(k_context_menu_popup) )
 	{
-		Node* new_node = nullptr;
-        bool is_dragging_node_connector = NodeConnector::GetDragged() != nullptr;
-        bool is_dragging_member_connector = MemberConnector::GetDragged() != nullptr;
-        Member *dragged_member = is_dragging_member_connector ? MemberConnector::GetDragged()->getMember() : nullptr;
-        const MemberConnector *dragged_member_conn = is_dragging_member_connector ? MemberConnector::GetDragged() : nullptr;
-
 		// Title :
 		ImGuiEx::ColoredShadowedText( vec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
 		ImGui::Separator();
 
-		// lambda to draw operator/function submenus
-		auto drawMenu = [&](const std::string _key)-> void {
-			char menuLabel[255];
-			snprintf( menuLabel, 255, ICON_FA_CALCULATOR" %s", _key.c_str());
-
-
-			if (ImGui::BeginMenu(menuLabel))
-			{		
-				auto range = m_contextual_menus.equal_range(_key);
-				for (auto it = range.first; it != range.second; it++)
-				{
-				    auto menu_item = it->second;
-
-				    bool has_compatible_signature;
-
-				    if ( !is_dragging_member_connector )
-				    {
-				        has_compatible_signature = true;
-				    }
-				    else
-                    {
-                        const MemberConnector* dragged_member_conn = MemberConnector::GetDragged();
-                        Type dragged_member_type = dragged_member_conn->getMember()->get_type();
-
-                        if ( dragged_member_conn->m_way == Way_Out )
-                        {
-                            has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(
-                                    dragged_member_type);
-                        }
-                        else
-                        {
-                            has_compatible_signature =
-                                    menu_item.function_signature->get_return_type() == dragged_member_type;
-                        }
-                    }
-
-					if ( has_compatible_signature && ImGui::MenuItem( menu_item.label.c_str() ))
-					{
-						if ( menu_item.create_node_fct  )
-                        {
-                            new_node = menu_item.create_node_fct();
-                        }
-						else
-                        {
-                            LOG_WARNING("GraphNodeView", "The function associated to the key %s is nullptr",
-                                        menu_item.label.c_str())
-                        }
-					}
-				}
-
-				ImGui::EndMenu();
-			}	
-		};
-
-		if ( !is_dragging_node_connector )
+		if ( !dragged_node_conn )
 		{
-		    drawMenu("Operators");
-            drawMenu("Functions");
+		    draw_invocable_menu( dragged_member_conn, "Operators");
+            draw_invocable_menu( dragged_member_conn, "Functions");
             ImGui::Separator();
         }
 
-        auto create_instr = [&]( Scope* _scope ) -> InstructionNode*
-        {
-            InstructionNode* instr_node = graph->create_instr();
-            Token* token = new Token(TokenType_EndOfInstruction);
-            m_context->language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
-            instr_node->end_of_instr_token(token);
-            return instr_node;
-        };
-
-        auto create_variable = [&](Type _type, const char*  _name, Scope*  _scope) -> VariableNode*
-        {
-            VariableNode* var_node;
-            Scope* scope = _scope ? scope : graph->get_root()->get<Scope>();
-
-            var_node = graph->create_variable(_type, _name, scope );
-
-            // we should not do that TODO: fin a solution for Token management.
-            Token* tok  = new  Token();
-            tok->m_type = TokenType_Operator;
-            tok->m_prefix  = " ";
-            tok->m_suffix  = " ";
-            tok->m_word    = "=";
-            
-            var_node->set_assignment_operator_token(tok);
-            return var_node;
-        };
-
-
-        if ( !is_dragging_node_connector )
+        if ( !dragged_node_conn )
         {
             Node *root_node = graph->get_root();
 
             // If dragging a member we create a VariableNode with the same type.
-            if ( is_dragging_member_connector && dragged_member->get_type() != Type_Pointer )
+            if ( dragged_member_conn && dragged_member_conn->get_member_type() != Type_Pointer )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-                    new_node = create_variable(dragged_member->get_type(), "var", nullptr);
+                    new_node = create_variable(dragged_member_conn->get_member_type(), "var", nullptr);
                 
                 if (ImGui::MenuItem(ICON_FA_FILE " Literal"))
-                    new_node = graph->create_literal(dragged_member->get_type() );
+                    new_node = graph->create_literal(dragged_member_conn->get_member_type() );
             }
             // By not knowing anything, we propose all possible types to the user.
             else
@@ -410,7 +432,7 @@ bool GraphNodeView::draw()
 
         ImGui::Separator();
 
-        if ( !is_dragging_member_connector  )
+        if ( !dragged_member_conn )
         {
             if ( ImGui::MenuItem(ICON_FA_CODE " Instruction") )
             {
@@ -418,7 +440,7 @@ bool GraphNodeView::draw()
             }
         }
 
-        if( !is_dragging_member_connector )
+        if( !dragged_member_conn )
         {
             if (ImGui::MenuItem(ICON_FA_CODE " Condition"))
                 new_node = graph->create_cond_struct();
@@ -446,7 +468,6 @@ bool GraphNodeView::draw()
         {
 
             // dragging node connector ?
-            const NodeConnector* dragged_node_conn = NodeConnector::GetDragged();
             if ( dragged_node_conn )
             {
                 Node* dragged_node = dragged_node_conn->getNode();
@@ -459,13 +480,13 @@ bool GraphNodeView::draw()
             {
                 if ( dragged_member_conn->m_way == Way_In )
                 {
-                    graph->connect( new_node->props()->get_first_member_with_conn(Way_Out), dragged_member);
+                    graph->connect( new_node->props()->get_first_member_with_conn(Way_Out), dragged_member_conn->get_member() );
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
                 else
                 {
                     // connect dragged (out) to first input on new node.
-                    graph->connect( dragged_member, new_node->props()->get_first_member_with_conn(Way_In));
+                    graph->connect( dragged_member_conn->get_member(), new_node->props()->get_first_member_with_conn(Way_In));
                 }
                 MemberConnector::StopDrag();
             }
