@@ -2,7 +2,7 @@
 
 #include <nodable/Connector.h>
 #include <nodable/Nodable.h>
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 
 namespace Nodable {
 
@@ -41,7 +41,7 @@ namespace Nodable {
         MemberConnector& operator= (const MemberConnector&) = delete;
 
         Member*            get_member()const;
-        Reflect::Type      get_member_type()const;
+        R::Type      get_member_type()const;
         vec2               getPos()const override;
         bool               hasSameParentWith(const MemberConnector*)const override;
         bool               hasConnectedNode() const;

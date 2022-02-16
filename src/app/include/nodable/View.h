@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 
 #include <nodable/ImGuiEx.h>
 #include <nodable/Component.h>
@@ -23,14 +23,14 @@ namespace Nodable
 	    /**
 	     * Enum to define some color types
 	     */
-		enum ColorType_
+		enum Color
 		{
-			ColorType_Fill,
-			ColorType_Highlighted,
-			ColorType_Border,
-			ColorType_BorderHighlights,
-			ColorType_Shadow,
-			ColorType_COUNT
+			Color_Fill,
+			Color_Highlighted,
+			Color_Border,
+			Color_BorderHighlights,
+			Color_Shadow,
+			Color_COUNT
 		};
 
 		View(AppContext* _ctx);
@@ -58,13 +58,13 @@ namespace Nodable
 		 * @param _type
 		 * @param _color an ImColor (see ImGui)
 		 */
-		void setColor(ColorType_ _type, vec4* _color );
+		void setColor(Color _type, vec4* _color );
 
 		/**
 		 * Get the color of a given color type.
 		 * @return an ImColor (see ImGui)
 		 */
-		ImColor getColor(ColorType_) const;
+		ImColor getColor(Color) const;
 
 
 		/**
@@ -137,8 +137,8 @@ namespace Nodable
 		/**
 		 * Color table
 		 */
-        std::map<ColorType_, vec4*> colors;
+        std::map<Color, vec4*> colors;
 
-		REFLECT(View)
+		R(View)
     };
 }

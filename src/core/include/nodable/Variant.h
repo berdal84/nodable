@@ -5,7 +5,7 @@
 #include <mpark/variant.hpp> // std::variant implem for C++11
 
 #include <nodable/Nodable.h> // for constants and forward declarations
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 
 namespace Nodable
 {
@@ -20,13 +20,12 @@ namespace Nodable
         void define();
         bool is_defined()const;
         void undefine();
-		bool is(Reflect::Type _type)const;
+		bool is(R::Type _type)const;
 
-        template<class T>
-        void set(T* _pointer)
+        void set(void* _pointer)
         {
-            set_type(Reflect::Type_Pointer); // TODO: remove this
-            m_data = (void*)_pointer;
+            set_type( R::cpp<void*>::reflect_t );
+            m_data.emplace<void*>(_pointer);
             m_is_defined = true;
         }
 
@@ -36,31 +35,29 @@ namespace Nodable
 		void set(double);
 		void set(bool);
 
-		void set_type(Reflect::Type _type);
+		void set_type(R::Type _type);
 
         template<typename T>
         void set_type()
         {
-            set_type( Reflect::cpp<T>::reflect_t );
+            set_type(R::cpp<T>::reflect_t );
         };
 
-        Reflect::Type get_type()const;
+        R::Type get_type()const;
 
         // conversion
         template<typename T>
         T convert_to()const;
 
 		// by reference
-		template<class T>
-		inline operator const T*()const { return reinterpret_cast<T*>( mpark::get<void*>(m_data) ); }
-        template<class T>
-		inline operator T*() { return reinterpret_cast<T*>( mpark::get<void*>(m_data) ); }
+		inline operator const void*()const     { return mpark::get<void*>(m_data); }
+		inline operator void*()          { return mpark::get<void*>(m_data); }
 		inline operator double*()        { return &mpark::get<double>(m_data); }
         inline operator bool*()          { return &mpark::get<bool>(m_data); }
-        inline operator std::string* () { return &mpark::get<std::string>(m_data); }
+        inline operator std::string* ()  { return &mpark::get<std::string>(m_data); }
         inline operator double&()        { return mpark::get<double>(m_data); }
         inline operator bool&()          { return mpark::get<bool>(m_data); }
-        inline operator std::string& () { return mpark::get<std::string>(m_data); }
+        inline operator std::string& ()  { return mpark::get<std::string>(m_data); }
 
         // by value
         operator int()const;
@@ -70,7 +67,7 @@ namespace Nodable
 
     private:
         bool m_is_defined;
-        Reflect::Type m_type;
+        R::Type m_type;
 		mpark::variant<bool, double, std::string, void*> m_data;
     };
 }

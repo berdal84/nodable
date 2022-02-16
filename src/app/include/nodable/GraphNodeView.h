@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 #include <functional>
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 
 #include <nodable/IScope.h>
 #include <nodable/InvokableFunction.h>
@@ -45,10 +45,10 @@ namespace Nodable
         AppContext* m_context;
         static constexpr const char* k_context_menu_popup = "GraphNodeView.ContextMenu";
 
-		REFLECT_DERIVED(GraphNodeView)
-        REFLECT_EXTENDS(View)
-        REFLECT_EXTENDS(Component)
-        REFLECT_END
+		R_DERIVED(GraphNodeView)
+        R_EXTENDS(View)
+        R_EXTENDS(Component)
+        R_END
 
     };
 }

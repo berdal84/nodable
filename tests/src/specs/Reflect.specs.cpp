@@ -1,100 +1,103 @@
 #include <gtest/gtest.h>
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 #include <nodable/Node.h>
 
 using namespace Nodable;
-using namespace Nodable::Reflect;
+using namespace Nodable::R;
 
 TEST(Reflect, is_convertible__type_to_ptr)
 {
-    EXPECT_TRUE( is_convertible( Type_Boolean, Type_Boolean_Ptr) );
-    EXPECT_TRUE( is_convertible( Type_Double, Type_Double_Ptr) );
-    EXPECT_TRUE( is_convertible( Type_String, Type_String_Ptr) );
-    EXPECT_TRUE( is_convertible(Type_Unknown, Type_Unknown_Ptr) );
+    EXPECT_TRUE( is_convertible( Type::Boolean, add_ptr(Type::Boolean) ) );
+    EXPECT_TRUE( is_convertible( Type::Double, add_ptr(Type::Double) ) );
+    EXPECT_TRUE( is_convertible( Type::String, add_ptr(Type::String) ) );
+    EXPECT_TRUE( is_convertible(Type::Unknown, add_ptr(Type::Unknown)) );
 }
 
 TEST(Reflect, is_convertible__ptr_to_type)
 {
-    EXPECT_TRUE( is_convertible( Type_Boolean_Ptr, Type_Boolean) );
-    EXPECT_TRUE( is_convertible( Type_Double_Ptr, Type_Double) );
-    EXPECT_TRUE( is_convertible( Type_String_Ptr, Type_String) );
-    EXPECT_TRUE( is_convertible(Type_Unknown_Ptr, Type_Unknown) );
+    EXPECT_TRUE( is_convertible( add_ptr(Type::Boolean), Type::Boolean) );
+    EXPECT_TRUE( is_convertible( add_ptr(Type::Double), Type::Double) );
+    EXPECT_TRUE( is_convertible( add_ptr(Type::String), Type::String) );
+    EXPECT_TRUE( is_convertible( add_ptr(Type::Unknown), Type::Unknown) );
 }
 
 TEST(Reflect, is_convertible__compatible_types)
 {
-    EXPECT_TRUE( is_convertible(Type_Unknown, Type_Double) );
-    EXPECT_TRUE( is_convertible(Type_Unknown, Type_String) );
-    EXPECT_TRUE( is_convertible(Type_Unknown, Type_Boolean) );
-    EXPECT_TRUE( is_convertible(Type_Unknown, Type_Unknown) );
+    EXPECT_TRUE( is_convertible(Type::Unknown, Type::Double) );
+    EXPECT_TRUE( is_convertible(Type::Unknown, Type::String) );
+    EXPECT_TRUE( is_convertible(Type::Unknown, Type::Boolean) );
+    EXPECT_TRUE( is_convertible(Type::Unknown, Type::Void) );
+    EXPECT_TRUE( is_convertible(Type::Unknown, Type::Unknown) );
 
-    EXPECT_TRUE( is_convertible(Type_Double, Type_Unknown) );
-    EXPECT_TRUE( is_convertible(Type_String, Type_Unknown) );
-    EXPECT_TRUE( is_convertible(Type_Boolean, Type_Unknown) );
-    EXPECT_TRUE( is_convertible(Type_Unknown, Type_Unknown) );
+    EXPECT_TRUE( is_convertible(Type::Void, Type::Unknown) );
+    EXPECT_TRUE( is_convertible(Type::Double, Type::Unknown) );
+    EXPECT_TRUE( is_convertible(Type::String, Type::Unknown) );
+    EXPECT_TRUE( is_convertible(Type::Boolean, Type::Unknown) );
+    EXPECT_TRUE( is_convertible(Type::Unknown, Type::Unknown) );
 }
 
 TEST(Reflect, is_convertible__incompatible_types)
 {
-    EXPECT_FALSE( is_convertible( Type_Boolean, Type_Double) );
-    EXPECT_FALSE( is_convertible( Type_Double, Type_Boolean) );
+    EXPECT_FALSE( is_convertible( Type::Boolean, Type::Double) );
+    EXPECT_FALSE( is_convertible( Type::Double, Type::Boolean) );
 
-    EXPECT_FALSE( is_convertible( Type_Boolean, Type_String) );
-    EXPECT_FALSE( is_convertible( Type_String, Type_Boolean) );
+    EXPECT_FALSE( is_convertible( Type::Boolean, Type::String) );
+    EXPECT_FALSE( is_convertible( Type::String, Type::Boolean) );
 
-    EXPECT_FALSE( is_convertible( Type_Double, Type_String) );
-    EXPECT_FALSE( is_convertible( Type_String, Type_Double) );
+    EXPECT_FALSE( is_convertible( Type::Double, Type::String) );
+    EXPECT_FALSE( is_convertible( Type::String, Type::Double) );
 }
 
-TEST(Reflect, is_pointer)
+TEST(Reflect, is_ptr)
 {
-    EXPECT_TRUE( is_pointer( Type_Boolean_Ptr) );
-    EXPECT_FALSE( is_pointer( Type_Boolean_Ref) );
-    EXPECT_FALSE( is_pointer( Type_Boolean) );
+    EXPECT_TRUE(is_ptr( binary_or(Type::Boolean, Type::Ptr)) );
+    EXPECT_FALSE(is_ptr( add_ref(Type::Boolean)) );
+    EXPECT_FALSE(is_ptr(Type::Boolean) );
 
-    EXPECT_TRUE( is_pointer( Type_String_Ptr) );
-    EXPECT_FALSE( is_pointer( Type_String_Ref) );
-    EXPECT_FALSE( is_pointer( Type_String) );
+    EXPECT_TRUE(is_ptr(binary_or(Type::String, Type::Ptr)) );
+    EXPECT_FALSE(is_ptr(binary_or(Type::String, Type::Ref) ));
+    EXPECT_FALSE(is_ptr(Type::String) );
 
-    EXPECT_TRUE( is_pointer( Type_Double_Ptr) );
-    EXPECT_FALSE( is_pointer( Type_Double_Ref) );
-    EXPECT_FALSE( is_pointer( Type_Double) );
+    EXPECT_TRUE(is_ptr( add_ptr(Type::Double)) );
+    EXPECT_FALSE(is_ptr( add_ref(Type::Double)) );
+    EXPECT_FALSE(is_ptr(Type::Double) );
 
-    EXPECT_TRUE( is_pointer( Type_Unknown_Ptr) );
-    EXPECT_FALSE( is_pointer( Type_Unknown_Ref) );
-    EXPECT_FALSE( is_pointer(Type_Unknown) );
+    EXPECT_TRUE(is_ptr( add_ptr(Type::Void)) );
+    EXPECT_FALSE(is_ptr(Type::Void) );
+
+    EXPECT_TRUE(is_ptr( Type::Ptr ) );
+    EXPECT_TRUE(is_ptr( Type::DblPtr) );
 }
 
-TEST(Reflect, is_reference)
+TEST(Reflect, is_ref)
 {
-    EXPECT_FALSE( is_reference( Type_Boolean_Ptr) );
-    EXPECT_TRUE( is_reference( Type_Boolean_Ref) );
-    EXPECT_FALSE( is_reference( Type_Boolean) );
+    EXPECT_FALSE(is_ref( add_ptr(Type::Boolean)) );
+    EXPECT_TRUE(is_ref( add_ref(Type::Boolean)) );
+    EXPECT_FALSE(is_ref(Type::Boolean) );
 
-    EXPECT_FALSE( is_reference( Type_String_Ptr) );
-    EXPECT_TRUE( is_reference( Type_String_Ref) );
-    EXPECT_FALSE( is_reference( Type_String) );
+    EXPECT_FALSE(is_ref( add_ptr(Type::String)) );
+    EXPECT_TRUE(is_ref( add_ref(Type::String)));
+    EXPECT_FALSE(is_ref(Type::String) );
 
-    EXPECT_FALSE( is_reference( Type_Double_Ptr) );
-    EXPECT_TRUE( is_reference( Type_Double_Ref) );
-    EXPECT_FALSE( is_reference( Type_Double) );
+    EXPECT_FALSE(is_ref( add_ptr(Type::Double)) );
+    EXPECT_TRUE(is_ref( add_ref(Type::Double)) );
+    EXPECT_FALSE(is_ref(Type::Double) );
 
-    EXPECT_FALSE( is_reference( Type_Unknown_Ptr) );
-    EXPECT_TRUE( is_reference( Type_Unknown_Ref) );
-    EXPECT_FALSE( is_reference(Type_Unknown) );
+    EXPECT_FALSE(is_ref( add_ptr(Type::Void)) );
+    EXPECT_FALSE(is_ref(Type::Void) );
 }
 
 TEST(Reflect, node_as_pointer)
 {
     // prepare
-    Node   node;
-    Member member(nullptr);
+    Node* ptr = nullptr;
+    auto member = std::make_unique<Member>(nullptr);
 
     // act
-    member.set(&node );
+    member->set(ptr);
 
     // check
-    EXPECT_EQ(member.get_type(), Type_Pointer );
-    EXPECT_EQ( &node, (Node*)(member) );
-    EXPECT_TRUE( is_pointer(member.get_type()) );
+    EXPECT_EQ(member->get_type(), add_ptr(Type::Void) );
+    EXPECT_EQ( ptr, (void*)*member );
+    EXPECT_TRUE(is_ptr(member->get_type()) );
 }

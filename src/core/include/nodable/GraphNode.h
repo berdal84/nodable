@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 #include <nodable/IScope.h>
 #include <nodable/Nodable.h>
 #include <nodable/Component.h>
@@ -39,8 +39,8 @@ namespace Nodable
         /* node factory */
         Node*                       create_root() override;
         InstructionNode*            create_instr() override;
-		VariableNode*				create_variable(Reflect::Type, const std::string&, IScope*) override;
-		LiteralNode*                create_literal(const Reflect::Type&) override;
+		VariableNode*				create_variable(R::Type, const std::string&, IScope*) override;
+		LiteralNode*                create_literal(const R::Type&) override;
 		Node*                       create_bin_op(const InvokableOperator*) override;
 		Node*                       create_unary_op(const InvokableOperator*) override;
         Node*                       create_operator(const InvokableOperator*) override;
@@ -84,8 +84,8 @@ namespace Nodable
 		const INodeFactory* m_factory;
         const bool* m_autocompletion;
 
-        REFLECT_DERIVED(GraphNode)
-        REFLECT_EXTENDS(Node)
-        REFLECT_END
+        R_DERIVED(GraphNode)
+        R_EXTENDS(Node)
+        R_END
     };
 }

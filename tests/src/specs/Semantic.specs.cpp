@@ -8,16 +8,16 @@
 #include <nodable/LanguageNodable.h>
 
 using namespace Nodable;
-using namespace Nodable::Reflect;
+using namespace Nodable::R;
 
 TEST(Semantic, token_type_to_type)
 {
     const LanguageNodable lang;
     auto semantic = lang.getSemantic();
 
-    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordBoolean), Type_Boolean );
-    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordDouble), Type_Double );
-    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordString), Type_String );
+    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordBoolean), Type::Boolean );
+    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordDouble), Type::Double );
+    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordString), Type::String );
 }
 
 TEST(Semantic, type_to_string)
@@ -25,7 +25,7 @@ TEST(Semantic, type_to_string)
     const LanguageNodable lang;
     auto semantic = lang.getSemantic();
 
-    EXPECT_EQ( semantic->type_to_string(Type_Boolean), "bool" );
-    EXPECT_EQ( semantic->type_to_string(Type_Double), "double" );
-    EXPECT_EQ( semantic->type_to_string(Type_String), "string" );
+    EXPECT_EQ( semantic->type_to_string(Type::Boolean), "bool" );
+    EXPECT_EQ( semantic->type_to_string(Type::Double), "double" );
+    EXPECT_EQ( semantic->type_to_string(Type::String), "string" );
 }

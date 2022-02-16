@@ -3,15 +3,15 @@
 
 using namespace Nodable;
 
-REFLECT_DEFINE_CLASS(ForLoopNode)
+R_DEFINE_CLASS(ForLoopNode)
 
 ForLoopNode::ForLoopNode()
         :
         m_token_for(nullptr)
 {
-    m_props.add("init"     , Visibility::Always, Reflect::Type_Unknown        , Way::Way_In);
-    m_props.add("condition", Visibility::Always, Reflect::Type_Pointer    , Way::Way_In);
-    m_props.add("iter"     , Visibility::Always, Reflect::Type_Unknown        , Way::Way_In);
+    m_props.add("init"     , Visibility::Always, R::Type::Unknown        , Way::Way_In);
+    m_props.add("condition", Visibility::Always, R::add_ptr(R::Type::Void)            , Way::Way_In);
+    m_props.add("iter"     , Visibility::Always, R::Type::Unknown        , Way::Way_In);
 }
 
 Scope* ForLoopNode::get_condition_true_branch() const

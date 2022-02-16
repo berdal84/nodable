@@ -1,17 +1,17 @@
 #include <nodable/ConditionalStructNode.h>
 #include <nodable/Scope.h>
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 
 using namespace Nodable;
 
-REFLECT_DEFINE_CLASS(ConditionalStructNode)
+R_DEFINE_CLASS(ConditionalStructNode)
 
 ConditionalStructNode::ConditionalStructNode()
     : Node()
     , m_token_if(nullptr)
     , m_token_else(nullptr)
 {
-    m_props.add("condition", Visibility::Always, Reflect::Type_Pointer, Way::Way_In);
+    m_props.add("condition", Visibility::Always, R::add_ptr(R::Type::Void), Way::Way_In);
 }
 
 Scope* ConditionalStructNode::get_condition_true_branch() const

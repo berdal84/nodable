@@ -12,7 +12,7 @@
 
 using namespace Nodable;
 
-REFLECT_DEFINE_CLASS(Scope)
+R_DEFINE_CLASS(Scope)
 
 Scope::Scope()
     : Component()

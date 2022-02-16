@@ -41,7 +41,7 @@ Member* Properties::get_first_member_with_conn(Way _connection)const
 	return nullptr;
 }
 
-Member* Properties::add( const char* _name, Visibility _visibility, Reflect::Type _type, Way _flags )
+Member* Properties::add(const char* _name, Visibility _visibility, R::Type _type, Way _flags )
 {
 	auto v = new Member(this);
     v->set_name(_name);

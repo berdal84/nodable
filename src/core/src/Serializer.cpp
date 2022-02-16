@@ -146,7 +146,7 @@ std::string& Serializer::serialize(std::string& _result, const TokenType& _type)
     return _result.append(language->getSemantic()->token_type_to_string(_type) );
 }
 
-std::string& Serializer::serialize(std::string &_result, const Reflect::Type& _type) const
+std::string& Serializer::serialize(std::string &_result, const R::Type& _type) const
 {
     return _result.append(language->getSemantic()->type_to_string(_type) );
 }
@@ -208,7 +208,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
 
 std::string& Serializer::serialize(std::string& _result, const Variant* variant) const
 {
-    if (variant->is(Reflect::Type_String))
+    if (variant->is(R::Type::String))
     {
         return _result.append('"' + variant->convert_to<std::string>() + '"');
     }
@@ -328,7 +328,7 @@ std::string& Serializer::serialize(std::string& _result, const InstructionNode* 
 
     if (root_node_member->has_input_connected() && root_node_member->is_defined() )
     {
-        const Node* root_node = (const Node*)*root_node_member;
+        const Node* root_node = (const Node*)(void*)*root_node_member;
         serialize( _result, root_node );
     }
 

@@ -75,7 +75,7 @@ void NodeViewConstraint::apply(float _dt)
             //---------------------------
 
             float start_pos_x = master->getPos().x - size_x_total / 2.0f;
-            Reflect::Class* masterClass = master->get_owner()->get_class();
+            R::Class* masterClass = master->get_owner()->get_class();
             if ( masterClass->is<InstructionNode>()
                 || (masterClass->is<IConditionalStruct>() && type == Type::MakeRowAndAlignOnBBoxTop))
             {

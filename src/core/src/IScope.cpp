@@ -2,5 +2,5 @@
 
 using namespace Nodable;
 
-REFLECT_DEFINE_CLASS(IScope)
+R_DEFINE_CLASS(IScope)
 

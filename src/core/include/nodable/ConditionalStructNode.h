@@ -33,9 +33,9 @@ namespace Nodable
         Token*         m_token_if;
         Token*         m_token_else;
 
-        REFLECT_DERIVED(ConditionalStructNode)
-         REFLECT_EXTENDS(Node)
-         REFLECT_EXTENDS(IConditionalStruct)
-        REFLECT_END
+        R_DERIVED(ConditionalStructNode)
+         R_EXTENDS(Node)
+         R_EXTENDS(IConditionalStruct)
+        R_END
     };
 }

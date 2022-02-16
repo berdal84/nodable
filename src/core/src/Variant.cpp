@@ -9,18 +9,18 @@ using namespace Nodable;
 
 Variant::Variant()
     : m_is_defined(false)
-    , m_type(Reflect::Type_Unknown)
+    , m_type(R::Type::Unknown)
 {
 }
 
 Variant::~Variant(){};
 
-Reflect::Type Variant::get_type()const
+R::Type Variant::get_type()const
 {
 	return m_type;
 }
 
-bool  Variant::is(Reflect::Type _type)const
+bool  Variant::is(R::Type _type)const
 {
 	return m_type == _type;
 }
@@ -29,7 +29,7 @@ void Variant::set(double _var)
 {
 	switch(get_type() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
 	{
-		case Reflect::Type_String:
+		case R::Type::String:
 		{
 			m_data.emplace<std::string>(std::to_string(_var) );
 			break;
@@ -53,7 +53,7 @@ void Variant::set(const char* _var)
 {
     switch (get_type()) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
     {
-        case Reflect::Type_String:
+        case R::Type::String:
         {
             m_data = _var;
         }
@@ -70,13 +70,13 @@ void Variant::set(bool _var)
 {
 	switch(get_type()) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
 	{
-		case Reflect::Type_String:
+		case R::Type::String:
 		{
 			m_data.emplace<std::string>(_var ? "true" : "false" );
 			break;
 		}
 
-		case Reflect::Type_Double:
+		case R::Type::Double:
 		{
 			m_data.emplace<double>(_var ? double(1) : double(0) );
 			break;
@@ -109,7 +109,7 @@ void Variant::set(const Variant* _other)
     m_type       = _other->m_type;
 }
 
-void Variant::set_type(Reflect::Type _type) // TODO: remove this
+void Variant::set_type(R::Type _type) // TODO: remove this
 {
 	if (get_type() != _type)
 	{
@@ -119,17 +119,22 @@ void Variant::set_type(Reflect::Type _type) // TODO: remove this
 		// Set a default value (this will change the type too)
 		switch (_type)
 		{
-		case Reflect::Type_String:
+		case R::Type::String:
 			m_data.emplace<std::string>();
 			break;
-		case Reflect::Type_Double:
+		case R::Type::Double:
 			m_data.emplace<double>();
 			break;
-		case Reflect::Type_Boolean:
+		case R::Type::Boolean:
 			m_data.emplace<bool>();
 			break;
-        case Reflect::Type_Pointer:
-			m_data.emplace<void*>();
+        default:
+            if (  R::is_ptr(_type) )
+            {
+                constexpr auto reflect_ptr_t = add_ptr(R::Type::Void);
+                using ptr_t = R::type<reflect_ptr_t>::cpp_t;
+                m_data.emplace<ptr_t>();
+            }
 			break;
 		}
 	}
@@ -141,9 +146,9 @@ template<>
 {
     switch (get_type())
     {
-        case Reflect::Type_String:  return double( mpark::get<std::string>(m_data).size());
-        case Reflect::Type_Double:  return mpark::get<double>(m_data);
-        case Reflect::Type_Boolean: return mpark::get<bool>(m_data);
+        case R::Type::String:  return double(mpark::get<std::string>(m_data).size());
+        case R::Type::Double:  return mpark::get<double>(m_data);
+        case R::Type::Boolean: return mpark::get<bool>(m_data);
         default:           return double(0);
     }
 }
@@ -153,11 +158,17 @@ template<>
 {
     switch (get_type())
     {
-        case Reflect::Type_String:  return double( mpark::get<std::string>(m_data).size());
-        case Reflect::Type_Double:  return mpark::get<double>(m_data);
-        case Reflect::Type_Boolean: return mpark::get<bool>(m_data);
+        case R::Type::String:  return double(mpark::get<std::string>(m_data).size());
+        case R::Type::Double:  return mpark::get<double>(m_data);
+        case R::Type::Boolean: return mpark::get<bool>(m_data);
         default:           return double(0);
     }
+}
+
+template<>
+[[nodiscard]] void* Variant::convert_to<void*>()const
+{
+    return mpark::get<void*>(m_data);
 }
 
 template<>
@@ -171,9 +182,9 @@ template<>
 {
     switch (get_type())
     {
-        case Reflect::Type_String:  return !mpark::get<std::string>(m_data).empty();
-        case Reflect::Type_Double:  return mpark::get<double>(m_data) != 0.0F;
-        case Reflect::Type_Boolean: return mpark::get<bool>(m_data);
+        case R::Type::String:  return !mpark::get<std::string>(m_data).empty();
+        case R::Type::Double:  return mpark::get<double>(m_data) != 0.0F;
+        case R::Type::Boolean: return mpark::get<bool>(m_data);
         default:           return false;
     }
 }
@@ -182,28 +193,27 @@ template<>
 [[nodiscard]] std::string Variant::convert_to<std::string>()const
 {
     std::string result;
-
     switch (get_type())  // TODO: consider using State pattern (a single context with n possible states implementing an interface)
     {
-        case Reflect::Type_String:
+        case R::Type::String:
         {
             result.append( mpark::get<std::string>(m_data) );
             break;
         }
 
-        case Reflect::Type_Double:
+        case R::Type::Double:
         {
             result.append(  String::from(mpark::get<double>(m_data)) );
             break;
         }
 
-        case Reflect::Type_Boolean:
+        case R::Type::Boolean:
         {
             result.append(mpark::get<bool>(m_data) ? "true" : "false" );
             break;
         }
 
-        case Reflect::Type_Pointer:
+        case R::Type::Void_Ptr:
         {
             result.append("[&") ;
             result.append( std::to_string( (size_t)mpark::get<void*>(m_data)) );

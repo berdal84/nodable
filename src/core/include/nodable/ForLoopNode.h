@@ -33,9 +33,9 @@ namespace Nodable
     private:
         Token* m_token_for;
 
-        REFLECT_DERIVED(ForLoopNode)
-            REFLECT_EXTENDS(Node)
-            REFLECT_EXTENDS(IConditionalStruct)
-        REFLECT_END
+        R_DERIVED(ForLoopNode)
+            R_EXTENDS(Node)
+            R_EXTENDS(IConditionalStruct)
+        R_END
     };
 }

@@ -4,7 +4,7 @@
 
 #include <nodable/InvokableFunction.h>
 #include <nodable/IScope.h>
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 
 namespace Nodable
 {
@@ -19,8 +19,8 @@ namespace Nodable
 
         Node*                       newProgram()const override ;
         InstructionNode*            new_instr()const override ;
-        VariableNode*				newVariable(Reflect::Type, const std::string&, IScope *)const override ;
-        LiteralNode*                newLiteral(const Reflect::Type &type)const override ;
+        VariableNode*				newVariable(R::Type, const std::string&, IScope *)const override ;
+        LiteralNode*                newLiteral(const R::Type &type)const override ;
         Node*                       newBinOp(const InvokableOperator*)const override ;
         Node*                       newUnaryOp(const InvokableOperator*)const override ;
         Node*                       newOperator(const InvokableOperator*)const override ;

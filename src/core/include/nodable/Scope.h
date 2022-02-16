@@ -33,9 +33,9 @@ namespace Nodable
         Token*        m_end_scope_token;
 
         /** Reflect class */
-        REFLECT_DERIVED(Scope)
-            REFLECT_EXTENDS(Component)
-            REFLECT_EXTENDS(IScope)
-        REFLECT_END
+        R_DERIVED(Scope)
+            R_EXTENDS(Component)
+            R_EXTENDS(IScope)
+        R_END
     };
 }

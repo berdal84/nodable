@@ -27,8 +27,8 @@ namespace Nodable
 
     private:
         Token* m_end_of_instr_token = nullptr;
-        REFLECT_DERIVED(InstructionNode)
-        REFLECT_EXTENDS(Node)
-        REFLECT_END
+        R_DERIVED(InstructionNode)
+        R_EXTENDS(Node)
+        R_END
     };
 }

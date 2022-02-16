@@ -12,19 +12,19 @@ View::View(AppContext* _ctx):
 {
     Settings* settings = m_context->settings;
 	// set default colors
-	colors.insert({ColorType_Fill,              &settings->ui_node_fillColor});
-	colors.insert({ ColorType_Highlighted,      &settings->ui_node_highlightedColor});
-	colors.insert({ ColorType_Border,           &settings->ui_node_borderColor});
-	colors.insert({ ColorType_BorderHighlights, &settings->ui_node_borderHighlightedColor});
-	colors.insert({ ColorType_Shadow,           &settings->ui_node_shadowColor});
+	colors.insert({ Color_Fill,              &settings->ui_node_fillColor});
+	colors.insert({ Color_Highlighted,      &settings->ui_node_highlightedColor});
+	colors.insert({ Color_Border,           &settings->ui_node_borderColor});
+	colors.insert({ Color_BorderHighlights, &settings->ui_node_borderHighlightedColor});
+	colors.insert({ Color_Shadow,           &settings->ui_node_shadowColor});
 }
 
-void View::setColor(ColorType_ _type, vec4* _color)
+void View::setColor(Color _type, vec4* _color)
 {
 	colors.insert_or_assign(_type, _color);
 }
 
-ImColor View::getColor(ColorType_ _type) const
+ImColor View::getColor(Color _type) const
 {
 	return  ImColor(*colors.at(_type));
 }

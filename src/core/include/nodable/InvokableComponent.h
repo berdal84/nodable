@@ -39,8 +39,8 @@ namespace Nodable
         std::vector<Member*> m_args;
         const IInvokable*     m_invokable;
 
-        REFLECT_DERIVED(InvokableComponent)
-        REFLECT_EXTENDS(Component)
-        REFLECT_END
+        R_DERIVED(InvokableComponent)
+        R_EXTENDS(Component)
+        R_END
 	};
 }

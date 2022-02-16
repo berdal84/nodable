@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 #include <nodable/Nodable.h>
 
 namespace Nodable
@@ -20,6 +20,6 @@ namespace Nodable
         virtual VariableNode*        find_variable(const std::string &_name) = 0;
         virtual const VariableNodes& get_variables()const = 0;
 
-        REFLECT(IScope)
+        R(IScope)
     };
 }

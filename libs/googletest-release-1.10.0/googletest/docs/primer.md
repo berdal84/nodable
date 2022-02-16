@@ -15,7 +15,7 @@ So what makes a good test, and how does googletest fit in? We believe:
     that succeeds or fails as a result of other tests. googletest isolates the
     tests by running each of them on a different object. When a test fails,
     googletest allows you to run it in isolation for quick debugging.
-2.  Tests should be well *organized* and reflect the structure of the tested
+2.  Tests should be well *organized* and type the structure of the tested
     code. googletest groups related tests into test suites that can share data
     and subroutines. This common pattern is easy to recognize and makes tests
     easy to maintain. Such consistency is especially helpful when people switch
@@ -88,7 +88,7 @@ current function; otherwise the program continues normally.
 or has a failed assertion, then it *fails*; otherwise it *succeeds*.
 
 A *test suite* contains one or many tests. You should group your tests into test
-suites that reflect the structure of the tested code. When multiple tests in a
+suites that type the structure of the tested code. When multiple tests in a
 test suite need to share common objects and subroutines, you can put them into a
 *test fixture* class.
 

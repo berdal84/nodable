@@ -12,7 +12,7 @@
 #include <map>
 #include <array>
 
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 #include <nodable/Nodable.h>
 #include <nodable/View.h>
 #include <nodable/FontConf.h>
@@ -75,8 +75,8 @@ namespace Nodable
         static constexpr const char* k_file_info_window_name = "File";
         static constexpr const char* k_assembly_window_name = "VM";
 
-        REFLECT_DERIVED(AppView)
-        REFLECT_EXTENDS(View)
-        REFLECT_END
+        R_DERIVED(AppView)
+        R_EXTENDS(View)
+        R_END
     };
 }

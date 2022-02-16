@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <nodable/Log.h>
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 
 using namespace Nodable;
 using Verbosity = Log::Verbosity;
@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     Log::SetVerbosityLevel("Parser", Verbosity::Warning);
     Log::SetVerbosityLevel("VM", Verbosity::Verbose);
 
-    Reflect::Initialize();
+    R::Initialize();
 
     return RUN_ALL_TESTS();
 }

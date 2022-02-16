@@ -21,7 +21,7 @@
 #define NODE_VIEW_DEFAULT_SIZE vec2(10.0f, 35.0f)
 
 using namespace Nodable;
-using namespace Nodable::Reflect;
+using namespace Nodable::R;
 
 NodeView*          NodeView::s_selected               = nullptr;
 NodeView*          NodeView::s_draggedNode            = nullptr;
@@ -140,23 +140,23 @@ void NodeView::set_owner(Node *_node)
     }
 
     // Determine a color depending on node type
-    Reflect::Class* clss = _node->get_class();
+    R::Class* clss = _node->get_class();
 
     if (_node->has<InvokableComponent>())
     {
-        setColor(ColorType_Fill, &settings->ui_node_invokableColor); // blue
+        setColor(Color_Fill, &settings->ui_node_invokableColor); // blue
     }
     else if ( clss->is<VariableNode>() )
     {
-        setColor(ColorType_Fill, &settings->ui_node_variableColor); // purple
+        setColor(Color_Fill, &settings->ui_node_variableColor); // purple
     }
     else if ( clss->is<LiteralNode>() )
     {
-        setColor(ColorType_Fill, &settings->ui_node_literalColor);
+        setColor(Color_Fill, &settings->ui_node_literalColor);
     }
     else
     {
-        setColor(ColorType_Fill, &settings->ui_node_instructionColor); // green
+        setColor(Color_Fill, &settings->ui_node_instructionColor); // green
     }
 
     // NodeConnectors
@@ -183,6 +183,7 @@ void NodeView::set_owner(Node *_node)
                 case Relation_t::IS_INPUT_OF: input_slots().add( _other_node_view ); break;
                 case Relation_t::IS_OUTPUT_OF: output_slots().add( _other_node_view ); break;
                 case Relation_t::IS_SUCCESSOR_OF: successor_slots().add( _other_node_view ); break;
+                case Relation_t::IS_PREDECESSOR_OF: NODABLE_ASSERT(false); /* NOT HANDLED */break;
             }
         });
 
@@ -196,6 +197,7 @@ void NodeView::set_owner(Node *_node)
                 case Relation_t::IS_INPUT_OF: input_slots().remove( _other_node_view ); break;
                 case Relation_t::IS_OUTPUT_OF: output_slots().remove( _other_node_view ); break;
                 case Relation_t::IS_SUCCESSOR_OF: successor_slots().remove( _other_node_view ); break;
+                case Relation_t::IS_PREDECESSOR_OF: NODABLE_ASSERT(false); /* NOT HANDLED */break;
             }
         });
 }
@@ -336,15 +338,15 @@ bool NodeView::draw()
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	{			
-		auto borderCol = IsSelected(this) ? m_borderColorSelected : getColor(ColorType_Border);
+		auto borderCol = IsSelected(this) ? m_borderColorSelected : getColor(Color_Border);
 
 		auto itemRectMin = screen_cursor_pos_content_start - halfSize;
 		auto itemRectMax = screen_cursor_pos_content_start + halfSize;
 
 		// Draw the rectangle under everything
-		ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_borderRadius, 4, vec2(1.0f), getColor(ColorType_Shadow));
-		draw_list->AddRectFilled(itemRectMin, itemRectMax, getColor(ColorType_Fill), m_borderRadius);
-		draw_list->AddRect(itemRectMin + vec2(1.0f), itemRectMax, getColor(ColorType_BorderHighlights), m_borderRadius);
+		ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_borderRadius, 4, vec2(1.0f), getColor(Color_Shadow));
+		draw_list->AddRectFilled(itemRectMin, itemRectMax, getColor(Color_Fill), m_borderRadius);
+		draw_list->AddRect(itemRectMin + vec2(1.0f), itemRectMax, getColor(Color_BorderHighlights), m_borderRadius);
 		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_borderRadius);
 
 		// darken the background under the content
@@ -372,7 +374,7 @@ bool NodeView::draw()
 	//------------------------
 
     ImGui::BeginGroup();
-        ImGuiEx::ShadowedText(vec2(1.0f), getColor(ColorType_BorderHighlights), getLabel().c_str()); // text with a lighter shadow (incrust effect)
+        ImGuiEx::ShadowedText(vec2(1.0f), getColor(Color_BorderHighlights), getLabel().c_str()); // text with a lighter shadow (incrust effect)
 
         ImGui::SameLine();
 
@@ -519,15 +521,15 @@ bool NodeView::drawMemberView(MemberView* _view )
     // show/hide
     const bool member_is_an_unconnected_input = member->get_input() != nullptr && member->allows_connection(Way_Out);
 
-    const Reflect::Class* owner_class = member->get_owner()->get_class();
+    const R::Class* owner_class = member->get_owner()->get_class();
 
     _view->m_showInput =
          member_is_an_unconnected_input || owner_class->is<VariableNode>() || owner_class->is<LiteralNode>() ||
         (
-            ( _view->m_touched && !member->is_type(Type::Type_Pointer) )
+            ( _view->m_touched && !R::is_ptr(member->get_type() ) )
             ||
             (
-                (!member->is_type(Type::Type_Pointer) && member->is_defined())
+                (!R::is_ptr(member->get_type())  && member->is_defined())
                 &&
                 (
                     (
@@ -566,7 +568,7 @@ bool NodeView::drawMemberView(MemberView* _view )
             ImGui::BeginTooltip();
             ImGui::Text("%s (%s)",
                         member->get_name().c_str(),
-                        Reflect::to_string( member->get_type() ).c_str());
+                        R::to_string(member->get_type() ));
             ImGui::EndTooltip();
         }
 
@@ -605,7 +607,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     /* Draw the member */
     switch (_member->get_type())
     {
-        case Type_Double:
+        case R::Type::Double:
         {
             auto f = (double)*_member;
 
@@ -617,7 +619,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             break;
         }
 
-        case Type_String:
+        case R::Type::String:
         {
             char str[255];
             snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
@@ -630,7 +632,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             break;
         }
 
-        case Type_Boolean:
+        case R::Type::Boolean:
         {
             std::string checkBoxLabel = _member->get_name();
 
@@ -683,7 +685,7 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
                 _member->get_name().c_str(),
                 WayToString(_member->get_allowed_connection()).c_str(),
                 _member->is_connected_by(ConnectBy_Ref) ? "&" : "",
-                Reflect::to_string( _member->get_type() ).c_str(),
+                R::to_string(_member->get_type() ),
                 _member->is_defined() ? "" : ", undefined!");
 
         ImGui::SameLine();

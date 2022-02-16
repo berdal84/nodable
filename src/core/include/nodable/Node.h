@@ -94,9 +94,9 @@ namespace Nodable {
         const InvokableOperator* get_connected_operator(const Member* _localMember); // TODO: weird, try to understand why I needed this
         bool                 has_wire_connected_to(const Member *_localMember);
 
-        template<class T> inline T*       as() { return Reflect::cast_pointer<T>(this); }
-        template<class T> inline const T* as()const { return Reflect::cast_pointer<const T>(this); }
-        template<class T> inline bool     is()const { return as<T>() != nullptr; }
+        template<class T> inline T*       as() { return R::cast_pointer<T>(this); }
+        template<class T> inline const T* as()const { return R::cast_pointer<const T>(this); }
+        template<class T> inline bool     is()const { return R::cast_pointer<const T>(this) != nullptr; }
 
         Properties*          props() { return &m_props; }
         const Properties*    props()const { return &m_props; }
@@ -167,7 +167,7 @@ namespace Nodable {
                 return nullptr;
             }
 
-			Reflect::Class* desired_class = T::Get_class();
+			R::Class* desired_class = T::Get_class();
 
 			// Search with class name
 			{
@@ -229,6 +229,6 @@ namespace Nodable {
         Slots<Node*>       m_inputs;
         Slots<Node*>       m_outputs;
 
-		REFLECT(Node)
+		R(Node)
     };
 }

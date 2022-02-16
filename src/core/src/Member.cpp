@@ -41,7 +41,6 @@ Member::Member(Properties* _parent_properties, const std::string& s): Member(_pa
 
 Member::Member(Properties* _parent_properties, Node* _node): Member(_parent_properties)
 {
-    m_variant.set_type<Node*>();
     m_variant.set(_node);
 }
 
@@ -66,25 +65,25 @@ void Member::set_input(Member* _val, ConnBy_ _connect_by)
 
 void Member::set(Node* _value)
 {
-    get_variant().set_type(Reflect::Type_Pointer);
+    get_variant().set_type(R::add_ptr(R::Type::Void));
     get_variant().set(_value);
 }
 
 void Member::set(double _value)
 {
-    get_variant().set_type(Reflect::Type_Double);
+    get_variant().set_type(R::Type::Double);
     get_variant().set(_value);
 }
 
 void Member::set(const char* _value)
 {
-    get_variant().set_type(Reflect::Type_String);
+    get_variant().set_type(R::Type::String);
     get_variant().set(_value);
 }
 
 void Member::set(bool _value)
 {
-    get_variant().set_type(Reflect::Type_Boolean);
+    get_variant().set_type(R::Type::Boolean);
     get_variant().set(_value);
 }
 

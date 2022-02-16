@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <observe/observer.h>
 
@@ -52,8 +52,8 @@ namespace Nodable
         std::string  m_experimental_clipboard_prev;
         bool         m_experimental_clipboard_auto_paste = false;
 
-        REFLECT_DERIVED(FileView)
-        REFLECT_EXTENDS(View)
-        REFLECT_END
+        R_DERIVED(FileView)
+        R_EXTENDS(View)
+        R_END
     };
 }

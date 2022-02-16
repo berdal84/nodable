@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <imgui/imgui.h>
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <nodable/FontConf.h>
 #include <nodable/FontSlot.h>
@@ -59,6 +59,6 @@ namespace Nodable {
     private:
         static Settings* create_default();
 
-        REFLECT(Settings)
+        R(Settings)
     };
 }

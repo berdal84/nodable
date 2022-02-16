@@ -15,7 +15,7 @@
 
 using namespace Nodable;
 
-REFLECT_DEFINE_CLASS(InstructionNode)
+R_DEFINE_CLASS(InstructionNode)
 
 GraphNode::GraphNode(const Language* _language, const INodeFactory* _factory, const bool* _autocompletion)
     : m_language(_language)
@@ -149,7 +149,7 @@ void GraphNode::ensure_has_root()
     }
 }
 
-VariableNode* GraphNode::create_variable(Reflect::Type _type, const std::string& _name, IScope* _scope)
+VariableNode* GraphNode::create_variable(R::Type _type, const std::string& _name, IScope* _scope)
 {
 	auto node = m_factory->newVariable(_type, _name, _scope);
     add(node);
@@ -244,7 +244,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst, ConnBy_ _connect_by)
         delete _src_member;
     }
     else if (
-            _src_member->get_type() != Reflect::Type_Pointer &&
+            !R::is_ptr(_src_member->get_type()) &&
             _src_member->get_owner()->get_class()->is<LiteralNode>() &&
             _dst->get_owner()->get_class()->is_not<VariableNode>())
     {
@@ -534,7 +534,7 @@ Node* GraphNode::create_node()
     return node;
 }
 
-LiteralNode* GraphNode::create_literal(const Reflect::Type &type)
+LiteralNode* GraphNode::create_literal(const R::Type &type)
 {
     LiteralNode* node = m_factory->newLiteral(type);
     add(node);

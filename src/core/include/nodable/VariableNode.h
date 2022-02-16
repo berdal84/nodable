@@ -5,7 +5,7 @@
 #include <nodable/Nodable.h> // forward declarations and common stuff
 #include <nodable/Node.h> // base class
 #include <nodable/Member.h>
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 
 namespace Nodable{
 	
@@ -18,7 +18,7 @@ namespace Nodable{
 	class VariableNode : public Node
     {
 	public:
-		explicit VariableNode(Reflect::Type);
+		explicit VariableNode(R::Type);
 		~VariableNode() override = default;
 
 		[[nodiscard]] inline bool             is_declared()const { return m_is_declared; }
@@ -46,8 +46,8 @@ namespace Nodable{
         Token*      m_identifier_token;
 		std::string m_name;
 
-		REFLECT_DERIVED(VariableNode)
-        REFLECT_EXTENDS(Node)
-        REFLECT_END
+		R_DERIVED(VariableNode)
+        R_EXTENDS(Node)
+        R_END
     };
 }

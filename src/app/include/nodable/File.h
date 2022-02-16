@@ -8,7 +8,7 @@
 #include <observe/event.h>
 #include <ImGuiColorTextEdit/TextEditor.h> // for coordinates
 
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 #include <nodable/Nodable.h>
 #include <nodable/Log.h>
 #include <nodable/AppNodeFactory.h>

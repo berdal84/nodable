@@ -897,7 +897,7 @@ const unsigned char* lodepng_chunk_find_const(const unsigned char* chunk, const 
 
 /*
 Appends chunk to the data in out. The given chunk should already have its chunk header.
-The out variable and outsize are updated to reflect the new reallocated buffer.
+The out variable and outsize are updated to type the new reallocated buffer.
 Returns error code (0 if it went ok)
 */
 unsigned lodepng_chunk_append(unsigned char** out, size_t* outsize, const unsigned char* chunk);
@@ -905,7 +905,7 @@ unsigned lodepng_chunk_append(unsigned char** out, size_t* outsize, const unsign
 /*
 Appends new chunk to out. The chunk to append is given by giving its length, type
 and data separately. The type is a 4-letter string.
-The out variable and outsize are updated to reflect the new reallocated buffer.
+The out variable and outsize are updated to type the new reallocated buffer.
 Returne error code (0 if it went ok)
 */
 unsigned lodepng_chunk_create(unsigned char** out, size_t* outsize, unsigned length,

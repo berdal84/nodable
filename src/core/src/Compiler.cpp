@@ -149,12 +149,11 @@ void Asm::Compiler::compile(const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
-        if (_member->is_type(Reflect::Type_Pointer))
+        constexpr R::Type void_ptr = add_ptr(R::Type::Void);
+        if (_member->is_type( void_ptr ) )
         {
-            /*
-             * Members can point to a Node*
-             */
-            compile((const Node *) *_member);
+            // note: we consider Pointers to be Node*.
+            compile((const Node*)(void *)*_member);
         }
         else
         {
@@ -194,20 +193,34 @@ void Asm::Compiler::compile(const Node* _node)
         instr->m_comment = std::string{_node->get_short_label()} + "'s scope";
     }
 
-    if ( auto conditional_struct = _node->as<IConditionalStruct>(); conditional_struct )
+    if ( _node->is<IConditionalStruct>() )
     {
+        const IConditionalStruct* i_cond_struct = _node->as<IConditionalStruct>();
+
         // for_loop init instruction
         if ( auto for_loop = _node->as<ForLoopNode>() )
         {
             compile(for_loop->get_init_expr());
         }
+        else if ( auto cond_struct = _node->as<ConditionalStructNode>() )
+        {
+
+        }
+        else
+        {
+            LOG_WARNING("Compiler", "IConditionnalStruct case not handled\n")
+        }
 
         long condition_instr_line = m_output->get_next_pushed_instr_index();
 
-        Member* condition_member = conditional_struct->condition_member();
-        NODABLE_ASSERT(condition_member)
-        Node* _condition_node = (Node*)*condition_member;
-        compile(_condition_node);
+        const Member* condition_member = i_cond_struct->condition_member();
+
+        if ( condition_member->is_defined() )
+        {
+            NODABLE_ASSERT(condition_member)
+            auto cond_node = (const Node*)((void*)*condition_member);
+            compile(cond_node);
+        }
 
         Instr* store_instr = m_output->push_instr(Instr_t::mov);
         store_instr->m_left_h_arg = Register::rdx;
@@ -219,7 +232,7 @@ void Asm::Compiler::compile(const Node* _node)
 
         Instr* skip_false_branch = nullptr;
 
-        if ( auto true_branch = conditional_struct->get_condition_true_branch() )
+        if ( auto true_branch = i_cond_struct->get_condition_true_branch() )
         {
             compile(true_branch->get_owner());
 
@@ -234,7 +247,7 @@ void Asm::Compiler::compile(const Node* _node)
                 loop_jump->m_comment = "jump back to loop begining";
 
             }
-            else if (conditional_struct->get_condition_false_branch())
+            else if (i_cond_struct->get_condition_false_branch())
             {
                 skip_false_branch = m_output->push_instr(Instr_t::jmp);
                 skip_false_branch->m_comment = "jump false branch";
@@ -243,7 +256,7 @@ void Asm::Compiler::compile(const Node* _node)
 
         skip_true_branch->m_left_h_arg = m_output->get_next_pushed_instr_index() - skip_true_branch->m_line;
 
-        if ( auto false_branch = conditional_struct->get_condition_false_branch() )
+        if ( auto false_branch = i_cond_struct->get_condition_false_branch() )
         {
             compile(false_branch->get_owner());
             skip_false_branch->m_left_h_arg = m_output->get_next_pushed_instr_index() - skip_false_branch->m_line;
@@ -251,16 +264,16 @@ void Asm::Compiler::compile(const Node* _node)
     }
     else if (_node->has<Scope>() )
     {
-        for( auto each : _node->children_slots().content() )
+        for( const Node* each_node : _node->children_slots().content() )
         {
-            compile(each);
+            compile(each_node);
         }
     }
     else if ( auto instr_node = _node->as<InstructionNode>() )
     {
-        Member* root_member = instr_node->get_root_node_member();
+        const Member* root_member = instr_node->get_root_node_member();
         NODABLE_ASSERT(root_member)
-        Node* root_node = (Node*)*root_member;
+        auto root_node = (const Node*)(const void*)*root_member;
 
         // eval node
         compile(root_node);
@@ -305,7 +318,7 @@ Code* Asm::Compiler::compile_program(const Node* _program_graph_root)
     /*
      * Here we take the program's base scope node (a tree) and we flatten it to an
      * instruction list. We add some jump instruction in order to skip portions of code.
-     * This works "a little bit" like a compiler, at least for the "tree to list" point of view.
+     * This works a little like a compiler, at least for the "tree to list" point of view.
      */
     // delete m_output; we are NOT responsible to delete, m_output point could be in use.
     m_output = new Code();

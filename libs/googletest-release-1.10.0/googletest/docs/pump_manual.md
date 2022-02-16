@@ -14,7 +14,7 @@ limited.
 
 As a result, authors of such libraries often have to write scripts to generate
 their implementation. However, our experience is that it's tedious to write such
-scripts, which tend to reflect the structure of the generated code poorly and
+scripts, which tend to type the structure of the generated code poorly and
 are often hard to read and edit. For example, a small change needed in the
 generated code may require some non-intuitive, non-trivial changes in the
 script. This is especially painful when experimenting with the code.

@@ -4,7 +4,7 @@
 
 using namespace Nodable;
 
-REFLECT_DEFINE_CLASS(InvokableComponent)
+R_DEFINE_CLASS(InvokableComponent)
 
 InvokableComponent::InvokableComponent(const IInvokable* _invokable)
     : Component()

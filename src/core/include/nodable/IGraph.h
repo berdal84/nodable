@@ -38,8 +38,8 @@ namespace Nodable
         virtual void                    ensure_has_root() = 0;
         virtual Node*                   create_root() = 0;
         virtual InstructionNode*        create_instr() = 0;
-		virtual VariableNode*           create_variable(Reflect::Type, const std::string&, IScope*) = 0;
-		virtual LiteralNode*            create_literal(const Reflect::Type&) = 0;
+		virtual VariableNode*           create_variable(R::Type, const std::string&, IScope*) = 0;
+		virtual LiteralNode*            create_literal(const R::Type&) = 0;
 		virtual Node*                   create_bin_op(const InvokableOperator*) = 0;
 		virtual Node*                   create_unary_op(const InvokableOperator*)  = 0;
         virtual Node*                   create_operator(const InvokableOperator*)  = 0;

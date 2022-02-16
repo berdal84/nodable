@@ -277,9 +277,9 @@ LanguageNodable::LanguageNodable()
     semantic.insert("if", TokenType_KeywordIf);                        // conditional structures
     semantic.insert("else", TokenType_KeywordElse);
     semantic.insert("for", TokenType_KeywordFor);
-    semantic.insert("bool",   TokenType_KeywordBoolean, Reflect::Type_Boolean); // types
-    semantic.insert("string", TokenType_KeywordString,  Reflect::Type_String);
-    semantic.insert("double", TokenType_KeywordDouble,  Reflect::Type_Double);
+    semantic.insert("bool", TokenType_KeywordBoolean, R::Type::Boolean); // types
+    semantic.insert("string", TokenType_KeywordString, R::Type::String);
+    semantic.insert("double", TokenType_KeywordDouble, R::Type::Double);
 
     // punctuation
     semantic.insert("{", TokenType_BeginScope);
@@ -291,9 +291,9 @@ LanguageNodable::LanguageNodable()
     semantic.insert("\n", TokenType_EndOfLine);
 
     // literals
-    semantic.insert(std::regex("^(true|false)"), TokenType_Literal, Reflect::Type_Boolean);
-    semantic.insert(std::regex(R"(^("[^"]*"))"), TokenType_Literal, Reflect::Type_String);
-    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Literal, Reflect::Type_Double);
+    semantic.insert(std::regex("^(true|false)"), TokenType_Literal, R::Type::Boolean);
+    semantic.insert(std::regex(R"(^("[^"]*"))"), TokenType_Literal, R::Type::String);
+    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Literal, R::Type::Double);
 
     // identifier
     semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType_Identifier);

@@ -33,7 +33,7 @@ App::~App()
 
 bool App::init()
 {
-  Reflect::Initialize();
+  R::Initialize();
   m_view->init();
 	return true;
 }

@@ -2,7 +2,7 @@
 
 #include <nodable/Nodable.h>
 #include <nodable/Component.h>
-#include <nodable/Reflect.h>
+#include <nodable/R.h>
 
 namespace Nodable
 {
@@ -11,8 +11,8 @@ namespace Nodable
 	public:
 		DataAccess() {};
 		bool update()override;
-		REFLECT_DERIVED(DataAccess)
-    REFLECT_EXTENDS(Component)
-    REFLECT_END
+		R_DERIVED(DataAccess)
+    R_EXTENDS(Component)
+    R_END
 	};
 }
