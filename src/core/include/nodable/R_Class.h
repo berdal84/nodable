@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_set>
+#include <algorithm>
 
 namespace Nodable::R
 {

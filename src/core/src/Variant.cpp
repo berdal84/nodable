@@ -131,8 +131,7 @@ void Variant::set_type(R::Type _type) // TODO: remove this
         default:
             if (  R::is_ptr(_type) )
             {
-                constexpr auto reflect_ptr_t = add_ptr(R::Type::Void);
-                using ptr_t = R::type<reflect_ptr_t>::cpp_t;
+                using ptr_t = R::type<R::Type::Void_Ptr>::meta::cpp_t;
                 m_data.emplace<ptr_t>();
             }
 			break;

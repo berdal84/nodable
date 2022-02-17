@@ -43,13 +43,13 @@ namespace Nodable::R
 
     R_DEF_TYPE(unknown_t    , Type::Unknown )
     R_DEF_TYPE(double       , Type::Double )
-    R_DEF_TYPE(double &      , add_ref(Type::Double) )
+    R_DEF_TYPE(double&      , add_ref(Type::Double) )
     R_DEF_TYPE(double*      , add_ptr(Type::Double) )
     R_DEF_TYPE(std::string  , Type::String )
-    R_DEF_TYPE(std::string & , add_ref(Type::String )  )
+    R_DEF_TYPE(std::string& , add_ref(Type::String )  )
     R_DEF_TYPE(std::string* , add_ptr(Type::String ) )
     R_DEF_TYPE(bool         , Type::Boolean )
-    R_DEF_TYPE(bool &        , add_ref(Type::Boolean ) )
+    R_DEF_TYPE(bool&        , add_ref(Type::Boolean ) )
     R_DEF_TYPE(bool*        , add_ptr(Type::Boolean ) )
     R_DEF_TYPE(void*        , add_ptr(Type::Void) )
 
@@ -57,17 +57,11 @@ namespace Nodable::R
 /*
  * To avoid the ned to overdeclare, this templae allows any object pointer to be treater as a void*
  * ex: Node*, Object*, Car*, Character* will be treated as void*
- *
- * TODO: consider a better option.
  */
     template<typename T>
     struct cpp<T*>
     {
-        using                        cpp_t      = T*;
-        using                        r_cpp_t   = type<Type::Void_Ptr>::r_cpp_t;
-        static constexpr const char* name            = cpp<r_cpp_t>::name;
-        static constexpr Type        reflect_t       = cpp<r_cpp_t>::reflect_t;
-        static constexpr const char* reflect_t_name  = cpp<r_cpp_t>::reflect_t_name;
+        using meta = cpp<void*>::meta;
     };
 #endif
 }

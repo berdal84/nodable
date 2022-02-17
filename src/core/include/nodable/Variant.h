@@ -24,7 +24,7 @@ namespace Nodable
 
         void set(void* _pointer)
         {
-            set_type( R::cpp<void*>::reflect_t );
+            set_type( R::cpp<void*>::meta::reflect_t );
             m_data.emplace<void*>(_pointer);
             m_is_defined = true;
         }
@@ -40,7 +40,7 @@ namespace Nodable
         template<typename T>
         void set_type()
         {
-            set_type(R::cpp<T>::reflect_t );
+            set_type(R::cpp<T>::meta::reflect_t );
         };
 
         R::Type get_type()const;

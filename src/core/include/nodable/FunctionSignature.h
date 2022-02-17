@@ -63,7 +63,7 @@ namespace Nodable
             static FunctionSignature* with_id(const char* _identifier, const char* _label = "")
             {
                 auto signature = new FunctionSignature(_identifier, _label);
-                signature->set_return_type(R::cpp<T>::reflect_t );
+                signature->set_return_type(R::cpp<T>::meta::reflect_t );
                 signature->push_args<std::tuple<Args...>>();
                 return signature;
             }
@@ -79,7 +79,7 @@ namespace Nodable
                 arg_pusher<Tuple, N - 1>::push_into(_signature);
 
                 using T = std::tuple_element_t<N-1, Tuple>;
-                R::Type type = R::cpp<T>::reflect_t;
+                R::Type type = R::cpp<T>::meta::reflect_t;
                 _signature->push_arg(type);
             }
         };
@@ -90,7 +90,7 @@ namespace Nodable
             static void push_into(FunctionSignature *_signature)
             {
                 using T = std::tuple_element_t<0, Tuple>;
-                R::Type type = R::cpp<T>::reflect_t;
+                R::Type type = R::cpp<T>::meta::reflect_t;
                 _signature->push_arg(type);
             };
         };

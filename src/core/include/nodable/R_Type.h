@@ -73,6 +73,9 @@ namespace Nodable::R
     template<Type T>
     struct type; // <----------------{ to convert a Reflect::Type type to a cpp type
 
+    template<typename T, Type REFLECT_T> \
+    struct meta_info;
+
     static const char* to_string( Type _type )
     {
         switch( R::binary_and(_type, Type::PureTypes_BinaryMask) )
