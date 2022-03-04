@@ -7,10 +7,16 @@ namespace Nodable::R
     class Type : i_meta
     {
     public:
-        Type( const char* _cpp_name, const char* _reflect_name, Typename _reflect_type )
+        Type(
+            const char* _cpp_name,
+            const char* _reflect_name,
+            Typename _reflect_type,
+            Qualifier _qualifier = Qualifier::Null )
         : m_cpp_name(_cpp_name)
         , m_reflect_name(_reflect_name)
-        , m_reflect_type(_reflect_type) {};
+        , m_reflect_type(_reflect_type)
+        , m_qualifier(_qualifier)
+        {}
 
         const char* get_name() const override { return m_cpp_name; };
         Typename    get_typename() const override { return m_reflect_type; }
@@ -55,7 +61,7 @@ namespace Nodable::R
     protected:
         const char* m_cpp_name;
         const char* m_reflect_name;
-        Typename m_reflect_type;
-        Qualifier m_qualifier;
+        Typename    m_reflect_type;
+        Qualifier   m_qualifier;
     };
 }
