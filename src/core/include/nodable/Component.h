@@ -19,8 +19,8 @@ namespace Nodable{
 		virtual bool         update() = 0;
 		virtual inline void  set_owner(Node *_entity){ m_owner = _entity; }
 		inline Node*         get_owner()const { return m_owner; }
-		template<class T> [[nodiscard]] inline       T* as()      { return R::cast_pointer<T>(this); }
-        template<class T> [[nodiscard]] inline const T* as()const { return R::cast_pointer<const T>(this); }
+		template<class T> [[nodiscard]] inline       T* as()      { return R::Type::cast_pointer<T>(this); }
+        template<class T> [[nodiscard]] inline const T* as()const { return R::Type::cast_pointer<const T>(this); }
 	private:
 		Node* m_owner = nullptr;
 		R(Component)

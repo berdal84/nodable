@@ -110,15 +110,15 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 	return true;
 }
 
-R::Type Parser::get_literal_type(const Nodable::Token *_token) const
+R::Typename Parser::get_literal_type(const Nodable::Token *_token) const
 {
-    R::Type type = R::Type::Unknown;
+    R::Typename type = R::Typename::Null;
 
-    const std::vector<std::regex> regex            = m_language->getSemantic()->get_type_regex();
-    const std::vector<R::Type>       regex_id_to_type = m_language->getSemantic()->get_type_regex_index_to_type();
+    const std::vector<std::regex>  regex            = m_language->getSemantic()->get_type_regex();
+    const std::vector<R::Typename> regex_id_to_type = m_language->getSemantic()->get_type_regex_index_to_type();
 
     auto each_regex_it = regex.cbegin();
-    while( each_regex_it != regex.cend() && type == R::Type::Unknown )
+    while( each_regex_it != regex.cend() && type == R::Typename::Null )
     {
         std::smatch sm;
         auto match = std::regex_search(_token->m_word.cbegin(), _token->m_word.cend(), sm, *each_regex_it);
@@ -131,7 +131,7 @@ R::Type Parser::get_literal_type(const Nodable::Token *_token) const
         each_regex_it++;
     }
 
-    NODABLE_ASSERT(type != R::Type::Unknown)
+    NODABLE_ASSERT(type != R::Typename::Null)
 
     return type;
 }
@@ -163,13 +163,14 @@ Member* Parser::token_to_member(Token *_token)
 
 	    case TokenType_Literal:
         {
-            R::Type type = get_literal_type(_token);
+            const R::Type* type = R::get_meta( get_literal_type(_token) );
             LiteralNode* literal = m_graph->create_literal(type);
 
-            switch ( type ) {
-                case R::Type::String: literal->set_value(parse_string(_token->m_word) ); break;
-                case R::Type::Double: literal->set_value(parse_double(_token->m_word) ); break;
-                case R::Type::Boolean: literal->set_value(parse_bool(_token->m_word)  ); break;
+            switch ( type->get_typename() )
+            {
+                case R::Typename::String: literal->set_value(parse_string(_token->m_word) ); break;
+                case R::Typename::Double: literal->set_value(parse_double(_token->m_word) ); break;
+                case R::Typename::Boolean: literal->set_value(parse_bool(_token->m_word)  ); break;
                 default: {}
             }
 
@@ -192,7 +193,7 @@ Member* Parser::token_to_member(Token *_token)
                 {
 			        /* when strict mode is OFF, we just create a variable with Any type */
                     LOG_WARNING("Parser", "Unable to find declaration for %s, R::Type::Unknown will be used to allow graph visualisation, but compilation will fail.\n", _token->m_word.c_str())
-                    variable = m_graph->create_variable(R::Type::Unknown, _token->m_word, get_current_scope());
+                    variable = m_graph->create_variable(R::Type::s_unknown, _token->m_word, get_current_scope());
                     variable->get_value()->set_src_token(_token);
                     variable->set_declared(false);
                 }
@@ -275,7 +276,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const FunctionSignature* signature = m_language->createBinOperatorSignature(R::Type::Unknown, operatorToken->m_word,
+	const FunctionSignature* signature = m_language->createBinOperatorSignature( nullptr, operatorToken->m_word,
                                                                                 _left->get_type(),
                                                                                 right->get_type());
 	auto matchingOperator = m_language->findOperator(signature);
@@ -342,7 +343,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	}
 
 	// Create a function signature
-	auto signature = m_language->createUnaryOperatorSignature(R::Type::Unknown, operatorToken->m_word, value->get_type() );
+	auto signature = m_language->createUnaryOperatorSignature( nullptr, operatorToken->m_word, value->get_type() );
 	auto matchingOperator = m_language->findOperator(signature);
 
 	if (matchingOperator != nullptr)
@@ -811,7 +812,7 @@ Member* Parser::parse_function_call()
 
     // Declare a new function prototype
     FunctionSignature signature(identifier);
-    signature.set_return_type(R::Type::Unknown );
+    signature.set_return_type(R::Type::s_unknown);
 
     bool parsingError = false;
     while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != TokenType_CloseBracket)
@@ -1069,8 +1070,8 @@ Member *Parser::parse_variable_declaration()
 
     if(Token::isType(typeTok->m_type) && identifierTok->m_type == TokenType_Identifier )
     {
-        R::Type type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
-        VariableNode* variable = m_graph->create_variable(type, identifierTok->m_word, this->get_current_scope());
+        R::Typename type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
+        VariableNode* variable = m_graph->create_variable( R::get_meta(type), identifierTok->m_word, this->get_current_scope());
         variable->set_type_token(typeTok);
         variable->set_identifier_token(identifierTok);
         variable->get_value()->set_src_token(identifierTok); // we also pass it to the member, this one will be modified my connections

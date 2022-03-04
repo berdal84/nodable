@@ -13,7 +13,7 @@ InstructionNode::InstructionNode(const char* _label)
     /*
      * Add a member to identify the (root) node to evaluate when this instruction is processed by Asm::Compiler.
      */
-    m_props.add("root_node", Visibility::Default, R::add_ptr(R::Type::Void), Way_In);
+    m_props.add("root_node", Visibility::Default, R::get_type<Node*>(), Way_In);
     m_successors.set_limit(1);
     m_predecessors.set_limit(-1);
 }

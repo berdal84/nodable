@@ -19,8 +19,8 @@ namespace Nodable
 
         Node*                       newProgram()const override ;
         InstructionNode*            new_instr()const override ;
-        VariableNode*				newVariable(R::Type, const std::string&, IScope *)const override ;
-        LiteralNode*                newLiteral(const R::Type &type)const override ;
+        VariableNode*				newVariable(const R::Type*, const std::string&, IScope *)const override ;
+        LiteralNode*                newLiteral(const R::Type*)const override ;
         Node*                       newBinOp(const InvokableOperator*)const override ;
         Node*                       newUnaryOp(const InvokableOperator*)const override ;
         Node*                       newOperator(const InvokableOperator*)const override ;

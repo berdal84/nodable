@@ -11,6 +11,7 @@
 #include <nodable/String.h>
 
 using namespace Nodable;
+using namespace Nodable::R;
 
 /*
  * Define functions/operators to be wrapped in nodable classes in order to be invoked at runtime.
@@ -277,9 +278,9 @@ LanguageNodable::LanguageNodable()
     semantic.insert("if", TokenType_KeywordIf);                        // conditional structures
     semantic.insert("else", TokenType_KeywordElse);
     semantic.insert("for", TokenType_KeywordFor);
-    semantic.insert("bool", TokenType_KeywordBoolean, R::Type::Boolean); // types
-    semantic.insert("string", TokenType_KeywordString, R::Type::String);
-    semantic.insert("double", TokenType_KeywordDouble, R::Type::Double);
+    semantic.insert("bool", TokenType_KeywordBoolean, Typename::Boolean); // types
+    semantic.insert("string", TokenType_KeywordString, Typename::String);
+    semantic.insert("double", TokenType_KeywordDouble, Typename::Double);
 
     // punctuation
     semantic.insert("{", TokenType_BeginScope);
@@ -291,9 +292,9 @@ LanguageNodable::LanguageNodable()
     semantic.insert("\n", TokenType_EndOfLine);
 
     // literals
-    semantic.insert(std::regex("^(true|false)"), TokenType_Literal, R::Type::Boolean);
-    semantic.insert(std::regex(R"(^("[^"]*"))"), TokenType_Literal, R::Type::String);
-    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Literal, R::Type::Double);
+    semantic.insert(std::regex("^(true|false)"), TokenType_Literal, Typename::Boolean);
+    semantic.insert(std::regex(R"(^("[^"]*"))"), TokenType_Literal, Typename::String);
+    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Literal, Typename::Double);
 
     // identifier
     semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType_Identifier);

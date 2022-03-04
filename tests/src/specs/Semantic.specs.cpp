@@ -15,9 +15,9 @@ TEST(Semantic, token_type_to_type)
     const LanguageNodable lang;
     auto semantic = lang.getSemantic();
 
-    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordBoolean), Type::Boolean );
-    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordDouble), Type::Double );
-    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordString), Type::String );
+    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordBoolean), Typename::Boolean );
+    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordDouble), Typename::Double );
+    EXPECT_EQ( semantic->token_type_to_type(TokenType_KeywordString), Typename::String );
 }
 
 TEST(Semantic, type_to_string)
@@ -25,7 +25,7 @@ TEST(Semantic, type_to_string)
     const LanguageNodable lang;
     auto semantic = lang.getSemantic();
 
-    EXPECT_EQ( semantic->type_to_string(Type::Boolean), "bool" );
-    EXPECT_EQ( semantic->type_to_string(Type::Double), "double" );
-    EXPECT_EQ( semantic->type_to_string(Type::String), "string" );
+    EXPECT_EQ( semantic->type_to_string( R::get_type<bool>() ), "bool" );
+    EXPECT_EQ( semantic->type_to_string( R::get_type<double>() ), "double" );
+    EXPECT_EQ( semantic->type_to_string( R::get_type<std::string>() ), "string" );
 }

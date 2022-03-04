@@ -526,10 +526,10 @@ bool NodeView::drawMemberView(MemberView* _view )
     _view->m_showInput =
          member_is_an_unconnected_input || owner_class->is<VariableNode>() || owner_class->is<LiteralNode>() ||
         (
-            ( _view->m_touched && !R::is_ptr(member->get_type() ) )
+            ( _view->m_touched && !Type::is_ptr(member->get_type() ) )
             ||
             (
-                (!R::is_ptr(member->get_type())  && member->is_defined())
+                (!Type::is_ptr(member->get_type())  && member->is_defined())
                 &&
                 (
                     (
@@ -568,7 +568,7 @@ bool NodeView::drawMemberView(MemberView* _view )
             ImGui::BeginTooltip();
             ImGui::Text("%s (%s)",
                         member->get_name().c_str(),
-                        R::to_string(member->get_type() ));
+                        member->get_type()->get_name());
             ImGui::EndTooltip();
         }
 
@@ -605,9 +605,9 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     auto inputFlags = ImGuiInputTextFlags_None;
 
     /* Draw the member */
-    switch (_member->get_type())
+    switch ( _member->get_type()->get_typename() )
     {
-        case R::Type::Double:
+        case R::Typename::Double:
         {
             auto f = (double)*_member;
 
@@ -619,7 +619,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             break;
         }
 
-        case R::Type::String:
+        case R::Typename::String:
         {
             char str[255];
             snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
@@ -632,7 +632,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             break;
         }
 
-        case R::Type::Boolean:
+        case R::Typename::Boolean:
         {
             std::string checkBoxLabel = _member->get_name();
 
@@ -685,7 +685,7 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
                 _member->get_name().c_str(),
                 WayToString(_member->get_allowed_connection()).c_str(),
                 _member->is_connected_by(ConnectBy_Ref) ? "&" : "",
-                R::to_string(_member->get_type() ),
+                _member->get_type()->get_name(),
                 _member->is_defined() ? "" : ", undefined!");
 
         ImGui::SameLine();

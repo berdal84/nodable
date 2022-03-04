@@ -92,10 +92,10 @@ namespace Nodable{
 		bool                   is_syntax_valid();
 
 		/** Get the current scope (during parsing, scope changes, we need to know the current to push any new variable) */
-        Scope*        get_current_scope();
+        Scope*                 get_current_scope();
 
         /** Given a Literal token, return its type */
-        R::Type get_literal_type(const Token *_token)const;
+        R::Typename            get_literal_type(const Token *_token)const;
 
     private:
 		/** A language to get Semantic and Syntax (not yet implemented) */

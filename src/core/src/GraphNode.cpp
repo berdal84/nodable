@@ -149,7 +149,7 @@ void GraphNode::ensure_has_root()
     }
 }
 
-VariableNode* GraphNode::create_variable(R::Type _type, const std::string& _name, IScope* _scope)
+VariableNode* GraphNode::create_variable(const R::Type* _type, const std::string& _name, IScope* _scope)
 {
 	auto node = m_factory->newVariable(_type, _name, _scope);
     add(node);
@@ -244,7 +244,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst, ConnBy_ _connect_by)
         delete _src_member;
     }
     else if (
-            !R::is_ptr(_src_member->get_type()) &&
+            !R::Type::is_ptr(_src_member->get_type()) &&
             _src_member->get_owner()->get_class()->is<LiteralNode>() &&
             _dst->get_owner()->get_class()->is_not<VariableNode>())
     {
@@ -534,9 +534,9 @@ Node* GraphNode::create_node()
     return node;
 }
 
-LiteralNode* GraphNode::create_literal(const R::Type &type)
+LiteralNode* GraphNode::create_literal(const R::Type* _type)
 {
-    LiteralNode* node = m_factory->newLiteral(type);
+    LiteralNode* node = m_factory->newLiteral(_type);
     add(node);
     return node;
 }

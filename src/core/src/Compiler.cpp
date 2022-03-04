@@ -149,7 +149,8 @@ void Asm::Compiler::compile(const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
-        constexpr R::Type void_ptr = add_ptr(R::Type::Void);
+        const R::Type* void_ptr = R::get_type<void*>();
+
         if (_member->is_type( void_ptr ) )
         {
             // note: we consider Pointers to be Node*.

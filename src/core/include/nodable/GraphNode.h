@@ -39,8 +39,8 @@ namespace Nodable
         /* node factory */
         Node*                       create_root() override;
         InstructionNode*            create_instr() override;
-		VariableNode*				create_variable(R::Type, const std::string&, IScope*) override;
-		LiteralNode*                create_literal(const R::Type&) override;
+		VariableNode*				create_variable(const R::Type*, const std::string&, IScope*) override;
+		LiteralNode*                create_literal(const R::Type*) override;
 		Node*                       create_bin_op(const InvokableOperator*) override;
 		Node*                       create_unary_op(const InvokableOperator*) override;
         Node*                       create_operator(const InvokableOperator*) override;

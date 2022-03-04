@@ -14,8 +14,8 @@ namespace Nodable
      */
     struct FunctionArg
     {
-        FunctionArg(R::Type _type, std::string& _name): m_type(_type), m_name(_name){}
-        R::Type m_type;
+        FunctionArg(const R::Type* _type, std::string& _name): m_type(_type), m_name(_name){}
+        const R::Type* m_type;
         std::string m_name;
     };
 
@@ -27,26 +27,26 @@ namespace Nodable
     public:
         FunctionSignature(std::string _identifier, std::string _label = "");
         ~FunctionSignature() {};
-        void                           push_arg(R::Type _type, std::string _name = "");
+        void                           push_arg(const R::Type* _type, std::string _name = "");
 
-        template <typename... Type>
-        void push_args(Type &&... args) {
-            int dummy[] = { 0, ((void) push_arg(std::forward<Type>(args)),0)... };
+        template <typename... T>
+        void push_args(T&&... args) {
+            int dummy[] = { 0, ((void) push_arg(std::forward<T>(args)),0)... };
         }
 
-        bool                           has_an_arg_of_type(R::Type type)const;
+        bool                           has_an_arg_of_type(const R::Type* type)const;
         bool                           match(const FunctionSignature* _other)const;
         const std::string&             get_identifier()const;
         std::vector<FunctionArg>       get_args() const;
         size_t                         get_arg_count() const { return m_args.size(); }
-        R::Type                  get_return_type() const;
-        void                           set_return_type(R::Type _type) { m_return_type = _type; };
+        const R::Type*                 get_return_type() const;
+        void                           set_return_type(const R::Type* _type) { m_return_type = _type; };
         std::string                    get_label() const;
 
     private:
         std::string m_label;
         std::string m_identifier;
-        R::Type m_return_type;
+        const R::Type* m_return_type;
         std::vector<FunctionArg> m_args;
 
     public:
@@ -63,7 +63,7 @@ namespace Nodable
             static FunctionSignature* with_id(const char* _identifier, const char* _label = "")
             {
                 auto signature = new FunctionSignature(_identifier, _label);
-                signature->set_return_type(R::cpp<T>::meta::reflect_t );
+                signature->set_return_type( R::get_type<T>() );
                 signature->push_args<std::tuple<Args...>>();
                 return signature;
             }
@@ -79,8 +79,7 @@ namespace Nodable
                 arg_pusher<Tuple, N - 1>::push_into(_signature);
 
                 using T = std::tuple_element_t<N-1, Tuple>;
-                R::Type type = R::cpp<T>::meta::reflect_t;
-                _signature->push_arg(type);
+                _signature->push_arg( R::get_type<T>() );
             }
         };
 
@@ -90,8 +89,7 @@ namespace Nodable
             static void push_into(FunctionSignature *_signature)
             {
                 using T = std::tuple_element_t<0, Tuple>;
-                R::Type type = R::cpp<T>::meta::reflect_t;
-                _signature->push_arg(type);
+                _signature->push_arg( R::get_type<T>() );
             };
         };
 

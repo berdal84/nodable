@@ -9,9 +9,9 @@ ForLoopNode::ForLoopNode()
         :
         m_token_for(nullptr)
 {
-    m_props.add("init"     , Visibility::Always, R::Type::Unknown        , Way::Way_In);
-    m_props.add("condition", Visibility::Always, R::add_ptr(R::Type::Void)            , Way::Way_In);
-    m_props.add("iter"     , Visibility::Always, R::Type::Unknown        , Way::Way_In);
+    m_props.add("init"     , Visibility::Always, R::get_type<Node*>(), Way::Way_In);
+    m_props.add("condition", Visibility::Always, R::get_type<Node*>(), Way::Way_In);
+    m_props.add("iter"     , Visibility::Always, R::get_type<Node*>(), Way::Way_In);
 }
 
 Scope* ForLoopNode::get_condition_true_branch() const

@@ -4,7 +4,7 @@ using namespace Nodable;
 
 R_DEFINE_CLASS(LiteralNode)
 
-LiteralNode::LiteralNode(R::Type type) : Node()
+LiteralNode::LiteralNode(const R::Type* _type) : Node()
 {
-    m_props.add(Node::VALUE_MEMBER_NAME, Visibility::Always, type, Way_Out);
+    m_props.add(Node::VALUE_MEMBER_NAME, Visibility::Always, _type, Way_Out);
 }

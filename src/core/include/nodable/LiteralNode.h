@@ -7,7 +7,7 @@ namespace Nodable
     class LiteralNode: public Node
     {
     public:
-        explicit LiteralNode(R::Type type);
+        explicit LiteralNode(const R::Type*);
         ~LiteralNode() override = default;
 
         [[nodiscard]]

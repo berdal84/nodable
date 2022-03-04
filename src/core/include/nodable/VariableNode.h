@@ -18,7 +18,7 @@ namespace Nodable{
 	class VariableNode : public Node
     {
 	public:
-		explicit VariableNode(R::Type);
+		explicit VariableNode(const R::Type*);
 		~VariableNode() override = default;
 
 		[[nodiscard]] inline bool             is_declared()const { return m_is_declared; }

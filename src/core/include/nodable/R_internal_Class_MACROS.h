@@ -63,5 +63,5 @@ public:\
  *
  */
 #define R_DEFINE_CLASS( _CLASS ) \
-    static Nodable::R::Class* _CLASS##_Reflect = _CLASS::Get_class(); \
-    static_assert( Nodable::R::is_reflected<_CLASS>::value, "class "#_CLASS" is not reflected by R" );
+    static Nodable::R::register_class<_CLASS> MAKE_UNIQUE_VAR_NAME(inserter) (#_CLASS) ; \
+    static_assert( Nodable::R::is_class_reflected<_CLASS>::value, "class "#_CLASS" is not reflected by R" );

@@ -65,25 +65,25 @@ void Member::set_input(Member* _val, ConnBy_ _connect_by)
 
 void Member::set(Node* _value)
 {
-    get_variant().set_type(R::add_ptr(R::Type::Void));
+    get_variant().set_type( R::get_type<Node*>() );
     get_variant().set(_value);
 }
 
 void Member::set(double _value)
 {
-    get_variant().set_type(R::Type::Double);
+    get_variant().set_type( R::get_type<double>() );
     get_variant().set(_value);
 }
 
 void Member::set(const char* _value)
 {
-    get_variant().set_type(R::Type::String);
+    get_variant().set_type( R::get_type<std::string>() );
     get_variant().set(_value);
 }
 
 void Member::set(bool _value)
 {
-    get_variant().set_type(R::Type::Boolean);
+    get_variant().set_type( R::get_type<bool>() );
     get_variant().set(_value);
 }
 

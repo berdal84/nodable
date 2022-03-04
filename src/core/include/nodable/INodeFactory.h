@@ -24,8 +24,8 @@ namespace Nodable
     public:
         virtual Node*                       newProgram()const = 0;
         virtual InstructionNode*            new_instr()const = 0;
-        virtual VariableNode*				newVariable(R::Type, const std::string&, IScope *)const = 0;
-        virtual LiteralNode*                newLiteral(const R::Type &type)const = 0;
+        virtual VariableNode*				newVariable(const R::Type*, const std::string&, IScope *)const = 0;
+        virtual LiteralNode*                newLiteral(const R::Type*)const = 0;
         virtual Node*                       newBinOp(const InvokableOperator*)const = 0;
         virtual Node*                       newUnaryOp(const InvokableOperator*)const = 0;
         virtual Node*                       newOperator(const InvokableOperator*)const = 0;

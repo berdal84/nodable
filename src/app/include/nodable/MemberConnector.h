@@ -41,7 +41,7 @@ namespace Nodable {
         MemberConnector& operator= (const MemberConnector&) = delete;
 
         Member*            get_member()const;
-        R::Type      get_member_type()const;
+        const R::Type*     get_member_type()const;
         vec2               getPos()const override;
         bool               hasSameParentWith(const MemberConnector*)const override;
         bool               hasConnectedNode() const;

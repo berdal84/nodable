@@ -64,7 +64,7 @@ bool GraphNodeView::draw()
                 }
                 else
                 {
-                    Type dragged_member_type = dragged_member_conn->get_member_type();
+                    const Type* dragged_member_type = dragged_member_conn->get_member_type();
 
                     if ( dragged_member_conn->m_way == Way_Out )
                     {
@@ -106,7 +106,7 @@ bool GraphNodeView::draw()
         return instr_node;
     };
 
-    auto create_variable = [&](Type _type, const char*  _name, Scope*  _scope) -> VariableNode*
+    auto create_variable = [&](const Type* _type, const char*  _name, Scope*  _scope) -> VariableNode*
     {
         VariableNode* var_node;
         Scope* scope = _scope ? scope : graph->get_root()->get<Scope>();
@@ -204,7 +204,7 @@ bool GraphNodeView::draw()
         // Need a need node ?
         if (require_to_create_node)
         {
-            if ( dragged_member_conn &&is_ptr( dragged_member_conn->get_member_type()) )
+            if ( dragged_member_conn && Type::is_ptr( dragged_member_conn->get_member_type()) )
             {
                  new_node = create_instr(nullptr);
 
@@ -248,7 +248,7 @@ bool GraphNodeView::draw()
                             // TODO: add multiple wire type settings
 
                             // straight wide lines for node connections
-                            if ( R::is_ptr( src_member->get_type()) )
+                            if ( Type::is_ptr( src_member->get_type()) )
                             {
                                 ImGuiEx::DrawVerticalWire(
                                         ImGui::GetWindowDrawList(),
@@ -389,7 +389,7 @@ bool GraphNodeView::draw()
             Node *root_node = graph->get_root();
 
             // If dragging a member we create a VariableNode with the same type.
-            if ( dragged_member_conn && !R::is_ptr( dragged_member_conn->get_member_type()) )
+            if ( dragged_member_conn && !Type::is_ptr( dragged_member_conn->get_member_type()) )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
                     new_node = create_variable(dragged_member_conn->get_member_type(), "var", nullptr);
@@ -403,13 +403,13 @@ bool GraphNodeView::draw()
                 if ( ImGui::BeginMenu("Variable") )
                 {
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                        new_node = create_variable(R::Type::Boolean, "var", nullptr);
+                        new_node = create_variable(R::get_type<bool>(), "var", nullptr);
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                        new_node = create_variable(R::Type::Double, "var", nullptr);
+                        new_node = create_variable(R::get_type<double>(), "var", nullptr);
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                        new_node = create_variable(R::Type::String, "var", nullptr);
+                        new_node = create_variable(R::get_type<std::string>(), "var", nullptr);
 
                     ImGui::EndMenu();
                 }
@@ -417,13 +417,13 @@ bool GraphNodeView::draw()
                 if ( ImGui::BeginMenu("Literal") )
                 {
                     if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
-                        new_node = graph->create_literal(R::Type::Boolean);
+                        new_node = graph->create_literal(R::get_type<bool>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " Double"))
-                        new_node = graph->create_literal(R::Type::Double);
+                        new_node = graph->create_literal(R::get_type<double>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " String"))
-                        new_node = graph->create_literal(R::Type::String);
+                        new_node = graph->create_literal(R::get_type<std::string>());
 
                     ImGui::EndMenu();
                 }
