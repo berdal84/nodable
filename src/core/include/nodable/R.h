@@ -19,12 +19,14 @@
 
 #include <string> // for std::string reflection
 #include <map>
+#include <typeinfo>
 #include <nodable/Log.h>
 
 /* internal */
 #include <nodable/R_internal_Class.h>
 #include <nodable/R_internal_Type.h>
 #include <nodable/R_internal_Typename.h>
+#include <nodable/R_internal_Meta.h>
 
 #define ENABLE_ANY_PTR_TO_BE_CONSIDERED_VOID_PTR true
 
@@ -87,6 +89,7 @@ namespace Nodable::R
             const Type* base = get_type<std::remove_reference_t<T>>();
             return Type::make_ref( base );
         }
+
         std::string id = typeid(T).name();
         auto found = Register::by_typeid().find(id);
         if ( found != Register::by_typeid().end() )
