@@ -250,7 +250,7 @@ TEST(Parser, For_loop_with_var_decl)
 {
     std::string program =
             "double score = 1;"
-            "for(double i=0;i<10;i=i+1){"
+            "for(double i = 0;i < 10;i = i + 1 ){"
             "   score= score*2;"
             "}";
     ParseEvalSerializeExpressions({program});

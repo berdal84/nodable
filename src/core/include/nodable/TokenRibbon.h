@@ -26,6 +26,8 @@ namespace Nodable
         /** Generate a string with all tokens with _tokens[_highlight] colored in green*/
         [[nodiscard]] std::string toString() const;
 
+        std::shared_ptr<Token> push(std::shared_ptr<Token>);
+
         /** Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
         [[nodiscard]] std::shared_ptr<Token> push(TokenType _type, const std::string& _string, size_t _charIndex);
 

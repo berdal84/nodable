@@ -168,10 +168,10 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
     }
 
     // var name
-    std::shared_ptr<const Token> identifierTok = _node->get_identifier_token();
-    if ( identifierTok ) _result.append( identifierTok->m_prefix);
+    std::shared_ptr<const Token> identifier_token = _node->get_identifier_token();
+    if ( identifier_token ) _result.append(identifier_token->m_prefix);
     _result.append(_node->get_name());
-    if ( identifierTok ) _result.append(_node->get_identifier_token()->m_suffix);
+    if ( identifier_token ) _result.append(identifier_token->m_suffix);
 
     // definition
     // if ( _node->is_defined() )

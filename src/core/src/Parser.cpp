@@ -720,32 +720,47 @@ bool Parser::tokenize_string(const std::string &_code_source_portion)
 
                 if (matched_token_t != TokenType_Ignore)
                 {
-                    /*
-                     * append ignored_char: option 1
-                     * >> to previous Token's prefix if matched_token_t is not operator
-                     */
-                    if (matched_token_t != TokenType_Operator && !pending_ignored_chars.empty() && !m_token_ribbon.tokens.empty() )
-                    {
-                        std::shared_ptr<Token> last_token = m_token_ribbon.tokens.back();
-                        last_token->m_suffix.append(pending_ignored_chars );
-                        pending_ignored_chars.clear();
-                    }
-
-                    size_t index = std::distance(_code_source_portion.cbegin(), it);
-                    std::shared_ptr<Token> newToken = m_token_ribbon.push(matched_token_t, matched_str, index);
+                    size_t index   = std::distance(_code_source_portion.cbegin(), it);
+                    auto new_token = std::make_shared<Token>(matched_token_t, matched_str, index);
                     LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matched_str.c_str() )
 
                     /*
-                     * append ignored_char: option 2
-                     *
-                     * If we still have ignored chars, we add them as prefix (they could have been added to suffix, see option 1)
+                     * append ignored_char, 2 options:
                      */
-                    if ( !pending_ignored_chars.empty() )
+                    if ( !pending_ignored_chars.empty() && !m_token_ribbon.tokens.empty() )
                     {
-                        newToken->m_prefix.append(pending_ignored_chars );
-                        pending_ignored_chars.clear();
+                        /*
+                         * option 1: to previous Token's prefix if matched_token_t is not an identifier
+                         *
+                         *    <last_token><pending_ignored_chars>, <new-token>
+                         */
+                        std::shared_ptr<Token> last_token = m_token_ribbon.tokens.back();
+                        if ( last_token->m_type != TokenType_Identifier )
+                        {
+                            last_token->m_suffix.append(pending_ignored_chars);
+                            pending_ignored_chars.clear();
+                        }
                     }
 
+                    if ( !pending_ignored_chars.empty() )
+                    {
+                        /*
+                         * option 2: If we still have ignored chars, we add them as prefix (they could have been added to suffix, see option 1)
+                         *
+                         * <last_token>, <pending_ignored_chars><new-token>
+                         */
+                        if ( new_token->m_type != TokenType_Identifier )
+                        {
+                            new_token->m_prefix.append(pending_ignored_chars);
+                            pending_ignored_chars.clear();
+                        }
+                        else
+                        {
+                            throw std::runtime_error("The pending ignored chars can't be added to mew_token's suffix !");
+                        }
+                    }
+
+                    m_token_ribbon.push( new_token );
                 }
                 else
                 {
