@@ -1,5 +1,6 @@
 #include <nodable/R.h>
 #include <nodable/Nodable.h>
+#include <type_traits> // std::underlying_type
 
 using namespace Nodable::R;
 
@@ -7,12 +8,10 @@ std::shared_ptr<Type> Type::s_unknown = std::make_shared<Type>("unknown", "unkno
 
 bool Type::has_qualifier(Qualifier _other_qualifier) const
 {
-    using T = std::underlying_type_t<Qualifier>;
+    using T = std::underlying_type<Qualifier>::type;
     return
     (
-        static_cast<T>(m_qualifier)
-        &
-        static_cast<T>(_other_qualifier)
+        static_cast<T>(m_qualifier) & static_cast<T>(_other_qualifier)
     )
     !=
     static_cast <T>(Qualifier::Null);
