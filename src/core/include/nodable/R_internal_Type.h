@@ -17,27 +17,27 @@ namespace Nodable::R
         Qualifier   get_qualifier() const override { return m_qualifier; }
         bool        has_qualifier(Qualifier _other_qualifier) const override;
         void        add_qualifier(Qualifier _other_qualifier) override;
-        static Type* s_unknown;
-        static bool   is_ptr(const Type*);
-        static bool   is_ref(const Type*);
-        static Type*  add_ref(Type*);
-        static Type*  add_ptr(Type*);
-        static bool   is_convertible( const Type* , const Type* );
+        static std::shared_ptr<Type> s_unknown;
+        static bool   is_ptr(std::shared_ptr<const Type>);
+        static bool   is_ref(std::shared_ptr<const Type>);
+        static std::shared_ptr<Type>  add_ref(std::shared_ptr<Type>);
+        static std::shared_ptr<Type>  add_ptr(std::shared_ptr<Type>);
+        static bool   is_convertible(std::shared_ptr<const Type> , std::shared_ptr<const Type> );
 
-        bool equals(const Type* _other) const
+        bool equals(std::shared_ptr<const Type> _other) const
         {
             return m_qualifier == _other->m_qualifier
                 && m_reflect_type == _other->m_reflect_type;
         }
 
-        static Type*  make_ptr(const Type* _type)
+        static std::shared_ptr<const Type>  make_ptr(std::shared_ptr<const Type> _type)
         {
-            Type* base_copy = new Type(*_type);
+            auto base_copy = std::make_shared<Type>(*_type);
             return add_ptr(base_copy);
         }
-        static Type*  make_ref(const Type* _type)
+        static std::shared_ptr<const Type>  make_ref(std::shared_ptr<const Type> _type)
         {
-            Type* base_copy = new Type(*_type);
+            auto base_copy = std::make_shared<Type>(*_type);
             return add_ref(base_copy);
         }
 

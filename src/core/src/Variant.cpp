@@ -15,12 +15,12 @@ Variant::Variant()
 
 Variant::~Variant(){};
 
-const R::Type* Variant::get_type()const
+std::shared_ptr<const R::Type> Variant::get_type()const
 {
 	return m_type;
 }
 
-bool  Variant::is(const R::Type* _type)const
+bool  Variant::is(std::shared_ptr<const R::Type> _type)const
 {
 	return m_type == _type;
 }
@@ -109,7 +109,7 @@ void Variant::set(const Variant* _other)
     m_type       = _other->m_type;
 }
 
-void Variant::set_type(const R::Type* _type) // TODO: remove this
+void Variant::set_type(std::shared_ptr<const R::Type> _type) // TODO: remove this
 {
 	if (get_type() != _type)
 	{

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
+#include <memory> // std::shared_ptr
 
 #include <nodable/Log.h>
 #include <nodable/Member.h>
@@ -163,7 +164,7 @@ Member* Parser::token_to_member(Token *_token)
 
 	    case TokenType_Literal:
         {
-            const R::Type* type = R::get_meta( get_literal_type(_token) );
+            std::shared_ptr<const R::Type> type = R::get_type( get_literal_type(_token) );
             LiteralNode* literal = m_graph->create_literal(type);
 
             switch ( type->get_typename() )
@@ -1071,7 +1072,7 @@ Member *Parser::parse_variable_declaration()
     if(Token::isType(typeTok->m_type) && identifierTok->m_type == TokenType_Identifier )
     {
         R::Typename type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
-        VariableNode* variable = m_graph->create_variable( R::get_meta(type), identifierTok->m_word, this->get_current_scope());
+        VariableNode* variable = m_graph->create_variable( R::get_type(type), identifierTok->m_word, this->get_current_scope());
         variable->set_type_token(typeTok);
         variable->set_identifier_token(identifierTok);
         variable->get_value()->set_src_token(identifierTok); // we also pass it to the member, this one will be modified my connections

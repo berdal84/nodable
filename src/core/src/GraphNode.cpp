@@ -1,6 +1,7 @@
 #include <nodable/GraphNode.h>
 
-#include <algorithm>    // for std::find_if
+#include <algorithm>    // std::find_if
+
 #include <nodable/Log.h>
 #include <nodable/Wire.h>
 #include <nodable/Parser.h>
@@ -149,7 +150,7 @@ void GraphNode::ensure_has_root()
     }
 }
 
-VariableNode* GraphNode::create_variable(const R::Type* _type, const std::string& _name, IScope* _scope)
+VariableNode* GraphNode::create_variable(std::shared_ptr<const R::Type> _type, const std::string& _name, IScope* _scope)
 {
 	auto node = m_factory->newVariable(_type, _name, _scope);
     add(node);
@@ -534,7 +535,7 @@ Node* GraphNode::create_node()
     return node;
 }
 
-LiteralNode* GraphNode::create_literal(const R::Type* _type)
+LiteralNode* GraphNode::create_literal(std::shared_ptr<const R::Type> _type)
 {
     LiteralNode* node = m_factory->newLiteral(_type);
     add(node);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <nodable/INodeFactory.h>
 #include <nodable/HeadlessNodeFactory.h>
 #include <nodable/R.h>
@@ -22,8 +23,8 @@ namespace Nodable
 
         Node*                       newProgram()const override ;
         InstructionNode*            new_instr()const override ;
-        VariableNode*				newVariable(const R::Type*, const std::string&, IScope *)const override ;
-        LiteralNode*                newLiteral(const R::Type* type)const override ;
+        VariableNode*				newVariable(std::shared_ptr<const R::Type>, const std::string&, IScope *)const override ;
+        LiteralNode*                newLiteral(std::shared_ptr<const R::Type> type)const override ;
         Node*                       newBinOp(const InvokableOperator*)const override ;
         Node*                       newUnaryOp(const InvokableOperator*)const override ;
         Node*                       newOperator(const InvokableOperator*)const override ;

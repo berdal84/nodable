@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory> // std::shared_ptr
 
 #include <nodable/Nodable.h> // forward declarations and common stuff
 #include <nodable/Node.h> // base class
@@ -18,7 +19,7 @@ namespace Nodable{
 	class VariableNode : public Node
     {
 	public:
-		explicit VariableNode(const R::Type*);
+		explicit VariableNode(std::shared_ptr<const R::Type>);
 		~VariableNode() override = default;
 
 		[[nodiscard]] inline bool             is_declared()const { return m_is_declared; }

@@ -11,7 +11,7 @@ FunctionSignature::FunctionSignature(std::string _identifier, std::string _label
 
 }
 
-void FunctionSignature::push_arg(const R::Type* _type, std::string _name)
+void FunctionSignature::push_arg(std::shared_ptr<const R::Type> _type, std::string _name)
 {
     if (_name == "" )
     {
@@ -56,7 +56,7 @@ std::vector<FunctionArg> FunctionSignature::get_args() const
     return this->m_args;
 }
 
-const R::Type* FunctionSignature::get_return_type() const
+std::shared_ptr<const R::Type> FunctionSignature::get_return_type() const
 {
     return m_return_type;
 }
@@ -66,7 +66,7 @@ std::string FunctionSignature::get_label() const
     return m_label;
 }
 
-bool FunctionSignature::has_an_arg_of_type(const R::Type* _type) const
+bool FunctionSignature::has_an_arg_of_type(std::shared_ptr<const R::Type> _type) const
 {
     auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FunctionArg& each) { return  each.m_type == _type; } );
     return found != m_args.end();

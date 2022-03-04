@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <memory> // std::shared_ptr
 #include <nodable/R.h>
 
 namespace Nodable
@@ -24,8 +25,8 @@ namespace Nodable
     public:
         virtual Node*                       newProgram()const = 0;
         virtual InstructionNode*            new_instr()const = 0;
-        virtual VariableNode*				newVariable(const R::Type*, const std::string&, IScope *)const = 0;
-        virtual LiteralNode*                newLiteral(const R::Type*)const = 0;
+        virtual VariableNode*				newVariable(std::shared_ptr<const R::Type>, const std::string&, IScope *)const = 0;
+        virtual LiteralNode*                newLiteral(std::shared_ptr<const R::Type>)const = 0;
         virtual Node*                       newBinOp(const InvokableOperator*)const = 0;
         virtual Node*                       newUnaryOp(const InvokableOperator*)const = 0;
         virtual Node*                       newOperator(const InvokableOperator*)const = 0;

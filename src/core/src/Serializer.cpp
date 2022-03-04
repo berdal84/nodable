@@ -146,7 +146,7 @@ std::string& Serializer::serialize(std::string& _result, const TokenType& _type)
     return _result.append(language->getSemantic()->token_type_to_string(_type) );
 }
 
-std::string& Serializer::serialize(std::string &_result, const R::Type* _type) const
+std::string& Serializer::serialize(std::string &_result, std::shared_ptr<const R::Type> _type) const
 {
     return _result.append(language->getSemantic()->type_to_string(_type) );
 }

@@ -2,6 +2,8 @@
 
 #include <string>
 #include <vector>
+#include <memory> // std::shared_ptr
+
 #include <nodable/TokenType.h>
 #include <nodable/InvokableFunction.h>
 #include <nodable/ConditionalStructNode.h>
@@ -31,7 +33,7 @@ namespace Nodable
         std::string& serialize(std::string &_result, const FunctionSignature*, const std::vector<Member*>&)const;
         std::string& serialize(std::string &_result, const FunctionSignature*)const;
         std::string& serialize(std::string &_result, const TokenType&)const;
-        std::string& serialize(std::string &_result, const R::Type*)const;
+        std::string& serialize(std::string &_result, std::shared_ptr<const R::Type>)const;
         std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
         std::string& serialize(std::string &_result, const Token*) const;
         std::string& serialize(std::string &_result, const InstructionNode*)const;

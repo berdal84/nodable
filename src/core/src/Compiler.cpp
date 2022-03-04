@@ -1,4 +1,6 @@
 #include <nodable/Compiler.h>
+
+#include <memory>
 #include <nodable/VariableNode.h>
 #include <nodable/Log.h>
 #include <nodable/IConditionalStruct.h>
@@ -149,7 +151,7 @@ void Asm::Compiler::compile(const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
-        const R::Type* void_ptr = R::get_type<void*>();
+        std::shared_ptr<const R::Type> void_ptr = R::get_type<void*>();
 
         if (_member->is_type( void_ptr ) )
         {

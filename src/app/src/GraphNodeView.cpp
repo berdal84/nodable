@@ -1,7 +1,7 @@
 #include <nodable/GraphNodeView.h>
 
 #include <algorithm>
-#include <utility>
+#include <memory> // std::shared_ptr
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #include <nodable/Settings.h>
@@ -64,7 +64,7 @@ bool GraphNodeView::draw()
                 }
                 else
                 {
-                    const Type* dragged_member_type = dragged_member_conn->get_member_type();
+                    std::shared_ptr<const R::Type> dragged_member_type = dragged_member_conn->get_member_type();
 
                     if ( dragged_member_conn->m_way == Way_Out )
                     {
@@ -106,7 +106,7 @@ bool GraphNodeView::draw()
         return instr_node;
     };
 
-    auto create_variable = [&](const Type* _type, const char*  _name, Scope*  _scope) -> VariableNode*
+    auto create_variable = [&](std::shared_ptr<const R::Type> _type, const char*  _name, Scope*  _scope) -> VariableNode*
     {
         VariableNode* var_node;
         Scope* scope = _scope ? scope : graph->get_root()->get<Scope>();

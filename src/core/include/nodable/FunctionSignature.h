@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <tuple>
+#include <memory>
 
 #include <nodable/R.h>
 
@@ -14,8 +15,8 @@ namespace Nodable
      */
     struct FunctionArg
     {
-        FunctionArg(const R::Type* _type, std::string& _name): m_type(_type), m_name(_name){}
-        const R::Type* m_type;
+        FunctionArg(std::shared_ptr<const R::Type> _type, std::string& _name): m_type(_type), m_name(_name){}
+        std::shared_ptr<const R::Type> m_type;
         std::string m_name;
     };
 
@@ -27,26 +28,26 @@ namespace Nodable
     public:
         FunctionSignature(std::string _identifier, std::string _label = "");
         ~FunctionSignature() {};
-        void                           push_arg(const R::Type* _type, std::string _name = "");
+        void                           push_arg(std::shared_ptr<const R::Type> _type, std::string _name = "");
 
         template <typename... T>
         void push_args(T&&... args) {
             int dummy[] = { 0, ((void) push_arg(std::forward<T>(args)),0)... };
         }
 
-        bool                           has_an_arg_of_type(const R::Type* type)const;
+        bool                           has_an_arg_of_type(std::shared_ptr<const R::Type> type)const;
         bool                           match(const FunctionSignature* _other)const;
         const std::string&             get_identifier()const;
         std::vector<FunctionArg>       get_args() const;
         size_t                         get_arg_count() const { return m_args.size(); }
-        const R::Type*                 get_return_type() const;
-        void                           set_return_type(const R::Type* _type) { m_return_type = _type; };
+        std::shared_ptr<const R::Type> get_return_type() const;
+        void                           set_return_type(std::shared_ptr<const R::Type> _type) { m_return_type = _type; };
         std::string                    get_label() const;
 
     private:
         std::string m_label;
         std::string m_identifier;
-        const R::Type* m_return_type;
+        std::shared_ptr<const R::Type> m_return_type;
         std::vector<FunctionArg> m_args;
 
     public:

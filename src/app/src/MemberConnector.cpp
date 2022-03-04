@@ -159,7 +159,7 @@ Member* MemberConnector::get_member()const
     return m_memberView ?  m_memberView->m_member : nullptr;
 }
 
-const R::Type* MemberConnector::get_member_type()const
+std::shared_ptr<const R::Type> MemberConnector::get_member_type()const
 {
     return get_member()->get_type();
 }

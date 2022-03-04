@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nodable/R.h>
-
+#include <memory> // std::shared_ptr
 #include <nodable/Nodable.h>
 #include <nodable/Member.h> // for Type enum
 #include <nodable/Visibility.h>
@@ -18,7 +18,7 @@ namespace Nodable
 	public:
 		Properties(Node* owner);
 		virtual ~Properties();
-		Member*             add(const char*, Visibility, const R::Type*, Way);
+		Member*             add(const char*, Visibility, std::shared_ptr<const R::Type>, Way);
         bool                has(const std::string& _name);
 		bool                has(const Member* _value);
 		Member*             get(const std::string& _name)const { return m_props.at(_name.c_str()); };

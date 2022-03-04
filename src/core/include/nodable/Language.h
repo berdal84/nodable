@@ -5,6 +5,7 @@
 #include <functional>
 #include <tuple>
 #include <regex>
+#include <memory> // std::shared_ptr
 
 // Nodable
 #include <nodable/Nodable.h> // for constants and forward declarations
@@ -59,8 +60,8 @@ namespace Nodable {
         inline const Semantic* getSemantic()const { return &semantic; }
         inline const std::vector<IInvokable*>& getAllFunctions()const { return api; }
 
-        const FunctionSignature* createUnaryOperatorSignature(const R::Type* , std::string , const R::Type* ) const;
-        const FunctionSignature* createBinOperatorSignature(const R::Type* , std::string , const R::Type* , const R::Type* ) const;
+        const FunctionSignature* createUnaryOperatorSignature(std::shared_ptr<const R::Type> , std::string , std::shared_ptr<const R::Type> ) const;
+        const FunctionSignature* createBinOperatorSignature(std::shared_ptr<const R::Type>, std::string , std::shared_ptr<const R::Type> , std::shared_ptr<const R::Type> ) const;
 
         bool hasHigherPrecedenceThan(const InvokableOperator *_firstOperator, const InvokableOperator* _secondOperator)const;
         virtual void sanitizeFunctionName( std::string& identifier ) const = 0;

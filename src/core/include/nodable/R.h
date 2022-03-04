@@ -20,6 +20,7 @@
 #include <string> // for std::string reflection
 #include <map>
 #include <typeinfo>
+#include <memory> // std::shared_ptr
 #include <nodable/Log.h>
 
 /* internal */
@@ -43,17 +44,8 @@ namespace Nodable::R
      */
     struct Register
     {
-        /**
-         * Get Types by Typename
-         * @return
-         */
-        static std::map<Typename, Type*>& by_enum();
-
-        /**
-         * Get Types by typeid
-         * @return
-         */
-        static std::map<std::string, Type*>& by_typeid();
+        static std::map<Typename, std::shared_ptr<const Type>>& by_enum();
+        static std::map<std::string, std::shared_ptr<const Type>>& by_typeid();
     };
 
     static void LogStats()
@@ -77,16 +69,16 @@ namespace Nodable::R
 
     /* get meta for a specific type at runtime */
     template<typename T>
-    static const Type* get_type()
+    static std::shared_ptr<const Type> get_type()
     {
         if( std::is_pointer<T>::value )
         {
-            const Type* base = get_type<std::remove_pointer_t<T>>();
+            std::shared_ptr<const Type> base = get_type<std::remove_pointer_t<T>>();
             return Type::make_ptr( base );
         }
         else if( std::is_reference<T>::value )
         {
-            const Type* base = get_type<std::remove_reference_t<T>>();
+            std::shared_ptr<const Type> base = get_type<std::remove_reference_t<T>>();
             return Type::make_ref( base );
         }
 
@@ -101,7 +93,7 @@ namespace Nodable::R
     };
 
     /* get meta for a specific type at runtime */
-    static const Type* get_meta(Typename t)
+    static std::shared_ptr<const Type> get_type(Typename t)
     {
         auto found = Register::by_enum().find(t);
         if ( found != Register::by_enum().end() )
@@ -119,9 +111,9 @@ namespace Nodable::R
     {
         register_type()
         {
-            if ( !get_meta(REFLECT_T) )
+            if ( !get_type(REFLECT_T) )
             {
-                Type* type      = new meta_enum<REFLECT_T>();
+                std::shared_ptr<Type> type = std::make_shared<meta_enum<REFLECT_T>>();
                 std::string id  = typeid(CPP_T).name();
                 Register::by_enum()[REFLECT_T] = type;
                 Register::by_typeid()[id]      = type;
@@ -138,7 +130,7 @@ namespace Nodable::R
         {
             if ( !get_type<T>() )
             {
-                Type* type     = new Class(_name);
+                std::shared_ptr<Type> type  = std::make_shared<Class>(_name);
                 std::string id = typeid(T).name();
 
                 Register::by_typeid()[id] = type;

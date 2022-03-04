@@ -2,6 +2,7 @@
 
 #include <string>
 #include <array>
+#include <memory> // std::shared_ptr
 #include <mpark/variant.hpp> // std::variant implem for C++11
 
 #include <nodable/Nodable.h> // for constants and forward declarations
@@ -20,7 +21,7 @@ namespace Nodable
         void define();
         bool is_defined()const;
         void undefine();
-		bool is(const R::Type* _type)const;
+		bool is(std::shared_ptr<const R::Type> _type)const;
 
         void set(void* _pointer)
         {
@@ -35,7 +36,7 @@ namespace Nodable
 		void set(double);
 		void set(bool);
 
-		void set_type(const R::Type* _type);
+		void set_type(std::shared_ptr<const R::Type> _type);
 
         template<typename T>
         void set_type()
@@ -43,7 +44,7 @@ namespace Nodable
             set_type( R::get_type<T>() );
         };
 
-        const R::Type* get_type()const;
+        std::shared_ptr<const R::Type> get_type()const;
 
         // conversion
         template<typename T>
@@ -67,7 +68,7 @@ namespace Nodable
 
     private:
         bool m_is_defined;
-        const R::Type* m_type;
+        std::shared_ptr<const R::Type> m_type;
 		mpark::variant<bool, double, std::string, void*> m_data;
     };
 }

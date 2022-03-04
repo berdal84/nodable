@@ -1,13 +1,14 @@
 #pragma once
 #include <nodable/Node.h>
 #include <nodable/R.h>
+#include <memory> // std::shared_ptr
 
 namespace Nodable
 {
     class LiteralNode: public Node
     {
     public:
-        explicit LiteralNode(const R::Type*);
+        explicit LiteralNode(std::shared_ptr<const R::Type>);
         ~LiteralNode() override = default;
 
         [[nodiscard]]

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <memory> // std::shared_ptr
 
 namespace Nodable
 {
@@ -38,8 +39,8 @@ namespace Nodable
         virtual void                    ensure_has_root() = 0;
         virtual Node*                   create_root() = 0;
         virtual InstructionNode*        create_instr() = 0;
-		virtual VariableNode*           create_variable(const R::Type*, const std::string&, IScope*) = 0;
-		virtual LiteralNode*            create_literal(const R::Type*) = 0;
+		virtual VariableNode*           create_variable(std::shared_ptr<const R::Type>, const std::string&, IScope*) = 0;
+		virtual LiteralNode*            create_literal(std::shared_ptr<const R::Type>) = 0;
 		virtual Node*                   create_bin_op(const InvokableOperator*) = 0;
 		virtual Node*                   create_unary_op(const InvokableOperator*)  = 0;
         virtual Node*                   create_operator(const InvokableOperator*)  = 0;

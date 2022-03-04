@@ -6,7 +6,7 @@ using namespace Nodable;
 
 R_DEFINE_CLASS(VariableNode)
 
-VariableNode::VariableNode(const R::Type* _type)
+VariableNode::VariableNode(std::shared_ptr<const R::Type> _type)
     :
         Node("Variable"),
         m_type_token(nullptr),

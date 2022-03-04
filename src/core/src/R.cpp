@@ -3,7 +3,7 @@
 
 using namespace Nodable::R;
 
-Type* Type::s_unknown = new Type("unknown", "unknown", Typename::Null );
+std::shared_ptr<Type> Type::s_unknown = std::make_shared<Type>("unknown", "unknown", Typename::Null );
 
 bool Type::has_qualifier(Qualifier _other_qualifier) const
 {
@@ -24,31 +24,31 @@ void Type::add_qualifier(Qualifier _other_qualifier)
     m_qualifier = static_cast<Qualifier>( static_cast<T>(m_qualifier) | static_cast<T>(_other_qualifier) );
 }
 
-bool Type::is_ptr(const Type* left)
+bool Type::is_ptr(std::shared_ptr<const Type> left)
 {
     NODABLE_ASSERT(left != nullptr);
     return  left->has_qualifier(Qualifier::Pointer);
 }
 
-bool Type::is_ref(const Type* left)
+bool Type::is_ref(std::shared_ptr<const Type> left)
 {
     NODABLE_ASSERT(left != nullptr);
     return left->has_qualifier(Qualifier::Ref);
 }
 
-Type* Type::add_ref(Type* left)
+std::shared_ptr<Type> Type::add_ref(std::shared_ptr<Type> left)
 {
     left->add_qualifier(Qualifier::Ref);
     return left;
 }
 
-Type* Type::add_ptr(Type* left)
+std::shared_ptr<Type> Type::add_ptr(std::shared_ptr<Type> left)
 {
     left->add_qualifier(Qualifier::Pointer);
     return left;
 }
 
-bool Type::is_convertible( const Type* left, const Type* right )
+bool Type::is_convertible( std::shared_ptr<const Type> left, std::shared_ptr<const Type> right )
 {
     if( left == Type::s_unknown || right == Type::s_unknown ) // We allow cast to unknown type
     {
@@ -57,15 +57,15 @@ bool Type::is_convertible( const Type* left, const Type* right )
     return left->get_typename() == right->get_typename();
 }
 
-std::map<Typename, Type*>& Register::by_enum()
+std::map<Typename, std::shared_ptr<const Type>>& Register::by_enum()
 {
-    static std::map<Typename, Type*> meta_register;
+    static std::map<Typename, std::shared_ptr<const Type>> meta_register;
     return meta_register;
 }
 
-std::map<std::string, Type*>& Register::by_typeid()
+std::map<std::string, std::shared_ptr<const Type>>& Register::by_typeid()
 {
-    static std::map<std::string, Type*> type_register;
+    static std::map<std::string, std::shared_ptr<const Type>> type_register;
     return type_register;
 }
 
