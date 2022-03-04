@@ -280,9 +280,11 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst, ConnBy_ _connect_by)
         // TODO: move this somewhere else
         // (transfer prefix/suffix)
         auto fromToken = _src_member->get_src_token();
-        if (fromToken) {
-            if (!_dst->get_src_token()) {
-                _dst->set_src_token(new Token(fromToken->m_type, "", fromToken->m_charIndex));
+        if (fromToken)
+        {
+            if (!_dst->get_src_token())
+            {
+                _dst->set_src_token( std::make_shared<Token>(fromToken->m_type, "", fromToken->m_charIndex));
             }
 
             auto toToken = _dst->get_src_token();

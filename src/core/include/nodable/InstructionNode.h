@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 #include <nodable/Nodable.h> // forward declarations and common stuff
 #include <nodable/Node.h> // base class
@@ -22,11 +23,11 @@ namespace Nodable
         ~InstructionNode()= default;
 
         [[nodiscard]] inline Member* get_root_node_member()const { return m_props.get("root_node"); }
-        [[nodiscard]] inline Token*  end_of_instr_token()const { return m_end_of_instr_token; }
-                      inline void    end_of_instr_token(Token* token) { m_end_of_instr_token = token; }
+        [[nodiscard]] inline std::shared_ptr<Token> end_of_instr_token()const { return m_end_of_instr_token; }
+                      inline void    end_of_instr_token(std::shared_ptr<Token> token) { m_end_of_instr_token = token; }
 
     private:
-        Token* m_end_of_instr_token = nullptr;
+        std::shared_ptr<Token> m_end_of_instr_token = nullptr;
         R_DERIVED(InstructionNode)
         R_EXTENDS(Node)
         R_END

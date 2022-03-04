@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <nodable/Token.h>
 #include <nodable/Node.h>
 #include <nodable/IScope.h>
@@ -19,10 +20,10 @@ namespace Nodable
         ConditionalStructNode();
         ~ConditionalStructNode() = default;
 
-        inline void            set_token_if(Token *token) { m_token_if = token; }
-        inline void            set_token_else(Token *token) { m_token_else = token; }
-        inline const Token*    get_token_if()const   { return m_token_if; }
-        inline const Token*    get_token_else()const   { return m_token_else; }
+        inline void            set_token_if(std::shared_ptr<Token> token) { m_token_if = token; }
+        inline void            set_token_else(std::shared_ptr<Token> token) { m_token_else = token; }
+        inline std::shared_ptr<const Token> get_token_if()const   { return m_token_if; }
+        inline std::shared_ptr<const Token> get_token_else()const { return m_token_else; }
 
         // override AbstractConditionalStruct
         Scope*        get_condition_true_branch()const override;
@@ -30,8 +31,8 @@ namespace Nodable
         Member*       condition_member()const override { return m_props.get("condition"); }
 
     private:
-        Token*         m_token_if;
-        Token*         m_token_else;
+        std::shared_ptr<Token> m_token_if;
+        std::shared_ptr<Token> m_token_else;
 
         R_DERIVED(ConditionalStructNode)
          R_EXTENDS(Node)

@@ -13,12 +13,12 @@ TokenRibbon::TokenRibbon()
     transactionStartTokenIndexes.push(0);
 }
 
-Token* TokenRibbon::push(TokenType  _type, const std::string& _string, size_t _charIndex )
+std::shared_ptr<Token> TokenRibbon::push(TokenType  _type, const std::string& _string, size_t _charIndex )
 {
-    Token token(_type, _string, _charIndex);
-    token.m_index = tokens.size();
+    std::shared_ptr<Token> token = std::make_shared<Token>(_type, _string, _charIndex);
+    token->m_index = tokens.size();
     tokens.push_back(token);
-    return &tokens.back();
+    return tokens.back();
 }
 
 std::string TokenRibbon::toString()const
@@ -41,13 +41,13 @@ std::string TokenRibbon::toString()const
         {
             result.append("> ");
             result.append(BOLDGREEN);
-            result.append((*eachTokIt).m_word);
+            result.append((*eachTokIt)->m_word);
             result.append(RESET);
             result.append(" <");
         }
         else
         {
-            result.append((*eachTokIt).m_word);
+            result.append((*eachTokIt)->m_word);
         }
 
         if ( tokens.end() != eachTokIt )
@@ -72,7 +72,7 @@ std::string TokenRibbon::toString()const
     return result;
 }
 
-Token* TokenRibbon::eatToken(TokenType expectedType)
+std::shared_ptr<Token> TokenRibbon::eatToken(TokenType expectedType)
 {
     if ( canEat() && peekToken()->m_type == expectedType )
     {
@@ -81,10 +81,10 @@ Token* TokenRibbon::eatToken(TokenType expectedType)
     return nullptr;
 }
 
-Token* TokenRibbon::eatToken()
+std::shared_ptr<Token> TokenRibbon::eatToken()
 {
     LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", m_curr_tok_idx, Token::to_string(peekToken()).c_str() )
-    return &tokens.at(m_curr_tok_idx++);
+    return tokens.at(m_curr_tok_idx++);
 }
 
 void TokenRibbon::startTransaction()
@@ -129,13 +129,13 @@ bool TokenRibbon::canEat(size_t _tokenCount) const
     return m_curr_tok_idx + _tokenCount <= tokens.size() ;
 }
 
-Token* TokenRibbon::peekToken()
+std::shared_ptr<Token> TokenRibbon::peekToken()
 {
-    return &tokens.at(m_curr_tok_idx);
+    return tokens.at(m_curr_tok_idx);
 }
 
-Token *TokenRibbon::getEaten()
+std::shared_ptr<Token> TokenRibbon::getEaten()
 {
     // TODO: optimization: store a pointer to the last eaten Token ?
-    return m_curr_tok_idx == 0 ? nullptr : &tokens.at(m_curr_tok_idx - 1);
+    return m_curr_tok_idx == 0 ? nullptr : tokens.at(m_curr_tok_idx - 1);
 }

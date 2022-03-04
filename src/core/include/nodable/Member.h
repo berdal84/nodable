@@ -57,7 +57,7 @@ namespace Nodable
 		void set(const std::string& _val) { set(_val.c_str());}
 		void set_type(std::shared_ptr<const R::Type> _type) { get_variant().set_type(_type); }
 		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
-        void set_src_token(const Token* _token);
+        void set_src_token(const std::shared_ptr<Token> _token);
         void set_owner(Node* _owner) { m_owner = _owner; }
 
 		Node*                 get_owner()const { return m_owner; };
@@ -67,8 +67,8 @@ namespace Nodable
         std::shared_ptr<const R::Type> get_type()const { return get_variant().get_type(); }
         Visibility            get_visibility()const { return m_visibility; }
         Way                   get_allowed_connection()const { return m_allowed_connection; }
-        const Token*          get_src_token() const { return &m_sourceToken; }
-        Token*                get_src_token() { return &m_sourceToken; }
+        const std::shared_ptr<Token> get_src_token() const { return m_sourceToken; }
+		std::shared_ptr<Token>       get_src_token() { return m_sourceToken; }
         const Variant*        get_data()const { return &get_variant(); }
 
         template<typename T> inline explicit operator T*()     { return get_variant(); }
@@ -89,7 +89,7 @@ namespace Nodable
 		Properties*       m_parentProperties;
 		std::vector<Member*> m_outputs;
 		Way               m_allowed_connection;
-        Token             m_sourceToken;
+		std::shared_ptr<Token> m_sourceToken;
 		std::string       m_name;
 		Variant       	  m_variant;
     };

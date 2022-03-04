@@ -4,6 +4,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <memory>
 
 namespace Nodable
 {
@@ -25,8 +26,8 @@ namespace Nodable
         {}
         ~Token() = default;
 
-        static std::string to_string(const Token* _token);
-        static const Token s_null;
+        static std::string to_string(std::shared_ptr<Token> _token);
+        static const std::shared_ptr<Token> s_null;
 
         static inline bool isOperand(TokenType type)
         {

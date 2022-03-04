@@ -56,7 +56,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             }
 
             // Operator
-            const Token *sourceToken = _component->get_source_token();
+            std::shared_ptr<Token> sourceToken = _component->get_source_token();
             if (sourceToken) {
                 _result.append(sourceToken->m_prefix);
             }
@@ -83,7 +83,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             // operator ( ... innerOperator ... )   ex:   -(a+b)
 
             // Operator
-            const Token *sourceToken = _component->get_source_token();
+            std::shared_ptr<Token> sourceToken = _component->get_source_token();
 
             if (sourceToken) {
                 _result.append(sourceToken->m_prefix);
@@ -156,7 +156,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
     // type
     if ( _node->is_declared() )
     {
-        if ( const Token* type_tok = _node->get_type_token() )
+        if ( std::shared_ptr<const Token> type_tok = _node->get_type_token() )
         {
             serialize(_result, type_tok );
         }
@@ -168,7 +168,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
     }
 
     // var name
-    auto identifierTok = _node->get_identifier_token();
+    std::shared_ptr<const Token> identifierTok = _node->get_identifier_token();
     if ( identifierTok ) _result.append( identifierTok->m_prefix);
     _result.append(_node->get_name());
     if ( identifierTok ) _result.append(_node->get_identifier_token()->m_suffix);
@@ -176,7 +176,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
     // definition
     // if ( _node->is_defined() )
     {
-        if ( const Token* assign_tok = _node->get_assignment_operator_token() )
+        if ( std::shared_ptr<const Token> assign_tok = _node->get_assignment_operator_token() )
         {
             Member* value = _node->get_value();
 
@@ -220,7 +220,7 @@ std::string& Serializer::serialize(std::string& _result, const Variant* variant)
 
 std::string& Serializer::serialize(std::string& _result, const Member * _member, bool followConnections) const
 {
-    const Token *sourceToken = _member->get_src_token();
+    std::shared_ptr<Token> sourceToken = _member->get_src_token();
     if (sourceToken)
     {
         _result.append(sourceToken->m_prefix);
@@ -335,7 +335,7 @@ std::string& Serializer::serialize(std::string& _result, const InstructionNode* 
     return serialize( _result, _instruction->end_of_instr_token() );
 }
 
-std::string& Serializer::serialize(std::string& _result, const Token* _token)const
+std::string& Serializer::serialize(std::string& _result, std::shared_ptr<const Token> _token)const
 {
     if ( _token )
     {
@@ -393,7 +393,7 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
         serialize( _result, ifScope );
 
     // else & else scope
-    if ( const Token* tokenElse = _condStruct->get_token_else() )
+    if ( std::shared_ptr<const Token> tokenElse = _condStruct->get_token_else() )
     {
         serialize( _result, tokenElse );
         Scope* elseScope = _condStruct->get_condition_false_branch();

@@ -100,7 +100,7 @@ bool GraphNodeView::draw()
     auto create_instr = [&]( Scope* _scope ) -> InstructionNode*
     {
         InstructionNode* instr_node = graph->create_instr();
-        Token* token = new Token(TokenType_EndOfInstruction);
+        std::shared_ptr<Token> token = std::make_shared<Token>(TokenType_EndOfInstruction);
         m_context->language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
         instr_node->end_of_instr_token(token);
         return instr_node;
@@ -114,13 +114,13 @@ bool GraphNodeView::draw()
         var_node = graph->create_variable(_type, _name, scope );
 
         // we should not do that TODO: fin a solution for Token management.
-        Token* tok  = new  Token();
-        tok->m_type = TokenType_Operator;
-        tok->m_prefix  = " ";
-        tok->m_suffix  = " ";
-        tok->m_word    = "=";
+        std::shared_ptr<Token> token  = std::make_shared<Token>();
+        token->m_type = TokenType_Operator;
+        token->m_prefix  = " ";
+        token->m_suffix  = " ";
+        token->m_word    = "=";
         
-        var_node->set_assignment_operator_token(tok);
+        var_node->set_assignment_operator_token(token);
         return var_node;
     };
 

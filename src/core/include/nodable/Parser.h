@@ -1,7 +1,9 @@
 #pragma once
+
 #include <string>
 #include <vector>
 #include <stack>
+#include <memory>
 
 #include <nodable/Nodable.h> // forward declarations
 #include <nodable/Language.h>
@@ -60,14 +62,14 @@ namespace Nodable{
 		 * Convert a Token to a Member.
 	     * @return a Member* that owns _token.
 	     */
-		Member*                token_to_member(Token* _token);
+		Member*                token_to_member(std::shared_ptr<Token> _token);
 
 		// those parse_XXXX() are parsing from the token_ribbon at current_position.
 		// After a call, cursor may have moved or could have been reverted to initial position.
 		Node*                  parse_scope();
         InstructionNode*       parse_instruction();
         Member*                parse_variable_declaration();
-        IScope*         parse_code_block(bool _create_scope);
+        IScope*                parse_code_block(bool _create_scope);
         ConditionalStructNode* parse_conditional_structure();
         ForLoopNode*           parse_for_loop();
         Node*                  parse_program();
@@ -95,7 +97,7 @@ namespace Nodable{
         Scope*                 get_current_scope();
 
         /** Given a Literal token, return its type */
-        R::Typename            get_literal_type(const Token *_token)const;
+        R::Typename            get_literal_type(std::shared_ptr<const Token> _token)const;
 
     private:
 		/** A language to get Semantic and Syntax (not yet implemented) */

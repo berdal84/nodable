@@ -8,8 +8,8 @@
 #include <nodable/Member.h>
 #include <nodable/R.h>
 
-namespace Nodable{
-	
+namespace Nodable
+{
 	/**
 		@brief The role of this class is to wrap a single Member as a Node identifiable with a name.
 
@@ -28,23 +28,23 @@ namespace Nodable{
                           set_dirty(true); }
 		[[nodiscard]] inline const char*      get_name()const { return m_name.c_str(); };
 		[[nodiscard]] inline Member*          get_value()const { return m_value; }
-        [[nodiscard]] inline const Token*     get_type_token() const { return m_type_token; }
-        [[nodiscard]] inline const Token*     get_assignment_operator_token() const { return m_assignment_operator_token; }
-        [[nodiscard]] inline const Token*     get_identifier_token() const { return m_identifier_token; }
+        [[nodiscard]] inline std::shared_ptr<const Token> get_type_token() const { return m_type_token; }
+        [[nodiscard]] inline std::shared_ptr<const Token> get_assignment_operator_token() const { return m_assignment_operator_token; }
+        [[nodiscard]] inline std::shared_ptr<const Token> get_identifier_token() const { return m_identifier_token; }
 		                     bool             eval() const override;
                              void             set_name(const char*);
-                      inline void             set_type_token(Token* token) { m_type_token = token; }
-                      inline void             set_assignment_operator_token(Token* token) { m_assignment_operator_token = token; }
-                      inline void             set_identifier_token(Token* token) { m_identifier_token = token; }
+                      inline void             set_type_token(std::shared_ptr<Token> token) { m_type_token = token; }
+                      inline void             set_assignment_operator_token(std::shared_ptr<Token> token) { m_assignment_operator_token = token; }
+                      inline void             set_identifier_token(std::shared_ptr<Token> token) { m_identifier_token = token; }
         template<class T> inline void         set(T _value) { m_value->set(_value); };
         template<class T> inline void         set(T* _value){ m_value->set(_value); };
         void                                  set_declared(bool b = true) { m_is_declared = b; } 
     private:
 	    Member*     m_value;
         bool        m_is_declared;
-        Token*      m_type_token;
-        Token*      m_assignment_operator_token;
-        Token*      m_identifier_token;
+        std::shared_ptr<Token> m_type_token;
+        std::shared_ptr<Token> m_assignment_operator_token;
+        std::shared_ptr<Token> m_identifier_token;
 		std::string m_name;
 
 		R_DERIVED(VariableNode)

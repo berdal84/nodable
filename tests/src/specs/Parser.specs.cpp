@@ -302,7 +302,7 @@ TEST(Parser, not_equals)
 
 TEST(Parser, undeclared_variables)
 {
-    std::string program1 = "double a = b + c;";
+    std::string program1 = "double a = b + c * r - z;";
     EXPECT_EQ( ParseAndSerialize(program1), program1);
 
     std::string program2 = "if(a==b){}";

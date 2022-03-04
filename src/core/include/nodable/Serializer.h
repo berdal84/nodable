@@ -35,7 +35,7 @@ namespace Nodable
         std::string& serialize(std::string &_result, const TokenType&)const;
         std::string& serialize(std::string &_result, std::shared_ptr<const R::Type>)const;
         std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
-        std::string& serialize(std::string &_result, const Token*) const;
+        std::string& serialize(std::string &_result, std::shared_ptr<const Token>) const;
         std::string& serialize(std::string &_result, const InstructionNode*)const;
         std::string& serialize(std::string &_result, const Node*)const;
         std::string& serialize(std::string &_result, const Scope*)const;
