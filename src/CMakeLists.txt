@@ -6,8 +6,8 @@
 set(NODABLE_APP_ASSETS_DIR assets)
 set(NODABLE_APP_ASSETS_ABSOLUTE_DIR "${CMAKE_CURRENT_LIST_DIR}/app/${NODABLE_APP_ASSETS_DIR}")
 
-# Configure Config.h.in
-configure_file("conf/Config.h.in" "${PROJECT_BINARY_DIR}/conf/nodable/Config.h" )
+# Configure BuildInfo.h.in
+configure_file("conf/BuildInfo.h.in" "${PROJECT_BINARY_DIR}/conf/nodable/BuildInfo.h" )
 
 # add subdirectories:
 add_subdirectory(./app )

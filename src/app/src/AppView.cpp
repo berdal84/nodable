@@ -4,7 +4,7 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-#include <nodable/Config.h>
+#include <nodable/BuildInfo.h>
 #include <nodable/Texture.h>
 #include <nodable/Settings.h>
 #include <nodable/System.h>
@@ -826,7 +826,7 @@ void AppView::draw_startup_window() {
         const char* credit = "berenger@dalle-cort.fr";
         ImGui::SameLine( ImGui::GetContentRegionAvailWidth() - ImGui::CalcTextSize(credit).x);
         ImGui::TextWrapped( "%s", credit );
-        ImGui::TextWrapped( NODABLE_VERSION );
+        ImGui::TextWrapped( "%s", BuildInfo::version.c_str() );
         if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
         {
             ImGui::CloseCurrentPopup();
@@ -939,7 +939,7 @@ void AppView::browse_file()
 void AppView::draw_background()
 {
     ImGui::BeginChild("background");
-    auto logo = m_context->texture_manager->get_or_create( NODABLE_ASSETS_DIR"/nodable-logo-xs.png" );
+    auto logo = m_context->texture_manager->get_or_create(BuildInfo::assets_dir + "/nodable-logo-xs.png");
 
     for( int x = 0; x < 5; x++ )
     {

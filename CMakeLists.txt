@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment version") # earliest version supporting c++11
 
 # project declaration
-project( "Nodable" VERSION "0.9.0" )
+project( "Nodable" VERSION "0.9" )
 option( ENABLE_TESTS "Enable tests" on )
 
 # define where outputs goes
@@ -13,8 +13,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
-# include compiler configuration script
+# include some helpers
 include( cmake/compiler-config.cmake )
+include( cmake/get-git-info.cmake )
 
 # If a default install prefix has not been set, we set it to ./bin
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/bin" CACHE PATH "..." FORCE)

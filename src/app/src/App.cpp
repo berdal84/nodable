@@ -6,7 +6,7 @@
 #include <nodable/NodeView.h>
 #include <nodable/AppView.h>
 #include <nodable/File.h>
-#include <nodable/Config.h>
+#include <nodable/BuildInfo.h>
 #include <nodable/GraphNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/DataAccess.h>
@@ -16,7 +16,7 @@ using namespace Nodable;
 
 App::App(const char* _name)
     : m_currentFileIndex(0)
-    , m_assetsFolderPath(ghc::filesystem::current_path() / NODABLE_ASSETS_DIR)
+    , m_assetsFolderPath( ghc::filesystem::current_path() / BuildInfo::assets_dir )
     , m_name(_name)
 {
     LOG_MESSAGE("App", "Asset folder is %s\n", m_assetsFolderPath.c_str() )

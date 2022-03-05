@@ -1,0 +1,15 @@
+#pragma once
+#include <string>
+
+/**
+    >> DO NOT EDIT BuildInfo.h, edit BuildInfo.h.in (source file) <<
+
+    BuildInfo.h.in will be configured by cmake, check CMakelists.txt
+*/
+
+namespace Nodable::BuildInfo
+{
+    static const std::string assets_dir        = "@NODABLE_APP_ASSETS_DIR@";
+    static const std::string version           = "@PROJECT_NAME@ @BUILD_TAG@ - sha@GIT_SHORT_HASH@";
+    static const std::string version_extended  = "@PROJECT_NAME@ @BUILD_TAG@ - sha@GIT_HASH@ - Built " __DATE__ " at " __TIME__;
+}

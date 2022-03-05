@@ -3,7 +3,7 @@
 
 #include <nodable/App.h>
 #include <nodable/AppView.h>
-#include <nodable/Config.h>
+#include <nodable/BuildInfo.h>
 
 using namespace Nodable;
 
@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
   Log::SetVerbosityLevel("GraphNodeView", Log::Verbosity::Message);
   Log::SetVerbosityLevel("VM", Log::Verbosity::Message);
 
-  App app("Nodable " NODABLE_VERSION_EXTENDED);
+  App app( BuildInfo::version_extended.c_str() );
   app.init();
   auto startupFilePath = app.getAssetPath("txt/startup.txt");
   app.openFile(startupFilePath); // Init and open a startup file
