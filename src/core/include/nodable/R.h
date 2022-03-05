@@ -58,7 +58,7 @@ namespace Nodable::R
             LOG_MESSAGE("R", " Typename::%s => %s \n", to_string(each.first), each.second->get_name() );
         }
 
-        LOG_MESSAGE("R", "By typeid (%i):\n", Register::by_enum().size() );
+        LOG_MESSAGE("R", "By typeid (%i):\n", Register::by_typeid().size() );
         for ( auto each : Register::by_typeid() )
         {
             LOG_MESSAGE("R", " %s => %s \n", each.first.c_str(), each.second->get_name() );
