@@ -65,11 +65,14 @@ namespace Nodable
         /** To store the result of the tokenizeExpressionString() method
             contain a vector of Tokens to be converted to a Nodable graph by all parseXXX functions */
         std::vector<std::shared_ptr<Token>> tokens;
+        std::shared_ptr<Token> m_prefix;
+        std::shared_ptr<Token> m_suffix;
 
         std::shared_ptr<Token> getEaten();
 
         size_t get_curr_tok_idx() { return  m_curr_tok_idx; }
     private:
+
         /** Current cursor position */
         size_t m_curr_tok_idx;
 

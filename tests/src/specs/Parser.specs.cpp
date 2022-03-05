@@ -314,8 +314,19 @@ TEST(Parser, not)
     EXPECT_TRUE( ParseAndEvalExpression<bool>("!false;") );
 }
 
-//TEST(Parser, var_decl_in_cond )
-//{
-//    std::string program = "if(double b=0){}";
-//    ParseEvalSerializeExpressions({program});
-//}
+
+TEST(Parser, ignored_chars_pre_ribbon )
+{
+    std::vector<std::string> expressions {
+            " double a = 5"
+    };
+    ParseEvalSerializeExpressions(expressions);
+}
+
+TEST(Parser, ignored_chars_post_ribbon )
+{
+    std::vector<std::string> expressions {
+            "double a = 5 "
+    };
+    ParseEvalSerializeExpressions(expressions);
+}

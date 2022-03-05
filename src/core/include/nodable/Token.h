@@ -25,18 +25,26 @@ namespace Nodable
                 m_charIndex(_char_index)
         {}
         ~Token() = default;
-
+        void clear()
+        {
+            m_index = 0;
+            m_type = TokenType_Default;
+            m_word.clear();
+            m_charIndex = 0;
+            m_prefix.clear();
+            m_suffix.clear();
+        }
         static std::string to_string(std::shared_ptr<Token> _token);
         static const std::shared_ptr<Token> s_null;
 
-        static inline bool isOperand(TokenType type)
+        bool isOperand()
         {
-            return type == TokenType_Literal || type == TokenType_Identifier;
+            return m_type == TokenType_Literal || m_type == TokenType_Identifier;
         }
 
-        static inline bool isType(TokenType type)
+        bool isTypeKeyword()
         {
-            return type == TokenType_KeywordDouble || type == TokenType_KeywordBoolean || type == TokenType_KeywordString;
+            return m_type == TokenType_KeywordDouble || m_type == TokenType_KeywordBoolean || m_type == TokenType_KeywordString;
         }
 
     };

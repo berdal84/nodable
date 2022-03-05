@@ -57,12 +57,15 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
 
             // Operator
             std::shared_ptr<Token> sourceToken = _component->get_source_token();
-            if (sourceToken) {
+            if (sourceToken)
+            {
                 _result.append(sourceToken->m_prefix);
-            }
-            _result.append(ope->get_short_identifier());
-            if (sourceToken) {
+                _result.append(sourceToken->m_word);
                 _result.append(sourceToken->m_suffix);
+            }
+            else
+            {
+                _result.append(ope->get_short_identifier());
             }
 
             // Right part of the expression
@@ -340,8 +343,16 @@ std::string& Serializer::serialize(std::string& _result, std::shared_ptr<const T
     if ( _token )
     {
         _result.append( _token->m_prefix);
-        serialize( _result, _token->m_type );
+        if ( _token->m_type == TokenType_Unknown )
+        {
+            _result.append( _token->m_word );
+        }
+        else
+        {
+            serialize( _result, _token->m_type );
+        }
         _result.append( _token->m_suffix);
+
     }
     return _result;
 }

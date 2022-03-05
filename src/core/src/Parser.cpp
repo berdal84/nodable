@@ -493,10 +493,18 @@ Node* Parser::parse_program()
     start_transaction();
     m_graph->clear();
     m_graph->create_root();
-    m_scope_stack.push( m_graph->get_root()->get<Scope>() );
+    Scope* program_scope = m_graph->get_root()->get<Scope>();
+    m_scope_stack.push( program_scope );
 
     if ( parse_code_block(false) )
     {
+        NODABLE_ASSERT(!program_scope->get_begin_scope_token())
+        NODABLE_ASSERT(!program_scope->get_end_scope_token())
+
+        // Add ignored chars pre/post token to the main scope begin/end token prefix/suffix.
+        program_scope->set_begin_scope_token( m_token_ribbon.m_prefix );
+        program_scope->set_end_scope_token( m_token_ribbon.m_suffix );
+
         commit_transaction();
         result = m_graph->get_root();
     }
@@ -550,7 +558,7 @@ Node* Parser::parse_scope()
         }
         else
         {
-            scope->set_end_Scope_token(m_token_ribbon.getEaten());
+            scope->set_end_scope_token(m_token_ribbon.getEaten());
             commit_transaction();
             result = scope_node;
         }
@@ -718,48 +726,51 @@ bool Parser::tokenize_string(const std::string &_code_source_portion)
                 std::string matched_str = sm.str();
                 TokenType   matched_token_t   = regexIdToTokType[std::distance(regex.cbegin(), eachRegexIt)];
 
-                if (matched_token_t != TokenType_Ignore)
-                {
-                    size_t index   = std::distance(_code_source_portion.cbegin(), it);
+                if (matched_token_t != TokenType_Ignore) {
+                    size_t index = std::distance(_code_source_portion.cbegin(), it);
                     auto new_token = std::make_shared<Token>(matched_token_t, matched_str, index);
-                    LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matched_str.c_str() )
+                    LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matched_str.c_str())
 
                     /*
-                     * append ignored_char, 2 options:
+                     * Append ignored_chars, 3 options:
                      */
-                    if ( !pending_ignored_chars.empty() && !m_token_ribbon.tokens.empty() )
+                    if (!pending_ignored_chars.empty())
                     {
-                        /*
-                         * option 1: to previous Token's prefix if matched_token_t is not an identifier
-                         *
-                         *    <last_token><pending_ignored_chars>, <new-token>
-                         */
-                        std::shared_ptr<Token> last_token = m_token_ribbon.tokens.back();
-                        if ( last_token->m_type != TokenType_Identifier )
-                        {
-                            last_token->m_suffix.append(pending_ignored_chars);
-                            pending_ignored_chars.clear();
-                        }
-                    }
-
-                    if ( !pending_ignored_chars.empty() )
-                    {
-                        /*
-                         * option 2: If we still have ignored chars, we add them as prefix (they could have been added to suffix, see option 1)
-                         *
-                         * <last_token>, <pending_ignored_chars><new-token>
-                         */
-                        if ( new_token->m_type != TokenType_Identifier )
-                        {
-                            new_token->m_prefix.append(pending_ignored_chars);
-                            pending_ignored_chars.clear();
-                        }
+                         if (!m_token_ribbon.empty())
+                         {
+                             std::shared_ptr<Token> last_token = m_token_ribbon.tokens.back();
+                             if (last_token->m_type != TokenType_Identifier)
+                             {
+                                 /*
+                                 * Option 1: suffix of previous token
+                                 *
+                                 * ( ... , <last_token><pending_ignored_chars>, <new-token>)
+                                 */
+                                 last_token->m_suffix.append(pending_ignored_chars);
+                                 pending_ignored_chars.clear();
+                             }
+                             else
+                             {
+                                 /*
+                                 * Option 2: prefix of next/new token
+                                 *
+                                 * ( ... , <last_token>, <pending_ignored_chars><new-token>)
+                                 */
+                                 new_token->m_prefix.append(pending_ignored_chars);
+                                 pending_ignored_chars.clear();
+                             }
+                         }
                         else
                         {
-                            throw std::runtime_error("The pending ignored chars can't be added to mew_token's suffix !");
+                            /*
+                            * Option 3: prefix of the ribbon
+                            *
+                            * <pending_ignored_chars> (<first-and-new-token>)
+                            */
+                            m_token_ribbon.m_prefix->m_word = pending_ignored_chars;
+                            pending_ignored_chars.clear();
                         }
                     }
-
                     m_token_ribbon.push( new_token );
                 }
                 else
@@ -791,12 +802,12 @@ bool Parser::tokenize_string(const std::string &_code_source_portion)
 	}
 
 	/*
-	 * append pending ignored chars to any Token if not empty
+	 * Append pending ignored chars
 	 */
-	if ( !m_token_ribbon.tokens.empty() && !pending_ignored_chars.empty() )
+	if ( !pending_ignored_chars.empty() )
     {
-        std::shared_ptr<Token> lastToken = m_token_ribbon.tokens.back();
-        lastToken->m_suffix.append(pending_ignored_chars);
+        m_token_ribbon.m_suffix->m_word = pending_ignored_chars;
+        pending_ignored_chars.clear();
     }
 
     LOG_VERBOSE("Parser", "tokenize " OK " \n" )
@@ -1108,7 +1119,7 @@ Member *Parser::parse_variable_declaration()
     std::shared_ptr<Token> typeTok       = m_token_ribbon.eatToken();
     std::shared_ptr<Token> identifierTok = m_token_ribbon.eatToken();
 
-    if(Token::isType(typeTok->m_type) && identifierTok->m_type == TokenType_Identifier )
+    if(typeTok->isTypeKeyword() && identifierTok->m_type == TokenType_Identifier )
     {
         R::Typename type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
         VariableNode* variable = m_graph->create_variable( R::get_type(type), identifierTok->m_word, this->get_current_scope());
