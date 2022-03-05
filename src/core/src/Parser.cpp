@@ -67,12 +67,6 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
     }
     LOG_VERBOSE("Parser", "Tokenize end\n", lineCount )
 
-	if (m_token_ribbon.empty() )
-    {
-        LOG_MESSAGE("Parser", "Empty code. Nothing to evaluate.\n")
-        return false;
-    }
-
 	if (!is_syntax_valid())
 	{
 		LOG_WARNING("Parser", "Unable to parse code due to syntax error.\n")
@@ -488,35 +482,25 @@ InstructionNode* Parser::parse_instruction()
 
 Node* Parser::parse_program()
 {
-    Node* result;
-
     start_transaction();
+
     m_graph->clear();
-    m_graph->create_root();
-    Scope* program_scope = m_graph->get_root()->get<Scope>();
+    Node*  root          = m_graph->create_root();
+    Scope* program_scope = root->get<Scope>();
     m_scope_stack.push( program_scope );
 
-    if ( parse_code_block(false) )
-    {
-        NODABLE_ASSERT(!program_scope->get_begin_scope_token())
-        NODABLE_ASSERT(!program_scope->get_end_scope_token())
+    parse_code_block(false); // we do not check if we parsed something empty or not, a program can be empty.
 
-        // Add ignored chars pre/post token to the main scope begin/end token prefix/suffix.
-        program_scope->set_begin_scope_token( m_token_ribbon.m_prefix );
-        program_scope->set_end_scope_token( m_token_ribbon.m_suffix );
-
-        commit_transaction();
-        result = m_graph->get_root();
-    }
-    else
-    {
-        m_graph->clear();
-        rollback_transaction();
-        result = nullptr;
-    }
+    // Add ignored chars pre/post token to the main scope begin/end token prefix/suffix.
+    NODABLE_ASSERT(!program_scope->get_begin_scope_token())
+    NODABLE_ASSERT(!program_scope->get_end_scope_token())
+    program_scope->set_begin_scope_token( m_token_ribbon.m_prefix );
+    program_scope->set_end_scope_token( m_token_ribbon.m_suffix );
 
     m_scope_stack.pop();
-    return result;
+    commit_transaction();
+
+    return m_graph->get_root();
 }
 
 Node* Parser::parse_scope()

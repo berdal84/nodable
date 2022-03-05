@@ -344,9 +344,8 @@ TEST(Parser, empty_scope_with_spaces )
     EXPECT_EQ( ParseAndSerialize(" {} "), " {} ");
 }
 
-/** TODO: work on these tests
 TEST(Parser, empty_program )
 {
     EXPECT_EQ( ParseAndSerialize(""), "");
     EXPECT_EQ( ParseAndSerialize(" "), " ");
-}*/
+}
