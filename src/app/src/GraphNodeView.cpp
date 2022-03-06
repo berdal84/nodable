@@ -498,7 +498,7 @@ bool GraphNodeView::draw()
                 {
                     // connect dragged (out) to first input on new node.
                     Member* src_member = dragged_member_conn->get_member();
-                    Member* dst_member = new_node->props()->get_first_member_with(Way_In, dst_member->get_type());
+                    Member* dst_member = new_node->props()->get_first_member_with(Way_In, src_member->get_type());
                     graph->connect( src_member, dst_member);
                 }
                 MemberConnector::stop_drag();

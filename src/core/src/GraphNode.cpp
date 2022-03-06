@@ -465,7 +465,7 @@ void GraphNode::disconnect(Node *_src, Node *_dst, Relation_t _relationType, boo
             break;
 
         case Relation_t::IS_PREDECESSOR_OF:
-            disconnect(_dst, _src, Relation_t::IS_SUCCESSOR_OF);
+            disconnect(_dst, _src, Relation_t::IS_SUCCESSOR_OF, _side_effects);
             break;
 
         case Relation_t::IS_SUCCESSOR_OF:
