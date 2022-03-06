@@ -26,7 +26,7 @@ namespace Nodable
         Node*               get_owner()const { return m_owner; };
 		const Members&      get_members()const { return m_props; };
 		Member*             get_first_member_with_conn(Way)const;
-
+        Member*             get_first_member_with(Way, std::shared_ptr<const R::Type>) const;
 	private:
 	    Node*    m_owner;
 		Members  m_props;

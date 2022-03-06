@@ -392,10 +392,17 @@ bool GraphNodeView::draw()
             if ( dragged_member_conn && !Type::is_ptr( dragged_member_conn->get_member_type()) )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
+                {
                     new_node = create_variable(dragged_member_conn->get_member_type(), "var", nullptr);
-                
-                if (ImGui::MenuItem(ICON_FA_FILE " Literal"))
+                }
+
+                // we allows literal only if connected to variables.
+                // why? behavior when connecting a literal to a non var node is to digest it.
+                if ( dragged_member_conn->get_member()->get_owner()->is<VariableNode>()
+                     && ImGui::MenuItem(ICON_FA_FILE "Literal") )
+                {
                     new_node = graph->create_literal(dragged_member_conn->get_member_type() );
+                }
             }
             // By not knowing anything, we propose all possible types to the user.
             else
@@ -480,13 +487,17 @@ bool GraphNodeView::draw()
             {
                 if ( dragged_member_conn->m_way == Way_In )
                 {
-                    graph->connect( new_node->props()->get_first_member_with_conn(Way_Out), dragged_member_conn->get_member() );
+                    Member* dst_member = dragged_member_conn->get_member();
+                    Member* src_member = new_node->props()->get_first_member_with(Way_Out, dst_member->get_type());
+                    graph->connect( src_member, dst_member );
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
                 else
                 {
                     // connect dragged (out) to first input on new node.
-                    graph->connect( dragged_member_conn->get_member(), new_node->props()->get_first_member_with_conn(Way_In));
+                    Member* src_member = dragged_member_conn->get_member();
+                    Member* dst_member = new_node->props()->get_first_member_with(Way_In, dst_member->get_type());
+                    graph->connect( src_member, dst_member);
                 }
                 MemberConnector::StopDrag();
             }

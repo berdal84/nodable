@@ -52,3 +52,19 @@ Member* Properties::add(const char* _name, Visibility _visibility, std::shared_p
 
 	return v;
 }
+
+Member *Properties::get_first_member_with(Way _way, std::shared_ptr<const R::Type> _type) const
+{
+    auto filter = [_way, _type](auto each_pair) -> bool
+    {
+        Member* each_member = each_pair.second;
+        return      each_member->is_type(_type)
+               && ( each_member->get_allowed_connection() & _way );
+    };
+
+    auto found = std::find_if( m_props.begin(), m_props.end(), filter );
+
+    if ( found != m_props.end() )
+        return (*found).second;
+    return nullptr;
+}
