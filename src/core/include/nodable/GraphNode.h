@@ -60,7 +60,7 @@ namespace Nodable
         Wire* connect(Member* _src, Member* _dst, ConnBy_ _connect_by = ConnectBy_Ref ) override;
 
         /**
-         * Connect two nodes with a given connection type
+         * connect two nodes with a given connection type
          * ex: _source IS_CHILD_OF _target
         */
         void connect(Node* _src, Node* _dst, Relation_t, bool _side_effects = true) override;

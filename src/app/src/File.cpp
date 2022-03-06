@@ -38,7 +38,10 @@ File::File( AppContext* _context, std::string _path, const char* _content)
     LOG_VERBOSE( "File", "History built, creating graph ...\n");
 
 	// GraphNode
-    m_graph = new GraphNode(m_context->language, &m_factory, &m_context->settings->graph_autocompletion );
+    m_graph = new GraphNode(
+            m_context->language,
+            &m_factory,
+            &m_context->settings->graph_autocompletion );
     m_graph->set_label(getName() + "'s inner container");
 
     m_graph->add_component(new GraphNodeView(m_context));
@@ -118,22 +121,29 @@ bool File::update()
     {
         auto graphUpdateResult = m_graph->update();
 
-        if (graphUpdateResult == UpdateResult::SuccessWithoutChanges && !m_view->getSelectedText().empty() )
+        if (   graphUpdateResult == UpdateResult::SuccessWithoutChanges
+            && !m_view->getSelectedText().empty() )
         {
             graph_has_changed = false;
         }
         else
         {
-            auto scope = m_graph->get_root();
-            if ( scope && !scope->children_slots().empty() )
+            Node* root_node = m_graph->get_root();
+            if ( root_node )
             {
                 std::string code;
-                m_context->language->getSerializer()->serialize(code, scope );
+                Serializer* serializer = m_context->language->getSerializer();
+                serializer->serialize(code, root_node );
                 m_view->replaceSelectedText(code);
             }
             graph_has_changed = true;
         }
     }
+    else
+    {
+        graph_has_changed = false;
+    }
+
 	return graph_has_changed;
 }
 

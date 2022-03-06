@@ -58,7 +58,7 @@ Member *Properties::get_first_member_with(Way _way, std::shared_ptr<const R::Typ
     auto filter = [_way, _type](auto each_pair) -> bool
     {
         Member* each_member = each_pair.second;
-        return      each_member->is_type(_type)
+        return R::Type::is_convertible(each_member->get_type(), _type)
                && ( each_member->get_allowed_connection() & _way );
     };
 

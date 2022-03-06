@@ -47,13 +47,23 @@ std::shared_ptr<Type> Type::add_ptr(std::shared_ptr<Type> left)
     return left;
 }
 
-bool Type::is_convertible( std::shared_ptr<const Type> left, std::shared_ptr<const Type> right )
+bool Type::is_convertible(
+        std::shared_ptr<const Type> _left,
+        std::shared_ptr<const Type> _right )
 {
-    if( left == Type::s_unknown || right == Type::s_unknown ) // We allow cast to unknown type
+    if(_left == Type::s_unknown || _right == Type::s_unknown ) // We allow cast to unknown type
     {
         return true;
     }
-    return left->get_typename() == right->get_typename();
+    else if (_left->get_typename() == _right->get_typename() )
+    {
+        return true;
+    }
+    else if (is_ptr(_left) && is_ptr(_right))
+    {
+        return true;
+    }
+    return false;
 }
 
 std::map<Typename, std::shared_ptr<const Type>>& Register::by_enum()

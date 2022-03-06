@@ -121,7 +121,7 @@ namespace Nodable
 //			this->target     = _target;
 //
 //			// Title
-//			description.append("Connect Wire\n");
+//			description.append("connect Wire\n");
 //
 //			// Details
 //			description.append( "\"" + _source->getName() + "\" ---> \"" + _target->getName() + "\"\n");

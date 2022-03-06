@@ -29,10 +29,10 @@ bool GraphNodeView::draw()
     Nodes&       node_registry  = graph->get_node_registry();
 	vec2         origin         = ImGui::GetCursorScreenPos();
 
-	const MemberConnector* dragged_member_conn = MemberConnector::GetDragged();
-    const MemberConnector* hovered_member_conn = MemberConnector::GetHovered();
-    const NodeConnector*   dragged_node_conn   = NodeConnector::GetDragged();
-    const NodeConnector*   hovered_node_conn   = NodeConnector::GetHovered();
+	const MemberConnector* dragged_member_conn = MemberConnector::get_gragged();
+    const MemberConnector* hovered_member_conn = MemberConnector::get_hovered();
+    const NodeConnector*   dragged_node_conn   = NodeConnector::get_gragged();
+    const NodeConnector*   hovered_node_conn   = NodeConnector::get_hovered();
     
     ImGui::SetCursorPos(vec2(0,0));
 
@@ -172,8 +172,8 @@ bool GraphNodeView::draw()
         // Draw temporary Member connection
         if ( dragged_member_conn )
         {
-            vec2 src = dragged_member_conn->getPos();
-            vec2 dst = hovered_member_conn ? hovered_member_conn->getPos() : ImGui::GetMousePos();
+            vec2 src = dragged_member_conn->get_pos();
+            vec2 dst = hovered_member_conn ? hovered_member_conn->get_pos() : ImGui::GetMousePos();
             ImGui::GetWindowDrawList()->AddLine(
                 src, dst,
                 getColor(Color_BorderHighlights),
@@ -184,8 +184,8 @@ bool GraphNodeView::draw()
         // Draw temporary Node connection
         if ( dragged_node_conn )
         {
-            vec2 src = dragged_node_conn->getPos();
-            vec2 dst = hovered_node_conn ? hovered_node_conn->getPos() : ImGui::GetMousePos();
+            vec2 src = dragged_node_conn->get_pos();
+            vec2 dst = hovered_node_conn ? hovered_node_conn->get_pos() : ImGui::GetMousePos();
             ImGuiEx::DrawVerticalWire(
                 ImGui::GetWindowDrawList(),
                 src, dst,
@@ -197,22 +197,23 @@ bool GraphNodeView::draw()
         }
 
         // Drops ?
-        bool require_to_create_node = false;
-        MemberConnector::DropBehavior(require_to_create_node);
-        NodeConnector::DropBehavior(require_to_create_node);
+        bool require_new_node   = false;
+        bool has_made_connection = false;
+        MemberConnector::drop_behavior(require_new_node, has_made_connection);
+        NodeConnector::drop_behavior(require_new_node, has_made_connection);
 
         // Need a need node ?
-        if (require_to_create_node)
+        if (require_new_node)
         {
-            if ( dragged_member_conn && Type::is_ptr( dragged_member_conn->get_member_type()) )
-            {
-                 new_node = create_instr(nullptr);
-
-            }
-            else if (!ImGui::IsPopupOpen(k_context_menu_popup) )
+            if (!ImGui::IsPopupOpen(k_context_menu_popup) )
             {
                 ImGui::OpenPopup(k_context_menu_popup);
             }
+        }
+
+        if ( has_made_connection )
+        {
+            edited = true;
         }
     }
 
@@ -242,8 +243,8 @@ bool GraphNodeView::draw()
 
                         if ( src_member_view && dst_member_view )
                         {
-                            vec2 src_pos = src_member_view->m_out->getPos();
-                            vec2 dst_pos = dst_member_view->m_in->getPos();
+                            vec2 src_pos = src_member_view->m_out->get_pos();
+                            vec2 dst_pos = dst_member_view->m_in->get_pos();
 
                             // TODO: add multiple wire type settings
 
@@ -283,7 +284,7 @@ bool GraphNodeView::draw()
 		{
             if (eachNodeView->isVisible())
             {
-                eachNodeView->draw();
+                edited |= eachNodeView->draw();
 
                 if(m_context->vm && m_context->vm->is_debugging() && m_context->vm->get_next_node() == eachNodeView->get_owner())
                     ImGui::SetScrollHereY();
@@ -302,8 +303,8 @@ bool GraphNodeView::draw()
 		}
 	}
 
-	isAnyNodeDragged |= NodeConnector::IsDragging();
-	isAnyNodeDragged |= MemberConnector::IsDragging();
+	isAnyNodeDragged |= NodeConnector::is_dragging();
+	isAnyNodeDragged |= MemberConnector::is_dragging();
 
 	// Virtual Machine cursor
 	if( m_context->vm )
@@ -473,15 +474,16 @@ bool GraphNodeView::draw()
         */
         if (new_node)
         {
+            edited = true;
 
             // dragging node connector ?
             if ( dragged_node_conn )
             {
-                Node* dragged_node = dragged_node_conn->getNode();
+                Node* dragged_node = dragged_node_conn->get_node();
                 Relation_t relation_type = dragged_node_conn->m_way == Way_Out ?
                     Relation_t::IS_SUCCESSOR_OF  : Relation_t::IS_PREDECESSOR_OF;
                 graph->connect( new_node, dragged_node, relation_type );
-                NodeConnector::StopDrag();
+                NodeConnector::stop_drag();
             }
             else if ( dragged_member_conn )
             {
@@ -499,7 +501,7 @@ bool GraphNodeView::draw()
                     Member* dst_member = new_node->props()->get_first_member_with(Way_In, dst_member->get_type());
                     graph->connect( src_member, dst_member);
                 }
-                MemberConnector::StopDrag();
+                MemberConnector::stop_drag();
             }
             else if ( new_node != graph->get_root() && m_context->settings->graph_autocompletion )
             {
@@ -523,12 +525,17 @@ bool GraphNodeView::draw()
 	if ( ImGui::IsMouseClicked(1) )
     {
         ImGui::CloseCurrentPopup();
-        MemberConnector::StopDrag();
-        NodeConnector::StopDrag();
+        MemberConnector::stop_drag();
+        NodeConnector::stop_drag();
     }
 
 	// add some empty space
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
+
+    if ( edited )
+    {
+        graph->set_dirty();
+    }
 
 	return edited;
 }

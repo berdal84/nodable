@@ -14,13 +14,13 @@ const NodeConnector*     NodeConnector::s_dragged   = nullptr;
 const NodeConnector*     NodeConnector::s_hovered   = nullptr;
 const NodeConnector*     NodeConnector::s_focused   = nullptr;
 
-bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor)
+bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor)
 {
-    // draw
+    bool edited = false;
     float rounding = 6.0f;
 
     auto draw_list = ImGui::GetWindowDrawList();
-    auto rect      = _connector->getRect();
+    auto rect      = _connector->get_rect();
     rect.Translate(ImGuiEx::ToScreenPosOffset());
 
     ImDrawCornerFlags cornerFlags = _connector->m_way == Way_Out ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
@@ -28,7 +28,7 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
     auto cursorScreenPos = ImGui::GetCursorScreenPos();
     ImGui::SetCursorScreenPos(rect.GetTL());
     ImGui::PushID(_connector);
-    bool clicked = ImGui::InvisibleButton("###", rect.GetSize());
+    ImGui::InvisibleButton("###", rect.GetSize());
     ImGui::PopID();
     ImGui::SetCursorScreenPos(cursorScreenPos);
 
@@ -37,18 +37,20 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
     draw_list->AddRect(rect.Min, rect.Max, ImColor(50,50, 50), rounding, cornerFlags );
 
     // behavior
-    auto connectedNode = _connector->getConnectedNode();
+    auto connectedNode = _connector->get_connected_node();
     if ( connectedNode && ImGui::BeginPopupContextItem() )
     {
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
-            auto node   = _connector->getNode();
+            auto node   = _connector->get_node();
             auto graph  = node->get_parent_graph();
 
             if ( _connector->m_way == Way_In )
                 graph->disconnect(node, connectedNode, Relation_t::IS_SUCCESSOR_OF);
             else
                 graph->disconnect(connectedNode, node, Relation_t::IS_SUCCESSOR_OF);
+
+            edited = true;
         }
 
         ImGui::EndPopup();
@@ -56,19 +58,19 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
 
     if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
     {
-        if (ImGui::IsMouseDown(0) && !IsDragging() && !NodeView::IsAnyDragged())
+        if (ImGui::IsMouseDown(0) && !is_dragging() && !NodeView::IsAnyDragged())
         {
             if ( _connector->m_way == Way_Out)
             {
-                if (_connector->getNode()->successor_slots().size() <
-                        _connector->getNode()->successor_slots().get_limit() )
-                    StartDrag(_connector);
+                if (_connector->get_node()->successor_slots().size() <
+                    _connector->get_node()->successor_slots().get_limit() )
+                    start_drag(_connector);
             }
             else
             {
-                if (_connector->getNode()->predecessor_slots().size() <
-                        _connector->getNode()->predecessor_slots().get_limit() )
-                    StartDrag(_connector);
+                if (_connector->get_node()->predecessor_slots().size() <
+                    _connector->get_node()->predecessor_slots().get_limit() )
+                    start_drag(_connector);
             }
         }
 
@@ -79,13 +81,13 @@ bool NodeConnector::Draw(const NodeConnector *_connector, const ImColor &_color,
         s_hovered = nullptr;
     }
 
-    return clicked;
+    return edited;
 }
 
-ImRect NodeConnector::getRect() const
+ImRect NodeConnector::get_rect() const
 {
     Settings* settings = m_context->settings;
-    vec2 leftCornerPos = m_way == Way_In ? m_nodeView->getRect().GetTL() : m_nodeView->getRect().GetBL();
+    vec2 leftCornerPos = m_way == Way_In ? m_node_view->getRect().GetTL() : m_node_view->getRect().GetBL();
 
     vec2 size(settings->ui_node_connector_width, settings->ui_node_connector_height);
     ImRect rect(leftCornerPos, leftCornerPos + size);
@@ -94,42 +96,34 @@ ImRect NodeConnector::getRect() const
     return rect;
 }
 
-vec2 NodeConnector::getPos()const
+vec2 NodeConnector::get_pos()const
 {
-    return getRect().GetCenter() + ImGuiEx::ToScreenPosOffset();
+    return get_rect().GetCenter() + ImGuiEx::ToScreenPosOffset();
 }
 
-bool NodeConnector::connect(const NodeConnector* other) const
-{
-    auto graph = getNode()->get_parent_graph();
-    // TODO: handle incompatibility
-    graph->connect(other->getNode(), getNode() , Relation_t::IS_SUCCESSOR_OF );
-
-    return true;
-}
-
-void NodeConnector::DropBehavior(bool &needsANewNode)
+void NodeConnector::drop_behavior(bool& require_new_node, bool& has_made_connection)
 {
     if (s_dragged && ImGui::IsMouseReleased(0))
     {
         if ( s_hovered )
         {
-            NodeConnector::Connect(s_dragged, s_hovered);
+            NodeConnector::connect(s_dragged, s_hovered);
             s_dragged = s_hovered = nullptr;
+            has_made_connection = true;
         } else {
-            needsANewNode = true;
+            require_new_node = true;
         }
     }
 }
 
-bool NodeConnector::hasSameParentWith(const NodeConnector *other) const
+bool NodeConnector::share_parent_with(const NodeConnector *other) const
 {
-    return getNode() == other->getNode();
+    return get_node() == other->get_node();
 }
 
-bool NodeConnector::Connect(const NodeConnector *_left, const NodeConnector *_right)
+bool NodeConnector::connect(const NodeConnector *_left, const NodeConnector *_right)
 {
-    if ( _left->hasSameParentWith(_right) )
+    if ( _left->share_parent_with(_right) )
     {
         LOG_WARNING("NodeConnector", "Unable to connect these two Connectors from the same Node.\n")
         return false;
@@ -141,14 +135,16 @@ bool NodeConnector::Connect(const NodeConnector *_left, const NodeConnector *_ri
         return false;
     }
 
-    if ( _left->m_way == Way_Out )
-        return _left->connect(_right);
-    return _right->connect(_left);
+    auto graph = _left->get_node()->get_parent_graph();
+    Relation_t relation_type = _left->m_way == Way_In ? Relation_t::IS_SUCCESSOR_OF : Relation_t::IS_PREDECESSOR_OF;
+    graph->connect( _left->get_node(), _right->get_node(), relation_type );
+
+    return true;
 }
 
-Node* NodeConnector::getConnectedNode() const
+Node* NodeConnector::get_connected_node() const
 {
-    auto node = getNode();
+    auto node = get_node();
 
     if ( m_way == Way_In )
     {
@@ -163,8 +159,8 @@ Node* NodeConnector::getConnectedNode() const
 
 }
 
-Node* NodeConnector::getNode()const
+Node* NodeConnector::get_node()const
 {
-    return m_nodeView->get_owner();
+    return m_node_view->get_owner();
 }
 

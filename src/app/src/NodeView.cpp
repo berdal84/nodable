@@ -214,7 +214,7 @@ NodeView* NodeView::GetSelected()
 
 void NodeView::StartDragNode(NodeView* _view)
 {
-	if(MemberConnector::GetDragged() == nullptr) // Prevent dragging node while dragging connector
+	if(MemberConnector::get_gragged() == nullptr) // Prevent dragging node while dragging connector
 		s_draggedNode = _view;
 }
 
@@ -318,7 +318,7 @@ bool NodeView::draw()
         ImColor hoveredColor = settings->ui_node_nodeConnectorHoveredColor;
 
         auto drawConnectorAndHandleUserEvents = [&](NodeConnector *connector) {
-            NodeConnector::Draw(connector, color, hoveredColor);
+            edited |= NodeConnector::draw(connector, color, hoveredColor);
             is_connector_hovered |= ImGui::IsItemHovered();
         };
 
@@ -419,13 +419,13 @@ bool NodeView::draw()
 
         if ( m_exposed_this_member_view )
         {
-            MemberConnector::Draw(m_exposed_this_member_view->m_out, radius, color, borderCol, hoverCol);
+            edited |= MemberConnector::draw(m_exposed_this_member_view->m_out, radius, color, borderCol, hoverCol);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
         for( auto& memberView : m_exposedInputOnlyMembers )
         {
-            MemberConnector::Draw(memberView->m_in, radius, color, borderCol, hoverCol);
+            edited |= MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
@@ -433,13 +433,13 @@ bool NodeView::draw()
         {
             if ( memberView->m_in)
             {
-                MemberConnector::Draw(memberView->m_in, radius, color, borderCol, hoverCol);
+                edited |= MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
 
             if ( memberView->m_out)
             {
-                MemberConnector::Draw(memberView->m_out, radius, color, borderCol, hoverCol);
+                edited |= MemberConnector::draw(memberView->m_out, radius, color, borderCol, hoverCol);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
         }

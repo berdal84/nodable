@@ -21,32 +21,31 @@ namespace Nodable {
             , size_t _index = 0
             , size_t _count = 1)
         : m_context( _ctx )
-        , m_nodeView(_nodeView)
+        , m_node_view(_nodeView)
         , m_way(_way)
         , m_index(_index)
         , m_count(_count)
         {};
 
         ~NodeConnector() = default;
-        Node*              getNode()const;
-        Node*              getConnectedNode() const;
-        ImRect             getRect()const;
-        vec2             getPos()const override;
-        bool               connect(const NodeConnector *other) const override;
-        virtual bool       hasSameParentWith(const NodeConnector *other) const override;
-
-        static bool        Draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor);
-        static void        DropBehavior(bool &needsANewNode);
+        Node*              get_node()const;
+        Node*              get_connected_node() const;
+        ImRect             get_rect()const;
+        vec2               get_pos()const override;
+        bool               share_parent_with(const NodeConnector *other) const override;
+        static bool        draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor);
+        static void        drop_behavior(bool& require_new_node, bool& has_made_connection);
+        static bool        connect(const NodeConnector *_left, const NodeConnector *_right);
 
         size_t    m_index;
         size_t    m_count;
-        NodeView* m_nodeView;
+        NodeView* m_node_view;
         Way       m_way;
         const AppContext* m_context;
         static const NodeConnector* s_hovered;
         static const NodeConnector* s_dragged;
         static const NodeConnector* s_focused;
 
-        static bool Connect(const NodeConnector *_left, const NodeConnector *_right);
+
     };
 }

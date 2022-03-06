@@ -154,17 +154,11 @@ namespace Nodable::R
     R_DEF_TYPENAME(bool         , Typename::Boolean )
     R_DEF_TYPENAME(void         , Typename::Void )
 
-#if ENABLE_ANY_PTR_TO_BE_CONSIDERED_VOID_PTR
-/*
- * To avoid the ned to overdeclare, this templae allows any object pointer to be treater as a void*
- * ex: Node*, Object*, Car*, Character* will be treated as void*
- */
-     template<typename T>
-     class meta_type<T*> : public meta_type<T> {};
+    template<typename T>
+    class meta_type<T*> : public meta_type<T> {};
 
     template<typename T>
     class meta_type<T&> : public meta_type<T> {};
-#endif
 
 }
 

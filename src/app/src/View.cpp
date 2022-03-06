@@ -31,7 +31,7 @@ ImColor View::getColor(Color _type) const
 
 bool View::drawAsChild(const char* _name, const vec2& _size, bool border, ImGuiWindowFlags flags)
 {
-	bool result;
+	bool changed;
 
 	/* Compute visible rect in screen position*/
 	auto outerCursorScreenPos = ImGui::GetCursorScreenPos();
@@ -40,11 +40,11 @@ bool View::drawAsChild(const char* _name, const vec2& _size, bool border, ImGuiW
 
 	ImGui::BeginChild(_name, _size, border, flags);
 	auto innerCursorScreenPos = ImGui::GetCursorScreenPos();		
-	result = this->draw();
+	changed = draw();
 	ImGui::EndChild();
 
 	visibleRect = visibleScreenRect;
 	visibleRect.Translate(innerCursorScreenPos * -1.0f);
 
-	return result;
+	return changed;
 }

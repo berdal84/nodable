@@ -13,62 +13,54 @@ const MemberConnector*   MemberConnector::s_dragged = nullptr;
 const MemberConnector*   MemberConnector::s_hovered = nullptr;
 const MemberConnector*   MemberConnector::s_focused = nullptr;
 
-vec2 MemberConnector::getPos()const
+vec2 MemberConnector::get_pos()const
 {
     vec2 relative_pos_constrained = m_memberView->relative_pos();
 
     vec2 node_view_size = m_memberView->m_nodeView->getSize();
 
-    if (m_display_side == Side::Top )
+    switch (m_display_side)
     {
-        relative_pos_constrained.y = - node_view_size.y * 0.5f;
-    }
-    else if (m_display_side == Side::Bottom )
-    {
-        relative_pos_constrained.y = node_view_size.y * 0.5f;
-    }
-    else if (m_display_side == Side::Left )
-    {
-        relative_pos_constrained.y = 0;
-        relative_pos_constrained.x = -node_view_size.x * 0.5f;
-    }
-    else if (m_display_side == Side::Right )
-    {
-        relative_pos_constrained.y = 0;
-        relative_pos_constrained.x = node_view_size.x * 0.5f;
-    }
+        case Side::Top:
+            relative_pos_constrained.y = -node_view_size.y * 0.5f;
+            break;
 
+        case Side::Bottom:
+            relative_pos_constrained.y = node_view_size.y * 0.5f;
+            break;
+
+        case Side::Left:
+            relative_pos_constrained.y = 0;
+            relative_pos_constrained.x = -node_view_size.x * 0.5f;
+            break;
+        case Side::Right:
+            relative_pos_constrained.y = 0;
+            relative_pos_constrained.x = node_view_size.x * 0.5f;
+    }
     return vec2( m_memberView->m_nodeView->getScreenPos() + relative_pos_constrained);
 }
 
-bool MemberConnector::hasSameParentWith(const MemberConnector* other) const
+bool MemberConnector::share_parent_with(const MemberConnector* other) const
 {
     return get_member() == other->get_member();
 }
 
-bool MemberConnector::connect(const MemberConnector *other) const
-{
-    auto graph = get_member()->get_owner()->get_parent_graph();
-    // TODO: handle incompatibility
-    graph->connect(get_member(), other->get_member());
-    return true;
-}
-
-void MemberConnector::DropBehavior(bool &needsANewNode)
+void MemberConnector::drop_behavior(bool &require_new_node, bool& has_made_connection)
 {
     if (s_dragged && ImGui::IsMouseReleased(0))
     {
         if ( s_hovered )
         {
-            MemberConnector::Connect(s_dragged, s_hovered);
+            MemberConnector::connect(s_dragged, s_hovered);
             s_dragged = s_hovered = nullptr;
+            has_made_connection = true;
         } else {
-            needsANewNode = true;
+            require_new_node = true;
         }
     }
 }
 
-void MemberConnector::Draw(
+bool MemberConnector::draw(
         const MemberConnector *_connector,
         float _radius,
         const ImColor &_color,
@@ -77,9 +69,9 @@ void MemberConnector::Draw(
 {
     // draw
     //-----
-
+    bool edited = false;
     auto draw_list = ImGui::GetWindowDrawList();
-    auto connnectorScreenPos = _connector->getPos();
+    auto connnectorScreenPos = _connector->get_pos();
 
     // Unvisible Button on top of the Circle
     vec2 cursorScreenPos = ImGui::GetCursorScreenPos();
@@ -97,13 +89,14 @@ void MemberConnector::Draw(
 
     // behavior
     //--------
-    if ( _connector->hasConnectedNode() && ImGui::BeginPopupContextItem() )
+    if (_connector->has_node_connected() && ImGui::BeginPopupContextItem() )
     {
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
             auto member = _connector->get_member();
             auto graph  = member->get_owner()->get_parent_graph();
             graph->disconnect( member, _connector->m_way );
+            edited = true;
         }
 
         ImGui::EndPopup();
@@ -122,18 +115,20 @@ void MemberConnector::Draw(
         if (ImGui::IsMouseDown(0))
         {
             if ( s_dragged == nullptr && !NodeView::IsAnyDragged())
-                MemberConnector::StartDrag(_connector);
+                MemberConnector::start_drag(_connector);
         }
     }
     else if ( s_hovered == _connector )
     {
         s_hovered = nullptr;
     }
+
+    return edited;
 }
 
-bool MemberConnector::Connect(const MemberConnector *_left, const MemberConnector *_right)
+bool MemberConnector::connect(const MemberConnector *_left, const MemberConnector *_right)
 {
-    if ( _left->hasSameParentWith(_right) )
+    if (_left->share_parent_with(_right) )
     {
         LOG_WARNING( "MemberConnector", "Unable to connect two connectors from the same Member.\n" )
         return false;
@@ -145,12 +140,14 @@ bool MemberConnector::Connect(const MemberConnector *_left, const MemberConnecto
         return false;
     }
 
+    GraphNode* graph = _left->get_member()->get_owner()->get_parent_graph();
     if (s_dragged->m_way == Way_Out )
-        return s_dragged->connect(s_hovered);
-    return s_hovered->connect(s_dragged);
+        graph->connect( _left->get_member(), _right->get_member() );
+    else
+        graph->connect( _right->get_member(), _left->get_member() );
 }
 
-bool MemberConnector::hasConnectedNode() const {
+bool MemberConnector::has_node_connected() const {
     return m_way == Way_In ? get_member()->get_input() != nullptr : !get_member()->get_outputs().empty();
 }
 
@@ -159,7 +156,7 @@ Member* MemberConnector::get_member()const
     return m_memberView ?  m_memberView->m_member : nullptr;
 }
 
-std::shared_ptr<const R::Type> MemberConnector::get_member_type()const
+R::Type_ptr MemberConnector::get_member_type()const
 {
     return get_member()->get_type();
 }

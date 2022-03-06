@@ -30,7 +30,7 @@ Node::Node(std::string _label)
      * Add "this" Member to be able to connect this Node as an object pointer.
      * Usually an object pointer is connected to an InstructionNode's "node_to_eval" Member.
      */
-    Member* this_member = m_props.add(THIS_MEMBER_NAME, Visibility::Always, R::get_type<void*>(), Way::Way_Out);
+    Member* this_member = m_props.add(THIS_MEMBER_NAME, Visibility::Always, R::get_type<Node*>(), Way::Way_Out);
     this_member->set( this );
 
     // propagate "inputs" events

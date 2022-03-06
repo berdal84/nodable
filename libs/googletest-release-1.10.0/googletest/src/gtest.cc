@@ -4403,7 +4403,7 @@ void StreamingListener::SocketWriter::MakeConnection() {
     sockfd_ = socket(
         cur_addr->ai_family, cur_addr->ai_socktype, cur_addr->ai_protocol);
     if (sockfd_ != -1) {
-      // Connect the client socket to the server socket.
+      // connect the client socket to the server socket.
       if (connect(sockfd_, cur_addr->ai_addr, cur_addr->ai_addrlen) == -1) {
         close(sockfd_);
         sockfd_ = -1;

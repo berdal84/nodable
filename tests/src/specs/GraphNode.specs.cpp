@@ -106,9 +106,9 @@ TEST( GraphNode, create_and_delete_relations)
     GraphNode graph(&language, &factory, &autocompletion);
     Node* program = graph.create_root();
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
-    Node* n1 = graph.create_variable(nullptr, "n1", program->get<Scope>());
+    Node* n1 = graph.create_variable( R::get_type<double>(), "n1", program->get<Scope>());
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
-    Node* n2 = graph.create_variable(R::get_type<double>(), "n2", program->get<Scope>());
+    Node* n2 = graph.create_variable( R::get_type<double>(), "n2", program->get<Scope>());
 
     // Act and test
 

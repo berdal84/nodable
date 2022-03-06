@@ -42,14 +42,13 @@ namespace Nodable {
         MemberConnector& operator= (const MemberConnector&) = delete;
 
         Member*            get_member()const;
-        std::shared_ptr<const R::Type> get_member_type()const;
-        vec2               getPos()const override;
-        bool               hasSameParentWith(const MemberConnector*)const override;
-        bool               hasConnectedNode() const;
-        bool               connect(const MemberConnector*)const override;
-
-        static void        Draw(const MemberConnector*, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor);
-        static void        DropBehavior(bool &needsANewNode);
+        R::Type_ptr        get_member_type()const;
+        vec2               get_pos()const override;
+        bool               share_parent_with(const MemberConnector *other)const override;
+        bool               has_node_connected() const;
+        static bool        draw(const MemberConnector *_connector, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor);
+        static void        drop_behavior(bool& require_new_node, bool& has_made_connection);
+        static bool        connect(const MemberConnector *_left, const MemberConnector *_right);
 
         MemberView* m_memberView;
         Side        m_display_side;
@@ -59,8 +58,6 @@ namespace Nodable {
         static const MemberConnector* s_dragged;
         static const MemberConnector* s_focused;
 
-        static void Draw(const MemberConnector *connector);
 
-        static bool Connect(const MemberConnector *_left, const MemberConnector *_right);
     };
 }

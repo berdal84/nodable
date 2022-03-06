@@ -22,7 +22,7 @@ std::shared_ptr<const R::Type> Variant::get_type()const
 
 bool  Variant::is(std::shared_ptr<const R::Type> _type)const
 {
-	return m_type == _type;
+	return m_type->equals( _type );
 }
 
 void Variant::set(double _var)
@@ -111,7 +111,7 @@ void Variant::set(const Variant* _other)
 
 void Variant::set_type(std::shared_ptr<const R::Type> _type) // TODO: remove this
 {
-	if (get_type() != _type)
+	if ( m_type == nullptr || ! m_type->equals( _type ) )
 	{
 		undefine();
         m_type = _type;
@@ -129,9 +129,17 @@ void Variant::set_type(std::shared_ptr<const R::Type> _type) // TODO: remove thi
 			m_data.emplace<bool>();
 			break;
         default:
-            if (  R::Type::is_ptr(_type) )
+            using Pointer_T = void*;
+            R::Type_ptr pointer_t = R::get_type<Pointer_T>();
+            if (  R::Type::is_convertible(_type, pointer_t) )
             {
-                m_data.emplace<void*>();
+                m_data.emplace<Pointer_T>();
+            }
+            else
+            {
+                throw std::runtime_error(
+                        std::string("Unable to emplace data in m_data because _type cannot be converted to ") +
+                        pointer_t->get_name() );
             }
 			break;
 		}

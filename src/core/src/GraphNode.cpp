@@ -345,7 +345,10 @@ void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relationType, bool _
     switch ( _relationType )
     {
         case Relation_t::IS_PREDECESSOR_OF:
-            return connect(_dst, _src, Relation_t::IS_SUCCESSOR_OF);
+        {
+            connect(_dst, _src, Relation_t::IS_SUCCESSOR_OF, _side_effects);
+            break;
+        }
 
         case Relation_t::IS_CHILD_OF:
         {
@@ -410,13 +413,20 @@ void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relationType, bool _
 
             if (_side_effects)
             {
-                if ( auto parent = _dst->get_parent() )
+                if ( _dst->successor_slots().empty() )
                 {
-                    Node* successor = _src;
-                    while ( successor )
+                    connect(_src, _dst, Relation_t::IS_CHILD_OF, false);
+                }
+                else
+                {
+                    if ( auto parent = _dst->get_parent() )
                     {
-                        connect(successor, parent, Relation_t::IS_CHILD_OF, false);
-                        successor = successor->successor_slots().get_front_or_nullptr();
+                        Node* successor = _src;
+                        while ( successor )
+                        {
+                            connect(successor, parent, Relation_t::IS_CHILD_OF, false);
+                            successor = successor->successor_slots().get_front_or_nullptr();
+                        }
                     }
                 }
             }
@@ -452,6 +462,10 @@ void GraphNode::disconnect(Node *_src, Node *_dst, Relation_t _relationType, boo
         case Relation_t::IS_INPUT_OF:
             _dst->input_slots().remove(_src);
             _src->output_slots().remove(_dst);
+            break;
+
+        case Relation_t::IS_PREDECESSOR_OF:
+            disconnect(_dst, _src, Relation_t::IS_SUCCESSOR_OF);
             break;
 
         case Relation_t::IS_SUCCESSOR_OF:

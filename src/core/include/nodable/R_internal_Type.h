@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "R_internal_Meta.h"
 
 namespace Nodable::R
@@ -64,4 +65,6 @@ namespace Nodable::R
         Typename    m_reflect_type;
         Qualifier   m_qualifier;
     };
+
+    typedef std::shared_ptr<const Type> Type_ptr;
 }
