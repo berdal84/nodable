@@ -42,9 +42,12 @@ bool InvokableComponent::update()
         }
         catch (std::exception& err)
         {
-            LOG_ERROR("InvokableComponent", "Exception thrown during update %s:\n"
-                                            " - while updating Node %s\n"
-                                            " - reason: %s\n", get_owner()->get_label(), err.what() )
+            LOG_ERROR("InvokableComponent", "Exception thrown updating \"%s\" Component"
+                                            " while updating Node \"%s\"."
+                                            " Reason: %s\n",
+                                            get_class()->get_name(),
+                                            get_owner()->get_label(),
+                                            err.what() )
             success = false;
         }
     }
