@@ -65,6 +65,7 @@ namespace Nodable
         bool               m_show_startup_window;
         bool               m_show_properties_editor;
         bool               m_show_imgui_demo;
+        bool               m_show_advanced_node_properties;
         bool               m_scroll_to_curr_instr;
         std::map<std::string, ImFont*>      m_loaded_fonts; // All fonts loaded in memory
         std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use

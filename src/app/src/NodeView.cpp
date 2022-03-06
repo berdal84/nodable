@@ -672,7 +672,7 @@ bool NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
 	return _rect.Contains(nodeRect);
 }
 
-void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
+void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanced)
 {
     const float labelColumnWidth = ImGui::GetContentRegionAvailWidth() / 2.0f;
 
@@ -717,10 +717,12 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
     // Draw exposed input members
     ImGui::Separator();
     ImGui::Text("Input(s):" );
+    ImGui::Separator();
     ImGui::Indent();
     for (auto& eachView : _view->m_exposedInputOnlyMembers )
     {
         drawMember(eachView->m_member);
+        ImGui::Separator();
     }
     if( _view->m_exposedInputOnlyMembers.empty() )
     {
@@ -729,29 +731,40 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view)
     ImGui::Unindent();
 
     // Draw exposed output members
-    ImGui::Separator();
     ImGui::Text("Output(s):" );
+    ImGui::Separator();
     ImGui::Indent();
     for (auto& eachView : _view->m_exposedOutOrInOutMembers )
     {
         drawMember(eachView->m_member);
+        ImGui::Separator();
     }
+
     if( _view->m_exposedOutOrInOutMembers.empty() )
     {
         ImGui::Text("None.");
     }
-    ImGui::Unindent();
 
-    // Draw exposed output members
-    ImGui::Separator();
-    ImGui::Text("Miscellaneous (%li):", 1L );
-    ImGui::Indent();
-    drawMember(_view->m_exposed_this_member_view->m_member);
     ImGui::Unindent();
-
-    // Advanced properties
     ImGui::Separator();
-   _view->drawAdvancedProperties();
+    ImGui::Checkbox( "Debug ?", _show_advanced );
+    if ( *_show_advanced )
+    {
+        ImGui::Indent();
+
+        // Draw exposed output members
+        ImGui::Separator();
+        ImGui::Text("Special members" );
+        ImGui::Separator();
+        ImGui::Indent();
+        drawMember(_view->m_exposed_this_member_view->m_member);
+        ImGui::Unindent();
+        ImGui::Separator();
+
+        // Advanced properties
+        _view->drawAdvancedProperties();
+    }
+
 }
 
 void NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
@@ -792,6 +805,7 @@ void NodeView::drawAdvancedProperties()
     const float indent = 20.0f;
 
     // Components
+    ImGui::Separator();
     ImGui::Text("Components :");
     for (auto& pair : node->get_components())
     {
@@ -799,9 +813,37 @@ void NodeView::drawAdvancedProperties()
         ImGui::BulletText("%s", component->get_class()->get_name() );
     }
 
+    auto draw_slots = [](const char*  _label, const Slots<Node*>& _slots)
+    {
+        ImGui::Text("%s", _label);ImGui::Indent();
+        if ( !_slots.empty() )
+        {
+
+            for( auto each : _slots.content()  )
+            {
+                ImGui::Text("- %s", each->get_label() );
+            }
+        }
+        else
+        {
+            ImGui::TextUnformatted("None");
+        }
+        ImGui::Unindent();
+    };
+
+    ImGui::Separator();
+    draw_slots( "Inputs:", node->input_slots());
+    ImGui::Separator();
+    draw_slots( "Outputs:", node->output_slots());
+    ImGui::Separator();
+    draw_slots( "Predecessors:", node->predecessor_slots());
+    ImGui::Separator();
+    draw_slots( "Successors:", node->successor_slots());
+    ImGui::Separator();
+
+
     // Parent graph
     {
-        ImGui::NewLine();
         std::string parentName = "NULL";
 
         if (node->get_parent_graph() )
@@ -814,8 +856,8 @@ void NodeView::drawAdvancedProperties()
     }
 
     // Parent
+    ImGui::Separator();
     {
-        ImGui::NewLine();
         std::string parentName = "NULL";
 
         if (node->get_parent() )
@@ -824,19 +866,17 @@ void NodeView::drawAdvancedProperties()
             parentName.append(node->get_parent()->is_dirty() ? " (dirty)" : "");
         }
         ImGui::Text("Parent node is \"%s\"", parentName.c_str());
-
     }
 
     // dirty state
-    ImGui::NewLine();
+    ImGui::Separator();
     bool b = get_owner()->is_dirty();
     ImGui::Checkbox("Is dirty ?", &b);
 
     // Scope specific:
-
+    ImGui::Separator();
     if ( auto scope = node->get<Scope>() )
     {
-        ImGui::NewLine();
         ImGui::Text("Variables:");
         auto vars = scope->get_variables();
         for(auto eachVar : vars)
@@ -844,6 +884,7 @@ void NodeView::drawAdvancedProperties()
             ImGui::Text("%s: %s", eachVar->get_name(), eachVar->get_value()->convert_to<std::string>().c_str());
         }
     }
+    ImGui::Separator();
 }
 
 void NodeView::SetDetail(NodeViewDetail _viewDetail)

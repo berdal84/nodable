@@ -30,6 +30,7 @@ AppView::AppView(AppContext* _ctx, const char* _name )
     , m_sdl_window_name(_name)
     , m_show_properties_editor(false)
     , m_show_imgui_demo(false)
+    , m_show_advanced_node_properties(false)
     , m_scroll_to_curr_instr(true)
 {
 }
@@ -447,7 +448,7 @@ bool AppView::draw()
                 NodeView *view = NodeView::GetSelected();
                 if (view) {
                     ImGui::Indent(10.0f);
-                    NodeView::DrawNodeViewAsPropertiesPanel(view);
+                    NodeView::DrawNodeViewAsPropertiesPanel(view, &m_show_advanced_node_properties);
                 }
             }
             ImGui::End();

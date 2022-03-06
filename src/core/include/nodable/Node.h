@@ -66,9 +66,12 @@ namespace Nodable {
 
         Slots<Node*>&        input_slots() { return m_inputs; };
         const Slots<Node*>&  input_slots() const{ return m_inputs; };
-        Slots<Node*>&        output_slots(){ return m_outputs; };
+        Slots<Node*>&        output_slots() { return m_outputs; };
+        const Slots<Node*>&  output_slots() const { return m_outputs; };
         Slots<Node*>&        successor_slots() { return m_successors; }
+        const Slots<Node*>&  successor_slots()const { return m_successors; }
         Slots<Node*>&        predecessor_slots() { return m_predecessors; }
+        const Slots<Node*>&  predecessor_slots()const { return m_predecessors; }
 
         bool                 needs_to_be_deleted() const { return m_needs_to_be_deleted; }
         void                 flag_for_deletion(){ m_needs_to_be_deleted = true;}

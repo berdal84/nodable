@@ -577,7 +577,7 @@ void GraphNodeView::update_child_view_constraints()
             // Follow predecessor Node(s), except if first predecessor is a Conditional if/else
             //---------------------------------------------------------------------------------
 
-            Nodes& predecessor_nodes = _eachNode->predecessor_slots().content();
+            const Nodes& predecessor_nodes = _eachNode->predecessor_slots().content();
             std::vector<NodeView*> predecessor_node_views;
             Node::get_components<NodeView>(predecessor_nodes, predecessor_node_views);
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not<IConditionalStruct>() )

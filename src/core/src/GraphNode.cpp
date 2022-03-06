@@ -213,17 +213,24 @@ void GraphNode::destroy(Node* _node)
     }
 
     // delete any relation with this node
-    for (auto it = m_relation_registry.begin(); it != m_relation_registry.end();)
+    for (auto it = m_relation_registry.rbegin(); it != m_relation_registry.rend();)
     {
-        auto pair = (*it).second;
-        if( pair.second == _node || pair.first == _node)
-            it = m_relation_registry.erase(it);
-        else
-            it++;
+        Relation_t             relation_type = (*it).first;
+        std::pair<Node*,Node*> nodes         = (*it).second;
+        it++;
+
+        if( nodes.second == _node || nodes.first == _node)
+        {
+            disconnect(nodes.first, nodes.second, relation_type, false );
+        }
     }
 
     // unregister and delete
     remove(_node);
+    if ( _node == m_root )
+    {
+        m_root = nullptr;
+    }
     delete _node;
 }
 
@@ -345,10 +352,7 @@ void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relationType, bool _
     switch ( _relationType )
     {
         case Relation_t::IS_PREDECESSOR_OF:
-        {
-            connect(_dst, _src, Relation_t::IS_SUCCESSOR_OF, _side_effects);
-            break;
-        }
+            return connect(_dst, _src, Relation_t::IS_SUCCESSOR_OF, _side_effects);
 
         case Relation_t::IS_CHILD_OF:
         {
@@ -465,7 +469,7 @@ void GraphNode::disconnect(Node *_src, Node *_dst, Relation_t _relationType, boo
             break;
 
         case Relation_t::IS_PREDECESSOR_OF:
-            disconnect(_dst, _src, Relation_t::IS_SUCCESSOR_OF, _side_effects);
+            return disconnect(_dst, _src, Relation_t::IS_SUCCESSOR_OF, _side_effects);
             break;
 
         case Relation_t::IS_SUCCESSOR_OF:

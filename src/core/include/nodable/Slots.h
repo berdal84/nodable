@@ -17,10 +17,10 @@ namespace Nodable
 
         std::vector<T>&       content() { return m_slots; }
         const std::vector<T>& content() const { return m_slots; }
-        auto                  begin() { return m_slots.begin(); }
-        auto                  end() { return m_slots.end(); }
+        auto                  begin() const { return m_slots.begin(); }
+        auto                  end() const { return m_slots.end(); }
         void                  set_limit(int _count) { m_limit = _count; }
-        int                   get_limit() { return m_limit; }
+        int                   get_limit()const { return m_limit; }
         T                     back() { return m_slots.back(); }
         bool                  empty() const { return m_slots.empty(); }
         size_t                size() const { return m_slots.size(); }
@@ -41,7 +41,7 @@ namespace Nodable
             m_on_added.emit(_node);
         }
 
-        T get_front_or_nullptr()
+        T get_front_or_nullptr() const
         {
             return m_slots.empty() ? nullptr : m_slots[0];
         }

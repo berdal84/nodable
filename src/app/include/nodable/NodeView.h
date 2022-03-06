@@ -156,7 +156,7 @@ namespace Nodable
          * All input, output, components, parent container and other information are draw in a column.
          * @param _view
          */
-        static void DrawNodeViewAsPropertiesPanel(NodeView *_view);
+        static void DrawNodeViewAsPropertiesPanel(NodeView *_view, bool* _show_advanced);
 
         /** set globally the draw detail of nodes */
         static NodeViewDetail s_viewDetail;

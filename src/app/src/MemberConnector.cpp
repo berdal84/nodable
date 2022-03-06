@@ -145,6 +145,8 @@ bool MemberConnector::connect(const MemberConnector *_left, const MemberConnecto
         graph->connect( _left->get_member(), _right->get_member() );
     else
         graph->connect( _right->get_member(), _left->get_member() );
+
+    return true;
 }
 
 bool MemberConnector::has_node_connected() const {
