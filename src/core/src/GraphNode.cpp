@@ -213,17 +213,25 @@ void GraphNode::destroy(Node* _node)
     }
 
     // delete any relation with this node
-    for (auto it = m_relation_registry.rbegin(); it != m_relation_registry.rend();)
+    std::vector<Relation> relations_to_disconnect;
+
+     for (auto it = m_relation_registry.begin(); it != m_relation_registry.end(); it++)
     {
         Relation_t             relation_type = (*it).first;
         std::pair<Node*,Node*> nodes         = (*it).second;
-        it++;
 
         if( nodes.second == _node || nodes.first == _node)
         {
-            disconnect(nodes.first, nodes.second, relation_type, false );
+            relations_to_disconnect.push_back(*it);
         }
     }
+    for(auto each : relations_to_disconnect)
+    {
+        Relation_t             relation_type = each.first;
+        std::pair<Node*,Node*> nodes         = each.second;
+        disconnect(nodes.first, nodes.second, relation_type, false );
+    };
+
 
     // unregister and delete
     remove(_node);
