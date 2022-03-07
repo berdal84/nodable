@@ -217,19 +217,19 @@ void GraphNode::destroy(Node* _node)
 
      for (auto it = m_relation_registry.begin(); it != m_relation_registry.end(); it++)
     {
-        Relation_t             relation_type = (*it).first;
-        std::pair<Node*,Node*> nodes         = (*it).second;
+        Relation_t     relation_type = it->first;
+        Relation_link nodes         = it->second;
 
-        if( nodes.second == _node || nodes.first == _node)
+        if( nodes.src == _node || nodes.dst == _node)
         {
             relations_to_disconnect.push_back(*it);
         }
     }
     for(auto each : relations_to_disconnect)
     {
-        Relation_t             relation_type = each.first;
-        std::pair<Node*,Node*> nodes         = each.second;
-        disconnect(nodes.first, nodes.second, relation_type, false );
+        Relation_t     relation_type = each.first;
+        Relation_link nodes         = each.second;
+        disconnect(nodes.src, nodes.dst, relation_type, false );
     };
 
 
@@ -355,9 +355,9 @@ void GraphNode::connect(Member* _src, VariableNode* _dst)
     connect(_src, _dst->get_value(), ConnectBy_Copy );
 }
 
-void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relationType, bool _side_effects)
+void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relation_type, bool _side_effects)
 {
-    switch ( _relationType )
+    switch ( _relation_type )
     {
         case Relation_t::IS_PREDECESSOR_OF:
             return connect(_dst, _src, Relation_t::IS_SUCCESSOR_OF, _side_effects);
@@ -448,7 +448,7 @@ void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relationType, bool _
             NODABLE_ASSERT(false); // This connection type is not yet implemented
     }
 
-    m_relation_registry.emplace(_relationType, std::pair(_src, _dst));
+    m_relation_registry.emplace(_relation_type, Relation_link(_src, _dst));
     set_dirty();
 }
 
@@ -457,7 +457,7 @@ void GraphNode::disconnect(Node *_src, Node *_dst, Relation_t _relationType, boo
     NODABLE_ASSERT(_src && _dst);
 
     // find relation
-    Relation pair{_relationType, {_src, _dst}};
+    Relation pair{_relationType, Relation_link(_src, _dst)};
     auto relation = std::find(m_relation_registry.begin(), m_relation_registry.end(), pair);
 
     if(relation == m_relation_registry.end())

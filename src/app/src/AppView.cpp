@@ -138,7 +138,7 @@ ImFont* AppView::load_font(const FontConf &fontConf) {
         config.OversampleV = 1;
 
         //io.Fonts->AddFontDefault();
-        std::string fontPath = m_context->app->getAssetPath(fontConf.path);
+        std::string fontPath = m_context->app->get_asset_path(fontConf.path);
         LOG_VERBOSE("AppView", "Adding font from file ... %s\n", fontPath.c_str())
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), fontConf.size, &config);
     }
@@ -153,7 +153,7 @@ ImFont* AppView::load_font(const FontConf &fontConf) {
         config.MergeMode = true;
         config.PixelSnapH = true;
         config.GlyphMinAdvanceX = settings->ui_icons.size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = m_context->app->getAssetPath(settings->ui_icons.path);
+        auto fontPath = m_context->app->get_asset_path(settings->ui_icons.path);
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui_icons.size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to font ...\n")
     }
@@ -179,7 +179,7 @@ bool AppView::draw()
 		switch (event.type)
 		{
 		case SDL_QUIT:
-			m_context->app->stopExecution();
+            m_context->app->flag_to_stop();
 			break;
 
 		case SDL_KEYUP:
@@ -188,15 +188,15 @@ bool AppView::draw()
 			if ((event.key.keysym.mod & KMOD_LCTRL)) {
 
 				// History
-				if (auto file = m_context->app->getCurrentFile()) {
+				if (auto file = m_context->app->get_curr_file()) {
 					History* currentFileHistory = file->getHistory();
 					     if (key == SDLK_z) currentFileHistory->undo();
 					else if (key == SDLK_y) currentFileHistory->redo();
 				}
 
 				// File
-				     if( key == SDLK_s)  m_context->app->saveCurrentFile();
-				else if( key == SDLK_w)  m_context->app->closeCurrentFile();
+				     if( key == SDLK_s) m_context->app->save_file();
+				else if( key == SDLK_w) m_context->app->close_file();
 				else if( key == SDLK_o) this->browse_file();
 			}
 			else if (key == SDLK_DELETE )
@@ -247,7 +247,7 @@ bool AppView::draw()
 		// Get current file's history
 		History* currentFileHistory = nullptr;
 
-		if ( auto file = m_context->app->getCurrentFile())
+		if ( auto file = m_context->app->get_curr_file())
 			currentFileHistory = file->getHistory();
 
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
@@ -281,12 +281,12 @@ bool AppView::draw()
                 if (ImGui::BeginMenu("File")) {
                     //ImGui::MenuItem(ICON_FA_FILE   "  New", "Ctrl + N");
                     if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) browse_file();
-                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) m_context->app->saveCurrentFile();
-                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) m_context->app->closeCurrentFile();
+                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) m_context->app->save_file();
+                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) m_context->app->close_file();
 
                     FileView *fileView = nullptr;
                     bool auto_paste;
-                    if (auto file = m_context->app->getCurrentFile()) {
+                    if (auto file = m_context->app->get_curr_file()) {
                         fileView = file->getView();
                         auto_paste = fileView->experimental_clipboard_auto_paste();
                     }
@@ -295,7 +295,7 @@ bool AppView::draw()
                         fileView->experimental_clipboard_auto_paste(!auto_paste);
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4")) m_context->app->stopExecution();
+                    if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4")) m_context->app->flag_to_stop();
 
                     ImGui::EndMenu();
                 }
@@ -359,23 +359,23 @@ bool AppView::draw()
 
                 if (ImGui::BeginMenu("Run")) {
                     if (ImGui::MenuItem(ICON_FA_PLAY" Run") && m_context->vm->is_program_stopped()) {
-                        m_context->app->runCurrentFileProgram();
+                        m_context->app->vm_run();
                     }
 
                     if (ImGui::MenuItem(ICON_FA_BUG" Debug") && m_context->vm->is_program_stopped()) {
-                        m_context->app->debugCurrentFileProgram();
+                        m_context->app->vm_debug();
                     }
 
                     if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && m_context->vm->is_debugging()) {
-                        m_context->app->stepOverCurrentFileProgram();
+                        m_context->app->vm_step_over();
                     }
 
                     if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !m_context->vm->is_program_stopped()) {
-                        m_context->app->stopCurrentFileProgram();
+                        m_context->app->vm_stop();
                     }
 
                     if (ImGui::MenuItem(ICON_FA_UNDO " Reset")) {
-                        m_context->app->stopCurrentFileProgram();
+                        m_context->app->vm_stop();
                     }
                     ImGui::EndMenu();
                 }
@@ -474,7 +474,7 @@ bool AppView::draw()
             // File info
             ImGui::Begin(k_file_info_window_name);
             {
-                const File* currFile = m_context->app->getCurrentFile();
+                const File* currFile = m_context->app->get_curr_file();
 
                 if (currFile)
                 {
@@ -490,7 +490,7 @@ bool AppView::draw()
             ImGui::End();
 
             // Opened documents
-            for (size_t fileIndex = 0; fileIndex < m_context->app->getFileCount(); fileIndex++)
+            for (size_t fileIndex = 0; fileIndex < m_context->app->get_file_count(); fileIndex++)
             {
                 draw_file_editor(dockspace_main, redock_all, fileIndex);
             }
@@ -648,7 +648,7 @@ void AppView::draw_file_browser()
         auto selectedFiles = m_file_browser.GetMultiSelected();
         for (const auto & selectedFile : selectedFiles)
         {
-            m_context->app->openFile(selectedFile.c_str());
+            m_context->app->open_file(selectedFile.c_str());
         }
         m_file_browser.ClearSelected();
         m_file_browser.Close();
@@ -657,7 +657,7 @@ void AppView::draw_file_browser()
 
 void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex)
 {
-    File *file = m_context->app->getFileAtIndex(fileIndex);
+    File *file = m_context->app->get_file_at(fileIndex);
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags = (file->isModified() ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
@@ -677,11 +677,11 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
 
         if (visible)
         {
-            const bool isCurrentFile = fileIndex == m_context->app->getCurrentFileIndex();
+            const bool isCurrentFile = fileIndex == m_context->app->get_curr_file_index();
 
             if ( !isCurrentFile && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
             {
-                m_context->app->setCurrentFileWithIndex(fileIndex);
+                m_context->app->set_curr_file(fileIndex);
             }
 
             // History bar on top
@@ -714,7 +714,7 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
 
     if (!open)
     {
-        m_context->app->closeFile(fileIndex);
+        m_context->app->close_file_at(fileIndex);
     }
 }
 
@@ -783,7 +783,7 @@ void AppView::draw_startup_window() {
     if ( ImGui::BeginPopupModal(m_startup_screen_title, nullptr, flags) )
     {
 
-        auto path = m_context->app->getAssetPath(m_context->settings->ui_splashscreen_imagePath);
+        auto path = m_context->app->get_asset_path(m_context->settings->ui_splashscreen_imagePath);
         Texture* logo = m_context->texture_manager->get_or_create(path);
         ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
         ImGui::Image((void*)(intptr_t)logo->image, vec2((float)logo->width, (float)logo->height));
@@ -968,7 +968,7 @@ void AppView::draw_tool_bar()
 
     if (ImGui::Button(ICON_FA_PLAY, m_context->settings->ui_toolButton_size) && m_context->vm->is_program_stopped())
     {
-        m_context->app->runCurrentFileProgram();
+        m_context->app->vm_run();
     }
     if ( isRunning )
         ImGui::PopStyleColor();
@@ -980,7 +980,7 @@ void AppView::draw_tool_bar()
         ImGui::PushStyleColor(ImGuiCol_Button, m_context->settings->ui_button_activeColor);
     if (ImGui::Button(ICON_FA_BUG, m_context->settings->ui_toolButton_size) && m_context->vm->is_program_stopped())
     {
-        m_context->app->debugCurrentFileProgram();
+        m_context->app->vm_debug();
     }
     if ( isDebugging )
         ImGui::PopStyleColor();
@@ -996,14 +996,14 @@ void AppView::draw_tool_bar()
     // stop
     if (ImGui::Button(ICON_FA_STOP, m_context->settings->ui_toolButton_size) && !m_context->vm->is_program_stopped())
     {
-        m_context->app->stopCurrentFileProgram();
+        m_context->app->vm_stop();
     }
     ImGui::SameLine();
 
     // reset
     if ( ImGui::Button(ICON_FA_UNDO, m_context->settings->ui_toolButton_size))
     {
-        m_context->app->resetCurrentFileProgram();
+        m_context->app->vm_reset();
     }
     ImGui::SameLine();
     ImGui::EndGroup();
