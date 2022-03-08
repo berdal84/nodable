@@ -911,7 +911,10 @@ Member* Parser::parse_function_call()
     std::string error_str {"parse function call... " KO " abort, reason: " + signature_str + " not found.\n"};
     LOG_ERROR("Parser", error_str.c_str() );
     rollback_transaction();
-    throw std::runtime_error( error_str );
+    throw error(
+            "parse_function_call failed.",
+            "Signature not found: " + signature_str,
+            m_token_ribbon.tokens.back() );
 }
 
 Scope* Parser::get_current_scope()

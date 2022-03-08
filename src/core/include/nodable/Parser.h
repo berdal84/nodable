@@ -4,6 +4,7 @@
 #include <vector>
 #include <stack>
 #include <memory>
+#include <exception>
 
 #include <nodable/Nodable.h> // forward declarations
 #include <nodable/Language.h>
@@ -34,6 +35,33 @@ namespace Nodable{
 	class Parser
 	{
 	public:
+        class error : public std::exception
+            {
+            public:
+                error(
+                    const std::string& _main_reason,
+                    const std::string& _detailed_message,
+                    std::shared_ptr<const Token> _last_parsed_token
+                    )
+                    : std::exception()
+                {
+                    sprintf(m_what,
+                            "Parser::error: %s: %s (last word: \"%s\")",
+                            _main_reason.c_str(),
+                            _detailed_message.c_str(),
+                            _last_parsed_token->m_word.c_str()
+                    );
+                }
+
+                const char* what() const noexcept override
+                {
+                    return m_what;
+                }
+
+            private:
+                char m_what[255];
+        };
+
 		explicit Parser(const Language* _lang, bool _strict = false )
             : m_language(_lang)
             , m_strict_mode(_strict)
