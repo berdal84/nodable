@@ -63,7 +63,7 @@ jobs:
     - name: Test
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      run: ctest -C ${{env.buildType}} --verbose
+      run: ctest -C ${{env.buildType}} --verbose --output-on-failure
 
     # Upload application binary
     #--------------------------
