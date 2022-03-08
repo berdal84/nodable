@@ -1,6 +1,6 @@
 #pragma once
 
-#define R_DEF_TYPENAME( CPP_T, REFLECT_T ) \
+#define R_LINK_TYPE( CPP_T, REFLECT_T ) \
     template<> \
     class meta_info<CPP_T, REFLECT_T> : public Type \
     {  \
@@ -18,6 +18,4 @@
     class meta_enum<REFLECT_T> : public meta_info<CPP_T, REFLECT_T> {}; \
     \
     template<>\
-    class meta_type<CPP_T> : public meta_info<CPP_T, REFLECT_T> {};\
-    \
-    static register_type<CPP_T, REFLECT_T> MAKE_UNIQUE_VAR_NAME(inserter);
+    class meta_type<CPP_T> : public meta_info<CPP_T, REFLECT_T> {};

@@ -10,17 +10,16 @@
 #define R_BEGIN( _CLASS, ... ) \
 public:\
     \
-    virtual R::Class* get_class() const __VA_ARGS__ { \
-      return _CLASS::Get_class();\
+    virtual R::Class_ptr get_class() const __VA_ARGS__ { \
+      return _CLASS::Get_class(); \
     } \
     \
-    static R::Class* Get_class() {  \
-      static R::Class* clss = _CLASS::Reflect_class(); \
+    static R::Class_ptr Get_class() { \
+      static R::Class_ptr clss = _CLASS::Reflect_class(); \
       return clss; \
     } \
-    \
-    static R::Class* Reflect_class() {   \
-      R::Class* clss = new R::Class(#_CLASS);
+    static R::Class_ptr Reflect_class() { \
+      R::Class_ptr clss = std::make_shared<R::Class>(#_CLASS);
 
 /**
  * Must be inserted between R_BEGIN and R_END macro usage
@@ -62,6 +61,4 @@ public:\
  * A <- B <- C <- D, here only D needs to be explicitly defined in it's cpp.
  *
  */
-#define R_DEFINE_CLASS( _CLASS ) \
-    static Nodable::R::register_class<_CLASS> MAKE_UNIQUE_VAR_NAME(inserter) (#_CLASS) ; \
-    static_assert( Nodable::R::is_class_reflected<_CLASS>::value, "class "#_CLASS" is not reflected by R" );
+#define R_DEFINE_CLASS( _CLASS ) static auto reflected_##_CLASS = Nodable::R::TypeRegister::push<_CLASS>();

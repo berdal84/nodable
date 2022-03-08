@@ -170,7 +170,7 @@ namespace Nodable {
                 return nullptr;
             }
 
-			R::Class* desired_class = T::Get_class();
+			R::Class_ptr desired_class = T::Get_class();
 
 			// Search with class name
 			{

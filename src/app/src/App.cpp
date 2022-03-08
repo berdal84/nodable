@@ -34,8 +34,7 @@ App::~App()
 
 bool App::init()
 {
-  R::Initialize();
-  m_view->init();
+    m_view->init();
 	return true;
 }
 

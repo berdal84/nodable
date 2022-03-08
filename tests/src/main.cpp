@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     Log::SetVerbosityLevel("Parser", Verbosity::Warning);
     Log::SetVerbosityLevel("VM", Verbosity::Verbose);
 
-    R::Initialize();
+    R::init();
 
     return RUN_ALL_TESTS();
 }

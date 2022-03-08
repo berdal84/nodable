@@ -40,32 +40,76 @@ namespace Nodable::R
     using unknown_t = std::nullptr_t; // <----- seriously doubting about this idea.
 
     /**
+     * Initialize R.
+     * - register base types
+     * - log statistics
+     */
+    void init();
+
+    void log_statistics();
+
+    /**
      * Static structure to store some register.
      */
-    struct Register
+    struct TypeRegister
     {
-        static std::map<Typename, std::shared_ptr<const Type>>& by_enum();
+        static std::map<Typename, std::shared_ptr<const Type>>&    by_enum();
         static std::map<std::string, std::shared_ptr<const Type>>& by_typeid();
+        static bool has_typeid(const std::string&);
+
+    private:
+        /** push template */
+        template<typename T, bool is_class> struct _push;
+
+        /** push a class */
+        template<typename T>
+        struct _push<T, true> {
+            _push()
+            {
+                std::string id = typeid(T).name();
+                if ( !TypeRegister::has_typeid(id) )
+                {
+                    Type_ptr type = T::Get_class();
+                    TypeRegister::by_typeid()[id] = type;
+                    LOG_MESSAGE("R", "New entry: %s is %s\n", type->get_name(), to_string(type->get_typename()) );
+                }
+            }
+        };
+
+        /** Push a non class */
+        template<typename T>
+        struct _push<T, false>
+        {
+            _push()
+            {
+                std::string id = typeid(T).name();
+                if ( !TypeRegister::has_typeid(id) )
+                {
+                    Type_ptr type;
+                    const Typename reflect_t = meta_type<T>::reflect_t;
+                    type = std::make_shared<meta_enum<reflect_t>>();
+                    TypeRegister::by_enum()[reflect_t] = type;
+
+                    TypeRegister::by_typeid()[id] = type;
+                    LOG_MESSAGE("R", "New entry: %s is %s\n", type->get_name(), to_string(type->get_typename()) );
+                }
+             }
+        };
+
+    public:
+        /** detect if we push a class or a regular type */
+        template<typename T, bool is_class = std::is_class_v<T> && !std::is_same_v<T, std::string>>
+        struct push : _push<T, is_class> {};
     };
 
-    static void LogStats()
+    /* get meta for a specific type at runtime */
+    static std::shared_ptr<const Type> get_type(Typename t)
     {
-        LOG_MESSAGE("R", "Logging reflected types ...\n");
-
-        LOG_MESSAGE("R", "By typename (%i):\n", Register::by_enum().size() );
-        for ( auto each : Register::by_enum() )
-        {
-            LOG_MESSAGE("R", " Typename::%s => %s \n", to_string(each.first), each.second->get_name() );
-        }
-
-        LOG_MESSAGE("R", "By typeid (%i):\n", Register::by_typeid().size() );
-        for ( auto each : Register::by_typeid() )
-        {
-            LOG_MESSAGE("R", " %s => %s \n", each.first.c_str(), each.second->get_name() );
-        }
-
-        LOG_MESSAGE("R", "Logging done.\n");
-    }
+        auto found = TypeRegister::by_enum().find(t);
+        if (found != TypeRegister::by_enum().end() )
+            return found->second;
+        return nullptr;
+    };
 
     /* get meta for a specific type at runtime */
     template<typename T>
@@ -83,8 +127,8 @@ namespace Nodable::R
         }
 
         std::string id = typeid(T).name();
-        auto found = Register::by_typeid().find(id);
-        if ( found != Register::by_typeid().end() )
+        auto found = TypeRegister::by_typeid().find(id);
+        if ( found != TypeRegister::by_typeid().end() )
         {
             return found->second;
         }
@@ -92,67 +136,13 @@ namespace Nodable::R
 
     };
 
-    /* get meta for a specific type at runtime */
-    static std::shared_ptr<const Type> get_type(Typename t)
-    {
-        auto found = Register::by_enum().find(t);
-        if ( found != Register::by_enum().end() )
-            return found->second;
-        return nullptr;
-    };
-
-   /**
-    * Struct to insert a meta_type
-    * @tparam CPP_T
-    * @tparam REFLECT_T
-    */
-    template<typename CPP_T, Typename REFLECT_T>
-    struct register_type
-    {
-        register_type()
-        {
-            if ( !get_type(REFLECT_T) )
-            {
-                std::shared_ptr<Type> type = std::make_shared<meta_enum<REFLECT_T>>();
-                std::string id  = typeid(CPP_T).name();
-                Register::by_enum()[REFLECT_T] = type;
-                Register::by_typeid()[id]      = type;
-
-                LOG_MESSAGE("R", "New entry: %s is %s\n", type->get_name(), to_string(type->get_typename()) );
-            }
-        };
-    };
-
-    template<typename T>
-    struct register_class
-    {
-        register_class(const char* _name)
-        {
-            if ( !get_type<T>() )
-            {
-                std::shared_ptr<Type> type  = std::make_shared<Class>(_name);
-                std::string id = typeid(T).name();
-
-                Register::by_typeid()[id] = type;
-
-                LOG_MESSAGE("R", "New entry: %s is %s\n", type->get_name(), to_string(type->get_typename()) );
-            }
-        };
-    };
-
-    /* just log the reflected types */
-    static void Initialize()
-    {
-        LogStats();
-    }
-
     /*
      * Match some cpp types to Type enum.
      */
-    R_DEF_TYPENAME(double       , Typename::Double )
-    R_DEF_TYPENAME(std::string  , Typename::String )
-    R_DEF_TYPENAME(bool         , Typename::Boolean )
-    R_DEF_TYPENAME(void         , Typename::Void )
+    R_LINK_TYPE(double       , Typename::Double )
+    R_LINK_TYPE(std::string  , Typename::String )
+    R_LINK_TYPE(bool         , Typename::Boolean )
+    R_LINK_TYPE(void         , Typename::Void )
 
     template<typename T>
     class meta_type<T*> : public meta_type<T> {};

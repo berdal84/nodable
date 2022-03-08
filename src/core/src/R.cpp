@@ -1,5 +1,4 @@
 #include <nodable/R.h>
-#include <nodable/Nodable.h>
 #include <type_traits> // std::underlying_type
 
 using namespace Nodable::R;
@@ -23,15 +22,13 @@ void Type::add_qualifier(Qualifier _other_qualifier)
     m_qualifier = static_cast<Qualifier>( static_cast<T>(m_qualifier) | static_cast<T>(_other_qualifier) );
 }
 
-bool Type::is_ptr(std::shared_ptr<const Type> left)
+bool Type::is_ptr(const std::shared_ptr<const Type>& left)
 {
-    NODABLE_ASSERT(left != nullptr);
     return  left->has_qualifier(Qualifier::Pointer);
 }
 
-bool Type::is_ref(std::shared_ptr<const Type> left)
+bool Type::is_ref(const std::shared_ptr<const Type>& left)
 {
-    NODABLE_ASSERT(left != nullptr);
     return left->has_qualifier(Qualifier::Ref);
 }
 
@@ -66,23 +63,23 @@ bool Type::is_convertible(
     return false;
 }
 
-std::map<Typename, std::shared_ptr<const Type>>& Register::by_enum()
+std::map<Typename, std::shared_ptr<const Type>>& TypeRegister::by_enum()
 {
     static std::map<Typename, std::shared_ptr<const Type>> meta_register;
     return meta_register;
 }
 
-std::map<std::string, std::shared_ptr<const Type>>& Register::by_typeid()
+std::map<std::string, std::shared_ptr<const Type>>& TypeRegister::by_typeid()
 {
     static std::map<std::string, std::shared_ptr<const Type>> type_register;
     return type_register;
 }
 
-bool Class::is_child_of(const Class *_possible_parent_class, bool _selfCheck) const
+bool Class::is_child_of(Class_ptr _possible_parent_class, bool _selfCheck) const
 {
     bool is_child;
 
-    if (_selfCheck && this == _possible_parent_class)
+    if (_selfCheck && this == _possible_parent_class.get() )
     {
         is_child = true;
     }
@@ -102,7 +99,7 @@ bool Class::is_child_of(const Class *_possible_parent_class, bool _selfCheck) co
         else // indirect parent check
         {
             bool is_a_parent_is_child_of = false;
-            for (Class *each : m_parents)
+            for (Class_ptr each : m_parents)
             {
                 if (each->is_child_of(_possible_parent_class, true))
                 {
@@ -115,12 +112,46 @@ bool Class::is_child_of(const Class *_possible_parent_class, bool _selfCheck) co
     return is_child;
 };
 
-void Class::add_parent(Class *_parent)
+void Class::add_parent(Class_ptr _parent)
 {
     m_parents.insert(_parent);
 }
 
-void Class::add_child(Class *_child)
+void Class::add_child(Class_ptr _child)
 {
     m_children.insert(_child);
+}
+
+bool TypeRegister::has_typeid(const std::string& _id)
+{
+    return by_typeid().find(_id) != by_typeid().end();
+}
+
+void Nodable::R::log_statistics()
+{
+    LOG_MESSAGE("R", "Logging reflected types ...\n");
+
+    LOG_MESSAGE("R", "By typename (%i):\n", TypeRegister::by_enum().size() );
+    for ( const auto& each : TypeRegister::by_enum() )
+    {
+        LOG_MESSAGE("R", " Typename::%s => %s \n", to_string(each.first), each.second->get_name() );
+    }
+
+    LOG_MESSAGE("R", "By typeid (%i):\n", TypeRegister::by_typeid().size() );
+    for ( const auto& each : TypeRegister::by_typeid() )
+    {
+        LOG_MESSAGE("R", " %s => %s \n", each.first.c_str(), each.second->get_name() );
+    }
+
+    LOG_MESSAGE("R", "Logging done.\n");
+}
+
+void Nodable::R::init()
+{
+    TypeRegister::push<double>();
+    TypeRegister::push<std::string>();
+    TypeRegister::push<bool>();
+    TypeRegister::push<void>();
+
+    log_statistics();
 }

@@ -25,8 +25,8 @@ namespace Nodable::R
         bool        has_qualifier(Qualifier _other_qualifier) const override;
         void        add_qualifier(Qualifier _other_qualifier) override;
         static std::shared_ptr<Type> s_unknown;
-        static bool   is_ptr(std::shared_ptr<const Type>);
-        static bool   is_ref(std::shared_ptr<const Type>);
+        static bool   is_ptr(const std::shared_ptr<const Type>&);
+        static bool   is_ref(const std::shared_ptr<const Type>&);
         static std::shared_ptr<Type>  add_ref(std::shared_ptr<Type>);
         static std::shared_ptr<Type>  add_ptr(std::shared_ptr<Type>);
         static bool   is_convertible(std::shared_ptr<const Type> , std::shared_ptr<const Type> );
