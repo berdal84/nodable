@@ -18,7 +18,7 @@ namespace Nodable
 	public:
 		Properties(Node* owner);
 		virtual ~Properties();
-		Member*             add(const char*, Visibility, std::shared_ptr<const R::Type>, Way);
+		Member*             add(const char*, Visibility, std::shared_ptr<const R::MetaType>, Way);
         bool                has(const std::string& _name);
 		bool                has(const Member* _value);
 		Member*             get(const std::string& _name)const { return m_props.at(_name.c_str()); };
@@ -26,7 +26,7 @@ namespace Nodable
         Node*               get_owner()const { return m_owner; };
 		const Members&      get_members()const { return m_props; };
 		Member*             get_first_member_with_conn(Way)const;
-        Member*             get_first_member_with(Way, std::shared_ptr<const R::Type>) const;
+        Member*             get_first_member_with(Way, std::shared_ptr<const R::MetaType>) const;
 	private:
 	    Node*    m_owner;
 		Members  m_props;

@@ -19,17 +19,17 @@ bool DataAccess::update()
 	{
 		writer.Key(_value->get_name().c_str());
 
-    	switch(_value->get_type()->get_typename())
+    	switch(_value->get_meta_type()->get_category())
     	{
-        case R::Typename::String :
+        case R::Type::String :
     		writer.String( ((std::string)*_value).c_str());
     		break;
 
-        case R::Typename::Double :
+        case R::Type::Double :
     		writer.Double((double)*_value);
     		break;
     		
-        case R::Typename::Boolean:
+        case R::Type::Boolean:
     		writer.Bool((bool)*_value);
     		break;
     	default:

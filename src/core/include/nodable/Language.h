@@ -60,8 +60,8 @@ namespace Nodable {
         inline const Semantic* getSemantic()const { return &semantic; }
         inline const std::vector<IInvokable*>& getAllFunctions()const { return api; }
 
-        const FunctionSignature* createUnaryOperatorSignature(std::shared_ptr<const R::Type> , std::string , std::shared_ptr<const R::Type> ) const;
-        const FunctionSignature* createBinOperatorSignature(std::shared_ptr<const R::Type>, std::string , std::shared_ptr<const R::Type> , std::shared_ptr<const R::Type> ) const;
+        const FunctionSignature* createUnaryOperatorSignature(std::shared_ptr<const R::MetaType> , std::string , std::shared_ptr<const R::MetaType> ) const;
+        const FunctionSignature* createBinOperatorSignature(std::shared_ptr<const R::MetaType>, std::string , std::shared_ptr<const R::MetaType> , std::shared_ptr<const R::MetaType> ) const;
 
         bool hasHigherPrecedenceThan(const InvokableOperator *_firstOperator, const InvokableOperator* _secondOperator)const;
         virtual void sanitizeFunctionName( std::string& identifier ) const = 0;

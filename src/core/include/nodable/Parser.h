@@ -125,7 +125,7 @@ namespace Nodable{
         Scope*                 get_current_scope();
 
         /** Given a Literal token, return its type */
-        R::Typename            get_literal_type(std::shared_ptr<const Token> _token)const;
+        R::Type            get_literal_type(std::shared_ptr<const Token> _token)const;
 
     private:
 		/** A language to get Semantic and Syntax (not yet implemented) */

@@ -21,11 +21,11 @@ namespace Nodable
         void define();
         bool is_defined()const;
         void undefine();
-		bool is(std::shared_ptr<const R::Type> _type)const;
+		bool is_meta_type(std::shared_ptr<const R::MetaType> _meta_type)const;
 
         void set(void* _pointer)
         {
-            set_type( R::get_type<void*>() );
+            set_meta_type(R::get_meta_type<void *>());
             m_data.emplace<void*>(_pointer);
             m_is_defined = true;
         }
@@ -36,15 +36,15 @@ namespace Nodable
 		void set(double);
 		void set(bool);
 
-		void set_type(std::shared_ptr<const R::Type> _type);
+		void set_meta_type(std::shared_ptr<const R::MetaType> _type);
 
         template<typename T>
-        void set_type()
+        void set_meta_type()
         {
-            set_type( R::get_type<T>() );
+            set_meta_type(R::get_meta_type<T>());
         };
 
-        std::shared_ptr<const R::Type> get_type()const;
+        std::shared_ptr<const R::MetaType> get_meta_type()const;
 
         // conversion
         template<typename T>
@@ -68,7 +68,7 @@ namespace Nodable
 
     private:
         bool m_is_defined;
-        std::shared_ptr<const R::Type> m_type;
+        std::shared_ptr<const R::MetaType> m_meta_type;
 		mpark::variant<bool, double, std::string, void*> m_data;
     };
 }

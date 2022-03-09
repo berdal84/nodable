@@ -20,7 +20,7 @@ InstructionNode* AppNodeFactory::new_instr() const
     return node;
 }
 
-VariableNode* AppNodeFactory::newVariable(std::shared_ptr<const R::Type> _type, const std::string& _name, IScope *_scope) const
+VariableNode* AppNodeFactory::newVariable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope *_scope) const
 {
     VariableNode* node = m_headless_node_factory.newVariable(_type, _name, _scope);
     post_instantiation(node);
@@ -97,7 +97,7 @@ Node* AppNodeFactory::newNode() const
     return new Node();
 }
 
-LiteralNode* AppNodeFactory::newLiteral(std::shared_ptr<const R::Type> _type) const
+LiteralNode* AppNodeFactory::newLiteral(std::shared_ptr<const R::MetaType> _type) const
 {
     LiteralNode* node = m_headless_node_factory.newLiteral(_type);
     post_instantiation(node);

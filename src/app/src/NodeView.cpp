@@ -140,17 +140,17 @@ void NodeView::set_owner(Node *_node)
     }
 
     // Determine a color depending on node type
-    R::Class* clss = _node->get_class();
+    R::Class_ptr clss = _node->get_class();
 
     if (_node->has<InvokableComponent>())
     {
         setColor(Color_Fill, &settings->ui_node_invokableColor); // blue
     }
-    else if ( clss->is<VariableNode>() )
+    else if (clss->is_child_of<VariableNode>() )
     {
         setColor(Color_Fill, &settings->ui_node_variableColor); // purple
     }
-    else if ( clss->is<LiteralNode>() )
+    else if (clss->is_child_of<LiteralNode>() )
     {
         setColor(Color_Fill, &settings->ui_node_literalColor);
     }
@@ -521,26 +521,26 @@ bool NodeView::drawMemberView(MemberView* _view )
     // show/hide
     const bool member_is_an_unconnected_input = member->get_input() != nullptr && member->allows_connection(Way_Out);
 
-    const R::Class* owner_class = member->get_owner()->get_class();
+    const R::Class_ptr owner_class = member->get_owner()->get_class();
 
     _view->m_showInput =
-         member_is_an_unconnected_input || owner_class->is<VariableNode>() || owner_class->is<LiteralNode>() ||
-        (
-            ( _view->m_touched && !Type::is_ptr(member->get_type() ) )
+            member_is_an_unconnected_input || owner_class->is_child_of<VariableNode>() || owner_class->is_child_of<LiteralNode>() ||
+            (
+            ( _view->m_touched && !MetaType::is_ptr(member->get_meta_type() ) )
             ||
             (
-                (!Type::is_ptr(member->get_type())  && member->is_defined())
+                (!MetaType::is_ptr(member->get_meta_type()) && member->is_defined())
                 &&
                 (
                     (
                         !member_is_an_unconnected_input
                         ||
-                        owner_class->is<LiteralNode>()
+                                owner_class->is_child_of<LiteralNode>()
                         ||
                         s_viewDetail == NodeViewDetail::Exhaustive
                     )
                     ||
-                    owner_class->is<VariableNode>()
+                            owner_class->is_child_of<VariableNode>()
                 )
             )
         );
@@ -568,7 +568,7 @@ bool NodeView::drawMemberView(MemberView* _view )
             ImGui::BeginTooltip();
             ImGui::Text("%s (%s)",
                         member->get_name().c_str(),
-                        member->get_type()->get_name());
+                        member->get_meta_type()->get_name());
             ImGui::EndTooltip();
         }
 
@@ -605,9 +605,9 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     auto inputFlags = ImGuiInputTextFlags_None;
 
     /* Draw the member */
-    switch ( _member->get_type()->get_typename() )
+    switch (_member->get_meta_type()->get_category() )
     {
-        case R::Typename::Double:
+        case R::Type::Double:
         {
             auto f = (double)*_member;
 
@@ -619,7 +619,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             break;
         }
 
-        case R::Typename::String:
+        case R::Type::String:
         {
             char str[255];
             snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
@@ -632,7 +632,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
             break;
         }
 
-        case R::Typename::Boolean:
+        case R::Type::Boolean:
         {
             std::string checkBoxLabel = _member->get_name();
 
@@ -685,7 +685,7 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanc
                 _member->get_name().c_str(),
                 WayToString(_member->get_allowed_connection()).c_str(),
                 _member->is_connected_by(ConnectBy_Ref) ? "&" : "",
-                _member->get_type()->get_name(),
+                _member->get_meta_type()->get_name(),
                 _member->is_defined() ? "" : ", undefined!");
 
         ImGui::SameLine();

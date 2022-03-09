@@ -149,7 +149,7 @@ std::string& Serializer::serialize(std::string& _result, const TokenType& _type)
     return _result.append(language->getSemantic()->token_type_to_string(_type) );
 }
 
-std::string& Serializer::serialize(std::string &_result, std::shared_ptr<const R::Type> _type) const
+std::string& Serializer::serialize(std::string &_result, std::shared_ptr<const R::MetaType> _type) const
 {
     return _result.append(language->getSemantic()->type_to_string(_type) );
 }
@@ -165,7 +165,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
         }
         else // in case no token found (means was not parsed but created by the user)
         {
-            serialize(_result, _node->get_value()->get_type() );
+            serialize(_result, _node->get_value()->get_meta_type() );
             _result.append(" ");
         }
     }
@@ -211,7 +211,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
 
 std::string& Serializer::serialize(std::string& _result, const Variant* variant) const
 {
-    if (variant->get_type()->get_typename() == R::Typename::String )
+    if (variant->get_meta_type()->get_category() == R::Type::String )
     {
         return _result.append('"' + variant->convert_to<std::string>() + '"');
     }
@@ -269,15 +269,15 @@ std::string& Serializer::serialize(std::string& _result, const Node* _node) cons
     NODABLE_ASSERT(_node != nullptr)
     auto clss = _node->get_class();
 
-    if ( clss->is<InstructionNode>())
+    if (clss->is_child_of<InstructionNode>())
     {
         serialize(_result, _node->as<InstructionNode>());
     }
-    else if ( clss->is<ConditionalStructNode>() )
+    else if (clss->is_child_of<ConditionalStructNode>() )
     {
         serialize( _result, _node->as<ConditionalStructNode>());
     }
-    else if ( clss->is<ForLoopNode>() )
+    else if (clss->is_child_of<ForLoopNode>() )
     {
         serialize( _result, _node->as<ForLoopNode>());
     }
@@ -367,7 +367,7 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
     //       More work to do to know if expression is a declaration or not.
 
     Member* input = _for_loop->get_init_expr()->get_input();
-    if ( input && input->get_owner()->get_class()->is<VariableNode>() )
+    if ( input && input->get_owner()->get_class()->is_child_of<VariableNode>() )
     {
         serialize( _result, input->get_owner()->as<VariableNode>() );
     }

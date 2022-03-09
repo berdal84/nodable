@@ -150,7 +150,7 @@ void GraphNode::ensure_has_root()
     }
 }
 
-VariableNode* GraphNode::create_variable(std::shared_ptr<const R::Type> _type, const std::string& _name, IScope* _scope)
+VariableNode* GraphNode::create_variable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope* _scope)
 {
 	auto node = m_factory->newVariable(_type, _name, _scope);
     add(node);
@@ -260,9 +260,9 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst, ConnBy_ _connect_by)
         delete _src_member;
     }
     else if (
-            !R::Type::is_ptr(_src_member->get_type()) &&
-            _src_member->get_owner()->get_class()->is<LiteralNode>() &&
-            _dst->get_owner()->get_class()->is_not<VariableNode>())
+            !R::MetaType::is_ptr(_src_member->get_meta_type()) &&
+            _src_member->get_owner()->get_class()->is_child_of<LiteralNode>() &&
+                    _dst->get_owner()->get_class()->is_not_child_of<VariableNode>())
     {
         Node* owner = _src_member->get_owner();
         _dst->digest(_src_member);
@@ -376,7 +376,7 @@ void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relation_type, bool 
                     {
                         connect(_src, _dst, Relation_t::IS_SUCCESSOR_OF, false);
                     }
-                    else if ( _dst->get_class()->is<ConditionalStructNode>() )
+                    else if (_dst->get_class()->is_child_of<ConditionalStructNode>() )
                     {
                         connect(_src, _dst, Relation_t::IS_SUCCESSOR_OF, false);
                     }
@@ -563,7 +563,7 @@ Node* GraphNode::create_node()
     return node;
 }
 
-LiteralNode* GraphNode::create_literal(std::shared_ptr<const R::Type> _type)
+LiteralNode* GraphNode::create_literal(std::shared_ptr<const R::MetaType> _type)
 {
     LiteralNode* node = m_factory->newLiteral(_type);
     add(node);

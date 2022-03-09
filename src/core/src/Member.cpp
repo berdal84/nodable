@@ -19,13 +19,13 @@ Member::Member(Properties* _parent_properties)
 
 Member::Member( Properties* _parent_properties, double d ): Member(_parent_properties)
 {
-    m_variant.set_type<double>();
+    m_variant.set_meta_type<double>();
     m_variant.set(d);
 }
 
 Member::Member(Properties* _parent_properties, bool b): Member(_parent_properties)
 {
-    m_variant.set_type<bool>();
+    m_variant.set_meta_type<bool>();
     m_variant.set(b);
 }
 
@@ -33,7 +33,7 @@ Member::Member(Properties* _parent_properties, int i): Member(_parent_properties
 
 Member::Member(Properties* _parent_properties, const char * str): Member(_parent_properties)
 {
-    m_variant.set_type<std::string>();
+    m_variant.set_meta_type<std::string>();
     m_variant.set(str);
 }
 
@@ -53,7 +53,7 @@ bool Member::has_input_connected() const
 
 bool Member::equals(const Member *_other)const {
 	return _other != nullptr &&
-            _other->m_variant.get_type() == m_input->m_variant.get_type() &&
+            _other->m_variant.get_meta_type() == m_input->m_variant.get_meta_type() &&
 		   (std::string)*_other == (std::string)*m_input;
 }
 
@@ -65,25 +65,25 @@ void Member::set_input(Member* _val, ConnBy_ _connect_by)
 
 void Member::set(Node* _value)
 {
-    get_variant().set_type( R::get_type<Node*>() );
+    get_variant().set_meta_type(R::get_meta_type<Node *>());
     get_variant().set(_value);
 }
 
 void Member::set(double _value)
 {
-    get_variant().set_type( R::get_type<double>() );
+    get_variant().set_meta_type(R::get_meta_type<double>());
     get_variant().set(_value);
 }
 
 void Member::set(const char* _value)
 {
-    get_variant().set_type( R::get_type<std::string>() );
+    get_variant().set_meta_type(R::get_meta_type<std::string>());
     get_variant().set(_value);
 }
 
 void Member::set(bool _value)
 {
-    get_variant().set_type( R::get_type<bool>() );
+    get_variant().set_meta_type(R::get_meta_type<bool>());
     get_variant().set(_value);
 }
 

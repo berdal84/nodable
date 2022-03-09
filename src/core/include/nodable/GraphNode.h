@@ -40,8 +40,8 @@ namespace Nodable
         /* node factory */
         Node*                       create_root();
         InstructionNode*            create_instr();
-		VariableNode*				create_variable(std::shared_ptr<const R::Type>, const std::string&, IScope*);
-		LiteralNode*                create_literal(std::shared_ptr<const R::Type>);
+		VariableNode*				create_variable(std::shared_ptr<const R::MetaType>, const std::string&, IScope*);
+		LiteralNode*                create_literal(std::shared_ptr<const R::MetaType>);
 		Node*                       create_bin_op(const InvokableOperator*);
 		Node*                       create_unary_op(const InvokableOperator*);
         Node*                       create_operator(const InvokableOperator*);

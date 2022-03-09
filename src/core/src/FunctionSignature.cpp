@@ -6,12 +6,12 @@ using namespace Nodable;
 FunctionSignature::FunctionSignature(std::string _identifier, std::string _label) :
         m_identifier(_identifier),
         m_label(_label),
-        m_return_type(R::get_type<void>())
+        m_return_type(R::get_meta_type<void>())
 {
 
 }
 
-void FunctionSignature::push_arg(std::shared_ptr<const R::Type> _type, std::string _name)
+void FunctionSignature::push_arg(std::shared_ptr<const R::MetaType> _type, std::string _name)
 {
     if (_name == "" )
     {
@@ -38,7 +38,7 @@ bool FunctionSignature::match(const FunctionSignature* _other)const {
         is_matching = true;
         while( i < m_args.size() && is_matching )
         {
-            if ( !R::Type::is_convertible( m_args[i].m_type, _other->m_args[i].m_type ) )
+            if ( !R::MetaType::is_convertible(m_args[i].m_type, _other->m_args[i].m_type ) )
                 is_matching = false;
             i++;
         }
@@ -56,7 +56,7 @@ std::vector<FunctionArg> FunctionSignature::get_args() const
     return this->m_args;
 }
 
-std::shared_ptr<const R::Type> FunctionSignature::get_return_type() const
+std::shared_ptr<const R::MetaType> FunctionSignature::get_return_type() const
 {
     return m_return_type;
 }
@@ -66,7 +66,7 @@ std::string FunctionSignature::get_label() const
     return m_label;
 }
 
-bool FunctionSignature::has_an_arg_of_type(std::shared_ptr<const R::Type> _type) const
+bool FunctionSignature::has_an_arg_of_type(std::shared_ptr<const R::MetaType> _type) const
 {
     auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FunctionArg& each) { return  each.m_type == _type; } );
     return found != m_args.end();

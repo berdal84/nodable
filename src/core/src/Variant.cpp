@@ -9,27 +9,27 @@ using namespace Nodable;
 
 Variant::Variant()
     : m_is_defined(false)
-    , m_type(nullptr)
+    , m_meta_type(nullptr)
 {
 }
 
 Variant::~Variant(){};
 
-std::shared_ptr<const R::Type> Variant::get_type()const
+std::shared_ptr<const R::MetaType> Variant::get_meta_type()const
 {
-	return m_type;
+	return m_meta_type;
 }
 
-bool  Variant::is(std::shared_ptr<const R::Type> _type)const
+bool  Variant::is_meta_type(std::shared_ptr<const R::MetaType> _type)const
 {
-	return m_type->equals( _type );
+	return m_meta_type->is(_type);
 }
 
 void Variant::set(double _var)
 {
-	switch(get_type()->get_typename() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
+	switch(get_meta_type()->get_category() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
 	{
-		case R::Typename::String:
+		case R::Type::String:
 		{
 			m_data.emplace<std::string>(std::to_string(_var) );
 			break;
@@ -51,9 +51,9 @@ void Variant::set(const std::string& _var)
 
 void Variant::set(const char* _var)
 {
-    switch (get_type()->get_typename() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
+    switch (get_meta_type()->get_category() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
     {
-        case R::Typename::String:
+        case R::Type::String:
         {
             m_data = _var;
         }
@@ -68,15 +68,15 @@ void Variant::set(const char* _var)
 
 void Variant::set(bool _var)
 {
-	switch(get_type()->get_typename() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
+	switch(get_meta_type()->get_category() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
 	{
-		case R::Typename::String:
+		case R::Type::String:
 		{
 			m_data.emplace<std::string>(_var ? "true" : "false" );
 			break;
 		}
 
-		case R::Typename::Double:
+		case R::Type::Double:
 		{
 			m_data.emplace<double>(_var ? double(1) : double(0) );
 			break;
@@ -103,35 +103,35 @@ void Variant::undefine()
 
 void Variant::set(const Variant* _other)
 {
-    set_type(_other->get_type());  // TODO: remove this
+    set_meta_type(_other->get_meta_type());  // TODO: remove this
 	m_data       = _other->m_data;
     m_is_defined = _other->m_is_defined;
-    m_type       = _other->m_type;
+    m_meta_type       = _other->m_meta_type;
 }
 
-void Variant::set_type(std::shared_ptr<const R::Type> _type) // TODO: remove this
+void Variant::set_meta_type(std::shared_ptr<const R::MetaType> _type) // TODO: remove this
 {
-	if ( m_type == nullptr || ! m_type->equals( _type ) )
+	if (m_meta_type == nullptr || !m_meta_type->is(_type) )
 	{
 		undefine();
-        m_type = _type;
+        m_meta_type = _type;
 
 		// Set a default value (this will change the type too)
-		switch (_type->get_typename())
+		switch (_type->get_category())
 		{
-		case R::Typename::String:
+		case R::Type::String:
 			m_data.emplace<std::string>();
 			break;
-		case R::Typename::Double:
+		case R::Type::Double:
 			m_data.emplace<double>();
 			break;
-		case R::Typename::Boolean:
+		case R::Type::Boolean:
 			m_data.emplace<bool>();
 			break;
         default:
             using Pointer_T = void*;
-            R::Type_ptr pointer_t = R::get_type<Pointer_T>();
-            if (  R::Type::is_convertible(_type, pointer_t) )
+            R::MetaType_const_ptr pointer_t = R::get_meta_type<Pointer_T>();
+            if (  R::MetaType::is_convertible(_type, pointer_t) )
             {
                 m_data.emplace<Pointer_T>();
             }
@@ -150,11 +150,11 @@ void Variant::set_type(std::shared_ptr<const R::Type> _type) // TODO: remove thi
 template<>
 [[nodiscard]] i64_t Variant::convert_to<i64_t>()const
 {
-    switch (get_type()->get_typename())
+    switch (get_meta_type()->get_category())
     {
-        case R::Typename::String:  return double(mpark::get<std::string>(m_data).size());
-        case R::Typename::Double:  return mpark::get<double>(m_data);
-        case R::Typename::Boolean: return mpark::get<bool>(m_data);
+        case R::Type::String:  return double(mpark::get<std::string>(m_data).size());
+        case R::Type::Double:  return mpark::get<double>(m_data);
+        case R::Type::Boolean: return mpark::get<bool>(m_data);
         default:           return double(0);
     }
 }
@@ -162,11 +162,11 @@ template<>
 template<>
 [[nodiscard]] double Variant::convert_to<double>()const
 {
-    switch (get_type()->get_typename())
+    switch (get_meta_type()->get_category())
     {
-        case R::Typename::String:  return double(mpark::get<std::string>(m_data).size());
-        case R::Typename::Double:  return mpark::get<double>(m_data);
-        case R::Typename::Boolean: return mpark::get<bool>(m_data);
+        case R::Type::String:  return double(mpark::get<std::string>(m_data).size());
+        case R::Type::Double:  return mpark::get<double>(m_data);
+        case R::Type::Boolean: return mpark::get<bool>(m_data);
         default:           return double(0);
     }
 }
@@ -186,11 +186,11 @@ template<>
 template<>
 [[nodiscard]] bool Variant::convert_to<bool>()const
 {
-    switch (get_type()->get_typename())
+    switch (get_meta_type()->get_category())
     {
-        case R::Typename::String:  return !mpark::get<std::string>(m_data).empty();
-        case R::Typename::Double:  return mpark::get<double>(m_data) != 0.0F;
-        case R::Typename::Boolean: return mpark::get<bool>(m_data);
+        case R::Type::String:  return !mpark::get<std::string>(m_data).empty();
+        case R::Type::Double:  return mpark::get<double>(m_data) != 0.0F;
+        case R::Type::Boolean: return mpark::get<bool>(m_data);
         default:           return false;
     }
 }
@@ -199,21 +199,21 @@ template<>
 [[nodiscard]] std::string Variant::convert_to<std::string>()const
 {
     std::string result;
-    switch (get_type()->get_typename())  // TODO: consider using State pattern (a single context with n possible states implementing an interface)
+    switch (get_meta_type()->get_category())  // TODO: consider using State pattern (a single context with n possible states implementing an interface)
     {
-        case R::Typename::String:
+        case R::Type::String:
         {
             result.append( mpark::get<std::string>(m_data) );
             break;
         }
 
-        case R::Typename::Double:
+        case R::Type::Double:
         {
             result.append(  String::from(mpark::get<double>(m_data)) );
             break;
         }
 
-        case R::Typename::Boolean:
+        case R::Type::Boolean:
         {
             result.append(mpark::get<bool>(m_data) ? "true" : "false" );
             break;
@@ -221,7 +221,7 @@ template<>
 
         default:
         {
-            if( R::Type::is_ptr(m_type))
+            if( R::MetaType::is_ptr(m_meta_type))
             {
                 result.append("[&") ;
                 result.append( std::to_string( (size_t)mpark::get<void*>(m_data)) );

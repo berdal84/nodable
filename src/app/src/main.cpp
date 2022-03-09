@@ -17,6 +17,8 @@ int main(int argc, char *argv[])
     Log::SetVerbosityLevel("GraphNodeView", Log::Verbosity::Message);
     Log::SetVerbosityLevel("VM", Log::Verbosity::Message);
 
+    R::init(); // Reflection system.
+
     App app(BuildInfo::version_extended.c_str());
     app.init();
     auto startupFilePath = app.get_asset_path("txt/startup.txt");

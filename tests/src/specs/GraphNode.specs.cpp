@@ -22,10 +22,10 @@ TEST( GraphNode, connect)
     GraphNode graph(&language, &factory, &autocompletion);
 
     auto node1 = graph.create_node();
-    node1->props()->add("output", Visibility::Default, R::get_type<bool>(), Way_Default);
+    node1->props()->add("output", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
 
     auto node2  = graph.create_node();
-    node2->props()->add("input", Visibility::Default, R::get_type<bool>(), Way_Default);
+    node2->props()->add("input", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
 
     auto wire = graph.connect(
             node1->props()->get("output"),
@@ -44,10 +44,10 @@ TEST( GraphNode, disconnect)
     GraphNode graph(&language, &factory,  &autocompletion);
 
     auto a = graph.create_node();
-    auto output = a->props()->add("output", Visibility::Default, R::get_type<bool>(), Way_Default);
+    auto output = a->props()->add("output", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
 
     auto b = graph.create_node();
-    auto input = b->props()->add("input", Visibility::Default, R::get_type<bool>(), Way_Default);
+    auto input = b->props()->add("input", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
 
     EXPECT_EQ(graph.get_wire_registry().size(), 0);
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
@@ -106,9 +106,9 @@ TEST( GraphNode, create_and_delete_relations)
     GraphNode graph(&language, &factory, &autocompletion);
     Node* program = graph.create_root();
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
-    Node* n1 = graph.create_variable( R::get_type<double>(), "n1", program->get<Scope>());
+    Node* n1 = graph.create_variable(R::get_meta_type<double>(), "n1", program->get<Scope>());
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
-    Node* n2 = graph.create_variable( R::get_type<double>(), "n2", program->get<Scope>());
+    Node* n2 = graph.create_variable(R::get_meta_type<double>(), "n2", program->get<Scope>());
 
     // Act and test
 
@@ -147,13 +147,13 @@ TEST(Graph, by_reference_assign)
     Node* program = graph.create_root();
 
     // create b
-    auto b = graph.create_variable(R::get_type<double>(), "b", program->get<Scope>());
+    auto b = graph.create_variable(R::get_meta_type<double>(), "b", program->get<Scope>());
     b->set(6.0);
 
     // create assign operator
     FunctionSignature signature("operator=");
-    signature.set_return_type(R::get_type<double>());
-    signature.push_args( R::get_type<double&>(), R::get_type<double>());
+    signature.set_return_type(R::get_meta_type<double>());
+    signature.push_args(R::get_meta_type<double &>(), R::get_meta_type<double>());
     auto assign = graph.create_operator(language.findOperator(&signature));
     auto op = assign->get<InvokableComponent>();
 

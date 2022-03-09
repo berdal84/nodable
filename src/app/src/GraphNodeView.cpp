@@ -64,7 +64,7 @@ bool GraphNodeView::draw()
                 }
                 else
                 {
-                    std::shared_ptr<const R::Type> dragged_member_type = dragged_member_conn->get_member_type();
+                    std::shared_ptr<const R::MetaType> dragged_member_type = dragged_member_conn->get_member_type();
 
                     if ( dragged_member_conn->m_way == Way_Out )
                     {
@@ -106,7 +106,7 @@ bool GraphNodeView::draw()
         return instr_node;
     };
 
-    auto create_variable = [&](std::shared_ptr<const R::Type> _type, const char*  _name, Scope*  _scope) -> VariableNode*
+    auto create_variable = [&](std::shared_ptr<const R::MetaType> _type, const char*  _name, Scope*  _scope) -> VariableNode*
     {
         VariableNode* var_node;
         Scope* scope = _scope ? scope : graph->get_root()->get<Scope>();
@@ -249,7 +249,7 @@ bool GraphNodeView::draw()
                             // TODO: add multiple wire type settings
 
                             // straight wide lines for node connections
-                            if ( Type::is_ptr( src_member->get_type()) )
+                            if ( MetaType::is_ptr(src_member->get_meta_type()) )
                             {
                                 ImGuiEx::DrawVerticalWire(
                                         ImGui::GetWindowDrawList(),
@@ -390,7 +390,7 @@ bool GraphNodeView::draw()
             Node *root_node = graph->get_root();
 
             // If dragging a member we create a VariableNode with the same type.
-            if ( dragged_member_conn && !Type::is_ptr( dragged_member_conn->get_member_type()) )
+            if ( dragged_member_conn && !MetaType::is_ptr(dragged_member_conn->get_member_type()) )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
                 {
@@ -411,13 +411,13 @@ bool GraphNodeView::draw()
                 if ( ImGui::BeginMenu("Variable") )
                 {
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                        new_node = create_variable(R::get_type<bool>(), "var", nullptr);
+                        new_node = create_variable(R::get_meta_type<bool>(), "var", nullptr);
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                        new_node = create_variable(R::get_type<double>(), "var", nullptr);
+                        new_node = create_variable(R::get_meta_type<double>(), "var", nullptr);
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                        new_node = create_variable(R::get_type<std::string>(), "var", nullptr);
+                        new_node = create_variable(R::get_meta_type<std::string>(), "var", nullptr);
 
                     ImGui::EndMenu();
                 }
@@ -425,13 +425,13 @@ bool GraphNodeView::draw()
                 if ( ImGui::BeginMenu("Literal") )
                 {
                     if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
-                        new_node = graph->create_literal(R::get_type<bool>());
+                        new_node = graph->create_literal(R::get_meta_type<bool>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " Double"))
-                        new_node = graph->create_literal(R::get_type<double>());
+                        new_node = graph->create_literal(R::get_meta_type<double>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " String"))
-                        new_node = graph->create_literal(R::get_type<std::string>());
+                        new_node = graph->create_literal(R::get_meta_type<std::string>());
 
                     ImGui::EndMenu();
                 }
@@ -490,7 +490,7 @@ bool GraphNodeView::draw()
                 if ( dragged_member_conn->m_way == Way_In )
                 {
                     Member* dst_member = dragged_member_conn->get_member();
-                    Member* src_member = new_node->props()->get_first_member_with(Way_Out, dst_member->get_type());
+                    Member* src_member = new_node->props()->get_first_member_with(Way_Out, dst_member->get_meta_type());
                     graph->connect( src_member, dst_member );
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
@@ -498,7 +498,7 @@ bool GraphNodeView::draw()
                 {
                     // connect dragged (out) to first input on new node.
                     Member* src_member = dragged_member_conn->get_member();
-                    Member* dst_member = new_node->props()->get_first_member_with(Way_In, src_member->get_type());
+                    Member* dst_member = new_node->props()->get_first_member_with(Way_In, src_member->get_meta_type());
                     graph->connect( src_member, dst_member);
                 }
                 MemberConnector::stop_drag();
@@ -580,7 +580,7 @@ void GraphNodeView::update_child_view_constraints()
             const Nodes& predecessor_nodes = _eachNode->predecessor_slots().content();
             std::vector<NodeView*> predecessor_node_views;
             Node::get_components<NodeView>(predecessor_nodes, predecessor_node_views);
-            if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not<IConditionalStruct>() )
+            if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint(m_context, NodeViewConstraint::Type::FollowWithChildren);
                 constraint.addMasters(predecessor_node_views);
@@ -592,13 +592,13 @@ void GraphNodeView::update_child_view_constraints()
             //------------------------------------------------
 
             NodeViews children = each_node_view->children_slots().content();
-            if( !children.empty() && clss->is<IConditionalStruct>() )
+            if( !children.empty() && clss->is_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint(m_context,NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
                 constraint.addMaster(each_node_view);
                 constraint.addSlaves(children);
 
-                if ( clss->is<ForLoopNode>() )
+                if (clss->is_child_of<ForLoopNode>() )
                 {
                     constraint.addSlaves(each_node_view->successor_slots().content() );
                 }

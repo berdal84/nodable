@@ -41,24 +41,24 @@ Member* Properties::get_first_member_with_conn(Way _connection)const
 	return nullptr;
 }
 
-Member* Properties::add(const char* _name, Visibility _visibility, std::shared_ptr<const R::Type> _type, Way _flags )
+Member* Properties::add(const char* _name, Visibility _visibility, std::shared_ptr<const R::MetaType> _type, Way _flags )
 {
 	auto v = new Member(this);
     v->set_name(_name);
     v->set_visibility(_visibility);
-    v->set_type(_type);
+    v->set_meta_type(_type);
     v->set_allowed_connection(_flags);
 	m_props[std::string(_name)] = v;
 
 	return v;
 }
 
-Member *Properties::get_first_member_with(Way _way, std::shared_ptr<const R::Type> _type) const
+Member *Properties::get_first_member_with(Way _way, std::shared_ptr<const R::MetaType> _type) const
 {
     auto filter = [_way, _type](auto each_pair) -> bool
     {
         Member* each_member = each_pair.second;
-        return R::Type::is_convertible(each_member->get_type(), _type)
+        return R::MetaType::is_convertible(each_member->get_meta_type(), _type)
                && ( each_member->get_allowed_connection() & _way );
     };
 

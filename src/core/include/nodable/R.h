@@ -17,27 +17,17 @@
  *
  */
 
-#include <string> // for std::string reflection
-#include <map>
-#include <typeinfo>
 #include <memory> // std::shared_ptr
-#include <nodable/Log.h>
 
-/* internal */
-#include <nodable/R_internal_Class.h>
-#include <nodable/R_internal_Type.h>
-#include <nodable/R_internal_Typename.h>
-#include <nodable/R_internal_Meta.h>
-
-#define ENABLE_ANY_PTR_TO_BE_CONSIDERED_VOID_PTR true
+#include "R_Class.h"
+#include "R_MetaType.h"
+#include "R_Qualifier.h"
+#include "R_Type.h"
+#include "R_MACROS.h"
+#include "R_Register.h"
 
 namespace Nodable::R
 {
-    // MACROS are written without namespace
-    #include <nodable/R_internal_Class_MACROS.h>
-    #include <nodable/R_internal_Type_MACROS.h>
-
-    using unknown_t = std::nullptr_t; // <----- seriously doubting about this idea.
 
     /**
      * Initialize R.
@@ -49,106 +39,62 @@ namespace Nodable::R
     void log_statistics();
 
     /**
-     * Static structure to store some register.
+     * Given a TypeCategory, return its equivalent MetaType.
      */
-    struct TypeRegister
+    static std::shared_ptr<const MetaType> get_type(Type t)
     {
-        static std::map<Typename, std::shared_ptr<const Type>>&    by_enum();
-        static std::map<std::string, std::shared_ptr<const Type>>& by_typeid();
-        static bool has_typeid(const std::string&);
-
-    private:
-        /** push template */
-        template<typename T, bool is_class> struct _push;
-
-        /** push a class */
-        template<typename T>
-        struct _push<T, true> {
-            _push()
-            {
-                std::string id = typeid(T).name();
-                if ( !TypeRegister::has_typeid(id) )
-                {
-                    Type_ptr type = T::Get_class();
-                    TypeRegister::by_typeid()[id] = type;
-                    LOG_MESSAGE("R", "New entry: %s is %s\n", type->get_name(), to_string(type->get_typename()) );
-                }
-            }
-        };
-
-        /** Push a non class */
-        template<typename T>
-        struct _push<T, false>
-        {
-            _push()
-            {
-                std::string id = typeid(T).name();
-                if ( !TypeRegister::has_typeid(id) )
-                {
-                    Type_ptr type;
-                    const Typename reflect_t = meta_type<T>::reflect_t;
-                    type = std::make_shared<meta_enum<reflect_t>>();
-                    TypeRegister::by_enum()[reflect_t] = type;
-
-                    TypeRegister::by_typeid()[id] = type;
-                    LOG_MESSAGE("R", "New entry: %s is %s\n", type->get_name(), to_string(type->get_typename()) );
-                }
-             }
-        };
-
-    public:
-        /** detect if we push a class or a regular type */
-        template<typename T, bool is_class = std::is_class_v<T> && !std::is_same_v<T, std::string>>
-        struct push : _push<T, is_class> {};
-    };
-
-    /* get meta for a specific type at runtime */
-    static std::shared_ptr<const Type> get_type(Typename t)
-    {
-        auto found = TypeRegister::by_enum().find(t);
-        if (found != TypeRegister::by_enum().end() )
+        auto found = Register::by_category().find(t);
+        if (found != Register::by_category().end() )
             return found->second;
         return nullptr;
     };
 
-    /* get meta for a specific type at runtime */
+    /**
+     * Given a type T, return its equivalent MetaType.
+     */
     template<typename T>
-    static std::shared_ptr<const Type> get_type()
+    static std::shared_ptr<const MetaType> get_meta_type()
     {
+        std::shared_ptr<const MetaType> result = nullptr;
+
+        /* In case T is a pointer or a reference, we reuse the meta_type without qualifier, and we add the desire
+         * qualifier */
         if( std::is_pointer<T>::value )
         {
-            std::shared_ptr<const Type> base = get_type<std::remove_pointer_t<T>>();
-            return Type::make_ptr( base );
+            std::shared_ptr<const MetaType> base = get_meta_type<std::remove_pointer_t<T>>();
+            result = MetaType::make_ptr(base );
         }
         else if( std::is_reference<T>::value )
         {
-            std::shared_ptr<const Type> base = get_type<std::remove_reference_t<T>>();
-            return Type::make_ref( base );
+            std::shared_ptr<const MetaType> base = get_meta_type<std::remove_reference_t<T>>();
+            result = MetaType::make_ref(base );
         }
-
-        std::string id = typeid(T).name();
-        auto found = TypeRegister::by_typeid().find(id);
-        if ( found != TypeRegister::by_typeid().end() )
+        else
         {
-            return found->second;
+            auto found = Register::by_typeid().find(typeid(T).name());
+            if (found != Register::by_typeid().end())
+            {
+                result = found->second;
+            }
         }
-        return nullptr;
-
+        return result;
     };
 
-    /*
-     * Match some cpp types to Type enum.
-     */
-    R_LINK_TYPE(double       , Typename::Double )
-    R_LINK_TYPE(std::string  , Typename::String )
-    R_LINK_TYPE(bool         , Typename::Boolean )
-    R_LINK_TYPE(void         , Typename::Void )
+    template<class Dst, class Src>
+    static Dst* cast_pointer(Src *_source)
+    {
+        static_assert(Register::has_class<Src>(), "class Src is not reflected by R");
+        static_assert(Register::has_class<Dst>(), "class Dst is not reflected by R" );
 
-    template<typename T>
-    class meta_type<T*> : public meta_type<T> {};
-
-    template<typename T>
-    class meta_type<T&> : public meta_type<T> {};
-
+        if(_source->get_class()->is_child_of(Dst::Get_class()))
+            return dynamic_cast<Dst*>(_source);
+        return nullptr;
+    };
 }
+
+/** declare some correspondence between type and typeenum */
+R_DECLARE_LINK(double       , Nodable::R::Type::Double )
+R_DECLARE_LINK(std::string  , Nodable::R::Type::String )
+R_DECLARE_LINK(bool         , Nodable::R::Type::Boolean )
+R_DECLARE_LINK(void         , Nodable::R::Type::Void )
 

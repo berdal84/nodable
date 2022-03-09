@@ -8,7 +8,7 @@ namespace Nodable
     class LiteralNode: public Node
     {
     public:
-        explicit LiteralNode(std::shared_ptr<const R::Type>);
+        explicit LiteralNode(std::shared_ptr<const R::MetaType>);
         ~LiteralNode() override = default;
 
         [[nodiscard]]

@@ -11,7 +11,7 @@ ConditionalStructNode::ConditionalStructNode()
     , m_token_if(nullptr)
     , m_token_else(nullptr)
 {
-    m_props.add("condition", Visibility::Always, R::get_type<void*>(), Way::Way_In);
+    m_props.add("condition", Visibility::Always, R::get_meta_type<void *>(), Way::Way_In);
 }
 
 Scope* ConditionalStructNode::get_condition_true_branch() const

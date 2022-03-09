@@ -39,7 +39,7 @@ namespace Nodable
         void undefine() { get_variant().undefine(); }
         bool is_defined() const { return get_variant().is_defined(); }
         bool is_connected_by(ConnBy_ by);
-        bool is_type(std::shared_ptr<const R::Type> _type)const { return get_variant().is(_type); }
+        bool is_meta_type(std::shared_ptr<const R::MetaType> _other)const { return get_variant().is_meta_type(_other); }
         bool equals(const Member *)const;
         bool allows_connection(Way _flag)const { return (m_allowed_connection & _flag) == _flag; }
         bool has_input_connected()const;
@@ -55,7 +55,7 @@ namespace Nodable
         void set(bool);
 		void set(int val) { set((double)val); }
 		void set(const std::string& _val) { set(_val.c_str());}
-		void set_type(std::shared_ptr<const R::Type> _type) { get_variant().set_type(_type); }
+		void set_meta_type(std::shared_ptr<const R::MetaType> _meta_type) { get_variant().set_meta_type(_meta_type); }
 		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
         void set_src_token(const std::shared_ptr<Token> _token);
         void set_owner(Node* _owner) { m_owner = _owner; }
@@ -64,7 +64,7 @@ namespace Nodable
 		Member*               get_input()const { return m_input; }
 		std::vector<Member*>& get_outputs() { return m_outputs; }
         const std::string&    get_name()const { return m_name; }
-        std::shared_ptr<const R::Type> get_type()const { return get_variant().get_type(); }
+        std::shared_ptr<const R::MetaType> get_meta_type()const { return get_variant().get_meta_type(); }
         Visibility            get_visibility()const { return m_visibility; }
         Way                   get_allowed_connection()const { return m_allowed_connection; }
         const std::shared_ptr<Token> get_src_token() const { return m_sourceToken; }

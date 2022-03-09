@@ -6,7 +6,7 @@ using namespace Nodable;
 
 R_DEFINE_CLASS(VariableNode)
 
-VariableNode::VariableNode(std::shared_ptr<const R::Type> _type)
+VariableNode::VariableNode(std::shared_ptr<const R::MetaType> _type)
     :
         Node("Variable"),
         m_type_token(nullptr),
@@ -32,9 +32,9 @@ void VariableNode::set_name(const char* _name)
     std::string str;
 
     // append type only if not unknown
-    if (m_value->get_type() != nullptr )
+    if (m_value->get_meta_type() != nullptr )
     {
-        str.append( m_value->get_type()->get_name() );
+        str.append(m_value->get_meta_type()->get_name() );
         str.append(" ");
     }
 

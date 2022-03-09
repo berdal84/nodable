@@ -3,56 +3,56 @@
 
 using namespace Nodable::R;
 
-std::shared_ptr<Type> Type::s_unknown = std::make_shared<Type>("unknown", "unknown", Typename::Null );
+std::shared_ptr<MetaType> MetaType::s_unknown = std::make_shared<MetaType>("unknown", Type::Null );
 
-bool Type::has_qualifier(Qualifier _other_qualifier) const
+bool MetaType::has_qualifier(TypeQualifier _other_qualifier) const
 {
-    using T = std::underlying_type<Qualifier>::type;
+    using T = std::underlying_type<TypeQualifier>::type;
     return
     (
         static_cast<T>(m_qualifier) & static_cast<T>(_other_qualifier)
     )
     !=
-    static_cast <T>(Qualifier::Null);
+    static_cast <T>(TypeQualifier::None);
 }
 
-void Type::add_qualifier(Qualifier _other_qualifier)
+void MetaType::add_qualifier(TypeQualifier _other_qualifier)
 {
-    using T = std::underlying_type_t<Qualifier>;
-    m_qualifier = static_cast<Qualifier>( static_cast<T>(m_qualifier) | static_cast<T>(_other_qualifier) );
+    using T = std::underlying_type_t<TypeQualifier>;
+    m_qualifier = static_cast<TypeQualifier>( static_cast<T>(m_qualifier) | static_cast<T>(_other_qualifier) );
 }
 
-bool Type::is_ptr(const std::shared_ptr<const Type>& left)
+bool MetaType::is_ptr(const std::shared_ptr<const MetaType>& left)
 {
-    return  left->has_qualifier(Qualifier::Pointer);
+    return  left->has_qualifier(TypeQualifier::Pointer);
 }
 
-bool Type::is_ref(const std::shared_ptr<const Type>& left)
+bool MetaType::is_ref(const std::shared_ptr<const MetaType>& left)
 {
-    return left->has_qualifier(Qualifier::Ref);
+    return left->has_qualifier(TypeQualifier::Ref);
 }
 
-std::shared_ptr<Type> Type::add_ref(std::shared_ptr<Type> left)
+std::shared_ptr<MetaType> MetaType::add_ref(std::shared_ptr<MetaType> left)
 {
-    left->add_qualifier(Qualifier::Ref);
+    left->add_qualifier(TypeQualifier::Ref);
     return left;
 }
 
-std::shared_ptr<Type> Type::add_ptr(std::shared_ptr<Type> left)
+std::shared_ptr<MetaType> MetaType::add_ptr(std::shared_ptr<MetaType> left)
 {
-    left->add_qualifier(Qualifier::Pointer);
+    left->add_qualifier(TypeQualifier::Pointer);
     return left;
 }
 
-bool Type::is_convertible(
-        std::shared_ptr<const Type> _left,
-        std::shared_ptr<const Type> _right )
+bool MetaType::is_convertible(
+        std::shared_ptr<const MetaType> _left,
+        std::shared_ptr<const MetaType> _right )
 {
-    if(_left == Type::s_unknown || _right == Type::s_unknown ) // We allow cast to unknown type
+    if(_left == MetaType::s_unknown || _right == MetaType::s_unknown ) // We allow cast to unknown type
     {
         return true;
     }
-    else if (_left->get_typename() == _right->get_typename() )
+    else if (_left->get_category() == _right->get_category() )
     {
         return true;
     }
@@ -63,16 +63,34 @@ bool Type::is_convertible(
     return false;
 }
 
-std::map<Typename, std::shared_ptr<const Type>>& TypeRegister::by_enum()
+bool MetaType::is(const std::shared_ptr<const MetaType> &_other) const
 {
-    static std::map<Typename, std::shared_ptr<const Type>> meta_register;
-    return meta_register;
+    return m_qualifier == _other->m_qualifier
+           && m_category == _other->m_category;
 }
 
-std::map<std::string, std::shared_ptr<const Type>>& TypeRegister::by_typeid()
+std::shared_ptr<const MetaType> MetaType::make_ptr(const std::shared_ptr<const MetaType> &_type)
 {
-    static std::map<std::string, std::shared_ptr<const Type>> type_register;
-    return type_register;
+    auto base_copy = std::make_shared<MetaType>(*_type);
+    return add_ptr(base_copy);
+}
+
+std::shared_ptr<const MetaType> MetaType::make_ref(const std::shared_ptr<const MetaType> &_type)
+{
+    auto base_copy = std::make_shared<MetaType>(*_type);
+    return add_ref(base_copy);
+}
+
+std::map<Type, std::shared_ptr<const MetaType>>& Register::by_category()
+{
+    static std::map<Type, std::shared_ptr<const MetaType>> meta_type_register_by_category;
+    return meta_type_register_by_category;
+}
+
+std::map<std::string, std::shared_ptr<const MetaType>>& Register::by_typeid()
+{
+    static std::map<std::string, std::shared_ptr<const MetaType>> meta_type_register_by_typeid;
+    return meta_type_register_by_typeid;
 }
 
 bool Class::is_child_of(Class_ptr _possible_parent_class, bool _selfCheck) const
@@ -122,7 +140,7 @@ void Class::add_child(Class_ptr _child)
     m_children.insert(_child);
 }
 
-bool TypeRegister::has_typeid(const std::string& _id)
+bool Register::has_typeid(const std::string& _id)
 {
     return by_typeid().find(_id) != by_typeid().end();
 }
@@ -131,14 +149,14 @@ void Nodable::R::log_statistics()
 {
     LOG_MESSAGE("R", "Logging reflected types ...\n");
 
-    LOG_MESSAGE("R", "By typename (%i):\n", TypeRegister::by_enum().size() );
-    for ( const auto& each : TypeRegister::by_enum() )
+    LOG_MESSAGE("R", "By typename (%i):\n", Register::by_category().size() );
+    for ( const auto& each : Register::by_category() )
     {
-        LOG_MESSAGE("R", " Typename::%s => %s \n", to_string(each.first), each.second->get_name() );
+        LOG_MESSAGE("R", " TypeEnum::%s => %s \n", to_string(each.first), each.second->get_name() );
     }
 
-    LOG_MESSAGE("R", "By typeid (%i):\n", TypeRegister::by_typeid().size() );
-    for ( const auto& each : TypeRegister::by_typeid() )
+    LOG_MESSAGE("R", "By typeid (%i):\n", Register::by_typeid().size() );
+    for ( const auto& each : Register::by_typeid() )
     {
         LOG_MESSAGE("R", " %s => %s \n", each.first.c_str(), each.second->get_name() );
     }
@@ -148,10 +166,10 @@ void Nodable::R::log_statistics()
 
 void Nodable::R::init()
 {
-    TypeRegister::push<double>();
-    TypeRegister::push<std::string>();
-    TypeRegister::push<bool>();
-    TypeRegister::push<void>();
+    Register::push<double>();
+    Register::push<std::string>();
+    Register::push<bool>();
+    Register::push<void>();
 
     log_statistics();
 }

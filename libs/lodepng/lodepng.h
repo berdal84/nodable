@@ -565,7 +565,7 @@ typedef struct LodePNGInfo {
   make sure you compute it carefully to avoid the above problems.
   */
   unsigned iccp_defined;      /* Whether an iCCP chunk is present (0 = not present, 1 = present). */
-  char* iccp_name;            /* Null terminated string with profile name, 1-79 bytes */
+  char* iccp_name;            /* None terminated string with profile name, 1-79 bytes */
   /*
   The ICC profile in iccp_profile_size bytes.
   Don't allocate this buffer yourself. Use the init/cleanup functions

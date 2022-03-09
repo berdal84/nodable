@@ -151,9 +151,9 @@ void Asm::Compiler::compile(const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
-        std::shared_ptr<const R::Type> void_ptr = R::get_type<void*>();
+        std::shared_ptr<const R::MetaType> void_ptr = R::get_meta_type<void *>();
 
-        if (_member->is_type( void_ptr ) )
+        if (_member->is_meta_type(void_ptr) )
         {
             // note: we consider Pointers to be Node*.
             compile((const Node*)(void *)*_member);
