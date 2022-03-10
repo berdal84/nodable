@@ -27,17 +27,14 @@ target_include_directories(
 
 # Linking
 find_package(Threads REQUIRED)
-find_package(SDL2 REQUIRED)
+if (NOT Threads_FOUND)
+    message(FATAL_ERROR "OpenGL not found")
+endif()
+
 find_package(OpenGL REQUIRED)
 if (NOT OpenGL_FOUND)
     message(FATAL_ERROR "OpenGL not found")
 endif()
-
-IF (WIN32)
-    target_link_libraries(nodable_app LINK_PUBLIC ${SDL2_STATIC} )
-ELSE()
-    target_link_libraries(nodable_app LINK_PUBLIC ${SDL2_LIBRARIES})
-ENDIF()
 
 set( NODABLE_STATIC_LIBS
         Threads::Threads
@@ -48,6 +45,7 @@ set( NODABLE_STATIC_LIBS
         gl3w
         nodable_core
         ${CMAKE_DL_LIBS}
+        SDL2
         OpenGL::GL
         ghc_filesystem
         )
@@ -89,21 +87,11 @@ add_custom_command(
         "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NODABLE_APP_ASSETS_DIR}"
 )
 
-# Copy SDL2.dll
-if(WIN32)
-    add_custom_command(
-            TARGET nodable_app PRE_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_RUNTIME} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-    )
-endif()
 
 # Installation :
 #===============
 
 set(INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/app/$<CONFIG>)
-
-# Copy DLLs
-install( FILES     ${SDL2_RUNTIME}                    DESTINATION ${INSTALL_PATH} )
 
 # Copy assets
 install( DIRECTORY ${NODABLE_APP_ASSETS_ABSOLUTE_DIR} DESTINATION ${INSTALL_PATH} )

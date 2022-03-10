@@ -96,18 +96,13 @@ add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/Observe ./Observe EXCLUDE_FROM_ALL) 
 
 # SDL2
 #------
-IF (WIN32)
-    # We store the SDL2 binaries inside the repo.
-    find_package(SDL2 REQUIRED HINTS ${CMAKE_CURRENT_LIST_DIR}/SDL2 )
-ELSE()
-    find_package(SDL2 REQUIRED)
-ENDIF()
+add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/SDL ./SDL EXCLUDE_FROM_ALL)
 
 # Define variables to use them from the parent CMakeLists.txt
 #------------------------------------------------------------
 
 set( LIBS_INCLUDE_DIRS
-        ${SDL2_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_LIST_DIR}/SDL/include/
         ${CMAKE_CURRENT_LIST_DIR}/glfw/include/
         ${CMAKE_CURRENT_LIST_DIR}/gl3w/GL
         ${CMAKE_CURRENT_LIST_DIR}/gl3w
