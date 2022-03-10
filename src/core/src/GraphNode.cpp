@@ -233,6 +233,13 @@ void GraphNode::destroy(Node* _node)
     };
 
 
+    // if it is a variable, we remove it from its scope
+    if ( VariableNode* node_variable = _node->as<VariableNode>() )
+    {
+        IScope* scope = node_variable->get_scope();
+        scope->remove_variable(node_variable);
+    }
+
     // unregister and delete
     remove(_node);
     if ( _node == m_root )

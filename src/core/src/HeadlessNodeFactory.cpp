@@ -25,6 +25,7 @@ VariableNode* HeadlessNodeFactory::newVariable(std::shared_ptr<const R::MetaType
     if( _scope)
     {
         _scope->add_variable(node);
+        node->set_scope(_scope);
     }
     else
     {

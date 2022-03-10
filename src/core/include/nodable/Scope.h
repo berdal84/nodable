@@ -17,12 +17,13 @@ namespace Nodable
         Node*                   get_last_code_block();
         void                    get_last_instructions(std::vector<InstructionNode *> &out) override ;
 
-        inline std::shared_ptr<Token> get_begin_scope_token() const { return m_begin_scope_token; }
-        inline std::shared_ptr<Token> get_end_scope_token() const { return m_end_scope_token; }
-        inline void             set_begin_scope_token(std::shared_ptr<Token> token) { m_begin_scope_token = token; }
-        inline void             set_end_scope_token(std::shared_ptr<Token> token) { m_end_scope_token = token; }
+        std::shared_ptr<Token>  get_begin_scope_token() const { return m_begin_scope_token; }
+        std::shared_ptr<Token>  get_end_scope_token() const { return m_end_scope_token; }
+        void                    set_begin_scope_token(std::shared_ptr<Token> token) { m_begin_scope_token = token; }
+        void                    set_end_scope_token(std::shared_ptr<Token> token) { m_end_scope_token = token; }
 
         void                    add_variable(VariableNode*) override ;
+        void                    remove_variable(VariableNode *_variable)override;
         VariableNode*           find_variable(const std::string &_name) override ;
         const VariableNodes&    get_variables()const override { return m_variables; };
 
@@ -37,5 +38,7 @@ namespace Nodable
             R_EXTENDS(Component)
             R_EXTENDS(IScope)
         R_END
+
+
     };
 }

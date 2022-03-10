@@ -7,6 +7,7 @@
 #include <nodable/Node.h> // base class
 #include <nodable/Member.h>
 #include <nodable/R.h>
+#include "Scope.h"
 
 namespace Nodable
 {
@@ -22,23 +23,24 @@ namespace Nodable
 		explicit VariableNode(std::shared_ptr<const R::MetaType>);
 		~VariableNode() override = default;
 
-		[[nodiscard]] inline bool             is_declared()const { return m_is_declared; }
-		[[nodiscard]] inline bool             is_defined()const { return m_value->is_defined(); }
-		              inline void             undefine() { m_value->undefine();
-                          set_dirty(true); }
-		[[nodiscard]] inline const char*      get_name()const { return m_name.c_str(); };
-		[[nodiscard]] inline Member*          get_value()const { return m_value; }
-        [[nodiscard]] inline std::shared_ptr<const Token> get_type_token() const { return m_type_token; }
-        [[nodiscard]] inline std::shared_ptr<const Token> get_assignment_operator_token() const { return m_assignment_operator_token; }
-        [[nodiscard]] inline std::shared_ptr<const Token> get_identifier_token() const { return m_identifier_token; }
-		                     bool             eval() const override;
-                             void             set_name(const char*);
-                      inline void             set_type_token(std::shared_ptr<Token> token) { m_type_token = token; }
-                      inline void             set_assignment_operator_token(std::shared_ptr<Token> token) { m_assignment_operator_token = token; }
-                      inline void             set_identifier_token(std::shared_ptr<Token> token) { m_identifier_token = token; }
-        template<class T> inline void         set(T _value) { m_value->set(_value); };
-        template<class T> inline void         set(T* _value){ m_value->set(_value); };
-        void                                  set_declared(bool b = true) { m_is_declared = b; } 
+		inline bool      is_declared()const { return m_is_declared; }
+		inline bool      is_defined()const { return m_value->is_defined(); }
+		inline void      undefine() { m_value->undefine(); set_dirty(true); }
+		const char*      get_name()const { return m_name.c_str(); };
+		Member*          get_value()const { return m_value; }
+        std::shared_ptr<const Token> get_type_token() const { return m_type_token; }
+        std::shared_ptr<const Token> get_assignment_operator_token() const { return m_assignment_operator_token; }
+        std::shared_ptr<const Token> get_identifier_token() const { return m_identifier_token; }
+		bool             eval() const override;
+        void             set_name(const char*);
+        void             set_type_token(std::shared_ptr<Token> token) { m_type_token = token; }
+        void             set_assignment_operator_token(std::shared_ptr<Token> token) { m_assignment_operator_token = token; }
+        void             set_identifier_token(std::shared_ptr<Token> token) { m_identifier_token = token; }
+        template<class T> void         set(T _value) { m_value->set(_value); };
+        template<class T> void         set(T* _value){ m_value->set(_value); };
+        void             set_declared(bool b = true) { m_is_declared = b; }
+        IScope*          get_scope() { return m_scope; }
+        void             set_scope(IScope* _scope) { m_scope = _scope; }
     private:
 	    Member*     m_value;
         bool        m_is_declared;
@@ -46,6 +48,7 @@ namespace Nodable
         std::shared_ptr<Token> m_assignment_operator_token;
         std::shared_ptr<Token> m_identifier_token;
 		std::string m_name;
+        IScope* m_scope;
 
 		R_DERIVED(VariableNode)
         R_EXTENDS(Node)

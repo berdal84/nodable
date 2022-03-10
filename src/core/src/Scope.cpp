@@ -100,3 +100,9 @@ void Scope::get_last_instructions(std::vector<InstructionNode *> & _out)
         }
     }
 }
+
+void Scope::remove_variable(VariableNode *_variable)
+{
+    auto found = std::find( m_variables.begin(), m_variables.end(), _variable);
+    m_variables.erase( found );
+}
