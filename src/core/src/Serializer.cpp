@@ -176,36 +176,36 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
     _result.append(_node->get_name());
     if ( identifier_token ) _result.append(identifier_token->m_suffix);
 
-    // definition
-    // if ( _node->is_defined() )
+    Member* value = _node->get_value();
+
+    auto append_assign_tok  = [&]()
     {
-        if ( std::shared_ptr<const Token> assign_tok = _node->get_assignment_operator_token() )
+        std::shared_ptr<const Token> assign_tok = _node->get_assignment_operator_token();
+        if (assign_tok )
         {
-            Member* value = _node->get_value();
-
-            auto append_assign_tok  = [&]()
-            {
-                _result.append(assign_tok->m_prefix );
-                _result.append(assign_tok->m_word );
-                _result.append(assign_tok->m_suffix );
-            };
-
-            if (value->has_input_connected() )
-            {
-                append_assign_tok();
-                serialize(_result, value);
-            }
-            else if ( value->is_defined() )
-            {
-                append_assign_tok();
-                _result.append(value->get_src_token()->m_prefix);
-                serialize(_result, _node->get_value()->get_data());
-                _result.append(value->get_src_token()->m_suffix);
-            }
-
+            _result.append(assign_tok->m_prefix );
+            _result.append(assign_tok->m_word ); // is "="
+            _result.append(assign_tok->m_suffix );
         }
+        else
+        {
+            _result.append(" = ");
+        }
+    };
+
+    if (value->has_input_connected() )
+    {
+        append_assign_tok();
+        serialize(_result, value);
     }
-        
+    else if ( value->is_defined() )
+    {
+        append_assign_tok();
+        _result.append(value->get_src_token()->m_prefix);
+        serialize(_result, _node->get_value()->get_data());
+        _result.append(value->get_src_token()->m_suffix);
+    }
+
     return _result;
 }
 
