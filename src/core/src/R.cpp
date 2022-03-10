@@ -149,10 +149,10 @@ void Nodable::R::log_statistics()
 {
     LOG_MESSAGE("R", "Logging reflected types ...\n");
 
-    LOG_MESSAGE("R", "By typename (%i):\n", Register::by_category().size() );
+    LOG_MESSAGE("R", "By category (%i):\n", Register::by_category().size() );
     for ( const auto& each : Register::by_category() )
     {
-        LOG_MESSAGE("R", " TypeEnum::%s => %s \n", to_string(each.first), each.second->get_name() );
+        LOG_MESSAGE("R", " %s => %s \n", to_string(each.first), each.second->get_name() );
     }
 
     LOG_MESSAGE("R", "By typeid (%i):\n", Register::by_typeid().size() );
