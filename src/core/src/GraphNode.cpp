@@ -237,7 +237,15 @@ void GraphNode::destroy(Node* _node)
     if ( VariableNode* node_variable = _node->as<VariableNode>() )
     {
         IScope* scope = node_variable->get_scope();
-        scope->remove_variable(node_variable);
+        if ( scope ) scope->remove_variable(node_variable);
+    }
+    else if ( Scope* scope = _node->get<Scope>() )
+    {
+        for( auto it = scope->get_variables().rbegin(); it != scope->get_variables().rend(); it++ )
+        {
+            (*it)->set_scope(nullptr);
+            scope->remove_variable(*it);
+        }
     }
 
     // unregister and delete
