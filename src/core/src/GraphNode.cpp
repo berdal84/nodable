@@ -425,20 +425,25 @@ void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relation_type, bool 
 
             if (_side_effects)
             {
-                if ( _dst->successor_slots().empty() )
+                if ( _dst->has<Scope>() )
                 {
                     connect(_src, _dst, Relation_t::IS_CHILD_OF, false);
                 }
-                else
+                else if ( Node* dst_parent = _dst->get_parent() )
                 {
-                    if ( auto parent = _dst->get_parent() )
+                    connect(_src, dst_parent, Relation_t::IS_CHILD_OF, false);
+                }
+
+                /**
+                 * create child/parent link with dst_parent
+                 */
+                if ( Node* src_parent = _src->get_parent()  )
+                {
+                    Node *each_successor = _src->successor_slots().get_front_or_nullptr();
+                    while (each_successor && each_successor->get_parent() == nullptr)
                     {
-                        Node* successor = _src;
-                        while ( successor )
-                        {
-                            connect(successor, parent, Relation_t::IS_CHILD_OF, false);
-                            successor = successor->successor_slots().get_front_or_nullptr();
-                        }
+                        connect(each_successor, src_parent, Relation_t::IS_CHILD_OF, false);
+                        each_successor = each_successor->successor_slots().get_front_or_nullptr();
                     }
                 }
             }
