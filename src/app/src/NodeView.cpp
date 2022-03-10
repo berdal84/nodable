@@ -693,10 +693,11 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanc
         if ( ImGui::IsItemHovered() )
         {
             ImGui::BeginTooltip();
+            std::shared_ptr<Token> token = _member->get_src_token();
             ImGui::Text("Source token: \n{\n\tprefix: \"%s\",\n\tword: \"%s\",\n\tsuffix: \"%s\"\n}",
-                        _member->get_src_token()->m_prefix.c_str(),
-                        _member->get_src_token()->m_word.c_str(),
-                        _member->get_src_token()->m_suffix.c_str()
+                        token->m_prefix.c_str(),
+                        token->m_word.c_str(),
+                        token->m_suffix.c_str()
             );
             ImGui::EndTooltip();
         }
@@ -710,9 +711,10 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanc
 
     };
 
-    ImGui::Text("Name:       \"%s\"", _view->get_owner()->get_label());
-    ImGui::Text("Short Name: \"%s\"", _view->get_owner()->get_short_label());
-    ImGui::Text("Class:      %s", _view->get_owner()->get_class()->get_name());
+    Node* owner = _view->get_owner();
+    ImGui::Text("Name:       \"%s\"", owner->get_label());
+    ImGui::Text("Short Name: \"%s\"", owner->get_short_label());
+    ImGui::Text("Class:      %s", owner->get_class()->get_name());
 
     // Draw exposed input members
     ImGui::Separator();
@@ -762,7 +764,82 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanc
         ImGui::Separator();
 
         // Advanced properties
-        _view->drawAdvancedProperties();
+        const Node *node = _view->get_owner();
+        const float indent = 20.0f;
+
+        // Components
+        ImGui::Separator();
+        ImGui::Text("Components :");
+        for (auto &pair : node->get_components()) {
+            Component *component = pair.second;
+            ImGui::BulletText("%s", component->get_class()->get_name());
+        }
+
+        auto drawSlots = [](const char *label, const Slots<Node *> &slots) {
+            ImGui::Text("%s", label);
+            ImGui::Indent();
+            if (!slots.empty()) {
+
+                for (auto each : slots.content()) {
+                    ImGui::Text("- %s", each->get_label());
+                }
+            } else {
+                ImGui::TextUnformatted("None");
+            }
+            ImGui::Unindent();
+        };
+
+        ImGui::Separator();
+        drawSlots("Inputs:", node->input_slots());
+        ImGui::Separator();
+        drawSlots("Outputs:", node->output_slots());
+        ImGui::Separator();
+        drawSlots("Predecessors:", node->predecessor_slots());
+        ImGui::Separator();
+        drawSlots("Successors:", node->successor_slots());
+        ImGui::Separator();
+        drawSlots("Children:", node->children_slots());
+        ImGui::Separator();
+
+        // Parent graph
+        {
+            std::string parentName = "NULL";
+
+            if (node->get_parent_graph()) {
+                parentName = node->get_parent_graph()->get_label();
+                parentName.append(node->get_parent_graph()->is_dirty() ? " (dirty)" : "");
+
+            }
+            ImGui::Text("Parent graph is \"%s\"", parentName.c_str());
+        }
+
+        // Parent
+        ImGui::Separator();
+        {
+            std::string parentName = "NULL";
+
+            if (node->get_parent()) {
+                parentName = node->get_parent()->get_label();
+                parentName.append(node->get_parent()->is_dirty() ? " (dirty)" : "");
+            }
+            ImGui::Text("Parent node is \"%s\"", parentName.c_str());
+        }
+
+        // dirty state
+        ImGui::Separator();
+        bool b = _view->get_owner()->is_dirty();
+        ImGui::Checkbox("Is dirty ?", &b);
+
+        // Scope specific:
+        ImGui::Separator();
+        if (auto scope = node->get<Scope>()) {
+            ImGui::Text("Variables:");
+            auto vars = scope->get_variables();
+            for (auto eachVar : vars) {
+                ImGui::Text("%s: %s", eachVar->get_name(), eachVar->get_value()->convert_to<std::string>().c_str());
+            }
+        }
+        ImGui::Separator();
     }
 
 }
@@ -797,94 +874,6 @@ void NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 bool NodeView::isMemberExposed(const Member *_member)const
 {
     return m_exposedMembers.find(_member) != m_exposedMembers.end();
-}
-
-void NodeView::drawAdvancedProperties()
-{
-    const Node* node = get_owner();
-    const float indent = 20.0f;
-
-    // Components
-    ImGui::Separator();
-    ImGui::Text("Components :");
-    for (auto& pair : node->get_components())
-    {
-        Component* component = pair.second;
-        ImGui::BulletText("%s", component->get_class()->get_name() );
-    }
-
-    auto draw_slots = [](const char*  _label, const Slots<Node*>& _slots)
-    {
-        ImGui::Text("%s", _label);ImGui::Indent();
-        if ( !_slots.empty() )
-        {
-
-            for( auto each : _slots.content()  )
-            {
-                ImGui::Text("- %s", each->get_label() );
-            }
-        }
-        else
-        {
-            ImGui::TextUnformatted("None");
-        }
-        ImGui::Unindent();
-    };
-
-    ImGui::Separator();
-    draw_slots( "Inputs:", node->input_slots());
-    ImGui::Separator();
-    draw_slots( "Outputs:", node->output_slots());
-    ImGui::Separator();
-    draw_slots( "Predecessors:", node->predecessor_slots());
-    ImGui::Separator();
-    draw_slots( "Successors:", node->successor_slots());
-    ImGui::Separator();
-
-
-    // Parent graph
-    {
-        std::string parentName = "NULL";
-
-        if (node->get_parent_graph() )
-        {
-            parentName = node->get_parent_graph()->get_label();
-            parentName.append(node->get_parent_graph()->is_dirty() ? " (dirty)" : "");
-
-        }
-        ImGui::Text("Parent graph is \"%s\"", parentName.c_str());
-    }
-
-    // Parent
-    ImGui::Separator();
-    {
-        std::string parentName = "NULL";
-
-        if (node->get_parent() )
-        {
-            parentName = node->get_parent()->get_label();
-            parentName.append(node->get_parent()->is_dirty() ? " (dirty)" : "");
-        }
-        ImGui::Text("Parent node is \"%s\"", parentName.c_str());
-    }
-
-    // dirty state
-    ImGui::Separator();
-    bool b = get_owner()->is_dirty();
-    ImGui::Checkbox("Is dirty ?", &b);
-
-    // Scope specific:
-    ImGui::Separator();
-    if ( auto scope = node->get<Scope>() )
-    {
-        ImGui::Text("Variables:");
-        auto vars = scope->get_variables();
-        for(auto eachVar : vars)
-        {
-            ImGui::Text("%s: %s", eachVar->get_name(), eachVar->get_value()->convert_to<std::string>().c_str());
-        }
-    }
-    ImGui::Separator();
 }
 
 void NodeView::SetDetail(NodeViewDetail _viewDetail)

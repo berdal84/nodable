@@ -103,11 +103,8 @@ namespace Nodable
 		 *  Note: Some input connected Nodes can stay fixed if they are pinned. */
 		void arrangeRecursively(bool _smoothly = true);
 
-		/** Draw advance properties (components, dirty state, etc.) */
-		void drawAdvancedProperties();
-
-		/** Get the node label
-		 * Note: depends on s_viewDetail, can be just an ICON_FA (4 char) or an ICON_FA + a label */
+        /** Get the node label
+         * Note: depends on s_viewDetail, can be just an ICON_FA (4 char) or an ICON_FA + a label */
         std::string getLabel();
 
         /** Compute the bounding rectangle of this view */
