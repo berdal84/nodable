@@ -284,3 +284,8 @@ void VM::debug_program()
     clear_registers();
     m_next_node = m_program_graph;
 }
+
+int64_t VM::get_register_val(Register _register)
+{
+    return m_register[_register];
+}

@@ -580,7 +580,7 @@ void AppView::draw_vm_view()
     }
     else
     {
-        // VM registers
+        // VM state
         {
             ImGui::Indent();
             ImGui::Text("VM is %s", vm->is_program_running() ? "running" : "stopped");
@@ -592,6 +592,19 @@ void AppView::draw_vm_view()
                 ImGui::Text("Program over: %s", vm->is_program_over() ? "YES" : "NO");
 
             }
+            ImGui::Unindent();
+        }
+
+        // VM Registers
+        ImGui::Separator();
+        ImGui::Text("Registers:");
+        ImGui::Separator();
+        {
+            ImGui::Indent();
+            ImGui::Text("rax: %#16llx (storage)", vm->get_register_val(Asm::Register::rax));
+            ImGui::Text("rdx: %#16llx (last instr address)", vm->get_register_val(Asm::Register::rdx));
+            ImGui::Text("esp: %#16llx (next line)", vm->get_register_val(Asm::Register::esp));
+            //ImGui::Text("epb: %#16llx", vm->get_register_val(Asm::Register::ebp));
             ImGui::Unindent();
         }
 

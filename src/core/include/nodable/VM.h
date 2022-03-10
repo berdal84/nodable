@@ -37,6 +37,8 @@ namespace Nodable
             bool                  is_program_over() { assert(get_next_instr()); return get_next_instr()->m_type == Instr_t::ret; }
             const Code*           get_program_asm_code()const { return m_program_asm_code; }
             Instr*                get_next_instr(){ return (size_t)m_register[Register::esp] < m_program_asm_code->size() ? m_program_asm_code->at(m_register[Register::esp]) : nullptr; };
+            int64_t               get_register_val(Register _register);
+
         private:
             void                  clear_registers();
             void                  advance_cursor(i64_t _amount = 1) { m_register[Register::esp] += _amount; }
