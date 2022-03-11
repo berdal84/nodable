@@ -42,8 +42,7 @@ Software:
   - Linux (tested under Ubuntu 20.04)
   - MacOS 10.9+ (tested under Ubuntu 10.13)
 - Libraries
-  - Linux: install sdl2 and mesa (`sudo apt-get install libsdl2 libegl1-mesa`)
-  - MacOS: install sdl2 (`brew install sdl2`)
+  - Require opengl which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
 
 _Disclaimer: Nodable is a prototype, do not expect too much from it._
 
@@ -58,8 +57,7 @@ Requirements:
   - **CMake 3.14+**
   - A **C++11** compatible build system
 - Libraries
-  - Linux: install sdl2 and mesa (sudo apt-get install libsdl2 libegl1-mesa)
-  - MacOS: install sdl2 (brew install sdl2)
+  - Require opengl which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
 
 Clone the Nodable repository (with submodules):
 
