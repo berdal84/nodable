@@ -47,6 +47,7 @@ ENDIF()
 
 add_executable(
         nodable
+        WIN32
         ./src/main.cpp
         ${SOURCES}
         ${LIBS_DIR}/imgui/backends/imgui_impl_opengl3.cpp
