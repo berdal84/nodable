@@ -113,7 +113,6 @@ bool GraphNodeView::draw()
 
         var_node = graph->create_variable(_type, _name, scope );
 
-        // we should not do that TODO: fin a solution for Token management.
         std::shared_ptr<Token> token  = std::make_shared<Token>();
         token->m_type = TokenType_Operator;
         token->m_prefix  = " ";
