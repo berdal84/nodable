@@ -67,8 +67,6 @@ set_property(TARGET nodable PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 # fix working directory for visual studio
 set_property(TARGET nodable PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}")
 
-set_property(TARGET nodable PROPERTY LINK_FLAGS "-Wl" )
-
 # AFTER BUILD:
 #=============
 
