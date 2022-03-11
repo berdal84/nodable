@@ -158,7 +158,7 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
 
 	    case TokenType_Literal:
         {
-            std::shared_ptr<const R::MetaType> type = R::get_type(get_literal_type(_token) );
+            std::shared_ptr<const R::MetaType> type = R::get_meta_type(get_literal_type(_token));
             LiteralNode* literal = m_graph->create_literal(type);
 
             switch (type->get_category() )
@@ -1109,7 +1109,7 @@ Member *Parser::parse_variable_declaration()
     if(typeTok->isTypeKeyword() && identifierTok->m_type == TokenType_Identifier )
     {
         R::Type type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
-        VariableNode* variable = m_graph->create_variable( R::get_type(type), identifierTok->m_word, this->get_current_scope());
+        VariableNode* variable = m_graph->create_variable(R::get_meta_type(type), identifierTok->m_word, this->get_current_scope());
         variable->set_type_token(typeTok);
         variable->set_identifier_token(identifierTok);
         variable->get_value()->set_src_token( std::make_shared<Token>(*identifierTok) ); // we also pass a copy

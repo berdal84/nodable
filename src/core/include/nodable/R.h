@@ -39,9 +39,9 @@ namespace Nodable::R
     void log_statistics();
 
     /**
-     * Given a TypeCategory, return its equivalent MetaType.
+     * Given a Type::xxxx value, return its equivalent MetaType.
      */
-    static std::shared_ptr<const MetaType> get_type(Type t)
+    static std::shared_ptr<const MetaType> get_meta_type(Type t)
     {
         auto found = Register::by_category().find(t);
         if (found != Register::by_category().end() )
