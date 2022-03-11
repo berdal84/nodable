@@ -29,6 +29,7 @@ set( NODABLE_STATIC_LIBS
         nodable_core
         ${CMAKE_DL_LIBS}
         SDL2-static
+        SDL2main
         OpenGL::GL
         ghc_filesystem
         )
@@ -60,13 +61,17 @@ target_include_directories(
         ${PROJECT_BINARY_DIR}/conf
         ${LIBS_INCLUDE_DIRS} )
 
-target_link_libraries( nodable PUBLIC ${NODABLE_STATIC_LIBS})
+target_link_libraries( nodable PRIVATE ${NODABLE_STATIC_LIBS})
 
 # required to run well on recent os (ex: ubuntu)
-set_property(TARGET nodable PROPERTY POSITION_INDEPENDENT_CODE FALSE)
+set_target_properties(nodable PROPERTIES POSITION_INDEPENDENT_CODE FALSE)
 
 # fix working directory for visual studio
-set_property(TARGET nodable PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}")
+set_target_properties(nodable PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}")
+
+#IF( WIN32 )
+#    add_definitions(-DHAVE_LIBC)
+#ENDIF()
 
 # AFTER BUILD:
 #=============
