@@ -7,6 +7,7 @@
 #include <nodable/Settings.h>
 #include <nodable/Node.h>
 #include <nodable/AppContext.h>
+#include <nodable/VM.h>
 
 using namespace Nodable;
 
@@ -76,11 +77,14 @@ bool FileView::draw()
     auto previousSelectedText = m_textEditor.GetSelectedText();
     auto previousLineText = m_textEditor.GetCurrentLineText();
 
-    auto allowkeyboard = !NodeView::IsAnyDragged() &&
+    bool is_vm_running = m_context->vm->is_program_running();
+    auto allowkeyboard = !is_vm_running &&
+                         !NodeView::IsAnyDragged() &&
                          NodeView::GetSelected() ==
                          nullptr; // disable keyboard for text editor when a node is selected.
 
-    auto allowMouse = !NodeView::IsAnyDragged() &&
+    auto allowMouse = !is_vm_running &&
+                       !NodeView::IsAnyDragged() &&
                       !ImGui::IsAnyItemHovered() &&
                       !ImGui::IsAnyItemFocused();
 
