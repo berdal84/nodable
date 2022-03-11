@@ -17,19 +17,18 @@ namespace Nodable::R
     public:
         MetaType(
                 const char* _name,
-                Type _category,
-                TypeQualifier _qualifier = TypeQualifier::None ) noexcept
+                Type _type,
+                Qualifier _qualifier = Qualifier::None ) noexcept
         : m_name(_name)
-        , m_category(_category)
+        , m_type(_type)
         , m_qualifier(_qualifier)
         {}
 
         const char* get_name() const { return m_name; };
-        const char* get_category_name() const { return to_string(m_category); }
-        Type get_category() const { return m_category; }
-        TypeQualifier get_qualifier() const { return m_qualifier; }
-        bool has_qualifier(TypeQualifier _other_qualifier) const;
-        void add_qualifier(TypeQualifier _other_qualifier);
+        Type get_type() const { return m_type; }
+        Qualifier get_qualifier() const { return m_qualifier; }
+        bool has_qualifier(Qualifier _other_qualifier) const;
+        void add_qualifier(Qualifier _other_qualifier);
         bool is(const std::shared_ptr<const MetaType>& _other)const;
         template<class T>
         bool is() const { return is(reflect_type<T>::make_type()); }
@@ -48,7 +47,7 @@ namespace Nodable::R
 
     protected:
         const char*     m_name;
-        Type    m_category;
-        TypeQualifier   m_qualifier;
+        Type            m_type;
+        Qualifier       m_qualifier;
     };
 }

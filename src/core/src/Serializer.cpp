@@ -211,7 +211,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
 
 std::string& Serializer::serialize(std::string& _result, const Variant* variant) const
 {
-    if (variant->get_meta_type()->get_category() == R::Type::String )
+    if (variant->get_meta_type()->get_type() == R::Type::String )
     {
         return _result.append('"' + variant->convert_to<std::string>() + '"');
     }

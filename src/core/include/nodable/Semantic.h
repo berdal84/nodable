@@ -53,7 +53,7 @@ namespace Nodable
 
 		[[nodiscard]] inline const std::vector<std::regex>& get_token_type_regex()const { return m_token_type_regex;  }
 		[[nodiscard]] inline const std::vector<std::regex>& get_type_regex()const { return m_type_regex;  }
-        [[nodiscard]] inline std::string                    type_to_string(std::shared_ptr<const R::MetaType> _type)const { return m_type_to_string[ static_cast<size_t>(_type->get_category()) ]; }
+        [[nodiscard]] inline std::string                    type_to_string(std::shared_ptr<const R::MetaType> _type)const { return m_type_to_string[ static_cast<size_t>(_type->get_type()) ]; }
         [[nodiscard]] inline std::string                    token_type_to_string(TokenType _type)const { return m_token_type_to_string[static_cast<size_t>(_type)]; }
         [[nodiscard]] inline R::Type                    token_type_to_type(TokenType _tokenType)const { return m_token_type_to_type[_tokenType]; }
         [[nodiscard]] inline const std::vector<TokenType>&  get_token_type_regex_index_to_token_type()const { return m_regex_index_to_token_type; }

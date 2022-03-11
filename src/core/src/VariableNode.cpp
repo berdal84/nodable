@@ -32,7 +32,7 @@ void VariableNode::set_name(const char* _name)
     std::string str;
 
     // append type only if not unknown
-    if (m_value->get_meta_type() != nullptr )
+    if (m_value->get_meta_type())
     {
         str.append(m_value->get_meta_type()->get_name() );
         str.append(" ");

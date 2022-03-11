@@ -7,7 +7,7 @@ namespace Nodable::R
     /**
      * To qualify a base type
      */
-    enum class TypeQualifier : unsigned short int
+    enum class Qualifier : unsigned short int
     {
         None     = 0,
         Ref      = 1 << 1,
@@ -16,7 +16,7 @@ namespace Nodable::R
     };
 
     // reflect the enum
-    R_ENUM(TypeQualifier)
+    R_ENUM(Qualifier)
     R_ENUM_VALUE(None)
     R_ENUM_VALUE(Ref)
     R_ENUM_VALUE(Pointer)

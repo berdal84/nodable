@@ -16,7 +16,7 @@ namespace Nodable::R
      */
     struct Register
     {
-        static std::map<Type, std::shared_ptr<const MetaType>>& by_category();
+        static std::map<Type, std::shared_ptr<const MetaType>>& by_type();
         static std::map<std::string, std::shared_ptr<const MetaType>>&  by_typeid();
         static bool has_typeid(const std::string&);
         template<class T> constexpr static bool has_class()
@@ -35,9 +35,9 @@ namespace Nodable::R
                 std::string id = typeid(T).name();
                 if ( !Register::has_typeid(id) )
                 {
-                    MetaType_const_ptr type = T::Get_class();
-                    Register::by_typeid()[id] = type;
-                    LOG_MESSAGE("R", "New entry: %s is %s\n", type->get_name(), to_string(type->get_category()) );
+                    MetaType_const_ptr meta_type = T::Get_class();
+                    Register::by_typeid()[id] = meta_type;
+                    LOG_MESSAGE("R", "New entry: %s is %s\n", meta_type->get_name(), to_string(meta_type->get_type()) );
                 }
             }
         };
@@ -51,12 +51,10 @@ namespace Nodable::R
                 std::string id = typeid(T).name();
                 if ( !Register::has_typeid(id) )
                 {
-                    const char*        name      = reflect_type<T>::name;
-                    const Type category  = reflect_type<T>::category;
-                    MetaType_const_ptr type = std::make_shared<MetaType>(name, category );
-                    Register::by_category().insert({category, type});
-                    Register::by_typeid().insert({id, type});
-                    LOG_MESSAGE("R", "New entry: %s is %s\n", type->get_name(), to_string(type->get_category()) );
+                    MetaType_const_ptr meta_type = reflect_type<T>::new_meta_type();
+                    Register::by_type().insert({meta_type->get_type(), meta_type});
+                    Register::by_typeid().insert({id, meta_type});
+                    LOG_MESSAGE("R", "New entry: %s is %s\n", meta_type->get_name(), to_string(meta_type->get_type()) );
                 }
             }
         };

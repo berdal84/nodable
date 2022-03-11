@@ -6,24 +6,24 @@
  * - get the link with TypeEnum,
  * - get the link with a typename.
  */
-#define R_DECLARE_LINK( TYPE, CATEGORY ) \
+#define R_DECLARE_LINK( T, TYPE ) \
     /** declare the link */  \
     template<> \
-    struct Nodable::R::type_to_value<TYPE, decltype(CATEGORY), CATEGORY> \
+    struct Nodable::R::type_to_value<T, TYPE> \
     {  \
-        using type = TYPE; \
-        static constexpr const char*  name           = #TYPE; \
-        static constexpr decltype(CATEGORY) category = CATEGORY; \
-        static constexpr const char*  category_name  = #CATEGORY;\
+        using type = T; \
+        static constexpr const char*    name       = #T; \
+        static constexpr decltype(TYPE) type_v     = TYPE; \
+        static constexpr const char*    type_name  = #TYPE;\
         \
         static std::shared_ptr<Nodable::R::MetaType> new_meta_type() { \
-            return std::make_shared<Nodable::R::MetaType>(#TYPE, CATEGORY); \
+            return std::make_shared<Nodable::R::MetaType>(#TYPE, TYPE); \
         }\
     }; \
     template<> struct \
-    Nodable::R::reflect_value<decltype(CATEGORY), CATEGORY> : Nodable::R::type_to_value<TYPE, decltype(CATEGORY), CATEGORY> {}; \
+    Nodable::R::reflect_value<TYPE> : Nodable::R::type_to_value<T, TYPE> {}; \
     template<> struct \
-    Nodable::R::reflect_type<TYPE> : Nodable::R::type_to_value<TYPE, decltype(CATEGORY), CATEGORY> {};
+    Nodable::R::reflect_type<T> : Nodable::R::type_to_value<T, TYPE> {};
 
 #define R_ENUM( Enum ) \
     static const char* to_string(Enum value) \

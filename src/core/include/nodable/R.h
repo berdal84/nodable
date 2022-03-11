@@ -43,8 +43,8 @@ namespace Nodable::R
      */
     static std::shared_ptr<const MetaType> get_meta_type(Type t)
     {
-        auto found = Register::by_category().find(t);
-        if (found != Register::by_category().end() )
+        auto found = Register::by_type().find(t);
+        if (found != Register::by_type().end() )
             return found->second;
         return nullptr;
     };

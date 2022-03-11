@@ -19,7 +19,7 @@ InstructionNode* HeadlessNodeFactory::new_instr() const
 VariableNode* HeadlessNodeFactory::newVariable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope *_scope) const
 {
     // create
-    VariableNode* node = new VariableNode(_type);
+    auto* node = new VariableNode(_type);
     node->set_name(_name.c_str());
 
     if( _scope)

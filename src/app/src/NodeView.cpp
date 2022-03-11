@@ -605,7 +605,7 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     auto inputFlags = ImGuiInputTextFlags_None;
 
     /* Draw the member */
-    switch (_member->get_meta_type()->get_category() )
+    switch (_member->get_meta_type()->get_type() )
     {
         case R::Type::Double:
         {

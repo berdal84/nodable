@@ -27,7 +27,7 @@ bool  Variant::is_meta_type(std::shared_ptr<const R::MetaType> _type)const
 
 void Variant::set(double _var)
 {
-	switch(get_meta_type()->get_category() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
+	switch(get_meta_type()->get_type() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
 	{
 		case R::Type::String:
 		{
@@ -51,7 +51,7 @@ void Variant::set(const std::string& _var)
 
 void Variant::set(const char* _var)
 {
-    switch (get_meta_type()->get_category() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
+    switch (get_meta_type()->get_type() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
     {
         case R::Type::String:
         {
@@ -68,7 +68,7 @@ void Variant::set(const char* _var)
 
 void Variant::set(bool _var)
 {
-	switch(get_meta_type()->get_category() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
+	switch(get_meta_type()->get_type() ) // TODO: consider using State pattern (a single context with n possible states implementing an interface)
 	{
 		case R::Type::String:
 		{
@@ -117,7 +117,7 @@ void Variant::set_meta_type(std::shared_ptr<const R::MetaType> _type) // TODO: r
         m_meta_type = _type;
 
 		// Set a default value (this will change the type too)
-		switch (_type->get_category())
+		switch (_type->get_type())
 		{
 		case R::Type::String:
 			m_data.emplace<std::string>();
@@ -150,7 +150,7 @@ void Variant::set_meta_type(std::shared_ptr<const R::MetaType> _type) // TODO: r
 template<>
 [[nodiscard]] i64_t Variant::convert_to<i64_t>()const
 {
-    switch (get_meta_type()->get_category())
+    switch (get_meta_type()->get_type())
     {
         case R::Type::String:  return double(mpark::get<std::string>(m_data).size());
         case R::Type::Double:  return mpark::get<double>(m_data);
@@ -162,7 +162,7 @@ template<>
 template<>
 [[nodiscard]] double Variant::convert_to<double>()const
 {
-    switch (get_meta_type()->get_category())
+    switch (get_meta_type()->get_type())
     {
         case R::Type::String:  return double(mpark::get<std::string>(m_data).size());
         case R::Type::Double:  return mpark::get<double>(m_data);
@@ -186,7 +186,7 @@ template<>
 template<>
 [[nodiscard]] bool Variant::convert_to<bool>()const
 {
-    switch (get_meta_type()->get_category())
+    switch (get_meta_type()->get_type())
     {
         case R::Type::String:  return !mpark::get<std::string>(m_data).empty();
         case R::Type::Double:  return mpark::get<double>(m_data) != 0.0F;
@@ -199,7 +199,7 @@ template<>
 [[nodiscard]] std::string Variant::convert_to<std::string>()const
 {
     std::string result;
-    switch (get_meta_type()->get_category())  // TODO: consider using State pattern (a single context with n possible states implementing an interface)
+    switch (get_meta_type()->get_type())  // TODO: consider using State pattern (a single context with n possible states implementing an interface)
     {
         case R::Type::String:
         {

@@ -19,7 +19,7 @@ bool DataAccess::update()
 	{
 		writer.Key(_value->get_name().c_str());
 
-    	switch(_value->get_meta_type()->get_category())
+    	switch(_value->get_meta_type()->get_type())
     	{
         case R::Type::String :
     		writer.String( ((std::string)*_value).c_str());

@@ -161,7 +161,7 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
             std::shared_ptr<const R::MetaType> type = R::get_meta_type(get_literal_type(_token));
             LiteralNode* literal = m_graph->create_literal(type);
 
-            switch (type->get_category() )
+            switch (type->get_type() )
             {
                 case R::Type::String: literal->set_value(parse_string(_token->m_word) ); break;
                 case R::Type::Double: literal->set_value(parse_double(_token->m_word) ); break;
