@@ -1,5 +1,7 @@
 #include <nodable/R.h>
 #include <type_traits> // std::underlying_type
+#include "nodable/R_MetaType.h"
+
 
 using namespace Nodable::R;
 
@@ -79,6 +81,29 @@ std::shared_ptr<const MetaType> MetaType::make_ref(const std::shared_ptr<const M
 {
     auto base_copy = std::make_shared<MetaType>(*_type);
     return add_ref(base_copy);
+}
+
+std::string MetaType::get_fullname() const
+{
+    std::string result;
+
+    if (has_qualifier(Qualifier::Const))
+    {
+        result.append("const ");
+    }
+
+    result.append(m_name);
+
+    if (has_qualifier(Qualifier::Pointer))
+    {
+        result.append("*");
+    }
+    else if (has_qualifier(Qualifier::Ref))
+    {
+        result.append("&");
+    }
+
+    return result;
 }
 
 std::map<Type, std::shared_ptr<const MetaType>>& Register::by_type()

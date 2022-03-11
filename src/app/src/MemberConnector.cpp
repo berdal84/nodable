@@ -126,6 +126,14 @@ bool MemberConnector::connect(const MemberConnector *_left, const MemberConnecto
         return false;
     }
 
+    if ( !R::MetaType::is_convertible( _left->get_member_type(), _right->get_member_type() ) )
+    {
+        LOG_WARNING( "MemberConnector", "Unable to connect %s to %s\n",
+                     _left->get_member_type()->get_fullname().c_str(),
+                     _right->get_member_type()->get_fullname().c_str())
+        return false;
+    }
+
     GraphNode* graph = _left->get_member()->get_owner()->get_parent_graph();
     if (s_dragged->m_way == Way_Out )
         graph->connect( _left->get_member(), _right->get_member() );

@@ -569,7 +569,7 @@ bool NodeView::drawMemberView(MemberView* _view )
             ImGui::BeginTooltip();
             ImGui::Text("%s (%s)",
                         member->get_name().c_str(),
-                        member->get_meta_type()->get_name());
+                        member->get_meta_type()->get_fullname().c_str());
             ImGui::EndTooltip();
         }
 
@@ -685,8 +685,8 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanc
                 "%s (%s, %s%s %s): ",
                 _member->get_name().c_str(),
                 WayToString(_member->get_allowed_connection()).c_str(),
+                _member->get_meta_type()->get_fullname().c_str(),
                 _member->is_connected_by(ConnectBy_Ref) ? "&" : "",
-                _member->get_meta_type()->get_name(),
                 _member->is_defined() ? "" : ", undefined!");
 
         ImGui::SameLine();

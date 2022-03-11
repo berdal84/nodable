@@ -25,6 +25,7 @@ namespace Nodable::R
         {}
 
         const char* get_name() const { return m_name; };
+        std::string get_fullname() const;
         Type get_type() const { return m_type; }
         Qualifier get_qualifier() const { return m_qualifier; }
         bool has_qualifier(Qualifier _other_qualifier) const;

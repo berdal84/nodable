@@ -212,7 +212,7 @@ namespace Nodable {
         observe::Event<Node*, Relation_t> m_on_relation_removed;
 
         static constexpr const char* VALUE_MEMBER_NAME = "value";
-        static constexpr const char* THIS_MEMBER_NAME = "__this__";
+        static constexpr const char* THIS_MEMBER_NAME = "this";
 	protected:
         Properties         m_props;
 		Components         m_components;
