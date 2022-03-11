@@ -23,6 +23,7 @@ using namespace Nodable::R;
 bool GraphNodeView::draw()
 {
     bool         edited         = false;
+    const bool   enable_edition = m_context->vm->is_program_stopped();
     Node*        new_node       = nullptr;
     Settings*    settings       = m_context->settings;
     GraphNode*   graph          = get_graph_node();
@@ -198,8 +199,8 @@ bool GraphNodeView::draw()
         // Drops ?
         bool require_new_node   = false;
         bool has_made_connection = false;
-        MemberConnector::drop_behavior(require_new_node, has_made_connection);
-        NodeConnector::drop_behavior(require_new_node, has_made_connection);
+        MemberConnector::drop_behavior(require_new_node, has_made_connection, enable_edition);
+        NodeConnector::drop_behavior(require_new_node, has_made_connection, enable_edition);
 
         // Need a need node ?
         if (require_new_node)
@@ -283,6 +284,7 @@ bool GraphNodeView::draw()
 		{
             if (eachNodeView->isVisible())
             {
+                eachNodeView->enable_edition(enable_edition);
                 edited |= eachNodeView->draw();
 
                 if(m_context->vm && m_context->vm->is_debugging() && m_context->vm->get_next_node() == eachNodeView->get_owner())
@@ -371,7 +373,7 @@ bool GraphNodeView::draw()
 		Mouse right-click popup menu
 	*/
 
-	if ( !isAnyNodeHovered && ImGui::BeginPopupContextWindow(k_context_menu_popup) )
+	if ( enable_edition && !isAnyNodeHovered && ImGui::BeginPopupContextWindow(k_context_menu_popup) )
 	{
 		// Title :
 		ImGuiEx::ColoredShadowedText( vec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");

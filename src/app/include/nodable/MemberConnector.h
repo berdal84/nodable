@@ -46,8 +46,7 @@ namespace Nodable {
         vec2               get_pos()const override;
         bool               share_parent_with(const MemberConnector *other)const override;
         bool               has_node_connected() const;
-        static bool        draw(const MemberConnector *_connector, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor);
-        static void        drop_behavior(bool& require_new_node, bool& has_made_connection);
+        static bool        draw(const MemberConnector *_connector, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor, bool _editable);
         static bool        connect(const MemberConnector *_left, const MemberConnector *_right);
 
         MemberView* m_memberView;

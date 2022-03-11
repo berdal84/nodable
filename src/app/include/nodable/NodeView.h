@@ -180,17 +180,18 @@ namespace Nodable
         Slots<NodeView*>&       output_slots() { return m_output_slots; }
         Slots<NodeView*>&       input_slots() { return m_input_slots; }
         void                    toggleExpansion();
+        void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }
     private:
         virtual bool    update(float _deltaTime);
 		bool            drawMemberView(MemberView *_view);
-        void            drawMemberViewConnector(MemberView* _view, Way _way, float _connectorRadius);
         bool            isMemberExposed(const Member *_member)const;
 
-        vec2          m_forces_sum;
-        vec2          m_last_frame_forces_sum;
+        bool            m_edition_enable;
+        vec2            m_forces_sum;
+        vec2            m_last_frame_forces_sum;
         bool            m_childrenVisible;
-		vec2          m_position;
-		vec2          m_size;
+		vec2            m_position;
+		vec2            m_size;
 		float           m_opacity;
 		bool            m_forceMemberInputVisible;
 		bool            m_pinned;

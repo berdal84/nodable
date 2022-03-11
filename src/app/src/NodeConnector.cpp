@@ -14,7 +14,7 @@ const NodeConnector*     NodeConnector::s_dragged   = nullptr;
 const NodeConnector*     NodeConnector::s_hovered   = nullptr;
 const NodeConnector*     NodeConnector::s_focused   = nullptr;
 
-bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor)
+bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor, bool _editable)
 {
     bool edited = false;
     float rounding = 6.0f;
@@ -38,7 +38,7 @@ bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
 
     // behavior
     auto connectedNode = _connector->get_connected_node();
-    if ( connectedNode && ImGui::BeginPopupContextItem() )
+    if ( _editable && connectedNode && ImGui::BeginPopupContextItem() )
     {
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
@@ -58,19 +58,17 @@ bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
 
     if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
     {
-        if (ImGui::IsMouseDown(0) && !is_dragging() && !NodeView::IsAnyDragged())
+        if ( ImGui::IsMouseDown(0) && !is_dragging() && !NodeView::IsAnyDragged())
         {
             if ( _connector->m_way == Way_Out)
             {
-                if (_connector->get_node()->successor_slots().size() <
-                    _connector->get_node()->successor_slots().get_limit() )
-                    start_drag(_connector);
+                const auto& successors = _connector->get_node()->successor_slots();
+                if (successors.size() < successors.get_limit() ) start_drag(_connector);
             }
             else
             {
-                if (_connector->get_node()->predecessor_slots().size() <
-                    _connector->get_node()->predecessor_slots().get_limit() )
-                    start_drag(_connector);
+                const auto& predecessors = _connector->get_node()->predecessor_slots();
+                if (predecessors.size() < predecessors.get_limit() ) start_drag(_connector);
             }
         }
 
@@ -99,21 +97,6 @@ ImRect NodeConnector::get_rect() const
 vec2 NodeConnector::get_pos()const
 {
     return get_rect().GetCenter() + ImGuiEx::ToScreenPosOffset();
-}
-
-void NodeConnector::drop_behavior(bool& require_new_node, bool& has_made_connection)
-{
-    if (s_dragged && ImGui::IsMouseReleased(0))
-    {
-        if ( s_hovered )
-        {
-            NodeConnector::connect(s_dragged, s_hovered);
-            s_dragged = s_hovered = nullptr;
-            has_made_connection = true;
-        } else {
-            require_new_node = true;
-        }
-    }
 }
 
 bool NodeConnector::share_parent_with(const NodeConnector *other) const

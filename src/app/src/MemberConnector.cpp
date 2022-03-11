@@ -45,27 +45,13 @@ bool MemberConnector::share_parent_with(const MemberConnector* other) const
     return get_member() == other->get_member();
 }
 
-void MemberConnector::drop_behavior(bool &require_new_node, bool& has_made_connection)
-{
-    if (s_dragged && ImGui::IsMouseReleased(0))
-    {
-        if ( s_hovered )
-        {
-            MemberConnector::connect(s_dragged, s_hovered);
-            s_dragged = s_hovered = nullptr;
-            has_made_connection = true;
-        } else {
-            require_new_node = true;
-        }
-    }
-}
-
 bool MemberConnector::draw(
         const MemberConnector *_connector,
         float _radius,
         const ImColor &_color,
         const ImColor &_borderColor,
-        const ImColor &_hoverColor)
+        const ImColor &_hoverColor,
+        bool _editable)
 {
     // draw
     //-----
@@ -89,7 +75,7 @@ bool MemberConnector::draw(
 
     // behavior
     //--------
-    if (_connector->has_node_connected() && ImGui::BeginPopupContextItem() )
+    if ( _editable && _connector->has_node_connected() && ImGui::BeginPopupContextItem() )
     {
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
@@ -112,7 +98,7 @@ bool MemberConnector::draw(
 
     if (isItemHovered)
     {
-        if (ImGui::IsMouseDown(0))
+        if ( ImGui::IsMouseDown(0))
         {
             if ( s_dragged == nullptr && !NodeView::IsAnyDragged())
                 MemberConnector::start_drag(_connector);

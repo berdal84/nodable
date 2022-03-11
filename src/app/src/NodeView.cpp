@@ -47,6 +47,7 @@ NodeView::NodeView(AppContext* _ctx)
         , m_input_slots(this)
         , m_output_slots(this)
         , m_successor_slots(this)
+        , m_edition_enable(true)
 {
     NodeView::s_instances.push_back(this);
 }
@@ -318,7 +319,7 @@ bool NodeView::draw()
         ImColor hoveredColor = settings->ui_node_nodeConnectorHoveredColor;
 
         auto drawConnectorAndHandleUserEvents = [&](NodeConnector *connector) {
-            edited |= NodeConnector::draw(connector, color, hoveredColor);
+            edited |= NodeConnector::draw(connector, color, hoveredColor, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         };
 
@@ -419,13 +420,13 @@ bool NodeView::draw()
 
         if ( m_exposed_this_member_view )
         {
-            edited |= MemberConnector::draw(m_exposed_this_member_view->m_out, radius, color, borderCol, hoverCol);
+            edited |= MemberConnector::draw(m_exposed_this_member_view->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
         for( auto& memberView : m_exposedInputOnlyMembers )
         {
-            edited |= MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol);
+            edited |= MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
@@ -433,13 +434,13 @@ bool NodeView::draw()
         {
             if ( memberView->m_in)
             {
-                edited |= MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol);
+                edited |= MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
 
             if ( memberView->m_out)
             {
-                edited |= MemberConnector::draw(memberView->m_out, radius, color, borderCol, hoverCol);
+                edited |= MemberConnector::draw(memberView->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
         }
@@ -462,7 +463,7 @@ bool NodeView::draw()
 		ImGui::MenuItem("Collapsed", "", &m_forceMemberInputVisible, true);
         ImGui::Separator();
 
-        if(ImGui::Selectable("Delete"))
+        if( ImGui::Selectable("Delete", !m_edition_enable ? ImGuiSelectableFlags_Disabled : ImGuiSelectableFlags_None))
         {
             node->flag_for_deletion();
         }

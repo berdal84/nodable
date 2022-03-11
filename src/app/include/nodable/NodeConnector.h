@@ -33,8 +33,7 @@ namespace Nodable {
         ImRect             get_rect()const;
         vec2               get_pos()const override;
         bool               share_parent_with(const NodeConnector *other) const override;
-        static bool        draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor);
-        static void        drop_behavior(bool& require_new_node, bool& has_made_connection);
+        static bool        draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor, bool _editable);
         static bool        connect(const NodeConnector *_left, const NodeConnector *_right);
 
         size_t    m_index;
