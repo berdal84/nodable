@@ -25,16 +25,14 @@ namespace Nodable
         enum Register {
             rax = 0, // accumulator
             rdx,     // storage
-            esp,     // The stack pointer.  Points to the top of the stack
-            ebp,     // Preserved register. Sometimes used to store the old value of the stack pointer, or the "base".
+            eip,     // The instruction pointer.
             COUNT
         };
 
         R_ENUM(Register)
         R_ENUM_VALUE(rax)
         R_ENUM_VALUE(rdx)
-        R_ENUM_VALUE(esp)
-        R_ENUM_VALUE(ebp)
+        R_ENUM_VALUE(eip)
         R_ENUM_END
 
         /**
