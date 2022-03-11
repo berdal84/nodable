@@ -17,7 +17,7 @@
         static constexpr const char*    type_name  = #TYPE;\
         \
         static std::shared_ptr<Nodable::R::MetaType> new_meta_type() { \
-            return std::make_shared<Nodable::R::MetaType>(#TYPE, TYPE); \
+            return std::make_shared<Nodable::R::MetaType>(#T, TYPE); \
         }\
     }; \
     template<> struct \

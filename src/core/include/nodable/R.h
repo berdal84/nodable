@@ -93,8 +93,9 @@ namespace Nodable::R
 }
 
 /** declare some correspondence between type and typeenum */
-R_DECLARE_LINK(double       , Nodable::R::Type::Double )
-R_DECLARE_LINK(std::string  , Nodable::R::Type::String )
-R_DECLARE_LINK(bool         , Nodable::R::Type::Boolean )
-R_DECLARE_LINK(void         , Nodable::R::Type::Void )
+typedef std::string string;
+R_DECLARE_LINK(double , Nodable::R::Type::Double )
+R_DECLARE_LINK(string , Nodable::R::Type::String )
+R_DECLARE_LINK(bool   , Nodable::R::Type::Boolean )
+R_DECLARE_LINK(void   , Nodable::R::Type::Void )
 
