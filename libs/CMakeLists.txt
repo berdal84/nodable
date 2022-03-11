@@ -96,7 +96,7 @@ add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/Observe ./Observe EXCLUDE_FROM_ALL) 
 
 # SDL2
 #------
-add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/SDL ./SDL EXCLUDE_FROM_ALL)
+add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/SDL EXCLUDE_FROM_ALL)
 
 # Define variables to use them from the parent CMakeLists.txt
 #------------------------------------------------------------
