@@ -16,6 +16,7 @@ using namespace Nodable::Asm;
 std::string Asm::Instr::to_string(const Instr& _instr)
 {
     std::string result;
+    result.reserve(60);
 
     // append "<line> :"
     std::string str = std::to_string(_instr.m_line);
@@ -25,7 +26,8 @@ std::string Asm::Instr::to_string(const Instr& _instr)
     result.append( ": " );
 
     // append instruction type
-    result.append( Nodable::to_string(_instr.m_type) + " " );
+    result.append( Asm::to_string(_instr.m_type));
+    result.append( " " );
 
     // optionally append parameters
     switch ( _instr.m_type )
@@ -34,7 +36,7 @@ std::string Asm::Instr::to_string(const Instr& _instr)
         {
             FctId fct_id   = (FctId)_instr.m_left_h_arg;
             Member* member = (Member*)_instr.m_right_h_arg;
-            result.append( Nodable::to_string(fct_id) );
+            result.append( Asm::to_string(fct_id) );
             result.append( " [" + std::to_string((size_t)member) + "]");
             break;
         }
@@ -42,8 +44,10 @@ std::string Asm::Instr::to_string(const Instr& _instr)
         case Instr_t::mov:
         case Instr_t::cmp:
         {
-            result.append("%" + std::to_string( _instr.m_left_h_arg ) );
-            result.append(", %" + std::to_string( _instr.m_right_h_arg ) );
+            result.append("%");
+            result.append(Asm::to_string( (Register)_instr.m_left_h_arg ));
+            result.append(", %");
+            result.append(Asm::to_string( (Register)_instr.m_right_h_arg ));
             break;
         }
 
@@ -67,41 +71,6 @@ std::string Asm::Instr::to_string(const Instr& _instr)
         result.append( _instr.m_comment );
     }
     return result;
-}
-
-std::string Nodable::to_string(Instr_t _type)
-{
-    switch( _type)
-    {
-        case Instr_t::mov:   return "mov";
-        case Instr_t::ret:   return "ret";
-        case Instr_t::call:  return "call";
-        case Instr_t::jmp:   return "jpm";
-        case Instr_t::jne:   return "jne";
-        default:             return "???";
-    }
-}
-
-std::string Nodable::to_string(Register _register)
-{
-    switch( _register)
-    {
-        case Register::rax: return "%rax";
-        case Register::rdx: return "%rdx";
-        default:            return "%???";
-    }
-}
-
-std::string Nodable::to_string(FctId _id)
-{
-    switch( _id)
-    {
-        case FctId::eval_member:      return "eval_member";
-        case FctId::eval_node:        return "eval_node";
-        case FctId::pop_stack_frame:  return "pop_stack_frame";
-        case FctId::push_stack_frame: return "push_stack_frame";
-        default:                      return "???";
-    }
 }
 
 Code::~Code()

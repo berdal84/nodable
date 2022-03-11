@@ -602,8 +602,8 @@ void AppView::draw_vm_view()
         {
             ImGui::Indent();
             ImGui::Text("rax: %#16llx (storage)", vm->get_register_val(Asm::Register::rax));
-            ImGui::Text("rdx: %#16llx (last instr address)", vm->get_register_val(Asm::Register::rdx));
-            ImGui::Text("esp: %#16llx (next line)", vm->get_register_val(Asm::Register::esp));
+            ImGui::Text("rdx: %#16llx (storage)", vm->get_register_val(Asm::Register::rdx));
+            ImGui::Text("esp: %#16llx (stack pointer)", vm->get_register_val(Asm::Register::esp));
             //ImGui::Text("epb: %#16llx", vm->get_register_val(Asm::Register::ebp));
             ImGui::Unindent();
         }

@@ -4,7 +4,9 @@
 #include <vector>
 #include <unordered_set>
 #include <mpark/variant.hpp>
+
 #include <nodable/Nodable.h>
+#include <nodable/R.h>
 
 namespace Nodable
 {
@@ -28,6 +30,12 @@ namespace Nodable
             COUNT
         };
 
+        R_ENUM(Register)
+        R_ENUM_VALUE(rax)
+        R_ENUM_VALUE(rdx)
+        R_ENUM_VALUE(esp)
+        R_ENUM_VALUE(ebp)
+        R_ENUM_END
 
         /**
          * Enum to identify each function identifier.
@@ -41,6 +49,13 @@ namespace Nodable
             pop_stack_frame
         };
 
+        R_ENUM(FctId)
+        R_ENUM_VALUE(eval_member)
+        R_ENUM_VALUE(eval_node)
+        R_ENUM_VALUE(push_stack_frame)
+        R_ENUM_VALUE(pop_stack_frame)
+        R_ENUM_END
+
         /**
          * Enumerate each possible instruction.
          */
@@ -53,6 +68,15 @@ namespace Nodable
             ret,
             cmp /* compare */
         };
+
+        R_ENUM(Instr_t)
+        R_ENUM_VALUE(call)
+        R_ENUM_VALUE(mov)
+        R_ENUM_VALUE(jmp)
+        R_ENUM_VALUE(jne)
+        R_ENUM_VALUE(ret)
+        R_ENUM_VALUE(cmp)
+        R_ENUM_END
 
         /**
          * Store a single assembly instruction ( line type larg rarg comment )
@@ -104,8 +128,4 @@ namespace Nodable
             Code*         m_output;
         };
     }
-
-    static std::string to_string(Asm::Register);
-    static std::string to_string(Asm::FctId);
-    static std::string to_string(Asm::Instr_t);
 }
