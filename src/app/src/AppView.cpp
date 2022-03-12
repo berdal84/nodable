@@ -3,6 +3,7 @@
 #include <imgui/backends/imgui_impl_sdl.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <queue>
 
 #include <nodable/BuildInfo.h>
 #include <nodable/Texture.h>
@@ -165,30 +166,27 @@ ImFont* AppView::load_font(const FontConf &fontConf) {
 
 bool AppView::draw()
 {
-    // TODO: create an event list (fill, execute, clear)
-    auto delete_node(false);
-    auto arrange_node(false);
-    auto select_successor_node(false);
-    auto expand_node(false);
+    std::queue<Event> event_queue;
 
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
+    SDL_Event sdl_event;
+    while (SDL_PollEvent(&sdl_event))
     {
-        ImGui_ImplSDL2_ProcessEvent(&event);
+        ImGui_ImplSDL2_ProcessEvent(&sdl_event);
 
-		switch (event.type)
+		switch (sdl_event.type)
 		{
 		case SDL_QUIT:
             m_context->app->flag_to_stop();
 			break;
 
 		case SDL_KEYUP:
-			auto key = event.key.keysym.sym;
-
-			if ((event.key.keysym.mod & KMOD_LCTRL)) {
-
+			auto key = sdl_event.key.keysym.sym;
+            auto l_ctrl_pressed = sdl_event.key.keysym.mod & KMOD_LCTRL;
+			if ( l_ctrl_pressed )
+            {
 				// History
-				if (auto file = m_context->app->get_curr_file()) {
+				if (File* file = m_context->app->get_curr_file())
+                {
 					History* currentFileHistory = file->getHistory();
 					     if (key == SDLK_z) currentFileHistory->undo();
 					else if (key == SDLK_y) currentFileHistory->redo();
@@ -197,29 +195,29 @@ bool AppView::draw()
 				// File
 				     if( key == SDLK_s) m_context->app->save_file();
 				else if( key == SDLK_w) m_context->app->close_file();
-				else if( key == SDLK_o) this->browse_file();
+				else if( key == SDLK_o) browse_file();
 			}
-			else if (key == SDLK_DELETE )
+			else
             {
-                delete_node = true;
+                switch( key )
+                {
+                    case SDLK_DELETE:
+                        event_queue.push(Event::delete_selected_node);
+                        break;
+                    case SDLK_a:
+                        event_queue.push(Event::arrange_selected_node_view);
+                        break;
+                    case SDLK_x:
+                        event_queue.push(Event::expand_selected_node_view);
+                        break;
+                    case SDLK_n:
+                        event_queue.push(Event::select_selected_successor_node_view);
+                        break;
+                    case SDLK_F1:
+                        m_show_startup_window = true;
+                        break;
+                }
             }
-			else if (key == SDLK_a)
-            {
-                arrange_node = true;
-            }
-			else if (key == SDLK_x)
-            {
-                expand_node = true;
-            }
-            else if (key == SDLK_n)
-            {
-                select_successor_node = true;
-            }
-			else if (key == SDLK_F1 )
-            {
-                m_show_startup_window = true;
-            }
-
 			break;
 		}
 
@@ -308,9 +306,21 @@ bool AppView::draw()
                     }
 
                     auto has_selection = NodeView::GetSelected() != nullptr;
-                    delete_node |= ImGui::MenuItem("Delete", "Del.", false, has_selection);
-                    arrange_node |= ImGui::MenuItem("Arrange nodes", "A", false, has_selection);
-                    expand_node |= ImGui::MenuItem("Expand (toggle)", "X", false, has_selection);
+
+                    if ( ImGui::MenuItem("Delete", "Del.", false, has_selection && m_context->vm->is_program_stopped() ) )
+                    {
+                        event_queue.push(Event::delete_selected_node);
+                    }
+
+                    if ( ImGui::MenuItem("Arrange nodes", "A", false, has_selection) )
+                    {
+                        event_queue.push(Event::arrange_selected_node_view);
+                    }
+
+                    if ( ImGui::MenuItem("Expand (toggle)", "X", false, has_selection) )
+                    {
+                        event_queue.push(Event::expand_selected_node_view);
+                    }
                     ImGui::EndMenu();
                 }
 
@@ -498,41 +508,6 @@ bool AppView::draw()
 
         }
         ImGui::End(); // Main window
-
-
-		/*
-		   Perform actions on selected node
-		*/
-
-		auto selectedNodeView = NodeView::GetSelected();
-		if (selectedNodeView)
-		{
-			if (delete_node)
-			{
-			    auto node = selectedNodeView->get_owner();
-                node->flag_for_deletion();
-            }
-			else if (arrange_node)
-            {
-				selectedNodeView->arrangeRecursively();
-            }
-            else if (expand_node)
-            {
-                selectedNodeView->toggleExpansion();
-            }
-			else if (select_successor_node)
-            {
-			    Node* possible_successor = selectedNodeView->get_owner()->successor_slots().get_front_or_nullptr();
-			    if ( !possible_successor  )
-                {
-                    if( auto successor_view = possible_successor->get<NodeView>())
-                    {
-                        NodeView::SetSelected(successor_view);
-                    }
-                }
-
-            }
-		}
     }
 
     draw_file_browser();
@@ -560,10 +535,63 @@ bool AppView::draw()
 
     SDL_GL_SwapWindow(m_sdl_window);
 
+
+
+    /*
+       Handle sdl_event queue
+    */
+    while( !event_queue.empty() )
+    {
+        switch ( event_queue.front() )
+        {
+            case Event::delete_selected_node:
+            {
+                if ( NodeView* selected_view = NodeView::GetSelected() )
+                {
+                    selected_view->get_owner()->flag_for_deletion();
+                }
+                break;
+            }
+            case Event::arrange_selected_node_view:
+            {
+                if ( NodeView* selected_view = NodeView::GetSelected() )
+                {
+                    selected_view->arrangeRecursively();
+                }
+                break;
+            }
+            case Event::select_selected_successor_node_view:
+            {
+                if ( NodeView* selected_view = NodeView::GetSelected() )
+                {
+                    Node* possible_successor = selected_view->get_owner()->successor_slots().get_front_or_nullptr();
+                    if (!possible_successor)
+                    {
+                        if (auto successor_view = possible_successor->get<NodeView>())
+                        {
+                            NodeView::SetSelected(successor_view);
+                        }
+                    }
+                }
+                break;
+            }
+            case Event::expand_selected_node_view:
+            {
+                if ( NodeView* selected_view = NodeView::GetSelected() )
+                {
+                    selected_view->toggleExpansion();
+                }
+                break;
+            }
+        }
+        event_queue.pop();
+    }
+
     // limit frame rate
-    constexpr float desiredFrameRate = 1.0f/60.0f;
-    if ( ImGui::GetIO().DeltaTime  < desiredFrameRate)
-        SDL_Delay((desiredFrameRate - ImGui::GetIO().DeltaTime) * 1000u );
+    if (ImGui::GetIO().DeltaTime < k_desired_delta_time)
+    {
+        SDL_Delay((unsigned int)((k_desired_delta_time - ImGui::GetIO().DeltaTime) * 1000.f) );
+    }
 
     return false;
 }

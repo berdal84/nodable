@@ -30,7 +30,17 @@ namespace Nodable
 	*/
 	class AppView : public View
 	{
-		
+        static constexpr float k_desired_fps        = 60.0f;
+        static constexpr float k_desired_delta_time = 1.0f / k_desired_fps;
+
+		enum class Event
+        {
+            delete_selected_node,
+            arrange_selected_node_view,
+            select_selected_successor_node_view,
+            expand_selected_node_view
+        };
+
 	public:		
 		AppView(AppContext* _ctx, const char* _name);
 		~AppView() override;
