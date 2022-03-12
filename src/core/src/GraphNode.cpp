@@ -537,10 +537,10 @@ void GraphNode::disconnect(Node *_src, Node *_dst, Relation_t _relationType, boo
 void GraphNode::destroy(Wire *_wire)
 {
     _wire->getTarget()->set_input(nullptr);
+    _wire->getTarget()->reset_value();
+
     auto& outputs = _wire->getSource()->get_outputs();
     outputs.erase( std::find(outputs.begin(), outputs.end(), _wire->getTarget()));
-
-    _wire->getSource()->undefine();
 
     Node* targetNode = _wire->getTarget()->get_owner();
     Node* sourceNode = _wire->getSource()->get_owner();

@@ -36,7 +36,7 @@ namespace Nodable
 
         void digest(Member *_member);
         void define();
-        void undefine() { get_variant().undefine(); }
+        void reset_value() { get_variant().reset_value(); }
         bool is_defined() const { return get_variant().is_defined(); }
         bool is_connected_by(ConnBy_ by);
         bool is_meta_type(std::shared_ptr<const R::MetaType> _other)const { return get_variant().is_meta_type(_other); }

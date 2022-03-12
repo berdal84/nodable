@@ -96,9 +96,29 @@ bool Variant::is_defined()const
 	return m_is_defined;
 }
 
-void Variant::undefine()
+void Variant::reset_value()
 {
     m_is_defined = false;
+
+    // Set a default value (this will change the type too)
+    switch (m_meta_type->get_type())
+    {
+        case R::Type::String:
+            m_data.emplace< R::reflect_value<R::Type::String>::type >();
+            break;
+        case R::Type::Double:
+            m_data.emplace< R::reflect_value<R::Type::Double>::type >();
+            break;
+        case R::Type::Boolean:
+            m_data.emplace< R::reflect_value<R::Type::Boolean>::type >();
+            break;
+        case R::Type::Class:
+            m_data.emplace<Node*>();
+            break;
+        default:
+            break;
+
+    }
 }
 
 void Variant::set(const Variant* _other)
@@ -113,30 +133,9 @@ void Variant::set_meta_type(std::shared_ptr<const R::MetaType> _type) // TODO: r
 {
 	if (m_meta_type == nullptr || !m_meta_type->is(_type) )
 	{
-		undefine();
         m_meta_type = _type;
-
-		// Set a default value (this will change the type too)
-		switch (_type->get_type())
-		{
-		case R::Type::String:
-			m_data.emplace< R::reflect_value<R::Type::String>::type >();
-			break;
-		case R::Type::Double:
-            m_data.emplace< R::reflect_value<R::Type::Double>::type >();
-                break;
-		case R::Type::Boolean:
-            m_data.emplace< R::reflect_value<R::Type::Boolean>::type >();
-                break;
-        case R::Type::Class:
-            m_data.emplace<Node*>();
-            break;
-        default:
-            break;
-
-        }
+        reset_value();
 	}
-
 }
 
 template<>

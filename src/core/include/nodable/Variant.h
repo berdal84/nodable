@@ -24,7 +24,7 @@ namespace Nodable
 
         void define();
         bool is_defined()const;
-        void undefine();
+        void reset_value();
 		bool is_meta_type(std::shared_ptr<const R::MetaType> _meta_type)const;
 
 		template<typename T>

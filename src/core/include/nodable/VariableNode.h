@@ -25,7 +25,7 @@ namespace Nodable
 
 		inline bool      is_declared()const { return m_is_declared; }
 		inline bool      is_defined()const { return m_value->is_defined(); }
-		inline void      undefine() { m_value->undefine(); set_dirty(true); }
+		inline void      undefine() { m_value->reset_value(); set_dirty(true); }
 		const char*      get_name()const { return m_name.c_str(); };
 		Member*          get_value()const { return m_value; }
         std::shared_ptr<const Token> get_type_token() const { return m_type_token; }
