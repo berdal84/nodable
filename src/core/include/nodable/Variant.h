@@ -10,10 +10,14 @@
 
 namespace Nodable
 {
+    // forward declarations
+    class Node;
+
     /**
      * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data member)
      */
-	class Variant {
+	class Variant
+    {
 	public:
 		Variant();
 		~Variant();
@@ -23,10 +27,11 @@ namespace Nodable
         void undefine();
 		bool is_meta_type(std::shared_ptr<const R::MetaType> _meta_type)const;
 
-        void set(void* _pointer)
+		template<typename T>
+        void set(T* _pointer)
         {
-            set_meta_type(R::get_meta_type<void *>());
-            m_data.emplace<void*>(_pointer);
+            set_meta_type(R::get_meta_type<T*>());
+            m_data.emplace<T*>(_pointer);
             m_is_defined = true;
         }
 
@@ -51,14 +56,16 @@ namespace Nodable
         T convert_to()const;
 
 		// by reference
-		inline operator const void*()const     { return mpark::get<void*>(m_data); }
-		inline operator void*()          { return mpark::get<void*>(m_data); }
-		inline operator double*()        { return &mpark::get<double>(m_data); }
-        inline operator bool*()          { return &mpark::get<bool>(m_data); }
-        inline operator std::string* ()  { return &mpark::get<std::string>(m_data); }
-        inline operator double&()        { return mpark::get<double>(m_data); }
-        inline operator bool&()          { return mpark::get<bool>(m_data); }
-        inline operator std::string& ()  { return mpark::get<std::string>(m_data); }
+		template<typename T> operator const T*()const  { return reinterpret_cast<const T*>(mpark::get<T*>(m_data)); }
+        template<typename T> operator T*()             { return mpark::get<T*>(m_data); }
+        template<typename T> operator T&()             { return mpark::get<T>(m_data); }
+
+		operator double*()        { return &mpark::get<double>(m_data); }
+        operator bool*()          { return &mpark::get<bool>(m_data); }
+        operator std::string* ()  { return &mpark::get<std::string>(m_data); }
+        operator double&()        { return mpark::get<double>(m_data); }
+        operator bool&()          { return mpark::get<bool>(m_data); }
+        operator std::string& ()  { return mpark::get<std::string>(m_data); }
 
         // by value
         operator int()const;
@@ -69,6 +76,6 @@ namespace Nodable
     private:
         bool m_is_defined;
         std::shared_ptr<const R::MetaType> m_meta_type;
-		mpark::variant<bool, double, std::string, void*> m_data;
+		mpark::variant<bool, double, std::string, Node*> m_data;
     };
 }

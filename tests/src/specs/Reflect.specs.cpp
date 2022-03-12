@@ -71,7 +71,7 @@ TEST(Reflect, node_as_pointer)
     member->set(ptr);
 
     // check
-    EXPECT_TRUE(member->get_meta_type()->is(R::get_meta_type<void *>()) );
-    EXPECT_EQ( ptr, (void*)*member );
+    EXPECT_TRUE(member->get_meta_type()->is(R::get_meta_type<Node*>()) );
+    EXPECT_EQ( ptr, (Node*)*member );
     EXPECT_TRUE(MetaType::is_ptr(member->get_meta_type()) );
 }

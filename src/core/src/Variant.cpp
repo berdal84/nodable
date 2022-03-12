@@ -106,7 +106,7 @@ void Variant::set(const Variant* _other)
     set_meta_type(_other->get_meta_type());  // TODO: remove this
 	m_data       = _other->m_data;
     m_is_defined = _other->m_is_defined;
-    m_meta_type       = _other->m_meta_type;
+    m_meta_type  = _other->m_meta_type;
 }
 
 void Variant::set_meta_type(std::shared_ptr<const R::MetaType> _type) // TODO: remove this
@@ -120,29 +120,21 @@ void Variant::set_meta_type(std::shared_ptr<const R::MetaType> _type) // TODO: r
 		switch (_type->get_type())
 		{
 		case R::Type::String:
-			m_data.emplace<std::string>();
+			m_data.emplace< R::reflect_value<R::Type::String>::type >();
 			break;
 		case R::Type::Double:
-			m_data.emplace<double>();
-			break;
+            m_data.emplace< R::reflect_value<R::Type::Double>::type >();
+                break;
 		case R::Type::Boolean:
-			m_data.emplace<bool>();
-			break;
+            m_data.emplace< R::reflect_value<R::Type::Boolean>::type >();
+                break;
+        case R::Type::Class:
+            m_data.emplace<Node*>();
+            break;
         default:
-            using Pointer_T = void*;
-            R::MetaType_const_ptr pointer_t = R::get_meta_type<Pointer_T>();
-            if (  R::MetaType::is_convertible(_type, pointer_t) )
-            {
-                m_data.emplace<Pointer_T>();
-            }
-            else
-            {
-                throw std::runtime_error(
-                        std::string("Unable to emplace data in m_data because _type cannot be converted to ") +
-                        pointer_t->get_name() );
-            }
-			break;
-		}
+            break;
+
+        }
 	}
 
 }
@@ -172,19 +164,19 @@ template<>
 }
 
 template<>
-[[nodiscard]] void* Variant::convert_to<void*>()const
+[[nodiscard]] Node* Variant::convert_to<Node*>()const
 {
-    return mpark::get<void*>(m_data);
+    return mpark::get<Node*>(m_data);
 }
 
 template<>
-[[nodiscard]] int Variant::convert_to<int>()const
+int Variant::convert_to<int>()const
 {
 	return (int)this->convert_to<double>();
 }
 
 template<>
-[[nodiscard]] bool Variant::convert_to<bool>()const
+bool Variant::convert_to<bool>()const
 {
     switch (get_meta_type()->get_type())
     {
@@ -196,7 +188,7 @@ template<>
 }
 
 template<>
-[[nodiscard]] std::string Variant::convert_to<std::string>()const
+std::string Variant::convert_to<std::string>()const
 {
     std::string result;
     switch (get_meta_type()->get_type())  // TODO: consider using State pattern (a single context with n possible states implementing an interface)
@@ -219,20 +211,17 @@ template<>
             break;
         }
 
+        case R::Type::Class:
+        {
+            result.append("[&") ;
+            result.append( std::to_string( (size_t)mpark::get<Node*>(m_data)) );
+            result.append("]") ;
+            break;
+        }
+
         default:
         {
-            if( R::MetaType::is_ptr(m_meta_type))
-            {
-                result.append("[&") ;
-                result.append( std::to_string( (size_t)mpark::get<void*>(m_data)) );
-                result.append("]") ;
-            }
-            else
-            {
-                result.append("<?>");
-            }
-
-            break;
+            result.append("<?>");
         }
     }
 

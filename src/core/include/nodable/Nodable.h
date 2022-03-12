@@ -5,7 +5,7 @@
 #include <vector> 	// for some typedefs
 #include <assert.h> // for ASSERT and VERIFY
 #include <nodable/Log.h>
-
+#include <nodable/Variant.h>
 /*
 	Asserts
 */
@@ -61,7 +61,6 @@ namespace Nodable
     typedef std::vector<NodeView*>     NodeViews ;
     typedef std::pair<const Relation_t, const Relation_link> Relation;
     typedef std::multimap<Relation::first_type, Relation::second_type> RelationRegistry;
-
 
     static bool operator==(const Relation_link& _left, const Relation_link& _right)
     {

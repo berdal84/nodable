@@ -124,22 +124,16 @@ void Asm::Compiler::compile(const Member * _member )
 
         if (_member->is_meta_type(void_ptr) )
         {
-            // note: we consider Pointers to be Node*.
-            compile((const Node*)(void *)*_member);
+            compile((const Node*)*_member);
         }
-        else
+        else if ( Member* input = _member->get_input() )
         {
             /*
-             * if the member has no input it means it is a simple literal value and we have nothing to compute,
-             * instead we traverse the syntax tree starting from the node connected to it.
+             * if the member has an input it means it is not a simple literal value and we have to compile it.
+             * In order to do that, we traverse the syntax tree starting from the node connected to it.
              * Once we have the list of the nodes to be updated, we loop on them.
              */
-
-            Member *input = _member->get_input();
-            if ( input )
-            {
-                compile(input->get_owner());
-            }
+             compile(input->get_owner());
         }
 
         /* evaluate member */
@@ -190,7 +184,7 @@ void Asm::Compiler::compile(const Node* _node)
         if ( condition_member->is_defined() )
         {
             NODABLE_ASSERT(condition_member)
-            auto cond_node = (const Node*)((void*)*condition_member);
+            auto cond_node = (const Node*)*condition_member;
             compile(cond_node);
         }
 
@@ -245,7 +239,7 @@ void Asm::Compiler::compile(const Node* _node)
     {
         const Member* root_member = instr_node->get_root_node_member();
         NODABLE_ASSERT(root_member)
-        auto root_node = (const Node*)(const void*)*root_member;
+        auto root_node = (const Node*)*root_member;
 
         // eval node
         compile(root_node);
