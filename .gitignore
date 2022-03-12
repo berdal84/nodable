@@ -49,10 +49,6 @@ build/Nodable.vcxproj.user
 
 *.db
 
-build/Debug/
-
-build/Release/
-
 _screenshots/
 /_build
 /install
@@ -63,5 +59,4 @@ _screenshots/
 /cmake-build-release/
 /cmake-build-debug/
 /cmake-build-relwithdebinfo/
-/bin/
-
+/cmake-build-minsizerel/
