@@ -111,10 +111,10 @@ bool File::update()
 {
     bool graph_has_changed;
 
-	if ( m_history.dirty )
+	if ( m_history.is_dirty() )
 	{
         evaluateSelectedExpression();
-        m_history.dirty = false;
+        m_history.set_dirty(false);
 	}
 
 	if(m_context->vm && !m_context->vm->is_program_running() )

@@ -1,90 +1,95 @@
 #include <nodable/History.h>
+#include <nodable/commands/Cmd_ReplaceText.h>
 
 using namespace Nodable;
 
 History::~History()
 {
-	for (auto cmd : commands )
+	for (auto cmd : m_commands )
 		delete cmd;
 }
 
-void History::addAndExecute(Cmd* _cmd)
+void History::addAndExecute(ICommand* _cmd)
 {	
 	/* First clear commands after the cursor */
-	while (commandsCursor < commands.size())
+	while (m_commands_cursor < m_commands.size())
 	{
-        auto command = commands.back();
+        auto command = m_commands.back();
         delete command;
-        commands.pop_back();
+        m_commands.pop_back();
     }
 
 	/* Then add and execute the new command */
-	commands.push_back(_cmd);
-	commandsCursor = commands.size();
+	m_commands.push_back(_cmd);
+    m_commands_cursor = m_commands.size();
 	_cmd->execute();
 
 	/* Delete command history in excess */
-    while (commands.size() > sizeMax)
+    while (m_commands.size() > m_size_max)
     {
-        delete commands.front();
-        commands.erase(commands.begin());
-        commandsCursor--;
+        delete m_commands.front();
+        m_commands.erase(m_commands.begin());
+        m_commands_cursor--;
     }
 }
 
 void History::undo()
 {
-	if (commandsCursor > 0)
+	if (m_commands_cursor > 0)
 	{
-		commandsCursor--;
-		commands.at(commandsCursor)->undo();
-		dirty = true;
+		m_commands_cursor--;
+        ICommand* command_to_undo = m_commands.at(m_commands_cursor);
+        if ( command_to_undo->is_undoable() )
+        {
+            command_to_undo->undo();
+            m_dirty = true;
+        }
 	}
 }
 
 void History::redo()
 {
-	if (commandsCursor < commands.size())
+	if (m_commands_cursor < m_commands.size())
 	{
-		commands.at(commandsCursor)->redo();
-		commandsCursor++;
-		dirty = true;
+		m_commands.at(m_commands_cursor)->redo();
+		m_commands_cursor++;
+        m_dirty = true;
 	}
 }
 
 void History::clear()
 {
-	commands.clear();
-	commandsCursor = 0;
+	m_commands.clear();
+    m_commands_cursor = 0;
 }
 
 void History::setCursorPosition(size_t _pos)
 {
 	/* Do nothing if cursor is already well positioned */
-	if (_pos == commandsCursor )
+	if (_pos == m_commands_cursor )
 		return;
 
 	/* Undo or redo the required times to get the command cursor well positioned */
-	while (_pos != commandsCursor)
+	while (_pos != m_commands_cursor)
 	{
-		if (_pos > commandsCursor)
+		if (_pos > m_commands_cursor)
 			redo();
 		else
 			undo();
 	}
 
-	dirty = true;
+    m_dirty = true;
 }
 
 std::string History::getCommandDescriptionAtPosition(size_t _commandId)
 {
-	const auto headId = commands.size();
+	const auto headId = m_commands.size();
 	
 	std::string result;
 
 	if ( _commandId < headId )
 	{
-		result = commands.at(_commandId)->getDescription();
+		result = m_commands.at(_commandId)->get_description();
 	}
 	else
     {
@@ -96,6 +101,6 @@ std::string History::getCommandDescriptionAtPosition(size_t _commandId)
 
 void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord) {
 
-	auto cmd = new Cmd_TextEditor_InsertText(_undoRecord, mTextEditor);
-	history->addAndExecute(cmd);
+	auto cmd = new Cmd_ReplaceText(_undoRecord, m_Text_editor);
+	m_history->addAndExecute(cmd);
 }
