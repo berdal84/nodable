@@ -262,7 +262,7 @@ bool GraphNode::is_empty()
     return !m_root;
 }
 
-Wire *GraphNode::connect(Member* _src_member, Member* _dst, ConnBy_ _connect_by)
+Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _connect_by)
 {
     Wire* wire = nullptr;
 
@@ -271,25 +271,31 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst, ConnBy_ _connect_by)
      */
     if (_src_member->get_owner() == nullptr)
     {
-        _dst->digest(_src_member);
+        _dst_member->digest(_src_member);
         delete _src_member;
     }
     else if (
             !R::MetaType::is_ptr(_src_member->get_meta_type()) &&
             _src_member->get_owner()->get_class()->is_child_of<LiteralNode>() &&
-                    _dst->get_owner()->get_class()->is_not_child_of<VariableNode>())
+            _dst_member->get_owner()->get_class()->is_not_child_of<VariableNode>())
     {
         Node* owner = _src_member->get_owner();
-        _dst->digest(_src_member);
+        _dst_member->digest(_src_member);
         destroy(owner);
     }
     else
     {
         LOG_VERBOSE("GraphNode", "connect() ...\n")
-        _dst->set_input(_src_member, _connect_by);
-        _src_member->get_outputs().push_back(_dst);
+        _dst_member->set_input(_src_member, _connect_by);
+        _src_member->get_outputs().push_back(_dst_member);
 
-        auto targetNode = _dst->get_owner()->as<Node>();
+
+        if ( _connect_by == ConnectBy_Copy )
+        {
+            _dst_member->set(_src_member );
+        }
+
+        auto targetNode = _dst_member->get_owner()->as<Node>();
         auto sourceNode = _src_member->get_owner()->as<Node>();
 
         NODABLE_ASSERT(targetNode != sourceNode)
@@ -298,7 +304,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst, ConnBy_ _connect_by)
         wire = create_wire();
 
         wire->setSource(_src_member);
-        wire->setTarget(_dst);
+        wire->setTarget(_dst_member);
 
         LOG_VERBOSE("GraphNode", "connect() adding wire to nodes ...\n")
         targetNode->add_wire(wire);
@@ -312,12 +318,12 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst, ConnBy_ _connect_by)
         auto fromToken = _src_member->get_src_token();
         if (fromToken)
         {
-            if (!_dst->get_src_token())
+            if (!_dst_member->get_src_token())
             {
-                _dst->set_src_token( std::make_shared<Token>(fromToken->m_type, "", fromToken->m_charIndex));
+                _dst_member->set_src_token(std::make_shared<Token>(fromToken->m_type, "", fromToken->m_charIndex));
             }
 
-            auto toToken = _dst->get_src_token();
+            auto toToken = _dst_member->get_src_token();
             toToken->m_suffix = fromToken->m_suffix;
             toToken->m_prefix = fromToken->m_prefix;
             fromToken->m_suffix = "";
@@ -361,7 +367,7 @@ void GraphNode::remove(Wire* _wire)
 
 void GraphNode::connect(Node* _src, InstructionNode* _dst)
 {
-    connect(_src->get_this_member(), _dst->get_root_node_member() );
+    connect(_src->get_this_member(), _dst->get_root_node_member(), ConnectBy_Copy );
 }
 
 void GraphNode::connect(Member* _src, VariableNode* _dst)
@@ -533,6 +539,8 @@ void GraphNode::destroy(Wire *_wire)
     _wire->getTarget()->set_input(nullptr);
     auto& outputs = _wire->getSource()->get_outputs();
     outputs.erase( std::find(outputs.begin(), outputs.end(), _wire->getTarget()));
+
+    _wire->getSource()->undefine();
 
     Node* targetNode = _wire->getTarget()->get_owner();
     Node* sourceNode = _wire->getSource()->get_owner();
