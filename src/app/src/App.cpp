@@ -1,16 +1,16 @@
 #include <nodable/App.h>
 
-#include <string>
 #include <algorithm>
 
 #include <nodable/NodeView.h>
 #include <nodable/AppView.h>
 #include <nodable/File.h>
 #include <nodable/BuildInfo.h>
-#include <nodable/GraphNode.h>
 #include <nodable/VariableNode.h>
 #include <nodable/DataAccess.h>
 #include <nodable/AppContext.h>
+#include "nodable/Event.h"
+#include "nodable/commands/Cmd_ConnectMembers.h"
 
 using namespace Nodable;
 
@@ -42,7 +42,9 @@ void App::update()
 {
 	File* file = get_curr_file();
 
-	if (file)
+    handle_events();
+
+    if (file)
 	{
         file->update();
     }
@@ -188,6 +190,71 @@ void App::vm_reset()
 
         // TODO: restore graph state without parsing again like that:
         currFile->evaluateSelectedExpression();
+    }
+}
+
+void App::handle_events()
+{
+    // SDL_ API inspired
+    Event nodable_event;
+    while( EventManager::poll_event(nodable_event) )
+    {
+        switch ( nodable_event.type )
+        {
+            case EventType::delete_selected_node:
+            {
+                if ( NodeView* selected_view = NodeView::GetSelected() )
+                {
+                    selected_view->get_owner()->flag_for_deletion();
+                }
+                break;
+            }
+            case EventType::arrange_selected_node:
+            {
+                if ( NodeView* selected_view = NodeView::GetSelected() )
+                {
+                    selected_view->arrangeRecursively();
+                }
+                break;
+            }
+            case EventType::select_successor_node:
+            {
+                if ( NodeView* selected_view = NodeView::GetSelected() )
+                {
+                    Node* possible_successor = selected_view->get_owner()->successor_slots().get_front_or_nullptr();
+                    if (possible_successor)
+                    {
+                        if (auto successor_view = possible_successor->get<NodeView>())
+                        {
+                            NodeView::SetSelected(successor_view);
+                        }
+                    }
+                }
+                break;
+            }
+            case EventType::expand_selected_node:
+            {
+                if ( NodeView* selected_view = NodeView::GetSelected() )
+                {
+                    selected_view->toggleExpansion();
+                }
+                break;
+            }
+            case EventType::connect_members:
+            {
+                auto cmd = std::make_shared<Cmd_ConnectMembers>(
+                        nodable_event.connect_members.src
+                        , nodable_event.connect_members.dst
+                        , nodable_event.connect_members.conn_by);
+
+                // TODO: use history. For now history is based on text modifications even
+                //       if the user modify the graph.
+                cmd->execute();
+//                History* history = get_curr_file()->getHistory();
+//                history->addAndExecute(cmd);
+                break;
+            }
+        }
     }
 }
 

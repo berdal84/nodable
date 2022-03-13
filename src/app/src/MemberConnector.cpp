@@ -6,6 +6,7 @@
 #include <nodable/NodeView.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include "nodable/Event.h"
 
 using namespace Nodable;
 
@@ -134,11 +135,18 @@ bool MemberConnector::connect(const MemberConnector *_left, const MemberConnecto
         return false;
     }
 
-    GraphNode* graph = _left->get_member()->get_owner()->get_parent_graph();
-    if (s_dragged->m_way == Way_Out )
-        graph->connect( _left->get_member(), _right->get_member() );
-    else
-        graph->connect( _right->get_member(), _left->get_member() );
+    Event evt;
+    evt.type = EventType::connect_members;
+    evt.connect_members.src = _left->get_member();
+    evt.connect_members.dst = _right->get_member();
+    evt.connect_members.conn_by = ConnectBy_Copy;
+
+    if (s_dragged->m_way != Way_Out )
+    {
+        std::swap(evt.connect_members.src, evt.connect_members.dst);
+    }
+
+    EventManager::push_event(evt);
 
     return true;
 }

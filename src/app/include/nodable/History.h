@@ -1,12 +1,14 @@
 #pragma once
 
-#include <vector>
+#include <deque>
 #include <ctime>
 #include <string>
-#include <nodable/R.h>
+#include <memory>
+
 #include <ImGuiColorTextEdit/TextEditor.h>
 
-#include <nodable/Component.h> // base class
+#include <nodable/R.h>
+#include <nodable/Component.h>
 #include <nodable/Nodable.h>
 #include <nodable/GraphNode.h>
 #include <nodable/Wire.h>
@@ -40,7 +42,7 @@ namespace Nodable
 
 		/** Execute a command and add it to the history.
 		If there are other commands after they will be erased from the history */
-		void addAndExecute(ICommand*);
+		void addAndExecute(std::shared_ptr<ICommand>);
 
 		/** Undo the current command  */
 		void undo();
@@ -77,8 +79,8 @@ namespace Nodable
 	private:
         bool                m_dirty;
 	    size_t              m_size_max;
-		std::vector<ICommand*>	m_commands;		/* Command history */
 		size_t           	m_commands_cursor;	/* Command history cursor (zero based index) */
 		TextEditorBuffer    m_text_editor_buffer;
+		std::deque<std::shared_ptr<ICommand>> m_commands;		/* Command history */
 	};
 }

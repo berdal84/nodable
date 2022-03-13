@@ -11,11 +11,11 @@ namespace Nodable
     class Cmd_ConnectMembers : public IUndoableCmd
     {
     public:
-        Cmd_ConnectMembers(Member* _src, Member* _dst, ConnBy_ _conn_by, GraphNode* _graph)
+        Cmd_ConnectMembers(Member* _src, Member* _dst, ConnBy_ _conn_by)
         : m_src(_src)
         , m_dst(_dst)
         , m_conn_by(_conn_by)
-        , m_graph(_graph)
+        , m_graph(_src->get_owner()->get_parent_graph())
         {
             char str[200];
             sprintf(str

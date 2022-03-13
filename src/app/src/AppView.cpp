@@ -3,7 +3,6 @@
 #include <imgui/backends/imgui_impl_sdl.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include <queue>
 
 #include <nodable/BuildInfo.h>
 #include <nodable/Texture.h>
@@ -16,6 +15,7 @@
 #include <nodable/Log.h>
 #include <nodable/FileView.h>
 #include <nodable/History.h>
+#include "nodable/Event.h"
 
 using namespace Nodable;
 using namespace Nodable::Asm;
@@ -166,8 +166,6 @@ ImFont* AppView::load_font(const FontConf &fontConf) {
 
 bool AppView::draw()
 {
-    std::queue<Event> event_queue;
-
     SDL_Event sdl_event;
     while (SDL_PollEvent(&sdl_event))
     {
@@ -202,16 +200,16 @@ bool AppView::draw()
                 switch( key )
                 {
                     case SDLK_DELETE:
-                        event_queue.push(Event::delete_selected_node);
+                        EventManager::push_event(EventType::delete_selected_node);
                         break;
                     case SDLK_a:
-                        event_queue.push(Event::arrange_selected_node_view);
+                        EventManager::push_event(EventType::arrange_selected_node);
                         break;
                     case SDLK_x:
-                        event_queue.push(Event::expand_selected_node_view);
+                        EventManager::push_event(EventType::expand_selected_node);
                         break;
                     case SDLK_n:
-                        event_queue.push(Event::select_selected_successor_node_view);
+                        EventManager::push_event(EventType::select_successor_node);
                         break;
                     case SDLK_F1:
                         m_show_startup_window = true;
@@ -309,17 +307,17 @@ bool AppView::draw()
 
                     if ( ImGui::MenuItem("Delete", "Del.", false, has_selection && m_context->vm->is_program_stopped() ) )
                     {
-                        event_queue.push(Event::delete_selected_node);
+                        EventManager::push_event(EventType::delete_selected_node);
                     }
 
                     if ( ImGui::MenuItem("Arrange nodes", "A", false, has_selection) )
                     {
-                        event_queue.push(Event::arrange_selected_node_view);
+                        EventManager::push_event(EventType::arrange_selected_node);
                     }
 
                     if ( ImGui::MenuItem("Expand (toggle)", "X", false, has_selection) )
                     {
-                        event_queue.push(Event::expand_selected_node_view);
+                        EventManager::push_event(EventType::expand_selected_node);
                     }
                     ImGui::EndMenu();
                 }
@@ -534,58 +532,6 @@ bool AppView::draw()
     }
 
     SDL_GL_SwapWindow(m_sdl_window);
-
-
-
-    /*
-       Handle sdl_event queue
-    */
-    while( !event_queue.empty() )
-    {
-        switch ( event_queue.front() )
-        {
-            case Event::delete_selected_node:
-            {
-                if ( NodeView* selected_view = NodeView::GetSelected() )
-                {
-                    selected_view->get_owner()->flag_for_deletion();
-                }
-                break;
-            }
-            case Event::arrange_selected_node_view:
-            {
-                if ( NodeView* selected_view = NodeView::GetSelected() )
-                {
-                    selected_view->arrangeRecursively();
-                }
-                break;
-            }
-            case Event::select_selected_successor_node_view:
-            {
-                if ( NodeView* selected_view = NodeView::GetSelected() )
-                {
-                    Node* possible_successor = selected_view->get_owner()->successor_slots().get_front_or_nullptr();
-                    if (!possible_successor)
-                    {
-                        if (auto successor_view = possible_successor->get<NodeView>())
-                        {
-                            NodeView::SetSelected(successor_view);
-                        }
-                    }
-                }
-                break;
-            }
-            case Event::expand_selected_node_view:
-            {
-                if ( NodeView* selected_view = NodeView::GetSelected() )
-                {
-                    selected_view->toggleExpansion();
-                }
-                break;
-            }
-        }
-        event_queue.pop();
-    }
 
     // limit frame rate
     if (ImGui::GetIO().DeltaTime < k_desired_delta_time)

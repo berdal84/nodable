@@ -58,5 +58,7 @@ namespace Nodable
         std::string     m_name;
         std::vector<File*>          m_loadedFiles;
         const ghc::filesystem::path m_assetsFolderPath;
+
+        void handle_events();
     };
 }
