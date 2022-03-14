@@ -285,7 +285,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _conn
     }
     else
     {
-        LOG_VERBOSE("GraphNode", "connect() ...\n")
+        LOG_VERBOSE("GraphNode", "drop_on() ...\n")
         _dst_member->set_input(_src_member, _connect_by);
         _src_member->get_outputs().push_back(_dst_member);
 
@@ -306,10 +306,10 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _conn
         wire->setSource(_src_member);
         wire->setTarget(_dst_member);
 
-        LOG_VERBOSE("GraphNode", "connect() adding wire to nodes ...\n")
+        LOG_VERBOSE("GraphNode", "drop_on() adding wire to nodes ...\n")
         targetNode->add_wire(wire);
         sourceNode->add_wire(wire);
-        LOG_VERBOSE("GraphNode", "connect() wires added to node ...\n")
+        LOG_VERBOSE("GraphNode", "drop_on() wires added to node ...\n")
 
         connect(sourceNode, targetNode, Relation_t::IS_INPUT_OF);
 
@@ -345,6 +345,7 @@ void GraphNode::disconnect(Wire *_wire)
 {
     remove(_wire);
     destroy(_wire);
+    set_dirty(true);
 }
 
 void GraphNode::add(Wire* _wire)

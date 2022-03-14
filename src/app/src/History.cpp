@@ -8,7 +8,7 @@ History::~History()
 	m_commands.clear();
 }
 
-void History::addAndExecute(std::shared_ptr<ICommand> _cmd)
+void History::push_back_and_execute(std::shared_ptr<ICommand> _cmd)
 {	
 	/* First clear commands after the cursor */
 	while (m_commands_cursor < m_commands.size())
@@ -59,7 +59,7 @@ void History::clear()
     m_commands_cursor = 0;
 }
 
-void History::setCursorPosition(size_t _pos)
+void History::set_cursor_pos(size_t _pos)
 {
 	/* Do nothing if cursor is already well positioned */
 	if (_pos == m_commands_cursor )
@@ -77,7 +77,7 @@ void History::setCursorPosition(size_t _pos)
     m_dirty = true;
 }
 
-std::string History::getCommandDescriptionAtPosition(size_t _commandId)
+std::string History::get_cmd_description_at(size_t _commandId)
 {
 	const auto headId = m_commands.size();
 	
@@ -97,6 +97,9 @@ std::string History::getCommandDescriptionAtPosition(size_t _commandId)
 
 void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord)
 {
-	auto cmd = std::make_shared<Cmd_ReplaceText>(_undoRecord, m_Text_editor);
-	m_history->addAndExecute(cmd);
+    if ( m_enabled )
+    {
+	    auto cmd = std::make_shared<Cmd_ReplaceText>(_undoRecord, m_Text_editor);
+        m_history->push_back_and_execute(cmd);
+    }
 }

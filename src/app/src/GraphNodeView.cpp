@@ -198,9 +198,8 @@ bool GraphNodeView::draw()
 
         // Drops ?
         bool require_new_node   = false;
-        bool has_made_connection = false;
-        MemberConnector::drop_behavior(require_new_node, has_made_connection, enable_edition);
-        NodeConnector::drop_behavior(require_new_node, has_made_connection, enable_edition);
+        MemberConnector::drop_behavior(require_new_node, enable_edition);
+        NodeConnector::drop_behavior(require_new_node, enable_edition);
 
         // Need a need node ?
         if (require_new_node)
@@ -209,11 +208,6 @@ bool GraphNodeView::draw()
             {
                 ImGui::OpenPopup(k_context_menu_popup);
             }
-        }
-
-        if ( has_made_connection )
-        {
-            edited = true;
         }
     }
 
@@ -504,7 +498,7 @@ bool GraphNodeView::draw()
                 }
                 MemberConnector::stop_drag();
             }
-            else if ( new_node != graph->get_root() && m_context->settings->graph_autocompletion )
+            else if ( new_node != graph->get_root() && m_context->settings->experimental_graph_autocompletion )
             {
                 graph->ensure_has_root();
                 // graph->connect( new_node, graph->get_root(), Relation_t::IS_CHILD_OF  );

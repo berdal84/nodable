@@ -34,7 +34,7 @@ namespace Nodable {
         vec2               get_pos()const override;
         bool               share_parent_with(const NodeConnector *other) const override;
         static bool        draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor, bool _editable);
-        static bool        connect(const NodeConnector *_left, const NodeConnector *_right);
+        static void        dropped(const NodeConnector *_left, const NodeConnector *_right);
 
         size_t    m_index;
         size_t    m_count;

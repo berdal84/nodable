@@ -32,7 +32,7 @@ File::File( AppContext* _context, std::string _path, const char* _content)
     LOG_VERBOSE( "File", "View built, creating History ...\n");
 
 	// History
-    TextEditorBuffer* text_editor_buf = m_history.getUndoBuffer(textEditor);
+    TextEditorBuffer* text_editor_buf = m_history.configure_text_editor_undo_buffer(textEditor);
     m_view->setUndoBuffer(text_editor_buf);
 
     LOG_VERBOSE( "File", "History built, creating graph ...\n");
@@ -41,7 +41,7 @@ File::File( AppContext* _context, std::string _path, const char* _content)
     m_graph = new GraphNode(
             m_context->language,
             &m_factory,
-            &m_context->settings->graph_autocompletion );
+            &m_context->settings->experimental_graph_autocompletion );
     m_graph->set_label(getName() + "'s inner container");
 
     m_graph->add_component(new GraphNodeView(m_context));
@@ -113,7 +113,9 @@ bool File::update()
 
 	if ( m_history.is_dirty() )
 	{
-        evaluateSelectedExpression();
+        if ( !m_context->settings->experimental_hybrid_history )
+            evaluateSelectedExpression(); // when not in hybrid mode the undo/redo is text based
+
         m_history.set_dirty(false);
 	}
 

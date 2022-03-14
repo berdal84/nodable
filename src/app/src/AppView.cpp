@@ -200,16 +200,16 @@ bool AppView::draw()
                 switch( key )
                 {
                     case SDLK_DELETE:
-                        EventManager::push_event(EventType::delete_selected_node);
+                        EventManager::push_event(EventType::delete_node_triggered);
                         break;
                     case SDLK_a:
-                        EventManager::push_event(EventType::arrange_selected_node);
+                        EventManager::push_event(EventType::arrange_node_triggered);
                         break;
                     case SDLK_x:
-                        EventManager::push_event(EventType::expand_selected_node);
+                        EventManager::push_event(EventType::expand_selected_node_triggered);
                         break;
                     case SDLK_n:
-                        EventManager::push_event(EventType::select_successor_node);
+                        EventManager::push_event(EventType::select_successor_node_triggered);
                         break;
                     case SDLK_F1:
                         m_show_startup_window = true;
@@ -307,17 +307,17 @@ bool AppView::draw()
 
                     if ( ImGui::MenuItem("Delete", "Del.", false, has_selection && m_context->vm->is_program_stopped() ) )
                     {
-                        EventManager::push_event(EventType::delete_selected_node);
+                        EventManager::push_event(EventType::delete_node_triggered);
                     }
 
                     if ( ImGui::MenuItem("Arrange nodes", "A", false, has_selection) )
                     {
-                        EventManager::push_event(EventType::arrange_selected_node);
+                        EventManager::push_event(EventType::arrange_node_triggered);
                     }
 
                     if ( ImGui::MenuItem("Expand (toggle)", "X", false, has_selection) )
                     {
-                        EventManager::push_event(EventType::expand_selected_node);
+                        EventManager::push_event(EventType::expand_selected_node_triggered);
                     }
                     ImGui::EndMenu();
                 }
@@ -385,6 +385,23 @@ bool AppView::draw()
                     if (ImGui::MenuItem(ICON_FA_UNDO " Reset")) {
                         m_context->app->vm_stop();
                     }
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Experimental"))
+                {
+                    bool& hybrid = m_context->settings->experimental_hybrid_history;
+                    if (ImGui::MenuItem(ICON_FA_EXCLAMATION " Enable hybrid history", "", hybrid))
+                    {
+                        hybrid = !hybrid;
+                    }
+
+                    bool& autocompletion = m_context->settings->experimental_graph_autocompletion;
+                    if (ImGui::MenuItem(ICON_FA_EXCLAMATION " Enable graph autocompletion", "", autocompletion))
+                    {
+                        autocompletion = !autocompletion;
+                    }
+
                     ImGui::EndMenu();
                 }
 
@@ -873,8 +890,8 @@ void AppView::draw_history_bar(History *currentFileHistory) {
         auto historyButtonHeight = float(10);
         auto historyButtonMaxWidth = float(40);
 
-        auto historySize = currentFileHistory->getSize();
-        auto historyCurrentCursorPosition = currentFileHistory->getCursorPosition();
+        auto historySize = currentFileHistory->get_size();
+        auto historyCurrentCursorPosition = currentFileHistory->get_cursor_pos();
         auto availableWidth = ImGui::GetContentRegionAvailWidth();
         auto historyButtonWidth = fmin(historyButtonMaxWidth,
                                        availableWidth / float(historySize + 1) - historyButtonSpacing);
@@ -905,7 +922,7 @@ void AppView::draw_history_bar(History *currentFileHistory) {
                 // Draw command description
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
                 ImGui::BeginTooltip();
-                ImGui::Text("%s", currentFileHistory->getCommandDescriptionAtPosition(commandId).c_str());
+                ImGui::Text("%s", currentFileHistory->get_cmd_description_at(commandId).c_str());
                 ImGui::EndTooltip();
                 ImGui::PopStyleVar();
             }
@@ -916,7 +933,7 @@ void AppView::draw_history_bar(History *currentFileHistory) {
             if (m_is_history_dragged &&
                 ImGui::GetMousePos().x < xMax &&
                 ImGui::GetMousePos().x > xMin) {
-                currentFileHistory->setCursorPosition(commandId); // update history cursor position
+                currentFileHistory->set_cursor_pos(commandId); // update history cursor position
             }
 
 

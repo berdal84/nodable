@@ -103,7 +103,13 @@ bool FileView::draw()
         }
     }
 
+
+    m_file->getHistory()->enable_text_editor(true); // ensure to begin to record history
     m_textEditor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
+    if ( m_context->settings->experimental_hybrid_history )
+    {
+        m_file->getHistory()->enable_text_editor(false); // avoid recording events caused by graph serialisation
+    }
 
     auto currentCursorPosition = m_textEditor.GetCursorPosition();
     auto currentSelectedText = m_textEditor.GetSelectedText();
@@ -130,14 +136,14 @@ bool FileView::draw()
 
     ImGui::SameLine();
     GraphNode* graph = m_file->getGraph();
-    NODABLE_ASSERT(graph != nullptr);
-    GraphNodeView* graphNodeView = graph->get<GraphNodeView>();
+    NODABLE_ASSERT(graph);
+    auto graph_node_view = graph->get<GraphNodeView>();
 
-    if ( graphNodeView )
+    if ( graph_node_view )
     {
-        graphNodeView->update();
+        graph_node_view->update();
         auto flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        graphNodeView->drawAsChild("graph", vec2(m_childSize2, availSize.y), false, flags);
+        bool changed = graph_node_view->drawAsChild("graph", vec2(m_childSize2, availSize.y), false, flags);
     }
     else
     {

@@ -15,7 +15,7 @@
 namespace Nodable
 {
     /**
-     * @brief a GraphNode is a context for a set of Nodes and Wires. It is also used to connect Nodes and Members.
+     * @brief a GraphNode is a context for a set of Nodes and Wires. It is also used to drop_on Nodes and Members.
      */
 	class GraphNode: public Node
 	{
@@ -59,7 +59,7 @@ namespace Nodable
         Wire* connect(Member* _src, Member* _dst_member, ConnBy_ _connect_by = ConnectBy_Ref );
 
         /**
-         * connect two nodes with a given connection type
+         * drop_on two nodes with a given connection type
          * ex: _source IS_CHILD_OF _target
         */
         void connect(Node* _src, Node* _dst, Relation_t, bool _side_effects = true);

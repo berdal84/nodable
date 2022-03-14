@@ -26,7 +26,7 @@ namespace Nodable {
         static void      set_focused(const T* connector) { T::s_focused = connector; }
         static void      unset_focused() { T::s_focused = nullptr; }
 
-        static void drop_behavior(bool& require_new_node, bool& has_made_connection, bool _enable_edition)
+        static void drop_behavior(bool& require_new_node, bool _enable_edition)
         {
             if (T::s_dragged && ImGui::IsMouseReleased(0))
             {
@@ -34,9 +34,8 @@ namespace Nodable {
                 {
                     if ( T::s_hovered )
                     {
-                        T::connect(T::s_dragged, T::s_hovered);
+                        T::dropped(T::s_dragged, T::s_hovered);
                         T::s_dragged = T::s_hovered = nullptr;
-                        has_made_connection = true;
                     } else {
                         require_new_node = true;
                     }

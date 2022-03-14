@@ -96,6 +96,7 @@ const char* Node::get_label()const
 void Node::add_wire(Wire* _wire)
 {
 	m_wires.push_back(_wire);
+    m_dirty = true;
 }
 
 void Node::remove_wire(Wire* _wire)
@@ -103,6 +104,7 @@ void Node::remove_wire(Wire* _wire)
 	auto found = std::find(m_wires.begin(), m_wires.end(), _wire);
 	if(found != m_wires.end())
 		m_wires.erase(found);
+    m_dirty = true;
 }
 
 std::vector<Wire*>& Node::get_wires()

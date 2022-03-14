@@ -6,16 +6,18 @@
 namespace Nodable
 {
     // forward declaration
-    class Member;
+    class MemberConnector;
+    class NodeConnector;
 
     enum class EventType
     {
-        delete_selected_node = 0x000, // operation on nodes
-        arrange_selected_node,
-        select_successor_node,
-        expand_selected_node,
+        delete_node_triggered = 0x100, // operation on nodes
+        arrange_node_triggered,
+        select_successor_node_triggered,
+        expand_selected_node_triggered,
 
-        connect_members = 0x100 // operation on members
+        member_connector_dropped_on_another = 0x200, // operation on connectors
+        node_connector_dropped_on_another
     };
 
     struct Event_Simple
@@ -23,19 +25,26 @@ namespace Nodable
         EventType type;
     };
 
-    struct Event_ConnectMembers
+    struct Event_MemberConnectorLinked
     {
-        EventType    type;
-        Member* src;
-        Member* dst;
-        ConnBy_ conn_by;
+        EventType              type;
+        const MemberConnector* src;
+        const MemberConnector* dst;
+    };
+
+    struct Event_NodeConnectorLinked
+    {
+        EventType            type;
+        const NodeConnector* src;
+        const NodeConnector* dst;
     };
 
     union Event
     {
-        EventType                 type;
-        Event_Simple              common;
-        Event_ConnectMembers      connect_members;
+        EventType     type;
+        Event_Simple  common;
+        Event_MemberConnectorLinked member_connectors;
+        Event_NodeConnectorLinked   node_connectors;
     };
 
     class EventManager

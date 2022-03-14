@@ -7,6 +7,7 @@
 #include <nodable/AppContext.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include "nodable/Event.h"
 
 using namespace Nodable;
 
@@ -104,25 +105,13 @@ bool NodeConnector::share_parent_with(const NodeConnector *other) const
     return get_node() == other->get_node();
 }
 
-bool NodeConnector::connect(const NodeConnector *_left, const NodeConnector *_right)
+void NodeConnector::dropped(const NodeConnector *_left, const NodeConnector *_right)
 {
-    if ( _left->share_parent_with(_right) )
-    {
-        LOG_WARNING("NodeConnector", "Unable to connect these two Connectors from the same Node.\n")
-        return false;
-    }
-
-    if( _left->m_way == _right->m_way )
-    {
-        LOG_WARNING("NodeConnector", "Unable to connect these two Node Connectors (must have different ways).\n")
-        return false;
-    }
-
-    auto graph = _left->get_node()->get_parent_graph();
-    Relation_t relation_type = _left->m_way == Way_In ? Relation_t::IS_SUCCESSOR_OF : Relation_t::IS_PREDECESSOR_OF;
-    graph->connect( _left->get_node(), _right->get_node(), relation_type );
-
-    return true;
+    Event evt{};
+    evt.type = EventType::node_connector_dropped_on_another;
+    evt.node_connectors.src = _left;
+    evt.node_connectors.dst = _right;
+    EventManager::push_event(evt);
 }
 
 Node* NodeConnector::get_connected_node() const

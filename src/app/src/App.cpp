@@ -11,6 +11,9 @@
 #include <nodable/AppContext.h>
 #include "nodable/Event.h"
 #include "nodable/commands/Cmd_ConnectMembers.h"
+#include "nodable/MemberConnector.h"
+#include "nodable/NodeConnector.h"
+#include "nodable/commands/Cmd_ConnectNodes.h"
 
 using namespace Nodable;
 
@@ -201,7 +204,7 @@ void App::handle_events()
     {
         switch ( nodable_event.type )
         {
-            case EventType::delete_selected_node:
+            case EventType::delete_node_triggered:
             {
                 if ( NodeView* selected_view = NodeView::GetSelected() )
                 {
@@ -209,7 +212,7 @@ void App::handle_events()
                 }
                 break;
             }
-            case EventType::arrange_selected_node:
+            case EventType::arrange_node_triggered:
             {
                 if ( NodeView* selected_view = NodeView::GetSelected() )
                 {
@@ -217,7 +220,7 @@ void App::handle_events()
                 }
                 break;
             }
-            case EventType::select_successor_node:
+            case EventType::select_successor_node_triggered:
             {
                 if ( NodeView* selected_view = NodeView::GetSelected() )
                 {
@@ -232,7 +235,7 @@ void App::handle_events()
                 }
                 break;
             }
-            case EventType::expand_selected_node:
+            case EventType::expand_selected_node_triggered:
             {
                 if ( NodeView* selected_view = NodeView::GetSelected() )
                 {
@@ -240,18 +243,71 @@ void App::handle_events()
                 }
                 break;
             }
-            case EventType::connect_members:
+            case EventType::node_connector_dropped_on_another:
             {
-                auto cmd = std::make_shared<Cmd_ConnectMembers>(
-                        nodable_event.connect_members.src
-                        , nodable_event.connect_members.dst
-                        , nodable_event.connect_members.conn_by);
+                const NodeConnector *src = nodable_event.node_connectors.src;
+                const NodeConnector *dst = nodable_event.node_connectors.dst;
+                if ( src->share_parent_with(dst) )
+                {
+                    LOG_WARNING(__FILE_NAME__, "Unable to drop_on these two Connectors from the same Node.\n")
+                }
+                else if( src->m_way == dst->m_way )
+                {
+                    LOG_WARNING(__FILE_NAME__, "Unable to drop_on these two Node Connectors (must have different ways).\n")
+                }
+                else
+                {
+                    if ( src->m_way != Way_In ) std::swap(src, dst); // ensure src is successor
+                    auto cmd = std::make_shared<Cmd_ConnectNodes>(src->get_node(), dst->get_node());
 
-                // TODO: use history. For now history is based on text modifications even
-                //       if the user modify the graph.
-                cmd->execute();
-//                History* history = get_curr_file()->getHistory();
-//                history->addAndExecute(cmd);
+                    if ( m_context->settings->experimental_hybrid_history )
+                    {
+                        History *curr_file_history = get_curr_file()->getHistory();
+                        curr_file_history->push_back_and_execute(cmd);
+                    }
+                    else
+                    {
+                        cmd->execute();
+                    }
+                }
+                break;
+            }
+            case EventType::member_connector_dropped_on_another:
+            {
+                const MemberConnector *src = nodable_event.member_connectors.src;
+                const MemberConnector *dst = nodable_event.member_connectors.dst;
+                std::shared_ptr<const R::MetaType> src_meta_type = src->get_member_type();
+                std::shared_ptr<const R::MetaType> dst_meta_type = dst->get_member_type();
+
+                if ( src->share_parent_with(dst) )
+                {
+                    LOG_WARNING( __FILE_NAME__, "Unable to drop_on two connectors from the same Member.\n" )
+                }
+                else if (src->m_display_side == dst->m_display_side)
+                {
+                    LOG_WARNING( __FILE_NAME__, "Unable to drop_on two connectors with the same nature (in and in, out and out)\n" )
+                }
+                else if ( !R::MetaType::is_convertible( src_meta_type, dst_meta_type ) )
+                {
+                    LOG_WARNING( __FILE_NAME__, "Unable to drop_on %s to %s\n",
+                                 src_meta_type->get_fullname().c_str(),
+                                 dst_meta_type->get_fullname().c_str())
+                }
+                else
+                {
+                    if (src->m_way != Way_Out) std::swap(src, dst); // guarantee src to be the output
+                    auto cmd = std::make_shared<Cmd_ConnectMembers>(src->get_member(), dst->get_member());
+
+                    if ( m_context->settings->experimental_hybrid_history )
+                    {
+                        History *curr_file_history = get_curr_file()->getHistory();
+                        curr_file_history->push_back_and_execute(cmd);
+                    }
+                    else
+                    {
+                        cmd->execute();
+                    }
+                }
                 break;
             }
         }

@@ -27,22 +27,30 @@ namespace Nodable
 	class TextEditorBuffer : public TextEditor::IExternalUndoBuffer
     {
 	public:
+        void set_enable(bool _val){ m_enabled = _val; }
 		void AddUndo(TextEditor::UndoRecord& _undoRecord) override;
-		void setHistory(History* _history) { m_history = _history; }
-		void setTextEditor(TextEditor* aTextEditor) { m_Text_editor = aTextEditor;}
+		void set_history(History* _history) { m_history = _history; }
+		void set_text_editor(TextEditor* aTextEditor) { m_Text_editor = aTextEditor;}
 	private:
 		TextEditor* m_Text_editor = nullptr;
 		History*    m_history     = nullptr;
+        bool        m_enabled     = false;
 	};
 
 	class History {
 	public:
-		explicit History(size_t _sizeMax = 100): m_size_max(_sizeMax), m_dirty(false), m_commands_cursor(0) {}
+		explicit History(size_t _sizeMax = 100)
+            : m_size_max(_sizeMax)
+            , m_dirty(false)
+            , m_commands_cursor(0)
+        {}
 		~History();
 
 		/** Execute a command and add it to the history.
 		If there are other commands after they will be erased from the history */
-		void addAndExecute(std::shared_ptr<ICommand>);
+		void push_back_and_execute(std::shared_ptr<ICommand>);
+
+        void enable_text_editor(bool _val) { m_text_editor_buffer.set_enable(_val); }
 
 		/** Undo the current command  */
 		void undo();
@@ -54,18 +62,19 @@ namespace Nodable
 		void clear();
 
 		/** To get the size of the history (command count)*/
-		size_t getSize()const { return m_commands.size(); }
+		size_t get_size()const { return m_commands.size(); }
 
 		/** To get the current command*/
-		size_t getCursorPosition()const { return m_commands_cursor; }
-		void setCursorPosition(size_t _pos);
+		size_t get_cursor_pos()const { return m_commands_cursor; }
+		void   set_cursor_pos(size_t _pos);
 
-		std::string getCommandDescriptionAtPosition(size_t _commandId);
+		std::string get_cmd_description_at(size_t _commandId);
 
 		/** To get the special buffer for TextEditor */
-		TextEditorBuffer* getUndoBuffer(TextEditor* _textEditor) {
-			m_text_editor_buffer.setTextEditor(_textEditor);
-			m_text_editor_buffer.setHistory(this);
+		TextEditorBuffer* configure_text_editor_undo_buffer(TextEditor* _textEditor) {
+            m_text_editor_buffer.set_text_editor(_textEditor);
+            m_text_editor_buffer.set_history(this);
+            m_text_editor_buffer.set_enable(true);
 			return &m_text_editor_buffer;
 		}
 

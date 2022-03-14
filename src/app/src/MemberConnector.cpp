@@ -113,42 +113,13 @@ bool MemberConnector::draw(
     return edited;
 }
 
-bool MemberConnector::connect(const MemberConnector *_left, const MemberConnector *_right)
+void MemberConnector::dropped(const MemberConnector *_left, const MemberConnector *_right)
 {
-    if (_left->share_parent_with(_right) )
-    {
-        LOG_WARNING( "MemberConnector", "Unable to connect two connectors from the same Member.\n" )
-        return false;
-    }
-
-    if (_left->m_display_side == _right->m_display_side)
-    {
-        LOG_WARNING( "MemberConnector", "Unable to connect two connectors with the same nature (in and in, out and out)\n" )
-        return false;
-    }
-
-    if ( !R::MetaType::is_convertible( _left->get_member_type(), _right->get_member_type() ) )
-    {
-        LOG_WARNING( "MemberConnector", "Unable to connect %s to %s\n",
-                     _left->get_member_type()->get_fullname().c_str(),
-                     _right->get_member_type()->get_fullname().c_str())
-        return false;
-    }
-
-    Event evt;
-    evt.type = EventType::connect_members;
-    evt.connect_members.src = _left->get_member();
-    evt.connect_members.dst = _right->get_member();
-    evt.connect_members.conn_by = ConnectBy_Copy;
-
-    if (s_dragged->m_way != Way_Out )
-    {
-        std::swap(evt.connect_members.src, evt.connect_members.dst);
-    }
-
+    Event evt{};
+    evt.type = EventType::member_connector_dropped_on_another;
+    evt.member_connectors.src = _left;
+    evt.member_connectors.dst = _right;
     EventManager::push_event(evt);
-
-    return true;
 }
 
 bool MemberConnector::has_node_connected() const {

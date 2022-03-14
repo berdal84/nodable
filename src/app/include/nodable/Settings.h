@@ -53,7 +53,8 @@ namespace Nodable {
         vec4 ui_button_color;
         vec2 ui_toolButton_size;
         const char* ui_splashscreen_imagePath;
-        bool graph_autocompletion;
+        bool experimental_graph_autocompletion;
+        bool experimental_hybrid_history;
         void patch_imgui_style(ImGuiStyle&);
 
     private:

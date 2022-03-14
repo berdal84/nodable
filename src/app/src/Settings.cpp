@@ -111,10 +111,11 @@ Settings* Settings::create_default()
     settings->ui_button_color                 = vec4(0.50f, 0.50f, 0.50f, 0.63f);
     settings->ui_button_hoveredColor          = vec4(0.70f, 0.70f, 0.70f, 0.95f);
     settings->ui_button_activeColor           = vec4(0.98f, 0.73f, 0.29f, 0.95f);
-
     settings->ui_toolButton_size              = vec2(24.0f, 30.0f);
 
-    settings->graph_autocompletion = true;    
+    // Misc.
+    settings->experimental_graph_autocompletion = false;
+    settings->experimental_hybrid_history       = false;
 
     return settings;
 }

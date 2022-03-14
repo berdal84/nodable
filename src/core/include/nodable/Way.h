@@ -5,7 +5,7 @@ namespace Nodable
 {
 	/**
 	  The role of this enum is to distinguish the way
-	  to connect a specific connector.
+	  to drop_on a specific connector.
 	*/
 	typedef enum Way: int
 	{

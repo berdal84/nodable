@@ -1,6 +1,6 @@
 #pragma once
 #include <nodable/Command.h>
-#include <nodable/Member.h>
+#include <nodable/Node.h>
 #include <nodable/GraphNode.h>
 
 namespace Nodable
@@ -9,32 +9,30 @@ namespace Nodable
      * Command to drop_on two members.
      * src output --> dst input
      */
-    class Cmd_ConnectMembers : public IUndoableCmd
+    class Cmd_ConnectNodes : public IUndoableCmd
     {
     public:
-        Cmd_ConnectMembers(Member* _src, Member* _dst)
+        Cmd_ConnectNodes(Node* _src, Node* _dst)
         : m_src(_src)
         , m_dst(_dst)
-        , m_graph(_src->get_owner()->get_parent_graph())
-        , m_wire(nullptr)
+        , m_relation(Relation_t::IS_SUCCESSOR_OF)
+        , m_graph(_src->get_parent_graph())
         {
             char str[200];
             sprintf(str
-                    , "ConnectMembers\n"
+                    , "ConnectNodes\n"
                       " - src: \"%s\"\n"
                       " - dst: \"%s\"\n"
-                    , _src->get_name().c_str()
-                    , _dst->get_name().c_str() );
+                    , _src->get_label()
+                    , _dst->get_label() );
             m_description.append(str);
         }
 
-        ~Cmd_ConnectMembers() override = default;
+        ~Cmd_ConnectNodes() override = default;
 
         void execute() override
         {
-            // ToDo: move that in connect(...)
-            ConnBy_ conn_by = R::MetaType::is_ref( m_dst->get_meta_type() ) ? ConnectBy_Ref : ConnectBy_Copy;
-            m_wire = m_graph->connect(m_src, m_dst, conn_by);
+            m_graph->connect( m_src, m_dst, m_relation);
         }
 
         void redo() override
@@ -44,7 +42,7 @@ namespace Nodable
 
         void undo() override
         {
-            m_graph->disconnect(m_wire);
+            m_graph->disconnect( m_src, m_dst, m_relation);
         }
 
         const char* get_description() const override
@@ -54,9 +52,9 @@ namespace Nodable
 
     private:
         std::string m_description;
-        Member*     m_src;
-        Member*     m_dst;
-        Wire*       m_wire;
+        Node*       m_src;
+        Node*       m_dst;
+        Relation_t  m_relation;
         GraphNode*  m_graph;
     };
 }
