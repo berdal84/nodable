@@ -252,11 +252,11 @@ void App::handle_events()
                 const NodeConnector *dst = nodable_event.node_connectors.dst;
                 if ( src->share_parent_with(dst) )
                 {
-                    LOG_WARNING(__FILE_NAME__, "Unable to drop_on these two Connectors from the same Node.\n")
+                    LOG_WARNING("App", "Unable to drop_on these two Connectors from the same Node.\n")
                 }
                 else if( src->m_way == dst->m_way )
                 {
-                    LOG_WARNING(__FILE_NAME__, "Unable to drop_on these two Node Connectors (must have different ways).\n")
+                    LOG_WARNING("App", "Unable to drop_on these two Node Connectors (must have different ways).\n")
                 }
                 else
                 {
@@ -276,15 +276,15 @@ void App::handle_events()
 
                 if ( src->share_parent_with(dst) )
                 {
-                    LOG_WARNING( __FILE_NAME__, "Unable to drop_on two connectors from the same Member.\n" )
+                    LOG_WARNING( "App", "Unable to drop_on two connectors from the same Member.\n" )
                 }
                 else if (src->m_display_side == dst->m_display_side)
                 {
-                    LOG_WARNING( __FILE_NAME__, "Unable to drop_on two connectors with the same nature (in and in, out and out)\n" )
+                    LOG_WARNING( "App", "Unable to drop_on two connectors with the same nature (in and in, out and out)\n" )
                 }
                 else if ( !R::MetaType::is_convertible( src_meta_type, dst_meta_type ) )
                 {
-                    LOG_WARNING( __FILE_NAME__, "Unable to drop_on %s to %s\n",
+                    LOG_WARNING( "App", "Unable to drop_on %s to %s\n",
                                  src_meta_type->get_fullname().c_str(),
                                  dst_meta_type->get_fullname().c_str())
                 }
