@@ -27,11 +27,6 @@ namespace Nodable
 
         void execute() override
         {
-            /* Function empty because the first execution is made my the text editor itself */
-        }
-
-        void redo() override
-        {
             m_text_editor_undo_record.Redo(m_text_editor);
         }
 

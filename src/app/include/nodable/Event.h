@@ -16,23 +16,26 @@ namespace Nodable
         select_successor_node_triggered,
         expand_selected_node_triggered,
 
-        member_connector_dropped_on_another = 0x200, // operation on connectors
-        node_connector_dropped_on_another
+        member_connector_dropped = 0x200, // operation on member connectors
+        member_connector_disconnected,
+
+        node_connector_dropped   = 0x300, // operation on node connectors
+        node_connector_disconnected
     };
 
-    struct Event_Simple
+    struct SimpleEvent
     {
         EventType type;
     };
 
-    struct Event_MemberConnectorLinked
+    struct MemberConnectorEvent
     {
         EventType              type;
         const MemberConnector* src;
         const MemberConnector* dst;
     };
 
-    struct Event_NodeConnectorLinked
+    struct NodeConnectorEvent
     {
         EventType            type;
         const NodeConnector* src;
@@ -41,10 +44,10 @@ namespace Nodable
 
     union Event
     {
-        EventType     type;
-        Event_Simple  common;
-        Event_MemberConnectorLinked member_connectors;
-        Event_NodeConnectorLinked   node_connectors;
+        EventType            type;
+        SimpleEvent          common;
+        MemberConnectorEvent member_connectors;
+        NodeConnectorEvent   node_connectors;
     };
 
     class EventManager

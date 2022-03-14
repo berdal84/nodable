@@ -25,8 +25,7 @@ namespace Nodable {
         static void      stop_drag() { T::s_dragged = nullptr; }
         static void      set_focused(const T* connector) { T::s_focused = connector; }
         static void      unset_focused() { T::s_focused = nullptr; }
-
-        static void drop_behavior(bool& require_new_node, bool _enable_edition)
+        static void      drop_behavior(bool& require_new_node, bool _enable_edition)
         {
             if (T::s_dragged && ImGui::IsMouseReleased(0))
             {

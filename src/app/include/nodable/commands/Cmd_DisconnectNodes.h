@@ -5,14 +5,10 @@
 
 namespace Nodable
 {
-    /**
-     * Command to drop_on two members.
-     * src output --> dst input
-     */
-    class Cmd_ConnectNodes : public IUndoableCmd
+    class Cmd_DisconnectNodes : public IUndoableCmd
     {
     public:
-        Cmd_ConnectNodes(Node* _src, Node* _dst, Relation_t _relation)
+        Cmd_DisconnectNodes(Node* _src, Node* _dst, Relation_t _relation)
         : m_src(_src)
         , m_dst(_dst)
         , m_relation(_relation)
@@ -20,26 +16,26 @@ namespace Nodable
         {
             char str[200];
             sprintf(str
-                    , "ConnectNodes\n"
+                    , "DisconnectNodes\n"
                       " - src: \"%s\"\n"
                       " - dst: \"%s\"\n"
-                      " - relation: \"%s\"\n"
+                      " - relation: %s\n"
                     , _src->get_label()
                     , _dst->get_label()
-                    , to_string(_relation) );
+                    , to_string(m_relation));
             m_description.append(str);
         }
 
-        ~Cmd_ConnectNodes() override = default;
+        ~Cmd_DisconnectNodes() override = default;
 
         void execute() override
         {
-            m_graph->connect( m_src, m_dst, m_relation);
+            m_graph->disconnect( m_src, m_dst, m_relation);
         }
 
         void undo() override
         {
-            m_graph->disconnect( m_src, m_dst, m_relation);
+            m_graph->connect( m_src, m_dst, m_relation);
         }
 
         const char* get_description() const override

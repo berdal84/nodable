@@ -37,18 +37,29 @@ namespace Nodable
         bool        m_enabled     = false;
 	};
 
+    /**
+     * The history is responsible for undo/redo commands.
+     * It has two containers to store past/future commands
+     *     (past)    (now)    (future)
+     * |oooooooooooooo|-------------------|
+     */
 	class History {
 	public:
-		explicit History(size_t _sizeMax = 100)
+		explicit History(const bool* _experimental_hybrid_history, size_t _sizeMax = 100)
             : m_size_max(_sizeMax)
             , m_dirty(false)
-            , m_commands_cursor(0)
+            , m_experimental_hybrid_history(_experimental_hybrid_history)
         {}
 		~History();
 
-		/** Execute a command and add it to the history.
-		If there are other commands after they will be erased from the history */
-		void push_back_and_execute(std::shared_ptr<ICommand>);
+		/**
+		 * Push a command and execute it.
+		 * In some cases the command may not be added to the history or executed, check definition.
+		 * @param _from_text_editor should not be set except if command comes from TextEditor.
+		 *                          This flag is here to handle legacy history mode (text based) and
+		 *                          hybrid mode (Text/Graph).
+		 */
+		void push_command(std::shared_ptr<ICommand>, bool _from_text_editor = false);
 
         void enable_text_editor(bool _val) { m_text_editor_buffer.set_enable(_val); }
 
@@ -61,14 +72,13 @@ namespace Nodable
 		/** clear the undo history */
 		void clear();
 
-		/** To get the size of the history (command count)*/
-		size_t get_size()const { return m_commands.size(); }
+		/** To get the size of the history (command count) */
+		size_t get_size()const { return m_past.size() + m_future.size(); }
 
-		/** To get the current command*/
-		size_t get_cursor_pos()const { return m_commands_cursor; }
-		void   set_cursor_pos(size_t _pos);
+        /** Move time cursor to past (negative value) or future (positive value). */
+		void   move_cursor(int _pos);
 
-		std::string get_cmd_description_at(size_t _commandId);
+		std::string get_cmd_description_at(int _cmd_position);
 
 		/** To get the special buffer for TextEditor */
 		TextEditorBuffer* configure_text_editor_undo_buffer(TextEditor* _textEditor) {
@@ -81,15 +91,15 @@ namespace Nodable
         bool is_dirty() const { return m_dirty; }
         void set_dirty(bool _dirty = true) { m_dirty = _dirty; }
 
-		// Future: For command groups (ex: 5 commands that are atomic)
-		// static BeginGroup();
-		// static EndGroup()
-
-	private:
+        /** return the command position range.
+         * ex: (-100, 20) if we have 100 commands to undo and 20 to redo */
+        std::pair<int, int>  get_command_id_range();
+    private:
         bool                m_dirty;
 	    size_t              m_size_max;
-		size_t           	m_commands_cursor;	/* Command history cursor (zero based index) */
 		TextEditorBuffer    m_text_editor_buffer;
-		std::deque<std::shared_ptr<ICommand>> m_commands;		/* Command history */
-	};
+        const bool*         m_experimental_hybrid_history;
+		std::deque<std::shared_ptr<ICommand>> m_past;
+		std::deque<std::shared_ptr<ICommand>> m_future;
+    };
 }

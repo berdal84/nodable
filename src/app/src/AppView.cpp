@@ -877,40 +877,43 @@ void AppView::draw_status_bar() const {/*
     }
 }
 
-void AppView::draw_history_bar(History *currentFileHistory) {
-    if (currentFileHistory) {
-
-        if (ImGui::IsMouseReleased(0)) {
+void AppView::draw_history_bar(History *currentFileHistory)
+{
+    if (currentFileHistory)
+    {
+        if (ImGui::IsMouseReleased(0))
+        {
             m_is_history_dragged = false;
         }
 
-//				ImGui::Text(ICON_FA_CLOCK " History: ");
-
         auto historyButtonSpacing = float(1);
         auto historyButtonHeight = float(10);
-        auto historyButtonMaxWidth = float(40);
+        auto historyButtonMaxWidth = float(20);
 
         auto historySize = currentFileHistory->get_size();
-        auto historyCurrentCursorPosition = currentFileHistory->get_cursor_pos();
+        auto history_range = currentFileHistory->get_command_id_range();
         auto availableWidth = ImGui::GetContentRegionAvailWidth();
         auto historyButtonWidth = fmin(historyButtonMaxWidth,
                                        availableWidth / float(historySize + 1) - historyButtonSpacing);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(historyButtonSpacing, 0));
 
-        for (size_t commandId = 0; commandId <= historySize; commandId++) {
+        for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++)
+        {
             ImGui::SameLine();
 
-            std::string label("##" + std::to_string(commandId));
+            std::string label("##" + std::to_string(cmd_pos));
 
             // Draw an highlighted button for the current history position
-            if (commandId == historyCurrentCursorPosition) {
+            if ( cmd_pos == 0)
+            {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
                 ImGui::Button(label.c_str(), vec2(historyButtonWidth, historyButtonHeight));
                 ImGui::PopStyleColor();
-
-                // or a simple one for other history positions
-            } else
+            }
+            else // or a simple one for other history positions
+            {
                 ImGui::Button(label.c_str(), vec2(historyButtonWidth, historyButtonHeight));
+            }
 
             // Hovered item
             if (ImGui::IsItemHovered()) {
@@ -922,7 +925,7 @@ void AppView::draw_history_bar(History *currentFileHistory) {
                 // Draw command description
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
                 ImGui::BeginTooltip();
-                ImGui::Text("%s", currentFileHistory->get_cmd_description_at(commandId).c_str());
+                ImGui::Text("%s", currentFileHistory->get_cmd_description_at(cmd_pos).c_str());
                 ImGui::EndTooltip();
                 ImGui::PopStyleVar();
             }
@@ -931,9 +934,9 @@ void AppView::draw_history_bar(History *currentFileHistory) {
             const auto xMin = ImGui::GetItemRectMin().x;
             const auto xMax = ImGui::GetItemRectMax().x;
             if (m_is_history_dragged &&
-                ImGui::GetMousePos().x < xMax &&
-                ImGui::GetMousePos().x > xMin) {
-                currentFileHistory->set_cursor_pos(commandId); // update history cursor position
+                ImGui::GetMousePos().x < xMax && ImGui::GetMousePos().x > xMin)
+            {
+                currentFileHistory->move_cursor(cmd_pos); // update history cursor position
             }
 
 

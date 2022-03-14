@@ -13,7 +13,7 @@ namespace Nodable
         virtual const char* get_description() const = 0;
         virtual void        undo() = 0;
         virtual void        redo() = 0;
-        virtual bool        is_undoable() = 0;
+        virtual bool        is_undoable() const = 0;
     };
 
     /**
@@ -22,19 +22,38 @@ namespace Nodable
     class ISimpleCmd : public ICommand
     {
     public:
-        virtual ~ISimpleCmd() = default;
-        void undo() override {};
-        void redo() override {};
-        bool is_undoable() override { return false; }
+        ~ISimpleCmd() override = default;
+        void undo() final { throw std::runtime_error("Can't call undo() on ISimpleCmd based commands."); };
+        void redo() final { throw std::runtime_error("Can't call redo() on ISimpleCmd based commands."); };
+        bool is_undoable() const override { return false; }
     };
 
     /**
      * Base abstract to implement undoable commands
+     * where execute() and redo() behavior is exactly the same.
      */
     class IUndoableCmd : public ICommand
     {
     public:
-        virtual ~IUndoableCmd() = default;
-        bool is_undoable() override { return true; }
+        ~IUndoableCmd() override = default;
+        void redo() final { this->execute(); }
+        bool is_undoable() const override { return true; }
+    };
+
+    /**
+     * Base abstract to implement undoable commands
+     * where execute() and redo() behaviour is different.
+     */
+    class IUndoableAsymetricCmd : public ICommand
+    {
+    public:
+        ~IUndoableAsymetricCmd() override = default;
+        void redo() override
+        {
+            throw std::runtime_error(
+                "redo() not yet implemented. "
+                "An IAsymetricUndoableCmd based command must have its own redo() implementation.");
+        };
+        bool is_undoable() const override { return true; }
     };
 }

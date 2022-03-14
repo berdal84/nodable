@@ -3,15 +3,17 @@
 #include <string> 	// for some typedefs
 #include <map>	  	// for some typedefs
 #include <vector> 	// for some typedefs
-#include <assert.h> // for ASSERT and VERIFY
+#include <cassert> // for ASSERT and VERIFY
 #include <nodable/Log.h>
 #include <nodable/Variant.h>
+#include <nodable/R.h>
+
 /*
 	Asserts
 */
 #define NODABLE_ASSERT(expression) LOG_FLUSH(); assert(expression);
 
-#define NODABLE_ARRAYSIZE(_ARR)          ((int)(sizeof(_ARR)/sizeof(*_ARR))) // Size of a static C-style array. Don't use on pointers!
+#define NODABLE_ARRAYSIZE(_ARR)          ((int)(sizeof(_ARR)/sizeof(*(_ARR))) // Size of a static C-style array. Don't use on pointers!
 
 /*
 	Forward declarations
@@ -34,6 +36,14 @@ namespace Nodable
         IS_PREDECESSOR_OF,
         IS_OUTPUT_OF
     };
+
+    R_ENUM(Relation_t)
+    R_ENUM_VALUE(IS_CHILD_OF)
+    R_ENUM_VALUE(IS_INPUT_OF)
+    R_ENUM_VALUE(IS_SUCCESSOR_OF)
+    R_ENUM_VALUE(IS_PREDECESSOR_OF)
+    R_ENUM_VALUE(IS_OUTPUT_OF)
+    R_ENUM_END
 
     struct Relation_link
     {

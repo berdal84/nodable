@@ -5,94 +5,122 @@ using namespace Nodable;
 
 History::~History()
 {
-	m_commands.clear();
+	m_past.clear();
+	m_future.clear();
 }
 
-void History::push_back_and_execute(std::shared_ptr<ICommand> _cmd)
-{	
-	/* First clear commands after the cursor */
-	while (m_commands_cursor < m_commands.size())
-	{
-        m_commands.pop_back();
+void History::push_command(std::shared_ptr<ICommand> _cmd, bool _from_text_editor)
+{
+    // clear any future commands (when we undo, commands are moved from past to future)
+    m_future.clear();
+
+    // execute the command except if it concern text_editor.
+    // since modification is already handled by text editor itself
+    if ( !_from_text_editor )
+    {
+        _cmd->execute();
     }
 
-	/* Then add and execute the new command */
-	m_commands.push_back(_cmd);
-    m_commands_cursor = m_commands.size();
-	_cmd->execute();
+    m_past.push_front(_cmd);
 
-	/* Delete command history in excess */
-    while (m_commands.size() > m_size_max)
+
+    /**
+     * Ensure not to store too much undo commands.
+     * We limit to a certain size, deleting first past commands, then future commands.
+     */
+    while ( m_past.size() > m_size_max )
     {
-        m_commands.pop_front();
-        m_commands_cursor--;
+        m_past.pop_back();
     }
 }
 
 void History::undo()
 {
-	if (m_commands_cursor > 0)
+	if ( !m_past.empty() )
 	{
-		m_commands_cursor--;
-        std::shared_ptr<ICommand> command_to_undo = m_commands.at(m_commands_cursor);
-        if ( command_to_undo->is_undoable() )
-        {
-            command_to_undo->undo();
-            m_dirty = true;
-        }
-	}
+        std::shared_ptr<ICommand> command_to_undo = m_past.front();
+        command_to_undo->undo();
+        m_past.pop_front();
+        m_future.push_front(command_to_undo);
+        m_dirty = true;
+    }
 }
 
 void History::redo()
 {
-	if (m_commands_cursor < m_commands.size())
+	if ( !m_future.empty() )
 	{
-		m_commands.at(m_commands_cursor)->redo();
-		m_commands_cursor++;
+        std::shared_ptr<ICommand> command_to_redo = m_future.front();
+        command_to_redo->redo();
+        m_future.pop_front();
+        m_past.push_front(command_to_redo);
         m_dirty = true;
 	}
 }
 
 void History::clear()
 {
-	m_commands.clear();
-    m_commands_cursor = 0;
+	m_past.clear();
+    m_future.clear();
 }
 
-void History::set_cursor_pos(size_t _pos)
+void History::move_cursor(int _move)
 {
 	/* Do nothing if cursor is already well positioned */
-	if (_pos == m_commands_cursor )
-		return;
+	if (_move == 0 ) return;
 
 	/* Undo or redo the required times to get the command cursor well positioned */
-	while (_pos != m_commands_cursor)
+	while (_move != 0)
 	{
-		if (_pos > m_commands_cursor)
+		if (_move > 0)
+        {
 			redo();
+            _move--;
+        }
 		else
+        {
 			undo();
+            _move++;
+        }
 	}
 
     m_dirty = true;
 }
 
-std::string History::get_cmd_description_at(size_t _commandId)
+std::string History::get_cmd_description_at(int _cmd_position)
 {
-	const auto headId = m_commands.size();
-	
 	std::string result;
 
-	if ( _commandId < headId )
-	{
-		result = m_commands.at(_commandId)->get_description();
-	}
-	else
+    if (_cmd_position <= -(int)m_past.size())
     {
-		result = "History HEAD";
-	}	
+        result.append("History Begin");
+    }
+    else if ( _cmd_position >= (int)m_future.size() )
+    {
+        result.append("History End");
+    }
+    else
+	{
+        std::shared_ptr<ICommand> cmd;
+        if (_cmd_position <= 0 )
+        {
+            cmd = m_past.at(abs(_cmd_position));
+            result.append( cmd->get_description() );
+        }
+		else
+        {
+            cmd = m_future.at(_cmd_position-1); // index zero is m_past.front()
+            result.append( cmd->get_description() );
+        }
+	}
 
 	return result;
+}
+
+std::pair<int, int> History::get_command_id_range()
+{
+    // (begin index, end index)
+    return std::make_pair(-(int)m_past.size(), (int)m_future.size());
 }
 
 void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord)
@@ -100,6 +128,6 @@ void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord)
     if ( m_enabled )
     {
 	    auto cmd = std::make_shared<Cmd_ReplaceText>(_undoRecord, m_Text_editor);
-        m_history->push_back_and_execute(cmd);
+        m_history->push_command(cmd, true);
     }
 }

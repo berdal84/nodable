@@ -9,11 +9,14 @@
 #include <nodable/VariableNode.h>
 #include <nodable/DataAccess.h>
 #include <nodable/AppContext.h>
-#include "nodable/Event.h"
-#include "nodable/commands/Cmd_ConnectMembers.h"
-#include "nodable/MemberConnector.h"
-#include "nodable/NodeConnector.h"
-#include "nodable/commands/Cmd_ConnectNodes.h"
+#include <nodable/Event.h>
+#include <nodable/commands/Cmd_ConnectMembers.h>
+#include <nodable/MemberConnector.h>
+#include <nodable/NodeConnector.h>
+#include <nodable/commands/Cmd_ConnectNodes.h>
+#include <nodable/commands/Cmd_DisconnectNodes.h>
+#include <nodable/commands/Cmd_DisconnectMembers.h>
+#include <nodable/commands/Cmd_Group.h>
 
 using namespace Nodable;
 
@@ -243,7 +246,7 @@ void App::handle_events()
                 }
                 break;
             }
-            case EventType::node_connector_dropped_on_another:
+            case EventType::node_connector_dropped:
             {
                 const NodeConnector *src = nodable_event.node_connectors.src;
                 const NodeConnector *dst = nodable_event.node_connectors.dst;
@@ -257,22 +260,14 @@ void App::handle_events()
                 }
                 else
                 {
-                    if ( src->m_way != Way_In ) std::swap(src, dst); // ensure src is successor
-                    auto cmd = std::make_shared<Cmd_ConnectNodes>(src->get_node(), dst->get_node());
-
-                    if ( m_context->settings->experimental_hybrid_history )
-                    {
-                        History *curr_file_history = get_curr_file()->getHistory();
-                        curr_file_history->push_back_and_execute(cmd);
-                    }
-                    else
-                    {
-                        cmd->execute();
-                    }
+                    if ( src->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
+                    auto cmd = std::make_shared<Cmd_ConnectNodes>(src->get_node(), dst->get_node(), Relation_t::IS_PREDECESSOR_OF);
+                    History *curr_file_history = get_curr_file()->getHistory();
+                    curr_file_history->push_command(cmd);
                 }
                 break;
             }
-            case EventType::member_connector_dropped_on_another:
+            case EventType::member_connector_dropped:
             {
                 const MemberConnector *src = nodable_event.member_connectors.src;
                 const MemberConnector *dst = nodable_event.member_connectors.dst;
@@ -297,17 +292,42 @@ void App::handle_events()
                 {
                     if (src->m_way != Way_Out) std::swap(src, dst); // guarantee src to be the output
                     auto cmd = std::make_shared<Cmd_ConnectMembers>(src->get_member(), dst->get_member());
-
-                    if ( m_context->settings->experimental_hybrid_history )
-                    {
-                        History *curr_file_history = get_curr_file()->getHistory();
-                        curr_file_history->push_back_and_execute(cmd);
-                    }
-                    else
-                    {
-                        cmd->execute();
-                    }
+                    History *curr_file_history = get_curr_file()->getHistory();
+                    curr_file_history->push_command(cmd);
                 }
+                break;
+            }
+            case EventType::node_connector_disconnected:
+            {
+                const NodeConnector* src_connector = nodable_event.node_connectors.src;
+                Node* src = src_connector->get_node();
+                Node* dst = src_connector->get_connected_node();
+
+                if (src_connector->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
+
+                auto cmd = std::make_shared<Cmd_DisconnectNodes>(src, dst, Relation_t::IS_PREDECESSOR_OF);
+
+                History *curr_file_history = get_curr_file()->getHistory();
+                curr_file_history->push_command(cmd);
+
+                break;
+            }
+            case EventType::member_connector_disconnected:
+            {
+                const MemberConnector* src_connector = nodable_event.member_connectors.src;
+                Member* src = src_connector->get_member();
+                auto wires = src->get_owner()->get_parent_graph()->filter_wires(src, src_connector->m_way);
+
+                auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Wires");
+                for(Wire* each_wire : wires )
+                {
+                    auto each_cmd = std::make_shared<Cmd_DisconnectMembers>(each_wire);
+                    cmd_grp->push_cmd( std::static_pointer_cast<ICommand>(each_cmd) );
+                }
+
+                History *curr_file_history = get_curr_file()->getHistory();
+                curr_file_history->push_command(std::static_pointer_cast<ICommand>(cmd_grp));
+
                 break;
             }
         }

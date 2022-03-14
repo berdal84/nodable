@@ -46,7 +46,7 @@ bool MemberConnector::share_parent_with(const MemberConnector* other) const
     return get_member() == other->get_member();
 }
 
-bool MemberConnector::draw(
+void MemberConnector::draw(
         const MemberConnector *_connector,
         float _radius,
         const ImColor &_color,
@@ -56,7 +56,6 @@ bool MemberConnector::draw(
 {
     // draw
     //-----
-    bool edited = false;
     auto draw_list = ImGui::GetWindowDrawList();
     auto connnectorScreenPos = _connector->get_pos();
 
@@ -80,10 +79,11 @@ bool MemberConnector::draw(
     {
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
-            auto member = _connector->get_member();
-            auto graph  = member->get_owner()->get_parent_graph();
-            graph->disconnect( member, _connector->m_way );
-            edited = true;
+            Event event{};
+            event.type = EventType::member_connector_disconnected;
+            event.member_connectors.src = _connector;
+            event.member_connectors.dst = nullptr;
+            EventManager::push_event(event);
         }
 
         ImGui::EndPopup();
@@ -109,14 +109,12 @@ bool MemberConnector::draw(
     {
         s_hovered = nullptr;
     }
-
-    return edited;
 }
 
 void MemberConnector::dropped(const MemberConnector *_left, const MemberConnector *_right)
 {
     Event evt{};
-    evt.type = EventType::member_connector_dropped_on_another;
+    evt.type = EventType::member_connector_dropped;
     evt.member_connectors.src = _left;
     evt.member_connectors.dst = _right;
     EventManager::push_event(evt);

@@ -56,7 +56,7 @@ namespace Nodable
          *  If _from is not owned, _to will digest it and nullptr is return.
           * Otherwise a new Wire will be created ( _from -----> _to) and returned.
           */
-        Wire* connect(Member* _src, Member* _dst_member, ConnBy_ _connect_by = ConnectBy_Ref );
+        Wire* connect(Member* _src, Member* _dst_member );
 
         /**
          * drop_on two nodes with a given connection type
@@ -69,6 +69,7 @@ namespace Nodable
         void disconnect(Wire*);
         void disconnect(Member* _member, Way _way = Way_InOut);
         void destroy(Node*);
+        std::vector<Wire*> filter_wires(Member*, Way) const;
     private:
         void add(Node*);
         void remove(Node*);

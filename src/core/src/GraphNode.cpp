@@ -262,9 +262,10 @@ bool GraphNode::is_empty()
     return !m_root;
 }
 
-Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _connect_by)
+Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
 {
-    Wire* wire = nullptr;
+    Wire* wire         = nullptr;
+    ConnBy_ connect_by = R::MetaType::is_ref( _dst_member->get_meta_type() ) ? ConnectBy_Ref : ConnectBy_Copy;
 
     /*
      * If _from has no owner _to can digest it, no Wire neede in that case.
@@ -286,11 +287,11 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member, ConnBy_ _conn
     else
     {
         LOG_VERBOSE("GraphNode", "drop_on() ...\n")
-        _dst_member->set_input(_src_member, _connect_by);
+        _dst_member->set_input(_src_member, connect_by);
         _src_member->get_outputs().push_back(_dst_member);
 
 
-        if ( _connect_by == ConnectBy_Copy )
+        if ( connect_by == ConnectBy_Copy )
         {
             _dst_member->set(_src_member );
         }
@@ -368,22 +369,25 @@ void GraphNode::remove(Wire* _wire)
 
 void GraphNode::connect(Node* _src, InstructionNode* _dst)
 {
-    connect(_src->get_this_member(), _dst->get_root_node_member(), ConnectBy_Copy );
+    connect(_src->get_this_member(), _dst->get_root_node_member() );
 }
 
 void GraphNode::connect(Member* _src, VariableNode* _dst)
 {
-    // We connect the source member to the variable's value member in value mode (vs reference mode)
-    connect(_src, _dst->get_value(), ConnectBy_Copy );
+    connect(_src, _dst->get_value() );
 }
 
 void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relation_type, bool _side_effects)
 {
+    // ensure we ALWAYS use IS_SUCCESSOR_OF
+    if ( _relation_type == Relation_t::IS_PREDECESSOR_OF )
+    {
+        _relation_type = Relation_t::IS_SUCCESSOR_OF;
+        std::swap(_src, _dst);
+    }
+
     switch ( _relation_type )
     {
-        case Relation_t::IS_PREDECESSOR_OF:
-            return connect(_dst, _src, Relation_t::IS_SUCCESSOR_OF, _side_effects);
-
         case Relation_t::IS_CHILD_OF:
         {
             /*
@@ -483,6 +487,13 @@ void GraphNode::disconnect(Node *_src, Node *_dst, Relation_t _relationType, boo
 {
     NODABLE_ASSERT(_src && _dst);
 
+    // ensure we ALWAYS store IS_SUCCESSOR_OF
+    if ( _relationType == Relation_t::IS_PREDECESSOR_OF )
+    {
+        _relationType = Relation_t::IS_SUCCESSOR_OF;
+        std::swap(_src, _dst);
+    }
+
     // find relation
     Relation pair{_relationType, Relation_link(_src, _dst)};
     auto relation = std::find(m_relation_registry.begin(), m_relation_registry.end(), pair);
@@ -501,10 +512,6 @@ void GraphNode::disconnect(Node *_src, Node *_dst, Relation_t _relationType, boo
         case Relation_t::IS_INPUT_OF:
             _dst->input_slots().remove(_src);
             _src->output_slots().remove(_dst);
-            break;
-
-        case Relation_t::IS_PREDECESSOR_OF:
-            return disconnect(_dst, _src, Relation_t::IS_SUCCESSOR_OF, _side_effects);
             break;
 
         case Relation_t::IS_SUCCESSOR_OF:
@@ -599,35 +606,43 @@ LiteralNode* GraphNode::create_literal(std::shared_ptr<const R::MetaType> _type)
     return node;
 }
 
-void GraphNode::disconnect(Member *_member, Way _way)
+std::vector<Wire*> GraphNode::filter_wires(Member* _member, Way _way) const
 {
-    auto should_be_deleted = [&](const Wire* wire) {
-        if ( (_way & Way_Out) && wire->getSource() == _member ) return true;
-        if ( (_way & Way_In) && wire->getTarget() == _member ) return true;
-        return false;
+    std::vector<Wire*> result;
+
+    auto is_member_linked_to = [_member, _way](const Wire* wire)
+    {
+        return
+            ( (_way & Way_Out) && wire->getSource() == _member )
+            ||
+            ( (_way & Way_In) && wire->getTarget() == _member );
     };
 
-    for (auto it = m_wire_registry.begin(); it != m_wire_registry.end(); )
+    for(Wire* each_wire : m_wire_registry)
     {
-        if ( should_be_deleted(*it) )
-        {
-            auto wire = *it;
-            it = m_wire_registry.erase(it);
+        if ( is_member_linked_to(each_wire) ) result.push_back(each_wire);
+    }
 
-            Node *targetNode = wire->getTarget()->get_owner();
-            Node *sourceNode = wire->getSource()->get_owner();
+    return result;
+}
 
-            targetNode->remove_wire(wire);
-            sourceNode->remove_wire(wire);
+void GraphNode::disconnect(Member *_member, Way _way)
+{
+    auto wires_to_delete = filter_wires(_member, _way);
 
-            disconnect(sourceNode, targetNode, Relation_t::IS_INPUT_OF);
+    for (Wire* wire : wires_to_delete )
+    {
+        m_wire_registry.erase( std::find(m_wire_registry.begin(), m_wire_registry.end(), wire));
 
-            destroy(wire);
-        }
-        else
-        {
-            ++it;
-        }
+        Node *targetNode = wire->getTarget()->get_owner();
+        Node *sourceNode = wire->getSource()->get_owner();
+
+        targetNode->remove_wire(wire);
+        sourceNode->remove_wire(wire);
+
+        disconnect(sourceNode, targetNode, Relation_t::IS_INPUT_OF);
+
+        destroy(wire);
     }
 
     set_dirty();

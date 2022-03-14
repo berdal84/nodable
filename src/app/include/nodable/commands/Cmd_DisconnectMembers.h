@@ -2,42 +2,39 @@
 #include <nodable/Command.h>
 #include <nodable/Member.h>
 #include <nodable/GraphNode.h>
+#include <nodable/Wire.h>
 
 namespace Nodable
 {
-    /**
-     * Command to drop_on two members.
-     * src output --> dst input
-     */
-    class Cmd_ConnectMembers : public IUndoableCmd
+    class Cmd_DisconnectMembers : public IUndoableCmd
     {
     public:
-        Cmd_ConnectMembers(Member* _src, Member* _dst)
-        : m_src(_src)
-        , m_dst(_dst)
-        , m_graph(_src->get_owner()->get_parent_graph())
-        , m_wire(nullptr)
+        Cmd_DisconnectMembers(Wire* _wire)
+        : m_src(_wire->getSource())
+        , m_dst(_wire->getTarget())
+        , m_graph(_wire->getSource()->get_owner()->get_parent_graph())
+        , m_wire(_wire)
         {
             char str[200];
             sprintf(str
-                    , "ConnectMembers\n"
+                    , "DisconnectMembers\n"
                       " - src: \"%s\"\n"
                       " - dst: \"%s\"\n"
-                    , _src->get_name().c_str()
-                    , _dst->get_name().c_str() );
+                    , m_src->get_name().c_str()
+                    , m_dst->get_name().c_str() );
             m_description.append(str);
         }
 
-        ~Cmd_ConnectMembers() override = default;
+        ~Cmd_DisconnectMembers() override = default;
 
         void execute() override
         {
-            m_wire = m_graph->connect(m_src, m_dst);
+            m_graph->disconnect(m_wire);
         }
 
         void undo() override
         {
-            m_graph->disconnect(m_wire);
+            m_wire = m_graph->connect(m_src, m_dst);
         }
 
         const char* get_description() const override

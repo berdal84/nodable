@@ -43,15 +43,11 @@ bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
     {
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
-            auto node   = _connector->get_node();
-            auto graph  = node->get_parent_graph();
-
-            if ( _connector->m_way == Way_In )
-                graph->disconnect(node, connectedNode, Relation_t::IS_SUCCESSOR_OF);
-            else
-                graph->disconnect(connectedNode, node, Relation_t::IS_SUCCESSOR_OF);
-
-            edited = true;
+            Event event{};
+            event.type = EventType::node_connector_disconnected;
+            event.node_connectors.src = _connector;
+            event.node_connectors.dst = nullptr;
+            EventManager::push_event(event);
         }
 
         ImGui::EndPopup();
@@ -108,7 +104,7 @@ bool NodeConnector::share_parent_with(const NodeConnector *other) const
 void NodeConnector::dropped(const NodeConnector *_left, const NodeConnector *_right)
 {
     Event evt{};
-    evt.type = EventType::node_connector_dropped_on_another;
+    evt.type = EventType::node_connector_dropped;
     evt.node_connectors.src = _left;
     evt.node_connectors.dst = _right;
     EventManager::push_event(evt);

@@ -14,12 +14,12 @@ using namespace Nodable;
 
 File::File( AppContext* _context, std::string _path, const char* _content)
     : m_path(_path)
-    , m_context( _context )
+    , m_context(_context)
     , m_modified(false)
     , m_open(false)
     , m_graph(nullptr)
     , m_factory(_context)
-    , m_history()
+    , m_history(&_context->settings->experimental_hybrid_history)
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n");
 

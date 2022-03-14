@@ -420,13 +420,13 @@ bool NodeView::draw()
 
         if ( m_exposed_this_member_view )
         {
-            edited |= MemberConnector::draw(m_exposed_this_member_view->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
+            MemberConnector::draw(m_exposed_this_member_view->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
         for( auto& memberView : m_exposedInputOnlyMembers )
         {
-            edited |= MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
+            MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
@@ -434,13 +434,13 @@ bool NodeView::draw()
         {
             if ( memberView->m_in)
             {
-                edited |= MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
+                MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
 
             if ( memberView->m_out)
             {
-                edited |= MemberConnector::draw(memberView->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
+                MemberConnector::draw(memberView->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
         }
