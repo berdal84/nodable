@@ -148,7 +148,11 @@ void Asm::Compiler::compile(const Member * _member )
 
 void Asm::Compiler::compile(const Node* _node)
 {
-    NODABLE_ASSERT(_node);
+    if( !_node)
+    {
+        LOG_VERBOSE("Compiler", "Ignoring nullptr Node.\n")
+        return;
+    }
 
     if (_node->has<Scope>() && _node->get_parent() )
     {
@@ -239,10 +243,7 @@ void Asm::Compiler::compile(const Node* _node)
     {
         const Member* root_member = instr_node->get_root_node_member();
         NODABLE_ASSERT(root_member)
-        auto root_node = (const Node*)*root_member;
-
-        // eval node
-        compile(root_node);
+        compile((const Node*)*root_member);
     }
     else
     {
