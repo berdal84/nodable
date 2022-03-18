@@ -11,10 +11,10 @@ namespace Nodable
 
     enum class EventType
     {
-        delete_node_triggered = 0x100, // operation on nodes
-        arrange_node_triggered,
-        select_successor_node_triggered,
-        expand_selected_node_triggered,
+        delete_node_action_triggered = 0x100, // operation on nodes
+        arrange_node_action_triggered,
+        select_successor_node_action_triggered,
+        expand_selected_node_action_triggered,
 
         member_connector_dropped = 0x200, // operation on member connectors
         member_connector_disconnected,

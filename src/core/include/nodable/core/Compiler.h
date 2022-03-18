@@ -81,7 +81,13 @@ namespace Nodable
          */
         struct Instr
         {
-            Instr(Instr_t _type, long _line): m_type(_type), m_line(_line) {}
+            Instr(Instr_t _type, long _line)
+                : m_type(_type)
+                , m_line(_line)
+                , m_left_h_arg(0)
+                , m_right_h_arg(0)
+                , m_comment()
+            {}
 
             i64_t   m_line;
             Instr_t m_type;

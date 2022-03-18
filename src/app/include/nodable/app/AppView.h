@@ -36,8 +36,9 @@ namespace Nodable
 	public:		
 		AppView(AppContext* _ctx, const char* _name);
 		~AppView() override;
+        bool init();
+        void handle_events();
 		bool draw() override;
-		bool init();
         void browse_file();
         void shutdown();
 
@@ -71,12 +72,6 @@ namespace Nodable
         bool               m_scroll_to_curr_instr;
         std::map<std::string, ImFont*>      m_loaded_fonts; // All fonts loaded in memory
         std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
-
-        static constexpr const char* k_imgui_settings_window_name = "ImGui";
-        static constexpr const char* k_app_settings_window_name = "App";
-        static constexpr const char* k_node_props_window_name = "Node";
-        static constexpr const char* k_file_info_window_name = "File";
-        static constexpr const char* k_assembly_window_name = "VM";
 
         R_DERIVED(AppView)
         R_EXTENDS(View)

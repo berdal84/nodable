@@ -50,12 +50,9 @@ void App::update()
 {
 	File* file = get_curr_file();
 
-    handle_events();
+    if (file)   file->update();
 
-    if (file)
-	{
-        file->update();
-    }
+    handle_events();
 }
 
 void App::flag_to_stop()
@@ -65,14 +62,14 @@ void App::flag_to_stop()
 
 void App::shutdown()
 {
-    m_view->shutdown();
+    if (m_view) m_view->shutdown();
 }
 
 bool App::open_file(const ghc::filesystem::path& _filePath)
 {		
 	auto file = File::OpenFile(m_context, _filePath.string() );
 
-	if (file != nullptr)
+	if (file)
 	{
 		m_loadedFiles.push_back(file);
         set_curr_file(m_loadedFiles.size() - 1);
@@ -83,14 +80,13 @@ bool App::open_file(const ghc::filesystem::path& _filePath)
 
 void App::save_file() const
 {
-	auto currentFile = m_loadedFiles.at(m_currentFileIndex);
-	if (currentFile)
-		currentFile->save();
+	File* current_file = get_curr_file();
+	if (current_file) current_file->save();
 }
 
 void App::close_file()
 {
-    this->close_file_at(this->m_currentFileIndex);
+    close_file_at(m_currentFileIndex);
 }
 
 File* App::get_curr_file()const {
@@ -203,31 +199,46 @@ void App::vm_reset()
 
 void App::handle_events()
 {
-    // SDL_ API inspired
-    Event nodable_event;
-    while( EventManager::poll_event(nodable_event) )
+    /*
+     * SDL events
+     *
+     * Some of them might trigger a Nodable event, we will handle them just after.
+     */
+    if (m_view)
     {
-        switch ( nodable_event.type )
+        m_view->handle_events();
+    }
+
+    /*
+     * Nodable events
+     *
+     * SDL_ API inspired, but with custom events.
+     */
+    Nodable::Event event;
+    NodeView*      selected_view = NodeView::GetSelected();
+    while( EventManager::poll_event(event) )
+    {
+        switch ( event.type )
         {
-            case EventType::delete_node_triggered:
+            case EventType::delete_node_action_triggered:
             {
-                if ( NodeView* selected_view = NodeView::GetSelected() )
+                if ( selected_view )
                 {
                     selected_view->get_owner()->flag_for_deletion();
                 }
                 break;
             }
-            case EventType::arrange_node_triggered:
+            case EventType::arrange_node_action_triggered:
             {
-                if ( NodeView* selected_view = NodeView::GetSelected() )
+                if ( selected_view )
                 {
                     selected_view->arrangeRecursively();
                 }
                 break;
             }
-            case EventType::select_successor_node_triggered:
+            case EventType::select_successor_node_action_triggered:
             {
-                if ( NodeView* selected_view = NodeView::GetSelected() )
+                if ( selected_view )
                 {
                     Node* possible_successor = selected_view->get_owner()->successor_slots().get_front_or_nullptr();
                     if (possible_successor)
@@ -240,9 +251,9 @@ void App::handle_events()
                 }
                 break;
             }
-            case EventType::expand_selected_node_triggered:
+            case EventType::expand_selected_node_action_triggered:
             {
-                if ( NodeView* selected_view = NodeView::GetSelected() )
+                if ( selected_view )
                 {
                     selected_view->toggleExpansion();
                 }
@@ -250,8 +261,8 @@ void App::handle_events()
             }
             case EventType::node_connector_dropped:
             {
-                const NodeConnector *src = nodable_event.node_connectors.src;
-                const NodeConnector *dst = nodable_event.node_connectors.dst;
+                const NodeConnector *src = event.node_connectors.src;
+                const NodeConnector *dst = event.node_connectors.dst;
                 if ( src->share_parent_with(dst) )
                 {
                     LOG_WARNING("App", "Unable to drop_on these two Connectors from the same Node.\n")
@@ -271,8 +282,8 @@ void App::handle_events()
             }
             case EventType::member_connector_dropped:
             {
-                const MemberConnector *src = nodable_event.member_connectors.src;
-                const MemberConnector *dst = nodable_event.member_connectors.dst;
+                const MemberConnector *src = event.member_connectors.src;
+                const MemberConnector *dst = event.member_connectors.dst;
                 std::shared_ptr<const R::MetaType> src_meta_type = src->get_member_type();
                 std::shared_ptr<const R::MetaType> dst_meta_type = dst->get_member_type();
 
@@ -301,13 +312,13 @@ void App::handle_events()
             }
             case EventType::node_connector_disconnected:
             {
-                const NodeConnector* src_connector = nodable_event.node_connectors.src;
+                const NodeConnector* src_connector = event.node_connectors.src;
                 Node* src = src_connector->get_node();
                 Node* dst = src_connector->get_connected_node();
 
                 if (src_connector->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
 
-                DirectedEdge relation(EdgeType::IS_PREDECESSOR_OF, src, dst);
+                DirectedEdge relation(src, EdgeType::IS_PREDECESSOR_OF, dst);
                 auto cmd = std::make_shared<Cmd_DisconnectNodes>( relation );
 
                 History *curr_file_history = get_curr_file()->getHistory();
@@ -317,7 +328,7 @@ void App::handle_events()
             }
             case EventType::member_connector_disconnected:
             {
-                const MemberConnector* src_connector = nodable_event.member_connectors.src;
+                const MemberConnector* src_connector = event.member_connectors.src;
                 Member* src = src_connector->get_member();
                 auto wires = src->get_owner()->get_parent_graph()->filter_wires(src, src_connector->m_way);
 
@@ -333,6 +344,21 @@ void App::handle_events()
 
                 break;
             }
+        }
+    }
+}
+
+void App::draw()
+{
+    if ( m_view )
+    {
+        try
+        {
+            m_view->draw();
+        }
+        catch (std::exception &err)
+        {
+            LOG_ERROR("App", "Unable to draw m_view, reason: %s\n", err.what())
         }
     }
 }

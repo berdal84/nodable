@@ -35,17 +35,15 @@ int main(int argc, char *argv[])
             LOG_ERROR("main", "Unable to update application, reason: %s\n", err.what())
         }
 
-
-        if (AppView *view = app.get_view())
+        try
         {
-            try
-            {
-                view->draw();
-            }catch (std::exception &err)
-            {
-                LOG_ERROR("main", "Unable to draw application view, reason: %s\n", err.what())
-            }
+            app.draw();
         }
+        catch (std::exception &err)
+        {
+            LOG_ERROR("main", "Unable to draw application view, reason: %s\n", err.what())
+        }
+
     }
 
     app.shutdown();

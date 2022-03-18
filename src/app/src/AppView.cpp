@@ -15,7 +15,8 @@
 #include <nodable/core/Log.h>
 #include <nodable/app/FileView.h>
 #include <nodable/app/History.h>
-#include "nodable/app/Event.h"
+#include <nodable/app/constants.h>
+#include <nodable/app/Event.h>
 
 using namespace Nodable;
 using namespace Nodable::Asm;
@@ -166,61 +167,6 @@ ImFont* AppView::load_font(const FontConf &fontConf) {
 
 bool AppView::draw()
 {
-    SDL_Event sdl_event;
-    while (SDL_PollEvent(&sdl_event))
-    {
-        ImGui_ImplSDL2_ProcessEvent(&sdl_event);
-
-		switch (sdl_event.type)
-		{
-		case SDL_QUIT:
-            m_context->app->flag_to_stop();
-			break;
-
-		case SDL_KEYUP:
-			auto key = sdl_event.key.keysym.sym;
-            auto l_ctrl_pressed = sdl_event.key.keysym.mod & KMOD_LCTRL;
-			if ( l_ctrl_pressed )
-            {
-				// History
-				if (File* file = m_context->app->get_curr_file())
-                {
-					History* currentFileHistory = file->getHistory();
-					     if (key == SDLK_z) currentFileHistory->undo();
-					else if (key == SDLK_y) currentFileHistory->redo();
-				}
-
-				// File
-				     if( key == SDLK_s) m_context->app->save_file();
-				else if( key == SDLK_w) m_context->app->close_file();
-				else if( key == SDLK_o) browse_file();
-			}
-			else
-            {
-                switch( key )
-                {
-                    case SDLK_DELETE:
-                        EventManager::push_event(EventType::delete_node_triggered);
-                        break;
-                    case SDLK_a:
-                        EventManager::push_event(EventType::arrange_node_triggered);
-                        break;
-                    case SDLK_x:
-                        EventManager::push_event(EventType::expand_selected_node_triggered);
-                        break;
-                    case SDLK_n:
-                        EventManager::push_event(EventType::select_successor_node_triggered);
-                        break;
-                    case SDLK_F1:
-                        m_show_startup_window = true;
-                        break;
-                }
-            }
-			break;
-		}
-
-    }
-
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(m_sdl_window);
 	ImGui::NewFrame();
@@ -243,10 +189,10 @@ bool AppView::draw()
 		// Get current file's history
 		History* currentFileHistory = nullptr;
 
-		if ( auto file = m_context->app->get_curr_file())
-			currentFileHistory = file->getHistory();
-
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+		if ( File* file = m_context->app->get_curr_file())
+        {
+            currentFileHistory = file->getHistory();
+        }
 
         // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
         // because it would be confusing to have two docking targets within each others.
@@ -307,17 +253,17 @@ bool AppView::draw()
 
                     if ( ImGui::MenuItem("Delete", "Del.", false, has_selection && m_context->vm->is_program_stopped() ) )
                     {
-                        EventManager::push_event(EventType::delete_node_triggered);
+                        EventManager::push_event(EventType::delete_node_action_triggered);
                     }
 
                     if ( ImGui::MenuItem("Arrange nodes", "A", false, has_selection) )
                     {
-                        EventManager::push_event(EventType::arrange_node_triggered);
+                        EventManager::push_event(EventType::arrange_node_action_triggered);
                     }
 
                     if ( ImGui::MenuItem("Expand (toggle)", "X", false, has_selection) )
                     {
-                        EventManager::push_event(EventType::expand_selected_node_triggered);
+                        EventManager::push_event(EventType::expand_selected_node_action_triggered);
                     }
                     ImGui::EndMenu();
                 }
@@ -1024,6 +970,63 @@ void AppView::draw_tool_bar()
     m_context->elapsed_time += ImGui::GetIO().DeltaTime;
 }
 
+void AppView::handle_events()
+{
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        ImGui_ImplSDL2_ProcessEvent(&event);
+
+        switch (event.type)
+        {
+            case SDL_QUIT:
+                m_context->app->flag_to_stop();
+                break;
+
+            case SDL_KEYUP:
+                auto key = event.key.keysym.sym;
+                auto l_ctrl_pressed = event.key.keysym.mod & KMOD_LCTRL;
+                if ( l_ctrl_pressed )
+                {
+                    // History
+                    if (File* file = m_context->app->get_curr_file())
+                    {
+                        History* currentFileHistory = file->getHistory();
+                        if (key == SDLK_z) currentFileHistory->undo();
+                        else if (key == SDLK_y) currentFileHistory->redo();
+                    }
+
+                    // File
+                    if( key == SDLK_s) m_context->app->save_file();
+                    else if( key == SDLK_w) m_context->app->close_file();
+                    else if( key == SDLK_o) browse_file();
+                }
+                else
+                {
+                    switch( key )
+                    {
+                        case SDLK_DELETE:
+                            EventManager::push_event(EventType::delete_node_action_triggered);
+                            break;
+                        case SDLK_a:
+                            EventManager::push_event(EventType::arrange_node_action_triggered);
+                            break;
+                        case SDLK_x:
+                            EventManager::push_event(EventType::expand_selected_node_action_triggered);
+                            break;
+                        case SDLK_n:
+                            EventManager::push_event(EventType::select_successor_node_action_triggered);
+                            break;
+                        case SDLK_F1:
+                            m_show_startup_window = true;
+                            break;
+                    }
+                }
+                break;
+        }
+
+    }
+}
 void AppView::shutdown()
 {
     m_context->texture_manager->release_resources();

@@ -29,6 +29,7 @@ namespace Nodable
 		bool            init();
 		void            shutdown();
 		void            update();
+		void            draw();
 		void            flag_to_stop();
         bool            should_stop() const { return m_should_stop; }
 		bool            open_file(const ghc::filesystem::path& _filePath);
