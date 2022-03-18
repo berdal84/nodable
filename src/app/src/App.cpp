@@ -48,11 +48,12 @@ bool App::init()
 
 void App::update()
 {
-	File* file = get_curr_file();
-
-    if (file)   file->update();
-
     handle_events();
+
+    if (File* file = get_curr_file())
+    {
+        file->update();
+    }
 }
 
 void App::flag_to_stop()

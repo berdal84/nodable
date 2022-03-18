@@ -48,8 +48,6 @@ namespace Nodable
         void            vm_step_over();
         void            vm_stop();
         void            vm_reset();
-        AppView*        get_view()const { return m_view; };
-        AppContext*     get_context()const { return m_context; };
 
     private:
 	    AppView*        m_view;
@@ -60,6 +58,6 @@ namespace Nodable
         std::vector<File*>          m_loadedFiles;
         const ghc::filesystem::path m_assetsFolderPath;
 
-        void handle_events();
+        void            handle_events();
     };
 }
