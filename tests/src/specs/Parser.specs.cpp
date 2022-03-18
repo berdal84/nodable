@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <nodable/Log.h>
+#include <nodable/core/Log.h>
 #include "../tools.h"
 
 using namespace Nodable;

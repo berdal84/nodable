@@ -1,8 +1,8 @@
 
 #include <string>
 
-#include <nodable/App.h>
-#include <nodable/AppView.h>
+#include <nodable/app/App.h>
+#include <nodable/app/AppView.h>
 #include <nodable/BuildInfo.h>
 
 using namespace Nodable;

@@ -1,5 +1,5 @@
-#include <nodable/ForLoopNode.h>
-#include <nodable/Scope.h>
+#include <nodable/core/ForLoopNode.h>
+#include <nodable/core/Scope.h>
 
 using namespace Nodable;
 
@@ -9,9 +9,10 @@ ForLoopNode::ForLoopNode()
         :
         m_token_for(nullptr)
 {
-    m_props.add("init"     , Visibility::Always, R::get_meta_type<Node *>(), Way::Way_In);
-    m_props.add("condition", Visibility::Always, R::get_meta_type<Node *>(), Way::Way_In);
-    m_props.add("iter"     , Visibility::Always, R::get_meta_type<Node *>(), Way::Way_In);
+    auto node_ptr_type = R::get_meta_type<Node*>();
+    m_props.add(k_forloop_initialization_member_name , Visibility::Always, node_ptr_type, Way::Way_In);
+    m_props.add(k_condition_member_name              , Visibility::Always, node_ptr_type, Way::Way_In);
+    m_props.add(k_forloop_iteration_member_name      , Visibility::Always, node_ptr_type, Way::Way_In);
 }
 
 Scope* ForLoopNode::get_condition_true_branch() const

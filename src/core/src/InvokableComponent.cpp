@@ -1,7 +1,7 @@
-#include <nodable/InvokableComponent.h>
-#include <nodable/Log.h>
-#include <nodable/Language.h>
-#include <nodable/VariableNode.h>
+#include <nodable/core/InvokableComponent.h>
+#include <nodable/core/Log.h>
+#include <nodable/core/Language.h>
+#include <nodable/core/VariableNode.h>
 
 using namespace Nodable;
 

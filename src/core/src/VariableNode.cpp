@@ -1,6 +1,6 @@
-#include <nodable/VariableNode.h>
-#include <nodable/Member.h>
-#include <nodable/Log.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/Member.h>
+#include <nodable/core/Log.h>
 
 using namespace Nodable;
 
@@ -14,7 +14,7 @@ VariableNode::VariableNode(std::shared_ptr<const R::MetaType> _type)
         m_assignment_operator_token(nullptr),
         m_is_declared(true)
 {
-	m_value = m_props.add(Node::VALUE_MEMBER_NAME, Visibility::Always, _type, Way_InOut);
+	m_value = m_props.add(k_value_member_name, Visibility::Always, _type, Way_InOut);
 }
 
 bool VariableNode::eval() const

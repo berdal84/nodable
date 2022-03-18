@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <nodable/InvokableFunction.h>
+#include <nodable/core/InvokableFunction.h>
 
 using namespace Nodable;
 using namespace Nodable::R;

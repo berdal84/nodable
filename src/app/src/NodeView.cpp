@@ -1,22 +1,22 @@
-#include <nodable/NodeView.h>
+#include <nodable/app/NodeView.h>
 
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
 #include <numeric>                // for std::accumulate
 #include <vector>
 
-#include <nodable/Settings.h>
-#include <nodable/Serializer.h>
-#include <nodable/App.h>
-#include <nodable/Maths.h>
-#include <nodable/Scope.h>
-#include <nodable/VariableNode.h>
-#include <nodable/LiteralNode.h>
-#include <nodable/GraphNode.h>
-#include <nodable/NodeConnector.h>
-#include <nodable/MemberConnector.h>
-#include <nodable/InvokableComponent.h>
-#include <nodable/AppContext.h>
+#include <nodable/app/Settings.h>
+#include <nodable/core/Serializer.h>
+#include <nodable/app/App.h>
+#include <nodable/core/Maths.h>
+#include <nodable/core/Scope.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/LiteralNode.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/app/NodeConnector.h>
+#include <nodable/app/MemberConnector.h>
+#include <nodable/core/InvokableComponent.h>
+#include <nodable/app/AppContext.h>
 
 #define NODE_VIEW_DEFAULT_SIZE vec2(10.0f, 35.0f)
 
@@ -175,30 +175,30 @@ void NodeView::set_owner(Node *_node)
         m_predecessors_node_connnectors.push_back(new NodeConnector(m_context, this, Way_In));
 
     m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver(
-        [this](Node* _other_node, Relation_t _relation )
+        [this](Node* _other_node, EdgeType _relation )
         {
             NodeView* _other_node_view = _other_node->get<NodeView>();
             switch ( _relation )
             {
-                case Relation_t::IS_CHILD_OF: children_slots().add( _other_node_view ); break;
-                case Relation_t::IS_INPUT_OF: input_slots().add( _other_node_view ); break;
-                case Relation_t::IS_OUTPUT_OF: output_slots().add( _other_node_view ); break;
-                case Relation_t::IS_SUCCESSOR_OF: successor_slots().add( _other_node_view ); break;
-                case Relation_t::IS_PREDECESSOR_OF: NODABLE_ASSERT(false); /* NOT HANDLED */break;
+                case EdgeType::IS_CHILD_OF: children_slots().add(_other_node_view ); break;
+                case EdgeType::IS_INPUT_OF: input_slots().add(_other_node_view ); break;
+                case EdgeType::IS_OUTPUT_OF: output_slots().add(_other_node_view ); break;
+                case EdgeType::IS_SUCCESSOR_OF: successor_slots().add(_other_node_view ); break;
+                case EdgeType::IS_PREDECESSOR_OF: NODABLE_ASSERT(false); /* NOT HANDLED */break;
             }
         });
 
     m_nodeRelationRemovedObserver = _node->m_on_relation_removed.createObserver(
-    [this](Node* _other_node, Relation_t _relation )
+    [this](Node* _other_node, EdgeType _relation )
         {
             NodeView* _other_node_view = _other_node->get<NodeView>();
             switch ( _relation )
             {
-                case Relation_t::IS_CHILD_OF: children_slots().remove( _other_node_view ); break;
-                case Relation_t::IS_INPUT_OF: input_slots().remove( _other_node_view ); break;
-                case Relation_t::IS_OUTPUT_OF: output_slots().remove( _other_node_view ); break;
-                case Relation_t::IS_SUCCESSOR_OF: successor_slots().remove( _other_node_view ); break;
-                case Relation_t::IS_PREDECESSOR_OF: NODABLE_ASSERT(false); /* NOT HANDLED */break;
+                case EdgeType::IS_CHILD_OF: children_slots().remove(_other_node_view ); break;
+                case EdgeType::IS_INPUT_OF: input_slots().remove(_other_node_view ); break;
+                case EdgeType::IS_OUTPUT_OF: output_slots().remove(_other_node_view ); break;
+                case EdgeType::IS_SUCCESSOR_OF: successor_slots().remove(_other_node_view ); break;
+                case EdgeType::IS_PREDECESSOR_OF: NODABLE_ASSERT(false); /* NOT HANDLED */break;
             }
         });
 }

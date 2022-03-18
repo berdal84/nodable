@@ -1,8 +1,8 @@
-#include <nodable/Member.h>
-#include <nodable/Log.h> // for LOG_DEBUG(...)
-#include <nodable/Properties.h>
-#include <nodable/VariableNode.h>
-#include <nodable/Language.h>
+#include <nodable/core/Member.h>
+#include <nodable/core/Log.h> // for LOG_DEBUG(...)
+#include <nodable/core/Properties.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/Language.h>
 
 using namespace Nodable;
 
@@ -38,11 +38,6 @@ Member::Member(Properties* _parent_properties, const char * str): Member(_parent
 }
 
 Member::Member(Properties* _parent_properties, const std::string& s): Member(_parent_properties, s.c_str()){}
-
-Member::Member(Properties* _parent_properties, Node* _node): Member(_parent_properties)
-{
-    m_variant.set(_node);
-}
 
 Member::~Member(){}
 

@@ -1,12 +1,12 @@
-#include <nodable/MemberConnector.h>
+#include <nodable/app/MemberConnector.h>
 
-#include <nodable/Settings.h>
-#include <nodable/Node.h>
-#include <nodable/GraphNode.h>
-#include <nodable/NodeView.h>
+#include <nodable/app/Settings.h>
+#include <nodable/core/Node.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/app/NodeView.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include "nodable/Event.h"
+#include "nodable/app/Event.h"
 
 using namespace Nodable;
 

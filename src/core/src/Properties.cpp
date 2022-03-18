@@ -1,5 +1,5 @@
-#include <nodable/Properties.h>
-#include <nodable/Node.h>
+#include <nodable/core/Properties.h>
+#include <nodable/core/Node.h>
 
 using namespace Nodable;
 
@@ -11,12 +11,9 @@ Properties::~Properties()
 		delete each.second;
 }
 
-bool Properties::has(const std::string& _name)
+bool Properties::has(const char* _name)
 {
-    auto found = m_props.find(_name);
-    if(found != m_props.end())
-        return true;
-    return false;
+    return m_props.find(_name) != m_props.end();
 }
 
 bool Properties::has(const Member* _value)
@@ -25,20 +22,6 @@ bool Properties::has(const Member* _value)
 	if(found != m_props.end())
 		return (*found).second == _value;
 	return false;
-}
-
-Member* Properties::get_first_member_with_conn(Way _connection)const
-{
-	auto filter = [_connection](auto each_pair) -> bool
-    {
-        return each_pair.second->get_allowed_connection() & _connection;
-    };
-
-	auto found = std::find_if( m_props.begin(), m_props.end(), filter );
-
-	if ( found != m_props.end() )
-        return (*found).second;
-	return nullptr;
 }
 
 Member* Properties::add(const char* _name, Visibility _visibility, std::shared_ptr<const R::MetaType> _type, Way _flags )

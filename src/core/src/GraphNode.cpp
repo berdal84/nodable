@@ -1,18 +1,19 @@
-#include <nodable/GraphNode.h>
+#include <nodable/core/GraphNode.h>
 
 #include <algorithm>    // std::find_if
 
-#include <nodable/Log.h>
-#include <nodable/Wire.h>
-#include <nodable/Parser.h>
-#include <nodable/DataAccess.h>
-#include <nodable/Node.h>
-#include <nodable/VariableNode.h>
-#include <nodable/InstructionNode.h>
-#include <nodable/ConditionalStructNode.h>
-#include <nodable/LiteralNode.h>
-#include <nodable/INodeFactory.h>
-#include <nodable/Scope.h>
+#include <nodable/core/Log.h>
+#include <nodable/core/Wire.h>
+#include <nodable/core/Parser.h>
+#include <nodable/core/DataAccess.h>
+#include <nodable/core/Node.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/ConditionalStructNode.h>
+#include <nodable/core/LiteralNode.h>
+#include <nodable/core/INodeFactory.h>
+#include <nodable/core/Scope.h>
+#include <nodable/core/assertions.h>
 
 using namespace Nodable;
 
@@ -203,7 +204,7 @@ void GraphNode::destroy(Node* _node)
     for (auto it = m_wire_registry.begin(); it != m_wire_registry.end();)
     {
         Wire* wire = *it;
-        if(wire->getSource()->get_owner() == _node || wire->getTarget()->get_owner() == _node )
+        if(wire->get_source()->get_owner() == _node || wire->get_dest()->get_owner() == _node )
         {
             destroy(wire);
             it = m_wire_registry.erase(it);
@@ -213,23 +214,19 @@ void GraphNode::destroy(Node* _node)
     }
 
     // delete any relation with this node
-    std::vector<Relation> relations_to_disconnect;
+    std::vector<DirectedEdge> relations_to_disconnect;
 
-     for (auto it = m_relation_registry.begin(); it != m_relation_registry.end(); it++)
+    for (auto pair :  m_relation_registry)
     {
-        Relation_t     relation_type = it->first;
-        Relation_link nodes         = it->second;
-
-        if( nodes.src == _node || nodes.dst == _node)
+        DirectedEdge relation = pair.second;
+        if( relation.is_about(_node) )
         {
-            relations_to_disconnect.push_back(*it);
+            relations_to_disconnect.push_back(relation);
         }
     }
-    for(auto each : relations_to_disconnect)
+    for(auto relation : relations_to_disconnect)
     {
-        Relation_t     relation_type = each.first;
-        Relation_link nodes         = each.second;
-        disconnect(nodes.src, nodes.dst, relation_type, false );
+        disconnect(relation, false );
     };
 
 
@@ -304,15 +301,16 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         // Link wire to members
         wire = create_wire();
 
-        wire->setSource(_src_member);
-        wire->setTarget(_dst_member);
+        wire->set_source(_src_member);
+        wire->set_dest(_dst_member);
 
         LOG_VERBOSE("GraphNode", "drop_on() adding wire to nodes ...\n")
         targetNode->add_wire(wire);
         sourceNode->add_wire(wire);
         LOG_VERBOSE("GraphNode", "drop_on() wires added to node ...\n")
 
-        connect(sourceNode, targetNode, Relation_t::IS_INPUT_OF);
+        DirectedEdge relation(EdgeType::IS_INPUT_OF, sourceNode, targetNode);
+        connect(relation);
 
         // TODO: move this somewhere else
         // (transfer prefix/suffix)
@@ -377,18 +375,14 @@ void GraphNode::connect(Member* _src, VariableNode* _dst)
     connect(_src, _dst->get_value() );
 }
 
-void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relation_type, bool _side_effects)
+void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
 {
-    // ensure we ALWAYS use IS_SUCCESSOR_OF
-    if ( _relation_type == Relation_t::IS_PREDECESSOR_OF )
-    {
-        _relation_type = Relation_t::IS_SUCCESSOR_OF;
-        std::swap(_src, _dst);
-    }
+    Node* src = _relation.nodes.src;
+    Node* dst = _relation.nodes.dst;
 
-    switch ( _relation_type )
+    switch ( _relation.type )
     {
-        case Relation_t::IS_CHILD_OF:
+        case EdgeType::IS_CHILD_OF:
         {
             /*
              * Here we create IS_SUCCESSOR_OF connections.
@@ -396,23 +390,26 @@ void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relation_type, bool 
             if ( _side_effects )
             {
                 // First case is easy, if no children on the target node, the next node of the target IS the source.
-                if (_dst->has<Scope>() )
+                if (dst->has<Scope>() )
                 {
-                    if (_dst->children_slots().empty() )
+                    if (dst->children_slots().empty() )
                     {
-                        connect(_src, _dst, Relation_t::IS_SUCCESSOR_OF, false);
+                        DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, dst);
+                        connect(relation, false);
                     }
-                    else if (_dst->get_class()->is_child_of<ConditionalStructNode>() )
+                    else if (dst->get_class()->is_child_of<ConditionalStructNode>() )
                     {
-                        connect(_src, _dst, Relation_t::IS_SUCCESSOR_OF, false);
+                        DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, dst);
+                        connect(relation, false);
                     }
-                    else if ( !_dst->children_slots().back()->has<Scope>() )
+                    else if ( !dst->children_slots().back()->has<Scope>() )
                     {
-                        connect(_src, _dst->children_slots().back(), Relation_t::IS_SUCCESSOR_OF, false);
+                        DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, dst->children_slots().back());
+                        connect(relation, false);
                     }
                     else
                     {
-                        auto& children = _dst->children_slots();
+                        auto& children = dst->children_slots();
                         Node* back = children.back();
                         if (auto scope = back->get<Scope>() )
                         {
@@ -420,7 +417,8 @@ void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relation_type, bool 
                             scope->get_last_instructions(last_instructions);
                             for (InstructionNode *each_instruction : last_instructions)
                             {
-                                connect(_src, each_instruction, Relation_t::IS_SUCCESSOR_OF, false);
+                                DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, each_instruction);
+                                connect(relation, false);
                             }
                         }
                     }
@@ -434,41 +432,44 @@ void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relation_type, bool 
             }
 
             // create "parent-child" links
-            _dst->children_slots().add(_src);
-            _src->set_parent(_dst);
+            dst->children_slots().add(src);
+            src->set_parent(dst);
 
             break;
         }
 
-        case Relation_t::IS_INPUT_OF:
-            _dst->input_slots().add(_src);
-            _src->output_slots().add(_dst);
+        case EdgeType::IS_INPUT_OF:
+            dst->input_slots().add(src);
+            src->output_slots().add(dst);
             break;
 
-        case Relation_t::IS_SUCCESSOR_OF:
-            _dst->successor_slots().add(_src);
-            _src->predecessor_slots().add(_dst);
+        case EdgeType::IS_SUCCESSOR_OF:
+            dst->successor_slots().add(src);
+            src->predecessor_slots().add(dst);
 
             if (_side_effects)
             {
-                if ( _dst->has<Scope>() )
+                if ( dst->has<Scope>() )
                 {
-                    connect(_src, _dst, Relation_t::IS_CHILD_OF, false);
+                    DirectedEdge relation(EdgeType::IS_CHILD_OF, src, dst);
+                    connect(relation, false);
                 }
-                else if ( Node* dst_parent = _dst->get_parent() )
+                else if ( Node* dst_parent = dst->get_parent() )
                 {
-                    connect(_src, dst_parent, Relation_t::IS_CHILD_OF, false);
+                    DirectedEdge relation(EdgeType::IS_CHILD_OF, src, dst_parent);
+                    connect(relation, false);
                 }
 
                 /**
                  * create child/parent link with dst_parent
                  */
-                if ( Node* src_parent = _src->get_parent()  )
+                if ( Node* src_parent = src->get_parent()  )
                 {
-                    Node *each_successor = _src->successor_slots().get_front_or_nullptr();
+                    Node *each_successor = src->successor_slots().get_front_or_nullptr();
                     while (each_successor && each_successor->get_parent() == nullptr)
                     {
-                        connect(each_successor, src_parent, Relation_t::IS_CHILD_OF, false);
+                        DirectedEdge relation(EdgeType::IS_CHILD_OF, each_successor, src_parent);
+                        connect(relation, false);
                         each_successor = each_successor->successor_slots().get_front_or_nullptr();
                     }
                 }
@@ -479,53 +480,52 @@ void GraphNode::connect(Node *_src, Node *_dst, Relation_t _relation_type, bool 
             NODABLE_ASSERT(false); // This connection type is not yet implemented
     }
 
-    m_relation_registry.emplace(_relation_type, Relation_link(_src, _dst));
+
+    m_relation_registry.emplace(_relation.type, _relation);
     set_dirty();
 }
 
-void GraphNode::disconnect(Node *_src, Node *_dst, Relation_t _relationType, bool _side_effects)
+void GraphNode::disconnect(DirectedEdge _relation, bool _side_effects)
 {
-    NODABLE_ASSERT(_src && _dst);
-
-    // ensure we ALWAYS store IS_SUCCESSOR_OF
-    if ( _relationType == Relation_t::IS_PREDECESSOR_OF )
-    {
-        _relationType = Relation_t::IS_SUCCESSOR_OF;
-        std::swap(_src, _dst);
-    }
-
     // find relation
-    Relation pair{_relationType, Relation_link(_src, _dst)};
-    auto relation = std::find(m_relation_registry.begin(), m_relation_registry.end(), pair);
+    auto range = m_relation_registry.equal_range( _relation.type );
+    auto found = std::find_if( range.first, range.second, [&_relation](auto& pair)
+    {
+        return pair.second.nodes == _relation.nodes; // we do not compare type, since we did a equal_range
+    });
 
-    if(relation == m_relation_registry.end())
+    if(found == range.second)
         return;
 
+    Node* src = _relation.nodes.src;
+    Node* dst = _relation.nodes.dst;
+
     // disconnect effectively
-    switch ( _relationType )
+    switch ( _relation.type )
     {
-        case Relation_t::IS_CHILD_OF:
-            _dst->children_slots().remove(_src);
-            _src->set_parent(nullptr);
+        case EdgeType::IS_CHILD_OF:
+            dst->children_slots().remove(src);
+            src->set_parent(nullptr);
             break;
 
-        case Relation_t::IS_INPUT_OF:
-            _dst->input_slots().remove(_src);
-            _src->output_slots().remove(_dst);
+        case EdgeType::IS_INPUT_OF:
+            dst->input_slots().remove(src);
+            src->output_slots().remove(dst);
             break;
 
-        case Relation_t::IS_SUCCESSOR_OF:
-            _dst->successor_slots().remove(_src);
-            _src->predecessor_slots().remove(_dst);
+        case EdgeType::IS_SUCCESSOR_OF:
+            dst->successor_slots().remove(src);
+            src->predecessor_slots().remove(dst);
 
             if ( _side_effects )
             {
-                if ( auto parent = _src->get_parent() )
+                if ( auto parent = src->get_parent() )
                 {
-                    Node* successor = _src;
+                    Node* successor = src;
                     while (successor && successor->get_parent() == parent )
                     {
-                        disconnect(successor, parent, Relation_t::IS_CHILD_OF, false );
+                        DirectedEdge relation(EdgeType::IS_CHILD_OF, successor, parent);
+                        disconnect(relation, false );
                         successor = successor->successor_slots().get_front_or_nullptr();
                     }
                 }
@@ -537,29 +537,33 @@ void GraphNode::disconnect(Node *_src, Node *_dst, Relation_t _relationType, boo
     }
 
     // remove relation
-    m_relation_registry.erase(relation);
+    m_relation_registry.erase(found);
 
     set_dirty();
 }
 
 void GraphNode::destroy(Wire *_wire)
 {
-    _wire->getTarget()->set_input(nullptr);
-    _wire->getTarget()->reset_value();
+    Member* dst_member = _wire->get_dest();
+    Member* src_member = _wire->get_source();
+    Node*   dst_node   = dst_member->get_owner();
+    Node*   src_node   = src_member->get_owner();
 
-    auto& outputs = _wire->getSource()->get_outputs();
-    outputs.erase( std::find(outputs.begin(), outputs.end(), _wire->getTarget()));
+    dst_member->set_input(nullptr);
+    dst_member->reset_value();
 
-    Node* targetNode = _wire->getTarget()->get_owner();
-    Node* sourceNode = _wire->getSource()->get_owner();
+    auto& outputs = src_member->get_outputs();
+    outputs.erase( std::find(outputs.begin(), outputs.end(), dst_member));
+    
+    if( dst_node ) dst_node->remove_wire(_wire);
+    if( src_node ) src_node->remove_wire(_wire);
 
-    if( targetNode )
-        targetNode->remove_wire(_wire);
-    if( sourceNode )
-        sourceNode->remove_wire(_wire);
+    if(dst_node && src_node )
+    {
+        DirectedEdge relation(EdgeType::IS_INPUT_OF, src_node, dst_node);
+        disconnect(relation);
+    }
 
-    if( targetNode && sourceNode )
-        disconnect(sourceNode->as<Node>(), targetNode->as<Node>(), Relation_t::IS_INPUT_OF);
 
     delete _wire;
 }
@@ -613,9 +617,9 @@ std::vector<Wire*> GraphNode::filter_wires(Member* _member, Way _way) const
     auto is_member_linked_to = [_member, _way](const Wire* wire)
     {
         return
-            ( (_way & Way_Out) && wire->getSource() == _member )
+            ( (_way & Way_Out) && wire->get_source() == _member )
             ||
-            ( (_way & Way_In) && wire->getTarget() == _member );
+            ( (_way & Way_In) && wire->get_dest() == _member );
     };
 
     for(Wire* each_wire : m_wire_registry)
@@ -626,7 +630,7 @@ std::vector<Wire*> GraphNode::filter_wires(Member* _member, Way _way) const
     return result;
 }
 
-void GraphNode::disconnect(Member *_member, Way _way)
+void GraphNode::disconnect(Member *_member, Way _way, bool _side_effects)
 {
     auto wires_to_delete = filter_wires(_member, _way);
 
@@ -634,13 +638,17 @@ void GraphNode::disconnect(Member *_member, Way _way)
     {
         m_wire_registry.erase( std::find(m_wire_registry.begin(), m_wire_registry.end(), wire));
 
-        Node *targetNode = wire->getTarget()->get_owner();
-        Node *sourceNode = wire->getSource()->get_owner();
+        Node *targetNode = wire->get_dest()->get_owner();
+        Node *sourceNode = wire->get_source()->get_owner();
 
         targetNode->remove_wire(wire);
         sourceNode->remove_wire(wire);
 
-        disconnect(sourceNode, targetNode, Relation_t::IS_INPUT_OF);
+        if ( _side_effects)
+        {
+            DirectedEdge relation(EdgeType::IS_INPUT_OF, sourceNode, targetNode);
+            disconnect(relation, false);
+        }
 
         destroy(wire);
     }

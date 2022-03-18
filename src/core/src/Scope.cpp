@@ -1,14 +1,14 @@
-#include "nodable/Scope.h"
+#include "nodable/core/Scope.h"
 
 #include <cstring>
 #include <algorithm> // for std::find_if
 
-#include <nodable/Log.h>
-#include <nodable/ConditionalStructNode.h>
-#include <nodable/ForLoopNode.h>
-#include <nodable/InstructionNode.h>
-#include <nodable/VariableNode.h>
-#include <nodable/IScope.h>
+#include <nodable/core/Log.h>
+#include <nodable/core/ConditionalStructNode.h>
+#include <nodable/core/ForLoopNode.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/IScope.h>
 
 using namespace Nodable;
 

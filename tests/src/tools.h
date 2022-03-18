@@ -2,15 +2,15 @@
 #include <gtest/gtest.h>
 #include <exception>
 
-#include <nodable/Member.h>
-#include <nodable/VM.h>
-#include <nodable/GraphNode.h>
-#include <nodable/Parser.h>
-#include <nodable/VariableNode.h>
-#include <nodable/HeadlessNodeFactory.h>
-#include <nodable/String.h>
-#include <nodable/Scope.h>
-#include <nodable/LanguageNodable.h>
+#include <nodable/core/Member.h>
+#include <nodable/core/VM.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/Parser.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/HeadlessNodeFactory.h>
+#include <nodable/core/String.h>
+#include <nodable/core/Scope.h>
+#include <nodable/core/LanguageNodable.h>
 
 namespace Nodable
 {

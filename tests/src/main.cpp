@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <nodable/Log.h>
-#include <nodable/R.h>
+#include <nodable/core/Log.h>
+#include <nodable/core/reflection/R.h>
 
 using namespace Nodable;
 using Verbosity = Log::Verbosity;

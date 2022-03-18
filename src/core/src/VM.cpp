@@ -1,8 +1,8 @@
-#include <nodable/VM.h>
+#include <nodable/core/VM.h>
 
-#include <nodable/VariableNode.h>
-#include <nodable/Log.h>
-#include <nodable/Scope.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/Log.h>
+#include <nodable/core/Scope.h>
 
 using namespace Nodable;
 using namespace Nodable::Asm;
@@ -161,9 +161,9 @@ bool VM::_stepOver()
                     node->set_dirty(false);
 
                     // Store a value if exists
-                    if (node->props()->has(Node::VALUE_MEMBER_NAME) )
+                    if (node->props()->has(k_value_member_name) )
                     {
-                        Member* member = node->props()->get(Node::VALUE_MEMBER_NAME);
+                        Member* member = node->props()->get(k_value_member_name);
                         m_register[rax] = (i64_t) member->get_data(); // copy variant address
                     }
 

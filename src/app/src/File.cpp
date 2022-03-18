@@ -1,14 +1,14 @@
-#include <nodable/File.h>
+#include <nodable/app/File.h>
 
 #include <fstream>
 
-#include <nodable/App.h>
-#include <nodable/FileView.h>
-#include <nodable/GraphNodeView.h>
-#include <nodable/Parser.h>
-#include <nodable/History.h>
-#include <nodable/AppNodeFactory.h>
-#include <nodable/AppContext.h>
+#include <nodable/app/App.h>
+#include <nodable/app/FileView.h>
+#include <nodable/app/GraphNodeView.h>
+#include <nodable/core/Parser.h>
+#include <nodable/app/History.h>
+#include <nodable/app/AppNodeFactory.h>
+#include <nodable/app/AppContext.h>
 
 using namespace Nodable;
 

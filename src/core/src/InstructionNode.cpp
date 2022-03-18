@@ -1,6 +1,6 @@
-#include <nodable/InstructionNode.h>
-#include <nodable/Member.h>
-#include <nodable/Log.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/Member.h>
+#include <nodable/core/Log.h>
 
 using namespace Nodable;
 using namespace Nodable::R;

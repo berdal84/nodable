@@ -1,14 +1,16 @@
-#include <nodable/Compiler.h>
+#include <nodable/core/Compiler.h>
 
 #include <memory>
-#include <nodable/VariableNode.h>
-#include <nodable/Log.h>
-#include <nodable/IConditionalStruct.h>
-#include <nodable/ForLoopNode.h>
-#include <nodable/Scope.h>
-#include <nodable/InstructionNode.h>
-#include <nodable/LiteralNode.h>
-#include <nodable/InvokableComponent.h>
+
+#include <nodable/core/assertions.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/Log.h>
+#include <nodable/core/IConditionalStruct.h>
+#include <nodable/core/ForLoopNode.h>
+#include <nodable/core/Scope.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/LiteralNode.h>
+#include <nodable/core/InvokableComponent.h>
 
 using namespace Nodable;
 using namespace Nodable::Asm;

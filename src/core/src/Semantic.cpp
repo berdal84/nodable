@@ -1,5 +1,5 @@
-#include <nodable/Semantic.h>
-#include <nodable/Log.h>
+#include <nodable/core/Semantic.h>
+#include <nodable/core/Log.h>
 
 using namespace Nodable;
 

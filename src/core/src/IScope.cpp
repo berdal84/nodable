@@ -1,4 +1,4 @@
-#include <nodable/IScope.h>
+#include <nodable/core/IScope.h>
 
 using namespace Nodable;
 

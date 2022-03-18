@@ -1,21 +1,21 @@
-#include <nodable/AppView.h>
+#include <nodable/app/AppView.h>
 
 #include <imgui/backends/imgui_impl_sdl.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #include <nodable/BuildInfo.h>
-#include <nodable/Texture.h>
-#include <nodable/Settings.h>
-#include <nodable/System.h>
-#include <nodable/App.h>
-#include <nodable/AppContext.h>
-#include <nodable/NodeView.h>
-#include <nodable/File.h>
-#include <nodable/Log.h>
-#include <nodable/FileView.h>
-#include <nodable/History.h>
-#include "nodable/Event.h"
+#include <nodable/core/Texture.h>
+#include <nodable/app/Settings.h>
+#include <nodable/core/System.h>
+#include <nodable/app/App.h>
+#include <nodable/app/AppContext.h>
+#include <nodable/app/NodeView.h>
+#include <nodable/app/File.h>
+#include <nodable/core/Log.h>
+#include <nodable/app/FileView.h>
+#include <nodable/app/History.h>
+#include "nodable/app/Event.h"
 
 using namespace Nodable;
 using namespace Nodable::Asm;

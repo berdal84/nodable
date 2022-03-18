@@ -1,10 +1,10 @@
-#include <nodable/HeadlessNodeFactory.h>
-#include <nodable/InstructionNode.h>
-#include <nodable/VariableNode.h>
-#include <nodable/LiteralNode.h>
-#include <nodable/Language.h>
-#include <nodable/InvokableComponent.h>
-#include <nodable/Scope.h>
+#include <nodable/core/HeadlessNodeFactory.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/LiteralNode.h>
+#include <nodable/core/Language.h>
+#include <nodable/core/InvokableComponent.h>
+#include <nodable/core/Scope.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
@@ -58,9 +58,9 @@ Node* HeadlessNodeFactory::newBinOp(const InvokableOperator* _operator) const
     const FunctionSignature* signature = _operator->get_signature();
     const auto args = signature->get_args();
     auto props   = node->props();
-    Member* left   = props->add("lvalue", Visibility::Default, args[0].m_type, Way_In);
-    Member* right  = props->add("rvalue", Visibility::Default, args[1].m_type, Way_In);
-    Member* result = props->add(Node::VALUE_MEMBER_NAME, Visibility::Default, signature->get_return_type(), Way_Out);
+    Member* left   = props->add(k_lh_value_member_name, Visibility::Default, args[0].m_type, Way_In);
+    Member* right  = props->add(k_rh_value_member_name, Visibility::Default, args[1].m_type, Way_In);
+    Member* result = props->add(k_value_member_name, Visibility::Default, signature->get_return_type(), Way_Out);
 
     // Create ComputeBinaryOperation component and link values.
     auto binOpComponent = new InvokableComponent( _operator );
@@ -87,8 +87,8 @@ Node* HeadlessNodeFactory::newUnaryOp(const InvokableOperator* _operator) const
     const FunctionSignature* signature = _operator->get_signature();
     const auto args = signature->get_args();
     Properties* props = node->props();
-    Member* left = props->add("lvalue", Visibility::Default, args[0].m_type, Way_In);
-    Member* result = props->add(Node::VALUE_MEMBER_NAME, Visibility::Default, signature->get_return_type(), Way_Out);
+    Member* left = props->add(k_lh_value_member_name, Visibility::Default, args[0].m_type, Way_In);
+    Member* result = props->add(k_value_member_name, Visibility::Default, signature->get_return_type(), Way_Out);
 
     // Create ComputeBinaryOperation binOpComponent and link values.
     auto unaryOperationComponent = new InvokableComponent( _operator );
@@ -108,7 +108,7 @@ Node* HeadlessNodeFactory::newFunction(const IInvokable* _function) const
     node->set_short_label(str.c_str());
 
     auto props = node->props();
-    Member* result = props->add(Node::VALUE_MEMBER_NAME, Visibility::Default, _function->get_signature()->get_return_type(), Way_Out);
+    Member* result = props->add(k_value_member_name, Visibility::Default, _function->get_signature()->get_return_type(), Way_Out);
 
     // Create ComputeBase binOpComponent and link values.
     auto functionComponent = new InvokableComponent( _function );

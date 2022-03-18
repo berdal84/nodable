@@ -1,15 +1,15 @@
 #include <gtest/gtest.h>
 
-#include <nodable/Member.h>
-#include <nodable/Node.h>
-#include <nodable/GraphNode.h>
-#include <nodable/InstructionNode.h>
-#include <nodable/VariableNode.h>
-#include <nodable/HeadlessNodeFactory.h>
-#include <nodable/Wire.h>
-#include <nodable/LanguageNodable.h>
-#include <nodable/InvokableComponent.h>
-#include <nodable/Scope.h>
+#include <nodable/core/Member.h>
+#include <nodable/core/Node.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/HeadlessNodeFactory.h>
+#include <nodable/core/Wire.h>
+#include <nodable/core/LanguageNodable.h>
+#include <nodable/core/InvokableComponent.h>
+#include <nodable/core/Scope.h>
 
 using namespace Nodable;
 using namespace Nodable::R;
@@ -31,8 +31,8 @@ TEST( GraphNode, connect)
             node1->props()->get("output"),
             node2->props()->get("input"));
 
-    EXPECT_EQ(wire->getSource() , node1->props()->get("output"));
-    EXPECT_EQ(wire->getTarget() , node2->props()->get("input"));
+    EXPECT_EQ(wire->get_source() , node1->props()->get("output"));
+    EXPECT_EQ(wire->get_dest() , node2->props()->get("input"));
     EXPECT_EQ(graph.get_wire_registry().size(), 1);
  }
 
@@ -77,10 +77,10 @@ TEST( GraphNode, clear)
     EXPECT_TRUE(ope != nullptr);
     Node* operatorNode = graph.create_operator(ope);
     auto props = operatorNode->props();
-    props->get("rvalue")->set(2);
-    props->get("lvalue")->set(2);
+    props->get(k_lh_value_member_name)->set(2);
+    props->get(k_rh_value_member_name)->set(2);
 
-    graph.connect(props->get(Node::VALUE_MEMBER_NAME), instructionNode->get_root_node_member() );
+    graph.connect(props->get(k_value_member_name), instructionNode->get_root_node_member() );
 
     EXPECT_TRUE(graph.get_wire_registry().size() != 0);
     EXPECT_TRUE(graph.get_node_registry().size() != 0);
@@ -115,19 +115,19 @@ TEST( GraphNode, create_and_delete_relations)
     // is child of (and by reciprocity "is parent of")
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
     EXPECT_EQ(n2->children_slots().size(), 0);
-    graph.connect(n1, n2, Relation_t::IS_CHILD_OF, false);
+    graph.connect({n1, EdgeType::IS_CHILD_OF, n2}, false);
     EXPECT_EQ(n2->children_slots().size(), 1);
     EXPECT_EQ(graph.get_relation_registry().size(), 1);
-    graph.disconnect(n1, n2, Relation_t::IS_CHILD_OF);
+    graph.disconnect({n1, EdgeType::IS_CHILD_OF, n2});
     EXPECT_EQ(n2->children_slots().size(), 0);
 
     // Is input of
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
     EXPECT_EQ(n2->input_slots().size(), 0);
-    graph.connect(n1, n2, Relation_t::IS_INPUT_OF, false);
+    graph.connect({n1, EdgeType::IS_INPUT_OF, n2}, false);
     EXPECT_EQ(n2->input_slots().size(), 1);
     EXPECT_EQ(graph.get_relation_registry().size(), 1);
-    graph.disconnect(n1, n2, Relation_t::IS_INPUT_OF);
+    graph.disconnect({n1, EdgeType::IS_INPUT_OF, n2});
     EXPECT_EQ(n2->input_slots().size(), 0);
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
 }
@@ -158,20 +158,20 @@ TEST(Graph, by_reference_assign)
     auto op = assign->get<InvokableComponent>();
 
     // connect b and assign
-    graph.connect(b->get_value(), assign->props()->get("lvalue") );
+    graph.connect(b->get_value(), assign->props()->get(k_lh_value_member_name) );
 
     op->get_r_handed_val()->set(5.0);
 
     ASSERT_DOUBLE_EQ(b->get_value()->convert_to<double>(), 6.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get("lvalue")->convert_to<double>(), 6.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get("rvalue")->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(Node::VALUE_MEMBER_NAME)->convert_to<double>(), 0.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get(k_lh_value_member_name)->convert_to<double>(), 6.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get(k_rh_value_member_name)->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get(k_value_member_name)->convert_to<double>(), 0.0 );
 
     // apply
     assign->eval();
 
     ASSERT_DOUBLE_EQ(b->get_value()->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get("lvalue")->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get("rvalue")->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(Node::VALUE_MEMBER_NAME)->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get(k_lh_value_member_name)->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get(k_rh_value_member_name)->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ(assign->props()->get(k_value_member_name)->convert_to<double>(), 5.0 );
 }

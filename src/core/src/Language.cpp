@@ -1,7 +1,7 @@
-#include <nodable/Language.h>
+#include <nodable/core/Language.h>
 #include <vector>
-#include <nodable/Node.h>
-#include <nodable/Parser.h>
+#include <nodable/core/Node.h>
+#include <nodable/core/Parser.h>
 
 using namespace Nodable;
 

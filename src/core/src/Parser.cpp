@@ -1,4 +1,4 @@
-#include <nodable/Parser.h>
+#include <nodable/core/Parser.h>
 
 #include <regex>
 #include <algorithm>
@@ -6,15 +6,15 @@
 #include <string>
 #include <memory> // std::shared_ptr
 
-#include <nodable/Log.h>
-#include <nodable/Member.h>
-#include <nodable/Wire.h>
-#include <nodable/GraphNode.h>
-#include <nodable/InstructionNode.h>
-#include <nodable/LiteralNode.h>
-#include <nodable/VariableNode.h>
-#include <nodable/InvokableComponent.h>
-#include <nodable/Scope.h>
+#include <nodable/core/Log.h>
+#include <nodable/core/Member.h>
+#include <nodable/core/Wire.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/LiteralNode.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/InvokableComponent.h>
+#include <nodable/core/Scope.h>
 
 using namespace Nodable;
 
@@ -285,7 +285,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 
         m_graph->connect(_left, computeComponent->get_l_handed_val());
         m_graph->connect(right, computeComponent->get_r_handed_val());
-		result = binOpNode->props()->get(Node::VALUE_MEMBER_NAME);
+		result = binOpNode->props()->get(k_value_member_name);
 
         commit_transaction();
         LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
@@ -348,7 +348,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
         computeComponent->set_source_token(operatorToken);
 
         m_graph->connect(value, computeComponent->get_l_handed_val());
-        Member* result = unaryOpNode->props()->get(Node::VALUE_MEMBER_NAME);
+        Member* result = unaryOpNode->props()->get(k_value_member_name);
 
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
         commit_transaction();
@@ -473,7 +473,7 @@ InstructionNode* Parser::parse_instruction()
     }
 
     m_graph->connect(expression->get_owner(), instr_node);
-    m_graph->connect(instr_node, m_scope_stack.top()->get_owner(), Relation_t::IS_CHILD_OF);
+    m_graph->connect({EdgeType::IS_CHILD_OF, instr_node, m_scope_stack.top()->get_owner()});
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n")
     commit_transaction();
@@ -525,7 +525,7 @@ Node* Parser::parse_scope()
         auto parent_scope = m_scope_stack.top();
         if ( parent_scope )
         {
-            m_graph->connect(scope_node, parent_scope->get_owner(), Relation_t::IS_CHILD_OF );
+            m_graph->connect({EdgeType::IS_CHILD_OF, scope_node, parent_scope->get_owner()});
         }
 
         m_scope_stack.push( scope );
@@ -902,7 +902,7 @@ Member* Parser::parse_function_call()
         commit_transaction();
         LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
-        return node->props()->get(Node::VALUE_MEMBER_NAME);
+        return node->props()->get(k_value_member_name);
 
     }
 
@@ -933,7 +933,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
     if ( m_token_ribbon.eatToken(TokenType_KeywordIf))
     {
-        m_graph->connect( condStruct, m_scope_stack.top()->get_owner(), Relation_t::IS_CHILD_OF );
+        m_graph->connect({condStruct, EdgeType::IS_CHILD_OF, m_scope_stack.top()->get_owner()});
         m_scope_stack.push( condStruct->get<Scope>() );
 
         condStruct->set_token_if(m_token_ribbon.getEaten());
@@ -1007,7 +1007,7 @@ ForLoopNode* Parser::parse_for_loop()
     if( token_for != nullptr )
     {
         for_loop_node = m_graph->create_for_loop();
-        m_graph->connect( for_loop_node, m_scope_stack.top()->get_owner(), Relation_t::IS_CHILD_OF );
+        m_graph->connect({for_loop_node, EdgeType::IS_CHILD_OF, m_scope_stack.top()->get_owner() });
         m_scope_stack.push( for_loop_node->get<Scope>() );
 
         for_loop_node->set_token_for( token_for );

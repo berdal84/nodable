@@ -1,4 +1,4 @@
-#include <nodable/Way.h>
+#include <nodable/core/Way.h>
 
 using namespace Nodable;
 

@@ -1,13 +1,13 @@
-#include <nodable/FileView.h>
+#include <nodable/app/FileView.h>
 
-#include <nodable/NodeView.h>
-#include <nodable/File.h>
-#include <nodable/GraphNode.h>
-#include <nodable/GraphNodeView.h>
-#include <nodable/Settings.h>
-#include <nodable/Node.h>
-#include <nodable/AppContext.h>
-#include <nodable/VM.h>
+#include <nodable/app/NodeView.h>
+#include <nodable/app/File.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/app/GraphNodeView.h>
+#include <nodable/app/Settings.h>
+#include <nodable/core/Node.h>
+#include <nodable/app/AppContext.h>
+#include <nodable/core/VM.h>
 
 using namespace Nodable;
 

@@ -1,10 +1,14 @@
-#include <nodable/DataAccess.h>
+#include <nodable/core/DataAccess.h>
+
+#include <iostream>
+#include <fstream>
+
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
-#include <nodable/Node.h>
-#include <iostream>
-#include <fstream>
+
+#include <nodable/core/Node.h>
+#include <nodable/core/assertions.h>
 
 using namespace Nodable;
 

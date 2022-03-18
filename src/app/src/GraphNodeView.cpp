@@ -1,20 +1,20 @@
-#include <nodable/GraphNodeView.h>
+#include <nodable/app/GraphNodeView.h>
 
 #include <algorithm>
 #include <memory> // std::shared_ptr
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-#include <nodable/Settings.h>
-#include <nodable/Log.h>
-#include <nodable/Wire.h>
-#include <nodable/App.h>
-#include <nodable/GraphNode.h>
-#include <nodable/VariableNode.h>
-#include <nodable/LiteralNode.h>
-#include <nodable/NodeView.h>
-#include <nodable/MemberConnector.h>
-#include <nodable/NodeConnector.h>
-#include <nodable/Scope.h>
+#include <nodable/app/Settings.h>
+#include <nodable/core/Log.h>
+#include <nodable/core/Wire.h>
+#include <nodable/app/App.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/LiteralNode.h>
+#include <nodable/app/NodeView.h>
+#include <nodable/app/MemberConnector.h>
+#include <nodable/app/NodeConnector.h>
+#include <nodable/core/Scope.h>
 
 using namespace Nodable;
 using namespace Nodable::Asm;
@@ -475,9 +475,9 @@ bool GraphNodeView::draw()
             if ( dragged_node_conn )
             {
                 Node* dragged_node = dragged_node_conn->get_node();
-                Relation_t relation_type = dragged_node_conn->m_way == Way_Out ?
-                    Relation_t::IS_SUCCESSOR_OF  : Relation_t::IS_PREDECESSOR_OF;
-                graph->connect( new_node, dragged_node, relation_type );
+                EdgeType relation_type = dragged_node_conn->m_way == Way_Out ?
+                                         EdgeType::IS_SUCCESSOR_OF : EdgeType::IS_PREDECESSOR_OF;
+                graph->connect( {new_node, relation_type, dragged_node} );
                 NodeConnector::stop_drag();
             }
             else if ( dragged_member_conn )
@@ -501,7 +501,7 @@ bool GraphNodeView::draw()
             else if ( new_node != graph->get_root() && m_context->settings->experimental_graph_autocompletion )
             {
                 graph->ensure_has_root();
-                // graph->connect( new_node, graph->get_root(), Relation_t::IS_CHILD_OF  );
+                // graph->connect( new_node, graph->get_root(), RelType::IS_CHILD_OF  );
             }
 
             // Set New Node's currentPosition were mouse cursor is

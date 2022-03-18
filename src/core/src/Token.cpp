@@ -1,4 +1,4 @@
-#include <nodable/Token.h>
+#include <nodable/core/Token.h>
 
 using namespace Nodable;
 

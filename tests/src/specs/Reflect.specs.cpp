@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <nodable/R.h>
-#include <nodable/Node.h>
+#include <nodable/core/reflection/R.h>
+#include <nodable/core/Node.h>
 
 using namespace Nodable;
 using namespace Nodable::R;

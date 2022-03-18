@@ -1,11 +1,11 @@
-#include <nodable/NodeView.h>
+#include <nodable/app/NodeView.h>
 
-#include <nodable/Settings.h>
-#include <nodable/Node.h>
-#include <nodable/InstructionNode.h>
-#include <nodable/ConditionalStructNode.h>
-#include <nodable/ForLoopNode.h>
-#include <nodable/AppContext.h>
+#include <nodable/app/Settings.h>
+#include <nodable/core/Node.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/ConditionalStructNode.h>
+#include <nodable/core/ForLoopNode.h>
+#include <nodable/app/AppContext.h>
 
 #include <numeric>
 

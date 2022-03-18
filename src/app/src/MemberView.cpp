@@ -1,6 +1,6 @@
-#include <nodable/NodeView.h>
-#include <nodable/Member.h>
-#include <nodable/MemberConnector.h>
+#include <nodable/app/NodeView.h>
+#include <nodable/core/Member.h>
+#include <nodable/app/MemberConnector.h>
 
 using namespace Nodable;
 using Side = Nodable::MemberConnector::Side;

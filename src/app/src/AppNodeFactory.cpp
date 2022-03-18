@@ -1,11 +1,11 @@
-#include <nodable/AppNodeFactory.h>
-#include <nodable/InstructionNode.h>
-#include <nodable/VariableNode.h>
-#include <nodable/LiteralNode.h>
-#include <nodable/InvokableComponent.h>
-#include <nodable/Language.h>
-#include <nodable/NodeView.h>
-#include <nodable/ForLoopNode.h>
+#include <nodable/app/AppNodeFactory.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/LiteralNode.h>
+#include <nodable/core/InvokableComponent.h>
+#include <nodable/core/Language.h>
+#include <nodable/app/NodeView.h>
+#include <nodable/core/ForLoopNode.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 

@@ -1,6 +1,6 @@
-#include <nodable/View.h>
-#include <nodable/Settings.h>
-#include <nodable/AppContext.h>
+#include <nodable/app/View.h>
+#include <nodable/app/Settings.h>
+#include <nodable/app/AppContext.h>
 
 using namespace Nodable;
 

@@ -1,5 +1,5 @@
-#include <nodable/History.h>
-#include <nodable/commands/Cmd_ReplaceText.h>
+#include <nodable/app/History.h>
+#include <nodable/app/commands/Cmd_ReplaceText.h>
 
 using namespace Nodable;
 

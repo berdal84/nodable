@@ -1,13 +1,13 @@
-#include <nodable/Serializer.h>
-#include <nodable/Member.h>
-#include <nodable/InvokableComponent.h>
-#include <nodable/GraphNode.h>
-#include <nodable/VariableNode.h>
-#include <nodable/InstructionNode.h>
-#include <nodable/ConditionalStructNode.h>
-#include <nodable/ForLoopNode.h>
-#include <nodable/Scope.h>
-#include <nodable/LiteralNode.h>
+#include <nodable/core/Serializer.h>
+#include <nodable/core/Member.h>
+#include <nodable/core/InvokableComponent.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/ConditionalStructNode.h>
+#include <nodable/core/ForLoopNode.h>
+#include <nodable/core/Scope.h>
+#include <nodable/core/LiteralNode.h>
 
 using namespace Nodable;
 

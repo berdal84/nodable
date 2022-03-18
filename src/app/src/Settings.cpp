@@ -1,9 +1,9 @@
-#include <nodable/Settings.h>
+#include <nodable/app/Settings.h>
 #include <imgui/imgui.h>
 #include <string>
 #include <fstream>
-#include <nodable/Log.h>
-#include <nodable/App.h>
+#include <nodable/core/Log.h>
+#include <nodable/app/App.h>
 
 using namespace Nodable;
 

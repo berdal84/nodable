@@ -1,22 +1,24 @@
-#include <nodable/App.h>
+#include <nodable/app/App.h>
 
 #include <algorithm>
 
-#include <nodable/NodeView.h>
-#include <nodable/AppView.h>
-#include <nodable/File.h>
 #include <nodable/BuildInfo.h>
-#include <nodable/VariableNode.h>
-#include <nodable/DataAccess.h>
-#include <nodable/AppContext.h>
-#include <nodable/Event.h>
-#include <nodable/commands/Cmd_ConnectMembers.h>
-#include <nodable/MemberConnector.h>
-#include <nodable/NodeConnector.h>
-#include <nodable/commands/Cmd_ConnectNodes.h>
-#include <nodable/commands/Cmd_DisconnectNodes.h>
-#include <nodable/commands/Cmd_DisconnectMembers.h>
-#include <nodable/commands/Cmd_Group.h>
+
+#include <nodable/app/NodeView.h>
+#include <nodable/app/AppView.h>
+#include <nodable/app/File.h>
+#include <nodable/app/AppContext.h>
+#include <nodable/app/Event.h>
+#include <nodable/app/commands/Cmd_ConnectMembers.h>
+#include <nodable/app/MemberConnector.h>
+#include <nodable/app/NodeConnector.h>
+#include <nodable/app/commands/Cmd_ConnectNodes.h>
+#include <nodable/app/commands/Cmd_DisconnectNodes.h>
+#include <nodable/app/commands/Cmd_DisconnectMembers.h>
+#include <nodable/app/commands/Cmd_Group.h>
+
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/DataAccess.h>
 
 using namespace Nodable;
 
@@ -261,7 +263,7 @@ void App::handle_events()
                 else
                 {
                     if ( src->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
-                    auto cmd = std::make_shared<Cmd_ConnectNodes>(src->get_node(), dst->get_node(), Relation_t::IS_PREDECESSOR_OF);
+                    auto cmd = std::make_shared<Cmd_ConnectNodes>(src->get_node(), dst->get_node(), EdgeType::IS_PREDECESSOR_OF);
                     History *curr_file_history = get_curr_file()->getHistory();
                     curr_file_history->push_command(cmd);
                 }
@@ -305,7 +307,8 @@ void App::handle_events()
 
                 if (src_connector->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
 
-                auto cmd = std::make_shared<Cmd_DisconnectNodes>(src, dst, Relation_t::IS_PREDECESSOR_OF);
+                DirectedEdge relation(EdgeType::IS_PREDECESSOR_OF, src, dst);
+                auto cmd = std::make_shared<Cmd_DisconnectNodes>( relation );
 
                 History *curr_file_history = get_curr_file()->getHistory();
                 curr_file_history->push_command(cmd);

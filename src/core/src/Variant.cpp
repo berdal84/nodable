@@ -1,9 +1,9 @@
-#include <nodable/Variant.h>
-#include <nodable/Log.h> // for LOG_DEBUG(...)
+#include <nodable/core/Variant.h>
+#include <nodable/core/Log.h> // for LOG_DEBUG(...)
 #include <cassert>
-#include <nodable/Nodable.h>
-#include <nodable/String.h>
-#include <nodable/Node.h>
+#include <nodable/core/types.h>
+#include <nodable/core/String.h>
+#include <nodable/core/Node.h>
 
 using namespace Nodable;
 

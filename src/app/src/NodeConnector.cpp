@@ -1,13 +1,13 @@
-#include <nodable/NodeConnector.h>
+#include <nodable/app/NodeConnector.h>
 
-#include <nodable/NodeView.h>
-#include <nodable/Node.h>
-#include <nodable/GraphNode.h>
-#include <nodable/Settings.h>
-#include <nodable/AppContext.h>
+#include <nodable/app/NodeView.h>
+#include <nodable/core/Node.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/app/Settings.h>
+#include <nodable/app/AppContext.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include "nodable/Event.h"
+#include "nodable/app/Event.h"
 
 using namespace Nodable;
 

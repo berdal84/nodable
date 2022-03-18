@@ -1,5 +1,5 @@
-#include <nodable/System.h>
-#include <nodable/Log.h>
+#include <nodable/core/System.h>
+#include <nodable/core/Log.h>
 #include <thread>
 
 using namespace Nodable;

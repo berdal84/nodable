@@ -1,11 +1,11 @@
 #include <algorithm>    // for std::find
 #include <utility>
-#include <nodable/Nodable.h>
-#include <nodable/Node.h>
-#include <nodable/Log.h> // for LOG_DEBUG(...)
-#include <nodable/Wire.h>
-#include <nodable/DataAccess.h>
-#include <nodable/InvokableComponent.h>
+#include <nodable/core/types.h>
+#include <nodable/core/Node.h>
+#include <nodable/core/Log.h> // for LOG_DEBUG(...)
+#include <nodable/core/Wire.h>
+#include <nodable/core/DataAccess.h>
+#include <nodable/core/InvokableComponent.h>
 
 using namespace Nodable;
 using namespace Nodable::R;
@@ -30,40 +30,40 @@ Node::Node(std::string _label)
      * Add "this" Member to be able to connect this Node as an object pointer.
      * Usually an object pointer is connected to an InstructionNode's "node_to_eval" Member.
      */
-    Member* this_member = m_props.add(THIS_MEMBER_NAME, Visibility::Always, R::get_meta_type<Node *>(), Way::Way_Out);
+    Member* this_member = m_props.add(k_this_member_name, Visibility::Always, R::get_meta_type<Node *>(), Way::Way_Out);
     this_member->set( this );
 
     // propagate "inputs" events
     m_inputs.m_on_added.connect( [this](Node* _node){
-        m_on_relation_added.emit(_node, Relation_t::IS_INPUT_OF);
+        m_on_relation_added.emit(_node, EdgeType::IS_INPUT_OF);
         set_dirty();
     });
 
     m_inputs.m_on_removed.connect( [this](Node* _node){
-        m_on_relation_removed.emit(_node, Relation_t::IS_INPUT_OF);
+        m_on_relation_removed.emit(_node, EdgeType::IS_INPUT_OF);
         set_dirty();
     });
 
 
     // propagate "outputs" events
     m_outputs.m_on_added.connect( [this](Node* _node){
-        m_on_relation_added.emit(_node, Relation_t::IS_OUTPUT_OF);
+        m_on_relation_added.emit(_node, EdgeType::IS_OUTPUT_OF);
         set_dirty();
     });
 
     m_outputs.m_on_removed.connect( [this](Node* _node){
-        m_on_relation_removed.emit(_node, Relation_t::IS_OUTPUT_OF);
+        m_on_relation_removed.emit(_node, EdgeType::IS_OUTPUT_OF);
         set_dirty();
     });
 
     // propagate "children" events
     m_children.m_on_added.connect( [this](Node* _node){
-        m_on_relation_added.emit(_node, Relation_t::IS_CHILD_OF);
+        m_on_relation_added.emit(_node, EdgeType::IS_CHILD_OF);
         set_dirty();
     });
 
     m_children.m_on_removed.connect( [this](Node* _node){
-        m_on_relation_removed.emit(_node, Relation_t::IS_CHILD_OF);
+        m_on_relation_removed.emit(_node, EdgeType::IS_CHILD_OF);
         set_dirty();
     });
 }
@@ -117,7 +117,7 @@ int Node::get_input_wire_count()const
 	int count = 0;
 	for(auto w : m_wires)
 	{
-		if (w->getTarget()->get_owner() == this)
+		if (w->get_dest()->get_owner() == this)
 			count++;
 	}
 	return count;
@@ -128,7 +128,7 @@ int Node::get_output_wire_count()const
 	int count = 0;
 	for(auto w : m_wires)
 	{
-		if (w->getSource()->get_owner() == this)
+		if (w->get_source()->get_owner() == this)
 			count++;
 	}
 	return count;
@@ -188,7 +188,7 @@ const InvokableOperator* Node::get_connected_operator(const Member *_localMember
      * Find a wire connected to _member
      */
     auto found = std::find_if(m_wires.cbegin(), m_wires.cend(), [_localMember](const Wire* wire)->bool {
-        return wire->getTarget() == _localMember;
+        return wire->get_dest() == _localMember;
     });
 
     /*
@@ -196,7 +196,7 @@ const InvokableOperator* Node::get_connected_operator(const Member *_localMember
      */
     if (found != m_wires.end() )
     {
-        auto node = (*found)->getSource()->get_owner()->as<Node>();
+        auto node = (*found)->get_source()->get_owner()->as<Node>();
         InvokableComponent* compute_component = node->get<InvokableComponent>();
         if ( compute_component )
         {
@@ -218,7 +218,7 @@ bool Node::has_wire_connected_to(const Member *_localMember)
      * Find a wire connected to _member
      */
     auto found = std::find_if(m_wires.cbegin(), m_wires.cend(), [_localMember](const Wire* wire)->bool {
-        return wire->getTarget() == _localMember;
+        return wire->get_dest() == _localMember;
     });
 
     return found != m_wires.end();

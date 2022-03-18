@@ -1,14 +1,14 @@
-#include <nodable/LanguageNodable.h>
+#include <nodable/core/LanguageNodable.h>
 
 #include <ctime>
 #include <cmath>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-#include <nodable/GraphNode.h>
-#include <nodable/Member.h>
-#include <nodable/Node.h>
-#include <nodable/VariableNode.h>
-#include <nodable/String.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/Member.h>
+#include <nodable/core/Node.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/String.h>
 
 using namespace Nodable;
 using namespace Nodable::R;

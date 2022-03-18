@@ -1,11 +1,11 @@
-#include <nodable/AppContext.h>
+#include <nodable/app/AppContext.h>
 
-#include <nodable/Settings.h>
-#include <nodable/App.h>
-#include <nodable/VM.h>
-#include <nodable/LanguageNodable.h>
-#include <nodable/Texture.h>
-#include <nodable/AppNodeFactory.h>
+#include <nodable/app/Settings.h>
+#include <nodable/app/App.h>
+#include <nodable/core/VM.h>
+#include <nodable/core/LanguageNodable.h>
+#include <nodable/core/Texture.h>
+#include <nodable/app/AppNodeFactory.h>
 
 using namespace Nodable;
 

@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <nodable/Member.h>
-#include <nodable/VM.h>
-#include <nodable/GraphNode.h>
-#include <nodable/VariableNode.h>
-#include <nodable/HeadlessNodeFactory.h>
-#include <nodable/LanguageNodable.h>
+#include <nodable/core/Member.h>
+#include <nodable/core/VM.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/HeadlessNodeFactory.h>
+#include <nodable/core/LanguageNodable.h>
 
 using namespace Nodable;
 using namespace Nodable::R;
