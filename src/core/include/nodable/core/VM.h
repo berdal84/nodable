@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <nodable/core/types.h>
 #include <nodable/core/InstructionNode.h>
 #include <nodable/core/Compiler.h>
@@ -20,9 +21,7 @@ namespace Nodable
         class VM {
         public:
             VM();
-            ~VM() {
-                delete m_program_asm_code;
-            }
+            ~VM() = default;
             [[nodiscard]] bool    load_program(Node* _program_graph_root);
             void                  unload_program();
             void                  run_program();
@@ -35,7 +34,7 @@ namespace Nodable
             inline const Node*    get_next_node() const {return m_next_node; }
             inline const Variant* get_last_result() { return (Variant*)m_register[Register::rax]; }
             bool                  is_program_over() { assert(get_next_instr()); return get_next_instr()->m_type == Instr_t::ret; }
-            const Code*           get_program_asm_code()const { return m_program_asm_code; }
+            std::weak_ptr<const Asm::Code> get_program_asm_code()const { return m_program_asm_code; }
             Instr*                get_next_instr(){ return (size_t)m_register[Register::eip] < m_program_asm_code->size() ? m_program_asm_code->at(m_register[Register::eip]) : nullptr; };
             int64_t               get_register_val(Register _register);
 
@@ -45,7 +44,7 @@ namespace Nodable
             void                  reset_cursor(){ m_register[Asm::Register::eip] = 0; };
             bool                  _stepOver();
             Node*                 m_program_graph;
-            const Asm::Code*      m_program_asm_code;
+            std::shared_ptr<const Asm::Code> m_program_asm_code;
             Node*                 m_next_node;
             bool                  m_is_program_running;
             bool                  m_is_debugging;

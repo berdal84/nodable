@@ -124,12 +124,12 @@ namespace Nodable
         public:
             Compiler()= default;
             /** user is owner for Code*, delete if you don't want to use it anymore */
-            Code*         compile_program(const Node* _program_graph_root);
+            std::unique_ptr<const Code> compile_program(const Node* _program_graph_root);
             bool          is_program_valid(const Node* _program_graph_root);
         private:
             void          compile(const Node* _node);
             void          compile(const Member *_member);
-            Code*         m_output;
+            std::unique_ptr<Code> m_output;
         };
     }
 }

@@ -5,47 +5,46 @@
 #include <nodable/app/AppView.h>
 #include <nodable/BuildInfo.h>
 
-using namespace Nodable;
+using Verbosity = Nodable::Log::Verbosity;
 
 int main(int argc, char *argv[])
 {
-    Log::SetVerbosityLevel("R", Log::Verbosity::Verbose);
-    Log::SetVerbosityLevel("File", Log::Verbosity::Message);
-    Log::SetVerbosityLevel("GraphTraversal", Log::Verbosity::Message);
-    Log::SetVerbosityLevel("Parser", Log::Verbosity::Message);
-    Log::SetVerbosityLevel("GraphNode", Log::Verbosity::Message);
-    Log::SetVerbosityLevel("GraphNodeView", Log::Verbosity::Message);
-    Log::SetVerbosityLevel("VM", Log::Verbosity::Message);
+    Nodable::Log::SetVerbosityLevel("R", Verbosity::Verbose);
+    Nodable::Log::SetVerbosityLevel("File", Verbosity::Message);
+    Nodable::Log::SetVerbosityLevel("GraphTraversal", Verbosity::Message);
+    Nodable::Log::SetVerbosityLevel("Parser", Verbosity::Message);
+    Nodable::Log::SetVerbosityLevel("GraphNode", Verbosity::Message);
+    Nodable::Log::SetVerbosityLevel("GraphNodeView", Verbosity::Message);
+    Nodable::Log::SetVerbosityLevel("VM", Verbosity::Message);
 
-    R::init(); // Reflection system.
+    Nodable::App app;
 
-    App app(BuildInfo::version_extended.c_str());
-    app.init();
-    auto startupFilePath = app.get_asset_path("txt/startup.txt");
-    app.open_file(startupFilePath); // Init and open a startup file
-
-    while (!app.should_stop())
+    if( app.init() )
     {
-        try
-        {
-            app.update();
-        }
-        catch (std::exception &err)
-        {
-            LOG_ERROR("main", "Unable to update application, reason: %s\n", err.what())
-        }
+        app.open_file( app.get_asset_path("txt/startup.txt") );
 
-        try
+        while (!app.should_stop())
         {
-            app.draw();
-        }
-        catch (std::exception &err)
-        {
-            LOG_ERROR("main", "Unable to draw application view, reason: %s\n", err.what())
-        }
+            try
+            {
+                app.update();
+            }
+            catch (std::exception &err)
+            {
+                LOG_ERROR("main", "Unable to update application, reason: %s\n", err.what())
+            }
 
+            try
+            {
+                app.draw();
+            }
+            catch (std::exception &err)
+            {
+                LOG_ERROR("main", "Unable to draw application view, reason: %s\n", err.what())
+            }
+
+        }
     }
-
     app.shutdown();
     LOG_FLUSH()
     return 0;

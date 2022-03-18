@@ -22,16 +22,15 @@
 
 using namespace Nodable;
 
-App::App(const char* _name)
-    : m_currentFileIndex(0)
-    , m_assetsFolderPath( ghc::filesystem::current_path() / BuildInfo::assets_dir )
-    , m_name(_name)
+App::App()
+    : m_current_file_index(0)
+    , m_assets_folder_path(ghc::filesystem::current_path() / BuildInfo::assets_dir )
     , m_should_stop(false)
 {
-    LOG_MESSAGE("App", "Asset folder is %s\n", m_assetsFolderPath.c_str() )
-
+    LOG_MESSAGE("App", "Asset folder is %s\n", m_assets_folder_path.c_str() )
+    Nodable::R::init(); // Reflection system.
     m_context = AppContext::create_default(this);
-	m_view = new AppView(m_context, _name);
+	m_view = new AppView(m_context, BuildInfo::version_extended);
 }
 
 App::~App()
@@ -72,8 +71,8 @@ bool App::open_file(const ghc::filesystem::path& _filePath)
 
 	if (file)
 	{
-		m_loadedFiles.push_back(file);
-        set_curr_file(m_loadedFiles.size() - 1);
+		m_loaded_files.push_back(file);
+        set_curr_file(m_loaded_files.size() - 1);
 	}
 
 	return file != nullptr;
@@ -87,59 +86,59 @@ void App::save_file() const
 
 void App::close_file()
 {
-    close_file_at(m_currentFileIndex);
+    close_file_at(m_current_file_index);
 }
 
 File* App::get_curr_file()const {
 
-	if (m_loadedFiles.size() > m_currentFileIndex) {
-		return m_loadedFiles.at(m_currentFileIndex);
+	if (m_loaded_files.size() > m_current_file_index) {
+		return m_loaded_files.at(m_current_file_index);
 	}
 	return nullptr;
 }
 
 void App::set_curr_file(size_t _index)
 {
-	if (m_loadedFiles.size() > _index)
+	if (m_loaded_files.size() > _index)
 	{
-        m_currentFileIndex = _index;
+        m_current_file_index = _index;
 	}
 }
 
 std::string App::get_asset_path(const char* _fileName)const
 {
-    ghc::filesystem::path assetPath(m_assetsFolderPath);
+    ghc::filesystem::path assetPath(m_assets_folder_path);
 	assetPath /= _fileName;
 	return assetPath.string();
 }
 
 size_t App::get_file_count() const
 {
-	return m_loadedFiles.size();
+	return m_loaded_files.size();
 }
 
 File *App::get_file_at(size_t _index) const
 {
-	return m_loadedFiles[_index];
+	return m_loaded_files[_index];
 }
 
 size_t App::get_curr_file_index() const
 {
-	return m_currentFileIndex;
+	return m_current_file_index;
 }
 
 void App::close_file_at(size_t _fileIndex)
 {
-    auto currentFile = m_loadedFiles.at(_fileIndex);
+    auto currentFile = m_loaded_files.at(_fileIndex);
     if (currentFile != nullptr)
     {
-        auto it = std::find(m_loadedFiles.begin(), m_loadedFiles.end(), currentFile);
-        m_loadedFiles.erase(it);
+        auto it = std::find(m_loaded_files.begin(), m_loaded_files.end(), currentFile);
+        m_loaded_files.erase(it);
         delete currentFile;
-        if (m_currentFileIndex > 0)
-            set_curr_file(m_currentFileIndex - 1);
+        if (m_current_file_index > 0)
+            set_curr_file(m_current_file_index - 1);
         else
-            set_curr_file(m_currentFileIndex);
+            set_curr_file(m_current_file_index);
     }
 }
 

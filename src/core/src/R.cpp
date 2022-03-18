@@ -1,5 +1,6 @@
 #include <nodable/core/reflection/R.h>
 #include <type_traits> // std::underlying_type
+#include <nodable/core/assertions.h>
 #include "nodable/core/reflection/R_MetaType.h"
 
 
@@ -191,10 +192,17 @@ void Nodable::R::log_statistics()
 
 void Nodable::R::init()
 {
+    static bool initialized = false;
+
+    NODABLE_ASSERT(!initialized)
+
     Register::push<double>();
     Register::push<std::string>();
     Register::push<bool>();
     Register::push<void>();
 
     log_statistics();
+
+    initialized = true;
+
 }

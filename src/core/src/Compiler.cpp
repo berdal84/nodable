@@ -282,7 +282,7 @@ void Asm::Compiler::compile(const Node* _node)
     }
 }
 
-Code* Asm::Compiler::compile_program(const Node* _program_graph_root)
+std::unique_ptr<const Code> Asm::Compiler::compile_program(const Node* _program_graph_root)
 {
     /*
      * Here we take the program's base scope node (a tree) and we flatten it to an
@@ -290,7 +290,7 @@ Code* Asm::Compiler::compile_program(const Node* _program_graph_root)
      * This works a little like a compiler, at least for the "tree to list" point of view.
      */
     // delete m_output; we are NOT responsible to delete, m_output point could be in use.
-    m_output = new Code();
+    m_output = std::make_unique<Code>();
 
     try
     {
@@ -302,5 +302,5 @@ Code* Asm::Compiler::compile_program(const Node* _program_graph_root)
         LOG_ERROR("Compiler", "Unable to create assembly code for program.");
     }
 
-    return m_output;
+    return std::move(m_output);
 }

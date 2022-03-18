@@ -80,8 +80,7 @@ bool FileView::draw()
     bool is_vm_running = m_context->vm->is_program_running();
     auto allowkeyboard = !is_vm_running &&
                          !NodeView::IsAnyDragged() &&
-                         NodeView::GetSelected() ==
-                         nullptr; // disable keyboard for text editor when a node is selected.
+                         !NodeView::GetSelected(); // disable keyboard for text editor when a node is selected.
 
     auto allowMouse = !is_vm_running &&
                        !NodeView::IsAnyDragged() &&
@@ -151,7 +150,7 @@ bool FileView::draw()
         LOG_ERROR("FileView", "graphNodeView is null\n");
     }
 
-	return true;
+	return m_hasChanged;
 }
 
 std::string FileView::getText()const
@@ -234,5 +233,14 @@ void FileView::drawFileInfo() const
         }
 
         ImGui::TreePop();
+    }
+}
+
+void  FileView::experimental_clipboard_auto_paste(bool _enable)
+{
+    m_experimental_clipboard_auto_paste = _enable;
+    if( _enable )
+    {
+        m_experimental_clipboard_prev = "";
     }
 }

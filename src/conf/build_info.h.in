@@ -1,5 +1,4 @@
 #pragma once
-#include <string>
 
 /**
     >> DO NOT EDIT BuildInfo.h, edit BuildInfo.h.in (source file) <<
@@ -9,7 +8,7 @@
 
 namespace Nodable::BuildInfo
 {
-    static const std::string assets_dir        = "@NODABLE_APP_ASSETS_DIR@";
-    static const std::string version           = "@PROJECT_NAME@ @BUILD_TAG@ - sha@GIT_SHORT_HASH@";
-    static const std::string version_extended  = "@PROJECT_NAME@ @BUILD_TAG@ - sha@GIT_HASH@ - Built " __DATE__ " at " __TIME__;
+    static const char* assets_dir        = "@NODABLE_APP_ASSETS_DIR@";
+    static const char* version           = "@PROJECT_NAME@ @BUILD_TAG@ - sha@GIT_SHORT_HASH@";
+    static const char* version_extended  = "@PROJECT_NAME@ @BUILD_TAG@ - sha@GIT_HASH@ - Built " __DATE__ " at " __TIME__;
 }

@@ -48,7 +48,6 @@ namespace Nodable
         void draw_startup_window();
         void draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex);
         void draw_file_browser();
-        void draw_background();
         void draw_properties_editor();
         void draw_tool_bar();
         void draw_vm_view();

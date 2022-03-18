@@ -23,7 +23,7 @@ namespace Nodable
 	{
 	public:
 
-		explicit App(const char*);
+		explicit App();
 		~App();
 
 		bool            init();
@@ -53,10 +53,9 @@ namespace Nodable
 	    AppView*        m_view;
         AppContext*     m_context;
 		bool            m_should_stop;
-		size_t          m_currentFileIndex;
-        std::string     m_name;
-        std::vector<File*>          m_loadedFiles;
-        const ghc::filesystem::path m_assetsFolderPath;
+		size_t          m_current_file_index;
+        std::vector<File*>          m_loaded_files;
+        const ghc::filesystem::path m_assets_folder_path;
 
         void            handle_events();
     };

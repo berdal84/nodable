@@ -33,13 +33,7 @@ namespace Nodable
 		TextEditor::Coordinates        getTextEditorCursorPosition()const { return m_textEditor.GetCursorPosition(); }
 		void						   setUndoBuffer(TextEditor::IExternalUndoBuffer*);
         void                           drawFileInfo()const;
-        void                           experimental_clipboard_auto_paste(bool val)
-        {
-            m_experimental_clipboard_auto_paste = val;
-            if( val ) {
-                m_experimental_clipboard_prev = "";
-            }
-        }
+        void                           experimental_clipboard_auto_paste(bool);
         bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
 	private:
 		File*        m_file;

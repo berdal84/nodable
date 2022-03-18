@@ -517,17 +517,17 @@ void AppView::draw_vm_view()
     }
     else
     {
+        std::weak_ptr<const Code> code = vm->get_program_asm_code();
+
         // VM state
         {
             ImGui::Indent();
             ImGui::Text("VM is %s", vm->is_program_running() ? "running" : "stopped");
             ImGui::Text("Debug: %s", vm->is_debugging() ? "ON" : "OFF");
-            auto *code = vm->get_program_asm_code();
-            ImGui::Text("Has program: %s", code ? "YES" : "NO");
-            if (code)
+            ImGui::Text("Has program: %s", !code.expired() ? "YES" : "NO");
+            if (!code.expired())
             {
                 ImGui::Text("Program over: %s", vm->is_program_over() ? "YES" : "NO");
-
             }
             ImGui::Unindent();
         }
@@ -564,11 +564,11 @@ void AppView::draw_vm_view()
             ImGui::Separator();
             {
                 ImGui::BeginChild("AssemblyCodeChild", ImGui::GetContentRegionAvail(), true );
-                const Code* code = vm->get_program_asm_code();
-                if ( code  )
+
+                if ( std::shared_ptr<const Code> code_locked = code.lock() )
                 {
                     auto current_instr = vm->get_next_instr();
-                    for( Instr* each_instr : code->get_instructions() )
+                    for( Instr* each_instr : code_locked->get_instructions() )
                     {
                         auto str = Instr::to_string( *each_instr );
                         if ( each_instr == current_instr )
@@ -667,6 +667,11 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
         }
     }
     ImGui::End(); // File Window
+
+    if ( file->getView()->hasChanged())
+    {
+        m_context->vm->unload_program();
+    }
 
     if (!open)
     {
@@ -783,7 +788,7 @@ void AppView::draw_startup_window() {
         const char* credit = "berenger@dalle-cort.fr";
         ImGui::SameLine( ImGui::GetContentRegionAvailWidth() - ImGui::CalcTextSize(credit).x);
         ImGui::TextWrapped( "%s", credit );
-        ImGui::TextWrapped( "%s", BuildInfo::version.c_str() );
+        ImGui::TextWrapped( "%s", BuildInfo::version );
         if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
         {
             ImGui::CloseCurrentPopup();
@@ -894,24 +899,6 @@ void AppView::draw_history_bar(History *currentFileHistory)
 void AppView::browse_file()
 {
 	m_file_browser.Open();
-}
-
-void AppView::draw_background()
-{
-    ImGui::BeginChild("background");
-    auto logo = m_context->texture_manager->get_or_create(BuildInfo::assets_dir + "/nodable-logo-xs.png");
-
-    for( int x = 0; x < 5; x++ )
-    {
-        for( int y = 0; y < 5; y++ )
-        {
-            ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
-            ImGui::Image((void*)(intptr_t)logo->image, vec2((float)logo->width, (float)logo->height));
-        }
-        ImGui::NewLine();
-    }
-    ImGui::EndChild();
-
 }
 
 void AppView::draw_tool_bar()

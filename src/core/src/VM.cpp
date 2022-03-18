@@ -30,11 +30,10 @@ bool VM::load_program(Node* _program_graph_root)
             unload_program();
         }
 
-        if ( Code* asm_output = compiler.compile_program(_program_graph_root) )
+        m_program_asm_code = compiler.compile_program(_program_graph_root);
+        if (m_program_asm_code)
         {
             m_program_graph     = _program_graph_root;
-            delete m_program_asm_code;
-            m_program_asm_code = asm_output;
 
             LOG_MESSAGE("VM", "Program's tree compiled.\n");
             LOG_VERBOSE("VM", "Find bellow the compilation result:\n");
@@ -89,9 +88,13 @@ void VM::stop_program()
     LOG_VERBOSE("VM", "Stopped.\n")
 }
 
-void VM::unload_program() {
-    // TODO: clear context
-    this->m_program_graph = nullptr;
+void VM::unload_program()
+{
+    m_program_graph = nullptr;
+    m_program_asm_code.reset();
+    reset_cursor();
+    clear_registers();
+    stop_program();
 }
 
 bool VM::_stepOver()
