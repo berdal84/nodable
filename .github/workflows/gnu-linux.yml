@@ -20,7 +20,7 @@ jobs:
 
     env:
       # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-      buildType: RelWithDebInfo
+      buildType: MinSizeRel
     
     steps:
 
