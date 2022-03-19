@@ -115,9 +115,9 @@ std::vector<Wire*>& Node::get_wires()
 int Node::get_input_wire_count()const
 {
 	int count = 0;
-	for(auto w : m_wires)
+	for(auto each_wire : m_wires)
 	{
-		if (w->get_dest()->get_owner() == this)
+		if ( each_wire->nodes.dst == this)
 			count++;
 	}
 	return count;
@@ -126,9 +126,9 @@ int Node::get_input_wire_count()const
 int Node::get_output_wire_count()const
 {
 	int count = 0;
-	for(auto w : m_wires)
+	for(auto each_wire : m_wires)
 	{
-		if (w->get_source()->get_owner() == this)
+		if ( each_wire->nodes.src == this)
 			count++;
 	}
 	return count;
@@ -188,7 +188,7 @@ const InvokableOperator* Node::get_connected_operator(const Member *_localMember
      * Find a wire connected to _member
      */
     auto found = std::find_if(m_wires.cbegin(), m_wires.cend(), [_localMember](const Wire* wire)->bool {
-        return wire->get_dest() == _localMember;
+        return wire->members.dst == _localMember;
     });
 
     /*
@@ -196,7 +196,7 @@ const InvokableOperator* Node::get_connected_operator(const Member *_localMember
      */
     if (found != m_wires.end() )
     {
-        auto node = (*found)->get_source()->get_owner()->as<Node>();
+        auto node = (*found)->nodes.src->as<Node>();
         InvokableComponent* compute_component = node->get<InvokableComponent>();
         if ( compute_component )
         {
@@ -218,7 +218,7 @@ bool Node::has_wire_connected_to(const Member *_localMember)
      * Find a wire connected to _member
      */
     auto found = std::find_if(m_wires.cbegin(), m_wires.cend(), [_localMember](const Wire* wire)->bool {
-        return wire->get_dest() == _localMember;
+        return wire->members.dst == _localMember;
     });
 
     return found != m_wires.end();

@@ -2,14 +2,7 @@
 
 using namespace Nodable;
 
-void Wire::set_source(Member* _source)
+void Wire::sanitize()
 {
-    NODABLE_ASSERT(_source != target)
-	source = _source;
-}
-
-void Wire::set_dest(Member* _target)
-{
-    NODABLE_ASSERT(_target != source)
-	target = _target;
+    NODABLE_ASSERT(members.src != members.dst);
 }

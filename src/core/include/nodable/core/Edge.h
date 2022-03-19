@@ -23,6 +23,27 @@ namespace Nodable
         R_ENUM_VALUE(IS_OUTPUT_OF)
     R_ENUM_END
 
+    template<typename T>
+    struct Pair
+    {
+        Pair() = delete;
+        Pair(T _src, T _dst): src(_src), dst(_dst){}
+
+        T src;
+        T dst;
+
+        friend bool operator==(const Pair<T>& _left, const Pair<T>& _right)
+        {
+            return (_left.src == _right.src)
+                   && (_left.dst == _right.dst);
+        }
+
+        void swap()
+        {
+            std::swap(src, dst);
+        }
+    };
+
     /**
      * @brief A directed edge is a structure to express the nature of a link between two nodes in a specific direction.
      * It means you can't swap the nodes while loosing the link information.
@@ -33,35 +54,14 @@ namespace Nodable
     class DirectedEdge
     {
     public:
-        struct NodePair
-        {
-            friend DirectedEdge;
-            NodePair() = delete;
-            NodePair(Node* _src, Node* _dst): src(_src), dst(_dst){}
-
-            Node* src;
-            Node* dst;
-
-            friend bool operator==(const NodePair& _left, const NodePair& _right)
-            {
-                return (_left.src == _right.src)
-                    && (_left.dst == _right.dst);
-            }
-
-        private:
-            void swap()
-            {
-                std::swap(src, dst);
-            }
-        };
 
         DirectedEdge() = delete;
         DirectedEdge(EdgeType _type, Node* _src, Node* _dst): type(_type), nodes(_src, _dst){ sanitize(); }
         DirectedEdge(Node* _src, EdgeType _type, Node* _dst): type(_type), nodes(_src, _dst){ sanitize(); }
-        DirectedEdge(EdgeType _type, const NodePair _nodes) : type(_type), nodes(_nodes){ sanitize(); }
+        DirectedEdge(EdgeType _type, const Pair<Node*> _nodes) : type(_type), nodes(_nodes){ sanitize(); }
 
-        EdgeType  type;
-        NodePair nodes;
+        EdgeType    type;
+        Pair<Node*> nodes;
 
         bool is_about(Node* _node)const { return nodes.src == _node || nodes.dst == _node; }
 
@@ -71,8 +71,8 @@ namespace Nodable
                 && (_left_relation.nodes == _right_relation.nodes);
         }
 
-    private:
-        void sanitize()
+    protected:
+        virtual void sanitize()
         {
             if (type == EdgeType::IS_PREDECESSOR_OF ) // we never want this type of relation in our database
             {

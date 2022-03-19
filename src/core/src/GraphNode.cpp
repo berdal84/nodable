@@ -195,7 +195,7 @@ Node* GraphNode::create_function(const IInvokable* _function)
 
 Wire* GraphNode::create_wire()
 {
-	return new Wire();
+	return new Wire(nullptr, nullptr);
 }
 
 void GraphNode::destroy(Node* _node)
@@ -204,7 +204,7 @@ void GraphNode::destroy(Node* _node)
     for (auto it = m_wire_registry.begin(); it != m_wire_registry.end();)
     {
         Wire* wire = *it;
-        if(wire->get_source()->get_owner() == _node || wire->get_dest()->get_owner() == _node )
+        if(wire->nodes.src == _node || wire->nodes.dst == _node )
         {
             destroy(wire);
             it = m_wire_registry.erase(it);
@@ -299,10 +299,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         NODABLE_ASSERT(targetNode != sourceNode)
 
         // Link wire to members
-        wire = create_wire();
-
-        wire->set_source(_src_member);
-        wire->set_dest(_dst_member);
+        wire = new Wire(_src_member, _dst_member);
 
         LOG_VERBOSE("GraphNode", "drop_on() adding wire to nodes ...\n")
         targetNode->add_wire(wire);
@@ -544,10 +541,10 @@ void GraphNode::disconnect(DirectedEdge _relation, bool _side_effects)
 
 void GraphNode::destroy(Wire *_wire)
 {
-    Member* dst_member = _wire->get_dest();
-    Member* src_member = _wire->get_source();
-    Node*   dst_node   = dst_member->get_owner();
-    Node*   src_node   = src_member->get_owner();
+    Member* dst_member = _wire->members.dst;
+    Member* src_member = _wire->members.src;
+    Node*   dst_node   = _wire->nodes.dst;
+    Node*   src_node   = _wire->nodes.src;
 
     dst_member->set_input(nullptr);
     dst_member->reset_value();
@@ -617,9 +614,9 @@ std::vector<Wire*> GraphNode::filter_wires(Member* _member, Way _way) const
     auto is_member_linked_to = [_member, _way](const Wire* wire)
     {
         return
-            ( (_way & Way_Out) && wire->get_source() == _member )
+            ( (_way & Way_Out) && wire->members.src == _member )
             ||
-            ( (_way & Way_In) && wire->get_dest() == _member );
+            ( (_way & Way_In) && wire->members.dst == _member );
     };
 
     for(Wire* each_wire : m_wire_registry)
@@ -638,15 +635,15 @@ void GraphNode::disconnect(Member *_member, Way _way, bool _side_effects)
     {
         m_wire_registry.erase( std::find(m_wire_registry.begin(), m_wire_registry.end(), wire));
 
-        Node *targetNode = wire->get_dest()->get_owner();
-        Node *sourceNode = wire->get_source()->get_owner();
+        Node* dst_node = wire->nodes.dst;
+        Node* src_node = wire->nodes.src;
 
-        targetNode->remove_wire(wire);
-        sourceNode->remove_wire(wire);
+        dst_node->remove_wire(wire);
+        src_node->remove_wire(wire);
 
         if ( _side_effects)
         {
-            DirectedEdge relation(EdgeType::IS_INPUT_OF, sourceNode, targetNode);
+            DirectedEdge relation(EdgeType::IS_INPUT_OF, src_node, dst_node);
             disconnect(relation, false);
         }
 

@@ -11,8 +11,9 @@ namespace Nodable
 	public:
 		DataAccess() {};
 		bool update()override;
+
 		R_DERIVED(DataAccess)
-    R_EXTENDS(Component)
-    R_END
+        R_EXTENDS(Component)
+        R_END
 	};
 }

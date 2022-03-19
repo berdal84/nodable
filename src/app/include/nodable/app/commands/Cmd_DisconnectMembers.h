@@ -10,9 +10,9 @@ namespace Nodable
     {
     public:
         Cmd_DisconnectMembers(Wire* _wire)
-        : m_src(_wire->get_source())
-        , m_dst(_wire->get_dest())
-        , m_graph(_wire->get_source()->get_owner()->get_parent_graph())
+        : m_src(_wire->members.src)
+        , m_dst(_wire->members.dst)
+        , m_graph(_wire->nodes.src->get_parent_graph())
         , m_wire(_wire)
         {
             char str[200];

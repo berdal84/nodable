@@ -31,8 +31,8 @@ TEST( GraphNode, connect)
             node1->props()->get("output"),
             node2->props()->get("input"));
 
-    EXPECT_EQ(wire->get_source() , node1->props()->get("output"));
-    EXPECT_EQ(wire->get_dest() , node2->props()->get("input"));
+    EXPECT_EQ(wire->members.src , node1->props()->get("output"));
+    EXPECT_EQ(wire->members.dst , node2->props()->get("input"));
     EXPECT_EQ(graph.get_wire_registry().size(), 1);
  }
 
