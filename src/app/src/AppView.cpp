@@ -42,6 +42,12 @@ AppView::~AppView()
 
 bool AppView::init()
 {
+    // Create shortcuts
+    m_shortcuts.push_back({ SDLK_DELETE  , KMOD_NONE, EventType::delete_node_action_triggered });
+    m_shortcuts.push_back({ SDLK_a       , KMOD_NONE, EventType::arrange_node_action_triggered });
+    m_shortcuts.push_back({ SDLK_x       , KMOD_NONE, EventType::expand_selected_node_action_triggered });
+    m_shortcuts.push_back({ SDLK_n       , KMOD_NONE, EventType::select_successor_node_action_triggered });
+
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
@@ -1020,6 +1026,7 @@ void AppView::handle_events()
     {
         ImGui_ImplSDL2_ProcessEvent(&event);
 
+
         switch (event.type)
         {
             case SDL_QUIT:
@@ -1048,24 +1055,28 @@ void AppView::handle_events()
                 {
                     switch( key )
                     {
-                        case SDLK_DELETE:
-                            EventManager::push_event(EventType::delete_node_action_triggered);
-                            break;
-                        case SDLK_a:
-                            EventManager::push_event(EventType::arrange_node_action_triggered);
-                            break;
-                        case SDLK_x:
-                            EventManager::push_event(EventType::expand_selected_node_action_triggered);
-                            break;
-                        case SDLK_n:
-                            EventManager::push_event(EventType::select_successor_node_action_triggered);
-                            break;
                         case SDLK_F1:
                             m_show_startup_window = true;
+                            break;
+                        default:
                             break;
                     }
                 }
                 break;
+        }
+
+        // Shortcuts (WIP)
+        for(auto shortcut : m_shortcuts)
+        {
+            if ( shortcut.event != EventType::none            // shortcut has an event type.
+                 && event.type == SDL_KEYDOWN
+                 && shortcut.key == event.key.keysym.sym      // shortcut's key is pressed.
+                 && event.key.keysym.mod == shortcut.mod      // shortcut's modifier is pressed.
+                 )
+            {
+                EventManager::push_event(shortcut.event);
+                break;
+            }
         }
 
     }

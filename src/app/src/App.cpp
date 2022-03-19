@@ -370,6 +370,11 @@ void App::handle_events()
 
                 break;
             }
+
+            default:
+            {
+                LOG_VERBOSE("App", "Ignoring and event, this case is not handled\n")
+            }
         }
     }
 }

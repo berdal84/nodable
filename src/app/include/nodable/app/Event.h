@@ -11,6 +11,8 @@ namespace Nodable
 
     enum class EventType
     {
+        none = 0, // operation on nodes
+
         delete_node_action_triggered = 0x100, // operation on nodes
         arrange_node_action_triggered,
         select_successor_node_action_triggered,

@@ -17,6 +17,7 @@
 #include <nodable/app/View.h>
 #include <nodable/app/FontConf.h>
 #include <nodable/app/FontSlot.h>
+#include <nodable/app/Shortcut.h>
 
 namespace Nodable
 {
@@ -71,7 +72,7 @@ namespace Nodable
         bool               m_scroll_to_curr_instr;
         std::map<std::string, ImFont*>      m_loaded_fonts; // All fonts loaded in memory
         std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
-
+        std::vector<Shortcut>               m_shortcuts;
         R_DERIVED(AppView)
         R_EXTENDS(View)
         R_END
