@@ -8,54 +8,12 @@ using namespace Nodable;
 using namespace Nodable::Asm;
 
 VM::VM()
-    : m_program_graph(nullptr)
-    , m_is_debugging(false)
+    : m_is_debugging(false)
     , m_is_program_running(false)
     , m_next_node(nullptr)
     , m_program_asm_code(nullptr)
 {
 
-}
-
-bool VM::load_program(Node* _program_graph_root)
-{
-    Asm::Compiler compiler;
-    reset_cursor();
-
-    if ( compiler.is_program_valid(_program_graph_root) )
-    {
-        // unload current program
-        if (m_program_graph)
-        {
-            unload_program();
-        }
-
-        m_program_asm_code = compiler.compile_program(_program_graph_root);
-        if (m_program_asm_code)
-        {
-            m_program_graph     = _program_graph_root;
-
-            LOG_MESSAGE("VM", "Program's tree compiled.\n");
-            LOG_VERBOSE("VM", "Find bellow the compilation result:\n");
-            LOG_VERBOSE("VM", "---- Program begin -----\n");
-            Instr* curr = get_next_instr();
-            while( curr )
-            {
-                LOG_VERBOSE("VM", "%s \n", Instr::to_string(*curr ).c_str() );
-                advance_cursor(1);
-                curr = get_next_instr();
-            }
-            LOG_VERBOSE("VM", "---- Program end -----\n");
-            return true;
-        }
-        else
-        {
-            LOG_ERROR("VM", "Unable to compile program's tree.\n");
-            return false;
-        }
-
-    }
-    return false;
 }
 
 void VM::clear_registers()
@@ -67,7 +25,7 @@ void VM::clear_registers()
 }
 void VM::run_program()
 {
-    NODABLE_ASSERT(m_program_graph != nullptr);
+    NODABLE_ASSERT(m_program_asm_code);
     LOG_VERBOSE("VM", "Running...\n")
     m_is_program_running = true;
 
@@ -88,9 +46,8 @@ void VM::stop_program()
     LOG_VERBOSE("VM", "Stopped.\n")
 }
 
-void VM::unload_program()
+void VM::release_program()
 {
-    m_program_graph = nullptr;
     m_program_asm_code.reset();
     reset_cursor();
     clear_registers();
@@ -211,11 +168,12 @@ bool VM::_stepOver()
         }
 
         case Instr_t::ret:
-
+            advance_cursor();
             success = true;
             break;
 
         default:
+            advance_cursor();
             success = false;
     }
 
@@ -280,15 +238,41 @@ bool VM::step_over()
 
 void VM::debug_program()
 {
-    NODABLE_ASSERT(m_program_graph != nullptr);
+    NODABLE_ASSERT(m_program_asm_code);
     m_is_debugging = true;
     m_is_program_running = true;
     reset_cursor();
     clear_registers();
-    m_next_node = m_program_graph;
+    m_next_node = m_program_asm_code->get_meta_data().root_node;
 }
 
 int64_t VM::get_register_val(Register _register)
 {
     return m_register[_register];
+}
+
+bool VM::is_program_over() const
+{
+    auto next_inst_id = (size_t)m_register[Register::eip];
+    return next_inst_id >= m_program_asm_code->size();
+}
+
+Instr* VM::get_next_instr() const
+{
+    if ( !is_program_over() )
+    {
+        auto next_inst_id = (size_t)m_register[Register::eip];
+        return m_program_asm_code->at(next_inst_id);
+    }
+    return nullptr;
+}
+
+bool VM::load_program(std::unique_ptr<const Code> _code)
+{
+    NODABLE_ASSERT(!m_is_program_running)   // dev must stop before to load program.
+    NODABLE_ASSERT(!m_program_asm_code)     // dev must unload before to load.
+
+    m_program_asm_code = std::move(_code);
+
+    return m_program_asm_code && m_program_asm_code->size() != 0;
 }

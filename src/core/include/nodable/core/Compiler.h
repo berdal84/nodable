@@ -103,16 +103,21 @@ namespace Nodable
         class Code
         {
         public:
-            Code() = default;
+            struct MetaData {
+                Node* root_node;
+            };
+
+            Code(Node* _root): m_meta_data({_root}) {};
             ~Code();
 
-            Instr*        push_instr(Instr_t _type);
-            inline size_t size() const { return  m_instructions.size(); }
-            inline Instr* at(size_t _index) const { return  m_instructions.at(_index); }
-            long          get_next_pushed_instr_index() const { return m_instructions.size(); }
+            Instr*                     push_instr(Instr_t _type);
+            inline size_t              size() const { return  m_instructions.size(); }
+            inline Instr*              at(size_t _index) const { return  m_instructions.at(_index); }
+            long                       get_next_index() const { return m_instructions.size(); }
             const std::vector<Instr*>& get_instructions()const { return m_instructions; }
-            void          reset();
+            const MetaData&            get_meta_data()const { return m_meta_data; }
         private:
+            MetaData            m_meta_data;
             std::vector<Instr*> m_instructions;
         };
 
@@ -123,12 +128,13 @@ namespace Nodable
         {
         public:
             Compiler()= default;
-            /** user is owner for Code*, delete if you don't want to use it anymore */
-            std::unique_ptr<const Code> compile_program(const Node* _program_graph_root);
-            bool          is_program_valid(const Node* _program_graph_root);
+            std::unique_ptr<const Code> compile(Node* _program_graph);
         private:
-            void          compile(const Node* _node);
-            void          compile(const Member *_member);
+            /** user is owner for Code*, delete if you don't want to use it anymore */
+            void compile_program(Node*);
+            bool is_program_valid(const Node*);
+            void compile_node(const Node*);
+            void compile_member(const Member*);
             std::unique_ptr<Code> m_output;
         };
     }

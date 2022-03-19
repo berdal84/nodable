@@ -77,7 +77,10 @@ std::string Asm::Instr::to_string(const Instr& _instr)
 
 Code::~Code()
 {
-    reset();
+    for( auto each : m_instructions )
+        delete each;
+    m_instructions.clear();
+    m_instructions.resize(0);
 }
 
 Instr* Code::push_instr(Instr_t _type)
@@ -85,14 +88,6 @@ Instr* Code::push_instr(Instr_t _type)
     Instr* instr = new Instr(_type, m_instructions.size());
     m_instructions.emplace_back(instr);
     return instr;
-}
-
-void Code::reset()
-{
-    for( auto each : m_instructions )
-        delete each;
-    m_instructions.clear();
-    m_instructions.resize(0);
 }
 
 bool Asm::Compiler::is_program_valid(const Node* _program_graph_root)
@@ -118,7 +113,7 @@ bool Asm::Compiler::is_program_valid(const Node* _program_graph_root)
     return is_valid;
 }
 
-void Asm::Compiler::compile(const Member * _member )
+void Asm::Compiler::compile_member(const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
@@ -126,7 +121,7 @@ void Asm::Compiler::compile(const Member * _member )
 
         if (_member->is_meta_type(void_ptr) )
         {
-            compile((const Node*)*_member);
+            compile_node((const Node *) *_member);
         }
         else if ( Member* input = _member->get_input() )
         {
@@ -135,7 +130,7 @@ void Asm::Compiler::compile(const Member * _member )
              * In order to do that, we traverse the syntax tree starting from the node connected to it.
              * Once we have the list of the nodes to be updated, we loop on them.
              */
-             compile(input->get_owner());
+            compile_node(input->get_owner());
         }
 
         /* evaluate member */
@@ -148,7 +143,7 @@ void Asm::Compiler::compile(const Member * _member )
     }
 }
 
-void Asm::Compiler::compile(const Node* _node)
+void Asm::Compiler::compile_node(const Node* _node)
 {
     if( !_node)
     {
@@ -172,7 +167,7 @@ void Asm::Compiler::compile(const Node* _node)
         // for_loop init instruction
         if ( auto for_loop = _node->as<ForLoopNode>() )
         {
-            compile(for_loop->get_init_expr());
+            compile_member(for_loop->get_init_expr());
         }
         else if ( auto cond_struct = _node->as<ConditionalStructNode>() )
         {
@@ -183,7 +178,7 @@ void Asm::Compiler::compile(const Node* _node)
             LOG_WARNING("Compiler", "IConditionnalStruct case not handled\n")
         }
 
-        long condition_instr_line = m_output->get_next_pushed_instr_index();
+        long condition_instr_line = m_output->get_next_index();
 
         const Member* condition_member = i_cond_struct->condition_member();
 
@@ -191,7 +186,7 @@ void Asm::Compiler::compile(const Node* _node)
         {
             NODABLE_ASSERT(condition_member)
             auto cond_node = (const Node*)*condition_member;
-            compile(cond_node);
+            compile_node(cond_node);
         }
 
         Instr* store_instr = m_output->push_instr(Instr_t::mov);
@@ -206,12 +201,12 @@ void Asm::Compiler::compile(const Node* _node)
 
         if ( auto true_branch = i_cond_struct->get_condition_true_branch() )
         {
-            compile(true_branch->get_owner());
+            compile_node(true_branch->get_owner());
 
             if ( auto for_loop = _node->as<ForLoopNode>() )
             {
                 // insert end-loop instruction.
-                compile(for_loop->get_iter_expr());
+                compile_member(for_loop->get_iter_expr());
 
                 // insert jump to condition instructions.
                 auto loop_jump = m_output->push_instr(Instr_t::jmp);
@@ -226,26 +221,26 @@ void Asm::Compiler::compile(const Node* _node)
             }
         }
 
-        skip_true_branch->m_left_h_arg = m_output->get_next_pushed_instr_index() - skip_true_branch->m_line;
+        skip_true_branch->m_left_h_arg = m_output->get_next_index() - skip_true_branch->m_line;
 
         if ( auto false_branch = i_cond_struct->get_condition_false_branch() )
         {
-            compile(false_branch->get_owner());
-            skip_false_branch->m_left_h_arg = m_output->get_next_pushed_instr_index() - skip_false_branch->m_line;
+            compile_node(false_branch->get_owner());
+            skip_false_branch->m_left_h_arg = m_output->get_next_index() - skip_false_branch->m_line;
         }
     }
     else if (_node->has<Scope>() )
     {
         for( const Node* each_node : _node->children_slots().content() )
         {
-            compile(each_node);
+            compile_node(each_node);
         }
     }
     else if ( auto instr_node = _node->as<InstructionNode>() )
     {
         const Member* root_member = instr_node->get_root_node_member();
         NODABLE_ASSERT(root_member)
-        compile((const Node*)*root_member);
+        compile_node((const Node *) *root_member);
     }
     else
     {
@@ -253,7 +248,7 @@ void Asm::Compiler::compile(const Node* _node)
         for ( const Node* each_input : _node->input_slots().content() )
         {
             if ( !each_input->is<VariableNode>() )
-                compile(each_input);
+                compile_node(each_input);
         }
     }
 
@@ -282,25 +277,54 @@ void Asm::Compiler::compile(const Node* _node)
     }
 }
 
-std::unique_ptr<const Code> Asm::Compiler::compile_program(const Node* _program_graph_root)
+void Asm::Compiler::compile_program(Node* _program_graph_root)
 {
-    /*
-     * Here we take the program's base scope node (a tree) and we flatten it to an
-     * instruction list. We add some jump instruction in order to skip portions of code.
-     * This works a little like a compiler, at least for the "tree to list" point of view.
-     */
-    // delete m_output; we are NOT responsible to delete, m_output point could be in use.
-    m_output = std::make_unique<Code>();
+    m_output = std::make_unique<Code>(_program_graph_root);
 
     try
     {
-        compile(_program_graph_root);
+        compile_node(_program_graph_root);
         m_output->push_instr(Instr_t::ret);
     }
     catch ( const std::exception& e )
     {
-        LOG_ERROR("Compiler", "Unable to create assembly code for program.");
+        m_output.reset();
+        LOG_ERROR("Compiler", "Unable to create assembly code for program. Reason: %s\n", e.what());
     }
-
-    return std::move(m_output);
 }
+
+std::unique_ptr<const Code> Asm::Compiler::compile(Node* _program_graph)
+{
+    if ( is_program_valid(_program_graph))
+    {
+        compile_program(_program_graph);
+        return std::move(m_output);
+    }
+    return nullptr;
+}
+
+//void Asm::Compiler::log_program()
+//{
+//    if (m_program_asm_code)
+//    {
+//        m_program_graph     = _program_graph_root;
+//
+//        LOG_MESSAGE("VM", "Program's tree compiled.\n");
+//        LOG_VERBOSE("VM", "Find bellow the compilation result:\n");
+//        LOG_VERBOSE("VM", "---- Program begin -----\n");
+//        Instr* curr = get_next_instr();
+//        while( curr )
+//        {
+//            LOG_VERBOSE("VM", "%s \n", Instr::to_string(*curr ).c_str() );
+//            advance_cursor(1);
+//            curr = get_next_instr();
+//        }
+//        LOG_VERBOSE("VM", "---- Program end -----\n");
+//        return true;
+//    }
+//    else
+//    {
+//        LOG_ERROR("VM", "Unable to compile program's tree.\n");
+//        return false;
+//    }
+//}

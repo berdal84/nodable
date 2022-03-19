@@ -149,10 +149,37 @@ Node* App::get_curr_file_program_root() const
     return nullptr;
 }
 
-void App::vm_run()
+bool App::vm_compile_and_load_program()
 {
     Node* program = get_curr_file_program_root();
-    if (program && m_context->vm->load_program(program) )
+    if (program )
+    {
+        Asm::Compiler compiler;
+        std::unique_ptr<const Asm::Code> asm_code = compiler.compile(program);
+
+        if (!asm_code)
+        {
+            LOG_ERROR("App", "Unable to compile program.");
+            return false;
+        }
+
+        m_context->vm->release_program();
+
+        if( !m_context->vm->load_program(std::move(asm_code)) )
+        {
+            LOG_ERROR("App", "Unable to load program.");
+            return false;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+void App::vm_run()
+{
+    if ( vm_compile_and_load_program() )
     {
         m_context->vm->run_program();
     }
@@ -160,8 +187,7 @@ void App::vm_run()
 
 void App::vm_debug()
 {
-    Node* program = get_curr_file_program_root();
-    if (program && m_context->vm->load_program(program) )
+    if ( vm_compile_and_load_program() )
     {
         m_context->vm->debug_program();
     }

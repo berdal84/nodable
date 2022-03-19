@@ -20,6 +20,8 @@ namespace Nodable
         // prepare
         return_t result{};
         const LanguageNodable lang;
+        Asm::Compiler compiler;
+        Asm::VM vm;
         HeadlessNodeFactory factory(&lang);
         bool autocompletion = false;
         GraphNode graph(&lang, &factory, &autocompletion);
@@ -30,16 +32,24 @@ namespace Nodable
         auto program = graph.get_root();
         if (program)
         {
-            // run
-            Asm::VM runner;
-
-            if (!runner.load_program(graph.get_root()))
+            // compile
+            auto code = compiler.compile(graph.get_root());
+            if (!code)
             {
-                throw std::runtime_error("Unable to load program.");
+                throw std::runtime_error("Compiler was not able to compile program's graph.");
             }
-            runner.run_program();
 
-            const Variant* last_result = runner.get_last_result();
+            // load
+            if (!vm.load_program( std::move(code) ))
+            {
+                throw std::runtime_error("VM was not able to load the compiled program.");
+            }
+
+            // run
+            vm.run_program();
+
+            // ret result
+            const Variant* last_result = vm.get_last_result();
             if ( last_result == nullptr )
             {
                 throw std::runtime_error("Unable to get program's last result.");
@@ -62,30 +72,39 @@ namespace Nodable
         HeadlessNodeFactory factory(&lang);
         bool autocompletion = false;
         GraphNode graph(&lang, &factory, &autocompletion);
+        Asm::Compiler compiler;
+        Asm::VM vm;
 
         // act
         lang.getParser()->parse_graph(expression, &graph);
-        if (Node* program = graph.get_root()) {
-            Asm::VM runner;
+        if (Node* program = graph.get_root())
+        {
+            // compile
+            auto code = compiler.compile(graph.get_root());
+            if (!code)
+            {
+                throw std::runtime_error("Compiler was not able to compile program's graph.");
+            }
 
-            if (runner.load_program(program)) {
-                runner.run_program();
+            // load
+            if (!vm.load_program( std::move(code) ))
+            {
+                throw std::runtime_error("VM was not able to load the compiled program.");
+            }
 
-                if (const Variant* last_eval = runner.get_last_result())
-                {
-                    std::string result_str = last_eval->convert_to<std::string>();
-                    LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
-                }
-                else
-                {
-                    throw std::runtime_error("ParseUpdateSerialize: Unable to get last evaluated member.");
-                }
+            // run
+            vm.run_program();
+
+            // serialize result
+            if (const Variant* last_eval = vm.get_last_result())
+            {
+                std::string result_str = last_eval->convert_to<std::string>();
+                LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
             }
             else
             {
-                throw std::runtime_error("ParseUpdateSerialize: Unable to load program.");
+                throw std::runtime_error("ParseUpdateSerialize: Unable to get last evaluated member.");
             }
-
         }
         else
         {

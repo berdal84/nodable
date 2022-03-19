@@ -662,16 +662,17 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
             if ( isCurrentFile )
             {
                 draw_status_bar();
+
+                if ( file->getView()->hasChanged())
+                {
+                    m_context->vm->release_program();
+                }
+
             }
 
         }
     }
     ImGui::End(); // File Window
-
-    if ( file->getView()->hasChanged())
-    {
-        m_context->vm->unload_program();
-    }
 
     if (!open)
     {
@@ -800,31 +801,37 @@ void AppView::draw_startup_window() {
 
 }
 
-void AppView::draw_status_bar() const {/*
-  Status bar
-*/
+void AppView::draw_status_bar() const {
 
-    auto lastLog = Log::GetLastMessage();
-
-    if( lastLog != nullptr )
+    auto draw_log_line = [](const Log::Message* _log, bool _detailed = false)
     {
-        vec4 statusLineColor;
 
-        switch ( lastLog->verbosity )
+        switch ( _log->verbosity )
         {
             case Log::Verbosity::Error:
-                statusLineColor  = vec4(0.5f, 0.0f, 0.0f,1.0f);
+                ImGui::TextColored(vec4(0.5f, 0.0f, 0.0f, 1.0f), _detailed ? "Error: %s" : "%s", _log->text.c_str());
                 break;
 
             case Log::Verbosity::Warning:
-                statusLineColor  = vec4(0.5f, 0.0f, 0.0f,1.0f);
+                ImGui::TextColored(vec4(0.5f, 0.0f, 0.0f, 1.0f), _detailed ? "Warning: %s" : "%s", _log->text.c_str());
                 break;
 
             default:
-                statusLineColor  = vec4(0.0f, 0.0f, 0.0f,0.5f);
-        }
+                ImGui::TextColored(vec4(0.5f, 0.5f, 0.5f, 1.0f), _detailed ? "Message: %s" : "%s", _log->text.c_str());
 
-        ImGui::TextColored(statusLineColor, "%s", lastLog->text.c_str());
+        }
+    };
+
+    if( auto last_log = Log::GetLastMessage() )
+    {
+        draw_log_line(last_log);
+
+        if( ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            draw_log_line(Log::GetLastMessage(), true);
+            ImGui::EndTooltip();
+        }
     }
 }
 
@@ -906,6 +913,13 @@ void AppView::draw_tool_bar()
     // small margin
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
     ImGui::BeginGroup();
+
+    // compile
+    if (ImGui::Button(ICON_FA_DATABASE, m_context->settings->ui_toolButton_size) && m_context->vm->is_program_stopped())
+    {
+        m_context->app->vm_compile_and_load_program();
+    }
+    ImGui::SameLine();
 
     // run
     bool isRunning = m_context->vm->is_program_running();

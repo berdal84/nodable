@@ -48,6 +48,7 @@ namespace Nodable
         void            vm_step_over();
         void            vm_stop();
         void            vm_reset();
+        bool vm_compile_and_load_program();
 
     private:
 	    AppView*        m_view;
