@@ -313,6 +313,7 @@ std::unique_ptr<const Code> Asm::Compiler::compile(Node* _program_graph)
     if ( is_program_valid(_program_graph))
     {
         compile_program(_program_graph);
+        LOG_MESSAGE("Compiler", "Program compiled.\n");
         return std::move(m_temp_code);
     }
     return nullptr;

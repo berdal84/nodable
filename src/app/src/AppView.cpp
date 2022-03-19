@@ -588,7 +588,6 @@ void AppView::draw_vm_view()
             ImGui::Text("%s: %#16llx (instruction pointer)",
                         Asm::to_string(Register::eip),
                         vm->read_register(Register::eip));
-            //ImGui::Text("epb: %#16llx", vm->get_register_val(Asm::Register::ebp));
             ImGui::Unindent();
         }
 

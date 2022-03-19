@@ -26,7 +26,7 @@ void VM::clear_registers()
 void VM::run_program()
 {
     NODABLE_ASSERT(m_program_asm_code);
-    LOG_VERBOSE("VM", "Running...\n")
+    LOG_MESSAGE("VM", "Running program ...\n")
     m_is_program_running = true;
 
     reset_cursor();
@@ -36,6 +36,7 @@ void VM::run_program()
         _stepOver();
     }
     stop_program();
+    LOG_MESSAGE("VM", "Program terminated\n")
 }
 
 void VM::stop_program()
@@ -43,7 +44,7 @@ void VM::stop_program()
     m_is_program_running = false;
     m_is_debugging = false;
     m_next_node = nullptr;
-    LOG_VERBOSE("VM", "Stopped.\n")
+    LOG_MESSAGE("VM", "Program stopped\n")
 }
 
 void VM::release_program()
@@ -230,8 +231,8 @@ bool VM::step_over()
                 }
             }
         }
+        LOG_MESSAGE("VM", "Step over (current line %#1llx)\n", next_instr->m_line)
     }
-
 
     return continue_execution;
 }
@@ -244,6 +245,7 @@ void VM::debug_program()
     reset_cursor();
     clear_registers();
     m_next_node = m_program_asm_code->get_meta_data().root_node;
+    LOG_MESSAGE("VM", "Debugging program ...\n")
 }
 
 bool VM::is_program_over() const
