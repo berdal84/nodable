@@ -52,6 +52,9 @@ namespace Nodable {
         vec4 ui_button_hoveredColor;
         vec4 ui_button_color;
         vec2 ui_toolButton_size;
+        float ui_history_btn_spacing;
+        float ui_history_btn_height;
+        float ui_history_btn_width_max;
         const char* ui_splashscreen_imagePath;
         bool experimental_graph_autocompletion;
         bool experimental_hybrid_history;

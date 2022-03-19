@@ -19,37 +19,27 @@ Settings* Settings::create_default()
     // splashscreen
     settings->ui_splashscreen_imagePath = "images/nodable-logo-xs.png";
 
-    // text
-    settings->ui_text_fonts = {
-            {
-                    "Medium 18px",
-                    18.0f,
-                    "fonts/JetBrainsMono-Medium.ttf",
-                    true
-            },
-            {
-                    "Bold 25px",
-                    25.0f,
-                    "fonts/JetBrainsMono-Bold.ttf",
-                    true
-            },
-            {
-                    "Regular 18px",
-                    18.0f,
-                    "fonts/JetBrainsMono-Regular.ttf",
-                    true
-            }
-    };
 
-    settings->ui_text_defaultFontsId[FontSlot_Paragraph] = "Medium 18px";
-    settings->ui_text_defaultFontsId[FontSlot_Heading]   = "Bold 25px";
-    settings->ui_text_defaultFontsId[FontSlot_Code]      = "Regular 18px";
+    {
+        constexpr const char *k_paragraph = "Paragraph";
+        constexpr const char *k_heading   = "Heading 1";
+        constexpr const char *k_code      = "Code";
+        constexpr const char *k_tool      = "Tool Button";
 
-    settings->ui_icons = {
-            "Icons",
-            18.0f,
-            "fonts/fa-solid-900.ttf"
-    };
+        settings->ui_text_fonts = {
+            // id          , font_path                          , size , icons? , icons size
+            { k_paragraph  , "fonts/JetBrainsMono-Medium.ttf"   , 18.0f, true   , 18.0f      },
+            { k_heading    , "fonts/JetBrainsMono-Bold.ttf"     , 25.0f, true   , 18.0f      },
+            { k_code       , "fonts/JetBrainsMono-Regular.ttf"  , 18.0f, true   , 18.0f      },
+            { k_tool       , "fonts/JetBrainsMono-Bold.ttf"     , 16.0f, true   , 14.0f      }
+        };
+
+        settings->ui_text_defaultFontsId[FontSlot_Paragraph] = k_paragraph;
+        settings->ui_text_defaultFontsId[FontSlot_Heading]   = k_heading;
+        settings->ui_text_defaultFontsId[FontSlot_Code]      = k_code;
+        settings->ui_text_defaultFontsId[FontSlot_ToolBtn]   = k_tool;
+    }
+    settings->ui_icons = { "Icons", "fonts/fa-solid-900.ttf" };
 
 
     settings->ui_text_textEditorPalette       = {
@@ -111,7 +101,12 @@ Settings* Settings::create_default()
     settings->ui_button_color                 = vec4(0.50f, 0.50f, 0.50f, 0.63f);
     settings->ui_button_hoveredColor          = vec4(0.70f, 0.70f, 0.70f, 0.95f);
     settings->ui_button_activeColor           = vec4(0.98f, 0.73f, 0.29f, 0.95f);
-    settings->ui_toolButton_size              = vec2(24.0f, 30.0f);
+    settings->ui_toolButton_size              = vec2(0.0f, 25.0f);
+
+    // history
+    settings->ui_history_btn_spacing            = 1.f;
+    settings->ui_history_btn_height             = 10.f;
+    settings->ui_history_btn_width_max          = 20.f;
 
     // Misc.
     settings->experimental_graph_autocompletion = false;

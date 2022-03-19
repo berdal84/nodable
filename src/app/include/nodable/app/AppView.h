@@ -52,7 +52,7 @@ namespace Nodable
         void draw_tool_bar();
         void draw_vm_view();
 
-        ImFont* load_font(const FontConf &fontConf);
+        ImFont* load_font(const FontConf &_config);
         ImFont* get_font_by_id(const char *id);
 
         AppContext*        m_context;

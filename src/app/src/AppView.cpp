@@ -125,9 +125,9 @@ ImFont* AppView::get_font_by_id(const char *id) {
     return m_loaded_fonts.at(id );
 }
 
-ImFont* AppView::load_font(const FontConf &fontConf) {
-
-    NODABLE_ASSERT(m_loaded_fonts.find(fontConf.id) == m_loaded_fonts.end()); // do not allow the use of same key for different fonts
+ImFont* AppView::load_font(const FontConf &_config)
+{
+    NODABLE_ASSERT(m_loaded_fonts.find(_config.id) == m_loaded_fonts.end()); // do not allow the use of same key for different fonts
 
     ImFont*  font     = nullptr;
     auto&    io       = ImGui::GetIO();
@@ -140,33 +140,40 @@ ImFont* AppView::load_font(const FontConf &fontConf) {
         config.OversampleV = 1;
 
         //io.Fonts->AddFontDefault();
-        std::string fontPath = m_context->app->get_asset_path(fontConf.path);
+        std::string fontPath = m_context->app->get_asset_path(_config.path);
         LOG_VERBOSE("AppView", "Adding font from file ... %s\n", fontPath.c_str())
-        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), fontConf.size, &config);
+        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.size, &config);
     }
 
     // Add Icons my merging to previous font.
-    if ( fontConf.enableIcons ) {
+    if ( _config.icons_enable )
+    {
         // merge in icons from Font Awesome
         static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
         ImFontConfig config;
         config.OversampleH = 3;
         config.OversampleV = 1;
-        config.MergeMode = true;
-        config.PixelSnapH = true;
-        config.GlyphMinAdvanceX = settings->ui_icons.size; // monospace to fix text alignment in drop down menus.
+        config.MergeMode   = true;
+        config.PixelSnapH  = true;
+        config.GlyphOffset.y = -(_config.icons_size - _config.size)*0.5f;
+        config.GlyphMinAdvanceX = _config.icons_size; // monospace to fix text alignment in drop down menus.
         auto fontPath = m_context->app->get_asset_path(settings->ui_icons.path);
-        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->ui_icons.size, &config, icons_ranges);
+        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.icons_size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to font ...\n")
     }
 
-    m_loaded_fonts.insert({fontConf.id, font});
-    LOG_MESSAGE("AppView", "Font %s added to register with the id \"%s\"\n", fontConf.path, fontConf.id)
+    m_loaded_fonts.insert({_config.id, font});
+    LOG_MESSAGE("AppView", "Font %s added to register with the id \"%s\"\n", _config.path, _config.id)
     return font;
 }
 
 bool AppView::draw()
 {
+    App *app = m_context->app;
+    VM* vm   = m_context->vm;
+
+    m_context->elapsed_time += ImGui::GetIO().DeltaTime;
+
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(m_sdl_window);
 	ImGui::NewFrame();
@@ -188,8 +195,7 @@ bool AppView::draw()
 
 		// Get current file's history
 		History* currentFileHistory = nullptr;
-
-		if ( File* file = m_context->app->get_curr_file())
+        if ( File* file = app->get_curr_file())
         {
             currentFileHistory = file->getHistory();
         }
@@ -219,31 +225,41 @@ bool AppView::draw()
 
             bool redock_all = false;
 
-            if (ImGui::BeginMenuBar()) {
-                if (ImGui::BeginMenu("File")) {
+            if (ImGui::BeginMenuBar())
+            {
+                if (ImGui::BeginMenu("File"))
+                {
                     //ImGui::MenuItem(ICON_FA_FILE   "  New", "Ctrl + N");
                     if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) browse_file();
-                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) m_context->app->save_file();
-                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) m_context->app->close_file();
+                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) app->save_file();
+                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) app->close_file();
 
                     FileView *fileView = nullptr;
                     bool auto_paste;
-                    if (auto file = m_context->app->get_curr_file()) {
+                    if (auto file = app->get_curr_file())
+                    {
                         fileView = file->getView();
                         auto_paste = fileView->experimental_clipboard_auto_paste();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, fileView)) {
+                    if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, fileView))
+                    {
                         fileView->experimental_clipboard_auto_paste(!auto_paste);
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4")) m_context->app->flag_to_stop();
+                    if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4"))
+                    {
+                        app->flag_to_stop();
+                    }
 
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("Edit")) {
-                    if (currentFileHistory) {
+                bool vm_is_stopped = vm->is_program_stopped();
+                if (ImGui::BeginMenu("Edit"))
+                {
+                    if (currentFileHistory)
+                    {
                         if (ImGui::MenuItem("Undo", "Ctrl + Z")) currentFileHistory->undo();
                         if (ImGui::MenuItem("Redo", "Ctrl + Y")) currentFileHistory->redo();
                         ImGui::Separator();
@@ -251,7 +267,7 @@ bool AppView::draw()
 
                     auto has_selection = NodeView::GetSelected() != nullptr;
 
-                    if ( ImGui::MenuItem("Delete", "Del.", false, has_selection && m_context->vm->is_program_stopped() ) )
+                    if ( ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped) )
                     {
                         EventManager::push_event(EventType::delete_node_action_triggered);
                     }
@@ -268,68 +284,79 @@ bool AppView::draw()
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("View")) {
+                if (ImGui::BeginMenu("View"))
+                {
                     //auto frame = ImGui::MenuItem("Frame All", "F");
                     redock_all |= ImGui::MenuItem("Redock documents");
 
                     ImGui::Separator();
-                    auto viewDetailMinimalist = ImGui::MenuItem("Minimalist View", "",
-                                                                NodeView::s_viewDetail == NodeViewDetail::Minimalist);
-                    auto viewDetailEssential = ImGui::MenuItem("Essential View", "",
-                                                               NodeView::s_viewDetail == NodeViewDetail::Essential);
-                    auto viewDetailExhaustive = ImGui::MenuItem("Exhaustive View", "",
-                                                                NodeView::s_viewDetail == NodeViewDetail::Exhaustive);
+                    bool minimalist = ImGui::MenuItem("Minimalist View" , "", NodeView::s_viewDetail == NodeViewDetail::Minimalist);
+                    bool essential  = ImGui::MenuItem("Essential View"  , "", NodeView::s_viewDetail == NodeViewDetail::Essential);
+                    bool exhaustive = ImGui::MenuItem("Exhaustive View" , "", NodeView::s_viewDetail == NodeViewDetail::Exhaustive);
 
-                    if (viewDetailMinimalist) {
+
+                    if (minimalist)
+                    {
                         NodeView::SetDetail(NodeViewDetail::Minimalist);
-                    } else if (viewDetailEssential) {
+                    }
+                    else if (essential)
+                    {
                         NodeView::SetDetail(NodeViewDetail::Essential);
-                    } else if (viewDetailExhaustive) {
+                    }
+                    else if (exhaustive)
+                    {
                         NodeView::SetDetail(NodeViewDetail::Exhaustive);
                     }
 
                     ImGui::Separator();
-                    m_show_properties_editor = ImGui::MenuItem(ICON_FA_COGS "  Show Properties", "",
-                                                               m_show_properties_editor);
-                    m_show_imgui_demo = ImGui::MenuItem("Show ImGui Demo", "", m_show_imgui_demo);
+                    m_show_properties_editor = ImGui::MenuItem(ICON_FA_COGS " Show Properties", "", m_show_properties_editor);
+                    m_show_imgui_demo        = ImGui::MenuItem("Show ImGui Demo", "", m_show_imgui_demo);
 
                     ImGui::Separator();
 
-                    if (SDL_GetWindowFlags(m_sdl_window) & SDL_WINDOW_FULLSCREEN_DESKTOP) {
-                        auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", true);
-                        if (toggleFullscreen)
+                    bool is_fullscreen = SDL_GetWindowFlags(m_sdl_window) & SDL_WINDOW_FULLSCREEN_DESKTOP;
+                    if ( ImGui::MenuItem("Fullscreen", "", is_fullscreen) )
+                    {
+                        if (is_fullscreen)
+                        {
                             SDL_SetWindowFullscreen(m_sdl_window, 0);
-                    } else {
-                        auto toggleFullscreen = ImGui::MenuItem("Fullscreen", "", false);
-                        if (toggleFullscreen) {
+                        }
+                        else
+                        {
                             SDL_SetWindowFullscreen(m_sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
                         }
                     }
-
                     ImGui::Separator();
-
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("Run")) {
-                    if (ImGui::MenuItem(ICON_FA_PLAY" Run") && m_context->vm->is_program_stopped()) {
-                        m_context->app->vm_run();
+                if (ImGui::BeginMenu("Run"))
+                {
+                    bool vm_is_debugging = vm->is_debugging();
+
+                    if (ImGui::MenuItem(ICON_FA_PLAY" Run", "", false, vm_is_stopped) )
+                    {
+                        app->vm_run();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_BUG" Debug") && m_context->vm->is_program_stopped()) {
-                        m_context->app->vm_debug();
+                    if (ImGui::MenuItem(ICON_FA_BUG" Debug", "", false, vm_is_stopped) )
+                    {
+                        app->vm_debug();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over") && m_context->vm->is_debugging()) {
-                        m_context->app->vm_step_over();
+                    if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over", "", false, vm_is_debugging) )
+                    {
+                        app->vm_step_over();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_STOP" Stop") && !m_context->vm->is_program_stopped()) {
-                        m_context->app->vm_stop();
+                    if (ImGui::MenuItem(ICON_FA_STOP" Stop", "", false, !vm_is_stopped) )
+                    {
+                        app->vm_stop();
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_UNDO " Reset")) {
-                        m_context->app->vm_stop();
+                    if (ImGui::MenuItem(ICON_FA_UNDO " Reset", "", false, vm_is_stopped))
+                    {
+                        app->vm_reset();
                     }
                     ImGui::EndMenu();
                 }
@@ -351,28 +378,35 @@ bool AppView::draw()
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("An issue ?")) {
-                    if (ImGui::MenuItem("Report on Github.com")) {
+                if (ImGui::BeginMenu("An issue ?"))
+                {
+                    if (ImGui::MenuItem("Report on Github.com"))
+                    {
                         System::OpenURL("https://github.com/berdal84/Nodable/issues");
                     }
 
-                    if (ImGui::MenuItem("Report by email")) {
+                    if (ImGui::MenuItem("Report by email"))
+                    {
                         System::OpenURL("mail:berenger@dalle-cort.fr");
                     }
 
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("Help")) {
-                    if (ImGui::MenuItem("Show Startup Screen", "F1")) {
+                if (ImGui::BeginMenu("Help"))
+                {
+                    if (ImGui::MenuItem("Show Startup Screen", "F1"))
+                    {
                         m_show_startup_window = true;
                     }
 
-                    if (ImGui::MenuItem("Browse source code")) {
+                    if (ImGui::MenuItem("Browse source code"))
+                    {
                         System::OpenURL("https://www.github.com/berdal84/nodable");
                     }
 
-                    if (ImGui::MenuItem("Credits")) {
+                    if (ImGui::MenuItem("Credits"))
+                    {
                         System::OpenURL("https://github.com/berdal84/nodable#credits-");
                     }
 
@@ -388,8 +422,8 @@ bool AppView::draw()
              * Main Layout
              */
 
-            ImGuiID dockspace_main = ImGui::GetID("dockspace_main");
-            ImGuiID dockspace_center = ImGui::GetID("dockspace_center");
+            ImGuiID dockspace_main       = ImGui::GetID("dockspace_main");
+            ImGuiID dockspace_center     = ImGui::GetID("dockspace_center");
             ImGuiID dockspace_side_panel = ImGui::GetID("dockspace_side_panel");
 
 
@@ -397,9 +431,7 @@ bool AppView::draw()
                 ImGui::DockBuilderRemoveNode(dockspace_main); // Clear out existing layout
                 ImGui::DockBuilderAddNode(dockspace_main, ImGuiDockNodeFlags_DockSpace);
                 ImGui::DockBuilderSetNodeSize(dockspace_main, ImGui::GetMainViewport()->Size);
-                ImGui::DockBuilderSplitNode(dockspace_main, ImGuiDir_Right,
-                                            m_context->settings->ui_layout_propertiesRatio, &dockspace_side_panel,
-                                            NULL);
+                ImGui::DockBuilderSplitNode(dockspace_main, ImGuiDir_Right, m_context->settings->ui_layout_propertiesRatio, &dockspace_side_panel, NULL);
 
                 ImGui::DockBuilderDockWindow(k_node_props_window_name, dockspace_side_panel);
                 ImGui::DockBuilderDockWindow(k_assembly_window_name, dockspace_side_panel);
@@ -415,9 +447,11 @@ bool AppView::draw()
             */
             ImGui::DockSpace(dockspace_main);
 
-            if (ImGui::Begin(k_node_props_window_name)) {
+            if (ImGui::Begin(k_node_props_window_name))
+            {
                 NodeView *view = NodeView::GetSelected();
-                if (view) {
+                if (view)
+                {
                     ImGui::Indent(10.0f);
                     NodeView::DrawNodeViewAsPropertiesPanel(view, &m_show_advanced_node_properties);
                 }
@@ -445,7 +479,7 @@ bool AppView::draw()
             // File info
             ImGui::Begin(k_file_info_window_name);
             {
-                const File* currFile = m_context->app->get_curr_file();
+                const File* currFile = app->get_curr_file();
 
                 if (currFile)
                 {
@@ -461,7 +495,7 @@ bool AppView::draw()
             ImGui::End();
 
             // Opened documents
-            for (size_t fileIndex = 0; fileIndex < m_context->app->get_file_count(); fileIndex++)
+            for (size_t fileIndex = 0; fileIndex < app->get_file_count(); fileIndex++)
             {
                 draw_file_editor(dockspace_main, redock_all, fileIndex);
             }
@@ -537,16 +571,17 @@ void AppView::draw_vm_view()
         ImGui::Text("Registers:");
         ImGui::Separator();
         {
+            using Asm::Register;
             ImGui::Indent();
             ImGui::Text("%s: %#16llx (primary accumulator)",
-                        Asm::to_string(Asm::Register::rax),
-                        vm->read_register(Asm::Register::rax));
+                        Asm::to_string(Register::rax),
+                        vm->read_register(Register::rax));
             ImGui::Text("%s: %#16llx (base register)",
-                        Asm::to_string(Asm::Register::rdx),
-                        vm->read_register(Asm::Register::rdx));
+                        Asm::to_string(Register::rdx),
+                        vm->read_register(Register::rdx));
             ImGui::Text("%s: %#16llx (instruction pointer)",
-                        Asm::to_string(Asm::Register::eip),
-                        vm->read_register(Asm::Register::eip));
+                        Asm::to_string(Register::eip),
+                        vm->read_register(Register::eip));
             //ImGui::Text("epb: %#16llx", vm->get_register_val(Asm::Register::ebp));
             ImGui::Unindent();
         }
@@ -696,28 +731,27 @@ void AppView::draw_properties_editor()
         ImGui::Indent();
             ImGui::SliderFloat("thickness", &settings->ui_wire_bezier_thickness, 0.5f, 10.0f);
             ImGui::SliderFloat("roundness", &settings->ui_wire_bezier_roundness, 0.0f, 1.0f);
-            ImGui::Checkbox("arrows", &settings->ui_wire_displayArrows);
+            ImGui::Checkbox   ("arrows"   , &settings->ui_wire_displayArrows);
         ImGui::Unindent();
 
         ImGui::Text("Nodes:");
         ImGui::Indent();
-            ImGui::SliderFloat("member connector radius", &settings->ui_node_memberConnectorRadius, 1.0f, 10.0f);
-            ImGui::SliderFloat("padding", &settings->ui_node_padding, 1.0f, 20.0f);
-            ImGui::SliderFloat("speed", &settings->ui_node_speed, 0.0f, 100.0f);
-            ImGui::SliderFloat("spacing", &settings->ui_node_spacing, 0.0f, 100.0f);
-            ImGui::SliderFloat("node connector padding", &settings->ui_node_connector_padding, 0.0f, 100.0f);
-            ImGui::SliderFloat("node connector height", &settings->ui_node_connector_height, 2.0f, 100.0f);
-
-            ImGui::ColorEdit4("variables color", &settings->ui_node_variableColor.x);
-            ImGui::ColorEdit4("instruction color", &settings->ui_node_instructionColor.x);
-            ImGui::ColorEdit4("literal color", &settings->ui_node_literalColor.x);
-            ImGui::ColorEdit4("function color", &settings->ui_node_invokableColor.x);
-            ImGui::ColorEdit4("shadow color", &settings->ui_node_shadowColor.x);
-            ImGui::ColorEdit4("border color", &settings->ui_node_borderColor.x);
-            ImGui::ColorEdit4("high. color", &settings->ui_node_highlightedColor.x);
-            ImGui::ColorEdit4("border high. color", &settings->ui_node_borderHighlightedColor.x);
-            ImGui::ColorEdit4("fill color", &settings->ui_node_fillColor.x);
-            ImGui::ColorEdit4("node connector color", &settings->ui_node_nodeConnectorColor.x);
+            ImGui::SliderFloat("member connector radius"    , &settings->ui_node_memberConnectorRadius, 1.0f, 10.0f);
+            ImGui::SliderFloat("padding"                    , &settings->ui_node_padding, 1.0f, 20.0f);
+            ImGui::SliderFloat("speed"                      , &settings->ui_node_speed, 0.0f, 100.0f);
+            ImGui::SliderFloat("spacing"                    , &settings->ui_node_spacing, 0.0f, 100.0f);
+            ImGui::SliderFloat("node connector padding"     , &settings->ui_node_connector_padding, 0.0f, 100.0f);
+            ImGui::SliderFloat("node connector height"      , &settings->ui_node_connector_height, 2.0f, 100.0f);
+            ImGui::ColorEdit4("variables color"             , &settings->ui_node_variableColor.x);
+            ImGui::ColorEdit4("instruction color"           , &settings->ui_node_instructionColor.x);
+            ImGui::ColorEdit4("literal color"               , &settings->ui_node_literalColor.x);
+            ImGui::ColorEdit4("function color"              , &settings->ui_node_invokableColor.x);
+            ImGui::ColorEdit4("shadow color"                , &settings->ui_node_shadowColor.x);
+            ImGui::ColorEdit4("border color"                , &settings->ui_node_borderColor.x);
+            ImGui::ColorEdit4("high. color"                 , &settings->ui_node_highlightedColor.x);
+            ImGui::ColorEdit4("border high. color"          , &settings->ui_node_borderHighlightedColor.x);
+            ImGui::ColorEdit4("fill color"                  , &settings->ui_node_fillColor.x);
+            ImGui::ColorEdit4("node connector color"        , &settings->ui_node_nodeConnectorColor.x);
             ImGui::ColorEdit4("node connector hovered color", &settings->ui_node_nodeConnectorHoveredColor.x);
 
         ImGui::Unindent();
@@ -731,7 +765,8 @@ void AppView::draw_properties_editor()
     ImGui::Unindent();
 }
 
-void AppView::draw_startup_window() {
+void AppView::draw_startup_window()
+{
     if (m_show_startup_window && !ImGui::IsPopupOpen(m_startup_screen_title))
     {
         ImGui::OpenPopup(m_startup_screen_title);
@@ -801,11 +836,10 @@ void AppView::draw_startup_window() {
 
 }
 
-void AppView::draw_status_bar() const {
-
+void AppView::draw_status_bar() const
+{
     auto draw_log_line = [](const Log::Message* _log, bool _detailed = false)
     {
-
         switch ( _log->verbosity )
         {
             case Log::Verbosity::Error:
@@ -844,16 +878,17 @@ void AppView::draw_history_bar(History *currentFileHistory)
             m_is_history_dragged = false;
         }
 
-        auto historyButtonSpacing = float(1);
-        auto historyButtonHeight = float(10);
-        auto historyButtonMaxWidth = float(20);
+        Settings* settings  = m_context->settings;
+        float btn_spacing   = settings->ui_history_btn_spacing;
+        float btn_height    = settings->ui_history_btn_height;
+        float btn_width_max = settings->ui_history_btn_width_max;
 
-        auto historySize = currentFileHistory->get_size();
-        auto history_range = currentFileHistory->get_command_id_range();
-        auto availableWidth = ImGui::GetContentRegionAvailWidth();
-        auto historyButtonWidth = fmin(historyButtonMaxWidth,
-                                       availableWidth / float(historySize + 1) - historyButtonSpacing);
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(historyButtonSpacing, 0));
+        size_t              historySize    = currentFileHistory->get_size();
+        std::pair<int, int> history_range  = currentFileHistory->get_command_id_range();
+        float               avail_width    = ImGui::GetContentRegionAvailWidth();
+        float               btn_width      = fmin(btn_width_max, avail_width / float(historySize + 1) - btn_spacing);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(btn_spacing, 0));
 
         for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++)
         {
@@ -865,16 +900,17 @@ void AppView::draw_history_bar(History *currentFileHistory)
             if ( cmd_pos == 0)
             {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-                ImGui::Button(label.c_str(), vec2(historyButtonWidth, historyButtonHeight));
+                ImGui::Button(label.c_str(), vec2(btn_width, btn_height));
                 ImGui::PopStyleColor();
             }
             else // or a simple one for other history positions
             {
-                ImGui::Button(label.c_str(), vec2(historyButtonWidth, historyButtonHeight));
+                ImGui::Button(label.c_str(), vec2(btn_width, btn_height));
             }
 
             // Hovered item
-            if (ImGui::IsItemHovered()) {
+            if (ImGui::IsItemHovered())
+            {
                 if (ImGui::IsMouseDown(0)) // hovered + mouse down
                 {
                     m_is_history_dragged = true;
@@ -910,65 +946,71 @@ void AppView::browse_file()
 
 void AppView::draw_tool_bar()
 {
+    App* app           = m_context->app;
+    VM*  vm            = m_context->vm;
+    Settings* settings = m_context->settings;
+    bool running       = vm->is_program_running();
+    bool debugging     = vm->is_debugging();
+    bool stopped       = vm->is_program_stopped();
+    vec2 &button_size  = settings->ui_toolButton_size;
+    vec4 &active_color = settings->ui_button_activeColor;
+
+    ImGui::PushFont(m_fonts[FontSlot_ToolBtn]);
+
     // small margin
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
     ImGui::BeginGroup();
 
     // compile
-    if (ImGui::Button(ICON_FA_DATABASE, m_context->settings->ui_toolButton_size) && m_context->vm->is_program_stopped())
+    if (ImGui::Button(ICON_FA_DATABASE " compile", button_size) && stopped)
     {
-        m_context->app->vm_compile_and_load_program();
+        app->vm_compile_and_load_program();
     }
     ImGui::SameLine();
 
     // run
-    bool isRunning = m_context->vm->is_program_running();
-    if ( isRunning )
-        ImGui::PushStyleColor(ImGuiCol_Button, m_context->settings->ui_button_activeColor);
+    if ( running ) ImGui::PushStyleColor(ImGuiCol_Button, active_color);
 
-    if (ImGui::Button(ICON_FA_PLAY, m_context->settings->ui_toolButton_size) && m_context->vm->is_program_stopped())
+    if (ImGui::Button(ICON_FA_PLAY " run", button_size) && stopped)
     {
-        m_context->app->vm_run();
+        app->vm_run();
     }
-    if ( isRunning )
-        ImGui::PopStyleColor();
+    if ( running ) ImGui::PopStyleColor();
+
     ImGui::SameLine();
 
     // debug
-    bool isDebugging = m_context->vm->is_debugging();
-    if ( isDebugging )
-        ImGui::PushStyleColor(ImGuiCol_Button, m_context->settings->ui_button_activeColor);
-    if (ImGui::Button(ICON_FA_BUG, m_context->settings->ui_toolButton_size) && m_context->vm->is_program_stopped())
+    if ( debugging ) ImGui::PushStyleColor(ImGuiCol_Button, active_color);
+    if (ImGui::Button(ICON_FA_BUG " debug", button_size) && stopped)
     {
-        m_context->app->vm_debug();
+        app->vm_debug();
     }
-    if ( isDebugging )
-        ImGui::PopStyleColor();
+    if ( debugging ) ImGui::PopStyleColor();
     ImGui::SameLine();
 
     // stepOver
-    if (ImGui::Button(ICON_FA_ARROW_RIGHT, m_context->settings->ui_toolButton_size) && m_context->vm->is_debugging())
+    if (ImGui::Button(ICON_FA_ARROW_RIGHT " step over", button_size) && vm->is_debugging())
     {
-        m_context->vm->step_over();
+        vm->step_over();
     }
     ImGui::SameLine();
 
     // stop
-    if (ImGui::Button(ICON_FA_STOP, m_context->settings->ui_toolButton_size) && !m_context->vm->is_program_stopped())
+    if (ImGui::Button(ICON_FA_STOP " stop", button_size) && !stopped)
     {
-        m_context->app->vm_stop();
+        app->vm_stop();
     }
     ImGui::SameLine();
 
     // reset
-    if ( ImGui::Button(ICON_FA_UNDO, m_context->settings->ui_toolButton_size))
+    if ( ImGui::Button(ICON_FA_UNDO " reset graph", button_size))
     {
-        m_context->app->vm_reset();
+        app->vm_reset();
     }
     ImGui::SameLine();
     ImGui::EndGroup();
 
-    m_context->elapsed_time += ImGui::GetIO().DeltaTime;
+    ImGui::PopFont();
 }
 
 void AppView::handle_events()

@@ -36,7 +36,7 @@ namespace Nodable
         Asm::VM*  vm;
         const Language* language;
         TextureManager* texture_manager;
-        double elapsed_time;
+        float           elapsed_time;
     private:
         static AppContext* create_default(App* _app);
     };
