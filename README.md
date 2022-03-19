@@ -62,24 +62,24 @@ Requirements:
 Clone the Nodable repository (with submodules):
 
 ```
-git clone --branch v0.8.2 https://github.com/berdal84/Nodable.git --recurse-submodules
+git clone --branch v0.9.0 https://github.com/berdal84/Nodable.git --recurse-submodules
 ```
 
 Configure and run the build:
 
-From nodable base directory type the following command to configure a new ./build directory from sources in current current directory:
 ```
 cmake . -B build
 ```
-Then cmake must have created the `./build` folder. We can now build the program from this configured folder.
 
-Enter the following command to ask cmake to build from `./build` directory using a `Release` configuration.
+Build in release:
+
 ```
 cmake --build build --config Release --target install
 ```
 *Note: `--target install` is to create a clean `./bin/Release` directory with only necessary files to run the software.*
 
 Once build succeed, move to install folder and run `./nodable`:
+
 ```
 cd bin && ./nodable
 ```
