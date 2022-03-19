@@ -139,7 +139,7 @@ void Variant::set_meta_type(std::shared_ptr<const R::MetaType> _type) // TODO: r
 }
 
 template<>
-[[nodiscard]] i64_t Variant::convert_to<i64_t>()const
+[[nodiscard]] i64 Variant::convert_to<i64>()const
 {
     switch (get_meta_type()->get_type())
     {

@@ -540,13 +540,13 @@ void AppView::draw_vm_view()
             ImGui::Indent();
             ImGui::Text("%s: %#16llx (primary accumulator)",
                         Asm::to_string(Asm::Register::rax),
-                        vm->get_register_val(Asm::Register::rax));
+                        vm->read_register(Asm::Register::rax));
             ImGui::Text("%s: %#16llx (base register)",
                         Asm::to_string(Asm::Register::rdx),
-                        vm->get_register_val(Asm::Register::rdx));
+                        vm->read_register(Asm::Register::rdx));
             ImGui::Text("%s: %#16llx (instruction pointer)",
                         Asm::to_string(Asm::Register::eip),
-                        vm->get_register_val(Asm::Register::eip));
+                        vm->read_register(Asm::Register::eip));
             //ImGui::Text("epb: %#16llx", vm->get_register_val(Asm::Register::ebp));
             ImGui::Unindent();
         }

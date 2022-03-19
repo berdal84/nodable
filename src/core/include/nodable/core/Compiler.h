@@ -22,7 +22,7 @@ namespace Nodable
          * Enum to identify each register, we try here to follow the x86_64 DASM reference from
          * @see https://www.cs.uaf.edu/2017/fall/cs301/reference/x86_64.html
          */
-        enum Register {
+        enum class Register : u8 {
             rax = 0, // accumulator
             rdx,     // storage
             eip,     // The instruction pointer.
@@ -39,7 +39,7 @@ namespace Nodable
          * Enum to identify each function identifier.
          * A function is specified when using "call" instruction.
          */
-        enum class FctId: i64_t
+        enum class FctId: u64 // Instruction arguments are u64
         {
             eval_member,
             eval_node,
@@ -57,7 +57,7 @@ namespace Nodable
         /**
          * Enumerate each possible instruction.
          */
-        enum class Instr_t: i8_t
+        enum class Instr_t: u8
         {
             call,
             mov,
@@ -84,15 +84,12 @@ namespace Nodable
             Instr(Instr_t _type, long _line)
                 : m_type(_type)
                 , m_line(_line)
-                , m_left_h_arg(0)
-                , m_right_h_arg(0)
-                , m_comment()
             {}
 
-            i64_t   m_line;
-            Instr_t m_type;
-            i64_t   m_left_h_arg;
-            i64_t   m_right_h_arg;
+            u64         m_line;
+            Instr_t     m_type;
+            u64         m_arg0 = 0;
+            u64         m_arg1 = 0;
             std::string m_comment;
             static std::string to_string(const Instr&);
         };
@@ -112,8 +109,8 @@ namespace Nodable
 
             Instr*                     push_instr(Instr_t _type);
             inline size_t              size() const { return  m_instructions.size(); }
-            inline Instr*              at(size_t _index) const { return  m_instructions.at(_index); }
-            long                       get_next_index() const { return m_instructions.size(); }
+            inline Instr*              get_instruction_at(size_t _index) const { return  m_instructions.at(_index); }
+            size_t                     get_next_index() const { return m_instructions.size(); }
             const std::vector<Instr*>& get_instructions()const { return m_instructions; }
             const MetaData&            get_meta_data()const { return m_meta_data; }
         private:
@@ -130,12 +127,11 @@ namespace Nodable
             Compiler()= default;
             std::unique_ptr<const Code> compile(Node* _program_graph);
         private:
-            /** user is owner for Code*, delete if you don't want to use it anymore */
             void compile_program(Node*);
             bool is_program_valid(const Node*);
             void compile_node(const Node*);
             void compile_member(const Member*);
-            std::unique_ptr<Code> m_output;
+            std::unique_ptr<Code> m_temp_code;
         };
     }
 }

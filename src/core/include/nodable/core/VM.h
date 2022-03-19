@@ -32,23 +32,23 @@ namespace Nodable
             inline bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
                    bool           step_over();
             inline const Node*    get_next_node() const {return m_next_node; }
-            inline const Variant* get_last_result() { return (Variant*)m_register[Register::rax]; }
+            inline const Variant* get_last_result() { return (Variant*)m_register[(size_t)Register::rax]; }
             bool                  is_program_over() const;
             std::weak_ptr<const Asm::Code> get_program_asm_code()const { return m_program_asm_code; }
             Instr*                get_next_instr() const;
-            int64_t               get_register_val(Register _register);
-
+            inline u64            read_register(Register _register) const { return m_register[(size_t)_register]; }
+            inline void           write_register(Register _register, u64 _value) { m_register[(size_t)_register] = _value; }
         private:
             void                  clear_registers();
-            void                  advance_cursor(i64_t _amount = 1) { m_register[Register::eip] += _amount; }
-            void                  reset_cursor(){ m_register[Asm::Register::eip] = 0; };
+            void                  advance_cursor(i64 _amount = 1) { m_register[(size_t)Register::eip] += _amount; }
+            void                  reset_cursor(){ m_register[(size_t)Asm::Register::eip] = 0; };
             bool                  _stepOver();
             std::shared_ptr<const Asm::Code> m_program_asm_code;
             Node*                 m_next_node;
             bool                  m_is_program_running;
             bool                  m_is_debugging;
             Instr*                m_last_step_next_instr;
-            i64_t                 m_register[Register::COUNT];
+            u64                   m_register[(size_t)Register::COUNT];
         };
     }
 }

@@ -20,7 +20,7 @@ void VM::clear_registers()
 {
     for( size_t i = 0; i < std::size( m_register ); ++i )
     {
-        m_register[i] = (i64_t)0;
+        m_register[i] = 0;
     }
 }
 void VM::run_program()
@@ -76,9 +76,9 @@ bool VM::_stepOver()
 
         case Instr_t::mov:
         {
-            auto dst_register = (Register)next_instr->m_left_h_arg;
-            auto src_register = (Register)next_instr->m_right_h_arg;
-            m_register[dst_register] = m_register[src_register];
+            auto dst_register = (Register)next_instr->m_arg0;
+            auto src_register = (Register)next_instr->m_arg1;
+            write_register(dst_register, read_register(src_register));
             advance_cursor();
             success = true;
             break;
@@ -86,7 +86,7 @@ bool VM::_stepOver()
 
         case Instr_t::call:
         {
-            auto fct_id = (FctId)next_instr->m_left_h_arg;
+            auto fct_id = (FctId)next_instr->m_arg0;
 
             switch( fct_id )
             {
@@ -100,7 +100,7 @@ bool VM::_stepOver()
 
                 case FctId::pop_stack_frame:
                 {
-                    auto scope = ((Node *) next_instr->m_right_h_arg)->get<Scope>();
+                    auto scope = ((Node *) next_instr->m_arg1)->get<Scope>();
                     for( VariableNode* each_var : scope->get_variables() )
                     {
                         if (each_var->is_defined() )
@@ -116,7 +116,7 @@ bool VM::_stepOver()
 
                 case FctId::eval_node:
                 {
-                    auto node = (Node*)next_instr->m_right_h_arg;
+                    auto node = (Node*)next_instr->m_arg1;
                     node->eval();
                     node->set_dirty(false);
 
@@ -124,7 +124,7 @@ bool VM::_stepOver()
                     if (node->props()->has(k_value_member_name) )
                     {
                         Member* member = node->props()->get(k_value_member_name);
-                        m_register[rax] = (i64_t) member->get_data(); // copy variant address
+                        write_register(Register::rax, (u64) member->get_data()); // copy variant address
                     }
 
                     advance_cursor();
@@ -134,8 +134,8 @@ bool VM::_stepOver()
 
                 case FctId::eval_member:
                 {
-                    auto member = (Member*)next_instr->m_right_h_arg;
-                    m_register[rax] = (i64_t) member->get_data(); //copy variant address
+                    auto member = (Member*)next_instr->m_arg1;
+                    write_register(Register::rax, (u64) member->get_data()); //copy variant address
                     advance_cursor();
                     success = true;
                     break;
@@ -147,21 +147,21 @@ bool VM::_stepOver()
 
         case Instr_t::jmp:
         {
-            advance_cursor(next_instr->m_left_h_arg);
+            advance_cursor(next_instr->m_arg0);
             success = true;
             break;
         }
 
         case Instr_t::jne:
         {
-            Variant* variant = ((Variant*)m_register[rax]);
+            Variant* variant = (Variant*)(m_register[(size_t)Register::rax]);
             if ( variant->convert_to<bool>() )
             {
                 advance_cursor();
             }
             else
             {
-                advance_cursor(next_instr->m_left_h_arg);
+                advance_cursor(next_instr->m_arg0);
             }
             success = true;
             break;
@@ -207,18 +207,18 @@ bool VM::step_over()
         auto next_instr = get_next_instr();
         if ( next_instr->m_type == Instr_t::call )
         {
-            switch ( (FctId)(next_instr->m_left_h_arg) )
+            switch ( (FctId)(next_instr->m_arg0) )
             {
                 case FctId::eval_member:
                 {
-                    auto member = (Member *)next_instr->m_right_h_arg;
+                    auto member = (Member *)next_instr->m_arg1;
                     m_next_node = member->get_owner();
                     break;
                 }
 
                 case FctId::eval_node:
                 {
-                    m_next_node = (Node*)next_instr->m_right_h_arg;
+                    m_next_node = (Node*)next_instr->m_arg1;
                     break;
                 }
 
@@ -246,14 +246,9 @@ void VM::debug_program()
     m_next_node = m_program_asm_code->get_meta_data().root_node;
 }
 
-int64_t VM::get_register_val(Register _register)
-{
-    return m_register[_register];
-}
-
 bool VM::is_program_over() const
 {
-    auto next_inst_id = (size_t)m_register[Register::eip];
+    auto next_inst_id = read_register(Register::eip);
     return next_inst_id >= m_program_asm_code->size();
 }
 
@@ -261,8 +256,8 @@ Instr* VM::get_next_instr() const
 {
     if ( !is_program_over() )
     {
-        auto next_inst_id = (size_t)m_register[Register::eip];
-        return m_program_asm_code->at(next_inst_id);
+        auto next_inst_id = read_register(Register::eip);
+        return m_program_asm_code->get_instruction_at(next_inst_id);
     }
     return nullptr;
 }
