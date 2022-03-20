@@ -24,6 +24,5 @@ target_include_directories(
 # Installation :
 #===============
 
-set(INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib/$<CONFIG>)
-install( TARGETS   nodable_core DESTINATION ${INSTALL_PATH} )
-install( DIRECTORY include/         DESTINATION ${INSTALL_PATH}/include FILES_MATCHING PATTERN "*.h")
+install( TARGETS   nodable_core ARCHIVE DESTINATION lib)
+install( DIRECTORY include/             DESTINATION lib/include FILES_MATCHING PATTERN "*.h")

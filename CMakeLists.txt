@@ -18,7 +18,7 @@ include( cmake/compiler-config.cmake )
 include( cmake/get-git-info.cmake )
 
 # If a default install prefix has not been set, we set it to ./bin
-set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/bin" CACHE PATH "..." FORCE)
+set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/out")
 
 # libraries (external)
 add_subdirectory( ./libs )
@@ -42,3 +42,8 @@ if ( ENABLE_TESTS )
     # nodable tests
     add_subdirectory( tests )
 endif()
+
+#  Packaging:
+#===========
+
+include(cmake/cpack.cmake)
