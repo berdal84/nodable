@@ -8,7 +8,7 @@
 namespace Nodable
 {
     // forward decl
-    struct AppContext;
+    class AppContext;
 
     /**
      * View is an abstract class to provide a GUI for a specific Node.

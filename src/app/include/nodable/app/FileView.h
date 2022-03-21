@@ -11,7 +11,7 @@ namespace Nodable
 {
     // forward declarations
     class File;
-    struct AppContext;
+    class AppContext;
 
 	class FileView : public View
 	{

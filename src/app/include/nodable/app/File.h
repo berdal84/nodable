@@ -22,7 +22,7 @@ namespace Nodable
     class Language;
     class History;
     class FileView;
-    struct AppContext;
+    class AppContext;
 
 	class File
 	{
