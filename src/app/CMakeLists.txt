@@ -91,6 +91,5 @@ add_custom_command(
 # Copy assets
 install( DIRECTORY ${NODABLE_APP_ASSETS_ABSOLUTE_DIR} DESTINATION . )
 install( FILES     ${PROJECT_SOURCE_DIR}/CHANGELOG.md DESTINATION . )
-
-# Copy executable
-install( TARGETS   nodable RUNTIME                    DESTINATION . )
+install( FILES     scripts/nodable.sh PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION . )
+install( TARGETS   nodable RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION bin )
