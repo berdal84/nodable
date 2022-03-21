@@ -19,14 +19,14 @@
 #productbuild                 = Mac OSX pkg
 
 if(WIN32)
-    set(_GENERATOR        NSIS)
+    set(_GENERATOR        ZIP)
     set(_SOURCE_GENERATOR ZIP)
 elseif(APPLE)
-    set(_GENERATOR        STGZ ) # or DragNDrop
-    set(_SOURCE_GENERATOR TGZ)
+    set(_GENERATOR        ZIP ) # or DragNDrop
+    set(_SOURCE_GENERATOR ZIP)
 elseif(UNIX)
-    set(_GENERATOR        STGZ)
-    set(_SOURCE_GENERATOR TGZ)
+    set(_GENERATOR        ZIP)
+    set(_SOURCE_GENERATOR ZIP)
 endif()
 
 message("cpack.cmake: _GENERATOR:        ${_GENERATOR}")
