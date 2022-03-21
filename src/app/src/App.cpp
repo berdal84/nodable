@@ -67,7 +67,7 @@ void App::shutdown()
 
 bool App::open_file(const ghc::filesystem::path& _filePath)
 {		
-	auto file = File::OpenFile(m_context, _filePath.string() );
+	auto file = File::OpenFile(m_context, _filePath.string(), _filePath.filename().string() );
 
 	if (file)
 	{

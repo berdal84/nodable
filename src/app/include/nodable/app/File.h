@@ -27,17 +27,12 @@ namespace Nodable
 	class File
 	{
 	public:
-		File(AppContext* _ctx, std::string, const char* /*_content*/);
+		File(AppContext* _ctx, std::string _path, std::string _name, const char* /*_content*/);
         ~File();
 
         observe::Event<GraphNode*> m_on_graph_changed_evt;
 
-		std::string                      getName()const
-        {
-            auto lastSlash = m_path.find_last_of('/');
-            return m_path.substr(lastSlash);
-        }
-
+		std::string                      getName()const { return m_name; }
         std::string                      getPath()const { return m_path; }
 		void                             save();
 		bool                             update();
@@ -49,12 +44,13 @@ namespace Nodable
 		inline History*                  getHistory() { return &m_history; }
         inline bool                      isOpen()  { return m_open; }
         inline GraphNode*                getGraph() { return m_graph; }
-        static File*                     OpenFile(AppContext* _ctx, std::string _filePath);
+        static File*                     OpenFile(AppContext* _ctx, const std::string& _path, const std::string& _name);
         AppContext*                      get_context() { return m_context; }
 	private:
 		AppContext*                m_context;
         bool                       m_open;
 		bool                       m_modified;
+		std::string                m_name;
 		std::string                m_path;
 		const AppNodeFactory       m_factory;
 		FileView*                  m_view;

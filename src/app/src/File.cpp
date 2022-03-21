@@ -12,8 +12,9 @@
 
 using namespace Nodable;
 
-File::File( AppContext* _context, std::string _path, const char* _content)
-    : m_path(_path)
+File::File( AppContext* _context, const std::string& _path, const std::string& _name,  const char* _content)
+    : m_name(_name)
+    , m_path(_path)
     , m_context(_context)
     , m_modified(false)
     , m_open(false)
@@ -62,15 +63,15 @@ void File::save()
 
 }
 
-File* File::OpenFile(AppContext* _ctx, std::string _filePath)
+File* File::OpenFile(AppContext* _ctx, const std::string& _path, const std::string& _name )
 {
-    LOG_MESSAGE( "File", "Loading file \"%s\"...\n", _filePath.c_str())
-	std::ifstream fileStream(_filePath);
+    LOG_MESSAGE( "File", "Loading file \"%s\"...\n", _path.c_str())
+	std::ifstream fileStream(_path);
     LOG_VERBOSE( "File", "Input file stream created.\n");
 
 	if (!fileStream.is_open())
 	{
-		LOG_ERROR("File", "Unable to load \"%s\"\n", _filePath.c_str())
+		LOG_ERROR("File", "Unable to load \"%s\"\n", _path.c_str())
 		return nullptr;
 	}
     LOG_VERBOSE( "File", "Input file stream is open, reading content ...\n");
@@ -80,10 +81,10 @@ File* File::OpenFile(AppContext* _ctx, std::string _filePath)
 
     LOG_VERBOSE( "File", "Content read, creating File object ...\n");
 
-	File* file = new File(_ctx, _filePath.c_str(), content.c_str());
+	File* file = new File(_ctx, _path, _name, content.c_str());
     file->m_open = true;
 
-    LOG_MESSAGE( "File", "File \"%s\" loaded.\n", _filePath.c_str())
+    LOG_MESSAGE( "File", "\"%s\" loaded (%s).\n", _name.c_str(), _path.c_str())
 
 	return file;
 }
