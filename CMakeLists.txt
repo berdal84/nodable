@@ -17,7 +17,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
 include( cmake/compiler-config.cmake )
 include( cmake/get-git-info.cmake )
 
-# If a default install prefix has not been set, we set it to ./bin
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/out")
 
 # libraries (external)
