@@ -72,11 +72,18 @@ jobs:
       shell: bash
       run: cmake --build . --config ${{env.buildType}} --target package
 
-      # Upload application binary
-    #--------------------------
-
-    - name: Upload application binary artifact
+    # Upload binary
+    #--------------
+    - name: Upload binary artifact
       uses: actions/upload-artifact@v2
       with:
         name: nodable-${{ runner.os }}
         path: ${{runner.workspace}}/Nodable/bin/*
+
+    # Upload package
+    #---------------
+    - name: Uploadpackage artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: nodable-package-${{ runner.os }}
+        path: ${{runner.workspace}}/Nodable/package/*.*
