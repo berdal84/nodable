@@ -27,7 +27,7 @@ namespace Nodable
 	class File
 	{
 	public:
-		File(AppContext* _ctx, std::string _path, std::string _name, const char* /*_content*/);
+		File(AppContext* _ctx, const std::string& _path, const std::string& _name, const char* /*_content*/);
         ~File();
 
         observe::Event<GraphNode*> m_on_graph_changed_evt;
