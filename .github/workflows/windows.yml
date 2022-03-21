@@ -62,20 +62,18 @@ jobs:
       shell: bash
       run: ctest -C ${{env.buildType}} --verbose  --output-on-failure
 
+    # Pack
+    #-----
+    - name: Pack
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --config ${{env.buildType}} --target package
+
     # Upload application binary
     #--------------------------
 
     - name: Upload application binary artifact
       uses: actions/upload-artifact@v2
       with:
-        name: nodable-${{ env.buildType }}-${{ runner.os }}
-        path: ${{runner.workspace}}/Nodable/bin/app/${{env.buildType}}
-
-    # Upload library (nodable_core) headers and *.lib files.
-    #------------------------------------------------------
-
-    - name: Upload library artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: core-${{ env.buildType }}-${{ runner.os }}
-        path: ${{runner.workspace}}/Nodable/bin/*
+        name: nodable-${{ runner.os }}
+        path: ${{runner.workspace}}/Nodable/bin/*.*
