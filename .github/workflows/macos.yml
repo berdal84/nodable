@@ -79,4 +79,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: nodable-${{ runner.os }}
-        path: ${{runner.workspace}}/Nodable/bin/nodable-installer.sh
+        path: ${{runner.workspace}}/Nodable/bin/*

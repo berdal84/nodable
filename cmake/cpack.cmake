@@ -46,7 +46,7 @@ set(CPACK_RESOURCE_FILE_LICENSE       "${PROJECT_SOURCE_DIR}/LICENSE.txt")
 set(CPACK_RESOURCE_FILE_README        "${PROJECT_SOURCE_DIR}/README.md")
 set(CPACK_PACKAGE_DIRECTORY           "${PROJECT_SOURCE_DIR}/bin")
 set(CPACK_PACKAGING_INSTALL_PREFIX    "/${_project_lower}")
-set(CPACK_PACKAGE_FILE_NAME           "${_project_lower}-installer")
+set(CPACK_PACKAGE_FILE_NAME           "${_project_lower}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME    "${_project_lower}-sources")
 
 # set(CPACK_SOURCE_IGNORE_FILES "${_cpack_ignore}")
