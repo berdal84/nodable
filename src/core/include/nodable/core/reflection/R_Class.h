@@ -6,7 +6,7 @@
 #include "R_Type.h"
 #include "R_MetaType.h"
 
-namespace Nodable::R
+namespace Nodable { namespace R
 {
     class Class;
     typedef std::shared_ptr<Class> Class_ptr;
@@ -29,4 +29,4 @@ namespace Nodable::R
         std::unordered_set<Class_ptr> m_parents;
         std::unordered_set<Class_ptr> m_children;
     };
-}
+} }

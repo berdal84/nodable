@@ -19,11 +19,10 @@ include( cmake/get-git-info.cmake )
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_LIST_DIR}/bin")
 
-# libraries (external)
-add_subdirectory( ./libs )
-
-# nodable
-add_subdirectory( ./src )
+#include subdirectories
+add_subdirectory(libs)     # libraries (SDL, lodepng, Dear ImGui, etc.)
+add_subdirectory(src/core) # nodable core (static library).
+add_subdirectory(src/app)  # nodable application (with gui).
 
 # Unit tests (gtest)
 if ( ENABLE_TESTS )

@@ -3,7 +3,6 @@
 
 #include <nodable/app/App.h>
 #include <nodable/app/AppView.h>
-#include <nodable/BuildInfo.h>
 
 using Verbosity = Nodable::Log::Verbosity;
 

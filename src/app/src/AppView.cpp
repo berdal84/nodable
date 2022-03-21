@@ -4,15 +4,15 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-#include <nodable/BuildInfo.h>
 #include <nodable/core/Texture.h>
-#include <nodable/app/Settings.h>
 #include <nodable/core/System.h>
+#include <nodable/core/Log.h>
+#include <nodable/app/build_info.h>
+#include <nodable/app/Settings.h>
 #include <nodable/app/App.h>
 #include <nodable/app/AppContext.h>
 #include <nodable/app/NodeView.h>
 #include <nodable/app/File.h>
-#include <nodable/core/Log.h>
 #include <nodable/app/FileView.h>
 #include <nodable/app/History.h>
 #include <nodable/app/constants.h>

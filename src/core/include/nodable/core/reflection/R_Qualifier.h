@@ -2,7 +2,7 @@
 
 #include "R_MACROS.h"
 
-namespace Nodable::R
+namespace Nodable { namespace R
 {
     /**
      * To qualify a base type
@@ -22,4 +22,4 @@ namespace Nodable::R
     R_ENUM_VALUE(Pointer)
     R_ENUM_VALUE(Const)
     R_ENUM_END
-}
+} }

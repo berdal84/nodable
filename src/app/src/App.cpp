@@ -2,8 +2,9 @@
 
 #include <algorithm>
 
-#include <nodable/BuildInfo.h>
-
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/DataAccess.h>
+#include <nodable/app/build_info.h> // file generated (aka configured) from build_info.h.in
 #include <nodable/app/NodeView.h>
 #include <nodable/app/AppView.h>
 #include <nodable/app/File.h>
@@ -16,9 +17,6 @@
 #include <nodable/app/commands/Cmd_DisconnectNodes.h>
 #include <nodable/app/commands/Cmd_DisconnectMembers.h>
 #include <nodable/app/commands/Cmd_Group.h>
-
-#include <nodable/core/VariableNode.h>
-#include <nodable/core/DataAccess.h>
 
 using namespace Nodable;
 

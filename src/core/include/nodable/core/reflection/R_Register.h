@@ -3,13 +3,17 @@
 #include <string>
 #include <map>
 #include <nodable/core/Log.h>
+#include <type_traits>
 #include "R_Type.h"
 #include "R_MetaType.h"
 
-namespace Nodable::R
+namespace Nodable { namespace R
 {
     template<typename T>
-    static constexpr bool is_class = std::is_class_v<T> && !std::is_same_v<T, std::string>;
+    struct is_class
+    {
+        constexpr static bool value = std::is_class<T>::value && !std::is_same<T, std::string>::value;
+    };
 
     /**
      * Static structure to store some register.
@@ -21,7 +25,7 @@ namespace Nodable::R
         static bool has_typeid(const std::string&);
         template<class T> constexpr static bool has_class()
         {
-            return std::is_member_function_pointer_v<decltype(&T::get_class)>;
+            return std::is_member_function_pointer<decltype(&T::get_class)>::value;
         }
     private:
         /** push template */
@@ -62,7 +66,7 @@ namespace Nodable::R
     public:
 
         /** detect if we push a class or a regular type */
-        template<typename T, bool is_class = is_class<T>>
+        template<typename T, bool is_class = is_class<T>::value>
         struct push : _push<T, is_class> {};
     };
-}
+} }

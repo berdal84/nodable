@@ -26,7 +26,7 @@
 #include "R_MACROS.h"
 #include "R_Register.h"
 
-namespace Nodable::R
+namespace Nodable { namespace R
 {
 
     /**
@@ -61,12 +61,12 @@ namespace Nodable::R
          * qualifier */
         if( std::is_pointer<T>::value )
         {
-            std::shared_ptr<const MetaType> base = get_meta_type<std::remove_pointer_t<T>>();
+            std::shared_ptr<const MetaType> base = get_meta_type<typename std::remove_pointer<T>::type>();
             result = MetaType::make_ptr(base );
         }
         else if( std::is_reference<T>::value )
         {
-            std::shared_ptr<const MetaType> base = get_meta_type<std::remove_reference_t<T>>();
+            std::shared_ptr<const MetaType> base = get_meta_type<typename std::remove_reference<T>::type>();
             result = MetaType::make_ref(base );
         }
         else
@@ -90,7 +90,7 @@ namespace Nodable::R
             return dynamic_cast<Dst*>(_source);
         return nullptr;
     };
-}
+} }
 
 /** declare some correspondence between type and typeenum */
 typedef std::string string;

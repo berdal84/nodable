@@ -2,16 +2,22 @@
 # Do not use this CMaleLists.txt directly, take the one from base directory.
 #---------------------------------------------------------------------------
 
+# defines
+set(NODABLE_APP_ASSETS_DIR assets)
+set(NODABLE_APP_ASSETS_ABSOLUTE_DIR "${CMAKE_CURRENT_LIST_DIR}/${NODABLE_APP_ASSETS_DIR}")
+
+# Configure BuildInfo.h.in
+configure_file("include/nodable/app/build_info.h.in" "${PROJECT_BINARY_DIR}/configured/nodable/app/build_info.h" )
+
 # App
 #====
 
 file( GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp )
-set( LIBS_DIR ../../libs )
 
 # Linking
 find_package(Threads REQUIRED)
 if (NOT Threads_FOUND)
-    message(FATAL_ERROR "OpenGL not found")
+    message(FATAL_ERROR "Threads not found")
 endif()
 
 find_package(OpenGL REQUIRED)
@@ -51,14 +57,14 @@ add_executable(
         WIN32
         ./src/main.cpp
         ${SOURCES}
-        ${LIBS_DIR}/imgui/backends/imgui_impl_opengl3.cpp
-        ${LIBS_DIR}/imgui/backends/imgui_impl_sdl.cpp)
+        ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_opengl3.cpp
+        ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_sdl.cpp)
 
 target_include_directories(
         nodable
         PUBLIC
         include/
-        ${PROJECT_BINARY_DIR}/conf
+        ${PROJECT_BINARY_DIR}/configured
         ${LIBS_INCLUDE_DIRS} )
 
 target_link_libraries( nodable PRIVATE ${NODABLE_STATIC_LIBS})
