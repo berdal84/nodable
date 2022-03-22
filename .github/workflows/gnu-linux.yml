@@ -70,7 +70,7 @@ jobs:
     - name: Pack
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      run: cmake --build . --config ${{env.buildType}} --target package
+      run: cpack
 
     # Upload binary
     #--------------
