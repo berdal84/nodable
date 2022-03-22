@@ -55,8 +55,8 @@ namespace Nodable
         AppContext*     m_context;
 		bool            m_should_stop;
 		size_t          m_current_file_index;
-        std::vector<File*>          m_loaded_files;
-        const ghc::filesystem::path m_assets_folder_path;
+        std::vector<File*>    m_loaded_files;
+        ghc::filesystem::path m_assets_folder_path;
 
         void            handle_events();
     };

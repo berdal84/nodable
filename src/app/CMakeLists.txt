@@ -27,6 +27,7 @@ endif()
 
 set( NODABLE_STATIC_LIBS
         Threads::Threads
+        whereami
         imgui
         imgui_textedit
         IconFontCppHeaders
@@ -97,10 +98,4 @@ add_custom_command(
 # Copy assets
 install( DIRECTORY ${NODABLE_APP_ASSETS_ABSOLUTE_DIR} DESTINATION . )
 install( FILES     ${PROJECT_SOURCE_DIR}/CHANGELOG.md DESTINATION . )
-if(WIN32)
-    set(NODABLE_SHORTCUT scripts/nodable.bat)
-else()
-    set(NODABLE_SHORTCUT scripts/nodable.sh)
-endif()
-install( FILES     ${NODABLE_SHORTCUT} PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION . )
-install( TARGETS   nodable RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION bin )
+install( TARGETS   nodable RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION . )

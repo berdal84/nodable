@@ -17,7 +17,7 @@ add_library(
 target_include_directories(
         whereami
         PUBLIC
-        whereami/src/whereami.h
+        whereami/src
 )
 
 # imgui

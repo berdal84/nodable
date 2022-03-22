@@ -1,6 +1,8 @@
 #include <nodable/app/App.h>
 
 #include <algorithm>
+#include <whereami/src/whereami.h> // to locate executable directory
+#include <stdlib.h>                // abort()
 
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/DataAccess.h>
@@ -29,6 +31,30 @@ App::App()
     Nodable::R::init(); // Reflection system.
     m_context = AppContext::create_default(this);
 	m_view = new AppView(m_context, BuildInfo::version_extended);
+
+    // set asset absolute path
+    char* path = nullptr;
+    int length, dirname_length;
+    length = wai_getExecutablePath(nullptr, 0, &dirname_length);
+    if (length > 0)
+    {
+        path = new char[length + 1];
+        if (!path)
+            abort();
+        wai_getExecutablePath(path, length, &dirname_length);
+        path[length] = '\0';
+
+        LOG_MESSAGE("App", "executable path: %s\n", path);
+        path[dirname_length] = '\0';
+        LOG_MESSAGE("App", "  dirname: %s\n", path);
+        LOG_MESSAGE("App", "  basename: %s\n", path + dirname_length + 1);
+        delete path;
+        m_assets_folder_path = ghc::filesystem::path(path) / BuildInfo::assets_dir;
+    }
+    else
+    {
+        LOG_WARNING("App", "Unable to get executable path using Where an I?\n");
+    }
 }
 
 App::~App()
