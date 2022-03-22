@@ -67,6 +67,6 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: nodable-package-${{ runner.os }}
-        path:
+        path: |
           !${{runner.workspace}}/Nodable/out/package/_CPack_Packages
           ${{runner.workspace}}/Nodable/out/package/*
