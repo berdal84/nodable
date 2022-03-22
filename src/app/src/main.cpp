@@ -20,28 +20,12 @@ int main(int argc, char *argv[])
 
     if( app.init() )
     {
-        app.open_file(app.get_absolute_asset_path("txt/startup.txt") );
+        app.open_file( app.get_absolute_asset_path("txt/startup.txt") );
 
         while (!app.should_stop())
         {
-            try
-            {
-                app.update();
-            }
-            catch (std::exception &err)
-            {
-                LOG_ERROR("main", "Unable to update application, reason: %s\n", err.what())
-            }
-
-            try
-            {
-                app.draw();
-            }
-            catch (std::exception &err)
-            {
-                LOG_ERROR("main", "Unable to draw application view, reason: %s\n", err.what())
-            }
-
+            app.update();
+            app.draw();
         }
     }
     app.shutdown();
