@@ -78,7 +78,7 @@ On Windows execute: `nodable.exe`, on Linux and macOS run `./nodable`. (On Linux
 
 ## Licence:
 
-**Nodable** is licensed under the GPL License, see `LICENSE.txt` for more information.
+**Nodable** is licensed under the GPL License, see [`LICENSE.txt`](https://github.com/berdal84/Nodable/blob/master/LICENSE.txt) for more information.
 
 Each submodule are licensed, browse *libs/* folder.
 
