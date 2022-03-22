@@ -71,14 +71,3 @@ jobs:
       with:
         name: nodable-package-${{ runner.os }}
         path: ${{runner.workspace}}/Nodable/package/*.*
-    
-    # Generate & upload doc
-    #----------------------
-    - name: Generate documentation
-      run: cd docs && doxygen
-
-    - name: Upload documentation artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: Nodable-Technical-Documentation
-        path: ${{runner.workspace}}/Nodable/docs/doxygen
