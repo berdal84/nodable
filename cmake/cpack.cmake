@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+nodable_log_title_header()
 
 #Generators
 #7Z                           = 7-Zip file format
@@ -29,9 +31,6 @@ elseif(UNIX)
     set(_SOURCE_GENERATOR ZIP)
 endif()
 
-message("cpack.cmake: _GENERATOR:        ${_GENERATOR}")
-message("cpack.cmake: _SOURCE_GENERATOR: ${_SOURCE_GENERATOR}")
-
 string(TOLOWER ${CMAKE_SYSTEM_NAME} _sys)
 string(TOLOWER ${PROJECT_NAME}      _project_lower)
 
@@ -45,5 +44,20 @@ set(CPACK_RESOURCE_FILE_README        "${PROJECT_SOURCE_DIR}/README.md")
 set(CPACK_PACKAGE_DIRECTORY           "${PROJECT_SOURCE_DIR}/package")
 set(CPACK_PACKAGE_FILE_NAME           "${_project_lower}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME    "${_project_lower}-sources")
+
+nodable_message("Logging variables ...")
+nodable_message("_GENERATOR:                     ${_GENERATOR}")
+nodable_message("_SOURCE_GENERATOR:              ${_SOURCE_GENERATOR}")
+nodable_message("CPACK_GENERATOR:                ${CPACK_GENERATOR}")
+nodable_message("CPACK_BUNDLE_NAME:              ${CPACK_BUNDLE_NAME}")
+nodable_message("CPACK_SOURCE_GENERATOR:         ${CPACK_SOURCE_GENERATOR}")
+nodable_message("CPACK_PACKAGE_VENDOR:           ${CPACK_PACKAGE_VENDOR}")
+nodable_message("CPACK_PACKAGE_CONTACT:          ${CPACK_PACKAGE_CONTACT}")
+nodable_message("CPACK_RESOURCE_FILE_LICENSE:    ${CPACK_RESOURCE_FILE_LICENSE}")
+nodable_message("CPACK_RESOURCE_FILE_README:     ${CPACK_RESOURCE_FILE_README}")
+nodable_message("CPACK_PACKAGE_DIRECTORY:        ${CPACK_PACKAGE_DIRECTORY}")
+nodable_message("CPACK_PACKAGE_FILE_NAME:        ${CPACK_PACKAGE_FILE_NAME}")
+nodable_message("CPACK_SOURCE_PACKAGE_FILE_NAME: ${CPACK_SOURCE_PACKAGE_FILE_NAME}")
+
 
 include(CPack)

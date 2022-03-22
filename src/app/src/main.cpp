@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
     if( app.init() )
     {
-        app.open_file( app.get_asset_path("txt/startup.txt") );
+        app.open_file(app.get_absolute_asset_path("txt/startup.txt") );
 
         while (!app.should_stop())
         {

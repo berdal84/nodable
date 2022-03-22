@@ -1,3 +1,6 @@
+include_guard(GLOBAL)
+nodable_log_title_header()
+
 # Get the git short hash
 execute_process(
         COMMAND git log -1 --format=%h

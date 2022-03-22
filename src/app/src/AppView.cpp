@@ -146,7 +146,7 @@ ImFont* AppView::load_font(const FontConf &_config)
         config.OversampleV = 1;
 
         //io.Fonts->AddFontDefault();
-        std::string fontPath = m_context->app->get_asset_path(_config.path);
+        std::string fontPath = m_context->app->get_absolute_asset_path(_config.path);
         LOG_VERBOSE("AppView", "Adding font from file ... %s\n", fontPath.c_str())
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.size, &config);
     }
@@ -163,7 +163,7 @@ ImFont* AppView::load_font(const FontConf &_config)
         config.PixelSnapH  = true;
         config.GlyphOffset.y = -(_config.icons_size - _config.size)*0.5f;
         config.GlyphMinAdvanceX = _config.icons_size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = m_context->app->get_asset_path(settings->ui_icons.path);
+        auto fontPath = m_context->app->get_absolute_asset_path(settings->ui_icons.path);
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.icons_size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to font ...\n")
     }
@@ -388,12 +388,12 @@ bool AppView::draw()
                 {
                     if (ImGui::MenuItem("Report on Github.com"))
                     {
-                        System::OpenURL("https://github.com/berdal84/Nodable/issues");
+                        System::open_url_async("https://github.com/berdal84/Nodable/issues");
                     }
 
                     if (ImGui::MenuItem("Report by email"))
                     {
-                        System::OpenURL("mail:berenger@dalle-cort.fr");
+                        System::open_url_async("mail:berenger@dalle-cort.fr");
                     }
 
                     ImGui::EndMenu();
@@ -408,12 +408,12 @@ bool AppView::draw()
 
                     if (ImGui::MenuItem("Browse source code"))
                     {
-                        System::OpenURL("https://www.github.com/berdal84/nodable");
+                        System::open_url_async("https://www.github.com/berdal84/nodable");
                     }
 
                     if (ImGui::MenuItem("Credits"))
                     {
-                        System::OpenURL("https://github.com/berdal84/nodable#credits-");
+                        System::open_url_async("https://github.com/berdal84/nodable#credits-");
                     }
 
                     ImGui::EndMenu();
@@ -785,7 +785,7 @@ void AppView::draw_startup_window()
     if ( ImGui::BeginPopupModal(m_startup_screen_title, nullptr, flags) )
     {
 
-        auto path = m_context->app->get_asset_path(m_context->settings->ui_splashscreen_imagePath);
+        auto path = m_context->app->get_absolute_asset_path(m_context->settings->ui_splashscreen_imagePath);
         Texture* logo = m_context->texture_manager->get_or_create(path);
         ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
         ImGui::Image((void*)(intptr_t)logo->image, vec2((float)logo->width, (float)logo->height));

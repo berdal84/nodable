@@ -1,9 +1,6 @@
 #include <nodable/app/App.h>
 
 #include <algorithm>
-#include <whereami/src/whereami.h> // to locate executable directory
-#include <stdlib.h>                // abort()
-
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/DataAccess.h>
 #include <nodable/app/build_info.h> // file generated (aka configured) from build_info.h.in
@@ -19,42 +16,21 @@
 #include <nodable/app/commands/Cmd_DisconnectNodes.h>
 #include <nodable/app/commands/Cmd_DisconnectMembers.h>
 #include <nodable/app/commands/Cmd_Group.h>
+#include <nodable/core/System.h>
 
 using namespace Nodable;
 
 App::App()
     : m_current_file_index(0)
-    , m_assets_folder_path(ghc::filesystem::current_path() / BuildInfo::assets_dir )
     , m_should_stop(false)
 {
-    LOG_MESSAGE("App", "Asset folder is %s\n", m_assets_folder_path.c_str() )
+    m_executable_folder_path = ghc::filesystem::path( System::get_executable_directory() );
+    m_assets_folder_path     =  m_executable_folder_path / BuildInfo::assets_dir;
+    LOG_MESSAGE("App", "Executable folder path: %s\n", m_executable_folder_path.c_str() )
+    LOG_MESSAGE("App", "Asset folder path:      %s\n", m_assets_folder_path.c_str() )
     Nodable::R::init(); // Reflection system.
     m_context = AppContext::create_default(this);
 	m_view = new AppView(m_context, BuildInfo::version_extended);
-
-    // set asset absolute path
-    char* path = nullptr;
-    int length, dirname_length;
-    length = wai_getExecutablePath(nullptr, 0, &dirname_length);
-    if (length > 0)
-    {
-        path = new char[length + 1];
-        if (!path)
-            abort();
-        wai_getExecutablePath(path, length, &dirname_length);
-        path[length] = '\0';
-
-        LOG_MESSAGE("App", "executable path: %s\n", path);
-        path[dirname_length] = '\0';
-        LOG_MESSAGE("App", "  dirname: %s\n", path);
-        LOG_MESSAGE("App", "  basename: %s\n", path + dirname_length + 1);
-        delete path;
-        m_assets_folder_path = ghc::filesystem::path(path) / BuildInfo::assets_dir;
-    }
-    else
-    {
-        LOG_WARNING("App", "Unable to get executable path using Where an I?\n");
-    }
 }
 
 App::~App()
@@ -129,11 +105,10 @@ void App::set_curr_file(size_t _index)
 	}
 }
 
-std::string App::get_asset_path(const char* _fileName)const
+std::string App::get_absolute_asset_path(const char* _relative_path)const
 {
-    ghc::filesystem::path assetPath(m_assets_folder_path);
-	assetPath /= _fileName;
-	return assetPath.string();
+    fs_path result = m_assets_folder_path / _relative_path;
+	return result.string();
 }
 
 size_t App::get_file_count() const

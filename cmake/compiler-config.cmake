@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+nodable_log_title_header()
 
 # set a build type to Release by default if not set:
 if ( NOT DEFINED CMAKE_BUILD_TYPE )

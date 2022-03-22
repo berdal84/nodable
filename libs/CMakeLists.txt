@@ -23,7 +23,7 @@ target_include_directories(
 # imgui
 #------
 add_library(
-        imgui
+        ImGui
         STATIC
             imgui/imgui.cpp
             imgui/imgui_demo.cpp
@@ -32,7 +32,7 @@ add_library(
         )
 
 target_include_directories(
-        imgui
+        ImGui
         PUBLIC
            ./imgui/
            ./
@@ -41,13 +41,13 @@ target_include_directories(
 # imgui color text edit
 #----------------------
 add_library(
-        imgui_textedit
+        ImGuiColorTextEdit
         STATIC
             ImGuiColorTextEdit/TextEditor.cpp
 )
 
 target_include_directories(
-        imgui_textedit
+        ImGuiColorTextEdit
         PUBLIC
             ImGuiColorTextEdit/
             imgui/

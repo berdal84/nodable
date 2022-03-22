@@ -6,13 +6,10 @@ namespace Nodable
     /**
      * Static library cross platform to deal with system
      */
-    namespace System
+    class System
     {
-        /**
-        * Open an URL asynchronously.
-        * @return the system result code as a future.
-        */
-        void OpenURL(std::string /* URL */);
-    }
-};
-
+    public:
+        static void        open_url_async(std::string /* url */);
+        static std::string get_executable_directory();
+    };
+}

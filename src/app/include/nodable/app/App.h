@@ -7,10 +7,10 @@
 #include <ghc/filesystem.hpp>
 
 // Nodable
-#include <nodable/app/types.h>
 #include <nodable/core/VM.h>
-#include <nodable/app/Settings.h>
 #include <nodable/core/reflection/R.h>
+#include <nodable/app/types.h>
+#include <nodable/app/Settings.h>
 
 namespace Nodable
 {
@@ -22,6 +22,7 @@ namespace Nodable
 	class App
 	{
 	public:
+        using fs_path = ghc::filesystem::path;
 
 		explicit App();
 		~App();
@@ -32,8 +33,8 @@ namespace Nodable
 		void            draw();
 		void            flag_to_stop();
         bool            should_stop() const { return m_should_stop; }
-		bool            open_file(const ghc::filesystem::path& _filePath);
-        std::string     get_asset_path(const char* _fileName)const;
+		bool            open_file(const fs_path& _filePath);
+        std::string     get_absolute_asset_path(const char* _relative_path)const;
 		void            save_file()const;
 		void            close_file();
         void            close_file_at(size_t _fileIndex);
@@ -55,8 +56,9 @@ namespace Nodable
         AppContext*     m_context;
 		bool            m_should_stop;
 		size_t          m_current_file_index;
-        std::vector<File*>    m_loaded_files;
-        ghc::filesystem::path m_assets_folder_path;
+        std::vector<File*> m_loaded_files;
+        fs_path            m_executable_folder_path;
+        fs_path            m_assets_folder_path;
 
         void            handle_events();
     };

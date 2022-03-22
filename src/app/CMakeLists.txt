@@ -1,84 +1,116 @@
 
-# Do not use this CMaleLists.txt directly, take the one from base directory.
-#---------------------------------------------------------------------------
+# WARNING: Do not use this CMakeLists.txt directly, take the one from base directory.
+
+nodable_log_title_header()
+
+# checks
+nodable_message("Checking ...")
+if( NOT NODABLE_CONFIGURED_DIR )
+    nodable_err("Variable NODABLE_CONFIGURED_DIR must be set in main CMakeLists.txt")
+endif()
 
 # defines
-set(NODABLE_APP_ASSETS_DIR assets)
+set(NODABLE_APP_ASSETS_DIR          assets)
 set(NODABLE_APP_ASSETS_ABSOLUTE_DIR "${CMAKE_CURRENT_LIST_DIR}/${NODABLE_APP_ASSETS_DIR}")
 
-# Configure BuildInfo.h.in
-configure_file("include/nodable/app/build_info.h.in" "${PROJECT_BINARY_DIR}/configured/nodable/app/build_info.h" )
+# log variables
+nodable_message(" - NODABLE_CONFIGURED_DIR:          ${NODABLE_CONFIGURED_DIR}")
+nodable_message(" - NODABLE_APP_ASSETS_DIR:          ${NODABLE_APP_ASSETS_DIR}")
+nodable_message(" - NODABLE_APP_ASSETS_ABSOLUTE_DIR: ${NODABLE_APP_ASSETS_ABSOLUTE_DIR}")
 
-# App
-#====
+# Configure files
+configure_file("include/nodable/app/build_info.h.in" "${NODABLE_CONFIGURED_DIR}/app/build_info.h" )
 
-file( GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp )
-
-# Linking
-find_package(Threads REQUIRED)
-if (NOT Threads_FOUND)
-    message(FATAL_ERROR "Threads not found")
-endif()
-
-find_package(OpenGL REQUIRED)
-if (NOT OpenGL_FOUND)
-    message(FATAL_ERROR "OpenGL not found")
-endif()
-
-set( NODABLE_STATIC_LIBS
-        Threads::Threads
-        whereami
-        imgui
-        imgui_textedit
-        IconFontCppHeaders
-        lodepng
-        gl3w
-        nodable_core
-        ${CMAKE_DL_LIBS}
-        SDL2-static
-        SDL2main
-        OpenGL::GL
-        ghc_filesystem
-        )
-
-IF (APPLE)
-    find_library(APPLE_CORE_FOUNDATION_FRAMEWORK CoreFoundation)
-    find_library(APPLE_COCOA_FRAMEWORK Cocoa)
-    set( NODABLE_STATIC_LIBS
-            ${NODABLE_STATIC_LIBS}
-            ${APPLE_CORE_FOUNDATION_FRAMEWORK}
-            ${APPLE_COCOA_FRAMEWORK} )
-ENDIF()
-
-# Main
-#=====
-
+# add nodable executable
 add_executable(
-        nodable
-        WIN32
-        ./src/main.cpp
-        ${SOURCES}
-        ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_opengl3.cpp
-        ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_sdl.cpp)
+    nodable
+    WIN32
+        src/main.cpp
+        src/App.cpp
+        src/AppContext.cpp
+        src/AppNodeFactory.cpp
+        src/AppView.cpp
+        src/Event.cpp
+        src/File.cpp
+        src/FileView.cpp
+        src/GraphNodeView.cpp
+        src/History.cpp
+        src/ImGuiEx.cpp
+        src/main.cpp
+        src/MemberConnector.cpp
+        src/MemberView.cpp
+        src/NodeConnector.cpp
+        src/NodeView.cpp
+        src/NodeViewConstraint.cpp
+        src/Settings.cpp
+        src/View.cpp
+        ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_opengl3.cpp # include backend as-is
+        ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_sdl.cpp     #          //
+)
 
 target_include_directories(
-        nodable
-        PUBLIC
+    nodable
+    PRIVATE
         include/
         ${PROJECT_BINARY_DIR}/configured
         ${LIBS_INCLUDE_DIRS} )
 
-target_link_libraries( nodable PRIVATE ${NODABLE_STATIC_LIBS})
+nodable_message("Looking for libraries ...")
 
-# required to run well on recent os (ex: ubuntu)
-set_target_properties(nodable PROPERTIES POSITION_INDEPENDENT_CODE FALSE)
+find_package(Threads REQUIRED)
+if (NOT Threads_FOUND)
+    nodable_err("Threads not found")
+endif()
 
-# fix working directory for visual studio
-set_target_properties(nodable PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}")
+find_package(OpenGL REQUIRED)
+if (NOT OpenGL_FOUND)
+    nodable_err("OpenGL not found")
+endif()
 
-#IF( WIN32 )
-#    add_definitions(-DHAVE_LIBC)
-#ENDIF()
+nodable_message("Threads found: ${Threads_FOUND}")
+nodable_message("OpenGL found:  ${OpenGL_FOUND}")
+
+target_link_libraries(
+    nodable
+    PUBLIC
+        nodable-core
+    PRIVATE
+        ${CMAKE_DL_LIBS}
+        IconFontCppHeaders      # Font Awesome
+        OpenGL::GL gl3w         # OpenGL and wrangler
+        SDL2-static SDL2main    # SDL2
+        Threads::Threads
+        ImGui
+        ImGuiColorTextEdit
+        lodepng
+)
+
+# link APPLE specific libraries
+IF (APPLE)
+    nodable_message("Looking for Apple specific libraries ...")
+
+    find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
+    if (NOT CORE_FOUNDATION_FRAMEWORK)
+        nodable_err("CoreFoundation not found")
+    endif()
+
+    find_library(COCOA_FRAMEWORK Cocoa)
+    if (NOT COCOA_FRAMEWORK)
+        nodable_err("Cocoa not found")
+    endif()
+
+    nodable_message("CORE_FOUNDATION_FRAMEWORK: ${CORE_FOUNDATION_FRAMEWORK}")
+    nodable_message("COCOA_FRAMEWORK:           ${COCOA_FRAMEWORK}")
+
+    target_link_libraries(
+        nodable
+        PRIVATE
+            ${CORE_FOUNDATION_FRAMEWORK}
+            ${COCOA_FRAMEWORK} )
+ENDIF()
+
+set_target_properties(nodable PROPERTIES POSITION_INDEPENDENT_CODE FALSE)               # required to run well on recent os (ex: ubuntu)
+set_target_properties(nodable PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
 
 # AFTER BUILD:
 #=============
@@ -95,7 +127,6 @@ add_custom_command(
 # Installation :
 #===============
 
-# Copy assets
-install( DIRECTORY ${NODABLE_APP_ASSETS_ABSOLUTE_DIR} DESTINATION . )
-install( FILES     ${PROJECT_SOURCE_DIR}/CHANGELOG.md DESTINATION . )
+install( DIRECTORY "${NODABLE_APP_ASSETS_ABSOLUTE_DIR}" DESTINATION . )
+install( FILES     "${PROJECT_SOURCE_DIR}/CHANGELOG.md" DESTINATION . )
 install( TARGETS   nodable RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION . )
