@@ -63,6 +63,7 @@ Below, all the commands to: clone, configure, build nodable from sources.
 
 ```
 git clone --branch v0.9.1 https://github.com/berdal84/Nodable.git --recurse-submodules
+cd Nodable
 cmake . -B cmake-build-there
 cmake --build cmake-build-there --config Release --target install
 ```
