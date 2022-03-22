@@ -55,7 +55,7 @@ jobs:
     - name: CPack
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      run: cpack
+      run: cmake -C ${{env.buildType}}
 
     - name: Binary Artifact
       uses: actions/upload-artifact@v2
