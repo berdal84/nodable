@@ -1,6 +1,12 @@
 include_guard(GLOBAL)
 nodable_log_title_header()
 
+# checks
+nodable_message("Checking ...")
+if( NOT NODABLE_PACKAGE_DIR)
+    nodable_err("Please, define NODABLE_PACKAGE_DIR")
+endif()
+
 #Generators
 #7Z                           = 7-Zip file format
 #Bundle                       = Mac OSX bundle
@@ -41,7 +47,7 @@ set(CPACK_PACKAGE_VENDOR              "Bérenger DALLE-CORT")
 set(CPACK_PACKAGE_CONTACT             "Bérenger DALLE-CORT")
 set(CPACK_RESOURCE_FILE_LICENSE       "${PROJECT_SOURCE_DIR}/LICENSE.txt")
 set(CPACK_RESOURCE_FILE_README        "${PROJECT_SOURCE_DIR}/README.md")
-set(CPACK_PACKAGE_DIRECTORY           "${PROJECT_SOURCE_DIR}/package")
+set(CPACK_PACKAGE_DIRECTORY           "${NODABLE_PACKAGE_DIR}")
 set(CPACK_PACKAGE_FILE_NAME           "${_project_lower}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME    "${_project_lower}-sources")
 

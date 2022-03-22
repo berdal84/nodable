@@ -62,7 +62,7 @@ Requirements:
 Clone the Nodable repository (with submodules):
 
 ```
-git clone --branch v0.9.0 https://github.com/berdal84/Nodable.git --recurse-submodules
+git clone --branch v0.9.1 https://github.com/berdal84/Nodable.git --recurse-submodules
 ```
 
 Configure and run the build:
@@ -76,12 +76,12 @@ Build in release:
 ```
 cmake --build build --config Release --target install
 ```
-*Note: `--target install` is to create a clean `./bin/Release` directory with only necessary files to run the software.*
+*Note: `--target install` is to create a clean `./out/app` directory with only necessary files to run the software.*
 
 Once build succeed, move to install folder and run `./nodable`:
 
 ```
-cd bin && ./nodable
+cd out/app && ./nodable
 ```
 
 ## Licence:
