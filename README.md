@@ -105,5 +105,6 @@ Credits :
     - LodePNG by Lode Vandevenne: https://github.com/lvandeve/lodepng
     - Observe by Lars Melchior: https://github.com/TheLartians/Observe
     - MPark.Variant by Michael Park: https://github.com/mpark/variant
+    - Where am I? by Gregory Pakosz: https://github.com/gpakosz/whereami.git
   - Resources
     - JetBrains Mono Font: https://www.jetbrains.com/lp/mono/

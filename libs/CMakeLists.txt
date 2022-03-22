@@ -6,6 +6,20 @@
 #------
 add_subdirectory(gulrak/filesystem)
 
+# Where am I
+#------------
+add_library(
+        whereami
+        STATIC
+        whereami/src/whereami.c
+)
+
+target_include_directories(
+        whereami
+        PUBLIC
+        whereami/src/whereami.h
+)
+
 # imgui
 #------
 add_library(
