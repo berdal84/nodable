@@ -71,13 +71,18 @@ Node* Scope::get_last_code_block()
 
 void Scope::add_variable(VariableNode* _variableNode)
 {
-    if ( !find_variable(_variableNode->get_name()) )
+    if ( find_variable(_variableNode->get_name()) )
     {
-        m_variables.push_back(_variableNode);
+        LOG_ERROR("Scope", "Unable to add variable %s, already exists in the same scope.\n", _variableNode->get_name())
+    }
+    else if ( _variableNode->get_scope() )
+    {
+        LOG_ERROR("Scope", "Unable to add variable %s, already declared in another scope. Remove it first.\n", _variableNode->get_name())
     }
     else
     {
-        LOG_ERROR("Scope", "Unable to add variable %s, already declared.\n", _variableNode->get_name())
+        m_variables.push_back(_variableNode);
+        _variableNode->set_scope(this);
     }
 }
 

@@ -7,12 +7,12 @@ using namespace Nodable;
 R_DEFINE_CLASS(VariableNode)
 
 VariableNode::VariableNode(std::shared_ptr<const R::MetaType> _type)
-    :
-        Node("Variable"),
-        m_type_token(nullptr),
-        m_identifier_token(nullptr),
-        m_assignment_operator_token(nullptr),
-        m_is_declared(true)
+    : Node("Variable")
+    , m_type_token(nullptr)
+    , m_identifier_token(nullptr)
+    , m_assignment_operator_token(nullptr)
+    , m_is_declared(true)
+    , m_scope(nullptr)
 {
 	m_value = m_props.add(k_value_member_name, Visibility::Always, _type, Way_InOut);
 }

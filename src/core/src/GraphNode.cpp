@@ -240,7 +240,6 @@ void GraphNode::destroy(Node* _node)
     {
         for( auto it = scope->get_variables().rbegin(); it != scope->get_variables().rend(); it++ )
         {
-            (*it)->set_scope(nullptr);
             scope->remove_variable(*it);
         }
     }
