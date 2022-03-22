@@ -19,13 +19,9 @@ jobs:
         os: [macos-10.15]
 
     env:
-      # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-      buildType: MinSizeRel
-    
-    steps:
+      buildType: MinSizeRel # possible options: MinSizeRel Release, Debug, RelWithDebInfo
 
-    # Prepare build
-    #--------------
+    steps:
 
     - name: Get current date
       id: date
@@ -49,40 +45,28 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.buildType}}
 
-    # Build
-    #------
-
     - name: Build
       working-directory: ${{runner.workspace}}/build
       shell: bash
       run: cmake --build . --config ${{env.buildType}} --target install
 
-    # Tests
-    #------
-
-    - name: Test
+    - name: CTest
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      run: ctest -C ${{env.buildType}} --verbose --output-on-failure
+      run: ctest -C ${{env.buildType}} --verbose  --output-on-failure
 
-    # Pack
-    #-----
-    - name: Pack
+    - name: CPack
       working-directory: ${{runner.workspace}}/build
       shell: bash
       run: cpack
 
-    # Upload binary
-    #--------------
-    - name: Upload binary artifact
+    - name: Binary Artifact
       uses: actions/upload-artifact@v2
       with:
         name: nodable-${{ runner.os }}
         path: ${{runner.workspace}}/Nodable/bin/*
 
-    # Upload package
-    #---------------
-    - name: Uploadpackage artifact
+    - name: Package Artifact
       uses: actions/upload-artifact@v2
       with:
         name: nodable-package-${{ runner.os }}
