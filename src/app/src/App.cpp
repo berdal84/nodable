@@ -41,8 +41,7 @@ App::~App()
 
 bool App::init()
 {
-    m_view->init();
-	return true;
+    return m_view->init();
 }
 
 void App::update()
