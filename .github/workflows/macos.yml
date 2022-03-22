@@ -58,13 +58,13 @@ jobs:
     - name: CPack
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      run: cpack
+      run: cpack --config ${{env.buildType}}
 
     - name: Binary Artifact
       uses: actions/upload-artifact@v2
       with:
         name: nodable-${{ runner.os }}
-        path: ${{runner.workspace}}/Nodable/bin/*
+        path: ${{runner.workspace}}/Nodable/out/app/*
 
     - name: Package Artifact
       uses: actions/upload-artifact@v2
@@ -72,4 +72,4 @@ jobs:
         name: nodable-package-${{ runner.os }}
         path: |
           !${{runner.workspace}}/Nodable/out/package/_CPack_Packages
-          ${{runner.workspace}}/Nodable/out/package/*
+          ${{runner.workspace}}/Nodable/out/package/*.*
