@@ -59,41 +59,32 @@ Requirements:
 - Libraries
   - Require opengl which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
 
-Clone the Nodable repository (with submodules):
+Below, all the commands to: clone, configure, build nodable from sources.
 
 ```
 git clone --branch v0.9.1 https://github.com/berdal84/Nodable.git --recurse-submodules
+cmake . -B cmake-build-there
+cmake --build cmake-build-there --config Release --target install
 ```
+After that you must see a new folder `out` containing a folder `app`, inside there is all you need to run *Nodable*.
+On Windows execute: `nodable.exe`, on Linux and macOS run `./nodable`. (On Linux you might have to add execution flag to the file: `chmod +x ./nodable`
 
-Configure and run the build:
+*Few details about the commands above:
+`--recurse-submodules` is important when cloning since nodable need other git repositories to be built.
+`--branch v0.9.1` is to target a specific tag, it is recommended to get a stable version. You can try a more recent if you wish.
+`--target install` is to create a clean `out/app` directory with only necessary files to run the software.*
 
-```
-cmake . -B build
-```
-
-Build in release:
-
-```
-cmake --build build --config Release --target install
-```
-*Note: `--target install` is to create a clean `./out/app` directory with only necessary files to run the software.*
-
-Once build succeed, move to install folder and run `./nodable`:
-
-```
-cd out/app && ./nodable
-```
 
 ## Licence:
 
-**Nodable** is licensed under the GPL License, see LICENSE for more information.
+**Nodable** is licensed under the GPL License, see `LICENSE.txt` for more information.
 
-Each submodule are licensed, browse */extern* folder.
+Each submodule are licensed, browse *libs/* folder.
 
 Credits :
 ---------
 
-**Nodable** is developped by @berdal84
+**Nodable** is developped by [@berdal84](https://github.com/berdal84)
 
 - Dependencies
   - Code:
