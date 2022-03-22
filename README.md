@@ -50,7 +50,7 @@ _Disclaimer: Nodable is a prototype, do not expect too much from it._
 
 Download binaries from [Releases](https://github.com/berdal84/Nodable/releases) section.
 
-## How to compile Nodable from sources ?
+## How to compile ?
 
 Requirements:
 - Build system:
