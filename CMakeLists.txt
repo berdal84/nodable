@@ -2,17 +2,18 @@
 
 # prerequisites:
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+set(CMAKE_OSX_DEPLOYMENT_TARGET      "10.9" CACHE STRING "Minimum OS X deployment version") # must be declared BEFORE project
+                                                                                            # 10.9 is earliest version supporting c++11
 
 # project declaration
 project( "Nodable" VERSION "0.9" )
 
 # options/variables
-set(CMAKE_OSX_DEPLOYMENT_TARGET      "10.9" CACHE STRING "Minimum OS X deployment version") # earliest version supporting c++11
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY   ${CMAKE_BINARY_DIR}/)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY   ${CMAKE_BINARY_DIR}/)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY   ${CMAKE_BINARY_DIR}/)
-set(CMAKE_INSTALL_PREFIX             "${CMAKE_CURRENT_LIST_DIR}/out/app")
-set(NODABLE_PACKAGE_DIR              "${CMAKE_CURRENT_LIST_DIR}/out/package")
+set(CMAKE_INSTALL_PREFIX             "${CMAKE_CURRENT_LIST_DIR}/out/app")      # ./out/ folder must not be changed, referenced in readme.md
+set(NODABLE_PACKAGE_DIR              "${CMAKE_CURRENT_LIST_DIR}/out/package")  #                     //
 set(NODABLE_CONFIGURED_DIR           "${PROJECT_BINARY_DIR}/configured/nodable")
 set(NODABLE_ENABLE_TESTS             ON )
 set(NODABLE_CORE_INSTALL_ENABLE      OFF)
