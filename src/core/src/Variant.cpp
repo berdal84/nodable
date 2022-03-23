@@ -41,6 +41,8 @@ void Variant::set(const std::string& _value)
 
     m_data.m_std_string_ptr->clear();
     m_data.m_std_string_ptr->append(_value);
+
+    m_is_defined = true;
 }
 
 void Variant::set(const char* _value)
@@ -60,7 +62,7 @@ void Variant::set(bool _value)
 void Variant::set(void* _pointer)
 {
     if( !m_meta_type ) define_meta_type( R::get_meta_type<void*>() );
-    NODABLE_ASSERT( is_meta_type( R::get_meta_type<void*>() ) )
+    NODABLE_ASSERT( m_meta_type->has_qualifier(R::Qualifier::Pointer) )
 
     m_data.m_void_ptr = _pointer;
     m_is_defined      = true;
@@ -88,6 +90,7 @@ void Variant::set_defined(bool _define)
             case R::Type::String:  m_data.m_std_string_ptr   = new std::string(); break;
             case R::Type::Double:  m_data.m_double           = 0;                 break;
             case R::Type::Boolean: m_data.m_bool             = false;             break;
+            case R::Type::Void:
             case R::Type::Class:   m_data.m_void_ptr         = nullptr;           break;
             default:               break;
         }
@@ -97,7 +100,7 @@ void Variant::set_defined(bool _define)
     {
         if ( type == R::Type::String )
         {
-            delete m_data.m_std_string_ptr;
+            delete (std::string*)m_data.m_std_string_ptr;
         }
         m_is_defined = false;
     }
@@ -111,9 +114,10 @@ void Variant::set(const Variant* _other)
 
     switch(m_meta_type->get_type())
     {
-        case R::Type::String:  set( _other->m_data.m_std_string_ptr ); break;
+        case R::Type::String:  set( *_other->m_data.m_std_string_ptr ); break;
         case R::Type::Boolean: set( _other->m_data.m_bool); break;
         case R::Type::Double:  set( _other->m_data.m_double); break;
+        case R::Type::Void:
         case R::Type::Class:   set( _other->m_data.m_void_ptr); break;
         default: NODABLE_ASSERT(false) // not handled.
     }

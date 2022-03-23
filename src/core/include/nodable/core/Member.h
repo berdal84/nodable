@@ -30,17 +30,15 @@ namespace Nodable
      */
 	class Member
     {
-    private:
-        explicit Member(Properties*);
+    public:
         template<typename T>
         explicit Member(Properties* _parent_properties, T* _value): Member(_parent_properties) { m_variant.set(_value); };
+        explicit Member(Properties*);
         explicit Member(Properties*, const std::string&);
         explicit Member(Properties*, int);
         explicit Member(Properties*, bool);
         explicit Member(Properties*, double);
         explicit Member(Properties*, const char *);
-
-	public:
         ~Member();
 
         void digest(Member *_member);
