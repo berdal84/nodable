@@ -53,8 +53,8 @@ namespace Nodable
 		void set_allowed_connection(Way wayFlags) { m_allowed_connection = wayFlags; }
 		void set_input(Member*, ConnBy_ _connect_by = ConnectBy_Ref);
 		void set_name(const char* _name) { m_name = _name; }
-		void set(const Member* _other) { get_variant().set(&_other->m_variant); }
-		void set(const Member& _other) { get_variant().set(&_other.m_variant); }
+		void set(const Member* _other) { get_variant().set(_other->m_variant); }
+		void set(const Member& _other) { get_variant().set(_other.m_variant); }
 		void set(Node*);
 		void set(double);
         void set(const char*);

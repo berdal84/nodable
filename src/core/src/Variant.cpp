@@ -36,6 +36,11 @@ void Variant::set(double _value)
 
 void Variant::set(const std::string& _value)
 {
+    set(_value.c_str());
+}
+
+void Variant::set(const char* _value)
+{
     if( !m_meta_type ) define_meta_type( R::get_meta_type<std::string>() );
     NODABLE_ASSERT( is_meta_type( R::get_meta_type<std::string>() ) )
 
@@ -43,11 +48,6 @@ void Variant::set(const std::string& _value)
     m_data.m_std_string_ptr->append(_value);
 
     m_is_defined = true;
-}
-
-void Variant::set(const char* _value)
-{
-    set(std::string(_value));
 }
 
 void Variant::set(bool _value)
@@ -75,11 +75,6 @@ bool Variant::is_defined()const
 
 void Variant::set_defined(bool _define)
 {
-    if (_define == m_is_defined )
-    {
-        return;
-    }
-
     auto type = m_meta_type->get_type();
 
     if ( _define )
@@ -87,7 +82,7 @@ void Variant::set_defined(bool _define)
         // Set a default value (this will change the type too)
         switch ( type )
         {
-            case R::Type::String:  m_data.m_std_string_ptr   = new std::string(); break;
+            case R::Type::String:  m_data.m_std_string_ptr   = new std::string(); m_needs_to_delete_std_string = true; break;
             case R::Type::Double:  m_data.m_double           = 0;                 break;
             case R::Type::Boolean: m_data.m_bool             = false;             break;
             case R::Type::Void:
@@ -98,9 +93,11 @@ void Variant::set_defined(bool _define)
     }
     else
     {
-        if ( type == R::Type::String )
+        if ( m_needs_to_delete_std_string )
         {
-            delete (std::string*)m_data.m_std_string_ptr;
+            delete m_data.m_std_string_ptr;
+            m_data.m_std_string_ptr      = nullptr;
+            m_needs_to_delete_std_string = false;
         }
         m_is_defined = false;
     }
@@ -108,17 +105,17 @@ void Variant::set_defined(bool _define)
     NODABLE_ASSERT(_define == m_is_defined)
 }
 
-void Variant::set(const Variant* _other)
+void Variant::set(const Variant& _other)
 {
-    NODABLE_ASSERT(_other->m_meta_type && _other->m_meta_type->is(m_meta_type) ) // do not cast, strict same type required
+    NODABLE_ASSERT(_other.m_meta_type && _other.m_meta_type->is(m_meta_type) ) // do not cast, strict same type required
 
     switch(m_meta_type->get_type())
     {
-        case R::Type::String:  set( *_other->m_data.m_std_string_ptr ); break;
-        case R::Type::Boolean: set( _other->m_data.m_bool); break;
-        case R::Type::Double:  set( _other->m_data.m_double); break;
+        case R::Type::String:  set( *_other.m_data.m_std_string_ptr ); break;
+        case R::Type::Boolean: set( _other.m_data.m_bool); break;
+        case R::Type::Double:  set( _other.m_data.m_double); break;
         case R::Type::Void:
-        case R::Type::Class:   set( _other->m_data.m_void_ptr); break;
+        case R::Type::Class:   set( _other.m_data.m_void_ptr); break;
         default: NODABLE_ASSERT(false) // not handled.
     }
 }

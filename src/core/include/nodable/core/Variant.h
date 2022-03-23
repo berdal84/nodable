@@ -19,7 +19,7 @@ namespace Nodable
      */
     union VariantData
     {
-        VariantData(){ m_size_t = 0; }
+        VariantData():m_void_ptr(nullptr){}
         bool           m_bool;
         //i8             m_i8;           // not handled yet
         //i16            m_i16;                   //
@@ -30,7 +30,6 @@ namespace Nodable
         //u32            m_u32;                   //
         //u64            m_u64;                   //
         //char*          m_char_ptr;              //
-        size_t         m_size_t;
         float          m_float;
         double         m_double;
         std::string*   m_std_string_ptr; // owned
@@ -48,7 +47,6 @@ namespace Nodable
 		Variant(std::shared_ptr<const R::MetaType> _type)
             : m_is_defined(false)
             , m_meta_type(_type)
-            , m_data()
         {
         }
 
@@ -59,7 +57,7 @@ namespace Nodable
 		bool is_meta_type(std::shared_ptr<const R::MetaType> _meta_type)const;
 
         void set(void* _pointer);
-		void set(const Variant*);
+		void set(const Variant&);
 		void set(const std::string&);
 		void set(const char*);
 		void set(double);
@@ -100,5 +98,6 @@ namespace Nodable
         bool                               m_is_defined;
         std::shared_ptr<const R::MetaType> m_meta_type;
 		VariantData                        m_data;
+        bool                               m_needs_to_delete_std_string = false;
     };
 }

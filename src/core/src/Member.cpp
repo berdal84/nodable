@@ -13,6 +13,7 @@ Member::Member(Properties* _parent_properties)
     , m_input(nullptr)
     , m_parentProperties(_parent_properties)
     , m_connected_by(ConnectBy_Copy)
+    , m_allowed_connection(Way_Default)
     , m_variant(nullptr)
 {
     m_owner = _parent_properties ? _parent_properties->get_owner() : nullptr;
@@ -94,11 +95,8 @@ void Member::set_src_token(const std::shared_ptr<Token> _token)
 void Member::digest(Member *_member)
 {
     // Transfer
-    m_variant = _member->m_variant;
+    m_variant.set( _member->m_variant );
     m_sourceToken = _member->m_sourceToken;
-
-    // release member
-    _member->m_sourceToken = Token::s_null;
 }
 
 bool Member::is_connected_by(ConnBy_ by) {
