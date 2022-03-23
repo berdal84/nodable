@@ -110,7 +110,7 @@ bool GraphNodeView::draw()
     auto create_variable = [&](std::shared_ptr<const R::MetaType> _type, const char*  _name, Scope*  _scope) -> VariableNode*
     {
         VariableNode* var_node;
-        Scope* scope = _scope ? scope : graph->get_root()->get<Scope>();
+        Scope* scope = _scope ? _scope : graph->get_root()->get<Scope>();
 
         var_node = graph->create_variable(_type, _name, scope );
 
