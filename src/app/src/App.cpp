@@ -228,10 +228,7 @@ void App::handle_events()
      *
      * Some of them might trigger a Nodable event, we will handle them just after.
      */
-    if (m_view)
-    {
-        m_view->handle_events();
-    }
+    m_view->handle_events();
 
     /*
      * Nodable events
@@ -379,16 +376,6 @@ void App::handle_events()
 
 void App::draw()
 {
-    if ( m_view )
-    {
-        try
-        {
-            m_view->draw();
-        }
-        catch (std::exception &err)
-        {
-            LOG_ERROR("App", "Unable to draw m_view, reason: %s\n", err.what())
-        }
-    }
+    m_view->draw();
 }
 
