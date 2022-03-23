@@ -143,10 +143,10 @@ template<>
 {
     switch (get_meta_type()->get_type())
     {
-        case R::Type::String:  return double(mpark::get<std::string>(m_data).size());
-        case R::Type::Double:  return mpark::get<double>(m_data);
-        case R::Type::Boolean: return mpark::get<bool>(m_data);
-        default:           return double(0);
+        case R::Type::String:  return (i64)mpark::get<std::string>(m_data).size();
+        case R::Type::Double:  return (i64)mpark::get<double>(m_data);
+        case R::Type::Boolean: return (i64)mpark::get<bool>(m_data);
+        default:           return i64(0);
     }
 }
 
