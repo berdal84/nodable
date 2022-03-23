@@ -142,8 +142,6 @@ bool Node::eval() const
         Member* eachMember = eachNameToMemberPair.second;
         if(eachMember->get_input() && eachMember->is_connected_by(ConnectBy_Copy) )
         {
-            // transfer value from member's input to member
-            eachMember->set_meta_type(eachMember->get_input()->get_meta_type()); // dynamic type, TODO: show a warning ?
             eachMember->set(eachMember->get_input());
         }
     }

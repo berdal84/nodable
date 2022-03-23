@@ -9,10 +9,9 @@ ForLoopNode::ForLoopNode()
         :
         m_token_for(nullptr)
 {
-    auto node_ptr_type = R::get_meta_type<Node*>();
-    m_props.add(k_forloop_initialization_member_name , Visibility::Always, node_ptr_type, Way::Way_In);
-    m_props.add(k_condition_member_name              , Visibility::Always, node_ptr_type, Way::Way_In);
-    m_props.add(k_forloop_iteration_member_name      , Visibility::Always, node_ptr_type, Way::Way_In);
+    m_props.add<Node*>(k_forloop_initialization_member_name , Visibility::Always, Way::Way_In);
+    m_props.add<Node*>(k_condition_member_name              , Visibility::Always, Way::Way_In);
+    m_props.add<Node*>(k_forloop_iteration_member_name      , Visibility::Always, Way::Way_In);
 }
 
 Scope* ForLoopNode::get_condition_true_branch() const

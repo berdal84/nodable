@@ -30,7 +30,7 @@ namespace Nodable
      */
 	class Member
     {
-	public:
+    private:
         explicit Member(Properties*);
         template<typename T>
         explicit Member(Properties* _parent_properties, T* _value): Member(_parent_properties) { m_variant.set(_value); };
@@ -39,6 +39,8 @@ namespace Nodable
         explicit Member(Properties*, bool);
         explicit Member(Properties*, double);
         explicit Member(Properties*, const char *);
+
+	public:
         ~Member();
 
         void digest(Member *_member);
@@ -61,7 +63,7 @@ namespace Nodable
         void set(bool);
 		void set(int val) { set((double)val); }
 		void set(const std::string& _val) { set(_val.c_str());}
-		void set_meta_type(std::shared_ptr<const R::MetaType> _meta_type) { get_variant().define_meta_type(_meta_type); }
+		template<typename T> void set_meta_type() { get_variant().define_type<T>(); }
 		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
         void set_src_token(const std::shared_ptr<Token> _token);
         void set_owner(Node* _owner) { m_owner = _owner; }
@@ -83,7 +85,22 @@ namespace Nodable
         template<typename T> inline explicit operator T&()     { return get_variant(); }
         template<typename T> inline T convert_to()const        { return get_variant().convert_to<T>(); }
 
+        template<typename T>
+        static Member* new_with_type(Properties* _parent)
+        {
+           auto member = new Member(_parent);
+            member->m_variant.define_type<T>();
+           return member;
+		}
+
+        static Member* new_with_meta_type(Properties* _parent, std::shared_ptr<const R::MetaType> _type)
+        {
+            auto member = new Member(_parent);
+            member->m_variant.define_meta_type(_type);
+            return member;
+        }
     private:
+
         // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()
         Variant& get_variant(){ return (m_input && m_connected_by == ConnectBy_Ref) ? m_input->m_variant : m_variant; }
         const Variant& get_variant()const{ return (m_input && m_connected_by == ConnectBy_Ref) ? m_input->m_variant : m_variant; }

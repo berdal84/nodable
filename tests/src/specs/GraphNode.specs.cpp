@@ -80,7 +80,7 @@ TEST( GraphNode, clear)
     props->get(k_lh_value_member_name)->set(2);
     props->get(k_rh_value_member_name)->set(2);
 
-    graph.connect(props->get(k_value_member_name), instructionNode->get_root_node_member() );
+    graph.connect(props->get(k_this_member_name), instructionNode->get_root_node_member() );
 
     EXPECT_TRUE(graph.get_wire_registry().size() != 0);
     EXPECT_TRUE(graph.get_node_registry().size() != 0);

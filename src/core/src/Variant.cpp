@@ -7,13 +7,6 @@
 
 using namespace Nodable;
 
-Variant::Variant()
-    : m_is_defined(false)
-    , m_meta_type(R::MetaType::s_unknown)
-    , m_data()
-{
-}
-
 Variant::~Variant()
 {
     if( m_is_defined)
@@ -34,6 +27,7 @@ bool  Variant::is_meta_type(std::shared_ptr<const R::MetaType> _type)const
 
 void Variant::set(double _value)
 {
+    if( !m_meta_type ) define_meta_type( R::get_meta_type<double>() );
     NODABLE_ASSERT( is_meta_type( R::get_meta_type<double>() ) )
 
     m_data.m_double = _value;
@@ -42,9 +36,8 @@ void Variant::set(double _value)
 
 void Variant::set(const std::string& _value)
 {
+    if( !m_meta_type ) define_meta_type( R::get_meta_type<std::string>() );
     NODABLE_ASSERT( is_meta_type( R::get_meta_type<std::string>() ) )
-
-    set_defined(true);
 
     m_data.m_std_string_ptr->clear();
     m_data.m_std_string_ptr->append(_value);
@@ -57,9 +50,20 @@ void Variant::set(const char* _value)
 
 void Variant::set(bool _value)
 {
+    if( !m_meta_type ) define_meta_type( R::get_meta_type<bool>() );
     NODABLE_ASSERT( is_meta_type( R::get_meta_type<bool>() ) )
+
     m_data.m_bool   = _value;
     m_is_defined    = true;
+}
+
+void Variant::set(void* _pointer)
+{
+    if( !m_meta_type ) define_meta_type( R::get_meta_type<void*>() );
+    NODABLE_ASSERT( is_meta_type( R::get_meta_type<void*>() ) )
+
+    m_data.m_void_ptr = _pointer;
+    m_is_defined      = true;
 }
 
 bool Variant::is_defined()const
@@ -101,19 +105,9 @@ void Variant::set_defined(bool _define)
     NODABLE_ASSERT(_define == m_is_defined)
 }
 
-void Variant::set(void* _pointer)
-{
-    NODABLE_ASSERT( m_meta_type->get_type() == R::Type::Void || m_meta_type->get_type() == R::Type::Class)
-    m_data.m_void_ptr = _pointer;
-    m_is_defined      = true;
-}
-
-
 void Variant::set(const Variant* _other)
 {
     NODABLE_ASSERT(_other->m_meta_type && _other->m_meta_type->is(m_meta_type) ) // do not cast, strict same type required
-
-    set_defined(_other->m_is_defined);
 
     switch(m_meta_type->get_type())
     {
@@ -127,7 +121,7 @@ void Variant::set(const Variant* _other)
 
 void Variant::define_meta_type(std::shared_ptr<const R::MetaType> _type)
 {
-    NODABLE_ASSERT(m_meta_type == R::MetaType::s_unknown); // can't switch from one type to another
+    NODABLE_ASSERT(!m_meta_type); // can't switch from one type to another
     m_meta_type = _type;
     set_defined(true);
     NODABLE_ASSERT(m_is_defined);

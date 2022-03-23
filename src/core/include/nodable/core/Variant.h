@@ -15,12 +15,43 @@ namespace Nodable
     class Node;
 
     /**
+     * Union to store Variant data
+     */
+    union VariantData
+    {
+        VariantData(){ m_size_t = 0; }
+        bool           m_bool;
+        //i8             m_i8;           // not handled yet
+        //i16            m_i16;                   //
+        //i32            m_i32;                   //
+        //i64            m_i64;                   //
+        //u8             m_u8;                    //
+        //u16            m_u16;                   //
+        //u32            m_u32;                   //
+        //u64            m_u64;                   //
+        //char*          m_char_ptr;              //
+        size_t         m_size_t;
+        float          m_float;
+        double         m_double;
+        std::string*   m_std_string_ptr; // owned
+        void*          m_void_ptr;       // not owned
+    };
+    static_assert(sizeof(VariantData) == sizeof(size_t)); // ensure VariantData fits a size_t
+
+
+    /**
      * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data member)
      */
 	class Variant
     {
 	public:
-		Variant();
+		Variant(std::shared_ptr<const R::MetaType> _type)
+            : m_is_defined(false)
+            , m_meta_type(_type)
+            , m_data()
+        {
+        }
+
 		~Variant();
 
         bool is_defined()const;
@@ -34,13 +65,13 @@ namespace Nodable
 		void set(double);
 		void set(bool);
 
-		void define_meta_type(std::shared_ptr<const R::MetaType> _type);
-
         template<typename T>
-        void set_meta_type()
+        void define_type()
         {
+            NODABLE_ASSERT(m_meta_type == nullptr)
             define_meta_type(R::get_meta_type<T>());
         };
+        void define_meta_type(std::shared_ptr<const R::MetaType> _type);
 
         std::shared_ptr<const R::MetaType> get_meta_type()const;
 
@@ -66,29 +97,8 @@ namespace Nodable
         operator void* ()const;
 
     private:
-        bool m_is_defined;
+        bool                               m_is_defined;
         std::shared_ptr<const R::MetaType> m_meta_type;
-		union DataType
-		{
-		    DataType(){ m_size_t = 0; }
-		    bool           m_bool;
-		    //i8             m_i8;           // not handled yet
-		    //i16            m_i16;                   //
-		    //i32            m_i32;                   //
-		    //i64            m_i64;                   //
-            //u8             m_u8;                    //
-            //u16            m_u16;                   //
-            //u32            m_u32;                   //
-            //u64            m_u64;                   //
-            //char*          m_char_ptr;              //
-            size_t         m_size_t;
-		    float          m_float;
-		    double         m_double;
-		    std::string*   m_std_string_ptr; // owned
-		    void*          m_void_ptr;       // not owned
-        } m_data;
-
-        static_assert(sizeof(DataType) == sizeof(size_t)); // ensure DataType fits a size_t
-
+		VariantData                        m_data;
     };
 }

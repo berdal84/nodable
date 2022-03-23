@@ -13,19 +13,20 @@ Member::Member(Properties* _parent_properties)
     , m_input(nullptr)
     , m_parentProperties(_parent_properties)
     , m_connected_by(ConnectBy_Copy)
+    , m_variant(nullptr)
 {
     m_owner = _parent_properties ? _parent_properties->get_owner() : nullptr;
 }
 
 Member::Member( Properties* _parent_properties, double d ): Member(_parent_properties)
 {
-    m_variant.set_meta_type<double>();
+    m_variant.define_type<double>();
     m_variant.set(d);
 }
 
 Member::Member(Properties* _parent_properties, bool b): Member(_parent_properties)
 {
-    m_variant.set_meta_type<bool>();
+    m_variant.define_type<bool>();
     m_variant.set(b);
 }
 
@@ -33,7 +34,7 @@ Member::Member(Properties* _parent_properties, int i): Member(_parent_properties
 
 Member::Member(Properties* _parent_properties, const char * str): Member(_parent_properties)
 {
-    m_variant.set_meta_type<std::string>();
+    m_variant.define_type<std::string>();
     m_variant.set(str);
 }
 
