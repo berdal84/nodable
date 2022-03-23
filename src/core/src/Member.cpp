@@ -60,25 +60,21 @@ void Member::set_input(Member* _val, ConnBy_ _connect_by)
 
 void Member::set(Node* _value)
 {
-    get_variant().set_meta_type(R::get_meta_type<Node *>());
-    get_variant().set(_value);
+    get_variant().set((void*)_value);
 }
 
 void Member::set(double _value)
 {
-    get_variant().set_meta_type(R::get_meta_type<double>());
     get_variant().set(_value);
 }
 
 void Member::set(const char* _value)
 {
-    get_variant().set_meta_type(R::get_meta_type<std::string>());
     get_variant().set(_value);
 }
 
 void Member::set(bool _value)
 {
-    get_variant().set_meta_type(R::get_meta_type<bool>());
     get_variant().set(_value);
 }
 
@@ -106,9 +102,4 @@ void Member::digest(Member *_member)
 
 bool Member::is_connected_by(ConnBy_ by) {
     return m_connected_by == by;
-}
-
-void Member::define()
-{
-    m_variant.define();
 }

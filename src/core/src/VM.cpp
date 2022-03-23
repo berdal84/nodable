@@ -93,7 +93,6 @@ bool VM::_stepOver()
             {
                 case FctId::push_stack_frame:
                 {
-                    // place holder, do nothing for now
                     advance_cursor();
                     success = true;
                     break;
@@ -106,8 +105,7 @@ bool VM::_stepOver()
                     {
                         if (each_var->is_defined() )
                         {
-                            each_var->undefine();
-                            NODABLE_ASSERT(!each_var->is_defined());
+                            each_var->set_defined(false);
                         }
                     }
                     advance_cursor();

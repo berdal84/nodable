@@ -42,8 +42,7 @@ namespace Nodable
         ~Member();
 
         void digest(Member *_member);
-        void define();
-        void reset_value() { get_variant().reset_value(); }
+        void set_defined(bool _defined) { get_variant().set_defined(_defined); }
         bool is_defined() const { return get_variant().is_defined(); }
         bool is_connected_by(ConnBy_ by);
         bool is_meta_type(std::shared_ptr<const R::MetaType> _other)const { return get_variant().is_meta_type(_other); }
@@ -62,7 +61,7 @@ namespace Nodable
         void set(bool);
 		void set(int val) { set((double)val); }
 		void set(const std::string& _val) { set(_val.c_str());}
-		void set_meta_type(std::shared_ptr<const R::MetaType> _meta_type) { get_variant().set_meta_type(_meta_type); }
+		void set_meta_type(std::shared_ptr<const R::MetaType> _meta_type) { get_variant().define_meta_type(_meta_type); }
 		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
         void set_src_token(const std::shared_ptr<Token> _token);
         void set_owner(Node* _owner) { m_owner = _owner; }

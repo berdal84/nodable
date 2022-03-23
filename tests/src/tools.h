@@ -99,7 +99,7 @@ namespace Nodable
             if (const Variant* last_eval = vm.get_last_result())
             {
                 std::string result_str = last_eval->convert_to<std::string>();
-                LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
+                LOG_VERBOSE("tools.h", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
             }
             else
             {
@@ -113,13 +113,13 @@ namespace Nodable
 
         Serializer *serializer = lang.getSerializer();
         serializer->serialize(result, graph.get_root() );
-        LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());
+        LOG_VERBOSE("tools.h", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());
 
         return result;
     }
 
     static std::string ParseAndSerialize(const std::string &expression) {
-        LOG_MESSAGE("Specs", "ParseAndSerialize parsing \"%s\"\n", expression.c_str());
+        LOG_VERBOSE("tools.h", "ParseAndSerialize parsing \"%s\"\n", expression.c_str());
         // prepare
         const LanguageNodable lang;
         HeadlessNodeFactory factory(&lang);
@@ -136,7 +136,7 @@ namespace Nodable
         Serializer *serializer = lang.getSerializer();
         std::string result;
         serializer->serialize(result, graph.get_root() );
-        LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());
+        LOG_VERBOSE("tools.h", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());
 
         return result;
     }

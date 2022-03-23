@@ -25,13 +25,12 @@ namespace Nodable
 
 		inline bool      is_declared()const { return m_is_declared; }
 		inline bool      is_defined()const { return m_value->is_defined(); }
-		inline void      undefine() { m_value->reset_value(); set_dirty(true); }
+		inline void      set_defined(bool _defined) { m_value->set_defined(_defined); set_dirty(true); }
 		const char*      get_name()const { return m_name.c_str(); };
 		Member*          get_value()const { return m_value; }
         std::shared_ptr<const Token> get_type_token() const { return m_type_token; }
         std::shared_ptr<const Token> get_assignment_operator_token() const { return m_assignment_operator_token; }
         std::shared_ptr<const Token> get_identifier_token() const { return m_identifier_token; }
-		bool             eval() const override;
         void             set_name(const char*);
         void             set_type_token(std::shared_ptr<Token> token) { m_type_token = token; }
         void             set_assignment_operator_token(std::shared_ptr<Token> token) { m_assignment_operator_token = token; }

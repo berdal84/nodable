@@ -868,7 +868,7 @@ Member* Parser::parse_function_call()
     // eat "close bracket supposed" token
     if ( !m_token_ribbon.eatToken(TokenType_CloseBracket) )
     {
-        LOG_ERROR("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
+        LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
         rollback_transaction();
         return nullptr;
     }
@@ -906,15 +906,12 @@ Member* Parser::parse_function_call()
 
     }
 
-    std::string signature_str;
-    m_language->getSerializer()->serialize(signature_str, &signature);
-    std::string error_str {"parse function call... " KO " abort, reason: " + signature_str + " not found.\n"};
-    LOG_ERROR("Parser", error_str.c_str() );
+    std::string error_str = "parse function call... " KO " abort, reason: ";
+    m_language->getSerializer()->serialize(error_str, &signature);
+    error_str.append(" not found.\n");
+    LOG_WARNING("Parser", error_str.c_str() );
     rollback_transaction();
-    throw error(
-            "parse_function_call failed.",
-            "Signature not found: " + signature_str,
-            m_token_ribbon.tokens.back() );
+    throw error("parse_function_call failed.", error_str, m_token_ribbon.tokens.back() );
 }
 
 Scope* Parser::get_current_scope()

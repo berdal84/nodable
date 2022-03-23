@@ -53,8 +53,11 @@ TEST(VM, Loop_1_using_local_var )
     std::string program =
             "string res = \"\";" \
             "for(double n=0;n<10;n=n+1){"
+            "   print(\"A: \" + n);"
             "   string tmp = to_string(n);"
+            "   print(\"B: \" + n);"
             "   res = res + tmp;"
+            "   print(\"C: \" + n);"
             "}"
             "res;";
 

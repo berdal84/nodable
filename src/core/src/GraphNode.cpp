@@ -546,7 +546,6 @@ void GraphNode::destroy(Wire *_wire)
     Node*   src_node   = _wire->nodes.src;
 
     dst_member->set_input(nullptr);
-    dst_member->reset_value();
 
     auto& outputs = src_member->get_outputs();
     outputs.erase( std::find(outputs.begin(), outputs.end(), dst_member));

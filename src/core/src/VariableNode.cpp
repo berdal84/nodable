@@ -17,15 +17,6 @@ VariableNode::VariableNode(std::shared_ptr<const R::MetaType> _type)
 	m_value = m_props.add(k_value_member_name, Visibility::Always, _type, Way_InOut);
 }
 
-bool VariableNode::eval() const
-{
-    if ( !is_defined() )
-    {
-        Node::eval();
-    }
-    return true;
-}
-
 void VariableNode::set_name(const char* _name)
 {
     m_name = _name;

@@ -167,6 +167,14 @@ std::string api_to_string(double n) { return String::from(n); }
 std::string api_to_string(bool b) { return b ? "true" : "false"; }
 std::string api_to_string(std::string s) { return s; }
 
+template<typename T>
+std::string api_print(T _value)
+{
+    std::string result = api_to_string(_value);
+    printf("print: %s\n", result.c_str());
+    return result;
+}
+
 std::string api_DNAtoProtein(std::string baseChain)
 {
     std::string protein;
@@ -323,13 +331,17 @@ LanguageNodable::LanguageNodable()
     WRAP_FUNCTION(api_and)
     WRAP_FUNCTION(api_xor)
     WRAP_FUNCTION(api_to_bool)
-    WRAP_POLYFUNC(api_to_string, string(bool))
-    WRAP_POLYFUNC(api_to_string, string(double))
-    WRAP_POLYFUNC(api_to_string, string(string))
     WRAP_FUNCTION(api_mod)
     WRAP_FUNCTION(api_pow)
     WRAP_FUNCTION(api_secondDegreePolynomial)
 	WRAP_FUNCTION(api_DNAtoProtein)
+
+    WRAP_POLYFUNC(api_to_string, string(bool))
+    WRAP_POLYFUNC(api_to_string, string(double))
+    WRAP_POLYFUNC(api_to_string, string(string))
+    WRAP_POLYFUNC(api_print,     string(bool))
+    WRAP_POLYFUNC(api_print,     string(double))
+    WRAP_POLYFUNC(api_print,     string(string))
 
 	WRAP_OPERATOR(api_add        , "+" , 10, ICON_FA_PLUS " Add")
     WRAP_POLYOPER(api_concat     , "+" , 10, "Concat.", string(string, string))
