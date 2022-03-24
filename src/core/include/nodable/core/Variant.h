@@ -88,16 +88,16 @@ namespace Nodable
         template<typename T> T convert_to()const;
 
         // by reference
-        template<typename T> operator const T*()const  { NODABLE_ASSERT(m_is_initialized) return reinterpret_cast<const T*>(m_data.m_void_ptr); }
-        template<typename T> operator T*()             { NODABLE_ASSERT(m_is_initialized) return reinterpret_cast<T*>(m_data.m_void_ptr); }
+        template<typename T> operator const T*()const  { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<const T*>(m_data.m_void_ptr); }
+        template<typename T> operator T*()             { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<T*>(m_data.m_void_ptr); }
 
-		operator double*()        { NODABLE_ASSERT(m_is_initialized) return &m_data.m_double; }
-        operator bool*()          { NODABLE_ASSERT(m_is_initialized) return &m_data.m_bool; }
-        operator std::string* ()  { NODABLE_ASSERT(m_is_initialized) return m_data.m_std_string_ptr; }
-        operator void* ()         { NODABLE_ASSERT(m_is_initialized) return m_data.m_void_ptr; }
-        operator double&()        { NODABLE_ASSERT(m_is_initialized) return m_data.m_double; }
-        operator bool&()          { NODABLE_ASSERT(m_is_initialized) return m_data.m_bool; }
-        operator std::string& ()  { NODABLE_ASSERT(m_is_initialized) return *m_data.m_std_string_ptr; }
+		operator double*()        { NODABLE_ASSERT(m_is_defined) return &m_data.m_double; }
+        operator bool*()          { NODABLE_ASSERT(m_is_defined) return &m_data.m_bool; }
+        operator std::string* ()  { NODABLE_ASSERT(m_is_defined) return m_data.m_std_string_ptr; }
+        operator void* ()         { NODABLE_ASSERT(m_is_defined) return m_data.m_void_ptr; }
+        operator double&()        { NODABLE_ASSERT(m_is_defined) return m_data.m_double; }
+        operator bool&()          { NODABLE_ASSERT(m_is_defined) return m_data.m_bool; }
+        operator std::string& ()  { NODABLE_ASSERT(m_is_defined) return *m_data.m_std_string_ptr; }
 
         // by value
         operator int()const;

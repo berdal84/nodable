@@ -59,8 +59,8 @@ namespace Nodable
 
             NODABLE_ASSERT(result_variant->get_meta_type()->is(R::get_meta_type<Node*>()) ) // we only accept a result as Node*
 
-            auto result_node       = (const Node*)*result_variant;
-            result = result_node->convert_value_to<return_t>();
+            auto result_node = (const Node*)*result_variant;
+            result           = result_node->value_as<return_t>();
         }
         else
         {

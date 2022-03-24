@@ -83,7 +83,7 @@ void Variant::set_initialized(bool _initialize)
         // Set a default value (this will change the type too)
         switch ( type )
         {
-            case R::Type::String:  m_data.m_std_string_ptr   = new std::string(); break;
+            case R::Type::String:  m_data.m_std_string_ptr   = new std::string(); m_is_defined = true; break;
             case R::Type::Double:  m_data.m_double           = 0;                 break;
             case R::Type::Boolean: m_data.m_bool             = false;             break;
             case R::Type::Void:
@@ -256,11 +256,11 @@ std::string Variant::convert_to<std::string>()const
 }
 
 // those operators can't figure in header since they are using templates implem in cpp.
-Variant::operator int()const          { return (int)convert_to<double>(); }
-Variant::operator double()const       { return convert_to<double>(); }
-Variant::operator bool()const         { return convert_to<bool>(); }
-Variant::operator std::string ()const { return convert_to<std::string>(); }
-Variant::operator void* ()const       { return convert_to<void*>(); }
+Variant::operator int()const          { NODABLE_ASSERT(m_is_defined) return (int)convert_to<double>(); }
+Variant::operator double()const       { NODABLE_ASSERT(m_is_defined) return convert_to<double>(); }
+Variant::operator bool()const         { NODABLE_ASSERT(m_is_defined) return convert_to<bool>(); }
+Variant::operator std::string ()const { NODABLE_ASSERT(m_is_defined) return convert_to<std::string>(); }
+Variant::operator void* ()const       { NODABLE_ASSERT(m_is_defined) return convert_to<void*>(); }
 
 void Variant::force_defined_flag(bool _value )
 {
