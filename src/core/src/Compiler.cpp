@@ -316,7 +316,7 @@ void Asm::Compiler::compile_program(Node* _program_graph_root)
     {
         auto scope = _program_graph_root->get<Scope>();
         NODABLE_ASSERT(scope)
-        constexpr bool skip_pop_stack_frame = true;
+        constexpr bool skip_pop_stack_frame = false;
         compile_scope(scope, skip_pop_stack_frame);
 
         m_temp_code->push_instr(Instr_t::ret); // fake a return statement

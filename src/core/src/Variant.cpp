@@ -132,7 +132,7 @@ void Variant::define_meta_type(std::shared_ptr<const R::MetaType> _type)
 template<>
 void* Variant::convert_to<void*>()const
 {
-    if( !m_is_initialized)
+    if( !m_is_defined)
     {
         return nullptr;
     }
@@ -150,7 +150,7 @@ void* Variant::convert_to<void*>()const
 template<>
 u64 Variant::convert_to<u64>()const
 {
-    if( !m_is_initialized)
+    if( !m_is_defined)
     {
         return 0;
     }
@@ -168,7 +168,7 @@ u64 Variant::convert_to<u64>()const
 template<>
 double Variant::convert_to<double>()const
 {
-    if( !m_is_initialized)
+    if( !m_is_defined)
     {
         return 0.0;
     }
@@ -192,7 +192,7 @@ int Variant::convert_to<int>()const
 template<>
 bool Variant::convert_to<bool>()const
 {
-    if( !m_is_initialized)
+    if( !m_is_defined)
     {
         return false;
     }
@@ -210,6 +210,11 @@ template<>
 std::string Variant::convert_to<std::string>()const
 {
     if( !m_is_initialized)
+    {
+        return "uninitialized";
+    }
+
+    if(!m_is_defined)
     {
         return "undefined";
     }
