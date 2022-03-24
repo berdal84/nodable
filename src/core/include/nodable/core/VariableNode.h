@@ -24,8 +24,8 @@ namespace Nodable
 		~VariableNode() override = default;
 
 		inline bool      is_declared()const { return m_is_declared; }
-		inline bool      is_defined()const { return m_value->is_defined(); }
-		inline void      set_defined(bool _defined) { m_value->set_defined(_defined); set_dirty(true); }
+		inline bool      is_defined()const { return m_value->is_initialized(); }
+		inline void      set_defined(bool _defined) { m_value->set_initialized(_defined); set_dirty(true); }
 		const char*      get_name()const { return m_name.c_str(); };
 		Member*          get_value()const { return m_value; }
         std::shared_ptr<const Token> get_type_token() const { return m_type_token; }

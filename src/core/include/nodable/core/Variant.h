@@ -45,25 +45,28 @@ namespace Nodable
     {
 	public:
 		Variant(std::shared_ptr<const R::MetaType> _type)
-            : m_is_defined(false)
+            : m_is_initialized(false)
+            , m_is_defined(false)
             , m_meta_type(_type)
         {
         }
 
 		~Variant();
 
-        bool is_defined()const;
-        void set_defined(bool _defined);
 		bool is_meta_type(std::shared_ptr<const R::MetaType> _meta_type)const;
-
+        bool is_inititialized()const;
+        void set_inititialized(bool _initialize);
 		template<typename T>
         void set(T* _pointer)
         {
-            if( !m_meta_type ) define_meta_type( R::get_meta_type<T*>() );
+            if( !m_meta_type )
+            {
+                define_meta_type( R::get_meta_type<T*>() );
+            }
             NODABLE_ASSERT( m_meta_type->has_qualifier(R::Qualifier::Pointer) )
 
             m_data.m_void_ptr = _pointer;
-            m_is_defined      = true;
+            m_is_defined = true;
         }
 		void set(const Variant&);
 		void set(const std::string&);
@@ -84,16 +87,16 @@ namespace Nodable
         template<typename T> T convert_to()const;
 
         // by reference
-        template<typename T> operator const T*()const  { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<const T*>(m_data.m_void_ptr); }
-        template<typename T> operator T*()             { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<T*>(m_data.m_void_ptr); }
+        template<typename T> operator const T*()const  { NODABLE_ASSERT(m_is_initialized) return reinterpret_cast<const T*>(m_data.m_void_ptr); }
+        template<typename T> operator T*()             { NODABLE_ASSERT(m_is_initialized) return reinterpret_cast<T*>(m_data.m_void_ptr); }
 
-		operator double*()        { NODABLE_ASSERT(m_is_defined) return &m_data.m_double; }
-        operator bool*()          { NODABLE_ASSERT(m_is_defined) return &m_data.m_bool; }
-        operator std::string* ()  { NODABLE_ASSERT(m_is_defined) return m_data.m_std_string_ptr; }
-        operator void* ()         { NODABLE_ASSERT(m_is_defined) return m_data.m_void_ptr; }
-        operator double&()        { NODABLE_ASSERT(m_is_defined) return m_data.m_double; }
-        operator bool&()          { NODABLE_ASSERT(m_is_defined) return m_data.m_bool; }
-        operator std::string& ()  { NODABLE_ASSERT(m_is_defined) return *m_data.m_std_string_ptr; }
+		operator double*()        { NODABLE_ASSERT(m_is_initialized) return &m_data.m_double; }
+        operator bool*()          { NODABLE_ASSERT(m_is_initialized) return &m_data.m_bool; }
+        operator std::string* ()  { NODABLE_ASSERT(m_is_initialized) return m_data.m_std_string_ptr; }
+        operator void* ()         { NODABLE_ASSERT(m_is_initialized) return m_data.m_void_ptr; }
+        operator double&()        { NODABLE_ASSERT(m_is_initialized) return m_data.m_double; }
+        operator bool&()          { NODABLE_ASSERT(m_is_initialized) return m_data.m_bool; }
+        operator std::string& ()  { NODABLE_ASSERT(m_is_initialized) return *m_data.m_std_string_ptr; }
 
         // by value
         operator int()const;
@@ -104,8 +107,8 @@ namespace Nodable
 
     private:
         bool                               m_is_defined;
+        bool                               m_is_initialized;
         std::shared_ptr<const R::MetaType> m_meta_type;
 		VariantData                        m_data;
-        bool                               m_needs_to_delete_std_string = false;
     };
 }

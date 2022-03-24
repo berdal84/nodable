@@ -9,9 +9,9 @@ using namespace Nodable;
 
 Variant::~Variant()
 {
-    if( m_is_defined)
+    if( m_is_initialized)
     {
-        set_defined(false);
+        set_inititialized(false);
     }
 };
 
@@ -27,7 +27,10 @@ bool  Variant::is_meta_type(std::shared_ptr<const R::MetaType> _type)const
 
 void Variant::set(double _value)
 {
-    if( !m_meta_type ) define_meta_type( R::get_meta_type<double>() );
+    if( !m_is_initialized )
+    {
+        define_meta_type( R::get_meta_type<double>() );
+    }
     NODABLE_ASSERT( is_meta_type( R::get_meta_type<double>() ) )
 
     m_data.m_double = _value;
@@ -41,7 +44,10 @@ void Variant::set(const std::string& _value)
 
 void Variant::set(const char* _value)
 {
-    if( !m_meta_type ) define_meta_type( R::get_meta_type<std::string>() );
+    if( !m_is_initialized )
+    {
+        define_meta_type( R::get_meta_type<std::string>() );
+    }
     NODABLE_ASSERT( is_meta_type( R::get_meta_type<std::string>() ) )
 
     m_data.m_std_string_ptr->clear();
@@ -52,48 +58,52 @@ void Variant::set(const char* _value)
 
 void Variant::set(bool _value)
 {
-    if( !m_meta_type ) define_meta_type( R::get_meta_type<bool>() );
+    if( !m_is_initialized )
+    {
+        define_meta_type( R::get_meta_type<bool>() );
+    }
     NODABLE_ASSERT( is_meta_type( R::get_meta_type<bool>() ) )
 
-    m_data.m_bool   = _value;
-    m_is_defined    = true;
+    m_data.m_bool = _value;
+    m_is_defined  = true;
 }
 
-bool Variant::is_defined()const
+bool Variant::is_inititialized()const
 {
-	return m_is_defined;
+	return m_is_initialized;
 }
 
-void Variant::set_defined(bool _define)
+void Variant::set_inititialized(bool _initialize)
 {
     auto type = m_meta_type->get_type();
 
-    if ( _define )
+    if ( _initialize )
     {
+        NODABLE_ASSERT(m_meta_type)
         // Set a default value (this will change the type too)
         switch ( type )
         {
-            case R::Type::String:  m_data.m_std_string_ptr   = new std::string(); m_needs_to_delete_std_string = true; break;
+            case R::Type::String:  m_data.m_std_string_ptr   = new std::string(); break;
             case R::Type::Double:  m_data.m_double           = 0;                 break;
             case R::Type::Boolean: m_data.m_bool             = false;             break;
             case R::Type::Void:
             case R::Type::Class:   m_data.m_void_ptr         = nullptr;           break;
             default:               break;
         }
-        m_is_defined = true;
     }
     else
     {
-        if ( m_needs_to_delete_std_string )
+        NODABLE_ASSERT(m_meta_type)
+        if( m_meta_type->get_type() == R::Type::String)
         {
             delete m_data.m_std_string_ptr;
-            m_data.m_std_string_ptr      = nullptr;
-            m_needs_to_delete_std_string = false;
+            m_data.m_std_string_ptr = nullptr;
         }
-        m_is_defined = false;
     }
 
-    NODABLE_ASSERT(_define == m_is_defined)
+    m_is_initialized = _initialize;
+    m_is_defined     = false;
+    NODABLE_ASSERT(_initialize == m_is_initialized)
 }
 
 void Variant::set(const Variant& _other)
@@ -115,14 +125,14 @@ void Variant::define_meta_type(std::shared_ptr<const R::MetaType> _type)
 {
     NODABLE_ASSERT(!m_meta_type); // can't switch from one type to another
     m_meta_type = _type;
-    set_defined(true);
-    NODABLE_ASSERT(m_is_defined);
+    set_inititialized(true);
+    NODABLE_ASSERT(m_is_initialized);
 }
 
 template<>
 void* Variant::convert_to<void*>()const
 {
-    if( !m_is_defined)
+    if( !m_is_initialized)
     {
         return nullptr;
     }
@@ -140,7 +150,7 @@ void* Variant::convert_to<void*>()const
 template<>
 u64 Variant::convert_to<u64>()const
 {
-    if( !m_is_defined)
+    if( !m_is_initialized)
     {
         return 0;
     }
@@ -158,7 +168,7 @@ u64 Variant::convert_to<u64>()const
 template<>
 double Variant::convert_to<double>()const
 {
-    if( !m_is_defined)
+    if( !m_is_initialized)
     {
         return 0.0;
     }
@@ -182,7 +192,7 @@ int Variant::convert_to<int>()const
 template<>
 bool Variant::convert_to<bool>()const
 {
-    if( !m_is_defined)
+    if( !m_is_initialized)
     {
         return false;
     }
@@ -199,7 +209,7 @@ bool Variant::convert_to<bool>()const
 template<>
 std::string Variant::convert_to<std::string>()const
 {
-    if( !m_is_defined)
+    if( !m_is_initialized)
     {
         return "undefined";
     }

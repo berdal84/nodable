@@ -60,7 +60,7 @@ TEST(Member, Type_Boolean)
 
     m.set(false);
     EXPECT_FALSE((bool)m);
-    EXPECT_TRUE(m.is_defined());
+    EXPECT_TRUE(m.is_initialized());
 
 }
 
@@ -73,7 +73,7 @@ TEST(Member, Type_String)
     EXPECT_EQ((std::string)m, str);
     EXPECT_TRUE(m.convert_to<bool>());
     EXPECT_EQ(m.get_meta_type()->get_type(), Type::String);
-    EXPECT_TRUE(m.is_defined());
+    EXPECT_TRUE(m.is_initialized());
 }
 
 TEST(Member, Type_Double)
@@ -83,7 +83,7 @@ TEST(Member, Type_Double)
 
     EXPECT_EQ((double)m, (double)50);
     EXPECT_EQ(m.get_meta_type()->get_type(), Type::Double);
-    EXPECT_TRUE(m.is_defined());
+    EXPECT_TRUE(m.is_initialized());
 }
 
 TEST(Member, Modify_by_reference_using_a_pointer)
@@ -93,7 +93,7 @@ TEST(Member, Modify_by_reference_using_a_pointer)
 
     EXPECT_EQ((double)m, 50.0);
     EXPECT_EQ(m.get_meta_type()->get_type(), Type::Double);
-    EXPECT_TRUE(m.is_defined());
+    EXPECT_TRUE(m.is_initialized());
 
     double* ref = (double*)m;
     *ref = 100.0;
@@ -108,7 +108,7 @@ TEST(Member, Modify_by_reference_using_a_reference)
 
     EXPECT_EQ((double)m1, 50.0);
     EXPECT_EQ(m1.get_meta_type()->get_type(), Type::Double);
-    EXPECT_TRUE(m1.is_defined());
+    EXPECT_TRUE(m1.is_initialized());
 
     auto add_right_to_left = [](double& a, double b) -> double { return  a = a + b; };
     add_right_to_left((double&)m1, (double)m2);

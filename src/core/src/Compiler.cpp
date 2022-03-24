@@ -225,7 +225,7 @@ void Asm::Compiler::compile_node(const Node* _node)
 
         const Member* condition_member = i_cond_struct->condition_member();
 
-        if ( condition_member->is_defined() )
+        if (condition_member->is_initialized() )
         {
             NODABLE_ASSERT(condition_member)
             compile_member(condition_member);

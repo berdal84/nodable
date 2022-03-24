@@ -530,7 +530,7 @@ bool NodeView::drawMemberView(MemberView* _view )
             ( _view->m_touched && !MetaType::is_ptr(member->get_meta_type() ) )
             ||
             (
-                (!MetaType::is_ptr(member->get_meta_type()) && member->is_defined())
+                (!MetaType::is_ptr(member->get_meta_type()) && member->is_initialized())
                 &&
                 (
                     (
@@ -687,7 +687,7 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanc
                 WayToString(_member->get_allowed_connection()).c_str(),
                 _member->get_meta_type()->get_fullname().c_str(),
                 _member->is_connected_by(ConnectBy_Ref) ? "&" : "",
-                _member->is_defined() ? "" : ", undefined!");
+                _member->is_initialized() ? "" : ", undefined!");
 
         ImGui::SameLine();
         ImGui::Text("(?)");
