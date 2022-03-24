@@ -43,6 +43,7 @@ namespace Nodable
         enum class Instr_t: u8
         {
             cmp, /* compare */
+            eval_node,
             jmp,
             jne,
             mov,
@@ -50,11 +51,13 @@ namespace Nodable
             pop_var,
             push_stack_frame,
             push_var,
-            ret
+            ret,
+            store_data
         };
 
         R_ENUM(Instr_t)
         R_ENUM_VALUE(mov)
+        R_ENUM_VALUE(eval_node)
         R_ENUM_VALUE(push_var)
         R_ENUM_VALUE(pop_var)
         R_ENUM_VALUE(push_stack_frame)
@@ -63,6 +66,7 @@ namespace Nodable
         R_ENUM_VALUE(jne)
         R_ENUM_VALUE(ret)
         R_ENUM_VALUE(cmp)
+        R_ENUM_VALUE(store_data)
         R_ENUM_END
 
         /**

@@ -81,76 +81,66 @@ bool VM::_stepOver()
             break;
         }
 
-        case Instr_t::call:
+        case Instr_t::push_stack_frame: // do nothing, just mark visually the beginning of a scope.
         {
-            auto fct_id = (FctId)next_instr->call.fct_id;
+            advance_cursor();
+            success = true;
+            break;
+        }
 
-            switch( fct_id )
+        case Instr_t::push_var:
+        {
+            advance_cursor();
+            VariableNode* variable = next_instr->push.var;
+            if (variable->is_initialized() )
             {
-                case FctId::push_frame: // do nothing, just mark visually the beginning of a scope.
+                variable->set_initialized(false);
+            }
+            // TODO: push variable to the future stack
+
+            success = true;
+            break;
+        }
+
+        case Instr_t::pop_stack_frame:
+        {
+            auto scope = next_instr->pop.scope;
+            for( VariableNode* each_var : scope->get_variables() )
+            {
+                if (each_var->is_initialized() )
                 {
-                    advance_cursor();
-                    success = true;
-                    break;
-                }
-
-                case FctId::push_variable:
-                {
-                    advance_cursor();
-                    VariableNode* variable = next_instr->call.push.var;
-                    if (variable->is_initialized() )
-                    {
-                        variable->set_initialized(false);
-                    }
-                    // TODO: push variable to the future stack
-
-                    success = true;
-                    break;
-                }
-
-                case FctId::pop_frame:
-                {
-                    auto scope = next_instr->call.pop.scope;
-                    for( VariableNode* each_var : scope->get_variables() )
-                    {
-                        if (each_var->is_initialized() )
-                        {
-                            each_var->set_initialized(false);
-                        }
-                    }
-                    advance_cursor();
-                    success = true;
-                    break;
-                }
-
-                case FctId::eval_node:
-                {
-                    auto node = next_instr->call.eval.node;
-                    node->eval();
-                    node->set_dirty(false);
-
-                    // Store a value if exists
-                    if (node->props()->has(k_value_member_name) )
-                    {
-                        Member* member = node->props()->get(k_value_member_name);
-                        write_register(Register::rax, (u64) member->get_data()); // copy variant address
-                    }
-
-                    advance_cursor();
-                    success = true;
-                    break;
-                }
-
-                case FctId::store_data_ptr:
-                {
-                    const Variant* data = next_instr->call.store.data;
-                    write_register(Register::rax, (u64)data); //copy variant address
-                    advance_cursor();
-                    success = true;
-                    break;
+                    each_var->set_initialized(false);
                 }
             }
+            advance_cursor();
+            success = true;
+            break;
+        }
 
+        case Instr_t::eval_node:
+        {
+            auto node = next_instr->eval.node;
+            node->eval();
+            node->set_dirty(false);
+
+            // Store a value if exists
+            if (node->props()->has(k_value_member_name) )
+            {
+                Member* member = node->props()->get(k_value_member_name);
+                write_register(Register::rax, (u64) member->get_data()); // copy variant address
+            }
+
+            advance_cursor();
+            success = true;
+            break;
+        }
+
+        case Instr_t::store_data:
+        {
+            const Variant* data = next_instr->store.data;
+            write_register(Register::rax, (u64)data); //copy variant address
+            advance_cursor();
+            success = true;
             break;
         }
 
@@ -193,7 +183,7 @@ bool VM::step_over()
 {
     auto must_break = [&]() -> bool {
         return get_next_instr()->type == Instr_t::ret ||
-               get_next_instr()->type == Instr_t::call
+               get_next_instr()->type == Instr_t::eval_node
                && m_last_step_next_instr != get_next_instr();
     };
 
@@ -215,20 +205,17 @@ bool VM::step_over()
         // update m_current_node and m_last_step_instr
         m_last_step_next_instr = get_next_instr();
         auto next_instr = get_next_instr();
-        if (next_instr->type == Instr_t::call )
+
+        switch ( next_instr->type )
         {
-            switch ( next_instr->call.fct_id )
+            case Instr_t::eval_node:
             {
-
-                case FctId::eval_node:
-                {
-                    m_next_node = next_instr->call.eval.node;
-                    break;
-                }
-
-                default:
-                    break;
+                m_next_node = next_instr->eval.node;
+                break;
             }
+
+            default:
+                break;
         }
         LOG_MESSAGE("VM", "Step over (current line %#1llx)\n", next_instr->line)
     }
