@@ -267,9 +267,7 @@ TEST(Parser, declare_then_define ) {
 TEST(Parser, declare_and_define_then_reassign ) {
     std::string program_01 =
             "double b = 6;"
-            "print(b);"
             "b = 5;"
-            "print(b);"
             "b;";
     EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
 }

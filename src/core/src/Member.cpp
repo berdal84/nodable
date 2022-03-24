@@ -64,7 +64,7 @@ void Member::set_input(Member* _val)
 
 void Member::set(Node* _value)
 {
-    get_variant().set((void*)_value);
+    get_variant().set(_value);
 }
 
 void Member::set(double _value)
