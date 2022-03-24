@@ -381,37 +381,34 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
                 // First case is easy, if no children on the target node, the next node of the target IS the source.
                 if (dst->has<Scope>() )
                 {
-                    if (dst->children_slots().empty() )
+                    if (dst->children_slots().empty() && !dst->is<IConditionalStruct>() )
                     {
                         DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, dst);
                         connect(relation, false);
                     }
-                    else if (dst->get_class()->is_child_of<ConditionalStructNode>() )
+                    else if ( !dst->children_slots().empty())
                     {
-                        DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, dst);
-                        connect(relation, false);
-                    }
-                    else if ( !dst->children_slots().back()->has<Scope>() )
-                    {
-                        DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, dst->children_slots().back());
-                        connect(relation, false);
-                    }
-                    else
-                    {
-                        auto& children = dst->children_slots();
-                        Node* back = children.back();
-                        if (auto scope = back->get<Scope>() )
+                        if (!dst->children_slots().back()->has<Scope>() )
                         {
-                            std::vector<InstructionNode *> last_instructions;
-                            scope->get_last_instructions(last_instructions);
-                            for (InstructionNode *each_instruction : last_instructions)
+                            DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, dst->children_slots().back());
+                            connect(relation, false);
+                        }
+                        else
+                        {
+                            auto& children = dst->children_slots();
+                            Node* back = children.back();
+                            if (auto scope = back->get<Scope>() )
                             {
-                                DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, each_instruction);
-                                connect(relation, false);
+                                std::vector<InstructionNode *> last_instructions;
+                                scope->get_last_instructions(last_instructions);
+                                for (InstructionNode *each_instruction : last_instructions)
+                                {
+                                    DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, each_instruction);
+                                    connect(relation, false);
+                                }
                             }
                         }
                     }
-
                 }
                 else
                 {
