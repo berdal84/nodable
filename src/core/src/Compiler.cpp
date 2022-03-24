@@ -1,7 +1,9 @@
 #include <nodable/core/Compiler.h>
 
 #include <memory>
+#include <iostream>
 
+#include <nodable/core/String.h>
 #include <nodable/core/assertions.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/Log.h>
@@ -47,7 +49,9 @@ std::string Asm::Instr::to_string(const Instr& _instr)
             FctId fct_id   = (FctId)_instr.m_arg0;
             Member* member = (Member*)_instr.m_arg1;
             result.append( Asm::to_string(fct_id) );
-            result.append( " [" + std::to_string((size_t)member) + "]");
+            while( result.length() < 30 )
+                result.append(" ");
+            result.append( String::address_to_hexadecimal(member) );
             break;
         }
 
@@ -168,11 +172,20 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _skip_pop_stack_fram
     // call push_stack_frame
     {
         Instr *instr  = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0 = (i64) FctId::push_stack_frame;
+        instr->m_arg0 = (i64) FctId::push_frame;
         instr->m_arg1 = (i64) _scope;
         char str[64];
         snprintf(str, 64, "%s's scope", scope_owner->get_short_label());
         instr->m_comment = str;
+    }
+
+    // push each varaible onto the stack
+    for(const VariableNode* each_variable : _scope->get_variables())
+    {
+        Instr *instr     = m_temp_code->push_instr(Instr_t::call);
+        instr->m_arg0    = (u64)FctId::push_variable;
+        instr->m_arg1    = (u64)each_variable;
+        instr->m_comment = std::string{each_variable->get_label()};
     }
 
     // compile content
@@ -185,7 +198,7 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _skip_pop_stack_fram
     if( !_skip_pop_stack_frame )
     {
         Instr *instr     = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0    = (u64) FctId::pop_stack_frame;
+        instr->m_arg0    = (u64) FctId::pop_frame;
         instr->m_arg1    = (u64) scope_owner;
         instr->m_comment = std::string{scope_owner->get_short_label()} + "'s scope";
     }
@@ -278,15 +291,6 @@ void Asm::Compiler::compile_node(const Node* _node)
         }
     }
 
-    // define ?
-    if ( _node->is<VariableNode>() )
-    {
-        Instr *instr     = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0    = (u64)FctId::push_variable;
-        instr->m_arg1    = (u64)_node;
-        instr->m_comment = std::string{_node->get_label()};
-    }
-
     // eval node
     bool should_be_evaluated =
                _node->has<InvokableComponent>()
@@ -296,9 +300,9 @@ void Asm::Compiler::compile_node(const Node* _node)
 
     if ( should_be_evaluated )
     {
-        Instr *instr = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0 = (u64)FctId::eval_node;
-        instr->m_arg1 = (u64)_node;
+        Instr *instr     = m_temp_code->push_instr(Instr_t::call);
+        instr->m_arg0    = (u64)FctId::eval_node;
+        instr->m_arg1    = (u64)_node;
         instr->m_comment = std::string{_node->get_label()};
     }
 
@@ -335,28 +339,16 @@ std::unique_ptr<const Code> Asm::Compiler::compile(Node* _program_graph)
     return nullptr;
 }
 
-//void Asm::Compiler::log_program()
-//{
-//    if (m_program_asm_code)
-//    {
-//        m_program_graph     = _program_graph_root;
-//
-//        LOG_MESSAGE("VM", "Program's tree compiled.\n");
-//        LOG_VERBOSE("VM", "Find bellow the compilation result:\n");
-//        LOG_VERBOSE("VM", "---- Program begin -----\n");
-//        Instr* curr = get_next_instr();
-//        while( curr )
-//        {
-//            LOG_VERBOSE("VM", "%s \n", Instr::to_string(*curr ).c_str() );
-//            advance_cursor(1);
-//            curr = get_next_instr();
-//        }
-//        LOG_VERBOSE("VM", "---- Program end -----\n");
-//        return true;
-//    }
-//    else
-//    {
-//        LOG_ERROR("VM", "Unable to compile program's tree.\n");
-//        return false;
-//    }
-//}
+std::string Asm::Code::to_string(const Code* _code)
+{
+    std::string result;
+
+    result.append( "------------<=[ Program begin ]=>------------\n");
+    for( Instr* each_instruction : _code->m_instructions )
+    {
+        result.append( Instr::to_string(*each_instruction) );
+        result.append("\n");
+    }
+    result.append("------------<=[ Program end    ]=>------------\n");
+    return result;
+}

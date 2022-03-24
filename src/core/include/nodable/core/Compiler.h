@@ -44,16 +44,16 @@ namespace Nodable
         {
             eval_member,
             eval_node,
-            push_stack_frame,
-            pop_stack_frame,
+            push_frame,
+            pop_frame,
             push_variable
         };
 
         R_ENUM(FctId)
         R_ENUM_VALUE(eval_member)
         R_ENUM_VALUE(eval_node)
-        R_ENUM_VALUE(push_stack_frame)
-        R_ENUM_VALUE(pop_stack_frame)
+        R_ENUM_VALUE(push_frame)
+        R_ENUM_VALUE(pop_frame)
         R_ENUM_VALUE(push_variable)
         R_ENUM_END
 
@@ -116,6 +116,7 @@ namespace Nodable
             size_t                     get_next_index() const { return m_instructions.size(); }
             const std::vector<Instr*>& get_instructions()const { return m_instructions; }
             const MetaData&            get_meta_data()const { return m_meta_data; }
+            static std::string         to_string(const Code*);
         private:
             MetaData            m_meta_data;
             std::vector<Instr*> m_instructions;
@@ -136,6 +137,7 @@ namespace Nodable
             void compile_member(const Member*);
             void compile_scope(const Scope*, bool _skip_pop_stack_frame = false);
             std::unique_ptr<Code> m_temp_code;
+
         };
     }
 }

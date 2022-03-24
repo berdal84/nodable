@@ -265,11 +265,13 @@ TEST(Parser, declare_then_define ) {
 }
 
 TEST(Parser, declare_and_define_then_reassign ) {
+    Log::SetVerbosityLevel("Compiler", Log::Verbosity::Verbose);
     std::string program_01 =
             "double b = 6;"
             "b = 5;"
             "b;";
     EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
+    Log::SetVerbosityLevel("Compiler", Log::Verbosity::Message);
 }
 
 TEST(Parser, declare_then_define_then_reassign ) {

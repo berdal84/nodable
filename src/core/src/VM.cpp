@@ -91,7 +91,7 @@ bool VM::_stepOver()
 
             switch( fct_id )
             {
-                case FctId::push_stack_frame: // do nothing, just mark visually the beginning of a scope.
+                case FctId::push_frame: // do nothing, just mark visually the beginning of a scope.
                 {
                     advance_cursor();
                     success = true;
@@ -110,7 +110,7 @@ bool VM::_stepOver()
                     break;
                 }
 
-                case FctId::pop_stack_frame:
+                case FctId::pop_frame:
                 {
                     auto scope = ((Node *) next_instr->m_arg1)->get<Scope>();
                     for( VariableNode* each_var : scope->get_variables() )

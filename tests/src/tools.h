@@ -26,6 +26,7 @@ namespace Nodable
         HeadlessNodeFactory factory(&lang);
         bool autocompletion = false;
         GraphNode graph(&lang, &factory, &autocompletion);
+        std::string asm_code_string;
 
         // create program
         lang.getParser()->parse_graph(expression, &graph);
@@ -39,7 +40,7 @@ namespace Nodable
             {
                 throw std::runtime_error("Compiler was not able to compile program's graph.");
             }
-
+            std::cout << Asm::Code::to_string(code.get()) << std::flush;
             // load
             if (!vm.load_program( std::move(code) ))
             {
@@ -96,7 +97,7 @@ namespace Nodable
             {
                 throw std::runtime_error("Compiler was not able to compile program's graph.");
             }
-
+            std::cout << Asm::Code::to_string(code.get()) << std::flush;
             // load
             if (!vm.load_program( std::move(code) ))
             {
