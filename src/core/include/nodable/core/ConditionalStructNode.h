@@ -29,10 +29,11 @@ namespace Nodable
         Scope*        get_condition_true_scope()const override;
         Scope*        get_condition_false_scope()const override;
         Member*       condition_member()const override { return m_props.get(k_condition_member_name); }
-
+        void          set_cond_instr(InstructionNode*) override;
     private:
         std::shared_ptr<Token> m_token_if;
         std::shared_ptr<Token> m_token_else;
+        InstructionNode* m_cond_instr_node;
 
         R_DERIVED(ConditionalStructNode)
          R_EXTENDS(Node)

@@ -381,12 +381,12 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
                 // First case is easy, if no children on the target node, the next node of the target IS the source.
                 if (dst->has<Scope>() )
                 {
-                    if (dst->children_slots().empty() && !dst->is<IConditionalStruct>() )
+                    if (dst->children_slots().empty() )
                     {
                         DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, dst);
                         connect(relation, false);
                     }
-                    else if ( !dst->children_slots().empty())
+                    else
                     {
                         if (!dst->children_slots().back()->has<Scope>() )
                         {

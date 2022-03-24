@@ -10,6 +10,7 @@ namespace Nodable
     // forward declarations
     class Scope;
     class Member;
+    class InstructionNode;
 
     /**
      * @brief Interface for any conditional structure node (ex: if/else, for, while, do/while )
@@ -20,6 +21,7 @@ namespace Nodable
         virtual Member* condition_member()const = 0;
         virtual Scope* get_condition_true_scope()const = 0;
         virtual Scope* get_condition_false_scope()const = 0;
+        virtual void   set_cond_instr(InstructionNode*) = 0;
 
         R(IConditionalStruct)
     };

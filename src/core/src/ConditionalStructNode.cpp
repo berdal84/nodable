@@ -23,3 +23,8 @@ Scope* ConditionalStructNode::get_condition_false_scope() const
 {
     return m_successors.size() > 1 ? m_successors[1]->get<Scope>() : nullptr;
 }
+
+void ConditionalStructNode::set_cond_instr(InstructionNode* _node)
+{
+    m_cond_instr_node = _node;
+}

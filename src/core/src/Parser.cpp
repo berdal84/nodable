@@ -442,7 +442,7 @@ Member* Parser::parse_parenthesis_expression()
 	return result;
 }
 
-InstructionNode* Parser::parse_instruction()
+InstructionNode* Parser::parse_instr()
 {
     start_transaction();
 
@@ -473,7 +473,6 @@ InstructionNode* Parser::parse_instruction()
     }
 
     m_graph->connect(expression->get_owner(), instr_node);
-    m_graph->connect({EdgeType::IS_CHILD_OF, instr_node, m_scope_stack.top()->get_owner()});
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n")
     commit_transaction();
@@ -564,7 +563,10 @@ IScope* Parser::parse_code_block(bool _create_scope)
 
     while(m_token_ribbon.canEat() && !stop )
     {
-             if ( parse_instruction() ) {}
+        if ( InstructionNode* instr_node = parse_instr() )
+        {
+            m_graph->connect({EdgeType::IS_CHILD_OF, instr_node, m_scope_stack.top()->get_owner()});
+        }
         else if ( parse_conditional_structure() ) {}
         else if ( parse_for_loop() ) {}
         else if ( parse_scope() ) {}
@@ -937,10 +939,12 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
         if(m_token_ribbon.eatToken(TokenType_OpenBracket))
         {
-            InstructionNode* condition = parse_instruction();
+            InstructionNode* condition = parse_instr();
 
             if ( condition)
             {
+                condStruct->set_cond_instr(condition);
+
                 if ( m_token_ribbon.eatToken(TokenType_CloseBracket) )
                 {
                     m_graph->connect(condition->get_this_member(), condStruct->condition_member() );
@@ -1032,7 +1036,7 @@ ForLoopNode* Parser::parse_for_loop()
         }
         else
         {
-            InstructionNode* init_instr = parse_instruction();
+            InstructionNode* init_instr = parse_instr();
             if (!init_instr)
             {
                 LOG_ERROR("Parser", "Unable to find initial instruction.\n")
@@ -1040,8 +1044,9 @@ ForLoopNode* Parser::parse_for_loop()
             else
             {
                 m_graph->connect(init_instr->get_this_member(), for_loop_node->get_init_expr());
+                for_loop_node->set_init_instr(init_instr);
 
-                InstructionNode* cond_instr = parse_instruction();
+                InstructionNode* cond_instr = parse_instr();
                 if (!cond_instr)
                 {
                     LOG_ERROR("Parser", "Unable to find condition instruction.\n")
@@ -1049,8 +1054,9 @@ ForLoopNode* Parser::parse_for_loop()
                 else
                 {
                     m_graph->connect(cond_instr->get_this_member(), for_loop_node->condition_member());
+                    for_loop_node->set_cond_instr(cond_instr);
 
-                    InstructionNode* iter_instr = parse_instruction();
+                    InstructionNode* iter_instr = parse_instr();
                     if (!iter_instr)
                     {
                         LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
@@ -1058,6 +1064,7 @@ ForLoopNode* Parser::parse_for_loop()
                     else
                     {
                         m_graph->connect(iter_instr->get_this_member(), for_loop_node->get_iter_expr());
+                        for_loop_node->set_iter_instr(iter_instr);
 
                         std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(TokenType_CloseBracket);
                         if (!close_bracket)
