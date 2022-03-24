@@ -31,7 +31,7 @@ void VM::run_program()
 
     reset_cursor();
     clear_registers();
-    while(!is_program_over())
+    while( is_there_a_next_instr() && get_next_instr()->m_type != Instr_t::ret )
     {
         _stepOver();
     }
@@ -179,8 +179,8 @@ bool VM::_stepOver()
         }
 
         case Instr_t::ret:
-            advance_cursor();
-            success = true;
+            //advance_cursor();
+            success = false;
             break;
 
         default:
@@ -194,17 +194,18 @@ bool VM::_stepOver()
 bool VM::step_over()
 {
     auto must_break = [&]() -> bool {
-        return get_next_instr()->m_type == Instr_t::call
+        return get_next_instr()->m_type == Instr_t::ret ||
+               get_next_instr()->m_type == Instr_t::call
                && m_last_step_next_instr != get_next_instr();
     };
 
-    while( !is_program_over() && !must_break() )
+    while(is_there_a_next_instr() && !must_break() )
     {
         _stepOver();
     }
 
 
-    bool continue_execution = !is_program_over();
+    bool continue_execution = is_there_a_next_instr();
     if( !continue_execution )
     {
         stop_program();
@@ -254,15 +255,15 @@ void VM::debug_program()
     LOG_MESSAGE("VM", "Debugging program ...\n")
 }
 
-bool VM::is_program_over() const
+bool VM::is_there_a_next_instr() const
 {
     auto next_inst_id = read_register(Register::eip);
-    return next_inst_id >= m_program_asm_code->size() || get_next_instr()->m_type == Instr_t::ret;
+    return next_inst_id < m_program_asm_code->size();
 }
 
 Instr* VM::get_next_instr() const
 {
-    if ( !is_program_over() )
+    if ( is_there_a_next_instr() )
     {
         auto next_inst_id = read_register(Register::eip);
         return m_program_asm_code->get_instruction_at(next_inst_id);

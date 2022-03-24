@@ -567,7 +567,7 @@ void AppView::draw_vm_view()
             ImGui::Text("Has program: %s", !code.expired() ? "YES" : "NO");
             if (!code.expired())
             {
-                ImGui::Text("Program over: %s", vm->is_program_over() ? "YES" : "NO");
+                ImGui::Text("Program over: %s", !vm->is_there_a_next_instr() ? "YES" : "NO");
             }
             ImGui::Unindent();
         }

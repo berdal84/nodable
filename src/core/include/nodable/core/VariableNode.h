@@ -53,5 +53,7 @@ namespace Nodable
 		R_DERIVED(VariableNode)
         R_EXTENDS(Node)
         R_END
+
+        bool never_assigned() const;
     };
 }

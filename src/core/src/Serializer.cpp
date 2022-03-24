@@ -198,11 +198,11 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
         append_assign_tok();
         serialize(_result, value);
     }
-    else if (value->is_initialized() )
+    else if ( value->get_data()->is_defined() )
     {
         append_assign_tok();
         _result.append(value->get_src_token()->m_prefix);
-        serialize(_result, _node->get_value()->get_data());
+        serialize(_result, value->get_data());
         _result.append(value->get_src_token()->m_suffix);
     }
 

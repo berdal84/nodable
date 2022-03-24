@@ -33,7 +33,7 @@ namespace Nodable
                    bool           step_over();
             inline const Node*    get_next_node() const {return m_next_node; }
             inline const Variant* get_last_result() { return (Variant*)m_register[(size_t)Register::rax]; }
-            bool                  is_program_over() const;
+            bool                  is_there_a_next_instr() const;
             std::weak_ptr<const Asm::Code> get_program_asm_code()const { return m_program_asm_code; }
             Instr*                get_next_instr() const;
             inline u64            read_register(Register _register) const { return m_register[(size_t)_register]; }

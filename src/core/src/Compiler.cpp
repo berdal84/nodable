@@ -320,7 +320,7 @@ void Asm::Compiler::compile_program(Node* _program_graph_root)
     {
         auto scope = _program_graph_root->get<Scope>();
         NODABLE_ASSERT(scope)
-        compile_scope(scope);
+        compile_scope(scope, true);
     }
     catch ( const std::exception& e )
     {
