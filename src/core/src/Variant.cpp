@@ -201,7 +201,7 @@ std::string Variant::convert_to<std::string>()const
 {
     if( !m_is_defined)
     {
-        return "";
+        return "undefined";
     }
 
     std::string result;
@@ -227,9 +227,7 @@ std::string Variant::convert_to<std::string>()const
 
         case R::Type::Class:
         {
-            result.append("[&") ;
-            result.append( std::to_string( (size_t)m_data.m_void_ptr) );
-            result.append("]") ;
+            result.append( String::address_to_hexadecimal(m_data.m_void_ptr) );
             break;
         }
 

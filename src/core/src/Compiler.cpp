@@ -143,7 +143,6 @@ void Asm::Compiler::compile_member(const Member * _member )
             compile_node(input->get_owner());
         }
 
-        /* evaluate member */
         {
             Instr *instr  = m_temp_code->push_instr(Instr_t::call);
             instr->m_arg0 = (u64) FctId::store_data_ptr;
@@ -291,13 +290,17 @@ void Asm::Compiler::compile_node(const Node* _node)
         }
 
         // eval node
-        bool should_be_evaluated = _node->has<InvokableComponent>();
+        bool should_be_evaluated = _node->has<InvokableComponent>() || _node->is<VariableNode>() || _node->is<LiteralNode>();
         if ( should_be_evaluated )
         {
             Instr *instr     = m_temp_code->push_instr(Instr_t::call);
             instr->m_arg0    = (u64)FctId::eval_node;
             instr->m_arg1    = (u64)_node;
-            instr->m_comment = std::string{_node->get_label()};
+            instr->m_comment =
+                    std::string{_node->get_label()} +
+                    " (initial value is: " +
+                    _node->props()->get(k_value_member_name)->convert_to<std::string>() +
+                    ")";
         }
     }
 
