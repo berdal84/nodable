@@ -57,16 +57,11 @@ namespace Nodable
                 throw std::runtime_error("Unable to get program's last result.");
             }
 
-            if (result_variant->get_meta_type()->is(R::get_meta_type<Node*>() ) )
-            {
-                const Node*   result_node       = (const Node*)*result_variant;
-                const Member* result_node_value = result_node->props()->get(k_value_member_name);
-                result = result_node_value->convert_to<return_t>();
-            }
-            else
-            {
-                result = result_variant->convert_to<return_t>();
-            }
+            NODABLE_ASSERT(result_variant->get_meta_type()->is(R::get_meta_type<Node*>()) ) // we only accept a result as Node*
+
+            const Node*   result_node       = *result_variant;
+            const Member* result_node_value = result_node->props()->get(k_value_member_name);
+            result = result_node_value->convert_to<return_t>();
         }
         else
         {

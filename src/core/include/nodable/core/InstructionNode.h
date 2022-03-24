@@ -22,7 +22,7 @@ namespace Nodable
         explicit InstructionNode(const char* _label);
         ~InstructionNode()= default;
 
-        [[nodiscard]] inline Member* get_root_node_member()const { return m_props.get("root_node"); }
+        [[nodiscard]] inline Member* get_root_node_member()const { return m_props.get(k_value_member_name); }
         [[nodiscard]] inline std::shared_ptr<Token> end_of_instr_token()const { return m_end_of_instr_token; }
                       inline void    end_of_instr_token(std::shared_ptr<Token> token) { m_end_of_instr_token = token; }
 

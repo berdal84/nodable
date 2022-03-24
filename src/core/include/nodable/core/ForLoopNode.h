@@ -34,6 +34,9 @@ namespace Nodable
         void set_iter_instr(InstructionNode*);
         void set_init_instr(InstructionNode*);
         void set_cond_instr(InstructionNode*) override;
+        InstructionNode* get_init_instr()const { return m_init_instr_node; }
+        InstructionNode* get_cond_instr()const override { return m_cond_instr_node; }
+        InstructionNode* get_iter_instr()const { return m_iter_instr_node; }
     private:
         std::shared_ptr<Token> m_token_for;
         InstructionNode* m_init_instr_node;

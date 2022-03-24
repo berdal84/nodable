@@ -143,7 +143,7 @@ bool VM::_stepOver()
                     break;
                 }
 
-                case FctId::eval_member:
+                case FctId::store_data_ptr:
                 {
                     auto member = (Member*)next_instr->m_arg1;
                     write_register(Register::rax, (u64) member->get_data()); //copy variant address
@@ -220,7 +220,7 @@ bool VM::step_over()
         {
             switch ( (FctId)(next_instr->m_arg0) )
             {
-                case FctId::eval_member:
+                case FctId::store_data_ptr:
                 {
                     auto member = (Member *)next_instr->m_arg1;
                     m_next_node = member->get_owner();

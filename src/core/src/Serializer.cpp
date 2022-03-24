@@ -382,13 +382,10 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
     }
     else
     {
-        serialize( _result, _for_loop->get_init_expr() );
+        serialize( _result, _for_loop->get_init_instr() );
     }
-
-    serialize( _result, TokenType_EndOfInstruction );
-    serialize( _result, _for_loop->condition_member() );
-    serialize( _result, TokenType_EndOfInstruction );
-    serialize( _result, _for_loop->get_iter_expr() );
+    serialize( _result, _for_loop->get_cond_instr() );
+    serialize( _result, _for_loop->get_iter_instr() );
     serialize( _result, TokenType_CloseBracket );
 
     // if scope
@@ -405,7 +402,7 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     // if ( <condition> )
     serialize( _result, _condStruct->get_token_if() );
     serialize( _result, TokenType_OpenBracket );
-    serialize( _result, _condStruct->condition_member() );
+    serialize( _result, _condStruct->get_cond_instr() );
     serialize( _result, TokenType_CloseBracket );
 
     // if scope

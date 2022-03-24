@@ -145,12 +145,12 @@ void Asm::Compiler::compile_member(const Member * _member )
 
         /* evaluate member */
         {
-            Instr *instr         = m_temp_code->push_instr(Instr_t::call);
-            instr->m_arg0  = (i64) FctId::eval_member;
-            instr->m_arg1 = (i64) _member;
+            Instr *instr  = m_temp_code->push_instr(Instr_t::call);
+            instr->m_arg0 = (u64) FctId::store_data_ptr;
+            instr->m_arg1 = (u64) _member;
             char str[128];
             sprintf(str
-                    , "eval %s -> %s"
+                    , "%s -> %s"
                     , _member->get_owner()->get_label()
                     , _member->get_name().c_str());
             instr->m_comment = str;
@@ -172,8 +172,8 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _skip_pop_stack_fram
     // call push_stack_frame
     {
         Instr *instr  = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0 = (i64) FctId::push_frame;
-        instr->m_arg1 = (i64) _scope;
+        instr->m_arg0 = (u64) FctId::push_frame;
+        instr->m_arg1 = (u64) _scope;
         char str[64];
         snprintf(str, 64, "%s's scope", scope_owner->get_short_label());
         instr->m_comment = str;
@@ -232,10 +232,10 @@ void Asm::Compiler::compile_node(const Node* _node)
             compile_member(condition_member);
         }
 
-        Instr* store_instr         = m_temp_code->push_instr(Instr_t::mov);
-        store_instr->m_arg0  = (u64)Register::rdx;
-        store_instr->m_arg1 = (u64)Register::rax;
-        store_instr->m_comment     = "store result";
+        Instr* store_instr     = m_temp_code->push_instr(Instr_t::mov);
+        store_instr->m_arg0    = (u64)Register::rdx;
+        store_instr->m_arg1    = (u64)Register::rax;
+        store_instr->m_comment = "store result";
 
         Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
         skip_true_branch->m_comment = "jump if register is false";
@@ -289,21 +289,16 @@ void Asm::Compiler::compile_node(const Node* _node)
             if ( !each_input->is<VariableNode>() )
                 compile_node(each_input);
         }
-    }
 
-    // eval node
-    bool should_be_evaluated =
-               _node->has<InvokableComponent>()
-            || _node->is<InstructionNode>()
-            || _node->is<LiteralNode>()
-            || _node->is<VariableNode>();
-
-    if ( should_be_evaluated )
-    {
-        Instr *instr     = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0    = (u64)FctId::eval_node;
-        instr->m_arg1    = (u64)_node;
-        instr->m_comment = std::string{_node->get_label()};
+        // eval node
+        bool should_be_evaluated = _node->has<InvokableComponent>();
+        if ( should_be_evaluated )
+        {
+            Instr *instr     = m_temp_code->push_instr(Instr_t::call);
+            instr->m_arg0    = (u64)FctId::eval_node;
+            instr->m_arg1    = (u64)_node;
+            instr->m_comment = std::string{_node->get_label()};
+        }
     }
 
 }

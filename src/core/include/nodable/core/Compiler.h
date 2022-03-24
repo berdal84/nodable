@@ -42,7 +42,7 @@ namespace Nodable
          */
         enum class FctId: u64 // Instruction arguments are u64
         {
-            eval_member,
+            store_data_ptr,
             eval_node,
             push_frame,
             pop_frame,
@@ -50,7 +50,7 @@ namespace Nodable
         };
 
         R_ENUM(FctId)
-        R_ENUM_VALUE(eval_member)
+        R_ENUM_VALUE(store_data_ptr)
         R_ENUM_VALUE(eval_node)
         R_ENUM_VALUE(push_frame)
         R_ENUM_VALUE(pop_frame)

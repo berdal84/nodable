@@ -234,7 +234,10 @@ void GraphNode::destroy(Node* _node)
     if ( VariableNode* node_variable = _node->as<VariableNode>() )
     {
         IScope* scope = node_variable->get_scope();
-        if ( scope ) scope->remove_variable(node_variable);
+        if ( scope )
+        {
+            scope->remove_variable(node_variable);
+        }
     }
     else if ( Scope* scope = _node->get<Scope>() )
     {
@@ -381,7 +384,7 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
                 // First case is easy, if no children on the target node, the next node of the target IS the source.
                 if (dst->has<Scope>() )
                 {
-                    if (dst->children_slots().empty() )
+                    if (dst->successor_slots().accepts() )
                     {
                         DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, dst);
                         connect(relation, false);
