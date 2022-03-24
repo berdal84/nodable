@@ -146,7 +146,7 @@ void Asm::Compiler::compile_member(const Member * _member )
         {
             Instr *instr  = m_temp_code->push_instr(Instr_t::call);
             instr->m_arg0 = (u64) FctId::store_data_ptr;
-            instr->m_arg1 = (u64) _member;
+            instr->m_arg1 = (u64) _member->get_data();
             char str[128];
             sprintf(str
                     , "%s -> %s"

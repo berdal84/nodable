@@ -145,8 +145,8 @@ bool VM::_stepOver()
 
                 case FctId::store_data_ptr:
                 {
-                    auto member = (Member*)next_instr->m_arg1;
-                    write_register(Register::rax, (u64) member->get_data()); //copy variant address
+                    auto data = (Variant*)next_instr->m_arg1;
+                    write_register(Register::rax, (u64) data); //copy variant address
                     advance_cursor();
                     success = true;
                     break;
