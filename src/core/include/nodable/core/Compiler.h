@@ -131,7 +131,7 @@ namespace Nodable
             Compiler()= default;
             std::unique_ptr<const Code> compile(Node* _program_graph);
         private:
-            void compile_program(Node*);
+            void compile_graph_root(Node *_program_graph_root);
             bool is_program_valid(const Node*);
             void compile_node(const Node*);
             void compile_member(const Member*);

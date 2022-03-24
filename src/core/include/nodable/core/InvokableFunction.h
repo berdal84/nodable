@@ -82,6 +82,14 @@ namespace Nodable {
         inline void invoke(Member *_result, const std::vector<Member *> &_args) const override
         {
             call<T, Args...>(m_function, _result, _args);
+            for(auto arg : _args)
+            {
+                if ( arg->is_connected_by(ConnectBy_Ref) )
+                {
+                    arg->force_defined_flag(true);
+                }
+            }
+
         }
 
         inline const FunctionSignature* get_signature() const override { return m_signature; };

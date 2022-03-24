@@ -101,6 +101,12 @@ void Member::digest(Member *_member)
     m_sourceToken = _member->m_sourceToken;
 }
 
-bool Member::is_connected_by(ConnBy_ by) {
+bool Member::is_connected_by(ConnBy_ by)
+{
     return m_connected_by == by;
+}
+
+void Member::force_defined_flag(bool _value)
+{
+    get_variant().force_defined_flag(_value);
 }

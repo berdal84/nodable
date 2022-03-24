@@ -9,11 +9,11 @@ TEST(VM, Cond_1 )
     std::string program =
             "double bob   = 50;"
             "double alice = 10;"
-            "string val;"
+            "bool val;"
             "if(bob>alice){"
-            "   val = \"true\";"
+            "   val = true;"
             "}else{"
-            "   val = \"false\";"
+            "   val = false;"
             "}"
             "val;"; // return-like
 

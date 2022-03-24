@@ -106,6 +106,8 @@ namespace Nodable
         operator std::string ()const;
         operator void* ()const;
 
+        void force_defined_flag(bool _value);
+
     private:
         bool                               m_is_defined;
         bool                               m_is_initialized;

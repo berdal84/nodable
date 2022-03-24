@@ -102,9 +102,9 @@ bool VM::_stepOver()
                 {
                     advance_cursor();
                     auto variable = ((Node*)next_instr->m_arg1)->as<VariableNode>();
-                    if (!variable->is_initialized() )
+                    if (variable->is_initialized() )
                     {
-                        variable->set_initialized(true);
+                        variable->set_initialized(false);
                     }
                     success = true;
                     break;

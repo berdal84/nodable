@@ -312,7 +312,7 @@ void Asm::Compiler::compile_node(const Node* _node)
 
 }
 
-void Asm::Compiler::compile_program(Node* _program_graph_root)
+void Asm::Compiler::compile_graph_root(Node* _program_graph_root)
 {
     m_temp_code = std::make_unique<Code>(_program_graph_root);
 
@@ -320,7 +320,7 @@ void Asm::Compiler::compile_program(Node* _program_graph_root)
     {
         auto scope = _program_graph_root->get<Scope>();
         NODABLE_ASSERT(scope)
-        compile_scope(scope, true);
+        compile_scope(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
     }
     catch ( const std::exception& e )
     {
@@ -333,7 +333,7 @@ std::unique_ptr<const Code> Asm::Compiler::compile(Node* _program_graph)
 {
     if ( is_program_valid(_program_graph))
     {
-        compile_program(_program_graph);
+        compile_graph_root(_program_graph);
         LOG_MESSAGE("Compiler", "Program compiled.\n");
         return std::move(m_temp_code);
     }

@@ -97,6 +97,9 @@ namespace Nodable
             member->m_variant.define_meta_type(_type);
             return member;
         }
+
+        void force_defined_flag(bool _value);
+
     private:
 
         // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()

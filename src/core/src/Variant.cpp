@@ -261,3 +261,8 @@ Variant::operator double()const       { return convert_to<double>(); }
 Variant::operator bool()const         { return convert_to<bool>(); }
 Variant::operator std::string ()const { return convert_to<std::string>(); }
 Variant::operator void* ()const       { return convert_to<void*>(); }
+
+void Variant::force_defined_flag(bool _value )
+{
+    m_is_defined = _value;
+}
