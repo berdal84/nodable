@@ -286,7 +286,9 @@ void Asm::Compiler::compile_node(const Node* _node)
         for ( const Node* each_input : _node->input_slots().content() )
         {
             if ( !each_input->is<VariableNode>() )
+            {
                 compile_node(each_input);
+            }
         }
 
         // eval node
