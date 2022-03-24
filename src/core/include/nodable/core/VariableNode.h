@@ -24,8 +24,8 @@ namespace Nodable
 		~VariableNode() override = default;
 
 		inline bool      is_declared()const { return m_is_declared; }
-		inline bool      is_initialized()const { return m_value->is_initialized(); }
-		inline void      set_initialized(bool _defined) { m_value->set_initialized(_defined); set_dirty(true); }
+		inline bool      is_initialized()const { return m_value->get_data()->is_initialized(); }
+		inline void      set_initialized(bool _defined) { m_value->get_data()->set_initialized(_defined); set_dirty(true); }
 		const char*      get_name()const { return m_name.c_str(); };
 		Member*          get_value()const { return m_value; }
         bool             eval()const override;
@@ -53,7 +53,5 @@ namespace Nodable
 		R_DERIVED(VariableNode)
         R_EXTENDS(Node)
         R_END
-
-        bool never_assigned() const;
     };
 }

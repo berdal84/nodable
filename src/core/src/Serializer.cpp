@@ -225,7 +225,7 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
 {
     if (_member->get_meta_type()->is( R::get_meta_type<Node*>()))
     {
-        if(_member->is_initialized())
+        if(_member->get_data()->is_initialized())
         {
             return serialize(_result, (const Node*)*_member);
         }
@@ -337,7 +337,7 @@ std::string& Serializer::serialize(std::string& _result, const InstructionNode* 
 {
     const Member* root_node_member = _instruction->get_root_node_member();
 
-    if (root_node_member->has_input_connected() && root_node_member->is_initialized() )
+    if (root_node_member->has_input_connected() && root_node_member->get_data()->is_initialized() )
     {
         auto root_node = (const Node*)*root_node_member;
         NODABLE_ASSERT ( root_node )

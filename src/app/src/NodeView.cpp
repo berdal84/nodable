@@ -550,8 +550,9 @@ bool NodeView::drawMemberView(MemberView* _view )
     // input
     float input_size;
 
-    if ( _view->m_showInput )
+    if ( _view->m_showInput && member->get_data()->is_defined())
     {
+        NODABLE_ASSERT(member->get_data()->is_defined());
         // try to draw an as small as possible input field
         input_size = 5.0f + std::max( ImGui::CalcTextSize(((std::string)*member).c_str()).x, NodeView::s_memberInputSizeMin );
         ImGui::PushItemWidth(input_size);

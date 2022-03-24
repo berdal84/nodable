@@ -42,8 +42,6 @@ namespace Nodable
         ~Member();
 
         void digest(Member *_member);
-        void set_initialized(bool _defined) { get_variant().set_inititialized(_defined); }
-        bool is_initialized() const { return get_variant().is_inititialized(); }
         bool is_connected_by(ConnBy_ by);
         bool is_meta_type(std::shared_ptr<const R::MetaType> _other)const { return get_variant().is_meta_type(_other); }
         bool equals(const Member *)const;
@@ -76,6 +74,7 @@ namespace Nodable
         const std::shared_ptr<Token> get_src_token() const { return m_sourceToken; }
 		std::shared_ptr<Token>       get_src_token() { return m_sourceToken; }
         const Variant*        get_data()const { return &get_variant(); }
+        Variant*              get_data() { return &get_variant(); }
 
         template<typename T> inline explicit operator T*()     { return get_variant(); }
         template<typename T> inline explicit operator const T*() const { return get_variant(); }

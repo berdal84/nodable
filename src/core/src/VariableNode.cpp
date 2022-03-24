@@ -44,15 +44,10 @@ void VariableNode::set_name(const char* _name)
 
 bool VariableNode::eval() const
 {
-    if( never_assigned() && !m_value->is_initialized() )
+    if( !m_value->get_data()->is_initialized() )
     {
-        m_value->set_initialized(true);
+        m_value->get_data()->set_initialized(true);
         return Node::eval();
     }
     return true;
-}
-
-bool VariableNode::never_assigned() const
-{
-    return !m_value->get_data()->is_defined();
 }

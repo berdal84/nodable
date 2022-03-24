@@ -11,7 +11,7 @@ Variant::~Variant()
 {
     if( m_is_initialized)
     {
-        set_inititialized(false);
+        set_initialized(false);
     }
 };
 
@@ -68,12 +68,12 @@ void Variant::set(bool _value)
     m_is_defined  = true;
 }
 
-bool Variant::is_inititialized()const
+bool Variant::is_initialized()const
 {
 	return m_is_initialized;
 }
 
-void Variant::set_inititialized(bool _initialize)
+void Variant::set_initialized(bool _initialize)
 {
     auto type = m_meta_type->get_type();
 
@@ -125,7 +125,7 @@ void Variant::define_meta_type(std::shared_ptr<const R::MetaType> _type)
 {
     NODABLE_ASSERT(!m_meta_type); // can't switch from one type to another
     m_meta_type = _type;
-    set_inititialized(true);
+    set_initialized(true);
     NODABLE_ASSERT(m_is_initialized);
 }
 

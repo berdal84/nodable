@@ -54,9 +54,9 @@ namespace Nodable
 		~Variant();
 
 		bool is_meta_type(std::shared_ptr<const R::MetaType> _meta_type)const;
-        bool is_inititialized()const;
+        bool is_initialized()const;
         bool is_defined() const { return m_is_defined; }
-        void set_inititialized(bool _initialize);
+        void set_initialized(bool _initialize);
 		template<typename T>
         void set(T* _pointer)
         {
