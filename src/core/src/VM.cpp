@@ -91,7 +91,7 @@ bool VM::_stepOver()
         case Instr_t::push_var:
         {
             advance_cursor();
-            VariableNode* variable = next_instr->push.var;
+            VariableNode* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
             if (variable->is_initialized() )
             {
                 variable->set_initialized(false);
@@ -119,7 +119,7 @@ bool VM::_stepOver()
 
         case Instr_t::eval_node:
         {
-            auto node = next_instr->eval.node;
+            auto node = const_cast<Node*>( next_instr->eval.node ); // hack !
             node->eval();
             node->set_dirty(false);
 
