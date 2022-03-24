@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <exception>
 
+#include <nodable/core/Node.h>
 #include <nodable/core/Member.h>
 #include <nodable/core/VM.h>
 #include <nodable/core/GraphNode.h>
@@ -49,12 +50,22 @@ namespace Nodable
             vm.run_program();
 
             // ret result
-            const Variant* last_result = vm.get_last_result();
-            if ( last_result == nullptr )
+            const Variant* result_variant = vm.get_last_result();
+            if (result_variant == nullptr )
             {
                 throw std::runtime_error("Unable to get program's last result.");
             }
-            result = last_result->convert_to<return_t>();
+
+            if (result_variant->get_meta_type()->is(R::get_meta_type<Node*>() ) )
+            {
+                const Node*   result_node       = (const Node*)*result_variant;
+                const Member* result_node_value = result_node->props()->get(k_value_member_name);
+                result = result_node_value->convert_to<return_t>();
+            }
+            else
+            {
+                result = result_variant->convert_to<return_t>();
+            }
         }
         else
         {

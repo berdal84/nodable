@@ -102,8 +102,10 @@ bool VM::_stepOver()
                 {
                     advance_cursor();
                     auto variable = ((Node*)next_instr->m_arg1)->as<VariableNode>();
-                    NODABLE_ASSERT(!variable->is_defined())
-                    variable->set_defined(true);
+                    if (!variable->is_defined() )
+                    {
+                        variable->set_defined(true);
+                    }
                     success = true;
                     break;
                 }

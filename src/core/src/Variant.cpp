@@ -177,7 +177,7 @@ double Variant::convert_to<double>()const
         case R::Type::String:  return double(m_data.m_std_string_ptr->size());
         case R::Type::Double:  return m_data.m_double;
         case R::Type::Boolean: return double(m_data.m_bool);
-        case R::Type::Class:   // fall through
+        case R::Type::Class:
         default:               return double((u64)m_data.m_void_ptr);
     }
 }

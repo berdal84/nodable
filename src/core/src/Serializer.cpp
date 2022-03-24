@@ -331,7 +331,7 @@ std::string& Serializer::serialize(std::string& _result, const InstructionNode* 
 
     if (root_node_member->has_input_connected() && root_node_member->is_defined() )
     {
-        const Node* root_node = (const Node*)*root_node_member;
+        auto root_node = (const Node*)*root_node_member;
         NODABLE_ASSERT ( root_node )
         serialize( _result, root_node );
     }

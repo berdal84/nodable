@@ -1026,50 +1026,36 @@ ForLoopNode* Parser::parse_for_loop()
             {
                 m_graph->connect(init_instr->get_this_member(), for_loop_node->get_init_expr());
 
-                if (!m_token_ribbon.eatToken(TokenType_EndOfInstruction))
+                InstructionNode* cond_instr = parse_instruction();
+                if (!cond_instr)
                 {
-                    LOG_ERROR("Parser", "Unable to find end of instruction after initial instruction.\n")
+                    LOG_ERROR("Parser", "Unable to find condition instruction.\n")
                 }
                 else
                 {
-                    InstructionNode* cond_instr = parse_instruction();
-                    if (!cond_instr)
+                    m_graph->connect(cond_instr->get_this_member(), for_loop_node->condition_member());
+
+                    InstructionNode* iter_instr = parse_instruction();
+                    if (!iter_instr)
                     {
-                        LOG_ERROR("Parser", "Unable to find condition instruction.\n")
+                        LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
                     }
                     else
                     {
-                        m_graph->connect(cond_instr->get_this_member(), for_loop_node->condition_member());
+                        m_graph->connect(iter_instr->get_this_member(), for_loop_node->get_iter_expr());
 
-                        if (!m_token_ribbon.eatToken(TokenType_EndOfInstruction))
+                        std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(TokenType_CloseBracket);
+                        if (!close_bracket)
                         {
-                            LOG_ERROR("Parser", "Unable to find end of instruction after condition.\n")
+                            LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
+                        }
+                        else if (!parse_scope())
+                        {
+                            LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")
                         }
                         else
                         {
-                            InstructionNode* iter_instr = parse_instruction();
-                            if (!iter_instr)
-                            {
-                                LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
-                            }
-                            else
-                            {
-                                m_graph->connect(iter_instr->get_this_member(), for_loop_node->get_iter_expr());
-
-                                std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(TokenType_CloseBracket);
-                                if (!close_bracket)
-                                {
-                                    LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
-                                }
-                                else if (!parse_scope())
-                                {
-                                    LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")
-                                }
-                                else
-                                {
-                                    success = true;
-                                }
-                            }
+                            success = true;
                         }
                     }
                 }
