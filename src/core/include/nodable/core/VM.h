@@ -44,7 +44,7 @@ namespace Nodable
             void                  reset_cursor(){ m_register[(size_t)Asm::Register::eip] = 0; };
             bool                  _stepOver();
             std::shared_ptr<const Asm::Code> m_program_asm_code;
-            Node*                 m_next_node;
+            const Node*           m_next_node;
             bool                  m_is_program_running;
             bool                  m_is_debugging;
             Instr*                m_last_step_next_instr;
