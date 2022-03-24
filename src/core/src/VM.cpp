@@ -31,7 +31,7 @@ void VM::run_program()
 
     reset_cursor();
     clear_registers();
-    while( is_there_a_next_instr() && get_next_instr()->m_type != Instr_t::ret )
+    while( is_there_a_next_instr() && get_next_instr()->type != Instr_t::ret )
     {
         _stepOver();
     }
@@ -60,26 +60,22 @@ bool VM::_stepOver()
     bool success;
     Instr* next_instr = get_next_instr();
 
-    LOG_VERBOSE("VM", "processing line %i.\n", (int)next_instr->m_line );
+    LOG_VERBOSE("VM", "processing line %i.\n", (int)next_instr->line );
 
-    switch ( next_instr->m_type )
+    switch ( next_instr->type )
     {
-//        case Instr::cmp:
-//        {
-//
-//            auto dst_register = (Register)next_instr->m_left_h_arg;
-//            auto src_register = (Register)next_instr->m_right_h_arg;
-//            m_register[Register::rax] = m_register[dst_register] - m_register[src_register];
-//            advance_cursor();
-//            success = true;
-//            break;
-//        }
+        case Instr_t::cmp:
+        {
+            u64 compare = (i64)read_register(next_instr->cmp.left) - (i64)read_register(next_instr->cmp.left);
+            write_register( Register::rax, compare );
+            advance_cursor();
+            success = true;
+            break;
+        }
 
         case Instr_t::mov:
         {
-            auto dst_register = (Register)next_instr->m_arg0;
-            auto src_register = (Register)next_instr->m_arg1;
-            write_register(dst_register, read_register(src_register));
+            write_register(next_instr->mov.dst, read_register(next_instr->mov.src));
             advance_cursor();
             success = true;
             break;
@@ -87,7 +83,7 @@ bool VM::_stepOver()
 
         case Instr_t::call:
         {
-            auto fct_id = (FctId)next_instr->m_arg0;
+            auto fct_id = (FctId)next_instr->call.fct_id;
 
             switch( fct_id )
             {
@@ -101,18 +97,20 @@ bool VM::_stepOver()
                 case FctId::push_variable:
                 {
                     advance_cursor();
-                    auto variable = ((Node*)next_instr->m_arg1)->as<VariableNode>();
+                    VariableNode* variable = next_instr->call.push.var;
                     if (variable->is_initialized() )
                     {
                         variable->set_initialized(false);
                     }
+                    // TODO: push variable to the future stack
+
                     success = true;
                     break;
                 }
 
                 case FctId::pop_frame:
                 {
-                    auto scope = ((Node *) next_instr->m_arg1)->get<Scope>();
+                    auto scope = next_instr->call.pop.scope;
                     for( VariableNode* each_var : scope->get_variables() )
                     {
                         if (each_var->is_initialized() )
@@ -127,7 +125,7 @@ bool VM::_stepOver()
 
                 case FctId::eval_node:
                 {
-                    auto node = (Node*)next_instr->m_arg1;
+                    auto node = next_instr->call.eval.node;
                     node->eval();
                     node->set_dirty(false);
 
@@ -145,8 +143,8 @@ bool VM::_stepOver()
 
                 case FctId::store_data_ptr:
                 {
-                    auto data = (Variant*)next_instr->m_arg1;
-                    write_register(Register::rax, (u64) data); //copy variant address
+                    Variant* data = next_instr->call.store.data;
+                    write_register(Register::rax, (u64)data); //copy variant address
                     advance_cursor();
                     success = true;
                     break;
@@ -158,7 +156,7 @@ bool VM::_stepOver()
 
         case Instr_t::jmp:
         {
-            advance_cursor(next_instr->m_arg0);
+            advance_cursor(next_instr->jmp.offset);
             success = true;
             break;
         }
@@ -172,7 +170,7 @@ bool VM::_stepOver()
             }
             else
             {
-                advance_cursor(next_instr->m_arg0);
+                advance_cursor(next_instr->jmp.offset);
             }
             success = true;
             break;
@@ -194,8 +192,8 @@ bool VM::_stepOver()
 bool VM::step_over()
 {
     auto must_break = [&]() -> bool {
-        return get_next_instr()->m_type == Instr_t::ret ||
-               get_next_instr()->m_type == Instr_t::call
+        return get_next_instr()->type == Instr_t::ret ||
+               get_next_instr()->type == Instr_t::call
                && m_last_step_next_instr != get_next_instr();
     };
 
@@ -217,20 +215,14 @@ bool VM::step_over()
         // update m_current_node and m_last_step_instr
         m_last_step_next_instr = get_next_instr();
         auto next_instr = get_next_instr();
-        if ( next_instr->m_type == Instr_t::call )
+        if (next_instr->type == Instr_t::call )
         {
-            switch ( (FctId)(next_instr->m_arg0) )
+            switch ( next_instr->call.fct_id )
             {
-                case FctId::store_data_ptr:
-                {
-                    auto member = (Member *)next_instr->m_arg1;
-                    m_next_node = member->get_owner();
-                    break;
-                }
 
                 case FctId::eval_node:
                 {
-                    m_next_node = (Node*)next_instr->m_arg1;
+                    m_next_node = next_instr->call.eval.node;
                     break;
                 }
 
@@ -238,7 +230,7 @@ bool VM::step_over()
                     break;
             }
         }
-        LOG_MESSAGE("VM", "Step over (current line %#1llx)\n", next_instr->m_line)
+        LOG_MESSAGE("VM", "Step over (current line %#1llx)\n", next_instr->line)
     }
 
     return continue_execution;

@@ -7,6 +7,7 @@
 
 #include <nodable/core/types.h>
 #include <nodable/core/reflection/R.h>
+#include <nodable/core/Variant.h>
 
 namespace Nodable
 {
@@ -85,14 +86,57 @@ namespace Nodable
         struct Instr
         {
             Instr(Instr_t _type, long _line)
-                : m_type(_type)
-                , m_line(_line)
+                : type(_type)
+                , line(_line)
             {}
 
-            u64         m_line;
-            Instr_t     m_type;
-            u64         m_arg0 = 0;
-            u64         m_arg1 = 0;
+            u64         line;
+            Instr_t     type;
+            union {
+
+                struct {
+                    i64 offset;
+                } jmp;
+
+                struct {
+                    FctId    fct_id;
+                    Register dst;
+                    Register src;
+                } mov;
+
+                struct {
+                    FctId    fct_id;
+                    Register left;
+                    Register right;
+                } cmp; // compare
+
+                union {
+                    FctId fct_id;
+
+                    struct {
+                        FctId    fct_id;
+                        Node*    node;
+                    } eval;
+                    struct {
+                        FctId    fct_id;
+                        const Variant* data;
+                    } store;
+                    struct {
+                        FctId    fct_id;
+                        union {
+                            VariableNode* var;
+                            Scope*        scope;
+                        };
+                    } push;
+                    struct {
+                        FctId fct_id;
+                        union {
+                            VariableNode* var;
+                            Scope*        scope;
+                        };
+                    } pop;
+                } call;
+            };
             std::string m_comment;
             static std::string to_string(const Instr&);
         };

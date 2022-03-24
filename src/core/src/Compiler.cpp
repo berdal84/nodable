@@ -31,27 +31,30 @@ std::string Asm::Instr::to_string(const Instr& _instr)
     result.reserve(60);
 
     // append "<line> :"
-    std::string str = std::to_string(_instr.m_line);
+    std::string str = std::to_string(_instr.line);
     while( str.length() < 4 )
         str.append(" ");
     result.append( str );
     result.append( ": " );
 
     // append instruction type
-    result.append( Asm::to_string(_instr.m_type));
+    result.append( Asm::to_string(_instr.type));
     result.append( " " );
 
     // optionally append parameters
-    switch ( _instr.m_type )
+    switch ( _instr.type )
     {
         case Instr_t::call:
         {
-            FctId fct_id   = (FctId)_instr.m_arg0;
-            Member* member = (Member*)_instr.m_arg1;
+            FctId fct_id = _instr.call.fct_id;
             result.append( Asm::to_string(fct_id) );
             while( result.length() < 30 )
                 result.append(" ");
-            result.append( String::address_to_hexadecimal(member) );
+
+            if ( fct_id == FctId::eval_node )
+            {
+                result.append( String::address_to_hexadecimal(_instr.call.eval.node) );
+            }
             break;
         }
 
@@ -59,16 +62,16 @@ std::string Asm::Instr::to_string(const Instr& _instr)
         case Instr_t::cmp:
         {
             result.append("%");
-            result.append(Asm::to_string( (Register)_instr.m_arg0 ));
+            result.append(Asm::to_string( _instr.cmp.left ));
             result.append(", %");
-            result.append(Asm::to_string( (Register)_instr.m_arg1 ));
+            result.append(Asm::to_string( _instr.cmp.right ));
             break;
         }
 
         case Instr_t::jne:
         case Instr_t::jmp:
         {
-            result.append( std::to_string( _instr.m_arg0 ) );
+            result.append( std::to_string( _instr.jmp.offset ) );
             break;
         }
 
@@ -145,8 +148,8 @@ void Asm::Compiler::compile_member(const Member * _member )
 
         {
             Instr *instr  = m_temp_code->push_instr(Instr_t::call);
-            instr->m_arg0 = (u64) FctId::store_data_ptr;
-            instr->m_arg1 = (u64) _member->get_data();
+            instr->call.store.fct_id = FctId::store_data_ptr;
+            instr->call.store.data   = _member->get_data();
             char str[128];
             sprintf(str
                     , "%s -> %s"
