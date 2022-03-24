@@ -143,7 +143,7 @@ bool VM::_stepOver()
 
                 case FctId::store_data_ptr:
                 {
-                    Variant* data = next_instr->call.store.data;
+                    const Variant* data = next_instr->call.store.data;
                     write_register(Register::rax, (u64)data); //copy variant address
                     advance_cursor();
                     success = true;

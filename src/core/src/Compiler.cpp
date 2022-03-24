@@ -174,8 +174,8 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
     // call push_stack_frame
     {
         Instr *instr  = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0 = (u64) FctId::push_frame;
-        instr->m_arg1 = (u64) _scope;
+        instr->call.fct_id     = FctId::push_frame;
+        instr->call.push.scope = _scope;
         char str[64];
         snprintf(str, 64, "%s's scope", scope_owner->get_short_label());
         instr->m_comment = str;
@@ -184,10 +184,9 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
     // push each varaible onto the stack
     for(const VariableNode* each_variable : _scope->get_variables())
     {
-        Instr *instr     = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0    = (u64)FctId::push_variable;
-        instr->m_arg1    = (u64)each_variable;
-        instr->m_comment = std::string{each_variable->get_label()};
+        Instr *instr         = m_temp_code->push_instr(Instr_t::push_var);
+        instr->      = each_variable;
+        instr->m_comment     = std::string{each_variable->get_label()};
     }
 
     // compile content

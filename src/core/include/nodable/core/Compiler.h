@@ -38,42 +38,27 @@ namespace Nodable
         R_ENUM_END
 
         /**
-         * Enum to identify each function identifier.
-         * A function is specified when using "call" instruction.
-         */
-        enum class FctId: u64 // Instruction arguments are u64
-        {
-            store_data_ptr,
-            eval_node,
-            push_frame,
-            pop_frame,
-            push_variable
-        };
-
-        R_ENUM(FctId)
-        R_ENUM_VALUE(store_data_ptr)
-        R_ENUM_VALUE(eval_node)
-        R_ENUM_VALUE(push_frame)
-        R_ENUM_VALUE(pop_frame)
-        R_ENUM_VALUE(push_variable)
-        R_ENUM_END
-
-        /**
          * Enumerate each possible instruction.
          */
         enum class Instr_t: u8
         {
-            call,
-            mov,
+            cmp, /* compare */
             jmp,
             jne,
-            ret,
-            cmp /* compare */
+            mov,
+            pop_stack_frame,
+            pop_var,
+            push_stack_frame,
+            push_var,
+            ret
         };
 
         R_ENUM(Instr_t)
-        R_ENUM_VALUE(call)
         R_ENUM_VALUE(mov)
+        R_ENUM_VALUE(push_var)
+        R_ENUM_VALUE(pop_var)
+        R_ENUM_VALUE(push_stack_frame)
+        R_ENUM_VALUE(pop_stack_frame)
         R_ENUM_VALUE(jmp)
         R_ENUM_VALUE(jne)
         R_ENUM_VALUE(ret)
@@ -99,43 +84,36 @@ namespace Nodable
                 } jmp;
 
                 struct {
-                    FctId    fct_id;
                     Register dst;
                     Register src;
                 } mov;
 
                 struct {
-                    FctId    fct_id;
                     Register left;
                     Register right;
                 } cmp; // compare
 
-                union {
-                    FctId fct_id;
+                struct {
+                    union {
+                        VariableNode* var;
+                        Scope*        scope;
+                    };
+                } push;
 
-                    struct {
-                        FctId    fct_id;
-                        Node*    node;
-                    } eval;
-                    struct {
-                        FctId    fct_id;
-                        const Variant* data;
-                    } store;
-                    struct {
-                        FctId    fct_id;
-                        union {
-                            VariableNode* var;
-                            Scope*        scope;
-                        };
-                    } push;
-                    struct {
-                        FctId fct_id;
-                        union {
-                            VariableNode* var;
-                            Scope*        scope;
-                        };
-                    } pop;
-                } call;
+                struct {
+                    union {
+                        VariableNode* var;
+                        Scope*        scope;
+                    };
+                } pop;
+
+                struct {
+                    Node*    node;
+                } eval;
+
+                struct {
+                    const Variant* data;
+                } store;
             };
             std::string m_comment;
             static std::string to_string(const Instr&);
