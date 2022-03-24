@@ -935,45 +935,60 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
         condStruct->set_token_if(m_token_ribbon.getEaten());
 
-        auto condition = parse_parenthesis_expression();
-
-        if ( condition)
+        if(m_token_ribbon.eatToken(TokenType_OpenBracket))
         {
-            m_graph->connect(condition->get_owner()->get_this_member(), condStruct->condition_member() );
+            InstructionNode* condition = parse_instruction();
 
-            if ( Node* scopeIf = parse_scope() )
+            if ( condition)
             {
-                if ( m_token_ribbon.eatToken(TokenType_KeywordElse))
+                if ( m_token_ribbon.eatToken(TokenType_CloseBracket) )
                 {
-                    condStruct->set_token_else(m_token_ribbon.getEaten());
+                    m_graph->connect(condition->get_this_member(), condStruct->condition_member() );
 
-                    /* parse else scope */
-                    if ( parse_scope() )
+                    if ( Node* scopeIf = parse_scope() )
                     {
-                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
-                        success = true;
-                    }
-                    /* (or) parse else if scope */
-                    else if ( parse_conditional_structure() )
-                    {
-						LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
-                        success = true;
+                        if ( m_token_ribbon.eatToken(TokenType_KeywordElse))
+                        {
+                            condStruct->set_token_else(m_token_ribbon.getEaten());
+
+                            /* parse else scope */
+                            if ( parse_scope() )
+                            {
+                                LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
+                                success = true;
+                            }
+                            /* (or) parse else if scope */
+                            else if ( parse_conditional_structure() )
+                            {
+                                LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
+                                success = true;
+                            }
+                            else
+                            {
+                                LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
+                                m_graph->destroy(scopeIf);
+                            }
+                        }
+                        else
+                        {
+                             LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n")
+                            success = true;
+                        }
                     }
                     else
                     {
-                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
-                        m_graph->destroy(scopeIf);
+                        if ( condition )
+                        {
+                            m_graph->destroy(condition);
+                        }
+                        LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n")
                     }
-
-
-                } else {
-                     LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n")
-                    success = true;
                 }
-            }
-            else
-            {
-                LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n")
+                else
+                {
+                    LOG_VERBOSE("Parser", "parse IF (...) <--- close bracket missing { ... }  " KO "\n")
+                    success = false;
+                }
             }
         }
         m_scope_stack.pop();

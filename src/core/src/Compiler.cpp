@@ -256,7 +256,10 @@ void Asm::Compiler::compile_node(const Node* _node)
         if ( auto false_scope = i_cond_struct->get_condition_false_scope() )
         {
             compile_scope(false_scope);
-            skip_false_branch->m_arg0 = m_temp_code->get_next_index() - skip_false_branch->m_line;
+            if ( skip_false_branch )
+            {
+                skip_false_branch->m_arg0 = m_temp_code->get_next_index() - skip_false_branch->m_line;
+            }
         }
     }
     else if ( auto instr_node = _node->as<InstructionNode>() )

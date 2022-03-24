@@ -223,6 +223,14 @@ std::string& Serializer::serialize(std::string& _result, const Variant* variant)
 
 std::string& Serializer::serialize(std::string& _result, const Member * _member, bool followConnections) const
 {
+    if (_member->get_meta_type()->is( R::get_meta_type<Node*>()))
+    {
+        if( _member->is_defined())
+        {
+            return serialize(_result, (const Node*)*_member);
+        }
+    }
+
     std::shared_ptr<Token> sourceToken = _member->get_src_token();
     if (sourceToken)
     {
