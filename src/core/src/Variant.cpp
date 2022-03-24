@@ -59,15 +59,6 @@ void Variant::set(bool _value)
     m_is_defined    = true;
 }
 
-void Variant::set(void* _pointer)
-{
-    if( !m_meta_type ) define_meta_type( R::get_meta_type<void*>() );
-    NODABLE_ASSERT( m_meta_type->has_qualifier(R::Qualifier::Pointer) )
-
-    m_data.m_void_ptr = _pointer;
-    m_is_defined      = true;
-}
-
 bool Variant::is_defined()const
 {
 	return m_is_defined;

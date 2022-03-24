@@ -56,7 +56,15 @@ namespace Nodable
         void set_defined(bool _defined);
 		bool is_meta_type(std::shared_ptr<const R::MetaType> _meta_type)const;
 
-        void set(void* _pointer);
+		template<typename T>
+        void set(T* _pointer)
+        {
+            if( !m_meta_type ) define_meta_type( R::get_meta_type<T*>() );
+            NODABLE_ASSERT( m_meta_type->has_qualifier(R::Qualifier::Pointer) )
+
+            m_data.m_void_ptr = _pointer;
+            m_is_defined      = true;
+        }
 		void set(const Variant&);
 		void set(const std::string&);
 		void set(const char*);
