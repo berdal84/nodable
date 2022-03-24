@@ -257,7 +257,7 @@ void VM::debug_program()
 bool VM::is_program_over() const
 {
     auto next_inst_id = read_register(Register::eip);
-    return next_inst_id >= m_program_asm_code->size();
+    return next_inst_id >= m_program_asm_code->size() || get_next_instr()->m_type == Instr_t::ret;
 }
 
 Instr* VM::get_next_instr() const

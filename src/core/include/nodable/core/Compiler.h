@@ -135,7 +135,7 @@ namespace Nodable
             bool is_program_valid(const Node*);
             void compile_node(const Node*);
             void compile_member(const Member*);
-            void compile_scope(const Scope*, bool _skip_pop_stack_frame = false);
+            void compile_scope(const Scope*, bool _insert_fake_return = false);
             std::unique_ptr<Code> m_temp_code;
 
         };

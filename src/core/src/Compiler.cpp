@@ -157,7 +157,7 @@ void Asm::Compiler::compile_member(const Member * _member )
     }
 }
 
-void Asm::Compiler::compile_scope(const Scope* _scope, bool _skip_pop_stack_frame)
+void Asm::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
 {
     if( !_scope)
     {
@@ -194,7 +194,11 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _skip_pop_stack_fram
     }
 
     // call pop_stack_frame
-    if( !_skip_pop_stack_frame )
+    if( _insert_fake_return )
+    {
+        m_temp_code->push_instr(Instr_t::ret); // fake a return statement
+    }
+
     {
         Instr *instr     = m_temp_code->push_instr(Instr_t::call);
         instr->m_arg0    = (u64) FctId::pop_frame;
@@ -316,10 +320,7 @@ void Asm::Compiler::compile_program(Node* _program_graph_root)
     {
         auto scope = _program_graph_root->get<Scope>();
         NODABLE_ASSERT(scope)
-        constexpr bool skip_pop_stack_frame = false;
-        compile_scope(scope, skip_pop_stack_frame);
-
-        m_temp_code->push_instr(Instr_t::ret); // fake a return statement
+        compile_scope(scope);
     }
     catch ( const std::exception& e )
     {

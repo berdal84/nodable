@@ -41,3 +41,12 @@ void VariableNode::set_name(const char* _name)
         set_short_label(_name);
     }
 }
+
+bool VariableNode::eval() const
+{
+    if( !is_initialized() )
+    {
+        return Node::eval();
+    }
+    return true;
+}

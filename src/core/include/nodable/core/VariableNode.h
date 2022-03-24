@@ -28,6 +28,7 @@ namespace Nodable
 		inline void      set_initialized(bool _defined) { m_value->set_initialized(_defined); set_dirty(true); }
 		const char*      get_name()const { return m_name.c_str(); };
 		Member*          get_value()const { return m_value; }
+        bool             eval()const override;
         std::shared_ptr<const Token> get_type_token() const { return m_type_token; }
         std::shared_ptr<const Token> get_assignment_operator_token() const { return m_assignment_operator_token; }
         std::shared_ptr<const Token> get_identifier_token() const { return m_identifier_token; }
