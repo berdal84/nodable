@@ -99,20 +99,20 @@ namespace Nodable
 
                 struct {
                     union {
-                        VariableNode* var;
-                        Scope*        scope;
+                        const VariableNode* var;
+                        const Scope*  scope;
                     };
                 } push;
 
                 struct {
                     union {
-                        VariableNode* var;
-                        Scope*        scope;
+                        const VariableNode* var;
+                        const Scope*  scope;
                     };
                 } pop;
 
                 struct {
-                    Node*    node;
+                    const Node* node;
                 } eval;
 
                 struct {

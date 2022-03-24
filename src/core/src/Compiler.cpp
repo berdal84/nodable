@@ -44,17 +44,15 @@ std::string Asm::Instr::to_string(const Instr& _instr)
     // optionally append parameters
     switch ( _instr.type )
     {
-        case Instr_t::call:
+        case Instr_t::eval_node:
         {
-            FctId fct_id = _instr.call.fct_id;
-            result.append( Asm::to_string(fct_id) );
-            while( result.length() < 30 )
-                result.append(" ");
+            result.append( String::address_to_hexadecimal(_instr.eval.node) );
+            break;
+        }
 
-            if ( fct_id == FctId::eval_node )
-            {
-                result.append( String::address_to_hexadecimal(_instr.call.eval.node) );
-            }
+        case Instr_t::store_data:
+        {
+            result.append( String::address_to_hexadecimal(_instr.store.data) );
             break;
         }
 
@@ -76,6 +74,18 @@ std::string Asm::Instr::to_string(const Instr& _instr)
         }
 
         case Instr_t::ret: // nothing else to do.
+            break;
+        case Instr_t::pop_stack_frame:
+            result.append( String::address_to_hexadecimal(_instr.pop.scope) );
+            break;
+        case Instr_t::pop_var:
+            result.append( String::address_to_hexadecimal(_instr.push.var) );
+            break;
+        case Instr_t::push_stack_frame:
+            result.append( String::address_to_hexadecimal(_instr.push.scope) );
+            break;
+        case Instr_t::push_var:
+            result.append( String::address_to_hexadecimal(_instr.push.var) );
             break;
     }
 
@@ -147,9 +157,8 @@ void Asm::Compiler::compile_member(const Member * _member )
         }
 
         {
-            Instr *instr  = m_temp_code->push_instr(Instr_t::call);
-            instr->call.store.fct_id = FctId::store_data_ptr;
-            instr->call.store.data   = _member->get_data();
+            Instr *instr      = m_temp_code->push_instr(Instr_t::store_data);
+            instr->store.data = _member->get_data();
             char str[128];
             sprintf(str
                     , "%s -> %s"
@@ -173,9 +182,8 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
 
     // call push_stack_frame
     {
-        Instr *instr  = m_temp_code->push_instr(Instr_t::call);
-        instr->call.fct_id     = FctId::push_frame;
-        instr->call.push.scope = _scope;
+        Instr *instr  = m_temp_code->push_instr(Instr_t::push_stack_frame);
+        instr->push.scope = _scope;
         char str[64];
         snprintf(str, 64, "%s's scope", scope_owner->get_short_label());
         instr->m_comment = str;
@@ -185,7 +193,7 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
     for(const VariableNode* each_variable : _scope->get_variables())
     {
         Instr *instr         = m_temp_code->push_instr(Instr_t::push_var);
-        instr->      = each_variable;
+        instr->push.var      = each_variable;
         instr->m_comment     = std::string{each_variable->get_label()};
     }
 
@@ -202,9 +210,8 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
     }
 
     {
-        Instr *instr     = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0    = (u64) FctId::pop_frame;
-        instr->m_arg1    = (u64) scope_owner;
+        Instr *instr     = m_temp_code->push_instr(Instr_t::pop_stack_frame);
+        instr->pop.scope = _scope;
         instr->m_comment = std::string{scope_owner->get_short_label()} + "'s scope";
     }
 }
@@ -232,8 +239,8 @@ void Asm::Compiler::compile_node(const Node* _node)
         compile_node(i_cond_struct->get_cond_instr());
 
         Instr* store_instr     = m_temp_code->push_instr(Instr_t::mov);
-        store_instr->m_arg0    = (u64)Register::rdx;
-        store_instr->m_arg1    = (u64)Register::rax;
+        store_instr->mov.dst   = Register::rdx;
+        store_instr->mov.src   = Register::rax;
         store_instr->m_comment = "store result";
 
         Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
@@ -252,8 +259,8 @@ void Asm::Compiler::compile_node(const Node* _node)
 
                 // insert jump to condition instructions.
                 auto loop_jump = m_temp_code->push_instr(Instr_t::jmp);
-                loop_jump->m_arg0    = signed_diff(condition_instr_line, loop_jump->m_line);
-                loop_jump->m_comment = "jump back to loop begining";
+                loop_jump->jmp.offset = signed_diff(condition_instr_line, loop_jump->line);
+                loop_jump->m_comment  = "jump back to loop begining";
 
             }
             else if (i_cond_struct->get_condition_false_scope())
@@ -263,14 +270,14 @@ void Asm::Compiler::compile_node(const Node* _node)
             }
         }
 
-        skip_true_branch->m_arg0 = m_temp_code->get_next_index() - skip_true_branch->m_line;
+        skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
 
         if ( auto false_scope = i_cond_struct->get_condition_false_scope() )
         {
             compile_scope(false_scope);
             if ( skip_false_branch )
             {
-                skip_false_branch->m_arg0 = m_temp_code->get_next_index() - skip_false_branch->m_line;
+                skip_false_branch->jmp.offset = m_temp_code->get_next_index() - skip_false_branch->line;
             }
         }
     }
@@ -295,9 +302,8 @@ void Asm::Compiler::compile_node(const Node* _node)
         bool should_be_evaluated = _node->has<InvokableComponent>() || _node->is<VariableNode>() || _node->is<LiteralNode>();
         if ( should_be_evaluated )
         {
-            Instr *instr     = m_temp_code->push_instr(Instr_t::call);
-            instr->m_arg0    = (u64)FctId::eval_node;
-            instr->m_arg1    = (u64)_node;
+            Instr *instr     = m_temp_code->push_instr(Instr_t::eval_node);
+            instr->eval.node = _node;
             instr->m_comment =
                     std::string{_node->get_label()} +
                     " (initial value is: " +

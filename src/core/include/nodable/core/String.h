@@ -15,7 +15,7 @@ namespace Nodable
             return str;
         }
 
-        static std::string address_to_hexadecimal(void* _addr)
+        static std::string address_to_hexadecimal(const void* _addr)
         {
             char str[19]; // "0x" + 16 hexa-char (8 bytes) + 1 end char
             sprintf(str, "%#16llx", (u64)_addr);
