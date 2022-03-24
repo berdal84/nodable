@@ -222,18 +222,12 @@ void Asm::Compiler::compile_node(const Node* _node)
         // for_loop init instruction
         if ( auto for_loop = _node->as<ForLoopNode>() )
         {
-            compile_member(for_loop->get_init_expr());
+            compile_node(for_loop->get_init_instr());
         }
 
         u64 condition_instr_line = m_temp_code->get_next_index();
 
-        const Member* condition_member = i_cond_struct->condition_member();
-
-        if (condition_member->get_data()->is_initialized() )
-        {
-            NODABLE_ASSERT(condition_member)
-            compile_member(condition_member);
-        }
+        compile_node(i_cond_struct->get_cond_instr());
 
         Instr* store_instr     = m_temp_code->push_instr(Instr_t::mov);
         store_instr->m_arg0    = (u64)Register::rdx;
@@ -252,7 +246,7 @@ void Asm::Compiler::compile_node(const Node* _node)
             if ( auto for_loop = _node->as<ForLoopNode>() )
             {
                 // insert end-loop instruction.
-                compile_member(for_loop->get_iter_expr());
+                compile_node(for_loop->get_iter_instr());
 
                 // insert jump to condition instructions.
                 auto loop_jump = m_temp_code->push_instr(Instr_t::jmp);

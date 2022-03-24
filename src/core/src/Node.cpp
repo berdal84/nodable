@@ -264,4 +264,3 @@ size_t Node::delete_components()
     m_components.clear();
     return count;
 }
-
