@@ -125,9 +125,7 @@ void Asm::Compiler::compile_member(const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
-        std::shared_ptr<const R::MetaType> void_ptr = R::get_meta_type<void *>();
-
-        if (_member->is_meta_type(void_ptr) )
+        if (_member->is_meta_type( R::get_meta_type<Node *>() ) )
         {
             compile_node((const Node *) *_member);
         }
@@ -156,23 +154,48 @@ void Asm::Compiler::compile_member(const Member * _member )
     }
 }
 
+void Asm::Compiler::compile_scope(const Scope* _scope)
+{
+    if( !_scope)
+    {
+        LOG_VERBOSE("Compiler", "Ignoring nullptr Scope.\n")
+        return;
+    }
+
+    Node* scope_owner = _scope->get_owner();
+    NODABLE_ASSERT(scope_owner)
+
+    // call push_stack_frame
+    {
+        Instr *instr  = m_temp_code->push_instr(Instr_t::call);
+        instr->m_arg0 = (i64) FctId::push_stack_frame;
+        instr->m_arg1 = (i64) _scope;
+        char str[64];
+        snprintf(str, 64, "%s's scope", scope_owner->get_short_label());
+        instr->m_comment = str;
+    }
+
+    // compile content
+    for( const Node* each_node : scope_owner->children_slots().content() )
+    {
+        compile_node(each_node);
+    }
+
+    // call pop_stack_frame
+    {
+        Instr *instr     = m_temp_code->push_instr(Instr_t::call);
+        instr->m_arg0    = (u64) FctId::pop_stack_frame;
+        instr->m_arg1    = (u64) scope_owner;
+        instr->m_comment = std::string{scope_owner->get_short_label()} + "'s scope";
+    }
+}
+
 void Asm::Compiler::compile_node(const Node* _node)
 {
     if( !_node)
     {
         LOG_VERBOSE("Compiler", "Ignoring nullptr Node.\n")
         return;
-    }
-
-    if (_node->has<Scope>() && _node->get_parent() )
-    {
-        // call push_stack_frame
-        Instr *instr         = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0  = (i64) FctId::push_stack_frame;
-        instr->m_arg1 = (i64) _node;
-        char str[64];
-        snprintf(str, 64, "%s's scope", _node->get_short_label());
-        instr->m_comment = str;
     }
 
     if ( _node->is<IConditionalStruct>() )
@@ -184,14 +207,6 @@ void Asm::Compiler::compile_node(const Node* _node)
         {
             compile_member(for_loop->get_init_expr());
         }
-        else if ( auto cond_struct = _node->as<ConditionalStructNode>() )
-        {
-
-        }
-        else
-        {
-            LOG_WARNING("Compiler", "IConditionnalStruct case not handled\n")
-        }
 
         u64 condition_instr_line = m_temp_code->get_next_index();
 
@@ -200,8 +215,7 @@ void Asm::Compiler::compile_node(const Node* _node)
         if ( condition_member->is_defined() )
         {
             NODABLE_ASSERT(condition_member)
-            auto cond_node = (const Node*)*condition_member;
-            compile_node(cond_node);
+            compile_member(condition_member);
         }
 
         Instr* store_instr         = m_temp_code->push_instr(Instr_t::mov);
@@ -214,9 +228,9 @@ void Asm::Compiler::compile_node(const Node* _node)
 
         Instr* skip_false_branch = nullptr;
 
-        if ( auto true_branch = i_cond_struct->get_condition_true_branch() )
+        if ( auto true_scope = i_cond_struct->get_condition_true_scope() )
         {
-            compile_node(true_branch->get_owner());
+            compile_scope(true_scope);
 
             if ( auto for_loop = _node->as<ForLoopNode>() )
             {
@@ -229,7 +243,7 @@ void Asm::Compiler::compile_node(const Node* _node)
                 loop_jump->m_comment = "jump back to loop begining";
 
             }
-            else if (i_cond_struct->get_condition_false_branch())
+            else if (i_cond_struct->get_condition_false_scope())
             {
                 skip_false_branch = m_temp_code->push_instr(Instr_t::jmp);
                 skip_false_branch->m_comment = "jump false branch";
@@ -238,24 +252,17 @@ void Asm::Compiler::compile_node(const Node* _node)
 
         skip_true_branch->m_arg0 = m_temp_code->get_next_index() - skip_true_branch->m_line;
 
-        if ( auto false_branch = i_cond_struct->get_condition_false_branch() )
+        if ( auto false_scope = i_cond_struct->get_condition_false_scope() )
         {
-            compile_node(false_branch->get_owner());
+            compile_scope(false_scope);
             skip_false_branch->m_arg0 = m_temp_code->get_next_index() - skip_false_branch->m_line;
-        }
-    }
-    else if (_node->has<Scope>() )
-    {
-        for( const Node* each_node : _node->children_slots().content() )
-        {
-            compile_node(each_node);
         }
     }
     else if ( auto instr_node = _node->as<InstructionNode>() )
     {
         const Member* root_member = instr_node->get_root_node_member();
         NODABLE_ASSERT(root_member)
-        compile_node((const Node *) *root_member);
+        compile_member(root_member);
     }
     else
     {
@@ -265,6 +272,15 @@ void Asm::Compiler::compile_node(const Node* _node)
             if ( !each_input->is<VariableNode>() )
                 compile_node(each_input);
         }
+    }
+
+    // define ?
+    if ( _node->is<VariableNode>() )
+    {
+        Instr *instr     = m_temp_code->push_instr(Instr_t::call);
+        instr->m_arg0    = (u64)FctId::push_variable;
+        instr->m_arg1    = (u64)_node;
+        instr->m_comment = std::string{_node->get_label()};
     }
 
     // eval node
@@ -282,14 +298,6 @@ void Asm::Compiler::compile_node(const Node* _node)
         instr->m_comment = std::string{_node->get_label()};
     }
 
-    if ( _node->has<Scope>() && _node->get_parent() )
-    {
-        // call pop_stack_frame
-        Instr *instr     = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0    = (u64) FctId::pop_stack_frame;
-        instr->m_arg1    = (u64) _node;
-        instr->m_comment = std::string{_node->get_short_label()} + "'s scope";
-    }
 }
 
 void Asm::Compiler::compile_program(Node* _program_graph_root)
@@ -298,7 +306,9 @@ void Asm::Compiler::compile_program(Node* _program_graph_root)
 
     try
     {
-        compile_node(_program_graph_root);
+        auto scope = _program_graph_root->get<Scope>();
+        NODABLE_ASSERT(scope)
+        compile_scope( scope );
         m_temp_code->push_instr(Instr_t::ret);
     }
     catch ( const std::exception& e )

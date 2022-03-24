@@ -15,6 +15,7 @@ VariableNode::VariableNode(std::shared_ptr<const R::MetaType> _type)
     , m_scope(nullptr)
 {
 	m_value = m_props.add(k_value_member_name, Visibility::Always, _type, Way_InOut);
+	set_defined(false);
 }
 
 void VariableNode::set_name(const char* _name)

@@ -54,10 +54,12 @@ bool Member::equals(const Member *_other)const {
 		   (std::string)*_other == (std::string)*m_input;
 }
 
-void Member::set_input(Member* _val, ConnBy_ _connect_by)
+void Member::set_input(Member* _val)
 {
-    m_input = _val;
-    m_connected_by = _connect_by;
+    m_input        = _val;
+    const std::shared_ptr<const R::MetaType> &meta_t = m_variant.get_meta_type();
+    m_connected_by = meta_t->has_qualifier(R::Qualifier::Ref) ||
+                     meta_t->has_qualifier(R::Qualifier::Pointer) ? ConnectBy_Ref : ConnectBy_Copy;
 }
 
 void Member::set(Node* _value)

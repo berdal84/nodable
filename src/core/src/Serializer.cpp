@@ -332,6 +332,7 @@ std::string& Serializer::serialize(std::string& _result, const InstructionNode* 
     if (root_node_member->has_input_connected() && root_node_member->is_defined() )
     {
         const Node* root_node = (const Node*)*root_node_member;
+        NODABLE_ASSERT ( root_node )
         serialize( _result, root_node );
     }
 
@@ -383,7 +384,7 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
     serialize( _result, TokenType_CloseBracket );
 
     // if scope
-    if ( auto* scope = _for_loop->get_condition_true_branch() )
+    if ( auto* scope = _for_loop->get_condition_true_scope() )
     {
         serialize( _result, scope );
     }
@@ -400,14 +401,14 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     serialize( _result, TokenType_CloseBracket );
 
     // if scope
-    if ( auto* ifScope = _condStruct->get_condition_true_branch() )
+    if ( auto* ifScope = _condStruct->get_condition_true_scope() )
         serialize( _result, ifScope );
 
     // else & else scope
     if ( std::shared_ptr<const Token> tokenElse = _condStruct->get_token_else() )
     {
         serialize( _result, tokenElse );
-        Scope* elseScope = _condStruct->get_condition_false_branch();
+        Scope* elseScope = _condStruct->get_condition_false_scope();
         if ( elseScope )
         {
             serialize( _result, elseScope->get_owner() );

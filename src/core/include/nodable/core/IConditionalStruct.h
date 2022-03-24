@@ -18,8 +18,8 @@ namespace Nodable
     {
     public:
         virtual Member* condition_member()const = 0;
-        virtual Scope* get_condition_true_branch()const = 0;
-        virtual Scope* get_condition_false_branch()const = 0;
+        virtual Scope* get_condition_true_scope()const = 0;
+        virtual Scope* get_condition_false_scope()const = 0;
 
         R(IConditionalStruct)
     };

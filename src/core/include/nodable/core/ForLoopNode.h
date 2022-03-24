@@ -28,8 +28,8 @@ namespace Nodable
 
         // override IConditionalStruct
         Member* condition_member()const override { return m_props.get(k_condition_member_name);}
-        Scope*  get_condition_true_branch()const override;
-        Scope*  get_condition_false_branch()const override;
+        Scope*  get_condition_true_scope()const override;
+        Scope*  get_condition_false_scope()const override;
 
     private:
         std::shared_ptr<Token> m_token_for;

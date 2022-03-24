@@ -1017,14 +1017,14 @@ ForLoopNode* Parser::parse_for_loop()
         }
         else
         {
-            Member *init_instr = parse_expression();
+            InstructionNode* init_instr = parse_instruction();
             if (!init_instr)
             {
                 LOG_ERROR("Parser", "Unable to find initial instruction.\n")
             }
             else
             {
-                m_graph->connect(init_instr, for_loop_node->get_init_expr());
+                m_graph->connect(init_instr->get_this_member(), for_loop_node->get_init_expr());
 
                 if (!m_token_ribbon.eatToken(TokenType_EndOfInstruction))
                 {
@@ -1032,14 +1032,14 @@ ForLoopNode* Parser::parse_for_loop()
                 }
                 else
                 {
-                    Member *cond_instr = parse_expression();
+                    InstructionNode* cond_instr = parse_instruction();
                     if (!cond_instr)
                     {
                         LOG_ERROR("Parser", "Unable to find condition instruction.\n")
                     }
                     else
                     {
-                        m_graph->connect(cond_instr->get_owner()->get_this_member(), for_loop_node->condition_member());
+                        m_graph->connect(cond_instr->get_this_member(), for_loop_node->condition_member());
 
                         if (!m_token_ribbon.eatToken(TokenType_EndOfInstruction))
                         {
@@ -1047,14 +1047,14 @@ ForLoopNode* Parser::parse_for_loop()
                         }
                         else
                         {
-                            Member *iter_instr = parse_expression();
+                            InstructionNode* iter_instr = parse_instruction();
                             if (!iter_instr)
                             {
                                 LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
                             }
                             else
                             {
-                                m_graph->connect(iter_instr, for_loop_node->get_iter_expr());
+                                m_graph->connect(iter_instr->get_this_member(), for_loop_node->get_iter_expr());
 
                                 std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(TokenType_CloseBracket);
                                 if (!close_bracket)

@@ -26,8 +26,8 @@ namespace Nodable
         inline std::shared_ptr<const Token> get_token_else()const { return m_token_else; }
 
         // override AbstractConditionalStruct
-        Scope*        get_condition_true_branch()const override;
-        Scope*        get_condition_false_branch()const override;
+        Scope*        get_condition_true_scope()const override;
+        Scope*        get_condition_false_scope()const override;
         Member*       condition_member()const override { return m_props.get(k_condition_member_name); }
 
     private:

@@ -12,6 +12,7 @@ namespace Nodable
 {
     // forward declarations
     class Node;
+    class Scope;
     class Member;
     class VariableNode;
     class InstructionNode;
@@ -44,7 +45,8 @@ namespace Nodable
             eval_member,
             eval_node,
             push_stack_frame,
-            pop_stack_frame
+            pop_stack_frame,
+            push_variable
         };
 
         R_ENUM(FctId)
@@ -52,6 +54,7 @@ namespace Nodable
         R_ENUM_VALUE(eval_node)
         R_ENUM_VALUE(push_stack_frame)
         R_ENUM_VALUE(pop_stack_frame)
+        R_ENUM_VALUE(push_variable)
         R_ENUM_END
 
         /**
@@ -131,6 +134,7 @@ namespace Nodable
             bool is_program_valid(const Node*);
             void compile_node(const Node*);
             void compile_member(const Member*);
+            void compile_scope(const Scope*);
             std::unique_ptr<Code> m_temp_code;
         };
     }

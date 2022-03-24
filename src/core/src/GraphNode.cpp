@@ -261,7 +261,6 @@ bool GraphNode::is_empty()
 Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
 {
     Wire* wire         = nullptr;
-    ConnBy_ connect_by = R::MetaType::is_ref( _dst_member->get_meta_type() ) ? ConnectBy_Ref : ConnectBy_Copy;
 
     /*
      * If _from has no owner _to can digest it, no Wire neede in that case.
@@ -283,14 +282,8 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
     else
     {
         LOG_VERBOSE("GraphNode", "drop_on() ...\n")
-        _dst_member->set_input(_src_member, connect_by);
+        _dst_member->set_input(_src_member);
         _src_member->get_outputs().push_back(_dst_member);
-
-
-        if ( connect_by == ConnectBy_Copy )
-        {
-            _dst_member->set(_src_member );
-        }
 
         auto targetNode = _dst_member->get_owner()->as<Node>();
         auto sourceNode = _src_member->get_owner()->as<Node>();

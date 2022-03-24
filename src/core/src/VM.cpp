@@ -91,9 +91,19 @@ bool VM::_stepOver()
 
             switch( fct_id )
             {
-                case FctId::push_stack_frame:
+                case FctId::push_stack_frame: // do nothing, just mark visually the beginning of a scope.
                 {
                     advance_cursor();
+                    success = true;
+                    break;
+                }
+
+                case FctId::push_variable:
+                {
+                    advance_cursor();
+                    auto variable = ((Node*)next_instr->m_arg1)->as<VariableNode>();
+                    NODABLE_ASSERT(!variable->is_defined())
+                    variable->set_defined(true);
                     success = true;
                     break;
                 }
@@ -153,7 +163,7 @@ bool VM::_stepOver()
 
         case Instr_t::jne:
         {
-            Variant* variant = (Variant*)(m_register[(size_t)Register::rax]);
+            Variant* variant = (Variant*)(read_register(Register::rax));
             if ( variant->convert_to<bool>() )
             {
                 advance_cursor();
@@ -221,12 +231,8 @@ bool VM::step_over()
                     break;
                 }
 
-                case FctId::push_stack_frame:
-                case FctId::pop_stack_frame:
-                {
-                    // TODO: but unused for now.
+                default:
                     break;
-                }
             }
         }
         LOG_MESSAGE("VM", "Step over (current line %#1llx)\n", next_instr->m_line)
