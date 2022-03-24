@@ -102,9 +102,9 @@ bool VM::_stepOver()
                 {
                     advance_cursor();
                     auto variable = ((Node*)next_instr->m_arg1)->as<VariableNode>();
-                    if (!variable->is_defined() )
+                    if (!variable->is_initialized() )
                     {
-                        variable->set_defined(true);
+                        variable->set_initialized(true);
                     }
                     success = true;
                     break;
@@ -115,9 +115,9 @@ bool VM::_stepOver()
                     auto scope = ((Node *) next_instr->m_arg1)->get<Scope>();
                     for( VariableNode* each_var : scope->get_variables() )
                     {
-                        if (each_var->is_defined() )
+                        if (each_var->is_initialized() )
                         {
-                            each_var->set_defined(false);
+                            each_var->set_initialized(false);
                         }
                     }
                     advance_cursor();
