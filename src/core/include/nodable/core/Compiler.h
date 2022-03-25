@@ -100,6 +100,8 @@ namespace Nodable
                 type = Type::Undefined;
                 data = { .u64 = 0 };
             }
+
+            std::string to_string()const { return MemSpace::to_string(*this); }
             static std::string to_string(const MemSpace&);
             static_assert(sizeof(MemSpace::data) == sizeof(size_t));
         };
