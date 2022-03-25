@@ -71,10 +71,11 @@ namespace Nodable
         R_ENUM_VALUE(cmp)
         R_ENUM_END
 
+        /**
+         * Simple structure to store (data, type) couple.
+         */
         struct MemSpace
         {
-            MemSpace(){ reset(); }
-
             enum class Type: size_t
             {
                 Undefined = 0,
@@ -83,25 +84,32 @@ namespace Nodable
                 U64,
                 VariantPtr,
                 Register
-            } type;
+            };
 
-            union
+            struct Data
             {
-                bool        b;
-                double      d;
-                u64         u64;
-                Variant*    variant;
-                Register    regid;
-            } data;
+                union {
+                    bool     b;
+                    double   d;
+                    u64      u64;
+                    Variant *variant;
+                    Register regid;
+                };
+            };
 
+            MemSpace(Type _type = Type::Undefined):type(_type), data({ .u64 = 0 }) {}
 
             void reset()
             {
-                type = Type::Undefined;
                 data = { .u64 = 0 };
+                type = Type::Undefined;
             }
 
             std::string to_string()const { return MemSpace::to_string(*this); }
+
+            Data data;
+            Type type;
+
             static std::string to_string(const MemSpace&);
             static_assert(sizeof(MemSpace::data) == sizeof(size_t));
         };

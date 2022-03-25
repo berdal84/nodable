@@ -48,6 +48,8 @@ namespace Nodable
             bool                  m_is_debugging;
             Instr*                m_last_step_next_instr;
             std::array<MemSpace, (size_t)Register::COUNT> m_register;
+
+            void write_register(Register _id, MemSpace _mem_src);
         };
     }
 }

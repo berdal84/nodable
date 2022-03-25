@@ -18,14 +18,17 @@ VM::VM()
 
 void VM::advance_cursor(i64 _amount)
 {
-    NODABLE_ASSERT(m_register[Register::eip].type == MemSpace::Type::U64);
-    m_register[Register::eip].data.u64 += _amount; // can overflow
+    MemSpace mem = read_register(Register::eip);
+    NODABLE_ASSERT(mem.type == MemSpace::Type::U64);
+    mem.data.u64 += _amount; // can overflow
+    write_register(Register::eip, mem);
 }
 
 void VM::init_instruction_pointer()
 {
-    m_register[Register::eip].type = MemSpace::Type::U64;
-    m_register[Register::eip].data.u64 = 0;
+    MemSpace mem(MemSpace::Type::U64);
+    mem.data.u64 = 0;
+    write_register(Register::eip, mem);
 };
 
 void VM::clear_registers()
@@ -107,6 +110,11 @@ bool VM::_stepOver()
 
             NODABLE_ASSERT(deref_left->type != Asm::MemSpace::Type::VariantPtr); // we only allow right for pointers
 
+            if ( deref_right->type != Asm::MemSpace::Type::VariantPtr)
+            {
+                NODABLE_ASSERT( deref_right->data.variant->is_meta_type(R::get_meta_type<Node*>())); // we do not handler Node*
+            }
+
             bool cmp_result;
             switch (deref_left->type)
             {
@@ -131,8 +139,10 @@ bool VM::_stepOver()
                 default:
                     NODABLE_ASSERT(false) // TODO
             }
-            m_register[Register::rax].type   = MemSpace::Type::Boolean;
-            m_register[Register::rax].data.b = cmp_result;
+
+            MemSpace mem(MemSpace::Type::Boolean);
+            mem.data.b = cmp_result;
+            write_register(Register::rax, mem);
             advance_cursor();
             success = true;
             break;
@@ -225,8 +235,10 @@ bool VM::_stepOver()
             // save node value in rax register
             if( node->props()->has(k_value_member_name))
             {
-                m_register[Register::rax].type         = Asm::MemSpace::Type::VariantPtr;
-                m_register[Register::rax].data.variant = node->props()->get(k_value_member_name)->get_data();
+                MemSpace mem_space;
+                mem_space.type = Asm::MemSpace::Type::VariantPtr;
+                mem_space.data.variant = node->props()->get(k_value_member_name)->get_data();
+                write_register(Register::rax, mem_space);
             }
 
             advance_cursor();
@@ -366,4 +378,13 @@ bool VM::load_program(std::unique_ptr<const Code> _code)
 Asm::MemSpace& VM::read_register(Register _id)
 {
     return m_register[_id];
+}
+
+void VM::write_register(Register _id, MemSpace _mem_src)
+{
+    MemSpace& mem_dst = m_register[_id];
+    LOG_VERBOSE("VM", "write_register %s\n", Asm::to_string(_id) )
+    LOG_VERBOSE("VM", " - mem before: %s\n", mem_dst.to_string().c_str() )
+    mem_dst = _mem_src;
+    LOG_VERBOSE("VM", " - mem after:  %s\n", mem_dst.to_string().c_str() )
 }

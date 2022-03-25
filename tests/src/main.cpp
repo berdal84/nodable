@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     Log::SetVerbosityLevel("Language", Verbosity::Message);
     Log::SetVerbosityLevel("GraphNode", Verbosity::Message);
     Log::SetVerbosityLevel("Parser", Verbosity::Message);
-    Log::SetVerbosityLevel("VM", Verbosity::Message);
+    Log::SetVerbosityLevel("VM", Verbosity::Verbose);
 
     R::init();
 
