@@ -579,13 +579,13 @@ void AppView::draw_vm_view()
         {
             using Asm::Register;
             ImGui::Indent();
-            ImGui::Text("%s: %#16llx (primary accumulator)",
+            ImGui::Text("%s: %s (primary accumulator)",
                         Asm::to_string(Register::rax),
                         vm->read_register(Register::rax).to_string().c_str() );
-            ImGui::Text("%s: %#16llx (base register)",
+            ImGui::Text("%s: %s (base register)",
                         Asm::to_string(Register::rdx),
                         vm->read_register(Register::rdx).to_string().c_str());
-            ImGui::Text("%s: %#16llx (instruction pointer)",
+            ImGui::Text("%s: %s (instruction pointer)",
                         Asm::to_string(Register::eip),
                         vm->read_register(Register::eip).to_string().c_str());
             ImGui::Unindent();

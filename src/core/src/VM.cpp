@@ -112,7 +112,7 @@ bool VM::_stepOver()
             {
                 case MemSpace::Type::Boolean:
                     if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
-                        cmp_result = deref_left->data.b == (bool&)*deref_right->data.variant;
+                        cmp_result = deref_left->data.b == (bool)*deref_right->data.variant;
                     else
                         cmp_result = deref_left->data.b == deref_right->data.b;
                     break;
@@ -124,7 +124,7 @@ bool VM::_stepOver()
                     break;
                 case MemSpace::Type::Double:
                     if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
-                        cmp_result = deref_left->data.d == (double&)*deref_right->data.variant;
+                        cmp_result = deref_left->data.d == (double)*deref_right->data.variant;
                     else
                         cmp_result = deref_left->data.d == deref_right->data.d;
                     break;
@@ -221,6 +221,14 @@ bool VM::_stepOver()
             auto node = const_cast<Node*>( next_instr->eval.node ); // hack !
             node->eval();
             node->set_dirty(false);
+
+            // save node value in rax register
+            if( node->props()->has(k_value_member_name))
+            {
+                m_register[Register::rax].type         = Asm::MemSpace::Type::VariantPtr;
+                m_register[Register::rax].data.variant = node->props()->get(k_value_member_name)->get_data();
+            }
+
             advance_cursor();
             success = true;
             break;

@@ -202,11 +202,11 @@ namespace Nodable
             Compiler()= default;
             std::unique_ptr<const Code> compile(Node* _program_graph);
         private:
-            void compile_graph_root(Node *_program_graph_root);
             bool is_program_valid(const Node*);
-            void compile_node(const Node*);
+            void compile_graph_root(Node *_program_graph_root);
+            void compile(const Node*);
             void compile_member(const Member*);
-            void compile_scope(const Scope*, bool _insert_fake_return = false);
+            void compile(const Scope*, bool _insert_fake_return = false);
             void compile(const InstructionNode*);
             void compile(const ForLoopNode*);
             void compile(const ConditionalStructNode*);

@@ -146,7 +146,7 @@ void Asm::Compiler::compile_member(const Member * _member )
     {
         if (_member->is_meta_type( R::get_meta_type<Node *>() ) )
         {
-            compile_node((const Node *) *_member);
+            compile((const Node *) *_member);
         }
         else if ( Member* input = _member->get_input() )
         {
@@ -155,7 +155,7 @@ void Asm::Compiler::compile_member(const Member * _member )
              * In order to do that, we traverse the syntax tree starting from the node connected to it.
              * Once we have the list of the nodes to be updated, we loop on them.
              */
-            compile_node(input->get_owner());
+            compile(input->get_owner());
         }
 
         // copy instruction result to rax register
@@ -175,7 +175,7 @@ void Asm::Compiler::compile_member(const Member * _member )
     }
 }
 
-void Asm::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
+void Asm::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
 {
     if( !_scope)
     {
@@ -206,7 +206,7 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
     // compile content
     for( const Node* each_node : scope_owner->children_slots().content() )
     {
-        compile_node(each_node);
+        compile(each_node);
     }
 
     // call pop_stack_frame
@@ -222,7 +222,7 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
     }
 }
 
-void Asm::Compiler::compile_node(const Node* _node)
+void Asm::Compiler::compile(const Node* _node)
 {
     if( !_node)
     {
@@ -257,7 +257,7 @@ void Asm::Compiler::compile_node(const Node* _node)
         {
             if ( !each_input->is<VariableNode>() )
             {
-                compile_node(each_input);
+                compile(each_input);
             }
         }
 
@@ -280,7 +280,7 @@ void Asm::Compiler::compile_node(const Node* _node)
 void Asm::Compiler::compile(const ForLoopNode* for_loop)
 {
     // for_loop init instruction
-    compile_node(for_loop->get_init_instr());
+    compile(for_loop->get_init_instr());
 
     u64 condition_instr_line = m_temp_code->get_next_index();
 
@@ -293,10 +293,10 @@ void Asm::Compiler::compile(const ForLoopNode* for_loop)
 
     if ( auto true_scope = for_loop->get_condition_true_scope() )
     {
-        compile_scope(true_scope);
+        compile(true_scope);
 
         // insert end-loop instruction.
-        compile_node(for_loop->get_iter_instr());
+        compile(for_loop->get_iter_instr());
 
         // insert jump to condition instructions.
         auto loop_jump = m_temp_code->push_instr(Instr_t::jmp);
@@ -310,7 +310,7 @@ void Asm::Compiler::compile(const ForLoopNode* for_loop)
 void Asm::Compiler::compile_condition(const InstructionNode* _instr_node)
 {
     // compile condition result (must be stored in rax after this line)
-    compile_node(_instr_node);
+    compile(_instr_node);
 
     // move "true" result to rdx
     Instr* store_true              = m_temp_code->push_instr(Instr_t::mov);
@@ -340,7 +340,7 @@ void Asm::Compiler::compile(const ConditionalStructNode* _cond_node)
 
     if ( auto true_scope = _cond_node->get_condition_true_scope() )
     {
-        compile_scope(true_scope);
+        compile(true_scope);
 
         if (_cond_node->get_condition_false_scope())
         {
@@ -353,7 +353,7 @@ void Asm::Compiler::compile(const ConditionalStructNode* _cond_node)
 
     if ( auto false_scope = _cond_node->get_condition_false_scope() )
     {
-        compile_scope(false_scope);
+        compile(false_scope);
         if ( skip_false_branch )
         {
             skip_false_branch->jmp.offset = i64(m_temp_code->get_next_index()) - skip_false_branch->line;
@@ -376,7 +376,7 @@ void Asm::Compiler::compile_graph_root(Node* _program_graph_root)
     {
         auto scope = _program_graph_root->get<Scope>();
         NODABLE_ASSERT(scope)
-        compile_scope(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
+        compile(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
     }
     catch ( const std::exception& e )
     {
