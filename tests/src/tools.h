@@ -35,14 +35,14 @@ namespace Nodable
         if (program)
         {
             // compile
-            auto code = compiler.compile_syntax_tree(graph.get_root());
-            if (!code)
+            auto asm_code = compiler.compile_syntax_tree(graph.get_root());
+            if (!asm_code)
             {
                 throw std::runtime_error("Compiler was not able to compile program's graph.");
             }
-            std::cout << Asm::Code::to_string(code.get()) << std::flush;
+            std::cout << Asm::Code::to_string(asm_code.get()) << std::flush;
             // load
-            if (!vm.load_program( std::move(code) ))
+            if (!vm.load_program( std::move(asm_code) ))
             {
                 throw std::runtime_error("VM was not able to load the compiled program.");
             }

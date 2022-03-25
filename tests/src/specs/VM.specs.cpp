@@ -10,9 +10,12 @@ TEST(VM, Cond_1 )
             "double bob   = 50;"
             "double alice = 10;"
             "bool val;"
-            "if(bob>alice){"
+            "if(bob>alice)"
+            "{"
             "   val = true;"
-            "}else{"
+            "}"
+            "else"
+            "{"
             "   val = false;"
             "}"
             "val;"; // return-like
@@ -26,9 +29,12 @@ TEST(VM, Cond_2 )
             "double bob   = 0;"
             "double alice = 10;"
             "string val = \"default\";"
-            "if(bob>alice){"
+            "if(bob>alice)"
+            "{"
             "   val = \"true\";"
-            "}else if (false) {"
+            "}"
+            "else if (false)"
+            "{"
             "   val = \"false\";"
             "}"
             "val;"; // return-like
@@ -40,8 +46,9 @@ TEST(VM, Loop_1_using_global_var )
 {
     std::string program =
             "string res = \"\";" \
-            "for(double n=0;n<10;n=n+1){"
-            "   res = res + fmt_no_trail(n);"
+            "for(double n=0;n<10;n=n+1)"
+            "{"
+            "   res = res + to_string(n);"
             "}"
             "res;";
 
@@ -52,9 +59,10 @@ TEST(VM, Loop_1_using_local_var )
 {
     std::string program =
             "string res = \"\";" \
-            "for(double n=0;n<10;n=n+1){"
+            "for(double n=0; n<10; n=n+1)"
+            "{"
             "   print(\"A: \" + n);"
-            "   string tmp = fmt_no_trail(n);"
+            "   string tmp = to_string(n);"
             "   print(\"B: \" + n);"
             "   res = res + tmp;"
             "   print(\"C: \" + n);"
@@ -70,11 +78,15 @@ TEST(VM, Loop_2_using_global_var )
             "double n;"
             "double p;"
             "string res = \"\";"
-            "for(n=0;n<10;n=n+1){"
+            "for(n=0; n<10; n=n+1)"
+            "{"
             "   p = pow(n,2);"
-            "   if( p != n ){         /* skip powers equals to n */"
+            "   if( p != n )/* skip powers equals to n */"
+            "   {"
             "      res = res + p;     /* concat powers */"
-            "   }else{"
+            "   }"
+            "   else"
+            "   {"
             "      res = res + \"_\"; /* concat \"_\" */"
             "   }"
             "}"
@@ -87,15 +99,81 @@ TEST(VM, Loop_2_using_local_var )
 {
     std::string program =
             "string res = \"\";"
-            "for(double n=0;n<10;n=n+1){"
+            "for(double n=0; n<10; n=n+1)"
+            "{"
             "   double p = pow(n,2);"
-            "   if( p != n ){         /* skip powers equals to n */"
+            "   if( p != n ) /* skip powers equals to n */"
+            "   {"
             "      res = res + p;     /* concat powers */"
-            "   }else{"
+            "   }"
+            "   else"
+            "   {"
             "      res = res + \"_\"; /* concat \"_\" */"
             "   }"
             "}"
             "res;";
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "__49162536496481" );
+}
+
+TEST(VM, For_loop_without_var_decl)
+{
+std::string program =
+        "double score;"
+        "for(double i=0; i<10; i=i+1)"
+        "{"
+        "   score= i*2;"
+        "}"
+        "score;";
+EXPECT_EQ(ParseAndEvalExpression<double>(program), 9*2);
+}
+
+TEST(VM, For_loop_with_var_decl)
+{
+    std::string program =
+            "double score = 1;"
+            "for(double i=0; i<10; i=i+1 )"
+            "{"
+            "   score = score*2;"
+            "}"
+            "score;";
+    EXPECT_EQ(ParseAndEvalExpression<double>(program), 1 * pow(2, 10) );
+}
+
+TEST(VM, declare_then_define ) {
+    std::string program_01 =
+            "double b;"
+            "b = 5;"
+            "b;";
+    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
+}
+
+TEST(VM, declare_and_define_then_reassign ) {
+    std::string program_01 =
+            "double b = 6;"
+            "b = 5;"
+            "b;";
+    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
+}
+
+TEST(VM, declare_then_define_then_reassign ) {
+    std::string program_01 =
+            "double b;"
+            "b = 6;"
+            "b = 5;"
+            "b;";
+    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
+}
+
+TEST(VM, condition_which_contains_alterated_var ) {
+    std::string program_01 =
+            "double b = 6;"
+            "b = 5;"
+            "string res = \"ok\";"
+            "if( b==6 )"
+            "{"
+            "  res=\"error\";"
+            "}"
+            "res;";
+    EXPECT_EQ(ParseAndEvalExpression<std::string>(program_01), "ok");
 }
