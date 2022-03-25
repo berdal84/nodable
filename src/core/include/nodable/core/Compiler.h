@@ -17,6 +17,8 @@ namespace Nodable
     class Member;
     class VariableNode;
     class InstructionNode;
+    class ConditionalStructNode;
+    class ForLoopNode;
 
     namespace Asm // Assembly namespace
     {
@@ -25,6 +27,7 @@ namespace Nodable
          * @see https://www.cs.uaf.edu/2017/fall/cs301/reference/x86_64.html
          */
         enum Register : size_t {
+            undefined,
             rax,     // accumulator
             rdx,     // storage
             eip,     // The instruction pointer.
@@ -32,6 +35,7 @@ namespace Nodable
         };
 
         R_ENUM(Register)
+        R_ENUM_VALUE(undefined)
         R_ENUM_VALUE(rax)
         R_ENUM_VALUE(rdx)
         R_ENUM_VALUE(eip)
@@ -73,7 +77,7 @@ namespace Nodable
 
             enum class Type: size_t
             {
-                Undefined,
+                Undefined = 0,
                 Boolean,
                 Double,
                 U64,
@@ -201,8 +205,11 @@ namespace Nodable
             void compile_node(const Node*);
             void compile_member(const Member*);
             void compile_scope(const Scope*, bool _insert_fake_return = false);
-            std::unique_ptr<Code> m_temp_code;
+            void compile(const InstructionNode*);
+            void compile(const ForLoopNode*);
+            void compile(const ConditionalStructNode*);
 
+            std::unique_ptr<Code> m_temp_code;
         };
     }
 }

@@ -1,6 +1,7 @@
 #include <nodable/core/Compiler.h>
 
 #include <memory>
+#include <exception>
 #include <iostream>
 
 #include <nodable/core/Format.h>
@@ -157,6 +158,7 @@ void Asm::Compiler::compile_member(const Member * _member )
             compile_node(input->get_owner());
         }
 
+        // copy instruction result to rax register
         {
             Instr& instr               = *m_temp_code->push_instr(Instr_t::mov);
             instr.mov.src.type         = MemSpace::Type::VariantPtr;
@@ -230,68 +232,23 @@ void Asm::Compiler::compile_node(const Node* _node)
 
     if ( _node->is<IConditionalStruct>() )
     {
-        const IConditionalStruct* i_cond_struct = _node->as<IConditionalStruct>();
-
-        // for_loop init instruction
-        if ( auto for_loop = _node->as<ForLoopNode>() )
+        if ( const ForLoopNode* for_loop = _node->as<ForLoopNode>())
         {
-            compile_node(for_loop->get_init_instr());
+            compile(for_loop);
         }
-
-        u64 condition_instr_line = m_temp_code->get_next_index();
-
-        compile_node(i_cond_struct->get_cond_instr());
-
-        Instr* store_instr     = m_temp_code->push_instr(Instr_t::mov);
-        store_instr->mov.dst.type       = MemSpace::Type::Register;
-        store_instr->mov.dst.data.regid = Register::rdx;
-        store_instr->mov.src.type       = MemSpace::Type::Register;
-        store_instr->mov.src.data.regid = Register::rax;
-        store_instr->m_comment          = "store last result";
-
-        Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
-        skip_true_branch->m_comment = "jump if register is false";
-
-        Instr* skip_false_branch = nullptr;
-
-        if ( auto true_scope = i_cond_struct->get_condition_true_scope() )
+        else if ( const ConditionalStructNode* cond_struct_node = _node->as<ConditionalStructNode>())
         {
-            compile_scope(true_scope);
-
-            if ( auto for_loop = _node->as<ForLoopNode>() )
-            {
-                // insert end-loop instruction.
-                compile_node(for_loop->get_iter_instr());
-
-                // insert jump to condition instructions.
-                auto loop_jump = m_temp_code->push_instr(Instr_t::jmp);
-                loop_jump->jmp.offset = signed_diff(condition_instr_line, loop_jump->line);
-                loop_jump->m_comment  = "jump back to loop begining";
-
-            }
-            else if (i_cond_struct->get_condition_false_scope())
-            {
-                skip_false_branch = m_temp_code->push_instr(Instr_t::jmp);
-                skip_false_branch->m_comment = "jump false branch";
-            }
+            compile(cond_struct_node);
         }
-
-        skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
-
-        if ( auto false_scope = i_cond_struct->get_condition_false_scope() )
+        else
         {
-            compile_scope(false_scope);
-            if ( skip_false_branch )
-            {
-                skip_false_branch->jmp.offset = m_temp_code->get_next_index() - skip_false_branch->line;
-            }
+           throw std::runtime_error(
+                   "The class " + _node->get_class()->get_fullname() + " is not handled by the compiler.");
         }
     }
-    else if ( auto instr_node = _node->as<InstructionNode>() )
+    else if ( const InstructionNode* instr_node = _node->as<InstructionNode>() )
     {
-        const Member* root_member = instr_node->get_root_node_member();
-        NODABLE_ASSERT(root_member)
-        compile_member(root_member);
+        compile(instr_node);
     }
     else
     {
@@ -318,6 +275,107 @@ void Asm::Compiler::compile_node(const Node* _node)
         }
     }
 
+}
+
+void Asm::Compiler::compile(const ForLoopNode* for_loop)
+{
+    // for_loop init instruction
+    compile_node(for_loop->get_init_instr());
+
+    u64 condition_instr_line = m_temp_code->get_next_index();
+
+    compile_node(for_loop->get_cond_instr());
+
+    // move last result to rdx
+    Instr* store_instr              = m_temp_code->push_instr(Instr_t::mov);
+    store_instr->mov.src.type       = MemSpace::Type::Register;
+    store_instr->mov.src.data.regid = rax;
+    store_instr->mov.dst.type       = MemSpace::Type::Register;
+    store_instr->mov.dst.data.regid = rdx;
+    store_instr->m_comment          = "store last result";
+
+    // compare last result with false
+    Instr* cmp_instr                = m_temp_code->push_instr(Instr_t::cmp);
+    cmp_instr->cmp.left.type        = MemSpace::Type::Register;
+    cmp_instr->cmp.left.data.regid  = rdx;
+    cmp_instr->cmp.right.type       = MemSpace::Type::Boolean;
+    cmp_instr->cmp.right.data.b     = true;
+    cmp_instr->m_comment            = "compare with true";
+
+    Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
+    skip_true_branch->m_comment = "jump if register is false";
+
+    Instr* skip_false_branch = nullptr;
+
+    if ( auto true_scope = for_loop->get_condition_true_scope() )
+    {
+        compile_scope(true_scope);
+
+        // insert end-loop instruction.
+        compile_node(for_loop->get_iter_instr());
+
+        // insert jump to condition instructions.
+        auto loop_jump = m_temp_code->push_instr(Instr_t::jmp);
+        loop_jump->jmp.offset = signed_diff(condition_instr_line, loop_jump->line);
+        loop_jump->m_comment  = "jump back to loop begining";
+    }
+
+    skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
+}
+
+void Asm::Compiler::compile(const ConditionalStructNode* _cond_node)
+{
+    compile_node(_cond_node->get_cond_instr());
+
+    // move last result to rdx
+    Instr* store_instr              = m_temp_code->push_instr(Instr_t::mov);
+    store_instr->mov.src.type       = MemSpace::Type::Register;
+    store_instr->mov.src.data.regid = rax;
+    store_instr->mov.dst.type       = MemSpace::Type::Register;
+    store_instr->mov.dst.data.regid = rdx;
+    store_instr->m_comment          = "store last result";
+
+    // compare last result with false
+    Instr* cmp_instr                = m_temp_code->push_instr(Instr_t::cmp);
+    cmp_instr->cmp.left.type        = MemSpace::Type::Register;
+    cmp_instr->cmp.left.data.regid  = rdx;
+    cmp_instr->cmp.right.type       = MemSpace::Type::Boolean;
+    cmp_instr->cmp.right.data.b     = true;
+    cmp_instr->m_comment            = "compare with true";
+
+    Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
+    skip_true_branch->m_comment = "jump if register is false";
+
+    Instr* skip_false_branch = nullptr;
+
+    if ( auto true_scope = _cond_node->get_condition_true_scope() )
+    {
+        compile_scope(true_scope);
+
+        if (_cond_node->get_condition_false_scope())
+        {
+            skip_false_branch = m_temp_code->push_instr(Instr_t::jmp);
+            skip_false_branch->m_comment = "jump false branch";
+        }
+    }
+
+    skip_true_branch->jmp.offset = i64(m_temp_code->get_next_index()) - skip_true_branch->line;
+
+    if ( auto false_scope = _cond_node->get_condition_false_scope() )
+    {
+        compile_scope(false_scope);
+        if ( skip_false_branch )
+        {
+            skip_false_branch->jmp.offset = i64(m_temp_code->get_next_index()) - skip_false_branch->line;
+        }
+    }
+}
+
+void Asm::Compiler::compile(const InstructionNode *instr_node)
+{
+    const Member* root_member = instr_node->get_root_node_member();
+    NODABLE_ASSERT(root_member)
+    compile_member(root_member);
 }
 
 void Asm::Compiler::compile_graph_root(Node* _program_graph_root)
@@ -365,12 +423,11 @@ std::string Asm::Code::to_string(const Code* _code)
 std::string Asm::MemSpace::to_string(const MemSpace& _value)
 {
    std::string result;
-   result.append( Asm::to_string(_value.type) );
 
     switch (_value.type)
     {
         case Type::Undefined:
-            result.append( "<value>");
+            result.append( "undefined");
             break;
         case Type::Boolean:
             result.append( std::to_string(_value.data.b));
@@ -385,6 +442,7 @@ std::string Asm::MemSpace::to_string(const MemSpace& _value)
             result.append( Format::fmt_ptr(_value.data.variant ) );
             break;
         case Type::Register:
+            result.append( "%" );
             result.append( Asm::to_string(_value.data.regid ));
             break;
     }

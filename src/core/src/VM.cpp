@@ -72,7 +72,7 @@ bool VM::_stepOver()
     bool success;
     Instr* next_instr = get_next_instr();
 
-    LOG_VERBOSE("VM", "processing line %i.\n", (int)next_instr->line );
+    LOG_MESSAGE("VM", "%s\n", Instr::to_string(*next_instr).c_str() );
 
     switch ( next_instr->type )
     {
@@ -81,8 +81,10 @@ bool VM::_stepOver()
             MemSpace left  = next_instr->cmp.left;
             MemSpace right = next_instr->cmp.right;
 
+            NODABLE_ASSERT(left.type != MemSpace::Type::Undefined);
+            NODABLE_ASSERT(right.type != MemSpace::Type::Undefined);
+
             NODABLE_ASSERT(left.type == right.type);
-            NODABLE_ASSERT(left.type != MemSpace::Type::Register);
 
             bool cmp_result;
             switch (left.type)
@@ -108,26 +110,40 @@ bool VM::_stepOver()
 
         case Instr_t::mov:
         {
-            MemSpace dst  = next_instr->mov.dst;
             MemSpace src = next_instr->mov.src;
+            MemSpace dst = next_instr->mov.dst;
+            MemSpace* deref_src;
+            MemSpace* deref_dst;
+
+            NODABLE_ASSERT(src.type != Asm::MemSpace::Type::Undefined)
+            NODABLE_ASSERT(dst.type != Asm::MemSpace::Type::Undefined)
 
             if (dst.type == MemSpace::Type::Register)
             {
-                dst = m_register[dst.data.regid];
+                deref_dst = &m_register[dst.data.regid];
+            }
+            else
+            {
+                deref_dst = &dst;
             }
 
             if (src.type == MemSpace::Type::Register)
             {
-                src = m_register[src.data.regid];
+                deref_src = &m_register[src.data.regid];
+                NODABLE_ASSERT(src.type != Asm::MemSpace::Type::Undefined)
+            }
+            else
+            {
+                deref_src = &src;
             }
 
-            NODABLE_ASSERT(dst.type != MemSpace::Type::Register); // we should point the register´ value
-            NODABLE_ASSERT(src.type != MemSpace::Type::Register); // we should point the register´ value
+            NODABLE_ASSERT(deref_dst->type != MemSpace::Type::Register); // we should point the register´ value
+            NODABLE_ASSERT(deref_dst->type != MemSpace::Type::Register); // we should point the register´ value
 
-            dst = src;
+            *deref_dst = *deref_src;
 
-            NODABLE_ASSERT(dst.type     == src.type)
-            NODABLE_ASSERT(dst.data.u64 == src.data.u64 )
+            NODABLE_ASSERT(deref_dst->type     == deref_dst->type)
+            NODABLE_ASSERT(deref_dst->data.u64 == deref_dst->data.u64 )
 
             advance_cursor();
             success = true;
@@ -189,9 +205,9 @@ bool VM::_stepOver()
 
         case Instr_t::jne:
         {
-            NODABLE_ASSERT(m_register[Register::rax].type == MemSpace::Type::VariantPtr);
-            Variant* variant = m_register[Register::rax].data.variant;
-            if ( variant->convert_to<bool>() )
+            NODABLE_ASSERT(m_register[Register::rax].type == MemSpace::Type::Boolean);
+            bool equals = m_register[Register::rax].data.b;
+            if ( equals )
             {
                 advance_cursor();
             }
