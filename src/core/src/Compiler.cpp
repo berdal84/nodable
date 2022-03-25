@@ -158,9 +158,11 @@ void Asm::Compiler::compile_member(const Member * _member )
         }
 
         {
-            Instr& instr                   = *m_temp_code->push_instr(Instr_t::store_data);
-            instr.store.value.type         = Value::Type::VariantPtr;
-            instr.store.value.data.variant = const_cast<Variant*>(_member->get_data());
+            Instr& instr               = *m_temp_code->push_instr(Instr_t::mov);
+            instr.mov.src.type         = Value::Type::VariantPtr;
+            instr.mov.src.data.variant = const_cast<Variant*>(_member->get_data());
+            instr.mov.dst.type         = Value::Type::Register;
+            instr.mov.dst.data.regid   = Register::rax;
             char str[128];
             sprintf(str
                     , "%s -> %s"
@@ -241,9 +243,11 @@ void Asm::Compiler::compile_node(const Node* _node)
         compile_node(i_cond_struct->get_cond_instr());
 
         Instr* store_instr     = m_temp_code->push_instr(Instr_t::mov);
-        store_instr->mov.dst   = Register::rdx;
-        store_instr->mov.src   = Register::rax;
-        store_instr->m_comment = "store result";
+        store_instr->mov.dst.type       = Value::Type::Register;
+        store_instr->mov.dst.data.regid = Register::rdx;
+        store_instr->mov.src.type       = Value::Type::Register;
+        store_instr->mov.src.data.regid = Register::rax;
+        store_instr->m_comment          = "store last result";
 
         Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
         skip_true_branch->m_comment = "jump if register is false";
@@ -356,4 +360,34 @@ std::string Asm::Code::to_string(const Code* _code)
     }
     result.append("------------<=[ Program end    ]=>------------\n");
     return result;
+}
+
+std::string Asm::Value::to_string(const Value& _value)
+{
+   std::string result;
+   result.append( Asm::to_string(_value.type) );
+
+    switch (_value.type)
+    {
+        case Type::Undefined:
+            result.append( "<value>");
+            break;
+        case Type::Boolean:
+            result.append( std::to_string(_value.data.b));
+            break;
+        case Type::Double:
+            result.append( std::to_string(_value.data.d));
+            break;
+        case Type::U64:
+            result.append( Format::fmt_hex(_value.data.u64 ));
+            break;
+        case Type::VariantPtr:
+            result.append( Format::fmt_ptr(_value.data.variant ) );
+            break;
+        case Type::Register:
+            result.append( Asm::to_string(_value.data.regid ));
+            break;
+    }
+
+   return result;
 }

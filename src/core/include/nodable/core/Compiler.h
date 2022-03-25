@@ -95,7 +95,7 @@ namespace Nodable
             {
                 data = { .u64 = 0 };
             }
-
+            static std::string to_string(const Value&);
             static_assert(sizeof(Value::data) == sizeof(size_t));
         };
         static_assert(sizeof(Value) == 2 * sizeof(size_t));
@@ -156,10 +156,6 @@ namespace Nodable
                 struct {
                     const Node* node;
                 } eval;
-
-                struct {
-                    Value value;
-                } store;
             };
             std::string m_comment;
             static std::string to_string(const Instr&);

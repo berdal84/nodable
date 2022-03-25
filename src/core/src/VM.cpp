@@ -120,7 +120,8 @@ bool VM::_stepOver()
                 src = m_register[src.data.regid];
             }
 
-            NODABLE_ASSERT(dst.type == src.type);
+            NODABLE_ASSERT(dst.type != Value::Type::Register); // we should point the register´ value
+            NODABLE_ASSERT(src.type != Value::Type::Register); // we should point the register´ value
 
             dst.data = src.data;
 
@@ -275,7 +276,7 @@ bool VM::is_there_a_next_instr() const
 
 const Variant* VM::get_last_result()
 {
-    NODABLE_ASSERT(m_register[Register::rax].type == Value::Type::VariantPtr);
+    NODABLE_ASSERT(m_register[Register::rdx].type == Value::Type::VariantPtr);
     return m_register[Register::rax].data.variant;
 }
 
