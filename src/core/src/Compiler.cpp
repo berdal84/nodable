@@ -28,18 +28,18 @@ i64 signed_diff(u64 _left, u64 _right)
 std::string Asm::Instr::to_string(const Instr& _instr)
 {
     std::string result;
-    result.reserve(60);
+    result.reserve(80); // to fit with terminals
 
     // append "<line> :"
     std::string str = std::to_string(_instr.line);
     result.append( str );
-    while( result.length() < 4 ) result.append(" "); // align on 4th char
+    result.resize(4, ' ');
     result.append( " : " );
 
     // append instruction type
     result.append( Asm::to_string(_instr.type));
 
-    while( result.length() < 25 ) result.append(" "); // align on 25th char
+    result.resize(25, ' ');
 
     // optionally append parameters
     switch ( _instr.type )
@@ -92,11 +92,12 @@ std::string Asm::Instr::to_string(const Instr& _instr)
     // optionally append comment
     if ( !_instr.m_comment.empty() )
     {
-        while( result.length() < 50 ) result.append(" "); // put comment after 50th char
+        result.resize(50, ' ');
 
         result.append( "; " );
         result.append( _instr.m_comment );
     }
+    result.resize(80, ' '); // to fit with terminals
     return result;
 }
 
