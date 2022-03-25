@@ -52,17 +52,17 @@ std::string Asm::Instr::to_string(const Instr& _instr)
 
         case Instr_t::mov:
         {
-            result.append(Asm::Value::to_string( _instr.mov.dst ));
+            result.append(Asm::MemSpace::to_string(_instr.mov.dst ));
             result.append(", ");
-            result.append(Asm::Value::to_string( _instr.mov.src ));
+            result.append(Asm::MemSpace::to_string(_instr.mov.src ));
             break;
         }
 
         case Instr_t::cmp:
         {
-            result.append(Asm::Value::to_string( _instr.cmp.left ));
+            result.append(Asm::MemSpace::to_string(_instr.cmp.left ));
             result.append(", ");
-            result.append(Asm::Value::to_string( _instr.cmp.right ));
+            result.append(Asm::MemSpace::to_string(_instr.cmp.right ));
             break;
         }
 
@@ -159,9 +159,9 @@ void Asm::Compiler::compile_member(const Member * _member )
 
         {
             Instr& instr               = *m_temp_code->push_instr(Instr_t::mov);
-            instr.mov.src.type         = Value::Type::VariantPtr;
+            instr.mov.src.type         = MemSpace::Type::VariantPtr;
             instr.mov.src.data.variant = const_cast<Variant*>(_member->get_data());
-            instr.mov.dst.type         = Value::Type::Register;
+            instr.mov.dst.type         = MemSpace::Type::Register;
             instr.mov.dst.data.regid   = Register::rax;
             char str[128];
             sprintf(str
@@ -243,9 +243,9 @@ void Asm::Compiler::compile_node(const Node* _node)
         compile_node(i_cond_struct->get_cond_instr());
 
         Instr* store_instr     = m_temp_code->push_instr(Instr_t::mov);
-        store_instr->mov.dst.type       = Value::Type::Register;
+        store_instr->mov.dst.type       = MemSpace::Type::Register;
         store_instr->mov.dst.data.regid = Register::rdx;
-        store_instr->mov.src.type       = Value::Type::Register;
+        store_instr->mov.src.type       = MemSpace::Type::Register;
         store_instr->mov.src.data.regid = Register::rax;
         store_instr->m_comment          = "store last result";
 
@@ -362,7 +362,7 @@ std::string Asm::Code::to_string(const Code* _code)
     return result;
 }
 
-std::string Asm::Value::to_string(const Value& _value)
+std::string Asm::MemSpace::to_string(const MemSpace& _value)
 {
    std::string result;
    result.append( Asm::to_string(_value.type) );

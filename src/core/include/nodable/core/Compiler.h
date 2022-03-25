@@ -67,9 +67,9 @@ namespace Nodable
         R_ENUM_VALUE(cmp)
         R_ENUM_END
 
-        struct Value
+        struct MemSpace
         {
-            Value(){ reset(); }
+            MemSpace(){ reset(); }
 
             enum class Type: size_t
             {
@@ -87,20 +87,21 @@ namespace Nodable
                 double      d;
                 u64         u64;
                 Variant*    variant;
-                Register    regid ;
+                Register    regid;
             } data;
 
 
             void reset()
             {
+                type = Type::Undefined;
                 data = { .u64 = 0 };
             }
-            static std::string to_string(const Value&);
-            static_assert(sizeof(Value::data) == sizeof(size_t));
+            static std::string to_string(const MemSpace&);
+            static_assert(sizeof(MemSpace::data) == sizeof(size_t));
         };
-        static_assert(sizeof(Value) == 2 * sizeof(size_t));
+        static_assert(sizeof(MemSpace) == 2 * sizeof(size_t));
 
-        R_ENUM(Value::Type)
+        R_ENUM(MemSpace::Type)
         R_ENUM_VALUE(Undefined)
         R_ENUM_VALUE(Boolean)
         R_ENUM_VALUE(Double)
@@ -130,13 +131,13 @@ namespace Nodable
                 } jmp;
 
                 struct {
-                    Value dst;
-                    Value src;
+                    MemSpace dst;
+                    MemSpace src;
                 } mov;
 
                 struct {
-                    Value left;
-                    Value right;
+                    MemSpace left;
+                    MemSpace right;
                 } cmp; // compare
 
                 struct {

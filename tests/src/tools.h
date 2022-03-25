@@ -51,15 +51,17 @@ namespace Nodable
             vm.run_program();
 
             // ret result
-            const Variant* result_variant = vm.get_last_result();
-            if (result_variant == nullptr )
+            const Asm::MemSpace* mem_space = vm.get_last_result();
+            if (mem_space == nullptr )
             {
                 throw std::runtime_error("Unable to get program's last result.");
             }
 
-            NODABLE_ASSERT(result_variant->get_meta_type()->is(R::get_meta_type<Node*>()) ) // we only accept a result as Node*
+            NODABLE_ASSERT(mem_space->type == Asm::MemSpace::Type::VariantPtr)
+            const Variant* variant = mem_space->data.variant;
+            NODABLE_ASSERT(variant->get_meta_type()->is(R::get_meta_type<Node*>()) ) // we only accept a result as Node*
 
-            auto result_node = (const Node*)*result_variant;
+            auto result_node = (const Node*)*variant;
             result           = result_node->value_as<return_t>();
         }
         else
@@ -102,9 +104,12 @@ namespace Nodable
             vm.run_program();
 
             // serialize result
-            if (const Variant* last_eval = vm.get_last_result())
+            if (const Asm::MemSpace* mem_space = vm.get_last_result())
             {
-                std::string result_str = last_eval->convert_to<std::string>();
+                NODABLE_ASSERT(mem_space->type == Asm::MemSpace::Type::VariantPtr)
+                const Variant* variant = mem_space->data.variant;
+                NODABLE_ASSERT(variant->get_meta_type()->is(R::get_meta_type<Node*>()) ) // we only accept a result as Node*
+                std::string result_str = variant->convert_to<std::string>();
                 LOG_VERBOSE("tools.h", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
             }
             else

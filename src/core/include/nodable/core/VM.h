@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <nodable/core/types.h>
-#include <nodable/core/InstructionNode.h>
 #include <nodable/core/Compiler.h>
 
 namespace Nodable
@@ -32,7 +31,7 @@ namespace Nodable
             inline bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
                    bool           step_over();
             inline const Node*    get_next_node() const {return m_next_node; }
-            const Variant*        get_last_result();
+            const MemSpace*          get_last_result() const;
             bool                  is_there_a_next_instr() const;
             std::weak_ptr<const Asm::Code> get_program_asm_code()const { return m_program_asm_code; }
             Instr*                get_next_instr() const;
@@ -46,7 +45,7 @@ namespace Nodable
             bool                  m_is_program_running;
             bool                  m_is_debugging;
             Instr*                m_last_step_next_instr;
-            std::array<Value, (size_t)Register::COUNT> m_register;
+            std::array<MemSpace, (size_t)Register::COUNT> m_register;
         };
     }
 }
