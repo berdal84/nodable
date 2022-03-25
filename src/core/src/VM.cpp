@@ -110,9 +110,9 @@ bool VM::_stepOver()
 
             NODABLE_ASSERT(deref_left->type != Asm::MemSpace::Type::VariantPtr); // we only allow right for pointers
 
-            if ( deref_right->type != Asm::MemSpace::Type::VariantPtr)
+            if ( deref_right->type == Asm::MemSpace::Type::VariantPtr)
             {
-                NODABLE_ASSERT( deref_right->data.variant->is_meta_type(R::get_meta_type<Node*>())); // we do not handler Node*
+                NODABLE_ASSERT( !deref_right->data.variant->is_meta_type(R::get_meta_type<Node*>())); // we do not handler Node*
             }
 
             bool cmp_result;
