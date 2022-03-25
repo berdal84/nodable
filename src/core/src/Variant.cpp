@@ -2,7 +2,7 @@
 #include <nodable/core/Log.h> // for LOG_DEBUG(...)
 #include <cassert>
 #include <nodable/core/types.h>
-#include <nodable/core/String.h>
+#include <nodable/core/Format.h>
 #include <nodable/core/Node.h>
 
 using namespace Nodable;
@@ -230,7 +230,7 @@ std::string Variant::convert_to<std::string>()const
 
         case R::Type::Double:
         {
-            result.append(  String::from(m_data.m_double) );
+            result.append(Format::fmt_no_trail(m_data.m_double) );
             break;
         }
 
@@ -242,7 +242,7 @@ std::string Variant::convert_to<std::string>()const
 
         case R::Type::Class:
         {
-            result.append( String::address_to_hexadecimal(m_data.m_void_ptr) );
+            result.append(Format::fmt_ptr(m_data.m_void_ptr) );
             break;
         }
 

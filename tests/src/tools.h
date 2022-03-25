@@ -9,7 +9,7 @@
 #include <nodable/core/Parser.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/HeadlessNodeFactory.h>
-#include <nodable/core/String.h>
+#include <nodable/core/Format.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/LanguageNodable.h>
 

@@ -3,7 +3,7 @@
 #include <memory>
 #include <iostream>
 
-#include <nodable/core/String.h>
+#include <nodable/core/Format.h>
 #include <nodable/core/assertions.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/Log.h>
@@ -31,7 +31,7 @@ std::string Asm::Instr::to_string(const Instr& _instr)
     result.reserve(80); // to fit with terminals
 
     // append "<line> :"
-    std::string str = std::to_string(_instr.line);
+    std::string str = Format::fmt_hex(_instr.line);
     result.append( str );
     result.resize(4, ' ');
     result.append( " : " );
@@ -46,13 +46,13 @@ std::string Asm::Instr::to_string(const Instr& _instr)
     {
         case Instr_t::eval_node:
         {
-            result.append( String::address_to_hexadecimal(_instr.eval.node) );
+            result.append(Format::fmt_ptr(_instr.eval.node) );
             break;
         }
 
         case Instr_t::store_data:
         {
-            result.append( String::address_to_hexadecimal(_instr.store.data) );
+            result.append(Format::fmt_ptr(_instr.store.data) );
             break;
         }
 
@@ -76,16 +76,16 @@ std::string Asm::Instr::to_string(const Instr& _instr)
         case Instr_t::ret: // nothing else to do.
             break;
         case Instr_t::pop_stack_frame:
-            result.append( String::address_to_hexadecimal(_instr.pop.scope) );
+            result.append(Format::fmt_ptr(_instr.pop.scope) );
             break;
         case Instr_t::pop_var:
-            result.append( String::address_to_hexadecimal(_instr.push.var) );
+            result.append(Format::fmt_ptr(_instr.push.var) );
             break;
         case Instr_t::push_stack_frame:
-            result.append( String::address_to_hexadecimal(_instr.push.scope) );
+            result.append(Format::fmt_ptr(_instr.push.scope) );
             break;
         case Instr_t::push_var:
-            result.append( String::address_to_hexadecimal(_instr.push.var) );
+            result.append(Format::fmt_ptr(_instr.push.var) );
             break;
     }
 

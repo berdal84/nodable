@@ -8,7 +8,7 @@
 #include <nodable/core/Member.h>
 #include <nodable/core/Node.h>
 #include <nodable/core/VariableNode.h>
-#include <nodable/core/String.h>
+#include <nodable/core/Format.h>
 
 using namespace Nodable;
 using namespace Nodable::R;
@@ -105,7 +105,7 @@ bool api_to_bool(double n)
 template<typename T>
 std::string api_concat(std::string left, T right)
 {
-    return  left + Nodable::String::from(right);
+    return  left + Nodable::Format::fmt_no_trail(right);
 }
 
 template<>
@@ -163,7 +163,7 @@ bool api_lower(double a, double b)
     return a < b;
 }
 
-std::string api_to_string(double n) { return String::from(n); }
+std::string api_to_string(double n) { return Format::fmt_no_trail(n); }
 std::string api_to_string(bool b) { return b ? "true" : "false"; }
 std::string api_to_string(std::string s) { return s; }
 

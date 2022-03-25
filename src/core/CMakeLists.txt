@@ -42,6 +42,7 @@ add_library(
         src/Scope.cpp
         src/Semantic.cpp
         src/Serializer.cpp
+        src/Format.cpp
         src/System.cpp
         src/Token.cpp
         src/TokenRibbon.cpp
@@ -49,8 +50,7 @@ add_library(
         src/Variant.cpp
         src/VM.cpp
         src/Way.cpp
-        src/Wire.cpp
-)
+        src/Wire.cpp)
 
 target_link_libraries(
     nodable-core

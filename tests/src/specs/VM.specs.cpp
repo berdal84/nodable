@@ -41,7 +41,7 @@ TEST(VM, Loop_1_using_global_var )
     std::string program =
             "string res = \"\";" \
             "for(double n=0;n<10;n=n+1){"
-            "   res = res + to_string(n);"
+            "   res = res + fmt_no_trail(n);"
             "}"
             "res;";
 
@@ -54,7 +54,7 @@ TEST(VM, Loop_1_using_local_var )
             "string res = \"\";" \
             "for(double n=0;n<10;n=n+1){"
             "   print(\"A: \" + n);"
-            "   string tmp = to_string(n);"
+            "   string tmp = fmt_no_trail(n);"
             "   print(\"B: \" + n);"
             "   res = res + tmp;"
             "   print(\"C: \" + n);"
