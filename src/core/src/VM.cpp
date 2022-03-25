@@ -299,7 +299,7 @@ bool VM::step_over()
     }
 
 
-    bool continue_execution = is_there_a_next_instr();
+    bool continue_execution = is_there_a_next_instr() && !must_exit;
     if( !continue_execution )
     {
         stop_program();
