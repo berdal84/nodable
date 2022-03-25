@@ -59,10 +59,8 @@ namespace Nodable
 
             NODABLE_ASSERT(mem_space->type == Asm::MemSpace::Type::VariantPtr)
             const Variant* variant = mem_space->data.variant;
-            NODABLE_ASSERT(variant->get_meta_type()->is(R::get_meta_type<Node*>()) ) // we only accept a result as Node*
-
-            auto result_node = (const Node*)*variant;
-            result           = result_node->value_as<return_t>();
+            NODABLE_ASSERT(!variant->get_meta_type()->is(R::get_meta_type<Node*>()) ) // we do not accept a result as Node*
+            result = variant->convert_to<return_t>();
         }
         else
         {

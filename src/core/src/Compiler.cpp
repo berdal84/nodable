@@ -157,21 +157,6 @@ void Asm::Compiler::compile_member(const Member * _member )
              */
             compile(input->get_owner());
         }
-
-        // copy instruction result to rax register
-        {
-            Instr& instr               = *m_temp_code->push_instr(Instr_t::mov);
-            instr.mov.src.type         = MemSpace::Type::VariantPtr;
-            instr.mov.src.data.variant = const_cast<Variant*>(_member->get_data());
-            instr.mov.dst.type         = MemSpace::Type::Register;
-            instr.mov.dst.data.regid   = Register::rax;
-            char str[128];
-            sprintf(str
-                    , "%s -> %s"
-                    , _member->get_owner()->get_label()
-                    , _member->get_name().c_str());
-            instr.m_comment = str;
-        }
     }
 }
 
@@ -363,9 +348,32 @@ void Asm::Compiler::compile(const ConditionalStructNode* _cond_node)
 
 void Asm::Compiler::compile(const InstructionNode *instr_node)
 {
-    const Member* root_member = instr_node->get_root_node_member();
-    NODABLE_ASSERT(root_member)
-    compile_member(root_member);
+    const Member* root_node_member = instr_node->get_root_node_member();
+    NODABLE_ASSERT(root_node_member)
+
+    // copy instruction result to rax register
+    if ( root_node_member->has_input_connected() )
+    {
+        compile_member(root_node_member);
+
+        Node*   root_node       = root_node_member->get_input()->get_owner();
+        Member* root_node_value = root_node->props()->get(k_value_member_name);
+
+        if ( root_node_value )
+        {
+            Instr& instr               = *m_temp_code->push_instr(Instr_t::mov);
+            instr.mov.src.type         = MemSpace::Type::VariantPtr;
+            instr.mov.src.data.variant = const_cast<Variant*>(root_node_value->get_data());
+            instr.mov.dst.type         = MemSpace::Type::Register;
+            instr.mov.dst.data.regid   = Register::rax;
+            char str[128];
+            sprintf(str
+                    , "store instr result (%s %s)"
+                    , root_node_value->get_owner()->get_label()
+                    , root_node_value->get_name().c_str());
+            instr.m_comment = str;
+        }
+    }
 }
 
 void Asm::Compiler::compile_graph_root(Node* _program_graph_root)
