@@ -35,7 +35,7 @@ namespace Nodable
         if (program)
         {
             // compile
-            auto code = compiler.compile(graph.get_root());
+            auto code = compiler.compile_syntax_tree(graph.get_root());
             if (!code)
             {
                 throw std::runtime_error("Compiler was not able to compile program's graph.");
@@ -83,10 +83,10 @@ namespace Nodable
 
         // act
         lang.getParser()->parse_graph(expression, &graph);
-        if (Node* program = graph.get_root())
+        if (Node* root = graph.get_root())
         {
             // compile
-            auto code = compiler.compile(graph.get_root());
+            auto code = compiler.compile_syntax_tree(root);
             if (!code)
             {
                 throw std::runtime_error("Compiler was not able to compile program's graph.");

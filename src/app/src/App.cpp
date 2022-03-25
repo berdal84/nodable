@@ -153,7 +153,7 @@ bool App::vm_compile_and_load_program()
     if (program )
     {
         Asm::Compiler compiler;
-        std::unique_ptr<const Asm::Code> asm_code = compiler.compile(program);
+        std::unique_ptr<const Asm::Code> asm_code = compiler.compile_syntax_tree(program);
 
         if (!asm_code)
         {

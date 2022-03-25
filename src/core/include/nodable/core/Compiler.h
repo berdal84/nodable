@@ -208,17 +208,16 @@ namespace Nodable
         {
         public:
             Compiler()= default;
-            std::unique_ptr<const Code> compile(Node* _program_graph);
+            std::unique_ptr<const Code> compile_syntax_tree(Node*);
         private:
-            bool is_program_valid(const Node*);
-            void compile_graph_root(Node *_program_graph_root);
+            bool is_syntax_tree_valid(const Node*);
             void compile(const Node*);
-            void compile_member(const Member*);
+            void compile(const Member*);
             void compile(const Scope*, bool _insert_fake_return = false);
             void compile(const InstructionNode*);
             void compile(const ForLoopNode*);
             void compile(const ConditionalStructNode*);
-            void compile_condition(const InstructionNode *_instr_node);
+            void compile_as_condition(const InstructionNode *_instr_node);
 
             std::unique_ptr<Code> m_temp_code;
         };

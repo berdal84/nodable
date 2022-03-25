@@ -117,7 +117,7 @@ Instr* Code::push_instr(Instr_t _type)
     return instr;
 }
 
-bool Asm::Compiler::is_program_valid(const Node* _program_graph_root)
+bool Asm::Compiler::is_syntax_tree_valid(const Node* _program_graph_root)
 {
     bool is_valid;
 
@@ -140,7 +140,7 @@ bool Asm::Compiler::is_program_valid(const Node* _program_graph_root)
     return is_valid;
 }
 
-void Asm::Compiler::compile_member(const Member * _member )
+void Asm::Compiler::compile(const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
@@ -269,7 +269,7 @@ void Asm::Compiler::compile(const ForLoopNode* for_loop)
 
     u64 condition_instr_line = m_temp_code->get_next_index();
 
-    compile_condition(for_loop->get_cond_instr());
+    compile_as_condition(for_loop->get_cond_instr());
 
     Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
     skip_true_branch->m_comment = "jump if register is false";
@@ -286,13 +286,13 @@ void Asm::Compiler::compile(const ForLoopNode* for_loop)
         // insert jump to condition instructions.
         auto loop_jump = m_temp_code->push_instr(Instr_t::jmp);
         loop_jump->jmp.offset = signed_diff(condition_instr_line, loop_jump->line);
-        loop_jump->m_comment  = "jump back to loop begining";
+        loop_jump->m_comment  = "jump back to for";
     }
 
     skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
 }
 
-void Asm::Compiler::compile_condition(const InstructionNode* _instr_node)
+void Asm::Compiler::compile_as_condition(const InstructionNode* _instr_node)
 {
     // compile condition result (must be stored in rax after this line)
     compile(_instr_node);
@@ -316,7 +316,7 @@ void Asm::Compiler::compile_condition(const InstructionNode* _instr_node)
 
 void Asm::Compiler::compile(const ConditionalStructNode* _cond_node)
 {
-    compile_condition(_cond_node->get_cond_instr()); // compile condition isntruction, store result, compare
+    compile_as_condition(_cond_node->get_cond_instr()); // compile condition isntruction, store result, compare
 
     Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
     skip_true_branch->m_comment = "jump if false";
@@ -354,7 +354,7 @@ void Asm::Compiler::compile(const InstructionNode *instr_node)
     // copy instruction result to rax register
     if ( root_node_member->has_input_connected() )
     {
-        compile_member(root_node_member);
+        compile(root_node_member);
 
         Node*   root_node       = root_node_member->get_input()->get_owner();
         Member* root_node_value = root_node->props()->get(k_value_member_name);
@@ -376,28 +376,23 @@ void Asm::Compiler::compile(const InstructionNode *instr_node)
     }
 }
 
-void Asm::Compiler::compile_graph_root(Node* _program_graph_root)
+std::unique_ptr<const Code> Asm::Compiler::compile_syntax_tree(Node* _root)
 {
-    m_temp_code = std::make_unique<Code>(_program_graph_root);
+    if (is_syntax_tree_valid(_root))
+    {
+        m_temp_code = std::make_unique<Code>(_root);
 
-    try
-    {
-        auto scope = _program_graph_root->get<Scope>();
-        NODABLE_ASSERT(scope)
-        compile(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
-    }
-    catch ( const std::exception& e )
-    {
-        m_temp_code.reset();
-        LOG_ERROR("Compiler", "Unable to create assembly code for program. Reason: %s\n", e.what());
-    }
-}
-
-std::unique_ptr<const Code> Asm::Compiler::compile(Node* _program_graph)
-{
-    if ( is_program_valid(_program_graph))
-    {
-        compile_graph_root(_program_graph);
+        try
+        {
+            auto scope = _root->get<Scope>();
+            NODABLE_ASSERT(scope)
+            compile(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
+        }
+        catch ( const std::exception& e )
+        {
+            m_temp_code.reset();
+            LOG_ERROR("Compiler", "Unable to create assembly code for program. Reason: %s\n", e.what());
+        }
         LOG_MESSAGE("Compiler", "Program compiled.\n");
         return std::move(m_temp_code);
     }
