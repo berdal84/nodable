@@ -16,12 +16,23 @@ VM::VM()
 
 }
 
+void VM::advance_cursor(i64 _amount)
+{
+    NODABLE_ASSERT(m_register[Register::eip].type == Value::Type::U64);
+    m_register[Register::eip].data.u64 += _amount; // can overflow
+}
+
+void VM::init_instruction_pointer()
+{
+    m_register[Register::eip].type = Value::Type::U64;
+    m_register[Register::eip].data.u64 = 0;
+};
+
 void VM::clear_registers()
 {
     for( size_t i = 0; i < std::size( m_register ); ++i )
     {
-        m_register[i].u64     = 0;
-        m_register[i].variant = nullptr;
+        m_register[i].reset();
     }
 }
 void VM::run_program()
@@ -30,8 +41,9 @@ void VM::run_program()
     LOG_MESSAGE("VM", "Running program ...\n")
     m_is_program_running = true;
 
-    reset_cursor();
     clear_registers();
+    init_instruction_pointer(); // uses register, need to be done after clear.
+
     while( is_there_a_next_instr() && get_next_instr()->type != Instr_t::ret )
     {
         _stepOver();
@@ -51,8 +63,7 @@ void VM::stop_program()
 void VM::release_program()
 {
     m_program_asm_code.reset();
-    reset_cursor();
-    clear_registers();
+    clear_registers(); // will also clear reset instruction pointer (stored in a register Register::eip)
     stop_program();
 }
 
@@ -67,8 +78,31 @@ bool VM::_stepOver()
     {
         case Instr_t::cmp:
         {
-            bool equals = m_register[next_instr->cmp.left].u64 == m_register[next_instr->cmp.right].u64;
-            m_register[Register_id::rax].b = equals;
+            Value left  = m_register[next_instr->cmp.left];
+            Value right = m_register[next_instr->cmp.right];
+
+            NODABLE_ASSERT(left.type == right.type);
+
+            bool cmp_result;
+            switch (left.type)
+            {
+                case Value::Type::Boolean:
+                    cmp_result = left.data.b == right.data.b;
+                    break;
+                case Value::Type::Double:
+                    cmp_result = left.data.d == right.data.d;
+                    break;
+                case Value::Type::U64:
+                    cmp_result = left.data.u64 == right.data.u64;
+                    break;
+                case Value::Type::VariantPtr:
+                    NODABLE_ASSERT(false) // TODO
+                    break;
+                default:
+                    NODABLE_ASSERT(false)
+            }
+            m_register[Register::rax].type   = Value::Type::Boolean;
+            m_register[Register::rax].data.b = cmp_result;
             advance_cursor();
             success = true;
             break;
@@ -130,8 +164,8 @@ bool VM::_stepOver()
 
         case Instr_t::store_data:
         {
-            const Variant* data = next_instr->store.data;
-            m_register[Register_id::rax].variant = const_cast<Variant*>(data);
+            Value value = next_instr->store.value;
+            m_register[Register::rax] = value;
             advance_cursor();
             success = true;
             break;
@@ -146,7 +180,8 @@ bool VM::_stepOver()
 
         case Instr_t::jne:
         {
-            Variant* variant = m_register[Register_id::rax].variant;
+            NODABLE_ASSERT(m_register[Register::rax].type == Value::Type::VariantPtr);
+            Variant* variant = m_register[Register::rax].data.variant;
             if ( variant->convert_to<bool>() )
             {
                 advance_cursor();
@@ -221,23 +256,31 @@ void VM::debug_program()
     NODABLE_ASSERT(m_program_asm_code);
     m_is_debugging = true;
     m_is_program_running = true;
-    reset_cursor();
     clear_registers();
+    init_instruction_pointer(); // uses register, need to be done after clear.
     m_next_node = m_program_asm_code->get_meta_data().root_node;
     LOG_MESSAGE("VM", "Debugging program ...\n")
 }
 
 bool VM::is_there_a_next_instr() const
 {
-    auto next_inst_id = m_register[Register_id::eip].u64;
+    NODABLE_ASSERT(m_register[Register::eip].type == Value::Type::U64);
+    auto next_inst_id = m_register[Register::eip].data.u64;
     return next_inst_id < m_program_asm_code->size();
+}
+
+const Variant* VM::get_last_result()
+{
+    NODABLE_ASSERT(m_register[Register::rax].type == Value::Type::VariantPtr);
+    return m_register[Register::rax].data.variant;
 }
 
 Instr* VM::get_next_instr() const
 {
     if ( is_there_a_next_instr() )
     {
-        auto next_inst_id = m_register[Register_id::eip].u64;
+        NODABLE_ASSERT(m_register[Register::eip].type == Value::Type::U64);
+        auto next_inst_id = m_register[Register::eip].data.u64;
         return m_program_asm_code->get_instruction_at(next_inst_id);
     }
     return nullptr;

@@ -52,11 +52,20 @@ std::string Asm::Instr::to_string(const Instr& _instr)
 
         case Instr_t::store_data:
         {
-            result.append(Format::fmt_ptr(_instr.store.data) );
+            result.append(Asm::to_string( _instr.store.value.type ));
+            result.append(Format::fmt_hex(_instr.store.value.data.u64) );
             break;
         }
 
         case Instr_t::mov:
+        {
+            result.append("%");
+            result.append(Asm::to_string( _instr.mov.dst ));
+            result.append(", %");
+            result.append(Asm::to_string( _instr.mov.src ));
+            break;
+        }
+
         case Instr_t::cmp:
         {
             result.append("%");
@@ -158,14 +167,15 @@ void Asm::Compiler::compile_member(const Member * _member )
         }
 
         {
-            Instr *instr      = m_temp_code->push_instr(Instr_t::store_data);
-            instr->store.data = _member->get_data();
+            Instr& instr                   = *m_temp_code->push_instr(Instr_t::store_data);
+            instr.store.value.type         = Value::Type::VariantPtr;
+            instr.store.value.data.variant = const_cast<Variant*>(_member->get_data());
             char str[128];
             sprintf(str
                     , "%s -> %s"
                     , _member->get_owner()->get_label()
                     , _member->get_name().c_str());
-            instr->m_comment = str;
+            instr.m_comment = str;
         }
     }
 }
@@ -240,8 +250,8 @@ void Asm::Compiler::compile_node(const Node* _node)
         compile_node(i_cond_struct->get_cond_instr());
 
         Instr* store_instr     = m_temp_code->push_instr(Instr_t::mov);
-        store_instr->mov.dst   = Register_id::rdx;
-        store_instr->mov.src   = Register_id::rax;
+        store_instr->mov.dst   = Register::rdx;
+        store_instr->mov.src   = Register::rax;
         store_instr->m_comment = "store result";
 
         Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);

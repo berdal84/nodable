@@ -24,14 +24,14 @@ namespace Nodable
          * Enum to identify each register, we try here to follow the x86_64 DASM reference from
          * @see https://www.cs.uaf.edu/2017/fall/cs301/reference/x86_64.html
          */
-        enum Register_id : size_t {
+        enum Register : size_t {
             rax,     // accumulator
             rdx,     // storage
             eip,     // The instruction pointer.
             COUNT
         };
 
-        R_ENUM(Register_id)
+        R_ENUM(Register)
         R_ENUM_VALUE(rax)
         R_ENUM_VALUE(rdx)
         R_ENUM_VALUE(eip)
@@ -69,6 +69,50 @@ namespace Nodable
         R_ENUM_VALUE(store_data)
         R_ENUM_END
 
+        struct Value
+        {
+            Value(){ reset(); }
+
+            enum class Type: size_t
+            {
+                Undefined,
+                Boolean,
+                Double,
+                U64,
+                VariantPtr,
+                Register
+            } type;
+
+            union
+            {
+                bool        b;
+                double      d;
+                u64         u64;
+                Variant*    variant;
+                Register    regid ;
+            } data;
+
+
+            void reset()
+            {
+                data = { .u64 = 0 };
+            }
+
+            static_assert(sizeof(Value::data) == sizeof(size_t));
+        };
+        static_assert(sizeof(Value) == 2 * sizeof(size_t));
+
+        R_ENUM(Value::Type)
+        R_ENUM_VALUE(Undefined)
+        R_ENUM_VALUE(Boolean)
+        R_ENUM_VALUE(Double)
+        R_ENUM_VALUE(U64)
+        R_ENUM_VALUE(VariantPtr)
+        R_ENUM_VALUE(Register)
+        R_ENUM_END
+
+
+
         /**
          * Store a single assembly instruction ( line type larg rarg comment )
          */
@@ -88,13 +132,13 @@ namespace Nodable
                 } jmp;
 
                 struct {
-                    Register_id dst;
-                    Register_id src;
+                    Register dst;
+                    Register src;
                 } mov;
 
                 struct {
-                    Register_id left;
-                    Register_id right;
+                    Register left;
+                    Register right;
                 } cmp; // compare
 
                 struct {
@@ -116,7 +160,7 @@ namespace Nodable
                 } eval;
 
                 struct {
-                    const Variant* data;
+                    Value value;
                 } store;
             };
             std::string m_comment;
