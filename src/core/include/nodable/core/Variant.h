@@ -3,7 +3,6 @@
 #include <string>
 #include <array>
 #include <memory> // std::shared_ptr
-#include <mpark/variant.hpp> // std::variant implem for C++11
 
 #include <nodable/core/types.h> // for constants and forward declarations
 #include <nodable/core/reflection/R.h>

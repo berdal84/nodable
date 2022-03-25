@@ -93,10 +93,6 @@ add_library(
 )
 target_include_directories(IconFontCppHeaders INTERFACE ./)
 
-# variant (libc++ implem C++11 compatible)
-#---------
-add_subdirectory(3rdparty/variant)
-
 # Rapid JSON
 #---------
 add_library(

@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <unordered_set>
-#include <mpark/variant.hpp>
 
 #include <nodable/core/types.h>
 #include <nodable/core/reflection/R.h>
