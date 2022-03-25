@@ -89,19 +89,19 @@ namespace Nodable
             struct Data
             {
                 union {
-                    bool     b;
-                    double   d;
-                    u64      u64;
-                    Variant *variant;
-                    Register regid;
+                    bool     m_bool;
+                    double   m_double;
+                    u64      m_u64;
+                    Variant *m_variant;
+                    Register m_register;
                 };
             };
 
-            MemSpace(Type _type = Type::Undefined):type(_type), data({ .u64 = 0 }) {}
+            MemSpace(Type _type = Type::Undefined):type(_type), data({ .m_u64 = 0 }) {}
 
             void reset()
             {
-                data = { .u64 = 0 };
+                data = { .m_u64 = 0 };
                 type = Type::Undefined;
             }
 

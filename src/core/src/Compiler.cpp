@@ -300,17 +300,17 @@ void Asm::Compiler::compile_as_condition(const InstructionNode* _instr_node)
     // move "true" result to rdx
     Instr* store_true              = m_temp_code->push_instr(Instr_t::mov);
     store_true->mov.src.type       = MemSpace::Type::Boolean;
-    store_true->mov.src.data.b     = true;
+    store_true->mov.src.data.m_bool     = true;
     store_true->mov.dst.type       = MemSpace::Type::Register;
-    store_true->mov.dst.data.regid = rdx;
+    store_true->mov.dst.data.m_register = rdx;
     store_true->m_comment          = "store true";
 
     // compare rax (condition result) with rdx (true)
     Instr* cmp_instr                = m_temp_code->push_instr(Instr_t::cmp);  // works only with registry
     cmp_instr->cmp.left.type        = MemSpace::Type::Register; // here
-    cmp_instr->cmp.left.data.regid  = rdx; // must be left
+    cmp_instr->cmp.left.data.m_register  = rdx; // must be left
     cmp_instr->cmp.right.type       = MemSpace::Type::Register; // there
-    cmp_instr->cmp.right.data.regid = rax; // must be right, because register will point to VariantPtr
+    cmp_instr->cmp.right.data.m_register = rax; // must be right, because register will point to VariantPtr
     cmp_instr->m_comment            = "compare last condition with true";
 }
 
@@ -363,9 +363,9 @@ void Asm::Compiler::compile(const InstructionNode *instr_node)
         {
             Instr& instr               = *m_temp_code->push_instr(Instr_t::mov);
             instr.mov.src.type         = MemSpace::Type::VariantPtr;
-            instr.mov.src.data.variant = const_cast<Variant*>(root_node_value->get_data());
+            instr.mov.src.data.m_variant = const_cast<Variant*>(root_node_value->get_data());
             instr.mov.dst.type         = MemSpace::Type::Register;
-            instr.mov.dst.data.regid   = Register::rax;
+            instr.mov.dst.data.m_register   = Register::rax;
             char str[128];
             sprintf(str
                     , "store instr result (%s %s)"
@@ -423,20 +423,20 @@ std::string Asm::MemSpace::to_string(const MemSpace& _value)
             result.append( "undefined");
             break;
         case Type::Boolean:
-            result.append( std::to_string(_value.data.b));
+            result.append( std::to_string(_value.data.m_bool));
             break;
         case Type::Double:
-            result.append( std::to_string(_value.data.d));
+            result.append( std::to_string(_value.data.m_double));
             break;
         case Type::U64:
-            result.append( Format::fmt_hex(_value.data.u64 ));
+            result.append( Format::fmt_hex(_value.data.m_u64 ));
             break;
         case Type::VariantPtr:
-            result.append( Format::fmt_ptr(_value.data.variant ) );
+            result.append( Format::fmt_ptr(_value.data.m_variant ) );
             break;
         case Type::Register:
             result.append( "%" );
-            result.append( Asm::to_string(_value.data.regid ));
+            result.append( Asm::to_string(_value.data.m_register ));
             break;
     }
 

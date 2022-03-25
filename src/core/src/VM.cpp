@@ -20,14 +20,14 @@ void VM::advance_cursor(i64 _amount)
 {
     MemSpace mem = read_register(Register::eip);
     NODABLE_ASSERT(mem.type == MemSpace::Type::U64);
-    mem.data.u64 += _amount; // can overflow
+    mem.data.m_u64 += _amount; // can overflow
     write_register(Register::eip, mem);
 }
 
 void VM::init_instruction_pointer()
 {
     MemSpace mem(MemSpace::Type::U64);
-    mem.data.u64 = 0;
+    mem.data.m_u64 = 0;
     write_register(Register::eip, mem);
 };
 
@@ -92,7 +92,7 @@ bool VM::_stepOver()
 
             if ( left.type == MemSpace::Type::Register )
             {
-                deref_left = &m_register[left.data.regid];
+                deref_left = &m_register[left.data.m_register];
             }
             else
             {
@@ -101,7 +101,7 @@ bool VM::_stepOver()
 
             if ( right.type == MemSpace::Type::Register )
             {
-                deref_right = &m_register[right.data.regid];
+                deref_right = &m_register[right.data.m_register];
             }
             else
             {
@@ -112,7 +112,7 @@ bool VM::_stepOver()
 
             if ( deref_right->type == Asm::MemSpace::Type::VariantPtr)
             {
-                NODABLE_ASSERT( !deref_right->data.variant->is_meta_type(R::get_meta_type<Node*>())); // we do not handler Node*
+                NODABLE_ASSERT( !deref_right->data.m_variant->is_meta_type(R::get_meta_type<Node*>())); // we do not handler Node*
             }
 
             bool cmp_result;
@@ -120,28 +120,28 @@ bool VM::_stepOver()
             {
                 case MemSpace::Type::Boolean:
                     if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
-                        cmp_result = deref_left->data.b == (bool)*deref_right->data.variant;
+                        cmp_result = deref_left->data.m_bool == (bool)*deref_right->data.m_variant;
                     else
-                        cmp_result = deref_left->data.b == deref_right->data.b;
+                        cmp_result = deref_left->data.m_bool == deref_right->data.m_bool;
                     break;
                 case MemSpace::Type::U64:
                     if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
-                        cmp_result = deref_left->data.u64 == (u64&)*deref_right->data.variant;
+                        cmp_result = deref_left->data.m_u64 == (u64&)*deref_right->data.m_variant;
                     else
-                        cmp_result = deref_left->data.u64 == deref_right->data.u64;
+                        cmp_result = deref_left->data.m_u64 == deref_right->data.m_u64;
                     break;
                 case MemSpace::Type::Double:
                     if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
-                        cmp_result = deref_left->data.d == (double)*deref_right->data.variant;
+                        cmp_result = deref_left->data.m_double == (double)*deref_right->data.m_variant;
                     else
-                        cmp_result = deref_left->data.d == deref_right->data.d;
+                        cmp_result = deref_left->data.m_double == deref_right->data.m_double;
                     break;
                 default:
                     NODABLE_ASSERT(false) // TODO
             }
 
             MemSpace mem(MemSpace::Type::Boolean);
-            mem.data.b = cmp_result;
+            mem.data.m_bool = cmp_result;
             write_register(Register::rax, mem);
             advance_cursor();
             success = true;
@@ -160,7 +160,7 @@ bool VM::_stepOver()
 
             if (dst.type == MemSpace::Type::Register)
             {
-                deref_dst = &m_register[dst.data.regid];
+                deref_dst = &m_register[dst.data.m_register];
             }
             else
             {
@@ -169,7 +169,7 @@ bool VM::_stepOver()
 
             if (src.type == MemSpace::Type::Register)
             {
-                deref_src = &m_register[src.data.regid];
+                deref_src = &m_register[src.data.m_register];
                 NODABLE_ASSERT(src.type != Asm::MemSpace::Type::Undefined)
             }
             else
@@ -183,7 +183,7 @@ bool VM::_stepOver()
             *deref_dst = *deref_src;
 
             NODABLE_ASSERT(deref_dst->type     == deref_dst->type)
-            NODABLE_ASSERT(deref_dst->data.u64 == deref_dst->data.u64 )
+            NODABLE_ASSERT(deref_dst->data.m_u64 == deref_dst->data.m_u64 )
 
             advance_cursor();
             success = true;
@@ -237,7 +237,7 @@ bool VM::_stepOver()
             {
                 MemSpace mem_space;
                 mem_space.type = Asm::MemSpace::Type::VariantPtr;
-                mem_space.data.variant = node->props()->get(k_value_member_name)->get_data();
+                mem_space.data.m_variant = node->props()->get(k_value_member_name)->get_data();
                 write_register(Register::rax, mem_space);
             }
 
@@ -256,7 +256,7 @@ bool VM::_stepOver()
         case Instr_t::jne:
         {
             NODABLE_ASSERT(m_register[Register::rax].type == MemSpace::Type::Boolean);
-            bool equals = m_register[Register::rax].data.b;
+            bool equals = m_register[Register::rax].data.m_bool;
             if ( equals )
             {
                 advance_cursor();
@@ -343,7 +343,7 @@ void VM::debug_program()
 bool VM::is_there_a_next_instr() const
 {
     NODABLE_ASSERT(m_register[Register::eip].type == MemSpace::Type::U64);
-    auto next_inst_id = m_register[Register::eip].data.u64;
+    auto next_inst_id = m_register[Register::eip].data.m_u64;
     return next_inst_id < m_program_asm_code->size();
 }
 
@@ -362,7 +362,7 @@ Instr* VM::get_next_instr() const
     if ( is_there_a_next_instr() )
     {
         NODABLE_ASSERT(m_register[Register::eip].type == MemSpace::Type::U64);
-        auto next_inst_id = m_register[Register::eip].data.u64;
+        auto next_inst_id = m_register[Register::eip].data.m_u64;
         return m_program_asm_code->get_instruction_at(next_inst_id);
     }
     return nullptr;
