@@ -81,22 +81,52 @@ bool VM::_stepOver()
             MemSpace left  = next_instr->cmp.left;
             MemSpace right = next_instr->cmp.right;
 
-            NODABLE_ASSERT(left.type != MemSpace::Type::Undefined);
-            NODABLE_ASSERT(right.type != MemSpace::Type::Undefined);
+            NODABLE_ASSERT(left.type == MemSpace::Type::Register);
+            NODABLE_ASSERT(right.type == MemSpace::Type::Register);
 
-            NODABLE_ASSERT(left.type == right.type);
+            // dereference registers
+            MemSpace *deref_left, *deref_right;
+
+            if ( left.type == MemSpace::Type::Register )
+            {
+                deref_left = &m_register[left.data.regid];
+            }
+            else
+            {
+                deref_left = &left;
+            }
+
+            if ( right.type == MemSpace::Type::Register )
+            {
+                deref_right = &m_register[right.data.regid];
+            }
+            else
+            {
+                deref_right = &right;
+            }
+
+            NODABLE_ASSERT(deref_left->type != Asm::MemSpace::Type::VariantPtr); // we only allow right for pointers
 
             bool cmp_result;
-            switch (left.type)
+            switch (deref_left->type)
             {
                 case MemSpace::Type::Boolean:
-                    cmp_result = left.data.b == right.data.b;
-                    break;
-                case MemSpace::Type::Double:
-                    cmp_result = left.data.d == right.data.d;
+                    if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
+                        cmp_result = deref_left->data.b == (bool&)*deref_right->data.variant;
+                    else
+                        cmp_result = deref_left->data.b == deref_right->data.b;
                     break;
                 case MemSpace::Type::U64:
-                    cmp_result = left.data.u64 == right.data.u64;
+                    if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
+                        cmp_result = deref_left->data.u64 == (u64&)*deref_right->data.variant;
+                    else
+                        cmp_result = deref_left->data.u64 == deref_right->data.u64;
+                    break;
+                case MemSpace::Type::Double:
+                    if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
+                        cmp_result = deref_left->data.d == (double&)*deref_right->data.variant;
+                    else
+                        cmp_result = deref_left->data.d == deref_right->data.d;
                     break;
                 default:
                     NODABLE_ASSERT(false) // TODO

@@ -208,6 +208,7 @@ namespace Nodable
             void compile(const InstructionNode*);
             void compile(const ForLoopNode*);
             void compile(const ConditionalStructNode*);
+            void compile_condition(const InstructionNode *_instr_node);
 
             std::unique_ptr<Code> m_temp_code;
         };

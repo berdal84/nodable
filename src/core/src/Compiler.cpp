@@ -284,23 +284,7 @@ void Asm::Compiler::compile(const ForLoopNode* for_loop)
 
     u64 condition_instr_line = m_temp_code->get_next_index();
 
-    compile_node(for_loop->get_cond_instr());
-
-    // move last result to rdx
-    Instr* store_instr              = m_temp_code->push_instr(Instr_t::mov);
-    store_instr->mov.src.type       = MemSpace::Type::Register;
-    store_instr->mov.src.data.regid = rax;
-    store_instr->mov.dst.type       = MemSpace::Type::Register;
-    store_instr->mov.dst.data.regid = rdx;
-    store_instr->m_comment          = "store last result";
-
-    // compare last result with false
-    Instr* cmp_instr                = m_temp_code->push_instr(Instr_t::cmp);
-    cmp_instr->cmp.left.type        = MemSpace::Type::Register;
-    cmp_instr->cmp.left.data.regid  = rdx;
-    cmp_instr->cmp.right.type       = MemSpace::Type::Boolean;
-    cmp_instr->cmp.right.data.b     = true;
-    cmp_instr->m_comment            = "compare with true";
+    compile_condition(for_loop->get_cond_instr());
 
     Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
     skip_true_branch->m_comment = "jump if register is false";
@@ -323,28 +307,34 @@ void Asm::Compiler::compile(const ForLoopNode* for_loop)
     skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
 }
 
+void Asm::Compiler::compile_condition(const InstructionNode* _instr_node)
+{
+    // compile condition result (must be stored in rax after this line)
+    compile_node(_instr_node);
+
+    // move "true" result to rdx
+    Instr* store_true              = m_temp_code->push_instr(Instr_t::mov);
+    store_true->mov.src.type       = MemSpace::Type::Boolean;
+    store_true->mov.src.data.b     = true;
+    store_true->mov.dst.type       = MemSpace::Type::Register;
+    store_true->mov.dst.data.regid = rdx;
+    store_true->m_comment          = "store last result";
+
+    // compare rax (condition result) with rdx (true)
+    Instr* cmp_instr                = m_temp_code->push_instr(Instr_t::cmp);  // works only with registry
+    cmp_instr->cmp.left.type        = MemSpace::Type::Register; // here
+    cmp_instr->cmp.left.data.regid  = rax;
+    cmp_instr->cmp.right.type       = MemSpace::Type::Register; // there
+    cmp_instr->cmp.right.data.regid = rdx;
+    cmp_instr->m_comment            = "compare with true";
+}
+
 void Asm::Compiler::compile(const ConditionalStructNode* _cond_node)
 {
-    compile_node(_cond_node->get_cond_instr());
-
-    // move last result to rdx
-    Instr* store_instr              = m_temp_code->push_instr(Instr_t::mov);
-    store_instr->mov.src.type       = MemSpace::Type::Register;
-    store_instr->mov.src.data.regid = rax;
-    store_instr->mov.dst.type       = MemSpace::Type::Register;
-    store_instr->mov.dst.data.regid = rdx;
-    store_instr->m_comment          = "store last result";
-
-    // compare last result with false
-    Instr* cmp_instr                = m_temp_code->push_instr(Instr_t::cmp);
-    cmp_instr->cmp.left.type        = MemSpace::Type::Register;
-    cmp_instr->cmp.left.data.regid  = rdx;
-    cmp_instr->cmp.right.type       = MemSpace::Type::Boolean;
-    cmp_instr->cmp.right.data.b     = true;
-    cmp_instr->m_comment            = "compare with true";
+    compile_condition(_cond_node->get_cond_instr()); // compile condition isntruction, store result, compare
 
     Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
-    skip_true_branch->m_comment = "jump if register is false";
+    skip_true_branch->m_comment = "jump if false";
 
     Instr* skip_false_branch = nullptr;
 
@@ -355,7 +345,7 @@ void Asm::Compiler::compile(const ConditionalStructNode* _cond_node)
         if (_cond_node->get_condition_false_scope())
         {
             skip_false_branch = m_temp_code->push_instr(Instr_t::jmp);
-            skip_false_branch->m_comment = "jump false branch";
+            skip_false_branch->m_comment = "jump if true";
         }
     }
 
