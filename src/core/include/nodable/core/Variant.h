@@ -97,7 +97,7 @@ namespace Nodable
         operator void* ()         { NODABLE_ASSERT(m_is_initialized) return m_data.m_void_ptr; }
         operator double&()        { NODABLE_ASSERT(m_is_initialized) return m_data.m_double; }
         operator bool&()          { NODABLE_ASSERT(m_is_initialized) return m_data.m_bool; }
-        operator std::string& ()  { NODABLE_ASSERT(m_is_initialized && m_is_defined) return *m_data.m_std_string_ptr; }
+        operator std::string& ()  { NODABLE_ASSERT(m_is_initialized) return *m_data.m_std_string_ptr; }
 
         // by value
         operator int()const;

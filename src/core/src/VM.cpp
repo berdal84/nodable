@@ -285,13 +285,16 @@ bool VM::_stepOver()
 bool VM::step_over()
 {
     auto must_break = [&]() -> bool {
-        return get_next_instr()->type == Instr_t::ret ||
+        return
                get_next_instr()->type == Instr_t::eval_node
                && m_last_step_next_instr != get_next_instr();
     };
 
-    while(is_there_a_next_instr() && !must_break() )
+    bool must_exit = false;
+
+    while(is_there_a_next_instr() && !must_break() && !must_exit )
     {
+        must_exit = get_next_instr()->type == Instr_t::ret;
         _stepOver();
     }
 
