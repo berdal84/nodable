@@ -318,15 +318,15 @@ void Asm::Compiler::compile_condition(const InstructionNode* _instr_node)
     store_true->mov.src.data.b     = true;
     store_true->mov.dst.type       = MemSpace::Type::Register;
     store_true->mov.dst.data.regid = rdx;
-    store_true->m_comment          = "store last result";
+    store_true->m_comment          = "store true";
 
     // compare rax (condition result) with rdx (true)
     Instr* cmp_instr                = m_temp_code->push_instr(Instr_t::cmp);  // works only with registry
     cmp_instr->cmp.left.type        = MemSpace::Type::Register; // here
-    cmp_instr->cmp.left.data.regid  = rax;
+    cmp_instr->cmp.left.data.regid  = rdx; // must be left
     cmp_instr->cmp.right.type       = MemSpace::Type::Register; // there
-    cmp_instr->cmp.right.data.regid = rdx;
-    cmp_instr->m_comment            = "compare with true";
+    cmp_instr->cmp.right.data.regid = rax; // must be right, because register will point to VariantPtr
+    cmp_instr->m_comment            = "compare last condition with true";
 }
 
 void Asm::Compiler::compile(const ConditionalStructNode* _cond_node)

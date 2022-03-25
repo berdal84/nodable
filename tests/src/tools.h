@@ -104,13 +104,9 @@ namespace Nodable
             vm.run_program();
 
             // serialize result
-            if (const Asm::MemSpace* mem_space = vm.get_last_result())
+            if ( vm.get_last_result() )
             {
-                NODABLE_ASSERT(mem_space->type == Asm::MemSpace::Type::VariantPtr)
-                const Variant* variant = mem_space->data.variant;
-                NODABLE_ASSERT(variant->get_meta_type()->is(R::get_meta_type<Node*>()) ) // we only accept a result as Node*
-                std::string result_str = variant->convert_to<std::string>();
-                LOG_VERBOSE("tools.h", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
+                LOG_VERBOSE("tools.h", "ParseUpdateSerialize has result\n");
             }
             else
             {
