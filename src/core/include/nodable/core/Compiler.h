@@ -24,14 +24,14 @@ namespace Nodable
          * Enum to identify each register, we try here to follow the x86_64 DASM reference from
          * @see https://www.cs.uaf.edu/2017/fall/cs301/reference/x86_64.html
          */
-        enum class Register : u8 {
-            rax = 0, // accumulator
+        enum Register_id : size_t {
+            rax,     // accumulator
             rdx,     // storage
             eip,     // The instruction pointer.
             COUNT
         };
 
-        R_ENUM(Register)
+        R_ENUM(Register_id)
         R_ENUM_VALUE(rax)
         R_ENUM_VALUE(rdx)
         R_ENUM_VALUE(eip)
@@ -88,13 +88,13 @@ namespace Nodable
                 } jmp;
 
                 struct {
-                    Register dst;
-                    Register src;
+                    Register_id dst;
+                    Register_id src;
                 } mov;
 
                 struct {
-                    Register left;
-                    Register right;
+                    Register_id left;
+                    Register_id right;
                 } cmp; // compare
 
                 struct {

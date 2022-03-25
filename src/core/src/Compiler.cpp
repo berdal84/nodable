@@ -32,14 +32,14 @@ std::string Asm::Instr::to_string(const Instr& _instr)
 
     // append "<line> :"
     std::string str = std::to_string(_instr.line);
-    while( str.length() < 4 )
-        str.append(" ");
     result.append( str );
-    result.append( ": " );
+    while( result.length() < 4 ) result.append(" "); // align on 4th char
+    result.append( " : " );
 
     // append instruction type
     result.append( Asm::to_string(_instr.type));
-    result.append( " " );
+
+    while( result.length() < 25 ) result.append(" "); // align on 25th char
 
     // optionally append parameters
     switch ( _instr.type )
@@ -92,8 +92,8 @@ std::string Asm::Instr::to_string(const Instr& _instr)
     // optionally append comment
     if ( !_instr.m_comment.empty() )
     {
-        while( result.length() < 50 ) // align on 80th char
-            result.append(" ");
+        while( result.length() < 50 ) result.append(" "); // put comment after 50th char
+
         result.append( "; " );
         result.append( _instr.m_comment );
     }
@@ -239,8 +239,8 @@ void Asm::Compiler::compile_node(const Node* _node)
         compile_node(i_cond_struct->get_cond_instr());
 
         Instr* store_instr     = m_temp_code->push_instr(Instr_t::mov);
-        store_instr->mov.dst   = Register::rdx;
-        store_instr->mov.src   = Register::rax;
+        store_instr->mov.dst   = Register_id::rdx;
+        store_instr->mov.src   = Register_id::rax;
         store_instr->m_comment = "store result";
 
         Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);

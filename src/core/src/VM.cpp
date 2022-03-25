@@ -20,7 +20,8 @@ void VM::clear_registers()
 {
     for( size_t i = 0; i < std::size( m_register ); ++i )
     {
-        m_register[i] = 0;
+        m_register[i].u64     = 0;
+        m_register[i].variant = nullptr;
     }
 }
 void VM::run_program()
@@ -66,8 +67,8 @@ bool VM::_stepOver()
     {
         case Instr_t::cmp:
         {
-            u64 compare = (i64)read_register(next_instr->cmp.left) - (i64)read_register(next_instr->cmp.left);
-            write_register( Register::rax, compare );
+            bool equals = m_register[next_instr->cmp.left].u64 == m_register[next_instr->cmp.right].u64;
+            m_register[Register_id::rax].b = equals;
             advance_cursor();
             success = true;
             break;
@@ -75,7 +76,7 @@ bool VM::_stepOver()
 
         case Instr_t::mov:
         {
-            write_register(next_instr->mov.dst, read_register(next_instr->mov.src));
+            m_register[next_instr->mov.dst] = m_register[next_instr->mov.src];
             advance_cursor();
             success = true;
             break;
@@ -122,14 +123,6 @@ bool VM::_stepOver()
             auto node = const_cast<Node*>( next_instr->eval.node ); // hack !
             node->eval();
             node->set_dirty(false);
-
-            // Store a value if exists
-            if (node->props()->has(k_value_member_name) )
-            {
-                Member* member = node->props()->get(k_value_member_name);
-                write_register(Register::rax, (u64) member->get_data()); // copy variant address
-            }
-
             advance_cursor();
             success = true;
             break;
@@ -138,7 +131,7 @@ bool VM::_stepOver()
         case Instr_t::store_data:
         {
             const Variant* data = next_instr->store.data;
-            write_register(Register::rax, (u64)data); //copy variant address
+            m_register[Register_id::rax].variant = const_cast<Variant*>(data);
             advance_cursor();
             success = true;
             break;
@@ -153,7 +146,7 @@ bool VM::_stepOver()
 
         case Instr_t::jne:
         {
-            Variant* variant = (Variant*)(read_register(Register::rax));
+            Variant* variant = m_register[Register_id::rax].variant;
             if ( variant->convert_to<bool>() )
             {
                 advance_cursor();
@@ -236,7 +229,7 @@ void VM::debug_program()
 
 bool VM::is_there_a_next_instr() const
 {
-    auto next_inst_id = read_register(Register::eip);
+    auto next_inst_id = m_register[Register_id::eip].u64;
     return next_inst_id < m_program_asm_code->size();
 }
 
@@ -244,7 +237,7 @@ Instr* VM::get_next_instr() const
 {
     if ( is_there_a_next_instr() )
     {
-        auto next_inst_id = read_register(Register::eip);
+        auto next_inst_id = m_register[Register_id::eip].u64;
         return m_program_asm_code->get_instruction_at(next_inst_id);
     }
     return nullptr;
