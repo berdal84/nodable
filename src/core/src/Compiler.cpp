@@ -52,17 +52,17 @@ std::string Asm::Instr::to_string(const Instr& _instr)
 
         case Instr_t::mov:
         {
-            result.append(Asm::to_string( _instr.mov.dst.type ));
+            result.append(Asm::Value::to_string( _instr.mov.dst ));
             result.append(", ");
-            result.append(Asm::to_string( _instr.mov.src.type ));
+            result.append(Asm::Value::to_string( _instr.mov.src ));
             break;
         }
 
         case Instr_t::cmp:
         {
-            result.append(Asm::to_string( _instr.cmp.left.type ));
+            result.append(Asm::Value::to_string( _instr.cmp.left ));
             result.append(", ");
-            result.append(Asm::to_string( _instr.cmp.right.type ));
+            result.append(Asm::Value::to_string( _instr.cmp.right ));
             break;
         }
 
