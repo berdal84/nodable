@@ -97,11 +97,14 @@ namespace Nodable
                 };
             };
 
-            MemSpace(Type _type = Type::Undefined):type(_type), data({ .m_u64 = 0 }) {}
+            MemSpace(Type _type = Type::Undefined):type(_type)
+            {
+                data.m_u64 = 0;
+            }
 
             void reset()
             {
-                data = { .m_u64 = 0 };
+                data.m_u64 = 0;
                 type = Type::Undefined;
             }
 
