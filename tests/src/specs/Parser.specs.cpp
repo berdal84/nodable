@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <nodable/core/Log.h>
-#include "../tools.h"
+#include "../test_tools.h"
 
 using namespace Nodable;
 

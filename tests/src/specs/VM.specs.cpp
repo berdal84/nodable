@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
+#include <cmath> // for pow()
+
 #include <nodable/core/Log.h>
-#include "../tools.h"
+#include "../test_tools.h"
 
 using namespace Nodable;
 
