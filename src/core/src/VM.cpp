@@ -354,3 +354,8 @@ bool VM::load_program(std::unique_ptr<const Code> _code)
 
     return m_program_asm_code && m_program_asm_code->size() != 0;
 }
+
+Asm::MemSpace& VM::read_register(Register _id)
+{
+    return m_register[_id];
+}

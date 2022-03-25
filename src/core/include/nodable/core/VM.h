@@ -35,6 +35,8 @@ namespace Nodable
             bool                  is_there_a_next_instr() const;
             std::weak_ptr<const Asm::Code> get_program_asm_code()const { return m_program_asm_code; }
             Instr*                get_next_instr() const;
+            MemSpace&             read_register(Register _id);
+
         private:
             void                  clear_registers();
             void                  advance_cursor(i64 _amount = 1);

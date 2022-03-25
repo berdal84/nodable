@@ -15,6 +15,7 @@
 #include <nodable/app/MemberConnector.h>
 #include <nodable/app/NodeConnector.h>
 #include <nodable/core/Scope.h>
+#include <nodable/core/InstructionNode.h>
 
 using namespace Nodable;
 using namespace Nodable::Asm;
