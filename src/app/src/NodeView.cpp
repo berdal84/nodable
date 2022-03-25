@@ -530,7 +530,7 @@ bool NodeView::drawMemberView(MemberView* _view )
             ( _view->m_touched && !MetaType::is_ptr(member->get_meta_type() ) )
             ||
             (
-                (!MetaType::is_ptr(member->get_meta_type()) && member->is_defined())
+                (!MetaType::is_ptr(member->get_meta_type()) && member->get_data()->is_defined())
                 &&
                 (
                     (
@@ -550,8 +550,9 @@ bool NodeView::drawMemberView(MemberView* _view )
     // input
     float input_size;
 
-    if ( _view->m_showInput )
+    if ( _view->m_showInput && member->get_data()->is_defined())
     {
+        NODABLE_ASSERT(member->get_data()->is_defined());
         // try to draw an as small as possible input field
         input_size = 5.0f + std::max( ImGui::CalcTextSize(((std::string)*member).c_str()).x, NodeView::s_memberInputSizeMin );
         ImGui::PushItemWidth(input_size);
@@ -687,7 +688,7 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanc
                 WayToString(_member->get_allowed_connection()).c_str(),
                 _member->get_meta_type()->get_fullname().c_str(),
                 _member->is_connected_by(ConnectBy_Ref) ? "&" : "",
-                _member->is_defined() ? "" : ", undefined!");
+                _member->get_data()->is_defined() ? "" : ", undefined!");
 
         ImGui::SameLine();
         ImGui::Text("(?)");

@@ -3,10 +3,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <nodable/core/Log.h>
-#include <nodable/core/Variant.h>
-#include <nodable/core/reflection/R.h>
-#include <nodable/core/Edge.h>
+#include <nodable/core/Edge.h> // for EdgeType
 
 namespace Nodable
 {

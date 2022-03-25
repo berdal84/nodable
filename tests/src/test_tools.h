@@ -2,13 +2,14 @@
 #include <gtest/gtest.h>
 #include <exception>
 
+#include <nodable/core/Node.h>
 #include <nodable/core/Member.h>
 #include <nodable/core/VM.h>
 #include <nodable/core/GraphNode.h>
 #include <nodable/core/Parser.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/HeadlessNodeFactory.h>
-#include <nodable/core/String.h>
+#include <nodable/core/Format.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/LanguageNodable.h>
 
@@ -25,6 +26,7 @@ namespace Nodable
         HeadlessNodeFactory factory(&lang);
         bool autocompletion = false;
         GraphNode graph(&lang, &factory, &autocompletion);
+        std::string asm_code_string;
 
         // create program
         lang.getParser()->parse_graph(expression, &graph);
@@ -33,14 +35,14 @@ namespace Nodable
         if (program)
         {
             // compile
-            auto code = compiler.compile(graph.get_root());
-            if (!code)
+            auto asm_code = compiler.compile_syntax_tree(graph.get_root());
+            if (!asm_code)
             {
                 throw std::runtime_error("Compiler was not able to compile program's graph.");
             }
-
+            std::cout << Asm::Code::to_string(asm_code.get()) << std::flush;
             // load
-            if (!vm.load_program( std::move(code) ))
+            if (!vm.load_program( std::move(asm_code) ))
             {
                 throw std::runtime_error("VM was not able to load the compiled program.");
             }
@@ -49,12 +51,16 @@ namespace Nodable
             vm.run_program();
 
             // ret result
-            const Variant* last_result = vm.get_last_result();
-            if ( last_result == nullptr )
+            const Asm::MemSpace* mem_space = vm.get_last_result();
+            if (mem_space == nullptr )
             {
                 throw std::runtime_error("Unable to get program's last result.");
             }
-            result = last_result->convert_to<return_t>();
+
+            NODABLE_ASSERT(mem_space->type == Asm::MemSpace::Type::VariantPtr)
+            const Variant* variant = mem_space->data.m_variant;
+            NODABLE_ASSERT(!variant->get_meta_type()->is(R::get_meta_type<Node*>()) ) // we do not accept a result as Node*
+            result = variant->convert_to<return_t>();
         }
         else
         {
@@ -77,15 +83,15 @@ namespace Nodable
 
         // act
         lang.getParser()->parse_graph(expression, &graph);
-        if (Node* program = graph.get_root())
+        if (Node* root = graph.get_root())
         {
             // compile
-            auto code = compiler.compile(graph.get_root());
+            auto code = compiler.compile_syntax_tree(root);
             if (!code)
             {
                 throw std::runtime_error("Compiler was not able to compile program's graph.");
             }
-
+            std::cout << Asm::Code::to_string(code.get()) << std::flush;
             // load
             if (!vm.load_program( std::move(code) ))
             {
@@ -96,10 +102,9 @@ namespace Nodable
             vm.run_program();
 
             // serialize result
-            if (const Variant* last_eval = vm.get_last_result())
+            if ( vm.get_last_result() )
             {
-                std::string result_str = last_eval->convert_to<std::string>();
-                LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize result is: %s\n", result_str.c_str());
+                LOG_VERBOSE("tools.h", "ParseUpdateSerialize has result\n");
             }
             else
             {
@@ -113,13 +118,13 @@ namespace Nodable
 
         Serializer *serializer = lang.getSerializer();
         serializer->serialize(result, graph.get_root() );
-        LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());
+        LOG_VERBOSE("tools.h", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());
 
         return result;
     }
 
     static std::string ParseAndSerialize(const std::string &expression) {
-        LOG_MESSAGE("Specs", "ParseAndSerialize parsing \"%s\"\n", expression.c_str());
+        LOG_VERBOSE("tools.h", "ParseAndSerialize parsing \"%s\"\n", expression.c_str());
         // prepare
         const LanguageNodable lang;
         HeadlessNodeFactory factory(&lang);
@@ -136,7 +141,7 @@ namespace Nodable
         Serializer *serializer = lang.getSerializer();
         std::string result;
         serializer->serialize(result, graph.get_root() );
-        LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());
+        LOG_VERBOSE("tools.h", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());
 
         return result;
     }

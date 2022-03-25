@@ -198,11 +198,11 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
         append_assign_tok();
         serialize(_result, value);
     }
-    else if ( value->is_defined() )
+    else if ( value->get_data()->is_defined() )
     {
         append_assign_tok();
         _result.append(value->get_src_token()->m_prefix);
-        serialize(_result, _node->get_value()->get_data());
+        serialize(_result, value->get_data());
         _result.append(value->get_src_token()->m_suffix);
     }
 
@@ -223,6 +223,14 @@ std::string& Serializer::serialize(std::string& _result, const Variant* variant)
 
 std::string& Serializer::serialize(std::string& _result, const Member * _member, bool followConnections) const
 {
+    if (_member->get_meta_type()->is( R::get_meta_type<Node*>()))
+    {
+        if(_member->get_data()->is_initialized())
+        {
+            return serialize(_result, (const Node*)*_member);
+        }
+    }
+
     std::shared_ptr<Token> sourceToken = _member->get_src_token();
     if (sourceToken)
     {
@@ -329,9 +337,10 @@ std::string& Serializer::serialize(std::string& _result, const InstructionNode* 
 {
     const Member* root_node_member = _instruction->get_root_node_member();
 
-    if (root_node_member->has_input_connected() && root_node_member->is_defined() )
+    if (root_node_member->has_input_connected() && root_node_member->get_data()->is_initialized() )
     {
-        const Node* root_node = (const Node*)*root_node_member;
+        auto root_node = (const Node*)*root_node_member;
+        NODABLE_ASSERT ( root_node )
         serialize( _result, root_node );
     }
 
@@ -373,17 +382,14 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
     }
     else
     {
-        serialize( _result, _for_loop->get_init_expr() );
+        serialize( _result, _for_loop->get_init_instr() );
     }
-
-    serialize( _result, TokenType_EndOfInstruction );
-    serialize( _result, _for_loop->condition_member() );
-    serialize( _result, TokenType_EndOfInstruction );
-    serialize( _result, _for_loop->get_iter_expr() );
+    serialize( _result, _for_loop->get_cond_instr() );
+    serialize( _result, _for_loop->get_iter_instr() );
     serialize( _result, TokenType_CloseBracket );
 
     // if scope
-    if ( auto* scope = _for_loop->get_condition_true_branch() )
+    if ( auto* scope = _for_loop->get_condition_true_scope() )
     {
         serialize( _result, scope );
     }
@@ -396,18 +402,18 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
     // if ( <condition> )
     serialize( _result, _condStruct->get_token_if() );
     serialize( _result, TokenType_OpenBracket );
-    serialize( _result, _condStruct->condition_member() );
+    serialize( _result, _condStruct->get_cond_instr() );
     serialize( _result, TokenType_CloseBracket );
 
     // if scope
-    if ( auto* ifScope = _condStruct->get_condition_true_branch() )
+    if ( auto* ifScope = _condStruct->get_condition_true_scope() )
         serialize( _result, ifScope );
 
     // else & else scope
     if ( std::shared_ptr<const Token> tokenElse = _condStruct->get_token_else() )
     {
         serialize( _result, tokenElse );
-        Scope* elseScope = _condStruct->get_condition_false_branch();
+        Scope* elseScope = _condStruct->get_condition_false_scope();
         if ( elseScope )
         {
             serialize( _result, elseScope->get_owner() );

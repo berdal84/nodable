@@ -442,7 +442,7 @@ Member* Parser::parse_parenthesis_expression()
 	return result;
 }
 
-InstructionNode* Parser::parse_instruction()
+InstructionNode* Parser::parse_instr()
 {
     start_transaction();
 
@@ -473,7 +473,6 @@ InstructionNode* Parser::parse_instruction()
     }
 
     m_graph->connect(expression->get_owner(), instr_node);
-    m_graph->connect({EdgeType::IS_CHILD_OF, instr_node, m_scope_stack.top()->get_owner()});
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n")
     commit_transaction();
@@ -564,7 +563,10 @@ IScope* Parser::parse_code_block(bool _create_scope)
 
     while(m_token_ribbon.canEat() && !stop )
     {
-             if ( parse_instruction() ) {}
+        if ( InstructionNode* instr_node = parse_instr() )
+        {
+            m_graph->connect({EdgeType::IS_CHILD_OF, instr_node, m_scope_stack.top()->get_owner()});
+        }
         else if ( parse_conditional_structure() ) {}
         else if ( parse_for_loop() ) {}
         else if ( parse_scope() ) {}
@@ -868,7 +870,7 @@ Member* Parser::parse_function_call()
     // eat "close bracket supposed" token
     if ( !m_token_ribbon.eatToken(TokenType_CloseBracket) )
     {
-        LOG_ERROR("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
+        LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
         rollback_transaction();
         return nullptr;
     }
@@ -906,15 +908,12 @@ Member* Parser::parse_function_call()
 
     }
 
-    std::string signature_str;
-    m_language->getSerializer()->serialize(signature_str, &signature);
-    std::string error_str {"parse function call... " KO " abort, reason: " + signature_str + " not found.\n"};
-    LOG_ERROR("Parser", error_str.c_str() );
+    std::string error_str = "parse function call... " KO " abort, reason: ";
+    m_language->getSerializer()->serialize(error_str, &signature);
+    error_str.append(" not found.\n");
+    LOG_WARNING("Parser", error_str.c_str() );
     rollback_transaction();
-    throw error(
-            "parse_function_call failed.",
-            "Signature not found: " + signature_str,
-            m_token_ribbon.tokens.back() );
+    throw error("parse_function_call failed.", error_str, m_token_ribbon.tokens.back() );
 }
 
 Scope* Parser::get_current_scope()
@@ -938,45 +937,62 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
         condStruct->set_token_if(m_token_ribbon.getEaten());
 
-        auto condition = parse_parenthesis_expression();
-
-        if ( condition)
+        if(m_token_ribbon.eatToken(TokenType_OpenBracket))
         {
-            m_graph->connect(condition->get_owner()->get_this_member(), condStruct->condition_member() );
+            InstructionNode* condition = parse_instr();
 
-            if ( Node* scopeIf = parse_scope() )
+            if ( condition)
             {
-                if ( m_token_ribbon.eatToken(TokenType_KeywordElse))
-                {
-                    condStruct->set_token_else(m_token_ribbon.getEaten());
+                condStruct->set_cond_instr(condition);
 
-                    /* parse else scope */
-                    if ( parse_scope() )
+                if ( m_token_ribbon.eatToken(TokenType_CloseBracket) )
+                {
+                    m_graph->connect(condition->get_this_member(), condStruct->condition_member() );
+
+                    if ( Node* scopeIf = parse_scope() )
                     {
-                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
-                        success = true;
-                    }
-                    /* (or) parse else if scope */
-                    else if ( parse_conditional_structure() )
-                    {
-						LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
-                        success = true;
+                        if ( m_token_ribbon.eatToken(TokenType_KeywordElse))
+                        {
+                            condStruct->set_token_else(m_token_ribbon.getEaten());
+
+                            /* parse else scope */
+                            if ( parse_scope() )
+                            {
+                                LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
+                                success = true;
+                            }
+                            /* (or) parse else if scope */
+                            else if ( parse_conditional_structure() )
+                            {
+                                LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
+                                success = true;
+                            }
+                            else
+                            {
+                                LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
+                                m_graph->destroy(scopeIf);
+                            }
+                        }
+                        else
+                        {
+                             LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n")
+                            success = true;
+                        }
                     }
                     else
                     {
-                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
-                        m_graph->destroy(scopeIf);
+                        if ( condition )
+                        {
+                            m_graph->destroy(condition);
+                        }
+                        LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n")
                     }
-
-
-                } else {
-                     LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n")
-                    success = true;
                 }
-            }
-            else
-            {
-                LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n")
+                else
+                {
+                    LOG_VERBOSE("Parser", "parse IF (...) <--- close bracket missing { ... }  " KO "\n")
+                    success = false;
+                }
             }
         }
         m_scope_stack.pop();
@@ -1020,59 +1036,48 @@ ForLoopNode* Parser::parse_for_loop()
         }
         else
         {
-            Member *init_instr = parse_expression();
+            InstructionNode* init_instr = parse_instr();
             if (!init_instr)
             {
                 LOG_ERROR("Parser", "Unable to find initial instruction.\n")
             }
             else
             {
-                m_graph->connect(init_instr, for_loop_node->get_init_expr());
+                m_graph->connect(init_instr->get_this_member(), for_loop_node->get_init_expr());
+                for_loop_node->set_init_instr(init_instr);
 
-                if (!m_token_ribbon.eatToken(TokenType_EndOfInstruction))
+                InstructionNode* cond_instr = parse_instr();
+                if (!cond_instr)
                 {
-                    LOG_ERROR("Parser", "Unable to find end of instruction after initial instruction.\n")
+                    LOG_ERROR("Parser", "Unable to find condition instruction.\n")
                 }
                 else
                 {
-                    Member *cond_instr = parse_expression();
-                    if (!cond_instr)
+                    m_graph->connect(cond_instr->get_this_member(), for_loop_node->condition_member());
+                    for_loop_node->set_cond_instr(cond_instr);
+
+                    InstructionNode* iter_instr = parse_instr();
+                    if (!iter_instr)
                     {
-                        LOG_ERROR("Parser", "Unable to find condition instruction.\n")
+                        LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
                     }
                     else
                     {
-                        m_graph->connect(cond_instr->get_owner()->get_this_member(), for_loop_node->condition_member());
+                        m_graph->connect(iter_instr->get_this_member(), for_loop_node->get_iter_expr());
+                        for_loop_node->set_iter_instr(iter_instr);
 
-                        if (!m_token_ribbon.eatToken(TokenType_EndOfInstruction))
+                        std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(TokenType_CloseBracket);
+                        if (!close_bracket)
                         {
-                            LOG_ERROR("Parser", "Unable to find end of instruction after condition.\n")
+                            LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
+                        }
+                        else if (!parse_scope())
+                        {
+                            LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")
                         }
                         else
                         {
-                            Member *iter_instr = parse_expression();
-                            if (!iter_instr)
-                            {
-                                LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
-                            }
-                            else
-                            {
-                                m_graph->connect(iter_instr, for_loop_node->get_iter_expr());
-
-                                std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(TokenType_CloseBracket);
-                                if (!close_bracket)
-                                {
-                                    LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
-                                }
-                                else if (!parse_scope())
-                                {
-                                    LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")
-                                }
-                                else
-                                {
-                                    success = true;
-                                }
-                            }
+                            success = true;
                         }
                     }
                 }

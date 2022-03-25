@@ -6,21 +6,37 @@ using namespace Nodable;
 R_DEFINE_CLASS(ForLoopNode)
 
 ForLoopNode::ForLoopNode()
-        :
-        m_token_for(nullptr)
+    : m_token_for(nullptr)
+    , m_init_instr_node(nullptr)
+    , m_cond_instr_node(nullptr)
+    , m_iter_instr_node(nullptr)
 {
-    auto node_ptr_type = R::get_meta_type<Node*>();
-    m_props.add(k_forloop_initialization_member_name , Visibility::Always, node_ptr_type, Way::Way_In);
-    m_props.add(k_condition_member_name              , Visibility::Always, node_ptr_type, Way::Way_In);
-    m_props.add(k_forloop_iteration_member_name      , Visibility::Always, node_ptr_type, Way::Way_In);
+    m_props.add<Node*>(k_forloop_initialization_member_name , Visibility::Always, Way::Way_In);
+    m_props.add<Node*>(k_condition_member_name              , Visibility::Always, Way::Way_In);
+    m_props.add<Node*>(k_forloop_iteration_member_name      , Visibility::Always, Way::Way_In);
 }
 
-Scope* ForLoopNode::get_condition_true_branch() const
+Scope* ForLoopNode::get_condition_true_scope() const
 {
     return !m_successors.empty() ? m_successors[0]->get<Scope>() : nullptr;
 }
 
-Scope*  ForLoopNode::get_condition_false_branch() const
+Scope*  ForLoopNode::get_condition_false_scope() const
 {
     return m_successors.size() > 1 ? m_successors[1]->get<Scope>() : nullptr;
+}
+
+void ForLoopNode::set_iter_instr(InstructionNode* _node)
+{
+    m_iter_instr_node = _node;
+}
+
+void ForLoopNode::set_init_instr(InstructionNode* _node)
+{
+    m_init_instr_node = _node;
+}
+
+void ForLoopNode::set_cond_instr(InstructionNode* _node)
+{
+    m_cond_instr_node = _node;
 }

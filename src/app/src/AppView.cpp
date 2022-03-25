@@ -567,7 +567,7 @@ void AppView::draw_vm_view()
             ImGui::Text("Has program: %s", !code.expired() ? "YES" : "NO");
             if (!code.expired())
             {
-                ImGui::Text("Program over: %s", vm->is_program_over() ? "YES" : "NO");
+                ImGui::Text("Program over: %s", !vm->is_there_a_next_instr() ? "YES" : "NO");
             }
             ImGui::Unindent();
         }
@@ -579,15 +579,15 @@ void AppView::draw_vm_view()
         {
             using Asm::Register;
             ImGui::Indent();
-            ImGui::Text("%s: %#16llx (primary accumulator)",
+            ImGui::Text("%s: %s (primary accumulator)",
                         Asm::to_string(Register::rax),
-                        vm->read_register(Register::rax));
-            ImGui::Text("%s: %#16llx (base register)",
+                        vm->read_register(Register::rax).to_string().c_str() );
+            ImGui::Text("%s: %s (base register)",
                         Asm::to_string(Register::rdx),
-                        vm->read_register(Register::rdx));
-            ImGui::Text("%s: %#16llx (instruction pointer)",
+                        vm->read_register(Register::rdx).to_string().c_str());
+            ImGui::Text("%s: %s (instruction pointer)",
                         Asm::to_string(Register::eip),
-                        vm->read_register(Register::eip));
+                        vm->read_register(Register::eip).to_string().c_str());
             ImGui::Unindent();
         }
 

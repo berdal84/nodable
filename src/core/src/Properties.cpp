@@ -26,10 +26,9 @@ bool Properties::has(const Member* _value)
 
 Member* Properties::add(const char* _name, Visibility _visibility, std::shared_ptr<const R::MetaType> _type, Way _flags )
 {
-	auto v = new Member(this);
+	auto v = Member::new_with_meta_type(this, _type);
     v->set_name(_name);
     v->set_visibility(_visibility);
-    v->set_meta_type(_type);
     v->set_allowed_connection(_flags);
 	m_props[std::string(_name)] = v;
 

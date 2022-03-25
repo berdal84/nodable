@@ -10,6 +10,7 @@ namespace Nodable
 
     // forward declarations
     class Scope;
+    class InstructionNode;
 
     /**
      * @brief Class to represent a conditional iterative structure: for( init_state, condition_expr, iterate_expr ) { ... }
@@ -28,12 +29,19 @@ namespace Nodable
 
         // override IConditionalStruct
         Member* condition_member()const override { return m_props.get(k_condition_member_name);}
-        Scope*  get_condition_true_branch()const override;
-        Scope*  get_condition_false_branch()const override;
-
+        Scope*  get_condition_true_scope()const override;
+        Scope*  get_condition_false_scope()const override;
+        void set_iter_instr(InstructionNode*);
+        void set_init_instr(InstructionNode*);
+        void set_cond_instr(InstructionNode*) override;
+        InstructionNode* get_init_instr()const { return m_init_instr_node; }
+        InstructionNode* get_cond_instr()const override { return m_cond_instr_node; }
+        InstructionNode* get_iter_instr()const { return m_iter_instr_node; }
     private:
         std::shared_ptr<Token> m_token_for;
-
+        InstructionNode* m_init_instr_node;
+        InstructionNode* m_cond_instr_node;
+        InstructionNode* m_iter_instr_node;
         R_DERIVED(ForLoopNode)
             R_EXTENDS(Node)
             R_EXTENDS(IConditionalStruct)

@@ -64,14 +64,14 @@ TEST(Reflect, is_ref)
 TEST(Reflect, node_as_pointer)
 {
     // prepare
-    Node* ptr = nullptr;
+    Node* node_ptr = nullptr;
     auto member = std::make_unique<Member>(nullptr);
 
     // act
-    member->set(ptr);
+    member->set(node_ptr);
 
     // check
     EXPECT_TRUE(member->get_meta_type()->is(R::get_meta_type<Node*>()) );
-    EXPECT_EQ( ptr, (Node*)*member );
+    EXPECT_EQ(node_ptr, (Node*)*member );
     EXPECT_TRUE(MetaType::is_ptr(member->get_meta_type()) );
 }

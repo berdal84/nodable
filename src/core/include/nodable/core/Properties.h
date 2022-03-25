@@ -18,6 +18,16 @@ namespace Nodable
 	public:
 		explicit Properties(Node* owner);
 		virtual ~Properties();
+        template<typename T>
+        Member* add(const char* _name, Visibility _visibility, Way _flags )
+        {
+            auto v = Member::new_with_type<T>(this);
+            v->set_name(_name);
+            v->set_visibility(_visibility);
+            v->set_allowed_connection(_flags);
+            m_props[std::string(_name)] = v;
+            return v;
+        }
 		Member*             add(const char*, Visibility, std::shared_ptr<const R::MetaType>, Way);
         bool                has(const char* _name);
 		bool                has(const Member*);

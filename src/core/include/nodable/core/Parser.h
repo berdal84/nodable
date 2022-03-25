@@ -95,7 +95,7 @@ namespace Nodable{
 		// those parse_XXXX() are parsing from the token_ribbon at current_position.
 		// After a call, cursor may have moved or could have been reverted to initial position.
 		Node*                  parse_scope();
-        InstructionNode*       parse_instruction();
+        InstructionNode*       parse_instr();
         Member*                parse_variable_declaration();
         IScope*                parse_code_block(bool _create_scope);
         ConditionalStructNode* parse_conditional_structure();

@@ -1,7 +1,10 @@
 #include <nodable/core/Compiler.h>
 
 #include <memory>
+#include <exception>
+#include <iostream>
 
+#include <nodable/core/Format.h>
 #include <nodable/core/assertions.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/Log.h>
@@ -26,60 +29,76 @@ i64 signed_diff(u64 _left, u64 _right)
 std::string Asm::Instr::to_string(const Instr& _instr)
 {
     std::string result;
-    result.reserve(60);
+    result.reserve(80); // to fit with terminals
 
     // append "<line> :"
-    std::string str = std::to_string(_instr.m_line);
-    while( str.length() < 4 )
-        str.append(" ");
+    std::string str = Format::fmt_hex(_instr.line);
     result.append( str );
-    result.append( ": " );
+    result.resize(4, ' ');
+    result.append( " : " );
 
     // append instruction type
-    result.append( Asm::to_string(_instr.m_type));
-    result.append( " " );
+    result.append( Asm::to_string(_instr.type));
+
+    result.resize(25, ' ');
 
     // optionally append parameters
-    switch ( _instr.m_type )
+    switch ( _instr.type )
     {
-        case Instr_t::call:
+        case Instr_t::eval_node:
         {
-            FctId fct_id   = (FctId)_instr.m_arg0;
-            Member* member = (Member*)_instr.m_arg1;
-            result.append( Asm::to_string(fct_id) );
-            result.append( " [" + std::to_string((size_t)member) + "]");
+            result.append(Format::fmt_ptr(_instr.eval.node) );
             break;
         }
 
         case Instr_t::mov:
+        {
+            result.append(Asm::MemSpace::to_string(_instr.mov.dst ));
+            result.append(", ");
+            result.append(Asm::MemSpace::to_string(_instr.mov.src ));
+            break;
+        }
+
         case Instr_t::cmp:
         {
-            result.append("%");
-            result.append(Asm::to_string( (Register)_instr.m_arg0 ));
-            result.append(", %");
-            result.append(Asm::to_string( (Register)_instr.m_arg1 ));
+            result.append(Asm::MemSpace::to_string(_instr.cmp.left ));
+            result.append(", ");
+            result.append(Asm::MemSpace::to_string(_instr.cmp.right ));
             break;
         }
 
         case Instr_t::jne:
         case Instr_t::jmp:
         {
-            result.append( std::to_string( _instr.m_arg0 ) );
+            result.append( std::to_string( _instr.jmp.offset ) );
             break;
         }
 
         case Instr_t::ret: // nothing else to do.
+            break;
+        case Instr_t::pop_stack_frame:
+            result.append(Format::fmt_ptr(_instr.pop.scope) );
+            break;
+        case Instr_t::pop_var:
+            result.append(Format::fmt_ptr(_instr.push.variable) );
+            break;
+        case Instr_t::push_stack_frame:
+            result.append(Format::fmt_ptr(_instr.push.scope) );
+            break;
+        case Instr_t::push_var:
+            result.append(Format::fmt_ptr(_instr.push.variable) );
             break;
     }
 
     // optionally append comment
     if ( !_instr.m_comment.empty() )
     {
-        while( result.length() < 50 ) // align on 80th char
-            result.append(" ");
+        result.resize(50, ' ');
+
         result.append( "; " );
         result.append( _instr.m_comment );
     }
+    result.resize(80, ' '); // to fit with terminals
     return result;
 }
 
@@ -98,7 +117,7 @@ Instr* Code::push_instr(Instr_t _type)
     return instr;
 }
 
-bool Asm::Compiler::is_program_valid(const Node* _program_graph_root)
+bool Asm::Compiler::is_syntax_tree_valid(const Node* _program_graph_root)
 {
     bool is_valid;
 
@@ -121,15 +140,13 @@ bool Asm::Compiler::is_program_valid(const Node* _program_graph_root)
     return is_valid;
 }
 
-void Asm::Compiler::compile_member(const Member * _member )
+void Asm::Compiler::compile(const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
-        std::shared_ptr<const R::MetaType> void_ptr = R::get_meta_type<void *>();
-
-        if (_member->is_meta_type(void_ptr) )
+        if (_member->is_meta_type( R::get_meta_type<Node *>() ) )
         {
-            compile_node((const Node *) *_member);
+            compile((const Node *) *_member);
         }
         else if ( Member* input = _member->get_input() )
         {
@@ -138,25 +155,59 @@ void Asm::Compiler::compile_member(const Member * _member )
              * In order to do that, we traverse the syntax tree starting from the node connected to it.
              * Once we have the list of the nodes to be updated, we loop on them.
              */
-            compile_node(input->get_owner());
-        }
-
-        /* evaluate member */
-        {
-            Instr *instr         = m_temp_code->push_instr(Instr_t::call);
-            instr->m_arg0  = (i64) FctId::eval_member;
-            instr->m_arg1 = (i64) _member;
-            char str[128];
-            sprintf(str
-                    , "eval %s -> %s"
-                    , _member->get_owner()->get_label()
-                    , _member->get_name().c_str());
-            instr->m_comment = str;
+            compile(input->get_owner());
         }
     }
 }
 
-void Asm::Compiler::compile_node(const Node* _node)
+void Asm::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
+{
+    if( !_scope)
+    {
+        LOG_VERBOSE("Compiler", "Ignoring nullptr Scope.\n")
+        return;
+    }
+
+    Node* scope_owner = _scope->get_owner();
+    NODABLE_ASSERT(scope_owner)
+
+    // call push_stack_frame
+    {
+        Instr *instr  = m_temp_code->push_instr(Instr_t::push_stack_frame);
+        instr->push.scope = _scope;
+        char str[64];
+        snprintf(str, 64, "%s's scope", scope_owner->get_short_label());
+        instr->m_comment = str;
+    }
+
+    // push each varaible onto the stack
+    for(const VariableNode* each_variable : _scope->get_variables())
+    {
+        Instr *instr         = m_temp_code->push_instr(Instr_t::push_var);
+        instr->push.variable      = each_variable;
+        instr->m_comment     = std::string{each_variable->get_label()};
+    }
+
+    // compile content
+    for( const Node* each_node : scope_owner->children_slots().content() )
+    {
+        compile(each_node);
+    }
+
+    // call pop_stack_frame
+    if( _insert_fake_return )
+    {
+        m_temp_code->push_instr(Instr_t::ret); // fake a return statement
+    }
+
+    {
+        Instr *instr     = m_temp_code->push_instr(Instr_t::pop_stack_frame);
+        instr->pop.scope = _scope;
+        instr->m_comment = std::string{scope_owner->get_short_label()} + "'s scope";
+    }
+}
+
+void Asm::Compiler::compile(const Node* _node)
 {
     if( !_node)
     {
@@ -164,98 +215,25 @@ void Asm::Compiler::compile_node(const Node* _node)
         return;
     }
 
-    if (_node->has<Scope>() && _node->get_parent() )
-    {
-        // call push_stack_frame
-        Instr *instr         = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0  = (i64) FctId::push_stack_frame;
-        instr->m_arg1 = (i64) _node;
-        char str[64];
-        snprintf(str, 64, "%s's scope", _node->get_short_label());
-        instr->m_comment = str;
-    }
-
     if ( _node->is<IConditionalStruct>() )
     {
-        const IConditionalStruct* i_cond_struct = _node->as<IConditionalStruct>();
-
-        // for_loop init instruction
-        if ( auto for_loop = _node->as<ForLoopNode>() )
+        if ( const ForLoopNode* for_loop = _node->as<ForLoopNode>())
         {
-            compile_member(for_loop->get_init_expr());
+            compile(for_loop);
         }
-        else if ( auto cond_struct = _node->as<ConditionalStructNode>() )
+        else if ( const ConditionalStructNode* cond_struct_node = _node->as<ConditionalStructNode>())
         {
-
+            compile(cond_struct_node);
         }
         else
         {
-            LOG_WARNING("Compiler", "IConditionnalStruct case not handled\n")
-        }
-
-        u64 condition_instr_line = m_temp_code->get_next_index();
-
-        const Member* condition_member = i_cond_struct->condition_member();
-
-        if ( condition_member->is_defined() )
-        {
-            NODABLE_ASSERT(condition_member)
-            auto cond_node = (const Node*)*condition_member;
-            compile_node(cond_node);
-        }
-
-        Instr* store_instr         = m_temp_code->push_instr(Instr_t::mov);
-        store_instr->m_arg0  = (u64)Register::rdx;
-        store_instr->m_arg1 = (u64)Register::rax;
-        store_instr->m_comment     = "store result";
-
-        Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
-        skip_true_branch->m_comment = "jump if register is false";
-
-        Instr* skip_false_branch = nullptr;
-
-        if ( auto true_branch = i_cond_struct->get_condition_true_branch() )
-        {
-            compile_node(true_branch->get_owner());
-
-            if ( auto for_loop = _node->as<ForLoopNode>() )
-            {
-                // insert end-loop instruction.
-                compile_member(for_loop->get_iter_expr());
-
-                // insert jump to condition instructions.
-                auto loop_jump = m_temp_code->push_instr(Instr_t::jmp);
-                loop_jump->m_arg0    = signed_diff(condition_instr_line, loop_jump->m_line);
-                loop_jump->m_comment = "jump back to loop begining";
-
-            }
-            else if (i_cond_struct->get_condition_false_branch())
-            {
-                skip_false_branch = m_temp_code->push_instr(Instr_t::jmp);
-                skip_false_branch->m_comment = "jump false branch";
-            }
-        }
-
-        skip_true_branch->m_arg0 = m_temp_code->get_next_index() - skip_true_branch->m_line;
-
-        if ( auto false_branch = i_cond_struct->get_condition_false_branch() )
-        {
-            compile_node(false_branch->get_owner());
-            skip_false_branch->m_arg0 = m_temp_code->get_next_index() - skip_false_branch->m_line;
+           throw std::runtime_error(
+                   "The class " + _node->get_class()->get_fullname() + " is not handled by the compiler.");
         }
     }
-    else if (_node->has<Scope>() )
+    else if ( const InstructionNode* instr_node = _node->as<InstructionNode>() )
     {
-        for( const Node* each_node : _node->children_slots().content() )
-        {
-            compile_node(each_node);
-        }
-    }
-    else if ( auto instr_node = _node->as<InstructionNode>() )
-    {
-        const Member* root_member = instr_node->get_root_node_member();
-        NODABLE_ASSERT(root_member)
-        compile_node((const Node *) *root_member);
+        compile(instr_node);
     }
     else
     {
@@ -263,84 +241,204 @@ void Asm::Compiler::compile_node(const Node* _node)
         for ( const Node* each_input : _node->input_slots().content() )
         {
             if ( !each_input->is<VariableNode>() )
-                compile_node(each_input);
+            {
+                compile(each_input);
+            }
+        }
+
+        // eval node
+        bool should_be_evaluated = _node->has<InvokableComponent>() || _node->is<VariableNode>() || _node->is<LiteralNode>();
+        if ( should_be_evaluated )
+        {
+            Instr *instr     = m_temp_code->push_instr(Instr_t::eval_node);
+            instr->eval.node = _node;
+            instr->m_comment =
+                    std::string{_node->get_label()} +
+                    " (initial value is: " +
+                    _node->props()->get(k_value_member_name)->convert_to<std::string>() +
+                    ")";
         }
     }
 
-    // eval node
-    bool should_be_evaluated =
-               _node->has<InvokableComponent>()
-            || _node->is<InstructionNode>()
-            || _node->is<LiteralNode>()
-            || _node->is<VariableNode>();
+}
 
-    if ( should_be_evaluated )
+void Asm::Compiler::compile(const ForLoopNode* for_loop)
+{
+    // for_loop init instruction
+    compile(for_loop->get_init_instr());
+
+    u64 condition_instr_line = m_temp_code->get_next_index();
+
+    compile_as_condition(for_loop->get_cond_instr());
+
+    Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
+    skip_true_branch->m_comment = "jump if register is false";
+
+    Instr* skip_false_branch = nullptr;
+
+    if ( auto true_scope = for_loop->get_condition_true_scope() )
     {
-        Instr *instr = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0 = (u64)FctId::eval_node;
-        instr->m_arg1 = (u64)_node;
-        instr->m_comment = std::string{_node->get_label()};
+        compile(true_scope);
+
+        // insert end-loop instruction.
+        compile(for_loop->get_iter_instr());
+
+        // insert jump to condition instructions.
+        auto loop_jump = m_temp_code->push_instr(Instr_t::jmp);
+        loop_jump->jmp.offset = signed_diff(condition_instr_line, loop_jump->line);
+        loop_jump->m_comment  = "jump back to for";
     }
 
-    if ( _node->has<Scope>() && _node->get_parent() )
+    skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
+}
+
+void Asm::Compiler::compile_as_condition(const InstructionNode* _instr_node)
+{
+    // compile condition result (must be stored in rax after this line)
+    compile(_instr_node);
+
+    // move "true" result to rdx
+    Instr* store_true              = m_temp_code->push_instr(Instr_t::mov);
+    store_true->mov.src.type       = MemSpace::Type::Boolean;
+    store_true->mov.src.data.m_bool     = true;
+    store_true->mov.dst.type       = MemSpace::Type::Register;
+    store_true->mov.dst.data.m_register = rdx;
+    store_true->m_comment          = "store true";
+
+    // compare rax (condition result) with rdx (true)
+    Instr* cmp_instr                = m_temp_code->push_instr(Instr_t::cmp);  // works only with registry
+    cmp_instr->cmp.left.type        = MemSpace::Type::Register; // here
+    cmp_instr->cmp.left.data.m_register  = rdx; // must be left
+    cmp_instr->cmp.right.type       = MemSpace::Type::Register; // there
+    cmp_instr->cmp.right.data.m_register = rax; // must be right, because register will point to VariantPtr
+    cmp_instr->m_comment            = "compare last condition with true";
+}
+
+void Asm::Compiler::compile(const ConditionalStructNode* _cond_node)
+{
+    compile_as_condition(_cond_node->get_cond_instr()); // compile condition isntruction, store result, compare
+
+    Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
+    skip_true_branch->m_comment = "jump if false";
+
+    Instr* skip_false_branch = nullptr;
+
+    if ( auto true_scope = _cond_node->get_condition_true_scope() )
     {
-        // call pop_stack_frame
-        Instr *instr     = m_temp_code->push_instr(Instr_t::call);
-        instr->m_arg0    = (u64) FctId::pop_stack_frame;
-        instr->m_arg1    = (u64) _node;
-        instr->m_comment = std::string{_node->get_short_label()} + "'s scope";
+        compile(true_scope);
+
+        if (_cond_node->get_condition_false_scope())
+        {
+            skip_false_branch = m_temp_code->push_instr(Instr_t::jmp);
+            skip_false_branch->m_comment = "jump if true";
+        }
+    }
+
+    skip_true_branch->jmp.offset = i64(m_temp_code->get_next_index()) - skip_true_branch->line;
+
+    if ( auto false_scope = _cond_node->get_condition_false_scope() )
+    {
+        compile(false_scope);
+        if ( skip_false_branch )
+        {
+            skip_false_branch->jmp.offset = i64(m_temp_code->get_next_index()) - skip_false_branch->line;
+        }
     }
 }
 
-void Asm::Compiler::compile_program(Node* _program_graph_root)
+void Asm::Compiler::compile(const InstructionNode *instr_node)
 {
-    m_temp_code = std::make_unique<Code>(_program_graph_root);
+    const Member* root_node_member = instr_node->get_root_node_member();
+    NODABLE_ASSERT(root_node_member)
 
-    try
+    // copy instruction result to rax register
+    if ( root_node_member->has_input_connected() )
     {
-        compile_node(_program_graph_root);
-        m_temp_code->push_instr(Instr_t::ret);
-    }
-    catch ( const std::exception& e )
-    {
-        m_temp_code.reset();
-        LOG_ERROR("Compiler", "Unable to create assembly code for program. Reason: %s\n", e.what());
+        compile(root_node_member);
+
+        Node*   root_node       = root_node_member->get_input()->get_owner();
+        Member* root_node_value = root_node->props()->get(k_value_member_name);
+
+        if ( root_node_value )
+        {
+            Instr& instr               = *m_temp_code->push_instr(Instr_t::mov);
+            instr.mov.src.type         = MemSpace::Type::VariantPtr;
+            instr.mov.src.data.m_variant = const_cast<Variant*>(root_node_value->get_data());
+            instr.mov.dst.type         = MemSpace::Type::Register;
+            instr.mov.dst.data.m_register   = Register::rax;
+            char str[128];
+            sprintf(str
+                    , "store instr result (%s %s)"
+                    , root_node_value->get_owner()->get_label()
+                    , root_node_value->get_name().c_str());
+            instr.m_comment = str;
+        }
     }
 }
 
-std::unique_ptr<const Code> Asm::Compiler::compile(Node* _program_graph)
+std::unique_ptr<const Code> Asm::Compiler::compile_syntax_tree(Node* _root)
 {
-    if ( is_program_valid(_program_graph))
+    if (is_syntax_tree_valid(_root))
     {
-        compile_program(_program_graph);
+        m_temp_code = std::make_unique<Code>(_root);
+
+        try
+        {
+            auto scope = _root->get<Scope>();
+            NODABLE_ASSERT(scope)
+            compile(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
+        }
+        catch ( const std::exception& e )
+        {
+            m_temp_code.reset();
+            LOG_ERROR("Compiler", "Unable to create assembly code for program. Reason: %s\n", e.what());
+        }
         LOG_MESSAGE("Compiler", "Program compiled.\n");
         return std::move(m_temp_code);
     }
     return nullptr;
 }
 
-//void Asm::Compiler::log_program()
-//{
-//    if (m_program_asm_code)
-//    {
-//        m_program_graph     = _program_graph_root;
-//
-//        LOG_MESSAGE("VM", "Program's tree compiled.\n");
-//        LOG_VERBOSE("VM", "Find bellow the compilation result:\n");
-//        LOG_VERBOSE("VM", "---- Program begin -----\n");
-//        Instr* curr = get_next_instr();
-//        while( curr )
-//        {
-//            LOG_VERBOSE("VM", "%s \n", Instr::to_string(*curr ).c_str() );
-//            advance_cursor(1);
-//            curr = get_next_instr();
-//        }
-//        LOG_VERBOSE("VM", "---- Program end -----\n");
-//        return true;
-//    }
-//    else
-//    {
-//        LOG_ERROR("VM", "Unable to compile program's tree.\n");
-//        return false;
-//    }
-//}
+std::string Asm::Code::to_string(const Code* _code)
+{
+    std::string result;
+
+    result.append( "------------<=[ Program begin ]=>------------\n");
+    for( Instr* each_instruction : _code->m_instructions )
+    {
+        result.append( Instr::to_string(*each_instruction) );
+        result.append("\n");
+    }
+    result.append("------------<=[ Program end    ]=>------------\n");
+    return result;
+}
+
+std::string Asm::MemSpace::to_string(const MemSpace& _value)
+{
+   std::string result;
+
+    switch (_value.type)
+    {
+        case Type::Undefined:
+            result.append( "undefined");
+            break;
+        case Type::Boolean:
+            result.append( std::to_string(_value.data.m_bool));
+            break;
+        case Type::Double:
+            result.append( std::to_string(_value.data.m_double));
+            break;
+        case Type::U64:
+            result.append( Format::fmt_hex(_value.data.m_u64 ));
+            break;
+        case Type::VariantPtr:
+            result.append( Format::fmt_ptr(_value.data.m_variant ) );
+            break;
+        case Type::Register:
+            result.append( "%" );
+            result.append( Asm::to_string(_value.data.m_register ));
+            break;
+    }
+
+   return result;
+}

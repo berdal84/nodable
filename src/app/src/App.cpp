@@ -153,7 +153,7 @@ bool App::vm_compile_and_load_program()
     if (program )
     {
         Asm::Compiler compiler;
-        std::unique_ptr<const Asm::Code> asm_code = compiler.compile(program);
+        std::unique_ptr<const Asm::Code> asm_code = compiler.compile_syntax_tree(program);
 
         if (!asm_code)
         {
@@ -194,7 +194,7 @@ void App::vm_debug()
 void App::vm_step_over()
 {
     m_context->vm->step_over();
-    if (m_context->vm->is_program_over() )
+    if (!m_context->vm->is_there_a_next_instr() )
     {
         NodeView::SetSelected(nullptr);
     }

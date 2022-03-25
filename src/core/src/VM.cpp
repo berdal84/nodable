@@ -16,11 +16,26 @@ VM::VM()
 
 }
 
+void VM::advance_cursor(i64 _amount)
+{
+    MemSpace mem = read_register(Register::eip);
+    NODABLE_ASSERT(mem.type == MemSpace::Type::U64);
+    mem.data.m_u64 += _amount; // can overflow
+    write_register(Register::eip, mem);
+}
+
+void VM::init_instruction_pointer()
+{
+    MemSpace mem(MemSpace::Type::U64);
+    mem.data.m_u64 = 0;
+    write_register(Register::eip, mem);
+};
+
 void VM::clear_registers()
 {
     for( size_t i = 0; i < std::size( m_register ); ++i )
     {
-        m_register[i] = 0;
+        m_register[i].reset();
     }
 }
 void VM::run_program()
@@ -29,9 +44,10 @@ void VM::run_program()
     LOG_MESSAGE("VM", "Running program ...\n")
     m_is_program_running = true;
 
-    reset_cursor();
     clear_registers();
-    while(!is_program_over())
+    init_instruction_pointer(); // uses register, need to be done after clear.
+
+    while( is_there_a_next_instr() && get_next_instr()->type != Instr_t::ret )
     {
         _stepOver();
     }
@@ -50,8 +66,7 @@ void VM::stop_program()
 void VM::release_program()
 {
     m_program_asm_code.reset();
-    reset_cursor();
-    clear_registers();
+    clear_registers(); // will also clear reset instruction pointer (stored in a register Register::eip)
     stop_program();
 }
 
@@ -60,117 +75,203 @@ bool VM::_stepOver()
     bool success;
     Instr* next_instr = get_next_instr();
 
-    LOG_VERBOSE("VM", "processing line %i.\n", (int)next_instr->m_line );
+    LOG_MESSAGE("VM", "%s\n", Instr::to_string(*next_instr).c_str() );
 
-    switch ( next_instr->m_type )
+    switch ( next_instr->type )
     {
-//        case Instr::cmp:
-//        {
-//
-//            auto dst_register = (Register)next_instr->m_left_h_arg;
-//            auto src_register = (Register)next_instr->m_right_h_arg;
-//            m_register[Register::rax] = m_register[dst_register] - m_register[src_register];
-//            advance_cursor();
-//            success = true;
-//            break;
-//        }
-
-        case Instr_t::mov:
+        case Instr_t::cmp:
         {
-            auto dst_register = (Register)next_instr->m_arg0;
-            auto src_register = (Register)next_instr->m_arg1;
-            write_register(dst_register, read_register(src_register));
+            MemSpace left  = next_instr->cmp.left;
+            MemSpace right = next_instr->cmp.right;
+
+            NODABLE_ASSERT(left.type == MemSpace::Type::Register);
+            NODABLE_ASSERT(right.type == MemSpace::Type::Register);
+
+            // dereference registers
+            MemSpace *deref_left, *deref_right;
+
+            if ( left.type == MemSpace::Type::Register )
+            {
+                deref_left = &m_register[left.data.m_register];
+            }
+            else
+            {
+                deref_left = &left;
+            }
+
+            if ( right.type == MemSpace::Type::Register )
+            {
+                deref_right = &m_register[right.data.m_register];
+            }
+            else
+            {
+                deref_right = &right;
+            }
+
+            NODABLE_ASSERT(deref_left->type != Asm::MemSpace::Type::VariantPtr); // we only allow right for pointers
+
+            if ( deref_right->type == Asm::MemSpace::Type::VariantPtr)
+            {
+                NODABLE_ASSERT( !deref_right->data.m_variant->is_meta_type(R::get_meta_type<Node*>())); // we do not handler Node*
+            }
+
+            bool cmp_result;
+            switch (deref_left->type)
+            {
+                case MemSpace::Type::Boolean:
+                    if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
+                        cmp_result = deref_left->data.m_bool == (bool)*deref_right->data.m_variant;
+                    else
+                        cmp_result = deref_left->data.m_bool == deref_right->data.m_bool;
+                    break;
+                case MemSpace::Type::U64:
+                    if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
+                        cmp_result = deref_left->data.m_u64 == (u64&)*deref_right->data.m_variant;
+                    else
+                        cmp_result = deref_left->data.m_u64 == deref_right->data.m_u64;
+                    break;
+                case MemSpace::Type::Double:
+                    if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
+                        cmp_result = deref_left->data.m_double == (double)*deref_right->data.m_variant;
+                    else
+                        cmp_result = deref_left->data.m_double == deref_right->data.m_double;
+                    break;
+                default:
+                    NODABLE_ASSERT(false) // TODO
+            }
+
+            MemSpace mem(MemSpace::Type::Boolean);
+            mem.data.m_bool = cmp_result;
+            write_register(Register::rax, mem);
             advance_cursor();
             success = true;
             break;
         }
 
-        case Instr_t::call:
+        case Instr_t::mov:
         {
-            auto fct_id = (FctId)next_instr->m_arg0;
+            MemSpace src = next_instr->mov.src;
+            MemSpace dst = next_instr->mov.dst;
+            MemSpace* deref_src;
+            MemSpace* deref_dst;
 
-            switch( fct_id )
+            NODABLE_ASSERT(src.type != Asm::MemSpace::Type::Undefined)
+            NODABLE_ASSERT(dst.type != Asm::MemSpace::Type::Undefined)
+
+            if (dst.type == MemSpace::Type::Register)
             {
-                case FctId::push_stack_frame:
-                {
-                    // place holder, do nothing for now
-                    advance_cursor();
-                    success = true;
-                    break;
-                }
-
-                case FctId::pop_stack_frame:
-                {
-                    auto scope = ((Node *) next_instr->m_arg1)->get<Scope>();
-                    for( VariableNode* each_var : scope->get_variables() )
-                    {
-                        if (each_var->is_defined() )
-                        {
-                            each_var->undefine();
-                            NODABLE_ASSERT(!each_var->is_defined());
-                        }
-                    }
-                    advance_cursor();
-                    success = true;
-                    break;
-                }
-
-                case FctId::eval_node:
-                {
-                    auto node = (Node*)next_instr->m_arg1;
-                    node->eval();
-                    node->set_dirty(false);
-
-                    // Store a value if exists
-                    if (node->props()->has(k_value_member_name) )
-                    {
-                        Member* member = node->props()->get(k_value_member_name);
-                        write_register(Register::rax, (u64) member->get_data()); // copy variant address
-                    }
-
-                    advance_cursor();
-                    success = true;
-                    break;
-                }
-
-                case FctId::eval_member:
-                {
-                    auto member = (Member*)next_instr->m_arg1;
-                    write_register(Register::rax, (u64) member->get_data()); //copy variant address
-                    advance_cursor();
-                    success = true;
-                    break;
-                }
+                deref_dst = &m_register[dst.data.m_register];
+            }
+            else
+            {
+                deref_dst = &dst;
             }
 
+            if (src.type == MemSpace::Type::Register)
+            {
+                deref_src = &m_register[src.data.m_register];
+                NODABLE_ASSERT(src.type != Asm::MemSpace::Type::Undefined)
+            }
+            else
+            {
+                deref_src = &src;
+            }
+
+            NODABLE_ASSERT(deref_dst->type != MemSpace::Type::Register); // we should point the register´ value
+            NODABLE_ASSERT(deref_dst->type != MemSpace::Type::Register); // we should point the register´ value
+
+            *deref_dst = *deref_src;
+
+            NODABLE_ASSERT(deref_dst->type     == deref_dst->type)
+            NODABLE_ASSERT(deref_dst->data.m_u64 == deref_dst->data.m_u64 )
+
+            advance_cursor();
+            success = true;
+            break;
+        }
+
+        case Instr_t::push_stack_frame: // do nothing, just mark visually the beginning of a scope.
+        {
+            advance_cursor();
+            success = true;
+            break;
+        }
+
+        case Instr_t::push_var:
+        {
+            advance_cursor();
+            VariableNode* variable = const_cast<VariableNode*>( next_instr->push.variable ); // hack !
+            if (variable->is_initialized() )
+            {
+                variable->set_initialized(false);
+            }
+            // TODO: push variable to the future stack
+
+            success = true;
+            break;
+        }
+
+        case Instr_t::pop_stack_frame:
+        {
+            auto scope = next_instr->pop.scope;
+            for( VariableNode* each_var : scope->get_variables() )
+            {
+                if (each_var->is_initialized() )
+                {
+                    each_var->set_initialized(false);
+                }
+            }
+            advance_cursor();
+            success = true;
+            break;
+        }
+
+        case Instr_t::eval_node:
+        {
+            auto node = const_cast<Node*>( next_instr->eval.node ); // hack !
+            node->eval();
+            node->set_dirty(false);
+
+            // save node value in rax register
+            if( node->props()->has(k_value_member_name))
+            {
+                MemSpace mem_space;
+                mem_space.type = Asm::MemSpace::Type::VariantPtr;
+                mem_space.data.m_variant = node->props()->get(k_value_member_name)->get_data();
+                write_register(Register::rax, mem_space);
+            }
+
+            advance_cursor();
+            success = true;
             break;
         }
 
         case Instr_t::jmp:
         {
-            advance_cursor(next_instr->m_arg0);
+            advance_cursor(next_instr->jmp.offset);
             success = true;
             break;
         }
 
         case Instr_t::jne:
         {
-            Variant* variant = (Variant*)(m_register[(size_t)Register::rax]);
-            if ( variant->convert_to<bool>() )
+            NODABLE_ASSERT(m_register[Register::rax].type == MemSpace::Type::Boolean);
+            bool equals = m_register[Register::rax].data.m_bool;
+            if ( equals )
             {
                 advance_cursor();
             }
             else
             {
-                advance_cursor(next_instr->m_arg0);
+                advance_cursor(next_instr->jmp.offset);
             }
             success = true;
             break;
         }
 
         case Instr_t::ret:
-            advance_cursor();
-            success = true;
+            //advance_cursor();
+            success = false;
             break;
 
         default:
@@ -184,17 +285,21 @@ bool VM::_stepOver()
 bool VM::step_over()
 {
     auto must_break = [&]() -> bool {
-        return get_next_instr()->m_type == Instr_t::call
+        return
+               get_next_instr()->type == Instr_t::eval_node
                && m_last_step_next_instr != get_next_instr();
     };
 
-    while( !is_program_over() && !must_break() )
+    bool must_exit = false;
+
+    while(is_there_a_next_instr() && !must_break() && !must_exit )
     {
+        must_exit = get_next_instr()->type == Instr_t::ret;
         _stepOver();
     }
 
 
-    bool continue_execution = !is_program_over();
+    bool continue_execution = is_there_a_next_instr() && !must_exit;
     if( !continue_execution )
     {
         stop_program();
@@ -206,32 +311,19 @@ bool VM::step_over()
         // update m_current_node and m_last_step_instr
         m_last_step_next_instr = get_next_instr();
         auto next_instr = get_next_instr();
-        if ( next_instr->m_type == Instr_t::call )
+
+        switch ( next_instr->type )
         {
-            switch ( (FctId)(next_instr->m_arg0) )
+            case Instr_t::eval_node:
             {
-                case FctId::eval_member:
-                {
-                    auto member = (Member *)next_instr->m_arg1;
-                    m_next_node = member->get_owner();
-                    break;
-                }
-
-                case FctId::eval_node:
-                {
-                    m_next_node = (Node*)next_instr->m_arg1;
-                    break;
-                }
-
-                case FctId::push_stack_frame:
-                case FctId::pop_stack_frame:
-                {
-                    // TODO: but unused for now.
-                    break;
-                }
+                m_next_node = next_instr->eval.node;
+                break;
             }
+
+            default:
+                break;
         }
-        LOG_MESSAGE("VM", "Step over (current line %#1llx)\n", next_instr->m_line)
+        LOG_MESSAGE("VM", "Step over (current line %#1llx)\n", next_instr->line)
     }
 
     return continue_execution;
@@ -242,23 +334,35 @@ void VM::debug_program()
     NODABLE_ASSERT(m_program_asm_code);
     m_is_debugging = true;
     m_is_program_running = true;
-    reset_cursor();
     clear_registers();
+    init_instruction_pointer(); // uses register, need to be done after clear.
     m_next_node = m_program_asm_code->get_meta_data().root_node;
     LOG_MESSAGE("VM", "Debugging program ...\n")
 }
 
-bool VM::is_program_over() const
+bool VM::is_there_a_next_instr() const
 {
-    auto next_inst_id = read_register(Register::eip);
-    return next_inst_id >= m_program_asm_code->size();
+    NODABLE_ASSERT(m_register[Register::eip].type == MemSpace::Type::U64);
+    auto next_inst_id = m_register[Register::eip].data.m_u64;
+    return next_inst_id < m_program_asm_code->size();
+}
+
+const MemSpace* VM::get_last_result()const
+{
+    if (m_register[Register::rax].type == MemSpace::Type::Undefined)
+    {
+        LOG_WARNING("VM", "get_last_result() will return nullptr.\n")
+        return nullptr;
+    }
+    return &m_register[Register::rax];
 }
 
 Instr* VM::get_next_instr() const
 {
-    if ( !is_program_over() )
+    if ( is_there_a_next_instr() )
     {
-        auto next_inst_id = read_register(Register::eip);
+        NODABLE_ASSERT(m_register[Register::eip].type == MemSpace::Type::U64);
+        auto next_inst_id = m_register[Register::eip].data.m_u64;
         return m_program_asm_code->get_instruction_at(next_inst_id);
     }
     return nullptr;
@@ -272,4 +376,18 @@ bool VM::load_program(std::unique_ptr<const Code> _code)
     m_program_asm_code = std::move(_code);
 
     return m_program_asm_code && m_program_asm_code->size() != 0;
+}
+
+Asm::MemSpace& VM::read_register(Register _id)
+{
+    return m_register[_id];
+}
+
+void VM::write_register(Register _id, MemSpace _mem_src)
+{
+    MemSpace& mem_dst = m_register[_id];
+    LOG_VERBOSE("VM", "write_register %s\n", Asm::to_string(_id) )
+    LOG_VERBOSE("VM", " - mem before: %s\n", mem_dst.to_string().c_str() )
+    mem_dst = _mem_src;
+    LOG_VERBOSE("VM", " - mem after:  %s\n", mem_dst.to_string().c_str() )
 }

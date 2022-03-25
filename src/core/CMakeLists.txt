@@ -42,6 +42,7 @@ add_library(
         src/Scope.cpp
         src/Semantic.cpp
         src/Serializer.cpp
+        src/Format.cpp
         src/System.cpp
         src/Token.cpp
         src/TokenRibbon.cpp
@@ -49,14 +50,12 @@ add_library(
         src/Variant.cpp
         src/VM.cpp
         src/Way.cpp
-        src/Wire.cpp
-)
+        src/Wire.cpp)
 
 target_link_libraries(
     nodable-core
     PUBLIC # <-------------- Those will be accessible by other targets if they link nodable-core
         ghc_filesystem     # c++ compatible std::filesystem::path like API
-        mpark_variant      # c++ compatible std::variant like API
         Observe            # event system using observer/observable pattern.
     PRIVATE
         whereami           # get absolute executable/dll directory path

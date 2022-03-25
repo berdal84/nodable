@@ -56,7 +56,6 @@ namespace Nodable {
         _result->set( _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2], (A3) *_args[3], (A4) *_args[4] ) );
     }
 
-
     template<typename T>
     class InvokableFunction;
 
@@ -83,6 +82,13 @@ namespace Nodable {
         inline void invoke(Member *_result, const std::vector<Member *> &_args) const override
         {
             call<T, Args...>(m_function, _result, _args);
+            for(auto arg : _args)
+            {
+                if ( arg->is_connected_by(ConnectBy_Ref) )
+                {
+                    arg->force_defined_flag(true);
+                }
+            }
         }
 
         inline const FunctionSignature* get_signature() const override { return m_signature; };

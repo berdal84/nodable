@@ -213,6 +213,19 @@ namespace Nodable {
         observe::Event<Node*, EdgeType> m_on_relation_added;
         observe::Event<Node*, EdgeType> m_on_relation_removed;
 
+        template<typename T>
+        T convert_value_to() const
+        {
+            const Member* result_node_value = m_props.get(k_value_member_name);
+            return result_node_value->convert_to<T>();
+        }
+        template<typename T>
+        T value_as() const
+        {
+            const Member* result_node_value = m_props.get(k_value_member_name);
+            return (T)*result_node_value->get_data();
+        }
+
 	protected:
         Properties         m_props;
 		Components         m_components;
@@ -233,5 +246,6 @@ namespace Nodable {
         Slots<Node*>       m_outputs;
 
 		R(Node)
+
     };
 }

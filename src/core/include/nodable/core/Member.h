@@ -30,10 +30,10 @@ namespace Nodable
      */
 	class Member
     {
-	public:
-        explicit Member(Properties*);
+    public:
         template<typename T>
         explicit Member(Properties* _parent_properties, T* _value): Member(_parent_properties) { m_variant.set(_value); };
+        explicit Member(Properties*);
         explicit Member(Properties*, const std::string&);
         explicit Member(Properties*, int);
         explicit Member(Properties*, bool);
@@ -42,9 +42,6 @@ namespace Nodable
         ~Member();
 
         void digest(Member *_member);
-        void define();
-        void reset_value() { get_variant().reset_value(); }
-        bool is_defined() const { return get_variant().is_defined(); }
         bool is_connected_by(ConnBy_ by);
         bool is_meta_type(std::shared_ptr<const R::MetaType> _other)const { return get_variant().is_meta_type(_other); }
         bool equals(const Member *)const;
@@ -52,17 +49,17 @@ namespace Nodable
         bool has_input_connected()const;
 
 		void set_allowed_connection(Way wayFlags) { m_allowed_connection = wayFlags; }
-		void set_input(Member*, ConnBy_ _connect_by = ConnectBy_Ref);
+		void set_input(Member*);
 		void set_name(const char* _name) { m_name = _name; }
-		void set(const Member* _other) { get_variant().set(&_other->m_variant); }
-		void set(const Member& _other) { get_variant().set(&_other.m_variant); }
+		void set(const Member* _other) { get_variant().set(_other->m_variant); }
+		void set(const Member& _other) { get_variant().set(_other.m_variant); }
 		void set(Node*);
 		void set(double);
         void set(const char*);
         void set(bool);
 		void set(int val) { set((double)val); }
 		void set(const std::string& _val) { set(_val.c_str());}
-		void set_meta_type(std::shared_ptr<const R::MetaType> _meta_type) { get_variant().set_meta_type(_meta_type); }
+		template<typename T> void set_meta_type() { get_variant().define_type<T>(); }
 		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
         void set_src_token(const std::shared_ptr<Token> _token);
         void set_owner(Node* _owner) { m_owner = _owner; }
@@ -77,6 +74,7 @@ namespace Nodable
         const std::shared_ptr<Token> get_src_token() const { return m_sourceToken; }
 		std::shared_ptr<Token>       get_src_token() { return m_sourceToken; }
         const Variant*        get_data()const { return &get_variant(); }
+        Variant*              get_data() { return &get_variant(); }
 
         template<typename T> inline explicit operator T*()     { return get_variant(); }
         template<typename T> inline explicit operator const T*() const { return get_variant(); }
@@ -84,7 +82,25 @@ namespace Nodable
         template<typename T> inline explicit operator T&()     { return get_variant(); }
         template<typename T> inline T convert_to()const        { return get_variant().convert_to<T>(); }
 
+        template<typename T>
+        static Member* new_with_type(Properties* _parent)
+        {
+           auto member = new Member(_parent);
+            member->m_variant.define_type<T>();
+           return member;
+		}
+
+        static Member* new_with_meta_type(Properties* _parent, std::shared_ptr<const R::MetaType> _type)
+        {
+            auto member = new Member(_parent);
+            member->m_variant.define_meta_type(_type);
+            return member;
+        }
+
+        void force_defined_flag(bool _value);
+
     private:
+
         // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()
         Variant& get_variant(){ return (m_input && m_connected_by == ConnectBy_Ref) ? m_input->m_variant : m_variant; }
         const Variant& get_variant()const{ return (m_input && m_connected_by == ConnectBy_Ref) ? m_input->m_variant : m_variant; }

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <nodable/core/Log.h>
-#include "../tools.h"
+#include "../test_tools.h"
 
 using namespace Nodable;
 
@@ -235,64 +235,6 @@ TEST(Parser, Conditional_Structures_IF_ELSE_IF )
 
     ParseEvalSerializeExpressions({program});
 }
-
-TEST(Parser, For_loop_without_var_decl)
-{
-    std::string program =
-            "double score;"
-            "for(double i=0;i<10;i=i+1){"
-            "   score= i*2;"
-            "}";
-    ParseEvalSerializeExpressions({program});
-}
-
-TEST(Parser, For_loop_with_var_decl)
-{
-    std::string program =
-            "double score = 1;"
-            "for(double i = 0;i < 10;i = i + 1 ){"
-            "   score= score*2;"
-            "}";
-    ParseEvalSerializeExpressions({program});
-}
-
-TEST(Parser, declare_then_define ) {
-    std::string program_01 =
-            "double b;"
-            "b = 5;"
-            "b;";
-    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
-}
-
-TEST(Parser, declare_and_define_then_reassign ) {
-    std::string program_01 =
-            "double b = 6;"
-            "b = 5;"
-            "b;";
-    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
-}
-
-TEST(Parser, declare_then_define_then_reassign ) {
-    std::string program_01 =
-            "double b;"
-            "b = 6;"
-            "b = 5;"
-            "b;";
-    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
-}
-
-TEST(Parser, condition_which_contains_alterated_var ) {
-    std::string program_01 =
-            "double b = 6;"
-            "b = 5;"
-            "string res = \"ok\";"
-            "if(b==6){"
-            "  res=\"error\";"
-            "}"
-            "res;";
-    EXPECT_EQ(ParseAndEvalExpression<std::string>(program_01), "ok");
-}
-
 
 TEST(Parser, not_equals)
 {
