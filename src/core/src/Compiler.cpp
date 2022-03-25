@@ -50,28 +50,19 @@ std::string Asm::Instr::to_string(const Instr& _instr)
             break;
         }
 
-        case Instr_t::store_data:
-        {
-            result.append(Asm::to_string( _instr.store.value.type ));
-            result.append(Format::fmt_hex(_instr.store.value.data.u64) );
-            break;
-        }
-
         case Instr_t::mov:
         {
-            result.append("%");
-            result.append(Asm::to_string( _instr.mov.dst ));
-            result.append(", %");
-            result.append(Asm::to_string( _instr.mov.src ));
+            result.append(Asm::to_string( _instr.mov.dst.type ));
+            result.append(", ");
+            result.append(Asm::to_string( _instr.mov.src.type ));
             break;
         }
 
         case Instr_t::cmp:
         {
-            result.append("%");
-            result.append(Asm::to_string( _instr.cmp.left ));
-            result.append(", %");
-            result.append(Asm::to_string( _instr.cmp.right ));
+            result.append(Asm::to_string( _instr.cmp.left.type ));
+            result.append(", ");
+            result.append(Asm::to_string( _instr.cmp.right.type ));
             break;
         }
 
@@ -88,13 +79,13 @@ std::string Asm::Instr::to_string(const Instr& _instr)
             result.append(Format::fmt_ptr(_instr.pop.scope) );
             break;
         case Instr_t::pop_var:
-            result.append(Format::fmt_ptr(_instr.push.var) );
+            result.append(Format::fmt_ptr(_instr.push.variable) );
             break;
         case Instr_t::push_stack_frame:
             result.append(Format::fmt_ptr(_instr.push.scope) );
             break;
         case Instr_t::push_var:
-            result.append(Format::fmt_ptr(_instr.push.var) );
+            result.append(Format::fmt_ptr(_instr.push.variable) );
             break;
     }
 
@@ -204,7 +195,7 @@ void Asm::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
     for(const VariableNode* each_variable : _scope->get_variables())
     {
         Instr *instr         = m_temp_code->push_instr(Instr_t::push_var);
-        instr->push.var      = each_variable;
+        instr->push.variable      = each_variable;
         instr->m_comment     = std::string{each_variable->get_label()};
     }
 

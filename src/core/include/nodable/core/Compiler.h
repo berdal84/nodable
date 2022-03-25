@@ -51,8 +51,7 @@ namespace Nodable
             pop_var,
             push_stack_frame,
             push_var,
-            ret,
-            store_data
+            ret
         };
 
         R_ENUM(Instr_t)
@@ -66,7 +65,6 @@ namespace Nodable
         R_ENUM_VALUE(jne)
         R_ENUM_VALUE(ret)
         R_ENUM_VALUE(cmp)
-        R_ENUM_VALUE(store_data)
         R_ENUM_END
 
         struct Value
@@ -132,18 +130,18 @@ namespace Nodable
                 } jmp;
 
                 struct {
-                    Register dst;
-                    Register src;
+                    Value dst;
+                    Value src;
                 } mov;
 
                 struct {
-                    Register left;
-                    Register right;
+                    Value left;
+                    Value right;
                 } cmp; // compare
 
                 struct {
                     union {
-                        const VariableNode* var;
+                        const VariableNode* variable;
                         const Scope*  scope;
                     };
                 } push;

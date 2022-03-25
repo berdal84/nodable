@@ -78,8 +78,8 @@ bool VM::_stepOver()
     {
         case Instr_t::cmp:
         {
-            Value left  = m_register[next_instr->cmp.left];
-            Value right = m_register[next_instr->cmp.right];
+            Value left  = next_instr->cmp.left;
+            Value right = next_instr->cmp.right;
 
             NODABLE_ASSERT(left.type == right.type);
 
@@ -95,11 +95,8 @@ bool VM::_stepOver()
                 case Value::Type::U64:
                     cmp_result = left.data.u64 == right.data.u64;
                     break;
-                case Value::Type::VariantPtr:
-                    NODABLE_ASSERT(false) // TODO
-                    break;
                 default:
-                    NODABLE_ASSERT(false)
+                    NODABLE_ASSERT(false) // TODO
             }
             m_register[Register::rax].type   = Value::Type::Boolean;
             m_register[Register::rax].data.b = cmp_result;
@@ -110,7 +107,23 @@ bool VM::_stepOver()
 
         case Instr_t::mov:
         {
-            m_register[next_instr->mov.dst] = m_register[next_instr->mov.src];
+            Value dst  = next_instr->mov.dst;
+            Value src = next_instr->mov.src;
+
+            if ( dst.type == Value::Type::Register)
+            {
+                dst = m_register[dst.data.regid];
+            }
+
+            if ( src.type == Value::Type::Register)
+            {
+                src = m_register[src.data.regid];
+            }
+
+            NODABLE_ASSERT(dst.type == src.type);
+
+            dst.data = src.data;
+
             advance_cursor();
             success = true;
             break;
@@ -126,7 +139,7 @@ bool VM::_stepOver()
         case Instr_t::push_var:
         {
             advance_cursor();
-            VariableNode* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
+            VariableNode* variable = const_cast<VariableNode*>( next_instr->push.variable ); // hack !
             if (variable->is_initialized() )
             {
                 variable->set_initialized(false);
@@ -157,15 +170,6 @@ bool VM::_stepOver()
             auto node = const_cast<Node*>( next_instr->eval.node ); // hack !
             node->eval();
             node->set_dirty(false);
-            advance_cursor();
-            success = true;
-            break;
-        }
-
-        case Instr_t::store_data:
-        {
-            Value value = next_instr->store.value;
-            m_register[Register::rax] = value;
             advance_cursor();
             success = true;
             break;
