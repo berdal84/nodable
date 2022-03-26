@@ -131,9 +131,9 @@ bool GraphNodeView::draw()
      */
     for( Node* each_node : node_registry)
     {
-        int slot_index = 0;
-        int slot_count = each_node->successor_slots().get_limit();
-        float padding = 2.0f;
+        size_t slot_index = 0;
+        size_t slot_count = each_node->successor_slots().get_limit();
+        float padding     = 2.0f;
         float linePadding = 5.0f;
         for (Node* each_successor_node : each_node->successor_slots() )
         {
