@@ -21,7 +21,6 @@ void NodeViewConstraint::apply(float _dt)
     if ( std::find_if(masters.begin(), masters.end(), is_visible) == masters.end()) return;
     if ( std::find_if(slaves.begin(), slaves.end(), is_visible) == slaves.end()) return;
 
-    LOG_VERBOSE("ViewConstraint", "applying constraint\n")
     auto master = masters.at(0);
 
     switch ( this->type )
