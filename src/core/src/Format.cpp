@@ -12,14 +12,14 @@ std::string Format::fmt_no_trail(double d)
 std::string Format::fmt_hex(u64 _addr)
 {
     char str[33];
-    sprintf(str, "%#llx", _addr);
+    snprintf(str, sizeof(str), "%#llx", _addr);
     return {str};
 }
 
 std::string Format::fmt_ptr(const void* _addr)
 {
     char str[33];
-    sprintf(str, "%p", _addr);
+    snprintf(str, sizeof(str), "%p", _addr);
     return {str};
 }
 

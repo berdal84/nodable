@@ -17,7 +17,8 @@ namespace Nodable
         , m_graph(_src->get_parent_graph())
         {
             char str[200];
-            sprintf(str
+            snprintf(str
+                    , sizeof(str)
                     , "ConnectNodes\n"
                       " - src: \"%s\"\n"
                       " - dst: \"%s\"\n"

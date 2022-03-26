@@ -45,7 +45,8 @@ namespace Nodable{
                     )
                     : std::exception()
                 {
-                    sprintf(m_what,
+                    snprintf(m_what,
+                             sizeof(m_what),
                             "Parser::error: %s: %s (last word: \"%s\")",
                             _main_reason.c_str(),
                             _detailed_message.c_str(),

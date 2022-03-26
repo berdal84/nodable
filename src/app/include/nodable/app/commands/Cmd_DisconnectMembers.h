@@ -16,7 +16,8 @@ namespace Nodable
         , m_wire(_wire)
         {
             char str[200];
-            sprintf(str
+            snprintf(str
+                    , sizeof(str)
                     , "DisconnectMembers\n"
                       " - src: \"%s\"\n"
                       " - dst: \"%s\"\n"

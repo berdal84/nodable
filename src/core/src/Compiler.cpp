@@ -367,7 +367,8 @@ void Asm::Compiler::compile(const InstructionNode *instr_node)
             instr.mov.dst.type         = MemSpace::Type::Register;
             instr.mov.dst.data.m_register   = Register::rax;
             char str[128];
-            sprintf(str
+            snprintf(str
+                    , sizeof(str)
                     , "store instr result (%s %s)"
                     , root_node_value->get_owner()->get_label()
                     , root_node_value->get_name().c_str());

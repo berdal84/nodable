@@ -15,7 +15,8 @@ namespace Nodable
                 : m_text_editor_undo_record(_undoRecord)
                 , m_text_editor(_textEditor)
         {
-            sprintf(m_description
+            snprintf(m_description
+                    , sizeof(m_description)
                     , "ReplaceText\n"
                       " - replaced: \"%s\"\n"
                       " - by: \"%s\"\n"

@@ -19,7 +19,8 @@ namespace Nodable
         , m_wire(nullptr)
         {
             char str[200];
-            sprintf(str
+            snprintf(str
+                    , sizeof(str)
                     , "ConnectMembers\n"
                       " - src: \"%s\"\n"
                       " - dst: \"%s\"\n"
