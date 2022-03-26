@@ -129,12 +129,14 @@ bool FileView::draw()
 
     if (hasChanged()) {
         m_file->update_graph();
+        LOG_VERBOSE("FileView", "after m_file->update_graph();\n");
     }
 
     ImGui::EndChild();
 
      // NODE EDITOR
     //-------------
+    LOG_VERBOSE("FileView", "NODE EDITOR\n");
 
     ImGui::SameLine();
     GraphNode* graph = m_file->getGraph();
@@ -143,8 +145,9 @@ bool FileView::draw()
 
     if ( graph_node_view )
     {
+        LOG_VERBOSE("FileView", "graph_node_view->update()\n");
         graph_node_view->update();
-        auto flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         bool changed = graph_node_view->drawAsChild("graph", vec2(m_childSize2, availSize.y), false, flags);
     }
     else
