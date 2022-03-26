@@ -112,7 +112,7 @@ Code::~Code()
 
 Instr* Code::push_instr(Instr_t _type)
 {
-    Instr* instr = new Instr(_type, m_instructions.size());
+    auto instr = new Instr(_type, m_instructions.size());
     m_instructions.emplace_back(instr);
     return instr;
 }

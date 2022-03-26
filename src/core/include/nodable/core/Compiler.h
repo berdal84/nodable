@@ -133,7 +133,7 @@ namespace Nodable
          */
         struct Instr
         {
-            Instr(Instr_t _type, long _line)
+            Instr(Instr_t _type, u64 _line)
                 : type(_type)
                 , line(_line)
             {}
