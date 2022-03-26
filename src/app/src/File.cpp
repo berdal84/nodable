@@ -22,7 +22,7 @@ File::File( AppContext* _context, const std::string& _path, const std::string& _
     , m_factory(_context)
     , m_history(&_context->settings->experimental_hybrid_history)
 {
-    LOG_VERBOSE( "File", "Constructor being called ...\n");
+    LOG_VERBOSE( "File", "Constructor being called ...\n")
 
     // FileView
 	m_view = new FileView(m_context, this);
@@ -30,13 +30,13 @@ File::File( AppContext* _context, const std::string& _path, const std::string& _
     m_view->setText(_content);
 	auto textEditor = m_view->getTextEditor();
 
-    LOG_VERBOSE( "File", "View built, creating History ...\n");
+    LOG_VERBOSE( "File", "View built, creating History ...\n")
 
 	// History
     TextEditorBuffer* text_editor_buf = m_history.configure_text_editor_undo_buffer(textEditor);
     m_view->setUndoBuffer(text_editor_buf);
 
-    LOG_VERBOSE( "File", "History built, creating graph ...\n");
+    LOG_VERBOSE( "File", "History built, creating graph ...\n")
 
 	// GraphNode
     m_graph = new GraphNode(
@@ -47,7 +47,7 @@ File::File( AppContext* _context, const std::string& _path, const std::string& _
 
     m_graph->add_component(new GraphNodeView(m_context));
 
-    LOG_VERBOSE( "File", "Constructor being called.\n");
+    LOG_VERBOSE( "File", "Constructor being called.\n")
 
 }
 
@@ -67,19 +67,19 @@ File* File::OpenFile(AppContext* _ctx, const std::string& _path, const std::stri
 {
     LOG_MESSAGE( "File", "Loading file \"%s\"...\n", _path.c_str())
 	std::ifstream fileStream(_path);
-    LOG_VERBOSE( "File", "Input file stream created.\n");
+    LOG_VERBOSE( "File", "Input file stream created.\n")
 
 	if (!fileStream.is_open())
 	{
 		LOG_ERROR("File", "Unable to load \"%s\"\n", _path.c_str())
 		return nullptr;
 	}
-    LOG_VERBOSE( "File", "Input file stream is open, reading content ...\n");
+    LOG_VERBOSE( "File", "Input file stream is open, reading content ...\n")
 
 	// TODO: do that inside File constr ?
 	std::string content((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
 
-    LOG_VERBOSE( "File", "Content read, creating File object ...\n");
+    LOG_VERBOSE( "File", "Content read, creating File object ...\n")
 
 	File* file = new File(_ctx, _path, _name, content.c_str());
     file->m_open = true;

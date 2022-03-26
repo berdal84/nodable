@@ -1,6 +1,3 @@
-
-#include <string>
-
 #include <nodable/app/App.h>
 #include <nodable/app/AppView.h>
 

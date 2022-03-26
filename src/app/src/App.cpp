@@ -157,7 +157,7 @@ bool App::vm_compile_and_load_program()
 
         if (!asm_code)
         {
-            LOG_ERROR("App", "Unable to compile program.");
+            LOG_ERROR("App", "Unable to compile program.")
             return false;
         }
 
@@ -165,7 +165,7 @@ bool App::vm_compile_and_load_program()
 
         if( !m_context->vm->load_program(std::move(asm_code)) )
         {
-            LOG_ERROR("App", "Unable to load program.");
+            LOG_ERROR("App", "Unable to load program.")
             return false;
         }
 
@@ -235,7 +235,7 @@ void App::handle_events()
      *
      * SDL_ API inspired, but with custom events.
      */
-    Nodable::Event event;
+    Nodable::Event event{};
     NodeView*      selected_view = NodeView::GetSelected();
     while( EventManager::poll_event(event) )
     {
