@@ -32,7 +32,7 @@ void NodeViewConstraint::apply(float _dt)
             if( !slave->isPinned() && slave->isVisible())
             {
                 ImRect bbox = NodeView::GetRect(masters, true);
-                vec2 newPos(bbox.GetCenter() - vec2(bbox.GetSize().x * 0.5 + settings->ui_node_spacing + slave->getRect().GetSize().x * 0.5, 0 ));
+                vec2 newPos(bbox.GetCenter() - vec2(bbox.GetSize().x * 0.5f + settings->ui_node_spacing + slave->getRect().GetSize().x * 0.5f, 0 ));
                 slave->addForceToTranslateTo(newPos + m_offset, settings->ui_node_speed);
             }
 

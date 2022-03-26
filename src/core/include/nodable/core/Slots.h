@@ -20,8 +20,8 @@ namespace Nodable
         const std::vector<T>& content() const { return m_slots; }
         auto                  begin() const { return m_slots.begin(); }
         auto                  end() const { return m_slots.end(); }
-        void                  set_limit(int _count) { m_limit = _count; }
-        int                   get_limit()const { return m_limit; }
+        void                  set_limit(size_t _count) { m_limit = _count; }
+        size_t                get_limit()const { return m_limit; }
         T                     back() { return m_slots.back(); }
         bool                  empty() const { return m_slots.empty(); }
         size_t                size() const { return m_slots.size(); }
