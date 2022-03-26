@@ -38,8 +38,8 @@ namespace Nodable
 		bool                             update();
 		inline void                      setModified() { m_modified = true; }
 		inline bool                      isModified() { return m_modified; }
-		bool                             evaluateExpression(std::string&);
-		bool                             evaluateSelectedExpression();
+		bool                             update_graph(std::string &_expression);
+		bool                             update_graph();
         inline FileView*                 getView()const { return m_view; };
 		inline History*                  getHistory() { return &m_history; }
         inline bool                      isOpen()  { return m_open; }

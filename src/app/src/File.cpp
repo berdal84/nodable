@@ -89,7 +89,7 @@ File* File::OpenFile(AppContext* _ctx, const std::string& _path, const std::stri
 	return file;
 }
 
-bool File::evaluateExpression(std::string& _expression)
+bool File::update_graph(std::string& _code_source)
 {
 	Parser* parser = m_context->language->getParser();
     m_graph->clear();
@@ -100,7 +100,7 @@ bool File::evaluateExpression(std::string& _expression)
         graphView->clear_child_view_constraints();
     }
 
-    if ( parser->parse_graph(_expression, m_graph) && !m_graph->is_empty() )
+    if ( parser->parse_graph(_code_source, m_graph) && !m_graph->is_empty() )
     {
         m_on_graph_changed_evt.emit(m_graph);
         return true;
@@ -115,7 +115,7 @@ bool File::update()
 	if ( m_history.is_dirty() )
 	{
         if ( !m_context->settings->experimental_hybrid_history )
-            evaluateSelectedExpression(); // when not in hybrid mode the undo/redo is text based
+            update_graph(); // when not in hybrid mode the undo/redo is text based
 
         m_history.set_dirty(false);
 	}
@@ -150,12 +150,10 @@ bool File::update()
 	return graph_has_changed;
 }
 
-bool File::evaluateSelectedExpression()
+bool File::update_graph()
 {
-	bool success;
-	auto expression = m_view->getSelectedText();
-	success = evaluateExpression(expression);
-	return success;
+	std::string code_source = m_view->getSelectedText();
+	return update_graph(code_source);
 }
 
 File::~File()

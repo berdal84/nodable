@@ -125,7 +125,7 @@ bool FileView::draw()
         m_file->setModified();
 
     if (hasChanged()) {
-        m_file->evaluateSelectedExpression();
+        m_file->update_graph();
     }
 
     ImGui::EndChild();

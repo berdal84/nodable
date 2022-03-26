@@ -217,7 +217,7 @@ void App::vm_reset()
             m_context->vm->stop_program();
 
         // TODO: restore graph state without parsing again like that:
-        currFile->evaluateSelectedExpression();
+        currFile->update_graph();
     }
 }
 
