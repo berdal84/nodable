@@ -1,7 +1,7 @@
 /*
-LodePNG version 20201017
+LodePNG version 20220109
 
-Copyright (c) 2005-2020 Lode Vandevenne
+Copyright (c) 2005-2022 Lode Vandevenne
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -142,16 +142,24 @@ unsigned lodepng_decode24(unsigned char** out, unsigned* w, unsigned* h,
 /*
 Load PNG from disk, from file with given name.
 Same as the other decode functions, but instead takes a filename as input.
-*/
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and decode in-memory.*/
 unsigned lodepng_decode_file(unsigned char** out, unsigned* w, unsigned* h,
                              const char* filename,
                              LodePNGColorType colortype, unsigned bitdepth);
 
-/*Same as lodepng_decode_file, but always decodes to 32-bit RGBA raw image.*/
+/*Same as lodepng_decode_file, but always decodes to 32-bit RGBA raw image.
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and decode in-memory.*/
 unsigned lodepng_decode32_file(unsigned char** out, unsigned* w, unsigned* h,
                                const char* filename);
 
-/*Same as lodepng_decode_file, but always decodes to 24-bit RGB raw image.*/
+/*Same as lodepng_decode_file, but always decodes to 24-bit RGB raw image.
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and decode in-memory.*/
 unsigned lodepng_decode24_file(unsigned char** out, unsigned* w, unsigned* h,
                                const char* filename);
 #endif /*LODEPNG_COMPILE_DISK*/
@@ -191,17 +199,26 @@ unsigned lodepng_encode24(unsigned char** out, size_t* outsize,
 /*
 Converts raw pixel data into a PNG file on disk.
 Same as the other encode functions, but instead takes a filename as output.
+
 NOTE: This overwrites existing files without warning!
-*/
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and encode in-memory.*/
 unsigned lodepng_encode_file(const char* filename,
                              const unsigned char* image, unsigned w, unsigned h,
                              LodePNGColorType colortype, unsigned bitdepth);
 
-/*Same as lodepng_encode_file, but always encodes from 32-bit RGBA raw image.*/
+/*Same as lodepng_encode_file, but always encodes from 32-bit RGBA raw image.
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and encode in-memory.*/
 unsigned lodepng_encode32_file(const char* filename,
                                const unsigned char* image, unsigned w, unsigned h);
 
-/*Same as lodepng_encode_file, but always encodes from 24-bit RGB raw image.*/
+/*Same as lodepng_encode_file, but always encodes from 24-bit RGB raw image.
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and encode in-memory.*/
 unsigned lodepng_encode24_file(const char* filename,
                                const unsigned char* image, unsigned w, unsigned h);
 #endif /*LODEPNG_COMPILE_DISK*/
@@ -223,6 +240,9 @@ unsigned decode(std::vector<unsigned char>& out, unsigned& w, unsigned& h,
 /*
 Converts PNG file from disk to raw pixel data in memory.
 Same as the other decode functions, but instead takes a filename as input.
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and decode in-memory.
 */
 unsigned decode(std::vector<unsigned char>& out, unsigned& w, unsigned& h,
                 const std::string& filename,
@@ -243,7 +263,11 @@ unsigned encode(std::vector<unsigned char>& out,
 /*
 Converts 32-bit RGBA raw pixel data into a PNG file on disk.
 Same as the other encode functions, but instead takes a filename as output.
+
 NOTE: This overwrites existing files without warning!
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and decode in-memory.
 */
 unsigned encode(const std::string& filename,
                 const unsigned char* in, unsigned w, unsigned h,
@@ -565,7 +589,7 @@ typedef struct LodePNGInfo {
   make sure you compute it carefully to avoid the above problems.
   */
   unsigned iccp_defined;      /* Whether an iCCP chunk is present (0 = not present, 1 = present). */
-  char* iccp_name;            /* None terminated string with profile name, 1-79 bytes */
+  char* iccp_name;            /* Null terminated string with profile name, 1-79 bytes */
   /*
   The ICC profile in iccp_profile_size bytes.
   Don't allocate this buffer yourself. Use the init/cleanup functions
@@ -897,7 +921,7 @@ const unsigned char* lodepng_chunk_find_const(const unsigned char* chunk, const 
 
 /*
 Appends chunk to the data in out. The given chunk should already have its chunk header.
-The out variable and outsize are updated to type the new reallocated buffer.
+The out variable and outsize are updated to reflect the new reallocated buffer.
 Returns error code (0 if it went ok)
 */
 unsigned lodepng_chunk_append(unsigned char** out, size_t* outsize, const unsigned char* chunk);
@@ -905,7 +929,7 @@ unsigned lodepng_chunk_append(unsigned char** out, size_t* outsize, const unsign
 /*
 Appends new chunk to out. The chunk to append is given by giving its length, type
 and data separately. The type is a 4-letter string.
-The out variable and outsize are updated to type the new reallocated buffer.
+The out variable and outsize are updated to reflect the new reallocated buffer.
 Returne error code (0 if it went ok)
 */
 unsigned lodepng_chunk_create(unsigned char** out, size_t* outsize, unsigned length,
@@ -976,6 +1000,9 @@ out: output parameter, contains pointer to loaded buffer.
 outsize: output parameter, size of the allocated out buffer
 filename: the path to the file to load
 return value: error code (0 means ok)
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and decode in-memory.
 */
 unsigned lodepng_load_file(unsigned char** out, size_t* outsize, const char* filename);
 
@@ -986,6 +1013,9 @@ buffer: the buffer to write
 buffersize: size of the buffer to write
 filename: the path to the file to save to
 return value: error code (0 means ok)
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and encode in-memory
 */
 unsigned lodepng_save_file(const unsigned char* buffer, size_t buffersize, const char* filename);
 #endif /*LODEPNG_COMPILE_DISK*/
@@ -1026,12 +1056,18 @@ unsigned encode(std::vector<unsigned char>& out,
 /*
 Load a file from disk into an std::vector.
 return value: error code (0 means ok)
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and decode in-memory
 */
 unsigned load_file(std::vector<unsigned char>& buffer, const std::string& filename);
 
 /*
 Save the binary data in an std::vector to a file on disk. The file is overwritten
 without warning.
+
+NOTE: Wide-character filenames are not supported, you can use an external method
+to handle such files and encode in-memory
 */
 unsigned save_file(const std::vector<unsigned char>& buffer, const std::string& filename);
 #endif /* LODEPNG_COMPILE_DISK */
@@ -1709,6 +1745,9 @@ try to fix it if the compiler is modern and standards compliant.
 This decoder example shows the most basic usage of LodePNG. More complex
 examples can be found on the LodePNG website.
 
+NOTE: these examples do not support wide-character filenames, you can use an
+external method to handle such files and encode or decode in-memory
+
 10.1. decoder C++ example
 -------------------------
 
@@ -1806,6 +1845,10 @@ symbol.
 Not all changes are listed here, the commit history in github lists more:
 https://github.com/lvandeve/lodepng
 
+*) 09 jan 2022: minor decoder speed improvements.
+*) 27 jun 2021: added warnings that file reading/writing functions don't support
+   wide-character filenames (support for this is not planned, opening files is
+   not the core part of PNG decoding/decoding and is platform dependent).
 *) 17 okt 2020: prevent decoding too large text/icc chunks by default.
 *) 06 mar 2020: simplified some of the dynamic memory allocations.
 *) 12 jan 2020: (!) added 'end' argument to lodepng_chunk_next to allow correct
@@ -1973,5 +2016,5 @@ Domain: gmail dot com.
 Account: lode dot vandevenne.
 
 
-Copyright (c) 2005-2020 Lode Vandevenne
+Copyright (c) 2005-2022 Lode Vandevenne
 */
