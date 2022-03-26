@@ -91,17 +91,20 @@ File* File::OpenFile(AppContext* _ctx, const std::string& _path, const std::stri
 
 bool File::update_graph(std::string& _code_source)
 {
+    LOG_VERBOSE("File","updating graph ...\n")
 	Parser* parser = m_context->language->getParser();
     m_graph->clear();
 
     auto graphView = m_graph->get<GraphNodeView>();
     if (graphView)
     {
+        LOG_VERBOSE("File","clear graph view child constraints ...\n")
         graphView->clear_child_view_constraints();
     }
 
     if ( parser->parse_graph(_code_source, m_graph) && !m_graph->is_empty() )
     {
+        LOG_VERBOSE("File","graph changed, emiting event ...\n")
         m_on_graph_changed_evt.emit(m_graph);
         return true;
     }
@@ -114,29 +117,40 @@ bool File::update()
 
 	if ( m_history.is_dirty() )
 	{
+        LOG_VERBOSE("File","history is dirty\n")
         if ( !m_context->settings->experimental_hybrid_history )
+        {
             update_graph(); // when not in hybrid mode the undo/redo is text based
+        }
 
         m_history.set_dirty(false);
 	}
 
 	if(m_context->vm && !m_context->vm->is_program_running() )
     {
+        LOG_VERBOSE("File","m_graph->update()\n")
         auto graphUpdateResult = m_graph->update();
 
         if (   graphUpdateResult == UpdateResult::SuccessWithoutChanges
             && !m_view->getSelectedText().empty() )
         {
+            LOG_VERBOSE("File","graph_has_changed = false\n")
             graph_has_changed = false;
         }
         else
         {
+            LOG_VERBOSE("File","graph_has_changed = true\n")
+
             Node* root_node = m_graph->get_root();
             if ( root_node )
             {
+                LOG_VERBOSE("File","serialize root node\n")
+
                 std::string code;
                 Serializer* serializer = m_context->language->getSerializer();
                 serializer->serialize(code, root_node );
+
+                LOG_VERBOSE("File","replace selected text\n")
                 m_view->replaceSelectedText(code);
             }
             graph_has_changed = true;
@@ -144,6 +158,7 @@ bool File::update()
     }
     else
     {
+        LOG_VERBOSE("File","graph_has_changed = false\n")
         graph_has_changed = false;
     }
 
@@ -152,6 +167,7 @@ bool File::update()
 
 bool File::update_graph()
 {
+    LOG_VERBOSE("File","get selected text\n")
 	std::string code_source = m_view->getSelectedText();
 	return update_graph(code_source);
 }

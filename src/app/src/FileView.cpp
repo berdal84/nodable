@@ -19,8 +19,10 @@ FileView::FileView(AppContext* _ctx, File *_file)
 {
     m_observer.observe(_file->m_on_graph_changed_evt, [](GraphNode* _graph)
     {
+        LOG_VERBOSE("FileView", "graph changed evt received\n")
         if ( !_graph->is_empty() )
         {
+            LOG_VERBOSE("FileView", "graph is not empty\n")
             Node* root = _graph->get_root();
 
             NodeView* root_node_view = root->get<NodeView>();
@@ -28,6 +30,7 @@ FileView::FileView(AppContext* _ctx, File *_file)
 
             if ( root_node_view && graph_view )
             {
+                LOG_VERBOSE("FileView", "constraint root node view to be visible\n")
                 ImRect graphViewRect = graph_view->getVisibleRect();
                 vec2 newPos = graphViewRect.GetTL();
                 newPos.x += graphViewRect.GetSize().x * 0.33f;
