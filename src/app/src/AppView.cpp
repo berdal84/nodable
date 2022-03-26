@@ -367,20 +367,36 @@ bool AppView::draw()
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("Experimental"))
+                if (ImGui::BeginMenu("Developer"))
                 {
-                    bool& hybrid = m_context->settings->experimental_hybrid_history;
-                    if (ImGui::MenuItem(ICON_FA_EXCLAMATION " Enable hybrid history", "", hybrid))
+                    if (ImGui::BeginMenu("Verbosity"))
                     {
-                        hybrid = !hybrid;
+                        auto menu_item_verbosity = [](Log::Verbosity _verbosity, const char* _label)
+                        {
+                            if (ImGui::MenuItem( _label , "", Log::GetVerbosityLevel() == _verbosity))
+                            {
+                                Log::SetVerbosityLevel(_verbosity);
+                            }
+                        };
+
+                        menu_item_verbosity(Log::Verbosity::Verbose, "Verbose");
+                        menu_item_verbosity(Log::Verbosity::Message, "Message (default)");
+                        menu_item_verbosity(Log::Verbosity::Warning, "Warning");
+                        menu_item_verbosity(Log::Verbosity::Error,   "Error");
+                        ImGui::EndMenu();
                     }
 
-                    bool& autocompletion = m_context->settings->experimental_graph_autocompletion;
-                    if (ImGui::MenuItem(ICON_FA_EXCLAMATION " Enable graph autocompletion", "", autocompletion))
+                    if (ImGui::BeginMenu("Experimental"))
                     {
-                        autocompletion = !autocompletion;
-                    }
+                        ImGui::Checkbox(
+                                " Hybrid history" ICON_FA_EXCLAMATION,
+                                &m_context->settings->experimental_hybrid_history);
 
+                        ImGui::Checkbox(
+                                " Graph auto-completion" ICON_FA_EXCLAMATION,
+                                &m_context->settings->experimental_graph_autocompletion);
+                        ImGui::EndMenu();
+                    }
                     ImGui::EndMenu();
                 }
 
@@ -557,15 +573,15 @@ void AppView::draw_vm_view()
     }
     else
     {
-        std::weak_ptr<const Code> code = vm->get_program_asm_code();
+        const Code* code = vm->get_program_asm_code();
 
         // VM state
         {
             ImGui::Indent();
             ImGui::Text("VM is %s", vm->is_program_running() ? "running" : "stopped");
             ImGui::Text("Debug: %s", vm->is_debugging() ? "ON" : "OFF");
-            ImGui::Text("Has program: %s", !code.expired() ? "YES" : "NO");
-            if (!code.expired())
+            ImGui::Text("Has program: %s", code ? "YES" : "NO");
+            if (code)
             {
                 ImGui::Text("Program over: %s", !vm->is_there_a_next_instr() ? "YES" : "NO");
             }
@@ -605,10 +621,10 @@ void AppView::draw_vm_view()
             {
                 ImGui::BeginChild("AssemblyCodeChild", ImGui::GetContentRegionAvail(), true );
 
-                if ( std::shared_ptr<const Code> code_locked = code.lock() )
+                if ( code )
                 {
                     auto current_instr = vm->get_next_instr();
-                    for( Instr* each_instr : code_locked->get_instructions() )
+                    for( Instr* each_instr : code->get_instructions() )
                     {
                         auto str = Instr::to_string( *each_instr );
                         if ( each_instr == current_instr )

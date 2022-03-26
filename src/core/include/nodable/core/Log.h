@@ -58,18 +58,21 @@ namespace Nodable {
         struct Message
         {
             std::string category;
-            Verbosity verbosity;
+            Verbosity   verbosity;
             std::string text;
         };
 
 	private:
         static std::vector<Message> Logs;
-        static std::map<std::string, Verbosity> s_verbosityLevels;
+        static std::map<std::string, Verbosity> s_verbosity_by_category;
+        static Verbosity                        s_verbosity;
 
 	public:
         static const Message* GetLastMessage();
 	    static void           SetVerbosityLevel(const std::string& _category, Verbosity _verbosityLevel);
+	    static void           SetVerbosityLevel(Verbosity);
         static Verbosity      GetVerbosityLevel(const std::string& _category);
+        static Verbosity      GetVerbosityLevel();
 		static void           Push(Verbosity _verbosityLevel, const char* _category, const char* _format, ...);
 		static void           Flush();
 	};

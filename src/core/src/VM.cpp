@@ -57,17 +57,32 @@ void VM::run_program()
 
 void VM::stop_program()
 {
-    m_is_program_running = false;
-    m_is_debugging = false;
-    m_next_node = nullptr;
-    LOG_MESSAGE("VM", "Program stopped\n")
+    if ( m_is_program_running )
+    {
+        m_is_program_running = false;
+        m_is_debugging       = false;
+        m_next_node          = nullptr;
+        LOG_MESSAGE("VM", "Program stopped\n")
+    }
+    else
+    {
+        LOG_ERROR("VM", "stop_program() failed, program is not running\n")
+    }
 }
 
-void VM::release_program()
+std::unique_ptr<const Code> VM::release_program()
 {
-    m_program_asm_code.reset();
+    if( m_is_program_running )
+    {
+        LOG_VERBOSE("VM", "stopping program before continue\n");
+        stop_program();
+    }
+
     clear_registers(); // will also clear reset instruction pointer (stored in a register Register::eip)
-    stop_program();
+    LOG_VERBOSE("VM", "registers cleared\n")
+
+    LOG_VERBOSE("VM", "program released\n")
+    return std::move(m_program_asm_code);
 }
 
 bool VM::_stepOver()

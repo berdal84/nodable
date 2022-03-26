@@ -7,8 +7,9 @@
 
 using namespace Nodable;
 
-std::vector<Log::Message> Log::Logs;
-std::map<std::string, Log::Verbosity> Log::s_verbosityLevels;
+std::vector<Log::Message>             Log::Logs;
+std::map<std::string, Log::Verbosity> Log::s_verbosity_by_category;
+Log::Verbosity                        Log::s_verbosity = Verbosity::Message;
 
 const Log::Message* Log::GetLastMessage()
 {
@@ -19,19 +20,28 @@ const Log::Message* Log::GetLastMessage()
 #endif
 }
 
-void Log::SetVerbosityLevel(const std::string& _category, Verbosity _verbosityLevel)
+void Log::SetVerbosityLevel(const std::string& _category, Verbosity _level)
 {
-   s_verbosityLevels.insert_or_assign(_category, _verbosityLevel );
+   s_verbosity_by_category.insert_or_assign(_category, _level );
+}
+
+void Log::SetVerbosityLevel(Verbosity _level)
+{
+    s_verbosity = _level;
+}
+Log::Verbosity Log::GetVerbosityLevel()
+{
+    return s_verbosity;
 }
 
 Log::Verbosity Log::GetVerbosityLevel(const std::string& _category)
 {
-    auto pair = s_verbosityLevels.find(_category);
-    if ( pair != s_verbosityLevels.end() )
+    auto pair = s_verbosity_by_category.find(_category);
+    if (pair != s_verbosity_by_category.end() )
     {
         return pair->second;
     }
-    return Verbosity::Message;
+    return s_verbosity;
 }
 
 void Log::Push(Verbosity _verbosityLevel, const char* _category, const char* _format, ...)

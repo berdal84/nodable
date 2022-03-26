@@ -552,8 +552,6 @@ GraphNode* GraphNodeView::get_graph_node() const
 
 void GraphNodeView::update_child_view_constraints()
 {
-    LOG_VERBOSE("GraphNodeView", "updateViewConstraints()\n")
-
     auto nodeRegistry = get_graph_node()->get_node_registry();
 
     for(Node* _eachNode: nodeRegistry)

@@ -21,8 +21,8 @@ namespace Nodable
         public:
             VM();
             ~VM() = default;
-            [[nodiscard]] bool    load_program(std::unique_ptr<const Code> _code);
-            void                  release_program();
+            [[nodiscard]] bool          load_program(std::unique_ptr<const Code> _code);
+            std::unique_ptr<const Code> release_program();
             void                  run_program();
             void                  stop_program();
             void                  debug_program();
@@ -33,7 +33,7 @@ namespace Nodable
             inline const Node*    get_next_node() const {return m_next_node; }
             const MemSpace*       get_last_result() const;
             bool                  is_there_a_next_instr() const;
-            std::weak_ptr<const Asm::Code> get_program_asm_code()const { return m_program_asm_code; }
+            const Asm::Code*      get_program_asm_code()const { return m_program_asm_code.get(); }
             Instr*                get_next_instr() const;
             MemSpace&             read_register(Register _id);
 
@@ -42,7 +42,7 @@ namespace Nodable
             void                  advance_cursor(i64 _amount = 1);
             void                  init_instruction_pointer();
             bool                  _stepOver();
-            std::shared_ptr<const Asm::Code> m_program_asm_code;
+            std::unique_ptr<const Asm::Code> m_program_asm_code;
             const Node*           m_next_node;
             bool                  m_is_program_running;
             bool                  m_is_debugging;

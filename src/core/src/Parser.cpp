@@ -182,12 +182,12 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
 			{
 			    if ( m_strict_mode )
                 {
-                    LOG_ERROR("Parser", "Unable to find declaration for %s ! (strict mode) \n", _token->m_word.c_str())
+                    LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token->m_word.c_str())
                  }
 			    else
                 {
 			        /* when strict mode is OFF, we just create a variable with Any type */
-                    LOG_WARNING("Parser", "Unable to find declaration for %s, R::Type::Unknown will be used to allow graph visualisation, but compilation will fail.\n", _token->m_word.c_str())
+                    LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n", _token->m_word.c_str())
                     variable = m_graph->create_variable(R::MetaType::s_unknown, _token->m_word, get_current_scope());
                     variable->get_value()->set_src_token(_token);
                     variable->set_declared(false);
