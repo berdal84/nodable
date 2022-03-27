@@ -19,7 +19,7 @@ jobs:
         os: [ubuntu-20.04]
 
     env:
-      buildType: MinSizeRel # possible options: MinSizeRel Release, Debug, RelWithDebInfo
+      buildType: Release # possible options: MinSizeRel Release, Debug, RelWithDebInfo
 
     steps:
 
