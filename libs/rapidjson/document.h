@@ -713,7 +713,7 @@ public:
 
     //! Constructor for unsigned value.
     explicit GenericValue(unsigned u) RAPIDJSON_NOEXCEPT : data_() {
-        data_.n.m_u64 = u;
+        data_.n.u64 = u; 
         data_.f.flags = (u & 0x80000000) ? kNumberUintFlag : (kNumberUintFlag | kIntFlag | kInt64Flag);
     }
 
@@ -734,7 +734,7 @@ public:
 
     //! Constructor for uint64_t value.
     explicit GenericValue(uint64_t u64) RAPIDJSON_NOEXCEPT : data_() {
-        data_.n.m_u64 = u64;
+        data_.n.u64 = u64;
         data_.f.flags = kNumberUint64Flag;
         if (!(u64 & RAPIDJSON_UINT64_C2(0x80000000, 0x00000000)))
             data_.f.flags |= kInt64Flag;
@@ -745,10 +745,10 @@ public:
     }
 
     //! Constructor for double value.
-    explicit GenericValue(double d) RAPIDJSON_NOEXCEPT : data_() { data_.n.m_double = d; data_.f.flags = kNumberDoubleFlag; }
+    explicit GenericValue(double d) RAPIDJSON_NOEXCEPT : data_() { data_.n.d = d; data_.f.flags = kNumberDoubleFlag; }
 
     //! Constructor for float value.
-    explicit GenericValue(float f) RAPIDJSON_NOEXCEPT : data_() { data_.n.m_double = static_cast<double>(f); data_.f.flags = kNumberDoubleFlag; }
+    explicit GenericValue(float f) RAPIDJSON_NOEXCEPT : data_() { data_.n.d = static_cast<double>(f); data_.f.flags = kNumberDoubleFlag; }
 
     //! Constructor for constant string (i.e. do not make a copy of string)
     GenericValue(const Ch* s, SizeType length) RAPIDJSON_NOEXCEPT : data_() { SetStringRaw(StringRef(s, length)); }
@@ -962,7 +962,7 @@ public:
                 return a >= b && a <= b;    // Prevent -Wfloat-equal
             }
             else
-                return data_.n.m_u64 == rhs.data_.n.m_u64;
+                return data_.n.u64 == rhs.data_.n.u64;
 
         default:
             return true;
@@ -1733,18 +1733,18 @@ public:
     int GetInt() const          { RAPIDJSON_ASSERT(data_.f.flags & kIntFlag);   return data_.n.i.i;   }
     unsigned GetUint() const    { RAPIDJSON_ASSERT(data_.f.flags & kUintFlag);  return data_.n.u.u;   }
     int64_t GetInt64() const    { RAPIDJSON_ASSERT(data_.f.flags & kInt64Flag); return data_.n.i64; }
-    uint64_t GetUint64() const  { RAPIDJSON_ASSERT(data_.f.flags & kUint64Flag); return data_.n.m_u64; }
+    uint64_t GetUint64() const  { RAPIDJSON_ASSERT(data_.f.flags & kUint64Flag); return data_.n.u64; }
 
     //! Get the value as double type.
     /*! \note If the value is 64-bit integer type, it may lose precision. Use \c IsLosslessDouble() to check whether the converison is lossless.
     */
     double GetDouble() const {
         RAPIDJSON_ASSERT(IsNumber());
-        if ((data_.f.flags & kDoubleFlag) != 0)                return data_.n.m_double;   // exact type, no conversion.
+        if ((data_.f.flags & kDoubleFlag) != 0)                return data_.n.d;   // exact type, no conversion.
         if ((data_.f.flags & kIntFlag) != 0)                   return data_.n.i.i; // int -> double
         if ((data_.f.flags & kUintFlag) != 0)                  return data_.n.u.u; // unsigned -> double
         if ((data_.f.flags & kInt64Flag) != 0)                 return static_cast<double>(data_.n.i64); // int64_t -> double (may lose precision)
-        RAPIDJSON_ASSERT((data_.f.flags & kUint64Flag) != 0);  return static_cast<double>(data_.n.m_u64); // uint64_t -> double (may lose precision)
+        RAPIDJSON_ASSERT((data_.f.flags & kUint64Flag) != 0);  return static_cast<double>(data_.n.u64); // uint64_t -> double (may lose precision)
     }
 
     //! Get the value as float type.
@@ -1892,11 +1892,11 @@ public:
     
         default:
             RAPIDJSON_ASSERT(GetType() == kNumberType);
-            if (IsDouble())         return handler.Double(data_.n.m_double);
+            if (IsDouble())         return handler.Double(data_.n.d);
             else if (IsInt())       return handler.Int(data_.n.i.i);
             else if (IsUint())      return handler.Uint(data_.n.u.u);
             else if (IsInt64())     return handler.Int64(data_.n.i64);
-            else                    return handler.Uint64(data_.n.m_u64);
+            else                    return handler.Uint64(data_.n.u64);
         }
     }
 
