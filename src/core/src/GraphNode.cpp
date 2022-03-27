@@ -239,11 +239,11 @@ void GraphNode::destroy(Node* _node)
             scope->remove_variable(node_variable);
         }
     }
-    else if ( Scope* scope = _node->get<Scope>() )
+    else if ( auto* scope = _node->get<Scope>() )
     {
-        for( auto it = scope->get_variables().rbegin(); it != scope->get_variables().rend(); it++ )
+        if ( !scope->has_no_variable() )
         {
-            scope->remove_variable(*it);
+            scope->remove_all_variables();
         }
     }
 

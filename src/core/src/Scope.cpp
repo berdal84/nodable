@@ -115,3 +115,14 @@ void Scope::remove_variable(VariableNode *_variable)
     _variable->set_scope(nullptr);
     m_variables.erase( found );
 }
+
+size_t Scope::remove_all_variables()
+{
+    size_t count = m_variables.size();
+    for(VariableNode* each_variable : m_variables)
+    {
+        each_variable->set_scope(nullptr);
+    }
+    m_variables.clear();
+    return count;
+}
