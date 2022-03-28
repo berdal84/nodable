@@ -72,7 +72,7 @@ On Windows execute: `nodable.exe`, on Linux and macOS run `./nodable`. (On Linux
 
 *Few details about the commands above:
 `--recurse-submodules` is important when cloning since nodable need other git repositories to be built.
-`--branch v0.9.2` is to target a specific tag, it is recommended to get a stable version. You can try a more recent if you wish.
+`--branch v<major>.<minor>.<patch>` is to target a specific tag, it is recommended to get a stable version. You can try a more recent if you wish.
 `--target install` is to create a clean `out/app` directory with only necessary files to run the software.*
 
 
