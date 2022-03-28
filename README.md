@@ -16,9 +16,9 @@
 
 ## Introduction:
 
-The goal of **Nodable** is to **provide an original hybrid source code editor**, using both textual and nodal paradigm.
+The goal of **Nodable** is to **provide an original hybrid source code editor**, using both textual and nodal paradigms.
 
-In Nodable, textual and nodal point of views are strongly linked, in both ways:
+In Nodable, the textual and nodal points of views are strongly linked, in both ways:
 
 - A change to the source code will update the graph.
 - A change to the graph will update the source code.
@@ -59,7 +59,7 @@ Requirements:
 - Libraries
   - Require opengl which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
 
-Below, all the commands to: clone, configure, build nodable from sources.
+Below, are all the commands to clone, configure, build nodable from sources.
 
 ```
 git clone --branch v0.9.3 https://github.com/berdal84/Nodable.git --recurse-submodules
@@ -80,7 +80,7 @@ On Windows execute: `nodable.exe`, on Linux and macOS run `./nodable`. (On Linux
 
 **Nodable** is licensed under the GPL License, see [`LICENSE.txt`](https://github.com/berdal84/Nodable/blob/master/LICENSE.txt) for more information.
 
-Each submodule are licensed, browse *libs/* folder.
+Each submodule is licensed, browse *libs/* folder.
 
 Credits :
 ---------
