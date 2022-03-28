@@ -13,7 +13,7 @@ VM::VM()
     , m_next_node(nullptr)
     , m_program_asm_code(nullptr)
 {
-
+    clear_registers();
 }
 
 void VM::advance_cursor(i64 _amount)
@@ -37,6 +37,7 @@ void VM::clear_registers()
     {
         m_register[i].reset();
     }
+    init_instruction_pointer();
 }
 void VM::run_program()
 {
@@ -45,7 +46,6 @@ void VM::run_program()
     m_is_program_running = true;
 
     clear_registers();
-    init_instruction_pointer(); // uses register, need to be done after clear.
 
     while( is_there_a_next_instr() && get_next_instr()->type != Instr_t::ret )
     {
@@ -350,7 +350,6 @@ void VM::debug_program()
     m_is_debugging = true;
     m_is_program_running = true;
     clear_registers();
-    init_instruction_pointer(); // uses register, need to be done after clear.
     m_next_node = m_program_asm_code->get_meta_data().root_node;
     LOG_MESSAGE("VM", "Debugging program ...\n")
 }
