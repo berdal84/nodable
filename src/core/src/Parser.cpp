@@ -877,16 +877,17 @@ Member* Parser::parse_function_call()
     // Find the prototype in the language library
     auto fct = m_language->findFunction(&signature);
 
-    auto connectArg = [&](const FunctionSignature* _sig, Node* _node, size_t _argIndex ) -> void
+    auto connectArg = [&](const FunctionSignature* _sig, Node* _node, size_t _arg_index ) -> void
     { // lambda to connect input member to node for a specific argument index.
 
-        auto arg        = args.at(_argIndex);
-        auto memberName = _sig->get_args().at(_argIndex).m_name.c_str();
+        Member*     src_member      = args.at(_arg_index);
+        std::string dst_member_name = _sig->get_args().at(_arg_index).m_name;
+        Member*     dst_member      = _node->props()->get(dst_member_name.c_str());
 
-        m_graph->connect(arg, _node->props()->get(memberName));
+        m_graph->connect(src_member, dst_member);
     };
 
-    if (fct != nullptr)
+    if (fct)
     {
         /*
          * If we found a function matching signature, we create a not with that function.
