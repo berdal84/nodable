@@ -185,6 +185,13 @@ Node* GraphNode::create_unary_op(const InvokableOperator* _operator)
 	return node;
 }
 
+Node* GraphNode::create_abstract_function(const FunctionSignature* _function)
+{
+    Node* node = m_factory->new_abstract_function(_function);
+    add(node);
+    return node;
+}
+
 Node* GraphNode::create_function(const IInvokable* _function)
 {
 	Node* node = m_factory->new_function(_function);

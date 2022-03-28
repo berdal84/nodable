@@ -4,7 +4,7 @@
 #include <nodable/core/VM.h>
 #include <nodable/core/GraphNode.h>
 #include <nodable/core/VariableNode.h>
-#include <nodable/core/HeadlessNodeFactory.h>
+#include <nodable/core/NodeFactory.h>
 #include <nodable/core/languages/Nodable.h>
 
 using namespace Nodable;

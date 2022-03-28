@@ -14,11 +14,11 @@ using namespace Nodable;
 std::string& Serializer::serialize(std::string& _result, const InvokableComponent *_component)const
 {
 
-    const IInvokable* invokable = _component->get_invokable();
+    const IInvokable* invokable = _component->get_function();
 
     if (invokable->get_invokable_type() == IInvokable::Type::Function )
     {
-        serialize(_result, _component->get_invokable()->get_signature(), _component->get_args());
+        serialize(_result, _component->get_function()->get_signature(), _component->get_args());
     }
     else
     {

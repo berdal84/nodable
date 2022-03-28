@@ -59,7 +59,11 @@ TEST(Parser, Complex_parenthesis)
 
 TEST(Parser, unexisting_function)
 {
-    EXPECT_ANY_THROW(ParseAndEvalExpression<int>("pow_unexisting(5)") );
+    const std::string code{"pow_unexisting(5)"};
+    EXPECT_ANY_THROW(ParseAndEvalExpression<void*>(code) );
+    EXPECT_ANY_THROW(ParseAndEvalExpression<std::string>(code) );
+    EXPECT_ANY_THROW(ParseAndEvalExpression<int>(code) );
+    EXPECT_ANY_THROW(ParseAndEvalExpression<double>(code) );
 }
 
 TEST(Parser, function_call)

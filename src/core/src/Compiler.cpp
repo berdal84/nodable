@@ -14,6 +14,7 @@
 #include <nodable/core/InstructionNode.h>
 #include <nodable/core/LiteralNode.h>
 #include <nodable/core/InvokableComponent.h>
+#include <nodable/core/GraphNode.h>
 
 using namespace Nodable;
 using namespace Nodable::Asm;
@@ -117,27 +118,38 @@ Instr* Code::push_instr(Instr_t _type)
     return instr;
 }
 
-bool Asm::Compiler::is_syntax_tree_valid(const Node* _program_graph_root)
+bool Asm::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
 {
-    bool is_valid;
-
-    // check if program an be run
-    const VariableNodes& vars = _program_graph_root->get<Scope>()->get_variables();
-    bool found_a_var_uninit = false;
-    auto it = vars.begin();
-    while(!found_a_var_uninit && it != vars.end() )
+    const Nodes& nodes = _graph->get_node_registry();
+    for( auto each_node : nodes )
     {
-        if( !(*it)->is_declared() )
+        // Check for undeclared variables
+        if( const Scope* scope = each_node->get<Scope>())
         {
-            LOG_ERROR("Compiler", "Unable to load program because %s is not declared.\n", (*it)->get_name() );
-            found_a_var_uninit = true;
+            const VariableNodes& vars = scope->get_variables();
+
+            for(const VariableNode* each_variable : vars)
+            {
+                if( !each_variable->is_declared() )
+                {
+                    LOG_ERROR("Compiler", "Syntax error: %s is not declared.\n", each_variable->get_name() );
+                    return false;
+                }
+            }
         }
-        ++it;
+
+        // Check for undeclared functions
+        if( const InvokableComponent* component = each_node->get<InvokableComponent>() )
+        {
+            if ( !component->has_function() )
+            {
+                LOG_ERROR("Compiler", "Syntax error: %s is not a function available.\n", each_node->get_label() );
+                return false;
+            }
+        }
     }
 
-    is_valid = !found_a_var_uninit;
-
-    return is_valid;
+    return true;
 }
 
 void Asm::Compiler::compile(const Member * _member )
@@ -377,24 +389,25 @@ void Asm::Compiler::compile(const InstructionNode *instr_node)
     }
 }
 
-std::unique_ptr<const Code> Asm::Compiler::compile_syntax_tree(Node* _root)
+std::unique_ptr<const Code> Asm::Compiler::compile_syntax_tree(const GraphNode* _graph)
 {
-    if (is_syntax_tree_valid(_root))
+    if (is_syntax_tree_valid(_graph))
     {
-        m_temp_code = std::make_unique<Code>(_root);
+        Node* root = _graph->get_root();
+        m_temp_code = std::make_unique<Code>(root);
 
         try
         {
-            auto scope = _root->get<Scope>();
+            auto scope = root->get<Scope>();
             NODABLE_ASSERT(scope)
             compile(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
+            LOG_MESSAGE("Compiler", "Program compiled.\n");
         }
         catch ( const std::exception& e )
         {
             m_temp_code.reset();
             LOG_ERROR("Compiler", "Unable to create assembly code for program. Reason: %s\n", e.what());
         }
-        LOG_MESSAGE("Compiler", "Program compiled.\n");
         return std::move(m_temp_code);
     }
     return nullptr;

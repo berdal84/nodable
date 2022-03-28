@@ -26,7 +26,7 @@ add_library(
         src/ForLoopNode.cpp
         src/FunctionSignature.cpp
         src/GraphNode.cpp
-        src/HeadlessNodeFactory.cpp
+        src/NodeFactory.cpp
         src/InstructionNode.cpp
         src/InvokableComponent.cpp
         src/IScope.cpp

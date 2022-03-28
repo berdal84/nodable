@@ -31,7 +31,7 @@ namespace Nodable
         virtual Node*                       new_binary_op(const InvokableOperator*)const = 0;
         virtual Node*                       new_unary_op(const InvokableOperator*)const = 0;
         virtual Node*                       new_operator(const InvokableOperator*)const = 0;
-        virtual Node*                       new_function(const FunctionSignature*)const = 0;
+        virtual Node*                       new_abstract_function(const FunctionSignature*)const = 0;
         virtual Node*                       new_function(const IInvokable*)const = 0;
         virtual Node*                       new_scope()const = 0;
         virtual ConditionalStructNode*      new_cond_struct()const = 0;

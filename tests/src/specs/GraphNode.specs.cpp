@@ -5,7 +5,7 @@
 #include <nodable/core/GraphNode.h>
 #include <nodable/core/InstructionNode.h>
 #include <nodable/core/VariableNode.h>
-#include <nodable/core/HeadlessNodeFactory.h>
+#include <nodable/core/NodeFactory.h>
 #include <nodable/core/Wire.h>
 #include <nodable/core/languages/Nodable.h>
 #include <nodable/core/InvokableComponent.h>
@@ -17,7 +17,7 @@ using namespace Nodable::R;
 TEST( GraphNode, connect)
 {
     LanguageNodable language;
-    HeadlessNodeFactory factory(&language);
+    NodeFactory factory(&language);
     bool autocompletion = false;
     GraphNode graph(&language, &factory, &autocompletion);
 
@@ -39,7 +39,7 @@ TEST( GraphNode, connect)
 TEST( GraphNode, disconnect)
 {
     LanguageNodable language;
-    HeadlessNodeFactory factory(&language);
+    NodeFactory factory(&language);
     bool autocompletion  = false;
     GraphNode graph(&language, &factory,  &autocompletion);
 
@@ -68,7 +68,7 @@ TEST( GraphNode, clear)
 {
     // prepare
     LanguageNodable language;
-    HeadlessNodeFactory factory(&language);
+    NodeFactory factory(&language);
     bool autocompletion  = false;
     GraphNode graph(&language, &factory,  &autocompletion);
     InstructionNode* instructionNode = graph.create_instr();
@@ -101,7 +101,7 @@ TEST( GraphNode, create_and_delete_relations)
 {
     // prepare
     LanguageNodable language;
-    HeadlessNodeFactory factory(&language);
+    NodeFactory factory(&language);
     bool autocompletion  = false;
     GraphNode graph(&language, &factory, &autocompletion);
     Node* program = graph.create_root();
@@ -141,7 +141,7 @@ TEST(Graph, by_reference_assign)
 
     // prepare
     LanguageNodable language;
-    HeadlessNodeFactory factory(&language);
+    NodeFactory factory(&language);
     bool autocompletion  = false;
     GraphNode graph(&language, &factory, &autocompletion);
     Node* program = graph.create_root();

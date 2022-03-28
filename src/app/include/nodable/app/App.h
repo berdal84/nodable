@@ -43,7 +43,6 @@ namespace Nodable
 		File*           get_file_at(size_t _index)const;
         size_t          get_curr_file_index()const;
 		void            set_curr_file(size_t _index);
-        Node*           get_curr_file_program_root() const;
         void            vm_run();
         void            vm_debug();
         void            vm_step_over();

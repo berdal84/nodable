@@ -1,4 +1,4 @@
-#include <nodable/core/HeadlessNodeFactory.h>
+#include <nodable/core/NodeFactory.h>
 #include <nodable/core/InstructionNode.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/LiteralNode.h>
@@ -9,7 +9,7 @@
 
 using namespace Nodable;
 
-InstructionNode* HeadlessNodeFactory::new_instr() const
+InstructionNode* NodeFactory::new_instr() const
 {
     InstructionNode* instr_node = new InstructionNode(ICON_FA_CODE " Instr.");
     instr_node->set_short_label(ICON_FA_CODE " I.");
@@ -17,7 +17,7 @@ InstructionNode* HeadlessNodeFactory::new_instr() const
     return instr_node;
 }
 
-VariableNode* HeadlessNodeFactory::new_variable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope *_scope) const
+VariableNode* NodeFactory::new_variable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope *_scope) const
 {
     // create
     auto* node = new VariableNode(_type);
@@ -37,7 +37,7 @@ VariableNode* HeadlessNodeFactory::new_variable(std::shared_ptr<const R::MetaTyp
     return node;
 }
 
-Node* HeadlessNodeFactory::new_operator(const InvokableOperator* _operator) const
+Node* NodeFactory::new_operator(const InvokableOperator* _operator) const
 {
     switch (_operator->get_operator_type() )
     {
@@ -50,7 +50,7 @@ Node* HeadlessNodeFactory::new_operator(const InvokableOperator* _operator) cons
     }
 }
 
-Node* HeadlessNodeFactory::new_binary_op(const InvokableOperator* _operator) const
+Node* NodeFactory::new_binary_op(const InvokableOperator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
@@ -76,13 +76,13 @@ Node* HeadlessNodeFactory::new_binary_op(const InvokableOperator* _operator) con
     return node;
 }
 
-void HeadlessNodeFactory::setup_node_labels(Node *_node, const InvokableOperator *_operator)
+void NodeFactory::setup_node_labels(Node *_node, const InvokableOperator *_operator)
 {
     _node->set_label(_operator->get_signature()->get_label());
     _node->set_short_label(_operator->get_short_identifier().c_str());
 }
 
-Node* HeadlessNodeFactory::new_unary_op(const InvokableOperator* _operator) const
+Node* NodeFactory::new_unary_op(const InvokableOperator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
@@ -106,52 +106,67 @@ Node* HeadlessNodeFactory::new_unary_op(const InvokableOperator* _operator) cons
     return node;
 }
 
-Node* HeadlessNodeFactory::new_function(const FunctionSignature* _signature) const
+Node* NodeFactory::new_abstract_function(const FunctionSignature* _signature) const
 {
-    // Create a node with 2 inputs and 1 output
-    auto node = new Node();
+    auto node = _new_abstract_function(_signature);
+
+    // Create an InvokableComponent with the function.
+    auto functionComponent = new InvokableComponent( /* no InvokableFunction */);
+    node->add_component(functionComponent);
+
+    m_post_process(node);
+    return node;
+}
+
+Node* NodeFactory::_new_abstract_function(const FunctionSignature* _signature) const
+{
+    Node* node = new Node();
     node->set_label(_signature->get_identifier() + "()");
     std::string str = _signature->get_label().substr(0, 2) + "..()";
     node->set_short_label(str.c_str());
 
-    auto props = node->props();
-    Member* result = props->add(k_value_member_name, Visibility::Default, _signature->get_return_type(), Way_Out);
+    // Create a result/value
+    Properties* props = node->props();
+    props->add(k_value_member_name, Visibility::Default, _signature->get_return_type(), Way_Out);
+
+    // Create arguments
+    auto args = _signature->get_args();
+    for (auto& arg : args)
+    {
+        props->add(arg.m_name.c_str(), Visibility::Default, arg.m_type, Way_In); // create node input
+    }
 
     m_post_process(node);
 
     return node;
 }
 
-Node* HeadlessNodeFactory::new_function(const IInvokable* _function) const
+Node* NodeFactory::new_function(const IInvokable* _function) const
 {
-    // Create a node with 2 inputs and 1 output
-    auto node = new Node();
-    node->set_label(_function->get_signature()->get_identifier() + "()");
-    std::string str = _function->get_signature()->get_label().substr(0, 2) + "..()";
-    node->set_short_label(str.c_str());
+    // Create an abstract function node
+    Node* node = _new_abstract_function(_function->get_signature());
+    Properties* props = node->props();
 
-    auto props = node->props();
-    Member* result = props->add(k_value_member_name, Visibility::Default, _function->get_signature()->get_return_type(), Way_Out);
-
-    // Create ComputeBase binOpComponent and link values.
+    // Create an InvokableComponent with the function.
     auto functionComponent = new InvokableComponent( _function );
-    functionComponent->set_result(result);
+    node->add_component(functionComponent);
 
-    // Arguments
+    // Link result member
+    functionComponent->set_result(props->get(k_value_member_name));
+
+    // Link arguments
     auto args = _function->get_signature()->get_args();
     for (size_t argIndex = 0; argIndex < args.size(); argIndex++)
     {
-        std::string memberName = args[argIndex].m_name;
-        auto member = props->add(memberName.c_str(), Visibility::Default, args[argIndex].m_type, Way_In); // create node input
-        functionComponent->set_arg(argIndex, member); // link input to binOpComponent
+        Member* member = props->get(args[argIndex].m_name.c_str());
+        functionComponent->set_arg(argIndex, member);
     }
 
-    node->add_component(functionComponent);
     m_post_process(node);
     return node;
 }
 
-Node* HeadlessNodeFactory::new_scope() const
+Node* NodeFactory::new_scope() const
 {
     auto scope_node = new Node();
     std::string label = ICON_FA_CODE_BRANCH " Scope";
@@ -169,7 +184,7 @@ Node* HeadlessNodeFactory::new_scope() const
     return scope_node;
 }
 
-ConditionalStructNode* HeadlessNodeFactory::new_cond_struct() const
+ConditionalStructNode* NodeFactory::new_cond_struct() const
 {
     auto cond_struct_node = new ConditionalStructNode();
     std::string label = ICON_FA_QUESTION " Condition";
@@ -187,7 +202,7 @@ ConditionalStructNode* HeadlessNodeFactory::new_cond_struct() const
     return cond_struct_node;
 }
 
-ForLoopNode* HeadlessNodeFactory::new_for_loop_node() const
+ForLoopNode* NodeFactory::new_for_loop_node() const
 {
     auto for_loop = new ForLoopNode();
     std::string label = ICON_FA_RECYCLE " For loop";
@@ -205,7 +220,7 @@ ForLoopNode* HeadlessNodeFactory::new_for_loop_node() const
     return for_loop;
 }
 
-Node* HeadlessNodeFactory::new_program() const
+Node* NodeFactory::new_program() const
 {
     Node* prog = new_scope();
     prog->set_label(ICON_FA_FILE_CODE " Program");
@@ -215,14 +230,14 @@ Node* HeadlessNodeFactory::new_program() const
     return prog;
 }
 
-Node* HeadlessNodeFactory::new_node() const
+Node* NodeFactory::new_node() const
 {
     auto node = new Node();
     m_post_process(node);
     return node;
 }
 
-LiteralNode* HeadlessNodeFactory::new_literal(std::shared_ptr<const R::MetaType> _type) const
+LiteralNode* NodeFactory::new_literal(std::shared_ptr<const R::MetaType> _type) const
 {
     LiteralNode* node = new LiteralNode(_type);
     node->set_label("Literal");

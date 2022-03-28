@@ -877,41 +877,54 @@ Member* Parser::parse_function_call()
     // Find the prototype in the language library
     auto fct = m_language->findFunction(&signature);
 
+    auto connectArg = [&](const FunctionSignature* _sig, Node* _node, size_t _argIndex ) -> void
+    { // lambda to connect input member to node for a specific argument index.
+
+        auto arg        = args.at(_argIndex);
+        auto memberName = _sig->get_args().at(_argIndex).m_name.c_str();
+
+        m_graph->connect(arg, _node->props()->get(memberName));
+    };
+
     if (fct != nullptr)
     {
+        /*
+         * If we found a function matching signature, we create a not with that function.
+         * The node will be able to be evaluated.
+         *
+         * TODO: remove this method, the parser should not check if function exist or not.
+         *       this role is for the Compiler.
+         */
         auto node = m_graph->create_function(fct);
-
-        auto connectArg = [&](size_t _argIndex) -> void
-        { // lambda to connect input member to node for a specific argument index.
-
-            auto arg = args.at(_argIndex);
-            auto memberName = fct
-                    ->get_signature()
-                    ->get_args()
-                    .at(_argIndex)
-                    .m_name;
-
-            m_graph->connect(arg, node->props()->get(memberName.c_str()));
-        };
 
         for (size_t argIndex = 0; argIndex < fct->get_signature()->get_arg_count(); argIndex++)
         {
-            connectArg(argIndex);
+            connectArg(fct->get_signature(), node, argIndex);
         }
 
         commit_transaction();
         LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
         return node->props()->get(k_value_member_name);
-
     }
+    else
+    {
+        /*
+         * If we DO NOT found a function matching signature, we create an abstract function.
+         * The node will be able to be evaluated.
+         */
+        auto node = m_graph->create_abstract_function(&signature);
 
-    std::string error_str = "parse function call... " KO " abort, reason: ";
-    m_language->getSerializer()->serialize(error_str, &signature);
-    error_str.append(" not found.\n");
-    LOG_WARNING("Parser", error_str.c_str() );
-    rollback_transaction();
-    return nullptr;
+        for (size_t argIndex = 0; argIndex < signature.get_arg_count(); argIndex++)
+        {
+            connectArg(&signature, node, argIndex);
+        }
+
+        commit_transaction();
+        LOG_VERBOSE("Parser", "parse function call... " OK "\n")
+
+        return node->props()->get(k_value_member_name);
+    }
 }
 
 Scope* Parser::get_current_scope()

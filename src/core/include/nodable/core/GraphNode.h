@@ -24,20 +24,15 @@ namespace Nodable
 		explicit GraphNode(const Language*, const INodeFactory*, const bool* _autocompletion);
 		~GraphNode();
 
-		/** Update the graph by evaluating its nodes only when necessary. */
-        UpdateResult            update() override;
-
-        /** Clear Graph. Delete all Nodes/Wires and reset scope */
-		void                    clear();
-
-        std::vector<Node*>&     get_node_registry() {return m_node_registry;}
-        std::vector<Wire*>&     get_wire_registry() {return m_wire_registry;}
-        const Language*         get_language()const { return m_language; }
-        Node*                   get_root() { return m_root; }
-        RelationRegistry&       get_relation_registry() {return m_relation_registry;}
-        bool                    is_empty();
-        void                    ensure_has_root();
-        /* node factory */
+        UpdateResult                update() override; // Update the graph by evaluating its nodes only when necessary.
+		void                        clear(); // Clear Graph. Delete all Nodes/Wires and reset scope
+        const std::vector<Node*>&   get_node_registry()const {return m_node_registry;}
+        const std::vector<Wire*>&   get_wire_registry()const {return m_wire_registry;}
+        const Language*             get_language()const { return m_language; }
+        Node*                       get_root()const { return m_root; }
+        RelationRegistry&           get_relation_registry() {return m_relation_registry;}
+        bool                        is_empty();
+        void                        ensure_has_root();
         Node*                       create_root();
         InstructionNode*            create_instr();
 		VariableNode*				create_variable(std::shared_ptr<const R::MetaType>, const std::string&, IScope*);
@@ -46,6 +41,7 @@ namespace Nodable
 		Node*                       create_unary_op(const InvokableOperator*);
         Node*                       create_operator(const InvokableOperator*);
 		Wire*                       create_wire();
+		Node*                       create_abstract_function(const FunctionSignature*);
 		Node*                       create_function(const IInvokable*);
         Node*                       create_scope();
         ConditionalStructNode*      create_cond_struct();

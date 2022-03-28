@@ -28,7 +28,7 @@ bool GraphNodeView::draw()
     Node*        new_node       = nullptr;
     Settings*    settings       = m_context->settings;
     GraphNode*   graph          = get_graph_node();
-    Nodes&       node_registry  = graph->get_node_registry();
+    const Nodes& node_registry  = graph->get_node_registry();
 	vec2         origin         = ImGui::GetCursorScreenPos();
 
 	const MemberConnector* dragged_member_conn = MemberConnector::get_gragged();
@@ -616,13 +616,13 @@ void GraphNodeView::update_child_view_constraints()
 
 bool GraphNodeView::update()
 {
-    GraphNode* graph                 = get_graph_node();
-    std::vector<Node*>& nodeRegistry = graph->get_node_registry();
+    GraphNode* graph                        = get_graph_node();
+    const std::vector<Node*>& node_registry = graph->get_node_registry();
 
     // Find NodeView components
     auto deltaTime = ImGui::GetIO().DeltaTime;
     std::vector<NodeView*> views;
-    Node::get_components(nodeRegistry, views);
+    Node::get_components(node_registry, views);
 
     // updateContraints if needed
     if (graph->is_dirty() )

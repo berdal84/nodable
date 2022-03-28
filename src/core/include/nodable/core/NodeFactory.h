@@ -10,15 +10,17 @@
 namespace Nodable
 {
     /**
-     * @brief Node Factory implementation by default.
+     * @brief The NodeFactory instantiate Nodes. Class take a function to apply after creation.
+     *
+     * By default post processing function does nothing. It can be used to add a NodeView, log messages, etc.
      */
-    class HeadlessNodeFactory: public INodeFactory
+    class NodeFactory: public INodeFactory
     {
     public:
-        HeadlessNodeFactory(const Language* _language, std::function<void(Node*)> _post_process_fct = [](Node* _node){} )
+        NodeFactory(const Language* _language, std::function<void(Node *)> _post_process_fct = [](Node* _node){} )
         : m_language(_language)
         , m_post_process(_post_process_fct) {}
-        ~HeadlessNodeFactory() {}
+        ~NodeFactory() {}
 
         Node*                       new_program()const override ;
         InstructionNode*            new_instr()const override ;
@@ -27,7 +29,7 @@ namespace Nodable
         Node*                       new_binary_op(const InvokableOperator*)const override;
         Node*                       new_unary_op(const InvokableOperator*)const override;
         Node*                       new_operator(const InvokableOperator*)const override;
-        Node*                       new_function(const FunctionSignature*)const override;
+        Node*                       new_abstract_function(const FunctionSignature*)const override;
         Node*                       new_function(const IInvokable*)const override ;
         Node*                       new_scope()const override ;
         ConditionalStructNode*      new_cond_struct()const override ;
@@ -35,9 +37,10 @@ namespace Nodable
         Node*                       new_node()const override ;
 
     private:
+        Node*                      _new_abstract_function(const FunctionSignature *_signature) const; // this do not invoke post_process
         static void                setup_node_labels(Node *_node, const InvokableOperator *_operator);
 
-        std::function<void(Node*)> m_post_process;
+        std::function<void(Node*)> m_post_process; // invoked after each node creation, just before to return.
         const Language*            m_language;
 
     };

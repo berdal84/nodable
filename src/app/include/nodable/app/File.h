@@ -11,7 +11,7 @@
 #include <nodable/core/reflection/R.h>
 #include <nodable/app/types.h>
 #include <nodable/core/Log.h>
-#include <nodable/core/HeadlessNodeFactory.h>
+#include <nodable/core/NodeFactory.h>
 #include <nodable/app/History.h>
 
 namespace Nodable
@@ -53,7 +53,7 @@ namespace Nodable
 		bool                       m_modified;
 		std::string                m_name;
 		std::string                m_path;
-		const HeadlessNodeFactory  m_factory;
+		const NodeFactory  m_factory;
 		FileView*                  m_view;
 		History                    m_history;
 		GraphNode*                 m_graph;

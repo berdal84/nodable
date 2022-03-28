@@ -7,6 +7,7 @@
 #include <nodable/core/types.h>
 #include <nodable/core/reflection/R.h>
 #include <nodable/core/Variant.h>
+#include "GraphNode.h"
 
 namespace Nodable
 {
@@ -210,9 +211,9 @@ namespace Nodable
         {
         public:
             Compiler()= default;
-            std::unique_ptr<const Code> compile_syntax_tree(Node*);
+            std::unique_ptr<const Code> compile_syntax_tree(const GraphNode*);
         private:
-            bool is_syntax_tree_valid(const Node*);
+            bool is_syntax_tree_valid(const GraphNode*);
             void compile(const Node*);
             void compile(const Member*);
             void compile(const Scope*, bool _insert_fake_return = false);

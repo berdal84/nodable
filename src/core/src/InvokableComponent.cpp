@@ -65,3 +65,4 @@ bool InvokableComponent::update()
 
 	return success;
 }
+

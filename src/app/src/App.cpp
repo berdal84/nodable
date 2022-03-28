@@ -140,36 +140,29 @@ void App::close_file_at(size_t _fileIndex)
     }
 }
 
-Node* App::get_curr_file_program_root() const
-{
-    if ( File* file = get_curr_file())
-        return file->get_graph()->get_root();
-    return nullptr;
-}
-
 bool App::vm_compile_and_load_program()
 {
-    Node* program = get_curr_file_program_root();
-    if (program )
+    const GraphNode* graph = nullptr;
+
+    if ( File* file = get_curr_file())
+    {
+        graph = file->get_graph();
+    }
+
+    if (graph)
     {
         Asm::Compiler compiler;
-        std::unique_ptr<const Asm::Code> asm_code = compiler.compile_syntax_tree(program);
+        std::unique_ptr<const Asm::Code> asm_code = compiler.compile_syntax_tree(graph);
 
-        if (!asm_code)
+        if (asm_code)
         {
-            LOG_ERROR("App", "Unable to compile program.")
-            return false;
+            m_context->vm->release_program();
+
+            if (m_context->vm->load_program(std::move(asm_code)))
+            {
+                return true;
+            }
         }
-
-        m_context->vm->release_program();
-
-        if( !m_context->vm->load_program(std::move(asm_code)) )
-        {
-            LOG_ERROR("App", "Unable to load program.")
-            return false;
-        }
-
-        return true;
     }
 
     return false;
