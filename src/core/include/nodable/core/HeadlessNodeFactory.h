@@ -15,24 +15,30 @@ namespace Nodable
     class HeadlessNodeFactory: public INodeFactory
     {
     public:
-        HeadlessNodeFactory(const Language* _language): m_language(_language) {}
+        HeadlessNodeFactory(const Language* _language, std::function<void(Node*)> _post_process_fct = [](Node* _node){} )
+        : m_language(_language)
+        , m_post_process(_post_process_fct) {}
         ~HeadlessNodeFactory() {}
 
-        Node*                       newProgram()const override ;
+        Node*                       new_program()const override ;
         InstructionNode*            new_instr()const override ;
-        VariableNode*				newVariable(std::shared_ptr<const R::MetaType>, const std::string&, IScope *)const override ;
-        LiteralNode*                newLiteral(std::shared_ptr<const R::MetaType>)const override ;
-        Node*                       newBinOp(const InvokableOperator*)const override ;
-        Node*                       newUnaryOp(const InvokableOperator*)const override ;
-        Node*                       newOperator(const InvokableOperator*)const override ;
-        Node*                       newFunction(const IInvokable*)const override ;
-        Node*                       newScope()const override ;
-        ConditionalStructNode*      newConditionalStructure()const override ;
+        VariableNode*				new_variable(std::shared_ptr<const R::MetaType>, const std::string&, IScope *)const override ;
+        LiteralNode*                new_literal(std::shared_ptr<const R::MetaType>)const override ;
+        Node*                       new_binary_op(const InvokableOperator*)const override;
+        Node*                       new_unary_op(const InvokableOperator*)const override;
+        Node*                       new_operator(const InvokableOperator*)const override;
+        Node*                       new_function(const FunctionSignature*)const override;
+        Node*                       new_function(const IInvokable*)const override ;
+        Node*                       new_scope()const override ;
+        ConditionalStructNode*      new_cond_struct()const override ;
         ForLoopNode*                new_for_loop_node()const override ;
-        Node*                       newNode()const override ;
+        Node*                       new_node()const override ;
 
     private:
-        static void setupNodeLabels(Node *_node, const InvokableOperator *_operator);
-        const Language* m_language;
+        static void                setup_node_labels(Node *_node, const InvokableOperator *_operator);
+
+        std::function<void(Node*)> m_post_process;
+        const Language*            m_language;
+
     };
 }

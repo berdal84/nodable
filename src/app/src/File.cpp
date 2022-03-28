@@ -7,19 +7,19 @@
 #include <nodable/app/GraphNodeView.h>
 #include <nodable/core/Parser.h>
 #include <nodable/app/History.h>
-#include <nodable/app/AppNodeFactory.h>
 #include <nodable/app/AppContext.h>
+#include <nodable/app/NodeView.h>
 
 using namespace Nodable;
 
-File::File( AppContext* _context, const std::string& _path, const std::string& _name,  const char* _content)
+File::File( AppContext* _context, const std::string& _path, const std::string& _name)
     : m_name(_name)
     , m_path(_path)
     , m_context(_context)
     , m_modified(false)
     , m_open(false)
     , m_graph(nullptr)
-    , m_factory(_context)
+    , m_factory(_context->language, [_context](Node* _node) { _node->add_component(new NodeView(_context)); } )
     , m_history(&_context->settings->experimental_hybrid_history)
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n")
@@ -27,14 +27,13 @@ File::File( AppContext* _context, const std::string& _path, const std::string& _
     // FileView
 	m_view = new FileView(m_context, this);
     m_view->init();
-    m_view->setText(_content);
-	auto textEditor = m_view->getTextEditor();
 
     LOG_VERBOSE( "File", "View built, creating History ...\n")
 
 	// History
-    TextEditorBuffer* text_editor_buf = m_history.configure_text_editor_undo_buffer(textEditor);
-    m_view->setUndoBuffer(text_editor_buf);
+    TextEditor* text_editor = m_view->get_text_editor();
+    TextEditorBuffer* text_editor_buf = m_history.configure_text_editor_undo_buffer(text_editor);
+    m_view->set_undo_buffer(text_editor_buf);
 
     LOG_VERBOSE( "File", "History built, creating graph ...\n")
 
@@ -43,7 +42,10 @@ File::File( AppContext* _context, const std::string& _path, const std::string& _
             m_context->language,
             &m_factory,
             &m_context->settings->experimental_graph_autocompletion );
-    m_graph->set_label(getName() + "'s inner container");
+
+    char label[50];
+    snprintf(label, sizeof(label), "%s's graph", get_name());
+    m_graph->set_label( label );
 
     m_graph->add_component(new GraphNodeView(m_context));
 
@@ -51,41 +53,34 @@ File::File( AppContext* _context, const std::string& _path, const std::string& _
 
 }
 
-void File::save()
+File::~File()
+{
+    delete m_graph;
+    delete m_view;
+}
+
+void File::write_to_disk()
 {
 	if ( m_modified )
 	{
-		std::ofstream fileStream(this->m_path.c_str());
-		auto content = m_view->getText();
+		std::ofstream fileStream(m_path.c_str());
+		std::string content = m_view->get_text();
         fileStream.write(content.c_str(), content.size());
         m_modified = false;
 	}
 
 }
 
-File* File::OpenFile(AppContext* _ctx, const std::string& _path, const std::string& _name )
+File* File::open(AppContext* _ctx, const std::string& _path, const std::string& _name )
 {
-    LOG_MESSAGE( "File", "Loading file \"%s\"...\n", _path.c_str())
-	std::ifstream fileStream(_path);
-    LOG_VERBOSE( "File", "Input file stream created.\n")
-
-	if (!fileStream.is_open())
-	{
-		LOG_ERROR("File", "Unable to load \"%s\"\n", _path.c_str())
-		return nullptr;
-	}
-    LOG_VERBOSE( "File", "Input file stream is open, reading content ...\n")
-
-	// TODO: do that inside File constr ?
-	std::string content((std::istreambuf_iterator<char>(fileStream)), std::istreambuf_iterator<char>());
-
-    LOG_VERBOSE( "File", "Content read, creating File object ...\n")
-
-	File* file = new File(_ctx, _path, _name, content.c_str());
-    file->m_open = true;
-
-    LOG_MESSAGE( "File", "\"%s\" loaded (%s).\n", _name.c_str(), _path.c_str())
-
+    File* file = new File(_ctx, _path, _name);
+    file->read_from_disk();
+    if ( !file->m_open )
+    {
+        LOG_ERROR("File", "Unable to open file %s (%s)\n", _name.c_str(), _name.c_str());
+        delete file;
+        return nullptr;
+    }
 	return file;
 }
 
@@ -132,7 +127,7 @@ bool File::update()
         auto graphUpdateResult = m_graph->update();
 
         if (   graphUpdateResult == UpdateResult::SuccessWithoutChanges
-            && !m_view->getSelectedText().empty() )
+            && !m_view->get_selected_text().empty() )
         {
             LOG_VERBOSE("File","graph_has_changed = false\n")
             graph_has_changed = false;
@@ -151,7 +146,7 @@ bool File::update()
                 serializer->serialize(code, root_node );
 
                 LOG_VERBOSE("File","replace selected text\n")
-                m_view->replaceSelectedText(code);
+                m_view->replace_selected_text(code);
             }
             graph_has_changed = true;
         }
@@ -168,12 +163,32 @@ bool File::update()
 bool File::update_graph()
 {
     LOG_VERBOSE("File","get selected text\n")
-	std::string code_source = m_view->getSelectedText();
+	std::string code_source = m_view->get_selected_text();
 	return update_graph(code_source);
 }
 
-File::~File()
+bool File::read_from_disk()
 {
-    delete m_graph;
-    delete m_view;
+    LOG_MESSAGE( "File", "Loading file \"%s\"...\n", m_path.c_str())
+    std::ifstream file_stream(m_path);
+    LOG_VERBOSE( "File", "Input file stream created.\n")
+
+    if (!file_stream.is_open())
+    {
+        LOG_ERROR("File", "Unable to load \"%s\"\n", m_path.c_str())
+        m_open = false;
+    }
+    else
+    {
+        LOG_VERBOSE("File", "Input file stream is open, reading content ...\n")
+        std::string content((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
+
+        LOG_VERBOSE("File", "Content read, creating File object ...\n")
+        m_view->set_text(content);
+
+        LOG_MESSAGE("File", "\"%s\" loaded (%s).\n", m_name.c_str(), m_path.c_str())
+        m_open = true;
+    }
+
+    return m_open;
 }

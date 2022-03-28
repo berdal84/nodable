@@ -66,7 +66,7 @@ void App::shutdown()
 
 bool App::open_file(const ghc::filesystem::path& _filePath)
 {		
-	auto file = File::OpenFile(m_context, _filePath.string(), _filePath.filename().string() );
+	auto file = File::open(m_context, _filePath.string(), _filePath.filename().string());
 
 	if (file)
 	{
@@ -80,7 +80,7 @@ bool App::open_file(const ghc::filesystem::path& _filePath)
 void App::save_file() const
 {
 	File* current_file = get_curr_file();
-	if (current_file) current_file->save();
+	if (current_file) current_file->write_to_disk();
 }
 
 void App::close_file()
@@ -143,7 +143,7 @@ void App::close_file_at(size_t _fileIndex)
 Node* App::get_curr_file_program_root() const
 {
     if ( File* file = get_curr_file())
-        return file->getGraph()->get_root();
+        return file->get_graph()->get_root();
     return nullptr;
 }
 
@@ -296,7 +296,7 @@ void App::handle_events()
                 {
                     if ( src->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
                     auto cmd = std::make_shared<Cmd_ConnectNodes>(src->get_node(), dst->get_node(), EdgeType::IS_PREDECESSOR_OF);
-                    History *curr_file_history = get_curr_file()->getHistory();
+                    History *curr_file_history = get_curr_file()->get_history();
                     curr_file_history->push_command(cmd);
                 }
                 break;
@@ -326,7 +326,7 @@ void App::handle_events()
                 {
                     if (src->m_way != Way_Out) std::swap(src, dst); // guarantee src to be the output
                     auto cmd = std::make_shared<Cmd_ConnectMembers>(src->get_member(), dst->get_member());
-                    History *curr_file_history = get_curr_file()->getHistory();
+                    History *curr_file_history = get_curr_file()->get_history();
                     curr_file_history->push_command(cmd);
                 }
                 break;
@@ -342,7 +342,7 @@ void App::handle_events()
                 DirectedEdge relation(src, EdgeType::IS_PREDECESSOR_OF, dst);
                 auto cmd = std::make_shared<Cmd_DisconnectNodes>( relation );
 
-                History *curr_file_history = get_curr_file()->getHistory();
+                History *curr_file_history = get_curr_file()->get_history();
                 curr_file_history->push_command(cmd);
 
                 break;
@@ -360,7 +360,7 @@ void App::handle_events()
                     cmd_grp->push_cmd( std::static_pointer_cast<ICommand>(each_cmd) );
                 }
 
-                History *curr_file_history = get_curr_file()->getHistory();
+                History *curr_file_history = get_curr_file()->get_history();
                 curr_file_history->push_command(std::static_pointer_cast<ICommand>(cmd_grp));
 
                 break;

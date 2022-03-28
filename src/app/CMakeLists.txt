@@ -28,7 +28,6 @@ add_executable(
         src/main.cpp
         src/App.cpp
         src/AppContext.cpp
-        src/AppNodeFactory.cpp
         src/AppView.cpp
         src/Event.cpp
         src/File.cpp

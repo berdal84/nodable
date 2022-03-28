@@ -203,7 +203,7 @@ bool AppView::draw()
 		History* currentFileHistory = nullptr;
         if ( File* file = app->get_curr_file())
         {
-            currentFileHistory = file->getHistory();
+            currentFileHistory = file->get_history();
         }
 
         // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
@@ -244,7 +244,7 @@ bool AppView::draw()
                     bool auto_paste;
                     if (auto file = app->get_curr_file())
                     {
-                        fileView = file->getView();
+                        fileView = file->get_view();
                         auto_paste = fileView->experimental_clipboard_auto_paste();
                     }
 
@@ -505,8 +505,8 @@ bool AppView::draw()
 
                 if (currFile)
                 {
-                    FileView* fileView = currFile->getView();
-                    fileView->drawFileInfo();
+                    FileView* fileView = currFile->get_view();
+                    fileView->draw_info();
                 }
                 else
                 {
@@ -672,7 +672,7 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
     File *file = m_context->app->get_file_at(fileIndex);
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
-    ImGuiWindowFlags window_flags = (file->isModified() ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
+    ImGuiWindowFlags window_flags = (file->has_changed() ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0, 0));
 
@@ -682,7 +682,7 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
     ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
 
     bool open = true;
-    bool visible = ImGui::Begin(file->getName().c_str(), &open, window_flags);
+    bool visible = ImGui::Begin(file->get_name(), &open, window_flags);
     {
         ImGui::PopStyleColor(1);
         ImGui::PopStyleVar();
@@ -697,10 +697,10 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
             }
 
             // History bar on top
-            draw_history_bar(file->getHistory());
+            draw_history_bar(file->get_history());
 
             // File View in the middle
-            View* eachFileView = file->getView();
+            View* eachFileView = file->get_view();
             vec2 availSize = ImGui::GetContentRegionAvail();
 
             if ( isCurrentFile )
@@ -719,7 +719,7 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
             {
                 draw_status_bar();
 
-                if ( file->getView()->hasChanged())
+                if (file->get_view()->text_has_changed())
                 {
                     m_context->vm->release_program();
                 }
@@ -1056,7 +1056,7 @@ void AppView::handle_events()
                     // History
                     if (File* file = m_context->app->get_curr_file())
                     {
-                        History* currentFileHistory = file->getHistory();
+                        History* currentFileHistory = file->get_history();
                         if (key == SDLK_z) currentFileHistory->undo();
                         else if (key == SDLK_y) currentFileHistory->redo();
                     }

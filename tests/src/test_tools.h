@@ -11,7 +11,7 @@
 #include <nodable/core/HeadlessNodeFactory.h>
 #include <nodable/core/Format.h>
 #include <nodable/core/Scope.h>
-#include <nodable/core/LanguageNodable.h>
+#include <nodable/core/languages/Nodable.h>
 
 namespace Nodable
 {

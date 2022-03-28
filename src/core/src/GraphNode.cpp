@@ -153,14 +153,14 @@ void GraphNode::ensure_has_root()
 
 VariableNode* GraphNode::create_variable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope* _scope)
 {
-	auto node = m_factory->newVariable(_type, _name, _scope);
+	auto node = m_factory->new_variable(_type, _name, _scope);
     add(node);
 	return node;
 }
 
 Node* GraphNode::create_operator(const InvokableOperator* _operator)
 {
-    Node* node = m_factory->newOperator( _operator );
+    Node* node = m_factory->new_operator(_operator);
 
     if ( node )
     {
@@ -172,14 +172,14 @@ Node* GraphNode::create_operator(const InvokableOperator* _operator)
 
 Node* GraphNode::create_bin_op(const InvokableOperator* _operator)
 {
-	Node* node = m_factory->newBinOp( _operator );
+	Node* node = m_factory->new_binary_op(_operator);
     add(node);
 	return node;
 }
 
 Node* GraphNode::create_unary_op(const InvokableOperator* _operator)
 {
-	Node* node = m_factory->newUnaryOp( _operator );
+	Node* node = m_factory->new_unary_op(_operator);
     add(node);
 
 	return node;
@@ -187,7 +187,7 @@ Node* GraphNode::create_unary_op(const InvokableOperator* _operator)
 
 Node* GraphNode::create_function(const IInvokable* _function)
 {
-	Node* node = m_factory->newFunction( _function );
+	Node* node = m_factory->new_function(_function);
     add(node);
 	return node;
 }
@@ -558,14 +558,14 @@ void GraphNode::destroy(Wire *_wire)
 
 Node *GraphNode::create_scope()
 {
-    Node* scopeNode = m_factory->newScope();
+    Node* scopeNode = m_factory->new_scope();
     add(scopeNode);
     return scopeNode;
 }
 
 ConditionalStructNode *GraphNode::create_cond_struct()
 {
-    ConditionalStructNode* condStructNode = m_factory->newConditionalStructure();
+    ConditionalStructNode* condStructNode = m_factory->new_cond_struct();
     add(condStructNode);
     return condStructNode;
 }
@@ -579,21 +579,21 @@ ForLoopNode* GraphNode::create_for_loop()
 
 Node *GraphNode::create_root()
 {
-    m_root = m_factory->newProgram();
+    m_root = m_factory->new_program();
     add(m_root);
     return m_root;
 }
 
 Node* GraphNode::create_node()
 {
-    Node* node = m_factory->newNode();
+    Node* node = m_factory->new_node();
     add(node);
     return node;
 }
 
 LiteralNode* GraphNode::create_literal(std::shared_ptr<const R::MetaType> _type)
 {
-    LiteralNode* node = m_factory->newLiteral(_type);
+    LiteralNode* node = m_factory->new_literal(_type);
     add(node);
     return node;
 }

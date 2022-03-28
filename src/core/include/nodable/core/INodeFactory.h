@@ -16,6 +16,7 @@ namespace Nodable
     class InvokableOperator;
     class IInvokable;
     class Language;
+    class FunctionSignature;
 
     /**
      * @brief Interface to implement Node factories.
@@ -23,18 +24,19 @@ namespace Nodable
     class INodeFactory
     {
     public:
-        virtual Node*                       newProgram()const = 0;
+        virtual Node*                       new_program()const = 0;
         virtual InstructionNode*            new_instr()const = 0;
-        virtual VariableNode*				newVariable(std::shared_ptr<const R::MetaType>, const std::string&, IScope *)const = 0;
-        virtual LiteralNode*                newLiteral(std::shared_ptr<const R::MetaType>)const = 0;
-        virtual Node*                       newBinOp(const InvokableOperator*)const = 0;
-        virtual Node*                       newUnaryOp(const InvokableOperator*)const = 0;
-        virtual Node*                       newOperator(const InvokableOperator*)const = 0;
-        virtual Node*                       newFunction(const IInvokable*)const = 0;
-        virtual Node*                       newScope()const = 0;
-        virtual ConditionalStructNode*      newConditionalStructure()const = 0;
+        virtual VariableNode*				new_variable(std::shared_ptr<const R::MetaType>, const std::string&, IScope *)const = 0;
+        virtual LiteralNode*                new_literal(std::shared_ptr<const R::MetaType>)const = 0;
+        virtual Node*                       new_binary_op(const InvokableOperator*)const = 0;
+        virtual Node*                       new_unary_op(const InvokableOperator*)const = 0;
+        virtual Node*                       new_operator(const InvokableOperator*)const = 0;
+        virtual Node*                       new_function(const FunctionSignature*)const = 0;
+        virtual Node*                       new_function(const IInvokable*)const = 0;
+        virtual Node*                       new_scope()const = 0;
+        virtual ConditionalStructNode*      new_cond_struct()const = 0;
         virtual ForLoopNode*                new_for_loop_node()const = 0;
-        virtual Node*                       newNode()const = 0;
+        virtual Node*                       new_node()const = 0;
     };
 }
 

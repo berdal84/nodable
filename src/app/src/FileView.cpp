@@ -12,12 +12,15 @@
 using namespace Nodable;
 
 FileView::FileView(AppContext* _ctx, File *_file)
-        : View(_ctx)
-        , m_textEditor()
-        , m_hasChanged(false)
-        , m_file(_file)
+    : View(_ctx)
+    , m_text_editor()
+    , m_text_has_changed(false)
+    , m_file(_file)
+    , m_child1_size(0.3f)
+    , m_child2_size(0.7f)
+    , m_experimental_clipboard_auto_paste(false)
 {
-    m_observer.observe(_file->m_on_graph_changed_evt, [](GraphNode* _graph)
+    m_graph_change_obs.observe(_file->m_on_graph_changed_evt, [](GraphNode* _graph)
     {
         LOG_VERBOSE("FileView", "graph changed evt received\n")
         if ( !_graph->is_empty() )
@@ -44,9 +47,9 @@ FileView::FileView(AppContext* _ctx, File *_file)
 void FileView::init()
 {
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
-	m_textEditor.SetLanguageDefinition(lang);
-	m_textEditor.SetImGuiChildIgnored(true);
-	m_textEditor.SetPalette(m_file->get_context()->settings->ui_text_textEditorPalette);
+	m_text_editor.SetLanguageDefinition(lang);
+	m_text_editor.SetImGuiChildIgnored(true);
+	m_text_editor.SetPalette(m_file->get_context()->settings->ui_text_textEditorPalette);
 }
 
 bool FileView::draw()
@@ -57,28 +60,28 @@ bool FileView::draw()
      // Splitter
     //---------
 
-    if ( m_childSize1 + m_childSize2 != availSize.x )
+    if (m_child1_size + m_child2_size != availSize.x )
     {
-        float ratio = availSize.x / (m_childSize1 + m_childSize2);
-        m_childSize1 *= ratio;
-        m_childSize2 *= ratio;
+        float ratio = availSize.x / (m_child1_size + m_child2_size);
+        m_child1_size *= ratio;
+        m_child2_size *= ratio;
     }
 
     ImRect rect;
     rect.Max.y = availSize.y;
     rect.Max.x = 4.0f;
-    rect.TranslateX(m_childSize1 + 2.0f);
+    rect.TranslateX(m_child1_size + 2.0f);
     rect.Translate(ImGuiEx::ToScreenPosOffset());
-    ImGui::SplitterBehavior( rect, ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_childSize1, &m_childSize2, 20.0f, 20.0f);
+    ImGui::SplitterBehavior(rect, ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
 
      // TEXT EDITOR
     //------------
 
-    ImGui::BeginChild("file", vec2(m_childSize1, availSize.y), false);
+    ImGui::BeginChild("file", vec2(m_child1_size, availSize.y), false);
 
-    auto previousCursorPosition = m_textEditor.GetCursorPosition();
-    auto previousSelectedText = m_textEditor.GetSelectedText();
-    auto previousLineText = m_textEditor.GetCurrentLineText();
+    auto previousCursorPosition = m_text_editor.GetCursorPosition();
+    auto previousSelectedText = m_text_editor.GetSelectedText();
+    auto previousLineText = m_text_editor.GetCurrentLineText();
 
     bool is_vm_running = m_context->vm->is_program_running();
     auto allowkeyboard = !is_vm_running &&
@@ -90,8 +93,8 @@ bool FileView::draw()
                       !ImGui::IsAnyItemHovered() &&
                       !ImGui::IsAnyItemFocused();
 
-    m_textEditor.SetHandleKeyboardInputs(allowkeyboard);
-    m_textEditor.SetHandleMouseInputs(allowMouse);
+    m_text_editor.SetHandleKeyboardInputs(allowkeyboard);
+    m_text_editor.SetHandleMouseInputs(allowMouse);
 
     // listen to clipboard in background (disable by default)
     if (m_experimental_clipboard_auto_paste)
@@ -100,46 +103,45 @@ bool FileView::draw()
         if (!m_experimental_clipboard_curr.empty() && m_experimental_clipboard_curr != m_experimental_clipboard_prev)
         {
             if ( !m_experimental_clipboard_prev.empty() )
-                m_textEditor.InsertText(m_experimental_clipboard_curr.c_str(), true);
+                m_text_editor.InsertText(m_experimental_clipboard_curr.c_str(), true);
             m_experimental_clipboard_prev = std::move(m_experimental_clipboard_curr);
         }
     }
 
 
-    m_file->getHistory()->enable_text_editor(true); // ensure to begin to record history
-    m_textEditor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
+    m_file->get_history()->enable_text_editor(true); // ensure to begin to record history
+    m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
     if ( m_context->settings->experimental_hybrid_history )
     {
-        m_file->getHistory()->enable_text_editor(false); // avoid recording events caused by graph serialisation
+        m_file->get_history()->enable_text_editor(false); // avoid recording events caused by graph serialisation
     }
 
-    auto currentCursorPosition = m_textEditor.GetCursorPosition();
-    auto currentSelectedText = m_textEditor.GetSelectedText();
-    auto currentLineText = m_textEditor.GetCurrentLineText();
+    auto currentCursorPosition = m_text_editor.GetCursorPosition();
+    auto currentSelectedText = m_text_editor.GetSelectedText();
+    auto currentLineText = m_text_editor.GetCurrentLineText();
 
     auto isCurrentLineModified = currentLineText != previousLineText;
     auto isSelectedTextModified = previousSelectedText != currentSelectedText;
 
-    m_hasChanged = isCurrentLineModified ||
-                   m_textEditor.IsTextChanged() ||
-                   isSelectedTextModified;
+    m_text_has_changed = isCurrentLineModified ||
+                         m_text_editor.IsTextChanged() ||
+                         isSelectedTextModified;
 
-    if (m_textEditor.IsTextChanged())
-        m_file->setModified();
+    if (m_text_editor.IsTextChanged())
+        m_file->set_changed_flag();
 
-    if (hasChanged()) {
+    if ( m_text_has_changed )
+    {
         m_file->update_graph();
-        LOG_VERBOSE("FileView", "after m_file->update_graph();\n");
     }
 
     ImGui::EndChild();
 
      // NODE EDITOR
     //-------------
-    LOG_VERBOSE("FileView", "NODE EDITOR\n");
 
     ImGui::SameLine();
-    GraphNode* graph = m_file->getGraph();
+    GraphNode* graph = m_file->get_graph();
     NODABLE_ASSERT(graph);
     auto graph_node_view = graph->get<GraphNodeView>();
 
@@ -148,7 +150,7 @@ bool FileView::draw()
         LOG_VERBOSE("FileView", "graph_node_view->update()\n");
         graph_node_view->update();
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        bool changed = graph_node_view->drawAsChild("graph", vec2(m_childSize2, availSize.y), false, flags);
+        bool changed = graph_node_view->drawAsChild("graph", vec2(m_child2_size, availSize.y), false, flags);
     }
     else
     {
@@ -156,71 +158,71 @@ bool FileView::draw()
         LOG_ERROR("FileView", "graphNodeView is null\n");
     }
 
-	return m_hasChanged;
+	return m_text_has_changed;
 }
 
-std::string FileView::getText()const
+std::string FileView::get_text()const
 {
-	return m_textEditor.GetText();
+	return m_text_editor.GetText();
 }
 
-void FileView::replaceSelectedText(const std::string &_val)
+void FileView::replace_selected_text(const std::string &_val)
 {
-    if ( getSelectedText() != _val )
+    if (get_selected_text() != _val )
     {
-        auto start = m_textEditor.GetCursorPosition();
+        auto start = m_text_editor.GetCursorPosition();
 
         /* If there is no selection, selects current line */
-        auto hasSelection = m_textEditor.HasSelection();
-        auto selectionStart = m_textEditor.GetSelectionStart();
-        auto selectionEnd = m_textEditor.GetSelectionEnd();
+        auto hasSelection = m_text_editor.HasSelection();
+        auto selectionStart = m_text_editor.GetSelectionStart();
+        auto selectionEnd = m_text_editor.GetSelectionEnd();
 
         // Select the whole line if no selection is set
         if (!hasSelection) {
-            m_textEditor.MoveHome(false);
-            m_textEditor.MoveEnd(true);
-            m_textEditor.SetCursorPosition(TextEditor::Coordinates(start.mLine, 0));
+            m_text_editor.MoveHome(false);
+            m_text_editor.MoveEnd(true);
+            m_text_editor.SetCursorPosition(TextEditor::Coordinates(start.mLine, 0));
         }
 
         /* insert text (and select it) */
-        m_textEditor.InsertText(_val, true);
+        m_text_editor.InsertText(_val, true);
 
-        auto end = m_textEditor.GetCursorPosition();
+        auto end = m_text_editor.GetCursorPosition();
         if (!hasSelection && start.mLine == end.mLine) // no selection and insert text is still on the same line
         {
-            m_textEditor.SetSelection(selectionStart, selectionEnd);
+            m_text_editor.SetSelection(selectionStart, selectionEnd);
         }
         LOG_MESSAGE("FileView", "Selected text updated from graph.\n")
         LOG_VERBOSE("FileView", "%s \n", _val.c_str())
     }
 }
 
-void FileView::setText(const std::string& _content)
+void FileView::set_text(const std::string& _content)
 {
-	m_textEditor.SetText(_content);
+	m_text_editor.SetText(_content);
 }
 
-std::string FileView::getSelectedText()const
+std::string FileView::get_selected_text()const
 {
-	return m_textEditor.HasSelection() ? m_textEditor.GetSelectedText() : m_textEditor.GetCurrentLineText();
+	return m_text_editor.HasSelection() ? m_text_editor.GetSelectedText() : m_text_editor.GetCurrentLineText();
 }
 
-void FileView::setUndoBuffer(TextEditor::IExternalUndoBuffer* _buffer ) {
-	this->m_textEditor.SetExternalUndoBuffer(_buffer);
+void FileView::set_undo_buffer(TextEditor::IExternalUndoBuffer* _buffer ) {
+	this->m_text_editor.SetExternalUndoBuffer(_buffer);
 }
 
-void FileView::drawFileInfo() const
+void FileView::draw_info() const
 {
     // Basic information
-    ImGui::Text("Name: %s", m_file->getName().c_str());
-    ImGui::Text("Path: %s", m_file->getPath().c_str());
+    ImGui::Text("Name: %s", m_file->get_name());
+    ImGui::Text("Path: %s", m_file->get_path());
     ImGui::NewLine();
 
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %lu", m_file->getGraph()->get_node_registry().size());
-    ImGui::Text("Wire count: %lu", m_file->getGraph()->get_wire_registry().size());
+    ImGui::Text("Node count: %lu", m_file->get_graph()->get_node_registry().size());
+    ImGui::Text("Wire count: %lu", m_file->get_graph()->get_wire_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 

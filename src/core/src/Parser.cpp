@@ -15,6 +15,7 @@
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/Scope.h>
+#include <nodable/core/System.h>
 
 using namespace Nodable;
 
@@ -42,19 +43,16 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 
     std::istringstream iss(_source_code);
     std::string line;
-    std::string eol;
-    m_language->getSerializer()->serialize(eol, TokenType_EndOfLine);
-
     LOG_VERBOSE("Parser", "Tokenize begin\n" )
     size_t lineCount = 0;
-    while (std::getline(iss, line, eol[0] ))
+    while (std::getline(iss, line, System::k_end_of_line ))
     {
         LOG_VERBOSE("Parser", "Tokenize line %i ...\n", lineCount )
 
         if ( lineCount != 0 && !m_token_ribbon.tokens.empty() )
         {
             std::shared_ptr<Token> lastToken = m_token_ribbon.tokens.back();
-            lastToken->m_suffix.append(eol);
+            lastToken->m_suffix.push_back(System::k_end_of_line);
         }
 
         if (!tokenize_string(line))
@@ -913,7 +911,7 @@ Member* Parser::parse_function_call()
     error_str.append(" not found.\n");
     LOG_WARNING("Parser", error_str.c_str() );
     rollback_transaction();
-    throw error("parse_function_call failed.", error_str, m_token_ribbon.tokens.back() );
+    return nullptr;
 }
 
 Scope* Parser::get_current_scope()

@@ -7,7 +7,7 @@
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/HeadlessNodeFactory.h>
 #include <nodable/core/Wire.h>
-#include <nodable/core/LanguageNodable.h>
+#include <nodable/core/languages/Nodable.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/Scope.h>
 

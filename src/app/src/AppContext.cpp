@@ -3,9 +3,8 @@
 #include <nodable/app/Settings.h>
 #include <nodable/app/App.h>
 #include <nodable/core/VM.h>
-#include <nodable/core/LanguageNodable.h>
+#include <nodable/core/languages/Nodable.h>
 #include <nodable/core/Texture.h>
-#include <nodable/app/AppNodeFactory.h>
 
 using namespace Nodable;
 

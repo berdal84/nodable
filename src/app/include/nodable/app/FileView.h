@@ -1,9 +1,9 @@
 #pragma once
 
-#include <nodable/core/reflection/R.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <observe/observer.h>
 
+#include <nodable/core/reflection/R.h>
 #include <nodable/app/types.h>
 #include <nodable/app/View.h>
 
@@ -19,32 +19,30 @@ namespace Nodable
 		explicit FileView(AppContext* _ctx, File* _file);
 		~FileView() override = default;
 
-		observe::Observer m_observer;
-
 		void                           init();
 		bool                           draw() override;
-		bool                           hasChanged() const { return this->m_hasChanged; }
-		void                           setText(const std::string&);
-		std::string                    getSelectedText()const;
-		std::string                    getText()const;
-		void                           replaceSelectedText(const std::string &_val);
-		TextEditor*					   getTextEditor(){ return &m_textEditor; }
-		void                           setTextEditorCursorPosition(const TextEditor::Coordinates& _cursorPosition) { m_textEditor.SetCursorPosition(_cursorPosition); }
-		TextEditor::Coordinates        getTextEditorCursorPosition()const { return m_textEditor.GetCursorPosition(); }
-		void						   setUndoBuffer(TextEditor::IExternalUndoBuffer*);
-        void                           drawFileInfo()const;
+		bool                           text_has_changed() const { return m_text_has_changed; }
+		void                           set_text(const std::string&);
+		std::string                    get_selected_text()const;
+		std::string                    get_text()const;
+		void                           replace_selected_text(const std::string &_val);
+		TextEditor*					   get_text_editor(){ return &m_text_editor; }
+		void                           set_cursor_position(const TextEditor::Coordinates& _cursorPosition) { m_text_editor.SetCursorPosition(_cursorPosition); }
+		TextEditor::Coordinates        get_cursor_position()const { return m_text_editor.GetCursorPosition(); }
+		void						   set_undo_buffer(TextEditor::IExternalUndoBuffer*);
+        void                           draw_info()const;
         void                           experimental_clipboard_auto_paste(bool);
         bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
 	private:
 		File*        m_file;
-		TextEditor   m_textEditor;
-		bool         m_hasChanged;
-		float        m_childSize1 = 0.3f;
-		float        m_childSize2 = 0.7f;
-
+		TextEditor   m_text_editor;
+		bool         m_text_has_changed;
+		float        m_child1_size;
+		float        m_child2_size;
         std::string  m_experimental_clipboard_curr;
         std::string  m_experimental_clipboard_prev;
-        bool         m_experimental_clipboard_auto_paste = false;
+        bool         m_experimental_clipboard_auto_paste;
+        observe::Observer m_graph_change_obs;
 
         R_DERIVED(FileView)
         R_EXTENDS(View)

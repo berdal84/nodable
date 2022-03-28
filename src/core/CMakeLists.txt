@@ -31,7 +31,7 @@ add_library(
         src/InvokableComponent.cpp
         src/IScope.cpp
         src/Language.cpp
-        src/LanguageNodable.cpp
+        src/languages/Nodable.cpp
         src/LiteralNode.cpp
         src/Log.cpp
         src/Member.cpp

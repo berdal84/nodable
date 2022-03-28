@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <nodable/core/LanguageNodable.h>
+#include <nodable/core/languages/Nodable.h>
 
 using namespace Nodable;
 

@@ -13,10 +13,11 @@ InstructionNode* HeadlessNodeFactory::new_instr() const
 {
     InstructionNode* instr_node = new InstructionNode(ICON_FA_CODE " Instr.");
     instr_node->set_short_label(ICON_FA_CODE " I.");
+    m_post_process(instr_node);
     return instr_node;
 }
 
-VariableNode* HeadlessNodeFactory::newVariable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope *_scope) const
+VariableNode* HeadlessNodeFactory::new_variable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope *_scope) const
 {
     // create
     auto* node = new VariableNode(_type);
@@ -31,28 +32,30 @@ VariableNode* HeadlessNodeFactory::newVariable(std::shared_ptr<const R::MetaType
         LOG_WARNING("HeadlessNodeFactory", "Variable %s has been created without defining its scope.\n", _name.c_str())
     }
 
+    m_post_process(node);
+
     return node;
 }
 
-Node* HeadlessNodeFactory::newOperator(const InvokableOperator* _operator) const
+Node* HeadlessNodeFactory::new_operator(const InvokableOperator* _operator) const
 {
     switch (_operator->get_operator_type() )
     {
         case InvokableOperator::Type::Binary:
-            return newBinOp(_operator);
+            return new_binary_op(_operator);
         case InvokableOperator::Type::Unary:
-            return newUnaryOp(_operator);
+            return new_unary_op(_operator);
         default:
             return nullptr;
     }
 }
 
-Node* HeadlessNodeFactory::newBinOp(const InvokableOperator* _operator) const
+Node* HeadlessNodeFactory::new_binary_op(const InvokableOperator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
 
-    setupNodeLabels(node, _operator);
+    setup_node_labels(node, _operator);
 
     const FunctionSignature* signature = _operator->get_signature();
     const auto args = signature->get_args();
@@ -68,20 +71,23 @@ Node* HeadlessNodeFactory::newBinOp(const InvokableOperator* _operator) const
     binOpComponent->set_r_handed_val(right);
     node->add_component(binOpComponent);
 
+    m_post_process(node);
+
     return node;
 }
 
-void HeadlessNodeFactory::setupNodeLabels(Node *_node, const InvokableOperator *_operator) {
+void HeadlessNodeFactory::setup_node_labels(Node *_node, const InvokableOperator *_operator)
+{
     _node->set_label(_operator->get_signature()->get_label());
     _node->set_short_label(_operator->get_short_identifier().c_str());
 }
 
-Node* HeadlessNodeFactory::newUnaryOp(const InvokableOperator* _operator) const
+Node* HeadlessNodeFactory::new_unary_op(const InvokableOperator* _operator) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
 
-    setupNodeLabels(node, _operator);
+    setup_node_labels(node, _operator);
 
     const FunctionSignature* signature = _operator->get_signature();
     const auto args = signature->get_args();
@@ -95,10 +101,28 @@ Node* HeadlessNodeFactory::newUnaryOp(const InvokableOperator* _operator) const
     unaryOperationComponent->set_l_handed_val(left);
     node->add_component(unaryOperationComponent);
 
+    m_post_process(node);
+
     return node;
 }
 
-Node* HeadlessNodeFactory::newFunction(const IInvokable* _function) const
+Node* HeadlessNodeFactory::new_function(const FunctionSignature* _signature) const
+{
+    // Create a node with 2 inputs and 1 output
+    auto node = new Node();
+    node->set_label(_signature->get_identifier() + "()");
+    std::string str = _signature->get_label().substr(0, 2) + "..()";
+    node->set_short_label(str.c_str());
+
+    auto props = node->props();
+    Member* result = props->add(k_value_member_name, Visibility::Default, _signature->get_return_type(), Way_Out);
+
+    m_post_process(node);
+
+    return node;
+}
+
+Node* HeadlessNodeFactory::new_function(const IInvokable* _function) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
@@ -123,11 +147,11 @@ Node* HeadlessNodeFactory::newFunction(const IInvokable* _function) const
     }
 
     node->add_component(functionComponent);
-
+    m_post_process(node);
     return node;
 }
 
-Node* HeadlessNodeFactory::newScope() const
+Node* HeadlessNodeFactory::new_scope() const
 {
     auto scope_node = new Node();
     std::string label = ICON_FA_CODE_BRANCH " Scope";
@@ -140,10 +164,12 @@ Node* HeadlessNodeFactory::newScope() const
     auto* scope = new Scope();
     scope_node->add_component(scope);
 
+    m_post_process(scope_node);
+
     return scope_node;
 }
 
-ConditionalStructNode* HeadlessNodeFactory::newConditionalStructure() const
+ConditionalStructNode* HeadlessNodeFactory::new_cond_struct() const
 {
     auto cond_struct_node = new ConditionalStructNode();
     std::string label = ICON_FA_QUESTION " Condition";
@@ -155,6 +181,8 @@ ConditionalStructNode* HeadlessNodeFactory::newConditionalStructure() const
 
     auto* scope = new Scope();
     cond_struct_node->add_component(scope);
+
+    m_post_process(cond_struct_node);
 
     return cond_struct_node;
 }
@@ -172,27 +200,33 @@ ForLoopNode* HeadlessNodeFactory::new_for_loop_node() const
     auto* scope = new Scope();
     for_loop->add_component(scope);
 
+    m_post_process(for_loop);
+
     return for_loop;
 }
 
-Node* HeadlessNodeFactory::newProgram() const
+Node* HeadlessNodeFactory::new_program() const
 {
-    Node* prog = newScope();
+    Node* prog = new_scope();
     prog->set_label(ICON_FA_FILE_CODE " Program");
     prog->set_short_label(ICON_FA_FILE_CODE " Prog.");
 
+    m_post_process(prog);
     return prog;
 }
 
-Node* HeadlessNodeFactory::newNode() const
+Node* HeadlessNodeFactory::new_node() const
 {
-    return new Node();
+    auto node = new Node();
+    m_post_process(node);
+    return node;
 }
 
-LiteralNode* HeadlessNodeFactory::newLiteral(std::shared_ptr<const R::MetaType> _type) const
+LiteralNode* HeadlessNodeFactory::new_literal(std::shared_ptr<const R::MetaType> _type) const
 {
     LiteralNode* node = new LiteralNode(_type);
     node->set_label("Literal");
     node->set_short_label("Lit.");
+    m_post_process(node);
     return node;
 }
