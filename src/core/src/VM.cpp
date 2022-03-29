@@ -7,45 +7,71 @@
 using namespace Nodable;
 using namespace Nodable::Asm;
 
+CPU::CPU()
+{
+    clear_registers();
+}
+
+void CPU::init_eip_register()
+{
+    /* eip: instruction pointer */
+    MemSpace mem(MemSpace::Type::U64);
+    mem.data.m_u64 = 0;
+    write_register(Register::eip, mem);
+};
+
+void CPU::clear_registers()
+{
+    for( size_t i = 0; i < std::size( m_register ); ++i )
+    {
+        m_register[i].reset();
+    }
+    init_eip_register();
+}
+
+Asm::MemSpace& CPU::read_register(Register _id)
+{
+    return m_register[_id];
+}
+
+const Asm::MemSpace& CPU::read_register(Register _id) const
+{
+    return m_register[_id];
+}
+
+void CPU::write_register(Register _id, MemSpace _mem_src)
+{
+    MemSpace& mem_dst = m_register[_id];
+    LOG_VERBOSE("VM::CPU", "write_register %s\n", Asm::to_string(_id) )
+    LOG_VERBOSE("VM::CPU", " - mem before: %s\n", mem_dst.to_string().c_str() )
+    mem_dst = _mem_src;
+    LOG_VERBOSE("VM::CPU", " - mem after:  %s\n", mem_dst.to_string().c_str() )
+}
+
 VM::VM()
     : m_is_debugging(false)
     , m_is_program_running(false)
     , m_next_node(nullptr)
     , m_program_asm_code(nullptr)
 {
-    clear_registers();
+
 }
 
 void VM::advance_cursor(i64 _amount)
 {
-    MemSpace mem = read_register(Register::eip);
+    MemSpace mem = m_cpu.read_register(Register::eip);
     NODABLE_ASSERT(mem.type == MemSpace::Type::U64);
     mem.data.m_u64 += _amount; // can overflow
-    write_register(Register::eip, mem);
+    m_cpu.write_register(Register::eip, mem);
 }
 
-void VM::init_instruction_pointer()
-{
-    MemSpace mem(MemSpace::Type::U64);
-    mem.data.m_u64 = 0;
-    write_register(Register::eip, mem);
-};
-
-void VM::clear_registers()
-{
-    for( size_t i = 0; i < std::size( m_register ); ++i )
-    {
-        m_register[i].reset();
-    }
-    init_instruction_pointer();
-}
 void VM::run_program()
 {
     NODABLE_ASSERT(m_program_asm_code);
     LOG_MESSAGE("VM", "Running program ...\n")
     m_is_program_running = true;
 
-    clear_registers();
+    m_cpu.clear_registers();
 
     while( is_there_a_next_instr() && get_next_instr()->type != Instr_t::ret )
     {
@@ -78,7 +104,7 @@ std::unique_ptr<const Code> VM::release_program()
         stop_program();
     }
 
-    clear_registers(); // will also clear reset instruction pointer (stored in a register Register::eip)
+    m_cpu.clear_registers(); // will also clear reset instruction pointer (stored in a register Register::eip)
     LOG_VERBOSE("VM", "registers cleared\n")
 
     LOG_VERBOSE("VM", "program released\n")
@@ -107,7 +133,7 @@ bool VM::_stepOver()
 
             if ( left.type == MemSpace::Type::Register )
             {
-                deref_left = &m_register[left.data.m_register];
+                deref_left = &m_cpu.read_register(left.data.m_register);
             }
             else
             {
@@ -116,7 +142,7 @@ bool VM::_stepOver()
 
             if ( right.type == MemSpace::Type::Register )
             {
-                deref_right = &m_register[right.data.m_register];
+                deref_right = &m_cpu.read_register(right.data.m_register);
             }
             else
             {
@@ -157,7 +183,7 @@ bool VM::_stepOver()
 
             MemSpace mem(MemSpace::Type::Boolean);
             mem.data.m_bool = cmp_result;
-            write_register(Register::rax, mem);
+            m_cpu.write_register(Register::rax, mem);
             advance_cursor();
             success = true;
             break;
@@ -175,7 +201,7 @@ bool VM::_stepOver()
 
             if (dst.type == MemSpace::Type::Register)
             {
-                deref_dst = &m_register[dst.data.m_register];
+                deref_dst = &m_cpu.read_register(dst.data.m_register);
             }
             else
             {
@@ -184,7 +210,7 @@ bool VM::_stepOver()
 
             if (src.type == MemSpace::Type::Register)
             {
-                deref_src = &m_register[src.data.m_register];
+                deref_src = &m_cpu.read_register(src.data.m_register);
                 NODABLE_ASSERT(src.type != Asm::MemSpace::Type::Undefined)
             }
             else
@@ -197,8 +223,8 @@ bool VM::_stepOver()
 
             *deref_dst = *deref_src;
 
-            NODABLE_ASSERT(deref_dst->type     == deref_dst->type)
-            NODABLE_ASSERT(deref_dst->data.m_u64 == deref_dst->data.m_u64 )
+            NODABLE_ASSERT(deref_dst->type     == deref_src->type)
+            NODABLE_ASSERT(deref_dst->data.m_u64 == deref_src->data.m_u64 )
 
             advance_cursor();
             success = true;
@@ -253,7 +279,7 @@ bool VM::_stepOver()
                 MemSpace mem_space;
                 mem_space.type = Asm::MemSpace::Type::VariantPtr;
                 mem_space.data.m_variant = node->props()->get(k_value_member_name)->get_data();
-                write_register(Register::rax, mem_space);
+                m_cpu.write_register(Register::rax, mem_space);
             }
 
             advance_cursor();
@@ -270,8 +296,9 @@ bool VM::_stepOver()
 
         case Instr_t::jne:
         {
-            NODABLE_ASSERT(m_register[Register::rax].type == MemSpace::Type::Boolean);
-            bool equals = m_register[Register::rax].data.m_bool;
+            MemSpace rax = m_cpu.read_register(Register::rax);
+            NODABLE_ASSERT(rax.type == MemSpace::Type::Boolean);
+            bool equals = rax.data.m_bool;
             if ( equals )
             {
                 advance_cursor();
@@ -349,35 +376,35 @@ void VM::debug_program()
     NODABLE_ASSERT(m_program_asm_code);
     m_is_debugging = true;
     m_is_program_running = true;
-    clear_registers();
+    m_cpu.clear_registers();
     m_next_node = m_program_asm_code->get_meta_data().root_node;
     LOG_MESSAGE("VM", "Debugging program ...\n")
 }
 
 bool VM::is_there_a_next_instr() const
 {
-    NODABLE_ASSERT(m_register[Register::eip].type == MemSpace::Type::U64);
-    auto next_inst_id = m_register[Register::eip].data.m_u64;
-    return next_inst_id < m_program_asm_code->size();
+    const MemSpace& eip = m_cpu.read_register(Register::eip);
+    return eip.data.m_u64 < m_program_asm_code->size();
 }
 
 const MemSpace* VM::get_last_result()const
 {
-    if (m_register[Register::rax].type == MemSpace::Type::Undefined)
+    const MemSpace& rax = m_cpu.read_register(Register::rax);
+    if (rax.type == MemSpace::Type::Undefined)
     {
         LOG_WARNING("VM", "get_last_result() will return nullptr.\n")
         return nullptr;
     }
-    return &m_register[Register::rax];
+    return &rax;
 }
 
 Instr* VM::get_next_instr() const
 {
     if ( is_there_a_next_instr() )
     {
-        NODABLE_ASSERT(m_register[Register::eip].type == MemSpace::Type::U64);
-        auto next_inst_id = m_register[Register::eip].data.m_u64;
-        return m_program_asm_code->get_instruction_at(next_inst_id);
+        const MemSpace& eip = m_cpu.read_register(Register::eip);
+        NODABLE_ASSERT(eip.type == MemSpace::Type::U64);
+        return m_program_asm_code->get_instruction_at(eip.data.m_u64);
     }
     return nullptr;
 }
@@ -392,16 +419,8 @@ bool VM::load_program(std::unique_ptr<const Code> _code)
     return m_program_asm_code && m_program_asm_code->size() != 0;
 }
 
-Asm::MemSpace& VM::read_register(Register _id)
+const MemSpace& VM::read_cpu_register(Register _register)const
 {
-    return m_register[_id];
+    return m_cpu.read_register(_register);
 }
 
-void VM::write_register(Register _id, MemSpace _mem_src)
-{
-    MemSpace& mem_dst = m_register[_id];
-    LOG_VERBOSE("VM", "write_register %s\n", Asm::to_string(_id) )
-    LOG_VERBOSE("VM", " - mem before: %s\n", mem_dst.to_string().c_str() )
-    mem_dst = _mem_src;
-    LOG_VERBOSE("VM", " - mem after:  %s\n", mem_dst.to_string().c_str() )
-}

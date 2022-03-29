@@ -14,10 +14,26 @@ namespace Nodable
 
     namespace Asm
     {
+        class CPU
+        {
+        public:
+            CPU();
+            ~CPU() = default;
+            MemSpace&        read_register(Register _id);
+            const MemSpace&  read_register(Register _id)const;
+            void             write_register(Register _id, MemSpace _mem_src);
+            void             clear_registers();
+
+        private:
+            void             init_eip_register(); // instruction pointer
+            MemSpace         m_register[Register::COUNT];
+        };
+
         /**
          * Class to execute a Nodable program (an Asm::Code compiled by an Asm::Compiler).
          */
-        class VM {
+        class VM
+        {
         public:
             VM();
             ~VM() = default;
@@ -35,21 +51,19 @@ namespace Nodable
             bool                  is_there_a_next_instr() const;
             const Asm::Code*      get_program_asm_code()const { return m_program_asm_code.get(); }
             Instr*                get_next_instr() const;
-            MemSpace&             read_register(Register _id);
+            const MemSpace&       read_cpu_register(Register _register)const;
 
         private:
-            void                  clear_registers();
             void                  advance_cursor(i64 _amount = 1);
-            void                  init_instruction_pointer();
+
             bool                  _stepOver();
-            std::unique_ptr<const Asm::Code> m_program_asm_code;
+
             const Node*           m_next_node;
             bool                  m_is_program_running;
             bool                  m_is_debugging;
             Instr*                m_last_step_next_instr;
-            std::array<MemSpace, (size_t)Register::COUNT> m_register;
-
-            void write_register(Register _id, MemSpace _mem_src);
+            CPU                   m_cpu;
+            std::unique_ptr<const Asm::Code> m_program_asm_code;
         };
     }
 }

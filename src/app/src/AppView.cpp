@@ -595,15 +595,15 @@ void AppView::draw_vm_view()
         {
             using Asm::Register;
             ImGui::Indent();
-            ImGui::Text("%s: %s (primary accumulator)",
+            ImGui::Text("%4s: %12s (primary accumulator)",
                         Asm::to_string(Register::rax),
-                        vm->read_register(Register::rax).to_string().c_str() );
-            ImGui::Text("%s: %s (base register)",
+                        vm->read_cpu_register(Register::rax).to_string().c_str() );
+            ImGui::Text("%4s: %12s (base register)",
                         Asm::to_string(Register::rdx),
-                        vm->read_register(Register::rdx).to_string().c_str());
-            ImGui::Text("%s: %s (instruction pointer)",
+                        vm->read_cpu_register(Register::rdx).to_string().c_str());
+            ImGui::Text("%4s: %12s (instruction pointer)",
                         Asm::to_string(Register::eip),
-                        vm->read_register(Register::eip).to_string().c_str());
+                        vm->read_cpu_register(Register::eip).to_string().c_str());
             ImGui::Unindent();
         }
 
