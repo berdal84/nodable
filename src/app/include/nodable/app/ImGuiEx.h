@@ -6,15 +6,35 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include <imgui/imgui_internal.h>
 #include <nodable/app/types.h>
 
 namespace Nodable
 {
-    /**
-     * @brief Namespace to gather all custom ImGui-like functions.
-     */
-    namespace ImGuiEx {
+
+    namespace ImGuiEx
+    {
+        template<typename ...Args>
+        void DrawHelperEx(float _alpha, const char* _format, Args... args)
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, _alpha);
+            ImGui::Text(ICON_FA_QUESTION_CIRCLE);
+            ImGui::PopStyleVar();
+
+            if( ImGui::IsItemHovered() )
+            {
+                ImGui::BeginTooltip();
+                {
+                    ImGui::Text(_format, args...);
+                }
+                ImGui::EndTooltip();
+            }
+        }
+
+        template<typename ...Args>
+        void DrawHelper(const char* _format, Args... args) { DrawHelperEx(0.25f, _format, args...); } // simple "?" test with a tooltip.
+
         /**
          * Draw a rounded-rectangle shadow
          * TODO: use a low cost method, this one is drawing several rectangle with modulated opacity.

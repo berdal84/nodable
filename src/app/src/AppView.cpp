@@ -563,7 +563,7 @@ bool AppView::draw()
 
 void AppView::draw_vm_view()
 {
-    ImGui::Text("Virtual Machine State");
+    ImGui::Text("Virtual Machine:");
     ImGui::Separator();
 
     Asm::VM* vm = m_context->vm;
@@ -590,33 +590,43 @@ void AppView::draw_vm_view()
 
         // VM Registers
         ImGui::Separator();
-        ImGui::Text("Registers:");
-        ImGui::Separator();
+        ImGui::Text("CPU:");
+        ImGui::Indent();
         {
+            ImGui::Separator();
+            ImGui::Text("registers:");
+            ImGui::Separator();
+
             using Asm::Register;
             ImGui::Indent();
-            ImGui::Text("%4s: %12s (primary accumulator)",
-                        Asm::to_string(Register::rax),
-                        vm->read_cpu_register(Register::rax).to_string().c_str() );
-            ImGui::Text("%4s: %12s (base register)",
-                        Asm::to_string(Register::rdx),
-                        vm->read_cpu_register(Register::rdx).to_string().c_str());
-            ImGui::Text("%4s: %12s (instruction pointer)",
-                        Asm::to_string(Register::eip),
-                        vm->read_cpu_register(Register::eip).to_string().c_str());
+
+            auto draw_register_value = [vm](Register _register)
+            {
+                ImGui::Text("%4s: %12s", Asm::to_string(_register), vm->read_cpu_register(_register).to_string().c_str() );
+            };
+
+            draw_register_value(Register::rax); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "primary accumulator");
+            draw_register_value(Register::rdx); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "base register");
+            draw_register_value(Register::eip); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "instruction pointer");
+
             ImGui::Unindent();
         }
+        ImGui::Unindent();
 
         // Assembly-like code
         ImGui::Separator();
-        ImGui::Text("Loaded Program:");
+        ImGui::Text("Memory:"); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "Virtual Machine Memory.");
         ImGui::Separator();
         {
             ImGui::Indent();
-            ImGui::Checkbox("Auto-scroll to current line", &m_scroll_to_curr_instr);
-            ImGui::Separator();
 
-            ImGui::Text("Assembly-like source:");
+            ImGui::Text("Bytecode:");
+            ImGui::SameLine();
+            ImGuiEx::DrawHelper( "%s", "The bytecode is the result of the Compilation."
+                                       "\nThe Nodable Graph is converted by the Compiler to an Assembly-like code.");
+            ImGui::Checkbox("Auto-scroll ?", &m_scroll_to_curr_instr);
+            ImGui::SameLine();
+            ImGuiEx::DrawHelper( "%s", "to scroll automatically to the current instruction");
             ImGui::Separator();
             {
                 ImGui::BeginChild("AssemblyCodeChild", ImGui::GetContentRegionAvail(), true );
@@ -634,6 +644,8 @@ void AppView::draw_vm_view()
                                 ImGui::SetScrollHereY();
                             }
                             ImGui::TextColored( ImColor(200,0,0), ">%s", str.c_str() );
+                            ImGui::SameLine();
+                            ImGuiEx::DrawHelper( "%s", "This is the next instruction to evaluate");
                         }
                         else
                         {
@@ -644,6 +656,11 @@ void AppView::draw_vm_view()
                 else
                 {
                     ImGui::TextWrapped("Nothing loaded, try to compile, run or debug.");
+                    ImGui::SameLine();
+                    ImGuiEx::DrawHelper( "%s", "To see a compiled program here you need first to:"
+                                               "\n- Select a piece of code in the text editor"
+                                               "\n- Click on \"Compile\" button."
+                                               "\n- Ensure there is no errors in the status bar (bottom).");
                 }
                 ImGui::EndChild();
             }
