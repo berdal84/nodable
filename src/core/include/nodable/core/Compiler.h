@@ -44,13 +44,14 @@ namespace Nodable
         /**
          * Enumerate each possible instruction.
          */
-        enum class Instr_t: u8
+        enum class Instr_t: u8_t
         {
             cmp, /* compare */
             eval_node,
             jmp,
             jne,
             mov,
+            deref_ptr,
             pop_stack_frame,
             pop_var,
             push_stack_frame,
@@ -60,6 +61,7 @@ namespace Nodable
 
         R_ENUM(Instr_t)
         R_ENUM_VALUE(mov)
+        R_ENUM_VALUE(deref_ptr)
         R_ENUM_VALUE(eval_node)
         R_ENUM_VALUE(push_var)
         R_ENUM_VALUE(pop_var)
@@ -76,104 +78,128 @@ namespace Nodable
          */
         struct MemSpace
         {
-            enum class Type: size_t
-            {
-                Undefined = 0,
-                Boolean,
-                Double,
-                U64,
-                VariantPtr,
-                Register
+            union {
+                bool      b;
+                double    d;
+                u64_t     u64;
+                void*     ptr;
+                Register  r;
             };
 
-            struct Data
+            MemSpace()
             {
-                union {
-                    bool     m_bool;
-                    double   m_double;
-                    u64      m_u64;
-                    Variant *m_variant;
-                    Register m_register;
-                };
-            };
-
-            MemSpace(Type _type = Type::Undefined):type(_type)
-            {
-                data.m_u64 = 0;
+                reset();
             }
+
+            MemSpace(bool _value)
+            {
+                b = _value;
+            }
+
+            MemSpace(double _value)
+            {
+                d = _value;
+            }
+
+            MemSpace(Register _value)
+            {
+                r = _value;
+            }
+
+            MemSpace(u64_t _value)
+            {
+                u64 = _value;
+            }
+
+            template<typename T>
+            MemSpace(const T* _value)
+            {
+                ptr = (void*)_value;
+            }
+
+            explicit operator bool() { return b; }
+            explicit operator int() { return (int)d; }
+            explicit operator double() { return d; }
+            explicit operator u64_t() { return u64; }
+            explicit operator char*() { return (char*)ptr; }
+            explicit operator void*() { return ptr; }
+            explicit operator std::string() { return std::string((char*)ptr); }
 
             void reset()
             {
-                data.m_u64 = 0;
-                type = Type::Undefined;
+                memset(this, 0, sizeof(*this));
             }
 
             std::string to_string()const { return MemSpace::to_string(*this); }
-
-            Data data;
-            Type type;
-
             static std::string to_string(const MemSpace&);
-            static_assert(sizeof(MemSpace::data) == sizeof(size_t));
         };
-        static_assert(sizeof(MemSpace) == 2 * sizeof(size_t));
-
-        R_ENUM(MemSpace::Type)
-        R_ENUM_VALUE(Undefined)
-        R_ENUM_VALUE(Boolean)
-        R_ENUM_VALUE(Double)
-        R_ENUM_VALUE(U64)
-        R_ENUM_VALUE(VariantPtr)
-        R_ENUM_VALUE(Register)
-        R_ENUM_END
+        static_assert(sizeof(MemSpace) == 8);
 
 
+
+        struct Instr_Jmp // Jump relative to current line (+/- offset)
+        {
+            Instr_t type;
+            i64_t   offset;
+        };
+
+        struct Instr_Mov
+        {
+            Instr_t  type;
+            MemSpace dst;
+            MemSpace src;
+        };
+
+        struct Instr_Deref
+        {
+            Instr_t      type;
+            VariantData* ptr;
+            R::Type      ptr_t;
+        };
+
+        struct Instr_Cmp
+        {
+            Instr_t  type;
+            MemSpace left;
+            MemSpace right;
+        };
+
+        struct Instr_PushPop
+        {
+            Instr_t type;
+            union {
+                const VariableNode* var;
+                const Scope*        scope;
+            };
+        };
+
+        struct Instr_Eval
+        {
+            Instr_t     type;
+            const Node* node;
+        };
 
         /**
          * Store a single assembly instruction ( line type larg rarg comment )
          */
         struct Instr
         {
-            Instr(Instr_t _type, u64 _line)
+            Instr(Instr_t _type, u64_t _line)
                 : type(_type)
                 , line(_line)
             {}
 
-            u64         line;
-            Instr_t     type;
+            u64_t       line;
+
             union {
-
-                struct {
-                    i64 offset;
-                } jmp;
-
-                struct {
-                    MemSpace dst;
-                    MemSpace src;
-                } mov;
-
-                struct {
-                    MemSpace left;
-                    MemSpace right;
-                } cmp; // compare
-
-                struct {
-                    union {
-                        const VariableNode* variable;
-                        const Scope*  scope;
-                    };
-                } push;
-
-                struct {
-                    union {
-                        const VariableNode* var;
-                        const Scope*  scope;
-                    };
-                } pop;
-
-                struct {
-                    const Node* node;
-                } eval;
+                Instr_t           type;
+                Instr_Mov         mov;
+                Instr_Deref       deref;
+                Instr_Jmp         jmp;
+                Instr_Cmp         cmp;
+                Instr_PushPop     push;
+                Instr_PushPop     pop;
+                Instr_Eval        eval;
             };
             std::string m_comment;
             static std::string to_string(const Instr&);

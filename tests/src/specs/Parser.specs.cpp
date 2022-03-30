@@ -7,8 +7,8 @@ using namespace Nodable;
 
 TEST(Parser, Atomic_expressions)
 {
-    EXPECT_EQ(ParseAndEvalExpression<int>("5"), 5);
-    EXPECT_EQ(ParseAndEvalExpression<int>("10"), 10);
+    EXPECT_EQ(ParseAndEvalExpression<double>("5.0"), 5.0);
+    EXPECT_EQ(ParseAndEvalExpression<double>("10.0"), 10.0);
 }
 
 TEST(Parser, Unary_operators)
@@ -60,9 +60,6 @@ TEST(Parser, Complex_parenthesis)
 TEST(Parser, unexisting_function)
 {
     const std::string code{"pow_unexisting(5)"};
-    EXPECT_ANY_THROW(ParseAndEvalExpression<void*>(code) );
-    EXPECT_ANY_THROW(ParseAndEvalExpression<std::string>(code) );
-    EXPECT_ANY_THROW(ParseAndEvalExpression<int>(code) );
     EXPECT_ANY_THROW(ParseAndEvalExpression<double>(code) );
 }
 

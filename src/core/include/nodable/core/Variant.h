@@ -107,6 +107,8 @@ namespace Nodable
 
         void force_defined_flag(bool _value);
 
+        VariantData* get_data_addr();
+
     private:
         bool                               m_is_defined;
         bool                               m_is_initialized;

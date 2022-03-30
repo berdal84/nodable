@@ -18,11 +18,14 @@ namespace Nodable
     template<typename return_t>
     static return_t ParseAndEvalExpression(const std::string &expression)
     {
+        static_assert( !std::is_pointer<return_t>::value ); // returning a pointer from VM will fail when accessing data
+                                                            // since VM will be destroyed leaving this scope.
+
         // prepare
         return_t              result{};
-        const LanguageNodable lang;
         Asm::Compiler         compiler;
         Asm::VM               vm;
+        const LanguageNodable lang;
         NodeFactory           factory(&lang);
         bool                  autocompletion = false;
         GraphNode             graph(&lang, &factory, &autocompletion);
@@ -48,16 +51,9 @@ namespace Nodable
         vm.run_program();
 
         // ret result
-        const Asm::MemSpace* mem_space = vm.get_last_result();
-        if (mem_space == nullptr )
-        {
-            throw std::runtime_error("Unable to get program's last result.");
-        }
+        Asm::MemSpace mem_space = vm.get_last_result();
 
-        NODABLE_ASSERT(mem_space->type == Asm::MemSpace::Type::VariantPtr)
-        const Variant* variant = mem_space->data.m_variant;
-        NODABLE_ASSERT(!variant->get_meta_type()->is(R::get_meta_type<Node*>()) ) // we do not accept a result as Node*
-        result = variant->convert_to<return_t>();
+        result = (return_t)mem_space;
 
         return result;
     }
@@ -93,16 +89,6 @@ namespace Nodable
 
         // run
         vm.run_program();
-
-        // serialize result
-        if ( vm.get_last_result() )
-        {
-            LOG_VERBOSE("tools.h", "ParseUpdateSerialize has result\n");
-        }
-        else
-        {
-            throw std::runtime_error("ParseUpdateSerialize: Unable to get last evaluated member.");
-        }
 
         Serializer *serializer = lang.getSerializer();
         serializer->serialize(result, graph.get_root() );

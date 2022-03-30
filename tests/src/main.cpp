@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
     Log::SetVerbosityLevel("GraphNode", Verbosity::Message);
     Log::SetVerbosityLevel("Parser", Verbosity::Message);
     Log::SetVerbosityLevel("VM", Verbosity::Verbose);
+    Log::SetVerbosityLevel("VM::CPU", Verbosity::Verbose);
 
     R::init();
 

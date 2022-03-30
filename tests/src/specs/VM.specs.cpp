@@ -22,7 +22,7 @@ TEST(VM, Cond_1 )
             "}"
             "val;"; // return-like
 
-    EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "true" );
+    EXPECT_EQ( ParseAndEvalExpression<bool>(program), true );
 }
 
 TEST(VM, Cond_2 )
@@ -168,7 +168,7 @@ TEST(VM, declare_then_define_then_reassign ) {
 }
 
 TEST(VM, condition_which_contains_alterated_var ) {
-    std::string program_01 =
+    std::string program =
             "double b = 6;"
             "b = 5;"
             "string res = \"ok\";"
@@ -177,5 +177,5 @@ TEST(VM, condition_which_contains_alterated_var ) {
             "  res=\"error\";"
             "}"
             "res;";
-    EXPECT_EQ(ParseAndEvalExpression<std::string>(program_01), "ok");
+    EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "ok");
 }

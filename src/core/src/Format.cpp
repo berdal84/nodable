@@ -9,7 +9,7 @@ std::string Format::fmt_no_trail(double d)
     return str;
 }
 
-std::string Format::fmt_hex(u64 _addr)
+std::string Format::fmt_hex(u64_t _addr)
 {
     char str[33];
     snprintf(str, sizeof(str), "%#llx", _addr);

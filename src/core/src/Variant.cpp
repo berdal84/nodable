@@ -91,14 +91,9 @@ void Variant::set_initialized(bool _initialize)
             default:               break;
         }
     }
-    else
+    else if ( m_is_defined && m_meta_type->get_type() == R::Type::String )
     {
-        NODABLE_ASSERT(m_meta_type)
-        if( m_meta_type->get_type() == R::Type::String)
-        {
-            delete m_data.m_std_string_ptr;
-            m_data.m_std_string_ptr = nullptr;
-        }
+        delete m_data.m_std_string_ptr;
     }
 
     m_is_initialized = _initialize;
@@ -112,7 +107,7 @@ void Variant::set(const Variant& _other)
 
     switch(m_meta_type->get_type())
     {
-        case R::Type::String:  set( *_other.m_data.m_std_string_ptr ); break;
+        case R::Type::String:  set( {*_other.m_data.m_std_string_ptr} ); break;
         case R::Type::Boolean: set( _other.m_data.m_bool); break;
         case R::Type::Double:  set( _other.m_data.m_double); break;
         case R::Type::Void:
@@ -148,7 +143,7 @@ void* Variant::convert_to<void*>()const
 }
 
 template<>
-u64 Variant::convert_to<u64>()const
+u64_t Variant::convert_to<u64_t>()const
 {
     if( !m_is_defined)
     {
@@ -157,11 +152,11 @@ u64 Variant::convert_to<u64>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::String:  return m_data.m_std_string_ptr->size();
-        case R::Type::Double:  return u64(m_data.m_double);
-        case R::Type::Boolean: return u64(m_data.m_bool);
+        case R::Type::String:  return (u64_t)m_data.m_std_string_ptr;
+        case R::Type::Double:  return (u64_t)m_data.m_double;
+        case R::Type::Boolean: return (u64_t)m_data.m_bool;
         case R::Type::Class:   // fall through
-        default:               return u64(m_data.m_void_ptr);
+        default:               return (u64_t)m_data.m_void_ptr;
     }
 }
 
@@ -179,7 +174,7 @@ double Variant::convert_to<double>()const
         case R::Type::Double:  return m_data.m_double;
         case R::Type::Boolean: return double(m_data.m_bool);
         case R::Type::Class:
-        default:               return double((u64)m_data.m_void_ptr);
+        default:               return double((u64_t)m_data.m_void_ptr);
     }
 }
 
@@ -265,4 +260,14 @@ Variant::operator void* ()const       { NODABLE_ASSERT(m_is_defined) return conv
 void Variant::force_defined_flag(bool _value )
 {
     m_is_defined = _value;
+}
+
+VariantData* Variant::get_data_addr()
+{
+    if( !m_is_initialized )
+    {
+        return 0;
+    }
+
+    return &m_data;
 }

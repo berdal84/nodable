@@ -19,12 +19,12 @@
 using namespace Nodable;
 using namespace Nodable::Asm;
 
-i64 signed_diff(u64 _left, u64 _right)
+i64_t signed_diff(u64_t _left, u64_t _right)
 {
     bool left_greater_than_right = _left > _right;
-    u64 abs_diff = left_greater_than_right ? (_left - _right) : (_right - _left);
-    NODABLE_ASSERT( abs_diff <= std::numeric_limits<u64>::max() );
-    return left_greater_than_right ? (i64)abs_diff : -(i64)abs_diff;
+    u64_t abs_diff = left_greater_than_right ? (_left - _right) : (_right - _left);
+    NODABLE_ASSERT( abs_diff <= std::numeric_limits<u64_t>::max() );
+    return left_greater_than_right ? (i64_t)abs_diff : -(i64_t)abs_diff;
 }
 
 std::string Asm::Instr::to_string(const Instr& _instr)
@@ -52,9 +52,17 @@ std::string Asm::Instr::to_string(const Instr& _instr)
             break;
         }
 
+        case Instr_t::deref_ptr:
+        {
+            result.append( Asm::MemSpace::to_string(_instr.deref.ptr ));
+            result.append(", *");
+            result.append( R::to_string(_instr.deref.ptr_t));
+            break;
+        }
+
         case Instr_t::mov:
         {
-            result.append(Asm::MemSpace::to_string(_instr.mov.dst ));
+            result.append( Asm::to_string(_instr.mov.dst.r ));
             result.append(", ");
             result.append(Asm::MemSpace::to_string(_instr.mov.src ));
             break;
@@ -81,13 +89,13 @@ std::string Asm::Instr::to_string(const Instr& _instr)
             result.append(Format::fmt_ptr(_instr.pop.scope) );
             break;
         case Instr_t::pop_var:
-            result.append(Format::fmt_ptr(_instr.push.variable) );
+            result.append(Format::fmt_ptr(_instr.push.var) );
             break;
         case Instr_t::push_stack_frame:
             result.append(Format::fmt_ptr(_instr.push.scope) );
             break;
         case Instr_t::push_var:
-            result.append(Format::fmt_ptr(_instr.push.variable) );
+            result.append(Format::fmt_ptr(_instr.push.var) );
             break;
     }
 
@@ -196,7 +204,7 @@ void Asm::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     for(const VariableNode* each_variable : _scope->get_variables())
     {
         Instr *instr         = m_temp_code->push_instr(Instr_t::push_var);
-        instr->push.variable      = each_variable;
+        instr->push.var      = each_variable;
         instr->m_comment     = std::string{each_variable->get_label()};
     }
 
@@ -262,13 +270,18 @@ void Asm::Compiler::compile(const Node* _node)
         bool should_be_evaluated = _node->has<InvokableComponent>() || _node->is<VariableNode>() || _node->is<LiteralNode>();
         if ( should_be_evaluated )
         {
-            Instr *instr     = m_temp_code->push_instr(Instr_t::eval_node);
-            instr->eval.node = _node;
-            instr->m_comment =
-                    std::string{_node->get_label()} +
-                    " (initial value is: " +
-                    _node->props()->get(k_value_member_name)->convert_to<std::string>() +
-                    ")";
+            // eval
+            {
+                Instr *instr     = m_temp_code->push_instr(Instr_t::eval_node);
+                instr->eval.node = _node;
+                instr->m_comment =
+                        std::string{_node->get_label()} +
+                        " (initial value is: " +
+                        _node->props()->get(k_value_member_name)->convert_to<std::string>() +
+                        ")";
+            }
+
+            // result is not stored, because this is necessary only for instruction's root node.
         }
     }
 
@@ -279,7 +292,7 @@ void Asm::Compiler::compile(const ForLoopNode* for_loop)
     // for_loop init instruction
     compile(for_loop->get_init_instr());
 
-    u64 condition_instr_line = m_temp_code->get_next_index();
+    u64_t condition_instr_line = m_temp_code->get_next_index();
 
     compile_as_condition(for_loop->get_cond_instr());
 
@@ -310,27 +323,23 @@ void Asm::Compiler::compile_as_condition(const InstructionNode* _instr_node)
     compile(_instr_node);
 
     // move "true" result to rdx
-    Instr* store_true              = m_temp_code->push_instr(Instr_t::mov);
-    store_true->mov.src.type       = MemSpace::Type::Boolean;
-    store_true->mov.src.data.m_bool     = true;
-    store_true->mov.dst.type       = MemSpace::Type::Register;
-    store_true->mov.dst.data.m_register = rdx;
-    store_true->m_comment          = "store true";
+    Instr* store_true         = m_temp_code->push_instr(Instr_t::mov);
+    store_true->mov.src.b     = true;
+    store_true->mov.dst.r     = rdx;
+    store_true->m_comment     = "store true";
 
     // compare rax (condition result) with rdx (true)
-    Instr* cmp_instr                = m_temp_code->push_instr(Instr_t::cmp);  // works only with registry
-    cmp_instr->cmp.left.type        = MemSpace::Type::Register; // here
-    cmp_instr->cmp.left.data.m_register  = rdx; // must be left
-    cmp_instr->cmp.right.type       = MemSpace::Type::Register; // there
-    cmp_instr->cmp.right.data.m_register = rax; // must be right, because register will point to VariantPtr
-    cmp_instr->m_comment            = "compare last condition with true";
+    Instr* cmp_instr       = m_temp_code->push_instr(Instr_t::cmp);  // works only with registry
+    cmp_instr->cmp.left.r  = rax;
+    cmp_instr->cmp.right.r = rdx;
+    cmp_instr->m_comment   = "compare last condition with true";
 }
 
 void Asm::Compiler::compile(const ConditionalStructNode* _cond_node)
 {
     compile_as_condition(_cond_node->get_cond_instr()); // compile condition isntruction, store result, compare
 
-    Instr* skip_true_branch = m_temp_code->push_instr(Instr_t::jne);
+    Instr* skip_true_branch     = m_temp_code->push_instr(Instr_t::jne);
     skip_true_branch->m_comment = "jump if false";
 
     Instr* skip_false_branch = nullptr;
@@ -346,14 +355,14 @@ void Asm::Compiler::compile(const ConditionalStructNode* _cond_node)
         }
     }
 
-    skip_true_branch->jmp.offset = i64(m_temp_code->get_next_index()) - skip_true_branch->line;
+    skip_true_branch->jmp.offset = i64_t(m_temp_code->get_next_index()) - skip_true_branch->line;
 
     if ( auto false_scope = _cond_node->get_condition_false_scope() )
     {
         compile(false_scope);
         if ( skip_false_branch )
         {
-            skip_false_branch->jmp.offset = i64(m_temp_code->get_next_index()) - skip_false_branch->line;
+            skip_false_branch->jmp.offset = i64_t(m_temp_code->get_next_index()) - skip_false_branch->line;
         }
     }
 }
@@ -373,18 +382,10 @@ void Asm::Compiler::compile(const InstructionNode *instr_node)
 
         if ( root_node_value )
         {
-            Instr& instr               = *m_temp_code->push_instr(Instr_t::mov);
-            instr.mov.src.type         = MemSpace::Type::VariantPtr;
-            instr.mov.src.data.m_variant = const_cast<Variant*>(root_node_value->get_data());
-            instr.mov.dst.type         = MemSpace::Type::Register;
-            instr.mov.dst.data.m_register   = Register::rax;
-            char str[128];
-            snprintf(str
-                    , sizeof(str)
-                    , "store instr result (%s %s)"
-                    , root_node_value->get_owner()->get_label()
-                    , root_node_value->get_name().c_str());
-            instr.m_comment = str;
+            Instr* instr       = m_temp_code->push_instr(Instr_t::deref_ptr);
+            instr->deref.ptr   = root_node_value->get_data_ptr();
+            instr->deref.ptr_t = root_node_value->get_meta_type()->get_type();
+            instr->m_comment   = "dereference pointer";
         }
     }
 }
@@ -429,30 +430,5 @@ std::string Asm::Code::to_string(const Code* _code)
 
 std::string Asm::MemSpace::to_string(const MemSpace& _value)
 {
-   std::string result;
-
-    switch (_value.type)
-    {
-        case Type::Undefined:
-            result.append( "undefined");
-            break;
-        case Type::Boolean:
-            result.append( std::to_string(_value.data.m_bool));
-            break;
-        case Type::Double:
-            result.append( std::to_string(_value.data.m_double));
-            break;
-        case Type::U64:
-            result.append( Format::fmt_hex(_value.data.m_u64 ));
-            break;
-        case Type::VariantPtr:
-            result.append( Format::fmt_ptr(_value.data.m_variant ) );
-            break;
-        case Type::Register:
-            result.append( "%" );
-            result.append( Asm::to_string(_value.data.m_register ));
-            break;
-    }
-
-   return result;
+    return Format::fmt_hex(_value.u64);
 }
