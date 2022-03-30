@@ -99,6 +99,8 @@ namespace Nodable
 
         void force_defined_flag(bool _value);
 
+        VariantData* get_data_ptr();
+
     private:
 
         // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()

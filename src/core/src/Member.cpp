@@ -110,3 +110,8 @@ void Member::force_defined_flag(bool _value)
 {
     get_variant().force_defined_flag(_value);
 }
+
+VariantData* Member::get_data_ptr()
+{
+    return m_variant.get_data_addr();
+}

@@ -19,13 +19,13 @@ namespace Nodable
         public:
             CPU();
             ~CPU() = default;
-            MemSpace&        read_register(Register _id);
-            const MemSpace&  read_register(Register _id)const;
-            void             write_register(Register _id, MemSpace _mem_src);
+            MemSpace         read(Register);
+            const MemSpace&  read(Register)const;
+            void             write(Register, MemSpace);
             void             clear_registers();
 
         private:
-            void             init_eip_register(); // instruction pointer
+            void             init_eip(); // instruction pointer
             MemSpace         m_register[Register::COUNT];
         };
 
@@ -47,14 +47,14 @@ namespace Nodable
             inline bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
                    bool           step_over();
             inline const Node*    get_next_node() const {return m_next_node; }
-            const MemSpace*       get_last_result() const;
+            MemSpace              get_last_result() const;
             bool                  is_there_a_next_instr() const;
             const Asm::Code*      get_program_asm_code()const { return m_program_asm_code.get(); }
             Instr*                get_next_instr() const;
             const MemSpace&       read_cpu_register(Register _register)const;
 
         private:
-            void                  advance_cursor(i64 _amount = 1);
+            void                  advance_cursor(i64_t _amount = 1);
 
             bool                  _stepOver();
 

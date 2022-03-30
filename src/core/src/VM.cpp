@@ -12,12 +12,9 @@ CPU::CPU()
     clear_registers();
 }
 
-void CPU::init_eip_register()
+void CPU::init_eip()
 {
-    /* eip: instruction pointer */
-    MemSpace mem(MemSpace::Type::U64);
-    mem.data.m_u64 = 0;
-    write_register(Register::eip, mem);
+    write(Register::eip, 0ull);
 };
 
 void CPU::clear_registers()
@@ -26,27 +23,28 @@ void CPU::clear_registers()
     {
         m_register[i].reset();
     }
-    init_eip_register();
+    init_eip();
 }
 
-Asm::MemSpace& CPU::read_register(Register _id)
+Asm::MemSpace CPU::read(Register _id)
 {
     return m_register[_id];
 }
 
-const Asm::MemSpace& CPU::read_register(Register _id) const
+const Asm::MemSpace& CPU::read(Register _id) const
 {
     return m_register[_id];
 }
 
-void CPU::write_register(Register _id, MemSpace _mem_src)
+void CPU::write(Register _id, MemSpace _data)
 {
     MemSpace& mem_dst = m_register[_id];
     LOG_VERBOSE("VM::CPU", "write_register %s\n", Asm::to_string(_id) )
     LOG_VERBOSE("VM::CPU", " - mem before: %s\n", mem_dst.to_string().c_str() )
-    mem_dst = _mem_src;
+    mem_dst = _data;
     LOG_VERBOSE("VM::CPU", " - mem after:  %s\n", mem_dst.to_string().c_str() )
 }
+
 
 VM::VM()
     : m_is_debugging(false)
@@ -57,12 +55,11 @@ VM::VM()
 
 }
 
-void VM::advance_cursor(i64 _amount)
+void VM::advance_cursor(i64_t _amount)
 {
-    MemSpace mem = m_cpu.read_register(Register::eip);
-    NODABLE_ASSERT(mem.type == MemSpace::Type::U64);
-    mem.data.m_u64 += _amount; // can overflow
-    m_cpu.write_register(Register::eip, mem);
+    MemSpace mem = m_cpu.read(Register::eip);
+    mem.u64 += _amount; // can overflow
+    m_cpu.write(Register::eip, mem);
 }
 
 void VM::run_program()
@@ -122,68 +119,38 @@ bool VM::_stepOver()
     {
         case Instr_t::cmp:
         {
-            MemSpace left  = next_instr->cmp.left;
-            MemSpace right = next_instr->cmp.right;
+            MemSpace left  = m_cpu.read(next_instr->cmp.left.r);  // dereference registers, get their value
+            MemSpace right = m_cpu.read(next_instr->cmp.right.r);
+            m_cpu.write(Register::rax, left.b == right.b);       // boolean comparison
+            advance_cursor();
+            success = true;
+            break;
+        }
 
-            NODABLE_ASSERT(left.type == MemSpace::Type::Register);
-            NODABLE_ASSERT(right.type == MemSpace::Type::Register);
-
-            // dereference registers
-            MemSpace *deref_left, *deref_right;
-
-            if ( left.type == MemSpace::Type::Register )
+        case Instr_t::deref_ptr:
+        {
+            switch( next_instr->deref.ptr_t )
             {
-                deref_left = &m_cpu.read_register(left.data.m_register);
-            }
-            else
-            {
-                deref_left = &left;
-            }
-
-            if ( right.type == MemSpace::Type::Register )
-            {
-                deref_right = &m_cpu.read_register(right.data.m_register);
-            }
-            else
-            {
-                deref_right = &right;
-            }
-
-            NODABLE_ASSERT(deref_left->type != Asm::MemSpace::Type::VariantPtr); // we only allow right for pointers
-
-            if ( deref_right->type == Asm::MemSpace::Type::VariantPtr)
-            {
-                NODABLE_ASSERT( !deref_right->data.m_variant->is_meta_type(R::get_meta_type<Node*>())); // we do not handler Node*
-            }
-
-            bool cmp_result;
-            switch (deref_left->type)
-            {
-                case MemSpace::Type::Boolean:
-                    if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
-                        cmp_result = deref_left->data.m_bool == (bool)*deref_right->data.m_variant;
-                    else
-                        cmp_result = deref_left->data.m_bool == deref_right->data.m_bool;
+                case R::Type::Boolean:
+                    m_cpu.write(Register::rax, *(bool*)next_instr->deref.ptr );
+                    LOG_VERBOSE("VM", "value dereferenced: %b\n", *(bool*)next_instr->deref.ptr );
                     break;
-                case MemSpace::Type::U64:
-                    if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
-                        cmp_result = deref_left->data.m_u64 == (u64&)*deref_right->data.m_variant;
-                    else
-                        cmp_result = deref_left->data.m_u64 == deref_right->data.m_u64;
+                case R::Type::Double:
+                    m_cpu.write(Register::rax, *(double*)next_instr->deref.ptr );
+                    LOG_VERBOSE("VM", "value dereferenced: %d\n", *(double*)next_instr->deref.ptr  );
                     break;
-                case MemSpace::Type::Double:
-                    if( deref_right->type == Asm::MemSpace::Type::VariantPtr)
-                        cmp_result = deref_left->data.m_double == (double)*deref_right->data.m_variant;
-                    else
-                        cmp_result = deref_left->data.m_double == deref_right->data.m_double;
+                case R::Type::String:
+                    m_cpu.write(Register::rax, next_instr->deref.ptr->m_std_string_ptr->c_str() );
+                    LOG_VERBOSE("VM", "value dereferenced: %s\n", next_instr->deref.ptr->m_std_string_ptr->c_str() );
                     break;
-                default:
-                    NODABLE_ASSERT(false) // TODO
+                case R::Type::Void:
+                case R::Type::Class:
+                case R::Type::Null:
+                    m_cpu.write(Register::rax, next_instr->deref.ptr );
+                    break;
             }
 
-            MemSpace mem(MemSpace::Type::Boolean);
-            mem.data.m_bool = cmp_result;
-            m_cpu.write_register(Register::rax, mem);
+
             advance_cursor();
             success = true;
             break;
@@ -191,40 +158,7 @@ bool VM::_stepOver()
 
         case Instr_t::mov:
         {
-            MemSpace src = next_instr->mov.src;
-            MemSpace dst = next_instr->mov.dst;
-            MemSpace* deref_src;
-            MemSpace* deref_dst;
-
-            NODABLE_ASSERT(src.type != Asm::MemSpace::Type::Undefined)
-            NODABLE_ASSERT(dst.type != Asm::MemSpace::Type::Undefined)
-
-            if (dst.type == MemSpace::Type::Register)
-            {
-                deref_dst = &m_cpu.read_register(dst.data.m_register);
-            }
-            else
-            {
-                deref_dst = &dst;
-            }
-
-            if (src.type == MemSpace::Type::Register)
-            {
-                deref_src = &m_cpu.read_register(src.data.m_register);
-                NODABLE_ASSERT(src.type != Asm::MemSpace::Type::Undefined)
-            }
-            else
-            {
-                deref_src = &src;
-            }
-
-            NODABLE_ASSERT(deref_dst->type != MemSpace::Type::Register); // we should point the register´ value
-            NODABLE_ASSERT(deref_dst->type != MemSpace::Type::Register); // we should point the register´ value
-
-            *deref_dst = *deref_src;
-
-            NODABLE_ASSERT(deref_dst->type     == deref_src->type)
-            NODABLE_ASSERT(deref_dst->data.m_u64 == deref_src->data.m_u64 )
+            m_cpu.write(next_instr->mov.dst.r, next_instr->mov.src);      // write source to destination register
 
             advance_cursor();
             success = true;
@@ -241,7 +175,7 @@ bool VM::_stepOver()
         case Instr_t::push_var:
         {
             advance_cursor();
-            VariableNode* variable = const_cast<VariableNode*>( next_instr->push.variable ); // hack !
+            auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
             if (variable->is_initialized() )
             {
                 variable->set_initialized(false);
@@ -272,16 +206,6 @@ bool VM::_stepOver()
             auto node = const_cast<Node*>( next_instr->eval.node ); // hack !
             node->eval();
             node->set_dirty(false);
-
-            // save node value in rax register
-            if( node->props()->has(k_value_member_name))
-            {
-                MemSpace mem_space;
-                mem_space.type = Asm::MemSpace::Type::VariantPtr;
-                mem_space.data.m_variant = node->props()->get(k_value_member_name)->get_data();
-                m_cpu.write_register(Register::rax, mem_space);
-            }
-
             advance_cursor();
             success = true;
             break;
@@ -296,10 +220,8 @@ bool VM::_stepOver()
 
         case Instr_t::jne:
         {
-            MemSpace rax = m_cpu.read_register(Register::rax);
-            NODABLE_ASSERT(rax.type == MemSpace::Type::Boolean);
-            bool equals = rax.data.m_bool;
-            if ( equals )
+            MemSpace rax = m_cpu.read(Register::rax);
+            if ( rax.b )
             {
                 advance_cursor();
             }
@@ -383,28 +305,20 @@ void VM::debug_program()
 
 bool VM::is_there_a_next_instr() const
 {
-    const MemSpace& eip = m_cpu.read_register(Register::eip);
-    return eip.data.m_u64 < m_program_asm_code->size();
+    const MemSpace& eip = m_cpu.read(Register::eip);
+    return eip.u64 < m_program_asm_code->size();
 }
 
-const MemSpace* VM::get_last_result()const
+MemSpace VM::get_last_result()const
 {
-    const MemSpace& rax = m_cpu.read_register(Register::rax);
-    if (rax.type == MemSpace::Type::Undefined)
-    {
-        LOG_WARNING("VM", "get_last_result() will return nullptr.\n")
-        return nullptr;
-    }
-    return &rax;
+    return m_cpu.read(Register::rax);
 }
 
 Instr* VM::get_next_instr() const
 {
     if ( is_there_a_next_instr() )
     {
-        const MemSpace& eip = m_cpu.read_register(Register::eip);
-        NODABLE_ASSERT(eip.type == MemSpace::Type::U64);
-        return m_program_asm_code->get_instruction_at(eip.data.m_u64);
+        return m_program_asm_code->get_instruction_at(m_cpu.read(Register::eip).u64 );
     }
     return nullptr;
 }
@@ -421,6 +335,6 @@ bool VM::load_program(std::unique_ptr<const Code> _code)
 
 const MemSpace& VM::read_cpu_register(Register _register)const
 {
-    return m_cpu.read_register(_register);
+    return m_cpu.read(_register);
 }
 

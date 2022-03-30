@@ -15,15 +15,15 @@ namespace Nodable
     class NodeView;
     class VariableNode;
 
-    typedef long long i64;
-    typedef long      i32;
-    typedef int       i16;
-    typedef short int i8;
+    typedef long long i64_t;
+    typedef long      i32_t;
+    typedef int       i16_t;
+    typedef short int i8_t;
 
-    typedef unsigned long long u64;
-    typedef unsigned long      u32;
-    typedef unsigned int       u16;
-    typedef unsigned short int u8;
+    typedef unsigned long long u64_t;
+    typedef unsigned long      u32_t;
+    typedef unsigned int       u16_t;
+    typedef unsigned short int u8_t;
 
     typedef std::map<std::string, Component*>       Components;
     typedef std::map<std::string, Member*>          Members;
