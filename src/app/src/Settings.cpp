@@ -69,9 +69,9 @@ Settings* Settings::create_default()
     // nodes
     settings->ui_node_padding                = 6.0f;
     settings->ui_node_memberConnectorRadius  = 5.0f;
-    settings->ui_node_invokableColor          = vec4(0.7f, 0.7f, 0.9f, 1.0f); // blue
-    settings->ui_node_variableColor          = vec4(0.9f, 0.9f, 0.7f, 1.0f); // purple
-    settings->ui_node_instructionColor       = vec4(0.7f, 0.9f, 0.7f, 1.0f); // green
+    settings->ui_node_invokableColor         = ImColor(255, 199, 115);          // light orange
+    settings->ui_node_variableColor          = ImColor( 171, 190, 255);         // blue
+    settings->ui_node_instructionColor       = vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
     settings->ui_node_literalColor           = vec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
     settings->ui_node_fillColor              = vec4(1.0f, 1.0f, 1.0f, 1.0f);
     settings->ui_node_highlightedColor       = vec4(1.0f, 1.0f, 1.0f, 1.0f);

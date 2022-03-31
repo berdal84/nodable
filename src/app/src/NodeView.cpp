@@ -519,52 +519,78 @@ bool NodeView::drawMemberView(MemberView* _view )
     bool edited = false;
     Member* member = _view->m_member;
 
-    // show/hide
-    const bool member_is_an_unconnected_input = member->get_input() != nullptr && member->allows_connection(Way_Out);
-
     const R::Class_ptr owner_class = member->get_owner()->get_class();
 
-    _view->m_showInput =
-            member_is_an_unconnected_input || owner_class->is_child_of<VariableNode>() || owner_class->is_child_of<LiteralNode>() ||
-            (
-            ( _view->m_touched && !MetaType::is_ptr(member->get_meta_type() ) )
-            ||
-            (
-                (!MetaType::is_ptr(member->get_meta_type()) && member->get_data()->is_defined())
-                &&
-                (
-                    (
-                        !member_is_an_unconnected_input
-                        ||
-                                owner_class->is_child_of<LiteralNode>()
-                        ||
-                        s_viewDetail == NodeViewDetail::Exhaustive
-                    )
-                    ||
-                            owner_class->is_child_of<VariableNode>()
-                )
-            )
-        );
+    /*
+     * Handle input visibility
+     */
+    bool show;
+
+    if ( _view->m_touched )  // in case user touched it, we keep the current state
+    {
+        show = _view->m_showInput;
+    }
+    else if( member->get_owner()->is<LiteralNode>() )
+    {
+        show = true;                               // we always show literal´s
+    }
+    else if( member->get_owner()->is<VariableNode>() )
+    {
+        show = member->get_data()->is_defined();
+    }
+    else if( !member->has_input_connected() )
+    {
+        show = member->get_data()->is_defined();   // we always show a defined unconnected member
+    }
+    else if ( member->get_meta_type()->has_qualifier(R::Qualifier::Pointer) )
+    {
+        show = member->is_connected_to_variable();
+    }
+    else if ( member->is_connected_to_variable() )
+    {
+        show = true;
+    }
+    else
+    {
+        show = member->get_data()->is_defined();
+    }
+
+    _view->m_showInput = show;
+
     vec2 new_relative_pos = ImGui::GetCursorScreenPos() - getScreenPos();
 
     // input
-    float input_size;
+    float input_size = NodeView::s_memberInputToggleButtonSize.x;
 
-    if ( _view->m_showInput && member->get_data()->is_defined())
+    if ( _view->m_showInput )
     {
-        NODABLE_ASSERT(member->get_data()->is_defined());
-        // try to draw an as small as possible input field
-        auto str = member->convert_to<std::string>();
-        input_size = 5.0f + std::max( ImGui::CalcTextSize(str.c_str()).x, NodeView::s_memberInputSizeMin );
-        ImGui::PushItemWidth(input_size);
+        bool limit_size = member->get_meta_type()->get_type() != R::Type::Boolean;
+
+        if ( limit_size )
+        {
+            // try to draw an as small as possible input field
+            std::string str;
+            if (member->is_connected_to_variable())
+            {
+                str = member->get_connected_variable()->get_name();
+            }
+            else
+            {
+                str = member->convert_to<std::string>();
+            }
+            input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, NodeView::s_memberInputSizeMin);
+            ImGui::PushItemWidth(input_size);
+        }
         edited = NodeView::DrawMemberInput(member);
-        ImGui::PopItemWidth();
+
+        if ( limit_size )
+        {
+            ImGui::PopItemWidth();
+        }
     }
     else
     {
         ImGui::Button("", NodeView::s_memberInputToggleButtonSize);
-
-        input_size = NodeView::s_memberInputToggleButtonSize.x;
 
         if ( ImGui::IsItemHovered() )
         {
@@ -590,6 +616,8 @@ bool NodeView::drawMemberView(MemberView* _view )
 
 bool NodeView::DrawMemberInput( Member *_member, const char* _label )
 {
+    NODABLE_ASSERT(_member->get_data()->is_initialized());
+
     bool edited = false;
 
     Node* node  = _member->get_owner();
@@ -607,64 +635,78 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
 
     auto inputFlags = ImGuiInputTextFlags_None;
 
-    /* Draw the member */
-    switch (_member->get_meta_type()->get_type() )
+    if( _member->has_input_connected() && _member->is_connected_to_variable() ) // if is a ref to a variable, we just draw variable name
     {
-        case R::Type::Double:
-        {
-            auto f = (double)*_member;
+        char str[255];
+        auto* variable = _member->get_input()->get_owner()->as<VariableNode>();
+        snprintf(str, 255, "%s", variable->get_name() );
 
-            if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->has_input_connected())
-            {
-                _member->set(f);
-                edited |= true;
-            }
-            break;
-        }
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4)variable->get<NodeView>()->getColor(Color_Fill) );
+        ImGui::InputText(label.c_str(), str, 255, inputFlags);
+        ImGui::PopStyleColor();
 
-        case R::Type::String:
-        {
-            char str[255];
-            snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
-
-            if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->has_input_connected() )
-            {
-                _member->set(str);
-                edited |= true;
-            }
-            break;
-        }
-
-        case R::Type::Boolean:
-        {
-            std::string checkBoxLabel = _member->get_name();
-
-            auto b = (bool)*_member;
-
-            if (ImGui::Checkbox(label.c_str(), &b ) && !_member->has_input_connected() )
-            {
-                _member->set(b);
-                edited |= true;
-            }
-            break;
-        }
-
-        default:
-        {
-            ImGui::Text( "%s", ((std::string)*_member).c_str());
-            break;
-        }
     }
-
-    /* If value is hovered, we draw a tooltip that print the source expression of the value*/
-    if (ImGui::IsItemHovered())
+    else
     {
-        ImGui::BeginTooltip();
-        Serializer* serializer = node->get_parent_graph()->get_language()->getSerializer();
-        std::string buffer;
-        serializer->serialize(buffer, _member);
-        ImGui::Text("%s", buffer.c_str() );
-        ImGui::EndTooltip();
+        /* Draw the member */
+        switch (_member->get_meta_type()->get_type() )
+        {
+            case R::Type::Double:
+            {
+                auto f = (double)*_member;
+
+                if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->has_input_connected())
+                {
+                    _member->set(f);
+                    edited |= true;
+                }
+                break;
+            }
+
+            case R::Type::String:
+            {
+                char str[255];
+                snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
+
+                if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->has_input_connected() )
+                {
+                    _member->set(str);
+                    edited |= true;
+                }
+                break;
+            }
+
+            case R::Type::Boolean:
+            {
+                std::string checkBoxLabel = _member->get_name();
+
+                auto b = (bool)*_member;
+
+                if (ImGui::Checkbox(label.c_str(), &b ) && !_member->has_input_connected() )
+                {
+                    _member->set(b);
+                    edited |= true;
+                }
+                break;
+            }
+
+            default:
+            {
+                ImGui::Text( "%s", ((std::string)*_member).c_str());
+                break;
+            }
+        }
+
+        /* If value is hovered, we draw a tooltip that print the source expression of the value*/
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            Serializer* serializer = node->get_parent_graph()->get_language()->getSerializer();
+            std::string buffer;
+            serializer->serialize(buffer, _member);
+            ImGui::Text("%s", buffer.c_str() );
+            ImGui::EndTooltip();
+        }
     }
 
     return edited;
