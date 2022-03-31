@@ -11,8 +11,8 @@ using namespace Nodable;
 
 InstructionNode* NodeFactory::new_instr() const
 {
-    InstructionNode* instr_node = new InstructionNode(ICON_FA_CODE " Instr.");
-    instr_node->set_short_label(ICON_FA_CODE " I.");
+    InstructionNode* instr_node = new InstructionNode("</> Instruction");
+    instr_node->set_short_label("</>");
     m_post_process(instr_node);
     return instr_node;
 }
@@ -169,9 +169,9 @@ Node* NodeFactory::new_function(const IInvokable* _function) const
 Node* NodeFactory::new_scope() const
 {
     auto scope_node = new Node();
-    std::string label = ICON_FA_CODE_BRANCH " Scope";
+    std::string label = "{} Scope";
     scope_node->set_label(label);
-    scope_node->set_short_label(ICON_FA_CODE_BRANCH " Sc.");
+    scope_node->set_short_label( "{}");
 
     scope_node->predecessor_slots().set_limit(std::numeric_limits<int>::max());
     scope_node->successor_slots().set_limit(1);
@@ -187,9 +187,9 @@ Node* NodeFactory::new_scope() const
 ConditionalStructNode* NodeFactory::new_cond_struct() const
 {
     auto cond_struct_node = new ConditionalStructNode();
-    std::string label = ICON_FA_QUESTION " Condition";
+    std::string label = ICON_FA_CODE_BRANCH " If";
     cond_struct_node->set_label(label);
-    cond_struct_node->set_short_label(ICON_FA_QUESTION" Cond.");
+    cond_struct_node->set_short_label(ICON_FA_CODE_BRANCH);
 
     cond_struct_node->predecessor_slots().set_limit(std::numeric_limits<int>::max());
     cond_struct_node->successor_slots().set_limit(2); // true/false branches
@@ -205,7 +205,7 @@ ConditionalStructNode* NodeFactory::new_cond_struct() const
 ForLoopNode* NodeFactory::new_for_loop_node() const
 {
     auto for_loop = new ForLoopNode();
-    std::string label = ICON_FA_RECYCLE " For loop";
+    std::string label = ICON_FA_RECYCLE " For";
     for_loop->set_label(label);
     for_loop->set_short_label(ICON_FA_RECYCLE" For");
 
