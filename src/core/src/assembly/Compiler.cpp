@@ -207,8 +207,6 @@ void assembly::Compiler::compile(const ForLoopNode* for_loop)
     Instruction* skip_true_branch = m_temp_code->push_instr(opcode::jne);
     skip_true_branch->m_comment = "jump if register is false";
 
-    Instruction* skip_false_branch = nullptr;
-
     if ( auto true_scope = for_loop->get_condition_true_scope() )
     {
         compile(true_scope);
