@@ -955,6 +955,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
             if ( condition)
             {
+                condition->set_label(condStruct->condition_member()->get_name());
                 condStruct->set_cond_instr(condition);
 
                 if ( m_token_ribbon.eatToken(TokenType_CloseBracket) )
@@ -1055,6 +1056,7 @@ ForLoopNode* Parser::parse_for_loop()
             }
             else
             {
+                init_instr->set_label(for_loop_node->get_init_expr()->get_name());
                 m_graph->connect(init_instr->get_this_member(), for_loop_node->get_init_expr());
                 for_loop_node->set_init_instr(init_instr);
 
@@ -1065,6 +1067,7 @@ ForLoopNode* Parser::parse_for_loop()
                 }
                 else
                 {
+                    cond_instr->set_label(for_loop_node->condition_member()->get_name());
                     m_graph->connect(cond_instr->get_this_member(), for_loop_node->condition_member());
                     for_loop_node->set_cond_instr(cond_instr);
 
@@ -1075,6 +1078,7 @@ ForLoopNode* Parser::parse_for_loop()
                     }
                     else
                     {
+                        iter_instr->set_label(for_loop_node->get_iter_expr()->get_name());
                         m_graph->connect(iter_instr->get_this_member(), for_loop_node->get_iter_expr());
                         for_loop_node->set_iter_instr(iter_instr);
 
