@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstring> // for memset
 #include "nodable/core/assertions.h"
 #include "nodable/core/types.h"
 #include "nodable/core/assembly/Register.h"
