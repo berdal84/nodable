@@ -530,6 +530,10 @@ bool NodeView::draw(MemberView* _view )
     {
         show = _view->m_showInput;
     }
+    else if( s_view_detail == NodeViewDetail::Exhaustive )
+    {
+        show = true;
+    }
     else if( member->get_owner()->is<LiteralNode>() )
     {
         show = true;                               // we always show literal´s
