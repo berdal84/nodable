@@ -115,3 +115,13 @@ assembly::QWord* Member::get_data_ptr()
 {
     return m_variant.get_data_ptr();
 }
+
+bool Member::is_connected_to_variable()
+{
+    return m_input && m_input->get_owner()->is<VariableNode>();
+}
+
+VariableNode* Member::get_connected_variable()
+{
+    return m_input->get_owner()->as<VariableNode>();
+}
