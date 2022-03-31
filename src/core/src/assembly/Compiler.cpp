@@ -178,17 +178,17 @@ void assembly::Compiler::compile(const Node* _node)
         bool should_be_evaluated = _node->has<InvokableComponent>() || _node->is<VariableNode>() || _node->is<LiteralNode>();
         if ( should_be_evaluated )
         {
-            // eval
-            {
-                Instruction *instr     = m_temp_code->push_instr(opcode::eval_node);
-                instr->eval.node = _node;
-                instr->m_comment =
-                        std::string{_node->get_label()} +
-                        " (initial value is: " +
-                        _node->props()->get(k_value_member_name)->convert_to<std::string>() +
-                        ")";
-            }
+            Instruction *instr = m_temp_code->push_instr(opcode::eval_node);
+            instr->eval.node   = _node;
 
+            if( auto variable = _node->as<VariableNode>())
+            {
+                instr->m_comment = variable->get_name();
+            }
+            else
+            {
+                instr->m_comment = _node->get_label();
+            }
             // result is not stored, because this is necessary only for instruction's root node.
         }
     }
@@ -205,7 +205,7 @@ void assembly::Compiler::compile(const ForLoopNode* for_loop)
     compile_as_condition(for_loop->get_cond_instr());
 
     Instruction* skip_true_branch = m_temp_code->push_instr(opcode::jne);
-    skip_true_branch->m_comment = "jump if register is false";
+    skip_true_branch->m_comment = "jump if not equal";
 
     if ( auto true_scope = for_loop->get_condition_true_scope() )
     {
@@ -238,7 +238,7 @@ void assembly::Compiler::compile_as_condition(const InstructionNode* _instr_node
     Instruction* cmp_instr       = m_temp_code->push_instr(opcode::cmp);  // works only with registry
     cmp_instr->cmp.left.r  = rax;
     cmp_instr->cmp.right.r = rdx;
-    cmp_instr->m_comment   = "compare last condition with true";
+    cmp_instr->m_comment   = "compare registers";
 }
 
 void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
@@ -246,7 +246,7 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
     compile_as_condition(_cond_node->get_cond_instr()); // compile condition isntruction, store result, compare
 
     Instruction* skip_true_branch     = m_temp_code->push_instr(opcode::jne);
-    skip_true_branch->m_comment = "jump if false";
+    skip_true_branch->m_comment = "jump if not equals";
 
     Instruction* skip_false_branch = nullptr;
 
@@ -257,7 +257,7 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
         if (_cond_node->get_condition_false_scope())
         {
             skip_false_branch = m_temp_code->push_instr(opcode::jmp);
-            skip_false_branch->m_comment = "jump if true";
+            skip_false_branch->m_comment = "jump";
         }
     }
 
@@ -288,10 +288,10 @@ void assembly::Compiler::compile(const InstructionNode *instr_node)
 
         if ( root_node_value )
         {
-            Instruction* instr       = m_temp_code->push_instr(opcode::deref_ptr);
-            instr->uref.qword_ptr   = root_node_value->get_data_ptr();
+            Instruction* instr     = m_temp_code->push_instr(opcode::deref_ptr);
+            instr->uref.qword_ptr  = root_node_value->get_data_ptr();
             instr->uref.qword_type = root_node_value->get_meta_type()->get_type();
-            instr->m_comment   = "dereference node value";
+            instr->m_comment       = "copy unreferenced data";
         }
     }
 }
