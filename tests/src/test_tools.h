@@ -22,9 +22,8 @@ namespace Nodable
                                                             // since VM will be destroyed leaving this scope.
 
         // prepare
-        return_t              result{};
-        Asm::Compiler         compiler;
-        Asm::VM               vm;
+        assembly::Compiler         compiler;
+        vm::VM                vm;
         const LanguageNodable lang;
         NodeFactory           factory(&lang);
         bool                  autocompletion = false;
@@ -40,7 +39,7 @@ namespace Nodable
         {
             throw std::runtime_error("Compiler was not able to compile program's graph.");
         }
-        std::cout << Asm::Code::to_string(asm_code.get()) << std::flush;
+        std::cout << assembly::Code::to_string(asm_code.get()) << std::flush;
         // load
         if (!vm.load_program( std::move(asm_code) ))
         {
@@ -51,9 +50,9 @@ namespace Nodable
         vm.run_program();
 
         // ret result
-        Asm::MemSpace mem_space = vm.get_last_result();
+        assembly::QWord mem_space = vm.get_last_result();
 
-        result = (return_t)mem_space;
+        auto result = (return_t)mem_space;
 
         return result;
     }
@@ -68,8 +67,8 @@ namespace Nodable
         NodeFactory           factory(&lang);
         bool                  autocompletion = false;
         GraphNode             graph(&lang, &factory, &autocompletion);
-        Asm::Compiler         compiler;
-        Asm::VM               vm;
+        assembly::Compiler    compiler;
+        vm::VM                vm;
 
         // act
         lang.getParser()->parse_graph(expression, &graph);
@@ -80,7 +79,7 @@ namespace Nodable
         {
             throw std::runtime_error("Compiler was not able to compile program's graph.");
         }
-        std::cout << Asm::Code::to_string(code.get()) << std::flush;
+        std::cout << assembly::Code::to_string(code.get()) << std::flush;
         // load
         if (!vm.load_program( std::move(code) ))
         {

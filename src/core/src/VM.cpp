@@ -5,7 +5,8 @@
 #include <nodable/core/Scope.h>
 
 using namespace Nodable;
-using namespace Nodable::Asm;
+using namespace Nodable::vm;
+using opcode = Nodable::assembly::opcode;
 
 CPU::CPU()
 {
@@ -14,35 +15,35 @@ CPU::CPU()
 
 void CPU::init_eip()
 {
-    write(Register::eip, 0ull);
+    write(Register::eip, QWord(0ull));
 };
 
 void CPU::clear_registers()
 {
-    for( size_t i = 0; i < std::size( m_register ); ++i )
+    for( size_t id = 0; id < std::size( m_register ); ++id )
     {
-        m_register[i].reset();
+        write( (Register)id, QWord());
     }
     init_eip();
 }
 
-Asm::MemSpace CPU::read(Register _id)
+assembly::QWord CPU::read(Register _id)const
 {
+    LOG_VERBOSE("VM::CPU", "read register %s (value: %s)\n", assembly::to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
 }
 
-const Asm::MemSpace& CPU::read(Register _id) const
+assembly::QWord& CPU::_read(Register _id)
 {
+    LOG_VERBOSE("VM::CPU", "_read register %s (value: %s)\n", assembly::to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
 }
 
-void CPU::write(Register _id, MemSpace _data)
+void CPU::write(Register _id, QWord _data)
 {
-    MemSpace& mem_dst = m_register[_id];
-    LOG_VERBOSE("VM::CPU", "write_register %s\n", Asm::to_string(_id) )
-    LOG_VERBOSE("VM::CPU", " - mem before: %s\n", mem_dst.to_string().c_str() )
+    QWord& mem_dst = _read(_id);
     mem_dst = _data;
-    LOG_VERBOSE("VM::CPU", " - mem after:  %s\n", mem_dst.to_string().c_str() )
+    LOG_VERBOSE("VM::CPU", "write register %s (value: %s)\n", assembly::to_string(_id), mem_dst.to_string().c_str())
 }
 
 
@@ -57,9 +58,9 @@ VM::VM()
 
 void VM::advance_cursor(i64_t _amount)
 {
-    MemSpace mem = m_cpu.read(Register::eip);
-    mem.u64 += _amount; // can overflow
-    m_cpu.write(Register::eip, mem);
+    QWord eip = m_cpu.read(Register::eip);
+    eip.u64 += _amount;
+    m_cpu.write(Register::eip, eip );
 }
 
 void VM::run_program()
@@ -70,7 +71,7 @@ void VM::run_program()
 
     m_cpu.clear_registers();
 
-    while( is_there_a_next_instr() && get_next_instr()->type != Instr_t::ret )
+    while( is_there_a_next_instr() && get_next_instr()->type != opcode::ret )
     {
         _stepOver();
     }
@@ -111,43 +112,48 @@ std::unique_ptr<const Code> VM::release_program()
 bool VM::_stepOver()
 {
     bool success;
-    Instr* next_instr = get_next_instr();
+    Instruction* next_instr = get_next_instr();
 
-    LOG_MESSAGE("VM", "%s\n", Instr::to_string(*next_instr).c_str() );
+    LOG_MESSAGE("VM", "%s\n", Instruction::to_string(*next_instr).c_str() );
 
     switch ( next_instr->type )
     {
-        case Instr_t::cmp:
+        case opcode::cmp:
         {
-            MemSpace left  = m_cpu.read(next_instr->cmp.left.r);  // dereference registers, get their value
-            MemSpace right = m_cpu.read(next_instr->cmp.right.r);
-            m_cpu.write(Register::rax, left.b == right.b);       // boolean comparison
+            QWord left  = m_cpu.read(next_instr->cmp.left.r);  // dereference registers, get their value
+            QWord right = m_cpu.read(next_instr->cmp.right.r);
+            QWord result(left.b == right.b);
+            m_cpu.write(Register::rax, result);       // boolean comparison
             advance_cursor();
             success = true;
             break;
         }
 
-        case Instr_t::deref_ptr:
+        case opcode::deref_ptr:
         {
-            switch( next_instr->deref.ptr_t )
+            QWord qword = *next_instr->uref.qword_ptr;
+            m_cpu.write(Register::rax, qword );
+
+            switch( next_instr->uref.qword_type )
             {
                 case R::Type::Boolean:
-                    m_cpu.write(Register::rax, *(bool*)next_instr->deref.ptr );
-                    LOG_VERBOSE("VM", "value dereferenced: %b\n", *(bool*)next_instr->deref.ptr );
+                {
+                    LOG_VERBOSE("VM", "value dereferenced: %b\n", qword.b);
                     break;
+                }
+
                 case R::Type::Double:
-                    m_cpu.write(Register::rax, *(double*)next_instr->deref.ptr );
-                    LOG_VERBOSE("VM", "value dereferenced: %d\n", *(double*)next_instr->deref.ptr  );
+                {
+                    LOG_VERBOSE("VM", "value dereferenced: %d\n", qword.d );
                     break;
+                }
+
                 case R::Type::String:
-                    m_cpu.write(Register::rax, next_instr->deref.ptr->m_std_string_ptr->c_str() );
-                    LOG_VERBOSE("VM", "value dereferenced: %s\n", next_instr->deref.ptr->m_std_string_ptr->c_str() );
+                {
+                    LOG_VERBOSE("VM", "pointed string: %s\n", ((std::string*)qword.ptr)->c_str() );
                     break;
-                case R::Type::Void:
-                case R::Type::Class:
-                case R::Type::Null:
-                    m_cpu.write(Register::rax, next_instr->deref.ptr );
-                    break;
+                }
+                default: NODABLE_ASSERT(false) // not handled
             }
 
 
@@ -156,7 +162,7 @@ bool VM::_stepOver()
             break;
         }
 
-        case Instr_t::mov:
+        case opcode::mov:
         {
             m_cpu.write(next_instr->mov.dst.r, next_instr->mov.src);      // write source to destination register
 
@@ -165,14 +171,14 @@ bool VM::_stepOver()
             break;
         }
 
-        case Instr_t::push_stack_frame: // do nothing, just mark visually the beginning of a scope.
+        case opcode::push_stack_frame: // do nothing, just mark visually the beginning of a scope.
         {
             advance_cursor();
             success = true;
             break;
         }
 
-        case Instr_t::push_var:
+        case opcode::push_var:
         {
             advance_cursor();
             auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
@@ -186,7 +192,7 @@ bool VM::_stepOver()
             break;
         }
 
-        case Instr_t::pop_stack_frame:
+        case opcode::pop_stack_frame:
         {
             auto scope = next_instr->pop.scope;
             for( VariableNode* each_var : scope->get_variables() )
@@ -201,7 +207,7 @@ bool VM::_stepOver()
             break;
         }
 
-        case Instr_t::eval_node:
+        case opcode::eval_node:
         {
             auto node = const_cast<Node*>( next_instr->eval.node ); // hack !
             node->eval();
@@ -211,16 +217,16 @@ bool VM::_stepOver()
             break;
         }
 
-        case Instr_t::jmp:
+        case opcode::jmp:
         {
             advance_cursor(next_instr->jmp.offset);
             success = true;
             break;
         }
 
-        case Instr_t::jne:
+        case opcode::jne:
         {
-            MemSpace rax = m_cpu.read(Register::rax);
+            QWord rax = m_cpu.read(Register::rax);
             if ( rax.b )
             {
                 advance_cursor();
@@ -233,7 +239,7 @@ bool VM::_stepOver()
             break;
         }
 
-        case Instr_t::ret:
+        case opcode::ret:
             //advance_cursor();
             success = false;
             break;
@@ -250,7 +256,7 @@ bool VM::step_over()
 {
     auto must_break = [&]() -> bool {
         return
-               get_next_instr()->type == Instr_t::eval_node
+                get_next_instr()->type == opcode::eval_node
                && m_last_step_next_instr != get_next_instr();
     };
 
@@ -258,7 +264,7 @@ bool VM::step_over()
 
     while(is_there_a_next_instr() && !must_break() && !must_exit )
     {
-        must_exit = get_next_instr()->type == Instr_t::ret;
+        must_exit = get_next_instr()->type == opcode::ret;
         _stepOver();
     }
 
@@ -278,7 +284,7 @@ bool VM::step_over()
 
         switch ( next_instr->type )
         {
-            case Instr_t::eval_node:
+            case opcode::eval_node:
             {
                 m_next_node = next_instr->eval.node;
                 break;
@@ -305,16 +311,16 @@ void VM::debug_program()
 
 bool VM::is_there_a_next_instr() const
 {
-    const MemSpace& eip = m_cpu.read(Register::eip);
+    const QWord& eip = m_cpu.read(Register::eip);
     return eip.u64 < m_program_asm_code->size();
 }
 
-MemSpace VM::get_last_result()const
+const QWord VM::get_last_result()const
 {
     return m_cpu.read(Register::rax);
 }
 
-Instr* VM::get_next_instr() const
+Instruction* VM::get_next_instr() const
 {
     if ( is_there_a_next_instr() )
     {
@@ -333,8 +339,13 @@ bool VM::load_program(std::unique_ptr<const Code> _code)
     return m_program_asm_code && m_program_asm_code->size() != 0;
 }
 
-const MemSpace& VM::read_cpu_register(Register _register)const
+const QWord VM::read_cpu_register(Register _register)const
 {
     return m_cpu.read(_register);
+}
+
+const Code *VM::get_program_asm_code()
+{
+    return m_program_asm_code.get();
 }
 

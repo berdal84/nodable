@@ -19,7 +19,8 @@
 #include <nodable/app/Event.h>
 
 using namespace Nodable;
-using namespace Nodable::Asm;
+using namespace Nodable::assembly;
+using VM = vm::VM;
 
 AppView::AppView(AppContext* _ctx, const char* _name )
     : View(_ctx)
@@ -566,7 +567,7 @@ void AppView::draw_vm_view()
     ImGui::Text("Virtual Machine:");
     ImGui::Separator();
 
-    Asm::VM* vm = m_context->vm;
+    VM* vm = m_context->vm;
     if ( !vm )
     {
         ImGui::Text("Sorry... Apparently the Virtual Machine can't be found.");
@@ -597,12 +598,12 @@ void AppView::draw_vm_view()
             ImGui::Text("registers:");
             ImGui::Separator();
 
-            using Asm::Register;
+            using assembly::Register;
             ImGui::Indent();
 
             auto draw_register_value = [vm](Register _register)
             {
-                ImGui::Text("%4s: %12s", Asm::to_string(_register), vm->read_cpu_register(_register).to_string().c_str() );
+                ImGui::Text("%4s: %12s", assembly::to_string(_register), vm->read_cpu_register(_register).to_string().c_str() );
             };
 
             draw_register_value(Register::rax); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "primary accumulator");
@@ -634,9 +635,9 @@ void AppView::draw_vm_view()
                 if ( code )
                 {
                     auto current_instr = vm->get_next_instr();
-                    for( Instr* each_instr : code->get_instructions() )
+                    for( Instruction* each_instr : code->get_instructions() )
                     {
-                        auto str = Instr::to_string( *each_instr );
+                        auto str = Instruction::to_string(*each_instr );
                         if ( each_instr == current_instr )
                         {
                             if ( m_scroll_to_curr_instr && vm->is_program_running() )
