@@ -616,8 +616,6 @@ bool NodeView::drawMemberView(MemberView* _view )
 
 bool NodeView::DrawMemberInput( Member *_member, const char* _label )
 {
-    NODABLE_ASSERT(_member->get_data()->is_initialized());
-
     bool edited = false;
 
     Node* node  = _member->get_owner();
