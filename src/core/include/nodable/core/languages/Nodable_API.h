@@ -66,7 +66,7 @@ double api_sqrt(double n)
     return sqrt(n);
 }
 
-double api_not(bool b)
+bool api_not(bool b)
 {
     return !b;
 }

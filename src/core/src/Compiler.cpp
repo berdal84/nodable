@@ -385,7 +385,7 @@ void Asm::Compiler::compile(const InstructionNode *instr_node)
             Instr* instr       = m_temp_code->push_instr(Instr_t::deref_ptr);
             instr->deref.ptr   = root_node_value->get_data_ptr();
             instr->deref.ptr_t = root_node_value->get_meta_type()->get_type();
-            instr->m_comment   = "dereference pointer";
+            instr->m_comment   = "dereference node value";
         }
     }
 }
