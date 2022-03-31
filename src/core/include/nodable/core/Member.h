@@ -99,7 +99,7 @@ namespace Nodable
 
         void             force_defined_flag(bool _value);
         assembly::QWord* get_data_ptr();
-        bool             is_connected_to_variable();
+        bool             is_connected_to_variable() const;
         VariableNode*    get_connected_variable();
 
     private:

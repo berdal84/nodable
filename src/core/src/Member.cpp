@@ -116,7 +116,7 @@ assembly::QWord* Member::get_data_ptr()
     return m_variant.get_data_ptr();
 }
 
-bool Member::is_connected_to_variable()
+bool Member::is_connected_to_variable() const
 {
     return m_input && m_input->get_owner()->is<VariableNode>();
 }

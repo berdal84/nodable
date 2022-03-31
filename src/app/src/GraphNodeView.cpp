@@ -241,28 +241,43 @@ bool GraphNodeView::draw()
                             vec2 src_pos = src_member_view->m_out->get_pos();
                             vec2 dst_pos = dst_member_view->m_in->get_pos();
 
-                            // TODO: add multiple wire type settings
-
-                            // straight wide lines for node connections
-                            if ( MetaType::is_ptr(src_member->get_meta_type()) )
+                            // do not draw long lines between a variable value
+                            bool skip_wire = false;
+                            if ( src_member->get_owner()->is<VariableNode>() &&
+                                 src_member == src_member->get_owner()->props()->get(k_value_member_name) )
                             {
-                                ImGuiEx::DrawVerticalWire(
-                                        ImGui::GetWindowDrawList(),
-                                        src_pos, dst_pos,
-                                        settings->ui_codeFlow_lineColor,
-                                        settings->ui_codeFlow_lineShadowColor,
-                                        settings->ui_wire_bezier_thickness * 3.0f,
-                                        settings->ui_wire_bezier_roundness * 0.25f);
+                                vec2 delta = src_pos - dst_pos;
+                                if( abs(delta.x) > 100.0f || abs(delta.y) > 100.0f )
+                                {
+                                    skip_wire = true;
+                                }
                             }
-                            // curved thin for the others
-                            else{
-                                ImGuiEx::DrawVerticalWire(
-                                        ImGui::GetWindowDrawList(),
-                                        src_pos, dst_pos,
-                                        settings->ui_wire_fillColor,
-                                        settings->ui_wire_shadowColor,
-                                        settings->ui_wire_bezier_thickness,
-                                        settings->ui_wire_bezier_roundness);
+
+                            // TODO: add multiple wire type settings
+                            if ( !skip_wire )
+                            {
+                                // straight wide lines for node connections
+                                if (MetaType::is_ptr(src_member->get_meta_type()))
+                                {
+                                    ImGuiEx::DrawVerticalWire(
+                                            ImGui::GetWindowDrawList(),
+                                            src_pos, dst_pos,
+                                            settings->ui_codeFlow_lineColor,
+                                            settings->ui_codeFlow_lineShadowColor,
+                                            settings->ui_wire_bezier_thickness * 3.0f,
+                                            settings->ui_wire_bezier_roundness * 0.25f);
+                                }
+                                // curved thin for the others
+                                else
+                                {
+                                    ImGuiEx::DrawVerticalWire(
+                                            ImGui::GetWindowDrawList(),
+                                            src_pos, dst_pos,
+                                            settings->ui_wire_fillColor,
+                                            settings->ui_wire_shadowColor,
+                                            settings->ui_wire_bezier_thickness,
+                                            settings->ui_wire_bezier_roundness);
+                                }
                             }
                         }
                     }
