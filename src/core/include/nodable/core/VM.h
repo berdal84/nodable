@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <nodable/core/types.h>
-#include <nodable/core/Compiler.h>
+#include "nodable/core/assembly/Compiler.h"
 
 namespace Nodable
 {
@@ -12,21 +12,26 @@ namespace Nodable
      * We do it in order to be maybe one day compatible, for now it is just to be inspired by something solid.
      */
 
-    namespace Asm
+    namespace vm
     {
+        using Code        = assembly::Code;
+        using QWord       = assembly::QWord;
+        using Instruction = assembly::Instruction;
+        using Register    = assembly::Register;
+
         class CPU
         {
         public:
             CPU();
             ~CPU() = default;
-            MemSpace         read(Register);
-            const MemSpace&  read(Register)const;
-            void             write(Register, MemSpace);
-            void             clear_registers();
+            QWord         read(Register)const;
+            void          write(Register, QWord);
+            void          clear_registers();
 
         private:
-            void             init_eip(); // instruction pointer
-            MemSpace         m_register[Register::COUNT];
+            QWord&        _read(Register);
+            void          init_eip(); // instruction pointer
+            QWord         m_register[Register::COUNT];
         };
 
         /**
@@ -34,11 +39,12 @@ namespace Nodable
          */
         class VM
         {
+            using code_uptr = std::unique_ptr<const Code>;
         public:
             VM();
             ~VM() = default;
-            [[nodiscard]] bool          load_program(std::unique_ptr<const Code> _code);
-            std::unique_ptr<const Code> release_program();
+            [[nodiscard]] bool    load_program(code_uptr _code);
+            code_uptr             release_program();
             void                  run_program();
             void                  stop_program();
             void                  debug_program();
@@ -47,23 +53,24 @@ namespace Nodable
             inline bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
                    bool           step_over();
             inline const Node*    get_next_node() const {return m_next_node; }
-            MemSpace              get_last_result() const;
+            const QWord           get_last_result() const;
             bool                  is_there_a_next_instr() const;
-            const Asm::Code*      get_program_asm_code()const { return m_program_asm_code.get(); }
-            Instr*                get_next_instr() const;
-            const MemSpace&       read_cpu_register(Register _register)const;
+            Instruction*          get_next_instr() const;
+            const QWord           read_cpu_register(Register _register) const;
+
+            const Code *get_program_asm_code();
 
         private:
             void                  advance_cursor(i64_t _amount = 1);
-
             bool                  _stepOver();
 
             const Node*           m_next_node;
             bool                  m_is_program_running;
             bool                  m_is_debugging;
-            Instr*                m_last_step_next_instr;
+            Instruction*          m_last_step_next_instr;
             CPU                   m_cpu;
-            std::unique_ptr<const Asm::Code> m_program_asm_code;
+            code_uptr             m_program_asm_code;
+
         };
     }
 }

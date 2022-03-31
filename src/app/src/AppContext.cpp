@@ -19,9 +19,9 @@ AppContext::~AppContext()
 AppContext* AppContext::create_default(App* _app)
 {
     auto context = new AppContext(_app);
-    context->settings = Settings::create_default();
-    context->vm       = new Asm::VM();
-    context->language = new LanguageNodable();
+    context->settings        = Settings::create_default();
+    context->vm              = new vm::VM();
+    context->language        = new LanguageNodable();
     context->texture_manager = new TextureManager();
     return context;
 }

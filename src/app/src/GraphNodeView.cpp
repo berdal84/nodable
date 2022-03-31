@@ -18,7 +18,7 @@
 #include <nodable/core/InstructionNode.h>
 
 using namespace Nodable;
-using namespace Nodable::Asm;
+using namespace Nodable::assembly;
 using namespace Nodable::R;
 
 bool GraphNodeView::draw()

@@ -20,7 +20,7 @@ nodable_message(" - NODABLE_CORE_INSTALL_DESTINATION: ${NODABLE_CORE_INSTALL_DES
 add_library(
     nodable-core
     STATIC
-        src/Compiler.cpp
+        src/assembly/Compiler.cpp
         src/ConditionalStructNode.cpp
         src/DataAccess.cpp
         src/ForLoopNode.cpp
@@ -50,7 +50,7 @@ add_library(
         src/Variant.cpp
         src/VM.cpp
         src/Way.cpp
-        src/Wire.cpp)
+        src/Wire.cpp src/assembly/QWord.cpp src/assembly/Instruction.cpp src/assembly/Code.cpp)
 
 target_link_libraries(
     nodable-core

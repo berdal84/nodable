@@ -151,8 +151,8 @@ bool App::vm_compile_and_load_program()
 
     if (graph)
     {
-        Asm::Compiler compiler;
-        std::unique_ptr<const Asm::Code> asm_code = compiler.compile_syntax_tree(graph);
+        assembly::Compiler compiler;
+        std::unique_ptr<const assembly::Code> asm_code = compiler.compile_syntax_tree(graph);
 
         if (asm_code)
         {

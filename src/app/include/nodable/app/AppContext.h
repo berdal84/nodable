@@ -4,7 +4,7 @@ namespace Nodable
 {
     // forward decl
     class App;
-    namespace Asm
+    namespace vm
     {
         class VM;
     }
@@ -31,9 +31,9 @@ namespace Nodable
 
         ~AppContext();
 
-        Settings* settings;
-        App*      app;
-        Asm::VM*  vm;
+        Settings*       settings;
+        App*            app;
+        vm::VM*         vm;
         const Language* language;
         TextureManager* texture_manager;
         float           elapsed_time;

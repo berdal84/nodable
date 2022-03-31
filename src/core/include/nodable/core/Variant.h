@@ -7,35 +7,12 @@
 #include <nodable/core/types.h> // for constants and forward declarations
 #include <nodable/core/reflection/R.h>
 #include <nodable/core/assertions.h>
+#include <nodable/core/assembly/QWord.h>
 
 namespace Nodable
 {
     // forward declarations
     class Node;
-
-    /**
-     * Union to store Variant data
-     */
-    union VariantData
-    {
-        VariantData():m_void_ptr(nullptr){}
-        bool           m_bool;
-        //i8             m_i8;           // not handled yet
-        //i16            m_i16;                   //
-        //i32            m_i32;                   //
-        //i64            m_i64;                   //
-        //u8             m_u8;                    //
-        //u16            m_u16;                   //
-        //u32            m_u32;                   //
-        //u64            m_u64;                   //
-        //char*          m_char_ptr;              //
-        float          m_float;
-        double         m_double;
-        std::string*   m_std_string_ptr; // owned
-        void*          m_void_ptr;       // not owned
-    };
-    static_assert(sizeof(VariantData) == sizeof(size_t)); // ensure VariantData fits a size_t
-
 
     /**
      * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data member)
@@ -65,7 +42,7 @@ namespace Nodable
             }
             NODABLE_ASSERT( m_meta_type->has_qualifier(R::Qualifier::Pointer) )
 
-            m_data.m_void_ptr = _pointer;
+            m_data.ptr   = _pointer;
             m_is_defined = true;
         }
 		void set(const Variant&);
@@ -87,16 +64,16 @@ namespace Nodable
         template<typename T> T convert_to()const;
 
         // by reference
-        template<typename T> operator const T*()const  { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<const T*>(m_data.m_void_ptr); }
-        template<typename T> operator T*()             { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<T*>(m_data.m_void_ptr); }
+        template<typename T> operator const T*()const  { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<const T*>(m_data.ptr); }
+        template<typename T> operator T*()             { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<T*>(m_data.ptr); }
 
-		operator double*()        { NODABLE_ASSERT(m_is_initialized) return &m_data.m_double; }
-        operator bool*()          { NODABLE_ASSERT(m_is_initialized) return &m_data.m_bool; }
-        operator std::string* ()  { NODABLE_ASSERT(m_is_initialized) return m_data.m_std_string_ptr; }
-        operator void* ()         { NODABLE_ASSERT(m_is_initialized) return m_data.m_void_ptr; }
-        operator double&()        { NODABLE_ASSERT(m_is_initialized) return m_data.m_double; }
-        operator bool&()          { NODABLE_ASSERT(m_is_initialized) return m_data.m_bool; }
-        operator std::string& ()  { NODABLE_ASSERT(m_is_initialized) return *m_data.m_std_string_ptr; }
+		operator double*()        { NODABLE_ASSERT(m_is_initialized) return &m_data.d; }
+        operator bool*()          { NODABLE_ASSERT(m_is_initialized) return &m_data.b; }
+        operator std::string* ()  { NODABLE_ASSERT(m_is_initialized) return (std::string*)m_data.ptr; }
+        operator void* ()         { NODABLE_ASSERT(m_is_initialized) return m_data.ptr; }
+        operator double&()        { NODABLE_ASSERT(m_is_initialized) return m_data.d; }
+        operator bool&()          { NODABLE_ASSERT(m_is_initialized) return m_data.b; }
+        operator std::string& ()  { NODABLE_ASSERT(m_is_initialized) return *(std::string*)m_data.ptr; }
 
         // by value
         operator int()const;
@@ -107,12 +84,12 @@ namespace Nodable
 
         void force_defined_flag(bool _value);
 
-        VariantData* get_data_addr();
+        assembly::QWord* get_data_ptr();
 
     private:
         bool                               m_is_defined;
         bool                               m_is_initialized;
         std::shared_ptr<const R::MetaType> m_meta_type;
-		VariantData                        m_data;
+        assembly::QWord                  m_data;
     };
 }

@@ -33,8 +33,8 @@ void Variant::set(double _value)
     }
     NODABLE_ASSERT( is_meta_type( R::get_meta_type<double>() ) )
 
-    m_data.m_double = _value;
-    m_is_defined    = true;
+    m_data.d     = _value;
+    m_is_defined = true;
 }
 
 void Variant::set(const std::string& _value)
@@ -50,8 +50,9 @@ void Variant::set(const char* _value)
     }
     NODABLE_ASSERT( is_meta_type( R::get_meta_type<std::string>() ) )
 
-    m_data.m_std_string_ptr->clear();
-    m_data.m_std_string_ptr->append(_value);
+    auto* ptr = (std::string*)m_data.ptr;
+    ptr->clear();
+    ptr->append(_value);
 
     m_is_defined = true;
 }
@@ -64,7 +65,7 @@ void Variant::set(bool _value)
     }
     NODABLE_ASSERT( is_meta_type( R::get_meta_type<bool>() ) )
 
-    m_data.m_bool = _value;
+    m_data.b      = _value;
     m_is_defined  = true;
 }
 
@@ -83,17 +84,17 @@ void Variant::set_initialized(bool _initialize)
         // Set a default value (this will change the type too)
         switch ( type )
         {
-            case R::Type::String:  m_data.m_std_string_ptr   = new std::string(); m_is_defined = true; break;
-            case R::Type::Double:  m_data.m_double           = 0;                 break;
-            case R::Type::Boolean: m_data.m_bool             = false;             break;
+            case R::Type::String:  m_data.ptr = new std::string(); m_is_defined = true; break;
+            case R::Type::Double:  m_data.d   = 0;                 break;
+            case R::Type::Boolean: m_data.b   = false;             break;
             case R::Type::Void:
-            case R::Type::Class:   m_data.m_void_ptr         = nullptr;           break;
+            case R::Type::Class:   m_data.ptr = nullptr;           break;
             default:               break;
         }
     }
     else if ( m_is_defined && m_meta_type->get_type() == R::Type::String )
     {
-        delete m_data.m_std_string_ptr;
+        delete (std::string*)m_data.ptr;
     }
 
     m_is_initialized = _initialize;
@@ -107,11 +108,11 @@ void Variant::set(const Variant& _other)
 
     switch(m_meta_type->get_type())
     {
-        case R::Type::String:  set( {*_other.m_data.m_std_string_ptr} ); break;
-        case R::Type::Boolean: set( _other.m_data.m_bool); break;
-        case R::Type::Double:  set( _other.m_data.m_double); break;
+        case R::Type::String:  set( ((std::string*)_other.m_data.ptr)->c_str() ); break;
+        case R::Type::Boolean: set( _other.m_data.b); break;
+        case R::Type::Double:  set( _other.m_data.d); break;
         case R::Type::Void:
-        case R::Type::Class:   set( _other.m_data.m_void_ptr); break;
+        case R::Type::Class:   set( _other.m_data.ptr); break;
         default: NODABLE_ASSERT(false) // not handled.
     }
 }
@@ -134,11 +135,10 @@ void* Variant::convert_to<void*>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::String:  return nullptr;
-        case R::Type::Double:  return nullptr;
+        case R::Type::String:
+        case R::Type::Double:
         case R::Type::Boolean: return nullptr;
-        case R::Type::Class:   // fall through
-        default:               return (void*)m_data.m_void_ptr;
+        default:               return (void*)m_data.ptr;
     }
 }
 
@@ -147,17 +147,9 @@ u64_t Variant::convert_to<u64_t>()const
 {
     if( !m_is_defined)
     {
-        return 0;
+        return u64_t(0);
     }
-
-    switch (get_meta_type()->get_type())
-    {
-        case R::Type::String:  return (u64_t)m_data.m_std_string_ptr;
-        case R::Type::Double:  return (u64_t)m_data.m_double;
-        case R::Type::Boolean: return (u64_t)m_data.m_bool;
-        case R::Type::Class:   // fall through
-        default:               return (u64_t)m_data.m_void_ptr;
-    }
+    return (u64_t)m_data;
 }
 
 template<>
@@ -170,11 +162,10 @@ double Variant::convert_to<double>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::String:  return double(m_data.m_std_string_ptr->size());
-        case R::Type::Double:  return m_data.m_double;
-        case R::Type::Boolean: return double(m_data.m_bool);
-        case R::Type::Class:
-        default:               return double((u64_t)m_data.m_void_ptr);
+        case R::Type::String:  return stod((std::string)m_data);
+        case R::Type::Double:  return m_data.d;
+        case R::Type::Boolean: return double(m_data.b);
+        default:               NODABLE_ASSERT(false) // this case is not handled
     }
 }
 
@@ -194,10 +185,10 @@ bool Variant::convert_to<bool>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::String:  return !m_data.m_std_string_ptr->empty();
-        case R::Type::Double:  return m_data.m_double != 0.0F;
+        case R::Type::String:  return !((std::string*)m_data.ptr)->empty();
+        case R::Type::Double:  return m_data.d != 0.0F;
         case R::Type::Boolean: // pass through
-        default:               return m_data.m_bool;
+        default:               return m_data.b;
     }
 }
 
@@ -214,40 +205,14 @@ std::string Variant::convert_to<std::string>()const
         return "undefined";
     }
 
-    std::string result;
     switch (get_meta_type()->get_type())
     {
-        case R::Type::String:
-        {
-            result.append( *m_data.m_std_string_ptr );
-            break;
-        }
-
-        case R::Type::Double:
-        {
-            result.append(Format::fmt_no_trail(m_data.m_double) );
-            break;
-        }
-
-        case R::Type::Boolean:
-        {
-            result.append(m_data.m_bool ? "true" : "false" );
-            break;
-        }
-
-        case R::Type::Class:
-        {
-            result.append(Format::fmt_ptr(m_data.m_void_ptr) );
-            break;
-        }
-
-        default:
-        {
-            result.append("<?>");
-        }
+        case R::Type::String:  return *(std::string*)m_data.ptr;
+        case R::Type::Double:  return Format::fmt_no_trail(m_data.d);
+        case R::Type::Boolean: return m_data.b ? "true" : "false";
+        case R::Type::Class:   return Format::fmt_ptr(m_data.ptr);
+        default:               return "<?>";
     }
-
-    return result;
 }
 
 // those operators can't figure in header since they are using templates implem in cpp.
@@ -262,11 +227,11 @@ void Variant::force_defined_flag(bool _value )
     m_is_defined = _value;
 }
 
-VariantData* Variant::get_data_addr()
+assembly::QWord* Variant::get_data_ptr()
 {
     if( !m_is_initialized )
     {
-        return 0;
+        return nullptr;
     }
 
     return &m_data;

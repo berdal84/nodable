@@ -97,14 +97,13 @@ namespace Nodable
             return member;
         }
 
-        void force_defined_flag(bool _value);
-
-        VariantData* get_data_ptr();
+        void               force_defined_flag(bool _value);
+        assembly::QWord* get_data_ptr();
 
     private:
 
         // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()
-        Variant& get_variant(){ return (m_input && m_connected_by == ConnectBy_Ref) ? m_input->m_variant : m_variant; }
+        Variant&       get_variant()     { return (m_input && m_connected_by == ConnectBy_Ref) ? m_input->m_variant : m_variant; }
         const Variant& get_variant()const{ return (m_input && m_connected_by == ConnectBy_Ref) ? m_input->m_variant : m_variant; }
 
         Member*           m_input;
