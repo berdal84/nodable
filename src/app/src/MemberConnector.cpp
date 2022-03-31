@@ -18,7 +18,7 @@ vec2 MemberConnector::get_pos()const
 {
     vec2 relative_pos_constrained = m_memberView->relative_pos();
 
-    vec2 node_view_size = m_memberView->m_nodeView->getSize();
+    vec2 node_view_size = m_memberView->m_nodeView->get_size();
 
     switch (m_display_side)
     {
@@ -38,7 +38,7 @@ vec2 MemberConnector::get_pos()const
             relative_pos_constrained.y = 0;
             relative_pos_constrained.x = node_view_size.x * 0.5f;
     }
-    return vec2( m_memberView->m_nodeView->getScreenPos() + relative_pos_constrained);
+    return vec2(m_memberView->m_nodeView->get_screen_position() + relative_pos_constrained);
 }
 
 bool MemberConnector::share_parent_with(const MemberConnector* other) const
@@ -101,7 +101,7 @@ void MemberConnector::draw(
     {
         if ( ImGui::IsMouseDown(0))
         {
-            if ( s_dragged == nullptr && !NodeView::IsAnyDragged())
+            if ( s_dragged == nullptr && !NodeView::is_any_dragged())
                 MemberConnector::start_drag(_connector);
         }
     }

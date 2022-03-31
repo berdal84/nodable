@@ -52,15 +52,15 @@ namespace Nodable
 	    void apply(float _dt);
 	    void addSlave(NodeView*);
 	    void addMaster(NodeView*);
-        void addSlaves(const std::vector<NodeView *> &vector);
-        void addMasters(const std::vector<NodeView *> &vector);
+        void addSlaves(const NodeViews &vector);
+        void addMasters(const NodeViews &vector);
         vec2 m_offset;
 
     private:
         const AppContext* m_context;
-	    Type type;
-        std::vector<NodeView*> masters;
-	    std::vector<NodeView*> slaves;
+	    Type              m_type;
+        NodeViews         m_masters;
+        NodeViews         m_slaves;
     };
 
 	/**
@@ -77,144 +77,90 @@ namespace Nodable
 		observe::Observer m_nodeRelationAddedObserver;
 		observe::Observer m_nodeRelationRemovedObserver;
 
-		/** override Component::setOwner(Node*) to extract some information from owner before to actually set it */
-		void set_owner(Node *_node)override;
-
-		void exposeMember(Member* );
-
-		/** Draw the view at its position into the current window
-		   Returns true if nod has been edited, false either */
-		bool draw ()override;
-
-		/** Should be called once per frame to update the view */
-		bool update()override;
-
-		inline const vec2& getPos()const { return m_position; }
-		inline vec2 getPosRounded()const { return vec2(std::round(m_position.x), std::round(m_position.y)); }
-
-		/** Set a new position (top-left corner relative) vector to this view */
-		void  setPosition(vec2);
-
-		/** Apply a translation vector to the view's position */
-		void translate(vec2, bool _recurse = false);
-
-		void translateTo(vec2 desiredPos, float _factor, bool _recurse = false);
-		/** Arrange input nodes recursively while keeping this node position unchanged.
-		 *  Note: Some input connected Nodes can stay fixed if they are pinned. */
-		void arrangeRecursively(bool _smoothly = true);
-
-        /** Get the node label
-         * Note: depends on s_viewDetail, can be just an ICON_FA (4 char) or an ICON_FA + a label */
-        std::string getLabel();
-
-        /** Compute the bounding rectangle of this view */
-        ImRect getRect(bool _recursive = false, bool _ignorePinned = true, bool _ignoreMultiConstrained = true, bool _ignoreSelf = false);
-
-        void addConstraint(NodeViewConstraint &_constraint);
-        void applyConstraints(float _dt);
-        void clearConstraints();
-
-		/** Set a NodeView as selected.
-		 * Note: Only a single view can be selected at the same time */
-		static void SetSelected(NodeView*);
-
-		/** Return a pointer to the selected view or nullptr if no view are selected */
-		static NodeView* GetSelected();
-
-		/** Return true if the given NodeView is selected */
-		static bool       IsSelected(NodeView*);
-
-		/** Start to drag a NodeView. Only a single view can be dragged at the same time. */
-		static void       StartDragNode(NodeView*);
-
-		/** Return true if any NodeView is currently dragged */
-		static bool		  IsAnyDragged();
-
-		/** Return true if a given NodeView is contained by a given Rectangle */
-		static bool       IsInsideRect(NodeView*, ImRect);
-
-		/** Move instantly a given NodeView to be inside a given Rectangle */
-		static void       ConstraintToRect(NodeView*, ImRect);
-
-		/** Return a pointer to the dragged NodeView or nullptr if no view are dragged */
-		static NodeView*  GetDragged();
-
-		/**
-		 * Draw the ImGui input to modify a given Member.
-		 *
-		 * @param _member
-		 * @param _label by default nullptr, you can override it to change input label.
-		 * @return
-		 */
-        static bool DrawMemberInput(Member *_member, const char* _label = nullptr);
-
-        /**
-         * Draw a NodeView as a properties panel.
-         * All input, output, components, parent container and other information are draw in a column.
-         * @param _view
-         */
-        static void DrawNodeViewAsPropertiesPanel(NodeView *_view, bool* _show_advanced);
-
-        /** set globally the draw detail of nodes */
-        static NodeViewDetail s_viewDetail;
-
-        /** Change view detail globally */
-        static void SetDetail(NodeViewDetail _viewDetail);
-
-        /** Get a MemberView given a Member */
-        const MemberView*       getMemberView(const Member* _member)const;
-        inline vec2           getSize() const { return m_size; }
-        vec2                  getScreenPos();
-        inline void             setPinned(bool b) { m_pinned = b; }
-        inline bool             isPinned()const { return m_pinned; }
-        inline bool             isDragged() { return s_draggedNode == this; }
-        static ImRect           GetRect(const std::vector<NodeView *>&, bool _recursive = false, bool _ignorePinned = true, bool _ignoreMultiConstrained = true);
-        void                    addForceToTranslateTo(vec2 desiredPos, float _factor, bool _recurse = false);
-        void                    addForce(vec2 force, bool _recurse = false);
-        void                    applyForces(float _dt, bool _recurse);
-        void                    setChildrenVisible(bool _visible, bool _recursive = false);
-        void                    setInputsVisible(bool _visible, bool _recursive = false);
-        bool                    shouldFollowOutput(const NodeView*);
+		void                    set_owner(Node *_node)override;
+		void                    expose(Member*);
+		bool                    draw()override;
+		bool                    update()override;
+		inline const vec2&      get_position()const { return m_position; }
+		inline vec2             get_position_rounded()const { return vec2(std::round(m_position.x), std::round(m_position.y)); }
+		void                    set_position(vec2);
+		void                    translate(vec2, bool _recurse = false);
+		void                    translate_to(vec2 desiredPos, float _factor, bool _recurse = false);
+		void                    arrange_recursively(bool _smoothly = true);
+        std::string             get_label();
+        ImRect                  get_rect(bool _recursive = false, bool _ignorePinned = true
+                                      , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false);
+        void                    add_constraint(NodeViewConstraint&);
+        void                    apply_constraints(float _dt);
+        void                    clear_constraints();
+        const MemberView*       get_member_view(const Member*)const;
+        inline vec2             get_size() const { return m_size; }
+        vec2                    get_screen_position();
+        inline void             set_pinned(bool b) { m_pinned = b; }
+        inline bool             is_pinned()const { return m_pinned; }
+        inline bool             is_dragged() { return s_dragged == this; }
+        void                    add_force_to_translate_to(vec2 desiredPos, float _factor, bool _recurse = false);
+        void                    add_force(vec2 force, bool _recurse = false);
+        void                    apply_forces(float _dt, bool _recurse);
+        void                    set_children_visible(bool _visible, bool _recursive = false);
+        void                    set_inputs_visible(bool _visible, bool _recursive = false);
+        bool                    should_follow_output(const NodeView*);
         Slots<NodeView*>&       successor_slots() { return m_successor_slots; }
         Slots<NodeView*>&       children_slots() { return m_children_slots; }
         Slots<NodeView*>&       output_slots() { return m_output_slots; }
         Slots<NodeView*>&       input_slots() { return m_input_slots; }
-        void                    toggleExpansion();
+        void                    expand_toggle();
         void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }
+
+        static ImRect           get_rect(const std::vector<NodeView *>&, bool _recursive = false
+                                        , bool _ignorePinned = true, bool _ignoreMultiConstrained = true);
+        static void             set_selected(NodeView*);
+        static NodeView*        get_selected();
+        static bool             is_selected(NodeView*);
+        static void             start_drag(NodeView*);
+        static bool		        is_any_dragged();
+        static bool             is_inside(NodeView*, ImRect);
+        static void             constraint_to_rect(NodeView*, ImRect);
+        static NodeView*        get_dragged();
+        static bool             draw_input(Member *_member, const char* _label = nullptr);
+        static void             draw_as_properties_panel(NodeView *_view, bool* _show_advanced);
+        static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
+        static NodeViewDetail   get_view_detail() { return s_view_detail; }
     private:
-        virtual bool    update(float _deltaTime);
-		bool            drawMemberView(MemberView *_view);
-        bool            isMemberExposed(const Member *_member)const;
+        virtual bool            update(float _deltaTime);
+		bool                    draw(MemberView *_view);
+        bool                    is_exposed(const Member *_member)const;
 
         bool            m_edition_enable;
         vec2            m_forces_sum;
         vec2            m_last_frame_forces_sum;
-        bool            m_childrenVisible;
+        bool            m_children_visible;
 		vec2            m_position;
 		vec2            m_size;
 		float           m_opacity;
-		bool            m_forceMemberInputVisible;
+		bool            m_force_member_inputs_visible;
 		bool            m_pinned;
-		float           m_borderRadius;
-		ImColor         m_borderColorSelected;
+		float           m_border_radius;
+		ImColor         m_border_color_selected;
         Slots<NodeView*> m_children_slots;
         Slots<NodeView*> m_input_slots;
         Slots<NodeView*> m_output_slots;
         Slots<NodeView*> m_successor_slots;
 		std::vector<NodeConnector*>          m_predecessors_node_connnectors;
 		std::vector<NodeConnector*>          m_successors_node_connectors;
-		std::vector<MemberView*>             m_exposedInputOnlyMembers;
-		std::vector<MemberView*>             m_exposedOutOrInOutMembers;
-        std::map<const Member*, MemberView*> m_exposedMembers;
+		std::vector<MemberView*>             m_exposed_input_only_members;
+		std::vector<MemberView*>             m_exposed_out_or_inout_members;
+        std::map<const Member*, MemberView*> m_exposed_members;
         MemberView*                          m_exposed_this_member_view;
         std::vector<NodeViewConstraint>      m_constraints;
-        AppContext* m_context;
+        AppContext*                          m_context;
 
 		static NodeView*              s_selected;
-		static NodeView*              s_draggedNode;
-        static const float            s_memberInputSizeMin;
-        static const vec2           s_memberInputToggleButtonSize;
+		static NodeView*              s_dragged;
+        static const float            s_member_input_size_min;
+        static const vec2             s_member_input_toggle_button_size;
         static std::vector<NodeView*> s_instances;
+        static NodeViewDetail         s_view_detail;
 
         // Reflect this class
         R_DERIVED(NodeView)
@@ -225,11 +171,11 @@ namespace Nodable
 
 
     /**
- * Simple struct to store a member view state
- */
+     * Simple struct to store a member view state
+     */
     class MemberView
     {
-        vec2            m_relative_pos;
+        vec2              m_relative_pos;
 
     public:
         Member*           m_member;

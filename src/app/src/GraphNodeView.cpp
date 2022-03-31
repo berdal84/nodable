@@ -142,20 +142,20 @@ bool GraphNodeView::draw()
 
             if (each_view && each_successor_view && each_view->isVisible() && each_successor_view->isVisible() )
             {
-                float viewWidthMin = std::min(each_successor_view->getRect().GetSize().x, each_view->getRect().GetSize().x);
+                float viewWidthMin = std::min(each_successor_view->get_rect().GetSize().x, each_view->get_rect().GetSize().x);
                 float lineWidth = std::min(settings->ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
-                vec2 start = each_view->getScreenPos();
-                start.x -= std::max(each_view->getSize().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
+                vec2 start = each_view->get_screen_position();
+                start.x -= std::max(each_view->get_size().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
                 start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
-                start.y += each_view->getSize().y * 0.5f; // align bottom
+                start.y += each_view->get_size().y * 0.5f; // align bottom
                 start.y += settings->ui_node_connector_height * 0.25f;
 
-                vec2 end = each_successor_view->getScreenPos();
-                end.x -= each_successor_view->getSize().x * 0.5f;
+                vec2 end = each_successor_view->get_screen_position();
+                end.x -= each_successor_view->get_size().x * 0.5f;
                 end.x += lineWidth * 0.5f;
-                end.y -= each_successor_view->getSize().y * 0.5f; // align top
+                end.y -= each_successor_view->get_size().y * 0.5f; // align top
                 end.y -= settings->ui_node_connector_height * 0.25f;
 
                 ImColor color(settings->ui_codeFlow_lineColor);
@@ -233,8 +233,8 @@ bool GraphNodeView::draw()
 
                     if ( src_node_view->isVisible() && dst_node_view->isVisible() )
                     {
-                        const MemberView* src_member_view = src_node_view->getMemberView(src_member);
-                        const MemberView* dst_member_view = dst_node_view->getMemberView(dst_member);
+                        const MemberView* src_member_view = src_node_view->get_member_view(src_member);
+                        const MemberView* dst_member_view = dst_node_view->get_member_view(dst_member);
 
                         if ( src_member_view && dst_member_view )
                         {
@@ -286,14 +286,14 @@ bool GraphNodeView::draw()
                     ImGui::SetScrollHereY();
 
                 // dragging
-                if ( NodeView::GetDragged() == eachNodeView && ImGui::IsMouseDragging(0))
+                if (NodeView::get_dragged() == eachNodeView && ImGui::IsMouseDragging(0))
                 {
                     eachNodeView->translate(ImGui::GetMouseDragDelta(), true);
                     ImGui::ResetMouseDragDelta();
-                    eachNodeView->setPinned(true);
+                    eachNodeView->set_pinned(true);
                 }
 
-                isAnyNodeDragged |= NodeView::GetDragged() == eachNodeView;
+                isAnyNodeDragged |= NodeView::get_dragged() == eachNodeView;
                 isAnyNodeHovered |= eachNodeView->isHovered();
             }
 		}
@@ -310,9 +310,9 @@ bool GraphNodeView::draw()
 	        auto node = m_context->vm->get_next_node();
 	        if( auto view = node->get<NodeView>())
             {
-	            vec2 vm_cursor_pos = view->getScreenPos();
-	            vm_cursor_pos += view->getMemberView( node->get_this_member() )->relative_pos();
-	            vm_cursor_pos.x -= view->getSize().x * 0.5f;
+	            vec2 vm_cursor_pos = view->get_screen_position();
+	            vm_cursor_pos += view->get_member_view(node->get_this_member())->relative_pos();
+	            vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
 	            auto draw_list = ImGui::GetWindowDrawList();
 	            draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
@@ -346,8 +346,8 @@ bool GraphNodeView::draw()
 		Deselection
 	*/
 	// Deselection
-	if (NodeView::GetSelected() != nullptr && !isAnyNodeHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
-		NodeView::SetSelected(nullptr);
+	if (NodeView::get_selected() != nullptr && !isAnyNodeHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
+        NodeView::set_selected(nullptr);
 
 	/*
 		Mouse PAN (global)
@@ -509,7 +509,7 @@ bool GraphNodeView::draw()
 			if (auto view = new_node->get<NodeView>())
 			{
 				auto pos = ImGui::GetMousePos() - origin;
-				view->setPosition(pos);
+                view->set_position(pos);
 			}
 		}
 
@@ -558,7 +558,7 @@ void GraphNodeView::update_child_view_constraints()
     {
         if (auto eachView = _eachNode->get<NodeView>())
         {
-            eachView->clearConstraints();
+            eachView->clear_constraints();
         }
     }
 
@@ -579,7 +579,7 @@ void GraphNodeView::update_child_view_constraints()
                 NodeViewConstraint constraint(m_context, NodeViewConstraint::Type::FollowWithChildren);
                 constraint.addMasters(predecessor_node_views);
                 constraint.addSlave(each_node_view);
-                each_node_view->addConstraint(constraint);
+                each_node_view->add_constraint(constraint);
             }
 
             // Align in row Conditional Struct Node's children
@@ -597,7 +597,7 @@ void GraphNodeView::update_child_view_constraints()
                     constraint.addSlaves(each_node_view->successor_slots().content() );
                 }
 
-                each_node_view->addConstraint(constraint);
+                each_node_view->add_constraint(constraint);
             }
 
             // Align in row Input connected Nodes
@@ -608,7 +608,7 @@ void GraphNodeView::update_child_view_constraints()
                 NodeViewConstraint constraint(m_context,NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
                 constraint.addMaster(each_node_view);
                 constraint.addSlaves(each_node_view->input_slots().content());
-                each_node_view->addConstraint(constraint);
+                each_node_view->add_constraint(constraint);
             }
         }
     }
@@ -633,7 +633,7 @@ bool GraphNodeView::update()
     // Apply constraints
     for (auto eachView : views)
         if( eachView->isVisible() )
-            eachView->applyConstraints(deltaTime);
+            eachView->apply_constraints(deltaTime);
 
     // Update
     for (auto eachView : views)

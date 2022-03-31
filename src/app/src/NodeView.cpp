@@ -23,12 +23,12 @@
 using namespace Nodable;
 using namespace Nodable::R;
 
-NodeView*          NodeView::s_selected               = nullptr;
-NodeView*          NodeView::s_draggedNode            = nullptr;
-NodeViewDetail     NodeView::s_viewDetail             = NodeViewDetail::Default;
-const float        NodeView::s_memberInputSizeMin     = 10.0f;
-const vec2       NodeView::s_memberInputToggleButtonSize   = vec2(10.0, 25.0f);
-std::vector<NodeView*> NodeView::s_instances;
+NodeView*          NodeView::s_selected                        = nullptr;
+NodeView*          NodeView::s_dragged                         = nullptr;
+NodeViewDetail     NodeView::s_view_detail                     = NodeViewDetail::Default;
+const float        NodeView::s_member_input_size_min           = 10.0f;
+const vec2         NodeView::s_member_input_toggle_button_size = vec2(10.0, 25.0f);
+NodeViews          NodeView::s_instances;
 
 NodeView::NodeView(AppContext* _ctx)
         : Component()
@@ -37,11 +37,11 @@ NodeView::NodeView(AppContext* _ctx)
         , m_position(500.0f, -1.0f)
         , m_size(NODE_VIEW_DEFAULT_SIZE)
         , m_opacity(1.0f)
-        , m_childrenVisible(true)
-        , m_forceMemberInputVisible(false)
+        , m_children_visible(true)
+        , m_force_member_inputs_visible(false)
         , m_pinned(false)
-        , m_borderRadius(5.0f)
-        , m_borderColorSelected(1.0f, 1.0f, 1.0f)
+        , m_border_radius(5.0f)
+        , m_border_color_selected(1.0f, 1.0f, 1.0f)
         , m_exposed_this_member_view(nullptr)
         , m_children_slots(this)
         , m_input_slots(this)
@@ -55,7 +55,7 @@ NodeView::NodeView(AppContext* _ctx)
 NodeView::~NodeView()
 {
     // delete MemberViews
-    for ( auto& pair: m_exposedMembers ) delete pair.second;
+    for ( auto& pair: m_exposed_members ) delete pair.second;
 
     // deselect
     if ( s_selected == this ) s_selected = nullptr;
@@ -70,11 +70,11 @@ NodeView::~NodeView()
     s_instances.erase(found);
 }
 
-std::string NodeView::getLabel()
+std::string NodeView::get_label()
 {
     Node* node = get_owner();
 
-    if (s_viewDetail == NodeViewDetail::Minimalist )
+    if (s_view_detail == NodeViewDetail::Minimalist )
     {
         // I always add an ICON_FA at the begining of any node label string (encoded in 4 bytes)
         return std::string(node->get_short_label());
@@ -82,7 +82,7 @@ std::string NodeView::getLabel()
     return node->get_label();
 }
 
-void NodeView::exposeMember(Member* _member)
+void NodeView::expose(Member* _member)
 {
     auto member_view = new MemberView(m_context, _member, this);
 
@@ -95,15 +95,15 @@ void NodeView::exposeMember(Member* _member)
     {
         if (_member->get_allowed_connection() == Way_In)
         {
-            m_exposedInputOnlyMembers.push_back(member_view);
+            m_exposed_input_only_members.push_back(member_view);
         }
         else
         {
-            m_exposedOutOrInOutMembers.push_back(member_view);
+            m_exposed_out_or_inout_members.push_back(member_view);
         }
     }
 
-    m_exposedMembers.insert({_member, member_view});
+    m_exposed_members.insert({_member, member_view});
 }
 
 void NodeView::set_owner(Node *_node)
@@ -118,7 +118,7 @@ void NodeView::set_owner(Node *_node)
         auto member = m.second;
         if (member->get_visibility() == Visibility::Always && member->allows_connection(Way_In) )
         {
-           exposeMember(member);
+            expose(member);
         }
         else
         {
@@ -131,13 +131,13 @@ void NodeView::set_owner(Node *_node)
     {
         if (member->get_visibility() == Visibility::Always && member->allows_connection(Way_Out))
         {
-            exposeMember(member);
+            expose(member);
         }
     }
 
     if ( auto this_member = _node->get_this_member() )
     {
-        exposeMember(this_member);
+        expose(this_member);
     }
 
     // Determine a color depending on node type
@@ -203,50 +203,50 @@ void NodeView::set_owner(Node *_node)
         });
 }
 
-void NodeView::SetSelected(NodeView* _view)
+void NodeView::set_selected(NodeView* _view)
 {
 	s_selected = _view;
 }
 
-NodeView* NodeView::GetSelected()
+NodeView* NodeView::get_selected()
 {
 	return s_selected;
 }
 
-void NodeView::StartDragNode(NodeView* _view)
+void NodeView::start_drag(NodeView* _view)
 {
 	if(MemberConnector::get_gragged() == nullptr) // Prevent dragging node while dragging connector
-		s_draggedNode = _view;
+		s_dragged = _view;
 }
 
-bool NodeView::IsAnyDragged()
+bool NodeView::is_any_dragged()
 {
-	return GetDragged() != nullptr;
+	return get_dragged() != nullptr;
 }
 
-NodeView* NodeView::GetDragged()
+NodeView* NodeView::get_dragged()
 {
-	return s_draggedNode;
+	return s_dragged;
 }
 
-bool NodeView::IsSelected(NodeView* _view)
+bool NodeView::is_selected(NodeView* _view)
 {
 	return s_selected == _view;
 }
 
-const MemberView* NodeView::getMemberView(const Member* _member)const
+const MemberView* NodeView::get_member_view(const Member* _member)const
 {
-    return m_exposedMembers.at(_member);
+    return m_exposed_members.at(_member);
 }
 
-void NodeView::setPosition(vec2 _position)
+void NodeView::set_position(vec2 _position)
 {
 	m_position = _position;
 }
 
 void NodeView::translate(vec2 _delta, bool _recurse)
 {
-	this->setPosition(m_position + _delta);
+    this->set_position(m_position + _delta);
 
 	if ( _recurse )
     {
@@ -254,30 +254,30 @@ void NodeView::translate(vec2 _delta, bool _recurse)
         {
 	        if ( NodeView* eachInputView = eachInput->get<NodeView>() )
 	        {
-	            if (!eachInputView->m_pinned && eachInputView->shouldFollowOutput(this) )
+	            if (!eachInputView->m_pinned && eachInputView->should_follow_output(this) )
                     eachInputView->translate(_delta, true);
 	        }
         }
     }
 }
 
-void NodeView::arrangeRecursively(bool _smoothly)
+void NodeView::arrange_recursively(bool _smoothly)
 {
     std::vector<NodeView*> views;
 
     for (auto inputView : m_input_slots)
     {
-        if ( inputView->shouldFollowOutput(this))
+        if (inputView->should_follow_output(this))
         {
             views.push_back(inputView);
-            inputView->arrangeRecursively();
+            inputView->arrange_recursively();
         }
     }
 
     for (auto eachChild : m_children_slots)
     {
         views.push_back(eachChild);
-        eachChild->arrangeRecursively();
+        eachChild->arrange_recursively();
     }
 
 //     Force and update of input connected nodes with a delta time extra high
@@ -300,7 +300,7 @@ bool NodeView::update()
 bool NodeView::update(float _deltaTime)
 {
     Maths::lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
-    this->applyForces(_deltaTime, false);
+    this->apply_forces(_deltaTime, false);
 	return true;
 }
 
@@ -331,34 +331,34 @@ bool NodeView::draw()
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
 	const auto halfSize = m_size / 2.0;
-	ImGui::SetCursorPos(getPosRounded() - halfSize );
+	ImGui::SetCursorPos(get_position_rounded() - halfSize );
 	ImGui::PushID(this);
 	vec2 cursor_pos_content_start = ImGui::GetCursorPos();
-	vec2 screen_cursor_pos_content_start = ImGuiEx::CursorPosToScreenPos(getPosRounded() );
+	vec2 screen_cursor_pos_content_start = ImGuiEx::CursorPosToScreenPos(get_position_rounded() );
 
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	{			
-		auto borderCol = IsSelected(this) ? m_borderColorSelected : getColor(Color_Border);
+		auto borderCol = is_selected(this) ? m_border_color_selected : getColor(Color_Border);
 
 		auto itemRectMin = screen_cursor_pos_content_start - halfSize;
 		auto itemRectMax = screen_cursor_pos_content_start + halfSize;
 
 		// Draw the rectangle under everything
-		ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_borderRadius, 4, vec2(1.0f), getColor(Color_Shadow));
-		draw_list->AddRectFilled(itemRectMin, itemRectMax, getColor(Color_Fill), m_borderRadius);
-		draw_list->AddRect(itemRectMin + vec2(1.0f), itemRectMax, getColor(Color_BorderHighlights), m_borderRadius);
-		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_borderRadius);
+		ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_border_radius, 4, vec2(1.0f), getColor(Color_Shadow));
+		draw_list->AddRectFilled(itemRectMin, itemRectMax, getColor(Color_Fill), m_border_radius);
+		draw_list->AddRect(itemRectMin + vec2(1.0f), itemRectMax, getColor(Color_BorderHighlights), m_border_radius);
+		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_border_radius);
 
 		// darken the background under the content
-		draw_list->AddRectFilled(itemRectMin + vec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings->ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_borderRadius, 4);
+		draw_list->AddRectFilled(itemRectMin + vec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings->ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_border_radius, 4);
 
 		// Draw an additionnal blinking rectangle when selected
-		if (IsSelected(this))
+		if (is_selected(this))
 		{
 			auto alpha   = sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
 			float offset = 4.0f;
-			draw_list->AddRect(itemRectMin - vec2(offset), itemRectMax + vec2(offset), ImColor(1.0f, 1.0f, 1.0f, float(alpha) ), m_borderRadius + offset, ~0, offset / 2.0f);
+			draw_list->AddRect(itemRectMin - vec2(offset), itemRectMax + vec2(offset), ImColor(1.0f, 1.0f, 1.0f, float(alpha) ), m_border_radius + offset, ~0, offset / 2.0f);
 		}
 	}
 
@@ -375,25 +375,25 @@ bool NodeView::draw()
 	//------------------------
 
     ImGui::BeginGroup();
-        ImGuiEx::ShadowedText(vec2(1.0f), getColor(Color_BorderHighlights), getLabel().c_str()); // text with a lighter shadow (incrust effect)
+        ImGuiEx::ShadowedText(vec2(1.0f), getColor(Color_BorderHighlights), get_label().c_str()); // text with a lighter shadow (incrust effect)
 
         ImGui::SameLine();
 
         ImGui::BeginGroup();
         // Draw inputs
-        for (auto &memberView : m_exposedInputOnlyMembers)
+        for (auto &memberView : m_exposed_input_only_members)
         {
             ImGui::SameLine();
             ImGui::SetCursorPosY(cursor_pos_content_start.y + 1.0f);
-            edited |= drawMemberView(memberView);
+            edited |= draw(memberView);
         }
 
         // Draw outputs
-        for (auto &memberView : m_exposedOutOrInOutMembers)
+        for (auto &memberView : m_exposed_out_or_inout_members)
         {
             ImGui::SameLine();
             ImGui::SetCursorPosY(cursor_pos_content_start.y + 8.0f);
-            edited |= drawMemberView(memberView);
+            edited |= draw(memberView);
         }
 
         ImGui::EndGroup();
@@ -424,13 +424,13 @@ bool NodeView::draw()
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
-        for( auto& memberView : m_exposedInputOnlyMembers )
+        for( auto& memberView : m_exposed_input_only_members )
         {
             MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
-        for( auto& memberView : m_exposedOutOrInOutMembers )
+        for( auto& memberView : m_exposed_out_or_inout_members )
         {
             if ( memberView->m_in)
             {
@@ -456,11 +456,11 @@ bool NodeView::draw()
     {
         if( ImGui::MenuItem("Arrange"))
         {
-            this->arrangeRecursively();
+            this->arrange_recursively();
         }
 
         ImGui::MenuItem("Pinned", "", &m_pinned, true);
-		ImGui::MenuItem("Collapsed", "", &m_forceMemberInputVisible, true);
+		ImGui::MenuItem("Collapsed", "", &m_force_member_inputs_visible, true);
         ImGui::Separator();
 
         if( ImGui::Selectable("Delete", !m_edition_enable ? ImGuiSelectableFlags_Disabled : ImGuiSelectableFlags_None))
@@ -474,32 +474,32 @@ bool NodeView::draw()
 	// Selection by mouse (left or right click)
 	if ( is_node_hovered && (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)))
 	{
-        SetSelected(this);
+        set_selected(this);
     }
 
 	// Mouse dragging
-	if ( GetDragged() != this)
+	if (get_dragged() != this)
 	{
-		if( GetDragged() == nullptr && ImGui::IsMouseDown(0) && is_node_hovered && ImGui::IsMouseDragPastThreshold(0))
+		if(get_dragged() == nullptr && ImGui::IsMouseDown(0) && is_node_hovered && ImGui::IsMouseDragPastThreshold(0))
         {
-			StartDragNode(this);
+            start_drag(this);
         }
 	}
 	else if ( ImGui::IsMouseReleased(0))
 	{
-		StartDragNode(nullptr);				
+        start_drag(nullptr);
 	}		
 
 	// Collapse on/off
 	if( is_node_hovered && ImGui::IsMouseDoubleClicked(0))
 	{
-		m_forceMemberInputVisible = !m_forceMemberInputVisible;
+        m_force_member_inputs_visible = !m_force_member_inputs_visible;
 
-        for( auto& pair : m_exposedMembers )
+        for( auto& pair : m_exposed_members )
         {
             auto& eachMemberView = pair.second;
-            eachMemberView->m_touched = m_forceMemberInputVisible;
-            eachMemberView->m_showInput = m_forceMemberInputVisible;
+            eachMemberView->m_touched = m_force_member_inputs_visible;
+            eachMemberView->m_showInput = m_force_member_inputs_visible;
         }
 	}
 
@@ -514,7 +514,7 @@ bool NodeView::draw()
 	return edited;
 }
 
-bool NodeView::drawMemberView(MemberView* _view )
+bool NodeView::draw(MemberView* _view )
 {
     bool edited = false;
     Member* member = _view->m_member;
@@ -557,10 +557,10 @@ bool NodeView::drawMemberView(MemberView* _view )
 
     _view->m_showInput = show;
 
-    vec2 new_relative_pos = ImGui::GetCursorScreenPos() - getScreenPos();
+    vec2 new_relative_pos = ImGui::GetCursorScreenPos() - get_screen_position();
 
     // input
-    float input_size = NodeView::s_memberInputToggleButtonSize.x;
+    float input_size = NodeView::s_member_input_toggle_button_size.x;
 
     if ( _view->m_showInput )
     {
@@ -578,10 +578,10 @@ bool NodeView::drawMemberView(MemberView* _view )
             {
                 str = member->convert_to<std::string>();
             }
-            input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, NodeView::s_memberInputSizeMin);
+            input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, NodeView::s_member_input_size_min);
             ImGui::PushItemWidth(input_size);
         }
-        edited = NodeView::DrawMemberInput(member);
+        edited = NodeView::draw_input(member);
 
         if ( limit_size )
         {
@@ -590,7 +590,7 @@ bool NodeView::drawMemberView(MemberView* _view )
     }
     else
     {
-        ImGui::Button("", NodeView::s_memberInputToggleButtonSize);
+        ImGui::Button("", NodeView::s_member_input_toggle_button_size);
 
         if ( ImGui::IsItemHovered() )
         {
@@ -614,7 +614,7 @@ bool NodeView::drawMemberView(MemberView* _view )
     return edited;
 }
 
-bool NodeView::DrawMemberInput( Member *_member, const char* _label )
+bool NodeView::draw_input(Member *_member, const char* _label )
 {
     bool edited = false;
 
@@ -710,12 +710,12 @@ bool NodeView::DrawMemberInput( Member *_member, const char* _label )
     return edited;
 }
 
-bool NodeView::IsInsideRect(NodeView* _nodeView, ImRect _rect) {
-	auto nodeRect = _nodeView->getRect();
+bool NodeView::is_inside(NodeView* _nodeView, ImRect _rect) {
+	auto nodeRect = _nodeView->get_rect();
 	return _rect.Contains(nodeRect);
 }
 
-void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanced)
+void NodeView::draw_as_properties_panel(NodeView* _view, bool* _show_advanced)
 {
     const float labelColumnWidth = ImGui::GetContentRegionAvailWidth() / 2.0f;
 
@@ -746,7 +746,7 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanc
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-        bool edited = NodeView::DrawMemberInput(_member);
+        bool edited = NodeView::draw_input(_member);
         if ( edited )
         {
             _member->get_owner()->set_dirty();
@@ -764,12 +764,12 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanc
     ImGui::Text("Input(s):" );
     ImGui::Separator();
     ImGui::Indent();
-    for (auto& eachView : _view->m_exposedInputOnlyMembers )
+    for (auto& eachView : _view->m_exposed_input_only_members )
     {
         drawMember(eachView->m_member);
         ImGui::Separator();
     }
-    if( _view->m_exposedInputOnlyMembers.empty() )
+    if( _view->m_exposed_input_only_members.empty() )
     {
         ImGui::Text("None.");
     }
@@ -779,13 +779,13 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanc
     ImGui::Text("Output(s):" );
     ImGui::Separator();
     ImGui::Indent();
-    for (auto& eachView : _view->m_exposedOutOrInOutMembers )
+    for (auto& eachView : _view->m_exposed_out_or_inout_members )
     {
         drawMember(eachView->m_member);
         ImGui::Separator();
     }
 
-    if( _view->m_exposedOutOrInOutMembers.empty() )
+    if( _view->m_exposed_out_or_inout_members.empty() )
     {
         ImGui::Text("None.");
     }
@@ -887,16 +887,16 @@ void NodeView::DrawNodeViewAsPropertiesPanel(NodeView* _view, bool* _show_advanc
 
 }
 
-void NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
+void NodeView::constraint_to_rect(NodeView* _view, ImRect _rect)
 {
 	
-	if ( !NodeView::IsInsideRect(_view, _rect)) {
+	if ( !NodeView::is_inside(_view, _rect)) {
 
 		_rect.Expand(vec2(-2, -2)); // shrink
 
-		auto nodeRect = _view->getRect();
+		auto nodeRect = _view->get_rect();
 
-		auto newPos = _view->getPosRounded();
+		auto newPos = _view->get_position_rounded();
 
 		auto left  = _rect.Min.x - nodeRect.Min.x;
 		auto right = _rect.Max.x - nodeRect.Max.x;
@@ -909,23 +909,23 @@ void NodeView::ConstraintToRect(NodeView* _view, ImRect _rect)
 			 if ( up > 0 )    nodeRect.TranslateY(up);
 		else if ( down < 0 )  nodeRect.TranslateY(down);
 
-		_view->setPosition(nodeRect.GetCenter());
+        _view->set_position(nodeRect.GetCenter());
 	}
 
 }
 
-bool NodeView::isMemberExposed(const Member *_member)const
+bool NodeView::is_exposed(const Member *_member)const
 {
-    return m_exposedMembers.find(_member) != m_exposedMembers.end();
+    return m_exposed_members.find(_member) != m_exposed_members.end();
 }
 
-void NodeView::SetDetail(NodeViewDetail _viewDetail)
+void NodeView::set_view_detail(NodeViewDetail _viewDetail)
 {
-    NodeView::s_viewDetail = _viewDetail;
+    NodeView::s_view_detail = _viewDetail;
 
     for( auto& eachView : NodeView::s_instances)
     {
-        for( auto& eachPair : eachView->m_exposedMembers )
+        for( auto& eachPair : eachView->m_exposed_members )
         {
             MemberView* memberView = eachPair.second;
             memberView->reset();
@@ -933,12 +933,12 @@ void NodeView::SetDetail(NodeViewDetail _viewDetail)
     }
 }
 
-vec2 NodeView::getScreenPos()
+vec2 NodeView::get_screen_position()
 {
     return m_position - (ImGui::GetCursorPos() - ImGui::GetCursorScreenPos());
 }
 
-ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMultiConstrained, bool _ignoreSelf)
+ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMultiConstrained, bool _ignoreSelf)
 {
 
     if( !_recursively)
@@ -959,14 +959,15 @@ ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMult
 
     if ( !_ignoreSelf)
     {
-        ImRect self_rect = getRect(false);
+        ImRect self_rect = get_rect(false);
         enlarge_to_fit(self_rect);
     }
 
     auto enlarge_to_fit_all = [&](NodeView* eachView) {
-        if (eachView && eachView->isVisible() && !(eachView->m_pinned && _ignorePinned) && eachView->shouldFollowOutput(this) )
+        if (eachView && eachView->isVisible() && !(eachView->m_pinned && _ignorePinned) &&
+                eachView->should_follow_output(this) )
         {
-            ImRect childRect = eachView->getRect(true, _ignorePinned, _ignoreMultiConstrained);
+            ImRect childRect = eachView->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
             enlarge_to_fit(childRect);
         }
     };
@@ -983,30 +984,30 @@ ImRect NodeView::getRect(bool _recursively, bool _ignorePinned, bool _ignoreMult
     return rect;
 }
 
-void NodeView::clearConstraints() {
+void NodeView::clear_constraints() {
     m_constraints.clear();
 }
 
-void NodeView::addConstraint(NodeViewConstraint &_constraint)
+void NodeView::add_constraint(NodeViewConstraint &_constraint)
 {
     m_constraints.push_back(std::move(_constraint));
 }
 
-void NodeView::applyConstraints(float _dt) {
+void NodeView::apply_constraints(float _dt) {
     for ( NodeViewConstraint& eachConstraint : m_constraints)
     {
         eachConstraint.apply(_dt);
     }
 }
 
-void NodeView::addForceToTranslateTo(vec2 desiredPos, float _factor, bool _recurse)
+void NodeView::add_force_to_translate_to(vec2 desiredPos, float _factor, bool _recurse)
 {
     vec2 delta(desiredPos - m_position);
     auto factor = std::max(0.0f, _factor);
-    addForce(delta * factor, _recurse);
+    add_force(delta * factor, _recurse);
 }
 
-void NodeView::addForce(vec2 force, bool _recurse)
+void NodeView::add_force(vec2 force, bool _recurse)
 {
     m_forces_sum += force;
 
@@ -1014,13 +1015,13 @@ void NodeView::addForce(vec2 force, bool _recurse)
     {
         for ( auto eachInputView : m_input_slots )
         {
-            if ( !eachInputView->m_pinned && eachInputView->shouldFollowOutput(this))
-                eachInputView->addForce(force, _recurse);
+            if ( !eachInputView->m_pinned && eachInputView->should_follow_output(this))
+                eachInputView->add_force(force, _recurse);
         }
     }
 }
 
-void NodeView::applyForces(float _dt, bool _recurse) {
+void NodeView::apply_forces(float _dt, bool _recurse) {
     //
     float magnitude = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
 
@@ -1034,7 +1035,7 @@ void NodeView::applyForces(float _dt, bool _recurse) {
     m_forces_sum = vec2();
 }
 
-void NodeView::translateTo(vec2 desiredPos, float _factor, bool _recurse) {
+void NodeView::translate_to(vec2 desiredPos, float _factor, bool _recurse) {
 
     vec2 delta(desiredPos - m_position);
 
@@ -1046,7 +1047,7 @@ void NodeView::translateTo(vec2 desiredPos, float _factor, bool _recurse) {
     }
 }
 
-ImRect NodeView::GetRect(
+ImRect NodeView::get_rect(
         const std::vector<NodeView *>& _views,
         bool _recursive,
         bool _ignorePinned,
@@ -1057,7 +1058,7 @@ ImRect NodeView::GetRect(
     {
         if ( eachView->isVisible())
         {
-            auto rect = eachView->getRect(_recursive, _ignorePinned, _ignoreMultiConstrained);
+            auto rect = eachView->get_rect(_recursive, _ignorePinned, _ignoreMultiConstrained);
             x_positions.push_back(rect.Min.x );
             x_positions.push_back(rect.Max.x );
             y_positions.push_back(rect.Min.y );
@@ -1070,9 +1071,9 @@ ImRect NodeView::GetRect(
     return ImRect(*x_minmax.first, *y_minmax.first, *x_minmax.second, *y_minmax.second );;
 }
 
-void NodeView::setChildrenVisible(bool _visible, bool _recursive)
+void NodeView::set_children_visible(bool _visible, bool _recursive)
 {
-    m_childrenVisible = _visible;
+    m_children_visible = _visible;
 
     for( auto eachChild : m_children_slots )
     {
@@ -1080,13 +1081,13 @@ void NodeView::setChildrenVisible(bool _visible, bool _recursive)
 
         if ( _recursive)
         {
-            eachChild->setChildrenVisible(_visible, true);
-            eachChild->setInputsVisible(_visible, true);
+            eachChild->set_children_visible(_visible, true);
+            eachChild->set_inputs_visible(_visible, true);
         }
     }
 }
 
-bool NodeView::shouldFollowOutput(const NodeView* output)
+bool NodeView::should_follow_output(const NodeView* output)
 {
     if ( m_output_slots.empty())
         return true;
@@ -1101,26 +1102,26 @@ bool NodeView::shouldFollowOutput(const NodeView* output)
 //    return higher == other;
 }
 
-void NodeView::setInputsVisible(bool _visible, bool _recursive)
+void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 {
 
     for( auto each_input : m_input_slots )
     {
-        if( _visible || (output_slots().empty() || each_input->shouldFollowOutput(this)) )
+        if( _visible || (output_slots().empty() || each_input->should_follow_output(this)) )
         {
             if ( _recursive)
             {
-                each_input->setChildrenVisible(_visible, true);
-                each_input->setInputsVisible(_visible, true);
+                each_input->set_children_visible(_visible, true);
+                each_input->set_inputs_visible(_visible, true);
             }
             each_input->setVisible(_visible);
         }
     }
 }
 
-void NodeView::toggleExpansion()
+void NodeView::expand_toggle()
 {
-    bool visibility = !m_childrenVisible;
-    setChildrenVisible(visibility, true);
-    setInputsVisible(visibility, true);
+    bool visibility = !m_children_visible;
+    set_children_visible(visibility, true);
+    set_inputs_visible(visibility, true);
 }

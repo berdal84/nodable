@@ -55,7 +55,7 @@ bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
 
     if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
     {
-        if ( ImGui::IsMouseDown(0) && !is_dragging() && !NodeView::IsAnyDragged())
+        if ( ImGui::IsMouseDown(0) && !is_dragging() && !NodeView::is_any_dragged())
         {
             if ( _connector->m_way == Way_Out)
             {
@@ -82,7 +82,7 @@ bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
 ImRect NodeConnector::get_rect() const
 {
     Settings* settings = m_context->settings;
-    vec2 leftCornerPos = m_way == Way_In ? m_node_view->getRect().GetTL() : m_node_view->getRect().GetBL();
+    vec2 leftCornerPos = m_way == Way_In ? m_node_view->get_rect().GetTL() : m_node_view->get_rect().GetBL();
 
     vec2 size(settings->ui_node_connector_width, settings->ui_node_connector_height);
     ImRect rect(leftCornerPos, leftCornerPos + size);

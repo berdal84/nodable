@@ -11,28 +11,29 @@
 
 using namespace Nodable;
 
-NodeViewConstraint::NodeViewConstraint(const AppContext* _ctx, NodeViewConstraint::Type _type): type(_type), m_context(_ctx) {}
+NodeViewConstraint::NodeViewConstraint(const AppContext* _ctx, NodeViewConstraint::Type _type): m_type(_type), m_context(_ctx) {}
 
 void NodeViewConstraint::apply(float _dt)
 {
     Settings* settings = m_context->settings;
 
     auto is_visible = [](NodeView* view) { return view->isVisible(); };
-    if ( std::find_if(masters.begin(), masters.end(), is_visible) == masters.end()) return;
-    if ( std::find_if(slaves.begin(), slaves.end(), is_visible) == slaves.end()) return;
+    if (std::find_if(m_masters.begin(), m_masters.end(), is_visible) == m_masters.end()) return;
+    if (std::find_if(m_slaves.begin(), m_slaves.end(), is_visible) == m_slaves.end()) return;
 
-    auto master = masters.at(0);
+    auto master = m_masters.at(0);
 
-    switch ( this->type )
+    switch ( this->m_type )
     {
         case Type::AlignOnBBoxLeft:
         {
-            auto slave = slaves.at(0);
-            if( !slave->isPinned() && slave->isVisible())
+            auto slave = m_slaves.at(0);
+            if(!slave->is_pinned() && slave->isVisible())
             {
-                ImRect bbox = NodeView::GetRect(masters, true);
-                vec2 newPos(bbox.GetCenter() - vec2(bbox.GetSize().x * 0.5f + settings->ui_node_spacing + slave->getRect().GetSize().x * 0.5f, 0 ));
-                slave->addForceToTranslateTo(newPos + m_offset, settings->ui_node_speed);
+                ImRect bbox = NodeView::get_rect(m_masters, true);
+                vec2 newPos(bbox.GetCenter() - vec2(bbox.GetSize().x * 0.5f + settings->ui_node_spacing +
+                                                            slave->get_rect().GetSize().x * 0.5f, 0 ));
+                slave->add_force_to_translate_to(newPos + m_offset, settings->ui_node_speed);
             }
 
             break;
@@ -40,16 +41,16 @@ void NodeViewConstraint::apply(float _dt)
 
         case Type::AlignOnBBoxTop:
         {
-            auto slave = slaves.at(0);
-            if( !slave->isPinned() && slave->isVisible() && slave->shouldFollowOutput(master))
+            auto slave = m_slaves.at(0);
+            if(!slave->is_pinned() && slave->isVisible() && slave->should_follow_output(master))
             {
-                ImRect bbox = NodeView::GetRect(masters);
+                ImRect bbox = NodeView::get_rect(m_masters);
                 vec2 newPos(bbox.GetCenter() + vec2(0.0, -bbox.GetHeight() * 0.5f - settings->ui_node_spacing));
-                newPos.y -= settings->ui_node_spacing + slave->getSize().y / 2.0f;
-                newPos.x += settings->ui_node_spacing + slave->getSize().x / 2.0f;
+                newPos.y -= settings->ui_node_spacing + slave->get_size().y / 2.0f;
+                newPos.x += settings->ui_node_spacing + slave->get_size().x / 2.0f;
 
-                if ( newPos.y < slave->getPos().y )
-                    slave->addForceToTranslateTo(newPos + m_offset, settings->ui_node_speed, true);
+                if ( newPos.y < slave->get_position().y )
+                    slave->add_force_to_translate_to(newPos + m_offset, settings->ui_node_speed, true);
             }
 
             break;
@@ -62,45 +63,47 @@ void NodeViewConstraint::apply(float _dt)
             //-----------------------
 
             std::vector<float> size_x;
-            bool recursively = type == Type::MakeRowAndAlignOnBBoxBottom;
-            for (auto eachSlave : slaves)
+            bool recursively = m_type == Type::MakeRowAndAlignOnBBoxBottom;
+            for (auto eachSlave : m_slaves)
             {
-                bool ignore = eachSlave->isPinned() || !eachSlave->isVisible();
-                size_x.push_back( ignore ? 0.f : eachSlave->getRect(recursively).GetSize().x);
+                bool ignore = eachSlave->is_pinned() || !eachSlave->isVisible();
+                size_x.push_back( ignore ? 0.f : eachSlave->get_rect(recursively).GetSize().x);
             }
             auto size_x_total = std::accumulate(size_x.begin(), size_x.end(), 0.0f);
 
             // Determine x position start:
             //---------------------------
 
-            float start_pos_x = master->getPos().x - size_x_total / 2.0f;
+            float start_pos_x = master->get_position().x - size_x_total / 2.0f;
             R::Class_ptr masterClass = master->get_owner()->get_class();
             if (masterClass->is_child_of<InstructionNode>()
-                || (masterClass->is_child_of<IConditionalStruct>() && type == Type::MakeRowAndAlignOnBBoxTop))
+                || (masterClass->is_child_of<IConditionalStruct>() && m_type == Type::MakeRowAndAlignOnBBoxTop))
             {
                 // indent
-                start_pos_x = master->getPos().x + master->getSize().x / 2.0f + settings->ui_node_spacing;
+                start_pos_x = master->get_position().x + master->get_size().x / 2.0f + settings->ui_node_spacing;
             }
 
             // Constraint in row:
             //-------------------
             auto node_index = 0;
-            for (auto eachSlave : slaves)
+            for (auto eachSlave : m_slaves)
             {
-                if (!eachSlave->isPinned() && eachSlave->isVisible() )
+                if (!eachSlave->is_pinned() && eachSlave->isVisible() )
                 {
                     // Compute new position for this input view
-                    float verticalOffset = settings->ui_node_spacing + eachSlave->getSize().y / 2.0f + master->getSize().y / 2.0f;
-                    if( type == MakeRowAndAlignOnBBoxTop )
+                    float verticalOffset = settings->ui_node_spacing + eachSlave->get_size().y / 2.0f +
+                            master->get_size().y / 2.0f;
+                    if(m_type == MakeRowAndAlignOnBBoxTop )
                     {
                         verticalOffset *= -1.0f;
                     }
 
-                    vec2 new_pos = vec2(start_pos_x + size_x[node_index] / 2.0f, master->getPos().y + verticalOffset);
+                    vec2 new_pos = vec2(start_pos_x + size_x[node_index] / 2.0f,
+                                        master->get_position().y + verticalOffset);
 
-                    if ( eachSlave->shouldFollowOutput(master) )
+                    if (eachSlave->should_follow_output(master) )
                     {
-                        eachSlave->addForceToTranslateTo(new_pos + m_offset, settings->ui_node_speed, true);
+                        eachSlave->add_force_to_translate_to(new_pos + m_offset, settings->ui_node_speed, true);
                         start_pos_x += size_x[node_index] + settings->ui_node_spacing;
                     }
                     node_index++;
@@ -111,32 +114,33 @@ void NodeViewConstraint::apply(float _dt)
 
         case Type::FollowWithChildren:
         {
-            auto slave = slaves.at(0);
-            if ( !slave->isPinned() && slave->isVisible() )
+            auto slave = m_slaves.at(0);
+            if (!slave->is_pinned() && slave->isVisible() )
             {
                 // compute
-                auto masterRect = NodeView::GetRect(masters,false, true);
-                auto slaveRect = slave->getRect(true,true );
+                auto masterRect = NodeView::get_rect(m_masters, false, true);
+                auto slaveRect = slave->get_rect(true, true);
                 vec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
-                vec2 newPos(masterRect.GetCenter().x,slave->getPos().y + slaveMasterOffset.y + settings->ui_node_spacing);
+                vec2 newPos(masterRect.GetCenter().x,
+                            slave->get_position().y + slaveMasterOffset.y + settings->ui_node_spacing);
 
                 // apply
-                slave->addForceToTranslateTo(newPos + m_offset, settings->ui_node_speed, true);
+                slave->add_force_to_translate_to(newPos + m_offset, settings->ui_node_speed, true);
                 break;
             }
         }
 
         case Type::Follow:
         {
-            auto slave = slaves.at(0);
-            if ( !slave->isPinned() && slave->isVisible() )
+            auto slave = m_slaves.at(0);
+            if (!slave->is_pinned() && slave->isVisible() )
             {
                 // compute
-                vec2 newPos(master->getPos() + vec2(0.0f, master->getSize().y));
-                newPos.y += settings->ui_node_spacing + slave->getSize().y;
+                vec2 newPos(master->get_position() + vec2(0.0f, master->get_size().y));
+                newPos.y += settings->ui_node_spacing + slave->get_size().y;
 
                 // apply
-                slave->addForceToTranslateTo(newPos + m_offset, settings->ui_node_speed);
+                slave->add_force_to_translate_to(newPos + m_offset, settings->ui_node_speed);
                 break;
             }
         }
@@ -145,12 +149,12 @@ void NodeViewConstraint::apply(float _dt)
 
 void NodeViewConstraint::addSlave(NodeView *_subject) {
     NODABLE_ASSERT(_subject != nullptr);
-    this->slaves.push_back(_subject);
+    this->m_slaves.push_back(_subject);
 }
 
 void NodeViewConstraint::addMaster(NodeView *_subject) {
     NODABLE_ASSERT(_subject != nullptr);
-    this->masters.push_back(_subject);
+    this->m_masters.push_back(_subject);
 }
 
 void NodeViewConstraint::addSlaves(const std::vector<NodeView *> &vector)

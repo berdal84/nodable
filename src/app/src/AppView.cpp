@@ -272,7 +272,7 @@ bool AppView::draw()
                         ImGui::Separator();
                     }
 
-                    auto has_selection = NodeView::GetSelected() != nullptr;
+                    auto has_selection = NodeView::get_selected() != nullptr;
 
                     if ( ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped) )
                     {
@@ -297,23 +297,18 @@ bool AppView::draw()
                     redock_all |= ImGui::MenuItem("Redock documents");
 
                     ImGui::Separator();
-                    bool minimalist = ImGui::MenuItem("Minimalist View" , "", NodeView::s_viewDetail == NodeViewDetail::Minimalist);
-                    bool essential  = ImGui::MenuItem("Essential View"  , "", NodeView::s_viewDetail == NodeViewDetail::Essential);
-                    bool exhaustive = ImGui::MenuItem("Exhaustive View" , "", NodeView::s_viewDetail == NodeViewDetail::Exhaustive);
 
+                    auto menu_item_node_view_detail = [](NodeViewDetail _detail, const char* _label)
+                    {
+                        if (ImGui::MenuItem( _label , "",  NodeView::get_view_detail() == _detail))
+                        {
+                            NodeView::set_view_detail(_detail);
+                        }
+                    };
 
-                    if (minimalist)
-                    {
-                        NodeView::SetDetail(NodeViewDetail::Minimalist);
-                    }
-                    else if (essential)
-                    {
-                        NodeView::SetDetail(NodeViewDetail::Essential);
-                    }
-                    else if (exhaustive)
-                    {
-                        NodeView::SetDetail(NodeViewDetail::Exhaustive);
-                    }
+                    menu_item_node_view_detail(NodeViewDetail::Minimalist, "Minimalist View");
+                    menu_item_node_view_detail(NodeViewDetail::Essential,  "Essential View");
+                    menu_item_node_view_detail(NodeViewDetail::Exhaustive, "Exhaustive View");
 
                     ImGui::Separator();
                     m_show_properties_editor = ImGui::MenuItem(ICON_FA_COGS " Show Properties", "", m_show_properties_editor);
@@ -472,11 +467,11 @@ bool AppView::draw()
 
             if (ImGui::Begin(k_node_props_window_name))
             {
-                NodeView *view = NodeView::GetSelected();
+                NodeView *view = NodeView::get_selected();
                 if (view)
                 {
                     ImGui::Indent(10.0f);
-                    NodeView::DrawNodeViewAsPropertiesPanel(view, &m_show_advanced_node_properties);
+                    NodeView::draw_as_properties_panel(view, &m_show_advanced_node_properties);
                 }
             }
             ImGui::End();

@@ -37,8 +37,8 @@ FileView::FileView(AppContext* _ctx, File *_file)
                 ImRect graphViewRect = graph_view->getVisibleRect();
                 vec2 newPos = graphViewRect.GetTL();
                 newPos.x += graphViewRect.GetSize().x * 0.33f;
-                newPos.y += root_node_view->getSize().y;
-                root_node_view->setPosition(newPos );
+                newPos.y += root_node_view->get_size().y;
+                root_node_view->set_position(newPos);
             }
         }
     });
@@ -85,11 +85,11 @@ bool FileView::draw()
 
     bool is_vm_running = m_context->vm->is_program_running();
     auto allowkeyboard = !is_vm_running &&
-                         !NodeView::IsAnyDragged() &&
-                         !NodeView::GetSelected(); // disable keyboard for text editor when a node is selected.
+                         !NodeView::is_any_dragged() &&
+                         !NodeView::get_selected(); // disable keyboard for text editor when a node is selected.
 
     auto allowMouse = !is_vm_running &&
-                       !NodeView::IsAnyDragged() &&
+                      !NodeView::is_any_dragged() &&
                       !ImGui::IsAnyItemHovered() &&
                       !ImGui::IsAnyItemFocused();
 

@@ -189,11 +189,11 @@ void App::vm_step_over()
     m_context->vm->step_over();
     if (!m_context->vm->is_there_a_next_instr() )
     {
-        NodeView::SetSelected(nullptr);
+        NodeView::set_selected(nullptr);
     }
     else if ( auto view = m_context->vm->get_next_node()->get<NodeView>() )
     {
-        NodeView::SetSelected(view);
+        NodeView::set_selected(view);
     }
 }
 
@@ -229,7 +229,7 @@ void App::handle_events()
      * SDL_ API inspired, but with custom events.
      */
     Nodable::Event event{};
-    NodeView*      selected_view = NodeView::GetSelected();
+    NodeView*      selected_view = NodeView::get_selected();
     while( EventManager::poll_event(event) )
     {
         switch ( event.type )
@@ -246,7 +246,7 @@ void App::handle_events()
             {
                 if ( selected_view )
                 {
-                    selected_view->arrangeRecursively();
+                    selected_view->arrange_recursively();
                 }
                 break;
             }
@@ -259,7 +259,7 @@ void App::handle_events()
                     {
                         if (auto successor_view = possible_successor->get<NodeView>())
                         {
-                            NodeView::SetSelected(successor_view);
+                            NodeView::set_selected(successor_view);
                         }
                     }
                 }
@@ -269,7 +269,7 @@ void App::handle_events()
             {
                 if ( selected_view )
                 {
-                    selected_view->toggleExpansion();
+                    selected_view->expand_toggle();
                 }
                 break;
             }
