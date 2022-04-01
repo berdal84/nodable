@@ -71,7 +71,7 @@ namespace Nodable
 		 * Change the visibility of this View
 		 * @param _visibility
 		 */
-		inline void setVisible(bool _visibility)
+		inline void set_visible(bool _visibility)
 		{
 		    visible = _visibility;
 		}

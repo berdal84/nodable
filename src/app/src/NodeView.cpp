@@ -37,7 +37,7 @@ NodeView::NodeView(AppContext* _ctx)
         , m_position(500.0f, -1.0f)
         , m_size(NODE_VIEW_DEFAULT_SIZE)
         , m_opacity(1.0f)
-        , m_children_visible(true)
+        , m_expanded(true)
         , m_force_member_inputs_visible(false)
         , m_pinned(false)
         , m_border_radius(5.0f)
@@ -323,8 +323,16 @@ bool NodeView::draw()
             is_connector_hovered |= ImGui::IsItemHovered();
         };
 
-        std::for_each(m_predecessors_node_connnectors.begin(), m_predecessors_node_connnectors.end(), drawConnectorAndHandleUserEvents);
-        std::for_each(m_successors_node_connectors.begin(), m_successors_node_connectors.end(), drawConnectorAndHandleUserEvents);
+        if ( m_expanded )
+        {
+            std::for_each(m_predecessors_node_connnectors.begin(), m_predecessors_node_connnectors.end(), drawConnectorAndHandleUserEvents);
+            std::for_each(m_successors_node_connectors.begin(), m_successors_node_connectors.end(), drawConnectorAndHandleUserEvents);
+        }
+        else
+        {
+            std::for_each(m_predecessors_node_connnectors.begin(), m_predecessors_node_connnectors.begin()+1, drawConnectorAndHandleUserEvents);
+            std::for_each(m_successors_node_connectors.begin(), m_successors_node_connectors.begin()+1, drawConnectorAndHandleUserEvents);
+        }
     }
 
 	// Begin the window
@@ -376,6 +384,12 @@ bool NodeView::draw()
 
     ImGui::BeginGroup();
         std::string label = get_label().empty() ? " " : get_label();                        // ensure a 1 char width, to be able to grab it
+        if ( !m_expanded )
+        {
+            // symbolize the fact node view is not expanded
+            //abel.insert(0, "<<");
+            label.append(" " ICON_FA_OBJECT_GROUP);
+        }
         ImGuiEx::ShadowedText(vec2(1.0f), getColor(Color_BorderHighlights), label.c_str()); // text with a lighter shadow (incrust effect)
 
         ImGui::SameLine();
@@ -1076,61 +1090,67 @@ ImRect NodeView::get_rect(
     return ImRect(*x_minmax.first, *y_minmax.first, *x_minmax.second, *y_minmax.second );;
 }
 
-void NodeView::set_children_visible(bool _visible, bool _recursive)
+void NodeView::set_expanded_rec(bool _expanded)
 {
-    m_children_visible = _visible;
-
-    for( auto eachChild : m_children_slots )
+    set_expanded(_expanded);
+    for( auto each_child : m_children_slots )
     {
-        eachChild->setVisible(_visible);
-
-        if ( _recursive)
-        {
-            eachChild->set_children_visible(_visible, true);
-            eachChild->set_inputs_visible(_visible, true);
-        }
+        each_child->set_expanded_rec(_expanded);
     }
+}
+
+void NodeView::set_expanded(bool _expanded)
+{
+    m_expanded = _expanded;
+    set_inputs_visible(_expanded, true);
+    set_children_visible(_expanded, true);
 }
 
 bool NodeView::should_follow_output(const NodeView* output)
 {
     if ( m_output_slots.empty())
+    {
         return true;
-
+    }
     return m_output_slots[0] == output;
-//    NodeView* higher = nullptr;
-//    for( auto eachChild : outputs )
-//    {
-//        if( eachChild->isVisible() && (!higher || higher->getPosition().y > eachChild->getPosition().y ))
-//            higher = eachChild;
-//    }
-//    return higher == other;
 }
 
 void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 {
-
     for( auto each_input : m_input_slots )
     {
         if( _visible || (output_slots().empty() || each_input->should_follow_output(this)) )
         {
-            if ( _recursive)
+            if ( _recursive && each_input->m_expanded ) // propagate only if expanded
             {
                 each_input->set_children_visible(_visible, true);
                 each_input->set_inputs_visible(_visible, true);
             }
-            each_input->setVisible(_visible);
+            each_input->set_visible(_visible);
+        }
+    }
+}
+
+void NodeView::set_children_visible(bool _visible, bool _recursive)
+{
+    for( auto each_child : m_children_slots )
+    {
+        if( _visible || (output_slots().empty() || each_child->should_follow_output(this)) )
+        {
+            if ( _recursive && each_child->m_expanded) // propagate only if expanded
+            {
+                each_child->set_children_visible(_visible, true);
+                each_child->set_inputs_visible(_visible, true);
+            }
+            each_child->set_visible(_visible);
         }
     }
 }
 
 void NodeView::expand_toggle()
 {
-    bool visibility = !m_children_visible;
-    set_children_visible(visibility, true);
-    set_inputs_visible(visibility, true);
+    set_expanded(!m_expanded);
 }
-
 
 NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive)
 {

@@ -102,8 +102,10 @@ namespace Nodable
         void                    add_force_to_translate_to(vec2 desiredPos, float _factor, bool _recurse = false);
         void                    add_force(vec2 force, bool _recurse = false);
         void                    apply_forces(float _dt, bool _recurse);
-        void                    set_children_visible(bool _visible, bool _recursive = false);
+        void                    set_expanded_rec(bool _expanded);
+        void                    set_expanded(bool _expanded);
         void                    set_inputs_visible(bool _visible, bool _recursive = false);
+        void                    set_children_visible(bool _visible, bool _recursive = false);
         bool                    should_follow_output(const NodeView*);
         Slots<NodeView*>&       successor_slots() { return m_successor_slots; }
         Slots<NodeView*>&       children_slots() { return m_children_slots; }
@@ -136,7 +138,7 @@ namespace Nodable
         bool            m_edition_enable;
         vec2            m_forces_sum;
         vec2            m_last_frame_forces_sum;
-        bool            m_children_visible;
+        bool            m_expanded;
 		vec2            m_position;
 		vec2            m_size;
 		float           m_opacity;
