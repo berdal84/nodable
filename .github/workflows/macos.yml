@@ -30,8 +30,8 @@ jobs:
     - name: Git recursive checkout
       uses: actions/checkout@v2
       with:
+        depth: 0
         submodules: recursive
-        run: git tag -l
 
     - name: Install dependencies
       run: brew install mesalib-glw
