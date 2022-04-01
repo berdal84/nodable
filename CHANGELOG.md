@@ -2,9 +2,11 @@
 Nodable Change Log :
 ====================
 
-Author: Bérenger Dalle-Cort, 2017-2021
+Author: Bérenger Dalle-Cort, 2017-2022
 
 ### v0.9:
+    - hide long wires for variable references,
+    - show variable name in input fields,
     - mem leak fixes,
     - add Compiler to run code in the VM,
     - Reflect is now named R,
