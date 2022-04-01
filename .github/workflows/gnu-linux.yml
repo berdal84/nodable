@@ -32,6 +32,9 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Fetch tag (necessary in CMake)
+      run: git pull --tag
+
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install libegl1-mesa-dev doxygen
 
