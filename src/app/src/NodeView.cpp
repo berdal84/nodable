@@ -475,7 +475,12 @@ bool NodeView::draw()
         }
 
         ImGui::MenuItem("Pinned", "", &m_pinned, true);
-		ImGui::MenuItem("Collapsed", "", &m_force_member_inputs_visible, true);
+
+		if ( ImGui::MenuItem("Expanded", "", &m_expanded, true) )
+        {
+		    set_expanded(m_expanded);
+        }
+
         ImGui::Separator();
 
         if( ImGui::Selectable("Delete", !m_edition_enable ? ImGuiSelectableFlags_Disabled : ImGuiSelectableFlags_None))
@@ -508,14 +513,7 @@ bool NodeView::draw()
 	// Collapse on/off
 	if( is_node_hovered && ImGui::IsMouseDoubleClicked(0))
 	{
-        m_force_member_inputs_visible = !m_force_member_inputs_visible;
-
-        for( auto& pair : m_exposed_members )
-        {
-            auto& eachMemberView = pair.second;
-            eachMemberView->m_touched = m_force_member_inputs_visible;
-            eachMemberView->m_showInput = m_force_member_inputs_visible;
-        }
+        expand_toggle();
 	}
 
 	ImGui::PopStyleVar();
