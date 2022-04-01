@@ -37,6 +37,7 @@ namespace Nodable
             bool is() const { return is(reflect_type<T>::make_type()); }
             template<class T>
             bool is_not() const { return !is(reflect_type<T>::make_type()); }
+            bool   is_ptr() const;
 
             static bool   is_ptr(const std::shared_ptr<const MetaType>&);
             static bool   is_ref(const std::shared_ptr<const MetaType>&);

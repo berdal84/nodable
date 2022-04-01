@@ -107,6 +107,11 @@ std::string MetaType::get_fullname() const
     return result;
 }
 
+bool MetaType::is_ptr()const
+{
+    return has_qualifier(Qualifier::Pointer);
+}
+
 std::map<Type, std::shared_ptr<const MetaType>>& Register::by_type()
 {
     static std::map<Type, std::shared_ptr<const MetaType>> meta_type_register_by_category;

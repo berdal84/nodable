@@ -228,7 +228,9 @@ bool GraphNodeView::draw()
 
                 if ( const Member* src_member = dst_member->get_input() )
                 {
-                    auto src_node_view = src_member->get_owner()->get<NodeView>();
+                    Node *src_owner = src_member->get_owner();
+                    Node *dst_owner = dst_member->get_owner();
+                    auto src_node_view = src_owner->get<NodeView>();
                     auto dst_node_view = eachNode->get<NodeView>(); // equival to dst_member->getOwner()->get<NodeView>();
 
                     if ( src_node_view->isVisible() && dst_node_view->isVisible() )
@@ -243,8 +245,9 @@ bool GraphNodeView::draw()
 
                             // do not draw long lines between a variable value
                             bool skip_wire = false;
-                            if ( src_member->get_owner()->is<VariableNode>() &&
-                                 src_member == src_member->get_owner()->props()->get(k_value_member_name) )
+                            if ( !NodeView::is_selected(src_member_view->m_nodeView) && !NodeView::is_selected(dst_member_view->m_nodeView) &&
+                                    ((dst_member->get_meta_type()->is_ptr() && dst_owner->is<InstructionNode>() && src_owner->is<VariableNode>()) ||
+                                (src_owner->is<VariableNode>() && src_member == src_owner->props()->get(k_value_member_name))))
                             {
                                 vec2 delta = src_pos - dst_pos;
                                 if( abs(delta.x) > 100.0f || abs(delta.y) > 100.0f )
