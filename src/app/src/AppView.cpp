@@ -523,13 +523,18 @@ bool AppView::draw()
             }
             ImGui::End();
 
-            // Opened documents
-            for (size_t fileIndex = 0; fileIndex < app->get_file_count(); fileIndex++)
+            if( !app->get_file_count() )
             {
-                draw_file_editor(dockspace_main, redock_all, fileIndex);
+                draw_startup_menu(dockspace_main);
             }
-
-
+            else
+            {
+                // Opened documents
+                for (size_t fileIndex = 0; fileIndex < app->get_file_count(); fileIndex++)
+                {
+                    draw_file_editor(dockspace_main, redock_all, fileIndex);
+                }
+            }
         }
         ImGui::End(); // Main window
     }
@@ -689,6 +694,78 @@ void AppView::draw_file_browser()
         m_file_browser.ClearSelected();
         m_file_browser.Close();
     }
+}
+
+void AppView::draw_startup_menu(ImGuiID dockspace_id)
+{
+    ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Always);
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3,0.3,0.3, 1.0));
+
+    ImGui::Begin("Startup");
+    {
+        ImGui::PopStyleColor();
+
+        ImVec2 center_area(500.0f, 500.0f);
+        ImVec2 avail = ImGui::GetContentRegionAvail();
+
+        ImGui::SetCursorPosX( (avail.x - center_area.x) / 2);
+        ImGui::SetCursorPosY( (avail.y - center_area.y) / 2);
+
+        ImGui::BeginChild("center_area", center_area);
+        {
+            ImGui::NewLine();
+            ImGui::NewLine();
+            auto path = m_context->app->get_absolute_asset_path(m_context->settings->ui_splashscreen_imagePath);
+            Texture* logo = m_context->texture_manager->get_or_create(path);
+            ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
+            ImGui::Image((void*)(intptr_t)logo->image, vec2((float)logo->width, (float)logo->height));
+            ImGui::NewLine();
+
+            ImGui::Indent();
+            ImGui::PushFont(m_fonts.at(FontSlot_Heading));
+            ImGui::Text("Welcome to Nodable!");
+            ImGui::PopFont();
+
+            ImGui::PushFont(m_fonts.at(FontSlot_Paragraph));
+            ImGui::NewLine();
+            ImGui::TextWrapped("What do you want to do?");
+            ImGui::PopFont();
+            ImGui::NewLine();
+
+            ImGui::Separator();
+
+            ImGui::PushFont(m_fonts.at(FontSlot_ToolBtn));
+            ImGui::NewLine();
+
+            // ImGui::Button(ICON_FA_FILE" Create new file")
+
+            if( ImGui::Button(ICON_FA_FOLDER_OPEN" Open an existing file") )
+            {
+                browse_file();
+            }
+
+            if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open example01.txt"))
+            {
+                std::string path = m_context->app->get_absolute_asset_path("txt/example01.txt");
+                m_context->app->open_file(path);
+            }
+
+            if( ImGui::Button(ICON_FA_GLOBE " Check latest release") )
+            {
+                System::open_url_async("https://github.com/berdal84/Nodable/releases/latest");
+            }
+
+            if( ImGui::Button(ICON_FA_GLOBE" Browse source code") )
+            {
+                System::open_url_async("https://github.com/berdal84/Nodable");
+            }
+
+            ImGui::PopFont();
+            ImGui::Unindent();
+        }
+        ImGui::EndChild();
+    }
+    ImGui::End(); // Startup Window
 }
 
 void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex)

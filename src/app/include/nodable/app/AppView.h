@@ -52,6 +52,7 @@ namespace Nodable
         void draw_properties_editor();
         void draw_tool_bar();
         void draw_vm_view();
+        void draw_startup_menu(ImGuiID dockspace_id);
 
         ImFont* load_font(const FontConf &_config);
         ImFont* get_font_by_id(const char *id);
@@ -76,5 +77,6 @@ namespace Nodable
         R_DERIVED(AppView)
         R_EXTENDS(View)
         R_END
+
     };
 }
