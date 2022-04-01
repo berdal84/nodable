@@ -80,9 +80,7 @@ namespace Nodable {
 
 		const char*          get_label()const;
         const char*          get_short_label()const;
-		void                 set_label(const char*);
-		void                 set_label(std::string);
-        void                 set_short_label(const char *);
+		void                 set_label(const char* _label, const char* _short_label = nullptr);
 
 		void                 add_wire(Wire*);
 		void                 remove_wire(Wire*);

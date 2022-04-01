@@ -955,7 +955,8 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
             if ( condition)
             {
-                condition->set_label(condStruct->condition_member()->get_name());
+                condition->set_label("Condition");
+                condition->set_label("Cond.");
                 condStruct->set_cond_instr(condition);
 
                 if ( m_token_ribbon.eatToken(TokenType_CloseBracket) )
@@ -975,8 +976,10 @@ ConditionalStructNode * Parser::parse_conditional_structure()
                                 success = true;
                             }
                             /* (or) parse else if scope */
-                            else if ( parse_conditional_structure() )
+                            else if ( ConditionalStructNode* else_cond_struct = parse_conditional_structure() )
                             {
+                                else_cond_struct->set_label("else if");
+
                                 LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
                                 success = true;
                             }
@@ -1056,7 +1059,7 @@ ForLoopNode* Parser::parse_for_loop()
             }
             else
             {
-                init_instr->set_label(for_loop_node->get_init_expr()->get_name());
+                init_instr->set_label("Initialisation", "Init.");
                 m_graph->connect(init_instr->get_this_member(), for_loop_node->get_init_expr());
                 for_loop_node->set_init_instr(init_instr);
 
@@ -1067,7 +1070,7 @@ ForLoopNode* Parser::parse_for_loop()
                 }
                 else
                 {
-                    cond_instr->set_label(for_loop_node->condition_member()->get_name());
+                    cond_instr->set_label("Condition", "Cond.");
                     m_graph->connect(cond_instr->get_this_member(), for_loop_node->condition_member());
                     for_loop_node->set_cond_instr(cond_instr);
 
@@ -1078,7 +1081,7 @@ ForLoopNode* Parser::parse_for_loop()
                     }
                     else
                     {
-                        iter_instr->set_label(for_loop_node->get_iter_expr()->get_name());
+                        iter_instr->set_label("Iteration", "Iter.");
                         m_graph->connect(iter_instr->get_this_member(), for_loop_node->get_iter_expr());
                         for_loop_node->set_iter_instr(iter_instr);
 

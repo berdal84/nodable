@@ -78,19 +78,15 @@ void Node::set_dirty(bool _value)
     m_dirty = _value;
 }
 
-void Node::set_label(const char* _label)
+void Node::set_label(const char* _label, const char* _short_label)
 {
-	this->m_label = _label;
-}
-
-void Node::set_label(std::string _label)
-{
-	this->m_label = _label;
+	m_label       = _label;
+	m_short_label = _short_label == nullptr ? _label : _short_label;
 }
 
 const char* Node::get_label()const
 {
-	return this->m_label.c_str();
+	return m_label.c_str();
 }
 
 void Node::add_wire(Wire* _wire)
@@ -234,12 +230,9 @@ void Node::set_parent_graph(GraphNode *_parentGraph)
     this->m_parent_graph = _parentGraph;
 }
 
-void Node::set_short_label(const char *_label) {
-    this->m_short_label = _label;
-}
-
-const char* Node::get_short_label() const {
-    return this->m_short_label.c_str();
+const char* Node::get_short_label() const
+{
+    return m_short_label.c_str();
 }
 
 Node::~Node()

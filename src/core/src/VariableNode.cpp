@@ -19,27 +19,27 @@ VariableNode::VariableNode(std::shared_ptr<const R::MetaType> _type)
 
 void VariableNode::set_name(const char* _name)
 {
+    std::string label;
+    const char* short_label = nullptr;
+
     m_name = _name;
-    std::string str;
 
-    // append type only if not unknown
-    if (m_value->get_meta_type())
+    if (m_value->get_data()->is_initialized())                   // append type only if have one
     {
-        str.append(m_value->get_meta_type()->get_name() );
-        str.append(" ");
+        label.append(m_value->get_meta_type()->get_name() );
+        label.append(" ");
+    }
+    label.append(_name );                                        // append name
+
+    size_t length_max = 8;
+	if (m_name.length() > length_max)                            // limit short_label length
+    {
+	    std::string tail = "..";
+        short_label = m_name.substr(0, length_max-1-tail.length())
+                            .append(tail).c_str();
     }
 
-    str.append( _name );
-    set_label(str);
-
-	if (m_name.length() > 4)
-    {
-        set_short_label(m_name.substr(0, 3).append("..").c_str());
-    }
-    else
-    {
-        set_short_label(_name);
-    }
+    set_label(label.c_str(), short_label);
 }
 
 bool VariableNode::eval() const

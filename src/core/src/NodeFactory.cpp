@@ -11,8 +11,8 @@ using namespace Nodable;
 
 InstructionNode* NodeFactory::new_instr() const
 {
-    InstructionNode* instr_node = new InstructionNode("</> Instruction");
-    instr_node->set_short_label("</>");
+    InstructionNode* instr_node = new InstructionNode();
+    instr_node->set_label("Instr.", "");
     m_post_process(instr_node);
     return instr_node;
 }
@@ -78,8 +78,7 @@ Node* NodeFactory::new_binary_op(const InvokableOperator* _operator) const
 
 void NodeFactory::setup_node_labels(Node *_node, const InvokableOperator *_operator)
 {
-    _node->set_label(_operator->get_signature()->get_label());
-    _node->set_short_label(_operator->get_short_identifier().c_str());
+    _node->set_label(_operator->get_signature()->get_label().c_str(), _operator->get_short_identifier().c_str());
 }
 
 Node* NodeFactory::new_unary_op(const InvokableOperator* _operator) const
@@ -120,10 +119,10 @@ Node* NodeFactory::new_abstract_function(const FunctionSignature* _signature) co
 
 Node* NodeFactory::_new_abstract_function(const FunctionSignature* _signature) const
 {
-    Node* node = new Node();
-    node->set_label(_signature->get_identifier() + "()");
-    std::string str = _signature->get_label().substr(0, 2) + "..()";
-    node->set_short_label(str.c_str());
+    Node* node              = new Node();
+    std::string label       = _signature->get_identifier() + "()";
+    std::string short_label = _signature->get_label().substr(0, 2) + "..()";
+    node->set_label(label.c_str(), short_label.c_str());
 
     // Create a result/value
     Properties* props = node->props();
@@ -169,9 +168,7 @@ Node* NodeFactory::new_function(const IInvokable* _function) const
 Node* NodeFactory::new_scope() const
 {
     auto scope_node = new Node();
-    std::string label = "{} Scope";
-    scope_node->set_label(label);
-    scope_node->set_short_label( "{}");
+    scope_node->set_label("{} Scope", "{}");
 
     scope_node->predecessor_slots().set_limit(std::numeric_limits<int>::max());
     scope_node->successor_slots().set_limit(1);
@@ -187,9 +184,7 @@ Node* NodeFactory::new_scope() const
 ConditionalStructNode* NodeFactory::new_cond_struct() const
 {
     auto cond_struct_node = new ConditionalStructNode();
-    std::string label = ICON_FA_CODE_BRANCH " If";
-    cond_struct_node->set_label(label);
-    cond_struct_node->set_short_label(ICON_FA_CODE_BRANCH);
+    cond_struct_node->set_label("If");
 
     cond_struct_node->predecessor_slots().set_limit(std::numeric_limits<int>::max());
     cond_struct_node->successor_slots().set_limit(2); // true/false branches
@@ -205,9 +200,7 @@ ConditionalStructNode* NodeFactory::new_cond_struct() const
 ForLoopNode* NodeFactory::new_for_loop_node() const
 {
     auto for_loop = new ForLoopNode();
-    std::string label = ICON_FA_RECYCLE " For";
-    for_loop->set_label(label);
-    for_loop->set_short_label(ICON_FA_RECYCLE" For");
+    for_loop->set_label("For loop", "For");
 
     for_loop->predecessor_slots().set_limit(std::numeric_limits<int>::max());
     for_loop->successor_slots().set_limit(1);
@@ -223,8 +216,7 @@ ForLoopNode* NodeFactory::new_for_loop_node() const
 Node* NodeFactory::new_program() const
 {
     Node* prog = new_scope();
-    prog->set_label(ICON_FA_FILE_CODE " Program");
-    prog->set_short_label(ICON_FA_FILE_CODE " Prog.");
+    prog->set_label(ICON_FA_FILE_CODE " Program", ICON_FA_FILE_CODE);
 
     m_post_process(prog);
     return prog;
@@ -240,8 +232,7 @@ Node* NodeFactory::new_node() const
 LiteralNode* NodeFactory::new_literal(std::shared_ptr<const R::MetaType> _type) const
 {
     LiteralNode* node = new LiteralNode(_type);
-    node->set_label("Literal");
-    node->set_short_label("Lit.");
+    node->set_label("Literal", "");
     m_post_process(node);
     return node;
 }

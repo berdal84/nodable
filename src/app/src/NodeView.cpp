@@ -375,7 +375,8 @@ bool NodeView::draw()
 	//------------------------
 
     ImGui::BeginGroup();
-        ImGuiEx::ShadowedText(vec2(1.0f), getColor(Color_BorderHighlights), get_label().c_str()); // text with a lighter shadow (incrust effect)
+        std::string label = get_label().empty() ? " " : get_label();                        // ensure a 1 char width, to be able to grab it
+        ImGuiEx::ShadowedText(vec2(1.0f), getColor(Color_BorderHighlights), label.c_str()); // text with a lighter shadow (incrust effect)
 
         ImGui::SameLine();
 

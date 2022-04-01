@@ -19,7 +19,7 @@ namespace Nodable
     class InstructionNode : public Node
     {
     public:
-        explicit InstructionNode(const char* _label);
+        explicit InstructionNode();
         ~InstructionNode()= default;
 
         [[nodiscard]] inline Member* get_root_node_member()const { return m_props.get(k_value_member_name); }

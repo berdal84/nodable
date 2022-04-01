@@ -7,8 +7,8 @@ using namespace Nodable::R;
 
 R_DEFINE_CLASS(InstructionNode)
 
-InstructionNode::InstructionNode(const char* _label)
-    : Node(_label)
+InstructionNode::InstructionNode()
+    : Node()
 {
     m_props.add<Node*>(k_value_member_name, Visibility::Default, Way_In);
     m_successors.set_limit(1);
