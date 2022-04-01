@@ -28,7 +28,7 @@ NodeView*          NodeView::s_dragged                         = nullptr;
 NodeViewDetail     NodeView::s_view_detail                     = NodeViewDetail::Default;
 const float        NodeView::s_member_input_size_min           = 10.0f;
 const vec2         NodeView::s_member_input_toggle_button_size = vec2(10.0, 25.0f);
-NodeViews          NodeView::s_instances;
+NodeViewVec        NodeView::s_instances;
 
 NodeView::NodeView(AppContext* _ctx)
         : Component()
@@ -109,25 +109,25 @@ void NodeView::expose(Member* _member)
 void NodeView::set_owner(Node *_node)
 {
     Component::set_owner(_node);
-    Settings* settings = m_context->settings;
-    std::vector<Member*> notExposedMembers;
+
+    Settings*            settings = m_context->settings;
+    std::vector<Member*> not_exposed;
 
     //  We expose first the members which allows input connections
-    for(auto& m : _node->props()->get_members())
+    for(Member* each_member : _node->props()->by_id())
     {
-        auto member = m.second;
-        if (member->get_visibility() == Visibility::Always && member->allows_connection(Way_In) )
+        if (each_member->get_visibility() == Visibility::Always && each_member->allows_connection(Way_In) )
         {
-            expose(member);
+            expose(each_member);
         }
         else
         {
-            notExposedMembers.push_back(member);
+            not_exposed.push_back(each_member);
         }
     }
 
     // Then we expose node which allows output connection (if they are not yet exposed)
-    for (auto& member : notExposedMembers)
+    for (auto& member : not_exposed)
     {
         if (member->get_visibility() == Visibility::Always && member->allows_connection(Way_Out))
         {

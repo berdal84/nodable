@@ -7,32 +7,34 @@ Properties::Properties(Node* _owner):m_owner(_owner){}
 
 Properties::~Properties()
 {
-	for(auto each : m_props)
-		delete each.second;
+	for(Member* each_member : m_members_by_id)
+	{
+        delete each_member;
+	}
 }
 
 bool Properties::has(const char* _name)
 {
-    return m_props.find(_name) != m_props.end();
+    return m_members_by_name.find(_name) != m_members_by_name.end();
 }
 
-bool Properties::has(const Member* _value)
+bool Properties::has(const Member* _member)
 {
-	auto found = m_props.find(_value->get_name());
-	if(found != m_props.end())
-		return (*found).second == _value;
-	return false;
+	return std::find(m_members.cbegin(), m_members.cend(), _member) != m_members.end();
 }
 
 Member* Properties::add(const char* _name, Visibility _visibility, std::shared_ptr<const R::MetaType> _type, Way _flags )
 {
-	auto v = Member::new_with_meta_type(this, _type);
-    v->set_name(_name);
-    v->set_visibility(_visibility);
-    v->set_allowed_connection(_flags);
-	m_props[std::string(_name)] = v;
+    NODABLE_ASSERT(!has(_name));
 
-	return v;
+	Member* new_member = Member::new_with_meta_type(this, _type);
+    new_member->set_name(_name);
+    new_member->set_visibility(_visibility);
+    new_member->set_allowed_connection(_flags);
+
+    add_to_indexes(new_member);
+
+	return new_member;
 }
 
 Member *Properties::get_first_member_with(Way _way, std::shared_ptr<const R::MetaType> _type) const
@@ -44,9 +46,16 @@ Member *Properties::get_first_member_with(Way _way, std::shared_ptr<const R::Met
                && ( each_member->get_allowed_connection() & _way );
     };
 
-    auto found = std::find_if( m_props.begin(), m_props.end(), filter );
+    auto found = std::find_if(m_members_by_name.begin(), m_members_by_name.end(), filter );
 
-    if ( found != m_props.end() )
+    if (found != m_members_by_name.end() )
         return (*found).second;
     return nullptr;
+}
+
+void Properties::add_to_indexes(Member* _member)
+{
+    m_members_by_name.insert({_member->get_name(), _member});
+    m_members_by_id.push_back(_member);
+    m_members.insert(_member);
 }

@@ -36,13 +36,13 @@ Instruction* Code::push_instr(opcode _type)
 
 bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
 {
-    const Nodes& nodes = _graph->get_node_registry();
+    const NodeVec& nodes = _graph->get_node_registry();
     for( auto each_node : nodes )
     {
         // Check for undeclared variables
         if( const Scope* scope = each_node->get<Scope>())
         {
-            const VariableNodes& vars = scope->get_variables();
+            const VariableNodeVec& vars = scope->get_variables();
 
             for(const VariableNode* each_variable : vars)
             {

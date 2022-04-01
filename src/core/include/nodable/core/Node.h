@@ -86,7 +86,7 @@ namespace Nodable {
 
 		void                 add_wire(Wire*);
 		void                 remove_wire(Wire*);
-		Wires&               get_wires();
+		WireVec&             get_wires();
 		int                  get_input_wire_count ()const;
 		int                  get_output_wire_count()const;
 
@@ -241,7 +241,7 @@ namespace Nodable {
 		std::string        m_label;
 		std::string        m_short_label;
 		bool               m_dirty;
-		Wires              m_wires;
+		WireVec            m_wires;
         Slots<Node*>       m_inputs;
         Slots<Node*>       m_outputs;
 

@@ -23,13 +23,13 @@ using namespace Nodable::R;
 
 bool GraphNodeView::draw()
 {
-    bool         edited         = false;
-    const bool   enable_edition = m_context->vm->is_program_stopped();
-    Node*        new_node       = nullptr;
-    Settings*    settings       = m_context->settings;
-    GraphNode*   graph          = get_graph_node();
-    const Nodes& node_registry  = graph->get_node_registry();
-	vec2         origin         = ImGui::GetCursorScreenPos();
+    bool           edited         = false;
+    const bool     enable_edition = m_context->vm->is_program_stopped();
+    Node*          new_node       = nullptr;
+    Settings*      settings       = m_context->settings;
+    GraphNode*     graph          = get_graph_node();
+    const NodeVec& node_registry  = graph->get_node_registry();
+	vec2           origin         = ImGui::GetCursorScreenPos();
 
 	const MemberConnector* dragged_member_conn = MemberConnector::get_gragged();
     const MemberConnector* hovered_member_conn = MemberConnector::get_hovered();
@@ -220,7 +220,7 @@ bool GraphNodeView::draw()
         */
         for (auto eachNode : node_registry)
         {
-            const Members& members = eachNode->props()->get_members();
+            const MemberMap& members = eachNode->props()->by_name();
 
             for (auto pair : members)
             {
@@ -586,7 +586,7 @@ void GraphNodeView::update_child_view_constraints()
             // Follow predecessor Node(s), except if first predecessor is a Conditional if/else
             //---------------------------------------------------------------------------------
 
-            const Nodes& predecessor_nodes = _eachNode->predecessor_slots().content();
+            const NodeVec& predecessor_nodes = _eachNode->predecessor_slots().content();
             std::vector<NodeView*> predecessor_node_views;
             Node::get_components<NodeView>(predecessor_nodes, predecessor_node_views);
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not_child_of<IConditionalStruct>() )
@@ -600,7 +600,7 @@ void GraphNodeView::update_child_view_constraints()
             // Align in row Conditional Struct Node's children
             //------------------------------------------------
 
-            NodeViews children = each_node_view->children_slots().content();
+            NodeViewVec children = each_node_view->children_slots().content();
             if( !children.empty() && clss->is_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint(m_context,NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);

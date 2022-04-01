@@ -52,15 +52,15 @@ namespace Nodable
 	    void apply(float _dt);
 	    void addSlave(NodeView*);
 	    void addMaster(NodeView*);
-        void addSlaves(const NodeViews &vector);
-        void addMasters(const NodeViews &vector);
+        void addSlaves(const NodeViewVec &vector);
+        void addMasters(const NodeViewVec &vector);
         vec2 m_offset;
 
     private:
         const AppContext* m_context;
 	    Type              m_type;
-        NodeViews         m_masters;
-        NodeViews         m_slaves;
+        NodeViewVec       m_masters;
+        NodeViewVec       m_slaves;
     };
 
 	/**

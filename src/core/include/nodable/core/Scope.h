@@ -27,11 +27,11 @@ namespace Nodable
         void                    remove_variable(VariableNode *_variable)override;
         size_t                  remove_all_variables() override;
         VariableNode*           find_variable(const std::string &_name) override ;
-        const VariableNodes&    get_variables()const override { return m_variables; };
+        const VariableNodeVec&  get_variables()const override { return m_variables; };
 
     private:
 
-        VariableNodes m_variables;
+        VariableNodeVec        m_variables;
         std::shared_ptr<Token> m_begin_scope_token;
         std::shared_ptr<Token> m_end_scope_token;
 

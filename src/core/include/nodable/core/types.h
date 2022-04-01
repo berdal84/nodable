@@ -26,11 +26,12 @@ namespace Nodable
     typedef unsigned short int u8_t;
 
     typedef std::map<std::string, Component*>       Components;
-    typedef std::map<std::string, Member*>          Members;
-    typedef std::vector<Wire*>                      Wires;
-    typedef std::vector<VariableNode*>              VariableNodes;
-    typedef std::vector<Node*>                      Nodes ;
-    typedef std::vector<NodeView*>                   NodeViews ;
+    typedef std::map<std::string, Member*>          MemberMap;
+    typedef std::vector<Member*>                    MemberVec;
+    typedef std::vector<Wire*>                      WireVec;
+    typedef std::vector<VariableNode*>              VariableNodeVec;
+    typedef std::vector<Node*>                      NodeVec ;
+    typedef std::vector<NodeView*>                  NodeViewVec ;
     typedef std::multimap<EdgeType, const DirectedEdge> RelationRegistry;
 }
 
