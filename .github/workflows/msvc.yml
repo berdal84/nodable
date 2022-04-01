@@ -35,6 +35,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Fetch all tags (necessary to use tags in CMake)
+        run: git fetch --all --tags
+
       - name: Configure CMake
         run: cmake -B ${{ env.build }}
 
