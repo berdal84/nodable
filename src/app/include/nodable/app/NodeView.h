@@ -112,6 +112,7 @@ namespace Nodable
         Slots<NodeView*>&       output_slots() { return m_output_slots; }
         Slots<NodeView*>&       input_slots() { return m_input_slots; }
         void                    expand_toggle();
+        void                    expand_toggle_rec();
         void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }
 
         static ImRect           get_rect(const std::vector<NodeView *>&, bool _recursive = false

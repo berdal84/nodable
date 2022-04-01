@@ -1173,3 +1173,8 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
     }
     return _view;
 }
+
+void NodeView::expand_toggle_rec()
+{
+    return set_expanded_rec(!m_expanded);
+}

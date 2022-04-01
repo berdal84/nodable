@@ -265,11 +265,18 @@ void App::handle_events()
                 }
                 break;
             }
-            case EventType::expand_selected_node_action_triggered:
+            case EventType::toggle_folding_selected_node_action_triggered:
             {
                 if ( selected_view )
                 {
-                    selected_view->expand_toggle();
+                    if( event.toggle_folding.recursive )
+                    {
+                        selected_view->expand_toggle_rec();
+                    }
+                    else
+                    {
+                        selected_view->expand_toggle();
+                    }
                 }
                 break;
             }

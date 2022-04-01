@@ -46,7 +46,7 @@ bool AppView::init()
     // Create shortcuts
     m_shortcuts.push_back({ SDLK_DELETE  , KMOD_NONE, EventType::delete_node_action_triggered });
     m_shortcuts.push_back({ SDLK_a       , KMOD_NONE, EventType::arrange_node_action_triggered });
-    m_shortcuts.push_back({ SDLK_x       , KMOD_NONE, EventType::expand_selected_node_action_triggered });
+    m_shortcuts.push_back({ SDLK_x       , KMOD_NONE, EventType::toggle_folding_selected_node_action_triggered });
     m_shortcuts.push_back({ SDLK_n       , KMOD_NONE, EventType::select_successor_node_action_triggered });
 
     // Setup SDL
@@ -284,9 +284,20 @@ bool AppView::draw()
                         EventManager::push_event(EventType::arrange_node_action_triggered);
                     }
 
-                    if ( ImGui::MenuItem("Expand (toggle)", "X", false, has_selection) )
+                    if ( ImGui::MenuItem("Expand/Collapse", "X", false, has_selection) )
                     {
-                        EventManager::push_event(EventType::expand_selected_node_action_triggered);
+                        Event event;
+                        event.toggle_folding.type      = EventType::toggle_folding_selected_node_action_triggered;
+                        event.toggle_folding.recursive = false;
+                        EventManager::push_event(event);
+                    }
+
+                    if ( ImGui::MenuItem("Expand/Collapse recursive", NULL, false, has_selection) )
+                    {
+                        Event event;
+                        event.toggle_folding.type      = EventType::toggle_folding_selected_node_action_triggered;
+                        event.toggle_folding.recursive = true;
+                        EventManager::push_event(event);
                     }
                     ImGui::EndMenu();
                 }

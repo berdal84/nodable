@@ -16,7 +16,7 @@ namespace Nodable
         delete_node_action_triggered = 0x100, // operation on nodes
         arrange_node_action_triggered,
         select_successor_node_action_triggered,
-        expand_selected_node_action_triggered,
+        toggle_folding_selected_node_action_triggered,
 
         member_connector_dropped = 0x200, // operation on member connectors
         member_connector_disconnected,
@@ -28,6 +28,12 @@ namespace Nodable
     struct SimpleEvent
     {
         EventType type;
+    };
+
+    struct ToggleFoldingEvent
+    {
+        EventType              type;
+        bool                   recursive;
     };
 
     struct MemberConnectorEvent
@@ -50,6 +56,7 @@ namespace Nodable
         SimpleEvent          common;
         MemberConnectorEvent member_connectors;
         NodeConnectorEvent   node_connectors;
+        ToggleFoldingEvent   toggle_folding;
     };
 
     class EventManager
