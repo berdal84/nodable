@@ -80,7 +80,7 @@ namespace Nodable
          * Get the visibility of this View
          * @return
          */
-		[[nodiscard]] inline bool isVisible()const
+		[[nodiscard]] inline bool is_visible()const
 		{
 		    return visible;
 		}

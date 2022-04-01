@@ -50,17 +50,17 @@ namespace Nodable
 
 	    NodeViewConstraint(const AppContext* _ctx, Type _type);
 	    void apply(float _dt);
-	    void addSlave(NodeView*);
-	    void addMaster(NodeView*);
-        void addSlaves(const NodeViewVec &vector);
-        void addMasters(const NodeViewVec &vector);
+	    void add_target(NodeView*);
+	    void add_driver(NodeView*);
+        void add_targets(const NodeViewVec&);
+        void add_drivers(const NodeViewVec&);
         vec2 m_offset;
 
     private:
         const AppContext* m_context;
 	    Type              m_type;
-        NodeViewVec       m_masters;
-        NodeViewVec       m_slaves;
+        NodeViewVec       m_drivers;
+        NodeViewVec       m_targets;
     };
 
 	/**
@@ -126,6 +126,8 @@ namespace Nodable
         static void             draw_as_properties_panel(NodeView *_view, bool* _show_advanced);
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
+        static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
+
     private:
         virtual bool            update(float _deltaTime);
 		bool                    draw(MemberView *_view);

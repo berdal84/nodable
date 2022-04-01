@@ -969,8 +969,8 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
     }
 
     auto enlarge_to_fit_all = [&](NodeView* eachView) {
-        if (eachView && eachView->isVisible() && !(eachView->m_pinned && _ignorePinned) &&
-                eachView->should_follow_output(this) )
+        if (eachView && eachView->is_visible() && !(eachView->m_pinned && _ignorePinned) &&
+            eachView->should_follow_output(this) )
         {
             ImRect childRect = eachView->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
             enlarge_to_fit(childRect);
@@ -1061,7 +1061,7 @@ ImRect NodeView::get_rect(
     std::vector<float> x_positions, y_positions;
     for (auto eachView : _views)
     {
-        if ( eachView->isVisible())
+        if (eachView->is_visible())
         {
             auto rect = eachView->get_rect(_recursive, _ignorePinned, _ignoreMultiConstrained);
             x_positions.push_back(rect.Min.x );
@@ -1129,4 +1129,27 @@ void NodeView::expand_toggle()
     bool visibility = !m_children_visible;
     set_children_visible(visibility, true);
     set_inputs_visible(visibility, true);
+}
+
+
+NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive)
+{
+    if( !_view->is_visible() )
+    {
+        if ( Node* parent = _view->get_owner()->get_parent() )
+        {
+            if ( auto parent_view = parent->get<NodeView>() )
+            {
+                if (  _recursive )
+                {
+                    return substitute_with_parent_if_not_visible(parent_view, _recursive);
+                }
+                else
+                {
+                    return parent_view;
+                }
+            }
+        }
+    }
+    return _view;
 }

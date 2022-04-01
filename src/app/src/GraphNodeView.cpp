@@ -140,7 +140,7 @@ bool GraphNodeView::draw()
             NodeView *each_view           = each_node->get<NodeView>();
             NodeView *each_successor_view = each_successor_node->get<NodeView>();
 
-            if (each_view && each_successor_view && each_view->isVisible() && each_successor_view->isVisible() )
+            if (each_view && each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
             {
                 float viewWidthMin = std::min(each_successor_view->get_rect().GetSize().x, each_view->get_rect().GetSize().x);
                 float lineWidth = std::min(settings->ui_node_connector_width,
@@ -233,7 +233,7 @@ bool GraphNodeView::draw()
                     auto src_node_view = src_owner->get<NodeView>();
                     auto dst_node_view = eachNode->get<NodeView>(); // equival to dst_member->getOwner()->get<NodeView>();
 
-                    if ( src_node_view->isVisible() && dst_node_view->isVisible() )
+                    if (src_node_view->is_visible() && dst_node_view->is_visible() )
                     {
                         const MemberView* src_member_view = src_node_view->get_member_view(src_member);
                         const MemberView* dst_member_view = dst_node_view->get_member_view(dst_member);
@@ -295,7 +295,7 @@ bool GraphNodeView::draw()
         Node::get_components(node_registry, nodeViews);
 		for (auto eachNodeView : nodeViews)
 		{
-            if (eachNodeView->isVisible())
+            if (eachNodeView->is_visible())
             {
                 eachNodeView->enable_edition(enable_edition);
                 edited |= eachNodeView->draw();
@@ -595,8 +595,8 @@ void GraphNodeView::update_child_view_constraints()
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint(m_context, NodeViewConstraint::Type::FollowWithChildren);
-                constraint.addMasters(predecessor_node_views);
-                constraint.addSlave(each_node_view);
+                constraint.add_drivers(predecessor_node_views);
+                constraint.add_target(each_node_view);
                 each_node_view->add_constraint(constraint);
             }
 
@@ -607,12 +607,12 @@ void GraphNodeView::update_child_view_constraints()
             if( !children.empty() && clss->is_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint(m_context,NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
-                constraint.addMaster(each_node_view);
-                constraint.addSlaves(children);
+                constraint.add_driver(each_node_view);
+                constraint.add_targets(children);
 
                 if (clss->is_child_of<ForLoopNode>() )
                 {
-                    constraint.addSlaves(each_node_view->successor_slots().content() );
+                    constraint.add_targets(each_node_view->successor_slots().content());
                 }
 
                 each_node_view->add_constraint(constraint);
@@ -624,8 +624,8 @@ void GraphNodeView::update_child_view_constraints()
             if ( !each_node_view->input_slots().empty() )
             {
                 NodeViewConstraint constraint(m_context,NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
-                constraint.addMaster(each_node_view);
-                constraint.addSlaves(each_node_view->input_slots().content());
+                constraint.add_driver(each_node_view);
+                constraint.add_targets(each_node_view->input_slots().content());
                 each_node_view->add_constraint(constraint);
             }
         }
@@ -650,7 +650,7 @@ bool GraphNodeView::update()
 
     // Apply constraints
     for (auto eachView : views)
-        if( eachView->isVisible() )
+        if(eachView->is_visible() )
             eachView->apply_constraints(deltaTime);
 
     // Update
