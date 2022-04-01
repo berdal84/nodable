@@ -118,7 +118,7 @@ Settings* Settings::create_default()
 void Settings::patch_imgui_style(ImGuiStyle& _style)
 {
     vec4* colors = _style.Colors;
-    colors[ImGuiCol_Text]                   = vec4(0.10f, 0.10f, 0.10f, 1.00f);
+    colors[ImGuiCol_Text]                   = vec4(0.20f, 0.20f, 0.20f, 1.00f);
     colors[ImGuiCol_TextDisabled]           = vec4(0.21f, 0.21f, 0.21f, 1.00f);
     colors[ImGuiCol_WindowBg]               = vec4(0.76f, 0.76f, 0.76f, 1.00f);
     colors[ImGuiCol_DockingEmptyBg]         = vec4(0.64f, 0.24f, 0.24f, 1.00f);
