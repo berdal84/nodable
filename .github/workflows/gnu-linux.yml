@@ -26,14 +26,12 @@ jobs:
     - name: Get current date
       id: date
       run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-    
+
     - name: Git recursive checkout
       uses: actions/checkout@v2
       with:
         submodules: recursive
-
-    - name: Fetch tag (necessary in CMake)
-      run: git pull --tag
+        run: git tag -l
 
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install libegl1-mesa-dev doxygen
