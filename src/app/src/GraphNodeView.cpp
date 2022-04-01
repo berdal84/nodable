@@ -137,8 +137,8 @@ bool GraphNodeView::draw()
         float linePadding = 5.0f;
         for (Node* each_successor_node : each_node->successor_slots() )
         {
-            NodeView *each_view           = each_node->get<NodeView>();
-            NodeView *each_successor_view = each_successor_node->get<NodeView>();
+            NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->get<NodeView>() );
+            NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get<NodeView>() );
 
             if (each_view && each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
             {
