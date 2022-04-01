@@ -361,16 +361,16 @@ bool GraphNodeView::draw()
 
 
 	/*
-		Deselection
+		Deselection (by double click)
 	*/
-	// Deselection
-	if (NodeView::get_selected() != nullptr && !isAnyNodeHovered && ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused())
+	if ( NodeView::get_selected() && !isAnyNodeHovered && ImGui::IsMouseDoubleClicked(0) && ImGui::IsWindowFocused())
+    {
         NodeView::set_selected(nullptr);
+    }
 
 	/*
 		Mouse PAN (global)
 	*/
-
 	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged )
     {
         auto drag = ImGui::GetMouseDragDelta();
