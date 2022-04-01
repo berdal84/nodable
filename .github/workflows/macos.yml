@@ -33,7 +33,7 @@ jobs:
         submodules: recursive
 
     - name: Fetch all tags (necessary to use tags in CMake)
-      run: git fetch --all --tags
+      run: git fetch --tags
 
     - name: Install dependencies
       run: brew install mesalib-glw
