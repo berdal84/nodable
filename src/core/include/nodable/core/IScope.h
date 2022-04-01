@@ -15,7 +15,7 @@ namespace Nodable
     {
     public:
         virtual void                 clear() = 0;
-        virtual void                 get_last_instructions(std::vector<InstructionNode *> &out) = 0;
+        virtual void                 get_last_instructions_rec(std::vector<InstructionNode *> &out) = 0;
         virtual void                 add_variable(VariableNode*) = 0;
         virtual bool                 has_no_variable()const = 0;
         virtual void                 remove_variable(VariableNode*) = 0;

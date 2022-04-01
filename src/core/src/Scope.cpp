@@ -86,22 +86,27 @@ void Scope::add_variable(VariableNode* _variableNode)
     }
 }
 
-void Scope::get_last_instructions(std::vector<InstructionNode *> & _out)
+void Scope::get_last_instructions_rec(std::vector<InstructionNode *> & _out)
 {
     auto& owner_children = get_owner()->children_slots();
     if ( owner_children.empty())
         return;
 
-    Node *last = owner_children.back();
-    if (last)
+    for(auto each_child : owner_children)
     {
-        if (auto* node = last->as<InstructionNode>())
+        if (each_child)
         {
-            _out.push_back(node);
-        }
-        else if ( auto scope = last->get<Scope>() )
-        {
-            scope->get_last_instructions(_out);
+            if (auto* instr = each_child->as<InstructionNode>())
+            {
+                if (owner_children.back() == instr )
+                {
+                    _out.push_back(instr);
+                }
+            }
+            else if ( auto scope = each_child->get<Scope>() )
+            {
+                scope->get_last_instructions_rec(_out);
+            }
         }
     }
 }

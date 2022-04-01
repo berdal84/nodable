@@ -47,8 +47,14 @@ namespace Nodable
             return m_slots.empty() ? nullptr : m_slots[0];
         }
 
+        T get_back_or_nullptr() const
+        {
+            return m_slots.empty() ? nullptr : m_slots.back();
+        }
+
         observe::Event <T> m_on_added;
         observe::Event <T> m_on_removed;
+
     private:
         T               m_parent;
         size_t          m_limit;

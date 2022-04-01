@@ -15,7 +15,7 @@ namespace Nodable
         bool                    update() override { return true; };
         void                    clear() override;
         Node*                   get_last_code_block();
-        void                    get_last_instructions(std::vector<InstructionNode *> &out) override ;
+        void                    get_last_instructions_rec(std::vector<InstructionNode *> &_out) override ;
 
         std::shared_ptr<Token>  get_begin_scope_token() const { return m_begin_scope_token; }
         std::shared_ptr<Token>  get_end_scope_token() const { return m_end_scope_token; }
