@@ -128,7 +128,9 @@ bool FileView::draw()
                          isSelectedTextModified;
 
     if (m_text_editor.IsTextChanged())
+    {
         m_file->set_changed_flag();
+    }
 
     if ( m_text_has_changed )
     {

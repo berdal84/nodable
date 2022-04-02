@@ -41,6 +41,8 @@ namespace Nodable
         void handle_events();
 		bool draw() override;
         void browse_file();
+        void new_file();
+        void save_file();
         void shutdown();
 
 	private:
@@ -78,5 +80,6 @@ namespace Nodable
         R_EXTENDS(View)
         R_END
 
+        void close_file();
     };
 }

@@ -244,10 +244,10 @@ bool AppView::draw()
             {
                 if (ImGui::BeginMenu("File"))
                 {
-                    //ImGui::MenuItem(ICON_FA_FILE   "  New", "Ctrl + N");
-                    if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O")) browse_file();
-                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S")) app->save_file();
-                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) app->close_file();
+                    if (ImGui::MenuItem(ICON_FA_FILE        "  New", "Ctrl + N"))   new_file();
+                    if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O"))  browse_file();
+                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S"))  save_file();
+                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) close_file();
 
                     FileView *fileView = nullptr;
                     bool auto_paste;
@@ -405,8 +405,6 @@ bool AppView::draw()
                     {
                         ImGui::Checkbox( "Hybrid history"       , &settings->experimental_hybrid_history);
                         ImGui::Checkbox( "Graph auto-completion", &settings->experimental_graph_autocompletion);
-                        ImGui::Checkbox( "Native file browser"  , &settings->experimental_native_filebrowser);
-                        
                         ImGui::EndMenu();
                     }
                     ImGui::EndMenu();
@@ -742,7 +740,10 @@ void AppView::draw_startup_menu(ImGuiID dockspace_id)
             ImGui::PushFont(m_fonts.at(FontSlot_ToolBtn));
             ImGui::NewLine();
 
-            // ImGui::Button(ICON_FA_FILE" Create new file")
+            if( ImGui::Button(ICON_FA_FILE" Start with a new file") )
+            {
+                new_file();
+            }
 
             if( ImGui::Button(ICON_FA_FOLDER_OPEN" Open an existing file") )
             {
@@ -1066,18 +1067,29 @@ void AppView::draw_history_bar(History *currentFileHistory)
     }
 }
 
-void AppView::browse_file()
+void AppView::new_file()
 {
-    if ( m_context->settings->experimental_native_filebrowser)
+    m_context->app->new_file();
+}
+
+void AppView::save_file()
+{
+    File *curr_file = m_context->app->get_curr_file();
+
+    if (curr_file->has_path())
+    {
+        m_context->app->save_file();
+    }
+    else
     {
         nfdchar_t *out_path;
         //nfdfilteritem_t filters[4] = {{"File", NULL }, {"Text", "txt" }, {"Source code", "c,cpp,cc" }, {"Headers", "h,hpp" } };
-        nfdresult_t result = NFD_OpenDialog(&out_path, nullptr, 0, NULL);
+        nfdresult_t result = NFD_SaveDialog(&out_path, nullptr, 0, nullptr, nullptr);
         if (result == NFD_OKAY)
         {
             LOG_MESSAGE("AppView", "Success!");
             LOG_MESSAGE("AppView", out_path);
-            m_context->app->open_file(out_path);
+            m_context->app->save_file_as(out_path);
             NFD_FreePath(out_path);
         }
         else if (result == NFD_CANCEL)
@@ -1089,9 +1101,27 @@ void AppView::browse_file()
             LOG_ERROR("AppView", "%s\n", NFD_GetError());
         }
     }
+}
+
+void AppView::browse_file()
+{
+    nfdchar_t *out_path;
+    //nfdfilteritem_t filters[4] = {{"File", NULL }, {"Text", "txt" }, {"Source code", "c,cpp,cc" }, {"Headers", "h,hpp" } };
+    nfdresult_t result = NFD_OpenDialog(&out_path, nullptr, 0, NULL);
+    if (result == NFD_OKAY)
+    {
+        LOG_MESSAGE("AppView", "Success!");
+        LOG_MESSAGE("AppView", out_path);
+        m_context->app->open_file(out_path);
+        NFD_FreePath(out_path);
+    }
+    else if (result == NFD_CANCEL)
+    {
+        puts("User pressed cancel.");
+    }
     else
     {
-        m_file_browser.Open();
+        LOG_ERROR("AppView", "%s\n", NFD_GetError());
     }
 }
 
@@ -1183,18 +1213,18 @@ void AppView::handle_events()
                 auto l_ctrl_pressed = event.key.keysym.mod & KMOD_LCTRL;
                 if ( l_ctrl_pressed )
                 {
-                    // History
+
                     if (File* file = m_context->app->get_curr_file())
                     {
                         History* currentFileHistory = file->get_history();
-                        if (key == SDLK_z) currentFileHistory->undo();
+                             if (key == SDLK_z) currentFileHistory->undo();
                         else if (key == SDLK_y) currentFileHistory->redo();
+                        else if( key == SDLK_s) save_file();
+                        else if( key == SDLK_w) m_context->app->close_file();
                     }
 
-                    // File
-                    if( key == SDLK_s) m_context->app->save_file();
-                    else if( key == SDLK_w) m_context->app->close_file();
-                    else if( key == SDLK_o) browse_file();
+                         if( key == SDLK_o) browse_file();
+                    else if( key == SDLK_n) new_file();
                 }
                 else
                 {
@@ -1236,4 +1266,9 @@ void AppView::shutdown()
     SDL_Quit                 ();
 
     NFD_Quit();
+}
+
+void AppView::close_file()
+{
+    m_context->app->close_file();
 }

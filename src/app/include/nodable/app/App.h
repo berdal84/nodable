@@ -35,6 +35,7 @@ namespace Nodable
         bool            should_stop() const { return m_should_stop; }
 		bool            open_file(const fs_path& _filePath);
         std::string     get_absolute_asset_path(const char* _relative_path)const;
+		File*           new_file();
 		void            save_file()const;
 		void            close_file();
         void            close_file_at(size_t _fileIndex);
@@ -50,7 +51,9 @@ namespace Nodable
         void            vm_reset();
         bool            vm_compile_and_load_program();
 
-    private:
+		void save_file_as(const fs_path &_path);
+
+	private:
 	    AppView*        m_view;
         AppContext*     m_context;
 		bool            m_should_stop;
@@ -60,5 +63,5 @@ namespace Nodable
         fs_path            m_assets_folder_path;
 
         void            handle_events();
-    };
+	};
 }

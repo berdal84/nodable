@@ -64,23 +64,44 @@ void App::shutdown()
     if (m_view) m_view->shutdown();
 }
 
-bool App::open_file(const ghc::filesystem::path& _filePath)
-{		
-	auto file = File::open(m_context, _filePath.string(), _filePath.filename().string());
+bool App::open_file(const fs_path& _path)
+{
+    File* file = new File(_path.filename(), m_context, _path.string());
 
-	if (file)
-	{
-		m_loaded_files.push_back(file);
-        set_curr_file(m_loaded_files.size() - 1);
-	}
+    if ( !file->read_from_disk() )
+    {
+        LOG_ERROR("File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
+        delete file;
+        return false;
+    }
 
-	return file != nullptr;
+    m_loaded_files.push_back(file);
+    set_curr_file(m_loaded_files.size() - 1);
+
+	return true;
 }
 
 void App::save_file() const
 {
 	File* current_file = get_curr_file();
-	if (current_file) current_file->write_to_disk();
+	if (current_file)
+    {
+	    if( !current_file->write_to_disk() )
+        {
+            LOG_ERROR("App", "Unable to save %s (%s)\n", current_file->get_name(), current_file->get_path());
+        }
+    }
+}
+
+void App::save_file_as(const fs_path &_path)
+{
+    File* curr_file = get_curr_file();
+    curr_file->set_path(_path.c_str());
+    curr_file->set_name(_path.filename().c_str());
+    if( !curr_file->write_to_disk() )
+    {
+        LOG_ERROR("App", "Unable to save as %s (%s)\n", _path.filename().c_str(), _path.c_str());
+    }
 }
 
 void App::close_file()
@@ -377,5 +398,18 @@ void App::handle_events()
 void App::draw()
 {
     m_view->draw();
+}
+
+File *App::new_file()
+{
+    auto file = new File("Untitled", m_context);
+
+    if (file)
+    {
+        m_loaded_files.push_back(file);
+        set_curr_file(m_loaded_files.size() - 1);
+    }
+
+    return file;
 }
 
