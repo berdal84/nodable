@@ -89,14 +89,15 @@ Credits :
 
 - Dependencies
   - Code:
-    - SDL2 : https://www.libsdl.org/
-    - GLFW3 : http://www.glfw.org/
+    - *SDL2* : https://www.libsdl.org/
+    - *GLFW3* : http://www.glfw.org/
     - *Dear ImGui* developed by Omar Cornut: https://github.com/omarcornut/imgui
-    - IconFontCppHeaders by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
-    - ImGuiColorTextEdit by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
-    - LodePNG by Lode Vandevenne: https://github.com/lvandeve/lodepng
-    - Observe by Lars Melchior: https://github.com/TheLartians/Observe
-    - MPark.Variant by Michael Park: https://github.com/mpark/variant
-    - Where am I? by Gregory Pakosz: https://github.com/gpakosz/whereami.git
+    - *IconFontCppHeaders* by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
+    - *ImGuiColorTextEdit* by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
+    - *LodePNG* by Lode Vandevenne: https://github.com/lvandeve/lodepng
+    - *Observe* by Lars Melchior: https://github.com/TheLartians/Observe
+    - *MPark.Variant* by Michael Park: https://github.com/mpark/variant
+    - *Where am I?* by Gregory Pakosz: https://github.com/gpakosz/whereami.git
+    - *Native file dialog extended* by "Bernard Teo and other" + Michael Labbe's Native File Dialog: https://github.com/btzy/nativefiledialog-extended
   - Resources
-    - JetBrains Mono Font: https://www.jetbrains.com/lp/mono/
+    - *JetBrains Mono* Font: https://www.jetbrains.com/lp/mono/

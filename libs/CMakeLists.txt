@@ -2,8 +2,13 @@
 # Create a target per library to facilitate usage by nodable targets
 #-------------------------------------------------------------------
 
+# native file dialog - extended
+#------------------------------
+set(NFD_PORTAL ON)                          # use portal instead of gtk, read: https://github.com/btzy/nativefiledialog-extended#using-xdg-desktop-portal-on-linux
+add_subdirectory(nativefiledialog-extended) # target is nfd
+
 # filesystem (c++11 compatible)
-#------
+#------------------------------
 add_subdirectory(gulrak/filesystem)
 
 # Where am I

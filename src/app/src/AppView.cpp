@@ -17,6 +17,7 @@
 #include <nodable/app/History.h>
 #include <nodable/app/constants.h>
 #include <nodable/app/Event.h>
+#include <nativefiledialog-extended/src/include/nfd.h>
 
 using namespace Nodable;
 using namespace Nodable::assembly;
@@ -125,6 +126,14 @@ bool AppView::init()
     const char* glsl_version = NULL; // let backend decide wich version to use, usually 130 (pc) or 150 (macos).
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+    if ( m_context->settings->experimental_native_filebrowser)
+    {
+        if (NFD_Init() != NFD_OKAY)
+        {
+            LOG_ERROR("AppView", "Unable to init NFD\n");
+        }
+    }
+
 	return true;
 }
 
@@ -176,8 +185,11 @@ ImFont* AppView::load_font(const FontConf &_config)
 
 bool AppView::draw()
 {
-    App *app = m_context->app;
-    VM* vm   = m_context->vm;
+    bool isMainWindowOpen = true;
+    bool redock_all       = false;
+    App* app              = m_context->app;
+    VM*  vm               = m_context->vm;
+    Settings *settings    = m_context->settings;
 
     m_context->elapsed_time += ImGui::GetIO().DeltaTime;
 
@@ -222,15 +234,14 @@ bool AppView::draw()
 
 
         // Remove padding
-        bool isMainWindowOpen = true;
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0.0f, 0.0f));
+
         ImGui::Begin("Nodable", &isMainWindowOpen, window_flags);
         {
             ImGui::PopStyleVar();
 
             ImGui::PopStyleVar(2);
 
-            bool redock_all = false;
 
             if (ImGui::BeginMenuBar())
             {
@@ -395,13 +406,10 @@ bool AppView::draw()
 
                     if (ImGui::BeginMenu("Experimental"))
                     {
-                        ImGui::Checkbox(
-                                " Hybrid history" ICON_FA_EXCLAMATION,
-                                &m_context->settings->experimental_hybrid_history);
-
-                        ImGui::Checkbox(
-                                " Graph auto-completion" ICON_FA_EXCLAMATION,
-                                &m_context->settings->experimental_graph_autocompletion);
+                        ImGui::Checkbox( "Hybrid history"       , &settings->experimental_hybrid_history);
+                        ImGui::Checkbox( "Graph auto-completion", &settings->experimental_graph_autocompletion);
+                        ImGui::Checkbox( "Native file browser"  , &settings->experimental_native_filebrowser);
+                        
                         ImGui::EndMenu();
                     }
                     ImGui::EndMenu();
@@ -460,7 +468,7 @@ bool AppView::draw()
                 ImGui::DockBuilderRemoveNode(dockspace_main); // Clear out existing layout
                 ImGui::DockBuilderAddNode(dockspace_main, ImGuiDockNodeFlags_DockSpace);
                 ImGui::DockBuilderSetNodeSize(dockspace_main, ImGui::GetMainViewport()->Size);
-                ImGui::DockBuilderSplitNode(dockspace_main, ImGuiDir_Right, m_context->settings->ui_layout_propertiesRatio, &dockspace_side_panel, NULL);
+                ImGui::DockBuilderSplitNode(dockspace_main, ImGuiDir_Right, settings->ui_layout_propertiesRatio, &dockspace_side_panel, NULL);
 
                 ImGui::DockBuilderDockWindow(k_node_props_window_name, dockspace_side_panel);
                 ImGui::DockBuilderDockWindow(k_assembly_window_name, dockspace_side_panel);
@@ -1063,7 +1071,31 @@ void AppView::draw_history_bar(History *currentFileHistory)
 
 void AppView::browse_file()
 {
-	m_file_browser.Open();
+    if ( m_context->settings->experimental_native_filebrowser)
+    {
+        nfdchar_t *outPath;
+        nfdfilteritem_t filterItem[3] = { { "Text", "txt" }, { "Source code", "c,cpp,cc" }, { "Headers", "h,hpp" } };
+        nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 2, NULL);
+        if (result == NFD_OKAY)
+        {
+            LOG_MESSAGE("AppView", "Success!");
+            LOG_MESSAGE("AppView", outPath);
+            m_context->app->open_file(outPath);
+            NFD_FreePath(outPath);
+        }
+        else if (result == NFD_CANCEL)
+        {
+            puts("User pressed cancel.");
+        }
+        else
+        {
+            LOG_ERROR("AppView", "%s\n", NFD_GetError());
+        }
+    }
+    else
+    {
+        m_file_browser.Open();
+    }
 }
 
 void AppView::draw_tool_bar()
@@ -1205,4 +1237,9 @@ void AppView::shutdown()
     SDL_GL_DeleteContext     (m_sdl_gl_context);
     SDL_DestroyWindow        (m_sdl_window);
     SDL_Quit                 ();
+
+    if ( m_context->settings->experimental_native_filebrowser)
+    {
+        NFD_Quit();
+    }
 }

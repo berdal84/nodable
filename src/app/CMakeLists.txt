@@ -82,6 +82,7 @@ target_link_libraries(
         ImGui
         ImGuiColorTextEdit
         lodepng
+        nfd                     # native file dialog - extended
 )
 
 # link APPLE specific libraries

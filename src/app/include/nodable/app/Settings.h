@@ -58,11 +58,15 @@ namespace Nodable {
         const char* ui_splashscreen_imagePath;
         bool experimental_graph_autocompletion;
         bool experimental_hybrid_history;
+        bool experimental_native_filebrowser;
+
         void patch_imgui_style(ImGuiStyle&);
 
     private:
         static Settings* create_default();
 
         R(Settings)
+
+
     };
 }

@@ -111,6 +111,7 @@ Settings* Settings::create_default()
     // Misc.
     settings->experimental_graph_autocompletion = false;
     settings->experimental_hybrid_history       = false;
+    settings->experimental_native_filebrowser   = false;
 
     return settings;
 }
