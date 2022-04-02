@@ -15,7 +15,7 @@ using namespace Nodable;
 File::File( const std::string& _name, AppContext* _context)
         : m_name(_name)
         , m_context(_context)
-        , m_modified(false)
+        , m_modified(true)
         , m_graph(nullptr)
         , m_factory(_context->language, [_context](Node* _node) { _node->add_component(new NodeView(_context)); } )
         , m_history(&_context->settings->experimental_hybrid_history)
@@ -65,16 +65,16 @@ File::~File()
 
 bool File::write_to_disk()
 {
-    if( !m_path.empty() )
+    if( m_path.empty() )
     {
         return false;
     }
 
 	if ( m_modified )
 	{
-		std::ofstream fileStream(m_path.c_str());
-		std::string content = m_view->get_text();
-        fileStream.write(content.c_str(), content.size());
+		std::ofstream out_fstream(m_path.c_str());
+        std::string content = m_view->get_text();
+        out_fstream.write(content.c_str(), content.size());
         m_modified = false;
 	}
 
@@ -187,6 +187,7 @@ bool File::read_from_disk()
     LOG_VERBOSE("File", "Content read, creating File object ...\n")
     m_view->set_text(content);
 
+    m_modified = false;
     LOG_MESSAGE("File", "\"%s\" loaded (%s).\n", m_name.c_str(), m_path.c_str())
 
     return true;

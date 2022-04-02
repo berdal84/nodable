@@ -40,12 +40,12 @@ namespace Nodable
         bool init();
         void handle_events();
 		bool draw() override;
+        void shutdown();
+	private:
         void browse_file();
         void new_file();
         void save_file();
-        void shutdown();
-
-	private:
+        void save_file_as();
         void draw_history_bar(History*);
         void draw_status_bar() const;
         void draw_startup_window();

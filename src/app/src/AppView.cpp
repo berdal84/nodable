@@ -244,10 +244,14 @@ bool AppView::draw()
             {
                 if (ImGui::BeginMenu("File"))
                 {
-                    if (ImGui::MenuItem(ICON_FA_FILE        "  New", "Ctrl + N"))   new_file();
-                    if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open", "Ctrl + O"))  browse_file();
-                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save", "Ctrl + S"))  save_file();
-                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close", "Ctrl + W")) close_file();
+                    File* curr_file = app->get_curr_file();
+                    bool has_file = curr_file;
+                    bool changed = curr_file ? curr_file->has_changed() : false;
+                    if (ImGui::MenuItem(ICON_FA_FILE        "  New",     "Ctrl + N"))                  new_file();
+                    if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open",    "Ctrl + O"))                  browse_file();
+                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save",    "Ctrl + S", false, changed))  save_file();
+                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save as", "",         false, has_file)) save_file_as();
+                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close",   "Ctrl + W", false, has_file)) close_file();
 
                     FileView *fileView = nullptr;
                     bool auto_paste;
@@ -1078,28 +1082,32 @@ void AppView::save_file()
 
     if (curr_file->has_path())
     {
-        m_context->app->save_file();
+        return m_context->app->save_file();
+    }
+    save_file_as();
+}
+
+void AppView::save_file_as()
+{
+    File *curr_file = m_context->app->get_curr_file();
+
+    nfdchar_t *out_path;
+    //nfdfilteritem_t filters[4] = {{"File", NULL }, {"Text", "txt" }, {"Source code", "c,cpp,cc" }, {"Headers", "h,hpp" } };
+    nfdresult_t result = NFD_SaveDialog(&out_path, nullptr, 0, nullptr, nullptr);
+    if (result == NFD_OKAY)
+    {
+        LOG_MESSAGE("AppView", "Success!");
+        LOG_MESSAGE("AppView", out_path);
+        m_context->app->save_file_as(out_path);
+        NFD_FreePath(out_path);
+    }
+    else if (result == NFD_CANCEL)
+    {
+        puts("User pressed cancel.");
     }
     else
     {
-        nfdchar_t *out_path;
-        //nfdfilteritem_t filters[4] = {{"File", NULL }, {"Text", "txt" }, {"Source code", "c,cpp,cc" }, {"Headers", "h,hpp" } };
-        nfdresult_t result = NFD_SaveDialog(&out_path, nullptr, 0, nullptr, nullptr);
-        if (result == NFD_OKAY)
-        {
-            LOG_MESSAGE("AppView", "Success!");
-            LOG_MESSAGE("AppView", out_path);
-            m_context->app->save_file_as(out_path);
-            NFD_FreePath(out_path);
-        }
-        else if (result == NFD_CANCEL)
-        {
-            puts("User pressed cancel.");
-        }
-        else
-        {
-            LOG_ERROR("AppView", "%s\n", NFD_GetError());
-        }
+        LOG_ERROR("AppView", "%s\n", NFD_GetError());
     }
 }
 
