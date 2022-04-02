@@ -1070,15 +1070,15 @@ void AppView::browse_file()
 {
     if ( m_context->settings->experimental_native_filebrowser)
     {
-        nfdchar_t *outPath;
-        nfdfilteritem_t filterItem[4] = { { "Any", "*" }, { "Text", "txt" }, { "Source code", "c,cpp,cc" }, { "Headers", "h,hpp" } };
-        nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 2, NULL);
+        nfdchar_t *out_path;
+        //nfdfilteritem_t filters[4] = {{"File", NULL }, {"Text", "txt" }, {"Source code", "c,cpp,cc" }, {"Headers", "h,hpp" } };
+        nfdresult_t result = NFD_OpenDialog(&out_path, nullptr, 0, NULL);
         if (result == NFD_OKAY)
         {
             LOG_MESSAGE("AppView", "Success!");
-            LOG_MESSAGE("AppView", outPath);
-            m_context->app->open_file(outPath);
-            NFD_FreePath(outPath);
+            LOG_MESSAGE("AppView", out_path);
+            m_context->app->open_file(out_path);
+            NFD_FreePath(out_path);
         }
         else if (result == NFD_CANCEL)
         {
