@@ -39,11 +39,11 @@ namespace Nodable
         AppContext*                      get_context() { return m_context; }
         inline GraphNode*                get_graph() { return m_graph; }
         inline History*                  get_history() { return &m_history; }
-        const char*                      get_name()const { return m_name.c_str(); }
-        void                             set_name(const char* _name) { m_name = _name; }
+        const std::string&               get_name()const { return m_name; }
+        void                             set_name(const std::string& _name) { m_name = _name; }
         bool                             has_path()const { return !m_path.empty(); }
-        void                             set_path(const char *_path);
-        const char*                      get_path()const { return m_path.c_str(); }
+        void                             set_path(const std::string& _path);
+        const std::string&               get_path()const { return m_path; }
         inline FileView*                 get_view()const { return m_view; };
         inline void                      set_changed_flag(bool _value = true) { m_modified = _value; }
         inline bool                      has_changed() const { return m_modified; }

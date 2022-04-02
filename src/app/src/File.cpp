@@ -42,7 +42,7 @@ File::File( const std::string& _name, AppContext* _context)
             &m_context->settings->experimental_graph_autocompletion );
 
     char label[50];
-    snprintf(label, sizeof(label), "%s's graph", get_name());
+    snprintf(label, sizeof(label), "%s's graph", get_name().c_str());
     m_graph->set_label( label );
 
     m_graph->add_component(new GraphNodeView(m_context));
@@ -193,7 +193,7 @@ bool File::read_from_disk()
     return true;
 }
 
-void File::set_path(const char *_path)
+void File::set_path(const std::string& _path)
 {
     m_path = _path;
 }

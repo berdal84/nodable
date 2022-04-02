@@ -66,7 +66,7 @@ void App::shutdown()
 
 bool App::open_file(const fs_path& _path)
 {
-    File* file = new File(_path.filename(), m_context, _path.string());
+    File* file = new File(_path.filename().string(), m_context, _path.string());
 
     if ( !file->read_from_disk() )
     {
@@ -88,7 +88,7 @@ void App::save_file() const
     {
 	    if( !current_file->write_to_disk() )
         {
-            LOG_ERROR("App", "Unable to save %s (%s)\n", current_file->get_name(), current_file->get_path());
+            LOG_ERROR("App", "Unable to save %s (%s)\n", current_file->get_name().c_str(), current_file->get_path().c_str());
         }
     }
 }
@@ -96,8 +96,8 @@ void App::save_file() const
 void App::save_file_as(const fs_path &_path)
 {
     File* curr_file = get_curr_file();
-    curr_file->set_path(_path.c_str());
-    curr_file->set_name(_path.filename().c_str());
+    curr_file->set_path(_path.string());
+    curr_file->set_name(_path.filename().string());
     if( !curr_file->write_to_disk() )
     {
         LOG_ERROR("App", "Unable to save as %s (%s)\n", _path.filename().c_str(), _path.c_str());

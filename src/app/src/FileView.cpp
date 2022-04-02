@@ -216,8 +216,8 @@ void FileView::set_undo_buffer(TextEditor::IExternalUndoBuffer* _buffer ) {
 void FileView::draw_info() const
 {
     // Basic information
-    ImGui::Text("Name: %s", m_file->get_name());
-    ImGui::Text("Path: %s", m_file->get_path());
+    ImGui::Text("Name: %s", m_file->get_name().c_str());
+    ImGui::Text("Path: %s", m_file->get_path().c_str());
     ImGui::NewLine();
 
     // Statistics

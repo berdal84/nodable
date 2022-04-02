@@ -793,7 +793,7 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fil
     ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
 
     bool open = true;
-    bool visible = ImGui::Begin(file->get_name(), &open, window_flags);
+    bool visible = ImGui::Begin(file->get_name().c_str(), &open, window_flags);
     {
         ImGui::PopStyleColor(1);
         ImGui::PopStyleVar();
