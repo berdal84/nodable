@@ -126,12 +126,9 @@ bool AppView::init()
     const char* glsl_version = NULL; // let backend decide wich version to use, usually 130 (pc) or 150 (macos).
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    if ( m_context->settings->experimental_native_filebrowser)
+    if (NFD_Init() != NFD_OKAY)
     {
-        if (NFD_Init() != NFD_OKAY)
-        {
-            LOG_ERROR("AppView", "Unable to init NFD\n");
-        }
+        LOG_ERROR("AppView", "Unable to init NFD\n");
     }
 
 	return true;
@@ -1074,7 +1071,7 @@ void AppView::browse_file()
     if ( m_context->settings->experimental_native_filebrowser)
     {
         nfdchar_t *outPath;
-        nfdfilteritem_t filterItem[3] = { { "Text", "txt" }, { "Source code", "c,cpp,cc" }, { "Headers", "h,hpp" } };
+        nfdfilteritem_t filterItem[4] = { { "Any", "*" }, { "Text", "txt" }, { "Source code", "c,cpp,cc" }, { "Headers", "h,hpp" } };
         nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 2, NULL);
         if (result == NFD_OKAY)
         {
@@ -1238,8 +1235,5 @@ void AppView::shutdown()
     SDL_DestroyWindow        (m_sdl_window);
     SDL_Quit                 ();
 
-    if ( m_context->settings->experimental_native_filebrowser)
-    {
-        NFD_Quit();
-    }
+    NFD_Quit();
 }
