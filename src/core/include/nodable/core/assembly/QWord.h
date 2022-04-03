@@ -20,6 +20,7 @@ namespace assembly
             double    d;
             u8_t      u8;
             u64_t     u64;
+            i16_t     i16;
             void*     ptr;
             Register  r;
             char16_t  words[4];
@@ -32,13 +33,14 @@ namespace assembly
         explicit QWord(Register _value): QWord() { r = _value; }
         explicit QWord(u8_t     _value): QWord() { u8 = _value; }
         explicit QWord(u64_t    _value): QWord() { u64 = _value; }
+        explicit QWord(i16_t    _value): QWord() { i16 = _value; }
         explicit QWord(void*    _value): QWord() { ptr = _value; }
 
         explicit operator bool() const        { return b; }
-        explicit operator int() const         { return (int)d; }
         explicit operator double() const      { return d; }
         explicit operator u8_t() const        { return u8; }
         explicit operator u64_t() const       { return u64; }
+        explicit operator i16_t () const      { return i16; }
         explicit operator void*() const       { return ptr; }
         explicit operator std::string() const { NODABLE_ASSERT(ptr) return *(std::string*)ptr; }
 

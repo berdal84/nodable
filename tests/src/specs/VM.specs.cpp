@@ -203,3 +203,9 @@ TEST(VM, else_elseif_else ) {
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program3), "a == b");
 }
 
+TEST(VM, integers ) {
+    EXPECT_EQ(ParseAndEvalExpression<int>("int i = 1"), 1);
+    EXPECT_EQ(ParseAndEvalExpression<int>("int i = 3 + 5"), 8);
+    EXPECT_EQ(ParseAndEvalExpression<int>("int i = 1-2"), -1);
+}
+

@@ -24,6 +24,7 @@ namespace Nodable {
         TokenType_KeywordFor,
         TokenType_KeywordString,
         TokenType_KeywordDouble,
+        TokenType_KeywordInt,
         TokenType_KeywordBoolean,
         TokenType_KeywordOperator,
 

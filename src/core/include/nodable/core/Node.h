@@ -16,6 +16,7 @@
 #include <nodable/core/Component.h>
 #include <nodable/core/Properties.h>
 #include <nodable/core/Slots.h>
+#include "Edge.h"
 
 namespace Nodable {
 

@@ -36,12 +36,13 @@ LanguageNodable::LanguageNodable()
     semantic.insert(" ", TokenType_Ignore);
 
     // keywords
-    semantic.insert("if", TokenType_KeywordIf);                        // conditional structures
-    semantic.insert("else", TokenType_KeywordElse);
-    semantic.insert("for", TokenType_KeywordFor);
-    semantic.insert("bool", TokenType_KeywordBoolean, Type::Boolean); // types
-    semantic.insert("string", TokenType_KeywordString, Type::String);
-    semantic.insert("double", TokenType_KeywordDouble, Type::Double);
+    semantic.insert("if",     TokenType_KeywordIf);                      // conditional structures
+    semantic.insert("else",   TokenType_KeywordElse);
+    semantic.insert("for",    TokenType_KeywordFor);
+    semantic.insert("bool",   TokenType_KeywordBoolean, Type::Boolean); // types
+    semantic.insert("string", TokenType_KeywordString,  Type::String);
+    semantic.insert("double", TokenType_KeywordDouble,  Type::Double);
+    semantic.insert("int",    TokenType_KeywordInt,     Type::Int16);
 
     // punctuation
     semantic.insert("{", TokenType_BeginScope);
@@ -56,6 +57,7 @@ LanguageNodable::LanguageNodable()
     semantic.insert(std::regex("^(true|false)"), TokenType_Literal, Type::Boolean);
     semantic.insert(std::regex(R"(^("[^"]*"))"), TokenType_Literal, Type::String);
     semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Literal, Type::Double);
+    semantic.insert(std::regex("^(0|([1-9][0-9]*))"), TokenType_Literal, Type::Int16);
 
     // identifier
     semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType_Identifier);
@@ -77,9 +79,12 @@ LanguageNodable::LanguageNodable()
     WRAP_POLYFUNC(api_return, string(string))
     WRAP_FUNCTION(api_sin)
     WRAP_FUNCTION(api_cos)
-    WRAP_FUNCTION(api_add)
-    WRAP_FUNCTION(api_minus)
-    WRAP_FUNCTION(api_multiply)
+    WRAP_POLYFUNC(api_add,      i16_t(i16_t, i16_t))
+    WRAP_POLYFUNC(api_minus,    i16_t(i16_t, i16_t))
+    WRAP_POLYFUNC(api_multiply, i16_t(i16_t, i16_t))
+    WRAP_POLYFUNC(api_add,      double(double, double))
+    WRAP_POLYFUNC(api_minus,    double(double, double))
+    WRAP_POLYFUNC(api_multiply, double(double, double))
     WRAP_FUNCTION(api_sqrt)
     WRAP_FUNCTION(api_not)
     WRAP_FUNCTION(api_or)
@@ -87,41 +92,63 @@ LanguageNodable::LanguageNodable()
     WRAP_FUNCTION(api_xor)
     WRAP_FUNCTION(api_to_bool)
     WRAP_FUNCTION(api_mod)
-    WRAP_FUNCTION(api_pow)
+    WRAP_POLYFUNC(api_pow, i16_t(i16_t, i16_t))
+    WRAP_POLYFUNC(api_pow, double(double, double))
     WRAP_FUNCTION(api_secondDegreePolynomial)
 	WRAP_FUNCTION(api_DNAtoProtein)
 
     WRAP_POLYFUNC(api_to_string, string(bool))
     WRAP_POLYFUNC(api_to_string, string(double))
+    WRAP_POLYFUNC(api_to_string, string(i16_t))
     WRAP_POLYFUNC(api_to_string, string(string))
+
     WRAP_POLYFUNC(api_print,     string(bool))
     WRAP_POLYFUNC(api_print,     string(double))
+    WRAP_POLYFUNC(api_print,     string(i16_t))
     WRAP_POLYFUNC(api_print,     string(string))
 
-	WRAP_OPERATOR(api_add        , "+" , 10, ICON_FA_PLUS " Add")
+    WRAP_POLYOPER(api_add        , "+" , 10, ICON_FA_PLUS " Add", double(double, double))
+    WRAP_POLYOPER(api_add        , "+" , 10, ICON_FA_PLUS " Add", i16_t(i16_t, i16_t))
+
     WRAP_POLYOPER(api_concat     , "+" , 10, "Concat.", string(string, string))
     WRAP_POLYOPER(api_concat     , "+" , 10, "Concat.", string(string, double))
+    WRAP_POLYOPER(api_concat     , "+" , 10, "Concat.", string(string, i16_t))
     WRAP_POLYOPER(api_concat     , "+" , 10, "Concat.", string(string, bool))
+
     WRAP_OPERATOR(api_or         , "||", 10, "Logical Or")
     WRAP_OPERATOR(api_and        , "&&", 10, "Logical And")
-    WRAP_OPERATOR(api_invert_sign, "-" , 10, ICON_FA_MINUS " Invert Sign")
-    WRAP_OPERATOR(api_minus      , "-" , 10, ICON_FA_MINUS " Subtract")
-    WRAP_OPERATOR(api_divide     , "/" , 20, ICON_FA_DIVIDE " Divide")
-    WRAP_OPERATOR(api_multiply   , "*" , 20, ICON_FA_TIMES " Multiply")
+
+    WRAP_POLYOPER(api_invert_sign, "-" , 10, ICON_FA_MINUS " Invert Sign", double(double))
+    WRAP_POLYOPER(api_minus      , "-" , 10, ICON_FA_MINUS " Subtract",    double(double, double))
+    WRAP_POLYOPER(api_divide     , "/" , 20, ICON_FA_DIVIDE " Divide",     double(double, double))
+    WRAP_POLYOPER(api_multiply   , "*" , 20, ICON_FA_TIMES " Multiply",    double(double, double))
+    WRAP_POLYOPER(api_minus      , "-" , 5 , ICON_FA_MINUS " Minus",       double(double, double))
+    WRAP_POLYOPER(api_greater_or_eq, ">=", 10, ">= Greater or equal",      bool(double, double))
+    WRAP_POLYOPER(api_lower_or_eq, "<=", 10, "<= Less or equal",           bool(double, double))
+
+    WRAP_POLYOPER(api_invert_sign, "-" , 10, ICON_FA_MINUS " Invert Sign", i16_t(i16_t))
+    WRAP_POLYOPER(api_minus      , "-" , 10, ICON_FA_MINUS " Subtract",    i16_t(i16_t, i16_t))
+    WRAP_POLYOPER(api_divide     , "/" , 20, ICON_FA_DIVIDE " Divide",     i16_t(i16_t, i16_t))
+    WRAP_POLYOPER(api_multiply   , "*" , 20, ICON_FA_TIMES " Multiply",    i16_t(i16_t, i16_t))
+    WRAP_POLYOPER(api_minus      , "-" , 5 , ICON_FA_MINUS " Minus",       i16_t(i16_t, i16_t))
+    WRAP_POLYOPER(api_greater_or_eq, ">=", 10, ">= Greater or equal",      bool(i16_t, i16_t))
+    WRAP_POLYOPER(api_lower_or_eq, "<=", 10, "<= Less or equal",           bool(i16_t, i16_t))
     WRAP_OPERATOR(api_not        , "!" , 5 , "! not")
-    WRAP_OPERATOR(api_minus      , "-" , 5 , ICON_FA_MINUS " Minus")
     WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", string(string&, string) )
     WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", bool(bool&, bool) )
     WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", double(double&, double) )
+    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", i16_t(i16_t&, i16_t) )
     WRAP_OPERATOR(api_implies    , "=>", 10, "=> Implies")
-    WRAP_OPERATOR(api_greater_or_eq, ">=", 10, ">= Greater or equal")
-    WRAP_OPERATOR(api_lower_or_eq, "<=", 10, "<= Less or equal")
+    WRAP_POLYOPER(api_equals  , "==", 10, "== Equals" , bool(i16_t, i16_t) )
     WRAP_POLYOPER(api_equals  , "==", 10, "== Equals" , bool(double, double) )
     WRAP_POLYOPER(api_equals  , "==", 10, "== Equals" , bool(string, string) )
     WRAP_POLYOPER(api_equals  , "<=>", 10, "<=> Equivalent" , bool(bool, bool) )
     WRAP_POLYOPER(api_not_equals  , "!=", 10, "!= Not equal" , bool(bool, bool) )
+    WRAP_POLYOPER(api_not_equals  , "!=", 10, "!= Not equal" , bool(i16_t, i16_t) )
     WRAP_POLYOPER(api_not_equals  , "!=", 10, "!= Not equal" , bool(double, double) )
     WRAP_POLYOPER(api_not_equals  , "!=", 10, "!= Not equal" , bool(string, string) )
-    WRAP_OPERATOR(api_greater ,">" , 10, "> Greater")
-    WRAP_OPERATOR(api_lower   , "<", 10, "< Less")
+    WRAP_POLYOPER(api_greater ,">" , 10, "> Greater", bool(double, double))
+    WRAP_POLYOPER(api_greater ,">" , 10, "> Greater", bool(i16_t, i16_t))
+    WRAP_POLYOPER(api_lower   , "<", 10, "< Less", bool(double, double))
+    WRAP_POLYOPER(api_lower   , "<", 10, "< Less", bool(i16_t, i16_t))
 }

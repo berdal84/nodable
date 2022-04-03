@@ -14,6 +14,7 @@ namespace Nodable
             Void,
             Boolean,
             Double,
+            Int16,
             String,
             Class,
             COUNT
@@ -24,6 +25,7 @@ namespace Nodable
                 R_ENUM_VALUE(Null)
                 R_ENUM_VALUE(Void)
                 R_ENUM_VALUE(Boolean)
+                R_ENUM_VALUE(Int16)
                 R_ENUM_VALUE(Double)
                 R_ENUM_VALUE(String)
                 R_ENUM_VALUE(Class)

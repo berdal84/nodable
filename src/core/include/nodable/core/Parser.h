@@ -32,7 +32,8 @@ namespace Nodable{
 	    There is no AST (Abstract Syntax Tree) since Nodable keep graph (Nodes) linked to text (tokens) all the time.
 	*/
 
-	class Parser
+	class
+    Parser
 	{
 	public:
    		explicit Parser(const Language* _lang, bool _strict = false )
@@ -58,6 +59,7 @@ namespace Nodable{
         bool                   parse_bool( const std::string& );
         std::string            parse_string( const std::string& );
         double                 parse_double( const std::string& );
+        double                 parse_int16( const std::string& );
 
         /**
 		 * Convert a Token to a Member.

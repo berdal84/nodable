@@ -12,4 +12,4 @@ if ( a > b ) {
 } else {
     msg = "a == b";
 }
-print(msg);
+return(msg);

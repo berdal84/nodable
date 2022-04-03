@@ -7,4 +7,4 @@ for(double i = 1; i <= count; i = i+1)
 {
     sum = sum + i;
 }
-bool check = sum == 15;
+return(sum == 15);

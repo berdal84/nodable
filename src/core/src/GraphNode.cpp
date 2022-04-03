@@ -263,7 +263,7 @@ void GraphNode::destroy(Node* _node)
     delete _node;
 }
 
-bool GraphNode::is_empty()
+bool GraphNode::is_empty() const
 {
     return !m_root;
 }

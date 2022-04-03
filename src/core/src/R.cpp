@@ -205,6 +205,7 @@ void Nodable::R::init()
     Register::push<std::string>();
     Register::push<bool>();
     Register::push<void>();
+    Register::push<i16_t>();
 
     log_statistics();
 

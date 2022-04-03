@@ -36,6 +36,11 @@ Instruction* Code::push_instr(opcode _type)
 
 bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
 {
+    if( _graph->is_empty())
+    {
+        return false;
+    }
+
     const NodeVec& nodes = _graph->get_node_registry();
     for( auto each_node : nodes )
     {
@@ -310,6 +315,7 @@ std::unique_ptr<const Code> assembly::Compiler::compile_syntax_tree(const GraphN
     if (is_syntax_tree_valid(_graph))
     {
         Node* root = _graph->get_root();
+
         m_temp_code = std::make_unique<Code>(root);
 
         try

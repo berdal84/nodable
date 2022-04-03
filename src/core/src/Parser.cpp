@@ -147,6 +147,11 @@ double Parser::parse_double(const std::string &_str)
     return stod(_str);
 }
 
+double Parser::parse_int16(const std::string &_str)
+{
+    return stoi(_str);
+}
+
 Member* Parser::token_to_member(std::shared_ptr<Token> _token)
 {
 	Member* result;
@@ -161,8 +166,9 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
 
             switch (type->get_type() )
             {
-                case R::Type::String: literal->set_value(parse_string(_token->m_word) ); break;
-                case R::Type::Double: literal->set_value(parse_double(_token->m_word) ); break;
+                case R::Type::String:  literal->set_value(parse_string(_token->m_word) ); break;
+                case R::Type::Int16:   literal->set_value(parse_int16(_token->m_word) ); break;
+                case R::Type::Double:  literal->set_value(parse_double(_token->m_word) ); break;
                 case R::Type::Boolean: literal->set_value(parse_bool(_token->m_word)  ); break;
                 default: {}
             }

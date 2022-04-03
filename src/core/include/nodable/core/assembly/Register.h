@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nodable/core/types.h>
+#include <nodable/core/reflection/R.h>
 
 namespace Nodable
 {

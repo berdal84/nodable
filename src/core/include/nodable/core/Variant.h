@@ -68,10 +68,12 @@ namespace Nodable
         template<typename T> operator T*()             { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<T*>(m_data.ptr); }
 
 		operator double*()        { NODABLE_ASSERT(m_is_initialized) return &m_data.d; }
+		operator i16_t *()        { NODABLE_ASSERT(m_is_initialized) return &m_data.i16; }
         operator bool*()          { NODABLE_ASSERT(m_is_initialized) return &m_data.b; }
         operator std::string* ()  { NODABLE_ASSERT(m_is_initialized) return (std::string*)m_data.ptr; }
         operator void* ()         { NODABLE_ASSERT(m_is_initialized) return m_data.ptr; }
         operator double&()        { NODABLE_ASSERT(m_is_initialized) return m_data.d; }
+        operator i16_t &()        { NODABLE_ASSERT(m_is_initialized) return m_data.i16; }
         operator bool&()          { NODABLE_ASSERT(m_is_initialized) return m_data.b; }
         operator std::string& ()  { NODABLE_ASSERT(m_is_initialized) return *(std::string*)m_data.ptr; }
 

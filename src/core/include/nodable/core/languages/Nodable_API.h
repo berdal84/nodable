@@ -20,154 +20,39 @@ using namespace Nodable::R;
 
 // FUNCTIONS
 
-template<typename T>
-T api_return(T value)
-{
-    return value;
-}
-
-double api_sin(double n)
-{
-    return sin(n);
-}
-
-double api_cos(double n)
-{
-    return cos(n);
-}
-
-double api_add(double a, double b)
-{
-    return a + b;
-}
-
-double api_minus(double a, double b)
-{
-    return a - b;
-}
-
-double api_invert_sign(double a)
-{
-    return -a;
-}
-
-double api_multiply(double a, double b)
-{
-    return a * b;
-}
-
-double api_divide(double a, double b)
-{
-    if ( b == 0.0 ) throw std::runtime_error("division by zero !");
-    return a / b;
-}
-
-double api_sqrt(double n)
-{
-    return sqrt(n);
-}
-
-bool api_not(bool b)
-{
-    return !b;
-}
-
-template<typename T>
-T api_assign(T& a, T b)
-{
-    return a = b;
-}
-
-bool api_implies(bool a, bool b)
-{
-    return !a || b;
-}
-
-
-bool api_and(bool a, bool b)
-{
-    return a && b;
-}
-
-bool api_or(bool a, bool b)
-{
-    return a || b;
-}
-
-bool api_xor(bool a, bool b)
-{
-    return a ^ b;
-}
-
-bool api_to_bool(double n)
-{
-    return n == 0.0;
-}
-
-template<typename T>
-std::string api_concat(std::string left, T right)
-{
-    return  left + Nodable::Format::fmt_no_trail(right);
-}
-
-template<>
-std::string api_concat(std::string left, std::string right)
-{
-    return  left + right;
-}
-
-
-double api_mod(double a, double b)
-{
-    return fmod(a, b);
-}
-
-double api_pow(double a, double b)
-{
-    return pow(a, b);
-}
-
-double api_secondDegreePolynomial(double a, double x, double b, double y, double c)
-{
-    return a * x * x + b * y + c;
-}
-
-bool api_greater_or_eq(double a, double b)
-{
-    return a >= b;
-}
-
-bool api_lower_or_eq(double a, double b)
-{
-    return a <= b;
-}
-
-
-template<typename T>
-bool api_equals(T a, T b)
-{
-    return a == b;
-}
-
-template<typename T>
-bool api_not_equals(T a, T b)
-{
-    return a != b;
-}
-
-bool api_greater(double a, double b)
-{
-    return a > b;
-}
-
-bool api_lower(double a, double b)
-{
-    return a < b;
-}
-
-std::string api_to_string(double n) { return Format::fmt_no_trail(n); }
+// boolean operations
+bool api_and(bool a, bool b) { return a && b; }
+template<typename T, typename U> bool api_greater(T a, U b) { return a > b; }
+template<typename T, typename U> bool api_greater_or_eq(T a, U b) { return a >= b; }
+bool api_implies(bool a, bool b) { return !a || b; }
+template<typename T, typename U> bool api_lower(T a, U b) { return a < b; }
+template<typename T, typename U> bool api_lower_or_eq(T a, U b) { return a <= b; }
+bool api_not(bool b) { return !b; }
+bool api_or(bool a, bool b) { return a || b; }
+bool api_to_bool(double n) { return n == 0.0; }
+bool api_xor(bool a, bool b){ return a ^ b; }
+template<typename T, typename U>  T api_add(T a, U b){ return a + b; }
+double api_cos(double n) { return cos(n); }
+template<typename T, typename U>  T api_divide(T a, U b) { if ( b == 0 ) throw std::runtime_error("division by zero !"); return a / b;}
+double api_invert_sign(double a) { return -a; }
+template<typename T> T api_invert_sign(T a) { return -a; }
+template<typename T, typename U>  T  api_minus(T a, U b){ return a - b; }
+template<typename T, typename U>  T  api_multiply(T a, U b) { return a * b; }
+double api_sin(double n) { return sin(n); }
+double api_mod(double a, double b) { return fmod(a, b); }
+template<typename T>  T api_pow(T a, T b) { return pow(a, b); }
+double api_secondDegreePolynomial(double a, double x, double b, double y, double c) { return a * x * x + b * y + c;}
+double api_sqrt(double n) { return sqrt(n); }
+std::string api_to_string(i16_t i) { return std::to_string(i); }
 std::string api_to_string(bool b) { return b ? "true" : "false"; }
+std::string api_to_string(double n) { return Format::fmt_no_trail(n); }
 std::string api_to_string(std::string s) { return s; }
+template<typename T> T api_return(T value) { return value; }
+template<typename T> T api_assign(T& a, T b) { return a = b; }
+template<typename T> bool api_equals(T a, T b) { return a == b; }
+template<typename T> bool api_not_equals(T a, T b) { return a != b; }
+template<typename T> std::string api_concat(std::string left, T right) { return  left + Nodable::Format::fmt_no_trail(right); }
+template<> std::string api_concat(std::string left, std::string right) { return  left + right; }
 
 template<typename T>
 std::string api_print(T _value)

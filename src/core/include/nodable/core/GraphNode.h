@@ -20,6 +20,7 @@ namespace Nodable
 	class GraphNode: public Node
 	{
 	public:
+        using RelationRegistry_t = std::multimap<EdgeType, const DirectedEdge>;
 
 		explicit GraphNode(const Language*, const INodeFactory*, const bool* _autocompletion);
 		~GraphNode();
@@ -30,8 +31,8 @@ namespace Nodable
         const std::vector<Wire*>&   get_wire_registry()const {return m_wire_registry;}
         const Language*             get_language()const { return m_language; }
         Node*                       get_root()const { return m_root; }
-        RelationRegistry&           get_relation_registry() {return m_relation_registry;}
-        bool                        is_empty();
+        RelationRegistry_t&           get_relation_registry() {return m_relation_registry;}
+        bool                        is_empty() const;
         void                        ensure_has_root();
         Node*                       create_root();
         InstructionNode*            create_instr();
@@ -68,7 +69,7 @@ namespace Nodable
 	private:		
 		std::vector<Node*> m_node_registry;
 		std::vector<Wire*> m_wire_registry;
-		RelationRegistry   m_relation_registry;
+		RelationRegistry_t m_relation_registry;
 		const Language*    m_language;
 		Node*              m_root;
 		const INodeFactory* m_factory;
