@@ -1,5 +1,0 @@
-
-// Simple expression
-// click on the line below to see the graph:
-
-double a = 2 + 5;

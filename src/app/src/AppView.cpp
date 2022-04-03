@@ -431,7 +431,7 @@ bool AppView::draw()
 
                 if (ImGui::BeginMenu("Help"))
                 {
-                    if (ImGui::MenuItem("Show Startup Screen", "F1"))
+                    if (ImGui::MenuItem("Show Splash Screen", "F1"))
                     {
                         m_show_splashscreen = true;
                     }
@@ -712,7 +712,7 @@ void AppView::draw_startup_menu(ImGuiID dockspace_id)
     {
         ImGui::PopStyleColor();
 
-        ImVec2 center_area(500.0f, 500.0f);
+        ImVec2 center_area(500.0f, 250.0f);
         ImVec2 avail = ImGui::GetContentRegionAvail();
 
         ImGui::SetCursorPosX( (avail.x - center_area.x) / 2);
@@ -720,68 +720,48 @@ void AppView::draw_startup_menu(ImGuiID dockspace_id)
 
         ImGui::BeginChild("center_area", center_area);
         {
-            ImGui::NewLine();
-            ImGui::NewLine();
-            auto path = m_context->app->get_absolute_asset_path(m_context->settings->ui_splashscreen_imagePath);
-            Texture* logo = m_context->texture_manager->get_or_create(path);
-            ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
-            ImGui::Image((void*)(intptr_t)logo->image, vec2((float)logo->width, (float)logo->height));
-            ImGui::NewLine();
-
-            ImGui::Indent();
-            ImGui::PushFont(m_fonts.at(FontSlot_Heading));
-            ImGui::Text("Welcome to Nodable!");
-            ImGui::PopFont();
-
-            ImGui::PushFont(m_fonts.at(FontSlot_Paragraph));
-            ImGui::NewLine();
-            ImGui::TextWrapped("What do you want to do?");
-            ImGui::PopFont();
-            ImGui::NewLine();
-
-            ImGui::Separator();
+            ImGui::Indent(center_area.x * 0.05f);
 
             ImGui::PushFont(m_fonts.at(FontSlot_ToolBtn));
             ImGui::NewLine();
 
-            if( ImGui::Button(ICON_FA_FILE" Start with a new file") )
-            {
-                new_file();
-            }
+            vec2 btn_size(center_area.x * 0.44f, 40.0f);
+            if( ImGui::Button(ICON_FA_FILE" New File", btn_size) )        new_file();
+            ImGui::SameLine();
+            if( ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size) ) browse_file();
 
-            if( ImGui::Button(ICON_FA_FOLDER_OPEN" Open an existing file") )
-            {
-                browse_file();
-            }
+            ImGui::NewLine();
+            ImGui::Separator();
+            ImGui::NewLine();
 
+            ImGui::Text("%s", "Open an example");
             std::vector<std::pair<std::string, std::string>> examples;
-            examples.emplace_back("Example 01", "examples/example-01.txt");
-            examples.emplace_back("Example 02", "examples/example-02.txt");
-            examples.emplace_back("Example 03", "examples/example-03.txt");
+            examples.emplace_back("Single expressions    "          , "examples/arithmetic.txt");
+            examples.emplace_back("Multi instructions    "          , "examples/multi-instructions.txt");
+            examples.emplace_back("Conditional Structures"          , "examples/if-else.txt");
+            examples.emplace_back("For Loop              "          , "examples/for-loop.txt");
+
+            int i = 0;
+            vec2 small_btn_size(btn_size.x, btn_size.y * 0.66f);
 
             for( auto [text, path] : examples)
             {
                 std::string label;
-                label.append(ICON_FA_FOLDER_OPEN" Open ");
+                label.append(ICON_FA_BOOK" ");
                 label.append(text);
-                if (ImGui::Button(label.c_str()))
+                if( i++ % 2) ImGui::SameLine();
+                if (ImGui::Button(label.c_str(), small_btn_size))
                 {
                     std::string each_path = m_context->app->get_absolute_asset_path(path.c_str());
                     m_context->app->open_file(each_path);
                 }
             }
 
-            if( ImGui::Button(ICON_FA_GLOBE " Check latest release") )
-            {
-                System::open_url_async("https://github.com/berdal84/Nodable/releases/latest");
-            }
-
-            if( ImGui::Button(ICON_FA_GLOBE" Browse source code") )
-            {
-                System::open_url_async("https://github.com/berdal84/Nodable");
-            }
-
             ImGui::PopFont();
+
+            ImGui::NewLine();
+            ImGui::Separator();
+            ImGui::TextColored( vec4(0,0,0, 0.30f), "Nodable %s", BuildInfo::version);
             ImGui::Unindent();
         }
         ImGui::EndChild();
@@ -931,9 +911,7 @@ void AppView::draw_splashcreen()
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(50.0f, 30.0f) );
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
-        ImGui::TextWrapped("The goal of Nodable is to allow you to edit a computer program in a textual and nodal way"
-                           "at the same time."
-                           "\nThis software is a prototype, do not expect too much from it. Use at your own risk." );
+        ImGui::TextWrapped("DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk." );
 
         ImGui::NewLine();ImGui::NewLine();
 
