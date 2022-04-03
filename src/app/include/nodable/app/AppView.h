@@ -43,18 +43,19 @@ namespace Nodable
         void shutdown();
 	private:
         void browse_file();
+        void close_file();
         void new_file();
         void save_file();
         void save_file_as();
-        void draw_history_bar(History*);
-        void draw_status_bar() const;
-        void draw_startup_window();
-        void draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex);
         void draw_file_browser();
+        void draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex);
+        void draw_history_bar(History*);
         void draw_properties_editor();
+        void draw_startup_menu(ImGuiID dockspace_id);
+        void draw_splashcreen();
+        void draw_status_bar() const;
         void draw_tool_bar();
         void draw_vm_view();
-        void draw_startup_menu(ImGuiID dockspace_id);
 
         ImFont* load_font(const FontConf &_config);
         ImFont* get_font_by_id(const char *id);
@@ -67,8 +68,8 @@ namespace Nodable
         ImColor            m_background_color;
         bool               m_is_history_dragged;
         bool               m_is_layout_initialized;
-        const char*        m_startup_screen_title;
-        bool               m_show_startup_window;
+        const char*        m_splashscreen_title;
+        bool               m_show_splashscreen;
         bool               m_show_properties_editor;
         bool               m_show_imgui_demo;
         bool               m_show_advanced_node_properties;
@@ -79,7 +80,5 @@ namespace Nodable
         R_DERIVED(AppView)
         R_EXTENDS(View)
         R_END
-
-        void close_file();
     };
 }

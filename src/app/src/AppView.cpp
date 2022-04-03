@@ -27,9 +27,9 @@ AppView::AppView(AppContext* _ctx, const char* _name )
     : View(_ctx)
     , m_context(_ctx)
     , m_background_color()
-    , m_show_startup_window(true)
+    , m_show_splashscreen(true)
     , m_is_layout_initialized(false)
-    , m_startup_screen_title("##STARTUPSCREEN")
+    , m_splashscreen_title("##STARTUPSCREEN")
     , m_is_history_dragged(false)
     , m_sdl_window_name(_name)
     , m_show_properties_editor(false)
@@ -196,7 +196,7 @@ bool AppView::draw()
     ImGui::SetCurrentFont( m_fonts[FontSlot_Paragraph] );
 
     // Startup Window
-    draw_startup_window();
+    draw_splashcreen();
 
     // Demo Window
     {
@@ -433,7 +433,7 @@ bool AppView::draw()
                 {
                     if (ImGui::MenuItem("Show Startup Screen", "F1"))
                     {
-                        m_show_startup_window = true;
+                        m_show_splashscreen = true;
                     }
 
                     if (ImGui::MenuItem("Browse source code"))
@@ -908,11 +908,11 @@ void AppView::draw_properties_editor()
     ImGui::Unindent();
 }
 
-void AppView::draw_startup_window()
+void AppView::draw_splashcreen()
 {
-    if (m_show_startup_window && !ImGui::IsPopupOpen(m_startup_screen_title))
+    if (m_show_splashscreen && !ImGui::IsPopupOpen(m_splashscreen_title))
     {
-        ImGui::OpenPopup(m_startup_screen_title);
+        ImGui::OpenPopup(m_splashscreen_title);
     }
 
     ImGui::SetNextWindowSizeConstraints(vec2(500,200), vec2(500,50000));
@@ -920,7 +920,7 @@ void AppView::draw_startup_window()
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
-    if ( ImGui::BeginPopupModal(m_startup_screen_title, nullptr, flags) )
+    if ( ImGui::BeginPopupModal(m_splashscreen_title, nullptr, flags) )
     {
 
         auto path = m_context->app->get_absolute_asset_path(m_context->settings->ui_splashscreen_imagePath);
@@ -928,50 +928,23 @@ void AppView::draw_startup_window()
         ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - logo->width) * 0.5f); // center img
         ImGui::Image((void*)(intptr_t)logo->image, vec2((float)logo->width, (float)logo->height));
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(25.0f, 20.0f) );
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(50.0f, 30.0f) );
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
-        {
-            ImGui::PushFont(m_fonts[FontSlot_Heading] );
-            ImGui::NewLine();
-            ImGui::Text("Nodable is node-able");
-            ImGui::PopFont();
-            ImGui::NewLine();
-        }
-
-
-        ImGui::TextWrapped("The goal of Nodable is to allow you to edit a computer program in a textual and nodal way at the same time." );
-
-        {
-            ImGui::PushFont(m_fonts[FontSlot_Heading] );
-            ImGui::NewLine();
-            ImGui::Text("Manifest");
-            ImGui::PopFont();
-            ImGui::NewLine();
-        }
-
-        ImGui::TextWrapped( "The nodal and textual points of view each have pros and cons. The user should not be forced to choose one of the two." );
-
-        {
-            ImGui::PushFont(m_fonts[FontSlot_Heading] );
-            ImGui::NewLine();
-            ImGui::Text("Disclaimer");
-            ImGui::PopFont();
-            ImGui::NewLine();
-        }
-
-        ImGui::TextWrapped( "Nodable is a prototype, do not expect too much from it. Use at your own risk." );
+        ImGui::TextWrapped("The goal of Nodable is to allow you to edit a computer program in a textual and nodal way"
+                           "at the same time."
+                           "\nThis software is a prototype, do not expect too much from it. Use at your own risk." );
 
         ImGui::NewLine();ImGui::NewLine();
 
-        const char* credit = "berenger@dalle-cort.fr";
+        const char* credit = "by Berdal84";
         ImGui::SameLine( ImGui::GetContentRegionAvailWidth() - ImGui::CalcTextSize(credit).x);
         ImGui::TextWrapped( "%s", credit );
         ImGui::TextWrapped( "%s", BuildInfo::version );
         if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
         {
             ImGui::CloseCurrentPopup();
-            m_show_startup_window = false;
+            m_show_splashscreen = false;
         }
         ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
         ImGui::EndPopup();
@@ -1250,7 +1223,7 @@ void AppView::handle_events()
                     switch( key )
                     {
                         case SDLK_F1:
-                            m_show_startup_window = true;
+                            m_show_splashscreen = true;
                             break;
                         default:
                             break;
