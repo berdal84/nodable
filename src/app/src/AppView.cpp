@@ -754,10 +754,21 @@ void AppView::draw_startup_menu(ImGuiID dockspace_id)
                 browse_file();
             }
 
-            if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open example01.txt"))
+            std::vector<std::pair<std::string, std::string>> examples;
+            examples.emplace_back("Example 01", "examples/example-01.txt");
+            examples.emplace_back("Example 02", "examples/example-02.txt");
+            examples.emplace_back("Example 03", "examples/example-03.txt");
+
+            for( auto [text, path] : examples)
             {
-                std::string path = m_context->app->get_absolute_asset_path("txt/example01.txt");
-                m_context->app->open_file(path);
+                std::string label;
+                label.append(ICON_FA_FOLDER_OPEN" Open ");
+                label.append(text);
+                if (ImGui::Button(label.c_str()))
+                {
+                    std::string each_path = m_context->app->get_absolute_asset_path(path.c_str());
+                    m_context->app->open_file(each_path);
+                }
             }
 
             if( ImGui::Button(ICON_FA_GLOBE " Check latest release") )
