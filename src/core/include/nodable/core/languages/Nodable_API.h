@@ -20,9 +20,10 @@ using namespace Nodable::R;
 
 // FUNCTIONS
 
-double api_returnNumber(double n)
+template<typename T>
+T api_return(T value)
 {
-    return n;
+    return value;
 }
 
 double api_sin(double n)

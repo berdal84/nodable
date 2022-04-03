@@ -65,7 +65,7 @@ TEST(Parser, unexisting_function)
 
 TEST(Parser, function_call)
 {
-    EXPECT_EQ(ParseAndEvalExpression<int>("returnNumber(5)"), 5);
+    EXPECT_EQ(ParseAndEvalExpression<int>("return(5)"), 5);
     EXPECT_EQ(ParseAndEvalExpression<int>("sqrt(81)"), 9);
     EXPECT_EQ(ParseAndEvalExpression<int>("pow(2,2)"), 4);
 }
@@ -81,9 +81,9 @@ TEST(Parser, functionlike_operator_call)
 
 TEST(Parser, imbricated_functions)
 {
-    EXPECT_EQ(ParseAndEvalExpression<int>("returnNumber(5+3)"), 8);
-    EXPECT_EQ(ParseAndEvalExpression<int>("returnNumber(returnNumber(1))"), 1);
-    EXPECT_EQ(ParseAndEvalExpression<int>("returnNumber(returnNumber(1) + returnNumber(1))"), 2);
+    EXPECT_EQ(ParseAndEvalExpression<int>("return(5+3)"), 8);
+    EXPECT_EQ(ParseAndEvalExpression<int>("return(return(1))"), 1);
+    EXPECT_EQ(ParseAndEvalExpression<int>("return(return(1) + return(1))"), 2);
 }
 
 TEST(Parser, Successive_assigns)
@@ -207,17 +207,15 @@ TEST(Parser, Conditional_Structures_IF_ELSE )
 {
     std::string program =
             "double bob   = 10;"
-            "double alice = 10;"
+            "double alice = 11;"
             "string message;"
-            "if(bob>alice){"
-            "   message= \"Bob is the best.\";"
-            "}else if(bob<alice){"
+            "if(bob<alice){"
             "   message= \"Alice is the best.\";"
             "}else{"
-            "   message= \"Draw.\";"
+            "   message= \"Alice is not the best.\";"
             "}";
 
-    ParseEvalSerializeExpressions({program});
+    ParseAndSerialize({program});
 }
 
 TEST(Parser, Conditional_Structures_IF_ELSE_IF )
@@ -234,7 +232,7 @@ TEST(Parser, Conditional_Structures_IF_ELSE_IF )
             "   message= \"Bob and Alice are equals.\";"
             "}";
 
-    ParseEvalSerializeExpressions({program});
+    ParseAndSerialize({program});
 }
 
 TEST(Parser, not_equals)

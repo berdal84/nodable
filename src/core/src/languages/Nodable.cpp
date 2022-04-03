@@ -72,7 +72,9 @@ LanguageNodable::LanguageNodable()
 
     using string = std::string;
 
-    WRAP_FUNCTION(api_returnNumber)
+    WRAP_POLYFUNC(api_return, bool(bool))
+    WRAP_POLYFUNC(api_return, double(double))
+    WRAP_POLYFUNC(api_return, string(string))
     WRAP_FUNCTION(api_sin)
     WRAP_FUNCTION(api_cos)
     WRAP_FUNCTION(api_add)

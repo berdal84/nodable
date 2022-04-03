@@ -30,7 +30,9 @@ namespace Nodable
         Scope*        get_condition_false_scope()const override;
         Member*       condition_member()const override { return m_props.get(k_condition_member_name); }
         void          set_cond_instr(InstructionNode*) override;
+        bool          has_elseif() const;
         InstructionNode* get_cond_instr()const override { return m_cond_instr_node; }
+
     private:
         std::shared_ptr<Token> m_token_if;
         std::shared_ptr<Token> m_token_else;
@@ -40,5 +42,6 @@ namespace Nodable
          R_EXTENDS(Node)
          R_EXTENDS(IConditionalStruct)
         R_END
+
     };
 }

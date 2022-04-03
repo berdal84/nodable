@@ -245,30 +245,39 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 {
     compile_as_condition(_cond_node->get_cond_instr()); // compile condition isntruction, store result, compare
 
-    Instruction* skip_true_branch     = m_temp_code->push_instr(opcode::jne);
-    skip_true_branch->m_comment = "jump if not equals";
+    Instruction* jump_over_true_branch = m_temp_code->push_instr(opcode::jne);
+    jump_over_true_branch->m_comment   = "jump if not equals";
 
-    Instruction* skip_false_branch = nullptr;
+    Instruction* jump_after_conditional = nullptr;
 
     if ( auto true_scope = _cond_node->get_condition_true_scope() )
     {
         compile(true_scope);
 
-        if (_cond_node->get_condition_false_scope())
+        if ( _cond_node->get_condition_false_scope() )
         {
-            skip_false_branch = m_temp_code->push_instr(opcode::jmp);
-            skip_false_branch->m_comment = "jump";
+            jump_after_conditional = m_temp_code->push_instr(opcode::jmp);
+            jump_after_conditional->m_comment = "jump";
         }
     }
 
-    skip_true_branch->jmp.offset = i64_t(m_temp_code->get_next_index()) - skip_true_branch->line;
+    jump_over_true_branch->jmp.offset = i64_t(m_temp_code->get_next_index()) - jump_over_true_branch->line;
 
     if ( auto false_scope = _cond_node->get_condition_false_scope() )
     {
-        compile(false_scope);
-        if ( skip_false_branch )
+        if( _cond_node->has_elseif() )
         {
-            skip_false_branch->jmp.offset = i64_t(m_temp_code->get_next_index()) - skip_false_branch->line;
+            auto* else_if = false_scope->get_owner()->as<ConditionalStructNode>();
+            compile(else_if);
+        }
+        else
+        {
+            compile(false_scope);
+        }
+
+        if ( jump_after_conditional )
+        {
+            jump_after_conditional->jmp.offset = i64_t(m_temp_code->get_next_index()) - jump_after_conditional->line;
         }
     }
 }

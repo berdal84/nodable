@@ -179,3 +179,27 @@ TEST(VM, condition_which_contains_alterated_var ) {
             "res;";
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "ok");
 }
+
+TEST(VM, else_elseif_else ) {
+
+    std::string program_end =
+            "string msg;\n"
+            "if ( a > b ) {\n"
+            "    msg = \"a > b\";\n"
+            "} else if ( a < b ) {\n"
+            "    msg = \"a < b\";\n"
+            "} else {\n"
+            "    msg = \"a == b\";\n"
+            "}"
+            "return(msg)";
+
+    std::string program1 = "double a = 6;\ndouble b = 5;\n" + program_end;
+    EXPECT_EQ( ParseAndEvalExpression<std::string>(program1), "a > b");
+
+    std::string program2 = "double a = 4;\ndouble b = 5;\n" + program_end;
+    EXPECT_EQ( ParseAndEvalExpression<std::string>(program2), "a < b");
+
+    std::string program3 = "double a = 5;\ndouble b = 5;\n" + program_end;
+    EXPECT_EQ( ParseAndEvalExpression<std::string>(program3), "a == b");
+}
+

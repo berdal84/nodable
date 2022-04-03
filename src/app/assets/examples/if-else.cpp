@@ -8,7 +8,7 @@ string msg;
 if ( a > b ) {
     msg = "a > b";
 } else if ( a < b ) {
-    msg = "a <= b";
+    msg = "a < b";
 } else {
     msg = "a == b";
 }

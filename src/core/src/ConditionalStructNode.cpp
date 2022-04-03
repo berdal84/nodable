@@ -28,3 +28,9 @@ void ConditionalStructNode::set_cond_instr(InstructionNode* _node)
 {
     m_cond_instr_node = _node;
 }
+
+bool ConditionalStructNode::has_elseif() const
+{
+    Node* false_node = m_successors.size() > 1 ? m_successors[1] : nullptr;
+    return false_node && false_node->is<ConditionalStructNode>();
+}
