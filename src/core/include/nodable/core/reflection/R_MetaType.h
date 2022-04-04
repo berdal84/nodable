@@ -36,6 +36,7 @@ namespace Nodable
             template<class T> bool    is_exactly() const { return is_exactly(reflect_type<T>::make_type()); }
             template<class T> bool    is_not() const { return !is_exactly(reflect_type<T>::make_type()); }
             bool                      is_ptr() const;
+            bool                      is_ref() const;
 
             static bool               is_ptr(MetaType_const_ptr);
             static bool               is_ref(MetaType_const_ptr);

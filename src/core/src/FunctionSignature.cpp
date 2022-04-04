@@ -64,8 +64,13 @@ bool FunctionSignature::is_compatible(const FunctionSignature* _other)const
         is_matching = true;
         while( i < m_args.size() && is_matching )
         {
-            if ( !R::MetaType::is_implicitly_convertible(m_args[i].m_type, _other->m_args[i].m_type) )
+            auto &arg_t       = m_args[i].m_type;
+            auto &other_arg_t = _other->m_args[i].m_type;
+
+            if ( arg_t->get_type() != other_arg_t->get_type() || arg_t->is_ref() || !R::MetaType::is_implicitly_convertible(arg_t, other_arg_t))
+            {
                 is_matching = false;
+            }
             i++;
         }
     }

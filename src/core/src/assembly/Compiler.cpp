@@ -234,13 +234,13 @@ void assembly::Compiler::compile_as_condition(const InstructionNode* _instr_node
     compile(_instr_node);
 
     // move "true" result to rdx
-    Instruction* store_true         = m_temp_code->push_instr(opcode::mov);
+    Instruction* store_true   = m_temp_code->push_instr(opcode::mov);
     store_true->mov.src.b     = true;
     store_true->mov.dst.r     = rdx;
     store_true->m_comment     = "store true";
 
     // compare rax (condition result) with rdx (true)
-    Instruction* cmp_instr       = m_temp_code->push_instr(opcode::cmp);  // works only with registry
+    Instruction* cmp_instr = m_temp_code->push_instr(opcode::cmp);  // works only with registry
     cmp_instr->cmp.left.r  = rax;
     cmp_instr->cmp.right.r = rdx;
     cmp_instr->m_comment   = "compare registers";

@@ -71,9 +71,9 @@ i16_t Variant::convert_to<i16_t>()const
     {
         case R::Type::string_t:  return stoi((std::string)m_data);
         case R::Type::double_t:  return i16_t(m_data.d);
-        case R::Type::i16_t:   return m_data.i16;
-        case R::Type::bool_t: return i16_t(m_data.b);
-        default:               NODABLE_ASSERT(false) // this case is not handled
+        case R::Type::i16_t:     return m_data.i16;
+        case R::Type::bool_t:    return i16_t(m_data.b);
+        default:                 NODABLE_ASSERT(false) // this case is not handled
     }
 }
 
@@ -89,9 +89,9 @@ bool Variant::convert_to<bool>()const
     {
         case R::Type::string_t:  return !((std::string*)m_data.ptr)->empty();
         case R::Type::double_t:  return m_data.d != 0.0;
-        case R::Type::i16_t:   return m_data.i16 != 0;
+        case R::Type::i16_t:     return m_data.i16 != 0;
         case R::Type::bool_t: // pass through
-        default:               return m_data.b;
+        default:                 return m_data.b;
     }
 }
 
@@ -110,12 +110,12 @@ std::string Variant::convert_to<std::string>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::string_t:  return *(std::string*)m_data.ptr;
-        case R::Type::i16_t:   return std::to_string(m_data.i16);
-        case R::Type::double_t:  return String::fmt_double(m_data.d);
-        case R::Type::bool_t: return m_data.b ? "true" : "false";
-        case R::Type::Class:   return String::fmt_ptr(m_data.ptr);
-        default:               return "<?>";
+        case R::Type::string_t: return *(std::string*)m_data.ptr;
+        case R::Type::i16_t:    return std::to_string(m_data.i16);
+        case R::Type::double_t: return String::fmt_double(m_data.d);
+        case R::Type::bool_t:   return m_data.b ? "true" : "false";
+        case R::Type::Class:    return String::fmt_ptr(m_data.ptr);
+        default:                return "<?>";
     }
 }
 
@@ -186,12 +186,12 @@ void Variant::set_initialized(bool _initialize)
         switch ( type )
         {
             case R::Type::string_t: m_data.ptr   = new std::string();
-                                   m_is_defined = true;              break;
+                                    m_is_defined = true;              break;
             case R::Type::double_t: m_data.d     = 0.0;               break;
-            case R::Type::i16_t:   m_data.i16   = 0;                 break;
-            case R::Type::bool_t: m_data.b     = false;             break;
+            case R::Type::i16_t:    m_data.i16   = 0;                 break;
+            case R::Type::bool_t:   m_data.b     = false;             break;
             case R::Type::void_t:
-            case R::Type::Class:   m_data.ptr   = nullptr;           break;
+            case R::Type::Class:    m_data.ptr   = nullptr;           break;
             default:               break;
         }
     }
@@ -207,16 +207,16 @@ void Variant::set_initialized(bool _initialize)
 
 void Variant::set(const Variant& _other)
 {
-    if ( !_other.m_meta_type && _other.m_meta_type->is_exactly(m_meta_type) )
+    if ( _other.m_meta_type && !_other.m_meta_type->is_exactly(m_meta_type) )
     {
         NODABLE_ASSERT(R::MetaType::is_implicitly_convertible(_other.m_meta_type, m_meta_type));
 
         switch(m_meta_type->get_type())
         {
-            case R::Type::string_t:  set(*(std::string*)_other.m_data.ptr ); break;
-            case R::Type::bool_t: set(_other.convert_to<bool>() ); break;
-            case R::Type::double_t:  set(_other.convert_to<double>() ); break;
-            case R::Type::i16_t:   set( _other.convert_to<i16_t>() ); break;
+            case R::Type::string_t: set(*(std::string*)_other.m_data.ptr ); break;
+            case R::Type::bool_t:   set(_other.convert_to<bool>() ); break;
+            case R::Type::double_t: set(_other.convert_to<double>() ); break;
+            case R::Type::i16_t:    set(_other.convert_to<i16_t>() ); break;
             case R::Type::void_t:
             case R::Type::Class:   set( _other.m_data.ptr); break;
             default: NODABLE_ASSERT(false) // not handled.
