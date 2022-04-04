@@ -4,7 +4,7 @@
 #include <exception>
 #include <iostream>
 
-#include "nodable/core/Format.h"
+#include "nodable/core/String.h"
 #include "nodable/core/assertions.h"
 #include "nodable/core/VariableNode.h"
 #include "nodable/core/Log.h"

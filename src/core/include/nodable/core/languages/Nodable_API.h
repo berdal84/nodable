@@ -8,7 +8,7 @@
 #include <nodable/core/Member.h>
 #include <nodable/core/Node.h>
 #include <nodable/core/VariableNode.h>
-#include <nodable/core/Format.h>
+#include <nodable/core/String.h>
 #include <nodable/core/System.h>
 
 using namespace Nodable;
@@ -45,13 +45,14 @@ double api_secondDegreePolynomial(double a, double x, double b, double y, double
 template<typename T, typename U> T api_sqrt(U n) { return sqrt(n); }
 std::string api_to_string(i16_t i) { return std::to_string(i); }
 std::string api_to_string(bool b) { return b ? "true" : "false"; }
-std::string api_to_string(double n) { return Format::fmt_no_trail(n); }
+std::string api_to_string(double n) { return String::fmt_double(n); }
 std::string api_to_string(std::string s) { return s; }
 template<typename T> T api_return(T value) { return value; }
 template<typename T, typename U> T api_assign(T& a, U b) { return a = b; }
 template<typename T> bool api_equals(T a, T b) { return a == b; }
 template<typename T> bool api_not_equals(T a, T b) { return a != b; }
-template<typename T> std::string api_concat(std::string left, T right) { return  left + Nodable::Format::fmt_no_trail(right); }
+template<typename T> std::string api_concat(std::string left, T right) { return  left +
+            Nodable::String::fmt_double(right); }
 template<> std::string api_concat(std::string left, std::string right) { return  left + right; }
 
 template<typename T>

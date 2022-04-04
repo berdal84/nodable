@@ -2,7 +2,7 @@
 #include <nodable/core/Log.h> // for LOG_DEBUG(...)
 #include <cassert>
 #include <nodable/core/types.h>
-#include <nodable/core/Format.h>
+#include <nodable/core/String.h>
 #include <nodable/core/Node.h>
 
 using namespace Nodable;
@@ -112,9 +112,9 @@ std::string Variant::convert_to<std::string>()const
     {
         case R::Type::String:  return *(std::string*)m_data.ptr;
         case R::Type::Int16:   return std::to_string(m_data.i16);
-        case R::Type::Double:  return Format::fmt_no_trail(m_data.d);
+        case R::Type::Double:  return String::fmt_double(m_data.d);
         case R::Type::Boolean: return m_data.b ? "true" : "false";
-        case R::Type::Class:   return Format::fmt_ptr(m_data.ptr);
+        case R::Type::Class:   return String::fmt_ptr(m_data.ptr);
         default:               return "<?>";
     }
 }

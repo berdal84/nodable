@@ -1,7 +1,7 @@
 #include <nodable/core/languages/Nodable.h>
 
 #include <nodable/core/Member.h>
-#include <nodable/core/Format.h>
+#include <nodable/core/String.h>
 #include <nodable/core/System.h>
 
 #include <nodable/core/languages/Nodable_API.h> // <----- contains all functions referenced below

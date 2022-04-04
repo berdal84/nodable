@@ -163,11 +163,11 @@ TEST(Parser, Multiple_Instructions_Single_Line )
 
 TEST(Parser, Multiple_Instructions_Multi_Line )
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5;\ndouble b = 2 * a;"), 10.0 );
+    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5.0;\ndouble b = 2.0 * a;"), 10.0 );
 
     std::vector<std::string> expressions {
-        "double a = 5;\ndouble b = 2 * a;",
-        "double a = 5;double b = 2 * a;\ndouble c = 33 + 5;"
+        "double a = 5.0;\ndouble b = 2.0 * a;",
+        "double a = 5.0;double b = 2.0 * a;\ndouble c = 33.0 + 5.0;"
     };
     ParseEvalSerializeExpressions(expressions);
 }
