@@ -105,14 +105,14 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 
 R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
 {
-    R::Type type = R::Type::Null;
+    R::Type type = R::Type::null_t;
 
     const Semantic *semantic                    = m_language->get_semantic();
     const std::vector<std::regex>  regex        = semantic->get_type_regex();
     const std::vector<R::Type> regex_id_to_type = semantic->get_type_regex_index_to_type();
 
     auto each_regex_it = regex.cbegin();
-    while( each_regex_it != regex.cend() && type == R::Type::Null )
+    while( each_regex_it != regex.cend() && type == R::Type::null_t )
     {
         std::smatch sm;
         auto match = std::regex_search(_token->m_word.cbegin(), _token->m_word.cend(), sm, *each_regex_it);
@@ -125,7 +125,7 @@ R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
         each_regex_it++;
     }
 
-    NODABLE_ASSERT(type != R::Type::Null)
+    NODABLE_ASSERT(type != R::Type::null_t)
 
     return type;
 }
@@ -696,8 +696,8 @@ bool Parser::is_syntax_valid()
 bool Parser::tokenize_string(const std::string &_code_source_portion)
 {
     /* shortcuts to language members */
-    const std::vector<std::regex> regex           = m_language->get_semantic()->get_token_type_regex();
-    const std::vector<Token_t> regexIdToTokType = m_language->get_semantic()->get_token_type_regex_index_to_token_type();
+    auto& regex            = m_language->get_semantic()->get_token_type_regex();
+    auto& regexIdToTokType = m_language->get_semantic()->get_token_type_regex_index_to_token_type();
 
     std::string pending_ignored_chars;
 
@@ -705,7 +705,7 @@ bool Parser::tokenize_string(const std::string &_code_source_portion)
     auto unifiedParsing = [&](auto& it) -> auto
     {
         int i = 0;
-        for (auto eachRegexIt = regex.cbegin(); eachRegexIt != regex.cend(); eachRegexIt++)
+        for (auto&& eachRegexIt = regex.cbegin(); eachRegexIt != regex.cend(); eachRegexIt++)
         {
             i++;
             std::smatch sm;

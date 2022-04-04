@@ -14,7 +14,7 @@
 namespace Nodable {
 
 
-	enum class Token_t
+	enum class Token_t: int
 	{
         unknown,
 
@@ -37,9 +37,11 @@ namespace Nodable {
         end_scope ,
         end_of_instruction,
         end_of_line,
+
+        COUNT,
+
         null, // to say 'absence of token', not token 'NULL'
         default_ = unknown,
-        COUNT,
     };
 
 	static constexpr bool is_keyword_type(Token_t _token_t)
@@ -53,25 +55,8 @@ namespace Nodable {
             case Token_t::keyword_bool:
                 return true;
 
-            case Token_t::unknown: // -- I do not use default on purpose.
-            case Token_t::ignore:  //    I want a warning when I add a new Token_t (especially keyword_<type>)
-            case Token_t::keyword_if:
-            case Token_t::keyword_else:
-            case Token_t::keyword_for:
-            case Token_t::keyword_operator:
-            case Token_t::literal:
-            case Token_t::operator_:
-            case Token_t::identifier:
-            case Token_t::open_bracket:
-            case Token_t::close_bracket:
-            case Token_t::separator:
-            case Token_t::begin_scope:
-            case Token_t::end_scope:
-            case Token_t::end_of_instruction:
-            case Token_t::end_of_line:
-            case Token_t::null:
+            default:
                 return false;
-
         }
     }
 }
