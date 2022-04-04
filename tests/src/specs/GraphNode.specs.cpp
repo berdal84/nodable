@@ -74,7 +74,7 @@ TEST( GraphNode, clear)
     InstructionNode* instructionNode = graph.create_instr();
 
     FunctionSignature* sig = FunctionSignature::new_instance<int(int, int)>::with_id("operator+");
-    auto ope = language.find_operator_fct(sig);
+    auto ope = language.find_operator_fct_exact(sig);
     delete sig;
     EXPECT_TRUE(ope != nullptr);
     Node* operatorNode = graph.create_operator(ope);

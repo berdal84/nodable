@@ -57,6 +57,13 @@ const InvokableOperator* Language::find_operator_fct_exact(const FunctionSignatu
 
 const InvokableOperator* Language::find_operator_fct(const FunctionSignature* _signature) const
 {
+    auto exact = find_operator_fct_exact(_signature);
+    if( !exact) return find_operator_fct_fallback(_signature);
+    return exact;
+}
+
+const InvokableOperator* Language::find_operator_fct_fallback(const FunctionSignature* _signature) const
+{
 	
 	auto is_compatible = [&](const IInvokable* _invokable)
     {
