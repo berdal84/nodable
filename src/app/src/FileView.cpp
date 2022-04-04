@@ -231,8 +231,8 @@ void FileView::draw_info() const
     // Language browser (list functions/operators)
     if (ImGui::TreeNode("Language"))
     {
-        const auto&       functions  = m_context->language->getAllFunctions();
-        const Serializer* serializer = m_context->language->getSerializer();
+        const auto&       functions  = m_context->language->get_api();
+        const Serializer* serializer = m_context->language->get_serializer();
 
         ImGui::Columns(1);
         for(const auto& each_fct : functions )

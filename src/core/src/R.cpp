@@ -68,6 +68,8 @@ bool MetaType::is_convertible(
 
 bool MetaType::is_exactly(const std::shared_ptr<const MetaType> &_other) const
 {
+    if( !_other) return false;
+
     return m_qualifier == _other->m_qualifier
            && m_type == _other->m_type;
 }

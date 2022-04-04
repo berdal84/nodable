@@ -13,7 +13,7 @@ using namespace Nodable::R;
 TEST(Semantic, token_type_to_type)
 {
     const LanguageNodable lang;
-    auto semantic = lang.getSemantic();
+    auto semantic = lang.get_semantic();
 
     EXPECT_EQ(semantic->token_type_to_type(TokenType_KeywordBoolean), Type::Boolean );
     EXPECT_EQ(semantic->token_type_to_type(TokenType_KeywordDouble), Type::Double );
@@ -23,7 +23,7 @@ TEST(Semantic, token_type_to_type)
 TEST(Semantic, type_to_string)
 {
     const LanguageNodable lang;
-    auto semantic = lang.getSemantic();
+    auto semantic = lang.get_semantic();
 
     EXPECT_EQ(semantic->type_to_string(R::get_meta_type<bool>() ), "bool" );
     EXPECT_EQ(semantic->type_to_string(R::get_meta_type<double>() ), "double" );

@@ -107,8 +107,8 @@ R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
 {
     R::Type type = R::Type::Null;
 
-    const std::vector<std::regex>  regex            = m_language->getSemantic()->get_type_regex();
-    const std::vector<R::Type> regex_id_to_type = m_language->getSemantic()->get_type_regex_index_to_type();
+    const std::vector<std::regex>  regex            = m_language->get_semantic()->get_type_regex();
+    const std::vector<R::Type> regex_id_to_type = m_language->get_semantic()->get_type_regex_index_to_type();
 
     auto each_regex_it = regex.cbegin();
     while( each_regex_it != regex.cend() && type == R::Type::Null )
@@ -249,7 +249,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 
-	const InvokableOperator* ope = m_language->findOperator(operatorToken->m_word);
+	const Operator* ope = m_language->find_operator(operatorToken->m_word, Operator_t::Binary);
     if ( ope == nullptr ) {
         LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator %s)\n", operatorToken->m_word.c_str())
         rollback_transaction();
@@ -257,7 +257,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
     }
 
     // Precedence check
-	if ( ope->get_precedence() <= _precedence && _precedence > 0u) { // always update the first operation if they have the same precedence or less.
+	if ( ope->precedence <= _precedence && _precedence > 0) { // always update the first operation if they have the same precedence or less.
 		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n")
         rollback_transaction();
 		return nullptr;
@@ -265,7 +265,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 
 
 	// Parse right expression
-	auto right = parse_expression( ope->get_precedence(), nullptr);
+	auto right = parse_expression( ope->precedence, nullptr);
 
 	if (!right)
 	{
@@ -275,10 +275,10 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const FunctionSignature* signature = m_language->createBinOperatorSignature( nullptr, operatorToken->m_word,
-                                                                                 _left->get_meta_type(),
-                                                                                 right->get_meta_type());
-	auto matchingOperator = m_language->findOperator(signature);
+	const FunctionSignature* signature = m_language->new_bin_operator_signature(nullptr, operatorToken->m_word,
+                                                                                _left->get_meta_type(),
+                                                                                right->get_meta_type());
+	auto matchingOperator = m_language->find_operator_fct(signature);
     delete signature;
 
 	if ( matchingOperator != nullptr )
@@ -296,12 +296,10 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 
         return result;
     }
-    else
-    {
-        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator prototype)\n")
-        rollback_transaction();
-        return nullptr;
-    }
+
+    LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator prototype)\n")
+    rollback_transaction();
+    return nullptr;
 }
 
 Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
@@ -342,8 +340,8 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	}
 
 	// Create a function signature
-	auto signature = m_language->createUnaryOperatorSignature( nullptr, operatorToken->m_word, value->get_meta_type() );
-	auto matchingOperator = m_language->findOperator(signature);
+	auto signature = m_language->new_unary_operator_signature(nullptr, operatorToken->m_word, value->get_meta_type());
+	auto matchingOperator = m_language->find_operator_fct(signature);
 
 	if (matchingOperator != nullptr)
 	{
@@ -696,8 +694,8 @@ bool Parser::is_syntax_valid()
 bool Parser::tokenize_string(const std::string &_code_source_portion)
 {
     /* shortcuts to language members */
-    const std::vector<std::regex> regex           = m_language->getSemantic()->get_token_type_regex();
-    const std::vector<TokenType> regexIdToTokType = m_language->getSemantic()->get_token_type_regex_index_to_token_type();
+    const std::vector<std::regex> regex           = m_language->get_semantic()->get_token_type_regex();
+    const std::vector<TokenType> regexIdToTokType = m_language->get_semantic()->get_token_type_regex_index_to_token_type();
 
     std::string pending_ignored_chars;
 
@@ -832,7 +830,7 @@ Member* Parser::parse_function_call()
     {
         std::shared_ptr<Token> token_2 = m_token_ribbon.eatToken(); // eat a "supposed open bracket>
 
-        if (token_0->m_type == TokenType_Identifier && token_0->m_word == m_language->getSemantic()
+        if (token_0->m_type == TokenType_Identifier && token_0->m_word == m_language->get_semantic()
                                                                                   ->token_type_to_string(
                                                                                           TokenType_KeywordOperator /* TODO: TokenType_Keyword + word="operator" */) &&
             token_1->m_type == TokenType_Operator &&
@@ -881,7 +879,7 @@ Member* Parser::parse_function_call()
 
 
     // Find the prototype in the language library
-    auto fct = m_language->findFunction(&signature);
+    auto fct = m_language->find_function(&signature);
 
     auto connectArg = [&](const FunctionSignature* _sig, Node* _node, size_t _arg_index ) -> void
     { // lambda to connect input member to node for a specific argument index.
@@ -1138,7 +1136,7 @@ Member *Parser::parse_variable_declaration()
 
     if(typeTok->isTypeKeyword() && identifierTok->m_type == TokenType_Identifier )
     {
-        R::Type type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
+        R::Type type = m_language->get_semantic()->token_type_to_type(typeTok->m_type);
         VariableNode* variable = m_graph->create_variable(R::get_meta_type(type), identifierTok->m_word, this->get_current_scope());
         variable->set_type_token(typeTok);
         variable->set_identifier_token(identifierTok);

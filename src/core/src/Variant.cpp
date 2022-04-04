@@ -107,7 +107,7 @@ void Variant::set(const Variant& _other)
 
     switch(m_meta_type->get_type())
     {
-        case R::Type::String:  set( (std::string&)_other.m_data.ptr ); break;
+        case R::Type::String:  set( *(std::string*)_other.m_data.ptr ); break;
         case R::Type::Boolean: set( _other.m_data.b); break;
         case R::Type::Double:  set( _other.m_data.d); break;
         case R::Type::Int16:   set( _other.m_data.i16); break;

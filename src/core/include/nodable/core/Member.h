@@ -56,9 +56,9 @@ namespace Nodable
 		void set(Node*);
 		void set(double);
         void set(const char*);
+        void set(const std::string&);
         void set(bool);
 		void set(i16_t);
-		void set(const std::string& _val) { set(_val.c_str());}
 		template<typename T> void set_meta_type() { get_variant().define_type<T>(); }
 		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
         void set_src_token(const std::shared_ptr<Token> _token);

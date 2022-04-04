@@ -41,12 +41,9 @@ Node* NodeFactory::new_operator(const InvokableOperator* _operator) const
 {
     switch (_operator->get_operator_type() )
     {
-        case InvokableOperator::Type::Binary:
-            return new_binary_op(_operator);
-        case InvokableOperator::Type::Unary:
-            return new_unary_op(_operator);
-        default:
-            return nullptr;
+        case Operator_t::Binary:  return new_binary_op(_operator);
+        case Operator_t::Unary:   return new_unary_op(_operator);
+        default:                  return nullptr;
     }
 }
 

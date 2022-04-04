@@ -35,49 +35,48 @@ namespace Nodable {
 	 * - etc.
 	 */
 	class Language {
+	    using Meta_t      = std::shared_ptr<const R::MetaType>;
+	    using Operators_t = std::vector<const Operator*>;
+	    using InvokableFunctions_t = std::vector<const IInvokable*>;
 	public:
 
-		Language(
-		        std::string _name,
-                Parser* _parser,
-                Serializer* _serializer
-                )
-                :
-                name(_name),
-		        serializer(_serializer),
-		        parser(_parser)
+		Language(const char* _name, Parser* _parser, Serializer* _serializer)
+                : m_name(_name), m_parser(_parser), m_serializer(_serializer)
         {
         };
 
 		virtual ~Language();
 
-        const IInvokable* findFunction(const FunctionSignature* signature) const;
-        const InvokableOperator* findOperator(const FunctionSignature* _operator) const;
-        const InvokableOperator* findOperator(const std::string& _short_identifier) const;
+        const IInvokable*               find_function(const FunctionSignature*) const;
+        const InvokableOperator*        find_operator_fct(const FunctionSignature*) const;
+        const Operator*                 find_operator(const std::string& , Operator_t) const;
+        const Operator*                 find_operator(const std::string& _identifier, const FunctionSignature* _signature) const;
 
-        inline Parser* getParser()const { return parser; }
-        inline Serializer* getSerializer()const { return serializer; }
-        inline const Semantic* getSemantic()const { return &semantic; }
-        inline const std::vector<IInvokable*>& getAllFunctions()const { return api; }
+        Parser*                         get_parser()const { return m_parser; }
+        Serializer*                     get_serializer()const { return m_serializer; }
+        const Semantic*                 get_semantic()const { return &m_semantic; }
+        const InvokableFunctions_t&     get_api()const { return m_functions; }
 
-        const FunctionSignature* createUnaryOperatorSignature(std::shared_ptr<const R::MetaType> , std::string , std::shared_ptr<const R::MetaType> ) const;
-        const FunctionSignature* createBinOperatorSignature(std::shared_ptr<const R::MetaType>, std::string , std::shared_ptr<const R::MetaType> , std::shared_ptr<const R::MetaType> ) const;
+        const FunctionSignature*        new_unary_operator_signature(Meta_t , std::string , Meta_t ) const;
+        const FunctionSignature*        new_bin_operator_signature(Meta_t, std::string , Meta_t , Meta_t ) const;
 
-        bool hasHigherPrecedenceThan(const InvokableOperator *_firstOperator, const InvokableOperator* _secondOperator)const;
-        virtual void sanitizeFunctionName( std::string& identifier ) const = 0;
-        virtual void sanitizeOperatorFunctionName( std::string& identifier ) const = 0;
+        bool                            has_higher_precedence_than(std::pair<const InvokableOperator*, const InvokableOperator*> _operators)const;
+        virtual void                    sanitize_function_identifier( std::string& ) const = 0;
+        virtual void                    sanitize_operator_fct_identifier( std::string& identifier ) const = 0;
 	protected:
-        void addOperator(InvokableOperator*);
-        void addToAPI(IInvokable*);
+        void                            add(const IInvokable*);
+        void                            add(const Operator*);
+        void                            add(const InvokableOperator*);
 
-        Semantic semantic;
-        Serializer* serializer;
-        Parser* parser;
+        Semantic     m_semantic;
+        Serializer*  m_serializer;
+        Parser*      m_parser;
 
 	private:
-		std::string name;
-		std::vector<InvokableOperator*> operators;
-		std::vector<IInvokable*> api;
+		std::string m_name;
+		Operators_t m_operators;
+        InvokableFunctions_t m_operator_implems;
+		InvokableFunctions_t m_functions;
     };
 
 }

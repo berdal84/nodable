@@ -10,27 +10,27 @@
 */
 #define WRAP_FUNCTION( function ) \
     { \
-        std::string function_name = #function; \
-        sanitizeFunctionName( function_name ); \
+        std::string identifier = #function; \
+        sanitize_function_identifier( identifier ); \
         using function_type = decltype(function); \
-        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
-        addToAPI( invokable ); \
+        const IInvokable* invokable_fct = new InvokableFunction<function_type>(function, identifier.c_str()); \
+        add( invokable_fct ); \
     }
 
 /**
 * Wrap a native non-polymorphic function.
 *
-* ex: WRAP_OPERATOR( my_unique_name_function, "+", 0, "+ Add")
+* ex: WRAP_OPERATOR( my_unique_name_function, "+", "+ Add")
 */
-#define WRAP_OPERATOR( function, identifier, precedence, label ) \
+#define WRAP_OPERATOR( function, identifier, label ) \
     { \
         using function_type = decltype(function); \
-        std::string function_name = identifier; \
-        sanitizeOperatorFunctionName( function_name ); \
-        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str(), identifier ); \
-        InvokableOperator* op = new InvokableOperator( invokable, precedence, identifier );\
-        addOperator( op );\
-        addToAPI( invokable ); \
+        std::string function_identifier = identifier; \
+        sanitize_operator_fct_identifier( function_identifier ); \
+        const IInvokable* invokable = new InvokableFunction<function_type>(function, function_identifier.c_str(), identifier ); \
+        const Operator* op = find_operator(identifier, invokable->get_signature());\
+        const InvokableOperator* invokable_op = new InvokableOperator( op, invokable );\
+        add( invokable_op ); \
     }
 
 /**
@@ -44,10 +44,10 @@
  */
 #define WRAP_POLYFUNC( function, function_type ) \
     { \
-        std::string function_name = #function; \
-        sanitizeFunctionName( function_name ); \
-        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
-        addToAPI( invokable ); \
+        std::string identifier = #function; \
+        sanitize_function_identifier( identifier ); \
+        const IInvokable* invokable_fct = new InvokableFunction<function_type>(function, identifier.c_str()); \
+        add( invokable_fct ); \
     }
 
 /**
@@ -56,15 +56,15 @@
 *
 * ex: Same function name with different label and signatures:
  *
-*  WRAP_POLYOPER( add, "+", 0, "+ Add", double(double, double) )
-*  WRAP_POLYOPER( add, "+", 0, "Cat.", std::string(std::string, double) )
+*  WRAP_POLYOPER( add, "+", "+ Add", double(double, double) )
+*  WRAP_POLYOPER( add, "+", "Cat.", std::string(std::string, double) )
 */
-#define WRAP_POLYOPER( function, identifier, precedence, label, function_type ) \
+#define WRAP_POLYOPER( function, identifier, label, function_type ) \
     { \
-        std::string function_name = identifier; \
-        sanitizeOperatorFunctionName( function_name ); \
-        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str(), identifier ); \
-        InvokableOperator* op = new InvokableOperator( invokable, precedence, identifier );\
-        addOperator( op );\
-        addToAPI( invokable ); \
+        std::string function_identifier = identifier; \
+        sanitize_operator_fct_identifier( function_identifier ); \
+        const IInvokable* invokable = new InvokableFunction<function_type>(function, function_identifier.c_str(), identifier ); \
+        const Operator* op = find_operator(identifier, invokable->get_signature());\
+        const InvokableOperator* invokable_op = new InvokableOperator( op, invokable );\
+        add( invokable_op ); \
     }

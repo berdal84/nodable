@@ -8,8 +8,34 @@
 #include <nodable/core/ForLoopNode.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/LiteralNode.h>
+#include <nodable/core/Operator.h>
 
 using namespace Nodable;
+
+std::string& Serializer::serialize(std::string& _result, const Operator* _operator)const
+{
+    switch( _operator->type )
+    {
+        case Operator_t::Unary:
+            _result.append(_operator->identifier);
+            _result.append(" lhv");
+            break;
+        case Operator_t::Binary:
+            _result.append("lhv ");
+            _result.append(_operator->identifier);
+            _result.append(" rhv");
+            break;
+        default:
+            NODABLE_ASSERT(false) // TODO
+            break;
+    }
+
+    _result.append( ", type: ");
+    _result.append( to_string(_operator->type));
+    _result.append( ", precedence: ");
+    _result.append( std::to_string(_operator->precedence));
+    return _result;
+}
 
 std::string& Serializer::serialize(std::string& _result, const InvokableComponent *_component)const
 {
@@ -41,16 +67,17 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
         auto ope = reinterpret_cast<const InvokableOperator*>(invokable);
         std::vector<Member *> args = _component->get_args();
 
-        if (ope->get_operator_type() == InvokableOperator::Type::Binary )
+        Node* owner = _component->get_owner();
+        if (ope->get_operator_type() == Operator_t::Binary )
         {
             // Get the left and right source operator
-            auto l_handed_operator = _component->get_owner()->get_connected_operator(args[0]);
-            auto r_handed_operator = _component->get_owner()->get_connected_operator(args[1]);
+            auto l_handed_operator = owner->get_connected_operator(args[0]);
+            auto r_handed_operator = owner->get_connected_operator(args[1]);
             // Left part of the expression
             {
                 // TODO: check parsed brackets for prefix/suffix
                 bool needs_brackets = l_handed_operator &&
-                                    !language->hasHigherPrecedenceThan(l_handed_operator, ope );
+                                    !language->has_higher_precedence_than({l_handed_operator, ope});
 
                 serialize_member_with_or_without_brackets(args[0], needs_brackets);
             }
@@ -72,16 +99,16 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             {
                 // TODO: check parsed brackets for prefix/suffix
                 bool needs_brackets = r_handed_operator
-                                    && (r_handed_operator->get_operator_type() == InvokableOperator::Type::Unary
-                                        || !language->hasHigherPrecedenceThan( r_handed_operator, ope )
+                                    && (r_handed_operator->get_operator_type() == Operator_t::Unary
+                                        || !language->has_higher_precedence_than({r_handed_operator, ope})
                                     );
 
                 serialize_member_with_or_without_brackets(args[1], needs_brackets);
             }
         }
-        else if (ope->get_operator_type() == InvokableOperator::Type::Unary )
+        else if (ope->get_operator_type() == Operator_t::Unary )
         {
-            auto inner_operator = _component->get_owner()->get_connected_operator(args[0]);
+            auto inner_operator = owner->get_connected_operator(args[0]);
 
             // operator ( ... innerOperator ... )   ex:   -(a+b)
 
@@ -146,12 +173,12 @@ std::string& Serializer::serialize(std::string& _result, const FunctionSignature
 
 std::string& Serializer::serialize(std::string& _result, const TokenType& _type) const
 {
-    return _result.append(language->getSemantic()->token_type_to_string(_type) );
+    return _result.append(language->get_semantic()->token_type_to_string(_type) );
 }
 
 std::string& Serializer::serialize(std::string &_result, std::shared_ptr<const R::MetaType> _type) const
 {
-    return _result.append(language->getSemantic()->type_to_string(_type) );
+    return _result.append(language->get_semantic()->type_to_string(_type) );
 }
 
 std::string& Serializer::serialize(std::string& _result, const VariableNode* _node) const

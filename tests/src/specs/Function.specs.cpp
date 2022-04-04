@@ -35,8 +35,8 @@ TEST( Function_Signature, match_check_for_arg_count)
     FunctionSignature* single_arg_fct = FunctionSignature::new_instance<bool(bool)>::with_id("fct");
     FunctionSignature* two_arg_fct = FunctionSignature::new_instance<bool(bool, bool)>::with_id("fct");
 
-    EXPECT_EQ(two_arg_fct->match( single_arg_fct ), false);
-    EXPECT_EQ(single_arg_fct->match( two_arg_fct ), false);
+    EXPECT_EQ(two_arg_fct->is_compatible(single_arg_fct), false);
+    EXPECT_EQ(single_arg_fct->is_compatible(two_arg_fct), false);
 }
 
 TEST( Function_Signature, match_check_identifier)
@@ -47,8 +47,8 @@ TEST( Function_Signature, match_check_identifier)
     two_arg_fct_modified->push_arg(R::get_meta_type<double>() );
     two_arg_fct_modified->push_arg(R::get_meta_type<double>() );
 
-    EXPECT_EQ(two_arg_fct->match( two_arg_fct_modified ), false);
-    EXPECT_EQ(two_arg_fct_modified->match( two_arg_fct ), false);
+    EXPECT_EQ(two_arg_fct->is_compatible(two_arg_fct_modified), false);
+    EXPECT_EQ(two_arg_fct_modified->is_compatible(two_arg_fct), false);
 }
 
 TEST( Function_Signature, match_check_absence_of_arg)
@@ -57,8 +57,8 @@ TEST( Function_Signature, match_check_absence_of_arg)
 
     FunctionSignature* two_arg_fct_without_args = FunctionSignature::new_instance<bool()>::with_id("fct");
 
-    EXPECT_EQ(two_arg_fct->match( two_arg_fct_without_args ), false);
-    EXPECT_EQ(two_arg_fct_without_args->match( two_arg_fct ), false);
+    EXPECT_EQ(two_arg_fct->is_compatible(two_arg_fct_without_args), false);
+    EXPECT_EQ(two_arg_fct_without_args->is_compatible(two_arg_fct), false);
 }
 
 TEST( Function_Signature, push_args_template_0)
@@ -69,7 +69,7 @@ TEST( Function_Signature, push_args_template_0)
     using Args = std::tuple<>; // create arg tuple
     fct->push_args<Args>(); // push those args to signature
 
-    EXPECT_EQ(ref->match( fct ), true);
+    EXPECT_EQ(ref->is_compatible(fct), true);
     EXPECT_EQ(fct->get_arg_count(), 0);
 }
 
@@ -80,7 +80,7 @@ TEST( Function_Signature, push_args_template_1)
     auto fct = FunctionSignature::new_instance<bool()>::with_id("fct");
     fct->push_args< std::tuple<double, double> >();
 
-    EXPECT_EQ(ref->match( fct ), true);
+    EXPECT_EQ(ref->is_compatible(fct), true);
     EXPECT_EQ(fct->get_arg_count(), 2);
 }
 
@@ -92,6 +92,6 @@ TEST( Function_Signature, push_args_template_4)
     auto fct = FunctionSignature::new_instance<bool()>::with_id("fct");
     fct->push_args< std::tuple<double, double, double, double> >();
 
-    EXPECT_EQ(ref->match( fct ), true);
+    EXPECT_EQ(ref->is_compatible(fct), true);
     EXPECT_EQ(fct->get_arg_count(), 4);
 }

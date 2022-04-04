@@ -69,13 +69,14 @@ namespace Nodable {
 
         InvokableFunction(FunctionType* _function, const char* _identifier, const char* _label = "")
         {
+            NODABLE_ASSERT(_function)
             m_function  = _function;
             m_signature = FunctionSignature::new_instance<FunctionType>::with_id(_identifier, _label );
         }
 
-        ~InvokableFunction()
+        ~InvokableFunction() override
         {
-            delete m_function;
+            // delete m_function; no need to
             delete m_signature;
         }
 

@@ -21,6 +21,7 @@ namespace Nodable
     class InstructionNode;
     class ForLoopNode;
     class Scope;
+    class Operator;
 
     class Serializer
     {
@@ -29,6 +30,7 @@ namespace Nodable
         explicit Serializer(const Language* _language): language(_language) {};
         ~Serializer() = default;
 
+        std::string& serialize(std::string &_result, const Operator*) const;
         std::string& serialize(std::string &_result, const InvokableComponent*) const;
         std::string& serialize(std::string &_result, const FunctionSignature*, const std::vector<Member*>&)const;
         std::string& serialize(std::string &_result, const FunctionSignature*)const;

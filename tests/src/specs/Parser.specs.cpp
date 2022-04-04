@@ -53,8 +53,8 @@ TEST(Parser, Complex_parenthesis)
     EXPECT_EQ(ParseAndEvalExpression<int>("2+(5*3)"), 2 + (5 * 3));
     EXPECT_EQ(ParseAndEvalExpression<int>("2*(5+3)+2"), 2 * (5 + 3) + 2);
     EXPECT_EQ(ParseAndEvalExpression<int>("(2-(5+3))-2+(1+1)"), (2 - (5 + 3)) - 2 + (1 + 1));
-    EXPECT_EQ(ParseAndEvalExpression<double>("(2 -(5+3 )-2)+9/(1- 0.54)"), (2 - (5 + 3) - 2) + 9 / (1 - 0.54));
-    EXPECT_EQ(ParseAndEvalExpression<double>("1/3"), 1.0 / 3.0);
+    EXPECT_EQ(ParseAndEvalExpression<double>("(2.0 -(5.0+3.0 )-2.0)+9.0/(1.0- 0.54)"), (2.0 - (5.0 + 3.0) - 2.0) + 9.0 / (1.0 - 0.54));
+    EXPECT_EQ(ParseAndEvalExpression<double>("1.0/3.0"), 1.0 / 3.0);
 }
 
 TEST(Parser, unexisting_function)

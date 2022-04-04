@@ -2,8 +2,7 @@
 #include <memory>
 #include <nodable/core/types.h>
 #include <nodable/core/Token.h>
-#include <nodable/core/InvokableFunction.h>
-#include <nodable/core/InvokableOperator.h>
+#include <nodable/core/Component.h>
 
 namespace Nodable
 {

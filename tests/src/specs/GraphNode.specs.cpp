@@ -74,7 +74,7 @@ TEST( GraphNode, clear)
     InstructionNode* instructionNode = graph.create_instr();
 
     FunctionSignature* sig = FunctionSignature::new_instance<int(int, int)>::with_id("operator+");
-    auto ope = language.findOperator( sig );
+    auto ope = language.find_operator_fct(sig);
     delete sig;
     EXPECT_TRUE(ope != nullptr);
     Node* operatorNode = graph.create_operator(ope);
@@ -156,7 +156,7 @@ TEST(Graph, by_reference_assign)
     FunctionSignature signature("operator=");
     signature.set_return_type(R::get_meta_type<double>());
     signature.push_args(R::get_meta_type<double &>(), R::get_meta_type<double>());
-    auto assign = graph.create_operator(language.findOperator(&signature));
+    auto assign = graph.create_operator(language.find_operator_fct(&signature));
     auto op = assign->get<InvokableComponent>();
 
     // connect b and assign

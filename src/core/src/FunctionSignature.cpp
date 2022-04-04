@@ -20,8 +20,34 @@ void FunctionSignature::push_arg(std::shared_ptr<const R::MetaType> _type, std::
     m_args.emplace_back(_type, _name);
 }
 
-bool FunctionSignature::match(const FunctionSignature* _other)const {
+bool FunctionSignature::is_exactly(const FunctionSignature* _other)const
+{
+    bool is_exactly;
 
+    if ( this == _other )
+    {
+        is_exactly = true;
+    }
+    else if ( m_args.size() != _other->m_args.size() || m_identifier != _other->m_identifier )
+    {
+        is_exactly = false;
+    }
+    else
+    {
+        size_t i = 0;
+        is_exactly = true;
+        while( i < m_args.size() && is_exactly )
+        {
+            if ( !m_args[i].m_type->is_exactly( _other->m_args[i].m_type ) )
+                is_exactly = false;
+            i++;
+        }
+    }
+    return is_exactly;
+}
+
+bool FunctionSignature::is_compatible(const FunctionSignature* _other)const
+{
     bool is_matching;
 
     if ( this == _other )
@@ -44,26 +70,6 @@ bool FunctionSignature::match(const FunctionSignature* _other)const {
         }
     }
     return is_matching;
-}
-
-const std::string& FunctionSignature::get_identifier()const
-{
-    return this->m_identifier;
-}
-
-std::vector<FunctionArg> FunctionSignature::get_args() const
-{
-    return this->m_args;
-}
-
-std::shared_ptr<const R::MetaType> FunctionSignature::get_return_type() const
-{
-    return m_return_type;
-}
-
-std::string FunctionSignature::get_label() const
-{
-    return m_label;
 }
 
 bool FunctionSignature::has_an_arg_of_type(std::shared_ptr<const R::MetaType> _type) const

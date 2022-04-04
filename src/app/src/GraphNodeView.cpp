@@ -103,7 +103,7 @@ bool GraphNodeView::draw()
     {
         InstructionNode* instr_node = graph->create_instr();
         std::shared_ptr<Token> token = std::make_shared<Token>(TokenType_EndOfInstruction);
-        m_context->language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
+        m_context->language->get_serializer()->serialize(token->m_suffix, TokenType_EndOfLine);
         instr_node->end_of_instr_token(token);
         return instr_node;
     };
@@ -667,16 +667,16 @@ void GraphNodeView::set_owner(Node *_owner)
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
     auto graphNode = _owner->as<GraphNode>();
     const Language* language = m_context->language;
-    const auto api = m_context->language->getAllFunctions();
+    const auto api = m_context->language->get_api();
 
     for ( auto it = api.cbegin(); it != api.cend(); it++)
     {
         IInvokable* function = *it;
-        auto op = language->findOperator(function->get_signature());
+        auto op = language->find_operator_fct(function->get_signature());
 
         std::string label;
         const FunctionSignature* signature = function->get_signature();
-        language->getSerializer()->serialize(label, signature);
+        language->get_serializer()->serialize(label, signature);
 
         if (op != nullptr )
         {

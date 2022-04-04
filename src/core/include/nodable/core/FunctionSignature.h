@@ -36,13 +36,14 @@ namespace Nodable
         }
 
         bool                           has_an_arg_of_type(std::shared_ptr<const R::MetaType> type)const;
-        bool                           match(const FunctionSignature* _other)const;
-        const std::string&             get_identifier()const;
-        std::vector<FunctionArg>       get_args() const;
+        bool                           is_exactly(const FunctionSignature* _other)const;
+        bool                           is_compatible(const FunctionSignature* _other)const;
+        const std::string&             get_identifier()const { return m_identifier; };
+        const std::vector<FunctionArg>& get_args() const { return m_args;};
         size_t                         get_arg_count() const { return m_args.size(); }
-        std::shared_ptr<const R::MetaType> get_return_type() const;
+        std::shared_ptr<const R::MetaType> get_return_type() const { return m_return_type; }
         void                           set_return_type(std::shared_ptr<const R::MetaType> _type) { m_return_type = _type; };
-        std::string                    get_label() const;
+        std::string                    get_label() const { return m_label; }
 
     private:
         std::string m_label;

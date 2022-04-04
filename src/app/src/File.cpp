@@ -84,7 +84,7 @@ bool File::write_to_disk()
 bool File::update_graph(std::string& _code_source)
 {
     LOG_VERBOSE("File","updating graph ...\n")
-	Parser* parser = m_context->language->getParser();
+	Parser* parser = m_context->language->get_parser();
     m_graph->clear();
 
     auto graphView = m_graph->get<GraphNodeView>();
@@ -139,7 +139,7 @@ bool File::update()
                 LOG_VERBOSE("File","serialize root node\n")
 
                 std::string code;
-                Serializer* serializer = m_context->language->getSerializer();
+                Serializer* serializer = m_context->language->get_serializer();
                 serializer->serialize(code, root_node );
 
                 LOG_VERBOSE("File","replace selected text\n")
