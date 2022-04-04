@@ -53,14 +53,14 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
         {
             if (needs_brackets)
             {
-                serialize(_result, TokenType_OpenBracket);
+                serialize(_result, Token_t::open_bracket);
             }
 
             serialize(_result, member);
 
             if (needs_brackets)
             {
-                serialize(_result, TokenType_CloseBracket);
+                serialize(_result, Token_t::close_bracket);
             }
         };
 
@@ -135,17 +135,19 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
 std::string& Serializer::serialize(std::string& _result, const FunctionSignature*   _signature, const std::vector<Member*>& _args) const
 {
     _result.append(_signature->get_identifier());
-    serialize(_result, TokenType_OpenBracket);
+    serialize(_result, Token_t::open_bracket);
 
-    for (auto it = _args.begin(); it != _args.end(); it++) {
+    for (auto it = _args.begin(); it != _args.end(); it++)
+    {
         serialize(_result, *it);
 
-        if (*it != _args.back()) {
-            serialize(_result, TokenType_Separator);
+        if (*it != _args.back())
+        {
+            serialize(_result, Token_t::separator);
         }
     }
 
-    serialize(_result, TokenType_CloseBracket);
+    serialize(_result, Token_t::close_bracket);
     return _result;
 }
 
@@ -154,24 +156,24 @@ std::string& Serializer::serialize(std::string& _result, const FunctionSignature
     serialize(_result, _signature->get_return_type());
     _result.append(" ");
     _result.append(_signature->get_identifier() );
-    serialize(_result, TokenType_OpenBracket);
+    serialize(_result, Token_t::open_bracket);
 
     auto args = _signature->get_args();
     for (auto it = args.begin(); it != args.end(); it++)
     {
         if (it != args.begin())
         {
-            serialize( _result, TokenType_Separator);
+            serialize( _result, Token_t::separator);
             _result.append(" ");
         }
         serialize(_result, it->m_type);
     }
 
-    serialize(_result, TokenType_CloseBracket );
+    serialize(_result, Token_t::close_bracket );
     return  _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const TokenType& _type) const
+std::string& Serializer::serialize(std::string& _result, const Token_t& _type) const
 {
     return _result.append(language->get_semantic()->token_type_to_string(_type) );
 }
@@ -238,7 +240,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
 
 std::string& Serializer::serialize(std::string& _result, const Variant* variant) const
 {
-    if (variant->get_meta_type()->get_type() == R::Type::String )
+    if (variant->get_meta_type()->get_type() == R::Type::string_t )
     {
         return _result.append('"' + variant->convert_to<std::string>() + '"');
     }
@@ -379,7 +381,7 @@ std::string& Serializer::serialize(std::string& _result, std::shared_ptr<const T
     if ( _token )
     {
         _result.append( _token->m_prefix);
-        if ( _token->m_type == TokenType_Unknown )
+        if ( _token->m_type == Token_t::unknown )
         {
             _result.append( _token->m_word );
         }
@@ -397,7 +399,7 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
 {
 
     serialize( _result, _for_loop->get_token_for() );
-    serialize( _result, TokenType_OpenBracket );
+    serialize( _result, Token_t::open_bracket );
 
     // TODO: I don't like this if/else, should be implicit. Serialize Member* must do it.
     //       More work to do to know if expression is a declaration or not.
@@ -413,7 +415,7 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
     }
     serialize( _result, _for_loop->get_cond_instr() );
     serialize( _result, _for_loop->get_iter_instr() );
-    serialize( _result, TokenType_CloseBracket );
+    serialize( _result, Token_t::close_bracket );
 
     // if scope
     if ( auto* scope = _for_loop->get_condition_true_scope() )
@@ -428,9 +430,9 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
 {
     // if ( <condition> )
     serialize( _result, _condStruct->get_token_if() );
-    serialize( _result, TokenType_OpenBracket );
+    serialize( _result, Token_t::open_bracket );
     serialize( _result, _condStruct->get_cond_instr() );
-    serialize( _result, TokenType_CloseBracket );
+    serialize( _result, Token_t::close_bracket );
 
     // if scope
     if ( auto* ifScope = _condStruct->get_condition_true_scope() )

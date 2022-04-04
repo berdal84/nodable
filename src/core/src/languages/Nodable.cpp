@@ -21,43 +21,43 @@ LanguageNodable::LanguageNodable()
      */
 
     // ignored
-    m_semantic.insert(std::regex("^(//(.+?)$)"), TokenType_Ignore);      // Single line
-    m_semantic.insert(std::regex("^(/\\*(.+?)\\*/)"), TokenType_Ignore); // Multi line
-    m_semantic.insert("\t", TokenType_Ignore);
-    m_semantic.insert(" ", TokenType_Ignore);
+    m_semantic.insert(std::regex("^(//(.+?)$)")      , Token_t::ignore); // Single line
+    m_semantic.insert(std::regex("^(/\\*(.+?)\\*/)") , Token_t::ignore); // Multi line
+    m_semantic.insert("\t", Token_t::ignore);
+    m_semantic.insert(" ",  Token_t::ignore);
 
     // keywords
-    m_semantic.insert("if", TokenType_KeywordIf);                      // conditional structures
-    m_semantic.insert("else", TokenType_KeywordElse);
-    m_semantic.insert("for", TokenType_KeywordFor);
-    m_semantic.insert("bool", TokenType_KeywordBoolean, Type::Boolean); // types
-    m_semantic.insert("string", TokenType_KeywordString, Type::String);
-    m_semantic.insert("double", TokenType_KeywordDouble, Type::Double);
-    m_semantic.insert("int", TokenType_KeywordInt, Type::Int16);
+    m_semantic.insert("if"     , Token_t::keyword_if);                      // conditional structures
+    m_semantic.insert("else"   , Token_t::keyword_else);
+    m_semantic.insert("for"    , Token_t::keyword_for);
+    m_semantic.insert("bool"   , Token_t::keyword_bool , Type::bool_t); // types
+    m_semantic.insert("string" , Token_t::keyword_string  , Type::string_t);
+    m_semantic.insert("double" , Token_t::keyword_double  , Type::double_t);
+    m_semantic.insert("int"    , Token_t::keyword_int     , Type::i16_t);
 
     // punctuation
-    m_semantic.insert("{", TokenType_BeginScope);
-    m_semantic.insert("}", TokenType_EndScope);
-    m_semantic.insert("(", TokenType_OpenBracket);
-    m_semantic.insert(")", TokenType_CloseBracket);
-    m_semantic.insert(",", TokenType_Separator);
-    m_semantic.insert(";", TokenType_EndOfInstruction);
-    m_semantic.insert(std::string{System::k_end_of_line}, TokenType_EndOfLine);
+    m_semantic.insert("{", Token_t::begin_scope);
+    m_semantic.insert("}", Token_t::end_scope);
+    m_semantic.insert("(", Token_t::open_bracket);
+    m_semantic.insert(")", Token_t::close_bracket);
+    m_semantic.insert(",", Token_t::separator);
+    m_semantic.insert(";", Token_t::end_of_instruction);
+    m_semantic.insert(std::string{System::k_end_of_line}, Token_t::end_of_line);
 
     // literals
-    m_semantic.insert(std::regex("^(true|false)"), TokenType_Literal, Type::Boolean);
-    m_semantic.insert(std::regex(R"(^("[^"]*"))"), TokenType_Literal, Type::String);
-    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)"), TokenType_Literal, Type::Double);
-    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))")           , TokenType_Literal, Type::Int16);
+    m_semantic.insert(std::regex("^(true|false)")                , Token_t::literal, Type::bool_t);
+    m_semantic.insert(std::regex(R"(^("[^"]*"))")                , Token_t::literal, Type::string_t);
+    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal, Type::double_t);
+    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))")           , Token_t::literal, Type::i16_t);
 
     // identifier
-    m_semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType_Identifier);
+    m_semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), Token_t::identifier);
 
     // operators
-    m_semantic.insert("operator", TokenType_KeywordOperator); // 3 chars
-    m_semantic.insert(std::regex("^(<=>)"), TokenType_Operator); // 3 chars
-    m_semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>)|(!=))"), TokenType_Operator); // 2 chars
-    m_semantic.insert(std::regex("^[/+\\-*!=<>]"), TokenType_Operator); // single char
+    m_semantic.insert("operator", Token_t::keyword_operator); // KEYWORD !
+    m_semantic.insert(std::regex("^(<=>)")                           , Token_t::operator_); // 3 chars
+    m_semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>)|(!=))"), Token_t::operator_); // 2 chars
+    m_semantic.insert(std::regex("^[/+\\-*!=<>]")                    , Token_t::operator_); // single char
 
     add( new Operator("-"  , Operator_t::Unary, 5)); // --------- unary (sorted by precedence)
     add( new Operator("!"  , Operator_t::Unary, 5));

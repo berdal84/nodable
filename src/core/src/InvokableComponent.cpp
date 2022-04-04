@@ -14,10 +14,7 @@ InvokableComponent::InvokableComponent(const IInvokable* _invokable)
 {
     NODABLE_ASSERT(_invokable != nullptr); // must be defined !
     m_args.resize(_invokable->get_signature()->get_arg_count(), nullptr );
-    m_source_token = std::make_shared<Token>(
-            TokenType_Identifier,
-            _invokable->get_signature()->get_label(),
-            0 );
+    m_source_token = std::make_shared<Token>(Token_t::identifier, _invokable->get_signature()->get_label(), 0 );
 }
 
 bool InvokableComponent::update()

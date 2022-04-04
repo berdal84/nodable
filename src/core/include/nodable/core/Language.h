@@ -9,7 +9,7 @@
 
 // Nodable
 #include <nodable/core/types.h> // for constants and forward declarations
-#include <nodable/core/TokenType.h>
+#include <nodable/core/Token_t.h>
 #include <nodable/core/reflection/R.h>
 #include <nodable/core/Log.h>
 #include <nodable/core/InvokableFunction.h>

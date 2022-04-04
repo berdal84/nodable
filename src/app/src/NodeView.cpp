@@ -581,7 +581,7 @@ bool NodeView::draw(MemberView* _view )
 
     if ( _view->m_showInput )
     {
-        bool limit_size = member->get_meta_type()->get_type() != R::Type::Boolean;
+        bool limit_size = member->get_meta_type()->get_type() != R::Type::bool_t;
 
         if ( limit_size )
         {
@@ -666,7 +666,7 @@ bool NodeView::draw_input(Member *_member, const char* _label )
         /* Draw the member */
         switch (_member->get_meta_type()->get_type() )
         {
-            case R::Type::Int16:
+            case R::Type::i16_t:
             {
                 auto i16 = (i16_t)*_member;
 
@@ -678,7 +678,7 @@ bool NodeView::draw_input(Member *_member, const char* _label )
                 break;
             }
 
-            case R::Type::Double:
+            case R::Type::double_t:
             {
                 auto d = (double)*_member;
 
@@ -690,7 +690,7 @@ bool NodeView::draw_input(Member *_member, const char* _label )
                 break;
             }
 
-            case R::Type::String:
+            case R::Type::string_t:
             {
                 char str[255];
                 snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
@@ -703,7 +703,7 @@ bool NodeView::draw_input(Member *_member, const char* _label )
                 break;
             }
 
-            case R::Type::Boolean:
+            case R::Type::bool_t:
             {
                 std::string checkBoxLabel = _member->get_name();
 

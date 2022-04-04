@@ -96,14 +96,13 @@ namespace Nodable { namespace R
         return nullptr;
     };
 } // namespace R
+/** declare some correspondence between type and typeenum */
+    R_DECLARE_LINK("double" , double      , Nodable::R::Type::double_t )
+    R_DECLARE_LINK("int"    , i16_t       , Nodable::R::Type::i16_t )
+    R_DECLARE_LINK("string" , std::string , Nodable::R::Type::string_t )
+    R_DECLARE_LINK("bool"   , bool        , Nodable::R::Type::bool_t )
+    R_DECLARE_LINK("void"   , void        , Nodable::R::Type::void_t )
 } // namespace Nodable
 
-/** declare some correspondence between type and typeenum */
-typedef std::string string;
-R_DECLARE_LINK(double          , Nodable::R::Type::Double )
-R_DECLARE_LINK(Nodable::i16_t  , Nodable::R::Type::Int16 )
-R_DECLARE_LINK(string          , Nodable::R::Type::String )
-R_DECLARE_LINK(bool            , Nodable::R::Type::Boolean )
-R_DECLARE_LINK(void            , Nodable::R::Type::Void )
 
 

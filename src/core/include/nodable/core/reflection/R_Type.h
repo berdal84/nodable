@@ -11,11 +11,11 @@ namespace Nodable
          */
         enum class Type : unsigned short int {
             Null = 0,
-            Void,
-            Boolean,
-            Double,
-            Int16,
-            String,
+            void_t,
+            bool_t,
+            double_t,
+            i16_t,
+            string_t,
             Class,
             COUNT
         };
@@ -23,11 +23,11 @@ namespace Nodable
         // reflect the enum
         R_ENUM(Type)
                 R_ENUM_VALUE(Null)
-                R_ENUM_VALUE(Void)
-                R_ENUM_VALUE(Boolean)
-                R_ENUM_VALUE(Int16)
-                R_ENUM_VALUE(Double)
-                R_ENUM_VALUE(String)
+                R_ENUM_VALUE(void_t)
+                R_ENUM_VALUE(bool_t)
+                R_ENUM_VALUE(i16_t)
+                R_ENUM_VALUE(double_t)
+                R_ENUM_VALUE(string_t)
                 R_ENUM_VALUE(Class)
                 R_ENUM_VALUE(COUNT)
         R_ENUM_END

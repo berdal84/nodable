@@ -51,11 +51,11 @@ double Variant::convert_to<double>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::String:  return stod((std::string)m_data);
-        case R::Type::Double:  return m_data.d;
-        case R::Type::Int16:   return double(m_data.i16);
-        case R::Type::Boolean: return double(m_data.b);
-        default:               NODABLE_ASSERT(false) // this case is not handled
+        case R::Type::string_t:  return stod((std::string)m_data);
+        case R::Type::double_t:  return m_data.d;
+        case R::Type::i16_t:     return double(m_data.i16);
+        case R::Type::bool_t:    return double(m_data.b);
+        default:                 NODABLE_ASSERT(false) // this case is not handled
     }
 }
 
@@ -69,10 +69,10 @@ i16_t Variant::convert_to<i16_t>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::String:  return stoi((std::string)m_data);
-        case R::Type::Double:  return i16_t(m_data.d);
-        case R::Type::Int16:   return m_data.i16;
-        case R::Type::Boolean: return i16_t(m_data.b);
+        case R::Type::string_t:  return stoi((std::string)m_data);
+        case R::Type::double_t:  return i16_t(m_data.d);
+        case R::Type::i16_t:   return m_data.i16;
+        case R::Type::bool_t: return i16_t(m_data.b);
         default:               NODABLE_ASSERT(false) // this case is not handled
     }
 }
@@ -87,10 +87,10 @@ bool Variant::convert_to<bool>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::String:  return !((std::string*)m_data.ptr)->empty();
-        case R::Type::Double:  return m_data.d != 0.0;
-        case R::Type::Int16:   return m_data.i16 != 0;
-        case R::Type::Boolean: // pass through
+        case R::Type::string_t:  return !((std::string*)m_data.ptr)->empty();
+        case R::Type::double_t:  return m_data.d != 0.0;
+        case R::Type::i16_t:   return m_data.i16 != 0;
+        case R::Type::bool_t: // pass through
         default:               return m_data.b;
     }
 }
@@ -110,10 +110,10 @@ std::string Variant::convert_to<std::string>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::String:  return *(std::string*)m_data.ptr;
-        case R::Type::Int16:   return std::to_string(m_data.i16);
-        case R::Type::Double:  return String::fmt_double(m_data.d);
-        case R::Type::Boolean: return m_data.b ? "true" : "false";
+        case R::Type::string_t:  return *(std::string*)m_data.ptr;
+        case R::Type::i16_t:   return std::to_string(m_data.i16);
+        case R::Type::double_t:  return String::fmt_double(m_data.d);
+        case R::Type::bool_t: return m_data.b ? "true" : "false";
         case R::Type::Class:   return String::fmt_ptr(m_data.ptr);
         default:               return "<?>";
     }
@@ -185,17 +185,17 @@ void Variant::set_initialized(bool _initialize)
         // Set a default value (this will change the type too)
         switch ( type )
         {
-            case R::Type::String:  m_data.ptr   = new std::string();
+            case R::Type::string_t: m_data.ptr   = new std::string();
                                    m_is_defined = true;              break;
-            case R::Type::Double:  m_data.d     = 0.0;               break;
-            case R::Type::Int16:   m_data.i16   = 0;                 break;
-            case R::Type::Boolean: m_data.b     = false;             break;
-            case R::Type::Void:
+            case R::Type::double_t: m_data.d     = 0.0;               break;
+            case R::Type::i16_t:   m_data.i16   = 0;                 break;
+            case R::Type::bool_t: m_data.b     = false;             break;
+            case R::Type::void_t:
             case R::Type::Class:   m_data.ptr   = nullptr;           break;
             default:               break;
         }
     }
-    else if ( m_is_defined && m_meta_type->get_type() == R::Type::String )
+    else if ( m_is_defined && m_meta_type->get_type() == R::Type::string_t )
     {
         delete (std::string*)m_data.ptr;
     }
@@ -213,11 +213,11 @@ void Variant::set(const Variant& _other)
 
         switch(m_meta_type->get_type())
         {
-            case R::Type::String:  set( *(std::string*)_other.m_data.ptr ); break;
-            case R::Type::Boolean: set( _other.convert_to<bool>() ); break;
-            case R::Type::Double:  set( _other.convert_to<double>() ); break;
-            case R::Type::Int16:   set( _other.convert_to<i16_t>() ); break;
-            case R::Type::Void:
+            case R::Type::string_t:  set(*(std::string*)_other.m_data.ptr ); break;
+            case R::Type::bool_t: set(_other.convert_to<bool>() ); break;
+            case R::Type::double_t:  set(_other.convert_to<double>() ); break;
+            case R::Type::i16_t:   set( _other.convert_to<i16_t>() ); break;
+            case R::Type::void_t:
             case R::Type::Class:   set( _other.m_data.ptr); break;
             default: NODABLE_ASSERT(false) // not handled.
         }
@@ -226,11 +226,11 @@ void Variant::set(const Variant& _other)
 
     switch(m_meta_type->get_type())
     {
-        case R::Type::String:  set( *(std::string*)_other.m_data.ptr ); break;
-        case R::Type::Boolean: set( _other.m_data.b); break;
-        case R::Type::Double:  set( _other.m_data.d); break;
-        case R::Type::Int16:   set( _other.m_data.i16); break;
-        case R::Type::Void:
+        case R::Type::string_t:  set(*(std::string*)_other.m_data.ptr ); break;
+        case R::Type::bool_t: set(_other.m_data.b); break;
+        case R::Type::double_t:  set(_other.m_data.d); break;
+        case R::Type::i16_t:   set( _other.m_data.i16); break;
+        case R::Type::void_t:
         case R::Type::Class:   set( _other.m_data.ptr); break;
         default: NODABLE_ASSERT(false) // not handled.
     }

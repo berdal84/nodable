@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nodable/core/TokenType.h>
+#include <nodable/core/Token_t.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -11,14 +11,14 @@ namespace Nodable
 	struct Token
 	{
 	    size_t      m_index;
-		TokenType   m_type;
+		Token_t     m_type;
 		std::string m_word;
 		size_t      m_charIndex; // the index of the first character of the token in the evaluated expression.
         std::string m_prefix; // additional text only useful for layout (spaces, tabs, new line, etc.)
         std::string m_suffix; // additional text only useful for layout (spaces, tabs, new line, etc.)
 
-        Token(TokenType _type = TokenType_Default): Token(_type, "", 0) {}
-		Token(TokenType _type, const std::string& _word, size_t _char_index):
+        Token(Token_t _type = Token_t::default_): Token(_type, "", 0) {}
+		Token(Token_t _type, const std::string& _word, size_t _char_index):
                 m_type(_type),
                 m_word(_word),
                 m_index(0),
@@ -28,7 +28,7 @@ namespace Nodable
         void clear()
         {
             m_index = 0;
-            m_type = TokenType_Default;
+            m_type = Token_t::default_;
             m_word.clear();
             m_charIndex = 0;
             m_prefix.clear();
@@ -39,12 +39,12 @@ namespace Nodable
 
         bool isOperand()
         {
-            return m_type == TokenType_Literal || m_type == TokenType_Identifier;
+            return m_type == Token_t::literal || m_type == Token_t::identifier;
         }
 
         bool isTypeKeyword()
         {
-            return m_type == TokenType_KeywordDouble || m_type == TokenType_KeywordBoolean || m_type == TokenType_KeywordString;
+            return m_type == Token_t::keyword_double || m_type == Token_t::keyword_bool || m_type == Token_t::keyword_string;
         }
 
     };

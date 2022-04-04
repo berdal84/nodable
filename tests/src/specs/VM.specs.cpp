@@ -20,7 +20,7 @@ TEST(VM, Cond_1 )
             "{"
             "   val = false;"
             "}"
-            "val;"; // return-like
+            "return(val);";
 
     EXPECT_EQ( ParseAndEvalExpression<bool>(program), true );
 }
@@ -39,7 +39,7 @@ TEST(VM, Cond_2 )
             "{"
             "   val = \"false\";"
             "}"
-            "val;"; // return-like
+            "return(val);";
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "default" );
 }
@@ -52,7 +52,7 @@ TEST(VM, Loop_1_using_global_var )
             "{"
             "   res = res + to_string(n);"
             "}"
-            "res;";
+            "return(val);";
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "0123456789" );
 }
@@ -69,7 +69,7 @@ TEST(VM, Loop_1_using_local_var )
             "   res = res + tmp;"
             "   print(\"C: \" + n);"
             "}"
-            "res;";
+            "return(val);";
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "0123456789" );
 }
@@ -92,7 +92,8 @@ TEST(VM, Loop_2_using_global_var )
             "      res = res + \"_\"; /* concat \"_\" */"
             "   }"
             "}"
-            "res;";
+            "return(res);";
+
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "__49162536496481" );
 }
@@ -113,7 +114,7 @@ TEST(VM, Loop_2_using_local_var )
             "      res = res + \"_\"; /* concat \"_\" */"
             "   }"
             "}"
-            "res;";
+            "return(res);";
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "__49162536496481" );
 }
@@ -126,7 +127,7 @@ std::string program =
         "{"
         "   score= i*2;"
         "}"
-        "score;";
+        "return(score);";
 EXPECT_EQ(ParseAndEvalExpression<double>(program), 9*2);
 }
 
@@ -138,7 +139,7 @@ TEST(VM, For_loop_with_var_decl)
             "{"
             "   score = score*2;"
             "}"
-            "score;";
+            "return(score);";
     EXPECT_EQ(ParseAndEvalExpression<double>(program), 1 * pow(2, 10) );
 }
 
@@ -146,7 +147,7 @@ TEST(VM, declare_then_define ) {
     std::string program_01 =
             "int b;"
             "b = 5;"
-            "b;";
+            "return(b);";
     EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
 }
 
@@ -154,7 +155,7 @@ TEST(VM, declare_and_define_then_reassign ) {
     std::string program_01 =
             "int b = 6;"
             "b = 5;"
-            "b;";
+            "return(b);";
     EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
 }
 
@@ -163,7 +164,7 @@ TEST(VM, declare_then_define_then_reassign ) {
             "int b;"
             "b = 6;"
             "b = 5;"
-            "b;";
+            "return(b);";
     EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
 }
 
@@ -176,7 +177,7 @@ TEST(VM, condition_which_contains_alterated_var ) {
             "{"
             "  res=\"error\";"
             "}"
-            "res;";
+            "return(res);";
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "ok");
 }
 

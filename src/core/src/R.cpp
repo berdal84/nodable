@@ -64,7 +64,7 @@ bool MetaType::is_implicitly_convertible(MetaType_const_ptr _left, MetaType_cons
 
     switch( _left->get_type() )
     {
-        case Type::Int16: return _right->get_type() == Type::Double;
+        case Type::i16_t:  return _right->get_type() == Type::double_t;
         default:           return false;
     }
 

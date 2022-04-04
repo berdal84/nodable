@@ -16,6 +16,7 @@
 #include <nodable/app/NodeConnector.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/InstructionNode.h>
+#include <nodable/core/System.h>
 
 using namespace Nodable;
 using namespace Nodable::assembly;
@@ -102,8 +103,8 @@ bool GraphNodeView::draw()
     auto create_instr = [&]( Scope* _scope ) -> InstructionNode*
     {
         InstructionNode* instr_node = graph->create_instr();
-        std::shared_ptr<Token> token = std::make_shared<Token>(TokenType_EndOfInstruction);
-        m_context->language->get_serializer()->serialize(token->m_suffix, TokenType_EndOfLine);
+        std::shared_ptr<Token> token = std::make_shared<Token>(Token_t::end_of_instruction);
+        token->m_suffix = System::k_end_of_line;
         instr_node->end_of_instr_token(token);
         return instr_node;
     };
@@ -116,7 +117,7 @@ bool GraphNodeView::draw()
         var_node = graph->create_variable(_type, _name, scope );
 
         std::shared_ptr<Token> token  = std::make_shared<Token>();
-        token->m_type = TokenType_Operator;
+        token->m_type = Token_t::keyword_operator;
         token->m_prefix  = " ";
         token->m_suffix  = " ";
         token->m_word    = "=";

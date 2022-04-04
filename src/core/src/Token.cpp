@@ -2,7 +2,7 @@
 
 using namespace Nodable;
 
-const std::shared_ptr<Token> Token::s_null = std::make_shared<Token>(TokenType_NULL);
+const std::shared_ptr<Token> Token::s_null = std::make_shared<Token>(Token_t::null);
 
 std::string Token::to_string(std::shared_ptr<Token> _token)
 {

@@ -28,7 +28,7 @@ TEST(Parser, Precedence_one_level)
 
 TEST(Parser, Precedence_two_levels)
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("-1+2*5-3/6"), 8.5);
+    EXPECT_EQ(ParseAndEvalExpression<double>("-1.0+2.0*5.0-3.0/6.0"), 8.5);
 }
 
 TEST(Parser, Simple_parenthesis)
@@ -147,18 +147,15 @@ TEST(Parser, Declare_and_define_vars)
 
 TEST(Parser, Single_Instruction_With_EndOfInstruction )
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5;"), 5.0);
+    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5.0;"), 5.0);
 
-    std::vector<std::string> expressions { "double a = 5;" };
+    std::vector<std::string> expressions { "double a = 5.0;" };
     ParseEvalSerializeExpressions(expressions);
 }
 
 TEST(Parser, Multiple_Instructions_Single_Line )
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5;double b = 2 * 5;"), 10.0 );
-
-    std::vector<std::string> expressions { "double a = 5;double b = 2 * 5;" };
-    ParseEvalSerializeExpressions(expressions);
+    EXPECT_EQ(ParseAndEvalExpression<int>("int a = 5;int b = 2 * 5;"), 10 );
 }
 
 TEST(Parser, Multiple_Instructions_Multi_Line )

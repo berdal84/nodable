@@ -1,6 +1,6 @@
 #include <nodable/core/TokenRibbon.h>
 
-#include <nodable/core/TokenType.h>
+#include <nodable/core/Token_t.h>
 #include <nodable/core/Token.h>
 #include <nodable/core/Log.h>
 #include <nodable/core/assertions.h>
@@ -22,7 +22,7 @@ std::shared_ptr<Token> TokenRibbon::push(std::shared_ptr<Token> _token)
     return tokens.back();
 }
 
-std::shared_ptr<Token> TokenRibbon::push(TokenType  _type, const std::string& _string, size_t _charIndex )
+std::shared_ptr<Token> TokenRibbon::push(Token_t  _type, const std::string& _string, size_t _charIndex )
 {
     std::shared_ptr<Token> token = std::make_shared<Token>(_type, _string, _charIndex);
     token->m_index = tokens.size();
@@ -81,7 +81,7 @@ std::string TokenRibbon::toString()const
     return result;
 }
 
-std::shared_ptr<Token> TokenRibbon::eatToken(TokenType expectedType)
+std::shared_ptr<Token> TokenRibbon::eatToken(Token_t expectedType)
 {
     if ( canEat() && peekToken()->m_type == expectedType )
     {

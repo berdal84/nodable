@@ -16,8 +16,8 @@ TEST( Function_Signature, push_single_arg)
 {
     FunctionSignature* single_arg_fct = FunctionSignature::new_instance<bool(double)>::with_id("fct");
     EXPECT_EQ(single_arg_fct->get_arg_count(), 1);
-    EXPECT_EQ(single_arg_fct->get_return_type()->get_type(), Type::Boolean);
-    EXPECT_EQ(single_arg_fct->get_args().at(0).m_type->get_type(), Type::Double);
+    EXPECT_EQ(single_arg_fct->get_return_type()->get_type(), Type::bool_t);
+    EXPECT_EQ(single_arg_fct->get_args().at(0).m_type->get_type(), Type::double_t);
 }
 
 TEST( Function_Signature, push_two_args)
@@ -25,9 +25,9 @@ TEST( Function_Signature, push_two_args)
     auto two_arg_fct = FunctionSignature::new_instance<bool(double, double)>::with_id("fct");
 
     EXPECT_EQ(two_arg_fct->get_arg_count(), 2);
-    EXPECT_EQ(two_arg_fct->get_return_type()->get_type(), Type::Boolean);
-    EXPECT_EQ(two_arg_fct->get_args().at(0).m_type->get_type(), Type::Double);
-    EXPECT_EQ(two_arg_fct->get_args().at(1).m_type->get_type(), Type::Double);
+    EXPECT_EQ(two_arg_fct->get_return_type()->get_type(), Type::bool_t);
+    EXPECT_EQ(two_arg_fct->get_args().at(0).m_type->get_type(), Type::double_t);
+    EXPECT_EQ(two_arg_fct->get_args().at(1).m_type->get_type(), Type::double_t);
 }
 
 TEST( Function_Signature, match_check_for_arg_count)

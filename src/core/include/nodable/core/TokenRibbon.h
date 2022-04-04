@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <stack>
-#include <nodable/core/TokenType.h>
+#include <nodable/core/Token_t.h>
 #include <memory> // for std::shared_ptr
 
 namespace Nodable
@@ -29,13 +29,13 @@ namespace Nodable
         std::shared_ptr<Token> push(std::shared_ptr<Token>);
 
         /** Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
-        [[nodiscard]] std::shared_ptr<Token> push(TokenType _type, const std::string& _string, size_t _charIndex);
+        [[nodiscard]] std::shared_ptr<Token> push(Token_t _type, const std::string& _string, size_t _charIndex);
 
         /** Get current token and increment cursor */
         std::shared_ptr<Token> eatToken();
 
         /** Get current token and increment cursor ONLY if token type is expected */
-        std::shared_ptr<Token> eatToken(TokenType);
+        std::shared_ptr<Token> eatToken(Token_t);
 
         /** Start a transaction by saving the current cursor position in a stack
          * Multiple transaction can be stacked */

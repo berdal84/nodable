@@ -136,25 +136,25 @@ bool VM::_stepOver()
 
             switch( next_instr->uref.qword_type )
             {
-                case R::Type::Boolean:
+                case R::Type::bool_t:
                 {
                     LOG_VERBOSE("VM", "value dereferenced: %b\n", qword.b);
                     break;
                 }
 
-                case R::Type::Double:
+                case R::Type::double_t:
                 {
                     LOG_VERBOSE("VM", "value dereferenced: %d\n", qword.d );
                     break;
                 }
 
-                case R::Type::Int16:
+                case R::Type::i16_t:
                 {
                     LOG_VERBOSE("VM", "value dereferenced: %i\n", qword.i16 );
                     break;
                 }
 
-                case R::Type::String:
+                case R::Type::string_t:
                 {
                     LOG_VERBOSE("VM", "pointed string: %s\n", ((std::string*)qword.ptr)->c_str() );
                     break;
