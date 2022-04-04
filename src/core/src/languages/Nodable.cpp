@@ -47,8 +47,8 @@ LanguageNodable::LanguageNodable()
     // literals
     m_semantic.insert(std::regex("^(true|false)")                , Token_t::literal, Type::bool_t);
     m_semantic.insert(std::regex(R"(^("[^"]*"))")                , Token_t::literal, Type::string_t);
-    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))")           , Token_t::literal, Type::i16_t);
     m_semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal, Type::double_t);
+    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))")           , Token_t::literal, Type::i16_t);
 
     // identifier
     m_semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)")    , Token_t::identifier);

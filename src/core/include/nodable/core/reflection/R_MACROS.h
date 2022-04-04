@@ -12,7 +12,7 @@
     struct Nodable::R::type_to_value<T, TYPE> \
     {  \
         using type = T; \
-        static constexpr const char*    name       = #STR; \
+        static constexpr const char*    name       = STR; \
         static constexpr decltype(TYPE) type_v     = TYPE; \
         static constexpr const char*    type_name  = #TYPE;\
         \
