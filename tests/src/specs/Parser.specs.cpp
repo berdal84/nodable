@@ -72,11 +72,11 @@ TEST(Parser, function_call)
 
 TEST(Parser, functionlike_operator_call)
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("operator*(2,2)"), 4.0);
+    EXPECT_EQ(ParseAndEvalExpression<int>("operator*(2,2)"), 4);
     EXPECT_EQ(ParseAndEvalExpression<bool>("operator>(2,2)"), false);
-    EXPECT_EQ(ParseAndEvalExpression<double>("operator-(3,2)"), 1.0);
-    EXPECT_EQ(ParseAndEvalExpression<double>("operator+(2,2)"), 4.0);
-    EXPECT_EQ(ParseAndEvalExpression<double>("operator/(4,2)"), 2.0);
+    EXPECT_EQ(ParseAndEvalExpression<int>("operator-(3,2)"), 1);
+    EXPECT_EQ(ParseAndEvalExpression<int>("operator+(2,2)"), 4);
+    EXPECT_EQ(ParseAndEvalExpression<int>("operator/(4,2)"), 2);
 }
 
 TEST(Parser, imbricated_functions)
@@ -88,7 +88,7 @@ TEST(Parser, imbricated_functions)
 
 TEST(Parser, Successive_assigns)
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("double a; double b; a = b = 5;"), 5.0);
+    EXPECT_EQ(ParseAndEvalExpression<double>("double a; double b; a = b = 5.0;"), 5.0);
 }
 
 TEST(Parser, Strings)
