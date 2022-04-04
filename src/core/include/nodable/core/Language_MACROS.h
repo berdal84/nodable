@@ -5,14 +5,14 @@
 
 /**
 * Wrap a native function with a specific signature.
-* If your function is not polymorphic you can also use WRAP_FUNCTION
+* If your function is not polymorphic you can also use BIND_FUNCTION
 *
 * ex: Same functions with two different signatures:
 *
-*  POLYFUNC( sin, double(double) )
-*  POLYFUNC( sin, double(float) )
+*  BIND_FUNCTION_T( sin, double(double) )
+*  BIND_FUNCTION_T( sin, double(float) )
 */
-#define POLYFUNC( function, function_type ) \
+#define BIND_FUNCTION_T( function, function_type ) \
     { \
         std::string identifier = #function; \
         sanitize_function_identifier( identifier );\
@@ -22,14 +22,14 @@
 
 /**
 * Wrap a native function with a specific signature as an operator.
-* If your function is not polymorphic you can also use OPER
+* If your function is not polymorphic you can also use BIND_OPERATOR
 *
 * ex: Same function name with different label and signatures:
  *
-*  POLYOPER( add, "+", "+ Add", double(double, double) )
-*  POLYOPER( add, "+", "Cat.", std::string(std::string, double) )
+*  BIND_OPERATOR_T( add, "+", double(double, double) )
+*  BIND_OPERATOR_T( add, "+", std::string(std::string, double) )
 */
-#define POLYOPER( function, identifier, function_type ) \
+#define BIND_OPERATOR_T( function, identifier, function_type ) \
     { \
         std::string function_identifier = identifier; \
         sanitize_operator_fct_identifier( function_identifier );\
@@ -42,13 +42,13 @@
 /**
 * Wrap a native non-polymorphic function.
 *
-* ex: FUNC( my_unique_name_function )
+* ex: BIND_FUNCTION( my_unique_name_function )
 */
-#define FUNC( function ) POLYFUNC( function, decltype(function))
+#define BIND_FUNCTION( function ) BIND_FUNCTION_T( function, decltype(function))
 
 /**
 * Wrap a native non-polymorphic function.
 *
-* ex: WRAP_OPERATOR( my_unique_name_function, "+", "+ Add")
+* ex: BIND_OPERATOR( my_unique_name_function, "+")
 */
-#define OPER( function, identifier ) POLYOPER( function, identifier, decltype(function) )
+#define BIND_OPERATOR( function, identifier ) BIND_OPERATOR_T( function, identifier, decltype(function) )
