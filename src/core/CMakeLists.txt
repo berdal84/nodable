@@ -42,7 +42,7 @@ add_library(
         src/Scope.cpp
         src/Semantic.cpp
         src/Serializer.cpp
-        src/Format.cpp
+        src/String.cpp
         src/System.cpp
         src/Token.cpp
         src/TokenRibbon.cpp
