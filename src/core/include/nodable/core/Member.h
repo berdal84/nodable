@@ -33,7 +33,7 @@ namespace Nodable
     public:
         template<typename T>
         explicit Member(Properties* _parent_properties, T* _value): Member(_parent_properties) { m_variant.set(_value); };
-        explicit Member(Properties*);
+        explicit Member(Properties* = nullptr);
         explicit Member(Properties*, const std::string&);
         explicit Member(Properties*, int);
         explicit Member(Properties*, bool);
@@ -57,7 +57,7 @@ namespace Nodable
 		void set(double);
         void set(const char*);
         void set(bool);
-		void set(int val) { set((double)val); }
+		void set(i16_t);
 		void set(const std::string& _val) { set(_val.c_str());}
 		template<typename T> void set_meta_type() { get_variant().define_type<T>(); }
 		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }

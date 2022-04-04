@@ -82,6 +82,11 @@ void Member::set(bool _value)
     get_variant().set(_value);
 }
 
+void Member::set(i16_t _value)
+{
+    get_variant().set(_value);
+}
+
 void Member::set_src_token(const std::shared_ptr<Token> _token)
 {
     if ( _token )

@@ -223,7 +223,7 @@ std::string& Serializer::serialize(std::string& _result, const Variant* variant)
 
 std::string& Serializer::serialize(std::string& _result, const Member * _member, bool followConnections) const
 {
-    if (_member->get_meta_type()->is( R::get_meta_type<Node*>()))
+    if (_member->get_meta_type()->is_exactly( R::get_meta_type<Node*>()))
     {
         if(_member->get_data()->is_initialized())
         {

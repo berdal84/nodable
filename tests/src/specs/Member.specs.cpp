@@ -66,9 +66,9 @@ TEST(Member, Type_Boolean)
 
 TEST(Member, Type_String)
 {
-    Member m(nullptr);
-    m.set("Hello world !");
+    Member m;
     const std::string str = "Hello world !";
+    m.set(str);
 
     EXPECT_EQ((std::string)m, str);
     EXPECT_TRUE(m.convert_to<bool>());

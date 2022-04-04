@@ -666,13 +666,25 @@ bool NodeView::draw_input(Member *_member, const char* _label )
         /* Draw the member */
         switch (_member->get_meta_type()->get_type() )
         {
+            case R::Type::Int16:
+            {
+                auto i16 = (i16_t)*_member;
+
+                if (ImGui::InputInt(label.c_str(), &i16, 0, 0, inputFlags ) && !_member->has_input_connected())
+                {
+                    _member->set(i16);
+                    edited |= true;
+                }
+                break;
+            }
+
             case R::Type::Double:
             {
-                auto f = (double)*_member;
+                auto d = (double)*_member;
 
-                if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->has_input_connected())
+                if (ImGui::InputDouble(label.c_str(), &d, 0.0F, 0.0F, "%g", inputFlags ) && !_member->has_input_connected())
                 {
-                    _member->set(f);
+                    _member->set(d);
                     edited |= true;
                 }
                 break;

@@ -73,7 +73,9 @@ TEST( GraphNode, clear)
     GraphNode graph(&language, &factory,  &autocompletion);
     InstructionNode* instructionNode = graph.create_instr();
 
-    auto ope = language.findOperator("+");
+    FunctionSignature* sig = FunctionSignature::new_instance<int(int, int)>::with_id("operator+");
+    auto ope = language.findOperator( sig );
+    delete sig;
     EXPECT_TRUE(ope != nullptr);
     Node* operatorNode = graph.create_operator(ope);
     auto props = operatorNode->props();

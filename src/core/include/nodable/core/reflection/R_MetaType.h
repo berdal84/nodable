@@ -32,11 +32,11 @@ namespace Nodable
             Qualifier get_qualifier() const { return m_qualifier; }
             bool has_qualifier(Qualifier _other_qualifier) const;
             void add_qualifier(Qualifier _other_qualifier);
-            bool is(const std::shared_ptr<const MetaType>& _other)const;
+            bool is_exactly(const std::shared_ptr<const MetaType>& _other)const;
             template<class T>
-            bool is() const { return is(reflect_type<T>::make_type()); }
+            bool is_exactly() const { return is_exactly(reflect_type<T>::make_type()); }
             template<class T>
-            bool is_not() const { return !is(reflect_type<T>::make_type()); }
+            bool is_not() const { return !is_exactly(reflect_type<T>::make_type()); }
             bool   is_ptr() const;
 
             static bool   is_ptr(const std::shared_ptr<const MetaType>&);
