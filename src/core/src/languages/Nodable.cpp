@@ -30,7 +30,7 @@ LanguageNodable::LanguageNodable()
     m_semantic.insert("if"     , Token_t::keyword_if);                      // conditional structures
     m_semantic.insert("else"   , Token_t::keyword_else);
     m_semantic.insert("for"    , Token_t::keyword_for);
-    m_semantic.insert("bool"   , Token_t::keyword_bool , Type::bool_t); // types
+    m_semantic.insert("bool"   , Token_t::keyword_bool    , Type::bool_t); // types
     m_semantic.insert("string" , Token_t::keyword_string  , Type::string_t);
     m_semantic.insert("double" , Token_t::keyword_double  , Type::double_t);
     m_semantic.insert("int"    , Token_t::keyword_int     , Type::i16_t);
@@ -47,11 +47,11 @@ LanguageNodable::LanguageNodable()
     // literals
     m_semantic.insert(std::regex("^(true|false)")                , Token_t::literal, Type::bool_t);
     m_semantic.insert(std::regex(R"(^("[^"]*"))")                , Token_t::literal, Type::string_t);
-    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal, Type::double_t);
     m_semantic.insert(std::regex("^(0|([1-9][0-9]*))")           , Token_t::literal, Type::i16_t);
+    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal, Type::double_t);
 
     // identifier
-    m_semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), Token_t::identifier);
+    m_semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)")    , Token_t::identifier);
 
     // operators
     m_semantic.insert("operator", Token_t::keyword_operator); // KEYWORD !

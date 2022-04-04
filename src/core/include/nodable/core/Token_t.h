@@ -28,6 +28,8 @@ namespace Nodable {
         keyword_bool,
         keyword_operator,
 
+        type_keywords = keyword_bool | keyword_int | keyword_double | keyword_string,
+
         literal,
         operator_,
         identifier,

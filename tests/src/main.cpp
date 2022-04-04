@@ -9,12 +9,12 @@ int main(int argc, char **argv) {
 
     ::testing::InitGoogleTest(&argc, argv);
 
-    Log::SetVerbosityLevel("Reflect", Verbosity::Message);
-    Log::SetVerbosityLevel("Language", Verbosity::Message);
+    Log::SetVerbosityLevel("Reflect"  , Verbosity::Message);
+    Log::SetVerbosityLevel("Language" , Verbosity::Message);
     Log::SetVerbosityLevel("GraphNode", Verbosity::Message);
-    Log::SetVerbosityLevel("Parser", Verbosity::Message);
-    Log::SetVerbosityLevel("VM", Verbosity::Verbose);
-    Log::SetVerbosityLevel("VM::CPU", Verbosity::Verbose);
+    Log::SetVerbosityLevel("Parser"   , Verbosity::Verbose);
+    Log::SetVerbosityLevel("VM"       , Verbosity::Verbose);
+    Log::SetVerbosityLevel("VM::CPU"  , Verbosity::Verbose);
 
     R::init();
 

@@ -188,7 +188,7 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
 			    if ( m_strict_mode )
                 {
                     LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token->m_word.c_str())
-                 }
+                }
 			    else
                 {
 			        /* when strict mode is OFF, we just create a variable with Any type */
@@ -378,6 +378,7 @@ Member* Parser::parse_atomic_expression()
 
     start_transaction();
     std::shared_ptr<Token> token = m_token_ribbon.eatToken();
+
 	if (token->m_type == Token_t::operator_)
 	{
 		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n")
@@ -1131,16 +1132,16 @@ Member *Parser::parse_variable_declaration()
 
     start_transaction();
 
-    std::shared_ptr<Token> typeTok       = m_token_ribbon.eatToken();
-    std::shared_ptr<Token> identifierTok = m_token_ribbon.eatToken();
+    std::shared_ptr<Token> tok_type       = m_token_ribbon.eatToken();
+    std::shared_ptr<Token> tok_identifier = m_token_ribbon.eatToken();
 
-    if(typeTok->isTypeKeyword() && identifierTok->m_type == Token_t::identifier )
+    if(tok_type->is_keyword_type() && tok_identifier->m_type == Token_t::identifier )
     {
-        R::Type type = m_language->get_semantic()->token_type_to_type(typeTok->m_type);
-        VariableNode* variable = m_graph->create_variable(R::get_meta_type(type), identifierTok->m_word, get_current_scope());
-        variable->set_type_token(typeTok);
-        variable->set_identifier_token(identifierTok);
-        variable->get_value()->set_src_token( std::make_shared<Token>(*identifierTok) );
+        R::Type type = m_language->get_semantic()->token_type_to_type(tok_type->m_type);
+        VariableNode* variable = m_graph->create_variable(R::get_meta_type(type), tok_identifier->m_word, get_current_scope());
+        variable->set_type_token(tok_type);
+        variable->set_identifier_token(tok_identifier);
+        variable->get_value()->set_src_token( std::make_shared<Token>(*tok_identifier) );
 
         // try to parse assignment
         std::shared_ptr<Token> assignmentTok = m_token_ribbon.eatToken(Token_t::operator_);
@@ -1156,7 +1157,7 @@ Member *Parser::parse_variable_declaration()
             }
             else
             {
-                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifierTok->m_word.c_str())
+                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", tok_identifier->m_word.c_str())
                 rollback_transaction();
                 m_graph->destroy(variable);
                 return nullptr;
