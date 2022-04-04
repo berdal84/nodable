@@ -50,7 +50,7 @@ namespace Nodable {
         const IInvokable*               find_function(const FunctionSignature*) const;
         const InvokableOperator*        find_operator_fct(const FunctionSignature*) const;
         const InvokableOperator*        find_operator_fct_exact(const FunctionSignature*) const;
-         const Operator*                find_operator(const std::string& , Operator_t) const;
+        const Operator*                 find_operator(const std::string& , Operator_t) const;
         const Operator*                 find_operator(const std::string& _identifier, const FunctionSignature* _signature) const;
 
         Parser*                         get_parser()const { return m_parser; }

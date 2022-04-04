@@ -279,17 +279,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
                                                                                 _left->get_meta_type(),
                                                                                 right->get_meta_type());
 
-    const InvokableOperator* matching_operator;
-    if ( auto* exact_operator = m_language->find_operator_fct_exact(signature) )
-    {
-        matching_operator = exact_operator;
-        LOG_VERBOSE("Parser", "Exact operator found\n")
-    }
-    else
-    {
-        LOG_VERBOSE("Parser", "No exact operator found, searching alternatives ...\n")
-        matching_operator = m_language->find_operator_fct(signature);
-    }
+    const InvokableOperator* matching_operator = m_language->find_operator_fct(signature);
     delete signature;
 
 	if ( matching_operator )
