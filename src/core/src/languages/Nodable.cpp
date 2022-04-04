@@ -8,6 +8,7 @@
 
 using namespace Nodable;
 using namespace Nodable::R;
+using string = std::string;
 
 LanguageNodable::LanguageNodable()
     :
@@ -58,16 +59,15 @@ LanguageNodable::LanguageNodable()
     m_semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>)|(!=))"), TokenType_Operator); // 2 chars
     m_semantic.insert(std::regex("^[/+\\-*!=<>]"), TokenType_Operator); // single char
 
-    add( new Operator("-"  , Operator_t::Unary, 5));
+    add( new Operator("-"  , Operator_t::Unary, 5)); // --------- unary (sorted by precedence)
     add( new Operator("!"  , Operator_t::Unary, 5));
 
-    add( new Operator("="  , Operator_t::Binary, 0));
+    add( new Operator("/"  , Operator_t::Binary, 20)); // ------- binary (sorted by precedence)
+    add( new Operator("*"  , Operator_t::Binary, 20));
     add( new Operator("+"  , Operator_t::Binary, 10));
     add( new Operator("-"  , Operator_t::Binary, 10));
     add( new Operator("||" , Operator_t::Binary, 10));
     add( new Operator("&&" , Operator_t::Binary, 10));
-    add( new Operator("/"  , Operator_t::Binary, 10));
-    add( new Operator("*"  , Operator_t::Binary, 10));
     add( new Operator(">=" , Operator_t::Binary, 10));
     add( new Operator("<=" , Operator_t::Binary, 10));
     add( new Operator("=>" , Operator_t::Binary, 10));
@@ -76,8 +76,7 @@ LanguageNodable::LanguageNodable()
     add( new Operator("!=" , Operator_t::Binary, 10));
     add( new Operator(">"  , Operator_t::Binary, 10));
     add( new Operator("<"  , Operator_t::Binary, 10));
-
-    using string = std::string;
+    add( new Operator("="  , Operator_t::Binary, 0));
 
     // operator implementations
     POLYOPER(api_add, "+", double(double, i16_t))
@@ -130,8 +129,10 @@ LanguageNodable::LanguageNodable()
 
     POLYOPER(api_assign, "=", string(string & , string))
     POLYOPER(api_assign, "=", bool(bool & , bool))
+    POLYOPER(api_assign, "=", double(double & , i16_t))
     POLYOPER(api_assign, "=", double(double & , double))
     POLYOPER(api_assign, "=", i16_t(i16_t & , i16_t))
+    POLYOPER(api_assign, "=", i16_t(i16_t & , double))
 
     OPER(api_implies, "=>")
 
@@ -167,7 +168,8 @@ LanguageNodable::LanguageNodable()
     POLYFUNC(api_add, double(double, double))
     POLYFUNC(api_minus, double(double, double))
     POLYFUNC(api_multiply, double(double, double))
-    FUNC(api_sqrt)
+    POLYFUNC(api_sqrt, double(double))
+    POLYFUNC(api_sqrt, double(i16_t))
     FUNC(api_not)
     FUNC(api_or)
     FUNC(api_and)
@@ -178,7 +180,6 @@ LanguageNodable::LanguageNodable()
     POLYFUNC(api_pow, double(double, double))
     FUNC(api_secondDegreePolynomial)
     FUNC(api_DNAtoProtein)
-
     POLYFUNC(api_to_string, string(bool))
     POLYFUNC(api_to_string, string(double))
     POLYFUNC(api_to_string, string(i16_t))

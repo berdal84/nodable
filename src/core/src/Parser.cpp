@@ -235,7 +235,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 
     start_transaction();
     std::shared_ptr<Token> operatorToken = m_token_ribbon.eatToken();
-    std::shared_ptr<Token> operandToken = m_token_ribbon.peekToken();
+    std::shared_ptr<Token> operandToken  = m_token_ribbon.peekToken();
 
 	// Structure check
 	const bool isValid = _left != nullptr &&
@@ -248,7 +248,6 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Structure)\n")
 		return nullptr;
 	}
-
 
 	const Operator* ope = m_language->find_operator(operatorToken->m_word, Operator_t::Binary);
     if ( ope == nullptr ) {
@@ -279,12 +278,23 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	const FunctionSignature* signature = m_language->new_bin_operator_signature(nullptr, operatorToken->m_word,
                                                                                 _left->get_meta_type(),
                                                                                 right->get_meta_type());
-	auto matchingOperator = m_language->find_operator_fct(signature);
+
+    const InvokableOperator* matching_operator;
+    if ( auto* exact_operator = m_language->find_operator_fct_exact(signature) )
+    {
+        matching_operator = exact_operator;
+        LOG_VERBOSE("Parser", "Exact operator found\n")
+    }
+    else
+    {
+        LOG_VERBOSE("Parser", "No exact operator found, searching alternatives ...\n")
+        matching_operator = m_language->find_operator_fct(signature);
+    }
     delete signature;
 
-	if ( matchingOperator != nullptr )
+	if ( matching_operator )
 	{
-		auto binOpNode = m_graph->create_bin_op(matchingOperator);
+		auto binOpNode = m_graph->create_bin_op(matching_operator);
         auto computeComponent = binOpNode->get<InvokableComponent>();
         computeComponent->set_source_token(operatorToken);
 
@@ -1138,16 +1148,19 @@ Member *Parser::parse_variable_declaration()
     if(typeTok->isTypeKeyword() && identifierTok->m_type == TokenType_Identifier )
     {
         R::Type type = m_language->get_semantic()->token_type_to_type(typeTok->m_type);
-        VariableNode* variable = m_graph->create_variable(R::get_meta_type(type), identifierTok->m_word, this->get_current_scope());
+        VariableNode* variable = m_graph->create_variable(R::get_meta_type(type), identifierTok->m_word, get_current_scope());
         variable->set_type_token(typeTok);
         variable->set_identifier_token(identifierTok);
-        variable->get_value()->set_src_token( std::make_shared<Token>(*identifierTok) ); // we also pass a copy
+        variable->get_value()->set_src_token( std::make_shared<Token>(*identifierTok) );
 
         // try to parse assignment
         std::shared_ptr<Token> assignmentTok = m_token_ribbon.eatToken(TokenType_Operator);
         if ( assignmentTok && assignmentTok->m_word == "=" )
         {
-            if( auto expression_result = parse_expression() )
+            auto expression_result = parse_expression();
+            if( expression_result &&
+                    R::MetaType::is_implicitly_convertible(  expression_result->get_meta_type()
+                                                           , variable->get_value()->get_meta_type()) )
             {
                 m_graph->connect( expression_result, variable );
                 variable->set_assignment_operator_token(assignmentTok);

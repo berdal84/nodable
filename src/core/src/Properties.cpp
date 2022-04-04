@@ -42,7 +42,7 @@ Member *Properties::get_first_member_with(Way _way, std::shared_ptr<const R::Met
     auto filter = [_way, _type](auto each_pair) -> bool
     {
         Member* each_member = each_pair.second;
-        return R::MetaType::is_convertible(each_member->get_meta_type(), _type)
+        return R::MetaType::is_implicitly_convertible(each_member->get_meta_type(), _type)
                && ( each_member->get_allowed_connection() & _way );
     };
 

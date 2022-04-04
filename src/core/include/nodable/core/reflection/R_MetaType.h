@@ -41,7 +41,7 @@ namespace Nodable
             static bool               is_ref(MetaType_const_ptr);
             static MetaType_ptr       add_ref(MetaType_ptr);
             static MetaType_ptr       add_ptr(MetaType_ptr);
-            static bool               is_convertible(MetaType_const_ptr , MetaType_const_ptr );
+            static bool               is_implicitly_convertible(MetaType_const_ptr _left, MetaType_const_ptr _right);
             static MetaType_const_ptr make_ptr(MetaType_const_ptr _type);
             static MetaType_const_ptr make_ref(MetaType_const_ptr _type);
 

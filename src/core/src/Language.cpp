@@ -37,6 +37,24 @@ const IInvokable* Language::find_function(const FunctionSignature* _signature) c
 	return nullptr;
 }
 
+const InvokableOperator* Language::find_operator_fct_exact(const FunctionSignature* _signature) const
+{
+
+    auto is_exactly = [&](const IInvokable* _invokable)
+    {
+        return _signature->is_exactly(_invokable->get_signature());
+    };
+
+    auto found = std::find_if(m_operator_implems.cbegin(), m_operator_implems.cend(), is_exactly );
+
+    if (found != m_operator_implems.end() )
+    {
+        return static_cast<const InvokableOperator*>(*found);
+    }
+
+    return nullptr;
+}
+
 const InvokableOperator* Language::find_operator_fct(const FunctionSignature* _signature) const
 {
 	
@@ -54,7 +72,6 @@ const InvokableOperator* Language::find_operator_fct(const FunctionSignature* _s
 
 	return nullptr;
 }
-
 
 void Language::add(const IInvokable* _function)
 {

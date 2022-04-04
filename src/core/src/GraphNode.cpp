@@ -272,6 +272,8 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
 {
     Wire* wire         = nullptr;
 
+    NODABLE_ASSERT( R::MetaType::is_implicitly_convertible(_src_member->get_meta_type(), _dst_member->get_meta_type()) );
+
     /*
      * If _from has no owner _to can digest it, no Wire neede in that case.
      */

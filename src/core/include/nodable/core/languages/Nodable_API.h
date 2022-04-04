@@ -42,13 +42,13 @@ double api_sin(double n) { return sin(n); }
 double api_mod(double a, double b) { return fmod(a, b); }
 template<typename T>  T api_pow(T a, T b) { return pow(a, b); }
 double api_secondDegreePolynomial(double a, double x, double b, double y, double c) { return a * x * x + b * y + c;}
-double api_sqrt(double n) { return sqrt(n); }
+template<typename T, typename U> T api_sqrt(U n) { return sqrt(n); }
 std::string api_to_string(i16_t i) { return std::to_string(i); }
 std::string api_to_string(bool b) { return b ? "true" : "false"; }
 std::string api_to_string(double n) { return Format::fmt_no_trail(n); }
 std::string api_to_string(std::string s) { return s; }
 template<typename T> T api_return(T value) { return value; }
-template<typename T> T api_assign(T& a, T b) { return a = b; }
+template<typename T, typename U> T api_assign(T& a, U b) { return a = b; }
 template<typename T> bool api_equals(T a, T b) { return a == b; }
 template<typename T> bool api_not_equals(T a, T b) { return a != b; }
 template<typename T> std::string api_concat(std::string left, T right) { return  left + Nodable::Format::fmt_no_trail(right); }

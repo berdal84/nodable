@@ -47,7 +47,7 @@ MetaType_ptr MetaType::add_ptr(MetaType_ptr left)
     return left;
 }
 
-bool MetaType::is_convertible(MetaType_const_ptr _left, MetaType_const_ptr _right )
+bool MetaType::is_implicitly_convertible(MetaType_const_ptr _left, MetaType_const_ptr _right )
 {
     if(_left == MetaType::s_unknown || _right == MetaType::s_unknown ) // We allow cast to unknown type
     {
@@ -61,7 +61,13 @@ bool MetaType::is_convertible(MetaType_const_ptr _left, MetaType_const_ptr _righ
     {
         return true;
     }
-    return false;
+
+    switch( _left->get_type() )
+    {
+        case Type::Int16: return _right->get_type() == Type::Double;
+        default:           return false;
+    }
+
 }
 
 bool MetaType::is_exactly(MetaType_const_ptr _other) const
