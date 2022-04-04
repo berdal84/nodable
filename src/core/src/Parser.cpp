@@ -832,11 +832,11 @@ Member* Parser::parse_function_call()
         std::shared_ptr<Token> token_2 = m_token_ribbon.eatToken(); // eat a "supposed open bracket>
 
         if (   token_0->m_type == Token_t::identifier
-            && token_0->m_word == m_language->get_semantic()->token_type_to_string(Token_t::operator_ )
+            && token_0->m_word == m_language->get_semantic()->token_type_to_string(Token_t::keyword_operator )
             && token_1->m_type == Token_t::operator_
             && token_2->m_type == Token_t::open_bracket)
         {
-            // ex: "operator" + ">=>
+            // ex: "operator" + "=="
             identifier = token_0->m_word + token_1->m_word;
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
         }
