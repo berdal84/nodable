@@ -6,7 +6,7 @@
 
 using namespace Nodable::R;
 
-std::shared_ptr<MetaType> MetaType::s_unknown = std::make_shared<MetaType>("unknown", Type::Null );
+MetaType_const_ptr MetaType::s_unknown = std::make_shared<MetaType>("unknown", Type::Null );
 
 bool MetaType::has_qualifier(Qualifier _other_qualifier) const
 {
@@ -25,31 +25,29 @@ void MetaType::add_qualifier(Qualifier _other_qualifier)
     m_qualifier = static_cast<Qualifier>( static_cast<T>(m_qualifier) | static_cast<T>(_other_qualifier) );
 }
 
-bool MetaType::is_ptr(const std::shared_ptr<const MetaType>& left)
+bool MetaType::is_ptr(MetaType_const_ptr left)
 {
     return  left->has_qualifier(Qualifier::Pointer);
 }
 
-bool MetaType::is_ref(const std::shared_ptr<const MetaType>& left)
+bool MetaType::is_ref(MetaType_const_ptr left)
 {
     return left->has_qualifier(Qualifier::Ref);
 }
 
-std::shared_ptr<MetaType> MetaType::add_ref(std::shared_ptr<MetaType> left)
+MetaType_ptr MetaType::add_ref(MetaType_ptr left)
 {
     left->add_qualifier(Qualifier::Ref);
     return left;
 }
 
-std::shared_ptr<MetaType> MetaType::add_ptr(std::shared_ptr<MetaType> left)
+MetaType_ptr MetaType::add_ptr(MetaType_ptr left)
 {
     left->add_qualifier(Qualifier::Pointer);
     return left;
 }
 
-bool MetaType::is_convertible(
-        std::shared_ptr<const MetaType> _left,
-        std::shared_ptr<const MetaType> _right )
+bool MetaType::is_convertible(MetaType_const_ptr _left, MetaType_const_ptr _right )
 {
     if(_left == MetaType::s_unknown || _right == MetaType::s_unknown ) // We allow cast to unknown type
     {
@@ -66,7 +64,7 @@ bool MetaType::is_convertible(
     return false;
 }
 
-bool MetaType::is_exactly(const std::shared_ptr<const MetaType> &_other) const
+bool MetaType::is_exactly(MetaType_const_ptr _other) const
 {
     if( !_other) return false;
 
@@ -74,13 +72,13 @@ bool MetaType::is_exactly(const std::shared_ptr<const MetaType> &_other) const
            && m_type == _other->m_type;
 }
 
-std::shared_ptr<const MetaType> MetaType::make_ptr(const std::shared_ptr<const MetaType> &_type)
+MetaType_const_ptr MetaType::make_ptr(MetaType_const_ptr _type)
 {
     auto base_copy = std::make_shared<MetaType>(*_type);
     return add_ptr(base_copy);
 }
 
-std::shared_ptr<const MetaType> MetaType::make_ref(const std::shared_ptr<const MetaType> &_type)
+MetaType_const_ptr MetaType::make_ref(MetaType_const_ptr _type)
 {
     auto base_copy = std::make_shared<MetaType>(*_type);
     return add_ref(base_copy);

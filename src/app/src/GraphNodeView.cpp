@@ -667,11 +667,11 @@ void GraphNodeView::set_owner(Node *_owner)
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
     auto graphNode = _owner->as<GraphNode>();
     const Language* language = m_context->language;
-    const auto api = m_context->language->get_api();
+    const auto functions = m_context->language->get_api();
 
-    for ( auto it = api.cbegin(); it != api.cend(); it++)
+    for (auto it = functions.cbegin(); it != functions.cend(); it++)
     {
-        IInvokable* function = *it;
+        const IInvokable* function = *it;
         auto op = language->find_operator_fct(function->get_signature());
 
         std::string label;
@@ -696,6 +696,6 @@ void GraphNodeView::set_owner(Node *_owner)
 
             add_contextual_menu_item("Functions", label, lambda, signature);
         }
-
     }
+
 }

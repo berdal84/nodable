@@ -107,8 +107,9 @@ R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
 {
     R::Type type = R::Type::Null;
 
-    const std::vector<std::regex>  regex            = m_language->get_semantic()->get_type_regex();
-    const std::vector<R::Type> regex_id_to_type = m_language->get_semantic()->get_type_regex_index_to_type();
+    const Semantic *semantic                    = m_language->get_semantic();
+    const std::vector<std::regex>  regex        = semantic->get_type_regex();
+    const std::vector<R::Type> regex_id_to_type = semantic->get_type_regex_index_to_type();
 
     auto each_regex_it = regex.cbegin();
     while( each_regex_it != regex.cend() && type == R::Type::Null )
@@ -147,7 +148,7 @@ double Parser::parse_double(const std::string &_str)
     return stod(_str);
 }
 
-double Parser::parse_int16(const std::string &_str)
+i16_t Parser::parse_int16(const std::string &_str)
 {
     return stoi(_str);
 }

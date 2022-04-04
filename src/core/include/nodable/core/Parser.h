@@ -59,7 +59,7 @@ namespace Nodable{
         bool                   parse_bool( const std::string& );
         std::string            parse_string( const std::string& );
         double                 parse_double( const std::string& );
-        double                 parse_int16( const std::string& );
+        i16_t                  parse_int16( const std::string& );
 
         /**
 		 * Convert a Token to a Member.

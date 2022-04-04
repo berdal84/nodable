@@ -148,6 +148,12 @@ bool VM::_stepOver()
                     break;
                 }
 
+                case R::Type::Int16:
+                {
+                    LOG_VERBOSE("VM", "value dereferenced: %i\n", qword.i16 );
+                    break;
+                }
+
                 case R::Type::String:
                 {
                     LOG_VERBOSE("VM", "pointed string: %s\n", ((std::string*)qword.ptr)->c_str() );
