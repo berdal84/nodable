@@ -22,10 +22,10 @@ TEST( GraphNode, connect)
     GraphNode graph(&language, &factory, &autocompletion);
 
     auto node1 = graph.create_node();
-    node1->props()->add("output", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
+    node1->props()->add<bool>("output", Visibility::Default, Way_Default);
 
     auto node2  = graph.create_node();
-    node2->props()->add("input", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
+    node2->props()->add<bool>("input", Visibility::Default, Way_Default);
 
     auto wire = graph.connect(
             node1->props()->get("output"),
@@ -44,10 +44,10 @@ TEST( GraphNode, disconnect)
     GraphNode graph(&language, &factory,  &autocompletion);
 
     auto a = graph.create_node();
-    auto output = a->props()->add("output", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
+    auto output = a->props()->add<bool>("output", Visibility::Default, Way_Default);
 
     auto b = graph.create_node();
-    auto input = b->props()->add("input", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
+    auto input = b->props()->add<bool>("input", Visibility::Default, Way_Default);
 
     EXPECT_EQ(graph.get_wire_registry().size(), 0);
     EXPECT_EQ(graph.get_relation_registry().size(), 0);

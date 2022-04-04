@@ -19,6 +19,8 @@ InstructionNode* NodeFactory::new_instr() const
 
 VariableNode* NodeFactory::new_variable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope *_scope) const
 {
+    NODABLE_ASSERT(_type)
+
     // create
     auto* node = new VariableNode(_type);
     node->set_name(_name.c_str());

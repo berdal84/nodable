@@ -25,6 +25,7 @@ bool Properties::has(const Member* _member)
 
 Member* Properties::add(const char* _name, Visibility _visibility, std::shared_ptr<const R::MetaType> _type, Way _flags )
 {
+    NODABLE_ASSERT(_type);
     NODABLE_ASSERT(!has(_name));
 
 	Member* new_member = Member::new_with_meta_type(this, _type);

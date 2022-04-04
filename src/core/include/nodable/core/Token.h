@@ -37,10 +37,6 @@ namespace Nodable
         static std::string to_string(std::shared_ptr<Token> _token);
         static const std::shared_ptr<Token> s_null;
 
-        bool is_keyword_type()
-        {
-            return static_cast<int>(m_type) & static_cast<int>(Token_t::type_keywords);
-        }
-
+        bool is_keyword_type() { return Nodable::is_keyword_type(m_type); }
     };
 }

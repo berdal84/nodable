@@ -153,7 +153,9 @@ void GraphNode::ensure_has_root()
 
 VariableNode* GraphNode::create_variable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope* _scope)
 {
-	auto node = m_factory->new_variable(_type, _name, _scope);
+    NODABLE_ASSERT(_type)
+
+    auto node = m_factory->new_variable(_type, _name, _scope);
     add(node);
 	return node;
 }
