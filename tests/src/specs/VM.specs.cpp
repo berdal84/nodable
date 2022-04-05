@@ -50,7 +50,7 @@ TEST(VM, Loop_1_using_global_var )
             "string str = \"\";" \
             "for(int n=0;n<10;n=n+1)"
             "{"
-            "   str = res + to_string(n);"
+            "   str = str + to_string(n);"
             "}"
             "return(str);";
 
@@ -63,11 +63,8 @@ TEST(VM, Loop_1_using_local_var )
             "string str = \"\";" \
             "for(int n=0; n<10; n=n+1)"
             "{"
-            "   print(\"A: \" + n);"
             "   string tmp = to_string(n);"
-            "   print(\"B: \" + n);"
-            "   res = str + tmp;"
-            "   print(\"C: \" + n);"
+            "   str = str + tmp;"
             "}"
             "return(str);";
 
@@ -85,7 +82,7 @@ TEST(VM, Loop_2_using_global_var )
             "   p = pow(n,2);"
             "   if( p != n )/* skip powers equals to n */"
             "   {"
-            "      str = str + p;     /* concat powers */"
+            "      str = str + to_string(p);     /* concat powers */"
             "   }"
             "   else"
             "   {"
@@ -107,7 +104,7 @@ TEST(VM, Loop_2_using_local_var )
             "   int p = pow(n,2);"
             "   if( p != n ) /* skip powers equals to n */"
             "   {"
-            "      str = str + p;     /* concat powers */"
+            "      str = str + to_string(p);     /* concat powers */"
             "   }"
             "   else"
             "   {"
@@ -125,10 +122,10 @@ std::string program =
         "int score;"
         "for(int i=0; i<10; i=i+1)"
         "{"
-        "   score= i*2;"
+        "   score = i * 2;"
         "}"
         "return(score);";
-EXPECT_EQ(ParseAndEvalExpression<double>(program), 9*2);
+EXPECT_EQ(ParseAndEvalExpression<int>(program), 9*2);
 }
 
 TEST(VM, For_loop_with_var_decl)
@@ -137,7 +134,7 @@ TEST(VM, For_loop_with_var_decl)
             "int score = 1;"
             "for(int i=0; i<10; i=i+1 )"
             "{"
-            "   score = score*2;"
+            "   score = score * 2;"
             "}"
             "return(score);";
     EXPECT_EQ(ParseAndEvalExpression<int>(program), 1 * pow(2, 10) );
