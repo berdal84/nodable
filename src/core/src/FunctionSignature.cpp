@@ -22,59 +22,53 @@ void FunctionSignature::push_arg(std::shared_ptr<const R::MetaType> _type, std::
 
 bool FunctionSignature::is_exactly(const FunctionSignature* _other)const
 {
-    bool is_exactly;
+    if ( this == _other )                        return true;
+    if ( m_args.size() != _other->m_args.size()) return false;
+    if ( m_identifier != _other->m_identifier )  return false;
+    if ( m_args.empty() )                        return true;
 
-    if ( this == _other )
+    size_t i = 0;
+    while( i < m_args.size() )
     {
-        is_exactly = true;
-    }
-    else if ( m_args.size() != _other->m_args.size() || m_identifier != _other->m_identifier )
-    {
-        is_exactly = false;
-    }
-    else
-    {
-        size_t i = 0;
-        is_exactly = true;
-        while( i < m_args.size() && is_exactly )
+        auto &arg_t       = m_args[i].m_type;
+        auto &other_arg_t = _other->m_args[i].m_type;
+
+        if ( !arg_t->is_exactly( other_arg_t ) )
         {
-            if ( !m_args[i].m_type->is_exactly( _other->m_args[i].m_type ) )
-                is_exactly = false;
-            i++;
+            return false;
         }
+        i++;
     }
-    return is_exactly;
+    return true;
 }
 
 bool FunctionSignature::is_compatible(const FunctionSignature* _other)const
 {
-    bool is_matching;
+    if ( this == _other )                        return true;
+    if ( m_args.size() != _other->m_args.size()) return false;
+    if ( m_identifier != _other->m_identifier )  return false;
+    if ( m_args.empty() )                        return true;
 
-    if ( this == _other )
+    size_t i = 0;
+    while( i < m_args.size() )
     {
-        is_matching = true;
-    }
-    else if ( m_args.size() != _other->m_args.size() || m_identifier != _other->m_identifier )
-    {
-        is_matching = false;
-    }
-    else
-    {
-        size_t i = 0;
-        is_matching = true;
-        while( i < m_args.size() && is_matching )
+        auto &arg_t       = m_args[i].m_type;
+        auto &other_arg_t = _other->m_args[i].m_type;
+
+        if ( arg_t->get_type() == other_arg_t->get_type() )
         {
-            auto &arg_t       = m_args[i].m_type;
-            auto &other_arg_t = _other->m_args[i].m_type;
-
-            if ( arg_t->get_type() != other_arg_t->get_type() || arg_t->is_ref() || !R::MetaType::is_implicitly_convertible(arg_t, other_arg_t))
-            {
-                is_matching = false;
-            }
-            i++;
         }
+        else if ( arg_t->is_ref() && R::MetaType::is_implicitly_convertible(arg_t, other_arg_t))
+        {
+        }
+        else
+        {
+            return false;
+        }
+        i++;
     }
-    return is_matching;
+    return true;
+
 }
 
 bool FunctionSignature::has_an_arg_of_type(std::shared_ptr<const R::MetaType> _type) const
