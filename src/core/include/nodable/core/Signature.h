@@ -33,6 +33,8 @@ namespace Nodable
      */
     class Signature
     {
+        using Meta_t = std::shared_ptr<const R::MetaType>;
+
     public:
         enum class Type {
             Function,
@@ -41,7 +43,7 @@ namespace Nodable
 
         Signature(std::string _id);
 
-        Signature(std::string _id, const Operator* _op);
+        Signature(const Operator* _op);
 
         ~Signature() {};
         void                           push_arg(R::MetaType_const_ptr _type);
@@ -63,6 +65,9 @@ namespace Nodable
         void                           set_return_type(R::MetaType_const_ptr _type) { m_return_type = _type; };
         const Operator*                get_operator()const { return m_operator; }
         std::string                    get_label()const;
+        static std::string&            clean_function_id(std::string& _id);
+        static const Signature*        new_operator(Meta_t, const Operator* _op, Meta_t );
+        static const Signature*        new_operator(Meta_t, const Operator* _op, Meta_t , Meta_t );
     private:
         const Operator* m_operator;
         std::string     m_identifier;
@@ -81,15 +86,8 @@ namespace Nodable
         {
             using F = T(Args...);
 
-            static std::string& clean_function_id(std::string& _id)
-            {
-                return _id = regex_replace(_id, std::regex("^api_"), "");
-            }
-
             static Signature* as_function(std::string _id)
             {
-                clean_function_id(_id);
-
                 auto signature = new Signature(_id);
                 signature->set_return_type(R::get_meta_type<T>() );
                 signature->push_args<std::tuple<Args...>>();
@@ -99,12 +97,7 @@ namespace Nodable
             static Signature* as_operator(const Operator* _op)
             {
                 NODABLE_ASSERT(_op);
-
-                std::string id = {_op->identifier};
-                clean_function_id(id);
-                id.insert(0, k_keyword_operator);
-
-                auto signature = new Signature( id, _op);
+                auto signature = new Signature( _op);
                 signature->set_return_type(R::get_meta_type<T>() );
                 signature->push_args<std::tuple<Args...>>();
                 return signature;

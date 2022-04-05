@@ -106,34 +106,6 @@ void Language::add_operator(const char* _id, Operator_t _type, int _precedence)
     m_operators.push_back(op);
 }
 
-const Signature* Language::new_binary_op_signature(
-    Meta_t _type,
-    const Operator* _op,
-    Meta_t _ltype,
-    Meta_t _rtype
-    ) const
-{
-    std::string id = m_semantic.token_type_to_string(Token_t::keyword_operator) + _op->identifier;
-    auto signature = new Signature(id, _op);
-    signature->set_return_type(_type);
-    signature->push_args(_ltype, _rtype);
-
-    return signature;
-}
-
-const Signature* Language::new_unary_op_signature(
-        Meta_t _type,
-        const Operator* _op,
-        Meta_t _ltype) const
-{
-    std::string id = m_semantic.token_type_to_string(Token_t::keyword_operator) + _op->identifier;
-    auto signature = new Signature(id, _op);
-    signature->set_return_type(_type);
-    signature->push_arg(_ltype);
-
-    return signature;
-}
-
 const Operator* Language::find_operator(const std::string& _identifier, Operator_t _type) const
 {
     auto is_exactly = [&](const Operator* op)

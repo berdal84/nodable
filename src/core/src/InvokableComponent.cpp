@@ -38,22 +38,12 @@ bool InvokableComponent::update()
         return var && !var->is_declared();
     };
 
-//    auto not_defined_predicate = [](Member* _member)
-//    {
-//        return _member && !_member->is_defined();
-//    };
-
     /* avoid to invoke if arguments contains an undeclared variable */
     if ( std::find_if(m_args.begin(), m_args.end(), not_declared_predicate) != m_args.end() )
     {
         success = false;
     }
-    /* avoid to invoke if arguments contains an undefined */
-//    else if ( std::find_if(m_args.begin(), m_args.end(), not_defined_predicate ) != m_args.end() )
-//    {
-//        success = false;
-//    }
-    else
+    else if( m_invokable )
     {
         try
         {

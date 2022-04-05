@@ -275,10 +275,10 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const Signature* signature = m_language->new_binary_op_signature(R::MetaType::s_any,
-                                                                     ope,
-                                                                     _left->get_meta_type(),
-                                                                     right->get_meta_type());
+	const Signature* signature = Signature::new_operator(R::MetaType::s_any,
+                                                         ope,
+                                                         _left->get_meta_type(),
+                                                         right->get_meta_type());
 
     const IInvokable* invokable = m_language->find_operator_fct(signature);
 
@@ -347,7 +347,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	// Create a function signature
 
 	const Operator*   ope       = m_language->find_operator(operatorToken->m_word, Operator_t::Unary );
-	const Signature*  sig       = m_language->new_unary_op_signature(R::MetaType::s_any, ope, value->get_meta_type());
+	const Signature*  sig       = Signature::new_operator(R::MetaType::s_any, ope, value->get_meta_type());
 	const IInvokable* invokable = m_language->find_operator_fct(sig);
 
 	InvokableComponent* component;

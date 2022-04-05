@@ -35,7 +35,6 @@ namespace Nodable {
 	 * - etc.
 	 */
 	class Language {
-	    using Meta_t               = std::shared_ptr<const R::MetaType>;
 	    using Operators_t          = std::vector<const Operator*>;
 	    using InvokableFunctions_t = std::vector<const IInvokable*>;
 	public:
@@ -57,8 +56,6 @@ namespace Nodable {
         const Semantic*                 get_semantic()const { return &m_semantic; }
         const InvokableFunctions_t&     get_api()const { return m_functions; }
 
-        const Signature*                new_unary_op_signature(Meta_t , const Operator* _op, Meta_t ) const;
-        const Signature*                new_binary_op_signature(Meta_t, const Operator* _op, Meta_t , Meta_t ) const;
     protected:
         void                            add_invokable(const IInvokable*);
         void                            add_operator(const char* _id, Operator_t _type, int _precedence);
