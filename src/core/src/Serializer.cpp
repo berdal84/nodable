@@ -13,10 +13,11 @@ using namespace Nodable;
 
 std::string& Serializer::serialize(std::string& _result, const InvokableComponent *_component)const
 {
+    const Signature* signature = _component->get_signature();
 
-    if ( !_component->get_signature()->is_operator() )
+    if ( !signature->is_operator() )
     {
-        serialize(_result, _component->get_function()->get_signature(), _component->get_args());
+        serialize(_result, signature, _component->get_args());
     }
     else
     {
@@ -38,69 +39,66 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
 
         Node*            owner = _component->get_owner();
         const MemberVec& args  = _component->get_args();
-        const Signature*   sig = _component->get_signature();
+        const Signature*   sig = signature;
 
         switch (sig->get_arg_count())
         {
-        case 2:
-        {
-            // Get the left and right source operator
-            auto l_handed_operator = owner->get_connected_operator(args[0]);
-            auto r_handed_operator = owner->get_connected_operator(args[1]);
-            // Left part of the expression
+            case 2:
             {
-                // TODO: check parsed brackets for prefix/suffix
-                bool needs_brackets = l_handed_operator &&
-                        l_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence;
+                // Get the left and right source operator
+                auto l_handed_operator = owner->get_connected_operator(args[0]);
+                auto r_handed_operator = owner->get_connected_operator(args[1]);
 
-                serialize_member_with_or_without_brackets(args[0], needs_brackets);
+                // Left part of the expression
+                {
+                    // TODO: check parsed brackets for prefix/suffix
+                    bool needs_brackets = l_handed_operator &&
+                            l_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence;
+
+                    serialize_member_with_or_without_brackets(args[0], needs_brackets);
+                }
+
+                // Operator
+                std::shared_ptr<Token> sourceToken = _component->get_source_token();
+                if (sourceToken)
+                {
+                    _result.append(sourceToken->m_prefix);
+                    _result.append(sourceToken->m_word);
+                    _result.append(sourceToken->m_suffix);
+                }
+                else
+                {
+                    _result.append(sig->get_operator()->identifier);
+                }
+
+                // Right part of the expression
+                {
+                    // TODO: check parsed brackets for prefix/suffix
+                    bool needs_brackets = r_handed_operator && (r_handed_operator->get_signature()->get_arg_count() == 1
+                                         || r_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence );
+
+                    serialize_member_with_or_without_brackets(args[1], needs_brackets);
+                }
+                break;
             }
 
-            // Operator
-            std::shared_ptr<Token> sourceToken = _component->get_source_token();
-            if (sourceToken)
+            case 1:
             {
-                _result.append(sourceToken->m_prefix);
-                _result.append(sourceToken->m_word);
-                _result.append(sourceToken->m_suffix);
-            }
-            else
-            {
+                // operator ( ... innerOperator ... )   ex:   -(a+b)
+
+                // Operator
+                std::shared_ptr<Token> token = _component->get_source_token();
+
+                if (token) _result.append(token->m_prefix);
+
                 _result.append(sig->get_operator()->identifier);
+
+                if (token) _result.append(token->m_suffix);
+
+                auto inner_operator = owner->get_connected_operator(args[0]);
+                serialize_member_with_or_without_brackets(args[0], inner_operator != nullptr);
+                break;
             }
-
-            // Right part of the expression
-            {
-                // TODO: check parsed brackets for prefix/suffix
-                bool needs_brackets = r_handed_operator && (r_handed_operator->get_signature()->get_arg_count() == 1
-                                     || r_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence );
-
-                serialize_member_with_or_without_brackets(args[1], needs_brackets);
-            }
-        }
-
-        case 1:
-        {
-            auto inner_operator = owner->get_connected_operator(args[0]);
-
-            // operator ( ... innerOperator ... )   ex:   -(a+b)
-
-            // Operator
-            std::shared_ptr<Token> sourceToken = _component->get_source_token();
-
-            if (sourceToken) {
-                _result.append(sourceToken->m_prefix);
-            }
-
-            _result.append(sig->get_operator()->identifier);
-
-            if (sourceToken) {
-                _result.append(sourceToken->m_suffix);
-            }
-
-            bool needs_brackets = inner_operator;
-            serialize_member_with_or_without_brackets(args[0], needs_brackets);
-        }
         }
     }
     return _result;
@@ -125,8 +123,8 @@ std::string& Serializer::serialize(std::string& _result, const Signature*   _sig
     return _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const Signature* _signature) const {
-
+std::string& Serializer::serialize(std::string& _result, const Signature* _signature) const
+{
     serialize(_result, _signature->get_return_type());
     _result.append(" ");
     _result.append(_signature->get_identifier() );
