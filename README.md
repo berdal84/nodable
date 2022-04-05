@@ -23,9 +23,9 @@ In Nodable, the textual and nodal points of views are strongly linked, in both w
 - A change to the source code will update the graph.
 - A change to the graph will update the source code.
 
-![](https://www.dalle-cort.fr/wp-content/uploads/2021/11/nodable-1.gif)
+![nodable-01](https://user-images.githubusercontent.com/942052/161857692-97786562-c30c-470c-9e07-62b240a4a222.gif)
 
-![](https://www.dalle-cort.fr/wp-content/uploads/2021/11/nodable-2.gif)
+![nodable-02](https://user-images.githubusercontent.com/942052/161857699-eedb1c42-2b49-4bea-8da7-20f1b522cf73.gif)
 
 More information about this project [on my website](https://www.dalle-cort.fr/category/project/nodable).
 
