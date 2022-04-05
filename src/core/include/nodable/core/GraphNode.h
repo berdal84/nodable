@@ -31,7 +31,7 @@ namespace Nodable
         const std::vector<Wire*>&   get_wire_registry()const {return m_wire_registry;}
         const Language*             get_language()const { return m_language; }
         Node*                       get_root()const { return m_root; }
-        RelationRegistry_t&           get_relation_registry() {return m_relation_registry;}
+        RelationRegistry_t&         get_relation_registry() {return m_relation_registry;}
         bool                        is_empty() const;
         void                        ensure_has_root();
         Node*                       create_root();

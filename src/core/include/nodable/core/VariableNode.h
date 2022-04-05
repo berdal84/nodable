@@ -11,6 +11,9 @@
 
 namespace Nodable
 {
+    // forward decl
+    class InstructionNode;
+
 	/**
 		@brief The role of this class is to wrap a single Member as a Node identifiable with a name.
 
@@ -41,9 +44,12 @@ namespace Nodable
         void             set_declared(bool b = true) { m_is_declared = b; }
         IScope*          get_scope() { return m_scope; }
         void             set_scope(IScope* _scope) { m_scope = _scope; }
+        void             set_declaration_instr(InstructionNode* _instr) { m_declaration_instr = _instr; }
+        const InstructionNode* get_declaration_instr()const { return m_declaration_instr; }
     private:
 	    Member*     m_value;
         bool        m_is_declared;
+        InstructionNode*       m_declaration_instr;
         std::shared_ptr<Token> m_type_token;
         std::shared_ptr<Token> m_assignment_operator_token;
         std::shared_ptr<Token> m_identifier_token;

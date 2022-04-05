@@ -157,8 +157,10 @@ std::string& Serializer::serialize(std::string &_result, std::shared_ptr<const R
 
 std::string& Serializer::serialize(std::string& _result, const VariableNode* _node) const
 {
+    const InstructionNode* decl_instr = _node->get_declaration_instr();
+
     // type
-    if ( _node->is_declared() )
+    if ( decl_instr )
     {
         if ( std::shared_ptr<const Token> type_tok = _node->get_type_token() )
         {
@@ -179,34 +181,36 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
 
     Member* value = _node->get_value();
 
-    auto append_assign_tok  = [&]()
+    if( decl_instr )
     {
-        std::shared_ptr<const Token> assign_tok = _node->get_assignment_operator_token();
-        if (assign_tok )
+        auto append_assign_tok  = [&]()
         {
-            _result.append(assign_tok->m_prefix );
-            _result.append(assign_tok->m_word ); // is "="
-            _result.append(assign_tok->m_suffix );
-        }
-        else
+            std::shared_ptr<const Token> assign_tok = _node->get_assignment_operator_token();
+            if (assign_tok )
+            {
+                _result.append(assign_tok->m_prefix );
+                _result.append(assign_tok->m_word ); // is "="
+                _result.append(assign_tok->m_suffix );
+            }
+            else
+            {
+                _result.append(" = ");
+            }
+        };
+
+        if (value->has_input_connected() )
         {
-            _result.append(" = ");
+            append_assign_tok();
+            serialize(_result, value);
         }
-    };
-
-    if (value->has_input_connected() )
-    {
-        append_assign_tok();
-        serialize(_result, value);
+        else if ( value->get_data()->is_defined() )
+        {
+            append_assign_tok();
+            _result.append(value->get_src_token()->m_prefix);
+            serialize(_result, value->get_data());
+            _result.append(value->get_src_token()->m_suffix);
+        }
     }
-    else if ( value->get_data()->is_defined() )
-    {
-        append_assign_tok();
-        _result.append(value->get_src_token()->m_prefix);
-        serialize(_result, value->get_data());
-        _result.append(value->get_src_token()->m_suffix);
-    }
-
     return _result;
 }
 

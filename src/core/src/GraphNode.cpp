@@ -351,6 +351,15 @@ void GraphNode::remove(Wire* _wire)
 
 void GraphNode::connect(Node* _src, InstructionNode* _dst)
 {
+    // set declaration_instr once
+    if(auto variable = _src->as<VariableNode>())
+    {
+        if( !variable->get_declaration_instr() )
+        {
+            variable->set_declaration_instr(_dst);
+        }
+    }
+
     connect(_src->get_this_member(), _dst->get_root_node_member() );
 }
 
