@@ -105,14 +105,14 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 
 R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
 {
-    R::Type type = R::Type::null_t;
+    R::Type type = R::Type::unknown_t;
 
     const Semantic *semantic                    = m_language->get_semantic();
     const std::vector<std::regex>  regex        = semantic->get_type_regex();
     const std::vector<R::Type> regex_id_to_type = semantic->get_type_regex_index_to_type();
 
     auto each_regex_it = regex.cbegin();
-    while( each_regex_it != regex.cend() && type == R::Type::null_t )
+    while( each_regex_it != regex.cend() && type == R::Type::unknown_t )
     {
         std::smatch sm;
         auto match = std::regex_search(_token->m_word.cbegin(), _token->m_word.cend(), sm, *each_regex_it);
@@ -125,7 +125,7 @@ R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
         each_regex_it++;
     }
 
-    NODABLE_ASSERT(type != R::Type::null_t)
+    NODABLE_ASSERT(type != R::Type::unknown_t)
 
     return type;
 }

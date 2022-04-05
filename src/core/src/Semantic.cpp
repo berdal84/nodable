@@ -11,7 +11,7 @@ Semantic::Semantic()
     m_token_type_to_string.resize(static_cast<size_t>(Token_t::COUNT));
 
     std::fill(m_token_type_to_string.begin(), m_token_type_to_string.end(), std::string{});
-    std::fill(m_token_type_to_type.begin()  , m_token_type_to_type.end()  , R::Type::null_t);
+    std::fill(m_token_type_to_type.begin()  , m_token_type_to_type.end()  , R::Type::unknown_t);
     std::fill(m_type_to_token_type.begin()  , m_type_to_token_type.end()  , Token_t::unknown);
     std::fill(m_type_to_string.begin()      , m_type_to_string.end()      , std::string{});
 }

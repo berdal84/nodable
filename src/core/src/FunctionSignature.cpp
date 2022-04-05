@@ -61,7 +61,7 @@ bool FunctionSignature::is_compatible(const FunctionSignature* _other)const
         else if ( arg_t->is_ref() && R::MetaType::is_implicitly_convertible(arg_t, other_arg_t))
         {
         }
-        else if ( other_arg_t->get_type() == R::Type::null_t)
+        else if ( arg_t->get_type() == R::Type::unknown_t || other_arg_t->get_type() == R::Type::unknown_t)
         {
         }
         else

@@ -6,7 +6,7 @@
 
 using namespace Nodable::R;
 
-MetaType_const_ptr MetaType::s_unknown = std::make_shared<MetaType>("unknown", Type::null_t );
+MetaType_const_ptr MetaType::s_unknown = std::make_shared<MetaType>("unknown", Type::unknown_t );
 
 bool MetaType::has_qualifier(Qualifier _other_qualifier) const
 {
