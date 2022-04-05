@@ -257,7 +257,7 @@ void App::handle_events()
         {
             case EventType::delete_node_action_triggered:
             {
-                if ( selected_view )
+                if ( selected_view && !ImGui::IsAnyItemFocused() )
                 {
                     selected_view->get_owner()->flag_for_deletion();
                 }
