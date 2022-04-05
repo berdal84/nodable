@@ -5,7 +5,7 @@
 #include <memory> // std::shared_ptr
 
 #include <nodable/core/Token_t.h>
-#include <nodable/core/InvokableFunction.h>
+#include <nodable/core/Invokable.h>
 #include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/Token.h>
 #include <nodable/core/reflection/R.h>
@@ -30,10 +30,9 @@ namespace Nodable
         explicit Serializer(const Language* _language): language(_language) {};
         ~Serializer() = default;
 
-        std::string& serialize(std::string &_result, const Operator*) const;
         std::string& serialize(std::string &_result, const InvokableComponent*) const;
-        std::string& serialize(std::string &_result, const FuncSig*, const std::vector<Member*>&)const;
-        std::string& serialize(std::string &_result, const FuncSig*)const;
+        std::string& serialize(std::string &_result, const Signature*, const std::vector<Member*>&)const;
+        std::string& serialize(std::string &_result, const Signature*)const;
         std::string& serialize(std::string &_result, const Token_t&)const;
         std::string& serialize(std::string &_result, std::shared_ptr<const R::MetaType>)const;
         std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;

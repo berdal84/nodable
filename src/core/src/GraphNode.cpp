@@ -160,41 +160,7 @@ VariableNode* GraphNode::create_variable(std::shared_ptr<const R::MetaType> _typ
 	return node;
 }
 
-Node* GraphNode::create_operator(const InvokableOperator* _operator)
-{
-    Node* node = m_factory->new_operator(_operator);
-
-    if ( node )
-    {
-        add(node);
-    }
-
-    return node;
-}
-
-Node* GraphNode::create_bin_op(const InvokableOperator* _operator)
-{
-	Node* node = m_factory->new_binary_op(_operator);
-    add(node);
-	return node;
-}
-
-Node* GraphNode::create_abstract_bin_op(const FuncSig* _signature, const Operator* _operator)
-{
-    Node* node = m_factory->new_abstract_binary_op(_signature, _operator);
-    add(node);
-    return node;
-}
-
-Node* GraphNode::create_unary_op(const InvokableOperator* _operator)
-{
-	Node* node = m_factory->new_unary_op(_operator);
-    add(node);
-
-	return node;
-}
-
-Node* GraphNode::create_abstract_function(const FuncSig* _function)
+Node* GraphNode::create_abstract_function(const Signature* _function)
 {
     Node* node = m_factory->new_abstract_function(_function);
     add(node);

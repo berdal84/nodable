@@ -37,13 +37,16 @@ namespace Nodable
         Node*                       create_root();
         InstructionNode*            create_instr();
 		VariableNode*				create_variable(std::shared_ptr<const R::MetaType>, const std::string&, IScope*);
+
+		template<typename T>
+		VariableNode*				create_variable(const std::string& _name, IScope* _scope)
+        {
+		    return create_variable(R::get_meta_type<T>(), _name, _scope);
+        }
+
 		LiteralNode*                create_literal(std::shared_ptr<const R::MetaType>);
-		Node*                       create_bin_op(const InvokableOperator*);
-		Node*                       create_abstract_bin_op(const FuncSig*, const Operator* _operator);
-		Node*                       create_unary_op(const InvokableOperator*);
-        Node*                       create_operator(const InvokableOperator*);
-		Wire*                       create_wire();
-		Node*                       create_abstract_function(const FuncSig*);
+ 		Wire*                       create_wire();
+		Node*                       create_abstract_function(const Signature*);
 		Node*                       create_function(const IInvokable*);
         Node*                       create_scope();
         ConditionalStructNode*      create_cond_struct();
@@ -79,5 +82,6 @@ namespace Nodable
         R_DERIVED(GraphNode)
         R_EXTENDS(Node)
         R_END
+
     };
 }

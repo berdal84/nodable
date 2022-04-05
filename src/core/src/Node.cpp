@@ -7,7 +7,7 @@
 #include <nodable/core/DataAccess.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/IInvokable.h>
-#include <nodable/core/FuncSig.h>
+#include <nodable/core/Signature.h>
 
 using namespace Nodable;
 using namespace Nodable::R;
@@ -173,11 +173,9 @@ void Node::get_inner_graph(GraphNode *_graph)
     this->m_inner_graph = _graph;
 }
 
-const InvokableOperator* Node::get_connected_operator(const Member *_localMember)
+const IInvokable* Node::get_connected_operator(const Member *_localMember)
 {
     assert(m_props.has(_localMember));
-
-    const InvokableOperator* result{};
 
     /*
      * Find a wire connected to _member
@@ -196,15 +194,14 @@ const InvokableOperator* Node::get_connected_operator(const Member *_localMember
         if ( compute_component )
         {
             const IInvokable* function = compute_component->get_function();
-            if (function->get_signature()->get_type() == FuncSig::Type::Operator )
+            if (function->get_signature()->is_operator() )
             {
-                result = reinterpret_cast<const InvokableOperator*>( function );
+                return function;
             }
         }
     }
 
-    return result;
-
+    return nullptr;
 }
 
 bool Node::has_wire_connected_to(const Member *_localMember)

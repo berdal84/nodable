@@ -1,41 +1,48 @@
-#include <nodable/core/FuncSig.h>
+#include <nodable/core/Signature.h>
 #include <algorithm> // find_if
 #include <nodable/core/constants.h>
+#include <nodable/core/Operator.h>
 
 using namespace Nodable;
 
-FuncSig::FuncSig(Type _type, std::string _identifier, std::string _label) :
-        m_identifier(_identifier),
-        m_type(_type),
-        m_label(_label),
-        m_return_type(R::get_meta_type<void>())
+Signature::Signature(std::string _id)
+    : m_identifier(_id)
+    , m_operator(nullptr)
+    , m_return_type(R::get_meta_type<void>())
 {
-
 }
 
-void FuncSig::push_arg(R::MetaType_const_ptr _type, std::string _name)
+Signature::Signature(std::string _id, const Operator* _operator)
+    : m_identifier(_id)
+    , m_operator(_operator)
+    , m_return_type(R::get_meta_type<void>())
 {
-    if (_name.empty() )
+}
+
+void Signature::push_arg(R::MetaType_const_ptr _type)
+{
+   // create normalised name
+
+   std::string name;
+
+    if( m_operator)
     {
-        if( m_type == FuncSig::Type::Function)
+        switch ( m_args.size() + 1)
         {
-            _name = "arg_" + std::to_string(m_args.size());
+            case 1: name = k_lh_value_member_name; break;
+            case 2: name = k_rh_value_member_name; break;
+            default: NODABLE_ASSERT(false)         break;
         }
-        else
-        {
-            switch ( m_args.size() + 1)
-            {
-                case 1: _name = k_lh_value_member_name; break;
-                case 2: _name = k_rh_value_member_name; break;
-                default: NODABLE_ASSERT(false)          break;
-            }
-        }
-
     }
-    m_args.emplace_back(_type, _name);
+    else
+    {
+        name = k_func_arg_member_name_prefix + std::to_string(m_args.size());
+    }
+
+    m_args.emplace_back(_type, name);
 }
 
-bool FuncSig::is_exactly(const FuncSig* _other)const
+bool Signature::is_exactly(const Signature* _other)const
 {
     if ( this == _other )                        return true;
     if ( m_args.size() != _other->m_args.size()) return false;
@@ -57,7 +64,7 @@ bool FuncSig::is_exactly(const FuncSig* _other)const
     return true;
 }
 
-bool FuncSig::is_compatible(const FuncSig* _other)const
+bool Signature::is_compatible(const Signature* _other)const
 {
     if ( this == _other )                        return true;
     if ( m_args.size() != _other->m_args.size()) return false;
@@ -86,9 +93,18 @@ bool FuncSig::is_compatible(const FuncSig* _other)const
 
 }
 
-bool FuncSig::has_an_arg_of_type(R::MetaType_const_ptr _type) const
+bool Signature::has_an_arg_of_type(R::MetaType_const_ptr _type) const
 {
     auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FuncArg& each) { return each.m_type == _type; } );
     return found != m_args.end();
+}
+
+std::string Signature::get_label() const
+{
+    if( m_operator )
+    {
+        return m_operator->identifier;
+    }
+    return m_identifier;
 }
 

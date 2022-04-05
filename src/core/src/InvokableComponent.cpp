@@ -17,7 +17,7 @@ InvokableComponent::InvokableComponent(const IInvokable* _invokable)
     m_source_token = std::make_shared<Token>(Token_t::identifier, m_signature->get_label(), 0 );
 }
 
-InvokableComponent::InvokableComponent(const FuncSig* _signature)
+InvokableComponent::InvokableComponent(const Signature* _signature)
     : Component()
     , m_result( nullptr )
     , m_signature(_signature)

@@ -3,7 +3,7 @@
 namespace Nodable
 {
     // forward decl
-    class FuncSig;
+    class Signature;
     class Member;
 
     /**
@@ -13,7 +13,7 @@ namespace Nodable
     {
     public:
         virtual ~IInvokable() {};
-        virtual const FuncSig* get_signature() const = 0;
+        virtual const Signature* get_signature() const = 0;
         virtual void           invoke(Member *_result, const std::vector<Member *> &_args) const = 0;
     };
 }

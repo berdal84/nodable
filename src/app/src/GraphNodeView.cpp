@@ -559,7 +559,7 @@ void GraphNodeView::add_contextual_menu_item(
         const std::string &_category,
         const std::string &_label,
         std::function<Node *(void)> _function,
-        const FuncSig *_signature)
+        const Signature *_signature)
 {
 	m_contextual_menus.insert( {_category, {_label, _function, _signature }} );
 }
@@ -676,7 +676,7 @@ void GraphNodeView::set_owner(Node *_owner)
         auto op = language->find_operator_fct(function->get_signature());
 
         std::string label;
-        const FuncSig* signature = function->get_signature();
+        const Signature* signature = function->get_signature();
         language->get_serializer()->serialize(label, signature);
 
         if (op != nullptr )

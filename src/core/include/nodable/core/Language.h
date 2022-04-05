@@ -12,12 +12,12 @@
 #include <nodable/core/Token_t.h>
 #include <nodable/core/reflection/R.h>
 #include <nodable/core/Log.h>
-#include <nodable/core/InvokableFunction.h>
+#include <nodable/core/Invokable.h>
 #include <nodable/core/Semantic.h>
-#include <nodable/core/InvokableOperator.h>
 #include <nodable/core/Language_MACROS.h>
 #include <nodable/core/Serializer.h>
 #include <nodable/core/Parser.h>
+#include "Operator.h"
 
 namespace Nodable {
 
@@ -35,8 +35,8 @@ namespace Nodable {
 	 * - etc.
 	 */
 	class Language {
-	    using Meta_t      = std::shared_ptr<const R::MetaType>;
-	    using Operators_t = std::vector<const Operator*>;
+	    using Meta_t               = std::shared_ptr<const R::MetaType>;
+	    using Operators_t          = std::vector<const Operator*>;
 	    using InvokableFunctions_t = std::vector<const IInvokable*>;
 	public:
 
@@ -47,28 +47,35 @@ namespace Nodable {
 
 		virtual ~Language();
 
-        const IInvokable*               find_function(const FuncSig*) const;
-        const InvokableOperator*        find_operator_fct(const FuncSig*) const;
-        const InvokableOperator*        find_operator_fct_exact(const FuncSig*) const;
+        const IInvokable*               find_function(const Signature*) const;
+        const IInvokable*               find_operator_fct(const Signature*) const;
+        const IInvokable*               find_operator_fct_exact(const Signature*) const;
         const Operator*                 find_operator(const std::string& , Operator_t) const;
-        const Operator*                 find_operator(const std::string& _identifier, const FuncSig* _signature) const;
+
+        template<typename T, typename ...Args>
+        const Operator* find_operator(const std::string& _id) const
+        {
+            size_t argc = sizeof...(Args);
+            switch ( argc )
+            {
+                case 1: return find_operator(_id, Operator_t::Unary);
+                case 2: return find_operator(_id, Operator_t::Binary);
+                   default: NODABLE_ASSERT(false)
+            }
+        }
 
         Parser*                         get_parser()const { return m_parser; }
         Serializer*                     get_serializer()const { return m_serializer; }
         const Semantic*                 get_semantic()const { return &m_semantic; }
         const InvokableFunctions_t&     get_api()const { return m_functions; }
 
-        const FuncSig*                  new_unary_operator_signature(Meta_t , std::string , Meta_t ) const;
-        const FuncSig*                  new_bin_operator_signature(Meta_t, std::string , Meta_t , Meta_t ) const;
+        const Signature*                new_unary_op_signature(Meta_t , const Operator* _op, Meta_t ) const;
+        const Signature*                new_binary_op_signature(Meta_t, const Operator* _op, Meta_t , Meta_t ) const;
 
-        bool                            has_higher_precedence_than(std::pair<const InvokableOperator*, const InvokableOperator*> _operators)const;
-        virtual void                    sanitize_function_identifier( std::string& ) const = 0;
-        virtual void                    sanitize_operator_fct_identifier( std::string& identifier ) const = 0;
 	protected:
-        void                            add(const IInvokable*);
-        void                            add(const Operator*);
-        void                            add(const InvokableOperator*);
-        const InvokableOperator*        find_operator_fct_fallback(const FuncSig*) const;
+        void                            add_invokable(const IInvokable*);
+        void                            add_operator(const char* _id, Operator_t _type, int _precedence);
+        const IInvokable*               find_operator_fct_fallback(const Signature*) const;
 
         Semantic     m_semantic;
         Serializer*  m_serializer;
@@ -76,7 +83,7 @@ namespace Nodable {
 
 	private:
 		std::string m_name;
-		Operators_t m_operators;
+		Operators_t          m_operators;
         InvokableFunctions_t m_operator_implems;
 		InvokableFunctions_t m_functions;
     };

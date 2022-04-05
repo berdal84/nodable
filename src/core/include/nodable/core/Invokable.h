@@ -8,7 +8,7 @@
 #include <nodable/core/reflection/R.h>
 #include <nodable/core/Member.h>
 #include <nodable/core/IInvokable.h>
-#include <nodable/core/FuncSig.h>
+#include <nodable/core/Signature.h>
 
 namespace Nodable {
 
@@ -57,23 +57,35 @@ namespace Nodable {
     }
 
     template<typename T>
-    class InvokableFunction;
+    class Invokable;
 
     /** Generic Invokable Function */
     template<typename T, typename... Args>
-    class InvokableFunction<T(Args...)> : public IInvokable
+    class Invokable<T(Args...)> : public IInvokable
     {
-    public:
         using F = T(Args...);
-
-        InvokableFunction(FuncSig::Type _type, F* _function, const char* _identifier, const char* _label = "")
+        Invokable(F* _function, const Signature* _sig)
+        : m_function(_function)
+        , m_signature(_sig)
         {
             NODABLE_ASSERT(_function)
-            m_function  = _function;
-            m_signature = FuncSig::new_instance<F>::with_id(_type, _identifier, _label );
+            NODABLE_ASSERT(_sig)
+        }
+    public:
+
+        static IInvokable* new_function(F* _function, const char* _id)
+        {
+            Signature* sig = Signature::from_type<F>::as_function(_id);
+            return new Invokable(_function, sig);
         }
 
-        ~InvokableFunction() override
+        static IInvokable* new_operator(F* _function, const Operator* _op)
+        {
+            Signature* sig = Signature::from_type<F>::as_operator(_op);
+            return new Invokable(_function, sig);
+        }
+
+        ~Invokable() override
         {
             // delete m_function; no need to
             delete m_signature;
@@ -90,11 +102,11 @@ namespace Nodable {
                 }
             }
         }
-        const FuncSig*   get_signature() const override { return m_signature; };
+        const Signature*   get_signature() const override { return m_signature; };
 
     private:
-        F*       m_function;
-        FuncSig* m_signature;
+        F*               m_function;
+        const Signature* m_signature;
     };
 
 }

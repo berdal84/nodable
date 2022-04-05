@@ -12,13 +12,10 @@
 *  BIND_FUNCTION_T( sin, double(double) )
 *  BIND_FUNCTION_T( sin, double(float) )
 */
-#define BIND_FUNCTION_T( function, function_type ) \
+#define BIND_FUNCTION_T( func, func_t ) \
     { \
-        std::string identifier = #function; \
-        sanitize_function_identifier( identifier );\
-        const IInvokable* invokable_fct = new InvokableFunction<function_type>(\
-                FuncSig::Type::Function, function, identifier.c_str()); \
-        add( invokable_fct );\
+        auto* invokable = Invokable<func_t>::new_function(func, #func ); \
+        add_invokable( invokable );\
     }
 
 /**
@@ -30,15 +27,11 @@
 *  BIND_OPERATOR_T( add, "+", double(double, double) )
 *  BIND_OPERATOR_T( add, "+", std::string(std::string, double) )
 */
-#define BIND_OPERATOR_T( function, identifier, function_type ) \
+#define BIND_OPERATOR_T( func, id, func_t ) \
     { \
-        std::string function_identifier = identifier; \
-        sanitize_operator_fct_identifier( function_identifier );\
-        const IInvokable* invokable = new InvokableFunction<function_type>(\
-                FuncSig::Type::Operator, function, function_identifier.c_str(), identifier ); \
-        const Operator* op = find_operator(identifier, invokable->get_signature());\
-        const InvokableOperator* invokable_op = new InvokableOperator( op, invokable );\
-        add( invokable_op );\
+        const Operator* op = find_operator<func_t>(id);\
+        auto invokable = Invokable<func_t>::new_operator(func, op ); \
+        add_invokable( invokable );\
     }
 
 /**

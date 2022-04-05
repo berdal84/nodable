@@ -4,6 +4,7 @@
 #include <nodable/core/LiteralNode.h>
 #include <nodable/core/Language.h>
 #include <nodable/core/InvokableComponent.h>
+#include <nodable/core/Operator.h>
 #include <nodable/core/Scope.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
@@ -39,73 +40,7 @@ VariableNode* NodeFactory::new_variable(std::shared_ptr<const R::MetaType> _type
     return node;
 }
 
-Node* NodeFactory::new_operator(const InvokableOperator* _operator) const
-{
-    switch (_operator->get_operator_type() )
-    {
-        case Operator_t::Binary:  return new_binary_op(_operator);
-        case Operator_t::Unary:   return new_unary_op(_operator);
-        default:                  return nullptr;
-    }
-}
-
-Node* NodeFactory::new_binary_op(const InvokableOperator* _invokable_op) const
-{
-    Node* node = _new_abstract_binary_op(_invokable_op->get_signature(), _invokable_op->get_operator());
-    add_invokable_component(node, _invokable_op->get_signature(), _invokable_op);
-
-    m_post_process(node);
-
-    return node;
-}
-
-Node* NodeFactory::_new_abstract_binary_op(const FuncSig* _signature, const Operator* _operator) const
-{
-    // Create a node with 2 inputs and 1 output
-    auto node = new Node();
-    node->set_label(_operator->identifier.c_str());
-    FuncArgs args  = _signature->get_args();
-    Properties*  props = node->props();
-    props->add(args[0].m_name.c_str(), Visibility::Default, args[0].m_type, Way_In);
-    props->add(args[1].m_name.c_str(), Visibility::Default, args[1].m_type, Way_In);
-    props->add(k_value_member_name   , Visibility::Default, _signature->get_return_type(), Way_Out);
-
-    return node;
-}
-
-Node* NodeFactory::new_unary_op(const InvokableOperator* _invokable_op) const
-{
-    // Create a node with 2 inputs and 1 output
-    auto node = new Node();
-
-    node->set_label(_invokable_op->get_short_identifier().c_str());
-
-    const FuncSig* signature = _invokable_op->get_signature();
-    const auto args = signature->get_args();
-    Properties* props = node->props();
-    Member* left = props->add(k_lh_value_member_name, Visibility::Default, args[0].m_type, Way_In);
-    Member* result = props->add(k_value_member_name, Visibility::Default, signature->get_return_type(), Way_Out);
-
-    // Create ComputeBinaryOperation binOpComponent and link values.
-    InvokableComponent* component = new InvokableComponent(_invokable_op );
-    component->set_result(result);
-    component->set_l_handed_val(left);
-    node->add_component(component);
-
-    m_post_process(node);
-
-    return node;
-}
-
-Node* NodeFactory::new_abstract_binary_op(const FuncSig* _signature, const Operator* _operator) const
-{
-    Node* node = _new_abstract_binary_op(_signature, _operator);
-    add_invokable_component(node, _signature, nullptr);
-    m_post_process(node);
-    return node;
-}
-
-Node* NodeFactory::new_abstract_function(const FuncSig* _signature) const
+Node* NodeFactory::new_abstract_function(const Signature* _signature) const
 {
     auto node = _new_abstract_function(_signature);
     add_invokable_component(node, _signature, nullptr);
@@ -113,12 +48,21 @@ Node* NodeFactory::new_abstract_function(const FuncSig* _signature) const
     return node;
 }
 
-Node* NodeFactory::_new_abstract_function(const FuncSig* _signature) const
+Node* NodeFactory::_new_abstract_function(const Signature* _signature) const
 {
-    Node* node              = new Node();
-    std::string label       = _signature->get_identifier() + "()";
-    std::string short_label = _signature->get_label().substr(0, 2) + "..()";
-    node->set_label(label.c_str(), short_label.c_str());
+    Node* node = new Node();
+
+    if( _signature->is_operator() )
+    {
+        node->set_label( _signature->get_operator()->identifier.c_str() );
+    }
+    else
+    {
+        std::string id = _signature->get_identifier();
+        std::string label       = id + "()";
+        std::string short_label = id.substr(0, 2) + "..()"; // ------- improve, not great.
+        node->set_label(label.c_str(), short_label.c_str());
+    }
 
     // Create a result/value
     Properties* props = node->props();
@@ -137,14 +81,14 @@ Node* NodeFactory::_new_abstract_function(const FuncSig* _signature) const
 Node* NodeFactory::new_function(const IInvokable* _function) const
 {
     // Create an abstract function node
-    const FuncSig* signature = _function->get_signature();
+    const Signature* signature = _function->get_signature();
     Node* node = _new_abstract_function(signature);
     add_invokable_component(node, signature, _function);
     m_post_process(node);
     return node;
 }
 
-void NodeFactory::add_invokable_component(Node *_node, const FuncSig* _signature, const IInvokable *_invokable) const
+void NodeFactory::add_invokable_component(Node *_node, const Signature* _signature, const IInvokable *_invokable) const
 {
     Properties* props = _node->props();
 

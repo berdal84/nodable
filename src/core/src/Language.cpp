@@ -2,6 +2,7 @@
 #include <vector>
 #include <nodable/core/Node.h>
 #include <nodable/core/Parser.h>
+#include <nodable/core/Operator.h>
 
 using namespace Nodable;
 
@@ -15,12 +16,7 @@ Language::~Language()
     // for( auto each : m_operator_implems ) delete each; (duplicates from m_functions)
 }
 
-bool  Language::has_higher_precedence_than( std::pair<const InvokableOperator*, const InvokableOperator*> _operators)const
-{
-	return _operators.first->get_precedence() >= _operators.second->get_precedence();
-}
-
-const IInvokable* Language::find_function(const FuncSig* _signature) const
+const IInvokable* Language::find_function(const Signature* _signature) const
 {
 	auto is_compatible = [&](const IInvokable* fct)
     {
@@ -37,7 +33,7 @@ const IInvokable* Language::find_function(const FuncSig* _signature) const
 	return nullptr;
 }
 
-const InvokableOperator* Language::find_operator_fct_exact(const FuncSig* _signature) const
+const IInvokable* Language::find_operator_fct_exact(const Signature* _signature) const
 {
 
     auto is_exactly = [&](const IInvokable* _invokable)
@@ -49,20 +45,20 @@ const InvokableOperator* Language::find_operator_fct_exact(const FuncSig* _signa
 
     if (found != m_operator_implems.end() )
     {
-        return static_cast<const InvokableOperator*>(*found);
+        return *found;
     }
 
     return nullptr;
 }
 
-const InvokableOperator* Language::find_operator_fct(const FuncSig* _signature) const
+const IInvokable* Language::find_operator_fct(const Signature* _signature) const
 {
     auto exact = find_operator_fct_exact(_signature);
     if( !exact) return find_operator_fct_fallback(_signature);
     return exact;
 }
 
-const InvokableOperator* Language::find_operator_fct_fallback(const FuncSig* _signature) const
+const IInvokable* Language::find_operator_fct_fallback(const Signature* _signature) const
 {
 	
 	auto is_compatible = [&](const IInvokable* _invokable)
@@ -74,73 +70,72 @@ const InvokableOperator* Language::find_operator_fct_fallback(const FuncSig* _si
 
 	if (found != m_operator_implems.end() )
     {
-        return static_cast<const InvokableOperator*>(*found);
+        return *found;
     }
 
 	return nullptr;
 }
 
-void Language::add(const IInvokable* _function)
+
+void Language::add_invokable(const IInvokable* _invokable)
 {
-	m_functions.push_back(_function);
 
-	std::string signature;
-    m_serializer->serialize(signature, _function->get_signature() );
-
-	LOG_VERBOSE("Language", "%s add to functions\n", signature.c_str() );
-}
-
-void Language::add(const InvokableOperator* _operator)
-{
-    NODABLE_ASSERT( std::find( m_operators.begin(), m_operators.end(), _operator->get_operator()) != m_operators.end() )
-
-    m_functions.push_back(_operator);
-    m_operator_implems.push_back(_operator);
+    m_functions.push_back(_invokable);
 
     std::string signature;
-    m_serializer->serialize(signature, _operator->get_signature() );
+    m_serializer->serialize(signature, _invokable->get_signature() );
 
-    LOG_VERBOSE("Language", "%s added to functions and operator implementations\n", signature.c_str() );
+    if( _invokable->get_signature()->is_operator() )
+    {
+        auto found = std::find(m_operator_implems.begin(), m_operator_implems.end(), _invokable);
+        NODABLE_ASSERT( found != m_operator_implems.end() )
+        m_operator_implems.push_back(_invokable);
+
+        LOG_VERBOSE("Language", "%s added to functions and operator implems\n", signature.c_str() );
+    }
+    else
+    {
+        LOG_VERBOSE("Language", "%s added to functions\n", signature.c_str() );
+    }
 }
-void Language::add(const Operator* _operator)
+
+void Language::add_operator(const char* _id, Operator_t _type, int _precedence)
 {
-    NODABLE_ASSERT( std::find( m_operators.begin(), m_operators.end(), _operator) == m_operators.end() )
-    m_operators.push_back(_operator);
+    const Operator* op = new Operator(_id, Operator_t::Unary, _precedence);
 
-    std::string str;
-    m_serializer->serialize(str, _operator );
-    LOG_VERBOSE("Language", "%s added to operators\n", str.c_str() );
+    NODABLE_ASSERT( std::find( m_operators.begin(), m_operators.end(), op) == m_operators.end() )
+    m_operators.push_back(op);
 }
 
-const FuncSig* Language::new_bin_operator_signature(
+const Signature* Language::new_binary_op_signature(
     Meta_t _type,
-    std::string _identifier,
+    const Operator* _op,
     Meta_t _ltype,
-    Meta_t _rtype) const
+    Meta_t _rtype
+    ) const
 {
-    std::string id = m_semantic.token_type_to_string(Token_t::keyword_operator) + _identifier;
-    auto signature = new FuncSig(FuncSig::Type::Operator, id);
+    std::string id = m_semantic.token_type_to_string(Token_t::keyword_operator) + _op->identifier;
+    auto signature = new Signature(id, _op);
     signature->set_return_type(_type);
-    signature->push_arg(_ltype, k_lh_value_member_name);
-    signature->push_arg(_rtype, k_rh_value_member_name);
+    signature->push_args(_ltype, _rtype);
 
     return signature;
 }
 
-const FuncSig* Language::new_unary_operator_signature(
+const Signature* Language::new_unary_op_signature(
         Meta_t _type,
-        std::string _identifier,
+        const Operator* _op,
         Meta_t _ltype) const
 {
-    std::string id = m_semantic.token_type_to_string(Token_t::keyword_operator) + _identifier;
-    auto signature = new FuncSig(FuncSig::Type::Operator, id);
+    std::string id = m_semantic.token_type_to_string(Token_t::keyword_operator) + _op->identifier;
+    auto signature = new Signature(id, _op);
     signature->set_return_type(_type);
-    signature->push_arg(_ltype, k_lh_value_member_name);
+    signature->push_arg(_ltype);
 
     return signature;
 }
 
-const Operator *Language::find_operator(const std::string& _identifier, Operator_t _type) const
+const Operator* Language::find_operator(const std::string& _identifier, Operator_t _type) const
 {
     auto is_bin_op_with_expected_identifier = [&](const Operator* op)
     {
@@ -153,15 +148,4 @@ const Operator *Language::find_operator(const std::string& _identifier, Operator
         return *found;
 
     return nullptr;
-}
-
-const Operator *Language::find_operator(const std::string& _identifier, const FuncSig* _signature) const
-{
-    switch ( _signature->get_arg_count() )
-    {
-        case 1:  return find_operator(_identifier, Operator_t::Unary);
-        case 2:  return find_operator(_identifier, Operator_t::Binary);
-        case 3:  return find_operator(_identifier, Operator_t::Ternary);
-        default: return nullptr;
-    }
 }

@@ -17,12 +17,13 @@
 #include <nodable/core/Properties.h>
 #include <nodable/core/Slots.h>
 #include "Edge.h"
+#include "IInvokable.h"
 
 namespace Nodable {
 
     // forward declarations
-    class InvokableOperator;
     class GraphNode;
+    class IInvokable;
 
     /**
      * Distinguish between all possible update result
@@ -95,7 +96,7 @@ namespace Nodable {
 		virtual UpdateResult update();
         virtual bool         eval() const;
 
-        const InvokableOperator* get_connected_operator(const Member* _localMember); // TODO: weird, try to understand why I needed this
+        const IInvokable*    get_connected_operator(const Member* _localMember); // TODO: weird, try to understand why I needed this
         bool                 has_wire_connected_to(const Member *_localMember);
 
         template<class T> inline T*       as() { return R::cast_pointer<T>(this); }

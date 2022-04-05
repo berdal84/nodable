@@ -6,7 +6,7 @@
 #include <nodable/core/reflection/R.h>
 
 #include <nodable/core/IScope.h>
-#include <nodable/core/InvokableFunction.h>
+#include <nodable/core/Invokable.h>
 #include <nodable/app/types.h>     // forward declarations
 #include <nodable/app/View.h>  // base class
 #include <nodable/core/Component.h>  // base class
@@ -19,7 +19,7 @@ namespace Nodable
 	typedef struct {
         std::string                 label;
         std::function<Node *(void)> create_node_fct;
-        const FuncSig*    function_signature;
+        const Signature*    function_signature;
 	} FunctionMenuItem;
 
 	class GraphNodeView: public View, public Component
@@ -37,7 +37,7 @@ namespace Nodable
                         const std::string &_category,
                         const std::string &_label,
                         std::function<Node *(void)> _lambda,
-                        const FuncSig *_signature);
+                        const Signature *_signature);
 	private:
         [[nodiscard]] GraphNode* get_graph_node() const;
         std::vector<NodeViewConstraint>              m_child_view_constraints;

@@ -54,29 +54,29 @@ LanguageNodable::LanguageNodable()
     m_semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)")    , Token_t::identifier);
 
     // operators
-    m_semantic.insert("operator", Token_t::keyword_operator); // KEYWORD !
+    m_semantic.insert(k_keyword_operator                             , Token_t::keyword_operator); // KEYWORD !
     m_semantic.insert(std::regex("^(<=>)")                           , Token_t::operator_); // 3 chars
     m_semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>)|(!=))"), Token_t::operator_); // 2 chars
     m_semantic.insert(std::regex("^[/+\\-*!=<>]")                    , Token_t::operator_); // single char
 
-    add( new Operator("-"  , Operator_t::Unary, 5)); // --------- unary (sorted by precedence)
-    add( new Operator("!"  , Operator_t::Unary, 5));
+    add_operator( "-"  , Operator_t::Unary, 5); // --------- unary (sorted by precedence)
+    add_operator( "!"  , Operator_t::Unary, 5);
 
-    add( new Operator("/"  , Operator_t::Binary, 20)); // ------- binary (sorted by precedence)
-    add( new Operator("*"  , Operator_t::Binary, 20));
-    add( new Operator("+"  , Operator_t::Binary, 10));
-    add( new Operator("-"  , Operator_t::Binary, 10));
-    add( new Operator("||" , Operator_t::Binary, 10));
-    add( new Operator("&&" , Operator_t::Binary, 10));
-    add( new Operator(">=" , Operator_t::Binary, 10));
-    add( new Operator("<=" , Operator_t::Binary, 10));
-    add( new Operator("=>" , Operator_t::Binary, 10));
-    add( new Operator("==" , Operator_t::Binary, 10));
-    add( new Operator("<=>", Operator_t::Binary, 10));
-    add( new Operator("!=" , Operator_t::Binary, 10));
-    add( new Operator(">"  , Operator_t::Binary, 10));
-    add( new Operator("<"  , Operator_t::Binary, 10));
-    add( new Operator("="  , Operator_t::Binary, 0));
+    add_operator( "/"  , Operator_t::Binary , 20); // ------- binary (sorted by precedence)
+    add_operator( "*"  , Operator_t::Binary , 20);
+    add_operator( "+"  , Operator_t::Binary , 10);
+    add_operator( "-"  , Operator_t::Binary , 10);
+    add_operator( "||" , Operator_t::Binary , 10);
+    add_operator( "&&" , Operator_t::Binary , 10);
+    add_operator( ">=" , Operator_t::Binary , 10);
+    add_operator( "<=" , Operator_t::Binary , 10);
+    add_operator( "=>" , Operator_t::Binary , 10);
+    add_operator( "==" , Operator_t::Binary , 10);
+    add_operator( "<=>", Operator_t::Binary , 10);
+    add_operator( "!=" , Operator_t::Binary , 10);
+    add_operator( ">"  , Operator_t::Binary , 10);
+    add_operator( "<"  , Operator_t::Binary , 10);
+    add_operator( "="  , Operator_t::Binary , 0);
 
     // operator implementations
     BIND_OPERATOR_T(api_add, "+", double(double, i16_t))
@@ -186,14 +186,4 @@ LanguageNodable::LanguageNodable()
     BIND_FUNCTION_T(api_print, string(double))
     BIND_FUNCTION_T(api_print, string(i16_t))
     BIND_FUNCTION_T(api_print, string(string))
-}
-
-void LanguageNodable::sanitize_function_identifier( std::string& _identifier ) const
-{
-    _identifier = regex_replace(_identifier, std::regex("^api_"), "");
-}
-
-void LanguageNodable::sanitize_operator_fct_identifier( std::string& _identifier ) const
-{
-    _identifier.insert(0, "operator");
 }

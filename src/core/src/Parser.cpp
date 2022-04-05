@@ -275,31 +275,31 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const FuncSig* signature = m_language->new_bin_operator_signature(R::MetaType::s_any,
-	                                                                            operatorToken->m_word,
-                                                                                _left->get_meta_type(),
-                                                                                right->get_meta_type());
+	const Signature* signature = m_language->new_binary_op_signature(R::MetaType::s_any,
+                                                                     ope,
+                                                                     _left->get_meta_type(),
+                                                                     right->get_meta_type());
 
-    const InvokableOperator* matching_operator = m_language->find_operator_fct(signature);
+    const IInvokable* invokable = m_language->find_operator_fct(signature);
 
-    InvokableComponent* invokable;
+    InvokableComponent* component;
     Node* binary_op;
-    if ( matching_operator )
+    if ( invokable )
 	{
 	    // concrete operator
-		binary_op = m_graph->create_bin_op(matching_operator);
-        invokable = binary_op->get<InvokableComponent>();
-        invokable->set_source_token(operatorToken);
+		binary_op = m_graph->create_function(invokable);
+        component = binary_op->get<InvokableComponent>();
+        component->set_source_token(operatorToken);
     }
 	else
     {
 	    // abstract operator
-        binary_op = m_graph->create_abstract_bin_op(signature, ope);
-        invokable = binary_op->get<InvokableComponent>();
+        binary_op = m_graph->create_abstract_function(signature);
+        component = binary_op->get<InvokableComponent>();
     }
 
-    m_graph->connect(_left, invokable->get_l_handed_val());
-    m_graph->connect(right, invokable->get_r_handed_val());
+    m_graph->connect(_left, component->get_l_handed_val());
+    m_graph->connect(right, component->get_r_handed_val());
 
     delete signature;
     commit_transaction();
@@ -345,29 +345,33 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	}
 
 	// Create a function signature
-	auto signature = m_language->new_unary_operator_signature(nullptr, operatorToken->m_word, value->get_meta_type());
-	auto matchingOperator = m_language->find_operator_fct(signature);
 
-	if (matchingOperator != nullptr)
+	const Operator*   ope       = m_language->find_operator(operatorToken->m_word, Operator_t::Unary );
+	const Signature*  sig       = m_language->new_unary_op_signature(R::MetaType::s_any, ope, value->get_meta_type());
+	const IInvokable* invokable = m_language->find_operator_fct(sig);
+
+	InvokableComponent* component;
+	Node* node;
+
+	if (invokable)
 	{
-		auto unaryOpNode = m_graph->create_unary_op(matchingOperator);
-        auto computeComponent = unaryOpNode->get<InvokableComponent>();
-        computeComponent->set_source_token(operatorToken);
-
-        m_graph->connect(value, computeComponent->get_l_handed_val());
-        Member* result = unaryOpNode->props()->get(k_value_member_name);
-
-		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
-        commit_transaction();
-
-		return result;
+        node = m_graph->create_function(invokable);
 	}
 	else
 	{
-		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (unrecognysed operator)\n")
-        rollback_transaction();
-		return nullptr;
+        node = m_graph->create_abstract_function(sig);
 	}
+
+    component = node->get<InvokableComponent>();
+    component->set_source_token(operatorToken);
+
+    m_graph->connect(value, component->get_l_handed_val());
+    Member* result = node->props()->get(k_value_member_name);
+
+    LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
+    commit_transaction();
+
+    return result;
 }
 
 Member* Parser::parse_atomic_expression()
@@ -823,13 +827,13 @@ Member* Parser::parse_function_call()
     start_transaction();
 
     // Try to parse regular function: function(...)
-    std::string identifier;
+    std::string fct_id;
     std::shared_ptr<Token> token_0 = m_token_ribbon.eatToken();
     std::shared_ptr<Token> token_1 = m_token_ribbon.eatToken();
     if (token_0->m_type == Token_t::identifier &&
         token_1->m_type == Token_t::open_bracket)
     {
-        identifier = token_0->m_word;
+        fct_id = token_0->m_word;
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
     }
     else // Try to parse operator like (ex: operator==(..,..))
@@ -842,7 +846,7 @@ Member* Parser::parse_function_call()
             && token_2->m_type == Token_t::open_bracket)
         {
             // ex: "operator" + "=="
-            identifier = token_0->m_word + token_1->m_word;
+            fct_id = token_0->m_word + token_1->m_word;
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
         }
         else
@@ -855,7 +859,7 @@ Member* Parser::parse_function_call()
     std::vector<Member *> args;
 
     // Declare a new function prototype
-    FuncSig signature(FuncSig::Type::Function, identifier);
+    Signature signature(fct_id);
     signature.set_return_type(R::MetaType::s_any);
 
     bool parsingError = false;
@@ -886,7 +890,7 @@ Member* Parser::parse_function_call()
     // Find the prototype in the language library
     auto fct = m_language->find_function(&signature);
 
-    auto connectArg = [&](const FuncSig* _sig, Node* _node, size_t _arg_index ) -> void
+    auto connectArg = [&](const Signature* _sig, Node* _node, size_t _arg_index ) -> void
     { // lambda to connect input member to node for a specific argument index.
         Member*     src_member      = args.at(_arg_index);
         Member*     dst_member      = _node->props()->get_input_at(_arg_index);

@@ -73,13 +73,13 @@ TEST( GraphNode, clear)
     GraphNode graph(&language, &factory,  &autocompletion);
     InstructionNode* instructionNode = graph.create_instr();
 
-    FuncSig* sig = FuncSig
-            ::new_instance<int(int, int)>
-            ::with_id(FuncSig::Type::Operator, "operator+");
-    auto ope = language.find_operator_fct_exact(sig);
+    const Operator* op = language.find_operator("+", Operator_t::Binary);
+    Signature* sig = Signature::from_type<int(int, int)>::as_operator(op);
+
+    const IInvokable* operator_fct = language.find_operator_fct_exact(sig);
     delete sig;
-    EXPECT_TRUE(ope != nullptr);
-    Node* operatorNode = graph.create_operator(ope);
+    EXPECT_TRUE(operator_fct != nullptr);
+    Node* operatorNode = graph.create_function(operator_fct);
     auto props = operatorNode->props();
     props->get(k_lh_value_member_name)->set(2);
     props->get(k_rh_value_member_name)->set(2);
@@ -151,20 +151,19 @@ TEST(Graph, by_reference_assign)
     Node* program = graph.create_root();
 
     // create b
-    auto b = graph.create_variable(R::get_meta_type<double>(), "b", program->get<Scope>());
+    VariableNode* b = graph.create_variable<double>("b", program->get<Scope>());
     b->set(6.0);
 
     // create assign operator
-    FuncSig signature(FuncSig::Type::Operator, "operator=");
-    signature.set_return_type(R::get_meta_type<double>());
-    signature.push_args(R::get_meta_type<double &>(), R::get_meta_type<double>());
-    auto assign = graph.create_operator(language.find_operator_fct(&signature));
-    auto op = assign->get<InvokableComponent>();
+    const Operator* op  = language.find_operator("+", Operator_t::Binary);
+    Signature* sig      = Signature::from_type<int(double &, double)>::as_operator(op);
+    Node* assign        = graph.create_function(language.find_operator_fct(sig));
+    InvokableComponent* component = assign->get<InvokableComponent>();
 
     // connect b and assign
     graph.connect(b->get_value(), assign->props()->get(k_lh_value_member_name) );
 
-    op->get_r_handed_val()->set(5.0);
+    component->get_r_handed_val()->set(5.0);
 
     ASSERT_DOUBLE_EQ(b->get_value()->convert_to<double>(), 6.0 );
     ASSERT_DOUBLE_EQ(assign->props()->get(k_lh_value_member_name)->convert_to<double>(), 6.0 );

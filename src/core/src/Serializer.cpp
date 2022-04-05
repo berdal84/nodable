@@ -8,39 +8,13 @@
 #include <nodable/core/ForLoopNode.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/LiteralNode.h>
-#include <nodable/core/Operator.h>
 
 using namespace Nodable;
-
-std::string& Serializer::serialize(std::string& _result, const Operator* _operator)const
-{
-    switch( _operator->type )
-    {
-        case Operator_t::Unary:
-            _result.append(_operator->identifier);
-            _result.append(" lhv");
-            break;
-        case Operator_t::Binary:
-            _result.append("lhv ");
-            _result.append(_operator->identifier);
-            _result.append(" rhv");
-            break;
-        default:
-            NODABLE_ASSERT(false) // TODO
-            break;
-    }
-
-    _result.append( ", type: ");
-    _result.append( to_string(_operator->type));
-    _result.append( ", precedence: ");
-    _result.append( std::to_string(_operator->precedence));
-    return _result;
-}
 
 std::string& Serializer::serialize(std::string& _result, const InvokableComponent *_component)const
 {
 
-    if (_component->get_signature()->get_type() == FuncSig::Type::Function )
+    if ( !_component->get_signature()->is_operator() )
     {
         serialize(_result, _component->get_function()->get_signature(), _component->get_args());
     }
@@ -62,12 +36,13 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             }
         };
 
-        const IInvokable* invokable = _component->get_function();
-        auto ope = reinterpret_cast<const InvokableOperator*>(invokable);
-        std::vector<Member *> args = _component->get_args();
+        Node*            owner = _component->get_owner();
+        const MemberVec& args  = _component->get_args();
+        const Signature*   sig   = _component->get_signature();
 
-        Node* owner = _component->get_owner();
-        if (ope->get_operator_type() == Operator_t::Binary )
+        switch (sig->get_arg_count())
+        {
+        case 2:
         {
             // Get the left and right source operator
             auto l_handed_operator = owner->get_connected_operator(args[0]);
@@ -76,7 +51,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             {
                 // TODO: check parsed brackets for prefix/suffix
                 bool needs_brackets = l_handed_operator &&
-                                    !language->has_higher_precedence_than({l_handed_operator, ope});
+                        l_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence;
 
                 serialize_member_with_or_without_brackets(args[0], needs_brackets);
             }
@@ -91,21 +66,21 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             }
             else
             {
-                _result.append(ope->get_short_identifier());
+                _result.append(sig->get_operator()->identifier);
             }
 
             // Right part of the expression
             {
                 // TODO: check parsed brackets for prefix/suffix
                 bool needs_brackets = r_handed_operator
-                                    && (r_handed_operator->get_operator_type() == Operator_t::Unary
-                                        || !language->has_higher_precedence_than({r_handed_operator, ope})
-                                    );
+                                    && (r_handed_operator->get_signature()->get_arg_count() == 1
+                                        || l_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence );
 
                 serialize_member_with_or_without_brackets(args[1], needs_brackets);
             }
         }
-        else if (ope->get_operator_type() == Operator_t::Unary )
+
+        case 1:
         {
             auto inner_operator = owner->get_connected_operator(args[0]);
 
@@ -118,7 +93,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
                 _result.append(sourceToken->m_prefix);
             }
 
-            _result.append(ope->get_short_identifier());
+            _result.append(sig->get_operator()->identifier);
 
             if (sourceToken) {
                 _result.append(sourceToken->m_suffix);
@@ -127,11 +102,12 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             bool needs_brackets = inner_operator;
             serialize_member_with_or_without_brackets(args[0], needs_brackets);
         }
+        }
     }
     return _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const FuncSig*   _signature, const std::vector<Member*>& _args) const
+std::string& Serializer::serialize(std::string& _result, const Signature*   _signature, const std::vector<Member*>& _args) const
 {
     _result.append(_signature->get_identifier());
     serialize(_result, Token_t::open_bracket);
@@ -150,7 +126,7 @@ std::string& Serializer::serialize(std::string& _result, const FuncSig*   _signa
     return _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const FuncSig* _signature) const {
+std::string& Serializer::serialize(std::string& _result, const Signature* _signature) const {
 
     serialize(_result, _signature->get_return_type());
     _result.append(" ");
