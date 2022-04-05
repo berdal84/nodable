@@ -35,6 +35,10 @@ const IInvokable* Language::find_function(const Signature* _signature) const
 
 const IInvokable* Language::find_operator_fct_exact(const Signature* _signature) const
 {
+    if(!_signature)
+    {
+        return nullptr;
+    }
 
     auto is_exactly = [&](const IInvokable* _invokable)
     {
@@ -53,6 +57,10 @@ const IInvokable* Language::find_operator_fct_exact(const Signature* _signature)
 
 const IInvokable* Language::find_operator_fct(const Signature* _signature) const
 {
+    if(!_signature)
+    {
+        return nullptr;
+    }
     auto exact = find_operator_fct_exact(_signature);
     if( !exact) return find_operator_fct_fallback(_signature);
     return exact;

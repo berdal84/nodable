@@ -291,11 +291,17 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
         component = binary_op->get<InvokableComponent>();
         delete signature;
     }
-	else
+	else if(signature)
     {
 	    // abstract operator
         binary_op = m_graph->create_abstract_function(signature);
         component = binary_op->get<InvokableComponent>();
+    }
+    else
+    {
+        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " no signature\n")
+        rollback_transaction();
+        return nullptr;
     }
 
     component->set_source_token(operatorToken);
@@ -339,10 +345,10 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 
   if ( value == nullptr )
   {
-		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n")
-      rollback_transaction();
-		return nullptr;
-	}
+    LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n")
+    rollback_transaction();
+    return nullptr;
+    }
 
 	// Create a function signature
 
@@ -350,7 +356,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	const Signature*  sig       = Signature::new_operator(R::MetaType::s_any, ope, value->get_meta_type());
 	const IInvokable* invokable = m_language->find_operator_fct(sig);
 
-	InvokableComponent* component;
+    InvokableComponent* component;
 	Node* node;
 
 	if (invokable)
@@ -358,10 +364,16 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
         node = m_graph->create_function(invokable);
         delete sig;
 	}
-	else
+	else if(sig)
 	{
         node = m_graph->create_abstract_function(sig);
 	}
+    else
+    {
+        LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (no signature found)\n")
+        rollback_transaction();
+        return nullptr;
+    }
 
     component = node->get<InvokableComponent>();
     component->set_source_token(operatorToken);

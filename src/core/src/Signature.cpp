@@ -122,6 +122,11 @@ const Signature* Signature::new_operator(
         Meta_t _rtype
 )
 {
+    if(!_op)
+    {
+        return nullptr;
+    }
+
     auto signature = new Signature(_op);
     signature->set_return_type(_type);
     signature->push_args(_ltype, _rtype);
@@ -137,6 +142,11 @@ const Signature* Signature::new_operator(
         const Operator* _op,
         Meta_t _ltype)
 {
+    if(!_op)
+    {
+        return nullptr;
+    }
+
     auto signature = new Signature(_op);
     signature->set_return_type(_type);
     signature->push_arg(_ltype);
