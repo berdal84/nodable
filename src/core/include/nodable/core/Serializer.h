@@ -40,7 +40,7 @@ namespace Nodable
         std::string& serialize(std::string &_result, const InstructionNode*)const;
         std::string& serialize(std::string &_result, const Node*)const;
         std::string& serialize(std::string &_result, const Scope*)const;
-        std::string& serialize(std::string& _result, const ForLoopNode* _for_loop)const;
+        std::string& serialize(std::string &_result, const ForLoopNode* _for_loop)const;
         std::string& serialize(std::string &_result, const ConditionalStructNode*) const;
         std::string& serialize(std::string &_result, const Variant* variant) const;
         std::string& serialize(std::string &_result, const VariableNode *_node) const;

@@ -289,7 +289,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	    // concrete operator
 		binary_op = m_graph->create_function(invokable);
         component = binary_op->get<InvokableComponent>();
-        component->set_source_token(operatorToken);
+        delete signature;
     }
 	else
     {
@@ -298,10 +298,10 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
         component = binary_op->get<InvokableComponent>();
     }
 
+    component->set_source_token(operatorToken);
     m_graph->connect(_left, component->get_l_handed_val());
     m_graph->connect(right, component->get_r_handed_val());
 
-    delete signature;
     commit_transaction();
     LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
     return binary_op->props()->get(k_value_member_name);
@@ -356,6 +356,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	if (invokable)
 	{
         node = m_graph->create_function(invokable);
+        delete sig;
 	}
 	else
 	{

@@ -68,6 +68,8 @@ Node* NodeFactory::_new_abstract_function(const Signature* _signature) const
     Properties* props = node->props();
     props->add(k_value_member_name, Visibility::Default, _signature->get_return_type(), Way_Out);
 
+    NODABLE_ASSERT(!_signature->is_operator() || _signature->get_arg_count() != 0 )
+
     // Create arguments
     auto args = _signature->get_args();
     for (auto& arg : args)

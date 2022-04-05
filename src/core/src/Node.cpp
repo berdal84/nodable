@@ -197,10 +197,9 @@ const IInvokable* Node::get_connected_operator(const Member *_localMember)
         InvokableComponent* compute_component = node->get<InvokableComponent>();
         if ( compute_component )
         {
-            const IInvokable* function = compute_component->get_function();
-            if (function->get_signature()->is_operator() )
+            if (compute_component->get_signature()->is_operator() )
             {
-                return function;
+                return compute_component->get_function();
             }
         }
     }
