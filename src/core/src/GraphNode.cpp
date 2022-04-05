@@ -160,15 +160,23 @@ VariableNode* GraphNode::create_variable(std::shared_ptr<const R::MetaType> _typ
 	return node;
 }
 
-Node* GraphNode::create_abstract_function(const Signature* _function)
+Node* GraphNode::create_abstract_function(const Signature* _signature)
 {
-    Node* node = m_factory->new_abstract_function(_function);
+    if ( !_signature )
+    {
+        throw new std::runtime_error("unable to create_abstract_function, _signature is nullptr.");
+    }
+    Node* node = m_factory->new_abstract_function(_signature);
     add(node);
     return node;
 }
 
 Node* GraphNode::create_function(const IInvokable* _function)
 {
+    if ( !_function )
+    {
+        throw new std::runtime_error("unable to create_function, _function is nullptr.");
+    }
 	Node* node = m_factory->new_function(_function);
     add(node);
 	return node;

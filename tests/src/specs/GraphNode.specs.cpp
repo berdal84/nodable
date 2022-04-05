@@ -151,30 +151,26 @@ TEST(Graph, by_reference_assign)
     Node* program = graph.create_root();
 
     // create b
-    VariableNode* b = graph.create_variable<double>("b", program->get<Scope>());
-    b->set(6.0);
+    VariableNode* var_b = graph.create_variable<double>("b", program->get<Scope>());
+    var_b->set(6.0);
 
     // create assign operator
-    const Operator* op  = language.find_operator("+", Operator_t::Binary);
-    Signature* sig      = Signature::from_type<int(double &, double)>::as_operator(op);
+    Signature* sig      = Signature
+            ::from_type<int(double &, double)>
+            ::as_operator(language.find_operator("=", Operator_t::Binary));
+
     Node* assign        = graph.create_function(language.find_operator_fct(sig));
-    InvokableComponent* component = assign->get<InvokableComponent>();
 
-    // connect b and assign
-    graph.connect(b->get_value(), assign->props()->get(k_lh_value_member_name) );
+    // connect b
+    auto props = assign->props();
+    graph.connect(var_b->get_value(), props->get_input_at(0) );
 
-    component->get_r_handed_val()->set(5.0);
+    props->get_input_at(1)->set(5.0);
 
-    ASSERT_DOUBLE_EQ(b->get_value()->convert_to<double>(), 6.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_lh_value_member_name)->convert_to<double>(), 6.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_rh_value_member_name)->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_value_member_name)->convert_to<double>(), 0.0 );
+    ASSERT_DOUBLE_EQ((double)*var_b->get_value(), 6.0 );
 
     // apply
     assign->eval();
 
-    ASSERT_DOUBLE_EQ(b->get_value()->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_lh_value_member_name)->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_rh_value_member_name)->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_value_member_name)->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ((double)*var_b->get_value(), 5.0 );
 }

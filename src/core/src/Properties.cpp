@@ -67,7 +67,7 @@ Member* Properties::get_input_at(u8_t _position) const
 
     for( auto each : m_members_by_id)
     {
-        if( each->allows_connection(Way_In))
+        if( each->allows_connection(Way_In) && !each->allows_connection(Way_Out))
         {
             if( count == _position)
             {
