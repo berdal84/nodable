@@ -6,7 +6,7 @@
 
 using namespace Nodable::R;
 
-std::shared_ptr<MetaType> MetaType::s_unknown = std::make_shared<MetaType>("unknown", Type::Null );
+MetaType_const_ptr MetaType::s_any = std::make_shared<MetaType>("any", Type::any_t );
 
 bool MetaType::has_qualifier(Qualifier _other_qualifier) const
 {
@@ -25,33 +25,31 @@ void MetaType::add_qualifier(Qualifier _other_qualifier)
     m_qualifier = static_cast<Qualifier>( static_cast<T>(m_qualifier) | static_cast<T>(_other_qualifier) );
 }
 
-bool MetaType::is_ptr(const std::shared_ptr<const MetaType>& left)
+bool MetaType::is_ptr(MetaType_const_ptr left)
 {
     return  left->has_qualifier(Qualifier::Pointer);
 }
 
-bool MetaType::is_ref(const std::shared_ptr<const MetaType>& left)
+bool MetaType::is_ref(MetaType_const_ptr left)
 {
     return left->has_qualifier(Qualifier::Ref);
 }
 
-std::shared_ptr<MetaType> MetaType::add_ref(std::shared_ptr<MetaType> left)
+MetaType_ptr MetaType::add_ref(MetaType_ptr left)
 {
     left->add_qualifier(Qualifier::Ref);
     return left;
 }
 
-std::shared_ptr<MetaType> MetaType::add_ptr(std::shared_ptr<MetaType> left)
+MetaType_ptr MetaType::add_ptr(MetaType_ptr left)
 {
     left->add_qualifier(Qualifier::Pointer);
     return left;
 }
 
-bool MetaType::is_convertible(
-        std::shared_ptr<const MetaType> _left,
-        std::shared_ptr<const MetaType> _right )
+bool MetaType::is_implicitly_convertible(MetaType_const_ptr _left, MetaType_const_ptr _right )
 {
-    if(_left == MetaType::s_unknown || _right == MetaType::s_unknown ) // We allow cast to unknown type
+    if(_left == MetaType::s_any || _right == MetaType::s_any ) // We allow cast to unknown type
     {
         return true;
     }
@@ -63,22 +61,30 @@ bool MetaType::is_convertible(
     {
         return true;
     }
-    return false;
+
+    switch( _left->get_type() )
+    {
+        case Type::i16_t:  return _right->get_type() == Type::double_t;
+        default:           return false;
+    }
+
 }
 
-bool MetaType::is(const std::shared_ptr<const MetaType> &_other) const
+bool MetaType::is_exactly(MetaType_const_ptr _other) const
 {
+    if( !_other) return false;
+
     return m_qualifier == _other->m_qualifier
            && m_type == _other->m_type;
 }
 
-std::shared_ptr<const MetaType> MetaType::make_ptr(const std::shared_ptr<const MetaType> &_type)
+MetaType_const_ptr MetaType::make_ptr(MetaType_const_ptr _type)
 {
     auto base_copy = std::make_shared<MetaType>(*_type);
     return add_ptr(base_copy);
 }
 
-std::shared_ptr<const MetaType> MetaType::make_ref(const std::shared_ptr<const MetaType> &_type)
+MetaType_const_ptr MetaType::make_ref(MetaType_const_ptr _type)
 {
     auto base_copy = std::make_shared<MetaType>(*_type);
     return add_ref(base_copy);
@@ -110,6 +116,11 @@ std::string MetaType::get_fullname() const
 bool MetaType::is_ptr()const
 {
     return has_qualifier(Qualifier::Pointer);
+}
+
+bool MetaType::is_ref()const
+{
+    return has_qualifier(Qualifier::Ref);
 }
 
 std::map<Type, std::shared_ptr<const MetaType>>& Register::by_type()
@@ -205,6 +216,7 @@ void Nodable::R::init()
     Register::push<std::string>();
     Register::push<bool>();
     Register::push<void>();
+    Register::push<i16_t>();
 
     log_statistics();
 

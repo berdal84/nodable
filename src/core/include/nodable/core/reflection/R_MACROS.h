@@ -6,18 +6,18 @@
  * - get the link with TypeEnum,
  * - get the link with a typename.
  */
-#define R_DECLARE_LINK( T, TYPE ) \
+#define R_DECLARE_LINK( T_STRING, T, TYPE ) \
     /** declare the link */  \
     template<> \
     struct Nodable::R::type_to_value<T, TYPE> \
     {  \
         using type = T; \
-        static constexpr const char*    name       = #T; \
+        static constexpr const char*    name       = T_STRING; \
         static constexpr decltype(TYPE) type_v     = TYPE; \
         static constexpr const char*    type_name  = #TYPE;\
         \
         static std::shared_ptr<Nodable::R::MetaType> new_meta_type() { \
-            return std::make_shared<Nodable::R::MetaType>(#T, TYPE); \
+            return std::make_shared<Nodable::R::MetaType>(T_STRING, TYPE); \
         }\
     }; \
     template<> struct \

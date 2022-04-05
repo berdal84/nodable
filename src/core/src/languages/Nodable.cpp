@@ -1,23 +1,14 @@
 #include <nodable/core/languages/Nodable.h>
 
 #include <nodable/core/Member.h>
-#include <nodable/core/Format.h>
+#include <nodable/core/String.h>
 #include <nodable/core/System.h>
 
 #include <nodable/core/languages/Nodable_API.h> // <----- contains all functions referenced below
 
 using namespace Nodable;
 using namespace Nodable::R;
-
-void LanguageNodable::sanitizeFunctionName( std::string& name ) const
-{
-    name = regex_replace(name, std::regex("^api_"), "");
-}
-
-void LanguageNodable::sanitizeOperatorFunctionName( std::string& name ) const
-{
-    name.insert(0, "operator");
-}
+using string = std::string;
 
 LanguageNodable::LanguageNodable()
     :
@@ -30,98 +21,169 @@ LanguageNodable::LanguageNodable()
      */
 
     // ignored
-    semantic.insert(std::regex("^(//(.+?)$)"), TokenType_Ignore);      // Single line
-    semantic.insert(std::regex("^(/\\*(.+?)\\*/)"), TokenType_Ignore); // Multi line
-    semantic.insert("\t", TokenType_Ignore);
-    semantic.insert(" ", TokenType_Ignore);
+    m_semantic.insert(std::regex("^(//(.+?)$)")      , Token_t::ignore); // Single line
+    m_semantic.insert(std::regex("^(/\\*(.+?)\\*/)") , Token_t::ignore); // Multi line
+    m_semantic.insert("\t", Token_t::ignore);
+    m_semantic.insert(" ",  Token_t::ignore);
 
     // keywords
-    semantic.insert("if", TokenType_KeywordIf);                        // conditional structures
-    semantic.insert("else", TokenType_KeywordElse);
-    semantic.insert("for", TokenType_KeywordFor);
-    semantic.insert("bool", TokenType_KeywordBoolean, Type::Boolean); // types
-    semantic.insert("string", TokenType_KeywordString, Type::String);
-    semantic.insert("double", TokenType_KeywordDouble, Type::Double);
+    m_semantic.insert("if"     , Token_t::keyword_if);                      // conditional structures
+    m_semantic.insert("else"   , Token_t::keyword_else);
+    m_semantic.insert("for"    , Token_t::keyword_for);
+    m_semantic.insert("bool"   , Token_t::keyword_bool    , Type::bool_t); // types
+    m_semantic.insert("string" , Token_t::keyword_string  , Type::string_t);
+    m_semantic.insert("double" , Token_t::keyword_double  , Type::double_t);
+    m_semantic.insert("int"    , Token_t::keyword_int     , Type::i16_t);
 
     // punctuation
-    semantic.insert("{", TokenType_BeginScope);
-    semantic.insert("}", TokenType_EndScope);
-    semantic.insert("(", TokenType_OpenBracket);
-    semantic.insert(")", TokenType_CloseBracket);
-    semantic.insert(",", TokenType_Separator);
-    semantic.insert(";", TokenType_EndOfInstruction);
-    semantic.insert(std::string{System::k_end_of_line}, TokenType_EndOfLine);
+    m_semantic.insert("{", Token_t::begin_scope);
+    m_semantic.insert("}", Token_t::end_scope);
+    m_semantic.insert("(", Token_t::open_bracket);
+    m_semantic.insert(")", Token_t::close_bracket);
+    m_semantic.insert(",", Token_t::separator);
+    m_semantic.insert(";", Token_t::end_of_instruction);
+    m_semantic.insert(std::string{System::k_end_of_line}, Token_t::end_of_line);
 
     // literals
-    semantic.insert(std::regex("^(true|false)"), TokenType_Literal, Type::Boolean);
-    semantic.insert(std::regex(R"(^("[^"]*"))"), TokenType_Literal, Type::String);
-    semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)?"), TokenType_Literal, Type::Double);
+    m_semantic.insert(std::regex("^(true|false)")                , Token_t::literal, Type::bool_t);
+    m_semantic.insert(std::regex(R"(^("[^"]*"))")                , Token_t::literal, Type::string_t);
+    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal, Type::double_t);
+    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))")           , Token_t::literal, Type::i16_t);
 
     // identifier
-    semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), TokenType_Identifier);
+    m_semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)")    , Token_t::identifier);
 
     // operators
-    semantic.insert("operator", TokenType_KeywordOperator); // 3 chars
-    semantic.insert(std::regex("^(<=>)"), TokenType_Operator); // 3 chars
-    semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>)|(!=))"), TokenType_Operator); // 2 chars
-    semantic.insert(std::regex("^[/+\\-*!=<>]"), TokenType_Operator); // single char
+    m_semantic.insert(k_keyword_operator                             , Token_t::keyword_operator); // KEYWORD !
+    m_semantic.insert(std::regex("^(<=>)")                           , Token_t::operator_); // 3 chars
+    m_semantic.insert(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>)|(!=))"), Token_t::operator_); // 2 chars
+    m_semantic.insert(std::regex("^[/+\\-*!=<>]")                    , Token_t::operator_); // single char
 
-    /*
-     * Wrap a minimal set of functions/operators
-     */
+    add_operator( "-"  , Operator_t::Unary, 5); // --------- unary (sorted by precedence)
+    add_operator( "!"  , Operator_t::Unary, 5);
 
-    using string = std::string;
+    add_operator( "/"  , Operator_t::Binary , 20); // ------- binary (sorted by precedence)
+    add_operator( "*"  , Operator_t::Binary , 20);
+    add_operator( "+"  , Operator_t::Binary , 10);
+    add_operator( "-"  , Operator_t::Binary , 10);
+    add_operator( "||" , Operator_t::Binary , 10);
+    add_operator( "&&" , Operator_t::Binary , 10);
+    add_operator( ">=" , Operator_t::Binary , 10);
+    add_operator( "<=" , Operator_t::Binary , 10);
+    add_operator( "=>" , Operator_t::Binary , 10);
+    add_operator( "==" , Operator_t::Binary , 10);
+    add_operator( "<=>", Operator_t::Binary , 10);
+    add_operator( "!=" , Operator_t::Binary , 10);
+    add_operator( ">"  , Operator_t::Binary , 10);
+    add_operator( "<"  , Operator_t::Binary , 10);
+    add_operator( "="  , Operator_t::Binary , 0);
 
-    WRAP_POLYFUNC(api_return, bool(bool))
-    WRAP_POLYFUNC(api_return, double(double))
-    WRAP_POLYFUNC(api_return, string(string))
-    WRAP_FUNCTION(api_sin)
-    WRAP_FUNCTION(api_cos)
-    WRAP_FUNCTION(api_add)
-    WRAP_FUNCTION(api_minus)
-    WRAP_FUNCTION(api_multiply)
-    WRAP_FUNCTION(api_sqrt)
-    WRAP_FUNCTION(api_not)
-    WRAP_FUNCTION(api_or)
-    WRAP_FUNCTION(api_and)
-    WRAP_FUNCTION(api_xor)
-    WRAP_FUNCTION(api_to_bool)
-    WRAP_FUNCTION(api_mod)
-    WRAP_FUNCTION(api_pow)
-    WRAP_FUNCTION(api_secondDegreePolynomial)
-	WRAP_FUNCTION(api_DNAtoProtein)
+    // operator implementations
+    BIND_OPERATOR_T(api_add, "+", double(double, i16_t))
+    BIND_OPERATOR_T(api_add, "+", double(double, double))
+    BIND_OPERATOR_T(api_add, "+", i16_t(i16_t, i16_t))
+    BIND_OPERATOR_T(api_add, "+", i16_t(i16_t, double))
 
-    WRAP_POLYFUNC(api_to_string, string(bool))
-    WRAP_POLYFUNC(api_to_string, string(double))
-    WRAP_POLYFUNC(api_to_string, string(string))
-    WRAP_POLYFUNC(api_print,     string(bool))
-    WRAP_POLYFUNC(api_print,     string(double))
-    WRAP_POLYFUNC(api_print,     string(string))
+    BIND_OPERATOR_T(api_concat, "+", string(string, string))
 
-	WRAP_OPERATOR(api_add        , "+" , 10, ICON_FA_PLUS " Add")
-    WRAP_POLYOPER(api_concat     , "+" , 10, "Concat.", string(string, string))
-    WRAP_POLYOPER(api_concat     , "+" , 10, "Concat.", string(string, double))
-    WRAP_POLYOPER(api_concat     , "+" , 10, "Concat.", string(string, bool))
-    WRAP_OPERATOR(api_or         , "||", 10, "Logical Or")
-    WRAP_OPERATOR(api_and        , "&&", 10, "Logical And")
-    WRAP_OPERATOR(api_invert_sign, "-" , 10, ICON_FA_MINUS " Invert Sign")
-    WRAP_OPERATOR(api_minus      , "-" , 10, ICON_FA_MINUS " Subtract")
-    WRAP_OPERATOR(api_divide     , "/" , 20, ICON_FA_DIVIDE " Divide")
-    WRAP_OPERATOR(api_multiply   , "*" , 20, ICON_FA_TIMES " Multiply")
-    WRAP_OPERATOR(api_not        , "!" , 5 , "! not")
-    WRAP_OPERATOR(api_minus      , "-" , 5 , ICON_FA_MINUS " Minus")
-    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", string(string&, string) )
-    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", bool(bool&, bool) )
-    WRAP_POLYOPER(api_assign     , "=" , 0, ICON_FA_EQUALS " Assign", double(double&, double) )
-    WRAP_OPERATOR(api_implies    , "=>", 10, "=> Implies")
-    WRAP_OPERATOR(api_greater_or_eq, ">=", 10, ">= Greater or equal")
-    WRAP_OPERATOR(api_lower_or_eq, "<=", 10, "<= Less or equal")
-    WRAP_POLYOPER(api_equals  , "==", 10, "== Equals" , bool(double, double) )
-    WRAP_POLYOPER(api_equals  , "==", 10, "== Equals" , bool(string, string) )
-    WRAP_POLYOPER(api_equals  , "<=>", 10, "<=> Equivalent" , bool(bool, bool) )
-    WRAP_POLYOPER(api_not_equals  , "!=", 10, "!= Not equal" , bool(bool, bool) )
-    WRAP_POLYOPER(api_not_equals  , "!=", 10, "!= Not equal" , bool(double, double) )
-    WRAP_POLYOPER(api_not_equals  , "!=", 10, "!= Not equal" , bool(string, string) )
-    WRAP_OPERATOR(api_greater ,">" , 10, "> Greater")
-    WRAP_OPERATOR(api_lower   , "<", 10, "< Less")
+    BIND_OPERATOR(api_or, "||")
+    BIND_OPERATOR(api_and, "&&")
+
+    BIND_OPERATOR_T(api_invert_sign, "-", double(double))
+    BIND_OPERATOR_T(api_invert_sign, "-", i16_t(i16_t))
+
+    BIND_OPERATOR_T(api_minus, "-", double(double, double))
+    BIND_OPERATOR_T(api_minus, "-", double(double, i16_t))
+    BIND_OPERATOR_T(api_minus, "-", i16_t(i16_t, i16_t))
+    BIND_OPERATOR_T(api_minus, "-", i16_t(i16_t, double))
+
+    BIND_OPERATOR_T(api_divide, "/", double(double, double))
+    BIND_OPERATOR_T(api_divide, "/", double(double, i16_t))
+    BIND_OPERATOR_T(api_divide, "/", i16_t(i16_t, i16_t))
+    BIND_OPERATOR_T(api_divide, "/", i16_t(i16_t, double))
+
+    BIND_OPERATOR_T(api_multiply, "*", double(double, double))
+    BIND_OPERATOR_T(api_multiply, "*", double(double, i16_t))
+    BIND_OPERATOR_T(api_multiply, "*", i16_t(i16_t, i16_t))
+    BIND_OPERATOR_T(api_multiply, "*", i16_t(i16_t, double))
+
+    BIND_OPERATOR_T(api_minus, "-", double(double, double))
+    BIND_OPERATOR_T(api_minus, "-", double(double, i16_t))
+    BIND_OPERATOR_T(api_minus, "-", i16_t(i16_t, i16_t))
+    BIND_OPERATOR_T(api_minus, "-", i16_t(i16_t, double))
+
+    BIND_OPERATOR_T(api_greater_or_eq, ">=", bool(double, double))
+    BIND_OPERATOR_T(api_greater_or_eq, ">=", bool(double, i16_t))
+    BIND_OPERATOR_T(api_greater_or_eq, ">=", bool(i16_t, double))
+    BIND_OPERATOR_T(api_greater_or_eq, ">=", bool(i16_t, i16_t))
+
+    BIND_OPERATOR_T(api_lower_or_eq, "<=", bool(double, i16_t))
+    BIND_OPERATOR_T(api_lower_or_eq, "<=", bool(double, double))
+    BIND_OPERATOR_T(api_lower_or_eq, "<=", bool(i16_t, i16_t))
+    BIND_OPERATOR_T(api_lower_or_eq, "<=", bool(i16_t, double))
+
+    BIND_OPERATOR(api_not, "!")
+
+    BIND_OPERATOR_T(api_assign, "=", string(string & , string))
+    BIND_OPERATOR_T(api_assign, "=", bool(bool & , bool))
+    BIND_OPERATOR_T(api_assign, "=", double(double & , i16_t))
+    BIND_OPERATOR_T(api_assign, "=", double(double & , double))
+    BIND_OPERATOR_T(api_assign, "=", i16_t(i16_t & , i16_t))
+    BIND_OPERATOR_T(api_assign, "=", i16_t(i16_t & , double))
+
+    BIND_OPERATOR(api_implies, "=>")
+
+    BIND_OPERATOR_T(api_equals, "==", bool(i16_t, i16_t))
+    BIND_OPERATOR_T(api_equals, "==", bool(double, double))
+    BIND_OPERATOR_T(api_equals, "==", bool(string, string))
+
+    BIND_OPERATOR_T(api_equals, "<=>", bool(bool, bool))
+
+    BIND_OPERATOR_T(api_not_equals, "!=", bool(bool, bool))
+    BIND_OPERATOR_T(api_not_equals, "!=", bool(i16_t, i16_t))
+    BIND_OPERATOR_T(api_not_equals, "!=", bool(double, double))
+    BIND_OPERATOR_T(api_not_equals, "!=", bool(string, string))
+
+    BIND_OPERATOR_T(api_greater, ">", bool(double, double))
+    BIND_OPERATOR_T(api_greater, ">", bool(i16_t, i16_t))
+
+    BIND_OPERATOR_T(api_lower, "<", bool(double, double))
+    BIND_OPERATOR_T(api_lower, "<", bool(i16_t, i16_t))
+
+    // functions
+
+    BIND_FUNCTION_T(api_return, bool(bool))
+    BIND_FUNCTION_T(api_return, i16_t(i16_t))
+    BIND_FUNCTION_T(api_return, double(double))
+    BIND_FUNCTION_T(api_return, string(string))
+
+    BIND_FUNCTION(api_sin)
+    BIND_FUNCTION(api_cos)
+    BIND_FUNCTION_T(api_add, i16_t(i16_t, i16_t))
+    BIND_FUNCTION_T(api_minus, i16_t(i16_t, i16_t))
+    BIND_FUNCTION_T(api_multiply, i16_t(i16_t, i16_t))
+    BIND_FUNCTION_T(api_add, double(double, double))
+    BIND_FUNCTION_T(api_minus, double(double, double))
+    BIND_FUNCTION_T(api_multiply, double(double, double))
+    BIND_FUNCTION_T(api_sqrt, double(double))
+    BIND_FUNCTION_T(api_sqrt, i16_t(i16_t))
+    BIND_FUNCTION(api_not)
+    BIND_FUNCTION(api_or)
+    BIND_FUNCTION(api_and)
+    BIND_FUNCTION(api_xor)
+    BIND_FUNCTION(api_to_bool)
+    BIND_FUNCTION(api_mod)
+    BIND_FUNCTION_T(api_pow, i16_t(i16_t, i16_t))
+    BIND_FUNCTION_T(api_pow, double(double, double))
+    BIND_FUNCTION(api_secondDegreePolynomial)
+    BIND_FUNCTION(api_DNAtoProtein)
+    BIND_FUNCTION_T(api_to_string, string(bool))
+    BIND_FUNCTION_T(api_to_string, string(double))
+    BIND_FUNCTION_T(api_to_string, string(i16_t))
+    BIND_FUNCTION_T(api_to_string, string(string))
+
+    BIND_FUNCTION_T(api_print, string(bool))
+    BIND_FUNCTION_T(api_print, string(double))
+    BIND_FUNCTION_T(api_print, string(i16_t))
+    BIND_FUNCTION_T(api_print, string(string))
 }

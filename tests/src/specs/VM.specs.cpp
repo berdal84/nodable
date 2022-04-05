@@ -9,8 +9,8 @@ using namespace Nodable;
 TEST(VM, Cond_1 )
 {
     std::string program =
-            "double bob   = 50;"
-            "double alice = 10;"
+            "int bob   = 50;"
+            "int alice = 10;"
             "bool val;"
             "if(bob>alice)"
             "{"
@@ -20,7 +20,7 @@ TEST(VM, Cond_1 )
             "{"
             "   val = false;"
             "}"
-            "val;"; // return-like
+            "return(val);";
 
     EXPECT_EQ( ParseAndEvalExpression<bool>(program), true );
 }
@@ -28,18 +28,18 @@ TEST(VM, Cond_1 )
 TEST(VM, Cond_2 )
 {
     std::string program =
-            "double bob   = 0;"
-            "double alice = 10;"
-            "string val = \"default\";"
+            "int bob   = 0;"
+            "int alice = 10;"
+            "string str = \"default\";"
             "if(bob>alice)"
             "{"
-            "   val = \"true\";"
+            "   str = \"true\";"
             "}"
             "else if (false)"
             "{"
-            "   val = \"false\";"
+            "   str = \"false\";"
             "}"
-            "val;"; // return-like
+            "return(str);";
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "default" );
 }
@@ -47,12 +47,12 @@ TEST(VM, Cond_2 )
 TEST(VM, Loop_1_using_global_var )
 {
     std::string program =
-            "string res = \"\";" \
-            "for(double n=0;n<10;n=n+1)"
+            "string str = \"\";" \
+            "for(int n=0;n<10;n=n+1)"
             "{"
-            "   res = res + to_string(n);"
+            "   str = str + to_string(n);"
             "}"
-            "res;";
+            "return(str);";
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "0123456789" );
 }
@@ -60,16 +60,13 @@ TEST(VM, Loop_1_using_global_var )
 TEST(VM, Loop_1_using_local_var )
 {
     std::string program =
-            "string res = \"\";" \
-            "for(double n=0; n<10; n=n+1)"
+            "string str = \"\";" \
+            "for(int n=0; n<10; n=n+1)"
             "{"
-            "   print(\"A: \" + n);"
             "   string tmp = to_string(n);"
-            "   print(\"B: \" + n);"
-            "   res = res + tmp;"
-            "   print(\"C: \" + n);"
+            "   str = str + tmp;"
             "}"
-            "res;";
+            "return(str);";
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "0123456789" );
 }
@@ -77,22 +74,23 @@ TEST(VM, Loop_1_using_local_var )
 TEST(VM, Loop_2_using_global_var )
 {
     std::string program =
-            "double n;"
-            "double p;"
-            "string res = \"\";"
+            "int n;"
+            "int p;"
+            "string str = \"\";"
             "for(n=0; n<10; n=n+1)"
             "{"
             "   p = pow(n,2);"
             "   if( p != n )/* skip powers equals to n */"
             "   {"
-            "      res = res + p;     /* concat powers */"
+            "      str = str + to_string(p);     /* concat powers */"
             "   }"
             "   else"
             "   {"
-            "      res = res + \"_\"; /* concat \"_\" */"
+            "      str = str + \"_\"; /* concat \"_\" */"
             "   }"
             "}"
-            "res;";
+            "return(str);";
+
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "__49162536496481" );
 }
@@ -100,20 +98,20 @@ TEST(VM, Loop_2_using_global_var )
 TEST(VM, Loop_2_using_local_var )
 {
     std::string program =
-            "string res = \"\";"
-            "for(double n=0; n<10; n=n+1)"
+            "string str = \"\";"
+            "for(int n=0; n<10; n=n+1)"
             "{"
-            "   double p = pow(n,2);"
+            "   int p = pow(n,2);"
             "   if( p != n ) /* skip powers equals to n */"
             "   {"
-            "      res = res + p;     /* concat powers */"
+            "      str = str + to_string(p);     /* concat powers */"
             "   }"
             "   else"
             "   {"
-            "      res = res + \"_\"; /* concat \"_\" */"
+            "      str = str + \"_\"; /* concat \"_\" */"
             "   }"
             "}"
-            "res;";
+            "return(str);";
 
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "__49162536496481" );
 }
@@ -121,62 +119,62 @@ TEST(VM, Loop_2_using_local_var )
 TEST(VM, For_loop_without_var_decl)
 {
 std::string program =
-        "double score;"
-        "for(double i=0; i<10; i=i+1)"
+        "int score;"
+        "for(int i=0; i<10; i=i+1)"
         "{"
-        "   score= i*2;"
+        "   score = i * 2;"
         "}"
-        "score;";
-EXPECT_EQ(ParseAndEvalExpression<double>(program), 9*2);
+        "return(score);";
+EXPECT_EQ(ParseAndEvalExpression<int>(program), 9*2);
 }
 
 TEST(VM, For_loop_with_var_decl)
 {
     std::string program =
-            "double score = 1;"
-            "for(double i=0; i<10; i=i+1 )"
+            "int score = 1;"
+            "for(int i=0; i<10; i=i+1 )"
             "{"
-            "   score = score*2;"
+            "   score = score * 2;"
             "}"
-            "score;";
-    EXPECT_EQ(ParseAndEvalExpression<double>(program), 1 * pow(2, 10) );
+            "return(score);";
+    EXPECT_EQ(ParseAndEvalExpression<int>(program), 1 * pow(2, 10) );
 }
 
 TEST(VM, declare_then_define ) {
     std::string program_01 =
-            "double b;"
+            "int b;"
             "b = 5;"
-            "b;";
+            "return(b);";
     EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
 }
 
 TEST(VM, declare_and_define_then_reassign ) {
     std::string program_01 =
-            "double b = 6;"
+            "int b = 6;"
             "b = 5;"
-            "b;";
+            "return(b);";
     EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
 }
 
 TEST(VM, declare_then_define_then_reassign ) {
     std::string program_01 =
-            "double b;"
+            "int b;"
             "b = 6;"
             "b = 5;"
-            "b;";
+            "return(b);";
     EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
 }
 
 TEST(VM, condition_which_contains_alterated_var ) {
     std::string program =
-            "double b = 6;"
+            "int b = 6;"
             "b = 5;"
             "string res = \"ok\";"
             "if( b==6 )"
             "{"
             "  res=\"error\";"
             "}"
-            "res;";
+            "return(res);";
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "ok");
 }
 
@@ -201,5 +199,11 @@ TEST(VM, else_elseif_else ) {
 
     std::string program3 = "double a = 5;\ndouble b = 5;\n" + program_end;
     EXPECT_EQ( ParseAndEvalExpression<std::string>(program3), "a == b");
+}
+
+TEST(VM, integers ) {
+    EXPECT_EQ(ParseAndEvalExpression<int>("int i = 1"), 1);
+    EXPECT_EQ(ParseAndEvalExpression<int>("int i = 3 + 5"), 8);
+    EXPECT_EQ(ParseAndEvalExpression<int>("int i = 1-2"), -1);
 }
 

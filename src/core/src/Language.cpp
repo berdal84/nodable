@@ -2,98 +2,121 @@
 #include <vector>
 #include <nodable/core/Node.h>
 #include <nodable/core/Parser.h>
+#include <nodable/core/Operator.h>
 
 using namespace Nodable;
 
 Language::~Language()
 {
-    delete parser;
-    delete serializer;
+    delete m_parser;
+    delete m_serializer;
+
+    for( auto each : m_operators ) delete each;
+    for( auto each : m_functions ) delete each;
+    // for( auto each : m_operator_implems ) delete each; (duplicates from m_functions)
 }
 
-void Language::addOperator( InvokableOperator* _operator)
+const IInvokable* Language::find_function(const Signature* _signature) const
 {
-	operators.push_back(_operator);
-}
-
-bool  Language::hasHigherPrecedenceThan(const InvokableOperator* _firstOperator, const InvokableOperator* _secondOperator)const {
-	return _firstOperator->get_precedence() >= _secondOperator->get_precedence();
-}
-
-const IInvokable* Language::findFunction(const FunctionSignature* _signature) const
-{
-	auto predicate = [&](IInvokable* fct) {
-		return fct->get_signature()->match(_signature);
+	auto is_compatible = [&](const IInvokable* fct)
+    {
+		return fct->get_signature()->is_compatible(_signature);
 	};
 
-	auto it = std::find_if(api.begin(), api.end(), predicate);
+	auto it = std::find_if(m_functions.begin(), m_functions.end(), is_compatible);
 
-	if (it != api.end())
-		return *it;
+	if (it != m_functions.end())
+    {
+        return *it;
+    }
 
 	return nullptr;
 }
 
-const InvokableOperator* Language::findOperator(const std::string& _short_identifier) const {
+const IInvokable* Language::find_operator_fct_exact(const Signature* _signature) const
+{
 
-	auto predicate = [&](InvokableOperator* op) {
-		return op->get_short_identifier() == _short_identifier;
-	};
+    auto is_exactly = [&](const IInvokable* _invokable)
+    {
+        return _signature->is_exactly(_invokable->get_signature());
+    };
 
-	auto it = std::find_if(operators.cbegin(), operators.cend(), predicate);
+    auto found = std::find_if(m_operator_implems.cbegin(), m_operator_implems.cend(), is_exactly );
 
-	if (it != operators.end())
-		return *it;
+    if (found != m_operator_implems.end() )
+    {
+        return *found;
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
-const InvokableOperator* Language::findOperator(const FunctionSignature* _signature) const
+const IInvokable* Language::find_operator_fct(const Signature* _signature) const
+{
+    auto exact = find_operator_fct_exact(_signature);
+    if( !exact) return find_operator_fct_fallback(_signature);
+    return exact;
+}
+
+const IInvokable* Language::find_operator_fct_fallback(const Signature* _signature) const
 {
 	
-	auto predicate = [&](InvokableOperator* op)
+	auto is_compatible = [&](const IInvokable* _invokable)
     {
-		return _signature->match( op->get_signature() );
+		return _signature->is_compatible(_invokable->get_signature());
 	};
 
-	auto found = std::find_if(operators.cbegin(), operators.cend(), predicate );
+	auto found = std::find_if(m_operator_implems.cbegin(), m_operator_implems.cend(), is_compatible );
 
-	if (found != operators.end() )
-		return *found;
+	if (found != m_operator_implems.end() )
+    {
+        return *found;
+    }
 
 	return nullptr;
 }
 
 
-void Language::addToAPI(IInvokable* _function)
+void Language::add_invokable(const IInvokable* _invokable)
 {
-	api.push_back(_function);
-	std::string signature;
-    serializer->serialize( signature, _function->get_signature() );
-	LOG_VERBOSE("Language", "add to API: %s\n", signature.c_str() );
+    m_functions.push_back(_invokable);
+
+    std::string signature;
+    m_serializer->serialize(signature, _invokable->get_signature() );
+
+    if( _invokable->get_signature()->is_operator() )
+    {
+        auto found = std::find(m_operator_implems.begin(), m_operator_implems.end(), _invokable);
+        NODABLE_ASSERT( found == m_operator_implems.end() )
+        m_operator_implems.push_back(_invokable);
+
+        LOG_VERBOSE("Language", "%s added to functions and operator implems\n", signature.c_str() );
+    }
+    else
+    {
+        LOG_VERBOSE("Language", "%s added to functions\n", signature.c_str() );
+    }
 }
 
-const FunctionSignature* Language::createBinOperatorSignature(
-    std::shared_ptr<const R::MetaType> _type,
-    std::string _identifier,
-    std::shared_ptr<const R::MetaType> _ltype,
-    std::shared_ptr<const R::MetaType> _rtype) const
+void Language::add_operator(const char* _id, Operator_t _type, int _precedence)
 {
-    auto signature = new FunctionSignature("operator" + _identifier);
-    signature->set_return_type(_type);
-    signature->push_args(_ltype, _rtype);
+    const Operator* op = new Operator(_id, _type, _precedence);
 
-    return signature;
+    NODABLE_ASSERT( std::find( m_operators.begin(), m_operators.end(), op) == m_operators.end() )
+    m_operators.push_back(op);
 }
 
-const FunctionSignature* Language::createUnaryOperatorSignature(
-        std::shared_ptr<const R::MetaType> _type,
-        std::string _identifier,
-        std::shared_ptr<const R::MetaType> _ltype) const
+const Operator* Language::find_operator(const std::string& _identifier, Operator_t _type) const
 {
-    auto signature = new FunctionSignature("operator" + _identifier);
-    signature->set_return_type(_type);
-    signature->push_args(_ltype);
+    auto is_exactly = [&](const Operator* op)
+    {
+        return op->identifier == _identifier && op->type == _type;
+    };
 
-    return signature;
+    auto found = std::find_if(m_operators.cbegin(), m_operators.cend(), is_exactly );
+
+    if (found != m_operators.end() )
+        return *found;
+
+    return nullptr;
 }

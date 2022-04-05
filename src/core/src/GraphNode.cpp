@@ -153,47 +153,30 @@ void GraphNode::ensure_has_root()
 
 VariableNode* GraphNode::create_variable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope* _scope)
 {
-	auto node = m_factory->new_variable(_type, _name, _scope);
+    NODABLE_ASSERT(_type)
+
+    auto node = m_factory->new_variable(_type, _name, _scope);
     add(node);
 	return node;
 }
 
-Node* GraphNode::create_operator(const InvokableOperator* _operator)
+Node* GraphNode::create_abstract_function(const Signature* _signature)
 {
-    Node* node = m_factory->new_operator(_operator);
-
-    if ( node )
+    if ( !_signature )
     {
-        add(node);
+        throw new std::runtime_error("unable to create_abstract_function, _signature is nullptr.");
     }
-
-    return node;
-}
-
-Node* GraphNode::create_bin_op(const InvokableOperator* _operator)
-{
-	Node* node = m_factory->new_binary_op(_operator);
-    add(node);
-	return node;
-}
-
-Node* GraphNode::create_unary_op(const InvokableOperator* _operator)
-{
-	Node* node = m_factory->new_unary_op(_operator);
-    add(node);
-
-	return node;
-}
-
-Node* GraphNode::create_abstract_function(const FunctionSignature* _function)
-{
-    Node* node = m_factory->new_abstract_function(_function);
+    Node* node = m_factory->new_abstract_function(_signature);
     add(node);
     return node;
 }
 
 Node* GraphNode::create_function(const IInvokable* _function)
 {
+    if ( !_function )
+    {
+        throw new std::runtime_error("unable to create_function, _function is nullptr.");
+    }
 	Node* node = m_factory->new_function(_function);
     add(node);
 	return node;
@@ -263,7 +246,7 @@ void GraphNode::destroy(Node* _node)
     delete _node;
 }
 
-bool GraphNode::is_empty()
+bool GraphNode::is_empty() const
 {
     return !m_root;
 }
@@ -271,6 +254,8 @@ bool GraphNode::is_empty()
 Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
 {
     Wire* wire         = nullptr;
+
+    NODABLE_ASSERT( R::MetaType::is_implicitly_convertible(_src_member->get_meta_type(), _dst_member->get_meta_type()) );
 
     /*
      * If _from has no owner _to can digest it, no Wire neede in that case.
@@ -281,7 +266,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         delete _src_member;
     }
     else if (
-            !R::MetaType::is_ptr(_src_member->get_meta_type()) &&
+            !_src_member->get_meta_type()->is_ptr() &&
             _src_member->get_owner()->get_class()->is_child_of<LiteralNode>() &&
             _dst_member->get_owner()->get_class()->is_not_child_of<VariableNode>())
     {

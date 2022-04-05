@@ -22,10 +22,10 @@ TEST( GraphNode, connect)
     GraphNode graph(&language, &factory, &autocompletion);
 
     auto node1 = graph.create_node();
-    node1->props()->add("output", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
+    node1->props()->add<bool>("output", Visibility::Default, Way_Default);
 
     auto node2  = graph.create_node();
-    node2->props()->add("input", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
+    node2->props()->add<bool>("input", Visibility::Default, Way_Default);
 
     auto wire = graph.connect(
             node1->props()->get("output"),
@@ -44,10 +44,10 @@ TEST( GraphNode, disconnect)
     GraphNode graph(&language, &factory,  &autocompletion);
 
     auto a = graph.create_node();
-    auto output = a->props()->add("output", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
+    auto output = a->props()->add<bool>("output", Visibility::Default, Way_Default);
 
     auto b = graph.create_node();
-    auto input = b->props()->add("input", Visibility::Default, R::get_meta_type<bool>(), Way_Default);
+    auto input = b->props()->add<bool>("input", Visibility::Default, Way_Default);
 
     EXPECT_EQ(graph.get_wire_registry().size(), 0);
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
@@ -73,9 +73,13 @@ TEST( GraphNode, clear)
     GraphNode graph(&language, &factory,  &autocompletion);
     InstructionNode* instructionNode = graph.create_instr();
 
-    auto ope = language.findOperator("+");
-    EXPECT_TRUE(ope != nullptr);
-    Node* operatorNode = graph.create_operator(ope);
+    const Operator* op = language.find_operator("+", Operator_t::Binary);
+    Signature* sig = Signature::from_type<int(int, int)>::as_operator(op);
+
+    const IInvokable* operator_fct = language.find_operator_fct_exact(sig);
+    delete sig;
+    EXPECT_TRUE(operator_fct != nullptr);
+    Node* operatorNode = graph.create_function(operator_fct);
     auto props = operatorNode->props();
     props->get(k_lh_value_member_name)->set(2);
     props->get(k_rh_value_member_name)->set(2);
@@ -147,31 +151,26 @@ TEST(Graph, by_reference_assign)
     Node* program = graph.create_root();
 
     // create b
-    auto b = graph.create_variable(R::get_meta_type<double>(), "b", program->get<Scope>());
-    b->set(6.0);
+    VariableNode* var_b = graph.create_variable<double>("b", program->get<Scope>());
+    var_b->set(6.0);
 
     // create assign operator
-    FunctionSignature signature("operator=");
-    signature.set_return_type(R::get_meta_type<double>());
-    signature.push_args(R::get_meta_type<double &>(), R::get_meta_type<double>());
-    auto assign = graph.create_operator(language.findOperator(&signature));
-    auto op = assign->get<InvokableComponent>();
+    Signature* sig      = Signature
+            ::from_type<int(double &, double)>
+            ::as_operator(language.find_operator("=", Operator_t::Binary));
 
-    // connect b and assign
-    graph.connect(b->get_value(), assign->props()->get(k_lh_value_member_name) );
+    Node* assign        = graph.create_function(language.find_operator_fct(sig));
 
-    op->get_r_handed_val()->set(5.0);
+    // connect b
+    auto props = assign->props();
+    graph.connect(var_b->get_value(), props->get_input_at(0) );
 
-    ASSERT_DOUBLE_EQ(b->get_value()->convert_to<double>(), 6.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_lh_value_member_name)->convert_to<double>(), 6.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_rh_value_member_name)->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_value_member_name)->convert_to<double>(), 0.0 );
+    props->get_input_at(1)->set(5.0);
+
+    ASSERT_DOUBLE_EQ((double)*var_b->get_value(), 6.0 );
 
     // apply
     assign->eval();
 
-    ASSERT_DOUBLE_EQ(b->get_value()->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_lh_value_member_name)->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_rh_value_member_name)->convert_to<double>(), 5.0 );
-    ASSERT_DOUBLE_EQ(assign->props()->get(k_value_member_name)->convert_to<double>(), 5.0 );
+    ASSERT_DOUBLE_EQ((double)*var_b->get_value(), 5.0 );
 }

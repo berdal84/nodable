@@ -15,7 +15,7 @@ namespace Nodable
         inline Member* get_value() const { return m_props.get(k_value_member_name); }
 
         template<typename T>
-        inline void set_value(T new_value) const { m_props.get(k_value_member_name)->set((T)new_value); }
+        inline void set_value(T _value) const { m_props.get(k_value_member_name)->set(_value); }
 
         R_DERIVED(LiteralNode)
         R_EXTENDS(Node)

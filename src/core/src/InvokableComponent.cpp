@@ -10,14 +10,22 @@ R_DEFINE_CLASS(InvokableComponent)
 InvokableComponent::InvokableComponent(const IInvokable* _invokable)
     : Component()
     , m_result( nullptr )
+    , m_signature(_invokable->get_signature())
     , m_invokable(_invokable)
 {
-    NODABLE_ASSERT(_invokable != nullptr); // must be defined !
-    m_args.resize(_invokable->get_signature()->get_arg_count(), nullptr );
-    m_source_token = std::make_shared<Token>(
-            TokenType_Identifier,
-            _invokable->get_signature()->get_label(),
-            0 );
+    m_args.resize(m_signature->get_arg_count(), nullptr );
+    m_source_token = std::make_shared<Token>(Token_t::identifier, m_signature->get_label(), 0 );
+}
+
+InvokableComponent::InvokableComponent(const Signature* _signature)
+    : Component()
+    , m_result( nullptr )
+    , m_signature(_signature)
+    , m_invokable(nullptr)
+{
+    NODABLE_ASSERT(_signature != nullptr); // must be defined !
+    m_args.resize(_signature->get_arg_count(), nullptr );
+    m_source_token = std::make_shared<Token>(Token_t::identifier, _signature->get_label(), 0 );
 }
 
 bool InvokableComponent::update()
@@ -30,22 +38,12 @@ bool InvokableComponent::update()
         return var && !var->is_declared();
     };
 
-//    auto not_defined_predicate = [](Member* _member)
-//    {
-//        return _member && !_member->is_defined();
-//    };
-
     /* avoid to invoke if arguments contains an undeclared variable */
     if ( std::find_if(m_args.begin(), m_args.end(), not_declared_predicate) != m_args.end() )
     {
         success = false;
     }
-    /* avoid to invoke if arguments contains an undefined */
-//    else if ( std::find_if(m_args.begin(), m_args.end(), not_defined_predicate ) != m_args.end() )
-//    {
-//        success = false;
-//    }
-    else
+    else if( m_invokable )
     {
         try
         {

@@ -20,6 +20,7 @@ namespace Nodable
 	class GraphNode: public Node
 	{
 	public:
+        using RelationRegistry_t = std::multimap<EdgeType, const DirectedEdge>;
 
 		explicit GraphNode(const Language*, const INodeFactory*, const bool* _autocompletion);
 		~GraphNode();
@@ -30,18 +31,22 @@ namespace Nodable
         const std::vector<Wire*>&   get_wire_registry()const {return m_wire_registry;}
         const Language*             get_language()const { return m_language; }
         Node*                       get_root()const { return m_root; }
-        RelationRegistry&           get_relation_registry() {return m_relation_registry;}
-        bool                        is_empty();
+        RelationRegistry_t&           get_relation_registry() {return m_relation_registry;}
+        bool                        is_empty() const;
         void                        ensure_has_root();
         Node*                       create_root();
         InstructionNode*            create_instr();
 		VariableNode*				create_variable(std::shared_ptr<const R::MetaType>, const std::string&, IScope*);
+
+		template<typename T>
+		VariableNode*				create_variable(const std::string& _name, IScope* _scope)
+        {
+		    return create_variable(R::get_meta_type<T>(), _name, _scope);
+        }
+
 		LiteralNode*                create_literal(std::shared_ptr<const R::MetaType>);
-		Node*                       create_bin_op(const InvokableOperator*);
-		Node*                       create_unary_op(const InvokableOperator*);
-        Node*                       create_operator(const InvokableOperator*);
-		Wire*                       create_wire();
-		Node*                       create_abstract_function(const FunctionSignature*);
+ 		Wire*                       create_wire();
+		Node*                       create_abstract_function(const Signature*);
 		Node*                       create_function(const IInvokable*);
         Node*                       create_scope();
         ConditionalStructNode*      create_cond_struct();
@@ -68,7 +73,7 @@ namespace Nodable
 	private:		
 		std::vector<Node*> m_node_registry;
 		std::vector<Wire*> m_wire_registry;
-		RelationRegistry   m_relation_registry;
+		RelationRegistry_t m_relation_registry;
 		const Language*    m_language;
 		Node*              m_root;
 		const INodeFactory* m_factory;
@@ -77,5 +82,6 @@ namespace Nodable
         R_DERIVED(GraphNode)
         R_EXTENDS(Node)
         R_END
+
     };
 }

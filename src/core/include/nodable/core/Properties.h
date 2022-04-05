@@ -40,7 +40,8 @@ namespace Nodable
         Node*               get_owner()const { return m_owner; };
 		const MemberMap&    by_name()const { return m_members_by_name; };
 		const MemberVec&    by_id()const { return m_members_by_id; };
-        Member*             get_first_member_with(Way, std::shared_ptr<const R::MetaType>) const;
+        Member*             get_first(Way, std::shared_ptr<const R::MetaType>) const;
+        Member*             get_input_at(u8_t n) const;
 	private:
 	    void                add_to_indexes(Member*);
 	    // void                remove_from_indexes(Member*);

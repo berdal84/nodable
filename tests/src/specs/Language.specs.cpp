@@ -6,32 +6,40 @@ using namespace Nodable;
 TEST(Language, can_get_add_operator_with_short_identifier )
 {
     LanguageNodable language;
-    const InvokableOperator* op = language.findOperator("+");
-    EXPECT_TRUE(op != nullptr);
+    EXPECT_TRUE(language.find_operator("+", Operator_t::Binary));
+    EXPECT_TRUE(language.find_operator("-", Operator_t::Unary));
 }
 
 TEST(Language, can_get_add_operator_with_signature )
 {
     LanguageNodable language;
-    const FunctionSignature* signature = FunctionSignature::new_instance<double(double, double)>::with_id("operator+");
-    const InvokableOperator* op = language.findOperator(signature);
+    const Signature* signature = Signature
+    ::from_type<double(double, double)>
+    ::as_operator(language.find_operator("+", Operator_t::Binary));
+
+    const IInvokable* op = language.find_operator_fct(signature);
     EXPECT_TRUE(op != nullptr);
 }
 
 TEST(Language, can_get_invert_operator_with_signature )
 {
     LanguageNodable language;
-    const FunctionSignature* signature = FunctionSignature::new_instance<double(double)>::with_id("operator-");
-    const InvokableOperator* op = language.findOperator(signature);
+    const Signature* signature = Signature
+        ::from_type<double(double)>
+        ::as_operator(language.find_operator("-", Operator_t::Unary));
+
+    const IInvokable* op = language.find_operator_fct(signature);
     EXPECT_TRUE(op != nullptr);
 }
 
-TEST(Language, by_pointer_assign )
+TEST(Language, by_ref_assign )
 {
     LanguageNodable language;
     // find double operator=(double*, double)
-    const FunctionSignature* signature = FunctionSignature::new_instance<double(double*, double)>::with_id("operator=");
-    const InvokableOperator* op = language.findOperator(signature);
+    const Signature* signature = Signature
+        ::from_type<double(double&, double)>
+        ::as_operator(language.find_operator("=", Operator_t::Binary));
+    const IInvokable* op = language.find_operator_fct(signature);
     EXPECT_TRUE(op != nullptr);
 
     // prepare call

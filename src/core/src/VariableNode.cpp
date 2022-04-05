@@ -14,6 +14,7 @@ VariableNode::VariableNode(std::shared_ptr<const R::MetaType> _type)
     , m_is_declared(true)
     , m_scope(nullptr)
 {
+    NODABLE_ASSERT(_type)
 	m_value = m_props.add(k_value_member_name, Visibility::Always, _type, Way_InOut);
 }
 

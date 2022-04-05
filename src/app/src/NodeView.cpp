@@ -581,7 +581,7 @@ bool NodeView::draw(MemberView* _view )
 
     if ( _view->m_showInput )
     {
-        bool limit_size = member->get_meta_type()->get_type() != R::Type::Boolean;
+        bool limit_size = member->get_meta_type()->get_type() != R::Type::bool_t;
 
         if ( limit_size )
         {
@@ -666,19 +666,31 @@ bool NodeView::draw_input(Member *_member, const char* _label )
         /* Draw the member */
         switch (_member->get_meta_type()->get_type() )
         {
-            case R::Type::Double:
+            case R::Type::i16_t:
             {
-                auto f = (double)*_member;
+                auto i16 = (i16_t)*_member;
 
-                if (ImGui::InputDouble(label.c_str(), &f, 0.0F, 0.0F, "%g", inputFlags ) && !_member->has_input_connected())
+                if (ImGui::InputInt(label.c_str(), &i16, 0, 0, inputFlags ) && !_member->has_input_connected())
                 {
-                    _member->set(f);
+                    _member->set(i16);
                     edited |= true;
                 }
                 break;
             }
 
-            case R::Type::String:
+            case R::Type::double_t:
+            {
+                auto d = (double)*_member;
+
+                if (ImGui::InputDouble(label.c_str(), &d, 0.0F, 0.0F, "%g", inputFlags ) && !_member->has_input_connected())
+                {
+                    _member->set(d);
+                    edited |= true;
+                }
+                break;
+            }
+
+            case R::Type::string_t:
             {
                 char str[255];
                 snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
@@ -691,7 +703,7 @@ bool NodeView::draw_input(Member *_member, const char* _label )
                 break;
             }
 
-            case R::Type::Boolean:
+            case R::Type::bool_t:
             {
                 std::string checkBoxLabel = _member->get_name();
 
@@ -716,7 +728,7 @@ bool NodeView::draw_input(Member *_member, const char* _label )
         if (ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
-            Serializer* serializer = node->get_parent_graph()->get_language()->getSerializer();
+            Serializer* serializer = node->get_parent_graph()->get_language()->get_serializer();
             std::string buffer;
             serializer->serialize(buffer, _member);
             ImGui::Text("%s", buffer.c_str() );

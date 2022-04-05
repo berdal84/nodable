@@ -28,7 +28,7 @@ TEST(Parser, Precedence_one_level)
 
 TEST(Parser, Precedence_two_levels)
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("-1+2*5-3/6"), 8.5);
+    EXPECT_EQ(ParseAndEvalExpression<double>("-1.0+2.0*5.0-3.0/6.0"), 8.5);
 }
 
 TEST(Parser, Simple_parenthesis)
@@ -53,8 +53,8 @@ TEST(Parser, Complex_parenthesis)
     EXPECT_EQ(ParseAndEvalExpression<int>("2+(5*3)"), 2 + (5 * 3));
     EXPECT_EQ(ParseAndEvalExpression<int>("2*(5+3)+2"), 2 * (5 + 3) + 2);
     EXPECT_EQ(ParseAndEvalExpression<int>("(2-(5+3))-2+(1+1)"), (2 - (5 + 3)) - 2 + (1 + 1));
-    EXPECT_EQ(ParseAndEvalExpression<double>("(2 -(5+3 )-2)+9/(1- 0.54)"), (2 - (5 + 3) - 2) + 9 / (1 - 0.54));
-    EXPECT_EQ(ParseAndEvalExpression<double>("1/3"), 1.0 / 3.0);
+    EXPECT_EQ(ParseAndEvalExpression<double>("(2.0 -(5.0+3.0 )-2.0)+9.0/(1.0- 0.54)"), (2.0 - (5.0 + 3.0) - 2.0) + 9.0 / (1.0 - 0.54));
+    EXPECT_EQ(ParseAndEvalExpression<double>("1.0/3.0"), 1.0 / 3.0);
 }
 
 TEST(Parser, unexisting_function)
@@ -72,11 +72,11 @@ TEST(Parser, function_call)
 
 TEST(Parser, functionlike_operator_call)
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("operator*(2,2)"), 4.0);
+    EXPECT_EQ(ParseAndEvalExpression<int>("operator*(2,2)"), 4);
     EXPECT_EQ(ParseAndEvalExpression<bool>("operator>(2,2)"), false);
-    EXPECT_EQ(ParseAndEvalExpression<double>("operator-(3,2)"), 1.0);
-    EXPECT_EQ(ParseAndEvalExpression<double>("operator+(2,2)"), 4.0);
-    EXPECT_EQ(ParseAndEvalExpression<double>("operator/(4,2)"), 2.0);
+    EXPECT_EQ(ParseAndEvalExpression<int>("operator-(3,2)"), 1);
+    EXPECT_EQ(ParseAndEvalExpression<int>("operator+(2,2)"), 4);
+    EXPECT_EQ(ParseAndEvalExpression<int>("operator/(4,2)"), 2);
 }
 
 TEST(Parser, imbricated_functions)
@@ -88,7 +88,7 @@ TEST(Parser, imbricated_functions)
 
 TEST(Parser, Successive_assigns)
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("double a; double b; a = b = 5;"), 5.0);
+    EXPECT_EQ(ParseAndEvalExpression<double>("double a; double b; a = b = 5.0;"), 5.0);
 }
 
 TEST(Parser, Strings)
@@ -147,27 +147,24 @@ TEST(Parser, Declare_and_define_vars)
 
 TEST(Parser, Single_Instruction_With_EndOfInstruction )
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5;"), 5.0);
+    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5.0;"), 5.0);
 
-    std::vector<std::string> expressions { "double a = 5;" };
+    std::vector<std::string> expressions { "double a = 5.0;" };
     ParseEvalSerializeExpressions(expressions);
 }
 
 TEST(Parser, Multiple_Instructions_Single_Line )
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5;double b = 2 * 5;"), 10.0 );
-
-    std::vector<std::string> expressions { "double a = 5;double b = 2 * 5;" };
-    ParseEvalSerializeExpressions(expressions);
+    EXPECT_EQ(ParseAndEvalExpression<int>("int a = 5;int b = 2 * 5;"), 10 );
 }
 
 TEST(Parser, Multiple_Instructions_Multi_Line )
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5;\ndouble b = 2 * a;"), 10.0 );
+    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5.0;\ndouble b = 2.0 * a;"), 10.0 );
 
     std::vector<std::string> expressions {
-        "double a = 5;\ndouble b = 2 * a;",
-        "double a = 5;double b = 2 * a;\ndouble c = 33 + 5;"
+        "double a = 5.0;\ndouble b = 2.0 * a;",
+        "double a = 5.0;double b = 2.0 * a;\ndouble c = 33.0 + 5.0;"
     };
     ParseEvalSerializeExpressions(expressions);
 }

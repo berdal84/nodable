@@ -105,13 +105,14 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 
 R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
 {
-    R::Type type = R::Type::Null;
+    R::Type type = R::Type::any_t;
 
-    const std::vector<std::regex>  regex            = m_language->getSemantic()->get_type_regex();
-    const std::vector<R::Type> regex_id_to_type = m_language->getSemantic()->get_type_regex_index_to_type();
+    const Semantic *semantic                    = m_language->get_semantic();
+    const std::vector<std::regex>  regex        = semantic->get_type_regex();
+    const std::vector<R::Type> regex_id_to_type = semantic->get_type_regex_index_to_type();
 
     auto each_regex_it = regex.cbegin();
-    while( each_regex_it != regex.cend() && type == R::Type::Null )
+    while( each_regex_it != regex.cend() && type == R::Type::any_t )
     {
         std::smatch sm;
         auto match = std::regex_search(_token->m_word.cbegin(), _token->m_word.cend(), sm, *each_regex_it);
@@ -124,7 +125,7 @@ R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
         each_regex_it++;
     }
 
-    NODABLE_ASSERT(type != R::Type::Null)
+    NODABLE_ASSERT(type != R::Type::any_t)
 
     return type;
 }
@@ -147,6 +148,11 @@ double Parser::parse_double(const std::string &_str)
     return stod(_str);
 }
 
+i16_t Parser::parse_int16(const std::string &_str)
+{
+    return stoi(_str);
+}
+
 Member* Parser::token_to_member(std::shared_ptr<Token> _token)
 {
 	Member* result;
@@ -154,16 +160,17 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
 	switch (_token->m_type)
 	{
 
-	    case TokenType_Literal:
+	    case Token_t::literal:
         {
             std::shared_ptr<const R::MetaType> type = R::get_meta_type(get_literal_type(_token));
             LiteralNode* literal = m_graph->create_literal(type);
 
             switch (type->get_type() )
             {
-                case R::Type::String: literal->set_value(parse_string(_token->m_word) ); break;
-                case R::Type::Double: literal->set_value(parse_double(_token->m_word) ); break;
-                case R::Type::Boolean: literal->set_value(parse_bool(_token->m_word)  ); break;
+                case R::Type::string_t: literal->set_value(parse_string(_token->m_word) ); break;
+                case R::Type::i16_t:    literal->set_value(parse_int16(_token->m_word) ); break;
+                case R::Type::double_t: literal->set_value(parse_double(_token->m_word) ); break;
+                case R::Type::bool_t:   literal->set_value(parse_bool(_token->m_word)  ); break;
                 default: {}
             }
 
@@ -172,7 +179,7 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
             break;
         }
 
-		case TokenType_Identifier:
+	    case Token_t::identifier:
 		{
 			VariableNode* variable = get_current_scope()->find_variable(_token->m_word);
 
@@ -181,12 +188,12 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
 			    if ( m_strict_mode )
                 {
                     LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token->m_word.c_str())
-                 }
+                }
 			    else
                 {
 			        /* when strict mode is OFF, we just create a variable with Any type */
                     LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n", _token->m_word.c_str())
-                    variable = m_graph->create_variable(R::MetaType::s_unknown, _token->m_word, get_current_scope());
+                    variable = m_graph->create_variable(R::MetaType::s_any, _token->m_word, get_current_scope());
                     variable->get_value()->set_src_token(_token);
                     variable->set_declared(false);
                 }
@@ -228,12 +235,12 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 
     start_transaction();
     std::shared_ptr<Token> operatorToken = m_token_ribbon.eatToken();
-    std::shared_ptr<Token> operandToken = m_token_ribbon.peekToken();
+    std::shared_ptr<Token> operandToken  = m_token_ribbon.peekToken();
 
 	// Structure check
 	const bool isValid = _left != nullptr &&
-                         operatorToken->m_type == TokenType_Operator &&
-                         operandToken->m_type != TokenType_Operator;
+                         operatorToken->m_type == Token_t::operator_ &&
+                         operandToken->m_type != Token_t::operator_;
 
 	if (!isValid)
 	{
@@ -242,8 +249,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 		return nullptr;
 	}
 
-
-	const InvokableOperator* ope = m_language->findOperator(operatorToken->m_word);
+	const Operator* ope = m_language->find_operator(operatorToken->m_word, Operator_t::Binary);
     if ( ope == nullptr ) {
         LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator %s)\n", operatorToken->m_word.c_str())
         rollback_transaction();
@@ -251,7 +257,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
     }
 
     // Precedence check
-	if ( ope->get_precedence() <= _precedence && _precedence > 0u) { // always update the first operation if they have the same precedence or less.
+	if ( ope->precedence <= _precedence && _precedence > 0) { // always update the first operation if they have the same precedence or less.
 		LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n")
         rollback_transaction();
 		return nullptr;
@@ -259,7 +265,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 
 
 	// Parse right expression
-	auto right = parse_expression( ope->get_precedence(), nullptr);
+	auto right = parse_expression( ope->precedence, nullptr);
 
 	if (!right)
 	{
@@ -269,33 +275,36 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const FunctionSignature* signature = m_language->createBinOperatorSignature( nullptr, operatorToken->m_word,
-                                                                                 _left->get_meta_type(),
-                                                                                 right->get_meta_type());
-	auto matchingOperator = m_language->findOperator(signature);
-    delete signature;
+	const Signature* signature = Signature::new_operator(R::MetaType::s_any,
+                                                         ope,
+                                                         _left->get_meta_type(),
+                                                         right->get_meta_type());
 
-	if ( matchingOperator != nullptr )
+    const IInvokable* invokable = m_language->find_operator_fct(signature);
+
+    InvokableComponent* component;
+    Node* binary_op;
+    if ( invokable )
 	{
-		auto binOpNode = m_graph->create_bin_op(matchingOperator);
-        auto computeComponent = binOpNode->get<InvokableComponent>();
-        computeComponent->set_source_token(operatorToken);
-
-        m_graph->connect(_left, computeComponent->get_l_handed_val());
-        m_graph->connect(right, computeComponent->get_r_handed_val());
-		result = binOpNode->props()->get(k_value_member_name);
-
-        commit_transaction();
-        LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
-
-        return result;
+	    // concrete operator
+		binary_op = m_graph->create_function(invokable);
+        component = binary_op->get<InvokableComponent>();
+        delete signature;
     }
-    else
+	else
     {
-        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator prototype)\n")
-        rollback_transaction();
-        return nullptr;
+	    // abstract operator
+        binary_op = m_graph->create_abstract_function(signature);
+        component = binary_op->get<InvokableComponent>();
     }
+
+    component->set_source_token(operatorToken);
+    m_graph->connect(_left, component->get_l_handed_val());
+    m_graph->connect(right, component->get_r_handed_val());
+
+    commit_transaction();
+    LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
+    return binary_op->props()->get(k_value_member_name);
 }
 
 Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
@@ -313,7 +322,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
     std::shared_ptr<Token> operatorToken = m_token_ribbon.eatToken();
 
 	// Check if we get an operator first
-	if (operatorToken->m_type != TokenType_Operator)
+	if (operatorToken->m_type != Token_t::operator_)
 	{
         rollback_transaction();
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n")
@@ -336,29 +345,34 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	}
 
 	// Create a function signature
-	auto signature = m_language->createUnaryOperatorSignature( nullptr, operatorToken->m_word, value->get_meta_type() );
-	auto matchingOperator = m_language->findOperator(signature);
 
-	if (matchingOperator != nullptr)
+	const Operator*   ope       = m_language->find_operator(operatorToken->m_word, Operator_t::Unary );
+	const Signature*  sig       = Signature::new_operator(R::MetaType::s_any, ope, value->get_meta_type());
+	const IInvokable* invokable = m_language->find_operator_fct(sig);
+
+	InvokableComponent* component;
+	Node* node;
+
+	if (invokable)
 	{
-		auto unaryOpNode = m_graph->create_unary_op(matchingOperator);
-        auto computeComponent = unaryOpNode->get<InvokableComponent>();
-        computeComponent->set_source_token(operatorToken);
-
-        m_graph->connect(value, computeComponent->get_l_handed_val());
-        Member* result = unaryOpNode->props()->get(k_value_member_name);
-
-		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
-        commit_transaction();
-
-		return result;
+        node = m_graph->create_function(invokable);
+        delete sig;
 	}
 	else
 	{
-		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (unrecognysed operator)\n")
-        rollback_transaction();
-		return nullptr;
+        node = m_graph->create_abstract_function(sig);
 	}
+
+    component = node->get<InvokableComponent>();
+    component->set_source_token(operatorToken);
+
+    m_graph->connect(value, component->get_l_handed_val());
+    Member* result = node->props()->get(k_value_member_name);
+
+    LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
+    commit_transaction();
+
+    return result;
 }
 
 Member* Parser::parse_atomic_expression()
@@ -373,7 +387,8 @@ Member* Parser::parse_atomic_expression()
 
     start_transaction();
     std::shared_ptr<Token> token = m_token_ribbon.eatToken();
-	if (token->m_type == TokenType_Operator)
+
+	if (token->m_type == Token_t::operator_)
 	{
 		LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n")
         rollback_transaction();
@@ -409,7 +424,7 @@ Member* Parser::parse_parenthesis_expression()
 
     start_transaction();
     std::shared_ptr<Token> currentToken = m_token_ribbon.eatToken();
-	if (currentToken->m_type != TokenType_OpenBracket)
+	if (currentToken->m_type != Token_t::open_bracket)
 	{
 		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n")
         rollback_transaction();
@@ -420,7 +435,7 @@ Member* Parser::parse_parenthesis_expression()
 	if (result)
 	{
         std::shared_ptr<Token> token = m_token_ribbon.eatToken();
-		if (token->m_type != TokenType_CloseBracket )
+		if (token->m_type != Token_t::close_bracket )
 		{
 			LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
 			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->m_word.c_str() )
@@ -457,12 +472,12 @@ InstructionNode* Parser::parse_instr()
 
     if ( m_token_ribbon.canEat() )
     {
-        std::shared_ptr<Token> expectedEOI = m_token_ribbon.eatToken(TokenType_EndOfInstruction);
+        std::shared_ptr<Token> expectedEOI = m_token_ribbon.eatToken(Token_t::end_of_instruction);
         if ( expectedEOI )
         {
             instr_node->end_of_instr_token(expectedEOI);
         }
-        else if( m_token_ribbon.peekToken()->m_type != TokenType_CloseBracket )
+        else if( m_token_ribbon.peekToken()->m_type != Token_t::close_bracket )
         {
             LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n")
             rollback_transaction();
@@ -506,7 +521,7 @@ Node* Parser::parse_scope()
 
     start_transaction();
 
-    if ( !m_token_ribbon.eatToken(TokenType_BeginScope))
+    if ( !m_token_ribbon.eatToken(Token_t::begin_scope))
     {
         rollback_transaction();
         result = nullptr;
@@ -531,7 +546,7 @@ Node* Parser::parse_scope()
 
         parse_code_block(false);
 
-        if ( !m_token_ribbon.eatToken(TokenType_EndScope))
+        if ( !m_token_ribbon.eatToken(Token_t::end_scope))
         {
             m_graph->destroy(scope_node);
             rollback_transaction();
@@ -648,22 +663,22 @@ bool Parser::is_syntax_valid()
     //                     The parsing steps that follow (parseProgram) is doing a better check, by looking to what exist in the Language.
 	bool success   = true;
     auto currTokIt = m_token_ribbon.tokens.begin();
-	short int openedParenthesisCount = 0;
+	short int opened = 0;
 
 	while(currTokIt != m_token_ribbon.tokens.end() && success)
 	{
 		switch ( (*currTokIt)->m_type)
 		{
-            case TokenType_OpenBracket:
+            case Token_t::open_bracket:
             {
-                openedParenthesisCount++;
+                opened++;
                 break;
             }
-            case TokenType_CloseBracket:
+            case Token_t::close_bracket:
             {
-                openedParenthesisCount--;
+                opened--;
 
-                if (openedParenthesisCount < 0)
+                if (opened < 0)
                 {
                     LOG_VERBOSE("Parser", "Unexpected %s\n", (*currTokIt)->m_word.c_str())
                     success = false;
@@ -678,9 +693,9 @@ bool Parser::is_syntax_valid()
 		std::advance(currTokIt, 1);
 	}
 
-	if (openedParenthesisCount != 0) // same opened/closed parenthesis count required.
+	if (opened != 0) // same opened/closed parenthesis count required.
     {
-        LOG_VERBOSE("Parser", "bracket count mismatch, %i still opened.\n", openedParenthesisCount)
+        LOG_VERBOSE("Parser", "bracket count mismatch, %i still opened.\n", opened)
         success = false;
     }
 
@@ -690,8 +705,8 @@ bool Parser::is_syntax_valid()
 bool Parser::tokenize_string(const std::string &_code_source_portion)
 {
     /* shortcuts to language members */
-    const std::vector<std::regex> regex           = m_language->getSemantic()->get_token_type_regex();
-    const std::vector<TokenType> regexIdToTokType = m_language->getSemantic()->get_token_type_regex_index_to_token_type();
+    auto& regex            = m_language->get_semantic()->get_token_type_regex();
+    auto& regexIdToTokType = m_language->get_semantic()->get_token_type_regex_index_to_token_type();
 
     std::string pending_ignored_chars;
 
@@ -699,7 +714,7 @@ bool Parser::tokenize_string(const std::string &_code_source_portion)
     auto unifiedParsing = [&](auto& it) -> auto
     {
         int i = 0;
-        for (auto eachRegexIt = regex.cbegin(); eachRegexIt != regex.cend(); eachRegexIt++)
+        for (auto&& eachRegexIt = regex.cbegin(); eachRegexIt != regex.cend(); eachRegexIt++)
         {
             i++;
             std::smatch sm;
@@ -708,9 +723,9 @@ bool Parser::tokenize_string(const std::string &_code_source_portion)
             if (match)
             {
                 std::string matched_str = sm.str();
-                TokenType   matched_token_t   = regexIdToTokType[std::distance(regex.cbegin(), eachRegexIt)];
+                Token_t   matched_token_t   = regexIdToTokType[std::distance(regex.cbegin(), eachRegexIt)];
 
-                if (matched_token_t != TokenType_Ignore) {
+                if (matched_token_t != Token_t::ignore) {
                     size_t index = std::distance(_code_source_portion.cbegin(), it);
                     auto new_token = std::make_shared<Token>(matched_token_t, matched_str, index);
                     LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matched_str.c_str())
@@ -723,7 +738,7 @@ bool Parser::tokenize_string(const std::string &_code_source_portion)
                          if (!m_token_ribbon.empty())
                          {
                              std::shared_ptr<Token> last_token = m_token_ribbon.tokens.back();
-                             if (last_token->m_type != TokenType_Identifier)
+                             if (last_token->m_type != Token_t::identifier)
                              {
                                  /*
                                  * Option 1: suffix of previous token
@@ -813,27 +828,26 @@ Member* Parser::parse_function_call()
     start_transaction();
 
     // Try to parse regular function: function(...)
-    std::string identifier;
+    std::string fct_id;
     std::shared_ptr<Token> token_0 = m_token_ribbon.eatToken();
     std::shared_ptr<Token> token_1 = m_token_ribbon.eatToken();
-    if (token_0->m_type == TokenType_Identifier &&
-        token_1->m_type == TokenType_OpenBracket)
+    if (token_0->m_type == Token_t::identifier &&
+        token_1->m_type == Token_t::open_bracket)
     {
-        identifier = token_0->m_word;
+        fct_id = token_0->m_word;
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
     }
     else // Try to parse operator like (ex: operator==(..,..))
     {
         std::shared_ptr<Token> token_2 = m_token_ribbon.eatToken(); // eat a "supposed open bracket>
 
-        if (token_0->m_type == TokenType_Identifier && token_0->m_word == m_language->getSemantic()
-                                                                                  ->token_type_to_string(
-                                                                                          TokenType_KeywordOperator /* TODO: TokenType_Keyword + word="operator" */) &&
-            token_1->m_type == TokenType_Operator &&
-            token_2->m_type == TokenType_OpenBracket)
+        if (   token_0->m_type == Token_t::identifier
+            && token_0->m_word == m_language->get_semantic()->token_type_to_string(Token_t::keyword_operator )
+            && token_1->m_type == Token_t::operator_
+            && token_2->m_type == Token_t::open_bracket)
         {
-            // ex: "operator" + ">=>
-            identifier = token_0->m_word + token_1->m_word;
+            // ex: "operator" + "=="
+            fct_id = token_0->m_word + token_1->m_word;
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
         }
         else
@@ -846,18 +860,18 @@ Member* Parser::parse_function_call()
     std::vector<Member *> args;
 
     // Declare a new function prototype
-    FunctionSignature signature(identifier);
-    signature.set_return_type(R::MetaType::s_unknown);
+    Signature signature(fct_id);
+    signature.set_return_type(R::MetaType::s_any);
 
     bool parsingError = false;
-    while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != TokenType_CloseBracket)
+    while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != Token_t::close_bracket)
     {
 
         if (auto member = parse_expression())
         {
             args.push_back(member); // store argument as member (already parsed)
             signature.push_arg(member->get_meta_type());  // add a new argument type to the proto.
-            m_token_ribbon.eatToken(TokenType_Separator);
+            m_token_ribbon.eatToken(Token_t::separator);
         }
         else
         {
@@ -866,7 +880,7 @@ Member* Parser::parse_function_call()
     }
 
     // eat "close bracket supposed" token
-    if ( !m_token_ribbon.eatToken(TokenType_CloseBracket) )
+    if ( !m_token_ribbon.eatToken(Token_t::close_bracket) )
     {
         LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
         rollback_transaction();
@@ -875,38 +889,27 @@ Member* Parser::parse_function_call()
 
 
     // Find the prototype in the language library
-    auto fct = m_language->findFunction(&signature);
+    auto fct = m_language->find_function(&signature);
 
-    auto connectArg = [&](const FunctionSignature* _sig, Node* _node, size_t _arg_index ) -> void
+    auto connectArg = [&](const Signature* _sig, Node* _node, size_t _arg_index ) -> void
     { // lambda to connect input member to node for a specific argument index.
-
         Member*     src_member      = args.at(_arg_index);
-        std::string dst_member_name = _sig->get_args().at(_arg_index).m_name;
-        Member*     dst_member      = _node->props()->get(dst_member_name.c_str());
-
+        Member*     dst_member      = _node->props()->get_input_at(_arg_index);
+        NODABLE_ASSERT(dst_member)
         m_graph->connect(src_member, dst_member);
     };
 
+    Node* node;
     if (fct)
     {
         /*
-         * If we found a function matching signature, we create a not with that function.
+         * If we found a function matching signature, we create a node with that function.
          * The node will be able to be evaluated.
          *
          * TODO: remove this method, the parser should not check if function exist or not.
          *       this role is for the Compiler.
          */
-        auto node = m_graph->create_function(fct);
-
-        for (size_t argIndex = 0; argIndex < fct->get_signature()->get_arg_count(); argIndex++)
-        {
-            connectArg(fct->get_signature(), node, argIndex);
-        }
-
-        commit_transaction();
-        LOG_VERBOSE("Parser", "parse function call... " OK "\n")
-
-        return node->props()->get(k_value_member_name);
+        node = m_graph->create_function(fct);
     }
     else
     {
@@ -914,18 +917,18 @@ Member* Parser::parse_function_call()
          * If we DO NOT found a function matching signature, we create an abstract function.
          * The node will be able to be evaluated.
          */
-        auto node = m_graph->create_abstract_function(&signature);
-
-        for (size_t argIndex = 0; argIndex < signature.get_arg_count(); argIndex++)
-        {
-            connectArg(&signature, node, argIndex);
-        }
-
-        commit_transaction();
-        LOG_VERBOSE("Parser", "parse function call... " OK "\n")
-
-        return node->props()->get(k_value_member_name);
+        node = m_graph->create_abstract_function(&signature);
     }
+
+    for (size_t argIndex = 0; argIndex < signature.get_arg_count(); argIndex++)
+    {
+        connectArg(&signature, node, argIndex);
+    }
+
+    commit_transaction();
+    LOG_VERBOSE("Parser", "parse function call... " OK "\n")
+
+    return node->props()->get(k_value_member_name);
 }
 
 Scope* Parser::get_current_scope()
@@ -942,14 +945,14 @@ ConditionalStructNode * Parser::parse_conditional_structure()
     bool success = false;
     ConditionalStructNode* condStruct = m_graph->create_cond_struct();
 
-    if ( m_token_ribbon.eatToken(TokenType_KeywordIf))
+    if ( m_token_ribbon.eatToken(Token_t::keyword_if))
     {
         m_graph->connect({condStruct, EdgeType::IS_CHILD_OF, m_scope_stack.top()->get_owner()});
         m_scope_stack.push( condStruct->get<Scope>() );
 
         condStruct->set_token_if(m_token_ribbon.getEaten());
 
-        if(m_token_ribbon.eatToken(TokenType_OpenBracket))
+        if(m_token_ribbon.eatToken(Token_t::open_bracket))
         {
             InstructionNode* condition = parse_instr();
 
@@ -959,13 +962,13 @@ ConditionalStructNode * Parser::parse_conditional_structure()
                 condition->set_label("Cond.");
                 condStruct->set_cond_instr(condition);
 
-                if ( m_token_ribbon.eatToken(TokenType_CloseBracket) )
+                if ( m_token_ribbon.eatToken(Token_t::close_bracket) )
                 {
                     m_graph->connect(condition->get_this_member(), condStruct->condition_member() );
 
                     if ( Node* scopeIf = parse_scope() )
                     {
-                        if ( m_token_ribbon.eatToken(TokenType_KeywordElse))
+                        if ( m_token_ribbon.eatToken(Token_t::keyword_else))
                         {
                             condStruct->set_token_else(m_token_ribbon.getEaten());
 
@@ -1034,7 +1037,7 @@ ForLoopNode* Parser::parse_for_loop()
     ForLoopNode* for_loop_node = nullptr;
     start_transaction();
 
-    std::shared_ptr<Token> token_for = m_token_ribbon.eatToken(TokenType_KeywordFor);
+    std::shared_ptr<Token> token_for = m_token_ribbon.eatToken(Token_t::keyword_for);
 
     if( token_for != nullptr )
     {
@@ -1045,7 +1048,7 @@ ForLoopNode* Parser::parse_for_loop()
         for_loop_node->set_token_for( token_for );
 
         LOG_VERBOSE("Parser", "parse FOR (...) block...\n")
-        std::shared_ptr<Token> open_bracket = m_token_ribbon.eatToken(TokenType_OpenBracket);
+        std::shared_ptr<Token> open_bracket = m_token_ribbon.eatToken(Token_t::open_bracket);
         if( !open_bracket )
         {
             LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
@@ -1085,7 +1088,7 @@ ForLoopNode* Parser::parse_for_loop()
                         m_graph->connect(iter_instr->get_this_member(), for_loop_node->get_iter_expr());
                         for_loop_node->set_iter_instr(iter_instr);
 
-                        std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(TokenType_CloseBracket);
+                        std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(Token_t::close_bracket);
                         if (!close_bracket)
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
@@ -1127,29 +1130,32 @@ Member *Parser::parse_variable_declaration()
 
     start_transaction();
 
-    std::shared_ptr<Token> typeTok       = m_token_ribbon.eatToken();
-    std::shared_ptr<Token> identifierTok = m_token_ribbon.eatToken();
+    std::shared_ptr<Token> tok_type       = m_token_ribbon.eatToken();
+    std::shared_ptr<Token> tok_identifier = m_token_ribbon.eatToken();
 
-    if(typeTok->isTypeKeyword() && identifierTok->m_type == TokenType_Identifier )
+    if(tok_type->is_keyword_type() && tok_identifier->m_type == Token_t::identifier )
     {
-        R::Type type = m_language->getSemantic()->token_type_to_type(typeTok->m_type);
-        VariableNode* variable = m_graph->create_variable(R::get_meta_type(type), identifierTok->m_word, this->get_current_scope());
-        variable->set_type_token(typeTok);
-        variable->set_identifier_token(identifierTok);
-        variable->get_value()->set_src_token( std::make_shared<Token>(*identifierTok) ); // we also pass a copy
+        R::Type type = m_language->get_semantic()->token_type_to_type(tok_type->m_type);
+        VariableNode* variable = m_graph->create_variable(R::get_meta_type(type), tok_identifier->m_word, get_current_scope());
+        variable->set_type_token(tok_type);
+        variable->set_identifier_token(tok_identifier);
+        variable->get_value()->set_src_token( std::make_shared<Token>(*tok_identifier) );
 
         // try to parse assignment
-        std::shared_ptr<Token> assignmentTok = m_token_ribbon.eatToken(TokenType_Operator);
+        std::shared_ptr<Token> assignmentTok = m_token_ribbon.eatToken(Token_t::operator_);
         if ( assignmentTok && assignmentTok->m_word == "=" )
         {
-            if( auto expression_result = parse_expression() )
+            auto expression_result = parse_expression();
+            if( expression_result &&
+                    R::MetaType::is_implicitly_convertible(  expression_result->get_meta_type()
+                                                           , variable->get_value()->get_meta_type()) )
             {
                 m_graph->connect( expression_result, variable );
                 variable->set_assignment_operator_token(assignmentTok);
             }
             else
             {
-                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifierTok->m_word.c_str())
+                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", tok_identifier->m_word.c_str())
                 rollback_transaction();
                 m_graph->destroy(variable);
                 return nullptr;

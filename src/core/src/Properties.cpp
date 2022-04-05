@@ -25,6 +25,7 @@ bool Properties::has(const Member* _member)
 
 Member* Properties::add(const char* _name, Visibility _visibility, std::shared_ptr<const R::MetaType> _type, Way _flags )
 {
+    NODABLE_ASSERT(_type);
     NODABLE_ASSERT(!has(_name));
 
 	Member* new_member = Member::new_with_meta_type(this, _type);
@@ -37,12 +38,12 @@ Member* Properties::add(const char* _name, Visibility _visibility, std::shared_p
 	return new_member;
 }
 
-Member *Properties::get_first_member_with(Way _way, std::shared_ptr<const R::MetaType> _type) const
+Member *Properties::get_first(Way _way, std::shared_ptr<const R::MetaType> _type) const
 {
     auto filter = [_way, _type](auto each_pair) -> bool
     {
         Member* each_member = each_pair.second;
-        return R::MetaType::is_convertible(each_member->get_meta_type(), _type)
+        return R::MetaType::is_implicitly_convertible(each_member->get_meta_type(), _type)
                && ( each_member->get_allowed_connection() & _way );
     };
 
@@ -58,4 +59,22 @@ void Properties::add_to_indexes(Member* _member)
     m_members_by_name.insert({_member->get_name(), _member});
     m_members_by_id.push_back(_member);
     m_members.insert(_member);
+}
+
+Member* Properties::get_input_at(u8_t _position) const
+{
+    u8_t count = 0;
+
+    for( auto each : m_members_by_id)
+    {
+        if( each->allows_connection(Way_In) && !each->allows_connection(Way_Out))
+        {
+            if( count == _position)
+            {
+                return each;
+            }
+            count++;
+        }
+    }
+    return nullptr;
 }

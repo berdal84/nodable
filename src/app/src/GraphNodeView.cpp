@@ -16,6 +16,7 @@
 #include <nodable/app/NodeConnector.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/InstructionNode.h>
+#include <nodable/core/System.h>
 
 using namespace Nodable;
 using namespace Nodable::assembly;
@@ -102,8 +103,8 @@ bool GraphNodeView::draw()
     auto create_instr = [&]( Scope* _scope ) -> InstructionNode*
     {
         InstructionNode* instr_node = graph->create_instr();
-        std::shared_ptr<Token> token = std::make_shared<Token>(TokenType_EndOfInstruction);
-        m_context->language->getSerializer()->serialize(token->m_suffix, TokenType_EndOfLine);
+        std::shared_ptr<Token> token = std::make_shared<Token>(Token_t::end_of_instruction);
+        token->m_suffix = System::k_end_of_line;
         instr_node->end_of_instr_token(token);
         return instr_node;
     };
@@ -116,7 +117,7 @@ bool GraphNodeView::draw()
         var_node = graph->create_variable(_type, _name, scope );
 
         std::shared_ptr<Token> token  = std::make_shared<Token>();
-        token->m_type = TokenType_Operator;
+        token->m_type = Token_t::keyword_operator;
         token->m_prefix  = " ";
         token->m_suffix  = " ";
         token->m_word    = "=";
@@ -504,7 +505,7 @@ bool GraphNodeView::draw()
                 if ( dragged_member_conn->m_way == Way_In )
                 {
                     Member* dst_member = dragged_member_conn->get_member();
-                    Member* src_member = new_node->props()->get_first_member_with(Way_Out, dst_member->get_meta_type());
+                    Member* src_member = new_node->props()->get_first(Way_Out, dst_member->get_meta_type());
                     graph->connect( src_member, dst_member );
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
@@ -512,7 +513,7 @@ bool GraphNodeView::draw()
                 {
                     // connect dragged (out) to first input on new node.
                     Member* src_member = dragged_member_conn->get_member();
-                    Member* dst_member = new_node->props()->get_first_member_with(Way_In, src_member->get_meta_type());
+                    Member* dst_member = new_node->props()->get_first(Way_In, src_member->get_meta_type());
                     graph->connect( src_member, dst_member);
                 }
                 MemberConnector::stop_drag();
@@ -558,7 +559,7 @@ void GraphNodeView::add_contextual_menu_item(
         const std::string &_category,
         const std::string &_label,
         std::function<Node *(void)> _function,
-        const FunctionSignature *_signature)
+        const Signature *_signature)
 {
 	m_contextual_menus.insert( {_category, {_label, _function, _signature }} );
 }
@@ -667,35 +668,24 @@ void GraphNodeView::set_owner(Node *_owner)
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
     auto graphNode = _owner->as<GraphNode>();
     const Language* language = m_context->language;
-    const auto api = m_context->language->getAllFunctions();
+    const auto functions = m_context->language->get_api();
 
-    for ( auto it = api.cbegin(); it != api.cend(); it++)
+    for (auto it = functions.cbegin(); it != functions.cend(); it++)
     {
-        IInvokable* function = *it;
-        auto op = language->findOperator(function->get_signature());
+        const IInvokable* invokable    = *it;
+        const Signature*  signature    = invokable->get_signature();
+        const IInvokable* operator_fct = language->find_operator_fct(signature);
 
         std::string label;
-        const FunctionSignature* signature = function->get_signature();
-        language->getSerializer()->serialize(label, signature);
+        language->get_serializer()->serialize(label, signature);
 
-        if (op != nullptr )
+        std::string category = signature->is_operator() ? "Operators" : "Functions";
+        
+        auto create_lambda = [graphNode, invokable]() -> Node*
         {
-            auto lambda = [graphNode, op]()->Node*
-            {
-                return graphNode->create_operator(op);
-            };
-
-            add_contextual_menu_item("Operators", label, lambda, signature);
-        }
-        else
-        {
-            auto lambda = [graphNode, function]()->Node*
-            {
-                return graphNode->create_function(function);
-            };
-
-            add_contextual_menu_item("Functions", label, lambda, signature);
-        }
-
+            return graphNode->create_function(invokable);
+        };
+        add_contextual_menu_item(category, label, create_lambda, signature);
     }
+
 }

@@ -3,7 +3,6 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <nodable/core/Edge.h> // for EdgeType
 
 namespace Nodable
 {
@@ -32,7 +31,6 @@ namespace Nodable
     typedef std::vector<VariableNode*>              VariableNodeVec;
     typedef std::vector<Node*>                      NodeVec ;
     typedef std::vector<NodeView*>                  NodeViewVec ;
-    typedef std::multimap<EdgeType, const DirectedEdge> RelationRegistry;
 }
 
 

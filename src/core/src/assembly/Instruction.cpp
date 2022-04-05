@@ -1,5 +1,5 @@
 #include "nodable/core/assembly/Instruction.h"
-#include "nodable/core/Format.h"
+#include "nodable/core/String.h"
 
 using namespace Nodable;
 
@@ -9,7 +9,7 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
     result.reserve(80); // to fit with terminals
 
     // append "<line> :"
-    std::string str = Format::fmt_hex(_instr.line);
+    std::string str = String::fmt_hex(_instr.line);
     result.append( str );
     result.resize(4, ' ');
     result.append( " : " );
@@ -24,7 +24,7 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
     {
         case opcode::eval_node:
         {
-            result.append(Format::fmt_ptr(_instr.eval.node) );
+            result.append(String::fmt_ptr(_instr.eval.node) );
             break;
         }
 
@@ -62,16 +62,16 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
         case opcode::ret: // nothing else to do.
             break;
         case opcode::pop_stack_frame:
-            result.append(Format::fmt_ptr(_instr.pop.scope) );
+            result.append(String::fmt_ptr(_instr.pop.scope) );
             break;
         case opcode::pop_var:
-            result.append(Format::fmt_ptr(_instr.push.var) );
+            result.append(String::fmt_ptr(_instr.push.var) );
             break;
         case opcode::push_stack_frame:
-            result.append(Format::fmt_ptr(_instr.push.scope) );
+            result.append(String::fmt_ptr(_instr.push.scope) );
             break;
         case opcode::push_var:
-            result.append(Format::fmt_ptr(_instr.push.var) );
+            result.append(String::fmt_ptr(_instr.push.var) );
             break;
     }
 

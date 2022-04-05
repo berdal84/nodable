@@ -26,28 +26,27 @@ namespace Nodable
             , m_qualifier(_qualifier)
             {}
 
-            const char* get_name() const { return m_name; };
-            std::string get_fullname() const;
-            Type get_type() const { return m_type; }
-            Qualifier get_qualifier() const { return m_qualifier; }
-            bool has_qualifier(Qualifier _other_qualifier) const;
-            void add_qualifier(Qualifier _other_qualifier);
-            bool is(const std::shared_ptr<const MetaType>& _other)const;
-            template<class T>
-            bool is() const { return is(reflect_type<T>::make_type()); }
-            template<class T>
-            bool is_not() const { return !is(reflect_type<T>::make_type()); }
-            bool   is_ptr() const;
+            const char*               get_name() const { return m_name; };
+            std::string               get_fullname() const;
+            Type                      get_type() const { return m_type; }
+            Qualifier                 get_qualifier() const { return m_qualifier; }
+            bool                      has_qualifier(Qualifier _other_qualifier) const;
+            void                      add_qualifier(Qualifier _other_qualifier);
+            bool                      is_exactly(MetaType_const_ptr _other)const;
+            template<class T> bool    is_exactly() const { return is_exactly(reflect_type<T>::make_type()); }
+            template<class T> bool    is_not() const { return !is_exactly(reflect_type<T>::make_type()); }
+            bool                      is_ptr() const;
+            bool                      is_ref() const;
 
-            static bool   is_ptr(const std::shared_ptr<const MetaType>&);
-            static bool   is_ref(const std::shared_ptr<const MetaType>&);
-            static std::shared_ptr<MetaType>  add_ref(std::shared_ptr<MetaType>);
-            static std::shared_ptr<MetaType>  add_ptr(std::shared_ptr<MetaType>);
-            static bool   is_convertible(std::shared_ptr<const MetaType> , std::shared_ptr<const MetaType> );
-            static std::shared_ptr<const MetaType>  make_ptr(const std::shared_ptr<const MetaType>& _type);
-            static std::shared_ptr<const MetaType>  make_ref(const std::shared_ptr<const MetaType>& _type);
+            static bool               is_ptr(MetaType_const_ptr);
+            static bool               is_ref(MetaType_const_ptr);
+            static MetaType_ptr       add_ref(MetaType_ptr);
+            static MetaType_ptr       add_ptr(MetaType_ptr);
+            static bool               is_implicitly_convertible(MetaType_const_ptr _left, MetaType_const_ptr _right);
+            static MetaType_const_ptr make_ptr(MetaType_const_ptr _type);
+            static MetaType_const_ptr make_ref(MetaType_const_ptr _type);
 
-            static std::shared_ptr<MetaType> s_unknown;
+            static MetaType_const_ptr s_any;
 
         protected:
             const char*     m_name;

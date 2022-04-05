@@ -56,7 +56,7 @@ TEST(Member, Type_Boolean)
 
     m.set(true);
     EXPECT_TRUE((bool)m);
-    EXPECT_EQ(m.get_meta_type()->get_type(), Type::Boolean);
+    EXPECT_EQ(m.get_meta_type()->get_type(), Type::bool_t);
 
     m.set(false);
     EXPECT_FALSE((bool)m);
@@ -66,13 +66,13 @@ TEST(Member, Type_Boolean)
 
 TEST(Member, Type_String)
 {
-    Member m(nullptr);
-    m.set("Hello world !");
+    Member m;
     const std::string str = "Hello world !";
+    m.set(str);
 
     EXPECT_EQ((std::string)m, str);
     EXPECT_TRUE(m.convert_to<bool>());
-    EXPECT_EQ(m.get_meta_type()->get_type(), Type::String);
+    EXPECT_EQ(m.get_meta_type()->get_type(), Type::string_t);
     EXPECT_TRUE(m.get_data()->is_defined());
 }
 
@@ -82,7 +82,7 @@ TEST(Member, Type_Double)
     m.set((double)50);
 
     EXPECT_EQ((double)m, (double)50);
-    EXPECT_EQ(m.get_meta_type()->get_type(), Type::Double);
+    EXPECT_EQ(m.get_meta_type()->get_type(), Type::double_t);
     EXPECT_TRUE(m.get_data()->is_defined());
 }
 
@@ -92,7 +92,7 @@ TEST(Member, Modify_by_reference_using_a_pointer)
     m.set(50.0);
 
     EXPECT_EQ((double)m, 50.0);
-    EXPECT_EQ(m.get_meta_type()->get_type(), Type::Double);
+    EXPECT_EQ(m.get_meta_type()->get_type(), Type::double_t);
     EXPECT_TRUE(m.get_data()->is_defined());
 
     double* ref = (double*)m;
@@ -107,7 +107,7 @@ TEST(Member, Modify_by_reference_using_a_reference)
     Member m2(nullptr, 50.0);
 
     EXPECT_EQ((double)m1, 50.0);
-    EXPECT_EQ(m1.get_meta_type()->get_type(), Type::Double);
+    EXPECT_EQ(m1.get_meta_type()->get_type(), Type::double_t);
     EXPECT_TRUE(m1.get_data()->is_defined());
 
     auto add_right_to_left = [](double& a, double b) -> double { return  a = a + b; };

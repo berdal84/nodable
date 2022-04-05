@@ -24,7 +24,7 @@ add_library(
         src/ConditionalStructNode.cpp
         src/DataAccess.cpp
         src/ForLoopNode.cpp
-        src/FunctionSignature.cpp
+        src/Signature.cpp
         src/GraphNode.cpp
         src/NodeFactory.cpp
         src/InstructionNode.cpp
@@ -42,7 +42,7 @@ add_library(
         src/Scope.cpp
         src/Semantic.cpp
         src/Serializer.cpp
-        src/Format.cpp
+        src/String.cpp
         src/System.cpp
         src/Token.cpp
         src/TokenRibbon.cpp

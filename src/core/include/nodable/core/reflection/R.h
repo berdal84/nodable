@@ -19,6 +19,8 @@
 
 #include <memory> // std::shared_ptr
 
+#include "nodable/core/types.h"
+#include "nodable/core/assertions.h"
 #include "R_Class.h"
 #include "R_MetaType.h"
 #include "R_Qualifier.h"
@@ -46,6 +48,7 @@ namespace Nodable { namespace R
         auto found = Register::by_type().find(t);
         if (found != Register::by_type().end() )
             return found->second;
+        NODABLE_ASSERT(found->second != nullptr);
         return nullptr;
     };
 
@@ -77,6 +80,8 @@ namespace Nodable { namespace R
                 result = found->second;
             }
         }
+
+        NODABLE_ASSERT(result != nullptr);
         return result;
     };
 
@@ -90,12 +95,14 @@ namespace Nodable { namespace R
             return dynamic_cast<Dst*>(_source);
         return nullptr;
     };
-} }
-
+} // namespace R
 /** declare some correspondence between type and typeenum */
-typedef std::string string;
-R_DECLARE_LINK(double , Nodable::R::Type::Double )
-R_DECLARE_LINK(string , Nodable::R::Type::String )
-R_DECLARE_LINK(bool   , Nodable::R::Type::Boolean )
-R_DECLARE_LINK(void   , Nodable::R::Type::Void )
+    R_DECLARE_LINK("double" , double      , Nodable::R::Type::double_t )
+    R_DECLARE_LINK("int"    , i16_t       , Nodable::R::Type::i16_t )
+    R_DECLARE_LINK("string" , std::string , Nodable::R::Type::string_t )
+    R_DECLARE_LINK("bool"   , bool        , Nodable::R::Type::bool_t )
+    R_DECLARE_LINK("void"   , void        , Nodable::R::Type::void_t )
+} // namespace Nodable
+
+
 

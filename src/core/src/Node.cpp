@@ -6,6 +6,8 @@
 #include <nodable/core/Wire.h>
 #include <nodable/core/DataAccess.h>
 #include <nodable/core/InvokableComponent.h>
+#include <nodable/core/IInvokable.h>
+#include <nodable/core/Signature.h>
 
 using namespace Nodable;
 using namespace Nodable::R;
@@ -135,9 +137,13 @@ bool Node::eval() const
     // copy values (only if connection is "by copy")
     for(Member* each_member : m_props.by_id())
     {
-        if(each_member->get_input() && each_member->is_connected_by(ConnectBy_Copy) )
+        Member* input = each_member->get_input();
+
+        if( input && each_member->is_connected_by(ConnectBy_Copy)
+            && !each_member->is_meta_type(R::MetaType::s_any)
+            && !input->is_meta_type(R::MetaType::s_any) )
         {
-            each_member->set(each_member->get_input());
+            each_member->set(input);
         }
     }
 
@@ -171,11 +177,9 @@ void Node::get_inner_graph(GraphNode *_graph)
     this->m_inner_graph = _graph;
 }
 
-const InvokableOperator* Node::get_connected_operator(const Member *_localMember)
+const IInvokable* Node::get_connected_operator(const Member *_localMember)
 {
     assert(m_props.has(_localMember));
-
-    const InvokableOperator* result{};
 
     /*
      * Find a wire connected to _member
@@ -193,16 +197,14 @@ const InvokableOperator* Node::get_connected_operator(const Member *_localMember
         InvokableComponent* compute_component = node->get<InvokableComponent>();
         if ( compute_component )
         {
-            const IInvokable* function = compute_component->get_function();
-            if (function->get_invokable_type() == IInvokable::Type::Operator )
+            if (compute_component->get_signature()->is_operator() )
             {
-                result = reinterpret_cast<const InvokableOperator*>( function );
+                return compute_component->get_function();
             }
         }
     }
 
-    return result;
-
+    return nullptr;
 }
 
 bool Node::has_wire_connected_to(const Member *_localMember)

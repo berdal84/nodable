@@ -13,12 +13,11 @@ using namespace Nodable;
 
 std::string& Serializer::serialize(std::string& _result, const InvokableComponent *_component)const
 {
+    const Signature* signature = _component->get_signature();
 
-    const IInvokable* invokable = _component->get_function();
-
-    if (invokable->get_invokable_type() == IInvokable::Type::Function )
+    if ( !signature->is_operator() )
     {
-        serialize(_result, _component->get_function()->get_signature(), _component->get_args());
+        serialize(_result, signature, _component->get_args());
     }
     else
     {
@@ -27,131 +26,133 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
         {
             if (needs_brackets)
             {
-                serialize(_result, TokenType_OpenBracket);
+                serialize(_result, Token_t::open_bracket);
             }
 
             serialize(_result, member);
 
             if (needs_brackets)
             {
-                serialize(_result, TokenType_CloseBracket);
+                serialize(_result, Token_t::close_bracket);
             }
         };
 
-        auto ope = reinterpret_cast<const InvokableOperator*>(invokable);
-        std::vector<Member *> args = _component->get_args();
+        Node*            owner = _component->get_owner();
+        const MemberVec& args  = _component->get_args();
+        const Signature*   sig = signature;
 
-        if (ope->get_operator_type() == InvokableOperator::Type::Binary )
+        switch (sig->get_arg_count())
         {
-            // Get the left and right source operator
-            auto l_handed_operator = _component->get_owner()->get_connected_operator(args[0]);
-            auto r_handed_operator = _component->get_owner()->get_connected_operator(args[1]);
-            // Left part of the expression
+            case 2:
             {
-                // TODO: check parsed brackets for prefix/suffix
-                bool needs_brackets = l_handed_operator &&
-                                    !language->hasHigherPrecedenceThan(l_handed_operator, ope );
+                // Get the left and right source operator
+                auto l_handed_operator = owner->get_connected_operator(args[0]);
+                auto r_handed_operator = owner->get_connected_operator(args[1]);
 
-                serialize_member_with_or_without_brackets(args[0], needs_brackets);
+                // Left part of the expression
+                {
+                    // TODO: check parsed brackets for prefix/suffix
+                    bool needs_brackets = l_handed_operator &&
+                            l_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence;
+
+                    serialize_member_with_or_without_brackets(args[0], needs_brackets);
+                }
+
+                // Operator
+                std::shared_ptr<Token> sourceToken = _component->get_source_token();
+                if (sourceToken)
+                {
+                    _result.append(sourceToken->m_prefix);
+                    _result.append(sourceToken->m_word);
+                    _result.append(sourceToken->m_suffix);
+                }
+                else
+                {
+                    _result.append(sig->get_operator()->identifier);
+                }
+
+                // Right part of the expression
+                {
+                    // TODO: check parsed brackets for prefix/suffix
+                    bool needs_brackets = r_handed_operator && (r_handed_operator->get_signature()->get_arg_count() == 1
+                                         || r_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence );
+
+                    serialize_member_with_or_without_brackets(args[1], needs_brackets);
+                }
+                break;
             }
 
-            // Operator
-            std::shared_ptr<Token> sourceToken = _component->get_source_token();
-            if (sourceToken)
+            case 1:
             {
-                _result.append(sourceToken->m_prefix);
-                _result.append(sourceToken->m_word);
-                _result.append(sourceToken->m_suffix);
+                // operator ( ... innerOperator ... )   ex:   -(a+b)
+
+                // Operator
+                std::shared_ptr<Token> token = _component->get_source_token();
+
+                if (token) _result.append(token->m_prefix);
+
+                _result.append(sig->get_operator()->identifier);
+
+                if (token) _result.append(token->m_suffix);
+
+                auto inner_operator = owner->get_connected_operator(args[0]);
+                serialize_member_with_or_without_brackets(args[0], inner_operator != nullptr);
+                break;
             }
-            else
-            {
-                _result.append(ope->get_short_identifier());
-            }
-
-            // Right part of the expression
-            {
-                // TODO: check parsed brackets for prefix/suffix
-                bool needs_brackets = r_handed_operator
-                                    && (r_handed_operator->get_operator_type() == InvokableOperator::Type::Unary
-                                        || !language->hasHigherPrecedenceThan( r_handed_operator, ope )
-                                    );
-
-                serialize_member_with_or_without_brackets(args[1], needs_brackets);
-            }
-        }
-        else if (ope->get_operator_type() == InvokableOperator::Type::Unary )
-        {
-            auto inner_operator = _component->get_owner()->get_connected_operator(args[0]);
-
-            // operator ( ... innerOperator ... )   ex:   -(a+b)
-
-            // Operator
-            std::shared_ptr<Token> sourceToken = _component->get_source_token();
-
-            if (sourceToken) {
-                _result.append(sourceToken->m_prefix);
-            }
-
-            _result.append(ope->get_short_identifier());
-
-            if (sourceToken) {
-                _result.append(sourceToken->m_suffix);
-            }
-
-            bool needs_brackets = inner_operator;
-            serialize_member_with_or_without_brackets(args[0], needs_brackets);
         }
     }
     return _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const FunctionSignature*   _signature, const std::vector<Member*>& _args) const
+std::string& Serializer::serialize(std::string& _result, const Signature*   _signature, const std::vector<Member*>& _args) const
 {
     _result.append(_signature->get_identifier());
-    serialize(_result, TokenType_OpenBracket);
+    serialize(_result, Token_t::open_bracket);
 
-    for (auto it = _args.begin(); it != _args.end(); it++) {
+    for (auto it = _args.begin(); it != _args.end(); it++)
+    {
         serialize(_result, *it);
 
-        if (*it != _args.back()) {
-            serialize(_result, TokenType_Separator);
+        if (*it != _args.back())
+        {
+            serialize(_result, Token_t::separator);
         }
     }
 
-    serialize(_result, TokenType_CloseBracket);
+    serialize(_result, Token_t::close_bracket);
     return _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const FunctionSignature* _signature) const {
-
+std::string& Serializer::serialize(std::string& _result, const Signature* _signature) const
+{
     serialize(_result, _signature->get_return_type());
     _result.append(" ");
     _result.append(_signature->get_identifier() );
-    serialize(_result, TokenType_OpenBracket);
+    serialize(_result, Token_t::open_bracket);
 
     auto args = _signature->get_args();
     for (auto it = args.begin(); it != args.end(); it++)
     {
         if (it != args.begin())
         {
-            serialize( _result, TokenType_Separator);
+            serialize( _result, Token_t::separator);
             _result.append(" ");
         }
         serialize(_result, it->m_type);
     }
 
-    serialize(_result, TokenType_CloseBracket );
+    serialize(_result, Token_t::close_bracket );
     return  _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const TokenType& _type) const
+std::string& Serializer::serialize(std::string& _result, const Token_t& _type) const
 {
-    return _result.append(language->getSemantic()->token_type_to_string(_type) );
+    return _result.append(language->get_semantic()->token_type_to_string(_type) );
 }
 
 std::string& Serializer::serialize(std::string &_result, std::shared_ptr<const R::MetaType> _type) const
 {
-    return _result.append(language->getSemantic()->type_to_string(_type) );
+    return _result.append(language->get_semantic()->type_to_string(_type) );
 }
 
 std::string& Serializer::serialize(std::string& _result, const VariableNode* _node) const
@@ -211,7 +212,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
 
 std::string& Serializer::serialize(std::string& _result, const Variant* variant) const
 {
-    if (variant->get_meta_type()->get_type() == R::Type::String )
+    if (variant->get_meta_type()->get_type() == R::Type::string_t )
     {
         return _result.append('"' + variant->convert_to<std::string>() + '"');
     }
@@ -223,7 +224,8 @@ std::string& Serializer::serialize(std::string& _result, const Variant* variant)
 
 std::string& Serializer::serialize(std::string& _result, const Member * _member, bool followConnections) const
 {
-    if (_member->get_meta_type()->is( R::get_meta_type<Node*>()))
+    // specific case of a Node*
+    if (_member->get_meta_type()->is_exactly( R::get_meta_type<Node*>()))
     {
         if(_member->get_data()->is_initialized())
         {
@@ -352,7 +354,7 @@ std::string& Serializer::serialize(std::string& _result, std::shared_ptr<const T
     if ( _token )
     {
         _result.append( _token->m_prefix);
-        if ( _token->m_type == TokenType_Unknown )
+        if ( _token->m_type == Token_t::unknown )
         {
             _result.append( _token->m_word );
         }
@@ -370,7 +372,7 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
 {
 
     serialize( _result, _for_loop->get_token_for() );
-    serialize( _result, TokenType_OpenBracket );
+    serialize( _result, Token_t::open_bracket );
 
     // TODO: I don't like this if/else, should be implicit. Serialize Member* must do it.
     //       More work to do to know if expression is a declaration or not.
@@ -386,7 +388,7 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
     }
     serialize( _result, _for_loop->get_cond_instr() );
     serialize( _result, _for_loop->get_iter_instr() );
-    serialize( _result, TokenType_CloseBracket );
+    serialize( _result, Token_t::close_bracket );
 
     // if scope
     if ( auto* scope = _for_loop->get_condition_true_scope() )
@@ -401,9 +403,9 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
 {
     // if ( <condition> )
     serialize( _result, _condStruct->get_token_if() );
-    serialize( _result, TokenType_OpenBracket );
+    serialize( _result, Token_t::open_bracket );
     serialize( _result, _condStruct->get_cond_instr() );
-    serialize( _result, TokenType_CloseBracket );
+    serialize( _result, Token_t::close_bracket );
 
     // if scope
     if ( auto* ifScope = _condStruct->get_condition_true_scope() )

@@ -77,7 +77,17 @@ void Member::set(const char* _value)
     get_variant().set(_value);
 }
 
+void Member::set(const std::string& _value)
+{
+    get_variant().set(_value);
+}
+
 void Member::set(bool _value)
+{
+    get_variant().set(_value);
+}
+
+void Member::set(i16_t _value)
 {
     get_variant().set(_value);
 }

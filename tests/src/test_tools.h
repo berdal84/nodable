@@ -9,7 +9,7 @@
 #include <nodable/core/Parser.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/NodeFactory.h>
-#include <nodable/core/Format.h>
+#include <nodable/core/String.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/languages/Nodable.h>
 
@@ -31,7 +31,7 @@ namespace Nodable
         std::string           asm_code_string;
 
         // create program graph
-        lang.getParser()->parse_graph(expression, &graph);
+        lang.get_parser()->parse_graph(expression, &graph);
 
         // compile
         auto asm_code = compiler.compile_syntax_tree(&graph);
@@ -71,7 +71,7 @@ namespace Nodable
         vm::VM                vm;
 
         // act
-        lang.getParser()->parse_graph(expression, &graph);
+        lang.get_parser()->parse_graph(expression, &graph);
 
         // compile
         auto code = compiler.compile_syntax_tree(&graph);
@@ -89,7 +89,7 @@ namespace Nodable
         // run
         vm.run_program();
 
-        Serializer *serializer = lang.getSerializer();
+        Serializer *serializer = lang.get_serializer();
         serializer->serialize(result, graph.get_root() );
         LOG_VERBOSE("tools.h", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());
 
@@ -106,13 +106,13 @@ namespace Nodable
         GraphNode graph(&lang, &factory, &autocompletion);
 
         // act
-        lang.getParser()->parse_graph(expression, &graph);
+        lang.get_parser()->parse_graph(expression, &graph);
         if ( !graph.get_root())
         {
             throw std::runtime_error("ParseAndSerialize: Unable to generate program.");
         }
 
-        Serializer *serializer = lang.getSerializer();
+        Serializer *serializer = lang.get_serializer();
         std::string result;
         serializer->serialize(result, graph.get_root() );
         LOG_VERBOSE("tools.h", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());

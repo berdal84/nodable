@@ -4,67 +4,46 @@
 */
 
 /**
-* Wrap a native non-polymorphic function.
+* Wrap a native function with a specific signature.
+* If your function is not polymorphic you can also use BIND_FUNCTION
 *
-* ex: WRAP_FUNCTION( my_unique_name_function )
-*/
-#define WRAP_FUNCTION( function ) \
-    { \
-        std::string function_name = #function; \
-        sanitizeFunctionName( function_name ); \
-        using function_type = decltype(function); \
-        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
-        addToAPI( invokable ); \
-    }
-
-/**
-* Wrap a native non-polymorphic function.
+* ex: Same functions with two different signatures:
 *
-* ex: WRAP_OPERATOR( my_unique_name_function, "+", 0, "+ Add")
+*  BIND_FUNCTION_T( sin, double(double) )
+*  BIND_FUNCTION_T( sin, double(float) )
 */
-#define WRAP_OPERATOR( function, identifier, precedence, label ) \
+#define BIND_FUNCTION_T( func, func_t ) \
     { \
-        using function_type = decltype(function); \
-        std::string function_name = identifier; \
-        sanitizeOperatorFunctionName( function_name ); \
-        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str(), identifier ); \
-        InvokableOperator* op = new InvokableOperator( invokable, precedence, identifier );\
-        addOperator( op );\
-        addToAPI( invokable ); \
-    }
-
-/**
- * Wrap a native function with a specific signature.
- * If your function is not polymorphic you can also use WRAP_FUNCTION
- *
- * ex: Same functions with two different signatures:
- *
- *  WRAP_POLYFUNC( sin, double(double) )
- *  WRAP_POLYFUNC( sin, double(float) )
- */
-#define WRAP_POLYFUNC( function, function_type ) \
-    { \
-        std::string function_name = #function; \
-        sanitizeFunctionName( function_name ); \
-        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str()); \
-        addToAPI( invokable ); \
+        auto* invokable = Invokable<func_t>::new_function(func, #func ); \
+        add_invokable( invokable );\
     }
 
 /**
 * Wrap a native function with a specific signature as an operator.
-* If your function is not polymorphic you can also use WRAP_OPERATOR
+* If your function is not polymorphic you can also use BIND_OPERATOR
 *
 * ex: Same function name with different label and signatures:
  *
-*  WRAP_POLYOPER( add, "+", 0, "+ Add", double(double, double) )
-*  WRAP_POLYOPER( add, "+", 0, "Cat.", std::string(std::string, double) )
+*  BIND_OPERATOR_T( add, "+", double(double, double) )
+*  BIND_OPERATOR_T( add, "+", std::string(std::string, double) )
 */
-#define WRAP_POLYOPER( function, identifier, precedence, label, function_type ) \
+#define BIND_OPERATOR_T( func, id, func_t ) \
     { \
-        std::string function_name = identifier; \
-        sanitizeOperatorFunctionName( function_name ); \
-        IInvokable* invokable = new InvokableFunction<function_type>(function, function_name.c_str(), identifier ); \
-        InvokableOperator* op = new InvokableOperator( invokable, precedence, identifier );\
-        addOperator( op );\
-        addToAPI( invokable ); \
+        const Operator* op = FindOperator<func_t>(id).in_language(this);\
+        auto invokable = Invokable<func_t>::new_operator(func, op ); \
+        add_invokable( invokable );\
     }
+
+/**
+* Wrap a native non-polymorphic function.
+*
+* ex: BIND_FUNCTION( my_unique_name_function )
+*/
+#define BIND_FUNCTION( function ) BIND_FUNCTION_T( function, decltype(function))
+
+/**
+* Wrap a native non-polymorphic function.
+*
+* ex: BIND_OPERATOR( my_unique_name_function, "+")
+*/
+#define BIND_OPERATOR( function, identifier ) BIND_OPERATOR_T( function, identifier, decltype(function) )

@@ -13,10 +13,10 @@ namespace Nodable
     class LiteralNode;
     class ConditionalStructNode;
     class ForLoopNode;
-    class InvokableOperator;
     class IInvokable;
     class Language;
-    class FunctionSignature;
+    class Signature;
+    class Operator;
 
     /**
      * @brief Interface to implement Node factories.
@@ -28,10 +28,7 @@ namespace Nodable
         virtual InstructionNode*            new_instr()const = 0;
         virtual VariableNode*				new_variable(std::shared_ptr<const R::MetaType>, const std::string&, IScope *)const = 0;
         virtual LiteralNode*                new_literal(std::shared_ptr<const R::MetaType>)const = 0;
-        virtual Node*                       new_binary_op(const InvokableOperator*)const = 0;
-        virtual Node*                       new_unary_op(const InvokableOperator*)const = 0;
-        virtual Node*                       new_operator(const InvokableOperator*)const = 0;
-        virtual Node*                       new_abstract_function(const FunctionSignature*)const = 0;
+        virtual Node*                       new_abstract_function(const Signature*)const = 0;
         virtual Node*                       new_function(const IInvokable*)const = 0;
         virtual Node*                       new_scope()const = 0;
         virtual ConditionalStructNode*      new_cond_struct()const = 0;

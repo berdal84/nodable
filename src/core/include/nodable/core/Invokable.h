@@ -8,7 +8,7 @@
 #include <nodable/core/reflection/R.h>
 #include <nodable/core/Member.h>
 #include <nodable/core/IInvokable.h>
-#include <nodable/core/FunctionSignature.h>
+#include <nodable/core/Signature.h>
 
 namespace Nodable {
 
@@ -57,25 +57,40 @@ namespace Nodable {
     }
 
     template<typename T>
-    class InvokableFunction;
+    class Invokable;
 
     /** Generic Invokable Function */
     template<typename T, typename... Args>
-    class InvokableFunction<T(Args...)> : public IInvokable
+    class Invokable<T(Args...)> : public IInvokable
     {
-    public:
-        using   FunctionType = T(Args...);
-        using   ArgTypes     = std::tuple<Args...>;
-
-        InvokableFunction(FunctionType* _function, const char* _identifier, const char* _label = "")
+        using F = T(Args...);
+        Invokable(F* _function, const Signature* _sig)
+        : m_function(_function)
+        , m_signature(_sig)
         {
-            m_function  = _function;
-            m_signature = FunctionSignature::new_instance<FunctionType>::with_id(_identifier, _label );
+            NODABLE_ASSERT(_function)
+            NODABLE_ASSERT(_sig)
+        }
+    public:
+
+        static IInvokable* new_function(F* _function, const char* _id)
+        {
+            NODABLE_ASSERT(_function)
+            Signature* sig = Signature::from_type<F>::as_function(_id);
+            return new Invokable(_function, sig);
         }
 
-        ~InvokableFunction()
+        static IInvokable* new_operator(F* _function, const Operator* _op)
         {
-            delete m_function;
+            NODABLE_ASSERT(_function)
+            NODABLE_ASSERT(_op)
+            Signature* sig = Signature::from_type<F>::as_operator(_op);
+            return new Invokable(_function, sig);
+        }
+
+        ~Invokable() override
+        {
+            // delete m_function; no need to
             delete m_signature;
         }
 
@@ -90,12 +105,11 @@ namespace Nodable {
                 }
             }
         }
+        const Signature*   get_signature() const override { return m_signature; };
 
-        inline const FunctionSignature* get_signature() const override { return m_signature; };
-        inline IInvokable::Type          get_invokable_type() const override { return IInvokable::Type::Function; };
     private:
-        FunctionType*      m_function;
-        FunctionSignature* m_signature;
+        F*               m_function;
+        const Signature* m_signature;
     };
 
 }

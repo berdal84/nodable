@@ -257,7 +257,7 @@ void App::handle_events()
         {
             case EventType::delete_node_action_triggered:
             {
-                if ( selected_view )
+                if ( selected_view && !ImGui::IsAnyItemFocused() )
                 {
                     selected_view->get_owner()->flag_for_deletion();
                 }
@@ -337,7 +337,7 @@ void App::handle_events()
                 {
                     LOG_WARNING( "App", "Unable to drop_on two connectors with the same nature (in and in, out and out)\n" )
                 }
-                else if ( !R::MetaType::is_convertible( src_meta_type, dst_meta_type ) )
+                else if ( !R::MetaType::is_implicitly_convertible(src_meta_type, dst_meta_type) )
                 {
                     LOG_WARNING( "App", "Unable to drop_on %s to %s\n",
                                  src_meta_type->get_fullname().c_str(),

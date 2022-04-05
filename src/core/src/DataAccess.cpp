@@ -25,15 +25,15 @@ bool DataAccess::update()
 
     	switch(_value->get_meta_type()->get_type())
     	{
-        case R::Type::String :
+        case R::Type::string_t :
     		writer.String( ((std::string)*_value).c_str());
     		break;
 
-        case R::Type::Double :
+        case R::Type::double_t :
     		writer.Double((double)*_value);
     		break;
     		
-        case R::Type::Boolean:
+        case R::Type::bool_t:
     		writer.Bool((bool)*_value);
     		break;
     	default:

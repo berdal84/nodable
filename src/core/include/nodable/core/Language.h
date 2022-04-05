@@ -9,15 +9,15 @@
 
 // Nodable
 #include <nodable/core/types.h> // for constants and forward declarations
-#include <nodable/core/TokenType.h>
+#include <nodable/core/Token_t.h>
 #include <nodable/core/reflection/R.h>
 #include <nodable/core/Log.h>
-#include <nodable/core/InvokableFunction.h>
+#include <nodable/core/Invokable.h>
 #include <nodable/core/Semantic.h>
-#include <nodable/core/InvokableOperator.h>
 #include <nodable/core/Language_MACROS.h>
 #include <nodable/core/Serializer.h>
 #include <nodable/core/Parser.h>
+#include "Operator.h"
 
 namespace Nodable {
 
@@ -35,49 +35,65 @@ namespace Nodable {
 	 * - etc.
 	 */
 	class Language {
+	    using Operators_t          = std::vector<const Operator*>;
+	    using InvokableFunctions_t = std::vector<const IInvokable*>;
 	public:
 
-		Language(
-		        std::string _name,
-                Parser* _parser,
-                Serializer* _serializer
-                )
-                :
-                name(_name),
-		        serializer(_serializer),
-		        parser(_parser)
+		Language(const char* _name, Parser* _parser, Serializer* _serializer)
+                : m_name(_name), m_parser(_parser), m_serializer(_serializer)
         {
         };
 
 		virtual ~Language();
 
-        const IInvokable* findFunction(const FunctionSignature* signature) const;
-        const InvokableOperator* findOperator(const FunctionSignature* _operator) const;
-        const InvokableOperator* findOperator(const std::string& _short_identifier) const;
+        const IInvokable*               find_function(const Signature*) const;
+        const IInvokable*               find_operator_fct(const Signature*) const;
+        const IInvokable*               find_operator_fct_exact(const Signature*) const;
+        const Operator*                 find_operator(const std::string& , Operator_t) const;
 
-        inline Parser* getParser()const { return parser; }
-        inline Serializer* getSerializer()const { return serializer; }
-        inline const Semantic* getSemantic()const { return &semantic; }
-        inline const std::vector<IInvokable*>& getAllFunctions()const { return api; }
+        Parser*                         get_parser()const { return m_parser; }
+        Serializer*                     get_serializer()const { return m_serializer; }
+        const Semantic*                 get_semantic()const { return &m_semantic; }
+        const InvokableFunctions_t&     get_api()const { return m_functions; }
 
-        const FunctionSignature* createUnaryOperatorSignature(std::shared_ptr<const R::MetaType> , std::string , std::shared_ptr<const R::MetaType> ) const;
-        const FunctionSignature* createBinOperatorSignature(std::shared_ptr<const R::MetaType>, std::string , std::shared_ptr<const R::MetaType> , std::shared_ptr<const R::MetaType> ) const;
+    protected:
+        void                            add_invokable(const IInvokable*);
+        void                            add_operator(const char* _id, Operator_t _type, int _precedence);
+        const IInvokable*               find_operator_fct_fallback(const Signature*) const;
 
-        bool hasHigherPrecedenceThan(const InvokableOperator *_firstOperator, const InvokableOperator* _secondOperator)const;
-        virtual void sanitizeFunctionName( std::string& identifier ) const = 0;
-        virtual void sanitizeOperatorFunctionName( std::string& identifier ) const = 0;
-	protected:
-        void addOperator(InvokableOperator*);
-        void addToAPI(IInvokable*);
-
-        Semantic semantic;
-        Serializer* serializer;
-        Parser* parser;
+        Semantic     m_semantic;
+        Serializer*  m_serializer;
+        Parser*      m_parser;
 
 	private:
-		std::string name;
-		std::vector<InvokableOperator*> operators;
-		std::vector<IInvokable*> api;
+		std::string m_name;
+		Operators_t          m_operators;
+        InvokableFunctions_t m_operator_implems;
+		InvokableFunctions_t m_functions;
     };
 
+
+    template<typename T>
+    struct FindOperator;
+
+    template<typename T, typename ...Args>
+    struct FindOperator<T(Args...)>
+    {
+        const char* id;
+
+        FindOperator(const char* _id): id(_id)
+        {
+        }
+
+        const Operator* in_language( const Language* _lang)
+        {
+            size_t argc = sizeof...(Args);
+            switch ( argc )
+            {
+                case 1: return _lang->find_operator(id, Operator_t::Unary);
+                case 2: return _lang->find_operator(id, Operator_t::Binary);
+                default: NODABLE_ASSERT(false)
+            }
+        }
+    };
 }
