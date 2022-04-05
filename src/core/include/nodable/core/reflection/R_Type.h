@@ -22,14 +22,14 @@ namespace Nodable
 
         // reflect the enum
         R_ENUM(Type)
-                R_ENUM_VALUE(null_t)
-                R_ENUM_VALUE(void_t)
-                R_ENUM_VALUE(bool_t)
-                R_ENUM_VALUE(i16_t)
-                R_ENUM_VALUE(double_t)
-                R_ENUM_VALUE(string_t)
-                R_ENUM_VALUE(Class)
-                R_ENUM_VALUE(COUNT)
+        R_ENUM_VALUE(null_t)
+        R_ENUM_VALUE(void_t)
+        R_ENUM_VALUE(bool_t)
+        R_ENUM_VALUE(i16_t)
+        R_ENUM_VALUE(double_t)
+        R_ENUM_VALUE(string_t)
+        R_ENUM_VALUE(Class)
+        R_ENUM_VALUE(COUNT)
         R_ENUM_END
     }
 }

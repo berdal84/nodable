@@ -33,7 +33,7 @@ bool FunctionSignature::is_exactly(const FunctionSignature* _other)const
         auto &arg_t       = m_args[i].m_type;
         auto &other_arg_t = _other->m_args[i].m_type;
 
-        if ( !arg_t->is_exactly( other_arg_t ) )
+        if ( !arg_t->is_exactly( other_arg_t ) && arg_t->get_type() != other_arg_t->get_type())
         {
             return false;
         }
@@ -59,6 +59,9 @@ bool FunctionSignature::is_compatible(const FunctionSignature* _other)const
         {
         }
         else if ( arg_t->is_ref() && R::MetaType::is_implicitly_convertible(arg_t, other_arg_t))
+        {
+        }
+        else if ( other_arg_t->get_type() == R::Type::null_t)
         {
         }
         else
