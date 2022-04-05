@@ -38,7 +38,7 @@ Member* Properties::add(const char* _name, Visibility _visibility, std::shared_p
 	return new_member;
 }
 
-Member *Properties::get_first_member_with(Way _way, std::shared_ptr<const R::MetaType> _type) const
+Member *Properties::get_first(Way _way, std::shared_ptr<const R::MetaType> _type) const
 {
     auto filter = [_way, _type](auto each_pair) -> bool
     {
@@ -59,4 +59,22 @@ void Properties::add_to_indexes(Member* _member)
     m_members_by_name.insert({_member->get_name(), _member});
     m_members_by_id.push_back(_member);
     m_members.insert(_member);
+}
+
+Member* Properties::get_input_at(u8_t _position) const
+{
+    u8_t count = 0;
+
+    for( auto each : m_members_by_id)
+    {
+        if( each->allows_connection(Way_In))
+        {
+            if( count == _position)
+            {
+                return each;
+            }
+            count++;
+        }
+    }
+    return nullptr;
 }

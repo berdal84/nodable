@@ -39,10 +39,11 @@ namespace Nodable
 		VariableNode*				create_variable(std::shared_ptr<const R::MetaType>, const std::string&, IScope*);
 		LiteralNode*                create_literal(std::shared_ptr<const R::MetaType>);
 		Node*                       create_bin_op(const InvokableOperator*);
+		Node*                       create_abstract_bin_op(const FuncSig*, const Operator* _operator);
 		Node*                       create_unary_op(const InvokableOperator*);
         Node*                       create_operator(const InvokableOperator*);
 		Wire*                       create_wire();
-		Node*                       create_abstract_function(const FunctionSignature*);
+		Node*                       create_abstract_function(const FuncSig*);
 		Node*                       create_function(const IInvokable*);
         Node*                       create_scope();
         ConditionalStructNode*      create_cond_struct();

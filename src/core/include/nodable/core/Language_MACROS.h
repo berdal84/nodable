@@ -16,7 +16,8 @@
     { \
         std::string identifier = #function; \
         sanitize_function_identifier( identifier );\
-        const IInvokable* invokable_fct = new InvokableFunction<function_type>(function, identifier.c_str()); \
+        const IInvokable* invokable_fct = new InvokableFunction<function_type>(\
+                FuncSig::Type::Function, function, identifier.c_str()); \
         add( invokable_fct );\
     }
 
@@ -33,7 +34,8 @@
     { \
         std::string function_identifier = identifier; \
         sanitize_operator_fct_identifier( function_identifier );\
-        const IInvokable* invokable = new InvokableFunction<function_type>(function, function_identifier.c_str(), identifier ); \
+        const IInvokable* invokable = new InvokableFunction<function_type>(\
+                FuncSig::Type::Operator, function, function_identifier.c_str(), identifier ); \
         const Operator* op = find_operator(identifier, invokable->get_signature());\
         const InvokableOperator* invokable_op = new InvokableOperator( op, invokable );\
         add( invokable_op );\

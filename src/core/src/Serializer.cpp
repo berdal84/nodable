@@ -40,9 +40,7 @@ std::string& Serializer::serialize(std::string& _result, const Operator* _operat
 std::string& Serializer::serialize(std::string& _result, const InvokableComponent *_component)const
 {
 
-    const IInvokable* invokable = _component->get_function();
-
-    if (invokable->get_invokable_type() == IInvokable::Type::Function )
+    if (_component->get_signature()->get_type() == FuncSig::Type::Function )
     {
         serialize(_result, _component->get_function()->get_signature(), _component->get_args());
     }
@@ -64,6 +62,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             }
         };
 
+        const IInvokable* invokable = _component->get_function();
         auto ope = reinterpret_cast<const InvokableOperator*>(invokable);
         std::vector<Member *> args = _component->get_args();
 
@@ -132,7 +131,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
     return _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const FunctionSignature*   _signature, const std::vector<Member*>& _args) const
+std::string& Serializer::serialize(std::string& _result, const FuncSig*   _signature, const std::vector<Member*>& _args) const
 {
     _result.append(_signature->get_identifier());
     serialize(_result, Token_t::open_bracket);
@@ -151,7 +150,7 @@ std::string& Serializer::serialize(std::string& _result, const FunctionSignature
     return _result;
 }
 
-std::string& Serializer::serialize(std::string& _result, const FunctionSignature* _signature) const {
+std::string& Serializer::serialize(std::string& _result, const FuncSig* _signature) const {
 
     serialize(_result, _signature->get_return_type());
     _result.append(" ");

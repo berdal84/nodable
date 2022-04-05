@@ -46,7 +46,7 @@ namespace Nodable
             static MetaType_const_ptr make_ptr(MetaType_const_ptr _type);
             static MetaType_const_ptr make_ref(MetaType_const_ptr _type);
 
-            static MetaType_const_ptr s_unknown;
+            static MetaType_const_ptr s_any;
 
         protected:
             const char*     m_name;

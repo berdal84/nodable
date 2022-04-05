@@ -32,8 +32,8 @@ namespace Nodable
 
         std::string& serialize(std::string &_result, const Operator*) const;
         std::string& serialize(std::string &_result, const InvokableComponent*) const;
-        std::string& serialize(std::string &_result, const FunctionSignature*, const std::vector<Member*>&)const;
-        std::string& serialize(std::string &_result, const FunctionSignature*)const;
+        std::string& serialize(std::string &_result, const FuncSig*, const std::vector<Member*>&)const;
+        std::string& serialize(std::string &_result, const FuncSig*)const;
         std::string& serialize(std::string &_result, const Token_t&)const;
         std::string& serialize(std::string &_result, std::shared_ptr<const R::MetaType>)const;
         std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;

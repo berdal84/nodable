@@ -10,46 +10,58 @@
 namespace Nodable
 {
 
+
     /*
      * Simple object to store a named function argument
      */
-    struct FunctionArg
+    struct FuncArg
     {
-        FunctionArg(std::shared_ptr<const R::MetaType> _type, std::string& _name): m_type(_type), m_name(_name){}
-        std::shared_ptr<const R::MetaType> m_type;
-        std::string m_name;
+        FuncArg(R::MetaType_const_ptr _type, std::string& _name): m_type(_type), m_name(_name){}
+        R::MetaType_const_ptr m_type;
+        std::string           m_name;
     };
+
+    using FuncArgs = std::vector<FuncArg>;
 
     /*
      * Class to store a function signature.
      * We can check if two function signature are matching using this->match(other)
      */
-    class FunctionSignature {
+    class FuncSig
+    {
     public:
-        FunctionSignature(std::string _identifier, std::string _label = "");
-        ~FunctionSignature() {};
-        void                           push_arg(std::shared_ptr<const R::MetaType> _type, std::string _name = "");
+        enum class Type {
+            Function,
+            Operator
+        };
+
+        FuncSig(Type _type, std::string _identifier, std::string _label = "");
+        ~FuncSig() {};
+        void                           push_arg(R::MetaType_const_ptr _type, std::string _name = "");
 
         template <typename... T>
         void push_args(T&&... args) {
             int dummy[] = { 0, ((void) push_arg(std::forward<T>(args)),0)... };
         }
 
-        bool                           has_an_arg_of_type(std::shared_ptr<const R::MetaType> type)const;
-        bool                           is_exactly(const FunctionSignature* _other)const;
-        bool                           is_compatible(const FunctionSignature* _other)const;
+        bool                           has_an_arg_of_type(R::MetaType_const_ptr type)const;
+        bool                           is_exactly(const FuncSig* _other)const;
+        bool                           is_compatible(const FuncSig* _other)const;
         const std::string&             get_identifier()const { return m_identifier; };
-        const std::vector<FunctionArg>& get_args() const { return m_args;};
+        FuncArgs&                      get_args() { return m_args;};
+        const FuncArgs&                get_args()const { return m_args;};
         size_t                         get_arg_count() const { return m_args.size(); }
-        std::shared_ptr<const R::MetaType> get_return_type() const { return m_return_type; }
-        void                           set_return_type(std::shared_ptr<const R::MetaType> _type) { m_return_type = _type; };
+        const R::MetaType_const_ptr    get_return_type() const { return m_return_type; }
+        void                           set_return_type(R::MetaType_const_ptr _type) { m_return_type = _type; };
         std::string                    get_label() const { return m_label; }
+        Type                           get_type() const { return m_type; }
 
     private:
-        std::string m_label;
-        std::string m_identifier;
-        std::shared_ptr<const R::MetaType> m_return_type;
-        std::vector<FunctionArg> m_args;
+        Type         m_type;
+        std::string  m_label;
+        std::string  m_identifier;
+        FuncArgs     m_args;
+        R::MetaType_const_ptr m_return_type;
 
     public:
 
@@ -62,9 +74,9 @@ namespace Nodable
         struct new_instance<T(Args...)>
         {
             using F = T(Args...);
-            static FunctionSignature* with_id(const char* _identifier, const char* _label = "")
+            static FuncSig* with_id(FuncSig::Type _type, const char* _identifier, const char* _label = "")
             {
-                auto signature = new FunctionSignature(_identifier, _label);
+                auto signature = new FuncSig(_type, _identifier, _label);
                 signature->set_return_type(R::get_meta_type<T>() );
                 signature->push_args<std::tuple<Args...>>();
                 return signature;
@@ -76,7 +88,7 @@ namespace Nodable
         template<class Tuple, std::size_t N> // push N+1 arguments
         struct arg_pusher
         {
-            static void push_into(FunctionSignature *_signature)
+            static void push_into(FuncSig *_signature)
             {
                 arg_pusher<Tuple, N - 1>::push_into(_signature);
 
@@ -88,7 +100,7 @@ namespace Nodable
         template<class Tuple>  // push 1 arguments
         struct arg_pusher<Tuple, 1>
         {
-            static void push_into(FunctionSignature *_signature)
+            static void push_into(FuncSig *_signature)
             {
                 using T = std::tuple_element_t<0, Tuple>;
                 _signature->push_arg(R::get_meta_type<T>() );

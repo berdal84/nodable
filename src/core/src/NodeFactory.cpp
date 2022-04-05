@@ -49,74 +49,71 @@ Node* NodeFactory::new_operator(const InvokableOperator* _operator) const
     }
 }
 
-Node* NodeFactory::new_binary_op(const InvokableOperator* _operator) const
+Node* NodeFactory::new_binary_op(const InvokableOperator* _invokable_op) const
 {
-    // Create a node with 2 inputs and 1 output
-    auto node = new Node();
-
-    setup_node_labels(node, _operator);
-
-    const FunctionSignature* signature = _operator->get_signature();
-    const auto args = signature->get_args();
-    auto props   = node->props();
-    Member* left   = props->add(k_lh_value_member_name, Visibility::Default, args[0].m_type, Way_In);
-    Member* right  = props->add(k_rh_value_member_name, Visibility::Default, args[1].m_type, Way_In);
-    Member* result = props->add(k_value_member_name, Visibility::Default, signature->get_return_type(), Way_Out);
-
-    // Create ComputeBinaryOperation component and link values.
-    auto binOpComponent = new InvokableComponent( _operator );
-    binOpComponent->set_result(result);
-    binOpComponent->set_l_handed_val(left);
-    binOpComponent->set_r_handed_val(right);
-    node->add_component(binOpComponent);
+    Node* node = _new_abstract_binary_op(_invokable_op->get_signature(), _invokable_op->get_operator());
+    add_invokable_component(node, _invokable_op->get_signature(), _invokable_op);
 
     m_post_process(node);
 
     return node;
 }
 
-void NodeFactory::setup_node_labels(Node *_node, const InvokableOperator *_operator)
+Node* NodeFactory::_new_abstract_binary_op(const FuncSig* _signature, const Operator* _operator) const
 {
-    _node->set_label(_operator->get_signature()->get_label().c_str(), _operator->get_short_identifier().c_str());
+    // Create a node with 2 inputs and 1 output
+    auto node = new Node();
+    node->set_label(_operator->identifier.c_str());
+    FuncArgs args  = _signature->get_args();
+    Properties*  props = node->props();
+    props->add(args[0].m_name.c_str(), Visibility::Default, args[0].m_type, Way_In);
+    props->add(args[1].m_name.c_str(), Visibility::Default, args[1].m_type, Way_In);
+    props->add(k_value_member_name   , Visibility::Default, _signature->get_return_type(), Way_Out);
+
+    return node;
 }
 
-Node* NodeFactory::new_unary_op(const InvokableOperator* _operator) const
+Node* NodeFactory::new_unary_op(const InvokableOperator* _invokable_op) const
 {
     // Create a node with 2 inputs and 1 output
     auto node = new Node();
 
-    setup_node_labels(node, _operator);
+    node->set_label(_invokable_op->get_short_identifier().c_str());
 
-    const FunctionSignature* signature = _operator->get_signature();
+    const FuncSig* signature = _invokable_op->get_signature();
     const auto args = signature->get_args();
     Properties* props = node->props();
     Member* left = props->add(k_lh_value_member_name, Visibility::Default, args[0].m_type, Way_In);
     Member* result = props->add(k_value_member_name, Visibility::Default, signature->get_return_type(), Way_Out);
 
     // Create ComputeBinaryOperation binOpComponent and link values.
-    auto unaryOperationComponent = new InvokableComponent( _operator );
-    unaryOperationComponent->set_result(result);
-    unaryOperationComponent->set_l_handed_val(left);
-    node->add_component(unaryOperationComponent);
+    InvokableComponent* component = new InvokableComponent(_invokable_op );
+    component->set_result(result);
+    component->set_l_handed_val(left);
+    node->add_component(component);
 
     m_post_process(node);
 
     return node;
 }
 
-Node* NodeFactory::new_abstract_function(const FunctionSignature* _signature) const
+Node* NodeFactory::new_abstract_binary_op(const FuncSig* _signature, const Operator* _operator) const
+{
+    Node* node = _new_abstract_binary_op(_signature, _operator);
+    add_invokable_component(node, _signature, nullptr);
+    m_post_process(node);
+    return node;
+}
+
+Node* NodeFactory::new_abstract_function(const FuncSig* _signature) const
 {
     auto node = _new_abstract_function(_signature);
-
-    // Create an InvokableComponent with the function.
-    auto functionComponent = new InvokableComponent( /* no InvokableFunction */);
-    node->add_component(functionComponent);
-
+    add_invokable_component(node, _signature, nullptr);
     m_post_process(node);
     return node;
 }
 
-Node* NodeFactory::_new_abstract_function(const FunctionSignature* _signature) const
+Node* NodeFactory::_new_abstract_function(const FuncSig* _signature) const
 {
     Node* node              = new Node();
     std::string label       = _signature->get_identifier() + "()";
@@ -134,34 +131,37 @@ Node* NodeFactory::_new_abstract_function(const FunctionSignature* _signature) c
         props->add(arg.m_name.c_str(), Visibility::Default, arg.m_type, Way_In); // create node input
     }
 
-    m_post_process(node);
-
     return node;
 }
 
 Node* NodeFactory::new_function(const IInvokable* _function) const
 {
     // Create an abstract function node
-    Node* node = _new_abstract_function(_function->get_signature());
-    Properties* props = node->props();
+    const FuncSig* signature = _function->get_signature();
+    Node* node = _new_abstract_function(signature);
+    add_invokable_component(node, signature, _function);
+    m_post_process(node);
+    return node;
+}
+
+void NodeFactory::add_invokable_component(Node *_node, const FuncSig* _signature, const IInvokable *_invokable) const
+{
+    Properties* props = _node->props();
 
     // Create an InvokableComponent with the function.
-    auto functionComponent = new InvokableComponent( _function );
-    node->add_component(functionComponent);
+    auto component = _invokable ? new InvokableComponent(_invokable) : new InvokableComponent(_signature);
+    _node->add_component(component);
 
     // Link result member
-    functionComponent->set_result(props->get(k_value_member_name));
+    component->set_result(props->get(k_value_member_name));
 
     // Link arguments
-    auto args = _function->get_signature()->get_args();
+    auto args = _signature->get_args();
     for (size_t argIndex = 0; argIndex < args.size(); argIndex++)
     {
         Member* member = props->get(args[argIndex].m_name.c_str());
-        functionComponent->set_arg(argIndex, member);
+        component->set_arg(argIndex, member);
     }
-
-    m_post_process(node);
-    return node;
 }
 
 Node* NodeFactory::new_scope() const

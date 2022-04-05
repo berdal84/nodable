@@ -24,7 +24,7 @@ add_library(
         src/ConditionalStructNode.cpp
         src/DataAccess.cpp
         src/ForLoopNode.cpp
-        src/FunctionSignature.cpp
+        src/FuncSig.cpp
         src/GraphNode.cpp
         src/NodeFactory.cpp
         src/InstructionNode.cpp

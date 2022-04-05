@@ -6,7 +6,7 @@
 
 using namespace Nodable::R;
 
-MetaType_const_ptr MetaType::s_unknown = std::make_shared<MetaType>("unknown", Type::unknown_t );
+MetaType_const_ptr MetaType::s_any = std::make_shared<MetaType>("any", Type::any_t );
 
 bool MetaType::has_qualifier(Qualifier _other_qualifier) const
 {
@@ -49,7 +49,7 @@ MetaType_ptr MetaType::add_ptr(MetaType_ptr left)
 
 bool MetaType::is_implicitly_convertible(MetaType_const_ptr _left, MetaType_const_ptr _right )
 {
-    if(_left == MetaType::s_unknown || _right == MetaType::s_unknown ) // We allow cast to unknown type
+    if(_left == MetaType::s_any || _right == MetaType::s_any ) // We allow cast to unknown type
     {
         return true;
     }

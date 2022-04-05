@@ -10,11 +10,22 @@ R_DEFINE_CLASS(InvokableComponent)
 InvokableComponent::InvokableComponent(const IInvokable* _invokable)
     : Component()
     , m_result( nullptr )
+    , m_signature(_invokable->get_signature())
     , m_invokable(_invokable)
 {
-    NODABLE_ASSERT(_invokable != nullptr); // must be defined !
-    m_args.resize(_invokable->get_signature()->get_arg_count(), nullptr );
-    m_source_token = std::make_shared<Token>(Token_t::identifier, _invokable->get_signature()->get_label(), 0 );
+    m_args.resize(m_signature->get_arg_count(), nullptr );
+    m_source_token = std::make_shared<Token>(Token_t::identifier, m_signature->get_label(), 0 );
+}
+
+InvokableComponent::InvokableComponent(const FuncSig* _signature)
+    : Component()
+    , m_result( nullptr )
+    , m_signature(_signature)
+    , m_invokable(nullptr)
+{
+    NODABLE_ASSERT(_signature != nullptr); // must be defined !
+    m_args.resize(_signature->get_arg_count(), nullptr );
+    m_source_token = std::make_shared<Token>(Token_t::identifier, _signature->get_label(), 0 );
 }
 
 bool InvokableComponent::update()

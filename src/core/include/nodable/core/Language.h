@@ -47,19 +47,19 @@ namespace Nodable {
 
 		virtual ~Language();
 
-        const IInvokable*               find_function(const FunctionSignature*) const;
-        const InvokableOperator*        find_operator_fct(const FunctionSignature*) const;
-        const InvokableOperator*        find_operator_fct_exact(const FunctionSignature*) const;
+        const IInvokable*               find_function(const FuncSig*) const;
+        const InvokableOperator*        find_operator_fct(const FuncSig*) const;
+        const InvokableOperator*        find_operator_fct_exact(const FuncSig*) const;
         const Operator*                 find_operator(const std::string& , Operator_t) const;
-        const Operator*                 find_operator(const std::string& _identifier, const FunctionSignature* _signature) const;
+        const Operator*                 find_operator(const std::string& _identifier, const FuncSig* _signature) const;
 
         Parser*                         get_parser()const { return m_parser; }
         Serializer*                     get_serializer()const { return m_serializer; }
         const Semantic*                 get_semantic()const { return &m_semantic; }
         const InvokableFunctions_t&     get_api()const { return m_functions; }
 
-        const FunctionSignature*        new_unary_operator_signature(Meta_t , std::string , Meta_t ) const;
-        const FunctionSignature*        new_bin_operator_signature(Meta_t, std::string , Meta_t , Meta_t ) const;
+        const FuncSig*                  new_unary_operator_signature(Meta_t , std::string , Meta_t ) const;
+        const FuncSig*                  new_bin_operator_signature(Meta_t, std::string , Meta_t , Meta_t ) const;
 
         bool                            has_higher_precedence_than(std::pair<const InvokableOperator*, const InvokableOperator*> _operators)const;
         virtual void                    sanitize_function_identifier( std::string& ) const = 0;
@@ -68,7 +68,7 @@ namespace Nodable {
         void                            add(const IInvokable*);
         void                            add(const Operator*);
         void                            add(const InvokableOperator*);
-        const InvokableOperator*        find_operator_fct_fallback(const FunctionSignature*) const;
+        const InvokableOperator*        find_operator_fct_fallback(const FuncSig*) const;
 
         Semantic     m_semantic;
         Serializer*  m_serializer;

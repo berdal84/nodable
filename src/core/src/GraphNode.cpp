@@ -179,6 +179,13 @@ Node* GraphNode::create_bin_op(const InvokableOperator* _operator)
 	return node;
 }
 
+Node* GraphNode::create_abstract_bin_op(const FuncSig* _signature, const Operator* _operator)
+{
+    Node* node = m_factory->new_abstract_binary_op(_signature, _operator);
+    add(node);
+    return node;
+}
+
 Node* GraphNode::create_unary_op(const InvokableOperator* _operator)
 {
 	Node* node = m_factory->new_unary_op(_operator);
@@ -187,7 +194,7 @@ Node* GraphNode::create_unary_op(const InvokableOperator* _operator)
 	return node;
 }
 
-Node* GraphNode::create_abstract_function(const FunctionSignature* _function)
+Node* GraphNode::create_abstract_function(const FuncSig* _function)
 {
     Node* node = m_factory->new_abstract_function(_function);
     add(node);
@@ -285,7 +292,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         delete _src_member;
     }
     else if (
-            !R::MetaType::is_ptr(_src_member->get_meta_type()) &&
+            !_src_member->get_meta_type()->is_ptr() &&
             _src_member->get_owner()->get_class()->is_child_of<LiteralNode>() &&
             _dst_member->get_owner()->get_class()->is_not_child_of<VariableNode>())
     {

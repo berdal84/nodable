@@ -17,22 +17,22 @@ TEST(Reflect, is_convertible__ptr_to_type)
     EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<bool *>(), R::get_meta_type<bool>()) );
     EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<double *>(), R::get_meta_type<double>()) );
     EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<std::string *>(), R::get_meta_type<std::string>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_unknown, R::MetaType::s_unknown));
+    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::MetaType::s_any));
 }
 
 TEST(Reflect, is_convertible__compatible_types)
 {
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_unknown, R::get_meta_type<double>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_unknown, R::get_meta_type<std::string>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_unknown, R::get_meta_type<bool>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_unknown, R::get_meta_type<void>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_unknown, R::MetaType::s_unknown) );
+    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::get_meta_type<double>()) );
+    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::get_meta_type<std::string>()) );
+    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::get_meta_type<bool>()) );
+    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::get_meta_type<void>()) );
+    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::MetaType::s_any) );
 
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<void>(), R::MetaType::s_unknown) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<double>(), R::MetaType::s_unknown) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<std::string>(), R::MetaType::s_unknown) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<bool>(), R::MetaType::s_unknown) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_unknown, R::MetaType::s_unknown) );
+    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<void>(), R::MetaType::s_any) );
+    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<double>(), R::MetaType::s_any) );
+    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<std::string>(), R::MetaType::s_any) );
+    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<bool>(), R::MetaType::s_any) );
+    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::MetaType::s_any) );
 }
 
 TEST(Reflect, is_convertible__incompatible_types)

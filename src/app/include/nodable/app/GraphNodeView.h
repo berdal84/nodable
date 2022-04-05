@@ -19,7 +19,7 @@ namespace Nodable
 	typedef struct {
         std::string                 label;
         std::function<Node *(void)> create_node_fct;
-        const FunctionSignature*    function_signature;
+        const FuncSig*    function_signature;
 	} FunctionMenuItem;
 
 	class GraphNodeView: public View, public Component
@@ -37,7 +37,7 @@ namespace Nodable
                         const std::string &_category,
                         const std::string &_label,
                         std::function<Node *(void)> _lambda,
-                        const FunctionSignature *_signature);
+                        const FuncSig *_signature);
 	private:
         [[nodiscard]] GraphNode* get_graph_node() const;
         std::vector<NodeViewConstraint>              m_child_view_constraints;

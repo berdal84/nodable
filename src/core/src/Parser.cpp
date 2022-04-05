@@ -105,14 +105,14 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 
 R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
 {
-    R::Type type = R::Type::unknown_t;
+    R::Type type = R::Type::any_t;
 
     const Semantic *semantic                    = m_language->get_semantic();
     const std::vector<std::regex>  regex        = semantic->get_type_regex();
     const std::vector<R::Type> regex_id_to_type = semantic->get_type_regex_index_to_type();
 
     auto each_regex_it = regex.cbegin();
-    while( each_regex_it != regex.cend() && type == R::Type::unknown_t )
+    while( each_regex_it != regex.cend() && type == R::Type::any_t )
     {
         std::smatch sm;
         auto match = std::regex_search(_token->m_word.cbegin(), _token->m_word.cend(), sm, *each_regex_it);
@@ -125,7 +125,7 @@ R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
         each_regex_it++;
     }
 
-    NODABLE_ASSERT(type != R::Type::unknown_t)
+    NODABLE_ASSERT(type != R::Type::any_t)
 
     return type;
 }
@@ -193,7 +193,7 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
                 {
 			        /* when strict mode is OFF, we just create a variable with Any type */
                     LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n", _token->m_word.c_str())
-                    variable = m_graph->create_variable(R::MetaType::s_unknown, _token->m_word, get_current_scope());
+                    variable = m_graph->create_variable(R::MetaType::s_any, _token->m_word, get_current_scope());
                     variable->get_value()->set_src_token(_token);
                     variable->set_declared(false);
                 }
@@ -275,32 +275,36 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const FunctionSignature* signature = m_language->new_bin_operator_signature(nullptr, operatorToken->m_word,
+	const FuncSig* signature = m_language->new_bin_operator_signature(R::MetaType::s_any,
+	                                                                            operatorToken->m_word,
                                                                                 _left->get_meta_type(),
                                                                                 right->get_meta_type());
 
     const InvokableOperator* matching_operator = m_language->find_operator_fct(signature);
-    delete signature;
 
-	if ( matching_operator )
+    InvokableComponent* invokable;
+    Node* binary_op;
+    if ( matching_operator )
 	{
-		auto binOpNode = m_graph->create_bin_op(matching_operator);
-        auto computeComponent = binOpNode->get<InvokableComponent>();
-        computeComponent->set_source_token(operatorToken);
-
-        m_graph->connect(_left, computeComponent->get_l_handed_val());
-        m_graph->connect(right, computeComponent->get_r_handed_val());
-		result = binOpNode->props()->get(k_value_member_name);
-
-        commit_transaction();
-        LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
-
-        return result;
+	    // concrete operator
+		binary_op = m_graph->create_bin_op(matching_operator);
+        invokable = binary_op->get<InvokableComponent>();
+        invokable->set_source_token(operatorToken);
+    }
+	else
+    {
+	    // abstract operator
+        binary_op = m_graph->create_abstract_bin_op(signature, ope);
+        invokable = binary_op->get<InvokableComponent>();
     }
 
-    LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator prototype)\n")
-    rollback_transaction();
-    return nullptr;
+    m_graph->connect(_left, invokable->get_l_handed_val());
+    m_graph->connect(right, invokable->get_r_handed_val());
+
+    delete signature;
+    commit_transaction();
+    LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
+    return binary_op->props()->get(k_value_member_name);
 }
 
 Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
@@ -851,8 +855,8 @@ Member* Parser::parse_function_call()
     std::vector<Member *> args;
 
     // Declare a new function prototype
-    FunctionSignature signature(identifier);
-    signature.set_return_type(R::MetaType::s_unknown);
+    FuncSig signature(FuncSig::Type::Function, identifier);
+    signature.set_return_type(R::MetaType::s_any);
 
     bool parsingError = false;
     while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != Token_t::close_bracket)
@@ -882,36 +886,25 @@ Member* Parser::parse_function_call()
     // Find the prototype in the language library
     auto fct = m_language->find_function(&signature);
 
-    auto connectArg = [&](const FunctionSignature* _sig, Node* _node, size_t _arg_index ) -> void
+    auto connectArg = [&](const FuncSig* _sig, Node* _node, size_t _arg_index ) -> void
     { // lambda to connect input member to node for a specific argument index.
-
         Member*     src_member      = args.at(_arg_index);
-        std::string dst_member_name = _sig->get_args().at(_arg_index).m_name;
-        Member*     dst_member      = _node->props()->get(dst_member_name.c_str());
-
+        Member*     dst_member      = _node->props()->get_input_at(_arg_index);
+        NODABLE_ASSERT(dst_member)
         m_graph->connect(src_member, dst_member);
     };
 
+    Node* node;
     if (fct)
     {
         /*
-         * If we found a function matching signature, we create a not with that function.
+         * If we found a function matching signature, we create a node with that function.
          * The node will be able to be evaluated.
          *
          * TODO: remove this method, the parser should not check if function exist or not.
          *       this role is for the Compiler.
          */
-        auto node = m_graph->create_function(fct);
-
-        for (size_t argIndex = 0; argIndex < fct->get_signature()->get_arg_count(); argIndex++)
-        {
-            connectArg(fct->get_signature(), node, argIndex);
-        }
-
-        commit_transaction();
-        LOG_VERBOSE("Parser", "parse function call... " OK "\n")
-
-        return node->props()->get(k_value_member_name);
+        node = m_graph->create_function(fct);
     }
     else
     {
@@ -919,18 +912,18 @@ Member* Parser::parse_function_call()
          * If we DO NOT found a function matching signature, we create an abstract function.
          * The node will be able to be evaluated.
          */
-        auto node = m_graph->create_abstract_function(&signature);
-
-        for (size_t argIndex = 0; argIndex < signature.get_arg_count(); argIndex++)
-        {
-            connectArg(&signature, node, argIndex);
-        }
-
-        commit_transaction();
-        LOG_VERBOSE("Parser", "parse function call... " OK "\n")
-
-        return node->props()->get(k_value_member_name);
+        node = m_graph->create_abstract_function(&signature);
     }
+
+    for (size_t argIndex = 0; argIndex < signature.get_arg_count(); argIndex++)
+    {
+        connectArg(&signature, node, argIndex);
+    }
+
+    commit_transaction();
+    LOG_VERBOSE("Parser", "parse function call... " OK "\n")
+
+    return node->props()->get(k_value_member_name);
 }
 
 Scope* Parser::get_current_scope()

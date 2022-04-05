@@ -7,6 +7,7 @@
 #include <nodable/core/DataAccess.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/IInvokable.h>
+#include <nodable/core/FuncSig.h>
 
 using namespace Nodable;
 using namespace Nodable::R;
@@ -195,7 +196,7 @@ const InvokableOperator* Node::get_connected_operator(const Member *_localMember
         if ( compute_component )
         {
             const IInvokable* function = compute_component->get_function();
-            if (function->get_invokable_type() == IInvokable::Type::OperatorFct )
+            if (function->get_signature()->get_type() == FuncSig::Type::Operator )
             {
                 result = reinterpret_cast<const InvokableOperator*>( function );
             }

@@ -8,7 +8,7 @@
 #include <nodable/core/reflection/R.h>
 #include <nodable/core/Member.h>
 #include <nodable/core/IInvokable.h>
-#include <nodable/core/FunctionSignature.h>
+#include <nodable/core/FuncSig.h>
 
 namespace Nodable {
 
@@ -64,14 +64,13 @@ namespace Nodable {
     class InvokableFunction<T(Args...)> : public IInvokable
     {
     public:
-        using   FunctionType = T(Args...);
-        using   ArgTypes     = std::tuple<Args...>;
+        using F = T(Args...);
 
-        InvokableFunction(FunctionType* _function, const char* _identifier, const char* _label = "")
+        InvokableFunction(FuncSig::Type _type, F* _function, const char* _identifier, const char* _label = "")
         {
             NODABLE_ASSERT(_function)
             m_function  = _function;
-            m_signature = FunctionSignature::new_instance<FunctionType>::with_id(_identifier, _label );
+            m_signature = FuncSig::new_instance<F>::with_id(_type, _identifier, _label );
         }
 
         ~InvokableFunction() override
@@ -91,12 +90,11 @@ namespace Nodable {
                 }
             }
         }
+        const FuncSig*   get_signature() const override { return m_signature; };
 
-        inline const FunctionSignature* get_signature() const override { return m_signature; };
-        inline IInvokable::Type          get_invokable_type() const override { return IInvokable::Type::Function; };
     private:
-        FunctionType*      m_function;
-        FunctionSignature* m_signature;
+        F*       m_function;
+        FuncSig* m_signature;
     };
 
 }

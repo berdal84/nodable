@@ -3,7 +3,7 @@
 namespace Nodable
 {
     // forward decl
-    class FunctionSignature;
+    class FuncSig;
     class Member;
 
     /**
@@ -12,13 +12,8 @@ namespace Nodable
     class IInvokable
     {
     public:
-        enum class Type {
-            Function,
-            OperatorFct
-        };
         virtual ~IInvokable() {};
-        virtual const FunctionSignature* get_signature() const = 0;
-        virtual void                     invoke(Member *_result, const std::vector<Member *> &_args) const = 0;
-        virtual IInvokable::Type         get_invokable_type() const = 0;
+        virtual const FuncSig* get_signature() const = 0;
+        virtual void           invoke(Member *_result, const std::vector<Member *> &_args) const = 0;
     };
 }

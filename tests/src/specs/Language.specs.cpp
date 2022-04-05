@@ -13,8 +13,10 @@ TEST(Language, can_get_add_operator_with_short_identifier )
 TEST(Language, can_get_add_operator_with_signature )
 {
     LanguageNodable language;
-    const FunctionSignature* signature = FunctionSignature::new_instance<double(double, double)>
-                                                          ::with_id("operator+");
+    const FuncSig* signature = FuncSig
+            ::new_instance<double(double, double)>
+            ::with_id(FuncSig::Type::Operator, "operator+");
+
     const InvokableOperator* op = language.find_operator_fct(signature);
     EXPECT_TRUE(op != nullptr);
 }
@@ -22,8 +24,10 @@ TEST(Language, can_get_add_operator_with_signature )
 TEST(Language, can_get_invert_operator_with_signature )
 {
     LanguageNodable language;
-    const FunctionSignature* signature = FunctionSignature::new_instance<double(double)>
-                                                          ::with_id("operator-");
+    const FuncSig* signature = FuncSig
+            ::new_instance<double(double)>
+            ::with_id(FuncSig::Type::Operator, "operator-");
+
     const InvokableOperator* op = language.find_operator_fct(signature);
     EXPECT_TRUE(op != nullptr);
 }
@@ -32,9 +36,9 @@ TEST(Language, by_pointer_assign )
 {
     LanguageNodable language;
     // find double operator=(double*, double)
-    const FunctionSignature* signature = FunctionSignature
+    const FuncSig* signature = FuncSig
             ::new_instance<double(double*, double)>
-            ::with_id("operator=");
+            ::with_id(FuncSig::Type::Operator, "operator=");
     const InvokableOperator* op = language.find_operator_fct(signature);
     EXPECT_TRUE(op != nullptr);
 

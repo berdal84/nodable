@@ -505,7 +505,7 @@ bool GraphNodeView::draw()
                 if ( dragged_member_conn->m_way == Way_In )
                 {
                     Member* dst_member = dragged_member_conn->get_member();
-                    Member* src_member = new_node->props()->get_first_member_with(Way_Out, dst_member->get_meta_type());
+                    Member* src_member = new_node->props()->get_first(Way_Out, dst_member->get_meta_type());
                     graph->connect( src_member, dst_member );
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
@@ -513,7 +513,7 @@ bool GraphNodeView::draw()
                 {
                     // connect dragged (out) to first input on new node.
                     Member* src_member = dragged_member_conn->get_member();
-                    Member* dst_member = new_node->props()->get_first_member_with(Way_In, src_member->get_meta_type());
+                    Member* dst_member = new_node->props()->get_first(Way_In, src_member->get_meta_type());
                     graph->connect( src_member, dst_member);
                 }
                 MemberConnector::stop_drag();
@@ -559,7 +559,7 @@ void GraphNodeView::add_contextual_menu_item(
         const std::string &_category,
         const std::string &_label,
         std::function<Node *(void)> _function,
-        const FunctionSignature *_signature)
+        const FuncSig *_signature)
 {
 	m_contextual_menus.insert( {_category, {_label, _function, _signature }} );
 }
@@ -676,7 +676,7 @@ void GraphNodeView::set_owner(Node *_owner)
         auto op = language->find_operator_fct(function->get_signature());
 
         std::string label;
-        const FunctionSignature* signature = function->get_signature();
+        const FuncSig* signature = function->get_signature();
         language->get_serializer()->serialize(label, signature);
 
         if (op != nullptr )

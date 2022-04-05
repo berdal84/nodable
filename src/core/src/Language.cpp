@@ -20,7 +20,7 @@ bool  Language::has_higher_precedence_than( std::pair<const InvokableOperator*, 
 	return _operators.first->get_precedence() >= _operators.second->get_precedence();
 }
 
-const IInvokable* Language::find_function(const FunctionSignature* _signature) const
+const IInvokable* Language::find_function(const FuncSig* _signature) const
 {
 	auto is_compatible = [&](const IInvokable* fct)
     {
@@ -37,7 +37,7 @@ const IInvokable* Language::find_function(const FunctionSignature* _signature) c
 	return nullptr;
 }
 
-const InvokableOperator* Language::find_operator_fct_exact(const FunctionSignature* _signature) const
+const InvokableOperator* Language::find_operator_fct_exact(const FuncSig* _signature) const
 {
 
     auto is_exactly = [&](const IInvokable* _invokable)
@@ -55,14 +55,14 @@ const InvokableOperator* Language::find_operator_fct_exact(const FunctionSignatu
     return nullptr;
 }
 
-const InvokableOperator* Language::find_operator_fct(const FunctionSignature* _signature) const
+const InvokableOperator* Language::find_operator_fct(const FuncSig* _signature) const
 {
     auto exact = find_operator_fct_exact(_signature);
     if( !exact) return find_operator_fct_fallback(_signature);
     return exact;
 }
 
-const InvokableOperator* Language::find_operator_fct_fallback(const FunctionSignature* _signature) const
+const InvokableOperator* Language::find_operator_fct_fallback(const FuncSig* _signature) const
 {
 	
 	auto is_compatible = [&](const IInvokable* _invokable)
@@ -112,27 +112,30 @@ void Language::add(const Operator* _operator)
     LOG_VERBOSE("Language", "%s added to operators\n", str.c_str() );
 }
 
-const FunctionSignature* Language::new_bin_operator_signature(
+const FuncSig* Language::new_bin_operator_signature(
     Meta_t _type,
     std::string _identifier,
     Meta_t _ltype,
     Meta_t _rtype) const
 {
-    auto signature = new FunctionSignature("operator" + _identifier);
+    std::string id = m_semantic.token_type_to_string(Token_t::keyword_operator) + _identifier;
+    auto signature = new FuncSig(FuncSig::Type::Operator, id);
     signature->set_return_type(_type);
-    signature->push_args(_ltype, _rtype);
+    signature->push_arg(_ltype, k_lh_value_member_name);
+    signature->push_arg(_rtype, k_rh_value_member_name);
 
     return signature;
 }
 
-const FunctionSignature* Language::new_unary_operator_signature(
+const FuncSig* Language::new_unary_operator_signature(
         Meta_t _type,
         std::string _identifier,
         Meta_t _ltype) const
 {
-    auto signature = new FunctionSignature("operator" + _identifier);
+    std::string id = m_semantic.token_type_to_string(Token_t::keyword_operator) + _identifier;
+    auto signature = new FuncSig(FuncSig::Type::Operator, id);
     signature->set_return_type(_type);
-    signature->push_args(_ltype);
+    signature->push_arg(_ltype, k_lh_value_member_name);
 
     return signature;
 }
@@ -152,7 +155,7 @@ const Operator *Language::find_operator(const std::string& _identifier, Operator
     return nullptr;
 }
 
-const Operator *Language::find_operator(const std::string& _identifier, const FunctionSignature* _signature) const
+const Operator *Language::find_operator(const std::string& _identifier, const FuncSig* _signature) const
 {
     switch ( _signature->get_arg_count() )
     {

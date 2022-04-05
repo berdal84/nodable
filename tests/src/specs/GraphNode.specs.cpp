@@ -73,7 +73,9 @@ TEST( GraphNode, clear)
     GraphNode graph(&language, &factory,  &autocompletion);
     InstructionNode* instructionNode = graph.create_instr();
 
-    FunctionSignature* sig = FunctionSignature::new_instance<int(int, int)>::with_id("operator+");
+    FuncSig* sig = FuncSig
+            ::new_instance<int(int, int)>
+            ::with_id(FuncSig::Type::Operator, "operator+");
     auto ope = language.find_operator_fct_exact(sig);
     delete sig;
     EXPECT_TRUE(ope != nullptr);
@@ -153,7 +155,7 @@ TEST(Graph, by_reference_assign)
     b->set(6.0);
 
     // create assign operator
-    FunctionSignature signature("operator=");
+    FuncSig signature(FuncSig::Type::Operator, "operator=");
     signature.set_return_type(R::get_meta_type<double>());
     signature.push_args(R::get_meta_type<double &>(), R::get_meta_type<double>());
     auto assign = graph.create_operator(language.find_operator_fct(&signature));

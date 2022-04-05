@@ -16,7 +16,8 @@ namespace Nodable
     class InvokableOperator;
     class IInvokable;
     class Language;
-    class FunctionSignature;
+    class FuncSig;
+    class Operator;
 
     /**
      * @brief Interface to implement Node factories.
@@ -31,7 +32,8 @@ namespace Nodable
         virtual Node*                       new_binary_op(const InvokableOperator*)const = 0;
         virtual Node*                       new_unary_op(const InvokableOperator*)const = 0;
         virtual Node*                       new_operator(const InvokableOperator*)const = 0;
-        virtual Node*                       new_abstract_function(const FunctionSignature*)const = 0;
+        virtual Node*                       new_abstract_binary_op(const FuncSig*, const Operator*)const = 0;
+        virtual Node*                       new_abstract_function(const FuncSig*)const = 0;
         virtual Node*                       new_function(const IInvokable*)const = 0;
         virtual Node*                       new_scope()const = 0;
         virtual ConditionalStructNode*      new_cond_struct()const = 0;

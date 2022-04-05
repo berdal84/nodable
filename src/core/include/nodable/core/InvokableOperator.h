@@ -35,8 +35,7 @@ namespace Nodable {
         inline Operator_t               get_operator_type() const { return m_operator->type; }
         inline std::string              get_short_identifier() const { return m_operator->identifier; }
         inline int                      get_precedence() const { return m_operator->precedence; }
-        inline const FunctionSignature* get_signature() const override { return m_function->get_signature(); }
-        inline IInvokable::Type         get_invokable_type() const override { return IInvokable::Type::OperatorFct; }
+        inline const FuncSig*           get_signature() const override { return m_function->get_signature(); }
         inline void                     invoke(Member *_result, const std::vector<Member *> &_args) const override
         {
             m_function->invoke( _result, _args);
