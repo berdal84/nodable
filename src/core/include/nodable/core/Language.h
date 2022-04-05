@@ -52,18 +52,6 @@ namespace Nodable {
         const IInvokable*               find_operator_fct_exact(const Signature*) const;
         const Operator*                 find_operator(const std::string& , Operator_t) const;
 
-        template<typename T, typename ...Args>
-        const Operator* find_operator(const std::string& _id) const
-        {
-            size_t argc = sizeof...(Args);
-            switch ( argc )
-            {
-                case 1: return find_operator(_id, Operator_t::Unary);
-                case 2: return find_operator(_id, Operator_t::Binary);
-                   default: NODABLE_ASSERT(false)
-            }
-        }
-
         Parser*                         get_parser()const { return m_parser; }
         Serializer*                     get_serializer()const { return m_serializer; }
         const Semantic*                 get_semantic()const { return &m_semantic; }
@@ -71,8 +59,7 @@ namespace Nodable {
 
         const Signature*                new_unary_op_signature(Meta_t , const Operator* _op, Meta_t ) const;
         const Signature*                new_binary_op_signature(Meta_t, const Operator* _op, Meta_t , Meta_t ) const;
-
-	protected:
+    protected:
         void                            add_invokable(const IInvokable*);
         void                            add_operator(const char* _id, Operator_t _type, int _precedence);
         const IInvokable*               find_operator_fct_fallback(const Signature*) const;
@@ -88,4 +75,28 @@ namespace Nodable {
 		InvokableFunctions_t m_functions;
     };
 
+
+    template<typename T>
+    struct FindOperator;
+
+    template<typename T, typename ...Args>
+    struct FindOperator<T(Args...)>
+    {
+        const char* id;
+
+        FindOperator(const char* _id): id(_id)
+        {
+        }
+
+        const Operator* in_language( const Language* _lang)
+        {
+            size_t argc = sizeof...(Args);
+            switch ( argc )
+            {
+                case 1: return _lang->find_operator(id, Operator_t::Unary);
+                case 2: return _lang->find_operator(id, Operator_t::Binary);
+                default: NODABLE_ASSERT(false)
+            }
+        }
+    };
 }

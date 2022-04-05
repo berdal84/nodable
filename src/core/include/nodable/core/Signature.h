@@ -98,6 +98,8 @@ namespace Nodable
 
             static Signature* as_operator(const Operator* _op)
             {
+                NODABLE_ASSERT(_op);
+
                 std::string id = {_op->identifier};
                 clean_function_id(id);
                 id.insert(0, k_keyword_operator);

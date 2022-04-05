@@ -25,20 +25,20 @@ TEST(Language, can_get_invert_operator_with_signature )
 {
     LanguageNodable language;
     const Signature* signature = Signature
-    ::from_type<double(double)>
-    ::as_operator(language.find_operator("-", Operator_t::Unary));
+        ::from_type<double(double)>
+        ::as_operator(language.find_operator("-", Operator_t::Unary));
 
     const IInvokable* op = language.find_operator_fct(signature);
     EXPECT_TRUE(op != nullptr);
 }
 
-TEST(Language, by_pointer_assign )
+TEST(Language, by_ref_assign )
 {
     LanguageNodable language;
     // find double operator=(double*, double)
     const Signature* signature = Signature
-    ::from_type<double(double *, double)>
-    ::as_operator(language.find_operator("=", Operator_t::Unary));
+        ::from_type<double(double&, double)>
+        ::as_operator(language.find_operator("=", Operator_t::Binary));
     const IInvokable* op = language.find_operator_fct(signature);
     EXPECT_TRUE(op != nullptr);
 

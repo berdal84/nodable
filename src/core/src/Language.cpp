@@ -79,7 +79,6 @@ const IInvokable* Language::find_operator_fct_fallback(const Signature* _signatu
 
 void Language::add_invokable(const IInvokable* _invokable)
 {
-
     m_functions.push_back(_invokable);
 
     std::string signature;
@@ -88,7 +87,7 @@ void Language::add_invokable(const IInvokable* _invokable)
     if( _invokable->get_signature()->is_operator() )
     {
         auto found = std::find(m_operator_implems.begin(), m_operator_implems.end(), _invokable);
-        NODABLE_ASSERT( found != m_operator_implems.end() )
+        NODABLE_ASSERT( found == m_operator_implems.end() )
         m_operator_implems.push_back(_invokable);
 
         LOG_VERBOSE("Language", "%s added to functions and operator implems\n", signature.c_str() );
@@ -101,7 +100,7 @@ void Language::add_invokable(const IInvokable* _invokable)
 
 void Language::add_operator(const char* _id, Operator_t _type, int _precedence)
 {
-    const Operator* op = new Operator(_id, Operator_t::Unary, _precedence);
+    const Operator* op = new Operator(_id, _type, _precedence);
 
     NODABLE_ASSERT( std::find( m_operators.begin(), m_operators.end(), op) == m_operators.end() )
     m_operators.push_back(op);
@@ -137,12 +136,12 @@ const Signature* Language::new_unary_op_signature(
 
 const Operator* Language::find_operator(const std::string& _identifier, Operator_t _type) const
 {
-    auto is_bin_op_with_expected_identifier = [&](const Operator* op)
+    auto is_exactly = [&](const Operator* op)
     {
         return op->identifier == _identifier && op->type == _type;
     };
 
-    auto found = std::find_if(m_operators.cbegin(), m_operators.cend(), is_bin_op_with_expected_identifier );
+    auto found = std::find_if(m_operators.cbegin(), m_operators.cend(), is_exactly );
 
     if (found != m_operators.end() )
         return *found;

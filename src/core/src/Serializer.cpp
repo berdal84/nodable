@@ -38,7 +38,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
 
         Node*            owner = _component->get_owner();
         const MemberVec& args  = _component->get_args();
-        const Signature*   sig   = _component->get_signature();
+        const Signature*   sig = _component->get_signature();
 
         switch (sig->get_arg_count())
         {
@@ -72,9 +72,8 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
             // Right part of the expression
             {
                 // TODO: check parsed brackets for prefix/suffix
-                bool needs_brackets = r_handed_operator
-                                    && (r_handed_operator->get_signature()->get_arg_count() == 1
-                                        || l_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence );
+                bool needs_brackets = r_handed_operator && (r_handed_operator->get_signature()->get_arg_count() == 1
+                                     || r_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence );
 
                 serialize_member_with_or_without_brackets(args[1], needs_brackets);
             }

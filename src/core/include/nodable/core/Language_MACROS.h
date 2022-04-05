@@ -29,7 +29,7 @@
 */
 #define BIND_OPERATOR_T( func, id, func_t ) \
     { \
-        const Operator* op = find_operator<func_t>(id);\
+        const Operator* op = FindOperator<func_t>(id).in_language(this);\
         auto invokable = Invokable<func_t>::new_operator(func, op ); \
         add_invokable( invokable );\
     }

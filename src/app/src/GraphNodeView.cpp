@@ -672,31 +672,20 @@ void GraphNodeView::set_owner(Node *_owner)
 
     for (auto it = functions.cbegin(); it != functions.cend(); it++)
     {
-        const IInvokable* function = *it;
-        auto op = language->find_operator_fct(function->get_signature());
+        const IInvokable* invokable    = *it;
+        const Signature*  signature    = invokable->get_signature();
+        const IInvokable* operator_fct = language->find_operator_fct(signature);
 
         std::string label;
-        const Signature* signature = function->get_signature();
         language->get_serializer()->serialize(label, signature);
 
-        if (op != nullptr )
+        std::string category = signature->is_operator() ? "Operators" : "Functions";
+        
+        auto create_lambda = [graphNode, invokable]() -> Node*
         {
-            auto lambda = [graphNode, op]()->Node*
-            {
-                return graphNode->create_operator(op);
-            };
-
-            add_contextual_menu_item("Operators", label, lambda, signature);
-        }
-        else
-        {
-            auto lambda = [graphNode, function]()->Node*
-            {
-                return graphNode->create_function(function);
-            };
-
-            add_contextual_menu_item("Functions", label, lambda, signature);
-        }
+            return graphNode->create_function(invokable);
+        };
+        add_contextual_menu_item(category, label, create_lambda, signature);
     }
 
 }
