@@ -81,32 +81,27 @@ std::string api_DNAtoProtein(std::string _base_str)
 {
     std::string protein;
 
+    constexpr char START = 'M';
+    constexpr char STOP = '_';
+
     // todo: change this naive approach by 3 tests, one per base.
     const std::map<const std::string, const char> table
     {
         // T__
-        {"TCA", 'S'}, {"TCC", 'S'}, {"TCG", 'S'}, {"TCT", 'S'},
-        {"TTC", 'F'}, {"TTT", 'F'}, {"TTA", 'L'}, {"TGA", '_'}, // (aka Stop)
-        {"TAC", 'Y'}, {"TAT", 'Y'}, {"TGC", 'C'}, {"TAG", '_'}, // (aka Stop)
-        {"TGT", 'C'}, {"TGG", 'W'}, {"TTG", 'L'}, {"TAA", '_'}, // (aka Stop)
+        {"TCA", 'S'}, {"TCC", 'S'}, {"TCG", 'S'}, {"TCT", 'S'}, {"TTC", 'F'}, {"TTT", 'F'}, {"TTA", 'L'}, {"TAC", 'Y'},
+        {"TAT", 'Y'}, {"TGC", 'C'}, {"TGT", 'C'}, {"TGG", 'W'}, {"TTG", 'L'}, {"TAG", STOP}, {"TAA", STOP }, {"TGA", STOP },
 
         // A__
-        {"ATA", 'I'}, {"ATC", 'I'}, {"ATT", 'I'}, {"ATG", 'M'}, // (aka Start)
-        {"ACA", 'T'}, {"ACC", 'T'}, {"ACG", 'T'}, {"ACT", 'T'},
-        {"AAC", 'N'}, {"AAT", 'N'}, {"AAA", 'K'}, {"AAG", 'K'},
-        {"AGC", 'S'}, {"AGT", 'S'}, {"AGA", 'R'}, {"AGG", 'R'},
+        {"ATA", 'I'}, {"ATC", 'I'}, {"ATT", 'I'}, {"ATG", START}, {"ACA", 'T'}, {"ACC", 'T'}, {"ACG", 'T'}, {"ACT", 'T'},
+        {"AAC", 'N'}, {"AAT", 'N'}, {"AAA", 'K'}, {"AAG", 'K'}, {"AGC", 'S'}, {"AGT", 'S'}, {"AGA", 'R'}, {"AGG", 'R'},
 
         // C__
-        {"CTA", 'L'}, {"CTC", 'L'}, {"CTG", 'L'}, {"CTT", 'L'},
-        {"CCA", 'P'}, {"CCC", 'P'}, {"CCG", 'P'}, {"CCT", 'P'},
-        {"CAC", 'H'}, {"CAT", 'H'}, {"CAA", 'Q'}, {"CAG", 'Q'},
-        {"CGA", 'R'}, {"CGC", 'R'}, {"CGG", 'R'}, {"CGT", 'R'},
+        {"CTA", 'L'}, {"CTC", 'L'}, {"CTG", 'L'}, {"CTT", 'L'}, {"CCA", 'P'}, {"CCC", 'P'}, {"CCG", 'P'}, {"CCT", 'P'},
+        {"CAC", 'H'}, {"CAT", 'H'}, {"CAA", 'Q'}, {"CAG", 'Q'}, {"CGA", 'R'}, {"CGC", 'R'}, {"CGG", 'R'}, {"CGT", 'R'},
 
         // G__
-        {"GTA", 'V'}, {"GTC", 'V'}, {"GTG", 'V'}, {"GTT", 'V'},
-        {"GCA", 'A'}, {"GCC", 'A'}, {"GCG", 'A'}, {"GCT", 'A'},
-        {"GAC", 'D'}, {"GAT", 'D'}, {"GAA", 'E'}, {"GAG", 'E'},
-        {"GGA", 'G'}, {"GGC", 'G'}, {"GGG", 'G'}, {"GGT", 'G'},
+        {"GTA", 'V'}, {"GTC", 'V'}, {"GTG", 'V'}, {"GTT", 'V'}, {"GCA", 'A'}, {"GCC", 'A'}, {"GCG", 'A'}, {"GCT", 'A'},
+        {"GAC", 'D'}, {"GAT", 'D'}, {"GAA", 'E'}, {"GAG", 'E'}, {"GGA", 'G'}, {"GGC", 'G'}, {"GGG", 'G'}, {"GGT", 'G'},
     };
 
     for (size_t i = 0; i < _base_str.size() / 3; i++)
