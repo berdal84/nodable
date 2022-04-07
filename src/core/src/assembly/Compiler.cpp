@@ -171,7 +171,7 @@ void assembly::Compiler::compile(const Node* _node)
     else
     {
         // eval inputs
-        for ( const Node* each_input : _node->input_slots().content() )
+        for ( const Node* each_input : _node->inputs().content() )
         {
             if ( !each_input->is<VariableNode>() )
             {

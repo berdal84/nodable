@@ -127,12 +127,12 @@ TEST( GraphNode, create_and_delete_relations)
 
     // Is input of
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
-    EXPECT_EQ(n2->input_slots().size(), 0);
+    EXPECT_EQ(n2->inputs().size(), 0);
     graph.connect({n1, EdgeType::IS_INPUT_OF, n2}, false);
-    EXPECT_EQ(n2->input_slots().size(), 1);
+    EXPECT_EQ(n2->inputs().size(), 1);
     EXPECT_EQ(graph.get_relation_registry().size(), 1);
     graph.disconnect({n1, EdgeType::IS_INPUT_OF, n2});
-    EXPECT_EQ(n2->input_slots().size(), 0);
+    EXPECT_EQ(n2->inputs().size(), 0);
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
 }
 

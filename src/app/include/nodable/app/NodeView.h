@@ -39,6 +39,8 @@ namespace Nodable
 	 */
 	class NodeViewConstraint {
 	public:
+
+	    using Filter = std::function<bool(NodeViewConstraint*)>;
 	    enum Type {
 	        AlignOnBBoxTop,
 	        AlignOnBBoxLeft,
@@ -50,13 +52,22 @@ namespace Nodable
 
 	    NodeViewConstraint(IAppCtx& _ctx, Type _type);
 	    void apply(float _dt);
-	    void add_target(NodeView*);
-	    void add_driver(NodeView*);
+        void apply_when(const Filter& _lambda) { m_filter = _lambda; }
+
+        void add_target(NodeView*);
+        void add_driver(NodeView*);
         void add_targets(const NodeViewVec&);
         void add_drivers(const NodeViewVec&);
+
         vec2 m_offset;
 
+        static const Filter no_target_expanded;
+        static const Filter no_driver_expanded;
+        static const Filter always;
+
     private:
+        bool should_apply();
+        Filter            m_filter;
         IAppCtx&          m_ctx;
 	    Type              m_type;
         NodeViewVec       m_drivers;
@@ -96,9 +107,10 @@ namespace Nodable
         const MemberView*       get_member_view(const Member*)const;
         inline vec2             get_size() const { return m_size; }
         vec2                    get_screen_position();
-        inline void             set_pinned(bool b) { m_pinned = b; }
-        inline bool             is_pinned()const { return m_pinned; }
-        inline bool             is_dragged() { return s_dragged == this; }
+        void                    set_pinned(bool b) { m_pinned = b; }
+        bool                    is_pinned()const { return m_pinned; }
+        bool                    is_dragged()const { return s_dragged == this; }
+        bool                    is_expanded()const { return m_expanded; }
         void                    add_force_to_translate_to(vec2 desiredPos, float _factor, bool _recurse = false);
         void                    add_force(vec2 force, bool _recurse = false);
         void                    apply_forces(float _dt, bool _recurse);
@@ -136,6 +148,7 @@ namespace Nodable
 		bool                    draw(MemberView *_view);
         bool                    is_exposed(const Member *_member)const;
 
+        bool            m_apply_constraints;
         bool            m_edition_enable;
         vec2            m_forces_sum;
         vec2            m_last_frame_forces_sum;

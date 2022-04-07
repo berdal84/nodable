@@ -115,8 +115,8 @@ Node* NodeFactory::new_scope() const
     auto scope_node = new Node();
     scope_node->set_label("{} Scope", "{}");
 
-    scope_node->predecessor_slots().set_limit(std::numeric_limits<int>::max());
-    scope_node->successor_slots().set_limit(1);
+    scope_node->predecessors().set_limit(std::numeric_limits<int>::max());
+    scope_node->successors().set_limit(1);
 
     auto* scope = new Scope();
     scope_node->add_component(scope);
@@ -131,8 +131,8 @@ ConditionalStructNode* NodeFactory::new_cond_struct() const
     auto cond_struct_node = new ConditionalStructNode();
     cond_struct_node->set_label("If");
 
-    cond_struct_node->predecessor_slots().set_limit(std::numeric_limits<int>::max());
-    cond_struct_node->successor_slots().set_limit(2); // true/false branches
+    cond_struct_node->predecessors().set_limit(std::numeric_limits<int>::max());
+    cond_struct_node->successors().set_limit(2); // true/false branches
 
     auto* scope = new Scope();
     cond_struct_node->add_component(scope);
@@ -147,8 +147,8 @@ ForLoopNode* NodeFactory::new_for_loop_node() const
     auto for_loop = new ForLoopNode();
     for_loop->set_label("For loop", "For");
 
-    for_loop->predecessor_slots().set_limit(std::numeric_limits<int>::max());
-    for_loop->successor_slots().set_limit(1);
+    for_loop->predecessors().set_limit(std::numeric_limits<int>::max());
+    for_loop->successors().set_limit(1);
 
     auto* scope = new Scope();
     for_loop->add_component(scope);

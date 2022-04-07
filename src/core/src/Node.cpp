@@ -26,7 +26,7 @@ Node::Node(std::string _label)
     , m_label(std::move(_label))
     , m_inner_graph(nullptr)
     , m_dirty(true)
-    , m_needs_to_be_deleted(false)
+    , m_flagged_to_delete(false)
 {
     /*
      * Add "this" Member to be able to connect this Node as an object pointer.

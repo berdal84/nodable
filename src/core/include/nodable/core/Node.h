@@ -68,21 +68,21 @@ namespace Nodable {
 		GraphNode*           get_inner_graph()const;
 		void                 get_inner_graph(GraphNode*);
 
-        Slots<Node*>&        input_slots() { return m_inputs; };
-        const Slots<Node*>&  input_slots() const{ return m_inputs; };
-        Slots<Node*>&        output_slots() { return m_outputs; };
-        const Slots<Node*>&  output_slots() const { return m_outputs; };
-        Slots<Node*>&        successor_slots() { return m_successors; }
-        const Slots<Node*>&  successor_slots()const { return m_successors; }
-        Slots<Node*>&        predecessor_slots() { return m_predecessors; }
-        const Slots<Node*>&  predecessor_slots()const { return m_predecessors; }
+        Slots<Node*>&        inputs() { return m_inputs; };
+        const Slots<Node*>&  inputs() const{ return m_inputs; };
+        Slots<Node*>&        outputs() { return m_outputs; };
+        const Slots<Node*>&  outputs() const { return m_outputs; };
+        Slots<Node*>&        successors() { return m_successors; }
+        const Slots<Node*>&  successors()const { return m_successors; }
+        Slots<Node*>&        predecessors() { return m_predecessors; }
+        const Slots<Node*>&  predecessors()const { return m_predecessors; }
 
-        bool                 needs_to_be_deleted() const { return m_needs_to_be_deleted; }
-        void                 flag_for_deletion(){ m_needs_to_be_deleted = true;}
+        bool                 flagged_to_delete() const { return m_flagged_to_delete; }
+        void                 flag_to_delete(){ m_flagged_to_delete = true;}
 
-		const char*          get_label()const;
+        void                 set_label(const char* _label, const char* _short_label = nullptr);
+        const char*          get_label()const;
         const char*          get_short_label()const;
-		void                 set_label(const char* _label, const char* _short_label = nullptr);
 
 		void                 add_wire(Wire*);
 		void                 remove_wire(Wire*);
@@ -233,7 +233,7 @@ namespace Nodable {
         Slots<Node*>       m_successors;
         Slots<Node*>       m_predecessors;
         Slots<Node*>       m_children;
-        bool               m_needs_to_be_deleted;
+        bool               m_flagged_to_delete;
 
     private:
 		GraphNode*         m_inner_graph;

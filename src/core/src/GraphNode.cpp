@@ -80,7 +80,7 @@ UpdateResult GraphNode::update()
             nodeIndex--;
             auto node = m_node_registry.at(nodeIndex);
 
-            if (node->needs_to_be_deleted())
+            if (node->flagged_to_delete())
             {
                 destroy(node);
             }
@@ -384,7 +384,7 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
             {
                 NODABLE_ASSERT( dst->has<Scope>() )
 
-                if (dst->successor_slots().accepts() )                               // directly
+                if (dst->successors().accepts() )                               // directly
                 {
                     DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, dst);
                     connect(relation, false);
@@ -405,7 +405,7 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
 
                         NODABLE_ASSERT(!tails.empty())
                     }
-                    else if (tail->successor_slots().accepts() )
+                    else if (tail->successors().accepts() )
                     {
                         DirectedEdge relation(EdgeType::IS_SUCCESSOR_OF, src, tail);
                         connect(relation, false);
@@ -421,13 +421,13 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
         }
 
         case EdgeType::IS_INPUT_OF:
-            dst->input_slots().add(src);
-            src->output_slots().add(dst);
+            dst->inputs().add(src);
+            src->outputs().add(dst);
             break;
 
         case EdgeType::IS_SUCCESSOR_OF:
-            dst->successor_slots().add(src);
-            src->predecessor_slots().add(dst);
+            dst->successors().add(src);
+            src->predecessors().add(dst);
 
             if (_side_effects)
             {
@@ -447,12 +447,12 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
                  */
                 if ( Node* src_parent = src->get_parent()  )
                 {
-                    Node *each_successor = src->successor_slots().get_front_or_nullptr();
+                    Node *each_successor = src->successors().get_front_or_nullptr();
                     while (each_successor && each_successor->get_parent() == nullptr)
                     {
                         DirectedEdge relation(EdgeType::IS_CHILD_OF, each_successor, src_parent);
                         connect(relation, false);
-                        each_successor = each_successor->successor_slots().get_front_or_nullptr();
+                        each_successor = each_successor->successors().get_front_or_nullptr();
                     }
                 }
             }
@@ -491,13 +491,13 @@ void GraphNode::disconnect(DirectedEdge _relation, bool _side_effects)
             break;
 
         case EdgeType::IS_INPUT_OF:
-            dst->input_slots().remove(src);
-            src->output_slots().remove(dst);
+            dst->inputs().remove(src);
+            src->outputs().remove(dst);
             break;
 
         case EdgeType::IS_SUCCESSOR_OF:
-            dst->successor_slots().remove(src);
-            src->predecessor_slots().remove(dst);
+            dst->successors().remove(src);
+            src->predecessors().remove(dst);
 
             if ( _side_effects )
             {
@@ -508,7 +508,7 @@ void GraphNode::disconnect(DirectedEdge _relation, bool _side_effects)
                     {
                         DirectedEdge relation(EdgeType::IS_CHILD_OF, successor, parent);
                         disconnect(relation, false );
-                        successor = successor->successor_slots().get_front_or_nullptr();
+                        successor = successor->successors().get_front_or_nullptr();
                     }
                 }
             }

@@ -134,10 +134,10 @@ bool GraphNodeView::draw()
     for( Node* each_node : node_registry)
     {
         size_t slot_index = 0;
-        size_t slot_count = each_node->successor_slots().get_limit();
+        size_t slot_count = each_node->successors().get_limit();
         float padding     = 2.0f;
         float linePadding = 5.0f;
-        for (Node* each_successor_node : each_node->successor_slots() )
+        for (Node* each_successor_node : each_node->successors() )
         {
             NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->get<NodeView>() );
             NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get<NodeView>() );
@@ -574,51 +574,55 @@ void GraphNodeView::update_child_view_constraints()
 
     for(Node* _eachNode: nodeRegistry)
     {
-        if ( auto each_node_view = _eachNode->get<NodeView>() )
+        if ( auto each_view = _eachNode->get<NodeView>() )
         {
             auto clss = _eachNode->get_class();
 
             // Follow predecessor Node(s), except if first predecessor is a Conditional if/else
             //---------------------------------------------------------------------------------
 
-            const NodeVec& predecessor_nodes = _eachNode->predecessor_slots().content();
-            std::vector<NodeView*> predecessor_node_views;
-            Node::get_components<NodeView>(predecessor_nodes, predecessor_node_views);
+            const NodeVec&         predecessor_nodes = _eachNode->predecessors().content();
+            std::vector<NodeView*> predecessor_views;
+            Node::get_components<NodeView>(predecessor_nodes, predecessor_views);
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::FollowWithChildren);
-                constraint.add_drivers(predecessor_node_views);
-                constraint.add_target(each_node_view);
-                each_node_view->add_constraint(constraint);
+                constraint.add_drivers(predecessor_views);
+                constraint.add_target(each_view);
+                each_view->add_constraint(constraint);
+
+                constraint.apply_when(NodeViewConstraint::always);
             }
 
             // Align in row Conditional Struct Node's children
             //------------------------------------------------
 
-            NodeViewVec children = each_node_view->children_slots().content();
+            NodeViewVec children = each_view->children_slots().content();
             if( !children.empty() && clss->is_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
-                constraint.add_driver(each_node_view);
+                constraint.apply_when(NodeViewConstraint::always);
+                constraint.add_driver(each_view);
                 constraint.add_targets(children);
 
                 if (clss->is_child_of<ForLoopNode>() )
                 {
-                    constraint.add_targets(each_node_view->successor_slots().content());
+                    constraint.add_targets(each_view->successor_slots().content());
                 }
 
-                each_node_view->add_constraint(constraint);
+                each_view->add_constraint(constraint);
             }
 
             // Align in row Input connected Nodes
             //-----------------------------------
 
-            if ( !each_node_view->input_slots().empty() )
+            if ( !each_view->input_slots().empty() )
             {
                 NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
-                constraint.add_driver(each_node_view);
-                constraint.add_targets(each_node_view->input_slots().content());
-                each_node_view->add_constraint(constraint);
+                constraint.add_driver(each_view);
+                constraint.add_targets(each_view->input_slots().content());
+                each_view->add_constraint(constraint);
+                constraint.apply_when(NodeViewConstraint::always);
             }
         }
     }

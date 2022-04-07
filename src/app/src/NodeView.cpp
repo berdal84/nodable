@@ -16,6 +16,7 @@
 #include <nodable/app/MemberConnector.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/app/IAppCtx.h>
+#include <nodable/core/reflection/R_MACROS.h>
 
 #define NODE_VIEW_DEFAULT_SIZE vec2(10.0f, 35.0f)
 
@@ -46,6 +47,7 @@ NodeView::NodeView(IAppCtx& _ctx)
         , m_output_slots(this)
         , m_successor_slots(this)
         , m_edition_enable(true)
+        , m_apply_constraints(true)
 {
     NodeView::s_instances.push_back(this);
 }
@@ -162,14 +164,14 @@ void NodeView::set_owner(Node *_node)
     //---------------
 
     // add q successor connector per successor slot
-    const size_t successor_max_count = _node->successor_slots().get_limit();
+    const size_t successor_max_count = _node->successors().get_limit();
     for(size_t index = 0; index < successor_max_count; ++index )
     {
         m_successors.push_back(new NodeConnector(m_ctx, *this, Way_Out, index, successor_max_count));
     }
 
     // add a single predecessor connector if node can be connected in this way
-    if(_node->predecessor_slots().get_limit() != 0)
+    if(_node->predecessors().get_limit() != 0)
         m_predecessors.push_back(new NodeConnector(m_ctx, *this, Way_In));
 
     m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver(
@@ -248,7 +250,7 @@ void NodeView::translate(vec2 _delta, bool _recurse)
 
 	if ( _recurse )
     {
-	    for(auto eachInput : get_owner()->input_slots() )
+	    for(auto eachInput : get_owner()->inputs() )
         {
 	        if ( NodeView* eachInputView = eachInput->get<NodeView>() )
 	        {
@@ -477,7 +479,7 @@ bool NodeView::draw()
 
         if( ImGui::Selectable("Delete", !m_edition_enable ? ImGuiSelectableFlags_Disabled : ImGuiSelectableFlags_None))
         {
-            node->flag_for_deletion();
+            node->flag_to_delete();
         }
 
         ImGui::EndPopup();
@@ -792,6 +794,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
     if( _view->m_exposed_input_only_members.empty() )
     {
         ImGui::Text("None.");
+        ImGui::Separator();
     }
     ImGui::Unindent();
 
@@ -808,6 +811,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
     if( _view->m_exposed_out_or_inout_members.empty() )
     {
         ImGui::Text("None.");
+        ImGui::Separator();
     }
 
     ImGui::Unindent();
@@ -853,13 +857,13 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
         };
 
         ImGui::Separator();
-        drawSlots("Inputs:", node->input_slots());
+        drawSlots("Inputs:", node->inputs());
         ImGui::Separator();
-        drawSlots("Outputs:", node->output_slots());
+        drawSlots("Outputs:", node->outputs());
         ImGui::Separator();
-        drawSlots("Predecessors:", node->predecessor_slots());
+        drawSlots("Predecessors:", node->predecessors());
         ImGui::Separator();
-        drawSlots("Successors:", node->successor_slots());
+        drawSlots("Successors:", node->successors());
         ImGui::Separator();
         drawSlots("Children:", node->children_slots());
         ImGui::Separator();
@@ -887,6 +891,10 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
             }
             ImGui::Text("Parent node is \"%s\"", parentName.c_str());
         }
+
+        // m_apply_constraints
+        ImGui::Separator();
+        ImGui::Checkbox("Apply constraints", &_view->m_apply_constraints);
 
         // dirty state
         ImGui::Separator();
@@ -1000,7 +1008,10 @@ void NodeView::add_constraint(NodeViewConstraint &_constraint)
     m_constraints.push_back(std::move(_constraint));
 }
 
-void NodeView::apply_constraints(float _dt) {
+void NodeView::apply_constraints(float _dt)
+{
+    if( !m_apply_constraints ) return;
+
     for ( NodeViewConstraint& eachConstraint : m_constraints)
     {
         eachConstraint.apply(_dt);
@@ -1020,10 +1031,12 @@ void NodeView::add_force(vec2 force, bool _recurse)
 
     if ( _recurse )
     {
-        for ( auto eachInputView : m_input_slots )
+        for ( auto each_input : m_input_slots )
         {
-            if ( !eachInputView->m_pinned && eachInputView->should_follow_output(this))
-                eachInputView->add_force(force, _recurse);
+            if (!each_input->m_pinned && each_input->should_follow_output(this))
+            {
+                each_input->add_force(force, _recurse);
+            }
         }
     }
 }

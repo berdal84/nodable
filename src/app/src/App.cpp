@@ -234,7 +234,7 @@ void App::handle_events()
             {
                 if ( selected_view && !ImGui::IsAnyItemFocused() )
                 {
-                    selected_view->get_owner()->flag_for_deletion();
+                    selected_view->get_owner()->flag_to_delete();
                 }
                 break;
             }
@@ -250,7 +250,7 @@ void App::handle_events()
             {
                 if ( selected_view )
                 {
-                    Node* possible_successor = selected_view->get_owner()->successor_slots().get_front_or_nullptr();
+                    Node* possible_successor = selected_view->get_owner()->successors().get_front_or_nullptr();
                     if (possible_successor)
                     {
                         if (auto successor_view = possible_successor->get<NodeView>())

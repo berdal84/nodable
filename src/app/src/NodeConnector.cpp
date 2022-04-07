@@ -59,12 +59,12 @@ bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
         {
             if ( _connector->m_way == Way_Out)
             {
-                const auto& successors = _connector->get_node()->successor_slots();
+                const auto& successors = _connector->get_node()->successors();
                 if (successors.size() < successors.get_limit() ) start_drag(_connector);
             }
             else
             {
-                const auto& predecessors = _connector->get_node()->predecessor_slots();
+                const auto& predecessors = _connector->get_node()->predecessors();
                 if (predecessors.size() < predecessors.get_limit() ) start_drag(_connector);
             }
         }
@@ -116,12 +116,14 @@ Node* NodeConnector::get_connected_node() const
 
     if ( m_way == Way_In )
     {
-        if (node->predecessor_slots().size() > m_index )
-            return node->predecessor_slots()[m_index];
+        if (node->predecessors().size() > m_index )
+        {
+            return node->predecessors()[m_index];
+        }
     }
-    else if (node->successor_slots().size() > m_index )
+    else if (node->successors().size() > m_index )
     {
-        return node->successor_slots()[m_index];
+        return node->successors()[m_index];
     }
     return nullptr;
 

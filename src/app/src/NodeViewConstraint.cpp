@@ -11,10 +11,21 @@
 
 using namespace Nodable;
 
-NodeViewConstraint::NodeViewConstraint(IAppCtx& _ctx, NodeViewConstraint::Type _type): m_type(_type), m_ctx(_ctx) {}
+NodeViewConstraint::NodeViewConstraint(IAppCtx& _ctx, NodeViewConstraint::Type _type)
+: m_type(_type)
+, m_ctx(_ctx)
+, m_filter(always)
+{
+
+}
 
 void NodeViewConstraint::apply(float _dt)
 {
+    if( !should_apply() )
+    {
+        return;
+    }
+
     Settings& settings = m_ctx.settings();
 
     // try to get a visible view for drivers, is view is not visible we take the parent
@@ -161,24 +172,49 @@ void NodeViewConstraint::apply(float _dt)
     }
 }
 
-void NodeViewConstraint::add_target(NodeView *_subject) {
-    NODABLE_ASSERT(_subject != nullptr);
-    this->m_targets.push_back(_subject);
-}
-
-void NodeViewConstraint::add_driver(NodeView *_subject) {
-    NODABLE_ASSERT(_subject != nullptr);
-    this->m_drivers.push_back(_subject);
-}
-
-void NodeViewConstraint::add_targets(const std::vector<NodeView *> &vector)
+void NodeViewConstraint::add_target(NodeView *_target)
 {
-    for(auto each : vector)
-        add_target(each);
+    NODABLE_ASSERT(_target != nullptr);
+    m_targets.push_back(_target);
 }
 
-void NodeViewConstraint::add_drivers(const std::vector<NodeView *> &vector)
+void NodeViewConstraint::add_driver(NodeView *_driver)
 {
-    for(auto each : vector)
-        add_driver(each);
+    NODABLE_ASSERT(_driver != nullptr);
+    m_drivers.push_back(_driver);
+}
+
+void NodeViewConstraint::add_targets(const std::vector<NodeView *> &_new_targets)
+{
+    m_targets.insert(m_targets.end(), _new_targets.begin(), _new_targets.end());
+}
+
+void NodeViewConstraint::add_drivers(const std::vector<NodeView *> &_new_drivers)
+{
+    m_drivers.insert(m_drivers.end(), _new_drivers.begin(), _new_drivers.end());
+}
+
+
+auto not_expanded  = [](const NodeView* _view ) { return !_view->is_expanded(); };
+
+const NodeViewConstraint::Filter
+        NodeViewConstraint::always = [](NodeViewConstraint* _constraint){ return true; };
+
+const NodeViewConstraint::Filter
+        NodeViewConstraint::no_target_expanded = [](const NodeViewConstraint* _constraint)
+{
+    return std::find_if(_constraint->m_targets.cbegin(), _constraint->m_targets.cend(), not_expanded)
+           == _constraint->m_targets.cend();
+};
+
+const NodeViewConstraint::Filter
+        NodeViewConstraint::no_driver_expanded = [](const NodeViewConstraint* _constraint)
+{
+    return std::find_if(_constraint->m_drivers.cbegin(), _constraint->m_drivers.cend(), not_expanded)
+           == _constraint->m_drivers.cend();
+};
+
+bool NodeViewConstraint::should_apply()
+{
+    return m_filter(this);
 }
