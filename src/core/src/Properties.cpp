@@ -23,7 +23,7 @@ bool Properties::has(const Member* _member)
 	return std::find(m_members.cbegin(), m_members.cend(), _member) != m_members.end();
 }
 
-Member* Properties::add(const char* _name, Visibility _visibility, std::shared_ptr<const R::MetaType> _type, Way _flags )
+Member* Properties::add(const char* _name, Visibility _visibility, std::shared_ptr<const R::Meta_t> _type, Way _flags )
 {
     NODABLE_ASSERT(_type);
     NODABLE_ASSERT(!has(_name));
@@ -38,12 +38,12 @@ Member* Properties::add(const char* _name, Visibility _visibility, std::shared_p
 	return new_member;
 }
 
-Member *Properties::get_first(Way _way, std::shared_ptr<const R::MetaType> _type) const
+Member *Properties::get_first(Way _way, std::shared_ptr<const R::Meta_t> _type) const
 {
     auto filter = [_way, _type](auto each_pair) -> bool
     {
         Member* each_member = each_pair.second;
-        return R::MetaType::is_implicitly_convertible(each_member->get_meta_type(), _type)
+        return R::Meta_t::is_implicitly_convertible(each_member->get_meta_type(), _type)
                && ( each_member->get_allowed_connection() & _way );
     };
 

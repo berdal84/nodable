@@ -67,7 +67,7 @@ bool GraphNodeView::draw()
                 }
                 else
                 {
-                    std::shared_ptr<const R::MetaType> dragged_member_type = dragged_member_conn->get_member_type();
+                    std::shared_ptr<const R::Meta_t> dragged_member_type = dragged_member_conn->get_member_type();
 
                     if ( dragged_member_conn->m_way == Way_Out )
                     {
@@ -109,7 +109,7 @@ bool GraphNodeView::draw()
         return instr_node;
     };
 
-    auto create_variable = [&](std::shared_ptr<const R::MetaType> _type, const char*  _name, Scope*  _scope) -> VariableNode*
+    auto create_variable = [&](std::shared_ptr<const R::Meta_t> _type, const char*  _name, Scope*  _scope) -> VariableNode*
     {
         VariableNode* var_node;
         Scope* scope = _scope ? _scope : graph->get_root()->get<Scope>();
@@ -261,7 +261,7 @@ bool GraphNodeView::draw()
                             if ( !skip_wire )
                             {
                                 // straight wide lines for node connections
-                                if (MetaType::is_ptr(src_member->get_meta_type()))
+                                if (Meta_t::is_ptr(src_member->get_meta_type()))
                                 {
                                     ImGuiEx::DrawVerticalWire(
                                             ImGui::GetWindowDrawList(),
@@ -403,7 +403,7 @@ bool GraphNodeView::draw()
             Node *root_node = graph->get_root();
 
             // If dragging a member we create a VariableNode with the same type.
-            if ( dragged_member_conn && !MetaType::is_ptr(dragged_member_conn->get_member_type()) )
+            if ( dragged_member_conn && !Meta_t::is_ptr(dragged_member_conn->get_member_type()) )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
                 {
@@ -424,13 +424,13 @@ bool GraphNodeView::draw()
                 if ( ImGui::BeginMenu("Variable") )
                 {
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                        new_node = create_variable(R::get_meta_type<bool>(), "var", nullptr);
+                        new_node = create_variable(R::meta<bool>(), "var", nullptr);
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                        new_node = create_variable(R::get_meta_type<double>(), "var", nullptr);
+                        new_node = create_variable(R::meta<double>(), "var", nullptr);
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                        new_node = create_variable(R::get_meta_type<std::string>(), "var", nullptr);
+                        new_node = create_variable(R::meta<std::string>(), "var", nullptr);
 
                     ImGui::EndMenu();
                 }
@@ -438,13 +438,13 @@ bool GraphNodeView::draw()
                 if ( ImGui::BeginMenu("Literal") )
                 {
                     if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
-                        new_node = graph->create_literal(R::get_meta_type<bool>());
+                        new_node = graph->create_literal(R::meta<bool>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " Double"))
-                        new_node = graph->create_literal(R::get_meta_type<double>());
+                        new_node = graph->create_literal(R::meta<double>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " String"))
-                        new_node = graph->create_literal(R::get_meta_type<std::string>());
+                        new_node = graph->create_literal(R::meta<std::string>());
 
                     ImGui::EndMenu();
                 }
@@ -675,15 +675,15 @@ void GraphNodeView::set_owner(Node *_owner)
         const IInvokable* operator_fct = language.find_operator_fct(signature);
 
         std::string label;
-        language.get_serializer()->serialize(label, signature);
+        language.get_serializer().serialize(label, signature);
 
         std::string category = signature->is_operator() ? "Operators" : "Functions";
         
-        auto create_lambda = [graphNode, invokable]() -> Node*
+        auto create_node = [graphNode, invokable]() -> Node*
         {
             return graphNode->create_function(invokable);
         };
-        add_contextual_menu_item(category, label, create_lambda, signature);
+        add_contextual_menu_item(category, label, create_node, signature);
     }
 
 }

@@ -125,8 +125,8 @@ namespace Nodable
         static bool             is_inside(NodeView*, ImRect);
         static void             constraint_to_rect(NodeView*, ImRect);
         static NodeView*        get_dragged();
-        static bool             draw_input(Member *_member, const char* _label = nullptr);
-        static void             draw_as_properties_panel(NodeView *_view, bool* _show_advanced);
+        static bool draw_input(IAppCtx &_ctx, Member *_member, const char *_label);
+        static void draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_show_advanced);
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);

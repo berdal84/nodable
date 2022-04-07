@@ -77,7 +77,7 @@ void assembly::Compiler::compile(const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
-        if (_member->is_meta_type( R::get_meta_type<Node *>() ) )
+        if (_member->is_meta_type(R::meta<Node *>() ) )
         {
             compile((const Node *) *_member);
         }

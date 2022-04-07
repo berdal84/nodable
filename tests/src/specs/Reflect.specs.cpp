@@ -7,58 +7,58 @@ using namespace Nodable::R;
 
 TEST(Reflect, is_convertible__type_to_ptr)
 {
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<bool>(), R::get_meta_type<bool *>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<double>(), R::get_meta_type<double *>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<std::string>(), R::get_meta_type<std::string *>())  );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::meta<bool>(), R::meta<bool *>()) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::meta<double>(), R::meta<double *>()) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::meta<std::string>(), R::meta<std::string *>())  );
 }
 
 TEST(Reflect, is_convertible__ptr_to_type)
 {
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<bool *>(), R::get_meta_type<bool>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<double *>(), R::get_meta_type<double>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<std::string *>(), R::get_meta_type<std::string>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::MetaType::s_any));
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::meta<bool *>(), R::meta<bool>()) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::meta<double *>(), R::meta<double>()) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::meta<std::string *>(), R::meta<std::string>()) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::Meta_t::s_any, R::Meta_t::s_any));
 }
 
 TEST(Reflect, is_convertible__compatible_types)
 {
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::get_meta_type<double>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::get_meta_type<std::string>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::get_meta_type<bool>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::get_meta_type<void>()) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::MetaType::s_any) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::Meta_t::s_any, R::meta<double>()) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::Meta_t::s_any, R::meta<std::string>()) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::Meta_t::s_any, R::meta<bool>()) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::Meta_t::s_any, R::meta<void>()) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::Meta_t::s_any, R::Meta_t::s_any) );
 
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<void>(), R::MetaType::s_any) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<double>(), R::MetaType::s_any) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<std::string>(), R::MetaType::s_any) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::get_meta_type<bool>(), R::MetaType::s_any) );
-    EXPECT_TRUE(MetaType::is_implicitly_convertible(R::MetaType::s_any, R::MetaType::s_any) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::meta<void>(), R::Meta_t::s_any) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::meta<double>(), R::Meta_t::s_any) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::meta<std::string>(), R::Meta_t::s_any) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::meta<bool>(), R::Meta_t::s_any) );
+    EXPECT_TRUE(Meta_t::is_implicitly_convertible(R::Meta_t::s_any, R::Meta_t::s_any) );
 }
 
 TEST(Reflect, is_convertible__incompatible_types)
 {
-    EXPECT_FALSE(MetaType::is_implicitly_convertible(R::get_meta_type<bool>(), R::get_meta_type<double>()) );
-    EXPECT_FALSE(MetaType::is_implicitly_convertible(R::get_meta_type<double>(), R::get_meta_type<bool>()) );
+    EXPECT_FALSE(Meta_t::is_implicitly_convertible(R::meta<bool>(), R::meta<double>()) );
+    EXPECT_FALSE(Meta_t::is_implicitly_convertible(R::meta<double>(), R::meta<bool>()) );
 
-    EXPECT_FALSE(MetaType::is_implicitly_convertible(R::get_meta_type<bool>(), R::get_meta_type<std::string>()) );
-    EXPECT_FALSE(MetaType::is_implicitly_convertible(R::get_meta_type<std::string>(), R::get_meta_type<bool>()) );
+    EXPECT_FALSE(Meta_t::is_implicitly_convertible(R::meta<bool>(), R::meta<std::string>()) );
+    EXPECT_FALSE(Meta_t::is_implicitly_convertible(R::meta<std::string>(), R::meta<bool>()) );
 
-    EXPECT_FALSE(MetaType::is_implicitly_convertible(R::get_meta_type<double>(), R::get_meta_type<std::string>()) );
-    EXPECT_FALSE(MetaType::is_implicitly_convertible(R::get_meta_type<std::string>(), R::get_meta_type<double>()) );
+    EXPECT_FALSE(Meta_t::is_implicitly_convertible(R::meta<double>(), R::meta<std::string>()) );
+    EXPECT_FALSE(Meta_t::is_implicitly_convertible(R::meta<std::string>(), R::meta<double>()) );
 }
 
 TEST(Reflect, is_ptr)
 {
-    EXPECT_FALSE(MetaType::is_ptr(R::get_meta_type<bool &>()) );
-    EXPECT_FALSE(MetaType::is_ptr(R::get_meta_type<bool>()) );
-    EXPECT_TRUE(MetaType::is_ptr(R::get_meta_type<bool *>()) );
+    EXPECT_FALSE(Meta_t::is_ptr(R::meta<bool &>()) );
+    EXPECT_FALSE(Meta_t::is_ptr(R::meta<bool>()) );
+    EXPECT_TRUE(Meta_t::is_ptr(R::meta<bool *>()) );
 }
 
 TEST(Reflect, is_ref)
 {
-    EXPECT_TRUE(MetaType::is_ref(R::get_meta_type<bool &>()) );
-    EXPECT_FALSE(MetaType::is_ref(R::get_meta_type<bool>()) );
-    EXPECT_FALSE(MetaType::is_ref(R::get_meta_type<bool *>()) );
+    EXPECT_TRUE(Meta_t::is_ref(R::meta<bool &>()) );
+    EXPECT_FALSE(Meta_t::is_ref(R::meta<bool>()) );
+    EXPECT_FALSE(Meta_t::is_ref(R::meta<bool *>()) );
 }
 
 TEST(Reflect, node_as_pointer)
@@ -71,7 +71,7 @@ TEST(Reflect, node_as_pointer)
     member->set(node_ptr);
 
     // check
-    EXPECT_TRUE(member->get_meta_type()->is_exactly(R::get_meta_type<Node*>()) );
+    EXPECT_TRUE(member->get_meta_type()->is_exactly(R::meta<Node *>()) );
     EXPECT_EQ(node_ptr, (Node*)*member );
-    EXPECT_TRUE(MetaType::is_ptr(member->get_meta_type()) );
+    EXPECT_TRUE(Meta_t::is_ptr(member->get_meta_type()) );
 }

@@ -22,16 +22,16 @@ namespace Nodable
                                                             // since VM will be destroyed leaving this scope.
 
         // prepare
-        assembly::Compiler         compiler;
+        assembly::Compiler    compiler;
         vm::VM                vm;
-        const LanguageNodable lang;
+        LanguageNodable       lang;
         NodeFactory           factory(&lang);
         bool                  autocompletion = false;
         GraphNode             graph(&lang, &factory, &autocompletion);
         std::string           asm_code_string;
 
         // create program graph
-        lang.get_parser()->parse_graph(expression, &graph);
+        lang.get_parser().parse_graph(expression, &graph);
 
         // compile
         auto asm_code = compiler.compile_syntax_tree(&graph);
@@ -63,7 +63,7 @@ namespace Nodable
         LOG_MESSAGE("Parser.specs", "ParseUpdateSerialize parsing \"%s\"\n", expression.c_str());
 
         // prepare
-        const LanguageNodable lang;
+        LanguageNodable       lang;
         NodeFactory           factory(&lang);
         bool                  autocompletion = false;
         GraphNode             graph(&lang, &factory, &autocompletion);
@@ -71,7 +71,7 @@ namespace Nodable
         vm::VM                vm;
 
         // act
-        lang.get_parser()->parse_graph(expression, &graph);
+        lang.get_parser().parse_graph(expression, &graph);
 
         // compile
         auto code = compiler.compile_syntax_tree(&graph);
@@ -89,8 +89,7 @@ namespace Nodable
         // run
         vm.run_program();
 
-        Serializer *serializer = lang.get_serializer();
-        serializer->serialize(result, graph.get_root() );
+        lang.get_serializer().serialize(result, graph.get_root() );
         LOG_VERBOSE("tools.h", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());
 
         return result;
@@ -100,21 +99,20 @@ namespace Nodable
     {
         LOG_VERBOSE("tools.h", "ParseAndSerialize parsing \"%s\"\n", expression.c_str());
         // prepare
-        const LanguageNodable lang;
-        NodeFactory factory(&lang);
-        bool autocompletion  = false;
-        GraphNode graph(&lang, &factory, &autocompletion);
+        bool             autocompletion  = false;
+        LanguageNodable  lang;
+        NodeFactory      factory(&lang);
+        GraphNode        graph(&lang, &factory, &autocompletion);
 
         // act
-        lang.get_parser()->parse_graph(expression, &graph);
+        lang.get_parser().parse_graph(expression, &graph);
         if ( !graph.get_root())
         {
             throw std::runtime_error("ParseAndSerialize: Unable to generate program.");
         }
 
-        Serializer *serializer = lang.get_serializer();
         std::string result;
-        serializer->serialize(result, graph.get_root() );
+        lang.get_serializer().serialize(result, graph.get_root() );
         LOG_VERBOSE("tools.h", "ParseUpdateSerialize serialize output is: \"%s\"\n", result.c_str());
 
         return result;

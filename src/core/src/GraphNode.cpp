@@ -151,7 +151,7 @@ void GraphNode::ensure_has_root()
     }
 }
 
-VariableNode* GraphNode::create_variable(std::shared_ptr<const R::MetaType> _type, const std::string& _name, IScope* _scope)
+VariableNode* GraphNode::create_variable(std::shared_ptr<const R::Meta_t> _type, const std::string& _name, IScope* _scope)
 {
     NODABLE_ASSERT(_type)
 
@@ -255,7 +255,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
 {
     Wire* wire         = nullptr;
 
-    NODABLE_ASSERT( R::MetaType::is_implicitly_convertible(_src_member->get_meta_type(), _dst_member->get_meta_type()) );
+    NODABLE_ASSERT( R::Meta_t::is_implicitly_convertible(_src_member->get_meta_type(), _dst_member->get_meta_type()) );
 
     /*
      * If _from has no owner _to can digest it, no Wire neede in that case.
@@ -584,7 +584,7 @@ Node* GraphNode::create_node()
     return node;
 }
 
-LiteralNode* GraphNode::create_literal(std::shared_ptr<const R::MetaType> _type)
+LiteralNode* GraphNode::create_literal(std::shared_ptr<const R::Meta_t> _type)
 {
     LiteralNode* node = m_factory->new_literal(_type);
     add(node);

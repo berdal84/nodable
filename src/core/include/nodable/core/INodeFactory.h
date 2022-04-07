@@ -26,8 +26,8 @@ namespace Nodable
     public:
         virtual Node*                       new_program()const = 0;
         virtual InstructionNode*            new_instr()const = 0;
-        virtual VariableNode*				new_variable(std::shared_ptr<const R::MetaType>, const std::string&, IScope *)const = 0;
-        virtual LiteralNode*                new_literal(std::shared_ptr<const R::MetaType>)const = 0;
+        virtual VariableNode*				new_variable(std::shared_ptr<const R::Meta_t>, const std::string&, IScope *)const = 0;
+        virtual LiteralNode*                new_literal(std::shared_ptr<const R::Meta_t>)const = 0;
         virtual Node*                       new_abstract_function(const Signature*)const = 0;
         virtual Node*                       new_function(const IInvokable*)const = 0;
         virtual Node*                       new_scope()const = 0;

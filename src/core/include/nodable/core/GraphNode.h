@@ -29,22 +29,22 @@ namespace Nodable
 		void                        clear(); // Clear Graph. Delete all Nodes/Wires and reset scope
         const std::vector<Node*>&   get_node_registry()const {return m_node_registry;}
         const std::vector<Wire*>&   get_wire_registry()const {return m_wire_registry;}
-        const Language*             get_language()const { return m_language; }
+        const Language&             get_language()const { return *m_language; }
         Node*                       get_root()const { return m_root; }
         RelationRegistry_t&         get_relation_registry() {return m_relation_registry;}
         bool                        is_empty() const;
         void                        ensure_has_root();
         Node*                       create_root();
         InstructionNode*            create_instr();
-		VariableNode*				create_variable(std::shared_ptr<const R::MetaType>, const std::string&, IScope*);
+		VariableNode*				create_variable(std::shared_ptr<const R::Meta_t>, const std::string&, IScope*);
 
 		template<typename T>
 		VariableNode*				create_variable(const std::string& _name, IScope* _scope)
         {
-		    return create_variable(R::get_meta_type<T>(), _name, _scope);
+		    return create_variable(R::meta<T>(), _name, _scope);
         }
 
-		LiteralNode*                create_literal(std::shared_ptr<const R::MetaType>);
+		LiteralNode*                create_literal(std::shared_ptr<const R::Meta_t>);
  		Wire*                       create_wire();
 		Node*                       create_abstract_function(const Signature*);
 		Node*                       create_function(const IInvokable*);

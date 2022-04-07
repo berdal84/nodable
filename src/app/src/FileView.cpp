@@ -231,14 +231,15 @@ void FileView::draw_info() const
     // Language browser (list functions/operators)
     if (ImGui::TreeNode("Language"))
     {
-        const auto&       functions  = m_ctx.get_language().get_api();
-        const Serializer* serializer = m_ctx.get_language().get_serializer();
+        Language&         language   = m_ctx.get_language();
+        const auto&       functions  = language.get_api();
+        const Serializer& serializer = language.get_serializer();
 
         ImGui::Columns(1);
         for(const auto& each_fct : functions )
         {
             std::string name;
-            serializer->serialize(name, each_fct->get_signature());
+            serializer.serialize(name, each_fct->get_signature());
             ImGui::Text("%s", name.c_str());
         }
 

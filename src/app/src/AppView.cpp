@@ -488,7 +488,7 @@ bool AppView::draw()
                 if (view)
                 {
                     ImGui::Indent(10.0f);
-                    NodeView::draw_as_properties_panel(view, &m_show_advanced_node_properties);
+                    NodeView::draw_as_properties_panel(m_ctx, view, &m_show_advanced_node_properties);
                 }
             }
             ImGui::End();

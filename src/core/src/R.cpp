@@ -1,14 +1,14 @@
 #include <nodable/core/reflection/R.h>
 #include <type_traits> // std::underlying_type
 #include <nodable/core/assertions.h>
-#include "nodable/core/reflection/R_MetaType.h"
+#include "nodable/core/reflection/R_Meta_t.h"
 
 
 using namespace Nodable::R;
 
-MetaType_const_ptr MetaType::s_any = std::make_shared<MetaType>("any", Type::any_t );
+Meta_t_csptr Meta_t::s_any = std::make_shared<Meta_t>("any", Type::any_t );
 
-bool MetaType::has_qualifier(Qualifier _other_qualifier) const
+bool Meta_t::has_qualifier(Qualifier _other_qualifier) const
 {
     using T = std::underlying_type<Qualifier>::type;
     return
@@ -19,37 +19,37 @@ bool MetaType::has_qualifier(Qualifier _other_qualifier) const
     static_cast <T>(Qualifier::None);
 }
 
-void MetaType::add_qualifier(Qualifier _other_qualifier)
+void Meta_t::add_qualifier(Qualifier _other_qualifier)
 {
     using T = std::underlying_type_t<Qualifier>;
     m_qualifier = static_cast<Qualifier>( static_cast<T>(m_qualifier) | static_cast<T>(_other_qualifier) );
 }
 
-bool MetaType::is_ptr(MetaType_const_ptr left)
+bool Meta_t::is_ptr(Meta_t_csptr left)
 {
     return  left->has_qualifier(Qualifier::Pointer);
 }
 
-bool MetaType::is_ref(MetaType_const_ptr left)
+bool Meta_t::is_ref(Meta_t_csptr left)
 {
     return left->has_qualifier(Qualifier::Ref);
 }
 
-MetaType_ptr MetaType::add_ref(MetaType_ptr left)
+Meta_t_sptr Meta_t::add_ref(Meta_t_sptr left)
 {
     left->add_qualifier(Qualifier::Ref);
     return left;
 }
 
-MetaType_ptr MetaType::add_ptr(MetaType_ptr left)
+Meta_t_sptr Meta_t::add_ptr(Meta_t_sptr left)
 {
     left->add_qualifier(Qualifier::Pointer);
     return left;
 }
 
-bool MetaType::is_implicitly_convertible(MetaType_const_ptr _left, MetaType_const_ptr _right )
+bool Meta_t::is_implicitly_convertible(Meta_t_csptr _left, Meta_t_csptr _right )
 {
-    if(_left == MetaType::s_any || _right == MetaType::s_any ) // We allow cast to unknown type
+    if(_left == Meta_t::s_any || _right == Meta_t::s_any ) // We allow cast to unknown type
     {
         return true;
     }
@@ -70,7 +70,7 @@ bool MetaType::is_implicitly_convertible(MetaType_const_ptr _left, MetaType_cons
 
 }
 
-bool MetaType::is_exactly(MetaType_const_ptr _other) const
+bool Meta_t::is_exactly(Meta_t_csptr _other) const
 {
     if( !_other) return false;
 
@@ -78,19 +78,19 @@ bool MetaType::is_exactly(MetaType_const_ptr _other) const
            && m_type == _other->m_type;
 }
 
-MetaType_const_ptr MetaType::make_ptr(MetaType_const_ptr _type)
+Meta_t_csptr Meta_t::make_ptr(Meta_t_csptr _type)
 {
-    auto base_copy = std::make_shared<MetaType>(*_type);
+    auto base_copy = std::make_shared<Meta_t>(*_type);
     return add_ptr(base_copy);
 }
 
-MetaType_const_ptr MetaType::make_ref(MetaType_const_ptr _type)
+Meta_t_csptr Meta_t::make_ref(Meta_t_csptr _type)
 {
-    auto base_copy = std::make_shared<MetaType>(*_type);
+    auto base_copy = std::make_shared<Meta_t>(*_type);
     return add_ref(base_copy);
 }
 
-std::string MetaType::get_fullname() const
+std::string Meta_t::get_fullname() const
 {
     std::string result;
 
@@ -113,25 +113,25 @@ std::string MetaType::get_fullname() const
     return result;
 }
 
-bool MetaType::is_ptr()const
+bool Meta_t::is_ptr()const
 {
     return has_qualifier(Qualifier::Pointer);
 }
 
-bool MetaType::is_ref()const
+bool Meta_t::is_ref()const
 {
     return has_qualifier(Qualifier::Ref);
 }
 
-std::map<Type, std::shared_ptr<const MetaType>>& Register::by_type()
+std::map<Type, std::shared_ptr<const Meta_t>>& Register::by_type()
 {
-    static std::map<Type, std::shared_ptr<const MetaType>> meta_type_register_by_category;
+    static std::map<Type, std::shared_ptr<const Meta_t>> meta_type_register_by_category;
     return meta_type_register_by_category;
 }
 
-std::map<std::string, std::shared_ptr<const MetaType>>& Register::by_typeid()
+std::map<std::string, std::shared_ptr<const Meta_t>>& Register::by_typeid()
 {
-    static std::map<std::string, std::shared_ptr<const MetaType>> meta_type_register_by_typeid;
+    static std::map<std::string, std::shared_ptr<const Meta_t>> meta_type_register_by_typeid;
     return meta_type_register_by_typeid;
 }
 
@@ -187,7 +187,28 @@ bool Register::has_typeid(const std::string& _id)
     return by_typeid().find(_id) != by_typeid().end();
 }
 
-void Nodable::R::log_statistics()
+bool Nodable::R::Initialiser::s_initialized = false;
+
+Nodable::R::Initialiser::Initialiser()
+{
+    if( s_initialized )
+    {
+        throw std::runtime_error("R has already been initialised !");
+    }
+
+    Register::push<double>();
+    Register::push<std::string>();
+    Register::push<bool>();
+    Register::push<void>();
+    Register::push<i16_t>();
+
+    log_statistics();
+
+    s_initialized = true;
+}
+
+
+void Nodable::R::Initialiser::log_statistics()
 {
     LOG_MESSAGE("R", "Logging reflected types ...\n");
 
@@ -204,22 +225,4 @@ void Nodable::R::log_statistics()
     }
 
     LOG_MESSAGE("R", "Logging done.\n");
-}
-
-Nodable::R::Initialiser::Initialiser()
-{
-    static bool initialized = false;
-
-    NODABLE_ASSERT(!initialized)
-
-    Register::push<double>();
-    Register::push<std::string>();
-    Register::push<bool>();
-    Register::push<void>();
-    Register::push<i16_t>();
-
-    log_statistics();
-
-    initialized = true;
-
 }

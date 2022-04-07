@@ -60,6 +60,7 @@ namespace Nodable
         Settings&       get_settings() override { return m_settings; }
         vm::VM&         get_vm() override { return m_vm; }
         Language&       get_language() override { return *m_language.get(); }
+        const Language& get_language() const override { return *m_language.get(); }
         TextureManager& get_texture_manager() override { return m_texture_manager; };
 
     private:

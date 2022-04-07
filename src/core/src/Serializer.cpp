@@ -147,12 +147,12 @@ std::string& Serializer::serialize(std::string& _result, const Signature* _signa
 
 std::string& Serializer::serialize(std::string& _result, const Token_t& _type) const
 {
-    return _result.append(language->get_semantic()->token_type_to_string(_type) );
+    return _result.append(language.get_semantic().token_type_to_string(_type) );
 }
 
-std::string& Serializer::serialize(std::string &_result, std::shared_ptr<const R::MetaType> _type) const
+std::string& Serializer::serialize(std::string &_result, std::shared_ptr<const R::Meta_t> _type) const
 {
-    return _result.append(language->get_semantic()->type_to_string(_type) );
+    return _result.append(language.get_semantic().type_to_string(_type) );
 }
 
 std::string& Serializer::serialize(std::string& _result, const VariableNode* _node) const
@@ -229,7 +229,7 @@ std::string& Serializer::serialize(std::string& _result, const Variant* variant)
 std::string& Serializer::serialize(std::string& _result, const Member * _member, bool followConnections) const
 {
     // specific case of a Node*
-    if (_member->get_meta_type()->is_exactly( R::get_meta_type<Node*>()))
+    if (_member->get_meta_type()->is_exactly(R::meta<Node *>()))
     {
         if(_member->get_data()->is_initialized())
         {

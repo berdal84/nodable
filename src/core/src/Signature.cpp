@@ -8,7 +8,7 @@ using namespace Nodable;
 Signature::Signature(std::string _id)
     : m_identifier(_id)
     , m_operator(nullptr)
-    , m_return_type(R::get_meta_type<void>())
+    , m_return_type(R::meta<void>())
 {
     clean_function_id(m_identifier);
 }
@@ -21,7 +21,7 @@ Signature::Signature(const Operator* _operator)
     m_operator = _operator;
 }
 
-void Signature::push_arg(R::MetaType_const_ptr _type)
+void Signature::push_arg(R::Meta_t_csptr _type)
 {
    // create normalised name
 
@@ -82,7 +82,7 @@ bool Signature::is_compatible(const Signature* _other)const
         if ( arg_t->get_type() == other_arg_t->get_type() )
         {
         }
-        else if ( arg_t->is_ref() && R::MetaType::is_implicitly_convertible(arg_t, other_arg_t))
+        else if ( arg_t->is_ref() && R::Meta_t::is_implicitly_convertible(arg_t, other_arg_t))
         {
         }
         else
@@ -95,7 +95,7 @@ bool Signature::is_compatible(const Signature* _other)const
 
 }
 
-bool Signature::has_an_arg_of_type(R::MetaType_const_ptr _type) const
+bool Signature::has_an_arg_of_type(R::Meta_t_csptr _type) const
 {
     auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FuncArg& each) { return each.m_type == _type; } );
     return found != m_args.end();

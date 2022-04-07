@@ -8,9 +8,6 @@ using namespace Nodable;
 
 Language::~Language()
 {
-    delete m_parser;
-    delete m_serializer;
-
     for( auto each : m_operators ) delete each;
     for( auto each : m_functions ) delete each;
     // for( auto each : m_operator_implems ) delete each; (duplicates from m_functions)
@@ -90,7 +87,7 @@ void Language::add_invokable(const IInvokable* _invokable)
     m_functions.push_back(_invokable);
 
     std::string signature;
-    m_serializer->serialize(signature, _invokable->get_signature() );
+    m_serializer.serialize(signature, _invokable->get_signature() );
 
     if( _invokable->get_signature()->is_operator() )
     {

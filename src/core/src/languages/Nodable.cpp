@@ -4,15 +4,18 @@
 #include <nodable/core/String.h>
 #include <nodable/core/System.h>
 
-#include <nodable/core/languages/Nodable_API.h> // <----- contains all functions referenced below
+// Nodable API begin
+#include <nodable/core/languages/Nodable_math.h>
+#include <nodable/core/languages/Nodable_biology.h>
+// Nodable API end
 
 using namespace Nodable;
+using namespace Nodable::math;
+using namespace Nodable::biology;
 using namespace Nodable::R;
 using string = std::string;
 
-LanguageNodable::LanguageNodable()
-    :
-    Language("Nodable", new Parser(this), new Serializer(this))
+LanguageNodable::LanguageNodable(): Language("Nodable")
 {
     /*
      *  Configure the Semantic.
@@ -79,12 +82,11 @@ LanguageNodable::LanguageNodable()
     add_operator( "="  , Operator_t::Binary , 0);
 
     // operator implementations
-    BIND_OPERATOR_T(api_add, "+", double(double, i16_t))
-    BIND_OPERATOR_T(api_add, "+", double(double, double))
-    BIND_OPERATOR_T(api_add, "+", i16_t(i16_t, i16_t))
-    BIND_OPERATOR_T(api_add, "+", i16_t(i16_t, double))
-
-    BIND_OPERATOR_T(api_concat, "+", string(string, string))
+    BIND_OPERATOR_T(api_plus, "+", double(double, i16_t))
+    BIND_OPERATOR_T(api_plus, "+", double(double, double))
+    BIND_OPERATOR_T(api_plus, "+", i16_t(i16_t, i16_t))
+    BIND_OPERATOR_T(api_plus, "+", i16_t(i16_t, double))
+    BIND_OPERATOR_T(api_plus, "+", string(string, string))
 
     BIND_OPERATOR(api_or, "||")
     BIND_OPERATOR(api_and, "&&")
@@ -159,10 +161,10 @@ LanguageNodable::LanguageNodable()
 
     BIND_FUNCTION(api_sin)
     BIND_FUNCTION(api_cos)
-    BIND_FUNCTION_T(api_add, i16_t(i16_t, i16_t))
+    BIND_FUNCTION_T(api_plus, i16_t(i16_t, i16_t))
     BIND_FUNCTION_T(api_minus, i16_t(i16_t, i16_t))
     BIND_FUNCTION_T(api_multiply, i16_t(i16_t, i16_t))
-    BIND_FUNCTION_T(api_add, double(double, double))
+    BIND_FUNCTION_T(api_plus, double(double, double))
     BIND_FUNCTION_T(api_minus, double(double, double))
     BIND_FUNCTION_T(api_multiply, double(double, double))
     BIND_FUNCTION_T(api_sqrt, double(double))

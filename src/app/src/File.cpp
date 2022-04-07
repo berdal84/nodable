@@ -84,7 +84,6 @@ bool File::write_to_disk()
 bool File::update_graph(std::string& _code_source)
 {
     LOG_VERBOSE("File","updating graph ...\n")
-	Parser* parser = m_ctx.get_language().get_parser();
     m_graph->clear();
 
     auto graphView = m_graph->get<GraphNodeView>();
@@ -94,7 +93,8 @@ bool File::update_graph(std::string& _code_source)
         graphView->clear_child_view_constraints();
     }
 
-    if ( parser->parse_graph(_code_source, m_graph) && !m_graph->is_empty() )
+    Parser& parser = m_ctx.get_language().get_parser();
+    if ( parser.parse_graph(_code_source, m_graph) && !m_graph->is_empty() )
     {
         LOG_VERBOSE("File","graph changed, emiting event ...\n")
         m_on_graph_changed_evt.emit(m_graph);
@@ -139,8 +139,9 @@ bool File::update()
                 LOG_VERBOSE("File","serialize root node\n")
 
                 std::string code;
-                Serializer* serializer = m_ctx.get_language().get_serializer();
-                serializer->serialize(code, root_node );
+                m_ctx.get_language()
+                     .get_serializer()
+                     .serialize(code, root_node );
 
                 LOG_VERBOSE("File","replace selected text\n")
                 m_view->replace_selected_text(code);

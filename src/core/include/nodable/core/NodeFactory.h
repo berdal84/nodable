@@ -24,8 +24,8 @@ namespace Nodable
 
         Node*                       new_program()const override ;
         InstructionNode*            new_instr()const override ;
-        VariableNode*				new_variable(std::shared_ptr<const R::MetaType>, const std::string&, IScope *)const override ;
-        LiteralNode*                new_literal(std::shared_ptr<const R::MetaType>)const override ;
+        VariableNode*				new_variable(std::shared_ptr<const R::Meta_t>, const std::string&, IScope *)const override ;
+        LiteralNode*                new_literal(std::shared_ptr<const R::Meta_t>)const override ;
         Node*                       new_abstract_function(const Signature*)const override;
         Node*                       new_function(const IInvokable*)const override ;
         Node*                       new_scope()const override ;

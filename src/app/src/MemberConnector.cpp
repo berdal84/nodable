@@ -129,7 +129,7 @@ Member* MemberConnector::get_member()const
     return m_memberView ?  m_memberView->m_member : nullptr;
 }
 
-R::MetaType_const_ptr MemberConnector::get_member_type()const
+R::Meta_t_csptr MemberConnector::get_member_type()const
 {
     return get_member()->get_meta_type();
 }

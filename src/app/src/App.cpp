@@ -317,8 +317,8 @@ void App::handle_events()
             {
                 const MemberConnector *src = event.member_connectors.src;
                 const MemberConnector *dst = event.member_connectors.dst;
-                std::shared_ptr<const R::MetaType> src_meta_type = src->get_member_type();
-                std::shared_ptr<const R::MetaType> dst_meta_type = dst->get_member_type();
+                std::shared_ptr<const R::Meta_t> src_meta_type = src->get_member_type();
+                std::shared_ptr<const R::Meta_t> dst_meta_type = dst->get_member_type();
 
                 if ( src->share_parent_with(dst) )
                 {
@@ -328,7 +328,7 @@ void App::handle_events()
                 {
                     LOG_WARNING( "App", "Unable to drop_on two connectors with the same nature (in and in, out and out)\n" )
                 }
-                else if ( !R::MetaType::is_implicitly_convertible(src_meta_type, dst_meta_type) )
+                else if ( !R::Meta_t::is_implicitly_convertible(src_meta_type, dst_meta_type) )
                 {
                     LOG_WARNING( "App", "Unable to drop_on %s to %s\n",
                                  src_meta_type->get_fullname().c_str(),

@@ -22,7 +22,7 @@
 #include "nodable/core/types.h"
 #include "nodable/core/assertions.h"
 #include "R_Class.h"
-#include "R_MetaType.h"
+#include "R_Meta_t.h"
 #include "R_Qualifier.h"
 #include "R_Type.h"
 #include "R_MACROS.h"
@@ -30,22 +30,12 @@
 
 namespace Nodable { namespace R
 {
-
-    /**
-     * Initialize R.
-     * - register base types
-     * - log statistics
-     */
-    void init();
-
-    void log_statistics();
-
     /**
      * Given a Type::xxxx value, return its equivalent MetaType.
      */
-    static std::shared_ptr<const MetaType> get_meta_type(Type t)
+    static Meta_t_csptr meta(Type type)
     {
-        auto found = Register::by_type().find(t);
+        auto found = Register::by_type().find(type);
         if (found != Register::by_type().end() )
             return found->second;
         NODABLE_ASSERT(found->second != nullptr);
@@ -56,26 +46,27 @@ namespace Nodable { namespace R
      * Given a type T, return its equivalent MetaType.
      */
     template<typename T>
-    static std::shared_ptr<const MetaType> get_meta_type()
+    static Meta_t_csptr meta()
     {
-        std::shared_ptr<const MetaType> result = nullptr;
+        Meta_t_csptr result = nullptr;
 
         /* In case T is a pointer or a reference, we reuse the meta_type without qualifier, and we add the desire
          * qualifier */
         if( std::is_pointer<T>::value )
         {
-            std::shared_ptr<const MetaType> base = get_meta_type<typename std::remove_pointer<T>::type>();
-            result = MetaType::make_ptr(base );
+            Meta_t_csptr base = meta<typename std::remove_pointer<T>::type>();
+            result = Meta_t::make_ptr(base );
         }
         else if( std::is_reference<T>::value )
         {
-            std::shared_ptr<const MetaType> base = get_meta_type<typename std::remove_reference<T>::type>();
-            result = MetaType::make_ref(base );
+            Meta_t_csptr base = meta<typename std::remove_reference<T>::type>();
+            result = Meta_t::make_ref(base );
         }
         else
         {
-            auto found = Register::by_typeid().find(typeid(T).name());
-            if (found != Register::by_typeid().end())
+            std::map<std::string, Meta_t_csptr>& type_map = Register::by_typeid();
+            auto found = type_map.find(typeid(T).name());
+            if (found != type_map.end())
             {
                 result = found->second;
             }
@@ -85,14 +76,16 @@ namespace Nodable { namespace R
         return result;
     };
 
-    template<class Dst, class Src>
-    static Dst* cast_pointer(Src *_source)
+    template<class target_t, class source_t>
+    static target_t* cast_class_ptr(source_t *_source)
     {
-        static_assert(Register::has_class<Src>(), "class Src is not reflected by R");
-        static_assert(Register::has_class<Dst>(), "class Dst is not reflected by R" );
+        static_assert(Register::has_class<source_t>(), "class Src is not reflected by R");
+        static_assert(Register::has_class<target_t>(), "class Dst is not reflected by R" );
 
-        if(_source->get_class()->is_child_of(Dst::Get_class()))
-            return dynamic_cast<Dst*>(_source);
+        if(_source->get_class()->is_child_of(target_t::Get_class()))
+        {
+            return dynamic_cast<target_t*>(_source);
+        }
         return nullptr;
     };
 
@@ -100,6 +93,10 @@ namespace Nodable { namespace R
     struct Initialiser
     {
         Initialiser();
+        void log_statistics();
+
+    private:
+        static bool s_initialized;
     };
 
 } // namespace R

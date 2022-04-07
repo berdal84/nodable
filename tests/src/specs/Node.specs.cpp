@@ -10,7 +10,7 @@ using namespace Nodable::R;
 TEST(Node, Add_member_Double)
 {
     Node node;
-    node.props()->add("val", Visibility::Default, R::get_meta_type<double>(), Way_Default);
+    node.props()->add("val", Visibility::Default, R::meta<double>(), Way_Default);
     node.props()->get("val")->set(100.0);
 
     Member* val = node.props()->get("val");

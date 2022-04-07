@@ -47,6 +47,7 @@ namespace Nodable
         virtual vm::VM&             get_vm() = 0;
         virtual Settings&           get_settings() = 0;
         virtual Language&           get_language() = 0;
+        virtual const Language&     get_language() const = 0;
         virtual TextureManager&     get_texture_manager() = 0;
         virtual u64_t               get_elapsed_time() const = 0;
     };

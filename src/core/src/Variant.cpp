@@ -209,7 +209,7 @@ void Variant::set(const Variant& _other)
 {
     if ( _other.m_meta_type && !_other.m_meta_type->is_exactly(m_meta_type) )
     {
-        NODABLE_ASSERT(R::MetaType::is_implicitly_convertible(_other.m_meta_type, m_meta_type));
+        NODABLE_ASSERT(R::Meta_t::is_implicitly_convertible(_other.m_meta_type, m_meta_type));
 
         switch(m_meta_type->get_type())
         {

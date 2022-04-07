@@ -7,7 +7,6 @@
 #include <exception>
 
 #include <nodable/core/types.h> // forward declarations
-#include <nodable/core/Language.h>
 #include <nodable/core/Token.h>
 #include <nodable/core/TokenRibbon.h>
 #include <nodable/core/ForLoopNode.h>
@@ -16,9 +15,12 @@
 namespace Nodable{
 
     // forward declaration
+    class ConditionalStructNode;
     class InstructionNode;
-    class Scope;
     class ForLoopNode;
+    class Language;
+    class IScope;
+    class Scope;
 
 	/**
 		The role of this class is to convert code string to a Nodable graph.
@@ -32,14 +34,10 @@ namespace Nodable{
 	    There is no AST (Abstract Syntax Tree) since Nodable keep graph (Nodes) linked to text (tokens) all the time.
 	*/
 
-	class
-    Parser
+	class Parser
 	{
 	public:
-   		explicit Parser(const Language* _lang, bool _strict = false )
-            : m_language(_lang)
-            , m_strict_mode(_strict)
-            , m_graph(nullptr){}
+        Parser(const Language* _lang, bool _strict = false );
 		~Parser(){}
 
 		/** Try to convert a source code to a program tree.
@@ -104,7 +102,7 @@ namespace Nodable{
 
     private:
 		/** A language to get Semantic and Syntax (not yet implemented) */
-		const Language* m_language;
+		const Language& m_language;
 
 		/** The target container of the parser in which all generated nodes will be pushed into*/
 		GraphNode*      m_graph;

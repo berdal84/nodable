@@ -597,7 +597,7 @@ bool NodeView::draw(MemberView* _view )
             input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, NodeView::s_member_input_size_min);
             ImGui::PushItemWidth(input_size);
         }
-        edited = NodeView::draw_input(member);
+        edited = NodeView::draw_input(m_ctx, member, nullptr);
 
         if ( limit_size )
         {
@@ -630,7 +630,7 @@ bool NodeView::draw(MemberView* _view )
     return edited;
 }
 
-bool NodeView::draw_input(Member *_member, const char* _label )
+bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
 {
     bool edited = false;
 
@@ -727,9 +727,8 @@ bool NodeView::draw_input(Member *_member, const char* _label )
         if (ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
-            Serializer* serializer = node->get_parent_graph()->get_language()->get_serializer();
             std::string buffer;
-            serializer->serialize(buffer, _member);
+            _ctx.get_language().get_serializer().serialize(buffer, _member);
             ImGui::Text("%s", buffer.c_str() );
             ImGui::EndTooltip();
         }
@@ -743,7 +742,7 @@ bool NodeView::is_inside(NodeView* _nodeView, ImRect _rect) {
 	return _rect.Contains(nodeRect);
 }
 
-void NodeView::draw_as_properties_panel(NodeView* _view, bool* _show_advanced)
+void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_show_advanced)
 {
     const float labelColumnWidth = ImGui::GetContentRegionAvailWidth() / 2.0f;
 
@@ -774,7 +773,7 @@ void NodeView::draw_as_properties_panel(NodeView* _view, bool* _show_advanced)
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-        bool edited = NodeView::draw_input(_member);
+        bool edited = NodeView::draw_input(_ctx, _member, nullptr);
         if ( edited )
         {
             _member->get_owner()->set_dirty();

@@ -57,7 +57,7 @@ bool Member::equals(const Member *_other)const {
 void Member::set_input(Member* _val)
 {
     m_input        = _val;
-    const std::shared_ptr<const R::MetaType> &meta_t = m_variant.get_meta_type();
+    const std::shared_ptr<const R::Meta_t> &meta_t = m_variant.get_meta_type();
     m_connected_by = meta_t->has_qualifier(R::Qualifier::Ref) ||
                      meta_t->has_qualifier(R::Qualifier::Pointer) ? ConnectBy_Ref : ConnectBy_Copy;
 }

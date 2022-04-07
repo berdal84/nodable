@@ -21,9 +21,6 @@
 
 namespace Nodable {
 
-    // forward declarations
-    class Parser;
-
 	/**
 	 * @brief The role of this class is to define a base abstract class for all languages.
 	 *
@@ -39,8 +36,10 @@ namespace Nodable {
 	    using InvokableFunctions_t = std::vector<const IInvokable*>;
 	public:
 
-		Language(const char* _name, Parser* _parser, Serializer* _serializer)
-                : m_name(_name), m_parser(_parser), m_serializer(_serializer)
+		Language(const char* _name)
+                : m_name(_name)
+                , m_parser(this)
+                , m_serializer(this)
         {
         };
 
@@ -51,9 +50,10 @@ namespace Nodable {
         const IInvokable*               find_operator_fct_exact(const Signature*) const;
         const Operator*                 find_operator(const std::string& , Operator_t) const;
 
-        Parser*                         get_parser()const { return m_parser; }
-        Serializer*                     get_serializer()const { return m_serializer; }
-        const Semantic*                 get_semantic()const { return &m_semantic; }
+        Parser&                         get_parser() { return m_parser; }
+        const Parser&                   get_parser()const { return m_parser; }
+        const Serializer&               get_serializer()const { return m_serializer; }
+        const Semantic&                 get_semantic()const { return m_semantic; }
         const InvokableFunctions_t&     get_api()const { return m_functions; }
 
     protected:
@@ -62,8 +62,8 @@ namespace Nodable {
         const IInvokable*               find_operator_fct_fallback(const Signature*) const;
 
         Semantic     m_semantic;
-        Serializer*  m_serializer;
-        Parser*      m_parser;
+        Serializer   m_serializer;
+        Parser       m_parser;
 
 	private:
 		std::string m_name;
