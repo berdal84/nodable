@@ -1,23 +1,23 @@
 #pragma once
 
 // std
-#include <string>
-#include <memory>
 #include <future>
+#include <memory>
+#include <string>
 
 // Nodable
-#include <nodable/core/VirtualMachine.h>
-#include <nodable/core/reflection/R.h>
-#include <nodable/app/types.h>
+#include <nodable/app/AppView.h>
+#include <nodable/app/IAppCtx.h>
 #include <nodable/app/Settings.h>
+#include <nodable/app/types.h>
 #include <nodable/core/Language.h>
 #include <nodable/core/Texture.h>
-#include "IAppCtx.h"
+#include <nodable/core/VirtualMachine.h>
+#include <nodable/core/reflection/R.h>
 
 namespace Nodable
 {
     // forward declarations
-    class AppView;
     class File;
 
 	class App : public IAppCtx
@@ -25,7 +25,7 @@ namespace Nodable
 	public:
 
 		App();
-		~App() override;
+		~App() override = default;
 
 		bool            init();
 		void            shutdown();
@@ -63,18 +63,17 @@ namespace Nodable
         const std::chrono::time_point<std::chrono::system_clock>
                         m_start_time = std::chrono::system_clock::now();
 
+        AppView         m_view;
+        File*           m_current_file;
         R::Initialiser  m_reflect;
         Settings        m_settings;
-        VirtualMachine  m_vm;
         TextureManager  m_texture_manager;
+        VirtualMachine  m_vm;
         bool            m_should_stop;
-        size_t          m_current_file_index;
-        File*           m_current_file;
-        fs_path         m_executable_folder_path;
         fs_path         m_assets_folder_path;
-        std::vector<File*>        m_loaded_files;
+        size_t          m_current_file_index;
         std::unique_ptr<Language> m_language;
-        std::unique_ptr<AppView>  m_view;
+        std::vector<File*> m_loaded_files;
 
         void            handle_events();
 

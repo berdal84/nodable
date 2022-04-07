@@ -28,21 +28,15 @@ App::App()
     , m_current_file(nullptr)
     , m_should_stop(false)
     , m_language( std::make_unique<LanguageNodable>() )
-    , m_executable_folder_path( ghc::filesystem::path( System::get_executable_directory() ) )
-    , m_assets_folder_path( m_executable_folder_path / BuildInfo::assets_dir )
-    , m_view( std::make_unique<AppView>(*this, BuildInfo::version_extended) )
+    , m_assets_folder_path( ghc::filesystem::path( System::get_executable_directory() ) / BuildInfo::assets_dir )
+    , m_view( *this, BuildInfo::version_extended )
 {
-    LOG_MESSAGE("App", "Executable folder path: %s\n", m_executable_folder_path.c_str() )
     LOG_MESSAGE("App", "Asset folder path:      %s\n", m_assets_folder_path.c_str() )
-}
-
-App::~App()
-{
 }
 
 bool App::init()
 {
-    return m_view->init();
+    return m_view.init();
 }
 
 void App::update()
@@ -62,12 +56,16 @@ void App::flag_to_stop()
 
 void App::shutdown()
 {
-    if (m_view) m_view->shutdown();
+    for( File* each_file : m_loaded_files )
+    {
+        delete each_file;
+    }
+    m_view.shutdown();
 }
 
 bool App::open_file(const fs_path& _path)
 {
-    File* file = new File( *this, _path.filename().string(), _path.string());
+    auto file = new File( *this, _path.filename().string(), _path.string());
 
     if ( !file->read_from_disk() )
     {
@@ -76,7 +74,7 @@ bool App::open_file(const fs_path& _path)
         return false;
     }
 
-    m_loaded_files.push_back(file);
+    m_loaded_files.push_back( file );
     current_file(file);
 
 	return true;
@@ -84,12 +82,9 @@ bool App::open_file(const fs_path& _path)
 
 void App::save_file() const
 {
-	if (m_current_file)
+	if (m_current_file && !m_current_file->write_to_disk() )
     {
-	    if( !m_current_file->write_to_disk() )
-        {
-            LOG_ERROR("App", "Unable to save %s (%s)\n", m_current_file->get_name().c_str(), m_current_file->get_path().c_str());
-        }
+        LOG_ERROR("App", "Unable to save %s (%s)\n", m_current_file->get_name().c_str(), m_current_file->get_path().c_str());
     }
 }
 
@@ -111,7 +106,7 @@ File* App::current_file()const
 
 void App::current_file(File* _file)
 {
-    m_current_file       = _file;
+    m_current_file = _file;
 }
 
 std::string App::compute_asset_path(const char* _relative_path) const
@@ -143,25 +138,23 @@ void App::close_file(File* _file)
 
 bool App::compile_and_load_program()
 {
-    const GraphNode* graph = nullptr;
-
     if ( File* file = current_file())
     {
-        graph = file->get_graph();
-    }
+        const GraphNode* graph = file->get_graph();
 
-    if (graph)
-    {
-        assembly::Compiler compiler;
-        std::unique_ptr<const assembly::Code> asm_code = compiler.compile_syntax_tree(graph);
-
-        if (asm_code)
+        if (graph)
         {
-            m_vm.release_program();
+            assembly::Compiler compiler;
+            auto asm_code = compiler.compile_syntax_tree(graph);
 
-            if (m_vm.load_program(std::move(asm_code)))
+            if (asm_code)
             {
-                return true;
+                m_vm.release_program();
+
+                if (m_vm.load_program(std::move(asm_code)))
+                {
+                    return true;
+                }
             }
         }
     }
@@ -224,7 +217,7 @@ void App::handle_events()
      *
      * Some of them might trigger a Nodable event, we will handle them just after.
      */
-    m_view->handle_events();
+    m_view.handle_events();
 
     /*
      * Nodable events
@@ -379,12 +372,27 @@ void App::handle_events()
 
 void App::draw()
 {
-    m_view->draw();
+    m_view.draw();
 }
 
 File *App::new_file()
 {
-    auto file = new File( *this, "Untitled");
+    // get a unique friendly name
+    const char* basename   = "Untitled";
+    char        name[18]; // "Untitled_XXX.cpp\0";
+    snprintf(name, sizeof(name), "%s.cpp", basename);
+
+    int num = 0;
+    for(auto each_file : m_loaded_files)
+    {
+        if( strcmp( each_file->get_name().c_str(), name) == 0 )
+        {
+            snprintf(name, sizeof(name), "%s_%i.cpp", basename, ++num);
+        }
+    }
+
+    // create the file
+    auto file = new File( *this, name);
     m_loaded_files.push_back(file);
     current_file(file);
 
