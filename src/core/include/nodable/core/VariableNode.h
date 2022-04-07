@@ -23,7 +23,7 @@ namespace Nodable
 	class VariableNode : public Node
     {
 	public:
-		explicit VariableNode(std::shared_ptr<const R::MetaType>);
+		explicit VariableNode(std::shared_ptr<const R::Meta_t>);
 		~VariableNode() override = default;
 
 		inline bool      is_declared()const { return m_is_declared; }

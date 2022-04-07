@@ -5,7 +5,7 @@
 using namespace Nodable;
 using Side = Nodable::MemberConnector::Side;
 
-MemberView::MemberView(const AppContext* _ctx, Member* _member, NodeView* _nodeView)
+MemberView::MemberView(IAppCtx& _ctx, Member* _member, NodeView* _nodeView)
         : m_member(_member)
         , m_showInput(false)
         , m_touched(false)

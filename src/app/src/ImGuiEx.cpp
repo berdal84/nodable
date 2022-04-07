@@ -122,3 +122,13 @@ void ImGuiEx::DrawHorizontalWire(
 
     draw_list->AddBezierCurve(pos0, cp0, cp1, pos1, color, thickness); // fill
 }
+
+ImRect& ImGuiEx::enlarge_to_fit(ImRect& _rect, const ImRect _other)
+{
+    if( _other.Min.x < _rect.Min.x) _rect.Min.x = _other.Min.x;
+    if( _other.Min.y < _rect.Min.y) _rect.Min.y = _other.Min.y;
+    if( _other.Max.x > _rect.Max.x) _rect.Max.x = _other.Max.x;
+    if( _other.Max.y > _rect.Max.y) _rect.Max.y = _other.Max.y;
+
+    return _rect;
+}

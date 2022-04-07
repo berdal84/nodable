@@ -5,17 +5,17 @@
 #include <nodable/core/InstructionNode.h>
 #include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/ForLoopNode.h>
-#include <nodable/app/AppContext.h>
+#include <nodable/app/IAppCtx.h>
 
 #include <numeric>
 
 using namespace Nodable;
 
-NodeViewConstraint::NodeViewConstraint(const AppContext* _ctx, NodeViewConstraint::Type _type): m_type(_type), m_context(_ctx) {}
+NodeViewConstraint::NodeViewConstraint(IAppCtx& _ctx, NodeViewConstraint::Type _type): m_type(_type), m_ctx(_ctx) {}
 
 void NodeViewConstraint::apply(float _dt)
 {
-    Settings* settings = m_context->settings;
+    Settings& settings = m_ctx.settings();
 
     // try to get a visible view for drivers, is view is not visible we take the parent
     std::vector<NodeView*> clean_drivers;
@@ -47,9 +47,9 @@ void NodeViewConstraint::apply(float _dt)
             if(!first_target->is_pinned() && first_target->is_visible())
             {
                 ImRect bbox = NodeView::get_rect(clean_drivers, true);
-                vec2 newPos(bbox.GetCenter() - vec2(bbox.GetSize().x * 0.5f + settings->ui_node_spacing +
+                vec2 newPos(bbox.GetCenter() - vec2(bbox.GetSize().x * 0.5f + settings.ui_node_spacing +
                                                     first_target->get_rect().GetSize().x * 0.5f, 0 ));
-                first_target->add_force_to_translate_to(newPos + m_offset, settings->ui_node_speed);
+                first_target->add_force_to_translate_to(newPos + m_offset, settings.ui_node_speed);
             }
 
             break;
@@ -60,12 +60,12 @@ void NodeViewConstraint::apply(float _dt)
             if(!first_target->is_pinned() && first_target->is_visible() && first_target->should_follow_output(clean_drivers[0]))
             {
                 ImRect bbox = NodeView::get_rect(clean_drivers);
-                vec2 newPos(bbox.GetCenter() + vec2(0.0, -bbox.GetHeight() * 0.5f - settings->ui_node_spacing));
-                newPos.y -= settings->ui_node_spacing + first_target->get_size().y / 2.0f;
-                newPos.x += settings->ui_node_spacing + first_target->get_size().x / 2.0f;
+                vec2 newPos(bbox.GetCenter() + vec2(0.0, -bbox.GetHeight() * 0.5f - settings.ui_node_spacing));
+                newPos.y -= settings.ui_node_spacing + first_target->get_size().y / 2.0f;
+                newPos.x += settings.ui_node_spacing + first_target->get_size().x / 2.0f;
 
                 if (newPos.y < first_target->get_position().y )
-                    first_target->add_force_to_translate_to(newPos + m_offset, settings->ui_node_speed, true);
+                    first_target->add_force_to_translate_to(newPos + m_offset, settings.ui_node_speed, true);
             }
 
             break;
@@ -96,7 +96,7 @@ void NodeViewConstraint::apply(float _dt)
                 || (masterClass->is_child_of<IConditionalStruct>() && m_type == Type::MakeRowAndAlignOnBBoxTop))
             {
                 // indent
-                start_pos_x = first_driver->get_position().x + first_driver->get_size().x / 2.0f + settings->ui_node_spacing;
+                start_pos_x = first_driver->get_position().x + first_driver->get_size().x / 2.0f + settings.ui_node_spacing;
             }
 
             // Constraint in row:
@@ -107,7 +107,7 @@ void NodeViewConstraint::apply(float _dt)
                 if (!each_target->is_pinned() && each_target->is_visible() )
                 {
                     // Compute new position for this input view
-                    float verticalOffset = settings->ui_node_spacing + each_target->get_size().y / 2.0f +
+                    float verticalOffset = settings.ui_node_spacing + each_target->get_size().y / 2.0f +
                                            first_driver->get_size().y / 2.0f;
                     if(m_type == MakeRowAndAlignOnBBoxTop )
                     {
@@ -119,8 +119,8 @@ void NodeViewConstraint::apply(float _dt)
 
                     if (each_target->should_follow_output(first_driver) )
                     {
-                        each_target->add_force_to_translate_to(new_pos + m_offset, settings->ui_node_speed, true);
-                        start_pos_x += size_x[node_index] + settings->ui_node_spacing;
+                        each_target->add_force_to_translate_to(new_pos + m_offset, settings.ui_node_speed, true);
+                        start_pos_x += size_x[node_index] + settings.ui_node_spacing;
                     }
                     node_index++;
                 }
@@ -137,10 +137,10 @@ void NodeViewConstraint::apply(float _dt)
                 auto slaveRect = first_target->get_rect(true, true);
                 vec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
                 vec2 newPos(masterRect.GetCenter().x,
-                            first_target->get_position().y + slaveMasterOffset.y + settings->ui_node_spacing);
+                            first_target->get_position().y + slaveMasterOffset.y + settings.ui_node_spacing);
 
                 // apply
-                first_target->add_force_to_translate_to(newPos + m_offset, settings->ui_node_speed, true);
+                first_target->add_force_to_translate_to(newPos + m_offset, settings.ui_node_speed, true);
                 break;
             }
         }
@@ -151,10 +151,10 @@ void NodeViewConstraint::apply(float _dt)
             {
                 // compute
                 vec2 newPos(clean_drivers[0]->get_position() + vec2(0.0f, clean_drivers[0]->get_size().y));
-                newPos.y += settings->ui_node_spacing + first_target->get_size().y;
+                newPos.y += settings.ui_node_spacing + first_target->get_size().y;
 
                 // apply
-                first_target->add_force_to_translate_to(newPos + m_offset, settings->ui_node_speed);
+                first_target->add_force_to_translate_to(newPos + m_offset, settings.ui_node_speed);
                 break;
             }
         }

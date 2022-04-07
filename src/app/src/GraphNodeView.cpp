@@ -24,13 +24,14 @@ using namespace Nodable::R;
 
 bool GraphNodeView::draw()
 {
-    bool           edited         = false;
-    const bool     enable_edition = m_context->vm->is_program_stopped();
-    Node*          new_node       = nullptr;
-    Settings*      settings       = m_context->settings;
-    GraphNode*     graph          = get_graph_node();
-    const NodeVec& node_registry  = graph->get_node_registry();
-	vec2           origin         = ImGui::GetCursorScreenPos();
+    bool            edited           = false;
+    VirtualMachine& virtual_machine  = m_ctx.virtual_machine();
+    const bool      enable_edition   = virtual_machine.is_program_stopped();
+    Node*           new_node         = nullptr;
+    Settings&       settings         = m_ctx.settings();
+    GraphNode*      graph            = get_graph_node();
+    const NodeVec&  node_registry    = graph->get_node_registry();
+	vec2            origin           = ImGui::GetCursorScreenPos();
 
 	const MemberConnector* dragged_member_conn = MemberConnector::get_gragged();
     const MemberConnector* hovered_member_conn = MemberConnector::get_hovered();
@@ -67,7 +68,7 @@ bool GraphNodeView::draw()
                 }
                 else
                 {
-                    std::shared_ptr<const R::MetaType> dragged_member_type = dragged_member_conn->get_member_type();
+                    Meta_t_csptr dragged_member_type = dragged_member_conn->get_member_type();
 
                     if ( dragged_member_conn->m_way == Way_Out )
                     {
@@ -109,7 +110,7 @@ bool GraphNodeView::draw()
         return instr_node;
     };
 
-    auto create_variable = [&](std::shared_ptr<const R::MetaType> _type, const char*  _name, Scope*  _scope) -> VariableNode*
+    auto create_variable = [&](std::shared_ptr<const R::Meta_t> _type, const char*  _name, Scope*  _scope) -> VariableNode*
     {
         VariableNode* var_node;
         Scope* scope = _scope ? _scope : graph->get_root()->get<Scope>();
@@ -144,23 +145,23 @@ bool GraphNodeView::draw()
             if (each_view && each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
             {
                 float viewWidthMin = std::min(each_successor_view->get_rect().GetSize().x, each_view->get_rect().GetSize().x);
-                float lineWidth = std::min(settings->ui_node_connector_width,
+                float lineWidth = std::min(settings.ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
                 vec2 start = each_view->get_screen_position();
                 start.x -= std::max(each_view->get_size().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
                 start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
                 start.y += each_view->get_size().y * 0.5f; // align bottom
-                start.y += settings->ui_node_connector_height * 0.25f;
+                start.y += settings.ui_node_connector_height * 0.25f;
 
                 vec2 end = each_successor_view->get_screen_position();
                 end.x -= each_successor_view->get_size().x * 0.5f;
                 end.x += lineWidth * 0.5f;
                 end.y -= each_successor_view->get_size().y * 0.5f; // align top
-                end.y -= settings->ui_node_connector_height * 0.25f;
+                end.y -= settings.ui_node_connector_height * 0.25f;
 
-                ImColor color(settings->ui_codeFlow_lineColor);
-                ImColor shadowColor(settings->ui_codeFlow_lineShadowColor);
+                ImColor color(settings.ui_codeFlow_lineColor);
+                ImColor shadowColor(settings.ui_codeFlow_lineShadowColor);
                 ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,
                                           lineWidth - linePadding * 2.0f, 0.0f);
             }
@@ -177,9 +178,9 @@ bool GraphNodeView::draw()
             vec2 src = dragged_member_conn->get_pos();
             vec2 dst = hovered_member_conn ? hovered_member_conn->get_pos() : ImGui::GetMousePos();
             ImGui::GetWindowDrawList()->AddLine(
-                src, dst,
-                getColor(Color_BorderHighlights),
-                settings->ui_wire_bezier_thickness
+                    src, dst,
+                    get_color(Color_BorderHighlights),
+                    settings.ui_wire_bezier_thickness
                 );
         }
 
@@ -191,9 +192,9 @@ bool GraphNodeView::draw()
             ImGuiEx::DrawVerticalWire(
                 ImGui::GetWindowDrawList(),
                 src, dst,
-                settings->ui_codeFlow_lineColor,
-                settings->ui_codeFlow_lineShadowColor,
-                settings->ui_node_connector_width,
+                settings.ui_codeFlow_lineColor,
+                settings.ui_codeFlow_lineShadowColor,
+                settings.ui_node_connector_width,
                 0.f // roundness
                 );
         }
@@ -261,15 +262,15 @@ bool GraphNodeView::draw()
                             if ( !skip_wire )
                             {
                                 // straight wide lines for node connections
-                                if (MetaType::is_ptr(src_member->get_meta_type()))
+                                if (Meta_t::is_ptr(src_member->get_meta_type()))
                                 {
                                     ImGuiEx::DrawVerticalWire(
                                             ImGui::GetWindowDrawList(),
                                             src_pos, dst_pos,
-                                            settings->ui_codeFlow_lineColor,
-                                            settings->ui_codeFlow_lineShadowColor,
-                                            settings->ui_wire_bezier_thickness * 3.0f,
-                                            settings->ui_wire_bezier_roundness * 0.25f);
+                                            settings.ui_codeFlow_lineColor,
+                                            settings.ui_codeFlow_lineShadowColor,
+                                            settings.ui_wire_bezier_thickness * 3.0f,
+                                            settings.ui_wire_bezier_roundness * 0.25f);
                                 }
                                 // curved thin for the others
                                 else
@@ -277,10 +278,10 @@ bool GraphNodeView::draw()
                                     ImGuiEx::DrawVerticalWire(
                                             ImGui::GetWindowDrawList(),
                                             src_pos, dst_pos,
-                                            settings->ui_wire_fillColor,
-                                            settings->ui_wire_shadowColor,
-                                            settings->ui_wire_bezier_thickness,
-                                            settings->ui_wire_bezier_roundness);
+                                            settings.ui_wire_fillColor,
+                                            settings.ui_wire_shadowColor,
+                                            settings.ui_wire_bezier_thickness,
+                                            settings.ui_wire_bezier_roundness);
                                 }
                             }
                         }
@@ -301,8 +302,10 @@ bool GraphNodeView::draw()
                 eachNodeView->enable_edition(enable_edition);
                 edited |= eachNodeView->draw();
 
-                if(m_context->vm && m_context->vm->is_debugging() && m_context->vm->get_next_node() == eachNodeView->get_owner())
-                    ImGui::SetScrollHereY();
+                if( virtual_machine.is_debugging() && virtual_machine.is_next_node(eachNodeView->get_owner() ) )
+                {
+                    ImGui::SetScrollHere();
+                }
 
                 // dragging
                 if (NodeView::get_dragged() == eachNodeView && ImGui::IsMouseDragging(0))
@@ -313,7 +316,7 @@ bool GraphNodeView::draw()
                 }
 
                 isAnyNodeDragged |= NodeView::get_dragged() == eachNodeView;
-                isAnyNodeHovered |= eachNodeView->isHovered();
+                isAnyNodeHovered |= eachNodeView->is_hovered();
             }
 		}
 	}
@@ -322,44 +325,30 @@ bool GraphNodeView::draw()
 	isAnyNodeDragged |= MemberConnector::is_dragging();
 
 	// Virtual Machine cursor
-	if( m_context->vm )
+    if ( virtual_machine.is_program_running() )
     {
-	    if ( !m_context->vm->is_program_stopped())
+        const Node* node = virtual_machine.get_next_node();
+        if( auto view = node->get<NodeView>())
         {
-	        auto node = m_context->vm->get_next_node();
-	        if( auto view = node->get<NodeView>())
-            {
-	            vec2 vm_cursor_pos = view->get_screen_position();
-	            vm_cursor_pos += view->get_member_view(node->get_this_member())->relative_pos();
-	            vm_cursor_pos.x -= view->get_size().x * 0.5f;
+            vec2 vm_cursor_pos = view->get_screen_position();
+            vm_cursor_pos += view->get_member_view(node->get_this_member())->relative_pos();
+            vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
-	            auto draw_list = ImGui::GetWindowDrawList();
-	            draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
+            auto draw_list = ImGui::GetWindowDrawList();
+            draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
 
-	            vec2 linePos = vm_cursor_pos + vec2(- 10.0f, 0.5f);
-                linePos += vec2( sin(m_context->elapsed_time * 12.0f ) * 4.0f, 0.f ); // wave
-	            float size = 20.0f;
-	            float width = 2.0f;
-	            ImColor color = ImColor(255,255,255);
-	            draw_list->AddLine(
-	                    linePos- vec2(1.f, 0.0f),
-                        linePos - vec2(size, 0.0f),
-                        color,
-                        width);
-                draw_list->AddLine(
-                        linePos,
-                        linePos - vec2(size * 0.5f, -size * 0.5f),
-                        color,
-                        width);
-                draw_list->AddLine(
-                        linePos,
-                        linePos - vec2(size * 0.5f, size * 0.5f),
-                        color,
-                        width);
-            }
+            vec2 linePos = vm_cursor_pos + vec2(- 10.0f, 0.5f);
+            linePos += vec2(sin(float(m_ctx.elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
+            float size = 20.0f;
+            float width = 2.0f;
+            ImColor color = ImColor(255,255,255);
+
+            // arrow ->
+            draw_list->AddLine( linePos - vec2(1.f, 0.0f), linePos - vec2(size, 0.0f), color, width);
+            draw_list->AddLine( linePos, linePos - vec2(size * 0.5f, -size * 0.5f), color, width);
+            draw_list->AddLine( linePos, linePos - vec2(size * 0.5f, size * 0.5f) , color, width);
         }
     }
-
 
 	/*
 		Deselection (by double click)
@@ -375,10 +364,12 @@ bool GraphNodeView::draw()
 	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged )
     {
         auto drag = ImGui::GetMouseDragDelta();
-        for (auto eachNode : node_registry)
+        for (auto each_node : node_registry)
         {
-            if (auto view = eachNode->get<NodeView>() )
-                view->translate(drag);
+            if (auto node_view = each_node->get<NodeView>() )
+            {
+                node_view->translate(drag);
+            }
         }
         ImGui::ResetMouseDragDelta();
     }
@@ -395,8 +386,8 @@ bool GraphNodeView::draw()
 
 		if ( !dragged_node_conn )
 		{
-		    draw_invocable_menu( dragged_member_conn, "Operators");
-            draw_invocable_menu( dragged_member_conn, "Functions");
+		    draw_invocable_menu( dragged_member_conn, k_operator_menu_label );
+            draw_invocable_menu( dragged_member_conn, k_function_menu_label );
             ImGui::Separator();
         }
 
@@ -405,7 +396,7 @@ bool GraphNodeView::draw()
             Node *root_node = graph->get_root();
 
             // If dragging a member we create a VariableNode with the same type.
-            if ( dragged_member_conn && !MetaType::is_ptr(dragged_member_conn->get_member_type()) )
+            if ( dragged_member_conn && !Meta_t::is_ptr(dragged_member_conn->get_member_type()) )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
                 {
@@ -426,13 +417,13 @@ bool GraphNodeView::draw()
                 if ( ImGui::BeginMenu("Variable") )
                 {
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                        new_node = create_variable(R::get_meta_type<bool>(), "var", nullptr);
+                        new_node = create_variable(R::meta<bool>(), "var", nullptr);
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                        new_node = create_variable(R::get_meta_type<double>(), "var", nullptr);
+                        new_node = create_variable(R::meta<double>(), "var", nullptr);
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                        new_node = create_variable(R::get_meta_type<std::string>(), "var", nullptr);
+                        new_node = create_variable(R::meta<std::string>(), "var", nullptr);
 
                     ImGui::EndMenu();
                 }
@@ -440,13 +431,13 @@ bool GraphNodeView::draw()
                 if ( ImGui::BeginMenu("Literal") )
                 {
                     if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
-                        new_node = graph->create_literal(R::get_meta_type<bool>());
+                        new_node = graph->create_literal(R::meta<bool>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " Double"))
-                        new_node = graph->create_literal(R::get_meta_type<double>());
+                        new_node = graph->create_literal(R::meta<double>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " String"))
-                        new_node = graph->create_literal(R::get_meta_type<std::string>());
+                        new_node = graph->create_literal(R::meta<std::string>());
 
                     ImGui::EndMenu();
                 }
@@ -518,7 +509,7 @@ bool GraphNodeView::draw()
                 }
                 MemberConnector::stop_drag();
             }
-            else if ( new_node != graph->get_root() && m_context->settings->experimental_graph_autocompletion )
+            else if ( new_node != graph->get_root() && m_ctx.settings().experimental_graph_autocompletion )
             {
                 graph->ensure_has_root();
                 // graph->connect( new_node, graph->get_root(), RelType::IS_CHILD_OF  );
@@ -595,7 +586,7 @@ void GraphNodeView::update_child_view_constraints()
             Node::get_components<NodeView>(predecessor_nodes, predecessor_node_views);
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not_child_of<IConditionalStruct>() )
             {
-                NodeViewConstraint constraint(m_context, NodeViewConstraint::Type::FollowWithChildren);
+                NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::FollowWithChildren);
                 constraint.add_drivers(predecessor_node_views);
                 constraint.add_target(each_node_view);
                 each_node_view->add_constraint(constraint);
@@ -607,7 +598,7 @@ void GraphNodeView::update_child_view_constraints()
             NodeViewVec children = each_node_view->children_slots().content();
             if( !children.empty() && clss->is_child_of<IConditionalStruct>() )
             {
-                NodeViewConstraint constraint(m_context,NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
+                NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
                 constraint.add_driver(each_node_view);
                 constraint.add_targets(children);
 
@@ -624,7 +615,7 @@ void GraphNodeView::update_child_view_constraints()
 
             if ( !each_node_view->input_slots().empty() )
             {
-                NodeViewConstraint constraint(m_context,NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
+                NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
                 constraint.add_driver(each_node_view);
                 constraint.add_targets(each_node_view->input_slots().content());
                 each_node_view->add_constraint(constraint);
@@ -667,25 +658,25 @@ void GraphNodeView::set_owner(Node *_owner)
 
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
     auto graphNode = _owner->as<GraphNode>();
-    const Language* language = m_context->language;
-    const auto functions = m_context->language->get_api();
+    const Language& language = m_ctx.language();
+    const auto functions     = language.get_api();
 
     for (auto it = functions.cbegin(); it != functions.cend(); it++)
     {
         const IInvokable* invokable    = *it;
         const Signature*  signature    = invokable->get_signature();
-        const IInvokable* operator_fct = language->find_operator_fct(signature);
+        const IInvokable* operator_fct = language.find_operator_fct(signature);
 
         std::string label;
-        language->get_serializer()->serialize(label, signature);
+        language.get_serializer().serialize(label, signature);
 
-        std::string category = signature->is_operator() ? "Operators" : "Functions";
+        std::string category = signature->is_operator() ? k_operator_menu_label : k_function_menu_label;
         
-        auto create_lambda = [graphNode, invokable]() -> Node*
+        auto create_node = [graphNode, invokable]() -> Node*
         {
             return graphNode->create_function(invokable);
         };
-        add_contextual_menu_item(category, label, create_lambda, signature);
+        add_contextual_menu_item(category, label, create_node, signature);
     }
 
 }

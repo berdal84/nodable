@@ -22,13 +22,13 @@ namespace Nodable
     class Language;
     class History;
     class FileView;
-    class AppContext;
+    class IAppCtx;
 
 	class File
 	{
 	public:
-		File(const std::string& _name, AppContext* _ctx);
-		File(const std::string& _name, AppContext* _ctx, const std::string& _path);
+		File(IAppCtx& _ctx, const std::string &_name);
+		File(IAppCtx& _ctx, const std::string &_name, const std::string &_path);
         ~File();
 
         observe::Event<GraphNode*> m_on_graph_changed_evt;
@@ -36,7 +36,7 @@ namespace Nodable
         bool                             read_from_disk();
         bool                             write_to_disk();
         bool                             update();
-        AppContext*                      get_context() { return m_context; }
+        IAppCtx*                         get_context() { return &m_ctx; }
         inline GraphNode*                get_graph() { return m_graph; }
         inline History*                  get_history() { return &m_history; }
         const std::string&               get_name()const { return m_name; }
@@ -51,7 +51,7 @@ namespace Nodable
         bool                             update_graph(std::string &_expression);
 
     private:
-		AppContext*                m_context;
+		IAppCtx&                   m_ctx;
 		bool                       m_modified;
 		std::string                m_name;
 		std::string                m_path;

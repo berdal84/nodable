@@ -21,7 +21,7 @@ namespace Nodable
     {
 	public:
         using QWord    = assembly::QWord;
-        using MetaType = std::shared_ptr<const R::MetaType>;
+        using MetaType = std::shared_ptr<const R::Meta_t>;
 
 		Variant(MetaType _type)
             : m_is_initialized(false)
@@ -42,7 +42,7 @@ namespace Nodable
         {
             if( !m_meta_type )
             {
-                define_meta_type( R::get_meta_type<T*>() );
+                define_meta_type(R::meta<T *>() );
             }
             NODABLE_ASSERT( m_meta_type->has_qualifier(R::Qualifier::Pointer) )
 
@@ -62,7 +62,7 @@ namespace Nodable
         void define_type()
         {
             NODABLE_ASSERT(m_meta_type == nullptr)
-            define_meta_type(R::get_meta_type<T>());
+            define_meta_type(R::meta<T>());
         };
         void define_meta_type(MetaType _type);
 
@@ -103,7 +103,7 @@ namespace Nodable
         void ensure_is_initialized_as()
         {
             using clean_T = typename std::remove_reference<T>::type; // skip reference
-            const MetaType meta_t = R::get_meta_type<clean_T>();
+            const MetaType meta_t = R::meta<clean_T>();
             if( !m_is_initialized)
             {
                 define_meta_type( meta_t );

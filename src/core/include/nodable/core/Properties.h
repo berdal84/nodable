@@ -31,7 +31,7 @@ namespace Nodable
             add_to_indexes(v);
             return v;
         }
-		Member*             add(const char*, Visibility, std::shared_ptr<const R::MetaType>, Way);
+		Member*             add(const char*, Visibility, std::shared_ptr<const R::Meta_t>, Way);
 		// void                remove(const char*); // if we implement that, we have to think about all indexes.
 		// void                remove(Member*);     // => implement remove_from_indexes(Member*)
         bool                has(const char*);
@@ -40,7 +40,7 @@ namespace Nodable
         Node*               get_owner()const { return m_owner; };
 		const MemberMap&    by_name()const { return m_members_by_name; };
 		const MemberVec&    by_id()const { return m_members_by_id; };
-        Member*             get_first(Way, std::shared_ptr<const R::MetaType>) const;
+        Member*             get_first(Way, std::shared_ptr<const R::Meta_t>) const;
         Member*             get_input_at(u8_t n) const;
 	private:
 	    void                add_to_indexes(Member*);

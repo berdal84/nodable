@@ -2,11 +2,6 @@
 
 #include <imgui/imgui.h>
 
-#define IMFILEBROWSER_FILE_ICON            ICON_FA_FILE    // override icon
-#define IMFILEBROWSER_FOLDER_ICON          ICON_FA_FOLDER  // override icon
-#define IMGFILEBROWSER_USE_CPP11                           // use ghc::filesystem for c++11 compatibility
-#include <imgui-filebrowser/imfilebrowser.h>
-
 #include <SDL.h>
 #include <string>
 #include <map>
@@ -18,13 +13,19 @@
 #include <nodable/app/FontConf.h>
 #include <nodable/app/FontSlot.h>
 #include <nodable/app/Shortcut.h>
+#include "File.h"
 
 namespace Nodable
 {
     // forward declarations
-    class AppContext;
+    class IAppCtx;
+    class App;
     class History;
     class Language;
+    class Texture;
+    class Settings;
+    class VirtualMachine;
+    class Texture;
 
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
@@ -35,7 +36,7 @@ namespace Nodable
         static constexpr float k_desired_delta_time = 1.0f / k_desired_fps;
 
 	public:		
-		AppView(AppContext* _ctx, const char* _name);
+		AppView(IAppCtx&, const char* _name);
 		~AppView() override;
         bool init();
         void handle_events();
@@ -47,8 +48,7 @@ namespace Nodable
         void new_file();
         void save_file();
         void save_file_as();
-        void draw_file_browser();
-        void draw_file_editor(ImGuiID dockspace_id, bool redock_all, size_t fileIndex);
+        void draw_file_editor(ImGuiID dockspace_id, bool redock_all, Nodable::File *file);
         void draw_history_bar(History*);
         void draw_properties_editor();
         void draw_startup_menu(ImGuiID dockspace_id);
@@ -60,8 +60,9 @@ namespace Nodable
         ImFont* load_font(const FontConf &_config);
         ImFont* get_font_by_id(const char *id);
 
-        AppContext*        m_context;
-        ImGui::FileBrowser m_file_browser;
+        Texture*           m_logo;
+        VirtualMachine&    m_vm;
+        Settings&          m_settings;
         SDL_Window*        m_sdl_window;
         std::string        m_sdl_window_name;
         SDL_GLContext      m_sdl_gl_context;

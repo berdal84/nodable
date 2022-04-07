@@ -23,7 +23,7 @@ namespace Nodable
     class MemberView;
     class MemberConnector;
     class NodeConnector;
-    class AppContext;
+    class IAppCtx;
 
 	/** We use this enum to identify all NodeView detail modes */
 	enum class NodeViewDetail: unsigned short int
@@ -48,7 +48,7 @@ namespace Nodable
 	        Follow,
         };
 
-	    NodeViewConstraint(const AppContext* _ctx, Type _type);
+	    NodeViewConstraint(IAppCtx& _ctx, Type _type);
 	    void apply(float _dt);
 	    void add_target(NodeView*);
 	    void add_driver(NodeView*);
@@ -57,7 +57,7 @@ namespace Nodable
         vec2 m_offset;
 
     private:
-        const AppContext* m_context;
+        IAppCtx&          m_ctx;
 	    Type              m_type;
         NodeViewVec       m_drivers;
         NodeViewVec       m_targets;
@@ -69,7 +69,7 @@ namespace Nodable
 	class NodeView :  public Component, public View
 	{
 	public:
-		NodeView(AppContext* _ctx);
+		NodeView(IAppCtx& _ctx);
 		~NodeView();
         NodeView (const NodeView&) = delete;
         NodeView& operator= (const NodeView&) = delete;
@@ -88,7 +88,7 @@ namespace Nodable
 		void                    translate_to(vec2 desiredPos, float _factor, bool _recurse = false);
 		void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
-        ImRect                  get_rect(bool _recursive = false, bool _ignorePinned = true
+        ImRect                  get_rect(bool _view = false, bool _ignorePinned = true
                                       , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false);
         void                    add_constraint(NodeViewConstraint&);
         void                    apply_constraints(float _dt);
@@ -125,8 +125,8 @@ namespace Nodable
         static bool             is_inside(NodeView*, ImRect);
         static void             constraint_to_rect(NodeView*, ImRect);
         static NodeView*        get_dragged();
-        static bool             draw_input(Member *_member, const char* _label = nullptr);
-        static void             draw_as_properties_panel(NodeView *_view, bool* _show_advanced);
+        static bool draw_input(IAppCtx &_ctx, Member *_member, const char *_label);
+        static void draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_show_advanced);
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
@@ -151,14 +151,13 @@ namespace Nodable
         Slots<NodeView*> m_input_slots;
         Slots<NodeView*> m_output_slots;
         Slots<NodeView*> m_successor_slots;
-		std::vector<NodeConnector*>          m_predecessors_node_connnectors;
-		std::vector<NodeConnector*>          m_successors_node_connectors;
+		std::vector<NodeConnector*>          m_predecessors;
+		std::vector<NodeConnector*>          m_successors;
 		std::vector<MemberView*>             m_exposed_input_only_members;
 		std::vector<MemberView*>             m_exposed_out_or_inout_members;
         std::map<const Member*, MemberView*> m_exposed_members;
         MemberView*                          m_exposed_this_member_view;
         std::vector<NodeViewConstraint>      m_constraints;
-        AppContext*                          m_context;
 
 		static NodeView*              s_selected;
 		static NodeView*              s_dragged;
@@ -190,7 +189,7 @@ namespace Nodable
         bool              m_showInput;
         bool              m_touched;
 
-        MemberView(const AppContext* _ctx, Member* _member, NodeView* _nodeView);
+        MemberView(IAppCtx& _ctx, Member* _member, NodeView* _nodeView);
         ~MemberView();
         MemberView (const MemberView&) = delete;
         MemberView& operator= (const MemberView&) = delete;

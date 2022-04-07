@@ -2,7 +2,6 @@
 
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
-#include <numeric>                // for std::accumulate
 #include <vector>
 
 #include <nodable/app/Settings.h>
@@ -16,7 +15,7 @@
 #include <nodable/app/NodeConnector.h>
 #include <nodable/app/MemberConnector.h>
 #include <nodable/core/InvokableComponent.h>
-#include <nodable/app/AppContext.h>
+#include <nodable/app/IAppCtx.h>
 
 #define NODE_VIEW_DEFAULT_SIZE vec2(10.0f, 35.0f)
 
@@ -30,10 +29,9 @@ const float        NodeView::s_member_input_size_min           = 10.0f;
 const vec2         NodeView::s_member_input_toggle_button_size = vec2(10.0, 25.0f);
 NodeViewVec        NodeView::s_instances;
 
-NodeView::NodeView(AppContext* _ctx)
+NodeView::NodeView(IAppCtx& _ctx)
         : Component()
         , View(_ctx)
-        , m_context(_ctx)
         , m_position(500.0f, -1.0f)
         , m_size(NODE_VIEW_DEFAULT_SIZE)
         , m_opacity(1.0f)
@@ -61,8 +59,8 @@ NodeView::~NodeView()
     if ( s_selected == this ) s_selected = nullptr;
 
     // delete NodeConnectors
-    for( auto& conn : m_successors_node_connectors ) delete conn;
-    for( auto& conn : m_predecessors_node_connnectors ) delete conn;
+    for( auto& conn : m_successors ) delete conn;
+    for( auto& conn : m_predecessors ) delete conn;
 
     // Erase instance in static vector
     auto found = std::find( s_instances.begin(), s_instances.end(), this);
@@ -77,14 +75,14 @@ std::string NodeView::get_label()
     if (s_view_detail == NodeViewDetail::Minimalist )
     {
         // I always add an ICON_FA at the begining of any node label string (encoded in 4 bytes)
-        return std::string(node->get_short_label());
+        return node->get_short_label();
     }
     return node->get_label();
 }
 
 void NodeView::expose(Member* _member)
 {
-    auto member_view = new MemberView(m_context, _member, this);
+    auto member_view = new MemberView(m_ctx, _member, this);
 
     if ( _member == get_owner()->get_this_member() )
     {
@@ -110,7 +108,7 @@ void NodeView::set_owner(Node *_node)
 {
     Component::set_owner(_node);
 
-    Settings*            settings = m_context->settings;
+    Settings&            settings = m_ctx.settings();
     std::vector<Member*> not_exposed;
 
     //  We expose first the members which allows input connections
@@ -145,19 +143,19 @@ void NodeView::set_owner(Node *_node)
 
     if (_node->has<InvokableComponent>())
     {
-        setColor(Color_Fill, &settings->ui_node_invokableColor); // blue
+        set_color(Color_Fill, &settings.ui_node_invokableColor); // blue
     }
     else if (clss->is_child_of<VariableNode>() )
     {
-        setColor(Color_Fill, &settings->ui_node_variableColor); // purple
+        set_color(Color_Fill, &settings.ui_node_variableColor); // purple
     }
     else if (clss->is_child_of<LiteralNode>() )
     {
-        setColor(Color_Fill, &settings->ui_node_literalColor);
+        set_color(Color_Fill, &settings.ui_node_literalColor);
     }
     else
     {
-        setColor(Color_Fill, &settings->ui_node_instructionColor); // green
+        set_color(Color_Fill, &settings.ui_node_instructionColor); // green
     }
 
     // NodeConnectors
@@ -167,12 +165,12 @@ void NodeView::set_owner(Node *_node)
     const size_t successor_max_count = _node->successor_slots().get_limit();
     for(size_t index = 0; index < successor_max_count; ++index )
     {
-        m_successors_node_connectors.push_back(new NodeConnector(m_context, this, Way_Out, index, successor_max_count));
+        m_successors.push_back(new NodeConnector(m_ctx, *this, Way_Out, index, successor_max_count));
     }
 
     // add a single predecessor connector if node can be connected in this way
     if(_node->predecessor_slots().get_limit() != 0)
-        m_predecessors_node_connnectors.push_back(new NodeConnector(m_context, this, Way_In));
+        m_predecessors.push_back(new NodeConnector(m_ctx, *this, Way_In));
 
     m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver(
         [this](Node* _other_node, EdgeType _relation )
@@ -308,31 +306,25 @@ bool NodeView::draw()
 {
 	bool edited = false;
 	auto node   = get_owner();
-	Settings* settings = m_context->settings;
+	Settings& settings = m_ctx.settings();
 
 	NODABLE_ASSERT(node != nullptr);
 
     // Draw Node connectors (in background)
     bool is_connector_hovered = false;
     {
-        ImColor color = settings->ui_node_nodeConnectorColor;
-        ImColor hoveredColor = settings->ui_node_nodeConnectorHoveredColor;
+        ImColor color = settings.ui_node_nodeConnectorColor;
+        ImColor hoveredColor = settings.ui_node_nodeConnectorHoveredColor;
 
-        auto drawConnectorAndHandleUserEvents = [&](NodeConnector *connector) {
+        auto draw_and_handle_evt = [&](NodeConnector *connector)
+        {
             edited |= NodeConnector::draw(connector, color, hoveredColor, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         };
 
-        if ( m_expanded )
-        {
-            std::for_each(m_predecessors_node_connnectors.begin(), m_predecessors_node_connnectors.end(), drawConnectorAndHandleUserEvents);
-            std::for_each(m_successors_node_connectors.begin(), m_successors_node_connectors.end(), drawConnectorAndHandleUserEvents);
-        }
-        else
-        {
-            std::for_each(m_predecessors_node_connnectors.begin(), m_predecessors_node_connnectors.begin()+1, drawConnectorAndHandleUserEvents);
-            std::for_each(m_successors_node_connectors.begin(), m_successors_node_connectors.begin()+1, drawConnectorAndHandleUserEvents);
-        }
+        std::for_each(m_predecessors.begin(), m_predecessors.end(), draw_and_handle_evt);
+        std::for_each(m_successors.begin()  , m_successors.end()  , draw_and_handle_evt);
+
     }
 
 	// Begin the window
@@ -347,19 +339,19 @@ bool NodeView::draw()
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	{			
-		auto borderCol = is_selected(this) ? m_border_color_selected : getColor(Color_Border);
+		auto borderCol = is_selected(this) ? m_border_color_selected : get_color(Color_Border);
 
 		auto itemRectMin = screen_cursor_pos_content_start - halfSize;
 		auto itemRectMax = screen_cursor_pos_content_start + halfSize;
 
 		// Draw the rectangle under everything
-		ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_border_radius, 4, vec2(1.0f), getColor(Color_Shadow));
-		draw_list->AddRectFilled(itemRectMin, itemRectMax, getColor(Color_Fill), m_border_radius);
-		draw_list->AddRect(itemRectMin + vec2(1.0f), itemRectMax, getColor(Color_BorderHighlights), m_border_radius);
+		ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_border_radius, 4, vec2(1.0f), get_color(Color_Shadow));
+		draw_list->AddRectFilled(itemRectMin, itemRectMax, get_color(Color_Fill), m_border_radius);
+		draw_list->AddRect(itemRectMin + vec2(1.0f), itemRectMax, get_color(Color_BorderHighlights), m_border_radius);
 		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_border_radius);
 
 		// darken the background under the content
-		draw_list->AddRectFilled(itemRectMin + vec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings->ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_border_radius, 4);
+		draw_list->AddRectFilled(itemRectMin + vec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings.ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_border_radius, 4);
 
 		// Draw an additionnal blinking rectangle when selected
 		if (is_selected(this))
@@ -375,8 +367,8 @@ bool NodeView::draw()
 	ImGui::InvisibleButton("node", m_size);
     ImGui::SetItemAllowOverlap();
 	ImGui::SetCursorPos(cursor_pos_content_start);
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui_node_padding * 2.0f); // x2 padding to keep space for "this" connector
-	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui_node_padding );
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings.ui_node_padding * 2.0f); // x2 padding to keep space for "this" connector
+	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings.ui_node_padding );
     bool is_node_hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
@@ -390,7 +382,7 @@ bool NodeView::draw()
             //abel.insert(0, "<<");
             label.append(" " ICON_FA_OBJECT_GROUP);
         }
-        ImGuiEx::ShadowedText(vec2(1.0f), getColor(Color_BorderHighlights), label.c_str()); // text with a lighter shadow (incrust effect)
+        ImGuiEx::ShadowedText(vec2(1.0f), get_color(Color_BorderHighlights), label.c_str()); // text with a lighter shadow (incrust effect)
 
         ImGui::SameLine();
 
@@ -414,8 +406,8 @@ bool NodeView::draw()
         ImGui::EndGroup();
         ImGui::SameLine();
 
-        ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui_node_padding * 2.0f);
-        ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui_node_padding );
+        ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings.ui_node_padding * 2.0f);
+        ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings.ui_node_padding );
     ImGui::EndGroup();
 
     // Ends the Window
@@ -428,10 +420,10 @@ bool NodeView::draw()
 
     // Draw Member in/out connectors
     {
-        float radius      = settings->ui_node_memberConnectorRadius;
-        ImColor color     = settings->ui_node_nodeConnectorColor;
-        ImColor borderCol = settings->ui_node_borderColor;
-        ImColor hoverCol  = settings->ui_node_nodeConnectorHoveredColor;
+        float radius      = settings.ui_node_memberConnectorRadius;
+        ImColor color     = settings.ui_node_nodeConnectorColor;
+        ImColor borderCol = settings.ui_node_borderColor;
+        ImColor hoverCol  = settings.ui_node_nodeConnectorHoveredColor;
 
         if ( m_exposed_this_member_view )
         {
@@ -522,7 +514,7 @@ bool NodeView::draw()
 	if( edited )
         get_owner()->set_dirty();
 
-	hovered = is_node_hovered || is_connector_hovered;
+    m_is_hovered = is_node_hovered || is_connector_hovered;
 
 	return edited;
 }
@@ -598,7 +590,7 @@ bool NodeView::draw(MemberView* _view )
             input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, NodeView::s_member_input_size_min);
             ImGui::PushItemWidth(input_size);
         }
-        edited = NodeView::draw_input(member);
+        edited = NodeView::draw_input(m_ctx, member, nullptr);
 
         if ( limit_size )
         {
@@ -631,7 +623,7 @@ bool NodeView::draw(MemberView* _view )
     return edited;
 }
 
-bool NodeView::draw_input(Member *_member, const char* _label )
+bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
 {
     bool edited = false;
 
@@ -656,7 +648,7 @@ bool NodeView::draw_input(Member *_member, const char* _label )
         auto* variable = _member->get_input()->get_owner()->as<VariableNode>();
         snprintf(str, 255, "%s", variable->get_name() );
 
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4)variable->get<NodeView>()->getColor(Color_Fill) );
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->get<NodeView>()->get_color(Color_Fill) );
         ImGui::InputText(label.c_str(), str, 255, inputFlags);
         ImGui::PopStyleColor();
 
@@ -728,9 +720,8 @@ bool NodeView::draw_input(Member *_member, const char* _label )
         if (ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
-            Serializer* serializer = node->get_parent_graph()->get_language()->get_serializer();
             std::string buffer;
-            serializer->serialize(buffer, _member);
+            _ctx.language().get_serializer().serialize(buffer, _member);
             ImGui::Text("%s", buffer.c_str() );
             ImGui::EndTooltip();
         }
@@ -744,7 +735,7 @@ bool NodeView::is_inside(NodeView* _nodeView, ImRect _rect) {
 	return _rect.Contains(nodeRect);
 }
 
-void NodeView::draw_as_properties_panel(NodeView* _view, bool* _show_advanced)
+void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_show_advanced)
 {
     const float labelColumnWidth = ImGui::GetContentRegionAvailWidth() / 2.0f;
 
@@ -775,7 +766,7 @@ void NodeView::draw_as_properties_panel(NodeView* _view, bool* _show_advanced)
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-        bool edited = NodeView::draw_input(_member);
+        bool edited = NodeView::draw_input(_ctx, _member, nullptr);
         if ( edited )
         {
             _member->get_owner()->set_dirty();
@@ -972,45 +963,32 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
 
     if( !_recursively)
     {
-        return ImRect(m_position - m_size * 0.5f, m_position + m_size * 0.5f);
+        return { m_position - m_size * 0.5f, m_position + m_size * 0.5f};
     }
 
-    ImRect rect(
-            vec2(std::numeric_limits<float>().max()),
-            vec2(-std::numeric_limits<float>().max()) );
+    ImRect result_rect( vec2(std::numeric_limits<float>::max()), vec2(-std::numeric_limits<float>::max()) );
 
-    auto enlarge_to_fit = [&rect](const ImRect& other) {
-        if( other.Min.x < rect.Min.x) rect.Min.x = other.Min.x;
-        if( other.Min.y < rect.Min.y) rect.Min.y = other.Min.y;
-        if( other.Max.x > rect.Max.x) rect.Max.x = other.Max.x;
-        if( other.Max.y > rect.Max.y) rect.Max.y = other.Max.y;
-    };
-
-    if ( !_ignoreSelf)
+    if ( !_ignoreSelf && m_is_visible )
     {
         ImRect self_rect = get_rect(false);
-        enlarge_to_fit(self_rect);
+        ImGuiEx::enlarge_to_fit(result_rect, self_rect);
     }
 
-    auto enlarge_to_fit_all = [&](NodeView* eachView) {
-        if (eachView && eachView->is_visible() && !(eachView->m_pinned && _ignorePinned) &&
-            eachView->should_follow_output(this) )
+    auto enlarge_to_fit_all = [&](NodeView* _view)
+    {
+        if( !_view) return;
+
+        if ( _view->m_is_visible && !(_view->m_pinned && _ignorePinned) && _view->should_follow_output(this) )
         {
-            ImRect childRect = eachView->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
-            enlarge_to_fit(childRect);
+            ImRect child_rect = _view->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
+            ImGuiEx::enlarge_to_fit(result_rect, child_rect);
         }
     };
 
     std::for_each(m_children_slots.begin(), m_children_slots.end(), enlarge_to_fit_all);
-    std::for_each(m_input_slots.begin(), m_input_slots.end(), enlarge_to_fit_all);
+    std::for_each(m_input_slots.begin()   , m_input_slots.end()   , enlarge_to_fit_all);
 
-//    auto draw_list = ImGui::GetForegroundDrawList();
-//    auto screen_rect = rect;
-//    screen_rect.Translate( View::ToScreenPosOffset() );
-//    if ( NodeView::IsSelected(this) )
-//        draw_list->AddRect(screen_rect.Min, screen_rect.Max, ImColor(0,255,0));
-
-    return rect;
+    return result_rect;
 }
 
 void NodeView::clear_constraints() {
@@ -1050,22 +1028,22 @@ void NodeView::add_force(vec2 force, bool _recurse)
     }
 }
 
-void NodeView::apply_forces(float _dt, bool _recurse) {
-    //
+void NodeView::apply_forces(float _dt, bool _recurse)
+{
     float magnitude = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
 
-    // apply
     constexpr float magnitude_max  = 100.0f;
-    const float friction   = Maths::lerp (  0.0f, 0.5f, magnitude / magnitude_max);
-    const vec2 avg_forces_sum = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
-    this->translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);
+    const float     friction       = Maths::lerp (  0.0f, 0.5f, magnitude / magnitude_max);
+    const vec2 avg_forces_sum      = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
+
+    translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);
 
     m_last_frame_forces_sum = m_forces_sum;
-    m_forces_sum = vec2();
+    m_forces_sum            = vec2();
 }
 
-void NodeView::translate_to(vec2 desiredPos, float _factor, bool _recurse) {
-
+void NodeView::translate_to(vec2 desiredPos, float _factor, bool _recurse)
+{
     vec2 delta(desiredPos - m_position);
 
     bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
@@ -1080,24 +1058,20 @@ ImRect NodeView::get_rect(
         const std::vector<NodeView *>& _views,
         bool _recursive,
         bool _ignorePinned,
-        bool _ignoreMultiConstrained) {
+        bool _ignoreMultiConstrained)
+{
+    ImRect result_rect( vec2(std::numeric_limits<float>::max()), vec2(-std::numeric_limits<float>::max()) );
 
-    std::vector<float> x_positions, y_positions;
     for (auto eachView : _views)
     {
-        if (eachView->is_visible())
+        if ( eachView->m_is_visible )
         {
             auto rect = eachView->get_rect(_recursive, _ignorePinned, _ignoreMultiConstrained);
-            x_positions.push_back(rect.Min.x );
-            x_positions.push_back(rect.Max.x );
-            y_positions.push_back(rect.Min.y );
-            y_positions.push_back(rect.Max.y );
+            ImGuiEx::enlarge_to_fit(result_rect, rect);
         }
     }
-    auto x_minmax = std::minmax_element(x_positions.begin(), x_positions.end());
-    auto y_minmax = std::minmax_element(y_positions.begin(), y_positions.end());
 
-    return ImRect(*x_minmax.first, *y_minmax.first, *x_minmax.second, *y_minmax.second );;
+    return result_rect;
 }
 
 void NodeView::set_expanded_rec(bool _expanded)

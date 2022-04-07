@@ -37,7 +37,7 @@ namespace Nodable
          * @param path
          * @return
          */
-        Texture *get_or_create(const std::string& path)
+        Texture *get_or_create_from(const std::string& path)
         {
             // Return if already exists
             auto tex = m_register.find(path );

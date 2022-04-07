@@ -5,7 +5,7 @@
 #include <nodable/core/Log.h>
 #include <type_traits>
 #include "R_Type.h"
-#include "R_MetaType.h"
+#include "R_Meta_t.h"
 
 namespace Nodable { namespace R
 {
@@ -20,8 +20,8 @@ namespace Nodable { namespace R
      */
     struct Register
     {
-        static std::map<Type, std::shared_ptr<const MetaType>>& by_type();
-        static std::map<std::string, std::shared_ptr<const MetaType>>&  by_typeid();
+        static std::map<Type, std::shared_ptr<const Meta_t>>& by_type();
+        static std::map<std::string, std::shared_ptr<const Meta_t>>&  by_typeid();
         static bool has_typeid(const std::string&);
         template<class T> constexpr static bool has_class()
         {
@@ -39,7 +39,7 @@ namespace Nodable { namespace R
                 std::string id = typeid(T).name();
                 if ( !Register::has_typeid(id) )
                 {
-                    MetaType_const_ptr meta_type = T::Get_class();
+                    Meta_t_csptr meta_type = T::Get_class();
                     Register::by_typeid()[id] = meta_type;
                     LOG_MESSAGE("R", "New entry: %s is %s\n", meta_type->get_name(), to_string(meta_type->get_type()) );
                 }
@@ -55,7 +55,7 @@ namespace Nodable { namespace R
                 std::string id = typeid(T).name();
                 if ( !Register::has_typeid(id) )
                 {
-                    MetaType_const_ptr meta_type = reflect_type<T>::new_meta_type();
+                    Meta_t_csptr meta_type = std::make_shared<Meta_t>(reflect_t<T>::name, reflect_t<T>::type_v);
                     Register::by_type().insert({meta_type->get_type(), meta_type});
                     Register::by_typeid().insert({id, meta_type});
                     LOG_MESSAGE("R", "New entry: %s is %s\n", meta_type->get_name(), to_string(meta_type->get_type()) );

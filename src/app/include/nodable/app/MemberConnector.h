@@ -12,7 +12,7 @@ namespace Nodable {
     // forward declarations
     class MemberView;
     class Member;
-    class AppContext;
+    class IAppCtx;
 
     /**
      * @brief A MemberConnector represents a physical input or output on a MemberView.
@@ -29,8 +29,8 @@ namespace Nodable {
             Right
         };
 
-        MemberConnector(const AppContext* _ctx, MemberView* _member, Way _way, Side _pos)
-            : m_context(_ctx)
+        MemberConnector(IAppCtx& _ctx, MemberView* _member, Way _way, Side _pos)
+            : m_ctx(_ctx)
             , m_memberView(_member)
             , m_way(_way)
             , m_display_side(_pos)
@@ -43,7 +43,7 @@ namespace Nodable {
         MemberConnector& operator= (const MemberConnector&) = delete;
 
         Member*            get_member()const;
-        R::MetaType_const_ptr        get_member_type()const;
+        R::Meta_t_csptr        get_member_type()const;
         vec2               get_pos()const override;
         bool               share_parent_with(const MemberConnector *other)const override;
         bool               has_node_connected() const;
@@ -53,7 +53,7 @@ namespace Nodable {
         MemberView* m_memberView;
         Side        m_display_side;
         Way         m_way;
-        const AppContext* m_context;
+        IAppCtx&    m_ctx;
         static const MemberConnector* s_hovered;
         static const MemberConnector* s_dragged;
         static const MemberConnector* s_focused;

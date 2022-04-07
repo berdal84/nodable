@@ -4,21 +4,21 @@
 #include <algorithm>
 #include <memory>
 #include "R_Type.h"
-#include "R_MetaType.h"
+#include "R_Meta_t.h"
 
 namespace Nodable { namespace R
 {
     class Class;
-    typedef std::shared_ptr<Class> Class_ptr;
-    typedef std::shared_ptr<const Class> Class_ptr_const;
+    typedef std::shared_ptr<Class>       Class_ptr;
+    typedef std::shared_ptr<const Class> Class_cptr;
 
     /**
      * Meta class to describe a class and get its information at runtime.
      */
-    class Class : public MetaType
+    class Class : public Meta_t
     {
     public:
-        explicit Class(const char *_name) : MetaType(_name, Type::Class) {}
+        explicit Class(const char *_name) : Meta_t(_name, Type::Class) {}
 
         bool is_child_of(Class_ptr _possible_parent_class, bool _selfCheck = true) const;
         void add_parent(Class_ptr _parent);

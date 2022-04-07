@@ -52,8 +52,8 @@ TEST( Function_Signature, match_check_identifier)
 
     Signature* two_arg_fct_modified = Signature::from_type<bool()>::as_function("fct");
 
-    two_arg_fct_modified->push_arg(R::get_meta_type<double>() );
-    two_arg_fct_modified->push_arg(R::get_meta_type<double>() );
+    two_arg_fct_modified->push_arg(R::meta<double>() );
+    two_arg_fct_modified->push_arg(R::meta<double>() );
 
     EXPECT_EQ(two_arg_fct->is_compatible(two_arg_fct_modified), false);
     EXPECT_EQ(two_arg_fct_modified->is_compatible(two_arg_fct), false);

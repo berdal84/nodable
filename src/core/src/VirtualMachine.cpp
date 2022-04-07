@@ -1,11 +1,10 @@
-#include <nodable/core/VM.h>
+#include <nodable/core/VirtualMachine.h>
 
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/Log.h>
 #include <nodable/core/Scope.h>
 
 using namespace Nodable;
-using namespace Nodable::vm;
 using opcode = Nodable::assembly::opcode;
 
 CPU::CPU()
@@ -27,13 +26,13 @@ void CPU::clear_registers()
     init_eip();
 }
 
-assembly::QWord CPU::read(Register _id)const
+QWord CPU::read(Register _id)const
 {
     LOG_VERBOSE("VM::CPU", "read register %s (value: %s)\n", assembly::to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
 }
 
-assembly::QWord& CPU::_read(Register _id)
+QWord& CPU::_read(Register _id)
 {
     LOG_VERBOSE("VM::CPU", "_read register %s (value: %s)\n", assembly::to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
@@ -47,7 +46,7 @@ void CPU::write(Register _id, QWord _data)
 }
 
 
-VM::VM()
+VirtualMachine::VirtualMachine()
     : m_is_debugging(false)
     , m_is_program_running(false)
     , m_next_node(nullptr)
@@ -56,14 +55,14 @@ VM::VM()
 
 }
 
-void VM::advance_cursor(i64_t _amount)
+void VirtualMachine::advance_cursor(i64_t _amount)
 {
     QWord eip = m_cpu.read(Register::eip);
     eip.u64 += _amount;
     m_cpu.write(Register::eip, eip );
 }
 
-void VM::run_program()
+void VirtualMachine::run_program()
 {
     NODABLE_ASSERT(m_program_asm_code);
     LOG_MESSAGE("VM", "Running program ...\n")
@@ -79,7 +78,7 @@ void VM::run_program()
     LOG_MESSAGE("VM", "Program terminated\n")
 }
 
-void VM::stop_program()
+void VirtualMachine::stop_program()
 {
     if ( m_is_program_running )
     {
@@ -94,7 +93,7 @@ void VM::stop_program()
     }
 }
 
-std::unique_ptr<const Code> VM::release_program()
+std::unique_ptr<const Code> VirtualMachine::release_program()
 {
     if( m_is_program_running )
     {
@@ -109,7 +108,7 @@ std::unique_ptr<const Code> VM::release_program()
     return std::move(m_program_asm_code);
 }
 
-bool VM::_stepOver()
+bool VirtualMachine::_stepOver()
 {
     bool success;
     Instruction* next_instr = get_next_instr();
@@ -258,7 +257,7 @@ bool VM::_stepOver()
     return success;
 }
 
-bool VM::step_over()
+bool VirtualMachine::step_over()
 {
     auto must_break = [&]() -> bool {
         return
@@ -305,7 +304,7 @@ bool VM::step_over()
     return continue_execution;
 }
 
-void VM::debug_program()
+void VirtualMachine::debug_program()
 {
     NODABLE_ASSERT(m_program_asm_code);
     m_is_debugging = true;
@@ -315,18 +314,18 @@ void VM::debug_program()
     LOG_MESSAGE("VM", "Debugging program ...\n")
 }
 
-bool VM::is_there_a_next_instr() const
+bool VirtualMachine::is_there_a_next_instr() const
 {
     const QWord& eip = m_cpu.read(Register::eip);
     return eip.u64 < m_program_asm_code->size();
 }
 
-const QWord VM::get_last_result()const
+QWord VirtualMachine::get_last_result()const
 {
     return m_cpu.read(Register::rax);
 }
 
-Instruction* VM::get_next_instr() const
+Instruction* VirtualMachine::get_next_instr() const
 {
     if ( is_there_a_next_instr() )
     {
@@ -335,7 +334,7 @@ Instruction* VM::get_next_instr() const
     return nullptr;
 }
 
-bool VM::load_program(std::unique_ptr<const Code> _code)
+bool VirtualMachine::load_program(std::unique_ptr<const Code> _code)
 {
     NODABLE_ASSERT(!m_is_program_running)   // dev must stop before to load program.
     NODABLE_ASSERT(!m_program_asm_code)     // dev must unload before to load.
@@ -345,13 +344,12 @@ bool VM::load_program(std::unique_ptr<const Code> _code)
     return m_program_asm_code && m_program_asm_code->size() != 0;
 }
 
-const QWord VM::read_cpu_register(Register _register)const
+QWord VirtualMachine::read_cpu_register(Register _register)const
 {
     return m_cpu.read(_register);
 }
 
-const Code *VM::get_program_asm_code()
+const Code *VirtualMachine::get_program_asm_code()
 {
     return m_program_asm_code.get();
 }
-

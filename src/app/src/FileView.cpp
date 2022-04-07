@@ -6,12 +6,12 @@
 #include <nodable/app/GraphNodeView.h>
 #include <nodable/app/Settings.h>
 #include <nodable/core/Node.h>
-#include <nodable/app/AppContext.h>
-#include <nodable/core/VM.h>
+#include <nodable/app/IAppCtx.h>
+#include <nodable/core/VirtualMachine.h>
 
 using namespace Nodable;
 
-FileView::FileView(AppContext* _ctx, File *_file)
+FileView::FileView(IAppCtx& _ctx, File& _file)
     : View(_ctx)
     , m_text_editor()
     , m_text_has_changed(false)
@@ -20,7 +20,7 @@ FileView::FileView(AppContext* _ctx, File *_file)
     , m_child2_size(0.7f)
     , m_experimental_clipboard_auto_paste(false)
 {
-    m_graph_change_obs.observe(_file->m_on_graph_changed_evt, [](GraphNode* _graph)
+    m_graph_change_obs.observe(_file.m_on_graph_changed_evt, [](GraphNode* _graph)
     {
         LOG_VERBOSE("FileView", "graph changed evt received\n")
         if ( !_graph->is_empty() )
@@ -34,7 +34,7 @@ FileView::FileView(AppContext* _ctx, File *_file)
             if ( root_node_view && graph_view )
             {
                 LOG_VERBOSE("FileView", "constraint root node view to be visible\n")
-                ImRect graphViewRect = graph_view->getVisibleRect();
+                ImRect graphViewRect = graph_view->get_visible_rect();
                 vec2 newPos = graphViewRect.GetTL();
                 newPos.x += graphViewRect.GetSize().x * 0.33f;
                 newPos.y += root_node_view->get_size().y;
@@ -49,7 +49,7 @@ void FileView::init()
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_text_editor.SetLanguageDefinition(lang);
 	m_text_editor.SetImGuiChildIgnored(true);
-	m_text_editor.SetPalette(m_file->get_context()->settings->ui_text_textEditorPalette);
+	m_text_editor.SetPalette(m_ctx.settings().ui_text_textEditorPalette);
 }
 
 bool FileView::draw()
@@ -83,12 +83,12 @@ bool FileView::draw()
     auto previousSelectedText = m_text_editor.GetSelectedText();
     auto previousLineText = m_text_editor.GetCurrentLineText();
 
-    bool is_vm_running = m_context->vm->is_program_running();
-    auto allowkeyboard = !is_vm_running &&
+    bool is_running = m_ctx.virtual_machine().is_program_running();
+    auto allowkeyboard = !is_running &&
                          !NodeView::is_any_dragged() &&
                          !NodeView::get_selected(); // disable keyboard for text editor when a node is selected.
 
-    auto allowMouse = !is_vm_running &&
+    auto allowMouse = !is_running &&
                       !NodeView::is_any_dragged() &&
                       !ImGui::IsAnyItemHovered() &&
                       !ImGui::IsAnyItemFocused();
@@ -109,11 +109,11 @@ bool FileView::draw()
     }
 
 
-    m_file->get_history()->enable_text_editor(true); // ensure to begin to record history
+    m_file.get_history()->enable_text_editor(true); // ensure to begin to record history
     m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
-    if ( m_context->settings->experimental_hybrid_history )
+    if (m_ctx.settings().experimental_hybrid_history )
     {
-        m_file->get_history()->enable_text_editor(false); // avoid recording events caused by graph serialisation
+        m_file.get_history()->enable_text_editor(false); // avoid recording events caused by graph serialisation
     }
 
     auto currentCursorPosition = m_text_editor.GetCursorPosition();
@@ -129,12 +129,12 @@ bool FileView::draw()
 
     if (m_text_editor.IsTextChanged())
     {
-        m_file->set_changed_flag();
+        m_file.set_changed_flag();
     }
 
     if ( m_text_has_changed )
     {
-        m_file->update_graph();
+        m_file.update_graph();
     }
 
     ImGui::EndChild();
@@ -143,7 +143,7 @@ bool FileView::draw()
     //-------------
 
     ImGui::SameLine();
-    GraphNode* graph = m_file->get_graph();
+    GraphNode* graph = m_file.get_graph();
     NODABLE_ASSERT(graph);
     auto graph_node_view = graph->get<GraphNodeView>();
 
@@ -152,7 +152,7 @@ bool FileView::draw()
         LOG_VERBOSE("FileView", "graph_node_view->update()\n");
         graph_node_view->update();
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        bool changed = graph_node_view->drawAsChild("graph", vec2(m_child2_size, availSize.y), false, flags);
+        bool changed = graph_node_view->draw_as_child("graph", vec2(m_child2_size, availSize.y), false, flags);
     }
     else
     {
@@ -216,29 +216,30 @@ void FileView::set_undo_buffer(TextEditor::IExternalUndoBuffer* _buffer ) {
 void FileView::draw_info() const
 {
     // Basic information
-    ImGui::Text("Name: %s", m_file->get_name().c_str());
-    ImGui::Text("Path: %s", m_file->get_path().c_str());
+    ImGui::Text("Name: %s", m_file.get_name().c_str());
+    ImGui::Text("Path: %s", m_file.get_path().c_str());
     ImGui::NewLine();
 
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %lu", m_file->get_graph()->get_node_registry().size());
-    ImGui::Text("Wire count: %lu", m_file->get_graph()->get_wire_registry().size());
+    ImGui::Text("Node count: %lu", m_file.get_graph()->get_node_registry().size());
+    ImGui::Text("Wire count: %lu", m_file.get_graph()->get_wire_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 
     // Language browser (list functions/operators)
     if (ImGui::TreeNode("Language"))
     {
-        const auto&       functions  = m_context->language->get_api();
-        const Serializer* serializer = m_context->language->get_serializer();
+        Language&         language   = m_ctx.language();
+        const auto&       functions  = language.get_api();
+        const Serializer& serializer = language.get_serializer();
 
         ImGui::Columns(1);
         for(const auto& each_fct : functions )
         {
             std::string name;
-            serializer->serialize(name, each_fct->get_signature());
+            serializer.serialize(name, each_fct->get_signature());
             ImGui::Text("%s", name.c_str());
         }
 
