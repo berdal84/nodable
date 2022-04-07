@@ -34,30 +34,40 @@ namespace Nodable
 		Default     = Essential
 	};
 
+    enum class ViewConstraint_t {
+        AlignOnBBoxTop,
+        AlignOnBBoxLeft,
+        MakeRowAndAlignOnBBoxTop,
+        MakeRowAndAlignOnBBoxBottom,
+        FollowWithChildren,
+        Follow,
+    };
+
+    R_ENUM(ViewConstraint_t)
+    R_ENUM_VALUE(AlignOnBBoxTop)
+    R_ENUM_VALUE(AlignOnBBoxLeft)
+    R_ENUM_VALUE(MakeRowAndAlignOnBBoxTop)
+    R_ENUM_VALUE(MakeRowAndAlignOnBBoxBottom)
+    R_ENUM_VALUE(FollowWithChildren)
+    R_ENUM_VALUE(Follow)
+    R_ENUM_END
+
 	/**
 	 * A class to abstract a constraint between some NodeView
 	 */
-	class NodeViewConstraint {
+	class ViewConstraint {
 	public:
 
-	    using Filter = std::function<bool(NodeViewConstraint*)>;
-	    enum Type {
-	        AlignOnBBoxTop,
-	        AlignOnBBoxLeft,
-	        MakeRowAndAlignOnBBoxTop,
-	        MakeRowAndAlignOnBBoxBottom,
-	        FollowWithChildren,
-	        Follow,
-        };
+	    using Filter = std::function<bool(ViewConstraint*)>;
 
-	    NodeViewConstraint(IAppCtx& _ctx, Type _type);
+	    ViewConstraint(IAppCtx& _ctx, const char* _name, ViewConstraint_t _type);
 	    void apply(float _dt);
         void apply_when(const Filter& _lambda) { m_filter = _lambda; }
-
         void add_target(NodeView*);
         void add_driver(NodeView*);
         void add_targets(const NodeViewVec&);
         void add_drivers(const NodeViewVec&);
+        void draw_view();
 
         vec2 m_offset;
 
@@ -66,12 +76,14 @@ namespace Nodable
         static const Filter always;
 
     private:
-        bool should_apply();
+        bool              m_is_enable;
+        bool              should_apply();
         Filter            m_filter;
         IAppCtx&          m_ctx;
-	    Type              m_type;
+	    ViewConstraint_t  m_type;
         NodeViewVec       m_drivers;
         NodeViewVec       m_targets;
+        const char*       m_name;
     };
 
 	/**
@@ -101,7 +113,7 @@ namespace Nodable
         std::string             get_label();
         ImRect                  get_rect(bool _view = false, bool _ignorePinned = true
                                       , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false);
-        void                    add_constraint(NodeViewConstraint&);
+        void                    add_constraint(ViewConstraint&);
         void                    apply_constraints(float _dt);
         void                    clear_constraints();
         const MemberView*       get_member_view(const Member*)const;
@@ -119,10 +131,10 @@ namespace Nodable
         void                    set_inputs_visible(bool _visible, bool _recursive = false);
         void                    set_children_visible(bool _visible, bool _recursive = false);
         bool                    should_follow_output(const NodeView*);
-        Slots<NodeView*>&       successor_slots() { return m_successor_slots; }
-        Slots<NodeView*>&       children_slots() { return m_children_slots; }
-        Slots<NodeView*>&       output_slots() { return m_output_slots; }
-        Slots<NodeView*>&       input_slots() { return m_input_slots; }
+        Slots<NodeView*>&       successors() { return m_successor_slots; }
+        Slots<NodeView*>&       children() { return m_children_slots; }
+        Slots<NodeView*>&       outputs() { return m_output_slots; }
+        Slots<NodeView*>&       inputs() { return m_input_slots; }
         void                    expand_toggle();
         void                    expand_toggle_rec();
         void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }
@@ -137,8 +149,8 @@ namespace Nodable
         static bool             is_inside(NodeView*, ImRect);
         static void             constraint_to_rect(NodeView*, ImRect);
         static NodeView*        get_dragged();
-        static bool draw_input(IAppCtx &_ctx, Member *_member, const char *_label);
-        static void draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_show_advanced);
+        static bool             draw_input(IAppCtx &_ctx, Member *_member, const char *_label);
+        static void             draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_show_advanced);
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
@@ -170,7 +182,7 @@ namespace Nodable
 		std::vector<MemberView*>             m_exposed_out_or_inout_members;
         std::map<const Member*, MemberView*> m_exposed_members;
         MemberView*                          m_exposed_this_member_view;
-        std::vector<NodeViewConstraint>      m_constraints;
+        std::vector<ViewConstraint>      m_constraints;
 
 		static NodeView*              s_selected;
 		static NodeView*              s_dragged;

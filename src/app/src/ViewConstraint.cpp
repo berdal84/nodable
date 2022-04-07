@@ -11,15 +11,17 @@
 
 using namespace Nodable;
 
-NodeViewConstraint::NodeViewConstraint(IAppCtx& _ctx, NodeViewConstraint::Type _type)
+ViewConstraint::ViewConstraint(IAppCtx& _ctx, const char* _name, ViewConstraint_t _type)
 : m_type(_type)
 , m_ctx(_ctx)
 , m_filter(always)
+, m_is_enable(true)
+, m_name(_name)
 {
 
 }
 
-void NodeViewConstraint::apply(float _dt)
+void ViewConstraint::apply(float _dt)
 {
     if( !should_apply() )
     {
@@ -51,22 +53,24 @@ void NodeViewConstraint::apply(float _dt)
     auto first_target = clean_targets[0];
     auto first_driver = clean_drivers[0];
 
-    switch ( this->m_type )
+    switch ( m_type )
     {
-        case Type::AlignOnBBoxLeft:
+        case ViewConstraint_t::AlignOnBBoxLeft:
         {
             if(!first_target->is_pinned() && first_target->is_visible())
             {
                 ImRect bbox = NodeView::get_rect(clean_drivers, true);
-                vec2 newPos(bbox.GetCenter() - vec2(bbox.GetSize().x * 0.5f + settings.ui_node_spacing +
-                                                    first_target->get_rect().GetSize().x * 0.5f, 0 ));
+                vec2 newPos(bbox.GetCenter()
+                            - vec2(bbox.GetSize().x * 0.5f
+                            + settings.ui_node_spacing
+                            + first_target->get_rect().GetSize().x * 0.5f, 0 ));
                 first_target->add_force_to_translate_to(newPos + m_offset, settings.ui_node_speed);
             }
 
             break;
         }
 
-        case Type::AlignOnBBoxTop:
+        case ViewConstraint_t::AlignOnBBoxTop:
         {
             if(!first_target->is_pinned() && first_target->is_visible() && first_target->should_follow_output(clean_drivers[0]))
             {
@@ -76,20 +80,22 @@ void NodeViewConstraint::apply(float _dt)
                 newPos.x += settings.ui_node_spacing + first_target->get_size().x / 2.0f;
 
                 if (newPos.y < first_target->get_position().y )
+                {
                     first_target->add_force_to_translate_to(newPos + m_offset, settings.ui_node_speed, true);
+                }
             }
 
             break;
         }
 
-        case Type::MakeRowAndAlignOnBBoxTop:
-        case Type::MakeRowAndAlignOnBBoxBottom:
+        case ViewConstraint_t::MakeRowAndAlignOnBBoxTop:
+        case ViewConstraint_t::MakeRowAndAlignOnBBoxBottom:
         {
             // Compute size_x_total :
             //-----------------------
 
             std::vector<float> size_x;
-            bool recursively = m_type == Type::MakeRowAndAlignOnBBoxBottom;
+            bool recursively = m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxBottom;
 
             for (auto each_target : clean_targets)
             {
@@ -101,13 +107,16 @@ void NodeViewConstraint::apply(float _dt)
             // Determine x position start:
             //---------------------------
 
-            float start_pos_x = first_driver->get_position().x - size_x_total / 2.0f;
-            R::Class_ptr masterClass = first_driver->get_owner()->get_class();
-            if (masterClass->is_child_of<InstructionNode>()
-                || (masterClass->is_child_of<IConditionalStruct>() && m_type == Type::MakeRowAndAlignOnBBoxTop))
+            float        start_pos_x = first_driver->get_position().x - size_x_total / 2.0f;
+            R::Class_ptr driver_clss = first_driver->get_owner()->get_class();
+
+            if (driver_clss->is_child_of<InstructionNode>()
+                || (driver_clss->is_child_of<IConditionalStruct>() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop))
             {
                 // indent
-                start_pos_x = first_driver->get_position().x + first_driver->get_size().x / 2.0f + settings.ui_node_spacing;
+                start_pos_x = first_driver->get_position().x
+                        + first_driver->get_size().x / 2.0f
+                        + settings.ui_node_spacing;
             }
 
             // Constraint in row:
@@ -118,15 +127,15 @@ void NodeViewConstraint::apply(float _dt)
                 if (!each_target->is_pinned() && each_target->is_visible() )
                 {
                     // Compute new position for this input view
-                    float verticalOffset = settings.ui_node_spacing + each_target->get_size().y / 2.0f +
-                                           first_driver->get_size().y / 2.0f;
-                    if(m_type == MakeRowAndAlignOnBBoxTop )
-                    {
-                        verticalOffset *= -1.0f;
-                    }
+                    float y_offset = settings.ui_node_spacing
+                            + each_target->get_size().y / 2.0f
+                            + first_driver->get_size().y / 2.0f;
 
-                    vec2 new_pos = vec2(start_pos_x + size_x[node_index] / 2.0f,
-                                        first_driver->get_position().y + verticalOffset);
+                    if(m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop ) y_offset *= -1.0f;
+
+                    vec2 new_pos;
+                    new_pos.x = start_pos_x + size_x[node_index] / 2.0f;
+                    new_pos.y = first_driver->get_position().y + y_offset;
 
                     if (each_target->should_follow_output(first_driver) )
                     {
@@ -139,57 +148,59 @@ void NodeViewConstraint::apply(float _dt)
             break;
         }
 
-        case Type::FollowWithChildren:
+        case ViewConstraint_t::FollowWithChildren:
         {
             if (!first_target->is_pinned() && first_target->is_visible() )
             {
                 // compute
-                auto masterRect = NodeView::get_rect(clean_drivers, false, true);
-                auto slaveRect = first_target->get_rect(true, true);
-                vec2 slaveMasterOffset(masterRect.Max - slaveRect.Min);
-                vec2 newPos(masterRect.GetCenter().x,
-                            first_target->get_position().y + slaveMasterOffset.y + settings.ui_node_spacing);
+                auto drivers_rect = NodeView::get_rect(clean_drivers, false, true);
+                auto target_rect  = first_target->get_rect(true, true);
+                vec2 target_driver_offset(drivers_rect.Max - target_rect.Min);
+                vec2 new_pos;
+                new_pos.x = drivers_rect.GetCenter().x;
+                new_pos.y = first_target->get_position().y + target_driver_offset.y + settings.ui_node_spacing;
 
                 // apply
-                first_target->add_force_to_translate_to(newPos + m_offset, settings.ui_node_speed, true);
+                first_target->add_force_to_translate_to(new_pos + m_offset, settings.ui_node_speed, true);
                 break;
             }
         }
 
-        case Type::Follow:
+        case ViewConstraint_t::Follow:
         {
             if (!first_target->is_pinned() && first_target->is_visible() )
             {
                 // compute
-                vec2 newPos(clean_drivers[0]->get_position() + vec2(0.0f, clean_drivers[0]->get_size().y));
-                newPos.y += settings.ui_node_spacing + first_target->get_size().y;
+                vec2 new_pos = clean_drivers[0]->get_position();
+                new_pos     += vec2(0.0f, clean_drivers[0]->get_size().y);
+                new_pos.y   += settings.ui_node_spacing + first_target->get_size().y;
 
                 // apply
-                first_target->add_force_to_translate_to(newPos + m_offset, settings.ui_node_speed);
+                first_target->add_force_to_translate_to(new_pos + m_offset, settings.ui_node_speed);
                 break;
             }
         }
     }
 }
 
-void NodeViewConstraint::add_target(NodeView *_target)
+void ViewConstraint::add_target(NodeView *_target)
 {
     NODABLE_ASSERT(_target != nullptr);
     m_targets.push_back(_target);
 }
 
-void NodeViewConstraint::add_driver(NodeView *_driver)
+void ViewConstraint::add_driver(NodeView *_driver)
 {
     NODABLE_ASSERT(_driver != nullptr);
     m_drivers.push_back(_driver);
 }
 
-void NodeViewConstraint::add_targets(const std::vector<NodeView *> &_new_targets)
+void ViewConstraint::add_targets(const std::vector<NodeView *> &_new_targets)
 {
     m_targets.insert(m_targets.end(), _new_targets.begin(), _new_targets.end());
 }
 
-void NodeViewConstraint::add_drivers(const std::vector<NodeView *> &_new_drivers)
+void ViewConstraint::add_drivers(const std::vector<NodeView *> &_new_drivers)
 {
     m_drivers.insert(m_drivers.end(), _new_drivers.begin(), _new_drivers.end());
 }
@@ -197,24 +208,36 @@ void NodeViewConstraint::add_drivers(const std::vector<NodeView *> &_new_drivers
 
 auto not_expanded  = [](const NodeView* _view ) { return !_view->is_expanded(); };
 
-const NodeViewConstraint::Filter
-        NodeViewConstraint::always = [](NodeViewConstraint* _constraint){ return true; };
+const ViewConstraint::Filter
+        ViewConstraint::always = [](ViewConstraint* _constraint){ return true; };
 
-const NodeViewConstraint::Filter
-        NodeViewConstraint::no_target_expanded = [](const NodeViewConstraint* _constraint)
+const ViewConstraint::Filter
+        ViewConstraint::no_target_expanded = [](const ViewConstraint* _constraint)
 {
     return std::find_if(_constraint->m_targets.cbegin(), _constraint->m_targets.cend(), not_expanded)
            == _constraint->m_targets.cend();
 };
 
-const NodeViewConstraint::Filter
-        NodeViewConstraint::no_driver_expanded = [](const NodeViewConstraint* _constraint)
+const ViewConstraint::Filter
+        ViewConstraint::no_driver_expanded = [](const ViewConstraint* _constraint)
 {
     return std::find_if(_constraint->m_drivers.cbegin(), _constraint->m_drivers.cend(), not_expanded)
            == _constraint->m_drivers.cend();
 };
 
-bool NodeViewConstraint::should_apply()
+bool ViewConstraint::should_apply()
 {
-    return m_filter(this);
+    return m_is_enable && m_filter(this);
+}
+
+void ViewConstraint::draw_view()
+{
+    if( ImGui::TreeNode(m_name) )
+    {
+        ImGui::Text("Type:     %s", to_string(m_type));
+        ImGui::Text("Drivers:  %lu", m_drivers.size());
+        ImGui::Text("Targets:  %lu", m_targets.size());
+        ImGui::Checkbox("Enable", &m_is_enable);
+        ImGui::TreePop();
+    }
 }

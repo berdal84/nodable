@@ -162,14 +162,14 @@ UpdateResult Node::update()
         get<DataAccess>()->update();
     }
 
-    this->m_dirty = false;
+    m_dirty = false;
 
 	return UpdateResult::Success;
 }
 
 GraphNode *Node::get_inner_graph() const
 {
-    return this->m_inner_graph;
+    return m_inner_graph;
 }
 
 void Node::get_inner_graph(GraphNode *_graph)

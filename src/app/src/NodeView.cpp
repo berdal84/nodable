@@ -180,10 +180,14 @@ void NodeView::set_owner(Node *_node)
             NodeView* _other_node_view = _other_node->get<NodeView>();
             switch ( _relation )
             {
-                case EdgeType::IS_CHILD_OF: children_slots().add(_other_node_view ); break;
-                case EdgeType::IS_INPUT_OF: input_slots().add(_other_node_view ); break;
-                case EdgeType::IS_OUTPUT_OF: output_slots().add(_other_node_view ); break;
-                case EdgeType::IS_SUCCESSOR_OF: successor_slots().add(_other_node_view ); break;
+                case EdgeType::IS_CHILD_OF:
+                    children().add(_other_node_view ); break;
+                case EdgeType::IS_INPUT_OF:
+                    inputs().add(_other_node_view ); break;
+                case EdgeType::IS_OUTPUT_OF:
+                    outputs().add(_other_node_view ); break;
+                case EdgeType::IS_SUCCESSOR_OF:
+                    successors().add(_other_node_view ); break;
                 case EdgeType::IS_PREDECESSOR_OF: NODABLE_ASSERT(false); /* NOT HANDLED */break;
             }
         });
@@ -194,10 +198,14 @@ void NodeView::set_owner(Node *_node)
             NodeView* _other_node_view = _other_node->get<NodeView>();
             switch ( _relation )
             {
-                case EdgeType::IS_CHILD_OF: children_slots().remove(_other_node_view ); break;
-                case EdgeType::IS_INPUT_OF: input_slots().remove(_other_node_view ); break;
-                case EdgeType::IS_OUTPUT_OF: output_slots().remove(_other_node_view ); break;
-                case EdgeType::IS_SUCCESSOR_OF: successor_slots().remove(_other_node_view ); break;
+                case EdgeType::IS_CHILD_OF:
+                    children().remove(_other_node_view ); break;
+                case EdgeType::IS_INPUT_OF:
+                    inputs().remove(_other_node_view ); break;
+                case EdgeType::IS_OUTPUT_OF:
+                    outputs().remove(_other_node_view ); break;
+                case EdgeType::IS_SUCCESSOR_OF:
+                    successors().remove(_other_node_view ); break;
                 case EdgeType::IS_PREDECESSOR_OF: NODABLE_ASSERT(false); /* NOT HANDLED */break;
             }
         });
@@ -306,8 +314,8 @@ bool NodeView::update(float _deltaTime)
 
 bool NodeView::draw()
 {
-	bool edited = false;
-	auto node   = get_owner();
+	bool      changed  = false;
+	auto      node     = get_owner();
 	Settings& settings = m_ctx.settings();
 
 	NODABLE_ASSERT(node != nullptr);
@@ -320,7 +328,7 @@ bool NodeView::draw()
 
         auto draw_and_handle_evt = [&](NodeConnector *connector)
         {
-            edited |= NodeConnector::draw(connector, color, hoveredColor, m_edition_enable);
+            NodeConnector::draw(connector, color, hoveredColor, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         };
 
@@ -394,7 +402,7 @@ bool NodeView::draw()
         {
             ImGui::SameLine();
             ImGui::SetCursorPosY(cursor_pos_content_start.y + 1.0f);
-            edited |= draw(memberView);
+            changed |= draw(memberView);
         }
 
         // Draw outputs
@@ -402,7 +410,7 @@ bool NodeView::draw()
         {
             ImGui::SameLine();
             ImGui::SetCursorPosY(cursor_pos_content_start.y + 8.0f);
-            edited |= draw(memberView);
+            changed |= draw(memberView);
         }
 
         ImGui::EndGroup();
@@ -513,25 +521,29 @@ bool NodeView::draw()
 	ImGui::PopStyleVar();
 	ImGui::PopID();
 
-	if( edited )
+	if( changed )
+    {
         get_owner()->set_dirty();
+    }
+
 
     m_is_hovered = is_node_hovered || is_connector_hovered;
 
-	return edited;
+	return changed;
 }
 
 bool NodeView::draw(MemberView* _view )
 {
-    bool edited = false;
-    Member* member = _view->m_member;
+    bool    show;
+    bool    changed = false;
+    Member* member  = _view->m_member;
 
     const R::Class_ptr owner_class = member->get_owner()->get_class();
 
     /*
      * Handle input visibility
      */
-    bool show;
+
 
     if ( _view->m_touched )  // in case user touched it, we keep the current state
     {
@@ -592,7 +604,7 @@ bool NodeView::draw(MemberView* _view )
             input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, NodeView::s_member_input_size_min);
             ImGui::PushItemWidth(input_size);
         }
-        edited = NodeView::draw_input(m_ctx, member, nullptr);
+        changed = NodeView::draw_input(m_ctx, member, nullptr);
 
         if ( limit_size )
         {
@@ -622,14 +634,13 @@ bool NodeView::draw(MemberView* _view )
     new_relative_pos.x += input_size * 0.5f; // center over input
     _view->relative_pos(new_relative_pos);
 
-    return edited;
+    return changed;
 }
 
 bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
 {
-    bool edited = false;
-
-    Node* node  = _member->get_owner();
+    bool  changed = false;
+    Node* node    = _member->get_owner();
 
     // Create a label (everything after ## will not be displayed)
     std::string label;
@@ -667,7 +678,7 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
                 if (ImGui::InputInt(label.c_str(), &i16, 0, 0, inputFlags ) && !_member->has_input_connected())
                 {
                     _member->set(i16);
-                    edited |= true;
+                    changed |= true;
                 }
                 break;
             }
@@ -679,7 +690,7 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
                 if (ImGui::InputDouble(label.c_str(), &d, 0.0F, 0.0F, "%g", inputFlags ) && !_member->has_input_connected())
                 {
                     _member->set(d);
-                    edited |= true;
+                    changed |= true;
                 }
                 break;
             }
@@ -692,7 +703,7 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
                 if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->has_input_connected() )
                 {
                     _member->set(str);
-                    edited |= true;
+                    changed |= true;
                 }
                 break;
             }
@@ -706,7 +717,7 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
                 if (ImGui::Checkbox(label.c_str(), &b ) && !_member->has_input_connected() )
                 {
                     _member->set(b);
-                    edited |= true;
+                    changed |= true;
                 }
                 break;
             }
@@ -729,7 +740,7 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
         }
     }
 
-    return edited;
+    return changed;
 }
 
 bool NodeView::is_inside(NodeView* _nodeView, ImRect _rect) {
@@ -739,6 +750,7 @@ bool NodeView::is_inside(NodeView* _nodeView, ImRect _rect) {
 
 void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_show_advanced)
 {
+    Node*       node             = _view->get_owner();
     const float labelColumnWidth = ImGui::GetContentRegionAvailWidth() / 2.0f;
 
     auto drawMember = [&](Member* _member)
@@ -776,25 +788,27 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
 
     };
 
-    Node* owner = _view->get_owner();
-    ImGui::Text("Name:       \"%s\"", owner->get_label());
-    ImGui::Text("Short Name: \"%s\"", owner->get_short_label());
-    ImGui::Text("Class:      %s", owner->get_class()->get_name());
+    ImGui::Text("Name:       \"%s\"" , node->get_label());
+    ImGui::Text("Short Name: \"%s\"" , node->get_short_label());
+    ImGui::Text("Class:      %s"     , node->get_class()->get_name());
 
     // Draw exposed input members
     ImGui::Separator();
     ImGui::Text("Input(s):" );
     ImGui::Separator();
     ImGui::Indent();
-    for (auto& eachView : _view->m_exposed_input_only_members )
-    {
-        drawMember(eachView->m_member);
-        ImGui::Separator();
-    }
     if( _view->m_exposed_input_only_members.empty() )
     {
         ImGui::Text("None.");
         ImGui::Separator();
+    }
+    else
+    {
+        for (auto& eachView : _view->m_exposed_input_only_members )
+        {
+            drawMember(eachView->m_member);
+            ImGui::Separator();
+        }
     }
     ImGui::Unindent();
 
@@ -802,117 +816,134 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
     ImGui::Text("Output(s):" );
     ImGui::Separator();
     ImGui::Indent();
-    for (auto& eachView : _view->m_exposed_out_or_inout_members )
-    {
-        drawMember(eachView->m_member);
-        ImGui::Separator();
-    }
-
     if( _view->m_exposed_out_or_inout_members.empty() )
     {
         ImGui::Text("None.");
         ImGui::Separator();
     }
-
-    ImGui::Unindent();
-    ImGui::Separator();
-    ImGui::Checkbox( "Debug ?", _show_advanced );
-    if ( *_show_advanced )
+    else
     {
-        ImGui::Indent();
+        for (auto& eachView : _view->m_exposed_out_or_inout_members )
+        {
+            drawMember(eachView->m_member);
+            ImGui::Separator();
+        }
+    }
+    ImGui::Unindent();
 
+    if ( ImGui::TreeNode("Debug") )
+    {
         // Draw exposed output members
-        ImGui::Separator();
-        ImGui::Text("Special members" );
-        ImGui::Separator();
-        ImGui::Indent();
-        drawMember(_view->m_exposed_this_member_view->m_member);
-        ImGui::Unindent();
-        ImGui::Separator();
-
-        // Advanced properties
-        const Node *node = _view->get_owner();
-        const float indent = 20.0f;
+        if( ImGui::TreeNode("Other Members") )
+        {
+            drawMember(_view->m_exposed_this_member_view->m_member);
+            ImGui::TreePop();
+        }
 
         // Components
-        ImGui::Separator();
-        ImGui::Text("Components :");
-        for (auto &pair : node->get_components()) {
-            Component *component = pair.second;
-            ImGui::BulletText("%s", component->get_class()->get_name());
+        if( ImGui::TreeNode("Components") )
+        {
+            for (auto &pair : node->get_components())
+            {
+                Component *component = pair.second;
+                ImGui::BulletText("%s", component->get_class()->get_name());
+            }
+            ImGui::TreePop();
         }
 
-        auto drawSlots = [](const char *label, const Slots<Node *> &slots) {
-            ImGui::Text("%s", label);
-            ImGui::Indent();
-            if (!slots.empty()) {
-
-                for (auto each : slots.content()) {
-                    ImGui::Text("- %s", each->get_label());
+        if( ImGui::TreeNode("Slots") )
+        {
+            auto draw_slots = [](const char *label, const Slots<Node *> &slots)
+            {
+                if( ImGui::TreeNode(label) )
+                {
+                    if (!slots.empty())
+                    {
+                        for (auto each : slots.content())
+                        {
+                            ImGui::BulletText("- %s", each->get_label());
+                        }
+                    }
+                    else
+                    {
+                        ImGui::BulletText("None");
+                    }
+                    ImGui::TreePop();
                 }
-            } else {
-                ImGui::TextUnformatted("None");
-            }
-            ImGui::Unindent();
-        };
+            };
 
-        ImGui::Separator();
-        drawSlots("Inputs:", node->inputs());
-        ImGui::Separator();
-        drawSlots("Outputs:", node->outputs());
-        ImGui::Separator();
-        drawSlots("Predecessors:", node->predecessors());
-        ImGui::Separator();
-        drawSlots("Successors:", node->successors());
-        ImGui::Separator();
-        drawSlots("Children:", node->children_slots());
-        ImGui::Separator();
+            draw_slots("Inputs:"      , node->inputs());
+            draw_slots("Outputs:"     , node->outputs());
+            draw_slots("Predecessors:", node->predecessors());
+            draw_slots("Successors:"  , node->successors());
+            draw_slots("Children:"    , node->children_slots());
 
-        // Parent graph
-        {
-            std::string parentName = "NULL";
-
-            if (node->get_parent_graph()) {
-                parentName = node->get_parent_graph()->get_label();
-                parentName.append(node->get_parent_graph()->is_dirty() ? " (dirty)" : "");
-
-            }
-            ImGui::Text("Parent graph is \"%s\"", parentName.c_str());
-        }
-
-        // Parent
-        ImGui::Separator();
-        {
-            std::string parentName = "NULL";
-
-            if (node->get_parent()) {
-                parentName = node->get_parent()->get_label();
-                parentName.append(node->get_parent()->is_dirty() ? " (dirty)" : "");
-            }
-            ImGui::Text("Parent node is \"%s\"", parentName.c_str());
+            ImGui::TreePop();
         }
 
         // m_apply_constraints
         ImGui::Separator();
-        ImGui::Checkbox("Apply constraints", &_view->m_apply_constraints);
-
-        // dirty state
-        ImGui::Separator();
-        bool b = _view->get_owner()->is_dirty();
-        ImGui::Checkbox("Is dirty ?", &b);
+        if( ImGui::TreeNode("Constraints") )
+        {
+            ImGui::Checkbox("Apply", &_view->m_apply_constraints);
+            int i = 0;
+            for(auto& constraint : _view->m_constraints)
+            {
+                constraint.draw_view();
+            }
+            ImGui::TreePop();
+        }
 
         // Scope specific:
         ImGui::Separator();
-        if (auto scope = node->get<Scope>()) {
-            ImGui::Text("Variables:");
-            auto vars = scope->get_variables();
-            for (auto eachVar : vars) {
-                ImGui::Text("%s: %s", eachVar->get_name(), eachVar->get_value()->convert_to<std::string>().c_str());
+        if (auto scope = node->get<Scope>())
+        {
+            if( ImGui::TreeNode("Variables") )
+            {
+                auto vars = scope->get_variables();
+                for (auto eachVar : vars)
+                {
+                    ImGui::BulletText("%s: %s", eachVar->get_name(), eachVar->get_value()->convert_to<std::string>().c_str());
+                }
+                ImGui::TreePop();
             }
         }
-        ImGui::Separator();
-    }
 
+        if( ImGui::TreeNode("Misc:") )
+        {
+            // dirty state
+            ImGui::Separator();
+            bool b = _view->get_owner()->is_dirty();
+            ImGui::Checkbox("Is dirty ?", &b);
+
+            // Parent graph
+            {
+                std::string parentName = "NULL";
+
+                if (node->get_parent_graph()) {
+                    parentName = node->get_parent_graph()->get_label();
+                    parentName.append(node->get_parent_graph()->is_dirty() ? " (dirty)" : "");
+
+                }
+                ImGui::Text("Parent graph is \"%s\"", parentName.c_str());
+            }
+
+            // Parent
+            ImGui::Separator();
+            {
+                std::string parentName = "NULL";
+
+                if (node->get_parent()) {
+                    parentName = node->get_parent()->get_label();
+                    parentName.append(node->get_parent()->is_dirty() ? " (dirty)" : "");
+                }
+                ImGui::Text("Parent node is \"%s\"", parentName.c_str());
+            }
+            ImGui::TreePop();
+        }
+        ImGui::TreePop();
+    }
+    ImGui::Separator();
 }
 
 void NodeView::constraint_to_rect(NodeView* _view, ImRect _rect)
@@ -1003,7 +1034,7 @@ void NodeView::clear_constraints() {
     m_constraints.clear();
 }
 
-void NodeView::add_constraint(NodeViewConstraint &_constraint)
+void NodeView::add_constraint(ViewConstraint &_constraint)
 {
     m_constraints.push_back(std::move(_constraint));
 }
@@ -1012,7 +1043,7 @@ void NodeView::apply_constraints(float _dt)
 {
     if( !m_apply_constraints ) return;
 
-    for ( NodeViewConstraint& eachConstraint : m_constraints)
+    for ( ViewConstraint& eachConstraint : m_constraints)
     {
         eachConstraint.apply(_dt);
     }
@@ -1116,7 +1147,7 @@ void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 {
     for( auto each_input : m_input_slots )
     {
-        if( _visible || (output_slots().empty() || each_input->should_follow_output(this)) )
+        if( _visible || (outputs().empty() || each_input->should_follow_output(this)) )
         {
             if ( _recursive && each_input->m_expanded ) // propagate only if expanded
             {
@@ -1132,7 +1163,7 @@ void NodeView::set_children_visible(bool _visible, bool _recursive)
 {
     for( auto each_child : m_children_slots )
     {
-        if( _visible || (output_slots().empty() || each_child->should_follow_output(this)) )
+        if( _visible || (outputs().empty() || each_child->should_follow_output(this)) )
         {
             if ( _recursive && each_child->m_expanded) // propagate only if expanded
             {

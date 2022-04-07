@@ -118,6 +118,7 @@ UpdateResult GraphNode::update()
         result = UpdateResult::SuccessWithoutChanges;
     }
 
+    set_dirty(false);
 
     return result;
 }
@@ -328,7 +329,7 @@ void GraphNode::disconnect(Wire *_wire)
 {
     remove(_wire);
     destroy(_wire);
-    set_dirty(true);
+    set_dirty();
 }
 
 void GraphNode::add(Wire* _wire)

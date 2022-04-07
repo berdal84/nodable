@@ -150,9 +150,9 @@ bool FileView::draw()
     if ( graph_node_view )
     {
         LOG_VERBOSE("FileView", "graph_node_view->update()\n");
-        graph_node_view->update();
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        bool changed = graph_node_view->draw_as_child("graph", vec2(m_child2_size, availSize.y), false, flags);
+        graph_node_view->update();
+        graph_node_view->draw_as_child("graph", vec2(m_child2_size, availSize.y), false, flags);
     }
     else
     {

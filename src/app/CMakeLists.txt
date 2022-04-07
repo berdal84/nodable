@@ -39,7 +39,7 @@ add_executable(
         src/MemberView.cpp
         src/NodeConnector.cpp
         src/NodeView.cpp
-        src/NodeViewConstraint.cpp
+        src/ViewConstraint.cpp
         src/Settings.cpp
         src/View.cpp
         ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_opengl3.cpp # include backend as-is

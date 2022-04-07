@@ -24,7 +24,7 @@ using namespace Nodable::R;
 
 bool GraphNodeView::draw()
 {
-    bool            edited           = false;
+    bool            changed          = false;
     VirtualMachine& virtual_machine  = m_ctx.virtual_machine();
     const bool      enable_edition   = virtual_machine.is_program_stopped();
     Node*           new_node         = nullptr;
@@ -293,30 +293,30 @@ bool GraphNodeView::draw()
         /*
             NodeViews
         */
-        std::vector<NodeView*> nodeViews;
-        Node::get_components(node_registry, nodeViews);
-		for (auto eachNodeView : nodeViews)
+        std::vector<NodeView*> node_views;
+        Node::get_components(node_registry, node_views);
+		for (auto each_node_view : node_views)
 		{
-            if (eachNodeView->is_visible())
+            if (each_node_view->is_visible())
             {
-                eachNodeView->enable_edition(enable_edition);
-                edited |= eachNodeView->draw();
+                each_node_view->enable_edition(enable_edition);
+                changed |= each_node_view->draw();
 
-                if( virtual_machine.is_debugging() && virtual_machine.is_next_node(eachNodeView->get_owner() ) )
+                if( virtual_machine.is_debugging() && virtual_machine.is_next_node(each_node_view->get_owner() ) )
                 {
                     ImGui::SetScrollHere();
                 }
 
                 // dragging
-                if (NodeView::get_dragged() == eachNodeView && ImGui::IsMouseDragging(0))
+                if (NodeView::get_dragged() == each_node_view && ImGui::IsMouseDragging(0))
                 {
-                    eachNodeView->translate(ImGui::GetMouseDragDelta(), true);
+                    each_node_view->translate(ImGui::GetMouseDragDelta(), true);
                     ImGui::ResetMouseDragDelta();
-                    eachNodeView->set_pinned(true);
+                    each_node_view->set_pinned(true);
                 }
 
-                isAnyNodeDragged |= NodeView::get_dragged() == eachNodeView;
-                isAnyNodeHovered |= eachNodeView->is_hovered();
+                isAnyNodeDragged |= NodeView::get_dragged() == each_node_view;
+                isAnyNodeHovered |= each_node_view->is_hovered();
             }
 		}
 	}
@@ -393,8 +393,6 @@ bool GraphNodeView::draw()
 
         if ( !dragged_node_conn )
         {
-            Node *root_node = graph->get_root();
-
             // If dragging a member we create a VariableNode with the same type.
             if ( dragged_member_conn && !Meta_t::is_ptr(dragged_member_conn->get_member_type()) )
             {
@@ -480,8 +478,6 @@ bool GraphNodeView::draw()
         */
         if (new_node)
         {
-            edited = true;
-
             // dragging node connector ?
             if ( dragged_node_conn )
             {
@@ -538,12 +534,7 @@ bool GraphNodeView::draw()
 	// add some empty space
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
 
-    if ( edited )
-    {
-        graph->set_dirty();
-    }
-
-	return edited;
+	return changed;
 }
 
 void GraphNodeView::add_contextual_menu_item(
@@ -586,43 +577,42 @@ void GraphNodeView::update_child_view_constraints()
             Node::get_components<NodeView>(predecessor_nodes, predecessor_views);
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not_child_of<IConditionalStruct>() )
             {
-                NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::FollowWithChildren);
+                ViewConstraint constraint(m_ctx, "follow predecessor except if IConditionalStruct", ViewConstraint_t::FollowWithChildren);
                 constraint.add_drivers(predecessor_views);
                 constraint.add_target(each_view);
                 each_view->add_constraint(constraint);
 
-                constraint.apply_when(NodeViewConstraint::always);
+                constraint.apply_when(ViewConstraint::always);
             }
 
             // Align in row Conditional Struct Node's children
             //------------------------------------------------
 
-            NodeViewVec children = each_view->children_slots().content();
+            NodeViewVec children = each_view->children().content();
             if( !children.empty() && clss->is_child_of<IConditionalStruct>() )
             {
-                NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
-                constraint.apply_when(NodeViewConstraint::always);
+                ViewConstraint constraint(m_ctx, "align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
+                constraint.apply_when(ViewConstraint::always);
                 constraint.add_driver(each_view);
                 constraint.add_targets(children);
 
                 if (clss->is_child_of<ForLoopNode>() )
                 {
-                    constraint.add_targets(each_view->successor_slots().content());
+                    constraint.add_targets(each_view->successors().content());
                 }
-
                 each_view->add_constraint(constraint);
             }
 
             // Align in row Input connected Nodes
             //-----------------------------------
 
-            if ( !each_view->input_slots().empty() )
+            if ( !each_view->inputs().empty() )
             {
-                NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
+                ViewConstraint constraint(m_ctx, "align inputs", ViewConstraint_t::MakeRowAndAlignOnBBoxTop);
                 constraint.add_driver(each_view);
-                constraint.add_targets(each_view->input_slots().content());
+                constraint.add_targets(each_view->inputs().content());
                 each_view->add_constraint(constraint);
-                constraint.apply_when(NodeViewConstraint::always);
+                constraint.apply_when(ViewConstraint::always);
             }
         }
     }

@@ -15,9 +15,8 @@ const NodeConnector*     NodeConnector::s_dragged   = nullptr;
 const NodeConnector*     NodeConnector::s_hovered   = nullptr;
 const NodeConnector*     NodeConnector::s_focused   = nullptr;
 
-bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor, bool _editable)
+void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor, bool _editable)
 {
-    bool edited = false;
     float rounding = 6.0f;
 
     auto draw_list = ImGui::GetWindowDrawList();
@@ -75,8 +74,6 @@ bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
     {
         s_hovered = nullptr;
     }
-
-    return edited;
 }
 
 ImRect NodeConnector::get_rect() const
