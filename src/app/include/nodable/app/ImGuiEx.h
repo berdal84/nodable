@@ -81,5 +81,7 @@ namespace Nodable
                 ImColor shadowColor,
                 float thickness = 1.0f,
                 float roundness = 0.5f);
+
+        ImRect& enlarge_to_fit(ImRect& _rect, ImRect _other);
     }
 }

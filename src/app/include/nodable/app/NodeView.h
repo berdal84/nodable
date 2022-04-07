@@ -88,7 +88,7 @@ namespace Nodable
 		void                    translate_to(vec2 desiredPos, float _factor, bool _recurse = false);
 		void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
-        ImRect                  get_rect(bool _recursive = false, bool _ignorePinned = true
+        ImRect                  get_rect(bool _view = false, bool _ignorePinned = true
                                       , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false);
         void                    add_constraint(NodeViewConstraint&);
         void                    apply_constraints(float _dt);

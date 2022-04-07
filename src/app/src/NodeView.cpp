@@ -2,7 +2,6 @@
 
 #include <cmath>                  // for sinus
 #include <algorithm>              // for std::max
-#include <numeric>                // for std::accumulate
 #include <vector>
 
 #include <nodable/app/Settings.h>
@@ -76,7 +75,7 @@ std::string NodeView::get_label()
     if (s_view_detail == NodeViewDetail::Minimalist )
     {
         // I always add an ICON_FA at the begining of any node label string (encoded in 4 bytes)
-        return std::string(node->get_short_label());
+        return node->get_short_label();
     }
     return node->get_label();
 }
@@ -323,16 +322,9 @@ bool NodeView::draw()
             is_connector_hovered |= ImGui::IsItemHovered();
         };
 
-        if ( m_expanded )
-        {
-            std::for_each(m_predecessors.begin(), m_predecessors.end(), draw_and_handle_evt);
-            std::for_each(m_successors.begin()  , m_successors.end()  , draw_and_handle_evt);
-        }
-        else
-        {
-            std::for_each_n(m_predecessors.begin(), 1, draw_and_handle_evt);
-            std::for_each_n(m_successors.begin()  , 1, draw_and_handle_evt);
-        }
+        std::for_each(m_predecessors.begin(), m_predecessors.end(), draw_and_handle_evt);
+        std::for_each(m_successors.begin()  , m_successors.end()  , draw_and_handle_evt);
+
     }
 
 	// Begin the window
@@ -971,45 +963,32 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
 
     if( !_recursively)
     {
-        return ImRect(m_position - m_size * 0.5f, m_position + m_size * 0.5f);
+        return { m_position - m_size * 0.5f, m_position + m_size * 0.5f};
     }
 
-    ImRect rect(
-            vec2(std::numeric_limits<float>().max()),
-            vec2(-std::numeric_limits<float>().max()) );
+    ImRect result_rect( vec2(std::numeric_limits<float>::max()), vec2(-std::numeric_limits<float>::max()) );
 
-    auto enlarge_to_fit = [&rect](const ImRect& other) {
-        if( other.Min.x < rect.Min.x) rect.Min.x = other.Min.x;
-        if( other.Min.y < rect.Min.y) rect.Min.y = other.Min.y;
-        if( other.Max.x > rect.Max.x) rect.Max.x = other.Max.x;
-        if( other.Max.y > rect.Max.y) rect.Max.y = other.Max.y;
-    };
-
-    if ( !_ignoreSelf)
+    if ( !_ignoreSelf && m_is_visible )
     {
         ImRect self_rect = get_rect(false);
-        enlarge_to_fit(self_rect);
+        ImGuiEx::enlarge_to_fit(result_rect, self_rect);
     }
 
-    auto enlarge_to_fit_all = [&](NodeView* eachView) {
-        if (eachView && eachView->is_visible() && !(eachView->m_pinned && _ignorePinned) &&
-            eachView->should_follow_output(this) )
+    auto enlarge_to_fit_all = [&](NodeView* _view)
+    {
+        if( !_view) return;
+
+        if ( _view->m_is_visible && !(_view->m_pinned && _ignorePinned) && _view->should_follow_output(this) )
         {
-            ImRect childRect = eachView->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
-            enlarge_to_fit(childRect);
+            ImRect child_rect = _view->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
+            ImGuiEx::enlarge_to_fit(result_rect, child_rect);
         }
     };
 
     std::for_each(m_children_slots.begin(), m_children_slots.end(), enlarge_to_fit_all);
-    std::for_each(m_input_slots.begin(), m_input_slots.end(), enlarge_to_fit_all);
+    std::for_each(m_input_slots.begin()   , m_input_slots.end()   , enlarge_to_fit_all);
 
-//    auto draw_list = ImGui::GetForegroundDrawList();
-//    auto screen_rect = rect;
-//    screen_rect.Translate( View::ToScreenPosOffset() );
-//    if ( NodeView::IsSelected(this) )
-//        draw_list->AddRect(screen_rect.Min, screen_rect.Max, ImColor(0,255,0));
-
-    return rect;
+    return result_rect;
 }
 
 void NodeView::clear_constraints() {
@@ -1049,22 +1028,22 @@ void NodeView::add_force(vec2 force, bool _recurse)
     }
 }
 
-void NodeView::apply_forces(float _dt, bool _recurse) {
-    //
+void NodeView::apply_forces(float _dt, bool _recurse)
+{
     float magnitude = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
 
-    // apply
     constexpr float magnitude_max  = 100.0f;
-    const float friction   = Maths::lerp (  0.0f, 0.5f, magnitude / magnitude_max);
-    const vec2 avg_forces_sum = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
-    this->translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);
+    const float     friction       = Maths::lerp (  0.0f, 0.5f, magnitude / magnitude_max);
+    const vec2 avg_forces_sum      = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
+
+    translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);
 
     m_last_frame_forces_sum = m_forces_sum;
-    m_forces_sum = vec2();
+    m_forces_sum            = vec2();
 }
 
-void NodeView::translate_to(vec2 desiredPos, float _factor, bool _recurse) {
-
+void NodeView::translate_to(vec2 desiredPos, float _factor, bool _recurse)
+{
     vec2 delta(desiredPos - m_position);
 
     bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
@@ -1079,24 +1058,20 @@ ImRect NodeView::get_rect(
         const std::vector<NodeView *>& _views,
         bool _recursive,
         bool _ignorePinned,
-        bool _ignoreMultiConstrained) {
+        bool _ignoreMultiConstrained)
+{
+    ImRect result_rect( vec2(std::numeric_limits<float>::max()), vec2(-std::numeric_limits<float>::max()) );
 
-    std::vector<float> x_positions, y_positions;
     for (auto eachView : _views)
     {
-        if (eachView->is_visible())
+        if ( eachView->m_is_visible )
         {
             auto rect = eachView->get_rect(_recursive, _ignorePinned, _ignoreMultiConstrained);
-            x_positions.push_back(rect.Min.x );
-            x_positions.push_back(rect.Max.x );
-            y_positions.push_back(rect.Min.y );
-            y_positions.push_back(rect.Max.y );
+            ImGuiEx::enlarge_to_fit(result_rect, rect);
         }
     }
-    auto x_minmax = std::minmax_element(x_positions.begin(), x_positions.end());
-    auto y_minmax = std::minmax_element(y_positions.begin(), y_positions.end());
 
-    return ImRect(*x_minmax.first, *y_minmax.first, *x_minmax.second, *y_minmax.second );;
+    return result_rect;
 }
 
 void NodeView::set_expanded_rec(bool _expanded)

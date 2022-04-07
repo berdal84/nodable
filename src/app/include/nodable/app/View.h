@@ -47,14 +47,14 @@ namespace Nodable
 		inline ImRect        get_visible_rect() const { return m_visible_rect; }
 
 	protected:
+        bool     m_is_visible;
 		ImRect   m_visible_rect;
 		ImRect   m_visible_screen_rect;
 		bool     m_is_hovered;
         IAppCtx& m_ctx;
-        
+
     private:
-		bool     m_is_visible;
-		std::map<Color, vec4*> m_colors;
+        std::map<Color, vec4*> m_colors;
 
 		R(View)
     };
