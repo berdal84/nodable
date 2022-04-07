@@ -77,83 +77,50 @@ template<typename T>
         return result;
     }
 
-std::string api_DNAtoProtein(std::string baseChain)
+std::string api_DNAtoProtein(std::string _base_str)
 {
     std::string protein;
 
     // todo: change this naive approach by 3 tests, one per base.
-    std::map<std::string, char> table;
+    const std::map<const std::string, const char> table
     {
-        table["ATA"] = 'I'; // A__
-        table["ATC"] = 'I';
-        table["ATT"] = 'I';
-        table["ATG"] = 'M'; // (aka Start)
-        table["ACA"] = 'T';
-        table["ACC"] = 'T';
-        table["ACG"] = 'T';
-        table["ACT"] = 'T';
-        table["AAC"] = 'N';
-        table["AAT"] = 'N';
-        table["AAA"] = 'K';
-        table["AAG"] = 'K';
-        table["AGC"] = 'S';
-        table["AGT"] = 'S';
-        table["AGA"] = 'R';
-        table["AGG"] = 'R';
-        table["CTA"] = 'L'; // C__
-        table["CTC"] = 'L';
-        table["CTG"] = 'L';
-        table["CTT"] = 'L';
-        table["CCA"] = 'P';
-        table["CCC"] = 'P';
-        table["CCG"] = 'P';
-        table["CCT"] = 'P';
-        table["CAC"] = 'H';
-        table["CAT"] = 'H';
-        table["CAA"] = 'Q';
-        table["CAG"] = 'Q';
-        table["CGA"] = 'R';
-        table["CGC"] = 'R';
-        table["CGG"] = 'R';
-        table["CGT"] = 'R';
-        table["GTA"] = 'V'; // G__
-        table["GTC"] = 'V';
-        table["GTG"] = 'V';
-        table["GTT"] = 'V';
-        table["GCA"] = 'A';
-        table["GCC"] = 'A';
-        table["GCG"] = 'A';
-        table["GCT"] = 'A';
-        table["GAC"] = 'D';
-        table["GAT"] = 'D';
-        table["GAA"] = 'E';
-        table["GAG"] = 'E';
-        table["GGA"] = 'G';
-        table["GGC"] = 'G';
-        table["GGG"] = 'G';
-        table["GGT"] = 'G';
-        table["TCA"] = 'S'; // T__
-        table["TCC"] = 'S';
-        table["TCG"] = 'S';
-        table["TCT"] = 'S';
-        table["TTC"] = 'F';
-        table["TTT"] = 'F';
-        table["TTA"] = 'L';
-        table["TTG"] = 'L';
-        table["TAC"] = 'Y';
-        table["TAT"] = 'Y';
-        table["TAA"] = '_'; // (aka Stop)
-        table["TAG"] = '_'; // (aka Stop)
-        table["TGC"] = 'C';
-        table["TGT"] = 'C';
-        table["TGA"] = '_'; // (aka Stop)
-        table["TGG"] = 'W';
+        // T__
+        {"TCA", 'S'}, {"TCC", 'S'}, {"TCG", 'S'}, {"TCT", 'S'},
+        {"TTC", 'F'}, {"TTT", 'F'}, {"TTA", 'L'}, {"TGA", '_'}, // (aka Stop)
+        {"TAC", 'Y'}, {"TAT", 'Y'}, {"TGC", 'C'}, {"TAG", '_'}, // (aka Stop)
+        {"TGT", 'C'}, {"TGG", 'W'}, {"TTG", 'L'}, {"TAA", '_'}, // (aka Stop)
+
+        // A__
+        {"ATA", 'I'}, {"ATC", 'I'}, {"ATT", 'I'}, {"ATG", 'M'}, // (aka Start)
+        {"ACA", 'T'}, {"ACC", 'T'}, {"ACG", 'T'}, {"ACT", 'T'},
+        {"AAC", 'N'}, {"AAT", 'N'}, {"AAA", 'K'}, {"AAG", 'K'},
+        {"AGC", 'S'}, {"AGT", 'S'}, {"AGA", 'R'}, {"AGG", 'R'},
+
+        // C__
+        {"CTA", 'L'}, {"CTC", 'L'}, {"CTG", 'L'}, {"CTT", 'L'},
+        {"CCA", 'P'}, {"CCC", 'P'}, {"CCG", 'P'}, {"CCT", 'P'},
+        {"CAC", 'H'}, {"CAT", 'H'}, {"CAA", 'Q'}, {"CAG", 'Q'},
+        {"CGA", 'R'}, {"CGC", 'R'}, {"CGG", 'R'}, {"CGT", 'R'},
+
+        // G__
+        {"GTA", 'V'}, {"GTC", 'V'}, {"GTG", 'V'}, {"GTT", 'V'},
+        {"GCA", 'A'}, {"GCC", 'A'}, {"GCG", 'A'}, {"GCT", 'A'},
+        {"GAC", 'D'}, {"GAT", 'D'}, {"GAA", 'E'}, {"GAG", 'E'},
+        {"GGA", 'G'}, {"GGC", 'G'}, {"GGG", 'G'}, {"GGT", 'G'},
+    };
+
+    for (size_t i = 0; i < _base_str.size() / 3; i++)
+    {
+        std::string possibly_codon = _base_str.substr(i, 3);
+
+        auto found = table.find( possibly_codon );
+
+        if( found != table.cend() )
+        {
+            auto [key, translation] = *found;
+            protein.push_back( translation );
+        }
     }
 
-    for (size_t i = 0; i < baseChain.size() / 3; i++) {
-        auto found = table.find(baseChain.substr(i, 3));
-        if (found != table.end())
-            protein += found->second;
-    }
     return protein;
 }
