@@ -92,7 +92,7 @@ namespace Nodable {
             {
                 case 1: return _lang->find_operator(id, Operator_t::Unary);
                 case 2: return _lang->find_operator(id, Operator_t::Binary);
-                default: NODABLE_ASSERT(false)
+                default: return nullptr;
             }
         }
     };
