@@ -1,5 +1,6 @@
 #include <nodable/core/reflection/R.h>
 #include <type_traits> // std::underlying_type
+#include <stdexcept>   // std::runtime_error
 #include <nodable/core/assertions.h>
 #include "nodable/core/reflection/R_Meta_t.h"
 
