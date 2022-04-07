@@ -56,6 +56,10 @@ namespace Nodable
         void draw_status_bar() const;
         void draw_tool_bar();
         void draw_vm_view();
+        void draw_side_panel();
+        void draw_node_properties();
+        void draw_file_info() const;
+        void draw_imgui_style_editor() const;
 
         ImFont* load_font(const FontConf &_config);
         ImFont* get_font_by_id(const char *id);
@@ -78,6 +82,7 @@ namespace Nodable
         std::map<std::string, ImFont*>      m_loaded_fonts; // All fonts loaded in memory
         std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
         std::vector<Shortcut>               m_shortcuts;
+
         R_DERIVED(AppView)
         R_EXTENDS(View)
         R_END

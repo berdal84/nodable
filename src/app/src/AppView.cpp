@@ -468,11 +468,11 @@ bool AppView::draw()
                 ImGui::DockBuilderSetNodeSize(dockspace_main, ImGui::GetMainViewport()->Size);
                 ImGui::DockBuilderSplitNode(dockspace_main, ImGuiDir_Right, m_settings.ui_layout_propertiesRatio, &dockspace_side_panel, NULL);
 
-                ImGui::DockBuilderDockWindow(k_node_props_window_name, dockspace_side_panel);
-                ImGui::DockBuilderDockWindow(k_assembly_window_name, dockspace_side_panel);
+                ImGui::DockBuilderDockWindow(k_imgui_settings_window_name, dockspace_side_panel);
                 ImGui::DockBuilderDockWindow(k_app_settings_window_name, dockspace_side_panel);
                 ImGui::DockBuilderDockWindow(k_file_info_window_name, dockspace_side_panel);
-                ImGui::DockBuilderDockWindow(k_imgui_settings_window_name, dockspace_side_panel);
+                ImGui::DockBuilderDockWindow(k_vm_window_name, dockspace_side_panel);
+                ImGui::DockBuilderDockWindow(k_node_props_window_name, dockspace_side_panel);
                 ImGui::DockBuilderFinish(dockspace_main);
                 m_is_layout_initialized = true;
             }
@@ -482,50 +482,7 @@ bool AppView::draw()
             */
             ImGui::DockSpace(dockspace_main);
 
-            if (ImGui::Begin(k_node_props_window_name))
-            {
-                NodeView *view = NodeView::get_selected();
-                if (view)
-                {
-                    ImGui::Indent(10.0f);
-                    NodeView::draw_as_properties_panel(m_ctx, view, &m_show_advanced_node_properties);
-                }
-            }
-            ImGui::End();
-
-            if (ImGui::Begin(k_assembly_window_name))
-            {
-                draw_vm_view();
-            }
-            ImGui::End();
-
-            if (ImGui::Begin(k_app_settings_window_name))
-            {
-                draw_properties_editor();
-            }
-            ImGui::End();
-
-            if (ImGui::Begin(k_imgui_settings_window_name))
-            {
-                ImGui::ShowStyleEditor();
-            }
-            ImGui::End();
-
-            // File info
-            ImGui::Begin(k_file_info_window_name);
-            {
-                if (current_file)
-                {
-                    FileView* fileView = current_file->get_view();
-                    fileView->draw_info();
-                }
-                else
-                {
-                    ImGui::Text("No open file");
-                }
-
-            }
-            ImGui::End();
+            draw_side_panel();
 
             if( !m_ctx.has_files())
             {
@@ -574,104 +531,163 @@ bool AppView::draw()
     return false;
 }
 
+void AppView::draw_side_panel()
+{
+    if( !m_ctx.current_file() )
+    {
+        return;
+    }
+
+    draw_vm_view();
+    draw_properties_editor();
+    draw_imgui_style_editor();
+    draw_file_info();
+    draw_node_properties();
+}
+
+void AppView::draw_imgui_style_editor() const
+{
+    if (ImGui::Begin(k_imgui_settings_window_name))
+    {
+        ImGui::ShowStyleEditor();
+    }
+    ImGui::End();
+}
+
+void AppView::draw_file_info() const
+{
+    if( auto current_file = m_ctx.current_file() )
+    {
+        if( ImGui::Begin(k_file_info_window_name) )
+        {
+            if (current_file) {
+                FileView *fileView = current_file->get_view();
+                fileView->draw_info();
+            } else {
+                ImGui::Text("No open file");
+            }
+
+        }
+        ImGui::End();
+    }
+}
+
+void AppView::draw_node_properties()
+{
+    if (ImGui::Begin(k_node_props_window_name))
+    {
+        NodeView *view = NodeView::get_selected();
+        if (view)
+        {
+            ImGui::Indent(10.0f);
+            NodeView::draw_as_properties_panel(m_ctx, view, &m_show_advanced_node_properties);
+        }
+    }
+    ImGui::End();
+}
+
 void AppView::draw_vm_view()
 {
-    ImGui::Text("Virtual Machine:");
-    ImGui::Separator();
-
-    const Code* code = m_vm.get_program_asm_code();
-
-    // VM state
+    if (ImGui::Begin(k_vm_window_name))
     {
-        ImGui::Indent();
-        ImGui::Text("VM is %s", m_vm.is_program_running() ? "running" : "stopped");
-        ImGui::Text("Debug: %s", m_vm.is_debugging() ? "ON" : "OFF");
-        ImGui::Text("Has program: %s", code ? "YES" : "NO");
-        if (code)
+        ImGui::Text("Virtual Machine:");
+        ImGui::Separator();
+
+        const Code* code = m_vm.get_program_asm_code();
+
+        // VM state
         {
-            ImGui::Text("Program over: %s", !m_vm.is_there_a_next_instr() ? "YES" : "NO");
+            ImGui::Indent();
+            ImGui::Text("VM is %s", m_vm.is_program_running() ? "running" : "stopped");
+            ImGui::Text("Debug: %s", m_vm.is_debugging() ? "ON" : "OFF");
+            ImGui::Text("Has program: %s", code ? "YES" : "NO");
+            if (code)
+            {
+                ImGui::Text("Program over: %s", !m_vm.is_there_a_next_instr() ? "YES" : "NO");
+            }
+            ImGui::Unindent();
+        }
+
+        // VM Registers
+        ImGui::Separator();
+        ImGui::Text("CPU:");
+        ImGui::Indent();
+        {
+            ImGui::Separator();
+            ImGui::Text("registers:");
+            ImGui::Separator();
+
+            using assembly::Register;
+            ImGui::Indent();
+
+            auto draw_register_value = [&](Register _register)
+            {
+                ImGui::Text("%4s: %12s", assembly::to_string(_register), m_vm.read_cpu_register(_register).to_string().c_str() );
+            };
+
+            draw_register_value(Register::rax); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "primary accumulator");
+            draw_register_value(Register::rdx); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "base register");
+            draw_register_value(Register::eip); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "instruction pointer");
+
+            ImGui::Unindent();
         }
         ImGui::Unindent();
-    }
 
-    // VM Registers
-    ImGui::Separator();
-    ImGui::Text("CPU:");
-    ImGui::Indent();
-    {
+        // Assembly-like code
         ImGui::Separator();
-        ImGui::Text("registers:");
-        ImGui::Separator();
-
-        using assembly::Register;
-        ImGui::Indent();
-
-        auto draw_register_value = [&](Register _register)
-        {
-            ImGui::Text("%4s: %12s", assembly::to_string(_register), m_vm.read_cpu_register(_register).to_string().c_str() );
-        };
-
-        draw_register_value(Register::rax); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "primary accumulator");
-        draw_register_value(Register::rdx); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "base register");
-        draw_register_value(Register::eip); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "instruction pointer");
-
-        ImGui::Unindent();
-    }
-    ImGui::Unindent();
-
-    // Assembly-like code
-    ImGui::Separator();
-    ImGui::Text("Memory:"); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "Virtual Machine Memory.");
-    ImGui::Separator();
-    {
-        ImGui::Indent();
-
-        ImGui::Text("Bytecode:");
-        ImGui::SameLine();
-        ImGuiEx::DrawHelper( "%s", "The bytecode is the result of the Compilation."
-                                   "\nThe Nodable Graph is converted by the Compiler to an Assembly-like code.");
-        ImGui::Checkbox("Auto-scroll ?", &m_scroll_to_curr_instr);
-        ImGui::SameLine();
-        ImGuiEx::DrawHelper( "%s", "to scroll automatically to the current instruction");
+        ImGui::Text("Memory:"); ImGui::SameLine(); ImGuiEx::DrawHelper( "%s", "Virtual Machine Memory.");
         ImGui::Separator();
         {
-            ImGui::BeginChild("AssemblyCodeChild", ImGui::GetContentRegionAvail(), true );
+            ImGui::Indent();
 
-            if ( code )
+            ImGui::Text("Bytecode:");
+            ImGui::SameLine();
+            ImGuiEx::DrawHelper( "%s", "The bytecode is the result of the Compilation."
+                                       "\nThe Nodable Graph is converted by the Compiler to an Assembly-like code.");
+            ImGui::Checkbox("Auto-scroll ?", &m_scroll_to_curr_instr);
+            ImGui::SameLine();
+            ImGuiEx::DrawHelper( "%s", "to scroll automatically to the current instruction");
+            ImGui::Separator();
             {
-                auto current_instr = m_vm.get_next_instr();
-                for( Instruction* each_instr : code->get_instructions() )
+                ImGui::BeginChild("AssemblyCodeChild", ImGui::GetContentRegionAvail(), true );
+
+                if ( code )
                 {
-                    auto str = Instruction::to_string(*each_instr );
-                    if ( each_instr == current_instr )
+                    auto current_instr = m_vm.get_next_instr();
+                    for( Instruction* each_instr : code->get_instructions() )
                     {
-                        if ( m_scroll_to_curr_instr && m_vm.is_program_running() )
+                        auto str = Instruction::to_string(*each_instr );
+                        if ( each_instr == current_instr )
                         {
-                            ImGui::SetScrollHereY();
+                            if ( m_scroll_to_curr_instr && m_vm.is_program_running() )
+                            {
+                                ImGui::SetScrollHereY();
+                            }
+                            ImGui::TextColored( ImColor(200,0,0), ">%s", str.c_str() );
+                            ImGui::SameLine();
+                            ImGuiEx::DrawHelper( "%s", "This is the next instruction to evaluate");
                         }
-                        ImGui::TextColored( ImColor(200,0,0), ">%s", str.c_str() );
-                        ImGui::SameLine();
-                        ImGuiEx::DrawHelper( "%s", "This is the next instruction to evaluate");
-                    }
-                    else
-                    {
-                        ImGui::Text(  " %s", str.c_str() );
+                        else
+                        {
+                            ImGui::Text(  " %s", str.c_str() );
+                        }
                     }
                 }
+                else
+                {
+                    ImGui::TextWrapped("Nothing loaded, try to compile, run or debug.");
+                    ImGui::SameLine();
+                    ImGuiEx::DrawHelper( "%s", "To see a compiled program here you need first to:"
+                                               "\n- Select a piece of code in the text editor"
+                                               "\n- Click on \"Compile\" button."
+                                               "\n- Ensure there is no errors in the status bar (bottom).");
+                }
+                ImGui::EndChild();
             }
-            else
-            {
-                ImGui::TextWrapped("Nothing loaded, try to compile, run or debug.");
-                ImGui::SameLine();
-                ImGuiEx::DrawHelper( "%s", "To see a compiled program here you need first to:"
-                                           "\n- Select a piece of code in the text editor"
-                                           "\n- Click on \"Compile\" button."
-                                           "\n- Ensure there is no errors in the status bar (bottom).");
-            }
-            ImGui::EndChild();
+            ImGui::Unindent();
         }
-        ImGui::Unindent();
     }
+    ImGui::End();
 }
 
 void AppView::draw_startup_menu(ImGuiID dockspace_id)
@@ -809,52 +825,56 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, File* file
 
 void AppView::draw_properties_editor()
 {
-    Settings& settings = m_ctx.settings();
+    if (ImGui::Begin(k_app_settings_window_name))
+    {
+        Settings& settings = m_ctx.settings();
 
-    ImGui::Text("Nodable Settings:");
-    ImGui::Indent();
-
-        ImGui::Text("Buttons:");
+        ImGui::Text("Nodable Settings:");
         ImGui::Indent();
-            ImGui::SliderFloat2("ui_toolButton_size", &settings.ui_toolButton_size.x, 20.0f, 50.0f);
+
+            ImGui::Text("Buttons:");
+            ImGui::Indent();
+                ImGui::SliderFloat2("ui_toolButton_size", &settings.ui_toolButton_size.x, 20.0f, 50.0f);
+            ImGui::Unindent();
+
+            ImGui::Text("Wires:");
+            ImGui::Indent();
+                ImGui::SliderFloat("thickness", &settings.ui_wire_bezier_thickness, 0.5f, 10.0f);
+                ImGui::SliderFloat("roundness", &settings.ui_wire_bezier_roundness, 0.0f, 1.0f);
+                ImGui::Checkbox   ("arrows"   , &settings.ui_wire_displayArrows);
+            ImGui::Unindent();
+
+            ImGui::Text("Nodes:");
+            ImGui::Indent();
+                ImGui::SliderFloat("member connector radius"    , &settings.ui_node_memberConnectorRadius, 1.0f, 10.0f);
+                ImGui::SliderFloat("padding"                    , &settings.ui_node_padding, 1.0f, 20.0f);
+                ImGui::SliderFloat("speed"                      , &settings.ui_node_speed, 0.0f, 100.0f);
+                ImGui::SliderFloat("spacing"                    , &settings.ui_node_spacing, 0.0f, 100.0f);
+                ImGui::SliderFloat("node connector padding"     , &settings.ui_node_connector_padding, 0.0f, 100.0f);
+                ImGui::SliderFloat("node connector height"      , &settings.ui_node_connector_height, 2.0f, 100.0f);
+                ImGui::ColorEdit4("variables color"             , &settings.ui_node_variableColor.x);
+                ImGui::ColorEdit4("instruction color"           , &settings.ui_node_instructionColor.x);
+                ImGui::ColorEdit4("literal color"               , &settings.ui_node_literalColor.x);
+                ImGui::ColorEdit4("function color"              , &settings.ui_node_invokableColor.x);
+                ImGui::ColorEdit4("shadow color"                , &settings.ui_node_shadowColor.x);
+                ImGui::ColorEdit4("border color"                , &settings.ui_node_borderColor.x);
+                ImGui::ColorEdit4("high. color"                 , &settings.ui_node_highlightedColor.x);
+                ImGui::ColorEdit4("border high. color"          , &settings.ui_node_borderHighlightedColor.x);
+                ImGui::ColorEdit4("fill color"                  , &settings.ui_node_fillColor.x);
+                ImGui::ColorEdit4("node connector color"        , &settings.ui_node_nodeConnectorColor.x);
+                ImGui::ColorEdit4("node connector hovered color", &settings.ui_node_nodeConnectorHoveredColor.x);
+
+            ImGui::Unindent();
+
+            // code flow
+            ImGui::Text("Code flow:");
+            ImGui::Indent();
+                ImGui::SliderFloat("line width min", &settings.ui_node_connector_width, 1.0f, 100.0f);
+            ImGui::Unindent();
+
         ImGui::Unindent();
-
-        ImGui::Text("Wires:");
-        ImGui::Indent();
-            ImGui::SliderFloat("thickness", &settings.ui_wire_bezier_thickness, 0.5f, 10.0f);
-            ImGui::SliderFloat("roundness", &settings.ui_wire_bezier_roundness, 0.0f, 1.0f);
-            ImGui::Checkbox   ("arrows"   , &settings.ui_wire_displayArrows);
-        ImGui::Unindent();
-
-        ImGui::Text("Nodes:");
-        ImGui::Indent();
-            ImGui::SliderFloat("member connector radius"    , &settings.ui_node_memberConnectorRadius, 1.0f, 10.0f);
-            ImGui::SliderFloat("padding"                    , &settings.ui_node_padding, 1.0f, 20.0f);
-            ImGui::SliderFloat("speed"                      , &settings.ui_node_speed, 0.0f, 100.0f);
-            ImGui::SliderFloat("spacing"                    , &settings.ui_node_spacing, 0.0f, 100.0f);
-            ImGui::SliderFloat("node connector padding"     , &settings.ui_node_connector_padding, 0.0f, 100.0f);
-            ImGui::SliderFloat("node connector height"      , &settings.ui_node_connector_height, 2.0f, 100.0f);
-            ImGui::ColorEdit4("variables color"             , &settings.ui_node_variableColor.x);
-            ImGui::ColorEdit4("instruction color"           , &settings.ui_node_instructionColor.x);
-            ImGui::ColorEdit4("literal color"               , &settings.ui_node_literalColor.x);
-            ImGui::ColorEdit4("function color"              , &settings.ui_node_invokableColor.x);
-            ImGui::ColorEdit4("shadow color"                , &settings.ui_node_shadowColor.x);
-            ImGui::ColorEdit4("border color"                , &settings.ui_node_borderColor.x);
-            ImGui::ColorEdit4("high. color"                 , &settings.ui_node_highlightedColor.x);
-            ImGui::ColorEdit4("border high. color"          , &settings.ui_node_borderHighlightedColor.x);
-            ImGui::ColorEdit4("fill color"                  , &settings.ui_node_fillColor.x);
-            ImGui::ColorEdit4("node connector color"        , &settings.ui_node_nodeConnectorColor.x);
-            ImGui::ColorEdit4("node connector hovered color", &settings.ui_node_nodeConnectorHoveredColor.x);
-
-        ImGui::Unindent();
-
-        // code flow
-        ImGui::Text("Code flow:");
-        ImGui::Indent();
-            ImGui::SliderFloat("line width min", &settings.ui_node_connector_width, 1.0f, 100.0f);
-        ImGui::Unindent();
-
-    ImGui::Unindent();
+    }
+    ImGui::End();
 }
 
 void AppView::draw_splashcreen()
