@@ -15,7 +15,7 @@ NodeViewConstraint::NodeViewConstraint(IAppCtx& _ctx, NodeViewConstraint::Type _
 
 void NodeViewConstraint::apply(float _dt)
 {
-    Settings& settings = m_ctx.get_settings();
+    Settings& settings = m_ctx.settings();
 
     // try to get a visible view for drivers, is view is not visible we take the parent
     std::vector<NodeView*> clean_drivers;

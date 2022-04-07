@@ -8,7 +8,7 @@ Author: Bérenger Dalle-Cort, 2017-2022
     - hide long wires for variable references,
     - show variable name in input fields,
     - mem leak fixes,
-    - add Compiler to run code in the VM,
+    - add Compiler to run code in the VirtualMachine,
     - Reflect is now named R,
     - remove CodeBlockNode, keep only ScopeNode and interfaces,
     - add ForLoopNode,

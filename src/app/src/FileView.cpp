@@ -7,7 +7,7 @@
 #include <nodable/app/Settings.h>
 #include <nodable/core/Node.h>
 #include <nodable/app/IAppCtx.h>
-#include <nodable/core/VM.h>
+#include <nodable/core/VirtualMachine.h>
 
 using namespace Nodable;
 
@@ -49,7 +49,7 @@ void FileView::init()
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_text_editor.SetLanguageDefinition(lang);
 	m_text_editor.SetImGuiChildIgnored(true);
-	m_text_editor.SetPalette(m_ctx.get_settings().ui_text_textEditorPalette);
+	m_text_editor.SetPalette(m_ctx.settings().ui_text_textEditorPalette);
 }
 
 bool FileView::draw()
@@ -83,7 +83,7 @@ bool FileView::draw()
     auto previousSelectedText = m_text_editor.GetSelectedText();
     auto previousLineText = m_text_editor.GetCurrentLineText();
 
-    bool is_running = m_ctx.is_running_program();
+    bool is_running = m_ctx.virtual_machine().is_program_running();
     auto allowkeyboard = !is_running &&
                          !NodeView::is_any_dragged() &&
                          !NodeView::get_selected(); // disable keyboard for text editor when a node is selected.
@@ -111,7 +111,7 @@ bool FileView::draw()
 
     m_file.get_history()->enable_text_editor(true); // ensure to begin to record history
     m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
-    if ( m_ctx.get_settings().experimental_hybrid_history )
+    if (m_ctx.settings().experimental_hybrid_history )
     {
         m_file.get_history()->enable_text_editor(false); // avoid recording events caused by graph serialisation
     }
@@ -231,7 +231,7 @@ void FileView::draw_info() const
     // Language browser (list functions/operators)
     if (ImGui::TreeNode("Language"))
     {
-        Language&         language   = m_ctx.get_language();
+        Language&         language   = m_ctx.language();
         const auto&       functions  = language.get_api();
         const Serializer& serializer = language.get_serializer();
 

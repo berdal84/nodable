@@ -81,7 +81,7 @@ bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
 
 ImRect NodeConnector::get_rect() const
 {
-    Settings& settings = m_ctx.get_settings();
+    Settings& settings = m_ctx.settings();
     vec2 leftCornerPos = m_way == Way_In ? m_node_view.get_rect().GetTL() : m_node_view.get_rect().GetBL();
 
     vec2 size(settings.ui_node_connector_width, settings.ui_node_connector_height);

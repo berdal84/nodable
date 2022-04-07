@@ -151,8 +151,8 @@ namespace Nodable
         Slots<NodeView*> m_input_slots;
         Slots<NodeView*> m_output_slots;
         Slots<NodeView*> m_successor_slots;
-		std::vector<NodeConnector*>          m_predecessors_node_connnectors;
-		std::vector<NodeConnector*>          m_successors_node_connectors;
+		std::vector<NodeConnector*>          m_predecessors;
+		std::vector<NodeConnector*>          m_successors;
 		std::vector<MemberView*>             m_exposed_input_only_members;
 		std::vector<MemberView*>             m_exposed_out_or_inout_members;
         std::map<const Member*, MemberView*> m_exposed_members;

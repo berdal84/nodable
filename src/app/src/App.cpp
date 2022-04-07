@@ -49,7 +49,7 @@ void App::update()
 {
     handle_events();
 
-    if (File* file = get_curr_file())
+    if (File* file = current_file())
     {
         file->update();
     }
@@ -77,26 +77,25 @@ bool App::open_file(const fs_path& _path)
     }
 
     m_loaded_files.push_back(file);
-    set_curr_file(m_loaded_files.size() - 1);
+    current_file(file);
 
 	return true;
 }
 
 void App::save_file() const
 {
-	File* current_file = get_curr_file();
-	if (current_file)
+	if (m_current_file)
     {
-	    if( !current_file->write_to_disk() )
+	    if( !m_current_file->write_to_disk() )
         {
-            LOG_ERROR("App", "Unable to save %s (%s)\n", current_file->get_name().c_str(), current_file->get_path().c_str());
+            LOG_ERROR("App", "Unable to save %s (%s)\n", m_current_file->get_name().c_str(), m_current_file->get_path().c_str());
         }
     }
 }
 
 void App::save_file_as(const fs_path &_path)
 {
-    File* curr_file = get_curr_file();
+    File* curr_file = current_file();
     curr_file->set_path(_path.string());
     curr_file->set_name(_path.filename().string());
     if( !curr_file->write_to_disk() )
@@ -105,25 +104,17 @@ void App::save_file_as(const fs_path &_path)
     }
 }
 
-File* App::get_curr_file()const
+File* App::current_file()const
 {
 	return m_current_file;
 }
 
-void App::set_curr_file(File* _file)
+void App::current_file(File* _file)
 {
     m_current_file       = _file;
 }
 
-void App::set_curr_file(size_t _index)
-{
-	if (m_loaded_files.size() > _index)
-	{
-        set_curr_file( m_loaded_files[_index] );
-	}
-}
-
-std::string App::get_absolute_asset_path(const char* _relative_path)const
+std::string App::compute_asset_path(const char* _relative_path) const
 {
     fs_path result = m_assets_folder_path / _relative_path;
 	return result.string();
@@ -154,7 +145,7 @@ bool App::compile_and_load_program()
 {
     const GraphNode* graph = nullptr;
 
-    if ( File* file = get_curr_file())
+    if ( File* file = current_file())
     {
         graph = file->get_graph();
     }
@@ -214,7 +205,7 @@ void App::stop_program()
 
 void App::reset_program()
 {
-    if ( auto currFile = get_curr_file() )
+    if ( auto currFile = current_file() )
     {
         if ( m_vm.is_program_running() )
         {
@@ -308,7 +299,7 @@ void App::handle_events()
                 {
                     if ( src->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
                     auto cmd = std::make_shared<Cmd_ConnectNodes>(src->get_node(), dst->get_node(), EdgeType::IS_PREDECESSOR_OF);
-                    History *curr_file_history = get_curr_file()->get_history();
+                    History *curr_file_history = current_file()->get_history();
                     curr_file_history->push_command(cmd);
                 }
                 break;
@@ -338,7 +329,7 @@ void App::handle_events()
                 {
                     if (src->m_way != Way_Out) std::swap(src, dst); // guarantee src to be the output
                     auto cmd = std::make_shared<Cmd_ConnectMembers>(src->get_member(), dst->get_member());
-                    History *curr_file_history = get_curr_file()->get_history();
+                    History *curr_file_history = current_file()->get_history();
                     curr_file_history->push_command(cmd);
                 }
                 break;
@@ -354,7 +345,7 @@ void App::handle_events()
                 DirectedEdge relation(src, EdgeType::IS_PREDECESSOR_OF, dst);
                 auto cmd = std::make_shared<Cmd_DisconnectNodes>( relation );
 
-                History *curr_file_history = get_curr_file()->get_history();
+                History *curr_file_history = current_file()->get_history();
                 curr_file_history->push_command(cmd);
 
                 break;
@@ -372,7 +363,7 @@ void App::handle_events()
                     cmd_grp->push_cmd( std::static_pointer_cast<ICommand>(each_cmd) );
                 }
 
-                History *curr_file_history = get_curr_file()->get_history();
+                History *curr_file_history = current_file()->get_history();
                 curr_file_history->push_command(std::static_pointer_cast<ICommand>(cmd_grp));
 
                 break;
@@ -395,7 +386,7 @@ File *App::new_file()
 {
     auto file = new File( *this, "Untitled");
     m_loaded_files.push_back(file);
-    set_curr_file(m_loaded_files.size() - 1);
+    current_file(file);
 
     return file;
 }

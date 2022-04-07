@@ -17,8 +17,8 @@ File::File(IAppCtx& _ctx, const std::string &_name)
         , m_ctx(_ctx)
         , m_modified(true)
         , m_graph(nullptr)
-        , m_factory(&_ctx.get_language(), [&_ctx](Node* _node) { _node->add_component(new NodeView(_ctx)); } )
-        , m_history(&_ctx.get_settings().experimental_hybrid_history)
+        , m_factory(&_ctx.language(), [&_ctx](Node* _node) { _node->add_component(new NodeView(_ctx)); } )
+        , m_history(&_ctx.settings().experimental_hybrid_history)
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n")
 
@@ -37,9 +37,9 @@ File::File(IAppCtx& _ctx, const std::string &_name)
 
     // GraphNode
     m_graph = new GraphNode(
-            &m_ctx.get_language(),
+            &m_ctx.language(),
             &m_factory,
-            &m_ctx.get_settings().experimental_graph_autocompletion );
+            &m_ctx.settings().experimental_graph_autocompletion );
 
     char label[50];
     snprintf(label, sizeof(label), "%s's graph", get_name().c_str());
@@ -93,7 +93,7 @@ bool File::update_graph(std::string& _code_source)
         graphView->clear_child_view_constraints();
     }
 
-    Parser& parser = m_ctx.get_language().get_parser();
+    Parser& parser = m_ctx.language().get_parser();
     if ( parser.parse_graph(_code_source, m_graph) && !m_graph->is_empty() )
     {
         LOG_VERBOSE("File","graph changed, emiting event ...\n")
@@ -110,7 +110,7 @@ bool File::update()
 	if ( m_history.is_dirty() )
 	{
         LOG_VERBOSE("File","history is dirty\n")
-        if ( !m_ctx.get_settings().experimental_hybrid_history )
+        if ( !m_ctx.settings().experimental_hybrid_history )
         {
             update_graph(); // when not in hybrid mode the undo/redo is text based
         }
@@ -118,7 +118,7 @@ bool File::update()
         m_history.set_dirty(false);
 	}
 
-    if( m_ctx.is_running_program() )
+    if( m_ctx.virtual_machine().is_program_running() )
     {
         LOG_VERBOSE("File","m_graph->update()\n")
         auto graphUpdateResult = m_graph->update();
@@ -139,7 +139,7 @@ bool File::update()
                 LOG_VERBOSE("File","serialize root node\n")
 
                 std::string code;
-                m_ctx.get_language()
+                m_ctx.language()
                      .get_serializer()
                      .serialize(code, root_node );
 

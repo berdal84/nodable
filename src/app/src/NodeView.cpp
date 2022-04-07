@@ -60,8 +60,8 @@ NodeView::~NodeView()
     if ( s_selected == this ) s_selected = nullptr;
 
     // delete NodeConnectors
-    for( auto& conn : m_successors_node_connectors ) delete conn;
-    for( auto& conn : m_predecessors_node_connnectors ) delete conn;
+    for( auto& conn : m_successors ) delete conn;
+    for( auto& conn : m_predecessors ) delete conn;
 
     // Erase instance in static vector
     auto found = std::find( s_instances.begin(), s_instances.end(), this);
@@ -109,7 +109,7 @@ void NodeView::set_owner(Node *_node)
 {
     Component::set_owner(_node);
 
-    Settings&            settings = m_ctx.get_settings();
+    Settings&            settings = m_ctx.settings();
     std::vector<Member*> not_exposed;
 
     //  We expose first the members which allows input connections
@@ -166,12 +166,12 @@ void NodeView::set_owner(Node *_node)
     const size_t successor_max_count = _node->successor_slots().get_limit();
     for(size_t index = 0; index < successor_max_count; ++index )
     {
-        m_successors_node_connectors.push_back(new NodeConnector(m_ctx, *this, Way_Out, index, successor_max_count));
+        m_successors.push_back(new NodeConnector(m_ctx, *this, Way_Out, index, successor_max_count));
     }
 
     // add a single predecessor connector if node can be connected in this way
     if(_node->predecessor_slots().get_limit() != 0)
-        m_predecessors_node_connnectors.push_back(new NodeConnector(m_ctx, *this, Way_In));
+        m_predecessors.push_back(new NodeConnector(m_ctx, *this, Way_In));
 
     m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver(
         [this](Node* _other_node, EdgeType _relation )
@@ -307,7 +307,7 @@ bool NodeView::draw()
 {
 	bool edited = false;
 	auto node   = get_owner();
-	Settings& settings = m_ctx.get_settings();
+	Settings& settings = m_ctx.settings();
 
 	NODABLE_ASSERT(node != nullptr);
 
@@ -317,20 +317,21 @@ bool NodeView::draw()
         ImColor color = settings.ui_node_nodeConnectorColor;
         ImColor hoveredColor = settings.ui_node_nodeConnectorHoveredColor;
 
-        auto drawConnectorAndHandleUserEvents = [&](NodeConnector *connector) {
+        auto draw_and_handle_evt = [&](NodeConnector *connector)
+        {
             edited |= NodeConnector::draw(connector, color, hoveredColor, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         };
 
         if ( m_expanded )
         {
-            std::for_each(m_predecessors_node_connnectors.begin(), m_predecessors_node_connnectors.end(), drawConnectorAndHandleUserEvents);
-            std::for_each(m_successors_node_connectors.begin(), m_successors_node_connectors.end(), drawConnectorAndHandleUserEvents);
+            std::for_each(m_predecessors.begin(), m_predecessors.end(), draw_and_handle_evt);
+            std::for_each(m_successors.begin()  , m_successors.end()  , draw_and_handle_evt);
         }
         else
         {
-            std::for_each(m_predecessors_node_connnectors.begin(), m_predecessors_node_connnectors.begin()+1, drawConnectorAndHandleUserEvents);
-            std::for_each(m_successors_node_connectors.begin(), m_successors_node_connectors.begin()+1, drawConnectorAndHandleUserEvents);
+            std::for_each_n(m_predecessors.begin(), 1, draw_and_handle_evt);
+            std::for_each_n(m_successors.begin()  , 1, draw_and_handle_evt);
         }
     }
 
@@ -728,7 +729,7 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
         {
             ImGui::BeginTooltip();
             std::string buffer;
-            _ctx.get_language().get_serializer().serialize(buffer, _member);
+            _ctx.language().get_serializer().serialize(buffer, _member);
             ImGui::Text("%s", buffer.c_str() );
             ImGui::EndTooltip();
         }

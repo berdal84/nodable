@@ -10,7 +10,7 @@ View::View(IAppCtx& _ctx):
         m_is_visible(true),
         m_visible_rect()
 {
-    Settings& settings = _ctx.get_settings();
+    Settings& settings = _ctx.settings();
 	// set default colors
 	m_colors.insert({Color_Fill, &settings.ui_node_fillColor});
 	m_colors.insert({Color_Highlighted, &settings.ui_node_highlightedColor});

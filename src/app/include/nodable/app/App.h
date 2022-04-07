@@ -6,7 +6,7 @@
 #include <future>
 
 // Nodable
-#include <nodable/core/VM.h>
+#include <nodable/core/VirtualMachine.h>
 #include <nodable/core/reflection/R.h>
 #include <nodable/app/types.h>
 #include <nodable/app/Settings.h>
@@ -34,20 +34,16 @@ namespace Nodable
         bool            should_stop() const { return m_should_stop; }
 
         // IAppCtx implementation
-        bool            is_debugging_program() const override { return m_vm.is_debugging(); }
-        bool            is_next_node_in_program(Node* _node) const override { return m_vm.get_next_node() == _node; }
         bool            open_file(const fs_path& _filePath)override;
         File*           new_file()override;
         void            save_file()const override;
         void            save_file_as(const fs_path &_path) override;
         void            close_file(File*) override;
         bool            is_current(const File* _file ) const override { return m_current_file == _file; }
-        void            set_curr_file(size_t _index) override;
-        void            set_curr_file(File *_file) override;
-        const std::vector<File*>& get_files() const override { return m_loaded_files; }
+        void            current_file(File *_file) override;
+        const Files&    get_files() const override { return m_loaded_files; }
         bool            has_files() const override { return !m_loaded_files.empty(); }
-        File*           get_curr_file()const override;
-        bool            is_running_program() const override { return m_vm.is_program_running(); }
+        File*           current_file()const override;
         void            run_program() override;
         void            debug_program() override;
         void            step_over_program() override;
@@ -55,13 +51,13 @@ namespace Nodable
         void            reset_program() override;
         bool            compile_and_load_program() override;
         void            flag_to_stop() override;
-        u64_t           get_elapsed_time() const override { return m_start_time.time_since_epoch().count(); };
-        std::string     get_absolute_asset_path(const char* _relative_path)const override;
-        Settings&       get_settings() override { return m_settings; }
-        vm::VM&         get_vm() override { return m_vm; }
-        Language&       get_language() override { return *m_language.get(); }
-        const Language& get_language() const override { return *m_language.get(); }
-        TextureManager& get_texture_manager() override { return m_texture_manager; };
+        u64_t           elapsed_time() const override { return m_start_time.time_since_epoch().count(); };
+        std::string     compute_asset_path(const char *_relative_path) const override;
+        Settings&       settings() override { return m_settings; }
+        VirtualMachine& virtual_machine() override { return m_vm; }
+        Language&       language() override { return *m_language.get(); }
+        const Language& language() const override { return *m_language.get(); }
+        TextureManager& texture_manager() override { return m_texture_manager; };
 
     private:
         const std::chrono::time_point<std::chrono::system_clock>
@@ -69,7 +65,7 @@ namespace Nodable
 
         R::Initialiser  m_reflect;
         Settings        m_settings;
-        vm::VM          m_vm;
+        VirtualMachine  m_vm;
         TextureManager  m_texture_manager;
         bool            m_should_stop;
         size_t          m_current_file_index;

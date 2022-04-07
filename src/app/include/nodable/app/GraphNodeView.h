@@ -42,7 +42,10 @@ namespace Nodable
         [[nodiscard]] GraphNode* get_graph_node() const;
         std::vector<NodeViewConstraint>              m_child_view_constraints;
 		std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
+
         static constexpr const char* k_context_menu_popup = "GraphNodeView.ContextMenu";
+        static constexpr const char* k_operator_menu_label = "Operators";
+        static constexpr const char* k_function_menu_label = "Functions";
 
 		R_DERIVED(GraphNodeView)
         R_EXTENDS(View)

@@ -48,7 +48,7 @@ add_library(
         src/TokenRibbon.cpp
         src/VariableNode.cpp
         src/Variant.cpp
-        src/VM.cpp
+        src/VirtualMachine.cpp
         src/Way.cpp
         src/Wire.cpp src/assembly/QWord.cpp src/assembly/Instruction.cpp src/assembly/Code.cpp)
 

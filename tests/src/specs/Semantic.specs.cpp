@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <nodable/core/Member.h>
-#include <nodable/core/VM.h>
+#include <nodable/core/VirtualMachine.h>
 #include <nodable/core/GraphNode.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/NodeFactory.h>

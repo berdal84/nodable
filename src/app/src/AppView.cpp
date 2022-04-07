@@ -25,8 +25,8 @@ using namespace Nodable::assembly;
 AppView::AppView(IAppCtx& _ctx, const char* _name )
     : View(_ctx)
     , m_logo(nullptr)
-    , m_vm(_ctx.get_vm())
-    , m_settings(_ctx.get_settings())
+    , m_vm(_ctx.virtual_machine())
+    , m_settings(_ctx.settings())
     , m_background_color()
     , m_show_splashscreen(true)
     , m_is_layout_initialized(false)
@@ -85,8 +85,8 @@ bool AppView::init()
     gl3wInit();
 
     // preload images
-    auto path = m_ctx.get_absolute_asset_path(m_settings.ui_splashscreen_imagePath);
-    m_logo = m_ctx.get_texture_manager().get_or_create_from(path);
+    auto path = m_ctx.compute_asset_path(m_settings.ui_splashscreen_imagePath);
+    m_logo = m_ctx.texture_manager().get_or_create_from(path);
 
     // Setup Dear ImGui binding
     IMGUI_CHECKVERSION();
@@ -157,7 +157,7 @@ ImFont* AppView::load_font(const FontConf &_config)
         config.OversampleV = 1;
 
         //io.Fonts->AddFontDefault();
-        std::string fontPath = m_ctx.get_absolute_asset_path(_config.path);
+        std::string fontPath = m_ctx.compute_asset_path(_config.path);
         LOG_VERBOSE("AppView", "Adding font from file ... %s\n", fontPath.c_str())
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.size, &config);
     }
@@ -174,7 +174,7 @@ ImFont* AppView::load_font(const FontConf &_config)
         config.PixelSnapH  = true;
         config.GlyphOffset.y = -(_config.icons_size - _config.size)*0.5f;
         config.GlyphMinAdvanceX = _config.icons_size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = m_ctx.get_absolute_asset_path(m_settings.ui_icons.path);
+        auto fontPath = m_ctx.compute_asset_path(m_settings.ui_icons.path);
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.icons_size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to font ...\n")
     }
@@ -188,7 +188,7 @@ bool AppView::draw()
 {
     bool isMainWindowOpen = true;
     bool redock_all       = false;
-    File* current_file    = m_ctx.get_curr_file();
+    File* current_file    = m_ctx.current_file();
 
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(m_sdl_window);
@@ -723,7 +723,7 @@ void AppView::draw_startup_menu(ImGuiID dockspace_id)
                 if( i++ % 2) ImGui::SameLine();
                 if (ImGui::Button(label.c_str(), small_btn_size))
                 {
-                    std::string each_path = m_ctx.get_absolute_asset_path(path.c_str());
+                    std::string each_path = m_ctx.compute_asset_path(path.c_str());
                     m_ctx.open_file(each_path);
                 }
             }
@@ -764,7 +764,7 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, File* file
 
             if ( ! is_current_file && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
             {
-                m_ctx.set_curr_file(file);
+                m_ctx.current_file(file);
             }
 
             // History bar on top
@@ -809,7 +809,7 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, File* file
 
 void AppView::draw_properties_editor()
 {
-    Settings& settings = m_ctx.get_settings();
+    Settings& settings = m_ctx.settings();
 
     ImGui::Text("Nodable Settings:");
     ImGui::Indent();
@@ -1005,7 +1005,7 @@ void AppView::new_file()
 
 void AppView::save_file()
 {
-    File *curr_file = m_ctx.get_curr_file();
+    File *curr_file = m_ctx.current_file();
 
     if (curr_file->has_path())
     {
@@ -1016,7 +1016,7 @@ void AppView::save_file()
 
 void AppView::save_file_as()
 {
-    File *curr_file = m_ctx.get_curr_file();
+    File *curr_file = m_ctx.current_file();
 
     nfdchar_t *out_path;
     //nfdfilteritem_t filters[4] = {{"File", NULL }, {"Text", "txt" }, {"Source code", "c,cpp,cc" }, {"Headers", "h,hpp" } };
@@ -1146,7 +1146,7 @@ void AppView::handle_events()
                 if ( l_ctrl_pressed )
                 {
 
-                    if (File* file = m_ctx.get_curr_file())
+                    if (File* file = m_ctx.current_file())
                     {
                         History* history = file->get_history();
                              if (key == SDLK_z) history->undo();
@@ -1190,7 +1190,7 @@ void AppView::handle_events()
 }
 void AppView::shutdown()
 {
-    m_ctx.get_texture_manager().release_resources();
+    m_ctx.texture_manager().release_resources();
 
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext    ();
@@ -1203,5 +1203,5 @@ void AppView::shutdown()
 
 void AppView::close_file()
 {
-    m_ctx.close_file( m_ctx.get_curr_file() );
+    m_ctx.close_file(m_ctx.current_file() );
 }

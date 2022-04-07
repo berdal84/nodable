@@ -4,7 +4,7 @@
 
 #include <nodable/core/Node.h>
 #include <nodable/core/Member.h>
-#include <nodable/core/VM.h>
+#include <nodable/core/VirtualMachine.h>
 #include <nodable/core/GraphNode.h>
 #include <nodable/core/Parser.h>
 #include <nodable/core/VariableNode.h>
@@ -23,7 +23,7 @@ namespace Nodable
 
         // prepare
         assembly::Compiler    compiler;
-        vm::VM                vm;
+        VirtualMachine        vm;
         LanguageNodable       lang;
         NodeFactory           factory(&lang);
         bool                  autocompletion = false;
@@ -68,7 +68,7 @@ namespace Nodable
         bool                  autocompletion = false;
         GraphNode             graph(&lang, &factory, &autocompletion);
         assembly::Compiler    compiler;
-        vm::VM                vm;
+        VirtualMachine        vm;
 
         // act
         lang.get_parser().parse_graph(expression, &graph);

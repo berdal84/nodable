@@ -24,13 +24,14 @@ using namespace Nodable::R;
 
 bool GraphNodeView::draw()
 {
-    bool           edited         = false;
-    const bool     enable_edition = !m_ctx.is_running_program();
-    Node*          new_node       = nullptr;
-    Settings&      settings       = m_ctx.get_settings();
-    GraphNode*     graph          = get_graph_node();
-    const NodeVec& node_registry  = graph->get_node_registry();
-	vec2           origin         = ImGui::GetCursorScreenPos();
+    bool            edited           = false;
+    VirtualMachine& virtual_machine  = m_ctx.virtual_machine();
+    const bool      enable_edition   = virtual_machine.is_program_stopped();
+    Node*           new_node         = nullptr;
+    Settings&       settings         = m_ctx.settings();
+    GraphNode*      graph            = get_graph_node();
+    const NodeVec&  node_registry    = graph->get_node_registry();
+	vec2            origin           = ImGui::GetCursorScreenPos();
 
 	const MemberConnector* dragged_member_conn = MemberConnector::get_gragged();
     const MemberConnector* hovered_member_conn = MemberConnector::get_hovered();
@@ -67,7 +68,7 @@ bool GraphNodeView::draw()
                 }
                 else
                 {
-                    std::shared_ptr<const R::Meta_t> dragged_member_type = dragged_member_conn->get_member_type();
+                    Meta_t_csptr dragged_member_type = dragged_member_conn->get_member_type();
 
                     if ( dragged_member_conn->m_way == Way_Out )
                     {
@@ -301,7 +302,7 @@ bool GraphNodeView::draw()
                 eachNodeView->enable_edition(enable_edition);
                 edited |= eachNodeView->draw();
 
-                if( m_ctx.is_debugging_program() && m_ctx.is_next_node_in_program( eachNodeView->get_owner() ) )
+                if( virtual_machine.is_debugging() && virtual_machine.is_next_node(eachNodeView->get_owner() ) )
                 {
                     ImGui::SetScrollHere();
                 }
@@ -324,9 +325,9 @@ bool GraphNodeView::draw()
 	isAnyNodeDragged |= MemberConnector::is_dragging();
 
 	// Virtual Machine cursor
-    if ( m_ctx.is_running_program())
+    if ( virtual_machine.is_program_running() )
     {
-        auto node = m_ctx.get_vm().get_next_node();
+        const Node* node = virtual_machine.get_next_node();
         if( auto view = node->get<NodeView>())
         {
             vec2 vm_cursor_pos = view->get_screen_position();
@@ -337,25 +338,15 @@ bool GraphNodeView::draw()
             draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
 
             vec2 linePos = vm_cursor_pos + vec2(- 10.0f, 0.5f);
-            linePos += vec2(sin( float(m_ctx.get_elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
+            linePos += vec2(sin(float(m_ctx.elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
             float size = 20.0f;
             float width = 2.0f;
             ImColor color = ImColor(255,255,255);
-            draw_list->AddLine(
-                    linePos- vec2(1.f, 0.0f),
-                    linePos - vec2(size, 0.0f),
-                    color,
-                    width);
-            draw_list->AddLine(
-                    linePos,
-                    linePos - vec2(size * 0.5f, -size * 0.5f),
-                    color,
-                    width);
-            draw_list->AddLine(
-                    linePos,
-                    linePos - vec2(size * 0.5f, size * 0.5f),
-                    color,
-                    width);
+
+            // arrow ->
+            draw_list->AddLine( linePos - vec2(1.f, 0.0f), linePos - vec2(size, 0.0f), color, width);
+            draw_list->AddLine( linePos, linePos - vec2(size * 0.5f, -size * 0.5f), color, width);
+            draw_list->AddLine( linePos, linePos - vec2(size * 0.5f, size * 0.5f) , color, width);
         }
     }
 
@@ -373,10 +364,12 @@ bool GraphNodeView::draw()
 	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged )
     {
         auto drag = ImGui::GetMouseDragDelta();
-        for (auto eachNode : node_registry)
+        for (auto each_node : node_registry)
         {
-            if (auto view = eachNode->get<NodeView>() )
-                view->translate(drag);
+            if (auto node_view = each_node->get<NodeView>() )
+            {
+                node_view->translate(drag);
+            }
         }
         ImGui::ResetMouseDragDelta();
     }
@@ -393,8 +386,8 @@ bool GraphNodeView::draw()
 
 		if ( !dragged_node_conn )
 		{
-		    draw_invocable_menu( dragged_member_conn, "Operators");
-            draw_invocable_menu( dragged_member_conn, "Functions");
+		    draw_invocable_menu( dragged_member_conn, k_operator_menu_label );
+            draw_invocable_menu( dragged_member_conn, k_function_menu_label );
             ImGui::Separator();
         }
 
@@ -516,7 +509,7 @@ bool GraphNodeView::draw()
                 }
                 MemberConnector::stop_drag();
             }
-            else if ( new_node != graph->get_root() && m_ctx.get_settings().experimental_graph_autocompletion )
+            else if ( new_node != graph->get_root() && m_ctx.settings().experimental_graph_autocompletion )
             {
                 graph->ensure_has_root();
                 // graph->connect( new_node, graph->get_root(), RelType::IS_CHILD_OF  );
@@ -665,7 +658,7 @@ void GraphNodeView::set_owner(Node *_owner)
 
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
     auto graphNode = _owner->as<GraphNode>();
-    const Language& language = m_ctx.get_language();
+    const Language& language = m_ctx.language();
     const auto functions     = language.get_api();
 
     for (auto it = functions.cbegin(); it != functions.cend(); it++)
@@ -677,7 +670,7 @@ void GraphNodeView::set_owner(Node *_owner)
         std::string label;
         language.get_serializer().serialize(label, signature);
 
-        std::string category = signature->is_operator() ? "Operators" : "Functions";
+        std::string category = signature->is_operator() ? k_operator_menu_label : k_function_menu_label;
         
         auto create_node = [graphNode, invokable]() -> Node*
         {

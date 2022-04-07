@@ -24,10 +24,7 @@ namespace Nodable
     class Language;
     class Texture;
     class Settings;
-    namespace vm
-    {
-        class VM;
-    }
+    class VirtualMachine;
     class Texture;
 
 	/*
@@ -64,7 +61,7 @@ namespace Nodable
         ImFont* get_font_by_id(const char *id);
 
         Texture*           m_logo;
-        vm::VM&            m_vm;
+        VirtualMachine&    m_vm;
         Settings&          m_settings;
         SDL_Window*        m_sdl_window;
         std::string        m_sdl_window_name;
