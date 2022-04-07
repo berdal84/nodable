@@ -4,64 +4,82 @@
 #include <string>
 #include <memory>
 #include <future>
-#include <ghc/filesystem.hpp>
 
 // Nodable
 #include <nodable/core/VM.h>
 #include <nodable/core/reflection/R.h>
 #include <nodable/app/types.h>
 #include <nodable/app/Settings.h>
+#include <nodable/core/Language.h>
+#include <nodable/core/Texture.h>
+#include "IAppCtx.h"
 
 namespace Nodable
 {
     // forward declarations
     class AppView;
     class File;
-    class AppContext;
 
-	class App
+	class App : public IAppCtx
 	{
 	public:
-        using fs_path = ghc::filesystem::path;
 
-		explicit App();
-		~App();
+		App();
+		~App() override;
 
 		bool            init();
 		void            shutdown();
 		void            update();
 		void            draw();
-		void            flag_to_stop();
         bool            should_stop() const { return m_should_stop; }
-		bool            open_file(const fs_path& _filePath);
-        std::string     get_absolute_asset_path(const char* _relative_path)const;
-		File*           new_file();
-		void            save_file()const;
-		void            close_file();
-        void            close_file_at(size_t _fileIndex);
-		File*           get_curr_file()const;
-		size_t          get_file_count()const;
-		File*           get_file_at(size_t _index)const;
-        size_t          get_curr_file_index()const;
-		void            set_curr_file(size_t _index);
-        void            vm_run();
-        void            vm_debug();
-        void            vm_step_over();
-        void            vm_stop();
-        void            vm_reset();
-        bool            vm_compile_and_load_program();
 
-		void save_file_as(const fs_path &_path);
+        // IAppCtx implementation
+        bool            is_debugging_program() const override { return m_vm.is_debugging(); }
+        bool            is_next_node_in_program(Node* _node) const override { return m_vm.get_next_node() == _node; }
+        bool            open_file(const fs_path& _filePath)override;
+        File*           new_file()override;
+        void            save_file()const override;
+        void            save_file_as(const fs_path &_path) override;
+        void            close_file(File*) override;
+        bool            is_current(const File* _file ) const override { return m_current_file == _file; }
+        void            set_curr_file(size_t _index) override;
+        void            set_curr_file(File *_file) override;
+        const std::vector<File*>& get_files() const override { return m_loaded_files; }
+        bool            has_files() const override { return m_loaded_files.empty(); }
+        File*           get_curr_file()const override;
+        bool            is_running_program() const override { return m_vm.is_program_running(); }
+        void            run_program() override;
+        void            debug_program() override;
+        void            step_over_program() override;
+        void            stop_program() override;
+        void            reset_program() override;
+        bool            compile_and_load_program() override;
+        void            flag_to_stop() override;
+        u64_t           get_elapsed_time() const override { return m_start_time.time_since_epoch().count(); };
+        std::string     get_absolute_asset_path(const char* _relative_path)const override;
+        Settings&       get_settings() override { return m_settings; }
+        vm::VM&         get_vm() override { return m_vm; }
+        Language&       get_language() override { return *m_language.get(); }
+        TextureManager& get_texture_manager() override { return m_texture_manager; };
 
-	private:
-	    AppView*        m_view;
-        AppContext*     m_context;
-		bool            m_should_stop;
-		size_t          m_current_file_index;
-        std::vector<File*> m_loaded_files;
-        fs_path            m_executable_folder_path;
-        fs_path            m_assets_folder_path;
+    private:
+        const std::chrono::time_point<std::chrono::system_clock>
+                        m_start_time = std::chrono::system_clock::now();
+
+        R::Initialiser  m_reflect;
+        Settings        m_settings;
+        vm::VM          m_vm;
+        TextureManager  m_texture_manager;
+        bool            m_should_stop;
+        size_t          m_current_file_index;
+        File*           m_current_file;
+        fs_path         m_executable_folder_path;
+        fs_path         m_assets_folder_path;
+        std::vector<File*>        m_loaded_files;
+        std::unique_ptr<Language> m_language;
+        std::unique_ptr<AppView>  m_view;
 
         void            handle_events();
-	};
+
+    };
 }

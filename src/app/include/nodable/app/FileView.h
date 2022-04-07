@@ -11,12 +11,12 @@ namespace Nodable
 {
     // forward declarations
     class File;
-    class AppContext;
+    class IAppCtx;
 
 	class FileView : public View
 	{
 	public:
-		explicit FileView(AppContext* _ctx, File* _file);
+		explicit FileView(IAppCtx& _ctx, File& _file);
 		~FileView() override = default;
 
 		void                           init();
@@ -34,7 +34,7 @@ namespace Nodable
         void                           experimental_clipboard_auto_paste(bool);
         bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
 	private:
-		File*        m_file;
+		File&        m_file;
 		TextEditor   m_text_editor;
 		bool         m_text_has_changed;
 		float        m_child1_size;

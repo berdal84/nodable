@@ -4,7 +4,7 @@
 #include <nodable/core/Node.h>
 #include <nodable/core/GraphNode.h>
 #include <nodable/app/Settings.h>
-#include <nodable/app/AppContext.h>
+#include <nodable/app/IAppCtx.h>
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "nodable/app/Event.h"
@@ -81,13 +81,13 @@ bool NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
 
 ImRect NodeConnector::get_rect() const
 {
-    Settings* settings = m_context->settings;
-    vec2 leftCornerPos = m_way == Way_In ? m_node_view->get_rect().GetTL() : m_node_view->get_rect().GetBL();
+    Settings& settings = m_ctx.get_settings();
+    vec2 leftCornerPos = m_way == Way_In ? m_node_view.get_rect().GetTL() : m_node_view.get_rect().GetBL();
 
-    vec2 size(settings->ui_node_connector_width, settings->ui_node_connector_height);
+    vec2 size(settings.ui_node_connector_width, settings.ui_node_connector_height);
     ImRect rect(leftCornerPos, leftCornerPos + size);
     rect.Translate(vec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
-    rect.Expand(vec2(- settings->ui_node_connector_padding, 0.0f));
+    rect.Expand(vec2(- settings.ui_node_connector_padding, 0.0f));
     return rect;
 }
 
@@ -129,6 +129,6 @@ Node* NodeConnector::get_connected_node() const
 
 Node* NodeConnector::get_node()const
 {
-    return m_node_view->get_owner();
+    return m_node_view.get_owner();
 }
 

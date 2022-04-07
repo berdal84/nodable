@@ -25,9 +25,9 @@ using namespace Nodable::R;
 bool GraphNodeView::draw()
 {
     bool           edited         = false;
-    const bool     enable_edition = m_context->vm->is_program_stopped();
+    const bool     enable_edition = !m_ctx.is_running_program();
     Node*          new_node       = nullptr;
-    Settings*      settings       = m_context->settings;
+    Settings&      settings       = m_ctx.get_settings();
     GraphNode*     graph          = get_graph_node();
     const NodeVec& node_registry  = graph->get_node_registry();
 	vec2           origin         = ImGui::GetCursorScreenPos();
@@ -144,23 +144,23 @@ bool GraphNodeView::draw()
             if (each_view && each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
             {
                 float viewWidthMin = std::min(each_successor_view->get_rect().GetSize().x, each_view->get_rect().GetSize().x);
-                float lineWidth = std::min(settings->ui_node_connector_width,
+                float lineWidth = std::min(settings.ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
                 vec2 start = each_view->get_screen_position();
                 start.x -= std::max(each_view->get_size().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
                 start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
                 start.y += each_view->get_size().y * 0.5f; // align bottom
-                start.y += settings->ui_node_connector_height * 0.25f;
+                start.y += settings.ui_node_connector_height * 0.25f;
 
                 vec2 end = each_successor_view->get_screen_position();
                 end.x -= each_successor_view->get_size().x * 0.5f;
                 end.x += lineWidth * 0.5f;
                 end.y -= each_successor_view->get_size().y * 0.5f; // align top
-                end.y -= settings->ui_node_connector_height * 0.25f;
+                end.y -= settings.ui_node_connector_height * 0.25f;
 
-                ImColor color(settings->ui_codeFlow_lineColor);
-                ImColor shadowColor(settings->ui_codeFlow_lineShadowColor);
+                ImColor color(settings.ui_codeFlow_lineColor);
+                ImColor shadowColor(settings.ui_codeFlow_lineShadowColor);
                 ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,
                                           lineWidth - linePadding * 2.0f, 0.0f);
             }
@@ -177,9 +177,9 @@ bool GraphNodeView::draw()
             vec2 src = dragged_member_conn->get_pos();
             vec2 dst = hovered_member_conn ? hovered_member_conn->get_pos() : ImGui::GetMousePos();
             ImGui::GetWindowDrawList()->AddLine(
-                src, dst,
-                getColor(Color_BorderHighlights),
-                settings->ui_wire_bezier_thickness
+                    src, dst,
+                    get_color(Color_BorderHighlights),
+                    settings.ui_wire_bezier_thickness
                 );
         }
 
@@ -191,9 +191,9 @@ bool GraphNodeView::draw()
             ImGuiEx::DrawVerticalWire(
                 ImGui::GetWindowDrawList(),
                 src, dst,
-                settings->ui_codeFlow_lineColor,
-                settings->ui_codeFlow_lineShadowColor,
-                settings->ui_node_connector_width,
+                settings.ui_codeFlow_lineColor,
+                settings.ui_codeFlow_lineShadowColor,
+                settings.ui_node_connector_width,
                 0.f // roundness
                 );
         }
@@ -266,10 +266,10 @@ bool GraphNodeView::draw()
                                     ImGuiEx::DrawVerticalWire(
                                             ImGui::GetWindowDrawList(),
                                             src_pos, dst_pos,
-                                            settings->ui_codeFlow_lineColor,
-                                            settings->ui_codeFlow_lineShadowColor,
-                                            settings->ui_wire_bezier_thickness * 3.0f,
-                                            settings->ui_wire_bezier_roundness * 0.25f);
+                                            settings.ui_codeFlow_lineColor,
+                                            settings.ui_codeFlow_lineShadowColor,
+                                            settings.ui_wire_bezier_thickness * 3.0f,
+                                            settings.ui_wire_bezier_roundness * 0.25f);
                                 }
                                 // curved thin for the others
                                 else
@@ -277,10 +277,10 @@ bool GraphNodeView::draw()
                                     ImGuiEx::DrawVerticalWire(
                                             ImGui::GetWindowDrawList(),
                                             src_pos, dst_pos,
-                                            settings->ui_wire_fillColor,
-                                            settings->ui_wire_shadowColor,
-                                            settings->ui_wire_bezier_thickness,
-                                            settings->ui_wire_bezier_roundness);
+                                            settings.ui_wire_fillColor,
+                                            settings.ui_wire_shadowColor,
+                                            settings.ui_wire_bezier_thickness,
+                                            settings.ui_wire_bezier_roundness);
                                 }
                             }
                         }
@@ -301,8 +301,10 @@ bool GraphNodeView::draw()
                 eachNodeView->enable_edition(enable_edition);
                 edited |= eachNodeView->draw();
 
-                if(m_context->vm && m_context->vm->is_debugging() && m_context->vm->get_next_node() == eachNodeView->get_owner())
-                    ImGui::SetScrollHereY();
+                if( m_ctx.is_debugging_program() && m_ctx.is_next_node_in_program( eachNodeView->get_owner() ) )
+                {
+                    ImGui::SetScrollHere();
+                }
 
                 // dragging
                 if (NodeView::get_dragged() == eachNodeView && ImGui::IsMouseDragging(0))
@@ -313,7 +315,7 @@ bool GraphNodeView::draw()
                 }
 
                 isAnyNodeDragged |= NodeView::get_dragged() == eachNodeView;
-                isAnyNodeHovered |= eachNodeView->isHovered();
+                isAnyNodeHovered |= eachNodeView->is_hovered();
             }
 		}
 	}
@@ -322,44 +324,40 @@ bool GraphNodeView::draw()
 	isAnyNodeDragged |= MemberConnector::is_dragging();
 
 	// Virtual Machine cursor
-	if( m_context->vm )
+    if ( m_ctx.is_running_program())
     {
-	    if ( !m_context->vm->is_program_stopped())
+        auto node = m_ctx.get_vm().get_next_node();
+        if( auto view = node->get<NodeView>())
         {
-	        auto node = m_context->vm->get_next_node();
-	        if( auto view = node->get<NodeView>())
-            {
-	            vec2 vm_cursor_pos = view->get_screen_position();
-	            vm_cursor_pos += view->get_member_view(node->get_this_member())->relative_pos();
-	            vm_cursor_pos.x -= view->get_size().x * 0.5f;
+            vec2 vm_cursor_pos = view->get_screen_position();
+            vm_cursor_pos += view->get_member_view(node->get_this_member())->relative_pos();
+            vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
-	            auto draw_list = ImGui::GetWindowDrawList();
-	            draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
+            auto draw_list = ImGui::GetWindowDrawList();
+            draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
 
-	            vec2 linePos = vm_cursor_pos + vec2(- 10.0f, 0.5f);
-                linePos += vec2( sin(m_context->elapsed_time * 12.0f ) * 4.0f, 0.f ); // wave
-	            float size = 20.0f;
-	            float width = 2.0f;
-	            ImColor color = ImColor(255,255,255);
-	            draw_list->AddLine(
-	                    linePos- vec2(1.f, 0.0f),
-                        linePos - vec2(size, 0.0f),
-                        color,
-                        width);
-                draw_list->AddLine(
-                        linePos,
-                        linePos - vec2(size * 0.5f, -size * 0.5f),
-                        color,
-                        width);
-                draw_list->AddLine(
-                        linePos,
-                        linePos - vec2(size * 0.5f, size * 0.5f),
-                        color,
-                        width);
-            }
+            vec2 linePos = vm_cursor_pos + vec2(- 10.0f, 0.5f);
+            linePos += vec2(sin( float(m_ctx.get_elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
+            float size = 20.0f;
+            float width = 2.0f;
+            ImColor color = ImColor(255,255,255);
+            draw_list->AddLine(
+                    linePos- vec2(1.f, 0.0f),
+                    linePos - vec2(size, 0.0f),
+                    color,
+                    width);
+            draw_list->AddLine(
+                    linePos,
+                    linePos - vec2(size * 0.5f, -size * 0.5f),
+                    color,
+                    width);
+            draw_list->AddLine(
+                    linePos,
+                    linePos - vec2(size * 0.5f, size * 0.5f),
+                    color,
+                    width);
         }
     }
-
 
 	/*
 		Deselection (by double click)
@@ -518,7 +516,7 @@ bool GraphNodeView::draw()
                 }
                 MemberConnector::stop_drag();
             }
-            else if ( new_node != graph->get_root() && m_context->settings->experimental_graph_autocompletion )
+            else if ( new_node != graph->get_root() && m_ctx.get_settings().experimental_graph_autocompletion )
             {
                 graph->ensure_has_root();
                 // graph->connect( new_node, graph->get_root(), RelType::IS_CHILD_OF  );
@@ -595,7 +593,7 @@ void GraphNodeView::update_child_view_constraints()
             Node::get_components<NodeView>(predecessor_nodes, predecessor_node_views);
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_class()->is_not_child_of<IConditionalStruct>() )
             {
-                NodeViewConstraint constraint(m_context, NodeViewConstraint::Type::FollowWithChildren);
+                NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::FollowWithChildren);
                 constraint.add_drivers(predecessor_node_views);
                 constraint.add_target(each_node_view);
                 each_node_view->add_constraint(constraint);
@@ -607,7 +605,7 @@ void GraphNodeView::update_child_view_constraints()
             NodeViewVec children = each_node_view->children_slots().content();
             if( !children.empty() && clss->is_child_of<IConditionalStruct>() )
             {
-                NodeViewConstraint constraint(m_context,NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
+                NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::MakeRowAndAlignOnBBoxBottom);
                 constraint.add_driver(each_node_view);
                 constraint.add_targets(children);
 
@@ -624,7 +622,7 @@ void GraphNodeView::update_child_view_constraints()
 
             if ( !each_node_view->input_slots().empty() )
             {
-                NodeViewConstraint constraint(m_context,NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
+                NodeViewConstraint constraint(m_ctx, NodeViewConstraint::Type::MakeRowAndAlignOnBBoxTop);
                 constraint.add_driver(each_node_view);
                 constraint.add_targets(each_node_view->input_slots().content());
                 each_node_view->add_constraint(constraint);
@@ -667,17 +665,17 @@ void GraphNodeView::set_owner(Node *_owner)
 
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
     auto graphNode = _owner->as<GraphNode>();
-    const Language* language = m_context->language;
-    const auto functions = m_context->language->get_api();
+    const Language& language = m_ctx.get_language();
+    const auto functions     = language.get_api();
 
     for (auto it = functions.cbegin(); it != functions.cend(); it++)
     {
         const IInvokable* invokable    = *it;
         const Signature*  signature    = invokable->get_signature();
-        const IInvokable* operator_fct = language->find_operator_fct(signature);
+        const IInvokable* operator_fct = language.find_operator_fct(signature);
 
         std::string label;
-        language->get_serializer()->serialize(label, signature);
+        language.get_serializer()->serialize(label, signature);
 
         std::string category = signature->is_operator() ? "Operators" : "Functions";
         

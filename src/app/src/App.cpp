@@ -7,7 +7,7 @@
 #include <nodable/app/NodeView.h>
 #include <nodable/app/AppView.h>
 #include <nodable/app/File.h>
-#include <nodable/app/AppContext.h>
+#include <nodable/app/IAppCtx.h>
 #include <nodable/app/Event.h>
 #include <nodable/app/commands/Cmd_ConnectMembers.h>
 #include <nodable/app/MemberConnector.h>
@@ -17,26 +17,27 @@
 #include <nodable/app/commands/Cmd_DisconnectMembers.h>
 #include <nodable/app/commands/Cmd_Group.h>
 #include <nodable/core/System.h>
+#include <nodable/core/languages/Nodable.h>
 
 using namespace Nodable;
 
 App::App()
-    : m_current_file_index(0)
+    : m_reflect()  // ---------------- order is important here
+    , m_settings() // --
+    , m_current_file_index(0)
+    , m_current_file(nullptr)
     , m_should_stop(false)
+    , m_language( std::make_unique<LanguageNodable>() )
+    , m_executable_folder_path( ghc::filesystem::path( System::get_executable_directory() ) )
+    , m_assets_folder_path( m_executable_folder_path / BuildInfo::assets_dir )
+    , m_view( std::make_unique<AppView>(*this, BuildInfo::version_extended) )
 {
-    m_executable_folder_path = ghc::filesystem::path( System::get_executable_directory() );
-    m_assets_folder_path     =  m_executable_folder_path / BuildInfo::assets_dir;
     LOG_MESSAGE("App", "Executable folder path: %s\n", m_executable_folder_path.c_str() )
     LOG_MESSAGE("App", "Asset folder path:      %s\n", m_assets_folder_path.c_str() )
-    Nodable::R::init(); // Reflection system.
-    m_context = AppContext::create_default(this);
-	m_view = new AppView(m_context, BuildInfo::version_extended);
 }
 
 App::~App()
 {
-	delete m_view;
-	delete m_context;
 }
 
 bool App::init()
@@ -66,7 +67,7 @@ void App::shutdown()
 
 bool App::open_file(const fs_path& _path)
 {
-    File* file = new File(_path.filename().string(), m_context, _path.string());
+    File* file = new File( *this, _path.filename().string(), _path.string());
 
     if ( !file->read_from_disk() )
     {
@@ -104,24 +105,21 @@ void App::save_file_as(const fs_path &_path)
     }
 }
 
-void App::close_file()
+File* App::get_curr_file()const
 {
-    close_file_at(m_current_file_index);
+	return m_current_file;
 }
 
-File* App::get_curr_file()const {
-
-	if (m_loaded_files.size() > m_current_file_index) {
-		return m_loaded_files.at(m_current_file_index);
-	}
-	return nullptr;
+void App::set_curr_file(File* _file)
+{
+    m_current_file       = _file;
 }
 
 void App::set_curr_file(size_t _index)
 {
 	if (m_loaded_files.size() > _index)
 	{
-        m_current_file_index = _index;
+        set_curr_file( m_loaded_files[_index] );
 	}
 }
 
@@ -131,37 +129,28 @@ std::string App::get_absolute_asset_path(const char* _relative_path)const
 	return result.string();
 }
 
-size_t App::get_file_count() const
+void App::close_file(File* _file)
 {
-	return m_loaded_files.size();
-}
-
-File *App::get_file_at(size_t _index) const
-{
-	return m_loaded_files[_index];
-}
-
-size_t App::get_curr_file_index() const
-{
-	return m_current_file_index;
-}
-
-void App::close_file_at(size_t _fileIndex)
-{
-    auto currentFile = m_loaded_files.at(_fileIndex);
-    if (currentFile != nullptr)
+    if ( _file )
     {
-        auto it = std::find(m_loaded_files.begin(), m_loaded_files.end(), currentFile);
-        m_loaded_files.erase(it);
-        delete currentFile;
-        if (m_current_file_index > 0)
-            set_curr_file(m_current_file_index - 1);
+        auto it = std::find(m_loaded_files.begin(), m_loaded_files.end(), _file);
+        NODABLE_ASSERT(it != m_loaded_files.end());
+        it = m_loaded_files.erase(it);
+
+        if ( it != m_loaded_files.end() ) //---- try to load the file next
+        {
+            m_current_file = *it;
+        }
         else
-            set_curr_file(m_current_file_index);
+        {
+            m_current_file = nullptr;
+        }
+
+        delete _file;
     }
 }
 
-bool App::vm_compile_and_load_program()
+bool App::compile_and_load_program()
 {
     const GraphNode* graph = nullptr;
 
@@ -177,9 +166,9 @@ bool App::vm_compile_and_load_program()
 
         if (asm_code)
         {
-            m_context->vm->release_program();
+            m_vm.release_program();
 
-            if (m_context->vm->load_program(std::move(asm_code)))
+            if (m_vm.load_program(std::move(asm_code)))
             {
                 return true;
             }
@@ -189,46 +178,48 @@ bool App::vm_compile_and_load_program()
     return false;
 }
 
-void App::vm_run()
+void App::run_program()
 {
-    if ( vm_compile_and_load_program() )
+    if (compile_and_load_program() )
     {
-        m_context->vm->run_program();
+        m_vm.run_program();
     }
 }
 
-void App::vm_debug()
+void App::debug_program()
 {
-    if ( vm_compile_and_load_program() )
+    if (compile_and_load_program() )
     {
-        m_context->vm->debug_program();
+        m_vm.debug_program();
     }
 }
 
-void App::vm_step_over()
+void App::step_over_program()
 {
-    m_context->vm->step_over();
-    if (!m_context->vm->is_there_a_next_instr() )
+    m_vm.step_over();
+    if (!m_vm.is_there_a_next_instr() )
     {
         NodeView::set_selected(nullptr);
     }
-    else if ( auto view = m_context->vm->get_next_node()->get<NodeView>() )
+    else if ( auto view = m_vm.get_next_node()->get<NodeView>() )
     {
         NodeView::set_selected(view);
     }
 }
 
-void App::vm_stop()
+void App::stop_program()
 {
-    m_context->vm->stop_program();
+    m_vm.stop_program();
 }
 
-void App::vm_reset()
+void App::reset_program()
 {
     if ( auto currFile = get_curr_file() )
     {
-        if(m_context->vm->is_program_running())
-            m_context->vm->stop_program();
+        if ( m_vm.is_program_running() )
+        {
+            m_vm.stop_program();
+        }
 
         // TODO: restore graph state without parsing again like that:
         currFile->update_graph();
@@ -402,14 +393,9 @@ void App::draw()
 
 File *App::new_file()
 {
-    auto file = new File("Untitled", m_context);
-
-    if (file)
-    {
-        m_loaded_files.push_back(file);
-        set_curr_file(m_loaded_files.size() - 1);
-    }
+    auto file = new File( *this, "Untitled");
+    m_loaded_files.push_back(file);
+    set_curr_file(m_loaded_files.size() - 1);
 
     return file;
 }
-

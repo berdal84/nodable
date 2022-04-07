@@ -95,6 +95,13 @@ namespace Nodable { namespace R
             return dynamic_cast<Dst*>(_source);
         return nullptr;
     };
+
+    /** Simple struct to initialise R */
+    struct Initialiser
+    {
+        Initialiser();
+    };
+
 } // namespace R
 /** declare some correspondence between type and typeenum */
     R_DECLARE_LINK("double" , double      , Nodable::R::Type::double_t )

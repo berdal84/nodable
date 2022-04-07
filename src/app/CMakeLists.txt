@@ -27,7 +27,6 @@ add_executable(
     WIN32
         src/main.cpp
         src/App.cpp
-        src/AppContext.cpp
         src/AppView.cpp
         src/Event.cpp
         src/File.cpp

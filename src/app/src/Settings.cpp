@@ -1,24 +1,13 @@
 #include <nodable/app/Settings.h>
 #include <imgui/imgui.h>
 #include <string>
-#include <fstream>
-#include <nodable/core/Log.h>
-#include <nodable/app/App.h>
 
 using namespace Nodable;
 
-Settings* Settings::create_default()
+Settings::Settings()
 {
-    Settings* settings = new Settings();
-
-    // TODO: create themes
-
-    // main layout
-    settings->ui_layout_propertiesRatio = 0.25f;
-
-    // splashscreen
-    settings->ui_splashscreen_imagePath = "images/nodable-logo-xs.png";
-
+    ui_layout_propertiesRatio = 0.25f;
+    ui_splashscreen_imagePath = "images/nodable-logo-xs.png";
 
     {
         constexpr const char *k_paragraph = "Paragraph";
@@ -26,7 +15,7 @@ Settings* Settings::create_default()
         constexpr const char *k_code      = "Code";
         constexpr const char *k_tool      = "Tool Button";
 
-        settings->ui_text_fonts = {
+        ui_text_fonts = {
             // id          , font_path                          , size , icons? , icons size
             { k_paragraph  , "fonts/JetBrainsMono-Medium.ttf"   , 18.0f, true   , 18.0f      },
             { k_heading    , "fonts/JetBrainsMono-Bold.ttf"     , 25.0f, true   , 18.0f      },
@@ -34,15 +23,15 @@ Settings* Settings::create_default()
             { k_tool       , "fonts/JetBrainsMono-Bold.ttf"     , 16.0f, true   , 14.0f      }
         };
 
-        settings->ui_text_defaultFontsId[FontSlot_Paragraph] = k_paragraph;
-        settings->ui_text_defaultFontsId[FontSlot_Heading]   = k_heading;
-        settings->ui_text_defaultFontsId[FontSlot_Code]      = k_code;
-        settings->ui_text_defaultFontsId[FontSlot_ToolBtn]   = k_tool;
+        ui_text_defaultFontsId[FontSlot_Paragraph] = k_paragraph;
+        ui_text_defaultFontsId[FontSlot_Heading]   = k_heading;
+        ui_text_defaultFontsId[FontSlot_Code]      = k_code;
+        ui_text_defaultFontsId[FontSlot_ToolBtn]   = k_tool;
     }
-    settings->ui_icons = { "Icons", "fonts/fa-solid-900.ttf" };
+    ui_icons = { "Icons", "fonts/fa-solid-900.ttf" };
 
 
-    settings->ui_text_textEditorPalette       = {
+    ui_text_textEditorPalette       = {
             0xffffffff, // None
             0xffd69c56, // Keyword
             0xff00ff00, // Number
@@ -67,52 +56,50 @@ Settings* Settings::create_default()
     };
 
     // nodes
-    settings->ui_node_padding                = 6.0f;
-    settings->ui_node_memberConnectorRadius  = 5.0f;
-    settings->ui_node_invokableColor         = ImColor(255, 199, 115);          // light orange
-    settings->ui_node_variableColor          = ImColor( 171, 190, 255);         // blue
-    settings->ui_node_instructionColor       = vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
-    settings->ui_node_literalColor           = vec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
-    settings->ui_node_fillColor              = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    settings->ui_node_highlightedColor       = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    settings->ui_node_borderColor            = vec4(0.2f, 0.2f, 0.2f, 1.0f);
-    settings->ui_node_borderHighlightedColor = vec4(1.0f, 1.0f, 1.0f, 0.8f);
-    settings->ui_node_shadowColor            = vec4(0.0f, 0.0f, 0.0f, 0.2f);
-    settings->ui_node_nodeConnectorHoveredColor = ImColor(200, 200, 200);
-    settings->ui_node_nodeConnectorColor     = ImColor(127, 127, 127);
-    settings->ui_node_spacing                = 30.0f;
-    settings->ui_node_speed                  = 30.0f;
-    settings->ui_node_connector_height       = 20.0f;
-    settings->ui_node_connector_padding      = 2.0f;
-    settings->ui_node_connector_width        = settings->ui_node_connector_height;
+    ui_node_padding                = 6.0f;
+    ui_node_memberConnectorRadius  = 5.0f;
+    ui_node_invokableColor         = ImColor(255, 199, 115);          // light orange
+    ui_node_variableColor          = ImColor( 171, 190, 255);         // blue
+    ui_node_instructionColor       = vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
+    ui_node_literalColor           = vec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
+    ui_node_fillColor              = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ui_node_highlightedColor       = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ui_node_borderColor            = vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    ui_node_borderHighlightedColor = vec4(1.0f, 1.0f, 1.0f, 0.8f);
+    ui_node_shadowColor            = vec4(0.0f, 0.0f, 0.0f, 0.2f);
+    ui_node_nodeConnectorHoveredColor = ImColor(200, 200, 200);
+    ui_node_nodeConnectorColor     = ImColor(127, 127, 127);
+    ui_node_spacing                = 30.0f;
+    ui_node_speed                  = 30.0f;
+    ui_node_connector_height       = 20.0f;
+    ui_node_connector_padding      = 2.0f;
+    ui_node_connector_width        = ui_node_connector_height;
 
     // wires
-    settings->ui_wire_bezier_roundness        = 0.5f;
-    settings->ui_wire_bezier_thickness        = 2.0f;
-    settings->ui_wire_displayArrows           = false;
-    settings->ui_wire_fillColor               = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    settings->ui_wire_shadowColor             = settings->ui_node_shadowColor;
+    ui_wire_bezier_roundness        = 0.5f;
+    ui_wire_bezier_thickness        = 2.0f;
+    ui_wire_displayArrows           = false;
+    ui_wire_fillColor               = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ui_wire_shadowColor             = ui_node_shadowColor;
 
     // code flow
-    settings->ui_codeFlow_lineColor           = ImColor(200, 255, 200, 50);
-    settings->ui_codeFlow_lineShadowColor     = ImColor(0, 0, 0, 64);
+    ui_codeFlow_lineColor           = ImColor(200, 255, 200, 50);
+    ui_codeFlow_lineShadowColor     = ImColor(0, 0, 0, 64);
 
     // buttons
-    settings->ui_button_color                 = vec4(0.50f, 0.50f, 0.50f, 0.63f);
-    settings->ui_button_hoveredColor          = vec4(0.70f, 0.70f, 0.70f, 0.95f);
-    settings->ui_button_activeColor           = vec4(0.98f, 0.73f, 0.29f, 0.95f);
-    settings->ui_toolButton_size              = vec2(0.0f, 25.0f);
+    ui_button_color                 = vec4(0.50f, 0.50f, 0.50f, 0.63f);
+    ui_button_hoveredColor          = vec4(0.70f, 0.70f, 0.70f, 0.95f);
+    ui_button_activeColor           = vec4(0.98f, 0.73f, 0.29f, 0.95f);
+    ui_toolButton_size              = vec2(0.0f, 25.0f);
 
     // history
-    settings->ui_history_btn_spacing            = 1.f;
-    settings->ui_history_btn_height             = 10.f;
-    settings->ui_history_btn_width_max          = 20.f;
+    ui_history_btn_spacing            = 1.f;
+    ui_history_btn_height             = 10.f;
+    ui_history_btn_width_max          = 20.f;
 
     // Misc.
-    settings->experimental_graph_autocompletion = false;
-    settings->experimental_hybrid_history       = false;
-
-    return settings;
+    experimental_graph_autocompletion = false;
+    experimental_hybrid_history       = false;
 }
 
 void Settings::patch_imgui_style(ImGuiStyle& _style)

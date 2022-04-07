@@ -7,23 +7,23 @@
 #include <nodable/app/GraphNodeView.h>
 #include <nodable/core/Parser.h>
 #include <nodable/app/History.h>
-#include <nodable/app/AppContext.h>
+#include <nodable/app/IAppCtx.h>
 #include <nodable/app/NodeView.h>
 
 using namespace Nodable;
 
-File::File( const std::string& _name, AppContext* _context)
+File::File(IAppCtx& _ctx, const std::string &_name)
         : m_name(_name)
-        , m_context(_context)
+        , m_ctx(_ctx)
         , m_modified(true)
         , m_graph(nullptr)
-        , m_factory(_context->language, [_context](Node* _node) { _node->add_component(new NodeView(_context)); } )
-        , m_history(&_context->settings->experimental_hybrid_history)
+        , m_factory(&_ctx.get_language(), [&_ctx](Node* _node) { _node->add_component(new NodeView(_ctx)); } )
+        , m_history(&_ctx.get_settings().experimental_hybrid_history)
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n")
 
     // FileView
-    m_view = new FileView(m_context, this);
+    m_view = new FileView(m_ctx, *this);
     m_view->init();
 
     LOG_VERBOSE( "File", "View built, creating History ...\n")
@@ -37,22 +37,22 @@ File::File( const std::string& _name, AppContext* _context)
 
     // GraphNode
     m_graph = new GraphNode(
-            m_context->language,
+            &m_ctx.get_language(),
             &m_factory,
-            &m_context->settings->experimental_graph_autocompletion );
+            &m_ctx.get_settings().experimental_graph_autocompletion );
 
     char label[50];
     snprintf(label, sizeof(label), "%s's graph", get_name().c_str());
     m_graph->set_label( label );
 
-    m_graph->add_component(new GraphNodeView(m_context));
+    m_graph->add_component(new GraphNodeView(m_ctx));
 
     LOG_VERBOSE( "File", "Constructor being called.\n")
 
 }
 
-File::File( const std::string& _name, AppContext* _context, const std::string& _path )
-    : File(_name, _context)
+File::File(IAppCtx& _context, const std::string &_name, const std::string &_path)
+    : File(_context, _name)
 {
     m_path = _path;
 }
@@ -84,7 +84,7 @@ bool File::write_to_disk()
 bool File::update_graph(std::string& _code_source)
 {
     LOG_VERBOSE("File","updating graph ...\n")
-	Parser* parser = m_context->language->get_parser();
+	Parser* parser = m_ctx.get_language().get_parser();
     m_graph->clear();
 
     auto graphView = m_graph->get<GraphNodeView>();
@@ -110,7 +110,7 @@ bool File::update()
 	if ( m_history.is_dirty() )
 	{
         LOG_VERBOSE("File","history is dirty\n")
-        if ( !m_context->settings->experimental_hybrid_history )
+        if ( !m_ctx.get_settings().experimental_hybrid_history )
         {
             update_graph(); // when not in hybrid mode the undo/redo is text based
         }
@@ -118,7 +118,7 @@ bool File::update()
         m_history.set_dirty(false);
 	}
 
-	if(m_context->vm && !m_context->vm->is_program_running() )
+    if( m_ctx.is_running_program() )
     {
         LOG_VERBOSE("File","m_graph->update()\n")
         auto graphUpdateResult = m_graph->update();
@@ -139,7 +139,7 @@ bool File::update()
                 LOG_VERBOSE("File","serialize root node\n")
 
                 std::string code;
-                Serializer* serializer = m_context->language->get_serializer();
+                Serializer* serializer = m_ctx.get_language().get_serializer();
                 serializer->serialize(code, root_node );
 
                 LOG_VERBOSE("File","replace selected text\n")

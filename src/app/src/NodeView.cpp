@@ -16,7 +16,7 @@
 #include <nodable/app/NodeConnector.h>
 #include <nodable/app/MemberConnector.h>
 #include <nodable/core/InvokableComponent.h>
-#include <nodable/app/AppContext.h>
+#include <nodable/app/IAppCtx.h>
 
 #define NODE_VIEW_DEFAULT_SIZE vec2(10.0f, 35.0f)
 
@@ -30,10 +30,9 @@ const float        NodeView::s_member_input_size_min           = 10.0f;
 const vec2         NodeView::s_member_input_toggle_button_size = vec2(10.0, 25.0f);
 NodeViewVec        NodeView::s_instances;
 
-NodeView::NodeView(AppContext* _ctx)
+NodeView::NodeView(IAppCtx& _ctx)
         : Component()
         , View(_ctx)
-        , m_context(_ctx)
         , m_position(500.0f, -1.0f)
         , m_size(NODE_VIEW_DEFAULT_SIZE)
         , m_opacity(1.0f)
@@ -84,7 +83,7 @@ std::string NodeView::get_label()
 
 void NodeView::expose(Member* _member)
 {
-    auto member_view = new MemberView(m_context, _member, this);
+    auto member_view = new MemberView(m_ctx, _member, this);
 
     if ( _member == get_owner()->get_this_member() )
     {
@@ -110,7 +109,7 @@ void NodeView::set_owner(Node *_node)
 {
     Component::set_owner(_node);
 
-    Settings*            settings = m_context->settings;
+    Settings&            settings = m_ctx.get_settings();
     std::vector<Member*> not_exposed;
 
     //  We expose first the members which allows input connections
@@ -145,19 +144,19 @@ void NodeView::set_owner(Node *_node)
 
     if (_node->has<InvokableComponent>())
     {
-        setColor(Color_Fill, &settings->ui_node_invokableColor); // blue
+        set_color(Color_Fill, &settings.ui_node_invokableColor); // blue
     }
     else if (clss->is_child_of<VariableNode>() )
     {
-        setColor(Color_Fill, &settings->ui_node_variableColor); // purple
+        set_color(Color_Fill, &settings.ui_node_variableColor); // purple
     }
     else if (clss->is_child_of<LiteralNode>() )
     {
-        setColor(Color_Fill, &settings->ui_node_literalColor);
+        set_color(Color_Fill, &settings.ui_node_literalColor);
     }
     else
     {
-        setColor(Color_Fill, &settings->ui_node_instructionColor); // green
+        set_color(Color_Fill, &settings.ui_node_instructionColor); // green
     }
 
     // NodeConnectors
@@ -167,12 +166,12 @@ void NodeView::set_owner(Node *_node)
     const size_t successor_max_count = _node->successor_slots().get_limit();
     for(size_t index = 0; index < successor_max_count; ++index )
     {
-        m_successors_node_connectors.push_back(new NodeConnector(m_context, this, Way_Out, index, successor_max_count));
+        m_successors_node_connectors.push_back(new NodeConnector(m_ctx, *this, Way_Out, index, successor_max_count));
     }
 
     // add a single predecessor connector if node can be connected in this way
     if(_node->predecessor_slots().get_limit() != 0)
-        m_predecessors_node_connnectors.push_back(new NodeConnector(m_context, this, Way_In));
+        m_predecessors_node_connnectors.push_back(new NodeConnector(m_ctx, *this, Way_In));
 
     m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver(
         [this](Node* _other_node, EdgeType _relation )
@@ -308,15 +307,15 @@ bool NodeView::draw()
 {
 	bool edited = false;
 	auto node   = get_owner();
-	Settings* settings = m_context->settings;
+	Settings& settings = m_ctx.get_settings();
 
 	NODABLE_ASSERT(node != nullptr);
 
     // Draw Node connectors (in background)
     bool is_connector_hovered = false;
     {
-        ImColor color = settings->ui_node_nodeConnectorColor;
-        ImColor hoveredColor = settings->ui_node_nodeConnectorHoveredColor;
+        ImColor color = settings.ui_node_nodeConnectorColor;
+        ImColor hoveredColor = settings.ui_node_nodeConnectorHoveredColor;
 
         auto drawConnectorAndHandleUserEvents = [&](NodeConnector *connector) {
             edited |= NodeConnector::draw(connector, color, hoveredColor, m_edition_enable);
@@ -347,19 +346,19 @@ bool NodeView::draw()
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	{			
-		auto borderCol = is_selected(this) ? m_border_color_selected : getColor(Color_Border);
+		auto borderCol = is_selected(this) ? m_border_color_selected : get_color(Color_Border);
 
 		auto itemRectMin = screen_cursor_pos_content_start - halfSize;
 		auto itemRectMax = screen_cursor_pos_content_start + halfSize;
 
 		// Draw the rectangle under everything
-		ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_border_radius, 4, vec2(1.0f), getColor(Color_Shadow));
-		draw_list->AddRectFilled(itemRectMin, itemRectMax, getColor(Color_Fill), m_border_radius);
-		draw_list->AddRect(itemRectMin + vec2(1.0f), itemRectMax, getColor(Color_BorderHighlights), m_border_radius);
+		ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_border_radius, 4, vec2(1.0f), get_color(Color_Shadow));
+		draw_list->AddRectFilled(itemRectMin, itemRectMax, get_color(Color_Fill), m_border_radius);
+		draw_list->AddRect(itemRectMin + vec2(1.0f), itemRectMax, get_color(Color_BorderHighlights), m_border_radius);
 		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_border_radius);
 
 		// darken the background under the content
-		draw_list->AddRectFilled(itemRectMin + vec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings->ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_border_radius, 4);
+		draw_list->AddRectFilled(itemRectMin + vec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings.ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_border_radius, 4);
 
 		// Draw an additionnal blinking rectangle when selected
 		if (is_selected(this))
@@ -375,8 +374,8 @@ bool NodeView::draw()
 	ImGui::InvisibleButton("node", m_size);
     ImGui::SetItemAllowOverlap();
 	ImGui::SetCursorPos(cursor_pos_content_start);
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui_node_padding * 2.0f); // x2 padding to keep space for "this" connector
-	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui_node_padding );
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings.ui_node_padding * 2.0f); // x2 padding to keep space for "this" connector
+	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings.ui_node_padding );
     bool is_node_hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
@@ -390,7 +389,7 @@ bool NodeView::draw()
             //abel.insert(0, "<<");
             label.append(" " ICON_FA_OBJECT_GROUP);
         }
-        ImGuiEx::ShadowedText(vec2(1.0f), getColor(Color_BorderHighlights), label.c_str()); // text with a lighter shadow (incrust effect)
+        ImGuiEx::ShadowedText(vec2(1.0f), get_color(Color_BorderHighlights), label.c_str()); // text with a lighter shadow (incrust effect)
 
         ImGui::SameLine();
 
@@ -414,8 +413,8 @@ bool NodeView::draw()
         ImGui::EndGroup();
         ImGui::SameLine();
 
-        ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui_node_padding * 2.0f);
-        ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui_node_padding );
+        ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings.ui_node_padding * 2.0f);
+        ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings.ui_node_padding );
     ImGui::EndGroup();
 
     // Ends the Window
@@ -428,10 +427,10 @@ bool NodeView::draw()
 
     // Draw Member in/out connectors
     {
-        float radius      = settings->ui_node_memberConnectorRadius;
-        ImColor color     = settings->ui_node_nodeConnectorColor;
-        ImColor borderCol = settings->ui_node_borderColor;
-        ImColor hoverCol  = settings->ui_node_nodeConnectorHoveredColor;
+        float radius      = settings.ui_node_memberConnectorRadius;
+        ImColor color     = settings.ui_node_nodeConnectorColor;
+        ImColor borderCol = settings.ui_node_borderColor;
+        ImColor hoverCol  = settings.ui_node_nodeConnectorHoveredColor;
 
         if ( m_exposed_this_member_view )
         {
@@ -522,7 +521,7 @@ bool NodeView::draw()
 	if( edited )
         get_owner()->set_dirty();
 
-	hovered = is_node_hovered || is_connector_hovered;
+    m_is_hovered = is_node_hovered || is_connector_hovered;
 
 	return edited;
 }
@@ -656,7 +655,7 @@ bool NodeView::draw_input(Member *_member, const char* _label )
         auto* variable = _member->get_input()->get_owner()->as<VariableNode>();
         snprintf(str, 255, "%s", variable->get_name() );
 
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4)variable->get<NodeView>()->getColor(Color_Fill) );
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->get<NodeView>()->get_color(Color_Fill) );
         ImGui::InputText(label.c_str(), str, 255, inputFlags);
         ImGui::PopStyleColor();
 

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include <imgui/imgui.h>
 #include <nodable/core/reflection/R.h>
@@ -12,12 +13,11 @@
 
 namespace Nodable {
 
-    // forward decl
-    class AppContext;
-
     class Settings  {
-        friend class AppContext;
     public:
+
+        Settings();
+
         std::vector<FontConf>                    ui_text_fonts;
         std::array<const char *, FontSlot_COUNT> ui_text_defaultFontsId;
         TextEditor::Palette                      ui_text_textEditorPalette;
@@ -25,8 +25,8 @@ namespace Nodable {
         float  ui_wire_bezier_roundness;
         float  ui_wire_bezier_thickness;
         bool   ui_wire_displayArrows;
-        vec4 ui_wire_fillColor;
-        vec4 ui_wire_shadowColor;
+        vec4   ui_wire_fillColor;
+        vec4   ui_wire_shadowColor;
         float  ui_node_memberConnectorRadius;
         float  ui_node_padding;
         vec4 ui_node_variableColor;
@@ -60,9 +60,6 @@ namespace Nodable {
         bool experimental_hybrid_history;
 
         void patch_imgui_style(ImGuiStyle&);
-
-    private:
-        static Settings* create_default();
 
         R(Settings)
 

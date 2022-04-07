@@ -12,7 +12,7 @@
 #include <nodable/core/Component.h>  // base class
 #include <nodable/app/NodeView.h> // for NodeViewConstraint
 
-#include <nodable/app/AppContext.h>
+#include <nodable/app/IAppCtx.h>
 
 namespace Nodable
 {
@@ -25,7 +25,7 @@ namespace Nodable
 	class GraphNodeView: public View, public Component
     {
 	public:
-	    GraphNodeView(AppContext* _ctx): View(_ctx), m_context(_ctx) {};
+	    GraphNodeView(IAppCtx& _ctx): View(_ctx) {};
 		~GraphNodeView() override = default;
 
         void        set_owner(Node *) override;
@@ -42,7 +42,6 @@ namespace Nodable
         [[nodiscard]] GraphNode* get_graph_node() const;
         std::vector<NodeViewConstraint>              m_child_view_constraints;
 		std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
-        AppContext* m_context;
         static constexpr const char* k_context_menu_popup = "GraphNodeView.ContextMenu";
 
 		R_DERIVED(GraphNodeView)

@@ -6,7 +6,7 @@ namespace Nodable {
 
     // forward declarations
     class NodeView;
-    class AppContext;
+    class IAppCtx;
 
     /**
      * @brief A NodeConnector represents a physical input or output on a NodeView.
@@ -15,12 +15,12 @@ namespace Nodable {
     {
     public:
         NodeConnector(
-              const AppContext* _ctx
-            , NodeView* _nodeView
+              IAppCtx& _ctx
+            , NodeView& _nodeView
             , Way _way
             , size_t _index = 0
             , size_t _count = 1)
-        : m_context( _ctx )
+        : m_ctx(_ctx )
         , m_node_view(_nodeView)
         , m_way(_way)
         , m_index(_index)
@@ -38,9 +38,9 @@ namespace Nodable {
 
         size_t    m_index;
         size_t    m_count;
-        NodeView* m_node_view;
+        NodeView& m_node_view;
         Way       m_way;
-        const AppContext* m_context;
+        IAppCtx&  m_ctx;
         static const NodeConnector* s_hovered;
         static const NodeConnector* s_dragged;
         static const NodeConnector* s_focused;

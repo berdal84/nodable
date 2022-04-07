@@ -206,7 +206,7 @@ void Nodable::R::log_statistics()
     LOG_MESSAGE("R", "Logging done.\n");
 }
 
-void Nodable::R::init()
+Nodable::R::Initialiser::Initialiser()
 {
     static bool initialized = false;
 
