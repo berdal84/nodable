@@ -27,9 +27,9 @@ template<typename T, typename U>
 template<typename T, typename U>
     T api_multiply(T a, U b) { return a * b; }
 template<typename T, typename U>
-    T api_plus(T a, U b){ return a + b; }
-template<>
-    std::string api_plus(std::string left, std::string right) { return left + right; }
+    T api_plus(T a, U b){ return a + T(b); }
+template<typename T>
+    T api_plus(T a, T b){ return a + b; }
 template<>
     std::string api_plus(std::string left, double right) { return left + Nodable::String::fmt_double(right); }
 template<>

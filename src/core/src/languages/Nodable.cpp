@@ -87,6 +87,8 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
     BIND_OPERATOR_T(api_plus, "+", i16_t(i16_t, i16_t))
     BIND_OPERATOR_T(api_plus, "+", i16_t(i16_t, double))
     BIND_OPERATOR_T(api_plus, "+", string(string, string))
+    BIND_OPERATOR_T(api_plus, "+", string(string, i16_t))
+    BIND_OPERATOR_T(api_plus, "+", string(string, double))
 
     BIND_OPERATOR(api_or, "||")
     BIND_OPERATOR(api_and, "&&")
