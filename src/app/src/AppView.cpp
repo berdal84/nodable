@@ -82,6 +82,8 @@ bool AppView::init()
     m_sdl_gl_context = SDL_GL_CreateContext(m_sdl_window);
     SDL_GL_SetSwapInterval(1); // Enable vsync
 
+    gl3wInit();
+
     // preload images
     auto path = m_ctx.get_absolute_asset_path(m_settings.ui_splashscreen_imagePath);
     m_logo = m_ctx.get_texture_manager().get_or_create_from(path);
@@ -125,7 +127,6 @@ bool AppView::init()
     }
 
     // Setup Platform/Renderer bindings
-    gl3wInit();
     ImGui_ImplSDL2_InitForOpenGL(m_sdl_window, m_sdl_gl_context);
     const char* glsl_version = NULL; // let backend decide wich version to use, usually 130 (pc) or 150 (macos).
     ImGui_ImplOpenGL3_Init(glsl_version);

@@ -45,7 +45,7 @@ namespace Nodable
         void            set_curr_file(size_t _index) override;
         void            set_curr_file(File *_file) override;
         const std::vector<File*>& get_files() const override { return m_loaded_files; }
-        bool            has_files() const override { return m_loaded_files.empty(); }
+        bool            has_files() const override { return !m_loaded_files.empty(); }
         File*           get_curr_file()const override;
         bool            is_running_program() const override { return m_vm.is_program_running(); }
         void            run_program() override;
