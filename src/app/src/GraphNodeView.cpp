@@ -592,7 +592,7 @@ void GraphNodeView::update_child_view_constraints()
             if( !children.empty() && clss->is_child_of<IConditionalStruct>() )
             {
                 ViewConstraint constraint(m_ctx, "align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
-                constraint.apply_when(ViewConstraint::always);
+                constraint.apply_when(ViewConstraint::drivers_are_expanded);
                 constraint.add_driver(each_view);
                 constraint.add_targets(children);
 

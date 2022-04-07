@@ -72,7 +72,7 @@ namespace Nodable
         vec2 m_offset;
 
         static const Filter no_target_expanded;
-        static const Filter no_driver_expanded;
+        static const Filter drivers_are_expanded;
         static const Filter always;
 
     private:

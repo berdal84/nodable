@@ -219,7 +219,7 @@ const ViewConstraint::Filter
 };
 
 const ViewConstraint::Filter
-        ViewConstraint::no_driver_expanded = [](const ViewConstraint* _constraint)
+        ViewConstraint::drivers_are_expanded = [](const ViewConstraint* _constraint)
 {
     return std::find_if(_constraint->m_drivers.cbegin(), _constraint->m_drivers.cend(), not_expanded)
            == _constraint->m_drivers.cend();
