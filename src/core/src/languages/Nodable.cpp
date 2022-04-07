@@ -89,8 +89,8 @@ LanguageNodable::LanguageNodable()
     BIND_OPERATOR(api_or, "||")
     BIND_OPERATOR(api_and, "&&")
 
-    BIND_OPERATOR_T(api_invert_sign, "-", double(double))
-    BIND_OPERATOR_T(api_invert_sign, "-", i16_t(i16_t))
+    BIND_OPERATOR_T(api_minus, "-", double(double))
+    BIND_OPERATOR_T(api_minus, "-", i16_t(i16_t))
 
     BIND_OPERATOR_T(api_minus, "-", double(double, double))
     BIND_OPERATOR_T(api_minus, "-", double(double, i16_t))
