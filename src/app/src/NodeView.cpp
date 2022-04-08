@@ -771,7 +771,12 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
         {
             ImGuiEx::BeginTooltip();
             std::shared_ptr<Token> token = _member->get_src_token();
-            ImGui::Text("Source token: \n{\n\tprefix: \"%s\",\n\tword: \"%s\",\n\tsuffix: \"%s\"\n}",
+            ImGui::Text("Source token:\n"
+                        "{\n"
+                            "\tprefix: \"%s\",\n"
+                            "\tword: \"%s\",\n"
+                            "\tsuffix: \"%s\"\n"
+                        "}",
                         token->m_prefix.c_str(),
                         token->m_word.c_str(),
                         token->m_suffix.c_str()
