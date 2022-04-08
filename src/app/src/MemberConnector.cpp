@@ -92,9 +92,9 @@ void MemberConnector::draw(
     if ( isItemHovered )
     {
         s_hovered = _connector;
-        ImGui::BeginTooltip();
+        ImGuiEx::BeginTooltip();
         ImGui::Text("%s", _connector->get_member()->get_name().c_str() );
-        ImGui::EndTooltip();
+        ImGuiEx::EndTooltip();
     }
 
     if (isItemHovered)

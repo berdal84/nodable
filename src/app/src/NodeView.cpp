@@ -617,11 +617,11 @@ bool NodeView::draw(MemberView* _view )
 
         if ( ImGui::IsItemHovered() )
         {
-            ImGui::BeginTooltip();
+            ImGuiEx::BeginTooltip();
             ImGui::Text("%s (%s)",
                         member->get_name().c_str(),
                         member->get_meta_type()->get_fullname().c_str());
-            ImGui::EndTooltip();
+            ImGuiEx::EndTooltip();
         }
 
         if ( ImGui::IsItemClicked(0) )
@@ -732,11 +732,11 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
         /* If value is hovered, we draw a tooltip that print the source expression of the value*/
         if (ImGui::IsItemHovered())
         {
-            ImGui::BeginTooltip();
+            ImGuiEx::BeginTooltip();
             std::string buffer;
             _ctx.language().get_serializer().serialize(buffer, _member);
             ImGui::Text("%s", buffer.c_str() );
-            ImGui::EndTooltip();
+            ImGuiEx::EndTooltip();
         }
     }
 
@@ -769,14 +769,14 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
         ImGui::Text("(?)");
         if ( ImGui::IsItemHovered() )
         {
-            ImGui::BeginTooltip();
+            ImGuiEx::BeginTooltip();
             std::shared_ptr<Token> token = _member->get_src_token();
             ImGui::Text("Source token: \n{\n\tprefix: \"%s\",\n\tword: \"%s\",\n\tsuffix: \"%s\"\n}",
                         token->m_prefix.c_str(),
                         token->m_word.c_str(),
                         token->m_suffix.c_str()
             );
-            ImGui::EndTooltip();
+            ImGuiEx::EndTooltip();
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
