@@ -16,9 +16,10 @@
 #if NOEXCEPT
 #   include <cassert>
 #   define NODABLE_ASSERT(expression)             _NODABLE_ASSERT_NOEXCEPT( expression )
-#   NODABLE_ASSERT_EX(expression, message)        _NODABLE_ASSERT_NOEXCEPT( expression )
+#   define NODABLE_ASSERT_EX(expression, message) _NODABLE_ASSERT_NOEXCEPT( expression )
 #else
 #   include <stdexcept>
+#   include <cassert>
 #   define NODABLE_ASSERT(expression)             _NODABLE_ASSERT( (expression), "assertion failed" )
 #   define NODABLE_ASSERT_EX(expression, message) _NODABLE_ASSERT( (expression), message )
 #endif
