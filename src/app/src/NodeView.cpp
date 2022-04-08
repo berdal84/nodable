@@ -7,7 +7,7 @@
 #include <nodable/app/Settings.h>
 #include <nodable/core/Serializer.h>
 #include <nodable/app/App.h>
-#include <nodable/core/Maths.h>
+#include <nodable/core/math.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/LiteralNode.h>
@@ -307,7 +307,7 @@ bool NodeView::update()
 
 bool NodeView::update(float _deltaTime)
 {
-    Maths::lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
+    math::lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
     this->apply_forces(_deltaTime, false);
 	return true;
 }
@@ -1082,7 +1082,7 @@ void NodeView::apply_forces(float _dt, bool _recurse)
     float magnitude = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
 
     constexpr float magnitude_max  = 100.0f;
-    const float     friction       = Maths::lerp (  0.0f, 0.5f, magnitude / magnitude_max);
+    const float     friction       = math::lerp (0.0f, 0.5f, magnitude / magnitude_max);
     const vec2 avg_forces_sum      = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
 
     translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);

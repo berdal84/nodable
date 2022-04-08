@@ -12,18 +12,12 @@ CPU::CPU()
     clear_registers();
 }
 
-void CPU::init_eip()
-{
-    write(Register::eip, QWord(0ull));
-};
-
 void CPU::clear_registers()
 {
     for( size_t id = 0; id < std::size( m_register ); ++id )
     {
         write( (Register)id, QWord());
     }
-    init_eip();
 }
 
 QWord CPU::read(Register _id)const
@@ -121,7 +115,8 @@ bool VirtualMachine::_stepOver()
         {
             QWord left  = m_cpu.read(next_instr->cmp.left.r);  // dereference registers, get their value
             QWord right = m_cpu.read(next_instr->cmp.right.r);
-            QWord result(left.b == right.b);
+            QWord result;
+            R::set_union(result, left.b == right.b);
             m_cpu.write(Register::rax, result);       // boolean comparison
             advance_cursor();
             success = true;

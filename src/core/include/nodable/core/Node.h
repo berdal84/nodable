@@ -217,7 +217,7 @@ namespace Nodable {
         T convert_value_to() const
         {
             const Member* result_node_value = m_props.get(k_value_member_name);
-            return result_node_value->convert_to<T>();
+            return result_node_value->get_data()->convert_to<T>();
         }
         template<typename T>
         T value_as() const

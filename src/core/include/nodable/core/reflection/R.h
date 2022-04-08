@@ -31,6 +31,31 @@
 namespace Nodable { namespace R
 {
     /**
+     * set a value to an union member
+     */
+    template<typename U, typename T> void set_union(U& instance, T value)
+    {
+        T& member = U::template get<T>(instance);
+        member = value;
+    }
+
+     /**
+     * get a union member value
+     */
+     template<typename T, typename U> T& get_union(U& instance)
+    {
+        return U::template get<T>(instance);
+    }
+
+     /**
+     * get a union member value
+     */
+     template<typename T, typename U> const T& get_union(const U& instance)
+    {
+        return U::template get<T>(instance);
+    }
+
+    /**
      * Given a Type::xxxx value, return its equivalent MetaType.
      */
     static Meta_t_csptr meta(Type type)

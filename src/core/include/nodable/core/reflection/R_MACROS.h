@@ -1,5 +1,35 @@
 #pragma once
 
+/***********************************************************************************************************************
+ *  UNIONS
+ */
+
+/**
+ * call this macro from the end of your union to reflect it
+ */
+#define R_UNION(U) /* U: Union, M: Union member */ \
+    template<typename T> static const T& get(const U& _instance); \
+    template<typename T> static T& get(U& _instance);
+
+/**
+* call this once per member in your *.cpp file or out of the union
+*/
+#define R_UNION_MEMBER_DEFINITION(U, M) /* U: Union, M: Union member */  \
+    template<>\
+    decltype(U::M)& U::get<decltype(U::M)>(U& instance)\
+    {\
+        return instance.M;\
+    }\
+    template<>\
+    const decltype(U::M)& U::get<const decltype(U::M)>(const U& instance)\
+    {\
+        return instance.M;\
+    }
+
+/***********************************************************************************************************************
+*  TYPE <---> Type enum
+*/
+
 /**
  * The objective of these 3 struct is to:
  * - create a link between a typename and a TypeEnum,
@@ -35,13 +65,11 @@
             default: return "<not reflected>";\
         } \
     }
-/**
- *  Set of MACROS to work with class Class (see Reflect_Class.h)
- */
 
-/**
- * Must be inserted to start a reflection declaration, short version exist ex: R or R_WITH_INHERITANCE
- */
+/***********************************************************************************************************************
+*  CLASSES
+*/
+
 #define R_BEGIN( CLASS, ... ) \
 public:\
     \

@@ -51,7 +51,7 @@ double Variant::convert_to<double>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::string_t:  return stod((std::string)m_data);
+        case R::Type::string_t:  return stod(*static_cast<std::string*>(m_data.ptr) );
         case R::Type::double_t:  return m_data.d;
         case R::Type::i16_t:     return double(m_data.i16);
         case R::Type::bool_t:    return double(m_data.b);
@@ -69,7 +69,7 @@ i16_t Variant::convert_to<i16_t>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::string_t:  return stoi((std::string)m_data);
+        case R::Type::string_t:  return stoi( *static_cast<std::string*>(m_data.ptr) );
         case R::Type::double_t:  return i16_t(m_data.d);
         case R::Type::i16_t:     return m_data.i16;
         case R::Type::bool_t:    return i16_t(m_data.b);
@@ -87,7 +87,7 @@ bool Variant::convert_to<bool>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::string_t:  return !((std::string*)m_data.ptr)->empty();
+        case R::Type::string_t:  return !(static_cast<std::string*>(m_data.ptr))->empty();
         case R::Type::double_t:  return m_data.d != 0.0;
         case R::Type::i16_t:     return m_data.i16 != 0;
         case R::Type::bool_t: // pass through
@@ -110,7 +110,7 @@ std::string Variant::convert_to<std::string>()const
 
     switch (get_meta_type()->get_type())
     {
-        case R::Type::string_t: return *(std::string*)m_data.ptr;
+        case R::Type::string_t: return *static_cast<std::string*>(m_data.ptr);
         case R::Type::i16_t:    return std::to_string(m_data.i16);
         case R::Type::double_t: return String::fmt_double(m_data.d);
         case R::Type::bool_t:   return m_data.b ? "true" : "false";
@@ -119,39 +119,23 @@ std::string Variant::convert_to<std::string>()const
     }
 }
 
-Variant::MetaType Variant::get_meta_type()const
+R::Meta_t_csptr Variant::get_meta_type()const
 {
 	return m_meta_type;
 }
 
-bool  Variant::is_meta_type(MetaType _type)const
+bool  Variant::is_meta_type(R::Meta_t_csptr _type)const
 {
 	return m_meta_type->is_exactly(_type);
-}
-
-void Variant::set(double _value)
-{
-    ensure_is_initialized_as<decltype(_value)>();
-
-    m_data       = _value;
-    m_is_defined = true;
-}
-
-void Variant::set(i16_t _value)
-{
-    ensure_is_initialized_as<decltype(_value)>();
-
-    m_data       = _value;
-    m_is_defined = true;
 }
 
 void Variant::set(const std::string& _value)
 {
     ensure_is_initialized_as<decltype(_value)>();
 
-    std::string& ptr = *(std::string*)m_data.ptr;
-    ptr.clear();
-    ptr.append(_value);
+    auto* string = static_cast<std::string*>(m_data.ptr);
+    string->clear();
+    string->append(_value);
 
     m_is_defined = true;
 
@@ -160,14 +144,6 @@ void Variant::set(const std::string& _value)
 void Variant::set(const char* _value)
 {
     set(std::string{_value});
-}
-
-void Variant::set(bool _value)
-{
-    ensure_is_initialized_as<decltype(_value)>();
-
-    m_data        = _value;
-    m_is_defined  = true;
 }
 
 bool Variant::is_initialized()const
@@ -236,7 +212,7 @@ void Variant::set(const Variant& _other)
     }
 }
 
-void Variant::define_meta_type(MetaType _type)
+void Variant::define_meta_type(R::Meta_t_csptr _type)
 {
     NODABLE_ASSERT(!m_meta_type); // can't switch from one type to another
     m_meta_type = _type;

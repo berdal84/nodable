@@ -15,17 +15,10 @@
 #include "nodable/core/LiteralNode.h"
 #include "nodable/core/InvokableComponent.h"
 #include "nodable/core/GraphNode.h"
+#include "nodable/core/math.h"
 
 using namespace Nodable;
 using namespace Nodable::assembly;
-
-i64_t signed_diff(u64_t _left, u64_t _right)
-{
-    bool left_greater_than_right = _left > _right;
-    u64_t abs_diff = left_greater_than_right ? (_left - _right) : (_right - _left);
-    NODABLE_ASSERT( abs_diff <= std::numeric_limits<u64_t>::max() );
-    return left_greater_than_right ? (i64_t)abs_diff : -(i64_t)abs_diff;
-}
 
 Instruction* Code::push_instr(opcode _type)
 {
@@ -221,7 +214,7 @@ void assembly::Compiler::compile(const ForLoopNode* for_loop)
 
         // insert jump to condition instructions.
         auto loop_jump = m_temp_code->push_instr(opcode::jmp);
-        loop_jump->jmp.offset = signed_diff(condition_instr_line, loop_jump->line);
+        loop_jump->jmp.offset = math::signed_diff(condition_instr_line, loop_jump->line);
         loop_jump->m_comment  = "jump back to for";
     }
 

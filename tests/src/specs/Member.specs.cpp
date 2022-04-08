@@ -95,8 +95,8 @@ TEST(Member, Modify_by_reference_using_a_pointer)
     EXPECT_EQ(m.get_meta_type()->get_type(), Type::double_t);
     EXPECT_TRUE(m.get_data()->is_defined());
 
-    double* ref = (double*)m;
-    *ref = 100.0;
+    double& ref = (double&)m;
+    ref = 100.0;
 
     EXPECT_EQ((double)m, 100.0);
 }
