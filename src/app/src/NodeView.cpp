@@ -1010,7 +1010,7 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
     if ( !_ignoreSelf && m_is_visible )
     {
         ImRect self_rect = get_rect(false);
-        ImGuiEx::enlarge_to_fit(result_rect, self_rect);
+        ImGuiEx::EnlargeToInclude(result_rect, self_rect);
     }
 
     auto enlarge_to_fit_all = [&](NodeView* _view)
@@ -1020,7 +1020,7 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
         if ( _view->m_is_visible && !(_view->m_pinned && _ignorePinned) && _view->should_follow_output(this) )
         {
             ImRect child_rect = _view->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
-            ImGuiEx::enlarge_to_fit(result_rect, child_rect);
+            ImGuiEx::EnlargeToInclude(result_rect, child_rect);
         }
     };
 
@@ -1111,7 +1111,7 @@ ImRect NodeView::get_rect(
         if ( eachView->m_is_visible )
         {
             auto rect = eachView->get_rect(_recursive, _ignorePinned, _ignoreMultiConstrained);
-            ImGuiEx::enlarge_to_fit(result_rect, rect);
+            ImGuiEx::EnlargeToInclude(result_rect, rect);
         }
     }
 

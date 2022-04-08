@@ -13,33 +13,34 @@
 namespace Nodable
 {
 
-    namespace ImGuiEx
+    class ImGuiEx
     {
+    public:
+        virtual ~ImGuiEx() = 0;
+
         template<typename ...Args>
-        void DrawHelperEx(float _alpha, const char* _format, Args... args)
+        static void DrawHelperEx(float _alpha, const char* _format, Args... args)
         {
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, _alpha);
             ImGui::Text(ICON_FA_QUESTION_CIRCLE);
             ImGui::PopStyleVar();
 
-            if( ImGui::IsItemHovered() )
+            if( BeginTooltip() )
             {
-                ImGui::BeginTooltip();
-                {
-                    ImGui::Text(_format, args...);
-                }
-                ImGui::EndTooltip();
+                ImGui::Text(_format, args...);
+                EndTooltip();
             }
+
         }
 
         template<typename ...Args>
-        void DrawHelper(const char* _format, Args... args) { DrawHelperEx(0.25f, _format, args...); } // simple "?" test with a tooltip.
+        static void DrawHelper(const char* _format, Args... args) { DrawHelperEx(0.25f, _format, args...); } // simple "?" test with a tooltip.
 
         /**
          * Draw a rounded-rectangle shadow
          * TODO: use a low cost method, this one is drawing several rectangle with modulated opacity.
         */
-        void DrawRectShadow(
+        static void DrawRectShadow(
                 vec2 _topLeftCorner,
                 vec2 _bottomRightCorner,
                 float _borderRadius = 0.0f,
@@ -47,24 +48,24 @@ namespace Nodable
                 vec2 _shadowOffset = vec2(),
                 ImColor _shadowColor = ImColor(0.0f, 0.0f, 0.0f));
 
-        void ShadowedText(
+        static void ShadowedText(
                 vec2 _offset,
                 ImColor _shadowColor,
                 const char *_format,
                 ...);
 
-        void ColoredShadowedText(
+        static void ColoredShadowedText(
                 vec2 _offset,
                 ImColor _textColor,
                 ImColor _shadowColor,
                 const char *_format,
                 ...);
 
-        vec2 CursorPosToScreenPos(vec2 _cursorPosition);
+        static vec2 CursorPosToScreenPos(vec2 _cursorPosition);
 
-        vec2 ToScreenPosOffset();
+        static vec2 ToScreenPosOffset();
 
-        void DrawVerticalWire(
+        static void DrawVerticalWire(
                 ImDrawList *draw_list,
                 vec2 pos0,
                 vec2 pos1,
@@ -73,7 +74,7 @@ namespace Nodable
                 float thickness = 1.0f,
                 float roundness = 0.5f);
 
-        void DrawHorizontalWire(
+        static void DrawHorizontalWire(
                 ImDrawList *draw_list,
                 vec2 pos0,
                 vec2 pos1,
@@ -82,6 +83,19 @@ namespace Nodable
                 float thickness = 1.0f,
                 float roundness = 0.5f);
 
-        ImRect& enlarge_to_fit(ImRect& _rect, ImRect _other);
-    }
+        static void     BeginFrame();
+        static void     EndFrame();
+        static bool     BeginTooltip(float _delay = s_tooltip_delay_default
+                                   , float _duration = s_tooltip_duration_default);
+        static void     EndTooltip();
+        static ImRect&  EnlargeToInclude(ImRect& _rect, ImRect _other);
+
+    private:
+        static bool    s_is_in_a_frame;
+        static bool    s_is_any_tooltip_open;
+        static float   s_tooltip_delay_default;
+        static float   s_tooltip_duration_default;
+        static float   s_tooltip_delay_elapsed;
+
+    };
 }

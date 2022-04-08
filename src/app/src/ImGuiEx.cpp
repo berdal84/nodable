@@ -1,8 +1,16 @@
 #include <nodable/app/ImGuiEx.h>
 #include <cmath>
 #include <algorithm>
+#include <nodable/core/Log.h>
+#include <nodable/core/assertions.h>
 
 using namespace Nodable;
+
+bool    ImGuiEx::s_is_in_a_frame            = false;
+bool    ImGuiEx::s_is_any_tooltip_open      = false;
+float   ImGuiEx::s_tooltip_duration_default = 0.2f;
+float   ImGuiEx::s_tooltip_delay_default    = 0.5f;
+float   ImGuiEx::s_tooltip_delay_elapsed    = 0.0f;
 
 vec2 ImGuiEx::CursorPosToScreenPos(vec2 _position)
 {
@@ -123,7 +131,7 @@ void ImGuiEx::DrawHorizontalWire(
     draw_list->AddBezierCurve(pos0, cp0, cp1, pos1, color, thickness); // fill
 }
 
-ImRect& ImGuiEx::enlarge_to_fit(ImRect& _rect, const ImRect _other)
+ImRect& ImGuiEx::EnlargeToInclude(ImRect& _rect, ImRect _other)
 {
     if( _other.Min.x < _rect.Min.x) _rect.Min.x = _other.Min.x;
     if( _other.Min.y < _rect.Min.y) _rect.Min.y = _other.Min.y;
@@ -131,4 +139,49 @@ ImRect& ImGuiEx::enlarge_to_fit(ImRect& _rect, const ImRect _other)
     if( _other.Max.y > _rect.Max.y) _rect.Max.y = _other.Max.y;
 
     return _rect;
+}
+
+bool ImGuiEx::BeginTooltip(float _delay, float _duration)
+{
+    if ( !ImGui::IsItemHovered() ) return false;
+
+    NODABLE_ASSERT_EX(s_is_in_a_frame, "Did you forgot to call ImGuiEx::BeginFrame/EndFrame ?");
+
+    s_is_any_tooltip_open     = true;
+    s_tooltip_delay_elapsed   += ImGui::GetIO().DeltaTime;
+
+    float fade = 0.f;
+    if (s_tooltip_delay_elapsed >= _delay )
+    {
+        fade = (s_tooltip_delay_elapsed - _delay) / _duration;
+    }
+
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, fade);
+    ImGui::BeginTooltip();
+
+    return true;
+}
+
+void ImGuiEx::EndTooltip()
+{
+    ImGui::EndTooltip();
+    ImGui::PopStyleVar(); // ImGuiStyleVar_Alpha
+}
+
+void ImGuiEx::EndFrame()
+{
+    NODABLE_ASSERT_EX(s_is_in_a_frame, "ImGuiEx::BeginFrame/EndFrame mismatch");
+    if( !s_is_any_tooltip_open )
+    {
+        s_tooltip_delay_elapsed    = 0.f;
+    }
+    s_is_in_a_frame = false;
+}
+
+void ImGuiEx::BeginFrame()
+{
+
+    NODABLE_ASSERT_EX(!s_is_in_a_frame, "ImGuiEx::BeginFrame/EndFrame mismatch");
+    s_is_in_a_frame = true;
+    s_is_any_tooltip_open = false;
 }

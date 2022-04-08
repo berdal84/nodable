@@ -193,6 +193,7 @@ bool AppView::draw()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(m_sdl_window);
 	ImGui::NewFrame();
+	ImGuiEx::BeginFrame();
     ImGui::SetCurrentFont( m_fonts[FontSlot_Paragraph] );
 
     // Startup Window
@@ -498,6 +499,7 @@ bool AppView::draw()
         }
         ImGui::End(); // Main window
     }
+    ImGuiEx::EndFrame();
 
     // Rendering
 	ImGui::Render();
@@ -591,6 +593,9 @@ void AppView::draw_vm_view()
     if (ImGui::Begin(k_vm_window_name))
     {
         ImGui::Text("Virtual Machine:");
+        ImGui::SameLine();
+        ImGuiEx::DrawHelper( "%s", "The virtual machine - or interpreter - is a sort of implementation of \n"
+                                   "an imaginary hardware able to run a set of simple instructions.");
         ImGui::Separator();
 
         const Code* code = m_vm.get_program_asm_code();
@@ -598,12 +603,16 @@ void AppView::draw_vm_view()
         // VM state
         {
             ImGui::Indent();
-            ImGui::Text("VM is %s", m_vm.is_program_running() ? "running" : "stopped");
-            ImGui::Text("Debug: %s", m_vm.is_debugging() ? "ON" : "OFF");
-            ImGui::Text("Has program: %s", code ? "YES" : "NO");
+            ImGui::Text("State:         %s", m_vm.is_program_running() ? "running" : "stopped");
+            ImGui::SameLine();
+            ImGuiEx::DrawHelper( "%s", "When virtual machine is running, you cannot edit the code or the graph.");
+            ImGui::Text("Debug:         %s", m_vm.is_debugging() ? "ON" : "OFF");
+            ImGui::SameLine();
+            ImGuiEx::DrawHelper( "%s", "When debugging is ON, you can run a program step by step.");
+            ImGui::Text("Has program:   %s", code ? "YES" : "NO");
             if (code)
             {
-                ImGui::Text("Program over: %s", !m_vm.is_there_a_next_instr() ? "YES" : "NO");
+            ImGui::Text("Program over:  %s", !m_vm.is_there_a_next_instr() ? "YES" : "NO");
             }
             ImGui::Unindent();
         }
@@ -611,6 +620,10 @@ void AppView::draw_vm_view()
         // VM Registers
         ImGui::Separator();
         ImGui::Text("CPU:");
+        ImGui::SameLine();
+        ImGuiEx::DrawHelper( "%s", "This is the virtual machine's CPU"
+                                   "\nIt contains few registers to store temporary values "
+                                   "\nlike instruction pointer, last node's value or last comparison result");
         ImGui::Indent();
         {
             ImGui::Separator();
@@ -642,8 +655,9 @@ void AppView::draw_vm_view()
 
             ImGui::Text("Bytecode:");
             ImGui::SameLine();
-            ImGuiEx::DrawHelper( "%s", "The bytecode is the result of the Compilation."
-                                       "\nThe Nodable Graph is converted by the Compiler to an Assembly-like code.");
+            ImGuiEx::DrawHelper( "%s", "The bytecode is the result of the Compilation process."
+                                       "\nAfter source code has been parsed to a syntax tree, "
+                                       "\nthe tree (or graph) is converted by the Compiler to an Assembly-like code.");
             ImGui::Checkbox("Auto-scroll ?", &m_scroll_to_curr_instr);
             ImGui::SameLine();
             ImGuiEx::DrawHelper( "%s", "to scroll automatically to the current instruction");

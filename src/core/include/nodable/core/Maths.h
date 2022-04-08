@@ -9,7 +9,7 @@ namespace Nodable::Maths
      * @param _factor
      * @return
      */
-    float lerp(float _source, float _target, float _factor)
+    static float lerp(float _source, float _target, float _factor)
     {
         return _source + (_target - _source ) * std::clamp(_factor, 0.0f, 1.0f);
     }
