@@ -1,6 +1,6 @@
 #pragma once
 #include <nodable/core/Node.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include <memory> // std::shared_ptr
 
 namespace Nodable
@@ -8,7 +8,7 @@ namespace Nodable
     class LiteralNode: public Node
     {
     public:
-        explicit LiteralNode(std::shared_ptr<const R::Meta_t>);
+        explicit LiteralNode(type);
         ~LiteralNode() override = default;
 
         [[nodiscard]]
@@ -17,9 +17,9 @@ namespace Nodable
         template<typename T>
         inline void set_value(T _value) const { m_props.get(k_value_member_name)->set(_value); }
 
-        R_DERIVED(LiteralNode)
-        R_EXTENDS(Node)
-        R_END
+        R_CLASS_DERIVED(LiteralNode)
+        R_CLASS_EXTENDS(Node)
+        R_CLASS_END
     };
 }
 

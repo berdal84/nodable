@@ -24,7 +24,7 @@ void* Variant::convert_to<void*>()const
         return nullptr;
     }
 
-    if ( get_meta_type()->is_ptr())
+    if ( m_type.is_ptr())
     {
         return m_data.ptr;
     }
@@ -49,14 +49,14 @@ double Variant::convert_to<double>()const
         return 0.0;
     }
 
-    switch (get_meta_type()->get_type())
-    {
-        case R::Type::string_t:  return stod(*static_cast<std::string*>(m_data.ptr) );
-        case R::Type::double_t:  return m_data.d;
-        case R::Type::i16_t:     return double(m_data.i16);
-        case R::Type::bool_t:    return double(m_data.b);
-        default:                 NODABLE_ASSERT(false) // this case is not handled
-    }
+
+    if( m_type == type::get<std::string*>() ) return stod(*static_cast<std::string*>(m_data.ptr) );
+    if( m_type == type::get<double>() )       return m_data.d;
+    if( m_type == type::get<i16_t>() )        return double(m_data.i16);
+    if( m_type == type::get<bool>() )         return double(m_data.b);
+
+    NODABLE_ASSERT(false) // this case is not handled
+
 }
 
 template<>
@@ -67,14 +67,12 @@ i16_t Variant::convert_to<i16_t>()const
         return 0;
     }
 
-    switch (get_meta_type()->get_type())
-    {
-        case R::Type::string_t:  return stoi( *static_cast<std::string*>(m_data.ptr) );
-        case R::Type::double_t:  return i16_t(m_data.d);
-        case R::Type::i16_t:     return m_data.i16;
-        case R::Type::bool_t:    return i16_t(m_data.b);
-        default:                 NODABLE_ASSERT(false) // this case is not handled
-    }
+    if( m_type == type::get<std::string*>() ) return stoi( *static_cast<std::string*>(m_data.ptr) );
+    if( m_type == type::get<double>() )       return i16_t(m_data.d);
+    if( m_type == type::get<i16_t>() )        return m_data.i16;
+    if( m_type == type::get<bool>() )         return  i16_t(m_data.b);
+
+    NODABLE_ASSERT(false) // this case is not handled
 }
 
 template<>
@@ -85,14 +83,11 @@ bool Variant::convert_to<bool>()const
         return false;
     }
 
-    switch (get_meta_type()->get_type())
-    {
-        case R::Type::string_t:  return !(static_cast<std::string*>(m_data.ptr))->empty();
-        case R::Type::double_t:  return m_data.d != 0.0;
-        case R::Type::i16_t:     return m_data.i16 != 0;
-        case R::Type::bool_t: // pass through
-        default:                 return m_data.b;
-    }
+    if( m_type == type::get<std::string*>() ) return !(static_cast<std::string*>(m_data.ptr))->empty();
+    if( m_type == type::get<double>() )       return m_data.d != 0.0;
+    if( m_type == type::get<i16_t>() )        return m_data.i16 != 0;
+
+    return m_data.b;
 }
 
 template<>
@@ -108,25 +103,17 @@ std::string Variant::convert_to<std::string>()const
         return "undefined";
     }
 
-    switch (get_meta_type()->get_type())
-    {
-        case R::Type::string_t: return *static_cast<std::string*>(m_data.ptr);
-        case R::Type::i16_t:    return std::to_string(m_data.i16);
-        case R::Type::double_t: return String::fmt_double(m_data.d);
-        case R::Type::bool_t:   return m_data.b ? "true" : "false";
-        case R::Type::Class:    return String::fmt_ptr(m_data.ptr);
-        default:                return "<?>";
-    }
+    if( m_type == type::get<std::string*>() ) return *static_cast<std::string*>(m_data.ptr);
+    if( m_type == type::get<i16_t>() )        return String::fmt_double(m_data.d);
+    if( m_type == type::get<double>() )       return String::fmt_double(m_data.d);
+    if( m_type == type::get<bool>() )         return m_data.b ? "true" : "false";
+
+    return "<?>";
 }
 
-R::Meta_t_csptr Variant::get_meta_type()const
+const type& Variant::get_type()const
 {
-	return m_meta_type;
-}
-
-bool  Variant::is_meta_type(R::Meta_t_csptr _type)const
-{
-	return m_meta_type->is_exactly(_type);
+	return m_type;
 }
 
 void Variant::set(const std::string& _value)
@@ -153,25 +140,22 @@ bool Variant::is_initialized()const
 
 void Variant::set_initialized(bool _initialize)
 {
-    auto type = m_meta_type->get_type();
-
     if ( _initialize )
     {
-        NODABLE_ASSERT(m_meta_type)
-        // Set a default value (this will change the type too)
-        switch ( type )
+        NODABLE_ASSERT( m_type != type::null )
+
+        if( m_type == type::get<std::string*>() )
         {
-            case R::Type::string_t: m_data.ptr   = new std::string();
-                                    m_is_defined = true;              break;
-            case R::Type::double_t: m_data.d     = 0.0;               break;
-            case R::Type::i16_t:    m_data.i16   = 0;                 break;
-            case R::Type::bool_t:   m_data.b     = false;             break;
-            case R::Type::void_t:
-            case R::Type::Class:    m_data.ptr   = nullptr;           break;
-            default:               break;
-        }
+            m_data.ptr = new std::string();
+            m_is_defined = true;
+        } else if( m_type == type::get<double>() )
+            m_data.d     = 0.0;
+         else if( m_type == type::get<double>() )
+            m_data.b     = false;
+         else
+            m_data.ptr   = nullptr;
     }
-    else if ( m_is_defined && m_meta_type->get_type() == R::Type::string_t )
+    else if (m_is_defined && m_type == type::get<std::string*>() )
     {
         delete (std::string*)m_data.ptr;
     }
@@ -183,39 +167,20 @@ void Variant::set_initialized(bool _initialize)
 
 void Variant::set(const Variant& _other)
 {
-    if ( _other.m_meta_type && !_other.m_meta_type->is_exactly(m_meta_type) )
-    {
-        NODABLE_ASSERT(R::Meta_t::is_implicitly_convertible(_other.m_meta_type, m_meta_type));
+    NODABLE_ASSERT( _other.m_type != type::null )
+    NODABLE_ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));
 
-        switch(m_meta_type->get_type())
-        {
-            case R::Type::string_t: set(*(std::string*)_other.m_data.ptr ); break;
-            case R::Type::bool_t:   set(_other.convert_to<bool>() ); break;
-            case R::Type::double_t: set(_other.convert_to<double>() ); break;
-            case R::Type::i16_t:    set(_other.convert_to<i16_t>() ); break;
-            case R::Type::void_t:
-            case R::Type::Class:   set( _other.m_data.ptr); break;
-            default: NODABLE_ASSERT(false) // not handled.
-        }
-        return;
-    }
-
-    switch(m_meta_type->get_type())
-    {
-        case R::Type::string_t:  set(*(std::string*)_other.m_data.ptr ); break;
-        case R::Type::bool_t: set(_other.m_data.b); break;
-        case R::Type::double_t:  set(_other.m_data.d); break;
-        case R::Type::i16_t:   set( _other.m_data.i16); break;
-        case R::Type::void_t:
-        case R::Type::Class:   set( _other.m_data.ptr); break;
-        default: NODABLE_ASSERT(false) // not handled.
-    }
+    if( m_type == type::get<std::string*>() ) return set(*(std::string*)_other.m_data.ptr );
+    if( m_type == type::get<bool>() )         return set(_other.convert_to<bool>() );
+    if( m_type == type::get<double>() )       return set(_other.convert_to<double>() );
+    if( m_type == type::get<i16_t>() )        return set(_other.convert_to<i16_t>() );
+    if( m_type.is_ptr() )                        return set( _other.m_data.ptr);
 }
 
-void Variant::define_meta_type(R::Meta_t_csptr _type)
+void Variant::define_type(type _type)
 {
-    NODABLE_ASSERT(!m_meta_type); // can't switch from one type to another
-    m_meta_type = _type;
+    NODABLE_ASSERT( m_type == type::null || m_type == type::any );
+    m_type = _type;
     set_initialized(true);
     NODABLE_ASSERT(m_is_initialized);
 }

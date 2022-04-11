@@ -7,7 +7,7 @@
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include <nodable/core/Component.h>
 #include <nodable/app/types.h>
 #include <nodable/core/GraphNode.h>

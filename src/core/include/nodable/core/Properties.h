@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include <memory> // std::shared_ptr
 #include <nodable/core/types.h>
 #include <nodable/core/Member.h> // for Type enum
@@ -31,7 +31,7 @@ namespace Nodable
             add_to_indexes(v);
             return v;
         }
-		Member*             add(const char*, Visibility, std::shared_ptr<const R::Meta_t>, Way);
+		Member*             add(const char *_name, Visibility _visibility, type _type, Way _flags);
 		// void                remove(const char*); // if we implement that, we have to think about all indexes.
 		// void                remove(Member*);     // => implement remove_from_indexes(Member*)
         bool                has(const char*);
@@ -40,7 +40,7 @@ namespace Nodable
         Node*               get_owner()const { return m_owner; };
 		const MemberMap&    by_name()const { return m_members_by_name; };
 		const MemberVec&    by_id()const { return m_members_by_id; };
-        Member*             get_first(Way, std::shared_ptr<const R::Meta_t>) const;
+        Member*             get_first(Way _way, type _type) const;
         Member*             get_input_at(u8_t n) const;
 	private:
 	    void                add_to_indexes(Member*);

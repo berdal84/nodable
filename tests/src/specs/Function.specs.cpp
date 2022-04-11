@@ -3,7 +3,6 @@
 #include <nodable/core/Invokable.h>
 
 using namespace Nodable;
-using namespace Nodable::R;
 
 TEST( Function_Signature, no_arg_fct)
 {
@@ -18,8 +17,8 @@ TEST( Function_Signature, push_single_arg)
     Signature* single_arg_fct = Signature::from_type<bool(double)>::as_function("fct");
 
     EXPECT_EQ(single_arg_fct->get_arg_count(), 1);
-    EXPECT_EQ(single_arg_fct->get_return_type()->get_type(), Type::bool_t);
-    EXPECT_EQ(single_arg_fct->get_args().at(0).m_type->get_type(), Type::double_t);
+    EXPECT_EQ(single_arg_fct->get_return_type(), type::get<bool>());
+    EXPECT_EQ(single_arg_fct->get_args().at(0).m_type, type::get<double>());
 }
 
 TEST( Function_Signature, push_two_args)
@@ -27,9 +26,9 @@ TEST( Function_Signature, push_two_args)
     auto two_arg_fct = Signature::from_type<bool(double, double)>::as_function("fct");
 
     EXPECT_EQ(two_arg_fct->get_arg_count(), 2);
-    EXPECT_EQ(two_arg_fct->get_return_type()->get_type(), Type::bool_t);
-    EXPECT_EQ(two_arg_fct->get_args().at(0).m_type->get_type(), Type::double_t);
-    EXPECT_EQ(two_arg_fct->get_args().at(1).m_type->get_type(), Type::double_t);
+    EXPECT_EQ(two_arg_fct->get_return_type(), type::get<bool>());
+    EXPECT_EQ(two_arg_fct->get_args().at(0).m_type, type::get<double>());
+    EXPECT_EQ(two_arg_fct->get_args().at(1).m_type, type::get<double>());
 }
 
 TEST( Function_Signature, match_check_for_arg_count)
@@ -52,8 +51,8 @@ TEST( Function_Signature, match_check_identifier)
 
     Signature* two_arg_fct_modified = Signature::from_type<bool()>::as_function("fct");
 
-    two_arg_fct_modified->push_arg(R::meta<double>() );
-    two_arg_fct_modified->push_arg(R::meta<double>() );
+    two_arg_fct_modified->push_arg(type::get<double>() );
+    two_arg_fct_modified->push_arg(type::get<double>() );
 
     EXPECT_EQ(two_arg_fct->is_compatible(two_arg_fct_modified), false);
     EXPECT_EQ(two_arg_fct_modified->is_compatible(two_arg_fct), false);

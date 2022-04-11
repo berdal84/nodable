@@ -42,13 +42,13 @@ namespace mirror
 
             switch ( _typeDesc->getType() )
             {
-                case mirror::R::Type::float:
+                case mirror::Type::float:
                     _out.append( std::to_string( *reinterpret_cast<float*>(_object) ) );
                     break;
-                case mirror::R::Type::int32:
+                case mirror::Type::int32:
                     _out.append( std::to_string( *reinterpret_cast<int*>(_object) ) );
                     break;
-                case mirror::R::Type::Pointer:
+                case mirror::Type::Pointer:
                 {
                     const PointerTypeDesc *pointerTypeDesc = static_cast<const PointerTypeDesc *>(_typeDesc);
                     const TypeDesc *subType = pointerTypeDesc->getSubType();
@@ -60,7 +60,7 @@ namespace mirror
                         isValidPointer = *pointerPtr != nullptr;
                         if (isValidPointer)
                         {
-                            if (subType->getType() == R::Type::char)
+                            if (subType->getType() == Type::char)
                             {
                                 _out.append("\"");
                                 _out.append(reinterpret_cast<const char *>(*pointerPtr));
@@ -75,7 +75,7 @@ namespace mirror
                     }
                 }
                     break;
-                case mirror::R::Type::bool:
+                case mirror::Type::bool:
                     _out.append( *reinterpret_cast<bool*>(_object) ? "true" : "false" );
                     break;
                 default:

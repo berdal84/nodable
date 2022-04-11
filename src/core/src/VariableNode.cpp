@@ -6,7 +6,7 @@ using namespace Nodable;
 
 R_DEFINE_CLASS(VariableNode)
 
-VariableNode::VariableNode(std::shared_ptr<const R::Meta_t> _type)
+VariableNode::VariableNode(type _type)
     : Node("Variable")
     , m_type_token(nullptr)
     , m_identifier_token(nullptr)
@@ -14,7 +14,7 @@ VariableNode::VariableNode(std::shared_ptr<const R::Meta_t> _type)
     , m_is_declared(true)
     , m_scope(nullptr)
 {
-    NODABLE_ASSERT(_type)
+    NODABLE_ASSERT(_type != type::null )
 	m_value = m_props.add(k_value_member_name, Visibility::Always, _type, Way_InOut);
 }
 
@@ -27,7 +27,7 @@ void VariableNode::set_name(const char* _name)
 
     if (m_value->get_data()->is_initialized())                   // append type only if have one
     {
-        label.append(m_value->get_meta_type()->get_name() );
+        label.append(m_value->get_type().get_name() );
         label.append(" ");
     }
     label.append(_name );                                        // append name

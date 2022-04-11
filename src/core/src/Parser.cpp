@@ -108,16 +108,16 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 	return true;
 }
 
-R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
+type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
 {
-    R::Type type = R::Type::any_t;
+    const Semantic& semantic                 = m_language.get_semantic();
+    const std::vector<std::regex>  regex     = semantic.get_type_regex();
+    const std::vector<type> regex_id_to_type = semantic.get_type_regex_index_to_type();
 
-    const Semantic& semantic                    = m_language.get_semantic();
-    const std::vector<std::regex>  regex        = semantic.get_type_regex();
-    const std::vector<R::Type> regex_id_to_type = semantic.get_type_regex_index_to_type();
+    type type = type::any;
 
     auto each_regex_it = regex.cbegin();
-    while( each_regex_it != regex.cend() && type == R::Type::any_t )
+    while( each_regex_it != regex.cend() && type == type::any )
     {
         std::smatch sm;
         auto match = std::regex_search(_token->m_word.cbegin(), _token->m_word.cend(), sm, *each_regex_it);
@@ -130,7 +130,7 @@ R::Type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
         each_regex_it++;
     }
 
-    NODABLE_ASSERT(type != R::Type::any_t)
+    NODABLE_ASSERT(type != type::any)
 
     return type;
 }
@@ -167,17 +167,13 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
 
 	    case Token_t::literal:
         {
-            std::shared_ptr<const R::Meta_t> type = R::meta(get_literal_type(_token));
+            type type = get_literal_type(_token);
             LiteralNode* literal = m_graph->create_literal(type);
 
-            switch (type->get_type() )
-            {
-                case R::Type::string_t: literal->set_value(parse_string(_token->m_word) ); break;
-                case R::Type::i16_t:    literal->set_value(parse_int16(_token->m_word) ); break;
-                case R::Type::double_t: literal->set_value(parse_double(_token->m_word) ); break;
-                case R::Type::bool_t:   literal->set_value(parse_bool(_token->m_word)  ); break;
-                default: {}
-            }
+                 if( type == type::get<std::string>() ) literal->set_value(parse_string(_token->m_word) );
+            else if( type == type::get<i16_t>() )       literal->set_value(parse_int16(_token->m_word) );
+            else if( type == type::get<double>() )      literal->set_value(parse_double(_token->m_word) );
+            else if( type == type::get<bool>() )        literal->set_value(parse_bool(_token->m_word)  );
 
             result = literal->get_value();
             result->set_src_token(_token);
@@ -198,7 +194,7 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
                 {
 			        /* when strict mode is OFF, we just create a variable with Any type */
                     LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n", _token->m_word.c_str())
-                    variable = m_graph->create_variable(R::Meta_t::s_any, _token->m_word, get_current_scope());
+                    variable = m_graph->create_variable(type::any, _token->m_word, get_current_scope());
                     variable->get_value()->set_src_token(_token);
                     variable->set_declared(false);
                 }
@@ -280,11 +276,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const Signature* signature = Signature::new_operator(R::Meta_t::s_any,
-                                                         ope,
-                                                         _left->get_meta_type(),
-                                                         right->get_meta_type());
-
+	const Signature* signature = Signature::new_operator(type::any, ope, _left->get_type(), right->get_type());
     const IInvokable* invokable = m_language.find_operator_fct(signature);
 
     InvokableComponent* component;
@@ -358,7 +350,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	// Create a function signature
 
 	const Operator*   ope       = m_language.find_operator(operatorToken->m_word, Operator_t::Unary );
-	const Signature*  sig       = Signature::new_operator(R::Meta_t::s_any, ope, value->get_meta_type());
+	const Signature*  sig       = Signature::new_operator(type::any, ope, value->get_type());
 	const IInvokable* invokable = m_language.find_operator_fct(sig);
 
     InvokableComponent* component;
@@ -879,7 +871,7 @@ Member* Parser::parse_function_call()
 
     // Declare a new function prototype
     Signature signature(fct_id);
-    signature.set_return_type(R::Meta_t::s_any);
+    signature.set_return_type(type::any);
 
     bool parsingError = false;
     while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != Token_t::close_bracket)
@@ -888,7 +880,7 @@ Member* Parser::parse_function_call()
         if (auto member = parse_expression())
         {
             args.push_back(member); // store argument as member (already parsed)
-            signature.push_arg(member->get_meta_type());  // add a new argument type to the proto.
+            signature.push_arg(member->get_type());  // add a new argument type to the proto.
             m_token_ribbon.eatToken(Token_t::separator);
         }
         else
@@ -1153,8 +1145,8 @@ Member *Parser::parse_variable_declaration()
 
     if(tok_type->is_keyword_type() && tok_identifier->m_type == Token_t::identifier )
     {
-        R::Type type = m_language.get_semantic().token_type_to_type(tok_type->m_type);
-        VariableNode* variable = m_graph->create_variable(R::meta(type), tok_identifier->m_word, get_current_scope());
+        type type = m_language.get_semantic().token_type_to_type(tok_type->m_type);
+        VariableNode* variable = m_graph->create_variable(type, tok_identifier->m_word, get_current_scope());
         variable->set_type_token(tok_type);
         variable->set_identifier_token(tok_identifier);
         variable->get_value()->set_src_token( std::make_shared<Token>(*tok_identifier) );
@@ -1165,8 +1157,8 @@ Member *Parser::parse_variable_declaration()
         {
             auto expression_result = parse_expression();
             if( expression_result &&
-                    R::Meta_t::is_implicitly_convertible(expression_result->get_meta_type()
-                                                           , variable->get_value()->get_meta_type()) )
+                    type::is_implicitly_convertible(expression_result->get_type()
+                                                           , variable->get_value()->get_type()) )
             {
                 m_graph->connect( expression_result, variable );
                 variable->set_assignment_operator_token(assignmentTok);

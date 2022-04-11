@@ -6,7 +6,7 @@
 #include <nodable/core/types.h> // forward declarations and common stuff
 #include <nodable/core/Node.h> // base class
 #include <nodable/core/Member.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include "Scope.h"
 
 namespace Nodable
@@ -23,7 +23,7 @@ namespace Nodable
 	class VariableNode : public Node
     {
 	public:
-		explicit VariableNode(std::shared_ptr<const R::Meta_t>);
+		explicit VariableNode(type);
 		~VariableNode() override = default;
 
 		inline bool      is_declared()const { return m_is_declared; }
@@ -56,8 +56,8 @@ namespace Nodable
 		std::string m_name;
         IScope* m_scope;
 
-		R_DERIVED(VariableNode)
-        R_EXTENDS(Node)
-        R_END
+		R_CLASS_DERIVED(VariableNode)
+        R_CLASS_EXTENDS(Node)
+        R_CLASS_END
     };
 }

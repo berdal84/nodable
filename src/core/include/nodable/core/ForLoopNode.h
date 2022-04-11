@@ -42,9 +42,9 @@ namespace Nodable
         InstructionNode* m_init_instr_node;
         InstructionNode* m_cond_instr_node;
         InstructionNode* m_iter_instr_node;
-        R_DERIVED(ForLoopNode)
-            R_EXTENDS(Node)
-            R_EXTENDS(IConditionalStruct)
-        R_END
+        R_CLASS_DERIVED(ForLoopNode)
+            R_CLASS_EXTENDS(Node)
+            R_CLASS_EXTENDS(IConditionalStruct)
+        R_CLASS_END
     };
 }

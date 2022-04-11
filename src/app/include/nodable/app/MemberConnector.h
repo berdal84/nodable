@@ -4,7 +4,7 @@
 
 #include <nodable/app/Connector.h>
 #include <nodable/app/types.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include <nodable/core/assertions.h>
 
 namespace Nodable {
@@ -43,7 +43,7 @@ namespace Nodable {
         MemberConnector& operator= (const MemberConnector&) = delete;
 
         Member*            get_member()const;
-        R::Meta_t_csptr        get_member_type()const;
+        type        get_member_type()const;
         vec2               get_pos()const override;
         bool               share_parent_with(const MemberConnector *other)const override;
         bool               has_node_connected() const;

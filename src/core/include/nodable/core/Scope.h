@@ -36,9 +36,9 @@ namespace Nodable
         std::shared_ptr<Token> m_end_scope_token;
 
         /** Reflect class */
-        R_DERIVED(Scope)
-            R_EXTENDS(Component)
-            R_EXTENDS(IScope)
-        R_END
+        R_CLASS_DERIVED(Scope)
+            R_CLASS_EXTENDS(Component)
+            R_CLASS_EXTENDS(IScope)
+        R_CLASS_END
     };
 }

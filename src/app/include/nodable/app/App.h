@@ -13,7 +13,7 @@
 #include <nodable/core/Language.h>
 #include <nodable/core/Texture.h>
 #include <nodable/core/VirtualMachine.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 
 namespace Nodable
 {
@@ -65,7 +65,7 @@ namespace Nodable
 
         AppView         m_view;
         File*           m_current_file;
-        R::Initialiser  m_reflect;
+        initializer     m_reflect;
         Settings        m_settings;
         TextureManager  m_texture_manager;
         VirtualMachine  m_vm;

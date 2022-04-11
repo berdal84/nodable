@@ -2,7 +2,7 @@
 
 #include <nodable/core/types.h>
 #include <nodable/core/Component.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 
 namespace Nodable
 {
@@ -12,8 +12,8 @@ namespace Nodable
 		DataAccess() {};
 		bool update()override;
 
-		R_DERIVED(DataAccess)
-        R_EXTENDS(Component)
-        R_END
+		R_CLASS_DERIVED(DataAccess)
+        R_CLASS_EXTENDS(Component)
+        R_CLASS_END
 	};
 }

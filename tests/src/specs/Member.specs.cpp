@@ -3,7 +3,6 @@
 #include <nodable/core/Member.h>
 
 using namespace Nodable;
-using namespace Nodable::R;
 
 TEST(Member, Way_In)
 {
@@ -56,7 +55,7 @@ TEST(Member, Type_Boolean)
 
     m.set(true);
     EXPECT_TRUE((bool)m);
-    EXPECT_EQ(m.get_meta_type()->get_type(), Type::bool_t);
+    EXPECT_EQ(m.get_type(), type::get<bool>());
 
     m.set(false);
     EXPECT_FALSE((bool)m);
@@ -72,7 +71,7 @@ TEST(Member, Type_String)
 
     EXPECT_EQ((std::string)m, str);
     EXPECT_TRUE(m.convert_to<bool>());
-    EXPECT_EQ(m.get_meta_type()->get_type(), Type::string_t);
+    EXPECT_EQ(m.get_type(), type::get<std::string>());
     EXPECT_TRUE(m.get_data()->is_defined());
 }
 
@@ -82,7 +81,7 @@ TEST(Member, Type_Double)
     m.set((double)50);
 
     EXPECT_EQ((double)m, (double)50);
-    EXPECT_EQ(m.get_meta_type()->get_type(), Type::double_t);
+    EXPECT_EQ(m.get_type(), type::get<double>());
     EXPECT_TRUE(m.get_data()->is_defined());
 }
 
@@ -92,7 +91,7 @@ TEST(Member, Modify_by_reference_using_a_pointer)
     m.set(50.0);
 
     EXPECT_EQ((double)m, 50.0);
-    EXPECT_EQ(m.get_meta_type()->get_type(), Type::double_t);
+    EXPECT_EQ(m.get_type(), type::get<double>());
     EXPECT_TRUE(m.get_data()->is_defined());
 
     double& ref = (double&)m;
@@ -107,7 +106,7 @@ TEST(Member, Modify_by_reference_using_a_reference)
     Member m2(nullptr, 50.0);
 
     EXPECT_EQ((double)m1, 50.0);
-    EXPECT_EQ(m1.get_meta_type()->get_type(), Type::double_t);
+    EXPECT_EQ(m1.get_type(), type::get<double>());
     EXPECT_TRUE(m1.get_data()->is_defined());
 
     auto add_right_to_left = [](double& a, double b) -> double { return  a = a + b; };

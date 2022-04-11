@@ -36,20 +36,9 @@
  * - get the link with TypeEnum,
  * - get the link with a typename.
  */
-#define R_DECLARE_LINK( TYPE_AS_STRING, TYPE, ENUM_TYPE_VALUE ) \
-    /** declare the link */  \
-    template<> \
-    struct Nodable::R::type_to_value<TYPE, ENUM_TYPE_VALUE> \
-    {  \
-        using type = TYPE; \
-        static constexpr const char*               name       = TYPE_AS_STRING; \
-        static constexpr decltype(ENUM_TYPE_VALUE) type_v     = ENUM_TYPE_VALUE; \
-        static constexpr const char*               type_name  = #ENUM_TYPE_VALUE;\
-    }; \
+#define R_REGISTER( TYPE_AS_STRING, TYPE ) \
     template<> struct \
-    Nodable::R::reflect_v<ENUM_TYPE_VALUE> : Nodable::R::type_to_value<TYPE, ENUM_TYPE_VALUE> {}; \
-    template<> struct \
-    Nodable::R::reflect_t<TYPE> : Nodable::R::type_to_value<TYPE, ENUM_TYPE_VALUE> {};
+    Nodable::Registration::push<TYPE>{};
 
 #define R_ENUM( Enum ) \
     static const char* to_string(Enum value) \
@@ -70,46 +59,41 @@
 *  CLASSES
 */
 
-#define R_BEGIN( CLASS, ... ) \
+#define R_CLASS_BEGIN( CLASS, ... ) \
 public:\
     \
-    virtual R::Class_ptr get_class() const __VA_ARGS__ { \
-      return CLASS::Get_class(); \
+    virtual type get_type() const __VA_ARGS__ { \
+      return type::get<CLASS>(); \
     } \
-    \
-    static R::Class_ptr Get_class() { \
-      static R::Class_ptr clss = CLASS::Reflect_class(); \
-      return clss; \
-    } \
-    static R::Class_ptr Reflect_class() { \
-      R::Class_ptr clss = std::make_shared<R::Class>(#CLASS);
+    static type Reflect_class() { \
+      type type(typeid(CLASS).hash_code(), #CLASS);
 
 /**
- * Must be inserted between R_BEGIN and R_END macro usage
+ * Must be inserted between R_BEGIN and R_CLASS_END macro usage
  */
-#define R_EXTENDS(PARENT_CLASS) \
-      clss->add_parent( PARENT_CLASS::Get_class() ); \
-      PARENT_CLASS::Get_class()->add_child( clss );
+#define R_CLASS_EXTENDS(PARENT_CLASS) \
+      type.add_parent( type::get<PARENT_CLASS>() ); \
+      type::get<PARENT_CLASS>().add_child( type );
 
 /**
  * Must be added after any usage of R_BEGIN, can be placed after a R_INHERITS
  */
-#define R_END \
-      return clss; /* return for CreateClass() */ \
+#define R_CLASS_END \
+      return type; /* return for CreateClass() */ \
     }
 
 /*
  * Short-end to type a class with minimal information (ex: name)
  */
-#define R( CLASS ) \
-    R_BEGIN( CLASS ) \
-    R_END
+#define R_CLASS( CLASS ) \
+    R_CLASS_BEGIN( CLASS ) \
+    R_CLASS_END
 
 /**
  * Short-end to type a class with minimal information with inheritance information.
  */
-#define R_DERIVED(CLASS ) \
-    R_BEGIN( CLASS, override )
+#define R_CLASS_DERIVED(CLASS ) \
+    R_CLASS_BEGIN( CLASS, override )
 
 /**
  * Must be added to your class *.cpp file in order to generate MetaClass before main() starts.
@@ -125,5 +109,5 @@ public:\
  *
  */
 #define R_DEFINE_CLASS( CLASS ) \
-static auto reflected_##_CLASS = Nodable::R::Register::push<CLASS>();
+static auto reflected_##_CLASS = Nodable::registration::push<CLASS>(#CLASS);
 

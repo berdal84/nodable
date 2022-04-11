@@ -15,12 +15,12 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
     result.append( " : " );
 
     // append instruction type
-    result.append(assembly::to_string(_instr.type));
+    result.append(assembly::to_string(_instr.opcode));
 
     result.resize(25, ' ');
 
     // optionally append parameters
-    switch ( _instr.type )
+    switch ( _instr.opcode )
     {
         case opcode::eval_node:
         {
@@ -32,7 +32,7 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
         {
             result.append(assembly::QWord::to_string(*_instr.uref.qword_ptr ));
             result.append(", *");
-            result.append( R::to_string(_instr.uref.qword_type));
+            result.append( _instr.uref.qword_type->get_name() );
             break;
         }
 

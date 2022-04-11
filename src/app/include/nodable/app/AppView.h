@@ -7,7 +7,7 @@
 #include <map>
 #include <array>
 
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include <nodable/app/types.h>
 #include <nodable/app/View.h>
 #include <nodable/app/FontConf.h>
@@ -83,8 +83,8 @@ namespace Nodable
         std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
         std::vector<Shortcut>               m_shortcuts;
 
-        R_DERIVED(AppView)
-        R_EXTENDS(View)
-        R_END
+        R_CLASS_DERIVED(AppView)
+        R_CLASS_EXTENDS(View)
+        R_CLASS_END
     };
 }

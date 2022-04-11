@@ -70,7 +70,7 @@ void assembly::Compiler::compile(const Member * _member )
 {
     NODABLE_ASSERT(_member);
     {
-        if (_member->is_meta_type(R::meta<Node *>() ) )
+        if ( _member->get_type() == type::get<Node*>() )
         {
             compile((const Node *) *_member);
         }
@@ -141,7 +141,7 @@ void assembly::Compiler::compile(const Node* _node)
         return;
     }
 
-    if ( _node->is<IConditionalStruct>() )
+    if ( _node->get_type().is_child_of( type::get<IConditionalStruct>() ))
     {
         if ( const ForLoopNode* for_loop = _node->as<ForLoopNode>())
         {
@@ -153,8 +153,10 @@ void assembly::Compiler::compile(const Node* _node)
         }
         else
         {
-           throw std::runtime_error(
-                   "The class " + _node->get_class()->get_fullname() + " is not handled by the compiler.");
+            std::string message = "The class ";
+            message.append(_node->get_type().get_name());
+            message.append(" is not handled by the compiler.");
+            throw std::runtime_error(message);
         }
     }
     else if ( const InstructionNode* instr_node = _node->as<InstructionNode>() )
@@ -297,7 +299,7 @@ void assembly::Compiler::compile(const InstructionNode *instr_node)
         {
             Instruction* instr     = m_temp_code->push_instr(opcode::deref_ptr);
             instr->uref.qword_ptr  = root_node_value->get_data_ptr();
-            instr->uref.qword_type = root_node_value->get_meta_type()->get_type();
+            instr->uref.qword_type = &root_node_value->get_type();
             instr->m_comment       = "copy unreferenced data";
         }
     }

@@ -1,0 +1,53 @@
+#pragma once
+
+#include "nodable/core/assertions.h"
+#include "nodable/core/types.h"
+#include "type.h"
+#include "initializer.h"
+#include "database.h"
+#include "registration.h"
+#include "MACROS.h"
+
+namespace Nodable
+{
+    /**
+     * set a value to an union member
+     */
+    template<typename U, typename T> void set_union(U& instance, T value)
+    {
+        T& member = U::template get<T>(instance);
+        member = value;
+    }
+
+     /**
+     * get a union member value
+     */
+     template<typename T, typename U> T& get_union(U& instance)
+    {
+        return U::template get<T>(instance);
+    }
+
+     /**
+     * get a union member value
+     */
+     template<typename T, typename U> const T& get_union(const U& instance)
+    {
+        return U::template get<T>(instance);
+    }
+
+    template<class target_t, class source_t>
+    static target_t* cast(source_t *_source)
+    {
+        NODABLE_ASSERT_EX(database::has(type::get<source_t>()), "class Src is not reflected");
+        NODABLE_ASSERT_EX(database::has(type::get<target_t>()), "class Dst is not reflected" );
+
+        if( _source->get_type().is_child_of( type::get<target_t>() ))
+        {
+            return dynamic_cast<target_t*>(_source);
+        }
+        return nullptr;
+    };
+} // namespace Nodable
+
+
+

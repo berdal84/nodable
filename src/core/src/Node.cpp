@@ -10,7 +10,6 @@
 #include <nodable/core/Signature.h>
 
 using namespace Nodable;
-using namespace Nodable::R;
 
 R_DEFINE_CLASS(Node)
 
@@ -140,8 +139,8 @@ bool Node::eval() const
         Member* input = each_member->get_input();
 
         if( input && each_member->is_connected_by(ConnectBy_Copy)
-            && !each_member->is_meta_type(R::Meta_t::s_any)
-            && !input->is_meta_type(R::Meta_t::s_any) )
+            && each_member->get_type() != type::any
+            && input->get_type() != type::any )
         {
             each_member->set(input);
         }

@@ -127,7 +127,7 @@ void GraphNode::add(Node* _node)
 {
 	m_node_registry.push_back(_node);
     _node->set_parent_graph(this);
-    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->get_label(), _node->get_class()->get_name())
+    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->get_label(), _node->get_type().get_name())
 }
 
 void GraphNode::remove(Node* _node)
@@ -152,9 +152,9 @@ void GraphNode::ensure_has_root()
     }
 }
 
-VariableNode* GraphNode::create_variable(std::shared_ptr<const R::Meta_t> _type, const std::string& _name, IScope* _scope)
+VariableNode* GraphNode::create_variable(type _type, const std::string& _name, IScope* _scope)
 {
-    NODABLE_ASSERT(_type)
+    NODABLE_ASSERT(_type != type::null)
 
     auto node = m_factory->new_variable(_type, _name, _scope);
     add(node);
@@ -256,7 +256,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
 {
     Wire* wire         = nullptr;
 
-    NODABLE_ASSERT( R::Meta_t::is_implicitly_convertible(_src_member->get_meta_type(), _dst_member->get_meta_type()) );
+    NODABLE_ASSERT( type::is_implicitly_convertible(_src_member->get_type(), _dst_member->get_type()) );
 
     /*
      * If _from has no owner _to can digest it, no Wire neede in that case.
@@ -267,9 +267,9 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         delete _src_member;
     }
     else if (
-            !_src_member->get_meta_type()->is_ptr() &&
-            _src_member->get_owner()->get_class()->is_child_of<LiteralNode>() &&
-            _dst_member->get_owner()->get_class()->is_not_child_of<VariableNode>())
+            !_src_member->get_type().is_ptr() &&
+            _src_member->get_owner()->get_type().is_child_of<LiteralNode>() &&
+            _dst_member->get_owner()->get_type().is_not_child_of<VariableNode>())
     {
         Node* owner = _src_member->get_owner();
         _dst_member->digest(_src_member);
@@ -585,7 +585,7 @@ Node* GraphNode::create_node()
     return node;
 }
 
-LiteralNode* GraphNode::create_literal(std::shared_ptr<const R::Meta_t> _type)
+LiteralNode* GraphNode::create_literal(type _type)
 {
     LiteralNode* node = m_factory->new_literal(_type);
     add(node);

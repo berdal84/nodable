@@ -64,7 +64,7 @@ void VirtualMachine::run_program()
 
     m_cpu.clear_registers();
 
-    while( is_there_a_next_instr() && get_next_instr()->type != opcode::ret )
+    while( is_there_a_next_instr() && get_next_instr()->opcode != opcode::ret )
     {
         _stepOver();
     }
@@ -109,14 +109,14 @@ bool VirtualMachine::_stepOver()
 
     LOG_MESSAGE("VM", "%s\n", Instruction::to_string(*next_instr).c_str() );
 
-    switch ( next_instr->type )
+    switch ( next_instr->opcode )
     {
         case opcode::cmp:
         {
             QWord left  = m_cpu.read(next_instr->cmp.left.r);  // dereference registers, get their value
             QWord right = m_cpu.read(next_instr->cmp.right.r);
             QWord result;
-            R::set_union(result, left.b == right.b);
+            set_union(result, left.b == right.b);
             m_cpu.write(Register::rax, result);       // boolean comparison
             advance_cursor();
             success = true;
@@ -128,34 +128,30 @@ bool VirtualMachine::_stepOver()
             QWord qword = *next_instr->uref.qword_ptr;
             m_cpu.write(Register::rax, qword );
 
-            switch( next_instr->uref.qword_type )
+            type t = *next_instr->uref.qword_type;
+            if( t == type::get<bool>() )
             {
-                case R::Type::bool_t:
-                {
-                    LOG_VERBOSE("VM", "value dereferenced: %b\n", qword.b);
-                    break;
-                }
-
-                case R::Type::double_t:
-                {
-                    LOG_VERBOSE("VM", "value dereferenced: %d\n", qword.d );
-                    break;
-                }
-
-                case R::Type::i16_t:
-                {
-                    LOG_VERBOSE("VM", "value dereferenced: %i\n", qword.i16 );
-                    break;
-                }
-
-                case R::Type::string_t:
-                {
-                    LOG_VERBOSE("VM", "pointed string: %s\n", ((std::string*)qword.ptr)->c_str() );
-                    break;
-                }
-                default: NODABLE_ASSERT(false) // not handled
+                LOG_VERBOSE("VM", "value dereferenced: %b\n", qword.b);
+                break;
             }
-
+            if( t == type::get<double >() )
+            {
+                LOG_VERBOSE("VM", "value dereferenced: %d\n", qword.d );
+                break;
+            }
+            if( t == type::get<i16_t >() )
+            {
+                LOG_VERBOSE("VM", "value dereferenced: %i\n", qword.i16 );
+                break;
+            }
+            if( t == type::get<std::string>() )
+            {
+                LOG_VERBOSE("VM", "pointed string: %s\n", ((std::string*)qword.ptr)->c_str() );
+            }
+            else
+            {
+                NODABLE_ASSERT(false) // not handled
+            }
 
             advance_cursor();
             success = true;
@@ -256,7 +252,7 @@ bool VirtualMachine::step_over()
 {
     auto must_break = [&]() -> bool {
         return
-                get_next_instr()->type == opcode::eval_node
+                get_next_instr()->opcode == opcode::eval_node
                && m_last_step_next_instr != get_next_instr();
     };
 
@@ -264,7 +260,7 @@ bool VirtualMachine::step_over()
 
     while(is_there_a_next_instr() && !must_break() && !must_exit )
     {
-        must_exit = get_next_instr()->type == opcode::ret;
+        must_exit = get_next_instr()->opcode == opcode::ret;
         _stepOver();
     }
 
@@ -282,7 +278,7 @@ bool VirtualMachine::step_over()
         m_last_step_next_instr = get_next_instr();
         auto next_instr = get_next_instr();
 
-        switch ( next_instr->type )
+        switch ( next_instr->opcode )
         {
             case opcode::eval_node:
             {

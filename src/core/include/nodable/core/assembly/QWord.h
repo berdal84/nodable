@@ -5,7 +5,7 @@
 #include "nodable/core/assertions.h"
 #include "nodable/core/types.h"
 #include "nodable/core/assembly/Register.h"
-#include "nodable/core/reflection/R.h"
+#include "nodable/core/reflection/reflection"
 
 namespace Nodable
 {
@@ -38,7 +38,7 @@ namespace assembly
         [[nodiscard]] static std::string to_string(const QWord&);
 
         template<typename T>
-        operator T() { return R::get_union<T>(*this); }
+        operator T() { return get_union<T>(*this); }
         operator std::string() { return *static_cast<std::string*>(ptr); }
 
         R_UNION(QWord)

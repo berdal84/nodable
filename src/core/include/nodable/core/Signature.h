@@ -5,7 +5,7 @@
 #include <tuple>
 #include <memory>
 
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include <nodable/core/constants.h>
 #include <regex>
 #include "Operator.h"
@@ -20,8 +20,8 @@ namespace Nodable
      */
     struct FuncArg
     {
-        FuncArg(R::Meta_t_csptr _type, std::string& _name): m_type(_type), m_name(_name){}
-        R::Meta_t_csptr m_type;
+        FuncArg(type _type, std::string& _name): m_type(_type), m_name(_name){}
+        type m_type;
         std::string           m_name;
     };
 
@@ -33,27 +33,19 @@ namespace Nodable
      */
     class Signature
     {
-        using Meta_t = std::shared_ptr<const R::Meta_t>;
-
     public:
-        enum class Type {
-            Function,
-            Operator
-        };
-
         Signature(std::string _id);
-
         Signature(const Operator* _op);
-
         ~Signature() {};
-        void                           push_arg(R::Meta_t_csptr _type);
+
+        void                           push_arg(type _type);
 
         template <typename... T>
         void push_args(T&&... args) {
             int dummy[] = { 0, ((void) push_arg(std::forward<T>(args)),0)... };
         }
 
-        bool                           has_an_arg_of_type(R::Meta_t_csptr type)const;
+        bool                           has_an_arg_of_type(type type)const;
         bool                           is_exactly(const Signature* _other)const;
         bool                           is_compatible(const Signature* _other)const;
         bool                           is_operator()const { return m_operator; };
@@ -61,18 +53,18 @@ namespace Nodable
         FuncArgs&                      get_args() { return m_args;};
         const FuncArgs&                get_args()const { return m_args;};
         size_t                         get_arg_count() const { return m_args.size(); }
-        const R::Meta_t_csptr    get_return_type() const { return m_return_type; }
-        void                           set_return_type(R::Meta_t_csptr _type) { m_return_type = _type; };
+        const type                  get_return_type() const { return m_return_type; }
+        void                           set_return_type(type _type) { m_return_type = _type; };
         const Operator*                get_operator()const { return m_operator; }
         std::string                    get_label()const;
         static std::string&            clean_function_id(std::string& _id);
-        static const Signature*        new_operator(Meta_t, const Operator* _op, Meta_t );
-        static const Signature*        new_operator(Meta_t, const Operator* _op, Meta_t , Meta_t );
+        static const Signature*        new_operator(type, const Operator* _op, type );
+        static const Signature*        new_operator(type, const Operator* _op, type , type );
     private:
         const Operator* m_operator;
         std::string     m_identifier;
         FuncArgs        m_args;
-        R::Meta_t_csptr m_return_type;
+        type m_return_type;
 
     public:
 
@@ -89,7 +81,7 @@ namespace Nodable
             static Signature* as_function(std::string _id)
             {
                 auto signature = new Signature(_id);
-                signature->set_return_type(R::meta<T>() );
+                signature->set_return_type(type::get<T>());
                 signature->push_args<std::tuple<Args...>>();
                 return signature;
             }
@@ -98,7 +90,7 @@ namespace Nodable
             {
                 NODABLE_ASSERT(_op);
                 auto signature = new Signature( _op);
-                signature->set_return_type(R::meta<T>() );
+                signature->set_return_type(type::get<T>());
                 signature->push_args<std::tuple<Args...>>();
                 return signature;
             }
@@ -114,7 +106,7 @@ namespace Nodable
                 arg_pusher<Tuple, N - 1>::push_into(_signature);
 
                 using T = std::tuple_element_t<N-1, Tuple>;
-                _signature->push_arg(R::meta<T>() );
+                _signature->push_arg( type::get<T>() );
             }
         };
 
@@ -124,7 +116,7 @@ namespace Nodable
             static void push_into(Signature *_signature)
             {
                 using T = std::tuple_element_t<0, Tuple>;
-                _signature->push_arg(R::meta<T>() );
+                _signature->push_arg( type::get<T>() );
             };
         };
 

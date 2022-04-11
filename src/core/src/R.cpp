@@ -1,60 +1,30 @@
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
+
 #include <type_traits> // std::underlying_type
 #include <stdexcept>   // std::runtime_error
-#include <nodable/core/assertions.h>
-#include "nodable/core/reflection/R_Meta_t.h"
 
+using namespace Nodable;
 
-using namespace Nodable::R;
+type type::any  = type::get<any_t>();
+type type::null = type::get<std::nullptr_t>();
 
-Meta_t_csptr Meta_t::s_any = std::make_shared<Meta_t>("any", Type::any_t );
-
-bool Meta_t::has_qualifier(Qualifier _other_qualifier) const
+bool type::is_ptr(type left)
 {
-    using T = std::underlying_type<Qualifier>::type;
-    return
-    (
-        static_cast<T>(m_qualifier) & static_cast<T>(_other_qualifier)
-    )
-    !=
-    static_cast <T>(Qualifier::None);
+    return left.m_is_pointer;
 }
 
-void Meta_t::add_qualifier(Qualifier _other_qualifier)
+bool type::is_ref(type left)
 {
-    using T = std::underlying_type_t<Qualifier>;
-    m_qualifier = static_cast<Qualifier>( static_cast<T>(m_qualifier) | static_cast<T>(_other_qualifier) );
+    return left.m_is_reference;
 }
 
-bool Meta_t::is_ptr(Meta_t_csptr left)
+bool type::is_implicitly_convertible(type _left, type _right )
 {
-    return  left->has_qualifier(Qualifier::Pointer);
-}
-
-bool Meta_t::is_ref(Meta_t_csptr left)
-{
-    return left->has_qualifier(Qualifier::Ref);
-}
-
-Meta_t_sptr Meta_t::add_ref(Meta_t_sptr left)
-{
-    left->add_qualifier(Qualifier::Ref);
-    return left;
-}
-
-Meta_t_sptr Meta_t::add_ptr(Meta_t_sptr left)
-{
-    left->add_qualifier(Qualifier::Pointer);
-    return left;
-}
-
-bool Meta_t::is_implicitly_convertible(Meta_t_csptr _left, Meta_t_csptr _right )
-{
-    if(_left == Meta_t::s_any || _right == Meta_t::s_any ) // We allow cast to unknown type
+    if(_left == type::get<any_t>() || _right == type::get<any_t>() ) // We allow cast to unknown type
     {
         return true;
     }
-    else if (_left->get_type() == _right->get_type() )
+    else if (_left.get_underlying_type() == _right.get_underlying_type() )
     {
         return true;
     }
@@ -63,50 +33,31 @@ bool Meta_t::is_implicitly_convertible(Meta_t_csptr _left, Meta_t_csptr _right )
         return true;
     }
 
-    switch( _left->get_type() )
-    {
-        case Type::i16_t:  return _right->get_type() == Type::double_t;
-        default:           return false;
-    }
-
+    return     _left.get_underlying_type() == type::get<i16_t>()
+           && _right.get_underlying_type() == type::get<double>();
 }
 
-bool Meta_t::is_exactly(Meta_t_csptr _other) const
+type type::get_underlying_type() const
 {
-    if( !_other) return false;
-
-    return m_qualifier == _other->m_qualifier
-           && m_type == _other->m_type;
+    return database::get(m_underlying_type);
 }
 
-Meta_t_csptr Meta_t::make_ptr(Meta_t_csptr _type)
-{
-    auto base_copy = std::make_shared<Meta_t>(*_type);
-    return add_ptr(base_copy);
-}
-
-Meta_t_csptr Meta_t::make_ref(Meta_t_csptr _type)
-{
-    auto base_copy = std::make_shared<Meta_t>(*_type);
-    return add_ref(base_copy);
-}
-
-std::string Meta_t::get_fullname() const
+std::string type::get_fullname() const
 {
     std::string result;
 
-    if (has_qualifier(Qualifier::Const))
+    if (is_const())
     {
         result.append("const ");
     }
 
     result.append(m_name);
 
-    if (has_qualifier(Qualifier::Pointer))
+    if (is_ptr())
     {
         result.append("*");
     }
-    else if (has_qualifier(Qualifier::Ref))
+    else if (is_ref())
     {
         result.append("&");
     }
@@ -114,33 +65,32 @@ std::string Meta_t::get_fullname() const
     return result;
 }
 
-bool Meta_t::is_ptr()const
+bool type::is_ptr()const
 {
-    return has_qualifier(Qualifier::Pointer);
+    return m_is_pointer;
 }
 
-bool Meta_t::is_ref()const
+bool type::is_ref()const
 {
-    return has_qualifier(Qualifier::Ref);
+    return m_is_reference;
 }
 
-std::map<Type, std::shared_ptr<const Meta_t>>& Register::by_type()
+type database::get(size_t _hash)
 {
-    static std::map<Type, std::shared_ptr<const Meta_t>> meta_type_register_by_category;
-    return meta_type_register_by_category;
+    return by_hash().find(_hash)->second;
 }
 
-std::map<std::string, std::shared_ptr<const Meta_t>>& Register::by_typeid()
+std::map<size_t, type>& database::by_hash()
 {
-    static std::map<std::string, std::shared_ptr<const Meta_t>> meta_type_register_by_typeid;
+    static std::map<size_t, type> meta_type_register_by_typeid;
     return meta_type_register_by_typeid;
 }
 
-bool Class::is_child_of(Class_ptr _possible_parent_class, bool _selfCheck) const
+bool type::is_child_of(type _possible_parent_class, bool _selfCheck) const
 {
     bool is_child;
 
-    if (_selfCheck && this == _possible_parent_class.get() )
+    if (_selfCheck && m_hash_code == _possible_parent_class.m_hash_code )
     {
         is_child = true;
     }
@@ -150,7 +100,7 @@ bool Class::is_child_of(Class_ptr _possible_parent_class, bool _selfCheck) const
     }
     else
     {
-        auto direct_parent_found = std::find(m_parents.begin(), m_parents.end(), _possible_parent_class);
+        auto direct_parent_found = m_parents.find(_possible_parent_class.m_hash_code);
 
         // direct parent check
         if ( direct_parent_found != m_parents.end())
@@ -160,9 +110,10 @@ bool Class::is_child_of(Class_ptr _possible_parent_class, bool _selfCheck) const
         else // indirect parent check
         {
             bool is_a_parent_is_child_of = false;
-            for (Class_ptr each : m_parents)
+            for (auto each : m_parents)
             {
-                if (each->is_child_of(_possible_parent_class, true))
+                type parent_type = database::get(each);
+                if (parent_type.is_child_of(_possible_parent_class, true))
                 {
                     is_a_parent_is_child_of = true;
                 }
@@ -173,35 +124,52 @@ bool Class::is_child_of(Class_ptr _possible_parent_class, bool _selfCheck) const
     return is_child;
 };
 
-void Class::add_parent(Class_ptr _parent)
+void type::add_parent(type _parent)
 {
-    m_parents.insert(_parent);
+    m_parents.insert(_parent.hash_code());
 }
 
-void Class::add_child(Class_ptr _child)
+void type::add_child(type _child)
 {
-    m_children.insert(_child);
+    m_children.insert( _child.hash_code() );
 }
 
-bool Register::has_typeid(const std::string& _id)
+bool type::is_const() const
 {
-    return by_typeid().find(_id) != by_typeid().end();
+    return m_is_const;
 }
 
-bool Nodable::R::Initialiser::s_initialized = false;
+bool database::has(type _type)
+{
+    return by_hash().find(_type.hash_code()) != by_hash().end();
+}
 
-Nodable::R::Initialiser::Initialiser()
+bool database::has(size_t _hash_code)
+{
+    return by_hash().find(_hash_code) != by_hash().end();
+}
+
+void database::insert(type _type)
+{
+    NODABLE_ASSERT(!has(_type.hash_code()))
+    by_hash().insert({_type.hash_code(), _type});
+}
+
+bool initializer::s_initialized = false;
+
+initializer::initializer()
 {
     if( s_initialized )
     {
         throw std::runtime_error("R has already been initialised !");
     }
 
-    Register::push<double>();
-    Register::push<std::string>();
-    Register::push<bool>();
-    Register::push<void>();
-    Register::push<i16_t>();
+    registration::push<double>("double");
+    registration::push<std::string>("std::string");
+    registration::push<bool>("bool");
+    registration::push<void>("void");
+    registration::push<i16_t>("i16_t");
+    registration::push<type::any_t>("any");
 
     log_statistics();
 
@@ -209,20 +177,14 @@ Nodable::R::Initialiser::Initialiser()
 }
 
 
-void Nodable::R::Initialiser::log_statistics()
+void initializer::log_statistics()
 {
     LOG_MESSAGE("R", "Logging reflected types ...\n");
 
-    LOG_MESSAGE("R", "By category (%i):\n", Register::by_type().size() );
-    for ( const auto& each : Register::by_type() )
+    LOG_MESSAGE("R", "By typeid (%i):\n", database::by_hash().size() );
+    for ( const auto& [type_hash, type] : database::by_hash() )
     {
-        LOG_MESSAGE("R", " %s => %s \n", to_string(each.first), each.second->get_name() );
-    }
-
-    LOG_MESSAGE("R", "By typeid (%i):\n", Register::by_typeid().size() );
-    for ( const auto& each : Register::by_typeid() )
-    {
-        LOG_MESSAGE("R", " %s => %s \n", each.first.c_str(), each.second->get_name() );
+        LOG_MESSAGE("R", " %llu => %s \n", type_hash, type.get_name() );
     }
 
     LOG_MESSAGE("R", "Logging done.\n");

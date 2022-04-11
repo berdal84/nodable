@@ -99,9 +99,9 @@ namespace Nodable {
         const IInvokable*    get_connected_operator(const Member* _localMember); // TODO: weird, try to understand why I needed this
         bool                 has_wire_connected_to(const Member *_localMember);
 
-        template<class T> inline T*       as() { return R::cast_class_ptr<T>(this); }
-        template<class T> inline const T* as()const { return R::cast_class_ptr<const T>(this); }
-        template<class T> inline bool     is()const { return R::cast_class_ptr<const T>(this) != nullptr; }
+        template<class T> inline T*       as() { return cast<T>(this); }
+        template<class T> inline const T* as()const { return cast<const T>(this); }
+        template<class T> inline bool     is()const { return cast<const T>(this) != nullptr; }
 
         Properties*          props() { return &m_props; }
         const Properties*    props()const { return &m_props; }
@@ -119,8 +119,7 @@ namespace Nodable {
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
             NODABLE_ASSERT( _component != nullptr );
-			std::string name(T::Get_class()->get_name());
-			m_components.emplace(std::make_pair(name, _component));
+			m_components.emplace(std::make_pair(type::get<T>().get_name(), _component));
 			_component->set_owner(this);
 		}
 
@@ -172,11 +171,11 @@ namespace Nodable {
                 return nullptr;
             }
 
-			R::Class_ptr desired_class = T::Get_class();
+			type desired_class = type::get<T>();
 
 			// Search with class name
 			{
-				auto it = m_components.find( desired_class->get_name() );
+				auto it = m_components.find( desired_class.get_name() );
 				if (it != m_components.end())
 				{
 					return static_cast<T*>(it->second);
@@ -184,12 +183,11 @@ namespace Nodable {
 			}
 
 			// Search for a derived class
-			for (const auto & it : m_components)
+			for (const auto & [name, component] : m_components)
 			{
-				Component* each_component = it.second;
-				if ( each_component->get_class()->is_child_of(desired_class, false) )
+				if ( component->get_type().is_child_of(desired_class) )
 				{
-					return static_cast<T*>(each_component);
+					return static_cast<T*>(component);
 				}
 			}
 
@@ -245,7 +243,7 @@ namespace Nodable {
         Slots<Node*>       m_inputs;
         Slots<Node*>       m_outputs;
 
-		R(Node)
+		R_CLASS(Node)
 
     };
 }

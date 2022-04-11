@@ -5,7 +5,7 @@
 #include <memory> // std::shared_ptr
 
 #include <nodable/core/types.h> // for constants and forward declarations
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include <nodable/core/assertions.h>
 #include <nodable/core/assembly/QWord.h>
 
@@ -21,23 +21,22 @@ namespace Nodable
     public:
         using QWord    = assembly::QWord;
 
-        Variant(R::Meta_t_csptr _type)
+        Variant(type _initial_type = type::any )
                 : m_is_initialized(false)
                 , m_is_defined(false)
-                , m_meta_type(_type) {
+                , m_type(_initial_type) {
         }
         ~Variant();
 
         QWord*  get_data_ptr();
-        bool    is_meta_type(R::Meta_t_csptr _meta_type) const;
         bool    is_initialized() const;
         bool    is_defined() const { return m_is_defined; }
         void    set_initialized(bool _initialize);
         template<typename T>
         void set(T *_pointer)
         {
-            if (!m_meta_type) define_meta_type(R::meta<T *>());
-            NODABLE_ASSERT(m_meta_type->has_qualifier(R::Qualifier::Pointer))
+            ensure_is_initialized_as<T*>();
+            NODABLE_ASSERT(m_type.is_ptr())
             m_data.ptr = _pointer;
             m_is_defined = true;
         }
@@ -45,7 +44,7 @@ namespace Nodable
         void set(T _value)
         {
             ensure_is_initialized_as<T>();
-            R::set_union(m_data, _value);
+            set_union(m_data, _value);
             m_is_defined = true;
         }
         void set(const Variant &);
@@ -55,11 +54,11 @@ namespace Nodable
         template<typename T>
         void define_type()
         {
-            NODABLE_ASSERT(m_meta_type == nullptr)
-            define_meta_type(R::meta<T>());
+            NODABLE_ASSERT(m_type == type::null)
+            define_type(type::get<T>());
         };
-        void define_meta_type(R::Meta_t_csptr _type);
-        R::Meta_t_csptr get_meta_type()const;
+        void define_type(type _type);
+        const type & get_type()const;
         template<typename T> T convert_to()const;
 
         template<typename T> operator const T*()const  { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<const T*>(m_data.ptr); }
@@ -88,16 +87,16 @@ namespace Nodable
     private:
         bool            m_is_defined;
         bool            m_is_initialized;
-        R::Meta_t_csptr m_meta_type;
+        type         m_type;
         QWord           m_data;
 
         template<typename T>
         void ensure_is_initialized_as()
         {
             using clean_T = typename std::remove_reference<T>::type; // skip reference
-            auto meta_t   = R::meta<clean_T>();
-            if( !m_is_initialized) define_meta_type( meta_t );
-            NODABLE_ASSERT( is_meta_type( meta_t ) )
+            auto type   = type::get<clean_T>();
+            if( !m_is_initialized) define_type(type);
+            NODABLE_ASSERT( m_type == type )
         };
     };
 }

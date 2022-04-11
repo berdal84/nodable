@@ -3,7 +3,6 @@
 #include <nodable/core/Log.h>
 
 using namespace Nodable;
-using namespace Nodable::R;
 
 R_DEFINE_CLASS(InstructionNode)
 

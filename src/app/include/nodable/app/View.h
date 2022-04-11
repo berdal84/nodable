@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 
 #include <nodable/app/ImGuiEx.h>
 #include <nodable/core/Component.h>
@@ -56,6 +56,6 @@ namespace Nodable
     private:
         std::map<Color, vec4*> m_colors;
 
-		R(View)
+		R_CLASS(View)
     };
 }

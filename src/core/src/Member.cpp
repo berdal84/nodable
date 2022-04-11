@@ -14,7 +14,7 @@ Member::Member(Properties* _parent_properties)
     , m_parentProperties(_parent_properties)
     , m_connected_by(ConnectBy_Copy)
     , m_allowed_connection(Way_Default)
-    , m_variant(nullptr)
+    , m_variant()
 {
     m_owner = _parent_properties ? _parent_properties->get_owner() : nullptr;
 }
@@ -48,18 +48,11 @@ bool Member::has_input_connected() const
     return m_input != nullptr;
 }
 
-bool Member::equals(const Member *_other)const {
-	return _other != nullptr &&
-            _other->m_variant.get_meta_type() == m_input->m_variant.get_meta_type() &&
-		   (std::string)*_other == (std::string)*m_input;
-}
-
 void Member::set_input(Member* _val)
 {
     m_input        = _val;
-    const std::shared_ptr<const R::Meta_t> &meta_t = m_variant.get_meta_type();
-    m_connected_by = meta_t->has_qualifier(R::Qualifier::Ref) ||
-                     meta_t->has_qualifier(R::Qualifier::Pointer) ? ConnectBy_Ref : ConnectBy_Copy;
+    type type = m_variant.get_type();
+    m_connected_by = type.is_ref() || type.is_ptr() ? ConnectBy_Ref : ConnectBy_Copy;
 }
 
 void Member::set(Node* _value)

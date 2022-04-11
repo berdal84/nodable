@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory> // std::shared_ptr
 
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include <nodable/core/IScope.h>
 #include <nodable/core/types.h>
 #include <nodable/core/Component.h>
@@ -36,15 +36,15 @@ namespace Nodable
         void                        ensure_has_root();
         Node*                       create_root();
         InstructionNode*            create_instr();
-		VariableNode*				create_variable(std::shared_ptr<const R::Meta_t>, const std::string&, IScope*);
+		VariableNode*				create_variable(type, const std::string&, IScope*);
 
 		template<typename T>
 		VariableNode*				create_variable(const std::string& _name, IScope* _scope)
         {
-		    return create_variable(R::meta<T>(), _name, _scope);
+		    return create_variable(type::get<T>(), _name, _scope);
         }
 
-		LiteralNode*                create_literal(std::shared_ptr<const R::Meta_t>);
+		LiteralNode*                create_literal(type);
  		Wire*                       create_wire();
 		Node*                       create_abstract_function(const Signature*);
 		Node*                       create_function(const IInvokable*);
@@ -79,9 +79,9 @@ namespace Nodable
 		const INodeFactory* m_factory;
         const bool* m_autocompletion;
 
-        R_DERIVED(GraphNode)
-        R_EXTENDS(Node)
-        R_END
+        R_CLASS_DERIVED(GraphNode)
+        R_CLASS_EXTENDS(Node)
+        R_CLASS_END
 
     };
 }
