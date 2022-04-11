@@ -3,7 +3,7 @@
 #include <unordered_set>
 #include <memory>
 
-#include "database.h"
+#include "typeregister.h"
 
 namespace Nodable
 {
@@ -11,10 +11,10 @@ namespace Nodable
     {
         friend struct registration;
         friend struct initializer;
+    public:
         struct any_t{};
         struct null_t{};
         using hash_code_t = size_t;
-    public:
 
         type(size_t _hash_code, const char* _name, hash_code_t _underlying_t = typeid(std::nullptr_t).hash_code() )
             : m_name(_name)
@@ -57,7 +57,7 @@ namespace Nodable
         template<typename T>
         static type get()
         {
-            return database::get(typeid(T).hash_code() );
+            return typeregister::get(typeid(T).hash_code() );
         }
 
         /** to get a type ar runtime */

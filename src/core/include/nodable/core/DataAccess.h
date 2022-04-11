@@ -12,6 +12,6 @@ namespace Nodable
 		DataAccess() {};
 		bool update()override;
 
-		REFLECT_ENABLE()
+		REFLECT_ENABLE(DataAccess, Component)
 	};
 }

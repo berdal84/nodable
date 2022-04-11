@@ -3,8 +3,7 @@
 #include "nodable/core/assertions.h"
 #include "nodable/core/types.h"
 #include "type.h"
-#include "initializer.h"
-#include "database.h"
+#include "typeregister.h"
 #include "registration.h"
 #include "MACROS.h"
 
@@ -38,8 +37,8 @@ namespace Nodable
     template<class target_t, class source_t>
     static target_t* cast(source_t *_source)
     {
-        NODABLE_ASSERT_EX(database::has(type::get<source_t>()), "class Src is not reflected");
-        NODABLE_ASSERT_EX(database::has(type::get<target_t>()), "class Dst is not reflected" );
+        NODABLE_ASSERT_EX(typeregister::has(type::get<source_t>()), "class Src is not reflected");
+        NODABLE_ASSERT_EX(typeregister::has(type::get<target_t>()), "class Dst is not reflected" );
 
         if( _source->get_type().is_child_of( type::get<target_t>() ))
         {
@@ -47,6 +46,8 @@ namespace Nodable
         }
         return nullptr;
     };
+
+    static void reflect_log_statistics();
 } // namespace Nodable
 
 

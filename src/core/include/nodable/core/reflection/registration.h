@@ -1,5 +1,5 @@
 #pragma once
-#include <nodable/core/reflection/database.h>
+#include <nodable/core/reflection/typeregister.h>
 #include <nodable/core/reflection/type.h>
 
 namespace Nodable
@@ -17,7 +17,7 @@ namespace Nodable
                 t.m_is_reference  = std::is_reference<T>();
                 t.m_is_const      = std::is_const<T>();
 
-                database::insert(t);
+                typeregister::insert(t);
                 LOG_MESSAGE("R", "New entry: %s is %s\n", _name, t.get_name() );
             }
 

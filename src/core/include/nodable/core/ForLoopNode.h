@@ -43,6 +43,6 @@ namespace Nodable
         InstructionNode* m_cond_instr_node;
         InstructionNode* m_iter_instr_node;
 
-        REFLECT_ENABLE()
+        REFLECT_ENABLE(ForLoopNode, Node, IConditionalStruct)
     };
 }

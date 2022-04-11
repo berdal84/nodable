@@ -2,5 +2,8 @@
 
 using namespace Nodable;
 
-static auto reflected_IScope = registration::push<IScope>("IScope");
+REGISTER
+{
+    registration::push<IScope>("IScope");
+}
 

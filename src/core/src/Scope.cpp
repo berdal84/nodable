@@ -12,11 +12,10 @@
 
 using namespace Nodable;
 
-static auto reflected_Scope =
-        registration
-        ::push<Scope>("Scope")
-                .extends<IScope>()
-                .extends<Component>();
+REGISTER
+{
+    registration::push<Scope>("Scope");
+}
 
 Scope::Scope()
     : Component()

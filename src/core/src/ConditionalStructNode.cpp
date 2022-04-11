@@ -4,11 +4,11 @@
 
 using namespace Nodable;
 
-static auto reflected_ConditionalStructNode =
-        registration
-        ::push<ConditionalStructNode>("ConditionalStructNode")
-                .extends<Node>()
-                .extends<IConditionalStruct>();
+REGISTER
+{
+    registration
+    ::push<ConditionalStructNode>("ConditionalStructNode");
+}
 
 ConditionalStructNode::ConditionalStructNode()
     : Node()

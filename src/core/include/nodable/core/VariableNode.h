@@ -56,6 +56,6 @@ namespace Nodable
 		std::string m_name;
         IScope* m_scope;
 
-		REFLECT_ENABLE()
+		REFLECT_ENABLE(VariableNode, Node)
     };
 }

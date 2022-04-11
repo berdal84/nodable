@@ -3,11 +3,13 @@
 
 using namespace Nodable;
 
-static auto reflected_ForLoopNode =
-        registration
-        ::push<ForLoopNode>("ForLoopNode")
-                .extends<Node>()
-                .extends<IConditionalStruct>();
+REGISTER
+{
+    registration
+    ::push<ForLoopNode>("ForLoopNode")
+            .extends<Node>()
+            .extends<IConditionalStruct>();
+}
 
 ForLoopNode::ForLoopNode()
     : m_token_for(nullptr)

@@ -47,7 +47,7 @@ namespace Nodable
         static constexpr const char* k_operator_menu_label = "Operators";
         static constexpr const char* k_function_menu_label = "Functions";
 
-		REFLECT_ENABLE();
+		REFLECT_ENABLE(GraphNodeView, View, Component);
 
     };
 }

@@ -4,10 +4,11 @@
 
 using namespace Nodable;
 
-static auto reflected_VariableNode =
-        registration
-        ::push<VariableNode>("VariableNode")
-                .extends<Node>();
+REGISTER
+{
+    registration::push<VariableNode>("VariableNode");
+}
+
 
 VariableNode::VariableNode(type _type)
     : Node("Variable")

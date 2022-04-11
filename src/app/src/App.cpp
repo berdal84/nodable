@@ -22,8 +22,7 @@
 using namespace Nodable;
 
 App::App()
-    : m_reflect()  // ---------------- order is important here
-    , m_settings() // --
+    : m_settings()
     , m_current_file_index(0)
     , m_current_file(nullptr)
     , m_should_stop(false)

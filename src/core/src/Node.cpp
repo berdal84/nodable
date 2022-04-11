@@ -11,7 +11,10 @@
 
 using namespace Nodable;
 
-static auto reflected_Node = registration::push<Node>("Node");
+REGISTER
+{
+    registration::push<Node>("Node");
+}
 
 Node::Node(std::string _label)
     : m_successors(this, 0)

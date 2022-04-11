@@ -4,10 +4,10 @@
 
 using namespace Nodable;
 
-static auto reflected_InstructionNode =
-        registration
-        ::push<InstructionNode>("InstructionNode")
-                .extends<Node>();
+REGISTER
+{
+    registration::push<InstructionNode>("InstructionNode");
+}
 
 InstructionNode::InstructionNode()
     : Node()

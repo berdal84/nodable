@@ -2,10 +2,10 @@
 
 using namespace Nodable;
 
-static auto reflected_LiteralNode =
-        registration
-        ::push<LiteralNode>("LiteralNode")
-                .extends<Node>();
+REGISTER
+{
+    registration::push<LiteralNode>("LiteralNode");
+}
 
 LiteralNode::LiteralNode(type _type) : Node()
 {

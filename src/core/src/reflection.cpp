@@ -6,6 +6,15 @@ using namespace Nodable;
 type type::any  = type::get<any_t>();
 type type::null = type::get<null_t>();
 
+REGISTER
+{
+    registration::push<double>("double");
+    registration::push<std::string>("std::string");
+    registration::push<bool>("bool");
+    registration::push<void>("void");
+    registration::push<i16_t>("i16_t");
+}
+
 bool type::is_ptr(type left)
 {
     return left.m_is_pointer;
@@ -37,7 +46,7 @@ bool type::is_implicitly_convertible(type _left, type _right )
 
 type type::get_underlying_type() const
 {
-    return database::get(m_underlying_type);
+    return typeregister::get(m_underlying_type);
 }
 
 std::string type::get_fullname() const
@@ -73,12 +82,12 @@ bool type::is_ref()const
     return m_is_reference;
 }
 
-type database::get(size_t _hash)
+type typeregister::get(size_t _hash)
 {
     return by_hash().find(_hash)->second;
 }
 
-std::map<size_t, type>& database::by_hash()
+std::map<size_t, type>& typeregister::by_hash()
 {
     static std::map<size_t, type> meta_type_register_by_typeid;
     return meta_type_register_by_typeid;
@@ -110,7 +119,7 @@ bool type::is_child_of(type _possible_parent_class, bool _selfCheck) const
             bool is_a_parent_is_child_of = false;
             for (auto each : m_parents)
             {
-                type parent_type = database::get(each);
+                type parent_type = typeregister::get(each);
                 if (parent_type.is_child_of(_possible_parent_class, true))
                 {
                     is_a_parent_is_child_of = true;
@@ -137,50 +146,28 @@ bool type::is_const() const
     return m_is_const;
 }
 
-bool database::has(type _type)
+bool typeregister::has(type _type)
 {
     return by_hash().find(_type.hash_code()) != by_hash().end();
 }
 
-bool database::has(size_t _hash_code)
+bool typeregister::has(size_t _hash_code)
 {
     auto found = by_hash().find(_hash_code);
     return found != by_hash().end();
 }
 
-void database::insert(type _type)
+void typeregister::insert(type _type)
 {
     by_hash().insert({_type.hash_code(), _type});
 }
 
-bool initializer::s_initialized = false;
-
-initializer::initializer()
-{
-    if( s_initialized )
-    {
-        throw std::runtime_error("R has already been initialised !");
-    }
-
-    registration::push<double>("double");
-    registration::push<std::string>("std::string");
-    registration::push<bool>("bool");
-    registration::push<void>("void");
-    registration::push<i16_t>("i16_t");
-    registration::push<type::any_t>("any");
-
-    log_statistics();
-
-    s_initialized = true;
-}
-
-
-void initializer::log_statistics()
+void typeregister::log_statistics()
 {
     LOG_MESSAGE("R", "Logging reflected types ...\n");
 
-    LOG_MESSAGE("R", "By typeid (%i):\n", database::by_hash().size() );
-    for ( const auto& [type_hash, type] : database::by_hash() )
+    LOG_MESSAGE("R", "By typeid (%i):\n", by_hash().size() );
+    for ( const auto& [type_hash, type] : by_hash() )
     {
         LOG_MESSAGE("R", " %llu => %s \n", type_hash, type.get_name() );
     }

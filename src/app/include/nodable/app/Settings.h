@@ -60,7 +60,5 @@ namespace Nodable {
         bool experimental_hybrid_history;
 
         void patch_imgui_style(ImGuiStyle&);
-
-        R_CLASS(Settings)
     };
 }

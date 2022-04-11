@@ -65,7 +65,6 @@ namespace Nodable
 
         AppView         m_view;
         File*           m_current_file;
-        initializer     m_reflect;
         Settings        m_settings;
         TextureManager  m_texture_manager;
         VirtualMachine  m_vm;

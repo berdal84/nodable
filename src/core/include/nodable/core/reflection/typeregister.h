@@ -13,12 +13,13 @@ namespace Nodable
     /**
      * structure to help register types
      */
-    struct database
+    struct typeregister
     {
         static std::map<size_t, type>& by_hash();
         static type get(size_t _hash);
         static bool has(type);
         static bool has(size_t _hash_code);
         static void insert(type);
+        static void log_statistics();
     };
 } // namespace Nodable

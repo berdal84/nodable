@@ -5,10 +5,10 @@
 
 using namespace Nodable;
 
-static auto reflected_InvokableComponent =
-        registration
-        ::push<InvokableComponent>("InvokableComponent")
-                .extends<Component>();
+REGISTER
+{
+    registration::push<InvokableComponent>("InvokableComponent");
+}
 
 InvokableComponent::InvokableComponent(const IInvokable* _invokable)
     : Component()

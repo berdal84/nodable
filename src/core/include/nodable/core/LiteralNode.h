@@ -17,7 +17,7 @@ namespace Nodable
         template<typename T>
         inline void set_value(T _value) const { m_props.get(k_value_member_name)->set(_value); }
 
-        REFLECT_ENABLE()
+        REFLECT_ENABLE(LiteralNode, Node)
     };
 }
 

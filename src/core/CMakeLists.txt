@@ -36,7 +36,7 @@ add_library(
         src/NodeFactory.cpp
         src/Parser.cpp
         src/Properties.cpp
-        src/R.cpp
+        src/reflection.cpp
         src/Scope.cpp
         src/Semantic.cpp
         src/Serializer.cpp

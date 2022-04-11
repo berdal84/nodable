@@ -2,4 +2,7 @@
 
 using namespace Nodable;
 
-static auto reflected_Component = registration::push<Component>("Component");
+REGISTER
+{
+    registration::push<Component>("Component");
+}

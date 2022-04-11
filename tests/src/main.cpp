@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     Log::SetVerbosityLevel("VM"       , Verbosity::Message);
     Log::SetVerbosityLevel("VM::CPU"  , Verbosity::Message);
 
-    initializer r_init;
+    typeregister::log_statistics();
 
     return RUN_ALL_TESTS();
 }

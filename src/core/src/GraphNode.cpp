@@ -17,9 +17,11 @@
 
 using namespace Nodable;
 
-static auto reflected_GraphNode =
-        registration
-        ::push<GraphNode>("GraphNode").extends<Node>();
+REGISTER
+{
+    registration
+    ::push<GraphNode>("GraphNode").extends<Node>();
+}
 
 GraphNode::GraphNode(const Language* _language, const INodeFactory* _factory, const bool* _autocompletion)
     : m_language(_language)
