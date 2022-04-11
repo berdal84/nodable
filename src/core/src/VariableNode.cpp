@@ -4,7 +4,10 @@
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(VariableNode)
+static auto reflected_VariableNode =
+        registration
+        ::push<VariableNode>("VariableNode")
+                .extends<Node>();
 
 VariableNode::VariableNode(type _type)
     : Node("Variable")

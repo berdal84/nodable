@@ -2,7 +2,10 @@
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(LiteralNode)
+static auto reflected_LiteralNode =
+        registration
+        ::push<LiteralNode>("LiteralNode")
+                .extends<Node>();
 
 LiteralNode::LiteralNode(type _type) : Node()
 {

@@ -12,8 +12,6 @@ namespace Nodable
 		DataAccess() {};
 		bool update()override;
 
-		R_CLASS_DERIVED(DataAccess)
-        R_CLASS_EXTENDS(Component)
-        R_CLASS_END
+		REFLECT_ENABLE()
 	};
 }

@@ -34,8 +34,8 @@ namespace Nodable
         bool                      is_ref() const;
         bool                      is_const() const;
         bool                      is_child_of(type _possible_parent_class, bool _selfCheck = true) const;
-        void                      add_parent(type _parent);
-        void                      add_child(type _child);
+        void                      add_parent(hash_code_t _parent);
+        void                      add_child(hash_code_t _child);
         template<class T> inline bool is_child_of() const { return is_child_of(get<T>(), true); }
         template<class T> inline bool is_not_child_of() const { return !is_child_of(get<T>(), true); }
 

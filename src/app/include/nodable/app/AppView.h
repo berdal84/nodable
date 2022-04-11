@@ -83,8 +83,6 @@ namespace Nodable
         std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
         std::vector<Shortcut>               m_shortcuts;
 
-        R_CLASS_DERIVED(AppView)
-        R_CLASS_EXTENDS(View)
-        R_CLASS_END
+        REFLECT_ENABLE()
     };
 }

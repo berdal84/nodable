@@ -4,6 +4,8 @@
 
 using namespace Nodable;
 
+static auto reflected_View = registration::push<View>("View");
+
 View::View(IAppCtx& _ctx):
         m_ctx(_ctx),
         m_is_hovered(false),

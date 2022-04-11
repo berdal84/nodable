@@ -1,12 +1,10 @@
 #include <nodable/core/reflection/reflection>
-
-#include <type_traits> // std::underlying_type
 #include <stdexcept>   // std::runtime_error
 
 using namespace Nodable;
 
 type type::any  = type::get<any_t>();
-type type::null = type::get<std::nullptr_t>();
+type type::null = type::get<null_t>();
 
 bool type::is_ptr(type left)
 {
@@ -124,14 +122,14 @@ bool type::is_child_of(type _possible_parent_class, bool _selfCheck) const
     return is_child;
 };
 
-void type::add_parent(type _parent)
+void type::add_parent(hash_code_t _parent)
 {
-    m_parents.insert(_parent.hash_code());
+    m_parents.insert(_parent);
 }
 
-void type::add_child(type _child)
+void type::add_child(hash_code_t _child)
 {
-    m_children.insert( _child.hash_code() );
+    m_children.insert( _child );
 }
 
 bool type::is_const() const
@@ -146,12 +144,12 @@ bool database::has(type _type)
 
 bool database::has(size_t _hash_code)
 {
-    return by_hash().find(_hash_code) != by_hash().end();
+    auto found = by_hash().find(_hash_code);
+    return found != by_hash().end();
 }
 
 void database::insert(type _type)
 {
-    NODABLE_ASSERT(!has(_type.hash_code()))
     by_hash().insert({_type.hash_code(), _type});
 }
 

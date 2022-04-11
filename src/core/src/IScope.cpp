@@ -2,5 +2,5 @@
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(IScope)
+static auto reflected_IScope = registration::push<IScope>("IScope");
 

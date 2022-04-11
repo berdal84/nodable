@@ -11,7 +11,7 @@
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(Node)
+static auto reflected_Node = registration::push<Node>("Node");
 
 Node::Node(std::string _label)
     : m_successors(this, 0)

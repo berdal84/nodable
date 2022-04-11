@@ -4,7 +4,10 @@
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(InstructionNode)
+static auto reflected_InstructionNode =
+        registration
+        ::push<InstructionNode>("InstructionNode")
+                .extends<Node>();
 
 InstructionNode::InstructionNode()
     : Node()

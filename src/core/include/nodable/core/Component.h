@@ -23,6 +23,6 @@ namespace Nodable{
         template<class T> [[nodiscard]] inline const T* as()const { return cast<const T>(this); }
 	private:
 		Node* m_owner = nullptr;
-		R_CLASS(Component)
+		REFLECT_ENABLE()
     };
 }

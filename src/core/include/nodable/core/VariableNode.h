@@ -56,8 +56,6 @@ namespace Nodable
 		std::string m_name;
         IScope* m_scope;
 
-		R_CLASS_DERIVED(VariableNode)
-        R_CLASS_EXTENDS(Node)
-        R_CLASS_END
+		REFLECT_ENABLE()
     };
 }

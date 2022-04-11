@@ -4,7 +4,11 @@
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(ConditionalStructNode)
+static auto reflected_ConditionalStructNode =
+        registration
+        ::push<ConditionalStructNode>("ConditionalStructNode")
+                .extends<Node>()
+                .extends<IConditionalStruct>();
 
 ConditionalStructNode::ConditionalStructNode()
     : Node()

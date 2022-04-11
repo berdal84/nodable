@@ -59,55 +59,8 @@
 *  CLASSES
 */
 
-#define R_CLASS_BEGIN( CLASS, ... ) \
-public:\
-    \
-    virtual type get_type() const __VA_ARGS__ { \
-      return type::get<CLASS>(); \
-    } \
-    static type Reflect_class() { \
-      type type(typeid(CLASS).hash_code(), #CLASS);
+#define REFLECT_ENABLE() \
+public: type get_type() const; \
+private:
 
-/**
- * Must be inserted between R_BEGIN and R_CLASS_END macro usage
- */
-#define R_CLASS_EXTENDS(PARENT_CLASS) \
-      type.add_parent( type::get<PARENT_CLASS>() ); \
-      type::get<PARENT_CLASS>().add_child( type );
-
-/**
- * Must be added after any usage of R_BEGIN, can be placed after a R_INHERITS
- */
-#define R_CLASS_END \
-      return type; /* return for CreateClass() */ \
-    }
-
-/*
- * Short-end to type a class with minimal information (ex: name)
- */
-#define R_CLASS( CLASS ) \
-    R_CLASS_BEGIN( CLASS ) \
-    R_CLASS_END
-
-/**
- * Short-end to type a class with minimal information with inheritance information.
- */
-#define R_CLASS_DERIVED(CLASS ) \
-    R_CLASS_BEGIN( CLASS, override )
-
-/**
- * Must be added to your class *.cpp file in order to generate MetaClass before main() starts.
- * note this is not always required, for example with
- *
- * class A { ... };
- * class B : class A { ... }
- *
- * here A DEFINITION can be omitted since B DEFINITION will also define A.
- *
- * It works with N level(s) of inheritance too.
- * A <- B <- C <- D, here only D needs to be explicitly defined in it's cpp.
- *
- */
-#define R_DEFINE_CLASS( CLASS ) \
-static auto reflected_##_CLASS = Nodable::registration::push<CLASS>(#CLASS);
 

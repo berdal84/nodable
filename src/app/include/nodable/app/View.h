@@ -56,6 +56,6 @@ namespace Nodable
     private:
         std::map<Color, vec4*> m_colors;
 
-		R_CLASS(View)
+		REFLECT_ENABLE()
     };
 }

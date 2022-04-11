@@ -9,13 +9,26 @@ namespace Nodable
         template<typename T>
         struct push
         {
-            push(const char* _name)
+            type t;
+
+            push(const char* _name): t(typeid(T).hash_code(), _name)
             {
-                size_t hash = typeid(T).hash_code();
-                type t(hash, _name);
+                t.m_is_pointer    = std::is_pointer<T>();
+                t.m_is_reference  = std::is_reference<T>();
+                t.m_is_const      = std::is_const<T>();
+
                 database::insert(t);
                 LOG_MESSAGE("R", "New entry: %s is %s\n", _name, t.get_name() );
             }
+
+            template<typename I>
+            push<T>& extends()
+            {
+                t.add_parent(typeid(I).hash_code());
+                return *this;
+            }
         };
+
+
     };
 } // namespace Nodable

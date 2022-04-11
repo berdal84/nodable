@@ -43,8 +43,6 @@ namespace Nodable
         const Signature*          m_signature;
         const IInvokable*       m_invokable;
 
-        R_CLASS_DERIVED(InvokableComponent)
-        R_CLASS_EXTENDS(Component)
-        R_CLASS_END
+        REFLECT_ENABLE()
     };
 }

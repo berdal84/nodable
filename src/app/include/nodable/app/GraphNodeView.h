@@ -47,10 +47,7 @@ namespace Nodable
         static constexpr const char* k_operator_menu_label = "Operators";
         static constexpr const char* k_function_menu_label = "Functions";
 
-		R_CLASS_DERIVED(GraphNodeView)
-        R_CLASS_EXTENDS(View)
-        R_CLASS_EXTENDS(Component)
-        R_CLASS_END
+		REFLECT_ENABLE();
 
     };
 }
