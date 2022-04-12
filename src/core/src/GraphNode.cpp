@@ -285,8 +285,8 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         _dst_member->set_input(_src_member);
         _src_member->get_outputs().push_back(_dst_member);
 
-        auto targetNode = _dst_member->get_owner()->as<Node>();
-        auto sourceNode = _src_member->get_owner()->as<Node>();
+        Node* targetNode = _dst_member->get_owner();
+        Node* sourceNode = _src_member->get_owner();
 
         NODABLE_ASSERT(targetNode != sourceNode)
 

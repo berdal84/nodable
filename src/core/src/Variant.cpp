@@ -142,7 +142,7 @@ void Variant::set_initialized(bool _initialize)
 {
     if ( _initialize )
     {
-        NODABLE_ASSERT( m_type == type::null )
+        NODABLE_ASSERT( m_type != type::null )
 
         if( m_type == type::get<std::string*>() )
         {

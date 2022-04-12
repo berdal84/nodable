@@ -1,7 +1,7 @@
 #pragma once
 
 #include <unordered_set>
-#include <memory>
+#include <string>
 
 #include "typeregister.h"
 
@@ -16,14 +16,12 @@ namespace Nodable
         struct null_t{};
         using hash_code_t = size_t;
 
-        type(size_t _hash_code, const char* _name, hash_code_t _underlying_t = typeid(std::nullptr_t).hash_code() )
-            : m_name(_name)
-            , m_hash_code(_hash_code)
-            , m_underlying_type( _underlying_t )
-        {}
+    private:
+        type() = default;
+    public:
         ~type() = default;
 
-        const char*               get_name() const { return m_name; };
+        const char*               get_name() const { return m_name.c_str(); };
         std::string               get_fullname() const;
         size_t                    hash_code() const { return m_hash_code; }
         type                      get_underlying_type() const;
@@ -57,7 +55,13 @@ namespace Nodable
         template<typename T>
         static type get()
         {
-            return typeregister::get(typeid(T).hash_code() );
+            using unqualified_T = typename std::decay<T>::type;
+            using noptr_T       = typename std::remove_pointer<unqualified_T>::type;
+            type t = typeregister::get(typeid(noptr_T).hash_code());
+            t.m_is_pointer   = std::is_pointer<T>();
+            t.m_is_reference = std::is_reference<T>();
+            t.m_is_const     = std::is_const<T>();
+            return t;
         }
 
         /** to get a type ar runtime */
@@ -67,7 +71,7 @@ namespace Nodable
         static type any;
         static type null;
     protected:
-        const char* m_name;
+        std::string m_name;
         bool        m_is_class;
         bool        m_is_pointer;
         bool        m_is_reference;

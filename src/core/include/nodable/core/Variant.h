@@ -21,11 +21,12 @@ namespace Nodable
     public:
         using QWord    = assembly::QWord;
 
-        Variant(type _initial_type = type::any )
+        Variant()
                 : m_is_initialized(false)
                 , m_is_defined(false)
-                , m_type(_initial_type) {
-        }
+                , m_type(type::null)
+        {}
+
         ~Variant();
 
         QWord*  get_data_ptr();

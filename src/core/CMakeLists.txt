@@ -55,7 +55,7 @@ add_library(
         src/assembly/Instruction.cpp
         src/assembly/QWord.cpp
         src/languages/Nodable.cpp
-)
+        src/IConditionalStruct.cpp)
 
 target_link_libraries(
     nodable-core

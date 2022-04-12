@@ -3,9 +3,6 @@
 
 using namespace Nodable;
 
-type type::any  = type::get<any_t>();
-type type::null = type::get<null_t>();
-
 REGISTER
 {
     registration::push<double>("double");
@@ -13,7 +10,12 @@ REGISTER
     registration::push<bool>("bool");
     registration::push<void>("void");
     registration::push<i16_t>("i16_t");
+    registration::push<type::any_t>("any");
+    registration::push<type::null_t>("null");
 }
+
+type type::any  = type::get<any_t>();
+type type::null = type::get<null_t>();
 
 bool type::is_ptr(type left)
 {
@@ -84,7 +86,9 @@ bool type::is_ref()const
 
 type typeregister::get(size_t _hash)
 {
-    return by_hash().find(_hash)->second;
+    auto found = by_hash().find(_hash);
+    NODABLE_ASSERT_EX(found != by_hash().end(), "type not found!")
+    return found->second;
 }
 
 std::map<size_t, type>& typeregister::by_hash()
