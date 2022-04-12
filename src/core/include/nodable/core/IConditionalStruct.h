@@ -1,9 +1,6 @@
 #pragma once
 
-#include <vector>
-
 #include <nodable/core/reflection/reflection>
-#include <nodable/core/Node.h>
 
 namespace Nodable
 {

@@ -70,6 +70,9 @@ public:\
     using base_types = std::tuple<__VA_ARGS__>; \
 private:
 
+#define CAT_IMPL(a, b) a##b
+#define CAT(a, b) CAT_IMPL(a, b)
+
 #define REGISTER                                                        \
 static void auto_register();                                            \
 namespace /* using the same trick as rttr to avoid name conflicts*/     \
@@ -82,6 +85,6 @@ namespace /* using the same trick as rttr to avoid name conflicts*/     \
         }                                                               \
     };                                                                  \
 }                                                                       \
-static const auto_register_struct auto_register##__LINE__;              \
+static const auto_register_struct CAT(auto_register, __LINE__);         \
 static void auto_register()
 
