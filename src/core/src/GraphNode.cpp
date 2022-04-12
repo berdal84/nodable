@@ -474,14 +474,15 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
 void GraphNode::disconnect(DirectedEdge _relation, bool _side_effects)
 {
     // find relation
-    auto range = m_relation_registry.equal_range( _relation.type );
-    auto found = std::find_if( range.first, range.second, [&_relation](auto& pair)
+    auto [begin, end] = m_relation_registry.equal_range( _relation.type );
+    auto found = std::find_if(begin, end, [&_relation](auto& pair)
     {
         return pair.second.nodes == _relation.nodes; // we do not compare type, since we did a equal_range
     });
 
-    if(found == range.second)
-        return;
+    if(found == end) return;
+
+    m_relation_registry.erase(found);
 
     Node* src = _relation.nodes.src;
     Node* dst = _relation.nodes.dst;
@@ -522,10 +523,7 @@ void GraphNode::disconnect(DirectedEdge _relation, bool _side_effects)
             NODABLE_ASSERT(false); // This connection type is not yet implemented
     }
 
-    // remove relation
-    m_relation_registry.erase(found);
-
-    set_dirty();
+   set_dirty();
 }
 
 void GraphNode::destroy(Wire *_wire)

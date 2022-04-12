@@ -1,7 +1,5 @@
 #pragma once 
 
-#include <nodable/core/reflection/reflection>
-
 #include <nodable/core/types.h>
 #include <nodable/core/Node.h>
 #include <nodable/core/Edge.h>

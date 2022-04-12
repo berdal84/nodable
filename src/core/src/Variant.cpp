@@ -106,7 +106,7 @@ std::string Variant::convert_to<std::string>()const
     if( m_type == type::get<i16_t>() )        return std::to_string(m_data.i16);
     if( m_type == type::get<double>() )       return String::fmt_double(m_data.d);
     if( m_type == type::get<bool>() )         return m_data.b ? "true" : "false";
-
+    if( m_type.is_class())                    return String::fmt_ptr(m_data.ptr);
     return "<?>";
 }
 
@@ -117,7 +117,7 @@ const type& Variant::get_type()const
 
 void Variant::set(const std::string& _value)
 {
-    define_type<std::string>();
+    define_type<std::string*>();
 
     auto* string = static_cast<std::string*>(m_data.ptr);
     string->clear();
@@ -139,12 +139,12 @@ bool Variant::is_initialized()const
 
 void Variant::set_initialized(bool _initialize)
 {
+    NODABLE_ASSERT_EX(m_is_initialized != _initialize, "double init/deinit!")
+
     if ( _initialize )
     {
         NODABLE_ASSERT( m_type != type::null )
-
-        m_is_defined = false;
-
+        m_is_defined = true;
         if( m_type == type::get<double>() )
         {
             m_data.d = 0.0;
@@ -160,7 +160,6 @@ void Variant::set_initialized(bool _initialize)
         else if( m_type == type::get<std::string*>() )
         {
             m_data.ptr   = new std::string();
-            m_is_defined = true;
         }
         else if( m_type.is_ptr() )
         {
@@ -172,9 +171,12 @@ void Variant::set_initialized(bool _initialize)
         }
 
     }
-    else if (m_is_defined && m_type == type::get<std::string*>() )
+    else if (m_is_defined  )
     {
-        delete (std::string*)m_data.ptr;
+        if (m_type == type::get<std::string*>() )
+        {
+            delete (std::string*)m_data.ptr;
+        }
         m_is_defined = false;
     }
 
@@ -200,7 +202,7 @@ void Variant::set(const Variant& _other)
 
 void Variant::define_type(type _type)
 {
-    if(_type == m_type) return;
+    if(clean_type(_type) == m_type) return;
     NODABLE_ASSERT_EX( m_type == type::null || m_type == type::any, "Type should not change, expecting it null or any!" );
     m_type = clean_type(_type);
     set_initialized(true);
