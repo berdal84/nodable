@@ -132,19 +132,16 @@ bool VirtualMachine::_stepOver()
             if( t == type::get<bool>() )
             {
                 LOG_VERBOSE("VM", "value dereferenced: %b\n", qword.b);
-                break;
             }
-            if( t == type::get<double >() )
+            else if( t == type::get<double >() )
             {
                 LOG_VERBOSE("VM", "value dereferenced: %d\n", qword.d );
-                break;
             }
-            if( t == type::get<i16_t >() )
+            else if( t == type::get<i16_t >() )
             {
                 LOG_VERBOSE("VM", "value dereferenced: %i\n", qword.i16 );
-                break;
             }
-            if( t == type::get<std::string>() )
+            else if( t == type::get<std::string>() )
             {
                 LOG_VERBOSE("VM", "pointed string: %s\n", ((std::string*)qword.ptr)->c_str() );
             }
