@@ -13,7 +13,7 @@ using namespace Nodable;
 
 REGISTER
 {
-    registration::push<Node>("Node");
+    registration::push_class<Node>("Node");
 }
 
 Node::Node(std::string _label)

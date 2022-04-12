@@ -14,7 +14,9 @@ using namespace Nodable;
 
 REGISTER
 {
-    registration::push<Scope>("Scope");
+    registration::push_class<Scope>("Scope")
+        .extends<IScope>()
+        .extends<Node>();
 }
 
 Scope::Scope()

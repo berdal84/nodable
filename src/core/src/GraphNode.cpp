@@ -19,8 +19,7 @@ using namespace Nodable;
 
 REGISTER
 {
-    registration
-    ::push<GraphNode>("GraphNode").extends<Node>();
+    registration::push_class<GraphNode>("GraphNode").extends<Node>();
 }
 
 GraphNode::GraphNode(const Language* _language, const INodeFactory* _factory, const bool* _autocompletion)

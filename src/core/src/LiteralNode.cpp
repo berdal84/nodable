@@ -4,7 +4,7 @@ using namespace Nodable;
 
 REGISTER
 {
-    registration::push<LiteralNode>("LiteralNode");
+    registration::push_class<LiteralNode>("LiteralNode").extends<Node>();
 }
 
 LiteralNode::LiteralNode(type _type) : Node()

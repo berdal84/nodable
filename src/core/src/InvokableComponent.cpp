@@ -7,7 +7,7 @@ using namespace Nodable;
 
 REGISTER
 {
-    registration::push<InvokableComponent>("InvokableComponent");
+    registration::push_class<InvokableComponent>("InvokableComponent").extends<Component>();
 }
 
 InvokableComponent::InvokableComponent(const IInvokable* _invokable)

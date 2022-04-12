@@ -25,7 +25,6 @@ add_library(
         src/DataAccess.cpp
         src/ForLoopNode.cpp
         src/GraphNode.cpp
-        src/IScope.cpp
         src/InstructionNode.cpp
         src/InvokableComponent.cpp
         src/Language.cpp
@@ -54,8 +53,7 @@ add_library(
         src/assembly/Compiler.cpp
         src/assembly/Instruction.cpp
         src/assembly/QWord.cpp
-        src/languages/Nodable.cpp
-        src/IConditionalStruct.cpp)
+        src/languages/Nodable.cpp)
 
 target_link_libraries(
     nodable-core

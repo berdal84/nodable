@@ -4,5 +4,5 @@ using namespace Nodable;
 
 REGISTER
 {
-    registration::push<Component>("Component");
+    registration::push_class<Component>("Component");
 }

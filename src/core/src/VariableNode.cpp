@@ -6,7 +6,7 @@ using namespace Nodable;
 
 REGISTER
 {
-    registration::push<VariableNode>("VariableNode");
+    registration::push_class<VariableNode>("VariableNode").extends<Node>();
 }
 
 

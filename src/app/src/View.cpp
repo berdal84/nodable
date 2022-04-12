@@ -6,7 +6,7 @@ using namespace Nodable;
 
 REGISTER
 {
-    registration::push<View>("View");
+    registration::push_class<View>("View");
 }
 
 View::View(IAppCtx& _ctx):

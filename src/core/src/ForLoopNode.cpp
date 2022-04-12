@@ -5,10 +5,9 @@ using namespace Nodable;
 
 REGISTER
 {
-    registration
-    ::push<ForLoopNode>("ForLoopNode")
-            .extends<Node>()
-            .extends<IConditionalStruct>();
+    registration::push_class<ForLoopNode>("ForLoopNode")
+        .extends<Node>()
+        .extends<IConditionalStruct>();
 }
 
 ForLoopNode::ForLoopNode()
