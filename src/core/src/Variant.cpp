@@ -103,7 +103,7 @@ std::string Variant::convert_to<std::string>()const
     }
 
     if( m_type == type::get<std::string*>() ) return *static_cast<std::string*>(m_data.ptr);
-    if( m_type == type::get<i16_t>() )        return String::fmt_double(m_data.d);
+    if( m_type == type::get<i16_t>() )        return std::to_string(m_data.i16);
     if( m_type == type::get<double>() )       return String::fmt_double(m_data.d);
     if( m_type == type::get<bool>() )         return m_data.b ? "true" : "false";
 
@@ -147,7 +147,7 @@ void Variant::set_initialized(bool _initialize)
 
         if( m_type == type::get<double>() )
         {
-            m_data.d = double();
+            m_data.d = 0.0;
         }
         else if( m_type == type::get<bool>() )
         {
@@ -155,7 +155,7 @@ void Variant::set_initialized(bool _initialize)
         }
         else if( m_type == type::get<i16_t>() )
         {
-            m_data.i16 = i16_t();
+            m_data.i16 = 0;
         }
         else if( m_type == type::get<std::string*>() )
         {
