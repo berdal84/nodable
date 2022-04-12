@@ -56,6 +56,6 @@ namespace Nodable
     private:
         std::map<Color, vec4*> m_colors;
 
-		REFLECT_ENABLE()
+		REFLECT_BASE_CLASS()
     };
 }

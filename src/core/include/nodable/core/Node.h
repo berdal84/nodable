@@ -243,7 +243,7 @@ namespace Nodable {
         Slots<Node*>       m_inputs;
         Slots<Node*>       m_outputs;
 
-		REFLECT_ENABLE()
+		REFLECT_BASE_CLASS()
 
     };
 }

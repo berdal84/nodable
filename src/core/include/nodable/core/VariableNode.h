@@ -47,15 +47,15 @@ namespace Nodable
         void             set_declaration_instr(InstructionNode* _instr) { m_declaration_instr = _instr; }
         const InstructionNode* get_declaration_instr()const { return m_declaration_instr; }
     private:
-	    Member*     m_value;
-        bool        m_is_declared;
+	    Member*                m_value;
+        bool                   m_is_declared;
         InstructionNode*       m_declaration_instr;
         std::shared_ptr<Token> m_type_token;
         std::shared_ptr<Token> m_assignment_operator_token;
         std::shared_ptr<Token> m_identifier_token;
-		std::string m_name;
-        IScope* m_scope;
+		std::string            m_name;
+        IScope*                m_scope;
 
-		REFLECT_ENABLE(VariableNode, Node)
+		REFLECT_DERIVED_CLASS(Node)
     };
 }

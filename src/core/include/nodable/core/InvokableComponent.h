@@ -40,9 +40,9 @@ namespace Nodable
         Member*                 m_result;
 		std::shared_ptr<Token>  m_source_token;
         std::vector<Member*>    m_args;
-        const Signature*          m_signature;
+        const Signature*        m_signature;
         const IInvokable*       m_invokable;
 
-        REFLECT_ENABLE(InvokableComponent, Component)
+        REFLECT_DERIVED_CLASS(Component)
     };
 }

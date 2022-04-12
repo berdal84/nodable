@@ -44,7 +44,7 @@ namespace Nodable
         bool         m_experimental_clipboard_auto_paste;
         observe::Observer m_graph_change_obs;
 
-        REFLECT_ENABLE(FileView, View)
+        REFLECT_DERIVED_CLASS(View)
 
     };
 }

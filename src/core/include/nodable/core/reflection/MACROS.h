@@ -59,9 +59,14 @@
 *  CLASSES
 */
 
-#define REFLECT_ENABLE(...) \
+#define REFLECT_BASE_CLASS(...) \
 public:\
     virtual type get_type() const { return type::get<decltype(this)>(); }\
+private:
+
+#define REFLECT_DERIVED_CLASS(...) \
+public:\
+    virtual type get_type() const override { return type::get<decltype(this)>(); }\
     using base_types = std::tuple<__VA_ARGS__>; \
 private:
 
@@ -77,7 +82,6 @@ namespace /* using the same trick as rttr to avoid name conflicts*/     \
         }                                                               \
     };                                                                  \
 }                                                                       \
-static void auto_register()                                             \
-
-
+static const auto_register_struct auto_register##__LINE__;              \
+static void auto_register()
 

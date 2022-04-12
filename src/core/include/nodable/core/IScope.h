@@ -22,6 +22,6 @@ namespace Nodable
         virtual size_t               remove_all_variables() = 0;
         virtual VariableNode*        find_variable(const std::string &_name) = 0;
         virtual const VariableNodeVec& get_variables()const = 0;
-        REFLECT_ENABLE()
+        REFLECT_BASE_CLASS()
     };
 }

@@ -35,6 +35,6 @@ namespace Nodable
         std::shared_ptr<Token> m_begin_scope_token;
         std::shared_ptr<Token> m_end_scope_token;
 
-        REFLECT_ENABLE(Scope, Component, IScope)
+        REFLECT_DERIVED_CLASS(Component, IScope)
     };
 }

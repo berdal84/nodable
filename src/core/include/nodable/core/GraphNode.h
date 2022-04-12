@@ -79,7 +79,7 @@ namespace Nodable
 		const INodeFactory* m_factory;
         const bool* m_autocompletion;
 
-        REFLECT_ENABLE(GraphNode, Node)
+        REFLECT_DERIVED_CLASS(Node)
 
     };
 }
