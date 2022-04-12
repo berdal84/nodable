@@ -175,10 +175,10 @@ void Variant::set_initialized(bool _initialize)
     else if (m_is_defined && m_type == type::get<std::string*>() )
     {
         delete (std::string*)m_data.ptr;
+        m_is_defined = false;
     }
 
     m_is_initialized = _initialize;
-    m_is_defined     = false;
     NODABLE_ASSERT(_initialize == m_is_initialized)
 }
 
