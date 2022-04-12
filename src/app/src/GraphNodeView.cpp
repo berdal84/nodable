@@ -21,6 +21,13 @@
 using namespace Nodable;
 using namespace Nodable::assembly;
 
+REGISTER
+{
+    registration::push_class<GraphNodeView>("GraphNodeView")
+        .extends<Node>()
+        .extends<View>();
+}
+
 bool GraphNodeView::draw()
 {
     bool            changed          = false;
