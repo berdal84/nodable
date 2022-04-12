@@ -192,11 +192,11 @@ void typeregister::insert(type _type)
 void typeregister::log_statistics()
 {
     LOG_MESSAGE("R", "Logging reflected types ...\n");
+    LOG_MESSAGE("R", " %-16s %-25s %-60s\n", "-- type hash --", "-- user name --", "-- compiler name --" )
 
-    LOG_MESSAGE("R", "By typeid (%i):\n", by_hash().size() );
     for ( const auto& [type_hash, type] : by_hash() )
     {
-        LOG_MESSAGE("R", " %16llu => \"%30s\" (%30s)\n", type_hash, type.m_name.c_str(), type.m_compiler_name.c_str() );
+        LOG_MESSAGE("R", " %-16llu %-25s %-60s\n", type_hash, type.m_name.c_str(), type.m_compiler_name.c_str() );
     }
 
     LOG_MESSAGE("R", "Logging done.\n");

@@ -93,12 +93,12 @@ TEST(Parser, Successive_assigns)
 
 TEST(Parser, Strings)
 {
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = \"coucou\""), "coucou");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(15)"), "15");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(-15)"), "-15");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(-15.5)"), "-15.5");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string b = to_string(true)"), "true");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string b = to_string(false)"), "false");
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = \"coucou\"")       , "coucou");
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(15)")    , "15");
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(-15)")   , "-15");
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(-15.5)") , "-15.5");
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string b = to_string(true)")  , "true");
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string b = to_string(false)") , "false");
 }
 
 TEST(Parser, Serialize_Precedence)
