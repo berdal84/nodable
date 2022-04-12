@@ -5,7 +5,7 @@
 #include <nodable/core/Scope.h>
 
 using namespace Nodable;
-using opcode = Nodable::assembly::opcode;
+using opcode = Nodable::assembly::opcode_t;
 
 CPU::CPU()
 {

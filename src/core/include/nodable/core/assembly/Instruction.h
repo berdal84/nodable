@@ -10,7 +10,7 @@ namespace Nodable
 
 namespace assembly
 {
-    enum class opcode: u8_t // list possible operation codes
+    enum class opcode_t: u8_t // list possible operation codes
     {
         cmp, /* compare */
         eval_node,
@@ -25,7 +25,7 @@ namespace assembly
         ret
     };
 
-    R_ENUM(opcode)
+    R_ENUM(opcode_t)
     R_ENUM_VALUE(mov)
     R_ENUM_VALUE(deref_ptr)
     R_ENUM_VALUE(eval_node)
@@ -41,34 +41,34 @@ namespace assembly
 
     struct Instruction_jmp // Jump relative to current line (+/- offset)
     {
-        opcode opcode;
+        opcode_t opcode;
         i64_t  offset;
     };
 
     struct Instruction_mov
     {
-        opcode opcode;
+        opcode_t opcode;
         QWord  dst;
         QWord  src;
     };
 
     struct Instruction_uref
     {
-        opcode  opcode;
+        opcode_t  opcode;
         QWord*  qword_ptr;
         const type* qword_type;
     };
 
     struct Instruction_cmp
     {
-        opcode opcode;
+        opcode_t opcode;
         QWord  left;
         QWord  right;
     };
 
     struct Instruction_push_or_pop
     {
-        opcode opcode;
+        opcode_t opcode;
         union {
             const VariableNode* var;
             const Scope*        scope;
@@ -77,7 +77,7 @@ namespace assembly
 
     struct Instruction_eval
     {
-        opcode      opcode;
+        opcode_t      opcode;
         const Node* node;
     };
 
@@ -86,7 +86,7 @@ namespace assembly
      */
     struct Instruction
     {
-        Instruction(opcode _opcode, u8_t _line)
+        Instruction(opcode_t _opcode, u8_t _line)
                 : opcode(_opcode)
                 , line(_line)
         {}
@@ -94,7 +94,7 @@ namespace assembly
         u8_t line;
 
         union {
-            opcode                  opcode;
+            opcode_t                  opcode;
             Instruction_mov         mov;
             Instruction_uref        uref;
             Instruction_jmp         jmp;

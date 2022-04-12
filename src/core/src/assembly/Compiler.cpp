@@ -20,7 +20,7 @@
 using namespace Nodable;
 using namespace Nodable::assembly;
 
-Instruction* Code::push_instr(opcode _type)
+Instruction* Code::push_instr(opcode_t _type)
 {
     auto instr = new Instruction(_type, m_instructions.size());
     m_instructions.emplace_back(instr);
@@ -99,7 +99,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
 
     // call push_stack_frame
     {
-        Instruction *instr  = m_temp_code->push_instr(opcode::push_stack_frame);
+        Instruction *instr  = m_temp_code->push_instr(opcode_t::push_stack_frame);
         instr->push.scope = _scope;
         char str[64];
         snprintf(str, 64, "%s's scope", scope_owner->get_short_label());
@@ -109,7 +109,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     // push each varaible onto the stack
     for(const VariableNode* each_variable : _scope->get_variables())
     {
-        Instruction *instr         = m_temp_code->push_instr(opcode::push_var);
+        Instruction *instr         = m_temp_code->push_instr(opcode_t::push_var);
         instr->push.var      = each_variable;
         instr->m_comment     = std::string{each_variable->get_label()};
     }
@@ -123,11 +123,11 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     // call pop_stack_frame
     if( _insert_fake_return )
     {
-        m_temp_code->push_instr(opcode::ret); // fake a return statement
+        m_temp_code->push_instr(opcode_t::ret); // fake a return statement
     }
 
     {
-        Instruction *instr     = m_temp_code->push_instr(opcode::pop_stack_frame);
+        Instruction *instr     = m_temp_code->push_instr(opcode_t::pop_stack_frame);
         instr->pop.scope = _scope;
         instr->m_comment = std::string{scope_owner->get_short_label()} + "'s scope";
     }
@@ -178,7 +178,7 @@ void assembly::Compiler::compile(const Node* _node)
         bool should_be_evaluated = _node->has<InvokableComponent>() || _node->is<VariableNode>() || _node->is<LiteralNode>();
         if ( should_be_evaluated )
         {
-            Instruction *instr = m_temp_code->push_instr(opcode::eval_node);
+            Instruction *instr = m_temp_code->push_instr(opcode_t::eval_node);
             instr->eval.node   = _node;
 
             if( auto variable = _node->as<VariableNode>())
@@ -204,7 +204,7 @@ void assembly::Compiler::compile(const ForLoopNode* for_loop)
 
     compile_as_condition(for_loop->get_cond_instr());
 
-    Instruction* skip_true_branch = m_temp_code->push_instr(opcode::jne);
+    Instruction* skip_true_branch = m_temp_code->push_instr(opcode_t::jne);
     skip_true_branch->m_comment = "jump if not equal";
 
     if ( auto true_scope = for_loop->get_condition_true_scope() )
@@ -215,7 +215,7 @@ void assembly::Compiler::compile(const ForLoopNode* for_loop)
         compile(for_loop->get_iter_instr());
 
         // insert jump to condition instructions.
-        auto loop_jump = m_temp_code->push_instr(opcode::jmp);
+        auto loop_jump = m_temp_code->push_instr(opcode_t::jmp);
         loop_jump->jmp.offset = math::signed_diff(condition_instr_line, loop_jump->line);
         loop_jump->m_comment  = "jump back to for";
     }
@@ -229,13 +229,13 @@ void assembly::Compiler::compile_as_condition(const InstructionNode* _instr_node
     compile(_instr_node);
 
     // move "true" result to rdx
-    Instruction* store_true   = m_temp_code->push_instr(opcode::mov);
+    Instruction* store_true   = m_temp_code->push_instr(opcode_t::mov);
     store_true->mov.src.b     = true;
     store_true->mov.dst.r     = rdx;
     store_true->m_comment     = "store true";
 
     // compare rax (condition result) with rdx (true)
-    Instruction* cmp_instr = m_temp_code->push_instr(opcode::cmp);  // works only with registry
+    Instruction* cmp_instr = m_temp_code->push_instr(opcode_t::cmp);  // works only with registry
     cmp_instr->cmp.left.r  = rax;
     cmp_instr->cmp.right.r = rdx;
     cmp_instr->m_comment   = "compare registers";
@@ -245,7 +245,7 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 {
     compile_as_condition(_cond_node->get_cond_instr()); // compile condition isntruction, store result, compare
 
-    Instruction* jump_over_true_branch = m_temp_code->push_instr(opcode::jne);
+    Instruction* jump_over_true_branch = m_temp_code->push_instr(opcode_t::jne);
     jump_over_true_branch->m_comment   = "jump if not equals";
 
     Instruction* jump_after_conditional = nullptr;
@@ -256,7 +256,7 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 
         if ( _cond_node->get_condition_false_scope() )
         {
-            jump_after_conditional = m_temp_code->push_instr(opcode::jmp);
+            jump_after_conditional = m_temp_code->push_instr(opcode_t::jmp);
             jump_after_conditional->m_comment = "jump";
         }
     }
@@ -297,7 +297,7 @@ void assembly::Compiler::compile(const InstructionNode *instr_node)
 
         if ( root_node_value )
         {
-            Instruction* instr     = m_temp_code->push_instr(opcode::deref_ptr);
+            Instruction* instr     = m_temp_code->push_instr(opcode_t::deref_ptr);
             instr->uref.qword_ptr  = root_node_value->get_data_ptr();
             instr->uref.qword_type = &root_node_value->get_type();
             instr->m_comment       = "copy unreferenced data";
