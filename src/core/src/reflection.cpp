@@ -1,17 +1,19 @@
 #include <nodable/core/reflection/reflection>
 #include <stdexcept>   // std::runtime_error
+#include <nodable/core/reflection/type.h>
+
 
 using namespace Nodable;
 
 REGISTER
 {
     registration::push<double>("double");
-    registration::push<std::string>("std::string");
+    registration::push<std::string>("string");
     registration::push<bool>("bool");
     registration::push<void>("void");
-    registration::push<i16_t>("i16_t");
-    registration::push<type::any_t>("any");
-    registration::push<type::null_t>("null");
+    registration::push<i16_t>("int");
+    registration::push<any_t>("any");
+    registration::push<null_t>("null");
 }
 
 type type::any  = type::get<any_t>();
@@ -27,28 +29,27 @@ bool type::is_ref(type left)
     return left.m_is_reference;
 }
 
-bool type::is_implicitly_convertible(type _left, type _right )
+bool type::is_implicitly_convertible(type _src, type _dst )
 {
-    if(_left == type::get<any_t>() || _right == type::get<any_t>() ) // We allow cast to unknown type
+    if(_src == type::any || _dst == type::any ) // We allow cast to unknown type
     {
         return true;
     }
-    else if (_left.get_underlying_type() == _right.get_underlying_type() )
+    else if (_src.m_hash_code == _dst.m_hash_code )
     {
         return true;
     }
-    else if (is_ptr(_left) && is_ptr(_right))
+    else if (is_ptr(_src) && is_ptr(_dst))
     {
         return true;
     }
 
-    return     _left.get_underlying_type() == type::get<i16_t>()
-           && _right.get_underlying_type() == type::get<double>();
-}
+    auto allow_cast = [&](const type& src, const type& dst)
+    {
+        return _src.m_hash_code == src.m_hash_code && _dst.m_hash_code == dst.m_hash_code;
+    };
 
-type type::get_underlying_type() const
-{
-    return typeregister::get(m_underlying_type);
+    return allow_cast(type::get<i16_t>(), type::get<double>());
 }
 
 std::string type::get_fullname() const
@@ -150,6 +151,14 @@ bool type::is_const() const
     return m_is_const;
 }
 
+type type::to_pointer(type _type)
+{
+    NODABLE_ASSERT_EX(!_type.is_ptr(), "make_ptr only works with non pointer types!")
+    type ptr = _type;
+    ptr.m_is_pointer = true;
+    return ptr;
+}
+
 bool typeregister::has(type _type)
 {
     return by_hash().find(_type.hash_code()) != by_hash().end();
@@ -163,7 +172,21 @@ bool typeregister::has(size_t _hash_code)
 
 void typeregister::insert(type _type)
 {
-    by_hash().insert({_type.hash_code(), _type});
+    // insert if absent from register
+    if( !has(_type.hash_code()))
+    {
+        by_hash().insert({_type.hash_code(), _type});
+        return;
+    }
+
+    // merge with existing
+    type existing = get(_type.hash_code());
+    LOG_MESSAGE("reflection", "Merging %s with %s\n", existing.m_compiler_name.c_str(), _type.m_compiler_name.c_str())
+    if( _type.m_name.empty() ) _type.m_name = existing.m_name;
+    _type.m_children.insert(existing.m_children.begin(), existing.m_children.end() );
+    _type.m_parents.insert(existing.m_parents.begin(), existing.m_parents.end() );
+
+    by_hash().insert_or_assign(_type.hash_code(), _type);
 }
 
 void typeregister::log_statistics()
@@ -173,7 +196,7 @@ void typeregister::log_statistics()
     LOG_MESSAGE("R", "By typeid (%i):\n", by_hash().size() );
     for ( const auto& [type_hash, type] : by_hash() )
     {
-        LOG_MESSAGE("R", " %llu => %s \n", type_hash, type.get_name() );
+        LOG_MESSAGE("R", " %llu => \"%s\" (%s)\n", type_hash, type.m_name.c_str(), type.m_compiler_name.c_str() );
     }
 
     LOG_MESSAGE("R", "Logging done.\n");

@@ -36,7 +36,7 @@ namespace Nodable
         template<typename T>
         void set(T *_pointer)
         {
-            ensure_is_initialized_as<T*>();
+            define_type<T*>();
             NODABLE_ASSERT(m_type.is_ptr())
             m_data.ptr = _pointer;
             m_is_defined = true;
@@ -44,7 +44,7 @@ namespace Nodable
         template<typename T> //-------- for any fundamental types
         void set(T _value)
         {
-            ensure_is_initialized_as<T>();
+            define_type<T>();
             set_union(m_data, _value);
             m_is_defined = true;
         }
@@ -53,11 +53,7 @@ namespace Nodable
         void set(const char *);
         void force_defined_flag(bool _value);
         template<typename T>
-        void define_type()
-        {
-            NODABLE_ASSERT(m_type == type::null)
-            define_type(type::get<T>());
-        };
+        void define_type() { define_type(type::get<T>()); };
         void define_type(type _type);
         const type & get_type()const;
         template<typename T> T convert_to()const;
@@ -86,18 +82,10 @@ namespace Nodable
         operator void* ()const;
 
     private:
+	    static type clean_type(const type&);
         bool            m_is_defined;
         bool            m_is_initialized;
-        type         m_type;
+        type            m_type;
         QWord           m_data;
-
-        template<typename T>
-        void ensure_is_initialized_as()
-        {
-            using clean_T = typename std::remove_reference<T>::type; // skip reference
-            auto type   = type::get<clean_T>();
-            if( !m_is_initialized) define_type(type);
-            NODABLE_ASSERT( m_type == type )
-        };
     };
 }

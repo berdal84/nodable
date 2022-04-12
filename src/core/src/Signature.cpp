@@ -57,7 +57,7 @@ bool Signature::is_exactly(const Signature* _other)const
         auto &arg_t       = m_args[i].m_type;
         auto &other_arg_t = _other->m_args[i].m_type;
 
-        if ( arg_t.get_underlying_type() != other_arg_t.get_underlying_type() )
+        if ( arg_t != other_arg_t )
         {
             return false;
         }
@@ -79,7 +79,7 @@ bool Signature::is_compatible(const Signature* _other)const
         auto &arg_t       = m_args[i].m_type;
         auto &other_arg_t = _other->m_args[i].m_type;
 
-        if ( arg_t.get_underlying_type() == other_arg_t.get_underlying_type() )
+        if ( arg_t == other_arg_t )
         {
         }
         else if ( arg_t.is_ref() && type::is_implicitly_convertible(arg_t, other_arg_t))

@@ -34,7 +34,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
     m_semantic.insert("else"   , Token_t::keyword_else);
     m_semantic.insert("for"    , Token_t::keyword_for);
     m_semantic.insert("bool"   , Token_t::keyword_bool    , type::get<bool>()); // types
-    m_semantic.insert("string" , Token_t::keyword_string  , type::get<std::string>());
+    m_semantic.insert("string" , Token_t::keyword_string  , type::get<std::string*>());
     m_semantic.insert("double" , Token_t::keyword_double  , type::get<double>());
     m_semantic.insert("int"    , Token_t::keyword_int     , type::get<i16_t>());
 
@@ -49,7 +49,7 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
 
     // literals
     m_semantic.insert(std::regex("^(true|false)")                , Token_t::literal, type::get<bool>());
-    m_semantic.insert(std::regex(R"(^("[^"]*"))")                , Token_t::literal, type::get<std::string>());
+    m_semantic.insert(std::regex(R"(^("[^"]*"))")                , Token_t::literal, type::get<std::string*>());
     m_semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal, type::get<double>());
     m_semantic.insert(std::regex("^(0|([1-9][0-9]*))")           , Token_t::literal, type::get<i16_t>());
 

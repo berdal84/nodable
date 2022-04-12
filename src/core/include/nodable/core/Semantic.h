@@ -56,16 +56,16 @@ namespace Nodable
 		[[nodiscard]] inline const std::vector<std::regex>& get_type_regex()const { return m_type_regex;  }
         [[nodiscard]] inline std::string                    type_to_string(type _type)const { return m_type_to_string.find(_type.hash_code())->second; }
         [[nodiscard]] inline std::string                    token_type_to_string(Token_t _type)const { return m_token_type_to_string.find(_type)->second; }
-        [[nodiscard]] inline type                        token_type_to_type(Token_t _tokenType)const { return m_token_type_to_type.find(_tokenType)->second; }
+        [[nodiscard]] inline type                           token_type_to_type(Token_t _tokenType)const { return m_token_type_to_type.find(_tokenType)->second; }
         [[nodiscard]] inline const std::vector<Token_t>&    get_token_type_regex_index_to_token_type()const { return m_regex_index_to_token_type; }
-        [[nodiscard]] inline const std::vector<type>&    get_type_regex_index_to_type()const { return m_regex_index_to_type; }
+        [[nodiscard]] inline const std::vector<type>&       get_type_regex_index_to_type()const { return m_regex_index_to_type; }
 
     private:
         std::vector<std::regex>  m_type_regex;
         std::vector<std::regex>  m_token_type_regex;
 
         std::vector<Token_t>     m_regex_index_to_token_type;
-        std::vector<type>     m_regex_index_to_type;
+        std::vector<type>        m_regex_index_to_type;
 
 		std::unordered_map<size_t, Token_t> m_type_to_token_type;
 		std::unordered_map<Token_t, type> m_token_type_to_type;

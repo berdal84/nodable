@@ -13,6 +13,7 @@ using namespace Nodable;
 
 REGISTER
 {
+    using namespace Nodable;
     registration::push_class<Node>("Node");
 }
 
@@ -181,7 +182,7 @@ void Node::get_inner_graph(GraphNode *_graph)
 
 const IInvokable* Node::get_connected_operator(const Member *_localMember)
 {
-    assert(m_props.has(_localMember));
+    NODABLE_ASSERT_EX(m_props.has(_localMember), "This node has no member with this adress!");
 
     /*
      * Find a wire connected to _member
@@ -195,7 +196,7 @@ const IInvokable* Node::get_connected_operator(const Member *_localMember)
      */
     if (found != m_wires.end() )
     {
-        auto node = (*found)->nodes.src->as<Node>();
+        auto node = (*found)->nodes.src;
         InvokableComponent* compute_component = node->get<InvokableComponent>();
         if ( compute_component )
         {

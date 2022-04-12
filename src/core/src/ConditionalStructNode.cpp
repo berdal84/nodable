@@ -6,6 +6,7 @@ using namespace Nodable;
 
 REGISTER
 {
+    using namespace Nodable;
     registration::push_class<ConditionalStructNode>("ConditionalStructNode")
         .extends<Node>()
         .extends<IConditionalStruct>();

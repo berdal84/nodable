@@ -44,7 +44,6 @@ namespace Nodable
         return nullptr;
     }
 
-
     static void reflect_log_statistics();
 } // namespace Nodable
 
