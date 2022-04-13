@@ -186,12 +186,6 @@ Node* GraphNode::create_function(const IInvokable* _function)
 	return node;
 }
 
-
-Wire* GraphNode::create_wire()
-{
-	return new Wire(nullptr, nullptr);
-}
-
 void GraphNode::destroy(Node* _node)
 {
     // delete any relation with this node
@@ -284,20 +278,20 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         _dst_member->set_input(_src_member);
         _src_member->get_outputs().push_back(_dst_member);
 
-        Node* targetNode = _dst_member->get_owner();
-        Node* sourceNode = _src_member->get_owner();
+        Node* dst_node = _dst_member->get_owner();
+        Node* src_node = _src_member->get_owner();
 
-        NODABLE_ASSERT(targetNode != sourceNode)
+        NODABLE_ASSERT(dst_node != src_node)
 
         // Link wire to members
         wire = new Wire(_src_member, _dst_member);
 
         LOG_VERBOSE("GraphNode", "drop_on() adding wire to nodes ...\n")
-        targetNode->add_wire(wire);
-        sourceNode->add_wire(wire);
+        dst_node->add_wire(wire);
+        src_node->add_wire(wire);
         LOG_VERBOSE("GraphNode", "drop_on() wires added to node ...\n")
 
-        DirectedEdge relation(EdgeType::IS_INPUT_OF, sourceNode, targetNode);
+        DirectedEdge relation(EdgeType::IS_INPUT_OF, src_node, dst_node);
         connect(relation);
 
         // TODO: move this somewhere else
@@ -533,13 +527,13 @@ void GraphNode::destroy(Wire *_wire)
     Node*   dst_node   = _wire->nodes.dst;
     Node*   src_node   = _wire->nodes.src;
 
-    delete _wire;
-
     dst_member->set_input(nullptr);
 
     auto& outputs = src_member->get_outputs();
-    outputs.erase( std::find(outputs.begin(), outputs.end(), dst_member));
-    
+    auto found = std::find(outputs.begin(), outputs.end(), dst_member);
+    NODABLE_ASSERT_EX( found != outputs.end(), "dst_member not found in src_member´s outputs!")
+    outputs.erase( found );
+
     if( dst_node ) dst_node->remove_wire(_wire);
     if( src_node ) src_node->remove_wire(_wire);
 
@@ -548,6 +542,8 @@ void GraphNode::destroy(Wire *_wire)
         DirectedEdge relation(EdgeType::IS_INPUT_OF, src_node, dst_node);
         disconnect(relation);
     }
+
+    delete _wire;
 }
 
 Node *GraphNode::create_scope()

@@ -83,8 +83,9 @@ bool Variant::convert_to<bool>()const
     if( m_type == type::get<std::string*>() ) return !(static_cast<std::string*>(m_data.ptr))->empty();
     if( m_type == type::get<double>() )       return m_data.d != 0.0;
     if( m_type == type::get<i16_t>() )        return m_data.i16 != 0;
-
-    return m_data.b;
+    if( m_type == type::get<bool>() )         return m_data.b;
+    if( m_type == type::get<void*>() )        return m_data.ptr;
+    NODABLE_ASSERT_EX(false,"Case not handled!")
 }
 
 template<>
@@ -104,8 +105,8 @@ std::string Variant::convert_to<std::string>()const
     if( m_type == type::get<i16_t>() )        return std::to_string(m_data.i16);
     if( m_type == type::get<double>() )       return String::fmt_double(m_data.d);
     if( m_type == type::get<bool>() )         return m_data.b ? "true" : "false";
-    if( m_type.is_class())                    return String::fmt_ptr(m_data.ptr);
-    return "<?>";
+    if( m_type.is_ptr())                      return String::fmt_ptr(m_data.ptr);
+    NODABLE_ASSERT_EX(false,"Case not handled!")
 }
 
 const type& Variant::get_type()const
@@ -257,21 +258,21 @@ Variant& Variant::operator=(const Variant& _other)
 
     if( m_type == type::get<bool>() )
     {
-        set(_other.convert_to<bool>() );
+        set( _other.m_data.b );
     }
     else if( m_type == type::get<double>() )
     {
-        set(_other.convert_to<double>() );
+        set( _other.m_data.d );
     }
     else if( m_type == type::get<i16_t>() )
     {
-        set(_other.convert_to<i16_t>() );
+        set( _other.m_data.i16 );
     }
     else if( m_type.is_ptr() )
     {
         if( m_type == type::get<std::string*>() )
         {
-            set( _other.convert_to<std::string>() );
+            set( static_cast<std::string*>(_other.m_data.ptr) );
         }
         else
         {

@@ -29,7 +29,6 @@ namespace Nodable
 		void                        clear(); // Clear Graph. Delete all Nodes/Wires and reset scope
         const std::vector<Node*>&   get_node_registry()const {return m_node_registry;}
         const std::vector<Wire*>&   get_wire_registry()const {return m_wire_registry;}
-        const Language&             get_language()const { return *m_language; }
         Node*                       get_root()const { return m_root; }
         RelationRegistry_t&         get_relation_registry() {return m_relation_registry;}
         bool                        is_empty() const;

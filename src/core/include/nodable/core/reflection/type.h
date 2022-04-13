@@ -56,12 +56,15 @@ namespace Nodable
 
         friend bool operator==(const type& left, const type& right)
         {
-            return left.m_hash_code == right.m_hash_code;
+            return  left.m_hash_code    == right.m_hash_code
+                 && left.m_is_pointer   == right.m_is_pointer
+                 && left.m_is_reference == right.m_is_reference
+                 && left.m_is_const     == right.m_is_const;
         }
 
         friend bool operator!=(const type& left, const type& right)
         {
-            return left.m_hash_code != right.m_hash_code;
+            return !(left == right);
         }
 
         /** to get a type at compile time */

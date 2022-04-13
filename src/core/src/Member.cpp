@@ -66,6 +66,7 @@ void Member::set_src_token(const std::shared_ptr<Token> _token)
 
 void Member::digest(Member *_member)
 {
+    NODABLE_ASSERT_EX(_member->get_outputs().empty(), "Cannot digest a member with output connections")
     // Transfer
     m_variant     = _member->m_variant;
     m_sourceToken = _member->m_sourceToken;
