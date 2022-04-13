@@ -47,7 +47,7 @@ double Variant::convert_to<double>()const
         return 0.0;
     }
 
-    if( m_type == type::get<std::string*>() ) return stod(*static_cast<std::string*>(m_data.ptr) );
+    if( m_type == type::get<std::string>() )  return stod(*static_cast<std::string*>(m_data.ptr) );
     if( m_type == type::get<double>() )       return m_data.d;
     if( m_type == type::get<i16_t>() )        return double(m_data.i16);
     if( m_type == type::get<bool>() )         return double(m_data.b);
@@ -64,7 +64,7 @@ i16_t Variant::convert_to<i16_t>()const
         return 0;
     }
 
-    if( m_type == type::get<std::string*>() )  return stoi( *static_cast<std::string*>(m_data.ptr) );
+    if( m_type == type::get<std::string>() )  return stoi( *static_cast<std::string*>(m_data.ptr) );
     if( m_type == type::get<double>() )       return i16_t(m_data.d);
     if( m_type == type::get<i16_t>() )        return m_data.i16;
     if( m_type == type::get<bool>() )         return  i16_t(m_data.b);
@@ -80,7 +80,7 @@ bool Variant::convert_to<bool>()const
         return false;
     }
 
-    if( m_type == type::get<std::string*>() ) return !(static_cast<std::string*>(m_data.ptr))->empty();
+    if( m_type == type::get<std::string>() )  return !(static_cast<std::string*>(m_data.ptr))->empty();
     if( m_type == type::get<double>() )       return m_data.d != 0.0;
     if( m_type == type::get<i16_t>() )        return m_data.i16 != 0;
     if( m_type == type::get<bool>() )         return m_data.b;
@@ -101,7 +101,7 @@ std::string Variant::convert_to<std::string>()const
         return "undefined";
     }
 
-    if( m_type == type::get<std::string*>() ) return *static_cast<std::string*>(m_data.ptr);
+    if( m_type == type::get<std::string>() ) return *static_cast<std::string*>(m_data.ptr);
     if( m_type == type::get<i16_t>() )        return std::to_string(m_data.i16);
     if( m_type == type::get<double>() )       return String::fmt_double(m_data.d);
     if( m_type == type::get<bool>() )         return m_data.b ? "true" : "false";
@@ -116,7 +116,7 @@ const type& Variant::get_type()const
 
 void Variant::set(const std::string& _value)
 {
-    ensure_is_type( type::get<std::string*>() );
+    ensure_is_type( type::get<std::string>() );
     ensure_is_initialized(true);
     auto* string = static_cast<std::string*>(m_data.ptr);
     string->clear();
@@ -178,7 +178,7 @@ void Variant::ensure_is_initialized(bool _initialize)
         {
             m_data.i16 = 0;
         }
-        else if( m_type == type::get<std::string*>() )
+        else if( m_type == type::get<std::string>() )
         {
             m_data.ptr   = new std::string();
             m_is_defined = true;
@@ -195,7 +195,7 @@ void Variant::ensure_is_initialized(bool _initialize)
     }
     else
     {
-        if (m_type == type::get<std::string*>() )
+        if (m_type == type::get<std::string>() )
         {
             delete (std::string*)m_data.ptr;
         }
@@ -236,16 +236,14 @@ type Variant::clean_type(const type& _type)
 {
     if(_type.is_ptr())
     {
-        if( _type == type::get<std::string*>()) return _type; //---- only std::string is handled differently
         return type::get<void*>();
     }
     else if( _type.is_class() ) //---------------------------------- we allow only void* for classes
     {
-        if( _type == type::get<std::string>())
+        if( _type != type::get<std::string>())
         {
-            return type::to_pointer( _type );
+            return type::get<void*>();
         }
-        return type::get<void*>();
     }
     return _type;
 }
@@ -270,7 +268,7 @@ Variant& Variant::operator=(const Variant& _other)
     }
     else if( m_type.is_ptr() )
     {
-        if( m_type == type::get<std::string*>() )
+        if( m_type == type::get<std::string>() )
         {
             set( static_cast<std::string*>(_other.m_data.ptr) );
         }
