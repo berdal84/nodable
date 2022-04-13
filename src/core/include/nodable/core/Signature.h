@@ -53,7 +53,7 @@ namespace Nodable
         FuncArgs&                      get_args() { return m_args;};
         const FuncArgs&                get_args()const { return m_args;};
         size_t                         get_arg_count() const { return m_args.size(); }
-        const type                  get_return_type() const { return m_return_type; }
+        const type                     get_return_type() const { return m_return_type; }
         void                           set_return_type(type _type) { m_return_type = _type; };
         const Operator*                get_operator()const { return m_operator; }
         std::string                    get_label()const;
