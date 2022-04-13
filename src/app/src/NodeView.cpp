@@ -564,11 +564,11 @@ bool NodeView::draw(MemberView* _view )
     }
     else if( member->get_owner()->is<VariableNode>() )
     {
-        show = member->get_data()->is_defined();
+        show = member->get_variant()->is_defined();
     }
     else if( !member->has_input_connected() )
     {
-        show = member->get_data()->is_defined();   // we always show a defined unconnected member
+        show = member->get_variant()->is_defined();   // we always show a defined unconnected member
     }
     else if (member->get_type().is_ptr() )
     {
@@ -580,7 +580,7 @@ bool NodeView::draw(MemberView* _view )
     }
     else
     {
-        show = member->get_data()->is_defined();
+        show = member->get_variant()->is_defined();
     }
 
     _view->m_showInput = show;
@@ -758,7 +758,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
                 WayToString(_member->get_allowed_connection()).c_str(),
                 _member->get_type().get_fullname().c_str(),
                 _member->is_connected_by(ConnectBy_Ref) ? "&" : "",
-                _member->get_data()->is_defined() ? "" : ", undefined!");
+                _member->get_variant()->is_defined() ? "" : ", undefined!");
 
         ImGui::SameLine();
         ImGui::Text("(?)");

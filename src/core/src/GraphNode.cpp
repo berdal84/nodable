@@ -533,6 +533,8 @@ void GraphNode::destroy(Wire *_wire)
     Node*   dst_node   = _wire->nodes.dst;
     Node*   src_node   = _wire->nodes.src;
 
+    delete _wire;
+
     dst_member->set_input(nullptr);
 
     auto& outputs = src_member->get_outputs();
@@ -546,9 +548,6 @@ void GraphNode::destroy(Wire *_wire)
         DirectedEdge relation(EdgeType::IS_INPUT_OF, src_node, dst_node);
         disconnect(relation);
     }
-
-
-    delete _wire;
 }
 
 Node *GraphNode::create_scope()

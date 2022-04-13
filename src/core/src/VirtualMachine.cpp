@@ -116,7 +116,7 @@ bool VirtualMachine::_stepOver()
             QWord left  = m_cpu.read(next_instr->cmp.left.r);  // dereference registers, get their value
             QWord right = m_cpu.read(next_instr->cmp.right.r);
             QWord result;
-            set_union(result, left.b == right.b);
+            result.set<bool>(left.b == right.b);
             m_cpu.write(Register::rax, result);       // boolean comparison
             advance_cursor();
             success = true;
@@ -125,6 +125,7 @@ bool VirtualMachine::_stepOver()
 
         case opcode::deref_ptr:
         {
+            NODABLE_ASSERT_EX(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.qword_ptr is nullptr")
             QWord qword = *next_instr->uref.qword_ptr;
             m_cpu.write(Register::rax, qword );
 

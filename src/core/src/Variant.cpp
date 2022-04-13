@@ -1,9 +1,7 @@
 #include <nodable/core/Variant.h>
 #include <nodable/core/Log.h> // for LOG_DEBUG(...)
-#include <cassert>
 #include <nodable/core/types.h>
 #include <nodable/core/String.h>
-#include <nodable/core/Node.h>
 
 using namespace Nodable;
 
@@ -11,7 +9,7 @@ Variant::~Variant()
 {
     if( m_is_initialized)
     {
-        set_initialized(false);
+        ensure_is_initialized(false);
     }
 }
 
@@ -117,14 +115,12 @@ const type& Variant::get_type()const
 
 void Variant::set(const std::string& _value)
 {
-    define_type<std::string*>();
-
+    ensure_is_type( type::get<std::string*>() );
+    ensure_is_initialized(true);
     auto* string = static_cast<std::string*>(m_data.ptr);
     string->clear();
     string->append(_value);
-
     m_is_defined = true;
-
 }
 
 void Variant::set(const char* _value)
@@ -132,19 +128,43 @@ void Variant::set(const char* _value)
     set(std::string{_value});
 }
 
+void Variant::set(double _value)
+{
+    ensure_is_type(type::get<double>());
+    ensure_is_initialized();
+    m_data.set<double>(_value);
+    m_is_defined = true;
+}
+
+void Variant::set(i16_t _value)
+{
+    ensure_is_type(type::get<i16_t>());
+    ensure_is_initialized();
+    m_data.set<i16_t>(_value);
+    m_is_defined = true;
+}
+
+void Variant::set(bool _value)
+{
+    ensure_is_type(type::get<bool>());
+    ensure_is_initialized();
+    m_data.set<bool>(_value);
+    m_is_defined = true;
+}
+
 bool Variant::is_initialized()const
 {
 	return m_is_initialized;
 }
 
-void Variant::set_initialized(bool _initialize)
+void Variant::ensure_is_initialized(bool _initialize)
 {
-    NODABLE_ASSERT_EX(m_is_initialized != _initialize, "double init/deinit!")
+    if(_initialize == m_is_initialized) return;
 
     if ( _initialize )
     {
         NODABLE_ASSERT( m_type != type::null )
-        m_is_defined = true;
+
         if( m_type == type::get<double>() )
         {
             m_data.d = 0.0;
@@ -160,6 +180,7 @@ void Variant::set_initialized(bool _initialize)
         else if( m_type == type::get<std::string*>() )
         {
             m_data.ptr   = new std::string();
+            m_is_defined = true;
         }
         else if( m_type.is_ptr() )
         {
@@ -171,7 +192,7 @@ void Variant::set_initialized(bool _initialize)
         }
 
     }
-    else if (m_is_defined  )
+    else
     {
         if (m_type == type::get<std::string*>() )
         {
@@ -184,29 +205,19 @@ void Variant::set_initialized(bool _initialize)
     NODABLE_ASSERT(_initialize == m_is_initialized)
 }
 
-void Variant::set(const Variant& _other)
+void Variant::ensure_is_type(type _type)
 {
-    NODABLE_ASSERT( _other.m_type != type::null )
-    NODABLE_ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));
-
-    if( m_type == type::get<bool>() )         return set(_other.convert_to<bool>() );
-    if( m_type == type::get<double>() )       return set(_other.convert_to<double>() );
-    if( m_type == type::get<i16_t>() )        return set(_other.convert_to<i16_t>() );
-    if( m_type.is_ptr() )
+    auto clean = clean_type(_type);
+    if( !m_type_change_allowed )
     {
-        if( m_type == type::get<std::string*>() ) return set( _other.convert_to<std::string>() );
-        return set( _other.m_data.ptr);
+        if( clean == m_type )
+        {
+            return;
+        }
+        NODABLE_ASSERT_EX( m_type == type::null || m_type == type::any,
+                "Variant: Type should not change, expecting it null or any!" );
     }
-    NODABLE_ASSERT_EX(false, "Missing case");
-}
-
-void Variant::define_type(type _type)
-{
-    if(clean_type(_type) == m_type) return;
-    NODABLE_ASSERT_EX( m_type == type::null || m_type == type::any, "Type should not change, expecting it null or any!" );
-    m_type = clean_type(_type);
-    set_initialized(true);
-    NODABLE_ASSERT_EX(m_is_initialized, "type must be initialized!");
+    m_type = clean;
 }
 
 Variant::operator i16_t()const        { NODABLE_ASSERT(m_is_defined) return convert_to<i16_t>(); }
@@ -220,21 +231,55 @@ void Variant::force_defined_flag(bool _value )
     m_is_defined = _value;
 }
 
-assembly::QWord* Variant::get_data_ptr()
-{
-    if( !m_is_initialized )
-    {
-        return nullptr;
-    }
-
-    return &m_data;
-}
-
 type Variant::clean_type(const type& _type)
 {
-    if(_type.is_class() && !_type.is_ptr()) // we allow only pointer for classes
+    if(_type.is_ptr())
     {
-        return type::to_pointer(_type);
+        if( _type == type::get<std::string*>()) return _type; //---- only std::string is handled differently
+        return type::get<void*>();
+    }
+    else if( _type.is_class() ) //---------------------------------- we allow only void* for classes
+    {
+        if( _type == type::get<std::string>())
+        {
+            return type::to_pointer( _type );
+        }
+        return type::get<void*>();
     }
     return _type;
+}
+
+
+Variant& Variant::operator=(const Variant& _other)
+{
+    NODABLE_ASSERT( _other.m_type != type::null )
+    NODABLE_ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));
+
+    if( m_type == type::get<bool>() )
+    {
+        set(_other.convert_to<bool>() );
+    }
+    else if( m_type == type::get<double>() )
+    {
+        set(_other.convert_to<double>() );
+    }
+    else if( m_type == type::get<i16_t>() )
+    {
+        set(_other.convert_to<i16_t>() );
+    }
+    else if( m_type.is_ptr() )
+    {
+        if( m_type == type::get<std::string*>() )
+        {
+            set( _other.convert_to<std::string>() );
+        }
+        else
+        {
+            set( _other.m_data.ptr);
+        }
+    } else
+    {
+        NODABLE_ASSERT_EX(false, "Variant: missing type case for operator=");
+    }
+    return *this;
 }

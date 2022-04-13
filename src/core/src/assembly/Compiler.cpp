@@ -298,7 +298,7 @@ void assembly::Compiler::compile(const InstructionNode *instr_node)
         if ( root_node_value )
         {
             Instruction* instr     = m_temp_code->push_instr(opcode_t::deref_ptr);
-            instr->uref.qword_ptr  = root_node_value->get_data_ptr();
+            instr->uref.qword_ptr  = &root_node_value->get_underlying_data();
             instr->uref.qword_type = &root_node_value->get_type();
             instr->m_comment       = "copy unreferenced data";
         }

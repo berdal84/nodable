@@ -125,32 +125,35 @@ TEST(Parser, Eval_Serialize_Compare)
             "1+1",
             "1-1",
             "-1",
-            "double a = 5",
-            "double a=1;double b=2;double c=3;double d=4;(a+b)*(c+d)",
-            "string b = to_string(false)"
+           // "double a=5",
+            //"double a=1;double b=2;double c=3;double d=4;(a+b)*(c+d)",
+            //"string b = to_string(false)"
     };
-    Log::SetVerbosityLevel("Runner", Log::Verbosity::Verbose );
     ParseEvalSerializeExpressions(expressions);
 }
 
-TEST(Parser, Declare_and_define_vars)
+TEST(Parser, Declare_and_define_string)
 {
-    std::vector<std::string> expressions
-    {
-        "double a = 10.5;",
-        R"(string s = "coucou";)",
-        "bool b = false;"
-    };
-
-    ParseEvalSerializeExpressions(expressions);
+    std::string program = R"(string s = "coucou";)";
+    EXPECT_EQ( ParseAndSerialize(program), program);
 }
 
-TEST(Parser, Single_Instruction_With_EndOfInstruction )
+TEST(Parser, Declare_and_define_double)
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5.0;"), 5.0);
+    std::string program = R"(double d = 15.0;)";
+    EXPECT_EQ( ParseAndSerialize(program), program);
+}
 
-    std::vector<std::string> expressions { "double a = 5.0;" };
-    ParseEvalSerializeExpressions(expressions);
+TEST(Parser, Declare_and_define_int)
+{
+    std::string program = R"(int s = 10;)";
+    EXPECT_EQ( ParseAndSerialize(program), program);
+}
+
+TEST(Parser, Declare_and_define_bool)
+{
+    std::string program = R"(bool b = true;)";
+    EXPECT_EQ( ParseAndSerialize(program), program);
 }
 
 TEST(Parser, Multiple_Instructions_Single_Line )

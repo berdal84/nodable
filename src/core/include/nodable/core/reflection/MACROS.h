@@ -7,23 +7,29 @@
 /**
  * call this macro from the end of your union to reflect it
  */
-#define R_UNION(U) /* U: Union, M: Union member */ \
-    template<typename T> static const T& get(const U& _instance); \
-    template<typename T> static T& get(U& _instance);
+#define R_UNION(U) /* U: Union, M: Union member */      \
+    template<typename T> void set(T _value);            \
+    template<typename T> T& get();                      \
+    template<typename T> const T& get() const;
 
 /**
 * call this once per member in your *.cpp file or out of the union
 */
 #define R_UNION_MEMBER_DEFINITION(U, M) /* U: Union, M: Union member */  \
     template<>\
-    decltype(U::M)& U::get<decltype(U::M)>(U& instance)\
+    void U::set<decltype(U::M)>(decltype(U::M) _value)\
     {\
-        return instance.M;\
+         M = _value;\
     }\
     template<>\
-    const decltype(U::M)& U::get<const decltype(U::M)>(const U& instance)\
+    decltype(U::M)& U::get<decltype(U::M)>()\
     {\
-        return instance.M;\
+        return M;\
+    }\
+    template<>\
+    const decltype(U::M)& U::get<const decltype(U::M)>()\
+    {\
+        return M;\
     }
 
 /***********************************************************************************************************************

@@ -99,7 +99,7 @@ namespace Nodable {
             call<T, Args...>(m_function, _result, _args);
             for(auto arg : _args)
             {
-                if ( arg->is_connected_by(ConnectBy_Ref) )
+                if ( arg->get_type().is_ref() || arg->get_type().is_ptr() )
                 {
                     arg->force_defined_flag(true);
                 }

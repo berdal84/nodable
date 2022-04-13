@@ -27,8 +27,8 @@ namespace Nodable
 		~VariableNode() override = default;
 
 		inline bool      is_declared()const { return m_is_declared; }
-		inline bool      is_initialized()const { return m_value->get_data()->is_initialized(); }
-		inline void      set_initialized(bool _initialized) { m_value->get_data()->set_initialized(_initialized); set_dirty(true); }
+		inline bool      is_initialized()const { return m_value->get_variant()->is_initialized(); }
+		inline void      set_initialized(bool _initialized) { m_value->get_variant()->ensure_is_initialized(_initialized); set_dirty(true); }
 		const char*      get_name()const { return m_name.c_str(); };
 		Member*          get_value()const { return m_value; }
         bool             eval()const override;
@@ -40,7 +40,6 @@ namespace Nodable
         void             set_assignment_operator_token(std::shared_ptr<Token> token) { m_assignment_operator_token = token; }
         void             set_identifier_token(std::shared_ptr<Token> token) { m_identifier_token = token; }
         template<class T> void         set(T _value) { m_value->set(_value); };
-        template<class T> void         set(T* _value){ m_value->set(_value); };
         void             set_declared(bool b = true) { m_is_declared = b; }
         IScope*          get_scope() { return m_scope; }
         void             set_scope(IScope* _scope) { m_scope = _scope; }

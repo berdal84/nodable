@@ -22,39 +22,35 @@ namespace Nodable
         using QWord    = assembly::QWord;
 
         Variant()
-                : m_is_initialized(false)
-                , m_is_defined(false)
-                , m_type(type::null)
+            : m_is_initialized(false)
+            , m_is_defined(false)
+            , m_type(type::any)
+            , m_type_change_allowed(false) // for now, variant can change type once
         {}
 
+        Variant& operator=(const Variant& );
         ~Variant();
 
-        QWord*  get_data_ptr();
+        QWord&  get_underlying_data() { return m_data; }
         bool    is_initialized() const;
         bool    is_defined() const { return m_is_defined; }
-        void    set_initialized(bool _initialize);
+        void    ensure_is_initialized(bool _initialize = true);
+        void    ensure_is_type(type _type);
+        void    set(const std::string& _value);
+        void    set(const char* _value);
+
         template<typename T>
-        void set(T *_pointer)
+        void    set(T* _pointer)
         {
-            define_type<T*>();
-            NODABLE_ASSERT(m_type.is_ptr())
-            m_data.ptr = _pointer;
-            m_is_defined = true;
+            ensure_is_type(type::get<decltype(_pointer)>());
+            ensure_is_initialized();
+            m_data.set<void*>(_pointer);
         }
-        template<typename T> //-------- for any fundamental types
-        void set(T _value)
-        {
-            define_type<T>();
-            set_union(m_data, _value);
-            m_is_defined = true;
-        }
-        void set(const Variant &);
-        void set(const std::string &);
-        void set(const char *);
-        void force_defined_flag(bool _value);
-        template<typename T>
-        void define_type() { define_type(type::get<T>()); };
-        void define_type(type _type);
+
+        void    set(double);
+        void    set(bool);
+        void    set(i16_t);
+        void    force_defined_flag(bool _value);
         const type & get_type()const;
         template<typename T> T convert_to()const;
 
@@ -82,10 +78,12 @@ namespace Nodable
         operator void* ()const;
 
     private:
-	    static type clean_type(const type&);
+	    static type     clean_type(const type&);
+
         bool            m_is_defined;
         bool            m_is_initialized;
         type            m_type;
+        bool            m_type_change_allowed;
         QWord           m_data;
     };
 }

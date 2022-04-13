@@ -30,6 +30,7 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
 
         case opcode_t::deref_ptr:
         {
+            NODABLE_ASSERT_EX(_instr.uref.qword_ptr, "qword_ptr is null!")
             result.append(assembly::QWord::to_string(*_instr.uref.qword_ptr ));
             result.append(", *");
             result.append( _instr.uref.qword_type->get_name() );
