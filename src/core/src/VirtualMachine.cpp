@@ -3,6 +3,7 @@
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/Log.h>
 #include <nodable/core/Scope.h>
+#include "nodable/core/String.h"
 
 using namespace Nodable;
 using opcode = Nodable::assembly::opcode_t;
@@ -142,13 +143,17 @@ bool VirtualMachine::_stepOver()
             {
                 LOG_VERBOSE("VM", "value dereferenced: %i\n", qword.i16 );
             }
-            else if( t == type::get<std::string*>() )
+            else if( t == type::get<std::string>() )
             {
                 LOG_VERBOSE("VM", "pointed string: %s\n", ((std::string*)qword.ptr)->c_str() );
             }
+            else if( t == type::get<void*>() )
+            {
+                LOG_VERBOSE("VM", "pointed address: %s\n", String::fmt_ptr(qword.ptr).c_str() );
+            }
             else
             {
-                NODABLE_ASSERT(false) // not handled
+                NODABLE_ASSERT_EX(false, "This type is not handled!")
             }
 
             advance_cursor();

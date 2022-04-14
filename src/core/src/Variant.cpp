@@ -266,17 +266,15 @@ Variant& Variant::operator=(const Variant& _other)
     {
         set( _other.m_data.i16 );
     }
+    else if( m_type == type::get<std::string>() )
+    {
+        set( static_cast<std::string*>(_other.m_data.ptr) );
+    }
     else if( m_type.is_ptr() )
     {
-        if( m_type == type::get<std::string>() )
-        {
-            set( static_cast<std::string*>(_other.m_data.ptr) );
-        }
-        else
-        {
             set( _other.m_data.ptr);
-        }
-    } else
+    }
+    else
     {
         NODABLE_ASSERT_EX(false, "Variant: missing type case for operator=");
     }

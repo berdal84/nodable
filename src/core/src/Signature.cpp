@@ -82,7 +82,7 @@ bool Signature::is_compatible(const Signature* _other)const
         if ( arg_t == other_arg_t )
         {
         }
-        else if ( other_arg_t.is_ref() && type::is_implicitly_convertible(arg_t, other_arg_t))
+        else if ( other_arg_t.is_ref() && type::is_implicitly_convertible(other_arg_t, arg_t))
         {
         }
         else
