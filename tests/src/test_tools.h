@@ -44,12 +44,8 @@ public:
     return_t eval(const std::string &expression)
     {
         static_assert( !std::is_pointer<return_t>::value ); // returning a pointer from VM will fail when accessing data
-        // since VM will be destroyed leaving this scope.
-
-        // prepare
-        std::string           asm_code_string;
-
-        // create program graph
+                                                            // since VM will be destroyed leaving this scope.
+        // parse
         language.get_parser().parse_graph(expression, &graph);
 
         // compile
@@ -59,6 +55,7 @@ public:
             throw std::runtime_error("Compiler was not able to compile program's graph.");
         }
         std::cout << assembly::Code::to_string(asm_code.get()) << std::flush;
+
         // load
         if (!virtual_machine.load_program(std::move(asm_code) ))
         {
@@ -68,9 +65,8 @@ public:
         // run
         virtual_machine.run_program();
 
-        // ret result
+        // get result
         assembly::QWord mem_space = virtual_machine.get_last_result();
-
         auto result = return_t(mem_space);
 
         virtual_machine.release_program();
@@ -83,7 +79,7 @@ public:
     {
         LOG_MESSAGE("nodable_fixture", "parse_compile_run_serialize parsing \"%s\"\n", expression.c_str());
 
-        // act
+        // parse
         language.get_parser().parse_graph(expression, &graph);
 
         // compile
@@ -93,6 +89,7 @@ public:
             throw std::runtime_error("nodable_fixture: Compiler was not able to compile program's graph.");
         }
         std::cout << assembly::Code::to_string(code.get()) << std::flush;
+
         // load
         if (!virtual_machine.load_program(std::move(code) ))
         {
@@ -101,11 +98,12 @@ public:
 
         // run
         virtual_machine.run_program();
-        virtual_machine.release_program();
 
+        // serialize
         language.get_serializer().serialize(result, graph.get_root() );
         LOG_VERBOSE("nodable_fixture", "parse_compile_run_serialize serialize output is: \"%s\"\n", result.c_str());
 
+        virtual_machine.release_program();
         return result;
     }
 
@@ -113,13 +111,14 @@ public:
     {
         LOG_VERBOSE("nodable_fixture", "parse_and_serialize parsing \"%s\"\n", expression.c_str());
 
-        // act
+        // parse
         language.get_parser().parse_graph(expression, &graph);
         if ( !graph.get_root())
         {
             throw std::runtime_error("parse_and_serialize: Unable to generate program.");
         }
 
+        // serialize
         std::string result;
         language.get_serializer().serialize(result, graph.get_root() );
         LOG_VERBOSE("tools.h", "parse_and_serialize serialize output is: \"%s\"\n", result.c_str());
