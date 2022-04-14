@@ -27,7 +27,7 @@
         return M;\
     }\
     template<>\
-    const decltype(U::M)& U::get<const decltype(U::M)>()\
+    const decltype(U::M)& U::get<const decltype(U::M)>() const\
     {\
         return M;\
     }
