@@ -6,7 +6,7 @@
 
 using namespace Nodable;
 
-TEST(VM, Cond_1 )
+TEST_F(nodable_fixture, Cond_1 )
 {
     std::string program =
             "int bob   = 50;"
@@ -22,10 +22,10 @@ TEST(VM, Cond_1 )
             "}"
             "return(val);";
 
-    EXPECT_EQ( ParseAndEvalExpression<bool>(program), true );
+    EXPECT_EQ(eval<bool>(program), true );
 }
 
-TEST(VM, Cond_2 )
+TEST_F(nodable_fixture, Cond_2 )
 {
     std::string program =
             "int bob   = 0;"
@@ -41,10 +41,10 @@ TEST(VM, Cond_2 )
             "}"
             "return(str);";
 
-    EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "default" );
+    EXPECT_EQ(eval<std::string>(program), "default" );
 }
 
-TEST(VM, Loop_1_using_global_var )
+TEST_F(nodable_fixture, Loop_1_using_global_var )
 {
     std::string program =
             "string str = \"\";" \
@@ -54,10 +54,10 @@ TEST(VM, Loop_1_using_global_var )
             "}"
             "return(str);";
 
-    EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "0123456789" );
+    EXPECT_EQ(eval<std::string>(program), "0123456789" );
 }
 
-TEST(VM, Loop_1_using_local_var )
+TEST_F(nodable_fixture, Loop_1_using_local_var )
 {
     std::string program =
             "string str = \"\";"
@@ -68,10 +68,10 @@ TEST(VM, Loop_1_using_local_var )
             "}"
             "return(str);";
 
-    EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "0123456789" );
+    EXPECT_EQ(eval<std::string>(program), "0123456789" );
 }
 
-TEST(VM, Loop_2_using_global_var )
+TEST_F(nodable_fixture, Loop_2_using_global_var )
 {
     std::string program =
             "int n;"
@@ -92,10 +92,10 @@ TEST(VM, Loop_2_using_global_var )
             "return(str);";
 
 
-    EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "__49162536496481" );
+    EXPECT_EQ(eval<std::string>(program), "__49162536496481" );
 }
 
-TEST(VM, Loop_2_using_local_var )
+TEST_F(nodable_fixture, Loop_2_using_local_var )
 {
     std::string program =
             "string str = \"\";"
@@ -113,10 +113,10 @@ TEST(VM, Loop_2_using_local_var )
             "}"
             "return(str);";
 
-    EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "__49162536496481" );
+    EXPECT_EQ(eval<std::string>(program), "__49162536496481" );
 }
 
-TEST(VM, For_loop_without_var_decl)
+TEST_F(nodable_fixture, For_loop_without_var_decl)
 {
 std::string program =
         "int score;"
@@ -125,10 +125,10 @@ std::string program =
         "   score = i * 2;"
         "}"
         "return(score);";
-EXPECT_EQ(ParseAndEvalExpression<int>(program), 9*2);
+EXPECT_EQ(eval<int>(program), 9 * 2);
 }
 
-TEST(VM, For_loop_with_var_decl)
+TEST_F(nodable_fixture, For_loop_with_var_decl)
 {
     std::string program =
             "int score = 1;"
@@ -137,35 +137,35 @@ TEST(VM, For_loop_with_var_decl)
             "   score = score * 2;"
             "}"
             "return(score);";
-    EXPECT_EQ(ParseAndEvalExpression<int>(program), 1 * pow(2, 10) );
+    EXPECT_EQ(eval<int>(program), 1 * pow(2, 10) );
 }
 
-TEST(VM, declare_then_define ) {
+TEST_F(nodable_fixture, declare_then_define ) {
     std::string program_01 =
             "int b;"
             "b = 5;"
             "return(b);";
-    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
+    EXPECT_EQ(eval<int>(program_01), 5);
 }
 
-TEST(VM, declare_and_define_then_reassign ) {
+TEST_F(nodable_fixture, declare_and_define_then_reassign ) {
     std::string program_01 =
             "int b = 6;"
             "b = 5;"
             "return(b);";
-    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
+    EXPECT_EQ(eval<int>(program_01), 5);
 }
 
-TEST(VM, declare_then_define_then_reassign ) {
+TEST_F(nodable_fixture, declare_then_define_then_reassign ) {
     std::string program_01 =
             "int b;"
             "b = 6;"
             "b = 5;"
             "return(b);";
-    EXPECT_EQ(ParseAndEvalExpression<int>(program_01), 5);
+    EXPECT_EQ(eval<int>(program_01), 5);
 }
 
-TEST(VM, condition_which_contains_alterated_var ) {
+TEST_F(nodable_fixture, condition_which_contains_alterated_var ) {
     std::string program =
             "int b = 6;"
             "b = 5;"
@@ -175,10 +175,10 @@ TEST(VM, condition_which_contains_alterated_var ) {
             "  res=\"error\";"
             "}"
             "return(res);";
-    EXPECT_EQ( ParseAndEvalExpression<std::string>(program), "ok");
+    EXPECT_EQ(eval<std::string>(program), "ok");
 }
 
-TEST(VM, else_elseif_else ) {
+TEST_F(nodable_fixture, else_elseif_else ) {
 
     std::string program_end =
             "string msg;\n"
@@ -192,18 +192,18 @@ TEST(VM, else_elseif_else ) {
             "return(msg)";
 
     std::string program1 = "double a = 6;\ndouble b = 5;\n" + program_end;
-    EXPECT_EQ( ParseAndEvalExpression<std::string>(program1), "a > b");
+    EXPECT_EQ(eval<std::string>(program1), "a > b");
 
     std::string program2 = "double a = 4;\ndouble b = 5;\n" + program_end;
-    EXPECT_EQ( ParseAndEvalExpression<std::string>(program2), "a < b");
+    EXPECT_EQ(eval<std::string>(program2), "a < b");
 
     std::string program3 = "double a = 5;\ndouble b = 5;\n" + program_end;
-    EXPECT_EQ( ParseAndEvalExpression<std::string>(program3), "a == b");
+    EXPECT_EQ(eval<std::string>(program3), "a == b");
 }
 
-TEST(VM, integers ) {
-    EXPECT_EQ(ParseAndEvalExpression<int>("int i = 1"), 1);
-    EXPECT_EQ(ParseAndEvalExpression<int>("int i = 3 + 5"), 8);
-    EXPECT_EQ(ParseAndEvalExpression<int>("int i = 1-2"), -1);
+TEST_F(nodable_fixture, integers ) {
+    EXPECT_EQ(eval<int>("int i = 1"), 1);
+    EXPECT_EQ(eval<int>("int i = 3 + 5"), 8);
+    EXPECT_EQ(eval<int>("int i = 1-2"), -1);
 }
 

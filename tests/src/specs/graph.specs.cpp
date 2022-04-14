@@ -13,13 +13,35 @@
 
 using namespace Nodable;
 
-TEST( GraphNode, connect)
-{
-    LanguageNodable language;
-    NodeFactory factory(&language);
-    bool autocompletion = false;
-    GraphNode graph(&language, &factory, &autocompletion);
+class graph_node_fixture: public ::testing::Test {
+public:
+    graph_node_fixture( )
+    : factory(&language)
+    , graph(&language, &factory, &autocompletion){}
 
+    void SetUp( ) {
+        // code here will execute just before the test ensues
+    }
+
+    void TearDown( ) {
+        // code here will be called just after the test completes
+        // ok to through exceptions from here if need be
+    }
+
+    ~graph_node_fixture( )  {
+        // cleanup any pending stuff, but no exceptions allowed
+    }
+
+protected:
+    const LanguageNodable language;
+    NodeFactory           factory;
+    bool                  autocompletion = false;
+public:
+    GraphNode             graph;
+};
+
+TEST_F( graph_node_fixture, connect)
+{
     auto node1 = graph.create_node();
     node1->props()->add<bool>("output", Visibility::Default, Way_Default);
 
@@ -35,41 +57,31 @@ TEST( GraphNode, connect)
     EXPECT_EQ(graph.get_wire_registry().size(), 1);
  }
 
-TEST( GraphNode, disconnect)
+TEST_F( graph_node_fixture, disconnect)
 {
-    LanguageNodable language;
-    NodeFactory factory(&language);
-    bool autocompletion  = false;
-    GraphNode graph(&language, &factory,  &autocompletion);
+    Node*   a      = graph.create_node();
+    Member* output = a->props()->add<bool>("output", Visibility::Default, Way_Default);
 
-    auto a = graph.create_node();
-    auto output = a->props()->add<bool>("output", Visibility::Default, Way_Default);
+    Node*   b     = graph.create_node();
+    Member* input = b->props()->add<bool>("input", Visibility::Default, Way_Default);
 
-    auto b = graph.create_node();
-    auto input = b->props()->add<bool>("input", Visibility::Default, Way_Default);
-
-    EXPECT_EQ(graph.get_wire_registry().size(), 0);
+    EXPECT_EQ(graph.get_wire_registry().size()    , 0);
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
 
-    auto wire = graph.connect(output, input);
+    Wire* wire = graph.connect(output, input);
 
-    EXPECT_EQ(graph.get_wire_registry().size(), 1); // wire must be registered when connected
+    EXPECT_EQ(graph.get_wire_registry().size()    , 1); // wire must be registered when connected
     EXPECT_EQ(graph.get_relation_registry().size(), 1); // relation must be registered when connected
 
     graph.disconnect(wire);
 
-    EXPECT_EQ(graph.get_wires().size(), 0); // wire must be unregistered when disconnected
+    EXPECT_EQ(graph.get_wires().size()  , 0); // wire must be unregistered when disconnected
     EXPECT_EQ(a->get_output_wire_count(), 0);
-    EXPECT_EQ(b->get_input_wire_count(), 0);
+    EXPECT_EQ(b->get_input_wire_count() , 0);
 }
 
-TEST( GraphNode, clear)
+TEST_F( graph_node_fixture, clear)
 {
-    // prepare
-    LanguageNodable language;
-    NodeFactory factory(&language);
-    bool autocompletion  = false;
-    GraphNode graph(&language, &factory,  &autocompletion);
     InstructionNode* instructionNode = graph.create_instr();
 
     const Operator* op = language.find_operator("+", Operator_t::Binary);
@@ -100,13 +112,9 @@ TEST( GraphNode, clear)
 }
 
 
-TEST( GraphNode, create_and_delete_relations)
+TEST_F( graph_node_fixture, create_and_delete_relations)
 {
     // prepare
-    LanguageNodable language;
-    NodeFactory factory(&language);
-    bool autocompletion  = false;
-    GraphNode graph(&language, &factory, &autocompletion);
     Node* program = graph.create_root();
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
     Node* n1 = graph.create_variable(type::get<double>(), "n1", program->get<Scope>());
@@ -135,7 +143,7 @@ TEST( GraphNode, create_and_delete_relations)
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
 }
 
-TEST(Graph, by_reference_assign)
+TEST_F( graph_node_fixture, by_reference_assign)
 {
     // we will create this graph manually
     //            "double b = 6;"
@@ -143,10 +151,6 @@ TEST(Graph, by_reference_assign)
     //            "b;";
 
     // prepare
-    LanguageNodable language;
-    NodeFactory factory(&language);
-    bool autocompletion  = false;
-    GraphNode graph(&language, &factory, &autocompletion);
     Node* program = graph.create_root();
 
     // create b

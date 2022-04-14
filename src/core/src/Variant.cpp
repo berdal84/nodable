@@ -249,15 +249,15 @@ Variant& Variant::operator=(const Variant& _other)
 
     if( m_type == type::get<bool>() )
     {
-        set( _other.m_data.b );
+        set( _other.convert_to<bool>() );
     }
     else if( m_type == type::get<double>() )
     {
-        set( _other.m_data.d );
+        set( _other.convert_to<double>() );
     }
     else if( m_type == type::get<i16_t>() )
     {
-        set( _other.m_data.i16 );
+        set( _other.convert_to<i16_t>() );
     }
     else if( m_type == type::get<std::string>() )
     {
@@ -265,7 +265,7 @@ Variant& Variant::operator=(const Variant& _other)
     }
     else if( m_type.is_ptr() )
     {
-            set( _other.m_data.ptr);
+        set( _other.m_data.ptr);
     }
     else
     {
