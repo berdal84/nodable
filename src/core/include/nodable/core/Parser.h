@@ -10,7 +10,7 @@
 #include <nodable/core/Token.h>
 #include <nodable/core/TokenRibbon.h>
 #include <nodable/core/ForLoopNode.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 
 namespace Nodable{
 
@@ -98,24 +98,14 @@ namespace Nodable{
         Scope*                 get_current_scope();
 
         /** Given a Literal token, return its type */
-        R::Type            get_literal_type(std::shared_ptr<const Token> _token)const;
+        type            get_literal_type(std::shared_ptr<const Token> _token)const;
 
     private:
-		/** A language to get Semantic and Syntax (not yet implemented) */
-		const Language& m_language;
-
-		/** The target container of the parser in which all generated nodes will be pushed into*/
-		GraphNode*      m_graph;
-
-		/** A token ribbon to store a token list and be able to eat them easily */
-		TokenRibbon     m_token_ribbon;
-
-		/** Scope stack */
+		const Language&    m_language;
+		GraphNode*         m_graph;
+		TokenRibbon        m_token_ribbon;
 		std::stack<Scope*> m_scope_stack;
-
-		/** In strict mode, parsing fails earlier.
-		 * Ex: if trying to parse "double b = a + c;" it will fail when trying to get a reference for variable a. */
-        bool m_strict_mode;
+        bool               m_strict_mode;
     };
 
 }

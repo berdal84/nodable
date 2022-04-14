@@ -4,9 +4,13 @@
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(VariableNode)
+REGISTER
+{
+    registration::push_class<VariableNode>("VariableNode").extends<Node>();
+}
 
-VariableNode::VariableNode(std::shared_ptr<const R::Meta_t> _type)
+
+VariableNode::VariableNode(type _type)
     : Node("Variable")
     , m_type_token(nullptr)
     , m_identifier_token(nullptr)
@@ -14,7 +18,7 @@ VariableNode::VariableNode(std::shared_ptr<const R::Meta_t> _type)
     , m_is_declared(true)
     , m_scope(nullptr)
 {
-    NODABLE_ASSERT(_type)
+    NODABLE_ASSERT(_type != type::null )
 	m_value = m_props.add(k_value_member_name, Visibility::Always, _type, Way_InOut);
 }
 
@@ -25,9 +29,9 @@ void VariableNode::set_name(const char* _name)
 
     m_name = _name;
 
-    if (m_value->get_data()->is_initialized())                   // append type only if have one
+    if (m_value->get_variant()->is_initialized())                   // append type only if have one
     {
-        label.append(m_value->get_meta_type()->get_name() );
+        label.append(m_value->get_type().get_name() );
         label.append(" ");
     }
     label.append(_name );                                        // append name
@@ -45,9 +49,9 @@ void VariableNode::set_name(const char* _name)
 
 bool VariableNode::eval() const
 {
-    if( !m_value->get_data()->is_initialized() )
+    if( !m_value->get_variant()->is_defined() )
     {
-        m_value->get_data()->set_initialized(true);
+        m_value->get_variant()->force_defined_flag(true);
         return Node::eval();
     }
     return true;

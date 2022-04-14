@@ -1,7 +1,9 @@
 #pragma once
 
+#include <memory>
+
 #include <nodable/core/types.h>
-#include "Code.h"
+#include <nodable/core/assembly/Code.h>
 
 namespace Nodable
 {

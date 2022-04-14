@@ -18,9 +18,9 @@ InstructionNode* NodeFactory::new_instr() const
     return instr_node;
 }
 
-VariableNode* NodeFactory::new_variable(std::shared_ptr<const R::Meta_t> _type, const std::string& _name, IScope *_scope) const
+VariableNode* NodeFactory::new_variable(type _type, const std::string& _name, IScope *_scope) const
 {
-    NODABLE_ASSERT(_type)
+    NODABLE_ASSERT( _type != type::null )
 
     // create
     auto* node = new VariableNode(_type);
@@ -174,7 +174,7 @@ Node* NodeFactory::new_node() const
     return node;
 }
 
-LiteralNode* NodeFactory::new_literal(std::shared_ptr<const R::Meta_t> _type) const
+LiteralNode* NodeFactory::new_literal(type _type) const
 {
     LiteralNode* node = new LiteralNode(_type);
     node->set_label("Literal", "");

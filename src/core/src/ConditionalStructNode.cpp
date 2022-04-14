@@ -1,10 +1,16 @@
 #include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/Scope.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(ConditionalStructNode)
+REGISTER
+{
+    using namespace Nodable;
+    registration::push_class<ConditionalStructNode>("ConditionalStructNode")
+        .extends<Node>()
+        .extends<IConditionalStruct>();
+}
 
 ConditionalStructNode::ConditionalStructNode()
     : Node()

@@ -5,12 +5,11 @@
 #include <nodable/core/Node.h>
 
 using namespace Nodable;
-using namespace Nodable::R;
 
 TEST(Node, Add_member_Double)
 {
     Node node;
-    node.props()->add("val", Visibility::Default, R::meta<double>(), Way_Default);
+    node.props()->add("val", Visibility::Default, type::get<double>(), Way_Default);
     node.props()->get("val")->set(100.0);
 
     Member* val = node.props()->get("val");

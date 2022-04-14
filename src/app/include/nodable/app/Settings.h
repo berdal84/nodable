@@ -5,7 +5,7 @@
 #include <memory>
 
 #include <imgui/imgui.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <nodable/app/FontConf.h>
 #include <nodable/app/FontSlot.h>
@@ -60,9 +60,5 @@ namespace Nodable {
         bool experimental_hybrid_history;
 
         void patch_imgui_style(ImGuiStyle&);
-
-        R(Settings)
-
-
     };
 }

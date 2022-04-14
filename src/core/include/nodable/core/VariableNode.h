@@ -6,7 +6,7 @@
 #include <nodable/core/types.h> // forward declarations and common stuff
 #include <nodable/core/Node.h> // base class
 #include <nodable/core/Member.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include "Scope.h"
 
 namespace Nodable
@@ -23,12 +23,10 @@ namespace Nodable
 	class VariableNode : public Node
     {
 	public:
-		explicit VariableNode(std::shared_ptr<const R::Meta_t>);
+		explicit VariableNode(type);
 		~VariableNode() override = default;
 
 		inline bool      is_declared()const { return m_is_declared; }
-		inline bool      is_initialized()const { return m_value->get_data()->is_initialized(); }
-		inline void      set_initialized(bool _initialized) { m_value->get_data()->set_initialized(_initialized); set_dirty(true); }
 		const char*      get_name()const { return m_name.c_str(); };
 		Member*          get_value()const { return m_value; }
         bool             eval()const override;
@@ -40,24 +38,21 @@ namespace Nodable
         void             set_assignment_operator_token(std::shared_ptr<Token> token) { m_assignment_operator_token = token; }
         void             set_identifier_token(std::shared_ptr<Token> token) { m_identifier_token = token; }
         template<class T> void         set(T _value) { m_value->set(_value); };
-        template<class T> void         set(T* _value){ m_value->set(_value); };
         void             set_declared(bool b = true) { m_is_declared = b; }
         IScope*          get_scope() { return m_scope; }
         void             set_scope(IScope* _scope) { m_scope = _scope; }
         void             set_declaration_instr(InstructionNode* _instr) { m_declaration_instr = _instr; }
         const InstructionNode* get_declaration_instr()const { return m_declaration_instr; }
     private:
-	    Member*     m_value;
-        bool        m_is_declared;
+	    Member*                m_value;
+        bool                   m_is_declared;
         InstructionNode*       m_declaration_instr;
         std::shared_ptr<Token> m_type_token;
         std::shared_ptr<Token> m_assignment_operator_token;
         std::shared_ptr<Token> m_identifier_token;
-		std::string m_name;
-        IScope* m_scope;
+		std::string            m_name;
+        IScope*                m_scope;
 
-		R_DERIVED(VariableNode)
-        R_EXTENDS(Node)
-        R_END
+		REFLECT_DERIVED_CLASS(Node)
     };
 }

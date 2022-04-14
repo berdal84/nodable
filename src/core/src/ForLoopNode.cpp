@@ -3,7 +3,12 @@
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(ForLoopNode)
+REGISTER
+{
+    registration::push_class<ForLoopNode>("ForLoopNode")
+        .extends<Node>()
+        .extends<IConditionalStruct>();
+}
 
 ForLoopNode::ForLoopNode()
     : m_token_for(nullptr)

@@ -4,32 +4,62 @@
 
 using namespace Nodable;
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST(Parser, Atomic_expressions)
+TEST(Parser, atomic_expression_int)
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("5.0"), 5.0);
+    EXPECT_EQ(ParseAndEvalExpression<int>("5"), 5);
+}
+
+TEST(Parser, atomic_expression_double)
+{
     EXPECT_EQ(ParseAndEvalExpression<double>("10.0"), 10.0);
 }
 
-TEST(Parser, Unary_operators)
+TEST(Parser, atomic_expression_string)
+{
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("\"hello world!\""), "hello world!");
+}
+
+TEST(Parser, atomic_expression_bool)
+{
+    EXPECT_EQ(ParseAndEvalExpression<bool>("true"), true);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(Parser, unary_operators_minus_int)
 {
     EXPECT_EQ(ParseAndEvalExpression<int>("-5"), -5);
 }
+
+TEST(Parser, unary_operators_minus_double)
+{
+    EXPECT_EQ(ParseAndEvalExpression<double>("-5.5"), -5.5);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(Parser, Simple_binary_expressions)
 {
     EXPECT_EQ(ParseAndEvalExpression<int>("2+3"), 5);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST(Parser, Precedence_one_level)
 {
     EXPECT_EQ(ParseAndEvalExpression<int>("-5+4"), -1);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST(Parser, Precedence_two_levels)
 {
     EXPECT_EQ(ParseAndEvalExpression<double>("-1.0+2.0*5.0-3.0/6.0"), 8.5);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(Parser, Simple_parenthesis)
 {
@@ -38,6 +68,8 @@ TEST(Parser, Simple_parenthesis)
     EXPECT_EQ(ParseAndEvalExpression<int>("(1+2)*3"), 9);
     EXPECT_EQ(ParseAndEvalExpression<int>("2*(5+3)"), 16);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(Parser, Unary_Binary_operators_mixed)
 {
@@ -48,6 +80,8 @@ TEST(Parser, Unary_Binary_operators_mixed)
     EXPECT_EQ(ParseAndEvalExpression<int>("2-(5+3)"), -6);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST(Parser, Complex_parenthesis)
 {
     EXPECT_EQ(ParseAndEvalExpression<int>("2+(5*3)"), 2 + (5 * 3));
@@ -57,11 +91,15 @@ TEST(Parser, Complex_parenthesis)
     EXPECT_EQ(ParseAndEvalExpression<double>("1.0/3.0"), 1.0 / 3.0);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST(Parser, unexisting_function)
 {
     const std::string code{"pow_unexisting(5)"};
     EXPECT_ANY_THROW(ParseAndEvalExpression<double>(code) );
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(Parser, function_call)
 {
@@ -86,20 +124,41 @@ TEST(Parser, imbricated_functions)
     EXPECT_EQ(ParseAndEvalExpression<int>("return(return(1) + return(1))"), 2);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST(Parser, Successive_assigns)
 {
     EXPECT_EQ(ParseAndEvalExpression<double>("double a; double b; a = b = 5.0;"), 5.0);
 }
 
-TEST(Parser, Strings)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(Parser, string_var_assigned_with_literal_string)
 {
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = \"coucou\""), "coucou");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(15)"), "15");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(-15)"), "-15");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(-15.5)"), "-15.5");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string b = to_string(true)"), "true");
-    EXPECT_EQ(ParseAndEvalExpression<std::string>("string b = to_string(false)"), "false");
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = \"coucou\"")       , "coucou");
 }
+
+TEST(Parser, string_var_assigned_with_15_to_string)
+{
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(15)")    , "15");
+}
+
+TEST(Parser, string_var_assigned_with_minus15dot5_to_string)
+{
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(15.5)")    , "15.5");
+}
+
+TEST(Parser, string_var_assigned_with_true_to_string)
+{
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(true)")    , "true");
+}
+
+TEST(Parser, string_var_assigned_with_false_to_string)
+{
+    EXPECT_EQ(ParseAndEvalExpression<std::string>("string a = to_string(false)")    , "false");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(Parser, Serialize_Precedence)
 {
@@ -117,6 +176,8 @@ TEST(Parser, Serialize_Precedence)
     ParseEvalSerializeExpressions(expressions);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST(Parser, Eval_Serialize_Compare)
 {
     std::vector<std::string> expressions
@@ -125,33 +186,40 @@ TEST(Parser, Eval_Serialize_Compare)
             "1+1",
             "1-1",
             "-1",
-            "double a = 5",
+            "double a=5",
             "double a=1;double b=2;double c=3;double d=4;(a+b)*(c+d)",
             "string b = to_string(false)"
     };
-    Log::SetVerbosityLevel("Runner", Log::Verbosity::Verbose );
     ParseEvalSerializeExpressions(expressions);
 }
 
-TEST(Parser, Declare_and_define_vars)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(Parser, decl_var_and_assign_string)
 {
-    std::vector<std::string> expressions
-    {
-        "double a = 10.5;",
-        R"(string s = "coucou";)",
-        "bool b = false;"
-    };
-
-    ParseEvalSerializeExpressions(expressions);
+    std::string program = R"(string s = "coucou";)";
+    EXPECT_EQ( ParseAndSerialize(program), program);
 }
 
-TEST(Parser, Single_Instruction_With_EndOfInstruction )
+TEST(Parser, decl_var_and_assign_double)
 {
-    EXPECT_EQ(ParseAndEvalExpression<double>("double a = 5.0;"), 5.0);
-
-    std::vector<std::string> expressions { "double a = 5.0;" };
-    ParseEvalSerializeExpressions(expressions);
+    std::string program = "double d = 15.0;";
+    EXPECT_EQ( ParseAndSerialize(program), program);
 }
+
+TEST(Parser, decl_var_and_assign_int)
+{
+    std::string program = "int s = 10;";
+    EXPECT_EQ( ParseAndSerialize(program), program);
+}
+
+TEST(Parser, decl_var_and_assign_bool)
+{
+    std::string program = "bool b = true;";
+    EXPECT_EQ( ParseAndSerialize(program), program);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(Parser, Multiple_Instructions_Single_Line )
 {
@@ -169,6 +237,8 @@ TEST(Parser, Multiple_Instructions_Multi_Line )
     ParseEvalSerializeExpressions(expressions);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST(Parser, DNAtoProtein )
 {
     EXPECT_EQ(ParseAndEvalExpression<std::string>("DNAtoProtein(\"TAA\")"), "_");
@@ -176,6 +246,8 @@ TEST(Parser, DNAtoProtein )
     EXPECT_EQ(ParseAndEvalExpression<std::string>("DNAtoProtein(\"TGA\")"), "_");
     EXPECT_EQ(ParseAndEvalExpression<std::string>("DNAtoProtein(\"ATG\")"), "M");
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(Parser, Code_Formatting_Preserving )
 {
@@ -188,6 +260,8 @@ TEST(Parser, Code_Formatting_Preserving )
     ParseEvalSerializeExpressions(expressions);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST(Parser, Conditional_Structures_IF )
 {
     std::string program =
@@ -197,7 +271,7 @@ TEST(Parser, Conditional_Structures_IF )
             "   string message = \"Bob is better than Alice.\";"
             "}";
 
-    ParseEvalSerializeExpressions({program});
+    ParseAndSerialize({program});
 }
 
 TEST(Parser, Conditional_Structures_IF_ELSE )
@@ -232,13 +306,24 @@ TEST(Parser, Conditional_Structures_IF_ELSE_IF )
     ParseAndSerialize({program});
 }
 
-TEST(Parser, not_equals)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(Parser, operator_not_equals_doubles)
 {
     EXPECT_TRUE( ParseAndEvalExpression<bool>("10.0 != 9.0;") );
     EXPECT_FALSE( ParseAndEvalExpression<bool>("10.0 != 10.0;") );
 }
 
-TEST(Parser, undeclared_variables)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(Parser, operator_not_bool)
+{
+    EXPECT_TRUE( ParseAndEvalExpression<bool>("!false;") );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(Parser, parse_serialize_with_undeclared_variables)
 {
     std::string program1 = "double a = b + c * r - z;";
     EXPECT_EQ( ParseAndSerialize(program1), program1);
@@ -247,13 +332,9 @@ TEST(Parser, undeclared_variables)
     EXPECT_EQ( ParseAndSerialize(program2), program2);
 }
 
-TEST(Parser, not)
-{
-    EXPECT_TRUE( ParseAndEvalExpression<bool>("!false;") );
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-TEST(Parser, ignored_chars_pre_ribbon )
+TEST(Parser, parse_serialize_with_pre_ribbon_chars )
 {
     std::vector<std::string> expressions {
             " double a = 5"
@@ -261,7 +342,7 @@ TEST(Parser, ignored_chars_pre_ribbon )
     ParseEvalSerializeExpressions(expressions);
 }
 
-TEST(Parser, ignored_chars_post_ribbon )
+TEST(Parser, parse_serialize_with_post_ribbon_chars )
 {
     std::vector<std::string> expressions {
             "double a = 5 "
@@ -269,12 +350,14 @@ TEST(Parser, ignored_chars_post_ribbon )
     ParseEvalSerializeExpressions(expressions);
 }
 
-TEST(Parser, empty_scope )
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(Parser, parse_serialize_empty_scope )
 {
     EXPECT_EQ( ParseAndSerialize("{}"), "{}");
 }
 
-TEST(Parser, empty_scope_with_spaces )
+TEST(Parser, parse_serialize_empty_scope_with_spaces )
 {
     EXPECT_EQ( ParseAndSerialize("{ }"), "{ }");
     EXPECT_EQ( ParseAndSerialize("{} "), "{} ");
@@ -282,8 +365,10 @@ TEST(Parser, empty_scope_with_spaces )
     EXPECT_EQ( ParseAndSerialize(" {} "), " {} ");
 }
 
-TEST(Parser, empty_program )
+TEST(Parser, parse_serialize_empty_program )
 {
     EXPECT_EQ( ParseAndSerialize(""), "");
     EXPECT_EQ( ParseAndSerialize(" "), " ");
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

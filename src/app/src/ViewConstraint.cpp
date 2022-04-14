@@ -108,10 +108,10 @@ void ViewConstraint::apply(float _dt)
             //---------------------------
 
             float        start_pos_x = first_driver->get_position().x - size_x_total / 2.0f;
-            R::Class_ptr driver_clss = first_driver->get_owner()->get_class();
+            type driver_type = first_driver->get_owner()->get_type();
 
-            if (driver_clss->is_child_of<InstructionNode>()
-                || (driver_clss->is_child_of<IConditionalStruct>() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop))
+            if (driver_type.is_child_of<InstructionNode>()
+                || (driver_type.is_child_of<IConditionalStruct>() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop))
             {
                 // indent
                 start_pos_x = first_driver->get_position().x

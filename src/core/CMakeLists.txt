@@ -20,28 +20,26 @@ nodable_message(" - NODABLE_CORE_INSTALL_DESTINATION: ${NODABLE_CORE_INSTALL_DES
 add_library(
     nodable-core
     STATIC
-        src/assembly/Compiler.cpp
+        src/Component.cpp
         src/ConditionalStructNode.cpp
         src/DataAccess.cpp
         src/ForLoopNode.cpp
-        src/Signature.cpp
         src/GraphNode.cpp
-        src/NodeFactory.cpp
         src/InstructionNode.cpp
         src/InvokableComponent.cpp
-        src/IScope.cpp
         src/Language.cpp
-        src/languages/Nodable.cpp
         src/LiteralNode.cpp
         src/Log.cpp
         src/Member.cpp
         src/Node.cpp
+        src/NodeFactory.cpp
         src/Parser.cpp
         src/Properties.cpp
-        src/R.cpp
+        src/reflection.cpp
         src/Scope.cpp
         src/Semantic.cpp
         src/Serializer.cpp
+        src/Signature.cpp
         src/String.cpp
         src/System.cpp
         src/Token.cpp
@@ -50,7 +48,12 @@ add_library(
         src/Variant.cpp
         src/VirtualMachine.cpp
         src/Way.cpp
-        src/Wire.cpp src/assembly/QWord.cpp src/assembly/Instruction.cpp src/assembly/Code.cpp)
+        src/Wire.cpp
+        src/assembly/Code.cpp
+        src/assembly/Compiler.cpp
+        src/assembly/Instruction.cpp
+        src/assembly/QWord.cpp
+        src/languages/Nodable.cpp)
 
 target_link_libraries(
     nodable-core

@@ -150,7 +150,7 @@ std::string& Serializer::serialize(std::string& _result, const Token_t& _type) c
     return _result.append(language.get_semantic().token_type_to_string(_type) );
 }
 
-std::string& Serializer::serialize(std::string &_result, std::shared_ptr<const R::Meta_t> _type) const
+std::string& Serializer::serialize(std::string &_result, type _type) const
 {
     return _result.append(language.get_semantic().type_to_string(_type) );
 }
@@ -168,7 +168,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
         }
         else // in case no token found (means was not parsed but created by the user)
         {
-            serialize(_result, _node->get_value()->get_meta_type() );
+            serialize(_result, _node->get_value()->get_type() );
             _result.append(" ");
         }
     }
@@ -203,11 +203,11 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
             append_assign_tok();
             serialize(_result, value);
         }
-        else if ( value->get_data()->is_defined() )
+        else if (value->get_variant()->is_defined() )
         {
             append_assign_tok();
             _result.append(value->get_src_token()->m_prefix);
-            serialize(_result, value->get_data());
+            serialize(_result, value->get_variant());
             _result.append(value->get_src_token()->m_suffix);
         }
     }
@@ -216,22 +216,21 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
 
 std::string& Serializer::serialize(std::string& _result, const Variant* variant) const
 {
-    if (variant->get_meta_type()->get_type() == R::Type::string_t )
+    std::string variant_string = variant->convert_to<std::string>();
+
+    if( variant->get_type() == type::get<std::string>() )
     {
-        return _result.append('"' + variant->convert_to<std::string>() + '"');
+        return _result.append('"' + variant_string + '"');
     }
-    else
-    {
-        return _result.append(variant->convert_to<std::string>() );
-    }
+    return _result.append(variant_string);
 }
 
 std::string& Serializer::serialize(std::string& _result, const Member * _member, bool followConnections) const
 {
     // specific case of a Node*
-    if (_member->get_meta_type()->is_exactly(R::meta<Node *>()))
+    if ( _member->get_type() == type::get<Node*>() )
     {
-        if(_member->get_data()->is_initialized())
+        if(_member->get_variant()->is_initialized())
         {
             return serialize(_result, (const Node*)*_member);
         }
@@ -260,14 +259,14 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
     }
     else
     {
-        if (owner && owner->get_class() == VariableNode::Get_class())
+        if (owner && owner->get_type() == type::get<VariableNode>() )
         {
             auto variable = owner->as<VariableNode>();
             _result.append(variable->get_name() );
         }
         else
         {
-            serialize(_result, _member->get_data() );
+            serialize(_result, _member->get_variant() );
         }
     }
 
@@ -281,17 +280,17 @@ std::string& Serializer::serialize(std::string& _result, const Member * _member,
 std::string& Serializer::serialize(std::string& _result, const Node* _node) const
 {
     NODABLE_ASSERT(_node != nullptr)
-    auto clss = _node->get_class();
+    type type = _node->get_type();
 
-    if (clss->is_child_of<InstructionNode>())
+    if (type.is_child_of<InstructionNode>())
     {
         serialize(_result, _node->as<InstructionNode>());
     }
-    else if (clss->is_child_of<ConditionalStructNode>() )
+    else if (type.is_child_of<ConditionalStructNode>() )
     {
         serialize( _result, _node->as<ConditionalStructNode>());
     }
-    else if (clss->is_child_of<ForLoopNode>() )
+    else if (type.is_child_of<ForLoopNode>() )
     {
         serialize( _result, _node->as<ForLoopNode>());
     }
@@ -314,7 +313,7 @@ std::string& Serializer::serialize(std::string& _result, const Node* _node) cons
     else
     {
         std::string message = "Unable to serialize ";
-        message.append( _node->get_class()->get_name() );
+        message.append( type.get_name() );
         throw std::runtime_error( message );
     }
 
@@ -343,7 +342,7 @@ std::string& Serializer::serialize(std::string& _result, const InstructionNode* 
 {
     const Member* root_node_member = _instruction->get_root_node_member();
 
-    if (root_node_member->has_input_connected() && root_node_member->get_data()->is_initialized() )
+    if (root_node_member->has_input_connected() && root_node_member->get_variant()->is_initialized() )
     {
         auto root_node = (const Node*)*root_node_member;
         NODABLE_ASSERT ( root_node )
@@ -382,7 +381,7 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
     //       More work to do to know if expression is a declaration or not.
 
     Member* input = _for_loop->get_init_expr()->get_input();
-    if ( input && input->get_owner()->get_class()->is_child_of<VariableNode>() )
+    if ( input && input->get_owner()->get_type().is_child_of<VariableNode>() )
     {
         serialize( _result, input->get_owner()->as<VariableNode>() );
     }

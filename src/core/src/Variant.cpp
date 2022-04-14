@@ -1,9 +1,7 @@
 #include <nodable/core/Variant.h>
 #include <nodable/core/Log.h> // for LOG_DEBUG(...)
-#include <cassert>
 #include <nodable/core/types.h>
 #include <nodable/core/String.h>
-#include <nodable/core/Node.h>
 
 using namespace Nodable;
 
@@ -11,7 +9,7 @@ Variant::~Variant()
 {
     if( m_is_initialized)
     {
-        set_initialized(false);
+        ensure_is_initialized(false);
     }
 }
 
@@ -24,7 +22,7 @@ void* Variant::convert_to<void*>()const
         return nullptr;
     }
 
-    if ( get_meta_type()->is_ptr())
+    if ( m_type.is_ptr())
     {
         return m_data.ptr;
     }
@@ -49,14 +47,13 @@ double Variant::convert_to<double>()const
         return 0.0;
     }
 
-    switch (get_meta_type()->get_type())
-    {
-        case R::Type::string_t:  return stod((std::string)m_data);
-        case R::Type::double_t:  return m_data.d;
-        case R::Type::i16_t:     return double(m_data.i16);
-        case R::Type::bool_t:    return double(m_data.b);
-        default:                 NODABLE_ASSERT(false) // this case is not handled
-    }
+    if( m_type == type::get<std::string>() )  return stod(*static_cast<std::string*>(m_data.ptr) );
+    if( m_type == type::get<double>() )       return m_data.d;
+    if( m_type == type::get<i16_t>() )        return double(m_data.i16);
+    if( m_type == type::get<bool>() )         return double(m_data.b);
+
+    NODABLE_ASSERT(false) // this case is not handled
+
 }
 
 template<>
@@ -67,14 +64,12 @@ i16_t Variant::convert_to<i16_t>()const
         return 0;
     }
 
-    switch (get_meta_type()->get_type())
-    {
-        case R::Type::string_t:  return stoi((std::string)m_data);
-        case R::Type::double_t:  return i16_t(m_data.d);
-        case R::Type::i16_t:     return m_data.i16;
-        case R::Type::bool_t:    return i16_t(m_data.b);
-        default:                 NODABLE_ASSERT(false) // this case is not handled
-    }
+    if( m_type == type::get<std::string>() )  return stoi( *static_cast<std::string*>(m_data.ptr) );
+    if( m_type == type::get<double>() )       return i16_t(m_data.d);
+    if( m_type == type::get<i16_t>() )        return m_data.i16;
+    if( m_type == type::get<bool>() )         return  i16_t(m_data.b);
+
+    NODABLE_ASSERT(false) // this case is not handled
 }
 
 template<>
@@ -85,14 +80,12 @@ bool Variant::convert_to<bool>()const
         return false;
     }
 
-    switch (get_meta_type()->get_type())
-    {
-        case R::Type::string_t:  return !((std::string*)m_data.ptr)->empty();
-        case R::Type::double_t:  return m_data.d != 0.0;
-        case R::Type::i16_t:     return m_data.i16 != 0;
-        case R::Type::bool_t: // pass through
-        default:                 return m_data.b;
-    }
+    if( m_type == type::get<std::string>() )  return !(static_cast<std::string*>(m_data.ptr))->empty();
+    if( m_type == type::get<double>() )       return m_data.d != 0.0;
+    if( m_type == type::get<i16_t>() )        return m_data.i16 != 0;
+    if( m_type == type::get<bool>() )         return m_data.b;
+    if( m_type == type::get<void*>() )        return m_data.ptr;
+    NODABLE_ASSERT_EX(false,"Case not handled!")
 }
 
 template<>
@@ -108,53 +101,27 @@ std::string Variant::convert_to<std::string>()const
         return "undefined";
     }
 
-    switch (get_meta_type()->get_type())
-    {
-        case R::Type::string_t: return *(std::string*)m_data.ptr;
-        case R::Type::i16_t:    return std::to_string(m_data.i16);
-        case R::Type::double_t: return String::fmt_double(m_data.d);
-        case R::Type::bool_t:   return m_data.b ? "true" : "false";
-        case R::Type::Class:    return String::fmt_ptr(m_data.ptr);
-        default:                return "<?>";
-    }
+    if( m_type == type::get<std::string>() ) return *static_cast<std::string*>(m_data.ptr);
+    if( m_type == type::get<i16_t>() )        return std::to_string(m_data.i16);
+    if( m_type == type::get<double>() )       return String::fmt_double(m_data.d);
+    if( m_type == type::get<bool>() )         return m_data.b ? "true" : "false";
+    if( m_type.is_ptr())                      return String::fmt_ptr(m_data.ptr);
+    NODABLE_ASSERT_EX(false,"Case not handled!")
 }
 
-Variant::MetaType Variant::get_meta_type()const
+const type& Variant::get_type()const
 {
-	return m_meta_type;
-}
-
-bool  Variant::is_meta_type(MetaType _type)const
-{
-	return m_meta_type->is_exactly(_type);
-}
-
-void Variant::set(double _value)
-{
-    ensure_is_initialized_as<decltype(_value)>();
-
-    m_data       = _value;
-    m_is_defined = true;
-}
-
-void Variant::set(i16_t _value)
-{
-    ensure_is_initialized_as<decltype(_value)>();
-
-    m_data       = _value;
-    m_is_defined = true;
+	return m_type;
 }
 
 void Variant::set(const std::string& _value)
 {
-    ensure_is_initialized_as<decltype(_value)>();
-
-    std::string& ptr = *(std::string*)m_data.ptr;
-    ptr.clear();
-    ptr.append(_value);
-
+    ensure_is_type( type::get<std::string>() );
+    ensure_is_initialized(true);
+    auto* string = static_cast<std::string*>(m_data.ptr);
+    string->clear();
+    string->append(_value);
     m_is_defined = true;
-
 }
 
 void Variant::set(const char* _value)
@@ -162,12 +129,28 @@ void Variant::set(const char* _value)
     set(std::string{_value});
 }
 
+void Variant::set(double _value)
+{
+    ensure_is_type(type::get<double>());
+    ensure_is_initialized();
+    m_data.set<double>(_value);
+    m_is_defined = true;
+}
+
+void Variant::set(i16_t _value)
+{
+    ensure_is_type(type::get<i16_t>());
+    ensure_is_initialized();
+    m_data.set<i16_t>(_value);
+    m_is_defined = true;
+}
+
 void Variant::set(bool _value)
 {
-    ensure_is_initialized_as<decltype(_value)>();
-
-    m_data        = _value;
-    m_is_defined  = true;
+    ensure_is_type(type::get<bool>());
+    ensure_is_initialized();
+    m_data.set<bool>(_value);
+    m_is_defined = true;
 }
 
 bool Variant::is_initialized()const
@@ -175,76 +158,68 @@ bool Variant::is_initialized()const
 	return m_is_initialized;
 }
 
-void Variant::set_initialized(bool _initialize)
+void Variant::ensure_is_initialized(bool _initialize)
 {
-    auto type = m_meta_type->get_type();
+    if(_initialize == m_is_initialized) return;
 
     if ( _initialize )
     {
-        NODABLE_ASSERT(m_meta_type)
-        // Set a default value (this will change the type too)
-        switch ( type )
+        NODABLE_ASSERT( m_type != type::null )
+
+        if( m_type == type::get<double>() )
         {
-            case R::Type::string_t: m_data.ptr   = new std::string();
-                                    m_is_defined = true;              break;
-            case R::Type::double_t: m_data.d     = 0.0;               break;
-            case R::Type::i16_t:    m_data.i16   = 0;                 break;
-            case R::Type::bool_t:   m_data.b     = false;             break;
-            case R::Type::void_t:
-            case R::Type::Class:    m_data.ptr   = nullptr;           break;
-            default:               break;
+            m_data.d = 0.0;
+        }
+        else if( m_type == type::get<bool>() )
+        {
+            m_data.b = false;
+        }
+        else if( m_type == type::get<i16_t>() )
+        {
+            m_data.i16 = 0;
+        }
+        else if( m_type == type::get<std::string>() )
+        {
+            m_data.ptr   = new std::string();
+        }
+        else if( m_type.is_ptr() )
+        {
+            m_data.ptr   = nullptr;
+        }
+        else
+        {
+            NODABLE_ASSERT_EX(false, "Missing case")
         }
     }
-    else if ( m_is_defined && m_meta_type->get_type() == R::Type::string_t )
+    else
     {
-        delete (std::string*)m_data.ptr;
+        if (m_type == type::get<std::string>() )
+        {
+            delete (std::string*)m_data.ptr;
+        }
+
     }
 
+    m_is_defined = false;
     m_is_initialized = _initialize;
-    m_is_defined     = false;
     NODABLE_ASSERT(_initialize == m_is_initialized)
 }
 
-void Variant::set(const Variant& _other)
+void Variant::ensure_is_type(type _type)
 {
-    if ( _other.m_meta_type && !_other.m_meta_type->is_exactly(m_meta_type) )
+    auto clean = clean_type(_type);
+    if( !m_type_change_allowed )
     {
-        NODABLE_ASSERT(R::Meta_t::is_implicitly_convertible(_other.m_meta_type, m_meta_type));
-
-        switch(m_meta_type->get_type())
+        if( clean == m_type )
         {
-            case R::Type::string_t: set(*(std::string*)_other.m_data.ptr ); break;
-            case R::Type::bool_t:   set(_other.convert_to<bool>() ); break;
-            case R::Type::double_t: set(_other.convert_to<double>() ); break;
-            case R::Type::i16_t:    set(_other.convert_to<i16_t>() ); break;
-            case R::Type::void_t:
-            case R::Type::Class:   set( _other.m_data.ptr); break;
-            default: NODABLE_ASSERT(false) // not handled.
+            return;
         }
-        return;
+        NODABLE_ASSERT_EX( m_type == type::null || m_type == type::any,
+                "Variant: Type should not change, expecting it null or any!" );
     }
-
-    switch(m_meta_type->get_type())
-    {
-        case R::Type::string_t:  set(*(std::string*)_other.m_data.ptr ); break;
-        case R::Type::bool_t: set(_other.m_data.b); break;
-        case R::Type::double_t:  set(_other.m_data.d); break;
-        case R::Type::i16_t:   set( _other.m_data.i16); break;
-        case R::Type::void_t:
-        case R::Type::Class:   set( _other.m_data.ptr); break;
-        default: NODABLE_ASSERT(false) // not handled.
-    }
+    m_type = clean;
 }
 
-void Variant::define_meta_type(MetaType _type)
-{
-    NODABLE_ASSERT(!m_meta_type); // can't switch from one type to another
-    m_meta_type = _type;
-    set_initialized(true);
-    NODABLE_ASSERT(m_is_initialized);
-}
-
-// those operators can't figure in header since they are using templates implem in cpp.
 Variant::operator i16_t()const        { NODABLE_ASSERT(m_is_defined) return convert_to<i16_t>(); }
 Variant::operator double()const       { NODABLE_ASSERT(m_is_defined) return convert_to<double>(); }
 Variant::operator bool()const         { NODABLE_ASSERT(m_is_defined) return convert_to<bool>(); }
@@ -256,12 +231,45 @@ void Variant::force_defined_flag(bool _value )
     m_is_defined = _value;
 }
 
-assembly::QWord* Variant::get_data_ptr()
+type Variant::clean_type(const type& _type)
 {
-    if( !m_is_initialized )
+    if(_type.is_ptr())
     {
-        return nullptr;
+        return type::get<void*>();
     }
 
-    return &m_data;
+    return _type;
+}
+
+
+Variant& Variant::operator=(const Variant& _other)
+{
+    NODABLE_ASSERT( _other.m_type != type::null )
+    NODABLE_ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));
+
+    if( m_type == type::get<bool>() )
+    {
+        set( _other.m_data.b );
+    }
+    else if( m_type == type::get<double>() )
+    {
+        set( _other.m_data.d );
+    }
+    else if( m_type == type::get<i16_t>() )
+    {
+        set( _other.m_data.i16 );
+    }
+    else if( m_type == type::get<std::string>() )
+    {
+        set( *static_cast<std::string*>(_other.m_data.ptr) );
+    }
+    else if( m_type.is_ptr() )
+    {
+            set( _other.m_data.ptr);
+    }
+    else
+    {
+        NODABLE_ASSERT_EX(false, "Variant: missing type case for operator=");
+    }
+    return *this;
 }

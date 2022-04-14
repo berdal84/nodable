@@ -28,7 +28,6 @@ namespace Nodable
 
     private:
         QWord&        _read(Register);
-        void          init_eip(); // instruction pointer
         QWord         m_register[Register::COUNT];
     };
 

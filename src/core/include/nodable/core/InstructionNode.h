@@ -28,8 +28,6 @@ namespace Nodable
 
     private:
         std::shared_ptr<Token> m_end_of_instr_token = nullptr;
-        R_DERIVED(InstructionNode)
-        R_EXTENDS(Node)
-        R_END
+        REFLECT_DERIVED_CLASS(Node)
     };
 }

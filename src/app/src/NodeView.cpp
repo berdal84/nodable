@@ -7,7 +7,7 @@
 #include <nodable/app/Settings.h>
 #include <nodable/core/Serializer.h>
 #include <nodable/app/App.h>
-#include <nodable/core/Maths.h>
+#include <nodable/core/math.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/LiteralNode.h>
@@ -16,12 +16,18 @@
 #include <nodable/app/MemberConnector.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/app/IAppCtx.h>
-#include <nodable/core/reflection/R_MACROS.h>
+#include <nodable/core/reflection/registration.h>
 
 #define NODE_VIEW_DEFAULT_SIZE vec2(10.0f, 35.0f)
 
 using namespace Nodable;
-using namespace Nodable::R;
+
+REGISTER
+{
+    registration::push_class<NodeView>("NodeView")
+        .extends<Component>()
+        .extends<View>();
+}
 
 NodeView*          NodeView::s_selected                        = nullptr;
 NodeView*          NodeView::s_dragged                         = nullptr;
@@ -141,17 +147,17 @@ void NodeView::set_owner(Node *_node)
     }
 
     // Determine a color depending on node type
-    R::Class_ptr clss = _node->get_class();
+    type clss = _node->get_type();
 
     if (_node->has<InvokableComponent>())
     {
         set_color(Color_Fill, &settings.ui_node_invokableColor); // blue
     }
-    else if (clss->is_child_of<VariableNode>() )
+    else if (clss.is_child_of<VariableNode>())
     {
         set_color(Color_Fill, &settings.ui_node_variableColor); // purple
     }
-    else if (clss->is_child_of<LiteralNode>() )
+    else if (clss.is_child_of<LiteralNode>())
     {
         set_color(Color_Fill, &settings.ui_node_literalColor);
     }
@@ -244,7 +250,9 @@ bool NodeView::is_selected(NodeView* _view)
 
 const MemberView* NodeView::get_member_view(const Member* _member)const
 {
-    return m_exposed_members.at(_member);
+    auto found = m_exposed_members.find(_member);
+    if( found == m_exposed_members.end() ) return nullptr;
+    return found->second;
 }
 
 void NodeView::set_position(vec2 _position)
@@ -307,7 +315,7 @@ bool NodeView::update()
 
 bool NodeView::update(float _deltaTime)
 {
-    Maths::lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
+    math::lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
     this->apply_forces(_deltaTime, false);
 	return true;
 }
@@ -538,7 +546,7 @@ bool NodeView::draw(MemberView* _view )
     bool    changed = false;
     Member* member  = _view->m_member;
 
-    const R::Class_ptr owner_class = member->get_owner()->get_class();
+    type owner_type = member->get_owner()->get_type();
 
     /*
      * Handle input visibility
@@ -559,13 +567,13 @@ bool NodeView::draw(MemberView* _view )
     }
     else if( member->get_owner()->is<VariableNode>() )
     {
-        show = member->get_data()->is_defined();
+        show = member->get_variant()->is_defined();
     }
     else if( !member->has_input_connected() )
     {
-        show = member->get_data()->is_defined();   // we always show a defined unconnected member
+        show = member->get_variant()->is_defined();   // we always show a defined unconnected member
     }
-    else if ( member->get_meta_type()->has_qualifier(R::Qualifier::Pointer) )
+    else if (member->get_type().is_ptr() )
     {
         show = member->is_connected_to_variable();
     }
@@ -575,7 +583,7 @@ bool NodeView::draw(MemberView* _view )
     }
     else
     {
-        show = member->get_data()->is_defined();
+        show = member->get_variant()->is_defined();
     }
 
     _view->m_showInput = show;
@@ -587,7 +595,7 @@ bool NodeView::draw(MemberView* _view )
 
     if ( _view->m_showInput )
     {
-        bool limit_size = member->get_meta_type()->get_type() != R::Type::bool_t;
+        bool limit_size = member->get_type() != type::get<bool>();
 
         if ( limit_size )
         {
@@ -620,7 +628,7 @@ bool NodeView::draw(MemberView* _view )
             ImGuiEx::BeginTooltip();
             ImGui::Text("%s (%s)",
                         member->get_name().c_str(),
-                        member->get_meta_type()->get_fullname().c_str());
+                        member->get_type().get_fullname().c_str());
             ImGuiEx::EndTooltip();
         }
 
@@ -666,67 +674,61 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
         ImGui::PopStyleColor();
 
     }
+    else if( !_member->get_variant()->is_initialized() )
+    {
+        ImGui::LabelText(label.c_str(), "uninitialized!");
+    }
     else
     {
         /* Draw the member */
-        switch (_member->get_meta_type()->get_type() )
+        type t = _member->get_type();
+
+        if( t == type::get<i16_t>() )
         {
-            case R::Type::i16_t:
+            auto i16 = (i16_t)*_member;
+
+            if (ImGui::InputInt(label.c_str(), &i16, 0, 0, inputFlags ) && !_member->has_input_connected())
             {
-                auto i16 = (i16_t)*_member;
-
-                if (ImGui::InputInt(label.c_str(), &i16, 0, 0, inputFlags ) && !_member->has_input_connected())
-                {
-                    _member->set(i16);
-                    changed |= true;
-                }
-                break;
+                _member->set(i16);
+                changed |= true;
             }
+        }
+        else if( t == type::get<double>() )
+        {
+            auto d = (double)*_member;
 
-            case R::Type::double_t:
+            if (ImGui::InputDouble(label.c_str(), &d, 0.0F, 0.0F, "%g", inputFlags ) && !_member->has_input_connected())
             {
-                auto d = (double)*_member;
-
-                if (ImGui::InputDouble(label.c_str(), &d, 0.0F, 0.0F, "%g", inputFlags ) && !_member->has_input_connected())
-                {
-                    _member->set(d);
-                    changed |= true;
-                }
-                break;
+                _member->set(d);
+                changed |= true;
             }
+        }
+        else if( t == type::get<std::string>() )
+        {
+            char str[255];
+            snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
 
-            case R::Type::string_t:
+            if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->has_input_connected() )
             {
-                char str[255];
-                snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
-
-                if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->has_input_connected() )
-                {
-                    _member->set(str);
-                    changed |= true;
-                }
-                break;
+                _member->set(str);
+                changed |= true;
             }
+        }
+        else if( t == type::get<bool >() )
+        {
+            std::string checkBoxLabel = _member->get_name();
 
-            case R::Type::bool_t:
+            auto b = (bool)*_member;
+
+            if (ImGui::Checkbox(label.c_str(), &b ) && !_member->has_input_connected() )
             {
-                std::string checkBoxLabel = _member->get_name();
-
-                auto b = (bool)*_member;
-
-                if (ImGui::Checkbox(label.c_str(), &b ) && !_member->has_input_connected() )
-                {
-                    _member->set(b);
-                    changed |= true;
-                }
-                break;
+                _member->set(b);
+                changed |= true;
             }
-
-            default:
-            {
-                ImGui::Text( "%s", ((std::string)*_member).c_str());
-                break;
-            }
+        }
+        else
+        {
+            ImGui::Text( "%s", ((std::string)*_member).c_str());
         }
 
         /* If value is hovered, we draw a tooltip that print the source expression of the value*/
@@ -758,12 +760,10 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
         // label (<name> (<way> <type>): )
         ImGui::SetNextItemWidth(labelColumnWidth);
         ImGui::Text(
-                "%s (%s, %s%s %s): ",
+                "%s (%s, %s): ",
                 _member->get_name().c_str(),
                 WayToString(_member->get_allowed_connection()).c_str(),
-                _member->get_meta_type()->get_fullname().c_str(),
-                _member->is_connected_by(ConnectBy_Ref) ? "&" : "",
-                _member->get_data()->is_defined() ? "" : ", undefined!");
+                _member->get_type().get_fullname().c_str());
 
         ImGui::SameLine();
         ImGui::Text("(?)");
@@ -771,12 +771,16 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
         {
             ImGuiEx::BeginTooltip();
             std::shared_ptr<Token> token = _member->get_src_token();
-            ImGui::Text("Source token:\n"
+            ImGui::Text("initialized: %s,\n"
+                        "defined:     %s,\n"
+                        "Source token:\n"
                         "{\n"
                             "\tprefix: \"%s\",\n"
-                            "\tword: \"%s\",\n"
+                            "\tword:   \"%s\",\n"
                             "\tsuffix: \"%s\"\n"
                         "}",
+                        _member->get_variant()->is_initialized() ? "true" : "false",
+                        _member->get_variant()->is_defined()     ? "true" : "false",
                         token->m_prefix.c_str(),
                         token->m_word.c_str(),
                         token->m_suffix.c_str()
@@ -795,7 +799,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
 
     ImGui::Text("Name:       \"%s\"" , node->get_label());
     ImGui::Text("Short Name: \"%s\"" , node->get_short_label());
-    ImGui::Text("Class:      %s"     , node->get_class()->get_name());
+    ImGui::Text("Class:      %s"     , node->get_type().get_name());
 
     // Draw exposed input members
     ImGui::Separator();
@@ -851,7 +855,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
             for (auto &pair : node->get_components())
             {
                 Component *component = pair.second;
-                ImGui::BulletText("%s", component->get_class()->get_name());
+                ImGui::BulletText("%s", component->get_type().get_name());
             }
             ImGui::TreePop();
         }
@@ -1082,7 +1086,7 @@ void NodeView::apply_forces(float _dt, bool _recurse)
     float magnitude = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
 
     constexpr float magnitude_max  = 100.0f;
-    const float     friction       = Maths::lerp (  0.0f, 0.5f, magnitude / magnitude_max);
+    const float     friction       = math::lerp (0.0f, 0.5f, magnitude / magnitude_max);
     const vec2 avg_forces_sum      = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
 
     translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);

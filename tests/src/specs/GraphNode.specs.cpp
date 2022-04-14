@@ -12,7 +12,6 @@
 #include <nodable/core/Scope.h>
 
 using namespace Nodable;
-using namespace Nodable::R;
 
 TEST( GraphNode, connect)
 {
@@ -110,9 +109,9 @@ TEST( GraphNode, create_and_delete_relations)
     GraphNode graph(&language, &factory, &autocompletion);
     Node* program = graph.create_root();
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
-    Node* n1 = graph.create_variable(R::meta<double>(), "n1", program->get<Scope>());
+    Node* n1 = graph.create_variable(type::get<double>(), "n1", program->get<Scope>());
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
-    Node* n2 = graph.create_variable(R::meta<double>(), "n2", program->get<Scope>());
+    Node* n2 = graph.create_variable(type::get<double>(), "n2", program->get<Scope>());
 
     // Act and test
 
@@ -156,7 +155,7 @@ TEST(Graph, by_reference_assign)
 
     // create assign operator
     Signature* sig      = Signature
-            ::from_type<int(double &, double)>
+            ::from_type<int(double&, double)>
             ::as_operator(language.find_operator("=", Operator_t::Binary));
 
     Node* assign        = graph.create_function(language.find_operator_fct(sig));

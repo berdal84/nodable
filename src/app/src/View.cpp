@@ -4,6 +4,11 @@
 
 using namespace Nodable;
 
+REGISTER
+{
+    registration::push_class<View>("View");
+}
+
 View::View(IAppCtx& _ctx):
         m_ctx(_ctx),
         m_is_hovered(false),

@@ -60,7 +60,7 @@ TEST(VM, Loop_1_using_global_var )
 TEST(VM, Loop_1_using_local_var )
 {
     std::string program =
-            "string str = \"\";" \
+            "string str = \"\";"
             "for(int n=0; n<10; n=n+1)"
             "{"
             "   string tmp = to_string(n);"

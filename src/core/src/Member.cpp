@@ -14,20 +14,18 @@ Member::Member(Properties* _parent_properties)
     , m_parentProperties(_parent_properties)
     , m_connected_by(ConnectBy_Copy)
     , m_allowed_connection(Way_Default)
-    , m_variant(nullptr)
+    , m_variant()
 {
     m_owner = _parent_properties ? _parent_properties->get_owner() : nullptr;
 }
 
 Member::Member( Properties* _parent_properties, double d ): Member(_parent_properties)
 {
-    m_variant.define_type<double>();
     m_variant.set(d);
 }
 
 Member::Member(Properties* _parent_properties, bool b): Member(_parent_properties)
 {
-    m_variant.define_type<bool>();
     m_variant.set(b);
 }
 
@@ -35,7 +33,6 @@ Member::Member(Properties* _parent_properties, int i): Member(_parent_properties
 
 Member::Member(Properties* _parent_properties, const char * str): Member(_parent_properties)
 {
-    m_variant.define_type<std::string>();
     m_variant.set(str);
 }
 
@@ -48,48 +45,9 @@ bool Member::has_input_connected() const
     return m_input != nullptr;
 }
 
-bool Member::equals(const Member *_other)const {
-	return _other != nullptr &&
-            _other->m_variant.get_meta_type() == m_input->m_variant.get_meta_type() &&
-		   (std::string)*_other == (std::string)*m_input;
-}
-
 void Member::set_input(Member* _val)
 {
     m_input        = _val;
-    const std::shared_ptr<const R::Meta_t> &meta_t = m_variant.get_meta_type();
-    m_connected_by = meta_t->has_qualifier(R::Qualifier::Ref) ||
-                     meta_t->has_qualifier(R::Qualifier::Pointer) ? ConnectBy_Ref : ConnectBy_Copy;
-}
-
-void Member::set(Node* _value)
-{
-    get_variant().set(_value);
-}
-
-void Member::set(double _value)
-{
-    get_variant().set(_value);
-}
-
-void Member::set(const char* _value)
-{
-    get_variant().set(_value);
-}
-
-void Member::set(const std::string& _value)
-{
-    get_variant().set(_value);
-}
-
-void Member::set(bool _value)
-{
-    get_variant().set(_value);
-}
-
-void Member::set(i16_t _value)
-{
-    get_variant().set(_value);
 }
 
 void Member::set_src_token(const std::shared_ptr<Token> _token)
@@ -106,24 +64,21 @@ void Member::set_src_token(const std::shared_ptr<Token> _token)
 
 void Member::digest(Member *_member)
 {
+    NODABLE_ASSERT_EX(_member->get_outputs().empty(), "Cannot digest a member with output connections")
     // Transfer
-    m_variant.set( _member->m_variant );
+    m_variant     = _member->m_variant;
     m_sourceToken = _member->m_sourceToken;
 }
 
-bool Member::is_connected_by(ConnBy_ by)
+bool Member::is_connected_by_ref()
 {
-    return m_connected_by == by;
+    const type& variant_type = m_variant.get_type();
+    return m_input && (variant_type.is_ptr() || variant_type.is_ref());
 }
 
 void Member::force_defined_flag(bool _value)
 {
-    get_variant().force_defined_flag(_value);
-}
-
-assembly::QWord* Member::get_data_ptr()
-{
-    return m_variant.get_data_ptr();
+    variant().force_defined_flag(_value);
 }
 
 bool Member::is_connected_to_variable() const
@@ -134,4 +89,14 @@ bool Member::is_connected_to_variable() const
 VariableNode* Member::get_connected_variable()
 {
     return m_input->get_owner()->as<VariableNode>();
+}
+
+void Member::set(Node* _value)
+{
+    variant().set(_value);
+}
+
+assembly::QWord& Member::get_underlying_data()
+{
+    return variant().get_underlying_data();
 }

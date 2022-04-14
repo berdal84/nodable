@@ -8,17 +8,16 @@
 #include <nodable/core/languages/Nodable.h>
 
 using namespace Nodable;
-using namespace Nodable::R;
 
 TEST(Semantic, token_type_to_type)
 {
     const LanguageNodable lang;
     const Semantic& semantic = lang.get_semantic();
 
-    EXPECT_EQ(semantic.token_type_to_type(Token_t::keyword_bool)  , Type::bool_t );
-    EXPECT_EQ(semantic.token_type_to_type(Token_t::keyword_double), Type::double_t );
-    EXPECT_EQ(semantic.token_type_to_type(Token_t::keyword_int)   , Type::i16_t );
-    EXPECT_EQ(semantic.token_type_to_type(Token_t::keyword_string), Type::string_t );
+    EXPECT_EQ(semantic.token_type_to_type(Token_t::keyword_bool)  , type::get<bool>());
+    EXPECT_EQ(semantic.token_type_to_type(Token_t::keyword_double), type::get<double>() );
+    EXPECT_EQ(semantic.token_type_to_type(Token_t::keyword_int)   , type::get<i16_t>() );
+    EXPECT_EQ(semantic.token_type_to_type(Token_t::keyword_string), type::get<std::string>() );
 }
 
 TEST(Semantic, type_to_string)
@@ -26,8 +25,8 @@ TEST(Semantic, type_to_string)
     const LanguageNodable lang;
     const Semantic& semantic = lang.get_semantic();
 
-    EXPECT_EQ(semantic.type_to_string(R::meta<bool>() )       , "bool" );
-    EXPECT_EQ(semantic.type_to_string(R::meta<double>() )     , "double" );
-    EXPECT_EQ(semantic.type_to_string(R::meta<i16_t>() )      , "int" );
-    EXPECT_EQ(semantic.type_to_string(R::meta<std::string>() ), "string" );
+    EXPECT_EQ(semantic.type_to_string(type::get<bool>())       , "bool" );
+    EXPECT_EQ(semantic.type_to_string(type::get<double>())     , "double" );
+    EXPECT_EQ(semantic.type_to_string(type::get<i16_t>())      , "int" );
+    EXPECT_EQ(semantic.type_to_string(type::get<std::string>()), "string" );
 }

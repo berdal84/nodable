@@ -8,7 +8,7 @@
 #include <nodable/core/Invokable.h>
 #include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/Token.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 
 namespace Nodable
 {
@@ -34,7 +34,7 @@ namespace Nodable
         std::string& serialize(std::string &_result, const Signature*, const std::vector<Member*>&)const;
         std::string& serialize(std::string &_result, const Signature*)const;
         std::string& serialize(std::string &_result, const Token_t&)const;
-        std::string& serialize(std::string &_result, std::shared_ptr<const R::Meta_t>)const;
+        std::string& serialize(std::string &_result, type)const;
         std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
         std::string& serialize(std::string &_result, std::shared_ptr<const Token>) const;
         std::string& serialize(std::string &_result, const InstructionNode*)const;

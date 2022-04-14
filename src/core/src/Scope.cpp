@@ -12,7 +12,12 @@
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(Scope)
+REGISTER
+{
+    registration::push_class<Scope>("Scope")
+        .extends<IScope>()
+        .extends<Node>();
+}
 
 Scope::Scope()
     : Component()

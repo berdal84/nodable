@@ -38,10 +38,7 @@ namespace Nodable
         std::shared_ptr<Token> m_token_else;
         InstructionNode*       m_cond_instr_node;
 
-        R_DERIVED(ConditionalStructNode)
-         R_EXTENDS(Node)
-         R_EXTENDS(IConditionalStruct)
-        R_END
+        REFLECT_DERIVED_CLASS(Node, IConditionalStruct)
 
     };
 }

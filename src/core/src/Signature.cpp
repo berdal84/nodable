@@ -8,7 +8,7 @@ using namespace Nodable;
 Signature::Signature(std::string _id)
     : m_identifier(_id)
     , m_operator(nullptr)
-    , m_return_type(R::meta<void>())
+    , m_return_type(type::null)
 {
     clean_function_id(m_identifier);
 }
@@ -21,7 +21,7 @@ Signature::Signature(const Operator* _operator)
     m_operator = _operator;
 }
 
-void Signature::push_arg(R::Meta_t_csptr _type)
+void Signature::push_arg(type _type)
 {
    // create normalised name
 
@@ -57,7 +57,7 @@ bool Signature::is_exactly(const Signature* _other)const
         auto &arg_t       = m_args[i].m_type;
         auto &other_arg_t = _other->m_args[i].m_type;
 
-        if ( !arg_t->is_exactly( other_arg_t ) && arg_t->get_type() != other_arg_t->get_type() )
+        if ( arg_t != other_arg_t )
         {
             return false;
         }
@@ -79,10 +79,10 @@ bool Signature::is_compatible(const Signature* _other)const
         auto &arg_t       = m_args[i].m_type;
         auto &other_arg_t = _other->m_args[i].m_type;
 
-        if ( arg_t->get_type() == other_arg_t->get_type() )
+        if ( arg_t == other_arg_t )
         {
         }
-        else if ( arg_t->is_ref() && R::Meta_t::is_implicitly_convertible(arg_t, other_arg_t))
+        else if ( other_arg_t.is_ref() && type::is_implicitly_convertible(other_arg_t, arg_t))
         {
         }
         else
@@ -95,7 +95,7 @@ bool Signature::is_compatible(const Signature* _other)const
 
 }
 
-bool Signature::has_an_arg_of_type(R::Meta_t_csptr _type) const
+bool Signature::has_an_arg_of_type(type _type) const
 {
     auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FuncArg& each) { return each.m_type == _type; } );
     return found != m_args.end();
@@ -116,10 +116,10 @@ std::string& Signature::clean_function_id(std::string& _id)
 }
 
 const Signature* Signature::new_operator(
-        Meta_t _type,
+        type _type,
         const Operator* _op,
-        Meta_t _ltype,
-        Meta_t _rtype
+        type _ltype,
+        type _rtype
 )
 {
     if(!_op)
@@ -138,9 +138,9 @@ const Signature* Signature::new_operator(
 }
 
 const Signature* Signature::new_operator(
-        Meta_t _type,
+        type _type,
         const Operator* _op,
-        Meta_t _ltype)
+        type _ltype)
 {
     if(!_op)
     {

@@ -10,9 +10,12 @@
 #include <nodable/core/Signature.h>
 
 using namespace Nodable;
-using namespace Nodable::R;
 
-R_DEFINE_CLASS(Node)
+REGISTER
+{
+    using namespace Nodable;
+    registration::push_class<Node>("Node");
+}
 
 Node::Node(std::string _label)
     : m_successors(this, 0)
@@ -139,11 +142,12 @@ bool Node::eval() const
     {
         Member* input = each_member->get_input();
 
-        if( input && each_member->is_connected_by(ConnectBy_Copy)
-            && !each_member->is_meta_type(R::Meta_t::s_any)
-            && !input->is_meta_type(R::Meta_t::s_any) )
+        if( input
+            && !each_member->is_connected_by_ref()
+            && each_member->get_type() != type::any
+            && input->get_type() != type::any )
         {
-            each_member->set(input);
+            *each_member->get_variant() = *input->get_variant();
         }
     }
 
@@ -179,7 +183,7 @@ void Node::get_inner_graph(GraphNode *_graph)
 
 const IInvokable* Node::get_connected_operator(const Member *_localMember)
 {
-    assert(m_props.has(_localMember));
+    NODABLE_ASSERT_EX(m_props.has(_localMember), "This node has no member with this adress!");
 
     /*
      * Find a wire connected to _member
@@ -193,7 +197,7 @@ const IInvokable* Node::get_connected_operator(const Member *_localMember)
      */
     if (found != m_wires.end() )
     {
-        auto node = (*found)->nodes.src->as<Node>();
+        auto node = (*found)->nodes.src;
         InvokableComponent* compute_component = node->get<InvokableComponent>();
         if ( compute_component )
         {

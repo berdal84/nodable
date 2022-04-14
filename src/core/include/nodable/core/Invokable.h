@@ -5,7 +5,7 @@
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 
 #include <nodable/core/types.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include <nodable/core/Member.h>
 #include <nodable/core/IInvokable.h>
 #include <nodable/core/Signature.h>
@@ -97,13 +97,6 @@ namespace Nodable {
         inline void invoke(Member *_result, const std::vector<Member *> &_args) const override
         {
             call<T, Args...>(m_function, _result, _args);
-            for(auto arg : _args)
-            {
-                if ( arg->is_connected_by(ConnectBy_Ref) )
-                {
-                    arg->force_defined_flag(true);
-                }
-            }
         }
         const Signature*   get_signature() const override { return m_signature; };
 

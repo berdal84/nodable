@@ -12,7 +12,7 @@
 #include <nodable/core/Component.h>  // base class
 #include <nodable/core/Member.h>
 #include <nodable/core/Slots.h>
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 
 namespace Nodable
 {
@@ -191,11 +191,8 @@ namespace Nodable
         static std::vector<NodeView*> s_instances;
         static NodeViewDetail         s_view_detail;
 
-        // Reflect this class
-        R_DERIVED(NodeView)
-        R_EXTENDS(View)
-        R_EXTENDS(Component)
-        R_END
+        REFLECT_DERIVED_CLASS()
+
     };
 
 

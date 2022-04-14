@@ -5,7 +5,9 @@ using namespace Nodable;
 assembly::Code::~Code()
 {
     for( auto each : m_instructions )
+    {
         delete each;
+    }
     m_instructions.clear();
     m_instructions.resize(0);
 }

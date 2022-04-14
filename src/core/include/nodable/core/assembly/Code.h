@@ -21,7 +21,7 @@ namespace assembly
         Code(Node* _root): m_meta_data({_root}) {};
         ~Code();
 
-        Instruction*               push_instr(opcode _type);
+        Instruction*               push_instr(opcode_t _type);
         inline size_t              size() const { return  m_instructions.size(); }
         inline Instruction*        get_instruction_at(size_t _index) const { return  m_instructions.at(_index); }
         size_t                     get_next_index() const { return m_instructions.size(); }

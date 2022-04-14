@@ -5,7 +5,10 @@
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(InvokableComponent)
+REGISTER
+{
+    registration::push_class<InvokableComponent>("InvokableComponent").extends<Component>();
+}
 
 InvokableComponent::InvokableComponent(const IInvokable* _invokable)
     : Component()
@@ -48,13 +51,17 @@ bool InvokableComponent::update()
         try
         {
             m_invokable->invoke(m_result, m_args);
+            for(auto arg : m_args)
+            {
+                arg->force_defined_flag(true);
+            }
         }
         catch (std::exception& err)
         {
             LOG_ERROR("InvokableComponent", "Exception thrown updating \"%s\" Component"
                                             " while updating Node \"%s\"."
                                             " Reason: %s\n",
-                                            get_class()->get_name(),
+                                            get_type().get_name(),
                                             get_owner()->get_label(),
                                             err.what() )
             success = false;

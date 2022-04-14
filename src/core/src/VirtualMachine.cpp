@@ -3,19 +3,15 @@
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/Log.h>
 #include <nodable/core/Scope.h>
+#include "nodable/core/String.h"
 
 using namespace Nodable;
-using opcode = Nodable::assembly::opcode;
+using opcode = Nodable::assembly::opcode_t;
 
 CPU::CPU()
 {
     clear_registers();
 }
-
-void CPU::init_eip()
-{
-    write(Register::eip, QWord(0ull));
-};
 
 void CPU::clear_registers()
 {
@@ -23,7 +19,6 @@ void CPU::clear_registers()
     {
         write( (Register)id, QWord());
     }
-    init_eip();
 }
 
 QWord CPU::read(Register _id)const
@@ -70,7 +65,7 @@ void VirtualMachine::run_program()
 
     m_cpu.clear_registers();
 
-    while( is_there_a_next_instr() && get_next_instr()->type != opcode::ret )
+    while( is_there_a_next_instr() && get_next_instr()->opcode != opcode::ret )
     {
         _stepOver();
     }
@@ -115,13 +110,14 @@ bool VirtualMachine::_stepOver()
 
     LOG_MESSAGE("VM", "%s\n", Instruction::to_string(*next_instr).c_str() );
 
-    switch ( next_instr->type )
+    switch ( next_instr->opcode )
     {
         case opcode::cmp:
         {
             QWord left  = m_cpu.read(next_instr->cmp.left.r);  // dereference registers, get their value
             QWord right = m_cpu.read(next_instr->cmp.right.r);
-            QWord result(left.b == right.b);
+            QWord result;
+            result.set<bool>(left.b == right.b);
             m_cpu.write(Register::rax, result);       // boolean comparison
             advance_cursor();
             success = true;
@@ -130,37 +126,35 @@ bool VirtualMachine::_stepOver()
 
         case opcode::deref_ptr:
         {
+            NODABLE_ASSERT_EX(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.qword_ptr is nullptr")
             QWord qword = *next_instr->uref.qword_ptr;
             m_cpu.write(Register::rax, qword );
 
-            switch( next_instr->uref.qword_type )
+            type t = *next_instr->uref.qword_type;
+            if( t == type::get<bool>() )
             {
-                case R::Type::bool_t:
-                {
-                    LOG_VERBOSE("VM", "value dereferenced: %b\n", qword.b);
-                    break;
-                }
-
-                case R::Type::double_t:
-                {
-                    LOG_VERBOSE("VM", "value dereferenced: %d\n", qword.d );
-                    break;
-                }
-
-                case R::Type::i16_t:
-                {
-                    LOG_VERBOSE("VM", "value dereferenced: %i\n", qword.i16 );
-                    break;
-                }
-
-                case R::Type::string_t:
-                {
-                    LOG_VERBOSE("VM", "pointed string: %s\n", ((std::string*)qword.ptr)->c_str() );
-                    break;
-                }
-                default: NODABLE_ASSERT(false) // not handled
+                LOG_VERBOSE("VM", "value dereferenced: %b\n", qword.b);
             }
-
+            else if( t == type::get<double >() )
+            {
+                LOG_VERBOSE("VM", "value dereferenced: %d\n", qword.d );
+            }
+            else if( t == type::get<i16_t >() )
+            {
+                LOG_VERBOSE("VM", "value dereferenced: %i\n", qword.i16 );
+            }
+            else if( t == type::get<std::string>() )
+            {
+                LOG_VERBOSE("VM", "pointed string: %s\n", ((std::string*)qword.ptr)->c_str() );
+            }
+            else if( t == type::get<void*>() )
+            {
+                LOG_VERBOSE("VM", "pointed address: %s\n", String::fmt_ptr(qword.ptr).c_str() );
+            }
+            else
+            {
+                NODABLE_ASSERT_EX(false, "This type is not handled!")
+            }
 
             advance_cursor();
             success = true;
@@ -178,6 +172,7 @@ bool VirtualMachine::_stepOver()
 
         case opcode::push_stack_frame: // do nothing, just mark visually the beginning of a scope.
         {
+            //auto scope = next_instr->pop.scope;
             advance_cursor();
             success = true;
             break;
@@ -187,26 +182,30 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
-            if (variable->is_initialized() )
-            {
-                variable->set_initialized(false);
-            }
+            NODABLE_ASSERT_EX(!variable->get_value()->get_variant()->is_initialized(),
+                              "Pushing an initialized variable is forbidden!");
+            variable->get_value()->get_variant()->ensure_is_initialized(true);
             // TODO: push variable to the future stack
 
             success = true;
             break;
         }
 
-        case opcode::pop_stack_frame:
+        case opcode::pop_var:
         {
-            auto scope = next_instr->pop.scope;
-            for( VariableNode* each_var : scope->get_variables() )
-            {
-                if (each_var->is_initialized() )
-                {
-                    each_var->set_initialized(false);
-                }
-            }
+            advance_cursor();
+            auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
+            NODABLE_ASSERT_EX(variable->get_value()->get_variant()->is_initialized(),
+                              "Pop an uninitialized variable is forbidden!");
+            variable->get_value()->get_variant()->ensure_is_initialized(false);
+            // TODO: pop variable to the future stack
+            success = true;
+            break;
+        }
+
+        case opcode::pop_stack_frame: // do nothing, just mark visually the end of a scope.
+        {
+            //auto scope = next_instr->pop.scope;
             advance_cursor();
             success = true;
             break;
@@ -261,7 +260,7 @@ bool VirtualMachine::step_over()
 {
     auto must_break = [&]() -> bool {
         return
-                get_next_instr()->type == opcode::eval_node
+                get_next_instr()->opcode == opcode::eval_node
                && m_last_step_next_instr != get_next_instr();
     };
 
@@ -269,7 +268,7 @@ bool VirtualMachine::step_over()
 
     while(is_there_a_next_instr() && !must_break() && !must_exit )
     {
-        must_exit = get_next_instr()->type == opcode::ret;
+        must_exit = get_next_instr()->opcode == opcode::ret;
         _stepOver();
     }
 
@@ -287,7 +286,7 @@ bool VirtualMachine::step_over()
         m_last_step_next_instr = get_next_instr();
         auto next_instr = get_next_instr();
 
-        switch ( next_instr->type )
+        switch ( next_instr->opcode )
         {
             case opcode::eval_node:
             {

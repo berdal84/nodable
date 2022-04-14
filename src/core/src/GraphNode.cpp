@@ -17,7 +17,10 @@
 
 using namespace Nodable;
 
-R_DEFINE_CLASS(InstructionNode)
+REGISTER
+{
+    registration::push_class<GraphNode>("GraphNode").extends<Node>();
+}
 
 GraphNode::GraphNode(const Language* _language, const INodeFactory* _factory, const bool* _autocompletion)
     : m_language(_language)
@@ -127,7 +130,7 @@ void GraphNode::add(Node* _node)
 {
 	m_node_registry.push_back(_node);
     _node->set_parent_graph(this);
-    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->get_label(), _node->get_class()->get_name())
+    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->get_label(), _node->get_type().get_name())
 }
 
 void GraphNode::remove(Node* _node)
@@ -152,9 +155,9 @@ void GraphNode::ensure_has_root()
     }
 }
 
-VariableNode* GraphNode::create_variable(std::shared_ptr<const R::Meta_t> _type, const std::string& _name, IScope* _scope)
+VariableNode* GraphNode::create_variable(type _type, const std::string& _name, IScope* _scope)
 {
-    NODABLE_ASSERT(_type)
+    NODABLE_ASSERT(_type != type::null)
 
     auto node = m_factory->new_variable(_type, _name, _scope);
     add(node);
@@ -181,12 +184,6 @@ Node* GraphNode::create_function(const IInvokable* _function)
 	Node* node = m_factory->new_function(_function);
     add(node);
 	return node;
-}
-
-
-Wire* GraphNode::create_wire()
-{
-	return new Wire(nullptr, nullptr);
 }
 
 void GraphNode::destroy(Node* _node)
@@ -254,10 +251,11 @@ bool GraphNode::is_empty() const
 
 Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
 {
+    NODABLE_ASSERT_EX(_src_member != _dst_member, "Can't connect same Member!")
+    NODABLE_ASSERT_EX( type::is_implicitly_convertible(_src_member->get_type(), _dst_member->get_type()),
+                       "Can't connect non implicitly convertible Members!");
+
     Wire* wire         = nullptr;
-
-    NODABLE_ASSERT( R::Meta_t::is_implicitly_convertible(_src_member->get_meta_type(), _dst_member->get_meta_type()) );
-
     /*
      * If _from has no owner _to can digest it, no Wire neede in that case.
      */
@@ -267,9 +265,9 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         delete _src_member;
     }
     else if (
-            !_src_member->get_meta_type()->is_ptr() &&
-            _src_member->get_owner()->get_class()->is_child_of<LiteralNode>() &&
-            _dst_member->get_owner()->get_class()->is_not_child_of<VariableNode>())
+            !_src_member->get_type().is_ptr() &&
+            _src_member->get_owner()->get_type().is_child_of<LiteralNode>() &&
+            _dst_member->get_owner()->get_type().is_not_child_of<VariableNode>())
     {
         Node* owner = _src_member->get_owner();
         _dst_member->digest(_src_member);
@@ -281,20 +279,20 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         _dst_member->set_input(_src_member);
         _src_member->get_outputs().push_back(_dst_member);
 
-        auto targetNode = _dst_member->get_owner()->as<Node>();
-        auto sourceNode = _src_member->get_owner()->as<Node>();
+        Node* dst_node = _dst_member->get_owner();
+        Node* src_node = _src_member->get_owner();
 
-        NODABLE_ASSERT(targetNode != sourceNode)
+        NODABLE_ASSERT_EX(dst_node != src_node, "Can't connect two members having same owner!")
 
         // Link wire to members
         wire = new Wire(_src_member, _dst_member);
 
         LOG_VERBOSE("GraphNode", "drop_on() adding wire to nodes ...\n")
-        targetNode->add_wire(wire);
-        sourceNode->add_wire(wire);
+        dst_node->add_wire(wire);
+        src_node->add_wire(wire);
         LOG_VERBOSE("GraphNode", "drop_on() wires added to node ...\n")
 
-        DirectedEdge relation(EdgeType::IS_INPUT_OF, sourceNode, targetNode);
+        DirectedEdge relation(EdgeType::IS_INPUT_OF, src_node, dst_node);
         connect(relation);
 
         // TODO: move this somewhere else
@@ -471,14 +469,15 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
 void GraphNode::disconnect(DirectedEdge _relation, bool _side_effects)
 {
     // find relation
-    auto range = m_relation_registry.equal_range( _relation.type );
-    auto found = std::find_if( range.first, range.second, [&_relation](auto& pair)
+    auto [begin, end] = m_relation_registry.equal_range( _relation.type );
+    auto found = std::find_if(begin, end, [&_relation](auto& pair)
     {
         return pair.second.nodes == _relation.nodes; // we do not compare type, since we did a equal_range
     });
 
-    if(found == range.second)
-        return;
+    if(found == end) return;
+
+    m_relation_registry.erase(found);
 
     Node* src = _relation.nodes.src;
     Node* dst = _relation.nodes.dst;
@@ -519,24 +518,25 @@ void GraphNode::disconnect(DirectedEdge _relation, bool _side_effects)
             NODABLE_ASSERT(false); // This connection type is not yet implemented
     }
 
-    // remove relation
-    m_relation_registry.erase(found);
-
-    set_dirty();
+   set_dirty();
 }
 
 void GraphNode::destroy(Wire *_wire)
 {
-    Member* dst_member = _wire->members.dst;
     Member* src_member = _wire->members.src;
-    Node*   dst_node   = _wire->nodes.dst;
+    Member* dst_member = _wire->members.dst;
     Node*   src_node   = _wire->nodes.src;
+    Node*   dst_node   = _wire->nodes.dst;
 
     dst_member->set_input(nullptr);
 
     auto& outputs = src_member->get_outputs();
-    outputs.erase( std::find(outputs.begin(), outputs.end(), dst_member));
-    
+    auto found = std::find(outputs.begin(), outputs.end(), dst_member);
+    if( found != outputs.end() )
+    {
+        outputs.erase( found );
+    }
+
     if( dst_node ) dst_node->remove_wire(_wire);
     if( src_node ) src_node->remove_wire(_wire);
 
@@ -545,7 +545,6 @@ void GraphNode::destroy(Wire *_wire)
         DirectedEdge relation(EdgeType::IS_INPUT_OF, src_node, dst_node);
         disconnect(relation);
     }
-
 
     delete _wire;
 }
@@ -585,7 +584,7 @@ Node* GraphNode::create_node()
     return node;
 }
 
-LiteralNode* GraphNode::create_literal(std::shared_ptr<const R::Meta_t> _type)
+LiteralNode* GraphNode::create_literal(type _type)
 {
     LiteralNode* node = m_factory->new_literal(_type);
     add(node);

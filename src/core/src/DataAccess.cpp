@@ -12,6 +12,12 @@
 
 using namespace Nodable;
 
+REGISTER
+{
+    registration::push_class<DataAccess>("DataAccess")
+            .extends<Component>();
+}
+
 bool DataAccess::update()
 {
 
@@ -23,23 +29,12 @@ bool DataAccess::update()
 	{
 		writer.Key(_value->get_name().c_str());
 
-    	switch(_value->get_meta_type()->get_type())
-    	{
-        case R::Type::string_t :
-    		writer.String( ((std::string)*_value).c_str());
-    		break;
+    	type t = _value->get_type();
 
-        case R::Type::double_t :
-    		writer.Double((double)*_value);
-    		break;
-    		
-        case R::Type::bool_t:
-    		writer.Bool((bool)*_value);
-    		break;
-    	default:
-    		writer.Null();
-    		break;
-    	}
+    	     if ( t == type::get<std::string>() ) writer.String(((std::string)*_value).c_str());
+        else if ( t == type::get<double>() )      writer.Double((double)*_value);
+        else if ( t == type::get<bool>() )        writer.Double((bool)*_value);
+    	else                                         writer.Null();
 	};
 
     NODABLE_ASSERT(get_owner() != nullptr);

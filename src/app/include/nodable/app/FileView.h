@@ -3,7 +3,7 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <observe/observer.h>
 
-#include <nodable/core/reflection/R.h>
+#include <nodable/core/reflection/reflection>
 #include <nodable/app/types.h>
 #include <nodable/app/View.h>
 
@@ -44,8 +44,7 @@ namespace Nodable
         bool         m_experimental_clipboard_auto_paste;
         observe::Observer m_graph_change_obs;
 
-        R_DERIVED(FileView)
-        R_EXTENDS(View)
-        R_END
+        REFLECT_DERIVED_CLASS(View)
+
     };
 }
