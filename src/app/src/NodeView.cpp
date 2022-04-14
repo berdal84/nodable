@@ -623,9 +623,8 @@ bool NodeView::draw(MemberView* _view )
     {
         ImGui::Button("", NodeView::s_member_input_toggle_button_size);
 
-        if ( ImGui::IsItemHovered() )
+        if ( ImGuiEx::BeginTooltip() )
         {
-            ImGuiEx::BeginTooltip();
             ImGui::Text("%s (%s)",
                         member->get_name().c_str(),
                         member->get_type().get_fullname().c_str());
@@ -732,9 +731,8 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
         }
 
         /* If value is hovered, we draw a tooltip that print the source expression of the value*/
-        if (ImGui::IsItemHovered())
+        if (ImGuiEx::BeginTooltip())
         {
-            ImGuiEx::BeginTooltip();
             std::string buffer;
             _ctx.language().get_serializer().serialize(buffer, _member);
             ImGui::Text("%s", buffer.c_str() );
@@ -767,9 +765,8 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
 
         ImGui::SameLine();
         ImGui::Text("(?)");
-        if ( ImGui::IsItemHovered() )
+        if ( ImGuiEx::BeginTooltip() )
         {
-            ImGuiEx::BeginTooltip();
             std::shared_ptr<Token> token = _member->get_src_token();
             ImGui::Text("initialized: %s,\n"
                         "defined:     %s,\n"

@@ -954,9 +954,8 @@ void AppView::draw_status_bar() const
     {
         draw_log_line(last_log);
 
-        if( ImGui::IsItemHovered())
+        if( ImGuiEx::BeginTooltip() )
         {
-            ImGuiEx::BeginTooltip();
             draw_log_line(Log::GetLastMessage(), true);
             ImGuiEx::EndTooltip();
         }
@@ -1011,9 +1010,11 @@ void AppView::draw_history_bar(History *currentFileHistory)
 
                 // Draw command description
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
-                ImGuiEx::BeginTooltip();
-                ImGui::Text("%s", currentFileHistory->get_cmd_description_at(cmd_pos).c_str());
-                ImGuiEx::EndTooltip();
+                if( ImGuiEx::BeginTooltip() )
+                {
+                    ImGui::Text("%s", currentFileHistory->get_cmd_description_at(cmd_pos).c_str());
+                    ImGuiEx::EndTooltip();
+                }
                 ImGui::PopStyleVar();
             }
 
