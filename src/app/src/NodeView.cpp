@@ -25,9 +25,10 @@ using namespace Nodable;
 REGISTER
 {
     registration::push_class<NodeView>("NodeView")
-        .extends<Component()>()
+        .extends<Component>()
         .extends<View>();
-};
+}
+
 NodeView*          NodeView::s_selected                        = nullptr;
 NodeView*          NodeView::s_dragged                         = nullptr;
 NodeViewDetail     NodeView::s_view_detail                     = NodeViewDetail::Default;
