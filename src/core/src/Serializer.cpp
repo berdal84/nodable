@@ -216,10 +216,9 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
 
 std::string& Serializer::serialize(std::string& _result, const Variant* variant) const
 {
-    bool needs_quotes = variant->get_type() == type::get<std::string>();
     std::string variant_string = variant->convert_to<std::string>();
 
-    if( needs_quotes )
+    if( variant->get_type() == type::get<std::string>() )
     {
         return _result.append('"' + variant_string + '"');
     }

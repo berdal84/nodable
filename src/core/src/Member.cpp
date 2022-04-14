@@ -49,7 +49,6 @@ void Member::set_input(Member* _val)
 {
     m_input        = _val;
     type type = m_variant.get_type();
-    m_connected_by = type.is_ref() || type.is_ptr() ? ConnectBy_Ref : ConnectBy_Copy;
 }
 
 void Member::set_src_token(const std::shared_ptr<Token> _token)
@@ -72,9 +71,10 @@ void Member::digest(Member *_member)
     m_sourceToken = _member->m_sourceToken;
 }
 
-bool Member::is_connected_by(ConnBy_ by)
+bool Member::is_connected_by_ref()
 {
-    return m_connected_by == by;
+    const type& variant_type = m_variant.get_type();
+    return variant_type.is_ptr() || variant_type.is_ref();
 }
 
 void Member::force_defined_flag(bool _value)

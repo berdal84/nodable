@@ -140,19 +140,19 @@ TEST(Parser, Declare_and_define_string)
 
 TEST(Parser, Declare_and_define_double)
 {
-    std::string program = R"(double d = 15.0;)";
+    std::string program = "double d = 15.0;";
     EXPECT_EQ( ParseAndSerialize(program), program);
 }
 
 TEST(Parser, Declare_and_define_int)
 {
-    std::string program = R"(int s = 10;)";
+    std::string program = "int s = 10;";
     EXPECT_EQ( ParseAndSerialize(program), program);
 }
 
 TEST(Parser, Declare_and_define_bool)
 {
-    std::string program = R"(bool b = true;)";
+    std::string program = "bool b = true;";
     EXPECT_EQ( ParseAndSerialize(program), program);
 }
 

@@ -142,7 +142,7 @@ bool Node::eval() const
     {
         Member* input = each_member->get_input();
 
-        if( input && each_member->is_connected_by(ConnectBy_Copy)
+        if( input && each_member->is_connected_by_ref()
             && each_member->get_type() != type::any
             && input->get_type() != type::any )
         {

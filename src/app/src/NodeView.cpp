@@ -757,7 +757,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
                 _member->get_name().c_str(),
                 WayToString(_member->get_allowed_connection()).c_str(),
                 _member->get_type().get_fullname().c_str(),
-                _member->is_connected_by(ConnectBy_Ref) ? "&" : "",
+                _member->is_connected_by_ref() ? "&" : "",
                 _member->get_variant()->is_defined() ? "" : ", undefined!");
 
         ImGui::SameLine();

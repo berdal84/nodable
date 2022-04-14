@@ -42,7 +42,7 @@ namespace Nodable
         ~Member();
 
         void digest(Member *_member);
-        bool is_connected_by(ConnBy_ by);
+        bool is_connected_by_ref();
         bool allows_connection(Way _flag)const { return (m_allowed_connection & _flag) == _flag; }
         bool has_input_connected()const;
 		void set_allowed_connection(Way wayFlags) { m_allowed_connection = wayFlags; }

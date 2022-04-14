@@ -58,7 +58,7 @@ namespace Nodable
         {
             return  left.m_hash_code    == right.m_hash_code
                  && left.m_is_pointer   == right.m_is_pointer
-                 && left.m_is_reference == right.m_is_reference
+                 //&& left.m_is_reference == right.m_is_reference
                  && left.m_is_const     == right.m_is_const;
         }
 

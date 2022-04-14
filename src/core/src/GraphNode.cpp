@@ -251,10 +251,11 @@ bool GraphNode::is_empty() const
 
 Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
 {
+    NODABLE_ASSERT_EX(_src_member != _dst_member, "Can't connect same Member!")
+    NODABLE_ASSERT_EX( type::is_implicitly_convertible(_src_member->get_type(), _dst_member->get_type()),
+                       "Can't connect non implicitly convertible Members!");
+
     Wire* wire         = nullptr;
-
-    NODABLE_ASSERT( type::is_implicitly_convertible(_src_member->get_type(), _dst_member->get_type()) );
-
     /*
      * If _from has no owner _to can digest it, no Wire neede in that case.
      */
@@ -281,7 +282,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         Node* dst_node = _dst_member->get_owner();
         Node* src_node = _src_member->get_owner();
 
-        NODABLE_ASSERT(dst_node != src_node)
+        NODABLE_ASSERT_EX(dst_node != src_node, "Can't connect two members having same owner!")
 
         // Link wire to members
         wire = new Wire(_src_member, _dst_member);
@@ -522,10 +523,10 @@ void GraphNode::disconnect(DirectedEdge _relation, bool _side_effects)
 
 void GraphNode::destroy(Wire *_wire)
 {
-    Member* dst_member = _wire->members.dst;
     Member* src_member = _wire->members.src;
-    Node*   dst_node   = _wire->nodes.dst;
+    Member* dst_member = _wire->members.dst;
     Node*   src_node   = _wire->nodes.src;
+    Node*   dst_node   = _wire->nodes.dst;
 
     dst_member->set_input(nullptr);
 
