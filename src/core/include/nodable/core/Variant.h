@@ -45,6 +45,7 @@ namespace Nodable
             ensure_is_type(type::get<decltype(_pointer)>());
             ensure_is_initialized();
             m_data.set<void*>(_pointer);
+            m_is_defined = true;
         }
 
         void    set(double);
