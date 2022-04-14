@@ -3,6 +3,7 @@
 #include <unordered_set>
 #include <string>
 #include <typeinfo>
+#include <typeindex>
 
 #include "typeregister.h"
 

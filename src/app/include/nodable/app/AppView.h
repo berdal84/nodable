@@ -22,10 +22,9 @@ namespace Nodable
     class App;
     class History;
     class Language;
-    class Texture;
+    struct Texture;
     class Settings;
     class VirtualMachine;
-    class Texture;
 
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
