@@ -100,8 +100,8 @@ namespace Nodable
     private:
 
         // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()
-        Variant&       variant()     { return (m_input && m_variant.get_type().is_ref() ) ? m_input->m_variant : m_variant; }
-        const Variant& variant()const{ return (m_input && m_variant.get_type().is_ref() ) ? m_input->m_variant : m_variant; }
+        Variant&       variant()     { return (m_input && (m_variant.get_type().is_ref() || m_variant.get_type().is_ptr()) ) ? m_input->m_variant : m_variant; }
+        const Variant& variant()const{ return (m_input && (m_variant.get_type().is_ref() || m_variant.get_type().is_ptr()) ) ? m_input->m_variant : m_variant; }
 
         Member*           m_input;
         ConnBy_           m_connected_by;

@@ -54,8 +54,8 @@ namespace Nodable
         const type & get_type()const;
         template<typename T> T convert_to()const;
 
-        template<typename T> operator const T*()const  { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<const T*>(m_data.ptr); }
-        template<typename T> operator T*()             { NODABLE_ASSERT(m_is_defined) return reinterpret_cast<T*>(m_data.ptr); }
+        template<typename T> operator const T*()const  { NODABLE_ASSERT(m_is_initialized) return reinterpret_cast<const T*>(m_data.ptr); }
+        template<typename T> operator T*()             { NODABLE_ASSERT(m_is_initialized) return reinterpret_cast<T*>(m_data.ptr); }
 
         // cast by pointer
 		operator double*()        { NODABLE_ASSERT(m_is_initialized) return &m_data.d; }

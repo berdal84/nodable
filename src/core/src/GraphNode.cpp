@@ -532,8 +532,10 @@ void GraphNode::destroy(Wire *_wire)
 
     auto& outputs = src_member->get_outputs();
     auto found = std::find(outputs.begin(), outputs.end(), dst_member);
-    NODABLE_ASSERT_EX( found != outputs.end(), "dst_member not found in src_member´s outputs!")
-    outputs.erase( found );
+    if( found != outputs.end() )
+    {
+        outputs.erase( found );
+    }
 
     if( dst_node ) dst_node->remove_wire(_wire);
     if( src_node ) src_node->remove_wire(_wire);

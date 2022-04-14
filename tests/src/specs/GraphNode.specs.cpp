@@ -155,7 +155,7 @@ TEST(Graph, by_reference_assign)
 
     // create assign operator
     Signature* sig      = Signature
-            ::from_type<int(double, double)>
+            ::from_type<int(double&, double)>
             ::as_operator(language.find_operator("=", Operator_t::Binary));
 
     Node* assign        = graph.create_function(language.find_operator_fct(sig));

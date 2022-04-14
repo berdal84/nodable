@@ -70,7 +70,7 @@ TEST(Reflect, node_as_pointer)
     member->set(node_ptr);
 
     // check
-    EXPECT_EQ(member->get_type(), type::get<Node *>() );
+    EXPECT_EQ(member->get_type(), type::get<void*>() );
     EXPECT_EQ(node_ptr, (Node*)*member );
     EXPECT_TRUE(type::is_ptr(member->get_type()) );
 }

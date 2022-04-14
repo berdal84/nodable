@@ -187,7 +187,7 @@ void Variant::ensure_is_initialized(bool _initialize)
         {
             m_data.ptr   = nullptr;
         }
-        else if( m_type != type::any )
+        else
         {
             NODABLE_ASSERT_EX(false, "Missing case")
         }
