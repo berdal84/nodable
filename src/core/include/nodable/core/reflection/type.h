@@ -29,8 +29,8 @@ namespace Nodable
 
     class type
     {
-        friend struct registration;
-        friend struct typeregister;
+        friend class registration;
+        friend class typeregister;
     private:
         type() = default;
     public:

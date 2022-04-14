@@ -13,8 +13,9 @@ namespace Nodable
     /**
      * structure to help register types
      */
-    struct typeregister
+    class typeregister
     {
+    public:
         static std::map<size_t, type>& by_hash();
         static type get(size_t _hash);
         static bool has(type);
