@@ -238,13 +238,7 @@ type Variant::clean_type(const type& _type)
     {
         return type::get<void*>();
     }
-    else if( _type.is_class() ) //---------------------------------- we allow only void* for classes
-    {
-        if( _type != type::get<std::string>())
-        {
-            return type::get<void*>();
-        }
-    }
+
     return _type;
 }
 
@@ -268,7 +262,7 @@ Variant& Variant::operator=(const Variant& _other)
     }
     else if( m_type == type::get<std::string>() )
     {
-        set( static_cast<std::string*>(_other.m_data.ptr) );
+        set( *static_cast<std::string*>(_other.m_data.ptr) );
     }
     else if( m_type.is_ptr() )
     {
