@@ -62,7 +62,7 @@ namespace Nodable
         // ret result
         assembly::QWord mem_space = vm.get_last_result();
 
-        auto result = (return_t)mem_space;
+        auto result = return_t(mem_space);
 
         return result;
     }

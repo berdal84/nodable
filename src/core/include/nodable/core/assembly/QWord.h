@@ -38,8 +38,8 @@ namespace assembly
         [[nodiscard]] static std::string to_string(const QWord&);
 
         template<typename T>
-        operator T() { return get<T>(); }
-        operator std::string() { return *static_cast<std::string*>(ptr); }
+        explicit operator T() const { return get<T>(); }
+        explicit operator std::string() const { return *static_cast<std::string*>(ptr); }
 
         R_UNION(QWord)
     };

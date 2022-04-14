@@ -120,18 +120,18 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
         compile(each_node);
     }
 
+    // before to pop, we could insert a return value
+    if( _insert_fake_return )
+    {
+        m_temp_code->push_instr(opcode_t::ret); // fake a return statement
+    }
+
     // pop each variable
     for(const VariableNode* each_variable : _scope->get_variables())
     {
         Instruction *instr   = m_temp_code->push_instr(opcode_t::pop_var);
         instr->push.var      = each_variable;
         instr->m_comment     = std::string{each_variable->get_label()};
-    }
-
-    // call pop_stack_frame
-    if( _insert_fake_return )
-    {
-        m_temp_code->push_instr(opcode_t::ret); // fake a return statement
     }
 
     {
