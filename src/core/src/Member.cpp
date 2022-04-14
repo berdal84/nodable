@@ -48,7 +48,6 @@ bool Member::has_input_connected() const
 void Member::set_input(Member* _val)
 {
     m_input        = _val;
-    type type = m_variant.get_type();
 }
 
 void Member::set_src_token(const std::shared_ptr<Token> _token)
@@ -74,7 +73,7 @@ void Member::digest(Member *_member)
 bool Member::is_connected_by_ref()
 {
     const type& variant_type = m_variant.get_type();
-    return variant_type.is_ptr() || variant_type.is_ref();
+    return m_input && (variant_type.is_ptr() || variant_type.is_ref());
 }
 
 void Member::force_defined_flag(bool _value)

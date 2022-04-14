@@ -181,7 +181,6 @@ void Variant::ensure_is_initialized(bool _initialize)
         else if( m_type == type::get<std::string>() )
         {
             m_data.ptr   = new std::string();
-            m_is_defined = true;
         }
         else if( m_type.is_ptr() )
         {
@@ -191,7 +190,6 @@ void Variant::ensure_is_initialized(bool _initialize)
         {
             NODABLE_ASSERT_EX(false, "Missing case")
         }
-
     }
     else
     {
@@ -199,9 +197,10 @@ void Variant::ensure_is_initialized(bool _initialize)
         {
             delete (std::string*)m_data.ptr;
         }
-        m_is_defined = false;
+
     }
 
+    m_is_defined = false;
     m_is_initialized = _initialize;
     NODABLE_ASSERT(_initialize == m_is_initialized)
 }

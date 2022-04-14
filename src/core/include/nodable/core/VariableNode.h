@@ -27,8 +27,6 @@ namespace Nodable
 		~VariableNode() override = default;
 
 		inline bool      is_declared()const { return m_is_declared; }
-		inline bool      is_initialized()const { return m_value->get_variant()->is_initialized(); }
-		inline void      set_initialized(bool _initialized) { m_value->get_variant()->ensure_is_initialized(_initialized); set_dirty(true); }
 		const char*      get_name()const { return m_name.c_str(); };
 		Member*          get_value()const { return m_value; }
         bool             eval()const override;

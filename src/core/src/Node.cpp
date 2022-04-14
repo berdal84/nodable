@@ -147,7 +147,7 @@ bool Node::eval() const
             && each_member->get_type() != type::any
             && input->get_type() != type::any )
         {
-            *each_member = *input;
+            *each_member->get_variant() = *input->get_variant();
         }
     }
 

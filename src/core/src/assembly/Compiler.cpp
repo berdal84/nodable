@@ -106,10 +106,10 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
         instr->m_comment = str;
     }
 
-    // push each varaible onto the stack
+    // push each variable
     for(const VariableNode* each_variable : _scope->get_variables())
     {
-        Instruction *instr         = m_temp_code->push_instr(opcode_t::push_var);
+        Instruction *instr   = m_temp_code->push_instr(opcode_t::push_var);
         instr->push.var      = each_variable;
         instr->m_comment     = std::string{each_variable->get_label()};
     }
@@ -118,6 +118,14 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     for( const Node* each_node : scope_owner->children_slots().content() )
     {
         compile(each_node);
+    }
+
+    // pop each variable
+    for(const VariableNode* each_variable : _scope->get_variables())
+    {
+        Instruction *instr   = m_temp_code->push_instr(opcode_t::pop_var);
+        instr->push.var      = each_variable;
+        instr->m_comment     = std::string{each_variable->get_label()};
     }
 
     // call pop_stack_frame

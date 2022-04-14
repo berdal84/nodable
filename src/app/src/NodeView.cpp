@@ -16,7 +16,7 @@
 #include <nodable/app/MemberConnector.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/app/IAppCtx.h>
-#include <nodable/core/reflection/MACROS.h>
+#include <nodable/core/reflection/registration.h>
 
 #define NODE_VIEW_DEFAULT_SIZE vec2(10.0f, 35.0f)
 
@@ -249,7 +249,9 @@ bool NodeView::is_selected(NodeView* _view)
 
 const MemberView* NodeView::get_member_view(const Member* _member)const
 {
-    return m_exposed_members.at(_member);
+    auto found = m_exposed_members.find(_member);
+    if( found == m_exposed_members.end() ) return nullptr;
+    return found->second;
 }
 
 void NodeView::set_position(vec2 _position)
@@ -671,6 +673,10 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
         ImGui::PopStyleColor();
 
     }
+    else if( !_member->get_variant()->is_initialized() )
+    {
+        ImGui::LabelText(label.c_str(), "uninitialized!");
+    }
     else
     {
         /* Draw the member */
@@ -753,12 +759,10 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
         // label (<name> (<way> <type>): )
         ImGui::SetNextItemWidth(labelColumnWidth);
         ImGui::Text(
-                "%s (%s, %s%s %s): ",
+                "%s (%s, %s): ",
                 _member->get_name().c_str(),
                 WayToString(_member->get_allowed_connection()).c_str(),
-                _member->get_type().get_fullname().c_str(),
-                _member->is_connected_by_ref() ? "&" : "",
-                _member->get_variant()->is_defined() ? "" : ", undefined!");
+                _member->get_type().get_fullname().c_str());
 
         ImGui::SameLine();
         ImGui::Text("(?)");
@@ -766,12 +770,16 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
         {
             ImGuiEx::BeginTooltip();
             std::shared_ptr<Token> token = _member->get_src_token();
-            ImGui::Text("Source token:\n"
+            ImGui::Text("initialized: %s,\n"
+                        "defined:     %s,\n"
+                        "Source token:\n"
                         "{\n"
                             "\tprefix: \"%s\",\n"
-                            "\tword: \"%s\",\n"
+                            "\tword:   \"%s\",\n"
                             "\tsuffix: \"%s\"\n"
                         "}",
+                        _member->get_variant()->is_initialized() ? "true" : "false",
+                        _member->get_variant()->is_defined()     ? "true" : "false",
                         token->m_prefix.c_str(),
                         token->m_word.c_str(),
                         token->m_suffix.c_str()

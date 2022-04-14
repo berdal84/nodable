@@ -12,6 +12,12 @@
 
 using namespace Nodable;
 
+REGISTER
+{
+    registration::push_class<DataAccess>("DataAccess")
+            .extends<Component>();
+}
+
 bool DataAccess::update()
 {
 

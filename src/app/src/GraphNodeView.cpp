@@ -228,11 +228,12 @@ bool GraphNodeView::draw()
         */
         for (auto eachNode : node_registry)
         {
-            const MemberMap& members = eachNode->props()->by_name();
+            const MemberVec& members = eachNode->props()->by_id();
 
-            for (auto pair : members)
+            for (auto& dst_member : members)
             {
-                const Member* dst_member = pair.second;
+
+                NODABLE_ASSERT_EX( eachNode->props()->has(dst_member), "Incoherence!")
 
                 if ( const Member* src_member = dst_member->get_input() )
                 {

@@ -172,6 +172,7 @@ bool VirtualMachine::_stepOver()
 
         case opcode::push_stack_frame: // do nothing, just mark visually the beginning of a scope.
         {
+            //auto scope = next_instr->pop.scope;
             advance_cursor();
             success = true;
             break;
@@ -181,26 +182,30 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
-            if (variable->is_initialized() )
-            {
-                variable->set_initialized(false);
-            }
+            NODABLE_ASSERT_EX(!variable->get_value()->get_variant()->is_initialized(),
+                              "Pushing an initialized variable is forbidden!");
+            variable->get_value()->get_variant()->ensure_is_initialized(true);
             // TODO: push variable to the future stack
 
             success = true;
             break;
         }
 
-        case opcode::pop_stack_frame:
+        case opcode::pop_var:
         {
-            auto scope = next_instr->pop.scope;
-            for( VariableNode* each_var : scope->get_variables() )
-            {
-                if (each_var->is_initialized() )
-                {
-                    each_var->set_initialized(false);
-                }
-            }
+            advance_cursor();
+            auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
+            NODABLE_ASSERT_EX(variable->get_value()->get_variant()->is_initialized(),
+                              "Pop an uninitialized variable is forbidden!");
+            variable->get_value()->get_variant()->ensure_is_initialized(false);
+            // TODO: pop variable to the future stack
+            success = true;
+            break;
+        }
+
+        case opcode::pop_stack_frame: // do nothing, just mark visually the end of a scope.
+        {
+            //auto scope = next_instr->pop.scope;
             advance_cursor();
             success = true;
             break;
