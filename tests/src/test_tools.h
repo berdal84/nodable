@@ -1,7 +1,9 @@
 #pragma once
 #include <gtest/gtest.h>
 #include <exception>
+#include <string>
 
+#include <nodable/core/types.h>
 #include <nodable/core/Node.h>
 #include <nodable/core/Member.h>
 #include <nodable/core/VirtualMachine.h>
@@ -15,6 +17,14 @@
 
 namespace Nodable
 {
+    /*
+     * TODO: instead of using those helper functions I must use gtest fixtures.
+     *       this class will be constructed/destructed automatically before/after each test
+     *       and the test scope will have access to the fixture class scope.
+     *
+     *       read: fixtures https://developer.ibm.com/articles/au-googletestingframework/
+     */
+
     template<typename return_t>
     static return_t ParseAndEvalExpression(const std::string &expression)
     {
