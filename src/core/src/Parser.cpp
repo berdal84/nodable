@@ -194,7 +194,7 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
                 {
 			        /* when strict mode is OFF, we just create a variable with Any type */
                     LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n", _token->m_word.c_str())
-                    variable = m_graph->create_variable(type::any, _token->m_word, get_current_scope());
+                    variable = m_graph->create_variable(type::null, _token->m_word, get_current_scope());
                     variable->get_value()->set_src_token(_token);
                     variable->set_declared(false);
                 }

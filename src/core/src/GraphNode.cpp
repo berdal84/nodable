@@ -157,8 +157,6 @@ void GraphNode::ensure_has_root()
 
 VariableNode* GraphNode::create_variable(type _type, const std::string& _name, IScope* _scope)
 {
-    NODABLE_ASSERT(_type != type::null)
-
     auto node = m_factory->new_variable(_type, _name, _scope);
     add(node);
 	return node;

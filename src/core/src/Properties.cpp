@@ -25,7 +25,6 @@ bool Properties::has(const Member* _member)
 
 Member* Properties::add(const char* _name, Visibility _visibility, type _type, Way _flags )
 {
-    NODABLE_ASSERT(_type != type::null );
     NODABLE_ASSERT(!has(_name));
 
 	Member* new_member = Member::new_with_type(this, _type);

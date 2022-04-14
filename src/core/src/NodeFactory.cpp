@@ -20,8 +20,6 @@ InstructionNode* NodeFactory::new_instr() const
 
 VariableNode* NodeFactory::new_variable(type _type, const std::string& _name, IScope *_scope) const
 {
-    NODABLE_ASSERT( _type != type::null )
-
     // create
     auto* node = new VariableNode(_type);
     node->set_name(_name.c_str());
