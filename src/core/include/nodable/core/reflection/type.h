@@ -2,6 +2,7 @@
 
 #include <unordered_set>
 #include <string>
+#include <type_traits>
 
 #include "typeregister.h"
 
