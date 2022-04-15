@@ -5,11 +5,11 @@
 # native file dialog - extended
 #------------------------------
 set(NFD_PORTAL ON)                          # use portal instead of gtk, read: https://github.com/btzy/nativefiledialog-extended#using-xdg-desktop-portal-on-linux
-add_subdirectory(nativefiledialog-extended) # target is nfd
+add_subdirectory(nativefiledialog-extended EXCLUDE_FROM_ALL) # target is nfd
 
 # filesystem (c++11 compatible)
 #------------------------------
-add_subdirectory(gulrak/filesystem)
+add_subdirectory(gulrak/filesystem EXCLUDE_FROM_ALL)
 
 # Where am I
 #------------
