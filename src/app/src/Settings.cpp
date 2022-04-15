@@ -12,7 +12,9 @@ Settings::Settings()
     ui_log_color[Log::Verbosity_Message] = vec4(0.5f, 0.5f, 0.5f, 1.0f); // gray
     ui_log_color[Log::Verbosity_Verbose] = vec4(0.0f, 0.5f, 0.0f, 1.0f); // green
 
-    ui_layout_propertiesRatio = 0.25f;
+    ui_dockspace_right_ratio = 0.25f;
+    ui_dockspace_down_size   = 18.0f; // for 1 line
+
     ui_splashscreen_imagePath = "images/nodable-logo-xs.png";
 
     {

@@ -352,6 +352,11 @@ bool AppView::draw()
                         }
                     }
                     ImGui::Separator();
+
+                    if( ImGui::MenuItem("Reset Layout", "") )
+                    {
+                        m_is_layout_initialized = false;
+                    }
                     ImGui::EndMenu();
                 }
 
@@ -458,44 +463,62 @@ bool AppView::draw()
              * Main Layout
              */
 
-            ImGuiID dockspace_main       = ImGui::GetID("dockspace_main");
-            ImGuiID dockspace_center     = ImGui::GetID("dockspace_center");
-            ImGuiID dockspace_side_panel = ImGui::GetID("dockspace_side_panel");
+            ImGuiID ds_root   = ImGui::GetID("dockspace_main");
+            ImGuiID ds_center = ImGui::GetID("dockspace_center");
+            ImGuiID ds_right  = ImGui::GetID("dockspace_side_panel");
+            ImGuiID ds_bottom = ImGui::GetID("dockspace_status_line");
 
 
-            if (!m_is_layout_initialized) {
-                ImGui::DockBuilderRemoveNode(dockspace_main); // Clear out existing layout
-                ImGui::DockBuilderAddNode(dockspace_main, ImGuiDockNodeFlags_DockSpace);
-                ImGui::DockBuilderSetNodeSize(dockspace_main, ImGui::GetMainViewport()->Size);
-                ImGui::DockBuilderSplitNode(dockspace_main, ImGuiDir_Right, m_settings.ui_layout_propertiesRatio, &dockspace_side_panel, NULL);
+            if (!m_is_layout_initialized)
+            {
+                ImGui::DockBuilderRemoveNode(ds_root); // Clear out existing layout
+                ImGui::DockBuilderAddNode(ds_root     , ImGuiDockNodeFlags_DockSpace);
+                ImGui::DockBuilderSetNodeSize(ds_root , ImGui::GetMainViewport()->Size);
+                ImGui::DockBuilderSplitNode(ds_root   , ImGuiDir_Down , 0.5f, &ds_bottom, &ds_center);
+                ImGui::DockBuilderSetNodeSize(ds_bottom , vec2(ImGui::GetMainViewport()->Size.x, m_settings.ui_dockspace_down_size));
+                ImGui::DockBuilderSplitNode(ds_center , ImGuiDir_Right, m_settings.ui_dockspace_right_ratio, &ds_right, NULL );
 
-                ImGui::DockBuilderDockWindow(k_imgui_settings_window_name, dockspace_side_panel);
-                ImGui::DockBuilderDockWindow(k_app_settings_window_name, dockspace_side_panel);
-                ImGui::DockBuilderDockWindow(k_file_info_window_name, dockspace_side_panel);
-                ImGui::DockBuilderDockWindow(k_vm_window_name, dockspace_side_panel);
-                ImGui::DockBuilderDockWindow(k_node_props_window_name, dockspace_side_panel);
-                ImGui::DockBuilderFinish(dockspace_main);
+                ImGui::DockBuilderGetNode(ds_center)->EnableCloseButton      = false;
+                ImGui::DockBuilderGetNode(ds_right)->EnableCloseButton       = false;
+                ImGui::DockBuilderGetNode(ds_bottom)->EnableCloseButton      = false;
+                ImGui::DockBuilderGetNode(ds_bottom)->WantHiddenTabBarToggle = true;
+
+
+                ImGui::DockBuilderDockWindow(k_status_window_name           , ds_bottom);
+                ImGui::DockBuilderDockWindow(k_imgui_settings_window_name   , ds_right);
+                ImGui::DockBuilderDockWindow(k_app_settings_window_name     , ds_right);
+                ImGui::DockBuilderDockWindow(k_file_info_window_name        , ds_right);
+                ImGui::DockBuilderDockWindow(k_vm_window_name               , ds_right);
+                ImGui::DockBuilderDockWindow(k_node_props_window_name       , ds_right);
+                ImGui::DockBuilderFinish(ds_root);
+
                 m_is_layout_initialized = true;
+                redock_all              = true;
             }
 
             /*
             * Fill the layout with content
             */
-            ImGui::DockSpace(dockspace_main);
-
-            draw_side_panel();
+            ImGui::DockSpace(ds_root);
 
             if( !m_ctx.has_files())
             {
-                draw_startup_menu(dockspace_main);
+                draw_startup_menu(ds_root);
             }
             else
             {
+                draw_vm_view();
+                draw_properties_editor();
+                draw_imgui_style_editor();
+                draw_file_info();
+                draw_node_properties();
+
                 for (File* each_file : m_ctx.get_files() )
                 {
-                    draw_file_editor(dockspace_main, redock_all, each_file);
+                    draw_file_editor(ds_root, redock_all, each_file);
                 }
             }
+            draw_status_bar();
         }
         ImGui::End(); // Main window
     }
@@ -531,20 +554,6 @@ bool AppView::draw()
     }
 
     return false;
-}
-
-void AppView::draw_side_panel()
-{
-    if( !m_ctx.current_file() )
-    {
-        return;
-    }
-
-    draw_vm_view();
-    draw_properties_editor();
-    draw_imgui_style_editor();
-    draw_file_info();
-    draw_node_properties();
 }
 
 void AppView::draw_imgui_style_editor() const
@@ -802,31 +811,17 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, File* file
 
             // File View in the middle
             View* eachFileView = file->get_view();
-            vec2 availSize = ImGui::GetContentRegionAvail();
-
-            if ( is_current_file )
-            {
-                availSize.y -= ImGui::GetTextLineHeightWithSpacing();
-            }
-
             ImGui::PushStyleColor(ImGuiCol_ChildBg, vec4(0,0,0,0.35f) );
             ImGui::PushFont(m_fonts[FontSlot_Code] );
-            eachFileView->draw_as_child("FileView", availSize, false);
+            eachFileView->draw_as_child("FileView", ImGui::GetContentRegionAvail(), false);
             ImGui::PopFont();
             ImGui::PopStyleColor();
 
             // Status bar
-            if ( is_current_file )
+            if ( is_current_file && file->get_view()->text_has_changed())
             {
-                draw_status_bar();
-
-                if (file->get_view()->text_has_changed())
-                {
-                    m_vm.release_program();
-                }
-
+                m_vm.release_program();
             }
-
         }
     }
     ImGui::End(); // File Window
@@ -932,15 +927,9 @@ void AppView::draw_splashcreen()
 
 void AppView::draw_status_bar() const
 {
-
-    if( !Log::get_messages().empty() )
+    if ( ImGui::Begin(k_status_window_name) )
     {
-        const Log::Message& last_log = Log::get_last_message();
-
-        ImGui::TextColored(m_settings.ui_log_color[last_log.verbosity], "%s", last_log.to_string().c_str());
-
-
-        if( Log::get_messages().size() > m_settings.ui_log_tooltip_max_count && ImGuiEx::BeginTooltip() )
+        if( !Log::get_messages().empty() )
         {
             const Log::Messages& messages = Log::get_messages();
             auto it  = messages.rend() - m_settings.ui_log_tooltip_max_count;
@@ -951,8 +940,14 @@ void AppView::draw_status_bar() const
                                  , each_message.to_full_string().c_str());
                 ++it;
             }
-            ImGuiEx::EndTooltip();
+
+            if( !ImGui::IsWindowHovered())
+            {
+                ImGui::SetScrollHereY();
+            }
+
         }
+        ImGui::End();
     }
 }
 

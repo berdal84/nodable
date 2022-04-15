@@ -55,7 +55,7 @@ namespace Nodable
         void draw_status_bar() const;
         void draw_tool_bar();
         void draw_vm_view();
-        void draw_side_panel();
+
         void draw_node_properties();
         void draw_file_info() const;
         void draw_imgui_style_editor() const;

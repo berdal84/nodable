@@ -46,7 +46,8 @@ namespace Nodable {
         float          ui_node_speed;
         float          ui_node_connector_height;
         float          ui_node_connector_padding;
-        float          ui_layout_propertiesRatio;
+        float          ui_dockspace_right_ratio;
+        float          ui_dockspace_down_size;
         float          ui_node_connector_width;
         vec4           ui_codeFlow_lineColor;
         vec4           ui_codeFlow_lineShadowColor;
