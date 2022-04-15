@@ -3,6 +3,7 @@
 #include <deque>
 #include <string>
 #include <map>
+#include <chrono>
 
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
@@ -58,10 +59,13 @@ namespace Nodable {
 
         struct Message
         {
-            Verbosity   verbosity;
-            std::string category;
-            std::string text;
-            std::string to_string()const;
+            using time_point_t = std::chrono::time_point<std::chrono::system_clock>;
+            time_point_t time_point;
+            Verbosity    verbosity;
+            std::string  category;
+            std::string  text;
+            std::string  to_string()const;
+            std::string  to_full_string()const;
         };
 
         using Messages = std::deque<Message>;

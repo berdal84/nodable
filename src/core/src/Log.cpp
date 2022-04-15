@@ -71,7 +71,7 @@ void Log::push_message(Verbosity _verbosity, const char* _category, const char* 
         std::cout << buffer;
 
         // Store type and buffer in history
-        s_logs.push_front({_verbosity, _category, buffer} );
+        s_logs.push_front({std::chrono::system_clock::now(), _verbosity, _category, buffer} );
 
         // Constraint the queue to be size() < 500
         // Erase by chunk of 250
@@ -106,6 +106,32 @@ void Log::flush()
 const Log::Messages& Log::get_messages()
 {
     return s_logs;
+}
+
+static std::string time_point_to_string(const std::chrono::system_clock::time_point &tp)
+{
+    std::time_t t = std::chrono::system_clock::to_time_t(tp);
+    std::string ts = std::ctime(&t);
+    ts.resize(ts.size() - 1); // remove end of line
+    return ts;
+}
+
+std::string Log::Message::to_full_string()const
+{
+    std::string result;
+    result.reserve(50);
+
+    result.push_back('[');
+    result.append( time_point_to_string(time_point) );
+    result.push_back('|');
+    result.append( Log::to_string(verbosity) );
+    result.push_back('|');
+    result.append( category );
+    result.push_back(']');
+    result.push_back(' ');
+    result.append( text );
+
+    return result;
 }
 
 std::string Log::Message::to_string()const

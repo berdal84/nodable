@@ -932,15 +932,13 @@ void AppView::draw_splashcreen()
 
 void AppView::draw_status_bar() const
 {
-    auto draw_log_line = [&](const Log::Message& _log)
-    {
-        ImGui::TextColored(m_settings.ui_log_color[_log.verbosity], "%s", _log.to_string().c_str());
-    };
 
     if( !Log::get_messages().empty() )
     {
         const Log::Message& last_log = Log::get_last_message();
-        draw_log_line(last_log);
+
+        ImGui::TextColored(m_settings.ui_log_color[last_log.verbosity], "%s", last_log.to_string().c_str());
+
 
         if( Log::get_messages().size() > m_settings.ui_log_tooltip_max_count && ImGuiEx::BeginTooltip() )
         {
@@ -948,7 +946,9 @@ void AppView::draw_status_bar() const
             auto it  = messages.rend() - m_settings.ui_log_tooltip_max_count;
             while( it != messages.rend() )
             {
-                draw_log_line( *it );
+                auto& each_message = *it;
+                ImGui::TextColored(m_settings.ui_log_color[each_message.verbosity], "%s"
+                                 , each_message.to_full_string().c_str());
                 ++it;
             }
             ImGuiEx::EndTooltip();
