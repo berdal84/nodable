@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <deque>
 #include <string>
 #include <map>
 
@@ -28,11 +28,11 @@
 #define LOG_ENABLE true
 
 #if LOG_ENABLE
-#   define LOG_ERROR(...)   Nodable::Log::Push( Nodable::Log::Verbosity::Error  , __VA_ARGS__ ); Nodable::Log::Flush();
-#   define LOG_WARNING(...) Nodable::Log::Push( Nodable::Log::Verbosity::Warning, __VA_ARGS__ );
-#   define LOG_MESSAGE(...) Nodable::Log::Push( Nodable::Log::Verbosity::Message, __VA_ARGS__ );
-#   define LOG_VERBOSE(...) Nodable::Log::Push( Nodable::Log::Verbosity::Verbose, __VA_ARGS__ );
-#   define LOG_FLUSH()      Nodable::Log::Flush();
+#   define LOG_ERROR(...)   Nodable::Log::push_message( Nodable::Log::Verbosity::Error  , __VA_ARGS__ ); Nodable::Log::flush();
+#   define LOG_WARNING(...) Nodable::Log::push_message( Nodable::Log::Verbosity::Warning, __VA_ARGS__ );
+#   define LOG_MESSAGE(...) Nodable::Log::push_message( Nodable::Log::Verbosity::Message, __VA_ARGS__ );
+#   define LOG_VERBOSE(...) Nodable::Log::push_message( Nodable::Log::Verbosity::Verbose, __VA_ARGS__ );
+#   define LOG_FLUSH()      Nodable::Log::flush();
 #else
 #   define LOG_ERROR(...)
 #   define LOG_WARNING(...)
@@ -61,19 +61,20 @@ namespace Nodable {
             Verbosity   verbosity;
             std::string text;
         };
-
+        using Messages = std::deque<Message>;
 	private:
-        static std::vector<Message> Logs;
+        static Messages s_logs;
         static std::map<std::string, Verbosity> s_verbosity_by_category;
         static Verbosity                        s_verbosity;
 
 	public:
-        static const Message* GetLastMessage();
-	    static void           SetVerbosityLevel(const std::string& _category, Verbosity _verbosityLevel);
-	    static void           SetVerbosityLevel(Verbosity);
-        static Verbosity      GetVerbosityLevel(const std::string& _category);
-        static Verbosity      GetVerbosityLevel();
-		static void           Push(Verbosity _verbosityLevel, const char* _category, const char* _format, ...);
-		static void           Flush();
-	};
+        static const Messages& get_messages();
+        static const Message& get_last_message();
+	    static void           set_verbosity(const std::string& _category, Verbosity _verbosityLevel);
+	    static void           set_verbosity(Verbosity);
+        static Verbosity      get_verbosity(const std::string& _category);
+        static Verbosity      get_verbosity();
+		static void           push_message(Verbosity _verbosityLevel, const char* _category, const char* _format, ...);
+		static void           flush();
+    };
 }

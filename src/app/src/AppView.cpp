@@ -392,9 +392,9 @@ bool AppView::draw()
                     {
                         auto menu_item_verbosity = [](Log::Verbosity _verbosity, const char* _label)
                         {
-                            if (ImGui::MenuItem( _label , "", Log::GetVerbosityLevel() == _verbosity))
+                            if (ImGui::MenuItem( _label , "", Log::get_verbosity() == _verbosity))
                             {
-                                Log::SetVerbosityLevel(_verbosity);
+                                Log::set_verbosity(_verbosity);
                             }
                         };
 
@@ -932,31 +932,39 @@ void AppView::draw_splashcreen()
 
 void AppView::draw_status_bar() const
 {
-    auto draw_log_line = [](const Log::Message* _log, bool _detailed = false)
+    auto draw_log_line = [](const Log::Message& _log, bool _detailed = false)
     {
-        switch ( _log->verbosity )
+        switch ( _log.verbosity )
         {
             case Log::Verbosity::Error:
-                ImGui::TextColored(vec4(0.5f, 0.0f, 0.0f, 1.0f), _detailed ? "Error: %s" : "%s", _log->text.c_str());
+                ImGui::TextColored(vec4(0.5f, 0.0f, 0.0f, 1.0f), _detailed ? "Error: %s" : "%s", _log.text.c_str());
                 break;
 
             case Log::Verbosity::Warning:
-                ImGui::TextColored(vec4(0.5f, 0.0f, 0.0f, 1.0f), _detailed ? "Warning: %s" : "%s", _log->text.c_str());
+                ImGui::TextColored(vec4(0.5f, 0.0f, 0.0f, 1.0f), _detailed ? "Warning: %s" : "%s", _log.text.c_str());
                 break;
 
             default:
-                ImGui::TextColored(vec4(0.5f, 0.5f, 0.5f, 1.0f), _detailed ? "Message: %s" : "%s", _log->text.c_str());
+                ImGui::TextColored(vec4(0.5f, 0.5f, 0.5f, 1.0f), _detailed ? "Message: %s" : "%s", _log.text.c_str());
 
         }
     };
 
-    if( auto last_log = Log::GetLastMessage() )
+    if( !Log::get_messages().empty() )
     {
+        const Log::Message& last_log = Log::get_last_message();
         draw_log_line(last_log);
 
-        if( ImGuiEx::BeginTooltip() )
+        constexpr size_t message_count = 20;
+        if( Log::get_messages().size() > message_count && ImGuiEx::BeginTooltip() )
         {
-            draw_log_line(Log::GetLastMessage(), true);
+            const Log::Messages& messages = Log::get_messages();
+            auto it  = messages.rend() - message_count;
+            while( it != messages.rend() )
+            {
+                draw_log_line( *it, true);
+                ++it;
+            }
             ImGuiEx::EndTooltip();
         }
     }

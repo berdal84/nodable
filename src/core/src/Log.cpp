@@ -7,34 +7,34 @@
 
 using namespace Nodable;
 
-std::vector<Log::Message>             Log::Logs;
+Log::Messages   Log::s_logs;
+Log::Verbosity  Log::s_verbosity = Verbosity::Message;
 std::map<std::string, Log::Verbosity> Log::s_verbosity_by_category;
-Log::Verbosity                        Log::s_verbosity = Verbosity::Message;
 
-const Log::Message* Log::GetLastMessage()
+const Log::Message& Log::get_last_message()
 {
 #if LOG_ENABLE
-    return  &Log::Logs.back();
+    return  Log::s_logs.front();
 #else
     return nullptr;
 #endif
 }
 
-void Log::SetVerbosityLevel(const std::string& _category, Verbosity _level)
+void Log::set_verbosity(const std::string& _category, Verbosity _level)
 {
    s_verbosity_by_category.insert_or_assign(_category, _level );
 }
 
-void Log::SetVerbosityLevel(Verbosity _level)
+void Log::set_verbosity(Verbosity _level)
 {
     s_verbosity = _level;
 }
-Log::Verbosity Log::GetVerbosityLevel()
+Log::Verbosity Log::get_verbosity()
 {
     return s_verbosity;
 }
 
-Log::Verbosity Log::GetVerbosityLevel(const std::string& _category)
+Log::Verbosity Log::get_verbosity(const std::string& _category)
 {
     auto pair = s_verbosity_by_category.find(_category);
     if (pair != s_verbosity_by_category.end() )
@@ -44,11 +44,11 @@ Log::Verbosity Log::GetVerbosityLevel(const std::string& _category)
     return s_verbosity;
 }
 
-void Log::Push(Verbosity _verbosityLevel, const char* _category, const char* _format, ...)
+void Log::push_message(Verbosity _verbosityLevel, const char* _category, const char* _format, ...)
 {
 	// Print log only if verbosity level allows it
 
-	if (  _verbosityLevel <= GetVerbosityLevel(_category) )
+	if (_verbosityLevel <= get_verbosity(_category) )
     {
         // Build log string
         char buffer[255];
@@ -70,19 +70,28 @@ void Log::Push(Verbosity _verbosityLevel, const char* _category, const char* _fo
         std::cout << _category << "] " RESET << buffer;
 
         // Store type and buffer in history
-        Logs.push_back( {_category, _verbosityLevel, buffer} );
+        s_logs.push_front({_category, _verbosityLevel, buffer} );
 
         // Constraint the queue to be size() < 500
         // Erase by chunk of 250
-        if ( Logs.size() > 500 )
+        constexpr size_t chunk_size = 250;
+        if (s_logs.size() > 2*chunk_size )
         {
-            Logs.erase(Logs.begin(), Logs.begin() + 250);
+            while( s_logs.size() > chunk_size )
+            {
+                s_logs.pop_back();
+            }
         }
     }
 
 }
 
-void Log::Flush()
+void Log::flush()
 {
     std::cout << std::flush;
+}
+
+const Log::Messages& Log::get_messages()
+{
+    return s_logs;
 }
