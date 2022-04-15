@@ -83,7 +83,7 @@ namespace Nodable
         }
 
         template<typename T>
-        static type create(const char* _name)
+        static type create(const std::string &_name = "")
         {
             type type;
             type.m_name                  = _name;

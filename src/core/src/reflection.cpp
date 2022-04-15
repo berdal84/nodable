@@ -181,7 +181,10 @@ void typeregister::insert(type _type)
 
     // merge with existing
     type existing = get(_type.hash_code());
-    LOG_MESSAGE("reflection", "Merging %s with %s\n", existing.m_compiler_name.c_str(), _type.m_compiler_name.c_str())
+    LOG_MESSAGE("reflection", "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n"
+            , existing.m_name.c_str(), existing.m_compiler_name.c_str()
+            , _type.m_name.c_str(), _type.m_compiler_name.c_str()
+            )
     if( _type.m_name.empty() ) _type.m_name = existing.m_name;
     _type.m_children.insert(existing.m_children.begin(), existing.m_children.end() );
     _type.m_parents.insert(existing.m_parents.begin(), existing.m_parents.end() );

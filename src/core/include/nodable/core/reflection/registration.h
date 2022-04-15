@@ -47,7 +47,7 @@ namespace Nodable
             template<typename BASE>
             push_class& extends()
             {
-                type parent = type::create<BASE>("");
+                type parent = type::create<BASE>();
                 m_parents.push_back( parent );
                 m_class.add_parent( parent.hash_code() );
                 parent.add_child( m_class.hash_code() );
