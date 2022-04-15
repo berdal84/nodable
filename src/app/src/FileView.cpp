@@ -152,7 +152,11 @@ bool FileView::draw()
         LOG_VERBOSE("FileView", "graph_node_view->update()\n");
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         graph_node_view->update();
-        graph_node_view->draw_as_child("graph", vec2(m_child2_size, availSize.y), false, flags);
+        bool changed = graph_node_view->draw_as_child("graph", vec2(m_child2_size, availSize.y), false, flags);
+        if( changed )
+        {
+            graph->set_dirty();
+        }
     }
     else
     {

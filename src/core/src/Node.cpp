@@ -144,8 +144,8 @@ bool Node::eval() const
 
         if( input
             && !each_member->is_connected_by_ref()
-            && each_member->get_type() != type::any
-            && input->get_type() != type::any )
+            && each_member->get_type() != type::null
+            && input->get_type() != type::null )
         {
             *each_member->get_variant() = *input->get_variant();
         }

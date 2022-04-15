@@ -120,7 +120,7 @@ bool File::update()
         m_history.set_dirty(false);
 	}
 
-    if( m_ctx.virtual_machine().is_program_running() )
+    if( !m_ctx.virtual_machine().is_program_running() )
     {
         LOG_VERBOSE("File","m_graph->update()\n")
         auto graphUpdateResult = m_graph->update();
