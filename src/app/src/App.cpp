@@ -35,7 +35,18 @@ App::App()
 
 bool App::init()
 {
-    return m_view.init();
+    LOG_MESSAGE("App", "Initializing App...\n")
+    bool success = m_view.init();
+    if(success)
+    {
+        LOG_MESSAGE("App", "Initialization OK\n")
+        LOG_MESSAGE("App", "Welcome to Nodable !\n")
+    }
+    else
+    {
+        LOG_ERROR("App", "Initialization failed!\n")
+    }
+    return success;
 }
 
 void App::update()
