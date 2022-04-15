@@ -170,20 +170,12 @@ bool VirtualMachine::_stepOver()
             break;
         }
 
-        case opcode::push_stack_frame: // do nothing, just mark visually the beginning of a scope.
-        {
-            //auto scope = next_instr->pop.scope;
-            advance_cursor();
-            success = true;
-            break;
-        }
-
         case opcode::push_var:
         {
             advance_cursor();
             auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
             NODABLE_ASSERT_EX(!variable->get_value()->get_variant()->is_initialized(),
-                              "Pushing an initialized variable is forbidden!");
+                              "We should not push an initialized variable, check if push_stack_frame did or did not.");
             variable->get_value()->get_variant()->ensure_is_initialized(true);
             // TODO: push variable to the future stack
 
@@ -196,16 +188,21 @@ bool VirtualMachine::_stepOver()
             advance_cursor();
             auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
             NODABLE_ASSERT_EX(variable->get_value()->get_variant()->is_initialized(),
-                              "Pop an uninitialized variable is forbidden!");
+                              "Variable should be initialized since it should have been pushed earlier!");
             variable->get_value()->get_variant()->ensure_is_initialized(false);
             // TODO: pop variable to the future stack
             success = true;
             break;
         }
 
-        case opcode::pop_stack_frame: // do nothing, just mark visually the end of a scope.
+        case opcode::push_stack_frame: // ensure variable declared in this scope are unitialized before/after scope
+        case opcode::pop_stack_frame:
         {
-            //auto scope = next_instr->pop.scope;
+            auto scope = next_instr->pop.scope;
+            for(auto each_variable : scope->get_variables())
+            {
+                each_variable->get_value()->get_variant()->ensure_is_initialized(false);
+            }
             advance_cursor();
             success = true;
             break;
