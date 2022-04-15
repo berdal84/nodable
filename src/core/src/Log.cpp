@@ -8,7 +8,7 @@
 using namespace Nodable;
 
 Log::Messages   Log::s_logs;
-Log::Verbosity  Log::s_verbosity = Verbosity::Message;
+Log::Verbosity  Log::s_verbosity = Verbosity_Message;
 std::map<std::string, Log::Verbosity> Log::s_verbosity_by_category;
 
 const Log::Message& Log::get_last_message()
@@ -44,11 +44,11 @@ Log::Verbosity Log::get_verbosity(const std::string& _category)
     return s_verbosity;
 }
 
-void Log::push_message(Verbosity _verbosityLevel, const char* _category, const char* _format, ...)
+void Log::push_message(Verbosity _verbosity, const char* _category, const char* _format, ...)
 {
 	// Print log only if verbosity level allows it
 
-	if (_verbosityLevel <= get_verbosity(_category) )
+	if (_verbosity <= get_verbosity(_category) )
     {
         // Build log string
         char buffer[255];
@@ -57,20 +57,21 @@ void Log::push_message(Verbosity _verbosityLevel, const char* _category, const c
         vsnprintf(buffer, sizeof(buffer), _format, arglist); // store into buffer
         va_end( arglist );
 
-        // Print the verbosity:
-        switch (_verbosityLevel)
+        // select a color
+        switch (_verbosity)
         {
-            case Log::Verbosity::Error:   std::cout << RED "[ERR|";      break;
-            case Log::Verbosity::Warning: std::cout << MAGENTA "[WRN|";  break;
-            case Log::Verbosity::Message: std::cout << "[MSG|";          break;
-            default:                      std::cout << "[VRB|";
+            case Log::Verbosity_Error:   std::cout << RED;      break;
+            case Log::Verbosity_Warning: std::cout << MAGENTA;  break;
+            default:;
         }
 
-        // the text
-        std::cout << _category << "] " RESET << buffer;
+        // print the text
+        std::cout << "[" << to_string(_verbosity) << "|" << _category << "] ";
+        std::cout << RESET;
+        std::cout << buffer;
 
         // Store type and buffer in history
-        s_logs.push_front({_category, _verbosityLevel, buffer} );
+        s_logs.push_front({_verbosity, _category, buffer} );
 
         // Constraint the queue to be size() < 500
         // Erase by chunk of 250
@@ -86,6 +87,17 @@ void Log::push_message(Verbosity _verbosityLevel, const char* _category, const c
 
 }
 
+std::string Log::to_string(Log::Verbosity _verbosity)
+{
+    switch (_verbosity)
+    {
+        case Verbosity_Error:   return  "ERR";
+        case Verbosity_Warning: return  "WRN";
+        case Verbosity_Message: return  "MSG";
+        default:                return  "VRB";
+    }
+}
+
 void Log::flush()
 {
     std::cout << std::flush;
@@ -94,4 +106,20 @@ void Log::flush()
 const Log::Messages& Log::get_messages()
 {
     return s_logs;
+}
+
+std::string Log::Message::to_string()const
+{
+    std::string result;
+    result.reserve(50);
+
+    result.push_back('[');
+    result.append( Log::to_string(verbosity) );
+    result.push_back('|');
+    result.append( category );
+    result.push_back(']');
+    result.push_back(' ');
+    result.append( text );
+
+    return result;
 }

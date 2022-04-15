@@ -28,10 +28,10 @@
 #define LOG_ENABLE true
 
 #if LOG_ENABLE
-#   define LOG_ERROR(...)   Nodable::Log::push_message( Nodable::Log::Verbosity::Error  , __VA_ARGS__ ); Nodable::Log::flush();
-#   define LOG_WARNING(...) Nodable::Log::push_message( Nodable::Log::Verbosity::Warning, __VA_ARGS__ );
-#   define LOG_MESSAGE(...) Nodable::Log::push_message( Nodable::Log::Verbosity::Message, __VA_ARGS__ );
-#   define LOG_VERBOSE(...) Nodable::Log::push_message( Nodable::Log::Verbosity::Verbose, __VA_ARGS__ );
+#   define LOG_ERROR(...)   Nodable::Log::push_message( Nodable::Log::Verbosity_Error  , __VA_ARGS__ ); Nodable::Log::flush();
+#   define LOG_WARNING(...) Nodable::Log::push_message( Nodable::Log::Verbosity_Warning, __VA_ARGS__ );
+#   define LOG_MESSAGE(...) Nodable::Log::push_message( Nodable::Log::Verbosity_Message, __VA_ARGS__ );
+#   define LOG_VERBOSE(...) Nodable::Log::push_message( Nodable::Log::Verbosity_Verbose, __VA_ARGS__ );
 #   define LOG_FLUSH()      Nodable::Log::flush();
 #else
 #   define LOG_ERROR(...)
@@ -47,20 +47,23 @@ namespace Nodable {
     {
     public:
 
-        enum class Verbosity: int
+        enum Verbosity: size_t
         {
-            Error,
-            Warning,
-            Message,
-            Verbose
+            Verbosity_Error,
+            Verbosity_Warning,
+            Verbosity_Message,
+            Verbosity_Verbose,
+            Verbosity_COUNT
         };
 
         struct Message
         {
-            std::string category;
             Verbosity   verbosity;
+            std::string category;
             std::string text;
+            std::string to_string()const;
         };
+
         using Messages = std::deque<Message>;
 	private:
         static Messages s_logs;
@@ -74,7 +77,9 @@ namespace Nodable {
 	    static void           set_verbosity(Verbosity);
         static Verbosity      get_verbosity(const std::string& _category);
         static Verbosity      get_verbosity();
-		static void           push_message(Verbosity _verbosityLevel, const char* _category, const char* _format, ...);
+		static void           push_message(Verbosity _verbosity, const char* _category, const char* _format, ...);
 		static void           flush();
+
+        static std::string to_string(Verbosity _verbosity);
     };
 }

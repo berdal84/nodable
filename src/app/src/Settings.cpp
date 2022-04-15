@@ -6,6 +6,12 @@ using namespace Nodable;
 
 Settings::Settings()
 {
+    ui_log_tooltip_max_count             = 25;
+    ui_log_color[Log::Verbosity_Error]   = vec4(0.5f, 0.0f, 0.0f, 1.0f); // red
+    ui_log_color[Log::Verbosity_Warning] = vec4(0.5f, 0.0f, 0.5f, 1.0f); // violet
+    ui_log_color[Log::Verbosity_Message] = vec4(0.5f, 0.5f, 0.5f, 1.0f); // gray
+    ui_log_color[Log::Verbosity_Verbose] = vec4(0.0f, 0.5f, 0.0f, 1.0f); // green
+
     ui_layout_propertiesRatio = 0.25f;
     ui_splashscreen_imagePath = "images/nodable-logo-xs.png";
 

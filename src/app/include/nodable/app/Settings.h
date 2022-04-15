@@ -18,6 +18,8 @@ namespace Nodable {
 
         Settings();
 
+        size_t ui_log_tooltip_max_count;
+        std::array<vec4, Log::Verbosity_COUNT>   ui_log_color;
         std::vector<FontConf>                    ui_text_fonts;
         std::array<const char *, FontSlot_COUNT> ui_text_defaultFontsId;
         TextEditor::Palette                      ui_text_textEditorPalette;

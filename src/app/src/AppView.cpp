@@ -398,10 +398,10 @@ bool AppView::draw()
                             }
                         };
 
-                        menu_item_verbosity(Log::Verbosity::Verbose, "Verbose");
-                        menu_item_verbosity(Log::Verbosity::Message, "Message (default)");
-                        menu_item_verbosity(Log::Verbosity::Warning, "Warning");
-                        menu_item_verbosity(Log::Verbosity::Error,   "Error");
+                        menu_item_verbosity(Log::Verbosity_Verbose, "Verbose");
+                        menu_item_verbosity(Log::Verbosity_Message, "Message (default)");
+                        menu_item_verbosity(Log::Verbosity_Warning, "Warning");
+                        menu_item_verbosity(Log::Verbosity_Error,   "Error");
                         ImGui::EndMenu();
                     }
 
@@ -932,22 +932,9 @@ void AppView::draw_splashcreen()
 
 void AppView::draw_status_bar() const
 {
-    auto draw_log_line = [](const Log::Message& _log, bool _detailed = false)
+    auto draw_log_line = [&](const Log::Message& _log)
     {
-        switch ( _log.verbosity )
-        {
-            case Log::Verbosity::Error:
-                ImGui::TextColored(vec4(0.5f, 0.0f, 0.0f, 1.0f), _detailed ? "Error: %s" : "%s", _log.text.c_str());
-                break;
-
-            case Log::Verbosity::Warning:
-                ImGui::TextColored(vec4(0.5f, 0.0f, 0.0f, 1.0f), _detailed ? "Warning: %s" : "%s", _log.text.c_str());
-                break;
-
-            default:
-                ImGui::TextColored(vec4(0.5f, 0.5f, 0.5f, 1.0f), _detailed ? "Message: %s" : "%s", _log.text.c_str());
-
-        }
+        ImGui::TextColored(m_settings.ui_log_color[_log.verbosity], "%s", _log.to_string().c_str());
     };
 
     if( !Log::get_messages().empty() )
@@ -955,14 +942,13 @@ void AppView::draw_status_bar() const
         const Log::Message& last_log = Log::get_last_message();
         draw_log_line(last_log);
 
-        constexpr size_t message_count = 20;
-        if( Log::get_messages().size() > message_count && ImGuiEx::BeginTooltip() )
+        if( Log::get_messages().size() > m_settings.ui_log_tooltip_max_count && ImGuiEx::BeginTooltip() )
         {
             const Log::Messages& messages = Log::get_messages();
-            auto it  = messages.rend() - message_count;
+            auto it  = messages.rend() - m_settings.ui_log_tooltip_max_count;
             while( it != messages.rend() )
             {
-                draw_log_line( *it, true);
+                draw_log_line( *it );
                 ++it;
             }
             ImGuiEx::EndTooltip();
