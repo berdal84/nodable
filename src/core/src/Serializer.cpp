@@ -181,7 +181,7 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
 
     Member* value = _node->get_value();
 
-    if( decl_instr )
+    if( decl_instr && value->has_input_connected()  )
     {
         auto append_assign_tok  = [&]()
         {
@@ -198,18 +198,8 @@ std::string& Serializer::serialize(std::string& _result, const VariableNode* _no
             }
         };
 
-        if (value->has_input_connected() )
-        {
-            append_assign_tok();
-            serialize(_result, value);
-        }
-        else if (value->get_variant()->is_defined() )
-        {
-            append_assign_tok();
-            _result.append(value->get_src_token()->m_prefix);
-            serialize(_result, value->get_variant());
-            _result.append(value->get_src_token()->m_suffix);
-        }
+        append_assign_tok();
+        serialize(_result, value);
     }
     return _result;
 }
