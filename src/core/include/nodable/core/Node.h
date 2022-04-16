@@ -94,7 +94,6 @@ namespace Nodable {
 		bool                 is_dirty()const;
 
 		virtual UpdateResult update();
-        virtual bool         eval() const;
 
         const IInvokable*    get_connected_operator(const Member* _localMember); // TODO: weird, try to understand why I needed this
         bool                 has_wire_connected_to(const Member *_localMember);

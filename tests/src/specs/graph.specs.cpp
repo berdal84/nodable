@@ -142,38 +142,3 @@ TEST_F( graph_node_fixture, create_and_delete_relations)
     EXPECT_EQ(n2->inputs().size(), 0);
     EXPECT_EQ(graph.get_relation_registry().size(), 0);
 }
-
-TEST_F( graph_node_fixture, by_reference_assign)
-{
-    // we will create this graph manually
-    //            "double b = 6;"
-    //            "b = 5;"
-    //            "b;";
-
-    // prepare
-    Node* program = graph.create_root();
-
-    // create b
-    VariableNode* var_b = graph.create_variable<double>("b", program->get<Scope>());
-    var_b->set(6.0);
-
-    // create assign operator
-    Signature* sig      = Signature
-            ::from_type<int(double&, double)>
-            ::as_operator(language.find_operator("=", Operator_t::Binary));
-
-    Node* assign        = graph.create_function(language.find_operator_fct(sig));
-
-    // connect b
-    auto props = assign->props();
-    graph.connect(var_b->get_value(), props->get_input_at(0) );
-
-    props->get_input_at(1)->set(5.0);
-
-    ASSERT_DOUBLE_EQ((double)*var_b->get_value(), 6.0 );
-
-    // apply
-    assign->eval();
-
-    ASSERT_DOUBLE_EQ((double)*var_b->get_value(), 5.0 );
-}

@@ -100,10 +100,9 @@ UpdateResult GraphNode::update()
         {
             if (each_node->is_dirty())
             {
-                each_node->eval();
                 each_node->update();
                 each_node->set_dirty(false);
-                changed |= true;
+                changed = true;
             }
         }
         if ( changed )

@@ -45,14 +45,3 @@ void VariableNode::set_name(const char* _name)
 
     set_label(label.c_str(), short_label);
 }
-
-bool VariableNode::eval() const
-{
-    Variant* variant = m_value->get_variant();
-    if(variant->is_initialized() && !variant->is_defined() )
-    {
-        variant->flag_defined();
-        return Node::eval();
-    }
-    return true;
-}

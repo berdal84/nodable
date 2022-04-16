@@ -3,6 +3,7 @@
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/Log.h>
 #include <nodable/core/Scope.h>
+#include <nodable/core/InvokableComponent.h>
 #include "nodable/core/String.h"
 
 using namespace Nodable;
@@ -174,11 +175,7 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
-            NODABLE_ASSERT_EX(!variable->get_value()->get_variant()->is_initialized(),
-                              "We should not push an initialized variable, check if push_stack_frame did or did not.");
-            variable->get_value()->get_variant()->ensure_is_initialized(true);
-            // TODO: push variable to the future stack
-
+            variable->get_value()->get_variant()->ensure_is_initialized(false);
             success = true;
             break;
         }
@@ -189,8 +186,8 @@ bool VirtualMachine::_stepOver()
             auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
             NODABLE_ASSERT_EX(variable->get_value()->get_variant()->is_initialized(),
                               "Variable should be initialized since it should have been pushed earlier!");
+            variable->get_value()->get_variant()->reset_value();
             variable->get_value()->get_variant()->ensure_is_initialized(false);
-            // TODO: pop variable to the future stack
             success = true;
             break;
         }
@@ -198,11 +195,6 @@ bool VirtualMachine::_stepOver()
         case opcode::push_stack_frame: // ensure variable declared in this scope are unitialized before/after scope
         case opcode::pop_stack_frame:
         {
-            auto scope = next_instr->pop.scope;
-            for(auto each_variable : scope->get_variables())
-            {
-                each_variable->get_value()->get_variant()->ensure_is_initialized(false);
-            }
             advance_cursor();
             success = true;
             break;
@@ -210,8 +202,50 @@ bool VirtualMachine::_stepOver()
 
         case opcode::eval_node:
         {
-            auto node = const_cast<Node*>( next_instr->eval.node ); // hack !
-            node->eval();
+            bool transfer_inputs = true;
+            auto node            = const_cast<Node*>( next_instr->eval.node ); // hack !
+
+            auto transfer_input_values = [](Node* _node)
+            {
+                for(Member* each_member : _node->props()->by_id())
+                {
+                    Member* input = each_member->get_input();
+
+                    if( input
+                        && !each_member->is_connected_by_ref()
+                        && each_member->get_type() != type::null
+                        && input->get_type() != type::null )
+                    {
+                        *each_member->get_variant() = *input->get_variant();
+                    }
+                }
+            };
+
+            if( auto variable = node->as<VariableNode>())
+            {
+                Variant* variant = variable->get_value()->get_variant();
+                if( !variant->is_initialized() )
+                {
+                    variant->ensure_is_initialized();
+                    variant->flag_defined();
+                }
+                else
+                {
+                    transfer_inputs = false;
+                }
+            }
+
+            if( transfer_inputs )
+            {
+                transfer_input_values(node);
+            }
+
+            // evaluate Invokable Component, could be an operator or a function
+            if(auto invokable = node->get<InvokableComponent>())
+            {
+                invokable->update();
+            }
+
             node->set_dirty(false);
             advance_cursor();
             success = true;

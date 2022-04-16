@@ -135,30 +135,6 @@ int Node::get_output_wire_count()const
 	return count;
 }
 
-bool Node::eval() const
-{
-    // copy values (only if connection is "by copy")
-    for(Member* each_member : m_props.by_id())
-    {
-        Member* input = each_member->get_input();
-
-        if( input
-            && !each_member->is_connected_by_ref()
-            && each_member->get_type() != type::null
-            && input->get_type() != type::null )
-        {
-            *each_member->get_variant() = *input->get_variant();
-        }
-    }
-
-    // update
-    if(has<InvokableComponent>())
-    {
-        return get<InvokableComponent>()->update();
-    }
-    return true;
-}
-
 UpdateResult Node::update()
 {
 	if(has<DataAccess>())
