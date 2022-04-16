@@ -401,7 +401,7 @@ bool GraphNodeView::draw()
         if ( !dragged_node_conn )
         {
             // If dragging a member we create a VariableNode with the same type.
-            if ( dragged_member_conn && !type::is_ptr(dragged_member_conn->get_member_type()) )
+            if ( dragged_member_conn && !dragged_member_conn->get_member_type().is_ptr() )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
                 {

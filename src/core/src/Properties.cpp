@@ -23,14 +23,14 @@ bool Properties::has(const Member* _member)
 	return std::find(m_members.cbegin(), m_members.cend(), _member) != m_members.end();
 }
 
-Member* Properties::add(const char* _name, Visibility _visibility, type _type, Way _flags )
+Member* Properties::add(const char* _name, Visibility _visibility, type _type, Way _way, Member::Flags _flags )
 {
     NODABLE_ASSERT(!has(_name));
 
-	Member* new_member = Member::new_with_type(this, _type);
+	Member* new_member = Member::new_with_type(this, _type, _flags);
     new_member->set_name(_name);
     new_member->set_visibility(_visibility);
-    new_member->set_allowed_connection(_flags);
+    new_member->set_allowed_connection(_way);
 
     add_to_indexes(new_member);
 

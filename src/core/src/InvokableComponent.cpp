@@ -53,7 +53,7 @@ bool InvokableComponent::update()
             m_invokable->invoke(m_result, m_args);
             for(auto arg : m_args)
             {
-                arg->force_defined_flag(true);
+                arg->ensure_is_defined(true);
             }
         }
         catch (std::exception& err)

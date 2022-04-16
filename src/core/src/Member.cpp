@@ -76,9 +76,9 @@ bool Member::is_connected_by_ref()
     return m_input && (variant_type.is_ptr() || variant_type.is_ref());
 }
 
-void Member::force_defined_flag(bool _value)
+void Member::ensure_is_defined(bool _value)
 {
-    variant().force_defined_flag(_value);
+    variant().flag_defined(_value);
 }
 
 bool Member::is_connected_to_variable() const
@@ -99,4 +99,27 @@ void Member::set(Node* _value)
 assembly::QWord& Member::get_underlying_data()
 {
     return variant().get_underlying_data();
+}
+
+Member* Member::new_with_type(Properties *_parent, type _type, Flags _flags)
+{
+    auto member = new Member(_parent);
+    member->m_variant.ensure_is_type(_type);
+
+    if( _flags & Flags_initialize )
+    {
+        member->m_variant.ensure_is_initialized();
+    }
+
+    if(_flags & Flags_define )
+    {
+        member->m_variant.flag_defined();
+    }
+
+    if(_flags & Flags_reset_value )
+    {
+        member->m_variant.reset_value();
+    }
+
+    return member;
 }

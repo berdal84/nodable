@@ -78,20 +78,16 @@ namespace Nodable
         template<typename T> inline explicit operator T&()     { return variant(); }
         template<typename T> inline T convert_to()const        { return variant().convert_to<T>(); }
 
-        template<typename T>
-        static Member* new_with_type(Properties* _parent)
-        {
-           return new_with_type(_parent, type::get<T>());
-		}
+        typedef int Flags;
+        enum Flags_ {
+            Flags_none         = 0,
+            Flags_initialize   = 1,
+            Flags_define       = 1 << 1,
+            Flags_reset_value  = 1 << 2
+		};
+        static Member* new_with_type(Properties* , type , Flags = Flags_none);
 
-        static Member* new_with_type(Properties* _parent, type _type)
-        {
-            auto member = new Member(_parent);
-            member->m_variant.ensure_is_type(_type);
-            return member;
-        }
-
-        void             force_defined_flag(bool _value);
+        void             ensure_is_defined(bool _value);
         bool             is_connected_to_variable() const;
         VariableNode*    get_connected_variable();
 

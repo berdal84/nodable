@@ -48,9 +48,10 @@ void VariableNode::set_name(const char* _name)
 
 bool VariableNode::eval() const
 {
-    if( !m_value->get_variant()->is_defined() )
+    Variant* variant = m_value->get_variant();
+    if(variant->is_initialized() && !variant->is_defined() )
     {
-        m_value->get_variant()->force_defined_flag(true);
+        variant->flag_defined();
         return Node::eval();
     }
     return true;

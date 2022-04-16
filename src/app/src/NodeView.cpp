@@ -709,7 +709,7 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
 
             if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->has_input_connected() )
             {
-                _member->set(str);
+                _member->set( std::string(str) );
                 changed |= true;
             }
         }

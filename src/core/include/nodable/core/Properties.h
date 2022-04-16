@@ -21,17 +21,11 @@ namespace Nodable
 		explicit Properties(Node* owner);
 		virtual ~Properties();
         template<typename T>
-        Member* add(const char* _name, Visibility _visibility, Way _flags )
+        Member* add(const char* _name, Visibility _visibility, Way _way, Member::Flags _flags = 0)
         {
-            NODABLE_ASSERT(!has(_name));
-            auto v = Member::new_with_type<T>(this);
-            v->set_name(_name);
-            v->set_visibility(_visibility);
-            v->set_allowed_connection(_flags);
-            add_to_indexes(v);
-            return v;
+            return add(_name, _visibility, type::get<T>(), _way, _flags);
         }
-		Member*             add(const char *_name, Visibility _visibility, type _type, Way _flags);
+		Member*             add(const char *_name, Visibility _visibility, type _type, Way, Member::Flags = 0);
 		// void                remove(const char*); // if we implement that, we have to think about all indexes.
 		// void                remove(Member*);     // => implement remove_from_indexes(Member*)
         bool                has(const char*);

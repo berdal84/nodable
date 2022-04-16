@@ -101,7 +101,7 @@ std::string Variant::convert_to<std::string>()const
         return "undefined";
     }
 
-    if( m_type == type::get<std::string>() ) return *static_cast<std::string*>(m_data.ptr);
+    if( m_type == type::get<std::string>() )  return *static_cast<std::string*>(m_data.ptr);
     if( m_type == type::get<i16_t>() )        return std::to_string(m_data.i16);
     if( m_type == type::get<double>() )       return String::fmt_double(m_data.d);
     if( m_type == type::get<bool>() )         return m_data.b ? "true" : "false";
@@ -121,7 +121,7 @@ void Variant::set(const std::string& _value)
     auto* string = static_cast<std::string*>(m_data.ptr);
     string->clear();
     string->append(_value);
-    m_is_defined = true;
+    flag_defined();
 }
 
 void Variant::set(const char* _value)
@@ -134,7 +134,7 @@ void Variant::set(double _value)
     ensure_is_type(type::get<double>());
     ensure_is_initialized();
     m_data.set<double>(_value);
-    m_is_defined = true;
+    flag_defined();
 }
 
 void Variant::set(i16_t _value)
@@ -142,7 +142,7 @@ void Variant::set(i16_t _value)
     ensure_is_type(type::get<i16_t>());
     ensure_is_initialized();
     m_data.set<i16_t>(_value);
-    m_is_defined = true;
+    flag_defined();
 }
 
 void Variant::set(bool _value)
@@ -150,7 +150,7 @@ void Variant::set(bool _value)
     ensure_is_type(type::get<bool>());
     ensure_is_initialized();
     m_data.set<bool>(_value);
-    m_is_defined = true;
+    flag_defined();
 }
 
 bool Variant::is_initialized()const
@@ -158,37 +158,48 @@ bool Variant::is_initialized()const
 	return m_is_initialized;
 }
 
+void Variant::reset_value()
+{
+    NODABLE_ASSERT_EX(m_is_initialized, "Variant: cannot reset value, variant not intialized!");
+
+    if( m_type == type::get<double>() )
+    {
+        m_data.d = 0.0;
+    }
+    else if( m_type == type::get<bool>() )
+    {
+        m_data.b = false;
+    }
+    else if( m_type == type::get<i16_t>() )
+    {
+        m_data.i16 = 0;
+    }
+    else if( m_type == type::get<std::string>() )
+    {
+        std::string& str = *static_cast<std::string*>(m_data.ptr);
+        str.clear();
+    }
+    else if( m_type.is_ptr() )
+    {
+        m_data.ptr   = nullptr;
+    }
+    else
+    {
+        NODABLE_ASSERT_EX(false, "Missing case")
+    }
+}
+
 void Variant::ensure_is_initialized(bool _initialize)
 {
+    NODABLE_ASSERT_EX(m_type != type::null, "Variant: cannot ensure is_initialised(...) because type is null!");
+
     if(_initialize == m_is_initialized) return;
 
     if ( _initialize )
     {
-        NODABLE_ASSERT( m_type != type::null )
-
-        if( m_type == type::get<double>() )
-        {
-            m_data.d = 0.0;
-        }
-        else if( m_type == type::get<bool>() )
-        {
-            m_data.b = false;
-        }
-        else if( m_type == type::get<i16_t>() )
-        {
-            m_data.i16 = 0;
-        }
-        else if( m_type == type::get<std::string>() )
+        if( m_type == type::get<std::string>() )
         {
             m_data.ptr   = new std::string();
-        }
-        else if( m_type.is_ptr() )
-        {
-            m_data.ptr   = nullptr;
-        }
-        else
-        {
-            NODABLE_ASSERT_EX(false, "Missing case")
         }
     }
     else
@@ -197,12 +208,10 @@ void Variant::ensure_is_initialized(bool _initialize)
         {
             delete (std::string*)m_data.ptr;
         }
-
     }
 
-    m_is_defined = false;
+    m_is_defined     = false; // from external point of view
     m_is_initialized = _initialize;
-    NODABLE_ASSERT(_initialize == m_is_initialized)
 }
 
 void Variant::ensure_is_type(type _type)
@@ -226,8 +235,16 @@ Variant::operator bool()const         { NODABLE_ASSERT(m_is_defined) return conv
 Variant::operator std::string ()const { NODABLE_ASSERT(m_is_defined) return convert_to<std::string>(); }
 Variant::operator void* ()const       { NODABLE_ASSERT(m_is_defined) return convert_to<void*>(); }
 
-void Variant::force_defined_flag(bool _value )
+void Variant::flag_defined(bool _value )
 {
+    NODABLE_ASSERT_EX(m_type != type::null, "Variant: Unable to ensure variant is defined because its type is null!");
+    NODABLE_ASSERT_EX(m_is_initialized, "Variant: Unable to ensure variant is defined because it is not initialized!");
+
+    /*
+     * Like is c/cpp, a memory space can be initialized (ex: int i;) but not defined by the user.
+     * That's why is_defined is just a flag. By switching that flag, user will see the value.
+     * Usually this flag is turned on when variant is set.
+     */
     m_is_defined = _value;
 }
 

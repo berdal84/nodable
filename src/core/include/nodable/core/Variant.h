@@ -34,8 +34,10 @@ namespace Nodable
         QWord&  get_underlying_data() { return m_data; }
         bool    is_initialized() const;
         bool    is_defined() const { return m_is_defined; }
-        void    ensure_is_initialized(bool _initialize = true);
         void    ensure_is_type(type _type);
+        void    ensure_is_initialized(bool _initialize = true);
+        void    flag_defined(bool _defined = true);
+        void    reset_value();
         void    set(const std::string& _value);
         void    set(const char* _value);
 
@@ -51,7 +53,6 @@ namespace Nodable
         void    set(double);
         void    set(bool);
         void    set(i16_t);
-        void    force_defined_flag(bool _value);
         const type & get_type()const;
         template<typename T> T convert_to()const;
 

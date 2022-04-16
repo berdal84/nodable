@@ -9,5 +9,8 @@ REGISTER
 
 LiteralNode::LiteralNode(type _type) : Node()
 {
-    m_props.add(k_value_member_name, Visibility::Always, _type, Way_Out);
+    Member::Flags flags = Member::Flags_initialize
+                        | Member::Flags_define
+                        | Member::Flags_reset_value;
+    m_props.add(k_value_member_name, Visibility::Always, _type, Way_Out, flags);
 }
