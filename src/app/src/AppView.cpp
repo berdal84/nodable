@@ -465,8 +465,8 @@ bool AppView::draw()
 
             ImGuiID ds_root   = ImGui::GetID("dockspace_main");
             ImGuiID ds_center = ImGui::GetID("dockspace_center");
-            ImGuiID ds_right  = ImGui::GetID("dockspace_side_panel");
-            ImGuiID ds_bottom = ImGui::GetID("dockspace_status_line");
+            ImGuiID ds_right  = ImGui::GetID("dockspace_right");
+            ImGuiID ds_bottom = ImGui::GetID("dockspace_bottom");
 
 
             if (!m_is_layout_initialized)
