@@ -48,13 +48,13 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 
     std::istringstream iss(_source_code);
     std::string line;
-    LOG_VERBOSE("Parser", "Tokenize begin\n" )
-    size_t lineCount = 0;
+    LOG_MESSAGE("Parser", "Tokenization ...\n" )
+    size_t line_count = 0;
     while (std::getline(iss, line, System::k_end_of_line ))
     {
-        LOG_VERBOSE("Parser", "Tokenize line %i ...\n", lineCount )
+        LOG_VERBOSE("Parser", "Tokenization on line %llu ...\n", line_count )
 
-        if ( lineCount != 0 && !m_token_ribbon.tokens.empty() )
+        if (line_count != 0 && !m_token_ribbon.tokens.empty() )
         {
             std::shared_ptr<Token> lastToken = m_token_ribbon.tokens.back();
             lastToken->m_suffix.push_back(System::k_end_of_line);
@@ -62,13 +62,13 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 
         if (!tokenize_string(line))
         {
-            LOG_WARNING("Parser", "Unable to tokenize line %i: %s\n", lineCount, line.c_str() )
+            LOG_WARNING("Parser", "Unable to tokenize!\n")
             return false;
         }
-        LOG_VERBOSE("Parser", "Tokenize line %i done.\n", lineCount )
-        lineCount++;
+        LOG_VERBOSE("Parser", "Tokenization on line %llu OK\n", line_count )
+        line_count++;
     }
-    LOG_VERBOSE("Parser", "Tokenize end\n", lineCount )
+    LOG_MESSAGE("Parser", "Tokenization OK (%llu line(s))\n", line_count )
 
 	if (!is_syntax_valid())
 	{
@@ -87,14 +87,14 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
     if ( m_token_ribbon.canEat() )
     {
         m_graph->clear();
-        LOG_ERROR("Parser", "Unable to generate a full program tree.\n")
+        LOG_WARNING("Parser", "Unable to generate a full program tree.\n")
         LOG_MESSAGE("Parser", "--- Token Ribbon begin ---\n");
         for( auto each_token : m_token_ribbon.tokens )
         {
             LOG_MESSAGE("Parser", "%i: %s\n", each_token->m_index, Token::to_string(each_token).c_str() );
         }
         LOG_MESSAGE("Parser", "--- Token Ribbon end ---\n");
-        LOG_ERROR("Parser", "Stuck at token %i (charIndex %i).\n", (int)m_token_ribbon.get_curr_tok_idx(), (int)m_token_ribbon.peekToken()->m_charIndex )
+        LOG_WARNING("Parser", "Stuck at token %i (charIndex %i).\n", (int)m_token_ribbon.get_curr_tok_idx(), (int)m_token_ribbon.peekToken()->m_charIndex )
         return false;
     }
 
@@ -143,8 +143,8 @@ bool Parser::parse_bool(const std::string &_str)
 std::string Parser::parse_string(const std::string &_str)
 {
     NODABLE_ASSERT(_str.size() >= 2);
-    NODABLE_ASSERT(_str[0] == '\"');
-    NODABLE_ASSERT(_str[_str.size()-1] == '\"');
+    NODABLE_ASSERT(_str.front() == '\"');
+    NODABLE_ASSERT(_str.back() == '\"');
     return std::string(++_str.cbegin(), --_str.cend());
 }
 
@@ -711,24 +711,25 @@ bool Parser::is_syntax_valid()
 	return success;
 }
 
-bool Parser::tokenize_string(const std::string &_code_source_portion)
+bool Parser::tokenize_string(const std::string &_string)
 {
+    std::string::const_iterator cursor = _string.cbegin(); // the current char
+    std::string                 pending_ignored_chars;
+
     /* shortcuts to language members */
     const Semantic& semantic = m_language.get_semantic();
     auto& regex              = semantic.get_token_type_regex();
     auto& regexIdToTokType   = semantic.get_token_type_regex_index_to_token_type();
 
-    std::string pending_ignored_chars;
-
-    // Unified parsing using a char iterator (loop over all regex)
-    auto unifiedParsing = [&](auto& it) -> auto
+    // Parsing method #1: loop over all regex (might be slow).
+    auto parse_token_using_regexes = [&]() -> auto
     {
         int i = 0;
         for (auto&& eachRegexIt = regex.cbegin(); eachRegexIt != regex.cend(); eachRegexIt++)
         {
             i++;
             std::smatch sm;
-            auto match = std::regex_search(it, _code_source_portion.cend(), sm, *eachRegexIt);
+            auto match = std::regex_search(cursor, _string.cend(), sm, *eachRegexIt);
 
             if (match)
             {
@@ -736,7 +737,7 @@ bool Parser::tokenize_string(const std::string &_code_source_portion)
                 Token_t   matched_token_t   = regexIdToTokType[std::distance(regex.cbegin(), eachRegexIt)];
 
                 if (matched_token_t != Token_t::ignore) {
-                    size_t index = std::distance(_code_source_portion.cbegin(), it);
+                    size_t index = std::distance(_string.cbegin(), cursor);
                     auto new_token = std::make_shared<Token>(matched_token_t, matched_str, index);
                     LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matched_str.c_str())
 
@@ -793,21 +794,33 @@ bool Parser::tokenize_string(const std::string &_code_source_portion)
                 }
 
                 // advance iterator to the end of the str
-                std::advance(it, matched_str.length());
+                std::advance(cursor, matched_str.length());
                 return true;
             }
         }
         return false;
     };
 
-    auto currTokIt = _code_source_portion.cbegin();
-	while(currTokIt != _code_source_portion.cend())
+    // Parsing method #2: should be faster (that's the objective)
+    auto parse_token_fast = [&]() -> auto
+    {
+        return false;
+    };
+
+	while( cursor != _string.cend())
 	{
-		if (!unifiedParsing(currTokIt))
-		{
-		    LOG_VERBOSE("Parser", "tokenize " KO ", unable to tokenize at index %i\n", (int)std::distance(_code_source_portion.cbegin(), currTokIt) )
-			return false;
-		}
+	    // first, we try to tokenize using a WIP technique not involving any regex
+	    if(parse_token_fast())
+	    {
+	        continue;
+	    }
+
+	    // then, if nothing matches, we try using our old technique using regexes
+		if (parse_token_using_regexes()) continue;
+
+		size_t distance = std::distance(_string.cbegin(), cursor);
+		LOG_WARNING("Parser", "tokenizing failed! Unable to tokenize at index %llu\n", distance )
+		return false;
 	}
 
 	/*
@@ -818,10 +831,7 @@ bool Parser::tokenize_string(const std::string &_code_source_portion)
         m_token_ribbon.m_suffix->m_word = pending_ignored_chars;
         pending_ignored_chars.clear();
     }
-
-    LOG_VERBOSE("Parser", "tokenize " OK " \n" )
 	return true;
-
 }
 
 Member* Parser::parse_function_call()
