@@ -2,7 +2,7 @@
 #include <cmath> // for pow()
 
 #include <nodable/core/Log.h>
-#include "../test_tools.h"
+#include "../nodable_fixture.h"
 
 using namespace Nodable;
 

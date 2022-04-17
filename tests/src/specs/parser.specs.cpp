@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <nodable/core/Log.h>
-#include "../test_tools.h"
+#include "../nodable_fixture.h"
 
 using namespace Nodable;
 
@@ -237,79 +237,94 @@ TEST_F(nodable_fixture, string_var_assigned_with_false_to_string)
 
 TEST_F(nodable_fixture, precedence_1)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("(1+1)*2"));
+    const std::string source_code = "(1+1)*2";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, precedence_2)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("1*1+2"));
+    const std::string source_code = "1*1+2";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, precedence_3)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("-(-1)"));
+    const std::string source_code = "-(-1)";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, precedence_4)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("-(2*5)"));
+    const std::string source_code = "-(2*5)";
+                    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, precedence_5)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("-(2*5)"));
+    const std::string source_code = "-(2*5)";
+                    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, precedence_6)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("(-2)*5"));
+    const std::string source_code = "(-2)*5";
+                    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, precedence_7)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("-(2+5)"));
+    const std::string source_code = "-(2+5)";
+                    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, precedence_8)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("5+(-1)*3"));
+    const std::string source_code = "5+(-1)*3";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST_F(nodable_fixture, eval_serialize_and_compare_1)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("1"));
+    const std::string source_code = "1";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, eval_serialize_and_compare_2)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("1+1"));
+    const std::string source_code = "1+1";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, eval_serialize_and_compare_3)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("1-1"));
+    const std::string source_code = "1-1";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, eval_serialize_and_compare_4)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("-1"));
+    const std::string source_code = "-1";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, eval_serialize_and_compare_5)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("double a=5"));
+    const std::string source_code = "double a=5";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, eval_serialize_and_compare_6)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("double a=1;double b=2;double c=3;double d=4;(a+b)*(c+d)"));
+    const std::string source_code = "double a=1;double b=2;double c=3;double d=4;(a+b)*(c+d)";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, eval_serialize_and_compare_7)
 {
-    EXPECT_TRUE(eval_serialize_and_compare("string b = to_string(false)"));
+    const std::string source_code = "string b = to_string(false)";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -347,12 +362,14 @@ TEST_F(nodable_fixture, multi_instruction_single_line )
 
 TEST_F(nodable_fixture, multi_instruction_multi_line_01 )
 {
-    EXPECT_TRUE(eval_serialize_and_compare("double a = 5.0;\ndouble b = 2.0 * a;"));
+    const std::string source_code = "double a = 5.0;\ndouble b = 2.0 * a;";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, multi_instruction_multi_line_02 )
 {
-    EXPECT_TRUE(eval_serialize_and_compare("double a = 5.0;double b = 2.0 * a;\ndouble c = 33.0 + 5.0;"));
+    const std::string source_code = "double a = 5.0;double b = 2.0 * a;\ndouble c = 33.0 + 5.0;";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -369,24 +386,27 @@ TEST_F(nodable_fixture, DNAtoProtein )
 
 TEST_F(nodable_fixture, code_formatting_preserving_01 )
 {
-    EXPECT_TRUE(eval_serialize_and_compare("double a =5;\ndouble b=2*a;"));
+    const std::string source_code = "double a =5;\ndouble b=2*a;";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, code_formatting_preserving_02 )
 {
-    EXPECT_TRUE(eval_serialize_and_compare("double a =5;\ndouble b=2  *  a;"));
+    const std::string source_code = "double a =5;\ndouble b=2  *  a;";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, code_formatting_preserving_03 )
 {
-    EXPECT_TRUE(eval_serialize_and_compare(" 5 + 2;"));
+    const std::string source_code = " 5 + 2;";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, code_formatting_preserving_04 )
 {
-    EXPECT_TRUE(eval_serialize_and_compare("5 + 2;  "));
+    const std::string source_code = "5 + 2;  ";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -457,24 +477,28 @@ TEST_F(nodable_fixture, operator_not_bool)
 
 TEST_F(nodable_fixture, parse_serialize_with_undeclared_variables )
 {
-    EXPECT_TRUE(parse_serialize_and_compare("double a = b + c * r - z;"));
+    const std::string program = "double a = b + c * r - z;";
+    EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 TEST_F(nodable_fixture, parse_serialize_with_undeclared_variables_in_conditional )
 {
-    EXPECT_TRUE(parse_serialize_and_compare("if(a==b){}"));
+    const std::string program = "if(a==b){}";
+    EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST_F(nodable_fixture, parse_serialize_with_pre_ribbon_chars )
 {
-    EXPECT_TRUE(eval_serialize_and_compare(" double a = 5"));
+    const std::string source_code = " double a = 5";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 TEST_F(nodable_fixture, parse_serialize_with_post_ribbon_chars )
 {
-    EXPECT_TRUE(eval_serialize_and_compare("double a = 5 "));
+    const std::string source_code = "double a = 5 ";
+    EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
