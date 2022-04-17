@@ -94,7 +94,8 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
             LOG_MESSAGE("Parser", "%i: %s\n", each_token->m_index, Token::to_string(each_token).c_str() );
         }
         LOG_MESSAGE("Parser", "--- Token Ribbon end ---\n");
-        LOG_WARNING("Parser", "Stuck at token %i (charIndex %i).\n", (int)m_token_ribbon.get_curr_tok_idx(), (int)m_token_ribbon.peekToken()->m_charIndex )
+        LOG_WARNING("Parser", "Stuck at token %llu (charIndex %llu).\n"
+                     , m_token_ribbon.get_curr_tok_idx(), m_token_ribbon.peekToken()->m_charIndex )
         return false;
     }
 
@@ -722,105 +723,128 @@ bool Parser::tokenize_string(const std::string &_string)
     auto& regexIdToTokType   = semantic.get_token_type_regex_index_to_token_type();
 
     // Parsing method #1: loop over all regex (might be slow).
-    auto parse_token_using_regexes = [&]() -> auto
+    auto parse_token_using_regexes = [&]() -> std::shared_ptr<Token>
     {
-        int i = 0;
-        for (auto&& eachRegexIt = regex.cbegin(); eachRegexIt != regex.cend(); eachRegexIt++)
+        std::shared_ptr<Token> result;
+        size_t index = std::distance(_string.cbegin(), cursor);
+
+        for (auto&& each_regex_it = regex.cbegin(); each_regex_it != regex.cend(); each_regex_it++)
         {
-            i++;
             std::smatch sm;
-            auto match = std::regex_search(cursor, _string.cend(), sm, *eachRegexIt);
+            auto match = std::regex_search(cursor, _string.cend(), sm, *each_regex_it);
 
             if (match)
             {
                 std::string matched_str = sm.str();
-                Token_t   matched_token_t   = regexIdToTokType[std::distance(regex.cbegin(), eachRegexIt)];
-
-                if (matched_token_t != Token_t::ignore) {
-                    size_t index = std::distance(_string.cbegin(), cursor);
-                    auto new_token = std::make_shared<Token>(matched_token_t, matched_str, index);
-                    LOG_VERBOSE("Parser", "tokenize <word>%s</word>\n", matched_str.c_str())
-
-                    /*
-                     * Append ignored_chars, 3 options:
-                     */
-                    if (!pending_ignored_chars.empty())
-                    {
-                         if (!m_token_ribbon.empty())
-                         {
-                             std::shared_ptr<Token> last_token = m_token_ribbon.tokens.back();
-                             if (last_token->m_type != Token_t::identifier)
-                             {
-                                 /*
-                                 * Option 1: suffix of previous token
-                                 *
-                                 * ( ... , <last_token><pending_ignored_chars>, <new-token>)
-                                 */
-                                 last_token->m_suffix.append(pending_ignored_chars);
-                                 pending_ignored_chars.clear();
-                             }
-                             else
-                             {
-                                 /*
-                                 * Option 2: prefix of next/new token
-                                 *
-                                 * ( ... , <last_token>, <pending_ignored_chars><new-token>)
-                                 */
-                                 new_token->m_prefix.append(pending_ignored_chars);
-                                 pending_ignored_chars.clear();
-                             }
-                         }
-                        else
-                        {
-                            /*
-                            * Option 3: prefix of the ribbon
-                            *
-                            * <pending_ignored_chars> (<first-and-new-token>)
-                            */
-                            m_token_ribbon.m_prefix->m_word = pending_ignored_chars;
-                            pending_ignored_chars.clear();
-                        }
-                    }
-                    m_token_ribbon.push( new_token );
-                }
-                else
-                {
-                    /*
-                     * When a character is ignored, it goes to a pending_chars string.
-                     * Once a no ignored token is parsed those pending_chars are added to the suffix (option 1) or to the prefix (option 2)
-                     */
-                    LOG_VERBOSE("Parser", "append ignored <word>%s</word>\n", matched_str.c_str() )
-                    pending_ignored_chars.append(matched_str);
-                }
-
-                // advance iterator to the end of the str
+                Token_t matched_token_t = regexIdToTokType[std::distance(regex.cbegin(), each_regex_it)];
+                result                  = std::make_shared<Token>(matched_token_t, matched_str, index);
                 std::advance(cursor, matched_str.length());
-                return true;
+                return result;
             }
         }
-        return false;
+        return result;
     };
 
     // Parsing method #2: should be faster (that's the objective)
-    auto parse_token_fast = [&]() -> auto
+    auto parse_token_fast = [&]() -> std::shared_ptr<Token>
     {
-        return false;
+        std::shared_ptr<Token> result;
+        size_t                 cursor_idx = std::distance(_string.cbegin(), cursor );
+        size_t                 char_left  = _string.size() - cursor_idx;
+
+        // booleans
+        if( _string.compare(cursor_idx, 4, "true") == 0)
+        {
+            result = std::make_shared<Token>(Token_t::literal, "true", cursor_idx);
+        }
+        else if( _string.compare(cursor_idx, 5, "false") == 0 )
+        {
+            result = std::make_shared<Token>(Token_t::literal, "false", cursor_idx);
+        }
+
+        if( result )
+        {
+            std::advance(cursor, result->m_word.size());
+        }
+
+        return result;
     };
 
 	while( cursor != _string.cend())
 	{
+	    std::shared_ptr<Token> new_token;
+
 	    // first, we try to tokenize using a WIP technique not involving any regex
-	    if(parse_token_fast())
-	    {
-	        continue;
-	    }
+	    new_token = parse_token_fast();
 
 	    // then, if nothing matches, we try using our old technique using regexes
-		if (parse_token_using_regexes()) continue;
+		if( !new_token )
+        {
+            new_token = parse_token_using_regexes();
+        }
 
-		size_t distance = std::distance(_string.cbegin(), cursor);
-		LOG_WARNING("Parser", "tokenizing failed! Unable to tokenize at index %llu\n", distance )
-		return false;
+		if ( !new_token )
+        {
+            size_t distance = std::distance(_string.cbegin(), cursor);
+            LOG_WARNING("Parser", "tokenizing failed! Unable to tokenize at index %llu\n", distance )
+            return false;
+        }
+
+        // Finally we push the token in the ribbon
+        if(new_token->m_type != Token_t::ignore)
+        {
+            /*
+             * Append ignored_chars, 3 options:
+             */
+            if (!pending_ignored_chars.empty())
+            {
+                if (!m_token_ribbon.empty())
+                {
+                    std::shared_ptr<Token> last_token = m_token_ribbon.tokens.back();
+                    if (last_token->m_type != Token_t::identifier)
+                    {
+                        /*
+                        * Option 1: suffix of previous token
+                        *
+                        * ( ... , <last_token><pending_ignored_chars>, <new-token>)
+                        */
+                        last_token->m_suffix.append(pending_ignored_chars);
+                        pending_ignored_chars.clear();
+                    }
+                    else
+                    {
+                        /*
+                        * Option 2: prefix of next/new token
+                        *
+                        * ( ... , <last_token>, <pending_ignored_chars><new-token>)
+                        */
+                        new_token->m_prefix.append(pending_ignored_chars);
+                        pending_ignored_chars.clear();
+                    }
+                }
+                else
+                {
+                    /*
+                    * Option 3: prefix of the ribbon
+                    *
+                    * <pending_ignored_chars> (<first-and-new-token>)
+                    */
+                    m_token_ribbon.m_prefix->m_word = pending_ignored_chars;
+                    pending_ignored_chars.clear();
+                }
+            }
+            m_token_ribbon.push(new_token );
+            LOG_VERBOSE("Parser", "Append: %s\n", Token::to_string(new_token).c_str() )
+        }
+        else
+        {
+            /*
+             * When a character is ignored, it goes to a pending_chars string.
+             * Once a no ignored token is parsed those pending_chars are added to the suffix (option 1) or to the prefix (option 2)
+             */
+            pending_ignored_chars.append(new_token->m_word);
+            LOG_VERBOSE("Parser", "Append ignored: %s\n", Token::to_string(new_token).c_str() )
+        }
 	}
 
 	/*
