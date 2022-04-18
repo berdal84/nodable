@@ -125,3 +125,130 @@ const Operator* Language::find_operator(const std::string& _identifier, Operator
 
     return nullptr;
 }
+
+
+void Language::add_regex(const std::regex& _regex, Token_t _token_t)
+{
+    m_token_regex.push_back(_regex);
+    m_regex_to_token.push_back(_token_t);
+}
+
+void Language::add_regex(const std::regex& _regex, Token_t _token_t, type _type)
+{
+    m_token_regex.push_back(_regex);
+    m_regex_to_token.push_back(_token_t);
+
+    m_type_regex.push_back(_regex);
+    m_regex_to_type.push_back(_type);
+
+    m_token_to_type.insert({_token_t, _type});
+    m_type_to_token.insert({_type.hash_code(), _token_t});
+}
+
+void Language::add_type(type _type, std::string _string)
+{
+    m_type_to_string[_type.hash_code()] = _string;
+}
+
+void Language::add_type(type _type, Token_t _token_t, std::string _string)
+{
+    m_token_to_type.insert({_token_t, _type});
+    m_type_to_token.insert({_type.hash_code(), _token_t});
+    add_string(_string, _token_t);
+    add_type(_type, _string);
+}
+
+void Language::add_string(std::string _string, Token_t _token_t)
+{
+    m_token_to_string.insert({_token_t, _string});
+    add_regex(std::regex("^(" + _string + ")"), _token_t);
+}
+
+void Language::add_char(const char _char, Token_t _token_t)
+{
+    m_token_to_char.insert({_token_t, _char});
+    m_char_to_token.insert({_char, _token_t});
+}
+
+
+const Signature* Language::new_operator_signature(
+        type _type,
+        const Operator* _op,
+        type _ltype,
+        type _rtype
+) const
+{
+    if(!_op)
+    {
+        return nullptr;
+    }
+
+    auto signature = new Signature( sanitize_operator_id(_op->identifier), _op);
+    signature->set_return_type(_type);
+    signature->push_args(_ltype, _rtype);
+
+    NODABLE_ASSERT(signature->is_operator())
+    NODABLE_ASSERT(signature->get_arg_count() == 2)
+
+    return signature;
+}
+
+const Signature* Language::new_operator_signature(
+        type _type,
+        const Operator* _op,
+        type _ltype) const
+{
+    if(!_op)
+    {
+        return nullptr;
+    }
+
+    auto signature = new Signature( sanitize_operator_id(_op->identifier), _op);
+    signature->set_return_type(_type);
+    signature->push_arg(_ltype);
+
+    NODABLE_ASSERT(signature->is_operator())
+    NODABLE_ASSERT(signature->get_arg_count() == 1)
+
+    return signature;
+}
+
+std::string& Language::to_string(std::string& _out, type _type) const
+{
+    auto found = m_type_to_string.find(_type.hash_code());
+    if( found != m_type_to_string.cend() )
+    {
+        return _out.append( found->second );
+    }
+    return _out;
+}
+
+std::string& Language::to_string(std::string& _out, Token_t _token_t) const
+{
+    {
+        auto found = m_token_to_char.find(_token_t);
+        if (found != m_token_to_char.cend())
+        {
+            _out.push_back( found->second );
+            return _out;
+        }
+    }
+    auto found = m_token_to_string.find(_token_t);
+    if (found != m_token_to_string.cend())
+    {
+        return _out.append( found->second );
+    }
+    return _out;
+}
+
+std::string Language::to_string(type _type) const
+{
+    std::string result;
+    return to_string(result, _type);
+}
+
+std::string Language::to_string(Token_t _token) const
+{
+    std::string result;
+    return to_string(result, _token);
+}

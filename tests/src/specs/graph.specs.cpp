@@ -83,12 +83,11 @@ TEST_F( graph_node_fixture, disconnect)
 TEST_F( graph_node_fixture, clear)
 {
     InstructionNode* instructionNode = graph.create_instr();
+    Signature*       sig             = language.new_operator_signature<int(int, int)>("+");
+    const IInvokable* operator_fct   = language.find_operator_fct_exact(sig);
 
-    const Operator* op = language.find_operator("+", Operator_t::Binary);
-    Signature* sig = Signature::from_type<int(int, int)>::as_operator(op);
-
-    const IInvokable* operator_fct = language.find_operator_fct_exact(sig);
     delete sig;
+
     EXPECT_TRUE(operator_fct != nullptr);
     Node* operatorNode = graph.create_function(operator_fct);
     auto props = operatorNode->props();

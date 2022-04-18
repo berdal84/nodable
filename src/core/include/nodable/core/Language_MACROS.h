@@ -14,8 +14,8 @@
 */
 #define BIND_FUNCTION_T( func, func_t ) \
     { \
-        auto* invokable = Invokable<func_t>::new_function(func, #func ); \
-        add_invokable( invokable );\
+        const Signature* sig = new_function_signature<func_t>(#func); \
+        add_invokable( new Invokable<func_t>(func, sig ) );\
     }
 
 /**
@@ -29,9 +29,8 @@
 */
 #define BIND_OPERATOR_T( func, id, func_t ) \
     { \
-        const Operator* op = FindOperator<func_t>(id).in_language(this);\
-        auto invokable = Invokable<func_t>::new_operator(func, op ); \
-        add_invokable( invokable );\
+        const Signature* sig = new_operator_signature<func_t>(id);\
+        add_invokable( new Invokable<func_t>(func, sig ) );\
     }
 
 /**

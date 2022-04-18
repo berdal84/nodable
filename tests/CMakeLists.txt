@@ -5,14 +5,12 @@
 add_executable(
     nodable_tests
     src/main.cpp
-        src/specs/function.specs.cpp
         src/specs/graph.specs.cpp
         src/specs/language.specs.cpp
         src/specs/member.specs.cpp
         src/specs/node.specs.cpp
         src/specs/parser.specs.cpp
         src/specs/reflection.specs.cpp
-        src/specs/nodable_semantic.specs.cpp
         src/specs/virtual_machine.specs.cpp
     src/specs/type_cast.specs.cpp
 )

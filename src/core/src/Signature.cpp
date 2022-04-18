@@ -10,14 +10,15 @@ Signature::Signature(std::string _id)
     , m_operator(nullptr)
     , m_return_type(type::null)
 {
-    clean_function_id(m_identifier);
 }
 
-Signature::Signature(const Operator* _operator)
-    : Signature(_operator->identifier)
+Signature::Signature(std::string _id, const Operator* _operator)
+        : m_identifier(_id)
+        , m_operator(_operator)
+        , m_return_type(type::null)
 {
     NODABLE_ASSERT(_operator)
-    m_identifier.insert(0, k_keyword_operator);
+
     m_operator = _operator;
 }
 
@@ -108,51 +109,4 @@ std::string Signature::get_label() const
         return m_operator->identifier;
     }
     return m_identifier;
-}
-
-std::string& Signature::clean_function_id(std::string& _id)
-{
-    return _id = regex_replace(_id, std::regex("^api_"), "");
-}
-
-const Signature* Signature::new_operator(
-        type _type,
-        const Operator* _op,
-        type _ltype,
-        type _rtype
-)
-{
-    if(!_op)
-    {
-        return nullptr;
-    }
-
-    auto signature = new Signature(_op);
-    signature->set_return_type(_type);
-    signature->push_args(_ltype, _rtype);
-
-    NODABLE_ASSERT(signature->is_operator())
-    NODABLE_ASSERT(signature->get_arg_count() == 2)
-
-    return signature;
-}
-
-const Signature* Signature::new_operator(
-        type _type,
-        const Operator* _op,
-        type _ltype)
-{
-    if(!_op)
-    {
-        return nullptr;
-    }
-
-    auto signature = new Signature(_op);
-    signature->set_return_type(_type);
-    signature->push_arg(_ltype);
-
-    NODABLE_ASSERT(signature->is_operator())
-    NODABLE_ASSERT(signature->get_arg_count() == 1)
-
-    return signature;
 }

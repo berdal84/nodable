@@ -35,7 +35,7 @@ namespace Nodable
     {
     public:
         Signature(std::string _id);
-        Signature(const Operator* _op);
+        Signature(std::string _id, const Operator* _op);
         ~Signature() {};
 
         void                           push_arg(type _type);
@@ -57,44 +57,13 @@ namespace Nodable
         void                           set_return_type(type _type) { m_return_type = _type; };
         const Operator*                get_operator()const { return m_operator; }
         std::string                    get_label()const;
-        static std::string&            clean_function_id(std::string& _id);
-        static const Signature*        new_operator(type, const Operator* _op, type );
-        static const Signature*        new_operator(type, const Operator* _op, type , type );
     private:
         const Operator* m_operator;
         std::string     m_identifier;
         FuncArgs        m_args;
-        type m_return_type;
+        type            m_return_type;
 
     public:
-
-        /** helpers to create a FunctionSignature */
-
-        template<typename T>
-        struct from_type;
-
-        template<typename T, typename... Args>
-        struct from_type<T(Args...)>
-        {
-            using F = T(Args...);
-
-            static Signature* as_function(std::string _id)
-            {
-                auto signature = new Signature(_id);
-                signature->set_return_type(type::get<T>());
-                signature->push_args<std::tuple<Args...>>();
-                return signature;
-            }
-
-            static Signature* as_operator(const Operator* _op)
-            {
-                NODABLE_ASSERT(_op);
-                auto signature = new Signature( _op);
-                signature->set_return_type(type::get<T>());
-                signature->push_args<std::tuple<Args...>>();
-                return signature;
-            }
-        };
 
         /** Push Arg helpers */
 
@@ -131,4 +100,6 @@ namespace Nodable
         template<typename... Args, std::enable_if_t<std::tuple_size_v<Args...> == 0, int> = 0>
         void push_args(){}
     };
+
+
 }

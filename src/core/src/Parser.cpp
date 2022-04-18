@@ -263,7 +263,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const Signature* signature = Signature::new_operator(type::any, ope, _left->get_type(), right->get_type());
+	const Signature* signature = m_language.new_operator_signature(type::any, ope, _left->get_type(), right->get_type());
     const IInvokable* invokable = m_language.find_operator_fct(signature);
 
     InvokableComponent* component;
@@ -337,7 +337,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
 	// Create a function signature
 
 	const Operator*   ope       = m_language.find_operator(operatorToken->m_word, Operator_t::Unary );
-	const Signature*  sig       = Signature::new_operator(type::any, ope, value->get_type());
+	const Signature*  sig       = m_language.new_operator_signature(type::any, ope, value->get_type());
 	const IInvokable* invokable = m_language.find_operator_fct(sig);
 
     InvokableComponent* component;
@@ -420,7 +420,7 @@ Member* Parser::parse_parenthesis_expression()
 
     start_transaction();
     std::shared_ptr<Token> currentToken = m_token_ribbon.eatToken();
-	if (currentToken->m_type != Token_t::open_bracket)
+	if (currentToken->m_type != Token_t::fct_params_begin)
 	{
 		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n")
         rollback_transaction();
@@ -431,7 +431,7 @@ Member* Parser::parse_parenthesis_expression()
 	if (result)
 	{
         std::shared_ptr<Token> token = m_token_ribbon.eatToken();
-		if (token->m_type != Token_t::close_bracket )
+		if (token->m_type != Token_t::fct_params_end )
 		{
 			LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
 			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->m_word.c_str() )
@@ -473,7 +473,7 @@ InstructionNode* Parser::parse_instr()
         {
             instr_node->end_of_instr_token(expectedEOI);
         }
-        else if( m_token_ribbon.peekToken()->m_type != Token_t::close_bracket )
+        else if( m_token_ribbon.peekToken()->m_type != Token_t::fct_params_end )
         {
             LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n")
             rollback_transaction();
@@ -517,7 +517,7 @@ Node* Parser::parse_scope()
 
     start_transaction();
 
-    if ( !m_token_ribbon.eatToken(Token_t::begin_scope))
+    if ( !m_token_ribbon.eatToken(Token_t::scope_begin))
     {
         rollback_transaction();
         result = nullptr;
@@ -542,7 +542,7 @@ Node* Parser::parse_scope()
 
         parse_code_block(false);
 
-        if ( !m_token_ribbon.eatToken(Token_t::end_scope))
+        if ( !m_token_ribbon.eatToken(Token_t::scope_end))
         {
             m_graph->destroy(scope_node);
             rollback_transaction();
@@ -665,12 +665,12 @@ bool Parser::is_syntax_valid()
 	{
 		switch ( (*currTokIt)->m_type)
 		{
-            case Token_t::open_bracket:
+            case Token_t::fct_params_begin:
             {
                 opened++;
                 break;
             }
-            case Token_t::close_bracket:
+            case Token_t::fct_params_end:
             {
                 opened--;
 
@@ -704,9 +704,8 @@ bool Parser::tokenize(const std::string& _string)
     std::string                 pending_ignored_chars;
 
     /* shortcuts to language members */
-    const Semantic& semantic = m_language.get_semantic();
-    auto& regex              = semantic.get_token_type_regex();
-    auto& regexIdToTokType   = semantic.get_token_type_regex_index_to_token_type();
+    auto& regex              = m_language.get_token_type_regex();
+    auto& regexIdToTokType   = m_language.get_token_type_regex_index_to_token_type();
 
     // Parsing method #1: loop over all regex (might be slow).
     auto parse_token_using_regexes = [&]() -> std::shared_ptr<Token>
@@ -734,21 +733,36 @@ bool Parser::tokenize(const std::string& _string)
     // Parsing method #2: should be faster (that's the objective)
     auto parse_token_fast = [&]() -> std::shared_ptr<Token>
     {
-        std::shared_ptr<Token> result;
-        size_t                 cursor_idx = std::distance(_string.cbegin(), cursor );
-        size_t                 char_left  = _string.size() - cursor_idx;
+        std::shared_ptr<Token>  result;
+        size_t                  cursor_idx   = std::distance(_string.cbegin(), cursor );
+        size_t                  char_left    = _string.size() - cursor_idx;
+        std::string::value_type current_char = _string.data()[cursor_idx];
+
+        // single char
+        switch ( current_char )
+        {
+            case '{': cursor++; return std::make_shared<Token>(Token_t::scope_begin          , current_char, cursor_idx);
+            case '}': cursor++; return std::make_shared<Token>(Token_t::scope_end            , current_char, cursor_idx);
+            case '(': cursor++; return std::make_shared<Token>(Token_t::fct_params_begin     , current_char, cursor_idx);
+            case ')': cursor++; return std::make_shared<Token>(Token_t::fct_params_end       , current_char, cursor_idx);
+            case ',': cursor++; return std::make_shared<Token>(Token_t::fct_params_separator , current_char, cursor_idx);
+            case ';': cursor++; return std::make_shared<Token>(Token_t::end_of_instruction   , current_char, cursor_idx);
+            case ' ':
+            case '\t': cursor++; return std::make_shared<Token>(Token_t::ignore , current_char, cursor_idx);
+            default: /* no warning */ ;
+        }
 
         // booleans
         if( _string.compare(cursor_idx, 4, "true") == 0)
         {
             result = std::make_shared<Token>(Token_t::literal_bool, "true", cursor_idx);
-            std::advance(cursor, result->m_word.size());
+            std::advance(cursor, 4);
             return result;
         }
         if( _string.compare(cursor_idx, 5, "false") == 0 )
         {
             result = std::make_shared<Token>(Token_t::literal_bool, "false", cursor_idx);
-            std::advance(cursor, result->m_word.size());
+            std::advance(cursor, 5);
             return result;
         }
 
@@ -872,7 +886,7 @@ Member* Parser::parse_function_call()
     std::shared_ptr<Token> token_0 = m_token_ribbon.eatToken();
     std::shared_ptr<Token> token_1 = m_token_ribbon.eatToken();
     if (token_0->m_type == Token_t::identifier &&
-        token_1->m_type == Token_t::open_bracket)
+        token_1->m_type == Token_t::fct_params_begin)
     {
         fct_id = token_0->m_word;
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
@@ -881,10 +895,9 @@ Member* Parser::parse_function_call()
     {
         std::shared_ptr<Token> token_2 = m_token_ribbon.eatToken(); // eat a "supposed open bracket>
 
-        if (   token_0->m_type == Token_t::identifier
-            && token_0->m_word == m_language.get_semantic().token_type_to_string(Token_t::keyword_operator )
+        if (   token_0->m_type == Token_t::keyword_operator
             && token_1->m_type == Token_t::operator_
-            && token_2->m_type == Token_t::open_bracket)
+            && token_2->m_type == Token_t::fct_params_begin)
         {
             // ex: "operator" + "=="
             fct_id = token_0->m_word + token_1->m_word;
@@ -904,14 +917,14 @@ Member* Parser::parse_function_call()
     signature.set_return_type(type::any);
 
     bool parsingError = false;
-    while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != Token_t::close_bracket)
+    while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != Token_t::fct_params_end)
     {
 
         if (auto member = parse_expression())
         {
             args.push_back(member); // store argument as member (already parsed)
             signature.push_arg(member->get_type());  // add a new argument type to the proto.
-            m_token_ribbon.eatToken(Token_t::separator);
+            m_token_ribbon.eatToken(Token_t::fct_params_separator);
         }
         else
         {
@@ -920,7 +933,7 @@ Member* Parser::parse_function_call()
     }
 
     // eat "close bracket supposed" token
-    if ( !m_token_ribbon.eatToken(Token_t::close_bracket) )
+    if ( !m_token_ribbon.eatToken(Token_t::fct_params_end) )
     {
         LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
         rollback_transaction();
@@ -992,7 +1005,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
 
         condStruct->set_token_if(m_token_ribbon.getEaten());
 
-        if(m_token_ribbon.eatToken(Token_t::open_bracket))
+        if(m_token_ribbon.eatToken(Token_t::fct_params_begin))
         {
             InstructionNode* condition = parse_instr();
 
@@ -1002,7 +1015,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
                 condition->set_label("Cond.");
                 condStruct->set_cond_instr(condition);
 
-                if ( m_token_ribbon.eatToken(Token_t::close_bracket) )
+                if ( m_token_ribbon.eatToken(Token_t::fct_params_end) )
                 {
                     m_graph->connect(condition->get_this_member(), condStruct->condition_member() );
 
@@ -1088,7 +1101,7 @@ ForLoopNode* Parser::parse_for_loop()
         for_loop_node->set_token_for( token_for );
 
         LOG_VERBOSE("Parser", "parse FOR (...) block...\n")
-        std::shared_ptr<Token> open_bracket = m_token_ribbon.eatToken(Token_t::open_bracket);
+        std::shared_ptr<Token> open_bracket = m_token_ribbon.eatToken(Token_t::fct_params_begin);
         if( !open_bracket )
         {
             LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
@@ -1128,7 +1141,7 @@ ForLoopNode* Parser::parse_for_loop()
                         m_graph->connect(iter_instr->get_this_member(), for_loop_node->get_iter_expr());
                         for_loop_node->set_iter_instr(iter_instr);
 
-                        std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(Token_t::close_bracket);
+                        std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(Token_t::fct_params_end);
                         if (!close_bracket)
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
@@ -1175,7 +1188,7 @@ Member *Parser::parse_variable_declaration()
 
     if(tok_type->is_keyword_type() && tok_identifier->m_type == Token_t::identifier )
     {
-        type type = m_language.get_semantic().token_type_to_type(tok_type->m_type);
+        type type = m_language.get_type(tok_type->m_type);
         VariableNode* variable = m_graph->create_variable(type, tok_identifier->m_word, get_current_scope());
         variable->set_type_token(tok_type);
         variable->set_identifier_token(tok_identifier);

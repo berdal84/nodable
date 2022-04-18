@@ -13,5 +13,4 @@ namespace Nodable
     static constexpr const char* k_forloop_initialization_member_name = "initialization";
     static constexpr const char* k_forloop_iteration_member_name      = "iteration";
     static constexpr const char* k_condition_member_name              = "condition";
-    static constexpr const char* k_keyword_operator                = "operator";
 }

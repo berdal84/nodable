@@ -26,14 +26,14 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
         {
             if (needs_brackets)
             {
-                serialize(_result, Token_t::open_bracket);
+                serialize(_result, Token_t::fct_params_begin);
             }
 
             serialize(_result, member);
 
             if (needs_brackets)
             {
-                serialize(_result, Token_t::close_bracket);
+                serialize(_result, Token_t::fct_params_end);
             }
         };
 
@@ -107,7 +107,7 @@ std::string& Serializer::serialize(std::string& _result, const InvokableComponen
 std::string& Serializer::serialize(std::string& _result, const Signature*   _signature, const std::vector<Member*>& _args) const
 {
     _result.append(_signature->get_identifier());
-    serialize(_result, Token_t::open_bracket);
+    serialize(_result, Token_t::fct_params_begin);
 
     for (auto it = _args.begin(); it != _args.end(); it++)
     {
@@ -115,11 +115,11 @@ std::string& Serializer::serialize(std::string& _result, const Signature*   _sig
 
         if (*it != _args.back())
         {
-            serialize(_result, Token_t::separator);
+            serialize(_result, Token_t::fct_params_separator);
         }
     }
 
-    serialize(_result, Token_t::close_bracket);
+    serialize(_result, Token_t::fct_params_end);
     return _result;
 }
 
@@ -128,31 +128,31 @@ std::string& Serializer::serialize(std::string& _result, const Signature* _signa
     serialize(_result, _signature->get_return_type());
     _result.append(" ");
     _result.append(_signature->get_identifier() );
-    serialize(_result, Token_t::open_bracket);
+    serialize(_result, Token_t::fct_params_begin);
 
     auto args = _signature->get_args();
     for (auto it = args.begin(); it != args.end(); it++)
     {
         if (it != args.begin())
         {
-            serialize( _result, Token_t::separator);
+            serialize( _result, Token_t::fct_params_separator);
             _result.append(" ");
         }
         serialize(_result, it->m_type);
     }
 
-    serialize(_result, Token_t::close_bracket );
+    serialize(_result, Token_t::fct_params_end );
     return  _result;
 }
 
 std::string& Serializer::serialize(std::string& _result, const Token_t& _type) const
 {
-    return _result.append(language.get_semantic().token_type_to_string(_type) );
+    return _result.append(language.to_string(_type) );
 }
 
 std::string& Serializer::serialize(std::string &_result, type _type) const
 {
-    return _result.append(language.get_semantic().type_to_string(_type) );
+    return _result.append(language.to_string(_type) );
 }
 
 std::string& Serializer::serialize(std::string& _result, const VariableNode* _node) const
@@ -365,7 +365,7 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
 {
 
     serialize( _result, _for_loop->get_token_for() );
-    serialize( _result, Token_t::open_bracket );
+    serialize( _result, Token_t::fct_params_begin );
 
     // TODO: I don't like this if/else, should be implicit. Serialize Member* must do it.
     //       More work to do to know if expression is a declaration or not.
@@ -381,7 +381,7 @@ std::string& Serializer::serialize(std::string& _result, const ForLoopNode* _for
     }
     serialize( _result, _for_loop->get_cond_instr() );
     serialize( _result, _for_loop->get_iter_instr() );
-    serialize( _result, Token_t::close_bracket );
+    serialize( _result, Token_t::fct_params_end );
 
     // if scope
     if ( auto* scope = _for_loop->get_condition_true_scope() )
@@ -396,9 +396,9 @@ std::string& Serializer::serialize(std::string& _result, const ConditionalStruct
 {
     // if ( <condition> )
     serialize( _result, _condStruct->get_token_if() );
-    serialize( _result, Token_t::open_bracket );
+    serialize( _result, Token_t::fct_params_begin );
     serialize( _result, _condStruct->get_cond_instr() );
-    serialize( _result, Token_t::close_bracket );
+    serialize( _result, Token_t::fct_params_end );
 
     // if scope
     if ( auto* ifScope = _condStruct->get_condition_true_scope() )

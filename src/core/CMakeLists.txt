@@ -37,7 +37,6 @@ add_library(
         src/Properties.cpp
         src/reflection.cpp
         src/Scope.cpp
-        src/Semantic.cpp
         src/Serializer.cpp
         src/Signature.cpp
         src/String.cpp

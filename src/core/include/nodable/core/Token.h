@@ -24,6 +24,12 @@ namespace Nodable
                 m_index(0),
                 m_charIndex(_char_index)
         {}
+        Token(Token_t _type, const char _char, size_t _char_index):
+                m_type(_type),
+                m_word({_char}),
+                m_index(0),
+                m_charIndex(_char_index)
+        {}
         ~Token() = default;
         void clear()
         {

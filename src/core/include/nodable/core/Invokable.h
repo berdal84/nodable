@@ -63,6 +63,8 @@ namespace Nodable {
     template<typename T, typename... Args>
     class Invokable<T(Args...)> : public IInvokable
     {
+    public:
+
         using F = T(Args...);
         Invokable(F* _function, const Signature* _sig)
         : m_function(_function)
@@ -70,22 +72,6 @@ namespace Nodable {
         {
             NODABLE_ASSERT(_function)
             NODABLE_ASSERT(_sig)
-        }
-    public:
-
-        static IInvokable* new_function(F* _function, const char* _id)
-        {
-            NODABLE_ASSERT(_function)
-            Signature* sig = Signature::from_type<F>::as_function(_id);
-            return new Invokable(_function, sig);
-        }
-
-        static IInvokable* new_operator(F* _function, const Operator* _op)
-        {
-            NODABLE_ASSERT(_function)
-            NODABLE_ASSERT(_op)
-            Signature* sig = Signature::from_type<F>::as_operator(_op);
-            return new Invokable(_function, sig);
         }
 
         ~Invokable() override
