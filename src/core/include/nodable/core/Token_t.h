@@ -27,7 +27,10 @@ namespace Nodable {
         keyword_double,
         keyword_int,
         keyword_bool,
-        literal,
+        literal_string,
+        literal_double,
+        literal_int,
+        literal_bool,
         operator_,
         identifier,
         open_bracket,
@@ -46,18 +49,8 @@ namespace Nodable {
 
 	static constexpr bool is_keyword_type(Token_t _token_t)
     {
-        switch (_token_t)
-        {
-            //------------keyword_<type>
-            case Token_t::keyword_string:
-            case Token_t::keyword_double:
-            case Token_t::keyword_int:
-            case Token_t::keyword_bool:
-                return true;
-
-            default:
-                return false;
-        }
+        return _token_t >= Token_t::keyword_string && _token_t <= Token_t::keyword_bool;
     }
+
 }
 

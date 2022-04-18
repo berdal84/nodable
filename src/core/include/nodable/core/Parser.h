@@ -54,10 +54,10 @@ namespace Nodable{
         void                   commit_transaction();
 
         // basic literal parsing
-        bool                   parse_bool( const std::string& );
-        std::string            parse_string( const std::string& );
-        double                 parse_double( const std::string& );
-        i16_t                  parse_int16( const std::string& );
+        static bool            parse_bool(const std::string& );
+        static std::string     parse_string(const std::string& );
+        static double          parse_double( const std::string& );
+        static i16_t           parse_i16(const std::string& );
 
         /**
 		 * Convert a Token to a Member.
@@ -96,9 +96,6 @@ namespace Nodable{
 
 		/** Get the current scope (during parsing, scope changes, we need to know the current to push any new variable) */
         Scope*                 get_current_scope();
-
-        /** Given a Literal token, return its type */
-        type            get_literal_type(std::shared_ptr<const Token> _token)const;
 
     private:
 		const Language&    m_language;

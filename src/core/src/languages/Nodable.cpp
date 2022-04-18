@@ -48,10 +48,10 @@ LanguageNodable::LanguageNodable(): Language("Nodable")
     m_semantic.insert(std::string{System::k_end_of_line}, Token_t::end_of_line);
 
     // literals
-    m_semantic.insert(std::regex("^(true|false)")                , Token_t::literal, type::get<bool>());
-    m_semantic.insert(std::regex(R"(^("[^"]*"))")                , Token_t::literal, type::get<std::string>());
-    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal, type::get<double>());
-    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))")           , Token_t::literal, type::get<i16_t>());
+    m_semantic.insert(std::regex("^(true|false)")                , Token_t::literal_bool  , type::get<bool>());
+    m_semantic.insert(std::regex(R"(^("[^"]*"))")                , Token_t::literal_string, type::get<std::string>());
+    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal_double, type::get<double>());
+    m_semantic.insert(std::regex("^(0|([1-9][0-9]*))")           , Token_t::literal_int   , type::get<i16_t>());
 
     // identifier
     m_semantic.insert(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)")    , Token_t::identifier);

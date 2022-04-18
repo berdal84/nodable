@@ -109,33 +109,6 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 	return true;
 }
 
-type Parser::get_literal_type(std::shared_ptr<const Token>_token) const
-{
-    const Semantic& semantic                 = m_language.get_semantic();
-    const std::vector<std::regex>  regex     = semantic.get_type_regex();
-    const std::vector<type> regex_id_to_type = semantic.get_type_regex_index_to_type();
-
-    type type = type::any;
-
-    auto each_regex_it = regex.cbegin();
-    while( each_regex_it != regex.cend() && type == type::any )
-    {
-        std::smatch sm;
-        auto match = std::regex_search(_token->m_word.cbegin(), _token->m_word.cend(), sm, *each_regex_it);
-
-        if (match)
-        {
-            size_t index = std::distance(regex.cbegin(), each_regex_it);
-            type = regex_id_to_type[index];
-        }
-        each_regex_it++;
-    }
-
-    NODABLE_ASSERT(type != type::any)
-
-    return type;
-}
-
 bool Parser::parse_bool(const std::string &_str)
 {
     return _str == std::string("true");
@@ -154,70 +127,83 @@ double Parser::parse_double(const std::string &_str)
     return stod(_str);
 }
 
-i16_t Parser::parse_int16(const std::string &_str)
+i16_t Parser::parse_i16(const std::string &_str)
 {
     return stoi(_str);
 }
 
 Member* Parser::token_to_member(std::shared_ptr<Token> _token)
 {
-	Member* result;
+    if( _token->m_type == Token_t::identifier )
+    {
+        VariableNode* variable = get_current_scope()->find_variable(_token->m_word);
 
-	switch (_token->m_type)
-	{
-
-	    case Token_t::literal:
+        if (variable == nullptr)
         {
-            type type = get_literal_type(_token);
-            LiteralNode* literal = m_graph->create_literal(type);
-
-                 if( type == type::get<std::string>() ) literal->set_value(parse_string(_token->m_word) );
-            else if( type == type::get<i16_t>() )       literal->set_value(parse_int16(_token->m_word) );
-            else if( type == type::get<double>() )      literal->set_value(parse_double(_token->m_word) );
-            else if( type == type::get<bool>() )        literal->set_value(parse_bool(_token->m_word)  );
-
-            result = literal->get_value();
-            result->set_src_token(_token);
-            break;
-        }
-
-	    case Token_t::identifier:
-		{
-			VariableNode* variable = get_current_scope()->find_variable(_token->m_word);
-
-			if (variable == nullptr)
-			{
-			    if ( m_strict_mode )
-                {
-                    LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token->m_word.c_str())
-                }
-			    else
-                {
-			        /* when strict mode is OFF, we just create a variable with Any type */
-                    LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n", _token->m_word.c_str())
-                    variable = m_graph->create_variable(type::null, _token->m_word, get_current_scope());
-                    variable->get_value()->set_src_token(_token);
-                    variable->set_declared(false);
-                }
-            }
-            if (variable == nullptr)
+            if ( m_strict_mode )
             {
-                result = nullptr;
+                LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token->m_word.c_str())
             }
             else
             {
-                result = variable->get_value();
+                /* when strict mode is OFF, we just create a variable with Any type */
+                LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n", _token->m_word.c_str())
+                variable = m_graph->create_variable(type::null, _token->m_word, get_current_scope());
+                variable->get_value()->set_src_token(_token);
+                variable->set_declared(false);
             }
-
-			break;
-		}
-
-	    default:
-            LOG_VERBOSE("Parser", "Unable to perform token_to_member for token %s!\n", _token->m_word.c_str())
-            result = nullptr;
+        }
+        if (variable)
+        {
+            return variable->get_value();
+        }
+        return nullptr;
     }
 
-	return result;
+    LiteralNode* literal = nullptr;
+
+	switch (_token->m_type)
+	{
+	    case Token_t::literal_bool:
+        {
+            literal = m_graph->create_literal(type::get<bool>());
+            literal->set_value(parse_bool(_token->m_word) );
+            break;
+        }
+
+	    case Token_t::literal_int:
+        {
+            literal = m_graph->create_literal(type::get<i16_t>());
+            literal->set_value(parse_i16(_token->m_word) );
+            break;
+        }
+
+	    case Token_t::literal_double:
+        {
+            literal = m_graph->create_literal(type::get<double>());
+            literal->set_value(parse_double(_token->m_word) );
+            break;
+        }
+
+	    case Token_t::literal_string:
+        {
+            literal = m_graph->create_literal(type::get<std::string>());
+            literal->set_value(parse_string(_token->m_word) );
+            break;
+        }
+
+        default: ;
+    }
+
+    if ( literal )
+    {
+        Member* result = literal->get_value();
+        result->set_src_token(_token);
+        return result;
+    }
+
+    LOG_VERBOSE("Parser", "Unable to perform token_to_member for token %s!\n", _token->m_word.c_str())
+	return nullptr;
 }
 
 Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Member *_left) {
@@ -755,11 +741,11 @@ bool Parser::tokenize_string(const std::string &_string)
         // booleans
         if( _string.compare(cursor_idx, 4, "true") == 0)
         {
-            result = std::make_shared<Token>(Token_t::literal, "true", cursor_idx);
+            result = std::make_shared<Token>(Token_t::literal_bool, "true", cursor_idx);
         }
         else if( _string.compare(cursor_idx, 5, "false") == 0 )
         {
-            result = std::make_shared<Token>(Token_t::literal, "false", cursor_idx);
+            result = std::make_shared<Token>(Token_t::literal_bool, "false", cursor_idx);
         }
 
         if( result )
