@@ -88,7 +88,7 @@ namespace Nodable{
 		Member*                parse_expression(unsigned short _precedence = 0u, Member *_left = nullptr);
 
 		/** Split a given code_source to tokens (cf. Token) */
-		bool                   tokenize_string(const std::string& _string);
+		bool                   tokenize(const std::string& _string);
 
 		/** Check if the token ribbon match with the language's syntax.
 		 * tokenizeExpressionString() must be called first */

@@ -60,7 +60,7 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
             lastToken->m_suffix.push_back(System::k_end_of_line);
         }
 
-        if (!tokenize_string(line))
+        if (!tokenize(line))
         {
             LOG_WARNING("Parser", "Unable to tokenize!\n")
             return false;
@@ -698,7 +698,7 @@ bool Parser::is_syntax_valid()
 	return success;
 }
 
-bool Parser::tokenize_string(const std::string &_string)
+bool Parser::tokenize(const std::string& _string)
 {
     std::string::const_iterator cursor = _string.cbegin(); // the current char
     std::string                 pending_ignored_chars;
@@ -742,18 +742,28 @@ bool Parser::tokenize_string(const std::string &_string)
         if( _string.compare(cursor_idx, 4, "true") == 0)
         {
             result = std::make_shared<Token>(Token_t::literal_bool, "true", cursor_idx);
+            std::advance(cursor, result->m_word.size());
+            return result;
         }
-        else if( _string.compare(cursor_idx, 5, "false") == 0 )
+        if( _string.compare(cursor_idx, 5, "false") == 0 )
         {
             result = std::make_shared<Token>(Token_t::literal_bool, "false", cursor_idx);
-        }
-
-        if( result )
-        {
             std::advance(cursor, result->m_word.size());
+            return result;
         }
 
-        return result;
+        // numbers
+//        if( *cursor >= '0' && *cursor <= '9' )
+//        {
+//            auto temp_cursor = cursor;
+//            while( temp_cursor!=_string.cend() && *temp_cursor >= '0' && *temp_cursor <= '9' )
+//            {
+//                ++temp_cursor;
+//            }
+//            if()
+//            result = std::make_shared<Token>(Token_t::literal_int, "true", cursor_idx);
+//        }
+        return nullptr;
     };
 
 	while( cursor != _string.cend())
