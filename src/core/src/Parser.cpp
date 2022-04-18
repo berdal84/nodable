@@ -39,7 +39,7 @@ void Parser::commit_transaction()
     m_token_ribbon.commitTransaction();
 }
 
-bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
+bool Parser::parse(const std::string &_source_code, GraphNode *_graphNode)
 {
     m_graph = _graphNode;
     m_token_ribbon.clear();
@@ -109,30 +109,30 @@ bool Parser::parse_graph(const std::string &_source_code, GraphNode *_graphNode)
 	return true;
 }
 
-bool Parser::parse_bool(const std::string &_str)
+bool Parser::to_bool(const std::string &_str)
 {
     return _str == std::string("true");
 }
 
-std::string Parser::parse_string(const std::string &_str)
+std::string Parser::to_string(const std::string& _quoted_str)
 {
-    NODABLE_ASSERT(_str.size() >= 2);
-    NODABLE_ASSERT(_str.front() == '\"');
-    NODABLE_ASSERT(_str.back() == '\"');
-    return std::string(++_str.cbegin(), --_str.cend());
+    NODABLE_ASSERT(_quoted_str.size() >= 2);
+    NODABLE_ASSERT(_quoted_str.front() == '\"');
+    NODABLE_ASSERT(_quoted_str.back() == '\"');
+    return std::string(++_quoted_str.cbegin(), --_quoted_str.cend());
 }
 
-double Parser::parse_double(const std::string &_str)
+double Parser::to_double(const std::string &_str)
 {
     return stod(_str);
 }
 
-i16_t Parser::parse_i16(const std::string &_str)
+i16_t Parser::to_i16(const std::string &_str)
 {
     return stoi(_str);
 }
 
-Member* Parser::token_to_member(std::shared_ptr<Token> _token)
+Member* Parser::to_member(std::shared_ptr<Token> _token)
 {
     if( _token->m_type == Token_t::identifier )
     {
@@ -167,28 +167,28 @@ Member* Parser::token_to_member(std::shared_ptr<Token> _token)
 	    case Token_t::literal_bool:
         {
             literal = m_graph->create_literal(type::get<bool>());
-            literal->set_value(parse_bool(_token->m_word) );
+            literal->set_value(to_bool(_token->m_word) );
             break;
         }
 
 	    case Token_t::literal_int:
         {
             literal = m_graph->create_literal(type::get<i16_t>());
-            literal->set_value(parse_i16(_token->m_word) );
+            literal->set_value(to_i16(_token->m_word) );
             break;
         }
 
 	    case Token_t::literal_double:
         {
             literal = m_graph->create_literal(type::get<double>());
-            literal->set_value(parse_double(_token->m_word) );
+            literal->set_value(to_double(_token->m_word) );
             break;
         }
 
 	    case Token_t::literal_string:
         {
             literal = m_graph->create_literal(type::get<std::string>());
-            literal->set_value(parse_string(_token->m_word) );
+            literal->set_value(to_string(_token->m_word) );
             break;
         }
 
@@ -391,7 +391,7 @@ Member* Parser::parse_atomic_expression()
 		return nullptr;
 	}
 
-	auto result = token_to_member(token);
+	auto result = to_member(token);
 
 	if( result != nullptr)
     {

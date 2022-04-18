@@ -42,7 +42,7 @@ namespace Nodable{
 
 		/** Try to convert a source code to a program tree.
 		   Return true if evaluation went well and false otherwise. */
-		bool                   parse_graph(const std::string &_source_code, GraphNode *_graphNode);
+		bool                   parse(const std::string& _in, GraphNode *_out);
 
     protected:
 
@@ -53,20 +53,12 @@ namespace Nodable{
         void                   rollback_transaction();
         void                   commit_transaction();
 
-        // basic literal parsing
-        static bool            parse_bool(const std::string& );
-        static std::string     parse_string(const std::string& );
-        static double          parse_double( const std::string& );
-        static i16_t           parse_i16(const std::string& );
+        static bool            to_bool(const std::string& );
+        static std::string     to_string(const std::string& _quoted_str);
+        static double          to_double(const std::string& );
+        static i16_t           to_i16(const std::string& );
+		Member*                to_member(std::shared_ptr<Token> _token);
 
-        /**
-		 * Convert a Token to a Member.
-	     * @return a Member* that owns _token.
-	     */
-		Member*                token_to_member(std::shared_ptr<Token> _token);
-
-		// those parse_XXXX() are parsing from the token_ribbon at current_position.
-		// After a call, cursor may have moved or could have been reverted to initial position.
 		Node*                  parse_scope();
         InstructionNode*       parse_instr();
         Member*                parse_variable_declaration();
@@ -77,24 +69,12 @@ namespace Nodable{
 		Member*                parse_function_call();
 		Member*                parse_parenthesis_expression();
 		Member*                parse_binary_operator_expression(unsigned short _precedence = 0u, Member *_left = nullptr);
-
-		/** To parse two tokens (ex: !true, -5, etc..) */
 		Member*                parse_unary_operator_expression(unsigned short _precedence = 0u);
-
-		/** To parse a primary expression (ex: "myVariable", "10.4", etc... ) */
 		Member*                parse_atomic_expression();
-
-		/** Build a graph recursively starting at the current cursor position. */
 		Member*                parse_expression(unsigned short _precedence = 0u, Member *_left = nullptr);
 
-		/** Split a given code_source to tokens (cf. Token) */
 		bool                   tokenize(const std::string& _string);
-
-		/** Check if the token ribbon match with the language's syntax.
-		 * tokenizeExpressionString() must be called first */
 		bool                   is_syntax_valid();
-
-		/** Get the current scope (during parsing, scope changes, we need to know the current to push any new variable) */
         Scope*                 get_current_scope();
 
     private:

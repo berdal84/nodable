@@ -46,7 +46,7 @@ public:
         static_assert( !std::is_pointer<return_t>::value ); // returning a pointer from VM will fail when accessing data
                                                             // since VM will be destroyed leaving this scope.
         // parse
-        language.get_parser().parse_graph(_source_code, &graph);
+        language.get_parser().parse(_source_code, &graph);
 
         // compile
         auto asm_code = compiler.compile_syntax_tree(&graph);
@@ -79,7 +79,7 @@ public:
         LOG_MESSAGE("nodable_fixture", "parse_compile_run_serialize parsing \"%s\"\n", _source_code.c_str());
 
         // parse
-        language.get_parser().parse_graph(_source_code, &graph);
+        language.get_parser().parse(_source_code, &graph);
 
         // compile
         auto code = compiler.compile_syntax_tree(&graph);
@@ -112,7 +112,7 @@ public:
         LOG_VERBOSE("nodable_fixture", "parse_and_serialize parsing \"%s\"\n", _source_code.c_str());
 
         // parse
-        language.get_parser().parse_graph(_source_code, &graph);
+        language.get_parser().parse(_source_code, &graph);
         if ( !graph.get_root())
         {
             throw std::runtime_error("parse_and_serialize: Unable to generate program.");
