@@ -237,7 +237,7 @@ void FileView::draw_info() const
     {
         Language&         language   = m_ctx.language();
         const auto&       functions  = language.get_api();
-        const Serializer& serializer = language.get_serializer();
+        const ISerializer& serializer = language.get_serializer();
 
         ImGui::Columns(1);
         for(const auto& each_fct : functions )

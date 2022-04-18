@@ -16,6 +16,7 @@
 #include <nodable/app/NodeConnector.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/InstructionNode.h>
+#include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/System.h>
 
 using namespace Nodable;

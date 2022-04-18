@@ -1,49 +1,33 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <memory> // std::shared_ptr
-
-#include <nodable/core/Token_t.h>
-#include <nodable/core/Invokable.h>
-#include <nodable/core/ConditionalStructNode.h>
-#include <nodable/core/Token.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/ISerializer.h>
 
 namespace Nodable
 {
     // forward declarations
-    class InvokableComponent;
-    class Member;
-    class Language;
-    class IScope;
-    class InstructionNode;
-    class ForLoopNode;
-    class Scope;
-    class Operator;
     class Language;
 
-    class Serializer
+    class Serializer : public ISerializer
     {
     public:
 
         explicit Serializer(const Language* _language): language(*_language) {};
         ~Serializer() = default;
 
-        std::string& serialize(std::string &_result, const InvokableComponent*) const;
-        std::string& serialize(std::string &_result, const Signature*, const std::vector<Member*>&)const;
-        std::string& serialize(std::string &_result, const Signature*)const;
-        std::string& serialize(std::string &_result, const Token_t&)const;
-        std::string& serialize(std::string &_result, type)const;
-        std::string& serialize(std::string &_result, const Member*, bool followConnections = true)const;
-        std::string& serialize(std::string &_result, std::shared_ptr<const Token>) const;
-        std::string& serialize(std::string &_result, const InstructionNode*)const;
-        std::string& serialize(std::string &_result, const Node*)const;
-        std::string& serialize(std::string &_result, const Scope*)const;
-        std::string& serialize(std::string &_result, const ForLoopNode* _for_loop)const;
-        std::string& serialize(std::string &_result, const ConditionalStructNode*) const;
-        std::string& serialize(std::string &_result, const Variant* variant) const;
-        std::string& serialize(std::string &_result, const VariableNode *_node) const;
+        std::string& serialize(std::string& _out, const InvokableComponent*) const override;
+        std::string& serialize(std::string& _out, const Signature*, const std::vector<Member*>&)const override;
+        std::string& serialize(std::string& _out, const Signature*)const override;
+        std::string& serialize(std::string& _out, const Token_t&)const override;
+        std::string& serialize(std::string& _out, type)const override;
+        std::string& serialize(std::string& _out, const Member*, bool followConnections = true)const override;
+        std::string& serialize(std::string& _out, std::shared_ptr<const Token>) const override;
+        std::string& serialize(std::string& _out, const InstructionNode*)const override;
+        std::string& serialize(std::string& _out, const Node*)const override;
+        std::string& serialize(std::string& _out, const Scope*)const override;
+        std::string& serialize(std::string& _out, const ForLoopNode* _for_loop)const override;
+        std::string& serialize(std::string& _out, const ConditionalStructNode*) const override;
+        std::string& serialize(std::string& _out, const Variant* variant) const override;
+        std::string& serialize(std::string& _out, const VariableNode *_node) const override;
     protected:
         const Language& language;
     };

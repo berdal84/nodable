@@ -16,6 +16,7 @@
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/System.h>
+#include <nodable/core/ConditionalStructNode.h>
 
 using namespace Nodable;
 

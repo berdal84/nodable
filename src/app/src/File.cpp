@@ -93,7 +93,7 @@ bool File::update_graph(std::string& _code_source)
         graph_view->clear_child_view_constraints();
     }
 
-    Parser& parser = m_ctx.language().get_parser();
+    IParser& parser = m_ctx.language().get_parser();
     if (parser.parse(_code_source, m_graph) && !m_graph->is_empty() )
     {
         graph_view->update_child_view_constraints();

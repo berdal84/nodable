@@ -3,6 +3,8 @@
 #include <nodable/core/Node.h>
 #include <nodable/core/Parser.h>
 #include <nodable/core/Operator.h>
+#include <nodable/core/IParser.h>
+#include <nodable/core/ISerializer.h>
 
 using namespace Nodable;
 

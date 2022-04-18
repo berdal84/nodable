@@ -26,6 +26,9 @@ namespace Nodable {
     template<typename T>
     struct signature_builder;
 
+    class IParser;
+    class ISerializer;
+
 	/**
 	 * @brief The role of this class is to define a base abstract class for all languages.
 	 *
@@ -41,12 +44,8 @@ namespace Nodable {
 	    using InvokableFunctions_t = std::vector<const IInvokable*>;
 	public:
 
-		Language(const char* _name)
-                : m_name(_name)
-                , m_parser(this)
-                , m_serializer(this)
-        {
-        };
+		Language(const char* _name): m_name(_name), m_serializer(this), m_parser(this)
+        {};
 
 		virtual ~Language();
 
@@ -55,9 +54,9 @@ namespace Nodable {
         const IInvokable*               find_operator_fct_exact(const Signature*) const;
         const Operator*                 find_operator(const std::string& , Operator_t) const;
 
-        Parser&                         get_parser() { return m_parser; }
-        const Parser&                   get_parser()const { return m_parser; }
-        const Serializer&               get_serializer()const { return m_serializer; }
+        IParser&                        get_parser() { return m_parser; }
+        const IParser&                  get_parser()const { return m_parser; }
+        const ISerializer&              get_serializer()const { return m_serializer; }
         const InvokableFunctions_t&     get_api()const { return m_functions; }
         const std::vector<std::regex>&  get_token_type_regex()const { return m_token_regex;  }
         std::string&                    to_string(std::string&, type)const;
@@ -95,8 +94,8 @@ namespace Nodable {
         void                            add_type(type _type, std::string _string);
         void                            add_char(const char _char, Token_t _token_t);
 
-        Serializer               m_serializer;
-        Parser                   m_parser;
+        Serializer m_serializer;
+        Parser     m_parser;
 
         // indexes and regexes...
         std::vector<std::regex>  m_type_regex;

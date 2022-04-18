@@ -15,6 +15,7 @@
 #include "nodable/core/LiteralNode.h"
 #include "nodable/core/InvokableComponent.h"
 #include "nodable/core/GraphNode.h"
+#include "nodable/core/ConditionalStructNode.h"
 #include "nodable/core/math.h"
 
 using namespace Nodable;

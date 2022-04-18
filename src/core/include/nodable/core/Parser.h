@@ -11,16 +11,9 @@
 #include <nodable/core/TokenRibbon.h>
 #include <nodable/core/ForLoopNode.h>
 #include <nodable/core/reflection/reflection>
+#include <nodable/core/IParser.h>
 
 namespace Nodable{
-
-    // forward declaration
-    class ConditionalStructNode;
-    class InstructionNode;
-    class ForLoopNode;
-    class Language;
-    class IScope;
-    class Scope;
 
 	/**
 		The role of this class is to convert code string to a Nodable graph.
@@ -34,48 +27,45 @@ namespace Nodable{
 	    There is no AST (Abstract Syntax Tree) since Nodable keep graph (Nodes) linked to text (tokens) all the time.
 	*/
 
-	class Parser
+	class Parser : public IParser
 	{
 	public:
         Parser(const Language* _lang, bool _strict = false );
-		~Parser(){}
+		~Parser() override {}
 
 		/** Try to convert a source code to a program tree.
 		   Return true if evaluation went well and false otherwise. */
-		bool                   parse(const std::string& _in, GraphNode *_out);
+		bool                   parse(const std::string& _in, GraphNode *_out) override;
 
     protected:
 
 	    /** Start a parsing transaction.
 	     * This will memorise the current cursor position on the token ribbon.
 	     * A commit/rollback must follow. */
-        void                   start_transaction();
-        void                   rollback_transaction();
-        void                   commit_transaction();
-
-        static bool            to_bool(const std::string& );
-        static std::string     to_string(const std::string& _quoted_str);
-        static double          to_double(const std::string& );
-        static i16_t           to_i16(const std::string& );
-		Member*                to_member(std::shared_ptr<Token> _token);
-
-		Node*                  parse_scope();
-        InstructionNode*       parse_instr();
-        Member*                parse_variable_declaration();
-        IScope*                parse_code_block(bool _create_scope);
-        ConditionalStructNode* parse_conditional_structure();
-        ForLoopNode*           parse_for_loop();
-        Node*                  parse_program();
-		Member*                parse_function_call();
-		Member*                parse_parenthesis_expression();
-		Member*                parse_binary_operator_expression(unsigned short _precedence = 0u, Member *_left = nullptr);
-		Member*                parse_unary_operator_expression(unsigned short _precedence = 0u);
-		Member*                parse_atomic_expression();
-		Member*                parse_expression(unsigned short _precedence = 0u, Member *_left = nullptr);
-
-		bool                   tokenize(const std::string& _string);
-		bool                   is_syntax_valid();
-        Scope*                 get_current_scope();
+        void                   start_transaction() override;
+        void                   rollback_transaction() override;
+        void                   commit_transaction() override;
+        bool                   to_bool(const std::string& ) override;
+        std::string            to_string(const std::string& _quoted_str) override;
+        double                 to_double(const std::string& ) override;
+        i16_t                  to_i16(const std::string& ) override;
+		Member*                to_member(std::shared_ptr<Token> _token) override;
+		Node*                  parse_scope() override;
+        InstructionNode*       parse_instr() override;
+        Member*                parse_variable_declaration() override;
+        IScope*                parse_code_block(bool _create_scope) override;
+        ConditionalStructNode* parse_conditional_structure() override;
+        ForLoopNode*           parse_for_loop() override;
+        Node*                  parse_program() override;
+		Member*                parse_function_call() override;
+		Member*                parse_parenthesis_expression() override;
+		Member*                parse_binary_operator_expression(unsigned short _precedence = 0u, Member *_left = nullptr) override;
+		Member*                parse_unary_operator_expression(unsigned short _precedence = 0u) override;
+		Member*                parse_atomic_expression() override;
+		Member*                parse_expression(unsigned short _precedence = 0u, Member *_left = nullptr) override;
+		bool                   tokenize(const std::string& _string) override;
+		bool                   is_syntax_valid() override;
+        Scope*                 get_current_scope() override;
 
     private:
 		const Language&    m_language;

@@ -6,6 +6,7 @@
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/Operator.h>
 #include <nodable/core/Scope.h>
+#include <nodable/core/ConditionalStructNode.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
