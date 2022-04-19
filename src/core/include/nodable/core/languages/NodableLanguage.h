@@ -1,7 +1,10 @@
 #pragma once
 #include <nodable/core/ILanguage.h>
+#include <nodable/core/ILibrary.h>
 #include <nodable/core/System.h>
-#include <nodable/core/SignatureBuilder.h>
+#include <nodable/core/Signature.h> // usage in template function load_library
+#include <nodable/core/languages/NodableParser.h>
+#include <nodable/core/languages/NodableSerializer.h>
 
 namespace Nodable {
 
@@ -36,26 +39,16 @@ namespace Nodable {
         const std::vector<Token_t>&     get_token_type_regex_index_to_token_type()const override { return m_regex_to_token; }
         const Signature*                new_operator_signature(type, const Operator*, type)const override;
         const Signature*                new_operator_signature(type, const Operator*, type, type)const override;
-        template<typename T>
-        Signature*                      new_function_signature(const std::string& _id)const
-        {
-            SignatureBuilder<T> builder;
-            builder.with_id(_id);
-            builder.with_lang(this);
-            return builder.construct();
-        }
+        void                            add_invokable(const IInvokable*) override;
 
-        template<typename T>
-        Signature*                      new_operator_signature(const std::string& _id)const
+        template<typename T, typename std::enable_if<std::is_base_of<ILibrary, T>::value>::type* = nullptr>
+        void load_library()
         {
-            SignatureBuilder<T> builder;
-            builder.with_id(_id);
-            builder.with_lang(this);
-            builder.as_operator();
-            return builder.construct();
+            std::unique_ptr<ILibrary> library = std::make_unique<T>();
+            library->bind_to_language(this);
+            m_libraries.insert( std::move(library) );
         }
     private:
-        void                            add_invokable(const IInvokable*);
         void                            add_operator(const char* _id, Operator_t _type, int _precedence);
         const IInvokable*               find_operator_fct_fallback(const Signature*) const;
         void                            add_regex(const std::regex &_regex, Token_t _token_t);
@@ -65,8 +58,9 @@ namespace Nodable {
         void                            add_type(type _type, std::string _string);
         void                            add_char(const char _char, Token_t _token_t);
 
-        NodableSerializer               m_serializer;
-        NodableParser                   m_parser;
+        std::unordered_set<std::unique_ptr<ILibrary>> m_libraries;
+        NodableSerializer        m_serializer;
+        NodableParser            m_parser;
         Operators_t              m_operators;
         InvokableFunctions_t     m_operator_implems;
         InvokableFunctions_t     m_functions;

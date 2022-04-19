@@ -30,13 +30,12 @@ add_library(
         src/LiteralNode.cpp
         src/Log.cpp
         src/Member.cpp
+        src/NodableParser.cpp
+        src/NodableSerializer.cpp
         src/Node.cpp
         src/NodeFactory.cpp
-        src/NodableParser.cpp
         src/Properties.cpp
-        src/reflection.cpp
         src/Scope.cpp
-        src/NodableSerializer.cpp
         src/Signature.cpp
         src/String.cpp
         src/System.cpp
@@ -51,7 +50,11 @@ add_library(
         src/assembly/Compiler.cpp
         src/assembly/Instruction.cpp
         src/assembly/QWord.cpp
-        src/languages/NodableLanguage.cpp)
+        src/languages/NodableLanguage.cpp
+        src/languages/NodableLibrary_biology.cpp
+        src/languages/NodableLibrary_math.cpp
+        src/reflection.cpp
+)
 
 target_link_libraries(
     nodable-core

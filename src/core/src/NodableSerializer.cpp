@@ -7,7 +7,9 @@
 #include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/ForLoopNode.h>
 #include <nodable/core/Scope.h>
+#include <nodable/core/Signature.h>
 #include <nodable/core/LiteralNode.h>
+#include <nodable/core/Operator.h>
 #include <nodable/core/languages/NodableLanguage.h>
 
 using namespace Nodable;

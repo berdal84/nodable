@@ -2,10 +2,11 @@
 
 #include <fstream>
 
+#include <nodable/core/ISerializer.h>
+#include <nodable/core/languages/NodableParser.h>
 #include <nodable/app/App.h>
 #include <nodable/app/FileView.h>
 #include <nodable/app/GraphNodeView.h>
-#include <nodable/core/languages/NodableParser.h>
 #include <nodable/app/History.h>
 #include <nodable/app/IAppCtx.h>
 #include <nodable/app/NodeView.h>

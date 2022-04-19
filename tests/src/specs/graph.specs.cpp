@@ -10,6 +10,7 @@
 #include <nodable/core/languages/NodableLanguage.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/Scope.h>
+#include <nodable/core/SignatureBuilder.h>
 
 using namespace Nodable;
 
@@ -83,7 +84,7 @@ TEST_F( graph_node_fixture, disconnect)
 TEST_F( graph_node_fixture, clear)
 {
     InstructionNode* instructionNode = graph.create_instr();
-    Signature*       sig             = language.new_operator_signature<int(int, int)>("+");
+    Signature*       sig             = SignatureBuilder<int(int, int)>::new_operator("+", &language);
     const IInvokable* operator_fct   = language.find_operator_fct_exact(sig);
 
     delete sig;

@@ -3,12 +3,11 @@
 #include <string>
 #include <vector>
 #include <tuple>
+#include <regex>
 #include <memory>
 
 #include <nodable/core/reflection/reflection>
 #include <nodable/core/constants.h>
-#include <regex>
-#include "Operator.h"
 
 namespace Nodable
 {
@@ -21,8 +20,8 @@ namespace Nodable
     struct FuncArg
     {
         FuncArg(type _type, std::string& _name): m_type(_type), m_name(_name){}
-        type m_type;
-        std::string           m_name;
+        type        m_type;
+        std::string m_name;
     };
 
     using FuncArgs = std::vector<FuncArg>;

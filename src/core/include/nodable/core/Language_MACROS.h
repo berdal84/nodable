@@ -1,7 +1,23 @@
 /*
-	Macros to easily bind cpp functions to a Nodable::Language.
-    These MACROS must be used within Nodable::Language non-static scope
+	Macros to easily bind cpp functions to a Nodable::ILanguage.
+    These MACROS must be used within Nodable scope scope
+
+    example:
+
+    void NodableLanguage_biology::bind_to_language(ILanguage* _language) const
+    {
+        BIND_TO(_language)
+        BIND_FUNCTION(dna_to_protein)
+    }
+
 */
+
+#include <nodable/core/ILanguage.h>
+#include <nodable/core/SignatureBuilder.h>
+#include <nodable/core/Invokable.h>
+
+#define BIND_TO( language ) \
+ILanguage* __language = language;
 
 /**
 * Wrap a native function with a specific signature.
@@ -14,8 +30,8 @@
 */
 #define BIND_FUNCTION_T( func, func_t ) \
     { \
-        const Signature* sig = new_function_signature<func_t>(#func); \
-        add_invokable( new Invokable<func_t>(func, sig ) );\
+        const Signature* sig = SignatureBuilder<func_t>::new_function(#func, __language); \
+        __language->add_invokable( new Invokable<func_t>(func, sig ) );\
     }
 
 /**
@@ -29,8 +45,8 @@
 */
 #define BIND_OPERATOR_T( func, id, func_t ) \
     { \
-        const Signature* sig = new_operator_signature<func_t>(id);\
-        add_invokable( new Invokable<func_t>(func, sig ) );\
+        const Signature* sig = SignatureBuilder<func_t>::new_operator(id, __language);\
+        __language->add_invokable( new Invokable<func_t>(func, sig ) );\
     }
 
 /**

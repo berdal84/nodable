@@ -1,12 +1,14 @@
 #include <nodable/app/FileView.h>
 
-#include <nodable/app/NodeView.h>
 #include <nodable/app/File.h>
-#include <nodable/core/GraphNode.h>
 #include <nodable/app/GraphNodeView.h>
-#include <nodable/app/Settings.h>
-#include <nodable/core/Node.h>
 #include <nodable/app/IAppCtx.h>
+#include <nodable/app/NodeView.h>
+#include <nodable/app/Settings.h>
+
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/ISerializer.h>
+#include <nodable/core/Node.h>
 #include <nodable/core/VirtualMachine.h>
 
 using namespace Nodable;

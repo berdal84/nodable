@@ -3,10 +3,14 @@
 #include <nodable/core/Log.h>
 #include <nodable/core/ILanguage.h>
 #include <nodable/core/Signature.h>
+#include <nodable/core/Operator.h>
 #include <string>
 
 namespace Nodable
 {
+    template<typename T>
+    struct SignatureBuilder;
+
     /**
      * Builder to create function/operator signatures for a given language
      * @tparam T is the function's return type
@@ -63,5 +67,24 @@ namespace Nodable
 
             return signature;
         }
+
+        static Signature* new_function(const std::string& _id, const ILanguage* _language)
+        {
+            SignatureBuilder<T(Args...)> builder;
+            builder.with_id(_id);
+            builder.with_lang(_language);
+            return builder.construct();
+        }
+
+        static Signature* new_operator(const std::string& _id, const ILanguage* _language)
+        {
+            SignatureBuilder<T(Args...)> builder;
+            builder.with_id(_id);
+            builder.with_lang(_language);
+            builder.as_operator();
+            return builder.construct();
+        }
     };
+
+
 }

@@ -11,23 +11,18 @@
 #include <string>
 
 // Nodable
-#include <nodable/core/types.h> // for constants and forward declarations
+#include <nodable/core/types.h>
 #include <nodable/core/Token_t.h>
+#include <nodable/core/Operator_t.h>
 #include <nodable/core/reflection/reflection>
-#include <nodable/core/Log.h>
-#include <nodable/core/Invokable.h>
-#include <nodable/core/Language_MACROS.h>
-#include <nodable/core/languages/NodableSerializer.h>
-#include <nodable/core/languages/NodableParser.h>
-#include <nodable/core/Operator.h>
 
-namespace Nodable {
-
-    template<typename T>
-    struct SignatureBuilder;
-
+namespace Nodable
+{
+    class Operator;
     class IParser;
     class ISerializer;
+    class IInvokable;
+    class Signature;
 
 	/**
 	 * @brief The role of this class is to define a base abstract class for all languages.
@@ -64,5 +59,6 @@ namespace Nodable {
         virtual const Signature*                new_operator_signature(type, const Operator*, type, type)const = 0;
         virtual std::string                     sanitize_function_id(const std::string& _id)const = 0;
         virtual std::string                     sanitize_operator_id(const std::string& _id)const = 0;
+        virtual void                            add_invokable(const IInvokable*) = 0;
     };
 }

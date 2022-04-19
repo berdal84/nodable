@@ -374,12 +374,12 @@ TEST_F(nodable_fixture, multi_instruction_multi_line_02 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, DNAtoProtein )
+TEST_F(nodable_fixture, dna_to_protein )
 {
-    EXPECT_EQ(eval<std::string>("DNAtoProtein(\"TAA\")"), "_");
-    EXPECT_EQ(eval<std::string>("DNAtoProtein(\"TAG\")"), "_");
-    EXPECT_EQ(eval<std::string>("DNAtoProtein(\"TGA\")"), "_");
-    EXPECT_EQ(eval<std::string>("DNAtoProtein(\"ATG\")"), "M");
+    EXPECT_EQ(eval<std::string>("dna_to_protein(\"TAA\")"), "_");
+    EXPECT_EQ(eval<std::string>("dna_to_protein(\"TAG\")"), "_");
+    EXPECT_EQ(eval<std::string>("dna_to_protein(\"TGA\")"), "_");
+    EXPECT_EQ(eval<std::string>("dna_to_protein(\"ATG\")"), "M");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

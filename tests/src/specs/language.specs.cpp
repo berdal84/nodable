@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <nodable/core/Invokable.h>
+#include <nodable/core/SignatureBuilder.h>
 #include <nodable/core/languages/NodableLanguage.h>
 
 using namespace Nodable;
@@ -13,7 +14,7 @@ public:
 
 TEST_F(language_fixture, no_arg_fct)
 {
-    auto no_arg_fct = language.new_function_signature<bool()>("fct");
+    auto no_arg_fct = SignatureBuilder<bool()>::new_function("fct", &language);
 
     EXPECT_EQ(no_arg_fct->get_arg_count(), 0);
     EXPECT_EQ(no_arg_fct->get_arg_count(), 0);
@@ -21,7 +22,7 @@ TEST_F(language_fixture, no_arg_fct)
 
 TEST_F(language_fixture, push_single_arg)
 {
-    Signature* single_arg_fct = language.new_function_signature<bool(double)>("fct");
+    Signature* single_arg_fct = SignatureBuilder<bool(double)>::new_function("fct", &language);
 
     EXPECT_EQ(single_arg_fct->get_arg_count(), 1);
     EXPECT_EQ(single_arg_fct->get_return_type(), type::get<bool>());
@@ -30,7 +31,7 @@ TEST_F(language_fixture, push_single_arg)
 
 TEST_F(language_fixture, push_two_args)
 {
-    auto two_arg_fct = language.new_function_signature<bool(double, double)>("fct");
+    auto two_arg_fct = SignatureBuilder<bool(double, double)>::new_function("fct", &language);
 
     EXPECT_EQ(two_arg_fct->get_arg_count(), 2);
     EXPECT_EQ(two_arg_fct->get_return_type(), type::get<bool>());
@@ -40,8 +41,8 @@ TEST_F(language_fixture, push_two_args)
 
 TEST_F(language_fixture, match_check_for_arg_count)
 {
-    Signature* single_arg_fct = language.new_function_signature<bool(bool)>("fct");
-    Signature* two_arg_fct    = language.new_function_signature<bool(bool, bool)>("fct");
+    Signature* single_arg_fct = SignatureBuilder<bool(bool)>::new_function("fct", &language);
+    Signature* two_arg_fct    = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
 
     EXPECT_EQ(two_arg_fct->is_compatible(single_arg_fct), false);
     EXPECT_EQ(single_arg_fct->is_compatible(two_arg_fct), false);
@@ -49,8 +50,8 @@ TEST_F(language_fixture, match_check_for_arg_count)
 
 TEST_F(language_fixture, match_check_identifier)
 {
-    Signature* two_arg_fct          = language.new_function_signature<bool(bool, bool)>("fct");
-    Signature* two_arg_fct_modified = language.new_function_signature<bool()>("fct");
+    Signature* two_arg_fct          = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
+    Signature* two_arg_fct_modified = SignatureBuilder<bool()>::new_function("fct", &language);
 
     two_arg_fct_modified->push_arg(type::get<double>() );
     two_arg_fct_modified->push_arg(type::get<double>() );
@@ -61,8 +62,8 @@ TEST_F(language_fixture, match_check_identifier)
 
 TEST_F(language_fixture, match_check_absence_of_arg)
 {
-    Signature* two_arg_fct              = language.new_function_signature<bool(bool, bool)>("fct");
-    Signature* two_arg_fct_without_args = language.new_function_signature<bool()>("fct");
+    Signature* two_arg_fct              = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
+    Signature* two_arg_fct_without_args = SignatureBuilder<bool()>::new_function("fct", &language);
 
     EXPECT_EQ(two_arg_fct->is_compatible(two_arg_fct_without_args), false);
     EXPECT_EQ(two_arg_fct_without_args->is_compatible(two_arg_fct), false);
@@ -70,8 +71,8 @@ TEST_F(language_fixture, match_check_absence_of_arg)
 
 TEST_F(language_fixture, push_args_template_0)
 {
-    auto ref = language.new_function_signature<bool()>("fct");
-    auto fct = language.new_function_signature<bool()>("fct");
+    auto ref = SignatureBuilder<bool()>::new_function("fct", &language);
+    auto fct = SignatureBuilder<bool()>::new_function("fct", &language);
 
     using Args = std::tuple<>; // create arg tuple
     fct->push_args<Args>(); // push those args to signature
@@ -82,8 +83,8 @@ TEST_F(language_fixture, push_args_template_0)
 
 TEST_F(language_fixture, push_args_template_1)
 {
-    auto ref = language.new_function_signature<bool(double, double)>("fct");
-    auto fct = language.new_function_signature<bool()>("fct");
+    auto ref = SignatureBuilder<bool(double, double)>::new_function("fct", &language);
+    auto fct = SignatureBuilder<bool()>::new_function("fct", &language);
 
     fct->push_args< std::tuple<double, double> >();
 
@@ -93,8 +94,8 @@ TEST_F(language_fixture, push_args_template_1)
 
 TEST_F(language_fixture, push_args_template_4)
 {
-    auto ref = language.new_function_signature<bool(double, double, double, double)>("fct");
-    auto fct = language.new_function_signature<bool()>("fct");
+    auto ref = SignatureBuilder<bool(double, double, double, double)>::new_function("fct", &language);
+    auto fct = SignatureBuilder<bool()>::new_function("fct", &language);
     fct->push_args< std::tuple<double, double, double, double> >();
 
     EXPECT_EQ(ref->is_compatible(fct), true);
@@ -104,30 +105,30 @@ TEST_F(language_fixture, push_args_template_4)
 TEST_F(language_fixture, sanitize_function_id)
 {
     {
-        auto sig = language.new_function_signature<bool(double, double, double, double)>("api_fct");
+        auto sig = SignatureBuilder<bool(double, double, double, double)>::new_function("api_fct", &language);
         EXPECT_EQ(sig->get_identifier(), "fct");
     }
 
     {
-        auto sig = language.new_function_signature<bool(double, double, double, double)>("fct");
+        auto sig = SignatureBuilder<bool(double, double, double, double)>::new_function("fct", &language);
         EXPECT_EQ(sig->get_identifier(), "fct");
     }
 
     {
-        EXPECT_ANY_THROW( language.new_function_signature<bool(double, double, double, double)>("api_") );
+        EXPECT_ANY_THROW( SignatureBuilder<bool(double, double, double, double)>::new_function("api_", &language) );
     }
 }
 
 TEST_F(language_fixture, sanitize_operator_function_id)
 {
     {
-        auto sig = language.new_operator_signature<double(double, double)>("+");
-        EXPECT_EQ(sig->get_identifier(), "operator+");
+        auto sig = SignatureBuilder<double(double, double)>::new_operator("+", &language);
+        EXPECT_EQ(sig->get_identifier(), std::string{NodableLanguage::k_keyword_operator} + "+");
     }
 
     {
-        auto sig = language.new_operator_signature<double(double, double)>("==");
-        EXPECT_EQ(sig->get_identifier(), "operator==");
+        auto sig = SignatureBuilder<double(double, double)>::new_operator("==", &language);
+        EXPECT_EQ(sig->get_identifier(), std::string{NodableLanguage::k_keyword_operator} + "==");
     }
 }
 
@@ -139,21 +140,21 @@ TEST_F(language_fixture, can_get_add_operator_with_short_identifier )
 
 TEST_F(language_fixture, can_get_add_operator_with_signature )
 {
-    const Signature*  signature = language.new_operator_signature<double(double, double)>("+");
+    const Signature*  signature = SignatureBuilder<double(double, double)>::new_operator("+", &language);
     const IInvokable* operator_ = language.find_operator_fct(signature);
     EXPECT_TRUE(operator_);
 }
 
 TEST_F(language_fixture, can_get_invert_operator_with_signature )
 {
-    const Signature*  signature = language.new_operator_signature<double(double)>("-");
+    const Signature*  signature = SignatureBuilder<double(double)>::new_operator("-", &language);
     const IInvokable* operator_ = language.find_operator_fct(signature);
     EXPECT_TRUE(operator_);
 }
 
 TEST_F(language_fixture, by_ref_assign )
 {
-    const Signature*  signature = language.new_operator_signature<double(double&,double)>("=");
+    const Signature*  signature = SignatureBuilder<double(double&,double)>::new_operator("=", &language);
     const IInvokable* operator_ = language.find_operator_fct(signature);
     EXPECT_TRUE(operator_ != nullptr);
 

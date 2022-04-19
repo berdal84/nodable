@@ -4,20 +4,23 @@
 #include <memory> // std::shared_ptr
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-#include <nodable/app/Settings.h>
-#include <nodable/core/Log.h>
-#include <nodable/core/Wire.h>
 #include <nodable/app/App.h>
-#include <nodable/core/GraphNode.h>
-#include <nodable/core/VariableNode.h>
-#include <nodable/core/LiteralNode.h>
-#include <nodable/app/NodeView.h>
 #include <nodable/app/MemberConnector.h>
 #include <nodable/app/NodeConnector.h>
-#include <nodable/core/Scope.h>
-#include <nodable/core/InstructionNode.h>
+#include <nodable/app/NodeView.h>
+#include <nodable/app/Settings.h>
+
 #include <nodable/core/ConditionalStructNode.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/ISerializer.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/LiteralNode.h>
+#include <nodable/core/ForLoopNode.h>
+#include <nodable/core/Log.h>
+#include <nodable/core/Scope.h>
 #include <nodable/core/System.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/Wire.h>
 
 using namespace Nodable;
 using namespace Nodable::assembly;

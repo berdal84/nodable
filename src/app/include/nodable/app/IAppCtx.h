@@ -38,7 +38,7 @@ namespace Nodable
         virtual void            flag_to_stop() = 0;
         virtual bool            compile_and_load_program() = 0;
         virtual std::string     compute_asset_path(const char* _relative_path) const = 0;
-        virtual VirtualMachine&             virtual_machine() = 0;
+        virtual VirtualMachine& virtual_machine() = 0;
         virtual Settings&       settings() = 0;
         virtual ILanguage&       language() = 0;
         virtual const ILanguage& language() const = 0;

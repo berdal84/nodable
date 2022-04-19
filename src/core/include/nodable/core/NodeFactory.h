@@ -3,12 +3,15 @@
 #include <memory> // std::shared_ptr
 
 #include <nodable/core/INodeFactory.h>
-#include <nodable/core/Invokable.h>
 #include <nodable/core/IScope.h>
 #include <nodable/core/reflection/reflection>
 
 namespace Nodable
 {
+    template<typename T>
+        class Invokable;
+    class IScope;
+
     /**
      * @brief The NodeFactory instantiate Nodes. Class take a function to apply after creation.
      *

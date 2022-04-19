@@ -1,22 +1,24 @@
 #include <nodable/core/languages/NodableParser.h>
 
-#include <regex>
 #include <algorithm>
+#include <memory> // std::shared_ptr
+#include <regex>
 #include <sstream>
 #include <string>
-#include <memory> // std::shared_ptr
 
-#include <nodable/core/Log.h>
-#include <nodable/core/Member.h>
-#include <nodable/core/Wire.h>
+#include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/GraphNode.h>
 #include <nodable/core/InstructionNode.h>
-#include <nodable/core/LiteralNode.h>
-#include <nodable/core/VariableNode.h>
 #include <nodable/core/InvokableComponent.h>
+#include <nodable/core/LiteralNode.h>
+#include <nodable/core/Log.h>
+#include <nodable/core/Member.h>
+#include <nodable/core/Operator.h>
 #include <nodable/core/Scope.h>
+#include <nodable/core/Signature.h>
 #include <nodable/core/System.h>
-#include <nodable/core/ConditionalStructNode.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/Wire.h>
 #include <nodable/core/languages/NodableLanguage.h>
 
 using namespace Nodable;
