@@ -1,6 +1,7 @@
 #pragma once
 
-#include <memory> // std::shared_ptr
+#include <memory>     // std::shared_ptr
+#include <functional> // std::function
 
 #include <nodable/core/INodeFactory.h>
 #include <nodable/core/IScope.h>
