@@ -1,6 +1,7 @@
 #pragma once
 #include <nodable/core/ILanguage.h>
 #include <nodable/core/System.h>
+#include <nodable/core/SignatureBuilder.h>
 
 namespace Nodable {
 
@@ -38,7 +39,7 @@ namespace Nodable {
         template<typename T>
         Signature*                      new_function_signature(const std::string& _id)const
         {
-            signature_builder<T> builder;
+            SignatureBuilder<T> builder;
             builder.with_id(_id);
             builder.with_lang(this);
             return builder.construct();
@@ -47,7 +48,7 @@ namespace Nodable {
         template<typename T>
         Signature*                      new_operator_signature(const std::string& _id)const
         {
-            signature_builder<T> builder;
+            SignatureBuilder<T> builder;
             builder.with_id(_id);
             builder.with_lang(this);
             builder.as_operator();
