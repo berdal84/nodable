@@ -1,4 +1,4 @@
-#include <nodable/core/Parser.h>
+#include <nodable/core/languages/NodableParser.h>
 
 #include <regex>
 #include <algorithm>
@@ -17,30 +17,31 @@
 #include <nodable/core/Scope.h>
 #include <nodable/core/System.h>
 #include <nodable/core/ConditionalStructNode.h>
+#include <nodable/core/languages/NodableLanguage.h>
 
 using namespace Nodable;
 
-Parser::Parser(const Language* _lang, bool _strict )
-        : m_language(*_lang)
+NodableParser::NodableParser(const NodableLanguage& _lang, bool _strict )
+        : m_language(_lang)
         , m_strict_mode(_strict)
         , m_graph(nullptr){}
 
-void Parser::rollback_transaction()
+void NodableParser::rollback_transaction()
 {
     m_token_ribbon.rollbackTransaction();
 }
 
-void Parser::start_transaction()
+void NodableParser::start_transaction()
 {
     m_token_ribbon.startTransaction();
 }
 
-void Parser::commit_transaction()
+void NodableParser::commit_transaction()
 {
     m_token_ribbon.commitTransaction();
 }
 
-bool Parser::parse(const std::string &_source_code, GraphNode *_graphNode)
+bool NodableParser::parse(const std::string &_source_code, GraphNode *_graphNode)
 {
     m_graph = _graphNode;
     m_token_ribbon.clear();
@@ -110,12 +111,12 @@ bool Parser::parse(const std::string &_source_code, GraphNode *_graphNode)
 	return true;
 }
 
-bool Parser::to_bool(const std::string &_str)
+bool NodableParser::to_bool(const std::string &_str)
 {
     return _str == std::string("true");
 }
 
-std::string Parser::to_string(const std::string& _quoted_str)
+std::string NodableParser::to_string(const std::string& _quoted_str)
 {
     NODABLE_ASSERT(_quoted_str.size() >= 2);
     NODABLE_ASSERT(_quoted_str.front() == '\"');
@@ -123,17 +124,17 @@ std::string Parser::to_string(const std::string& _quoted_str)
     return std::string(++_quoted_str.cbegin(), --_quoted_str.cend());
 }
 
-double Parser::to_double(const std::string &_str)
+double NodableParser::to_double(const std::string &_str)
 {
     return stod(_str);
 }
 
-i16_t Parser::to_i16(const std::string &_str)
+i16_t NodableParser::to_i16(const std::string &_str)
 {
     return stoi(_str);
 }
 
-Member* Parser::to_member(std::shared_ptr<Token> _token)
+Member* NodableParser::to_member(std::shared_ptr<Token> _token)
 {
     if( _token->m_type == Token_t::identifier )
     {
@@ -207,7 +208,7 @@ Member* Parser::to_member(std::shared_ptr<Token> _token)
 	return nullptr;
 }
 
-Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Member *_left) {
+Member* NodableParser::parse_binary_operator_expression(unsigned short _precedence, Member *_left) {
 
     assert(_left != nullptr);
 
@@ -298,7 +299,7 @@ Member* Parser::parse_binary_operator_expression(unsigned short _precedence, Mem
     return binary_op->props()->get(k_value_member_name);
 }
 
-Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
+Member* NodableParser::parse_unary_operator_expression(unsigned short _precedence)
 {
 	LOG_VERBOSE("Parser", "parseUnaryOperationExpression...\n")
 	LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
@@ -372,7 +373,7 @@ Member* Parser::parse_unary_operator_expression(unsigned short _precedence)
     return result;
 }
 
-Member* Parser::parse_atomic_expression()
+Member* NodableParser::parse_atomic_expression()
 {
 	LOG_VERBOSE("Parser", "parse atomic expr... \n")
 
@@ -408,7 +409,7 @@ Member* Parser::parse_atomic_expression()
 	return result;
 }
 
-Member* Parser::parse_parenthesis_expression()
+Member* NodableParser::parse_parenthesis_expression()
 {
 	LOG_VERBOSE("Parser", "parse parenthesis expr...\n")
 	LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
@@ -452,7 +453,7 @@ Member* Parser::parse_parenthesis_expression()
 	return result;
 }
 
-InstructionNode* Parser::parse_instr()
+InstructionNode* NodableParser::parse_instr()
 {
     start_transaction();
 
@@ -489,7 +490,7 @@ InstructionNode* Parser::parse_instr()
     return instr_node;
 }
 
-Node* Parser::parse_program()
+Node* NodableParser::parse_program()
 {
     start_transaction();
 
@@ -512,7 +513,7 @@ Node* Parser::parse_program()
     return m_graph->get_root();
 }
 
-Node* Parser::parse_scope()
+Node* NodableParser::parse_scope()
 {
     Node* result;
 
@@ -561,7 +562,7 @@ Node* Parser::parse_scope()
     return result;
 }
 
-IScope* Parser::parse_code_block(bool _create_scope)
+IScope* NodableParser::parse_code_block(bool _create_scope)
 {
     start_transaction();
 
@@ -598,7 +599,7 @@ IScope* Parser::parse_code_block(bool _create_scope)
     }
 }
 
-Member* Parser::parse_expression(unsigned short _precedence, Member *_leftOverride)
+Member* NodableParser::parse_expression(unsigned short _precedence, Member *_leftOverride)
 {
 	LOG_VERBOSE("Parser", "parse expr...\n")
 	LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
@@ -654,7 +655,7 @@ Member* Parser::parse_expression(unsigned short _precedence, Member *_leftOverri
 	return result;
 }
 
-bool Parser::is_syntax_valid()
+bool NodableParser::is_syntax_valid()
 {
     // TODO: optimization: is this function really useful ? It check only few things.
     //                     The parsing steps that follow (parseProgram) is doing a better check, by looking to what exist in the Language.
@@ -699,7 +700,7 @@ bool Parser::is_syntax_valid()
 	return success;
 }
 
-bool Parser::tokenize(const std::string& _string)
+bool NodableParser::tokenize(const std::string& _string)
 {
     std::string::const_iterator cursor = _string.cbegin(); // the current char
     std::string                 pending_ignored_chars;
@@ -869,7 +870,7 @@ bool Parser::tokenize(const std::string& _string)
 	return true;
 }
 
-Member* Parser::parse_function_call()
+Member* NodableParser::parse_function_call()
 {
     LOG_VERBOSE("Parser", "parse function call...\n")
 
@@ -985,13 +986,13 @@ Member* Parser::parse_function_call()
     return node->props()->get(k_value_member_name);
 }
 
-Scope* Parser::get_current_scope()
+Scope* NodableParser::get_current_scope()
 {
     NODABLE_ASSERT(m_scope_stack.top()); // stack SHALL not be empty.
     return m_scope_stack.top();
 }
 
-ConditionalStructNode * Parser::parse_conditional_structure()
+ConditionalStructNode * NodableParser::parse_conditional_structure()
 {
     LOG_VERBOSE("Parser", "try to parse conditional structure...\n")
     start_transaction();
@@ -1085,7 +1086,7 @@ ConditionalStructNode * Parser::parse_conditional_structure()
     return condStruct;
 }
 
-ForLoopNode* Parser::parse_for_loop()
+ForLoopNode* NodableParser::parse_for_loop()
 {
     bool success = false;
     ForLoopNode* for_loop_node = nullptr;
@@ -1176,7 +1177,7 @@ ForLoopNode* Parser::parse_for_loop()
     return for_loop_node;
 }
 
-Member *Parser::parse_variable_declaration()
+Member *NodableParser::parse_variable_declaration()
 {
 
     if( !m_token_ribbon.canEat(2))

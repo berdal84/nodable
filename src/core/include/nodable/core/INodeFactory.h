@@ -14,7 +14,7 @@ namespace Nodable
     class ConditionalStructNode;
     class ForLoopNode;
     class IInvokable;
-    class Language;
+    class ILanguage;
     class Signature;
     class Operator;
 

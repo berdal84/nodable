@@ -17,7 +17,7 @@
 #include <nodable/app/commands/Cmd_DisconnectMembers.h>
 #include <nodable/app/commands/Cmd_Group.h>
 #include <nodable/core/System.h>
-#include <nodable/core/languages/Nodable.h>
+#include <nodable/core/languages/NodableLanguage.h>
 
 using namespace Nodable;
 
@@ -26,7 +26,7 @@ App::App()
     , m_current_file_index(0)
     , m_current_file(nullptr)
     , m_should_stop(false)
-    , m_language( std::make_unique<LanguageNodable>() )
+    , m_language( std::make_unique<NodableLanguage>() )
     , m_assets_folder_path( ghc::filesystem::path( System::get_executable_directory() ) / BuildInfo::assets_dir )
     , m_view( *this, BuildInfo::version_extended )
 {

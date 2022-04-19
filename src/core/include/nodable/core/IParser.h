@@ -10,7 +10,7 @@ namespace Nodable{
     class ConditionalStructNode;
     class InstructionNode;
     class ForLoopNode;
-    class Language;
+    class ILanguage;
     class IScope;
     class Scope;
 

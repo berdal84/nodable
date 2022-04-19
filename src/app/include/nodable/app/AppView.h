@@ -21,7 +21,7 @@ namespace Nodable
     class IAppCtx;
     class App;
     class History;
-    class Language;
+    class ILanguage;
     struct Texture;
     class Settings;
     class VirtualMachine;

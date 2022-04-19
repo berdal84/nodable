@@ -1,4 +1,4 @@
-#include <nodable/core/Serializer.h>
+#include <nodable/core/languages/NodableSerializer.h>
 #include <nodable/core/Member.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/GraphNode.h>
@@ -8,10 +8,11 @@
 #include <nodable/core/ForLoopNode.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/LiteralNode.h>
+#include <nodable/core/languages/NodableLanguage.h>
 
 using namespace Nodable;
 
-std::string& Serializer::serialize(std::string& _out, const InvokableComponent *_component)const
+std::string& NodableSerializer::serialize(std::string& _out, const InvokableComponent *_component)const
 {
     const Signature* signature = _component->get_signature();
 
@@ -104,7 +105,7 @@ std::string& Serializer::serialize(std::string& _out, const InvokableComponent *
     return _out;
 }
 
-std::string& Serializer::serialize(std::string& _out, const Signature*   _signature, const std::vector<Member*>& _args) const
+std::string& NodableSerializer::serialize(std::string& _out, const Signature*   _signature, const std::vector<Member*>& _args) const
 {
     _out.append(_signature->get_identifier());
     serialize(_out, Token_t::fct_params_begin);
@@ -123,7 +124,7 @@ std::string& Serializer::serialize(std::string& _out, const Signature*   _signat
     return _out;
 }
 
-std::string& Serializer::serialize(std::string& _out, const Signature* _signature) const
+std::string& NodableSerializer::serialize(std::string& _out, const Signature* _signature) const
 {
     serialize(_out, _signature->get_return_type());
     _out.append(" ");
@@ -145,17 +146,17 @@ std::string& Serializer::serialize(std::string& _out, const Signature* _signatur
     return  _out;
 }
 
-std::string& Serializer::serialize(std::string& _out, const Token_t& _type) const
+std::string& NodableSerializer::serialize(std::string& _out, const Token_t& _type) const
 {
-    return _out.append(language.to_string(_type) );
+    return _out.append(m_language.to_string(_type) );
 }
 
-std::string& Serializer::serialize(std::string &_out, type _type) const
+std::string& NodableSerializer::serialize(std::string &_out, type _type) const
 {
-    return _out.append(language.to_string(_type) );
+    return _out.append(m_language.to_string(_type) );
 }
 
-std::string& Serializer::serialize(std::string& _out, const VariableNode* _node) const
+std::string& NodableSerializer::serialize(std::string& _out, const VariableNode* _node) const
 {
     const InstructionNode* decl_instr = _node->get_declaration_instr();
 
@@ -204,7 +205,7 @@ std::string& Serializer::serialize(std::string& _out, const VariableNode* _node)
     return _out;
 }
 
-std::string& Serializer::serialize(std::string& _out, const Variant* variant) const
+std::string& NodableSerializer::serialize(std::string& _out, const Variant* variant) const
 {
     std::string variant_string = variant->convert_to<std::string>();
 
@@ -215,7 +216,7 @@ std::string& Serializer::serialize(std::string& _out, const Variant* variant) co
     return _out.append(variant_string);
 }
 
-std::string& Serializer::serialize(std::string& _out, const Member * _member, bool followConnections) const
+std::string& NodableSerializer::serialize(std::string& _out, const Member * _member, bool followConnections) const
 {
     // specific case of a Node*
     if ( _member->get_type() == type::get<Node*>() )
@@ -267,7 +268,7 @@ std::string& Serializer::serialize(std::string& _out, const Member * _member, bo
     return _out;
 }
 
-std::string& Serializer::serialize(std::string& _out, const Node* _node) const
+std::string& NodableSerializer::serialize(std::string& _out, const Node* _node) const
 {
     NODABLE_ASSERT(_node != nullptr)
     type type = _node->get_type();
@@ -310,7 +311,7 @@ std::string& Serializer::serialize(std::string& _out, const Node* _node) const
     return _out;
 }
 
-std::string& Serializer::serialize(std::string& _out, const Scope* _scope) const
+std::string& NodableSerializer::serialize(std::string& _out, const Scope* _scope) const
 {
 
     serialize(_out, _scope->get_begin_scope_token() );
@@ -328,7 +329,7 @@ std::string& Serializer::serialize(std::string& _out, const Scope* _scope) const
     return _out;
 }
 
-std::string& Serializer::serialize(std::string& _out, const InstructionNode* _instruction ) const
+std::string& NodableSerializer::serialize(std::string& _out, const InstructionNode* _instruction ) const
 {
     const Member* root_node_member = _instruction->get_root_node_member();
 
@@ -342,7 +343,7 @@ std::string& Serializer::serialize(std::string& _out, const InstructionNode* _in
     return serialize( _out, _instruction->end_of_instr_token() );
 }
 
-std::string& Serializer::serialize(std::string& _out, std::shared_ptr<const Token> _token)const
+std::string& NodableSerializer::serialize(std::string& _out, std::shared_ptr<const Token> _token)const
 {
     if ( _token )
     {
@@ -361,7 +362,7 @@ std::string& Serializer::serialize(std::string& _out, std::shared_ptr<const Toke
     return _out;
 }
 
-std::string& Serializer::serialize(std::string& _out, const ForLoopNode* _for_loop)const
+std::string& NodableSerializer::serialize(std::string& _out, const ForLoopNode* _for_loop)const
 {
 
     serialize( _out, _for_loop->get_token_for() );
@@ -392,7 +393,7 @@ std::string& Serializer::serialize(std::string& _out, const ForLoopNode* _for_lo
     return _out;
 }
 
-std::string& Serializer::serialize(std::string& _out, const ConditionalStructNode* _condStruct)const
+std::string& NodableSerializer::serialize(std::string& _out, const ConditionalStructNode* _condStruct)const
 {
     // if ( <condition> )
     serialize( _out, _condStruct->get_token_if() );

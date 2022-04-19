@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <nodable/app/Settings.h>
-#include <nodable/core/Serializer.h>
+#include <nodable/core/languages/NodableSerializer.h>
 #include <nodable/app/App.h>
 #include <nodable/core/math.h>
 #include <nodable/core/Scope.h>

@@ -27,17 +27,16 @@ add_library(
         src/GraphNode.cpp
         src/InstructionNode.cpp
         src/InvokableComponent.cpp
-        src/Language.cpp
         src/LiteralNode.cpp
         src/Log.cpp
         src/Member.cpp
         src/Node.cpp
         src/NodeFactory.cpp
-        src/Parser.cpp
+        src/NodableParser.cpp
         src/Properties.cpp
         src/reflection.cpp
         src/Scope.cpp
-        src/Serializer.cpp
+        src/NodableSerializer.cpp
         src/Signature.cpp
         src/String.cpp
         src/System.cpp
@@ -52,7 +51,7 @@ add_library(
         src/assembly/Compiler.cpp
         src/assembly/Instruction.cpp
         src/assembly/QWord.cpp
-        src/languages/Nodable.cpp)
+        src/languages/NodableLanguage.cpp)
 
 target_link_libraries(
     nodable-core

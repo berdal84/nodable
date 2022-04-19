@@ -10,7 +10,7 @@
 #include <nodable/app/IAppCtx.h>
 #include <nodable/app/Settings.h>
 #include <nodable/app/types.h>
-#include <nodable/core/Language.h>
+#include <nodable/core/ILanguage.h>
 #include <nodable/core/Texture.h>
 #include <nodable/core/VirtualMachine.h>
 #include <nodable/core/reflection/reflection>
@@ -55,8 +55,8 @@ namespace Nodable
         std::string     compute_asset_path(const char *_relative_path) const override;
         Settings&       settings() override { return m_settings; }
         VirtualMachine& virtual_machine() override { return m_vm; }
-        Language&       language() override { return *m_language.get(); }
-        const Language& language() const override { return *m_language.get(); }
+        ILanguage&       language() override { return *m_language.get(); }
+        const ILanguage& language() const override { return *m_language.get(); }
         TextureManager& texture_manager() override { return m_texture_manager; };
 
     private:
@@ -71,7 +71,7 @@ namespace Nodable
         bool            m_should_stop;
         fs_path         m_assets_folder_path;
         size_t          m_current_file_index;
-        std::unique_ptr<Language> m_language;
+        std::unique_ptr<ILanguage> m_language;
         std::vector<File*> m_loaded_files;
 
         void            handle_events();

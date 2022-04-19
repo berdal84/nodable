@@ -8,7 +8,7 @@ namespace Nodable
     // forward decl
     class VirtualMachine;
     class Settings;
-    class Language;
+    class ILanguage;
     class TextureManager;
     class File;
 
@@ -40,8 +40,8 @@ namespace Nodable
         virtual std::string     compute_asset_path(const char* _relative_path) const = 0;
         virtual VirtualMachine&             virtual_machine() = 0;
         virtual Settings&       settings() = 0;
-        virtual Language&       language() = 0;
-        virtual const Language& language() const = 0;
+        virtual ILanguage&       language() = 0;
+        virtual const ILanguage& language() const = 0;
         virtual TextureManager& texture_manager() = 0;
         virtual u64_t           elapsed_time() const = 0;
     };

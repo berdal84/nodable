@@ -2,7 +2,7 @@
 #include <nodable/core/Log.h> // for LOG_DEBUG(...)
 #include <nodable/core/Properties.h>
 #include <nodable/core/VariableNode.h>
-#include <nodable/core/Language.h>
+#include <nodable/core/ILanguage.h>
 
 using namespace Nodable;
 

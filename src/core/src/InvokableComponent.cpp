@@ -1,6 +1,6 @@
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/Log.h>
-#include <nodable/core/Language.h>
+#include <nodable/core/ILanguage.h>
 #include <nodable/core/VariableNode.h>
 
 using namespace Nodable;

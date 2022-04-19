@@ -6,6 +6,7 @@
 #include <nodable/core/String.h>
 
 namespace Nodable {
+namespace lib {
 namespace math {
 
 bool api_and(bool a, bool b) { return a && b; }
@@ -66,4 +67,5 @@ template<typename T>
         return result;
     }
 } // namespace math
+} // namespace lib
 } // namespace Nodable

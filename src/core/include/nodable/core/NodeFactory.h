@@ -17,7 +17,7 @@ namespace Nodable
     class NodeFactory: public INodeFactory
     {
     public:
-        NodeFactory(const Language* _language, std::function<void(Node *)> _post_process_fct = [](Node* _node){} )
+        NodeFactory(const ILanguage* _language, std::function<void(Node *)> _post_process_fct = [](Node* _node){} )
         : m_language(_language)
         , m_post_process(_post_process_fct) {}
         ~NodeFactory() {}
@@ -37,6 +37,6 @@ namespace Nodable
         void                        add_invokable_component(Node *_node, const Signature*, const IInvokable *_invokable) const;
 
         std::function<void(Node*)>  m_post_process; // invoked after each node creation, just before to return.
-        const Language*             m_language;
+        const ILanguage*             m_language;
     };
 }

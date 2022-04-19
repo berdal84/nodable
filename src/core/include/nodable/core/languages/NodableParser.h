@@ -15,6 +15,8 @@
 
 namespace Nodable{
 
+	class NodableLanguage;
+
 	/**
 		The role of this class is to convert code string to a Nodable graph.
 
@@ -27,11 +29,11 @@ namespace Nodable{
 	    There is no AST (Abstract Syntax Tree) since Nodable keep graph (Nodes) linked to text (tokens) all the time.
 	*/
 
-	class Parser : public IParser
+	class NodableParser : public IParser
 	{
 	public:
-        Parser(const Language* _lang, bool _strict = false );
-		~Parser() override {}
+        NodableParser(const NodableLanguage& _lang, bool _strict = false );
+		~NodableParser() override {}
 
 		/** Try to convert a source code to a program tree.
 		   Return true if evaluation went well and false otherwise. */
@@ -68,11 +70,11 @@ namespace Nodable{
         Scope*                 get_current_scope() override;
 
     private:
-		const Language&    m_language;
-		GraphNode*         m_graph;
-		TokenRibbon        m_token_ribbon;
-		std::stack<Scope*> m_scope_stack;
-        bool               m_strict_mode;
+		const NodableLanguage& m_language;
+		GraphNode*             m_graph;
+		TokenRibbon            m_token_ribbon;
+		std::stack<Scope*>     m_scope_stack;
+        bool                   m_strict_mode;
     };
 
 }

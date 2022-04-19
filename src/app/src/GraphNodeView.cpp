@@ -660,7 +660,7 @@ void GraphNodeView::set_owner(Node *_owner)
 
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
     auto graphNode = _owner->as<GraphNode>();
-    const Language& language = m_ctx.language();
+    const ILanguage& language = m_ctx.language();
     const auto functions     = language.get_api();
 
     for (auto it = functions.cbegin(); it != functions.cend(); it++)

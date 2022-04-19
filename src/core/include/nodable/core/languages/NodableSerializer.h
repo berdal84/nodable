@@ -5,14 +5,14 @@
 namespace Nodable
 {
     // forward declarations
-    class Language;
+    class NodableLanguage;
 
-    class Serializer : public ISerializer
+    class NodableSerializer : public ISerializer
     {
     public:
 
-        explicit Serializer(const Language* _language): language(*_language) {};
-        ~Serializer() = default;
+        explicit NodableSerializer(const NodableLanguage& _language): m_language(_language) {};
+        ~NodableSerializer() = default;
 
         std::string& serialize(std::string& _out, const InvokableComponent*) const override;
         std::string& serialize(std::string& _out, const Signature*, const std::vector<Member*>&)const override;
@@ -29,6 +29,6 @@ namespace Nodable
         std::string& serialize(std::string& _out, const Variant* variant) const override;
         std::string& serialize(std::string& _out, const VariableNode *_node) const override;
     protected:
-        const Language& language;
+        const NodableLanguage& m_language;
     };
 }

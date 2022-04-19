@@ -2,7 +2,7 @@
 #include <nodable/core/InstructionNode.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/LiteralNode.h>
-#include <nodable/core/Language.h>
+#include <nodable/core/ILanguage.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/Operator.h>
 #include <nodable/core/Scope.h>

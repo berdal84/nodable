@@ -8,18 +8,18 @@
 #include <nodable/core/Member.h>
 #include <nodable/core/VirtualMachine.h>
 #include <nodable/core/GraphNode.h>
-#include <nodable/core/Parser.h>
+#include <nodable/core/languages/NodableParser.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/NodeFactory.h>
 #include <nodable/core/String.h>
 #include <nodable/core/Scope.h>
-#include <nodable/core/languages/Nodable.h>
+#include <nodable/core/languages/NodableLanguage.h>
 
 using namespace Nodable;
 
 class nodable_fixture: public ::testing::Test {
 public:
-    LanguageNodable       language;
+    NodableLanguage       language;
     const NodeFactory     factory;
     bool                  autocompletion = false;
     GraphNode             graph;

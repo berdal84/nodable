@@ -235,7 +235,7 @@ void FileView::draw_info() const
     // Language browser (list functions/operators)
     if (ImGui::TreeNode("Language"))
     {
-        Language&         language   = m_ctx.language();
+        ILanguage&         language   = m_ctx.language();
         const auto&       functions  = language.get_api();
         const ISerializer& serializer = language.get_serializer();
 

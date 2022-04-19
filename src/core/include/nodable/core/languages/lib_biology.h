@@ -5,6 +5,8 @@
 
 namespace Nodable
 {
+namespace lib
+{
 namespace biology
 {
 constexpr char k_codon_start = 'M';
@@ -48,4 +50,5 @@ std::string api_DNAtoProtein(std::string _base_string)
     return protein_result;
 }
 } // namespace biology
+} // namespace lib
 } // namespace Nodable

@@ -14,13 +14,13 @@ namespace Nodable
     class ConditionalStructNode;
     class ForLoopNode;
     class Member;
-    class Language;
+    class ILanguage;
     class IScope;
     class InstructionNode;
     class ForLoopNode;
     class Scope;
     class Operator;
-    class Language;
+    class ILanguage;
     class Variant;
     class VariableNode;
     class Signature;

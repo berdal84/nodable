@@ -9,7 +9,7 @@
 #include <nodable/core/types.h>
 #include <nodable/core/Component.h>
 #include <nodable/core/Node.h>
-#include <nodable/core/Language.h>
+#include <nodable/core/ILanguage.h>
 #include <nodable/core/INodeFactory.h>
 
 namespace Nodable
@@ -22,7 +22,7 @@ namespace Nodable
 	public:
         using RelationRegistry_t = std::multimap<EdgeType, const DirectedEdge>;
 
-		explicit GraphNode(const Language*, const INodeFactory*, const bool* _autocompletion);
+		explicit GraphNode(const ILanguage*, const INodeFactory*, const bool* _autocompletion);
 		~GraphNode();
 
         UpdateResult                update() override; // Update the graph by evaluating its nodes only when necessary.
@@ -73,7 +73,7 @@ namespace Nodable
 		std::vector<Node*> m_node_registry;
 		std::vector<Wire*> m_wire_registry;
 		RelationRegistry_t m_relation_registry;
-		const Language*    m_language;
+		const ILanguage*    m_language;
 		Node*              m_root;
 		const INodeFactory* m_factory;
         const bool* m_autocompletion;

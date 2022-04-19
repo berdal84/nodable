@@ -4,7 +4,7 @@
 
 #include <nodable/core/Log.h>
 #include <nodable/core/Wire.h>
-#include <nodable/core/Parser.h>
+#include <nodable/core/languages/NodableParser.h>
 #include <nodable/core/DataAccess.h>
 #include <nodable/core/Node.h>
 #include <nodable/core/VariableNode.h>
@@ -22,7 +22,7 @@ REGISTER
     registration::push_class<GraphNode>("GraphNode").extends<Node>();
 }
 
-GraphNode::GraphNode(const Language* _language, const INodeFactory* _factory, const bool* _autocompletion)
+GraphNode::GraphNode(const ILanguage* _language, const INodeFactory* _factory, const bool* _autocompletion)
     : m_language(_language)
     , m_factory(_factory)
     , m_root(nullptr)

@@ -7,7 +7,7 @@
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/NodeFactory.h>
 #include <nodable/core/Wire.h>
-#include <nodable/core/languages/Nodable.h>
+#include <nodable/core/languages/NodableLanguage.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/Scope.h>
 
@@ -33,7 +33,7 @@ public:
     }
 
 protected:
-    const LanguageNodable language;
+    const NodableLanguage language;
     NodeFactory           factory;
     bool                  autocompletion = false;
 public:
