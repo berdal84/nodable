@@ -5,12 +5,12 @@
 
 #include <nodable/core/INodeFactory.h>
 #include <nodable/core/IScope.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 
 namespace Nodable
 {
     template<typename T>
-        class Invokable;
+        class invokable;
     class IScope;
 
     /**
@@ -30,15 +30,15 @@ namespace Nodable
         InstructionNode*            new_instr()const override ;
         VariableNode*				new_variable(type, const std::string&, IScope *)const override ;
         LiteralNode*                new_literal(type)const override ;
-        Node*                       new_abstract_function(const Signature*)const override;
-        Node*                       new_function(const IInvokable*)const override ;
+        Node*                       new_abstract_function(const func_type*)const override;
+        Node*                       new_function(const iinvokable*)const override ;
         Node*                       new_scope()const override ;
         ConditionalStructNode*      new_cond_struct()const override ;
         ForLoopNode*                new_for_loop_node()const override ;
         Node*                       new_node()const override ;
     private:
-        Node*                       _new_abstract_function(const Signature*) const; // this do not invoke post_process
-        void                        add_invokable_component(Node *_node, const Signature*, const IInvokable *_invokable) const;
+        Node*                       _new_abstract_function(const func_type*) const; // this do not invoke post_process
+        void                        add_invokable_component(Node *_node, const func_type*, const iinvokable *_invokable) const;
 
         std::function<void(Node*)>  m_post_process; // invoked after each node creation, just before to return.
         const ILanguage*             m_language;

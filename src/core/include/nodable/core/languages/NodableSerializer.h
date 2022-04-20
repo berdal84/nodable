@@ -15,8 +15,8 @@ namespace Nodable
         ~NodableSerializer() = default;
 
         std::string& serialize(std::string& _out, const InvokableComponent*) const override;
-        std::string& serialize(std::string& _out, const Signature*, const std::vector<Member*>&)const override;
-        std::string& serialize(std::string& _out, const Signature*)const override;
+        std::string& serialize(std::string& _out, const func_type*, const std::vector<Member*>&)const override;
+        std::string& serialize(std::string& _out, const func_type*)const override;
         std::string& serialize(std::string& _out, const Token_t&)const override;
         std::string& serialize(std::string& _out, type)const override;
         std::string& serialize(std::string& _out, const Member*, bool followConnections = true)const override;

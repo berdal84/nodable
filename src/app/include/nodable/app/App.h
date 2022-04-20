@@ -13,7 +13,7 @@
 #include <nodable/core/ILanguage.h>
 #include <nodable/core/Texture.h>
 #include <nodable/core/VirtualMachine.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 
 namespace Nodable
 {

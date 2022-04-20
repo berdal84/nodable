@@ -1,4 +1,4 @@
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 #include <stdexcept>   // std::runtime_error
 #include <nodable/core/reflection/type.h>
 
@@ -85,19 +85,6 @@ bool type::is_ref()const
     return m_is_reference;
 }
 
-type typeregister::get(size_t _hash)
-{
-    auto found = by_hash().find(_hash);
-    NODABLE_ASSERT_EX(found != by_hash().end(), "type not found!")
-    return found->second;
-}
-
-std::map<size_t, type>& typeregister::by_hash()
-{
-    static std::map<size_t, type> meta_type_register_by_typeid;
-    return meta_type_register_by_typeid;
-}
-
 bool type::is_child_of(type _possible_parent_class, bool _selfCheck) const
 {
     bool is_child;
@@ -124,7 +111,7 @@ bool type::is_child_of(type _possible_parent_class, bool _selfCheck) const
             bool is_a_parent_is_child_of = false;
             for (auto each : m_parents)
             {
-                type parent_type = typeregister::get(each);
+                type parent_type = type_register::get(each);
                 if (parent_type.is_child_of(_possible_parent_class, true))
                 {
                     is_a_parent_is_child_of = true;
@@ -157,50 +144,4 @@ type type::to_pointer(type _type)
     type ptr = _type;
     ptr.m_is_pointer = true;
     return ptr;
-}
-
-bool typeregister::has(type _type)
-{
-    return by_hash().find(_type.hash_code()) != by_hash().end();
-}
-
-bool typeregister::has(size_t _hash_code)
-{
-    auto found = by_hash().find(_hash_code);
-    return found != by_hash().end();
-}
-
-void typeregister::insert(type _type)
-{
-    // insert if absent from register
-    if( !has(_type.hash_code()))
-    {
-        by_hash().insert({_type.hash_code(), _type});
-        return;
-    }
-
-    // merge with existing
-    type existing = get(_type.hash_code());
-    LOG_MESSAGE("reflection", "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n"
-            , existing.m_name.c_str(), existing.m_compiler_name.c_str()
-            , _type.m_name.c_str(), _type.m_compiler_name.c_str()
-            )
-    if( _type.m_name.empty() ) _type.m_name = existing.m_name;
-    _type.m_children.insert(existing.m_children.begin(), existing.m_children.end() );
-    _type.m_parents.insert(existing.m_parents.begin(), existing.m_parents.end() );
-
-    by_hash().insert_or_assign(_type.hash_code(), _type);
-}
-
-void typeregister::log_statistics()
-{
-    LOG_MESSAGE("R", "Logging reflected types ...\n");
-    LOG_MESSAGE("R", " %-16s %-25s %-60s\n", "-- type hash --", "-- user name --", "-- compiler name --" )
-
-    for ( const auto& [type_hash, type] : by_hash() )
-    {
-        LOG_MESSAGE("R", " %-16llu %-25s %-60s\n", type_hash, type.m_name.c_str(), type.m_compiler_name.c_str() );
-    }
-
-    LOG_MESSAGE("R", "Logging done.\n");
 }

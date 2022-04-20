@@ -13,7 +13,7 @@ namespace Nodable
     /**
      * structure to help register types
      */
-    class typeregister
+    class type_register
     {
     public:
         static std::map<size_t, type>& by_hash();

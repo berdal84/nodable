@@ -8,7 +8,7 @@
 #include <nodable/core/Operator.h>
 #include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/ForLoopNode.h>
-#include <nodable/core/Signature.h>
+#include <nodable/core/reflection/func_type.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 using namespace Nodable;
@@ -41,7 +41,7 @@ VariableNode* NodeFactory::new_variable(type _type, const std::string& _name, IS
     return node;
 }
 
-Node* NodeFactory::new_abstract_function(const Signature* _signature) const
+Node* NodeFactory::new_abstract_function(const func_type* _signature) const
 {
     auto node = _new_abstract_function(_signature);
     add_invokable_component(node, _signature, nullptr);
@@ -49,7 +49,7 @@ Node* NodeFactory::new_abstract_function(const Signature* _signature) const
     return node;
 }
 
-Node* NodeFactory::_new_abstract_function(const Signature* _signature) const
+Node* NodeFactory::_new_abstract_function(const func_type* _signature) const
 {
     Node* node = new Node();
 
@@ -81,29 +81,29 @@ Node* NodeFactory::_new_abstract_function(const Signature* _signature) const
     return node;
 }
 
-Node* NodeFactory::new_function(const IInvokable* _function) const
+Node* NodeFactory::new_function(const iinvokable* _function) const
 {
     // Create an abstract function node
-    const Signature* signature = _function->get_signature();
-    Node* node = _new_abstract_function(signature);
-    add_invokable_component(node, signature, _function);
+    const func_type* type = _function->get_type();
+    Node* node = _new_abstract_function(type);
+    add_invokable_component(node, type, _function);
     m_post_process(node);
     return node;
 }
 
-void NodeFactory::add_invokable_component(Node *_node, const Signature* _signature, const IInvokable *_invokable) const
+void NodeFactory::add_invokable_component(Node *_node, const func_type* _func_type, const iinvokable *_invokable) const
 {
     Properties* props = _node->props();
 
     // Create an InvokableComponent with the function.
-    auto component = _invokable ? new InvokableComponent(_invokable) : new InvokableComponent(_signature);
+    auto component = new InvokableComponent(_func_type, _invokable);
     _node->add_component(component);
 
     // Link result member
     component->set_result(props->get(k_value_member_name));
 
     // Link arguments
-    auto args = _signature->get_args();
+    auto args = _func_type->get_args();
     for (size_t argIndex = 0; argIndex < args.size(); argIndex++)
     {
         Member* member = props->get(args[argIndex].m_name.c_str());

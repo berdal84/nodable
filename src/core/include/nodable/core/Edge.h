@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nodable/core/reflection/reflection> // for reflection MACROS
+#include <nodable/core/reflection/type.> // for reflection MACROS
 
 namespace Nodable
 {

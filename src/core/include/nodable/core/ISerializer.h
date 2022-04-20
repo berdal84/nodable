@@ -5,7 +5,7 @@
 #include <memory> // std::shared_ptr
 
 #include <nodable/core/Token.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 
 namespace Nodable
 {
@@ -23,7 +23,7 @@ namespace Nodable
     class ILanguage;
     class Variant;
     class VariableNode;
-    class Signature;
+    class func_type;
 
     class ISerializer
     {
@@ -31,8 +31,8 @@ namespace Nodable
         virtual ~ISerializer() = default;
 
         virtual std::string& serialize(std::string& _out, const InvokableComponent*) const = 0;
-        virtual std::string& serialize(std::string& _out, const Signature*, const std::vector<Member*>&)const = 0;
-        virtual std::string& serialize(std::string& _out, const Signature*)const = 0;
+        virtual std::string& serialize(std::string& _out, const func_type*, const std::vector<Member*>&)const = 0;
+        virtual std::string& serialize(std::string& _out, const func_type*)const = 0;
         virtual std::string& serialize(std::string& _out, const Token_t&)const = 0;
         virtual std::string& serialize(std::string& _out, type)const = 0;
         virtual std::string& serialize(std::string& _out, const Member*, bool followConnections = true)const = 0;

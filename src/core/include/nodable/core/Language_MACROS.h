@@ -14,7 +14,7 @@
 
 #include <nodable/core/ILanguage.h>
 #include <nodable/core/SignatureBuilder.h>
-#include <nodable/core/Invokable.h>
+#include <nodable/core/reflection/invokable.h>
 
 #define BIND_TO( language ) \
 ILanguage* __language = language;
@@ -30,8 +30,8 @@ ILanguage* __language = language;
 */
 #define BIND_FUNCTION_T( func, func_t ) \
     { \
-        const Signature* sig = SignatureBuilder<func_t>::new_function(#func, __language); \
-        __language->add_invokable( new Invokable<func_t>(func, sig ) );\
+        func_type* type = SignatureBuilder<func_t>::new_function(#func, __language); \
+        __language->add_invokable( new invokable<func_t>(func, type ) );\
     }
 
 /**
@@ -45,8 +45,8 @@ ILanguage* __language = language;
 */
 #define BIND_OPERATOR_T( func, id, func_t ) \
     { \
-        const Signature* sig = SignatureBuilder<func_t>::new_operator(id, __language);\
-        __language->add_invokable( new Invokable<func_t>(func, sig ) );\
+        func_type* type = SignatureBuilder<func_t>::new_operator(id, __language);\
+        __language->add_invokable( new invokable<func_t>(func, type ) );\
     }
 
 /**

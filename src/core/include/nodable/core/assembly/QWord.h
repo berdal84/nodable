@@ -5,7 +5,7 @@
 #include "nodable/core/assertions.h"
 #include "nodable/core/types.h"
 #include "nodable/core/assembly/Register.h"
-#include "nodable/core/reflection/reflection"
+#include "nodable/core/reflection/type."
 
 namespace Nodable
 {

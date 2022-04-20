@@ -5,10 +5,10 @@
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 
 #include <nodable/core/types.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 #include <nodable/core/Member.h>
-#include <nodable/core/IInvokable.h>
-#include <nodable/core/Signature.h>
+#include <nodable/core/reflection/iinvokable.h>
+#include <nodable/core/reflection/func_type.h>
 
 namespace Nodable {
 
@@ -57,38 +57,36 @@ namespace Nodable {
     }
 
     template<typename T>
-    class Invokable;
+    class invokable;
 
     /** Generic Invokable Function */
     template<typename T, typename... Args>
-    class Invokable<T(Args...)> : public IInvokable
+    class invokable<T(Args...)> : public iinvokable
     {
     public:
+        using function_t  = T(Args...);
+        using return_t    = T;
+        using arguments_t = std::tuple<Args...>;
 
-        using F = T(Args...);
-        Invokable(F* _function, const Signature* _sig)
-        : m_function(_function)
-        , m_signature(_sig)
+        invokable(function_t* _implem, const func_type* _type)
+        : m_function_impl(_implem)
+        , m_function_type(_type)
         {
-            NODABLE_ASSERT(_function)
-            NODABLE_ASSERT(_sig)
+            NODABLE_ASSERT(m_function_impl)
+            NODABLE_ASSERT(m_function_type)
         }
 
-        ~Invokable() override
-        {
-            // delete m_function; no need to
-            delete m_signature;
-        }
+        ~invokable() override {}
 
         inline void invoke(Member *_result, const std::vector<Member *> &_args) const override
         {
-            call<T, Args...>(m_function, _result, _args);
+            call<return_t, Args... >(m_function_impl, _result, _args);
         }
-        const Signature*   get_signature() const override { return m_signature; };
+        const func_type* get_type() const override { return m_function_type; }
 
     private:
-        F*               m_function;
-        const Signature* m_signature;
+        function_t* const       m_function_impl;
+        const func_type* const  m_function_type;
     };
 
 }

@@ -6,8 +6,8 @@
 #include <nodable/core/Wire.h>
 #include <nodable/core/DataAccess.h>
 #include <nodable/core/InvokableComponent.h>
-#include <nodable/core/IInvokable.h>
-#include <nodable/core/Signature.h>
+#include <nodable/core/reflection/iinvokable.h>
+#include <nodable/core/reflection/func_type.h>
 
 using namespace Nodable;
 
@@ -157,7 +157,7 @@ void Node::get_inner_graph(GraphNode *_graph)
     this->m_inner_graph = _graph;
 }
 
-const IInvokable* Node::get_connected_operator(const Member *_localMember)
+const iinvokable* Node::get_connected_operator(const Member *_localMember)
 {
     NODABLE_ASSERT_EX(m_props.has(_localMember), "This node has no member with this adress!");
 

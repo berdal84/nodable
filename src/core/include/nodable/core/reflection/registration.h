@@ -1,5 +1,5 @@
 #pragma once
-#include <nodable/core/reflection/typeregister.h>
+#include <nodable/core/reflection/type_register.h>
 #include <nodable/core/reflection/type.h>
 
 namespace Nodable
@@ -19,7 +19,7 @@ namespace Nodable
             push(const char* _name )
             {
                 m_type = type::create<T>(_name);
-                typeregister::insert(m_type);
+                type_register::insert(m_type);
             }
         };
 
@@ -37,10 +37,10 @@ namespace Nodable
 
             ~push_class()
             {
-                typeregister::insert(m_class);
+                type_register::insert(m_class);
                 for(auto each_parent : m_parents)
                 {
-                    typeregister::insert(each_parent);
+                    type_register::insert(each_parent);
                 }
             }
 

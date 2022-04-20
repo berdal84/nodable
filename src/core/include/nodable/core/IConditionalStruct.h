@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 
 namespace Nodable
 {

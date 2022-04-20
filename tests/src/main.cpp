@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <nodable/core/Log.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 
 using namespace Nodable;
 
@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     Log::set_verbosity("VM"       , Log::Verbosity_Message);
     Log::set_verbosity("VM::CPU"  , Log::Verbosity_Message);
 
-    typeregister::log_statistics();
+    type_register::log_statistics();
 
     return RUN_ALL_TESTS();
 }

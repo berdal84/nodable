@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 #include <nodable/core/Node.h>
 
 using namespace Nodable;

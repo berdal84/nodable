@@ -2,7 +2,7 @@
 
 #include <nodable/core/Log.h>
 #include <nodable/core/ILanguage.h>
-#include <nodable/core/Signature.h>
+#include <nodable/core/reflection/func_type.h>
 #include <nodable/core/Operator.h>
 #include <string>
 
@@ -36,12 +36,12 @@ namespace Nodable
         void with_lang(const ILanguage* _language) { m_language = _language; }
         void as_operator(bool _b = true) { m_as_operator = _b; }
 
-        Signature* construct()
+        func_type* construct()
         {
             NODABLE_ASSERT_EX( m_language   , "No language specified! use with_lang()" );
             NODABLE_ASSERT_EX( !m_id.empty(), "No identifier specified! use with_id()" );
 
-            Signature* signature;
+            func_type* signature;
             if( m_as_operator )
             {
                 const Operator* op;
@@ -53,13 +53,13 @@ namespace Nodable
                     default: op = nullptr;
                 }
                 NODABLE_ASSERT_EX( op, "No operator found  in language for specified id!" );
-                signature = new Signature(m_language->sanitize_operator_id(op->identifier), op);
+                signature = new func_type(m_language->sanitize_operator_id(op->identifier), op);
             }
             else
             {
                 m_id = m_language->sanitize_function_id(m_id);
                 NODABLE_ASSERT_EX( !m_id.empty(), "Identifier after sanitization is empty!" );
-                signature = new Signature( m_id );
+                signature = new func_type( m_id );
             }
 
             signature->set_return_type(type::get<T>());
@@ -68,7 +68,7 @@ namespace Nodable
             return signature;
         }
 
-        static Signature* new_function(const std::string& _id, const ILanguage* _language)
+        static func_type* new_function(const std::string& _id, const ILanguage* _language)
         {
             SignatureBuilder<T(Args...)> builder;
             builder.with_id(_id);
@@ -76,7 +76,7 @@ namespace Nodable
             return builder.construct();
         }
 
-        static Signature* new_operator(const std::string& _id, const ILanguage* _language)
+        static func_type* new_operator(const std::string& _id, const ILanguage* _language)
         {
             SignatureBuilder<T(Args...)> builder;
             builder.with_id(_id);

@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 #include <nodable/core/types.h>
 
 namespace Nodable

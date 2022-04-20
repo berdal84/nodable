@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
     // by default log is on Verbosity::Message ...
 
-    Nodable::typeregister::log_statistics();
+    Nodable::type_register::log_statistics();
 
     Nodable::App app;
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <nodable/core/Node.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 #include <memory> // std::shared_ptr
 
 namespace Nodable

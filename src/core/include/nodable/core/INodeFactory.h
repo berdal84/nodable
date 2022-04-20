@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <memory> // std::shared_ptr
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 
 namespace Nodable
 {
@@ -13,9 +13,9 @@ namespace Nodable
     class LiteralNode;
     class ConditionalStructNode;
     class ForLoopNode;
-    class IInvokable;
+    class iinvokable;
     class ILanguage;
-    class Signature;
+    class func_type;
     class Operator;
 
     /**
@@ -28,8 +28,8 @@ namespace Nodable
         virtual InstructionNode*            new_instr()const = 0;
         virtual VariableNode*				new_variable(type, const std::string&, IScope *)const = 0;
         virtual LiteralNode*                new_literal(type)const = 0;
-        virtual Node*                       new_abstract_function(const Signature*)const = 0;
-        virtual Node*                       new_function(const IInvokable*)const = 0;
+        virtual Node*                       new_abstract_function(const func_type*)const = 0;
+        virtual Node*                       new_function(const iinvokable*)const = 0;
         virtual Node*                       new_scope()const = 0;
         virtual ConditionalStructNode*      new_cond_struct()const = 0;
         virtual ForLoopNode*                new_for_loop_node()const = 0;

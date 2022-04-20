@@ -552,7 +552,7 @@ void GraphNodeView::add_contextual_menu_item(
         const std::string &_category,
         const std::string &_label,
         std::function<Node *(void)> _function,
-        const Signature *_signature)
+        const func_type *_signature)
 {
 	m_contextual_menus.insert( {_category, {_label, _function, _signature }} );
 }
@@ -668,20 +668,20 @@ void GraphNodeView::set_owner(Node *_owner)
 
     for (auto it = functions.cbegin(); it != functions.cend(); it++)
     {
-        const IInvokable* invokable    = *it;
-        const Signature*  signature    = invokable->get_signature();
-        const IInvokable* operator_fct = language.find_operator_fct(signature);
+        const iinvokable* invokable    = *it;
+        const func_type*  type         = invokable->get_type();
+        const iinvokable* operator_fct = language.find_operator_fct(type);
 
         std::string label;
-        language.get_serializer().serialize(label, signature);
+        language.get_serializer().serialize(label, type);
 
-        std::string category = signature->is_operator() ? k_operator_menu_label : k_function_menu_label;
+        std::string category = type->is_operator() ? k_operator_menu_label : k_function_menu_label;
         
         auto create_node = [graphNode, invokable]() -> Node*
         {
             return graphNode->create_function(invokable);
         };
-        add_contextual_menu_item(category, label, create_node, signature);
+        add_contextual_menu_item(category, label, create_node, type);
     }
 
 }

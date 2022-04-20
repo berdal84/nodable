@@ -15,7 +15,7 @@
 #include <nodable/core/Member.h>
 #include <nodable/core/Operator.h>
 #include <nodable/core/Scope.h>
-#include <nodable/core/Signature.h>
+#include <nodable/core/reflection/func_type.h>
 #include <nodable/core/System.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/Wire.h>
@@ -267,8 +267,8 @@ Member* NodableParser::parse_binary_operator_expression(unsigned short _preceden
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const Signature* signature = m_language.new_operator_signature(type::any, ope, _left->get_type(), right->get_type());
-    const IInvokable* invokable = m_language.find_operator_fct(signature);
+	const func_type* signature = m_language.new_operator_signature(type::any, ope, _left->get_type(), right->get_type());
+    const iinvokable* invokable = m_language.find_operator_fct(signature);
 
     InvokableComponent* component;
     Node* binary_op;
@@ -341,8 +341,8 @@ Member* NodableParser::parse_unary_operator_expression(unsigned short _precedenc
 	// Create a function signature
 
 	const Operator*   ope       = m_language.find_operator(operatorToken->m_word, Operator_t::Unary );
-	const Signature*  sig       = m_language.new_operator_signature(type::any, ope, value->get_type());
-	const IInvokable* invokable = m_language.find_operator_fct(sig);
+	const func_type*  sig       = m_language.new_operator_signature(type::any, ope, value->get_type());
+	const iinvokable* invokable = m_language.find_operator_fct(sig);
 
     InvokableComponent* component;
 	Node* node;
@@ -917,7 +917,7 @@ Member* NodableParser::parse_function_call()
     std::vector<Member *> args;
 
     // Declare a new function prototype
-    Signature signature(fct_id);
+    func_type signature(fct_id);
     signature.set_return_type(type::any);
 
     bool parsingError = false;
@@ -946,9 +946,9 @@ Member* NodableParser::parse_function_call()
 
 
     // Find the prototype in the language library
-    const IInvokable* invokable = m_language.find_function(&signature);
+    const iinvokable* invokable = m_language.find_function(&signature);
 
-    auto connectArg = [&](const Signature* _sig, Node* _node, size_t _arg_index ) -> void
+    auto connectArg = [&](const func_type* _sig, Node* _node, size_t _arg_index ) -> void
     { // lambda to connect input member to node for a specific argument index.
         Member*     src_member      = args.at(_arg_index);
         Member*     dst_member      = _node->props()->get_input_at(_arg_index);

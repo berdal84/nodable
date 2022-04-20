@@ -3,7 +3,7 @@
 #include "nodable/core/assertions.h"
 #include "nodable/core/types.h"
 #include "type.h"
-#include "typeregister.h"
+#include "type_register.h"
 #include "registration.h"
 #include "MACROS.h"
 

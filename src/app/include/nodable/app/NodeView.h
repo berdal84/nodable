@@ -12,7 +12,7 @@
 #include <nodable/core/Component.h>  // base class
 #include <nodable/core/Member.h>
 #include <nodable/core/Slots.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 
 namespace Nodable
 {

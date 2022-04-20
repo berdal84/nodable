@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <nodable/core/Invokable.h>
+#include <nodable/core/reflection/invokable.h>
 #include <nodable/core/SignatureBuilder.h>
 #include <nodable/core/languages/NodableLanguage.h>
 
@@ -22,7 +22,7 @@ TEST_F(language_fixture, no_arg_fct)
 
 TEST_F(language_fixture, push_single_arg)
 {
-    Signature* single_arg_fct = SignatureBuilder<bool(double)>::new_function("fct", &language);
+    func_type* single_arg_fct = SignatureBuilder<bool(double)>::new_function("fct", &language);
 
     EXPECT_EQ(single_arg_fct->get_arg_count(), 1);
     EXPECT_EQ(single_arg_fct->get_return_type(), type::get<bool>());
@@ -41,8 +41,8 @@ TEST_F(language_fixture, push_two_args)
 
 TEST_F(language_fixture, match_check_for_arg_count)
 {
-    Signature* single_arg_fct = SignatureBuilder<bool(bool)>::new_function("fct", &language);
-    Signature* two_arg_fct    = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
+    func_type* single_arg_fct = SignatureBuilder<bool(bool)>::new_function("fct", &language);
+    func_type* two_arg_fct    = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
 
     EXPECT_EQ(two_arg_fct->is_compatible(single_arg_fct), false);
     EXPECT_EQ(single_arg_fct->is_compatible(two_arg_fct), false);
@@ -50,8 +50,8 @@ TEST_F(language_fixture, match_check_for_arg_count)
 
 TEST_F(language_fixture, match_check_identifier)
 {
-    Signature* two_arg_fct          = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
-    Signature* two_arg_fct_modified = SignatureBuilder<bool()>::new_function("fct", &language);
+    func_type* two_arg_fct          = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
+    func_type* two_arg_fct_modified = SignatureBuilder<bool()>::new_function("fct", &language);
 
     two_arg_fct_modified->push_arg(type::get<double>() );
     two_arg_fct_modified->push_arg(type::get<double>() );
@@ -62,8 +62,8 @@ TEST_F(language_fixture, match_check_identifier)
 
 TEST_F(language_fixture, match_check_absence_of_arg)
 {
-    Signature* two_arg_fct              = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
-    Signature* two_arg_fct_without_args = SignatureBuilder<bool()>::new_function("fct", &language);
+    func_type* two_arg_fct              = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
+    func_type* two_arg_fct_without_args = SignatureBuilder<bool()>::new_function("fct", &language);
 
     EXPECT_EQ(two_arg_fct->is_compatible(two_arg_fct_without_args), false);
     EXPECT_EQ(two_arg_fct_without_args->is_compatible(two_arg_fct), false);
@@ -140,22 +140,22 @@ TEST_F(language_fixture, can_get_add_operator_with_short_identifier )
 
 TEST_F(language_fixture, can_get_add_operator_with_signature )
 {
-    const Signature*  signature = SignatureBuilder<double(double, double)>::new_operator("+", &language);
-    const IInvokable* operator_ = language.find_operator_fct(signature);
+    const func_type*  signature = SignatureBuilder<double(double, double)>::new_operator("+", &language);
+    const iinvokable* operator_ = language.find_operator_fct(signature);
     EXPECT_TRUE(operator_);
 }
 
 TEST_F(language_fixture, can_get_invert_operator_with_signature )
 {
-    const Signature*  signature = SignatureBuilder<double(double)>::new_operator("-", &language);
-    const IInvokable* operator_ = language.find_operator_fct(signature);
+    const func_type*  signature = SignatureBuilder<double(double)>::new_operator("-", &language);
+    const iinvokable* operator_ = language.find_operator_fct(signature);
     EXPECT_TRUE(operator_);
 }
 
 TEST_F(language_fixture, by_ref_assign )
 {
-    const Signature*  signature = SignatureBuilder<double(double&,double)>::new_operator("=", &language);
-    const IInvokable* operator_ = language.find_operator_fct(signature);
+    const func_type*  signature = SignatureBuilder<double(double&,double)>::new_operator("=", &language);
+    const iinvokable* operator_ = language.find_operator_fct(signature);
     EXPECT_TRUE(operator_ != nullptr);
 
     // prepare call

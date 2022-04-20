@@ -161,7 +161,7 @@ VariableNode* GraphNode::create_variable(type _type, const std::string& _name, I
 	return node;
 }
 
-Node* GraphNode::create_abstract_function(const Signature* _signature)
+Node* GraphNode::create_abstract_function(const func_type* _signature)
 {
     if ( !_signature )
     {
@@ -172,7 +172,7 @@ Node* GraphNode::create_abstract_function(const Signature* _signature)
     return node;
 }
 
-Node* GraphNode::create_function(const IInvokable* _function)
+Node* GraphNode::create_function(const iinvokable* _function)
 {
     if ( !_function )
     {

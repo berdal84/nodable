@@ -3,10 +3,10 @@
 #include <map>
 #include <string>
 #include <functional>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 
 #include <nodable/core/IScope.h>
-#include <nodable/core/Invokable.h>
+#include <nodable/core/reflection/invokable.h>
 #include <nodable/app/types.h>     // forward declarations
 #include <nodable/app/View.h>  // base class
 #include <nodable/core/Component.h>  // base class
@@ -19,7 +19,7 @@ namespace Nodable
 	typedef struct {
         std::string                 label;
         std::function<Node *(void)> create_node_fct;
-        const Signature*    function_signature;
+        const func_type*    function_signature;
 	} FunctionMenuItem;
 
 	class GraphNodeView: public View, public Component
@@ -37,7 +37,7 @@ namespace Nodable
                         const std::string &_category,
                         const std::string &_label,
                         std::function<Node *(void)> _lambda,
-                        const Signature *_signature);
+                        const func_type *_signature);
 	private:
         [[nodiscard]] GraphNode* get_graph_node() const;
         std::vector<ViewConstraint>              m_child_view_constraints;

@@ -7,7 +7,7 @@
 #include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/ForLoopNode.h>
 #include <nodable/core/Scope.h>
-#include <nodable/core/Signature.h>
+#include <nodable/core/reflection/func_type.h>
 #include <nodable/core/LiteralNode.h>
 #include <nodable/core/Operator.h>
 #include <nodable/core/languages/NodableLanguage.h>
@@ -16,7 +16,7 @@ using namespace Nodable;
 
 std::string& NodableSerializer::serialize(std::string& _out, const InvokableComponent *_component)const
 {
-    const Signature* signature = _component->get_signature();
+    const func_type* signature = _component->get_signature();
 
     if ( !signature->is_operator() )
     {
@@ -42,7 +42,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
 
         Node*            owner = _component->get_owner();
         const MemberVec& args  = _component->get_args();
-        const Signature*   sig = signature;
+        const func_type*   sig = signature;
 
         switch (sig->get_arg_count())
         {
@@ -56,7 +56,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
                 {
                     // TODO: check parsed brackets for prefix/suffix
                     bool needs_brackets = l_handed_operator &&
-                            l_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence;
+                            l_handed_operator->get_type()->get_operator()->precedence < sig->get_operator()->precedence;
 
                     serialize_member_with_or_without_brackets(args[0], needs_brackets);
                 }
@@ -77,8 +77,9 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
                 // Right part of the expression
                 {
                     // TODO: check parsed brackets for prefix/suffix
-                    bool needs_brackets = r_handed_operator && (r_handed_operator->get_signature()->get_arg_count() == 1
-                                         || r_handed_operator->get_signature()->get_operator()->precedence < sig->get_operator()->precedence );
+                    bool needs_brackets = r_handed_operator && (r_handed_operator->get_type()->get_arg_count() == 1
+                                         ||
+                            r_handed_operator->get_type()->get_operator()->precedence < sig->get_operator()->precedence );
 
                     serialize_member_with_or_without_brackets(args[1], needs_brackets);
                 }
@@ -107,7 +108,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
     return _out;
 }
 
-std::string& NodableSerializer::serialize(std::string& _out, const Signature*   _signature, const std::vector<Member*>& _args) const
+std::string& NodableSerializer::serialize(std::string& _out, const func_type*   _signature, const std::vector<Member*>& _args) const
 {
     _out.append(_signature->get_identifier());
     serialize(_out, Token_t::fct_params_begin);
@@ -126,7 +127,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const Signature*   
     return _out;
 }
 
-std::string& NodableSerializer::serialize(std::string& _out, const Signature* _signature) const
+std::string& NodableSerializer::serialize(std::string& _out, const func_type* _signature) const
 {
     serialize(_out, _signature->get_return_type());
     _out.append(" ");

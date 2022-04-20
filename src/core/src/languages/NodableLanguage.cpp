@@ -102,11 +102,11 @@ NodableLanguage::~NodableLanguage()
     // for( auto each : m_operator_implems ) delete each; (duplicates from m_functions)
 }
 
-const IInvokable* NodableLanguage::find_function(const Signature* _signature) const
+const iinvokable* NodableLanguage::find_function(const func_type* _signature) const
 {
-    auto is_compatible = [&](const IInvokable* fct)
+    auto is_compatible = [&](const iinvokable* fct)
     {
-        return fct->get_signature()->is_compatible(_signature);
+        return fct->get_type()->is_compatible(_signature);
     };
 
     auto it = std::find_if(m_functions.begin(), m_functions.end(), is_compatible);
@@ -119,16 +119,16 @@ const IInvokable* NodableLanguage::find_function(const Signature* _signature) co
     return nullptr;
 }
 
-const IInvokable* NodableLanguage::find_operator_fct_exact(const Signature* _signature) const
+const iinvokable* NodableLanguage::find_operator_fct_exact(const func_type* _type) const
 {
-    if(!_signature)
+    if(!_type)
     {
         return nullptr;
     }
 
-    auto is_exactly = [&](const IInvokable* _invokable)
+    auto is_exactly = [&](const iinvokable* _invokable)
     {
-        return _signature->is_exactly(_invokable->get_signature());
+        return _type->is_exactly(_invokable->get_type());
     };
 
     auto found = std::find_if(m_operator_implems.cbegin(), m_operator_implems.cend(), is_exactly );
@@ -141,23 +141,23 @@ const IInvokable* NodableLanguage::find_operator_fct_exact(const Signature* _sig
     return nullptr;
 }
 
-const IInvokable* NodableLanguage::find_operator_fct(const Signature* _signature) const
+const iinvokable* NodableLanguage::find_operator_fct(const func_type* _type) const
 {
-    if(!_signature)
+    if(!_type)
     {
         return nullptr;
     }
-    auto exact = find_operator_fct_exact(_signature);
-    if( !exact) return find_operator_fct_fallback(_signature);
+    auto exact = find_operator_fct_exact(_type);
+    if( !exact) return find_operator_fct_fallback(_type);
     return exact;
 }
 
-const IInvokable* NodableLanguage::find_operator_fct_fallback(const Signature* _signature) const
+const iinvokable* NodableLanguage::find_operator_fct_fallback(const func_type* _type) const
 {
 
-    auto is_compatible = [&](const IInvokable* _invokable)
+    auto is_compatible = [&](const iinvokable* _invokable)
     {
-        return _signature->is_compatible(_invokable->get_signature());
+        return _type->is_compatible(_invokable->get_type());
     };
 
     auto found = std::find_if(m_operator_implems.cbegin(), m_operator_implems.cend(), is_compatible );
@@ -171,24 +171,25 @@ const IInvokable* NodableLanguage::find_operator_fct_fallback(const Signature* _
 }
 
 
-void NodableLanguage::add_invokable(const IInvokable* _invokable)
+void NodableLanguage::add_invokable(const iinvokable* _invokable)
 {
     m_functions.push_back(_invokable);
 
-    std::string signature;
-    m_serializer.serialize(signature, _invokable->get_signature() );
+    const func_type* type = _invokable->get_type();
+    std::string type_as_string;
+    m_serializer.serialize(type_as_string, type);
 
-    if( _invokable->get_signature()->is_operator() )
+    if(type->is_operator() )
     {
         auto found = std::find(m_operator_implems.begin(), m_operator_implems.end(), _invokable);
         NODABLE_ASSERT( found == m_operator_implems.end() )
         m_operator_implems.push_back(_invokable);
 
-        LOG_VERBOSE("Language", "%s added to functions and operator implems\n", signature.c_str() );
+        LOG_VERBOSE("Language", "%s added to functions and operator implems\n", type_as_string.c_str() );
     }
     else
     {
-        LOG_VERBOSE("Language", "%s added to functions\n", signature.c_str() );
+        LOG_VERBOSE("Language", "%s added to functions\n", type_as_string.c_str() );
     }
 }
 
@@ -260,7 +261,7 @@ void NodableLanguage::add_char(const char _char, Token_t _token_t)
 }
 
 
-const Signature* NodableLanguage::new_operator_signature(
+const func_type* NodableLanguage::new_operator_signature(
         type _type,
         const Operator* _op,
         type _ltype,
@@ -272,7 +273,7 @@ const Signature* NodableLanguage::new_operator_signature(
         return nullptr;
     }
 
-    auto signature = new Signature( sanitize_operator_id(_op->identifier), _op);
+    auto signature = new func_type( sanitize_operator_id(_op->identifier), _op);
     signature->set_return_type(_type);
     signature->push_args(_ltype, _rtype);
 
@@ -282,7 +283,7 @@ const Signature* NodableLanguage::new_operator_signature(
     return signature;
 }
 
-const Signature* NodableLanguage::new_operator_signature(
+const func_type* NodableLanguage::new_operator_signature(
         type _type,
         const Operator* _op,
         type _ltype) const
@@ -292,7 +293,7 @@ const Signature* NodableLanguage::new_operator_signature(
         return nullptr;
     }
 
-    auto signature = new Signature( sanitize_operator_id(_op->identifier), _op);
+    auto signature = new func_type( sanitize_operator_id(_op->identifier), _op);
     signature->set_return_type(_type);
     signature->push_arg(_ltype);
 

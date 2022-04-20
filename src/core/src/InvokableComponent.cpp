@@ -2,7 +2,7 @@
 
 #include <nodable/core/Log.h>
 #include <nodable/core/VariableNode.h>
-#include <nodable/core/Signature.h>
+#include <nodable/core/reflection/func_type.h>
 
 using namespace Nodable;
 
@@ -11,23 +11,14 @@ REGISTER
     registration::push_class<InvokableComponent>("InvokableComponent").extends<Component>();
 }
 
-InvokableComponent::InvokableComponent(const IInvokable* _invokable)
-    : Component()
-    , m_result( nullptr )
-    , m_signature(_invokable->get_signature())
-    , m_invokable(_invokable)
+InvokableComponent::InvokableComponent(const func_type* _signature, const iinvokable* _invokable)
+        : Component()
+        , m_result( nullptr )
+        , m_signature(_signature)
+        , m_invokable(nullptr)
 {
-    m_args.resize(m_signature->get_arg_count(), nullptr );
-    m_source_token = std::make_shared<Token>(Token_t::identifier, m_signature->get_label(), 0 );
-}
-
-InvokableComponent::InvokableComponent(const Signature* _signature)
-    : Component()
-    , m_result( nullptr )
-    , m_signature(_signature)
-    , m_invokable(nullptr)
-{
-    NODABLE_ASSERT(_signature != nullptr); // must be defined !
+    NODABLE_ASSERT_EX(_signature != nullptr, "Signature must be defined!")
+    m_invokable = _invokable;
     m_args.resize(_signature->get_arg_count(), nullptr );
     m_source_token = std::make_shared<Token>(Token_t::identifier, _signature->get_label(), 0 );
 }

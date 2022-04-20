@@ -6,7 +6,7 @@
 #include <regex>
 #include <memory>
 
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 #include <nodable/core/constants.h>
 
 namespace Nodable
@@ -30,12 +30,12 @@ namespace Nodable
      * Class to store a function signature.
      * We can check if two function signature are matching using this->match(other)
      */
-    class Signature
+    class func_type
     {
     public:
-        Signature(std::string _id);
-        Signature(std::string _id, const Operator* _op);
-        ~Signature() {};
+        func_type(std::string _id);
+        func_type(std::string _id, const Operator* _op);
+        ~func_type() {};
 
         void                           push_arg(type _type);
 
@@ -45,8 +45,8 @@ namespace Nodable
         }
 
         bool                           has_an_arg_of_type(type type)const;
-        bool                           is_exactly(const Signature* _other)const;
-        bool                           is_compatible(const Signature* _other)const;
+        bool                           is_exactly(const func_type* _other)const;
+        bool                           is_compatible(const func_type* _other)const;
         bool                           is_operator()const { return m_operator; };
         const std::string&             get_identifier()const { return m_identifier; };
         FuncArgs&                      get_args() { return m_args;};
@@ -69,7 +69,7 @@ namespace Nodable
         template<class Tuple, std::size_t N> // push N+1 arguments
         struct arg_pusher
         {
-            static void push_into(Signature *_signature)
+            static void push_into(func_type *_signature)
             {
                 arg_pusher<Tuple, N - 1>::push_into(_signature);
 
@@ -81,7 +81,7 @@ namespace Nodable
         template<class Tuple>  // push 1 arguments
         struct arg_pusher<Tuple, 1>
         {
-            static void push_into(Signature *_signature)
+            static void push_into(func_type *_signature)
             {
                 using T = std::tuple_element_t<0, Tuple>;
                 _signature->push_arg( type::get<T>() );

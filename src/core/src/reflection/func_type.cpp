@@ -1,18 +1,18 @@
-#include <nodable/core/Signature.h>
+#include <nodable/core/reflection/func_type.h>
 #include <algorithm> // find_if
 #include <nodable/core/constants.h>
 #include <nodable/core/Operator.h>
 
 using namespace Nodable;
 
-Signature::Signature(std::string _id)
+func_type::func_type(std::string _id)
     : m_identifier(_id)
     , m_operator(nullptr)
     , m_return_type(type::null)
 {
 }
 
-Signature::Signature(std::string _id, const Operator* _operator)
+func_type::func_type(std::string _id, const Operator* _operator)
         : m_identifier(_id)
         , m_operator(_operator)
         , m_return_type(type::null)
@@ -22,7 +22,7 @@ Signature::Signature(std::string _id, const Operator* _operator)
     m_operator = _operator;
 }
 
-void Signature::push_arg(type _type)
+void func_type::push_arg(type _type)
 {
    // create normalised name
 
@@ -45,7 +45,7 @@ void Signature::push_arg(type _type)
     m_args.emplace_back(_type, name);
 }
 
-bool Signature::is_exactly(const Signature* _other)const
+bool func_type::is_exactly(const func_type* _other)const
 {
     if ( this == _other )                        return true;
     if ( m_args.size() != _other->m_args.size()) return false;
@@ -67,7 +67,7 @@ bool Signature::is_exactly(const Signature* _other)const
     return true;
 }
 
-bool Signature::is_compatible(const Signature* _other)const
+bool func_type::is_compatible(const func_type* _other)const
 {
     if ( this == _other )                        return true;
     if ( m_args.size() != _other->m_args.size()) return false;
@@ -96,13 +96,13 @@ bool Signature::is_compatible(const Signature* _other)const
 
 }
 
-bool Signature::has_an_arg_of_type(type _type) const
+bool func_type::has_an_arg_of_type(type _type) const
 {
     auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FuncArg& each) { return each.m_type == _type; } );
     return found != m_args.end();
 }
 
-std::string Signature::get_label() const
+std::string func_type::get_label() const
 {
     if( m_operator )
     {

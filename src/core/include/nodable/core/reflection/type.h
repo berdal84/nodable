@@ -5,7 +5,7 @@
 #include <typeinfo>
 #include <typeindex>
 
-#include "typeregister.h"
+#include "type_register.h"
 
 namespace Nodable
 {
@@ -32,7 +32,7 @@ namespace Nodable
     class type
     {
         friend class registration;
-        friend class typeregister;
+        friend class type_register;
     private:
         type() = default;
     public:
@@ -74,8 +74,8 @@ namespace Nodable
         static type get()
         {
             auto hash = Nodable::unqualified<T>::hash_code();
-            NODABLE_ASSERT_EX( typeregister::has(hash), "type is not registered. use registration::push_xxx<T>()")
-            type type = typeregister::get(hash);
+            NODABLE_ASSERT_EX(type_register::has(hash), "type is not registered. use registration::push_xxx<T>()");
+            type type = type_register::get(hash);
             type.m_is_pointer   = std::is_pointer<T>::value;
             type.m_is_reference = std::is_reference<T>::value;
             type.m_is_const     = std::is_const<T>::value;

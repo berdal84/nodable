@@ -6,7 +6,7 @@
 #include <nodable/core/types.h> // forward declarations and common stuff
 #include <nodable/core/Node.h> // base class
 #include <nodable/core/Member.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 #include "Scope.h"
 
 namespace Nodable

@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory> // std::shared_ptr
 
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 #include <nodable/core/IScope.h>
 #include <nodable/core/types.h>
 #include <nodable/core/Component.h>
@@ -45,8 +45,8 @@ namespace Nodable
 
 		LiteralNode*                create_literal(type);
  		Wire*                       create_wire();
-		Node*                       create_abstract_function(const Signature*);
-		Node*                       create_function(const IInvokable*);
+		Node*                       create_abstract_function(const func_type*);
+		Node*                       create_function(const iinvokable*);
         Node*                       create_scope();
         ConditionalStructNode*      create_cond_struct();
         ForLoopNode*                create_for_loop();

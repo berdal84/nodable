@@ -14,15 +14,15 @@
 #include <nodable/core/types.h>
 #include <nodable/core/Token_t.h>
 #include <nodable/core/Operator_t.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.>
 
 namespace Nodable
 {
     class Operator;
     class IParser;
     class ISerializer;
-    class IInvokable;
-    class Signature;
+    class iinvokable;
+    class func_type;
 
 	/**
 	 * @brief The role of this class is to define a base abstract class for all languages.
@@ -36,13 +36,13 @@ namespace Nodable
 	 */
 	class ILanguage {
 	    using vec_operator_t  = std::vector<const Operator*>;
-	    using vec_invokable_t = std::vector<const IInvokable*>;
+	    using vec_invokable_t = std::vector<const iinvokable*>;
 	public:
 		virtual ~ILanguage() = default;
 
-        virtual const IInvokable*               find_function(const Signature*) const = 0;
-        virtual const IInvokable*               find_operator_fct(const Signature*) const = 0;
-        virtual const IInvokable*               find_operator_fct_exact(const Signature*) const = 0;
+        virtual const iinvokable*               find_function(const func_type*) const = 0;
+        virtual const iinvokable*               find_operator_fct(const func_type*) const = 0;
+        virtual const iinvokable*               find_operator_fct_exact(const func_type*) const = 0;
         virtual const Operator*                 find_operator(const std::string& , Operator_t) const = 0;
         virtual IParser&                        get_parser() = 0;
         virtual const IParser&                  get_parser()const = 0;
@@ -55,10 +55,10 @@ namespace Nodable
         virtual std::string                     to_string(Token_t)const = 0;
         virtual type                            get_type(Token_t _token)const = 0;
         virtual const std::vector<Token_t>&     get_token_type_regex_index_to_token_type()const = 0;
-        virtual const Signature*                new_operator_signature(type, const Operator*, type)const = 0;
-        virtual const Signature*                new_operator_signature(type, const Operator*, type, type)const = 0;
+        virtual const func_type*                new_operator_signature(type, const Operator*, type)const = 0;
+        virtual const func_type*                new_operator_signature(type, const Operator*, type, type)const = 0;
         virtual std::string                     sanitize_function_id(const std::string& _id)const = 0;
         virtual std::string                     sanitize_operator_id(const std::string& _id)const = 0;
-        virtual void                            add_invokable(const IInvokable*) = 0;
+        virtual void                            add_invokable(const iinvokable*) = 0;
     };
 }
