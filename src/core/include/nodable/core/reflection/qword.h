@@ -2,20 +2,17 @@
 
 #include <string>
 #include <cstring> // for memset
-#include "nodable/core/assertions.h"
-#include "nodable/core/types.h"
-#include "nodable/core/assembly/Register.h"
-#include "nodable/core/reflection/type."
+
+#include <nodable/core/assertions.h>
+#include <nodable/core/types.h>
+#include <nodable/core/reflection/union.h>
 
 namespace Nodable
 {
-namespace assembly
-{
-
     /**
      * @brief 64 bits of data, is union of all types (bool, double, void*, etc.).
      */
-    struct QWord
+    struct qword
     {
         union {
             bool      b;
@@ -30,20 +27,17 @@ namespace assembly
             float     f;
             double    d;
             void*     ptr;
-            Register  r;
         };
 
-        QWord() { memset(this, 0, sizeof(*this) ); }
-        [[nodiscard]] std::string        to_string()const { return QWord::to_string(*this); }
-        [[nodiscard]] static std::string to_string(const QWord&);
+        qword() { memset(this, 0, sizeof(*this) ); }
+        [[nodiscard]] std::string        to_string()const { return qword::to_string(*this); }
+        [[nodiscard]] static std::string to_string(const qword&);
 
         template<typename T>
         explicit operator T() const { return get<const T>(); }
         explicit operator std::string() const { return *static_cast<std::string*>(ptr); }
 
-        R_UNION(QWord)
+        R_UNION(qword)
     };
-    static_assert(sizeof(QWord) == 64 / 8 );
-
-} // Asm namespace
+    static_assert(sizeof(qword) == 64 / 8 );
 } // Nodable namespace

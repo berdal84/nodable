@@ -5,7 +5,8 @@
 #include <typeinfo>
 #include <typeindex>
 
-#include "type_register.h"
+#include <nodable/core/reflection/type_register.h>
+#include <nodable/core/assertions.h>
 
 namespace Nodable
 {
@@ -114,4 +115,14 @@ namespace Nodable
         std::unordered_set<hash_code_t> m_parents;
         std::unordered_set<hash_code_t> m_children;
     };
+
+    template<class target_t, class source_t>
+    static target_t* cast(source_t *_source)
+    {
+        if( _source->get_type().is_child_of( type::get<target_t>(), true ))
+        {
+            return dynamic_cast<target_t*>(_source);
+        }
+        return nullptr;
+    }
 }

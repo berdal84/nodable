@@ -41,20 +41,20 @@ add_library(
         src/Token.cpp
         src/TokenRibbon.cpp
         src/VariableNode.cpp
-        src/Variant.cpp
         src/VirtualMachine.cpp
         src/Way.cpp
         src/Wire.cpp
         src/assembly/Code.cpp
         src/assembly/Compiler.cpp
         src/assembly/Instruction.cpp
-        src/assembly/QWord.cpp
+        src/reflection/qword.cpp
         src/languages/NodableLanguage.cpp
         src/languages/NodableLibrary_biology.cpp
         src/languages/NodableLibrary_math.cpp
         src/reflection/func_type.cpp
         src/reflection/type.cpp
-        src/reflection/type_register.cpp)
+        src/reflection/type_register.cpp
+        src/reflection/variant.cpp)
 
 target_link_libraries(
     nodable-core

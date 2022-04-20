@@ -1,11 +1,11 @@
-#include <nodable/core/Variant.h>
+#include <nodable/core/reflection/variant.h>
 #include <nodable/core/Log.h> // for LOG_DEBUG(...)
 #include <nodable/core/types.h>
 #include <nodable/core/String.h>
 
 using namespace Nodable;
 
-Variant::~Variant()
+variant::~variant()
 {
     if( m_is_initialized)
     {
@@ -15,7 +15,7 @@ Variant::~Variant()
 
 
 template<>
-void* Variant::convert_to<void*>()const
+void* variant::convert_to<void*>()const
 {
     if( !m_is_defined)
     {
@@ -30,7 +30,7 @@ void* Variant::convert_to<void*>()const
 }
 
 template<>
-u64_t Variant::convert_to<u64_t>()const
+u64_t variant::convert_to<u64_t>()const
 {
     if( !m_is_defined)
     {
@@ -40,7 +40,7 @@ u64_t Variant::convert_to<u64_t>()const
 }
 
 template<>
-double Variant::convert_to<double>()const
+double variant::convert_to<double>()const
 {
     if( !m_is_defined)
     {
@@ -57,7 +57,7 @@ double Variant::convert_to<double>()const
 }
 
 template<>
-i16_t Variant::convert_to<i16_t>()const
+i16_t variant::convert_to<i16_t>()const
 {
     if( !m_is_defined)
     {
@@ -73,7 +73,7 @@ i16_t Variant::convert_to<i16_t>()const
 }
 
 template<>
-bool Variant::convert_to<bool>()const
+bool variant::convert_to<bool>()const
 {
     if( !m_is_defined)
     {
@@ -89,7 +89,7 @@ bool Variant::convert_to<bool>()const
 }
 
 template<>
-std::string Variant::convert_to<std::string>()const
+std::string variant::convert_to<std::string>()const
 {
     if( !m_is_initialized)
     {
@@ -109,12 +109,12 @@ std::string Variant::convert_to<std::string>()const
     NODABLE_ASSERT_EX(false,"Case not handled!")
 }
 
-const type& Variant::get_type()const
+const type& variant::get_type()const
 {
 	return m_type;
 }
 
-void Variant::set(const std::string& _value)
+void variant::set(const std::string& _value)
 {
     ensure_is_type( type::get<std::string>() );
     ensure_is_initialized(true);
@@ -124,12 +124,12 @@ void Variant::set(const std::string& _value)
     flag_defined();
 }
 
-void Variant::set(const char* _value)
+void variant::set(const char* _value)
 {
     set(std::string{_value});
 }
 
-void Variant::set(double _value)
+void variant::set(double _value)
 {
     ensure_is_type(type::get<double>());
     ensure_is_initialized();
@@ -137,7 +137,7 @@ void Variant::set(double _value)
     flag_defined();
 }
 
-void Variant::set(i16_t _value)
+void variant::set(i16_t _value)
 {
     ensure_is_type(type::get<i16_t>());
     ensure_is_initialized();
@@ -145,7 +145,7 @@ void Variant::set(i16_t _value)
     flag_defined();
 }
 
-void Variant::set(bool _value)
+void variant::set(bool _value)
 {
     ensure_is_type(type::get<bool>());
     ensure_is_initialized();
@@ -153,12 +153,12 @@ void Variant::set(bool _value)
     flag_defined();
 }
 
-bool Variant::is_initialized()const
+bool variant::is_initialized()const
 {
 	return m_is_initialized;
 }
 
-void Variant::reset_value()
+void variant::reset_value()
 {
     NODABLE_ASSERT_EX(m_is_initialized, "Variant: cannot reset value, variant not intialized!");
 
@@ -189,7 +189,7 @@ void Variant::reset_value()
     }
 }
 
-void Variant::ensure_is_initialized(bool _initialize)
+void variant::ensure_is_initialized(bool _initialize)
 {
     NODABLE_ASSERT_EX(m_type != type::null, "Variant: cannot ensure is_initialised(...) because type is null!");
 
@@ -214,7 +214,7 @@ void Variant::ensure_is_initialized(bool _initialize)
     m_is_initialized = _initialize;
 }
 
-void Variant::ensure_is_type(type _type)
+void variant::ensure_is_type(type _type)
 {
     auto clean = clean_type(_type);
     if( !m_type_change_allowed )
@@ -229,13 +229,13 @@ void Variant::ensure_is_type(type _type)
     m_type = clean;
 }
 
-Variant::operator i16_t()const        { NODABLE_ASSERT(m_is_defined) return convert_to<i16_t>(); }
-Variant::operator double()const       { NODABLE_ASSERT(m_is_defined) return convert_to<double>(); }
-Variant::operator bool()const         { NODABLE_ASSERT(m_is_defined) return convert_to<bool>(); }
-Variant::operator std::string ()const { NODABLE_ASSERT(m_is_defined) return convert_to<std::string>(); }
-Variant::operator void* ()const       { NODABLE_ASSERT(m_is_defined) return convert_to<void*>(); }
+variant::operator i16_t()const        { NODABLE_ASSERT(m_is_defined) return convert_to<i16_t>(); }
+variant::operator double()const       { NODABLE_ASSERT(m_is_defined) return convert_to<double>(); }
+variant::operator bool()const         { NODABLE_ASSERT(m_is_defined) return convert_to<bool>(); }
+variant::operator std::string ()const { NODABLE_ASSERT(m_is_defined) return convert_to<std::string>(); }
+variant::operator void* ()const       { NODABLE_ASSERT(m_is_defined) return convert_to<void*>(); }
 
-void Variant::flag_defined(bool _value )
+void variant::flag_defined(bool _value )
 {
     NODABLE_ASSERT_EX(m_type != type::null, "Variant: Unable to ensure variant is defined because its type is null!");
     NODABLE_ASSERT_EX(m_is_initialized, "Variant: Unable to ensure variant is defined because it is not initialized!");
@@ -248,7 +248,7 @@ void Variant::flag_defined(bool _value )
     m_is_defined = _value;
 }
 
-type Variant::clean_type(const type& _type)
+type variant::clean_type(const type& _type)
 {
     if(_type.is_ptr())
     {
@@ -259,7 +259,7 @@ type Variant::clean_type(const type& _type)
 }
 
 
-Variant& Variant::operator=(const Variant& _other)
+variant& variant::operator=(const variant& _other)
 {
     NODABLE_ASSERT( _other.m_type != type::null )
     NODABLE_ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));

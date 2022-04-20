@@ -1,3 +1,4 @@
+#include <nodable/core/assembly/Register.h>
 #include "nodable/core/assembly/Instruction.h"
 #include "nodable/core/String.h"
 
@@ -31,7 +32,7 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
         case opcode_t::deref_ptr:
         {
             NODABLE_ASSERT_EX(_instr.uref.qword_ptr, "qword_ptr is null!")
-            result.append(assembly::QWord::to_string(*_instr.uref.qword_ptr ));
+            result.append(qword::to_string(*_instr.uref.qword_ptr ));
             result.append(", *");
             result.append( _instr.uref.qword_type->get_name() );
             break;
@@ -39,24 +40,24 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
 
         case opcode_t::mov:
         {
-            result.append(assembly::to_string(_instr.mov.dst.r ));
+            result.append(assembly::to_string(static_cast<Register>(_instr.mov.dst.u8) ));
             result.append(", ");
-            result.append(assembly::QWord::to_string(_instr.mov.src ));
+            result.append(qword::to_string(_instr.mov.src ));
             break;
         }
 
         case opcode_t::cmp:
         {
-            result.append(assembly::QWord::to_string(_instr.cmp.left ));
+            result.append(qword::to_string(_instr.cmp.left ));
             result.append(", ");
-            result.append(assembly::QWord::to_string(_instr.cmp.right ));
+            result.append(qword::to_string(_instr.cmp.right ));
             break;
         }
 
         case opcode_t::jne:
         case opcode_t::jmp:
         {
-            result.append( std::to_string( _instr.jmp.offset ) );
+            result.append(std::to_string( _instr.jmp.offset ) );
             break;
         }
 

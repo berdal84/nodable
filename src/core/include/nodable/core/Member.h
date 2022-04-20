@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nodable/core/types.h> // for constants and forward declarations
-#include <nodable/core/Variant.h>
+#include <nodable/core/reflection/variant.h>
 #include <nodable/core/Visibility.h>
 #include <nodable/core/Token.h>
 #include <nodable/core/Way.h>
@@ -69,8 +69,9 @@ namespace Nodable
         Way                   get_allowed_connection()const { return m_allowed_connection; }
         const std::shared_ptr<Token> get_src_token() const { return m_sourceToken; }
 		std::shared_ptr<Token>       get_src_token() { return m_sourceToken; }
-        const Variant*        get_variant()const { return &variant(); }
-        Variant*              get_variant() { return &variant(); }
+        const variant*        get_variant()const { return &variant(); }
+        variant*              get_variant() { return &variant(); }
+
 
         template<typename T> inline explicit operator T*()     { return variant(); }
         template<typename T> inline explicit operator const T*() const { return variant(); }
@@ -85,19 +86,19 @@ namespace Nodable
             Flags_define       = 1 << 1,
             Flags_reset_value  = 1 << 2
 		};
-        static Member* new_with_type(Properties* , type , Flags = Flags_none);
 
         void             ensure_is_defined(bool _value);
         bool             is_connected_to_variable() const;
         VariableNode*    get_connected_variable();
+        qword&           get_underlying_data();
 
-        assembly::QWord &get_underlying_data();
-
+		static Member*                new_with_type(Properties* , type , Flags = Flags_none);
+		static std::vector<variant*>& get_variant(std::vector<Member*> _in, std::vector<class variant*>& _out);
     private:
 
         // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()
-        Variant&       variant()     { return (m_input && (m_variant.get_type().is_ref() || m_variant.get_type().is_ptr()) ) ? m_input->m_variant : m_variant; }
-        const Variant& variant()const{ return (m_input && (m_variant.get_type().is_ref() || m_variant.get_type().is_ptr()) ) ? m_input->m_variant : m_variant; }
+		Nodable::variant&       variant()     { return (m_input && (m_variant.get_type().is_ref() || m_variant.get_type().is_ptr()) ) ? m_input->m_variant : m_variant; }
+        const Nodable::variant& variant()const{ return (m_input && (m_variant.get_type().is_ref() || m_variant.get_type().is_ptr()) ) ? m_input->m_variant : m_variant; }
 
         Member*           m_input;
         ConnBy_           m_connected_by;
@@ -108,6 +109,6 @@ namespace Nodable
 		Way               m_allowed_connection;
 		std::shared_ptr<Token> m_sourceToken;
 		std::string       m_name;
-		Variant       	  m_variant;
+		Nodable::variant  m_variant;
     };
 }

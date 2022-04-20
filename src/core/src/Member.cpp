@@ -2,7 +2,6 @@
 #include <nodable/core/Log.h> // for LOG_DEBUG(...)
 #include <nodable/core/Properties.h>
 #include <nodable/core/VariableNode.h>
-#include <nodable/core/ILanguage.h>
 
 using namespace Nodable;
 
@@ -96,7 +95,7 @@ void Member::set(Node* _value)
     variant().set(_value);
 }
 
-assembly::QWord& Member::get_underlying_data()
+qword& Member::get_underlying_data()
 {
     return variant().get_underlying_data();
 }
@@ -122,4 +121,13 @@ Member* Member::new_with_type(Properties *_parent, type _type, Flags _flags)
     }
 
     return member;
+}
+
+std::vector<variant*>& Member::get_variant(std::vector<Member *> _in, std::vector<class variant*>& _out)
+{
+    for(auto each : _in)
+    {
+        _out.push_back(each->get_variant());
+    }
+    return _out;
 }

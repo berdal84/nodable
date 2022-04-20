@@ -159,10 +159,10 @@ TEST_F(language_fixture, by_ref_assign )
     EXPECT_TRUE(operator_ != nullptr);
 
     // prepare call
-    Member left(nullptr, 50.0);
-    Member right(nullptr, 200.0);
-    Member result(nullptr, 0.0);
-    std::vector<Member*> args{&left, &right};
+    variant left(50.0);
+    variant right(200.0);
+    variant result(0.0);
+    std::vector<variant*> args{&left, &right};
 
     // call
     operator_->invoke(&result, args);

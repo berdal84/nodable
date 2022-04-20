@@ -5,53 +5,60 @@
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 
 #include <nodable/core/types.h>
+#include <nodable/core/reflection/variant.h>
 #include <nodable/core/reflection/reflection>
-#include <nodable/core/Member.h>
-#include <nodable/core/reflection/iinvokable.h>
 #include <nodable/core/reflection/func_type.h>
 
 namespace Nodable {
+
+    class iinvokable
+    {
+    public:
+        virtual ~iinvokable() {};
+        virtual const func_type* get_type() const = 0;
+        virtual void invoke(variant *_result, const std::vector<variant *> &_args) const = 0;
+    };
 
     /** Helpers to call a function (need serious work here) */
 
     /** 0 arg function */
     template<typename T, typename F = T()>
-    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
     {
         _result->set( _function() );
     }
 
     /** 1 arg function */
     template<typename T, typename A0, typename F = T(A0)>
-    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
     {
         _result->set( _function( (A0) *_args[0] ) );
     }
 
     /** 2 arg function */
     template<typename T, typename A0, typename A1, typename F = T(A0, A1)>
-    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
     {
         _result->set( _function( (A0) *_args[0], (A1) *_args[1] ) );
     }
 
     /** 3 arg function */
     template<typename T, typename A0, typename A1, typename A2, typename F = T(A0, A1, A2)>
-    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
     {
         _result->set( _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2] ) );
     }
 
     /** 4 arg function */
     template<typename T, typename A0, typename A1, typename A2, typename A3, typename F = T(A0, A1, A2, A3)>
-    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
     {
         _result->set( _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2], (A3) *_args[3] ) );
     }
 
     /** 5 arg function */
     template<typename T, typename A0, typename A1, typename A2, typename A3, typename A4, typename F = T(A0, A1, A2, A3, A4)>
-    void call(F *_function, Member *_result, const std::vector<Member *> &_args)
+    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
     {
         _result->set( _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2], (A3) *_args[3], (A4) *_args[4] ) );
     }
@@ -78,7 +85,7 @@ namespace Nodable {
 
         ~invokable() override {}
 
-        inline void invoke(Member *_result, const std::vector<Member *> &_args) const override
+        inline void invoke(variant *_result, const std::vector<variant *> &_args) const override
         {
             call<return_t, Args... >(m_function_impl, _result, _args);
         }

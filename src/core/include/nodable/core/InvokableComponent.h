@@ -3,7 +3,7 @@
 #include <nodable/core/types.h>
 #include <nodable/core/Token.h>
 #include <nodable/core/Component.h>
-#include <nodable/core/reflection/iinvokable.h>
+#include <nodable/core/reflection/invokable.h>
 
 namespace Nodable
 {

@@ -18,25 +18,25 @@ void CPU::clear_registers()
 {
     for( size_t id = 0; id < std::size( m_register ); ++id )
     {
-        write( (Register)id, QWord());
+        write( (Register)id, qword());
     }
 }
 
-QWord CPU::read(Register _id)const
+qword CPU::read(Register _id)const
 {
     LOG_VERBOSE("VM::CPU", "read register %s (value: %s)\n", assembly::to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
 }
 
-QWord& CPU::_read(Register _id)
+qword& CPU::_read(Register _id)
 {
     LOG_VERBOSE("VM::CPU", "_read register %s (value: %s)\n", assembly::to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
 }
 
-void CPU::write(Register _id, QWord _data)
+void CPU::write(Register _id, qword _data)
 {
-    QWord& mem_dst = _read(_id);
+    qword& mem_dst = _read(_id);
     mem_dst = _data;
     LOG_VERBOSE("VM::CPU", "write register %s (value: %s)\n", assembly::to_string(_id), mem_dst.to_string().c_str())
 }
@@ -53,7 +53,7 @@ VirtualMachine::VirtualMachine()
 
 void VirtualMachine::advance_cursor(i64_t _amount)
 {
-    QWord eip = m_cpu.read(Register::eip);
+    qword eip = m_cpu.read(Register::eip);
     eip.u64 += _amount;
     m_cpu.write(Register::eip, eip );
 }
@@ -115,9 +115,9 @@ bool VirtualMachine::_stepOver()
     {
         case opcode::cmp:
         {
-            QWord left  = m_cpu.read(next_instr->cmp.left.r);  // dereference registers, get their value
-            QWord right = m_cpu.read(next_instr->cmp.right.r);
-            QWord result;
+            qword left  = m_cpu.read(static_cast<Register>(next_instr->cmp.left.u8));  // dereference registers, get their value
+            qword right = m_cpu.read(static_cast<Register>(next_instr->cmp.right.u8));
+            qword result;
             result.set<bool>(left.b == right.b);
             m_cpu.write(Register::rax, result);       // boolean comparison
             advance_cursor();
@@ -128,7 +128,7 @@ bool VirtualMachine::_stepOver()
         case opcode::deref_ptr:
         {
             NODABLE_ASSERT_EX(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.qword_ptr is nullptr")
-            QWord qword = *next_instr->uref.qword_ptr;
+            qword qword = *next_instr->uref.qword_ptr;
             m_cpu.write(Register::rax, qword );
 
             type t = *next_instr->uref.qword_type;
@@ -164,7 +164,7 @@ bool VirtualMachine::_stepOver()
 
         case opcode::mov:
         {
-            m_cpu.write(next_instr->mov.dst.r, next_instr->mov.src);      // write source to destination register
+            m_cpu.write(static_cast<Register>(next_instr->mov.dst.u8), next_instr->mov.src);      // write source to destination register
 
             advance_cursor();
             success = true;
@@ -223,7 +223,7 @@ bool VirtualMachine::_stepOver()
 
             if( auto variable = node->as<VariableNode>())
             {
-                Variant* variant = variable->get_value()->get_variant();
+                variant* variant = variable->get_value()->get_variant();
                 if( !variant->is_initialized() )
                 {
                     variant->ensure_is_initialized();
@@ -261,7 +261,7 @@ bool VirtualMachine::_stepOver()
 
         case opcode::jne:
         {
-            QWord rax = m_cpu.read(Register::rax);
+            qword rax = m_cpu.read(Register::rax);
             if ( rax.b )
             {
                 advance_cursor();
@@ -346,11 +346,11 @@ void VirtualMachine::debug_program()
 
 bool VirtualMachine::is_there_a_next_instr() const
 {
-    const QWord& eip = m_cpu.read(Register::eip);
+    const qword& eip = m_cpu.read(Register::eip);
     return eip.u64 < m_program_asm_code->size();
 }
 
-QWord VirtualMachine::get_last_result()const
+qword VirtualMachine::get_last_result()const
 {
     return m_cpu.read(Register::rax);
 }
@@ -374,7 +374,7 @@ bool VirtualMachine::load_program(std::unique_ptr<const Code> _code)
     return m_program_asm_code && m_program_asm_code->size() != 0;
 }
 
-QWord VirtualMachine::read_cpu_register(Register _register)const
+qword VirtualMachine::read_cpu_register(Register _register)const
 {
     return m_cpu.read(_register);
 }

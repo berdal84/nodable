@@ -42,7 +42,9 @@ bool InvokableComponent::update()
     {
         try
         {
-            m_invokable->invoke(m_result, m_args);
+            std::vector<variant*> variants;
+            Member::get_variant(m_args, variants);
+            m_invokable->invoke(m_result->get_variant(), variants);
             for(auto arg : m_args)
             {
                 arg->ensure_is_defined(true);

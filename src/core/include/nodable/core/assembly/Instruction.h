@@ -1,7 +1,9 @@
 #pragma once
 
 #include <nodable/core/types.h>
-#include <nodable/core/assembly/QWord.h>
+#include <nodable/core/reflection/qword.h>
+#include <nodable/core/reflection/type.h>
+#include <nodable/core/reflection/enum.h>
 
 namespace Nodable
 {
@@ -48,22 +50,22 @@ namespace assembly
     struct Instruction_mov
     {
         opcode_t opcode;
-        QWord  dst;
-        QWord  src;
+        qword  dst;
+        qword  src;
     };
 
     struct Instruction_uref
     {
         opcode_t  opcode;
-        QWord*  qword_ptr;
+        qword*  qword_ptr;
         const type* qword_type;
     };
 
     struct Instruction_cmp
     {
         opcode_t opcode;
-        QWord  left;
-        QWord  right;
+        qword  left;
+        qword  right;
     };
 
     struct Instruction_push_or_pop

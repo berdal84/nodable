@@ -66,7 +66,7 @@ public:
         virtual_machine.run_program();
 
         // get result
-        assembly::QWord mem_space = virtual_machine.get_last_result();
+        qword mem_space = virtual_machine.get_last_result();
         auto result = return_t(mem_space);
 
         virtual_machine.release_program();

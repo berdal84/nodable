@@ -6,7 +6,6 @@
 #include <nodable/core/Wire.h>
 #include <nodable/core/DataAccess.h>
 #include <nodable/core/InvokableComponent.h>
-#include <nodable/core/reflection/iinvokable.h>
 #include <nodable/core/reflection/func_type.h>
 
 using namespace Nodable;

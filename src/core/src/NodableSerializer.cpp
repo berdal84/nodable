@@ -208,7 +208,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const VariableNode*
     return _out;
 }
 
-std::string& NodableSerializer::serialize(std::string& _out, const Variant* variant) const
+std::string& NodableSerializer::serialize(std::string& _out, const variant* variant) const
 {
     std::string variant_string = variant->convert_to<std::string>();
 

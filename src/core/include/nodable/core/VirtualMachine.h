@@ -2,7 +2,8 @@
 
 #include <memory>
 #include <nodable/core/types.h>
-#include "nodable/core/assembly/Compiler.h"
+#include <nodable/core/assembly/Compiler.h>
+#include <nodable/core/assembly/Register.h>
 
 namespace Nodable
 {
@@ -13,7 +14,6 @@ namespace Nodable
      */
 
     using Code        = assembly::Code;
-    using QWord       = assembly::QWord;
     using Instruction = assembly::Instruction;
     using Register    = assembly::Register;
 
@@ -22,13 +22,13 @@ namespace Nodable
     public:
         CPU();
         ~CPU() = default;
-        QWord         read(Register)const;
-        void          write(Register, QWord);
+        qword         read(Register)const;
+        void          write(Register, qword);
         void          clear_registers();
 
     private:
-        QWord&        _read(Register);
-        QWord         m_register[Register::COUNT];
+        qword&        _read(Register);
+        qword         m_register[Register::COUNT];
     };
 
     /**
@@ -50,10 +50,10 @@ namespace Nodable
         inline bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
                bool           step_over();
         inline const Node*    get_next_node() const {return m_next_node; }
-        QWord                 get_last_result() const;
+        qword                 get_last_result() const;
         bool                  is_there_a_next_instr() const;
         Instruction*          get_next_instr() const;
-        QWord                 read_cpu_register(Register _register) const;
+        qword                 read_cpu_register(Register _register) const;
         const Code *          get_program_asm_code();
         bool                  is_next_node(Node *_node)const { return m_next_node == _node; }
 

@@ -5,33 +5,37 @@
 #include <memory> // std::shared_ptr
 
 #include <nodable/core/types.h> // for constants and forward declarations
-#include <nodable/core/reflection/reflection>
 #include <nodable/core/assertions.h>
-#include <nodable/core/assembly/QWord.h>
+#include <nodable/core/reflection/qword.h>
+#include <nodable/core/reflection/type.h>
 
 namespace Nodable
 {
-    // forward declarations
-    class Node;
-
     /**
      * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data member)
      */
-	class Variant {
+	class variant {
     public:
-        using QWord    = assembly::QWord;
-
-        Variant()
+        variant()
             : m_is_initialized(false)
             , m_is_defined(false)
             , m_type(type::any)
             , m_type_change_allowed(false) // for now, variant can change type once
         {}
 
-        Variant& operator=(const Variant& );
-        ~Variant();
+#define CONSTRUCTOR(type) variant(type val): variant() { set(val); }
+        CONSTRUCTOR(void *)
+        CONSTRUCTOR(std::string&)
+        CONSTRUCTOR(const char*)
+        CONSTRUCTOR(double)
+        CONSTRUCTOR(i16_t)
+        CONSTRUCTOR(bool)
+#undef CONSTRUCTOR
 
-        QWord&  get_underlying_data() { return m_data; }
+        variant& operator=(const variant& );
+        ~variant();
+
+        qword&  get_underlying_data() { return m_data; }
         bool    is_initialized() const;
         bool    is_defined() const { return m_is_defined; }
         void    ensure_is_type(type _type);
@@ -86,6 +90,6 @@ namespace Nodable
         bool            m_is_initialized;
         type            m_type;
         bool            m_type_change_allowed;
-        QWord           m_data;
+        qword           m_data;
     };
 }

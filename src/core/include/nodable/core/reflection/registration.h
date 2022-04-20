@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <nodable/core/reflection/type_register.h>
 #include <nodable/core/reflection/type.h>
 
@@ -57,3 +58,18 @@ namespace Nodable
         };
     };
 } // namespace Nodable
+
+#define REGISTER                                                        \
+static void auto_register();                                            \
+namespace /* using the same trick as rttr to avoid name conflicts*/     \
+{                                                                       \
+    struct auto_register_struct                                         \
+    {                                                                   \
+        auto_register_struct()                                          \
+        {                                                               \
+            auto_register();                                            \
+        }                                                               \
+    };                                                                  \
+}                                                                       \
+static const auto_register_struct CAT(auto_register, __LINE__);         \
+static void auto_register()

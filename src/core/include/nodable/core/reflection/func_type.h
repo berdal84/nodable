@@ -6,7 +6,7 @@
 #include <regex>
 #include <memory>
 
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.h>
 #include <nodable/core/constants.h>
 
 namespace Nodable

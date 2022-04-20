@@ -26,7 +26,7 @@ namespace Nodable
         std::string& serialize(std::string& _out, const Scope*)const override;
         std::string& serialize(std::string& _out, const ForLoopNode* _for_loop)const override;
         std::string& serialize(std::string& _out, const ConditionalStructNode*) const override;
-        std::string& serialize(std::string& _out, const Variant* variant) const override;
+        std::string& serialize(std::string& _out, const variant* variant) const override;
         std::string& serialize(std::string& _out, const VariableNode *_node) const override;
     protected:
         const NodableLanguage& m_language;

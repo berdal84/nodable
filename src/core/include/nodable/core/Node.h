@@ -16,8 +16,8 @@
 #include <nodable/core/Component.h>
 #include <nodable/core/Properties.h>
 #include <nodable/core/Slots.h>
-#include "Edge.h"
-#include "nodable/core/reflection/iinvokable.h"
+#include <nodable/core/Edge.h>
+#include <nodable/core/reflection/invokable.h>
 
 namespace Nodable {
 

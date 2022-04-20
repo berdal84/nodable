@@ -21,7 +21,7 @@ namespace Nodable
     class Scope;
     class Operator;
     class ILanguage;
-    class Variant;
+    class variant;
     class VariableNode;
     class func_type;
 
@@ -42,7 +42,7 @@ namespace Nodable
         virtual std::string& serialize(std::string& _out, const Scope*)const = 0;
         virtual std::string& serialize(std::string& _out, const ForLoopNode* _for_loop)const = 0;
         virtual std::string& serialize(std::string& _out, const ConditionalStructNode*) const = 0;
-        virtual std::string& serialize(std::string& _out, const Variant* variant) const = 0;
+        virtual std::string& serialize(std::string& _out, const variant* variant) const = 0;
         virtual std::string& serialize(std::string& _out, const VariableNode *_node) const = 0;
     };
 }
