@@ -77,7 +77,7 @@ bool Member::is_connected_by_ref()
 
 void Member::ensure_is_defined(bool _value)
 {
-    variant().flag_defined(_value);
+    get_pointed_variant().flag_defined(_value);
 }
 
 bool Member::is_connected_to_variable() const
@@ -92,12 +92,12 @@ VariableNode* Member::get_connected_variable()
 
 void Member::set(Node* _value)
 {
-    variant().set(_value);
+    get_pointed_variant().set(_value);
 }
 
 qword& Member::get_underlying_data()
 {
-    return variant().get_underlying_data();
+    return get_pointed_variant().get_underlying_data();
 }
 
 Member* Member::new_with_type(Properties *_parent, type _type, Flags _flags)
@@ -123,7 +123,7 @@ Member* Member::new_with_type(Properties *_parent, type _type, Flags _flags)
     return member;
 }
 
-std::vector<variant*>& Member::get_variant(std::vector<Member *> _in, std::vector<class variant*>& _out)
+std::vector<variant*>& Member::get_variant(std::vector<Member *> _in, std::vector<variant*>& _out)
 {
     for(auto each : _in)
     {
