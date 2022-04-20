@@ -93,7 +93,7 @@ namespace Nodable
         qword&           get_underlying_data();
 
 		static Member*                new_with_type(Properties* , type , Flags = Flags_none);
-		static std::vector<variant*>& get_variant(std::vector<Member*> _in, std::vector<class variant*>& _out);
+		static std::vector<variant*>& get_variant(std::vector<Member*> _in, std::vector<variant*>& _out);
     private:
 
         // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()
