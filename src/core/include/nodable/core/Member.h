@@ -16,12 +16,6 @@ namespace Nodable
     class Node;
     class Properties;
 
-    enum ConnBy_
-    {
-        ConnectBy_Ref,
-        ConnectBy_Copy
-    };
-
     /**
      * @brief The role of a Member is to store a value for a Properties object (its parent).
      *
@@ -42,7 +36,7 @@ namespace Nodable
         ~Member();
 
         void digest(Member *_member);
-        bool is_connected_by_ref();
+        bool is_connected_by_ref() const;
         bool allows_connection(Way _flag)const { return (m_allowed_connection & _flag) == _flag; }
         bool has_input_connected()const;
 		void set_allowed_connection(Way wayFlags) { m_allowed_connection = wayFlags; }
@@ -97,11 +91,10 @@ namespace Nodable
     private:
 
         // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()
-		variant&       get_pointed_variant()     { return (m_input && (m_variant.get_type().is_ref() || m_variant.get_type().is_ptr()) ) ? m_input->m_variant : m_variant; }
-        const variant& get_pointed_variant()const{ return (m_input && (m_variant.get_type().is_ref() || m_variant.get_type().is_ptr()) ) ? m_input->m_variant : m_variant; }
+		variant&       get_pointed_variant()     { return is_connected_by_ref() ? m_input->m_variant : m_variant; }
+        const variant& get_pointed_variant()const{ return is_connected_by_ref() ? m_input->m_variant : m_variant; }
 
         Member*           m_input;
-        ConnBy_           m_connected_by;
         Visibility 		  m_visibility;
         Node*             m_owner;
 		Properties*       m_parentProperties;

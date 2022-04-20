@@ -11,7 +11,6 @@ Member::Member(Properties* _parent_properties)
     , m_sourceToken(Token::s_null)
     , m_input(nullptr)
     , m_parentProperties(_parent_properties)
-    , m_connected_by(ConnectBy_Copy)
     , m_allowed_connection(Way_Default)
     , m_variant()
 {
@@ -69,7 +68,7 @@ void Member::digest(Member *_member)
     m_sourceToken = _member->m_sourceToken;
 }
 
-bool Member::is_connected_by_ref()
+bool Member::is_connected_by_ref() const
 {
     const type& variant_type = m_variant.get_type();
     return m_input && (variant_type.is_ptr() || variant_type.is_ref());
