@@ -2,7 +2,7 @@
 
 #include <nodable/core/types.h>
 #include <nodable/core/Component.h>
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 
 namespace Nodable
 {

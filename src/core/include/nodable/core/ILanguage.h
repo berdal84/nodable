@@ -14,7 +14,7 @@
 #include <nodable/core/types.h>
 #include <nodable/core/Token_t.h>
 #include <nodable/core/Operator_t.h>
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 
 namespace Nodable
 {

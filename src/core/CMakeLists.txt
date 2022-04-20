@@ -36,7 +36,6 @@ add_library(
         src/NodeFactory.cpp
         src/Properties.cpp
         src/Scope.cpp
-        src/reflection/func_type.cpp
         src/String.cpp
         src/System.cpp
         src/Token.cpp
@@ -53,6 +52,7 @@ add_library(
         src/languages/NodableLanguage.cpp
         src/languages/NodableLibrary_biology.cpp
         src/languages/NodableLibrary_math.cpp
+        src/reflection/func_type.cpp
         src/reflection/type.cpp
         src/reflection/type_register.cpp)
 

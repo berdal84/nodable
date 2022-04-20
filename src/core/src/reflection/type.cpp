@@ -1,4 +1,4 @@
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 #include <stdexcept>   // std::runtime_error
 #include <nodable/core/reflection/type.h>
 

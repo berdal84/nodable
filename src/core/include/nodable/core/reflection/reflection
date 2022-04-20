@@ -1,0 +1,23 @@
+#pragma once
+
+#include <nodable/core/assertions.h>
+#include <nodable/core/types.h>
+#include <nodable/core/reflection/type.h>
+#include <nodable/core/reflection/type_register.h>
+#include <nodable/core/reflection/registration.h>
+#include <nodable/core/reflection/invokable.h>
+#include <nodable/core/reflection/func_type.h>
+#include <nodable/core/reflection/MACROS.h>
+
+namespace Nodable
+{
+    template<class target_t, class source_t>
+    static target_t* cast(source_t *_source)
+    {
+        if( _source->get_type().is_child_of( type::get<target_t>(), true ))
+        {
+            return dynamic_cast<target_t*>(_source);
+        }
+        return nullptr;
+    }
+} // namespace Nodable

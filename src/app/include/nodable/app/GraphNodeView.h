@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 #include <functional>
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 
 #include <nodable/core/IScope.h>
 #include <nodable/core/reflection/invokable.h>

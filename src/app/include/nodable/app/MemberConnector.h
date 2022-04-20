@@ -4,7 +4,7 @@
 
 #include <nodable/app/Connector.h>
 #include <nodable/app/types.h>
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 #include <nodable/core/assertions.h>
 
 namespace Nodable {

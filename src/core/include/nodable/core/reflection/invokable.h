@@ -5,7 +5,7 @@
 #include <stdarg.h>     /* va_list, va_start, va_arg, va_end */
 
 #include <nodable/core/types.h>
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 #include <nodable/core/Member.h>
 #include <nodable/core/reflection/iinvokable.h>
 #include <nodable/core/reflection/func_type.h>

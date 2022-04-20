@@ -3,7 +3,7 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <observe/observer.h>
 
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 #include <nodable/app/types.h>
 #include <nodable/app/View.h>
 

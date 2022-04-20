@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 
 #include <nodable/app/ImGuiEx.h>
 #include <nodable/core/Component.h>

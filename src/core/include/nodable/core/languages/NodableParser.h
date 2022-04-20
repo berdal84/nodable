@@ -10,7 +10,7 @@
 #include <nodable/core/Token.h>
 #include <nodable/core/TokenRibbon.h>
 #include <nodable/core/ForLoopNode.h>
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 #include <nodable/core/IParser.h>
 
 namespace Nodable{

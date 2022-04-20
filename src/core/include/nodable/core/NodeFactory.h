@@ -5,7 +5,7 @@
 
 #include <nodable/core/INodeFactory.h>
 #include <nodable/core/IScope.h>
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 
 namespace Nodable
 {

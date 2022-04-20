@@ -1,6 +1,6 @@
 #include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/Scope.h>
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 
 using namespace Nodable;
 

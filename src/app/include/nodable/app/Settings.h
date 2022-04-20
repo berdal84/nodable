@@ -5,7 +5,7 @@
 #include <memory>
 
 #include <imgui/imgui.h>
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <nodable/app/FontConf.h>
 #include <nodable/app/FontSlot.h>

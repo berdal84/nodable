@@ -1,5 +1,5 @@
 #pragma once
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 
 namespace Nodable
 {

@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <memory> // std::shared_ptr
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 
 namespace Nodable
 {

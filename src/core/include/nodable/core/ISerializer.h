@@ -5,7 +5,7 @@
 #include <memory> // std::shared_ptr
 
 #include <nodable/core/Token.h>
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 
 namespace Nodable
 {

@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory> // std::shared_ptr
 
-#include <nodable/core/reflection/type.>
+#include <nodable/core/reflection/reflection>
 #include <nodable/core/IScope.h>
 #include <nodable/core/types.h>
 #include <nodable/core/Component.h>
