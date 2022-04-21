@@ -94,7 +94,7 @@ Each submodule is licensed, browse *libs/* folder.
 | *Dear ImGui*| https://github.com/omarcornut/imgui | Omar Cornut
 | *gl3w*     | https://github.com/skaslev/gl3w | https://github.com/skaslev/gl3w#credits
 | *googletest* | https://github.com/google/googletest| Google
-| *IconFontCppHeaders*| https://github.com/juliettef/IconFontCppHeaders | Juliette Faucaut
+| *IconFontCppHeaders*| https://github.com/juliettef/IconFontCppHeaders | Juliette Foucaut and Doug Binks
 | *ImGuiColorTextEdit* | https://github.com/BalazsJako/ImGuiColorTextEdit | BalazsJako
 | *LodePNG* | https://github.com/lvandeve/lodepng | Lode Vandevenne
 | *Native file dialog extended* | https://github.com/btzy/nativefiledialog-extended | Bernard Teo, Michael Labbe and other
