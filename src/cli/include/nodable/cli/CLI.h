@@ -20,15 +20,17 @@ namespace Nodable
         bool         should_stop() const;
         void         update();
         static bool  help();
-        static bool  log_stats();
-        static bool  compile();
+        static bool  reflection_stats();
     private:
+        std::string get_line() const;
+
         std::unique_ptr<ILanguage> m_language;
         bool                       m_should_stop;
         NodeFactory                m_factory;
         GraphNode                  m_graph;
-        static assembly::Compiler  m_compiler;
-        static VirtualMachine      m_virtual_machine;
+        assembly::Compiler         m_compiler;
+        std::unique_ptr<const assembly::Code> m_asm_code;
+        VirtualMachine             m_virtual_machine;
         bool                       m_auto_completion = false;
     };
 }
