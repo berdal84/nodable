@@ -12,7 +12,6 @@ endif()
 # add nodable executable
 add_executable(
     cli
-    WIN32
         src/main.cpp
         src/CLI.cpp)
 
