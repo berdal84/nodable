@@ -11,24 +11,24 @@ endif()
 
 # add nodable executable
 add_executable(
-    nodable-cli
+    cli
     WIN32
         src/main.cpp
         src/CLI.cpp)
 
 target_link_libraries(
-    nodable-cli
+    cli
     PRIVATE
         nodable-core
 )
 
 target_include_directories(
-        nodable-cli
+        cli
         PRIVATE
             include
 )
-set_target_properties(nodable-cli PROPERTIES POSITION_INDEPENDENT_CODE FALSE)               # required to run well on recent os (ex: ubuntu)
-set_target_properties(nodable-cli PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
+set_target_properties(cli PROPERTIES POSITION_INDEPENDENT_CODE FALSE)               # required to run well on recent os (ex: ubuntu)
+set_target_properties(cli PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
 
 # AFTER BUILD:
 #=============
@@ -36,5 +36,4 @@ set_target_properties(nodable-cli PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BU
 # Installation :
 #===============
 
-install( FILES     "${PROJECT_SOURCE_DIR}/CHANGELOG.md" DESTINATION . )
-install( TARGETS  nodable-cli RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION . )
+install( TARGETS  cli RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION bin )

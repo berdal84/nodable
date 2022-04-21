@@ -61,6 +61,10 @@ void CLI::update()
             variant ok;
             invokable_->invoke(&ok);
         }
+        else if ( input == "exit")
+        {
+            m_should_stop = true;
+        }
         else if ( m_language->get_parser().parse(input, &m_graph))
         {
             std::cout << "Graph parsed: \"" << input << '"' << std::endl;
