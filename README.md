@@ -61,7 +61,7 @@ Requirements:
 
 Below, are all the commands to clone, configure, build nodable from sources.
 
-```
+```console
 git clone --branch v0.9 https://github.com/berdal84/Nodable.git --recurse-submodules
 cd Nodable
 cmake . -B cmake-build-there
@@ -70,10 +70,12 @@ cmake --build cmake-build-there --config Release --target install
 After that you must see a new folder `out` containing a folder `app`, inside there is all you need to run *Nodable*.
 On Windows execute: `nodable.exe`, on Linux and macOS run `./nodable`. (On Linux you might have to add execution flag to the file: `chmod +x ./nodable`
 
-*Few details about the commands above:
-`--recurse-submodules` is important when cloning since nodable need other git repositories to be built.
-`--branch v<major>.<minor>.<patch>` is to target a specific tag, it is recommended to get a stable version. You can try a more recent if you wish.
-`--target install` is to create a clean `out/app` directory with only necessary files to run the software.*
+Few details about the commands above:
+
+- `--recurse-submodules` is important when cloning since nodable need other git repositories to be built.
+- `--branch v<major>.<minor>.<patch>` is to target a specific tag, it is recommended to get a stable version. You can try a more recent if you wish.
+- `--target install` is to create a clean `out/app` directory with only necessary files to run the software.
+
 
 
 ## Licence:
@@ -103,6 +105,7 @@ Each submodule is licensed, browse *libs/* folder.
 | [*gl3w*](https://github.com/skaslev/gl3w) | cf. website
 | [*googletest*](https://github.com/google/googletest) | Google
 | [*gulrak/filesystem*]()  | Steffen Schümann
+
 *: Even if I do not depend on it yet, I must cite RTTR since I am taking a lot of ideas from it in order to use it in the future without requiring too much changes.
 
 #### Resources
