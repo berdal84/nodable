@@ -146,13 +146,24 @@ type type::to_pointer(type _type)
     return ptr;
 }
 
-void type::add_static(std::shared_ptr<iinvokable> _invokable)
+void type::add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable)
 {
     m_static_methods.insert(_invokable);
+    m_static_methods_by_name.insert({_name, _invokable});
 }
 
 const std::unordered_set<std::shared_ptr<iinvokable>>& type::get_static_methods() const
 {
     return m_static_methods;
+}
+
+std::shared_ptr<iinvokable> type::get_static(const std::string& _name)
+{
+    auto found = m_static_methods_by_name.find(_name);
+    if( found != m_static_methods_by_name.end() )
+    {
+        return found->second;
+    }
+    return nullptr;
 }
 

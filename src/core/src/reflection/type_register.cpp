@@ -8,7 +8,7 @@ using namespace Nodable;
 type type_register::get(size_t _hash)
 {
     auto found = by_hash().find(_hash);
-    NODABLE_ASSERT_EX(found != by_hash().end(), "type not found!")
+    NODABLE_ASSERT_EX(found != by_hash().end(), "reflection: type not found!")
     return found->second;
 }
 
@@ -41,7 +41,7 @@ void type_register::insert(type _type)
 
     // merge with existing
     type existing = get(_type.hash_code());
-    LOG_MESSAGE("reflection", "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n"
+    LOG_VERBOSE("reflection", "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n"
     , existing.m_name.c_str(), existing.m_compiler_name.c_str()
     , _type.m_name.c_str(), _type.m_compiler_name.c_str()
     )
@@ -54,13 +54,13 @@ void type_register::insert(type _type)
 
 void type_register::log_statistics()
 {
-    LOG_MESSAGE("R", "Logging reflected types ...\n");
-    LOG_MESSAGE("R", " %-16s %-25s %-60s\n", "-- type hash --", "-- user name --", "-- compiler name --" )
+    LOG_MESSAGE("reflection", "Logging reflected types ...\n");
+    LOG_MESSAGE("reflection", " %-16s %-25s %-60s\n", "-- type hash --", "-- user name --", "-- compiler name --" )
 
     for ( const auto& [type_hash, type] : by_hash() )
     {
-        LOG_MESSAGE("R", " %-16llu %-25s %-60s\n", type_hash, type.m_name.c_str(), type.m_compiler_name.c_str() );
+        LOG_MESSAGE("reflection", " %-16llu %-25s %-60s\n", type_hash, type.m_name.c_str(), type.m_compiler_name.c_str() );
     }
 
-    LOG_MESSAGE("R", "Logging done.\n");
+    LOG_MESSAGE("reflection", "Logging done.\n");
 }

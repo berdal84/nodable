@@ -16,7 +16,7 @@ namespace Nodable {
     public:
         virtual ~iinvokable() {};
         virtual const func_type& get_type() const = 0;
-        virtual void invoke(variant *_result, const std::vector<variant *> &_args) const = 0;
+        virtual void invoke(variant *_result, const std::vector<variant *> &_args = {}) const = 0;
     };
 
     /** Helpers to call a function (need serious work here) */
@@ -84,10 +84,11 @@ namespace Nodable {
 
         ~invokable() override {}
 
-        inline void invoke(variant *_result, const std::vector<variant *> &_args) const override
+        inline void invoke(variant *_result, const std::vector<variant *> &_args = {}) const override
         {
             call<return_t, Args... >(m_function_impl, _result, _args);
         }
+
         const func_type& get_type() const override { return m_function_type; }
 
     private:

@@ -27,6 +27,7 @@ include( cmake/get-git-info.cmake )
 #include other CMakeLists.txt
 add_subdirectory(libs)     # libraries (SDL, lodepng, Dear ImGui, etc.)
 add_subdirectory(src/core) # nodable core (static library).
+add_subdirectory(src/cli)  # nodable application (terminal).
 add_subdirectory(src/app)  # nodable application (with gui).
 
 # Unit tests (gtest)

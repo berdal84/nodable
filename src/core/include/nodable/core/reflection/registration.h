@@ -55,12 +55,12 @@ namespace Nodable
             {
                 {
                     auto invokable_ = std::make_shared<invokable<F>>(_function, _name);
-                    m_class.add_static(invokable_);
+                    m_class.add_static(_name, invokable_);
                 }
                 if(_alt_name[0] != '\0')
                 {
                     auto invokable_ = std::make_shared<invokable<F>>(_function, _alt_name);
-                    m_class.add_static( invokable_ );
+                    m_class.add_static(_alt_name, invokable_ );
                 }
                 return *this;
             }

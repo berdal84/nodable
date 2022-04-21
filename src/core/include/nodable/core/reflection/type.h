@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_set>
+#include <unordered_map>
 #include <string>
 #include <typeinfo>
 #include <typeindex>
@@ -38,6 +39,7 @@ namespace Nodable
         friend class type_register;
 
     public:
+        type() = default;
         ~type() = default;
 
         const char*               get_name() const { return m_name.c_str(); };
@@ -50,9 +52,10 @@ namespace Nodable
         bool                      is_child_of(type _possible_parent_class, bool _selfCheck = true) const;
         void                      add_parent(hash_code_t _parent);
         void                      add_child(hash_code_t _child);
-        void                      add_static(std::shared_ptr<iinvokable> _invokable);
+        void                      add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable);
         const std::unordered_set<std::shared_ptr<iinvokable>>&
                                   get_static_methods()const;
+        std::shared_ptr<iinvokable> get_static(const std::string& _name);
         template<class T> inline bool is_child_of() const { return is_child_of(get<T>(), true); }
         template<class T> inline bool is_not_child_of() const { return !is_child_of(get<T>(), true); }
 
@@ -121,8 +124,6 @@ namespace Nodable
         static type any;
         static type null;
 
-        type() = default;
-
     protected:
         std::string m_name;
         std::string m_compiler_name;
@@ -134,6 +135,7 @@ namespace Nodable
         std::unordered_set<hash_code_t> m_parents;
         std::unordered_set<hash_code_t> m_children;
         std::unordered_set<std::shared_ptr<iinvokable>> m_static_methods;
+        std::unordered_map<std::string, std::shared_ptr<iinvokable>> m_static_methods_by_name;
     };
 
     template<class target_t, class source_t>
