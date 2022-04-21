@@ -99,5 +99,6 @@ Credits :
     - *MPark.Variant* by Michael Park: https://github.com/mpark/variant
     - *Where am I?* by Gregory Pakosz: https://github.com/gpakosz/whereami.git
     - *Native file dialog extended* by "Bernard Teo and other" + Michael Labbe's Native File Dialog: https://github.com/btzy/nativefiledialog-extended
+    - Even if I do not depend on it yet (I am going to at some point), I must cite: RTTR from Axel Menzel: https://github.com/rttrorg/rttr
   - Resources
     - *JetBrains Mono* Font: https://www.jetbrains.com/lp/mono/
