@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <nodable/core/reflection/invokable.h>
-#include <nodable/core/SignatureBuilder.h>
 #include <nodable/core/languages/NodableLanguage.h>
 
 using namespace Nodable;
@@ -14,15 +13,13 @@ public:
 
 TEST_F(language_fixture, no_arg_fct)
 {
-    auto no_arg_fct = SignatureBuilder<bool()>::new_function("fct", &language);
-
-    EXPECT_EQ(no_arg_fct->get_arg_count(), 0);
+    auto no_arg_fct = func_type_builder<bool()>::with_id("fct");
     EXPECT_EQ(no_arg_fct->get_arg_count(), 0);
 }
 
 TEST_F(language_fixture, push_single_arg)
 {
-    func_type* single_arg_fct = SignatureBuilder<bool(double)>::new_function("fct", &language);
+    func_type* single_arg_fct = func_type_builder<bool(double)>::with_id("fct");
 
     EXPECT_EQ(single_arg_fct->get_arg_count(), 1);
     EXPECT_EQ(single_arg_fct->get_return_type(), type::get<bool>());
@@ -31,7 +28,7 @@ TEST_F(language_fixture, push_single_arg)
 
 TEST_F(language_fixture, push_two_args)
 {
-    auto two_arg_fct = SignatureBuilder<bool(double, double)>::new_function("fct", &language);
+    auto two_arg_fct = func_type_builder<bool(double, double)>::with_id("fct");
 
     EXPECT_EQ(two_arg_fct->get_arg_count(), 2);
     EXPECT_EQ(two_arg_fct->get_return_type(), type::get<bool>());
@@ -41,8 +38,8 @@ TEST_F(language_fixture, push_two_args)
 
 TEST_F(language_fixture, match_check_for_arg_count)
 {
-    func_type* single_arg_fct = SignatureBuilder<bool(bool)>::new_function("fct", &language);
-    func_type* two_arg_fct    = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
+    func_type* single_arg_fct = func_type_builder<bool(bool)>::with_id("fct");
+    func_type* two_arg_fct    = func_type_builder<bool(bool, bool)>::with_id("fct");
 
     EXPECT_EQ(two_arg_fct->is_compatible(single_arg_fct), false);
     EXPECT_EQ(single_arg_fct->is_compatible(two_arg_fct), false);
@@ -50,8 +47,8 @@ TEST_F(language_fixture, match_check_for_arg_count)
 
 TEST_F(language_fixture, match_check_identifier)
 {
-    func_type* two_arg_fct          = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
-    func_type* two_arg_fct_modified = SignatureBuilder<bool()>::new_function("fct", &language);
+    func_type* two_arg_fct          = func_type_builder<bool(bool, bool)>::with_id("fct");
+    func_type* two_arg_fct_modified = func_type_builder<bool()>::with_id("fct");
 
     two_arg_fct_modified->push_arg(type::get<double>() );
     two_arg_fct_modified->push_arg(type::get<double>() );
@@ -62,8 +59,8 @@ TEST_F(language_fixture, match_check_identifier)
 
 TEST_F(language_fixture, match_check_absence_of_arg)
 {
-    func_type* two_arg_fct              = SignatureBuilder<bool(bool, bool)>::new_function("fct", &language);
-    func_type* two_arg_fct_without_args = SignatureBuilder<bool()>::new_function("fct", &language);
+    func_type* two_arg_fct              = func_type_builder<bool(bool, bool)>::with_id("fct");
+    func_type* two_arg_fct_without_args = func_type_builder<bool()>::with_id("fct");
 
     EXPECT_EQ(two_arg_fct->is_compatible(two_arg_fct_without_args), false);
     EXPECT_EQ(two_arg_fct_without_args->is_compatible(two_arg_fct), false);
@@ -71,8 +68,8 @@ TEST_F(language_fixture, match_check_absence_of_arg)
 
 TEST_F(language_fixture, push_args_template_0)
 {
-    auto ref = SignatureBuilder<bool()>::new_function("fct", &language);
-    auto fct = SignatureBuilder<bool()>::new_function("fct", &language);
+    auto ref = func_type_builder<bool()>::with_id("fct");
+    auto fct = func_type_builder<bool()>::with_id("fct");
 
     using Args = std::tuple<>; // create arg tuple
     fct->push_args<Args>(); // push those args to signature
@@ -83,8 +80,8 @@ TEST_F(language_fixture, push_args_template_0)
 
 TEST_F(language_fixture, push_args_template_1)
 {
-    auto ref = SignatureBuilder<bool(double, double)>::new_function("fct", &language);
-    auto fct = SignatureBuilder<bool()>::new_function("fct", &language);
+    auto ref = func_type_builder<bool(double, double)>::with_id("fct");
+    auto fct = func_type_builder<bool()>::with_id("fct");
 
     fct->push_args< std::tuple<double, double> >();
 
@@ -94,42 +91,12 @@ TEST_F(language_fixture, push_args_template_1)
 
 TEST_F(language_fixture, push_args_template_4)
 {
-    auto ref = SignatureBuilder<bool(double, double, double, double)>::new_function("fct", &language);
-    auto fct = SignatureBuilder<bool()>::new_function("fct", &language);
+    auto ref = func_type_builder<bool(double, double, double, double)>::with_id("fct");
+    auto fct = func_type_builder<bool()>::with_id("fct");
     fct->push_args< std::tuple<double, double, double, double> >();
 
     EXPECT_EQ(ref->is_compatible(fct), true);
     EXPECT_EQ(fct->get_arg_count(), 4);
-}
-
-TEST_F(language_fixture, sanitize_function_id)
-{
-    {
-        auto sig = SignatureBuilder<bool(double, double, double, double)>::new_function("api_fct", &language);
-        EXPECT_EQ(sig->get_identifier(), "fct");
-    }
-
-    {
-        auto sig = SignatureBuilder<bool(double, double, double, double)>::new_function("fct", &language);
-        EXPECT_EQ(sig->get_identifier(), "fct");
-    }
-
-    {
-        EXPECT_ANY_THROW( SignatureBuilder<bool(double, double, double, double)>::new_function("api_", &language) );
-    }
-}
-
-TEST_F(language_fixture, sanitize_operator_function_id)
-{
-    {
-        auto sig = SignatureBuilder<double(double, double)>::new_operator("+", &language);
-        EXPECT_EQ(sig->get_identifier(), std::string{NodableLanguage::k_keyword_operator} + "+");
-    }
-
-    {
-        auto sig = SignatureBuilder<double(double, double)>::new_operator("==", &language);
-        EXPECT_EQ(sig->get_identifier(), std::string{NodableLanguage::k_keyword_operator} + "==");
-    }
 }
 
 TEST_F(language_fixture, can_get_add_operator_with_short_identifier )
@@ -140,22 +107,20 @@ TEST_F(language_fixture, can_get_add_operator_with_short_identifier )
 
 TEST_F(language_fixture, can_get_add_operator_with_signature )
 {
-    const func_type*  signature = SignatureBuilder<double(double, double)>::new_operator("+", &language);
-    const iinvokable* operator_ = language.find_operator_fct(signature);
-    EXPECT_TRUE(operator_);
+    const func_type*  signature = func_type_builder<double(double, double)>::with_id("+");
+    EXPECT_TRUE(language.find_operator_fct(signature));
 }
 
 TEST_F(language_fixture, can_get_invert_operator_with_signature )
 {
-    const func_type*  signature = SignatureBuilder<double(double)>::new_operator("-", &language);
-    const iinvokable* operator_ = language.find_operator_fct(signature);
-    EXPECT_TRUE(operator_);
+    const func_type*  signature = func_type_builder<double(double)>::with_id("-");
+    EXPECT_TRUE(language.find_operator_fct(signature));
 }
 
 TEST_F(language_fixture, by_ref_assign )
 {
-    const func_type*  signature = SignatureBuilder<double(double&,double)>::new_operator("=", &language);
-    const iinvokable* operator_ = language.find_operator_fct(signature);
+    const func_type*  signature = func_type_builder<double(double &, double)>::with_id("=");
+    auto operator_ = language.find_operator_fct(signature);
     EXPECT_TRUE(operator_ != nullptr);
 
     // prepare call

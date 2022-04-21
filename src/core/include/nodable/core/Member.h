@@ -98,10 +98,10 @@ namespace Nodable
         Visibility 		  m_visibility;
         Node*             m_owner;
 		Properties*       m_parentProperties;
-		std::vector<Member*> m_outputs;
-		Way               m_allowed_connection;
+		std::vector<Member*>   m_outputs;
+		Way                    m_allowed_connection;
 		std::shared_ptr<Token> m_sourceToken;
-		std::string       m_name;
-		Nodable::variant  m_variant;
+		std::string            m_name;
+		Nodable::variant       m_variant;
     };
 }

@@ -156,15 +156,15 @@ void Node::get_inner_graph(GraphNode *_graph)
     this->m_inner_graph = _graph;
 }
 
-const iinvokable* Node::get_connected_operator(const Member *_localMember)
+const iinvokable* Node::get_connected_invokable(const Member *_local_member)
 {
-    NODABLE_ASSERT_EX(m_props.has(_localMember), "This node has no member with this adress!");
+    NODABLE_ASSERT_EX(m_props.has(_local_member), "This node has no member with this address!");
 
     /*
      * Find a wire connected to _member
      */
-    auto found = std::find_if(m_wires.cbegin(), m_wires.cend(), [_localMember](const Wire* wire)->bool {
-        return wire->members.dst == _localMember;
+    auto found = std::find_if(m_wires.cbegin(), m_wires.cend(), [_local_member](const Wire* wire)->bool {
+        return wire->members.dst == _local_member;
     });
 
     /*
@@ -176,10 +176,7 @@ const iinvokable* Node::get_connected_operator(const Member *_localMember)
         InvokableComponent* compute_component = node->get<InvokableComponent>();
         if ( compute_component )
         {
-            if (compute_component->get_signature()->is_operator() )
-            {
-                return compute_component->get_function();
-            }
+            return compute_component->get_function();
         }
     }
 

@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
 
     Log::set_verbosity("Reflect"  , Log::Verbosity_Message);
     Log::set_verbosity("Language" , Log::Verbosity_Message);
+    Log::set_verbosity("NodableLanguage" , Log::Verbosity_Verbose);
     Log::set_verbosity("GraphNode", Log::Verbosity_Message);
     Log::set_verbosity("Parser"   , Log::Verbosity_Message);
     Log::set_verbosity("VM"       , Log::Verbosity_Message);

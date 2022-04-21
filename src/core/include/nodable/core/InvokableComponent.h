@@ -18,14 +18,14 @@ namespace Nodable
 	class InvokableComponent : public Component
     {
 	public:
-		InvokableComponent(const func_type*, const iinvokable*);
+		InvokableComponent(const func_type*, bool _is_operator, const iinvokable*);
 		~InvokableComponent() = default;
 
         bool                               update() override;
 		inline void                        set_arg(size_t _index, Member *_value) { m_args[_index] = _value; }
 		inline Member*                     get_arg(size_t _index)const  { return m_args[_index]; }
 		inline const std::vector<Member*>& get_args()const { return m_args; }
-		inline const func_type*              get_signature()const { return m_signature; }
+		inline const func_type*              get_func_type()const { return m_signature; }
 		inline const iinvokable*           get_function()const { return m_invokable; }
         inline void                        set_result(Member *_value) { m_result = _value; };
         inline void                        set_source_token(std::shared_ptr<Token> token) { m_source_token = token ? token : Token::s_null; }
@@ -35,13 +35,16 @@ namespace Nodable
         inline void                        set_r_handed_val(Member *_value)  { m_args[1] = _value; }
         inline Member*                     get_r_handed_val() { return m_args[1]; };
         inline bool                        has_function() const { return m_invokable; };
-    protected:
+		bool                               is_operator()const { return m_is_operator; };
+
+	protected:
         Member*                 m_result;
 		std::shared_ptr<Token>  m_source_token;
         std::vector<Member*>    m_args;
         const func_type*        m_signature;
         const iinvokable*       m_invokable;
+        const bool              m_is_operator;
 
         REFLECT_DERIVED_CLASS(Component)
-    };
+	};
 }

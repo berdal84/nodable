@@ -161,26 +161,28 @@ VariableNode* GraphNode::create_variable(type _type, const std::string& _name, I
 	return node;
 }
 
-Node* GraphNode::create_abstract_function(const func_type* _signature)
+Node* GraphNode::create_abstract_function(const func_type* _invokable, bool _is_operator)
 {
-    if ( !_signature )
-    {
-        throw new std::runtime_error("unable to create_abstract_function, _signature is nullptr.");
-    }
-    Node* node = m_factory->new_abstract_function(_signature);
+    Node* node = m_factory->new_abstract_function(_invokable, _is_operator);
     add(node);
     return node;
 }
 
-Node* GraphNode::create_function(const iinvokable* _function)
+Node* GraphNode::create_function(const iinvokable* _invokable, bool _is_operator)
 {
-    if ( !_function )
-    {
-        throw new std::runtime_error("unable to create_function, _function is nullptr.");
-    }
-	Node* node = m_factory->new_function(_function);
+    Node* node = m_factory->new_function(_invokable, _is_operator);
     add(node);
-	return node;
+    return node;
+}
+
+Node* GraphNode::create_abstract_operator(const func_type* _invokable)
+{
+    return create_abstract_function(_invokable, true);
+}
+
+Node* GraphNode::create_operator(const iinvokable* _invokable)
+{
+	return create_function(_invokable, true);
 }
 
 void GraphNode::destroy(Node* _node)
@@ -608,29 +610,3 @@ std::vector<Wire*> GraphNode::filter_wires(Member* _member, Way _way) const
     return result;
 }
 
-void GraphNode::disconnect(Member *_member, Way _way, bool _side_effects)
-{
-    auto wires_to_delete = filter_wires(_member, _way);
-
-    for (Wire* wire : wires_to_delete )
-    {
-        m_wire_registry.erase( std::find(m_wire_registry.begin(), m_wire_registry.end(), wire));
-
-        Node* dst_node = wire->nodes.dst;
-        Node* src_node = wire->nodes.src;
-
-        dst_node->remove_wire(wire);
-        src_node->remove_wire(wire);
-
-        if ( _side_effects)
-        {
-            DirectedEdge relation(EdgeType::IS_INPUT_OF, src_node, dst_node);
-            disconnect(relation, false);
-        }
-
-        destroy(wire);
-    }
-
-    set_dirty();
-
-}

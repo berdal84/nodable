@@ -1,7 +1,7 @@
 #include <nodable/core/reflection/reflection>
 #include <stdexcept>   // std::runtime_error
 #include <nodable/core/reflection/type.h>
-
+#include <nodable/core/reflection/invokable.h>
 
 using namespace Nodable;
 
@@ -145,3 +145,14 @@ type type::to_pointer(type _type)
     ptr.m_is_pointer = true;
     return ptr;
 }
+
+void type::add_static(std::shared_ptr<iinvokable> _invokable)
+{
+    m_static_methods.insert(_invokable);
+}
+
+const std::unordered_set<std::shared_ptr<iinvokable>>& type::get_static_methods() const
+{
+    return m_static_methods;
+}
+

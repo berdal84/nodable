@@ -14,17 +14,14 @@ namespace Nodable {
 	class NodableLanguage : public ILanguage
 	{
 	public:
-        using Operators_t          = std::vector<const Operator*>;
-        using InvokableFunctions_t = std::vector<const iinvokable*>;
+        using Operators_t = std::vector<const Operator*>;
 
 		NodableLanguage();
         ~NodableLanguage() override;
 
-        std::string                     sanitize_function_id(const std::string& _id)const override;
-        std::string                     sanitize_operator_id(const std::string& _id)const override;
-        const iinvokable*               find_function(const func_type*) const override;
-        const iinvokable*               find_operator_fct(const func_type *_type) const override;
-        const iinvokable*               find_operator_fct_exact(const func_type *_type) const override;
+        std::shared_ptr<const iinvokable> find_function(const func_type*) const override;
+        std::shared_ptr<const iinvokable> find_operator_fct(const func_type *_type) const override;
+        std::shared_ptr<const iinvokable> find_operator_fct_exact(const func_type *_type) const override;
         const Operator*                 find_operator(const std::string& , Operator_t) const override;
         IParser&                        get_parser() override { return m_parser; }
         const IParser&                  get_parser()const override { return m_parser; }
@@ -37,20 +34,23 @@ namespace Nodable {
         std::string                     to_string(Token_t)const override;
         type                            get_type(Token_t _token)const override { return m_token_to_type.find(_token)->second; }
         const std::vector<Token_t>&     get_token_type_regex_index_to_token_type()const override { return m_regex_to_token; }
-        const func_type*                new_operator_signature(type, const Operator*, type)const override;
-        const func_type*                new_operator_signature(type, const Operator*, type, type)const override;
-        void                            add_invokable(const iinvokable*) override;
+        void                            add_invokable(std::shared_ptr<const iinvokable>) override;
+        int                             get_precedence(const iinvokable*)const override;
 
         template<typename T, typename std::enable_if<std::is_base_of<ILibrary, T>::value>::type* = nullptr>
         void load_library()
         {
             std::unique_ptr<ILibrary> library = std::make_unique<T>();
-            library->bind_to_language(this);
+            auto type = type::get<T>();
+            for(auto& each_static : type.get_static_methods())
+            {
+                add_invokable( each_static );
+            }
             m_libraries.insert( std::move(library) );
         }
     private:
         void                            add_operator(const char* _id, Operator_t _type, int _precedence);
-        const iinvokable*               find_operator_fct_fallback(const func_type *_type) const;
+        std::shared_ptr<const iinvokable> find_operator_fct_fallback(const func_type *_type) const;
         void                            add_regex(const std::regex &_regex, Token_t _token_t);
         void                            add_regex(const std::regex &_regex, Token_t _token_t, type _type);
         void                            add_string(std::string _string, Token_t _token_t);

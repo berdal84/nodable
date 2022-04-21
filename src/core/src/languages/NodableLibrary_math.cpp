@@ -1,181 +1,156 @@
 
 #include <nodable/core/languages/NodableLibrary_math.h>
-#include <nodable/core/Language_MACROS.h>
+
 #include <nodable/core/String.h>
 #include <nodable/core/types.h>
 #include <string>
 #include <cmath>
+#include <nodable/core/reflection/registration.h>
 
 using namespace Nodable;
 using string = std::string;
 
-bool api_and(bool a, bool b) { return a && b; }
-bool api_implies(bool a, bool b) { return !a || b; }
-bool api_not(bool b) { return !b; }
-bool api_or(bool a, bool b) { return a || b; }
-bool api_to_bool(double n) { return n == 0.0; }
-bool api_xor(bool a, bool b){ return a ^ b; }
-double api_cos(double n) { return cos(n); }
-double api_mod(double a, double b) { return fmod(a, b); }
-double api_secondDegreePolynomial(double a, double x, double b, double y, double c) { return a * x * x + b * y + c;}
-double api_sin(double n) { return sin(n); }
-std::string api_to_string(bool b) { return b ? "true" : "false"; }
-std::string api_to_string(double n) { return String::fmt_double(n); }
-std::string api_to_string(i16_t i) { return std::to_string(i); }
-std::string api_to_string(std::string s) { return s; }
-template<typename T, typename U>
-T api_minus(T a, U b){ return a - b; }
-template<typename T, typename U>
-T api_multiply(T a, U b) { return a * b; }
-template<typename T, typename U>
-T api_plus(T a, U b){ return a + T(b); }
-template<typename T>
-T api_plus(T a, T b){ return a + b; }
-template<>
-std::string api_plus(std::string left, double right) { return left + Nodable::String::fmt_double(right); }
-template<>
-std::string api_plus(std::string left, i16_t right) { return left + std::to_string(right); }
-template<typename T, typename U>
-T api_divide(T a, U b) { if ( b == 0 ) throw std::runtime_error("division by zero !"); return a / b;}
-template<typename T, typename U>
-T api_assign(T& a, U b) { return a = b; }
-template<typename T, typename U>
-T api_sqrt(U n) { return sqrt(n); }
-template<typename T, typename U>
-bool api_greater(T a, U b) { return a > b; }
-template<typename T, typename U>
-bool api_greater_or_eq(T a, U b) { return a >= b; }
-template<typename T, typename U>
-bool api_lower(T a, U b) { return a < b; }
-template<typename T, typename U>
-bool api_lower_or_eq(T a, U b) { return a <= b; }
-template<typename T>
-T api_pow(T a, T b) { return pow(a, b); }
-template<typename T>
-T api_minus(T a) { return -a; }
-template<typename T>
-T api_return(T value) { return value; }
-template<typename T>
-bool api_equals(T a, T b) { return a == b; }
-template<typename T>
-bool api_not_equals(T a, T b) { return a != b; }
-template<typename T>
-std::string api_print(T _value)
+namespace // anonymous, accessible only in that file
 {
-    std::string result = api_to_string(_value);
-    printf("print: %s\n", result.c_str());
-    return result;
+    bool _and(bool a, bool b) { return a && b; }
+    bool _implies(bool a, bool b) { return !a || b; }
+    bool _not(bool b) { return !b; }
+    bool _or(bool a, bool b) { return a || b; }
+    bool _to_bool(double n) { return n == 0.0; }
+    bool _xor(bool a, bool b){ return a ^ b; }
+    double _cos(double n) { return cos(n); }
+    double _mod(double a, double b) { return fmod(a, b); }
+    double _secondDegreePolynomial(double a, double x, double b, double y, double c) { return a * x * x + b * y + c;}
+    double _sin(double n) { return sin(n); }
+    std::string _to_string(bool b) { return b ? "true" : "false"; }
+    std::string _to_string(double n) { return String::fmt_double(n); }
+    std::string _to_string(i16_t i) { return std::to_string(i); }
+    std::string _to_string(std::string s) { return s; }
+    template<typename T, typename U>
+    T _minus(T a, U b){ return a - b; }
+    template<typename T, typename U>
+    T _multiply(T a, U b) { return a * b; }
+    template<typename T, typename U>
+    T _plus(T a, U b){ return a + T(b); }
+    template<typename T>
+    T _plus(T a, T b){ return a + b; }
+    template<>
+    std::string _plus(std::string left, double right) { return left + Nodable::String::fmt_double(right); }
+    template<>
+    std::string _plus(std::string left, i16_t right) { return left + std::to_string(right); }
+    template<typename T, typename U>
+    T _divide(T a, U b) { if ( b == 0 ) throw std::runtime_error("division by zero !"); return a / b;}
+    template<typename T, typename U>
+    T _assign(T& a, U b) { return a = b; }
+    template<typename T, typename U>
+    T _sqrt(U n) { return sqrt(n); }
+    template<typename T, typename U>
+    bool _greater(T a, U b) { return a > b; }
+    template<typename T, typename U>
+    bool _greater_or_eq(T a, U b) { return a >= b; }
+    template<typename T, typename U>
+    bool _lower(T a, U b) { return a < b; }
+    template<typename T, typename U>
+    bool _lower_or_eq(T a, U b) { return a <= b; }
+    template<typename T>
+    T _pow(T a, T b) { return pow(a, b); }
+    template<typename T>
+    T _minus(T a) { return -a; }
+    template<typename T>
+    T _return(T value) { return value; }
+    template<typename T>
+    bool _equals(T a, T b) { return a == b; }
+    template<typename T>
+    bool _not_equals(T a, T b) { return a != b; }
+    template<typename T>
+    std::string _print(T _value)
+    {
+        std::string result = _to_string(_value);
+        printf("print: %s\n", result.c_str());
+        return result;
+    }
 }
 
-void NodableLibrary_math::bind_to_language(ILanguage* _language)const
+
+REGISTER
 {
-    BIND_TO(_language)
+    registration::push_class<NodableLibrary_math>("NodableLibrary_math")
+        .add_static<double(double, i16_t)> (&_plus, "+", "plus")
+        .add_static<double(double, double)>(&_plus, "+", "plus")
+        .add_static<i16_t(i16_t, i16_t)>   (&_plus, "+", "plus")
+        .add_static<i16_t(i16_t, double)>  (&_plus, "+", "plus")
+        .add_static<string(string, string)>(&_plus, "+", "plus")
+        .add_static<string(string, i16_t)> (&_plus, "+", "plus")
+        .add_static<string(string, double)>(&_plus, "+", "plus")
+        .add_static(&_or, "||", "or")
+        .add_static(&_and, "&&", "and")
+        .add_static(&_not, "!", "not")
+        .add_static(&_implies, "=>", "implies")
+        .add_static<double(double)>(&_minus, "-")
+        .add_static<i16_t(i16_t)>(&_minus, "-")
+        .add_static<double(double, double)>(&_minus, "-")
+        .add_static<double(double, i16_t)>(&_minus, "-")
+        .add_static<i16_t(i16_t, i16_t)>(&_minus, "-")
+        .add_static<i16_t(i16_t, double)>(&_minus, "-")
+        .add_static<double(double, double)>(&_divide, "/")
+        .add_static<double(double, i16_t)>(&_divide, "/")
+        .add_static<i16_t(i16_t, i16_t)>(&_divide, "/")
+        .add_static<i16_t(i16_t, double)>(&_divide, "/")
+        .add_static<double(double, double)>(&_multiply, "*")
+        .add_static<double(double, i16_t)>(&_multiply, "*")
+        .add_static<i16_t(i16_t, i16_t)>(&_multiply, "*")
+        .add_static<i16_t(i16_t, double)>(&_multiply, "*")
+        .add_static<double(double, double)>(&_minus, "-")
+        .add_static<double(double, i16_t)>(&_minus, "-")
+        .add_static<i16_t(i16_t, i16_t)>(&_minus, "-")
+        .add_static<i16_t(i16_t, double)>(&_minus, "-")
+        .add_static<bool(double, double)>(&_greater_or_eq, ">=")
+        .add_static<bool(double, i16_t)>(&_greater_or_eq, ">=")
+        .add_static<bool(i16_t, double)>(&_greater_or_eq, ">=")
+        .add_static<bool(i16_t, i16_t)>(&_greater_or_eq, ">=")
+        .add_static<bool(double, i16_t)>(&_lower_or_eq, "<=")
+        .add_static<bool(double, double)>(&_lower_or_eq, "<=")
+        .add_static<bool(i16_t, i16_t)>(&_lower_or_eq, "<=")
+        .add_static<bool(i16_t, double)>(&_lower_or_eq, "<=")
+        .add_static<string(string& , string)>(&_assign, "=")
+        .add_static<bool(bool& , bool)>(&_assign, "=")
+        .add_static<double(double& , i16_t)>(&_assign, "=")
+        .add_static<double(double& , double)>(&_assign, "=")
+        .add_static<i16_t(i16_t & , i16_t)>(&_assign, "=")
+        .add_static<i16_t(i16_t & , double)>(&_assign, "=")
+        .add_static<bool(i16_t, i16_t)>(&_equals, "==")
+        .add_static<bool(double, double)>(&_equals, "==")
+        .add_static<bool(string, string)>(&_equals, "==")
+        .add_static<bool(bool, bool)>(&_equals, "<=>")
+        .add_static<bool(bool, bool)>(&_not_equals, "!=")
+        .add_static<bool(i16_t, i16_t)>(&_not_equals, "!=")
+        .add_static<bool(double, double)>(&_not_equals, "!=")
+        .add_static<bool(string, string)>(&_not_equals, "!=")
+        .add_static<bool(double, double)>(&_greater, ">")
+        .add_static< bool(i16_t, i16_t)>(&_greater, ">")
+        .add_static<bool(double, double)>(&_lower, "<")
+        .add_static<bool(i16_t, i16_t)>(&_lower, "<")
+        .add_static<bool(bool)>(&_return, "return")
+        .add_static<i16_t(i16_t)>(&_return, "return")
+        .add_static<double(double)>(&_return, "return")
+        .add_static<string(string)>(&_return, "return")
+        .add_static(&_sin, "sin")
+        .add_static(&_cos, "cos")
+        .add_static<double(double)>(&_sqrt, "sqrt")
+        .add_static<i16_t(i16_t)>(&_sqrt, "sqrt")
+        .add_static(&_to_bool, "to_bool")
+        .add_static(&_mod, "mod")
+        .add_static<i16_t(i16_t, i16_t)>(&_pow, "pow")
+        .add_static<double(double, double)>(&_pow, "pow")
+        .add_static(&_secondDegreePolynomial, "secondDegreePolynomial" )
+        .add_static<string(bool)>(&_to_string, "to_string")
+        .add_static<string(double)>(&_to_string, "to_string")
+        .add_static<string(i16_t)>(&_to_string, "to_string")
+        .add_static<string(string)>(&_to_string, "to_string")
+        .add_static<string(bool)>(&_print, "print")
+        .add_static<string(double)>(&_print, "print")
+        .add_static<string(i16_t)>(&_print, "print")
+        .add_static<string(string)>(&_print, "print");
+};
 
-    // operator implementations
-    BIND_OPERATOR_T(api_plus, "+", double(double, i16_t))
-    BIND_OPERATOR_T(api_plus, "+", double(double, double))
-    BIND_OPERATOR_T(api_plus, "+", i16_t(i16_t, i16_t))
-    BIND_OPERATOR_T(api_plus, "+", i16_t(i16_t, double))
-    BIND_OPERATOR_T(api_plus, "+", string(string, string))
-    BIND_OPERATOR_T(api_plus, "+", string(string, i16_t))
-    BIND_OPERATOR_T(api_plus, "+", string(string, double))
-
-    BIND_OPERATOR(api_or, "||")
-    BIND_OPERATOR(api_and, "&&")
-
-    BIND_OPERATOR_T(api_minus, "-", double(double))
-    BIND_OPERATOR_T(api_minus, "-", i16_t(i16_t))
-
-    BIND_OPERATOR_T(api_minus, "-", double(double, double))
-    BIND_OPERATOR_T(api_minus, "-", double(double, i16_t))
-    BIND_OPERATOR_T(api_minus, "-", i16_t(i16_t, i16_t))
-    BIND_OPERATOR_T(api_minus, "-", i16_t(i16_t, double))
-
-    BIND_OPERATOR_T(api_divide, "/", double(double, double))
-    BIND_OPERATOR_T(api_divide, "/", double(double, i16_t))
-    BIND_OPERATOR_T(api_divide, "/", i16_t(i16_t, i16_t))
-    BIND_OPERATOR_T(api_divide, "/", i16_t(i16_t, double))
-
-    BIND_OPERATOR_T(api_multiply, "*", double(double, double))
-    BIND_OPERATOR_T(api_multiply, "*", double(double, i16_t))
-    BIND_OPERATOR_T(api_multiply, "*", i16_t(i16_t, i16_t))
-    BIND_OPERATOR_T(api_multiply, "*", i16_t(i16_t, double))
-
-    BIND_OPERATOR_T(api_minus, "-", double(double, double))
-    BIND_OPERATOR_T(api_minus, "-", double(double, i16_t))
-    BIND_OPERATOR_T(api_minus, "-", i16_t(i16_t, i16_t))
-    BIND_OPERATOR_T(api_minus, "-", i16_t(i16_t, double))
-
-    BIND_OPERATOR_T(api_greater_or_eq, ">=", bool(double, double))
-    BIND_OPERATOR_T(api_greater_or_eq, ">=", bool(double, i16_t))
-    BIND_OPERATOR_T(api_greater_or_eq, ">=", bool(i16_t, double))
-    BIND_OPERATOR_T(api_greater_or_eq, ">=", bool(i16_t, i16_t))
-
-    BIND_OPERATOR_T(api_lower_or_eq, "<=", bool(double, i16_t))
-    BIND_OPERATOR_T(api_lower_or_eq, "<=", bool(double, double))
-    BIND_OPERATOR_T(api_lower_or_eq, "<=", bool(i16_t, i16_t))
-    BIND_OPERATOR_T(api_lower_or_eq, "<=", bool(i16_t, double))
-
-    BIND_OPERATOR(api_not, "!")
-
-    BIND_OPERATOR_T(api_assign, "=", string(string & , string))
-    BIND_OPERATOR_T(api_assign, "=", bool(bool & , bool))
-    BIND_OPERATOR_T(api_assign, "=", double(double & , i16_t))
-    BIND_OPERATOR_T(api_assign, "=", double(double & , double))
-    BIND_OPERATOR_T(api_assign, "=", i16_t(i16_t & , i16_t))
-    BIND_OPERATOR_T(api_assign, "=", i16_t(i16_t & , double))
-
-    BIND_OPERATOR(api_implies, "=>")
-
-    BIND_OPERATOR_T(api_equals, "==", bool(i16_t, i16_t))
-    BIND_OPERATOR_T(api_equals, "==", bool(double, double))
-    BIND_OPERATOR_T(api_equals, "==", bool(string, string))
-
-    BIND_OPERATOR_T(api_equals, "<=>", bool(bool, bool))
-
-    BIND_OPERATOR_T(api_not_equals, "!=", bool(bool, bool))
-    BIND_OPERATOR_T(api_not_equals, "!=", bool(i16_t, i16_t))
-    BIND_OPERATOR_T(api_not_equals, "!=", bool(double, double))
-    BIND_OPERATOR_T(api_not_equals, "!=", bool(string, string))
-
-    BIND_OPERATOR_T(api_greater, ">", bool(double, double))
-    BIND_OPERATOR_T(api_greater, ">", bool(i16_t, i16_t))
-
-    BIND_OPERATOR_T(api_lower, "<", bool(double, double))
-    BIND_OPERATOR_T(api_lower, "<", bool(i16_t, i16_t))
-
-    // functions
-
-    BIND_FUNCTION_T(api_return, bool(bool))
-    BIND_FUNCTION_T(api_return, i16_t(i16_t))
-    BIND_FUNCTION_T(api_return, double(double))
-    BIND_FUNCTION_T(api_return, string(string))
-
-    BIND_FUNCTION(api_sin)
-    BIND_FUNCTION(api_cos)
-    BIND_FUNCTION_T(api_plus, i16_t(i16_t, i16_t))
-    BIND_FUNCTION_T(api_minus, i16_t(i16_t, i16_t))
-    BIND_FUNCTION_T(api_multiply, i16_t(i16_t, i16_t))
-    BIND_FUNCTION_T(api_plus, double(double, double))
-    BIND_FUNCTION_T(api_minus, double(double, double))
-    BIND_FUNCTION_T(api_multiply, double(double, double))
-    BIND_FUNCTION_T(api_sqrt, double(double))
-    BIND_FUNCTION_T(api_sqrt, i16_t(i16_t))
-    BIND_FUNCTION(api_not)
-    BIND_FUNCTION(api_or)
-    BIND_FUNCTION(api_and)
-    BIND_FUNCTION(api_xor)
-    BIND_FUNCTION(api_to_bool)
-    BIND_FUNCTION(api_mod)
-    BIND_FUNCTION_T(api_pow, i16_t(i16_t, i16_t))
-    BIND_FUNCTION_T(api_pow, double(double, double))
-    BIND_FUNCTION(api_secondDegreePolynomial)
-    BIND_FUNCTION_T(api_to_string, string(bool))
-    BIND_FUNCTION_T(api_to_string, string(double))
-    BIND_FUNCTION_T(api_to_string, string(i16_t))
-    BIND_FUNCTION_T(api_to_string, string(string))
-    BIND_FUNCTION_T(api_print, string(bool))
-    BIND_FUNCTION_T(api_print, string(double))
-    BIND_FUNCTION_T(api_print, string(i16_t))
-    BIND_FUNCTION_T(api_print, string(string))
-}
+NodableLibrary_math::NodableLibrary_math(){}

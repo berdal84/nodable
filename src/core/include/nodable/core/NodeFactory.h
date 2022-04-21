@@ -30,15 +30,15 @@ namespace Nodable
         InstructionNode*            new_instr()const override ;
         VariableNode*				new_variable(type, const std::string&, IScope *)const override ;
         LiteralNode*                new_literal(type)const override ;
-        Node*                       new_abstract_function(const func_type*)const override;
-        Node*                       new_function(const iinvokable*)const override ;
+        Node*                       new_abstract_function(const func_type*, bool _is_operator)const override;
+        Node*                       new_function(const iinvokable*, bool _is_operator)const override ;
         Node*                       new_scope()const override ;
         ConditionalStructNode*      new_cond_struct()const override ;
         ForLoopNode*                new_for_loop_node()const override ;
         Node*                       new_node()const override ;
     private:
-        Node*                       _new_abstract_function(const func_type*) const; // this do not invoke post_process
-        void                        add_invokable_component(Node *_node, const func_type*, const iinvokable *_invokable) const;
+        Node*                       _new_abstract_function(const func_type*, bool _is_operator) const; // this do not invoke post_process
+        void                        add_invokable_component(Node *_node, const func_type*, const iinvokable *_invokable, bool _is_operator) const;
 
         std::function<void(Node*)>  m_post_process; // invoked after each node creation, just before to return.
         const ILanguage*             m_language;

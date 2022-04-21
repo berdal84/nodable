@@ -2,9 +2,14 @@
 #include <vector>
 #include <nodable/core/reflection/type_register.h>
 #include <nodable/core/reflection/type.h>
+#include <nodable/core/reflection/func_type.h>
+#include <nodable/core/reflection/invokable.h>
 
 namespace Nodable
 {
+    template<typename T>
+    class invokable;
+
     class registration
     {
     public:
@@ -45,6 +50,21 @@ namespace Nodable
                 }
             }
 
+            template<typename F>
+            push_class& add_static(F* _function, const char* _name, const char* _alt_name = "" )
+            {
+                {
+                    auto invokable_ = std::make_shared<invokable<F>>(_function, _name);
+                    m_class.add_static(invokable_);
+                }
+                if(_alt_name[0] != '\0')
+                {
+                    auto invokable_ = std::make_shared<invokable<F>>(_function, _alt_name);
+                    m_class.add_static( invokable_ );
+                }
+                return *this;
+            }
+
             template<typename BASE>
             push_class& extends()
             {
@@ -58,6 +78,9 @@ namespace Nodable
         };
     };
 } // namespace Nodable
+
+#define CAT_IMPL(a, b) a##b
+#define CAT(a, b) CAT_IMPL(a, b)
 
 #define REGISTER                                                        \
 static void auto_register();                                            \

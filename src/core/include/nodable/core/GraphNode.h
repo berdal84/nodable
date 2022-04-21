@@ -36,17 +36,11 @@ namespace Nodable
         Node*                       create_root();
         InstructionNode*            create_instr();
 		VariableNode*				create_variable(type, const std::string&, IScope*);
-
-		template<typename T>
-		VariableNode*				create_variable(const std::string& _name, IScope* _scope)
-        {
-		    return create_variable(type::get<T>(), _name, _scope);
-        }
-
 		LiteralNode*                create_literal(type);
- 		Wire*                       create_wire();
-		Node*                       create_abstract_function(const func_type*);
-		Node*                       create_function(const iinvokable*);
+		Node*                       create_abstract_function(const func_type*, bool _is_operator = false);
+		Node*                       create_function(const iinvokable*, bool _is_operator = false);
+        Node*                       create_abstract_operator(const func_type*);
+        Node*                       create_operator(const iinvokable*);
         Node*                       create_scope();
         ConditionalStructNode*      create_cond_struct();
         ForLoopNode*                create_for_loop();
@@ -56,7 +50,6 @@ namespace Nodable
         void disconnect(DirectedEdge, bool _side_effects = true);
         Wire* connect(Member* _src, Member* _dst_member );
         void disconnect(Wire*);
-        void disconnect(Member* _member, Way _way = Way_InOut, bool _side_effects = true);
         void connect(Node* _src, InstructionNode* _dst);
         void connect(Member* _src, VariableNode* _dst);
 

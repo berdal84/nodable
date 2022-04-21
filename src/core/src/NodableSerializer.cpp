@@ -16,13 +16,9 @@ using namespace Nodable;
 
 std::string& NodableSerializer::serialize(std::string& _out, const InvokableComponent *_component)const
 {
-    const func_type* signature = _component->get_signature();
+    const func_type* type = _component->get_func_type();
 
-    if ( !signature->is_operator() )
-    {
-        serialize(_out, signature, _component->get_args());
-    }
-    else
+    if ( _component->is_operator() )
     {
         // generic serialize member lambda
         auto serialize_member_with_or_without_brackets = [this, &_out](Member* member, bool needs_brackets)
@@ -40,23 +36,18 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
             }
         };
 
-        Node*            owner = _component->get_owner();
-        const MemberVec& args  = _component->get_args();
-        const func_type*   sig = signature;
+        Node*            owner      = _component->get_owner();
+        const MemberVec& args       = _component->get_args();
+        int             precedence  = m_language.get_precedence(_component->get_function());
 
-        switch (sig->get_arg_count())
+        switch ( type->get_arg_count() )
         {
             case 2:
             {
-                // Get the left and right source operator
-                auto l_handed_operator = owner->get_connected_operator(args[0]);
-                auto r_handed_operator = owner->get_connected_operator(args[1]);
-
                 // Left part of the expression
                 {
-                    // TODO: check parsed brackets for prefix/suffix
-                    bool needs_brackets = l_handed_operator &&
-                            l_handed_operator->get_type()->get_operator()->precedence < sig->get_operator()->precedence;
+                    auto l_handed_invokable = owner->get_connected_invokable(args[0]);
+                    bool needs_brackets = l_handed_invokable && m_language.get_precedence(l_handed_invokable) < precedence;
 
                     serialize_member_with_or_without_brackets(args[0], needs_brackets);
                 }
@@ -71,16 +62,13 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
                 }
                 else
                 {
-                    _out.append(sig->get_operator()->identifier);
+                    _out.append(type->get_identifier());
                 }
 
                 // Right part of the expression
                 {
-                    // TODO: check parsed brackets for prefix/suffix
-                    bool needs_brackets = r_handed_operator && (r_handed_operator->get_type()->get_arg_count() == 1
-                                         ||
-                            r_handed_operator->get_type()->get_operator()->precedence < sig->get_operator()->precedence );
-
+                    auto r_handed_invokable = owner->get_connected_invokable(args[1]);
+                    bool needs_brackets = r_handed_invokable && m_language.get_precedence(r_handed_invokable) < precedence;
                     serialize_member_with_or_without_brackets(args[1], needs_brackets);
                 }
                 break;
@@ -95,16 +83,21 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
 
                 if (token) _out.append(token->m_prefix);
 
-                _out.append(sig->get_operator()->identifier);
+                _out.append(type->get_identifier());
 
                 if (token) _out.append(token->m_suffix);
 
-                auto inner_operator = owner->get_connected_operator(args[0]);
+                auto inner_operator = owner->get_connected_invokable(args[0]);
                 serialize_member_with_or_without_brackets(args[0], inner_operator != nullptr);
                 break;
             }
         }
     }
+    else
+    {
+        serialize(_out, type, _component->get_args());
+    }
+
     return _out;
 }
 

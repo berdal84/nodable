@@ -245,7 +245,7 @@ void FileView::draw_info() const
         for(const auto& each_fct : functions )
         {
             std::string name;
-            serializer.serialize(name, each_fct->get_type());
+            serializer.serialize(name, &each_fct->get_type());
             ImGui::Text("%s", name.c_str());
         }
 

@@ -2,6 +2,7 @@
 
 #include <nodable/core/String.h>
 #include <nodable/core/System.h>
+#include <nodable/core/Operator.h>
 #include <nodable/core/languages/NodableLibrary_math.h>
 #include <nodable/core/languages/NodableLibrary_biology.h>
 
@@ -71,42 +72,15 @@ NodableLanguage::NodableLanguage(): m_parser(*this), m_serializer(*this)
     load_library<NodableLibrary_biology>();
 }
 
-std::string NodableLanguage::sanitize_function_id(const std::string &_id) const
-{
-    if( _id.compare(0, 4, "api_") == 0)
-    {
-        return _id.substr(4);
-    }
-    return _id;
-}
-
-std::string NodableLanguage::sanitize_operator_id(const std::string &_id) const
-{
-    return k_keyword_operator + _id;
-}
-
-#include <nodable/core/ILanguage.h>
-#include <vector>
-#include <nodable/core/Node.h>
-#include <nodable/core/languages/NodableParser.h>
-#include <nodable/core/Operator.h>
-#include <nodable/core/IParser.h>
-#include <nodable/core/ISerializer.h>
-
-using namespace Nodable;
-
 NodableLanguage::~NodableLanguage()
 {
-    for( auto each : m_operators ) delete each;
-    for( auto each : m_functions ) delete each;
-    // for( auto each : m_operator_implems ) delete each; (duplicates from m_functions)
 }
 
-const iinvokable* NodableLanguage::find_function(const func_type* _signature) const
+std::shared_ptr<const iinvokable> NodableLanguage::find_function(const func_type* _signature) const
 {
-    auto is_compatible = [&](const iinvokable* fct)
+    auto is_compatible = [&](std::shared_ptr<const iinvokable> fct)
     {
-        return fct->get_type()->is_compatible(_signature);
+        return fct->get_type().is_compatible(_signature);
     };
 
     auto it = std::find_if(m_functions.begin(), m_functions.end(), is_compatible);
@@ -119,16 +93,16 @@ const iinvokable* NodableLanguage::find_function(const func_type* _signature) co
     return nullptr;
 }
 
-const iinvokable* NodableLanguage::find_operator_fct_exact(const func_type* _type) const
+std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct_exact(const func_type* _type) const
 {
     if(!_type)
     {
         return nullptr;
     }
 
-    auto is_exactly = [&](const iinvokable* _invokable)
+    auto is_exactly = [&](std::shared_ptr<const iinvokable> _invokable)
     {
-        return _type->is_exactly(_invokable->get_type());
+        return _type->is_exactly(&_invokable->get_type());
     };
 
     auto found = std::find_if(m_operator_implems.cbegin(), m_operator_implems.cend(), is_exactly );
@@ -141,7 +115,7 @@ const iinvokable* NodableLanguage::find_operator_fct_exact(const func_type* _typ
     return nullptr;
 }
 
-const iinvokable* NodableLanguage::find_operator_fct(const func_type* _type) const
+std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct(const func_type* _type) const
 {
     if(!_type)
     {
@@ -152,12 +126,12 @@ const iinvokable* NodableLanguage::find_operator_fct(const func_type* _type) con
     return exact;
 }
 
-const iinvokable* NodableLanguage::find_operator_fct_fallback(const func_type* _type) const
+std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct_fallback(const func_type* _type) const
 {
 
-    auto is_compatible = [&](const iinvokable* _invokable)
+    auto is_compatible = [&](std::shared_ptr<const iinvokable> _invokable)
     {
-        return _type->is_compatible(_invokable->get_type());
+        return _type->is_compatible(&_invokable->get_type());
     };
 
     auto found = std::find_if(m_operator_implems.cbegin(), m_operator_implems.cend(), is_compatible );
@@ -170,26 +144,26 @@ const iinvokable* NodableLanguage::find_operator_fct_fallback(const func_type* _
     return nullptr;
 }
 
-
-void NodableLanguage::add_invokable(const iinvokable* _invokable)
+void NodableLanguage::add_invokable(std::shared_ptr<const iinvokable> _invokable)
 {
     m_functions.push_back(_invokable);
 
-    const func_type* type = _invokable->get_type();
+    const func_type* type = &_invokable->get_type();
+
     std::string type_as_string;
     m_serializer.serialize(type_as_string, type);
 
-    if(type->is_operator() )
+    if( find_operator(type->get_identifier(), static_cast<Operator_t >( type->get_arg_count() )  ))
     {
         auto found = std::find(m_operator_implems.begin(), m_operator_implems.end(), _invokable);
         NODABLE_ASSERT( found == m_operator_implems.end() )
         m_operator_implems.push_back(_invokable);
 
-        LOG_VERBOSE("Language", "%s added to functions and operator implems\n", type_as_string.c_str() );
+        LOG_VERBOSE("NodableLanguage", "add operator: %s (in m_functions and m_operator_implems)\n", type_as_string.c_str() );
     }
     else
     {
-        LOG_VERBOSE("Language", "%s added to functions\n", type_as_string.c_str() );
+        LOG_VERBOSE("NodableLanguage", "add function: %s (in m_functions)\n", type_as_string.c_str() );
     }
 }
 
@@ -260,49 +234,6 @@ void NodableLanguage::add_char(const char _char, Token_t _token_t)
     m_char_to_token.insert({_char, _token_t});
 }
 
-
-const func_type* NodableLanguage::new_operator_signature(
-        type _type,
-        const Operator* _op,
-        type _ltype,
-        type _rtype
-) const
-{
-    if(!_op)
-    {
-        return nullptr;
-    }
-
-    auto signature = new func_type( sanitize_operator_id(_op->identifier), _op);
-    signature->set_return_type(_type);
-    signature->push_args(_ltype, _rtype);
-
-    NODABLE_ASSERT(signature->is_operator())
-    NODABLE_ASSERT(signature->get_arg_count() == 2)
-
-    return signature;
-}
-
-const func_type* NodableLanguage::new_operator_signature(
-        type _type,
-        const Operator* _op,
-        type _ltype) const
-{
-    if(!_op)
-    {
-        return nullptr;
-    }
-
-    auto signature = new func_type( sanitize_operator_id(_op->identifier), _op);
-    signature->set_return_type(_type);
-    signature->push_arg(_ltype);
-
-    NODABLE_ASSERT(signature->is_operator())
-    NODABLE_ASSERT(signature->get_arg_count() == 1)
-
-    return signature;
-}
-
 std::string& NodableLanguage::to_string(std::string& _out, type _type) const
 {
     auto found = m_type_to_string.find(_type.hash_code());
@@ -341,5 +272,17 @@ std::string NodableLanguage::to_string(Token_t _token) const
 {
     std::string result;
     return to_string(result, _token);
+}
+
+int NodableLanguage::get_precedence(const iinvokable* _invokable) const
+{
+    if( !_invokable ) return std::numeric_limits<int>::min(); // default
+
+    auto type = _invokable->get_type();
+    auto oper = find_operator(type.get_identifier(), static_cast<Operator_t>(type.get_arg_count()) );
+
+    if( !oper ) return 0; // default
+
+    return oper->precedence;
 }
 

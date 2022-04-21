@@ -7,6 +7,6 @@ namespace Nodable
     class NodableLibrary_math : public ILibrary
     {
     public:
-        void bind_to_language(ILanguage* _language)const override;
+        NodableLibrary_math();
     };
 }

@@ -267,22 +267,24 @@ Member* NodableParser::parse_binary_operator_expression(unsigned short _preceden
 	}
 
 	// Create a function signature according to ltype, rtype and operator word
-	const func_type* signature = m_language.new_operator_signature(type::any, ope, _left->get_type(), right->get_type());
-    const iinvokable* invokable = m_language.find_operator_fct(signature);
+	func_type* type = new func_type(ope->identifier);
+    type->set_return_type(type::any);
+    type->push_args(_left->get_type(), right->get_type());
 
     InvokableComponent* component;
-    Node* binary_op;
-    if ( invokable )
+    Node*               binary_op;
+
+    if ( auto invokable = m_language.find_operator_fct(type) )
 	{
 	    // concrete operator
-		binary_op = m_graph->create_function(invokable);
+		binary_op = m_graph->create_operator(invokable.get());
         component = binary_op->get<InvokableComponent>();
-        delete signature;
+        delete type;
     }
-	else if(signature)
+	else if(type)
     {
 	    // abstract operator
-        binary_op = m_graph->create_abstract_function(signature);
+        binary_op = m_graph->create_abstract_operator(type);
         component = binary_op->get<InvokableComponent>();
     }
     else
@@ -313,10 +315,10 @@ Member* NodableParser::parse_unary_operator_expression(unsigned short _precedenc
 	}
 
     start_transaction();
-    std::shared_ptr<Token> operatorToken = m_token_ribbon.eatToken();
+    std::shared_ptr<Token> operator_token = m_token_ribbon.eatToken();
 
 	// Check if we get an operator first
-	if (operatorToken->m_type != Token_t::operator_)
+	if (operator_token->m_type != Token_t::operator_)
 	{
         rollback_transaction();
 		LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n")
@@ -339,22 +341,21 @@ Member* NodableParser::parse_unary_operator_expression(unsigned short _precedenc
     }
 
 	// Create a function signature
-
-	const Operator*   ope       = m_language.find_operator(operatorToken->m_word, Operator_t::Unary );
-	const func_type*  sig       = m_language.new_operator_signature(type::any, ope, value->get_type());
-	const iinvokable* invokable = m_language.find_operator_fct(sig);
+    func_type* type = new func_type(operator_token->m_word);
+    type->set_return_type(type::any);
+    type->push_args(value->get_type());
 
     InvokableComponent* component;
-	Node* node;
+	Node*               node;
 
-	if (invokable)
+	if (auto invokable = m_language.find_operator_fct(type))
 	{
-        node = m_graph->create_function(invokable);
-        delete sig;
+        node = m_graph->create_operator(invokable.get());
+        delete type;
 	}
-	else if(sig)
+	else if(type)
 	{
-        node = m_graph->create_abstract_function(sig);
+        node = m_graph->create_abstract_operator(type);
 	}
     else
     {
@@ -364,7 +365,7 @@ Member* NodableParser::parse_unary_operator_expression(unsigned short _precedenc
     }
 
     component = node->get<InvokableComponent>();
-    component->set_source_token(operatorToken);
+    component->set_source_token(operator_token);
 
     m_graph->connect(value, component->get_l_handed_val());
     Member* result = node->props()->get(k_value_member_name);
@@ -903,8 +904,7 @@ Member* NodableParser::parse_function_call()
             && token_1->m_type == Token_t::operator_
             && token_2->m_type == Token_t::fct_params_begin)
         {
-            // ex: "operator" + "=="
-            fct_id = token_0->m_word + token_1->m_word;
+            fct_id = token_1->m_word; // operator
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
         }
         else
@@ -946,7 +946,7 @@ Member* NodableParser::parse_function_call()
 
 
     // Find the prototype in the language library
-    const iinvokable* invokable = m_language.find_function(&signature);
+    std::shared_ptr<const iinvokable> invokable = m_language.find_function(&signature);
 
     auto connectArg = [&](const func_type* _sig, Node* _node, size_t _arg_index ) -> void
     { // lambda to connect input member to node for a specific argument index.
@@ -966,7 +966,7 @@ Member* NodableParser::parse_function_call()
          * TODO: remove this method, the parser should not check if function exist or not.
          *       this role is for the Compiler.
          */
-        node = m_graph->create_function(invokable);
+        node = m_graph->create_function(invokable.get());
     }
     else
     {

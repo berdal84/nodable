@@ -6,7 +6,7 @@
 
 #include <nodable/core/types.h>
 #include <nodable/core/reflection/variant.h>
-#include <nodable/core/reflection/reflection>
+#include <nodable/core/reflection/type.h>
 #include <nodable/core/reflection/func_type.h>
 
 namespace Nodable {
@@ -15,7 +15,7 @@ namespace Nodable {
     {
     public:
         virtual ~iinvokable() {};
-        virtual const func_type* get_type() const = 0;
+        virtual const func_type& get_type() const = 0;
         virtual void invoke(variant *_result, const std::vector<variant *> &_args) const = 0;
     };
 
@@ -75,12 +75,11 @@ namespace Nodable {
         using return_t    = T;
         using arguments_t = std::tuple<Args...>;
 
-        invokable(function_t* _implem, const func_type* _type)
+        invokable(function_t* _implem, const char* _name)
         : m_function_impl(_implem)
-        , m_function_type(_type)
+        , m_function_type(*func_type_builder<function_t>::with_id(_name))
         {
             NODABLE_ASSERT(m_function_impl)
-            NODABLE_ASSERT(m_function_type)
         }
 
         ~invokable() override {}
@@ -89,11 +88,11 @@ namespace Nodable {
         {
             call<return_t, Args... >(m_function_impl, _result, _args);
         }
-        const func_type* get_type() const override { return m_function_type; }
+        const func_type& get_type() const override { return m_function_type; }
 
     private:
-        function_t* const       m_function_impl;
-        const func_type* const  m_function_type;
+        function_t* const m_function_impl;
+        func_type         m_function_type;
     };
 
 }

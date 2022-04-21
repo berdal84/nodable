@@ -4,6 +4,7 @@
 #include <string>
 #include <typeinfo>
 #include <typeindex>
+#include <memory>
 
 #include <nodable/core/reflection/type_register.h>
 #include <nodable/core/assertions.h>
@@ -13,6 +14,7 @@ namespace Nodable
     struct any_t{};
     struct null_t{};
     using hash_code_t = size_t;
+    class iinvokable;
 
     template<typename T>
     struct unqualified
@@ -34,8 +36,7 @@ namespace Nodable
     {
         friend class registration;
         friend class type_register;
-    private:
-        type() = default;
+
     public:
         ~type() = default;
 
@@ -49,6 +50,9 @@ namespace Nodable
         bool                      is_child_of(type _possible_parent_class, bool _selfCheck = true) const;
         void                      add_parent(hash_code_t _parent);
         void                      add_child(hash_code_t _child);
+        void                      add_static(std::shared_ptr<iinvokable> _invokable);
+        const std::unordered_set<std::shared_ptr<iinvokable>>&
+                                  get_static_methods()const;
         template<class T> inline bool is_child_of() const { return is_child_of(get<T>(), true); }
         template<class T> inline bool is_not_child_of() const { return !is_child_of(get<T>(), true); }
 
@@ -75,11 +79,23 @@ namespace Nodable
         static type get()
         {
             auto hash = Nodable::unqualified<T>::hash_code();
-            NODABLE_ASSERT_EX(type_register::has(hash), "type is not registered. use registration::push_xxx<T>()");
-            type type = type_register::get(hash);
+
+            type type;
+
+            if( type_register::has(hash) )
+            {
+                type = type_register::get(hash);
+            }
+            else
+            {
+                type = create<T>(); // we create a temporary type
+                type_register::insert(type);
+            }
+
             type.m_is_pointer   = std::is_pointer<T>::value;
             type.m_is_reference = std::is_reference<T>::value;
             type.m_is_const     = std::is_const<T>::value;
+
             return type;
         }
 
@@ -104,6 +120,9 @@ namespace Nodable
 
         static type any;
         static type null;
+
+        type() = default;
+
     protected:
         std::string m_name;
         std::string m_compiler_name;
@@ -114,6 +133,7 @@ namespace Nodable
         hash_code_t m_hash_code;
         std::unordered_set<hash_code_t> m_parents;
         std::unordered_set<hash_code_t> m_children;
+        std::unordered_set<std::shared_ptr<iinvokable>> m_static_methods;
     };
 
     template<class target_t, class source_t>

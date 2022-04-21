@@ -95,7 +95,7 @@ namespace Nodable {
 
 		virtual UpdateResult update();
 
-        const iinvokable*    get_connected_operator(const Member* _localMember); // TODO: weird, try to understand why I needed this
+        const iinvokable*    get_connected_invokable(const Member* _local_member); // TODO: weird, try to understand why I needed this
         bool                 has_wire_connected_to(const Member *_localMember);
 
         template<class T> inline T*       as() { return cast<T>(this); }

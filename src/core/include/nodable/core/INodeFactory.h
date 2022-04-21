@@ -28,8 +28,8 @@ namespace Nodable
         virtual InstructionNode*            new_instr()const = 0;
         virtual VariableNode*				new_variable(type, const std::string&, IScope *)const = 0;
         virtual LiteralNode*                new_literal(type)const = 0;
-        virtual Node*                       new_abstract_function(const func_type*)const = 0;
-        virtual Node*                       new_function(const iinvokable*)const = 0;
+        virtual Node*                       new_abstract_function(const func_type*, bool _is_operator)const = 0;
+        virtual Node*                       new_function(const iinvokable*, bool _is_operator)const = 0;
         virtual Node*                       new_scope()const = 0;
         virtual ConditionalStructNode*      new_cond_struct()const = 0;
         virtual ForLoopNode*                new_for_loop_node()const = 0;

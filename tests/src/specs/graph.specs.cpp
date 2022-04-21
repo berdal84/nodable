@@ -10,7 +10,7 @@
 #include <nodable/core/languages/NodableLanguage.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/Scope.h>
-#include <nodable/core/SignatureBuilder.h>
+#include <nodable/core/reflection/func_type.h>
 
 using namespace Nodable;
 
@@ -84,13 +84,13 @@ TEST_F( graph_node_fixture, disconnect)
 TEST_F( graph_node_fixture, clear)
 {
     InstructionNode* instructionNode = graph.create_instr();
-    func_type*       sig             = SignatureBuilder<int(int, int)>::new_operator("+", &language);
-    const iinvokable* operator_fct   = language.find_operator_fct_exact(sig);
+    func_type*       sig             = func_type_builder<int(int, int)>::with_id("+");
+    auto             operator_fct    = language.find_operator_fct_exact(sig);
 
     delete sig;
 
     EXPECT_TRUE(operator_fct != nullptr);
-    Node* operatorNode = graph.create_function(operator_fct);
+    Node* operatorNode = graph.create_operator(operator_fct.get());
     auto props = operatorNode->props();
     props->get(k_lh_value_member_name)->set(2);
     props->get(k_rh_value_member_name)->set(2);

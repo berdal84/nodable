@@ -662,26 +662,23 @@ void GraphNodeView::set_owner(Node *_owner)
     Component::set_owner(_owner);
 
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
-    auto graphNode = _owner->as<GraphNode>();
+    auto             graph    = cast<GraphNode>(_owner);
     const ILanguage& language = m_ctx.language();
-    const auto functions     = language.get_api();
 
-    for (auto it = functions.cbegin(); it != functions.cend(); it++)
+    for (auto each_fct : language.get_api())
     {
-        const iinvokable* invokable    = *it;
-        const func_type*  type         = invokable->get_type();
-        const iinvokable* operator_fct = language.find_operator_fct(type);
+        const func_type* type = &each_fct->get_type();
+        bool is_operator = language.find_operator_fct(type) != nullptr;
+
+
+        auto create_node = [graph, each_fct, is_operator]() -> Node*
+        {
+            return graph->create_function(each_fct.get(), is_operator);
+        };
 
         std::string label;
         language.get_serializer().serialize(label, type);
-
-        std::string category = type->is_operator() ? k_operator_menu_label : k_function_menu_label;
-        
-        auto create_node = [graphNode, invokable]() -> Node*
-        {
-            return graphNode->create_function(invokable);
-        };
+        std::string category = is_operator ? k_operator_menu_label : k_function_menu_label;
         add_contextual_menu_item(category, label, create_node, type);
     }
-
 }

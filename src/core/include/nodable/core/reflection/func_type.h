@@ -34,7 +34,6 @@ namespace Nodable
     {
     public:
         func_type(std::string _id);
-        func_type(std::string _id, const Operator* _op);
         ~func_type() {};
 
         void                           push_arg(type _type);
@@ -47,17 +46,13 @@ namespace Nodable
         bool                           has_an_arg_of_type(type type)const;
         bool                           is_exactly(const func_type* _other)const;
         bool                           is_compatible(const func_type* _other)const;
-        bool                           is_operator()const { return m_operator; };
         const std::string&             get_identifier()const { return m_identifier; };
         FuncArgs&                      get_args() { return m_args;};
         const FuncArgs&                get_args()const { return m_args;};
         size_t                         get_arg_count() const { return m_args.size(); }
         const type                     get_return_type() const { return m_return_type; }
         void                           set_return_type(type _type) { m_return_type = _type; };
-        const Operator*                get_operator()const { return m_operator; }
-        std::string                    get_label()const;
     private:
-        const Operator* m_operator;
         std::string     m_identifier;
         FuncArgs        m_args;
         type            m_return_type;
@@ -98,6 +93,47 @@ namespace Nodable
         // empty function when pushing an empty arguments
         template<typename... Args, std::enable_if_t<std::tuple_size_v<Args...> == 0, int> = 0>
         void push_args(){}
+
+    };
+
+    template<typename T>
+    struct func_type_builder;
+
+    /**
+     * Builder to create function/operator signatures for a given language
+     * @tparam T is the function's return type
+     * @tparam Args is the function's argument(s) type
+     *
+     * usage: Signature* sig = signature-builder<double(double,double)>::signature()
+     *                                                                  .with_id("+")
+     *                                                                  .as_operator()
+     *                                                                  .with_language(lang_ptr).build();
+     */
+    template<typename T, typename ...Args>
+    struct func_type_builder<T(Args...)>
+    {
+        std::string       m_id;
+        func_type_builder(){}
+
+        func_type* construct()
+        {
+            NODABLE_ASSERT_EX( !m_id.empty(), "No identifier specified! use with_id()" );
+
+            func_type* signature = new func_type(m_id);
+
+            signature->set_return_type(type::get<T>());
+            signature->push_args<std::tuple<Args...>>();
+
+            return signature;
+        }
+
+        static func_type* with_id(const std::string& _id)
+        {
+            func_type_builder<T(Args...)> builder;
+            builder.m_id = _id;
+            return builder.construct();
+        }
+
     };
 
 

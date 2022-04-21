@@ -41,25 +41,25 @@ VariableNode* NodeFactory::new_variable(type _type, const std::string& _name, IS
     return node;
 }
 
-Node* NodeFactory::new_abstract_function(const func_type* _signature) const
+Node* NodeFactory::new_abstract_function(const func_type* _signature, bool _is_operator) const
 {
-    auto node = _new_abstract_function(_signature);
-    add_invokable_component(node, _signature, nullptr);
+    auto node = _new_abstract_function(_signature, _is_operator);
+    add_invokable_component(node, _signature, nullptr, _is_operator );
     m_post_process(node);
     return node;
 }
 
-Node* NodeFactory::_new_abstract_function(const func_type* _signature) const
+Node* NodeFactory::_new_abstract_function(const func_type* _func_type, bool _is_operator) const
 {
     Node* node = new Node();
 
-    if( _signature->is_operator() )
+    if( _is_operator )
     {
-        node->set_label( _signature->get_operator()->identifier.c_str() );
+        node->set_label( _func_type->get_identifier().c_str() );
     }
     else
     {
-        std::string id = _signature->get_identifier();
+        std::string id = _func_type->get_identifier();
         std::string label       = id + "()";
         std::string short_label = id.substr(0, 2) + "..()"; // ------- improve, not great.
         node->set_label(label.c_str(), short_label.c_str());
@@ -67,36 +67,57 @@ Node* NodeFactory::_new_abstract_function(const func_type* _signature) const
 
     // Create a result/value
     Properties* props = node->props();
-    props->add(k_value_member_name, Visibility::Default, _signature->get_return_type(), Way_Out);
-
-    NODABLE_ASSERT(!_signature->is_operator() || _signature->get_arg_count() != 0 )
+    props->add(k_value_member_name, Visibility::Default, _func_type->get_return_type(), Way_Out);
 
     // Create arguments
-    auto args = _signature->get_args();
-    for (auto& arg : args)
+    auto args = _func_type->get_args();
+
+    if( _is_operator ) // rename arguments
     {
-        props->add(arg.m_name.c_str(), Visibility::Default, arg.m_type, Way_In); // create node input
+        size_t count = _func_type->get_arg_count();
+
+        NODABLE_ASSERT_EX( count != 0 , "An operator cannot have zero argument" );
+        NODABLE_ASSERT_EX( count < 3  , "An operator cannot have more than 2 arguments" );
+
+        switch ( count )
+        {
+            case 1:
+                props->add( k_lh_value_member_name, Visibility::Default, args[0].m_type, Way_In);
+                break;
+            case 2:
+                props->add( k_lh_value_member_name, Visibility::Default, args[0].m_type, Way_In);
+                props->add( k_rh_value_member_name, Visibility::Default, args[1].m_type, Way_In);
+                break;
+            default: /* no warning */ ;
+        }
+    }
+    else
+    {
+        for (auto& arg : args)
+        {
+            props->add(arg.m_name.c_str(), Visibility::Default, arg.m_type, Way_In);
+        }
     }
 
     return node;
 }
 
-Node* NodeFactory::new_function(const iinvokable* _function) const
+Node* NodeFactory::new_function(const iinvokable* _function, bool _is_operator) const
 {
     // Create an abstract function node
-    const func_type* type = _function->get_type();
-    Node* node = _new_abstract_function(type);
-    add_invokable_component(node, type, _function);
+    const func_type* type = &_function->get_type();
+    Node* node = _new_abstract_function(type, _is_operator);
+    add_invokable_component(node, type, _function, _is_operator);
     m_post_process(node);
     return node;
 }
 
-void NodeFactory::add_invokable_component(Node *_node, const func_type* _func_type, const iinvokable *_invokable) const
+void NodeFactory::add_invokable_component(Node *_node, const func_type* _func_type, const iinvokable *_invokable, bool _is_operator) const
 {
     Properties* props = _node->props();
 
     // Create an InvokableComponent with the function.
-    auto component = new InvokableComponent(_func_type, _invokable);
+    auto component = new InvokableComponent(_func_type, _is_operator, _invokable );
     _node->add_component(component);
 
     // Link result member
@@ -104,10 +125,10 @@ void NodeFactory::add_invokable_component(Node *_node, const func_type* _func_ty
 
     // Link arguments
     auto args = _func_type->get_args();
-    for (size_t argIndex = 0; argIndex < args.size(); argIndex++)
+    for (size_t arg_idx = 0; arg_idx < args.size(); arg_idx++)
     {
-        Member* member = props->get(args[argIndex].m_name.c_str());
-        component->set_arg(argIndex, member);
+        Member* member = props->get_input_at(arg_idx);
+        component->set_arg(arg_idx, member);
     }
 }
 

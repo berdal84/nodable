@@ -11,16 +11,17 @@ REGISTER
     registration::push_class<InvokableComponent>("InvokableComponent").extends<Component>();
 }
 
-InvokableComponent::InvokableComponent(const func_type* _signature, const iinvokable* _invokable)
+InvokableComponent::InvokableComponent(const func_type* _signature, bool _is_operator, const iinvokable* _invokable)
         : Component()
         , m_result( nullptr )
         , m_signature(_signature)
         , m_invokable(nullptr)
+        , m_is_operator(_is_operator)
 {
     NODABLE_ASSERT_EX(_signature != nullptr, "Signature must be defined!")
     m_invokable = _invokable;
     m_args.resize(_signature->get_arg_count(), nullptr );
-    m_source_token = std::make_shared<Token>(Token_t::identifier, _signature->get_label(), 0 );
+    m_source_token = std::make_shared<Token>(Token_t::identifier, _signature->get_identifier(), 0 );
 }
 
 bool InvokableComponent::update()
