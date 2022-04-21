@@ -73,6 +73,7 @@ target_include_directories(
         gl3w
         PUBLIC
             ./gl3w
+            ./gl3w/GL
 )
 
 # lode_png
@@ -107,20 +108,9 @@ add_library(
 target_include_directories(rapidjson INTERFACE ./)
 
 # Observe
-add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/Observe ./Observe EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL: we don't want to install it.
+add_subdirectory( Observe EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL: we don't want to install it.
 
 # SDL2
 #------
-add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/SDL EXCLUDE_FROM_ALL)
+add_subdirectory( SDL EXCLUDE_FROM_ALL)
 
-# Define variables to use them from the parent CMakeLists.txt
-#------------------------------------------------------------
-
-set( LIBS_INCLUDE_DIRS
-        ${CMAKE_CURRENT_LIST_DIR}/SDL/include/
-        ${CMAKE_CURRENT_LIST_DIR}/glfw/include/
-        ${CMAKE_CURRENT_LIST_DIR}/gl3w/GL
-        ${CMAKE_CURRENT_LIST_DIR}/gl3w
-        ${CMAKE_CURRENT_LIST_DIR}/glfw/include/GLFW
-
-        PARENT_SCOPE )

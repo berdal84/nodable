@@ -50,8 +50,7 @@ target_include_directories(
     nodable
     PRIVATE
         include/
-        ${PROJECT_BINARY_DIR}/configured
-        ${LIBS_INCLUDE_DIRS} )
+        ${PROJECT_BINARY_DIR}/configured)
 
 nodable_message("Looking for libraries ...")
 
