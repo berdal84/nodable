@@ -82,23 +82,31 @@ On Windows execute: `nodable.exe`, on Linux and macOS run `./nodable`. (On Linux
 
 Each submodule is licensed, browse *libs/* folder.
 
-Credits :
----------
+## Credits :
+
 
 **Nodable** is developped by [@berdal84](https://github.com/berdal84)
 
-- Dependencies
-  - Code:
-    - *SDL2* : https://www.libsdl.org/
-    - *GLFW3* : http://www.glfw.org/
-    - *Dear ImGui* developed by Omar Cornut: https://github.com/omarcornut/imgui
-    - *IconFontCppHeaders* by Juliette Faucaut: https://github.com/juliettef/IconFontCppHeaders
-    - *ImGuiColorTextEdit* by BalazsJako : https://github.com/BalazsJako/ImGuiColorTextEdit
-    - *LodePNG* by Lode Vandevenne: https://github.com/lvandeve/lodepng
-    - *Observe* by Lars Melchior: https://github.com/TheLartians/Observe
-    - *MPark.Variant* by Michael Park: https://github.com/mpark/variant
-    - *Where am I?* by Gregory Pakosz: https://github.com/gpakosz/whereami.git
-    - *Native file dialog extended* by "Bernard Teo and other" + Michael Labbe's Native File Dialog: https://github.com/btzy/nativefiledialog-extended
-    - Even if I do not depend on it yet (I am going to at some point), I must cite: RTTR from Axel Menzel: https://github.com/rttrorg/rttr
-  - Resources
-    - *JetBrains Mono* Font: https://www.jetbrains.com/lp/mono/
+#### Libraries
+
+| Name  | Link        | Author(s)      |
+| :---        |    :----   |     :---       |
+| *Dear ImGui*| https://github.com/omarcornut/imgui | Omar Cornut
+| *GLFW3*     | http://www.glfw.org/
+| *IconFontCppHeaders*| https://github.com/juliettef/IconFontCppHeaders | Juliette Faucaut
+| *ImGuiColorTextEdit* | https://github.com/BalazsJako/ImGuiColorTextEdit | BalazsJako
+| *LodePNG* | https://github.com/lvandeve/lodepng | Lode Vandevenne
+| *Native file dialog extended* | https://github.com/btzy/nativefiledialog-extended | Bernard Teo, Michael Labbe and other
+| *Observe* | https://github.com/TheLartians/Observe | Lars Melchior
+| *RTTR** | https://github.com/rttrorg/rttr | Axel Menzel
+| *SDL2*      | https://www.libsdl.org/
+| *Where am I?* | https://github.com/gpakosz/whereami.git | Gregory Pakosz
+
+*: Even if I do not depend on it yet, I must cite RTTR since I am taking a lot of ideas from it in order to use it in the future without requiring too much changes.
+
+#### Resources
+
+| Name  | Link        | Author(s)      |
+| :---        |    :----   |     :---       |
+| *JetBrains Mono*      | https://www.jetbrains.com/lp/mono/ | Jetbrains
+
