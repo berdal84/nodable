@@ -10,9 +10,6 @@
 [submodule "libs/Observe"]
 	path = libs/Observe
 	url = https://github.com/berdal84/Observe.git
-[submodule "libs/3rdparty/variant"]
-	path = libs/3rdparty/variant
-	url = https://github.com/mpark/variant.git
 [submodule "libs/filesystem"]
 	path = libs/filesystem
 	url = https://github.com/gulrak/filesystem
