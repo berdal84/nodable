@@ -92,7 +92,8 @@ Each submodule is licensed, browse *libs/* folder.
 | Name  | Link        | Author(s)      |
 | :---        |    :----   |     :---       |
 | *Dear ImGui*| https://github.com/omarcornut/imgui | Omar Cornut
-| *GLFW3*     | http://www.glfw.org/
+| *gl3w*     | https://github.com/skaslev/gl3w | https://github.com/skaslev/gl3w#credits
+| *googletest* | https://github.com/google/googletest| Google
 | *IconFontCppHeaders*| https://github.com/juliettef/IconFontCppHeaders | Juliette Faucaut
 | *ImGuiColorTextEdit* | https://github.com/BalazsJako/ImGuiColorTextEdit | BalazsJako
 | *LodePNG* | https://github.com/lvandeve/lodepng | Lode Vandevenne
