@@ -89,25 +89,25 @@ Each submodule is licensed, browse *libs/* folder.
 
 #### Libraries
 
-| Name  | Link        | Author(s)      |
-| :---        |    :----   |     :---       |
-| *Dear ImGui*| https://github.com/omarcornut/imgui | Omar Cornut
-| *gl3w*     | https://github.com/skaslev/gl3w | https://github.com/skaslev/gl3w#credits
-| *googletest* | https://github.com/google/googletest| Google
-| *IconFontCppHeaders*| https://github.com/juliettef/IconFontCppHeaders | Juliette Foucaut and Doug Binks
-| *ImGuiColorTextEdit* | https://github.com/BalazsJako/ImGuiColorTextEdit | BalazsJako
-| *LodePNG* | https://github.com/lvandeve/lodepng | Lode Vandevenne
-| *Native file dialog extended* | https://github.com/btzy/nativefiledialog-extended | Bernard Teo, Michael Labbe and other
-| *Observe* | https://github.com/TheLartians/Observe | Lars Melchior
-| *RTTR** | https://github.com/rttrorg/rttr | Axel Menzel
-| *SDL2*      | https://www.libsdl.org/
-| *Where am I?* | https://github.com/gpakosz/whereami.git | Gregory Pakosz
-
+| Library  | Author(s)  |
+| :---     |   :---     |
+| [*Dear ImGui*]( https://github.com/omarcornut/imgui) | Omar Cornut
+| [*IconFontCppHeaders*](https://github.com/juliettef/IconFontCppHeaders) | Juliette Foucaut and Doug Binks
+| [*ImGuiColorTextEdit*](https://github.com/BalazsJako/ImGuiColorTextEdit) | BalazsJako
+| [*LodePNG*]( https://github.com/lvandeve/lodepng) | Lode Vandevenne
+| [*Native file dialog extended*](https://github.com/btzy/nativefiledialog-extended) | Bernard Teo, Michael Labbe and other
+| [*Observe*]( https://github.com/TheLartians/Observe) | Lars Melchior
+| [*RTTR**](https://github.com/rttrorg/rttr) | Axel Menzel
+| [*SDL2*](https://www.libsdl.org/) | cf. website
+| [*Where am I?*](https://github.com/gpakosz/whereami.git) | Gregory Pakosz
+| [*gl3w*](https://github.com/skaslev/gl3w) | cf. website
+| [*googletest*](https://github.com/google/googletest) | Google
+| [*gulrak/filesystem*]()  | Steffen Schümann
 *: Even if I do not depend on it yet, I must cite RTTR since I am taking a lot of ideas from it in order to use it in the future without requiring too much changes.
 
 #### Resources
 
-| Name  | Link        | Author(s)      |
-| :---        |    :----   |     :---       |
-| *JetBrains Mono*      | https://www.jetbrains.com/lp/mono/ | Jetbrains
+| Name  | Author(s)  |
+| :---  | :---       |
+| [*JetBrains Mono*]( https://www.jetbrains.com/lp/mono/) | Jetbrains
 
