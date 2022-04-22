@@ -152,13 +152,13 @@ void type::add_static(const std::string& _name, std::shared_ptr<iinvokable> _inv
     m_static_methods_by_name.insert({_name, _invokable});
 }
 
-void type::add_method(const std::string &_name, std::shared_ptr<invokable_nonstatic> _invokable)
+void type::add_method(const std::string &_name, std::shared_ptr<iinvokable_nonstatic> _invokable)
 {
     m_methods.insert(_invokable);
     m_methods_by_name.insert({_name, _invokable});
 }
 
-std::shared_ptr<invokable_nonstatic> type::get_method(const std::string& _name)
+std::shared_ptr<iinvokable_nonstatic> type::get_method(const std::string& _name)
 {
     auto found = m_methods_by_name.find(_name);
     if( found != m_methods_by_name.end() )

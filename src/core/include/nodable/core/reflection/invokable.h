@@ -97,58 +97,51 @@ namespace Nodable {
         func_type         m_function_type;
     };
 
+    class iinvokable_nonstatic
+    {
+    public:
+        virtual ~iinvokable_nonstatic() {};
+        virtual const func_type& get_type() const = 0;
+        virtual void invoke(void* _instance, const std::vector<variant *> &_args = {}) const = 0;
+    };
+
+    template<typename T>
+    class invokable_nonstatic;
+
     /**
      * wrapper for NON STATIC methods ONLY
      */
-    class invokable_nonstatic : public iinvokable // WIP...
+    template<typename R, typename C, typename ...Ts>
+    class invokable_nonstatic<R(C::*)(Ts...)> : public iinvokable_nonstatic // WIP...
     {
-        const func_type m_method_type;
-        void*           m_method;
+        using class_t    = C;
+        using function_t = R(C::*)(Ts...);
+        const func_type  m_method_type;
+        function_t       m_method;
     public:
-        template<typename R, typename C, typename ...Ts>
-        static void* func_ptr_cast(R(C::* _func_ptr)(Ts...))
-        {
-            union
-            {
-                R(C::* func_ptr)(Ts...);
-                void*  ptr;
-            } u;
-            u.func_ptr = _func_ptr;
-            return u.ptr;
-        }
 
-        template<typename F>
-        static F func_ptr_cast(void* _ptr)
-        {
-            union
-            {
-                F func_ptr = nullptr; // is larger than void*
-                void*  ptr;
-            } u;
-            u.ptr = _ptr;
-            return u.func_ptr;
-        }
-
-        template<typename R, typename C, typename ...Ts>
-        invokable_nonstatic(R(C::*_method)(Ts...) , const char* _name)
-        : m_method( func_ptr_cast(_method) )
-        , m_method_type(*func_type_builder<R(C::*)(Ts...)>::with_id(_name) )
+        invokable_nonstatic(R(C::* _method)(Ts...) , const char* _name)
+        : m_method( _method )
+        , m_method_type(*func_type_builder<function_t>::with_id(_name) )
         {
         }
 
         const func_type& get_type() const override { return m_method_type; };
 
-        void invoke(variant *_result, const std::vector<variant *> &_args = {}) const override
+        virtual void invoke(void* _instance, const std::vector<variant *> &_args = {}) const override
         {
-            NODABLE_ASSERT_EX(false, "Function not implemented!");
+            _invoke(reinterpret_cast<class_t*>(_instance));
         };
 
-        template<typename R, typename C, typename ...Ts>
-        R invoke(C& _instance, Ts... args)
+    private:
+        R _invoke_r(class_t* _instance, Ts... args) const
         {
-            // TODO: cast to desired type is 100% unsafe! check types usint m_method_type
-            auto method = func_ptr_cast<R(C::*)(Ts...)>(m_method);
-            return (_instance.*method)(args...);
+            return (_instance->*m_method)(args...);
+        }
+
+        void _invoke(class_t* _instance, Ts... args) const
+        {
+            (_instance->*m_method)(args...);
         }
     };
 

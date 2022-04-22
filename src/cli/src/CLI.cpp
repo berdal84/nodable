@@ -74,7 +74,7 @@ void CLI::update()
 
     if( auto method = api.get_method(input) )
     {
-        method->invoke<void>(*this); // TODO: avoid passing result type, use variant instead
+        method->invoke((void*)this);
         return;
     }
 

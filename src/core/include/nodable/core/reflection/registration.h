@@ -51,7 +51,7 @@ namespace Nodable
             }
 
             template<typename F>
-            push_class& add_static(F* _function, const char* _name, const char* _alt_name = "" )
+            push_class& add_method(F* _function, const char* _name, const char* _alt_name = "" )
             {
                 {
                     auto invokable_ = std::make_shared<invokable_static<F>>(_function, _name);
@@ -66,10 +66,11 @@ namespace Nodable
             }
 
             template<typename R, typename C, typename ...Ts>
-            push_class& add_method(R(C::*_function)(Ts...), const char* _name )
+            push_class& add_method(R(C::*_function)(Ts...), const char* _name ) // non static
             {
+                using F = R(C::*)(Ts...);
                 {
-                    auto invokable_ = std::make_shared<invokable_nonstatic>(_function, _name);
+                    auto invokable_ = std::make_shared<invokable_nonstatic<F> >(_function, _name);
                     m_class.add_method(_name, invokable_);
                 }
                 return *this;

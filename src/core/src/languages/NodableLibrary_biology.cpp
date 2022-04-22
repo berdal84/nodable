@@ -52,7 +52,7 @@ namespace // anonymous, only accessible from this file
 REGISTER
 {
     registration::push_class<NodableLibrary_biology>("NodableLibrary_biology")
-            .add_static(&dna_to_protein, "dna_to_protein", "protein");
+            .add_method(&dna_to_protein, "dna_to_protein", "protein");
 };
 
 NodableLibrary_biology::NodableLibrary_biology(){} // necessary to execute static code
