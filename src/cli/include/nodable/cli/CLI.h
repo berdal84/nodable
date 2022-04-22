@@ -19,8 +19,13 @@ namespace Nodable
         ~CLI();
         bool         should_stop() const;
         void         update();
-        static bool  help();
-        static bool  reflection_stats();
+        void         help();
+        void         parse();
+        void         serialize();
+        void         compile();
+        void         run();
+        void         exit_();
+
     private:
         std::string get_line() const;
 

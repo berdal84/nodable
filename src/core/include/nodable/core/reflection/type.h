@@ -16,6 +16,7 @@ namespace Nodable
     struct null_t{};
     using hash_code_t = size_t;
     class iinvokable;
+    class invokable_nonstatic;
 
     template<typename T>
     struct unqualified
@@ -53,9 +54,13 @@ namespace Nodable
         void                      add_parent(hash_code_t _parent);
         void                      add_child(hash_code_t _child);
         void                      add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable);
+        void                      add_method(const std::string& _name, std::shared_ptr<invokable_nonstatic> _invokable);
         const std::unordered_set<std::shared_ptr<iinvokable>>&
-                                  get_static_methods()const;
+                                  get_static_methods()const { return m_static_methods; }
+        const std::unordered_set<std::shared_ptr<invokable_nonstatic>>&
+                                  get_methods()const { return m_methods; }
         std::shared_ptr<iinvokable> get_static(const std::string& _name);
+        std::shared_ptr<invokable_nonstatic> get_method(const std::string& _name);
         template<class T> inline bool is_child_of() const { return is_child_of(get<T>(), true); }
         template<class T> inline bool is_not_child_of() const { return !is_child_of(get<T>(), true); }
 
@@ -134,8 +139,10 @@ namespace Nodable
         hash_code_t m_hash_code;
         std::unordered_set<hash_code_t> m_parents;
         std::unordered_set<hash_code_t> m_children;
-        std::unordered_set<std::shared_ptr<iinvokable>> m_static_methods;
-        std::unordered_map<std::string, std::shared_ptr<iinvokable>> m_static_methods_by_name;
+        std::unordered_set<std::shared_ptr<iinvokable>>                    m_static_methods;
+        std::unordered_map<std::string, std::shared_ptr<iinvokable>>       m_static_methods_by_name;
+        std::unordered_set<std::shared_ptr<invokable_nonstatic>>              m_methods;
+        std::unordered_map<std::string, std::shared_ptr<invokable_nonstatic>> m_methods_by_name;
     };
 
     template<class target_t, class source_t>

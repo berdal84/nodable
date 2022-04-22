@@ -8,7 +8,7 @@
 namespace Nodable
 {
     template<typename T>
-    class invokable;
+    class invokable_static;
 
     class registration
     {
@@ -54,13 +54,23 @@ namespace Nodable
             push_class& add_static(F* _function, const char* _name, const char* _alt_name = "" )
             {
                 {
-                    auto invokable_ = std::make_shared<invokable<F>>(_function, _name);
+                    auto invokable_ = std::make_shared<invokable_static<F>>(_function, _name);
                     m_class.add_static(_name, invokable_);
                 }
                 if(_alt_name[0] != '\0')
                 {
-                    auto invokable_ = std::make_shared<invokable<F>>(_function, _alt_name);
+                    auto invokable_ = std::make_shared<invokable_static<F>>(_function, _alt_name);
                     m_class.add_static(_alt_name, invokable_ );
+                }
+                return *this;
+            }
+
+            template<typename R, typename C, typename ...Ts>
+            push_class& add_method(R(C::*_function)(Ts...), const char* _name )
+            {
+                {
+                    auto invokable_ = std::make_shared<invokable_nonstatic>(_function, _name);
+                    m_class.add_method(_name, invokable_);
                 }
                 return *this;
             }

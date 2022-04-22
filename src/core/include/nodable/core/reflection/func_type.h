@@ -136,5 +136,8 @@ namespace Nodable
 
     };
 
+    template<typename T, typename C, typename ...Args>
+    struct func_type_builder<T(C::*)(Args...)> : func_type_builder<T(Args...)> {};
+
 
 }

@@ -11,17 +11,15 @@
 
 using namespace Nodable;
 
-static const std::string k_cmd_compile   = "compile";
-static const std::string k_cmd_serialize = "serialize";
-static const std::string k_cmd_exit      = "exit";
-static const std::string k_cmd_run       = "run";
-static const std::string k_cmd_parse     = "parse";
-
 REGISTER
 {
     registration::push_class<CLI>("CLI")
-            .add_static(&CLI::reflection_stats , "reflection_stats")
-            .add_static(&CLI::help             , "help");
+        .add_method(&CLI::help             , "help")
+        .add_method(&CLI::exit_            , "exit")
+        .add_method(&CLI::parse            , "parse")
+        .add_method(&CLI::serialize        , "serialize")
+        .add_method(&CLI::compile          , "compile")
+        .add_method(&CLI::run              , "run");
 };
 
 CLI::CLI()
@@ -63,73 +61,14 @@ void CLI::update()
     if( !input.empty() )
     {
         type api = type::get<CLI>();
-        if( auto invokable_ = api.get_static(input) )
+        if( auto static_method = api.get_static(input) )
         {
             variant ok;
-            invokable_->invoke(&ok);
+            static_method->invoke(&ok); // TODO:: we should not be forced to pass a result reference, what about "void" cases?
         }
-        else if (input == k_cmd_exit)
+        else if( auto method = api.get_method(input) )
         {
-            m_should_stop = true;
-        }
-        else if (input == k_cmd_serialize)
-        {
-            if(Node* root = m_graph.get_root())
-            {
-                std::string result;
-                m_language->get_serializer().serialize(result, root);
-                std::cout << result << std::endl;
-            }
-            else
-            {
-                LOG_WARNING("cli", "unable to serialize! Are you sure you entered an expression earlier?\n")
-            }
-        }
-        else if (input == k_cmd_compile)
-        {
-            if( auto asm_code = m_compiler.compile_syntax_tree(&m_graph))
-            {
-                m_asm_code = std::move(asm_code);
-            }
-            else
-            {
-                LOG_ERROR("cli", "unable to compile! Are you sure you entered an expression earlier?\n")
-            }
-        }
-        else if (input == k_cmd_run)
-        {
-            if( m_asm_code)
-            {
-                if( m_virtual_machine.load_program(std::move(m_asm_code)) )
-                {
-                    m_virtual_machine.run_program();
-                    qword last_result = m_virtual_machine.get_last_result();
-
-                    std::cout << "Result in various types:";
-                    std::cout << std::endl;
-                    std::cout << " bool:   " << std::setw(12) << (bool)last_result;
-                    std::cout << ", double: " << std::setw(12) << (double)last_result;
-                    std::cout << ", i16_t:  " << std::setw(12) << (i16_t)last_result;
-                    std::cout << ", hexa:   " << std::setw(12) << last_result.to_string();
-                    std::cout << std::endl;
-                }
-                else
-                {
-                    LOG_ERROR("cli", "unable to run program!\n")
-                }
-            }
-            else
-            {
-                LOG_ERROR("cli", "compile program first!\n")
-            }
-        }
-        else if (input == k_cmd_parse)
-        {
-            // ask for user input
-            std::cout << "Type an expression:" << std::endl;
-            std::cout << ">>> ";
-            std::string parse_in = get_line();
-            m_language->get_parser().parse(parse_in, &m_graph);
+            method->invoke<void>(*this); // TODO: avoid passing result type, use variant instead
         }
         else
         {
@@ -141,21 +80,98 @@ void CLI::update()
     // <----- TODO
 }
 
-std::string CLI::get_line() const {
+std::string CLI::get_line() const
+{
     char input_buffer[256];
     std::cin.getline (input_buffer,256);
     std::string input = input_buffer;
     return input;
 }
 
-bool CLI::help()
+void CLI::exit_()
 {
-    std::vector<std::string> command_names = {k_cmd_exit, k_cmd_compile, k_cmd_serialize, k_cmd_run, k_cmd_parse}; // TODO: reflect non static methods
+    m_should_stop = true;
+}
+
+void CLI::serialize()
+{
+    if(Node* root = m_graph.get_root())
+    {
+        std::string result;
+        m_language->get_serializer().serialize(result, root);
+        std::cout << result << std::endl;
+    }
+    else
+    {
+        LOG_WARNING("cli", "unable to serialize! Are you sure you entered an expression earlier?\n")
+    }
+}
+
+void CLI::compile()
+{
+    if( auto asm_code = m_compiler.compile_syntax_tree(&m_graph))
+    {
+        m_asm_code = std::move(asm_code);
+    }
+    else
+    {
+        LOG_ERROR("cli", "unable to compile! Are you sure you entered an expression earlier?\n")
+    }
+}
+
+void CLI::parse()
+{
+    // ask for user input
+    std::cout << "Type an expression:" << std::endl;
+    std::cout << ">>> ";
+    std::string parse_in = get_line();
+    m_language->get_parser().parse(parse_in, &m_graph);
+}
+
+void CLI::run()
+{
+    if( m_asm_code)
+    {
+        if( m_virtual_machine.load_program(std::move(m_asm_code)) )
+        {
+            m_virtual_machine.run_program();
+            qword last_result = m_virtual_machine.get_last_result();
+
+            std::cout << "Result in various types:";
+            std::cout << std::endl;
+            std::cout << " bool:    " << std::setw(12) << (bool)last_result;
+            std::cout << ", double: " << std::setw(12) << (double)last_result;
+            std::cout << ", i16_t:  " << std::setw(12) << (i16_t)last_result;
+            std::cout << ", hexa:   " << std::setw(12) << last_result.to_string();
+            std::cout << std::endl;
+
+            m_virtual_machine.release_program();
+        }
+        else
+        {
+            LOG_ERROR("cli", "unable to run program!\n")
+        }
+    }
+    else
+    {
+        LOG_ERROR("cli", "compile program first!\n")
+    }
+}
+
+void CLI::help()
+{
+    std::vector<std::string> command_names;
 
     type api = type::get<CLI>();
+
     for(auto each : api.get_static_methods() )
     {
-        command_names.push_back( each->get_type().get_identifier() );
+        command_names.push_back( each->get_type().get_identifier() + " (static)" );
+    }
+
+    for(auto each : api.get_methods() )
+    {
+        command_names.push_back( each->get_type().get_identifier());
     }
 
     std::sort(command_names.begin(), command_names.end());
@@ -165,11 +181,4 @@ bool CLI::help()
     {
         std::cout << "  o " << each << std::endl;
     }
-    return true;
-}
-
-bool CLI::reflection_stats()
-{
-    Nodable::type_register::log_statistics();
-    return true;
 }

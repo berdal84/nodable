@@ -9,8 +9,7 @@
 
 namespace Nodable
 {
-    template<typename T>
-        class invokable;
+    class iinvokable;
     class IScope;
 
     /**
