@@ -14,6 +14,7 @@ using namespace Nodable;
 REGISTER
 {
     registration::push_class<CLI>("CLI")
+        .add_method(&CLI::clear            , "clear")
         .add_method(&CLI::help             , "help")
         .add_method(&CLI::exit_            , "exit")
         .add_method(&CLI::parse            , "parse")
@@ -56,28 +57,38 @@ void CLI::update()
     std::cout << ">>> ";
 
     // ask for user input
-    std::string input = get_line();
+    std::string input;
 
-    if( !input.empty() )
+    while ( input.empty())
     {
-        type api = type::get<CLI>();
-        if( auto static_method = api.get_static(input) )
-        {
-            variant ok;
-            static_method->invoke(&ok); // TODO:: we should not be forced to pass a result reference, what about "void" cases?
-        }
-        else if( auto method = api.get_method(input) )
-        {
-            method->invoke<void>(*this); // TODO: avoid passing result type, use variant instead
-        }
-        else
-        {
-            std::cout << "Command not found: \"" << input << '"' << std::endl;
-            help();
-        }
+        input = get_line();
     }
 
+    type api = type::get<CLI>();
+    if( auto static_method = api.get_static(input) )
+    {
+        variant ok;
+        static_method->invoke(&ok); // TODO:: we should not be forced to pass a result reference, what about "void" cases?
+        return;
+    }
+
+    if( auto method = api.get_method(input) )
+    {
+        method->invoke<void>(*this); // TODO: avoid passing result type, use variant instead
+        return;
+    }
+
+    std::cout << "Command not found: \"" << input << '"' << std::endl;
+    help();
+
     // <----- TODO
+}
+
+std::string CLI::get_word() const
+{
+    std::string str;
+    std::cin >> str;
+    return str;
 }
 
 std::string CLI::get_line() const
@@ -181,4 +192,9 @@ void CLI::help()
     {
         std::cout << "  o " << each << std::endl;
     }
+}
+
+void CLI::clear()
+{
+    System::console::clear();
 }

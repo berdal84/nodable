@@ -18,16 +18,20 @@ namespace Nodable
         CLI();
         ~CLI();
         bool         should_stop() const;
-        void         update();
+
+        // api
+        void         clear();
+        void         compile();
+        void         exit_();
         void         help();
         void         parse();
-        void         serialize();
-        void         compile();
         void         run();
-        void         exit_();
+        void         serialize();
+        void         update();
 
     private:
         std::string get_line() const;
+        std::string get_word() const;
 
         std::unique_ptr<ILanguage> m_language;
         bool                       m_should_stop;

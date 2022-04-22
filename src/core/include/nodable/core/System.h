@@ -6,11 +6,15 @@ namespace Nodable
     /**
      * Static library cross platform to deal with system
      */
-    class System
+    namespace System
     {
-    public:
-        static void        open_url_async(std::string /* url */);
-        static std::string get_executable_directory();
+        extern void        open_url_async(std::string /* url */);
+        extern std::string get_executable_directory();
+
+        namespace console
+        {
+            extern void clear();
+        }
 
 #if (WIN32)
         static constexpr char  k_end_of_line = '\n';
