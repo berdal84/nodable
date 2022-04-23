@@ -15,10 +15,16 @@ add_executable(
         src/main.cpp
         src/CLI.cpp)
 
+find_package(Threads REQUIRED)
+if (NOT Threads_FOUND)
+    nodable_err("Threads not found")
+endif()
+
 target_link_libraries(
     cli
     PRIVATE
         nodable-core
+        Threads::Threads
 )
 
 target_include_directories(
