@@ -102,7 +102,7 @@ namespace Nodable {
     public:
         virtual ~iinvokable_nonstatic() {};
         virtual const func_type& get_type() const = 0;
-        virtual void invoke(void* _instance, const std::vector<variant *> &_args = {}) const = 0;
+        virtual variant invoke(void* _instance, const std::vector<variant *> &_args = {}) const = 0;
     };
 
     template<typename T>
@@ -128,20 +128,26 @@ namespace Nodable {
 
         const func_type& get_type() const override { return m_method_type; };
 
-        virtual void invoke(void* _instance, const std::vector<variant *> &_args = {}) const override
+        virtual variant invoke(void* _instance, const std::vector<variant *> &_args = {}) const override
         {
-            _invoke(reinterpret_cast<class_t*>(_instance));
+            return _invoke<R>(reinterpret_cast<class_t *>(_instance));
         };
 
     private:
-        R _invoke_r(class_t* _instance, Ts... args) const
+
+        // non-void return
+        template<typename Rt, typename std::enable_if< !std::is_void<Rt>::value, int>::type = 0>
+        variant _invoke(class_t* _instance, Ts... args) const
         {
             return (_instance->*m_method)(args...);
         }
 
-        void _invoke(class_t* _instance, Ts... args) const
+        // void return
+        template<typename Rt, typename std::enable_if< std::is_void<Rt>::value, int>::type = 0>
+        variant _invoke(class_t* _instance, Ts... args) const
         {
             (_instance->*m_method)(args...);
+            return null_t{};
         }
     };
 

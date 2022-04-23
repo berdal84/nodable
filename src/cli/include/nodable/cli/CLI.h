@@ -26,7 +26,7 @@ namespace Nodable
         void         help();
         void         parse();
         void         run();
-        void         serialize();
+        bool         serialize();
         void         update();
 
     private:

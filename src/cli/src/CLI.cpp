@@ -104,18 +104,18 @@ void CLI::exit_()
     m_should_stop = true;
 }
 
-void CLI::serialize()
+bool CLI::serialize()
 {
     if(Node* root = m_graph.get_root())
     {
         std::string result;
         m_language->get_serializer().serialize(result, root);
         std::cout << result << std::endl;
+        return true;
     }
-    else
-    {
-        LOG_WARNING("cli", "unable to serialize! Are you sure you entered an expression earlier?\n")
-    }
+
+    LOG_WARNING("cli", "unable to serialize! Are you sure you entered an expression earlier?\n")
+    return false;
 }
 
 void CLI::compile()

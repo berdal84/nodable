@@ -30,6 +30,7 @@ namespace Nodable
         CONSTRUCTOR(double)
         CONSTRUCTOR(i16_t)
         CONSTRUCTOR(bool)
+        CONSTRUCTOR(null_t)
 #undef CONSTRUCTOR
 
         variant& operator=(const variant& );
@@ -54,6 +55,7 @@ namespace Nodable
             m_is_defined = true;
         }
 
+        void    set(null_t) { ensure_is_type(type::null); m_is_defined = false; };
         void    set(double);
         void    set(bool);
         void    set(i16_t);
