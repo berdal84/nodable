@@ -25,7 +25,7 @@ namespace Nodable
 
 #define CONSTRUCTOR(type) variant(type val): variant() { set(val); }
         CONSTRUCTOR(void *)
-        CONSTRUCTOR(std::string&)
+        CONSTRUCTOR(const std::string&)
         CONSTRUCTOR(const char*)
         CONSTRUCTOR(double)
         CONSTRUCTOR(i16_t)

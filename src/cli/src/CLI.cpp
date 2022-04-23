@@ -67,14 +67,13 @@ void CLI::update()
     type api = type::get<CLI>();
     if( auto static_method = api.get_static(input) )
     {
-        variant ok;
-        static_method->invoke(&ok); // TODO:: we should not be forced to pass a result reference, what about "void" cases?
+        variant result = static_method->invoke();
         return;
     }
 
     if( auto method = api.get_method(input) )
     {
-        method->invoke((void*)this);
+        variant result = method->invoke((void*)this);
         return;
     }
 

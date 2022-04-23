@@ -17,51 +17,183 @@ namespace Nodable {
     public:
         virtual ~iinvokable() {};
         virtual const func_type& get_type() const = 0;
-        virtual void invoke(variant *_result, const std::vector<variant *> &_args = {}) const = 0;
+        virtual variant invoke(const std::vector<variant *> &_args = {}) const = 0;
     };
 
     /** Helpers to call a function (need serious work here) */
 
     /** 0 arg function */
-    template<typename T, typename F = T()>
-    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
+
+    // static non-void
+    template<
+            typename T,
+            typename F = T(),
+            typename std::enable_if< !std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
     {
-        _result->set( _function() );
+        return _function();
+    }
+
+    // static void
+    template<
+            typename T,
+            typename F = T(),
+            typename std::enable_if< std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
+    {
+        _function();
+        return null_t{};
+    }
+
+    // non-void
+    template<typename T, typename C, typename std::enable_if< !std::is_void<T>::value, int>::type = 0>
+    variant invoke(C* _instance, T(C::*_function)(), const std::vector<variant *> &_args)
+    {
+        NODABLE_ASSERT_EX(_args.empty(), "Parameters are noy handled!");
+        // TODO: handle parameters
+        return (_instance->*_function)();
+    }
+    // void
+    template<typename T, typename C, typename std::enable_if< std::is_void<T>::value, int>::type = 0>
+    variant invoke(C* _instance, T(C::*_function)(), const std::vector<variant *> &_args)
+    {
+        NODABLE_ASSERT_EX(_args.empty(), "Parameters are noy handled!");
+        // TODO: handle parameters
+        (_instance->*_function)();
+        return null_t{};
     }
 
     /** 1 arg function */
-    template<typename T, typename A0, typename F = T(A0)>
-    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
+    // non-void
+    template<
+            typename T,
+            typename A0,
+            typename F = T(A0),
+            typename std::enable_if< !std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
     {
-        _result->set( _function( (A0) *_args[0] ) );
+        return _function( (A0) *_args[0] );
+    }
+    // void
+    template<
+            typename T,
+            typename A0,
+            typename F = T(A0),
+            typename std::enable_if< std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
+    {
+        _function( (A0) *_args[0] );
+        return null_t{};
     }
 
     /** 2 arg function */
-    template<typename T, typename A0, typename A1, typename F = T(A0, A1)>
-    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
+    // non-void
+    template<
+            typename T,
+            typename A0,
+            typename A1,
+            typename F = T(A0, A1),
+            typename std::enable_if< !std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
     {
-        _result->set( _function( (A0) *_args[0], (A1) *_args[1] ) );
+        return _function( (A0) *_args[0], (A1) *_args[1] );
+    }
+    // void
+    template<
+            typename T,
+            typename A0,
+            typename A1,
+            typename F = T(A0, A1),
+            typename std::enable_if< std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
+    {
+        _function( (A0) *_args[0], (A1) *_args[1] );
+        return null_t{};
     }
 
     /** 3 arg function */
-    template<typename T, typename A0, typename A1, typename A2, typename F = T(A0, A1, A2)>
-    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
+    // non-void
+    template<
+            typename T,
+            typename A0,
+            typename A1,
+            typename A2,
+            typename F = T(A0, A1, A2),
+            typename std::enable_if< !std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
     {
-        _result->set( _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2] ) );
+        _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2] );
+    }
+    // void
+    template<
+            typename T,
+            typename A0,
+            typename A1,
+            typename A2,
+            typename F = T(A0, A1, A2),
+            typename std::enable_if< std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
+    {
+        _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2] );
+        return null_t{};
     }
 
     /** 4 arg function */
-    template<typename T, typename A0, typename A1, typename A2, typename A3, typename F = T(A0, A1, A2, A3)>
-    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
+    // non void
+    template<
+            typename T,
+            typename A0,
+            typename A1,
+            typename A2,
+            typename A3,
+            typename F = T(A0, A1, A2, A3),
+            typename std::enable_if< !std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
     {
-        _result->set( _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2], (A3) *_args[3] ) );
+        return _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2], (A3) *_args[3] );
+    }
+    // void
+    template<
+            typename T,
+            typename A0,
+            typename A1,
+            typename A2,
+            typename A3,
+            typename F = T(A0, A1, A2, A3),
+            typename std::enable_if< std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
+    {
+        _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2], (A3) *_args[3] );
+        return null_t{};
     }
 
     /** 5 arg function */
-    template<typename T, typename A0, typename A1, typename A2, typename A3, typename A4, typename F = T(A0, A1, A2, A3, A4)>
-    void call(F *_function, variant *_result, const std::vector<variant *> &_args)
+    // non-void
+    template<typename T,
+            typename A0,
+            typename A1,
+            typename A2,
+            typename A3,
+            typename A4,
+            typename F = T(A0, A1, A2, A3, A4),
+            typename std::enable_if< !std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
     {
-        _result->set( _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2], (A3) *_args[3], (A4) *_args[4] ) );
+        return _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2], (A3) *_args[3], (A4) *_args[4] );
+    }
+    // void
+    template<typename T,
+            typename A0,
+            typename A1,
+            typename A2,
+            typename A3,
+            typename A4,
+            typename F = T(A0, A1, A2, A3, A4),
+            typename std::enable_if< std::is_void<T>::value, int>::type = 0>
+    variant invoke(F *_function, const std::vector<variant *> &_args)
+    {
+        _function( (A0) *_args[0], (A1) *_args[1], (A2) *_args[2], (A3) *_args[3], (A4) *_args[4] );
+        return null_t{};
     }
 
     template<typename T>
@@ -85,9 +217,9 @@ namespace Nodable {
 
         ~invokable_static() override {}
 
-        inline void invoke(variant *_result, const std::vector<variant *> &_args = {}) const override
+        inline variant invoke(const std::vector<variant *> &_args = {}) const override
         {
-            call<return_t, Args... >(m_function_impl, _result, _args);
+            return Nodable::invoke<return_t, Args... >(m_function_impl, _args);
         }
 
         const func_type& get_type() const override { return m_function_type; }
@@ -130,25 +262,8 @@ namespace Nodable {
 
         virtual variant invoke(void* _instance, const std::vector<variant *> &_args = {}) const override
         {
-            return _invoke<R>(reinterpret_cast<class_t *>(_instance));
+            return Nodable::invoke<R, C, Ts...>(reinterpret_cast<class_t *>(_instance), m_method, _args);
         };
-
-    private:
-
-        // non-void return
-        template<typename Rt, typename std::enable_if< !std::is_void<Rt>::value, int>::type = 0>
-        variant _invoke(class_t* _instance, Ts... args) const
-        {
-            return (_instance->*m_method)(args...);
-        }
-
-        // void return
-        template<typename Rt, typename std::enable_if< std::is_void<Rt>::value, int>::type = 0>
-        variant _invoke(class_t* _instance, Ts... args) const
-        {
-            (_instance->*m_method)(args...);
-            return null_t{};
-        }
     };
 
 }

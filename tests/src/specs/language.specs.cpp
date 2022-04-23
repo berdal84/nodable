@@ -130,7 +130,7 @@ TEST_F(language_fixture, by_ref_assign )
     std::vector<variant*> args{&left, &right};
 
     // call
-    operator_->invoke(&result, args);
+    result = operator_->invoke(args);
 
     //check
     EXPECT_DOUBLE_EQ((double)left, 200.0);
