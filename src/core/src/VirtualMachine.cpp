@@ -164,7 +164,8 @@ bool VirtualMachine::_stepOver()
 
         case opcode::mov:
         {
-            m_cpu.write(static_cast<Register>(next_instr->mov.dst.u8), next_instr->mov.src);      // write source to destination register
+            // write( <destination_register>, <source_data>)
+            m_cpu.write(static_cast<Register>(next_instr->mov.dst.u8), next_instr->mov.src);
 
             advance_cursor();
             success = true;

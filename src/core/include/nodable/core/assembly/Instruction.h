@@ -96,7 +96,7 @@ namespace assembly
         u8_t line;
 
         union {
-            opcode_t                  opcode;
+            opcode_t                opcode;
             Instruction_mov         mov;
             Instruction_uref        uref;
             Instruction_jmp         jmp;
