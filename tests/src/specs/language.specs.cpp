@@ -120,8 +120,8 @@ TEST_F(language_fixture, can_get_invert_operator_with_signature )
 TEST_F(language_fixture, by_ref_assign )
 {
     const func_type*  signature = func_type_builder<double(double &, double)>::with_id("=");
-    auto operator_ = language.find_operator_fct(signature);
-    EXPECT_TRUE(operator_ != nullptr);
+    auto operator_func = language.find_operator_fct(signature);
+    EXPECT_TRUE(operator_func != nullptr);
 
     // prepare call
     variant left(50.0);
@@ -130,7 +130,7 @@ TEST_F(language_fixture, by_ref_assign )
     std::vector<variant*> args{&left, &right};
 
     // call
-    result = operator_->invoke(args);
+    result = (*operator_func)(args);
 
     //check
     EXPECT_DOUBLE_EQ((double)left, 200.0);

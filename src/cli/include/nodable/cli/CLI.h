@@ -29,6 +29,9 @@ namespace Nodable
         bool         serialize();
         void         update();
 
+        std::string test_return_str() { return "hello world!"; }
+        std::string test_concat_str(std::string left, std::string right) { return left + right; }
+
     private:
         std::string get_line() const;
         std::string get_word() const;

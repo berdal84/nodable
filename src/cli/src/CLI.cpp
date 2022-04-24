@@ -14,6 +14,8 @@ using namespace Nodable;
 REGISTER
 {
     registration::push_class<CLI>("CLI")
+        .add_method(&CLI::test_concat_str  , "concat_str")
+        .add_method(&CLI::test_return_str  , "return_str")
         .add_method(&CLI::clear            , "clear")
         .add_method(&CLI::help             , "help")
         .add_method(&CLI::exit_            , "exit")
@@ -65,15 +67,26 @@ void CLI::update()
     }
 
     type api = type::get<CLI>();
-    if( auto static_method = api.get_static(input) )
+    if( auto static_fct = api.get_static(input) )
     {
-        variant result = static_method->invoke();
+        variant result = (*static_fct)();
         return;
     }
 
     if( auto method = api.get_method(input) )
     {
-        variant result = method->invoke((void*)this);
+        try
+        {
+            variant result = (*method)((void *) this);
+            if( result.is_defined() )
+            {
+                std::cout << "Result: " << result.convert_to<std::string>() << std::endl;
+            }
+        }
+        catch (std::runtime_error e )
+        {
+            std::cout << "Error: " << e.what() << std::endl;
+        }
         return;
     }
 
