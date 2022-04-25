@@ -3,7 +3,7 @@
 #include <nodable/core/reflection/type.h>
 #include <nodable/core/reflection/invokable.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {

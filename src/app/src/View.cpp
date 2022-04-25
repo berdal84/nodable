@@ -2,7 +2,7 @@
 #include <nodable/app/Settings.h>
 #include <nodable/app/IAppCtx.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {

@@ -10,7 +10,7 @@
 #include <imgui/imgui_internal.h>
 #include <nodable/app/types.h>
 
-namespace Nodable
+namespace ndbl
 {
 
     class ImGuiEx

@@ -5,7 +5,7 @@
 #include <nodable/core/types.h>
 #include <nodable/core/assembly/Code.h>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class GraphNode;
@@ -38,4 +38,4 @@ namespace assembly
         std::unique_ptr<Code> m_temp_code;
     };
 } // namespace Asm
-} // namespace Nodable
+} // namespace ndbl

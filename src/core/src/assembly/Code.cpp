@@ -1,6 +1,6 @@
 #include <nodable/core/assembly/Code.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 assembly::Code::~Code()
 {

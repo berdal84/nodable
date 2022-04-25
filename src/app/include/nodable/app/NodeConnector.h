@@ -2,7 +2,7 @@
 #include <nodable/app/Connector.h>
 #include <imgui/imgui_internal.h>
 
-namespace Nodable {
+namespace ndbl {
 
     // forward declarations
     class NodeView;

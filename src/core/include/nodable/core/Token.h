@@ -6,7 +6,7 @@
 #include <vector>
 #include <memory>
 
-namespace Nodable
+namespace ndbl
 {
 	struct Token
 	{
@@ -43,6 +43,6 @@ namespace Nodable
         static std::string to_string(std::shared_ptr<Token> _token);
         static const std::shared_ptr<Token> s_null;
 
-        bool is_keyword_type() { return Nodable::is_keyword_type(m_type); }
+        bool is_keyword_type() { return ndbl::is_keyword_type(m_type); }
     };
 }

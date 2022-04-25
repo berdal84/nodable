@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      *  Types only relative to the application (mainly related to View)

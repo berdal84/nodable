@@ -4,7 +4,7 @@
 #include <nodable/core/IScope.h>
 #include <nodable/core/Token.h>
 
-namespace Nodable
+namespace ndbl
 {
     class Scope : public Component, public IScope
     {

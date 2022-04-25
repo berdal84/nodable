@@ -15,7 +15,7 @@
 #include <nodable/core/VirtualMachine.h>
 #include <nodable/core/reflection/reflection>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class File;

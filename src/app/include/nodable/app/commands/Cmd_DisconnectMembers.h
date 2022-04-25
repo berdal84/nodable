@@ -4,7 +4,7 @@
 #include <nodable/core/GraphNode.h>
 #include <nodable/core/Wire.h>
 
-namespace Nodable
+namespace ndbl
 {
     class Cmd_DisconnectMembers : public IUndoableCmd
     {

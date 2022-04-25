@@ -29,11 +29,11 @@
 #define LOG_ENABLE true
 
 #if LOG_ENABLE
-#   define LOG_ERROR(...)   Nodable::Log::push_message( Nodable::Log::Verbosity_Error  , __VA_ARGS__ ); Nodable::Log::flush();
-#   define LOG_WARNING(...) Nodable::Log::push_message( Nodable::Log::Verbosity_Warning, __VA_ARGS__ );
-#   define LOG_MESSAGE(...) Nodable::Log::push_message( Nodable::Log::Verbosity_Message, __VA_ARGS__ );
-#   define LOG_VERBOSE(...) Nodable::Log::push_message( Nodable::Log::Verbosity_Verbose, __VA_ARGS__ );
-#   define LOG_FLUSH()      Nodable::Log::flush();
+#   define LOG_ERROR(...)   ndbl::Log::push_message( ndbl::Log::Verbosity_Error  , __VA_ARGS__ ); ndbl::Log::flush();
+#   define LOG_WARNING(...) ndbl::Log::push_message( ndbl::Log::Verbosity_Warning, __VA_ARGS__ );
+#   define LOG_MESSAGE(...) ndbl::Log::push_message( ndbl::Log::Verbosity_Message, __VA_ARGS__ );
+#   define LOG_VERBOSE(...) ndbl::Log::push_message( ndbl::Log::Verbosity_Verbose, __VA_ARGS__ );
+#   define LOG_FLUSH()      ndbl::Log::flush();
 #else
 #   define LOG_ERROR(...)
 #   define LOG_WARNING(...)
@@ -42,7 +42,7 @@
 #   define LOG_FLUSH()
 #endif
 
-namespace Nodable {
+namespace ndbl {
 
 	class Log
     {

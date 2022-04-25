@@ -3,7 +3,7 @@
 #include <nodable/core/reflection/invokable.h>
 #include <nodable/core/languages/NodableLanguage.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 class language_fixture: public ::testing::Test
 {

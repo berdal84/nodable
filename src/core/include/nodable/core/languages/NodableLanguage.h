@@ -6,7 +6,7 @@
 #include <nodable/core/languages/NodableParser.h>
 #include <nodable/core/languages/NodableSerializer.h>
 
-namespace Nodable {
+namespace ndbl {
 
 	/*
 		The role of this class is to define a first language for Nodable.

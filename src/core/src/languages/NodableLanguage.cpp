@@ -6,7 +6,7 @@
 #include <nodable/core/languages/NodableLibrary_math.h>
 #include <nodable/core/languages/NodableLibrary_biology.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 NodableLanguage::NodableLanguage(): m_parser(*this), m_serializer(*this)
 {

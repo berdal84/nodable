@@ -5,7 +5,7 @@
 #include <nodable/core/Node.h> // base class
 #include <nodable/core/IConditionalStruct.h> // interface
 
-namespace Nodable
+namespace ndbl
 {
 
     // forward declarations

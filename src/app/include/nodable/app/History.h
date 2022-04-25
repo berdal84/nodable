@@ -16,7 +16,7 @@
 #include <nodable/core/Log.h>
 #include <nodable/app/Command.h>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class History;

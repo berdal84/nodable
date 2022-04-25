@@ -4,7 +4,7 @@
 #include <nodable/core/Log.h>
 #include <nodable/core/assertions.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 bool    ImGuiEx::s_is_in_a_frame            = false;
 bool    ImGuiEx::s_is_any_tooltip_open      = false;

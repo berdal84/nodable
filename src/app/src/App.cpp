@@ -19,7 +19,7 @@
 #include <nodable/core/System.h>
 #include <nodable/core/languages/NodableLanguage.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 App::App()
     : m_settings()
@@ -234,7 +234,7 @@ void App::handle_events()
      *
      * SDL_ API inspired, but with custom events.
      */
-    Nodable::Event event{};
+    ndbl::Event event{};
     NodeView*      selected_view = NodeView::get_selected();
     while( EventManager::poll_event(event) )
     {

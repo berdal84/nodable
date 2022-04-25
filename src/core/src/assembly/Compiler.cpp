@@ -19,8 +19,8 @@
 #include "nodable/core/ConditionalStructNode.h"
 #include "nodable/core/math.h"
 
-using namespace Nodable;
-using namespace Nodable::assembly;
+using namespace ndbl;
+using namespace ndbl::assembly;
 
 Instruction* Code::push_instr(opcode_t _type)
 {

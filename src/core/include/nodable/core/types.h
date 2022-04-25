@@ -4,7 +4,7 @@
 #include <map>
 #include <vector>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
 	class Wire;

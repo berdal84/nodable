@@ -14,7 +14,7 @@
 #include <nodable/core/NodeFactory.h>
 #include <nodable/app/History.h>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class Node;

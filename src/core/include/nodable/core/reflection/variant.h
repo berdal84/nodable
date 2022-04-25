@@ -9,7 +9,7 @@
 #include <nodable/core/reflection/qword.h>
 #include <nodable/core/reflection/type.h>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data member)

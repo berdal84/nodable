@@ -4,7 +4,7 @@
 #include <nodable/core/Component.h>
 #include <nodable/core/reflection/reflection>
 
-namespace Nodable
+namespace ndbl
 {
 	class DataAccess : public Component
 	{

@@ -5,7 +5,7 @@
 #include <nodable/core/Token_t.h>
 #include <memory> // for std::shared_ptr
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     struct Token;

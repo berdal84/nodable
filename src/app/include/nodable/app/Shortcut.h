@@ -3,7 +3,7 @@
 #include <SDL_keycode.h>
 #include <nodable/app/Event.h>
 
-namespace Nodable
+namespace ndbl
 {
     struct Shortcut
     {

@@ -11,7 +11,7 @@
 #include <nodable/app/FontSlot.h>
 #include <nodable/app/types.h>
 
-namespace Nodable {
+namespace ndbl {
 
     class Settings  {
     public:

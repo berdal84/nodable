@@ -2,7 +2,7 @@
 #include <nodable/core/Log.h>
 #include <nodable/core/reflection/type_register.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 int main(int argc, char **argv) {
 

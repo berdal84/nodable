@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * Static library cross platform to deal with system

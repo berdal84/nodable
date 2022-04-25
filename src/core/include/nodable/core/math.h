@@ -1,7 +1,7 @@
 #pragma once
 #include <nodable/core/types.h>
 
-namespace Nodable::math
+namespace ndbl::math
 {
     /**
      * Interpolate linearly _source to _target with a _factor (in [0.0f, 1.0f] )

@@ -14,7 +14,7 @@
 #include <nodable/core/Slots.h>
 #include <nodable/core/reflection/reflection>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declaration
     class Node;

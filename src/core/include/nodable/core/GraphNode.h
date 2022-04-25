@@ -12,7 +12,7 @@
 #include <nodable/core/ILanguage.h>
 #include <nodable/core/INodeFactory.h>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * @brief a GraphNode is a context for a set of Nodes and Wires. It is also used to drop_on Nodes and Members.

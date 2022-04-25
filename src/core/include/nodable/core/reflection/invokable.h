@@ -10,7 +10,7 @@
 #include <nodable/core/reflection/type.h>
 #include <nodable/core/reflection/func_type.h>
 
-namespace Nodable {
+namespace ndbl {
 
     class iinvokable
     {
@@ -227,7 +227,7 @@ namespace Nodable {
         variant operator()(const std::vector<variant *> &_args = {}) const override
         {
             NODABLE_ASSERT_EX(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
-            return Nodable::invoke<return_t, args_t >(m_function_impl, _args);
+            return ndbl::invoke<return_t, args_t >(m_function_impl, _args);
         }
 
         const func_type& get_type() const override { return m_function_type; }
@@ -265,7 +265,7 @@ namespace Nodable {
         virtual variant operator()(void* _instance, const std::vector<variant *> &_args = {}) const override
         {
             NODABLE_ASSERT_EX(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
-            return Nodable::invoke_member<return_t, class_t, args_t>(reinterpret_cast<class_t *>(_instance), m_method, _args);
+            return ndbl::invoke_member<return_t, class_t, args_t>(reinterpret_cast<class_t *>(_instance), m_method, _args);
         };
     };
 

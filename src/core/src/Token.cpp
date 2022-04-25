@@ -1,6 +1,6 @@
 #include <nodable/core/Token.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 const std::shared_ptr<Token> Token::s_null = std::make_shared<Token>(Token_t::null);
 

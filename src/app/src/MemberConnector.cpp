@@ -8,7 +8,7 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "nodable/app/Event.h"
 
-using namespace Nodable;
+using namespace ndbl;
 
 const MemberConnector*   MemberConnector::s_dragged = nullptr;
 const MemberConnector*   MemberConnector::s_hovered = nullptr;

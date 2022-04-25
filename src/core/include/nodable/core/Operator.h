@@ -3,7 +3,7 @@
 #include <string>
 #include <nodable/core/Operator_t.h>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * Simple structure to define an operator

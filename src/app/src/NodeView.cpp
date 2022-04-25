@@ -20,7 +20,7 @@
 
 #define NODE_VIEW_DEFAULT_SIZE vec2(10.0f, 35.0f)
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {

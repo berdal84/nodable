@@ -11,7 +11,7 @@
 #include <nodable/core/reflection/func_type.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 InstructionNode* NodeFactory::new_instr() const
 {

@@ -9,7 +9,7 @@
 #include <nodable/core/reflection/reflection>
 #include "Scope.h"
 
-namespace Nodable
+namespace ndbl
 {
     // forward decl
     class InstructionNode;

@@ -8,7 +8,7 @@
 #include <gl3w/GL/gl3w.h>
 #include <nodable/core/Log.h>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * @brief Simple data structure to store OpenGL texture information

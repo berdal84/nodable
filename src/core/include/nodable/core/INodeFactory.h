@@ -3,7 +3,7 @@
 #include <memory> // std::shared_ptr
 #include <nodable/core/reflection/reflection>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class Node;

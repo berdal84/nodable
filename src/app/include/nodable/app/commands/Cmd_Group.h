@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * Command to group N commands,

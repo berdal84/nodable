@@ -19,8 +19,8 @@
 #include <nodable/app/Event.h>
 #include <nativefiledialog-extended/src/include/nfd.h>
 
-using namespace Nodable;
-using namespace Nodable::assembly;
+using namespace ndbl;
+using namespace ndbl::assembly;
 
 AppView::AppView(IAppCtx& _ctx, const char* _name )
     : View(_ctx)

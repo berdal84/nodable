@@ -1,7 +1,7 @@
 #pragma once
 #include <nodable/core/reflection/reflection>
 
-namespace Nodable
+namespace ndbl
 {
 
     enum class Operator_t: int

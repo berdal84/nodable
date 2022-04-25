@@ -10,7 +10,7 @@
 #include <vector>
 #include <memory> // std::shared_ptr
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class Node;
@@ -102,6 +102,6 @@ namespace Nodable
 		Way                    m_allowed_connection;
 		std::shared_ptr<Token> m_sourceToken;
 		std::string            m_name;
-		Nodable::variant       m_variant;
+		ndbl::variant       m_variant;
     };
 }

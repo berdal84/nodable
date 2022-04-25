@@ -1,7 +1,7 @@
 #include <nodable/app/History.h>
 #include <nodable/app/commands/Cmd_ReplaceText.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 History::~History()
 {

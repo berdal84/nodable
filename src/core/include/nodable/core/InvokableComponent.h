@@ -5,7 +5,7 @@
 #include <nodable/core/Component.h>
 #include <nodable/core/reflection/invokable.h>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class iinvokable;

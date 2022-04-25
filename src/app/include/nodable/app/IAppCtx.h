@@ -3,7 +3,7 @@
 #include <vector>
 #include <ghc/filesystem.hpp>
 
-namespace Nodable
+namespace ndbl
 {
     // forward decl
     class VirtualMachine;

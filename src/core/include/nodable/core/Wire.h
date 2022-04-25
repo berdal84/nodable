@@ -4,7 +4,7 @@
 #include <nodable/core/Node.h>
 #include <nodable/core/Edge.h>
 
-namespace Nodable
+namespace ndbl
 {
 	class Wire : public DirectedEdge
 	{

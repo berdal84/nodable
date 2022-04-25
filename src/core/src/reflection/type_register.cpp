@@ -3,7 +3,7 @@
 #include <nodable/core/Log.h>
 #include <nodable/core/assertions.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 type type_register::get(size_t _hash)
 {

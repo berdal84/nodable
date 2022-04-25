@@ -6,7 +6,7 @@
 #include <nodable/core/IScope.h>
 #include <nodable/core/IConditionalStruct.h>
 
-namespace Nodable
+namespace ndbl
 {
 
     /**

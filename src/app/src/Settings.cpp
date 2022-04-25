@@ -2,7 +2,7 @@
 #include <imgui/imgui.h>
 #include <string>
 
-using namespace Nodable;
+using namespace ndbl;
 
 Settings::Settings()
 {

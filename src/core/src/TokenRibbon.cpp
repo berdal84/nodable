@@ -5,7 +5,7 @@
 #include <nodable/core/Log.h>
 #include <nodable/core/assertions.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 TokenRibbon::TokenRibbon()
     : m_curr_tok_idx(0)

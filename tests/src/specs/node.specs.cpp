@@ -4,7 +4,7 @@
 #include <nodable/core/Member.h>
 #include <nodable/core/Node.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 class node_fixture: public ::testing::Test {
 public:

@@ -5,7 +5,7 @@
 #include <nodable/core/reflection/type.h>
 #include <nodable/core/reflection/enum.h>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class Scope;
@@ -109,4 +109,4 @@ namespace assembly
         static std::string to_string(const Instruction&);
     };
 } // namespace Asm
-} // namespace Nodable
+} // namespace ndbl

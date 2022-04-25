@@ -4,7 +4,7 @@
 #include <observe/event.h>
 #include <nodable/core/assertions.h>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * @brief Slots is a vector-like container with a limited size and an event system.

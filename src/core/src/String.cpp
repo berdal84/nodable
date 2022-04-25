@@ -1,6 +1,6 @@
 #include <nodable/core/String.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 std::string String::fmt_double(double d)
 {

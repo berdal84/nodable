@@ -21,7 +21,7 @@
 #include <nodable/core/Wire.h>
 #include <nodable/core/languages/NodableLanguage.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 NodableParser::NodableParser(const NodableLanguage& _lang, bool _strict )
         : m_language(_lang)

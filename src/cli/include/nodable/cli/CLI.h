@@ -7,7 +7,7 @@
 #include <nodable/core/VirtualMachine.h>
 #include <nodable/core/assembly/Compiler.h>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * @brief Command Line Interface for Nodable

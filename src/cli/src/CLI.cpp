@@ -9,7 +9,7 @@
 #include <nodable/core/reflection/reflection>
 #include <iomanip>
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {

@@ -1,7 +1,7 @@
 #pragma once
 #include <nodable/app/Command.h>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * Command triggered when user modify text in the text editor.

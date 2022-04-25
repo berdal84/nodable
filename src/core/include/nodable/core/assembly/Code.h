@@ -3,7 +3,7 @@
 #include <nodable/core/types.h>
 #include "Instruction.h"
 
-namespace Nodable
+namespace ndbl
 {
 namespace assembly
 {
@@ -33,4 +33,4 @@ namespace assembly
         Instructions m_instructions;
     };
 } // namespace Asm
-} // namespace Nodable
+} // namespace ndbl

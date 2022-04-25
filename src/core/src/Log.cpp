@@ -5,7 +5,7 @@
 #include <iostream>
 #include <algorithm>
 
-using namespace Nodable;
+using namespace ndbl;
 
 Log::Messages   Log::s_logs;
 Log::Verbosity  Log::s_verbosity = Verbosity_Message;

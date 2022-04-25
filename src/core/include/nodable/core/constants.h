@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Nodable
+namespace ndbl
 {
     /*
      * some constants to define specific member names

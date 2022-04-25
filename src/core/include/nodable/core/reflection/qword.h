@@ -7,7 +7,7 @@
 #include <nodable/core/types.h>
 #include <nodable/core/reflection/union.h>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * @brief 64 bits of data, is union of all types (bool, double, void*, etc.).
@@ -40,4 +40,4 @@ namespace Nodable
         R_UNION(qword)
     };
     static_assert(sizeof(qword) == 64 / 8 );
-} // Nodable namespace
+} // ndbl namespace

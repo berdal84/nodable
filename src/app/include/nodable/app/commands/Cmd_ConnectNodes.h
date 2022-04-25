@@ -3,7 +3,7 @@
 #include <nodable/core/Node.h>
 #include <nodable/core/GraphNode.h>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * Command to drop_on two members.

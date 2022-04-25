@@ -1,6 +1,6 @@
 #include "nodable/app/Event.h"
 
-using namespace Nodable;
+using namespace ndbl;
 
 std::queue<Event> EventManager::s_events;
 

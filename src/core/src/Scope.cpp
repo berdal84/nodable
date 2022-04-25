@@ -10,7 +10,7 @@
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/IScope.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {

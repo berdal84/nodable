@@ -3,7 +3,7 @@
 #include <nodable/core/Properties.h>
 #include <nodable/core/VariableNode.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 Member::Member(Properties* _parent_properties)
     : m_visibility(Visibility::Default)

@@ -15,7 +15,7 @@
 #include <nodable/app/Shortcut.h>
 #include "File.h"
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class IAppCtx;
@@ -47,7 +47,7 @@ namespace Nodable
         void new_file();
         void save_file();
         void save_file_as();
-        void draw_file_editor(ImGuiID dockspace_id, bool redock_all, Nodable::File *file);
+        void draw_file_editor(ImGuiID dockspace_id, bool redock_all, ndbl::File *file);
         void draw_history_bar(History*);
         void draw_properties_editor();
         void draw_startup_menu(ImGuiID dockspace_id);

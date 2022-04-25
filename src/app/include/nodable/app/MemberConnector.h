@@ -7,7 +7,7 @@
 #include <nodable/core/reflection/reflection>
 #include <nodable/core/assertions.h>
 
-namespace Nodable {
+namespace ndbl {
 
     // forward declarations
     class MemberView;

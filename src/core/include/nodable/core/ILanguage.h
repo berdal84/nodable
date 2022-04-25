@@ -16,7 +16,7 @@
 #include <nodable/core/Operator_t.h>
 #include <nodable/core/reflection/reflection>
 
-namespace Nodable
+namespace ndbl
 {
     class Operator;
     class IParser;

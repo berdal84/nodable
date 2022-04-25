@@ -3,7 +3,7 @@
 #include <nodable/core/Node.h>
 #include <nodable/core/GraphNode.h>
 
-namespace Nodable
+namespace ndbl
 {
     class Cmd_DisconnectNodes : public IUndoableCmd
     {

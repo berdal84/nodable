@@ -2,7 +2,7 @@
 #include <nodable/core/Member.h>
 #include <nodable/core/Log.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {

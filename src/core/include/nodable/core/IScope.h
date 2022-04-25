@@ -4,7 +4,7 @@
 #include <nodable/core/reflection/reflection>
 #include <nodable/core/types.h>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class InstructionNode;

@@ -7,7 +7,7 @@
 #include <cmath>
 #include <nodable/core/reflection/registration.h>
 
-using namespace Nodable;
+using namespace ndbl;
 using string = std::string;
 
 namespace // anonymous, accessible only in that file
@@ -35,7 +35,7 @@ namespace // anonymous, accessible only in that file
     template<typename T>
     T _plus(T a, T b){ return a + b; }
     template<>
-    std::string _plus(std::string left, double right) { return left + Nodable::String::fmt_double(right); }
+    std::string _plus(std::string left, double right) { return left + ndbl::String::fmt_double(right); }
     template<>
     std::string _plus(std::string left, i16_t right) { return left + std::to_string(right); }
     template<typename T, typename U>

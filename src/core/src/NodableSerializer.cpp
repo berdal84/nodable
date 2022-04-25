@@ -12,7 +12,7 @@
 #include <nodable/core/Operator.h>
 #include <nodable/core/languages/NodableLanguage.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 std::string& NodableSerializer::serialize(std::string& _out, const InvokableComponent *_component)const
 {

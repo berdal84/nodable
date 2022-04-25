@@ -2,8 +2,8 @@
 #include <nodable/core/Member.h>
 #include <nodable/app/MemberConnector.h>
 
-using namespace Nodable;
-using Side = Nodable::MemberConnector::Side;
+using namespace ndbl;
+using Side = ndbl::MemberConnector::Side;
 
 MemberView::MemberView(IAppCtx& _ctx, Member* _member, NodeView* _nodeView)
         : m_member(_member)

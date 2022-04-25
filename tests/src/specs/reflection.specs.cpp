@@ -2,7 +2,7 @@
 #include <nodable/core/reflection/reflection>
 #include <nodable/core/Node.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 TEST(reflection, is_convertible__type_to_ptr)
 {

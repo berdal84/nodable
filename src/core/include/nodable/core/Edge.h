@@ -2,7 +2,7 @@
 
 #include <nodable/core/reflection/reflection> // for reflection MACROS
 
-namespace Nodable
+namespace ndbl
 {
     class Node; // forward declare
 

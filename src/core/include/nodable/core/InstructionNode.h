@@ -7,7 +7,7 @@
 #include <nodable/core/Node.h> // base class
 #include <nodable/core/Member.h>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     struct Token;

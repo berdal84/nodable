@@ -15,7 +15,7 @@
 #include <nodable/core/Scope.h>
 #include <nodable/core/languages/NodableLanguage.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 class nodable_fixture: public ::testing::Test {
 public:

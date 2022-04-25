@@ -3,7 +3,7 @@
 #include <string>
 #include <nodable/core/types.h>
 
-namespace Nodable
+namespace ndbl
 {
     class String
     {

@@ -4,7 +4,7 @@
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/reflection/func_type.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {

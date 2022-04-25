@@ -8,11 +8,11 @@
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/reflection/func_type.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {
-    using namespace Nodable;
+    using namespace ndbl;
     registration::push_class<Node>("Node");
 }
 

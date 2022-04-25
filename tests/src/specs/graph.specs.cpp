@@ -12,7 +12,7 @@
 #include <nodable/core/Scope.h>
 #include <nodable/core/reflection/func_type.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 class graph_node_fixture: public ::testing::Test {
 public:

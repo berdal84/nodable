@@ -1,6 +1,6 @@
 #include <nodable/core/LiteralNode.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {

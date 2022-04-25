@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 
-namespace Nodable{
+namespace ndbl{
 
     // forward declaration
     class ConditionalStructNode;

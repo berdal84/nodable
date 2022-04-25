@@ -5,7 +5,7 @@
 #include <nodable/core/assembly/Compiler.h>
 #include <nodable/core/assembly/Register.h>
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * In this classes/struct/enum we try to follow as much as possible the x86_64 DASM reference

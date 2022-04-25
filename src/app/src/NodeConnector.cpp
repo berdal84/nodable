@@ -9,7 +9,7 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "nodable/app/Event.h"
 
-using namespace Nodable;
+using namespace ndbl;
 
 const NodeConnector*     NodeConnector::s_dragged   = nullptr;
 const NodeConnector*     NodeConnector::s_hovered   = nullptr;

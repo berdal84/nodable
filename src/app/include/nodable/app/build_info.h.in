@@ -6,7 +6,7 @@
     BuildInfo.h.in will be configured by cmake, check CMakelists.txt
 */
 
-namespace Nodable::BuildInfo
+namespace ndbl::BuildInfo
 {
     static const char* assets_dir        = "@NODABLE_APP_ASSETS_DIR@";
     static const char* version           = "@PROJECT_NAME@ @BUILD_TAG@ - sha@GIT_SHORT_HASH@";

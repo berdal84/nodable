@@ -3,7 +3,7 @@
 #include <nodable/core/reflection/reflection>
 #include <memory> // std::shared_ptr
 
-namespace Nodable
+namespace ndbl
 {
     class LiteralNode: public Node
     {

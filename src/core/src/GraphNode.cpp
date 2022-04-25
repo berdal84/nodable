@@ -15,7 +15,7 @@
 #include <nodable/core/Scope.h>
 #include <nodable/core/assertions.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {

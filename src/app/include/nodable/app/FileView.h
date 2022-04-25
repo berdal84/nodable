@@ -7,7 +7,7 @@
 #include <nodable/app/types.h>
 #include <nodable/app/View.h>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class File;

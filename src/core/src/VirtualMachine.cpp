@@ -6,8 +6,8 @@
 #include <nodable/core/InvokableComponent.h>
 #include "nodable/core/String.h"
 
-using namespace Nodable;
-using opcode = Nodable::assembly::opcode_t;
+using namespace ndbl;
+using opcode = ndbl::assembly::opcode_t;
 
 CPU::CPU()
 {

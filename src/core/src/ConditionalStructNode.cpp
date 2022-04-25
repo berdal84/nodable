@@ -2,11 +2,11 @@
 #include <nodable/core/Scope.h>
 #include <nodable/core/reflection/reflection>
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {
-    using namespace Nodable;
+    using namespace ndbl;
     registration::push_class<ConditionalStructNode>("ConditionalStructNode")
         .extends<Node>()
         .extends<IConditionalStruct>();

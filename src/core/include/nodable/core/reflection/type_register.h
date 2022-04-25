@@ -6,7 +6,7 @@
 
 #include <nodable/core/Log.h>
 
-namespace Nodable
+namespace ndbl
 {
     class type;
 
@@ -23,4 +23,4 @@ namespace Nodable
         static void insert(type);
         static void log_statistics();
     };
-} // namespace Nodable
+} // namespace ndbl

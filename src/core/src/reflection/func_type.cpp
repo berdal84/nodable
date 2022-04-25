@@ -3,7 +3,7 @@
 #include <nodable/core/constants.h>
 #include <nodable/core/Operator.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 func_type::func_type(std::string _id)
     : m_identifier(_id)

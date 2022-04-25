@@ -9,7 +9,7 @@
 
 #include <numeric>
 
-using namespace Nodable;
+using namespace ndbl;
 
 ViewConstraint::ViewConstraint(IAppCtx& _ctx, const char* _name, ViewConstraint_t _type)
 : m_type(_type)

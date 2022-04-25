@@ -1,7 +1,7 @@
 #include <nodable/core/ForLoopNode.h>
 #include <nodable/core/Scope.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 REGISTER
 {

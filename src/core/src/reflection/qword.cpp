@@ -2,7 +2,7 @@
 #include <string>
 #include <nodable/core/String.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 R_UNION_MEMBER_DEFINITION(qword, b)
 R_UNION_MEMBER_DEFINITION(qword, u8)

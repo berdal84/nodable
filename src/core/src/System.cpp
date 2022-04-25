@@ -6,7 +6,7 @@
 
 #include <nodable/core/Log.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 void System::open_url_async(std::string _URL)
 {

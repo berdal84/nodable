@@ -11,7 +11,7 @@
 	(cf. Semantic class)
 */
 
-namespace Nodable {
+namespace ndbl {
 
 
 	enum class Token_t: int

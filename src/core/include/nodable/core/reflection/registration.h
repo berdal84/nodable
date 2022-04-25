@@ -5,7 +5,7 @@
 #include <nodable/core/reflection/func_type.h>
 #include <nodable/core/reflection/invokable.h>
 
-namespace Nodable
+namespace ndbl
 {
     template<typename T>
     class invokable_static;
@@ -88,7 +88,7 @@ namespace Nodable
 
         };
     };
-} // namespace Nodable
+} // namespace ndbl
 
 #define CAT_IMPL(a, b) a##b
 #define CAT(a, b) CAT_IMPL(a, b)

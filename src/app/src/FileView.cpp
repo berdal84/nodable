@@ -11,7 +11,7 @@
 #include <nodable/core/Node.h>
 #include <nodable/core/VirtualMachine.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 FileView::FileView(IAppCtx& _ctx, File& _file)
     : View(_ctx)

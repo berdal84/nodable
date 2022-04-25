@@ -2,7 +2,7 @@
 
 #include <nodable/core/ISerializer.h>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class NodableLanguage;

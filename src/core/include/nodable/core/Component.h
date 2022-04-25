@@ -2,7 +2,7 @@
 
 #include <nodable/core/reflection/reflection>
 
-namespace Nodable{
+namespace ndbl{
 
     class Node;
     

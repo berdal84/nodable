@@ -1,7 +1,7 @@
 #include <nodable/core/languages/NodableLibrary_biology.h>
 #include <nodable/core/reflection/registration.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 namespace // anonymous, only accessible from this file
 {

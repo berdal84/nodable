@@ -2,7 +2,7 @@
 #include <nodable/core/Way.h>
 #include <nodable/app/types.h>
 
-namespace Nodable {
+namespace ndbl {
 
     // forward declarations
     class Node;

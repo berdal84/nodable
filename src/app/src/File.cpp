@@ -11,7 +11,7 @@
 #include <nodable/app/IAppCtx.h>
 #include <nodable/app/NodeView.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 File::File(IAppCtx& _ctx, const std::string &_name)
         : m_name(_name)

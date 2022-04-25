@@ -5,7 +5,7 @@
 #include <nodable/app/ImGuiEx.h>
 #include <nodable/core/Component.h>
 
-namespace Nodable
+namespace ndbl
 {
     // forward decl
     class IAppCtx;

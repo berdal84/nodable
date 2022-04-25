@@ -2,7 +2,7 @@
 #include "nodable/core/assembly/Instruction.h"
 #include "nodable/core/String.h"
 
-using namespace Nodable;
+using namespace ndbl;
 
 std::string assembly::Instruction::to_string(const Instruction& _instr)
 {

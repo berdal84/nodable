@@ -13,7 +13,7 @@
 #include <nodable/core/reflection/reflection>
 #include <nodable/core/IParser.h>
 
-namespace Nodable{
+namespace ndbl{
 
 	class NodableLanguage;
 

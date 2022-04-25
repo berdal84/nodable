@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Nodable
+namespace ndbl
 {
     /**
      * Base command interface

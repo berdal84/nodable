@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace Nodable
+namespace ndbl
 {
 	/**
 	  The role of this enum is to distinguish the way

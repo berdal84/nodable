@@ -2,7 +2,7 @@
 
 #include <nodable/core/reflection/reflection>
 
-namespace Nodable
+namespace ndbl
 {
 namespace assembly
 {
@@ -25,4 +25,4 @@ namespace assembly
         R_ENUM_VALUE(eip)
     R_ENUM_END
 } // namespace Asm
-} // namespace Nodable
+} // namespace ndbl

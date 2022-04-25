@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace Nodable
+namespace ndbl
 {
     class NodableLibrary_biology : public ILibrary
     {

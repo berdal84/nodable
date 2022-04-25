@@ -1,25 +1,25 @@
 #include <nodable/app/App.h>
 #include <nodable/app/AppView.h>
 
-using Verbosity = Nodable::Log::Verbosity;
+using Verbosity = ndbl::Log::Verbosity;
 
 int main(int argc, char *argv[])
 {
     // by default log is on Verbosity::Message ...
 
-//    Nodable::Log::SetVerbosityLevel("R", Verbosity::Verbose);
-//    Nodable::Log::SetVerbosityLevel("File", Verbosity::Message);
-//    Nodable::Log::SetVerbosityLevel("GraphTraversal", Verbosity::Message);
-//    Nodable::Log::SetVerbosityLevel("Parser", Verbosity::Message);
-//    Nodable::Log::SetVerbosityLevel("GraphNode", Verbosity::Message);
-//    Nodable::Log::SetVerbosityLevel("GraphNodeView", Verbosity::Message);
-//    Nodable::Log::SetVerbosityLevel("VM", Verbosity::Message);
+//    ndbl::Log::SetVerbosityLevel("R", Verbosity::Verbose);
+//    ndbl::Log::SetVerbosityLevel("File", Verbosity::Message);
+//    ndbl::Log::SetVerbosityLevel("GraphTraversal", Verbosity::Message);
+//    ndbl::Log::SetVerbosityLevel("Parser", Verbosity::Message);
+//    ndbl::Log::SetVerbosityLevel("GraphNode", Verbosity::Message);
+//    ndbl::Log::SetVerbosityLevel("GraphNodeView", Verbosity::Message);
+//    ndbl::Log::SetVerbosityLevel("VM", Verbosity::Message);
 
     // by default log is on Verbosity::Message ...
 
-    Nodable::type_register::log_statistics();
+    ndbl::type_register::log_statistics();
 
-    Nodable::App app;
+    ndbl::App app;
 
     if( app.init() )
     {

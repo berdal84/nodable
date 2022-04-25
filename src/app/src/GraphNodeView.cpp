@@ -22,8 +22,8 @@
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/Wire.h>
 
-using namespace Nodable;
-using namespace Nodable::assembly;
+using namespace ndbl;
+using namespace ndbl::assembly;
 
 REGISTER
 {

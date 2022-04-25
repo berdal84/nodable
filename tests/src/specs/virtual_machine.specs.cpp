@@ -4,7 +4,7 @@
 #include <nodable/core/Log.h>
 #include "../nodable_fixture.h"
 
-using namespace Nodable;
+using namespace ndbl;
 
 TEST_F(nodable_fixture, Cond_1 )
 {

@@ -7,7 +7,7 @@
 #include <nodable/core/IScope.h>
 #include <nodable/core/reflection/reflection>
 
-namespace Nodable
+namespace ndbl
 {
     class iinvokable;
     class IScope;

@@ -14,7 +14,7 @@
 
 #include <nodable/app/IAppCtx.h>
 
-namespace Nodable
+namespace ndbl
 {
 	typedef struct {
         std::string                 label;

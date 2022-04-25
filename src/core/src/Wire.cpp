@@ -1,6 +1,6 @@
 #include <nodable/core/Wire.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 void Wire::sanitize()
 {

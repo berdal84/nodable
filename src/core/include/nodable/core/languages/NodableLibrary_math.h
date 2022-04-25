@@ -2,7 +2,7 @@
 
 #include <nodable/core/ILibrary.h>
 
-namespace Nodable
+namespace ndbl
 {
     class NodableLibrary_math : public ILibrary
     {

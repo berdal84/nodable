@@ -9,7 +9,7 @@
 #include <nodable/core/reflection/type.h>
 #include <nodable/core/constants.h>
 
-namespace Nodable
+namespace ndbl
 {
     // forward declarations
     class Operator;

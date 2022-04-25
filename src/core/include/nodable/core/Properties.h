@@ -8,7 +8,7 @@
 #include <nodable/core/Way.h>
 #include <set>
 
-namespace Nodable
+namespace ndbl
 {
 
     /**

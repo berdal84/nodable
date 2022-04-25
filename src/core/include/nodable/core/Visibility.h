@@ -1,5 +1,5 @@
 #pragma once
-namespace Nodable
+namespace ndbl
 {
 	/*
 		The role of this enum class is to distinguish between visibility states

@@ -10,7 +10,7 @@
 #include <nodable/core/reflection/type_register.h>
 #include <nodable/core/assertions.h>
 
-namespace Nodable
+namespace ndbl
 {
     struct any_t{};
     struct null_t{};
@@ -86,7 +86,7 @@ namespace Nodable
         template<typename T>
         static type get()
         {
-            auto hash = Nodable::unqualified<T>::hash_code();
+            auto hash = ndbl::unqualified<T>::hash_code();
 
             type type;
 
@@ -112,12 +112,12 @@ namespace Nodable
         {
             type type;
             type.m_name                  = _name;
-            type.m_compiler_name         = Nodable::unqualified<T>::name();
-            type.m_hash_code             = Nodable::unqualified<T>::hash_code();
+            type.m_compiler_name         = ndbl::unqualified<T>::name();
+            type.m_hash_code             = ndbl::unqualified<T>::hash_code();
             type.m_is_pointer            = std::is_pointer<T>::value;
             type.m_is_reference          = std::is_reference<T>::value;
             type.m_is_const              = std::is_const<T>::value;
-            type.m_is_class              = Nodable::is_class<T>::value;
+            type.m_is_class              = ndbl::is_class<T>::value;
 
             return type;
         }

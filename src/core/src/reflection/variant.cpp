@@ -3,7 +3,7 @@
 #include <nodable/core/types.h>
 #include <nodable/core/String.h>
 
-using namespace Nodable;
+using namespace ndbl;
 
 variant::~variant()
 {

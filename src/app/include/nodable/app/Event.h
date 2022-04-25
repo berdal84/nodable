@@ -3,7 +3,7 @@
 #include <queue>
 #include "types.h"
 
-namespace Nodable
+namespace ndbl
 {
     // forward declaration
     class MemberConnector;
