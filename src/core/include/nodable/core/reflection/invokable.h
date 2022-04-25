@@ -30,8 +30,8 @@ namespace Nodable {
 
 #define ENABLE_IF_VOID(T)     typename std::enable_if< std::is_void<T>::value, int>::type = 0
 #define ENABLE_IF_NON_VOID(T) typename std::enable_if< !std::is_void<T>::value, int>::type = 0
-#define ENABLE_IF_ARGC(count) typename std::enable_if< std::tuple_size<Args>::value == count, int>::type = 0
-#define CAST_ARG(index)       (std::tuple_element_t<index, Args>) *_args[index]
+#define ENABLE_IF_ARGC(count) typename std::enable_if< std::tuple_size<Args...>::value == count, int>::type = 0
+#define CAST_ARG(index)       (std::tuple_element_t<index, Args...>) *_args[index]
 #define CAST_1ARG  CAST_ARG(0)
 #define CAST_2ARGS CAST_1ARG, CAST_ARG(1)
 #define CAST_3ARGS CAST_2ARGS, CAST_ARG(2)
@@ -42,12 +42,12 @@ namespace Nodable {
      * Helpers to invoke static functions
      */
      // 0 arg
-    template<typename T, typename Args, typename F = T(Args...), ENABLE_IF_ARGC(0), ENABLE_IF_NON_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...), ENABLE_IF_ARGC(0), ENABLE_IF_NON_VOID(T)>
     variant invoke(F* _function, const std::vector<variant *> &_args)
     {
         return _function();
     }
-    template<typename T, typename Args, typename F = T(Args...), ENABLE_IF_ARGC(0), ENABLE_IF_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...), ENABLE_IF_ARGC(0), ENABLE_IF_VOID(T)>
     variant invoke(F* _function, const std::vector<variant *> &_args)
     {
         _function();
@@ -55,36 +55,36 @@ namespace Nodable {
     }
 
     // 1 arg
-    template<typename T, typename Args, typename F = T(Args...),  ENABLE_IF_ARGC(1), ENABLE_IF_NON_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...),  ENABLE_IF_ARGC(1), ENABLE_IF_NON_VOID(T)>
     variant invoke(F* _function , const std::vector<variant *> &_args)
     {
         return _function(CAST_1ARG);
     }
-    template<typename T, typename Args, typename F = T(Args...), ENABLE_IF_ARGC(1), ENABLE_IF_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...), ENABLE_IF_ARGC(1), ENABLE_IF_VOID(T)>
     variant invoke(F* _function , const std::vector<variant *> &_args)
     {
         _function(CAST_1ARG);
         return null_t{};
     }
     // 2 args
-    template<typename T, typename Args, typename F = T(Args...), ENABLE_IF_ARGC(2), ENABLE_IF_NON_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...), ENABLE_IF_ARGC(2), ENABLE_IF_NON_VOID(T)>
     variant invoke(F* _function , const std::vector<variant *> &_args)
     {
         return _function(CAST_2ARGS);
     }
-    template<typename T, typename Args, typename F = T(Args...), ENABLE_IF_ARGC(2), ENABLE_IF_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...), ENABLE_IF_ARGC(2), ENABLE_IF_VOID(T)>
     variant invoke(F* _function, const std::vector<variant *> &_args)
     {
         _function(CAST_2ARGS);
         return null_t{};
     }
     // 3 args
-    template<typename T, typename Args, typename F = T(Args...), ENABLE_IF_ARGC(3), ENABLE_IF_NON_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...), ENABLE_IF_ARGC(3), ENABLE_IF_NON_VOID(T)>
     variant invoke(F* _function, const std::vector<variant *> &_args)
     {
         return _function(CAST_3ARGS);
     }
-    template<typename T, typename Args, typename F = T(Args...), ENABLE_IF_ARGC(3), ENABLE_IF_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...), ENABLE_IF_ARGC(3), ENABLE_IF_VOID(T)>
     variant invoke(F* _function, const std::vector<variant *> &_args)
     {
         _function(CAST_3ARGS);
@@ -92,12 +92,12 @@ namespace Nodable {
     }
 
     // 4 args
-    template<typename T, typename Args, typename F = T(Args...), ENABLE_IF_ARGC(4), ENABLE_IF_NON_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...), ENABLE_IF_ARGC(4), ENABLE_IF_NON_VOID(T)>
     variant invoke(F* _function, const std::vector<variant *> &_args)
     {
         return _function(CAST_4ARGS);
     }
-    template<typename T, typename Args, typename F = T(Args...), ENABLE_IF_ARGC(4), ENABLE_IF_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...), ENABLE_IF_ARGC(4), ENABLE_IF_VOID(T)>
     variant invoke(F* _function, const std::vector<variant *> &_args)
     {
         _function(CAST_4ARGS);
@@ -105,12 +105,12 @@ namespace Nodable {
     }
 
     // 5 args
-    template<typename T, typename Args, typename F = T(Args...), ENABLE_IF_ARGC(5), ENABLE_IF_NON_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...), ENABLE_IF_ARGC(5), ENABLE_IF_NON_VOID(T)>
     variant invoke(F* _function, const std::vector<variant *> &_args)
     {
         return _function(CAST_5ARGS);
     }
-    template<typename T, typename Args, typename F = T(Args...), ENABLE_IF_ARGC(5), ENABLE_IF_VOID(T)>
+    template<typename T, typename ...Args, typename F = T(Args...), ENABLE_IF_ARGC(5), ENABLE_IF_VOID(T)>
     variant invoke(F* _function, const std::vector<variant *> &_args)
     {
         _function(CAST_5ARGS);
@@ -121,72 +121,72 @@ namespace Nodable {
      * Helpers to invoke member function from an instance pointer
      */
      // no args
-     template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(0), ENABLE_IF_NON_VOID(T)>
+     template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(0), ENABLE_IF_NON_VOID(T)>
      variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
      {
          return (_instance->*_function)();
      }
-    template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(0), ENABLE_IF_VOID(T)>
+    template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(0), ENABLE_IF_VOID(T)>
     variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
     {
         (_instance->*_function)();
         return null_t{};
     }
     // 1 arg
-    template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(1), ENABLE_IF_NON_VOID(T)>
+    template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(1), ENABLE_IF_NON_VOID(T)>
     variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
     {
         return (_instance->*_function)(CAST_1ARG);
     }
-    template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(1), ENABLE_IF_VOID(T)>
+    template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(1), ENABLE_IF_VOID(T)>
     variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
     {
         (_instance->*_function)(CAST_1ARG);
         return null_t{};
     }
     // 2 args
-    template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(2), ENABLE_IF_NON_VOID(T)>
+    template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(2), ENABLE_IF_NON_VOID(T)>
     variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
     {
         return (_instance->*_function)(CAST_2ARGS);
     }
-    template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(2), ENABLE_IF_VOID(T)>
+    template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(2), ENABLE_IF_VOID(T)>
     variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
     {
         (_instance->*_function)(CAST_2ARGS);
         return null_t{};
     }
     // 3 args
-    template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(3), ENABLE_IF_NON_VOID(T)>
+    template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(3), ENABLE_IF_NON_VOID(T)>
     variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
     {
         return (_instance->*_function)(CAST_3ARGS);
     }
-    template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(3), ENABLE_IF_VOID(T)>
+    template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(3), ENABLE_IF_VOID(T)>
     variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
     {
         (_instance->*_function)(CAST_3ARGS);
         return null_t{};
     }
     // 4 args
-    template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(4), ENABLE_IF_NON_VOID(T)>
+    template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(4), ENABLE_IF_NON_VOID(T)>
     variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
     {
         return (_instance->*_function)(CAST_4ARGS);
     }
-    template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(4), ENABLE_IF_VOID(T)>
+    template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(4), ENABLE_IF_VOID(T)>
     variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
     {
         (_instance->*_function)(CAST_4ARGS);
         return null_t{};
     }
     // 5 args
-    template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(5), ENABLE_IF_NON_VOID(T)>
+    template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(5), ENABLE_IF_NON_VOID(T)>
     variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
     {
         return (_instance->*_function)(CAST_5ARGS);
     }
-    template<typename T, typename C, typename Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(5), ENABLE_IF_VOID(T)>
+    template<typename T, typename C, typename ...Args, typename F = T(C::*)(Args...), ENABLE_IF_ARGC(5), ENABLE_IF_VOID(T)>
     variant invoke_member(C* _instance, F _function, const std::vector<variant *> &_args)
     {
         (_instance->*_function)(CAST_5ARGS);
