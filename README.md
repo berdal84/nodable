@@ -18,7 +18,7 @@
 
 The goal of **Nodable** is to **provide an original hybrid source code editor**, using both textual and nodal paradigms.
 
-In Nodable, the textual and nodal points of views are strongly linked, in both ways:
+In Nodable, the textual and nodal points of view are strongly linked, in both ways:
 
 - A change to the source code will update the graph.
 - A change to the graph will update the source code.
@@ -42,7 +42,7 @@ Software:
   - Linux (tested under Ubuntu 20.04)
   - MacOS 10.9+ (tested under Ubuntu 10.13)
 - Libraries
-  - Require opengl which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
+  - Require OpenGL which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
 
 _Disclaimer: Nodable is a prototype, do not expect too much from it._
 
@@ -50,16 +50,16 @@ _Disclaimer: Nodable is a prototype, do not expect too much from it._
 
 Download binaries from [Releases](https://github.com/berdal84/Nodable/releases) section.
 
-## How to compile ?
+## How to compile?
 
 Requirements:
 - Build system:
   - **CMake 3.14+**
   - A **C++11** compatible build system
 - Libraries
-  - Require opengl which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
+  - Require OpenGL which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
 
-Below, are all the commands to clone, configure, build nodable from sources.
+Below, are all the commands to clone, configure, and build nodable from sources.
 
 ```console
 git clone --branch v0.9 https://github.com/berdal84/Nodable.git --recurse-submodules
@@ -67,15 +67,14 @@ cd Nodable
 cmake . -B cmake-build-there
 cmake --build cmake-build-there --config Release --target install
 ```
-After that you must see a new folder `out` containing a folder `app`, inside there is all you need to run *Nodable*.
-On Windows execute: `nodable.exe`, on Linux and macOS run `./nodable`. (On Linux you might have to add execution flag to the file: `chmod +x ./nodable`
+Once all commands are succeeded you must see a new folder `out` containing a folder `app`, inside there is all you need to run *Nodable*.
+On Windows execute: `nodable.exe`, on Linux and macOS run `./nodable`. (On Linux you might have to add an execution flag to the file: `chmod +x ./nodable`
 
 Few details about the commands above:
 
-- `--recurse-submodules` is important when cloning since nodable need other git repositories to be built.
+- `--recurse-submodules` is important when cloning since nodable needs other git repositories to be built.
 - `--branch v<major>.<minor>.<patch>` is to target a specific tag, it is recommended to get a stable version. You can try a more recent if you wish.
-- `--target install` is to create a clean `out/app` directory with only necessary files to run the software.
-
+- `--target install` is to create a clean `out/app` directory with only the necessary files to run the software.
 
 
 ## Licence:
@@ -106,7 +105,7 @@ Each submodule is licensed, browse *libs/* folder.
 | [*googletest*](https://github.com/google/googletest) | Google
 | [*gulrak/filesystem*]()  | Steffen Schümann
 
-*: Even if I do not depend on it yet, I must cite RTTR since I am taking a lot of ideas from it in order to use it in the future without requiring too much changes.
+*: Even if I do not depend on it yet, I must cite RTTR since I am taking a lot of ideas from it to use in the future without requiring too many changes.
 
 #### Resources
 
