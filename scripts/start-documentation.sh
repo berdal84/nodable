@@ -1,7 +1,8 @@
 #!/bin/bash
+source "library.incl.sh"
 
 # get script directory
-DIR="$(cd "$(dirname -- "$1")" >/dev/null; pwd -P)/$(basename -- "$1")"
+DIR=${get_abs_script_dir}
 
 # open doc
 open "${DIR}../docs/doxygen/html/index.html" || (echo "unable to open documentation, index.html not found" && exit 1)
