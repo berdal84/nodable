@@ -1,3 +1,6 @@
+# OS
+.DS_Store
+
 # Prerequisites
 *.d
 
@@ -51,6 +54,7 @@ build/Nodable.vcxproj.user
 
 _screenshots/
 /_build
+/out
 /install
 /out/build/x64-Debug
 /build
