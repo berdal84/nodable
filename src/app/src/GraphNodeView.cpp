@@ -220,6 +220,7 @@ bool GraphNodeView::draw()
             if (!ImGui::IsPopupOpen(k_context_menu_popup) )
             {
                 ImGui::OpenPopup(k_context_menu_popup);
+                m_new_node_desired_position = ImGui::GetMousePos() - origin;
             }
         }
     }
@@ -489,6 +490,7 @@ bool GraphNodeView::draw()
         */
         if (new_node)
         {
+
             // dragging node connector ?
             if ( dragged_node_conn )
             {
@@ -522,12 +524,11 @@ bool GraphNodeView::draw()
                 // graph->connect( new_node, graph->get_root(), RelType::IS_CHILD_OF  );
             }
 
-            // Set New Node's currentPosition were mouse cursor is
-			if (auto view = new_node->get<NodeView>())
-			{
-				auto pos = ImGui::GetMousePos() - origin;
-                view->set_position(pos);
-			}
+            // set new_node's view position
+            if( auto* view = new_node->get<NodeView>() )
+            {
+                view->set_position(m_new_node_desired_position);
+            }
 		}
 
 		ImGui::EndPopup();

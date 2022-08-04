@@ -25,7 +25,7 @@ namespace ndbl
 	class GraphNodeView: public View, public Component
     {
 	public:
-	    GraphNodeView(IAppCtx& _ctx): View(_ctx) {};
+	    GraphNodeView(IAppCtx& _ctx): View(_ctx) { m_new_node_desired_position = vec2(-1, -1); };
 		~GraphNodeView() override = default;
 
         void        set_owner(Node *) override;
@@ -40,9 +40,9 @@ namespace ndbl
                         const func_type *_signature);
 	private:
         [[nodiscard]] GraphNode* get_graph_node() const;
-        std::vector<ViewConstraint>              m_child_view_constraints;
+        std::vector<ViewConstraint>                  m_child_view_constraints;
 		std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
-
+        vec2                                         m_new_node_desired_position;
         static constexpr const char* k_context_menu_popup = "GraphNodeView.ContextMenu";
         static constexpr const char* k_operator_menu_label = "Operators";
         static constexpr const char* k_function_menu_label = "Functions";
