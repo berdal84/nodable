@@ -31,7 +31,7 @@ bool DataAccess::update()
 
     	type t = _value->get_type();
 
-    	     if ( t == type::get<std::string>() ) writer.String(((std::string)*_value).c_str());
+    	     if ( t == type::get<std::string>() ) writer.String(((const char*)*_value));
         else if ( t == type::get<double>() )      writer.Double((double)*_value);
         else if ( t == type::get<bool>() )        writer.Double((bool)*_value);
     	else                                         writer.Null();
