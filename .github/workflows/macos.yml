@@ -65,12 +65,12 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: nodable-${{ runner.os }}
-        path: ${{runner.workspace}}/Nodable/out/app/*
+        path: ${{runner.workspace}}/nodable/out/app/*
 
     - name: Package Artifact
       uses: actions/upload-artifact@v2
       with:
         name: nodable-package-${{ runner.os }}
         path: |
-          !${{runner.workspace}}/Nodable/out/package/_CPack_Packages
-          ${{runner.workspace}}/Nodable/out/package/*.*
+          !${{runner.workspace}}/nodable/out/package/_CPack_Packages
+          ${{runner.workspace}}/nodable/out/package/*.*
