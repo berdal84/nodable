@@ -1,6 +1,24 @@
 
 # WARNING: Do not use this CMakeLists.txt directly, take the one from base directory.
 
+if ( NODABLE_SKIP_TESTS )
+    nodable_message("tests skipped")
+    return()
+endif()
+
+# gtest
+#-------
+enable_testing()
+# https://stackoverflow.com/questions/12540970/how-to-make-gtest-build-mdd-instead-of-mtd-by-default-using-cmake
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+# we don't need mocks (for now) nor install
+option(BUILD_GMOCK OFF)
+option(INSTALL_GTEST OFF)
+add_subdirectory(libs/googletest)
+
+# nodable tests
+#--------------
+
 # Declare our main executable
 add_executable(
     nodable_tests

@@ -15,7 +15,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY   ${CMAKE_BINARY_DIR}/)
 set(CMAKE_INSTALL_PREFIX             "${CMAKE_CURRENT_LIST_DIR}/out/app")      # ./out/ folder must not be changed, referenced in readme.md
 set(NODABLE_PACKAGE_DIR              "${CMAKE_CURRENT_LIST_DIR}/out/package")  #                     //
 set(NODABLE_CONFIGURED_DIR           "${PROJECT_BINARY_DIR}/configured/nodable")
-set(NODABLE_ENABLE_TESTS             ON )
+set(NODABLE_SKIP_TESTS               OFF )
 set(NODABLE_CORE_INSTALL_ENABLE      OFF)
 set(NODABLE_CORE_INSTALL_DESTINATION libs) # relative to CMAKE_INSTALL_PREFIX
 
@@ -29,31 +29,7 @@ add_subdirectory(libs)     # libraries (SDL, lodepng, Dear ImGui, etc.)
 add_subdirectory(src/core) # nodable core (static library).
 add_subdirectory(src/cli)  # nodable application (terminal).
 add_subdirectory(src/app)  # nodable application (with gui).
-
-# Unit tests (gtest)
-if ( NODABLE_ENABLE_TESTS )
-
-    # gtest
-    #-------
-
-    enable_testing()
-    # https://stackoverflow.com/questions/12540970/how-to-make-gtest-build-mdd-instead-of-mtd-by-default-using-cmake
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    # we don't need mocks (for now) nor install
-    option(BUILD_GMOCK OFF)
-    option(INSTALL_GTEST OFF)
-    # we need to set ./gtest since directory is not a subdirectory...
-    # this will tell cmake where to put the configured files inside
-    # build directory.
-    add_subdirectory( libs/googletest-release-1.10.0)
-
-    # nodable tests
-    #--------------
-
-    add_subdirectory( tests )
-else()
-    nodable_message("Skip tests (gtest and ./tests)")
-endif()
+add_subdirectory(tests)
 
 #  Packaging:
 #===========
