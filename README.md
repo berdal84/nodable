@@ -58,7 +58,7 @@ Requirements:
   - A **C++11** compatible build system
 - Libraries
   - Require OpenGL which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
-
+  - Under linux `pkg-config` is required. (use `sudo apt-get install pkg-config` on Ubuntu)
 Below, are all the commands to clone, configure, and build nodable from sources.
 
 ```console
