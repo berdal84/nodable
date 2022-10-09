@@ -58,7 +58,7 @@ Requirements:
   - A **C++11** compatible build system
 - Libraries
   - Require OpenGL which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
-  - Under linux `pkg-config` is required. (use `sudo apt-get install pkg-config` on Ubuntu)
+  - Under linux `pkg-config` and `libgtk-3-dev` are required. (ex. for Ubuntu: `sudo apt-get install pkg-config libgtk-3-dev`)
 Below, are all the commands to clone, configure, and build nodable from sources.
 
 ```console
@@ -77,7 +77,7 @@ Few details about the commands above:
 - `--target install` is to create a clean `out/app` directory with only the necessary files to run the software.
 
 
-## Licence:
+## License:
 
 **Nodable** is licensed under the GPL License, see [`LICENSE.txt`](https://github.com/berdal84/Nodable/blob/master/LICENSE.txt) for more information.
 
