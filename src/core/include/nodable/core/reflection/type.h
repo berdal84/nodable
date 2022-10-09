@@ -150,7 +150,7 @@ namespace ndbl
     {
         if( _source->get_type().is_child_of( type::get<target_t>(), true ))
         {
-            return dynamic_cast<target_t*>(_source);
+            return static_cast<target_t*>(_source);
         }
         return nullptr;
     }
