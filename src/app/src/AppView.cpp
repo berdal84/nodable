@@ -456,7 +456,9 @@ bool AppView::draw()
 
                 ImGui::EndMenuBar();
             }
-            draw_tool_bar();
+
+            if( current_file )
+                draw_tool_bar();
 
 
             /*
