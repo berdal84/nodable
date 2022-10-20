@@ -66,11 +66,14 @@ void App::flag_to_stop()
 
 void App::shutdown()
 {
+    LOG_MESSAGE("App", "Shutting down ...\n")
     for( File* each_file : m_loaded_files )
     {
+        LOG_VERBOSE("App", "Delete file %s ...\n", each_file->get_path().c_str())
         delete each_file;
     }
     m_view.shutdown();
+    LOG_MESSAGE("App", "Shutdown.\n")
 }
 
 bool App::open_file(const fs_path& _path)
