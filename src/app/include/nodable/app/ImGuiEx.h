@@ -9,6 +9,7 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include <imgui/imgui_internal.h>
 #include <nodable/app/types.h>
+#include <nodable/app/Event.h>
 
 namespace ndbl
 {
@@ -90,6 +91,7 @@ namespace ndbl
         static void     EndTooltip();
         static ImRect&  EnlargeToInclude(ImRect& _rect, ImRect _other);
 
+        static void     MenuItemBindedToEvent(EventType type, bool enable = true);
     private:
         static bool    s_is_in_a_frame;
         static bool    s_is_any_tooltip_open;

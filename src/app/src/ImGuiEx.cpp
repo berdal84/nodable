@@ -1,6 +1,7 @@
-#include <nodable/app/ImGuiEx.h>
-#include <cmath>
+#include "nodable/app/BindedEventManager.h"
 #include <algorithm>
+#include <cmath>
+#include <nodable/app/ImGuiEx.h>
 #include <nodable/core/Log.h>
 #include <nodable/core/assertions.h>
 
@@ -184,4 +185,13 @@ void ImGuiEx::BeginFrame()
     NODABLE_ASSERT_EX(!s_is_in_a_frame, "ImGuiEx::BeginFrame/EndFrame mismatch");
     s_is_in_a_frame = true;
     s_is_any_tooltip_open = false;
+}
+
+void ImGuiEx::MenuItemBindedToEvent(ndbl::EventType type, bool enable)
+{
+    auto binded_evt = BindedEventManager::get_event(type);
+    if (ImGui::MenuItem( binded_evt.label.c_str(),   binded_evt.shortcut.to_string().c_str(), false, enable))
+    {
+        EventManager::push_event(binded_evt.event_t);
+    }
 }

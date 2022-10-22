@@ -27,8 +27,17 @@ namespace ndbl
         node_connector_dropped   = 0x300, // operation on node connectors
         node_connector_disconnected,
 
-        save_file   = 0x400, // operation on files
+        save_file_triggered = 0x400, // operation on files
+        save_file_as_triggered,
+        new_file_triggered,
+        close_file_triggered,
+        browse_file_triggered,
+        undo_triggered,
+        redo_triggered,
+        file_opened,
 
+        exit_triggered = 0x500 ,// application
+        show_splashscreen_triggered
     };
 
     struct SimpleEvent

@@ -19,6 +19,7 @@
 #include <nodable/app/commands/Cmd_Group.h>
 #include <nodable/core/System.h>
 #include <nodable/core/languages/NodableLanguage.h>
+#include "nodable/app/BindedEventManager.h"
 
 using namespace ndbl;
 
@@ -37,24 +38,86 @@ App::App()
 bool App::init()
 {
     LOG_MESSAGE("App", "Initializing App...\n")
-    bool success = m_view.init();
-    if(success)
+    if (!m_view.init())
     {
-        LOG_MESSAGE("App", "Initialization OK\n")
-        LOG_MESSAGE("App", "Welcome to Nodable !\n")
+        LOG_ERROR("App", "Initialization failed!\n");
+        return false;
     }
-    else
-    {
-        LOG_ERROR("App", "Initialization failed!\n")
-    }
-    return success;
+
+    // Bind commands to shortcuts
+    BindedEventManager::bind(
+            {"Delete",
+             EventType::delete_node_action_triggered,
+             {SDLK_DELETE, KMOD_NONE},
+             Condition_HAS_SELELECTION});
+    BindedEventManager::bind(
+            {"Arrange",
+             EventType::arrange_node_action_triggered,
+             {SDLK_a, KMOD_NONE},
+             Condition_HAS_SELELECTION});
+    BindedEventManager::bind(
+            {"Fold/Unfold",
+             EventType::toggle_folding_selected_node_action_triggered,
+             {SDLK_x, KMOD_NONE},
+             Condition_HAS_SELELECTION});
+    BindedEventManager::bind(
+            {"Next",
+             EventType::select_successor_node_action_triggered,
+             {SDLK_n, KMOD_NONE},
+             Condition_HAS_SELELECTION});
+    BindedEventManager::bind(
+            {ICON_FA_SAVE" Save",
+             EventType::save_file_triggered,
+             {SDLK_s, KMOD_CTRL},
+             Condition_ALWAYS});
+    BindedEventManager::bind(
+            {ICON_FA_SAVE" Save as",
+             EventType::save_file_as_triggered,
+             {SDLK_s, KMOD_CTRL},
+             Condition_ALWAYS});
+    BindedEventManager::bind(
+            {ICON_FA_TIMES"  Close",
+             EventType::close_file_triggered,
+             {SDLK_w, KMOD_CTRL},
+             Condition_ALWAYS});
+    BindedEventManager::bind(
+            {ICON_FA_FOLDER_OPEN" Open",
+             EventType::browse_file_triggered,
+             {SDLK_o, KMOD_CTRL},
+             Condition_ALWAYS});
+    BindedEventManager::bind(
+            {ICON_FA_FILE" New",
+             EventType::new_file_triggered,
+             {SDLK_n, KMOD_CTRL},
+             Condition_ALWAYS});
+    BindedEventManager::bind(
+            {"Splashscreen",
+             EventType::show_splashscreen_triggered,
+             {SDLK_F1},
+             Condition_ALWAYS});
+    BindedEventManager::bind(
+            {ICON_FA_SIGN_OUT_ALT" Exit",
+             EventType::exit_triggered,
+             {SDLK_F4, KMOD_ALT},
+             Condition_ALWAYS});
+    BindedEventManager::bind(
+            {"Undo",
+             EventType::undo_triggered,
+             {SDLK_z, KMOD_CTRL},
+             Condition_ALWAYS});
+    BindedEventManager::bind(
+            {"Redo",
+             EventType::redo_triggered,
+             {SDLK_y, KMOD_CTRL},
+             Condition_ALWAYS});
+    return true;
 }
 
 void App::update()
 {
     handle_events();
 
-    if (File* file = current_file())
+    if (File *file = current_file())
     {
         file->update();
     }
@@ -90,7 +153,7 @@ bool App::open_file(const fs_path& _path)
 
     m_loaded_files.push_back( file );
     current_file(file);
-
+    EventManager::push_event(EventType::file_opened);
 	return true;
 }
 
@@ -245,29 +308,98 @@ void App::handle_events()
     {
         switch ( event.type )
         {
-            case EventType::save_file:
+            case EventType::exit_triggered:
             {
-                save_file();
-                LOG_MESSAGE( "App", "Save file event triggered\n")
+                flag_to_stop();
                 break;
             }
+
+            case EventType::close_file_triggered:
+            {
+                if( m_current_file ) close_file(m_current_file);
+                break;
+            }
+
+            case EventType::undo_triggered:
+            {
+                if( m_current_file ) m_current_file->get_history()->undo();
+                break;
+            }
+
+            case EventType::redo_triggered:
+            {
+                if( m_current_file ) m_current_file->get_history()->redo();
+                break;
+            }
+
+            case EventType::browse_file_triggered:
+            {
+                m_view.browse_file();
+                break;
+            }
+
+            case EventType::new_file_triggered:
+            {
+                new_file();
+                break;
+            }
+
+            case EventType::save_file_as_triggered:
+            {
+                if (m_current_file)
+                {
+                    m_view.save_file_as();
+                }
+                break;
+            }
+
+            case EventType::save_file_triggered:
+            {
+                if (m_current_file && m_current_file->has_path())
+                {
+                    save_file();
+                }
+                else
+                {
+                    m_view.save_file_as();
+                }
+
+                break;
+            }
+
+            case EventType::show_splashscreen_triggered:
+            {
+                m_view.set_splashscreen_visible(true);
+                break;
+            }
+
             case EventType::node_view_selected:
             {
                 FileView* view = m_current_file->get_view();
+                view->clear_overlay();
 
-                for(auto each_shortcut : ShortcutManager::s_shortcuts )
+                for (const auto& _binded_event: BindedEventManager::s_binded_events)
                 {
-                    view->push_overlay({each_shortcut.to_string()});
+                    if( (_binded_event.condition & Condition_HAS_SELELECTION) == 0) continue;
+
+                    char label[40] = "";
+                    snprintf(label,
+                             40,
+                             "%12s: %s",
+                             _binded_event.label.substr(0,12).c_str(),
+                             _binded_event.shortcut.to_string().c_str());
+                    view->push_overlay({label});
                 }
 
                 LOG_MESSAGE( "App", "NodeView selected\n")
                 break;
             }
+            case EventType::file_opened:
             case EventType::node_view_deselected:
             {
                 FileView* view = m_current_file->get_view();
                 view->clear_overlay();
-                LOG_MESSAGE( "App", "NodeView deselected\n")
+                view->push_overlay({"Select a node with your mouse"});
                 break;
             }
             case EventType::delete_node_action_triggered:

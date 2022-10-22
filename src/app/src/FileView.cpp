@@ -268,12 +268,12 @@ void FileView::draw_overlay(vec2 pos, vec2 size, vec2 margins)
 {
     if( m_overlay_data.empty() ) return;
 
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
     ImGui::SetCursorPos(pos + margins);
     ImGui::BeginGroup();
-    ImGui::Text("Shortcuts:");
-    ImGui::Indent(5);
     std::for_each(m_overlay_data.begin(), m_overlay_data.end(), [](const OverlayData& _data) {
         ImGui::Text("%s", _data.label.c_str());
     });
     ImGui::EndGroup();
+    ImGui::PopStyleVar();
 }

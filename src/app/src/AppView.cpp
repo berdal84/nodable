@@ -18,6 +18,7 @@
 #include <nodable/app/constants.h>
 #include <nodable/app/Event.h>
 #include <nativefiledialog-extended/src/include/nfd.h>
+#include <nodable/app/BindedEventManager.h>
 
 using namespace ndbl;
 using namespace ndbl::assembly;
@@ -240,12 +241,12 @@ bool AppView::draw()
                 if (ImGui::BeginMenu("File"))
                 {
                     bool has_file = current_file;
-                    bool changed = current_file ? current_file->has_changed() : false;
-                    if (ImGui::MenuItem(ICON_FA_FILE        "  New",     "Ctrl + N"))                  new_file();
-                    if (ImGui::MenuItem(ICON_FA_FOLDER      "  Open",    "Ctrl + O"))                  browse_file();
-                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save",    "Ctrl + S", false, changed))  save_file();
-                    if (ImGui::MenuItem(ICON_FA_SAVE        "  Save as", "",         false, has_file)) save_file_as();
-                    if (ImGui::MenuItem(ICON_FA_TIMES       "  Close",   "Ctrl + W", false, has_file)) close_file();
+                    bool changed = current_file != nullptr && current_file->has_changed();
+                    ImGuiEx::MenuItemBindedToEvent(EventType::new_file_triggered);
+                    ImGuiEx::MenuItemBindedToEvent(EventType::browse_file_triggered);
+                    ImGuiEx::MenuItemBindedToEvent(EventType::save_file_as_triggered, has_file);
+                    ImGuiEx::MenuItemBindedToEvent(EventType::save_file_triggered, has_file && changed);
+                    ImGuiEx::MenuItemBindedToEvent(EventType::close_file_triggered, has_file);
 
                     FileView *fileView = nullptr;
                     bool auto_paste;
@@ -260,10 +261,7 @@ bool AppView::draw()
                         fileView->experimental_clipboard_auto_paste(!auto_paste);
                     }
 
-                    if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT"  Quit", "Alt + F4"))
-                    {
-                        m_ctx.flag_to_stop();
-                    }
+                    ImGuiEx::MenuItemBindedToEvent(EventType::exit_triggered);
 
                     ImGui::EndMenu();
                 }
@@ -273,8 +271,8 @@ bool AppView::draw()
                 {
                     if (currentFileHistory)
                     {
-                        if (ImGui::MenuItem("Undo", "Ctrl + Z")) currentFileHistory->undo();
-                        if (ImGui::MenuItem("Redo", "Ctrl + Y")) currentFileHistory->redo();
+                        ImGuiEx::MenuItemBindedToEvent(EventType::undo_triggered);
+                        ImGuiEx::MenuItemBindedToEvent(EventType::redo_triggered);
                         ImGui::Separator();
                     }
 
@@ -285,18 +283,8 @@ bool AppView::draw()
                         EventManager::push_event(EventType::delete_node_action_triggered);
                     }
 
-                    if ( ImGui::MenuItem("Arrange nodes", "A", false, has_selection) )
-                    {
-                        EventManager::push_event(EventType::arrange_node_action_triggered);
-                    }
-
-                    if ( ImGui::MenuItem("Expand/Collapse", "X", false, has_selection) )
-                    {
-                        Event event;
-                        event.toggle_folding.type      = EventType::toggle_folding_selected_node_action_triggered;
-                        event.toggle_folding.recursive = false;
-                        EventManager::push_event(event);
-                    }
+                    ImGuiEx::MenuItemBindedToEvent(EventType::arrange_node_action_triggered, has_selection);
+                    ImGuiEx::MenuItemBindedToEvent(EventType::toggle_folding_selected_node_action_triggered, has_selection);
 
                     if ( ImGui::MenuItem("Expand/Collapse recursive", NULL, false, has_selection) )
                     {
@@ -732,9 +720,9 @@ void AppView::draw_startup_menu(ImGuiID dockspace_id)
             ImGui::NewLine();
 
             vec2 btn_size(center_area.x * 0.44f, 40.0f);
-            if( ImGui::Button(ICON_FA_FILE" New File", btn_size) )        new_file();
+            if( ImGui::Button(ICON_FA_FILE" New File", btn_size) ) EventManager::push_event(EventType::new_file_triggered);
             ImGui::SameLine();
-            if( ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size) ) browse_file();
+            if( ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size) ) EventManager::push_event(EventType::browse_file_triggered);
 
             ImGui::NewLine();
             ImGui::Separator();
@@ -1018,22 +1006,6 @@ void AppView::draw_history_bar(History *currentFileHistory)
     }
 }
 
-void AppView::new_file()
-{
-    m_ctx.new_file();
-}
-
-void AppView::save_file()
-{
-    File *curr_file = m_ctx.current_file();
-
-    if (curr_file->has_path())
-    {
-        return m_ctx.save_file();
-    }
-    save_file_as();
-}
-
 void AppView::save_file_as()
 {
     File *curr_file = m_ctx.current_file();
@@ -1153,55 +1125,16 @@ void AppView::handle_events()
     {
         ImGui_ImplSDL2_ProcessEvent(&event);
 
-
-        switch (event.type)
-        {
-            case SDL_QUIT:
-                m_ctx.flag_to_stop();
-                break;
-
-            case SDL_KEYUP:
-                auto key = event.key.keysym.sym;
-                auto l_ctrl_pressed = event.key.keysym.mod & KMOD_LCTRL;
-                if ( l_ctrl_pressed )
-                {
-
-                    if (File* file = m_ctx.current_file())
-                    {
-                        History* history = file->get_history();
-                             if (key == SDLK_z) history->undo();
-                        else if (key == SDLK_y) history->redo();
-                        else if( key == SDLK_s) save_file();
-                        else if( key == SDLK_w) m_ctx.close_file(file);
-                    }
-
-                         if( key == SDLK_o) browse_file();
-                    else if( key == SDLK_n) new_file();
-                }
-                else
-                {
-                    switch( key )
-                    {
-                        case SDLK_F1:
-                            m_show_splashscreen = true;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                break;
-        }
-
         // Shortcuts (WIP)
-        for(auto shortcut : ShortcutManager::s_shortcuts )
+        for(auto _binded_event: BindedEventManager::s_binded_events )
         {
-            if ( shortcut.event != EventType::none
+            if (_binded_event.event_t != EventType::none
                  && event.type == SDL_KEYDOWN
-                 && shortcut.key == event.key.keysym.sym
-                 && (event.key.keysym.mod & shortcut.mod) == shortcut.mod
+                 && _binded_event.shortcut.key == event.key.keysym.sym
+                 && (event.key.keysym.mod & _binded_event.shortcut.mod) == _binded_event.shortcut.mod
                  )
             {
-                EventManager::push_event(shortcut.event);
+                EventManager::push_event(_binded_event.event_t);
                 break;
             }
         }

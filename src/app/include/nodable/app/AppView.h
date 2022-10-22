@@ -41,13 +41,13 @@ namespace ndbl
         void handle_events();
 		bool draw() override;
         void shutdown();
-
-	private:
         void browse_file();
-        void close_file();
-        void new_file();
-        void save_file();
+        void set_splashscreen_visible(bool _visible) { m_show_splashscreen = _visible; }
+
         void save_file_as();
+
+    private:
+        void close_file();
         void draw_file_editor(ImGuiID dockspace_id, bool redock_all, ndbl::File *file);
         void draw_history_bar(History*);
         void draw_properties_editor();
