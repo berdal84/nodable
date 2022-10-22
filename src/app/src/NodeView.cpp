@@ -219,6 +219,22 @@ void NodeView::set_owner(Node *_node)
 
 void NodeView::set_selected(NodeView* _view)
 {
+    if( s_selected == _view ) return;
+
+    if( s_selected)
+    {
+        Event event{ EventType::node_view_deselected };
+        event.node.view = s_selected;
+        EventManager::push_event(event);
+    }
+
+    if( _view )
+    {
+        Event event{ EventType::node_view_selected };
+        event.node.view = _view;
+        EventManager::push_event(event);
+    }
+
 	s_selected = _view;
 }
 

@@ -44,7 +44,7 @@ add_executable(
         src/View.cpp
         ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_opengl3.cpp # include backend as-is
         ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_sdl.cpp     #          //
-)
+        src/Shortcut.cpp)
 
 target_include_directories(
     nodable

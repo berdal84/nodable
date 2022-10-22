@@ -144,21 +144,23 @@ bool FileView::draw()
      // NODE EDITOR
     //-------------
 
-    ImGui::SameLine();
     GraphNode* graph = m_file.get_graph();
     NODABLE_ASSERT(graph);
     auto graph_node_view = graph->get<GraphNodeView>();
-
+    ImGui::SameLine();
     if ( graph_node_view )
     {
         LOG_VERBOSE("FileView", "graph_node_view->update()\n");
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         graph_node_view->update();
-        bool changed = graph_node_view->draw_as_child("graph", vec2(m_child2_size, availSize.y), false, flags);
+        vec2 graph_view_TL = ImGui::GetCursorPos();
+        vec2 graph_view_size = vec2(m_child2_size, availSize.y);
+        bool changed = graph_node_view->draw_as_child("graph", graph_view_size, false, flags);
         if( changed )
         {
             graph->set_dirty();
         }
+        draw_overlay(graph_view_TL, graph_view_size, vec2(10,10));
     }
     else
     {
@@ -260,4 +262,18 @@ void  FileView::experimental_clipboard_auto_paste(bool _enable)
     {
         m_experimental_clipboard_prev = "";
     }
+}
+
+void FileView::draw_overlay(vec2 pos, vec2 size, vec2 margins)
+{
+    if( m_overlay_data.empty() ) return;
+
+    ImGui::SetCursorPos(pos + margins);
+    ImGui::BeginGroup();
+    ImGui::Text("Shortcuts:");
+    ImGui::Indent(5);
+    std::for_each(m_overlay_data.begin(), m_overlay_data.end(), [](const OverlayData& _data) {
+        ImGui::Text("%s", _data.label.c_str());
+    });
+    ImGui::EndGroup();
 }

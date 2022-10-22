@@ -41,6 +41,7 @@ namespace ndbl
         void handle_events();
 		bool draw() override;
         void shutdown();
+
 	private:
         void browse_file();
         void close_file();
@@ -80,7 +81,6 @@ namespace ndbl
         bool               m_scroll_to_curr_instr;
         std::map<std::string, ImFont*>      m_loaded_fonts; // All fonts loaded in memory
         std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
-        std::vector<Shortcut>               m_shortcuts;
 
         REFLECT_DERIVED_CLASS(View)
     };

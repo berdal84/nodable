@@ -5,6 +5,7 @@
 #include <nodable/core/DataAccess.h>
 #include <nodable/app/build_info.h> // file generated (aka configured) from build_info.h.in
 #include <nodable/app/NodeView.h>
+#include <nodable/app/FileView.h>
 #include <nodable/app/AppView.h>
 #include <nodable/app/File.h>
 #include <nodable/app/IAppCtx.h>
@@ -99,6 +100,7 @@ void App::save_file() const
     {
         LOG_ERROR("App", "Unable to save %s (%s)\n", m_current_file->get_name().c_str(), m_current_file->get_path().c_str());
     }
+
 }
 
 void App::save_file_as(const fs_path &_path)
@@ -243,6 +245,31 @@ void App::handle_events()
     {
         switch ( event.type )
         {
+            case EventType::save_file:
+            {
+                save_file();
+                LOG_MESSAGE( "App", "Save file event triggered\n")
+                break;
+            }
+            case EventType::node_view_selected:
+            {
+                FileView* view = m_current_file->get_view();
+
+                for(auto each_shortcut : ShortcutManager::s_shortcuts )
+                {
+                    view->push_overlay({each_shortcut.to_string()});
+                }
+
+                LOG_MESSAGE( "App", "NodeView selected\n")
+                break;
+            }
+            case EventType::node_view_deselected:
+            {
+                FileView* view = m_current_file->get_view();
+                view->clear_overlay();
+                LOG_MESSAGE( "App", "NodeView deselected\n")
+                break;
+            }
             case EventType::delete_node_action_triggered:
             {
                 if ( selected_view && !ImGui::IsAnyItemFocused() )

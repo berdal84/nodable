@@ -8,26 +8,38 @@ namespace ndbl
     // forward declaration
     class MemberConnector;
     class NodeConnector;
+    class NodeView;
 
     enum class EventType
     {
-        none = 0, // operation on nodes
+        none = 0,
 
         delete_node_action_triggered = 0x100, // operation on nodes
         arrange_node_action_triggered,
         select_successor_node_action_triggered,
         toggle_folding_selected_node_action_triggered,
+        node_view_selected,
+        node_view_deselected,
 
         member_connector_dropped = 0x200, // operation on member connectors
         member_connector_disconnected,
 
         node_connector_dropped   = 0x300, // operation on node connectors
-        node_connector_disconnected
+        node_connector_disconnected,
+
+        save_file   = 0x400, // operation on files
+
     };
 
     struct SimpleEvent
     {
         EventType type;
+    };
+
+    struct NodeViewEvent
+    {
+        EventType type;
+        const NodeView* view;
     };
 
     struct ToggleFoldingEvent
@@ -54,6 +66,7 @@ namespace ndbl
     {
         EventType            type;
         SimpleEvent          common;
+        NodeViewEvent        node;
         MemberConnectorEvent member_connectors;
         NodeConnectorEvent   node_connectors;
         ToggleFoldingEvent   toggle_folding;

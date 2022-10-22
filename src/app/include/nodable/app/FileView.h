@@ -13,6 +13,17 @@ namespace ndbl
     class File;
     class IAppCtx;
 
+    enum OverlayPos {
+        OverlayPos_Top,
+        OverlayPos_Right,
+        OverlayPos_Bottom,
+        OverlayPos_Left,
+    };
+    typedef struct {
+        std::string label;
+        OverlayPos position;
+    } OverlayData;
+
 	class FileView : public View
 	{
 	public:
@@ -33,7 +44,12 @@ namespace ndbl
         void                           draw_info()const;
         void                           experimental_clipboard_auto_paste(bool);
         bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
+        void        push_overlay(OverlayData data) { m_overlay_data.push_back(data); }
+        void        clear_overlay() { m_overlay_data.clear(); }
+        void        draw_overlay(vec2 pos, vec2 size, vec2 margins);
 	private:
+        std::vector<OverlayData> m_overlay_data;
+
 		File&        m_file;
 		TextEditor   m_text_editor;
 		bool         m_text_has_changed;

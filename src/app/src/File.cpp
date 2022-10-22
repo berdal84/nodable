@@ -77,7 +77,10 @@ bool File::write_to_disk()
         std::string content = m_view->get_text();
         out_fstream.write(content.c_str(), content.size());
         m_modified = false;
-	}
+        LOG_MESSAGE("File", "%s saved\n", m_name.c_str());
+	} else {
+        LOG_MESSAGE("File", "Nothing to save\n");
+    }
 
     return true;
 }

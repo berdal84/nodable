@@ -45,12 +45,6 @@ AppView::~AppView()
 
 bool AppView::init()
 {
-    // Create shortcuts
-    m_shortcuts.push_back({ SDLK_DELETE  , KMOD_NONE, EventType::delete_node_action_triggered });
-    m_shortcuts.push_back({ SDLK_a       , KMOD_NONE, EventType::arrange_node_action_triggered });
-    m_shortcuts.push_back({ SDLK_x       , KMOD_NONE, EventType::toggle_folding_selected_node_action_triggered });
-    m_shortcuts.push_back({ SDLK_n       , KMOD_NONE, EventType::select_successor_node_action_triggered });
-
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
@@ -1199,12 +1193,12 @@ void AppView::handle_events()
         }
 
         // Shortcuts (WIP)
-        for(auto shortcut : m_shortcuts)
+        for(auto shortcut : ShortcutManager::s_shortcuts )
         {
-            if ( shortcut.event != EventType::none            // shortcut has an event type.
+            if ( shortcut.event != EventType::none
                  && event.type == SDL_KEYDOWN
-                 && shortcut.key == event.key.keysym.sym      // shortcut's key is pressed.
-                 && event.key.keysym.mod == shortcut.mod      // shortcut's modifier is pressed.
+                 && shortcut.key == event.key.keysym.sym
+                 && (event.key.keysym.mod & shortcut.mod) == shortcut.mod
                  )
             {
                 EventManager::push_event(shortcut.event);
