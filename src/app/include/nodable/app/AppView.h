@@ -43,11 +43,9 @@ namespace ndbl
         void shutdown();
         void browse_file();
         void set_splashscreen_visible(bool _visible) { m_show_splashscreen = _visible; }
-
         void save_file_as();
 
     private:
-        void close_file();
         void draw_file_editor(ImGuiID dockspace_id, bool redock_all, ndbl::File *file);
         void draw_history_bar(History*);
         void draw_properties_editor();

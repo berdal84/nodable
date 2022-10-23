@@ -1125,19 +1125,28 @@ void AppView::handle_events()
     {
         ImGui_ImplSDL2_ProcessEvent(&event);
 
-        // Shortcuts (WIP)
-        for(auto _binded_event: BindedEventManager::s_binded_events )
+        switch (event.type)
         {
-            if (_binded_event.event_t != EventType::none
-                 && event.type == SDL_KEYDOWN
-                 && _binded_event.shortcut.key == event.key.keysym.sym
-                 && (event.key.keysym.mod & _binded_event.shortcut.mod) == _binded_event.shortcut.mod
-                 )
-            {
-                EventManager::push_event(_binded_event.event_t);
+            case SDL_WINDOWEVENT:
+                if( event.window.event == SDL_WINDOWEVENT_CLOSE)
+                    EventManager::push_event(EventType::exit_triggered);
                 break;
-            }
+            case SDL_KEYDOWN:
+                for(auto _binded_event: BindedEventManager::s_binded_events )
+                {
+                    if (_binded_event.event_t != EventType::none
+                        && _binded_event.shortcut.key == event.key.keysym.sym
+                        && (event.key.keysym.mod & _binded_event.shortcut.mod) == _binded_event.shortcut.mod
+                    )
+                    {
+                        EventManager::push_event(_binded_event.event_t);
+                        break;
+                    }
+                }
+                break;
         }
+
+
 
     }
 }
@@ -1152,9 +1161,4 @@ void AppView::shutdown()
     SDL_Quit                 ();
 
     NFD_Quit();
-}
-
-void AppView::close_file()
-{
-    m_ctx.close_file(m_ctx.current_file() );
 }
