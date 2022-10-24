@@ -21,6 +21,7 @@ namespace ndbl
     };
     typedef struct {
         std::string label;
+        std::string description;
         OverlayPos position;
     } OverlayData;
 

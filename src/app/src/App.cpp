@@ -382,14 +382,9 @@ void App::handle_events()
                 {
                     if( (_binded_event.condition & Condition_HAS_SELELECTION) == 0) continue;
 
-                    char label[40] = "";
-                    snprintf(label,
-                             40,
-                             "%12s: %s",
-                             _binded_event.label.substr(0,12).c_str(),
-                             _binded_event.shortcut.to_string().c_str());
-                    view->push_overlay({label});
+                    view->push_overlay({_binded_event.label.substr(0,12).c_str(), _binded_event.shortcut.to_string().c_str()});
                 }
+                view->push_overlay({"Deselect", "Double left mouse click on background"});
 
                 LOG_MESSAGE( "App", "NodeView selected\n")
                 break;
@@ -399,7 +394,7 @@ void App::handle_events()
             {
                 FileView* view = m_current_file->get_view();
                 view->clear_overlay();
-                view->push_overlay({"Select a node with your mouse"});
+                view->push_overlay({"Select", "Left mouse click"});
                 break;
             }
             case EventType::delete_node_action_triggered:

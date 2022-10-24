@@ -274,16 +274,18 @@ void FileView::draw_overlay(ImRect rect)
     ImGui::PushStyleColor(ImGuiCol_Border, vec4(0,0,0,0));
     ImGui::PushStyleColor(ImGuiCol_Text, vec4(0,0,0,0.5f));
     ImGui::SetNextWindowPos( rect.GetBL(), ImGuiCond_Always, vec2(0,1)); // bottom-left corner aligned
-
+    ImGui::SetNextWindowSize(vec2(rect.GetSize()), ImGuiCond_Appearing);
     bool show = true;
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize |
-                                   ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing;
+                                   ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar;
 
-    ImGui::Begin("Overlay", &show, flags);
-    ImGui::Text("%s", "Help:");
+    ImGui::Begin("Quick Help:", &show, flags);
+
     ImGui::Indent(5);
     std::for_each(m_overlay_data.begin(), m_overlay_data.end(), [](const OverlayData& _data) {
-        ImGui::Text("%s", _data.label.c_str());
+        ImGui::Text("%s:", _data.label.c_str());
+        ImGui::SameLine(150);
+        ImGui::Text("%s", _data.description.c_str());
     });
     ImGui::EndGroup();
     ImGui::PopStyleColor(3);
