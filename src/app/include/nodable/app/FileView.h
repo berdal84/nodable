@@ -46,7 +46,7 @@ namespace ndbl
         bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
         void        push_overlay(OverlayData data) { m_overlay_data.push_back(data); }
         void        clear_overlay() { m_overlay_data.clear(); }
-        void        draw_overlay(vec2 pos, vec2 size, vec2 margins);
+        void        draw_overlay(ImRect rect);
 	private:
         std::vector<OverlayData> m_overlay_data;
 

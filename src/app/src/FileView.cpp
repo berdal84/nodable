@@ -154,13 +154,15 @@ bool FileView::draw()
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         graph_node_view->update();
         vec2 graph_view_TL = ImGui::GetCursorPos();
-        vec2 graph_view_size = vec2(m_child2_size, availSize.y);
-        bool changed = graph_node_view->draw_as_child("graph", graph_view_size, false, flags);
+        bool changed = graph_node_view->draw_as_child("graph", vec2(m_child2_size, availSize.y), false, flags);
         if( changed )
         {
             graph->set_dirty();
         }
-        draw_overlay(graph_view_TL, graph_view_size, vec2(10,10));
+        ImRect overlay_rect(graph_view_TL, graph_view_TL + graph_node_view->get_visible_rect().GetSize());
+        overlay_rect.Expand(vec2(-20)); // margin
+        overlay_rect.Translate( ImGuiEx::CursorPosToScreenPos(vec2()));
+        draw_overlay(overlay_rect);
     }
     else
     {
@@ -264,16 +266,26 @@ void  FileView::experimental_clipboard_auto_paste(bool _enable)
     }
 }
 
-void FileView::draw_overlay(vec2 pos, vec2 size, vec2 margins)
+void FileView::draw_overlay(ImRect rect)
 {
     if( m_overlay_data.empty() ) return;
 
-    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
-    ImGui::SetCursorPos(pos + margins);
-    ImGui::BeginGroup();
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, vec4(0,0,0,0.1f));
+    ImGui::PushStyleColor(ImGuiCol_Border, vec4(0,0,0,0));
+    ImGui::PushStyleColor(ImGuiCol_Text, vec4(0,0,0,0.5f));
+    ImGui::SetNextWindowPos( rect.GetBL(), ImGuiCond_Always, vec2(0,1)); // bottom-left corner aligned
+
+    bool show = true;
+    const ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize |
+                                   ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing;
+
+    ImGui::Begin("Overlay", &show, flags);
+    ImGui::Text("%s", "Help:");
+    ImGui::Indent(5);
     std::for_each(m_overlay_data.begin(), m_overlay_data.end(), [](const OverlayData& _data) {
         ImGui::Text("%s", _data.label.c_str());
     });
     ImGui::EndGroup();
-    ImGui::PopStyleVar();
+    ImGui::PopStyleColor(3);
+    ImGui::End();
 }
