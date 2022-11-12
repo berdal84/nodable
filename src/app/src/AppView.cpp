@@ -497,9 +497,9 @@ bool AppView::draw()
                 draw_file_info();
                 draw_node_properties();
 
-                for (File* each_file : m_ctx.get_files() )
+                for (auto& each_file : m_ctx.get_files() )
                 {
-                    draw_file_editor(ds_root, redock_all, each_file);
+                    draw_file_editor(ds_root, redock_all, each_file.get());
                 }
             }
             draw_status_bar();

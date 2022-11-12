@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <memory> //unique_ptr
 #include <ghc/filesystem.hpp>
 
 namespace ndbl
@@ -16,7 +17,7 @@ namespace ndbl
     {
     public:
         using fs_path = ghc::filesystem::path;
-        using Files   = std::vector<File*>;
+        using Files   = std::vector<std::unique_ptr<File>>;
 
         virtual ~IAppCtx() = default;
 

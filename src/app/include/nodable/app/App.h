@@ -72,7 +72,7 @@ namespace ndbl
         fs_path         m_assets_folder_path;
         size_t          m_current_file_index;
         std::unique_ptr<ILanguage> m_language;
-        std::vector<File*> m_loaded_files;
+        std::vector<std::unique_ptr<File>> m_loaded_files;
 
         void            handle_events();
 

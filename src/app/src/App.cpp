@@ -131,10 +131,10 @@ void App::flag_to_stop()
 void App::shutdown()
 {
     LOG_MESSAGE("App", "Shutting down ...\n")
-    for( File* each_file : m_loaded_files )
+    if( !m_loaded_files.empty() )
     {
-        LOG_VERBOSE("App", "Delete file %s ...\n", each_file->get_path().c_str())
-        delete each_file;
+        LOG_VERBOSE("App", "Delete files ...\n")
+        m_loaded_files.clear();
     }
     m_view.shutdown();
     LOG_MESSAGE("App", "Shutdown.\n")
@@ -142,17 +142,17 @@ void App::shutdown()
 
 bool App::open_file(const fs_path& _path)
 {
-    auto file = new File( *this, _path.filename().string(), _path.string());
+    auto file = std::make_unique<File>( *this, _path.filename().string(), _path.string());
 
     if ( !file->read_from_disk() )
     {
         LOG_ERROR("File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
-        delete file;
         return false;
     }
 
-    m_loaded_files.push_back( file );
-    current_file(file);
+    current_file(file.get());
+    m_loaded_files.emplace_back( std::move(file) );
+
     EventManager::push_event(EventType::file_opened);
 	return true;
 }
@@ -197,20 +197,18 @@ void App::close_file(File* _file)
 {
     if ( _file )
     {
-        auto it = std::find(m_loaded_files.begin(), m_loaded_files.end(), _file);
+        auto it = std::find_if(m_loaded_files.begin(), m_loaded_files.end(), [_file](auto& each) { return each.get() == _file; });
         NODABLE_ASSERT(it != m_loaded_files.end());
         it = m_loaded_files.erase(it);
 
         if ( it != m_loaded_files.end() ) //---- try to load the file next
         {
-            m_current_file = *it;
+            m_current_file = it->get();
         }
         else
         {
             m_current_file = nullptr;
         }
-
-        delete _file;
     }
 }
 
@@ -546,11 +544,11 @@ File *App::new_file()
 {
     // get a unique friendly name
     const char* basename   = "Untitled";
-    char        name[18]; // "Untitled_XXX.cpp\0";
+    char        name[32]; // "Untitled_XXX.cpp\0";
     snprintf(name, sizeof(name), "%s.cpp", basename);
 
     int num = 0;
-    for(auto each_file : m_loaded_files)
+    for(auto& each_file : m_loaded_files)
     {
         if( strcmp( each_file->get_name().c_str(), name) == 0 )
         {
@@ -559,9 +557,9 @@ File *App::new_file()
     }
 
     // create the file
-    auto file = new File( *this, name);
-    m_loaded_files.push_back(file);
-    current_file(file);
+    auto file = std::make_unique<File>( *this, name);
+    current_file(file.get());
+    m_loaded_files.emplace_back(std::move(file) );
 
-    return file;
+    return current_file();
 }
