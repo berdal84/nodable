@@ -287,7 +287,6 @@ void FileView::draw_overlay(ImRect rect)
         ImGui::SameLine(150);
         ImGui::Text("%s", _data.description.c_str());
     });
-    ImGui::EndGroup();
     ImGui::PopStyleColor(3);
     ImGui::End();
 }
