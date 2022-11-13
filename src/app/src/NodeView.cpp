@@ -47,7 +47,6 @@ NodeView::NodeView(IAppCtx& _ctx)
         , m_pinned(false)
         , m_border_radius(5.0f)
         , m_border_color_selected(1.0f, 1.0f, 1.0f)
-        , m_exposed_this_member_view(nullptr)
         , m_children_slots(this)
         , m_input_slots(this)
         , m_output_slots(this)
@@ -60,9 +59,6 @@ NodeView::NodeView(IAppCtx& _ctx)
 
 NodeView::~NodeView()
 {
-    // delete MemberViews
-    for ( auto& pair: m_exposed_members ) delete pair.second;
-
     // deselect
     if ( s_selected == this ) s_selected = nullptr;
 
@@ -90,7 +86,8 @@ std::string NodeView::get_label()
 
 void NodeView::expose(Member* _member)
 {
-    auto member_view = new MemberView(m_ctx, _member, this);
+    auto member_view = std::make_shared<MemberView>(m_ctx, _member, this);
+    m_exposed_members.insert({_member, member_view} );
 
     if ( _member == get_owner()->get_this_member() )
     {
@@ -101,15 +98,13 @@ void NodeView::expose(Member* _member)
     {
         if (_member->get_allowed_connection() == Way_In)
         {
-            m_exposed_input_only_members.push_back(member_view);
+            m_exposed_input_only_members.push_back(member_view.get());
         }
         else
         {
-            m_exposed_out_or_inout_members.push_back(member_view);
+            m_exposed_out_or_inout_members.push_back(member_view.get());
         }
     }
-
-    m_exposed_members.insert({_member, member_view});
 }
 
 void NodeView::set_owner(Node *_node)
@@ -268,7 +263,7 @@ const MemberView* NodeView::get_member_view(const Member* _member)const
 {
     auto found = m_exposed_members.find(_member);
     if( found == m_exposed_members.end() ) return nullptr;
-    return found->second;
+    return found->second.get();
 }
 
 void NodeView::set_position(vec2 _position)
@@ -459,29 +454,29 @@ bool NodeView::draw()
         ImColor borderCol = settings.ui_node_borderColor;
         ImColor hoverCol  = settings.ui_node_nodeConnectorHoveredColor;
 
-        if ( m_exposed_this_member_view )
+        if ( m_exposed_this_member_view && m_exposed_this_member_view->m_out.get())
         {
-            MemberConnector::draw(m_exposed_this_member_view->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
+            MemberConnector::draw(m_exposed_this_member_view->m_out.get(), radius, color, borderCol, hoverCol, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
         for( auto& memberView : m_exposed_input_only_members )
         {
-            MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
+            MemberConnector::draw(memberView->m_in.get(), radius, color, borderCol, hoverCol, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
         for( auto& memberView : m_exposed_out_or_inout_members )
         {
-            if ( memberView->m_in)
+            if ( auto in = memberView->m_in.get())
             {
-                MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
+                MemberConnector::draw(in, radius, color, borderCol, hoverCol, m_edition_enable);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
 
-            if ( memberView->m_out)
+            if ( auto out = memberView->m_out.get())
             {
-                MemberConnector::draw(memberView->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
+                MemberConnector::draw(out, radius, color, borderCol, hoverCol, m_edition_enable);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
         }
@@ -1008,8 +1003,7 @@ void NodeView::set_view_detail(NodeViewDetail _viewDetail)
     {
         for( auto& eachPair : eachView->m_exposed_members )
         {
-            MemberView* memberView = eachPair.second;
-            memberView->reset();
+            eachPair.second->reset();
         }
     }
 }

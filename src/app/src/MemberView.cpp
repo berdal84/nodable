@@ -1,4 +1,4 @@
-#include <nodable/app/NodeView.h>
+#include <nodable/app/MemberView.h>
 #include <nodable/core/Member.h>
 #include <nodable/app/MemberConnector.h>
 
@@ -9,18 +9,26 @@ MemberView::MemberView(IAppCtx& _ctx, Member* _member, NodeView* _nodeView)
         : m_member(_member)
         , m_showInput(false)
         , m_touched(false)
-        , m_in(nullptr)
-        , m_out(nullptr)
         , m_nodeView(_nodeView)
 {
     NODABLE_ASSERT(_member ); // Member must be defined
     NODABLE_ASSERT(_nodeView ); // Member must be defined
-    if (m_member->allows_connection(Way_In) ) m_in  = new MemberConnector(_ctx, this, Way_In, Side::Top);
-    if (m_member->allows_connection(Way_Out) ) m_out = new MemberConnector(_ctx,this, Way_Out, Side::Bottom);
+    if (m_member->allows_connection(Way_In) ) m_in  = std::make_shared<MemberConnector>(_ctx, this, Way_In, Side::Top);
+    if (m_member->allows_connection(Way_Out) ) m_out = std::make_shared<MemberConnector>(_ctx,this, Way_Out, Side::Bottom);
 }
 
-MemberView::~MemberView()
+void MemberView::reset()
 {
-    delete m_in;
-    delete m_out;
+    m_touched = false;
+    m_showInput = false;
+}
+
+vec2 MemberView::relative_pos() const
+{
+    return m_relative_pos;
+}
+
+void MemberView::relative_pos(vec2 _pos)
+{
+    m_relative_pos = _pos;
 }

@@ -39,8 +39,6 @@ namespace ndbl {
         };
 
         ~MemberConnector() = default;
-        MemberConnector (const MemberConnector&) = delete;
-        MemberConnector& operator= (const MemberConnector&) = delete;
 
         Member*            get_member()const;
         type        get_member_type()const;

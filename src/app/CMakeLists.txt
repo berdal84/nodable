@@ -25,26 +25,28 @@ configure_file("include/nodable/app/build_info.h.in" "${NODABLE_CONFIGURED_DIR}/
 add_executable(
     nodable
     WIN32
-        src/main.cpp
         src/App.cpp
         src/AppView.cpp
+        src/BindedEventManager.cpp
         src/Event.cpp
         src/File.cpp
         src/FileView.cpp
         src/GraphNodeView.cpp
         src/History.cpp
         src/ImGuiEx.cpp
-        src/main.cpp
         src/MemberConnector.cpp
         src/MemberView.cpp
         src/NodeConnector.cpp
         src/NodeView.cpp
-        src/ViewConstraint.cpp
         src/Settings.cpp
+        src/Shortcut.cpp
         src/View.cpp
+        src/ViewConstraint.cpp
+        src/main.cpp
+        src/main.cpp
         ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_opengl3.cpp # include backend as-is
         ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_sdl.cpp     #          //
-        src/Shortcut.cpp include/nodable/app/BindedEventManager.h src/BindedEventManager.cpp)
+)
 
 target_include_directories(
     nodable

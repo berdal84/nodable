@@ -3,10 +3,12 @@
 #include <string>
 #include <map>
 #include <cmath> // round()
+#include <memory> // unique_ptr
 #include <algorithm>
 #include <observe/observer.h>
 #include <imgui/imgui.h>   // for vec2
 
+#include <nodable/app/MemberView.h>
 #include <nodable/app/types.h>    // for constants and forward declarations
 #include <nodable/app/View.h>       // base class
 #include <nodable/core/Component.h>  // base class
@@ -92,6 +94,10 @@ namespace ndbl
 	class NodeView :  public Component, public View
 	{
 	public:
+        using MemberViewVec = std::vector<MemberView*>;
+        using MemberViewPtr = std::shared_ptr<MemberView>;
+        using MemberViewMap = std::map<const Member*, MemberViewPtr>;
+
 		NodeView(IAppCtx& _ctx);
 		~NodeView();
         NodeView (const NodeView&) = delete;
@@ -178,10 +184,11 @@ namespace ndbl
         Slots<NodeView*> m_successor_slots;
 		std::vector<NodeConnector*>          m_predecessors;
 		std::vector<NodeConnector*>          m_successors;
-		std::vector<MemberView*>             m_exposed_input_only_members;
-		std::vector<MemberView*>             m_exposed_out_or_inout_members;
-        std::map<const Member*, MemberView*> m_exposed_members;
-        MemberView*                          m_exposed_this_member_view;
+
+        MemberViewVec m_exposed_input_only_members;
+		MemberViewVec m_exposed_out_or_inout_members;
+        MemberViewMap m_exposed_members;
+        MemberViewPtr m_exposed_this_member_view;
         std::vector<ViewConstraint>      m_constraints;
 
 		static NodeView*              s_selected;
@@ -195,36 +202,4 @@ namespace ndbl
 
     };
 
-
-    /**
-     * Simple struct to store a member view state
-     */
-    class MemberView
-    {
-        vec2              m_relative_pos;
-
-    public:
-        Member*           m_member;
-        NodeView*         m_nodeView;
-        MemberConnector*  m_in;
-        MemberConnector*  m_out;
-        bool              m_showInput;
-        bool              m_touched;
-
-        MemberView(IAppCtx& _ctx, Member* _member, NodeView* _nodeView);
-        ~MemberView();
-        MemberView (const MemberView&) = delete;
-        MemberView& operator= (const MemberView&) = delete;
-        /**
-         * Reset the view
-         */
-        void reset()
-        {
-            m_touched = false;
-            m_showInput = false;
-        }
-
-        vec2 relative_pos() const { return m_relative_pos; }
-        void relative_pos(vec2 _pos) { m_relative_pos = _pos; }
-    };
 }
