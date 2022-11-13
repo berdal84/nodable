@@ -3,7 +3,6 @@
 #include <string>
 #include <map>
 #include <cmath> // round()
-#include <memory> // unique_ptr
 #include <algorithm>
 #include <observe/observer.h>
 #include <imgui/imgui.h>   // for vec2
@@ -15,6 +14,7 @@
 #include <nodable/core/Member.h>
 #include <nodable/core/Slots.h>
 #include <nodable/core/reflection/reflection>
+#include <nodable/core/memory.h>
 
 namespace ndbl
 {
@@ -95,7 +95,7 @@ namespace ndbl
 	{
 	public:
         using MemberViewVec = std::vector<MemberView*>;
-        using MemberViewPtr = std::shared_ptr<MemberView>;
+        using MemberViewPtr = s_ptr<MemberView>;
         using MemberViewMap = std::map<const Member*, MemberViewPtr>;
 
 		NodeView(IAppCtx& _ctx);
@@ -188,7 +188,7 @@ namespace ndbl
         MemberViewVec m_exposed_input_only_members;
 		MemberViewVec m_exposed_out_or_inout_members;
         MemberViewMap m_exposed_members;
-        MemberViewPtr m_exposed_this_member_view;
+        MemberView*   m_exposed_this_member_view;
         std::vector<ViewConstraint>      m_constraints;
 
 		static NodeView*              s_selected;

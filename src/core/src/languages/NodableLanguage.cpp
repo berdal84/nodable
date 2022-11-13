@@ -76,9 +76,9 @@ NodableLanguage::~NodableLanguage()
 {
 }
 
-std::shared_ptr<const iinvokable> NodableLanguage::find_function(const func_type* _signature) const
+s_ptr<const iinvokable> NodableLanguage::find_function(const func_type* _signature) const
 {
-    auto is_compatible = [&](std::shared_ptr<const iinvokable> fct)
+    auto is_compatible = [&](s_ptr<const iinvokable> fct)
     {
         return fct->get_type().is_compatible(_signature);
     };
@@ -93,14 +93,14 @@ std::shared_ptr<const iinvokable> NodableLanguage::find_function(const func_type
     return nullptr;
 }
 
-std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct_exact(const func_type* _type) const
+s_ptr<const iinvokable> NodableLanguage::find_operator_fct_exact(const func_type* _type) const
 {
     if(!_type)
     {
         return nullptr;
     }
 
-    auto is_exactly = [&](std::shared_ptr<const iinvokable> _invokable)
+    auto is_exactly = [&](s_ptr<const iinvokable> _invokable)
     {
         return _type->is_exactly(&_invokable->get_type());
     };
@@ -115,7 +115,7 @@ std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct_exact(const
     return nullptr;
 }
 
-std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct(const func_type* _type) const
+s_ptr<const iinvokable> NodableLanguage::find_operator_fct(const func_type* _type) const
 {
     if(!_type)
     {
@@ -126,10 +126,10 @@ std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct(const func_
     return exact;
 }
 
-std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct_fallback(const func_type* _type) const
+s_ptr<const iinvokable> NodableLanguage::find_operator_fct_fallback(const func_type* _type) const
 {
 
-    auto is_compatible = [&](std::shared_ptr<const iinvokable> _invokable)
+    auto is_compatible = [&](s_ptr<const iinvokable> _invokable)
     {
         return _type->is_compatible(&_invokable->get_type());
     };
@@ -144,7 +144,7 @@ std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct_fallback(co
     return nullptr;
 }
 
-void NodableLanguage::add_invokable(std::shared_ptr<const iinvokable> _invokable)
+void NodableLanguage::add_invokable(s_ptr<const iinvokable> _invokable)
 {
     m_functions.push_back(_invokable);
 

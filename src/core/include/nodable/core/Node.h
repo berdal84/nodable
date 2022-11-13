@@ -5,7 +5,7 @@
 
 // std
 #include <string>
-#include <memory>
+#include <nodable/core/memory.h>
 #include <algorithm>
 
 // Nodable

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include <nodable/core/memory.h>
 #include <nodable/core/types.h>
 #include <nodable/core/assembly/Compiler.h>
 #include <nodable/core/assembly/Register.h>
@@ -36,7 +36,7 @@ namespace ndbl
      */
     class VirtualMachine
     {
-        using code_uptr = std::unique_ptr<const Code>;
+        using code_uptr = u_ptr<const Code>;
     public:
         VirtualMachine();
         ~VirtualMachine() = default;

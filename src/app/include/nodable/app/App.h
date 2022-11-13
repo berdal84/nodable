@@ -1,7 +1,7 @@
 #pragma once
 
 // std
-#include <memory>
+#include <nodable/core/memory.h>
 #include <string>
 
 // Nodable
@@ -70,8 +70,8 @@ namespace ndbl
         bool            m_should_stop;
         fs_path         m_assets_folder_path;
         size_t          m_current_file_index;
-        std::unique_ptr<ILanguage> m_language;
-        std::vector<std::unique_ptr<File>> m_loaded_files;
+        u_ptr<ILanguage> m_language;
+        std::vector<u_ptr<File>> m_loaded_files;
 
         void            handle_events();
 

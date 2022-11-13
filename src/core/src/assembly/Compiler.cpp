@@ -1,6 +1,6 @@
 #include "nodable/core/assembly/Compiler.h"
 
-#include <memory>
+#include <nodable/core/memory.h>
 #include <exception>
 #include <iostream>
 #include <nodable/core/assembly/Register.h>
@@ -315,7 +315,7 @@ void assembly::Compiler::compile(const InstructionNode *instr_node)
     }
 }
 
-std::unique_ptr<const Code> assembly::Compiler::compile_syntax_tree(const GraphNode* _graph)
+u_ptr<const Code> assembly::Compiler::compile_syntax_tree(const GraphNode* _graph)
 {
     if (is_syntax_tree_valid(_graph))
     {

@@ -8,7 +8,7 @@
 
 #include <string>
 #include <vector>
-#include <memory> // std::shared_ptr
+#include <nodable/core/memory.h> // s_ptr
 
 namespace ndbl
 {
@@ -51,7 +51,7 @@ namespace ndbl
 
 		void set_type(type _type) { get_pointed_variant().ensure_is_type(_type); }
 		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
-        void set_src_token(const std::shared_ptr<Token> _token);
+        void set_src_token(const s_ptr<Token> _token);
         void set_owner(Node* _owner) { m_owner = _owner; }
 
 		Node*                 get_owner()const { return m_owner; };
@@ -61,8 +61,8 @@ namespace ndbl
         const type&           get_type()const { return get_pointed_variant().get_type(); }
         Visibility            get_visibility()const { return m_visibility; }
         Way                   get_allowed_connection()const { return m_allowed_connection; }
-        const std::shared_ptr<Token> get_src_token() const { return m_sourceToken; }
-		std::shared_ptr<Token>       get_src_token() { return m_sourceToken; }
+        const s_ptr<Token> get_src_token() const { return m_sourceToken; }
+		s_ptr<Token>       get_src_token() { return m_sourceToken; }
         const variant*        get_variant()const { return &get_pointed_variant(); }
         variant*              get_variant() { return &get_pointed_variant(); }
 
@@ -100,7 +100,7 @@ namespace ndbl
 		Properties*       m_parentProperties;
 		std::vector<Member*>   m_outputs;
 		Way                    m_allowed_connection;
-		std::shared_ptr<Token> m_sourceToken;
+		s_ptr<Token> m_sourceToken;
 		std::string            m_name;
 		ndbl::variant       m_variant;
     };

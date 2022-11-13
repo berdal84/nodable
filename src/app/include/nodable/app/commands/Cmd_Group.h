@@ -1,7 +1,7 @@
 #pragma once
 #include <nodable/app/Command.h>
 #include <vector>
-#include <memory>
+#include <nodable/core/memory.h>
 
 namespace ndbl
 {
@@ -15,7 +15,7 @@ namespace ndbl
         Cmd_Group(const char* _description): m_description(_description){};
         ~Cmd_Group() override = default;
 
-        void push_cmd(std::shared_ptr<ICommand> _cmd) { m_commands.push_back(_cmd); }
+        void push_cmd(s_ptr<ICommand> _cmd) { m_commands.push_back(_cmd); }
         size_t size(){ return m_commands.size(); }
 
         void execute() override
@@ -34,6 +34,6 @@ namespace ndbl
 
     private:
         const char* m_description;
-        std::vector<std::shared_ptr<ICommand>> m_commands;
+        std::vector<s_ptr<ICommand>> m_commands;
     };
 }

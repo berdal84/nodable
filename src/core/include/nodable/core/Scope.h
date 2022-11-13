@@ -17,10 +17,10 @@ namespace ndbl
         Node*                   get_last_code_block();
         void                    get_last_instructions_rec(std::vector<InstructionNode *> &_out) override ;
 
-        std::shared_ptr<Token>  get_begin_scope_token() const { return m_begin_scope_token; }
-        std::shared_ptr<Token>  get_end_scope_token() const { return m_end_scope_token; }
-        void                    set_begin_scope_token(std::shared_ptr<Token> token) { m_begin_scope_token = token; }
-        void                    set_end_scope_token(std::shared_ptr<Token> token) { m_end_scope_token = token; }
+        s_ptr<Token>  get_begin_scope_token() const { return m_begin_scope_token; }
+        s_ptr<Token>  get_end_scope_token() const { return m_end_scope_token; }
+        void                    set_begin_scope_token(s_ptr<Token> token) { m_begin_scope_token = token; }
+        void                    set_end_scope_token(s_ptr<Token> token) { m_end_scope_token = token; }
 
         bool                    has_no_variable()const override { return m_variables.empty(); }
         void                    add_variable(VariableNode*) override ;
@@ -32,8 +32,8 @@ namespace ndbl
     private:
 
         VariableNodeVec        m_variables;
-        std::shared_ptr<Token> m_begin_scope_token;
-        std::shared_ptr<Token> m_end_scope_token;
+        s_ptr<Token> m_begin_scope_token;
+        s_ptr<Token> m_end_scope_token;
 
         REFLECT_DERIVED_CLASS(Component, IScope)
     };

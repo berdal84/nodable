@@ -1,7 +1,7 @@
 #include <nodable/app/GraphNodeView.h>
 
 #include <algorithm>
-#include <memory> // std::shared_ptr
+#include <nodable/core/memory.h> // s_ptr
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #include <nodable/app/App.h>
@@ -114,7 +114,7 @@ bool GraphNodeView::draw()
     auto create_instr = [&]( Scope* _scope ) -> InstructionNode*
     {
         InstructionNode* instr_node = graph->create_instr();
-        std::shared_ptr<Token> token = std::make_shared<Token>(Token_t::end_of_instruction);
+        s_ptr<Token> token = std::make_shared<Token>(Token_t::end_of_instruction);
         token->m_suffix = System::k_end_of_line;
         instr_node->end_of_instr_token(token);
         return instr_node;
@@ -127,7 +127,7 @@ bool GraphNodeView::draw()
 
         var_node = graph->create_variable(_type, _name, scope );
 
-        std::shared_ptr<Token> token  = std::make_shared<Token>();
+        s_ptr<Token> token  = std::make_shared<Token>();
         token->m_type = Token_t::keyword_operator;
         token->m_prefix  = " ";
         token->m_suffix  = " ";

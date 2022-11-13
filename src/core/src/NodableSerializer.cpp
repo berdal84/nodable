@@ -53,7 +53,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
                 }
 
                 // Operator
-                std::shared_ptr<Token> sourceToken = _component->get_source_token();
+                s_ptr<Token> sourceToken = _component->get_source_token();
                 if (sourceToken)
                 {
                     _out.append(sourceToken->m_prefix);
@@ -79,7 +79,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
                 // operator ( ... innerOperator ... )   ex:   -(a+b)
 
                 // Operator
-                std::shared_ptr<Token> token = _component->get_source_token();
+                s_ptr<Token> token = _component->get_source_token();
 
                 if (token) _out.append(token->m_prefix);
 
@@ -159,7 +159,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const VariableNode*
     // type
     if ( decl_instr )
     {
-        if ( std::shared_ptr<const Token> type_tok = _node->get_type_token() )
+        if ( s_ptr<const Token> type_tok = _node->get_type_token() )
         {
             serialize(_out, type_tok );
         }
@@ -171,7 +171,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const VariableNode*
     }
 
     // var name
-    std::shared_ptr<const Token> identifier_token = _node->get_identifier_token();
+    s_ptr<const Token> identifier_token = _node->get_identifier_token();
     if ( identifier_token ) _out.append(identifier_token->m_prefix);
     _out.append(_node->get_name());
     if ( identifier_token ) _out.append(identifier_token->m_suffix);
@@ -182,7 +182,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const VariableNode*
     {
         auto append_assign_tok  = [&]()
         {
-            std::shared_ptr<const Token> assign_tok = _node->get_assignment_operator_token();
+            s_ptr<const Token> assign_tok = _node->get_assignment_operator_token();
             if (assign_tok )
             {
                 _out.append(assign_tok->m_prefix );
@@ -223,7 +223,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const Member * _mem
         }
     }
 
-    std::shared_ptr<Token> sourceToken = _member->get_src_token();
+    s_ptr<Token> sourceToken = _member->get_src_token();
     if (sourceToken)
     {
         _out.append(sourceToken->m_prefix);
@@ -339,7 +339,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InstructionNo
     return serialize( _out, _instruction->end_of_instr_token() );
 }
 
-std::string& NodableSerializer::serialize(std::string& _out, std::shared_ptr<const Token> _token)const
+std::string& NodableSerializer::serialize(std::string& _out, s_ptr<const Token> _token)const
 {
     if ( _token )
     {
@@ -402,7 +402,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const ConditionalSt
         serialize( _out, ifScope );
 
     // else & else scope
-    if ( std::shared_ptr<const Token> tokenElse = _condStruct->get_token_else() )
+    if ( s_ptr<const Token> tokenElse = _condStruct->get_token_else() )
     {
         serialize( _out, tokenElse );
         Scope* elseScope = _condStruct->get_condition_false_scope();

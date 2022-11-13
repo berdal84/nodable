@@ -89,7 +89,7 @@ void VirtualMachine::stop_program()
     }
 }
 
-std::unique_ptr<const Code> VirtualMachine::release_program()
+u_ptr<const Code> VirtualMachine::release_program()
 {
     if( m_is_program_running )
     {
@@ -365,7 +365,7 @@ Instruction* VirtualMachine::get_next_instr() const
     return nullptr;
 }
 
-bool VirtualMachine::load_program(std::unique_ptr<const Code> _code)
+bool VirtualMachine::load_program(u_ptr<const Code> _code)
 {
     NODABLE_ASSERT(!m_is_program_running)   // dev must stop before to load program.
     NODABLE_ASSERT(!m_program_asm_code)     // dev must unload before to load.

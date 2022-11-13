@@ -20,7 +20,7 @@ namespace ndbl
         std::string& serialize(std::string& _out, const Token_t&)const override;
         std::string& serialize(std::string& _out, type)const override;
         std::string& serialize(std::string& _out, const Member*, bool followConnections = true)const override;
-        std::string& serialize(std::string& _out, std::shared_ptr<const Token>) const override;
+        std::string& serialize(std::string& _out, s_ptr<const Token>) const override;
         std::string& serialize(std::string& _out, const InstructionNode*)const override;
         std::string& serialize(std::string& _out, const Node*)const override;
         std::string& serialize(std::string& _out, const Scope*)const override;

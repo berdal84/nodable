@@ -48,7 +48,7 @@ void Member::set_input(Member* _val)
     m_input        = _val;
 }
 
-void Member::set_src_token(const std::shared_ptr<Token> _token)
+void Member::set_src_token(const s_ptr<Token> _token)
 {
     if ( _token )
     {

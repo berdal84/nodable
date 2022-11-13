@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <memory>
+#include <nodable/core/memory.h>
 
 #include <imgui/imgui.h>
 #include <nodable/core/reflection/reflection>

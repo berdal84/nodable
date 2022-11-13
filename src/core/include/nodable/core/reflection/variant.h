@@ -2,7 +2,7 @@
 
 #include <string>
 #include <array>
-#include <memory> // std::shared_ptr
+#include <nodable/core/memory.h> // s_ptr
 
 #include <nodable/core/types.h> // for constants and forward declarations
 #include <nodable/core/assertions.h>

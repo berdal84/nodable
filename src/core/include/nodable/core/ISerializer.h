@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <memory> // std::shared_ptr
+#include <nodable/core/memory.h> // s_ptr
 
 #include <nodable/core/Token.h>
 #include <nodable/core/reflection/reflection>
@@ -36,7 +36,7 @@ namespace ndbl
         virtual std::string& serialize(std::string& _out, const Token_t&)const = 0;
         virtual std::string& serialize(std::string& _out, type)const = 0;
         virtual std::string& serialize(std::string& _out, const Member*, bool followConnections = true)const = 0;
-        virtual std::string& serialize(std::string& _out, std::shared_ptr<const Token>) const = 0;
+        virtual std::string& serialize(std::string& _out, s_ptr<const Token>) const = 0;
         virtual std::string& serialize(std::string& _out, const InstructionNode*)const = 0;
         virtual std::string& serialize(std::string& _out, const Node*)const = 0;
         virtual std::string& serialize(std::string& _out, const Scope*)const = 0;

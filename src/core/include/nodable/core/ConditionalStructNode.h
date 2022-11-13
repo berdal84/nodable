@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include <nodable/core/memory.h>
 #include <nodable/core/Token.h>
 #include <nodable/core/Node.h>
 #include <nodable/core/IScope.h>
@@ -20,10 +20,10 @@ namespace ndbl
         ConditionalStructNode();
         ~ConditionalStructNode() = default;
 
-        inline void            set_token_if(std::shared_ptr<Token> token) { m_token_if = token; }
-        inline void            set_token_else(std::shared_ptr<Token> token) { m_token_else = token; }
-        inline std::shared_ptr<const Token> get_token_if()const   { return m_token_if; }
-        inline std::shared_ptr<const Token> get_token_else()const { return m_token_else; }
+        inline void            set_token_if(s_ptr<Token> token) { m_token_if = token; }
+        inline void            set_token_else(s_ptr<Token> token) { m_token_else = token; }
+        inline s_ptr<const Token> get_token_if()const   { return m_token_if; }
+        inline s_ptr<const Token> get_token_else()const { return m_token_else; }
 
         // override AbstractConditionalStruct
         Scope*        get_condition_true_scope()const override;
@@ -34,8 +34,8 @@ namespace ndbl
         InstructionNode* get_cond_instr()const override { return m_cond_instr_node; }
 
     private:
-        std::shared_ptr<Token> m_token_if;
-        std::shared_ptr<Token> m_token_else;
+        s_ptr<Token> m_token_if;
+        s_ptr<Token> m_token_else;
         InstructionNode*       m_cond_instr_node;
 
         REFLECT_DERIVED_CLASS(Node, IConditionalStruct)

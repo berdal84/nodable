@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include <nodable/core/memory.h>
 #include <nodable/core/Token.h>
 #include <nodable/core/Node.h> // base class
 #include <nodable/core/IConditionalStruct.h> // interface
@@ -22,8 +22,8 @@ namespace ndbl
         ForLoopNode();
         ~ForLoopNode() = default;
 
-        inline void            set_token_for(std::shared_ptr<Token> _token) { m_token_for = _token; }
-        inline std::shared_ptr<const Token> get_token_for()const   { return m_token_for; }
+        inline void            set_token_for(s_ptr<Token> _token) { m_token_for = _token; }
+        inline s_ptr<const Token> get_token_for()const   { return m_token_for; }
         Member*                get_init_expr()const { return m_props.get(k_forloop_initialization_member_name); }
         Member*                get_iter_expr()const { return m_props.get(k_forloop_iteration_member_name); }
 
@@ -38,7 +38,7 @@ namespace ndbl
         InstructionNode* get_cond_instr()const override { return m_cond_instr_node; }
         InstructionNode* get_iter_instr()const { return m_iter_instr_node; }
     private:
-        std::shared_ptr<Token> m_token_for;
+        s_ptr<Token> m_token_for;
         InstructionNode* m_init_instr_node;
         InstructionNode* m_cond_instr_node;
         InstructionNode* m_iter_instr_node;

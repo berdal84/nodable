@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <string>
 #include <algorithm>
-#include <memory> // unique_ptr
+#include <nodable/core/memory.h> // u_ptr
 #include <observe/event.h>
 #include <ImGuiColorTextEdit/TextEditor.h> // for coordinates
 
@@ -57,8 +57,8 @@ namespace ndbl
 		std::string                m_name;
 		std::string                m_path;
 		const NodeFactory          m_factory;
-		std::unique_ptr<FileView>  m_view;
+		u_ptr<FileView>  m_view;
 		History                    m_history;
-		std::unique_ptr<GraphNode> m_graph;
+		u_ptr<GraphNode> m_graph;
     };
 }

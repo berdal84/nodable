@@ -1,5 +1,5 @@
 #pragma once
-#include <memory>
+#include <nodable/core/memory.h>
 #include <nodable/core/types.h>
 #include <nodable/core/Token.h>
 #include <nodable/core/Component.h>
@@ -28,8 +28,8 @@ namespace ndbl
 		inline const func_type*              get_func_type()const { return m_signature; }
 		inline const iinvokable*           get_function()const { return m_invokable; }
         inline void                        set_result(Member *_value) { m_result = _value; };
-        inline void                        set_source_token(std::shared_ptr<Token> token) { m_source_token = token ? token : Token::s_null; }
-        inline std::shared_ptr<Token>      get_source_token()const { return this->m_source_token; }
+        inline void                        set_source_token(s_ptr<Token> token) { m_source_token = token ? token : Token::s_null; }
+        inline s_ptr<Token>      get_source_token()const { return this->m_source_token; }
         inline void                        set_l_handed_val(Member *_value) { m_args[0] = _value; }
         inline Member*                     get_l_handed_val() { return m_args[0]; };
         inline void                        set_r_handed_val(Member *_value)  { m_args[1] = _value; }
@@ -39,7 +39,7 @@ namespace ndbl
 
 	protected:
         Member*                 m_result;
-		std::shared_ptr<Token>  m_source_token;
+		s_ptr<Token>  m_source_token;
         std::vector<Member*>    m_args;
         const func_type*        m_signature;
         const iinvokable*       m_invokable;

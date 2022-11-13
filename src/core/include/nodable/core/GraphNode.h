@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <memory> // std::shared_ptr
+#include <nodable/core/memory.h> // s_ptr
 
 #include <nodable/core/reflection/reflection>
 #include <nodable/core/IScope.h>

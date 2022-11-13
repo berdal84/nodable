@@ -4,7 +4,7 @@
 #include <vector>
 #include <tuple>
 #include <regex>
-#include <memory>
+#include <nodable/core/memory.h>
 
 #include <nodable/core/reflection/type.h>
 #include <nodable/core/constants.h>

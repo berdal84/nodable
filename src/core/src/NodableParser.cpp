@@ -1,7 +1,7 @@
 #include <nodable/core/languages/NodableParser.h>
 
 #include <algorithm>
-#include <memory> // std::shared_ptr
+#include <nodable/core/memory.h> // s_ptr
 #include <regex>
 #include <sstream>
 #include <string>
@@ -60,7 +60,7 @@ bool NodableParser::parse(const std::string &_source_code, GraphNode *_graphNode
 
         if (line_count != 0 && !m_token_ribbon.tokens.empty() )
         {
-            std::shared_ptr<Token> lastToken = m_token_ribbon.tokens.back();
+            s_ptr<Token> lastToken = m_token_ribbon.tokens.back();
             lastToken->m_suffix.push_back(System::k_end_of_line);
         }
 
@@ -136,7 +136,7 @@ i16_t NodableParser::to_i16(const std::string &_str)
     return stoi(_str);
 }
 
-Member* NodableParser::to_member(std::shared_ptr<Token> _token)
+Member* NodableParser::to_member(s_ptr<Token> _token)
 {
     if( _token->m_type == Token_t::identifier )
     {
@@ -226,8 +226,8 @@ Member* NodableParser::parse_binary_operator_expression(unsigned short _preceden
 	}
 
     start_transaction();
-    std::shared_ptr<Token> operatorToken = m_token_ribbon.eatToken();
-    std::shared_ptr<Token> operandToken  = m_token_ribbon.peekToken();
+    s_ptr<Token> operatorToken = m_token_ribbon.eatToken();
+    s_ptr<Token> operandToken  = m_token_ribbon.peekToken();
 
 	// Structure check
 	const bool isValid = _left != nullptr &&
@@ -315,7 +315,7 @@ Member* NodableParser::parse_unary_operator_expression(unsigned short _precedenc
 	}
 
     start_transaction();
-    std::shared_ptr<Token> operator_token = m_token_ribbon.eatToken();
+    s_ptr<Token> operator_token = m_token_ribbon.eatToken();
 
 	// Check if we get an operator first
 	if (operator_token->m_type != Token_t::operator_)
@@ -387,7 +387,7 @@ Member* NodableParser::parse_atomic_expression()
 	}
 
     start_transaction();
-    std::shared_ptr<Token> token = m_token_ribbon.eatToken();
+    s_ptr<Token> token = m_token_ribbon.eatToken();
 
 	if (token->m_type == Token_t::operator_)
 	{
@@ -424,7 +424,7 @@ Member* NodableParser::parse_parenthesis_expression()
 	}
 
     start_transaction();
-    std::shared_ptr<Token> currentToken = m_token_ribbon.eatToken();
+    s_ptr<Token> currentToken = m_token_ribbon.eatToken();
 	if (currentToken->m_type != Token_t::fct_params_begin)
 	{
 		LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n")
@@ -435,7 +435,7 @@ Member* NodableParser::parse_parenthesis_expression()
     Member* result = parse_expression();
 	if (result)
 	{
-        std::shared_ptr<Token> token = m_token_ribbon.eatToken();
+        s_ptr<Token> token = m_token_ribbon.eatToken();
 		if (token->m_type != Token_t::fct_params_end )
 		{
 			LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
@@ -473,7 +473,7 @@ InstructionNode* NodableParser::parse_instr()
 
     if ( m_token_ribbon.canEat() )
     {
-        std::shared_ptr<Token> expectedEOI = m_token_ribbon.eatToken(Token_t::end_of_instruction);
+        s_ptr<Token> expectedEOI = m_token_ribbon.eatToken(Token_t::end_of_instruction);
         if ( expectedEOI )
         {
             instr_node->end_of_instr_token(expectedEOI);
@@ -713,9 +713,9 @@ bool NodableParser::tokenize(const std::string& _string)
     auto& regexIdToTokType   = m_language.get_token_type_regex_index_to_token_type();
 
     // Parsing method #1: loop over all regex (might be slow).
-    auto parse_token_using_regexes = [&]() -> std::shared_ptr<Token>
+    auto parse_token_using_regexes = [&]() -> s_ptr<Token>
     {
-        std::shared_ptr<Token> result;
+        s_ptr<Token> result;
         size_t index = std::distance(_string.cbegin(), cursor);
 
         for (auto&& each_regex_it = regex.cbegin(); each_regex_it != regex.cend(); each_regex_it++)
@@ -736,9 +736,9 @@ bool NodableParser::tokenize(const std::string& _string)
     };
 
     // Parsing method #2: should be faster (that's the objective)
-    auto parse_token_fast = [&]() -> std::shared_ptr<Token>
+    auto parse_token_fast = [&]() -> s_ptr<Token>
     {
-        std::shared_ptr<Token>  result;
+        s_ptr<Token>  result;
         size_t                  cursor_idx   = std::distance(_string.cbegin(), cursor );
         size_t                  char_left    = _string.size() - cursor_idx;
         std::string::value_type current_char = _string.data()[cursor_idx];
@@ -787,7 +787,7 @@ bool NodableParser::tokenize(const std::string& _string)
 
 	while( cursor != _string.cend())
 	{
-	    std::shared_ptr<Token> new_token;
+	    s_ptr<Token> new_token;
 
 	    // first, we try to tokenize using a WIP technique not involving any regex
 	    new_token = parse_token_fast();
@@ -815,7 +815,7 @@ bool NodableParser::tokenize(const std::string& _string)
             {
                 if (!m_token_ribbon.empty())
                 {
-                    std::shared_ptr<Token> last_token = m_token_ribbon.tokens.back();
+                    s_ptr<Token> last_token = m_token_ribbon.tokens.back();
                     if (last_token->m_type != Token_t::identifier)
                     {
                         /*
@@ -888,8 +888,8 @@ Member* NodableParser::parse_function_call()
 
     // Try to parse regular function: function(...)
     std::string fct_id;
-    std::shared_ptr<Token> token_0 = m_token_ribbon.eatToken();
-    std::shared_ptr<Token> token_1 = m_token_ribbon.eatToken();
+    s_ptr<Token> token_0 = m_token_ribbon.eatToken();
+    s_ptr<Token> token_1 = m_token_ribbon.eatToken();
     if (token_0->m_type == Token_t::identifier &&
         token_1->m_type == Token_t::fct_params_begin)
     {
@@ -898,7 +898,7 @@ Member* NodableParser::parse_function_call()
     }
     else // Try to parse operator like (ex: operator==(..,..))
     {
-        std::shared_ptr<Token> token_2 = m_token_ribbon.eatToken(); // eat a "supposed open bracket>
+        s_ptr<Token> token_2 = m_token_ribbon.eatToken(); // eat a "supposed open bracket>
 
         if (   token_0->m_type == Token_t::keyword_operator
             && token_1->m_type == Token_t::operator_
@@ -946,7 +946,7 @@ Member* NodableParser::parse_function_call()
 
 
     // Find the prototype in the language library
-    std::shared_ptr<const iinvokable> invokable = m_language.find_function(&signature);
+    s_ptr<const iinvokable> invokable = m_language.find_function(&signature);
 
     auto connectArg = [&](const func_type* _sig, Node* _node, size_t _arg_index ) -> void
     { // lambda to connect input member to node for a specific argument index.
@@ -1094,7 +1094,7 @@ ForLoopNode* NodableParser::parse_for_loop()
     ForLoopNode* for_loop_node = nullptr;
     start_transaction();
 
-    std::shared_ptr<Token> token_for = m_token_ribbon.eatToken(Token_t::keyword_for);
+    s_ptr<Token> token_for = m_token_ribbon.eatToken(Token_t::keyword_for);
 
     if( token_for != nullptr )
     {
@@ -1105,7 +1105,7 @@ ForLoopNode* NodableParser::parse_for_loop()
         for_loop_node->set_token_for( token_for );
 
         LOG_VERBOSE("Parser", "parse FOR (...) block...\n")
-        std::shared_ptr<Token> open_bracket = m_token_ribbon.eatToken(Token_t::fct_params_begin);
+        s_ptr<Token> open_bracket = m_token_ribbon.eatToken(Token_t::fct_params_begin);
         if( !open_bracket )
         {
             LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
@@ -1145,7 +1145,7 @@ ForLoopNode* NodableParser::parse_for_loop()
                         m_graph->connect(iter_instr->get_this_member(), for_loop_node->get_iter_expr());
                         for_loop_node->set_iter_instr(iter_instr);
 
-                        std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(Token_t::fct_params_end);
+                        s_ptr<Token> close_bracket = m_token_ribbon.eatToken(Token_t::fct_params_end);
                         if (!close_bracket)
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
@@ -1187,8 +1187,8 @@ Member *NodableParser::parse_variable_declaration()
 
     start_transaction();
 
-    std::shared_ptr<Token> tok_type       = m_token_ribbon.eatToken();
-    std::shared_ptr<Token> tok_identifier = m_token_ribbon.eatToken();
+    s_ptr<Token> tok_type       = m_token_ribbon.eatToken();
+    s_ptr<Token> tok_identifier = m_token_ribbon.eatToken();
 
     if(tok_type->is_keyword_type() && tok_identifier->m_type == Token_t::identifier )
     {
@@ -1199,7 +1199,7 @@ Member *NodableParser::parse_variable_declaration()
         variable->get_value()->set_src_token( std::make_shared<Token>(*tok_identifier) );
 
         // try to parse assignment
-        std::shared_ptr<Token> assignmentTok = m_token_ribbon.eatToken(Token_t::operator_);
+        s_ptr<Token> assignmentTok = m_token_ribbon.eatToken(Token_t::operator_);
         if ( assignmentTok && assignmentTok->m_word == "=" )
         {
             auto expression_result = parse_expression();

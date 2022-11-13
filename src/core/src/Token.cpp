@@ -2,9 +2,9 @@
 
 using namespace ndbl;
 
-const std::shared_ptr<Token> Token::s_null = std::make_shared<Token>(Token_t::null);
+const s_ptr<Token> Token::s_null = std::make_shared<Token>(Token_t::null);
 
-std::string Token::to_string(std::shared_ptr<Token> _token)
+std::string Token::to_string(s_ptr<Token> _token)
 {
     std::string result;
     result.append("{ ");

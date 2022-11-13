@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include <nodable/core/memory.h>
 
 #include <nodable/core/types.h>
 #include <nodable/core/assembly/Code.h>
@@ -24,7 +24,7 @@ namespace assembly
     {
     public:
         Compiler()= default;
-        std::unique_ptr<const Code> compile_syntax_tree(const GraphNode*);
+        u_ptr<const Code> compile_syntax_tree(const GraphNode*);
     private:
         bool is_syntax_tree_valid(const GraphNode*);
         void compile(const Node*);
@@ -35,7 +35,7 @@ namespace assembly
         void compile(const ConditionalStructNode*);
         void compile_as_condition(const InstructionNode *_instr_node);
 
-        std::unique_ptr<Code> m_temp_code;
+        u_ptr<Code> m_temp_code;
     };
 } // namespace Asm
 } // namespace ndbl

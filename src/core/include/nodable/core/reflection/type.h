@@ -5,7 +5,7 @@
 #include <string>
 #include <typeinfo>
 #include <typeindex>
-#include <memory>
+#include <nodable/core/memory.h>
 
 #include <nodable/core/reflection/type_register.h>
 #include <nodable/core/assertions.h>
@@ -53,14 +53,14 @@ namespace ndbl
         bool                      is_child_of(type _possible_parent_class, bool _selfCheck = true) const;
         void                      add_parent(hash_code_t _parent);
         void                      add_child(hash_code_t _child);
-        void                      add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable);
-        void                      add_method(const std::string& _name, std::shared_ptr<iinvokable_nonstatic> _invokable);
-        const std::unordered_set<std::shared_ptr<iinvokable>>&
+        void                      add_static(const std::string& _name, s_ptr<iinvokable> _invokable);
+        void                      add_method(const std::string& _name, s_ptr<iinvokable_nonstatic> _invokable);
+        const std::unordered_set<s_ptr<iinvokable>>&
                                   get_static_methods()const { return m_static_methods; }
-        const std::unordered_set<std::shared_ptr<iinvokable_nonstatic>>&
+        const std::unordered_set<s_ptr<iinvokable_nonstatic>>&
                                   get_methods()const { return m_methods; }
-        std::shared_ptr<iinvokable> get_static(const std::string& _name);
-        std::shared_ptr<iinvokable_nonstatic> get_method(const std::string& _name);
+        s_ptr<iinvokable> get_static(const std::string& _name);
+        s_ptr<iinvokable_nonstatic> get_method(const std::string& _name);
         template<class T> inline bool is_child_of() const { return is_child_of(get<T>(), true); }
         template<class T> inline bool is_not_child_of() const { return !is_child_of(get<T>(), true); }
 
@@ -139,10 +139,10 @@ namespace ndbl
         hash_code_t m_hash_code;
         std::unordered_set<hash_code_t> m_parents;
         std::unordered_set<hash_code_t> m_children;
-        std::unordered_set<std::shared_ptr<iinvokable>>                    m_static_methods;
-        std::unordered_map<std::string, std::shared_ptr<iinvokable>>       m_static_methods_by_name;
-        std::unordered_set<std::shared_ptr<iinvokable_nonstatic>>              m_methods;
-        std::unordered_map<std::string, std::shared_ptr<iinvokable_nonstatic>> m_methods_by_name;
+        std::unordered_set<s_ptr<iinvokable>>                    m_static_methods;
+        std::unordered_map<std::string, s_ptr<iinvokable>>       m_static_methods_by_name;
+        std::unordered_set<s_ptr<iinvokable_nonstatic>>              m_methods;
+        std::unordered_map<std::string, s_ptr<iinvokable_nonstatic>> m_methods_by_name;
     };
 
     template<class target_t, class source_t>

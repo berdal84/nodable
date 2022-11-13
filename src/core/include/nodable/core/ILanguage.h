@@ -7,7 +7,7 @@
 #include <tuple>
 #include <vector>
 #include <regex>
-#include <memory> // std::shared_ptr
+#include <nodable/core/memory.h> // s_ptr
 #include <string>
 
 // Nodable
@@ -36,12 +36,12 @@ namespace ndbl
 	 */
 	class ILanguage {
 	public:
-        using InvokableFunctions_t = std::vector<std::shared_ptr<const iinvokable>>;
+        using InvokableFunctions_t = std::vector<s_ptr<const iinvokable>>;
         virtual ~ILanguage() = default;
 
-        virtual std::shared_ptr<const iinvokable> find_function(const func_type*) const = 0;
-        virtual std::shared_ptr<const iinvokable> find_operator_fct(const func_type*) const = 0;
-        virtual std::shared_ptr<const iinvokable> find_operator_fct_exact(const func_type*) const = 0;
+        virtual s_ptr<const iinvokable> find_function(const func_type*) const = 0;
+        virtual s_ptr<const iinvokable> find_operator_fct(const func_type*) const = 0;
+        virtual s_ptr<const iinvokable> find_operator_fct_exact(const func_type*) const = 0;
         virtual const Operator*                 find_operator(const std::string& , Operator_t) const = 0;
         virtual IParser&                        get_parser() = 0;
         virtual const IParser&                  get_parser()const = 0;
@@ -55,6 +55,6 @@ namespace ndbl
         virtual int                             get_precedence(const iinvokable*)const = 0;
         virtual type                            get_type(Token_t _token)const = 0;
         virtual const std::vector<Token_t>&     get_token_type_regex_index_to_token_type()const = 0;
-        virtual void                            add_invokable(std::shared_ptr<const iinvokable>) = 0;
+        virtual void                            add_invokable(s_ptr<const iinvokable>) = 0;
     };
 }

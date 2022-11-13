@@ -15,16 +15,16 @@ TokenRibbon::TokenRibbon()
     transactionStartTokenIndexes.push(0);
 }
 
-std::shared_ptr<Token> TokenRibbon::push(std::shared_ptr<Token> _token)
+s_ptr<Token> TokenRibbon::push(s_ptr<Token> _token)
 {
     _token->m_index = tokens.size();
     tokens.push_back(_token);
     return tokens.back();
 }
 
-std::shared_ptr<Token> TokenRibbon::push(Token_t  _type, const std::string& _string, size_t _charIndex )
+s_ptr<Token> TokenRibbon::push(Token_t  _type, const std::string& _string, size_t _charIndex )
 {
-    std::shared_ptr<Token> token = std::make_shared<Token>(_type, _string, _charIndex);
+    s_ptr<Token> token = std::make_shared<Token>(_type, _string, _charIndex);
     token->m_index = tokens.size();
     tokens.push_back(token);
     return tokens.back();
@@ -81,7 +81,7 @@ std::string TokenRibbon::toString()const
     return result;
 }
 
-std::shared_ptr<Token> TokenRibbon::eatToken(Token_t expectedType)
+s_ptr<Token> TokenRibbon::eatToken(Token_t expectedType)
 {
     if ( canEat() && peekToken()->m_type == expectedType )
     {
@@ -90,7 +90,7 @@ std::shared_ptr<Token> TokenRibbon::eatToken(Token_t expectedType)
     return nullptr;
 }
 
-std::shared_ptr<Token> TokenRibbon::eatToken()
+s_ptr<Token> TokenRibbon::eatToken()
 {
     LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", m_curr_tok_idx, Token::to_string(peekToken()).c_str() )
     return tokens.at(m_curr_tok_idx++);
@@ -140,12 +140,12 @@ bool TokenRibbon::canEat(size_t _tokenCount) const
     return m_curr_tok_idx + _tokenCount <= tokens.size() ;
 }
 
-std::shared_ptr<Token> TokenRibbon::peekToken()
+s_ptr<Token> TokenRibbon::peekToken()
 {
     return tokens.at(m_curr_tok_idx);
 }
 
-std::shared_ptr<Token> TokenRibbon::getEaten()
+s_ptr<Token> TokenRibbon::getEaten()
 {
     // TODO: optimization: store a pointer to the last eaten Token ?
     return m_curr_tok_idx == 0 ? nullptr : tokens.at(m_curr_tok_idx - 1);

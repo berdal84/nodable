@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <stack>
-#include <memory>
+#include <nodable/core/memory.h>
 #include <exception>
 
 #include <nodable/core/types.h> // forward declarations
@@ -51,7 +51,7 @@ namespace ndbl{
         std::string            to_string(const std::string& _quoted_str) override;
         double                 to_double(const std::string& ) override;
         i16_t                  to_i16(const std::string& ) override;
-		Member*                to_member(std::shared_ptr<Token> _token) override;
+		Member*                to_member(s_ptr<Token> _token) override;
 		Node*                  parse_scope() override;
         InstructionNode*       parse_instr() override;
         Member*                parse_variable_declaration() override;

@@ -12,7 +12,7 @@ namespace ndbl {
         vec2              m_relative_pos;
 
     public:
-        using ConnectorPtr = std::shared_ptr<MemberConnector>;
+        using ConnectorPtr = s_ptr<MemberConnector>;
 
         Member*      m_member;
         NodeView*    m_nodeView;

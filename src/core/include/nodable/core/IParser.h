@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <memory>
+#include <nodable/core/memory.h>
 
 namespace ndbl{
 
@@ -27,7 +27,7 @@ namespace ndbl{
         virtual std::string            to_string(const std::string& _quoted_str) = 0;
         virtual double                 to_double(const std::string& ) = 0;
         virtual i16_t                  to_i16(const std::string& ) = 0;
-        virtual Member*                to_member(std::shared_ptr<Token> _token) = 0;
+        virtual Member*                to_member(s_ptr<Token> _token) = 0;
         virtual Node*                  parse_scope() = 0;
         virtual InstructionNode*       parse_instr() = 0;
         virtual Member*                parse_variable_declaration() = 0;

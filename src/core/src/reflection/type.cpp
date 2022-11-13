@@ -146,19 +146,19 @@ type type::to_pointer(type _type)
     return ptr;
 }
 
-void type::add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable)
+void type::add_static(const std::string& _name, s_ptr<iinvokable> _invokable)
 {
     m_static_methods.insert(_invokable);
     m_static_methods_by_name.insert({_name, _invokable});
 }
 
-void type::add_method(const std::string &_name, std::shared_ptr<iinvokable_nonstatic> _invokable)
+void type::add_method(const std::string &_name, s_ptr<iinvokable_nonstatic> _invokable)
 {
     m_methods.insert(_invokable);
     m_methods_by_name.insert({_name, _invokable});
 }
 
-std::shared_ptr<iinvokable_nonstatic> type::get_method(const std::string& _name)
+s_ptr<iinvokable_nonstatic> type::get_method(const std::string& _name)
 {
     auto found = m_methods_by_name.find(_name);
     if( found != m_methods_by_name.end() )
@@ -168,7 +168,7 @@ std::shared_ptr<iinvokable_nonstatic> type::get_method(const std::string& _name)
     return nullptr;
 }
 
-std::shared_ptr<iinvokable> type::get_static(const std::string& _name)
+s_ptr<iinvokable> type::get_static(const std::string& _name)
 {
     auto found = m_static_methods_by_name.find(_name);
     if( found != m_static_methods_by_name.end() )

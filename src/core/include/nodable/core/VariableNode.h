@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <memory> // std::shared_ptr
+#include <nodable/core/memory.h> // s_ptr
 
 #include <nodable/core/types.h> // forward declarations and common stuff
 #include <nodable/core/Node.h> // base class
@@ -29,13 +29,13 @@ namespace ndbl
 		inline bool      is_declared()const { return m_is_declared; }
 		const char*      get_name()const { return m_name.c_str(); };
 		Member*          get_value()const { return m_value; }
-        std::shared_ptr<const Token> get_type_token() const { return m_type_token; }
-        std::shared_ptr<const Token> get_assignment_operator_token() const { return m_assignment_operator_token; }
-        std::shared_ptr<const Token> get_identifier_token() const { return m_identifier_token; }
+        s_ptr<const Token> get_type_token() const { return m_type_token; }
+        s_ptr<const Token> get_assignment_operator_token() const { return m_assignment_operator_token; }
+        s_ptr<const Token> get_identifier_token() const { return m_identifier_token; }
         void             set_name(const char*);
-        void             set_type_token(std::shared_ptr<Token> token) { m_type_token = token; }
-        void             set_assignment_operator_token(std::shared_ptr<Token> token) { m_assignment_operator_token = token; }
-        void             set_identifier_token(std::shared_ptr<Token> token) { m_identifier_token = token; }
+        void             set_type_token(s_ptr<Token> token) { m_type_token = token; }
+        void             set_assignment_operator_token(s_ptr<Token> token) { m_assignment_operator_token = token; }
+        void             set_identifier_token(s_ptr<Token> token) { m_identifier_token = token; }
         template<class T> void         set(T _value) { m_value->set(_value); };
         void             set_declared(bool b = true) { m_is_declared = b; }
         IScope*          get_scope() { return m_scope; }
@@ -46,9 +46,9 @@ namespace ndbl
 	    Member*                m_value;
         bool                   m_is_declared;
         InstructionNode*       m_declaration_instr;
-        std::shared_ptr<Token> m_type_token;
-        std::shared_ptr<Token> m_assignment_operator_token;
-        std::shared_ptr<Token> m_identifier_token;
+        s_ptr<Token> m_type_token;
+        s_ptr<Token> m_assignment_operator_token;
+        s_ptr<Token> m_identifier_token;
 		std::string            m_name;
         IScope*                m_scope;
 

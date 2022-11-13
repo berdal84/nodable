@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nodable/core/reflection/reflection>
-#include <memory> // std::shared_ptr
+#include <nodable/core/memory.h> // s_ptr
 #include <nodable/core/types.h>
 #include <nodable/core/Member.h> // for Type enum
 #include <nodable/core/Visibility.h>

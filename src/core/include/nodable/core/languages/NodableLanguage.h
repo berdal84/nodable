@@ -19,9 +19,9 @@ namespace ndbl {
 		NodableLanguage();
         ~NodableLanguage() override;
 
-        std::shared_ptr<const iinvokable> find_function(const func_type*) const override;
-        std::shared_ptr<const iinvokable> find_operator_fct(const func_type *_type) const override;
-        std::shared_ptr<const iinvokable> find_operator_fct_exact(const func_type *_type) const override;
+        s_ptr<const iinvokable> find_function(const func_type*) const override;
+        s_ptr<const iinvokable> find_operator_fct(const func_type *_type) const override;
+        s_ptr<const iinvokable> find_operator_fct_exact(const func_type *_type) const override;
         const Operator*                 find_operator(const std::string& , Operator_t) const override;
         IParser&                        get_parser() override { return m_parser; }
         const IParser&                  get_parser()const override { return m_parser; }
@@ -34,13 +34,13 @@ namespace ndbl {
         std::string                     to_string(Token_t)const override;
         type                            get_type(Token_t _token)const override { return m_token_to_type.find(_token)->second; }
         const std::vector<Token_t>&     get_token_type_regex_index_to_token_type()const override { return m_regex_to_token; }
-        void                            add_invokable(std::shared_ptr<const iinvokable>) override;
+        void                            add_invokable(s_ptr<const iinvokable>) override;
         int                             get_precedence(const iinvokable*)const override;
 
         template<typename T, typename std::enable_if<std::is_base_of<ILibrary, T>::value>::type* = nullptr>
         void load_library()
         {
-            std::unique_ptr<ILibrary> library = std::make_unique<T>();
+            u_ptr<ILibrary> library = std::make_unique<T>();
             auto type = type::get<T>();
             for(auto& each_static : type.get_static_methods())
             {
@@ -50,7 +50,7 @@ namespace ndbl {
         }
     private:
         void                            add_operator(const char* _id, Operator_t _type, int _precedence);
-        std::shared_ptr<const iinvokable> find_operator_fct_fallback(const func_type *_type) const;
+        s_ptr<const iinvokable> find_operator_fct_fallback(const func_type *_type) const;
         void                            add_regex(const std::regex &_regex, Token_t _token_t);
         void                            add_regex(const std::regex &_regex, Token_t _token_t, type _type);
         void                            add_string(std::string _string, Token_t _token_t);
@@ -58,7 +58,7 @@ namespace ndbl {
         void                            add_type(type _type, std::string _string);
         void                            add_char(const char _char, Token_t _token_t);
 
-        std::unordered_set<std::unique_ptr<ILibrary>> m_libraries;
+        std::unordered_set<u_ptr<ILibrary>> m_libraries;
         NodableSerializer        m_serializer;
         NodableParser            m_parser;
         Operators_t              m_operators;

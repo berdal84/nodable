@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <memory> // std::shared_ptr
+#include <nodable/core/memory.h> // s_ptr
 #include <nodable/core/reflection/reflection>
 
 namespace ndbl

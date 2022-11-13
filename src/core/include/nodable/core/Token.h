@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <memory>
+#include <nodable/core/memory.h>
 
 namespace ndbl
 {
@@ -40,8 +40,8 @@ namespace ndbl
             m_prefix.clear();
             m_suffix.clear();
         }
-        static std::string to_string(std::shared_ptr<Token> _token);
-        static const std::shared_ptr<Token> s_null;
+        static std::string to_string(s_ptr<Token> _token);
+        static const s_ptr<Token> s_null;
 
         bool is_keyword_type() { return ndbl::is_keyword_type(m_type); }
     };

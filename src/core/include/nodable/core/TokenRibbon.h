@@ -3,7 +3,7 @@
 #include <vector>
 #include <stack>
 #include <nodable/core/Token_t.h>
-#include <memory> // for std::shared_ptr
+#include <nodable/core/memory.h> // for s_ptr
 
 namespace ndbl
 {
@@ -26,16 +26,16 @@ namespace ndbl
         /** Generate a string with all tokens with _tokens[_highlight] colored in green*/
         [[nodiscard]] std::string toString() const;
 
-        std::shared_ptr<Token> push(std::shared_ptr<Token>);
+        s_ptr<Token> push(s_ptr<Token>);
 
         /** Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
-        [[nodiscard]] std::shared_ptr<Token> push(Token_t _type, const std::string& _string, size_t _charIndex);
+        [[nodiscard]] s_ptr<Token> push(Token_t _type, const std::string& _string, size_t _charIndex);
 
         /** Get current token and increment cursor */
-        std::shared_ptr<Token> eatToken();
+        s_ptr<Token> eatToken();
 
         /** Get current token and increment cursor ONLY if token type is expected */
-        std::shared_ptr<Token> eatToken(Token_t);
+        s_ptr<Token> eatToken(Token_t);
 
         /** Start a transaction by saving the current cursor position in a stack
          * Multiple transaction can be stacked */
@@ -60,15 +60,15 @@ namespace ndbl
         [[nodiscard]] bool canEat(size_t _tokenCount = 1)const;
 
         /** get a ref to the current token without moving cursor */
-        [[nodiscard]] std::shared_ptr<Token> peekToken();
+        [[nodiscard]] s_ptr<Token> peekToken();
 
         /** To store the result of the tokenizeExpressionString() method
             contain a vector of Tokens to be converted to a Nodable graph by all parseXXX functions */
-        std::vector<std::shared_ptr<Token>> tokens;
-        std::shared_ptr<Token> m_prefix;
-        std::shared_ptr<Token> m_suffix;
+        std::vector<s_ptr<Token>> tokens;
+        s_ptr<Token> m_prefix;
+        s_ptr<Token> m_suffix;
 
-        std::shared_ptr<Token> getEaten();
+        s_ptr<Token> getEaten();
 
         size_t get_curr_tok_idx() { return  m_curr_tok_idx; }
     private:

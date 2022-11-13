@@ -86,13 +86,11 @@ std::string NodeView::get_label()
 
 void NodeView::expose(Member* _member)
 {
-    auto member_view = std::make_shared<MemberView>(m_ctx, _member, this);
-    m_exposed_members.insert({_member, member_view} );
-
+    auto member_view = make_unique<MemberView>(m_ctx, _member, this);
     if ( _member == get_owner()->get_this_member() )
     {
         member_view->m_out->m_display_side = MemberConnector::Side::Left; // force to be displayed on the left
-        m_exposed_this_member_view = member_view;
+        m_exposed_this_member_view = member_view.get();
     }
     else
     {
@@ -105,6 +103,7 @@ void NodeView::expose(Member* _member)
             m_exposed_out_or_inout_members.push_back(member_view.get());
         }
     }
+    m_exposed_members.emplace(_member, std::move(member_view));
 }
 
 void NodeView::set_owner(Node *_node)
@@ -778,7 +777,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
         ImGui::Text("(?)");
         if ( ImGuiEx::BeginTooltip() )
         {
-            std::shared_ptr<Token> token = _member->get_src_token();
+            s_ptr<Token> token = _member->get_src_token();
             ImGui::Text("initialized: %s,\n"
                         "defined:     %s,\n"
                         "Source token:\n"

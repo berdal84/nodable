@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <memory>
+#include <nodable/core/memory.h>
 
 #include <nodable/core/types.h> // forward declarations and common stuff
 #include <nodable/core/Node.h> // base class
@@ -23,11 +23,11 @@ namespace ndbl
         ~InstructionNode()= default;
 
         [[nodiscard]] inline Member* get_root_node_member()const { return m_props.get(k_value_member_name); }
-        [[nodiscard]] inline std::shared_ptr<Token> end_of_instr_token()const { return m_end_of_instr_token; }
-                      inline void    end_of_instr_token(std::shared_ptr<Token> token) { m_end_of_instr_token = token; }
+        [[nodiscard]] inline s_ptr<Token> end_of_instr_token()const { return m_end_of_instr_token; }
+                      inline void    end_of_instr_token(s_ptr<Token> token) { m_end_of_instr_token = token; }
 
     private:
-        std::shared_ptr<Token> m_end_of_instr_token = nullptr;
+        s_ptr<Token> m_end_of_instr_token = nullptr;
         REFLECT_DERIVED_CLASS(Node)
     };
 }
