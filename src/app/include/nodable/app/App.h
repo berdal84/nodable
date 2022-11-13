@@ -1,7 +1,6 @@
 #pragma once
 
 // std
-#include <future>
 #include <memory>
 #include <string>
 

@@ -24,7 +24,7 @@ File::File(IAppCtx& _ctx, const std::string &_name)
     LOG_VERBOSE( "File", "Constructor being called ...\n")
 
     // FileView
-    m_view = new FileView(m_ctx, *this);
+    m_view = std::make_unique<FileView>(m_ctx, *this);
     m_view->init();
 
     LOG_VERBOSE( "File", "View built, creating History ...\n")
@@ -37,7 +37,7 @@ File::File(IAppCtx& _ctx, const std::string &_name)
     LOG_VERBOSE( "File", "History built, creating graph ...\n")
 
     // GraphNode
-    m_graph = new GraphNode(
+    m_graph = std::make_unique<GraphNode>(
             &m_ctx.language(),
             &m_factory,
             &m_ctx.settings().experimental_graph_autocompletion );
@@ -58,11 +58,7 @@ File::File(IAppCtx& _context, const std::string &_name, const std::string &_path
     m_path = _path;
 }
 
-File::~File()
-{
-    delete m_graph;
-    delete m_view;
-}
+File::~File() = default;
 
 bool File::write_to_disk()
 {
@@ -98,12 +94,12 @@ bool File::update_graph(std::string& _code_source)
     }
 
     IParser& parser = m_ctx.language().get_parser();
-    if (parser.parse(_code_source, m_graph) && !m_graph->is_empty() )
+    if (parser.parse(_code_source, m_graph.get()) && !m_graph->is_empty() )
     {
         graph_view->update_child_view_constraints();
         m_graph->set_dirty(false);
-        LOG_VERBOSE("File","graph changed, emiting event ...\n")
-        m_on_graph_changed_evt.emit(m_graph);
+        LOG_VERBOSE("File","graph changed, emitting event ...\n")
+        m_on_graph_changed_evt.emit(m_graph.get());
         return true;
     }
     return false;

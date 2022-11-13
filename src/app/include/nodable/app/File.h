@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <string>
 #include <algorithm>
+#include <memory> // unique_ptr
 #include <observe/event.h>
 #include <ImGuiColorTextEdit/TextEditor.h> // for coordinates
 
@@ -37,14 +38,14 @@ namespace ndbl
         bool                             write_to_disk();
         bool                             update();
         IAppCtx*                         get_context() { return &m_ctx; }
-        inline GraphNode*                get_graph() { return m_graph; }
+        inline GraphNode*                get_graph() { return m_graph.get(); }
         inline History*                  get_history() { return &m_history; }
         const std::string&               get_name()const { return m_name; }
         void                             set_name(const std::string& _name) { m_name = _name; }
         bool                             has_path()const { return !m_path.empty(); }
         void                             set_path(const std::string& _path);
         const std::string&               get_path()const { return m_path; }
-        inline FileView*                 get_view()const { return m_view; };
+        inline FileView*                 get_view()const { return m_view.get(); };
         inline void                      set_changed_flag(bool _value = true) { m_modified = _value; }
         inline bool                      has_changed() const { return m_modified; }
         bool                             update_graph();
@@ -56,8 +57,8 @@ namespace ndbl
 		std::string                m_name;
 		std::string                m_path;
 		const NodeFactory          m_factory;
-		FileView*                  m_view;
+		std::unique_ptr<FileView>  m_view;
 		History                    m_history;
-		GraphNode*                 m_graph;
+		std::unique_ptr<GraphNode> m_graph;
     };
 }
