@@ -37,7 +37,8 @@ namespace ndbl
 		void                           set_text(const std::string&);
 		std::string                    get_selected_text()const;
 		std::string                    get_text()const;
-		void                           replace_selected_text(const std::string &_val);
+		void                           replace_selected_text(const std::string&);
+        void                           replace_text(const std::string&);
 		TextEditor*					   get_text_editor(){ return &m_text_editor; }
 		void                           set_cursor_position(const TextEditor::Coordinates& _cursorPosition) { m_text_editor.SetCursorPosition(_cursorPosition); }
 		TextEditor::Coordinates        get_cursor_position()const { return m_text_editor.GetCursorPosition(); }
