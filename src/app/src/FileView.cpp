@@ -127,8 +127,8 @@ bool FileView::draw()
     auto isSelectedTextModified = previousSelectedText != currentSelectedText;
 
     m_text_has_changed = isCurrentLineModified ||
-                         m_text_editor.IsTextChanged() ||
-                         isSelectedTextModified;
+                         m_text_editor.IsTextChanged() /* ||
+                         isSelectedTextModified */;
 
     if (m_text_editor.IsTextChanged())
     {
