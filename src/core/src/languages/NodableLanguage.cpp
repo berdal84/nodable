@@ -11,7 +11,7 @@ using namespace ndbl;
 NodableLanguage::NodableLanguage(): m_parser(*this), m_serializer(*this)
 {
     // ignored
-    add_regex(std::regex("^(//(.+?)$)"), Token_t::ignore); // Single line
+    add_regex(std::regex("^(//(.+?)($|\n))"), Token_t::ignore); // Single line
     add_regex(std::regex("^(/\\*(.+?)\\*/)"), Token_t::ignore); // Multi line
 
     // keywords
@@ -246,6 +246,12 @@ std::string& NodableLanguage::to_string(std::string& _out, type _type) const
 
 std::string& NodableLanguage::to_string(std::string& _out, Token_t _token_t) const
 {
+    switch (_token_t) {
+        case Token_t::ignore: return _out.append("ignore");
+        case Token_t::operator_: return _out.append("operator");
+        case Token_t::identifier: return _out.append("identifier");
+    }
+
     {
         auto found = m_token_to_char.find(_token_t);
         if (found != m_token_to_char.cend())
@@ -259,7 +265,8 @@ std::string& NodableLanguage::to_string(std::string& _out, Token_t _token_t) con
     {
         return _out.append( found->second );
     }
-    return _out;
+
+    return  _out.append("<?>");
 }
 
 std::string NodableLanguage::to_string(type _type) const

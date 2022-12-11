@@ -49,30 +49,15 @@ bool NodableParser::parse(const std::string &_source_code, GraphNode *_graphNode
     m_token_ribbon.clear();
 
     LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", _source_code.c_str() )
-
-    std::istringstream iss(_source_code);
-    std::string line;
     LOG_MESSAGE("Parser", "Tokenization ...\n" )
-    size_t line_count = 0;
-    while (std::getline(iss, line, System::k_end_of_line ))
+
+
+    if (!tokenize(_source_code))
     {
-        LOG_VERBOSE("Parser", "Tokenization on line %llu ...\n", line_count )
-
-        if (line_count != 0 && !m_token_ribbon.tokens.empty() )
-        {
-            std::shared_ptr<Token> lastToken = m_token_ribbon.tokens.back();
-            lastToken->m_suffix.push_back(System::k_end_of_line);
-        }
-
-        if (!tokenize(line))
-        {
-            LOG_WARNING("Parser", "Unable to tokenize!\n")
-            return false;
-        }
-        LOG_VERBOSE("Parser", "Tokenization on line %llu OK\n", line_count )
-        line_count++;
+        LOG_WARNING("Parser", "Unable to tokenize!\n")
+        return false;
     }
-    LOG_MESSAGE("Parser", "Tokenization OK (%llu line(s))\n", line_count )
+
 
 	if (!is_syntax_valid())
 	{
@@ -729,6 +714,9 @@ bool NodableParser::tokenize(const std::string& _string)
                 Token_t matched_token_t = regexIdToTokType[std::distance(regex.cbegin(), each_regex_it)];
                 result                  = std::make_shared<Token>(matched_token_t, matched_str, index);
                 std::advance(cursor, matched_str.length());
+
+                LOG_VERBOSE("Parser", "Token identified as %s at char %i: %s\n", m_language.to_string(matched_token_t).c_str(),  index, matched_str.c_str())
+
                 return result;
             }
         }
@@ -752,7 +740,8 @@ bool NodableParser::tokenize(const std::string& _string)
             case ')': cursor++; return std::make_shared<Token>(Token_t::fct_params_end       , current_char, cursor_idx);
             case ',': cursor++; return std::make_shared<Token>(Token_t::fct_params_separator , current_char, cursor_idx);
             case ';': cursor++; return std::make_shared<Token>(Token_t::end_of_instruction   , current_char, cursor_idx);
-            case ' ':
+            case '\n': // fallthrough ...
+            case ' ':  // fallthrough ...
             case '\t': cursor++; return std::make_shared<Token>(Token_t::ignore , current_char, cursor_idx);
             default: /* no warning */ ;
         }

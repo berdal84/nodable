@@ -10,6 +10,8 @@ std::string Token::to_string(std::shared_ptr<Token> _token)
     result.append("{ ");
     result.append( "word: " + _token->m_word );
     result.append( ", charIndex: " + std::to_string(_token->m_charIndex) );
+    result.append( ", prefix: " + _token->m_prefix);
+    result.append( ", suffix: " + _token->m_suffix);
     result.append(" }");
     return result;
 }
