@@ -210,6 +210,25 @@ void FileView::replace_selected_text(const std::string &_val)
     }
 }
 
+void FileView::replace_text(const std::string& _content)
+{
+    if (get_text() != _content )
+    {
+        auto selectionStart = m_text_editor.GetSelectionStart();
+        auto selectionEnd = m_text_editor.GetSelectionEnd();
+
+        m_text_editor.SelectAll();
+
+        // replace text (will push a command for undo/redo indirectly)
+        m_text_editor.InsertText(_content, false);
+
+        // restore selection
+        m_text_editor.SetSelection(selectionStart, selectionEnd);
+        LOG_MESSAGE("FileView", "Selected text updated from graph.\n")
+        LOG_VERBOSE("FileView", "%s \n", _content.c_str())
+    }
+}
+
 void FileView::set_text(const std::string& _content)
 {
 	m_text_editor.SetText(_content);
