@@ -122,7 +122,8 @@ bool FileView::draw()
     auto currentSelectedText = m_text_editor.GetSelectedText();
     auto currentLineText = m_text_editor.GetCurrentLineText();
 
-    auto isCurrentLineModified = currentLineText != previousLineText;
+    auto isCurrentLineModified = currentLineText != previousLineText &&
+                                 currentCursorPosition.mLine == previousCursorPosition.mLine;
     auto isSelectedTextModified = previousSelectedText != currentSelectedText;
 
     m_text_has_changed = isCurrentLineModified ||

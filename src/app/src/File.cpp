@@ -130,7 +130,7 @@ bool File::update()
         auto graphUpdateResult = m_graph->update();
 
         if (   graphUpdateResult == UpdateResult::SuccessWithoutChanges
-            && !m_view->get_selected_text().empty() )
+            && !m_view->get_text().empty() )
         {
             LOG_VERBOSE("File","graph_has_changed = false\n")
             graph_has_changed = false;
@@ -150,7 +150,7 @@ bool File::update()
                      .serialize(code, root_node );
 
                 LOG_VERBOSE("File","replace selected text\n")
-                m_view->replace_selected_text(code);
+                m_view->set_text(code);
             }
             graph_has_changed = true;
         }
@@ -167,7 +167,7 @@ bool File::update()
 bool File::update_graph()
 {
     LOG_VERBOSE("File","get selected text\n")
-	std::string code_source = m_view->get_selected_text();
+	std::string code_source = m_view->get_text();
 	return update_graph(code_source);
 }
 
