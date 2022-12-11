@@ -153,6 +153,7 @@ bool App::open_file(const fs_path& _path)
 
     m_loaded_files.push_back( file );
     current_file(file);
+    file->update_graph(); // need to force the update the first time
     EventManager::push_event(EventType::file_opened);
 	return true;
 }
