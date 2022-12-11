@@ -538,4 +538,22 @@ TEST_F(nodable_fixture, parse_serialize_empty_program_with_space )
     EXPECT_EQ(parse_and_serialize(" "), " ");
 }
 
+TEST_F(nodable_fixture, parse_serialize_single_line_program_with_a_comment_before )
+{
+    ndbl::Log::set_verbosity("Parser", ndbl::Log::Verbosity_Verbose);
+    std::string program =
+            "// comment\n"
+            "int a = 42;";
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
+
+TEST_F(nodable_fixture, parse_serialize_single_program_line_with_two_sigle_line_comments_and_a_space )
+{
+    std::string program =
+            "// first line\n"
+            "// second line\n"
+            "\n"
+            "int a = 42;";
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
