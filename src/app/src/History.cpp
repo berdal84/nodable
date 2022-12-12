@@ -1,5 +1,5 @@
 #include <nodable/app/History.h>
-#include <nodable/app/commands/Cmd_ReplaceText.h>
+#include <nodable/app/commands/Cmd_WrappedTextEditorUndoRecord.h>
 
 using namespace ndbl;
 
@@ -127,7 +127,7 @@ void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord)
 {
     if ( m_enabled )
     {
-	    auto cmd = std::make_shared<Cmd_ReplaceText>(_undoRecord, m_Text_editor);
+	    auto cmd = std::make_shared<Cmd_WrappedTextEditorUndoRecord>(_undoRecord, m_Text_editor);
         m_history->push_command(cmd, true);
     }
 }
