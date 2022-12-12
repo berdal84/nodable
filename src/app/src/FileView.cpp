@@ -10,6 +10,8 @@
 #include <nodable/core/ISerializer.h>
 #include <nodable/core/Node.h>
 #include <nodable/core/VirtualMachine.h>
+#include "nodable/app/commands/Cmd_WrappedTextEditorUndoRecord.h"
+#include "nodable/app/commands/Cmd_ReplaceText.h"
 
 using namespace ndbl;
 
@@ -212,18 +214,13 @@ void FileView::replace_selected_text(const std::string &_val)
 
 void FileView::replace_text(const std::string& _content)
 {
-    if (get_text() != _content )
+    const std::string current_content = get_text();
+    if (current_content != _content )
     {
-        auto selectionStart = m_text_editor.GetSelectionStart();
-        auto selectionEnd = m_text_editor.GetSelectionEnd();
+        return set_text(_content);
+        auto cmd = std::make_shared<Cmd_ReplaceText>(current_content, _content, &m_text_editor);
+        m_file.get_history()->push_command(cmd);
 
-        m_text_editor.SelectAll();
-
-        // replace text (will push a command for undo/redo indirectly)
-        m_text_editor.InsertText(_content, false);
-
-        // restore selection
-        m_text_editor.SetSelection(selectionStart, selectionEnd);
         LOG_MESSAGE("FileView", "Selected text updated from graph.\n")
         LOG_VERBOSE("FileView", "%s \n", _content.c_str())
     }
