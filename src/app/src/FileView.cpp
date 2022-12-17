@@ -81,7 +81,9 @@ bool FileView::draw()
      // TEXT EDITOR
     //------------
 
-    ImGui::BeginChild("file", vec2(m_child1_size, region_available.y), false);
+    vec2 graph_view_TL = ImGui::GetCursorPos();
+    vec2 text_editor_size = vec2(m_child1_size, region_available.y);
+    ImGui::BeginChild("file", text_editor_size, false);
 
     auto old_cursor_position = m_text_editor.GetCursorPosition();
     auto old_selected_text = m_text_editor.GetSelectedText();
@@ -142,6 +144,10 @@ bool FileView::draw()
     }
 
     ImGui::EndChild();
+    ImRect text_editor_overlay_rect(graph_view_TL, graph_view_TL + text_editor_size);
+    text_editor_overlay_rect.Expand(vec2(-20)); // margin
+    text_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
+    draw_overlay("Quick Help:###text_editor", m_overlay_data_for_text_editor, text_editor_overlay_rect);
 
      // NODE EDITOR
     //-------------
@@ -161,10 +167,10 @@ bool FileView::draw()
         {
             graph->set_dirty();
         }
-        ImRect overlay_rect(graph_view_TL, graph_view_TL + graph_node_view->get_visible_rect().GetSize());
-        overlay_rect.Expand(vec2(-20)); // margin
-        overlay_rect.Translate( ImGuiEx::CursorPosToScreenPos(vec2()));
-        draw_overlay(overlay_rect);
+        ImRect graph_editor_overlay_rect(graph_view_TL, graph_view_TL + graph_node_view->get_visible_rect().GetSize());
+        graph_editor_overlay_rect.Expand(vec2(-20)); // margin
+        graph_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
+        draw_overlay("Quick Help:###text_graph", m_overlay_data_for_graph_editor, graph_editor_overlay_rect);
     }
     else
     {
@@ -282,9 +288,9 @@ void  FileView::experimental_clipboard_auto_paste(bool _enable)
     }
 }
 
-void FileView::draw_overlay(ImRect rect)
+void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect)
 {
-    if( m_overlay_data.empty() ) return;
+    if( overlay_data.empty() ) return;
 
     ImGui::PushStyleColor(ImGuiCol_WindowBg, vec4(0,0,0,0.1f));
     ImGui::PushStyleColor(ImGuiCol_Border, vec4(0,0,0,0));
@@ -295,14 +301,28 @@ void FileView::draw_overlay(ImRect rect)
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize |
                                    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar;
 
-    ImGui::Begin("Quick Help:", &show, flags);
+    ImGui::Begin(title, &show, flags);
 
     ImGui::Indent(5);
-    std::for_each(m_overlay_data.begin(), m_overlay_data.end(), [](const OverlayData& _data) {
+    std::for_each(overlay_data.begin(), overlay_data.end(), [](const OverlayData& _data) {
         ImGui::Text("%s:", _data.label.c_str());
         ImGui::SameLine(150);
         ImGui::Text("%s", _data.description.c_str());
     });
     ImGui::PopStyleColor(3);
     ImGui::End();
+}
+
+void FileView::clear_overlay()
+{
+    m_overlay_data_for_text_editor.clear();
+    m_overlay_data_for_graph_editor.clear();
+}
+
+void FileView::push_overlay(OverlayData overlay_data, OverlayType overlay_type)
+{
+    if(overlay_type == OverlayType_GRAPH )
+        m_overlay_data_for_graph_editor.push_back(overlay_data);
+    else
+        m_overlay_data_for_text_editor.push_back(overlay_data);
 }
