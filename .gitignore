@@ -65,3 +65,4 @@ _screenshots/
 /cmake-build-relwithdebinfo/
 /cmake-build-minsizerel/
 /.idea
+.gitconfig
