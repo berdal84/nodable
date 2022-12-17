@@ -111,7 +111,7 @@ bool App::init()
              {SDLK_y, KMOD_CTRL},
              Condition_ALWAYS});
     BindedEventManager::bind(
-            {"Isolate Selection on/off",
+            {"Isolate Selection",
              EventType::toggle_isolate_selection,
              {SDLK_i, KMOD_CTRL},
              Condition_ALWAYS});
