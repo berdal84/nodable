@@ -217,9 +217,9 @@ void FileView::replace_text(const std::string& _content)
     const std::string current_content = get_text();
     if (current_content != _content )
     {
-        return set_text(_content);
-        auto cmd = std::make_shared<Cmd_ReplaceText>(current_content, _content, &m_text_editor);
-        m_file.get_history()->push_command(cmd);
+        set_text(_content);
+        // auto cmd = std::make_shared<Cmd_ReplaceText>(current_content, _content, &m_text_editor);
+        // m_file.get_history()->push_command(cmd);
 
         LOG_MESSAGE("FileView", "Selected text updated from graph.\n")
         LOG_VERBOSE("FileView", "%s \n", _content.c_str())
