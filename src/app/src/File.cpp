@@ -149,7 +149,7 @@ bool File::update()
                      .get_serializer()
                      .serialize(code, root_node );
 
-                LOG_VERBOSE("File","replace selected text\n")
+                LOG_VERBOSE("File","replace text\n")
                 m_view->replace_text(code);
             }
             graph_has_changed = true;

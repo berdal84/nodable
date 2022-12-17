@@ -89,8 +89,7 @@ bool FileView::draw()
 
     bool is_running = m_ctx.virtual_machine().is_program_running();
     auto allowkeyboard = !is_running &&
-                         !NodeView::is_any_dragged() &&
-                         !NodeView::get_selected(); // disable keyboard for text editor when a node is selected.
+                         !NodeView::is_any_dragged(); // disable keyboard for text editor when a node is selected.
 
     auto allowMouse = !is_running &&
                       !NodeView::is_any_dragged() &&
