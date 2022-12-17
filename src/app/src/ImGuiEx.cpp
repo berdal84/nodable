@@ -187,10 +187,10 @@ void ImGuiEx::BeginFrame()
     s_is_any_tooltip_open = false;
 }
 
-void ImGuiEx::MenuItemBindedToEvent(ndbl::EventType type, bool enable)
+void ImGuiEx::MenuItemBindedToEvent(ndbl::EventType type, bool selected, bool enable)
 {
     auto binded_evt = BindedEventManager::get_event(type);
-    if (ImGui::MenuItem( binded_evt.label.c_str(),   binded_evt.shortcut.to_string().c_str(), false, enable))
+    if (ImGui::MenuItem( binded_evt.label.c_str(),   binded_evt.shortcut.to_string().c_str(), selected, enable))
     {
         EventManager::push_event(binded_evt.event_t);
     }

@@ -150,7 +150,7 @@ bool File::update()
                      .serialize(code, root_node );
 
                 LOG_VERBOSE("File","replace text\n")
-                m_view->replace_text(code);
+                m_ctx.settings().isolate_selection ? m_view->replace_selected_text(code) : m_view->replace_text(code);
             }
             graph_has_changed = true;
         }
@@ -167,7 +167,7 @@ bool File::update()
 bool File::update_graph()
 {
     LOG_VERBOSE("File","get selected text\n")
-	std::string code_source = m_view->get_text();
+	std::string code_source = m_ctx.settings().isolate_selection ? m_view->get_selected_text() : m_view->get_text();
 	return update_graph(code_source);
 }
 

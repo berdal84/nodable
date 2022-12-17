@@ -89,7 +89,7 @@ bool FileView::draw()
 
     bool is_running = m_ctx.virtual_machine().is_program_running();
     auto allowkeyboard = !is_running &&
-                         !NodeView::is_any_dragged(); // disable keyboard for text editor when a node is selected.
+                         !NodeView::is_any_dragged();
 
     auto allowMouse = !is_running &&
                       !NodeView::is_any_dragged() &&
@@ -125,11 +125,11 @@ bool FileView::draw()
 
     auto isCurrentLineModified = currentLineText != previousLineText &&
                                  currentCursorPosition.mLine == previousCursorPosition.mLine;
-    auto isSelectedTextModified = previousSelectedText != currentSelectedText;
+    auto isSelectedTextModified = currentCursorPosition != previousCursorPosition;
 
     m_text_has_changed = isCurrentLineModified ||
-                         m_text_editor.IsTextChanged() /* ||
-                         isSelectedTextModified */;
+                         m_text_editor.IsTextChanged() ||
+                         ( m_ctx.settings().isolate_selection && isSelectedTextModified);
 
     if (m_text_editor.IsTextChanged())
     {

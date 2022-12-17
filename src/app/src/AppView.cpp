@@ -244,9 +244,9 @@ bool AppView::draw()
                     bool changed = current_file != nullptr && current_file->has_changed();
                     ImGuiEx::MenuItemBindedToEvent(EventType::new_file_triggered);
                     ImGuiEx::MenuItemBindedToEvent(EventType::browse_file_triggered);
-                    ImGuiEx::MenuItemBindedToEvent(EventType::save_file_as_triggered, has_file);
-                    ImGuiEx::MenuItemBindedToEvent(EventType::save_file_triggered, has_file && changed);
-                    ImGuiEx::MenuItemBindedToEvent(EventType::close_file_triggered, has_file);
+                    ImGuiEx::MenuItemBindedToEvent(EventType::save_file_as_triggered, false, has_file);
+                    ImGuiEx::MenuItemBindedToEvent(EventType::save_file_triggered, false, has_file && changed);
+                    ImGuiEx::MenuItemBindedToEvent(EventType::close_file_triggered, false, has_file);
 
                     FileView *fileView = nullptr;
                     bool auto_paste;
@@ -283,8 +283,8 @@ bool AppView::draw()
                         EventManager::push_event(EventType::delete_node_action_triggered);
                     }
 
-                    ImGuiEx::MenuItemBindedToEvent(EventType::arrange_node_action_triggered, has_selection);
-                    ImGuiEx::MenuItemBindedToEvent(EventType::toggle_folding_selected_node_action_triggered, has_selection);
+                    ImGuiEx::MenuItemBindedToEvent(EventType::arrange_node_action_triggered, false, has_selection);
+                    ImGuiEx::MenuItemBindedToEvent(EventType::toggle_folding_selected_node_action_triggered, false, has_selection);
 
                     if ( ImGui::MenuItem("Expand/Collapse recursive", NULL, false, has_selection) )
                     {
@@ -339,6 +339,11 @@ bool AppView::draw()
                     {
                         m_is_layout_initialized = false;
                     }
+
+                    ImGui::Separator();
+
+                    ImGuiEx::MenuItemBindedToEvent(EventType::toggle_isolate_selection, m_settings.isolate_selection);
+
                     ImGui::EndMenu();
                 }
 

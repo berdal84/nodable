@@ -36,8 +36,9 @@ namespace ndbl
         redo_triggered,
         file_opened,
 
-        exit_triggered = 0x500 ,// application
-        show_splashscreen_triggered
+        exit_triggered = 0x500, // general
+        show_splashscreen_triggered,
+        toggle_isolate_selection,
     };
 
     struct SimpleEvent
