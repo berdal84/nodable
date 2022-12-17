@@ -49,22 +49,22 @@ bool App::init()
             {"Delete",
              EventType::delete_node_action_triggered,
              {SDLK_DELETE, KMOD_NONE},
-             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED});
+             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
     BindedEventManager::bind(
             {"Arrange",
              EventType::arrange_node_action_triggered,
              {SDLK_a, KMOD_NONE},
-             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED });
+             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR });
     BindedEventManager::bind(
             {"Fold/Unfold",
              EventType::toggle_folding_selected_node_action_triggered,
              {SDLK_x, KMOD_NONE},
-             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED});
+             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
     BindedEventManager::bind(
             {"Next",
              EventType::select_successor_node_action_triggered,
              {SDLK_n, KMOD_NONE},
-             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED});
+             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
     BindedEventManager::bind(
             {ICON_FA_SAVE" Save",
              EventType::save_file_triggered,
@@ -111,7 +111,7 @@ bool App::init()
              {SDLK_y, KMOD_CTRL},
              Condition_ENABLE});
     BindedEventManager::bind(
-            {"Isolate",
+            {"Isolate on/off",
              EventType::toggle_isolate_selection,
              {SDLK_i, KMOD_CTRL},
              Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR});
