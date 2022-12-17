@@ -9,9 +9,9 @@ namespace ndbl
 {
     struct Shortcut
     {
-        SDL_Keycode key    = SDLK_UNKNOWN;    // a key to be pressed
-        SDL_Keymod  mod    = KMOD_NONE;       // modifiers (alt, ctrl, etc.)
-        EventType   event  = EventType::none; // event to trigger
+        SDL_Keycode key         = SDLK_UNKNOWN;    // a key to be pressed
+        SDL_Keymod  mod         = KMOD_NONE;       // modifiers (alt, ctrl, etc.)
+        std::string description;
         std::string to_string() const;
     };
 }

@@ -5,19 +5,23 @@
 
 namespace ndbl
 {
-    enum Condition
+    using Condition = int;
+    enum Condition_ : int
     {
-        Condition_NEVER = 0,
-        Condition_ALWAYS = 1 << 0,
-        Condition_HAS_SELELECTION = 1 << 1,
-        Condition_HAS_NO_SELECTION = 1 << 2
+        Condition_DISABLE                          = 0,
+        Condition_ENABLE_IF_HAS_SELECTION          = 1 << 0,
+        Condition_ENABLE_IF_HAS_NO_SELECTION       = 1 << 1,
+        Condition_ENABLE                           = Condition_ENABLE_IF_HAS_SELECTION | Condition_ENABLE_IF_HAS_NO_SELECTION,
+        Condition_HIGHLIGHTED_IN_GRAPH_ONLY        = 1 << 2,
+        Condition_HIGHLIGHTED_IN_SHOW_TEXT_ONLY    = 1 << 3,
+        Condition_HIGHLIGHTED                      = Condition_HIGHLIGHTED_IN_GRAPH_ONLY | Condition_HIGHLIGHTED_IN_SHOW_TEXT_ONLY,
     };
 
     struct BindedEvent {
         std::string label;
         EventType event_t;
         Shortcut shortcut;
-        Condition condition = Condition_NEVER;
+        Condition condition = Condition_ENABLE;
     };
 
     /**
