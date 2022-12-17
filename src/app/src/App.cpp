@@ -49,72 +49,87 @@ bool App::init()
             {"Delete",
              EventType::delete_node_action_triggered,
              {SDLK_DELETE, KMOD_NONE},
-             Condition_HAS_SELELECTION});
+             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED});
     BindedEventManager::bind(
             {"Arrange",
              EventType::arrange_node_action_triggered,
              {SDLK_a, KMOD_NONE},
-             Condition_HAS_SELELECTION});
+             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED });
     BindedEventManager::bind(
             {"Fold/Unfold",
              EventType::toggle_folding_selected_node_action_triggered,
              {SDLK_x, KMOD_NONE},
-             Condition_HAS_SELELECTION});
+             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED});
     BindedEventManager::bind(
             {"Next",
              EventType::select_successor_node_action_triggered,
              {SDLK_n, KMOD_NONE},
-             Condition_HAS_SELELECTION});
+             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED});
     BindedEventManager::bind(
             {ICON_FA_SAVE" Save",
              EventType::save_file_triggered,
              {SDLK_s, KMOD_CTRL},
-             Condition_ALWAYS});
+             Condition_ENABLE});
     BindedEventManager::bind(
             {ICON_FA_SAVE" Save as",
              EventType::save_file_as_triggered,
              {SDLK_s, KMOD_CTRL},
-             Condition_ALWAYS});
+             Condition_ENABLE});
     BindedEventManager::bind(
             {ICON_FA_TIMES"  Close",
              EventType::close_file_triggered,
              {SDLK_w, KMOD_CTRL},
-             Condition_ALWAYS});
+             Condition_ENABLE});
     BindedEventManager::bind(
             {ICON_FA_FOLDER_OPEN" Open",
              EventType::browse_file_triggered,
              {SDLK_o, KMOD_CTRL},
-             Condition_ALWAYS});
+             Condition_ENABLE});
     BindedEventManager::bind(
             {ICON_FA_FILE" New",
              EventType::new_file_triggered,
              {SDLK_n, KMOD_CTRL},
-             Condition_ALWAYS});
+             Condition_ENABLE});
     BindedEventManager::bind(
             {"Splashscreen",
              EventType::show_splashscreen_triggered,
              {SDLK_F1},
-             Condition_ALWAYS});
+             Condition_ENABLE});
     BindedEventManager::bind(
             {ICON_FA_SIGN_OUT_ALT" Exit",
              EventType::exit_triggered,
              {SDLK_F4, KMOD_ALT},
-             Condition_ALWAYS});
+             Condition_ENABLE});
     BindedEventManager::bind(
             {"Undo",
              EventType::undo_triggered,
              {SDLK_z, KMOD_CTRL},
-             Condition_ALWAYS});
+             Condition_ENABLE});
     BindedEventManager::bind(
             {"Redo",
              EventType::redo_triggered,
              {SDLK_y, KMOD_CTRL},
-             Condition_ALWAYS});
+             Condition_ENABLE});
     BindedEventManager::bind(
-            {"Isolate Selection",
+            {"Isolate",
              EventType::toggle_isolate_selection,
              {SDLK_i, KMOD_CTRL},
-             Condition_ALWAYS});
+             Condition_ENABLE | Condition_HIGHLIGHTED_IN_SHOW_TEXT_ONLY});
+    BindedEventManager::bind(
+            {"Select",
+             EventType::none,
+             {0, KMOD_NONE, "Left mouse click on a node"},
+             Condition_ENABLE_IF_HAS_NO_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_ONLY});
+    BindedEventManager::bind(
+            {"Deselect",
+             EventType::none,
+             {0, KMOD_NONE, "Double left mouse click on background"},
+             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_ONLY});
+    BindedEventManager::bind(
+            {"Move Graph",
+             EventType::none,
+             {0, KMOD_NONE, "Left mouse btn drag on background"},
+             Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_ONLY});
     return true;
 }
 
@@ -296,6 +311,19 @@ void App::reset_program()
 
 void App::handle_events()
 {
+    // shorthand to push all shortcuts to a file view overlay depending on conditions
+    auto push_overlay_shortcuts = [](ndbl::FileView* view, Condition condition) -> void {
+        for (const auto& _binded_event: BindedEventManager::s_binded_events)
+        {
+            if( (_binded_event.condition & condition) == condition)
+                view->push_overlay(
+                        {
+                            _binded_event.label.substr(0,12).c_str(),
+                         _binded_event.shortcut.to_string().c_str()
+                        });
+        }
+    };
+
     /*
      * SDL events
      *
@@ -393,15 +421,7 @@ void App::handle_events()
             {
                 FileView* view = m_current_file->get_view();
                 view->clear_overlay();
-
-                for (const auto& _binded_event: BindedEventManager::s_binded_events)
-                {
-                    if( (_binded_event.condition & Condition_HAS_SELELECTION) == 0) continue;
-
-                    view->push_overlay({_binded_event.label.substr(0,12).c_str(), _binded_event.shortcut.to_string().c_str()});
-                }
-                view->push_overlay({"Deselect", "Double left mouse click on background"});
-
+                push_overlay_shortcuts(view, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_ONLY);
                 LOG_MESSAGE( "App", "NodeView selected\n")
                 break;
             }
@@ -410,7 +430,7 @@ void App::handle_events()
             {
                 FileView* view = m_current_file->get_view();
                 view->clear_overlay();
-                view->push_overlay({"Select", "Left mouse click"});
+                push_overlay_shortcuts(view, Condition_ENABLE_IF_HAS_NO_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_ONLY);
                 break;
             }
             case EventType::delete_node_action_triggered:
