@@ -244,8 +244,11 @@ bool AppView::draw()
                     bool changed = current_file != nullptr && current_file->has_changed();
                     ImGuiEx::MenuItemBindedToEvent(EventType::new_file_triggered);
                     ImGuiEx::MenuItemBindedToEvent(EventType::browse_file_triggered);
+                    ImGui::Separator();
                     ImGuiEx::MenuItemBindedToEvent(EventType::save_file_as_triggered, false, has_file);
                     ImGuiEx::MenuItemBindedToEvent(EventType::save_file_triggered, false, has_file && changed);
+                    ImGuiEx::MenuItemBindedToEvent(EventType::toggle_isolate_selection, m_settings.isolate_selection);
+                    ImGui::Separator();
                     ImGuiEx::MenuItemBindedToEvent(EventType::close_file_triggered, false, has_file);
 
                     FileView *fileView = nullptr;
@@ -341,8 +344,6 @@ bool AppView::draw()
                     }
 
                     ImGui::Separator();
-
-                    ImGuiEx::MenuItemBindedToEvent(EventType::toggle_isolate_selection, m_settings.isolate_selection);
 
                     ImGui::EndMenu();
                 }
