@@ -59,45 +59,45 @@ void FileView::init()
 bool FileView::draw()
 {
     const vec2 margin(10.0f, 0.0f);
-    auto availSize = ImGui::GetContentRegionAvail() - margin;
+    auto region_available = ImGui::GetContentRegionAvail() - margin;
 
      // Splitter
     //---------
 
-    if (m_child1_size + m_child2_size != availSize.x )
+    if (m_child1_size + m_child2_size != region_available.x )
     {
-        float ratio = availSize.x / (m_child1_size + m_child2_size);
+        float ratio = region_available.x / (m_child1_size + m_child2_size);
         m_child1_size *= ratio;
         m_child2_size *= ratio;
     }
 
-    ImRect rect;
-    rect.Max.y = availSize.y;
-    rect.Max.x = 4.0f;
-    rect.TranslateX(m_child1_size + 2.0f);
-    rect.Translate(ImGuiEx::ToScreenPosOffset());
-    ImGui::SplitterBehavior(rect, ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
+    ImRect splitter_rect;
+    splitter_rect.Max.y = region_available.y;
+    splitter_rect.Max.x = 4.0f;
+    splitter_rect.TranslateX(m_child1_size + 2.0f);
+    splitter_rect.Translate(ImGuiEx::ToScreenPosOffset());
+    ImGui::SplitterBehavior(splitter_rect, ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
 
      // TEXT EDITOR
     //------------
 
-    ImGui::BeginChild("file", vec2(m_child1_size, availSize.y), false);
+    ImGui::BeginChild("file", vec2(m_child1_size, region_available.y), false);
 
-    auto previousCursorPosition = m_text_editor.GetCursorPosition();
-    auto previousSelectedText = m_text_editor.GetSelectedText();
-    auto previousLineText = m_text_editor.GetCurrentLineText();
+    auto old_cursor_position = m_text_editor.GetCursorPosition();
+    auto old_selected_text = m_text_editor.GetSelectedText();
+    auto old_line_text = m_text_editor.GetCurrentLineText();
 
     bool is_running = m_ctx.virtual_machine().is_program_running();
-    auto allowkeyboard = !is_running &&
-                         !NodeView::is_any_dragged();
+    auto allow_keyboard = !is_running &&
+                          !NodeView::is_any_dragged();
 
-    auto allowMouse = !is_running &&
-                      !NodeView::is_any_dragged() &&
-                      !ImGui::IsAnyItemHovered() &&
-                      !ImGui::IsAnyItemFocused();
+    auto allow_mouse = !is_running &&
+                       !NodeView::is_any_dragged() &&
+                       !ImGui::IsAnyItemHovered() &&
+                       !ImGui::IsAnyItemFocused();
 
-    m_text_editor.SetHandleKeyboardInputs(allowkeyboard);
-    m_text_editor.SetHandleMouseInputs(allowMouse);
+    m_text_editor.SetHandleKeyboardInputs(allow_keyboard);
+    m_text_editor.SetHandleMouseInputs(allow_mouse);
 
     // listen to clipboard in background (disable by default)
     if (m_experimental_clipboard_auto_paste)
@@ -119,17 +119,17 @@ bool FileView::draw()
         m_file.get_history()->enable_text_editor(false); // avoid recording events caused by graph serialisation
     }
 
-    auto currentCursorPosition = m_text_editor.GetCursorPosition();
-    auto currentSelectedText = m_text_editor.GetSelectedText();
-    auto currentLineText = m_text_editor.GetCurrentLineText();
+    auto new_cursor_position = m_text_editor.GetCursorPosition();
+    auto new_selected_text = m_text_editor.GetSelectedText();
+    auto new_line_text = m_text_editor.GetCurrentLineText();
 
-    auto isCurrentLineModified = currentLineText != previousLineText &&
-                                 currentCursorPosition.mLine == previousCursorPosition.mLine;
-    auto isSelectedTextModified = currentCursorPosition != previousCursorPosition;
+    auto is_line_text_modified = new_line_text != old_line_text &&
+                                 new_cursor_position.mLine == old_cursor_position.mLine;
+    auto is_selected_text_modified = new_cursor_position != old_cursor_position;
 
-    m_text_has_changed = isCurrentLineModified ||
+    m_text_has_changed = is_line_text_modified ||
                          m_text_editor.IsTextChanged() ||
-                         ( m_ctx.settings().isolate_selection && isSelectedTextModified);
+                         (m_ctx.settings().isolate_selection && is_selected_text_modified);
 
     if (m_text_editor.IsTextChanged())
     {
@@ -156,7 +156,7 @@ bool FileView::draw()
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         graph_node_view->update();
         vec2 graph_view_TL = ImGui::GetCursorPos();
-        bool changed = graph_node_view->draw_as_child("graph", vec2(m_child2_size, availSize.y), false, flags);
+        bool changed = graph_node_view->draw_as_child("graph", vec2(m_child2_size, region_available.y), false, flags);
         if( changed )
         {
             graph->set_dirty();
