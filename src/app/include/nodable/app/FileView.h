@@ -19,6 +19,13 @@ namespace ndbl
         OverlayPos_Bottom,
         OverlayPos_Left,
     };
+
+    using OverlayType = int;
+    enum OverlayType_ {
+        OverlayType_TEXT,
+        OverlayType_GRAPH
+    };
+
     typedef struct {
         std::string label;
         std::string description;
@@ -46,11 +53,12 @@ namespace ndbl
         void                           draw_info()const;
         void                           experimental_clipboard_auto_paste(bool);
         bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
-        void        push_overlay(OverlayData data) { m_overlay_data.push_back(data); }
-        void        clear_overlay() { m_overlay_data.clear(); }
-        void        draw_overlay(ImRect rect);
+        void                           push_overlay(OverlayData, OverlayType) ;
+        void                           clear_overlay();
+        static void                    draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect);
 	private:
-        std::vector<OverlayData> m_overlay_data;
+        std::vector<OverlayData> m_overlay_data_for_text_editor;
+        std::vector<OverlayData> m_overlay_data_for_graph_editor;
 
 		File&        m_file;
 		TextEditor   m_text_editor;

@@ -114,22 +114,22 @@ bool App::init()
             {"Isolate",
              EventType::toggle_isolate_selection,
              {SDLK_i, KMOD_CTRL},
-             Condition_ENABLE | Condition_HIGHLIGHTED_IN_SHOW_TEXT_ONLY});
+             Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR});
     BindedEventManager::bind(
             {"Select",
              EventType::none,
              {0, KMOD_NONE, "Left mouse click on a node"},
-             Condition_ENABLE_IF_HAS_NO_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_ONLY});
+             Condition_ENABLE_IF_HAS_NO_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
     BindedEventManager::bind(
             {"Deselect",
              EventType::none,
              {0, KMOD_NONE, "Double left mouse click on background"},
-             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_ONLY});
+             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
     BindedEventManager::bind(
             {"Move Graph",
              EventType::none,
              {0, KMOD_NONE, "Left mouse btn drag on background"},
-             Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_ONLY});
+             Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
     return true;
 }
 
@@ -316,11 +316,25 @@ void App::handle_events()
         for (const auto& _binded_event: BindedEventManager::s_binded_events)
         {
             if( (_binded_event.condition & condition) == condition)
-                view->push_overlay(
-                        {
-                            _binded_event.label.substr(0,12).c_str(),
-                         _binded_event.shortcut.to_string().c_str()
-                        });
+            {
+                if (_binded_event.condition & Condition_HIGHLIGHTED_IN_GRAPH_EDITOR)
+                {
+                    view->push_overlay(
+                            {
+                                    _binded_event.label.substr(0,12).c_str(),
+                                    _binded_event.shortcut.to_string().c_str()
+                            }, OverlayType_GRAPH);
+                }
+                if ( _binded_event.condition & Condition_HIGHLIGHTED_IN_TEXT_EDITOR)
+                {
+                    view->push_overlay(
+                            {
+                                    _binded_event.label.substr(0,12).c_str(),
+                                    _binded_event.shortcut.to_string().c_str()
+                            }, OverlayType_TEXT);
+                }
+            }
+
         }
     };
 
@@ -421,7 +435,7 @@ void App::handle_events()
             {
                 FileView* view = m_current_file->get_view();
                 view->clear_overlay();
-                push_overlay_shortcuts(view, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_ONLY);
+                push_overlay_shortcuts(view, Condition_ENABLE_IF_HAS_SELECTION);
                 LOG_MESSAGE( "App", "NodeView selected\n")
                 break;
             }
@@ -430,7 +444,7 @@ void App::handle_events()
             {
                 FileView* view = m_current_file->get_view();
                 view->clear_overlay();
-                push_overlay_shortcuts(view, Condition_ENABLE_IF_HAS_NO_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_ONLY);
+                push_overlay_shortcuts(view, Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
             }
             case EventType::delete_node_action_triggered:
