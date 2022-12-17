@@ -110,6 +110,11 @@ bool App::init()
              EventType::redo_triggered,
              {SDLK_y, KMOD_CTRL},
              Condition_ALWAYS});
+    BindedEventManager::bind(
+            {"Isolate Selection on/off",
+             EventType::toggle_isolate_selection,
+             {SDLK_i, KMOD_CTRL},
+             Condition_ALWAYS});
     return true;
 }
 
@@ -309,6 +314,16 @@ void App::handle_events()
     {
         switch ( event.type )
         {
+            case EventType::toggle_isolate_selection:
+            {
+                m_settings.isolate_selection = !m_settings.isolate_selection;
+                if( m_current_file )
+                {
+                    m_current_file->update_graph();
+                }
+                break;
+            }
+
             case EventType::exit_triggered:
             {
                 flag_to_stop();

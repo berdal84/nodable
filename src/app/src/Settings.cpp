@@ -108,6 +108,7 @@ Settings::Settings()
     // Misc.
     experimental_graph_autocompletion = false;
     experimental_hybrid_history       = false;
+    isolate_selection                 = false;
 }
 
 void Settings::patch_imgui_style(ImGuiStyle& _style)
