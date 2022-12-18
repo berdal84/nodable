@@ -59,6 +59,7 @@ namespace ndbl {
         float          ui_history_btn_height;
         float          ui_history_btn_width_max;
         const char*    ui_splashscreen_imagePath;
+        float          ui_overlay_padding;
         bool           experimental_graph_autocompletion;
         bool           experimental_hybrid_history;
         bool           isolate_selection;

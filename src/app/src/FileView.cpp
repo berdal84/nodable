@@ -81,7 +81,7 @@ bool FileView::draw()
      // TEXT EDITOR
     //------------
 
-    vec2 graph_view_TL = ImGui::GetCursorPos();
+    vec2 text_editor_top_left_corner = ImGui::GetCursorPos();
     vec2 text_editor_size = vec2(m_child1_size, region_available.y);
     ImGui::BeginChild("file", text_editor_size, false);
 
@@ -144,8 +144,9 @@ bool FileView::draw()
     }
 
     ImGui::EndChild();
-    ImRect text_editor_overlay_rect(graph_view_TL, graph_view_TL + text_editor_size);
-    text_editor_overlay_rect.Expand(vec2(-20)); // margin
+    ImRect text_editor_overlay_rect(vec2(), text_editor_size);
+    text_editor_overlay_rect.Translate(text_editor_top_left_corner);
+    text_editor_overlay_rect.Expand(vec2(-2.f * m_ctx.settings().ui_overlay_padding)); // margin
     text_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
     draw_overlay("Quick Help:###text_editor", m_overlay_data_for_text_editor, text_editor_overlay_rect);
 
@@ -161,16 +162,26 @@ bool FileView::draw()
         LOG_VERBOSE("FileView", "graph_node_view->update()\n");
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         graph_node_view->update();
-        vec2 graph_view_TL = ImGui::GetCursorPos();
+        vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
         bool changed = graph_node_view->draw_as_child("graph", vec2(m_child2_size, region_available.y), false, flags);
         if( changed )
         {
             graph->set_dirty();
         }
-        ImRect graph_editor_overlay_rect(graph_view_TL, graph_view_TL + graph_node_view->get_visible_rect().GetSize());
-        graph_editor_overlay_rect.Expand(vec2(-20)); // margin
+
+        // overlay (commands and shortcuts)
+        ImRect graph_editor_overlay_rect(vec2(), graph_node_view->get_visible_rect().GetSize());
+        graph_editor_overlay_rect.Translate(graph_editor_top_left_corner);
+        graph_editor_overlay_rect.Expand(vec2(-2.0f * m_ctx.settings().ui_overlay_padding)); // margin
         graph_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
         draw_overlay("Quick Help:###text_graph", m_overlay_data_for_graph_editor, graph_editor_overlay_rect);
+
+        // overlay for isolation mode
+        if( m_ctx.settings().isolate_selection )
+        {
+            ImGui::SetCursorPos(graph_editor_top_left_corner + m_ctx.settings().ui_overlay_padding);
+            ImGui::Text("Isolation mode ON");
+        }
     }
     else
     {

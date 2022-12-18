@@ -105,6 +105,9 @@ Settings::Settings()
     ui_history_btn_height             = 10.f;
     ui_history_btn_width_max          = 20.f;
 
+    // overlay
+    ui_overlay_padding                = 10.0f;
+
     // Misc.
     experimental_graph_autocompletion = false;
     experimental_hybrid_history       = false;
