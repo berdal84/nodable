@@ -1,6 +1,7 @@
 
-// Conditional Structures
-// Select the whole code to see the conditional structures as a graph
+// Conditional structures example
+
+// note: this example is interesting to see nested conditional structures.
 
 int a = 5;
 int b = 4;
