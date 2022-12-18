@@ -1119,6 +1119,13 @@ void AppView::draw_tool_bar()
         m_ctx.reset_program();
     }
     ImGui::SameLine();
+
+    // enter isolation mode
+    if ( ImGui::Button( m_settings.isolate_selection ? ICON_FA_CROP " isolation mode: ON " :  ICON_FA_CROP " isolation mode: OFF", button_size))
+    {
+        EventManager::push_event(EventType::toggle_isolate_selection);
+    }
+    ImGui::SameLine();
     ImGui::EndGroup();
 
     ImGui::PopFont();
