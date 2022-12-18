@@ -1150,7 +1150,7 @@ void AppView::handle_events()
                 {
                     if (_binded_event.event_t != EventType::none
                         && _binded_event.shortcut.key == event.key.keysym.sym
-                        && (event.key.keysym.mod & _binded_event.shortcut.mod) != 0
+                        && ( _binded_event.shortcut.mod == KMOD_NONE || (event.key.keysym.mod & _binded_event.shortcut.mod ))
                     )
                     {
                         EventManager::push_event(_binded_event.event_t);
