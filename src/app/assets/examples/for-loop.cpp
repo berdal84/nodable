@@ -1,5 +1,7 @@
-// For loop
-// Select the whole code to see the conditional structures as a graph
+
+// For loop example
+
+// note: this example is interesting to run in debug mode
 
 int sum   = 0;
 int count = 5;

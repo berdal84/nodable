@@ -1,6 +1,9 @@
 
-// Simple arithmetic expressions
-// click once on an expression to see its graph
+// Arithmetic expressions example
+
+// Tips:
+// - Use isolation mode to see the graph of the current line or selection.
+// - Use CTRL + I to toggle isolation mode on/off.
 
 // expression 1:
 1+1;
