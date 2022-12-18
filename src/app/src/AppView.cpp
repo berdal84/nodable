@@ -247,7 +247,6 @@ bool AppView::draw()
                     ImGui::Separator();
                     ImGuiEx::MenuItemBindedToEvent(EventType::save_file_as_triggered, false, has_file);
                     ImGuiEx::MenuItemBindedToEvent(EventType::save_file_triggered, false, has_file && changed);
-                    ImGuiEx::MenuItemBindedToEvent(EventType::toggle_isolate_selection, m_settings.isolate_selection);
                     ImGui::Separator();
                     ImGuiEx::MenuItemBindedToEvent(EventType::close_file_triggered, false, has_file);
 
@@ -344,6 +343,8 @@ bool AppView::draw()
                     }
 
                     ImGui::Separator();
+
+                    ImGuiEx::MenuItemBindedToEvent(EventType::toggle_isolate_selection, m_settings.isolate_selection);
 
                     ImGui::EndMenu();
                 }
