@@ -39,9 +39,13 @@ namespace ndbl
         using InvokableFunctions_t = std::vector<std::shared_ptr<const iinvokable>>;
         virtual ~ILanguage() = default;
 
+        /** Find a function knowing its type */
         virtual std::shared_ptr<const iinvokable> find_function(const func_type*) const = 0;
+        /** Find an operator's function knowing its type (not strict, allow cast)*/
         virtual std::shared_ptr<const iinvokable> find_operator_fct(const func_type*) const = 0;
+        /** Find an operator's function knowing its type (strict match only) */
         virtual std::shared_ptr<const iinvokable> find_operator_fct_exact(const func_type*) const = 0;
+        /** Find an operator (!= operator's function) from a given symbol (ex: <,>,=,==,!=,...) and type (unary, binary, ternary) */
         virtual const Operator*                 find_operator(const std::string& , Operator_t) const = 0;
         virtual IParser&                        get_parser() = 0;
         virtual const IParser&                  get_parser()const = 0;

@@ -8,9 +8,9 @@
 
 namespace ndbl {
 
-	/*
-		The role of this class is to define a first language for Nodable.
-	*/
+	/**
+	 * Nodable Language implementation
+	 */
 	class NodableLanguage : public ILanguage
 	{
 	public:
