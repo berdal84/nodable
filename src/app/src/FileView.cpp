@@ -153,7 +153,7 @@ bool FileView::draw()
     text_editor_overlay_rect.Translate(text_editor_top_left_corner);
     text_editor_overlay_rect.Expand(vec2(-2.f * m_ctx.settings().ui_overlay_margin)); // margin
     text_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
-    draw_overlay("Quick Help:###text_editor", m_overlay_data_for_text_editor, text_editor_overlay_rect);
+    draw_overlay("Quick Help:###text", m_overlay_data_for_text_editor, text_editor_overlay_rect, vec2(0,1));
 
      // NODE EDITOR
     //-------------
@@ -179,7 +179,7 @@ bool FileView::draw()
         graph_editor_overlay_rect.Translate(graph_editor_top_left_corner);
         graph_editor_overlay_rect.Expand(vec2(-2.0f * m_ctx.settings().ui_overlay_margin)); // margin
         graph_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
-        draw_overlay("Quick Help:###text_graph", m_overlay_data_for_graph_editor, graph_editor_overlay_rect);
+        draw_overlay("Quick Help:###graph", m_overlay_data_for_graph_editor, graph_editor_overlay_rect, vec2(1,1));
 
         // overlay for isolation mode
         if( m_ctx.settings().isolate_selection )
@@ -304,7 +304,7 @@ void  FileView::experimental_clipboard_auto_paste(bool _enable)
     }
 }
 
-void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect)
+void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect, vec2 position)
 {
     if( overlay_data.empty() ) return;
 
@@ -312,8 +312,8 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
     ImGui::PushStyleColor(ImGuiCol_WindowBg, settings.ui_overlay_window_bg_golor);
     ImGui::PushStyleColor(ImGuiCol_Border, settings.ui_overlay_border_color);
     ImGui::PushStyleColor(ImGuiCol_Text, settings.ui_overlay_text_color);
-    ImGui::SetNextWindowPos( rect.GetBL(), ImGuiCond_Always, vec2(0,1)); // bottom-left corner aligned
-    ImGui::SetNextWindowSize(vec2(rect.GetSize()), ImGuiCond_Appearing);
+    ImGui::SetNextWindowPos( rect.GetTL() + rect.GetSize() * position, ImGuiCond_Always, position);
+    ImGui::SetNextWindowSize(rect.GetSize(), ImGuiCond_Appearing);
     bool show = true;
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize |
                                    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMouseInputs;
