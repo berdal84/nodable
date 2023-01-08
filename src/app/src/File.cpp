@@ -94,13 +94,13 @@ bool File::update_graph(std::string& _code_source)
     if (graph_view)
     {
         LOG_VERBOSE("File","clear graph view child constraints ...\n")
-        graph_view->clear_child_view_constraints();
+        graph_view->destroy_child_view_constraints();
     }
 
     IParser& parser = m_ctx.language().get_parser();
     if (parser.parse(_code_source, m_graph) && !m_graph->is_empty() )
     {
-        graph_view->update_child_view_constraints();
+        graph_view->create_child_view_constraints();
         m_graph->set_dirty(false);
         LOG_VERBOSE("File","graph changed, emiting event ...\n")
         m_on_graph_changed_evt.emit(m_graph);

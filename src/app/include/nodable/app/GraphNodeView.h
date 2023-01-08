@@ -30,9 +30,14 @@ namespace ndbl
 
         void        set_owner(Node *) override;
         bool        draw() override ;
+        /** Update view (once per frame)*/
         bool        update() override;
-        void        update_child_view_constraints();
-        inline void clear_child_view_constraints() { m_child_view_constraints.clear(); };
+        /** Update view given a certain delta time */
+        bool        update(float /* delta_time */);
+        /** Update view given a certain delta time and a subsample count */
+        bool        update(float /* delta_time */, u8_t /* subsample_count */);
+        void        create_child_view_constraints();
+        void        destroy_child_view_constraints();
 		void        add_contextual_menu_item(
                         const std::string &_category,
                         const std::string &_label,
@@ -40,10 +45,10 @@ namespace ndbl
                         const func_type *_signature);
         void        frame_all_node_views();
         void        frame_selected_node_views();
-
+        void        translate_all(vec2 /* delta */, const std::vector<NodeView*>&);
     private:
         void        frame_views( std::vector<NodeView*>&);
-        void        translate_all(vec2 /* delta */, const std::vector<NodeView*>&);
+
         [[nodiscard]] GraphNode* get_graph_node() const;
         std::vector<ViewConstraint>                  m_child_view_constraints;
 		std::multimap<std::string, FunctionMenuItem> m_contextual_menus;

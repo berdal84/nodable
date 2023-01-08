@@ -44,6 +44,7 @@ namespace ndbl {
         vec4           ui_node_nodeConnectorHoveredColor;
         float          ui_node_spacing;
         float          ui_node_speed;
+        u8_t           ui_node_animation_subsample_count;
         float          ui_node_connector_height;
         float          ui_node_connector_padding;
         float          ui_dockspace_right_ratio;

@@ -558,17 +558,9 @@ GraphNode* GraphNodeView::get_graph_node() const
     return get_owner()->as<GraphNode>();
 }
 
-void GraphNodeView::update_child_view_constraints()
+void GraphNodeView::create_child_view_constraints()
 {
     auto nodeRegistry = get_graph_node()->get_node_registry();
-
-    for(Node* _eachNode: nodeRegistry)
-    {
-        if (auto eachView = _eachNode->get<NodeView>())
-        {
-            eachView->clear_constraints();
-        }
-    }
 
     for(Node* _eachNode: nodeRegistry)
     {
@@ -625,32 +617,42 @@ void GraphNodeView::update_child_view_constraints()
     }
 }
 
-bool GraphNodeView::update()
+bool GraphNodeView::update(float delta_time, u8_t subsample_count)
+{
+    const float subsample_delta_time = delta_time / float(subsample_count);
+    for(u8_t i = 0; i < subsample_count; i++)
+        update( subsample_delta_time );
+    return true;
+}
+
+bool GraphNodeView::update(float delta_time)
 {
     GraphNode* graph                        = get_graph_node();
     const std::vector<Node*>& node_registry = graph->get_node_registry();
 
     // Find NodeView components
-    auto deltaTime = ImGui::GetIO().DeltaTime;
     std::vector<NodeView*> views;
     Node::get_components(node_registry, views);
-
-    // updateContraints if needed
-    if (graph->is_dirty() )
-    {
-        update_child_view_constraints();
-    }
 
     // Apply constraints
     for (auto eachView : views)
         if(eachView->is_visible() )
-            eachView->apply_constraints(deltaTime);
+            eachView->apply_constraints(delta_time);
 
     // Update
     for (auto eachView : views)
         eachView->update();
 
     return true;
+}
+
+bool GraphNodeView::update()
+{
+    if (get_graph_node()->is_dirty() )
+    {
+        create_child_view_constraints();
+    }
+    return update( ImGui::GetIO().DeltaTime, m_ctx.settings().ui_node_animation_subsample_count );
 }
 
 void GraphNodeView::set_owner(Node *_owner)
@@ -710,6 +712,10 @@ void GraphNodeView::frame_views(std::vector<NodeView*>& _views)
     // move all in order to frame the previous rectangle
     vec2 delta = m_visible_rect.GetSize() * 0.5f - rect.GetCenter() ;
 
+    if (    m_visible_rect.GetSize().x <= rect.GetSize().x
+         || m_visible_rect.GetSize().y <= rect.GetSize().y )
+        delta = rect.GetTL() * -1.0f + vec2( 50.0f ) /* (padding ) */;
+
     std::vector<NodeView*> all_views;
     Node::get_components(get_graph_node()->get_node_registry(), all_views);
     translate_all(delta , all_views);
@@ -720,5 +726,18 @@ void GraphNodeView::translate_all(vec2 delta, const std::vector<NodeView*>& _vie
     for (auto node_view : _views )
     {
         node_view->translate(delta);
+    }
+}
+
+void GraphNodeView::destroy_child_view_constraints()
+{
+    m_child_view_constraints.clear();
+
+    for(Node* _eachNode: get_graph_node()->get_node_registry())
+    {
+        if (auto eachView = _eachNode->get<NodeView>())
+        {
+            eachView->clear_constraints();
+        }
     }
 }
