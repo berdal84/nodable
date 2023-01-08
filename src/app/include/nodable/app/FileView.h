@@ -55,7 +55,7 @@ namespace ndbl
         bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
         void                           push_overlay(OverlayData, OverlayType) ;
         void                           clear_overlay();
-        void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect);
+        void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect,  vec2 position);
 
     private:
         std::vector<OverlayData> m_overlay_data_for_text_editor;
