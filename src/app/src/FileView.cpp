@@ -33,16 +33,21 @@ FileView::FileView(IAppCtx& _ctx, File& _file)
             Node* root = _graph->get_root();
 
             NodeView* root_node_view = root->get<NodeView>();
-            View*     graph_view   = root->get_parent_graph()->get<GraphNodeView>();
+            GraphNodeView*graph_view = root->get_parent_graph()->get<GraphNodeView>();
 
+            // unfold graph (lot of updates) and frame all nodes
             if ( root_node_view && graph_view )
             {
                 LOG_VERBOSE("FileView", "constraint root node view to be visible\n")
                 ImRect graphViewRect = graph_view->get_visible_rect();
-                vec2 newPos = graphViewRect.GetTL();
-                newPos.x += graphViewRect.GetSize().x * 0.33f;
-                newPos.y += root_node_view->get_size().y;
-                root_node_view->set_position(newPos);
+                vec2 delta;
+                delta.x = graphViewRect.GetSize().x * 0.33f;
+                delta.y = root_node_view->get_size().y;
+                std::vector<NodeView*> views;
+                Node::get_components<NodeView>( _graph->get_node_registry(), views );
+                graph_view->translate_all(delta, views);
+                graph_view->update( 100000.0f, 1000);
+                graph_view->frame_all_node_views();
             }
         }
     });

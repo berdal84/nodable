@@ -184,7 +184,6 @@ bool App::open_file(const fs_path& _path)
 
     m_loaded_files.push_back( file );
     current_file(file);
-    file->update_graph(); // need to force the update the first time
     EventManager::push_event(EventType::file_opened);
 	return true;
 }
@@ -465,6 +464,8 @@ void App::handle_events()
                 break;
             }
             case EventType::file_opened:
+                current_file()->update_graph();
+                // fallthrough
             case EventType::node_view_deselected:
             {
                 FileView* view = m_current_file->get_view();
@@ -569,6 +570,7 @@ void App::handle_events()
                 }
                 break;
             }
+
             case EventType::node_connector_disconnected:
             {
                 const NodeConnector* src_connector = event.node_connectors.src;
