@@ -146,7 +146,7 @@ bool FileView::draw()
     ImGui::EndChild();
     ImRect text_editor_overlay_rect(vec2(), text_editor_size);
     text_editor_overlay_rect.Translate(text_editor_top_left_corner);
-    text_editor_overlay_rect.Expand(vec2(-2.f * m_ctx.settings().ui_overlay_padding)); // margin
+    text_editor_overlay_rect.Expand(vec2(-2.f * m_ctx.settings().ui_overlay_margin)); // margin
     text_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
     draw_overlay("Quick Help:###text_editor", m_overlay_data_for_text_editor, text_editor_overlay_rect);
 
@@ -172,14 +172,14 @@ bool FileView::draw()
         // overlay (commands and shortcuts)
         ImRect graph_editor_overlay_rect(vec2(), graph_node_view->get_visible_rect().GetSize());
         graph_editor_overlay_rect.Translate(graph_editor_top_left_corner);
-        graph_editor_overlay_rect.Expand(vec2(-2.0f * m_ctx.settings().ui_overlay_padding)); // margin
+        graph_editor_overlay_rect.Expand(vec2(-2.0f * m_ctx.settings().ui_overlay_margin)); // margin
         graph_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
         draw_overlay("Quick Help:###text_graph", m_overlay_data_for_graph_editor, graph_editor_overlay_rect);
 
         // overlay for isolation mode
         if( m_ctx.settings().isolate_selection )
         {
-            ImGui::SetCursorPos(graph_editor_top_left_corner + m_ctx.settings().ui_overlay_padding);
+            ImGui::SetCursorPos(graph_editor_top_left_corner + m_ctx.settings().ui_overlay_margin);
             ImGui::Text("Isolation mode ON");
         }
     }
@@ -303,18 +303,19 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
 {
     if( overlay_data.empty() ) return;
 
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, vec4(0,0,0,0.1f));
-    ImGui::PushStyleColor(ImGuiCol_Border, vec4(0,0,0,0));
-    ImGui::PushStyleColor(ImGuiCol_Text, vec4(0,0,0,0.5f));
+    const auto& settings = m_ctx.settings();
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, settings.ui_overlay_window_bg_golor);
+    ImGui::PushStyleColor(ImGuiCol_Border, settings.ui_overlay_border_color);
+    ImGui::PushStyleColor(ImGuiCol_Text, settings.ui_overlay_text_color);
     ImGui::SetNextWindowPos( rect.GetBL(), ImGuiCond_Always, vec2(0,1)); // bottom-left corner aligned
     ImGui::SetNextWindowSize(vec2(rect.GetSize()), ImGuiCond_Appearing);
     bool show = true;
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize |
-                                   ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar;
+                                   ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMouseInputs;
 
     ImGui::Begin(title, &show, flags);
 
-    ImGui::Indent(5);
+    ImGui::Indent(settings.ui_overlay_indent);
     std::for_each(overlay_data.begin(), overlay_data.end(), [](const OverlayData& _data) {
         ImGui::Text("%s:", _data.label.c_str());
         ImGui::SameLine(150);

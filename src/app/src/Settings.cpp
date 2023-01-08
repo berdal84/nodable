@@ -106,7 +106,11 @@ Settings::Settings()
     ui_history_btn_width_max          = 20.f;
 
     // overlay
-    ui_overlay_padding                = 10.0f;
+    ui_overlay_margin                = 10.0f;
+    ui_overlay_indent                 = 5.0f;
+    ui_overlay_window_bg_golor        = vec4(0.9f,0.9f,0.9f,0.2f);
+    ui_overlay_border_color           = vec4(0,0,0,0);
+    ui_overlay_text_color             = vec4(0,0,0,0.5f);
 
     // Misc.
     experimental_graph_autocompletion = false;
