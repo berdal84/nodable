@@ -56,7 +56,8 @@ namespace ndbl
         void                           push_overlay(OverlayData, OverlayType) ;
         void                           clear_overlay();
         void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect);
-	private:
+
+    private:
         std::vector<OverlayData> m_overlay_data_for_text_editor;
         std::vector<OverlayData> m_overlay_data_for_graph_editor;
 
