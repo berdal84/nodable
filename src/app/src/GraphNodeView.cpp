@@ -698,10 +698,9 @@ void GraphNodeView::frame_selected_node_views()
    frame_views( views );
 }
 
-void GraphNodeView::frame_views(std::vector<NodeView*>& _views)
-{
-    if( _views.empty() )
-    {
+void GraphNodeView::frame_views(std::vector<NodeView*>& _views) {
+
+    if (_views.empty()) {
         LOG_VERBOSE("GraphNodeView", "Unable to frame views vector. Reason: is empty.\n")
         return;
     }
@@ -709,12 +708,21 @@ void GraphNodeView::frame_views(std::vector<NodeView*>& _views)
     // get selection rectangle
     ImRect rect = NodeView::get_rect(_views);
 
-    // move all in order to frame the previous rectangle
-    vec2 delta = m_visible_rect.GetSize() * 0.5f - rect.GetCenter() ;
+    // align graph to center
+    vec2 delta = m_visible_rect.GetSize() * 0.5f - rect.GetCenter();
 
-    if (    m_visible_rect.GetSize().x <= rect.GetSize().x
-         || m_visible_rect.GetSize().y <= rect.GetSize().y )
-        delta = rect.GetTL() * -1.0f + vec2( 50.0f ) /* (padding ) */;
+    // if there is x overflow, align left
+    if (m_visible_rect.GetSize().x <= rect.GetSize().x)
+    {
+        delta.x = - rect.GetTL().x + 50.0f;
+    }
+
+    // if there is y overflow, align top
+    if (m_visible_rect.GetSize().y <= rect.GetSize().y)
+    {
+        // align graph to top-left corner
+        delta.y = - rect.GetTL().y + 50.0f;
+    }
 
     std::vector<NodeView*> all_views;
     Node::get_components(get_graph_node()->get_node_registry(), all_views);
