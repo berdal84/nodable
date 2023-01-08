@@ -20,6 +20,8 @@ namespace ndbl
         toggle_folding_selected_node_action_triggered,
         node_view_selected,
         node_view_deselected,
+        frame_all_node_views,
+        frame_selected_node_views,
 
         member_connector_dropped = 0x200, // operation on member connectors
         member_connector_disconnected,

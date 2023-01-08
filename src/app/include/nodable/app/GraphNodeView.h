@@ -38,7 +38,12 @@ namespace ndbl
                         const std::string &_label,
                         std::function<Node *(void)> _lambda,
                         const func_type *_signature);
-	private:
+        void        frame_all_node_views();
+        void        frame_selected_node_views();
+
+    private:
+        void        frame_views( std::vector<NodeView*>&);
+        void        translate_all(vec2 /* delta */, const std::vector<NodeView*>&);
         [[nodiscard]] GraphNode* get_graph_node() const;
         std::vector<ViewConstraint>                  m_child_view_constraints;
 		std::multimap<std::string, FunctionMenuItem> m_contextual_menus;

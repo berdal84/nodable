@@ -1146,15 +1146,37 @@ void AppView::handle_events()
                     EventManager::push_event(EventType::exit_triggered);
                 break;
             case SDL_KEYDOWN:
-                for(auto _binded_event: BindedEventManager::s_binded_events )
+
+                // With mode key only
+                if( event.key.keysym.mod & (KMOD_CTRL | KMOD_ALT) )
                 {
-                    if (_binded_event.event_t != EventType::none
-                        && _binded_event.shortcut.key == event.key.keysym.sym
-                        && ( _binded_event.shortcut.mod == KMOD_NONE || (event.key.keysym.mod & _binded_event.shortcut.mod ))
-                    )
+                    for(auto _binded_event: BindedEventManager::s_binded_events )
                     {
-                        EventManager::push_event(_binded_event.event_t);
-                        break;
+                        // first, priority to shortcuts with mod
+                        if ( _binded_event.shortcut.mod != KMOD_NONE
+                             &&_binded_event.event_t != EventType::none
+                             && (_binded_event.shortcut.mod & event.key.keysym.mod)
+                             && _binded_event.shortcut.key == event.key.keysym.sym
+                                )
+                        {
+                            EventManager::push_event(_binded_event.event_t);
+                            break;
+                        }
+                    }
+                }
+                else // without any mod key
+                {
+                    for(auto _binded_event: BindedEventManager::s_binded_events )
+                    {
+                        // first, priority to shortcuts with mod
+                        if ( _binded_event.shortcut.mod == KMOD_NONE
+                             &&_binded_event.event_t != EventType::none
+                             && _binded_event.shortcut.key == event.key.keysym.sym
+                                )
+                        {
+                            EventManager::push_event(_binded_event.event_t);
+                            break;
+                        }
                     }
                 }
                 break;

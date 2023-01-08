@@ -375,14 +375,9 @@ bool GraphNodeView::draw()
 	*/
 	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged )
     {
-        auto drag = ImGui::GetMouseDragDelta();
-        for (auto each_node : node_registry)
-        {
-            if (auto node_view = each_node->get<NodeView>() )
-            {
-                node_view->translate(drag);
-            }
-        }
+        std::vector<NodeView*> views;
+        Node::get_components<NodeView>( node_registry, views);
+        translate_all( ImGui::GetMouseDragDelta(), views);
         ImGui::ResetMouseDragDelta();
     }
 
@@ -681,5 +676,49 @@ void GraphNodeView::set_owner(Node *_owner)
         language.get_serializer().serialize(label, type);
         std::string category = is_operator ? k_operator_menu_label : k_function_menu_label;
         add_contextual_menu_item(category, label, create_node, type);
+    }
+}
+
+void GraphNodeView::frame_all_node_views()
+{
+    std::vector<NodeView*> views;
+    Node::get_components(get_graph_node()->get_node_registry(), views);
+    frame_views( views );
+}
+
+void GraphNodeView::frame_selected_node_views()
+{
+    std::vector<NodeView*> views; // we use a vector to send it to a generic function
+    if( auto selected = NodeView::get_selected())
+    {
+        views.push_back(selected);
+    }
+   frame_views( views );
+}
+
+void GraphNodeView::frame_views(std::vector<NodeView*>& _views)
+{
+    if( _views.empty() )
+    {
+        LOG_VERBOSE("GraphNodeView", "Unable to frame views vector. Reason: is empty.\n")
+        return;
+    }
+
+    // get selection rectangle
+    ImRect rect = NodeView::get_rect(_views);
+
+    // move all in order to frame the previous rectangle
+    vec2 delta = m_visible_rect.GetSize() * 0.5f - rect.GetCenter() ;
+
+    std::vector<NodeView*> all_views;
+    Node::get_components(get_graph_node()->get_node_registry(), all_views);
+    translate_all(delta , all_views);
+}
+
+void GraphNodeView::translate_all(vec2 delta, const std::vector<NodeView*>& _views)
+{
+    for (auto node_view : _views )
+    {
+        node_view->translate(delta);
     }
 }

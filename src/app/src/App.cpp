@@ -20,6 +20,7 @@
 #include <nodable/core/System.h>
 #include <nodable/core/languages/NodableLanguage.h>
 #include "nodable/app/BindedEventManager.h"
+#include "nodable/app/GraphNodeView.h"
 
 using namespace ndbl;
 
@@ -129,6 +130,16 @@ bool App::init()
             {"Move Graph",
              EventType::none,
              {0, KMOD_NONE, "Left mouse btn drag on background"},
+             Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
+    BindedEventManager::bind(
+            {"Frame Selection",
+             EventType::frame_selected_node_views,
+             {SDLK_f, KMOD_NONE},
+             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
+    BindedEventManager::bind(
+            {"Frame All",
+             EventType::frame_all_node_views,
+             {SDLK_f, KMOD_LCTRL},
              Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
     return true;
 }
@@ -428,6 +439,20 @@ void App::handle_events()
             case EventType::show_splashscreen_triggered:
             {
                 m_view.set_splashscreen_visible(true);
+                break;
+            }
+
+            case EventType::frame_selected_node_views:
+            {
+                auto view = m_current_file->get_graph()->get<GraphNodeView>();
+                view->frame_selected_node_views();
+                break;
+            }
+
+            case EventType::frame_all_node_views:
+            {
+                auto view = m_current_file->get_graph()->get<GraphNodeView>();
+                view->frame_all_node_views();
                 break;
             }
 
