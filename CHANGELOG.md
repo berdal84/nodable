@@ -2,9 +2,13 @@
 Nodable Change Log :
 ====================
 
-Author: Bérenger Dalle-Cort, 2017-2022
+Author: Bérenger Dalle-Cort, 2017-2023
 
 ### v0.9:
+    - add a shortcut system (rely on SDL2),
+    - nodable events can be binded to shortcuts,
+    - whole file editing is now default, user can enable/disable isolation mode to see selected text as a graph,
+    - add screen overlay to help user,
     - hide long wires for variable references,
     - show variable name in input fields,
     - mem leak fixes,
