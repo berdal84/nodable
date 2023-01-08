@@ -32,22 +32,22 @@ FileView::FileView(IAppCtx& _ctx, File& _file)
             LOG_VERBOSE("FileView", "graph is not empty\n")
             Node* root = _graph->get_root();
 
-            NodeView* root_node_view = root->get<NodeView>();
-            GraphNodeView*graph_view = root->get_parent_graph()->get<GraphNodeView>();
+            auto* root_node_view = root->get<NodeView>();
+            auto* graph_view = root->get_parent_graph()->get<GraphNodeView>();
 
             // unfold graph (lot of updates) and frame all nodes
             if ( root_node_view && graph_view )
             {
-                LOG_VERBOSE("FileView", "constraint root node view to be visible\n")
-                ImRect graphViewRect = graph_view->get_visible_rect();
-                vec2 delta;
-                delta.x = graphViewRect.GetSize().x * 0.33f;
-                delta.y = root_node_view->get_size().y;
+                // unfold graph (simulate 1000 updates). Does not work well,
+                graph_view->update( 100000.0f, 1000);
+
+                // make sure views are outside viewable rectangle (to avoid flickering)
                 std::vector<NodeView*> views;
                 Node::get_components<NodeView>( _graph->get_node_registry(), views );
-                graph_view->translate_all(delta, views);
-                graph_view->update( 100000.0f, 1000);
-                graph_view->frame_all_node_views();
+                graph_view->translate_all( vec2(-10000.0f), views);
+
+                // frame all (delay to next frame via event system)
+                EventManager::push_event(EventType::frame_all_node_views);
             }
         }
     });

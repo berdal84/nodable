@@ -13,7 +13,7 @@ View::View(IAppCtx& _ctx):
         m_ctx(_ctx),
         m_is_hovered(false),
         m_is_visible(true),
-        m_visible_rect()
+        m_visible_rect(0.0f, 512.0f) // need to be != 0.0f (cf GraphNodeView frame_all)
 {
     Settings& settings = _ctx.settings();
 	// set default colors
