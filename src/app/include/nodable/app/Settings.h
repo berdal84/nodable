@@ -59,13 +59,16 @@ namespace ndbl {
         float          ui_history_btn_height;
         float          ui_history_btn_width_max;
         const char*    ui_splashscreen_imagePath;
-        float          ui_overlay_padding;
+        float          ui_overlay_margin;
+        float          ui_overlay_indent;
+        vec4           ui_overlay_window_bg_golor;
+        vec4           ui_overlay_border_color;
+        vec4           ui_overlay_text_color;
         bool           experimental_graph_autocompletion;
         bool           experimental_hybrid_history;
         bool           isolate_selection;
 
         void patch_imgui_style(ImGuiStyle&);
-
 
     };
 }
