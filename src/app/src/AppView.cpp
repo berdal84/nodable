@@ -762,7 +762,7 @@ void AppView::draw_startup_menu(ImGuiID dockspace_id)
 
             ImGui::NewLine();
             ImGui::Separator();
-            ImGui::TextColored( vec4(0,0,0, 0.30f), "Nodable %s", BuildInfo::version);
+            ImGui::TextColored( vec4(0,0,0, 0.30f), "%s", BuildInfo::version);
             ImGui::Unindent();
         }
         ImGui::EndChild();
