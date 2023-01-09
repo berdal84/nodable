@@ -9,6 +9,6 @@
 namespace ndbl::BuildInfo
 {
     static const char* assets_dir        = "@NODABLE_APP_ASSETS_DIR@";
-    static const char* version           = "@PROJECT_NAME@ @GITHUB_REF_NAME@ - @GITHUB_SHA@";
-    static const char* version_extended  = "@PROJECT_NAME@ @GITHUB_REF_NAME@ - @GITHUB_SHA@ - Built " __DATE__ " at " __TIME__;
+    static const char* version           = "@PROJECT_NAME@ @BUILD_REF@";
+    static const char* version_extended  = "@PROJECT_NAME@ @BUILD_REF@ - Built " __DATE__ " at " __TIME__;
 }
