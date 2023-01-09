@@ -22,7 +22,6 @@ set(NODABLE_CORE_INSTALL_DESTINATION libs) # relative to CMAKE_INSTALL_PREFIX
 # include *.cmake scripts
 include( cmake/log.cmake )
 include( cmake/compiler-config.cmake )
-include( cmake/get-git-info.cmake )
 
 #include other CMakeLists.txt
 add_subdirectory(libs)     # libraries (SDL, lodepng, Dear ImGui, etc.)
