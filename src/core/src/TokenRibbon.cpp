@@ -150,3 +150,23 @@ std::shared_ptr<Token> TokenRibbon::getEaten()
     // TODO: optimization: store a pointer to the last eaten Token ?
     return m_curr_tok_idx == 0 ? nullptr : tokens.at(m_curr_tok_idx - 1);
 }
+
+std::string TokenRibbon::get_words(size_t offset, int count)
+{
+    std::string result;
+    size_t idx = offset;
+    int step = count > 0 ? 1 : -1;
+    int step_count = step * count;
+    int step_done_count = 0;
+    while( idx > 0 && idx < tokens.size() && step_done_count <= step_count )
+    {
+        auto token = tokens[idx];
+        auto full_word = token->m_prefix + token->m_word + token->m_suffix;
+        result = step > 0 ? result + full_word : full_word + result;
+
+        idx += step;
+        step_done_count++;
+    }
+
+    return result;
+}

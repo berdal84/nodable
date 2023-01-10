@@ -71,6 +71,10 @@ namespace ndbl
         std::shared_ptr<Token> getEaten();
 
         size_t get_curr_tok_idx() { return  m_curr_tok_idx; }
+
+        /** get concatenated words from index offset for a given count */
+        std::string get_words(size_t offset, int count);
+
     private:
 
         /** Current cursor position */

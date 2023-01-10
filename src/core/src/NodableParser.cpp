@@ -54,14 +54,11 @@ bool NodableParser::parse(const std::string &_source_code, GraphNode *_graphNode
 
     if (!tokenize(_source_code))
     {
-        LOG_WARNING("Parser", "Unable to tokenize!\n")
         return false;
     }
 
-
 	if (!is_syntax_valid())
 	{
-		LOG_WARNING("Parser", "Unable to parse code due to syntax error.\n")
 		return false;
 	}
 
@@ -83,8 +80,10 @@ bool NodableParser::parse(const std::string &_source_code, GraphNode *_graphNode
             LOG_MESSAGE("Parser", "%i: %s\n", each_token->m_index, Token::to_string(each_token).c_str() );
         }
         LOG_MESSAGE("Parser", "--- Token Ribbon end ---\n");
-        LOG_WARNING("Parser", "Stuck at token %llu (charIndex %llu).\n"
-                     , m_token_ribbon.get_curr_tok_idx(), m_token_ribbon.peekToken()->m_charIndex )
+        auto curr_token = m_token_ribbon.peekToken();
+        LOG_WARNING("Parser", "Unable to handle the token %s (char: %llu).\n"
+                     , curr_token->m_word.c_str()
+                     , curr_token->m_charIndex )
         return false;
     }
 
@@ -662,14 +661,14 @@ bool NodableParser::is_syntax_valid()
             }
             case Token_t::fct_params_end:
             {
-                opened--;
-
-                if (opened < 0)
+                if ( opened <= 0)
                 {
-                    LOG_VERBOSE("Parser", "Unexpected %s\n", (*currTokIt)->m_word.c_str())
+                    LOG_ERROR("Parser", "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n"
+                              , m_token_ribbon.get_words( (*currTokIt)->m_index, -10 ).c_str()
+                              , (*currTokIt)->m_charIndex )
                     success = false;
                 }
-
+                opened--;
                 break;
             }
             default:
@@ -679,9 +678,9 @@ bool NodableParser::is_syntax_valid()
 		std::advance(currTokIt, 1);
 	}
 
-	if (opened != 0) // same opened/closed parenthesis count required.
+	if (opened > 0) // same opened/closed parenthesis count required.
     {
-        LOG_VERBOSE("Parser", "bracket count mismatch, %i still opened.\n", opened)
+        LOG_ERROR("Parser", "Syntax Error: Bracket count mismatch, %i still opened.\n", opened)
         success = false;
     }
 
@@ -790,7 +789,7 @@ bool NodableParser::tokenize(const std::string& _string)
 		if ( !new_token )
         {
             size_t distance = std::distance(_string.cbegin(), cursor);
-            LOG_WARNING("Parser", "tokenizing failed! Unable to tokenize at index %llu\n", distance )
+            LOG_WARNING("Parser", "Scanner Error: unable to tokenize %s at index %llu\n", _string.substr(distance, 10).c_str(),  distance )
             return false;
         }
 
