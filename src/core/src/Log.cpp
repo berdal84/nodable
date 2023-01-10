@@ -9,7 +9,14 @@ using namespace ndbl;
 
 Log::Messages   Log::s_logs;
 Log::Verbosity  Log::s_verbosity = Verbosity_Message;
-std::map<std::string, Log::Verbosity> Log::s_verbosity_by_category;
+
+std::map<std::string, Log::Verbosity>& Log::get_verbosity_by_category()
+{
+    // use singleton pattern to avoid static code issues
+    static std::map<std::string, Log::Verbosity> verbosity_by_category;
+
+    return verbosity_by_category;
+}
 
 const Log::Message& Log::get_last_message()
 {
@@ -22,7 +29,7 @@ const Log::Message& Log::get_last_message()
 
 void Log::set_verbosity(const std::string& _category, Verbosity _level)
 {
-   s_verbosity_by_category.insert_or_assign(_category, _level );
+   get_verbosity_by_category().insert_or_assign(_category, _level );
 }
 
 void Log::set_verbosity(Verbosity _level)
@@ -36,8 +43,9 @@ Log::Verbosity Log::get_verbosity()
 
 Log::Verbosity Log::get_verbosity(const std::string& _category)
 {
-    auto pair = s_verbosity_by_category.find(_category);
-    if (pair != s_verbosity_by_category.end() )
+    auto verbosity_by_category = get_verbosity_by_category();
+    auto pair = verbosity_by_category.find(_category);
+    if (pair != verbosity_by_category.end() )
     {
         return pair->second;
     }

@@ -71,7 +71,7 @@ namespace ndbl {
         using Messages = std::deque<Message>;
 	private:
         static Messages s_logs;
-        static std::map<std::string, Verbosity> s_verbosity_by_category;
+        static std::map<std::string, Verbosity>& get_verbosity_by_category();
         static Verbosity                        s_verbosity;
 
 	public:
