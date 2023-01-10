@@ -39,7 +39,7 @@ FileView::FileView(IAppCtx& _ctx, File& _file)
             if ( root_node_view && graph_view )
             {
                 // unfold graph (simulate 1000 updates). Does not work well,
-                graph_view->update( 100000.0f, 1000);
+                graph_view->update( 100000.0f, 100);
 
                 // make sure views are outside viewable rectangle (to avoid flickering)
                 std::vector<NodeView*> views;
