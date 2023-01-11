@@ -156,7 +156,7 @@ void NodableLanguage::add_invokable(std::shared_ptr<const iinvokable> _invokable
     if( find_operator(type->get_identifier(), static_cast<Operator_t >( type->get_arg_count() )  ))
     {
         auto found = std::find(m_operator_implems.begin(), m_operator_implems.end(), _invokable);
-        NODABLE_ASSERT( found == m_operator_implems.end() )
+        NDBL_ASSERT( found == m_operator_implems.end() )
         m_operator_implems.push_back(_invokable);
 
         LOG_VERBOSE("NodableLanguage", "add operator: %s (in m_functions and m_operator_implems)\n", type_as_string.c_str() );
@@ -171,7 +171,7 @@ void NodableLanguage::add_operator(const char* _id, Operator_t _type, int _prece
 {
     const Operator* op = new Operator(_id, _type, _precedence);
 
-    NODABLE_ASSERT( std::find( m_operators.begin(), m_operators.end(), op) == m_operators.end() )
+    NDBL_ASSERT( std::find( m_operators.begin(), m_operators.end(), op) == m_operators.end() )
     m_operators.push_back(op);
 }
 

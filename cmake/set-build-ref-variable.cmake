@@ -1,5 +1,5 @@
 include_guard(GLOBAL)
-nodable_log_title_header()
+ndbl_log_title_header()
 
 # Get the git short hash
 execute_process(
@@ -33,11 +33,11 @@ execute_process(
         OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# define the version number
+# define NDBL_BUILD_REF
 if(GITHUB_REF_NAME)
-    set(BUILD_REF "${GITHUB_REF_NAME} ${GITHUB_SHA}")
+    set(NDBL_BUILD_REF "${GITHUB_REF_NAME} ${GITHUB_SHA}")
 elseif(GIT_LAST_TAG_HASH EQUAL GIT_HASH)
-    set(BUILD_REF "${GIT_LAST_TAG} ${GIT_HASH} (local build)")
+    set(NDBL_BUILD_REF "${GIT_LAST_TAG} ${GIT_HASH} (local build)")
 else()
-    set(BUILD_REF "v${PROJECT_VERSION}.x (local build)")
+    set(NDBL_BUILD_REF "v${PROJECT_VERSION}.x (local build)")
 endif()

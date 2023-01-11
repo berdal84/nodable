@@ -1,12 +1,12 @@
 
 # WARNING: Do not use this CMakeLists.txt directly, take the one from base directory.
 
-nodable_log_title_header()
+ndbl_log_title_header()
 
 # checks
-nodable_message("Checking ...")
-if( NOT NODABLE_CONFIGURED_DIR )
-    nodable_err("Variable NODABLE_CONFIGURED_DIR must be set in main CMakeLists.txt")
+ndbl_log("Checking ...")
+if( NOT NDBL_CONFIGURED_DIR )
+    ndbl_err("Variable NDBL_CONFIGURED_DIR must be set in main CMakeLists.txt")
 endif()
 
 # add nodable executable
@@ -17,7 +17,7 @@ add_executable(
 
 find_package(Threads REQUIRED)
 if (NOT Threads_FOUND)
-    nodable_err("Threads not found")
+    ndbl_err("Threads not found")
 endif()
 
 target_link_libraries(

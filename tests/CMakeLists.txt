@@ -1,7 +1,7 @@
 
 # WARNING: Do not use this CMakeLists.txt directly, take the one from base directory.
 
-if ( NODABLE_SKIP_TESTS )
+if ( NDBL_SKIP_TESTS )
     nodable_message("tests skipped")
     return()
 endif()

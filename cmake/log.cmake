@@ -1,21 +1,21 @@
 include_guard(GLOBAL)
 
 # log with nodable prefix
-function(nodable_message arg)
+function(ndbl_log arg)
     message("[MSG|Nodable] ${arg}")
 endfunction()
 
 # warning with nodable prefix
-function(nodable_warn arg)
+function(ndbl_warn arg)
     message(WARNING "[WRN|Nodable] ${arg}")
 endfunction()
 
 # warning with nodable prefix
-function(nodable_err arg)
-    message(FATAL_ERROR "[WRN|Nodable] ${arg}")
+function(ndbl_err arg)
+    message(FATAL_ERROR "[ERR|Nodable] ${arg}")
 endfunction()
 
 # log a nice title
-function(nodable_log_title_header)
-    nodable_message("------------<==[ ${CMAKE_CURRENT_LIST_FILE} ]==>------------")
+function(ndbl_log_title_header)
+    ndbl_log("------------<==[ ${CMAKE_CURRENT_LIST_FILE} ]==>------------")
 endfunction()

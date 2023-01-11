@@ -25,7 +25,7 @@ bool Properties::has(const Member* _member)
 
 Member* Properties::add(const char* _name, Visibility _visibility, type _type, Way _way, Member::Flags _flags )
 {
-    NODABLE_ASSERT(!has(_name));
+    NDBL_ASSERT(!has(_name));
 
 	Member* new_member = Member::new_with_type(this, _type, _flags);
     new_member->set_name(_name);

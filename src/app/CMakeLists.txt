@@ -1,25 +1,25 @@
 
 # WARNING: Do not use this CMakeLists.txt directly, take the one from base directory.
 
-nodable_log_title_header()
+ndbl_log_title_header()
 
 # checks
-nodable_message("Checking ...")
-if( NOT NODABLE_CONFIGURED_DIR )
-    nodable_err("Variable NODABLE_CONFIGURED_DIR must be set in main CMakeLists.txt")
+ndbl_log("Checking ...")
+if( NOT NDBL_CONFIGURED_DIR )
+    ndbl_err("Variable NDBL_CONFIGURED_DIR must be set in main CMakeLists.txt")
 endif()
 
 # defines
-set(NODABLE_APP_ASSETS_DIR          assets)
-set(NODABLE_APP_ASSETS_ABSOLUTE_DIR "${CMAKE_CURRENT_LIST_DIR}/${NODABLE_APP_ASSETS_DIR}")
+set(NDBL_APP_ASSETS_DIR          assets)
+set(NDBL_APP_ASSETS_ABSOLUTE_DIR "${CMAKE_CURRENT_LIST_DIR}/${NDBL_APP_ASSETS_DIR}")
 
 # log variables
-nodable_message(" - NODABLE_CONFIGURED_DIR:          ${NODABLE_CONFIGURED_DIR}")
-nodable_message(" - NODABLE_APP_ASSETS_DIR:          ${NODABLE_APP_ASSETS_DIR}")
-nodable_message(" - NODABLE_APP_ASSETS_ABSOLUTE_DIR: ${NODABLE_APP_ASSETS_ABSOLUTE_DIR}")
+ndbl_log(" - NDBL_CONFIGURED_DIR:          ${NDBL_CONFIGURED_DIR}")
+ndbl_log(" - NDBL_APP_ASSETS_DIR:          ${NDBL_APP_ASSETS_DIR}")
+ndbl_log(" - NDBL_APP_ASSETS_ABSOLUTE_DIR: ${NDBL_APP_ASSETS_ABSOLUTE_DIR}")
 
 # Configure files
-configure_file("include/nodable/app/build_info.h.in" "${NODABLE_CONFIGURED_DIR}/app/build_info.h" )
+configure_file("include/nodable/app/build_info.h.in" "${NDBL_CONFIGURED_DIR}/app/build_info.h" )
 
 # add nodable executable
 add_executable(
@@ -52,20 +52,20 @@ target_include_directories(
         include/
         ${PROJECT_BINARY_DIR}/configured)
 
-nodable_message("Looking for libraries ...")
+ndbl_log("Looking for libraries ...")
 
 find_package(Threads REQUIRED)
 if (NOT Threads_FOUND)
-    nodable_err("Threads not found")
+    ndbl_err("Threads not found")
 endif()
 
 find_package(OpenGL REQUIRED)
 if (NOT OpenGL_FOUND)
-    nodable_err("OpenGL not found")
+    ndbl_err("OpenGL not found")
 endif()
 
-nodable_message("Threads found: ${Threads_FOUND}")
-nodable_message("OpenGL found:  ${OpenGL_FOUND}")
+ndbl_log("Threads found: ${Threads_FOUND}")
+ndbl_log("OpenGL found:  ${OpenGL_FOUND}")
 
 target_link_libraries(
     nodable
@@ -85,20 +85,20 @@ target_link_libraries(
 
 # link APPLE specific libraries
 IF (APPLE)
-    nodable_message("Looking for Apple specific libraries ...")
+    ndbl_log("Looking for Apple specific libraries ...")
 
     find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
     if (NOT CORE_FOUNDATION_FRAMEWORK)
-        nodable_err("CoreFoundation not found")
+        ndbl_err("CoreFoundation not found")
     endif()
 
     find_library(COCOA_FRAMEWORK Cocoa)
     if (NOT COCOA_FRAMEWORK)
-        nodable_err("Cocoa not found")
+        ndbl_err("Cocoa not found")
     endif()
 
-    nodable_message("CORE_FOUNDATION_FRAMEWORK: ${CORE_FOUNDATION_FRAMEWORK}")
-    nodable_message("COCOA_FRAMEWORK:           ${COCOA_FRAMEWORK}")
+    ndbl_log("CORE_FOUNDATION_FRAMEWORK: ${CORE_FOUNDATION_FRAMEWORK}")
+    ndbl_log("COCOA_FRAMEWORK:           ${COCOA_FRAMEWORK}")
 
     target_link_libraries(
         nodable
@@ -118,13 +118,13 @@ add_custom_command(
         TARGET nodable PRE_BUILD
         COMMAND ${CMAKE_COMMAND}
         -E copy_directory
-        "${NODABLE_APP_ASSETS_ABSOLUTE_DIR}"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NODABLE_APP_ASSETS_DIR}"
+        "${NDBL_APP_ASSETS_ABSOLUTE_DIR}"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NDBL_APP_ASSETS_DIR}"
 )
 
 # Installation :
 #===============
 
-install( DIRECTORY "${NODABLE_APP_ASSETS_ABSOLUTE_DIR}" DESTINATION . )
+install( DIRECTORY "${NDBL_APP_ASSETS_ABSOLUTE_DIR}" DESTINATION . )
 install( FILES     "${PROJECT_SOURCE_DIR}/CHANGELOG.md" DESTINATION . )
 install( TARGETS   nodable RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION . )

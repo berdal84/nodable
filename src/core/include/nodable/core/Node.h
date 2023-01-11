@@ -117,7 +117,7 @@ namespace ndbl {
 		void add_component(T* _component)
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-            NODABLE_ASSERT( _component != nullptr );
+            NDBL_ASSERT( _component != nullptr );
 			m_components.emplace(std::make_pair(type::get<T>().get_name(), _component));
 			_component->set_owner(this);
 		}

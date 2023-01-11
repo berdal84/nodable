@@ -136,7 +136,7 @@ size_t TokenRibbon::size() const
 
 bool TokenRibbon::canEat(size_t _tokenCount) const
 {
-    NODABLE_ASSERT(_tokenCount > 0);
+    NDBL_ASSERT(_tokenCount > 0);
     return m_curr_tok_idx + _tokenCount <= tokens.size() ;
 }
 

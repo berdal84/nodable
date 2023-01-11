@@ -69,7 +69,7 @@ namespace mirror
                             else
                             {
                                 LOG_ERROR("SimpleKeyValueSerializer", "Pointers non char* can't be serialized. Not implemented yet.")
-                                NODABLE_ASSERT(false);
+                                NDBL_ASSERT(false);
                             }
                         }
                     }
@@ -79,7 +79,7 @@ namespace mirror
                     _out.append( *reinterpret_cast<bool*>(_object) ? "true" : "false" );
                     break;
                 default:
-                    NODABLE_ASSERT(false); // Not yet implemented
+                    NDBL_ASSERT(false); // Not yet implemented
             }
             _out.append("\n");
         }

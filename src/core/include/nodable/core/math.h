@@ -19,7 +19,7 @@ namespace ndbl::math
     {
         bool left_greater_than_right = _left > _right;
         u64_t abs_diff = left_greater_than_right ? (_left - _right) : (_right - _left);
-        NODABLE_ASSERT( abs_diff <= std::numeric_limits<u64_t>::max() );
+        NDBL_ASSERT( abs_diff <= std::numeric_limits<u64_t>::max() );
         return left_greater_than_right ? (i64_t)abs_diff : -(i64_t)abs_diff;
     }
 }

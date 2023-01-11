@@ -117,7 +117,7 @@ namespace ndbl
 
         func_type* construct()
         {
-            NODABLE_ASSERT_EX( !m_id.empty(), "No identifier specified! use with_id()" );
+            NDBL_ASSERT_EX( !m_id.empty(), "No identifier specified! use with_id()" );
 
             func_type* signature = new func_type(m_id);
 

@@ -60,7 +60,7 @@ void VirtualMachine::advance_cursor(i64_t _amount)
 
 void VirtualMachine::run_program()
 {
-    NODABLE_ASSERT(m_program_asm_code);
+    NDBL_ASSERT(m_program_asm_code);
     LOG_MESSAGE("VM", "Running program ...\n")
     m_is_program_running = true;
 
@@ -127,7 +127,7 @@ bool VirtualMachine::_stepOver()
 
         case opcode::deref_ptr:
         {
-            NODABLE_ASSERT_EX(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.qword_ptr is nullptr")
+            NDBL_ASSERT_EX(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.qword_ptr is nullptr")
             qword qword = *next_instr->uref.qword_ptr;
             m_cpu.write(Register::rax, qword );
 
@@ -154,7 +154,7 @@ bool VirtualMachine::_stepOver()
             }
             else
             {
-                NODABLE_ASSERT_EX(false, "This type is not handled!")
+                NDBL_ASSERT_EX(false, "This type is not handled!")
             }
 
             advance_cursor();
@@ -185,7 +185,7 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
-            NODABLE_ASSERT_EX(variable->get_value()->get_variant()->is_initialized(),
+            NDBL_ASSERT_EX(variable->get_value()->get_variant()->is_initialized(),
                               "Variable should be initialized since it should have been pushed earlier!");
             variable->get_value()->get_variant()->reset_value();
             variable->get_value()->get_variant()->ensure_is_initialized(false);
@@ -337,7 +337,7 @@ bool VirtualMachine::step_over()
 
 void VirtualMachine::debug_program()
 {
-    NODABLE_ASSERT(m_program_asm_code);
+    NDBL_ASSERT(m_program_asm_code);
     m_is_debugging = true;
     m_is_program_running = true;
     m_cpu.clear_registers();
@@ -367,8 +367,8 @@ Instruction* VirtualMachine::get_next_instr() const
 
 bool VirtualMachine::load_program(std::unique_ptr<const Code> _code)
 {
-    NODABLE_ASSERT(!m_is_program_running)   // dev must stop before to load program.
-    NODABLE_ASSERT(!m_program_asm_code)     // dev must unload before to load.
+    NDBL_ASSERT(!m_is_program_running)   // dev must stop before to load program.
+    NDBL_ASSERT(!m_program_asm_code)     // dev must unload before to load.
 
     m_program_asm_code = std::move(_code);
 

@@ -229,7 +229,7 @@ void App::close_file(File* _file)
     if ( _file )
     {
         auto it = std::find(m_loaded_files.begin(), m_loaded_files.end(), _file);
-        NODABLE_ASSERT(it != m_loaded_files.end());
+        NDBL_ASSERT(it != m_loaded_files.end());
         it = m_loaded_files.erase(it);
 
         if ( it != m_loaded_files.end() ) //---- try to load the file next

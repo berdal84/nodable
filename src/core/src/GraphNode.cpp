@@ -250,8 +250,8 @@ bool GraphNode::is_empty() const
 
 Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
 {
-    NODABLE_ASSERT_EX(_src_member != _dst_member, "Can't connect same Member!")
-    NODABLE_ASSERT_EX( type::is_implicitly_convertible(_src_member->get_type(), _dst_member->get_type()),
+    NDBL_ASSERT_EX(_src_member != _dst_member, "Can't connect same Member!")
+    NDBL_ASSERT_EX( type::is_implicitly_convertible(_src_member->get_type(), _dst_member->get_type()),
                        "Can't connect non implicitly convertible Members!");
 
     Wire* wire         = nullptr;
@@ -281,7 +281,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         Node* dst_node = _dst_member->get_owner();
         Node* src_node = _src_member->get_owner();
 
-        NODABLE_ASSERT_EX(dst_node != src_node, "Can't connect two members having same owner!")
+        NDBL_ASSERT_EX(dst_node != src_node, "Can't connect two members having same owner!")
 
         // Link wire to members
         wire = new Wire(_src_member, _dst_member);
@@ -380,7 +380,7 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
              */
             if ( _side_effects )
             {
-                NODABLE_ASSERT( dst->has<Scope>() )
+                NDBL_ASSERT( dst->has<Scope>() )
 
                 if (dst->successors().accepts() )                               // directly
                 {
@@ -401,7 +401,7 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
                             connect(relation, false);
                         }
 
-                        NODABLE_ASSERT(!tails.empty())
+                        NDBL_ASSERT(!tails.empty())
                     }
                     else if (tail->successors().accepts() )
                     {
@@ -457,7 +457,7 @@ void GraphNode::connect(DirectedEdge _relation, bool _side_effects)
             break;
 
         default:
-            NODABLE_ASSERT(false); // This connection type is not yet implemented
+            NDBL_ASSERT(false); // This connection type is not yet implemented
     }
 
 
@@ -514,7 +514,7 @@ void GraphNode::disconnect(DirectedEdge _relation, bool _side_effects)
             break;
 
         default:
-            NODABLE_ASSERT(false); // This connection type is not yet implemented
+            NDBL_ASSERT(false); // This connection type is not yet implemented
     }
 
    set_dirty();

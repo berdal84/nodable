@@ -266,7 +266,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const Member * _mem
 
 std::string& NodableSerializer::serialize(std::string& _out, const Node* _node) const
 {
-    NODABLE_ASSERT(_node != nullptr)
+    NDBL_ASSERT(_node != nullptr)
     type type = _node->get_type();
 
     if (type.is_child_of<InstructionNode>())
@@ -332,7 +332,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InstructionNo
     if (root_node_member->has_input_connected() && root_node_member->get_variant()->is_initialized() )
     {
         auto root_node = (const Node*)*root_node_member;
-        NODABLE_ASSERT ( root_node )
+        NDBL_ASSERT ( root_node )
         serialize( _out, root_node );
     }
 

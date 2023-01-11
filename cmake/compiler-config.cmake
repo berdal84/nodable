@@ -1,5 +1,5 @@
 include_guard(GLOBAL)
-nodable_log_title_header()
+ndbl_log_title_header()
 
 # set a build type to Release by default if not set:
 if ( NOT DEFINED CMAKE_BUILD_TYPE )
@@ -22,7 +22,7 @@ set(CMAKE_CXX_STANDARD          11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS        ON)
 
-# enable threads (we have some std::async in nodable_app)
+# enable threads (we have some std::async in ndbl_app)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # define _DEBUG (MSVC define it under windows but this is not the default behavior

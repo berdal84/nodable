@@ -37,7 +37,7 @@ bool DataAccess::update()
     	else                                         writer.Null();
 	};
 
-    NODABLE_ASSERT(get_owner() != nullptr);
+    NDBL_ASSERT(get_owner() != nullptr);
 
     Node* owner = get_owner();
 

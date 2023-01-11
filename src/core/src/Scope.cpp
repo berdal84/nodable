@@ -118,10 +118,10 @@ void Scope::get_last_instructions_rec(std::vector<InstructionNode *> & _out)
 
 void Scope::remove_variable(VariableNode *_variable)
 {
-    NODABLE_ASSERT(_variable)
-    NODABLE_ASSERT(_variable->get_scope() == this)
+    NDBL_ASSERT(_variable)
+    NDBL_ASSERT(_variable->get_scope() == this)
     auto found = std::find( m_variables.begin(), m_variables.end(), _variable);
-    NODABLE_ASSERT(*found)
+    NDBL_ASSERT(*found)
     _variable->set_scope(nullptr);
     m_variables.erase( found );
 }

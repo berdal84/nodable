@@ -13,11 +13,12 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY   ${CMAKE_BINARY_DIR}/)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY   ${CMAKE_BINARY_DIR}/)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY   ${CMAKE_BINARY_DIR}/)
 set(CMAKE_INSTALL_PREFIX             "${CMAKE_CURRENT_LIST_DIR}/out/app")      # ./out/ folder must not be changed, referenced in readme.md
-set(NODABLE_PACKAGE_DIR              "${CMAKE_CURRENT_LIST_DIR}/out/package")  #                     //
-set(NODABLE_CONFIGURED_DIR           "${PROJECT_BINARY_DIR}/configured/nodable")
-set(NODABLE_SKIP_TESTS               OFF )
-set(NODABLE_CORE_INSTALL_ENABLE      OFF)
-set(NODABLE_CORE_INSTALL_DESTINATION libs) # relative to CMAKE_INSTALL_PREFIX
+set(NDBL_APP_NAME                    "Nodable")
+set(NDBL_PACKAGE_DIR                 "${CMAKE_CURRENT_LIST_DIR}/out/package")  #                     //
+set(NDBL_CONFIGURED_DIR              "${PROJECT_BINARY_DIR}/configured/nodable")
+set(NDBL_SKIP_TESTS                  OFF )
+set(NDBL_CORE_INSTALL_ENABLE         OFF)
+set(NDBL_CORE_INSTALL_DESTINATION    libs) # relative to CMAKE_INSTALL_PREFIX
 
 # include *.cmake scripts
 include( cmake/log.cmake )

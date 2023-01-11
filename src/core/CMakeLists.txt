@@ -1,21 +1,21 @@
 # WARNING: Do not use this CMakeLists.txt directly, take the one from base directory.
 include(${PROJECT_SOURCE_DIR}/cmake/log.cmake)
-nodable_log_title_header()
+ndbl_log_title_header()
 
 # checks
-nodable_message("Checking ...")
-if( NOT NODABLE_CORE_INSTALL_DESTINATION)
-    nodable_warn(" - Variable NODABLE_CORE_INSTALL_DESTINATION not defined, default value will be used.")
+ndbl_log("Checking ...")
+if( NOT NDBL_CORE_INSTALL_DESTINATION)
+    ndbl_warn(" - Variable NDBL_CORE_INSTALL_DESTINATION not defined, default value will be used.")
 endif()
 
 # options
-option(NODABLE_CORE_INSTALL_ENABLE      "Enable nodable-core static library install" ON )
-option(NODABLE_CORE_INSTALL_DESTINATION "Install folder"                             dev/nodable-core )
+option(NDBL_CORE_INSTALL_ENABLE      "Enable nodable-core static library install" ON )
+option(NDBL_CORE_INSTALL_DESTINATION "Install folder"                             dev/nodable-core )
 
 # log options
-nodable_message("Logging options ...")
-nodable_message(" - NODABLE_CORE_INSTALL_ENABLE:      ${NODABLE_CORE_INSTALL_ENABLE}")
-nodable_message(" - NODABLE_CORE_INSTALL_DESTINATION: ${NODABLE_CORE_INSTALL_DESTINATION}")
+ndbl_log("Logging options ...")
+ndbl_log(" - NDBL_CORE_INSTALL_ENABLE:      ${NDBL_CORE_INSTALL_ENABLE}")
+ndbl_log(" - NDBL_CORE_INSTALL_DESTINATION: ${NDBL_CORE_INSTALL_DESTINATION}")
 
 add_library(
     nodable-core
@@ -72,10 +72,10 @@ target_include_directories(
         include/
 )
 
-if( ${NODABLE_CORE_INSTALL_ENABLE} )
-    nodable_message("Defining install ...")
-    install( TARGETS   nodable-core ARCHIVE DESTINATION "${NODABLE_CORE_INSTALL_DESTINATION}")
-    install( DIRECTORY include/             DESTINATION "${NODABLE_CORE_INSTALL_DESTINATION}lib/include" FILES_MATCHING PATTERN "*.h")
+if( ${NDBL_CORE_INSTALL_ENABLE} )
+    ndbl_log("Defining install ...")
+    install( TARGETS   nodable-core ARCHIVE DESTINATION "${NDBL_CORE_INSTALL_DESTINATION}")
+    install( DIRECTORY include/             DESTINATION "${NDBL_CORE_INSTALL_DESTINATION}lib/include" FILES_MATCHING PATTERN "*.h")
 else()
-    nodable_message("Skip install")
+    ndbl_log("Skip install")
 endif()

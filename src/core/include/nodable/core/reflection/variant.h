@@ -62,21 +62,21 @@ namespace ndbl
         const type & get_type()const;
         template<typename T> T convert_to()const;
 
-        template<typename T> operator const T*()const  { NODABLE_ASSERT(m_is_initialized) return reinterpret_cast<const T*>(m_data.ptr); }
-        template<typename T> operator T*()             { NODABLE_ASSERT(m_is_initialized) return reinterpret_cast<T*>(m_data.ptr); }
+        template<typename T> operator const T*()const  { NDBL_ASSERT(m_is_initialized) return reinterpret_cast<const T*>(m_data.ptr); }
+        template<typename T> operator T*()             { NDBL_ASSERT(m_is_initialized) return reinterpret_cast<T*>(m_data.ptr); }
 
         // cast by pointer
-		operator double*()        { NODABLE_ASSERT(m_is_initialized) return &m_data.d; }
-		operator i16_t *()        { NODABLE_ASSERT(m_is_initialized) return &m_data.i16; }
-        operator bool*()          { NODABLE_ASSERT(m_is_initialized) return &m_data.b; }
-        operator std::string* ()  { NODABLE_ASSERT(m_is_initialized) return static_cast<std::string*>(m_data.ptr); }
-        operator void* ()         { NODABLE_ASSERT(m_is_initialized) return m_data.ptr; }
+		operator double*()        { NDBL_ASSERT(m_is_initialized) return &m_data.d; }
+		operator i16_t *()        { NDBL_ASSERT(m_is_initialized) return &m_data.i16; }
+        operator bool*()          { NDBL_ASSERT(m_is_initialized) return &m_data.b; }
+        operator std::string* ()  { NDBL_ASSERT(m_is_initialized) return static_cast<std::string*>(m_data.ptr); }
+        operator void* ()         { NDBL_ASSERT(m_is_initialized) return m_data.ptr; }
 
         // cast by address
-        operator double&()        { NODABLE_ASSERT(m_is_initialized) return m_data.d; }
-        operator i16_t &()        { NODABLE_ASSERT(m_is_initialized) return m_data.i16; }
-        operator bool&()          { NODABLE_ASSERT(m_is_initialized) return m_data.b; }
-        operator std::string& ()  { NODABLE_ASSERT(m_is_initialized) return *static_cast<std::string*>(m_data.ptr); }
+        operator double&()        { NDBL_ASSERT(m_is_initialized) return m_data.d; }
+        operator i16_t &()        { NDBL_ASSERT(m_is_initialized) return m_data.i16; }
+        operator bool&()          { NDBL_ASSERT(m_is_initialized) return m_data.b; }
+        operator std::string& ()  { NDBL_ASSERT(m_is_initialized) return *static_cast<std::string*>(m_data.ptr); }
 
         // cast by copy
         operator i16_t()const;

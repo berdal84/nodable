@@ -104,9 +104,9 @@ bool NodableParser::to_bool(const std::string &_str)
 
 std::string NodableParser::to_string(const std::string& _quoted_str)
 {
-    NODABLE_ASSERT(_quoted_str.size() >= 2);
-    NODABLE_ASSERT(_quoted_str.front() == '\"');
-    NODABLE_ASSERT(_quoted_str.back() == '\"');
+    NDBL_ASSERT(_quoted_str.size() >= 2);
+    NDBL_ASSERT(_quoted_str.front() == '\"');
+    NDBL_ASSERT(_quoted_str.back() == '\"');
     return std::string(++_quoted_str.cbegin(), --_quoted_str.cend());
 }
 
@@ -489,8 +489,8 @@ Node* NodableParser::parse_program()
     parse_code_block(false); // we do not check if we parsed something empty or not, a program can be empty.
 
     // Add ignored chars pre/post token to the main scope begin/end token prefix/suffix.
-    NODABLE_ASSERT(!program_scope->get_begin_scope_token())
-    NODABLE_ASSERT(!program_scope->get_end_scope_token())
+    NDBL_ASSERT(!program_scope->get_begin_scope_token())
+    NDBL_ASSERT(!program_scope->get_end_scope_token())
     program_scope->set_begin_scope_token( m_token_ribbon.m_prefix );
     program_scope->set_end_scope_token( m_token_ribbon.m_suffix );
 
@@ -555,7 +555,7 @@ IScope* NodableParser::parse_code_block(bool _create_scope)
 
     auto curr_scope = _create_scope ? m_graph->create_scope()->get<Scope>() : get_current_scope();
 
-    NODABLE_ASSERT(curr_scope); // needed
+    NDBL_ASSERT(curr_scope); // needed
 
     bool stop = false;
 
@@ -940,7 +940,7 @@ Member* NodableParser::parse_function_call()
     { // lambda to connect input member to node for a specific argument index.
         Member*     src_member      = args.at(_arg_index);
         Member*     dst_member      = _node->props()->get_input_at(_arg_index);
-        NODABLE_ASSERT(dst_member)
+        NDBL_ASSERT(dst_member)
         m_graph->connect(src_member, dst_member);
     };
 
@@ -978,7 +978,7 @@ Member* NodableParser::parse_function_call()
 
 Scope* NodableParser::get_current_scope()
 {
-    NODABLE_ASSERT(m_scope_stack.top()); // stack SHALL not be empty.
+    NDBL_ASSERT(m_scope_stack.top()); // stack SHALL not be empty.
     return m_scope_stack.top();
 }
 

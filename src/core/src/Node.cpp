@@ -158,7 +158,7 @@ void Node::get_inner_graph(GraphNode *_graph)
 
 const iinvokable* Node::get_connected_invokable(const Member *_local_member)
 {
-    NODABLE_ASSERT_EX(m_props.has(_local_member), "This node has no member with this address!");
+    NDBL_ASSERT_EX(m_props.has(_local_member), "This node has no member with this address!");
 
     /*
      * Find a wire connected to _member
@@ -197,14 +197,14 @@ bool Node::has_wire_connected_to(const Member *_localMember)
 
 void Node::set_parent(Node *_node)
 {
-    NODABLE_ASSERT(_node != nullptr || this->m_parent != nullptr);
+    NDBL_ASSERT(_node != nullptr || this->m_parent != nullptr);
     this->m_parent = _node;
     set_dirty();
 }
 
 void Node::set_parent_graph(GraphNode *_parentGraph)
 {
-    NODABLE_ASSERT(this->m_parent_graph == nullptr); // TODO: implement parentGraph switch
+    NDBL_ASSERT(this->m_parent_graph == nullptr); // TODO: implement parentGraph switch
     this->m_parent_graph = _parentGraph;
 }
 

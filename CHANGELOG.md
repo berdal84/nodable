@@ -60,7 +60,7 @@ Author: Bérenger Dalle-Cort, 2017-2023
 	- Node_Context : is now used as a factory.
 	- Node : each node can get its contexts with Entity::getParent()
 	- Added a change log.
-	- Added version number into the header file (NODABLE_VERSION_MAJOR, NODABLE_VERSION_MINOR, NODABLE_VERSION)
+	- Added version number into the header file (NDBL_VERSION_MAJOR, NDBL_VERSION_MINOR, NDBL_VERSION)
 
 ### v0.2:
 	- New Binary Operations : Node_Substract, Node_Multiply, Node_Divide

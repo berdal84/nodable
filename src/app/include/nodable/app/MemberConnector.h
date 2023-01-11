@@ -35,7 +35,7 @@ namespace ndbl {
             , m_way(_way)
             , m_display_side(_pos)
         {
-            NODABLE_ASSERT(_member)
+            NDBL_ASSERT(_member)
         };
 
         ~MemberConnector() = default;

@@ -37,7 +37,7 @@ namespace ndbl
 
         void add(T _node)
         {
-            NODABLE_ASSERT(m_slots.size() < m_limit);
+            NDBL_ASSERT(m_slots.size() < m_limit);
             m_slots.push_back(_node);
             m_on_added.emit(_node);
         }
