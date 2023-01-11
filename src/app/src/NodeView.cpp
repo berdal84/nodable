@@ -743,7 +743,8 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
         }
         else
         {
-            ImGui::Text( "%s", ((std::string)*_member).c_str());
+            auto member_as_string = (std::string)*_member->get_variant();
+            ImGui::Text( "%s", member_as_string.c_str());
         }
 
         /* If value is hovered, we draw a tooltip that print the source expression of the value*/
