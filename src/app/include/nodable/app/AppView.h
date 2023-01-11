@@ -81,5 +81,7 @@ namespace ndbl
         std::array<ImFont*, FontSlot_COUNT> m_fonts;  // Fonts currently in use
 
         REFLECT_DERIVED_CLASS(View)
+
+        void draw_help_window() const;
     };
 }

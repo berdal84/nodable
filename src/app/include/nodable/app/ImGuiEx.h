@@ -92,6 +92,7 @@ namespace ndbl
         static ImRect&  EnlargeToInclude(ImRect& _rect, ImRect _other);
 
         static void     MenuItemBindedToEvent(EventType type, bool selected = false, bool enable = true);
+        static void     BulletTextWrapped(const char*);
     private:
         static bool    s_is_in_a_frame;
         static bool    s_is_any_tooltip_open;

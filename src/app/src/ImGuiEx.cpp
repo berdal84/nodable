@@ -195,3 +195,9 @@ void ImGuiEx::MenuItemBindedToEvent(ndbl::EventType type, bool selected, bool en
         EventManager::push_event(binded_evt.event_t);
     }
 }
+
+void ImGuiEx::BulletTextWrapped(const char* str)
+{
+    ImGui::Bullet(); ImGui::SameLine();
+    ImGui::TextWrapped(str);
+}

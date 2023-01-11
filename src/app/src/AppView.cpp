@@ -481,6 +481,7 @@ bool AppView::draw()
                 ImGui::DockBuilderDockWindow(k_file_info_window_name        , ds_right);
                 ImGui::DockBuilderDockWindow(k_vm_window_name               , ds_right);
                 ImGui::DockBuilderDockWindow(k_node_props_window_name       , ds_right);
+                ImGui::DockBuilderDockWindow(k_help_window_name       , ds_right);
                 ImGui::DockBuilderFinish(ds_root);
 
                 m_is_layout_initialized = true;
@@ -503,6 +504,7 @@ bool AppView::draw()
                 draw_imgui_style_editor();
                 draw_file_info();
                 draw_node_properties();
+                draw_help_window();
 
                 for (File* each_file : m_ctx.get_files() )
                 {
@@ -545,6 +547,40 @@ bool AppView::draw()
     }
 
     return false;
+}
+
+void AppView::draw_help_window() const
+{
+    if (ImGui::Begin(k_help_window_name))
+    {
+        ImGui::PushFont(m_fonts[FontSlot_Heading]);
+        ImGui::Text("Welcome to Nodable!");
+        ImGui::PopFont();
+        ImGui::NewLine();
+        ImGui::TextWrapped(
+                "Nodable is node-able.\n"
+                "\n"
+                "Nodable allows you to edit a program using both text and graph paradigms."
+                "More precisely, it means:"
+                );
+        ImGuiEx::BulletTextWrapped("any change on the text will affect the graph");
+        ImGuiEx::BulletTextWrapped("any change (structure or values) on the graph will affect the text");
+        ImGuiEx::BulletTextWrapped("but keep in mind the state is the text, any change not affecting the text (such as node positions or orphan nodes) will be lost.");
+        ImGui::NewLine();
+        ImGui::PushFont(m_fonts[FontSlot_Heading]);
+        ImGui::Text("Quick start");
+        ImGui::PopFont();
+        ImGui::NewLine();
+        ImGui::TextWrapped("Nodable UI is designed as following:\n");
+        ImGuiEx::BulletTextWrapped("On the left side a (light) text editor allows to edit source code.\n");
+        ImGuiEx::BulletTextWrapped("At the center, there is the graph editor where you can create/delete/connect nodes\n");
+        ImGuiEx::BulletTextWrapped("On the right side (this side) you will find many tabs to manage additional settings such as node properties, virtual machine or app properties\n");
+        ImGuiEx::BulletTextWrapped("At the top, between the menu and the editors, there is a tool bar."
+                           " There, few buttons will serve to compile, run and debug your program.");
+        ImGuiEx::BulletTextWrapped("And at the bottom, below the editors, there is a status bar."
+                           " This bar will display important messages, warning, and errors. You can expand it to get older messages.");
+    }
+    ImGui::End();
 }
 
 void AppView::draw_imgui_style_editor() const
