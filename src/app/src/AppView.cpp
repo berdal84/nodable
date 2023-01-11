@@ -808,7 +808,6 @@ void AppView::draw_file_editor(ImGuiID dockspace_id, bool redock_all, File* file
             ImGui::PopFont();
             ImGui::PopStyleColor();
 
-            // Status bar
             if ( is_current_file && file->get_view()->text_has_changed())
             {
                 m_vm.release_program();
