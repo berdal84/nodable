@@ -743,7 +743,7 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
         }
         else
         {
-            auto member_as_string = (std::string)*_member->get_variant();
+            auto member_as_string = _member->get_variant()->convert_to<std::string>();
             ImGui::Text( "%s", member_as_string.c_str());
         }
 
