@@ -50,13 +50,13 @@ std::string TokenRibbon::toString()const
         {
             result.append("> ");
             result.append(BOLDGREEN);
-            result.append((*eachTokIt)->m_word);
+            result.append((*eachTokIt)->get_word());
             result.append(RESET);
             result.append(" <");
         }
         else
         {
-            result.append((*eachTokIt)->m_word);
+            result.append((*eachTokIt)->get_word());
         }
 
         if ( tokens.end() != eachTokIt )
@@ -161,8 +161,7 @@ std::string TokenRibbon::get_words(size_t offset, int count)
     while( idx > 0 && idx < tokens.size() && step_done_count <= step_count )
     {
         auto token = tokens[idx];
-        auto full_word = token->m_prefix + token->m_word + token->m_suffix;
-        result = step > 0 ? result + full_word : full_word + result;
+        result = step > 0 ? result + token->m_buffer : token->m_buffer + result;
 
         idx += step;
         step_done_count++;

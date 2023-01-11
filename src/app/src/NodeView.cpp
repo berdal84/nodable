@@ -784,20 +784,15 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
         if ( ImGuiEx::BeginTooltip() )
         {
             std::shared_ptr<Token> token = _member->get_src_token();
+            const auto variant = _member->get_variant();
             ImGui::Text("initialized: %s,\n"
                         "defined:     %s,\n"
                         "Source token:\n"
-                        "{\n"
-                            "\tprefix: \"%s\",\n"
-                            "\tword:   \"%s\",\n"
-                            "\tsuffix: \"%s\"\n"
-                        "}",
-                        _member->get_variant()->is_initialized() ? "true" : "false",
-                        _member->get_variant()->is_defined()     ? "true" : "false",
-                        token->m_prefix.c_str(),
-                        token->m_word.c_str(),
-                        token->m_suffix.c_str()
-            );
+                        "%s\n",
+                        variant->is_initialized() ? "true" : "false",
+                        variant->is_defined()     ? "true" : "false",
+                        Token::to_JSON(token).c_str()
+                        );
             ImGuiEx::EndTooltip();
         }
         // input

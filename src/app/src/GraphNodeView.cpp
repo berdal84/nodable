@@ -115,7 +115,7 @@ bool GraphNodeView::draw()
     {
         InstructionNode* instr_node = graph->create_instr();
         std::shared_ptr<Token> token = std::make_shared<Token>(Token_t::end_of_instruction);
-        token->m_suffix = System::k_end_of_line;
+        token->append_to_suffix({System::k_end_of_line});
         instr_node->end_of_instr_token(token);
         return instr_node;
     };
@@ -129,9 +129,9 @@ bool GraphNodeView::draw()
 
         std::shared_ptr<Token> token  = std::make_shared<Token>();
         token->m_type = Token_t::keyword_operator;
-        token->m_prefix  = " ";
-        token->m_suffix  = " ";
-        token->m_word    = "=";
+        token->append_to_prefix(" ");
+        token->append_to_word("=");
+        token->append_to_suffix(" ");
         
         var_node->set_assignment_operator_token(token);
         return var_node;

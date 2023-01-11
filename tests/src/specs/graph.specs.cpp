@@ -14,9 +14,9 @@
 
 using namespace ndbl;
 
-class graph_node_fixture: public ::testing::Test {
+class token_fixture: public ::testing::Test {
 public:
-    graph_node_fixture( )
+    token_fixture( )
     : factory(&language)
     , graph(&language, &factory, &autocompletion){}
 
@@ -29,7 +29,7 @@ public:
         // ok to through exceptions from here if need be
     }
 
-    ~graph_node_fixture( )  {
+    ~token_fixture( )  {
         // cleanup any pending stuff, but no exceptions allowed
     }
 
@@ -41,7 +41,7 @@ public:
     GraphNode             graph;
 };
 
-TEST_F( graph_node_fixture, connect)
+TEST_F(token_fixture, connect)
 {
     auto node1 = graph.create_node();
     node1->props()->add<bool>("output", Visibility::Default, Way_Default);
@@ -58,7 +58,7 @@ TEST_F( graph_node_fixture, connect)
     EXPECT_EQ(graph.get_wire_registry().size(), 1);
  }
 
-TEST_F( graph_node_fixture, disconnect)
+TEST_F(token_fixture, disconnect)
 {
     Node*   a      = graph.create_node();
     Member* output = a->props()->add<bool>("output", Visibility::Default, Way_Default);
@@ -81,7 +81,7 @@ TEST_F( graph_node_fixture, disconnect)
     EXPECT_EQ(b->get_input_wire_count() , 0);
 }
 
-TEST_F( graph_node_fixture, clear)
+TEST_F(token_fixture, clear)
 {
     InstructionNode* instructionNode = graph.create_instr();
     func_type*       sig             = func_type_builder<int(int, int)>::with_id("+");
@@ -112,7 +112,7 @@ TEST_F( graph_node_fixture, clear)
 }
 
 
-TEST_F( graph_node_fixture, create_and_delete_relations)
+TEST_F(token_fixture, create_and_delete_relations)
 {
     // prepare
     Node* program = graph.create_root();

@@ -305,10 +305,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
             }
 
             auto toToken = _dst_member->get_src_token();
-            toToken->m_suffix = fromToken->m_suffix;
-            toToken->m_prefix = fromToken->m_prefix;
-            fromToken->m_suffix = "";
-            fromToken->m_prefix = "";
+            toToken->transfer_prefix_suffix( fromToken );
         }
     }
 

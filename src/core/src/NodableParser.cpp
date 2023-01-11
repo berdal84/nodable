@@ -82,7 +82,7 @@ bool NodableParser::parse(const std::string &_source_code, GraphNode *_graphNode
         LOG_MESSAGE("Parser", "--- Token Ribbon end ---\n");
         auto curr_token = m_token_ribbon.peekToken();
         LOG_WARNING("Parser", "Unable to handle the token %s (char: %llu).\n"
-                     , curr_token->m_word.c_str()
+                     , curr_token->m_buffer.c_str()
                      , curr_token->m_charIndex )
         return false;
     }
@@ -124,19 +124,19 @@ Member* NodableParser::to_member(std::shared_ptr<Token> _token)
 {
     if( _token->m_type == Token_t::identifier )
     {
-        VariableNode* variable = get_current_scope()->find_variable(_token->m_word);
+        VariableNode* variable = get_current_scope()->find_variable(_token->get_word());
 
         if (variable == nullptr)
         {
             if ( m_strict_mode )
             {
-                LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token->m_word.c_str())
+                LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token->get_word().c_str())
             }
             else
             {
                 /* when strict mode is OFF, we just create a variable with Any type */
-                LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n", _token->m_word.c_str())
-                variable = m_graph->create_variable(type::null, _token->m_word, get_current_scope());
+                LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n", _token->get_word().c_str())
+                variable = m_graph->create_variable(type::null, _token->get_word(), get_current_scope());
                 variable->get_value()->set_src_token(_token);
                 variable->set_declared(false);
             }
@@ -155,28 +155,28 @@ Member* NodableParser::to_member(std::shared_ptr<Token> _token)
 	    case Token_t::literal_bool:
         {
             literal = m_graph->create_literal(type::get<bool>());
-            literal->set_value(to_bool(_token->m_word) );
+            literal->set_value(to_bool(_token->get_word()) );
             break;
         }
 
 	    case Token_t::literal_int:
         {
             literal = m_graph->create_literal(type::get<i16_t>());
-            literal->set_value(to_i16(_token->m_word) );
+            literal->set_value(to_i16(_token->get_word()) );
             break;
         }
 
 	    case Token_t::literal_double:
         {
             literal = m_graph->create_literal(type::get<double>());
-            literal->set_value(to_double(_token->m_word) );
+            literal->set_value(to_double(_token->get_word()) );
             break;
         }
 
 	    case Token_t::literal_string:
         {
             literal = m_graph->create_literal(type::get<std::string>());
-            literal->set_value(to_string(_token->m_word) );
+            literal->set_value(to_string(_token->get_word()) );
             break;
         }
 
@@ -190,7 +190,7 @@ Member* NodableParser::to_member(std::shared_ptr<Token> _token)
         return result;
     }
 
-    LOG_VERBOSE("Parser", "Unable to perform token_to_member for token %s!\n", _token->m_word.c_str())
+    LOG_VERBOSE("Parser", "Unable to perform token_to_member for token %s!\n", _token->get_word().c_str())
 	return nullptr;
 }
 
@@ -225,9 +225,10 @@ Member* NodableParser::parse_binary_operator_expression(unsigned short _preceden
 		return nullptr;
 	}
 
-	const Operator* ope = m_language.find_operator(operatorToken->m_word, Operator_t::Binary);
+    auto word = operatorToken->get_word();
+	const Operator* ope = m_language.find_operator( word, Operator_t::Binary);
     if ( ope == nullptr ) {
-        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator %s)\n", operatorToken->m_word.c_str())
+        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator %s)\n", word.c_str())
         rollback_transaction();
         return nullptr;
     }
@@ -325,7 +326,7 @@ Member* NodableParser::parse_unary_operator_expression(unsigned short _precedenc
     }
 
 	// Create a function signature
-    func_type* type = new func_type(operator_token->m_word);
+    func_type* type = new func_type(operator_token->get_word());
     type->set_return_type(type::any);
     type->push_args(value->get_type());
 
@@ -423,7 +424,7 @@ Member* NodableParser::parse_parenthesis_expression()
 		if (token->m_type != Token_t::fct_params_end )
 		{
 			LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
-			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->m_word.c_str() )
+			LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->get_word().c_str() )
             rollback_transaction();
 		}
 		else
@@ -811,7 +812,7 @@ bool NodableParser::tokenize(const std::string& _string)
                         *
                         * ( ... , <last_token><pending_ignored_chars>, <new-token>)
                         */
-                        last_token->m_suffix.append(pending_ignored_chars);
+                        last_token->append_to_suffix(pending_ignored_chars);
                         pending_ignored_chars.clear();
                     }
                     else
@@ -821,7 +822,7 @@ bool NodableParser::tokenize(const std::string& _string)
                         *
                         * ( ... , <last_token>, <pending_ignored_chars><new-token>)
                         */
-                        new_token->m_prefix.append(pending_ignored_chars);
+                        new_token->append_to_prefix(pending_ignored_chars);
                         pending_ignored_chars.clear();
                     }
                 }
@@ -832,7 +833,7 @@ bool NodableParser::tokenize(const std::string& _string)
                     *
                     * <pending_ignored_chars> (<first-and-new-token>)
                     */
-                    m_token_ribbon.m_prefix->m_word = pending_ignored_chars;
+                    m_token_ribbon.m_prefix->append_to_word(pending_ignored_chars);
                     pending_ignored_chars.clear();
                 }
             }
@@ -845,7 +846,7 @@ bool NodableParser::tokenize(const std::string& _string)
              * When a character is ignored, it goes to a pending_chars string.
              * Once a no ignored token is parsed those pending_chars are added to the suffix (option 1) or to the prefix (option 2)
              */
-            pending_ignored_chars.append(new_token->m_word);
+            pending_ignored_chars.append(new_token->get_word());
             LOG_VERBOSE("Parser", "Append ignored: %s\n", Token::to_string(new_token).c_str() )
         }
 	}
@@ -855,7 +856,7 @@ bool NodableParser::tokenize(const std::string& _string)
 	 */
 	if ( !pending_ignored_chars.empty() )
     {
-        m_token_ribbon.m_suffix->m_word = pending_ignored_chars;
+        m_token_ribbon.m_suffix->append_to_word(pending_ignored_chars);
         pending_ignored_chars.clear();
     }
 	return true;
@@ -881,7 +882,7 @@ Member* NodableParser::parse_function_call()
     if (token_0->m_type == Token_t::identifier &&
         token_1->m_type == Token_t::fct_params_begin)
     {
-        fct_id = token_0->m_word;
+        fct_id = token_0->get_word();
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
     }
     else // Try to parse operator like (ex: operator==(..,..))
@@ -892,7 +893,7 @@ Member* NodableParser::parse_function_call()
             && token_1->m_type == Token_t::operator_
             && token_2->m_type == Token_t::fct_params_begin)
         {
-            fct_id = token_1->m_word; // operator
+            fct_id = token_1->get_word(); // operator
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
         }
         else
@@ -1181,14 +1182,14 @@ Member *NodableParser::parse_variable_declaration()
     if(tok_type->is_keyword_type() && tok_identifier->m_type == Token_t::identifier )
     {
         type type = m_language.get_type(tok_type->m_type);
-        VariableNode* variable = m_graph->create_variable(type, tok_identifier->m_word, get_current_scope());
+        VariableNode* variable = m_graph->create_variable(type, tok_identifier->get_word(), get_current_scope());
         variable->set_type_token(tok_type);
         variable->set_identifier_token(tok_identifier);
         variable->get_value()->set_src_token( std::make_shared<Token>(*tok_identifier) );
 
         // try to parse assignment
         std::shared_ptr<Token> assignmentTok = m_token_ribbon.eatToken(Token_t::operator_);
-        if ( assignmentTok && assignmentTok->m_word == "=" )
+        if ( assignmentTok && assignmentTok->get_word() == "=" )
         {
             auto expression_result = parse_expression();
             if( expression_result &&
@@ -1200,7 +1201,7 @@ Member *NodableParser::parse_variable_declaration()
             }
             else
             {
-                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", tok_identifier->m_word.c_str())
+                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", tok_identifier->get_word().c_str())
                 rollback_transaction();
                 m_graph->destroy(variable);
                 return nullptr;

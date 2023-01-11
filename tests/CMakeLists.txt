@@ -31,7 +31,7 @@ add_executable(
         src/specs/reflection.specs.cpp
         src/specs/virtual_machine.specs.cpp
     src/specs/type_cast.specs.cpp
-)
+        src/specs/token.specs.cpp)
 
 # Link libraries
 target_link_libraries(
