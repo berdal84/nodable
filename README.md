@@ -16,75 +16,41 @@
 
 ## Introduction:
 
-The goal of **Nodable** is to **provide an original hybrid source code editor**, using both textual and nodal paradigms.
+The goal of *Nodable* is:
+- to **provide an original hybrid source code editor**, using both textual and nodal paradigms.
+- to **provide happiness to the developer**, by learning language related stuff (parsers, AST, compilation, etc.)
+
+The goal of *Nodable* is **not**:
+- To handle more than 1 language
+- To replace an IDE
+- To be a production tool. That's why I implement things on my own instead of using proven libraries (ex: llvm), remember my second goal.
 
 In Nodable, the textual and nodal points of view are strongly linked, in both ways:
 
 - A change to the source code will update the graph.
-- A change to the graph will update the source code.
+- A change to the graph will update* the source code.
+
+_*: Nodable persistant state is the source code. Some minor changes on the graph, like changing their position or adding orphaned nodes, might not update the source code_
+
+
+### Screenshots
 
 ![nodable-01](https://user-images.githubusercontent.com/942052/161857692-97786562-c30c-470c-9e07-62b240a4a222.gif)
 
 ![nodable-02](https://user-images.githubusercontent.com/942052/161857699-eedb1c42-2b49-4bea-8da7-20f1b522cf73.gif)
 
-More information about this project [on my website](https://www.dalle-cort.fr/category/project/nodable).
+## How to use?
 
-## How to try ?:
-
-### Prerequisites:
-
-Hardware:
-- a 64 bits architecture
-
-Software:
-- Operating Systems:
-  - Windows (tested under Windows 10)
-  - Linux (tested under Ubuntu 20.04)
-  - MacOS 10.9+ (tested under Ubuntu 10.13)
-- Libraries
-  - Require OpenGL which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
-
-_Disclaimer: Nodable is a prototype, do not expect too much from it._
-
-### Download:
-
-Download binaries from [Releases](https://github.com/berdal84/Nodable/releases) section.
-
-## How to compile?
-
-Requirements:
-- Build system:
-  - **CMake 3.14+**
-  - A **C++11** compatible build system
-- Libraries
-  - Require OpenGL which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
-  - Under linux `pkg-config` and `libgtk-3-dev` are required. (ex. for Ubuntu: `sudo apt-get install pkg-config libgtk-3-dev`)
-Below, are all the commands to clone, configure, and build nodable from sources.
-
-```console
-git clone --branch v0.9 https://github.com/berdal84/Nodable.git --recurse-submodules
-cd Nodable
-cmake . -B cmake-build-there
-cmake --build cmake-build-there --config Release --target install
-```
-Once all commands are succeeded you must see a new folder `out` containing a folder `app`, inside there is all you need to run *Nodable*.
-On Windows execute: `nodable.exe`, on Linux and macOS run `./nodable`. (On Linux you might have to add an execution flag to the file: `chmod +x ./nodable`
-
-Few details about the commands above:
-
-- `--recurse-submodules` is important when cloning since nodable needs other git repositories to be built.
-- `--branch v<major>.<minor>.<patch>` is to target a specific tag, it is recommended to get a stable version. You can try a more recent if you wish.
-- `--target install` is to create a clean `out/app` directory with only the necessary files to run the software.
-
+Follow the instruction from the [latest release](https://github.com/berdal84/Nodable/releases/latest) section.
+If you want to build *Nodable* from sources, follow [HOW TO BUILD](./HOWTOBUILD.md) instructions.
 
 ## License:
 
-**Nodable** is licensed under the GPL License, see [`LICENSE.txt`](https://github.com/berdal84/Nodable/blob/master/LICENSE.txt) for more information.
+**Nodable** is licensed under the GPL License, see [LICENSE](https://github.com/berdal84/Nodable/blob/master/LICENSE.txt) file for more information.
 
-Each submodule is licensed, browse *libs/* folder.
+*Note: each submodule is licensed, browse [./libs](./libs) folder to know more.
 
 ## Credits :
-
 
 **Nodable** is developped by [@berdal84](https://github.com/berdal84)
 
@@ -105,11 +71,16 @@ Each submodule is licensed, browse *libs/* folder.
 | [*googletest*](https://github.com/google/googletest) | Google
 | [*gulrak/filesystem*]()  | Steffen Schümann
 
-*: Even if I do not depend on it yet, I must cite RTTR since I am taking a lot of ideas from it to use in the future without requiring too many changes.
+*: I do not depend on *RTTR* yet, but I must cite it because I am taking a lot of ideas from it. Also, my idea is to use in the future without requiring too many changes.
 
 #### Resources
 
 | Name  | Author(s)  |
 | :---  | :---       |
 | [*JetBrains Mono*]( https://www.jetbrains.com/lp/mono/) | Jetbrains
+
+## Additional Information
+
+More information about this project on [my website](https://www.dalle-cort.fr/category/project/nodable).
+
 
