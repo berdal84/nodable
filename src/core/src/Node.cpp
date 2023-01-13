@@ -158,7 +158,7 @@ void Node::get_inner_graph(GraphNode *_graph)
 
 const iinvokable* Node::get_connected_invokable(const Member *_local_member)
 {
-    NDBL_ASSERT_EX(m_props.has(_local_member), "This node has no member with this address!");
+    NDBL_EXPECT(m_props.has(_local_member), "This node has no member with this address!");
 
     /*
      * Find a wire connected to _member

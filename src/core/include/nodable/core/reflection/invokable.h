@@ -226,7 +226,7 @@ namespace ndbl {
 
         variant operator()(const std::vector<variant *> &_args = {}) const override
         {
-            NDBL_ASSERT_EX(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
+            NDBL_EXPECT(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
             return ndbl::invoke<return_t, args_t >(m_function_impl, _args);
         }
 
@@ -264,7 +264,7 @@ namespace ndbl {
 
         virtual variant operator()(void* _instance, const std::vector<variant *> &_args = {}) const override
         {
-            NDBL_ASSERT_EX(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
+            NDBL_EXPECT(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
             return ndbl::invoke_member<return_t, class_t, args_t>(reinterpret_cast<class_t *>(_instance), m_method, _args);
         };
     };

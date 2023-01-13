@@ -85,7 +85,7 @@ bool variant::convert_to<bool>()const
     if( m_type == type::get<i16_t>() )        return m_data.i16 != 0;
     if( m_type == type::get<bool>() )         return m_data.b;
     if( m_type == type::get<void*>() )        return m_data.ptr;
-    NDBL_ASSERT_EX(false,"Case not handled!")
+    NDBL_EXPECT(false,"Case not handled!")
 }
 
 template<>
@@ -106,7 +106,7 @@ std::string variant::convert_to<std::string>()const
     if( m_type == type::get<double>() )       return String::fmt_double(m_data.d);
     if( m_type == type::get<bool>() )         return m_data.b ? "true" : "false";
     if( m_type.is_ptr())                      return String::fmt_ptr(m_data.ptr);
-    NDBL_ASSERT_EX(false,"Case not handled!")
+    NDBL_EXPECT(false,"Case not handled!")
 }
 
 const type& variant::get_type()const
@@ -160,7 +160,7 @@ bool variant::is_initialized()const
 
 void variant::reset_value()
 {
-    NDBL_ASSERT_EX(m_is_initialized, "Variant: cannot reset value, variant not intialized!");
+    NDBL_EXPECT(m_is_initialized, "Variant: cannot reset value, variant not intialized!");
 
     if( m_type == type::get<double>() )
     {
@@ -185,13 +185,13 @@ void variant::reset_value()
     }
     else
     {
-        NDBL_ASSERT_EX(false, "Missing case")
+        NDBL_EXPECT(false, "Missing case")
     }
 }
 
 void variant::ensure_is_initialized(bool _initialize)
 {
-    NDBL_ASSERT_EX(m_type != type::null, "Variant: cannot ensure is_initialised(...) because type is null!");
+    NDBL_EXPECT(m_type != type::null, "Variant: cannot ensure is_initialised(...) because type is null!");
 
     if(_initialize == m_is_initialized) return;
 
@@ -223,7 +223,7 @@ void variant::ensure_is_type(type _type)
         {
             return;
         }
-        NDBL_ASSERT_EX( m_type == type::null || m_type == type::any,
+        NDBL_EXPECT( m_type == type::null || m_type == type::any,
                 "Variant: Type should not change, expecting it null or any!" );
     }
     m_type = clean;
@@ -237,8 +237,8 @@ variant::operator void* ()const       { NDBL_ASSERT(m_is_defined) return convert
 
 void variant::flag_defined(bool _value )
 {
-    NDBL_ASSERT_EX(m_type != type::null, "Variant: Unable to ensure variant is defined because its type is null!");
-    NDBL_ASSERT_EX(m_is_initialized, "Variant: Unable to ensure variant is defined because it is not initialized!");
+    NDBL_EXPECT(m_type != type::null, "Variant: Unable to ensure variant is defined because its type is null!");
+    NDBL_EXPECT(m_is_initialized, "Variant: Unable to ensure variant is defined because it is not initialized!");
 
     /*
      * Like is c/cpp, a memory space can be initialized (ex: int i;) but not defined by the user.
@@ -286,7 +286,7 @@ variant& variant::operator=(const variant& _other)
     }
     else
     {
-        NDBL_ASSERT_EX(false, "Variant: missing type case for operator=");
+        NDBL_EXPECT(false, "Variant: missing type case for operator=");
     }
     return *this;
 }

@@ -250,8 +250,8 @@ bool GraphNode::is_empty() const
 
 Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
 {
-    NDBL_ASSERT_EX(_src_member != _dst_member, "Can't connect same Member!")
-    NDBL_ASSERT_EX( type::is_implicitly_convertible(_src_member->get_type(), _dst_member->get_type()),
+    NDBL_EXPECT(_src_member != _dst_member, "Can't connect same Member!")
+    NDBL_EXPECT( type::is_implicitly_convertible(_src_member->get_type(), _dst_member->get_type()),
                        "Can't connect non implicitly convertible Members!");
 
     Wire* wire         = nullptr;
@@ -281,7 +281,7 @@ Wire *GraphNode::connect(Member* _src_member, Member* _dst_member)
         Node* dst_node = _dst_member->get_owner();
         Node* src_node = _src_member->get_owner();
 
-        NDBL_ASSERT_EX(dst_node != src_node, "Can't connect two members having same owner!")
+        NDBL_EXPECT(dst_node != src_node, "Can't connect two members having same owner!")
 
         // Link wire to members
         wire = new Wire(_src_member, _dst_member);

@@ -127,7 +127,7 @@ bool VirtualMachine::_stepOver()
 
         case opcode::deref_ptr:
         {
-            NDBL_ASSERT_EX(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.qword_ptr is nullptr")
+            NDBL_EXPECT(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.qword_ptr is nullptr")
             qword qword = *next_instr->uref.qword_ptr;
             m_cpu.write(Register::rax, qword );
 
@@ -154,7 +154,7 @@ bool VirtualMachine::_stepOver()
             }
             else
             {
-                NDBL_ASSERT_EX(false, "This type is not handled!")
+                NDBL_EXPECT(false, "This type is not handled!")
             }
 
             advance_cursor();
@@ -185,7 +185,7 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
-            NDBL_ASSERT_EX(variable->get_value()->get_variant()->is_initialized(),
+            NDBL_EXPECT(variable->get_value()->get_variant()->is_initialized(),
                               "Variable should be initialized since it should have been pushed earlier!");
             variable->get_value()->get_variant()->reset_value();
             variable->get_value()->get_variant()->ensure_is_initialized(false);

@@ -18,7 +18,7 @@ InvokableComponent::InvokableComponent(const func_type* _signature, bool _is_ope
         , m_invokable(nullptr)
         , m_is_operator(_is_operator)
 {
-    NDBL_ASSERT_EX(_signature != nullptr, "Signature must be defined!")
+    NDBL_EXPECT(_signature != nullptr, "Signature must be defined!")
     m_invokable = _invokable;
     m_args.resize(_signature->get_arg_count(), nullptr );
     m_source_token = std::make_shared<Token>(Token_t::identifier, _signature->get_identifier(), 0 );

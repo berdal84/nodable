@@ -3,26 +3,26 @@
 #include <nodable/core/Log.h> // to flush before to assert/throw
 
 // Assertion
-#define _NDBL_ASSERT_NOEXCEPT(expression) \
+#ifndef _NDBL_ASSERT
+#define _NDBL_ASSERT(expression) \
     LOG_FLUSH(); \
     assert((expression));
+#endif
 
-// Assertion throwing an exception
-#define _NDBL_ASSERT(expression, message_if_fails )\
-    LOG_FLUSH(); \
-    if(!(expression)) throw std::runtime_error(message_if_fails);
+// Expectation throwing an exception
+#ifndef _NDBL_EXPECT
+#define _NDBL_EXPECT(expression, message_if_fails )\
+    if(!(expression)) { LOG_FLUSH(); throw std::runtime_error(message_if_fails); }
+#endif
 
 // Assert shortcut
 #if NOEXCEPT
 #   include <cassert>
-#   define NDBL_ASSERT(expression)             _NDBL_ASSERT_NOEXCEPT( expression )
-#   define NDBL_ASSERT_EX(expression, message) _NDBL_ASSERT_NOEXCEPT( expression )
+#   define NDBL_ASSERT(expression)          _NDBL_ASSERT( expression )
+#   define NDBL_EXPECT(expression, message) _NDBL_ASSERT( expression )
 #else
 #   include <stdexcept>
 #   include <cassert>
-#   define NDBL_ASSERT(expression)             _NDBL_ASSERT( (expression), "assertion failed" )
-#   define NDBL_ASSERT_EX(expression, message) _NDBL_ASSERT( (expression), message )
+#   define NDBL_ASSERT(expression)          _NDBL_EXPECT( (expression), "Assertion failed: " #expression" is false" )
+#   define NDBL_EXPECT(expression, message) _NDBL_EXPECT( (expression), message )
 #endif
-
-#undef _NDBL_ASSERT_NOEXCEPT
-#undef _NDBL_ASSERT_EXCEPT

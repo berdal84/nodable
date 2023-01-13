@@ -76,8 +76,8 @@ Node* NodeFactory::_new_abstract_function(const func_type* _func_type, bool _is_
     {
         size_t count = _func_type->get_arg_count();
 
-        NDBL_ASSERT_EX( count != 0 , "An operator cannot have zero argument" );
-        NDBL_ASSERT_EX( count < 3  , "An operator cannot have more than 2 arguments" );
+        NDBL_EXPECT( count != 0 , "An operator cannot have zero argument" );
+        NDBL_EXPECT( count < 3  , "An operator cannot have more than 2 arguments" );
 
         switch ( count )
         {

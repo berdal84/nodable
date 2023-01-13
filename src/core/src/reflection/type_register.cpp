@@ -8,7 +8,7 @@ using namespace ndbl;
 type type_register::get(size_t _hash)
 {
     auto found = by_hash().find(_hash);
-    NDBL_ASSERT_EX(found != by_hash().end(), "reflection: type not found!")
+    NDBL_EXPECT(found != by_hash().end(), "reflection: type not found!")
     return found->second;
 }
 

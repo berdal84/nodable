@@ -238,7 +238,7 @@ bool GraphNodeView::draw()
             for (auto& dst_member : members)
             {
 
-                NDBL_ASSERT_EX( eachNode->props()->has(dst_member), "Incoherence!")
+                NDBL_EXPECT( eachNode->props()->has(dst_member), "Incoherence!")
 
                 if ( const Member* src_member = dst_member->get_input() )
                 {
