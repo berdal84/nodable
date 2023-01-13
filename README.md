@@ -35,9 +35,9 @@ _*: Nodable persistant state is the source code. Some minor changes on the graph
 
 ### Screenshots
 
-![nodable-01](https://user-images.githubusercontent.com/942052/161857692-97786562-c30c-470c-9e07-62b240a4a222.gif)
-
-![nodable-02](https://user-images.githubusercontent.com/942052/161857699-eedb1c42-2b49-4bea-8da7-20f1b522cf73.gif)
+<img width="500" src="https://user-images.githubusercontent.com/942052/161857692-97786562-c30c-470c-9e07-62b240a4a222.gif"/>
+<img width="500" src="https://user-images.githubusercontent.com/942052/161857699-eedb1c42-2b49-4bea-8da7-20f1b522cf73.gif"/>
+<img width="500" src="https://user-images.githubusercontent.com/942052/211735062-21d29b63-77da-4100-8738-61805ad11318.png"/>
 
 ## How to use?
 
