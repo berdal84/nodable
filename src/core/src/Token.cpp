@@ -9,10 +9,11 @@ std::string Token::to_JSON(const std::shared_ptr<Token> _token)
 {
     std::string result;
     result.append("{ ");
-    result.append( "word: " + _token->get_word() );
+    result.append( "word: \"" + _token->get_word() + "\"" );
     result.append( ", charIndex: " + std::to_string(_token->m_charIndex) );
-    result.append( ", prefix: " + _token->get_prefix() );
-    result.append( ", suffix: " + _token->get_suffix() );
+    result.append( ", prefix: \"" + _token->get_prefix() + "\""  );
+    result.append( ", suffix: \"" + _token->get_suffix() + "\""  );
+    result.append( ", buffer: \"" + _token->m_buffer + "\""  );
     result.append(" }");
     return result;
 }
