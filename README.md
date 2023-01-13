@@ -42,7 +42,7 @@ _*: Nodable persistant state is the source code. Some minor changes on the graph
 ## How to use?
 
 Follow the instruction from the [latest release](https://github.com/berdal84/Nodable/releases/latest) section.
-If you want to build *Nodable* from sources, follow [HOW TO BUILD](./HOWTOBUILD.md) instructions.
+If you want to build *Nodable* from sources, follow [HOW-TO-BUILD](./HOW-TO-BUILD.md) instructions.
 
 ## License:
 
