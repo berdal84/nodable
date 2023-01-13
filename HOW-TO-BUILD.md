@@ -16,8 +16,8 @@ _*: no help is available here for that particular subject_
 
 Run the following commands:
 ```console
-git clone --branch v0.9 https://github.com/berdal84/Nodable.git --recurse-submodules
-cd Nodable
+git clone --branch v0.9 https://github.com/berdal84/nodable.git --recurse-submodules
+cd nodable
 cmake . -B cmake-build-there
 cmake --build cmake-build-there --config Release --target install
 ```
