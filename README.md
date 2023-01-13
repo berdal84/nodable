@@ -46,7 +46,7 @@ If you want to build *Nodable* from sources, follow [HOW TO BUILD](./HOWTOBUILD.
 
 ## License:
 
-**Nodable** is licensed under the GPL License, see [LICENSE](https://github.com/berdal84/Nodable/blob/master/LICENSE.txt) file for more information.
+**Nodable** is licensed under the GPL License, see [LICENSE](./LICENSE) file for more information.
 
 *Note: each submodule is licensed, browse [./libs](./libs) folder to know more.
 
@@ -71,7 +71,7 @@ If you want to build *Nodable* from sources, follow [HOW TO BUILD](./HOWTOBUILD.
 | [*googletest*](https://github.com/google/googletest) | Google
 | [*gulrak/filesystem*]()  | Steffen Schümann
 
-*: I do not depend on *RTTR* yet, but I must cite it because I am taking a lot of ideas from it. Also, my idea is to use in the future without requiring too many changes.
+*: I do not depend on *RTTR* yet, but I must cite it because I am taking a lot of ideas from it. My idea is to use it in the future without requiring too many changes.
 
 #### Resources
 
