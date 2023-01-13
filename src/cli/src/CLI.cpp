@@ -32,9 +32,10 @@ CLI::CLI()
     , m_graph(m_language.get(), &m_factory, &m_auto_completion)
 {
     std::cout << R"(== Nodable command line interface ==)" << std::endl <<
-                 R"(Nodable Copyright (C) 2022 Bérenger DALLE-CORT. This program comes with ABSOLUTELY NO WARRANTY. )"
+                 R"(Nodable Copyright (C) 2023 Bérenger DALLE-CORT. This program comes with ABSOLUTELY NO WARRANTY. )"
                  R"(This is free software, and you are welcome to redistribute it under certain conditions.)"
             << std::endl << R"(Feel lost? type "help".)" << std::endl;
+    Log::set_verbosity(ndbl::Log::Verbosity_Warning);
 }
 
 CLI::~CLI()
@@ -58,43 +59,50 @@ void CLI::update()
     // command prompt
     std::cout << ">>> ";
 
-    // ask for user input
+    // get user input
     std::string input;
-
     while ( input.empty())
     {
         input = get_line();
     }
 
+    // get static function from user input
     type api = type::get<CLI>();
     if( auto static_fct = api.get_static(input) )
     {
-        variant result = (*static_fct)();
+        try
+        {
+            // invoke the function
+            variant result = (*static_fct)();
+            log_function_call(result, static_fct->get_type());
+        }
+        catch (std::runtime_error e )
+        {
+            LOG_ERROR("CLI", "Error: %s\n", e.what() );
+        }
         return;
     }
 
+    // no static found earlier, we try to get a method from user input
     if( auto method = api.get_method(input) )
     {
         try
         {
+            // then we invoke it
             variant result = (*method)((void *) this);
-            if( result.is_defined() )
-            {
-                std::cout << "Result: " << result.convert_to<std::string>() << std::endl;
-            }
+            log_function_call(result, method->get_type());
         }
         catch (std::runtime_error e )
         {
-            std::cout << "Error: " << e.what() << std::endl;
+            LOG_ERROR("CLI", "Error: %s\n", e.what() );
         }
         return;
     }
 
-    std::cout << "Command not found: \"" << input << '"' << std::endl;
-    help();
-
-    // <----- TODO
+    // try to eval (parse, compile and run).
+    m_language->get_parser().parse(input, &m_graph) && compile() && run();
 }
+void CLI::log_function_call(const variant &result, const func_type &type) const {LOG_MESSAGE("CLI", "CLI::%s() done (result: %s)\n", type.get_identifier().c_str(), result.is_defined() ? result.convert_to<std::string>().c_str() : "void")}
 
 std::string CLI::get_word() const
 {
@@ -126,58 +134,58 @@ bool CLI::serialize()
         return true;
     }
 
-    LOG_WARNING("cli", "unable to serialize! Are you sure you entered an expression earlier?\n")
+    LOG_WARNING("CLI", "unable to serialize! Are you sure you entered an expression earlier?\n")
     return false;
 }
 
-void CLI::compile()
+bool CLI::compile()
 {
     if( auto asm_code = m_compiler.compile_syntax_tree(&m_graph))
     {
         m_asm_code = std::move(asm_code);
+        return m_asm_code.get();
     }
     else
     {
-        LOG_ERROR("cli", "unable to compile! Are you sure you entered an expression earlier?\n")
+        LOG_ERROR("CLI", "unable to compile!\n")
+        return false;
     }
 }
 
-void CLI::parse()
+bool CLI::parse()
 {
     // ask for user input
-    std::cout << "Type an expression:" << std::endl;
     std::cout << ">>> ";
     std::string parse_in = get_line();
-    m_language->get_parser().parse(parse_in, &m_graph);
+    return m_language->get_parser().parse(parse_in, &m_graph);
 }
 
-void CLI::run()
+bool CLI::run()
 {
-    if( m_asm_code)
+    if(!m_asm_code)
     {
-        if( m_virtual_machine.load_program(std::move(m_asm_code)) )
-        {
-            m_virtual_machine.run_program();
-            qword last_result = m_virtual_machine.get_last_result();
+        return false;
+    }
 
-            std::cout << "Result in various types:";
-            std::cout << std::endl;
-            std::cout << " bool:    " << std::setw(12) << (bool)last_result;
-            std::cout << ", double: " << std::setw(12) << (double)last_result;
-            std::cout << ", i16_t:  " << std::setw(12) << (i16_t)last_result;
-            std::cout << ", hexa:   " << std::setw(12) << last_result.to_string();
-            std::cout << std::endl;
+    if( m_virtual_machine.load_program(std::move(m_asm_code)) )
+    {
+        m_virtual_machine.run_program();
+        qword last_result = m_virtual_machine.get_last_result();
 
-            m_virtual_machine.release_program();
-        }
-        else
-        {
-            LOG_ERROR("cli", "unable to run program!\n")
-        }
+        std::cout << "Result in various types:";
+        std::cout << std::endl;
+        std::cout << " bool:   " << std::setw(12) << std::boolalpha << (bool)last_result;
+        std::cout << " | double: " << std::setw(12) << (double)last_result;
+        std::cout << " | i16_t:  " << std::setw(12) << (i16_t)last_result;
+        std::cout << " | hex:    " << std::setw(12) << last_result.to_string() << std::endl;
+
+        auto program = m_virtual_machine.release_program();
+        return program.get();
     }
     else
     {
-        LOG_ERROR("cli", "compile program first!\n")
+        LOG_ERROR("CLI", "Unable to run program!\n")
+        return false;
     }
 }
 
