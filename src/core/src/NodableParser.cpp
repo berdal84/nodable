@@ -75,15 +75,16 @@ bool NodableParser::parse(const std::string &_source_code, GraphNode *_graphNode
         m_graph->clear();
         LOG_WARNING("Parser", "Unable to generate a full program tree.\n")
         LOG_MESSAGE("Parser", "--- Token Ribbon begin ---\n");
-        for( auto each_token : m_token_ribbon.tokens )
+        for( const auto& each_token : m_token_ribbon.tokens )
         {
-            LOG_MESSAGE("Parser", "%i: %s\n", each_token->m_index, Token::to_string(each_token).c_str() );
+            LOG_MESSAGE("Parser", "token idx %i: %s\n", each_token->m_index, Token::to_JSON(each_token).c_str() );
         }
         LOG_MESSAGE("Parser", "--- Token Ribbon end ---\n");
         auto curr_token = m_token_ribbon.peekToken();
-        LOG_WARNING("Parser", "Unable to handle the token %s (char: %llu).\n"
-                     , curr_token->m_buffer.c_str()
-                     , curr_token->m_charIndex )
+        LOG_ERROR("Parser", "Couldn't go further than token %llu: %s\n"
+                  , curr_token->m_index
+                  , Token::to_JSON(curr_token).c_str()
+                  )
         return false;
     }
 
