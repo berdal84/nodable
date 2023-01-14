@@ -1007,7 +1007,7 @@ ConditionalStructNode * NodableParser::parse_conditional_structure()
             {
                 condition->set_label("Condition");
                 condition->set_label("Cond.");
-                condStruct->set_cond_instr(condition);
+                condStruct->set_cond_expr(condition);
 
                 if ( m_token_ribbon.eatToken(Token_t::fct_params_end) )
                 {
@@ -1122,7 +1122,7 @@ ForLoopNode* NodableParser::parse_for_loop()
                 {
                     cond_instr->set_label("Condition", "Cond.");
                     m_graph->connect(cond_instr->get_this_member(), for_loop_node->condition_member());
-                    for_loop_node->set_cond_instr(cond_instr);
+                    for_loop_node->set_cond_expr(cond_instr);
 
                     InstructionNode* iter_instr = parse_instr();
                     if (!iter_instr)

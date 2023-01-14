@@ -41,7 +41,7 @@ void ForLoopNode::set_init_instr(InstructionNode* _node)
     m_init_instr_node = _node;
 }
 
-void ForLoopNode::set_cond_instr(InstructionNode* _node)
+void ForLoopNode::set_cond_expr(InstructionNode* _node)
 {
     m_cond_instr_node = _node;
 }

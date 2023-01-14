@@ -365,7 +365,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const ForLoopNode* 
     {
         serialize( _out, _for_loop->get_init_instr() );
     }
-    serialize( _out, _for_loop->get_cond_instr() );
+    serialize( _out, _for_loop->get_cond_expr() );
     serialize( _out, _for_loop->get_iter_instr() );
     serialize( _out, Token_t::fct_params_end );
 
@@ -383,7 +383,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const ConditionalSt
     // if ( <condition> )
     serialize( _out, _condStruct->get_token_if() );
     serialize( _out, Token_t::fct_params_begin );
-    serialize( _out, _condStruct->get_cond_instr() );
+    serialize( _out, _condStruct->get_cond_expr() );
     serialize( _out, Token_t::fct_params_end );
 
     // if scope

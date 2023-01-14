@@ -10,16 +10,25 @@ namespace ndbl
     class InstructionNode;
 
     /**
-     * @brief Interface for any conditional structure node (ex: if/else, for, while, do/while )
+     * @interface Interface for any conditional structure node (ex: if/else, for, while, do/while )
      */
     class IConditionalStruct
     {
     public:
+        /** Get the condition member (contains the value of the condition) */
         virtual Member* condition_member()const = 0;
+
+        /** Get the the "true" branch's scope */
         virtual Scope* get_condition_true_scope()const = 0;
+
+        /** Get the the "false" branch's scope */
         virtual Scope* get_condition_false_scope()const = 0;
-        virtual void   set_cond_instr(InstructionNode*) = 0;
-        virtual InstructionNode* get_cond_instr()const = 0;
+
+        /** Set the condition expression to evaluate */
+        virtual void set_cond_expr(InstructionNode*) = 0;
+
+        /** Get the condition expression to evaluate */
+        virtual InstructionNode*get_cond_expr()const = 0;
     };
 
 }

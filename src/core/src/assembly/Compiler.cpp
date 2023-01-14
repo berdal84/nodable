@@ -212,7 +212,7 @@ void assembly::Compiler::compile(const ForLoopNode* for_loop)
 
     u64_t condition_instr_line = m_temp_code->get_next_index();
 
-    compile_as_condition(for_loop->get_cond_instr());
+    compile_as_condition(for_loop->get_cond_expr());
 
     Instruction* skip_true_branch = m_temp_code->push_instr(opcode_t::jne);
     skip_true_branch->m_comment = "jump if not equal";
@@ -253,7 +253,7 @@ void assembly::Compiler::compile_as_condition(const InstructionNode* _instr_node
 
 void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 {
-    compile_as_condition(_cond_node->get_cond_instr()); // compile condition isntruction, store result, compare
+    compile_as_condition(_cond_node->get_cond_expr()); // compile condition isntruction, store result, compare
 
     Instruction* jump_over_true_branch = m_temp_code->push_instr(opcode_t::jne);
     jump_over_true_branch->m_comment   = "jump if not equals";
