@@ -9,8 +9,8 @@ using namespace ndbl;
 
 TokenRibbon::TokenRibbon()
     : m_curr_tok_idx(0)
-    , m_prefix( std::make_shared<Token>() )
-    , m_suffix( std::make_shared<Token>() )
+    , m_prefix_acc( std::make_shared<Token>() )
+    , m_suffix_acc( std::make_shared<Token>() )
 {
     transactionStartTokenIndexes.push(0);
 }
@@ -118,8 +118,8 @@ void TokenRibbon::commitTransaction()
 void TokenRibbon::clear()
 {
     tokens.clear();
-    m_prefix->clear();
-    m_suffix->clear();
+    m_prefix_acc->clear();
+    m_suffix_acc->clear();
     transactionStartTokenIndexes = std::stack<size_t>();
     m_curr_tok_idx = 0;
 }
@@ -151,7 +151,7 @@ std::shared_ptr<Token> TokenRibbon::getEaten()
     return m_curr_tok_idx == 0 ? nullptr : tokens.at(m_curr_tok_idx - 1);
 }
 
-std::string TokenRibbon::get_words(size_t offset, int count)
+std::string TokenRibbon::concat_token_buffers(size_t offset, int count)
 {
     std::string result;
     size_t idx = offset;

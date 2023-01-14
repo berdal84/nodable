@@ -493,8 +493,8 @@ Node* NodableParser::parse_program()
     // Add ignored chars pre/post token to the main scope begin/end token prefix/suffix.
     NDBL_ASSERT(!program_scope->get_begin_scope_token())
     NDBL_ASSERT(!program_scope->get_end_scope_token())
-    program_scope->set_begin_scope_token( m_token_ribbon.m_prefix );
-    program_scope->set_end_scope_token( m_token_ribbon.m_suffix );
+    program_scope->set_begin_scope_token( m_token_ribbon.m_prefix_acc);
+    program_scope->set_end_scope_token( m_token_ribbon.m_suffix_acc);
 
     m_scope_stack.pop();
     commit_transaction();
@@ -666,7 +666,7 @@ bool NodableParser::is_syntax_valid()
                 if ( opened <= 0)
                 {
                     LOG_ERROR("Parser", "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n"
-                              , m_token_ribbon.get_words( (*currTokIt)->m_index, -10 ).c_str()
+                              , m_token_ribbon.concat_token_buffers((*currTokIt)->m_index, -10).c_str()
                               , (*currTokIt)->m_charIndex )
                     success = false;
                 }
@@ -834,7 +834,7 @@ bool NodableParser::tokenize(const std::string& _string)
                     *
                     * <pending_ignored_chars> (<first-and-new-token>)
                     */
-                    m_token_ribbon.m_prefix->append_to_word(pending_ignored_chars);
+                    m_token_ribbon.m_prefix_acc->append_to_word(pending_ignored_chars);
                     pending_ignored_chars.clear();
                 }
             }
@@ -857,7 +857,7 @@ bool NodableParser::tokenize(const std::string& _string)
 	 */
 	if ( !pending_ignored_chars.empty() )
     {
-        m_token_ribbon.m_suffix->append_to_word(pending_ignored_chars);
+        m_token_ribbon.m_suffix_acc->append_to_word(pending_ignored_chars);
         pending_ignored_chars.clear();
     }
 	return true;

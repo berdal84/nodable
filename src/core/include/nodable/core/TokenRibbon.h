@@ -18,6 +18,7 @@ namespace ndbl
          */
     class TokenRibbon
     {
+        using token_ptr = std::shared_ptr<Token>;
     public:
 
         TokenRibbon();
@@ -26,16 +27,17 @@ namespace ndbl
         /** Generate a string with all tokens with _tokens[_highlight] colored in green*/
         [[nodiscard]] std::string toString() const;
 
-        std::shared_ptr<Token> push(std::shared_ptr<Token>);
+        /** Push a new token into the ribbon */
+        token_ptr push(token_ptr);
 
         /** Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
-        [[nodiscard]] std::shared_ptr<Token> push(Token_t _type, const std::string& _string, size_t _charIndex);
+        [[nodiscard]] token_ptr push(Token_t _type, const std::string& _string, size_t _charIndex);
 
         /** Get current token and increment cursor */
-        std::shared_ptr<Token> eatToken();
+        token_ptr eatToken();
 
         /** Get current token and increment cursor ONLY if token type is expected */
-        std::shared_ptr<Token> eatToken(Token_t);
+        token_ptr eatToken(Token_t);
 
         /** Start a transaction by saving the current cursor position in a stack
          * Multiple transaction can be stacked */
@@ -60,21 +62,25 @@ namespace ndbl
         [[nodiscard]] bool canEat(size_t _tokenCount = 1)const;
 
         /** get a ref to the current token without moving cursor */
-        [[nodiscard]] std::shared_ptr<Token> peekToken();
+        [[nodiscard]] token_ptr peekToken();
+
+        /** Get the last eaten token */
+        token_ptr getEaten();
+
+        /** Get the current token index (or ribbon cursor position)*/
+        size_t get_curr_tok_idx() { return  m_curr_tok_idx; }
+
+        /** get concatenated token buffers from index offset for a given count */
+        std::string concat_token_buffers(size_t offset, int count);
 
         /** To store the result of the tokenizeExpressionString() method
             contain a vector of Tokens to be converted to a Nodable graph by all parseXXX functions */
-        std::vector<std::shared_ptr<Token>> tokens;
-        std::shared_ptr<Token> m_prefix;
-        std::shared_ptr<Token> m_suffix;
+        std::vector<token_ptr> tokens;
 
-        std::shared_ptr<Token> getEaten();
-
-        size_t get_curr_tok_idx() { return  m_curr_tok_idx; }
-
-        /** get concatenated words from index offset for a given count */
-        std::string get_words(size_t offset, int count);
-
+        /** fake token to accumulate prefixes */
+        const token_ptr m_prefix_acc;
+        /** fake token to accumulate suffixes */
+        const token_ptr m_suffix_acc;
     private:
 
         /** Current cursor position */
