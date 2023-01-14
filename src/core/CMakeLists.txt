@@ -43,7 +43,6 @@ add_library(
         src/VariableNode.cpp
         src/VirtualMachine.cpp
         src/Way.cpp
-        src/Wire.cpp
         src/assembly/Code.cpp
         src/assembly/Compiler.cpp
         src/assembly/Instruction.cpp

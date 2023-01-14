@@ -5,7 +5,7 @@
 */
 
 /**
- * The objective of these 3 struct is to:
+ * The objective of these 3 DEFINES is to:
  * - create a link between a typename and a TypeEnum,
  * - get the link with TypeEnum,
  * - get the link with a typename.
