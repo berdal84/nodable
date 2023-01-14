@@ -619,7 +619,7 @@ bool NodeView::draw(MemberView* _view )
             std::string str;
             if (member->is_connected_to_variable())
             {
-                str = member->get_connected_variable()->get_name();
+                str = member->get_connected_variable()->get_identifier();
             }
             else
             {
@@ -682,7 +682,7 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
     {
         char str[255];
         auto* variable = _member->get_input()->get_owner()->as<VariableNode>();
-        snprintf(str, 255, "%s", variable->get_name() );
+        snprintf(str, 255, "%s", variable->get_identifier() );
 
         ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->get<NodeView>()->get_color(Color_Fill) );
         ImGui::InputText(label.c_str(), str, 255, inputFlags);
@@ -921,7 +921,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
                 auto vars = scope->get_variables();
                 for (auto eachVar : vars)
                 {
-                    ImGui::BulletText("%s: %s", eachVar->get_name(), eachVar->get_value()->convert_to<std::string>().c_str());
+                    ImGui::BulletText("%s: %s", eachVar->get_identifier(), eachVar->get_value()->convert_to<std::string>().c_str());
                 }
                 ImGui::TreePop();
             }

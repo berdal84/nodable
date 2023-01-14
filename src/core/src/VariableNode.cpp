@@ -21,12 +21,12 @@ VariableNode::VariableNode(type _type)
 	m_value = m_props.add(k_value_member_name, Visibility::Always, _type, Way_InOut);
 }
 
-void VariableNode::set_name(const char* _name)
+void VariableNode::set_identifier(const char* _name)
 {
     std::string label;
     const char* short_label = nullptr;
 
-    m_name = _name;
+    m_identifier = _name;
 
     if (m_value->get_variant()->get_type() != type::null )       // append type only if have one
     {
@@ -36,10 +36,10 @@ void VariableNode::set_name(const char* _name)
     label.append(_name );                                        // append name
 
     size_t length_max = 8;
-	if (m_name.length() > length_max)                            // limit short_label length
+	if (m_identifier.length() > length_max)                            // limit short_label length
     {
 	    std::string tail = "..";
-        short_label = m_name.substr(0, length_max-1-tail.length())
+        short_label = m_identifier.substr(0, length_max-1-tail.length())
                             .append(tail).c_str();
     }
 

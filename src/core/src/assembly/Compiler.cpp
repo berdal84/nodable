@@ -48,7 +48,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
             {
                 if( !each_variable->is_declared() )
                 {
-                    LOG_ERROR("Compiler", "Syntax error: %s is not declared.\n", each_variable->get_name() );
+                    LOG_ERROR("Compiler", "Syntax error: %s is not declared.\n", each_variable->get_identifier() );
                     return false;
                 }
             }
@@ -193,7 +193,7 @@ void assembly::Compiler::compile(const Node* _node)
 
             if( auto variable = _node->as<VariableNode>())
             {
-                instr->m_comment = variable->get_name();
+                instr->m_comment = variable->get_identifier();
             }
             else
             {

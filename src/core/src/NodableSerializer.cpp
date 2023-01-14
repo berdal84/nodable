@@ -171,7 +171,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const VariableNode*
     // var name
     std::shared_ptr<const Token> identifier_token = _node->get_identifier_token();
     if ( identifier_token ) _out.append(identifier_token->get_prefix());
-    _out.append(_node->get_name());
+    _out.append(_node->get_identifier());
     if ( identifier_token ) _out.append(identifier_token->get_suffix());
 
     Member* value = _node->get_value();
@@ -238,7 +238,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const Member * _mem
         if (owner && owner->get_type() == type::get<VariableNode>() )
         {
             auto variable = owner->as<VariableNode>();
-            _out.append(variable->get_name() );
+            _out.append(variable->get_identifier() );
         }
         else
         {

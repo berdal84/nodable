@@ -149,7 +149,7 @@ namespace ndbl {
 		void delete_component()
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-			auto name = T::Get_class()->get_name();
+			auto name = T::Get_class()->get_identifier();
 			auto component = get<T>();
 			m_components.erase(name);
 			delete component;

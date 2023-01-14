@@ -25,7 +25,7 @@ VariableNode* NodeFactory::new_variable(type _type, const std::string& _name, IS
 {
     // create
     auto* node = new VariableNode(_type);
-    node->set_name(_name.c_str());
+    node->set_identifier(_name.c_str());
 
     if( _scope)
     {
