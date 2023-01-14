@@ -9,14 +9,16 @@
 namespace ndbl
 {
     /**
-     * The Token class serve as container for the result of a scanner (or tokenizer)
+     * @struct Serve as container for the result of a scanner (or tokenizer)
      *
-     * ex: "a + b" will generate 3 tokens: "a ", "+ ", and "b".
+     * @example "a + b" will generate 3 tokens: "a ", "+ ", and "b".
      *
+     * @details
      * The token store this piece of information using a buffer and some information
      * to retrieve the word, its prefix and suffix.
      *
-     *   buffer:   "<prefix><word><suffix>"
+     * @code
+     *   buffer:    "prefix|word|suffix"
      *       (word_pos) ---^
      *                     |<--->| (word_size)
      */
