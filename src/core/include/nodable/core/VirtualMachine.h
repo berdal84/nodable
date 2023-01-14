@@ -22,43 +22,69 @@ namespace ndbl
     public:
         CPU();
         ~CPU() = default;
+        /** Read a given register */
         qword         read(Register)const;
+        /** Write a word into a given register */
         void          write(Register, qword);
+        /** Clear all registers */
         void          clear_registers();
 
     private:
-        qword&        _read(Register);
+        /** Read a given register by reference with write mode */
+        qword&        read_write(Register);
+        /** Store all registers */
         qword         m_register[Register::COUNT];
     };
 
     /**
-     * Class to execute a compiled
+     * The VirtualMachine is able to run the assembly::Code produced by the assembly::Compiler
+     * The term VirtualMachine is maybe not adequate, it is closer to an interpreter in fact,
+     * but I found it more clear.
      */
     class VirtualMachine
     {
+        /** The current code loaded */
         using code_uptr = std::unique_ptr<const Code>;
     public:
         VirtualMachine();
         ~VirtualMachine() = default;
+        /** Load program code */
         [[nodiscard]] bool    load_program(code_uptr _code);
+        /** Release any loaded program */
         code_uptr             release_program();
+        /** Run loaded program. Check load_program()'s return value before to run.*/
         void                  run_program();
+        /** Stop the execution */
         void                  stop_program();
+        /** Run the program in debug mode. Then call step_over() to advance step by step.*/
         void                  debug_program();
+        /** Check if a program is running */
         inline bool           is_program_running() const{ return m_is_program_running; }
+        /** Check if a program is running in debug mode */
         inline bool           is_debugging() const{ return m_is_debugging; }
+        /** Check if a program is stopped */
         inline bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
+        /** Execute the next instruction. Works only in debug mode, use debug_program() and is_debugging() */
                bool           step_over();
+        /** Get the next node to be executed. Works in debug mode only. */
         inline const Node*    get_next_node() const {return m_next_node; }
+        /** Get the last instruction's result */
         qword                 get_last_result() const;
+        /** Check if there is a next instruction (internally check instruction pointer's position) */
         bool                  is_there_a_next_instr() const;
+        /** Get the next instruction to execute */
         Instruction*          get_next_instr() const;
+        /** Read a given CPU register */
         qword                 read_cpu_register(Register _register) const;
+        /** Get current program ptr*/
         const Code *          get_program_asm_code();
+        /** Check if a given Node is the next to be executed */
         bool                  is_next_node(Node *_node)const { return m_next_node == _node; }
 
     private:
+        /** Advance the instruction pointer of a given amount */
         void                  advance_cursor(i64_t _amount = 1);
+        /** Step over common code (for both "run" and "debug" modes) */
         bool                  _stepOver();
 
         const Node*           m_next_node;
@@ -67,7 +93,6 @@ namespace ndbl
         Instruction*          m_last_step_next_instr;
         CPU                   m_cpu;
         code_uptr             m_program_asm_code;
-
     };
 }
 
