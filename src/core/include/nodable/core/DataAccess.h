@@ -6,6 +6,9 @@
 
 namespace ndbl
 {
+    /**
+     * @deprecated Component to handle node read/write from/to disk
+     */
 	class DataAccess : public Component
 	{
 	public:
