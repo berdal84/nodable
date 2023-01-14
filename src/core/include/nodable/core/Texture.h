@@ -11,19 +11,19 @@
 namespace ndbl
 {
     /**
-     * @brief Simple data structure to store OpenGL texture information
+     * @struct Simple data structure to store OpenGL texture information
      */
     struct Texture
     {
         Texture(GLuint& _image, int& _width, int& _height): image(_image), width(_width), height(_height){}
-        ~Texture() {}
+        /** OpenGL handler for the texture */
         GLuint image;
         int width;
         int height;
     };
 
     /**
-     * @brief Texture manager, could also be called texture resource manager.
+     * @class Manage (load, reference and release) all the textures
      */
     class TextureManager
     {
@@ -47,6 +47,8 @@ namespace ndbl
             return create_texture_from_file_path(path);
         }
 
+        /** Release all the loaded textures
+         * @warning There is no check if they are still in use */
         void release_resources()
         {
             for( const auto& eachTxt : m_register )
@@ -58,8 +60,6 @@ namespace ndbl
         }
 
     private:
-
-
         Texture* create_texture_from_file_path(const std::string& path)
         {
             // Try to load a PNG
