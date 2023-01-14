@@ -44,12 +44,13 @@ bool View::draw_as_child(const char* _name, const vec2& _size, bool border, ImGu
     m_visible_screen_rect.Max = outerCursorScreenPos + _size;
 
 	ImGui::BeginChild(_name, _size, border, flags);
-	auto innerCursorScreenPos = ImGui::GetCursorScreenPos();		
-	changed = draw();
+    {
+        auto innerCursorScreenPos = ImGui::GetCursorScreenPos();
+        changed = draw();
+        m_visible_rect = m_visible_screen_rect;
+        m_visible_rect.Translate(innerCursorScreenPos * -1.0f);
+    }
 	ImGui::EndChild();
-
-    m_visible_rect = m_visible_screen_rect;
-	m_visible_rect.Translate(innerCursorScreenPos * -1.0f);
 
 	return changed;
 }

@@ -316,7 +316,7 @@ bool GraphNodeView::draw()
 
                 if( virtual_machine.is_debugging() && virtual_machine.is_next_node(each_node_view->get_owner() ) )
                 {
-                    ImGui::SetScrollHere();
+                    ImGui::SetScrollHereY();
                 }
 
                 // dragging

@@ -217,8 +217,8 @@ bool AppView::draw()
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 
         ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(viewport->GetWorkPos());
-        ImGui::SetNextWindowSize(viewport->GetWorkSize());
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
         ImGui::SetNextWindowViewport(viewport->ID);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -469,9 +469,9 @@ bool AppView::draw()
                 ImGui::DockBuilderSetNodeSize(ds_bottom , vec2(ImGui::GetMainViewport()->Size.x, m_settings.ui_dockspace_down_size));
                 ImGui::DockBuilderSplitNode(ds_center , ImGuiDir_Right, m_settings.ui_dockspace_right_ratio, &ds_right, NULL );
 
-                ImGui::DockBuilderGetNode(ds_center)->EnableCloseButton      = false;
-                ImGui::DockBuilderGetNode(ds_right)->EnableCloseButton       = false;
-                ImGui::DockBuilderGetNode(ds_bottom)->EnableCloseButton      = false;
+                ImGui::DockBuilderGetNode(ds_center)->HasCloseButton      = false;
+                ImGui::DockBuilderGetNode(ds_right)->HasCloseButton       = false;
+                ImGui::DockBuilderGetNode(ds_bottom)->HasCloseButton      = false;
                 ImGui::DockBuilderGetNode(ds_bottom)->WantHiddenTabBarToggle = true;
 
 
@@ -743,7 +743,7 @@ void AppView::draw_vm_view()
 void AppView::draw_startup_menu(ImGuiID dockspace_id)
 {
     ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Always);
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3,0.3,0.3, 1.0));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3,0.3,0.3, 1.0));
 
     ImGui::Begin("Startup");
     {
@@ -926,7 +926,7 @@ void AppView::draw_splashcreen()
 
     if ( ImGui::BeginPopupModal(m_splashscreen_title, nullptr, flags) )
     {
-        ImGui::SameLine( (ImGui::GetContentRegionAvailWidth() - m_logo->width) * 0.5f); // center img
+        ImGui::SameLine( (ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
         ImGui::Image((void*)(intptr_t)m_logo->image, vec2((float)m_logo->width, (float)m_logo->height));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(50.0f, 30.0f) );
@@ -937,7 +937,7 @@ void AppView::draw_splashcreen()
         ImGui::NewLine();ImGui::NewLine();
 
         const char* credit = "by Berdal84";
-        ImGui::SameLine( ImGui::GetContentRegionAvailWidth() - ImGui::CalcTextSize(credit).x);
+        ImGui::SameLine( ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
         ImGui::TextWrapped( "%s", credit );
         ImGui::TextWrapped( "%s", BuildInfo::version );
         if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
@@ -973,8 +973,8 @@ void AppView::draw_status_bar() const
             }
 
         }
-        ImGui::End();
     }
+    ImGui::End();
 }
 
 void AppView::draw_history_bar(History *currentFileHistory)
@@ -992,7 +992,7 @@ void AppView::draw_history_bar(History *currentFileHistory)
 
         size_t              historySize    = currentFileHistory->get_size();
         std::pair<int, int> history_range  = currentFileHistory->get_command_id_range();
-        float               avail_width    = ImGui::GetContentRegionAvailWidth();
+        float               avail_width    = ImGui::GetContentRegionAvail().x;
         float               btn_width      = fmin(btn_width_max, avail_width / float(historySize + 1) - btn_spacing);
 
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(btn_spacing, 0));

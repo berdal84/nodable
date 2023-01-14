@@ -768,7 +768,7 @@ bool NodeView::is_inside(NodeView* _nodeView, ImRect _rect) {
 void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_show_advanced)
 {
     Node*       node             = _view->get_owner();
-    const float labelColumnWidth = ImGui::GetContentRegionAvailWidth() / 2.0f;
+    const float labelColumnWidth = ImGui::GetContentRegionAvail().x / 2.0f;
 
     auto drawMember = [&](Member* _member)
     {
@@ -797,7 +797,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
             ImGuiEx::EndTooltip();
         }
         // input
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         bool edited = NodeView::draw_input(_ctx, _member, nullptr);
         if ( edited )
         {
