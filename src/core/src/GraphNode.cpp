@@ -187,7 +187,7 @@ Node* GraphNode::create_operator(const iinvokable* _invokable)
 
 void GraphNode::destroy(Node* _node)
 {
-    // delete any relation with this node
+    // delete any wire connected to this node
     for (auto it = m_wire_registry.begin(); it != m_wire_registry.end();)
     {
         Wire* wire = *it;
@@ -200,7 +200,7 @@ void GraphNode::destroy(Node* _node)
             it++;
     }
 
-    // delete any relation with this node
+    // disconnect any relation with this node
     std::vector<DirectedEdge> relations_to_disconnect;
 
     for (auto pair :  m_relation_registry)

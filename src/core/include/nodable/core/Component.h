@@ -13,17 +13,13 @@ namespace ndbl{
 	{
         friend Node;
     public:
-        /** Called each frame */
-        virtual bool  update() = 0;
 
-        /** Get the node owning this component */
-        inline Node*  get_owner()const { return m_owner; }
-
-        /** Shorthand to cast<T>(this) */
-        template<class T> [[nodiscard]] inline       T* as()      { return cast<T>(this); }
-
-        /** Shorthand to cast<const T>(this) */
-        template<class T> [[nodiscard]] inline const T* as()const { return cast<const T>(this); }
+        virtual bool    update() = 0;                             // Called each frame
+        inline Node*    get_owner()const { return m_owner; }      // Get the node owning this component
+        template<class T> [[nodiscard]]                           // Shorthand to cast<T>(this)
+            inline T*       as() { return cast<T>(this); }
+        template<class T> [[nodiscard]]                           // Shorthand to cast<const T>(this)
+            inline const T* as()const { return cast<const T>(this); }
 
 	protected:
 		Component() = default;

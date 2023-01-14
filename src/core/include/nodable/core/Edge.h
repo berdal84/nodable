@@ -67,30 +67,23 @@ namespace ndbl
     class DirectedEdge
     {
     public:
+        Pair<Node*> nodes; // Node pair (source and destination)
+        EdgeType    type;  // Nature of the relation
 
         DirectedEdge() = delete;
         DirectedEdge(EdgeType _type, Node* _src, Node* _dst): type(_type), nodes(_src, _dst){ sanitize(); }
         DirectedEdge(Node* _src, EdgeType _type, Node* _dst): type(_type), nodes(_src, _dst){ sanitize(); }
         DirectedEdge(EdgeType _type, const Pair<Node*> _nodes) : type(_type), nodes(_nodes){ sanitize(); }
 
-        /** Node pair */
-        Pair<Node*> nodes;
-
-        /** Nature of the relation */
-        EdgeType    type;
-
-        /** Check it a given node is connected to this edge */
-        bool is_about(Node* _node)const { return nodes.src == _node || nodes.dst == _node; }
-
-        /** Compare (type, nodes, and direction) two edges */
-        friend bool operator==(const DirectedEdge& left_edge, const DirectedEdge& right_edge)
+        bool is_about(Node* _node)const { return nodes.src == _node || nodes.dst == _node; }  // Check it a given node is connected to this edge
+        friend bool operator==(const DirectedEdge& left_edge, const DirectedEdge& right_edge) // Compare (type, nodes, and direction) two edges
         {
             return (left_edge.type == right_edge.type)
                 && (left_edge.nodes == right_edge.nodes);
         }
 
     protected:
-        void sanitize()
+        void sanitize() // ensure the edge is well-formed
         {
             if (type == EdgeType::IS_PREDECESSOR_OF ) // we never want this type of relation in our database
             {

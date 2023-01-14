@@ -16,9 +16,9 @@ ForLoopNode::ForLoopNode()
     , m_cond_instr_node(nullptr)
     , m_iter_instr_node(nullptr)
 {
-    m_props.add<Node*>(k_forloop_initialization_member_name , Visibility::Always, Way::Way_In);
-    m_props.add<Node*>(k_condition_member_name              , Visibility::Always, Way::Way_In);
-    m_props.add<Node*>(k_forloop_iteration_member_name      , Visibility::Always, Way::Way_In);
+    m_props.add<Node*>(k_interative_init_member_name, Visibility::Always, Way::Way_In);
+    m_props.add<Node*>(k_conditional_cond_member_name, Visibility::Always, Way::Way_In);
+    m_props.add<Node*>(k_interative_iter_member_name, Visibility::Always, Way::Way_In);
 }
 
 Scope* ForLoopNode::get_condition_true_scope() const

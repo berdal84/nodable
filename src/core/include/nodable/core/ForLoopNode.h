@@ -27,8 +27,8 @@ namespace ndbl
 
         // TODO: create IIterativeStruct to reuse for a future "while" node.
 
-        Member*          get_init_expr()const { return m_props.get(k_forloop_initialization_member_name); }
-        Member*          get_iter_expr()const { return m_props.get(k_forloop_iteration_member_name); }
+        Member*          get_init_expr()const { return m_props.get(k_interative_init_member_name); }
+        Member*          get_iter_expr()const { return m_props.get(k_interative_iter_member_name); }
         InstructionNode* get_iter_instr()const { return m_iter_instr_node; }
         InstructionNode* get_init_instr()const { return m_init_instr_node; }
         void             set_iter_instr(InstructionNode*);
@@ -36,7 +36,7 @@ namespace ndbl
 
         // implements IConditionalStruct (which is already documented)
 
-        Member*          condition_member()const override { return m_props.get(k_condition_member_name);}
+        Member*          condition_member()const override { return m_props.get(k_conditional_cond_member_name);}
         Scope*           get_condition_true_scope()const override;
         Scope*           get_condition_false_scope()const override;
         void             set_cond_expr(InstructionNode*) override;

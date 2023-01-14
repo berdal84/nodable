@@ -26,11 +26,6 @@ Scope::Scope()
 {
 }
 
-void Scope::clear()
-{
-    m_variables.clear();
-}
-
 VariableNode* Scope::find_variable(const std::string &_name)
 {
     VariableNode* result = nullptr;

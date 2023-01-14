@@ -28,15 +28,13 @@ namespace ndbl
         inline void       set_token_else(token_ptr token) { m_token_else = std::move(token); }
         inline token_cptr get_token_if()const   { return m_token_if; }
         inline token_cptr get_token_else()const { return m_token_else; }
-
-        /** Check if an other conditional structure is connected to this one */
-        bool          has_elseif() const;
+        bool          has_elseif() const; // Check if another conditional structure is connected to the else branch (forming an else if)
 
         // implement IConditionalStruct (which is already documented)
 
         Scope*        get_condition_true_scope()const override;
         Scope*        get_condition_false_scope()const override;
-        Member*       condition_member()const override { return m_props.get(k_condition_member_name); }
+        Member*       condition_member()const override { return m_props.get(k_conditional_cond_member_name); }
         void          set_cond_expr(InstructionNode*) override;
         InstructionNode* get_cond_expr()const override { return m_cond_expr; }
     private:
