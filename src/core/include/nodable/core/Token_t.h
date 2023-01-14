@@ -1,19 +1,15 @@
 #pragma once
 #include "nodable/core/types.h"
 
-/*
-	This enum identifies each Type of Token that a Language should handle in its Semantic.
-
-	ex: 
-		C++ Language will define        bool    as KeywordBoolean
-		TypeScript Language will define boolean as KeywordBoolean
-
-	(cf. Semantic class)
-*/
-
 namespace ndbl {
 
-
+    /**
+     * @enum Identifies each Type of Token that a Language should handle.
+     * @note When the parser find a match, it assign a given Token_t to the parsed token.
+     * @example
+     *     "bool" => Token_t::keyword_bool
+     *     "100"  => Token_t::literal_int
+     */
 	enum class Token_t: int
 	{
         unknown,
@@ -47,6 +43,7 @@ namespace ndbl {
         default_ = unknown,
     };
 
+    /** Check if a given keyword is a type (ex: bool, int, double,...)*/
 	static constexpr bool is_keyword_type(Token_t _token_t)
     {
         return _token_t >= Token_t::keyword_string && _token_t <= Token_t::keyword_bool;
