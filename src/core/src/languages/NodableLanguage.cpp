@@ -3,6 +3,7 @@
 #include <nodable/core/String.h>
 #include <nodable/core/System.h>
 #include <nodable/core/Operator.h>
+#include <nodable/core/reflection/invokable.h>
 #include <nodable/core/languages/NodableLibrary_math.h>
 #include <nodable/core/languages/NodableLibrary_biology.h>
 
@@ -105,9 +106,9 @@ std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct_exact(const
         return _type->is_exactly(&_invokable->get_type());
     };
 
-    auto found = std::find_if(m_operator_implems.cbegin(), m_operator_implems.cend(), is_exactly );
+    auto found = std::find_if(m_operators_impl.cbegin(), m_operators_impl.cend(), is_exactly );
 
-    if (found != m_operator_implems.end() )
+    if (found != m_operators_impl.end() )
     {
         return *found;
     }
@@ -134,9 +135,9 @@ std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct_fallback(co
         return _type->is_compatible(&_invokable->get_type());
     };
 
-    auto found = std::find_if(m_operator_implems.cbegin(), m_operator_implems.cend(), is_compatible );
+    auto found = std::find_if(m_operators_impl.cbegin(), m_operators_impl.cend(), is_compatible );
 
-    if (found != m_operator_implems.end() )
+    if (found != m_operators_impl.end() )
     {
         return *found;
     }
@@ -144,7 +145,7 @@ std::shared_ptr<const iinvokable> NodableLanguage::find_operator_fct_fallback(co
     return nullptr;
 }
 
-void NodableLanguage::add_invokable(std::shared_ptr<const iinvokable> _invokable)
+void NodableLanguage::add_function(std::shared_ptr<const iinvokable> _invokable)
 {
     m_functions.push_back(_invokable);
 
@@ -153,18 +154,18 @@ void NodableLanguage::add_invokable(std::shared_ptr<const iinvokable> _invokable
     std::string type_as_string;
     m_serializer.serialize(type_as_string, type);
 
-    if( find_operator(type->get_identifier(), static_cast<Operator_t >( type->get_arg_count() )  ))
-    {
-        auto found = std::find(m_operator_implems.begin(), m_operator_implems.end(), _invokable);
-        NDBL_ASSERT( found == m_operator_implems.end() )
-        m_operator_implems.push_back(_invokable);
-
-        LOG_VERBOSE("NodableLanguage", "add operator: %s (in m_functions and m_operator_implems)\n", type_as_string.c_str() );
-    }
-    else
+    // Stops if no operator having the same identifier and argument count is found
+    if( !find_operator(type->get_identifier(), static_cast<Operator_t >( type->get_arg_count() )  ))
     {
         LOG_VERBOSE("NodableLanguage", "add function: %s (in m_functions)\n", type_as_string.c_str() );
+        return;
     }
+
+    // Register the invokable as an operator implementation
+    auto found = std::find(m_operators_impl.begin(), m_operators_impl.end(), _invokable);
+    NDBL_ASSERT( found == m_operators_impl.end() )
+    m_operators_impl.push_back(_invokable);
+    LOG_VERBOSE("NodableLanguage", "add operator: %s (in m_functions and m_operator_implems)\n", type_as_string.c_str() );
 }
 
 void NodableLanguage::add_operator(const char* _id, Operator_t _type, int _precedence)
@@ -194,50 +195,45 @@ const Operator* NodableLanguage::find_operator(const std::string& _identifier, O
 void NodableLanguage::add_regex(const std::regex& _regex, Token_t _token_t)
 {
     m_token_regex.push_back(_regex);
-    m_regex_to_token.push_back(_token_t);
+    m_token_t_by_regex_index.push_back(_token_t);
 }
 
 void NodableLanguage::add_regex(const std::regex& _regex, Token_t _token_t, type _type)
 {
     m_token_regex.push_back(_regex);
-    m_regex_to_token.push_back(_token_t);
+    m_token_t_by_regex_index.push_back(_token_t);
 
     m_type_regex.push_back(_regex);
-    m_regex_to_type.push_back(_type);
+    m_type_by_regex_index.push_back(_type);
 
-    m_token_to_type.insert({_token_t, _type});
-    m_type_to_token.insert({_type.hash_code(), _token_t});
-}
-
-void NodableLanguage::add_type(type _type, std::string _string)
-{
-    m_type_to_string[_type.hash_code()] = _string;
+    m_token_type_keyword_to_type.insert({_token_t, _type});
+    m_type_hashcode_to_token_t.insert({_type.hash_code(), _token_t});
 }
 
 void NodableLanguage::add_type(type _type, Token_t _token_t, std::string _string)
 {
-    m_token_to_type.insert({_token_t, _type});
-    m_type_to_token.insert({_type.hash_code(), _token_t});
+    m_token_type_keyword_to_type.insert({_token_t, _type});
+    m_type_hashcode_to_token_t.insert({_type.hash_code(), _token_t});
+    m_type_hashcode_to_string.insert({_type.hash_code(), _string});
     add_string(_string, _token_t);
-    add_type(_type, _string);
 }
 
 void NodableLanguage::add_string(std::string _string, Token_t _token_t)
 {
-    m_token_to_string.insert({_token_t, _string});
+    m_token_t_to_string.insert({_token_t, _string});
     add_regex(std::regex("^(" + _string + ")"), _token_t);
 }
 
 void NodableLanguage::add_char(const char _char, Token_t _token_t)
 {
-    m_token_to_char.insert({_token_t, _char});
-    m_char_to_token.insert({_char, _token_t});
+    m_token_t_to_char.insert({_token_t, _char});
+    m_char_to_token_t.insert({_char, _token_t});
 }
 
 std::string& NodableLanguage::to_string(std::string& _out, type _type) const
 {
-    auto found = m_type_to_string.find(_type.hash_code());
-    if( found != m_type_to_string.cend() )
+    auto found = m_type_hashcode_to_string.find(_type.hash_code());
+    if( found != m_type_hashcode_to_string.cend() )
     {
         return _out.append( found->second );
     }
@@ -253,15 +249,15 @@ std::string& NodableLanguage::to_string(std::string& _out, Token_t _token_t) con
     }
 
     {
-        auto found = m_token_to_char.find(_token_t);
-        if (found != m_token_to_char.cend())
+        auto found = m_token_t_to_char.find(_token_t);
+        if (found != m_token_t_to_char.cend())
         {
             _out.push_back( found->second );
             return _out;
         }
     }
-    auto found = m_token_to_string.find(_token_t);
-    if (found != m_token_to_string.cend())
+    auto found = m_token_t_to_string.find(_token_t);
+    if (found != m_token_t_to_string.cend())
     {
         return _out.append( found->second );
     }
@@ -292,4 +288,8 @@ int NodableLanguage::get_precedence(const iinvokable* _invokable) const
 
     return oper->precedence;
 }
-
+type NodableLanguage::get_type(Token_t _token) const
+{
+    NDBL_EXPECT(is_a_type_keyword(_token), "_token_t is not a type keyword!");
+    return m_token_type_keyword_to_type.find(_token)->second;
+}

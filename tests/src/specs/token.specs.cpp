@@ -1,16 +1,5 @@
 #include <gtest/gtest.h>
-
-#include <nodable/core/Member.h>
-#include <nodable/core/Node.h>
-#include <nodable/core/GraphNode.h>
-#include <nodable/core/InstructionNode.h>
-#include <nodable/core/VariableNode.h>
-#include <nodable/core/NodeFactory.h>
-#include <nodable/core/Wire.h>
-#include <nodable/core/languages/NodableLanguage.h>
-#include <nodable/core/InvokableComponent.h>
-#include <nodable/core/Scope.h>
-#include <nodable/core/reflection/func_type.h>
+#include <nodable/core/Property.h>
 
 using namespace ndbl;
 

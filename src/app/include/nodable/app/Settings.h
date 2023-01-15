@@ -29,7 +29,7 @@ namespace ndbl {
         bool           ui_wire_displayArrows;
         vec4           ui_wire_fillColor;
         vec4           ui_wire_shadowColor;
-        float          ui_node_memberConnectorRadius;
+        float          ui_node_propertyConnectorRadius;
         float          ui_node_padding;
         vec4           ui_node_variableColor;
         vec4           ui_node_invokableColor;

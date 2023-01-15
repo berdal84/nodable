@@ -3,9 +3,9 @@
 #include <string>
 #include <memory>
 
-#include <nodable/core/types.h> // forward declarations and common stuff
-#include <nodable/core/Node.h> // base class
-#include <nodable/core/Member.h>
+#include <nodable/core/Node.h>// base class
+#include <nodable/core/Property.h>
+#include <nodable/core/types.h>// forward declarations and common stuff
 
 namespace ndbl
 {
@@ -22,7 +22,7 @@ namespace ndbl
         explicit InstructionNode();
         ~InstructionNode()= default;
 
-        [[nodiscard]] inline Member* get_root_node_member()const { return m_props.get(k_value_member_name); }
+        [[nodiscard]] inline Property * get_root_node_property()const { return m_props.get(k_value_property_name); }
         [[nodiscard]] inline std::shared_ptr<Token> end_of_instr_token()const { return m_end_of_instr_token; }
                       inline void    end_of_instr_token(std::shared_ptr<Token> token) { m_end_of_instr_token = token; }
 

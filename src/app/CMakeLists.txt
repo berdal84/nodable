@@ -35,8 +35,8 @@ add_executable(
         src/History.cpp
         src/ImGuiEx.cpp
         src/main.cpp
-        src/MemberConnector.cpp
-        src/MemberView.cpp
+        src/PropertyConnector.cpp
+        src/PropertyView.cpp
         src/NodeConnector.cpp
         src/NodeView.cpp
         src/ViewConstraint.cpp

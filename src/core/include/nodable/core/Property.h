@@ -14,36 +14,36 @@ namespace ndbl
 {
     // forward declarations
     class Node;
-    class Properties;
+    class PropertyGrp;
 
     /**
-     * @brief The role of a Member is to store a value for a Properties object (its parent).
+     * @class The class store a value (as a variant) and is owned by a PropertyGroup
      *
-     * Like for a regular class member in a lot of programming languages, you can set visibility and type.
-     * But in Nodable, a Member can also be connected (see Wire) to another Member using their input/outputs.
+     * A property is like a property in OOP, you can set its visibility, type, and value.
+     * In Nodable, a property can also be connected (see DirectedEdge) to another property is they "way" allows it.
      */
-	class Member
+	class Property
     {
     public:
         template<typename T>
-        explicit Member(Properties* _parent_properties, T* _value): Member(_parent_properties) { m_variant.set(_value); };
-        explicit Member(Properties* = nullptr);
-        explicit Member(Properties*, const std::string&);
-        explicit Member(Properties*, int);
-        explicit Member(Properties*, bool);
-        explicit Member(Properties*, double);
-        explicit Member(Properties*, const char *);
-        ~Member();
+        explicit Property(PropertyGrp * _parent_properties, T* _value): Property(_parent_properties) { m_variant.set(_value); };
+        explicit Property(PropertyGrp * = nullptr);
+        explicit Property(PropertyGrp *, const std::string&);
+        explicit Property(PropertyGrp *, int);
+        explicit Property(PropertyGrp *, bool);
+        explicit Property(PropertyGrp *, double);
+        explicit Property(PropertyGrp *, const char *);
+        ~Property();
 
-        void digest(Member *_member);
+        void digest(Property *_property);
         bool is_connected_by_ref() const;
         bool allows_connection(Way _flag)const { return (m_allowed_connection & _flag) == _flag; }
         bool has_input_connected()const;
 		void set_allowed_connection(Way wayFlags) { m_allowed_connection = wayFlags; }
-		void set_input(Member*);
+		void set_input(Property *);
 		void set_name(const char* _name) { m_name = _name; }
         void set(Node* _value);
-        void set(const Member& _other) { get_pointed_variant() = _other.m_variant; }
+        void set(const Property & _other) { get_pointed_variant() = _other.m_variant; }
         template<typename T> void set(T _value)
         {
             get_pointed_variant().set(_value);
@@ -55,8 +55,8 @@ namespace ndbl
         void set_owner(Node* _owner) { m_owner = _owner; }
 
 		Node*                 get_owner()const { return m_owner; };
-		Member*               get_input()const { return m_input; }
-		std::vector<Member*>& get_outputs() { return m_outputs; }
+        Property *               get_input()const { return m_input; }
+		std::vector<Property *>& get_outputs() { return m_outputs; }
         const std::string&    get_name()const { return m_name; }
         const type&           get_type()const { return get_pointed_variant().get_type(); }
         Visibility            get_visibility()const { return m_visibility; }
@@ -86,19 +86,19 @@ namespace ndbl
         VariableNode*    get_connected_variable();
         qword&           get_underlying_data();
 
-		static Member*                new_with_type(Properties* , type , Flags = Flags_none);
-		static std::vector<variant*>& get_variant(std::vector<Member*> _in, std::vector<variant*>& _out);
+		static Property *                new_with_type(PropertyGrp * , type , Flags = Flags_none);
+		static std::vector<variant*>& get_variant(std::vector<Property *> _in, std::vector<variant*>& _out);
     private:
 
-        // TODO: implem AbstractMember, implement Value and Reference, remove this get_variant()
+        // TODO: implem AbstractProperty, implement Value and Reference, remove this get_variant()
 		variant&       get_pointed_variant()     { return is_connected_by_ref() ? m_input->m_variant : m_variant; }
         const variant& get_pointed_variant()const{ return is_connected_by_ref() ? m_input->m_variant : m_variant; }
 
-        Member*           m_input;
+        Property *           m_input;
         Visibility 		  m_visibility;
         Node*             m_owner;
-		Properties*       m_parentProperties;
-		std::vector<Member*>   m_outputs;
+        PropertyGrp *       m_parentProperties;
+		std::vector<Property *>   m_outputs;
 		Way                    m_allowed_connection;
 		std::shared_ptr<Token> m_sourceToken;
 		std::string            m_name;

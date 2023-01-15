@@ -29,12 +29,12 @@ add_library(
         src/InvokableComponent.cpp
         src/LiteralNode.cpp
         src/Log.cpp
-        src/Member.cpp
+        src/Property.cpp
         src/NodableParser.cpp
         src/NodableSerializer.cpp
         src/Node.cpp
         src/NodeFactory.cpp
-        src/Properties.cpp
+        src/PropertyGrp.cpp
         src/Scope.cpp
         src/String.cpp
         src/System.cpp
@@ -53,7 +53,8 @@ add_library(
         src/reflection/func_type.cpp
         src/reflection/type.cpp
         src/reflection/type_register.cpp
-        src/reflection/variant.cpp)
+        src/reflection/variant.cpp
+        src/DirectedEdge.cpp)
 
 target_link_libraries(
     nodable-core

@@ -3,17 +3,17 @@
 #include <exception>
 #include <string>
 
-#include <nodable/core/types.h>
-#include <nodable/core/Node.h>
-#include <nodable/core/Member.h>
-#include <nodable/core/VirtualMachine.h>
 #include <nodable/core/GraphNode.h>
-#include <nodable/core/languages/NodableParser.h>
-#include <nodable/core/VariableNode.h>
+#include <nodable/core/Node.h>
 #include <nodable/core/NodeFactory.h>
-#include <nodable/core/String.h>
+#include <nodable/core/Property.h>
 #include <nodable/core/Scope.h>
+#include <nodable/core/String.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/VirtualMachine.h>
 #include <nodable/core/languages/NodableLanguage.h>
+#include <nodable/core/languages/NodableParser.h>
+#include <nodable/core/types.h>
 
 using namespace ndbl;
 

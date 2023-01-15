@@ -25,7 +25,7 @@ bool DataAccess::update()
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     rapidjson::Document doc;
 
-	auto writeMember = [&writer](const Member* _value)
+	auto writeProperty = [&writer](const Property * _value)
 	{
 		writer.Key(_value->get_name().c_str());
 
@@ -43,17 +43,17 @@ bool DataAccess::update()
 
     writer.StartObject();
     {
-    	// Write Members
+    	// Write Properties
     	//--------------
 
-    	writer.Key("members");
+    	writer.Key("properties");
     	writer.StartObject();
     	{
 		    for(auto& each : owner->props()->by_name())
 		    {
 		    	auto value = each.second;
 
-		    	writeMember(value);
+		    	writeProperty(value);
 		    }
 		}
 	    writer.EndObject();
@@ -69,7 +69,7 @@ bool DataAccess::update()
 		    	writer.Key   (eachComponent.first.c_str());
 		    	writer.StartObject();
 
-		    	// TODO: use mirror to serialize members
+		    	// TODO: use mirror to serialize properties
 
 			    writer.EndObject();
 		    }

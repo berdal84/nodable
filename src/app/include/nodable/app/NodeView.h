@@ -7,10 +7,10 @@
 #include <observe/observer.h>
 #include <imgui/imgui.h>   // for vec2
 
-#include <nodable/app/types.h>    // for constants and forward declarations
-#include <nodable/app/View.h>       // base class
-#include <nodable/core/Component.h>  // base class
-#include <nodable/core/Member.h>
+#include <nodable/app/View.h>      // base class
+#include <nodable/app/types.h>     // for constants and forward declarations
+#include <nodable/core/Component.h>// base class
+#include <nodable/core/Property.h>
 #include <nodable/core/Slots.h>
 #include <nodable/core/reflection/reflection>
 
@@ -20,8 +20,8 @@ namespace ndbl
     class Node;
     class GraphNode;
     class NodeView;
-    class MemberView;
-    class MemberConnector;
+    class PropertyView;
+    class PropertyConnector;
     class NodeConnector;
     class IAppCtx;
 
@@ -101,7 +101,7 @@ namespace ndbl
 		observe::Observer m_nodeRelationRemovedObserver;
 
 		void                    set_owner(Node *_node)override;
-		void                    expose(Member*);
+		void                    expose(Property *);
 		bool                    draw()override;
 		bool                    update()override;
 		inline const vec2&      get_position()const { return m_position; }
@@ -116,7 +116,7 @@ namespace ndbl
         void                    add_constraint(ViewConstraint&);
         void                    apply_constraints(float _dt);
         void                    clear_constraints();
-        const MemberView*       get_member_view(const Member*)const;
+        const PropertyView*       get_property_view(const Property *)const;
         inline vec2             get_size() const { return m_size; }
         vec2                    get_screen_position();
         void                    set_pinned(bool b) { m_pinned = b; }
@@ -149,7 +149,7 @@ namespace ndbl
         static bool             is_inside(NodeView*, ImRect);
         static void             constraint_to_rect(NodeView*, ImRect);
         static NodeView*        get_dragged();
-        static bool             draw_input(IAppCtx &_ctx, Member *_member, const char *_label);
+        static bool             draw_input(IAppCtx &_ctx, Property *_property, const char *_label);
         static void             draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_show_advanced);
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
@@ -157,8 +157,8 @@ namespace ndbl
 
     private:
         virtual bool            update(float _deltaTime);
-		bool                    draw(MemberView *_view);
-        bool                    is_exposed(const Member *_member)const;
+		bool                    draw(PropertyView *_view);
+        bool                    is_exposed(const Property *_property)const;
 
         bool            m_apply_constraints;
         bool            m_edition_enable;
@@ -168,7 +168,7 @@ namespace ndbl
 		vec2            m_position;
 		vec2            m_size;
 		float           m_opacity;
-		bool            m_force_member_inputs_visible;
+		bool            m_force_property_inputs_visible;
 		bool            m_pinned;
 		float           m_border_radius;
 		ImColor         m_border_color_selected;
@@ -178,16 +178,16 @@ namespace ndbl
         Slots<NodeView*> m_successor_slots;
 		std::vector<NodeConnector*>          m_predecessors;
 		std::vector<NodeConnector*>          m_successors;
-		std::vector<MemberView*>             m_exposed_input_only_members;
-		std::vector<MemberView*>             m_exposed_out_or_inout_members;
-        std::map<const Member*, MemberView*> m_exposed_members;
-        MemberView*                          m_exposed_this_member_view;
+		std::vector<PropertyView*>             m_exposed_input_only_properties;
+		std::vector<PropertyView*>             m_exposed_out_or_inout_properties;
+        std::map<const Property *, PropertyView*> m_exposed_properties;
+        PropertyView*                          m_exposed_this_property_view;
         std::vector<ViewConstraint>      m_constraints;
 
 		static NodeView*              s_selected;
 		static NodeView*              s_dragged;
-        static const float            s_member_input_size_min;
-        static const vec2             s_member_input_toggle_button_size;
+        static const float            s_property_input_size_min;
+        static const vec2             s_property_input_toggle_button_size;
         static std::vector<NodeView*> s_instances;
         static NodeViewDetail         s_view_detail;
 
@@ -197,24 +197,24 @@ namespace ndbl
 
 
     /**
-     * Simple struct to store a member view state
+     * Simple struct to store a property view state
      */
-    class MemberView
+    class PropertyView
     {
         vec2              m_relative_pos;
 
     public:
-        Member*           m_member;
+        Property *           m_property;
         NodeView*         m_nodeView;
-        MemberConnector*  m_in;
-        MemberConnector*  m_out;
+        PropertyConnector*  m_in;
+        PropertyConnector*  m_out;
         bool              m_showInput;
         bool              m_touched;
 
-        MemberView(IAppCtx& _ctx, Member* _member, NodeView* _nodeView);
-        ~MemberView();
-        MemberView (const MemberView&) = delete;
-        MemberView& operator= (const MemberView&) = delete;
+        PropertyView(IAppCtx& _ctx, Property * _property, NodeView* _nodeView);
+        ~PropertyView();
+        PropertyView (const PropertyView&) = delete;
+        PropertyView& operator= (const PropertyView&) = delete;
         /**
          * Reset the view
          */

@@ -1,4 +1,4 @@
-#include <nodable/app/MemberConnector.h>
+#include <nodable/app/PropertyConnector.h>
 
 #include <nodable/app/Settings.h>
 #include <nodable/core/Node.h>
@@ -10,15 +10,15 @@
 
 using namespace ndbl;
 
-const MemberConnector*   MemberConnector::s_dragged = nullptr;
-const MemberConnector*   MemberConnector::s_hovered = nullptr;
-const MemberConnector*   MemberConnector::s_focused = nullptr;
+const PropertyConnector*   PropertyConnector::s_dragged = nullptr;
+const PropertyConnector*   PropertyConnector::s_hovered = nullptr;
+const PropertyConnector*   PropertyConnector::s_focused = nullptr;
 
-vec2 MemberConnector::get_pos()const
+vec2 PropertyConnector::get_pos()const
 {
-    vec2 relative_pos_constrained = m_memberView->relative_pos();
+    vec2 relative_pos_constrained = m_propertyView->relative_pos();
 
-    vec2 node_view_size = m_memberView->m_nodeView->get_size();
+    vec2 node_view_size = m_propertyView->m_nodeView->get_size();
 
     switch (m_display_side)
     {
@@ -38,16 +38,16 @@ vec2 MemberConnector::get_pos()const
             relative_pos_constrained.y = 0;
             relative_pos_constrained.x = node_view_size.x * 0.5f;
     }
-    return vec2(m_memberView->m_nodeView->get_screen_position() + relative_pos_constrained);
+    return vec2(m_propertyView->m_nodeView->get_screen_position() + relative_pos_constrained);
 }
 
-bool MemberConnector::share_parent_with(const MemberConnector* other) const
+bool PropertyConnector::share_parent_with(const PropertyConnector* other) const
 {
-    return get_member() == other->get_member();
+    return get_property() == other->get_property();
 }
 
-void MemberConnector::draw(
-        const MemberConnector *_connector,
+void PropertyConnector::draw(
+        const PropertyConnector *_connector,
         float _radius,
         const ImColor &_color,
         const ImColor &_borderColor,
@@ -80,9 +80,9 @@ void MemberConnector::draw(
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
             Event event{};
-            event.type = EventType::member_connector_disconnected;
-            event.member_connectors.src = _connector;
-            event.member_connectors.dst = nullptr;
+            event.type = EventType::property_connector_disconnected;
+            event.property_connectors.src = _connector;
+            event.property_connectors.dst = nullptr;
             EventManager::push_event(event);
         }
 
@@ -94,7 +94,7 @@ void MemberConnector::draw(
         s_hovered = _connector;
         if( ImGuiEx::BeginTooltip() )
         {
-            ImGui::Text("%s", _connector->get_member()->get_name().c_str() );
+            ImGui::Text("%s", _connector->get_property()->get_name().c_str() );
             ImGuiEx::EndTooltip();
         }
     }
@@ -104,7 +104,7 @@ void MemberConnector::draw(
         if ( ImGui::IsMouseDown(0))
         {
             if ( s_dragged == nullptr && !NodeView::is_any_dragged())
-                MemberConnector::start_drag(_connector);
+                PropertyConnector::start_drag(_connector);
         }
     }
     else if ( s_hovered == _connector )
@@ -113,25 +113,25 @@ void MemberConnector::draw(
     }
 }
 
-void MemberConnector::dropped(const MemberConnector *_left, const MemberConnector *_right)
+void PropertyConnector::dropped(const PropertyConnector *_left, const PropertyConnector *_right)
 {
     Event evt{};
-    evt.type = EventType::member_connector_dropped;
-    evt.member_connectors.src = _left;
-    evt.member_connectors.dst = _right;
+    evt.type = EventType::property_connector_dropped;
+    evt.property_connectors.src = _left;
+    evt.property_connectors.dst = _right;
     EventManager::push_event(evt);
 }
 
-bool MemberConnector::has_node_connected() const {
-    return m_way == Way_In ? get_member()->get_input() != nullptr : !get_member()->get_outputs().empty();
+bool PropertyConnector::has_node_connected() const {
+    return m_way == Way_In ? get_property()->get_input() != nullptr : !get_property()->get_outputs().empty();
 }
 
-Member* MemberConnector::get_member()const
+Property * PropertyConnector::get_property()const
 {
-    return m_memberView ?  m_memberView->m_member : nullptr;
+    return m_propertyView ?  m_propertyView->m_property : nullptr;
 }
 
-type MemberConnector::get_member_type()const
+type PropertyConnector::get_property_type()const
 {
-    return get_member()->get_type();
+    return get_property()->get_type();
 }

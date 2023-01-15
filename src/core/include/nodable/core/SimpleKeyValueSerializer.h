@@ -12,8 +12,8 @@ namespace mirror
      * etc.
      *
      * Works only with: int32, float, bool and std::string, ex:
-     * m_myMember=50.0000
-     * m_myOtherMember="Hello, World."
+     * m_myProperty=50.0000
+     * m_myOtherProperty="Hello, World."
      * m_myBool=false
      */
     class SimpleKeyValueSerializer
@@ -25,12 +25,12 @@ namespace mirror
         template<class T>
         void serialize(T* _object, std::string& _out)
         {
-            std::vector<mirror::ClassMember*> members;
+            std::vector<mirror::ClassProperty*> properties;
             mirror::Class* clss = _object->getClass();
-            clss->getMembers(members, false);
-            for( auto& each : members )
+            clss->getProperties(properties, false);
+            for( auto& each : properties )
             {
-                void* mPointer = each->getInstanceMemberPointer(_object);
+                void* mPointer = each->getInstancePropertyPointer(_object);
                 serialize( mPointer, each->getName(), each->getType(), _out);
             }
         }

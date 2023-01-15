@@ -9,20 +9,22 @@
 #include <nodable/core/types.h>
 #include <nodable/core/Component.h>
 #include <nodable/core/Node.h>
-#include <nodable/core/ILanguage.h>
 #include <nodable/core/INodeFactory.h>
 
 namespace ndbl
 {
+    // forward declarations
+    class NodableLanguage;
+
     /**
-     * @brief a GraphNode is a context for a set of Nodes and Wires. It is also used to drop_on Nodes and Members.
+     * @brief To manage a graph (nodes and edges)
      */
 	class GraphNode: public Node
 	{
 	public:
-        using RelationRegistry_t = std::multimap<EdgeType, const DirectedEdge>; // relation storage (by edge type)
+        using EdgeRegistry_t = std::multimap<Edge_t, const DirectedEdge*>; // edge storage (by edge type)
 
-		explicit GraphNode(const ILanguage*, const INodeFactory*, const bool* _autocompletion);
+ 		explicit GraphNode(const NodableLanguage*, const INodeFactory*, const bool* _autocompletion);
 		~GraphNode();
 
         UpdateResult                update() override;                                          // Delete/Update nodes if necessary.
@@ -46,36 +48,32 @@ namespace ndbl
         Node*                       get_root()const { return m_root; }                          // Get root node.
         bool                        is_empty() const;                                           // Check if graph has a root (orphan nodes are ignored).
 
-        // wire or edges related
+        // edge related
 
-        void                        connect(DirectedEdge, bool _side_effects = true);           // Create a new directed edge, side effects can be turned off.
-        void                        disconnect(DirectedEdge, bool _side_effects = true);        // Disconnect a directed edge, side effects can be turned off.
-        Wire*                       connect(Member* _src, Member* _dst_member );                // Create a wire between a source and a destination member (source and destination must be different).
-        void                        disconnect(Wire*);                                          // Disconnect a given wire.
-        void                        connect(Node* _src, InstructionNode* _dst);                 // Connect a given node to an instruction node. The node will be the root expression of that instruction.
-        void                        connect(Member* _src, VariableNode* _dst);                  // Connect a node's member to a given variable. This member will be the initial value of the variable.
-        void                        destroy(Wire*);
-        std::vector<Wire*>          filter_wires(Member*, Way) const;                           // Filter all the wires connected to a given member in certain way.
+        const DirectedEdge*         connect(DirectedEdge _edge, bool _side_effects = true);     // Create a new directed edge, side effects can be turned off.
+        void                        disconnect(const DirectedEdge*, bool _side_effects = true); // Disconnect a directed edge, side effects can be turned off.
+        const DirectedEdge*         connect(Property* _src, Property * _dst );                  // Create an edge between a source and a destination property (source and destination must be different).
+        const DirectedEdge*         connect(Node* _src, InstructionNode* _dst);                 // Connect a given node to an instruction node. The node will be the root expression of that instruction.
+        const DirectedEdge*         connect(Property * _src, VariableNode* _dst);               // Connect a node's property to a given variable. This property will be the initial value of the variable.
+        std::vector<const DirectedEdge *> filter_edges(Property *_property, Way _way) const;    // Filter all the edges connected to a given property in certain way.
 
     private:
 
         // registers management
 
-        void                        add(Node*);                                                  // Add a given node to the node registry.
-        void                        remove(Node*);                                               // Remove a given node from the node registry.
-        void                        add(Wire*);                                                  // Add a given wire to the wire registry.
-        void                        remove(Wire*);                                               // Remove a given wire from the wire registry.
+        void                        add(Node*);                                                  // Add a given node to the registry.
+        void                        remove(Node*);                                               // Remove a given node from the registry.
+        void                        add(DirectedEdge*);                                          // Add a given edge to the registry.
+        void                        remove(DirectedEdge*);                                       // Remove a given edge from the registry.
     public:
         void                        clear();                                                     // Delete all nodes, wires, relations and reset scope.
         const std::vector<Node*>&   get_node_registry()const {return m_node_registry;}           // Get the node registry.
-        const std::vector<Wire*>&   get_wire_registry()const {return m_wire_registry;}           // Get the wire registry.
-        RelationRegistry_t&         get_relation_registry() {return m_relation_registry;}        // Get the relation registry.
+        EdgeRegistry_t&             get_edge_registry() {return m_edge_registry;}                // Get the edge registry.
 
 	private:		
 		std::vector<Node*>       m_node_registry;       // registry to store all the nodes from this graph.
-		std::vector<Wire*>       m_wire_registry;       // registry to store all wires connected to the registered nodes. TODO: Can't we merge this with m_relation_registry?
-		RelationRegistry_t       m_relation_registry;   // registry ot all the relations (directed edges) between the registered nodes.
-		const ILanguage*         m_language;
+        EdgeRegistry_t           m_edge_registry;       // registry ot all the edges (directed edges) between the registered nodes' properties.
+		const NodableLanguage*   m_language;
 		Node*                    m_root;                // Graph root (main scope), without it a graph cannot be compiled.
 		const INodeFactory*      m_factory;             // Node factory (can be headless or not depending on the context: app, unit tests, cli).
         const bool*              m_autocompletion;      // Abandoned idea about autocompleting graph.

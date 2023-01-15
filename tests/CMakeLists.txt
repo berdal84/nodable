@@ -25,7 +25,7 @@ add_executable(
     src/main.cpp
         src/specs/graph.specs.cpp
         src/specs/language.specs.cpp
-        src/specs/member.specs.cpp
+        src/specs/property.specs.cpp
         src/specs/node.specs.cpp
         src/specs/parser.specs.cpp
         src/specs/reflection.specs.cpp

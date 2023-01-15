@@ -7,19 +7,19 @@
 #include <string>
 
 #include <nodable/core/ConditionalStructNode.h>
+#include <nodable/core/DirectedEdge.h>
 #include <nodable/core/GraphNode.h>
 #include <nodable/core/InstructionNode.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/LiteralNode.h>
 #include <nodable/core/Log.h>
-#include <nodable/core/Member.h>
 #include <nodable/core/Operator.h>
+#include <nodable/core/Property.h>
 #include <nodable/core/Scope.h>
-#include <nodable/core/reflection/func_type.h>
 #include <nodable/core/System.h>
 #include <nodable/core/VariableNode.h>
-#include <nodable/core/Wire.h>
 #include <nodable/core/languages/NodableLanguage.h>
+#include <nodable/core/reflection/func_type.h>
 
 using namespace ndbl;
 
@@ -103,7 +103,7 @@ bool NodableParser::to_bool(const std::string &_str)
     return _str == std::string("true");
 }
 
-std::string NodableParser::to_string(const std::string& _quoted_str)
+std::string NodableParser::to_unquoted_string(const std::string& _quoted_str)
 {
     NDBL_ASSERT(_quoted_str.size() >= 2);
     NDBL_ASSERT(_quoted_str.front() == '\"');
@@ -121,7 +121,7 @@ i16_t NodableParser::to_i16(const std::string &_str)
     return stoi(_str);
 }
 
-Member* NodableParser::to_member(std::shared_ptr<Token> _token)
+Property * NodableParser::to_property(std::shared_ptr<Token> _token)
 {
     if( _token->m_type == Token_t::identifier )
     {
@@ -177,7 +177,7 @@ Member* NodableParser::to_member(std::shared_ptr<Token> _token)
 	    case Token_t::literal_string:
         {
             literal = m_graph->create_literal(type::get<std::string>());
-            literal->set_value(to_string(_token->get_word()) );
+            literal->set_value(to_unquoted_string(_token->get_word()) );
             break;
         }
 
@@ -186,23 +186,23 @@ Member* NodableParser::to_member(std::shared_ptr<Token> _token)
 
     if ( literal )
     {
-        Member* result = literal->get_value();
+        Property * result = literal->get_value();
         result->set_src_token(_token);
         return result;
     }
 
-    LOG_VERBOSE("Parser", "Unable to perform token_to_member for token %s!\n", _token->get_word().c_str())
+    LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token->get_word().c_str())
 	return nullptr;
 }
 
-Member* NodableParser::parse_binary_operator_expression(unsigned short _precedence, Member *_left) {
+Property * NodableParser::parse_binary_operator_expression(unsigned short _precedence, Property *_left) {
 
     assert(_left != nullptr);
 
     LOG_VERBOSE("Parser", "parse binary operation expr...\n")
     LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
 
-	Member* result = nullptr;
+    Property * result = nullptr;
 
 	if ( !m_token_ribbon.canEat(2))
 	{
@@ -286,10 +286,10 @@ Member* NodableParser::parse_binary_operator_expression(unsigned short _preceden
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
-    return binary_op->props()->get(k_value_member_name);
+    return binary_op->props()->get(k_value_property_name);
 }
 
-Member* NodableParser::parse_unary_operator_expression(unsigned short _precedence)
+Property * NodableParser::parse_unary_operator_expression(unsigned short _precedence)
 {
 	LOG_VERBOSE("Parser", "parseUnaryOperationExpression...\n")
 	LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
@@ -312,7 +312,7 @@ Member* NodableParser::parse_unary_operator_expression(unsigned short _precedenc
 	}
 
 	// Parse expression after the operator
-	Member* value = parse_atomic_expression();
+    Property * value = parse_atomic_expression();
 
   if ( value == nullptr )
   {
@@ -354,7 +354,7 @@ Member* NodableParser::parse_unary_operator_expression(unsigned short _precedenc
     component->set_source_token(operator_token);
 
     m_graph->connect(value, component->get_l_handed_val());
-    Member* result = node->props()->get(k_value_member_name);
+    Property * result = node->props()->get(k_value_property_name);
 
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
     commit_transaction();
@@ -362,7 +362,7 @@ Member* NodableParser::parse_unary_operator_expression(unsigned short _precedenc
     return result;
 }
 
-Member* NodableParser::parse_atomic_expression()
+Property * NodableParser::parse_atomic_expression()
 {
 	LOG_VERBOSE("Parser", "parse atomic expr... \n")
 
@@ -382,7 +382,7 @@ Member* NodableParser::parse_atomic_expression()
 		return nullptr;
 	}
 
-	auto result = to_member(token);
+	auto result = to_property(token);
 
 	if( result != nullptr)
     {
@@ -398,7 +398,7 @@ Member* NodableParser::parse_atomic_expression()
 	return result;
 }
 
-Member* NodableParser::parse_parenthesis_expression()
+Property * NodableParser::parse_parenthesis_expression()
 {
 	LOG_VERBOSE("Parser", "parse parenthesis expr...\n")
 	LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
@@ -418,7 +418,7 @@ Member* NodableParser::parse_parenthesis_expression()
 		return nullptr;
 	}
 
-    Member* result = parse_expression();
+    Property * result = parse_expression();
 	if (result)
 	{
         std::shared_ptr<Token> token = m_token_ribbon.eatToken();
@@ -446,7 +446,7 @@ InstructionNode* NodableParser::parse_instr()
 {
     start_transaction();
 
-    Member* expression = parse_expression();
+    Property * expression = parse_expression();
 
     if ( !expression )
     {
@@ -524,7 +524,7 @@ Node* NodableParser::parse_scope()
         auto parent_scope = m_scope_stack.top();
         if ( parent_scope )
         {
-            m_graph->connect({EdgeType::IS_CHILD_OF, scope_node, parent_scope->get_owner()});
+            m_graph->connect({scope_node, Edge_t::IS_CHILD_OF, parent_scope->get_owner()});
         }
 
         m_scope_stack.push( scope );
@@ -565,7 +565,7 @@ IScope* NodableParser::parse_code_block(bool _create_scope)
     {
         if ( InstructionNode* instr_node = parse_instr() )
         {
-            m_graph->connect({EdgeType::IS_CHILD_OF, instr_node, m_scope_stack.top()->get_owner()});
+            m_graph->connect({instr_node, Edge_t::IS_CHILD_OF, m_scope_stack.top()->get_owner()});
         }
         else if ( parse_conditional_structure() ) {}
         else if ( parse_for_loop() ) {}
@@ -588,7 +588,7 @@ IScope* NodableParser::parse_code_block(bool _create_scope)
     }
 }
 
-Member* NodableParser::parse_expression(unsigned short _precedence, Member *_leftOverride)
+Property * NodableParser::parse_expression(unsigned short _precedence, Property *_leftOverride)
 {
 	LOG_VERBOSE("Parser", "parse expr...\n")
 	LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
@@ -602,7 +602,7 @@ Member* NodableParser::parse_expression(unsigned short _precedence, Member *_lef
 	/*
 		Get the left handed operand
 	*/
-	Member* left = _leftOverride;
+    Property * left = _leftOverride;
   if ( left == nullptr ) left = parse_parenthesis_expression();
   if ( left == nullptr ) left = parse_unary_operator_expression(_precedence);
   if ( left == nullptr ) left = parse_function_call();
@@ -614,7 +614,7 @@ Member* NodableParser::parse_expression(unsigned short _precedence, Member *_lef
 		LOG_VERBOSE("Parser", "parse expr... " OK " (last token reached)\n")
 	}
 
-	Member* result;
+    Property * result;
 
 	/*
 		Get the right handed operand
@@ -694,9 +694,9 @@ bool NodableParser::tokenize(const std::string& _string)
     std::string::const_iterator cursor = _string.cbegin(); // the current char
     std::string                 pending_ignored_chars;
 
-    /* shortcuts to language members */
-    auto& regex              = m_language.get_token_type_regex();
-    auto& regexIdToTokType   = m_language.get_token_type_regex_index_to_token_type();
+    /* shortcuts to language propertys */
+    auto& regex              = m_language.get_token_regexes();
+    auto& regexIdToTokType   = m_language.get_token_t_by_regex_index();
 
     // Parsing method #1: loop over all regex (might be slow).
     auto parse_token_using_regexes = [&]() -> std::shared_ptr<Token>
@@ -863,7 +863,7 @@ bool NodableParser::tokenize(const std::string& _string)
 	return true;
 }
 
-Member* NodableParser::parse_function_call()
+Property * NodableParser::parse_function_call()
 {
     LOG_VERBOSE("Parser", "parse function call...\n")
 
@@ -904,7 +904,7 @@ Member* NodableParser::parse_function_call()
             return nullptr;
         }
     }
-    std::vector<Member *> args;
+    std::vector<Property *> args;
 
     // Declare a new function prototype
     func_type signature(fct_id);
@@ -914,10 +914,10 @@ Member* NodableParser::parse_function_call()
     while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != Token_t::fct_params_end)
     {
 
-        if (auto member = parse_expression())
+        if (auto property = parse_expression())
         {
-            args.push_back(member); // store argument as member (already parsed)
-            signature.push_arg(member->get_type());  // add a new argument type to the proto.
+            args.push_back(property); // store argument as property (already parsed)
+            signature.push_arg(property->get_type());  // add a new argument type to the proto.
             m_token_ribbon.eatToken(Token_t::fct_params_separator);
         }
         else
@@ -939,11 +939,11 @@ Member* NodableParser::parse_function_call()
     std::shared_ptr<const iinvokable> invokable = m_language.find_function(&signature);
 
     auto connectArg = [&](const func_type* _sig, Node* _node, size_t _arg_index ) -> void
-    { // lambda to connect input member to node for a specific argument index.
-        Member*     src_member      = args.at(_arg_index);
-        Member*     dst_member      = _node->props()->get_input_at(_arg_index);
-        NDBL_ASSERT(dst_member)
-        m_graph->connect(src_member, dst_member);
+    { // lambda to connect input property to node for a specific argument index.
+        Property *     src_property      = args.at(_arg_index);
+        Property *     dst_property      = _node->props()->get_input_at(_arg_index);
+        NDBL_ASSERT(dst_property)
+        m_graph->connect(src_property, dst_property);
     };
 
     Node* node;
@@ -975,7 +975,7 @@ Member* NodableParser::parse_function_call()
     commit_transaction();
     LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
-    return node->props()->get(k_value_member_name);
+    return node->props()->get(k_value_property_name);
 }
 
 Scope* NodableParser::get_current_scope()
@@ -994,7 +994,7 @@ ConditionalStructNode * NodableParser::parse_conditional_structure()
 
     if ( m_token_ribbon.eatToken(Token_t::keyword_if))
     {
-        m_graph->connect({condStruct, EdgeType::IS_CHILD_OF, m_scope_stack.top()->get_owner()});
+        m_graph->connect({condStruct, Edge_t::IS_CHILD_OF, m_scope_stack.top()->get_owner()});
         m_scope_stack.push( condStruct->get<Scope>() );
 
         condStruct->set_token_if(m_token_ribbon.getEaten());
@@ -1011,7 +1011,7 @@ ConditionalStructNode * NodableParser::parse_conditional_structure()
 
                 if ( m_token_ribbon.eatToken(Token_t::fct_params_end) )
                 {
-                    m_graph->connect(condition->get_this_member(), condStruct->condition_member() );
+                    m_graph->connect(condition->get_this_property(), condStruct->condition_property() );
 
                     if ( Node* scopeIf = parse_scope() )
                     {
@@ -1089,7 +1089,7 @@ ForLoopNode* NodableParser::parse_for_loop()
     if( token_for != nullptr )
     {
         for_loop_node = m_graph->create_for_loop();
-        m_graph->connect({for_loop_node, EdgeType::IS_CHILD_OF, m_scope_stack.top()->get_owner() });
+        m_graph->connect({for_loop_node, Edge_t::IS_CHILD_OF, m_scope_stack.top()->get_owner() });
         m_scope_stack.push( for_loop_node->get<Scope>() );
 
         for_loop_node->set_token_for( token_for );
@@ -1110,7 +1110,7 @@ ForLoopNode* NodableParser::parse_for_loop()
             else
             {
                 init_instr->set_label("Initialisation", "Init.");
-                m_graph->connect(init_instr->get_this_member(), for_loop_node->get_init_expr());
+                m_graph->connect(init_instr->get_this_property(), for_loop_node->get_init_expr());
                 for_loop_node->set_init_instr(init_instr);
 
                 InstructionNode* cond_instr = parse_instr();
@@ -1121,7 +1121,7 @@ ForLoopNode* NodableParser::parse_for_loop()
                 else
                 {
                     cond_instr->set_label("Condition", "Cond.");
-                    m_graph->connect(cond_instr->get_this_member(), for_loop_node->condition_member());
+                    m_graph->connect(cond_instr->get_this_property(), for_loop_node->condition_property());
                     for_loop_node->set_cond_expr(cond_instr);
 
                     InstructionNode* iter_instr = parse_instr();
@@ -1132,7 +1132,7 @@ ForLoopNode* NodableParser::parse_for_loop()
                     else
                     {
                         iter_instr->set_label("Iteration", "Iter.");
-                        m_graph->connect(iter_instr->get_this_member(), for_loop_node->get_iter_expr());
+                        m_graph->connect(iter_instr->get_this_property(), for_loop_node->get_iter_expr());
                         for_loop_node->set_iter_instr(iter_instr);
 
                         std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(Token_t::fct_params_end);
@@ -1169,7 +1169,7 @@ ForLoopNode* NodableParser::parse_for_loop()
     return for_loop_node;
 }
 
-Member *NodableParser::parse_variable_declaration()
+Property *NodableParser::parse_variable_declaration()
 {
 
     if( !m_token_ribbon.canEat(2))

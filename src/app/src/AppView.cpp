@@ -881,7 +881,7 @@ void AppView::draw_properties_editor()
 
             ImGui::Text("Nodes:");
             ImGui::Indent();
-                ImGui::SliderFloat("member connector radius"    , &settings.ui_node_memberConnectorRadius, 1.0f, 10.0f);
+                ImGui::SliderFloat("property connector radius"    , &settings.ui_node_propertyConnectorRadius, 1.0f, 10.0f);
                 ImGui::SliderFloat("padding"                    , &settings.ui_node_padding, 1.0f, 20.0f);
                 ImGui::SliderFloat("speed"                      , &settings.ui_node_speed, 0.0f, 100.0f);
                 ImGui::SliderFloat("spacing"                    , &settings.ui_node_spacing, 0.0f, 100.0f);

@@ -13,7 +13,7 @@ func_type::func_type(std::string _id)
 
 void func_type::push_arg(type _type)
 {
-   std::string name = k_func_arg_member_name_prefix;
+   std::string name = k_func_arg_property_name_prefix;
    name.append(std::to_string(m_args.size()));
    m_args.emplace_back(_type, name);
 }

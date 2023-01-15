@@ -12,7 +12,7 @@
 namespace ndbl
 {
     /**
-     * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data member)
+     * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data property)
      */
 	class variant {
     public:

@@ -7,14 +7,13 @@
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 
-#include <nodable/core/reflection/reflection>
-#include <nodable/core/Component.h>
-#include <nodable/app/types.h>
-#include <nodable/core/GraphNode.h>
-#include <nodable/core/Wire.h>
-#include <nodable/core/Member.h>
-#include <nodable/core/Log.h>
 #include <nodable/app/Command.h>
+#include <nodable/app/types.h>
+#include <nodable/core/Component.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/Log.h>
+#include <nodable/core/Property.h>
+#include <nodable/core/reflection/reflection>
 
 namespace ndbl
 {

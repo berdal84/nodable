@@ -87,7 +87,7 @@ namespace ndbl
         /** Append a char to the word */
         void append_to_word(char);
         /** Check if whether or not this token is a keyword type */
-        bool is_keyword_type() { return ndbl::is_keyword_type(m_type); }
+        bool is_keyword_type() { return ndbl::is_a_type_keyword(m_type); }
         /** Transfer the prefix and suffix of a given token to this token */
         void transfer_prefix_suffix(const std::shared_ptr<Token>);
         /** Get the token as JSON formatted string */

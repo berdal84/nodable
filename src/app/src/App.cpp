@@ -1,26 +1,24 @@
 #include <nodable/app/App.h>
 
-#include <algorithm>
-#include <nodable/core/VariableNode.h>
-#include <nodable/core/DataAccess.h>
-#include <nodable/app/build_info.h> // file generated (aka configured) from build_info.h.in
-#include <nodable/app/NodeView.h>
-#include <nodable/app/FileView.h>
-#include <nodable/app/AppView.h>
-#include <nodable/app/File.h>
-#include <nodable/app/IAppCtx.h>
-#include <nodable/app/Event.h>
-#include <nodable/app/commands/Cmd_ConnectMembers.h>
-#include <nodable/app/MemberConnector.h>
-#include <nodable/app/NodeConnector.h>
-#include <nodable/app/commands/Cmd_ConnectNodes.h>
-#include <nodable/app/commands/Cmd_DisconnectNodes.h>
-#include <nodable/app/commands/Cmd_DisconnectMembers.h>
-#include <nodable/app/commands/Cmd_Group.h>
-#include <nodable/core/System.h>
-#include <nodable/core/languages/NodableLanguage.h>
 #include "nodable/app/BindedEventManager.h"
 #include "nodable/app/GraphNodeView.h"
+#include <algorithm>
+#include <nodable/app/AppView.h>
+#include <nodable/app/Event.h>
+#include <nodable/app/File.h>
+#include <nodable/app/FileView.h>
+#include <nodable/app/IAppCtx.h>
+#include <nodable/app/PropertyConnector.h>
+#include <nodable/app/NodeConnector.h>
+#include <nodable/app/NodeView.h>
+#include <nodable/app/build_info.h>// file generated (aka configured) from build_info.h.in
+#include <nodable/app/commands/Cmd_ConnectEdge.h>
+#include <nodable/app/commands/Cmd_DisconnectEdge.h>
+#include <nodable/app/commands/Cmd_Group.h>
+#include <nodable/core/DataAccess.h>
+#include <nodable/core/System.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/languages/NodableLanguage.h>
 
 using namespace ndbl;
 
@@ -534,22 +532,23 @@ void App::handle_events()
                 else
                 {
                     if ( src->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
-                    auto cmd = std::make_shared<Cmd_ConnectNodes>(src->get_node(), dst->get_node(), EdgeType::IS_PREDECESSOR_OF);
+                    DirectedEdge edge(src->get_node(), Edge_t::IS_PREDECESSOR_OF, dst->get_node());
+                    auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                     History *curr_file_history = current_file()->get_history();
                     curr_file_history->push_command(cmd);
                 }
                 break;
             }
-            case EventType::member_connector_dropped:
+            case EventType::property_connector_dropped:
             {
-                const MemberConnector *src = event.member_connectors.src;
-                const MemberConnector *dst = event.member_connectors.dst;
-                type src_meta_type = src->get_member_type();
-                type dst_meta_type = dst->get_member_type();
+                const PropertyConnector *src = event.property_connectors.src;
+                const PropertyConnector *dst = event.property_connectors.dst;
+                type src_meta_type = src->get_property_type();
+                type dst_meta_type = dst->get_property_type();
 
                 if ( src->share_parent_with(dst) )
                 {
-                    LOG_WARNING( "App", "Unable to drop_on two connectors from the same Member.\n" )
+                    LOG_WARNING( "App", "Unable to drop_on two connectors from the same Property.\n" )
                 }
                 else if (src->m_display_side == dst->m_display_side)
                 {
@@ -564,7 +563,8 @@ void App::handle_events()
                 else
                 {
                     if (src->m_way != Way_Out) std::swap(src, dst); // guarantee src to be the output
-                    auto cmd = std::make_shared<Cmd_ConnectMembers>(src->get_member(), dst->get_member());
+                    DirectedEdge edge(src->get_property(), dst->get_property());
+                    auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                     History *curr_file_history = current_file()->get_history();
                     curr_file_history->push_command(cmd);
                 }
@@ -579,24 +579,27 @@ void App::handle_events()
 
                 if (src_connector->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
 
-                DirectedEdge relation(src, EdgeType::IS_PREDECESSOR_OF, dst);
-                auto cmd = std::make_shared<Cmd_DisconnectNodes>( relation );
+                DirectedEdge edge(src, Edge_t::IS_PREDECESSOR_OF, dst);
+                auto cmd = std::make_shared<Cmd_DisconnectEdge>( edge );
 
                 History *curr_file_history = current_file()->get_history();
                 curr_file_history->push_command(cmd);
 
                 break;
             }
-            case EventType::member_connector_disconnected:
+            case EventType::property_connector_disconnected:
             {
-                const MemberConnector* src_connector = event.member_connectors.src;
-                Member* src = src_connector->get_member();
-                auto wires = src->get_owner()->get_parent_graph()->filter_wires(src, src_connector->m_way);
+                const PropertyConnector* src_connector = event.property_connectors.src;
+                Property * src = src_connector->get_property();
 
-                auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Wires");
-                for(Wire* each_wire : wires )
+                auto edges = src->get_owner()
+                                ->get_parent_graph()
+                                ->filter_edges(src, src_connector->m_way);
+
+                auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
+                for(auto each_edge: edges)
                 {
-                    auto each_cmd = std::make_shared<Cmd_DisconnectMembers>(each_wire);
+                    auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(*each_edge);
                     cmd_grp->push_cmd( std::static_pointer_cast<ICommand>(each_cmd) );
                 }
 

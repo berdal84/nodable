@@ -526,7 +526,7 @@ that are not members of the test fixture.
 
 Calls to `RecordProperty` made during the lifespan of the test (from the moment
 its constructor starts to the moment its destructor finishes) are output in XML
-as attributes of the `<testcase>` element. Properties recorded from a fixture's
+as attributes of the `<testcase>` element. PropertyGrp recorded from a fixture's
 `SetUpTestSuite` or `TearDownTestSuite` methods are logged as attributes of the
 corresponding `<testsuite>` element. Calls to `RecordProperty` made in the
 global context (before or after invocation of `RUN_ALL_TESTS` or from the

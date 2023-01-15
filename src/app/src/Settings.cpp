@@ -65,7 +65,7 @@ Settings::Settings()
 
     // nodes
     ui_node_padding                = 6.0f;
-    ui_node_memberConnectorRadius  = 5.0f;
+    ui_node_propertyConnectorRadius  = 5.0f;
     ui_node_invokableColor         = ImColor(255, 199, 115);          // light orange
     ui_node_variableColor          = ImColor( 171, 190, 255);         // blue
     ui_node_instructionColor       = vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green

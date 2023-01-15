@@ -22,13 +22,13 @@ namespace ndbl
         ForLoopNode();
         ~ForLoopNode() = default;
 
-        inline void            set_token_for(std::shared_ptr<Token> _token) { m_token_for = _token; }
+        inline void                         set_token_for(std::shared_ptr<Token> _token) { m_token_for = _token; }
         inline std::shared_ptr<const Token> get_token_for()const   { return m_token_for; }
 
         // TODO: create IIterativeStruct to reuse for a future "while" node.
 
-        Member*          get_init_expr()const { return m_props.get(k_interative_init_member_name); }
-        Member*          get_iter_expr()const { return m_props.get(k_interative_iter_member_name); }
+        Property *       get_init_expr()const { return m_props.get(k_interative_init_property_name); }
+        Property *       get_iter_expr()const { return m_props.get(k_interative_iter_property_name); }
         InstructionNode* get_iter_instr()const { return m_iter_instr_node; }
         InstructionNode* get_init_instr()const { return m_init_instr_node; }
         void             set_iter_instr(InstructionNode*);
@@ -36,7 +36,7 @@ namespace ndbl
 
         // implements IConditionalStruct (which is already documented)
 
-        Member*          condition_member()const override { return m_props.get(k_conditional_cond_member_name);}
+        Property *       condition_property()const override { return m_props.get(k_conditional_cond_property_name);}
         Scope*           get_condition_true_scope()const override;
         Scope*           get_condition_false_scope()const override;
         void             set_cond_expr(InstructionNode*) override;

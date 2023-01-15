@@ -23,13 +23,13 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
     // optionally append parameters
     switch ( _instr.opcode )
     {
-        case opcode_t::eval_node:
+        case Instruction_t::eval_node:
         {
             result.append(String::fmt_ptr(_instr.eval.node) );
             break;
         }
 
-        case opcode_t::deref_ptr:
+        case Instruction_t::deref_ptr:
         {
             NDBL_EXPECT(_instr.uref.qword_ptr, "qword_ptr is null!")
             result.append(qword::to_string(*_instr.uref.qword_ptr ));
@@ -38,7 +38,7 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
             break;
         }
 
-        case opcode_t::mov:
+        case Instruction_t::mov:
         {
             result.append(assembly::to_string(static_cast<Register>(_instr.mov.dst.u8) ));
             result.append(", ");
@@ -46,7 +46,7 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
             break;
         }
 
-        case opcode_t::cmp:
+        case Instruction_t::cmp:
         {
             result.append(qword::to_string(_instr.cmp.left ));
             result.append(", ");
@@ -54,25 +54,25 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
             break;
         }
 
-        case opcode_t::jne:
-        case opcode_t::jmp:
+        case Instruction_t::jne:
+        case Instruction_t::jmp:
         {
             result.append(std::to_string( _instr.jmp.offset ) );
             break;
         }
 
-        case opcode_t::ret: // nothing else to do.
+        case Instruction_t::ret: // nothing else to do.
             break;
-        case opcode_t::pop_stack_frame:
+        case Instruction_t::pop_stack_frame:
             result.append(String::fmt_ptr(_instr.pop.scope) );
             break;
-        case opcode_t::pop_var:
+        case Instruction_t::pop_var:
             result.append(String::fmt_ptr(_instr.push.var) );
             break;
-        case opcode_t::push_stack_frame:
+        case Instruction_t::push_stack_frame:
             result.append(String::fmt_ptr(_instr.push.scope) );
             break;
-        case opcode_t::push_var:
+        case Instruction_t::push_var:
             result.append(String::fmt_ptr(_instr.push.var) );
             break;
     }

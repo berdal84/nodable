@@ -13,7 +13,7 @@
 #include <nodable/core/LiteralNode.h>
 #include <nodable/core/GraphNode.h>
 #include <nodable/app/NodeConnector.h>
-#include <nodable/app/MemberConnector.h>
+#include <nodable/app/PropertyConnector.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/app/IAppCtx.h>
 #include <nodable/core/reflection/registration.h>
@@ -32,8 +32,8 @@ REGISTER
 NodeView*          NodeView::s_selected                        = nullptr;
 NodeView*          NodeView::s_dragged                         = nullptr;
 NodeViewDetail     NodeView::s_view_detail                     = NodeViewDetail::Default;
-const float        NodeView::s_member_input_size_min           = 10.0f;
-const vec2         NodeView::s_member_input_toggle_button_size = vec2(10.0, 25.0f);
+const float        NodeView::s_property_input_size_min           = 10.0f;
+const vec2         NodeView::s_property_input_toggle_button_size = vec2(10.0, 25.0f);
 NodeViewVec        NodeView::s_instances;
 
 NodeView::NodeView(IAppCtx& _ctx)
@@ -43,11 +43,11 @@ NodeView::NodeView(IAppCtx& _ctx)
         , m_size(NODE_VIEW_DEFAULT_SIZE)
         , m_opacity(1.0f)
         , m_expanded(true)
-        , m_force_member_inputs_visible(false)
+        , m_force_property_inputs_visible(false)
         , m_pinned(false)
         , m_border_radius(5.0f)
         , m_border_color_selected(1.0f, 1.0f, 1.0f)
-        , m_exposed_this_member_view(nullptr)
+        , m_exposed_this_property_view(nullptr)
         , m_children_slots(this)
         , m_input_slots(this)
         , m_output_slots(this)
@@ -60,8 +60,8 @@ NodeView::NodeView(IAppCtx& _ctx)
 
 NodeView::~NodeView()
 {
-    // delete MemberViews
-    for ( auto& pair: m_exposed_members ) delete pair.second;
+    // delete PropertyViews
+    for ( auto& pair: m_exposed_properties ) delete pair.second;
 
     // deselect
     if ( s_selected == this ) s_selected = nullptr;
@@ -88,28 +88,28 @@ std::string NodeView::get_label()
     return node->get_label();
 }
 
-void NodeView::expose(Member* _member)
+void NodeView::expose(Property * _property)
 {
-    auto member_view = new MemberView(m_ctx, _member, this);
+    auto property_view = new PropertyView(m_ctx, _property, this);
 
-    if ( _member == get_owner()->get_this_member() )
+    if ( _property == get_owner()->get_this_property() )
     {
-        member_view->m_out->m_display_side = MemberConnector::Side::Left; // force to be displayed on the left
-        m_exposed_this_member_view = member_view;
+        property_view->m_out->m_display_side = PropertyConnector::Side::Left; // force to be displayed on the left
+        m_exposed_this_property_view = property_view;
     }
     else
     {
-        if (_member->get_allowed_connection() == Way_In)
+        if (_property->get_allowed_connection() == Way_In)
         {
-            m_exposed_input_only_members.push_back(member_view);
+            m_exposed_input_only_properties.push_back(property_view);
         }
         else
         {
-            m_exposed_out_or_inout_members.push_back(member_view);
+            m_exposed_out_or_inout_properties.push_back(property_view);
         }
     }
 
-    m_exposed_members.insert({_member, member_view});
+    m_exposed_properties.insert({_property, property_view});
 }
 
 void NodeView::set_owner(Node *_node)
@@ -117,33 +117,33 @@ void NodeView::set_owner(Node *_node)
     Component::set_owner(_node);
 
     Settings&            settings = m_ctx.settings();
-    std::vector<Member*> not_exposed;
+    std::vector<Property *> not_exposed;
 
-    //  We expose first the members which allows input connections
-    for(Member* each_member : _node->props()->by_id())
+    //  We expose first the properties which allows input connections
+    for(Property * each_property : _node->props()->by_id())
     {
-        if (each_member->get_visibility() == Visibility::Always && each_member->allows_connection(Way_In) )
+        if (each_property->get_visibility() == Visibility::Always && each_property->allows_connection(Way_In) )
         {
-            expose(each_member);
+            expose(each_property);
         }
         else
         {
-            not_exposed.push_back(each_member);
+            not_exposed.push_back(each_property);
         }
     }
 
     // Then we expose node which allows output connection (if they are not yet exposed)
-    for (auto& member : not_exposed)
+    for (auto& property : not_exposed)
     {
-        if (member->get_visibility() == Visibility::Always && member->allows_connection(Way_Out))
+        if (property->get_visibility() == Visibility::Always && property->allows_connection(Way_Out))
         {
-            expose(member);
+            expose(property);
         }
     }
 
-    if ( auto this_member = _node->get_this_member() )
+    if ( auto this_property = _node->get_this_property() )
     {
-        expose(this_member);
+        expose(this_property);
     }
 
     // Determine a color depending on node type
@@ -181,38 +181,38 @@ void NodeView::set_owner(Node *_node)
         m_predecessors.push_back(new NodeConnector(m_ctx, *this, Way_In));
 
     m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver(
-        [this](Node* _other_node, EdgeType _relation )
+        [this](Node* _other_node, Edge_t _relation )
         {
             NodeView* _other_node_view = _other_node->get<NodeView>();
             switch ( _relation )
             {
-                case EdgeType::IS_CHILD_OF:
+                case Edge_t::IS_CHILD_OF:
                     children().add(_other_node_view ); break;
-                case EdgeType::IS_INPUT_OF:
+                case Edge_t::IS_INPUT_OF:
                     inputs().add(_other_node_view ); break;
-                case EdgeType::IS_OUTPUT_OF:
+                case Edge_t::IS_OUTPUT_OF:
                     outputs().add(_other_node_view ); break;
-                case EdgeType::IS_SUCCESSOR_OF:
+                case Edge_t::IS_SUCCESSOR_OF:
                     successors().add(_other_node_view ); break;
-                case EdgeType::IS_PREDECESSOR_OF: NDBL_ASSERT(false); /* NOT HANDLED */break;
+                case Edge_t::IS_PREDECESSOR_OF: NDBL_ASSERT(false); /* NOT HANDLED */break;
             }
         });
 
     m_nodeRelationRemovedObserver = _node->m_on_relation_removed.createObserver(
-    [this](Node* _other_node, EdgeType _relation )
+    [this](Node* _other_node, Edge_t _relation )
         {
             NodeView* _other_node_view = _other_node->get<NodeView>();
             switch ( _relation )
             {
-                case EdgeType::IS_CHILD_OF:
+                case Edge_t::IS_CHILD_OF:
                     children().remove(_other_node_view ); break;
-                case EdgeType::IS_INPUT_OF:
+                case Edge_t::IS_INPUT_OF:
                     inputs().remove(_other_node_view ); break;
-                case EdgeType::IS_OUTPUT_OF:
+                case Edge_t::IS_OUTPUT_OF:
                     outputs().remove(_other_node_view ); break;
-                case EdgeType::IS_SUCCESSOR_OF:
+                case Edge_t::IS_SUCCESSOR_OF:
                     successors().remove(_other_node_view ); break;
-                case EdgeType::IS_PREDECESSOR_OF: NDBL_ASSERT(false); /* NOT HANDLED */break;
+                case Edge_t::IS_PREDECESSOR_OF: NDBL_ASSERT(false); /* NOT HANDLED */break;
             }
         });
 }
@@ -245,7 +245,7 @@ NodeView* NodeView::get_selected()
 
 void NodeView::start_drag(NodeView* _view)
 {
-	if(MemberConnector::get_gragged() == nullptr) // Prevent dragging node while dragging connector
+	if(PropertyConnector::get_gragged() == nullptr) // Prevent dragging node while dragging connector
 		s_dragged = _view;
 }
 
@@ -264,10 +264,10 @@ bool NodeView::is_selected(NodeView* _view)
 	return s_selected == _view;
 }
 
-const MemberView* NodeView::get_member_view(const Member* _member)const
+const PropertyView* NodeView::get_property_view(const Property * _property)const
 {
-    auto found = m_exposed_members.find(_member);
-    if( found == m_exposed_members.end() ) return nullptr;
+    auto found = m_exposed_properties.find(_property);
+    if( found == m_exposed_properties.end() ) return nullptr;
     return found->second;
 }
 
@@ -422,19 +422,19 @@ bool NodeView::draw()
 
         ImGui::BeginGroup();
         // Draw inputs
-        for (auto &memberView : m_exposed_input_only_members)
+        for (auto &propertyView : m_exposed_input_only_properties)
         {
             ImGui::SameLine();
             ImGui::SetCursorPosY(cursor_pos_content_start.y + 1.0f);
-            changed |= draw(memberView);
+            changed |= draw(propertyView);
         }
 
         // Draw outputs
-        for (auto &memberView : m_exposed_out_or_inout_members)
+        for (auto &propertyView : m_exposed_out_or_inout_properties)
         {
             ImGui::SameLine();
             ImGui::SetCursorPosY(cursor_pos_content_start.y + 8.0f);
-            changed |= draw(memberView);
+            changed |= draw(propertyView);
         }
 
         ImGui::EndGroup();
@@ -452,36 +452,36 @@ bool NodeView::draw()
     m_size.x = std::max( 1.0f, m_size.x); // to avoid 0 sized rectangle 
     m_size.y = std::max( 1.0f, m_size.y);
 
-    // Draw Member in/out connectors
+    // Draw Property in/out connectors
     {
-        float radius      = settings.ui_node_memberConnectorRadius;
+        float radius      = settings.ui_node_propertyConnectorRadius;
         ImColor color     = settings.ui_node_nodeConnectorColor;
         ImColor borderCol = settings.ui_node_borderColor;
         ImColor hoverCol  = settings.ui_node_nodeConnectorHoveredColor;
 
-        if ( m_exposed_this_member_view )
+        if ( m_exposed_this_property_view )
         {
-            MemberConnector::draw(m_exposed_this_member_view->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
+            PropertyConnector::draw(m_exposed_this_property_view->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
-        for( auto& memberView : m_exposed_input_only_members )
+        for( auto& propertyView : m_exposed_input_only_properties )
         {
-            MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
+            PropertyConnector::draw(propertyView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
-        for( auto& memberView : m_exposed_out_or_inout_members )
+        for( auto& propertyView : m_exposed_out_or_inout_properties )
         {
-            if ( memberView->m_in)
+            if ( propertyView->m_in)
             {
-                MemberConnector::draw(memberView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
+                PropertyConnector::draw(propertyView->m_in, radius, color, borderCol, hoverCol, m_edition_enable);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
 
-            if ( memberView->m_out)
+            if ( propertyView->m_out)
             {
-                MemberConnector::draw(memberView->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
+                PropertyConnector::draw(propertyView->m_out, radius, color, borderCol, hoverCol, m_edition_enable);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
         }
@@ -556,13 +556,13 @@ bool NodeView::draw()
 	return changed;
 }
 
-bool NodeView::draw(MemberView* _view )
+bool NodeView::draw(PropertyView* _view )
 {
     bool    show;
     bool    changed = false;
-    Member* member  = _view->m_member;
+    Property * property  = _view->m_property;
 
-    type owner_type = member->get_owner()->get_type();
+    type owner_type = property->get_owner()->get_type();
 
     /*
      * Handle input visibility
@@ -577,29 +577,29 @@ bool NodeView::draw(MemberView* _view )
     {
         show = true;
     }
-    else if( member->get_owner()->is<LiteralNode>() )
+    else if( property->get_owner()->is<LiteralNode>() )
     {
         show = true;                               // we always show literal´s
     }
-    else if( member->get_owner()->is<VariableNode>() )
+    else if( property->get_owner()->is<VariableNode>() )
     {
-        show = member->get_variant()->is_defined();
+        show = property->get_variant()->is_defined();
     }
-    else if( !member->has_input_connected() )
+    else if( !property->has_input_connected() )
     {
-        show = member->get_variant()->is_defined();   // we always show a defined unconnected member
+        show = property->get_variant()->is_defined();   // we always show a defined unconnected property
     }
-    else if (member->get_type().is_ptr() )
+    else if (property->get_type().is_ptr() )
     {
-        show = member->is_connected_to_variable();
+        show = property->is_connected_to_variable();
     }
-    else if ( member->is_connected_to_variable() )
+    else if ( property->is_connected_to_variable() )
     {
         show = true;
     }
     else
     {
-        show = member->get_variant()->is_defined();
+        show = property->get_variant()->is_defined();
     }
 
     _view->m_showInput = show;
@@ -607,28 +607,28 @@ bool NodeView::draw(MemberView* _view )
     vec2 new_relative_pos = ImGui::GetCursorScreenPos() - get_screen_position();
 
     // input
-    float input_size = NodeView::s_member_input_toggle_button_size.x;
+    float input_size = NodeView::s_property_input_toggle_button_size.x;
 
     if ( _view->m_showInput )
     {
-        bool limit_size = member->get_type() != type::get<bool>();
+        bool limit_size = property->get_type() != type::get<bool>();
 
         if ( limit_size )
         {
             // try to draw an as small as possible input field
             std::string str;
-            if (member->is_connected_to_variable())
+            if (property->is_connected_to_variable())
             {
-                str = member->get_connected_variable()->get_identifier();
+                str = property->get_connected_variable()->get_identifier();
             }
             else
             {
-                str = member->convert_to<std::string>();
+                str = property->convert_to<std::string>();
             }
-            input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, NodeView::s_member_input_size_min);
+            input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, NodeView::s_property_input_size_min);
             ImGui::PushItemWidth(input_size);
         }
-        changed = NodeView::draw_input(m_ctx, member, nullptr);
+        changed = NodeView::draw_input(m_ctx, property, nullptr);
 
         if ( limit_size )
         {
@@ -637,13 +637,13 @@ bool NodeView::draw(MemberView* _view )
     }
     else
     {
-        ImGui::Button("", NodeView::s_member_input_toggle_button_size);
+        ImGui::Button("", NodeView::s_property_input_toggle_button_size);
 
         if ( ImGuiEx::BeginTooltip() )
         {
             ImGui::Text("%s (%s)",
-                        member->get_name().c_str(),
-                        member->get_type().get_fullname().c_str());
+                        property->get_name().c_str(),
+                        property->get_type().get_fullname().c_str());
             ImGuiEx::EndTooltip();
         }
 
@@ -660,10 +660,10 @@ bool NodeView::draw(MemberView* _view )
     return changed;
 }
 
-bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
+bool NodeView::draw_input(IAppCtx& _ctx, Property *_property, const char *_label)
 {
     bool  changed = false;
-    Node* node    = _member->get_owner();
+    Node* node    = _property->get_owner();
 
     // Create a label (everything after ## will not be displayed)
     std::string label;
@@ -673,15 +673,15 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
     }
     else
     {
-        label.append("##" + _member->get_name());
+        label.append("##" + _property->get_name());
     }
 
     auto inputFlags = ImGuiInputTextFlags_None;
 
-    if( _member->has_input_connected() && _member->is_connected_to_variable() ) // if is a ref to a variable, we just draw variable name
+    if( _property->has_input_connected() && _property->is_connected_to_variable() ) // if is a ref to a variable, we just draw variable name
     {
         char str[255];
-        auto* variable = _member->get_input()->get_owner()->as<VariableNode>();
+        auto* variable = _property->get_input()->get_owner()->as<VariableNode>();
         snprintf(str, 255, "%s", variable->get_identifier() );
 
         ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->get<NodeView>()->get_color(Color_Fill) );
@@ -689,69 +689,69 @@ bool NodeView::draw_input(IAppCtx& _ctx, Member *_member, const char *_label)
         ImGui::PopStyleColor();
 
     }
-    else if( !_member->get_variant()->is_initialized() )
+    else if( !_property->get_variant()->is_initialized() )
     {
         ImGui::LabelText(label.c_str(), "uninitialized!");
     }
     else
     {
-        /* Draw the member */
-        type t = _member->get_type();
+        /* Draw the property */
+        type t = _property->get_type();
 
         if( t == type::get<i16_t>() )
         {
-            auto i16 = (i16_t)*_member;
+            auto i16 = (i16_t)*_property;
 
-            if (ImGui::InputInt(label.c_str(), &i16, 0, 0, inputFlags ) && !_member->has_input_connected())
+            if (ImGui::InputInt(label.c_str(), &i16, 0, 0, inputFlags ) && !_property->has_input_connected())
             {
-                _member->set(i16);
+                _property->set(i16);
                 changed |= true;
             }
         }
         else if( t == type::get<double>() )
         {
-            auto d = (double)*_member;
+            auto d = (double)*_property;
 
-            if (ImGui::InputDouble(label.c_str(), &d, 0.0F, 0.0F, "%g", inputFlags ) && !_member->has_input_connected())
+            if (ImGui::InputDouble(label.c_str(), &d, 0.0F, 0.0F, "%g", inputFlags ) && !_property->has_input_connected())
             {
-                _member->set(d);
+                _property->set(d);
                 changed |= true;
             }
         }
         else if( t == type::get<std::string>() )
         {
             char str[255];
-            snprintf(str, 255, "%s", ((std::string)*_member).c_str() );
+            snprintf(str, 255, "%s", ((std::string)*_property).c_str() );
 
-            if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_member->has_input_connected() )
+            if ( ImGui::InputText(label.c_str(), str, 255, inputFlags) && !_property->has_input_connected() )
             {
-                _member->set( std::string(str) );
+                _property->set( std::string(str) );
                 changed |= true;
             }
         }
         else if( t == type::get<bool >() )
         {
-            std::string checkBoxLabel = _member->get_name();
+            std::string checkBoxLabel = _property->get_name();
 
-            auto b = (bool)*_member;
+            auto b = (bool)*_property;
 
-            if (ImGui::Checkbox(label.c_str(), &b ) && !_member->has_input_connected() )
+            if (ImGui::Checkbox(label.c_str(), &b ) && !_property->has_input_connected() )
             {
-                _member->set(b);
+                _property->set(b);
                 changed |= true;
             }
         }
         else
         {
-            auto member_as_string = _member->get_variant()->convert_to<std::string>();
-            ImGui::Text( "%s", member_as_string.c_str());
+            auto property_as_string = _property->get_variant()->convert_to<std::string>();
+            ImGui::Text( "%s", property_as_string.c_str());
         }
 
         /* If value is hovered, we draw a tooltip that print the source expression of the value*/
         if (ImGuiEx::BeginTooltip())
         {
             std::string buffer;
-            _ctx.language().get_serializer().serialize(buffer, _member);
+            _ctx.language().get_serializer().serialize(buffer, _property);
             ImGui::Text("%s", buffer.c_str() );
             ImGuiEx::EndTooltip();
         }
@@ -770,22 +770,22 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
     Node*       node             = _view->get_owner();
     const float labelColumnWidth = ImGui::GetContentRegionAvail().x / 2.0f;
 
-    auto drawMember = [&](Member* _member)
+    auto drawProperty = [&](Property * _property)
     {
         // label (<name> (<way> <type>): )
         ImGui::SetNextItemWidth(labelColumnWidth);
         ImGui::Text(
                 "%s (%s, %s): ",
-                _member->get_name().c_str(),
-                WayToString(_member->get_allowed_connection()).c_str(),
-                _member->get_type().get_fullname().c_str());
+                _property->get_name().c_str(),
+                WayToString(_property->get_allowed_connection()).c_str(),
+                _property->get_type().get_fullname().c_str());
 
         ImGui::SameLine();
         ImGui::Text("(?)");
         if ( ImGuiEx::BeginTooltip() )
         {
-            std::shared_ptr<Token> token = _member->get_src_token();
-            const auto variant = _member->get_variant();
+            std::shared_ptr<Token> token = _property->get_src_token();
+            const auto variant = _property->get_variant();
             ImGui::Text("initialized: %s,\n"
                         "defined:     %s,\n"
                         "Source token:\n"
@@ -798,10 +798,10 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        bool edited = NodeView::draw_input(_ctx, _member, nullptr);
+        bool edited = NodeView::draw_input(_ctx, _property, nullptr);
         if ( edited )
         {
-            _member->get_owner()->set_dirty();
+            _property->get_owner()->set_dirty();
         }
 
     };
@@ -810,40 +810,40 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
     ImGui::Text("Short Name: \"%s\"" , node->get_short_label());
     ImGui::Text("Class:      %s"     , node->get_type().get_name());
 
-    // Draw exposed input members
+    // Draw exposed input properties
     ImGui::Separator();
     ImGui::Text("Input(s):" );
     ImGui::Separator();
     ImGui::Indent();
-    if( _view->m_exposed_input_only_members.empty() )
+    if( _view->m_exposed_input_only_properties.empty() )
     {
         ImGui::Text("None.");
         ImGui::Separator();
     }
     else
     {
-        for (auto& eachView : _view->m_exposed_input_only_members )
+        for (auto& eachView : _view->m_exposed_input_only_properties )
         {
-            drawMember(eachView->m_member);
+            drawProperty(eachView->m_property);
             ImGui::Separator();
         }
     }
     ImGui::Unindent();
 
-    // Draw exposed output members
+    // Draw exposed output properties
     ImGui::Text("Output(s):" );
     ImGui::Separator();
     ImGui::Indent();
-    if( _view->m_exposed_out_or_inout_members.empty() )
+    if( _view->m_exposed_out_or_inout_properties.empty() )
     {
         ImGui::Text("None.");
         ImGui::Separator();
     }
     else
     {
-        for (auto& eachView : _view->m_exposed_out_or_inout_members )
+        for (auto& eachView : _view->m_exposed_out_or_inout_properties )
         {
-            drawMember(eachView->m_member);
+            drawProperty(eachView->m_property);
             ImGui::Separator();
         }
     }
@@ -851,10 +851,10 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
 
     if ( ImGui::TreeNode("Debug") )
     {
-        // Draw exposed output members
-        if( ImGui::TreeNode("Other Members") )
+        // Draw exposed output properties
+        if( ImGui::TreeNode("Other Properties") )
         {
-            drawMember(_view->m_exposed_this_member_view->m_member);
+            drawProperty(_view->m_exposed_this_property_view->m_property);
             ImGui::TreePop();
         }
 
@@ -991,9 +991,9 @@ void NodeView::constraint_to_rect(NodeView* _view, ImRect _rect)
 
 }
 
-bool NodeView::is_exposed(const Member *_member)const
+bool NodeView::is_exposed(const Property *_property)const
 {
-    return m_exposed_members.find(_member) != m_exposed_members.end();
+    return m_exposed_properties.find(_property) != m_exposed_properties.end();
 }
 
 void NodeView::set_view_detail(NodeViewDetail _viewDetail)
@@ -1002,10 +1002,10 @@ void NodeView::set_view_detail(NodeViewDetail _viewDetail)
 
     for( auto& eachView : NodeView::s_instances)
     {
-        for( auto& eachPair : eachView->m_exposed_members )
+        for( auto& eachPair : eachView->m_exposed_properties )
         {
-            MemberView* memberView = eachPair.second;
-            memberView->reset();
+            PropertyView* propertyView = eachPair.second;
+            propertyView->reset();
         }
     }
 }

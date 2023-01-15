@@ -3,7 +3,7 @@ namespace ndbl
 {
 	/**
 		The role of this enum class is to distinguish between visibility states
-		This enum is used a lot into class Member and NodeView 
+		This enum is used a lot into class Property and NodeView
 	*/
 	enum class Visibility
 	{
