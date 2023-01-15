@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <nodable/core/ILanguage.h>
+#include <nodable/core/languages/NodableLanguage.h>
 #include <nodable/core/NodeFactory.h>
 #include <nodable/core/GraphNode.h>
 #include <nodable/core/VirtualMachine.h>
@@ -36,7 +36,7 @@ namespace ndbl
         std::string get_line() const;
         std::string get_word() const;
 
-        std::unique_ptr<ILanguage> m_language;
+        std::unique_ptr<NodableLanguage> m_language;
         bool                       m_should_stop;
         NodeFactory                m_factory;
         GraphNode                  m_graph;
