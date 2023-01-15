@@ -11,8 +11,8 @@ namespace ndbl
      */
 
     // forward declarations
-	class Wire;
-	class Member;
+	class Edge;
+	class Property;
 	class Component;
     class Node;
     class NodeView;
@@ -32,9 +32,9 @@ namespace ndbl
 
     // containers
     typedef std::map<std::string, Component*>       Components;
-    typedef std::map<std::string, Member*>          MemberMap;
-    typedef std::vector<Member*>                    MemberVec;
-    typedef std::vector<Wire*>                      WireVec;
+    typedef std::map<std::string, Property *>       PropertyMap;
+    typedef std::vector<Property *>                 PropertyVec;
+    typedef std::vector<Edge*> DirectedEdgeVec;
     typedef std::vector<VariableNode*>              VariableNodeVec;
     typedef std::vector<Node*>                      NodeVec ;
     typedef std::vector<NodeView*>                  NodeViewVec ;

@@ -2,7 +2,6 @@
 #include <nodable/core/InstructionNode.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/LiteralNode.h>
-#include <nodable/core/ILanguage.h>
 #include <nodable/core/InvokableComponent.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/Operator.h>
@@ -66,8 +65,8 @@ Node* NodeFactory::_new_abstract_function(const func_type* _func_type, bool _is_
     }
 
     // Create a result/value
-    Properties* props = node->props();
-    props->add(k_value_member_name, Visibility::Default, _func_type->get_return_type(), Way_Out);
+    PropertyGrp * props = node->props();
+    props->add(k_value_property_name, Visibility::Default, _func_type->get_return_type(), Way_Out);
 
     // Create arguments
     auto args = _func_type->get_args();
@@ -82,11 +81,11 @@ Node* NodeFactory::_new_abstract_function(const func_type* _func_type, bool _is_
         switch ( count )
         {
             case 1:
-                props->add( k_lh_value_member_name, Visibility::Default, args[0].m_type, Way_In);
+                props->add( k_lh_value_property_name, Visibility::Default, args[0].m_type, Way_In);
                 break;
             case 2:
-                props->add( k_lh_value_member_name, Visibility::Default, args[0].m_type, Way_In);
-                props->add( k_rh_value_member_name, Visibility::Default, args[1].m_type, Way_In);
+                props->add( k_lh_value_property_name, Visibility::Default, args[0].m_type, Way_In);
+                props->add( k_rh_value_property_name, Visibility::Default, args[1].m_type, Way_In);
                 break;
             default: /* no warning */ ;
         }
@@ -114,21 +113,21 @@ Node* NodeFactory::new_function(const iinvokable* _function, bool _is_operator) 
 
 void NodeFactory::add_invokable_component(Node *_node, const func_type* _func_type, const iinvokable *_invokable, bool _is_operator) const
 {
-    Properties* props = _node->props();
+    PropertyGrp * props = _node->props();
 
     // Create an InvokableComponent with the function.
     auto component = new InvokableComponent(_func_type, _is_operator, _invokable );
     _node->add_component(component);
 
-    // Link result member
-    component->set_result(props->get(k_value_member_name));
+    // Link result property
+    component->set_result(props->get(k_value_property_name));
 
     // Link arguments
     auto args = _func_type->get_args();
     for (size_t arg_idx = 0; arg_idx < args.size(); arg_idx++)
     {
-        Member* member = props->get_input_at(arg_idx);
-        component->set_arg(arg_idx, member);
+        Property * property = props->get_input_at(arg_idx);
+        component->set_arg(arg_idx, property);
     }
 }
 

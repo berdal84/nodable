@@ -44,7 +44,7 @@ namespace ndbl {
     };
 
     /** Check if a given keyword is a type (ex: bool, int, double,...)*/
-	static constexpr bool is_keyword_type(Token_t _token_t)
+	static constexpr bool is_a_type_keyword(Token_t _token_t)
     {
         return _token_t >= Token_t::keyword_string && _token_t <= Token_t::keyword_bool;
     }

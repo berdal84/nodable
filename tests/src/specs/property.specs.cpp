@@ -1,12 +1,12 @@
 
 #include <gtest/gtest.h>
-#include <nodable/core/Member.h>
+#include <nodable/core/Property.h>
 
 using namespace ndbl;
 
-TEST(Member, Way_In)
+TEST(Property, Way_In)
 {
-    Member m(nullptr);
+    Property m(nullptr);
     m.set_allowed_connection(Way_In);
 
     EXPECT_FALSE(m.allows_connection(Way_Out));
@@ -15,9 +15,9 @@ TEST(Member, Way_In)
     EXPECT_TRUE(m.allows_connection(Way_None));
 }
 
-TEST(Member, Way_Out)
+TEST(Property, Way_Out)
 {
-    Member m(nullptr);
+    Property m(nullptr);
     m.set_allowed_connection(Way_Out);
 
     EXPECT_TRUE(m.allows_connection(Way_Out));
@@ -26,9 +26,9 @@ TEST(Member, Way_Out)
     EXPECT_TRUE(m.allows_connection(Way_None));
 }
 
-TEST(Member, Way_None)
+TEST(Property, Way_None)
 {
-    Member m(nullptr);
+    Property m(nullptr);
     m.set_allowed_connection(Way_Out);
 
     EXPECT_TRUE(m.allows_connection(Way_Out));
@@ -37,9 +37,9 @@ TEST(Member, Way_None)
     EXPECT_TRUE(m.allows_connection(Way_None));
 }
 
-TEST(Member, Way_InOut)
+TEST(Property, Way_InOut)
 {
-    Member m(nullptr);
+    Property m(nullptr);
     m.set_allowed_connection(Way_InOut);
 
     EXPECT_TRUE(m.allows_connection(Way_Out));
@@ -48,10 +48,10 @@ TEST(Member, Way_InOut)
     EXPECT_TRUE(m.allows_connection(Way_None));
 }
 
-TEST(Member, Type_Boolean)
+TEST(Property, Type_Boolean)
 {
 
-    Member m(nullptr);
+    Property m(nullptr);
 
     m.set(true);
     EXPECT_TRUE((bool)m);
@@ -63,9 +63,9 @@ TEST(Member, Type_Boolean)
 
 }
 
-TEST(Member, Type_String)
+TEST(Property, Type_String)
 {
-    Member m;
+    Property m;
     const std::string str = "Hello world !";
     m.set(str);
 
@@ -75,9 +75,9 @@ TEST(Member, Type_String)
     EXPECT_TRUE(m.get_variant()->is_defined());
 }
 
-TEST(Member, Type_Double)
+TEST(Property, Type_Double)
 {
-    Member m(nullptr);
+    Property m(nullptr);
     m.set((double)50);
 
     EXPECT_EQ((double)m, (double)50);
@@ -85,9 +85,9 @@ TEST(Member, Type_Double)
     EXPECT_TRUE(m.get_variant()->is_defined());
 }
 
-TEST(Member, Modify_by_reference_using_a_pointer)
+TEST(Property, Modify_by_reference_using_a_pointer)
 {
-    Member m(nullptr);
+    Property m(nullptr);
     m.set(50.0);
 
     EXPECT_EQ((double)m, 50.0);
@@ -100,10 +100,10 @@ TEST(Member, Modify_by_reference_using_a_pointer)
     EXPECT_EQ((double)m, 100.0);
 }
 
-TEST(Member, Modify_by_reference_using_a_reference)
+TEST(Property, Modify_by_reference_using_a_reference)
 {
-    Member m1(nullptr, 50.0);
-    Member m2(nullptr, 50.0);
+    Property m1(nullptr, 50.0);
+    Property m2(nullptr, 50.0);
 
     EXPECT_EQ((double)m1, 50.0);
     EXPECT_EQ(m1.get_type(), type::get<double>());

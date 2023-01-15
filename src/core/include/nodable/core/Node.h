@@ -9,15 +9,14 @@
 #include <algorithm>
 
 // Nodable
-#include <nodable/core/assertions.h>
-#include <nodable/core/types.h>
-#include <nodable/core/constants.h>
-#include <nodable/core/Properties.h>
 #include <nodable/core/Component.h>
-#include <nodable/core/Properties.h>
+#include <nodable/core/DirectedEdge.h>
+#include <nodable/core/PropertyGrp.h>
 #include <nodable/core/Slots.h>
-#include <nodable/core/Edge.h>
+#include <nodable/core/assertions.h>
+#include <nodable/core/constants.h>
 #include <nodable/core/reflection/invokable.h>
+#include <nodable/core/types.h>
 
 namespace ndbl {
 
@@ -39,7 +38,7 @@ namespace ndbl {
 	/**
 		The role of this class is to provide connectable Objects as Nodes.
 
-		A node is an Object (composed by Members) that can be linked together in
+		A node is an Object (composed by Properties) that can be linked together in
 		order to create graphs.
 
 		Every Node has a parent GraphNode. All nodes are built from a GraphNode, which first create an instance of this class (or derived) and then
@@ -84,28 +83,28 @@ namespace ndbl {
         const char*          get_label()const;
         const char*          get_short_label()const;
 
-		void                 add_wire(Wire*);
-		void                 remove_wire(Wire*);
-		WireVec&             get_wires();
-		int                  get_input_wire_count ()const;
-		int                  get_output_wire_count()const;
+		void                 add_edge(const DirectedEdge*);
+		void                 remove_edge(const DirectedEdge*);
+        std::vector<const DirectedEdge*>& get_edges();
+        size_t               get_input_edge_count()const;
+        size_t               get_output_edge_count()const;
 
 		void                 set_dirty(bool _value = true);
 		bool                 is_dirty()const;
 
 		virtual UpdateResult update();
 
-        const iinvokable*    get_connected_invokable(const Member* _local_member); // TODO: weird, try to understand why I needed this
-        bool                 has_wire_connected_to(const Member *_localMember);
+        const iinvokable*    get_connected_invokable(const Property *each_edge); // TODO: weird, try to understand why I needed this
+        bool                 is_connected_with(const Property *_localProperty);
 
         template<class T> inline T*       as() { return cast<T>(this); }
         template<class T> inline const T* as()const { return cast<const T>(this); }
         template<class T> inline bool     is()const { return cast<const T>(this) != nullptr; }
 
-        Properties*          props() { return &m_props; }
-        const Properties*    props()const { return &m_props; }
+        PropertyGrp *          props() { return &m_props; }
+        const PropertyGrp *    props()const { return &m_props; }
 
-        Member*              get_this_member()const { return props()->get(k_this_member_name);}
+        Property *              get_this_property()const { return props()->get(k_this_property_name);}
 
 		 /**
 		  * Add a component to this Node
@@ -207,24 +206,24 @@ namespace ndbl {
         size_t delete_components();
         [[nodiscard]] size_t get_component_count() const;
 
-        observe::Event<Node*, EdgeType> m_on_relation_added;
-        observe::Event<Node*, EdgeType> m_on_relation_removed;
+        observe::Event<Node*, Edge_t> m_on_relation_added;
+        observe::Event<Node*, Edge_t> m_on_relation_removed;
 
         template<typename T>
         T convert_value_to() const
         {
-            const Member* result_node_value = m_props.get(k_value_member_name);
+            const Property * result_node_value = m_props.get(k_value_property_name);
             return result_node_value->get_variant()->convert_to<T>();
         }
         template<typename T>
         T value_as() const
         {
-            const Member* result_node_value = m_props.get(k_value_member_name);
+            const Property * result_node_value = m_props.get(k_value_property_name);
             return (T)*result_node_value->get_variant();
         }
 
 	protected:
-        Properties         m_props;
+        PropertyGrp        m_props;
 		Components         m_components;
         Node*              m_parent;
         Slots<Node*>       m_successors;
@@ -238,7 +237,7 @@ namespace ndbl {
 		std::string        m_label;
 		std::string        m_short_label;
 		bool               m_dirty;
-		WireVec            m_wires;
+        std::vector<const DirectedEdge*> m_edges;
         Slots<Node*>       m_inputs;
         Slots<Node*>       m_outputs;
 

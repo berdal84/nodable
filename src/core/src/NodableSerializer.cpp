@@ -1,16 +1,16 @@
-#include <nodable/core/languages/NodableSerializer.h>
-#include <nodable/core/Member.h>
-#include <nodable/core/InvokableComponent.h>
-#include <nodable/core/GraphNode.h>
-#include <nodable/core/VariableNode.h>
-#include <nodable/core/InstructionNode.h>
 #include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/ForLoopNode.h>
-#include <nodable/core/Scope.h>
-#include <nodable/core/reflection/func_type.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/InvokableComponent.h>
 #include <nodable/core/LiteralNode.h>
 #include <nodable/core/Operator.h>
+#include <nodable/core/Property.h>
+#include <nodable/core/Scope.h>
+#include <nodable/core/VariableNode.h>
 #include <nodable/core/languages/NodableLanguage.h>
+#include <nodable/core/languages/NodableSerializer.h>
+#include <nodable/core/reflection/func_type.h>
 
 using namespace ndbl;
 
@@ -20,15 +20,15 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
 
     if ( _component->is_operator() )
     {
-        // generic serialize member lambda
-        auto serialize_member_with_or_without_brackets = [this, &_out](Member* member, bool needs_brackets)
+        // generic serialize property lambda
+        auto serialize_property_with_or_without_brackets = [this, &_out](Property * property, bool needs_brackets)
         {
             if (needs_brackets)
             {
                 serialize(_out, Token_t::fct_params_begin);
             }
 
-            serialize(_out, member);
+            serialize(_out, property);
 
             if (needs_brackets)
             {
@@ -37,7 +37,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
         };
 
         Node*            owner      = _component->get_owner();
-        const MemberVec& args       = _component->get_args();
+        const PropertyVec & args       = _component->get_args();
         int             precedence  = m_language.get_precedence(_component->get_function());
 
         switch ( type->get_arg_count() )
@@ -49,7 +49,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
                     auto l_handed_invokable = owner->get_connected_invokable(args[0]);
                     bool needs_brackets = l_handed_invokable && m_language.get_precedence(l_handed_invokable) < precedence;
 
-                    serialize_member_with_or_without_brackets(args[0], needs_brackets);
+                    serialize_property_with_or_without_brackets(args[0], needs_brackets);
                 }
 
                 // Operator
@@ -67,7 +67,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
                 {
                     auto r_handed_invokable = owner->get_connected_invokable(args[1]);
                     bool needs_brackets = r_handed_invokable && m_language.get_precedence(r_handed_invokable) < precedence;
-                    serialize_member_with_or_without_brackets(args[1], needs_brackets);
+                    serialize_property_with_or_without_brackets(args[1], needs_brackets);
                 }
                 break;
             }
@@ -86,7 +86,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
                 if (token) _out.append(token->get_suffix());
 
                 auto inner_operator = owner->get_connected_invokable(args[0]);
-                serialize_member_with_or_without_brackets(args[0], inner_operator != nullptr);
+                serialize_property_with_or_without_brackets(args[0], inner_operator != nullptr);
                 break;
             }
         }
@@ -99,7 +99,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const InvokableComp
     return _out;
 }
 
-std::string& NodableSerializer::serialize(std::string& _out, const func_type*   _signature, const std::vector<Member*>& _args) const
+std::string& NodableSerializer::serialize(std::string& _out, const func_type*   _signature, const std::vector<Property *>& _args) const
 {
     _out.append(_signature->get_identifier());
     serialize(_out, Token_t::fct_params_begin);
@@ -174,7 +174,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const VariableNode*
     _out.append(_node->get_identifier());
     if ( identifier_token ) _out.append(identifier_token->get_suffix());
 
-    Member* value = _node->get_value();
+    Property * value = _node->get_value();
 
     if( decl_instr && value->has_input_connected()  )
     {
@@ -201,28 +201,28 @@ std::string& NodableSerializer::serialize(std::string& _out, const variant* vari
     return _out.append(variant_string);
 }
 
-std::string& NodableSerializer::serialize(std::string& _out, const Member * _member, bool followConnections) const
+std::string& NodableSerializer::serialize(std::string& _out, const Property * _property, bool followConnections) const
 {
     // specific case of a Node*
-    if ( _member->get_type() == type::get<Node*>() )
+    if ( _property->get_type() == type::get<Node*>() )
     {
-        if(_member->get_variant()->is_initialized())
+        if(_property->get_variant()->is_initialized())
         {
-            return serialize(_out, (const Node*)*_member);
+            return serialize(_out, (const Node*)*_property);
         }
     }
 
-    std::shared_ptr<Token> sourceToken = _member->get_src_token();
+    std::shared_ptr<Token> sourceToken = _property->get_src_token();
     if (sourceToken)
     {
         _out.append(sourceToken->get_prefix());
     }
 
-    auto owner = _member->get_owner();
-    if (followConnections && owner && _member->allows_connection(Way_In) && owner->has_wire_connected_to(_member) )
+    auto owner = _property->get_owner();
+    if (followConnections && owner && _property->allows_connection(Way_In) && owner->is_connected_with(_property) )
     {
-        Member* src_member = _member->get_input();
-        InvokableComponent* compute_component = src_member->get_owner()->get<InvokableComponent>();
+        Property * src_property = _property->get_input();
+        InvokableComponent* compute_component = src_property->get_owner()->get<InvokableComponent>();
 
         if ( compute_component )
         {
@@ -230,7 +230,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const Member * _mem
         }
         else
         {
-            serialize(_out, src_member, false);
+            serialize(_out, src_property, false);
         }
     }
     else
@@ -242,7 +242,7 @@ std::string& NodableSerializer::serialize(std::string& _out, const Member * _mem
         }
         else
         {
-            serialize(_out, _member->get_variant() );
+            serialize(_out, _property->get_variant() );
         }
     }
 
@@ -316,11 +316,11 @@ std::string& NodableSerializer::serialize(std::string& _out, const Scope* _scope
 
 std::string& NodableSerializer::serialize(std::string& _out, const InstructionNode* _instruction ) const
 {
-    const Member* root_node_member = _instruction->get_root_node_member();
+    const Property * root_node_property = _instruction->get_root_node_property();
 
-    if (root_node_member->has_input_connected() && root_node_member->get_variant()->is_initialized() )
+    if (root_node_property->has_input_connected() && root_node_property->get_variant()->is_initialized() )
     {
-        auto root_node = (const Node*)*root_node_member;
+        auto root_node = (const Node*)*root_node_property;
         NDBL_ASSERT ( root_node )
         serialize( _out, root_node );
     }
@@ -353,10 +353,10 @@ std::string& NodableSerializer::serialize(std::string& _out, const ForLoopNode* 
     serialize( _out, _for_loop->get_token_for() );
     serialize( _out, Token_t::fct_params_begin );
 
-    // TODO: I don't like this if/else, should be implicit. Serialize Member* must do it.
+    // TODO: I don't like this if/else, should be implicit. Serialize Property* must do it.
     //       More work to do to know if expression is a declaration or not.
 
-    Member* input = _for_loop->get_init_expr()->get_input();
+    Property * input = _for_loop->get_init_expr()->get_input();
     if ( input && input->get_owner()->get_type().is_child_of<VariableNode>() )
     {
         serialize( _out, input->get_owner()->as<VariableNode>() );

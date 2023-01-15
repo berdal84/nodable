@@ -215,22 +215,22 @@ TEST_F(nodable_fixture, string_var_assigned_with_literal_string)
 
 TEST_F(nodable_fixture, string_var_assigned_with_15_to_string)
 {
-    EXPECT_EQ(eval<std::string>("string a = to_string(15)")    , "15");
+    EXPECT_EQ(eval<std::string>("string a = to_unquoted_string(15)")    , "15");
 }
 
 TEST_F(nodable_fixture, string_var_assigned_with_minus15dot5_to_string)
 {
-    EXPECT_EQ(eval<std::string>("string a = to_string(15.5)")    , "15.5");
+    EXPECT_EQ(eval<std::string>("string a = to_unquoted_string(15.5)")    , "15.5");
 }
 
 TEST_F(nodable_fixture, string_var_assigned_with_true_to_string)
 {
-    EXPECT_EQ(eval<std::string>("string a = to_string(true)")    , "true");
+    EXPECT_EQ(eval<std::string>("string a = to_unquoted_string(true)")    , "true");
 }
 
 TEST_F(nodable_fixture, string_var_assigned_with_false_to_string)
 {
-    EXPECT_EQ(eval<std::string>("string a = to_string(false)")    , "false");
+    EXPECT_EQ(eval<std::string>("string a = to_unquoted_string(false)")    , "false");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -323,7 +323,7 @@ TEST_F(nodable_fixture, eval_serialize_and_compare_6)
 
 TEST_F(nodable_fixture, eval_serialize_and_compare_7)
 {
-    const std::string source_code = "string b = to_string(false)";
+    const std::string source_code = "string b = to_unquoted_string(false)";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 

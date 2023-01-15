@@ -1,11 +1,14 @@
 #pragma once
-#include <nodable/core/ILibrary.h>
 #include <string>
 #include <unordered_map>
 
 namespace ndbl
 {
-    class NodableLibrary_biology : public ILibrary
+    /**
+     * Nodable's biology library.
+     * See cpp for more information
+     */
+    class NodableLibrary_biology
     {
     public:
         NodableLibrary_biology();

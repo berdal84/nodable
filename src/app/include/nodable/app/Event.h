@@ -6,7 +6,7 @@
 namespace ndbl
 {
     // forward declaration
-    class MemberConnector;
+    class PropertyConnector;
     class NodeConnector;
     class NodeView;
 
@@ -23,8 +23,8 @@ namespace ndbl
         frame_all_node_views,
         frame_selected_node_views,
 
-        member_connector_dropped = 0x200, // operation on member connectors
-        member_connector_disconnected,
+        property_connector_dropped = 0x200, // operation on property connectors
+        property_connector_disconnected,
 
         node_connector_dropped   = 0x300, // operation on node connectors
         node_connector_disconnected,
@@ -60,11 +60,11 @@ namespace ndbl
         bool                   recursive;
     };
 
-    struct MemberConnectorEvent
+    struct PropertyConnectorEvent
     {
         EventType              type;
-        const MemberConnector* src;
-        const MemberConnector* dst;
+        const PropertyConnector* src;
+        const PropertyConnector* dst;
     };
 
     struct NodeConnectorEvent
@@ -79,7 +79,7 @@ namespace ndbl
         EventType            type;
         SimpleEvent          common;
         NodeViewEvent        node;
-        MemberConnectorEvent member_connectors;
+        PropertyConnectorEvent property_connectors;
         NodeConnectorEvent   node_connectors;
         ToggleFoldingEvent   toggle_folding;
     };

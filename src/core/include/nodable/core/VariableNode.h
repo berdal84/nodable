@@ -3,11 +3,11 @@
 #include <string>
 #include <memory> // std::shared_ptr
 
-#include <nodable/core/types.h> // forward declarations and common stuff
-#include <nodable/core/Node.h> // base class
-#include <nodable/core/Member.h>
-#include <nodable/core/reflection/reflection>
 #include "Scope.h"
+#include <nodable/core/Node.h>// base class
+#include <nodable/core/Property.h>
+#include <nodable/core/reflection/reflection>
+#include <nodable/core/types.h>// forward declarations and common stuff
 
 namespace ndbl
 {
@@ -15,8 +15,8 @@ namespace ndbl
     class InstructionNode;
 
 	/**
-		@brief VariableNode is a Node having a single Member and is identifiable by a name.
-		The wrapped Member's name is Node::VALUE_MEMBER_NAME and can be linked to other members.
+		@brief VariableNode is a Node having a single Property and is identifiable by a name.
+		The wrapped Property's name is Node::VALUE_MEMBER_NAME and can be linked to other properties.
 	*/
 	class VariableNode : public Node
     {
@@ -30,8 +30,8 @@ namespace ndbl
 		inline bool      is_declared()const { return m_is_declared; }
         /** Get variable identifier (ex: for "double toto;", "toto" is the identifier )*/
 		const char*      get_identifier()const { return m_identifier.c_str(); };
-        /** Get variable's value (as a Member) */
-		Member*          get_value()const { return m_value; }
+        /** Get variable's value (as a Property) */
+        Property *          get_value()const { return m_value; }
         /** Get the token for the variable's type (ex: for "double toto", { word: "double", suffix: " "} is the type token)*/
         token_cptr       get_type_token() const { return m_type_token; }
         /** Get the token for the assignment operator (ex: for "double toto = 10.0", { word: "=", prefix: " ", suffix: " "} is the assignment token)*/
@@ -59,8 +59,8 @@ namespace ndbl
         /** Set the instruction where this variable is declared */
         void             set_declaration_instr(InstructionNode* _instr) { m_declaration_instr = _instr; }
     private:
-        /** Variable's value is stored in this Member*/
-	    Member*                m_value;
+        /** Variable's value is stored in this Property*/
+        Property *                m_value;
         bool                   m_is_declared;
         InstructionNode*       m_declaration_instr;
         token_ptr              m_type_token;

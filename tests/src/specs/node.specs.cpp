@@ -1,8 +1,8 @@
 
 #include <gtest/gtest.h>
 
-#include <nodable/core/Member.h>
 #include <nodable/core/Node.h>
+#include <nodable/core/Property.h>
 
 using namespace ndbl;
 
@@ -26,12 +26,12 @@ public:
     Node node;
 };
 
-TEST_F(node_fixture, add_member_double)
+TEST_F(node_fixture, add_property_double)
 {
-    Member* member = node.props()->add("val", Visibility::Default, type::get<double>(), Way_Default);
-    member->set(100.0);
+    Property * property = node.props()->add("val", Visibility::Default, type::get<double>(), Way_Default);
+    property->set(100.0);
 
-    EXPECT_EQ((double)*member, 100.0);
-    EXPECT_EQ(member->convert_to<std::string>(), "100.0");
-    EXPECT_TRUE((bool)member);
+    EXPECT_EQ((double)*property, 100.0);
+    EXPECT_EQ(property->convert_to<std::string>(), "100.0");
+    EXPECT_TRUE((bool)property);
 }

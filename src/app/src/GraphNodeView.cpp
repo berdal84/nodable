@@ -5,14 +5,14 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #include <nodable/app/App.h>
-#include <nodable/app/MemberConnector.h>
+#include <nodable/app/PropertyConnector.h>
 #include <nodable/app/NodeConnector.h>
 #include <nodable/app/NodeView.h>
 #include <nodable/app/Settings.h>
 
 #include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/GraphNode.h>
-#include <nodable/core/ISerializer.h>
+#include <nodable/core/languages/NodableSerializer.h>
 #include <nodable/core/InstructionNode.h>
 #include <nodable/core/LiteralNode.h>
 #include <nodable/core/ForLoopNode.h>
@@ -20,7 +20,6 @@
 #include <nodable/core/Scope.h>
 #include <nodable/core/System.h>
 #include <nodable/core/VariableNode.h>
-#include <nodable/core/Wire.h>
 
 using namespace ndbl;
 using namespace ndbl::assembly;
@@ -43,8 +42,8 @@ bool GraphNodeView::draw()
     const NodeVec&  node_registry    = graph->get_node_registry();
 	vec2            origin           = ImGui::GetCursorScreenPos();
 
-	const MemberConnector* dragged_member_conn = MemberConnector::get_gragged();
-    const MemberConnector* hovered_member_conn = MemberConnector::get_hovered();
+	const PropertyConnector* dragged_property_conn = PropertyConnector::get_gragged();
+    const PropertyConnector* hovered_property_conn = PropertyConnector::get_hovered();
     const NodeConnector*   dragged_node_conn   = NodeConnector::get_gragged();
     const NodeConnector*   hovered_node_conn   = NodeConnector::get_hovered();
     
@@ -54,7 +53,7 @@ bool GraphNodeView::draw()
     * Function to draw an invocable menu (operators or functions)
     */
     auto draw_invocable_menu = [&](
-        const MemberConnector* dragged_member_conn,
+        const PropertyConnector* dragged_property_conn,
         const std::string _key) -> void
     {
         char menuLabel[255];
@@ -72,21 +71,21 @@ bool GraphNodeView::draw()
                 */
                 bool has_compatible_signature;
 
-                if ( !dragged_member_conn )
+                if ( !dragged_property_conn )
                 {
                     has_compatible_signature = true;
                 }
                 else
                 {
-                    type dragged_member_type = dragged_member_conn->get_member_type();
+                    type dragged_property_type = dragged_property_conn->get_property_type();
 
-                    if ( dragged_member_conn->m_way == Way_Out )
+                    if ( dragged_property_conn->m_way == Way_Out )
                     {
-                        has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(dragged_member_type);
+                        has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(dragged_property_type);
                     }
                     else
                     {
-                        has_compatible_signature = menu_item.function_signature->get_return_type() == dragged_member_type;
+                        has_compatible_signature = menu_item.function_signature->get_return_type() == dragged_property_type;
                     }
                 }
 
@@ -182,11 +181,11 @@ bool GraphNodeView::draw()
     // Connector Drag'n Drop
     if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
     {
-        // Draw temporary Member connection
-        if ( dragged_member_conn )
+        // Draw temporary Property connection
+        if ( dragged_property_conn )
         {
-            vec2 src = dragged_member_conn->get_pos();
-            vec2 dst = hovered_member_conn ? hovered_member_conn->get_pos() : ImGui::GetMousePos();
+            vec2 src = dragged_property_conn->get_pos();
+            vec2 dst = hovered_property_conn ? hovered_property_conn->get_pos() : ImGui::GetMousePos();
             ImGui::GetWindowDrawList()->AddLine(
                     src, dst,
                     get_color(Color_BorderHighlights),
@@ -211,7 +210,7 @@ bool GraphNodeView::draw()
 
         // Drops ?
         bool require_new_node   = false;
-        MemberConnector::drop_behavior(require_new_node, enable_edition);
+        PropertyConnector::drop_behavior(require_new_node, enable_edition);
         NodeConnector::drop_behavior(require_new_node, enable_edition);
 
         // Need a need node ?
@@ -233,35 +232,35 @@ bool GraphNodeView::draw()
         */
         for (auto eachNode : node_registry)
         {
-            const MemberVec& members = eachNode->props()->by_id();
+            const PropertyVec & properties = eachNode->props()->by_id();
 
-            for (auto& dst_member : members)
+            for (auto& dst_property : properties)
             {
 
-                NDBL_EXPECT( eachNode->props()->has(dst_member), "Incoherence!")
+                NDBL_EXPECT( eachNode->props()->has(dst_property), "Incoherence!")
 
-                if ( const Member* src_member = dst_member->get_input() )
+                if ( const Property * src_property = dst_property->get_input() )
                 {
-                    Node *src_owner = src_member->get_owner();
-                    Node *dst_owner = dst_member->get_owner();
+                    Node *src_owner = src_property->get_owner();
+                    Node *dst_owner = dst_property->get_owner();
                     auto src_node_view = src_owner->get<NodeView>();
-                    auto dst_node_view = eachNode->get<NodeView>(); // equival to dst_member->getOwner()->get<NodeView>();
+                    auto dst_node_view = eachNode->get<NodeView>(); // equival to dst_property->getOwner()->get<NodeView>();
 
                     if (src_node_view->is_visible() && dst_node_view->is_visible() )
                     {
-                        const MemberView* src_member_view = src_node_view->get_member_view(src_member);
-                        const MemberView* dst_member_view = dst_node_view->get_member_view(dst_member);
+                        const PropertyView* src_property_view = src_node_view->get_property_view(src_property);
+                        const PropertyView* dst_property_view = dst_node_view->get_property_view(dst_property);
 
-                        if ( src_member_view && dst_member_view )
+                        if ( src_property_view && dst_property_view )
                         {
-                            vec2 src_pos = src_member_view->m_out->get_pos();
-                            vec2 dst_pos = dst_member_view->m_in->get_pos();
+                            vec2 src_pos = src_property_view->m_out->get_pos();
+                            vec2 dst_pos = dst_property_view->m_in->get_pos();
 
                             // do not draw long lines between a variable value
                             bool skip_wire = false;
-                            if ( !NodeView::is_selected(src_member_view->m_nodeView) && !NodeView::is_selected(dst_member_view->m_nodeView) &&
-                                    ((dst_member->get_type().is_ptr() && dst_owner->is<InstructionNode>() && src_owner->is<VariableNode>()) ||
-                                     (src_owner->is<VariableNode>() && src_member == src_owner->props()->get(k_value_member_name))))
+                            if ( !NodeView::is_selected(src_property_view->m_nodeView) && !NodeView::is_selected(dst_property_view->m_nodeView) &&
+                                    ((dst_property->get_type().is_ptr() && dst_owner->is<InstructionNode>() && src_owner->is<VariableNode>()) ||
+                                     (src_owner->is<VariableNode>() && src_property == src_owner->props()->get(k_value_property_name))))
                             {
                                 vec2 delta = src_pos - dst_pos;
                                 if( abs(delta.x) > 100.0f || abs(delta.y) > 100.0f )
@@ -274,7 +273,7 @@ bool GraphNodeView::draw()
                             if ( !skip_wire )
                             {
                                 // straight wide lines for node connections
-                                if (type::is_ptr(src_member->get_type()))
+                                if (type::is_ptr(src_property->get_type()))
                                 {
                                     ImGuiEx::DrawVerticalWire(
                                             ImGui::GetWindowDrawList(),
@@ -334,7 +333,7 @@ bool GraphNodeView::draw()
 	}
 
 	isAnyNodeDragged |= NodeConnector::is_dragging();
-	isAnyNodeDragged |= MemberConnector::is_dragging();
+	isAnyNodeDragged |= PropertyConnector::is_dragging();
 
 	// Virtual Machine cursor
     if ( virtual_machine.is_program_running() )
@@ -343,7 +342,7 @@ bool GraphNodeView::draw()
         if( auto view = node->get<NodeView>())
         {
             vec2 vm_cursor_pos = view->get_screen_position();
-            vm_cursor_pos += view->get_member_view(node->get_this_member())->relative_pos();
+            vm_cursor_pos += view->get_property_view(node->get_this_property())->relative_pos();
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
             auto draw_list = ImGui::GetWindowDrawList();
@@ -393,27 +392,27 @@ bool GraphNodeView::draw()
 
 		if ( !dragged_node_conn )
 		{
-		    draw_invocable_menu( dragged_member_conn, k_operator_menu_label );
-            draw_invocable_menu( dragged_member_conn, k_function_menu_label );
+		    draw_invocable_menu( dragged_property_conn, k_operator_menu_label );
+            draw_invocable_menu( dragged_property_conn, k_function_menu_label );
             ImGui::Separator();
         }
 
         if ( !dragged_node_conn )
         {
-            // If dragging a member we create a VariableNode with the same type.
-            if ( dragged_member_conn && !dragged_member_conn->get_member_type().is_ptr() )
+            // If dragging a property we create a VariableNode with the same type.
+            if ( dragged_property_conn && !dragged_property_conn->get_property_type().is_ptr() )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
                 {
-                    new_node = create_variable(dragged_member_conn->get_member_type(), "var", nullptr);
+                    new_node = create_variable(dragged_property_conn->get_property_type(), "var", nullptr);
                 }
 
                 // we allows literal only if connected to variables.
                 // why? behavior when connecting a literal to a non var node is to digest it.
-                if ( dragged_member_conn->get_member()->get_owner()->is<VariableNode>()
+                if ( dragged_property_conn->get_property()->get_owner()->is<VariableNode>()
                      && ImGui::MenuItem(ICON_FA_FILE "Literal") )
                 {
-                    new_node = graph->create_literal(dragged_member_conn->get_member_type() );
+                    new_node = graph->create_literal(dragged_property_conn->get_property_type() );
                 }
             }
             // By not knowing anything, we propose all possible types to the user.
@@ -451,7 +450,7 @@ bool GraphNodeView::draw()
 
         ImGui::Separator();
 
-        if ( !dragged_member_conn )
+        if ( !dragged_property_conn )
         {
             if ( ImGui::MenuItem(ICON_FA_CODE " Instruction") )
             {
@@ -459,7 +458,7 @@ bool GraphNodeView::draw()
             }
         }
 
-        if( !dragged_member_conn )
+        if( !dragged_property_conn )
         {
             if (ImGui::MenuItem(ICON_FA_CODE " Condition"))
                 new_node = graph->create_cond_struct();
@@ -490,28 +489,27 @@ bool GraphNodeView::draw()
             if ( dragged_node_conn )
             {
                 Node* dragged_node = dragged_node_conn->get_node();
-                EdgeType relation_type = dragged_node_conn->m_way == Way_Out ?
-                                         EdgeType::IS_SUCCESSOR_OF : EdgeType::IS_PREDECESSOR_OF;
+                Edge_t relation_type = dragged_node_conn->m_way == Way_Out ? Edge_t::IS_SUCCESSOR_OF : Edge_t::IS_PREDECESSOR_OF;
                 graph->connect( {new_node, relation_type, dragged_node} );
                 NodeConnector::stop_drag();
             }
-            else if ( dragged_member_conn )
+            else if ( dragged_property_conn )
             {
-                if ( dragged_member_conn->m_way == Way_In )
+                if ( dragged_property_conn->m_way == Way_In )
                 {
-                    Member* dst_member = dragged_member_conn->get_member();
-                    Member* src_member = new_node->props()->get_first(Way_Out, dst_member->get_type());
-                    graph->connect( src_member, dst_member );
+                    Property * dst_property = dragged_property_conn->get_property();
+                    Property * src_property = new_node->props()->get_first(Way_Out, dst_property->get_type());
+                    graph->connect( src_property, dst_property );
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
                 else
                 {
                     // connect dragged (out) to first input on new node.
-                    Member* src_member = dragged_member_conn->get_member();
-                    Member* dst_member = new_node->props()->get_first(Way_In, src_member->get_type());
-                    graph->connect( src_member, dst_member);
+                    Property * src_property = dragged_property_conn->get_property();
+                    Property * dst_property = new_node->props()->get_first(Way_In, src_property->get_type());
+                    graph->connect( src_property, dst_property);
                 }
-                MemberConnector::stop_drag();
+                PropertyConnector::stop_drag();
             }
             else if ( new_node != graph->get_root() && m_ctx.settings().experimental_graph_autocompletion )
             {
@@ -534,7 +532,7 @@ bool GraphNodeView::draw()
 	if ( ImGui::IsMouseClicked(1) )
     {
         ImGui::CloseCurrentPopup();
-        MemberConnector::stop_drag();
+        PropertyConnector::stop_drag();
         NodeConnector::stop_drag();
     }
 
@@ -660,8 +658,8 @@ void GraphNodeView::set_owner(Node *_owner)
     Component::set_owner(_owner);
 
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
-    auto             graph    = cast<GraphNode>(_owner);
-    const ILanguage& language = m_ctx.language();
+    auto                   graph    = cast<GraphNode>(_owner);
+    const NodableLanguage& language = m_ctx.language();
 
     for (auto each_fct : language.get_api())
     {

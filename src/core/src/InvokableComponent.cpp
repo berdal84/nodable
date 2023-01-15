@@ -28,9 +28,9 @@ bool InvokableComponent::update()
 {
     bool success = true;
 
-    auto not_declared_predicate = [](Member* _member)
+    auto not_declared_predicate = [](Property * _property)
     {
-        auto var = _member->get_owner()->as<VariableNode>();
+        auto var = _property->get_owner()->as<VariableNode>();
         return var && !var->is_declared();
     };
 
@@ -44,7 +44,7 @@ bool InvokableComponent::update()
         try
         {
             std::vector<variant*> args;
-            *m_result->get_variant() = (*m_invokable)( Member::get_variant(m_args, args) );
+            *m_result->get_variant() = (*m_invokable)(Property::get_variant(m_args, args) );
             for(auto arg : m_args)
             {
                 arg->ensure_is_defined(true);

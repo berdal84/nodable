@@ -143,14 +143,14 @@ REGISTER
         .add_method<i16_t(i16_t, i16_t)>(&_pow, "pow")
         .add_method<double(double, double)>(&_pow, "pow")
         .add_method(&_secondDegreePolynomial, "secondDegreePolynomial" )
-        .add_method<string(bool)>(&_to_string, "to_string")
-        .add_method<string(double)>(&_to_string, "to_string")
-        .add_method<string(i16_t)>(&_to_string, "to_string")
-        .add_method<string(string)>(&_to_string, "to_string")
+        .add_method<string(bool)>(&_to_string, "to_unquoted_string")
+        .add_method<string(double)>(&_to_string, "to_unquoted_string")
+        .add_method<string(i16_t)>(&_to_string, "to_unquoted_string")
+        .add_method<string(string)>(&_to_string, "to_unquoted_string")
         .add_method<string(bool)>(&_print, "print")
         .add_method<string(double)>(&_print, "print")
         .add_method<string(i16_t)>(&_print, "print")
         .add_method<string(string)>(&_print, "print");
 };
 
-NodableLibrary_math::NodableLibrary_math(){}
+NodableLibrary_math::NodableLibrary_math(){} // necessary to trigger static code execution

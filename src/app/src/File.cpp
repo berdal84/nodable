@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#include <nodable/core/ISerializer.h>
+#include <nodable/core/languages/NodableSerializer.h>
 #include <nodable/core/languages/NodableParser.h>
 #include <nodable/app/App.h>
 #include <nodable/app/FileView.h>
@@ -97,7 +97,7 @@ bool File::update_graph(std::string& _code_source)
         graph_view->destroy_child_view_constraints();
     }
 
-    IParser& parser = m_ctx.language().get_parser();
+    NodableParser& parser = m_ctx.language().get_parser();
     if (parser.parse(_code_source, m_graph) && !m_graph->is_empty() )
     {
         graph_view->create_child_view_constraints();

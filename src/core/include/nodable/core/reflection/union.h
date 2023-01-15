@@ -3,15 +3,15 @@
 /**
  * call this macro from the end of your union to reflect it
  */
-#define R_UNION(U) /* U: Union, M: Union member */      \
+#define R_UNION(U) /* U: Union, M: Union property */      \
     template<typename T> void set(T _value);            \
     template<typename T> T& get();                      \
     template<typename T> const T& get() const;
 
 /**
-* call this once per member in your *.cpp file or out of the union
+* call this once per property in your *.cpp file or out of the union
 */
-#define R_UNION_MEMBER_DEFINITION(U, M) /* U: Union, M: Union member */  \
+#define R_UNION_MEMBER_DEFINITION(U, M) /* U: Union, M: Union property */  \
     template<>\
     void U::set<decltype(U::M)>(decltype(U::M) _value)\
     {\

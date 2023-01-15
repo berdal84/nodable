@@ -7,7 +7,7 @@
 #include "nodable/core/String.h"
 
 using namespace ndbl;
-using opcode = ndbl::assembly::opcode_t;
+using opcode = ndbl::assembly::Instruction_t;
 
 CPU::CPU()
 {
@@ -208,16 +208,16 @@ bool VirtualMachine::_stepOver()
 
             auto transfer_input_values = [](Node* _node)
             {
-                for(Member* each_member : _node->props()->by_id())
+                for(Property * each_property : _node->props()->by_id())
                 {
-                    Member* input = each_member->get_input();
+                    Property * input = each_property->get_input();
 
                     if( input
-                        && !each_member->is_connected_by_ref()
-                        && each_member->get_type() != type::null
+                        && !each_property->is_connected_by_ref()
+                        && each_property->get_type() != type::null
                         && input->get_type() != type::null )
                     {
-                        *each_member->get_variant() = *input->get_variant();
+                        *each_property->get_variant() = *input->get_variant();
                     }
                 }
             };

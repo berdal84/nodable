@@ -7,7 +7,9 @@
 #include <nodable/app/Settings.h>
 
 #include <nodable/core/GraphNode.h>
-#include <nodable/core/ISerializer.h>
+#include <nodable/core/languages/NodableSerializer.h>
+#include <nodable/core/languages/NodableParser.h>
+#include <nodable/core/languages/NodableLanguage.h>
 #include <nodable/core/Node.h>
 #include <nodable/core/VirtualMachine.h>
 #include "nodable/app/commands/Cmd_WrappedTextEditorUndoRecord.h"
@@ -272,16 +274,16 @@ void FileView::draw_info() const
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
     ImGui::Text("Node count: %lu", m_file.get_graph()->get_node_registry().size());
-    ImGui::Text("Wire count: %lu", m_file.get_graph()->get_wire_registry().size());
+    ImGui::Text("Edge count: %lu", m_file.get_graph()->get_edge_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 
     // Language browser (list functions/operators)
     if (ImGui::TreeNode("Language"))
     {
-        ILanguage&         language   = m_ctx.language();
-        const auto&       functions  = language.get_api();
-        const ISerializer& serializer = language.get_serializer();
+        NodableLanguage&         language   = m_ctx.language();
+        const auto&              functions  = language.get_api();
+        const NodableSerializer& serializer = language.get_serializer();
 
         ImGui::Columns(1);
         for(const auto& each_fct : functions )

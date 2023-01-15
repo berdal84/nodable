@@ -1,6 +1,6 @@
-#include <nodable/core/VariableNode.h>
-#include <nodable/core/Member.h>
 #include <nodable/core/Log.h>
+#include <nodable/core/Property.h>
+#include <nodable/core/VariableNode.h>
 
 using namespace ndbl;
 
@@ -18,7 +18,7 @@ VariableNode::VariableNode(type _type)
     , m_is_declared(true)
     , m_scope(nullptr)
 {
-	m_value = m_props.add(k_value_member_name, Visibility::Always, _type, Way_InOut);
+	m_value = m_props.add(k_value_property_name, Visibility::Always, _type, Way_InOut);
 }
 
 void VariableNode::set_identifier(const char* _name)

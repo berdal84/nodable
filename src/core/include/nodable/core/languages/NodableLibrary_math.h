@@ -1,10 +1,12 @@
 #pragma once
 
-#include <nodable/core/ILibrary.h>
-
 namespace ndbl
 {
-    class NodableLibrary_math : public ILibrary
+    /**
+     * Nodable's math library.
+     * See cpp for more information
+     */
+    class NodableLibrary_math
     {
     public:
         NodableLibrary_math();
