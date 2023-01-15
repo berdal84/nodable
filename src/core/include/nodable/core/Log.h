@@ -23,8 +23,8 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
-#define KO RED "[KO]" RESET
-#define OK GREEN "[OK]" RESET
+#define KO RED "[KO]" RESET      // red colored "[KO]" string.
+#define OK GREEN "[OK]" RESET    // green colored "[OK]" string.
 
 #define LOG_ENABLE true
 
