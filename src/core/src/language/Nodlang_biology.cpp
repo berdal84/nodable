@@ -1,4 +1,4 @@
-#include <nodable/core/languages/NodableLibrary_biology.h>
+#include <nodable/core/language/Nodlang_biology.h>
 #include <nodable/core/reflection/registration.h>
 
 using namespace ndbl;
@@ -51,8 +51,8 @@ namespace // anonymous, only accessible from this file
 
 REGISTER
 {
-    registration::push_class<NodableLibrary_biology>("NodableLibrary_biology")
+    registration::push_class<Nodlang_biology>("Nodlang_biology")
             .add_method(&dna_to_protein, "dna_to_protein", "protein");
 };
 
-NodableLibrary_biology::NodableLibrary_biology(){} // necessary to execute static code
+Nodlang_biology::Nodlang_biology(){} // necessary to execute static code

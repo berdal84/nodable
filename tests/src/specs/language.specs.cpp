@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <nodable/core/reflection/invokable.h>
-#include <nodable/core/languages/NodableLanguage.h>
+#include <nodable/core/language/Nodlang.h>
 
 using namespace ndbl;
 
 class language_fixture: public ::testing::Test
 {
 public:
-    NodableLanguage  language; // signatures must be created through a language.
+    Nodlang  language; // signatures must be created through a language.
 };
 
 TEST_F(language_fixture, no_arg_fct)
@@ -147,8 +147,8 @@ TEST_F(language_fixture, token_t_to_type)
 
 TEST_F(language_fixture, type_to_string)
 {
-    EXPECT_EQ(language.to_string(type::get<bool>())        , NodableLanguage::k_keyword_bool );
-    EXPECT_EQ(language.to_string(type::get<double>())      , NodableLanguage::k_keyword_double  );
-    EXPECT_EQ(language.to_string(type::get<i16_t>())       , NodableLanguage::k_keyword_int  );
-    EXPECT_EQ(language.to_string(type::get<std::string>()) , NodableLanguage::k_keyword_string  );
+    EXPECT_EQ(language.to_string(type::get<bool>())        , "bool" );
+    EXPECT_EQ(language.to_string(type::get<double>())      , "double" );
+    EXPECT_EQ(language.to_string(type::get<i16_t>())       , "int" );
+    EXPECT_EQ(language.to_string(type::get<std::string>()) , "string" );
 }

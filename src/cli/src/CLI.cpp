@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include <nodable/cli/CLI.h>
-#include <nodable/core/languages/NodableLanguage.h>
+#include <nodable/core/language/Nodlang.h>
 #include <nodable/core/reflection/reflection>
 #include <iomanip>
 
@@ -27,7 +27,7 @@ REGISTER
 
 CLI::CLI()
     : m_should_stop(false)
-    , m_language(std::make_unique<NodableLanguage>() )
+    , m_language(std::make_unique<Nodlang>() )
     , m_factory(m_language.get())
     , m_graph(m_language.get(), &m_factory, &m_auto_completion)
 {
@@ -100,7 +100,7 @@ void CLI::update()
     }
 
     // try to eval (parse, compile and run).
-    m_language->get_parser().parse(input, &m_graph) && compile() && run();
+    m_language->parse(input, &m_graph) && compile() && run();
 }
 void CLI::log_function_call(const variant &result, const func_type &type) const {LOG_MESSAGE("CLI", "CLI::%s() done (result: %s)\n", type.get_identifier().c_str(), result.is_defined() ? result.convert_to<std::string>().c_str() : "void")}
 
@@ -129,7 +129,7 @@ bool CLI::serialize()
     if(Node* root = m_graph.get_root())
     {
         std::string result;
-        m_language->get_serializer().serialize(result, root);
+        m_language->serialize(result, root);
         std::cout << result << std::endl;
         return true;
     }
@@ -157,7 +157,7 @@ bool CLI::parse()
     // ask for user input
     std::cout << ">>> ";
     std::string parse_in = get_line();
-    return m_language->get_parser().parse(parse_in, &m_graph);
+    return m_language->parse(parse_in, &m_graph);
 }
 
 bool CLI::run()

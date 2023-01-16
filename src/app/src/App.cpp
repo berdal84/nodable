@@ -18,7 +18,7 @@
 #include <nodable/core/DataAccess.h>
 #include <nodable/core/System.h>
 #include <nodable/core/VariableNode.h>
-#include <nodable/core/languages/NodableLanguage.h>
+#include <nodable/core/language/Nodlang.h>
 
 using namespace ndbl;
 
@@ -27,7 +27,7 @@ App::App()
     , m_current_file_index(0)
     , m_current_file(nullptr)
     , m_should_stop(false)
-    , m_language( std::make_unique<NodableLanguage>() )
+    , m_language( std::make_unique<Nodlang>() )
     , m_assets_folder_path( ghc::filesystem::path( System::get_executable_directory() ) / BuildInfo::assets_dir )
     , m_view( *this, BuildInfo::version_extended )
 {

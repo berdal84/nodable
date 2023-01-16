@@ -56,7 +56,7 @@ bool InvokableComponent::update()
                                             " while updating Node \"%s\"."
                                             " Reason: %s\n",
                                             get_type().get_name(),
-                                            get_owner()->get_label(),
+                      get_owner()->get_name(),
                                             err.what() )
             success = false;
         }

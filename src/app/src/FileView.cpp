@@ -6,14 +6,12 @@
 #include <nodable/app/NodeView.h>
 #include <nodable/app/Settings.h>
 
+#include "nodable/app/commands/Cmd_ReplaceText.h"
+#include "nodable/app/commands/Cmd_WrappedTextEditorUndoRecord.h"
 #include <nodable/core/GraphNode.h>
-#include <nodable/core/languages/NodableSerializer.h>
-#include <nodable/core/languages/NodableParser.h>
-#include <nodable/core/languages/NodableLanguage.h>
 #include <nodable/core/Node.h>
 #include <nodable/core/VirtualMachine.h>
-#include "nodable/app/commands/Cmd_WrappedTextEditorUndoRecord.h"
-#include "nodable/app/commands/Cmd_ReplaceText.h"
+#include <nodable/core/language/Nodlang.h>
 
 using namespace ndbl;
 
@@ -281,15 +279,13 @@ void FileView::draw_info() const
     // Language browser (list functions/operators)
     if (ImGui::TreeNode("Language"))
     {
-        NodableLanguage&         language   = m_ctx.language();
-        const auto&              functions  = language.get_api();
-        const NodableSerializer& serializer = language.get_serializer();
+        const Nodlang& language = m_ctx.language();
 
         ImGui::Columns(1);
-        for(const auto& each_fct : functions )
+        for(const auto& each_fct : language.get_api() )
         {
             std::string name;
-            serializer.serialize(name, &each_fct->get_type());
+            language.serialize(name, &each_fct->get_type());
             ImGui::Text("%s", name.c_str());
         }
 

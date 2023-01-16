@@ -84,6 +84,8 @@ namespace ndbl
         void append_to_suffix(const std::string&);
         /** Append a string to the word */
         void append_to_word(const std::string&);
+        /** Set the word (overwrite existing) */
+        void set_word(const std::string&);
         /** Append a char to the word */
         void append_to_word(char);
         /** Check if whether or not this token is a keyword type */

@@ -2,14 +2,13 @@
 
 #include <fstream>
 
-#include <nodable/core/languages/NodableSerializer.h>
-#include <nodable/core/languages/NodableParser.h>
 #include <nodable/app/App.h>
 #include <nodable/app/FileView.h>
 #include <nodable/app/GraphNodeView.h>
 #include <nodable/app/History.h>
 #include <nodable/app/IAppCtx.h>
 #include <nodable/app/NodeView.h>
+#include <nodable/core/language/Nodlang.h>
 
 using namespace ndbl;
 
@@ -44,7 +43,7 @@ File::File(IAppCtx& _ctx, const std::string &_name)
 
     char label[50];
     snprintf(label, sizeof(label), "%s's graph", get_name().c_str());
-    m_graph->set_label( label );
+    m_graph->set_name(label);
 
     m_graph->add_component(new GraphNodeView(m_ctx));
 
@@ -97,8 +96,7 @@ bool File::update_graph(std::string& _code_source)
         graph_view->destroy_child_view_constraints();
     }
 
-    NodableParser& parser = m_ctx.language().get_parser();
-    if (parser.parse(_code_source, m_graph) && !m_graph->is_empty() )
+    if (m_ctx.language().parse(_code_source, m_graph) && !m_graph->is_empty() )
     {
         graph_view->create_child_view_constraints();
         m_graph->set_dirty(false);
@@ -145,9 +143,7 @@ bool File::update()
                 LOG_VERBOSE("File","serialize root node\n")
 
                 std::string code;
-                m_ctx.language()
-                     .get_serializer()
-                     .serialize(code, root_node );
+                m_ctx.language().serialize(code, root_node );
 
                 LOG_VERBOSE("File","replace text\n")
                 m_ctx.settings().isolate_selection ? m_view->replace_selected_text(code) : m_view->replace_text(code);

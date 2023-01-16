@@ -24,7 +24,7 @@ Node::Node(std::string _label)
     , m_props(this)
     , m_parent_graph(nullptr)
     , m_parent(nullptr)
-    , m_label(std::move(_label))
+    , m_name(std::move(_label))
     , m_inner_graph(nullptr)
     , m_dirty(true)
     , m_flagged_to_delete(false)
@@ -81,15 +81,14 @@ void Node::set_dirty(bool _value)
     m_dirty = _value;
 }
 
-void Node::set_label(const char* _label, const char* _short_label)
+void Node::set_name(const char *_label)
 {
-	m_label       = _label;
-	m_short_label = _short_label == nullptr ? _label : _short_label;
+    m_name = _label;
 }
 
-const char* Node::get_label()const
+const char* Node::get_name()const
 {
-	return m_label.c_str();
+	return m_name.c_str();
 }
 
 void Node::add_edge(const DirectedEdge* edge)
@@ -195,11 +194,6 @@ void Node::set_parent_graph(GraphNode *_parentGraph)
 {
     NDBL_ASSERT(this->m_parent_graph == nullptr); // TODO: implement parentGraph switch
     this->m_parent_graph = _parentGraph;
-}
-
-const char* Node::get_short_label() const
-{
-    return m_short_label.c_str();
 }
 
 Node::~Node()

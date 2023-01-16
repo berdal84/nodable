@@ -14,7 +14,7 @@
 namespace ndbl
 {
     // forward declarations
-    class NodableLanguage;
+    class Nodlang;
 
     /**
      * @brief To manage a graph (nodes and edges)
@@ -24,7 +24,7 @@ namespace ndbl
 	public:
         using EdgeRegistry_t = std::multimap<Edge_t, const DirectedEdge*>; // edge storage (by edge type)
 
- 		explicit GraphNode(const NodableLanguage*, const INodeFactory*, const bool* _autocompletion);
+ 		explicit GraphNode(const Nodlang*, const INodeFactory*, const bool* _autocompletion);
 		~GraphNode();
 
         UpdateResult                update() override;                                          // Delete/Update nodes if necessary.
@@ -73,7 +73,7 @@ namespace ndbl
 	private:		
 		std::vector<Node*>       m_node_registry;       // registry to store all the nodes from this graph.
         EdgeRegistry_t           m_edge_registry;       // registry ot all the edges (directed edges) between the registered nodes' properties.
-		const NodableLanguage*   m_language;
+		const Nodlang*   m_language;
 		Node*                    m_root;                // Graph root (main scope), without it a graph cannot be compiled.
 		const INodeFactory*      m_factory;             // Node factory (can be headless or not depending on the context: app, unit tests, cli).
         const bool*              m_autocompletion;      // Abandoned idea about autocompleting graph.

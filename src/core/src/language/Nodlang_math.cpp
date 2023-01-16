@@ -1,5 +1,5 @@
 
-#include <nodable/core/languages/NodableLibrary_math.h>
+#include <nodable/core/language/Nodlang_math.h>
 
 #include <nodable/core/String.h>
 #include <nodable/core/types.h>
@@ -74,7 +74,7 @@ namespace // anonymous, accessible only in that file
 
 REGISTER
 {
-    registration::push_class<NodableLibrary_math>("NodableLibrary_math")
+    registration::push_class<Nodlang_math>("Nodlang_math")
         .add_method<double(double, i16_t)> (&_plus, "+", "plus")
         .add_method<double(double, double)>(&_plus, "+", "plus")
         .add_method<i16_t(i16_t, i16_t)>   (&_plus, "+", "plus")
@@ -153,4 +153,4 @@ REGISTER
         .add_method<string(string)>(&_print, "print");
 };
 
-NodableLibrary_math::NodableLibrary_math(){} // necessary to trigger static code execution
+Nodlang_math::Nodlang_math(){} // necessary to trigger static code execution

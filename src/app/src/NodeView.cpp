@@ -4,18 +4,18 @@
 #include <algorithm>              // for std::max
 #include <vector>
 
-#include <nodable/app/Settings.h>
-#include <nodable/core/languages/NodableSerializer.h>
 #include <nodable/app/App.h>
-#include <nodable/core/math.h>
-#include <nodable/core/Scope.h>
-#include <nodable/core/VariableNode.h>
-#include <nodable/core/LiteralNode.h>
-#include <nodable/core/GraphNode.h>
+#include <nodable/app/IAppCtx.h>
 #include <nodable/app/NodeConnector.h>
 #include <nodable/app/PropertyConnector.h>
+#include <nodable/app/Settings.h>
+#include <nodable/core/GraphNode.h>
 #include <nodable/core/InvokableComponent.h>
-#include <nodable/app/IAppCtx.h>
+#include <nodable/core/LiteralNode.h>
+#include <nodable/core/Scope.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/language/Nodlang.h>
+#include <nodable/core/math.h>
 #include <nodable/core/reflection/registration.h>
 
 #define NODE_VIEW_DEFAULT_SIZE vec2(10.0f, 35.0f)
@@ -83,9 +83,9 @@ std::string NodeView::get_label()
     if (s_view_detail == NodeViewDetail::Minimalist )
     {
         // I always add an ICON_FA at the begining of any node label string (encoded in 4 bytes)
-        return node->get_short_label();
+        return m_short_label;
     }
-    return node->get_label();
+    return m_label;
 }
 
 void NodeView::expose(Property * _property)
@@ -119,7 +119,11 @@ void NodeView::set_owner(Node *_node)
     Settings&            settings = m_ctx.settings();
     std::vector<Property *> not_exposed;
 
+    // 1. Expose properties (make visible)
+    //------------------------------------
+
     //  We expose first the properties which allows input connections
+
     for(Property * each_property : _node->props()->by_id())
     {
         if (each_property->get_visibility() == Visibility::Always && each_property->allows_connection(Way_In) )
@@ -146,7 +150,9 @@ void NodeView::set_owner(Node *_node)
         expose(this_property);
     }
 
-    // Determine a color depending on node type
+    // 2. Determine a color depending on node type
+    //---------------------------------------------
+
     type clss = _node->get_type();
 
     if (_node->has<InvokableComponent>())
@@ -166,10 +172,10 @@ void NodeView::set_owner(Node *_node)
         set_color(Color_Fill, &settings.ui_node_instructionColor); // green
     }
 
-    // NodeConnectors
-    //---------------
+    // 3. NodeConnectors
+    //------------------
 
-    // add q successor connector per successor slot
+    // add a successor connector per successor slot
     const size_t successor_max_count = _node->successors().get_limit();
     for(size_t index = 0; index < successor_max_count; ++index )
     {
@@ -179,6 +185,9 @@ void NodeView::set_owner(Node *_node)
     // add a single predecessor connector if node can be connected in this way
     if(_node->predecessors().get_limit() != 0)
         m_predecessors.push_back(new NodeConnector(m_ctx, *this, Way_In));
+
+    // 4. Listen to connection/disconnections
+    //---------------------------------------
 
     m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver(
         [this](Node* _other_node, Edge_t _relation )
@@ -215,6 +224,35 @@ void NodeView::set_owner(Node *_node)
                 case Edge_t::IS_PREDECESSOR_OF: NDBL_ASSERT(false); /* NOT HANDLED */break;
             }
         });
+
+    // 5. Set label and short label
+    //------------------------------
+
+    // Label
+
+    m_label.clear();
+    m_short_label.clear();
+    if ( auto variable = _node->as<VariableNode>())
+    {
+        m_label += variable->get_value()->get_type().get_name();
+        m_label += " ";
+    }
+    m_label += _node->get_name();
+
+    // Short label
+
+    size_t label_max_length = 10;
+    if (m_label.size() > label_max_length)
+    {
+        const char* trail = "..";
+        char short_identifier[10];
+        strncpy(short_identifier, m_label.c_str(), label_max_length - strlen(trail) );
+        strcat(short_identifier, trail);
+        m_short_label = short_identifier;
+    } else {
+        m_short_label = m_label;
+    }
+
 }
 
 void NodeView::set_selected(NodeView* _view)
@@ -619,7 +657,7 @@ bool NodeView::draw(PropertyView* _view )
             std::string str;
             if (property->is_connected_to_variable())
             {
-                str = property->get_connected_variable()->get_identifier();
+                str = property->get_connected_variable()->get_name();
             }
             else
             {
@@ -660,7 +698,7 @@ bool NodeView::draw(PropertyView* _view )
     return changed;
 }
 
-bool NodeView::draw_input(IAppCtx& _ctx, Property *_property, const char *_label)
+bool NodeView::draw_input(IAppCtx& _context, Property *_property, const char *_label)
 {
     bool  changed = false;
     Node* node    = _property->get_owner();
@@ -682,7 +720,7 @@ bool NodeView::draw_input(IAppCtx& _ctx, Property *_property, const char *_label
     {
         char str[255];
         auto* variable = _property->get_input()->get_owner()->as<VariableNode>();
-        snprintf(str, 255, "%s", variable->get_identifier() );
+        snprintf(str, 255, "%s", variable->get_name() );
 
         ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->get<NodeView>()->get_color(Color_Fill) );
         ImGui::InputText(label.c_str(), str, 255, inputFlags);
@@ -751,7 +789,7 @@ bool NodeView::draw_input(IAppCtx& _ctx, Property *_property, const char *_label
         if (ImGuiEx::BeginTooltip())
         {
             std::string buffer;
-            _ctx.language().get_serializer().serialize(buffer, _property);
+            _context.language().serialize(buffer, _property);
             ImGui::Text("%s", buffer.c_str() );
             ImGuiEx::EndTooltip();
         }
@@ -806,8 +844,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
 
     };
 
-    ImGui::Text("Name:       \"%s\"" , node->get_label());
-    ImGui::Text("Short Name: \"%s\"" , node->get_short_label());
+    ImGui::Text("Name:       \"%s\"" , node->get_name());
     ImGui::Text("Class:      %s"     , node->get_type().get_name());
 
     // Draw exposed input properties
@@ -879,7 +916,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
                     {
                         for (auto each : slots.content())
                         {
-                            ImGui::BulletText("- %s", each->get_label());
+                            ImGui::BulletText("- %s", each->get_name());
                         }
                     }
                     else
@@ -921,7 +958,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
                 auto vars = scope->get_variables();
                 for (auto eachVar : vars)
                 {
-                    ImGui::BulletText("%s: %s", eachVar->get_identifier(), eachVar->get_value()->convert_to<std::string>().c_str());
+                    ImGui::BulletText("%s: %s", eachVar->get_name(), eachVar->get_value()->convert_to<std::string>().c_str());
                 }
                 ImGui::TreePop();
             }
@@ -939,7 +976,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
                 std::string parentName = "NULL";
 
                 if (node->get_parent_graph()) {
-                    parentName = node->get_parent_graph()->get_label();
+                    parentName = node->get_parent_graph()->get_name();
                     parentName.append(node->get_parent_graph()->is_dirty() ? " (dirty)" : "");
 
                 }
@@ -952,7 +989,7 @@ void NodeView::draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_s
                 std::string parentName = "NULL";
 
                 if (node->get_parent()) {
-                    parentName = node->get_parent()->get_label();
+                    parentName = node->get_parent()->get_name();
                     parentName.append(node->get_parent()->is_dirty() ? " (dirty)" : "");
                 }
                 ImGui::Text("Parent node is \"%s\"", parentName.c_str());

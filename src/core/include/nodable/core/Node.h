@@ -79,9 +79,8 @@ namespace ndbl {
         bool                 flagged_to_delete() const { return m_flagged_to_delete; }
         void                 flag_to_delete(){ m_flagged_to_delete = true;}
 
-        void                 set_label(const char* _label, const char* _short_label = nullptr);
-        const char*          get_label()const;
-        const char*          get_short_label()const;
+        void set_name(const char *_label);
+        const char*get_name()const;
 
 		void                 add_edge(const DirectedEdge*);
 		void                 remove_edge(const DirectedEdge*);
@@ -148,7 +147,7 @@ namespace ndbl {
 		void delete_component()
 		{
 			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-			auto name = T::Get_class()->get_identifier();
+			auto name = T::Get_class()->get_name();
 			auto component = get<T>();
 			m_components.erase(name);
 			delete component;
@@ -234,8 +233,7 @@ namespace ndbl {
     private:
 		GraphNode*         m_inner_graph;
 		GraphNode*         m_parent_graph;
-		std::string        m_label;
-		std::string        m_short_label;
+		std::string m_name;
 		bool               m_dirty;
         std::vector<const DirectedEdge*> m_edges;
         Slots<Node*>       m_inputs;

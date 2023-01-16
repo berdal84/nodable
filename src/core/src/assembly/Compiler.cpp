@@ -48,7 +48,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
             {
                 if( !each_variable->is_declared() )
                 {
-                    LOG_ERROR("Compiler", "Syntax error: %s is not declared.\n", each_variable->get_identifier() );
+                    LOG_ERROR("Compiler", "Syntax error: %s is not declared.\n", each_variable->get_identifier_token()->get_word().c_str() );
                     return false;
                 }
             }
@@ -59,7 +59,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
         {
             if ( !component->has_function() )
             {
-                LOG_ERROR("Compiler", "Syntax error: %s is not a function available.\n", each_node->get_label() );
+                LOG_ERROR("Compiler", "Syntax error: %s is not a function available.\n", each_node->get_name() );
                 return false;
             }
         }
@@ -104,7 +104,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
         Instruction *instr  = m_temp_code->push_instr(Instruction_t::push_stack_frame);
         instr->push.scope = _scope;
         char str[64];
-        snprintf(str, 64, "%s's scope", scope_owner->get_short_label());
+        snprintf(str, 64, "%s's scope", scope_owner->get_name());
         instr->m_comment = str;
     }
 
@@ -113,7 +113,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     {
         Instruction *instr   = m_temp_code->push_instr(Instruction_t::push_var);
         instr->push.var      = each_variable;
-        instr->m_comment     = std::string{each_variable->get_label()};
+        instr->m_comment     = std::string{each_variable->get_name()};
     }
 
     // compile content
@@ -133,13 +133,13 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     {
         Instruction *instr   = m_temp_code->push_instr(Instruction_t::pop_var);
         instr->push.var      = each_variable;
-        instr->m_comment     = std::string{each_variable->get_label()};
+        instr->m_comment     = std::string{each_variable->get_name()};
     }
 
     {
         Instruction *instr     = m_temp_code->push_instr(Instruction_t::pop_stack_frame);
         instr->pop.scope = _scope;
-        instr->m_comment = std::string{scope_owner->get_short_label()} + "'s scope";
+        instr->m_comment = std::string{scope_owner->get_name()} + "'s scope";
     }
 }
 
@@ -190,15 +190,8 @@ void assembly::Compiler::compile(const Node* _node)
         {
             Instruction *instr = m_temp_code->push_instr(Instruction_t::eval_node);
             instr->eval.node   = _node;
+            instr->m_comment   = _node->get_name();
 
-            if( auto variable = _node->as<VariableNode>())
-            {
-                instr->m_comment = variable->get_identifier();
-            }
-            else
-            {
-                instr->m_comment = _node->get_label();
-            }
             // result is not stored, because this is necessary only for instruction's root node.
         }
     }

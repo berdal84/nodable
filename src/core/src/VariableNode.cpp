@@ -10,38 +10,21 @@ REGISTER
 }
 
 
-VariableNode::VariableNode(type _type)
+VariableNode::VariableNode(const type& _type, const char* identifier)
     : Node("Variable")
+    , m_declaration_instr(nullptr)
     , m_type_token(nullptr)
-    , m_identifier_token(nullptr)
-    , m_assignment_operator_token(nullptr)
-    , m_is_declared(true)
+    , m_identifier_token(std::make_shared<Token>(Token_t::identifier, "", 0)) // unnamed by default
+    , m_assignment_operator_token(nullptr)                                    // unassigned by default
+    , m_is_declared(false)
     , m_scope(nullptr)
 {
+    set_name(identifier);
 	m_value = m_props.add(k_value_property_name, Visibility::Always, _type, Way_InOut);
 }
 
-void VariableNode::set_identifier(const char* _name)
+void VariableNode::set_name(const char* identifier)
 {
-    std::string label;
-    const char* short_label = nullptr;
-
-    m_identifier = _name;
-
-    if (m_value->get_variant()->get_type() != type::null )       // append type only if have one
-    {
-        label.append(m_value->get_type().get_name() );
-        label.append(" ");
-    }
-    label.append(_name );                                        // append name
-
-    size_t length_max = 8;
-	if (m_identifier.length() > length_max)                            // limit short_label length
-    {
-	    std::string tail = "..";
-        short_label = m_identifier.substr(0, length_max-1-tail.length())
-                            .append(tail).c_str();
-    }
-
-    set_label(label.c_str(), short_label);
+    m_identifier_token->set_word(identifier);
+    Node::set_name(identifier);
 }

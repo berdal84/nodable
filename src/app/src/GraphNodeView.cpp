@@ -9,10 +9,9 @@
 #include <nodable/app/NodeConnector.h>
 #include <nodable/app/NodeView.h>
 #include <nodable/app/Settings.h>
-
 #include <nodable/core/ConditionalStructNode.h>
 #include <nodable/core/GraphNode.h>
-#include <nodable/core/languages/NodableSerializer.h>
+#include <nodable/core/language/Nodlang.h>
 #include <nodable/core/InstructionNode.h>
 #include <nodable/core/LiteralNode.h>
 #include <nodable/core/ForLoopNode.h>
@@ -119,12 +118,13 @@ bool GraphNodeView::draw()
         return instr_node;
     };
 
-    auto create_variable = [&](type _type, const char*  _name, Scope*  _scope) -> VariableNode*
+    auto create_variable = [&](const type& _type, const char*  _name, Scope*  _scope) -> VariableNode*
     {
         VariableNode* var_node;
         Scope* scope = _scope ? _scope : graph->get_root()->get<Scope>();
 
         var_node = graph->create_variable(_type, _name, scope );
+        var_node->set_declared(true);
 
         std::shared_ptr<Token> token  = std::make_shared<Token>();
         token->m_type = Token_t::keyword_operator;
@@ -658,8 +658,8 @@ void GraphNodeView::set_owner(Node *_owner)
     Component::set_owner(_owner);
 
     // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
-    auto                   graph    = cast<GraphNode>(_owner);
-    const NodableLanguage& language = m_ctx.language();
+    auto           graph    = cast<GraphNode>(_owner);
+    const Nodlang& language = m_ctx.language();
 
     for (auto each_fct : language.get_api())
     {
@@ -673,7 +673,7 @@ void GraphNodeView::set_owner(Node *_owner)
         };
 
         std::string label;
-        language.get_serializer().serialize(label, type);
+        language.serialize(label, type);
         std::string category = is_operator ? k_operator_menu_label : k_function_menu_label;
         add_contextual_menu_item(category, label, create_node, type);
     }

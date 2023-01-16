@@ -15,7 +15,7 @@ using namespace ndbl;
 InstructionNode* NodeFactory::new_instr() const
 {
     InstructionNode* instr_node = new InstructionNode();
-    instr_node->set_label("Instr.", "");
+    instr_node->set_name("Instr.");
     m_post_process(instr_node);
     return instr_node;
 }
@@ -23,8 +23,7 @@ InstructionNode* NodeFactory::new_instr() const
 VariableNode* NodeFactory::new_variable(type _type, const std::string& _name, IScope *_scope) const
 {
     // create
-    auto* node = new VariableNode(_type);
-    node->set_identifier(_name.c_str());
+    auto* node = new VariableNode(_type, _name.c_str());
 
     if( _scope)
     {
@@ -54,14 +53,14 @@ Node* NodeFactory::_new_abstract_function(const func_type* _func_type, bool _is_
 
     if( _is_operator )
     {
-        node->set_label( _func_type->get_identifier().c_str() );
+        node->set_name(_func_type->get_identifier().c_str());
     }
     else
     {
         std::string id = _func_type->get_identifier();
         std::string label       = id + "()";
         std::string short_label = id.substr(0, 2) + "..()"; // ------- improve, not great.
-        node->set_label(label.c_str(), short_label.c_str());
+        node->set_name(label.c_str());
     }
 
     // Create a result/value
@@ -134,7 +133,7 @@ void NodeFactory::add_invokable_component(Node *_node, const func_type* _func_ty
 Node* NodeFactory::new_scope() const
 {
     auto scope_node = new Node();
-    scope_node->set_label("{} Scope", "{}");
+    scope_node->set_name("{} Scope");
 
     scope_node->predecessors().set_limit(std::numeric_limits<int>::max());
     scope_node->successors().set_limit(1);
@@ -150,7 +149,7 @@ Node* NodeFactory::new_scope() const
 ConditionalStructNode* NodeFactory::new_cond_struct() const
 {
     auto cond_struct_node = new ConditionalStructNode();
-    cond_struct_node->set_label("If");
+    cond_struct_node->set_name("If");
 
     cond_struct_node->predecessors().set_limit(std::numeric_limits<int>::max());
     cond_struct_node->successors().set_limit(2); // true/false branches
@@ -166,7 +165,7 @@ ConditionalStructNode* NodeFactory::new_cond_struct() const
 ForLoopNode* NodeFactory::new_for_loop_node() const
 {
     auto for_loop = new ForLoopNode();
-    for_loop->set_label("For loop", "For");
+    for_loop->set_name("For loop");
 
     for_loop->predecessors().set_limit(std::numeric_limits<int>::max());
     for_loop->successors().set_limit(1);
@@ -182,7 +181,7 @@ ForLoopNode* NodeFactory::new_for_loop_node() const
 Node* NodeFactory::new_program() const
 {
     Node* prog = new_scope();
-    prog->set_label(ICON_FA_FILE_CODE " Program", ICON_FA_FILE_CODE);
+    prog->set_name(ICON_FA_FILE_CODE " Program");
 
     m_post_process(prog);
     return prog;
@@ -198,7 +197,7 @@ Node* NodeFactory::new_node() const
 LiteralNode* NodeFactory::new_literal(type _type) const
 {
     LiteralNode* node = new LiteralNode(_type);
-    node->set_label("Literal", "");
+    node->set_name("Literal");
     m_post_process(node);
     return node;
 }
