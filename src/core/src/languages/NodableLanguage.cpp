@@ -12,8 +12,8 @@ using namespace ndbl;
 NodableLanguage::NodableLanguage(): m_parser(*this), m_serializer(*this)
 {
     // ignored
-    add_regex(std::regex("^(//(.+?)($|\n))"), Token_t::ignore); // Single line
-    add_regex(std::regex("^(/\\*(.+?)\\*/)"), Token_t::ignore); // Multi line
+    add_regex(std::regex("(//(.+?)($|\n))"), Token_t::ignore); // Single line
+    add_regex(std::regex("(/\\*(.+?)\\*/)"), Token_t::ignore); // Multi line
 
     // keywords
     add_string(k_keyword_if           , Token_t::keyword_if);
@@ -37,18 +37,18 @@ NodableLanguage::NodableLanguage(): m_parser(*this), m_serializer(*this)
     add_char(k_end_of_line        , Token_t::end_of_line);
 
     // literals
-    // USE OTHER METHOD: insert(std::regex("^(true|false)")                , Token_t::literal_bool  , type::get<bool>());
-    add_regex(std::regex(R"(^("[^"]*"))")                , Token_t::literal_string , type::get<std::string>());
-    add_regex(std::regex("^(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal_double , type::get<double>());
-    add_regex(std::regex("^(0|([1-9][0-9]*))")           , Token_t::literal_int    , type::get<i16_t>());
+    // USE OTHER METHOD: insert(std::regex("(true|false)")                , Token_t::literal_bool  , type::get<bool>());
+    add_regex(std::regex(R"(("[^"]*"))")                , Token_t::literal_string , type::get<std::string>());
+    add_regex(std::regex("(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal_double , type::get<double>());
+    add_regex(std::regex("(0|([1-9][0-9]*))")           , Token_t::literal_int    , type::get<i16_t>());
 
     // identifier
-    add_regex(std::regex("^([a-zA-Z_]+[a-zA-Z0-9]*)"), Token_t::identifier);
+    add_regex(std::regex("([a-zA-Z_]+[a-zA-Z0-9]*)"), Token_t::identifier);
 
     // operators
-    add_regex(std::regex("^(<=>)"), Token_t::operator_); // 3 chars
-    add_regex(std::regex("^([=\\|&]{2}|(<=)|(>=)|(=>)|(!=))"), Token_t::operator_); // 2 chars
-    add_regex(std::regex("^[/+\\-*!=<>]"), Token_t::operator_); // single char
+    add_regex(std::regex("(<=>)"), Token_t::operator_); // 3 chars
+    add_regex(std::regex("([=\\|&]{2}|(<=)|(>=)|(=>)|(!=))"), Token_t::operator_); // 2 chars
+    add_regex(std::regex("[/+\\-*!=<>]"), Token_t::operator_); // single char
 
     add_operator( "-"  , Operator_t::Unary, 5); // --------- unary (sorted by precedence)
     add_operator( "!"  , Operator_t::Unary, 5);
@@ -221,7 +221,7 @@ void NodableLanguage::add_type(type _type, Token_t _token_t, std::string _string
 void NodableLanguage::add_string(std::string _string, Token_t _token_t)
 {
     m_token_t_to_string.insert({_token_t, _string});
-    add_regex(std::regex("^(" + _string + ")"), _token_t);
+    add_regex(std::regex("(" + _string + ")"), _token_t);
 }
 
 void NodableLanguage::add_char(const char _char, Token_t _token_t)
