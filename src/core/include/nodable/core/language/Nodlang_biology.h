@@ -8,9 +8,9 @@ namespace ndbl
      * Nodable's biology library.
      * See cpp for more information
      */
-    class NodableLibrary_biology
+    class Nodlang_biology
     {
     public:
-        NodableLibrary_biology();
+        Nodlang_biology();
     };
 }

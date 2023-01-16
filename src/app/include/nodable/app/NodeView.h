@@ -149,7 +149,7 @@ namespace ndbl
         static bool             is_inside(NodeView*, ImRect);
         static void             constraint_to_rect(NodeView*, ImRect);
         static NodeView*        get_dragged();
-        static bool             draw_input(IAppCtx &_ctx, Property *_property, const char *_label);
+        static bool             draw_input(IAppCtx &_context, Property *_property, const char *_label);
         static void             draw_as_properties_panel(IAppCtx &_ctx, NodeView *_view, bool *_show_advanced);
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
@@ -160,6 +160,8 @@ namespace ndbl
 		bool                    draw(PropertyView *_view);
         bool                    is_exposed(const Property *_property)const;
 
+        std::string     m_label;
+        std::string     m_short_label;
         bool            m_apply_constraints;
         bool            m_edition_enable;
         vec2            m_forces_sum;

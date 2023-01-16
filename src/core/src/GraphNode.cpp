@@ -12,8 +12,7 @@
 #include <nodable/core/Scope.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/assertions.h>
-#include <nodable/core/languages/NodableParser.h>
-#include <nodable/core/languages/NodableLanguage.h>
+#include <nodable/core/language/Nodlang.h>
 
 using namespace ndbl;
 
@@ -23,7 +22,7 @@ REGISTER
 }
 
 // test
-GraphNode::GraphNode(const NodableLanguage* _language, const INodeFactory* _factory, const bool* _autocompletion)
+GraphNode::GraphNode(const Nodlang* _language, const INodeFactory* _factory, const bool* _autocompletion)
     : m_language(_language)
     , m_factory(_factory)
     , m_root(nullptr)
@@ -45,7 +44,7 @@ void GraphNode::clear()
         for (auto i = m_node_registry.size(); i > 0; i--)
         {
             Node* node = m_node_registry[i - 1];
-            LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->get_label() )
+            LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->get_name() )
             destroy(node);
         }
 	}
@@ -117,7 +116,7 @@ void GraphNode::add(Node* _node)
 {
 	m_node_registry.push_back(_node);
     _node->set_parent_graph(this);
-    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->get_label(), _node->get_type().get_name())
+    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->get_name(), _node->get_type().get_name())
 }
 
 void GraphNode::remove(Node* _node)

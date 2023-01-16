@@ -13,7 +13,7 @@
 #include <nodable/core/Texture.h>
 #include <nodable/core/VirtualMachine.h>
 #include <nodable/core/reflection/reflection>
-#include <nodable/core/languages/NodableLanguage.h>
+#include <nodable/core/language/Nodlang.h>
 
 namespace ndbl
 {
@@ -55,8 +55,8 @@ namespace ndbl
         std::string     compute_asset_path(const char *_relative_path) const override;
         Settings&       settings() override { return m_settings; }
         VirtualMachine& virtual_machine() override { return m_vm; }
-        NodableLanguage& language() override { return *m_language.get(); }
-        const NodableLanguage& language() const override { return *m_language.get(); }
+        Nodlang&        language() override { return *m_language.get(); }
+        const Nodlang&  language() const override { return *m_language.get(); }
         TextureManager& texture_manager() override { return m_texture_manager; };
 
     private:
@@ -71,7 +71,7 @@ namespace ndbl
         bool            m_should_stop;
         fs_path         m_assets_folder_path;
         size_t          m_current_file_index;
-        std::unique_ptr<NodableLanguage> m_language;
+        std::unique_ptr<Nodlang> m_language;
         std::vector<File*> m_loaded_files;
 
         void            handle_events();

@@ -8,7 +8,7 @@ namespace ndbl
     // forward decl
     class VirtualMachine;
     class Settings;
-    class NodableLanguage;
+    class Nodlang;
     class TextureManager;
     class File;
 
@@ -40,8 +40,8 @@ namespace ndbl
         virtual std::string     compute_asset_path(const char* _relative_path) const = 0;
         virtual VirtualMachine& virtual_machine() = 0;
         virtual Settings&       settings() = 0;
-        virtual NodableLanguage&       language() = 0;
-        virtual const NodableLanguage& language() const = 0;
+        virtual Nodlang&       language() = 0;
+        virtual const Nodlang& language() const = 0;
         virtual TextureManager& texture_manager() = 0;
         virtual u64_t           elapsed_time() const = 0;
     };

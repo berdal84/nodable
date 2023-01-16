@@ -9,7 +9,7 @@
 #include <nodable/core/Scope.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/DirectedEdge.h>
-#include <nodable/core/languages/NodableLanguage.h>
+#include <nodable/core/language/Nodlang.h>
 #include <nodable/core/reflection/func_type.h>
 
 using namespace ndbl;
@@ -34,11 +34,11 @@ public:
     }
 
 protected:
-    const NodableLanguage language;
-    NodeFactory           factory;
-    bool                  autocompletion = false;
+    const Nodlang language;
+    NodeFactory   factory;
+    bool          autocompletion = false;
 public:
-    GraphNode             graph;
+    GraphNode     graph;
 };
 
 TEST_F(token_fixture, connect)

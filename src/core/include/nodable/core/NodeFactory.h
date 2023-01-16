@@ -13,7 +13,7 @@ namespace ndbl
 
     class iinvokable;
     class IScope;
-    class NodableLanguage;
+    class Nodlang;
 
     /**
      * @brief The NodeFactory instantiate Nodes. Class take a function to apply after creation.
@@ -23,7 +23,7 @@ namespace ndbl
     class NodeFactory: public INodeFactory
     {
     public:
-        NodeFactory(const NodableLanguage* _language, std::function<void(Node *)> _post_process_fct = [](Node* _node){} )
+        NodeFactory(const Nodlang* _language, std::function<void(Node *)> _post_process_fct = [](Node* _node){} )
         : m_language(_language)
         , m_post_process(_post_process_fct) {}
         ~NodeFactory() {}
@@ -43,6 +43,6 @@ namespace ndbl
         void                        add_invokable_component(Node *_node, const func_type*, const iinvokable *_invokable, bool _is_operator) const;
 
         std::function<void(Node*)>  m_post_process; // invoked after each node creation, just before to return.
-        const NodableLanguage*      m_language;
+        const Nodlang*              m_language;
     };
 }

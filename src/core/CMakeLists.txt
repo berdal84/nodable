@@ -23,17 +23,16 @@ add_library(
         src/Component.cpp
         src/ConditionalStructNode.cpp
         src/DataAccess.cpp
+        src/DirectedEdge.cpp
         src/ForLoopNode.cpp
         src/GraphNode.cpp
         src/InstructionNode.cpp
         src/InvokableComponent.cpp
         src/LiteralNode.cpp
         src/Log.cpp
-        src/Property.cpp
-        src/NodableParser.cpp
-        src/NodableSerializer.cpp
         src/Node.cpp
         src/NodeFactory.cpp
+        src/Property.cpp
         src/PropertyGrp.cpp
         src/Scope.cpp
         src/String.cpp
@@ -46,15 +45,14 @@ add_library(
         src/assembly/Code.cpp
         src/assembly/Compiler.cpp
         src/assembly/Instruction.cpp
-        src/reflection/qword.cpp
-        src/languages/NodableLanguage.cpp
-        src/languages/NodableLibrary_biology.cpp
-        src/languages/NodableLibrary_math.cpp
+        src/language/Nodlang.cpp
+        src/language/Nodlang_biology.cpp
+        src/language/Nodlang_math.cpp
         src/reflection/func_type.cpp
+        src/reflection/qword.cpp
         src/reflection/type.cpp
         src/reflection/type_register.cpp
-        src/reflection/variant.cpp
-        src/DirectedEdge.cpp)
+        src/reflection/variant.cpp)
 
 target_link_libraries(
     nodable-core

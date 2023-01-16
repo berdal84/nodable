@@ -87,3 +87,10 @@ void Token::clear()
     m_word_size = 0;
     m_buffer    = "";
 }
+
+void Token::set_word(const std::string& word)
+{
+    auto word_backup = get_word();
+    m_buffer    = get_prefix() + word + get_suffix();
+    m_word_size = word.size();
+}
