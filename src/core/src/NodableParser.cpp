@@ -707,7 +707,7 @@ bool NodableParser::tokenize(const std::string& _string)
         for (auto&& each_regex_it = regex.cbegin(); each_regex_it != regex.cend(); each_regex_it++)
         {
             std::smatch sm;
-            auto match = std::regex_search(cursor, _string.cend(), sm, *each_regex_it);
+            auto match = std::regex_search(cursor, _string.cend(), sm, *each_regex_it, std::regex_constants::match_continuous);
 
             if (match)
             {
