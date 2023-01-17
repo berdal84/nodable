@@ -93,30 +93,27 @@ const char* Node::get_name()const
 
 void Node::add_edge(const DirectedEdge* edge)
 {
-    m_edges.push_back(edge);
+    m_edges.insert(edge);
     m_dirty = true;
 }
 
 void Node::remove_edge(const DirectedEdge*edge)
 {
-	auto found = std::find(m_edges.begin(), m_edges.end(), edge);
+	auto found = m_edges.find(edge);
 	if(found != m_edges.end())
+    {
         m_edges.erase(found);
-    m_dirty = true;
+        m_dirty = true;
+    }
 }
 
-std::vector<const DirectedEdge*>& Node::get_edges()
-{
-	return m_edges;
-}
-
-size_t Node::get_input_edge_count()const
+size_t Node::incoming_edge_count()const
 {
     return std::count_if(m_edges.cbegin(), m_edges.cend()
                        , [this](const auto each_edge) { return each_edge->prop.dst->get_owner() == this; });
 }
 
-size_t Node::get_output_edge_count()const
+size_t Node::outgoing_edge_count()const
 {
 	return std::count_if(m_edges.cbegin(), m_edges.cend()
                        , [this](const auto each_edge) { return each_edge->prop.src->get_owner() == this; });
@@ -132,16 +129,6 @@ UpdateResult Node::update()
     m_dirty = false;
 
 	return UpdateResult::Success;
-}
-
-GraphNode *Node::get_inner_graph() const
-{
-    return m_inner_graph;
-}
-
-void Node::get_inner_graph(GraphNode *_graph)
-{
-    this->m_inner_graph = _graph;
 }
 
 const iinvokable* Node::get_connected_invokable(const Property *_local_property)
@@ -200,11 +187,6 @@ Node::~Node()
 {
     if ( !m_components.empty())
         delete_components();
-}
-
-size_t Node::get_component_count() const
-{
-    return m_components.size();
 }
 
 size_t Node::delete_components()

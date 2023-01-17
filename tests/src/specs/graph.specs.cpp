@@ -75,8 +75,8 @@ TEST_F(token_fixture, disconnect)
     graph.disconnect(edge);
 
     EXPECT_EQ(graph.get_edge_registry().size()  , 0); // edge must be unregistered when disconnected
-    EXPECT_EQ(a->get_output_edge_count(), 0);
-    EXPECT_EQ(b->get_input_edge_count() , 0);
+    EXPECT_EQ(a->outgoing_edge_count(), 0);
+    EXPECT_EQ(b->incoming_edge_count() , 0);
 }
 
 TEST_F(token_fixture, clear)

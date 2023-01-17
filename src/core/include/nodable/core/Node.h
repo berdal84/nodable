@@ -58,15 +58,9 @@ namespace ndbl {
 
 		virtual Node*        get_parent()const { return m_parent; }
         virtual void         set_parent(Node*);
-
         Slots<Node*>&        children_slots() { return m_children; }
-        const Slots<Node*>&  children_slots()const { return m_children; }
-
         inline GraphNode*    get_parent_graph()const { return m_parent_graph; }
         void                 set_parent_graph(GraphNode*);
-		GraphNode*           get_inner_graph()const;
-		void                 get_inner_graph(GraphNode*);
-
         Slots<Node*>&        inputs() { return m_inputs; };
         const Slots<Node*>&  inputs() const{ return m_inputs; };
         Slots<Node*>&        outputs() { return m_outputs; };
@@ -74,25 +68,17 @@ namespace ndbl {
         Slots<Node*>&        successors() { return m_successors; }
         const Slots<Node*>&  successors()const { return m_successors; }
         Slots<Node*>&        predecessors() { return m_predecessors; }
-        const Slots<Node*>&  predecessors()const { return m_predecessors; }
-
         bool                 flagged_to_delete() const { return m_flagged_to_delete; }
         void                 flag_to_delete(){ m_flagged_to_delete = true;}
-
-        void set_name(const char *_label);
-        const char*get_name()const;
-
+        void                 set_name(const char *_label);
+        const char*          get_name()const;
 		void                 add_edge(const DirectedEdge*);
 		void                 remove_edge(const DirectedEdge*);
-        std::vector<const DirectedEdge*>& get_edges();
-        size_t               get_input_edge_count()const;
-        size_t               get_output_edge_count()const;
-
+        size_t               incoming_edge_count()const;
+        size_t               outgoing_edge_count()const;
 		void                 set_dirty(bool _value = true);
 		bool                 is_dirty()const;
-
 		virtual UpdateResult update();
-
         const iinvokable*    get_connected_invokable(const Property *each_edge); // TODO: weird, try to understand why I needed this
         bool                 is_connected_with(const Property *_localProperty);
 
@@ -102,8 +88,7 @@ namespace ndbl {
 
         PropertyGrp *          props() { return &m_props; }
         const PropertyGrp *    props()const { return &m_props; }
-
-        Property *              get_this_property()const { return props()->get(k_this_property_name);}
+        Property *             get_this_property()const { return props()->get(k_this_property_name);}
 
 		 /**
 		  * Add a component to this Node
@@ -203,7 +188,6 @@ namespace ndbl {
         }
 
         size_t delete_components();
-        [[nodiscard]] size_t get_component_count() const;
 
         observe::Event<Node*, Edge_t> m_on_relation_added;
         observe::Event<Node*, Edge_t> m_on_relation_removed;
@@ -233,9 +217,9 @@ namespace ndbl {
     private:
 		GraphNode*         m_inner_graph;
 		GraphNode*         m_parent_graph;
-		std::string m_name;
+		std::string        m_name;
 		bool               m_dirty;
-        std::vector<const DirectedEdge*> m_edges;
+        std::set<const DirectedEdge*> m_edges;
         Slots<Node*>       m_inputs;
         Slots<Node*>       m_outputs;
 
