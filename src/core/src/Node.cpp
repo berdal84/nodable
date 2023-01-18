@@ -16,11 +16,11 @@ REGISTER
 }
 
 Node::Node(std::string _label)
-    : m_successors(this, 0)
-    , m_predecessors(this, 0)
-    , m_inputs(this)
-    , m_outputs(this)
-    , m_children(this)
+    : m_successors(0)
+    , m_predecessors(0)
+    , m_inputs()
+    , m_outputs()
+    , m_children()
     , m_props(this)
     , m_parent_graph(nullptr)
     , m_parent(nullptr)
