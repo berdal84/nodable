@@ -99,9 +99,9 @@ qword&Property::get_underlying_data()
     return get_pointed_variant().get_underlying_data();
 }
 
-Property *Property::new_with_type(PropertyGrp *_parent, type _type, Flags _flags)
+std::shared_ptr<Property> Property::new_with_type(PropertyGrp *_parent, type _type, Flags _flags)
 {
-    auto property = new Property(_parent);
+    auto property = std::make_shared<Property>(_parent);
     property->m_variant.ensure_is_type(_type);
 
     if( _flags & Flags_initialize )

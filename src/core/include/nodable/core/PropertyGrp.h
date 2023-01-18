@@ -17,32 +17,31 @@ namespace ndbl
      */
 	class PropertyGrp
     {
+    private:
+        struct PropertiesIndex {
+            PropertyVec  by_index;   // properties ordered
+            PropertyMap  by_name;    // properties indexed by name
+        };
 	public:
 		explicit PropertyGrp(Node* owner);
 		virtual ~PropertyGrp();
-        template<typename T>
-        Property * add(const char* _name, Visibility _visibility, Way _way, Property::Flags _flags = 0)
-        {
-            return add(_name, _visibility, type::get<T>(), _way, _flags);
-        }
-        Property *             add(const char *_name, Visibility _visibility, type _type, Way, Property::Flags = 0);
-		// void                remove(const char*); // if we implement that, we have to think about all indexes.
-		// void                remove(Property*);     // => implement remove_from_indexes(Property*)
-        bool                has(const char*);
-		bool                has(const Property *);
-        Property *             get(const char* _name)const { return m_properties_by_name.at(_name); };
-        Node*               get_owner()const { return m_owner; };
-		const PropertyMap &    by_name()const { return m_properties_by_name; };
-		const PropertyVec &    by_id()const { return m_properties_by_id; };
-        Property *             get_first(Way _way, type _type) const;
-        Property *             get_input_at(u8_t n) const;
-	private:
-	    void                add_to_indexes(Property *);
-	    // void                remove_from_indexes(Property*);
 
-	    Node*             m_owner;
-        PropertyMap m_properties_by_name; // tripple index, by name ...
-        std::set<Property *> m_properties;         // ... by adress ...
-        PropertyVec m_properties_by_id;   // ... and by id (insertion order).
+        bool                   has(const char*) const;
+        Property*              get(const char* _name)const { return m_properties_.by_name.at(_name); };
+        Node*                  get_owner()const { return m_owner; };
+		const PropertyMap&     by_name()const { return m_properties_.by_name; };
+		const PropertyVec&     by_index()const { return m_properties_.by_index; };
+        Property*              get_first(Way _way, const type& _type) const;
+        Property*              get_input_at(u8_t n) const;
+        std::shared_ptr<Property> add(const char *_name, Visibility _visibility, const type& _type, Way, Property::Flags = 0);
+        template<typename T>
+        std::shared_ptr<Property> add(const char* _name, Visibility _visibility, Way _way, Property::Flags _flags = 0)
+            {
+                return add(_name, _visibility, type::get<T>(), _way, _flags);
+            }
+	private:
+        Node*                               m_owner;
+        std::set<std::shared_ptr<Property>> m_properties;
+        PropertiesIndex                     m_properties_;
 	};
 }

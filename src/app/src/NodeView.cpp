@@ -124,7 +124,7 @@ void NodeView::set_owner(Node *_node)
 
     //  We expose first the properties which allows input connections
 
-    for(Property * each_property : _node->props()->by_id())
+    for(Property * each_property : _node->props()->by_index())
     {
         if (each_property->get_visibility() == Visibility::Always && each_property->allows_connection(Way_In) )
         {
