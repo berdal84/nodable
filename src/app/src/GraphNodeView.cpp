@@ -232,13 +232,10 @@ bool GraphNodeView::draw()
         */
         for (auto eachNode : node_registry)
         {
-            const PropertyVec & properties = eachNode->props()->by_id();
+            const PropertyVec & properties = eachNode->props()->by_index();
 
             for (auto& dst_property : properties)
             {
-
-                NDBL_EXPECT( eachNode->props()->has(dst_property), "Incoherence!")
-
                 if ( const Property * src_property = dst_property->get_input() )
                 {
                     Node *src_owner = src_property->get_owner();

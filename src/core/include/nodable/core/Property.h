@@ -86,22 +86,22 @@ namespace ndbl
         VariableNode*    get_connected_variable();
         qword&           get_underlying_data();
 
-		static Property *                new_with_type(PropertyGrp * , type , Flags = Flags_none);
-		static std::vector<variant*>& get_variant(std::vector<Property *> _in, std::vector<variant*>& _out);
+		static std::shared_ptr<Property> new_with_type(PropertyGrp * ,type , Flags = Flags_none);
+		static std::vector<variant*>&    get_variant(std::vector<Property *> _in, std::vector<variant*>& _out);
     private:
 
         // TODO: implem AbstractProperty, implement Value and Reference, remove this get_variant()
 		variant&       get_pointed_variant()     { return is_connected_by_ref() ? m_input->m_variant : m_variant; }
         const variant& get_pointed_variant()const{ return is_connected_by_ref() ? m_input->m_variant : m_variant; }
 
-        Property *           m_input;
-        Visibility 		  m_visibility;
-        Node*             m_owner;
-        PropertyGrp *       m_parentProperties;
-		std::vector<Property *>   m_outputs;
-		Way                    m_allowed_connection;
-		std::shared_ptr<Token> m_sourceToken;
-		std::string            m_name;
-		ndbl::variant       m_variant;
+        Property*               m_input;
+        Visibility 		        m_visibility;
+        Node*                   m_owner;
+        PropertyGrp*            m_parentProperties;
+		std::vector<Property *> m_outputs;
+		Way                     m_allowed_connection;
+		std::shared_ptr<Token>  m_sourceToken;
+		std::string             m_name;
+		ndbl::variant           m_variant;
     };
 }

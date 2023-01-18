@@ -5,39 +5,34 @@ using namespace ndbl;
 
 PropertyGrp::PropertyGrp(Node* _owner):m_owner(_owner){}
 
-PropertyGrp::~PropertyGrp()
+PropertyGrp::~PropertyGrp() {}
+
+bool PropertyGrp::has(const char* _name) const
 {
-	for(Property * each_property : m_properties_by_id)
-	{
-        delete each_property;
-	}
+    return m_properties_.by_name.find(_name) != m_properties_.by_name.end();
 }
 
-bool PropertyGrp::has(const char* _name)
-{
-    return m_properties_by_name.find(_name) != m_properties_by_name.end();
-}
-
-bool PropertyGrp::has(const Property * _property)
-{
-	return std::find(m_properties.cbegin(), m_properties.cend(), _property) != m_properties.end();
-}
-
-Property *PropertyGrp::add(const char* _name, Visibility _visibility, type _type, Way _way, Property::Flags _flags )
+std::shared_ptr<Property> PropertyGrp::add(const char* _name, Visibility _visibility, const type& _type, Way _way, Property::Flags _flags )
 {
     NDBL_ASSERT(!has(_name));
 
-    Property * new_property = Property::new_with_type(this, _type, _flags);
+    // create the property
+    auto new_property = Property::new_with_type(this, _type, _flags);
     new_property->set_name(_name);
     new_property->set_visibility(_visibility);
     new_property->set_allowed_connection(_way);
 
-    add_to_indexes(new_property);
+    // register property
+    m_properties.insert(new_property);
 
-	return new_property;
+    // add to indexes
+    m_properties_.by_name.insert({new_property->get_name(), new_property.get()});
+    m_properties_.by_index.push_back(new_property.get());
+
+    return new_property;
 }
 
-Property *PropertyGrp::get_first(Way _way, type _type) const
+Property *PropertyGrp::get_first(Way _way, const type& _type) const
 {
     auto filter = [_way, _type](auto each_pair) -> bool
     {
@@ -46,25 +41,16 @@ Property *PropertyGrp::get_first(Way _way, type _type) const
                && ( each_property->get_allowed_connection() & _way );
     };
 
-    auto found = std::find_if(m_properties_by_name.begin(), m_properties_by_name.end(), filter );
+    auto found = std::find_if(m_properties_.by_name.begin(), m_properties_.by_name.end(), filter );
 
-    if (found != m_properties_by_name.end() )
-        return (*found).second;
-    return nullptr;
-}
-
-void PropertyGrp::add_to_indexes(Property * _property)
-{
-    m_properties_by_name.insert({_property->get_name(), _property});
-    m_properties_by_id.push_back(_property);
-    m_properties.insert(_property);
+    return found != m_properties_.by_name.end() ? (*found).second : nullptr;
 }
 
 Property *PropertyGrp::get_input_at(u8_t _position) const
 {
     u8_t count = 0;
 
-    for( auto each : m_properties_by_id)
+    for( auto each : m_properties_.by_index)
     {
         if( each->allows_connection(Way_In) && !each->allows_connection(Way_Out))
         {

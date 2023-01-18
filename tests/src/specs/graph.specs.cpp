@@ -60,15 +60,15 @@ TEST_F(token_fixture, connect)
 
 TEST_F(token_fixture, disconnect)
 {
-    Node*   a      = graph.create_node();
-    Property * output = a->props()->add<bool>("output", Visibility::Default, Way_Default);
+    Node* a      = graph.create_node();
+    auto  output = a->props()->add<bool>("output", Visibility::Default, Way_Default);
 
-    Node*   b     = graph.create_node();
-    Property * input = b->props()->add<bool>("input", Visibility::Default, Way_Default);
+    Node* b     = graph.create_node();
+    auto  input = b->props()->add<bool>("input", Visibility::Default, Way_Default);
 
     EXPECT_EQ(graph.get_edge_registry().size(), 0);
 
-    const DirectedEdge* edge = graph.connect(output, input);
+    const DirectedEdge* edge = graph.connect(output.get(), input.get());
 
     EXPECT_EQ(graph.get_edge_registry().size(), 1); // edge must be registered when connected
 

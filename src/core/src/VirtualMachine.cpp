@@ -208,7 +208,7 @@ bool VirtualMachine::_stepOver()
 
             auto transfer_input_values = [](Node* _node)
             {
-                for(Property * each_property : _node->props()->by_id())
+                for(Property * each_property : _node->props()->by_index())
                 {
                     Property * input = each_property->get_input();
 

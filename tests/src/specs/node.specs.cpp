@@ -28,7 +28,7 @@ public:
 
 TEST_F(node_fixture, add_property_double)
 {
-    Property * property = node.props()->add("val", Visibility::Default, type::get<double>(), Way_Default);
+    auto property = node.props()->add("val", Visibility::Default, type::get<double>(), Way_Default);
     property->set(100.0);
 
     EXPECT_EQ((double)*property, 100.0);

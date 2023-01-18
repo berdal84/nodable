@@ -33,7 +33,7 @@ Node::Node(std::string _label)
      * Add "this" Property to be able to connect this Node as an object pointer.
      * Usually an object pointer is connected to an InstructionNode's "node_to_eval" Property.
      */
-    Property * this_property = m_props.add<Node*>(k_this_property_name, Visibility::Always, Way::Way_Out);
+    auto this_property = m_props.add<Node*>(k_this_property_name, Visibility::Always, Way::Way_Out);
     this_property->set( this );
 
     // propagate "inputs" events
@@ -131,20 +131,16 @@ UpdateResult Node::update()
 	return UpdateResult::Success;
 }
 
-const iinvokable* Node::get_connected_invokable(const Property *_local_property)
+const iinvokable* Node::get_connected_invokable(const Property* _local_property)
 {
-    NDBL_EXPECT(m_props.has(_local_property), "This node has no property with this address!");
+    NDBL_EXPECT(_local_property->get_owner() == this, "This node has no property with this address!");
 
-    /*
-     * Find a wire connected to _property
-     */
-    auto found = std::find_if(m_edges.cbegin(), m_edges.cend(), [_local_property](const DirectedEdge*each_edge)->bool {
+    // Find an edge connected to _property
+    auto found = std::find_if(m_edges.cbegin(), m_edges.cend(), [_local_property](const DirectedEdge* each_edge)->bool {
         return each_edge->prop.dst == _local_property;
     });
 
-    /*
-     * If found, we try to get the ComputeXXXXXOperator from it's source
-     */
+    // If found, we try to get the InvokableComponent from its source node.
     if (found != m_edges.end() )
     {
         Node* node = (*found)->prop.src->get_owner();
