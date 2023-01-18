@@ -48,42 +48,43 @@ namespace ndbl {
     {
     public:
 
+        // Different verbosity levels a log can have
         enum Verbosity: size_t
         {
-            Verbosity_Error,
+            Verbosity_Error,          // highest level (always logged)
             Verbosity_Warning,
             Verbosity_Message,
-            Verbosity_Verbose,
-            Verbosity_COUNT
+            Verbosity_Verbose,        // lowest level
+            Verbosity_COUNT,
+            Verbosity_DEFAULT = Verbosity_Message
         };
+        static std::string to_string(Verbosity _verbosity);
 
         struct Message
         {
             using time_point_t = std::chrono::time_point<std::chrono::system_clock>;
-            time_point_t time_point;
-            Verbosity    verbosity;
-            std::string  category;
-            std::string  text;
-            std::string  to_string()const;
-            std::string  to_full_string()const;
+            time_point_t date;                 // message date
+            Verbosity    verbosity;            // verbosity level
+            std::string  category;             // category (ex: "Game", "App", etc.)
+            std::string  text;                 // message content text
+            std::string  to_string()const;     // get a pretty string of this message (ex: "[MSG|Game] Starting ...")
+            std::string  to_full_string()const;// get a pretty string of this message (ex: "[<date>|MSG|Game] Starting ...")
         };
 
         using Messages = std::deque<Message>;
 	private:
-        static Messages s_logs;
+        static Messages  s_logs;      // message history
+        static Verbosity s_verbosity; // current global verbosity level
         static std::map<std::string, Verbosity>& get_verbosity_by_category();
-        static Verbosity                        s_verbosity;
 
 	public:
         static const Messages& get_messages();
         static const Message& get_last_message();
-	    static void           set_verbosity(const std::string& _category, Verbosity _verbosityLevel);
+	    static void           set_verbosity(const std::string& _category, Verbosity);
 	    static void           set_verbosity(Verbosity);
         static Verbosity      get_verbosity(const std::string& _category);
         static Verbosity      get_verbosity();
 		static void           push_message(Verbosity _verbosity, const char* _category, const char* _format, ...);
 		static void           flush();
-
-        static std::string to_string(Verbosity _verbosity);
     };
 }
