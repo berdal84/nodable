@@ -8,7 +8,7 @@
 using namespace ndbl;
 
 Log::Messages   Log::s_logs;
-Log::Verbosity  Log::s_verbosity = Verbosity_Message;
+Log::Verbosity  Log::s_verbosity = Verbosity_DEFAULT;
 
 std::map<std::string, Log::Verbosity>& Log::get_verbosity_by_category()
 {
@@ -130,7 +130,7 @@ std::string Log::Message::to_full_string()const
     result.reserve(50);
 
     result.push_back('[');
-    result.append( time_point_to_string(time_point) );
+    result.append( time_point_to_string(date) );
     result.push_back('|');
     result.append( Log::to_string(verbosity) );
     result.push_back('|');
