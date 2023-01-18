@@ -4,11 +4,11 @@
 namespace ndbl
 {
 
-    enum class Operator_t: int
+    enum class Operator_t: int   // To distinguish operator types
     {
-        Unary   = 1,
-        Binary  = 2,
-        Ternary = 3,
+        Unary   = 1,             // Unary  (ex: "-2", "++i" )
+        Binary  = 2,             // Binary (ex: "1+1", "2*4", "1/2")
+        Ternary = 3,             // Ternary (ex: "<condition> ? <true> : <false> )
     };
 
     R_ENUM(Operator_t)
