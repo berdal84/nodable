@@ -15,7 +15,7 @@ TokenRibbon::TokenRibbon()
     transactionStartTokenIndexes.push(0);
 }
 
-std::shared_ptr<Token> TokenRibbon::push(std::shared_ptr<Token> _token)
+std::shared_ptr<Token> TokenRibbon::push(const std::shared_ptr<Token>& _token)
 {
     _token->m_index = tokens.size();
     tokens.push_back(_token);

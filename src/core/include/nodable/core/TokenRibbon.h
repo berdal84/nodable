@@ -28,7 +28,7 @@ namespace ndbl
         [[nodiscard]] std::string toString() const;
 
         /** Push a new token into the ribbon */
-        token_ptr push(token_ptr);
+        token_ptr push(const token_ptr&);
 
         /** Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
         [[nodiscard]] token_ptr push(Token_t _type, const std::string& _string, size_t _charIndex);
