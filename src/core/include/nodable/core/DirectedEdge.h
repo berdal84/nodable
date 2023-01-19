@@ -73,17 +73,15 @@ namespace ndbl
         Edge_t type;          // Nature of the relation
 
         DirectedEdge() = delete;
-        DirectedEdge(Edge_t _type, Node* _src, Node * _dst);
-        DirectedEdge(Edge_t _type, Property * _src, Property * _dst);
-        DirectedEdge(Property * _src, Property * _dst);
-        DirectedEdge(Property * _src, Edge_t _type, Property * _dst);
-        DirectedEdge(Node * _src, Edge_t _type, Node * _dst);
-        DirectedEdge(Edge_t _type, const Pair<Property*> _pair);
+        DirectedEdge(Property * _src, Edge_t _type, Property * _dst);  // Connect source to target with a given relation type.
+        DirectedEdge(Property * _src, Property * _dst);                // Connect source to target with the relation IS_INPUT_OF
+        DirectedEdge(Node * _src, Edge_t _type, Node * _dst);          // Connect source["this"] to target["this"] with a given relation type.
+        DirectedEdge(Edge_t _type, Pair<Property*> _pair);             // Connect a pair of property (source, target) with a given relation type.
 
-        bool is_about(Node* _node)const;            // Check if a given node is connected to this edge.
-        bool operator==(const DirectedEdge&) const; // Compare (type, nodes, and direction) two edges.
+        bool is_connected_to(Node* _node)const;                        // Check if a given node is connected to this edge.
+        bool operator==(const DirectedEdge&) const;                    // Compare (type, nodes, and direction) two edges.
     protected:
-        void sanitize();                            // ensure the edge is well-formed.
+        static void sanitize(DirectedEdge*);                           // ensure a given edge is well-formed.
     };
 
 }
