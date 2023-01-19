@@ -1,12 +1,13 @@
+#include <cmath>// for pow()
 #include <gtest/gtest.h>
-#include <cmath> // for pow()
 
+#include "../fixtures/core.h"
 #include <nodable/core/Log.h>
-#include "../nodable_fixture.h"
 
 using namespace ndbl;
+typedef ::testing::Core VirualMachine;
 
-TEST_F(nodable_fixture, Cond_1 )
+TEST_F(VirualMachine, Cond_1)
 {
     std::string program =
             "int bob   = 50;"
@@ -22,10 +23,10 @@ TEST_F(nodable_fixture, Cond_1 )
             "}"
             "return(val);";
 
-    EXPECT_EQ(eval<bool>(program), true );
+    EXPECT_EQ(eval<bool>(program), true);
 }
 
-TEST_F(nodable_fixture, Cond_2 )
+TEST_F(VirualMachine, Cond_2)
 {
     std::string program =
             "int bob   = 0;"
@@ -41,23 +42,23 @@ TEST_F(nodable_fixture, Cond_2 )
             "}"
             "return(str);";
 
-    EXPECT_EQ(eval<std::string>(program), "default" );
+    EXPECT_EQ(eval<std::string>(program), "default");
 }
 
-TEST_F(nodable_fixture, Loop_1_using_global_var )
+TEST_F(VirualMachine, Loop_1_using_global_var)
 {
     std::string program =
-            "string str = \"\";" \
+            "string str = \"\";"
             "for(int n=0;n<10;n=n+1)"
             "{"
             "   str = str + to_unquoted_string(n);"
             "}"
             "return(str);";
 
-    EXPECT_EQ(eval<std::string>(program), "0123456789" );
+    EXPECT_EQ(eval<std::string>(program), "0123456789");
 }
 
-TEST_F(nodable_fixture, Loop_1_using_local_var )
+TEST_F(VirualMachine, Loop_1_using_local_var)
 {
     std::string program =
             "string str = \"\";"
@@ -68,10 +69,10 @@ TEST_F(nodable_fixture, Loop_1_using_local_var )
             "}"
             "return(str);";
 
-    EXPECT_EQ(eval<std::string>(program), "0123456789" );
+    EXPECT_EQ(eval<std::string>(program), "0123456789");
 }
 
-TEST_F(nodable_fixture, Loop_2_using_global_var )
+TEST_F(VirualMachine, Loop_2_using_global_var)
 {
     std::string program =
             "int n;"
@@ -92,10 +93,10 @@ TEST_F(nodable_fixture, Loop_2_using_global_var )
             "return(str);";
 
 
-    EXPECT_EQ(eval<std::string>(program), "__49162536496481" );
+    EXPECT_EQ(eval<std::string>(program), "__49162536496481");
 }
 
-TEST_F(nodable_fixture, Loop_2_using_local_var )
+TEST_F(VirualMachine, Loop_2_using_local_var)
 {
     std::string program =
             "string str = \"\";"
@@ -113,22 +114,22 @@ TEST_F(nodable_fixture, Loop_2_using_local_var )
             "}"
             "return(str);";
 
-    EXPECT_EQ(eval<std::string>(program), "__49162536496481" );
+    EXPECT_EQ(eval<std::string>(program), "__49162536496481");
 }
 
-TEST_F(nodable_fixture, For_loop_without_var_decl)
+TEST_F(VirualMachine, For_loop_without_var_decl)
 {
-std::string program =
-        "int score;"
-        "for(int i=0; i<10; i=i+1)"
-        "{"
-        "   score = i * 2;"
-        "}"
-        "return(score);";
-EXPECT_EQ(eval<int>(program), 9 * 2);
+    std::string program =
+            "int score;"
+            "for(int i=0; i<10; i=i+1)"
+            "{"
+            "   score = i * 2;"
+            "}"
+            "return(score);";
+    EXPECT_EQ(eval<int>(program), 9 * 2);
 }
 
-TEST_F(nodable_fixture, For_loop_with_var_decl)
+TEST_F(VirualMachine, For_loop_with_var_decl)
 {
     std::string program =
             "int score = 1;"
@@ -137,10 +138,11 @@ TEST_F(nodable_fixture, For_loop_with_var_decl)
             "   score = score * 2;"
             "}"
             "return(score);";
-    EXPECT_EQ(eval<int>(program), 1 * pow(2, 10) );
+    EXPECT_EQ(eval<int>(program), 1 * pow(2, 10));
 }
 
-TEST_F(nodable_fixture, declare_then_define ) {
+TEST_F(VirualMachine, declare_then_define)
+{
     std::string program_01 =
             "int b;"
             "b = 5;"
@@ -148,7 +150,8 @@ TEST_F(nodable_fixture, declare_then_define ) {
     EXPECT_EQ(eval<int>(program_01), 5);
 }
 
-TEST_F(nodable_fixture, declare_and_define_then_reassign ) {
+TEST_F(VirualMachine, declare_and_define_then_reassign)
+{
     std::string program_01 =
             "int b = 6;"
             "b = 5;"
@@ -156,7 +159,8 @@ TEST_F(nodable_fixture, declare_and_define_then_reassign ) {
     EXPECT_EQ(eval<int>(program_01), 5);
 }
 
-TEST_F(nodable_fixture, declare_then_define_then_reassign ) {
+TEST_F(VirualMachine, declare_then_define_then_reassign)
+{
     std::string program_01 =
             "int b;"
             "b = 6;"
@@ -165,7 +169,8 @@ TEST_F(nodable_fixture, declare_then_define_then_reassign ) {
     EXPECT_EQ(eval<int>(program_01), 5);
 }
 
-TEST_F(nodable_fixture, condition_which_contains_alterated_var ) {
+TEST_F(VirualMachine, condition_which_contains_alterated_var)
+{
     std::string program =
             "int b = 6;"
             "b = 5;"
@@ -178,7 +183,8 @@ TEST_F(nodable_fixture, condition_which_contains_alterated_var ) {
     EXPECT_EQ(eval<std::string>(program), "ok");
 }
 
-TEST_F(nodable_fixture, else_elseif_else ) {
+TEST_F(VirualMachine, else_elseif_else)
+{
 
     std::string program_end =
             "string msg;\n"
@@ -201,9 +207,9 @@ TEST_F(nodable_fixture, else_elseif_else ) {
     EXPECT_EQ(eval<std::string>(program3), "a == b");
 }
 
-TEST_F(nodable_fixture, integers ) {
+TEST_F(VirualMachine, integers)
+{
     EXPECT_EQ(eval<int>("int i = 1"), 1);
     EXPECT_EQ(eval<int>("int i = 3 + 5"), 8);
     EXPECT_EQ(eval<int>("int i = 1-2"), -1);
 }
-

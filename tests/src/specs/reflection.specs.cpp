@@ -4,14 +4,14 @@
 
 using namespace ndbl;
 
-TEST(reflection, is_convertible__type_to_ptr)
+TEST(Reflection, is_convertible__type_to_ptr)
 {
     EXPECT_TRUE(type::is_implicitly_convertible(type::get<bool>(), type::get<bool *>()) );
     EXPECT_TRUE(type::is_implicitly_convertible(type::get<double>(), type::get<double *>()) );
     EXPECT_TRUE(type::is_implicitly_convertible(type::get<std::string>(), type::get<std::string *>())  );
 }
 
-TEST(reflection, is_convertible__ptr_to_type)
+TEST(Reflection, is_convertible__ptr_to_type)
 {
     EXPECT_TRUE(type::is_implicitly_convertible(type::get<bool *>(), type::get<bool>()) );
     EXPECT_TRUE(type::is_implicitly_convertible(type::get<double *>(), type::get<double>()) );
@@ -19,7 +19,7 @@ TEST(reflection, is_convertible__ptr_to_type)
     EXPECT_TRUE(type::is_implicitly_convertible(type::any, type::any));
 }
 
-TEST(reflection, is_convertible__compatible_types)
+TEST(Reflection, is_convertible__compatible_types)
 {
     EXPECT_TRUE(type::is_implicitly_convertible(type::any, type::get<double>()) );
     EXPECT_TRUE(type::is_implicitly_convertible(type::any, type::get<std::string>()) );
@@ -34,7 +34,7 @@ TEST(reflection, is_convertible__compatible_types)
     EXPECT_TRUE(type::is_implicitly_convertible(type::any, type::any) );
 }
 
-TEST(reflection, is_convertible__incompatible_types)
+TEST(Reflection, is_convertible__incompatible_types)
 {
     EXPECT_FALSE(type::is_implicitly_convertible(type::get<bool>(), type::get<double>()) );
     EXPECT_FALSE(type::is_implicitly_convertible(type::get<double>(), type::get<bool>()) );
@@ -46,21 +46,21 @@ TEST(reflection, is_convertible__incompatible_types)
     EXPECT_FALSE(type::is_implicitly_convertible(type::get<std::string>(), type::get<double>()) );
 }
 
-TEST(reflection, is_ptr)
+TEST(Reflection, is_ptr)
 {
     EXPECT_FALSE(type::is_ptr(type::get<bool &>()) );
     EXPECT_FALSE(type::is_ptr(type::get<bool>()) );
     EXPECT_TRUE(type::is_ptr(type::get<bool *>()) );
 }
 
-TEST(reflection, is_ref)
+TEST(Reflection, is_ref)
 {
     EXPECT_TRUE(type::is_ref(type::get<bool &>()) );
     EXPECT_FALSE(type::is_ref(type::get<bool>()) );
     EXPECT_FALSE(type::is_ref(type::get<bool *>()) );
 }
 
-TEST(reflection, node_as_pointer)
+TEST(Reflection, node_as_pointer)
 {
     // prepare
     auto node_ptr = std::unique_ptr<Node>();
