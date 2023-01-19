@@ -33,11 +33,20 @@ namespace ndbl
 		const PropertyVec&     by_index()const { return m_properties_.by_index; };
         Property*              get_first(Way _way, const type& _type) const;
         Property*              get_input_at(u8_t n) const;
-        std::shared_ptr<Property> add(const char *_name, Visibility _visibility, const type& _type, Way, Property::Flags = 0);
+        std::shared_ptr<Property> add(                                      // add a new property with a given name and type.
+                const type& _type,
+                const char *_name,
+                Visibility _visibility = Visibility::Default,
+                Way _way = Way_Default,
+                Property::Flags = 0);
         template<typename T>
-        std::shared_ptr<Property> add(const char* _name, Visibility _visibility, Way _way, Property::Flags _flags = 0)
+        std::shared_ptr<Property> add(                                      // add a new property with a given name and a static type.
+                const char* _name,
+                Visibility _visibility = Visibility::Default,
+                Way _way = Way_Default,
+                Property::Flags _flags = 0)
             {
-                return add(_name, _visibility, type::get<T>(), _way, _flags);
+                return add(type::get<T>(), _name, _visibility, _way, _flags);
             }
 	private:
         Node*                               m_owner;

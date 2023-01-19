@@ -18,28 +18,26 @@ typedef ::testing::Core Graph;
 
 TEST_F(Graph, connect)
 {
-    auto node1 = graph.create_node();
-    node1->props()->add<bool>("output", Visibility::Default, Way_Default);
+    auto node1   = graph.create_node();
+    auto node1_output = node1->props()->add<bool>("output");
 
     auto node2  = graph.create_node();
-    node2->props()->add<bool>("input", Visibility::Default, Way_Default);
+    auto node2_input  = node2->props()->add<bool>("input");
 
-    auto edge = graph.connect(
-            node1->props()->get("output"),
-            node2->props()->get("input"));
+    auto edge = graph.connect(node1_output.get(), node2_input.get());
 
-    EXPECT_EQ(edge->prop.src , node1->props()->get("output"));
-    EXPECT_EQ(edge->prop.dst , node2->props()->get("input"));
+    EXPECT_EQ(edge->prop.src , node1_output.get());
+    EXPECT_EQ(edge->prop.dst , node2_input.get());
     EXPECT_EQ(graph.get_edge_registry().size(), 1);
  }
 
 TEST_F(Graph, disconnect)
 {
     Node* a      = graph.create_node();
-    auto  output = a->props()->add<bool>("output", Visibility::Default, Way_Default);
+    auto  output = a->props()->add<bool>("output");
 
     Node* b     = graph.create_node();
-    auto  input = b->props()->add<bool>("input", Visibility::Default, Way_Default);
+    auto  input = b->props()->add<bool>("input");
 
     EXPECT_EQ(graph.get_edge_registry().size(), 0);
 
