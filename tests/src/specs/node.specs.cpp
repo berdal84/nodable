@@ -9,7 +9,7 @@ using namespace ndbl;
 TEST(Node, add_property_double)
 {
     Node node;
-    auto property = node.props()->add("val", Visibility::Default, type::get<double>(), Way_Default);
+    auto property = node.props()->add<double>("val");
     property->set(100.0);
 
     EXPECT_EQ((double)*property, 100.0);

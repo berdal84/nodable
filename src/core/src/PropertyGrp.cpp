@@ -12,7 +12,7 @@ bool PropertyGrp::has(const char* _name) const
     return m_properties_.by_name.find(_name) != m_properties_.by_name.end();
 }
 
-std::shared_ptr<Property> PropertyGrp::add(const char* _name, Visibility _visibility, const type& _type, Way _way, Property::Flags _flags )
+std::shared_ptr<Property> PropertyGrp::add(const type& _type, const char* _name, Visibility _visibility, Way _way, Property::Flags _flags )
 {
     NDBL_ASSERT(!has(_name));
 

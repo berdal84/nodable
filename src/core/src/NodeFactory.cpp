@@ -65,7 +65,7 @@ Node* NodeFactory::_new_abstract_function(const func_type* _func_type, bool _is_
 
     // Create a result/value
     PropertyGrp * props = node->props();
-    props->add(k_value_property_name, Visibility::Default, _func_type->get_return_type(), Way_Out);
+    props->add(_func_type->get_return_type(), k_value_property_name, Visibility::Default, Way_Out);
 
     // Create arguments
     auto args = _func_type->get_args();
@@ -80,11 +80,11 @@ Node* NodeFactory::_new_abstract_function(const func_type* _func_type, bool _is_
         switch ( count )
         {
             case 1:
-                props->add( k_lh_value_property_name, Visibility::Default, args[0].m_type, Way_In);
+                props->add(args[0].m_type, k_lh_value_property_name, Visibility::Default, Way_In);
                 break;
             case 2:
-                props->add( k_lh_value_property_name, Visibility::Default, args[0].m_type, Way_In);
-                props->add( k_rh_value_property_name, Visibility::Default, args[1].m_type, Way_In);
+                props->add( args[0].m_type, k_lh_value_property_name, Visibility::Default, Way_In);
+                props->add( args[1].m_type, k_rh_value_property_name, Visibility::Default, Way_In);
                 break;
             default: /* no warning */ ;
         }
@@ -93,7 +93,7 @@ Node* NodeFactory::_new_abstract_function(const func_type* _func_type, bool _is_
     {
         for (auto& arg : args)
         {
-            props->add(arg.m_name.c_str(), Visibility::Default, arg.m_type, Way_In);
+            props->add(arg.m_type, arg.m_name.c_str(), Visibility::Default, Way_In);
         }
     }
 
