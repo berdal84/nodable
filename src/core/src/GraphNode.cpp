@@ -180,7 +180,7 @@ void GraphNode::destroy(Node* _node)
     for (auto pair : m_edge_registry)
     {
         const DirectedEdge* edge = pair.second;
-        if(edge->is_about(_node) )
+        if(edge->is_connected_to(_node) )
         {
             edges_to_disconnect.push_back(edge);
         }
@@ -340,7 +340,7 @@ const DirectedEdge* GraphNode::connect(DirectedEdge _edge, bool _side_effects)
 
                         for (InstructionNode *each_instruction : tails)
                         {
-                            connect({Edge_t::IS_SUCCESSOR_OF, src, each_instruction}, false);
+                            connect({src, Edge_t::IS_SUCCESSOR_OF, each_instruction}, false);
                         }
 
                         NDBL_ASSERT(!tails.empty())
@@ -449,8 +449,8 @@ void GraphNode::disconnect(const DirectedEdge* _edge, bool _side_effects)
                     Node* successor = src;
                     while (successor && successor->get_parent() == parent )
                     {
-                        DirectedEdge relation(Edge_t::IS_CHILD_OF, successor, parent);
-                        disconnect(&relation, false );
+                        DirectedEdge edge(successor, Edge_t::IS_CHILD_OF, parent);
+                        disconnect(&edge, false );
                         successor = successor->successors().get_front_or_nullptr();
                     }
                 }
