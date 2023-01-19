@@ -21,7 +21,6 @@ REGISTER
     registration::push_class<GraphNode>("GraphNode").extends<Node>();
 }
 
-// test
 GraphNode::GraphNode(const Nodlang* _language, const INodeFactory* _factory, const bool* _autocompletion)
     : m_language(_language)
     , m_factory(_factory)
@@ -53,7 +52,7 @@ void GraphNode::clear()
         LOG_VERBOSE("GraphNode", "No nodes in registry.\n")
     }
     m_node_registry.clear();
-    m_edge_registry.clear();
+    NDBL_EXPECT(m_edge_registry.empty(), "m_edge_registry should be empty because all nodes have been deleted.");
     m_root = nullptr;
 
     LOG_VERBOSE("GraphNode", "Graph cleared.\n")
