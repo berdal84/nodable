@@ -3,7 +3,7 @@
 
 using namespace ndbl;
 
-TEST( token, empty_constructor)
+TEST(Token, empty_constructor)
 {
     Token token;
     EXPECT_EQ(token.get_prefix(), "");
@@ -11,7 +11,7 @@ TEST( token, empty_constructor)
     EXPECT_EQ(token.get_suffix(), "");
  }
 
-TEST( token, constructor)
+TEST(Token, constructor)
 {
     Token token(Token_t::identifier, "toto",0);
     EXPECT_EQ(token.get_prefix(), "");
@@ -19,7 +19,7 @@ TEST( token, constructor)
     EXPECT_EQ(token.get_suffix(), "");
 }
 
-TEST( token, append_prefix)
+TEST(Token, append_prefix)
 {
     Token token(Token_t::identifier, "toto",0);
     token.append_to_prefix(" ");
@@ -29,7 +29,7 @@ TEST( token, append_prefix)
     EXPECT_EQ(token.get_suffix(), "");
 }
 
-TEST( token, append_suffix)
+TEST(Token, append_suffix)
 {
     Token token(Token_t::identifier, "toto",0);
     token.append_to_suffix(" ");
@@ -39,7 +39,7 @@ TEST( token, append_suffix)
     EXPECT_EQ(token.get_suffix(), " ");
 }
 
-TEST( token, append_as_word)
+TEST(Token, append_as_word)
 {
     Token token(Token_t::identifier, "",0);
     token.append_to_prefix("pref ");
@@ -48,7 +48,7 @@ TEST( token, append_as_word)
     EXPECT_EQ(token.get_word(), "fresh");
 }
 
-TEST( token, transfer_prefix_suffix)
+TEST(Token, transfer_prefix_suffix)
 {
     auto src_token = std::make_shared<Token>(Token_t::identifier, "TATA",0);
     src_token->append_to_prefix("pref ");

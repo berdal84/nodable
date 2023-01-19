@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "../fixtures/core.h"
+#include <nodable/core/DirectedEdge.h>
 #include <nodable/core/GraphNode.h>
 #include <nodable/core/InstructionNode.h>
 #include <nodable/core/InvokableComponent.h>
@@ -8,40 +10,13 @@
 #include <nodable/core/Property.h>
 #include <nodable/core/Scope.h>
 #include <nodable/core/VariableNode.h>
-#include <nodable/core/DirectedEdge.h>
 #include <nodable/core/language/Nodlang.h>
 #include <nodable/core/reflection/func_type.h>
 
 using namespace ndbl;
+typedef ::testing::Core Graph;
 
-class token_fixture: public ::testing::Test {
-public:
-    token_fixture( )
-    : factory(&language)
-    , graph(&language, &factory, &autocompletion){}
-
-    void SetUp( ) {
-        // code here will execute just before the test ensues
-    }
-
-    void TearDown( ) {
-        // code here will be called just after the test completes
-        // ok to through exceptions from here if need be
-    }
-
-    ~token_fixture( )  {
-        // cleanup any pending stuff, but no exceptions allowed
-    }
-
-protected:
-    const Nodlang language;
-    NodeFactory   factory;
-    bool          autocompletion = false;
-public:
-    GraphNode     graph;
-};
-
-TEST_F(token_fixture, connect)
+TEST_F(Graph, connect)
 {
     auto node1 = graph.create_node();
     node1->props()->add<bool>("output", Visibility::Default, Way_Default);
@@ -58,7 +33,7 @@ TEST_F(token_fixture, connect)
     EXPECT_EQ(graph.get_edge_registry().size(), 1);
  }
 
-TEST_F(token_fixture, disconnect)
+TEST_F(Graph, disconnect)
 {
     Node* a      = graph.create_node();
     auto  output = a->props()->add<bool>("output", Visibility::Default, Way_Default);
@@ -79,7 +54,7 @@ TEST_F(token_fixture, disconnect)
     EXPECT_EQ(b->incoming_edge_count() , 0);
 }
 
-TEST_F(token_fixture, clear)
+TEST_F(Graph, clear)
 {
     InstructionNode* instructionNode = graph.create_instr();
     func_type*       sig             = func_type_builder<int(int, int)>::with_id("+");
@@ -108,7 +83,7 @@ TEST_F(token_fixture, clear)
 }
 
 
-TEST_F(token_fixture, create_and_delete_relations)
+TEST_F(Graph, create_and_delete_relations)
 {
     // prepare
     Node* program = graph.create_root();

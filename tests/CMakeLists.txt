@@ -22,7 +22,7 @@ add_subdirectory(libs/googletest)
 # Declare our main executable
 add_executable(
     nodable_tests
-    src/main.cpp
+        src/main.cpp
         src/specs/graph.specs.cpp
         src/specs/language.specs.cpp
         src/specs/property.specs.cpp
@@ -30,8 +30,10 @@ add_executable(
         src/specs/parser.specs.cpp
         src/specs/reflection.specs.cpp
         src/specs/virtual_machine.specs.cpp
-    src/specs/type_cast.specs.cpp
-        src/specs/token.specs.cpp)
+        src/specs/type_cast.specs.cpp
+        src/specs/token.specs.cpp
+        src/fixtures/core.h
+)
 
 # Link libraries
 target_link_libraries(

@@ -1,283 +1,285 @@
+#include "../fixtures/core.h"
 #include <gtest/gtest.h>
 #include <nodable/core/Log.h>
-#include "../nodable_fixture.h"
 
 using namespace ndbl;
 
+typedef ::testing::Core Parser;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, atomic_expression_int)
+TEST_F(Parser, atomic_expression_int)
 {
     EXPECT_EQ(eval<int>("5"), 5);
 }
 
-TEST_F(nodable_fixture, atomic_expression_double)
+TEST_F(Parser, atomic_expression_double)
 {
     EXPECT_EQ(eval<double>("10.0"), 10.0);
 }
 
-TEST_F(nodable_fixture, atomic_expression_string)
+TEST_F(Parser, atomic_expression_string)
 {
     EXPECT_EQ(eval<std::string>("\"hello world!\""), "hello world!");
 }
 
-TEST_F(nodable_fixture, atomic_expression_bool)
+TEST_F(Parser, atomic_expression_bool)
 {
     EXPECT_EQ(eval<bool>("true"), true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, unary_operators_minus_int)
+TEST_F(Parser, unary_operators_minus_int)
 {
     EXPECT_EQ(eval<int>("-5"), -5);
 }
 
-TEST_F(nodable_fixture, unary_operators_minus_double)
+TEST_F(Parser, unary_operators_minus_double)
 {
     EXPECT_EQ(eval<double>("-5.5"), -5.5);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, Simple_binary_expressions)
+TEST_F(Parser, Simple_binary_expressions)
 {
     EXPECT_EQ(eval<int>("2+3"), 5);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, Precedence_one_level)
+TEST_F(Parser, Precedence_one_level)
 {
     EXPECT_EQ(eval<int>("-5+4"), -1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, Precedence_two_levels)
+TEST_F(Parser, Precedence_two_levels)
 {
     EXPECT_EQ(eval<double>("-1.0+2.0*5.0-3.0/6.0"), 8.5);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, parenthesis_01)
+TEST_F(Parser, parenthesis_01)
 {
     EXPECT_EQ(eval<int>("(1+4)"), 5);
 }
 
-TEST_F(nodable_fixture, parenthesis_02)
+TEST_F(Parser, parenthesis_02)
 {
     EXPECT_EQ(eval<int>("(1)+(2)"), 3);
 }
 
-TEST_F(nodable_fixture, parenthesis_03)
+TEST_F(Parser, parenthesis_03)
 {
     EXPECT_EQ(eval<int>("(1+2)*3"), 9);
 }
 
-TEST_F(nodable_fixture, parenthesis_04)
+TEST_F(Parser, parenthesis_04)
 {
     EXPECT_EQ(eval<int>("2*(5+3)"), 16);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, unary_binary_operator_mixed_01)
+TEST_F(Parser, unary_binary_operator_mixed_01)
 {
     EXPECT_EQ(eval<int>("-1*20"), -20);
 }
 
-TEST_F(nodable_fixture, unary_binary_operator_mixed_02)
+TEST_F(Parser, unary_binary_operator_mixed_02)
 {
     EXPECT_EQ(eval<int>("-(1+4)"), -5);
 }
 
-TEST_F(nodable_fixture, unary_binary_operator_mixed_03)
+TEST_F(Parser, unary_binary_operator_mixed_03)
 {
     EXPECT_EQ(eval<int>("(-1)+(-2)"), -3);
 }
-TEST_F(nodable_fixture, unary_binary_operator_mixed_04)
+TEST_F(Parser, unary_binary_operator_mixed_04)
 {
     EXPECT_EQ(eval<int>("-5*3"), -15);
 }
 
-TEST_F(nodable_fixture, unary_binary_operator_mixed_05)
+TEST_F(Parser, unary_binary_operator_mixed_05)
 {
     EXPECT_EQ(eval<int>("2-(5+3)"), -6);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, complex_parenthesis_01)
+TEST_F(Parser, complex_parenthesis_01)
 {
     EXPECT_EQ(eval<int>("2+(5*3)"), 2 + (5 * 3));
 }
 
-TEST_F(nodable_fixture, complex_parenthesis_02)
+TEST_F(Parser, complex_parenthesis_02)
 {
     EXPECT_EQ(eval<int>("2*(5+3)+2"), 2 * (5 + 3) + 2);
 }
 
-TEST_F(nodable_fixture, complex_parenthesis_03)
+TEST_F(Parser, complex_parenthesis_03)
 {
     EXPECT_EQ(eval<int>("(2-(5+3))-2+(1+1)"), (2 - (5 + 3)) - 2 + (1 + 1));
 }
 
-TEST_F(nodable_fixture, complex_parenthesis_04)
+TEST_F(Parser, complex_parenthesis_04)
 {
     EXPECT_EQ(eval<double>("(2.0 -(5.0+3.0 )-2.0)+9.0/(1.0- 0.54)"), (2.0 - (5.0 + 3.0) - 2.0) + 9.0 / (1.0 - 0.54));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, unexisting_function)
+TEST_F(Parser, unexisting_function)
 {
     EXPECT_ANY_THROW(eval<double>("pow_unexisting(5)") );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, function_call_return)
+TEST_F(Parser, function_call_return)
 {
     EXPECT_EQ(eval<int>("return(5)"), 5);
 }
 
-TEST_F(nodable_fixture, function_call_sqrt_int)
+TEST_F(Parser, function_call_sqrt_int)
 {
     EXPECT_EQ(eval<int>("sqrt(81)"), 9);
 }
 
-TEST_F(nodable_fixture, function_call_pow_int_int)
+TEST_F(Parser, function_call_pow_int_int)
 {
     EXPECT_EQ(eval<int>("pow(2,2)"), 4);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, functionlike_operator_call_multiply)
+TEST_F(Parser, functionlike_operator_call_multiply)
 {
     EXPECT_EQ(eval<int>("operator*(2,2)"), 4);
 }
 
-TEST_F(nodable_fixture, functionlike_operator_call_superior)
+TEST_F(Parser, functionlike_operator_call_superior)
 {
     EXPECT_EQ(eval<bool>("operator>(2,2)"), false);
 }
 
-TEST_F(nodable_fixture, functionlike_operator_call_minus)
+TEST_F(Parser, functionlike_operator_call_minus)
 {
     EXPECT_EQ(eval<int>("operator-(3,2)"), 1);
 }
 
-TEST_F(nodable_fixture, functionlike_operator_call_plus)
+TEST_F(Parser, functionlike_operator_call_plus)
 {
     EXPECT_EQ(eval<int>("operator+(2,2)"), 4);
 }
 
-TEST_F(nodable_fixture, functionlike_operator_call_divide)
+TEST_F(Parser, functionlike_operator_call_divide)
 {
     EXPECT_EQ(eval<int>("operator/(4,2)"), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, imbricated_operator_in_function)
+TEST_F(Parser, imbricated_operator_in_function)
 {
     EXPECT_EQ(eval<int>("return(5+3)"), 8);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, imbricated_functions_01)
+TEST_F(Parser, imbricated_functions_01)
 {
     EXPECT_EQ(eval<int>("return(return(1))"), 1);
 }
 
-TEST_F(nodable_fixture, imbricated_functions_02)
+TEST_F(Parser, imbricated_functions_02)
 {
     EXPECT_EQ(eval<int>("return(return(1) + return(1))"), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, Successive_assigns)
+TEST_F(Parser, Successive_assigns)
 {
     EXPECT_EQ(eval<double>("double a; double b; a = b = 5.0;"), 5.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, string_var_assigned_with_literal_string)
+TEST_F(Parser, string_var_assigned_with_literal_string)
 {
     EXPECT_EQ(eval<std::string>("string a = \"coucou\"")       , "coucou");
 }
 
-TEST_F(nodable_fixture, string_var_assigned_with_15_to_string)
+TEST_F(Parser, string_var_assigned_with_15_to_string)
 {
     EXPECT_EQ(eval<std::string>("string a = to_unquoted_string(15)")    , "15");
 }
 
-TEST_F(nodable_fixture, string_var_assigned_with_minus15dot5_to_string)
+TEST_F(Parser, string_var_assigned_with_minus15dot5_to_string)
 {
     EXPECT_EQ(eval<std::string>("string a = to_unquoted_string(15.5)")    , "15.5");
 }
 
-TEST_F(nodable_fixture, string_var_assigned_with_true_to_string)
+TEST_F(Parser, string_var_assigned_with_true_to_string)
 {
     EXPECT_EQ(eval<std::string>("string a = to_unquoted_string(true)")    , "true");
 }
 
-TEST_F(nodable_fixture, string_var_assigned_with_false_to_string)
+TEST_F(Parser, string_var_assigned_with_false_to_string)
 {
     EXPECT_EQ(eval<std::string>("string a = to_unquoted_string(false)")    , "false");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, precedence_1)
+TEST_F(Parser, precedence_1)
 {
     const std::string source_code = "(1+1)*2";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, precedence_2)
+TEST_F(Parser, precedence_2)
 {
     const std::string source_code = "1*1+2";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, precedence_3)
+TEST_F(Parser, precedence_3)
 {
     const std::string source_code = "-(-1)";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, precedence_4)
+TEST_F(Parser, precedence_4)
 {
     const std::string source_code = "-(2*5)";
                     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, precedence_5)
+TEST_F(Parser, precedence_5)
 {
     const std::string source_code = "-(2*5)";
                     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, precedence_6)
+TEST_F(Parser, precedence_6)
 {
     const std::string source_code = "(-2)*5";
                     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, precedence_7)
+TEST_F(Parser, precedence_7)
 {
     const std::string source_code = "-(2+5)";
                     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, precedence_8)
+TEST_F(Parser, precedence_8)
 {
     const std::string source_code = "5+(-1)*3";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
@@ -285,43 +287,43 @@ TEST_F(nodable_fixture, precedence_8)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, eval_serialize_and_compare_1)
+TEST_F(Parser, eval_serialize_and_compare_1)
 {
     const std::string source_code = "1";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, eval_serialize_and_compare_2)
+TEST_F(Parser, eval_serialize_and_compare_2)
 {
     const std::string source_code = "1+1";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, eval_serialize_and_compare_3)
+TEST_F(Parser, eval_serialize_and_compare_3)
 {
     const std::string source_code = "1-1";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, eval_serialize_and_compare_4)
+TEST_F(Parser, eval_serialize_and_compare_4)
 {
     const std::string source_code = "-1";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, eval_serialize_and_compare_5)
+TEST_F(Parser, eval_serialize_and_compare_5)
 {
     const std::string source_code = "double a=5";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, eval_serialize_and_compare_6)
+TEST_F(Parser, eval_serialize_and_compare_6)
 {
     const std::string source_code = "double a=1;double b=2;double c=3;double d=4;(a+b)*(c+d)";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, eval_serialize_and_compare_7)
+TEST_F(Parser, eval_serialize_and_compare_7)
 {
     const std::string source_code = "string b = to_unquoted_string(false)";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
@@ -329,25 +331,25 @@ TEST_F(nodable_fixture, eval_serialize_and_compare_7)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, decl_var_and_assign_string)
+TEST_F(Parser, decl_var_and_assign_string)
 {
     std::string program = R"(string s = "coucou";)";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-TEST_F(nodable_fixture, decl_var_and_assign_double)
+TEST_F(Parser, decl_var_and_assign_double)
 {
     std::string program = "double d = 15.0;";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-TEST_F(nodable_fixture, decl_var_and_assign_int)
+TEST_F(Parser, decl_var_and_assign_int)
 {
     std::string program = "int s = 10;";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-TEST_F(nodable_fixture, decl_var_and_assign_bool)
+TEST_F(Parser, decl_var_and_assign_bool)
 {
     std::string program = "bool b = true;";
     EXPECT_EQ(parse_and_serialize(program), program);
@@ -355,18 +357,18 @@ TEST_F(nodable_fixture, decl_var_and_assign_bool)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, multi_instruction_single_line )
+TEST_F(Parser, multi_instruction_single_line )
 {
     EXPECT_EQ(eval<int>("int a = 5;int b = 2 * 5;"), 10 );
 }
 
-TEST_F(nodable_fixture, multi_instruction_multi_line_01 )
+TEST_F(Parser, multi_instruction_multi_line_01 )
 {
     const std::string source_code = "double a = 5.0;\ndouble b = 2.0 * a;";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, multi_instruction_multi_line_02 )
+TEST_F(Parser, multi_instruction_multi_line_02 )
 {
     const std::string source_code = "double a = 5.0;double b = 2.0 * a;\ndouble c = 33.0 + 5.0;";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
@@ -374,7 +376,7 @@ TEST_F(nodable_fixture, multi_instruction_multi_line_02 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, dna_to_protein )
+TEST_F(Parser, dna_to_protein )
 {
     EXPECT_EQ(eval<std::string>("dna_to_protein(\"TAA\")"), "_");
     EXPECT_EQ(eval<std::string>("dna_to_protein(\"TAG\")"), "_");
@@ -384,25 +386,25 @@ TEST_F(nodable_fixture, dna_to_protein )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, code_formatting_preserving_01 )
+TEST_F(Parser, code_formatting_preserving_01 )
 {
     const std::string source_code = "double a =5;\ndouble b=2*a;";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, code_formatting_preserving_02 )
+TEST_F(Parser, code_formatting_preserving_02 )
 {
     const std::string source_code = "double a =5;\ndouble b=2  *  a;";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, code_formatting_preserving_03 )
+TEST_F(Parser, code_formatting_preserving_03 )
 {
     const std::string source_code = " 5 + 2;";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, code_formatting_preserving_04 )
+TEST_F(Parser, code_formatting_preserving_04 )
 {
     const std::string source_code = "5 + 2;  ";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
@@ -410,7 +412,7 @@ TEST_F(nodable_fixture, code_formatting_preserving_04 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, Conditional_Structures_IF )
+TEST_F(Parser, Conditional_Structures_IF )
 {
     std::string program =
             "double bob   = 10;"
@@ -422,7 +424,7 @@ TEST_F(nodable_fixture, Conditional_Structures_IF )
     EXPECT_EQ( parse_and_serialize(program), program);
 }
 
-TEST_F(nodable_fixture, Conditional_Structures_IF_ELSE )
+TEST_F(Parser, Conditional_Structures_IF_ELSE )
 {
     std::string program =
             "double bob   = 10;"
@@ -437,7 +439,7 @@ TEST_F(nodable_fixture, Conditional_Structures_IF_ELSE )
     EXPECT_EQ( parse_and_serialize(program), program);
 }
 
-TEST_F(nodable_fixture, Conditional_Structures_IF_ELSE_IF )
+TEST_F(Parser, Conditional_Structures_IF_ELSE_IF )
 {
     std::string program =
             "double bob   = 10;"
@@ -456,32 +458,32 @@ TEST_F(nodable_fixture, Conditional_Structures_IF_ELSE_IF )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, operator_not_equal_double_double_true)
+TEST_F(Parser, operator_not_equal_double_double_true)
 {
     EXPECT_TRUE(eval<bool>("10.0 != 9.0;") );
 }
 
-TEST_F(nodable_fixture, operator_not_equal_double_double_false)
+TEST_F(Parser, operator_not_equal_double_double_false)
 {
     EXPECT_FALSE(eval<bool>("10.0 != 10.0;") );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, operator_not_bool)
+TEST_F(Parser, operator_not_bool)
 {
     EXPECT_TRUE(eval<bool>("!false;") );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, parse_serialize_with_undeclared_variables )
+TEST_F(Parser, parse_serialize_with_undeclared_variables )
 {
     const std::string program = "double a = b + c * r - z;";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-TEST_F(nodable_fixture, parse_serialize_with_undeclared_variables_in_conditional )
+TEST_F(Parser, parse_serialize_with_undeclared_variables_in_conditional )
 {
     const std::string program = "if(a==b){}";
     EXPECT_EQ(parse_and_serialize(program), program);
@@ -489,13 +491,13 @@ TEST_F(nodable_fixture, parse_serialize_with_undeclared_variables_in_conditional
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, parse_serialize_with_pre_ribbon_chars )
+TEST_F(Parser, parse_serialize_with_pre_ribbon_chars )
 {
     const std::string source_code = " double a = 5";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(nodable_fixture, parse_serialize_with_post_ribbon_chars )
+TEST_F(Parser, parse_serialize_with_post_ribbon_chars )
 {
     const std::string source_code = "double a = 5 ";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
@@ -503,42 +505,42 @@ TEST_F(nodable_fixture, parse_serialize_with_post_ribbon_chars )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(nodable_fixture, parse_serialize_empty_scope )
+TEST_F(Parser, parse_serialize_empty_scope )
 {
     EXPECT_EQ(parse_and_serialize("{}"), "{}");
 }
 
-TEST_F(nodable_fixture, parse_serialize_empty_scope_with_spaces )
+TEST_F(Parser, parse_serialize_empty_scope_with_spaces )
 {
     EXPECT_EQ(parse_and_serialize("{ }"), "{ }");
 }
 
-TEST_F(nodable_fixture, parse_serialize_empty_scope_with_spaces_after )
+TEST_F(Parser, parse_serialize_empty_scope_with_spaces_after )
 {
     EXPECT_EQ(parse_and_serialize("{} "), "{} ");
 }
 
-TEST_F(nodable_fixture, parse_serialize_empty_scope_with_spaces_before )
+TEST_F(Parser, parse_serialize_empty_scope_with_spaces_before )
 {
     EXPECT_EQ(parse_and_serialize(" {}"), " {}");
 }
 
-TEST_F(nodable_fixture, parse_serialize_empty_scope_with_spaces_before_and_after )
+TEST_F(Parser, parse_serialize_empty_scope_with_spaces_before_and_after )
 {
     EXPECT_EQ(parse_and_serialize(" {} "), " {} ");
 }
 
-TEST_F(nodable_fixture, parse_serialize_empty_program )
+TEST_F(Parser, parse_serialize_empty_program )
 {
     EXPECT_EQ(parse_and_serialize(""), "");
 }
 
-TEST_F(nodable_fixture, parse_serialize_empty_program_with_space )
+TEST_F(Parser, parse_serialize_empty_program_with_space )
 {
     EXPECT_EQ(parse_and_serialize(" "), " ");
 }
 
-TEST_F(nodable_fixture, parse_serialize_single_line_program_with_a_comment_before )
+TEST_F(Parser, parse_serialize_single_line_program_with_a_comment_before )
 {
     ndbl::Log::set_verbosity("Parser", ndbl::Log::Verbosity_Verbose);
     std::string program =
@@ -547,7 +549,7 @@ TEST_F(nodable_fixture, parse_serialize_single_line_program_with_a_comment_befor
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-TEST_F(nodable_fixture, parse_serialize_single_program_line_with_two_sigle_line_comments_and_a_space )
+TEST_F(Parser, parse_serialize_single_program_line_with_two_sigle_line_comments_and_a_space )
 {
     std::string program =
             "// first line\n"
