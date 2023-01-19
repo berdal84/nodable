@@ -29,10 +29,9 @@ namespace ndbl {
      */
     enum class UpdateResult
     {
-        SuccessWithoutChanges,
-        Success,
-        Failed,
-        Stopped
+        Success_NoChanges,
+        Success_WithChanges,
+        Failed
     };
 
 	/**

@@ -60,7 +60,9 @@ void GraphNode::clear()
 
 UpdateResult GraphNode::update()
 {
-    // Delete flagged Nodes
+    UpdateResult result = UpdateResult::Success_NoChanges;
+
+    // Delete (flagged Nodes) / Check if dirty
     {
         auto nodeIndex = m_node_registry.size();
 
@@ -72,39 +74,15 @@ UpdateResult GraphNode::update()
             if (node->flagged_to_delete())
             {
                 destroy(node);
+                result = UpdateResult::Success_WithChanges;
             }
-
-        }
-    }
-
-    // update nodes
-    UpdateResult result;
-    if( m_root )
-    {
-        bool changed = false;
-        for (Node* each_node : m_node_registry)
-        {
-            if (each_node->is_dirty())
+            else if (node->is_dirty()) // We just check if the node is dirty
             {
-                // TODO: handle node update here
-
-                each_node->set_dirty(false);
-                changed = true;
+                node->set_dirty(false);
+                result = UpdateResult::Success_WithChanges;
             }
-        }
-        if ( changed )
-        {
-            result = UpdateResult::Success;
-        }
-        else
-        {
-            result = UpdateResult::SuccessWithoutChanges;
-        }
 
-    }
-    else
-    {
-        result = UpdateResult::SuccessWithoutChanges;
+        }
     }
 
     set_dirty(false);
