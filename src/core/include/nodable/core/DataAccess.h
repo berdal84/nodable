@@ -13,7 +13,7 @@ namespace ndbl
 	{
 	public:
 		DataAccess() {};
-		bool update()override;
+		bool update()override;  // Write the node owner of this component to disk (as JSON)
 
         REFLECT_DERIVED_CLASS(Component)
 	};
