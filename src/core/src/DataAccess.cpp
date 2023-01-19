@@ -37,9 +37,7 @@ bool DataAccess::update()
     	else                                         writer.Null();
 	};
 
-    NDBL_ASSERT(get_owner() != nullptr);
-
-    Node* owner = get_owner();
+    NDBL_ASSERT(m_owner != nullptr);
 
     writer.StartObject();
     {
@@ -49,7 +47,7 @@ bool DataAccess::update()
     	writer.Key("properties");
     	writer.StartObject();
     	{
-		    for(auto& each : owner->props()->by_name())
+		    for(auto& each : m_owner->props()->by_name())
 		    {
 		    	auto value = each.second;
 
@@ -64,12 +62,12 @@ bool DataAccess::update()
     	writer.Key("components");
     	writer.StartObject();
     	{
-		    for(auto& eachComponent : owner->get_components())
+		    for(auto& eachComponent : m_owner->get_components())
 		    {
 		    	writer.Key   (eachComponent.first.c_str());
 		    	writer.StartObject();
 
-		    	// TODO: use mirror to serialize properties
+		    	// TODO: Save component: how to?
 
 			    writer.EndObject();
 		    }
@@ -79,10 +77,12 @@ bool DataAccess::update()
 	}
     writer.EndObject();
 
-    std::string fileName("Entity_" + std::to_string((size_t) get_owner()) + ".json");
+    std::string fileName("node_");
+    fileName += m_owner->get_name();
+    fileName += ".json";
 
     std::ofstream outfile ("saves/" +fileName ,std::ofstream::binary);
-    outfile.write (buffer.GetString(),buffer.GetSize());
+    outfile.write (buffer.GetString(), (long)buffer.GetSize());
     outfile.close();
 
     return true;
