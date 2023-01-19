@@ -86,7 +86,8 @@ UpdateResult GraphNode::update()
         {
             if (each_node->is_dirty())
             {
-                each_node->update();
+                // TODO: handle node update here
+
                 each_node->set_dirty(false);
                 changed = true;
             }

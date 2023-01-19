@@ -119,18 +119,6 @@ size_t Node::outgoing_edge_count()const
                        , [this](const auto each_edge) { return each_edge->prop.src->get_owner() == this; });
 }
 
-UpdateResult Node::update()
-{
-	if(has<DataAccess>())
-    {
-        get<DataAccess>()->update();
-    }
-
-    m_dirty = false;
-
-	return UpdateResult::Success;
-}
-
 const iinvokable* Node::get_connected_invokable(const Property* _local_property)
 {
     NDBL_EXPECT(_local_property->get_owner() == this, "This node has no property with this address!");
