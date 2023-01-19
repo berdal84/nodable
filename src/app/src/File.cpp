@@ -127,8 +127,7 @@ bool File::update()
         LOG_VERBOSE("File","m_graph->update()\n")
         auto graphUpdateResult = m_graph->update();
 
-        if (   graphUpdateResult == UpdateResult::SuccessWithoutChanges
-            && !m_view->get_text().empty() )
+        if (   graphUpdateResult == UpdateResult::Success_NoChanges && !m_view->get_text().empty() )
         {
             LOG_VERBOSE("File","graph_has_changed = false\n")
             graph_has_changed = false;
