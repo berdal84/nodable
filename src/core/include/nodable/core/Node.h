@@ -78,7 +78,6 @@ namespace ndbl {
         size_t               outgoing_edge_count()const;
 		void                 set_dirty(bool _value = true);
 		bool                 is_dirty()const;
-		virtual UpdateResult update();
         const iinvokable*    get_connected_invokable(const Property *each_edge); // TODO: weird, try to understand why I needed this
         bool                 is_connected_with(const Property *_localProperty);
 

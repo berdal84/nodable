@@ -27,7 +27,7 @@ namespace ndbl
  		explicit GraphNode(const Nodlang*, const INodeFactory*, const bool* _autocompletion);
 		~GraphNode();
 
-        UpdateResult                update() override;                                          // Delete/Update nodes if necessary.
+        UpdateResult                update();                                                   // Delete/Update nodes if necessary.
 
         // node related
 
