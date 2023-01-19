@@ -189,11 +189,11 @@ void NodeView::set_owner(Node *_node)
     // 4. Listen to connection/disconnections
     //---------------------------------------
 
-    m_nodeRelationAddedObserver = _node->m_on_relation_added.createObserver(
-        [this](Node* _other_node, Edge_t _relation )
+    m_onRelationAddedObserver = _node->m_on_edge_added.createObserver(
+        [this](Node* _other_node, Edge_t _edge )
         {
             NodeView* _other_node_view = _other_node->get<NodeView>();
-            switch ( _relation )
+            switch ( _edge )
             {
                 case Edge_t::IS_CHILD_OF:
                     children().add(_other_node_view ); break;
@@ -207,11 +207,11 @@ void NodeView::set_owner(Node *_node)
             }
         });
 
-    m_nodeRelationRemovedObserver = _node->m_on_relation_removed.createObserver(
-    [this](Node* _other_node, Edge_t _relation )
+    m_onRelationRemovedObserver = _node->m_on_edge_removed.createObserver(
+    [this](Node* _other_node, Edge_t _edge )
         {
             NodeView* _other_node_view = _other_node->get<NodeView>();
-            switch ( _relation )
+            switch ( _edge )
             {
                 case Edge_t::IS_CHILD_OF:
                     children().remove(_other_node_view ); break;

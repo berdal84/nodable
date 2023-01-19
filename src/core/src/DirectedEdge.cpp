@@ -38,7 +38,7 @@ void DirectedEdge::sanitize(DirectedEdge* edge)
     NDBL_EXPECT(edge->prop.dst != nullptr, "edge->prop.dst is nullptr");
     NDBL_EXPECT(edge->prop.src != edge->prop.dst, "edge->prop.src and edge->prop.dst are identical");
 
-    if (edge->type == Edge_t::IS_PREDECESSOR_OF ) // we never want this type of relation in our database
+    if (edge->type == Edge_t::IS_PREDECESSOR_OF ) // we never want this type of edge in our database
     {
         edge->type = Edge_t::IS_SUCCESSOR_OF;
         edge->prop.swap();

@@ -57,7 +57,7 @@ namespace ndbl
     };
 
     /**
-     * @class Class to represent a property to property oriented relation and its nature.
+     * @class Class to represent a property to property oriented edge and its nature.
      * Order is important.
      *
      * @example
@@ -70,13 +70,13 @@ namespace ndbl
     {
     public:
         Pair<Property*> prop; // Source and destination
-        Edge_t type;          // Nature of the relation
+        Edge_t type;          // Nature of the edge
 
         DirectedEdge() = delete;
-        DirectedEdge(Property * _src, Edge_t _type, Property * _dst);  // Connect source to target with a given relation type.
-        DirectedEdge(Property * _src, Property * _dst);                // Connect source to target with the relation IS_INPUT_OF
-        DirectedEdge(Node * _src, Edge_t _type, Node * _dst);          // Connect source["this"] to target["this"] with a given relation type.
-        DirectedEdge(Edge_t _type, Pair<Property*> _pair);             // Connect a pair of property (source, target) with a given relation type.
+        DirectedEdge(Property * _src, Edge_t _type, Property * _dst);  // Connect source to target with a given edge type.
+        DirectedEdge(Property * _src, Property * _dst);                // Connect source to target with the edge IS_INPUT_OF
+        DirectedEdge(Node * _src, Edge_t _type, Node * _dst);          // Connect source["this"] to target["this"] with a given edge type.
+        DirectedEdge(Edge_t _type, Pair<Property*> _pair);             // Connect a pair of property (source, target) with a given edge type.
 
         bool is_connected_to(Node* _node)const;                        // Check if a given node is connected to this edge.
         bool operator==(const DirectedEdge&) const;                    // Compare (type, nodes, and direction) two edges.

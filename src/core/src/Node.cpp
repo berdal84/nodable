@@ -38,35 +38,35 @@ Node::Node(std::string _label)
 
     // propagate "inputs" events
     m_inputs.m_on_added.connect( [this](Node* _node){
-        m_on_relation_added.emit(_node, Edge_t::IS_INPUT_OF);
+        m_on_edge_added.emit(_node, Edge_t::IS_INPUT_OF);
         set_dirty();
     });
 
     m_inputs.m_on_removed.connect( [this](Node* _node){
-        m_on_relation_removed.emit(_node, Edge_t::IS_INPUT_OF);
+        m_on_edge_removed.emit(_node, Edge_t::IS_INPUT_OF);
         set_dirty();
     });
 
 
     // propagate "outputs" events
     m_outputs.m_on_added.connect( [this](Node* _node){
-        m_on_relation_added.emit(_node, Edge_t::IS_OUTPUT_OF);
+        m_on_edge_added.emit(_node, Edge_t::IS_OUTPUT_OF);
         set_dirty();
     });
 
     m_outputs.m_on_removed.connect( [this](Node* _node){
-        m_on_relation_removed.emit(_node, Edge_t::IS_OUTPUT_OF);
+        m_on_edge_removed.emit(_node, Edge_t::IS_OUTPUT_OF);
         set_dirty();
     });
 
     // propagate "children" events
     m_children.m_on_added.connect( [this](Node* _node){
-        m_on_relation_added.emit(_node, Edge_t::IS_CHILD_OF);
+        m_on_edge_added.emit(_node, Edge_t::IS_CHILD_OF);
         set_dirty();
     });
 
     m_children.m_on_removed.connect( [this](Node* _node){
-        m_on_relation_removed.emit(_node, Edge_t::IS_CHILD_OF);
+        m_on_edge_removed.emit(_node, Edge_t::IS_CHILD_OF);
         set_dirty();
     });
 }

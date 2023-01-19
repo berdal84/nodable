@@ -18,7 +18,7 @@ namespace ndbl
                     , "ConnectEdge\n"
                       " - src: \"%s\"\n"
                       " - dst: \"%s\"\n"
-                      " - relation: \"%s\"\n"
+                      " - edge: \"%s\"\n"
                     , _edge.prop.src->get_name().c_str()
                     , _edge.prop.dst->get_name().c_str()
                     , to_string(_edge.type) );
