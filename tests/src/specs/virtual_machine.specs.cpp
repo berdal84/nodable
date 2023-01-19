@@ -5,9 +5,9 @@
 #include <nodable/core/Log.h>
 
 using namespace ndbl;
-typedef ::testing::Core VirualMachine;
+typedef ::testing::Core Virtual_Machine;
 
-TEST_F(VirualMachine, Cond_1)
+TEST_F(Virtual_Machine, Cond_1)
 {
     std::string program =
             "int bob   = 50;"
@@ -26,7 +26,7 @@ TEST_F(VirualMachine, Cond_1)
     EXPECT_EQ(eval<bool>(program), true);
 }
 
-TEST_F(VirualMachine, Cond_2)
+TEST_F(Virtual_Machine, Cond_2)
 {
     std::string program =
             "int bob   = 0;"
@@ -45,7 +45,7 @@ TEST_F(VirualMachine, Cond_2)
     EXPECT_EQ(eval<std::string>(program), "default");
 }
 
-TEST_F(VirualMachine, Loop_1_using_global_var)
+TEST_F(Virtual_Machine, Loop_1_using_global_var)
 {
     std::string program =
             "string str = \"\";"
@@ -58,7 +58,7 @@ TEST_F(VirualMachine, Loop_1_using_global_var)
     EXPECT_EQ(eval<std::string>(program), "0123456789");
 }
 
-TEST_F(VirualMachine, Loop_1_using_local_var)
+TEST_F(Virtual_Machine, Loop_1_using_local_var)
 {
     std::string program =
             "string str = \"\";"
@@ -72,7 +72,7 @@ TEST_F(VirualMachine, Loop_1_using_local_var)
     EXPECT_EQ(eval<std::string>(program), "0123456789");
 }
 
-TEST_F(VirualMachine, Loop_2_using_global_var)
+TEST_F(Virtual_Machine, Loop_2_using_global_var)
 {
     std::string program =
             "int n;"
@@ -96,7 +96,7 @@ TEST_F(VirualMachine, Loop_2_using_global_var)
     EXPECT_EQ(eval<std::string>(program), "__49162536496481");
 }
 
-TEST_F(VirualMachine, Loop_2_using_local_var)
+TEST_F(Virtual_Machine, Loop_2_using_local_var)
 {
     std::string program =
             "string str = \"\";"
@@ -117,7 +117,7 @@ TEST_F(VirualMachine, Loop_2_using_local_var)
     EXPECT_EQ(eval<std::string>(program), "__49162536496481");
 }
 
-TEST_F(VirualMachine, For_loop_without_var_decl)
+TEST_F(Virtual_Machine, For_loop_without_var_decl)
 {
     std::string program =
             "int score;"
@@ -129,7 +129,7 @@ TEST_F(VirualMachine, For_loop_without_var_decl)
     EXPECT_EQ(eval<int>(program), 9 * 2);
 }
 
-TEST_F(VirualMachine, For_loop_with_var_decl)
+TEST_F(Virtual_Machine, For_loop_with_var_decl)
 {
     std::string program =
             "int score = 1;"
@@ -141,7 +141,7 @@ TEST_F(VirualMachine, For_loop_with_var_decl)
     EXPECT_EQ(eval<int>(program), 1 * pow(2, 10));
 }
 
-TEST_F(VirualMachine, declare_then_define)
+TEST_F(Virtual_Machine, declare_then_define)
 {
     std::string program_01 =
             "int b;"
@@ -150,7 +150,7 @@ TEST_F(VirualMachine, declare_then_define)
     EXPECT_EQ(eval<int>(program_01), 5);
 }
 
-TEST_F(VirualMachine, declare_and_define_then_reassign)
+TEST_F(Virtual_Machine, declare_and_define_then_reassign)
 {
     std::string program_01 =
             "int b = 6;"
@@ -159,7 +159,7 @@ TEST_F(VirualMachine, declare_and_define_then_reassign)
     EXPECT_EQ(eval<int>(program_01), 5);
 }
 
-TEST_F(VirualMachine, declare_then_define_then_reassign)
+TEST_F(Virtual_Machine, declare_then_define_then_reassign)
 {
     std::string program_01 =
             "int b;"
@@ -169,7 +169,7 @@ TEST_F(VirualMachine, declare_then_define_then_reassign)
     EXPECT_EQ(eval<int>(program_01), 5);
 }
 
-TEST_F(VirualMachine, condition_which_contains_alterated_var)
+TEST_F(Virtual_Machine, condition_which_contains_alterated_var)
 {
     std::string program =
             "int b = 6;"
@@ -183,7 +183,7 @@ TEST_F(VirualMachine, condition_which_contains_alterated_var)
     EXPECT_EQ(eval<std::string>(program), "ok");
 }
 
-TEST_F(VirualMachine, else_elseif_else)
+TEST_F(Virtual_Machine, else_elseif_else)
 {
 
     std::string program_end =
@@ -207,7 +207,7 @@ TEST_F(VirualMachine, else_elseif_else)
     EXPECT_EQ(eval<std::string>(program3), "a == b");
 }
 
-TEST_F(VirualMachine, integers)
+TEST_F(Virtual_Machine, integers)
 {
     EXPECT_EQ(eval<int>("int i = 1"), 1);
     EXPECT_EQ(eval<int>("int i = 3 + 5"), 8);
