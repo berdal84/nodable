@@ -174,7 +174,7 @@ Node* GraphNode::create_operator(const iinvokable* _invokable)
 
 void GraphNode::destroy(Node* _node)
 {
-    // disconnect any relation with this node
+    // disconnect any edge connected to this node
     std::vector<const DirectedEdge*> edges_to_disconnect;
 
     for (auto pair : m_edge_registry)
@@ -409,7 +409,7 @@ const DirectedEdge* GraphNode::connect(DirectedEdge _edge, bool _side_effects)
 
 void GraphNode::disconnect(const DirectedEdge* _edge, bool _side_effects)
 {
-    // find relation
+    // find the edge to disconnect
     auto [begin, end] = m_edge_registry.equal_range(_edge->type );
     auto found = std::find_if(begin, end, [&_edge](auto& pair)
     {

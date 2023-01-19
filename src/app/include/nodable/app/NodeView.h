@@ -97,8 +97,8 @@ namespace ndbl
         NodeView (const NodeView&) = delete;
         NodeView& operator= (const NodeView&) = delete;
 
-		observe::Observer m_nodeRelationAddedObserver;
-		observe::Observer m_nodeRelationRemovedObserver;
+		observe::Observer m_onRelationAddedObserver;
+		observe::Observer m_onRelationRemovedObserver;
 
 		void                    set_owner(Node *_node)override;
 		void                    expose(Property *);

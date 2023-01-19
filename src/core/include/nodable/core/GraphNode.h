@@ -66,7 +66,7 @@ namespace ndbl
         void                        add(DirectedEdge*);                                          // Add a given edge to the registry.
         void                        remove(DirectedEdge*);                                       // Remove a given edge from the registry.
     public:
-        void                        clear();                                                     // Delete all nodes, wires, relations and reset scope.
+        void                        clear();                                                     // Delete all nodes, wires, edges and reset scope.
         const std::vector<Node*>&   get_node_registry()const {return m_node_registry;}           // Get the node registry.
         EdgeRegistry_t&             get_edge_registry() {return m_edge_registry;}                // Get the edge registry.
 

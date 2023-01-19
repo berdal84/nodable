@@ -486,8 +486,8 @@ bool GraphNodeView::draw()
             if ( dragged_node_conn )
             {
                 Node* dragged_node = dragged_node_conn->get_node();
-                Edge_t relation_type = dragged_node_conn->m_way == Way_Out ? Edge_t::IS_SUCCESSOR_OF : Edge_t::IS_PREDECESSOR_OF;
-                graph->connect( {new_node, relation_type, dragged_node} );
+                Edge_t edge_type = dragged_node_conn->m_way == Way_Out ? Edge_t::IS_SUCCESSOR_OF : Edge_t::IS_PREDECESSOR_OF;
+                graph->connect( {new_node, edge_type, dragged_node} );
                 NodeConnector::stop_drag();
             }
             else if ( dragged_property_conn )
