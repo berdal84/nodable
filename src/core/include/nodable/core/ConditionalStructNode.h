@@ -24,23 +24,23 @@ namespace ndbl
         ConditionalStructNode();
         ~ConditionalStructNode() = default;
 
-        inline void       set_token_if(token_ptr token) { m_token_if = std::move(token); }
-        inline void       set_token_else(token_ptr token) { m_token_else = std::move(token); }
-        inline token_cptr get_token_if()const   { return m_token_if; }
-        inline token_cptr get_token_else()const { return m_token_else; }
-        bool              has_elseif() const; // Check if another conditional structure is connected to the else branch (forming an else if)
+        void              set_token_if(token_ptr token);   // Set the "if" token (ex: { prefix: "", word: "if", suffix: " "})
+        void              set_token_else(token_ptr token); // Set the "else" token (ex: { prefix: " ", word: "else", suffix: " "})
+        token_cptr        get_token_if()const;             // Get the "if" token (ex: { prefix: "", word: "if", suffix: " "})
+        token_cptr        get_token_else()const;           // Get the "else" token (ex: { prefix: " ", word: "else", suffix: " "})
+        bool              has_elseif() const;              // Check if another conditional structure is connected to the else branch (forming an else if)
 
         // implement IConditionalStruct (which is already documented)
 
         Scope*           get_condition_true_scope()const override;
         Scope*           get_condition_false_scope()const override;
-        Property *       condition_property()const override { return m_props.get(k_conditional_cond_property_name); }
+        Property *       condition_property()const override;
         void             set_cond_expr(InstructionNode*) override;
-        InstructionNode* get_cond_expr()const override { return m_cond_expr; }
+        InstructionNode* get_cond_expr()const override;
     private:
-        token_ptr        m_token_if;
-        token_ptr        m_token_else;
-        InstructionNode* m_cond_expr;
+        token_ptr        m_token_if;   // The "if" token (ex: { prefix: "", word: "if", suffix: " "})
+        token_ptr        m_token_else; // The "else" token (ex: { prefix: " ", word: "else", suffix: " "})
+        InstructionNode* m_cond_expr;  // The instruction to evaluate the condition
 
         REFLECT_DERIVED_CLASS(Node, IConditionalStruct)
 
