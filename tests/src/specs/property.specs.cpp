@@ -55,7 +55,7 @@ TEST(Property, Type_Boolean)
 
     m.set(true);
     EXPECT_TRUE((bool)m);
-    EXPECT_EQ(m.get_type(), type::get<bool>());
+    EXPECT_EQ(m.get_type(), fw::type::get<bool>());
 
     m.set(false);
     EXPECT_FALSE((bool)m);
@@ -71,7 +71,7 @@ TEST(Property, Type_String)
 
     EXPECT_EQ((std::string)m, str);
     EXPECT_TRUE(m.convert_to<bool>());
-    EXPECT_EQ(m.get_type(), type::get<std::string>());
+    EXPECT_EQ(m.get_type(), fw::type::get<std::string>());
     EXPECT_TRUE(m.get_variant()->is_defined());
 }
 
@@ -81,7 +81,7 @@ TEST(Property, Type_Double)
     m.set((double)50);
 
     EXPECT_EQ((double)m, (double)50);
-    EXPECT_EQ(m.get_type(), type::get<double>());
+    EXPECT_EQ(m.get_type(), fw::type::get<double>());
     EXPECT_TRUE(m.get_variant()->is_defined());
 }
 
@@ -91,7 +91,7 @@ TEST(Property, Modify_by_reference_using_a_pointer)
     m.set(50.0);
 
     EXPECT_EQ((double)m, 50.0);
-    EXPECT_EQ(m.get_type(), type::get<double>());
+    EXPECT_EQ(m.get_type(), fw::type::get<double>());
     EXPECT_TRUE(m.get_variant()->is_defined());
 
     double& ref = (double&)m;
@@ -106,7 +106,7 @@ TEST(Property, Modify_by_reference_using_a_reference)
     Property m2(nullptr, 50.0);
 
     EXPECT_EQ((double)m1, 50.0);
-    EXPECT_EQ(m1.get_type(), type::get<double>());
+    EXPECT_EQ(m1.get_type(), fw::type::get<double>());
     EXPECT_TRUE(m1.get_variant()->is_defined());
 
     auto add_right_to_left = [](double& a, double b) -> double { return  a = a + b; };

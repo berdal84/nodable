@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include <nodable/core/reflection/reflection>
+#include <fw/reflection/reflection>
 #include <nodable/core/Node.h>
 
-using namespace ndbl;
+using namespace fw;
 
 TEST(Reflection, is_convertible__type_to_ptr)
 {
@@ -63,7 +63,7 @@ TEST(Reflection, is_ref)
 TEST(Reflection, node_as_pointer)
 {
     // prepare
-    auto node_ptr = std::unique_ptr<Node>();
+    auto node_ptr = std::unique_ptr<ndbl::Node>();
     variant v;
 
     // act
@@ -71,6 +71,6 @@ TEST(Reflection, node_as_pointer)
 
     // check
     EXPECT_EQ(v.get_type(), type::get<void*>() );
-    EXPECT_EQ(node_ptr.get(), (Node*)v );
+    EXPECT_EQ(node_ptr.get(), (ndbl::Node*)v );
     EXPECT_TRUE(v.get_type().is_ptr());
 }
