@@ -1,9 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <nodable/core/reflection/invokable.h>
+#include <fw/reflection/invokable.h>
 #include "../fixtures/core.h"
 
 using namespace ndbl;
+using namespace fw;
 
 typedef testing::Core Language;
 

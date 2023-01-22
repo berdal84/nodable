@@ -4,16 +4,16 @@
 #include <gtest/gtest.h>
 #include <string>
 
-#include "nodable/core/GraphNode.h"
-#include "nodable/core/Node.h"
-#include "nodable/core/NodeFactory.h"
-#include "nodable/core/Property.h"
-#include "nodable/core/Scope.h"
-#include "nodable/core/String.h"
-#include "nodable/core/VariableNode.h"
-#include "nodable/core/VirtualMachine.h"
-#include "nodable/core/language/Nodlang.h"
-#include "nodable/core/types.h"
+#include <fw/String.h>
+#include <fw/types.h>
+#include <nodable/core/GraphNode.h>
+#include <nodable/core/Node.h>
+#include <nodable/core/NodeFactory.h>
+#include <nodable/core/Property.h>
+#include <nodable/core/Scope.h>
+#include <nodable/core/VariableNode.h>
+#include <nodable/core/VirtualMachine.h>
+#include <nodable/core/language/Nodlang.h>
 
 using namespace ndbl;
 
@@ -22,12 +22,12 @@ namespace testing
 class Core : public Test
 {
 public:
-    Nodlang language;
-    const NodeFactory factory;
-    bool autocompletion = false;
-    GraphNode graph;
-    assembly::Compiler compiler;
-    VirtualMachine virtual_machine;
+    Nodlang             language;
+    const NodeFactory   factory;
+    bool                autocompletion = false;
+    GraphNode           graph;
+    assembly::Compiler  compiler;
+    VirtualMachine      virtual_machine;
 
     Core()
         : factory(&language), graph(&language, &factory, &autocompletion) {}
@@ -71,7 +71,7 @@ public:
         virtual_machine.run_program();
 
         // get result
-        qword mem_space = virtual_machine.get_last_result();
+        fw::qword mem_space = virtual_machine.get_last_result();
         auto result = return_t(mem_space);
 
         virtual_machine.release_program();
