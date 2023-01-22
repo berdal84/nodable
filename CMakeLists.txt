@@ -26,10 +26,12 @@ include( cmake/compiler-config.cmake )
 include( cmake/set-build-ref-variable.cmake )
 
 #include other CMakeLists.txt
-add_subdirectory(libs)     # libraries (SDL, lodepng, Dear ImGui, etc.)
-add_subdirectory(src/core) # nodable core (static library).
-add_subdirectory(src/cli)  # nodable application (terminal).
-add_subdirectory(src/app)  # nodable application (with gui).
+add_subdirectory(libs)                    # libraries (SDL, lodepng, Dear ImGui, etc.)
+add_subdirectory(src/framework/headless)  # CLI framework
+add_subdirectory(src/framework/imgui)     # ImGui based framework
+add_subdirectory(src/nodable/core)        # nodable core (static library).
+add_subdirectory(src/nodable/cli)         # nodable application (terminal).
+add_subdirectory(src/nodable/app)         # nodable application (with gui).
 add_subdirectory(tests)
 
 #  Packaging:

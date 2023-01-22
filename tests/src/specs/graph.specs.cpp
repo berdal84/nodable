@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "../fixtures/core.h"
+#include <fw/reflection/func_type.h>
 #include <nodable/core/DirectedEdge.h>
 #include <nodable/core/GraphNode.h>
 #include <nodable/core/InstructionNode.h>
@@ -11,7 +12,6 @@
 #include <nodable/core/Scope.h>
 #include <nodable/core/VariableNode.h>
 #include <nodable/core/language/Nodlang.h>
-#include <nodable/core/reflection/func_type.h>
 
 using namespace ndbl;
 typedef ::testing::Core Graph;
@@ -55,10 +55,10 @@ TEST_F(Graph, disconnect)
 TEST_F(Graph, clear)
 {
     InstructionNode* instructionNode = graph.create_instr();
-    func_type*       sig             = func_type_builder<int(int, int)>::with_id("+");
-    auto             operator_fct    = language.find_operator_fct_exact(sig);
+    fw::func_type*   fct_type        = fw::func_type_builder<int(int, int)>::with_id("+");
+    auto             operator_fct    = language.find_operator_fct_exact(fct_type);
 
-    delete sig;
+    delete fct_type;
 
     EXPECT_TRUE(operator_fct.get() != nullptr);
     Node* operatorNode = graph.create_operator(operator_fct.get());
@@ -84,30 +84,32 @@ TEST_F(Graph, clear)
 TEST_F(Graph, create_and_delete_relations)
 {
     // prepare
-    Node* program = graph.create_root();
-    EXPECT_EQ(graph.get_edge_registry().size(), 0);
-    Node* n1 = graph.create_variable(type::get<double>(), "n1", program->get<Scope>());
-    EXPECT_EQ(graph.get_edge_registry().size(), 0);
-    Node* n2 = graph.create_variable(type::get<double>(), "n2", program->get<Scope>());
+    auto double_type = fw::type::get<double>();
+    auto scope       = graph.create_root()->get<Scope>();
+    auto& edges      = graph.get_edge_registry();
+    EXPECT_EQ(edges.size(), 0);
+    Node* n1 = graph.create_variable(double_type, "n1", scope);
+    EXPECT_EQ(edges.size(), 0);
+    Node* n2 = graph.create_variable(double_type, "n2", scope);
 
     // Act and test
 
     // is child of (and by reciprocity "is parent of")
-    EXPECT_EQ(graph.get_edge_registry().size(), 0);
+    EXPECT_EQ(edges.size(), 0);
     EXPECT_EQ(n2->children_slots().size(), 0);
     auto edge1 = graph.connect({n1, Edge_t::IS_CHILD_OF, n2}, false);
     EXPECT_EQ(n2->children_slots().size(), 1);
-    EXPECT_EQ(graph.get_edge_registry().size(), 1);
+    EXPECT_EQ(edges.size(), 1);
     graph.disconnect(edge1);
     EXPECT_EQ(n2->children_slots().size(), 0);
 
     // Is input of
-    EXPECT_EQ(graph.get_edge_registry().size(), 0);
+    EXPECT_EQ(edges.size(), 0);
     EXPECT_EQ(n2->inputs().size(), 0);
     auto edge2 = graph.connect({n1, Edge_t::IS_INPUT_OF, n2}, false);
     EXPECT_EQ(n2->inputs().size(), 1);
-    EXPECT_EQ(graph.get_edge_registry().size(), 1);
+    EXPECT_EQ(edges.size(), 1);
     graph.disconnect(edge2);
     EXPECT_EQ(n2->inputs().size(), 0);
-    EXPECT_EQ(graph.get_edge_registry().size(), 0);
+    EXPECT_EQ(edges.size(), 0);
 }

@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include <nodable/core/Log.h>
-#include <nodable/core/reflection/type_register.h>
+#include <fw/Log.h>
+#include <fw/reflection/reflection>
 
-using namespace ndbl;
+using namespace fw;
 
 int main(int argc, char **argv) {
 
