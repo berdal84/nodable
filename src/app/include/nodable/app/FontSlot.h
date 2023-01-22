@@ -1,11 +1,7 @@
 #pragma once
 
-typedef int FontSlot;
-
-/**
- * Enum to identify each font slots need to run Nodable
- */
-enum FontSlot_
+typedef int FontSlot;      // to allow bitwise operations, we use this type in all signatures
+enum FontSlot_             // Enum to identify each font slots
 {
     FontSlot_Paragraph,
     FontSlot_Heading,
