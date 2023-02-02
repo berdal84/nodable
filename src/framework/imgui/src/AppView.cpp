@@ -394,7 +394,7 @@ bool AppView::get_fullscreen() const
 
 ImFont* AppView::get_font(FontSlot_ slot) const
 {
-    assert(false); // todo
+    return m_fonts[slot];
 }
 
 void AppView::set_layout_initialized(bool b)
