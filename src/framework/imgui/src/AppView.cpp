@@ -94,7 +94,15 @@ bool AppView::init()
     // Assign fonts (user might want to change it later, but we need defaults)
     for( auto each_slot = 0; each_slot < FontSlot_COUNT; ++each_slot )
     {
-        m_fonts[each_slot] = get_font_by_id( m_conf.fonts_default[each_slot] );
+        if(auto font = m_conf.fonts_default[each_slot] )
+        {
+            m_fonts[each_slot] = get_font_by_id( font );
+        }
+        else
+        {
+            LOG_WARNING("AppView", "No default font declared for slot %i\n, using fallback", each_slot);
+            m_fonts[each_slot] = ImGui::GetDefaultFont();
+        }
     }
 
     // Configure ImGui Style
