@@ -371,9 +371,8 @@ bool AppView::onDraw()
         }
         ImGui::End(); // Main window
     }
-    fw::ImGuiEx::EndFrame();
 
-    return false;
+    return true;
 }
 
 void AppView::draw_help_window() const
