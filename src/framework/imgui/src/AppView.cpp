@@ -389,7 +389,7 @@ void AppView::set_splashscreen_visible(bool b)
 
 bool AppView::get_fullscreen() const
 {
-    assert(false); // todo
+    return SDL_GetWindowFlags(m_sdl_window) & (SDL_WindowFlags::SDL_WINDOW_FULLSCREEN | SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP);
 }
 
 ImFont* AppView::get_font(FontSlot_ slot) const
@@ -401,9 +401,10 @@ void AppView::set_layout_initialized(bool b)
 {
     m_is_layout_initialized = b;
 }
+
 void AppView::set_fullscreen(bool b)
 {
-    assert(false); // todo
+    SDL_SetWindowFullscreen(m_sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
 bool AppView::get_layout_initialized() const
