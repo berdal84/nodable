@@ -45,13 +45,13 @@ namespace fw
             ImColor               background_color;
             bool                  is_layout_initialized;
             std::string           splashscreen_title;
-            bool                  show_splashscreen;
-            bool                  show_properties_editor;
-            bool                  show_imgui_demo;
-            std::string           splashscreen_path;
-            std::string           icons_path;
-            float                 ui_dockspace_down_size;
-            float                 ui_dockspace_right_ratio;
+            bool                  show_splashscreen      = true;
+            bool                  show_properties_editor = false;
+            bool                  show_imgui_demo        = false;
+            std::string           splashscreen_path      = "images/nodable-logo-xs.png";
+            std::string           icons_path             = "fonts/fa-solid-900.ttf";
+            float                 ui_dockspace_down_size = 48.f;
+            float                 ui_dockspace_right_ratio = 0.3f;
         };
 
 		AppView(App*, Conf);

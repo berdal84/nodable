@@ -40,6 +40,10 @@ bool AppView::onInit()
     {
         if(!load_font(font_config)) return false;
     }
+
+    App& app = App::get_instance();
+    m_logo = app.texture_manager().get_or_create_from( app.compute_asset_path(m_conf.splashscreen_path.c_str()) );
+
     return true;
 }
 
